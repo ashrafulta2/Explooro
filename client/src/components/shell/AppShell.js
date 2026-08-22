@@ -17,6 +17,8 @@ import { Sidebar } from './Sidebar.js';
 import { TopBar, formatRemaining } from './TopBar.js';
 import { MobileNav } from './MobileNav.js';
 import { createCommandPalette } from './CommandPalette.js';
+import { CartDrawer } from '../cart/CartDrawer.js';
+import { initCart } from '../../services/cart.js';
 
 function isTextInput(el) {
   return Boolean(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
@@ -54,6 +56,9 @@ export function createAppShell({ container, navigate }) {
   }
 
   const palette = createCommandPalette({ getState: () => ({ ctx: currentCtx(), navigate }) });
+  const cartDrawer = CartDrawer({ navigate });
+  document.body.append(cartDrawer);
+  initCart();
 
   function render() {
     const s = appStore.get();

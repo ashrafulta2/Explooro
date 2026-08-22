@@ -24,6 +24,9 @@ import { VariantSelector } from '../components/product/VariantSelector.js';
 import { PriceBreakdown } from '../components/product/PriceBreakdown.js';
 import { ReviewList } from '../components/product/ReviewList.js';
 import { QnASection } from '../components/product/QnASection.js';
+import { WishlistButton } from '../components/cart/WishlistButton.js';
+import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
+import { addToCart } from '../services/cart.js';
 import * as catalogApi from '../services/catalog.api.js';
 
 const SITE_NAME = 'Explooro';
@@ -189,18 +192,47 @@ export default function ProductDetailPage(root, { params, navigate }) {
       label: t('product_detail.cta.add_to_cart'),
       variant: 'primary',
       disabled: !inStock(),
-      onClick: () => placeholderNotice('product_detail.cta.add_to_cart_placeholder'),
+      onClick: () => {
+        const sel = getSelection();
+        addToCart({
+          product_id: product.id,
+          variant_id: sel?.id || null,
+          qty: 1,
+          title_en: product.title_en,
+          title_bn: product.title_bn,
+          slug: product.slug,
+          variant_title: sel?.title || null,
+          variant_sku: sel?.sku || null,
+          price: sel?.price_override ?? product.retail_price,
+          image_url: product.images?.[0]?.url || product.primary_image_url,
+          supplier_id: product.supplier_id || 1,
+          supplier_name: product.supplier_name || 'Verified Supplier',
+          stock_qty: sel?.stock_qty ?? product.stock_qty,
+        });
+      },
     });
     ctaRow.append(addToCartBtn);
+
+    if (isFeatureEnabled('wishlist')) {
+      const wishlistBtn = WishlistButton({ productId: product.id, size: 'lg' });
+      ctaRow.append(wishlistBtn);
+    }
 
     if (isFeatureEnabled('quick_buy')) {
       const quickBuyWrap = document.createElement('div');
       quickBuyWrap.dataset.module = 'quick_buy';
       const quickBuyBtn = Button({
-        label: t('marketplace.product.quick_buy'),
+        label: t('marketplace.product.quick_buy') || 'Quick Buy',
         variant: 'secondary',
         disabled: !inStock(),
-        onClick: () => placeholderNotice('product_detail.cta.quick_buy_placeholder'),
+        onClick: () => {
+          openQuickBuyModal({
+            product,
+            selectedVariant: selectedVariant,
+            initialQty: 1,
+            navigate,
+          });
+        },
       });
       quickBuyWrap.append(quickBuyBtn);
       ctaRow.append(quickBuyWrap);
@@ -260,7 +292,7 @@ export default function ProductDetailPage(root, { params, navigate }) {
     layout.className = 'product-detail-page__layout';
 
     // ── Gallery column ──────────────────────────────────────────────────
-    const gallery = ImageGallery({ images: product.images, title });
+    const gallery = ImageGallery({ images: product.images, title, product });
     const galleryCol = document.createElement('div');
     galleryCol.className = 'product-detail-page__gallery-col';
     galleryCol.append(gallery);

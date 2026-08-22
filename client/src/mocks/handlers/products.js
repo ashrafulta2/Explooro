@@ -52,12 +52,10 @@ function synthesizeVariants(product) {
 }
 
 function synthesizeImages(product) {
-  // No real photography exists in mock data (or in the seeded dev DB — see review_media in
-  // server/src/db/seeds/008_demo_reviews.sql) — three gallery slots per product, ImageGallery.js
-  // renders each as the same tinted-initials placeholder ProductCard.js already uses.
+  const primaryUrl = product.image_url || null;
   return [0, 1, 2].map((i) => ({
     id: `${product.ref}-IMG${i}`,
-    url: null,
+    url: primaryUrl,
     is_primary: i === 0,
     image_index: (product.image_index + i) % 10,
   }));

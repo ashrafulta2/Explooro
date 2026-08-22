@@ -1,0 +1,154 @@
+/**
+ * OrderTracker.js — 4-Stage Sub-Order Progress Tracker & Live Map Placeholder (Prompt 5.4).
+ *
+ * Stages:
+ *  1. PLACED: Order received in system
+ *  2. CONFIRMED: Allocated and packed at supplier warehouse
+ *  3. SHIPPED: Dispatched with regional courier partner
+ *  4. DELIVERED: Handed over to recipient
+ */
+
+import { t } from '../../services/i18n.js';
+
+export const ORDER_STAGES = [
+  { key: 'PLACED', labelKey: 'order_tracking.status_placed', icon: '📝' },
+  { key: 'CONFIRMED', labelKey: 'order_tracking.status_confirmed', icon: '📦' },
+  { key: 'SHIPPED', labelKey: 'order_tracking.status_shipped', icon: '🚚' },
+  { key: 'DELIVERED', labelKey: 'order_tracking.status_delivered', icon: '✅' },
+];
+
+export function getStageIndex(status) {
+  switch (status) {
+    case 'PLACED': return 0;
+    case 'CONFIRMED':
+    case 'PROCESSING': return 1;
+    case 'SHIPPED':
+    case 'IN_TRANSIT': return 2;
+    case 'DELIVERED': return 3;
+    case 'CANCELLED': return -1;
+    default: return 0;
+  }
+}
+
+const SUB_ORDER_STATUS_KEYS = {
+  PLACED: 'order_tracking.status_placed',
+  CONFIRMED: 'order_tracking.status_confirmed',
+  PROCESSING: 'order_tracking.status_processing',
+  SHIPPED: 'order_tracking.status_shipped',
+  IN_TRANSIT: 'order_tracking.status_in_transit',
+  DELIVERED: 'order_tracking.status_delivered',
+  CANCELLED: 'order_tracking.status_cancelled',
+};
+
+const PAYMENT_STATUS_KEYS = {
+  PENDING: 'order_tracking.payment_status_pending',
+  PAID: 'order_tracking.payment_status_paid',
+  FAILED: 'order_tracking.payment_status_failed',
+  PARTIALLY_REFUNDED: 'order_tracking.payment_status_partially_refunded',
+  REFUNDED: 'order_tracking.payment_status_refunded',
+};
+
+export function getSubOrderStatusLabel(status) {
+  return t(SUB_ORDER_STATUS_KEYS[status] || 'order_tracking.status_placed');
+}
+
+export function getPaymentStatusLabel(status) {
+  return t(PAYMENT_STATUS_KEYS[status] || 'order_tracking.payment_status_pending');
+}
+
+export function OrderTracker({
+  subOrder,
+  parentOrder = null,
+} = {}) {
+  const container = document.createElement('div');
+  container.className = 'order-tracker';
+
+  const status = subOrder.status || 'PLACED';
+  const isCancelled = status === 'CANCELLED';
+  const currentStageIdx = getStageIndex(status);
+
+  // 1. Status Stepper
+  const stepper = document.createElement('div');
+  stepper.className = `order-tracker__stepper ${isCancelled ? 'order-tracker__stepper--cancelled' : ''}`;
+
+  if (isCancelled) {
+    stepper.innerHTML = `
+      <div class="order-tracker__cancelled-badge alert alert--danger">
+        <strong>⚠️ ${t('order_tracking.status_cancelled')}</strong>
+        <p class="text-sm">${subOrder.cancel_reason || 'This sub-order was cancelled and inventory was released back to stock.'}</p>
+      </div>
+    `;
+  } else {
+    ORDER_STAGES.forEach((stage, idx) => {
+      const isDone = idx < currentStageIdx;
+      const isActive = idx === currentStageIdx;
+      const isPending = idx > currentStageIdx;
+
+      let stepClass = 'order-tracker__step';
+      if (isDone) stepClass += ' order-tracker__step--done';
+      if (isActive) stepClass += ' order-tracker__step--active';
+      if (isPending) stepClass += ' order-tracker__step--pending';
+
+      const stepEl = document.createElement('div');
+      stepEl.className = stepClass;
+      stepEl.innerHTML = `
+        <div class="order-tracker__node">
+          <span class="order-tracker__icon">${isDone ? '✓' : stage.icon}</span>
+        </div>
+        <div class="order-tracker__label">${t(stage.labelKey)}</div>
+      `;
+      stepper.append(stepEl);
+
+      if (idx < ORDER_STAGES.length - 1) {
+        const line = document.createElement('div');
+        line.className = `order-tracker__line ${idx < currentStageIdx ? 'order-tracker__line--done' : ''}`;
+        stepper.append(line);
+      }
+    });
+  }
+
+  container.append(stepper);
+
+  // 2. Courier & Shipping Logistics Info
+  const courierCard = document.createElement('div');
+  courierCard.className = 'order-tracker__courier card card--subtle';
+  const courierName = subOrder.courier_partner || 'Steadfast Logistics (Dhaka Hub)';
+  const trackingNumber = subOrder.tracking_number || `EXP-${subOrder.ref || '001'}`;
+
+  courierCard.innerHTML = `
+    <div class="order-tracker__courier-header">
+      <div>
+        <span class="text-xs text-secondary uppercase font-semibold">${t('order_tracking.courier_partner')}</span>
+        <div class="order-tracker__courier-name">🚚 ${courierName}</div>
+      </div>
+      <div>
+        <span class="text-xs text-secondary uppercase font-semibold">${t('order_tracking.tracking_number')}</span>
+        <div class="order-tracker__courier-code"><code>${trackingNumber}</code></div>
+      </div>
+    </div>
+  `;
+  container.append(courierCard);
+
+  // 3. Interactive Route Map Placeholder (Prompt 7.1 prep)
+  const mapPlaceholder = document.createElement('div');
+  mapPlaceholder.className = 'order-tracker__map';
+  mapPlaceholder.innerHTML = `
+    <div class="order-tracker__map-canvas">
+      <div class="order-tracker__map-grid"></div>
+      <div class="order-tracker__map-route">
+        <div class="order-tracker__map-pin order-tracker__map-pin--origin" title="Warehouse Origin">🏭</div>
+        <div class="order-tracker__map-pulse"></div>
+        <div class="order-tracker__map-pin order-tracker__map-pin--dest" title="Delivery Destination">📍</div>
+      </div>
+      <div class="order-tracker__map-overlay">
+        <span class="badge badge--primary">📡 ${t('order_tracking.live_map_title')}</span>
+        <p class="text-xs text-secondary mt-1">${t('order_tracking.live_map_desc')}</p>
+      </div>
+    </div>
+  `;
+  container.append(mapPlaceholder);
+
+  return {
+    element: container,
+  };
+}

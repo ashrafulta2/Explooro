@@ -32,29 +32,46 @@ import { initTheme } from './services/themePalette.js';
 import { navItems } from './config/navigation.js';
 import { createAppShell } from './components/shell/AppShell.js';
 
-// ── Dev-only status bar (tiny strip, hidden in production) ──────────────────
+// ── Dev-only status bar (shown only if there is an error / connection issue) ──
 if (import.meta.env.DEV) {
   const bar = document.getElementById('dev-status-bar');
   const apiEl = document.getElementById('api-status');
   const proxyEl = document.getElementById('proxy-status');
   const modeEl = document.getElementById('api-mode');
-  if (bar) {
-    bar.style.display = 'flex';
-    // Push router-outlet down so the bar doesn't overlap the top nav
-    const outlet = document.getElementById('router-outlet');
-    if (outlet) outlet.style.paddingTop = '22px';
-  }
-  if (modeEl) modeEl.textContent = import.meta.env.VITE_API_MODE ?? 'mock';
-  if (apiEl) apiEl.textContent = 'checking…';
-  if (proxyEl) proxyEl.textContent = 'checking…';
+  const outlet = document.getElementById('router-outlet');
+
+  const showBar = (apiMsg, proxyMsg) => {
+    if (bar) {
+      bar.style.display = 'flex';
+      if (outlet) outlet.style.paddingTop = '22px';
+    }
+    if (modeEl) modeEl.textContent = import.meta.env.VITE_API_MODE ?? 'mock';
+    if (apiEl) apiEl.textContent = apiMsg;
+    if (proxyEl) proxyEl.textContent = proxyMsg;
+  };
+
+  const hideBar = () => {
+    if (bar) {
+      bar.style.display = 'none';
+      if (outlet) outlet.style.paddingTop = '0';
+    }
+  };
+
   fetch('/api/v1/health', { headers: { Accept: 'application/json' } })
     .then(async (res) => {
-      if (apiEl) apiEl.textContent = res.ok ? `${(await res.json()).status ?? 'ok'}` : `HTTP ${res.status}`;
-      if (proxyEl) proxyEl.textContent = 'reachable';
+      if (!res.ok) {
+        showBar(`HTTP ${res.status}`, 'error');
+      } else {
+        const body = await res.json().catch(() => ({}));
+        if (body.status && body.status !== 'ok') {
+          showBar(body.status, 'reachable');
+        } else {
+          hideBar();
+        }
+      }
     })
     .catch(() => {
-      if (apiEl) apiEl.textContent = 'unreachable';
-      if (proxyEl) proxyEl.textContent = 'no response';
+      showBar('unreachable', 'no response');
     });
 }
 
@@ -105,7 +122,10 @@ async function bootRouterDemo() {
         item.path !== '/admin/security/audit' &&
         item.path !== '/admin/audit' &&
         item.path !== '/admin/platform/theme' &&
-        item.path !== '/admin/theme'
+        item.path !== '/admin/theme' &&
+        item.path !== '/checkout' &&
+        item.path !== '/orders' &&
+        item.path !== '/customer/orders'
     )
     .map((item) => ({
       path: item.path,
@@ -126,6 +146,11 @@ async function bootRouterDemo() {
       { path: '/product/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
       { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.js') },
+      // Prompt 5.4: Checkout & Order Tracking Pages
+      { path: '/checkout', title: 'Secure Checkout — Explooro', permission: null, module: 'core', load: () => import('./pages/CheckoutPage.js') },
+      { path: '/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
+      { path: '/customer/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
+      { path: '/orders/:id', title: 'Order Details — Explooro', permission: null, module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
       {
         path: '/saler',
         title: 'Saler Dashboard — Explooro',

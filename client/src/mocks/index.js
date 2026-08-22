@@ -13,6 +13,8 @@ import accessHandlers from './handlers/access.js';
 import reviewHandlers from './handlers/reviews.js';
 import qnaHandlers from './handlers/qna.js';
 import authHandlers from './handlers/auth.js';
+import cartHandlers from './handlers/cart.js';
+import orderHandlers from './handlers/orders.js';
 
 const handlers = [
   ...authHandlers,
@@ -21,6 +23,8 @@ const handlers = [
   ...accessHandlers,
   ...reviewHandlers,
   ...qnaHandlers,
+  ...cartHandlers,
+  ...orderHandlers,
 ];
 
 function notFoundBody(path) {

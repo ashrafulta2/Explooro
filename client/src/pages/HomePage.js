@@ -25,6 +25,7 @@ import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js'
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { Button } from '../components/ui/Button.js';
 import { ProductGrid } from '../components/product/ProductGrid.js';
+import { addToCart } from '../services/cart.js';
 import { CategoryPills } from '../components/product/CategoryPills.js';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.js';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
@@ -301,9 +302,20 @@ export default function HomePage(root, { navigate }) {
   }
 
   function handleAction(product, actionType) {
-    // WHY: Quick Buy and Add to Store need cart/storefront (Phase 5+/4.7+). For now we
-    // navigate to the product detail page — the action is not silently swallowed.
-    navigate(`/product/${product.ref}`);
+    if (actionType === 'quick_buy') {
+      addToCart({
+        product_id: product.id,
+        title_en: product.title_en,
+        title_bn: product.title_bn,
+        slug: product.slug,
+        price: product.price,
+        supplier_id: product.supplier_id || 1,
+        supplier_name: product.supplier_name || 'Verified Supplier',
+        stock_qty: product.stock ?? 10,
+      });
+    } else {
+      navigate(`/product/${product.ref}`);
+    }
   }
 
   // Initial grid render

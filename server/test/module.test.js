@@ -15,7 +15,8 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 
 import * as moduleService from '../src/services/module.service.js';
@@ -27,8 +28,11 @@ import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import requestContextPlugin from '../src/plugins/requestContext.js';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 // Load seed modules
-const modulesSeedPath = join(process.cwd(), 'src/config/modules.seed.json');
+const modulesSeedPath = path.resolve(__dirname, '../src/config/modules.seed.json');
 const modulesSeed = JSON.parse(readFileSync(modulesSeedPath, 'utf8'));
 
 const ALL_ROLES = [

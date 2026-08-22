@@ -221,6 +221,7 @@ export function Drawer({
 
   dialog.openDrawer = open;
   dialog.closeDrawer = close;
+  dialog.isOpen = () => Boolean(dialog.hasAttribute('open'));
   dialog.setContent = (node) => {
     bodyEl.replaceChildren(node);
   };

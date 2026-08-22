@@ -46,14 +46,16 @@ function publicUser(user) {
   };
 }
 
-async function resolveRoleKeysAndRisk(db, cache, userId) {
+async function resolveRoleKeysAndRisk(db, cache, userId, config) {
   const resolved = await rbacService.resolvePermissions(db, cache, userId);
   const roleKeys = resolved.roles;
   let requires2fa = false;
-  for (const [, meta] of resolved.metadata) {
-    if (STAFF_RISK_TIERS.includes(meta.risk_tier)) {
-      requires2fa = true;
-      break;
+  if (config.auth.require2faForStaff) {
+    for (const [, meta] of resolved.metadata) {
+      if (STAFF_RISK_TIERS.includes(meta.risk_tier)) {
+        requires2fa = true;
+        break;
+      }
     }
   }
   return { roleKeys, requires2fa };
@@ -86,7 +88,7 @@ async function issueTokensForUser(db, config, user, roleKeys, { ip, userAgent })
  * Either returns tokens, or throws TWO_FACTOR_REQUIRED with a challenge_token in `details`.
  */
 async function completeLogin(db, cache, config, user, { ip, userAgent }) {
-  const { roleKeys, requires2fa } = await resolveRoleKeysAndRisk(db, cache, user.id);
+  const { roleKeys, requires2fa } = await resolveRoleKeysAndRisk(db, cache, user.id, config);
 
   if (requires2fa) {
     const staff2fa = await userRepo.getStaff2fa(db, user.id);

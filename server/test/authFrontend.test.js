@@ -11,10 +11,15 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import path, { join } from 'node:path';
+
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Read permission catalog directly
-const catalogPath = join(process.cwd(), '../docs/permission-catalog.json');
+const catalogPath = path.resolve(__dirname, '../../docs/permission-catalog.json');
 const catalog = JSON.parse(readFileSync(catalogPath, 'utf8'));
 const catalogPermissions = new Map(catalog.permissions.map((p) => [p.key, p]));
 

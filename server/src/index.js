@@ -1,21 +1,4 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
-// Native Node 20.6+ .env loader — loads repo-root .env with zero external dependencies
-if (typeof process.loadEnvFile === 'function') {
-  for (const candidate of ['.env', '../.env', '../../.env']) {
-    const full = path.resolve(process.cwd(), candidate);
-    if (fs.existsSync(full)) {
-      try {
-        process.loadEnvFile(full);
-        break;
-      } catch {
-        // Continue candidate check
-      }
-    }
-  }
-}
-
+import './config/loadEnvFile.js';
 import { buildApp } from './app.js';
 
 async function start() {

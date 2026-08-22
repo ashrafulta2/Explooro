@@ -105,6 +105,37 @@
   padding-inline: var(--space-2);
 }
 
+/* Bleeds to the sidebar's edges so its bottom border lines up with the topbar's (both 56px),
+   giving the logo row and the topbar row a single unbroken divider line across the shell.
+   Sticky (not just flex order) because .app-shell__sidebar-slot is the scrolling ancestor
+   (overflow-y: auto) — without this the logo scrolls out of view with a long nav list. */
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 56px;
+  margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) var(--space-2);
+  padding: 0 var(--space-4);
+  border-bottom: var(--border-width) solid var(--border-subtle);
+  background: var(--surface-1);
+  font-weight: var(--weight-extrabold);
+  font-size: var(--text-base);
+  letter-spacing: -0.02em;
+  color: var(--brand-600);
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+}
+.sidebar[data-collapsed='true'] .sidebar__brand {
+  margin-inline: calc(var(--space-2) * -1);
+  padding-inline: var(--space-2);
+  justify-content: center;
+}
+
 .sidebar__mode-toggle {
   display: flex;
   padding: var(--space-1);
@@ -412,6 +443,9 @@
   background: var(--surface-1);
   box-shadow: var(--elevation-3);
   z-index: var(--z-dropdown);
+}
+.topbar__avatar-panel[hidden] {
+  display: none;
 }
 .topbar__avatar-panel a,
 .topbar__avatar-panel button {

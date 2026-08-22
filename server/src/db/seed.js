@@ -10,6 +10,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import '../config/loadEnvFile.js';
 import { loadEnv } from '../config/env.js';
 import { createDbPool, withTransaction } from '../config/db.js';
 

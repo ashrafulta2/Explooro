@@ -36,6 +36,9 @@ import searchRoutes from './routes/search.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import qnaRoutes from './routes/qna.routes.js';
 import storeRoutes from './routes/store.routes.js';
+import cartRoutes from './routes/cart.routes.js';
+import wishlistRoutes from './routes/wishlist.routes.js';
+import orderRoutes from './routes/order.routes.js';
 import { startGrantExpiryScheduler } from './jobs/grantExpiryCron.js';
 import { createSmsSender } from './integrations/sms/index.js';
 
@@ -135,6 +138,9 @@ export async function buildApp(overrides = {}) {
   await app.register(reviewRoutes, { prefix: '/api/v1' });
   await app.register(qnaRoutes, { prefix: '/api/v1' });
   await app.register(storeRoutes, { prefix: '/api/v1' });
+  await app.register(cartRoutes, { prefix: '/api/v1' });
+  await app.register(wishlistRoutes, { prefix: '/api/v1' });
+  await app.register(orderRoutes, { prefix: '/api/v1' });
 
   // Start periodic 5-minute grant/JIT/action expiry sweep (Prompt 2.5)
   const stopGrantExpiry = startGrantExpiryScheduler(pool, cache, app.log, 300000);

@@ -65,7 +65,8 @@ function currentCsrfToken() {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-function pickMessage(err) {
+/** Picks the error message matching the active UI language, falling back to the other. */
+export function pickMessage(err) {
   return currentLang() === 'bn' ? err.message_bn ?? err.message_en : err.message_en ?? err.message_bn;
 }
 
@@ -178,9 +179,14 @@ async function request(method, path, options = {}, retried = false) {
     if (refreshed) return request(method, path, options, true);
   }
 
+  // WHY skipAuthRedirect: some calls (guest cart/wishlist reads) are expected to 401 for a
+  // browsing guest and must fail silently in place — forcing a redirect here would yank a guest
+  // off whatever public page they're looking at just because a background fetch wasn't allowed.
   if (status === 401 && ['AUTH_EXPIRED', 'AUTH_INVALID', 'AUTH_REQUIRED'].includes(err.code)) {
     clearAccessToken();
-    window.dispatchEvent(new CustomEvent('explooro:auth-required'));
+    if (!options.skipAuthRedirect) {
+      window.dispatchEvent(new CustomEvent('explooro:auth-required'));
+    }
   }
 
   handleGlobalCodes(err);

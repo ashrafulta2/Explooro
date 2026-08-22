@@ -31,4 +31,9 @@
 @import './components/sourcing.css';
 /* Prompt 4.8: virtual storefront & builder components */
 @import './components/store.css';
+/* Prompt 5.1: server-side cart & wishlist components */
+@import './components/cart.css';
+/* Prompt 5.4: checkout, quick buy & order tracking components */
+@import './components/checkout.css';
+
 

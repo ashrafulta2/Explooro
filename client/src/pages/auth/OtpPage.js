@@ -7,6 +7,7 @@
  */
 
 import { verifyOtp, sendOtp } from '../../services/session.js';
+import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
@@ -200,7 +201,7 @@ export default function OtpPage(container, { query = {}, navigate }) {
         navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`);
       }
     } catch (err) {
-      errorDiv.textContent = err.message_bn || err.message_en || err.message || t('common.error_generic');
+      errorDiv.textContent = pickMessage(err) || err.message || t('common.error_generic');
       errorDiv.style.display = 'block';
     } finally {
       submitBtn.setLoading(false);

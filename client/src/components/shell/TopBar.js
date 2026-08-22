@@ -15,6 +15,7 @@ import { logout } from '../../services/session.js';
 import { getTheme, applyTheme } from '../../services/theme.js';
 import { Badge } from '../ui/Badge.js';
 import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
+import { openCartDrawer } from '../../services/cart.js';
 
 export function formatRemaining(ms, lang = 'en') {
   const totalMinutes = Math.max(0, Math.round(ms / 60_000));
@@ -178,10 +179,11 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
   const themeBtn = document.createElement('button');
   themeBtn.type = 'button';
   themeBtn.className = 'topbar__icon-btn';
-  themeBtn.textContent = { light: '☀️', dark: '🌙', system: '🖥️' }[currentTheme];
+  themeBtn.textContent = { light: '☀️', dark: '🌙', system: '🖥️' }[currentTheme] || '🖥️';
   themeBtn.title = `Theme: ${currentTheme}`;
   themeBtn.addEventListener('click', () => {
-    const next = { system: 'light', light: 'dark', dark: 'system' }[currentTheme];
+    const current = getTheme();
+    const next = { system: 'light', light: 'dark', dark: 'system' }[current] || 'light';
     applyTheme(next);
     themeBtn.textContent = { light: '☀️', dark: '🌙', system: '🖥️' }[next];
     themeBtn.title = `Theme: ${next}`;
@@ -190,11 +192,11 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
 
   if (badges && badges.cart !== undefined) {
     bar.append(
-      IconButton({ icon: CART_ICON_SVG, label: t('shell.cart'), badgeCount: badges.cart, onClick: () => navigate('/cart') })
+      IconButton({ icon: CART_ICON_SVG, label: t('shell.cart'), badgeCount: badges.cart, onClick: () => openCartDrawer() })
     );
   } else {
     bar.append(
-      IconButton({ icon: CART_ICON_SVG, label: t('shell.cart'), onClick: () => navigate('/cart') })
+      IconButton({ icon: CART_ICON_SVG, label: t('shell.cart'), onClick: () => openCartDrawer() })
     );
   }
 
@@ -205,13 +207,13 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
     const loginBtn = document.createElement('button');
     loginBtn.type = 'button';
     loginBtn.className = 'btn btn--ghost btn--sm';
-    loginBtn.textContent = t('auth.login.title') || 'Sign In';
+    loginBtn.textContent = t('auth.login.btn') || 'Sign In';
     loginBtn.addEventListener('click', () => navigate('/login'));
 
     const regBtn = document.createElement('button');
     regBtn.type = 'button';
     regBtn.className = 'btn btn--primary btn--sm';
-    regBtn.textContent = t('auth.register.title') || 'Register';
+    regBtn.textContent = t('auth.register.btn') || 'Sign Up';
     regBtn.addEventListener('click', () => navigate('/auth/register'));
 
     authBtns.append(loginBtn, regBtn);

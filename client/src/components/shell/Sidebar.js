@@ -122,11 +122,27 @@ function renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups 
   return wrap;
 }
 
+function SidebarBrand({ navigate, sidebarCollapsed }) {
+  const brand = document.createElement('a');
+  brand.className = 'sidebar__brand';
+  brand.href = '/';
+  brand.innerHTML = sidebarCollapsed
+    ? `<span aria-hidden="true">⚡</span>`
+    : `<span aria-hidden="true">⚡</span> <span class="sidebar__brand-text">EXPLOORO</span>`;
+  brand.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigate('/');
+  });
+  return brand;
+}
+
 export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarCollapsed, collapsedGroups }) {
   const nav = document.createElement('nav');
   nav.className = 'sidebar';
   nav.dataset.collapsed = sidebarCollapsed ? 'true' : 'false';
   nav.setAttribute('aria-label', 'Primary');
+
+  nav.append(SidebarBrand({ navigate, sidebarCollapsed }));
 
   const isProgressive = PROGRESSIVE_DISCLOSURE_ROLES.includes(role);
   const mode = isProgressive ? uiMode[role] ?? 'simple' : 'advanced';

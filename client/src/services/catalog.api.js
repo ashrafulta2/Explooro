@@ -6,6 +6,7 @@
  * server contract change only has to be fixed here.
  */
 import { api } from '../core/api.js';
+import { resolveProductImage } from '../components/product/ProductCard.js';
 
 // The server's trust_scores.tier vocabulary (STARTER/VERIFIED_TRADER/ELITE_PARTNER, docs/erd.md
 // §1) doesn't match the client's existing tier vocabulary (standard/verified/elite — the same one
@@ -26,8 +27,31 @@ function normalizeTier(tier) {
  * this call only ever sees one shape, regardless of VITE_API_MODE.
  */
 function normalizeProduct(product) {
+  if (!product) return product;
+  const fallbackUrl = resolveProductImage(product);
+  const rawImages = (product.images && product.images.length > 0) ? product.images : [];
+  const images = rawImages.length > 0
+    ? rawImages.map((img, idx) => ({
+        id: img.id,
+        url: img.url || (idx === 0 ? fallbackUrl : null),
+        is_primary: !!img.is_primary,
+        image_index: img.image_index ?? (product.image_index ?? 0),
+        media_kind: img.media_kind || (img.mime_type?.startsWith('video') ? 'VIDEO' : 'IMAGE'),
+      }))
+    : [
+        {
+          id: `${product.ref || product.id || 'p'}-img0`,
+          url: fallbackUrl,
+          is_primary: true,
+          image_index: product.image_index ?? 0,
+          media_kind: 'IMAGE',
+        },
+      ];
+
   return {
     ...product,
+    image_url: product.image_url || fallbackUrl,
+    primary_image_url: product.primary_image_url || fallbackUrl,
     variants: (product.variants || []).map((v) => ({
       id: v.id,
       sku: v.sku,
@@ -38,13 +62,7 @@ function normalizeProduct(product) {
       image_url: v.image_url || null,
       image_index: v.image_index ?? null,
     })),
-    images: (product.images || []).map((img) => ({
-      id: img.id,
-      url: img.url || null,
-      is_primary: !!img.is_primary,
-      image_index: img.image_index ?? 0,
-      media_kind: img.media_kind || (img.mime_type?.startsWith('video') ? 'VIDEO' : 'IMAGE'),
-    })),
+    images,
     supplier: product.supplier ? { ...product.supplier, tier: normalizeTier(product.supplier.tier) } : null,
   };
 }
@@ -68,6 +86,7 @@ function normalizeProductListItem(product) {
     stock: product.stock ?? product.stock_qty,
     rating: product.rating ?? product.rating_avg,
     margin_pct: product.margin_pct ?? product.pricing?.saler_margin_pct,
+    image_url: product.image_url ?? product.primary_image_url ?? product.primary_image ?? product.images?.[0]?.url ?? null,
   };
 }
 
@@ -88,7 +107,9 @@ export async function listReviews(productId, { rating, hasPhotos, sort, page = 1
 }
 
 export async function getReviewEligibility(productId) {
-  const { data } = await api.get(`/products/${productId}/reviews/eligibility`);
+  // A guest with no session 401s here by design (ReviewList.js treats that the same as an
+  // explicit NOT_SIGNED_IN reason) — it must not force a redirect off the product page.
+  const { data } = await api.get(`/products/${productId}/reviews/eligibility`, { skipAuthRedirect: true });
   return data;
 }
 

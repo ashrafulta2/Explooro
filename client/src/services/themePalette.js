@@ -116,11 +116,28 @@ export function validatePaletteContrast(tokens = {}) {
   };
 }
 
+export function clearThemeOverrides() {
+  const root = document.documentElement;
+  const props = [
+    '--navbar-bg', '--navbar-text', '--navbar-border', '--navbar-search-bg',
+    '--surface-page', '--surface-0', '--surface-1', '--surface-card', '--surface-subtle', '--surface-2', '--border-subtle',
+    '--brand', '--brand-primary', '--brand-hover', '--brand-contrast', '--btn-secondary-bg', '--btn-secondary-text',
+    '--text-primary', '--text-secondary', '--text-muted', '--text-inverse',
+    '--success-bg', '--success', '--warning-bg', '--warning', '--danger-bg', '--danger', '--info-bg', '--info',
+    '--footer-bg', '--footer-text', '--footer-muted', '--footer-border',
+  ];
+  props.forEach((p) => root.style.removeProperty(p));
+}
+
 /**
  * Applies token custom properties to the document root element in real time.
  */
 export function applyTheme(tokens = {}) {
-  if (!tokens) return;
+  if (!tokens || tokens === THEME_PRESETS.default.tokens) {
+    currentTokens = { ...THEME_PRESETS.default.tokens };
+    clearThemeOverrides();
+    return;
+  }
   currentTokens = tokens;
   const root = document.documentElement;
 
@@ -194,12 +211,13 @@ export async function initTheme() {
   try {
     const { api } = await import('../core/api.js');
     const res = await api.get('/theme/active');
-    if (res?.tokens) {
+    if (res?.tokens && res?.is_custom) {
       applyTheme(res.tokens);
       return;
     }
   } catch {
     // Fall back to default
   }
-  applyTheme(THEME_PRESETS.default.tokens);
+  clearThemeOverrides();
 }
+

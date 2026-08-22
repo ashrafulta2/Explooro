@@ -111,11 +111,15 @@ export async function initSession() {
  */
 export async function loginWithPassword({ phone, password }) {
   try {
-    const res = await api.post('/auth/login', {
-      phone,
-      password,
-      device_name: typeof navigator !== 'undefined' ? navigator.userAgent : 'Web Browser',
-    });
+    const res = await api.post(
+      '/auth/login',
+      {
+        phone,
+        password,
+        device_name: typeof navigator !== 'undefined' ? navigator.userAgent : 'Web Browser',
+      },
+      { skipAuthRedirect: true }
+    );
 
     if (res?.data?.access_token && res?.data?.user) {
       setAccessToken(res.data.access_token);
@@ -196,14 +200,18 @@ export async function register({ phone, role, password, name }) {
  * Fetches TOTP setup secret for staff enrollment.
  */
 export async function setupTwoFactor({ challengeToken }) {
-  return api.post('/auth/2fa/setup', { challenge_token: challengeToken });
+  return api.post('/auth/2fa/setup', { challenge_token: challengeToken }, { skipAuthRedirect: true });
 }
 
 /**
  * Verifies TOTP code during 2FA challenge.
  */
 export async function completeTwoFactor({ challengeToken, code }) {
-  const res = await api.post('/auth/2fa/verify', { code, challenge_token: challengeToken });
+  const res = await api.post(
+    '/auth/2fa/verify',
+    { code, challenge_token: challengeToken },
+    { skipAuthRedirect: true }
+  );
 
   if (res?.data?.access_token && res?.data?.user) {
     setAccessToken(res.data.access_token);

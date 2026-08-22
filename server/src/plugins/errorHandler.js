@@ -70,6 +70,7 @@ export class AppError extends Error {
     this.messageEn = messageEn;
     this.messageBn = messageBn;
     this.details = details;
+    this.statusCode = ERROR_STATUS[code] ?? 500;
   }
 }
 

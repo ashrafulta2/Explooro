@@ -17,6 +17,7 @@ import { appStore } from '../../state/appStore.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { resolveProductImage } from '../../components/product/ProductCard.js';
 
 const CATEGORIES = [
   { key: 'all', en: 'All Categories', bn: 'সব বিভাগ' },
@@ -390,7 +391,20 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
   const placeholder = document.createElement('div');
   placeholder.className = 'sourcing-card__placeholder';
   placeholder.textContent = title ? title.slice(0, 2).toUpperCase() : 'PR';
-  media.append(placeholder);
+
+  const imageUrl = resolveProductImage(product);
+  if (imageUrl) {
+    const img = document.createElement('img');
+    img.className = 'sourcing-card__img';
+    img.src = imageUrl;
+    img.alt = title || '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.addEventListener('error', () => img.replaceWith(placeholder), { once: true });
+    media.append(img);
+  } else {
+    media.append(placeholder);
+  }
 
   // Badges
   const badges = document.createElement('div');

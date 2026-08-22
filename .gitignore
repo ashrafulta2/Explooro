@@ -42,3 +42,7 @@ mobile/ios/Pods/
 
 # Vite
 .vite/
+
+# Temporary / Debug
+~$*
+debug-*.png

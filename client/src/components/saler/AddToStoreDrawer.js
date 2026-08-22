@@ -9,6 +9,7 @@ import { Input } from '../ui/Input.js';
 import { Select } from '../ui/Select.js';
 import { toast } from '../../services/toast.js';
 import { addToSalerStore, previewPricing } from '../../services/catalog.api.js';
+import { pickMessage } from '../../core/api.js';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 
@@ -204,7 +205,7 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
         calcBox.querySelector('#drawer-net-margin').textContent = formatCurrency(preview.net_retail_margin);
         calcBox.querySelector('#drawer-saler-profit').textContent = `${formatCurrency(preview.saler_earning)} (${preview.saler_margin_pct}%)`;
       } catch (err) {
-        errorMsg.textContent = `⚠️ ${err?.message_bn || err?.message || t('sourcing.calc.error_invalid_price')}`;
+        errorMsg.textContent = `⚠️ ${pickMessage(err) || err?.message || t('sourcing.calc.error_invalid_price')}`;
         errorMsg.style.display = 'flex';
         submitBtn.disabled = true;
       }

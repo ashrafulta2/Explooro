@@ -71,10 +71,11 @@
     <!-- The AppShell (sidebar + topbar + page outlet) mounts here. -->
     <div id="router-outlet"></div>
 
-    <!-- Dev-only status bar: hidden in production by display:none in JS, shown in DEV -->
+    <!-- Dev-only status bar: hidden by default, shown only on error/connection failure -->
     <div id="dev-status-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
-         background:#192026;color:#fbfdfe;font-size:11px;padding:2px 12px;
-         display:flex;gap:16px;align-items:center;font-family:monospace;">
+         background:#991b1b;color:#fbfdfe;font-size:11px;padding:3px 12px;
+         gap:16px;align-items:center;font-family:monospace;">
+      <span>⚠️ <strong>API Error:</strong></span>
       <span><strong>API</strong> <span id="api-status">—</span></span>
       <span><strong>Proxy</strong> <span id="proxy-status">—</span></span>
       <span><strong>Mode</strong> <span id="api-mode">—</span></span>

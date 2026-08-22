@@ -51,6 +51,8 @@ import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.js';
 import { StoreHeader } from '../../components/store/StoreHeader.js';
 import { ShelfEditor } from '../../components/store/ShelfEditor.js';
 import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';
+import { WishlistButton } from '../../components/cart/WishlistButton.js';
+import { CartDrawer } from '../../components/cart/CartDrawer.js';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */
 function specimen(title, ...nodes) {
@@ -590,15 +592,18 @@ const DEMO_PRODUCTS = [
   { ref: 'PRD-DEMO1', title_en: 'Premium Cotton Saree', title_bn: 'প্রিমিয়াম কটন শাড়ি',
     price: '1250.00', district: 'Dhaka', stock: 42, rating: '4.5', rating_count: 128,
     supplier_tier: 'verified', margin_pct: 18, image_index: 0, is_flash_sale: true,
-    store_open: true, is_verified_supplier: true },
+    store_open: true, is_verified_supplier: true,
+    image_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=80' },
   { ref: 'PRD-DEMO2', title_en: 'Eid Special Panjabi', title_bn: 'ঈদ স্পেশাল পাঞ্জাবি',
     price: '2400.00', district: 'Chattogram', stock: 0, rating: '4.2', rating_count: 74,
     supplier_tier: 'standard', margin_pct: 14, image_index: 1, is_flash_sale: false,
-    store_open: false, is_verified_supplier: false },
+    store_open: false, is_verified_supplier: false,
+    image_url: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&auto=format&fit=crop&q=80' },
   { ref: 'PRD-DEMO3', title_en: 'Wireless Earbuds', title_bn: 'ওয়্যারলেস ইয়ারবাড',
     price: '1800.00', district: 'Dhaka', stock: 55, rating: '4.3', rating_count: 189,
     supplier_tier: 'elite', margin_pct: 22, image_index: 8, is_flash_sale: true,
-    store_open: true, is_verified_supplier: true },
+    store_open: true, is_verified_supplier: true,
+    image_url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=80' },
 ];
 
 function renderProductCard() {
@@ -663,14 +668,14 @@ function renderFlashSaleWidget() {
 // ── Prompt 4.6 — Product Detail specimens ────────────────────────────────
 
 const DEMO_VARIANTS = [
-  { id: 'v1', sku: 'PANJ-MRN-M', attributes: { size: 'M' }, price_delta: 0, stock_qty: 12, is_active: true, image_url: null, image_index: 0 },
-  { id: 'v2', sku: 'PANJ-MRN-L', attributes: { size: 'L' }, price_delta: 0, stock_qty: 8, is_active: true, image_url: null, image_index: 1 },
-  { id: 'v3', sku: 'PANJ-MRN-XL', attributes: { size: 'XL' }, price_delta: 50, stock_qty: 0, is_active: true, image_url: null, image_index: 2 },
+  { id: 'v1', sku: 'PANJ-MRN-M', attributes: { size: 'M' }, price_delta: 0, stock_qty: 12, is_active: true, image_url: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&auto=format&fit=crop&q=80', image_index: 0 },
+  { id: 'v2', sku: 'PANJ-MRN-L', attributes: { size: 'L' }, price_delta: 0, stock_qty: 8, is_active: true, image_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=80', image_index: 1 },
+  { id: 'v3', sku: 'PANJ-MRN-XL', attributes: { size: 'XL' }, price_delta: 50, stock_qty: 0, is_active: true, image_url: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=80', image_index: 2 },
 ];
 const DEMO_IMAGES = [
-  { id: 'img1', url: null, is_primary: true, image_index: 0 },
-  { id: 'img2', url: null, is_primary: false, image_index: 1 },
-  { id: 'img3', url: null, is_primary: false, image_index: 2 },
+  { id: 'img1', url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=80', is_primary: true, image_index: 0 },
+  { id: 'img2', url: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500&auto=format&fit=crop&q=80', is_primary: false, image_index: 1 },
+  { id: 'img3', url: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500&auto=format&fit=crop&q=80', is_primary: false, image_index: 2 },
 ];
 const DEMO_PRICING = {
   base_cost: 1100, wholesale_margin: 150, wholesale_cost: 1250, retail_price: 1650,
@@ -806,6 +811,44 @@ function renderShopStatusToggle() {
   return wrap;
 }
 
+function renderWishlistButton() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('WishlistButton — Heart toggle with active state and tooltips'));
+
+  const btn1 = WishlistButton({ productId: 101, size: 'md' });
+  const btn2 = WishlistButton({ productId: 102, size: 'lg' });
+
+  wrap.append(
+    specimen(
+      'interactive heart buttons',
+      btn1,
+      btn2
+    )
+  );
+  return wrap;
+}
+
+function renderCartDrawer(detachedNodes) {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('CartDrawer — Side drawer with multi-supplier parcel splitting & live revalidation'));
+
+  const openBtn = Button({
+    label: 'Open Cart Drawer Preview',
+    variant: 'primary',
+    onClick: () => {
+      drawer.open();
+    },
+  });
+
+  const drawer = CartDrawer();
+  detachedNodes.push(drawer);
+
+  wrap.append(specimen('trigger button', openBtn));
+  return wrap;
+}
+
 /**
  * Builds the registry. Overlay-based entries (Modal/Drawer) attach nodes to `document.body`
  * rather than the returned section — `detachedNodes` collects every one of them so GalleryPage
@@ -851,5 +894,8 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'store-header', label: 'StoreHeader', group: 'Virtual Storefront', render: renderStoreHeader },
     { id: 'shelf-editor', label: 'ShelfEditor', group: 'Virtual Storefront', render: renderShelfEditor },
     { id: 'shop-status-toggle', label: 'ShopStatusToggle', group: 'Virtual Storefront', render: renderShopStatusToggle },
+    // Prompt 5.1 — Cart & Wishlist
+    { id: 'wishlist-button', label: 'WishlistButton', group: 'Cart & Wishlist', render: renderWishlistButton },
+    { id: 'cart-drawer', label: 'CartDrawer', group: 'Cart & Wishlist', render: () => renderCartDrawer(detachedNodes) },
   ];
 }

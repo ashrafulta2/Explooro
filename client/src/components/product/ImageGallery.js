@@ -15,6 +15,7 @@
  */
 
 import { t } from '../../services/i18n.js';
+import { resolveProductImage } from './ProductCard.js';
 
 const PLACEHOLDER_COLOURS = [
   { bg: '#da694c', fg: '#fff' }, { bg: '#2d7b44', fg: '#fff' }, { bg: '#1e5fa8', fg: '#fff' },
@@ -28,7 +29,7 @@ function placeholderInitials(title) {
   return title.trim().split(/\s+/).slice(0, 2).map((w) => w[0] || '').join('').toUpperCase() || '?';
 }
 
-function buildSlide(image, title) {
+function buildSlide(image, title, fallbackUrl) {
   const slide = document.createElement('div');
   slide.className = 'gallery__slide';
 
@@ -48,13 +49,21 @@ function buildSlide(image, title) {
     return slide;
   }
 
-  if (image.url) {
+  const primarySrc = image.url || fallbackUrl;
+
+  if (primarySrc) {
     const img = document.createElement('img');
     img.className = 'gallery__media';
-    img.src = image.url;
+    img.src = primarySrc;
     img.alt = title;
     img.loading = 'lazy';
-    img.addEventListener('error', () => img.replaceWith(placeholder), { once: true });
+    img.addEventListener('error', () => {
+      if (img.src !== fallbackUrl && fallbackUrl) {
+        img.src = fallbackUrl;
+      } else {
+        img.replaceWith(placeholder);
+      }
+    });
     slide.append(img);
     return slide;
   }
@@ -63,13 +72,18 @@ function buildSlide(image, title) {
   return slide;
 }
 
-export function ImageGallery({ images = [], title = '' } = {}) {
+export function ImageGallery({ images = [], title = '', product = null } = {}) {
   const root = document.createElement('div');
   root.className = 'gallery';
   root.setAttribute('role', 'group');
   root.setAttribute('aria-label', t('product_detail.gallery.label'));
 
-  const list = images.length > 0 ? images : [{ id: 'fallback', url: null, image_index: 0 }];
+  const fallbackUrl = resolveProductImage(product || { title, title_en: title });
+  const rawList = images && images.length > 0 ? images : [{ id: 'fallback', url: fallbackUrl, image_index: product?.image_index ?? 0 }];
+  const list = rawList.map((img, idx) => ({
+    ...img,
+    url: img.url || (idx === 0 ? fallbackUrl : null),
+  }));
 
   const main = document.createElement('div');
   main.className = 'gallery__main';
@@ -85,7 +99,7 @@ export function ImageGallery({ images = [], title = '' } = {}) {
   const thumbButtons = [];
 
   function render() {
-    main.replaceChildren(buildSlide(overrideImage || list[activeIndex], title));
+    main.replaceChildren(buildSlide(overrideImage || list[activeIndex], title, fallbackUrl));
     thumbButtons.forEach((btn, i) => {
       const isActive = !overrideImage && i === activeIndex;
       btn.setAttribute('aria-selected', String(isActive));
@@ -107,15 +121,20 @@ export function ImageGallery({ images = [], title = '' } = {}) {
     btn.setAttribute('role', 'tab');
     btn.setAttribute('aria-label', t('product_detail.gallery.thumb_label', { index: i + 1 }));
     const palette = PLACEHOLDER_COLOURS[(image.image_index ?? 0) % PLACEHOLDER_COLOURS.length];
-    if (image.url) {
+    const thumbSrc = image.url || (i === 0 ? fallbackUrl : null);
+    if (thumbSrc) {
       const thumb = document.createElement('img');
-      thumb.src = image.url;
+      thumb.src = thumbSrc;
       thumb.alt = '';
       thumb.loading = 'lazy';
       thumb.addEventListener('error', () => {
-        thumb.remove();
-        btn.style.background = palette.bg;
-      }, { once: true });
+        if (thumb.src !== fallbackUrl && fallbackUrl) {
+          thumb.src = fallbackUrl;
+        } else {
+          thumb.remove();
+          btn.style.background = palette.bg;
+        }
+      });
       btn.append(thumb);
     } else {
       btn.style.background = palette.bg;
