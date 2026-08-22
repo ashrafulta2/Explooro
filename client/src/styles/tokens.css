@@ -1,0 +1,223 @@
+/**
+ * Explooro — Design Tokens: non-colour primitives.
+ *
+ * Spec: docs/design-system.md. This file holds every token that is NOT a colour — spacing,
+ * radius, borders, elevation shapes (the colour they tint with lives in themes.css), type scale,
+ * font stacks, motion, z-index, breakpoints, and density. Colour tokens live exclusively in
+ * themes.css — see that file's header for why the split exists.
+ */
+
+:root {
+  /* ---------------------------------------------------------------------
+   * Spacing scale — 4px base (docs/design-system.md §4.1)
+   * ------------------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+
+  /* ---------------------------------------------------------------------
+   * Radius scale (§5.1)
+   * ------------------------------------------------------------------- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* ---------------------------------------------------------------------
+   * Border widths (§5.3) — retina override below drops this to 0.5px so a
+   * 1px border doesn't read as 2 physical pixels on a 2x display.
+   * ------------------------------------------------------------------- */
+  --border-width: 1px;
+
+  /* ---------------------------------------------------------------------
+   * Elevation ladder (§5.4) — shadow shape only. `--shadow-color` is a
+   * semantic token (surface-hue tinted, differs light/dark) defined in
+   * themes.css; composing it here keeps every shadow non-black by
+   * construction, never by convention.
+   * ------------------------------------------------------------------- */
+  --elevation-0: none;
+  --elevation-1: 0 1px 2px hsl(var(--shadow-color) / 0.06);
+  --elevation-2:
+    0 2px 4px hsl(var(--shadow-color) / 0.07),
+    0 1px 2px hsl(var(--shadow-color) / 0.05);
+  --elevation-3:
+    0 8px 16px hsl(var(--shadow-color) / 0.1),
+    0 2px 4px hsl(var(--shadow-color) / 0.06);
+  --elevation-4:
+    0 16px 32px hsl(var(--shadow-color) / 0.14),
+    0 4px 8px hsl(var(--shadow-color) / 0.08);
+
+  /* ---------------------------------------------------------------------
+   * Type scale — size + line-height + tracking + weight (§3.2)
+   * ------------------------------------------------------------------- */
+  --text-2xs: 11px;
+  --leading-2xs: 16px;
+  --tracking-2xs: 0.06em;
+  --weight-2xs: 600;
+
+  --text-xs: 12px;
+  --leading-xs: 18px;
+  --tracking-xs: 0.02em;
+  --weight-xs: 500;
+
+  --text-sm: 14px;
+  --leading-sm: 20px;
+  --tracking-sm: 0.005em;
+  --weight-sm: 400;
+
+  --text-base: 16px;
+  --leading-base: 24px;
+  --tracking-base: 0em;
+  --weight-base: 400;
+
+  --text-lg: 18px;
+  --leading-lg: 26px;
+  --tracking-lg: -0.005em;
+  --weight-lg: 500;
+
+  --text-xl: 20px;
+  --leading-xl: 28px;
+  --tracking-xl: -0.01em;
+  --weight-xl: 600;
+
+  --text-2xl: 24px;
+  --leading-2xl: 32px;
+  --tracking-2xl: -0.015em;
+  --weight-2xl: 600;
+
+  --text-3xl: 30px;
+  --leading-3xl: 38px;
+  --tracking-3xl: -0.02em;
+  --weight-3xl: 700;
+
+  --text-4xl: 36px;
+  --leading-4xl: 44px;
+  --tracking-4xl: -0.025em;
+  --weight-4xl: 700;
+
+  --text-5xl: 48px;
+  --leading-5xl: 56px;
+  --tracking-5xl: -0.03em;
+  --weight-5xl: 700;
+
+  /* ---------------------------------------------------------------------
+   * Font stacks (§3.1) — the webfont names are declared here; the
+   * @font-face rules that back them are Prompt 1.2's job.
+   * ------------------------------------------------------------------- */
+  --font-latin: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-bengali: 'Hind Siliguri', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+
+  /* ---------------------------------------------------------------------
+   * Motion — duration and easing (§6.1)
+   * ------------------------------------------------------------------- */
+  --dur-instant: 90ms;
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-quad: cubic-bezier(0.55, 0, 1, 0.45);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ---------------------------------------------------------------------
+   * Z-index ladder (§7) — named constants only, never an ad-hoc number.
+   * ------------------------------------------------------------------- */
+  --z-base: 0;
+  --z-sticky: 100;
+  --z-header: 200;
+  --z-drawer: 300;
+  --z-dropdown: 400;
+  --z-scrim: 500;
+  --z-modal: 600;
+  --z-palette: 700;
+  --z-toast: 800;
+  --z-tooltip: 900;
+  --z-devtools: 1000;
+
+  /* ---------------------------------------------------------------------
+   * Breakpoints (§8) — CSS has no native custom-media substitution, so
+   * these are reference values (readable from JS via getComputedStyle);
+   * component CSS still hardcodes the px figure inside @media itself.
+   * 360px is the primary target and is intentionally not a token: it is
+   * the "no horizontal scroll below this" floor, not a breakpoint to design *at*.
+   * ------------------------------------------------------------------- */
+  --bp-xs: 480px;
+  --bp-sm: 768px;
+  --bp-md: 1024px;
+  --bp-lg: 1280px;
+  --bp-xl: 1536px;
+
+  /* ---------------------------------------------------------------------
+   * Density — comfortable is the default; compact is opted into via
+   * `[data-density="compact"]` on <html> (§9). Never applied to
+   * touch-primary surfaces — the 44px touch target rule always wins.
+   * ------------------------------------------------------------------- */
+  --row-height: 48px;
+  --control-height: 40px;
+  --density-body-size: 16px;
+  --card-padding: var(--space-5);
+}
+
+:root[data-density='compact'] {
+  --row-height: 36px;
+  --control-height: 32px;
+  --density-body-size: 14px;
+  --card-padding: var(--space-4);
+}
+
+/* Hairline borders: a 1px border is 2 physical pixels on a 2x display. */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  :root {
+    --border-width: 0.5px;
+  }
+}
+
+/* §9 + §11 — the 44px touch-target rule outranks density in every conflict, including compact.
+   Raising the token here fixes every control that derives its height from it (inputs, selects,
+   md buttons) in one place, rather than each component re-deriving the same exception. */
+@media (pointer: coarse) {
+  :root,
+  :root[data-density='compact'] {
+    --control-height: 44px;
+    --row-height: 48px;
+  }
+}
+
+/* Bengali line-height overrides (§3.5.1) — the matra needs more vertical room than Latin does. */
+:lang(bn) {
+  --leading-2xs: 20px;
+  --leading-xs: 20px;
+  --leading-sm: 22px;
+  --leading-base: 26px;
+  --leading-lg: 28px;
+  --leading-xl: 30px;
+  --leading-2xl: 34px;
+}
+
+/* Bengali tracking reset (§3.5.2) — negative tracking that improves large Latin display text
+   collides conjunct clusters (যুক্তাক্ষর) in Bengali, so it is reset to 0 at every size. */
+:lang(bn) {
+  letter-spacing: 0 !important;
+}
+
+/* Reduced motion: zero every duration; transforms/parallax are removed entirely by consuming
+   code (§6.4), not merely shortened, because that is what triggers vestibular discomfort. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-instant: 0ms;
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+  }
+}

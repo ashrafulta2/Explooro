@@ -1,0 +1,8 @@
+{
+  "_comment": "Simulates the mocked-in 'current customer' shopper's order history for the review-eligibility demo (mocks/handlers/reviews.js). Mock mode has no real per-user session, so this represents whichever role is active in appStore when authenticated as a buyer.",
+  "orders": [
+    { "product_ref": "PRD-9K1L4XC6", "status": "DELIVERED", "order_item_id": "MOCK-OI-1" },
+    { "product_ref": "PRD-5N3P8RT4", "status": "DELIVERED", "order_item_id": "MOCK-OI-2" },
+    { "product_ref": "PRD-6D5J2YW8", "status": "SHIPPED", "order_item_id": "MOCK-OI-3" }
+  ]
+}

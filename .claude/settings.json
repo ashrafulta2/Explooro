@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/All/Others/My Software Development/Explooro/Explooro/**)",
+      "PowerShell($c = Get-Content \"docs/prompt.md\" -Raw; \"Lines: \" + \\(Get-Content \"docs/prompt.md\" | Measure-Object -Line\\).Lines; \"Size KB: \" + [math]::Round\\($c.Length/1KB,1\\); \"Prompt blocks: \" + \\([regex]::Matches\\($c,'\\(?m\\)^### Prompt '\\)\\).Count; \"Docker mentions before 12.7: \" + \\([regex]::Matches\\($c.Substring\\(0,$c.IndexOf\\('### Prompt 12.7'\\)\\),'docker-compose\\\\.yml|Dockerfile'\\)\\).Count)",
+      "PowerShell($c = Get-Content \"docs/prompt.md\" -Raw; \"Unique prompt IDs: \" + \\(\\([regex]::Matches\\($c,'\\(?m\\)^### Prompt \\(\\\\d+\\\\.\\\\d+\\)'\\) | ForEach-Object { $_.Groups[1].Value }\\) | Select-Object -Unique\\).Count; \"--- Docker/compose refs before 12.7 ---\"; Select-String -Path \"docs/prompt.md\" -Pattern 'docker-compose\\\\.yml|Dockerfile|docker compose' | Where-Object { $_.LineNumber -lt 3100 } | ForEach-Object { \"L$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)\" })",
+      "Bash(rtk grep *)",
+      "Bash(rtk wc *)"
+    ]
+  }
+}

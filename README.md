@@ -1,0 +1,185 @@
+# Explooro
+
+Social commerce and reseller partnership platform for Bangladesh.
+Suppliers hold the stock, Salers sell it from branded virtual storefronts with zero inventory,
+and every commission settles through an escrow-backed digital vault.
+
+---
+
+## Getting started — 3 commands
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Then open **http://localhost:3000**.
+
+That is the whole setup. You should see the dev harness reporting the client, the API, and the
+proxy as healthy.
+
+### 🚫 Docker is NOT required
+
+You do not need Docker, and you should not install it to work on this project.
+Everything runs natively on `node` and `npm`.
+
+Docker appears exactly once, at the very end (Prompt 12.7), and only for **production
+deployment**. Even after that lands, `npm run dev` keeps working natively with no containers —
+that is an explicit acceptance criterion, because a fast local preview loop is worth more than
+environment parity during development.
+
+### What you need installed
+
+| Required | Version | Notes |
+| :--- | :--- | :--- |
+| Node.js | 20+ LTS | That is genuinely all you need today |
+
+| Optional, later | When | Zero-install path |
+| :--- | :--- | :--- |
+| PostgreSQL | Phase 2 | Use a free [Neon](https://neon.tech) database — paste its URL into `.env` |
+| Redis | Phase 2 | Not needed. `CACHE_DRIVER=memory` runs the whole app in-process |
+| Cloud storage | Phase 4 | Not needed. `STORAGE_DRIVER=local` writes to `server/storage/` |
+| Payment / courier / AI accounts | Phase 5+ | Not needed. Every integration ships a `mock` driver and defaults to it |
+
+---
+
+## Scripts
+
+| Command | What it does |
+| :--- | :--- |
+| `npm run dev` | Client **and** server together, with hot reload on both |
+| `npm run dev:client` | Vite dev server only — port 3000 |
+| `npm run dev:server` | Fastify API only — port 5000, `node --watch` |
+| `npm run build` | Production client bundle → `client/dist` |
+| `npm run preview` | Serve the built bundle locally — port 3001 |
+| `npm run migrate --workspace server` | Apply pending database migrations (Prompt 2.1) |
+| `npm run migrate:status --workspace server` | List applied vs. pending migrations |
+| `npm run seed --workspace server` | Load reference/dev data — roles, the permission catalog, dev users (Prompt 2.2) |
+
+The Vite dev server proxies `/api` → `localhost:5000` and `/ws` → `localhost:5000`, so the browser
+only ever sees one origin. No CORS configuration is needed in development.
+
+---
+
+## 🔒 Development only — seeded accounts
+
+Running `npm run migrate && npm run seed` against your `DATABASE_URL` creates one user per role,
+all sharing the same password below. **Never run this seed against a production database** — these
+credentials are public, checked into this repository.
+
+| Role | Phone | Password |
+| :--- | :--- | :--- |
+| `super_admin` | `+8801700000001` | `Explooro@Dev2026` |
+| `admin` | `+8801700000002` | `Explooro@Dev2026` |
+| `moderator` | `+8801700000003` | `Explooro@Dev2026` |
+| `editor` | `+8801700000004` | `Explooro@Dev2026` |
+| `supplier` | `+8801700000005` | `Explooro@Dev2026` |
+| `saler` | `+8801700000006` | `Explooro@Dev2026` |
+| `customer` | `+8801700000007` | `Explooro@Dev2026` |
+
+The seeded `moderator` deliberately holds no delegated permissions beyond the `moderator` role's
+own defaults from `docs/permission-catalog.json` — no `user_permission_overrides` rows are seeded
+for anyone — so it is the account to log in as when testing the locked-state UI
+(`docs/ia-sitemap.md` §5) for real rather than by simulation.
+
+**2FA note (Prompt 2.3):** every role above except `customer` holds a MEDIUM+ permission, so
+`POST /auth/login` for those returns `401 TWO_FACTOR_REQUIRED` with `details.challenge_token`
+instead of a token pair — this is correct, not a bug. First-time enrollment is exactly what that
+challenge token is for: `POST /auth/2fa/setup { "challenge_token": "..." }` (no Bearer token needed
+or possible yet) returns an `otpauth_uri`/secret to scan, then `POST /auth/2fa/verify
+{ "challenge_token": "...", "code": "<TOTP>" }` completes the login and issues real tokens.
+
+Regenerate `server/src/db/seeds/002_dev_users.sql` (e.g. after rotating the password) with:
+
+```bash
+node scripts/generate-dev-user-seed.mjs
+```
+
+---
+
+## Repository layout
+
+```
+explooro/
+├── client/          Web frontend — Vite + vanilla modern CSS + modular ESM
+│   ├── index.html
+│   ├── vite.config.js
+│   └── src/
+├── server/          API — Node.js + Fastify
+│   └── src/         Routes -> Controllers -> Services -> Repositories
+├── mobile/          Flutter app (Phase 12)
+├── scripts/         palette.mjs — generates + verifies the colour ramps
+├── docs/            Active specifications and planning documents
+│   ├── prompt.md              ⭐ Master blueprint — 86 sequential prompts, 12 phases
+│   ├── design-system.md       Colour (OKLCH), type, spacing, motion, craft rules
+│   ├── ia-sitemap.md          ~120 routes, 6 role nav trees, locked-state UX
+│   ├── rbac-spec.md           Risk tiers, 3 delegation modes, resolution algorithm
+│   ├── permission-catalog.json  182 permissions — authority on permission keys
+│   ├── erd.md                 95 tables, fully typed
+│   ├── api-contract.md        Envelopes, 37 error codes, idempotency, webhooks
+│   ├── module-registry.md     71 toggleable modules
+│   ├── architecture-map.md    "Where do I change X?" — start here
+│   ├── dependency-ledger.md   Every dependency, why, how to remove
+│   ├── how-to-add-a-feature.md  One worked example through every layer
+│   └── PRD.md · DFD.md · idea proposition.md · technologyused.md   (sources)
+├── initialDoc/      Superseded early drafts, kept for archival reference only
+├── CLAUDE.md        Guidance for Claude Code
+└── AGENTS.md        Pointer to CLAUDE.md for other agent tools
+```
+
+---
+
+## Non-negotiable rules
+
+These exist to keep the platform fast and to keep it alive years from now.
+The full reasoning lives in [`docs/prompt.md`](docs/prompt.md) under **Master Instructions**.
+
+1. **Zero runtime dependencies in the client.** `client/package.json` has an empty `dependencies`
+   block and it stays empty. The router, state store, API client, i18n engine, motion helpers and
+   charts are all hand-written. Nothing the browser executes comes from npm.
+2. **No CSS framework, no UI library, no state library, no chart library, no icon library, no
+   date library, no HTTP client library, no ORM.**
+3. **Vite is a build tool, not a foundation.** No source file may import from `vite`. If Vite were
+   to disappear, `client/src` would still be valid ES modules.
+4. **Performance budget is enforced by the build** (from Prompt 1.9): 150KB JS gzipped,
+   40KB CSS gzipped. Exceed it and the build fails.
+5. **Money is `NUMERIC(14,2)`** in PostgreSQL, and split arithmetic exists in exactly one file.
+6. **Every external integration ships a `mock` driver** and defaults to it in development.
+7. **Exact dependency versions** — no `^`, no `~`. Upgrades are deliberate.
+
+---
+
+## Where to go next
+
+- **Building the platform:** work through [`docs/prompt.md`](docs/prompt.md) in order. Each prompt
+  declares its dependencies, its exact file list, its acceptance criteria, and what you should see
+  in the browser when it is done.
+- **Current phase:** Phase 2 — Auth, RBAC Engine, Delegation & Audit (Phases 0–1 complete, Prompts 2.1–2.6 done, next is 2.7).
+- **Orientation:** [`docs/architecture-map.md`](docs/architecture-map.md) maps 50 common changes to exact files.
+- **Progress:** the honest traceability matrix at the end of `docs/prompt.md`.
+
+## Status
+
+| Phase | State |
+| :--- | :--- |
+| 0 — Foundations & Contracts | ✅ **Complete** — 0.1–0.8 all done |
+| 1 — Design System & Shell | ✅ **Complete** — 1.1–1.10 all done |
+| 2 — Auth, RBAC & Delegation | 🟡 In progress — 2.1–2.6 done, next is 2.7 |
+| 3 – 12 | ⬜ Not started |
+
+### Design
+
+The design direction is locked in [`docs/design-system.md`](docs/design-system.md):
+a **solid, high-contrast, zero-gradient commerce aesthetic** (not glassmorphism — see §0 for the
+reasoning). Every colour is authored in OKLCH and every contrast figure is measured, not estimated.
+
+Regenerate and re-verify the palette at any time:
+
+```bash
+node scripts/palette.mjs
+```
+
+If you change a ramp, re-run this and update the spec from its output — the two must never drift.
+Two "expected fail" lines for the switch off-state track are documented in §2; **any other failure
+is a real regression.**

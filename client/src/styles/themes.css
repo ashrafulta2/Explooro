@@ -1,0 +1,360 @@
+/**
+ * Explooro — Design Tokens: colour.
+ *
+ * Spec: docs/design-system.md §1–§2. This is the ONLY file (with tokens.css, which stays
+ * colour-free) where a raw hex value may appear. Everything else in the codebase consumes the
+ * semantic custom properties defined at the bottom of this file — never a raw ramp step, never a
+ * hand-picked hex — so the whole product can be re-themed (Prompt 3.5's Theme Studio) by editing
+ * exactly this file.
+ *
+ * Two layers:
+ *   1. Raw ramps  — brand / neutral / success / warning / danger / info / accent. Theme-independent:
+ *      a ramp step is the same colour in light and dark mode. Authored in OKLCH per §1.1 for
+ *      perceptually-uniform steps, with an sRGB hex fallback for engines lacking oklch() support.
+ *   2. Semantic tokens — surface/text/border/brand/status roles. THEME-dependent: which ramp step
+ *      backs "surface-0" flips between light and dark. Defined four times per the design-system
+ *      checklist so an explicit `data-theme` toggle always wins over the OS preference.
+ */
+
+/* =========================================================================
+ * 1. Raw ramps — hex fallback first, OKLCH override for engines that support it.
+ * ======================================================================= */
+
+:root {
+  /* Brand — CORAL, hue 35.4.
+     Danger ramp has been shifted to a deeper Ruby Red (hue 10) to prevent perceptual collision.
+     Screened and contrast-verified by scripts/palette.mjs. */
+  --brand-50: #fcf7f6;
+  --brand-100: #fef2ef;
+  --brand-200: #fde5df;
+  --brand-300: #fdcabc;
+  --brand-400: #f6a792;
+  --brand-500: #e9856c;
+  --brand-600: #da694c;
+  --brand-700: #c25336;
+  --brand-800: #a04129;
+  --brand-900: #7e321f;
+  --brand-950: #602618;
+  --brand-1000: #40190f;
+
+  /* Neutral — CHARCOAL, hue 242.5, from the reference image's #232d35 = oklch(29.1% 0.020 242.5).
+     Kept when the brand moved from coral to violet: a cool charcoal reads as a deliberate ground
+     under either, and 242 sits far enough from the violet brand (295) that the greys stay greys
+     rather than turning into a washed-out tint of the brand. */
+  --neutral-0: #fbfdfe;
+  --neutral-50: #f7f9fa;
+  --neutral-100: #eff2f5;
+  --neutral-200: #e1e5e8;
+  --neutral-300: #cdd2d6;
+  --neutral-400: #a6acb1;
+  --neutral-500: #80878d;
+  --neutral-600: #626a70;
+  --neutral-700: #464e55;
+  --neutral-800: #2c343a;
+  --neutral-900: #192026;
+  --neutral-950: #0c1217;
+  --neutral-1000: #04080c;
+
+  /* Status ramps (§1.4) */
+  --success-50: #e7f7e9;
+  --success-100: #bce3c3;
+  --success-300: #73bf84;
+  --success-500: #3e9c58;
+  --success-700: #2d7b44;
+  --success-800: #205b31;
+
+  --warning-50: #feefdc;
+  --warning-100: #f6d19e;
+  --warning-300: #e3a340;
+  --warning-500: #c28412;
+  --warning-700: #936412;
+  --warning-800: #6e4b0e;
+
+  --danger-50: #fceeec;
+  --danger-100: #fbd4cd;
+  --danger-300: #ef9688;
+  --danger-500: #fd1913;
+  --danger-700: #c9120d;
+  --danger-800: #8b1f17;
+
+  --info-50: #eaf3fc;
+  --info-100: #c8e1fb;
+  --info-300: #82b6ec;
+  --info-500: #3f90dd;
+  --info-700: #1b71bc;
+  --info-800: #16558c;
+
+  /* Accent — amber, hue 75. Commercial urgency only: countdowns, margin badges, coin balances.
+     Referenced directly by components per §1.4 — it is deliberately not aliased into a semantic
+     surface/text/brand role, so overuse stays visible in code review. */
+  --accent-50: #fdf0de;
+  --accent-100: #f8d9af;
+  --accent-200: #eeba70;
+  --accent-300: #de9c31;
+  --accent-400: #c28412;
+  --accent-500: #a26f17;
+  --accent-600: #835a18;
+  --accent-700: #664613;
+}
+
+/* Brand + neutral ramps, authored in OKLCH so the steps are perceptually even. Generated and
+   contrast-verified by scripts/palette.violet-charcoal.mjs — regenerate from there rather than
+   hand-editing a step, or the hex fallback and the OKLCH value will silently drift apart.
+   NOTE: these supersede the teal ramps still documented in docs/design-system.md §1.2/§1.3;
+   that document is only updated once this palette is accepted. */
+@supports (color: oklch(0 0 0)) {
+  :root {
+    --brand-50: oklch(98% 0.005 35.4);
+    --brand-100: oklch(97% 0.014 35.4);
+    --brand-200: oklch(94% 0.028 35.4);
+    --brand-300: oklch(88% 0.062 35.4);
+    --brand-400: oklch(80% 0.098 35.4);
+    --brand-500: oklch(72% 0.128 35.4);
+    --brand-600: oklch(65% 0.148 35.4);
+    --brand-700: oklch(58% 0.15 35.4);
+    --brand-800: oklch(50% 0.132 35.4);
+    --brand-900: oklch(42% 0.11 35.4);
+    --brand-950: oklch(35% 0.088 35.4);
+    --brand-1000: oklch(27% 0.064 35.4);
+
+    --neutral-0: oklch(99.2% 0.002 242.5);
+    --neutral-50: oklch(98% 0.003 242.5);
+    --neutral-100: oklch(96% 0.005 242.5);
+    --neutral-200: oklch(92% 0.006 242.5);
+    --neutral-300: oklch(86% 0.008 242.5);
+    --neutral-400: oklch(74% 0.01 242.5);
+    --neutral-500: oklch(62% 0.012 242.5);
+    --neutral-600: oklch(52% 0.014 242.5);
+    --neutral-700: oklch(42% 0.016 242.5);
+    --neutral-800: oklch(32% 0.016 242.5);
+    --neutral-900: oklch(24% 0.015 242.5);
+    --neutral-950: oklch(18% 0.014 242.5);
+    --neutral-1000: oklch(13% 0.012 242.5);
+  }
+}
+
+/* Status + accent ramps: docs/design-system.md §1.4 publishes only the resulting hex, not the
+   source OKLCH triplet. Rather than hand-guess lightness/chroma numbers and risk an out-of-gamut
+   or off-hue value, the relative-colour form reads OKLCH straight out of the authored hex — same
+   pixel, expressed in OKLCH, with no hand-rounded numbers to get wrong. Gated on its own
+   @supports query since relative-colour syntax landed after plain oklch() in some engines. */
+@supports (color: oklch(from red l c h)) {
+  :root {
+    --success-50: oklch(from #e7f7e9 l c h);
+    --success-100: oklch(from #bce3c3 l c h);
+    --success-300: oklch(from #73bf84 l c h);
+    --success-500: oklch(from #3e9c58 l c h);
+    --success-700: oklch(from #2d7b44 l c h);
+    --success-800: oklch(from #205b31 l c h);
+
+    --warning-50: oklch(from #feefdc l c h);
+    --warning-100: oklch(from #f6d19e l c h);
+    --warning-300: oklch(from #e3a340 l c h);
+    --warning-500: oklch(from #c28412 l c h);
+    --warning-700: oklch(from #936412 l c h);
+    --warning-800: oklch(from #6e4b0e l c h);
+
+    --danger-50: oklch(from #fceeec l c h);
+    --danger-100: oklch(from #fbd4cd l c h);
+    --danger-300: oklch(from #ef9688 l c h);
+    --danger-500: oklch(from #fd1913 l c h);
+    --danger-700: oklch(from #c9120d l c h);
+    --danger-800: oklch(from #8b1f17 l c h);
+
+    --info-50: oklch(from #eaf3fc l c h);
+    --info-100: oklch(from #c8e1fb l c h);
+    --info-300: oklch(from #82b6ec l c h);
+    --info-500: oklch(from #3f90dd l c h);
+    --info-700: oklch(from #1b71bc l c h);
+    --info-800: oklch(from #16558c l c h);
+
+    --accent-50: oklch(from #fdf0de l c h);
+    --accent-100: oklch(from #f8d9af l c h);
+    --accent-200: oklch(from #eeba70 l c h);
+    --accent-300: oklch(from #de9c31 l c h);
+    --accent-400: oklch(from #c28412 l c h);
+    --accent-500: oklch(from #a26f17 l c h);
+    --accent-600: oklch(from #835a18 l c h);
+    --accent-700: oklch(from #664613 l c h);
+  }
+}
+
+/* =========================================================================
+ * 2. Semantic tokens — theme-dependent. Components reference ONLY these.
+ * ======================================================================= */
+
+/* ---- Light (default) --------------------------------------------------- */
+:root {
+  --surface-0: var(--neutral-0);
+  --surface-1: var(--neutral-50);
+  --surface-2: var(--neutral-100);
+  --surface-3: var(--neutral-200);
+
+  --border-subtle: var(--neutral-300);
+  --border-strong: var(--neutral-400);
+  --border-interactive: var(--neutral-500);
+
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-700);
+  --text-muted: var(--neutral-600);
+  --text-inverse: var(--neutral-0);
+
+  /* Using brand-600 (swatch 6, #da694c) as primary fill, which requires dark text for contrast. */
+  --brand: var(--brand-600);
+  --brand-hover: var(--brand-700);
+  --brand-active: var(--brand-800);
+  --brand-contrast: var(--neutral-900);
+  --text-brand: var(--brand-800);
+
+  --success: var(--success-700);
+  --success-bg: var(--success-50);
+  --success-border: var(--success-300);
+  --warning: var(--warning-700);
+  --warning-bg: var(--warning-50);
+  --warning-border: var(--warning-300);
+  --danger: var(--danger-700);
+  --danger-bg: var(--danger-50);
+  --danger-border: var(--danger-300);
+  --info: var(--info-700);
+  --info-bg: var(--info-50);
+  --info-border: var(--info-300);
+
+  --focus-ring: var(--brand-600);
+  /* HSL triplet (hue, sat, lightness) — consumed as hsl(var(--shadow-color) / alpha) by the
+     elevation tokens in tokens.css. Tinted toward the CHARCOAL surface hue (242) per §1.5, not
+     the violet brand hue: a shadow reads as the surface being lit, and the surfaces are cool. */
+  --shadow-color: 242deg 14% 14%;
+  --scrim: hsl(242deg 28% 9% / 48%);
+}
+
+/* ---- Dark, following the OS preference ---------------------------------
+   :not([data-theme='light']) so an explicit light toggle (block 4) always outranks the OS. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --surface-0: var(--neutral-950);
+    --surface-1: var(--neutral-900);
+    --surface-2: var(--neutral-800);
+    --surface-3: var(--neutral-700);
+
+    --border-subtle: var(--neutral-800);
+    --border-strong: var(--neutral-700);
+    --border-interactive: var(--neutral-600);
+
+    --text-primary: var(--neutral-100);
+    --text-secondary: var(--neutral-300);
+    --text-muted: var(--neutral-400);
+    --text-inverse: var(--neutral-950);
+
+    /* On dark, the brand INVERTS: a light tint carries the action and dark text sits on it, since
+       a 50%-lightness fill has nowhere near enough contrast against a near-black page. Hover and
+       active step 300 -> 400 -> 500, which deepens and saturates rather than lightening. That is
+       the opposite direction from the surface ladder (§1.6 rule 1) and is deliberate: surfaces
+       rise toward the light, but a control being pressed should read as recessed, not lifted. */
+    --brand: var(--brand-300);
+    --brand-hover: var(--brand-400);
+    --brand-active: var(--brand-500);
+    --brand-contrast: var(--neutral-950);
+    --text-brand: var(--brand-300);
+
+    /* Status triads: text takes the -300 step (measured 8+:1 on dark surface-0 per §2), bg takes
+       the -800 step (dark enough to sit as a tinted panel on a dark surface without vibrating,
+       per §1.6 rule 2's ~15% chroma reduction), border takes the -500 step in between. */
+    --success: var(--success-300);
+    --success-bg: var(--success-800);
+    --success-border: var(--success-500);
+    --warning: var(--warning-300);
+    --warning-bg: var(--warning-800);
+    --warning-border: var(--warning-500);
+    --danger: var(--danger-300);
+    --danger-bg: var(--danger-800);
+    --danger-border: var(--danger-500);
+    --info: var(--info-300);
+    --info-bg: var(--info-800);
+    --info-border: var(--info-500);
+
+    --focus-ring: var(--brand-400);
+    --shadow-color: 242deg 12% 2%;
+    --scrim: hsl(242deg 42% 3% / 60%);
+  }
+}
+
+/* ---- Dark, explicit toggle (wins over OS preference) ------------------- */
+:root[data-theme='dark'] {
+  --surface-0: var(--neutral-950);
+  --surface-1: var(--neutral-900);
+  --surface-2: var(--neutral-800);
+  --surface-3: var(--neutral-700);
+
+  --border-subtle: var(--neutral-800);
+  --border-strong: var(--neutral-700);
+  --border-interactive: var(--neutral-600);
+
+  --text-primary: var(--neutral-100);
+  --text-secondary: var(--neutral-300);
+  --text-muted: var(--neutral-400);
+  --text-inverse: var(--neutral-950);
+
+  --brand: var(--brand-300);
+  --brand-hover: var(--brand-400);
+  --brand-active: var(--brand-500);
+  --brand-contrast: var(--neutral-950);
+  --text-brand: var(--brand-300);
+
+  --success: var(--success-300);
+  --success-bg: var(--success-800);
+  --success-border: var(--success-500);
+  --warning: var(--warning-300);
+  --warning-bg: var(--warning-800);
+  --warning-border: var(--warning-500);
+  --danger: var(--danger-300);
+  --danger-bg: var(--danger-800);
+  --danger-border: var(--danger-500);
+  --info: var(--info-300);
+  --info-bg: var(--info-800);
+  --info-border: var(--info-500);
+
+  --focus-ring: var(--brand-400);
+  --shadow-color: 242deg 12% 2%;
+  --scrim: hsl(242deg 42% 3% / 60%);
+}
+
+/* ---- Light, explicit toggle (wins over a dark OS preference) ----------- */
+:root[data-theme='light'] {
+  --surface-0: var(--neutral-0);
+  --surface-1: var(--neutral-50);
+  --surface-2: var(--neutral-100);
+  --surface-3: var(--neutral-200);
+
+  --border-subtle: var(--neutral-300);
+  --border-strong: var(--neutral-400);
+  --border-interactive: var(--neutral-500);
+
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-700);
+  --text-muted: var(--neutral-600);
+  --text-inverse: var(--neutral-0);
+
+  /* Using brand-600 (swatch 6, #da694c) as primary fill, which requires dark text for contrast. */
+  --brand: var(--brand-600);
+  --brand-hover: var(--brand-700);
+  --brand-active: var(--brand-800);
+  --brand-contrast: var(--neutral-900);
+  --text-brand: var(--brand-800);
+
+  --success: var(--success-700);
+  --success-bg: var(--success-50);
+  --success-border: var(--success-300);
+  --warning: var(--warning-700);
+  --warning-bg: var(--warning-50);
+  --warning-border: var(--warning-300);
+  --danger: var(--danger-700);
+  --danger-bg: var(--danger-50);
+  --danger-border: var(--danger-300);
+  --info: var(--info-700);
+  --info-bg: var(--info-50);
+  --info-border: var(--info-300);
+
+  --focus-ring: var(--brand-600);
+  --shadow-color: 242deg 14% 14%;
+  --scrim: hsl(242deg 28% 9% / 48%);
+}

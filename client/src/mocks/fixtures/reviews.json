@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "product_ref": "PRD-8F2K9QX7",
+    "rating": 5,
+    "title": "Beautiful fabric, colour is exact",
+    "body": "The saree drapes beautifully and the colour matches the photos exactly. Delivered well packed within 3 days to Dhaka.",
+    "reviewer_name": "Nusrat J.",
+    "is_verified_purchase": true,
+    "helpful_count": 14,
+    "created_at": "2026-08-02T10:00:00.000Z",
+    "media": [{ "id": 901, "url": null, "media_kind": "IMAGE" }]
+  },
+  {
+    "id": 2,
+    "product_ref": "PRD-8F2K9QX7",
+    "rating": 4,
+    "title": "Good quality, slightly long",
+    "body": "Nice material but a little longer than expected — easy to hem though. Would buy again.",
+    "reviewer_name": "Farzana R.",
+    "is_verified_purchase": true,
+    "helpful_count": 6,
+    "created_at": "2026-07-20T10:00:00.000Z",
+    "media": []
+  },
+  {
+    "id": 3,
+    "product_ref": "PRD-2M7V9WQ1",
+    "rating": 4,
+    "title": "Great for Eid, runs slightly large",
+    "body": "Fabric is soft and breathable. Ordered M, felt closer to L — check the size chart carefully.",
+    "reviewer_name": "Kamal H.",
+    "is_verified_purchase": true,
+    "helpful_count": 9,
+    "created_at": "2026-08-10T10:00:00.000Z",
+    "media": []
+  },
+  {
+    "id": 4,
+    "product_ref": "PRD-9K1L4XC6",
+    "rating": 5,
+    "title": "Authentic handloom, worth it",
+    "body": "You can tell this is genuinely hand-woven. Arrived in a cloth bag, not crushed. Second purchase from this seller.",
+    "reviewer_name": "Dev Customer",
+    "is_verified_purchase": true,
+    "helpful_count": 22,
+    "created_at": "2026-07-28T10:00:00.000Z",
+    "media": [{ "id": 902, "url": null, "media_kind": "IMAGE" }, { "id": 903, "url": null, "media_kind": "IMAGE" }]
+  },
+  {
+    "id": 5,
+    "product_ref": "PRD-9K1L4XC6",
+    "rating": 3,
+    "title": "Nice but arrived a bit late",
+    "body": "The saree itself is lovely but delivery took 6 days instead of the estimated 3.",
+    "reviewer_name": "Shirin A.",
+    "is_verified_purchase": true,
+    "helpful_count": 3,
+    "created_at": "2026-06-15T10:00:00.000Z",
+    "media": []
+  }
+]

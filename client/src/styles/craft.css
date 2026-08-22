@@ -1,0 +1,189 @@
+/**
+ * craft.css — Craft Layer of Explooro Design System (Prompt 1.10, docs/design-system.md §14–§18).
+ *
+ * Implements the microscopic details that separate world-class from merely correct:
+ *  - Custom ::selection
+ *  - Thin, styled scrollbars
+ *  - Brand focus ring
+ *  - Caret-color
+ *  - Tabular numerals on every numeric context
+ *  - Hanging punctuation
+ *  - text-wrap: pretty (body) and balance (headings)
+ *  - Optical padding corrections & nested-radius helpers
+ *  - Autofill restyling
+ *  - Print stylesheet for invoices/slips
+ */
+
+/* =========================================================================
+ * 1. Global Selection & Tap Highlights (§17)
+ * ======================================================================= */
+
+::selection {
+  background-color: var(--brand-200, #fde5df);
+  color: var(--text-primary, #192026);
+}
+
+:root[data-theme='dark'] ::selection {
+  background-color: var(--brand-700, #c25336);
+  color: var(--text-inverse, #fbfdfe);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) ::selection {
+    background-color: var(--brand-700, #c25336);
+    color: var(--text-inverse, #fbfdfe);
+  }
+}
+
+
+html, body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* =========================================================================
+ * 2. Styled Scrollbars (Desktop only, §17)
+ * ======================================================================= */
+
+@media (pointer: fine) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border-strong);
+    border-radius: var(--radius-full);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--border-interactive);
+  }
+}
+
+/* =========================================================================
+ * 3. Focus Ring & Caret (§10, §17)
+ * ======================================================================= */
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--brand));
+  outline-offset: 2px;
+}
+
+input, textarea, select, [contenteditable='true'] {
+  caret-color: var(--brand);
+}
+
+/* Autofill restyling — prevents browser yellow background from breaking dark themes */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-box-shadow: 0 0 0px 1000px var(--surface-1) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* =========================================================================
+ * 4. Typography Craft & Tabular Numerals (§14, §17, §18)
+ * ======================================================================= */
+
+h1, h2, h3, h4, h5, h6, .heading-balanced {
+  text-wrap: balance;
+}
+
+p, .text-pretty {
+  text-wrap: pretty;
+}
+
+/* Hanging punctuation for quotes */
+blockquote, q, .hanging-quote {
+  hanging-punctuation: first last;
+}
+
+/* Tabular numerals — prevents jitter in prices, counters, timers, and tables */
+.text-numeric,
+.price,
+.counter,
+.countdown,
+.badge--count,
+.table__cell--numeric,
+[data-numeric='true'] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* =========================================================================
+ * 5. Optical Corrections & Nested Radius (§14, §18)
+ * ======================================================================= */
+
+/* Optical padding for single-word buttons (prevents cramped look) */
+.btn--single-word {
+  padding-inline: calc(var(--space-4) * 1.25);
+}
+
+/* Nested radius formula: R_inner = max(0, R_outer - padding) */
+.nested-surface {
+  --surface-radius: var(--radius-lg);
+  --surface-padding: var(--space-4);
+  border-radius: var(--surface-radius);
+  padding: var(--surface-padding);
+}
+
+.nested-surface > .nested-child {
+  border-radius: max(0px, calc(var(--surface-radius) - var(--surface-padding)));
+}
+
+/* Optical alignment for right-aligned numeric table cells */
+.table__cell--numeric {
+  padding-right: calc(var(--space-4) + 2px);
+  text-align: right;
+}
+
+/* =========================================================================
+ * 6. Print Stylesheet (§17)
+ * ======================================================================= */
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  .sidebar,
+  .top-bar,
+  .mobile-nav,
+  .command-palette,
+  .btn,
+  nav {
+    display: none !important;
+  }
+
+  .app-shell__content,
+  main,
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  a[href^='http']:after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    color: #555;
+  }
+}

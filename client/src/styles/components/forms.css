@@ -1,0 +1,471 @@
+/**
+ * Forms — FormField, Input, Select, Textarea, Checkbox, Radio, Switch.
+ *
+ * Spacing follows the Proximity Rule (design-system §4.2): the gap between a label and its own
+ * input is visibly smaller than the gap to the next field. Read the numbers as a sequence and
+ * the grouping is legible before a single word is read.
+ */
+
+/* =========================================================================
+ * FormField shell
+ * ======================================================================= */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  /* Label -> its own input: 8px. Tight, because they are one unit. */
+  gap: var(--space-2);
+  border: none;
+  min-width: 0;
+}
+
+/* Input -> next field in the same group: 16px, i.e. 2x the label gap. */
+.field + .field,
+.field + .radio-group,
+.radio-group + .field {
+  margin-top: var(--space-4);
+}
+
+.field__label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-lg);
+  line-height: var(--leading-sm);
+  color: var(--text-primary);
+  padding: 0;
+}
+
+.field__required {
+  color: var(--danger);
+}
+
+.field__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-sm);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.field__control:hover:not(:has(:disabled)) {
+  border-color: var(--text-muted);
+}
+
+/* WHY :focus-within and not :focus — the visible ring belongs on the bordered box, but focus
+   actually lands on the inner <input>. Without this the ring would draw inside the border. */
+.field__control:focus-within {
+  border-color: var(--brand);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* The inner control already renders the ring on its wrapper — a second ring would double-draw. */
+.field__control .input:focus-visible,
+.field__control .select:focus-visible,
+.field__control .textarea:focus-visible {
+  outline: none;
+}
+
+.field[data-invalid='true'] .field__control {
+  border-color: var(--danger);
+}
+.field[data-success='true'] .field__control {
+  border-color: var(--success);
+}
+
+.input,
+.select,
+.textarea {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  /* §17 — the browser's default caret belongs to no brand. */
+  caret-color: var(--brand);
+}
+
+.input,
+.select {
+  height: calc(var(--control-height) - 2px);
+  padding-inline: var(--space-3);
+}
+
+.textarea {
+  padding: var(--space-3);
+  resize: vertical;
+  line-height: var(--leading-sm);
+  font-family: inherit;
+}
+
+.field__control--textarea {
+  align-items: stretch;
+}
+
+/* §17 — a placeholder must never be the same colour as real input text, or an empty field reads
+   as a filled one. */
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+/* Disabled must stay READABLE (§10) — it is not invisible, it is unavailable. */
+.field__control:has(:disabled) {
+  background: var(--surface-2);
+  opacity: 0.7;
+}
+.field__control:has([readonly]) {
+  background: var(--surface-2);
+}
+
+/* §17 — Chrome's yellow autofill background breaks every dark theme. Repainting via a very long
+   inset shadow is the only reliable cross-browser override; `background-color` is ignored. */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus,
+.textarea:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px var(--surface-0) inset;
+  -webkit-text-fill-color: var(--text-primary);
+  caret-color: var(--brand);
+}
+
+/* ---- Affixes ---------------------------------------------------------- */
+.field__affix {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding-inline: var(--space-3);
+}
+.field__affix--prefix { padding-inline-end: 0; }
+.field__affix--suffix { padding-inline-start: 0; }
+.field__control[data-has-prefix='true'] .input { padding-inline-start: var(--space-2); }
+.field__control[data-has-suffix='true'] .input { padding-inline-end: var(--space-2); }
+
+/* ---- Select ----------------------------------------------------------- */
+.field__control--select { position: relative; }
+.select {
+  appearance: none;
+  cursor: pointer;
+  /* Reserve room so a long option label never runs under the chevron. */
+  padding-inline-end: var(--space-8);
+}
+.select__chevron {
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  /* Decorative: clicks must fall through to the <select> beneath. */
+  pointer-events: none;
+}
+.select__chevron svg { width: 100%; height: 100%; }
+
+/* ---- Footer: hint, error, counter ------------------------------------- */
+.field__footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  /* Input -> its own hint: 4px. Tighter than the label gap, because the hint is subordinate. */
+  margin-top: calc(var(--space-1) - var(--space-2));
+}
+
+.field__messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.field__hint,
+.field__error {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  max-width: none;
+  margin: 0;
+}
+.field__hint { color: var(--text-muted); }
+.field__error { color: var(--danger); }
+
+/* An empty message element must not occupy space, or every field carries a phantom gap. */
+.field__hint:empty,
+.field__error:empty,
+.field__footer:not(:has(.field__hint:not(:empty), .field__error:not(:empty), .field__counter)) {
+  display: none;
+}
+
+.field__counter {
+  flex: none;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.field__counter[data-overflow='true'] {
+  color: var(--danger);
+  font-weight: var(--weight-xs);
+}
+
+/* =========================================================================
+ * Toggles — Checkbox, Radio, Switch
+ * ======================================================================= */
+
+/* The whole row is the target. §11: visual size and target size are independent, and a 20px box
+   is not a tappable thing on a phone. 44px min-height also satisfies the touch-target rule
+   without inflating the visual control. */
+.toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding-block: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+}
+.toggle:has(:disabled) {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.toggle + .toggle {
+  /* §11 — minimum 8px between adjacent targets. */
+  margin-top: var(--space-1);
+}
+
+/* The native input stays in the accessibility tree and keeps native keyboard behaviour; only its
+   default rendering is removed. `appearance: none` alone still leaves an inconsistent box. */
+.toggle__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.toggle__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 1px;
+}
+.toggle__label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  color: var(--text-primary);
+}
+.toggle__hint {
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  color: var(--text-muted);
+}
+
+.toggle--label-start {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+/* ---- Checkbox --------------------------------------------------------- */
+.checkbox__box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 2px;
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-xs);
+  color: var(--brand-contrast);
+  transition:
+    background-color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.checkbox__tick,
+.checkbox__dash {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity var(--dur-fast) var(--ease-out-quart),
+    transform var(--dur-fast) var(--ease-out-quart);
+}
+
+.toggle__input:checked + .checkbox__box,
+.toggle__input:indeterminate + .checkbox__box {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.toggle__input:checked + .checkbox__box .checkbox__tick,
+.toggle__input:indeterminate + .checkbox__box .checkbox__dash {
+  opacity: 1;
+  transform: scale(1);
+}
+/* Indeterminate outranks checked: a "some selected" header must not also show a tick. */
+.toggle__input:indeterminate + .checkbox__box .checkbox__tick {
+  opacity: 0;
+}
+
+.toggle:hover:not(:has(:disabled)) .checkbox__box {
+  border-color: var(--brand);
+}
+
+/* ---- Radio ------------------------------------------------------------ */
+.radio__box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  margin-top: 2px;
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-full);
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    border-width var(--dur-fast) var(--ease-standard);
+}
+.radio__box::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--brand);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity var(--dur-fast) var(--ease-out-quart),
+    transform var(--dur-fast) var(--ease-out-quart);
+}
+.toggle__input:checked + .radio__box {
+  border-color: var(--brand);
+}
+.toggle__input:checked + .radio__box::after {
+  opacity: 1;
+  transform: scale(1);
+}
+.toggle:hover:not(:has(:disabled)) .radio__box {
+  border-color: var(--brand);
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+.radio-group__options {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Switch ----------------------------------------------------------- */
+.switch__track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 40px;
+  height: 24px;
+  flex: none;
+  margin-top: 1px;
+  background: var(--surface-3);
+  border-radius: var(--radius-full);
+  /* The off-state track measures 2.25:1 and fails WCAG 1.4.11 on its own (design-system §2).
+     This outline is what makes the boundary perceivable. Do NOT solve it by darkening the
+     track — that makes "off" look like "on". */
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-interactive);
+  transition: background-color var(--dur-base) var(--ease-standard);
+}
+
+.switch__thumb {
+  position: absolute;
+  inset-inline-start: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--surface-0);
+  box-shadow: var(--elevation-1);
+  /* §15 — the thumb travels on a spring; the track colour changes on a neutral curve. */
+  transition: transform var(--dur-base) var(--ease-spring);
+}
+
+.toggle__input:checked + .switch__track {
+  background: var(--brand);
+  box-shadow: inset 0 0 0 var(--border-width) var(--brand);
+}
+.toggle__input:checked + .switch__track .switch__thumb {
+  transform: translateX(16px);
+}
+
+.toggle:hover:not(:has(:disabled)) .switch__track {
+  box-shadow: inset 0 0 0 var(--border-width) var(--brand);
+}
+
+/* Pending: the optimistic value is already shown, so the control must read as "working", not as
+   plain disabled — the user needs to see that their toggle is in flight, not rejected. */
+.toggle--switch[data-pending='true'] {
+  cursor: progress;
+}
+.toggle--switch[data-pending='true'] .switch__thumb {
+  animation: switch-pending 1s var(--ease-standard) infinite;
+}
+.toggle--switch[data-pending='true'] .toggle__label::after {
+  content: '';
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-inline-start: var(--space-2);
+  vertical-align: -1px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: var(--radius-full);
+  animation: spin 640ms linear infinite;
+}
+
+@keyframes switch-pending {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle--switch[data-pending='true'] .toggle__label::after {
+    animation: spinner-pulse 1.4s var(--ease-standard) infinite !important;
+    border-right-color: currentColor;
+  }
+}
+
+/* =========================================================================
+ * Focus rings for the visually-hidden native inputs
+ * ======================================================================= */
+
+/* The real <input> is off-screen, so its own ring would be invisible. The ring is drawn on the
+   visual proxy instead — never removed, only relocated (§10 forbids outline:none without a
+   replacement). */
+.toggle__input:focus-visible + .checkbox__box,
+.toggle__input:focus-visible + .radio__box,
+.toggle__input:focus-visible + .switch__track {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}

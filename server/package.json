@@ -1,0 +1,28 @@
+{
+  "name": "@explooro/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Explooro API — Fastify. Routes -> Controllers -> Services -> Repositories.",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test test/*.test.js",
+    "migrate": "node src/db/migrate.js up",
+    "migrate:status": "node src/db/migrate.js status",
+    "seed": "node src/db/seed.js"
+  },
+  "//dependencies": "Short, boring, audited list only. See the Dependency Policy in docs/prompt.md. Anything not already listed there needs a docs/dependency-ledger.md entry and isolation behind a single adapter file.",
+  "dependencies": {
+    "fastify": "5.12.1",
+    "@fastify/cors": "11.3.0",
+    "@fastify/helmet": "13.1.1",
+    "@fastify/cookie": "11.1.2",
+    "@fastify/rate-limit": "11.2.0",
+    "pg": "8.23.0",
+    "redis": "6.2.1",
+    "argon2": "0.45.1",
+    "jose": "6.2.10"
+  }
+}

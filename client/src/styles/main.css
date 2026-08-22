@@ -1,0 +1,34 @@
+/**
+ * Explooro — stylesheet aggregator.
+ *
+ * Import order is load-bearing: tokens before themes (themes' shadow composition reads tokens'
+ * elevation shape), themes before reset/typography (both consume semantic color tokens), and
+ * components/utilities (from Prompt 1.3 onward) always last so they can override the base layer.
+ */
+
+@import './tokens.css';
+@import './themes.css';
+@import './reset.css';
+@import './typography.css';
+@import './craft.css';
+
+/* Components (Prompt 1.3 onward) */
+@import './components/actions.css';
+@import './components/forms.css';
+@import './components/surfaces.css';
+@import './components/feedback.css';
+@import './components/shell.css';
+@import './components/auth.css';
+@import './components/access.css';
+@import './components/module-control.css';
+@import './components/admin-users.css';
+@import './components/audit-explorer.css';
+@import './components/theme-studio.css';
+@import './components/media.css';
+/* Prompt 4.5: product discovery components */
+@import './components/product.css';
+/* Prompt 4.7: saler sourcing & profit calculator components */
+@import './components/sourcing.css';
+/* Prompt 4.8: virtual storefront & builder components */
+@import './components/store.css';
+

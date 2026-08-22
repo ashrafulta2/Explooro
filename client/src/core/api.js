@@ -1,0 +1,198 @@
+/**
+ * api.js — fetch wrapper implementing docs/api-contract.md.
+ *
+ * Mock/live switch: `import.meta.env.VITE_API_MODE`. `mock` (the default) resolves against
+ * client/src/mocks with simulated 150–400ms latency, so the app is fully previewable for the next
+ * ~10 phases before the backend exists. `live` calls the real API through the Vite proxy. Callers
+ * never know which — see docs/api-contract.md §1 "Client compatibility rule".
+ */
+import { handleMockRequest } from '../mocks/index.js';
+import { toast } from '../services/toast.js';
+
+const MODE = import.meta.env.VITE_API_MODE === 'live' ? 'live' : 'mock';
+const BASE = '/api/v1';
+
+// docs/api-contract.md §5.1 — endpoints that move money, create an order, or trigger an
+// irreversible side effect MUST carry an Idempotency-Key. Kept as a whitelist, not a POST/PATCH
+// blanket rule, because a retried key on a non-money endpoint would just be wasted overhead.
+const IDEMPOTENT_ROUTES = [
+  /^\/orders\/checkout$/,
+  /^\/vault\/withdraw$/,
+  /^\/payments\/execute$/,
+  /^\/returns\/[^/]+\/refund$/,
+  /^\/team-purchases\/join$/,
+  /^\/coupons\/redeem$/,
+  /^\/admin\/pending-actions\/[^/]+$/,
+  /^\/admin\/payouts\/batch$/,
+];
+
+/** Thrown for every 4xx/5xx response. Carries both language messages per §2.3 "Field rules". */
+export class ApiError extends Error {
+  constructor({ code, message_en, message_bn, details, trace_id, status }) {
+    super(message_en || code);
+    this.name = 'ApiError';
+    this.code = code;
+    this.message_en = message_en;
+    this.message_bn = message_bn;
+    this.details = details ?? {};
+    this.trace_id = trace_id;
+    this.status = status;
+    // §3.7 — PERMISSION_DENIED carries whether a Request Access flow is possible.
+    this.requestable = this.details.requestable ?? false;
+  }
+}
+
+// Access tokens live in memory only — never localStorage, which any XSS can read (§8).
+let accessToken = null;
+
+export function setAccessToken(token) {
+  accessToken = token;
+}
+
+export function clearAccessToken() {
+  accessToken = null;
+}
+
+function currentLang() {
+  return document.documentElement.lang === 'bn' ? 'bn' : 'en';
+}
+
+// docs/api-contract.md §8 double-submit pattern: the server sets a JS-readable `csrf` cookie
+// alongside the HttpOnly refresh cookie and requires it echoed back as this header on
+// cookie-authenticated POSTs (refresh, logout) — read fresh each call since login/refresh rotate it.
+function currentCsrfToken() {
+  const match = document.cookie.match(/(?:^|;\s*)csrf=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function pickMessage(err) {
+  return currentLang() === 'bn' ? err.message_bn ?? err.message_en : err.message_en ?? err.message_bn;
+}
+
+function needsIdempotencyKey(method, path, explicit) {
+  if (explicit !== undefined) return explicit;
+  return (method === 'POST' || method === 'PATCH') && IDEMPOTENT_ROUTES.some((re) => re.test(path));
+}
+
+function buildHeaders(method, path, options) {
+  const headers = {
+    'Accept-Language': currentLang(),
+    ...options.headers,
+  };
+  // WHY: a Content-Type header on a bodyless request (e.g. api.post('/auth/refresh')) makes
+  // Fastify's JSON body parser choke on the empty body, surfacing as an unhandled 500 instead of
+  // the harmless no-body case it actually is.
+  if (options.body !== undefined) headers['Content-Type'] = 'application/json';
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  const csrfToken = currentCsrfToken();
+  if (csrfToken) headers['x-csrf-token'] = csrfToken;
+  if (needsIdempotencyKey(method, path, options.idempotent)) {
+    headers['Idempotency-Key'] = options.idempotencyKey ?? crypto.randomUUID();
+  }
+  return headers;
+}
+
+async function refreshAccessToken() {
+  // The real refresh endpoint lands in Prompt 2.3 — until then there is nothing to refresh, and
+  // 401s in mock mode never happen because no mock handler returns one.
+  if (MODE !== 'live') return false;
+  try {
+    const csrfToken = currentCsrfToken();
+    const res = await fetch(`${BASE}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: csrfToken ? { 'x-csrf-token': csrfToken } : undefined,
+    });
+    if (!res.ok) return false;
+    const parsed = await res.json().catch(() => null);
+    accessToken = parsed?.data?.access_token ?? null;
+    return Boolean(accessToken);
+  } catch {
+    return false;
+  }
+}
+
+async function performLive(method, path, { body, query, headers }) {
+  const url = new URL(BASE + path, window.location.origin);
+  if (query) {
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined && value !== null) url.searchParams.set(key, value);
+    }
+  }
+  const res = await fetch(url, {
+    method,
+    headers,
+    credentials: 'include',
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const parsed = await res.json().catch(() => ({}));
+  return { status: res.status, body: parsed };
+}
+
+async function performMock(method, path, { body, query }) {
+  // Simulated network latency (150–400ms) so loading states are real, not instant, in dev.
+  const delay = 150 + Math.random() * 250;
+  await new Promise((resolve) => setTimeout(resolve, delay));
+  return handleMockRequest({ method, path, query, body });
+}
+
+function handleGlobalCodes(err) {
+  // §3.2 — the feature is off platform-wide; the calling UI hides the affordance, api.js owns
+  // telling the user why in case something still slipped through.
+  if (err.code === 'MODULE_DISABLED') {
+    toast.warning(pickMessage(err));
+  }
+  // §3.7 — the locked-state UI (lock icon + Request Access / Submit for approval) is built in
+  // Prompt 1.7's PermissionGate; it listens for this event rather than every call site branching
+  // on the error code itself.
+  if (err.code === 'PERMISSION_DENIED') {
+    window.dispatchEvent(new CustomEvent('explooro:permission-denied', { detail: err }));
+  }
+}
+
+async function request(method, path, options = {}, retried = false) {
+  const headers = buildHeaders(method, path, options);
+  const { status, body } =
+    MODE === 'live'
+      ? await performLive(method, path, { ...options, headers })
+      : await performMock(method, path, { ...options, headers });
+
+  // §2.2 — deferred: valid and accepted, nothing has changed yet. Never rendered as an error.
+  if (status === 202 && body.deferred) {
+    return { deferred: body.deferred };
+  }
+
+  if (status >= 200 && status < 300) {
+    return { data: body.data ?? null, meta: body.meta ?? {} };
+  }
+
+  const err =
+    body.error ?? {
+      code: 'INTERNAL_ERROR',
+      message_en: 'Something went wrong.',
+      message_bn: 'কিছু ভুল হয়েছে।',
+    };
+
+  if (status === 401 && err.code === 'AUTH_EXPIRED' && !retried) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) return request(method, path, options, true);
+  }
+
+  if (status === 401 && ['AUTH_EXPIRED', 'AUTH_INVALID', 'AUTH_REQUIRED'].includes(err.code)) {
+    clearAccessToken();
+    window.dispatchEvent(new CustomEvent('explooro:auth-required'));
+  }
+
+  handleGlobalCodes(err);
+
+  throw new ApiError({ ...err, status });
+}
+
+export const api = {
+  get: (path, options) => request('GET', path, options),
+  post: (path, body, options) => request('POST', path, { ...options, body }),
+  patch: (path, body, options) => request('PATCH', path, { ...options, body }),
+  delete: (path, options) => request('DELETE', path, options),
+};
+
+export default api;

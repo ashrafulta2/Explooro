@@ -1,0 +1,43 @@
+[
+  {
+    "id": 1,
+    "product_ref": "PRD-8F2K9QX7",
+    "body": "Is this saree machine-washable or dry-clean only?",
+    "asker_name": "Nusrat J.",
+    "upvote_count": 9,
+    "created_at": "2026-07-15T10:00:00.000Z",
+    "answers": [
+      {
+        "id": 1,
+        "body": "Dry-clean only, please — hand-woven thread can loosen with machine agitation. A care card is included with every order.",
+        "responder_name": "Rahim Ahmed (Dhaka Trends)",
+        "created_at": "2026-07-16T09:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "product_ref": "PRD-8F2K9QX7",
+    "body": "Does the blouse piece come stitched or unstitched?",
+    "asker_name": "Farzana R.",
+    "upvote_count": 3,
+    "created_at": "2026-08-01T10:00:00.000Z",
+    "answers": []
+  },
+  {
+    "id": 3,
+    "product_ref": "PRD-2M7V9WQ1",
+    "body": "Is the XL true to size for someone 6ft / 90kg?",
+    "asker_name": "Kamal H.",
+    "upvote_count": 5,
+    "created_at": "2026-08-05T10:00:00.000Z",
+    "answers": [
+      {
+        "id": 2,
+        "body": "Yes, XL fits comfortably up to about 92kg at 6ft — the cut has a little room through the shoulders.",
+        "responder_name": "Dhaka Fashion House",
+        "created_at": "2026-08-06T09:00:00.000Z"
+      }
+    ]
+  }
+]

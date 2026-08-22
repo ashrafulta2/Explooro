@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Explooro — Bangladesh's #1 Social Commerce Platform</title>
+    <meta name="description" content="Buy from verified suppliers. Sell from your own branded store. Explooro is Bangladesh's premier social commerce platform." />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Explooro — Bangladesh's #1 Social Commerce Platform" />
+    <meta property="og:description" content="Buy from verified suppliers. Sell from your own branded store." />
+    <meta property="og:locale" content="en_BD" />
+
+    <!-- Theme-color for mobile browsers (matches --brand-600) -->
+    <meta name="theme-color" content="#da694c" />
+
+    <style>
+      /*
+       * Minimal pre-load layout.
+       * Full tokens/themes/reset arrive via main.css (imported in main.js).
+       * This block is ONLY: prevent FOUC, set body to fill the viewport, and show a
+       * loading indicator before the JS bundle arrives.
+       */
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      body {
+        background: #fbfdfe; /* --neutral-0 fallback before tokens load */
+        color: #192026;      /* --neutral-900 fallback */
+      }
+      /* Dark mode pre-load (avoids white flash on dark OS) */
+      @media (prefers-color-scheme: dark) {
+        body { background: #0c1217; color: #fbfdfe; }
+      }
+
+      /* Language-toggle (fixed, appended by main.js) */
+      .lang-toggle {
+        position: fixed;
+        bottom: var(--space-5, 20px);
+        right: var(--space-5, 20px);
+        z-index: var(--z-toast, 700);
+        padding: var(--space-2, 8px) var(--space-4, 16px);
+        border-radius: var(--radius-full, 9999px);
+        border: var(--border-width, 1px) solid var(--border-subtle, #e1e5e8);
+        background: var(--surface-1, #f7f9fa);
+        color: var(--text-primary, #192026);
+        box-shadow: var(--elevation-2, 0 4px 16px rgb(0 0 0 / 0.1));
+        font-size: var(--text-sm-size, 0.875rem);
+        cursor: pointer;
+      }
+      .lang-toggle:hover { background: var(--surface-2, #e1e5e8); }
+      body:has(.app-shell[data-has-chrome='true']) .lang-toggle { display: none; }
+      @media (max-width: 767px) {
+        .lang-toggle { bottom: calc(64px + var(--space-3, 12px)); }
+      }
+
+      /* Route-stub helpers (used by RoleStubPage etc.) */
+      .route-stub h2 { margin: 0 0 0.25rem; font-size: 1.125rem; }
+      .route-stub__cards { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; }
+      .route-stub__actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <!-- The AppShell (sidebar + topbar + page outlet) mounts here. -->
+    <div id="router-outlet"></div>
+
+    <!-- Dev-only status bar: hidden in production by display:none in JS, shown in DEV -->
+    <div id="dev-status-bar" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
+         background:#192026;color:#fbfdfe;font-size:11px;padding:2px 12px;
+         display:flex;gap:16px;align-items:center;font-family:monospace;">
+      <span><strong>API</strong> <span id="api-status">—</span></span>
+      <span><strong>Proxy</strong> <span id="proxy-status">—</span></span>
+      <span><strong>Mode</strong> <span id="api-mode">—</span></span>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

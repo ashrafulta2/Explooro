@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.npm/
+
+# Build output
+client/dist/
+server/dist/
+*.tsbuildinfo
+
+# Environment — never commit real secrets. .env.example is the committed template.
+.env
+.env.*
+!.env.example
+
+# Local media (STORAGE_DRIVER=local, Prompt 4.2)
+server/storage/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Test output
+coverage/
+.vitest/
+
+# Claude Code runtime state
+.claude/scheduled_tasks.lock
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+*.swp
+
+# Flutter (Prompt 12.3)
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins*
+mobile/ios/Pods/
+
+# Vite
+.vite/
