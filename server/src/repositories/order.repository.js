@@ -27,6 +27,7 @@ export async function createOrder(db, {
   district,
   upazila = null,
   addressLine,
+  liveStreamId = null,
 }) {
   const query = `
     INSERT INTO orders (
@@ -34,14 +35,14 @@ export async function createOrder(db, {
       coins_redeemed, coins_discount, currency, payment_method, payment_status,
       is_otp_verified, trust_score_at_order, coupon_id, team_purchase_id, idempotency_key,
       recipient_name, recipient_phone, division, district, upazila, address_line,
-      placed_at, created_at
+      live_stream_id, placed_at, created_at
     )
     VALUES (
       $1, $2, $3, $4, $5, $6,
       $7, $8, $9, $10, $11,
       $12, $13, $14, $15, $16,
       $17, $18, $19, $20, $21, $22,
-      now(), now()
+      $23, now(), now()
     )
     RETURNING *
   `;
@@ -68,6 +69,7 @@ export async function createOrder(db, {
     district,
     upazila,
     addressLine,
+    liveStreamId,
   ]);
   return rows[0];
 }

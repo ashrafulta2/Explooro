@@ -355,6 +355,7 @@ export function CartDrawer({ navigate = null } = {}) {
     side: 'right',
     size: 'md',
     showClose: false,
+    bodyPadding: false,
     onClose: () => {
       cartStore.update({ drawerOpen: false });
     },

@@ -59,53 +59,53 @@
   /* ---------------------------------------------------------------------
    * Type scale — size + line-height + tracking + weight (§3.2)
    * ------------------------------------------------------------------- */
-  --text-2xs: 11px;
-  --leading-2xs: 16px;
+  --text-2xs: 10px;
+  --leading-2xs: 15px;
   --tracking-2xs: 0.06em;
   --weight-2xs: 600;
 
-  --text-xs: 12px;
-  --leading-xs: 18px;
+  --text-xs: 11px;
+  --leading-xs: 17px;
   --tracking-xs: 0.02em;
   --weight-xs: 500;
 
-  --text-sm: 14px;
-  --leading-sm: 20px;
+  --text-sm: 13px;
+  --leading-sm: 19px;
   --tracking-sm: 0.005em;
   --weight-sm: 400;
 
-  --text-base: 16px;
-  --leading-base: 24px;
+  --text-base: 15px;
+  --leading-base: 22px;
   --tracking-base: 0em;
   --weight-base: 400;
 
-  --text-lg: 18px;
-  --leading-lg: 26px;
+  --text-lg: 17px;
+  --leading-lg: 24px;
   --tracking-lg: -0.005em;
   --weight-lg: 500;
 
-  --text-xl: 20px;
-  --leading-xl: 28px;
+  --text-xl: 18px;
+  --leading-xl: 26px;
   --tracking-xl: -0.01em;
   --weight-xl: 600;
 
-  --text-2xl: 24px;
-  --leading-2xl: 32px;
+  --text-2xl: 22px;
+  --leading-2xl: 30px;
   --tracking-2xl: -0.015em;
   --weight-2xl: 600;
 
-  --text-3xl: 30px;
-  --leading-3xl: 38px;
+  --text-3xl: 27px;
+  --leading-3xl: 35px;
   --tracking-3xl: -0.02em;
   --weight-3xl: 700;
 
-  --text-4xl: 36px;
-  --leading-4xl: 44px;
+  --text-4xl: 33px;
+  --leading-4xl: 40px;
   --tracking-4xl: -0.025em;
   --weight-4xl: 700;
 
-  --text-5xl: 48px;
-  --leading-5xl: 56px;
+  --text-5xl: 44px;
+  --leading-5xl: 52px;
   --tracking-5xl: -0.03em;
   --weight-5xl: 700;
 
@@ -114,7 +114,7 @@
    * @font-face rules that back them are Prompt 1.2's job.
    * ------------------------------------------------------------------- */
   --font-latin: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-bengali: 'Hind Siliguri', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-bengali: 'Noto Sans Bengali', 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
 
   /* ---------------------------------------------------------------------
@@ -165,14 +165,14 @@
    * ------------------------------------------------------------------- */
   --row-height: 48px;
   --control-height: 40px;
-  --density-body-size: 16px;
+  --density-body-size: 15px;
   --card-padding: var(--space-5);
 }
 
 :root[data-density='compact'] {
   --row-height: 36px;
   --control-height: 32px;
-  --density-body-size: 14px;
+  --density-body-size: 13px;
   --card-padding: var(--space-4);
 }
 

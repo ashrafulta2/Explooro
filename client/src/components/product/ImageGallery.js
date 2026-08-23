@@ -18,8 +18,8 @@ import { t } from '../../services/i18n.js';
 import { resolveProductImage } from './ProductCard.js';
 
 const PLACEHOLDER_COLOURS = [
-  { bg: '#da694c', fg: '#fff' }, { bg: '#2d7b44', fg: '#fff' }, { bg: '#1e5fa8', fg: '#fff' },
-  { bg: '#a04129', fg: '#fff' }, { bg: '#7b3da0', fg: '#fff' }, { bg: '#936412', fg: '#fff' },
+  { bg: '#9b467b', fg: '#fff' }, { bg: '#2d7b44', fg: '#fff' }, { bg: '#1e5fa8', fg: '#fff' },
+  { bg: '#592a47', fg: '#fff' }, { bg: '#7b3da0', fg: '#fff' }, { bg: '#936412', fg: '#fff' },
   { bg: '#205b31', fg: '#fff' }, { bg: '#2c343a', fg: '#fff' }, { bg: '#8b1f17', fg: '#fff' },
   { bg: '#464e55', fg: '#fff' },
 ];

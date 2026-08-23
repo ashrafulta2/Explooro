@@ -80,12 +80,18 @@
 }
 
 /* ---- Variants --------------------------------------------------------- */
+/* Primary rests solid brand; hover drops the fill to an outline (border stays brand, text
+   switches to --text-brand) so the moment of interaction reads as a lift, not a colour swap.
+   Active deepens back to a solid fill one step further, for unambiguous press feedback. */
 .btn--primary {
   background: var(--brand);
+  border-color: var(--brand);
   color: var(--brand-contrast);
 }
-.btn--primary:hover:not(:disabled) { background: var(--brand-hover); }
-.btn--primary:active:not(:disabled) { background: var(--brand-active); }
+.btn--primary:hover:not(:disabled) { background: transparent; color: var(--text-brand); }
+/* --brand-hover is one ramp step deeper than --brand, which is exactly --brand-alt — so the
+   pressed fill needs --brand-alt-contrast (light text), not --brand-contrast (dark). */
+.btn--primary:active:not(:disabled) { background: var(--brand-hover); border-color: var(--brand-hover); color: var(--brand-alt-contrast); }
 
 .btn--secondary {
   background: var(--surface-1);
@@ -93,17 +99,18 @@
   border-color: var(--border-strong);
 }
 .btn--secondary:hover:not(:disabled) {
-  background: var(--surface-2);
-  border-color: var(--border-interactive);
+  background: var(--brand-100);
+  border-color: var(--brand-200);
+  color: var(--text-brand);
 }
-.btn--secondary:active:not(:disabled) { background: var(--surface-3); }
+.btn--secondary:active:not(:disabled) { background: var(--brand-200); }
 
 .btn--ghost {
   background: transparent;
   color: var(--text-primary);
 }
-.btn--ghost:hover:not(:disabled) { background: var(--surface-2); }
-.btn--ghost:active:not(:disabled) { background: var(--surface-3); }
+.btn--ghost:hover:not(:disabled) { background: var(--brand-100); color: var(--text-brand); }
+.btn--ghost:active:not(:disabled) { background: var(--brand-200); }
 
 .btn--danger {
   background: var(--danger);

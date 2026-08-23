@@ -4,13 +4,14 @@
  * Spec: docs/design-system.md §3. Self-hosted variable webfonts + the type scale from
  * tokens.css (§3.2), applied to real elements and reusable utility classes.
  *
- * Weight-count note: design-system.md §3.5.4 lists 400/500/600/700 as the shipped Hind Siliguri
- * weights. Hind Siliguri has no variable-weight axis, and real (non-synthesized, correctly
- * shaped — every Indic GSUB feature retained, verified by screenshot) static weights cost
- * ~35KB each; 4 of them alone exceed the file's own <120KB total budget before Inter is added.
- * Only 400 and 700 ship — see docs/design-system.md §3.5.4 for the recorded decision. Requests
- * for 500/600 resolve to the nearest REAL shipped weight via the browser's standard CSS font
- * matching (400/700 respectively) — not synthesized bold, which the same rule forbids.
+ * Bengali face: Noto Sans Bengali (replaces Hind Siliguri as of this change — same rationale
+ * as the Prompt 1.2 decision below, updated: Noto ships as one genuinely variable file (wght
+ * 100–900, GSUB/GPOS-complete, Google-maintained), so unlike Hind Siliguri it needs no static
+ * per-weight files and no 500/600 -> 400/700 matching fallback. `font-weight: 400 700` mirrors
+ * the range actually declared for the Inter face below — nothing in the type scale requests
+ * outside it — while the underlying variable file still renders true (non-synthesized) 500/600
+ * instances for any component that asks. Single ~105KB file, comfortably inside the same
+ * <120KB budget the original Hind Siliguri decision was measured against.
  */
 
 /* ---------------------------------------------------------------------
@@ -32,21 +33,15 @@
 }
 
 @font-face {
-  font-family: 'Hind Siliguri';
+  font-family: 'Noto Sans Bengali';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 700;
   font-display: swap;
-  src: url('/fonts/hind-siliguri-bengali-400.woff2') format('woff2');
-  unicode-range: U+0964-0965, U+0980-09FF, U+200C-200D;
-}
-
-@font-face {
-  font-family: 'Hind Siliguri';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('/fonts/hind-siliguri-bengali-700.woff2') format('woff2');
-  unicode-range: U+0964-0965, U+0980-09FF, U+200C-200D;
+  src:
+    url('/fonts/noto-sans-bengali-variable.woff2') format('woff2-variations'),
+    url('/fonts/noto-sans-bengali-variable.woff2') format('woff2');
+  unicode-range: U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8,
+    U+1CE1, U+1CEA, U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
 }
 
 /* ---------------------------------------------------------------------

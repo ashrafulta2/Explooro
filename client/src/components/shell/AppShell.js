@@ -33,21 +33,17 @@ export function createAppShell({ container, navigate }) {
   const sidebarSlot = document.createElement('div');
   sidebarSlot.className = 'app-shell__sidebar-slot';
 
-  const contentCol = document.createElement('div');
-  contentCol.className = 'app-shell__content';
-
   const topbarSlot = document.createElement('div');
   topbarSlot.className = 'app-shell__topbar-slot';
 
   const pageOutlet = document.createElement('main');
-  pageOutlet.className = 'app-shell__page';
+  pageOutlet.className = 'app-shell__content app-shell__page';
   pageOutlet.id = 'app-page-outlet';
 
   const mobileNavSlot = document.createElement('div');
   mobileNavSlot.className = 'app-shell__mobilenav-slot';
 
-  contentCol.append(topbarSlot, pageOutlet);
-  shellEl.append(sidebarSlot, contentCol, mobileNavSlot);
+  shellEl.append(sidebarSlot, topbarSlot, pageOutlet, mobileNavSlot);
   container.append(shellEl);
 
   function currentCtx() {

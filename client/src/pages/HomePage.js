@@ -207,10 +207,19 @@ export default function HomePage(root, { navigate }) {
   const toolbar = document.createElement('div');
   toolbar.className = 'product-grid-toolbar';
 
+  const toolbarLeft = document.createElement('div');
+  toolbarLeft.className = 'product-grid-toolbar__left';
+
   const countLabel = document.createElement('span');
   countLabel.className = 'product-grid-toolbar__count';
   countLabel.textContent = '';
-  toolbar.append(countLabel);
+  toolbarLeft.append(countLabel);
+
+  const searchPillWrap = document.createElement('div');
+  searchPillWrap.className = 'product-grid-toolbar__search-pill-wrap';
+  toolbarLeft.append(searchPillWrap);
+
+  toolbar.append(toolbarLeft);
 
   const toolbarRight = document.createElement('div');
   toolbarRight.className = 'product-grid-toolbar__right';
@@ -242,6 +251,29 @@ export default function HomePage(root, { navigate }) {
   let currentGridEl = null;
   let allLoadedProducts = []; // collect for flash widget
 
+  function updateSearchPill() {
+    searchPillWrap.replaceChildren();
+    const sp = new URLSearchParams(window.location.search);
+    const activeSearch = sp.get('q');
+    if (activeSearch) {
+      const pill = document.createElement('span');
+      pill.className = 'product-search-pill';
+      pill.innerHTML = `
+        <span>${t('marketplace.search_results_for', { query: activeSearch })}</span>
+        <button type="button" class="product-search-pill__clear" aria-label="${t('marketplace.clear_search')}">✕</button>
+      `;
+      pill.querySelector('.product-search-pill__clear').addEventListener('click', () => {
+        sp.delete('q');
+        const newUrl = `${window.location.pathname}${sp.toString() ? '?' + sp.toString() : ''}`;
+        window.history.replaceState(null, '', newUrl);
+        const topSearch = document.querySelector('.topbar__product-search-input');
+        if (topSearch) topSearch.value = '';
+        rebuildGrid();
+      });
+      searchPillWrap.append(pill);
+    }
+  }
+
   function buildFetchPage() {
     const sp = new URLSearchParams(window.location.search);
 
@@ -250,6 +282,8 @@ export default function HomePage(root, { navigate }) {
       const q = {};
       if (cursor) q.cursor = cursor;
       q.limit = 20;
+      const searchKeyword = sp.get('q');
+      if (searchKeyword) q.q = searchKeyword;
       if (activeCategory && activeCategory !== 'all') q.category = activeCategory;
       if (activeFeed === 'flash') q.flash_sale = '1';
       else if (activeFeed === 'verified') q.supplier_tier = 'verified,elite';
@@ -280,6 +314,8 @@ export default function HomePage(root, { navigate }) {
   }
 
   function rebuildGrid() {
+    updateSearchPill();
+
     // Tear down old grid
     if (currentGridCleanup) { currentGridCleanup(); currentGridCleanup = null; }
     currentGridEl && currentGridEl.remove();
@@ -320,6 +356,15 @@ export default function HomePage(root, { navigate }) {
 
   // Initial grid render
   rebuildGrid();
+
+  // Listen to custom search events dispatched by TopBar
+  const onSearchEvent = () => rebuildGrid();
+  window.addEventListener('explooro:search', onSearchEvent);
+  cleanups.push(() => window.removeEventListener('explooro:search', onSearchEvent));
+
+  const onPopState = () => rebuildGrid();
+  window.addEventListener('popstate', onPopState);
+  cleanups.push(() => window.removeEventListener('popstate', onPopState));
 
   // ── Reactive role/module updates ─────────────────────────────────────────
   // When the store changes (e.g. role switcher in /dev/gallery), re-render the grid

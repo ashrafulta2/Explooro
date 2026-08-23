@@ -27,10 +27,10 @@ import { t } from '../../services/i18n.js';
 // Ten HSL-defined, accessible background colours for the SVG image placeholder.
 // Each maps to a distinct category visual identity — consistent per image_index.
 const PLACEHOLDER_COLOURS = [
-  { bg: '#da694c', fg: '#fff' }, // coral — Clothing
+  { bg: '#9b467b', fg: '#fff' }, // pink (brand-900) — Clothing
   { bg: '#2d7b44', fg: '#fff' }, // green — Kids
   { bg: '#1e5fa8', fg: '#fff' }, // blue — Electronics
-  { bg: '#a04129', fg: '#fff' }, // rust — Bags
+  { bg: '#592a47', fg: '#fff' }, // deep plum (brand-1000) — Bags
   { bg: '#7b3da0', fg: '#fff' }, // purple — Jewellery
   { bg: '#936412', fg: '#fff' }, // amber — Food & Grocery
   { bg: '#205b31', fg: '#fff' }, // dark green — Crafts

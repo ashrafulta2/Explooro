@@ -177,16 +177,59 @@ export default [
     method: 'GET',
     path: '/products',
     handler({ query }) {
+      let filtered = [...products];
+
+      if (query.q || query.search) {
+        const q = (query.q || query.search).toLowerCase().trim();
+        filtered = filtered.filter(
+          (p) =>
+            p.title_en?.toLowerCase().includes(q) ||
+            p.title_bn?.toLowerCase().includes(q) ||
+            p.category?.toLowerCase().includes(q) ||
+            p.district?.toLowerCase().includes(q) ||
+            p.ref?.toLowerCase().includes(q)
+        );
+      }
+      if (query.category && query.category !== 'all') {
+        filtered = filtered.filter((p) => p.category === query.category);
+      }
+      if (query.min_price) {
+        filtered = filtered.filter((p) => Number(p.price) >= Number(query.min_price));
+      }
+      if (query.max_price) {
+        filtered = filtered.filter((p) => Number(p.price) <= Number(query.max_price));
+      }
+      if (query.in_stock === '1') {
+        filtered = filtered.filter((p) => (p.stock ?? 0) > 0);
+      }
+      if (query.tier) {
+        const tiers = query.tier.split(',');
+        filtered = filtered.filter((p) => tiers.includes(p.supplier_tier));
+      }
+      if (query.district) {
+        filtered = filtered.filter((p) => p.district === query.district);
+      }
+      if (query.min_rating) {
+        filtered = filtered.filter((p) => (p.rating ?? 0) >= Number(query.min_rating));
+      }
+      if (query.min_margin) {
+        filtered = filtered.filter((p) => (p.margin_pct ?? 0) >= Number(query.min_margin));
+      }
+
       const limit = Math.min(Number(query.limit) || 20, 100);
       const start = query.cursor ? decodeCursor(query.cursor) : 0;
-      const page = products.slice(start, start + limit);
+      const page = filtered.slice(start, start + limit);
       const nextIndex = start + limit;
-      const hasMore = nextIndex < products.length;
+      const hasMore = nextIndex < filtered.length;
       return {
         status: 200,
         body: {
           data: { products: page },
-          meta: { cursor: { next: hasMore ? encodeCursor(nextIndex) : null, has_more: hasMore }, count: page.length },
+          meta: {
+            cursor: { next: hasMore ? encodeCursor(nextIndex) : null, has_more: hasMore },
+            count: page.length,
+            total: filtered.length,
+          },
         },
       };
     },

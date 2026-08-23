@@ -4,6 +4,7 @@
 
 import * as reviewRepo from '../repositories/review.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
+import { evaluateAndFlag } from './ai/reviewIntegrity.js';
 
 /**
  * Whether the current user may submit a review right now, and why not if they can't. Mirrors the
@@ -58,8 +59,13 @@ export async function submitReview(db, { userId, productId, rating, title, body 
     title,
     body,
   });
+
+  // Prompt 10.3: score for fake-review signals before the rating average is recomputed, so a
+  // flagged review (moved to PENDING by evaluateAndFlag) is correctly excluded from rating_avg.
+  const integrity = await evaluateAndFlag(db, { userId, review });
+
   await reviewRepo.recomputeProductRating(db, productId);
-  return review;
+  return { ...review, integrity_score: integrity.score, flagged_for_review: integrity.flagged };
 }
 
 export async function listReviews(db, productId, { rating, hasPhotos, sort, page = 1, pageSize = 10 } = {}) {

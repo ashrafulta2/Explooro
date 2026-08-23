@@ -15,14 +15,17 @@
   },
   "//dependencies": "Short, boring, audited list only. See the Dependency Policy in docs/prompt.md. Anything not already listed there needs a docs/dependency-ledger.md entry and isolation behind a single adapter file.",
   "dependencies": {
-    "fastify": "5.12.1",
+    "@anthropic-ai/sdk": "0.120.0",
+    "@fastify/cookie": "11.1.2",
     "@fastify/cors": "11.3.0",
     "@fastify/helmet": "13.1.1",
-    "@fastify/cookie": "11.1.2",
     "@fastify/rate-limit": "11.2.0",
+    "@fastify/websocket": "^11.3.0",
+    "argon2": "0.45.1",
+    "fastify": "5.12.1",
+    "jose": "6.2.10",
     "pg": "8.23.0",
     "redis": "6.2.1",
-    "argon2": "0.45.1",
-    "jose": "6.2.10"
+    "sharp": "0.35.3"
   }
 }

@@ -90,6 +90,8 @@ export function formatCurrency(amount, { lang = 'en', numerals, symbol = '৳' }
   return `${negative ? '-' : ''}${symbol} ${applyNumerals(grouped, lang, numerals)}`;
 }
 
+export const formatBdt = formatCurrency;
+
 /** `+8801712345678` → `'+880 1712-345678'`. Always Western digits — an ID, not prose (§3.5.6). */
 export function formatPhone(raw) {
   const digits = String(raw).replace(/\D/g, '');

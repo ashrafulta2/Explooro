@@ -16,6 +16,9 @@ import { getTheme, applyTheme } from '../../services/theme.js';
 import { Badge } from '../ui/Badge.js';
 import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
 import { openCartDrawer } from '../../services/cart.js';
+import { openNotificationCenter } from '../notifications/NotificationCenter.js';
+import { openAssistantPanel } from '../ai/AssistantPanel.js';
+import { ICONS, getExplooroLogoSvg } from '../ui/icons.js';
 
 export function formatRemaining(ms, lang = 'en') {
   const totalMinutes = Math.max(0, Math.round(ms / 60_000));
@@ -40,11 +43,34 @@ const CART_ICON_SVG =
   '<path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>' +
   '</svg>';
 
+const AI_SPARKLE_ICON_SVG =
+  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>' +
+  '</svg>';
+
 const BELL_ICON_SVG =
   '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
   '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>' +
   '<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>' +
   '</svg>';
+
+const THEME_ICONS_SVG = {
+  light:
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<circle cx="12" cy="12" r="4"></circle>' +
+    '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>' +
+    '</svg>',
+  dark:
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>' +
+    '</svg>',
+  system:
+    '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect width="20" height="14" x="2" y="3" rx="2"></rect>' +
+    '<line x1="8" x2="16" y1="21" y2="21"></line>' +
+    '<line x1="12" x2="12" y1="17" y2="21"></line>' +
+    '</svg>',
+};
 
 function IconButton({ icon, label, badgeCount, onClick }) {
   const btn = document.createElement('button');
@@ -135,38 +161,72 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
 
   const isGuest = !role;
 
-  // Brand logo (shown for guests or when no sidebar)
-  if (isGuest) {
-    const brand = document.createElement('a');
-    brand.className = 'topbar__brand';
-    brand.href = '/';
-    brand.innerHTML = `<span>⚡</span> <span class="topbar__brand-text">EXPLOORO</span>`;
-    brand.addEventListener('click', (e) => {
-      e.preventDefault();
-      navigate('/');
-    });
-    bar.append(brand);
+  const brand = document.createElement('a');
+  brand.className = 'topbar__brand';
+  brand.href = '/';
+  brand.innerHTML = `${getExplooroLogoSvg({ size: 28 })} <span class="topbar__brand-text">EXPLOORO</span>`;
+  brand.addEventListener('click', (e) => {
+    e.preventDefault();
+    navigate('/');
+  });
+  bar.append(brand);
+
+  const searchForm = document.createElement('form');
+  searchForm.className = 'topbar__product-search';
+  searchForm.setAttribute('role', 'search');
+
+  const searchSubmitBtn = document.createElement('button');
+  searchSubmitBtn.type = 'submit';
+  searchSubmitBtn.className = 'topbar__product-search-btn';
+  searchSubmitBtn.setAttribute('aria-label', t('marketplace.search_btn') || 'Search');
+  searchSubmitBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'topbar__product-search-input';
+  searchInput.placeholder = t('marketplace.search_placeholder') || 'Search products, brands, categories…';
+  searchInput.setAttribute('aria-label', t('marketplace.search_placeholder') || 'Search products');
+  searchInput.autocomplete = 'off';
+
+  // Read current query param if on page
+  const currentParams = new URLSearchParams(window.location.search);
+  if (currentParams.get('q')) {
+    searchInput.value = currentParams.get('q');
   }
 
-  const searchBtn = document.createElement('button');
-  searchBtn.type = 'button';
-  searchBtn.className = 'topbar__search';
-  searchBtn.setAttribute('aria-label', t('palette.trigger_label'));
-  const searchIcon = document.createElement('span');
-  searchIcon.setAttribute('aria-hidden', 'true');
-  searchIcon.textContent = '🔍';
-  const searchLabel = document.createElement('span');
-  searchLabel.className = 'topbar__search-label';
-  searchLabel.textContent = t('palette.trigger_label');
-  searchBtn.append(searchIcon, searchLabel);
-  searchBtn.addEventListener('click', () => onOpenPalette());
-  bar.append(searchBtn);
+  searchForm.append(searchSubmitBtn, searchInput);
+
+  searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (window.location.pathname === '/') {
+      const sp = new URLSearchParams(window.location.search);
+      if (query) sp.set('q', query);
+      else sp.delete('q');
+      const newUrl = `/${sp.toString() ? '?' + sp.toString() : ''}`;
+      window.history.pushState(null, '', newUrl);
+      window.dispatchEvent(new CustomEvent('explooro:search', { detail: { query } }));
+    } else {
+      navigate(`/${query ? '?q=' + encodeURIComponent(query) : ''}`);
+    }
+  });
+
+  bar.append(searchForm);
 
   const spacer = document.createElement('div');
   spacer.className = 'topbar__spacer';
   bar.append(spacer);
 
   if (elevatedGrant) bar.append(ElevatedChip({ grant: elevatedGrant }));
+
+  // Quick Actions / Command Palette button on right utility bar
+  const paletteBtn = IconButton({
+    icon: ICONS.bolt,
+    label: `${t('palette.trigger_btn') || 'Quick Actions'} (Ctrl+K)`,
+    onClick: () => onOpenPalette(),
+  });
+  paletteBtn.classList.add('topbar__palette-btn');
+  bar.append(paletteBtn);
 
   const langBtn = document.createElement('button');
   langBtn.type = 'button';
@@ -178,15 +238,17 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
   const currentTheme = getTheme();
   const themeBtn = document.createElement('button');
   themeBtn.type = 'button';
-  themeBtn.className = 'topbar__icon-btn';
-  themeBtn.textContent = { light: '☀️', dark: '🌙', system: '🖥️' }[currentTheme] || '🖥️';
+  themeBtn.className = 'topbar__icon-btn topbar__theme-btn';
+  themeBtn.innerHTML = THEME_ICONS_SVG[currentTheme] || THEME_ICONS_SVG.system;
   themeBtn.title = `Theme: ${currentTheme}`;
+  themeBtn.setAttribute('aria-label', `Theme: ${currentTheme}`);
   themeBtn.addEventListener('click', () => {
     const current = getTheme();
     const next = { system: 'light', light: 'dark', dark: 'system' }[current] || 'light';
     applyTheme(next);
-    themeBtn.textContent = { light: '☀️', dark: '🌙', system: '🖥️' }[next];
+    themeBtn.innerHTML = THEME_ICONS_SVG[next];
     themeBtn.title = `Theme: ${next}`;
+    themeBtn.setAttribute('aria-label', `Theme: ${next}`);
   });
   bar.append(themeBtn);
 
@@ -219,7 +281,20 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
     authBtns.append(loginBtn, regBtn);
     bar.append(authBtns);
   } else {
-    bar.append(IconButton({ icon: BELL_ICON_SVG, label: t('shell.notifications'), onClick: () => {} }));
+    bar.append(IconButton({
+      icon: AI_SPARKLE_ICON_SVG,
+      label: t('ai.concierge_trigger'),
+      onClick: (e) => {
+        openAssistantPanel({ agentType: 'concierge', trigger: e.currentTarget });
+      },
+    }));
+    bar.append(IconButton({
+      icon: BELL_ICON_SVG,
+      label: t('shell.notifications'),
+      onClick: () => {
+        openNotificationCenter();
+      },
+    }));
     bar.append(AvatarMenu({ role, onNavigate: navigate }));
   }
 

@@ -499,7 +499,8 @@ VALUES
   ('cod_otp_threshold', '2000'::jsonb, 'NUMBER', 'COD OTP Threshold (BDT)', 'সিওডি ওটিপি সীমা (টাকা)', 'trust', false),
   ('jit_window_minutes', '120'::jsonb, 'NUMBER', 'Default JIT Window (Minutes)', 'ডিফল্ট জেআইটি সময় (মিনিট)', 'security', false),
   ('max_grant_days', '90'::jsonb, 'NUMBER', 'Maximum Standing Grant Duration (Days)', 'সর্বোচ্চ স্থায়ী অনুদানের মেয়াদ (দিন)', 'security', false),
-  ('return_window_days', '7'::jsonb, 'NUMBER', 'Customer Return Window (Days)', 'ক্রেতা রিটার্ন সময়সীমা (দিন)', 'logistics', false)
+  ('return_window_days', '7'::jsonb, 'NUMBER', 'Customer Return Window (Days)', 'ক্রেতা রিটার্ন সময়সীমা (দিন)', 'logistics', false),
+  ('ai.monthly_spend_cap_usd', '100'::jsonb, 'NUMBER', 'AI Monthly Spend Cap (USD)', 'এআই মাসিক খরচ সীমা (ডলার)', 'ai', false)
 ON CONFLICT (key) DO NOTHING;
 
 -- Initial Global Commission Split Rule (40% saler, 60% platform)

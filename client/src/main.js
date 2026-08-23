@@ -114,6 +114,7 @@ async function bootRouterDemo() {
         item.path !== '/saler' &&
         item.path !== '/saler/sourcing' &&
         item.path !== '/saler/store-builder' &&
+        item.path !== '/saler/creative-studio' &&
         item.path !== '/admin/platform/modules' &&
         item.path !== '/admin/users' &&
         item.path !== '/admin/roles' &&
@@ -123,9 +124,30 @@ async function bootRouterDemo() {
         item.path !== '/admin/audit' &&
         item.path !== '/admin/platform/theme' &&
         item.path !== '/admin/theme' &&
+        item.path !== '/admin/finance/payouts' &&
+        item.path !== '/admin/cod-reconciliation' &&
+        item.path !== '/admin/finance' &&
+        item.path !== '/vault' &&
+        item.path !== '/saler/vault' &&
+        item.path !== '/supplier/vault' &&
         item.path !== '/checkout' &&
         item.path !== '/orders' &&
-        item.path !== '/customer/orders'
+        item.path !== '/customer/orders' &&
+        item.path !== '/customer/returns' &&
+        item.path !== '/admin/returns' &&
+        item.path !== '/admin/growth/campaigns' &&
+        item.path !== '/admin/growth/coupons' &&
+        item.path !== '/saler/referrals' &&
+        item.path !== '/account/coins' &&
+        item.path !== '/saler/quests' &&
+        item.path !== '/saler/leaderboard' &&
+        item.path !== '/account/team-purchases' &&
+        item.path !== '/saler/cart-insights' &&
+        item.path !== '/warranties' &&
+        item.path !== '/account/warranties' &&
+        item.path !== '/customer/warranties' &&
+        item.path !== '/supplier/claims' &&
+        item.path !== '/supplier/warranty-claims'
     )
     .map((item) => ({
       path: item.path,
@@ -151,6 +173,12 @@ async function bootRouterDemo() {
       { path: '/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
       { path: '/customer/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
       { path: '/orders/:id', title: 'Order Details — Explooro', permission: null, module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
+      // Prompt 10.1: Live Stream Commerce
+      { path: '/live', title: 'Live Broadcasts — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
+      { path: '/live/:id', title: 'Live Shopping — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
+      { path: '/saler/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.js') },
+      { path: '/supplier/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.js') },
+      { path: '/moderator/live', title: 'Live Moderation — Explooro', requiresAuth: true, permission: 'moderation.live.handle', module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
       {
         path: '/saler',
         title: 'Saler Dashboard — Explooro',
@@ -167,6 +195,56 @@ async function bootRouterDemo() {
         permission: 'saler.sourcing.view',
         module: 'sourcing',
         load: () => import('./pages/saler/SourcingCatalogPage.js'),
+      },
+      // Prompt 10.3: AI Creative Studio (ad copy generation)
+      {
+        path: '/saler/creative-studio',
+        title: 'Creative Studio — Explooro',
+        requiresAuth: true,
+        permission: 'ai.creative.use',
+        module: 'ai_creative_studio',
+        load: () => import('./pages/saler/CreativeStudioPage.js'),
+      },
+      // Prompt 10.4: Digital Warranty & Claims Engine
+      {
+        path: '/warranties',
+        title: 'Digital Warranties — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'digital_warranty',
+        load: () => import('./pages/customer/WarrantyCardsPage.js'),
+      },
+      {
+        path: '/account/warranties',
+        title: 'Digital Warranties — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'digital_warranty',
+        load: () => import('./pages/customer/WarrantyCardsPage.js'),
+      },
+      {
+        path: '/customer/warranties',
+        title: 'Digital Warranties — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'digital_warranty',
+        load: () => import('./pages/customer/WarrantyCardsPage.js'),
+      },
+      {
+        path: '/supplier/claims',
+        title: 'Warranty Claims — Explooro',
+        requiresAuth: true,
+        permission: 'support.warranty.manage',
+        module: 'digital_warranty',
+        load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
+      },
+      {
+        path: '/supplier/warranty-claims',
+        title: 'Warranty Claims — Explooro',
+        requiresAuth: true,
+        permission: 'support.warranty.manage',
+        module: 'digital_warranty',
+        load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
       },
       // Prompt 4.8: Saler Virtual Storefront Builder
       {
@@ -274,6 +352,327 @@ async function bootRouterDemo() {
         permission: 'platform.theme.view',
         module: 'core',
         load: () => import('./pages/admin/ThemeStudioPage.js'),
+      },
+      // Prompt 6.3: Admin Payout Queue
+      {
+        path: '/admin/finance/payouts',
+        title: 'Payouts Queue — Explooro',
+        requiresAuth: true,
+        permission: 'finance.payout.approve',
+        module: 'core',
+        load: () => import('./pages/admin/PayoutQueuePage.js'),
+      },
+      {
+        path: '/admin/payouts',
+        title: 'Payouts Queue — Explooro',
+        requiresAuth: true,
+        permission: 'finance.payout.approve',
+        module: 'core',
+        load: () => import('./pages/admin/PayoutQueuePage.js'),
+      },
+      // Prompt 6.4: COD Reconciliation
+      {
+        path: '/admin/cod-reconciliation',
+        title: 'COD Reconciliation — Explooro',
+        requiresAuth: true,
+        permission: 'orders.cod.reconcile',
+        module: 'cod_reconciliation',
+        load: () => import('./pages/admin/CodReconciliationPage.js'),
+      },
+      {
+        path: '/admin/orders/cod-reconciliation',
+        title: 'COD Reconciliation — Explooro',
+        requiresAuth: true,
+        permission: 'orders.cod.reconcile',
+        module: 'cod_reconciliation',
+        load: () => import('./pages/admin/CodReconciliationPage.js'),
+      },
+      {
+        path: '/admin/finance/cod-reconciliation',
+        title: 'COD Reconciliation — Explooro',
+        requiresAuth: true,
+        permission: 'orders.cod.reconcile',
+        module: 'cod_reconciliation',
+        load: () => import('./pages/admin/CodReconciliationPage.js'),
+      },
+      // Prompt 6.5: Vault & Finance Dashboard
+      {
+        path: '/vault',
+        title: 'Vault & Earnings — Explooro',
+        requiresAuth: true,
+        permission: 'finance.payout.request',
+        module: 'core',
+        load: () => import('./pages/VaultPage.js'),
+      },
+      {
+        path: '/saler/vault',
+        title: 'Vault & Earnings — Explooro',
+        requiresAuth: true,
+        permission: 'finance.payout.request',
+        module: 'core',
+        load: () => import('./pages/VaultPage.js'),
+      },
+      {
+        path: '/supplier/vault',
+        title: 'Vault & Earnings — Explooro',
+        requiresAuth: true,
+        permission: 'finance.payout.request',
+        module: 'core',
+        load: () => import('./pages/VaultPage.js'),
+      },
+      {
+        path: '/admin/finance',
+        title: 'Finance Command Center — Explooro',
+        requiresAuth: true,
+        permission: 'finance.overview.view',
+        module: 'core',
+        load: () => import('./pages/admin/FinanceDashboardPage.js'),
+      },
+      // Prompt 7.2: Returns & Refunds
+      {
+        path: '/customer/orders/:id/return',
+        title: 'Request Return — Explooro',
+        requiresAuth: true,
+        permission: 'orders.view',
+        module: 'returns_engine',
+        load: () => import('./pages/customer/ReturnRequestPage.js'),
+      },
+      {
+        path: '/admin/returns',
+        title: 'Returns Moderation Queue — Explooro',
+        requiresAuth: true,
+        permission: 'orders.return.manage',
+        module: 'returns_engine',
+        load: () => import('./pages/admin/ReturnsQueuePage.js'),
+      },
+      {
+        path: '/admin/returns/queue',
+        title: 'Returns Moderation Queue — Explooro',
+        requiresAuth: true,
+        permission: 'orders.return.manage',
+        module: 'returns_engine',
+        load: () => import('./pages/admin/ReturnsQueuePage.js'),
+      },
+      // Prompt 7.3: Dispute Arbitration (Three-Way)
+      {
+        path: '/moderator/disputes',
+        title: 'Dispute Arbitration — Explooro',
+        requiresAuth: true,
+        permission: 'orders.dispute.arbitrate',
+        module: 'dispute_panel',
+        load: () => import('./pages/moderator/DisputePanelPage.js'),
+      },
+      {
+        path: '/moderator/disputes/:id',
+        title: 'Dispute Arbitration — Explooro',
+        requiresAuth: true,
+        permission: 'orders.dispute.arbitrate',
+        module: 'dispute_panel',
+        load: () => import('./pages/moderator/DisputePanelPage.js'),
+      },
+      {
+        path: '/admin/disputes',
+        title: 'Dispute Oversight — Explooro',
+        requiresAuth: true,
+        permission: 'orders.dispute.view_all',
+        module: 'dispute_panel',
+        load: () => import('./pages/moderator/DisputePanelPage.js'),
+      },
+      // Prompt 7.4: Product Approval & Content Moderation Pipeline
+      {
+        path: '/moderator/queue',
+        title: 'Product & Content Moderation — Explooro',
+        requiresAuth: true,
+        permission: 'moderation.product.approve',
+        module: 'product_moderation',
+        load: () => import('./pages/moderator/ModerationQueuePage.js'),
+      },
+      {
+        path: '/admin/catalog/moderation',
+        title: 'Catalog Moderation — Explooro',
+        requiresAuth: true,
+        permission: 'moderation.product.approve',
+        module: 'product_moderation',
+        load: () => import('./pages/moderator/ModerationQueuePage.js'),
+      },
+      // Prompt 7.5: KYC Verification, Blue-Tick & Trust Tiers
+      {
+        path: '/seller/kyc',
+        title: 'KYC Identity Verification — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'supplier_verification',
+        load: () => import('./pages/seller/KycSubmissionPage.js'),
+      },
+      {
+        path: '/account/kyc',
+        title: 'KYC Identity Verification — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'supplier_verification',
+        load: () => import('./pages/seller/KycSubmissionPage.js'),
+      },
+      {
+        path: '/admin/verification',
+        title: 'KYC Verification Center — Explooro',
+        requiresAuth: true,
+        permission: 'users.kyc.approve',
+        module: 'supplier_verification',
+        load: () => import('./pages/admin/VerificationCenterPage.js'),
+      },
+      {
+        path: '/admin/users/verification',
+        title: 'KYC Verification Center — Explooro',
+        requiresAuth: true,
+        permission: 'users.kyc.approve',
+        module: 'supplier_verification',
+        load: () => import('./pages/admin/VerificationCenterPage.js'),
+      },
+      // Prompt 7.6: Moderator Dashboard
+      {
+        path: '/moderator',
+        title: 'Moderator Dashboard — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'product_moderation',
+        load: () => import('./pages/moderator/ModeratorDashboardPage.js'),
+      },
+      {
+        path: '/moderator/dashboard',
+        title: 'Moderator Dashboard — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'product_moderation',
+        load: () => import('./pages/moderator/ModeratorDashboardPage.js'),
+      },
+      // Prompt 8.2: Notification Preferences
+      {
+        path: '/settings/notifications',
+        title: 'Notification Preferences — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/settings/NotificationPreferencesPage.js'),
+      },
+      // Prompt 8.3: WhatsApp & Messenger Unified Inbox
+      {
+        path: '/saler/inbox',
+        title: 'Unified Commerce Inbox — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'whatsapp_bridge',
+        load: () => import('./pages/saler/UnifiedInboxPage.js'),
+      },
+      // Prompt 8.4: Real-Time Chat Interface
+      {
+        path: '/chat',
+        title: 'Chat & Messages — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'chat',
+        load: () => import('./pages/ChatPage.js'),
+      },
+      // Prompt 9.1: In-Platform Sponsored Ads Engine
+      {
+        path: '/saler/ads',
+        title: 'Sponsored Ads Manager — Explooro',
+        requiresAuth: true,
+        permission: 'growth.ad.manage_own',
+        module: 'sponsored_ads',
+        load: () => import('./pages/saler/AdCampaignPage.js'),
+      },
+      // Prompt 9.2: Coupons, Vouchers & Flash Sale Campaigns
+      {
+        path: '/admin/growth/campaigns',
+        title: 'Campaign & Flash Sale Manager — Explooro',
+        requiresAuth: true,
+        permission: 'growth.campaign.manage',
+        module: 'flash_sale',
+        load: () => import('./pages/admin/CampaignManagerPage.js'),
+      },
+      {
+        path: '/admin/growth/coupons',
+        title: 'Coupon & Voucher Manager — Explooro',
+        requiresAuth: true,
+        permission: 'growth.coupon.manage',
+        module: 'coupons',
+        load: () => import('./pages/admin/CampaignManagerPage.js'),
+      },
+      // Prompt 9.3: Multi-Tier Referral & Network Growth Engine
+      {
+        path: '/saler/referrals',
+        title: 'Referral & Network Growth — Explooro',
+        requiresAuth: true,
+        permission: 'growth.referral.view_own',
+        module: 'referral_engine',
+        load: () => import('./pages/saler/ReferralHubPage.js'),
+      },
+      // Prompt 9.4: Loyalty Coins, Daily Quests & Leaderboard
+      {
+        path: '/account/coins',
+        title: 'Loyalty Coins & Rewards — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'loyalty_coins',
+        load: () => import('./pages/customer/CoinsPage.js'),
+      },
+      {
+        path: '/coins',
+        title: 'Loyalty Coins & Rewards — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'loyalty_coins',
+        load: () => import('./pages/customer/CoinsPage.js'),
+      },
+      {
+        path: '/saler/quests',
+        title: 'Daily & Weekly Quests — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'daily_quests',
+        load: () => import('./pages/customer/CoinsPage.js'),
+      },
+      {
+        path: '/saler/leaderboard',
+        title: 'Seller Leaderboard — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'gamification',
+        load: () => import('./pages/customer/CoinsPage.js'),
+      },
+      // Prompt 9.5: Social Group Buying (Team Purchase)
+      {
+        path: '/team/:id',
+        title: 'Join Team Purchase — Explooro',
+        requiresAuth: false,
+        permission: null,
+        module: 'group_buying',
+        load: () => import('./pages/TeamPurchasePage.js'),
+      },
+      {
+        path: '/account/team-purchases',
+        title: 'My Team Purchases — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'group_buying',
+        load: () => import('./pages/TeamPurchasePage.js'),
+      },
+      // Prompt 9.6: Abandoned Cart Recovery & Insights
+      {
+        path: '/saler/cart-insights',
+        title: 'Cart Recovery Insights — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'cart_recovery',
+        load: () => import('./pages/saler/CartInsightsPage.js'),
+      },
+      {
+        path: '/cart/recover/:token',
+        title: 'Restoring Cart — Explooro',
+        requiresAuth: false,
+        permission: null,
+        module: 'cart_recovery',
+        load: () => import('./pages/CheckoutPage.js'),
       },
       { path: '/dev/shell', title: 'Shell Preview — Explooro (dev)', permission: null, module: 'core', load: () => import('./pages/dev/DevShellSwitcher.js') },
       // Prompt 1.8: DEV-only.

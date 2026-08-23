@@ -1,0 +1,91 @@
+/**
+ * cod-recon.css — Styling for COD Settlement Ingest, Aging Matrix & Reconciliation Dashboard (Prompt 6.4).
+ */
+
+.cod-recon-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.cod-recon-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cod-recon-page__header-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.cod-recon-page__aging-card {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cod-recon-page__aging-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cod-recon-page__aging-table th {
+  white-space: nowrap;
+}
+
+.cod-recon-page__upload-card {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.cod-recon-page__upload-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 800px;
+}
+
+.cod-recon-page__csv-input {
+  width: 100%;
+  resize: vertical;
+}
+
+.cod-recon-page__upload-btn-wrap {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.cod-recon-page__queue-card {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cod-recon-page__queue-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.cod-recon-page__filters {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.cod-recon-page__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+}

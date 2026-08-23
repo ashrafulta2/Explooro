@@ -14,6 +14,7 @@ import { appStore } from '../../state/appStore.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { setFlags } from '../../services/featureFlags.js';
+import { formatCurrency } from '../../services/format.js';
 
 const GROUP_ORDER = [
   { key: 'trust', icon: '🛡️', label_en: 'Trust & Safety', label_bn: 'নিরাপত্তা ও আস্থা' },
@@ -150,7 +151,13 @@ export default function ModuleControlPage() {
   const groupList = document.createElement('div');
   groupList.className = 'module-group-list';
 
-  container.append(header, toolbar, groupList);
+  // docs/ai-strategy.md §6 — spend cap must be visible (and editable) to the Admin. Lives here
+  // because "AI & Advanced" modules already live in this page's mental model.
+  if (isSuperAdmin) {
+    container.append(header, buildAiUsageCard(), toolbar, groupList);
+  } else {
+    container.append(header, toolbar, groupList);
+  }
 
   async function loadModules() {
     try {
@@ -391,4 +398,85 @@ export default function ModuleControlPage() {
   loadModules();
 
   return container;
+}
+
+/** docs/ai-strategy.md §6 — current-month AI spend vs. the admin-editable monthly cap. */
+function buildAiUsageCard() {
+  const card = document.createElement('div');
+  card.className = 'assistant-panel__usage-card';
+  card.textContent = '…';
+
+  async function load() {
+    try {
+      const res = await api.get('/ai/usage');
+      const summary = res.data || res;
+      render(summary);
+    } catch {
+      card.remove(); // ai.config.manage denied, or the AI layer isn't reachable — just hide it
+    }
+  }
+
+  function render(summary) {
+    card.innerHTML = '';
+    const pct = summary.cap_usd > 0 ? Math.min(100, (summary.spent_usd / summary.cap_usd) * 100) : 0;
+
+    const title = document.createElement('div');
+    title.style.fontWeight = '700';
+    title.style.fontSize = '13px';
+    title.textContent = `✨ ${t('ai.usage_title')}`;
+    card.append(title);
+
+    const stat = (labelKey, value) => {
+      const el = document.createElement('div');
+      el.className = 'assistant-panel__usage-stat';
+      const label = document.createElement('span');
+      label.className = 'assistant-panel__usage-stat-label';
+      label.textContent = t(labelKey);
+      const val = document.createElement('span');
+      val.className = 'assistant-panel__usage-stat-value';
+      val.textContent = value;
+      el.append(label, val);
+      return el;
+    };
+
+    card.append(
+      stat('ai.usage_spent_label', formatCurrency(summary.spent_usd, { symbol: '$' })),
+      stat('ai.usage_cap_label', formatCurrency(summary.cap_usd, { symbol: '$' })),
+      stat('ai.usage_remaining_label', formatCurrency(summary.remaining_usd, { symbol: '$' })),
+      stat('ai.usage_driver_label', summary.driver)
+    );
+
+    const track = document.createElement('div');
+    track.className = 'assistant-panel__usage-bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'assistant-panel__usage-bar-fill';
+    fill.style.width = `${pct}%`;
+    track.append(fill);
+    card.append(track);
+
+    const form = document.createElement('form');
+    form.className = 'assistant-panel__usage-cap-form';
+    const capInput = document.createElement('input');
+    capInput.type = 'number';
+    capInput.min = '0';
+    capInput.step = '1';
+    capInput.className = 'assistant-panel__usage-cap-input';
+    capInput.value = summary.cap_usd;
+    const saveBtn = Button({ label: t('ai.usage_save_cap'), variant: 'secondary', size: 'sm', type: 'submit' });
+    form.append(capInput, saveBtn);
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const res = await api.patch('/ai/usage/cap', { cap_usd: parseFloat(capInput.value) });
+        render(res.data || res);
+        toast.success(t('common.save_changes'));
+      } catch (err) {
+        toast.error(err.message);
+      }
+    });
+    card.append(form);
+  }
+
+  load();
+  return card;
 }

@@ -62,7 +62,7 @@ These are named in the Dependency Policy. Adding one still requires a ledger row
 | :--- | :--- | :--- | :--- |
 | `@fastify/websocket` `@fastify/postgres` | 8.1 | `server/src/app.js` | Official plugins; same release cadence as Fastify. (`cors`/`helmet`/`cookie`/`rate-limit` landed in 2.1 — see §2) |
 | `sharp` | 4.2 | `server/src/services/media.service.js` | Image resize/encode in native code. The one permitted native build |
-| `@anthropic-ai/sdk` | 10.2 | `server/src/services/ai/provider.js` | Streaming, retries, token accounting |
+| `@anthropic-ai/sdk` 0.120.0 | 10.2 | `server/src/services/ai/provider.js` | Streaming, retries, token accounting |
 | `vitest` | 12.1 | `vitest.config.js`, **dev only** | Vite-native; no second toolchain |
 
 ---

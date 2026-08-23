@@ -73,7 +73,11 @@ const SCHEMA = [
   { key: 'EMAIL_DRIVER', group: 'notifications', required: false, type: 'string', default: 'mock' },
   { key: 'STREAM_DRIVER', group: 'streaming', required: false, type: 'string', default: 'mock' },
   { key: 'AI_DRIVER', group: 'ai', required: false, type: 'string', default: 'mock' },
+  { key: 'ANTHROPIC_API_KEY', group: 'ai', required: false, type: 'string', secret: true },
   { key: 'AI_MODEL', group: 'ai', required: false, type: 'string', default: 'claude-sonnet-5' },
+  { key: 'AI_MODEL_CONCIERGE', group: 'ai', required: false, type: 'string' },
+  { key: 'AI_MODEL_SOURCING', group: 'ai', required: false, type: 'string' },
+  { key: 'AI_MODEL_CREATIVE', group: 'ai', required: false, type: 'string' },
   { key: 'AI_MONTHLY_SPEND_CAP_USD', group: 'ai', required: false, type: 'number', default: 100 },
 
   // BUSINESS DEFAULTS — bootstrap only. From Prompt 3.1, platform_settings in the database wins.

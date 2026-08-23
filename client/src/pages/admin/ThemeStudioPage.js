@@ -412,7 +412,7 @@ export default function ThemeStudioPage() {
           <span style="color: var(--text-secondary); font-size: 11px;">Premium 100% combed cotton. Fast delivery across 64 districts.</span>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
             <strong style="font-size: 14px; color: var(--text-primary);">৳1,450</strong>
-            <button style="padding: 6px 12px; background: var(--brand-primary, #da694c); color: var(--brand-contrast, #ffffff); border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+            <button style="padding: 6px 12px; background: var(--brand-primary, #eea1ce); color: var(--brand-contrast, #192026); border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
               Buy Now
             </button>
           </div>

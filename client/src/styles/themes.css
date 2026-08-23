@@ -21,21 +21,26 @@
  * ======================================================================= */
 
 :root {
-  /* Brand — CORAL, hue 35.4.
-     Danger ramp has been shifted to a deeper Ruby Red (hue 10) to prevent perceptual collision.
-     Screened and contrast-verified by scripts/palette.mjs. */
-  --brand-50: #fcf7f6;
-  --brand-100: #fef2ef;
-  --brand-200: #fde5df;
-  --brand-300: #fdcabc;
-  --brand-400: #f6a792;
-  --brand-500: #e9856c;
-  --brand-600: #da694c;
-  --brand-700: #c25336;
-  --brand-800: #a04129;
-  --brand-900: #7e321f;
-  --brand-950: #602618;
-  --brand-1000: #40190f;
+  /* Brand — PINK, hue 344 (was CORAL, hue 35.4; see git history to revert). Generated and
+     contrast-verified by scripts/palette.mjs — regenerate from there rather than hand-editing a
+     step, or the hex fallback and the OKLCH value below will silently drift apart.
+     brand-50..600 track 5 client-supplied reference swatches almost exactly; 700..1000 are
+     extrapolated for roles the reference didn't cover (hover/active fills, link text) and picked
+     to clear contrast minimums — capped lighter than the old coral ramp at every step (the
+     deepest, brand-1000, sits at L36% vs coral's L27%). See the semantic re-mapping below (§2)
+     for which step does which job and the contrast numbers behind that choice. */
+  --brand-50: #fcf7f9;
+  --brand-100: #f9eef4;
+  --brand-200: #fce3f1;
+  --brand-300: #f9cee6;
+  --brand-400: #f4b8da;
+  --brand-500: #eea1ce;
+  --brand-600: #e58bc1;
+  --brand-700: #d372ad;
+  --brand-800: #bd5b98;
+  --brand-900: #9b467b;
+  --brand-950: #793861;
+  --brand-1000: #592a47;
 
   /* Neutral — CHARCOAL, hue 242.5, from the reference image's #232d35 = oklch(29.1% 0.020 242.5).
      Kept when the brand moved from coral to violet: a cool charcoal reads as a deliberate ground
@@ -97,25 +102,24 @@
   --accent-700: #664613;
 }
 
-/* Brand + neutral ramps, authored in OKLCH so the steps are perceptually even. Generated and
-   contrast-verified by scripts/palette.violet-charcoal.mjs — regenerate from there rather than
-   hand-editing a step, or the hex fallback and the OKLCH value will silently drift apart.
-   NOTE: these supersede the teal ramps still documented in docs/design-system.md §1.2/§1.3;
-   that document is only updated once this palette is accepted. */
+/* Brand + neutral ramps, authored in OKLCH so the steps are perceptually even. Brand is generated
+   and contrast-verified by scripts/palette.mjs (BRAND_H = 344); neutral is unchanged from the
+   coral era. Regenerate from that script rather than hand-editing a step, or the hex fallback and
+   the OKLCH value will silently drift apart. */
 @supports (color: oklch(0 0 0)) {
   :root {
-    --brand-50: oklch(98% 0.005 35.4);
-    --brand-100: oklch(97% 0.014 35.4);
-    --brand-200: oklch(94% 0.028 35.4);
-    --brand-300: oklch(88% 0.062 35.4);
-    --brand-400: oklch(80% 0.098 35.4);
-    --brand-500: oklch(72% 0.128 35.4);
-    --brand-600: oklch(65% 0.148 35.4);
-    --brand-700: oklch(58% 0.15 35.4);
-    --brand-800: oklch(50% 0.132 35.4);
-    --brand-900: oklch(42% 0.11 35.4);
-    --brand-950: oklch(35% 0.088 35.4);
-    --brand-1000: oklch(27% 0.064 35.4);
+    --brand-50: oklch(98% 0.006 344);
+    --brand-100: oklch(96% 0.014 344);
+    --brand-200: oklch(94% 0.033 344);
+    --brand-300: oklch(89.5% 0.058 344);
+    --brand-400: oklch(84.7% 0.082 344);
+    --brand-500: oklch(79.7% 0.106 344);
+    --brand-600: oklch(74.7% 0.127 344);
+    --brand-700: oklch(68% 0.14 344);
+    --brand-800: oklch(61% 0.145 344);
+    --brand-900: oklch(52% 0.13 344);
+    --brand-950: oklch(44% 0.105 344);
+    --brand-1000: oklch(36% 0.08 344);
 
     --neutral-0: oklch(99.2% 0.002 242.5);
     --neutral-50: oklch(98% 0.003 242.5);
@@ -185,26 +189,52 @@
 
 /* ---- Light (default) --------------------------------------------------- */
 :root {
-  --surface-0: var(--neutral-0);
-  --surface-1: var(--neutral-50);
+  /* Page (surface-0) and card (surface-1) backgrounds carry a light pink wash (brand-50/100)
+     instead of neutral, on request. surface-2/3 (raised/sunken — input fills, hover states) stay
+     neutral: tinting those too would leave nothing to separate a sunken well from the now-pink
+     borders sitting on it. */
+  --surface-0: var(--brand-50);
+  --surface-1: var(--brand-100);
   --surface-2: var(--neutral-100);
   --surface-3: var(--neutral-200);
 
-  --border-subtle: var(--neutral-300);
-  --border-strong: var(--neutral-400);
-  --border-interactive: var(--neutral-500);
+  /* Borders moved from the neutral ramp to the brand ramp on request — every border (card,
+     divider, table, input) now reads pink instead of grey. border-interactive keeps brand-800
+     rather than following the 300/400 pattern of the other two: it backs input/select/textarea
+     boundaries, which the a11y note in §2 documents as needing >=3:1 against surface-0 to stay
+     perceivable — brand-800 measures 4.03:1, brand-700 only 3.04:1, and anything lighter fails
+     outright (brand-600 measures 2.34:1). border-subtle/strong stay decorative-only, so they can
+     sit lighter without breaking that guarantee. */
+  --border-subtle: var(--brand-300);
+  --border-strong: var(--brand-400);
+  --border-interactive: var(--brand-800);
+  /* Referenced by ~18 component rules (card hover, scrollbar thumbs, cart/store borders) that
+     were never actually getting a value — this custom property had no definition anywhere in the
+     file before now, so those borders were silently resolving to currentcolor. Aliased to
+     --border-strong: same visible weight as the rest of the pink border set. */
+  --border-default: var(--border-strong);
 
   --text-primary: var(--neutral-900);
   --text-secondary: var(--neutral-700);
   --text-muted: var(--neutral-600);
   --text-inverse: var(--neutral-0);
 
-  /* Using brand-600 (swatch 6, #da694c) as primary fill, which requires dark text for contrast. */
-  --brand: var(--brand-600);
-  --brand-hover: var(--brand-700);
-  --brand-active: var(--brand-800);
+  /* --brand sits at brand-500 (matches the client's own reference swatch almost exactly) — this
+     is what nearly every button/checkbox/badge/focus-ring paints with, so it carries the "light
+     pink, not deep" brief directly. --brand-alt (solid pill/badge fills, e.g. sidebar active item)
+     uses brand-600 with DARK text rather than white: white needs 4.5:1 and no step this light
+     clears it with white (600 only hits 2.4:1), so the fill stays light and the text adapts
+     instead of the fill going deeper. --text-brand stays at brand-900 — it is plain TEXT sitting
+     directly on a white page (nav links, active tabs, sort arrows) where AA needs 4.5:1, and
+     brand-900 (5.79:1) is the shallowest step that clears it; lighter breaks legibility outright
+     rather than just looking softer. */
+  --brand: var(--brand-500);
+  --brand-hover: var(--brand-600);
+  --brand-active: var(--brand-700);
   --brand-contrast: var(--neutral-900);
-  --text-brand: var(--brand-800);
+  --text-brand: var(--brand-900);
+  --brand-alt: var(--brand-600);
+  --brand-alt-contrast: var(--neutral-900);
 
   --success: var(--success-700);
   --success-bg: var(--success-50);
@@ -219,7 +249,7 @@
   --info-bg: var(--info-50);
   --info-border: var(--info-300);
 
-  --focus-ring: var(--brand-600);
+  --focus-ring: var(--brand-500);
   /* HSL triplet (hue, sat, lightness) — consumed as hsl(var(--shadow-color) / alpha) by the
      elevation tokens in tokens.css. Tinted toward the CHARCOAL surface hue (242) per §1.5, not
      the violet brand hue: a shadow reads as the surface being lit, and the surfaces are cool. */
@@ -239,6 +269,7 @@
     --border-subtle: var(--neutral-800);
     --border-strong: var(--neutral-700);
     --border-interactive: var(--neutral-600);
+    --border-default: var(--border-strong);
 
     --text-primary: var(--neutral-100);
     --text-secondary: var(--neutral-300);
@@ -255,6 +286,12 @@
     --brand-active: var(--brand-500);
     --brand-contrast: var(--neutral-950);
     --text-brand: var(--brand-300);
+    /* Dark theme's base --brand is already a light fill + dark text (the inverted ladder, §1.6
+       rule 1 doesn't apply to brand itself but the same "light carries the action" logic does) —
+       there's no readability problem to solve here, so alt collapses to the same pair rather than
+       inventing an unverified light-on-dark-fill combo. */
+    --brand-alt: var(--brand-300);
+    --brand-alt-contrast: var(--neutral-950);
 
     /* Status triads: text takes the -300 step (measured 8+:1 on dark surface-0 per §2), bg takes
        the -800 step (dark enough to sit as a tinted panel on a dark surface without vibrating,
@@ -288,6 +325,7 @@
   --border-subtle: var(--neutral-800);
   --border-strong: var(--neutral-700);
   --border-interactive: var(--neutral-600);
+  --border-default: var(--border-strong);
 
   --text-primary: var(--neutral-100);
   --text-secondary: var(--neutral-300);
@@ -299,6 +337,8 @@
   --brand-active: var(--brand-500);
   --brand-contrast: var(--neutral-950);
   --text-brand: var(--brand-300);
+  --brand-alt: var(--brand-300);
+  --brand-alt-contrast: var(--neutral-950);
 
   --success: var(--success-300);
   --success-bg: var(--success-800);
@@ -320,26 +360,33 @@
 
 /* ---- Light, explicit toggle (wins over a dark OS preference) ----------- */
 :root[data-theme='light'] {
-  --surface-0: var(--neutral-0);
-  --surface-1: var(--neutral-50);
+  /* See the base :root block above for why surface-0/1 are pink-tinted and surface-2/3 are not. */
+  --surface-0: var(--brand-50);
+  --surface-1: var(--brand-100);
   --surface-2: var(--neutral-100);
   --surface-3: var(--neutral-200);
 
-  --border-subtle: var(--neutral-300);
-  --border-strong: var(--neutral-400);
-  --border-interactive: var(--neutral-500);
+  /* See the base :root block above for why border-interactive uses brand-800 rather than
+     following the 300/400 pattern of the other two, and for the --border-default backstory. */
+  --border-subtle: var(--brand-300);
+  --border-strong: var(--brand-400);
+  --border-interactive: var(--brand-800);
+  --border-default: var(--border-strong);
 
   --text-primary: var(--neutral-900);
   --text-secondary: var(--neutral-700);
   --text-muted: var(--neutral-600);
   --text-inverse: var(--neutral-0);
 
-  /* Using brand-600 (swatch 6, #da694c) as primary fill, which requires dark text for contrast. */
-  --brand: var(--brand-600);
-  --brand-hover: var(--brand-700);
-  --brand-active: var(--brand-800);
+  /* See the base :root block above for the reasoning behind this step choice and its contrast
+     measurements. */
+  --brand: var(--brand-500);
+  --brand-hover: var(--brand-600);
+  --brand-active: var(--brand-700);
   --brand-contrast: var(--neutral-900);
-  --text-brand: var(--brand-800);
+  --text-brand: var(--brand-900);
+  --brand-alt: var(--brand-600);
+  --brand-alt-contrast: var(--neutral-900);
 
   --success: var(--success-700);
   --success-bg: var(--success-50);
@@ -354,7 +401,7 @@
   --info-bg: var(--info-50);
   --info-border: var(--info-300);
 
-  --focus-ring: var(--brand-600);
+  --focus-ring: var(--brand-500);
   --shadow-color: 242deg 14% 14%;
   --scrim: hsl(242deg 28% 9% / 48%);
 }

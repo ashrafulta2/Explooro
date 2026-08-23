@@ -88,31 +88,42 @@ Authoring format, with an sRGB fallback for older engines:
 }
 ```
 
-### 1.2 Brand ramp — coral, hue 35.4
+### 1.2 Brand ramp — pink, hue 344
 
-> **Revised.** The previous violet theme was updated to a warmer, more vibrant Coral. The brand color has been shifted to use a lighter, energetic tone.
+> **Revised.** The previous Coral theme was replaced with a soft Pink, derived from 5 client-supplied
+> reference swatches, and deliberately capped lighter than Coral ever was at every step (the deepest
+> step, brand-1000, sits at L36% vs Coral's L27%).
 
 | Step | OKLCH | Hex | Typical use |
 | :--- | :--- | :--- | :--- |
-| 50 | `oklch(98% 0.005 35.4)` | `#fcf7f6` | Tinted background wash |
-| 100 | `oklch(97% 0.014 35.4)` | `#fef2ef` | Selected row, subtle fill |
-| 200 | `oklch(94% 0.028 35.4)` | `#fde5df` | Badge background |
-| 300 | `oklch(88% 0.062 35.4)` | `#fdcabc` | **Dark-theme link** |
-| 400 | `oklch(80% 0.098 35.4)` | `#f6a792` | Dark-theme focus ring |
-| 500 | `oklch(72% 0.128 35.4)` | `#e9856c` | Chart series, illustration |
-| 600 | `oklch(65% 0.148 35.4)` | `#da694c` | **Primary button, link, focus ring** |
-| 700 | `oklch(58% 0.150 35.4)` | `#c25336` | Button active |
-| 800 | `oklch(50% 0.132 35.4)` | `#a04129` | Deep accent |
-| 900 | `oklch(42% 0.110 35.4)` | `#7e321f` | Reserved |
-| 950 | `oklch(35% 0.088 35.4)` | `#602618` | Reserved |
-| 1000 | `oklch(27% 0.064 35.4)` | `#40190f` | Reserved |
+| 50 | `oklch(98% 0.006 344)` | `#fcf7f9` | **Page background (`surface-0`, light theme)** |
+| 100 | `oklch(96% 0.014 344)` | `#f9eef4` | **Card background (`surface-1`, light theme)**, selected row |
+| 200 | `oklch(94% 0.033 344)` | `#fce3f1` | Badge background |
+| 300 | `oklch(89.5% 0.058 344)` | `#f9cee6` | Dark-theme link, solid-fill buttons |
+| 400 | `oklch(84.7% 0.082 344)` | `#f4b8da` | Dark-theme focus ring, solid-fill buttons (hover) |
+| 500 | `oklch(79.7% 0.106 344)` | `#eea1ce` | **Primary button, checkbox, focus ring** |
+| 600 | `oklch(74.7% 0.127 344)` | `#e58bc1` | **Button hover, brand-alt fill (pills, active nav)** |
+| 700 | `oklch(68% 0.140 344)` | `#d372ad` | Button active |
+| 800 | `oklch(61% 0.145 344)` | `#bd5b98` | Topbar icon colour (needs more presence at small size than the base fill) |
+| 900 | `oklch(52% 0.130 344)` | `#9b467b` | **Link / active-tab text (`text-brand`)** |
+| 950 | `oklch(44% 0.105 344)` | `#793861` | Reserved |
+| 1000 | `oklch(36% 0.080 344)` | `#592a47` | Reserved |
 
-> **brand-600 is the primary action colour**. Because it is lighter and energetic, it requires a dark text color (`neutral-900`) to pass contrast (4.77:1 ✅).
+> **brand-500 is the primary action colour** (buttons, checkboxes, focus rings) — it requires a dark
+> text colour (`neutral-900`) to pass contrast (8.30:1 ✅). Fills that need light text instead
+> (`brand-alt`, e.g. solid pills/badges) step to brand-600, still paired with dark text — no step
+> this light clears 4.5:1 with *white* text, so text colour adapts rather than the fill going
+> deeper. **Known tradeoff:** because brand-500 is this light, the primary fill and the focus ring
+> outline only measure ~1.9:1 against `surface-0` — below the 3:1 WCAG 1.4.11 guideline for
+> non-text UI boundaries. This was an explicit choice (favouring a lighter palette over that
+> guideline); the *text* inside every fill still clears AA.
 
-### 1.2.1 Why Coral — the brand direction
+### 1.2.1 Why Pink — the brand direction
 
-The brand direction was shifted to Coral (hue 35.4) to provide a warm, energetic, and engaging feel. To avoid colliding with the standard "danger" Red, we established a crisp separation by reserving a deep, vibrant classic Red for Danger and relying on the lighter Coral steps for the brand signature. 
-This ensures a lively aesthetic while maintaining strong semantic meaning across the app.
+The brand direction was shifted to a soft Pink (hue 344) at the client's request, explicitly
+favouring lighter, less saturated steps over Coral's punchier mid-ramp. Danger stays a separate Red
+(hue 29) — 45° from the brand hue, comfortably clear of any collision — so the semantic meaning of
+"danger" is undisturbed by the brand change.
 
 ### 1.3 Neutral ramp — cool charcoal, hue 242.5
 
@@ -122,27 +133,43 @@ Pure `#888` grey is the single most reliable signal that an interface was assemb
 designed. The tint is small enough that no user could name it and large enough that its absence
 is felt.
 
-> **This ramp is NOT tinted toward the brand hue** — a deliberate exception to the usual rule.
-> The greys are a cool charcoal (242) while the brand is coral (35.4). Two reasons: the charcoal
-> was chosen as a ground in its own right, and the massive separation keeps the greys reading as
-> crisp neutral grounds rather than as a washed-out tint of the warm brand. Tinting them to 35.4 makes every surface
-> look faintly brown or pink, which is the failure mode this rule is trying to prevent.
+> **This ramp is NOT tinted toward the brand hue for surfaces or text** — a deliberate exception to
+> the usual rule. The greys are a cool charcoal (242) while the brand is pink (344). Two reasons:
+> the charcoal was chosen as a ground in its own right, and the wide separation keeps the greys
+> reading as crisp neutral grounds rather than as a washed-out tint of the brand.
+>
+> **Borders are the one deliberate exception to that exception.** In *light* theme, `border-subtle`,
+> `border-strong`, and `border-interactive` were moved off this ramp onto the brand ramp
+> (brand-300/400/800 — see §1.2) at explicit client request: every border on the site should read
+> pink, cards included. The page (`surface-0`) and card (`surface-1`) backgrounds followed the same
+> request onto brand-50/100 — a light pink wash on the two backgrounds that cover most of the
+> screen. `surface-2`/`surface-3` (raised/sunken — input fills, hover states) stay neutral
+> deliberately: tinting those too would leave nothing to separate a sunken well from the pink
+> borders sitting on top of it. Dark theme keeps both borders and surfaces on the neutral ramp
+> (unchanged) since that direction was never requested or previewed. Text stays neutral in both
+> themes throughout — only `text-brand` (§2) is ever brand-coloured.
 
 | Step | OKLCH | Hex | Light theme | Dark theme |
 | :--- | :--- | :--- | :--- | :--- |
-| 0 | `oklch(99.2% 0.002 242.5)` | `#fbfdfe` | **surface-0** (page) | — |
-| 50 | `oklch(98% 0.003 242.5)` | `#f7f9fa` | **surface-1** (card) | — |
+| 0 | `oklch(99.2% 0.002 242.5)` | `#fbfdfe` | — | — |
+| 50 | `oklch(98% 0.003 242.5)` | `#f7f9fa` | — | — |
 | 100 | `oklch(96% 0.005 242.5)` | `#eff2f5` | **surface-2** (raised) | **text-primary** |
 | 200 | `oklch(92% 0.006 242.5)` | `#e1e5e8` | **surface-3** (sunken) | — |
-| 300 | `oklch(86% 0.008 242.5)` | `#cdd2d6` | **border-subtle** | **text-secondary** |
-| 400 | `oklch(74% 0.010 242.5)` | `#a6acb1` | border-strong | **text-muted** |
-| 500 | `oklch(62% 0.012 242.5)` | `#80878d` | **border-interactive** | — |
+| 300 | `oklch(86% 0.008 242.5)` | `#cdd2d6` | — | **text-secondary** |
+| 400 | `oklch(74% 0.010 242.5)` | `#a6acb1` | — | **text-muted** |
+| 500 | `oklch(62% 0.012 242.5)` | `#80878d` | — | — |
 | 600 | `oklch(52% 0.014 242.5)` | `#626a70` | **text-muted** | **border-interactive** |
 | 700 | `oklch(42% 0.016 242.5)` | `#464e55` | **text-secondary** | border-strong / **surface-3** |
 | 800 | `oklch(32% 0.016 242.5)` | `#2c343a` | — | **border-subtle** / **surface-2** |
 | 900 | `oklch(24% 0.015 242.5)` | `#192026` | **text-primary** | **surface-1** |
 | 950 | `oklch(18% 0.014 242.5)` | `#0c1217` | — | **surface-0** (page) |
 | 1000 | `oklch(13% 0.012 242.5)` | `#04080c` | — | Reserved (deepest well) |
+
+> **Light-theme borders**: `border-subtle` = brand-300, `border-strong` = brand-400,
+> `border-interactive` = brand-800, `border-default` (a general-purpose alias used by ~18 component
+> rules — card hover, scrollbars, cart/store borders) = `border-strong`. **Light-theme base
+> surfaces**: `surface-0` (page) = brand-50, `surface-1` (card) = brand-100; `surface-2`/`surface-3`
+> stay on this ramp (100/200, unchanged). Full rationale and contrast numbers in §1.2 and §2.
 
 ### 1.4 Semantic ramps
 
@@ -210,20 +237,20 @@ blindly. Target: **AA minimum (4.5:1 body, 3:1 large text and non-text UI).**
 
 | Pairing | Ratio | AA | APCA Lc |
 | :--- | :--- | :--- | :--- |
-| text-primary (n-900) on surface-0 | **16.06:1** | ✅ | 101.8 |
+| text-primary (n-900) on surface-0 (brand-50) | **15.47:1** | ✅ | 99.2 |
 | text-primary on surface-2 (n-100) | **14.63:1** | ✅ | 95.5 |
-| text-secondary (n-700) on surface-0 | **8.25:1** | ✅ | 87.5 |
-| text-muted (n-600) on surface-0 | **5.37:1** | ✅ | 75.9 |
-| brand-700 link on surface-0 | **4.48:1** | lg-only | 69.5 |
-| n-900 on brand-600 (primary button) | **4.77:1** | ✅ | 40.0 |
-| white on brand-700 (alt button) | **4.58:1** | ✅ | −76.6 |
-| white on brand-800 (button hover) | **6.38:1** | ✅ | −86.2 |
-| danger-700 on surface-0 | **5.75:1** | ✅ | 75.5 |
-| success-700 on surface-0 | **5.11:1** | ✅ | 74.0 |
-| input border (n-500) on surface-0 | **3.55:1** | ✅ 1.4.11 | — |
-| focus ring (brand-600) on surface-0 | **3.37:1** | ✅ 1.4.11 | — |
-| border-subtle (n-300) on surface-0 | 1.49:1 | decorative only | 22.9 |
-| border-strong (n-400) on surface-0 | 2.25:1 | decorative only | 43.8 |
+| text-secondary (n-700) on surface-0 | **7.95:1** | ✅ | 84.9 |
+| text-muted (n-600) on surface-0 | **5.17:1** | ✅ | 73.3 |
+| text-brand (brand-900) on surface-0 | **5.58:1** | ✅ | 75.0 |
+| n-900 on brand-500 (primary button) | **8.30:1** | ✅ | 63.2 |
+| n-900 on brand-600 (brand-alt fill) | **6.88:1** | ✅ | 54.5 |
+| n-900 on brand-700 (button active) | **5.32:1** | ✅ | 43.9 |
+| danger-700 on surface-0 | **5.54:1** | ✅ | 72.9 |
+| success-700 on surface-0 | **4.92:1** | ✅ | 71.5 |
+| input border (brand-800) on surface-0 | **3.86:1** | ✅ 1.4.11 | — |
+| focus ring (brand-500) on surface-0 | 1.86:1 | ❌ 1.4.11 (accepted, see below) | — |
+| border-subtle (brand-300) on surface-0 | 1.32:1 | decorative only | 15.2 |
+| border-strong (brand-400) on surface-0 | 1.56:1 | decorative only | 24.6 |
 
 ### Dark theme
 
@@ -233,11 +260,11 @@ blindly. Target: **AA minimum (4.5:1 body, 3:1 large text and non-text UI).**
 | text-primary on surface-2 (n-800) | **11.27:1** | ✅ | −93.3 |
 | text-secondary (n-300) on surface-0 | **12.29:1** | ✅ | −78.1 |
 | text-muted (n-400) on surface-0 | **8.16:1** | ✅ | −56.1 |
-| brand-300 link on surface-0 | **12.83:1** | ✅ | −80.8 |
-| neutral-950 on brand-300 (button) | **12.83:1** | ✅ | 81.0 |
+| brand-300 link on surface-0 | **13.41:1** | ✅ | −83.5 |
+| neutral-950 on brand-300 (button) | **13.41:1** | ✅ | 83.5 |
 | danger-300 on surface-0 | **8.38:1** | ✅ | −57.6 |
 | input border (n-600) on surface-0 | **3.42:1** | ✅ 1.4.11 | — |
-| focus ring (brand-400) on surface-0 | **9.72:1** | ✅ | — |
+| focus ring (brand-400) on surface-0 | **11.37:1** | ✅ | — |
 | border-subtle (n-800) on surface-0 | 1.48:1 | decorative only | −3.7 |
 
 ### Two rules this table implies
@@ -248,6 +275,12 @@ blindly. Target: **AA minimum (4.5:1 body, 3:1 large text and non-text UI).**
 2. **A switch's off-state track measures 2.25:1 and therefore fails 1.4.11 on its own.** The switch
    must carry a `--border-interactive` outline so its boundary is perceivable regardless of track
    fill. Do not solve this by darkening the track — that makes off look like on.
+3. **In light theme, brand-500's own boundary against `surface-0` (1.86:1) fails 1.4.11** — the
+   primary button fill and the focus ring outline are both this light. This is an accepted tradeoff
+   of the pink brand direction (§1.2.1), not an oversight: every *text* pairing that sits on top of
+   a brand fill still clears AA (see the table above), which was judged the higher priority. If this
+   becomes a real usability complaint, the fix is a `--border-interactive`-style outline on
+   `--brand`-filled controls (the same pattern used for the switch track), not a deeper fill.
 
 ---
 
@@ -258,7 +291,7 @@ blindly. Target: **AA minimum (4.5:1 body, 3:1 large text and non-text UI).**
 | Script | Family | Delivery |
 | :--- | :--- | :--- |
 | Latin | **Inter** | Self-hosted woff2, subset `latin` + `latin-ext` |
-| Bengali | **Hind Siliguri** | Self-hosted woff2, subset `bengali` |
+| Bengali | **Noto Sans Bengali** | Self-hosted variable woff2, subset `bengali` |
 | Numerals | Inter with `tnum` | Tabular everywhere digits change |
 | Mono | `ui-monospace, "Cascadia Code", Consolas, monospace` | System — no webfont |
 
@@ -277,16 +310,16 @@ that is merely typed.
 
 | Token | Size | Line-height | Tracking | Weight | Use |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `--text-2xs` | 11px | 16px | **+0.06em** | 600 | All-caps micro labels |
-| `--text-xs` | 12px | 18px | **+0.02em** | 500 | Badges, captions, table meta |
-| `--text-sm` | 14px | 20px | **+0.005em** | 400 | Secondary body, dense tables |
-| `--text-base` | 16px | 24px | **0** | 400 | Body — the reference size |
-| `--text-lg` | 18px | 26px | **−0.005em** | 500 | Lead paragraph, card title |
-| `--text-xl` | 20px | 28px | **−0.01em** | 600 | Section heading |
-| `--text-2xl` | 24px | 32px | **−0.015em** | 600 | Page heading |
-| `--text-3xl` | 30px | 38px | **−0.02em** | 700 | Display |
-| `--text-4xl` | 36px | 44px | **−0.025em** | 700 | Hero |
-| `--text-5xl` | 48px | 56px | **−0.03em** | 700 | Marketing hero only |
+| `--text-2xs` | 10px | 15px | **+0.06em** | 600 | All-caps micro labels |
+| `--text-xs` | 11px | 17px | **+0.02em** | 500 | Badges, captions, table meta |
+| `--text-sm` | 13px | 19px | **+0.005em** | 400 | Secondary body, dense tables |
+| `--text-base` | 15px | 22px | **0** | 400 | Body — the reference size |
+| `--text-lg` | 17px | 24px | **−0.005em** | 500 | Lead paragraph, card title |
+| `--text-xl` | 18px | 26px | **−0.01em** | 600 | Section heading |
+| `--text-2xl` | 22px | 30px | **−0.015em** | 600 | Page heading |
+| `--text-3xl` | 27px | 35px | **−0.02em** | 700 | Display |
+| `--text-4xl` | 33px | 40px | **−0.025em** | 700 | Hero |
+| `--text-5xl` | 44px | 52px | **−0.03em** | 700 | Marketing hero only |
 
 ### 3.3 OpenType features
 
@@ -332,15 +365,18 @@ Getting this wrong is immediately obvious to a Bangladeshi user and invisible to
 
 3. **Bengali reads optically smaller than Latin at the same px.** Apply a **1.05× size multiplier**
    at body sizes and below so mixed-language screens feel balanced.
-4. **No faux bold.** Only weights actually shipped in the Hind Siliguri subset may be used. A
+4. **No faux bold.** Only weights actually declared for the Noto Sans Bengali face may be used. A
    synthesised bold destroys the matra.
-   > **Implementation note (Prompt 1.2):** the shipped subset is **400 and 700 only**, not all
-   > four. Hind Siliguri has no variable-weight axis, and a real, correctly-shaped static weight
-   > (every Indic GSUB feature retained — an earlier trimmed feature list silently dropped
-   > conjunct glyphs, caught by screenshot QA) costs ~35KB; four of them alone exceed this
-   > document's own <120KB total font budget (§3.1) before Inter is even added. 500/600 requests
-   > resolve to the nearest real shipped weight (400/700) via standard CSS font matching — not
-   > synthesis, so this rule still holds. See `client/src/styles/typography.css`.
+   > **Implementation note (Prompt 1.2, revised):** originally shipped as Hind Siliguri, static
+   > 400/700 only — that face has no variable-weight axis, and a real, correctly-shaped static
+   > weight (every Indic GSUB feature retained — an earlier trimmed feature list silently dropped
+   > conjunct glyphs, caught by screenshot QA) cost ~35KB each, so only two of the four weights
+   > fit this document's <120KB total font budget (§3.1) before Inter was even added. Replaced
+   > with **Noto Sans Bengali**: one genuinely variable file (wght 100–900, GSUB/GPOS-complete),
+   > ~105KB, still inside budget. `font-weight: 400 700` is declared — matching the range Inter
+   > declares below, and everything the type scale actually requests — but because the underlying
+   > file is variable, 500/600 now render as real instances rather than resolving to 400/700.
+   > See `client/src/styles/typography.css`.
 5. **Never uppercase Bengali.** `text-transform: uppercase` is meaningless in Bengali script and
    corrupts rendering. Any all-caps utility class must be scoped `:lang(en)`.
 6. **Numerals default to Western (0–9)** even in Bengali locale, because BDT prices, phone numbers,
@@ -575,7 +611,7 @@ Product grid: 2 columns < 768px · 3 columns < 1024px · 4 columns < 1280px · 5
 | :--- | :--- | :--- |
 | Row height | 48px | 36px |
 | Control height | 40px | 32px |
-| Body size | 16px | 14px |
+| Body size | 15px | 13px |
 | Card padding | 20px | 16px |
 | Applies to | Storefront, customer, mobile | Admin tables, ledger, moderation queues |
 
@@ -694,6 +730,8 @@ visibly wrong.
 | **Switch toggle** | Thumb travels with `--ease-spring`, track colour with `--ease-standard` |
 | **Optimistic action** | UI updates immediately, reverts with a toast on failure. Never a spinner where an optimistic update is possible |
 | **Destructive confirm** | Modal shakes 2px on a rejected confirmation, rather than silently doing nothing |
+| **Primary button hover** | Rest is a solid `--brand` fill (`n-900 on brand-600`, §2). Hover drops the fill to transparent — brand-colour border and `--text-brand` label — so the interaction reads as a lift, not a colour swap. Active returns to a solid fill, one step darker (`--brand-hover`), for unambiguous press feedback |
+| **Icon-only circular control** | Back-to-top, sidebar/filter-panel collapse toggles, and other small circular affordances rest as an **outline** (`--brand` border, transparent fill, `--brand` icon) and fill **solid `--brand`** on hover (`--brand-contrast` icon) — the inverse of the primary button's mapping above, reserved for secondary-weight, always-visible controls rather than CTAs |
 
 ---
 

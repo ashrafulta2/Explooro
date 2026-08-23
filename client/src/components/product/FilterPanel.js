@@ -91,6 +91,7 @@ export function FilterPanel({
   onChange = null,
 } = {}) {
   let state = readFromURL();
+  let collapsed = false;
 
   function emit() {
     const sp = writeToURL(state);
@@ -100,6 +101,7 @@ export function FilterPanel({
   // ── Build panel content ──────────────────────────────────────────────────
   const content = document.createElement('div');
   content.className = 'filter-panel';
+  content.dataset.collapsed = 'false';
 
   // Header
   const header = document.createElement('div');
@@ -116,8 +118,24 @@ export function FilterPanel({
     rebuildInputs();
     emit();
   });
-  header.append(titleEl, clearBtn);
+  const collapseBtn = document.createElement('button');
+  collapseBtn.type = 'button';
+  collapseBtn.className = 'filter-panel__collapse-toggle';
+  collapseBtn.textContent = '‹';
+  collapseBtn.setAttribute('aria-label', t('marketplace.filter.collapse'));
+  collapseBtn.addEventListener('click', () => {
+    collapsed = !collapsed;
+    content.dataset.collapsed = String(collapsed);
+    collapseBtn.textContent = collapsed ? '›' : '‹';
+    collapseBtn.setAttribute('aria-label', t(collapsed ? 'marketplace.filter.expand' : 'marketplace.filter.collapse'));
+  });
+  header.append(titleEl, clearBtn, collapseBtn);
   content.append(header);
+
+  // Body — every filter group lives here so it can be hidden as one unit when collapsed.
+  const body = document.createElement('div');
+  body.className = 'filter-panel__body';
+  content.append(body);
 
   // Helper to create a filter group section
   function group(labelKey) {
@@ -153,7 +171,7 @@ export function FilterPanel({
   maxInput.addEventListener('change', () => { state.max_price = maxInput.value; emit(); });
   priceRow.append(minInput, sep, maxInput);
   priceGroup.append(priceRow);
-  content.append(priceGroup);
+  body.append(priceGroup);
 
   // ── In stock toggle ──────────────────────────────────────────────────────
   const stockGroup = group('marketplace.filter.availability');
@@ -167,7 +185,7 @@ export function FilterPanel({
   stockText.textContent = t('marketplace.filter.in_stock');
   stockLabel.append(stockCb, stockText);
   stockGroup.append(stockLabel);
-  content.append(stockGroup);
+  body.append(stockGroup);
 
   // ── Supplier tier ────────────────────────────────────────────────────────
   const tierGroup = group('marketplace.filter.supplier_tier');
@@ -190,27 +208,149 @@ export function FilterPanel({
     tierGroup.append(tierLabel);
     tierCheckboxes.push({ cb, tier });
   }
-  content.append(tierGroup);
+  body.append(tierGroup);
 
   // ── District ─────────────────────────────────────────────────────────────
   const districtGroup = group('marketplace.filter.district');
-  const districtSelect = document.createElement('select');
-  districtSelect.className = 'filter-panel__select';
-  districtSelect.setAttribute('aria-label', t('marketplace.filter.district'));
-  const anyOpt = document.createElement('option');
-  anyOpt.value = '';
-  anyOpt.textContent = t('marketplace.filter.any_district');
-  districtSelect.append(anyOpt);
-  for (const d of BD_DISTRICTS) {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    opt.selected = state.district === d;
-    districtSelect.append(opt);
+  const districtWrap = document.createElement('div');
+  districtWrap.className = 'filter-panel__custom-select';
+
+  const districtTrigger = document.createElement('button');
+  districtTrigger.type = 'button';
+  districtTrigger.className = 'filter-panel__select-trigger';
+  districtTrigger.setAttribute('aria-haspopup', 'listbox');
+  districtTrigger.setAttribute('aria-expanded', 'false');
+  districtTrigger.setAttribute('aria-label', t('marketplace.filter.district'));
+
+  const districtTriggerText = document.createElement('span');
+  districtTriggerText.className = 'filter-panel__select-trigger-text';
+  districtTriggerText.textContent = state.district || t('marketplace.filter.any_district');
+
+  const districtChevron = document.createElement('span');
+  districtChevron.className = 'filter-panel__select-chevron';
+  districtChevron.setAttribute('aria-hidden', 'true');
+  districtChevron.innerHTML =
+    '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+
+  districtTrigger.append(districtTriggerText, districtChevron);
+
+  const districtMenu = document.createElement('ul');
+  districtMenu.className = 'filter-panel__select-menu';
+  districtMenu.setAttribute('role', 'listbox');
+
+  function updateDistrictDisplay() {
+    districtTriggerText.textContent = state.district || t('marketplace.filter.any_district');
+    const options = districtMenu.querySelectorAll('.filter-panel__select-option');
+    options.forEach((opt) => {
+      const isSel = opt.dataset.value === state.district;
+      opt.setAttribute('aria-selected', isSel ? 'true' : 'false');
+      opt.classList.toggle('filter-panel__select-option--selected', isSel);
+    });
   }
-  districtSelect.addEventListener('change', () => { state.district = districtSelect.value; emit(); });
-  districtGroup.append(districtSelect);
-  content.append(districtGroup);
+
+  let isDistrictOpen = false;
+  function updateDistrictMenuPosition() {
+    const rect = districtTrigger.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const menuDesiredHeight = 240;
+
+    // If space below is constrained and space above is greater, flip upwards
+    if (spaceBelow < menuDesiredHeight && spaceAbove > spaceBelow) {
+      districtWrap.classList.add('filter-panel__custom-select--placement-top');
+      const maxH = Math.min(260, Math.max(120, spaceAbove - 16));
+      districtMenu.style.maxHeight = `${maxH}px`;
+    } else {
+      districtWrap.classList.remove('filter-panel__custom-select--placement-top');
+      const maxH = Math.min(260, Math.max(120, spaceBelow - 16));
+      districtMenu.style.maxHeight = `${maxH}px`;
+    }
+  }
+
+  function openDistrictMenu() {
+    isDistrictOpen = true;
+    districtTrigger.setAttribute('aria-expanded', 'true');
+    updateDistrictMenuPosition();
+    districtMenu.classList.add('filter-panel__select-menu--open');
+    const sel = districtMenu.querySelector('.filter-panel__select-option--selected');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+  }
+
+  function closeDistrictMenu() {
+    isDistrictOpen = false;
+    districtTrigger.setAttribute('aria-expanded', 'false');
+    districtMenu.classList.remove('filter-panel__select-menu--open');
+    districtWrap.classList.remove('filter-panel__custom-select--placement-top');
+  }
+
+  districtTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isDistrictOpen) closeDistrictMenu();
+    else openDistrictMenu();
+  });
+
+  const onDocClick = (e) => {
+    if (isDistrictOpen && !districtWrap.contains(e.target)) {
+      closeDistrictMenu();
+    }
+  };
+  document.addEventListener('click', onDocClick);
+
+  function createDistrictOption(value, label) {
+    const li = document.createElement('li');
+    li.className = 'filter-panel__select-option';
+    li.setAttribute('role', 'option');
+    li.tabIndex = 0;
+    li.dataset.value = value;
+    li.textContent = label;
+    if (state.district === value) {
+      li.classList.add('filter-panel__select-option--selected');
+      li.setAttribute('aria-selected', 'true');
+    }
+    li.addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.district = value;
+      updateDistrictDisplay();
+      closeDistrictMenu();
+      districtTrigger.focus();
+      emit();
+    });
+    li.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        li.click();
+      }
+    });
+    return li;
+  }
+
+  districtMenu.append(createDistrictOption('', t('marketplace.filter.any_district')));
+  for (const d of BD_DISTRICTS) {
+    districtMenu.append(createDistrictOption(d, d));
+  }
+
+  districtWrap.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeDistrictMenu();
+      districtTrigger.focus();
+    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!isDistrictOpen) openDistrictMenu();
+      const options = Array.from(districtMenu.querySelectorAll('.filter-panel__select-option'));
+      const activeIdx = options.indexOf(document.activeElement);
+      let nextIdx = 0;
+      if (e.key === 'ArrowDown') {
+        nextIdx = activeIdx < options.length - 1 ? activeIdx + 1 : 0;
+      } else {
+        nextIdx = activeIdx > 0 ? activeIdx - 1 : options.length - 1;
+      }
+      options[nextIdx]?.focus();
+    }
+  });
+
+  districtWrap.append(districtTrigger, districtMenu);
+  districtGroup.append(districtWrap);
+  body.append(districtGroup);
 
   // ── Min rating ───────────────────────────────────────────────────────────
   const ratingGroup = group('marketplace.filter.min_rating');
@@ -237,7 +377,7 @@ export function FilterPanel({
     starRow.append(btn);
   }
   ratingGroup.append(starRow);
-  content.append(ratingGroup);
+  body.append(ratingGroup);
 
   // ── Margin range (Saler only) ────────────────────────────────────────────
   let marginGroup = null;
@@ -257,7 +397,7 @@ export function FilterPanel({
     mSep.textContent = '+';
     marginRow.append(minMargin, mSep);
     marginGroup.append(marginRow);
-    content.append(marginGroup);
+    body.append(marginGroup);
   }
 
   // Helper to re-apply state to DOM inputs (used by "clear all")
@@ -266,7 +406,7 @@ export function FilterPanel({
     maxInput.value = state.max_price;
     stockCb.checked = state.in_stock;
     for (const { cb, tier } of tierCheckboxes) cb.checked = state.tiers.includes(tier);
-    districtSelect.value = state.district;
+    updateDistrictDisplay();
     for (const btn of ratingBtns) {
       btn.setAttribute('aria-pressed', btn.dataset.rating === state.min_rating ? 'true' : 'false');
     }
@@ -281,8 +421,12 @@ export function FilterPanel({
   function openDrawer() {
     const drawerContentWrap = document.createElement('div');
     drawerContentWrap.className = 'filter-drawer-content';
-    // Clone the panel content into the drawer
-    drawerContentWrap.append(content.cloneNode(true));
+    // Clone the panel content into the drawer — always expanded; the collapse toggle is a
+    // desktop-only affordance and the clone has no live listeners to make it do anything.
+    const clone = content.cloneNode(true);
+    clone.dataset.collapsed = 'false';
+    clone.querySelector('.filter-panel__collapse-toggle')?.remove();
+    drawerContentWrap.append(clone);
 
     // WHY: We open a fresh Drawer each time; the cloned content does not have live event
     // listeners, so we re-wire events on the cloned content below — a pragmatic approach
@@ -298,6 +442,7 @@ export function FilterPanel({
   }
 
   function cleanup() {
+    document.removeEventListener('click', onDocClick);
     drawerCleanup && drawerCleanup();
   }
 

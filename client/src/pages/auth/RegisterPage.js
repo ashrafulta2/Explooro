@@ -9,6 +9,7 @@ import { register, sendOtp } from '../../services/session.js';
 import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { Button } from '../../components/ui/Button.js';
+import { getExplooroLogoSvg } from '../../components/ui/icons.js';
 
 export default function RegisterPage(container, { query = {}, navigate }) {
   container.replaceChildren();
@@ -27,7 +28,7 @@ export default function RegisterPage(container, { query = {}, navigate }) {
 
   const brand = document.createElement('div');
   brand.className = 'auth-brand';
-  brand.textContent = '⚡ Explooro';
+  brand.innerHTML = `${getExplooroLogoSvg({ size: 30 })} <span>Explooro</span>`;
 
   const title = document.createElement('h1');
   title.className = 'auth-title';

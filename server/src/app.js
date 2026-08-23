@@ -39,7 +39,33 @@ import storeRoutes from './routes/store.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import orderRoutes from './routes/order.routes.js';
+import financeRoutes from './routes/finance.routes.js';
+import logisticsRoutes from './routes/logistics.routes.js';
+import returnRoutes from './routes/return.routes.js';
+import disputeRoutes from './routes/dispute.routes.js';
+import moderationRoutes from './routes/moderation.routes.js';
+import kycRoutes from './routes/kyc.routes.js';
+import chatRoutes from './routes/chat.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
+import whatsappRoutes from './routes/whatsapp.routes.js';
+import salerInboxRoutes from './routes/salerInbox.routes.js';
+import adsRoutes from './routes/ads.routes.js';
+import promotionRoutes from './routes/promotion.routes.js';
+import referralRoutes from './routes/referral.routes.js';
+import gamificationRoutes from './routes/gamification.routes.js';
+import teamPurchaseRoutes from './routes/teamPurchase.routes.js';
+import cartRecoveryRoutes from './routes/cartRecovery.routes.js';
+import socialKitRoutes from './routes/socialKit.routes.js';
+import liveStreamRoutes from './routes/liveStream.routes.js';
+import aiRoutes from './routes/ai.routes.js';
+import warrantyRoutes from './routes/warranty.routes.js';
+import fastifyWebsocket from '@fastify/websocket';
+import websocketGateway from './sockets/gateway.js';
 import { startGrantExpiryScheduler } from './jobs/grantExpiryCron.js';
+import { startScheduler, stopScheduler } from './jobs/scheduler.js';
+import './jobs/escrowRelease.job.js'; // Registers escrow_release job with scheduler
+import './jobs/teamPurchaseExpiry.job.js'; // Registers team_purchase_expiry job with scheduler
+import './jobs/cartRecovery.job.js'; // Registers cart_recovery_sweep job with scheduler
 import { createSmsSender } from './integrations/sms/index.js';
 
 /**
@@ -141,9 +167,37 @@ export async function buildApp(overrides = {}) {
   await app.register(cartRoutes, { prefix: '/api/v1' });
   await app.register(wishlistRoutes, { prefix: '/api/v1' });
   await app.register(orderRoutes, { prefix: '/api/v1' });
+  await app.register(financeRoutes, { prefix: '/api/v1' });
+  await app.register(logisticsRoutes, { prefix: '/api/v1' });
+  await app.register(returnRoutes, { prefix: '/api/v1' });
+  await app.register(disputeRoutes, { prefix: '/api/v1' });
+  await app.register(moderationRoutes, { prefix: '/api/v1' });
+  await app.register(kycRoutes, { prefix: '/api/v1' });
+  await app.register(chatRoutes, { prefix: '/api/v1' });
+  await app.register(notificationRoutes, { prefix: '/api/v1' });
+  await app.register(whatsappRoutes, { prefix: '/api/v1' });
+  await app.register(salerInboxRoutes, { prefix: '/api/v1' });
+  await app.register(adsRoutes, { prefix: '/api/v1' });
+  await app.register(promotionRoutes, { prefix: '/api/v1' });
+  await app.register(referralRoutes, { prefix: '/api/v1' });
+  await app.register(gamificationRoutes, { prefix: '/api/v1' });
+  await app.register(teamPurchaseRoutes, { prefix: '/api/v1' });
+  await app.register(cartRecoveryRoutes, { prefix: '/api/v1' });
+  await app.register(socialKitRoutes, { prefix: '/api/v1' });
+  await app.register(socialKitRoutes); // Root registration for /s/:code
+  await app.register(liveStreamRoutes, { prefix: '/api/v1' });
+  await app.register(aiRoutes, { prefix: '/api/v1' });
+  await app.register(warrantyRoutes, { prefix: '/api/v1' });
+
+  // Register WebSocket Gateway (Prompt 8.1)
+  await app.register(fastifyWebsocket);
+  await app.register(websocketGateway);
 
   // Start periodic 5-minute grant/JIT/action expiry sweep (Prompt 2.5)
   const stopGrantExpiry = startGrantExpiryScheduler(pool, cache, app.log, 300000);
+
+  // Start distributed scheduler for hourly escrow release & periodic tasks (Prompt 6.2)
+  startScheduler(pool, cache, app.log, { runOnStartup: false });
 
   app.get('/api/v1/health', async () => ({
     status: 'ok',
@@ -155,6 +209,7 @@ export async function buildApp(overrides = {}) {
   }));
 
   app.addHook('onClose', async () => {
+    stopScheduler();
     stopGrantExpiry();
     await cache.quit?.();
     await pool.end();

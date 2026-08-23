@@ -1,0 +1,294 @@
+/**
+ * ai.css — AI Assistant Panel Styles (Prompt 10.2).
+ *
+ * Shopping Concierge / Sourcing Intelligence chat panel: bubbles, suggestion chips, inline
+ * product cards, and the degraded-mode banner.
+ */
+
+.assistant-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 420px;
+}
+
+.assistant-panel__disclaimer {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.assistant-panel__messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 2px 12px;
+}
+
+.assistant-panel__empty {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  padding: 16px;
+  text-align: center;
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.assistant-panel__bubble {
+  max-width: 88%;
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.assistant-panel__bubble--user {
+  align-self: flex-end;
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.assistant-panel__bubble--assistant {
+  align-self: flex-start;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+}
+
+.assistant-panel__degraded-banner {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--color-warning, #92400e);
+  background: var(--color-warning-bg, #fef3c7);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+}
+
+.assistant-panel__product-cards {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.assistant-panel__product-card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  background: var(--color-bg-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.assistant-panel__product-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.assistant-panel__product-price {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-primary);
+}
+
+.assistant-panel__product-meta {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.assistant-panel__product-card .btn {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+.assistant-panel__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 2px;
+}
+
+.assistant-panel__suggestions--hidden {
+  display: none;
+}
+
+.assistant-panel__suggestions-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-right: 4px;
+}
+
+.assistant-panel__suggestion-chip {
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-full, 999px);
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.assistant-panel__suggestion-chip:hover {
+  background: var(--color-bg-secondary);
+}
+
+.assistant-panel__composer {
+  display: flex;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.assistant-panel__input {
+  flex: 1;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 14px;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.assistant-panel__usage-card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+}
+
+.assistant-panel__usage-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.assistant-panel__usage-stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-secondary);
+}
+
+.assistant-panel__usage-stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.assistant-panel__usage-bar-track {
+  flex: 1;
+  min-width: 160px;
+  height: 8px;
+  border-radius: var(--radius-full, 999px);
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+}
+
+.assistant-panel__usage-bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+}
+
+.assistant-panel__usage-cap-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.assistant-panel__usage-cap-input {
+  width: 90px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+/* ---- CreativeStudioPage (Prompt 10.3) ------------------------------------------------- */
+
+.creative-studio-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.creative-studio-page__header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.creative-studio-page__subtitle {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin: 0;
+}
+
+.creative-studio-page__disclaimer {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  margin: 0;
+}
+
+.creative-studio-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.creative-studio-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.creative-studio-page__controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.creative-studio-page__result {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  background: var(--color-bg-secondary);
+}
+
+.creative-studio-page__result h2 {
+  font-size: 15px;
+  margin: 0 0 8px;
+}
+
+.creative-studio-page__draft-text {
+  white-space: pre-wrap;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}

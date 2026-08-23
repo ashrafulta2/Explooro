@@ -2,6 +2,7 @@
  * media.service.js — Media upload pipeline, magic-byte sniffing & derivative generator (Prompt 4.2).
  */
 
+import sharp from 'sharp';
 import { getStorageDriver } from '../integrations/storage/index.js';
 import * as mediaRepo from '../repositories/media.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
@@ -165,6 +166,19 @@ export function generateDerivatives(key, storageDriver, width = 800, height = 80
   }
 
   return derivatives;
+}
+
+/**
+ * Pads an image onto a larger flat-color canvas (docs/dependency-ledger.md: `sharp` is isolated to
+ * this file — every other caller, including creativeStudio.js's background-treatment tool, goes
+ * through this function rather than importing `sharp` itself).
+ */
+export async function applyFlatBackgroundMatte(buffer, { backgroundHex, size = 1000, padding = 60 }) {
+  return sharp(buffer)
+    .resize(size, size, { fit: 'contain', background: backgroundHex })
+    .extend({ top: padding, bottom: padding, left: padding, right: padding, background: backgroundHex })
+    .png()
+    .toBuffer();
 }
 
 export function generateMediaRef() {

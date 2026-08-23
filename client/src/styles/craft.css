@@ -19,18 +19,18 @@
  * ======================================================================= */
 
 ::selection {
-  background-color: var(--brand-200, #fde5df);
+  background-color: var(--brand-200, #fce3f1);
   color: var(--text-primary, #192026);
 }
 
 :root[data-theme='dark'] ::selection {
-  background-color: var(--brand-700, #c25336);
+  background-color: var(--brand-700, #d372ad);
   color: var(--text-inverse, #fbfdfe);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) ::selection {
-    background-color: var(--brand-700, #c25336);
+    background-color: var(--brand-700, #d372ad);
     color: var(--text-inverse, #fbfdfe);
   }
 }
@@ -82,6 +82,14 @@ html, body {
 
 input, textarea, select, [contenteditable='true'] {
   caret-color: var(--brand);
+  accent-color: var(--brand);
+}
+
+select option:checked,
+select option:hover,
+select option:focus {
+  background-color: var(--brand-100, #fdf0f7);
+  color: var(--brand-900, #5c1445);
 }
 
 /* Autofill restyling — prevents browser yellow background from breaking dark themes */

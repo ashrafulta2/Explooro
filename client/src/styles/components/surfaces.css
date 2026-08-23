@@ -351,6 +351,11 @@
   /* Momentum scrolling must stop at the sheet's edge, not chain to the page behind it. */
   overscroll-behavior: contain;
 }
+.drawer__body--flush {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
 .drawer__footer {
   padding: var(--space-4) var(--space-5);
   border-top: var(--border-width) solid var(--border-subtle);

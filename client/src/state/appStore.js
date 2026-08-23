@@ -137,6 +137,20 @@ export function toggleGroupCollapsed(groupKey) {
   });
 }
 
+/**
+ * Icon-rail mode: a group header click while the sidebar is collapsed must open the rail rather
+ * than silently toggling a group's collapsed flag that has no visible effect until the rail
+ * itself reopens (see Sidebar.js renderAdvancedMode). Also un-collapses the clicked group so its
+ * items are visible immediately in the newly-expanded sidebar.
+ */
+export function expandSidebarToGroup(groupKey) {
+  appStore.update((s) => {
+    const set = new Set(s.shell.collapsedGroups);
+    set.delete(groupKey);
+    return { shell: { ...s.shell, sidebarCollapsed: false, collapsedGroups: [...set] } };
+  });
+}
+
 export function setUiMode(role, mode) {
   appStore.update((s) => ({ shell: { ...s.shell, uiMode: { ...s.shell.uiMode, [role]: mode } } }));
 }

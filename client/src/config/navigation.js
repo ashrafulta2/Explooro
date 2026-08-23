@@ -211,6 +211,7 @@ export const navItems = [
   { key: 'customer.wishlist', label_i18n_key: 'nav.customer.wishlist', icon: null, path: '/account/wishlist', group: 'customer.shopping', permission: null, module: 'wishlist', roles: ['customer'], order: 3 },
   { key: 'customer.coupons', label_i18n_key: 'nav.shared.coupons', icon: null, path: '/account/coupons', group: 'customer.shopping', permission: null, module: 'coupons', roles: ['customer'], order: 4 },
   { key: 'customer.team_purchases', label_i18n_key: 'nav.customer.team_purchases', icon: null, path: '/account/team-purchases', group: 'customer.shopping', permission: null, module: 'group_buying', roles: ['customer'], order: 5 },
+  { key: 'customer.live', label_i18n_key: 'nav.customer.live', icon: null, path: '/live', group: 'customer.shopping', permission: null, module: 'live_commerce', roles: ['customer'], order: 6 },
   { key: 'customer.coins', label_i18n_key: 'nav.customer.coins', icon: null, path: '/account/coins', group: 'customer.rewards', permission: null, module: 'loyalty_coins', roles: ['customer'], order: 1 },
   { key: 'customer.referrals', label_i18n_key: 'nav.shared.referrals', icon: null, path: '/account/referrals', group: 'customer.rewards', permission: null, module: 'referral_engine', roles: ['customer'], order: 2 },
   { key: 'customer.warranties', label_i18n_key: 'nav.customer.warranties', icon: null, path: '/account/warranties', group: 'customer.protection', permission: null, module: 'digital_warranty', roles: ['customer'], order: 1 },
@@ -218,7 +219,7 @@ export const navItems = [
   { key: 'customer.reviews', label_i18n_key: 'nav.customer.reviews', icon: null, path: '/account/reviews', group: 'customer.me', permission: null, module: 'ugc_video_wall', roles: ['customer'], order: 2 },
   { key: 'customer.addresses', label_i18n_key: 'nav.customer.addresses', icon: null, path: '/account/addresses', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 3 },
   { key: 'customer.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/account/settings', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 4 },
-  { key: 'customer.become_saler', label_i18n_key: 'nav.customer.become_saler', icon: '⭐', path: '/account/become-saler', group: 'customer.me', permission: null, module: 'virtual_storefront', roles: ['customer'], order: 5, highlight: true },
+  { key: 'customer.become_saler', label_i18n_key: 'nav.customer.become_saler', icon: null, path: '/account/become-saler', group: 'customer.me', permission: null, module: 'virtual_storefront', roles: ['customer'], order: 5, highlight: true },
 ];
 
 /** All 6 roles this file has a tree for, in the same order the role switcher (Prompt 1.7 PREVIEW) lists them. */

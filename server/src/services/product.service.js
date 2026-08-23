@@ -54,8 +54,22 @@ export async function createProduct(
     hasVariants = false,
     warrantyMonths = 0,
     isModerationModuleEnabled = true,
+    isSupplierVerificationEnabled = false,
   }
 ) {
+  if (isSupplierVerificationEnabled) {
+    const { rows: kycRows } = await db.query(
+      `SELECT status FROM kyc_verifications WHERE user_id = $1 AND status = 'VERIFIED'`,
+      [supplierId]
+    );
+    if (kycRows.length === 0) {
+      throw new AppError(
+        'KYC_REQUIRED',
+        'Supplier verification is mandatory before listing products. Please complete your KYC verification.',
+        'পণ্য তালিকাভুক্ত করার আগে সরবরাহকারী যাচাইকরণ আবশ্যক। অনুগ্রহ করে আপনার কেওয়াইসি সম্পন্ন করুন।'
+      );
+    }
+  }
   if (!titleEn || !titleBn) {
     throw new AppError(
       'VALIDATION_FAILED',
@@ -134,7 +148,9 @@ export async function updateProduct(db, id, supplierId, fields = {}, isStaff = f
     throw new AppError('NOT_FOUND', 'Product not found.', 'প্রোডাক্ট পাওয়া যায়নি।');
   }
 
-  if (!isStaff && existing.supplier_id !== supplierId) {
+  // `supplier_id` is a NUMERIC/BIGINT column, which node-postgres returns as a string; `supplierId`
+  // is a real Number off req.user.id — a strict !== always treated every owner as a non-owner.
+  if (!isStaff && Number(existing.supplier_id) !== Number(supplierId)) {
     throw new AppError('FORBIDDEN', 'You do not own this product.', 'আপনি এই প্রোডাক্টটির মালিক নন।');
   }
 
@@ -166,7 +182,9 @@ export async function deleteProduct(db, id, supplierId, isStaff = false) {
     throw new AppError('NOT_FOUND', 'Product not found.', 'প্রোডাক্ট পাওয়া যায়নি।');
   }
 
-  if (!isStaff && existing.supplier_id !== supplierId) {
+  // `supplier_id` is a NUMERIC/BIGINT column, which node-postgres returns as a string; `supplierId`
+  // is a real Number off req.user.id — a strict !== always treated every owner as a non-owner.
+  if (!isStaff && Number(existing.supplier_id) !== Number(supplierId)) {
     throw new AppError('FORBIDDEN', 'You do not own this product.', 'আপনি এই প্রোডাক্টটির মালিক নন।');
   }
 

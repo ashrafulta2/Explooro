@@ -266,7 +266,7 @@
 .mini-card {
   padding: 12px;
   background: var(--surface-card, #ffffff);
-  border: 1px solid var(--border-subtle, #cdd2d6);
+  border: 1px solid var(--border-subtle, #f9cee6);
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;

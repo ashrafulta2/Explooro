@@ -10,9 +10,12 @@
  * If you change a ramp, re-run this and update docs/design-system.md from its output. The two must
  * never drift. Zero dependencies, by the Dependency Policy in docs/prompt.md.
  *
- * EXPECTED FAILURES (2): the switch off-state track at ~2.25:1. This is documented and accepted in
- * design-system.md §2 — a switch conveys its boundary with a --border-interactive outline, not with
- * track fill, so the track itself is decorative. Any OTHER failure is a real regression.
+ * EXPECTED FAILURES (3): the switch off-state track at ~2.2:1 (light + dark), and LIGHT: focus
+ * ring (brand-500) on surface-0 at ~1.86:1. All three are documented and accepted in
+ * design-system.md §2 — the switch conveys its boundary with a --border-interactive outline rather
+ * than track fill, and the light brand-500 fill/ring was a deliberate "favour lighter over 1.4.11"
+ * tradeoff (every TEXT pairing on top of a brand fill still clears AA). Any OTHER failure is a real
+ * regression.
  */
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -67,13 +70,16 @@ function apca(txt, bg) {
 const O = (L, C, H) => { const c = oklchToRgb(L / 100, C, H); return { ...c, hex: hex(c), css: `oklch(${L}% ${C} ${H})` }; };
 
 // ---------- ramps ----------
-// Brand is VIOLET (295) and the neutral is a COOL CHARCOAL (242.5) — deliberately NOT the same
-// hue. See docs/design-system.md §1.2.1 for the hue screen that rejected teal, green, and blue.
-// Brand is CORAL (35.4) and the neutral is a COOL CHARCOAL (242.5)
-const BRAND_H = 35.4, NEUT_H = 242.5;
+// Brand is PINK (344) and the neutral is a COOL CHARCOAL (242.5) — deliberately NOT the same hue.
+// See docs/design-system.md §1.2.1 for the hue screen that rejected teal, green, and blue.
+// Hue + the first 6 (L, C) pairs below are derived from 5 client-supplied reference swatches
+// (fde4f2 / f9cee7 / f4b8da / eea1cd / e68bbe, all landing within ~2° of hue 344); steps 700-1000
+// are extrapolated to stay lighter than the coral ramp ever was (old brand-1000 was L27%, this
+// one bottoms out at L36%).
+const BRAND_H = 344, NEUT_H = 242.5;
 
 const ramps = {
-  brand: [[98, 0.005], [97, 0.014], [94, 0.028], [88, 0.062], [80, 0.098], [72, 0.128], [65, 0.148], [58, 0.150], [50, 0.132], [42, 0.110], [35, 0.088], [27, 0.064]].map(([l, c]) => O(l, c, BRAND_H)),
+  brand: [[98, 0.006], [96, 0.014], [94, 0.033], [89.5, 0.058], [84.7, 0.082], [79.7, 0.106], [74.7, 0.127], [68, 0.14], [61, 0.145], [52, 0.13], [44, 0.105], [36, 0.08]].map(([l, c]) => O(l, c, BRAND_H)),
   neutral: [[99.2, 0.002], [98, 0.003], [96, 0.005], [92, 0.006], [86, 0.008], [74, 0.010], [62, 0.012], [52, 0.014], [42, 0.016], [32, 0.016], [24, 0.015], [18, 0.014], [13, 0.012]].map(([l, c]) => O(l, c, NEUT_H)),
   accent: [[96, 0.028], [90, 0.065], [82, 0.110], [74, 0.140], [66, 0.135], [58, 0.115], [50, 0.095], [42, 0.078]].map(([l, c]) => O(l, c, 75)),
   success: [[96, 0.025], [88, 0.060], [74, 0.115], [62, 0.135], [52, 0.115], [42, 0.092]].map(([l, c]) => O(l, c, 150)),
@@ -94,21 +100,22 @@ const n = (s) => ramps.neutral[STEPS.neutral.indexOf(s)];
 const br = (s) => ramps.brand[STEPS.brand.indexOf(s)];
 const white = O(100, 0, 0);
 
-// LIGHT surfaces: 0=neutral-0, 1=neutral-50, 2=neutral-100, 3=neutral-200
+// LIGHT surfaces: 0=brand-50, 1=brand-100, 2=neutral-100, 3=neutral-200 (0/1 pink-tinted on
+//   request; 2/3 stay neutral so raised/sunken surfaces don't blend into the pink borders)
 // DARK  surfaces: 0=neutral-950, 1=neutral-900, 2=neutral-800, 3=neutral-700  (lighter with elevation)
 const pairs = [
-  ['LIGHT: text-primary on surface-0', n(900), n(0)],
+  ['LIGHT: text-primary on surface-0', n(900), br(50)],
   ['LIGHT: text-primary on surface-2', n(900), n(100)],
-  ['LIGHT: text-secondary on surface-0', n(700), n(0)],
-  ['LIGHT: text-muted on surface-0', n(600), n(0)],
-  ['LIGHT: brand-700 link on surface-0', br(700), n(0)],
-  ['LIGHT: n-900 on brand-600 (primary btn)', n(900), br(600)],
-  ['LIGHT: white on brand-700 (btn)', white, br(700)],
-  ['LIGHT: white on brand-800 (btn:hov)', white, br(800)],
-  ['LIGHT: danger-700 on surface-0', ramps.danger[4], n(0)],
-  ['LIGHT: success-700 on surface-0', ramps.success[4], n(0)],
-  ['LIGHT: border-subtle vs surface-0', n(300), n(0)],
-  ['LIGHT: border-strong vs surface-0', n(400), n(0)],
+  ['LIGHT: text-secondary on surface-0', n(700), br(50)],
+  ['LIGHT: text-muted on surface-0', n(600), br(50)],
+  ['LIGHT: brand-900 text-brand on surface-0', br(900), br(50)],
+  ['LIGHT: n-900 on brand-500 (primary btn)', n(900), br(500)],
+  ['LIGHT: n-900 on brand-600 (brand-alt fill)', n(900), br(600)],
+  ['LIGHT: n-900 on brand-700 (btn:active)', n(900), br(700)],
+  ['LIGHT: danger-700 on surface-0', ramps.danger[4], br(50)],
+  ['LIGHT: success-700 on surface-0', ramps.success[4], br(50)],
+  ['LIGHT: border-subtle (brand-300) vs surface-0', br(300), br(50)],
+  ['LIGHT: border-strong (brand-400) vs surface-0', br(400), br(50)],
   ['DARK:  text-primary on surface-0', n(100), n(950)],
   ['DARK:  text-primary on surface-2', n(100), n(800)],
   ['DARK:  text-secondary on surface-0', n(300), n(950)],
@@ -132,9 +139,9 @@ for (const [label, fg, bg] of pairs) {
 
 console.log('\n## non-text UI components (WCAG 1.4.11 needs >= 3:1)');
 const extra = [
-  ['LIGHT: input border (neutral-500) on surface-0', n(500), n(0)],
-  ['LIGHT: focus ring (brand-600) on surface-0', br(600), n(0)],
-  ['LIGHT: switch track off (n-400) [expected fail]', n(400), n(0)],
+  ['LIGHT: input border (brand-800) on surface-0', br(800), br(50)],
+  ['LIGHT: focus ring (brand-500) on surface-0', br(500), br(50)],
+  ['LIGHT: switch track off (n-400) [expected fail]', n(400), br(50)],
   ['DARK:  input border (neutral-600) on surface-0', n(600), n(950)],
   ['DARK:  focus ring (brand-400) on surface-0', br(400), n(950)],
   ['DARK:  switch track off (n-700) [expected fail]', n(700), n(950)],

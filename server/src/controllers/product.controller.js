@@ -30,6 +30,7 @@ export async function createProduct(req, reply) {
 
   // Check if product_moderation module is enabled
   const isModerationModuleEnabled = req.isModuleEnabled ? req.isModuleEnabled('product_moderation') : true;
+  const isSupplierVerificationEnabled = req.isModuleEnabled ? req.isModuleEnabled('supplier_verification') : false;
 
   const product = await productService.createProduct(db, {
     supplierId,
@@ -50,6 +51,7 @@ export async function createProduct(req, reply) {
     hasVariants: has_variants,
     warrantyMonths: warranty_months,
     isModerationModuleEnabled,
+    isSupplierVerificationEnabled,
   });
 
   return reply.status(201).send({ data: { product }, product });

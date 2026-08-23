@@ -43,6 +43,8 @@ export function Drawer({
   closeOnScrim = true,
   closeLabel = 'Close',
   dragToDismiss = true,
+  bodyPadding = true,
+  className = '',
   onClose = null,
   onOpen = null,
 } = {}) {
@@ -51,7 +53,7 @@ export function Drawer({
   const descId = `drawer-desc-${drawerSeq}`;
 
   const dialog = document.createElement('dialog');
-  dialog.className = `overlay drawer drawer--${side} drawer--${size}`;
+  dialog.className = `overlay drawer drawer--${side} drawer--${size}${className ? ` ${className}` : ''}`;
   dialog.setAttribute('aria-modal', 'true');
   if (title) dialog.setAttribute('aria-labelledby', titleId);
   if (description) dialog.setAttribute('aria-describedby', descId);
@@ -101,7 +103,7 @@ export function Drawer({
   if (title || description || showClose) panel.append(header);
 
   const bodyEl = document.createElement('div');
-  bodyEl.className = 'drawer__body';
+  bodyEl.className = `drawer__body${!bodyPadding ? ' drawer__body--flush' : ''}`;
   if (content) bodyEl.append(content);
   panel.append(bodyEl);
 
@@ -126,10 +128,12 @@ export function Drawer({
     if (onOpen) onOpen();
   }
 
+  const nativeClose = dialog.close.bind(dialog);
+
   function close(value = false) {
     if (!dialog.open) return;
     result = value;
-    dialog.close();
+    nativeClose();
   }
 
   dialog.addEventListener('close', () => {

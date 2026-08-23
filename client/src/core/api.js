@@ -11,6 +11,7 @@ import { toast } from '../services/toast.js';
 
 const MODE = import.meta.env.VITE_API_MODE === 'live' ? 'live' : 'mock';
 const BASE = '/api/v1';
+export const API_BASE = BASE;
 
 // docs/api-contract.md §5.1 — endpoints that move money, create an order, or trigger an
 // irreversible side effect MUST carry an Idempotency-Key. Kept as a whitelist, not a POST/PATCH
@@ -47,6 +48,11 @@ let accessToken = null;
 
 export function setAccessToken(token) {
   accessToken = token;
+}
+
+/** Read-only accessor for hand-rolled requests that can't go through request() — e.g. SSE streams. */
+export function getAccessToken() {
+  return accessToken;
 }
 
 export function clearAccessToken() {

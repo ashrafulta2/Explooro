@@ -18,6 +18,7 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
+import { openAssistantPanel } from '../../components/ai/AssistantPanel.js';
 
 const CATEGORIES = [
   { key: 'all', en: 'All Categories', bn: 'সব বিভাগ' },
@@ -48,7 +49,7 @@ const SORT_OPTIONS = [
   { value: 'price_desc', label_en: 'Price: High to Low', label_bn: 'দাম: বেশি থেকে কম' },
 ];
 
-export default function SourcingCatalogPage() {
+export default function SourcingCatalogPage(root) {
   const container = document.createElement('div');
   container.className = 'sourcing-page';
   container.setAttribute('data-module', 'sourcing');
@@ -60,7 +61,8 @@ export default function SourcingCatalogPage() {
       description: t('sourcing.module_disabled_desc'),
     });
     container.append(disabledState);
-    return container;
+    root.append(container);
+    return () => {};
   }
 
   // Active filters state
@@ -136,7 +138,14 @@ export default function SourcingCatalogPage() {
     },
   });
 
-  heroHeader.append(heroTitle, heroSubtitle, calcLauncherBtn);
+  const askAiBtn = Button({
+    label: `✨ ${t('ai.sourcing_trigger')}`,
+    variant: 'secondary',
+    size: 'sm',
+    onClick: (e) => openAssistantPanel({ agentType: 'sourcing', trigger: e.currentTarget }),
+  });
+
+  heroHeader.append(heroTitle, heroSubtitle, askAiBtn, calcLauncherBtn);
 
   const heroStats = document.createElement('div');
   heroStats.className = 'sourcing-hero__stats';
@@ -353,7 +362,8 @@ export default function SourcingCatalogPage() {
   // Initial load
   loadProducts();
 
-  return container;
+  root.append(container);
+  return () => {};
 }
 
 function createStatCard(label, value) {

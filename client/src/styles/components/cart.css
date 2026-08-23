@@ -15,7 +15,7 @@
   height: 100%;
   max-height: 100vh;
   overflow: hidden;
-  background-color: var(--surface-0);
+  background-color: var(--surface-1);
   color: var(--text-primary);
 }
 
@@ -26,6 +26,7 @@
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--border-subtle);
   background-color: var(--surface-1);
+  flex-shrink: 0;
 }
 
 .cart-drawer__title-wrap {
@@ -62,6 +63,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background-color: var(--surface-1);
 }
 
 /* Multi-supplier parcel splitting notification banner */
@@ -311,6 +313,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  flex-shrink: 0;
 }
 
 .cart-drawer__coupon-wrap {
@@ -359,34 +362,58 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border-subtle);
+  width: var(--control-height);
+  height: var(--control-height);
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--border-strong);
   background-color: var(--surface-1);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-standard),
-              background-color var(--duration-fast),
-              color var(--duration-fast),
-              border-color var(--duration-fast);
+  transition: transform var(--dur-instant) var(--ease-standard),
+              background-color var(--dur-fast) var(--ease-standard),
+              color var(--dur-fast) var(--ease-standard),
+              border-color var(--dur-fast) var(--ease-standard);
+}
+
+.wishlist-btn--sm {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-xs);
+}
+
+.wishlist-btn--md {
+  width: var(--control-height);
+  height: var(--control-height);
+  border-radius: var(--radius-sm);
+}
+
+.wishlist-btn--lg {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
 }
 
 .wishlist-btn:hover {
-  background-color: var(--surface-2);
-  color: var(--danger-600);
-  border-color: var(--danger-200);
-  transform: scale(1.05);
+  background-color: var(--brand-100);
+  border-color: var(--brand-200);
+  color: var(--text-brand);
 }
 
 .wishlist-btn:active {
-  transform: scale(0.95);
+  background-color: var(--brand-200);
+  transform: scale(0.97);
 }
 
 .wishlist-btn--active {
-  background-color: var(--danger-50);
-  border-color: var(--danger-300);
-  color: var(--danger-600);
+  background-color: var(--brand-100);
+  border-color: var(--brand);
+  color: var(--text-brand);
+}
+
+.wishlist-btn--active:hover {
+  background-color: var(--brand-200);
+  border-color: var(--brand-hover);
+  color: var(--text-brand);
 }
 
 .wishlist-btn--active svg {
@@ -394,7 +421,7 @@
 }
 
 .wishlist-btn svg {
-  width: 18px;
-  height: 18px;
-  transition: fill var(--duration-fast);
+  width: 20px;
+  height: 20px;
+  transition: fill var(--dur-fast) var(--ease-standard);
 }
