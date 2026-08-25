@@ -166,6 +166,32 @@ describe('Master Colour block — server-side validation', () => {
     }
   });
 
+  test('the flash-sale strip is themed by the master seed and gated like any other section', () => {
+    // The strip used to paint from a raw ramp step (--danger-300) with its ink hardcoded, so it
+    // was the one piece of chrome no validator ever looked at. It is a first-class section now.
+    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+      const { sections } = themeService.deriveMasterTokens(preset.master);
+      const flash = sections.flash_sale;
+      assert.ok(flash, `preset "${key}" generated no flash_sale section`);
+      for (const field of ['bg', 'text', 'chip_bg', 'tag_bg', 'tag_text']) {
+        assert.match(flash[field], /^#[0-9a-f]{6}$/, `preset "${key}": flash_sale.${field}`);
+      }
+      assert.equal(themeService.validatePalette(masterTokens(preset.master)), true);
+    }
+
+    // An admin override that breaks the strip must fail the gate — the chip is checked against
+    // the header's ink, because the countdown digits inherit it rather than carrying their own.
+    const base = masterTokens({ seed: '#1d4ed8' });
+    throwsWithCode(
+      () => themeService.validatePalette({
+        ...base,
+        flash_sale: { ...base.flash_sale, chip_bg: base.flash_sale.text },
+      }),
+      'THEME_CONTRAST_FAILED',
+      (err) => err.details.failures.some((f) => f.pairing === 'Flash Sale Countdown Digits on Chip'),
+    );
+  });
+
   test('a legacy palette with no master block is validated exactly as before', () => {
     const legacy = paletteToSectionTokens(generatePalette(DEFAULT_MASTER));
     assert.equal(themeService.validatePalette(legacy), true);

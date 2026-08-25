@@ -98,6 +98,7 @@ for (const [name, arr] of Object.entries(ramps)) {
 // ---------- contrast pairings ----------
 const n = (s) => ramps.neutral[STEPS.neutral.indexOf(s)];
 const br = (s) => ramps.brand[STEPS.brand.indexOf(s)];
+const dg = (s) => ramps.danger[STEPS.danger.indexOf(s)];
 const white = O(100, 0, 0);
 
 // LIGHT surfaces: 0=brand-50, 1=brand-100, 2=neutral-100, 3=neutral-200 (0/1 pink-tinted on
@@ -114,6 +115,14 @@ const pairs = [
   ['LIGHT: n-900 on brand-700 (btn:active)', n(900), br(700)],
   ['LIGHT: danger-700 on surface-0', ramps.danger[4], br(50)],
   ['LIGHT: success-700 on surface-0', ramps.success[4], br(50)],
+  // Flash-sale strip: the three pairings components/product.css actually renders. The strip reads
+  // --flash-* now, but those default to the danger ramp, so this is where the SHIPPED values are
+  // measured — the generated-per-seed versions are covered by client/test/colorRamp.test.js.
+  ['LIGHT: flash-text n-900 on bg (d-300)', n(900), dg(300)],
+  ['LIGHT: flash-text n-900 on chip (n-0)', n(900), n(0)],
+  ['LIGHT: flash-tag n-0 on tag (d-800)', n(0), dg(800)],
+  ['DARK:  flash-text n-100 on bg (d-800)', n(100), dg(800)],
+  ['DARK:  flash-text n-100 on chip n-900', n(100), n(900)],
   ['LIGHT: border-subtle (brand-300) vs surface-0', br(300), br(50)],
   ['LIGHT: border-strong (brand-400) vs surface-0', br(400), br(50)],
   ['DARK:  text-primary on surface-0', n(100), n(950)],

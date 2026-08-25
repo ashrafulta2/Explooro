@@ -28,5 +28,10 @@ export {
   BRAND_STEPS,
 } from '../../../client/src/services/colorRamp.js';
 
-/** The 6 UI sections the flattened token shape (and every pre-master consumer) speaks. */
-export const TOKEN_SECTIONS = ['navbar', 'surfaces', 'brand', 'typography', 'badges', 'footer'];
+/**
+ * The UI sections the flattened token shape speaks. `flash_sale` was added after the first six;
+ * a palette stored before it simply has no such key, which every consumer treats as "generate it".
+ */
+export const TOKEN_SECTIONS = [
+  'navbar', 'surfaces', 'brand', 'typography', 'badges', 'footer', 'flash_sale',
+];

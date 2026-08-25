@@ -281,6 +281,7 @@ function runContrastChecks(sections) {
   const typo = sections.typography || {};
   const badges = sections.badges || {};
   const footer = sections.footer || {};
+  const flash = sections.flash_sale || {};
 
   check('Navbar Text on Navbar BG', nav.text, nav.bg, 4.5);
   check('Body Text on Page Canvas', typo.primary, surf.page, 4.5);
@@ -292,6 +293,11 @@ function runContrastChecks(sections) {
   check('Danger Badge Text on BG', badges.danger_text, badges.danger_bg, 4.5);
   check('Info Badge Text on BG', badges.info_text, badges.info_bg, 4.5);
   check('Footer Text on Footer BG', footer.text, footer.bg, 4.5);
+  // The countdown digits inherit the strip's ink, so the chip is checked against flash.text
+  // rather than against a foreground of its own.
+  check('Flash Sale Header Text on Header BG', flash.text, flash.bg, 4.5);
+  check('Flash Sale Countdown Digits on Chip', flash.text, flash.chip_bg, 4.5);
+  check('Flash Sale Tag Text on Tag BG', flash.tag_text, flash.tag_bg, 4.5);
 
   return failures;
 }

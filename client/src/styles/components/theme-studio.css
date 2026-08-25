@@ -530,3 +530,57 @@
   color: var(--text-secondary);
   white-space: nowrap;
 }
+
+/* Flash-sale strip inside the studio preview. Deliberately mirrors the real widget's token names
+   rather than re-picking colours, so what an admin sees here is what the marketplace renders. */
+.mini-flash {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.mini-flash__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 4px 8px;
+  background: var(--flash-bg);
+  color: var(--flash-text);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.mini-flash__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-flash__chip {
+  background: var(--flash-chip-bg);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+.mini-flash__body {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.mini-flash__tag {
+  background: var(--flash-tag-bg);
+  color: var(--flash-tag-text);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}

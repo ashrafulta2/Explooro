@@ -249,6 +249,15 @@
   --info-bg: var(--info-50);
   --info-border: var(--info-300);
 
+  /* Flash sale / promo strip (§ commerce urgency). Authored here rather than inline in
+     product.css so the Theme Studio can re-colour the campaign chrome without touching the
+     danger ramp that error states depend on. n900 on danger-300 measures 7.36:1. */
+  --flash-bg: var(--danger-300);
+  --flash-text: var(--neutral-900);
+  --flash-chip-bg: var(--neutral-0);
+  --flash-tag-bg: var(--danger-800);
+  --flash-tag-text: var(--neutral-0);
+
   --focus-ring: var(--brand-500);
   /* HSL triplet (hue, sat, lightness) — consumed as hsl(var(--shadow-color) / alpha) by the
      elevation tokens in tokens.css. Tinted toward the CHARCOAL surface hue (242) per §1.5, not
@@ -309,6 +318,13 @@
     --info-bg: var(--info-800);
     --info-border: var(--info-500);
 
+    /* On dark the strip takes the deep -800 fill: a coral-300 band across a near-black page glares. */
+    --flash-bg: var(--danger-800);
+    --flash-text: var(--neutral-100);
+    --flash-chip-bg: var(--neutral-900);
+    --flash-tag-bg: var(--danger-800);
+    --flash-tag-text: var(--neutral-100);
+
     --focus-ring: var(--brand-400);
     --shadow-color: 242deg 12% 2%;
     --scrim: hsl(242deg 42% 3% / 60%);
@@ -352,6 +368,13 @@
   --info: var(--info-300);
   --info-bg: var(--info-800);
   --info-border: var(--info-500);
+
+  /* On dark the strip takes the deep -800 fill: a coral-300 band across a near-black page glares. */
+  --flash-bg: var(--danger-800);
+  --flash-text: var(--neutral-100);
+  --flash-chip-bg: var(--neutral-900);
+  --flash-tag-bg: var(--danger-800);
+  --flash-tag-text: var(--neutral-100);
 
   --focus-ring: var(--brand-400);
   --shadow-color: 242deg 12% 2%;
@@ -400,6 +423,15 @@
   --info: var(--info-700);
   --info-bg: var(--info-50);
   --info-border: var(--info-300);
+
+  /* Flash sale / promo strip (§ commerce urgency). Authored here rather than inline in
+     product.css so the Theme Studio can re-colour the campaign chrome without touching the
+     danger ramp that error states depend on. n900 on danger-300 measures 7.36:1. */
+  --flash-bg: var(--danger-300);
+  --flash-text: var(--neutral-900);
+  --flash-chip-bg: var(--neutral-0);
+  --flash-tag-bg: var(--danger-800);
+  --flash-tag-text: var(--neutral-0);
 
   --focus-ring: var(--brand-500);
   --shadow-color: 242deg 14% 14%;

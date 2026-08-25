@@ -97,6 +97,7 @@ export function validatePaletteContrast(tokens = {}) {
   const typo = tokens.typography || {};
   const badges = tokens.badges || {};
   const footer = tokens.footer || {};
+  const flash = tokens.flash_sale || {};
 
   // 1. Navbar
   check('Navbar Text on Navbar BG', nav.text, nav.bg, 4.5);
@@ -119,6 +120,12 @@ export function validatePaletteContrast(tokens = {}) {
   check('Footer Text on Footer BG', footer.text, footer.bg, 4.5);
   check('Footer Muted Text on Footer BG', footer.muted, footer.bg, 3.0);
 
+  // 6. Flash sale strip. The countdown digits inherit the header's ink, so the chip is checked
+  // against flash.text and not against a colour of its own.
+  check('Flash Sale Header Text on Header BG', flash.text, flash.bg, 4.5);
+  check('Flash Sale Countdown Digits on Chip', flash.text, flash.chip_bg, 4.5);
+  check('Flash Sale Tag Text on Tag BG', flash.tag_text, flash.tag_bg, 4.5);
+
   return {
     isValid: failures.length === 0,
     failures,
@@ -136,6 +143,7 @@ const SECTION_OVERRIDE_PROPS = [
   '--success-bg', '--success', '--warning-bg', '--warning',
   '--danger-bg', '--danger', '--info-bg', '--info',
   '--footer-bg', '--footer-text', '--footer-muted', '--footer-border',
+  '--flash-bg', '--flash-text', '--flash-chip-bg', '--flash-tag-bg', '--flash-tag-text',
 ];
 
 /** Drops the per-section inline pins but leaves any mounted master stylesheet in place. */
@@ -196,6 +204,13 @@ const SECTION_PROPERTY_MAP = {
     text: ['--footer-text'],
     muted: ['--footer-muted'],
     border: ['--footer-border'],
+  },
+  flash_sale: {
+    bg: ['--flash-bg'],
+    text: ['--flash-text'],
+    chip_bg: ['--flash-chip-bg'],
+    tag_bg: ['--flash-tag-bg'],
+    tag_text: ['--flash-tag-text'],
   },
 };
 
@@ -285,6 +300,9 @@ export function themeFromLegacyTokens(tokens = {}) {
     ...generated,
     navbar: { ...(tokens.navbar || generated.navbar) },
     footer: { ...(tokens.footer || generated.footer) },
+    // No `flash_sale` carry-over: a pre-master palette never had one, so the generated strip is
+    // the only value that exists and must not be replaced with an undefined.
+    flash_sale: { ...(tokens.flash_sale || generated.flash_sale) },
   };
 }
 

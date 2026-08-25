@@ -489,6 +489,19 @@ export default function ThemeStudioPage(root) {
           { token: 'footer.border', label: 'Footer Border', fgOrBg: 'other' },
         ],
       },
+      {
+        // The countdown chip is compared against flash_sale.text, not a foreground of its own:
+        // the digits inherit the header's ink, so those are the two colours that actually meet.
+        id: 'flash_sale',
+        title: t('theme_studio.section_flash'),
+        items: [
+          { token: 'flash_sale.bg', label: 'Flash Strip Background', fgOrBg: 'bg', compareToken: 'flash_sale.text' },
+          { token: 'flash_sale.text', label: 'Flash Strip Text & Countdown', fgOrBg: 'fg', compareToken: 'flash_sale.bg' },
+          { token: 'flash_sale.chip_bg', label: 'Countdown Chip BG', fgOrBg: 'bg', compareToken: 'flash_sale.text' },
+          { token: 'flash_sale.tag_bg', label: 'Product FLASH Tag BG', fgOrBg: 'bg', compareToken: 'flash_sale.tag_text' },
+          { token: 'flash_sale.tag_text', label: 'Product FLASH Tag Text', fgOrBg: 'fg', compareToken: 'flash_sale.tag_bg' },
+        ],
+      },
     ];
 
     for (const sec of sections) {
@@ -679,6 +692,19 @@ export default function ThemeStudioPage(root) {
           <span style="padding: 2px 6px; background: var(--danger-bg); color: var(--danger); border-radius: 4px; font-size: 10px; font-weight: 600;">Flash Sale</span>
           <span style="padding: 2px 6px; background: var(--info-bg); color: var(--info); border-radius: 4px; font-size: 10px; font-weight: 600;">Verified Merchant</span>
           <span style="padding: 2px 6px; background: var(--accent-100); color: var(--accent-700); border-radius: 4px; font-size: 10px; font-weight: 600;">Accent · 2h left</span>
+        </div>
+
+        <div class="mini-flash">
+          <div class="mini-flash__header">
+            <span class="mini-flash__title">⚡ FLASH SALE</span>
+            <span class="mini-flash__timer">
+              <span class="mini-flash__chip">02</span>:<span class="mini-flash__chip">14</span>:<span class="mini-flash__chip">09</span>
+            </span>
+          </div>
+          <div class="mini-flash__body">
+            <span class="mini-flash__tag">FLASH</span>
+            <span>Product cards in the strip carry the tag above.</span>
+          </div>
         </div>
 
         <div class="mini-scroll" tabindex="0" aria-label="Scrollbar preview">

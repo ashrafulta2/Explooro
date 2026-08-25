@@ -226,10 +226,11 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-4);
-  /* danger-300 (soft coral-red) with dark text, not danger-800 + white — n900 on danger-300
-     measures 7.36:1, well past AA. */
-  background: var(--danger-300);
-  color: var(--neutral-900);
+  /* The strip's own semantic tokens, not a raw ramp step: the Theme Studio's Flash Sale section
+     writes these, and the master engine regenerates them per seed with the ink measured rather
+     than assumed (services/colorRamp.js flashRole). */
+  background: var(--flash-bg);
+  color: var(--flash-text);
 }
 
 .flash-sale-widget__title {
@@ -271,9 +272,9 @@
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  /* A light card, not a dark tint (the old oklch(0 0 0 / 0.2) was tuned for the white-on-danger-800
-     header) — a dark chip reads muddy against the current light danger-300 header. */
-  background: var(--neutral-0);
+  /* Runs opposite to --flash-text, because the digits inherit the header's ink: a dark chip under
+     dark digits is unreadable, and a fixed value cannot follow a re-themed header. */
+  background: var(--flash-chip-bg);
   border-radius: var(--radius-xs);
   padding: var(--space-1) var(--space-2);
   min-width: 32px;
@@ -387,8 +388,8 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: var(--danger-800);
-  color: var(--neutral-0);
+  background: var(--flash-tag-bg);
+  color: var(--flash-tag-text);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;

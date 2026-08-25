@@ -344,8 +344,8 @@ export function generatePalette(userConfig = {}) {
   }
 
   const roles = {
-    light: buildLightRoles({ cfg, brand, neutral, anchor }),
-    dark: buildDarkRoles({ brand, neutral }),
+    light: buildLightRoles({ cfg, brand, neutral, anchor, danger: status.danger }),
+    dark: buildDarkRoles({ brand, neutral, danger: status.danger }),
   };
 
   return {
@@ -376,7 +376,28 @@ function shallowestPassing(ramp, bg, minRatio) {
   return BRAND_STEPS[BRAND_STEPS.length - 1];
 }
 
-function buildLightRoles({ cfg, brand, neutral, anchor }) {
+/**
+ * Solves one "coloured strip with text on it" surface — the flash-sale header, its countdown chip
+ * and the FLASH tag on a product card.
+ *
+ * WHY it is not just `var(--danger-300)` hardcoded in the CSS any more: that step is regenerated
+ * from the master seed like everything else, and `statusPull` can lean its hue toward the brand.
+ * A strip whose ink was fixed at neutral-900 would therefore drift below AA for some seeds without
+ * anything reporting it. The ink is measured, and only if NEITHER candidate clears the bar is the
+ * fill itself repaired — in which case a literal hex is returned instead of the ramp reference,
+ * because at that point the ramp step genuinely is not the colour being painted.
+ */
+function flashRole(fillHex, fillVar, inkCandidates) {
+  let fill = fillHex;
+  let ink = bestContrastOn(fill, inkCandidates);
+  if (contrastRatio(fill, ink) < 4.6) {
+    fill = adjustForContrast(fill, ink, 4.6);
+    ink = bestContrastOn(fill, inkCandidates);
+  }
+  return { fill, fillRef: fill === fillHex ? fillVar : fill, ink };
+}
+
+function buildLightRoles({ cfg, brand, neutral, anchor, danger }) {
   const stepAt = (i) => BRAND_STEPS[clamp(i, 0, BRAND_STEPS.length - 1)];
   const inkCandidates = [neutral[900], neutral[0]];
   const bestInkRatio = (i) => {
@@ -403,6 +424,15 @@ function buildLightRoles({ cfg, brand, neutral, anchor }) {
   const surface0 = cfg.surfaceWash ? brand[50] : neutral[50];
   const surface1 = cfg.surfaceWash ? brand[100] : neutral[0];
   const inkVar = (bg) => (bestContrastOn(bg, inkCandidates) === neutral[0] ? 'var(--neutral-0)' : 'var(--neutral-900)');
+
+  const flash = flashRole(danger[300], 'var(--danger-300)', inkCandidates);
+  const flashTag = flashRole(danger[800], 'var(--danger-800)', inkCandidates);
+  const flashInkVar = flash.ink === neutral[0] ? 'var(--neutral-0)' : 'var(--neutral-900)';
+  const tagInkVar = flashTag.ink === neutral[0] ? 'var(--neutral-0)' : 'var(--neutral-900)';
+  // The countdown digits inherit the header's ink, so the chip behind them has to run the OTHER
+  // way — a dark chip under dark digits is the bug this replaced.
+  const flashChip = flash.ink === neutral[0] ? neutral[900] : neutral[0];
+  const flashChipVar = flash.ink === neutral[0] ? 'var(--neutral-900)' : 'var(--neutral-0)';
 
   return {
     '--surface-0': cfg.surfaceWash ? 'var(--brand-50)' : 'var(--neutral-50)',
@@ -445,6 +475,14 @@ function buildLightRoles({ cfg, brand, neutral, anchor }) {
     '--info-bg': 'var(--info-50)',
     '--info-border': 'var(--info-300)',
 
+    // Flash sale / promo strip. Kept on the DANGER ramp (urgency reads red across every locale
+    // we ship) but resolved, not assumed — see flashRole().
+    '--flash-bg': flash.fillRef,
+    '--flash-text': flashInkVar,
+    '--flash-chip-bg': flashChipVar,
+    '--flash-tag-bg': flashTag.fillRef,
+    '--flash-tag-text': tagInkVar,
+
     '--focus-ring': `var(--brand-${brandStep})`,
     '--shadow-color': hslTriplet(neutral[900], 14, 14),
     '--scrim': `hsl(${hslTriplet(neutral[950], 28, 9)} / 48%)`,
@@ -467,6 +505,13 @@ function buildLightRoles({ cfg, brand, neutral, anchor }) {
       brand: brand[brandStep],
       brandHover: brand[hoverStep],
       brandContrast: bestContrastOn(brand[brandStep], inkCandidates),
+      flash: {
+        bg: flash.fill,
+        text: flash.ink,
+        chipBg: flashChip,
+        tagBg: flashTag.fill,
+        tagText: flashTag.ink,
+      },
       navbarBg: neutral[0],
       navbarSearch: neutral[100],
       footerBg: neutral[900],
@@ -476,7 +521,7 @@ function buildLightRoles({ cfg, brand, neutral, anchor }) {
   };
 }
 
-function buildDarkRoles({ brand, neutral }) {
+function buildDarkRoles({ brand, neutral, danger }) {
   // Dark inverts the brand: a LIGHT tint carries the action and dark ink sits on it, because no
   // mid-lightness fill clears 4.5:1 against a near-black canvas.
   const page = neutral[950];
@@ -494,6 +539,12 @@ function buildDarkRoles({ brand, neutral }) {
   // control being pressed should read as recessed.
   const hoverStep = BRAND_STEPS[clamp(idx + 1, 0, BRAND_STEPS.length - 1)];
   const activeStep = BRAND_STEPS[clamp(idx + 2, 0, BRAND_STEPS.length - 1)];
+
+  // Dark inverts the strip too: the deep -800 fill that carries the tag on light becomes the
+  // header, since a coral-300 band across a near-black page glares.
+  const darkInk = [neutral[100], neutral[950]];
+  const flash = flashRole(danger[800], 'var(--danger-800)', darkInk);
+  const flashLightInk = flash.ink === neutral[100];
 
   return {
     '--surface-0': 'var(--neutral-950)',
@@ -532,6 +583,12 @@ function buildDarkRoles({ brand, neutral }) {
     '--info-bg': 'var(--info-800)',
     '--info-border': 'var(--info-500)',
 
+    '--flash-bg': flash.fillRef,
+    '--flash-text': flashLightInk ? 'var(--neutral-100)' : 'var(--neutral-950)',
+    '--flash-chip-bg': flashLightInk ? 'var(--neutral-900)' : 'var(--neutral-100)',
+    '--flash-tag-bg': flash.fillRef,
+    '--flash-tag-text': flashLightInk ? 'var(--neutral-100)' : 'var(--neutral-950)',
+
     '--focus-ring': `var(--brand-${hoverStep})`,
     '--shadow-color': hslTriplet(neutral[1000], 12, 2),
     '--scrim': `hsl(${hslTriplet(neutral[1000], 42, 3)} / 60%)`,
@@ -549,6 +606,11 @@ function buildDarkRoles({ brand, neutral }) {
       surface0: page,
       brand: brand[dStep],
       brandContrast: neutral[950],
+      flash: {
+        bg: flash.fill,
+        text: flash.ink,
+        chipBg: flashLightInk ? neutral[900] : neutral[100],
+      },
     },
   };
 }
@@ -630,6 +692,13 @@ export function paletteToSectionTokens(palette) {
       text: n[0],
       muted: r.footerMuted,
       border: r.footerBorder,
+    },
+    flash_sale: {
+      bg: r.flash.bg,
+      text: r.flash.text,
+      chip_bg: r.flash.chipBg,
+      tag_bg: r.flash.tagBg,
+      tag_text: r.flash.tagText,
     },
   };
 }

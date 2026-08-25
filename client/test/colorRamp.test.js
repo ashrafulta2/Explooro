@@ -121,6 +121,13 @@ test('every pairing the Theme Studio validates clears WCAG AA', () => {
       check(`${status} badge (light)`, p[status][700], p[status][50], 4.5);
       check(`${status} badge (dark)`, p[status][300], p[status][800], 4.5);
     }
+
+    // The flash strip is the one surface whose ink CANNOT be fixed at neutral-900: statusPull
+    // leans the danger ramp toward the seed, so its luminance moves with the theme. The chip is
+    // checked against the strip's own ink because the countdown digits inherit it.
+    check('flash strip ink on strip', light.flash.text, light.flash.bg, 4.5);
+    check('countdown digits on chip', light.flash.text, light.flash.chipBg, 4.5);
+    check('flash tag ink on tag', light.flash.tagText, light.flash.tagBg, 4.5);
   }
 });
 
@@ -158,6 +165,14 @@ test('the dark theme stays a working theme, not a light one on a dark page', () 
     assert.ok(
       contrastRatio(p.neutral[100], dark.surface0) >= 4.5,
       `${label}: dark body text fails on the dark canvas`,
+    );
+    assert.ok(
+      contrastRatio(dark.flash.text, dark.flash.bg) >= 4.5,
+      `${label}: dark flash strip ink ${dark.flash.text} fails on ${dark.flash.bg}`,
+    );
+    assert.ok(
+      contrastRatio(dark.flash.text, dark.flash.chipBg) >= 4.5,
+      `${label}: dark countdown digits fail on the chip`,
     );
   }
 });
