@@ -6,12 +6,18 @@ import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { THEME_PRESETS } from '../../config/theme-presets.js';
+import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.js';
 import {
   applyTheme,
   getContrastRatio,
   validatePaletteContrast,
   validateNoGradients,
+  themeFromMaster,
+  themeFromLegacyTokens,
 } from '../../services/themePalette.js';
+import {
+  generatePalette, BRAND_STEPS, NEUTRAL_STEPS, MASTER_RANGES,
+} from '../../services/colorRamp.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
@@ -25,9 +31,10 @@ export default function ThemeStudioPage(root) {
   const authState = appStore.get()?.auth || {};
   const isSuperAdmin = (authState.roles || []).includes('super_admin') || authState.role === 'super_admin';
 
-  let activePresetKey = 'default';
-  let workingTokens = JSON.parse(JSON.stringify(THEME_PRESETS.default.tokens));
-  let publishedTokens = JSON.parse(JSON.stringify(THEME_PRESETS.default.tokens));
+  let activePresetKey = DEFAULT_MASTER_PRESET;
+  let masterConfig = { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master };
+  let workingTokens = themeFromMaster(masterConfig);
+  let publishedTokens = JSON.parse(JSON.stringify(workingTokens));
   let activePaletteId = null;
 
   // Header
@@ -91,6 +98,10 @@ export default function ThemeStudioPage(root) {
   leftCol.style.flexDirection = 'column';
   leftCol.style.gap = 'var(--space-6)';
 
+  // Master Colour Section - the one control that re-themes the whole product.
+  const masterWrap = document.createElement('div');
+  masterWrap.className = 'theme-master';
+
   // Presets Section
   const presetsWrap = document.createElement('div');
   presetsWrap.className = 'theme-presets';
@@ -116,7 +127,7 @@ export default function ThemeStudioPage(root) {
   sectionsWrap.append(sectionsHeading);
   renderSectionAccordions(sectionsWrap);
 
-  leftCol.append(presetsWrap, sectionsWrap);
+  leftCol.append(masterWrap, presetsWrap, sectionsWrap);
 
   // Right Column: Live Site Component Preview
   const rightCol = document.createElement('div');
@@ -138,18 +149,27 @@ export default function ThemeStudioPage(root) {
   layout.append(leftCol, rightCol);
   container.append(header, layout);
 
-  // Apply initial working tokens to preview
-  applyTheme(workingTokens);
+  // Initial paint: refreshAll() renders the master panel, preset grid, section accordions and
+  // contrast banner from the same working tokens it applies, so nothing can start out of sync.
+  refreshAll();
 
+  /**
+   * The marketplace presets. Each now routes through the master engine using its own signature
+   * colour as the seed, so picking one re-themes borders, hovers, scrollbars and dark mode too —
+   * previously they repainted 33 semantic tokens and left the pink ramp underneath untouched.
+   * Only the navbar and footer keep their hand-authored values, because a dark obsidian header on
+   * an amber system IS the identity being quoted, not a colour the generator should second-guess.
+   */
   function renderPresetsGrid(wrap) {
     wrap.innerHTML = '';
     for (const [key, preset] of Object.entries(THEME_PRESETS)) {
+      const seed = preset.tokens.brand?.primary || preset.preview_swatch || '#333333';
       const card = document.createElement('div');
       card.className = `theme-preset-card ${activePresetKey === key ? 'theme-preset-card--active' : ''}`;
 
       const swatch = document.createElement('div');
       swatch.className = 'theme-preset-card__swatch';
-      swatch.style.background = preset.preview_swatch || preset.tokens.brand?.primary || '#333';
+      swatch.style.background = preset.preview_swatch || seed;
       swatch.textContent = preset.key.toUpperCase().substring(0, 3);
 
       const name = document.createElement('span');
@@ -160,16 +180,241 @@ export default function ThemeStudioPage(root) {
 
       card.addEventListener('click', () => {
         activePresetKey = key;
-        workingTokens = JSON.parse(JSON.stringify(preset.tokens));
-        applyTheme(workingTokens);
-        renderPresetsGrid(wrap);
-        renderSectionAccordions(sectionsWrap);
-        updateContrastStatusBanner(contrastStatusBanner);
+        workingTokens = themeFromLegacyTokens(preset.tokens);
+        masterConfig = { ...workingTokens.master };
+        refreshAll();
         toast.info(isBn ? `প্রিসেট প্রয়োগ করা হয়েছে: ${preset.name_bn}` : `Applied preset: ${preset.name_en}`);
       });
 
       wrap.append(card);
     }
+  }
+
+  /** Single re-render path: apply, then rebuild every control that reflects the working tokens. */
+  function refreshAll() {
+    applyTheme(workingTokens);
+    renderMasterPanel(masterWrap);
+    renderPresetsGrid(presetsGrid);
+    renderSectionAccordions(sectionsWrap);
+    updateContrastStatusBanner(contrastStatusBanner);
+  }
+
+  /**
+   * Regenerates the entire palette from the current master config. Section-level hand-edits are
+   * intentionally discarded: they were derived from the previous seed, and silently carrying a
+   * stale pink border onto a cobalt system is exactly the bug this panel exists to remove.
+   */
+  function regenerateFromMaster() {
+    workingTokens = themeFromMaster(masterConfig);
+    refreshAll();
+  }
+
+  function renderMasterPanel(wrap) {
+    wrap.innerHTML = '';
+    const palette = generatePalette(masterConfig);
+
+    const heading = document.createElement('h2');
+    heading.className = 'text-sm font-semibold';
+    heading.textContent = t('theme_studio.master_title');
+
+    const blurb = document.createElement('p');
+    blurb.className = 'theme-master__blurb';
+    blurb.textContent = t('theme_studio.master_desc');
+
+    const presetRow = document.createElement('div');
+    presetRow.className = 'theme-master__presets';
+    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = `theme-master-chip ${masterConfig.seed === preset.master.seed ? 'theme-master-chip--active' : ''}`;
+      chip.title = isBn ? preset.description_bn : preset.description_en;
+
+      const dot = document.createElement('span');
+      dot.className = 'theme-master-chip__dot';
+      dot.style.background = preset.master.seed;
+
+      const label = document.createElement('span');
+      label.textContent = isBn ? preset.name_bn : preset.name_en;
+
+      chip.append(dot, label);
+      chip.addEventListener('click', () => {
+        activePresetKey = key;
+        masterConfig = { ...preset.master };
+        regenerateFromMaster();
+        toast.info(isBn ? `মাস্টার কালার: ${preset.name_bn}` : `Master colour: ${preset.name_en}`);
+      });
+      presetRow.append(chip);
+    }
+
+    const seedRow = document.createElement('div');
+    seedRow.className = 'theme-master__seed';
+
+    const seedLabel = document.createElement('label');
+    seedLabel.className = 'theme-master__seed-label';
+    seedLabel.setAttribute('for', 'master-seed-picker');
+    seedLabel.textContent = t('theme_studio.master_seed');
+
+    const seedPicker = document.createElement('input');
+    seedPicker.type = 'color';
+    seedPicker.id = 'master-seed-picker';
+    seedPicker.className = 'theme-master__picker';
+    seedPicker.value = masterConfig.seed;
+
+    const seedHex = document.createElement('input');
+    seedHex.type = 'text';
+    seedHex.className = 'theme-hex-input';
+    seedHex.value = masterConfig.seed;
+    seedHex.setAttribute('aria-label', t('theme_studio.master_seed_hex'));
+
+    const seedMeta = document.createElement('span');
+    seedMeta.className = 'theme-master__meta';
+    seedMeta.textContent = t('theme_studio.master_meta', {
+      hue: palette.meta.seedHue,
+      step: palette.meta.anchorStep,
+    });
+
+    const commitSeed = (raw) => {
+      const next = raw.startsWith('#') ? raw : `#${raw}`;
+      if (!/^#[0-9a-fA-F]{6}$/.test(next)) return;
+      if (next.toLowerCase() === masterConfig.seed) return;
+      activePresetKey = 'custom';
+      masterConfig = { ...masterConfig, seed: next.toLowerCase() };
+      regenerateFromMaster();
+    };
+
+    seedPicker.addEventListener('change', (e) => commitSeed(e.target.value));
+    seedHex.addEventListener('change', (e) => commitSeed(e.target.value.trim()));
+
+    seedRow.append(seedLabel, seedPicker, seedHex, seedMeta);
+
+    const controls = document.createElement('div');
+    controls.className = 'theme-master__controls';
+
+    controls.append(
+      buildSelect('theme_studio.master_neutral_mode', masterConfig.neutralMode, [
+        ['cool', t('theme_studio.neutral_cool')],
+        ['match', t('theme_studio.neutral_match')],
+        ['complement', t('theme_studio.neutral_complement')],
+      ], (v) => updateMaster({ neutralMode: v })),
+
+      buildSelect('theme_studio.master_accent', masterConfig.accentHarmony, [
+        ['complement', t('theme_studio.harmony_complement')],
+        ['analogous', t('theme_studio.harmony_analogous')],
+        ['triad', t('theme_studio.harmony_triad')],
+        ['mono', t('theme_studio.harmony_mono')],
+      ], (v) => updateMaster({ accentHarmony: v })),
+
+      buildSlider('theme_studio.master_tint', masterConfig.neutralTint, MASTER_RANGES.neutralTint,
+        (v) => updateMaster({ neutralTint: v })),
+      buildSlider('theme_studio.master_vividness', masterConfig.vividness, MASTER_RANGES.vividness,
+        (v) => updateMaster({ vividness: v })),
+      buildSlider('theme_studio.master_status_pull', masterConfig.statusPull, MASTER_RANGES.statusPull,
+        (v) => updateMaster({ statusPull: v })),
+
+      buildToggle('theme_studio.master_surface_wash', masterConfig.surfaceWash,
+        (v) => updateMaster({ surfaceWash: v })),
+      buildToggle('theme_studio.master_border_tint', masterConfig.borderTint,
+        (v) => updateMaster({ borderTint: v })),
+    );
+
+    // Generated ramp readout — visible proof that the whole system moved, not just the buttons.
+    const rampsWrap = document.createElement('div');
+    rampsWrap.className = 'theme-master__ramps';
+    rampsWrap.append(
+      buildRampStrip(t('theme_studio.ramp_brand'), BRAND_STEPS.map((k) => [k, palette.brand[k]])),
+      buildRampStrip(t('theme_studio.ramp_neutral'), NEUTRAL_STEPS.map((k) => [k, palette.neutral[k]])),
+      buildRampStrip(t('theme_studio.ramp_status'), [
+        ['success', palette.success[500]],
+        ['warning', palette.warning[500]],
+        ['danger', palette.danger[500]],
+        ['info', palette.info[500]],
+        ['accent', palette.accent[300]],
+      ]),
+    );
+
+    wrap.append(heading, blurb, presetRow, seedRow, controls, rampsWrap);
+  }
+
+  function updateMaster(patch) {
+    activePresetKey = 'custom';
+    masterConfig = { ...masterConfig, ...patch };
+    regenerateFromMaster();
+  }
+
+  function buildSelect(labelKey, value, options, onChange) {
+    const field = document.createElement('label');
+    field.className = 'theme-master__field';
+    const span = document.createElement('span');
+    span.textContent = t(labelKey);
+    const select = document.createElement('select');
+    select.className = 'theme-master__select';
+    for (const [val, text] of options) {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = text;
+      if (val === value) opt.selected = true;
+      select.append(opt);
+    }
+    select.addEventListener('change', (e) => onChange(e.target.value));
+    field.append(span, select);
+    return field;
+  }
+
+  // WHY the range is passed in as MASTER_RANGES[field] rather than literals: the server validates
+  // writes against that same constant, so a slider can never offer a value the API would reject.
+  function buildSlider(labelKey, value, { min, max, step }, onChange) {
+    const field = document.createElement('label');
+    field.className = 'theme-master__field';
+    const span = document.createElement('span');
+    span.textContent = `${t(labelKey)} · ${Number(value).toFixed(2)}`;
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.className = 'theme-master__slider';
+    input.min = String(min);
+    input.max = String(max);
+    input.step = String(step);
+    input.value = String(value);
+    // WHY `change` and not `input`: dragging fires input per pixel, and each one regenerates the
+    // palette AND rebuilds this panel — which would tear the slider out from under the pointer.
+    // The label still tracks live on `input` so the drag is not silent.
+    input.addEventListener('input', (e) => {
+      span.textContent = `${t(labelKey)} · ${Number(e.target.value).toFixed(2)}`;
+    });
+    input.addEventListener('change', (e) => onChange(Number(e.target.value)));
+    field.append(span, input);
+    return field;
+  }
+
+  function buildToggle(labelKey, value, onChange) {
+    const field = document.createElement('label');
+    field.className = 'theme-master__field theme-master__field--toggle';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.checked = Boolean(value);
+    input.addEventListener('change', (e) => onChange(e.target.checked));
+    const span = document.createElement('span');
+    span.textContent = t(labelKey);
+    field.append(input, span);
+    return field;
+  }
+
+  function buildRampStrip(label, entries) {
+    const row = document.createElement('div');
+    row.className = 'theme-ramp-strip';
+    const name = document.createElement('span');
+    name.className = 'theme-ramp-strip__label';
+    name.textContent = label;
+    const swatches = document.createElement('div');
+    swatches.className = 'theme-ramp-strip__swatches';
+    for (const [step, hex] of entries) {
+      const sw = document.createElement('span');
+      sw.className = 'theme-ramp-strip__swatch';
+      sw.style.background = hex;
+      sw.title = `${step} — ${hex}`;
+      swatches.append(sw);
+    }
+    row.append(name, swatches);
+    return row;
   }
 
   function renderSectionAccordions(wrap) {
@@ -387,6 +632,12 @@ export default function ThemeStudioPage(root) {
     }
   }
 
+  /**
+   * The preview deliberately includes the surfaces the old preset system could NOT re-theme —
+   * input boundaries, hover fills, a live scrollbar, brand-tinted chips and a secondary button.
+   * If any of them stays pink after switching seed, the master engine has a gap and this pane is
+   * where it shows up first.
+   */
   function renderMiniViewport(wrap) {
     wrap.innerHTML = `
       <div class="mini-navbar">
@@ -394,7 +645,7 @@ export default function ThemeStudioPage(root) {
           <span style="font-weight: 700;">Explooro</span>
           <span style="font-size: 10px; opacity: 0.7;">Marketplace</span>
         </div>
-        <div style="padding: 3px 10px; background: var(--navbar-search-bg, #eff2f5); border-radius: 4px; font-size: 10px; color: var(--navbar-text, #333);">
+        <div style="padding: 3px 10px; background: var(--navbar-search-bg); border: 1px solid var(--navbar-border); border-radius: 4px; font-size: 10px; color: var(--navbar-text);">
           Search products, brands…
         </div>
         <div style="display: flex; gap: 6px;">
@@ -407,21 +658,33 @@ export default function ThemeStudioPage(root) {
         <div class="mini-card">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-weight: 700; color: var(--text-primary);">Cotton Casual Shirt</span>
-            <span style="padding: 2px 6px; background: var(--success-bg, #e7f7e9); color: var(--success, #205b31); border-radius: 4px; font-size: 10px; font-weight: 600;">In Stock</span>
+            <span style="padding: 2px 6px; background: var(--success-bg); color: var(--success); border-radius: 4px; font-size: 10px; font-weight: 600;">In Stock</span>
           </div>
           <span style="color: var(--text-secondary); font-size: 11px;">Premium 100% combed cotton. Fast delivery across 64 districts.</span>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+
+          <input class="mini-input" placeholder="Quantity — input border uses --border-interactive" />
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; gap: 8px;">
             <strong style="font-size: 14px; color: var(--text-primary);">৳1,450</strong>
-            <button style="padding: 6px 12px; background: var(--brand-primary, #eea1ce); color: var(--brand-contrast, #192026); border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-              Buy Now
-            </button>
+            <div style="display: flex; gap: 6px;">
+              <button class="mini-btn mini-btn--secondary">Wishlist</button>
+              <button class="mini-btn mini-btn--primary">Buy Now</button>
+            </div>
           </div>
+          <span class="mini-hint">Hover either button — the fill steps to --brand-hover / --brand-200.</span>
         </div>
 
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
           <span style="padding: 2px 6px; background: var(--warning-bg); color: var(--warning); border-radius: 4px; font-size: 10px; font-weight: 600;">Low Stock</span>
           <span style="padding: 2px 6px; background: var(--danger-bg); color: var(--danger); border-radius: 4px; font-size: 10px; font-weight: 600;">Flash Sale</span>
           <span style="padding: 2px 6px; background: var(--info-bg); color: var(--info); border-radius: 4px; font-size: 10px; font-weight: 600;">Verified Merchant</span>
+          <span style="padding: 2px 6px; background: var(--accent-100); color: var(--accent-700); border-radius: 4px; font-size: 10px; font-weight: 600;">Accent · 2h left</span>
+        </div>
+
+        <div class="mini-scroll" tabindex="0" aria-label="Scrollbar preview">
+          <div class="mini-scroll__inner">
+            <span>Scroll this strip sideways — the thumb paints with --border-strong.</span>
+          </div>
         </div>
       </div>
 
@@ -435,21 +698,18 @@ export default function ThemeStudioPage(root) {
   }
 
   function handleResetDefault() {
-    activePresetKey = 'default';
-    workingTokens = JSON.parse(JSON.stringify(THEME_PRESETS.default.tokens));
-    applyTheme(workingTokens);
-    renderPresetsGrid(presetsGrid);
-    renderSectionAccordions(sectionsWrap);
-    updateContrastStatusBanner(contrastStatusBanner);
+    activePresetKey = DEFAULT_MASTER_PRESET;
+    masterConfig = { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master };
+    regenerateFromMaster();
     toast.info(isBn ? 'ডিফল্ট থিমে ফিরিয়ে নেওয়া হয়েছে' : 'Reset to default theme');
   }
 
   function handleRevertPublished() {
     workingTokens = JSON.parse(JSON.stringify(publishedTokens));
-    applyTheme(workingTokens);
-    renderPresetsGrid(presetsGrid);
-    renderSectionAccordions(sectionsWrap);
-    updateContrastStatusBanner(contrastStatusBanner);
+    masterConfig = workingTokens.master
+      ? { ...workingTokens.master }
+      : { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master };
+    refreshAll();
     toast.info(isBn ? 'পাবলিশড অবস্থায় ফিরিয়ে নেওয়া হয়েছে' : 'Reverted to published theme');
   }
 
@@ -525,12 +785,14 @@ export default function ThemeStudioPage(root) {
       if (res?.theme?.tokens_json) {
         publishedTokens = res.theme.tokens_json;
         activePaletteId = res.theme.id;
-        activePresetKey = res.theme.preset_key || 'default';
-        workingTokens = JSON.parse(JSON.stringify(publishedTokens));
-        applyTheme(workingTokens);
-        renderPresetsGrid(presetsGrid);
-        renderSectionAccordions(sectionsWrap);
-        updateContrastStatusBanner(contrastStatusBanner);
+        activePresetKey = res.theme.preset_key || DEFAULT_MASTER_PRESET;
+        const stored = JSON.parse(JSON.stringify(publishedTokens));
+        // A palette published before the master engine existed has no `master` block. The same
+        // migration initTheme() uses on boot runs here, so the studio opens showing exactly what
+        // the live site renders rather than a second interpretation of the same stored palette.
+        workingTokens = stored.master ? stored : themeFromLegacyTokens(stored);
+        masterConfig = { ...workingTokens.master };
+        refreshAll();
       }
     } catch {
       // Offline fallback

@@ -25,6 +25,7 @@ import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js'
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { Button } from '../components/ui/Button.js';
 import { ProductGrid } from '../components/product/ProductGrid.js';
+import { resolveProductImage } from '../components/product/ProductCard.js';
 import { addToCart } from '../services/cart.js';
 import { CategoryPills } from '../components/product/CategoryPills.js';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.js';
@@ -355,6 +356,7 @@ export default function HomePage(root, { navigate }) {
         title_bn: product.title_bn,
         slug: product.slug,
         price: product.price,
+        image_url: resolveProductImage(product),
         supplier_id: product.supplier_id || 1,
         supplier_name: product.supplier_name || 'Verified Supplier',
         stock_qty: product.stock ?? 10,

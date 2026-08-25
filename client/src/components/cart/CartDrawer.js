@@ -17,6 +17,7 @@ import { cartStore, closeCartDrawer, updateItemQuantity, removeFromCart } from '
 import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { PLACEHOLDER_COLOURS, placeholderInitials } from '../product/ProductCard.js';
 
 const PARCEL_ICON_SVG = `
 <svg class="cart-drawer__split-banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -136,15 +137,28 @@ export function CartDrawer({ navigate = null } = {}) {
         const itemEl = document.createElement('div');
         itemEl.className = 'cart-item';
 
-        // Image
+        // Image (falls back to an initials placeholder, matching ProductCard, when a product
+        // has no seeded image or its storage_key 404s — see 007_demo_gallery_media.sql)
         const imgWrap = document.createElement('div');
         imgWrap.className = 'cart-item__image-wrap';
-        const img = document.createElement('img');
-        img.className = 'cart-item__image';
-        img.src = item.image_url;
-        img.alt = item.product_title_en;
-        img.loading = 'lazy';
-        imgWrap.append(img);
+
+        const palette = PLACEHOLDER_COLOURS[(item.product_id ?? 0) % PLACEHOLDER_COLOURS.length] || PLACEHOLDER_COLOURS[0];
+        const placeholder = document.createElement('div');
+        placeholder.className = 'cart-item__image-placeholder';
+        placeholder.style.cssText = `background:${palette.bg};color:${palette.fg}`;
+        placeholder.textContent = placeholderInitials(item.product_title_en);
+
+        if (item.image_url) {
+          const img = document.createElement('img');
+          img.className = 'cart-item__image';
+          img.src = item.image_url;
+          img.alt = item.product_title_en;
+          img.loading = 'lazy';
+          img.addEventListener('error', () => img.replaceWith(placeholder), { once: true });
+          imgWrap.append(img);
+        } else {
+          imgWrap.append(placeholder);
+        }
         itemEl.append(imgWrap);
 
         // Details

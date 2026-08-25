@@ -132,7 +132,8 @@ The ones that trip people up most:
 | Add a permission | `docs/permission-catalog.json`, then re-seed. Never invent a key in code |
 | Make an action need Admin approval | Set its `risk_tier` to `HIGH` in the catalog. The maker-checker flow is automatic |
 | Add a nav item | `client/src/config/navigation.js` — one object. Never edit `Sidebar.js` |
-| Change a colour | `client/src/styles/themes.css` only, then `node scripts/palette.mjs` to re-verify contrast |
+| Change the DEFAULT palette shipped in CSS | `client/src/styles/themes.css` only, then `node scripts/palette.mjs` to re-verify contrast |
+| Re-theme the running product to another colour | Theme Studio's **Master Colour** panel, or a seed-only preset in `client/src/config/master-themes.js`. One seed regenerates every ramp step (`services/colorRamp.js`), so borders/hovers/scrollbars/dark mode follow. Never hand-author a hex ramp. The server re-derives and validates the master block on every write — `MASTER_RANGES` in `colorRamp.js` is the single source for both the Studio's sliders and the API's bounds |
 | Adding a whole feature | Follow [`docs/how-to-add-a-feature.md`](docs/how-to-add-a-feature.md) — 14 steps, worked end to end |
 | Add a dependency | Read [`docs/dependency-ledger.md`](docs/dependency-ledger.md) first. Most proposals have already been rejected there |
 

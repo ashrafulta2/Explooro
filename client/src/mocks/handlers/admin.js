@@ -1569,7 +1569,457 @@ export const adminHandlers = [
       };
     },
   },
+
+  // 37. Get Active Theme
+  {
+    method: 'GET',
+    path: '/theme/active',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          theme: {
+            id: 1,
+            preset_key: 'default',
+            name: 'Explooro Pink (Default)',
+            is_published: true,
+            tokens_json: {
+              navbar: { bg: '#ffffff', text: '#192026', border: '#f9cee6', search_bg: '#eff2f5' },
+              surfaces: { page: '#fcf7f9', card: '#ffffff', subtle: '#eff2f5', border: '#f9cee6' },
+              brand: { primary: '#eea1ce', hover: '#e58bc1', contrast: '#192026', secondary_bg: '#eff2f5', secondary_text: '#192026' },
+              typography: { primary: '#192026', secondary: '#464e55', muted: '#626a70', inverse: '#ffffff' },
+              badges: { success_bg: '#e7f7e9', success_text: '#205b31', warning_bg: '#feefdc', warning_text: '#6e4b0e', danger_bg: '#fceeec', danger_text: '#8b1f17', info_bg: '#eaf3fc', info_text: '#16558c' },
+              footer: { bg: '#192026', text: '#ffffff', muted: '#a6acb1', border: '#2c343a' },
+            },
+          },
+        },
+      };
+    },
+  },
+
+  // 38. Save Theme Draft
+  {
+    method: 'POST',
+    path: '/admin/theme/draft',
+    handler({ body }) {
+      return {
+        status: 200,
+        body: {
+          draft: {
+            id: Math.floor(10 + Math.random() * 90),
+            name: body?.name || 'Custom Theme Draft',
+            preset_key: body?.preset_key || 'custom',
+            tokens_json: body?.tokens,
+            is_published: false,
+            updated_at: new Date().toISOString(),
+          },
+          message_en: 'Theme draft saved successfully.',
+          message_bn: 'থিম ড্রাফট সফলভাবে সংরক্ষিত হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 39. Publish Theme Palette (CRITICAL Action)
+  {
+    method: 'POST',
+    path: '/admin/theme/:id/publish',
+    handler({ params, body }) {
+      return {
+        status: 200,
+        body: {
+          data: {
+            palette_id: params?.id,
+            is_published: true,
+            reason: body?.reason,
+            published_at: new Date().toISOString(),
+          },
+          message_en: 'Theme palette published and applied across all marketplace interfaces.',
+          message_bn: 'নতুন থিম সফলভাবে প্রকাশিত ও কার্যকর করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 40. Finance Overview Dashboard
+  {
+    method: 'GET',
+    path: '/admin/finance/overview',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            gmv: 4850000,
+            net_revenue: 345000,
+            escrow_liability: 820000,
+            pending_payouts: 412000,
+            cod_exposure: 680000,
+            ledger_clean: true,
+            ledger_drift_amount: 0,
+            revenue_trend_7d: [
+              { date: '19 Aug', amount: 42000 },
+              { date: '20 Aug', amount: 48000 },
+              { date: '21 Aug', amount: 53000 },
+              { date: '22 Aug', amount: 49000 },
+              { date: '23 Aug', amount: 62000 },
+              { date: '24 Aug', amount: 58000 },
+              { date: '25 Aug', amount: 65000 },
+            ],
+            courier_cod_distribution: [
+              { courier: 'Steadfast', amount: 340000, percent: 50 },
+              { courier: 'Pathao', amount: 204000, percent: 30 },
+              { courier: 'RedX', amount: 136000, percent: 20 },
+            ],
+          },
+        },
+      };
+    },
+  },
+
+  // 41. Escrow Auto-Sweep
+  {
+    method: 'POST',
+    path: '/admin/finance/escrow/sweep',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            releasedCount: 14,
+            totalReleasedAmount: 184500,
+          },
+          message_en: 'Escrow sweep completed: 14 orders matured and ৳184,500 disbursed.',
+          message_bn: 'এসক্রো সুইপ সম্পন্ন: ১৪টি অর্ডারের ৳১,৮৪,৫০০ রিলিজ করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 42. Payouts Queue
+  {
+    method: 'GET',
+    path: '/admin/finance/payouts',
+    handler({ query }) {
+      const status = query?.status || 'REQUESTED';
+      const mockPayouts = [
+        {
+          id: 1,
+          payout_id: 1,
+          user_id: 2,
+          merchant_name: 'Jamdani Heritage Weavers',
+          account_type: 'SUPPLIER',
+          amount: 85000,
+          method: 'BKASH',
+          account_number: '01711000002',
+          status: 'REQUESTED',
+          created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+          risk_flags: [{ code: 'HIGH_VALUE_DISBURSEMENT', message: 'Amount exceeds ৳50,000 threshold' }],
+        },
+        {
+          id: 2,
+          payout_id: 2,
+          user_id: 3,
+          merchant_name: 'Saffron Glam Cosmetics',
+          account_type: 'SALER',
+          amount: 14500,
+          method: 'NAGAD',
+          account_number: '01711000003',
+          status: 'REQUESTED',
+          created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+          risk_flags: [],
+        },
+        {
+          id: 3,
+          payout_id: 3,
+          user_id: 6,
+          merchant_name: 'Bengal Leather Crafts',
+          account_type: 'SUPPLIER',
+          amount: 42000,
+          method: 'BANK_TRANSFER',
+          account_number: 'BRAC-102938481',
+          status: 'PROCESSED',
+          created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+          risk_flags: [],
+        },
+      ];
+
+      const filtered = status === 'ALL'
+        ? mockPayouts
+        : mockPayouts.filter((p) => p.status === status);
+
+      return {
+        status: 200,
+        body: {
+          data: { payouts: filtered, total: filtered.length },
+          payouts: filtered,
+          total: filtered.length,
+        },
+      };
+    },
+  },
+
+  // 43. Batch Disburse Payouts
+  {
+    method: 'POST',
+    path: '/admin/finance/payouts/batch-disburse',
+    handler({ body }) {
+      const ids = body?.payout_ids || [];
+      return {
+        status: 200,
+        body: {
+          data: {
+            disbursed_count: ids.length,
+            success: true,
+          },
+          message_en: `Successfully disbursed ${ids.length} payout(s).`,
+          message_bn: `${ids.length}টি পেআউট সফলভাবে সম্পন্ন হয়েছে।`,
+        },
+      };
+    },
+  },
+
+  // 44. Single Disburse Payout
+  {
+    method: 'POST',
+    path: '/admin/finance/payouts/:id/disburse',
+    handler({ params }) {
+      return {
+        status: 200,
+        body: {
+          data: { payout_id: params?.id, status: 'PROCESSED' },
+          message_en: 'Payout disbursed successfully via automated MFS API.',
+          message_bn: 'এমএফএস পেমেন্ট সফলভাবে সম্পন্ন হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 45. Reject Payout
+  {
+    method: 'POST',
+    path: '/admin/finance/payouts/:id/reject',
+    handler({ params, body }) {
+      return {
+        status: 200,
+        body: {
+          data: { payout_id: params?.id, status: 'REJECTED', reason: body?.reason },
+          message_en: 'Payout rejected and held funds unlocked.',
+          message_bn: 'পেআউট অনুরোধ বাতিল করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 46. Courier COD Reconciliations List
+  {
+    method: 'GET',
+    path: '/admin/finance/cod',
+    handler() {
+      const mockRecons = [
+        {
+          id: 1,
+          order_id: 'ORD-89201',
+          courier: 'STEADFAST',
+          courier_tracking_id: 'ST-9281749',
+          expected_amount: 3250,
+          collected_amount: 3250,
+          discrepancy_amount: 0,
+          status: 'MATCHED',
+          created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+        },
+        {
+          id: 2,
+          order_id: 'ORD-89205',
+          courier: 'PATHAO',
+          courier_tracking_id: 'PT-1029384',
+          expected_amount: 4500,
+          collected_amount: 4200,
+          discrepancy_amount: -300,
+          status: 'SHORT_COLLECTION',
+          created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+        },
+        {
+          id: 3,
+          order_id: 'ORD-89210',
+          courier: 'REDX',
+          courier_tracking_id: 'RDX-882716',
+          expected_amount: 1800,
+          collected_amount: 0,
+          discrepancy_amount: -1800,
+          status: 'MISSING_REMITTANCE',
+          created_at: new Date(Date.now() - 3600000 * 96).toISOString(),
+        },
+      ];
+
+      return {
+        status: 200,
+        body: {
+          data: { reconciliations: mockRecons, total: mockRecons.length },
+          reconciliations: mockRecons,
+          total: mockRecons.length,
+        },
+      };
+    },
+  },
+
+  // 47. Courier COD Aging Report
+  {
+    method: 'GET',
+    path: '/admin/finance/cod/aging',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            unsettled_total: 680000,
+            aging_0_3_days: 340000,
+            aging_4_7_days: 210000,
+            aging_8_14_days: 95000,
+            aging_15_plus_days: 35000,
+            critical_alerts: [
+              { courier: 'RedX', order_id: 'ORD-89210', days_overdue: 18, amount: 1800 },
+            ],
+          },
+        },
+      };
+    },
+  },
+
+  // 48. Admin Returns Queue
+  {
+    method: 'GET',
+    path: '/admin/returns/queue',
+    handler({ query }) {
+      const statusFilter = query?.status || 'ALL';
+      const mockReturns = [
+        {
+          id: 1,
+          return_ref: 'RET-90124',
+          order_id: 'ORD-84920',
+          customer_name: 'Anisur Rahman',
+          customer_phone: '01711000002',
+          customer_trust_score: 92,
+          customer_return_rate: '2.4%',
+          product_title: 'Handloom Jamdani Saree (Royal Blue)',
+          refund_amount: 8500,
+          status: 'REQUESTED',
+          reason: 'Defective weave pattern on pallu section',
+          evidence_urls: ['/assets/demo/jamdani_defect.jpg'],
+          created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
+        },
+        {
+          id: 2,
+          return_ref: 'RET-90125',
+          order_id: 'ORD-84922',
+          customer_name: 'Farzana Akter',
+          customer_phone: '01711000003',
+          customer_trust_score: 64,
+          customer_return_rate: '11.8%',
+          product_title: 'Organic Saffron Face Serum 30ml',
+          refund_amount: 1450,
+          status: 'RECEIVED',
+          reason: 'Broken bottle cap during courier transit',
+          evidence_urls: ['/assets/demo/serum_cap.jpg'],
+          created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+        },
+        {
+          id: 3,
+          return_ref: 'RET-90126',
+          order_id: 'ORD-84930',
+          customer_name: 'Mahmudul Hasan',
+          customer_phone: '01711000006',
+          customer_trust_score: 88,
+          customer_return_rate: '3.1%',
+          product_title: 'Pure Leather Men Executive Wallet',
+          refund_amount: 2200,
+          status: 'INSPECTED',
+          reason: 'Color mismatch with photo',
+          evidence_urls: [],
+          created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+        },
+      ];
+
+      const filtered = statusFilter === 'ALL'
+        ? mockReturns
+        : mockReturns.filter((r) => r.status === statusFilter);
+
+      return {
+        status: 200,
+        body: {
+          data: { returns: filtered, total: filtered.length },
+          returns: filtered,
+          total: filtered.length,
+        },
+      };
+    },
+  },
+
+  // 49. Review Return (Approve / Reject)
+  {
+    method: 'POST',
+    path: '/admin/returns/:id/review',
+    handler({ params, body }) {
+      const action = body?.action || 'APPROVE';
+      return {
+        status: 200,
+        body: {
+          data: {
+            return_id: params?.id,
+            status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+            rejection_reason: body?.rejection_reason || null,
+          },
+          message_en: `Return ${action === 'APPROVE' ? 'approved and courier pickup scheduled' : 'rejected'}.`,
+          message_bn: `রিটার্ন অনুরোধ সফলভাবে ${action === 'APPROVE' ? 'অনুমোদিত' : 'প্রত্যাখ্যাত'} হয়েছে।`,
+        },
+      };
+    },
+  },
+
+  // 50. Inspect Return (Pass / Fail)
+  {
+    method: 'POST',
+    path: '/admin/returns/:id/inspect',
+    handler({ params, body }) {
+      const pass = Boolean(body?.condition_pass ?? true);
+      return {
+        status: 200,
+        body: {
+          data: {
+            return_id: params?.id,
+            status: pass ? 'INSPECTED' : 'DISPUTED',
+            notes: body?.inspection_notes,
+          },
+          message_en: pass ? 'Return inspection passed and ready for refund.' : 'Return marked as disputed.',
+          message_bn: pass ? 'পণ্য পরিদর্শন সফল এবং রিফান্ডের জন্য প্রস্তুত।' : 'রিটার্ন বিরোধের আওতায় পাঠানো হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 51. Execute Refund
+  {
+    method: 'POST',
+    path: '/admin/returns/:id/refund',
+    handler({ params }) {
+      return {
+        status: 200,
+        body: {
+          data: {
+            return_id: params?.id,
+            status: 'REFUNDED',
+            refunded_at: new Date().toISOString(),
+          },
+          message_en: 'Refund executed and customer wallet credited.',
+          message_bn: 'রিফান্ড সফলভাবে কার্যকর করা হয়েছে।',
+        },
+      };
+    },
+  },
 ];
 
 export default adminHandlers;
+
+
+
 

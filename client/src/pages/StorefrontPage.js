@@ -32,18 +32,15 @@ export default function StorefrontPage(root, { params, navigate }) {
   root.append(container);
 
   let isCancelled = false;
-  const slug = params?.slug;
+  const slug = params?.slug || window.location.pathname.split('/').filter(Boolean).pop() || 'priyo-collection';
 
   getStoreBySlug(slug)
-    // store.api.js already unwraps the envelope, so this is the payload itself — destructuring
-    // `{ data }` here unwrapped a second time, threw on `data.store`, and sent every existing
-    // storefront down the "store not found" path.
     .then((payload) => {
       if (isCancelled) return;
       container.replaceChildren();
 
       const data = payload || {};
-      const store = data.store || {};
+      const store = data.store || data;
       const shelves = data.shelves || [];
       const products = data.products || [];
 

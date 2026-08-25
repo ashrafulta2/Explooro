@@ -4,6 +4,19 @@
 
 import * as themeRepo from '../repositories/theme.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
+import {
+  generatePalette,
+  paletteToSectionTokens,
+  normaliseMasterConfig,
+  contrastRatio,
+  DEFAULT_MASTER,
+  MASTER_NEUTRAL_MODES,
+  MASTER_ACCENT_HARMONIES,
+  MASTER_RANGES,
+  TOKEN_SECTIONS,
+} from './masterPalette.js';
+
+const HEX6 = /^#[0-9a-fA-F]{6}$/;
 
 export function hexToRgb(hex) {
   if (!hex || typeof hex !== 'string') return { r: 0, g: 0, b: 0 };
@@ -48,19 +61,204 @@ export function validateNoGradients(tokens) {
   return checkValue(tokens);
 }
 
-export function validatePalette(tokens = {}) {
-  if (!tokens || typeof tokens !== 'object') {
-    throw new AppError('VALIDATION_FAILED', 'Theme tokens object is required.', 'থিম টোকেন অবজেক্ট আবশ্যক।');
-  }
+function masterError(en, bn, details) {
+  return new AppError('MASTER_CONFIG_INVALID', en, bn, details);
+}
 
-  if (!validateNoGradients(tokens)) {
-    throw new AppError(
-      'GRADIENTS_FORBIDDEN',
-      'Zero gradients permitted anywhere in theme tokens. Only solid colors are allowed.',
-      'থিম টোকেনে কোনো গ্রেডিয়েন্ট অনুমোদিত নয়। শুধুমাত্র সলিড রং প্রযোজ্য।'
+/**
+ * Strictly validates a stored/submitted master block and returns it fully normalised.
+ *
+ * WHY reject instead of reusing normaliseMasterConfig's silent fallbacks: that function exists so
+ * the RENDER path can never crash on a half-written blob. The WRITE path has the opposite duty —
+ * silently correcting a malformed seed to the default pink means an admin publishes a colour they
+ * never picked, and only finds out when the storefront comes back the wrong colour.
+ */
+export function validateMasterBlock(raw) {
+  if (raw === null || raw === undefined) return null;
+
+  if (typeof raw !== 'object' || Array.isArray(raw)) {
+    throw masterError(
+      'Theme master block must be an object.',
+      'থিম মাস্টার ব্লক অবশ্যই একটি অবজেক্ট হতে হবে।'
     );
   }
 
+  const allowed = Object.keys(DEFAULT_MASTER);
+  const unknown = Object.keys(raw).filter((k) => !allowed.includes(k));
+  if (unknown.length > 0) {
+    throw masterError(
+      `Unknown master config key(s): ${unknown.join(', ')}. Allowed: ${allowed.join(', ')}.`,
+      `অজানা মাস্টার কনফিগ কী: ${unknown.join(', ')}।`,
+      { unknown, allowed }
+    );
+  }
+
+  const seed = typeof raw.seed === 'string' ? raw.seed.trim() : '';
+  if (!HEX6.test(seed)) {
+    throw masterError(
+      `Master seed must be a 6-digit hex colour (received ${JSON.stringify(raw.seed)}).`,
+      'মাস্টার সিড অবশ্যই ৬-ডিজিটের হেক্স রঙ হতে হবে।',
+      { field: 'seed', value: raw.seed }
+    );
+  }
+
+  const enums = [
+    ['neutralMode', MASTER_NEUTRAL_MODES],
+    ['accentHarmony', MASTER_ACCENT_HARMONIES],
+  ];
+  for (const [field, vocabulary] of enums) {
+    if (raw[field] !== undefined && !vocabulary.includes(raw[field])) {
+      throw masterError(
+        `Master ${field} must be one of: ${vocabulary.join(', ')} (received ${JSON.stringify(raw[field])}).`,
+        `মাস্টার ${field} অবশ্যই এর মধ্যে একটি হতে হবে: ${vocabulary.join(', ')}।`,
+        { field, value: raw[field], allowed: vocabulary }
+      );
+    }
+  }
+
+  // Bounds come from MASTER_RANGES, the same constant the Studio builds its sliders from, so the
+  // API can never refuse a value the UI let an admin choose.
+  for (const [field, range] of Object.entries(MASTER_RANGES)) {
+    if (raw[field] === undefined) continue;
+    const value = Number(raw[field]);
+    if (typeof raw[field] === 'boolean' || !Number.isFinite(value)) {
+      throw masterError(
+        `Master ${field} must be a number (received ${JSON.stringify(raw[field])}).`,
+        `মাস্টার ${field} অবশ্যই একটি সংখ্যা হতে হবে।`,
+        { field, value: raw[field] }
+      );
+    }
+    if (value < range.min || value > range.max) {
+      throw masterError(
+        `Master ${field} must be between ${range.min} and ${range.max} (received ${value}).`,
+        `মাস্টার ${field} অবশ্যই ${range.min} থেকে ${range.max} এর মধ্যে হতে হবে।`,
+        { field, value, min: range.min, max: range.max }
+      );
+    }
+  }
+
+  for (const field of ['surfaceWash', 'borderTint']) {
+    if (raw[field] !== undefined && typeof raw[field] !== 'boolean') {
+      throw masterError(
+        `Master ${field} must be a boolean (received ${JSON.stringify(raw[field])}).`,
+        `মাস্টার ${field} অবশ্যই বুলিয়ান হতে হবে।`,
+        { field, value: raw[field] }
+      );
+    }
+  }
+
+  return normaliseMasterConfig({ ...raw, seed });
+}
+
+/** Every section value that survives validation is a plain hex colour — no rgba(), no var(). */
+function assertSectionsAreHex(tokens) {
+  for (const section of TOKEN_SECTIONS) {
+    const bag = tokens[section];
+    if (bag === undefined) continue;
+    if (typeof bag !== 'object' || bag === null || Array.isArray(bag)) {
+      throw new AppError(
+        'THEME_TOKEN_INVALID',
+        `Theme section "${section}" must be an object of hex colours.`,
+        `থিম সেকশন "${section}" অবশ্যই হেক্স রঙের অবজেক্ট হতে হবে।`,
+        { section }
+      );
+    }
+    for (const [key, value] of Object.entries(bag)) {
+      if (typeof value !== 'string' || !HEX6.test(value.trim())) {
+        // WHY this matters: hexToRgb() falls back to black for anything it cannot parse, so an
+        // unvalidated junk value would sail through the contrast gate as #000000 and then render
+        // as nothing at all.
+        throw new AppError(
+          'THEME_TOKEN_INVALID',
+          `Theme token ${section}.${key} must be a 6-digit hex colour (received ${JSON.stringify(value)}).`,
+          `থিম টোকেন ${section}.${key} অবশ্যই ৬-ডিজিটের হেক্স রঙ হতে হবে।`,
+          { section, key, value }
+        );
+      }
+    }
+  }
+}
+
+/**
+ * The rendered result of a master theme is `generated palette + the section swatches an admin
+ * deliberately moved`. Validating the submitted sections alone would certify a theme the browser
+ * never shows, so the gate runs on the merge — exactly what themePalette.applyTheme() produces.
+ */
+function mergeSectionOverrides(derived, submitted) {
+  const merged = {};
+  for (const section of TOKEN_SECTIONS) {
+    merged[section] = { ...(derived[section] || {}), ...(submitted[section] || {}) };
+  }
+  return merged;
+}
+
+/**
+ * Invariants the 6 flattened sections cannot express, because they describe the RAMPS and the dark
+ * theme — precisely the surfaces the pre-master studio could not re-theme and therefore never
+ * checked. Only a11y contracts are asserted here; the engine's aesthetic properties belong to
+ * client/test/colorRamp.test.js.
+ */
+function validateGeneratedPalette(palette) {
+  const failures = [];
+  const light = palette.roles.light;
+  const dark = palette.roles.dark.__resolved;
+  const lightResolved = light.__resolved;
+
+  const check = (pairing, fg, bg, required) => {
+    const ratio = Math.round(contrastRatio(fg, bg) * 10) / 10;
+    if (ratio < required) {
+      failures.push({
+        pairing,
+        fg,
+        bg,
+        ratio,
+        required,
+        message: `${pairing} has contrast ratio of ${ratio}:1, failing the minimum (${required}:1)`,
+      });
+    }
+  };
+
+  // An input boundary the customer cannot see is an input they cannot find (themes.css §2).
+  const ref = /^var\(--(brand|neutral)-(\d+)\)$/.exec(light['--border-interactive'] || '');
+  if (ref) {
+    const hex = ref[1] === 'brand' ? palette.brand[ref[2]] : palette.neutral[ref[2]];
+    check('Input Boundary on Page Canvas', hex, lightResolved.surface0, 3);
+  }
+
+  if (dark.surface0 === lightResolved.surface0) {
+    failures.push({
+      pairing: 'Dark Theme Canvas',
+      fg: dark.surface0,
+      bg: lightResolved.surface0,
+      ratio: 1,
+      required: 1.5,
+      message: 'Dark theme canvas is identical to the light theme canvas — dark mode would be dead',
+    });
+  }
+  check('Dark Brand Fill on Dark Canvas', dark.brand, dark.surface0, 4.5);
+  check('Dark Body Text on Dark Canvas', palette.neutral[100], dark.surface0, 4.5);
+
+  if (failures.length > 0) {
+    const first = failures[0];
+    throw new AppError(
+      'THEME_MASTER_CONTRAST_FAILED',
+      `Generated master palette failed accessibility: ${first.message}`,
+      `জেনারেট করা মাস্টার প্যালেট অ্যাক্সেসিবিলিটিতে ব্যর্থ: ${first.pairing} এর অনুপাত ${first.ratio}:1 (প্রয়োজন ${first.required}:1)`,
+      { failures, seed: palette.config.seed }
+    );
+  }
+}
+
+/** Regenerates a master theme server-side: config -> 45-step palette -> flattened sections. */
+export function deriveMasterTokens(master) {
+  const config = validateMasterBlock(master);
+  if (!config) return null;
+  const palette = generatePalette(config);
+  validateGeneratedPalette(palette);
+  return { config, palette, sections: paletteToSectionTokens(palette) };
+}
+
+function runContrastChecks(sections) {
   const failures = [];
   const check = (name, fg, bg, minRatio = 4.5) => {
     if (!fg || !bg) return;
@@ -77,12 +275,12 @@ export function validatePalette(tokens = {}) {
     }
   };
 
-  const nav = tokens.navbar || {};
-  const surf = tokens.surfaces || {};
-  const brand = tokens.brand || {};
-  const typo = tokens.typography || {};
-  const badges = tokens.badges || {};
-  const footer = tokens.footer || {};
+  const nav = sections.navbar || {};
+  const surf = sections.surfaces || {};
+  const brand = sections.brand || {};
+  const typo = sections.typography || {};
+  const badges = sections.badges || {};
+  const footer = sections.footer || {};
 
   check('Navbar Text on Navbar BG', nav.text, nav.bg, 4.5);
   check('Body Text on Page Canvas', typo.primary, surf.page, 4.5);
@@ -95,17 +293,58 @@ export function validatePalette(tokens = {}) {
   check('Info Badge Text on BG', badges.info_text, badges.info_bg, 4.5);
   check('Footer Text on Footer BG', footer.text, footer.bg, 4.5);
 
+  return failures;
+}
+
+export function validatePalette(tokens = {}) {
+  if (!tokens || typeof tokens !== 'object') {
+    throw new AppError('VALIDATION_FAILED', 'Theme tokens object is required.', 'থিম টোকেন অবজেক্ট আবশ্যক।');
+  }
+
+  if (!validateNoGradients(tokens)) {
+    throw new AppError(
+      'GRADIENTS_FORBIDDEN',
+      'Zero gradients permitted anywhere in theme tokens. Only solid colors are allowed.',
+      'থিম টোকেনে কোনো গ্রেডিয়েন্ট অনুমোদিত নয়। শুধুমাত্র সলিড রং প্রযোজ্য।'
+    );
+  }
+
+  let sections = tokens;
+  let master = null;
+
+  if (tokens.master !== undefined && tokens.master !== null) {
+    assertSectionsAreHex(tokens);
+    const derived = deriveMasterTokens(tokens.master);
+    master = derived.config;
+    sections = mergeSectionOverrides(derived.sections, tokens);
+  }
+
+  const failures = runContrastChecks(sections);
   if (failures.length > 0) {
     const first = failures[0];
     throw new AppError(
       'THEME_CONTRAST_FAILED',
       `WCAG AA Contrast check failed: ${first.message}`,
       `ডব্লিউসিএজি এএ কনট্রাস্ট ব্যর্থ: ${first.pairing} এর অনুপাত ${first.ratio}:1 (প্রয়োজন ${first.required}:1)`,
-      { failures }
+      { failures, master_applied: Boolean(master) }
     );
   }
 
   return true;
+}
+
+/** Same gate as validatePalette, but reports what it certified instead of only pass/fail. */
+export function inspectPalette(tokens = {}) {
+  validatePalette(tokens);
+  const master = tokens.master ? validateMasterBlock(tokens.master) : null;
+  return {
+    valid: true,
+    master_applied: Boolean(master),
+    master,
+    effective_tokens: master
+      ? mergeSectionOverrides(paletteToSectionTokens(generatePalette(master)), tokens)
+      : null,
+  };
 }
 
 export async function getActiveTheme(db, cache) {
@@ -133,10 +372,15 @@ export async function listPalettes(db) {
 
 export async function saveDraft(db, { name, presetKey = null, tokens, userId }) {
   validatePalette(tokens);
+  // Persist the NORMALISED master block, so what is stored is exactly what the validator
+  // certified — a draft holding `#EEA1CE` and a partial config would otherwise be re-normalised
+  // differently by every later reader.
+  const master = tokens?.master ? validateMasterBlock(tokens.master) : null;
+  const tokensJson = master ? { ...tokens, master } : tokens;
   return themeRepo.saveThemeDraft(db, {
     name: name || 'Custom Theme Draft',
     presetKey,
-    tokensJson: tokens,
+    tokensJson,
     createdBy: userId,
   });
 }

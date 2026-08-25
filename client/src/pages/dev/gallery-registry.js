@@ -38,6 +38,8 @@ import { toast } from '../../services/toast.js';
 import { ImageUploader } from '../../components/media/ImageUploader.js';
 import { openMediaLibrary } from '../../components/media/MediaLibrary.js';
 import { ProductCard, ProductCardSkeleton } from '../../components/product/ProductCard.js';
+import { MASTER_PRESETS } from '../../config/master-themes.js';
+import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.js';
 import { CategoryPills } from '../../components/product/CategoryPills.js';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.js';
 import { ImageGallery } from '../../components/product/ImageGallery.js';
@@ -1039,6 +1041,8 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'Saler Sourcing & Profit', render: renderGrowthAssistantSpecimen },
     // Prompt 11.3 — 1-Click Saler Upgrade CTA
     { id: 'become-saler-cta', label: 'BecomeSalerCta', group: 'Saler Sourcing & Profit', render: renderBecomeSalerCtaSpecimen },
+    // Master Colour engine (services/colorRamp.js) — the generated ramps behind Theme Studio
+    { id: 'master-palette', label: 'MasterPalette', group: 'Foundations', render: renderMasterPaletteSpecimen },
   ];
 }
 
@@ -2105,15 +2109,61 @@ function renderBecomeSalerCtaSpecimen() {
   return wrap;
 }
 
+/**
+ * Master Colour engine specimen. Renders the SAME seed through the generator for every preset so
+ * the ramps can be compared side by side — this is the fastest way to spot a seed whose ramp
+ * collapses (steps that read identical) before it is ever published.
+ */
+function renderMasterPaletteSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Master Colour ramps — one seed generates every ramp step'));
 
+  const strip = (label, entries) => {
+    const row = document.createElement('div');
+    row.className = 'theme-ramp-strip';
+    const name = document.createElement('span');
+    name.className = 'theme-ramp-strip__label';
+    name.textContent = label;
+    const swatches = document.createElement('div');
+    swatches.className = 'theme-ramp-strip__swatches';
+    for (const [step, hex] of entries) {
+      const sw = document.createElement('span');
+      sw.className = 'theme-ramp-strip__swatch';
+      sw.style.background = hex;
+      sw.title = `${step} — ${hex}`;
+      swatches.append(sw);
+    }
+    row.append(name, swatches);
+    return row;
+  };
 
+  for (const preset of Object.values(MASTER_PRESETS)) {
+    const palette = generatePalette(preset.master);
+    const block = document.createElement('div');
+    block.className = 'theme-master__ramps';
+    block.append(
+      strip('Brand', BRAND_STEPS.map((k) => [k, palette.brand[k]])),
+      strip('Neutral', NEUTRAL_STEPS.map((k) => [k, palette.neutral[k]])),
+      strip('Status', [
+        ['success', palette.success[500]],
+        ['warning', palette.warning[500]],
+        ['danger', palette.danger[500]],
+        ['info', palette.info[500]],
+        ['accent', palette.accent[300]],
+      ]),
+    );
 
+    const meta = document.createElement('p');
+    meta.className = 'theme-master__blurb';
+    meta.textContent = `seed ${preset.master.seed} · hue ${palette.meta.seedHue}° · neutral hue `
+      + `${palette.meta.neutralHue}° (${preset.master.neutralMode}) · accent hue `
+      + `${palette.meta.accentHue}° (${preset.master.accentHarmony}) · anchored at brand-`
+      + `${palette.meta.anchorStep} · chroma x${palette.meta.chromaScale}`;
+    block.append(meta);
 
+    wrap.append(specimen(preset.name_en, block));
+  }
 
-
-
-
-
-
-
-
+  return wrap;
+}

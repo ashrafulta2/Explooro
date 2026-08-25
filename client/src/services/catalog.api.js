@@ -68,8 +68,9 @@ function normalizeProduct(product) {
 }
 
 export async function getProduct(idOrRef) {
-  const { data } = await api.get(`/products/${idOrRef}`);
-  return normalizeProduct(data.product);
+  const res = await api.get(`/products/${idOrRef}`);
+  const prod = res?.product || res?.data?.product || res?.data || res;
+  return normalizeProduct(prod);
 }
 
 /**

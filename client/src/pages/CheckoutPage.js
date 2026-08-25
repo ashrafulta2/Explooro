@@ -62,10 +62,14 @@ export default function CheckoutPage(root, { navigate } = {}) {
   const header = document.createElement('div');
   header.className = 'checkout-page__header';
   header.innerHTML = `
-    <h1 class="checkout-page__title">${t('checkout.title')}</h1>
-    <p class="checkout-page__subtitle">${t('checkout.subtitle')}</p>
+    <h1 class="checkout-page__title">${t('checkout.title') || 'Secure Checkout'}</h1>
+    <p class="checkout-page__subtitle">${t('checkout.subtitle') || 'Complete your order in 3 simple steps'}</p>
   `;
   container.append(header);
+
+  // Stepper Wrap
+  const stepperWrap = document.createElement('div');
+  container.append(stepperWrap);
 
   // Main Layout: 2 Columns (Steps on Left, Persistent Summary on Right)
   const layout = document.createElement('div');
@@ -85,6 +89,27 @@ export default function CheckoutPage(root, { navigate } = {}) {
   let paymentSelector = null;
   let cartData = null;
 
+  function updateStepper() {
+    stepperWrap.innerHTML = `
+      <div class="checkout-stepper">
+        <div class="checkout-stepper__step ${activeStep >= 1 ? 'checkout-stepper__step--active' : ''} ${activeStep > 1 ? 'checkout-stepper__step--done' : ''}">
+          <div class="checkout-stepper__num">${activeStep > 1 ? '✓' : '1'}</div>
+          <span class="checkout-stepper__label">${t('checkout.step_delivery') || 'Delivery Address'}</span>
+        </div>
+        <div class="checkout-stepper__line ${activeStep > 1 ? 'checkout-stepper__line--done' : ''}"></div>
+        <div class="checkout-stepper__step ${activeStep >= 2 ? 'checkout-stepper__step--active' : ''} ${activeStep > 2 ? 'checkout-stepper__step--done' : ''}">
+          <div class="checkout-stepper__num">${activeStep > 2 ? '✓' : '2'}</div>
+          <span class="checkout-stepper__label">${t('checkout.step_payment') || 'Payment Method'}</span>
+        </div>
+        <div class="checkout-stepper__line ${activeStep > 2 ? 'checkout-stepper__line--done' : ''}"></div>
+        <div class="checkout-stepper__step ${activeStep >= 3 ? 'checkout-stepper__step--active' : ''}">
+          <div class="checkout-stepper__num">3</div>
+          <span class="checkout-stepper__label">${t('checkout.step_review') || 'Order Review'}</span>
+        </div>
+      </div>
+    `;
+  }
+
   function persistDraft() {
     saveCheckoutDraft({
       address: addressData,
@@ -97,8 +122,24 @@ export default function CheckoutPage(root, { navigate } = {}) {
       await fetchCart();
       cartData = getCart();
       if (!cartData || !cartData.items || cartData.items.length === 0) {
-        toast.info(t('cart.empty_title') || 'Your cart is empty');
-        if (navigate) navigate('/');
+        stepperWrap.innerHTML = '';
+        layout.innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'checkout-empty card text-center';
+        empty.style.padding = 'var(--space-12) var(--space-6)';
+        empty.style.width = '100%';
+        empty.innerHTML = `
+          <div style="font-size: 3rem; margin-bottom: var(--space-4);">🛒</div>
+          <h2 class="text-xl font-bold">${t('cart.empty_title') || 'Your Cart is Empty'}</h2>
+          <p class="text-secondary" style="margin: var(--space-2) 0 var(--space-6);">${t('cart.empty_sub') || 'Add products from the marketplace before checking out.'}</p>
+        `;
+        const cta = Button({
+          label: t('common.back_to_marketplace') || 'Explore Marketplace',
+          variant: 'primary',
+          onClick: () => navigate('/'),
+        });
+        empty.append(cta);
+        layout.append(empty);
         return;
       }
       renderSteps();
@@ -109,6 +150,7 @@ export default function CheckoutPage(root, { navigate } = {}) {
   }
 
   function renderSteps() {
+    updateStepper();
     stepsCol.innerHTML = '';
 
     // Step 1: Delivery Address Accordion Card

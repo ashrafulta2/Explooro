@@ -2,7 +2,6 @@
   "common": {
     "back_to_marketplace": "Back to marketplace",
     "loading": "Loading…",
-    "in_stock": "{{count}} in stock",
     "cancel": "Cancel",
     "close": "Close",
     "error_generic": "Something went wrong. Please try again.",
@@ -22,42 +21,7 @@
   "harness": {
     "subtitle": "Development harness online."
   },
-  "router_demo": {
-    "heading": "Router — Prompt 1.5",
-    "description": "History API navigation with no full page reload. The store route is gated by a module guard; the saler dashboard by an auth and permission guard that redirects to login and back.",
-    "nav_home": "Home",
-    "nav_product": "Product detail",
-    "nav_store": "Store",
-    "nav_saler": "Saler dashboard (guarded)",
-    "nav_not_found": "404 demo"
-  },
   "pages": {
-    "home": {
-      "heading": "Marketplace — router demo",
-      "description": "Fetched via api.get('/products') in VITE_API_MODE = {{mode}} — open devtools' Network tab to see the simulated latency.",
-      "visit_store": "Visit Rahim Fashion store"
-    },
-    "product": {
-      "heading": "Product detail — router demo",
-      "route_label": "Route: /product/:id → id = {{id}}",
-      "district_label": "{{price}} · {{stock}} · {{district}}",
-      "load_failed": "Failed to load product."
-    },
-    "store": {
-      "heading": "Storefront — router demo",
-      "route_label": "Route: /store/:slug → slug = {{slug}}, gated by requiresModule: \"virtual_storefront\""
-    },
-    "saler": {
-      "heading": "Saler dashboard — guard demo",
-      "description": "This route has requiresAuth: true and requiresPermission: \"saler.dashboard.view\". You only reached it because those guards passed.",
-      "log_out": "Log out"
-    },
-    "login": {
-      "heading": "Login — guard redirect demo",
-      "description": "You were redirected here because the route you asked for needs requiresAuth (target: {{redirect}}). Real auth ships in Prompt 2.3.",
-      "description_no_redirect": "You were redirected here because the route you asked for needs requiresAuth. Real auth ships in Prompt 2.3.",
-      "simulate_login": "Simulate login"
-    },
     "not_found": {
       "heading": "404 — page not found",
       "description": "No route matches this path."
@@ -726,7 +690,29 @@
     "publish_success": "Theme palette published successfully and applied site-wide!",
     "draft_success": "Theme draft saved successfully!",
     "contrast_error_title": "Contrast Check Failed",
-    "gradient_error": "Zero gradients permitted anywhere in the studio."
+    "gradient_error": "Zero gradients permitted anywhere in the studio.",
+    "master_title": "Master Colour (re-themes the entire system)",
+    "master_desc": "Pick one seed colour. Every brand, neutral, status and accent ramp step is regenerated from it — buttons, borders, hover fills, scrollbars, focus rings, the sidebar and both light and dark themes move together. Section controls below start from these generated values.",
+    "master_seed": "Master seed colour",
+    "master_seed_hex": "Master seed hex code",
+    "master_meta": "hue {{hue}}° · anchored at brand-{{step}}",
+    "master_neutral_mode": "Neutral family",
+    "neutral_cool": "Cool charcoal (independent)",
+    "neutral_match": "Tinted toward the seed",
+    "neutral_complement": "Complementary tint",
+    "master_accent": "Accent harmony",
+    "harmony_complement": "Complementary (opposite)",
+    "harmony_analogous": "Analogous (neighbouring)",
+    "harmony_triad": "Triadic",
+    "harmony_mono": "Monochrome",
+    "master_tint": "Neutral tint strength",
+    "master_vividness": "Brand vividness",
+    "master_status_pull": "Status hue pull",
+    "master_surface_wash": "Tint page and card surfaces",
+    "master_border_tint": "Tint borders with the brand",
+    "ramp_brand": "Brand",
+    "ramp_neutral": "Neutral",
+    "ramp_status": "Status"
   },
   "media": {
     "upload_title": "Product Gallery & Media",

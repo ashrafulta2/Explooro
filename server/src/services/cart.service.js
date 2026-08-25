@@ -12,6 +12,7 @@
 import { randomUUID } from 'node:crypto';
 import * as cartRepo from '../repositories/cart.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
+import { getStorageDriver } from '../integrations/storage/index.js';
 
 export function generateGuestToken() {
   return `gst_${randomUUID().replace(/-/g, '')}`;
@@ -48,6 +49,7 @@ export async function getCart(db, { userId = null, guestToken = null }) {
   await cartRepo.touchCartActivity(db, cart.id);
 
   const rawItems = await cartRepo.getCartItemsWithDetails(db, cart.id);
+  const driver = getStorageDriver();
 
   // Live revalidation & multi-supplier grouping
   let subtotal = 0;
@@ -124,7 +126,7 @@ export async function getCart(db, { userId = null, guestToken = null }) {
       price_at_add: priceAtAdd.toFixed(2),
       unit_price: currentPrice.toFixed(2),
       line_total: lineTotal.toFixed(2),
-      image_url: raw.primary_image_url || '/placeholder-product.svg',
+      image_url: raw.primary_image_url ? driver.getPublicUrl(raw.primary_image_url) : '/placeholder-product.svg',
       supplier_id: Number(raw.supplier_id),
       supplier_name: raw.supplier_name,
       warnings,

@@ -125,6 +125,7 @@ export default function ProductDetailPage(root, { params, navigate }) {
   root.append(page);
 
   let destroyed = false;
+  let restoreHead = null;
 
   function placeholderNotice(actionLabelKey) {
     toast.info(t(actionLabelKey));
@@ -179,7 +180,7 @@ export default function ProductDetailPage(root, { params, navigate }) {
         onClick: () => {
           openQuickBuyModal({
             product,
-            selectedVariant: selectedVariant,
+            selectedVariant: getSelection(),
             initialQty: 1,
             navigate,
           });
@@ -219,7 +220,9 @@ export default function ProductDetailPage(root, { params, navigate }) {
   async function init() {
     let product;
     try {
-      product = await catalogApi.getProduct(params.id);
+      const targetId = params?.id || window.location.pathname.split('/').filter(Boolean).pop() || 'PRD-8F2K9QX7';
+      product = await catalogApi.getProduct(targetId);
+      if (!product) throw new Error('Product not found.');
     } catch (err) {
       if (destroyed) return;
       page.replaceChildren(

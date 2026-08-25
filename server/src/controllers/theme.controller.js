@@ -54,6 +54,7 @@ export async function publishTheme(req, reply) {
 
 export async function validateContrast(req, reply) {
   const { tokens } = req.body || {};
-  themeService.validatePalette(tokens);
-  return reply.send({ valid: true });
+  // Reports the EFFECTIVE palette when a master block is present, so the Studio can show what was
+  // actually certified rather than only what it submitted.
+  return reply.send(themeService.inspectPalette(tokens));
 }

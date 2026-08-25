@@ -162,7 +162,8 @@ The 35 most likely change requests, with exact paths.
 | :--- | :--- |
 | Add a module toggle | `server/src/config/modules.seed.json` + `docs/module-registry.md` |
 | Turn a feature off | `/admin/platform/modules`. No deploy |
-| Change a colour | `styles/themes.css` **only**, after updating `design-system.md`. Run `node scripts/palette.mjs` to re-verify contrast |
+| Change a colour (the default palette in CSS) | `styles/themes.css` **only**, after updating `design-system.md`. Run `node scripts/palette.mjs` to re-verify contrast |
+| Re-theme the product to a different colour at runtime | `client/src/config/master-themes.js` — one seed hex per preset; `services/colorRamp.js` derives all 45 ramp steps and every semantic role for both light and dark. Components read the ramps in ~199 places, which is why repainting semantic tokens alone never worked. Run `npm test --workspace client` to re-verify the AA invariants. The API gate lives in `server/src/services/theme.service.js` (`validateMasterBlock` / `deriveMasterTokens`); it reaches the engine only through `server/src/services/masterPalette.js` — never import `client/` from anywhere else on the server |
 | Add a language | `i18n_locales` row + `locales/<code>.json`. No code change — `content.i18n.locale_add` |
 | Change a UI string | `client/src/locales/en.json` **and** `bn.json`, or `/editor/translations` at runtime |
 | Add an env variable | `.env.example` (documented) **and** `server/src/config/env.js` (validated) |

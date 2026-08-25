@@ -18,8 +18,8 @@ export async function checkSlugAvailability(slug, excludeId = null) {
  * Retrieves public store profile and curated products by slug.
  */
 export async function getStoreBySlug(slug) {
-  const { data } = await api.get(`/stores/${slug}`);
-  return data;
+  const res = await api.get(`/stores/${slug}`);
+  return res?.data || res;
 }
 
 /**

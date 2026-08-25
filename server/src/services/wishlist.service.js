@@ -4,6 +4,7 @@
 
 import * as cartRepo from '../repositories/cart.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
+import { getStorageDriver } from '../integrations/storage/index.js';
 
 export async function getWishlist(db, userId) {
   if (!userId) {
@@ -11,6 +12,7 @@ export async function getWishlist(db, userId) {
   }
 
   const items = await cartRepo.getWishlistByUser(db, userId);
+  const driver = getStorageDriver();
 
   const formatted = items.map((item) => {
     const savedPrice = Number(item.price_at_save);
@@ -31,7 +33,7 @@ export async function getWishlist(db, userId) {
       drop_amount: dropAmount,
       stock_qty: Number(item.stock_qty ?? 0),
       is_in_stock: Number(item.stock_qty ?? 0) > 0,
-      image_url: item.primary_image_url || '/placeholder-product.svg',
+      image_url: item.primary_image_url ? driver.getPublicUrl(item.primary_image_url) : '/placeholder-product.svg',
       notify_on_drop: item.notify_on_drop,
       created_at: item.created_at,
     };

@@ -194,6 +194,7 @@ async function bootRouterDemo() {
       { path: '/', title: 'Explooro — Marketplace', permission: null, module: 'core', load: () => import('./pages/HomePage.js') },
       // Prompt 4.6: real product detail page replaces the Prompt 1.5 stub.
       { path: '/product/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
+      { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
       { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.js') },
       // Prompt 5.4: Checkout & Order Tracking Pages
@@ -406,9 +407,10 @@ async function bootRouterDemo() {
         load: () => import('./pages/saler/StoreBuilderPage.js'),
       },
       // Prompt 11.2: Saler Dashboard & Analytics
-      // WHY this is the only `/saler` entry: a Prompt-3 guard-demo stub (pages/dev/SalerDashboardStub.js)
-      // was also registered at this path, ~200 lines earlier. The router matches first-wins, so the
-      // stub shadowed the real dashboard and every saler landing on /saler saw a permissions demo.
+      // WHY this is the only `/saler` entry: a Prompt-1.5 guard-demo stub was also registered at
+      // this path, ~200 lines earlier. The router matches first-wins, so the stub shadowed the real
+      // dashboard and every saler landing on /saler saw a permissions demo. That route and the stub
+      // file (pages/dev/SalerDashboardStub.js) are both deleted now — keep /saler registered once.
       {
         path: '/saler',
         title: 'Saler Dashboard — Explooro',

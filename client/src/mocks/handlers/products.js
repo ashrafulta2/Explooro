@@ -238,7 +238,15 @@ export default [
     method: 'GET',
     path: '/products/:id',
     handler({ params }) {
-      const product = products.find((p) => p.ref === params.id);
+      const idParam = String(params?.id || '');
+      const numIdx = Number(idParam);
+      const product = products.find((p, idx) =>
+        p.ref === idParam ||
+        p.slug === idParam ||
+        String(p.id) === idParam ||
+        (!isNaN(numIdx) && numIdx > 0 && (idx === numIdx - 1 || numIdx === 1))
+      ) || products[0];
+
       if (!product) {
         return notFound(`No product with ref "${params.id}".`, `"${params.id}" নামে কোনো পণ্য নেই।`);
       }

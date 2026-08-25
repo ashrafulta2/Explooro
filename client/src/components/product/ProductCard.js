@@ -26,7 +26,7 @@ import { t } from '../../services/i18n.js';
 
 // Ten HSL-defined, accessible background colours for the SVG image placeholder.
 // Each maps to a distinct category visual identity — consistent per image_index.
-const PLACEHOLDER_COLOURS = [
+export const PLACEHOLDER_COLOURS = [
   { bg: '#9b467b', fg: '#fff' }, // pink (brand-900) — Clothing
   { bg: '#2d7b44', fg: '#fff' }, // green — Kids
   { bg: '#1e5fa8', fg: '#fff' }, // blue — Electronics
@@ -226,7 +226,7 @@ export function resolveProductImage(product) {
 }
 
 /** Returns the first letter(s) of a title for use as placeholder text. */
-function placeholderInitials(title) {
+export function placeholderInitials(title) {
   if (!title) return '?';
   const words = title.trim().split(/\s+/).slice(0, 2);
   return words.map((w) => w[0] || '').join('').toUpperCase() || '?';

@@ -23,15 +23,99 @@
 }
 
 .checkout-page__title {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-extrabold);
   color: var(--color-text-primary);
   margin-bottom: var(--space-1);
+  letter-spacing: -0.02em;
 }
 
 .checkout-page__subtitle {
   color: var(--color-text-secondary);
   font-size: var(--text-sm);
+}
+
+/* Visual Progress Stepper */
+.checkout-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-6);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.checkout-stepper__step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  transition: all var(--duration-fast);
+}
+
+.checkout-stepper__step--active {
+  color: var(--color-primary);
+  font-weight: var(--font-bold);
+}
+
+.checkout-stepper__step--done {
+  color: var(--color-success);
+}
+
+.checkout-stepper__num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  border: 2px solid transparent;
+  transition: all var(--duration-fast);
+}
+
+.checkout-stepper__step--active .checkout-stepper__num {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.15);
+}
+
+.checkout-stepper__step--done .checkout-stepper__num {
+  background: var(--color-success);
+  color: #ffffff;
+  border-color: var(--color-success);
+}
+
+.checkout-stepper__label {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .checkout-stepper__label {
+    display: inline;
+  }
+}
+
+.checkout-stepper__line {
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  margin: 0 var(--space-4);
+  border-radius: var(--radius-full);
+  transition: background var(--duration-fast);
+}
+
+.checkout-stepper__line--done {
+  background: var(--color-success);
 }
 
 .checkout-page__offline-banner {

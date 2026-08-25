@@ -36,9 +36,16 @@ html:focus-within {
   }
 }
 
-body {
+/* `html body`, not `body`: index.html carries an inline `body { background: #fbfdfe }` to avoid a
+   white flash before the stylesheets land, and nothing here overrode it — so the page canvas was
+   a hardcoded near-white in every theme, light or dark. The extra element in the selector wins on
+   specificity regardless of whether the stylesheet loads before or after that inline block, which
+   a bare `body` rule could not guarantee. */
+html body {
   min-height: 100dvh;
   line-height: var(--leading-base);
+  background-color: var(--surface-0);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

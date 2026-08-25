@@ -148,15 +148,20 @@ export default [
     method: 'GET',
     path: '/stores/:slug',
     handler({ params }) {
-      let store = stores.find((s) => s.slug === params.slug);
+      const targetSlug = String(params?.slug || '');
+      let store = stores.find((s) => s.slug === targetSlug || s.ref === targetSlug) ||
+                  (targetSlug === currentSalerStore.slug || targetSlug === 'priyo-collection' ? currentSalerStore : null);
       let shelves = [];
       let storeProducts = [];
 
-      if (params.slug === currentSalerStore.slug || (!store && params.slug === 'priyo-collection')) {
+      if (!store) {
         store = currentSalerStore;
+      }
+
+      if (store === currentSalerStore || store.slug === currentSalerStore.slug) {
         shelves = currentShelves;
         storeProducts = currentShelves.flatMap((s) => s.items);
-      } else if (store) {
+      } else {
         storeProducts = products.filter((p) => p.store_ref === store.ref);
         if (storeProducts.length === 0) {
           storeProducts = products.slice(0, 6);
@@ -167,20 +172,6 @@ export default [
             items: storeProducts,
           },
         ];
-      }
-
-      if (!store) {
-        return {
-          status: 404,
-          body: {
-            error: {
-              code: 'NOT_FOUND',
-              message_en: `No store at "/store/${params.slug}".`,
-              message_bn: `"/store/${params.slug}" নামে কোনো দোকান নেই।`,
-              trace_id: traceId(),
-            },
-          },
-        };
       }
 
       const storeData = {

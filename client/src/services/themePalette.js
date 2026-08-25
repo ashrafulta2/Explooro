@@ -3,8 +3,17 @@
  */
 
 import { THEME_PRESETS } from '../config/theme-presets.js';
+import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../config/master-themes.js';
+import { generatePalette, DEFAULT_MASTER } from './colorRamp.js';
+import {
+  applyMasterPalette,
+  clearMasterPalette,
+  paletteToSectionTokens,
+  normaliseMasterConfig,
+} from './masterTheme.js';
 
 let currentTokens = { ...THEME_PRESETS.default.tokens };
+let currentMaster = null;
 
 /**
  * Converts a hex color string (#fff or #ffffff) to an {r, g, b} object.
@@ -116,21 +125,90 @@ export function validatePaletteContrast(tokens = {}) {
   };
 }
 
-export function clearThemeOverrides() {
+/** Every inline custom property a section override can pin, so a reset is exhaustive. */
+const SECTION_OVERRIDE_PROPS = [
+  '--navbar-bg', '--navbar-text', '--navbar-border', '--navbar-search-bg',
+  '--surface-page', '--surface-0', '--surface-1', '--surface-card', '--surface-subtle',
+  '--surface-2', '--border-subtle',
+  '--brand', '--brand-primary', '--brand-hover', '--brand-contrast',
+  '--btn-secondary-bg', '--btn-secondary-text',
+  '--text-primary', '--text-secondary', '--text-muted', '--text-inverse',
+  '--success-bg', '--success', '--warning-bg', '--warning',
+  '--danger-bg', '--danger', '--info-bg', '--info',
+  '--footer-bg', '--footer-text', '--footer-muted', '--footer-border',
+];
+
+/** Drops the per-section inline pins but leaves any mounted master stylesheet in place. */
+export function clearSectionOverrides() {
   const root = document.documentElement;
-  const props = [
-    '--navbar-bg', '--navbar-text', '--navbar-border', '--navbar-search-bg',
-    '--surface-page', '--surface-0', '--surface-1', '--surface-card', '--surface-subtle', '--surface-2', '--border-subtle',
-    '--brand', '--brand-primary', '--brand-hover', '--brand-contrast', '--btn-secondary-bg', '--btn-secondary-text',
-    '--text-primary', '--text-secondary', '--text-muted', '--text-inverse',
-    '--success-bg', '--success', '--warning-bg', '--warning', '--danger-bg', '--danger', '--info-bg', '--info',
-    '--footer-bg', '--footer-text', '--footer-muted', '--footer-border',
-  ];
-  props.forEach((p) => root.style.removeProperty(p));
+  SECTION_OVERRIDE_PROPS.forEach((prop) => root.style.removeProperty(prop));
+}
+
+export function clearThemeOverrides() {
+  clearMasterPalette();
+  currentMaster = null;
+  clearSectionOverrides();
 }
 
 /**
- * Applies token custom properties to the document root element in real time.
+ * Maps a 6-section token to the custom properties it drives. Several tokens feed more than one
+ * property because the section vocabulary (page/card/subtle) is coarser than the surface ladder
+ * the components read (surface-0..3).
+ */
+const SECTION_PROPERTY_MAP = {
+  navbar: {
+    bg: ['--navbar-bg'],
+    text: ['--navbar-text'],
+    border: ['--navbar-border'],
+    search_bg: ['--navbar-search-bg'],
+  },
+  surfaces: {
+    page: ['--surface-page', '--surface-0', '--surface-1'],
+    card: ['--surface-card'],
+    subtle: ['--surface-subtle', '--surface-2'],
+    border: ['--border-subtle'],
+  },
+  brand: {
+    primary: ['--brand', '--brand-primary'],
+    hover: ['--brand-hover'],
+    contrast: ['--brand-contrast'],
+    secondary_bg: ['--btn-secondary-bg'],
+    secondary_text: ['--btn-secondary-text'],
+  },
+  typography: {
+    primary: ['--text-primary'],
+    secondary: ['--text-secondary'],
+    muted: ['--text-muted'],
+    inverse: ['--text-inverse'],
+  },
+  badges: {
+    success_bg: ['--success-bg'],
+    success_text: ['--success'],
+    warning_bg: ['--warning-bg'],
+    warning_text: ['--warning'],
+    danger_bg: ['--danger-bg'],
+    danger_text: ['--danger'],
+    info_bg: ['--info-bg'],
+    info_text: ['--info'],
+  },
+  footer: {
+    bg: ['--footer-bg'],
+    text: ['--footer-text'],
+    muted: ['--footer-muted'],
+    border: ['--footer-border'],
+  },
+};
+
+/**
+ * Applies a theme in real time.
+ *
+ * A theme may carry a `master` block (a seed colour plus harmony settings). When present, the
+ * whole palette — every brand/neutral/status/accent ramp step and every semantic role, in BOTH
+ * light and dark — is generated from it and mounted as a stylesheet, which is what makes borders,
+ * hover fills, scrollbars and focus rings follow the seed. The 6 per-section token groups then
+ * layer on top, but ONLY where the admin actually moved a swatch away from the generated value:
+ * pinning an unchanged value inline would beat the [data-theme='dark'] rules and re-break the
+ * light/dark switch for no benefit.
  */
 export function applyTheme(tokens = {}) {
   if (!tokens || tokens === THEME_PRESETS.default.tokens) {
@@ -138,70 +216,76 @@ export function applyTheme(tokens = {}) {
     clearThemeOverrides();
     return;
   }
+
   currentTokens = tokens;
   const root = document.documentElement;
 
-  const nav = tokens.navbar || {};
-  const surf = tokens.surfaces || {};
-  const brand = tokens.brand || {};
-  const typo = tokens.typography || {};
-  const badges = tokens.badges || {};
-  const footer = tokens.footer || {};
-
-  // Navbar tokens
-  if (nav.bg) root.style.setProperty('--navbar-bg', nav.bg);
-  if (nav.text) root.style.setProperty('--navbar-text', nav.text);
-  if (nav.border) root.style.setProperty('--navbar-border', nav.border);
-  if (nav.search_bg) root.style.setProperty('--navbar-search-bg', nav.search_bg);
-
-  // Surfaces & Canvas tokens
-  if (surf.page) {
-    root.style.setProperty('--surface-page', surf.page);
-    root.style.setProperty('--surface-0', surf.page);
-    root.style.setProperty('--surface-1', surf.page);
+  let generated = null;
+  if (tokens.master) {
+    currentMaster = normaliseMasterConfig(tokens.master);
+    generated = paletteToSectionTokens(applyMasterPalette(currentMaster));
+  } else {
+    currentMaster = null;
+    clearMasterPalette();
   }
-  if (surf.card) root.style.setProperty('--surface-card', surf.card);
-  if (surf.subtle) {
-    root.style.setProperty('--surface-subtle', surf.subtle);
-    root.style.setProperty('--surface-2', surf.subtle);
+
+  clearSectionOverrides();
+
+  for (const [section, keyMap] of Object.entries(SECTION_PROPERTY_MAP)) {
+    const values = tokens[section];
+    if (!values) continue;
+    for (const [key, props] of Object.entries(keyMap)) {
+      const value = values[key];
+      if (!value) continue;
+      // A value the master already generates needs no inline pin — and pinning it would cost the
+      // dark theme. Only a hand-edited swatch gets forced.
+      if (generated && generated[section]?.[key] === value) continue;
+      props.forEach((prop) => root.style.setProperty(prop, value));
+    }
   }
-  if (surf.border) root.style.setProperty('--border-subtle', surf.border);
-
-  // Brand / Button tokens
-  if (brand.primary) {
-    root.style.setProperty('--brand', brand.primary);
-    root.style.setProperty('--brand-primary', brand.primary);
-  }
-  if (brand.hover) root.style.setProperty('--brand-hover', brand.hover);
-  if (brand.contrast) root.style.setProperty('--brand-contrast', brand.contrast);
-  if (brand.secondary_bg) root.style.setProperty('--btn-secondary-bg', brand.secondary_bg);
-  if (brand.secondary_text) root.style.setProperty('--btn-secondary-text', brand.secondary_text);
-
-  // Typography tokens
-  if (typo.primary) root.style.setProperty('--text-primary', typo.primary);
-  if (typo.secondary) root.style.setProperty('--text-secondary', typo.secondary);
-  if (typo.muted) root.style.setProperty('--text-muted', typo.muted);
-  if (typo.inverse) root.style.setProperty('--text-inverse', typo.inverse);
-
-  // Badge tokens
-  if (badges.success_bg) root.style.setProperty('--success-bg', badges.success_bg);
-  if (badges.success_text) root.style.setProperty('--success', badges.success_text);
-  if (badges.warning_bg) root.style.setProperty('--warning-bg', badges.warning_bg);
-  if (badges.warning_text) root.style.setProperty('--warning', badges.warning_text);
-  if (badges.danger_bg) root.style.setProperty('--danger-bg', badges.danger_bg);
-  if (badges.danger_text) root.style.setProperty('--danger', badges.danger_text);
-  if (badges.info_bg) root.style.setProperty('--info-bg', badges.info_bg);
-  if (badges.info_text) root.style.setProperty('--info', badges.info_text);
-
-  // Footer tokens
-  if (footer.bg) root.style.setProperty('--footer-bg', footer.bg);
-  if (footer.text) root.style.setProperty('--footer-text', footer.text);
-  if (footer.muted) root.style.setProperty('--footer-muted', footer.muted);
-  if (footer.border) root.style.setProperty('--footer-border', footer.border);
 }
 
 export function getCurrentTokens() {
   return currentTokens;
+}
+
+/** The master config backing the live theme, or null when none is active. */
+export function getCurrentMaster() {
+  return currentMaster;
+}
+
+/** A ready-to-apply theme for a master preset key: the seed config plus its generated sections. */
+export function themeFromMasterPreset(presetKey) {
+  const preset = MASTER_PRESETS[presetKey] || MASTER_PRESETS[DEFAULT_MASTER_PRESET];
+  return themeFromMaster(preset.master);
+}
+
+/** Same, for an arbitrary (hand-tuned) master config. */
+export function themeFromMaster(masterConfig) {
+  const master = normaliseMasterConfig(masterConfig);
+  return { master, ...paletteToSectionTokens(generatePalette(master)) };
+}
+
+/**
+ * Migrates a palette published before the master engine existed. Its brand fill becomes the seed,
+ * so the ramps, borders, hovers and dark theme it never carried are generated; its navbar and
+ * footer are kept verbatim, because a deliberately dark header is identity rather than something
+ * the generator should overrule. Shared with the Theme Studio's preset grid so the live site and
+ * the studio preview cannot disagree about what a legacy palette looks like.
+ */
+export function themeFromLegacyTokens(tokens = {}) {
+  const generated = themeFromMaster({
+    ...DEFAULT_MASTER,
+    seed: tokens.brand?.primary || DEFAULT_MASTER.seed,
+    neutralMode: 'match',
+    neutralTint: 1.3,
+    statusPull: 0.25,
+  });
+  return {
+    ...generated,
+    navbar: { ...(tokens.navbar || generated.navbar) },
+    footer: { ...(tokens.footer || generated.footer) },
+  };
 }
 
 /**
@@ -211,8 +295,16 @@ export async function initTheme() {
   try {
     const { api } = await import('../core/api.js');
     const res = await api.get('/theme/active');
-    if (res?.tokens && res?.is_custom) {
-      applyTheme(res.tokens);
+    // The previous condition tested `res.is_custom`, a field the theme controller never sends —
+    // so a published palette was fetched and then silently discarded on every boot. Read the
+    // shape the API actually returns instead.
+    const tokens = res?.theme?.tokens_json || res?.tokens || null;
+    if (tokens?.master) {
+      applyTheme(tokens);
+      return;
+    }
+    if (tokens?.brand?.primary) {
+      applyTheme(themeFromLegacyTokens(tokens));
       return;
     }
   } catch {
