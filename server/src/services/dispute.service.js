@@ -277,15 +277,18 @@ export async function postMessage(db, {
 export async function getDisputeById(db, disputeId, { requestingUser } = {}) {
   const { rows: disputeRows } = await db.query(
     `SELECT d.*,
-            c.full_name AS customer_name, c.email AS customer_email, c.phone AS customer_phone,
-            sl.full_name AS saler_name, sl.email AS saler_email,
-            sp.full_name AS supplier_name, sp.email AS supplier_email,
+            c.full_name AS customer_name, cu.email AS customer_email, cu.phone AS customer_phone,
+            sl.full_name AS saler_name, slu.email AS saler_email,
+            sp.full_name AS supplier_name, spu.email AS supplier_email,
             so.ref AS sub_order_ref, so.status AS sub_order_status,
             r.ref AS return_ref, r.reason_code AS return_reason_code
      FROM dispute_threads d
-     JOIN users c ON c.id = d.customer_id
-     LEFT JOIN users sl ON sl.id = d.saler_id
-     JOIN users sp ON sp.id = d.supplier_id
+     JOIN users cu ON cu.id = d.customer_id
+     LEFT JOIN user_profiles c ON c.user_id = d.customer_id
+     LEFT JOIN users slu ON slu.id = d.saler_id
+     LEFT JOIN user_profiles sl ON sl.user_id = d.saler_id
+     JOIN users spu ON spu.id = d.supplier_id
+     LEFT JOIN user_profiles sp ON sp.user_id = d.supplier_id
      JOIN sub_orders so ON so.id = d.sub_order_id
      LEFT JOIN return_requests r ON r.id = d.return_id
      WHERE d.id = $1`,
@@ -297,8 +300,9 @@ export async function getDisputeById(db, disputeId, { requestingUser } = {}) {
   }
 
   const dispute = disputeRows[0];
-  const userRole = (requestingUser?.role || '').toLowerCase();
-  const isStaff = ['moderator', 'admin', 'super_admin'].includes(userRole);
+  const rawRoles = requestingUser?.roles ? requestingUser.roles : (requestingUser?.role ? [requestingUser.role] : []);
+  const userRoles = rawRoles.map((r) => String(r).toLowerCase());
+  const isStaff = userRoles.some((r) => ['moderator', 'admin', 'super_admin', 'staff'].includes(r));
 
   // Validate user access
   if (!isStaff) {
@@ -316,7 +320,8 @@ export async function getDisputeById(db, disputeId, { requestingUser } = {}) {
   let messageQuery = `
     SELECT m.*, u.full_name AS sender_name
     FROM dispute_messages m
-    JOIN users u ON u.id = m.sender_id
+    JOIN users mu ON mu.id = m.sender_id
+    LEFT JOIN user_profiles u ON u.user_id = m.sender_id
     WHERE m.dispute_id = $1
   `;
   const queryParams = [disputeId];
@@ -353,8 +358,9 @@ export async function listDisputes(db, {
   limit = 20,
   offset = 0,
 } = {}) {
-  const userRole = (requestingUser?.role || '').toLowerCase();
-  const isStaff = ['moderator', 'admin', 'super_admin'].includes(userRole);
+  const rawRoles = requestingUser?.roles ? requestingUser.roles : (requestingUser?.role ? [requestingUser.role] : []);
+  const userRoles = rawRoles.map((r) => String(r).toLowerCase());
+  const isStaff = userRoles.some((r) => ['moderator', 'admin', 'super_admin', 'staff'].includes(r));
 
   let query = `
     SELECT d.*,
@@ -364,9 +370,12 @@ export async function listDisputes(db, {
            so.ref AS sub_order_ref,
            COUNT(m.id) AS total_messages
     FROM dispute_threads d
-    JOIN users c ON c.id = d.customer_id
-    LEFT JOIN users sl ON sl.id = d.saler_id
-    JOIN users sp ON sp.id = d.supplier_id
+    JOIN users cu ON cu.id = d.customer_id
+    LEFT JOIN user_profiles c ON c.user_id = d.customer_id
+    LEFT JOIN users slu ON slu.id = d.saler_id
+    LEFT JOIN user_profiles sl ON sl.user_id = d.saler_id
+    JOIN users spu ON spu.id = d.supplier_id
+    LEFT JOIN user_profiles sp ON sp.user_id = d.supplier_id
     JOIN sub_orders so ON so.id = d.sub_order_id
     LEFT JOIN dispute_messages m ON m.dispute_id = d.id
     WHERE 1=1

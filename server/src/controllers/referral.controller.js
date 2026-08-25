@@ -69,11 +69,13 @@ export async function adminGetOverview(req, reply) {
 
   const { rows: flaggedReferrals } = await db.query(`
     SELECT r.*,
-           ru.display_name_en as referrer_name,
-           u.display_name_en as referee_name
+           COALESCE(rup.display_name, rup.full_name) as referrer_name,
+           COALESCE(up.display_name, up.full_name) as referee_name
     FROM referrals r
     JOIN users ru ON ru.id = r.referrer_user_id
+    LEFT JOIN user_profiles rup ON rup.user_id = ru.id
     JOIN users u ON u.id = r.referred_user_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     WHERE r.status = 'FRAUD_FLAGGED'
     ORDER BY r.created_at DESC
     LIMIT 50

@@ -673,11 +673,13 @@ export async function listPendingCampaigns(db, { limit = 20, offset = 0 } = {}) 
     SELECT c.*,
            row_to_json(cr.*) as creative,
            u.phone as seller_phone,
-           u.display_name_en as seller_name_en,
-           u.trust_tier as seller_tier
+           COALESCE(up.display_name, up.full_name) as seller_name_en,
+           ts.tier as seller_tier
     FROM ad_campaigns c
     JOIN ad_creatives cr ON cr.campaign_id = c.id
     JOIN users u ON u.id = c.user_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
+    LEFT JOIN trust_scores ts ON ts.user_id = u.id
     WHERE c.status = 'PENDING_REVIEW'
     ORDER BY c.created_at ASC
     LIMIT $1 OFFSET $2

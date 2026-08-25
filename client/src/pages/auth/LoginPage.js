@@ -71,21 +71,20 @@ export default function LoginPage(container, { query = {}, navigate }) {
   const form = document.createElement('form');
   form.className = 'auth-form';
 
-  const phoneField = document.createElement('div');
-  phoneField.className = 'auth-field';
-  const phoneLabel = document.createElement('label');
-  phoneLabel.className = 'auth-field__label';
-  phoneLabel.htmlFor = 'login-phone';
-  phoneLabel.textContent = t('auth.login.phone_label');
-  const phoneInput = document.createElement('input');
-  phoneInput.id = 'login-phone';
-  phoneInput.className = 'auth-field__input';
-  phoneInput.type = 'tel';
-  phoneInput.required = true;
-  phoneInput.placeholder = t('auth.login.phone_placeholder');
-  phoneInput.value = '+8801';
-  phoneInput.setAttribute('aria-label', t('auth.login.phone_label'));
-  phoneField.append(phoneLabel, phoneInput);
+  const identifierField = document.createElement('div');
+  identifierField.className = 'auth-field';
+  const identifierLabel = document.createElement('label');
+  identifierLabel.className = 'auth-field__label';
+  identifierLabel.htmlFor = 'login-identifier';
+  identifierLabel.textContent = t('auth.login.identifier_label');
+  const identifierInput = document.createElement('input');
+  identifierInput.id = 'login-identifier';
+  identifierInput.className = 'auth-field__input';
+  identifierInput.type = 'text';
+  identifierInput.required = true;
+  identifierInput.placeholder = t('auth.login.identifier_placeholder');
+  identifierInput.setAttribute('aria-label', t('auth.login.identifier_label'));
+  identifierField.append(identifierLabel, identifierInput);
 
   const EYE_ICON_SVG =
     '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
@@ -181,12 +180,15 @@ export default function LoginPage(container, { query = {}, navigate }) {
     errorDiv.style.display = 'none';
     submitBtn.setLoading(true);
 
-    const phone = phoneInput.value.trim();
+    const identifier = identifierInput.value.trim();
+    const isEmail = identifier.includes('@');
+    const phone = isEmail ? null : identifier;
+    const email = isEmail ? identifier : null;
 
     try {
       if (activeTab === 'password') {
         const password = passwordInput.value;
-        const res = await loginWithPassword({ phone, password });
+        const res = await loginWithPassword({ identifier, phone, email, password });
 
         if (res.twoFactorRequired) {
           navigate(
@@ -200,9 +202,12 @@ export default function LoginPage(container, { query = {}, navigate }) {
           navigate(redirectPath);
         }
       } else {
-        await sendOtp({ phone, purpose: 'LOGIN' });
+        await sendOtp({ phone, email, purpose: 'LOGIN' });
+        const identifierQuery = phone
+          ? `phone=${encodeURIComponent(phone)}`
+          : `email=${encodeURIComponent(email)}`;
         navigate(
-          `/auth/otp?phone=${encodeURIComponent(phone)}&purpose=LOGIN&redirect=${encodeURIComponent(redirectPath)}`
+          `/auth/otp?${identifierQuery}&purpose=LOGIN&redirect=${encodeURIComponent(redirectPath)}`
         );
       }
     } catch (err) {
@@ -213,7 +218,7 @@ export default function LoginPage(container, { query = {}, navigate }) {
     }
   });
 
-  form.append(phoneField, passwordField, errorDiv, submitBtn);
+  form.append(identifierField, passwordField, errorDiv, submitBtn);
 
   // Footer / Register link
   const footer = document.createElement('div');

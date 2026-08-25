@@ -9,7 +9,7 @@ import { api } from '../../core/api.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
-export default function NotificationPreferencesPage() {
+export default function NotificationPreferencesPage(root) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'page-container notification-preferences-page';
@@ -158,5 +158,5 @@ export default function NotificationPreferencesPage() {
   }
 
   loadPreferences();
-  return container;
+  root.append(container);
 }

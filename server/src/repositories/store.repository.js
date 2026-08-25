@@ -1,18 +1,28 @@
 /**
  * store.repository.js — Database queries for virtual stores, shelves, and storefront curation (Prompt 4.8).
+ *
+ * WHY the person-name joins look the way they do: `users` holds only credentials and status. The
+ * human name lives on `user_profiles.full_name` (one column, not an en/bn pair) and the trust tier
+ * on `trust_scores.tier` — see 001_identity.sql. The `*_name_en` / `*_name_bn` aliases are kept
+ * because store.service.js and customerPortal.service.js read them by those names; both resolve to
+ * the same profile name until per-language names exist in the schema.
  */
+
+const SALER_NAME_SQL = `COALESCE(up.display_name, up.full_name)`;
 
 export async function getStoreBySlug(db, slug) {
   const { rows } = await db.query(
     `SELECT vs.*,
             u.phone as saler_phone,
-            u.full_name_en as saler_name_en,
-            u.full_name_bn as saler_name_bn,
-            u.verification_tier,
+            ${SALER_NAME_SQL} as saler_name_en,
+            ${SALER_NAME_SQL} as saler_name_bn,
+            ts.tier as verification_tier,
             lm.storage_key as logo_key,
             bm.storage_key as banner_key
      FROM virtual_stores vs
      JOIN users u ON u.id = vs.saler_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     LEFT JOIN trust_scores ts ON ts.user_id = u.id
      LEFT JOIN media_assets lm ON lm.id = vs.logo_media_id
      LEFT JOIN media_assets bm ON bm.id = vs.banner_media_id
      WHERE vs.slug = $1 AND vs.deleted_at IS NULL
@@ -26,13 +36,15 @@ export async function getStoreById(db, id) {
   const { rows } = await db.query(
     `SELECT vs.*,
             u.phone as saler_phone,
-            u.full_name_en as saler_name_en,
-            u.full_name_bn as saler_name_bn,
-            u.verification_tier,
+            ${SALER_NAME_SQL} as saler_name_en,
+            ${SALER_NAME_SQL} as saler_name_bn,
+            ts.tier as verification_tier,
             lm.storage_key as logo_key,
             bm.storage_key as banner_key
      FROM virtual_stores vs
      JOIN users u ON u.id = vs.saler_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     LEFT JOIN trust_scores ts ON ts.user_id = u.id
      LEFT JOIN media_assets lm ON lm.id = vs.logo_media_id
      LEFT JOIN media_assets bm ON bm.id = vs.banner_media_id
      WHERE vs.id = $1 AND vs.deleted_at IS NULL
@@ -232,9 +244,9 @@ export async function listStoreItems(db, storeId) {
             c.slug as category_slug,
             c.name_en as category_name_en,
             c.name_bn as category_name_bn,
-            u.full_name_en as supplier_name_en,
-            u.full_name_bn as supplier_name_bn,
-            u.verification_tier as supplier_tier,
+            ${SALER_NAME_SQL} as supplier_name_en,
+            ${SALER_NAME_SQL} as supplier_name_bn,
+            ts.tier as supplier_tier,
             COALESCE(
               (SELECT json_agg(json_build_object(
                 'id', pi.id,
@@ -253,6 +265,8 @@ export async function listStoreItems(db, storeId) {
      JOIN products p ON p.id = ssi.product_id
      JOIN categories c ON c.id = p.category_id
      JOIN users u ON u.id = p.supplier_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     LEFT JOIN trust_scores ts ON ts.user_id = u.id
      WHERE ssi.store_id = $1 AND ssi.is_active = true AND p.deleted_at IS NULL AND p.status = 'ACTIVE'
      ORDER BY ssi.collection_name ASC, ssi.display_order ASC, ssi.added_at DESC`,
     [storeId]

@@ -9,6 +9,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { generateRef } from '../lib/ref.js';
 import { createWhatsAppSender } from '../integrations/whatsapp/index.js';
 import { sendToUser } from '../sockets/presence.js';
 import { withTransaction } from '../config/db.js';
@@ -121,20 +122,41 @@ export async function ingestInboundMessage(db, {
     // 1. Find or create customer shadow account
     let customerUserId = null;
     const { rows: existingUsers } = await txClient.query(
-      `SELECT id, full_name, phone FROM users WHERE phone = $1 LIMIT 1`,
+      `SELECT u.id, COALESCE(up.display_name, up.full_name) AS full_name, u.phone
+       FROM users u
+       LEFT JOIN user_profiles up ON up.user_id = u.id
+       WHERE u.phone = $1 LIMIT 1`,
       [fromPhone]
     );
 
     if (existingUsers.length > 0) {
       customerUserId = existingUsers[0].id;
     } else {
+      // WHY three statements: `users` holds neither the name nor the role. The display name lives
+      // on `user_profiles` and the role is a row in `user_roles` -> `roles`, the same shape
+      // auth.service.js creates a signup with. `ref` is NOT NULL with no default, so it is minted
+      // here rather than left to the database.
       const { rows: createdUsers } = await txClient.query(
-        `INSERT INTO users (phone, full_name, role, status, created_at)
-         VALUES ($1, $2, 'customer', 'ACTIVE', now())
+        `INSERT INTO users (ref, phone, status)
+         VALUES ($1, $2, 'ACTIVE')
          RETURNING id`,
-        [fromPhone, customerName]
+        [generateRef('USR'), fromPhone]
       );
       customerUserId = createdUsers[0].id;
+
+      await txClient.query(
+        `INSERT INTO user_profiles (user_id, full_name, display_name)
+         VALUES ($1, $2, $2)
+         ON CONFLICT (user_id) DO NOTHING`,
+        [customerUserId, customerName]
+      );
+
+      await txClient.query(
+        `INSERT INTO user_roles (user_id, role_id)
+         SELECT $1, r.id FROM roles r WHERE r.key = 'customer'
+         ON CONFLICT (user_id, role_id) DO NOTHING`,
+        [customerUserId]
+      );
     }
 
     // 2. Find or create unified chat_thread between customer and saler

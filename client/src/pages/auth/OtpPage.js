@@ -17,6 +17,8 @@ export default function OtpPage(container, { query = {}, navigate }) {
   container.replaceChildren();
 
   const phone = query.phone ? decodeURIComponent(query.phone) : '';
+  const email = query.email ? decodeURIComponent(query.email) : '';
+  const identifier = email || phone || '';
   const purpose = query.purpose ? decodeURIComponent(query.purpose) : 'LOGIN';
   const redirectPath = query.redirect ? decodeURIComponent(query.redirect) : '/';
 
@@ -40,7 +42,7 @@ export default function OtpPage(container, { query = {}, navigate }) {
 
   const subtitle = document.createElement('p');
   subtitle.className = 'auth-subtitle';
-  subtitle.textContent = t('auth.otp.subtitle', { phone });
+  subtitle.textContent = t('auth.otp.subtitle', { identifier, phone: identifier });
 
   header.append(brand, title, subtitle);
 
@@ -135,7 +137,7 @@ export default function OtpPage(container, { query = {}, navigate }) {
 
   resendBtn.addEventListener('click', async () => {
     try {
-      await sendOtp({ phone, purpose });
+      await sendOtp({ phone: phone || undefined, email: email || undefined, purpose });
       toast.success(t('auth.otp.resend_success'));
       startTimer();
     } catch (err) {
@@ -182,7 +184,12 @@ export default function OtpPage(container, { query = {}, navigate }) {
     submitBtn.setLoading(true);
 
     try {
-      const res = await verifyOtp({ phone, otp: otpCode, purpose });
+      const res = await verifyOtp({
+        phone: phone || undefined,
+        email: email || undefined,
+        otp: otpCode,
+        purpose,
+      });
 
       if (res.twoFactorRequired) {
         navigate(
@@ -211,7 +218,7 @@ export default function OtpPage(container, { query = {}, navigate }) {
 
   form.append(otpLabel, otpContainer, resendRow, errorDiv, submitBtn);
 
-  // Footer / Change phone link
+  // Footer / Change phone or email link
   const footer = document.createElement('div');
   footer.className = 'auth-footer';
   const changePhoneLink = document.createElement('a');

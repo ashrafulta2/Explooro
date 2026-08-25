@@ -14,7 +14,7 @@ import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
-export default function ReturnRequestPage({ params = {}, navigate } = {}) {
+export default function ReturnRequestPage(root, { params = {}, navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'page-container return-request-page';
 
@@ -255,5 +255,5 @@ export default function ReturnRequestPage({ params = {}, navigate } = {}) {
   }
 
   fetchSubOrder();
-  return container;
+  root.append(container);
 }

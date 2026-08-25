@@ -265,12 +265,12 @@ export async function listAllFlashSales(db, { status, limit = 50, offset = 0 } =
     SELECT fs.*,
            p.title_en as product_title_en,
            p.title_bn as product_title_bn,
-           u.display_name_en as creator_name,
-           su.display_name_en as stopper_name
+           u.display_name as creator_name,
+           su.display_name as stopper_name
     FROM flash_sales fs
     JOIN products p ON p.id = fs.product_id
-    LEFT JOIN users u ON u.id = fs.created_by
-    LEFT JOIN users su ON su.id = fs.emergency_stopped_by
+    LEFT JOIN user_profiles u ON u.user_id = fs.created_by
+    LEFT JOIN user_profiles su ON su.user_id = fs.emergency_stopped_by
     WHERE 1=1
   `;
   const params = [];

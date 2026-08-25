@@ -17,7 +17,7 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { appStore } from '../../state/appStore.js';
 
-export default function ThemeStudioPage() {
+export default function ThemeStudioPage(root) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'theme-studio';
@@ -539,5 +539,5 @@ export default function ThemeStudioPage() {
 
   loadActiveThemeFromServer();
 
-  return container;
+  root.append(container);
 }

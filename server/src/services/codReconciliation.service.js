@@ -522,7 +522,7 @@ export async function listReconciliations(db, {
            u.full_name AS resolved_by_name
     FROM cod_reconciliation c
     LEFT JOIN sub_orders s ON s.id = c.sub_order_id
-    LEFT JOIN users u ON u.id = c.resolved_by
+    LEFT JOIN user_profiles u ON u.user_id = c.resolved_by
     WHERE 1=1
   `;
   const params = [];

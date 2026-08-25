@@ -1,0 +1,30 @@
+# robots.txt — Search Engine Crawler Governance (Prompt 11.5)
+User-agent: *
+Allow: /
+Allow: /products/
+Allow: /store/
+Allow: /categories
+Allow: /categories/
+Allow: /stories
+Allow: /stories/
+Allow: /reels
+Allow: /about
+Allow: /terms
+Allow: /privacy
+Allow: /s/
+Allow: /widget.js
+
+Disallow: /admin/
+Disallow: /moderator/
+Disallow: /editor/
+Disallow: /saler/
+Disallow: /supplier/
+Disallow: /account/
+Disallow: /customer/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /auth/
+Disallow: /api/
+Disallow: /dev/
+
+Sitemap: https://explooro.com/sitemap.xml

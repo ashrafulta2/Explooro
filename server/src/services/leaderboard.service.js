@@ -94,10 +94,11 @@ export async function getLeaderboard(db, {
   const query = `
     SELECT
       ls.*,
-      u.display_name_en as user_name,
+      COALESCE(up.display_name, up.full_name) as user_name,
       u.email as user_email
     FROM leaderboard_snapshots ls
     JOIN users u ON u.id = ls.user_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     WHERE ls.period_key = $1 AND ls.category = $2
     ORDER BY ls.rank ASC
     LIMIT $3
@@ -108,9 +109,10 @@ export async function getLeaderboard(db, {
   let currentUserRank = null;
   if (currentUserId) {
     const { rows: userRows } = await db.query(
-      `SELECT ls.*, u.display_name_en as user_name
+      `SELECT ls.*, COALESCE(up.display_name, up.full_name) as user_name
        FROM leaderboard_snapshots ls
        JOIN users u ON u.id = ls.user_id
+       LEFT JOIN user_profiles up ON up.user_id = u.id
        WHERE ls.period_key = $1 AND ls.category = $2 AND ls.user_id = $3`,
       [periodKey, category, currentUserId]
     );

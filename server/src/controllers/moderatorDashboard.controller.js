@@ -47,9 +47,10 @@ export async function getDashboardSummary(req, reply) {
   try {
     const { rows: urgentRows } = await db.query(
       `SELECT q.id, q.ref, q.item_type, q.status, q.sla_due_at, q.created_at,
-              u.full_name as submitter_name
+              COALESCE(up.display_name, up.full_name) as submitter_name
        FROM moderation_queue q
        JOIN users u ON u.id = q.submitted_by
+       LEFT JOIN user_profiles up ON up.user_id = u.id
        WHERE q.status IN ('PENDING', 'IN_REVIEW')
        ORDER BY q.sla_due_at ASC NULLS LAST
        LIMIT 8`
@@ -102,9 +103,10 @@ export async function getDashboardSummary(req, reply) {
     const { rows: actionRows } = await db.query(
       `SELECT paa.id, paa.ref, paa.action_key, paa.risk_tier, paa.target_entity, paa.target_id,
               paa.status, paa.created_at, paa.reviewed_at,
-              appr.full_name as approver_name
+              COALESCE(apprp.display_name, apprp.full_name) as approver_name
        FROM pending_admin_actions paa
        LEFT JOIN users appr ON appr.id = paa.approver_id
+       LEFT JOIN user_profiles apprp ON apprp.user_id = appr.id
        WHERE paa.actor_id = $1
        ORDER BY paa.created_at DESC
        LIMIT 10`,

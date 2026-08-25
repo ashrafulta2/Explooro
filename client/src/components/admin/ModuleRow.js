@@ -36,11 +36,7 @@ export function ModuleRow({
   labelEl.className = 'module-row__label';
   labelEl.textContent = label;
 
-  const keyEl = document.createElement('span');
-  keyEl.className = 'module-row__key';
-  keyEl.textContent = module.key;
-
-  header.append(labelEl, keyEl);
+  header.append(labelEl);
 
   if (module.risk_of_disabling === 'CRITICAL') {
     const riskBadge = Badge({ label: isBn ? 'গুরুত্বপূর্ণ' : 'Critical', variant: 'danger' });

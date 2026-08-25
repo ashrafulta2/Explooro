@@ -16,7 +16,7 @@ import { Modal } from '../../components/ui/Modal.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 
-export default function OrderDetailPage({ params = {}, navigate } = {}) {
+export default function OrderDetailPage(root, { params = {}, navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'order-detail-page container';
 
@@ -28,7 +28,7 @@ export default function OrderDetailPage({ params = {}, navigate } = {}) {
     renderOrderDetail(container, orderIdOrRef, navigate);
   }
 
-  return container;
+  root.append(container);
 }
 
 async function renderOrdersList(container, navigate) {

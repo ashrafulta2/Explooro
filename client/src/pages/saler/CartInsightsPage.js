@@ -13,7 +13,7 @@ import { api } from '../../core/api.js';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
-export default class CartInsightsPage {
+export class CartInsightsPage {
   constructor() {
     this.insights = null;
     this.loading = true;
@@ -379,4 +379,13 @@ export default class CartInsightsPage {
       }
     });
   }
+}
+
+// WHY: this page is written as a class, but the router page contract (core/router.js) is a
+// plain function `(container, ctx) => cleanup?`. Calling a class without `new` throws, so the
+// default export adapts the two — mount() is fire-and-forget async, unmount() is the cleanup.
+export default function mountCartInsightsPage(root, ctx = {}) {
+  const page = new CartInsightsPage();
+  page.mount(root);
+  return () => page.unmount();
 }

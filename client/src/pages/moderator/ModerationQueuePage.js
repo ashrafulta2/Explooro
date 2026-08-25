@@ -16,7 +16,7 @@ import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { ReviewCard } from '../../components/moderation/ReviewCard.js';
 
-export default function ModerationQueuePage() {
+export default function ModerationQueuePage(root) {
   const container = document.createElement('div');
   container.className = 'page-container moderation-queue-page';
 
@@ -277,8 +277,12 @@ export default function ModerationQueuePage() {
     }
   }
 
+  // Held so the router's cleanup can unbind it — the listener sits on `window` and would otherwise
+  // keep firing (and mutating this page's closed-over state) after the route changes.
+  let keydownHandler = null;
+
   function attachKeyboardShortcuts() {
-    window.addEventListener('keydown', (e) => {
+    keydownHandler = (e) => {
       // Ignore if typing inside input / textarea
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
 
@@ -308,7 +312,8 @@ export default function ModerationQueuePage() {
           handleClaim(item.id);
         }
       }
-    });
+    };
+    window.addEventListener('keydown', keydownHandler);
   }
 
   function highlightCurrentCard() {
@@ -506,5 +511,9 @@ export default function ModerationQueuePage() {
   }
 
   init();
-  return container;
+  root.append(container);
+
+  return () => {
+    if (keydownHandler) window.removeEventListener('keydown', keydownHandler);
+  };
 }

@@ -67,16 +67,34 @@ export async function getOrCreateUserReferralCode(db, userId) {
     return rows[0];
   }
 
+  // WHY the arbiter is `code` and not `user_id`: user_referral_codes has no unique constraint on
+  // user_id — only the plain index idx_user_referral_codes_user — so `ON CONFLICT (user_id)` could
+  // never resolve an arbiter and every first-time call raised 42P10. The unique columns are `code`
+  // and `custom_slug`. The SELECT above is the real idempotency guard; this only covers the race.
   const code = generateReferralCode();
   const { rows: inserted } = await db.query(
     `INSERT INTO user_referral_codes (user_id, code, clicks_count, signups_count)
      VALUES ($1, $2, 0, 0)
-     ON CONFLICT (user_id) DO UPDATE SET updated_at = now()
+     ON CONFLICT (code) DO NOTHING
      RETURNING *`,
     [userId, code]
   );
 
-  return inserted[0];
+  if (inserted.length > 0) {
+    return inserted[0];
+  }
+
+  // Either a concurrent request created this user's row, or the generated code collided.
+  const { rows: existing } = await db.query(
+    `SELECT * FROM user_referral_codes WHERE user_id = $1 ORDER BY created_at ASC LIMIT 1`,
+    [userId]
+  );
+
+  if (existing.length === 0) {
+    throw new Error('REFERRAL_CODE_COLLISION: Could not mint a referral code; retry the request.');
+  }
+
+  return existing[0];
 }
 
 /**
@@ -132,9 +150,10 @@ export async function recordReferralAttribution(db, cache, {
   const cleanSlug = String(referralCode).trim().toLowerCase();
 
   const { rows: codeRows } = await db.query(
-    `SELECT urc.*, u.phone as referrer_phone, u.nid as referrer_nid
+    `SELECT urc.*, u.phone as referrer_phone, k.nid_number as referrer_nid
      FROM user_referral_codes urc
      JOIN users u ON u.id = urc.user_id
+     LEFT JOIN kyc_verifications k ON k.user_id = u.id AND k.status = 'APPROVED'
      WHERE UPPER(urc.code) = $1 OR urc.custom_slug = $2`,
     [cleanCode, cleanSlug]
   );
@@ -441,15 +460,16 @@ export async function getReferralNetworkOverview(db, userId) {
 export async function getReferralTree(db, userId) {
   const query = `
     SELECT r.*,
-           u.display_name_en as referee_name,
+           COALESCE(up.display_name, up.full_name) as referee_name,
            u.email as referee_email,
            u.created_at as joined_at,
            COALESCE(SUM(re.commission_amount), 0)::numeric(14,2) as earned_from_referee
     FROM referrals r
     JOIN users u ON u.id = r.referred_user_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     LEFT JOIN referral_earnings re ON re.referral_id = r.id
     WHERE r.referrer_user_id = $1
-    GROUP BY r.id, u.id
+    GROUP BY r.id, u.id, up.user_id
     ORDER BY r.tier_level ASC, r.created_at DESC
   `;
 
@@ -464,10 +484,11 @@ export async function getReferralStatement(db, userId, { limit = 50, offset = 0 
   const query = `
     SELECT re.*,
            r.ref as referral_ref,
-           u.display_name_en as referee_name
+           COALESCE(up.display_name, up.full_name) as referee_name
     FROM referral_earnings re
     JOIN referrals r ON r.id = re.referral_id
     JOIN users u ON u.id = r.referred_user_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     WHERE re.beneficiary_user_id = $1
     ORDER BY re.created_at DESC
     LIMIT $2 OFFSET $3

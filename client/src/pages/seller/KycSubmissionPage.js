@@ -13,7 +13,7 @@ import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatDate } from '../../services/format.js';
 
-export default function KycSubmissionPage() {
+export default function KycSubmissionPage(root) {
   const container = document.createElement('div');
   container.className = 'page-container kyc-submission-page max-w-3xl mx-auto';
 
@@ -446,5 +446,5 @@ export default function KycSubmissionPage() {
   }
 
   init();
-  return container;
+  root.append(container);
 }

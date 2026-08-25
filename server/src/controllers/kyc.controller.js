@@ -82,14 +82,14 @@ export async function getKycById(req, reply) {
     `SELECT k.id, k.ref, k.user_id, k.kyc_type, k.business_name, k.business_address,
             k.current_step, k.status, k.rejection_reason, k.rejection_reason_bn,
             k.created_at, k.reviewed_at, k.verified_at,
-            u.full_name AS applicant_name,
+            up.full_name AS applicant_name,
             u.email AS applicant_email,
             u.phone AS applicant_phone,
-            u.role AS applicant_role,
             COALESCE(ts.tier, 'STARTER') as current_tier,
             COALESCE(ts.score, 50) as trust_score
      FROM kyc_verifications k
      JOIN users u ON u.id = k.user_id
+     LEFT JOIN user_profiles up ON up.user_id = k.user_id
      LEFT JOIN trust_scores ts ON ts.user_id = k.user_id
      WHERE k.id = $1`,
     [kycId]
@@ -157,13 +157,14 @@ export async function getTrustTier(req, reply) {
   const userId = parseInt(req.params.userId, 10);
 
   const { rows } = await req.server.db.query(
-    `SELECT u.id, u.full_name, u.role,
+    `SELECT u.id, up.full_name,
             COALESCE(ts.tier, 'STARTER') as tier,
             COALESCE(ts.score, 50) as score,
             COALESCE(ts.completed_orders, 0) as completed_orders,
             COALESCE(ts.delivery_success_rate, 100) as delivery_success_rate,
             COALESCE(ts.dispute_rate, 0) as dispute_rate
      FROM users u
+     LEFT JOIN user_profiles up ON up.user_id = u.id
      LEFT JOIN trust_scores ts ON ts.user_id = u.id
      WHERE u.id = $1`,
     [userId]

@@ -15,9 +15,13 @@
  * ======================================================================= */
 
 .app-shell {
+  /* Kept in sync with the topbar's real rendered height by a ResizeObserver in AppShell.js —
+     the grid row and the sidebar's sticky offset below both read this instead of a hardcoded
+     56px, so both track the topbar smoothly as it shrinks/grows on scroll (.is-scrolled). */
+  --topbar-h: 56px;
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-template-rows: 56px 1fr;
+  grid-template-rows: var(--topbar-h) 1fr;
   grid-template-areas:
     'topbar topbar'
     'sidebar content';
@@ -50,16 +54,22 @@
      anything heavier just clamps to 700 anyway. */
   font-weight: 700;
   /* One step above --text-base — the topbar reads too small at the base site-wide type scale. */
-  font-size: var(--text-lg);
+  font-size: var(--tb-brand-font, var(--text-lg));
   letter-spacing: -0.02em;
   color: var(--text-brand);
   text-decoration: none;
   margin-right: var(--space-2);
   cursor: pointer;
   user-select: none;
-  transition: color var(--dur-fast) var(--ease-standard);
+  transition: color var(--dur-fast) var(--ease-standard), font-size var(--dur-base) var(--ease-standard);
 }
 .topbar__brand:hover { color: var(--brand); }
+.topbar__brand svg {
+  flex: none;
+  width: var(--tb-brand-icon, 28px);
+  height: var(--tb-brand-icon, 28px);
+  transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard);
+}
 
 .topbar__auth-buttons {
   display: flex;
@@ -97,11 +107,11 @@
   .app-shell__sidebar-slot {
     display: block;
     position: sticky;
-    /* Starts below the topbar row (56px), not at the viewport top, so the sidebar's own
+    /* Starts below the topbar row (--topbar-h), not at the viewport top, so the sidebar's own
        overflow-y:auto scroll region — and its scrollbar — never spans behind/through the
        topbar (they're separate grid rows now, not two independently-sticky 0-anchored boxes). */
-    top: 56px;
-    height: calc(100vh - 56px);
+    top: var(--topbar-h);
+    height: calc(100vh - var(--topbar-h));
     background: var(--surface-0);
     z-index: 1;
     transition: box-shadow var(--dur-base) var(--ease-standard);
@@ -496,19 +506,92 @@
   z-index: var(--z-header);
 }
 
+/* Every topbar dimension that changes with scroll state is a custom property read as
+   `var(--tb-x, <resting default>)` by its consumer below, so the "resting" size only ever has to
+   be written once — as that fallback — rather than duplicated in a hover-reset rule. The compact
+   tiers below just set the variable; hovering the shrunk bar sets it to `initial`, which for a
+   custom property is the guaranteed-invalid value, so every `var()` reference falls straight back
+   to its resting default and the whole bar (not just one icon) pops back to full size. */
 .topbar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  height: 56px;
-  padding: 0 var(--space-3);
+  gap: var(--tb-gap, var(--space-2));
+  height: var(--tb-h, 56px);
+  padding: 0 var(--tb-pad-x, var(--space-3));
   background: var(--surface-0);
   box-shadow: var(--elevation-1);
+  transition: height var(--dur-base) var(--ease-standard), padding var(--dur-base) var(--ease-standard),
+    gap var(--dur-base) var(--ease-standard), box-shadow var(--dur-base) var(--ease-standard);
 }
-@media (min-width: 480px) {
-  .topbar {
-    gap: var(--space-3);
-    padding: 0 var(--space-4);
+
+/* Scroll-shrink: a shorter, denser bar once the page has scrolled past the top, giving the
+   content below more room — restored the instant the user scrolls back up (AppShell.js), or by
+   hovering the bar itself while it's shrunk (see the fine-pointer block below). */
+.app-shell.is-scrolled .topbar {
+  --tb-h: 44px;
+  --tb-search-h: 32px;
+  --tb-brand-font: var(--text-base);
+  --tb-brand-icon: 22px;
+  /* The button has little to no clearance above it once the bar has shrunk (see the badge rule
+     these inherit into, further down) — pin the badge flush to its corner instead of overhanging
+     past it, so it never gets clipped by the sticky bar's top edge. Reset to `initial` on hover
+     below, same as everything else, once there's room again. */
+  --tb-badge-top: 0px;
+  --tb-badge-right: 0px;
+  --tb-badge-transform: translate(20%, 0);
+  box-shadow: var(--elevation-2);
+}
+/* Fine-pointer devices (mouse/trackpad) shrink further still — to about half the resting
+   height — since hovering the bar (below) gives that pointer type its full size back on demand.
+   Touch stays at the 44px tier above: tokens.css §11's touch-target rule always wins, every
+   control in the tier below is sized under 44px, and touch has no hover to pop it back with. */
+@media (pointer: fine) {
+  .app-shell.is-scrolled .topbar {
+    --tb-h: 28px;
+    --tb-pad-x: var(--space-2);
+    --tb-gap: var(--space-1);
+    --tb-brand-font: var(--text-sm);
+    --tb-brand-icon: 16px;
+    --tb-search-h: 22px;
+    --tb-search-pad-x: 10px;
+    --tb-search-btn: 18px;
+    --tb-search-btn-icon: 12px;
+    --tb-search-font: var(--text-xs);
+    --tb-icon-btn: 24px;
+    --tb-icon-svg: 14px;
+    --tb-avatar-font: 11px;
+    --tb-lang-pad-x: 6px;
+    --tb-lang-font: var(--text-2xs);
+    --tb-badge-min: 13px;
+    --tb-badge-pad-x: 3px;
+    --tb-badge-font: 8px;
+    --tb-badge-border: 1.5px;
+  }
+  /* Hovering the bar anywhere — not each icon individually — restores every dimension above (and
+     the 44px tier's) to its resting size, then shrinks back the instant the pointer leaves. */
+  .app-shell.is-scrolled .topbar:hover {
+    --tb-h: initial;
+    --tb-pad-x: initial;
+    --tb-gap: initial;
+    --tb-brand-font: initial;
+    --tb-brand-icon: initial;
+    --tb-search-h: initial;
+    --tb-search-pad-x: initial;
+    --tb-search-btn: initial;
+    --tb-search-btn-icon: initial;
+    --tb-search-font: initial;
+    --tb-icon-btn: initial;
+    --tb-icon-svg: initial;
+    --tb-avatar-font: initial;
+    --tb-lang-pad-x: initial;
+    --tb-lang-font: initial;
+    --tb-badge-min: initial;
+    --tb-badge-pad-x: initial;
+    --tb-badge-font: initial;
+    --tb-badge-border: initial;
+    --tb-badge-top: initial;
+    --tb-badge-right: initial;
+    --tb-badge-transform: initial;
   }
 }
 
@@ -519,12 +602,12 @@
   position: relative;
   width: 100%;
   max-width: 440px;
-  height: 40px;
+  height: var(--tb-search-h, 40px);
   background: var(--surface-2);
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-full);
-  padding: 0 var(--space-3);
-  transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  padding: 0 var(--tb-search-pad-x, var(--space-3));
+  transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard), height var(--dur-base) var(--ease-standard), padding var(--dur-base) var(--ease-standard);
 }
 .topbar__product-search:focus-within {
   background: var(--surface-0);
@@ -535,19 +618,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: var(--tb-search-btn, 28px);
+  height: var(--tb-search-btn, 28px);
   border: none;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
   border-radius: var(--radius-full);
-  transition: color var(--dur-fast) var(--ease-standard);
+  transition: color var(--dur-fast) var(--ease-standard), width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard);
   padding: 0;
   flex: none;
 }
 .topbar__product-search-btn:hover {
   color: var(--brand);
+}
+.topbar__product-search-btn svg {
+  width: var(--tb-search-btn-icon, 16px);
+  height: var(--tb-search-btn-icon, 16px);
+  transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard);
 }
 .topbar__product-search-input {
   flex: 1;
@@ -556,13 +644,14 @@
   border: none;
   background: transparent;
   padding: 0 var(--space-2);
-  font-size: var(--text-sm);
+  font-size: var(--tb-search-font, var(--text-sm));
   color: var(--text-primary);
   outline: none;
+  transition: font-size var(--dur-base) var(--ease-standard);
 }
 .topbar__product-search-input::placeholder {
   color: var(--text-muted);
-  font-size: var(--text-sm);
+  font-size: var(--tb-search-font, var(--text-sm));
 }
 
 .topbar__palette-btn {
@@ -620,8 +709,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--control-height);
-  height: var(--control-height);
+  width: var(--tb-icon-btn, var(--control-height));
+  height: var(--tb-icon-btn, var(--control-height));
   border-radius: var(--radius-sm);
   /* Deeper than the site-wide --brand (500) so icons stay legible at small size against the
      topbar — brand-800, a deliberate exception to the base brand fill rather than a ramp change. */
@@ -631,11 +720,20 @@
   border: none;
   cursor: pointer;
   padding: 0;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard),
+    width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
 }
 .topbar__icon-btn:hover {
   background: var(--brand-100);
   color: var(--brand-900);
+  /* World-class-feeling micro-interaction: a small extra pop on the specific control the cursor
+     is over, layered on top of the whole-bar hover-restore above. */
+  transform: scale(1.08);
+  box-shadow: 0 2px 6px hsl(var(--shadow-color) / 0.15);
+}
+.topbar__icon-btn:active {
+  transform: scale(0.96);
 }
 .topbar__icon-btn .topbar__icon-symbol {
   display: inline-flex;
@@ -645,36 +743,44 @@
   line-height: 1;
 }
 .topbar__icon-btn .topbar__icon-symbol svg {
-  width: 22px;
-  height: 22px;
+  width: var(--tb-icon-svg, 22px);
+  height: var(--tb-icon-svg, 22px);
   display: block;
+  transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard);
 }
 .topbar__icon-btn .badge--count,
 .topbar__icon-btn .badge--numeric {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  transform: translate(30%, -30%);
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  font-size: 10px;
+  top: var(--tb-badge-top, 2px);
+  right: var(--tb-badge-right, 2px);
+  transform: var(--tb-badge-transform, translate(30%, -30%));
+  min-width: var(--tb-badge-min, 18px);
+  height: var(--tb-badge-min, 18px);
+  padding: 0 var(--tb-badge-pad-x, 4px);
+  font-size: var(--tb-badge-font, 10px);
   font-weight: 700;
   line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
-  border: 2px solid var(--surface-1);
+  border-style: solid;
+  border-color: var(--surface-1);
+  border-width: var(--tb-badge-border, 2px);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   pointer-events: none;
   z-index: 1;
+  transition: min-width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard),
+    font-size var(--dur-base) var(--ease-standard), top var(--dur-base) var(--ease-standard),
+    right var(--dur-base) var(--ease-standard), transform var(--dur-base) var(--ease-standard),
+    border-width var(--dur-base) var(--ease-standard);
 }
 .topbar__lang-btn {
   width: auto;
-  padding: 0 var(--space-2);
-  font-size: var(--text-sm);
+  padding: 0 var(--tb-lang-pad-x, var(--space-2));
+  font-size: var(--tb-lang-font, var(--text-sm));
   font-weight: var(--weight-xs);
+  transition: padding var(--dur-base) var(--ease-standard), font-size var(--dur-base) var(--ease-standard);
 }
 
 .topbar__avatar-menu {
@@ -684,16 +790,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--control-height);
-  height: var(--control-height);
+  width: var(--tb-icon-btn, var(--control-height));
+  height: var(--tb-icon-btn, var(--control-height));
   border-radius: var(--radius-full);
   background: var(--brand-alt);
   color: var(--brand-alt-contrast);
-  font-size: var(--text-base);
+  font-size: var(--tb-avatar-font, var(--text-base));
   font-weight: var(--weight-lg);
   cursor: pointer;
   box-shadow: 0 0 0 2px transparent;
-  transition: background var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  transition: background var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard),
+    width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard), font-size var(--dur-base) var(--ease-standard);
 }
 .topbar__avatar-trigger:hover,
 .topbar__avatar-trigger:focus-visible {
@@ -701,6 +809,10 @@
      the same ramp step in light theme). */
   background: var(--brand-active);
   box-shadow: 0 0 0 2px var(--brand-active);
+  transform: scale(1.08);
+}
+.topbar__avatar-trigger:active {
+  transform: scale(0.96);
 }
 .topbar__avatar-panel {
   position: absolute;
@@ -732,6 +844,18 @@
 .topbar__avatar-panel a:hover,
 .topbar__avatar-panel button:hover {
   background: var(--surface-2);
+  color: var(--text-primary);
+}
+/* Which account type is signed in (super_admin/admin/moderator/editor/supplier/saler/customer) —
+   shown inside the avatar dropdown panel, plus as a hover tooltip on the avatar itself. */
+.topbar__avatar-panel-header {
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-1);
+  border-bottom: var(--border-width) solid var(--border-subtle);
+}
+.topbar__avatar-panel-role {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-lg);
   color: var(--text-primary);
 }
 

@@ -312,7 +312,7 @@ describe('Prompt 10.4 — Digital Warranty & Claims Engine', () => {
           };
         }
 
-        if (sql.includes('SELECT id, full_name, email, phone FROM users')) {
+        if (sql.includes('u.email ILIKE $1')) {
           return {
             rows: [
               { id: 15, full_name: 'Tanvir Ahmed', phone: '01811223344', email: 'tanvir@example.com' },
@@ -366,7 +366,7 @@ describe('Prompt 10.4 — Digital Warranty & Claims Engine', () => {
           return { rows: [{ id: 105, status: 'ESCALATED' }] };
         }
 
-        if (sql.includes('SELECT id FROM users WHERE role IN')) {
+        if (sql.includes('JOIN roles r') && sql.includes("r.key IN")) {
           return { rows: [{ id: 1 }] };
         }
 

@@ -89,7 +89,7 @@ function createMockDb() {
       const q = sql.trim();
 
       // SELECT users WHERE id = $1
-      if (q.includes('FROM users WHERE id = $1')) {
+      if (q.includes('FROM users WHERE id = $1') || (q.includes('FROM users u') && q.includes('u.locale'))) {
         const uId = params[0];
         const found = users.find((u) => u.id === Number(uId));
         return { rows: found ? [found] : [] };

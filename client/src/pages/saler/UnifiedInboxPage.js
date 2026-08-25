@@ -17,7 +17,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 
-export default function UnifiedInboxPage() {
+export default function UnifiedInboxPage(root) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'unified-inbox-page page-container';
@@ -356,5 +356,5 @@ export default function UnifiedInboxPage() {
   });
 
   fetchThreads();
-  return container;
+  root.append(container);
 }

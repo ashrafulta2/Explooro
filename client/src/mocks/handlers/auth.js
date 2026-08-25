@@ -40,24 +40,27 @@ function getPermissionsForRoles(roles = []) {
   return Array.from(set);
 }
 
-function resolveUserByPhone(phone) {
-  const normPhone = phone ? phone.trim() : '';
-  const dev = DEV_USERS[normPhone];
-  if (dev) {
-    return {
-      id: dev.id,
-      ref: dev.ref,
-      phone: normPhone,
-      email: dev.email,
-      name: dev.name,
-      roles: [dev.role],
-    };
+function resolveUserByIdentifier(identifier) {
+  const norm = identifier ? identifier.trim() : '';
+  // Check by phone or email in DEV_USERS
+  for (const [phone, dev] of Object.entries(DEV_USERS)) {
+    if (phone === norm || dev.email.toLowerCase() === norm.toLowerCase()) {
+      return {
+        id: dev.id,
+        ref: dev.ref,
+        phone,
+        email: dev.email,
+        name: dev.name,
+        roles: [dev.role],
+      };
+    }
   }
+  const isEmail = norm.includes('@');
   return {
     id: `usr-mock-${Date.now()}`,
     ref: `USR-MOCK-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
-    phone: normPhone || '+8801700000007',
-    email: 'user@example.com',
+    phone: isEmail ? null : (norm || '+8801700000007'),
+    email: isEmail ? norm : 'user@example.com',
     name: 'Mock User',
     roles: ['customer'],
   };
@@ -69,23 +72,23 @@ export default [
     method: 'POST',
     path: '/auth/login',
     handler({ body }) {
-      const phone = body?.phone?.trim();
+      const identifier = body?.identifier || body?.email || body?.phone?.trim();
       const password = body?.password;
 
-      if (!phone || !password) {
+      if (!identifier || !password) {
         return {
           status: 400,
           body: {
             error: {
               code: 'VALIDATION_ERROR',
-              message_en: 'Phone and password are required.',
-              message_bn: 'মোবাইল নম্বর এবং পাসওয়ার্ড আবশ্যক।',
+              message_en: 'Credentials and password are required.',
+              message_bn: 'মোবাইল নম্বর/ইমেইল এবং পাসওয়ার্ড আবশ্যক।',
             },
           },
         };
       }
 
-      const user = resolveUserByPhone(phone);
+      const user = resolveUserByIdentifier(identifier);
       currentMockUser = user;
       const accessToken = createMockJwt(user);
 
@@ -168,12 +171,14 @@ export default [
     method: 'POST',
     path: '/auth/send-otp',
     handler({ body }) {
+      const target = body?.email || body?.phone;
       return {
         status: 200,
         body: {
           data: {
             phone: body?.phone,
-            message: 'OTP sent to mobile number (use 123456 in dev)',
+            email: body?.email,
+            message: `OTP sent to ${target} (use 123456 in dev)`,
             expires_in: 300,
           },
         },
@@ -186,10 +191,21 @@ export default [
     method: 'POST',
     path: '/auth/verify-otp',
     handler({ body }) {
-      const phone = body?.phone?.trim();
-      const user = resolveUserByPhone(phone);
+      const identifier = body?.email || body?.phone?.trim();
+      const user = resolveUserByIdentifier(identifier);
       currentMockUser = user;
       const accessToken = createMockJwt(user);
+
+      if (body?.purpose === 'REGISTER') {
+        return {
+          status: 200,
+          body: {
+            data: {
+              verified: true,
+            },
+          },
+        };
+      }
 
       return {
         status: 200,
@@ -208,15 +224,16 @@ export default [
     method: 'POST',
     path: '/auth/register',
     handler({ body }) {
-      const phone = body?.phone?.trim() || '+8801700000007';
+      const phone = body?.phone?.trim() || null;
+      const email = body?.email?.trim() || (phone ? null : 'user@explooro.local');
       const role = body?.role || 'customer';
-      const name = body?.name || 'New User';
+      const name = body?.full_name || body?.name || 'New User';
 
       const user = {
         id: `usr-${Date.now()}`,
         ref: `USR-REG-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
         phone,
-        email: `${role}@explooro.local`,
+        email: email || `${role}@explooro.local`,
         name,
         roles: [role],
       };

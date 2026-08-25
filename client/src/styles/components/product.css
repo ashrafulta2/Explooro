@@ -519,11 +519,6 @@
 .product-card__action-btn:hover { background: var(--brand-500); border-color: var(--brand-600); }
 .product-card__action-btn:active { transform: scale(0.97); }
 
-.product-card__action-btn--add-to-store {
-  background: var(--success-700);
-}
-.product-card__action-btn--add-to-store:hover { background: var(--success-800); }
-
 /* Skeleton mirror — same shape as the real card, prevents CLS on load */
 .skeleton--product-card {
   display: flex;

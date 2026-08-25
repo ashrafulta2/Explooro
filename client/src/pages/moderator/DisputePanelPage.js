@@ -16,7 +16,7 @@ import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { EvidenceTimeline } from '../../components/dispute/EvidenceTimeline.js';
 
-export default function DisputePanelPage() {
+export default function DisputePanelPage(root) {
   const container = document.createElement('div');
   container.className = 'page-container dispute-panel-page';
 
@@ -562,5 +562,5 @@ export default function DisputePanelPage() {
   }
 
   fetchDisputes();
-  return container;
+  root.append(container);
 }

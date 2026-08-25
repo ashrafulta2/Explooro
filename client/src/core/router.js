@@ -138,8 +138,17 @@ export function createRouter({
 
     root.replaceChildren();
     const mod = await route.load();
-    const cleanup = mod.default(root, { params, query, navigate });
-    current = { cleanup, key };
+    if (typeof mod.default !== 'function') {
+      throw new Error(
+        `Route "${route.path}" loaded a module with no callable default export. A page module must ` +
+          'default-export `(container, ctx) => cleanup?` — see the "Page module contract" note above.'
+      );
+    }
+    const result = mod.default(root, { params, query, navigate });
+    // WHY: a page that returns something else (an element it built but never mounted, a promise)
+    // used to be stored as `cleanup` and then *called* on the next navigation — throwing mid-render
+    // and wedging the router for the rest of the session. Only a function is a cleanup.
+    current = { cleanup: typeof result === 'function' ? result : null, key };
 
     if (!preserveScroll) window.scrollTo(0, isPopstate ? scrollPositions.get(key) ?? 0 : 0);
   }

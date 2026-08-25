@@ -28,6 +28,10 @@
 5. **Depth limit: 3 levels.** `Group → Page → Detail`. A fourth level means the grouping is wrong.
 6. **Nav config is data, not markup.** `client/src/config/navigation.js` is an array of objects.
    Adding a feature later means adding one object, never editing a component.
+7. **Preserve sidebar scroll position across chrome re-renders.** `AppShell.js` rebuilds the sidebar
+   DOM on route changes, state changes, and language switches. The container's `scrollTop` must be
+   captured and restored immediately so clicking items in long navigation trees never resets the
+   scroll position to the top.
 
 ---
 

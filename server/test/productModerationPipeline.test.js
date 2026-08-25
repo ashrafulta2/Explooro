@@ -203,7 +203,7 @@ function createMockDb() {
       }
 
       // SELECT moderation_queue FOR UPDATE or single item
-      if (q.includes('FROM moderation_queue') && q.includes('WHERE id = $1')) {
+      if (q.includes('FROM moderation_queue') && (q.includes('WHERE id = $1') || q.includes('WHERE q.id = $1'))) {
         const queueId = params[0];
         const item = moderationQueue.find((i) => i.id === Number(queueId));
         if (!item) return { rows: [] };

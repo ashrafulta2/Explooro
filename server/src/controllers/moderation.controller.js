@@ -32,12 +32,13 @@ export async function getItemById(req, reply) {
   // Find single item
   const { rows } = await req.server.db.query(
     `SELECT q.*,
-            u.full_name AS submitter_name, u.email AS submitter_email, u.role AS submitter_role,
+            u.full_name AS submitter_name, usr.email AS submitter_email,
             cu.full_name AS claimed_by_name, du.full_name AS decided_by_name
      FROM moderation_queue q
-     JOIN users u ON u.id = q.submitted_by
-     LEFT JOIN users cu ON cu.id = q.claimed_by
-     LEFT JOIN users du ON du.id = q.decided_by
+     JOIN users usr ON usr.id = q.submitted_by
+     LEFT JOIN user_profiles u ON u.user_id = q.submitted_by
+     LEFT JOIN user_profiles cu ON cu.user_id = q.claimed_by
+     LEFT JOIN user_profiles du ON du.user_id = q.decided_by
      WHERE q.id = $1`,
     [queueId]
   );

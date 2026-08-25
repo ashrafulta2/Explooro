@@ -5,11 +5,14 @@
 import * as userController from '../controllers/user.controller.js';
 
 export default async function userRoutes(app) {
+  const auth = app.authenticate || (async () => {});
+  const reqPerm = (perm) => (app.requirePermission ? app.requirePermission(perm) : async () => {});
+
   // GET /api/v1/admin/users — List & search users
   app.get(
     '/admin/users',
     {
-      preHandler: [app.requirePermission('users.account.view')],
+      preHandler: [auth, reqPerm('users.account.view')],
     },
     userController.listUsers
   );
@@ -18,7 +21,7 @@ export default async function userRoutes(app) {
   app.get(
     '/admin/users/:id',
     {
-      preHandler: [app.requirePermission('users.account.view')],
+      preHandler: [auth, reqPerm('users.account.view')],
     },
     userController.getUserDetail
   );
@@ -27,7 +30,7 @@ export default async function userRoutes(app) {
   app.get(
     '/admin/users/:id/permissions',
     {
-      preHandler: [app.requirePermission('users.account.view')],
+      preHandler: [auth, reqPerm('users.account.view')],
     },
     userController.getUserPermissions
   );
@@ -36,7 +39,7 @@ export default async function userRoutes(app) {
   app.get(
     '/admin/roles-permissions',
     {
-      preHandler: [app.requirePermission('staff.role.assign')],
+      preHandler: [auth, reqPerm('staff.role.assign')],
     },
     userController.getRolesPermissions
   );

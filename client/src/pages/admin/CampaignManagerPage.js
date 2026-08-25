@@ -14,7 +14,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 
-export default class CampaignManagerPage {
+export class CampaignManagerPage {
   constructor() {
     this.activeTab = 'flash_sales'; // 'flash_sales' | 'coupons'
     this.flashSales = [];
@@ -672,4 +672,13 @@ export default class CampaignManagerPage {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+}
+
+// WHY: this page is written as a class, but the router's page contract (core/router.js) is a plain
+// function `(container, ctx) => cleanup?`. Calling a class without `new` throws, so the default
+// export adapts the two — `mount()` is fire-and-forget async, and `unmount()` becomes the cleanup.
+export default function mountCampaignManagerPage(root) {
+  const page = new CampaignManagerPage();
+  page.mount(root);
+  return () => page.unmount();
 }

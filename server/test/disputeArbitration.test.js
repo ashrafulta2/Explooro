@@ -302,7 +302,7 @@ function createMockDb() {
       }
 
       // SELECT dispute messages
-      if (q.includes('FROM dispute_messages m') && q.includes('JOIN users u')) {
+      if (q.includes('FROM dispute_messages m')) {
         const dId = params[0];
         let msgs = disputeMessages.filter((m) => m.dispute_id === dId);
         if (q.includes('is_internal_note = false')) {

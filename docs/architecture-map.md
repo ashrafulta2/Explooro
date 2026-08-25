@@ -195,6 +195,7 @@ The 35 most likely change requests, with exact paths.
 | Symptom | Start here |
 | :--- | :--- |
 | "It broke" | Get the `trace_id` from the response, grep the logs. One id links request → error → audit row |
+| Sidebar jumps to top on click | `AppShell.js` `render()` — verify `oldSidebar.scrollTop` is preserved and applied to `newSidebar.scrollTop` |
 | Payout failed | `payout_requests.failure_reason` → `payment_transactions.raw_response` → `docs/runbook.md` |
 | Ledger doesn't balance | `GET /api/v1/admin/finance/integrity` → `erd.md` §12 |
 | A user can't access something | `GET /api/v1/me/permissions` (`sources` + `whyDenied`) |

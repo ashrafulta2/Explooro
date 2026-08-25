@@ -263,14 +263,20 @@ export async function executeCheckout(pool, cache, {
         if (!otpCode) {
           // Trigger SMS OTP send
           try {
-            await otpService.sendOtp(client, cache, async () => {}, {
+            // WHY the explicit `null`: sendOtp's signature is
+            // (db, cache, smsSender, emailSender, options). This call was still passing the options
+            // object in the emailSender slot, so destructuring `undefined` threw on every COD gate —
+            // and the catch below swallowed it, so the OTP was never created or sent.
+            await otpService.sendOtp(client, cache, async () => {}, null, {
               phone: cleanPhone,
               purpose: 'COD_CONFIRM',
               ip: '127.0.0.1',
               isDevelopment: true,
             });
-          } catch {
-            // In case of mock or test environments, continue to raise gate
+          } catch (err) {
+            // Mock/test senders may fail; the gate below is raised regardless. Surface the cause so
+            // a broken send is not indistinguishable from a working one.
+            client.log?.warn?.({ err }, 'COD OTP dispatch failed');
           }
 
           throw new AppError(

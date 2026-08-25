@@ -1,0 +1,79 @@
+{
+  "name": "Explooro — Bangladesh's #1 Social Commerce Platform",
+  "short_name": "Explooro",
+  "description": "Buy from verified suppliers with zero-markup wholesale sourcing. Sell from your own branded store with zero upfront capital.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fbfdfe",
+  "theme_color": "#d372ad",
+  "lang": "en-BD",
+  "dir": "ltr",
+  "categories": ["shopping", "business", "social"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Wholesale Sourcing",
+      "short_name": "Sourcing",
+      "description": "Browse verified manufacturer wholesale catalog",
+      "url": "/products",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Shopping Cart",
+      "short_name": "Cart",
+      "description": "View items in your bag & checkout with COD / bKash",
+      "url": "/cart",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Creator Stories",
+      "short_name": "Stories",
+      "description": "Watch artisan stories & shoppable reels",
+      "url": "/stories",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "My Account",
+      "short_name": "Account",
+      "description": "Track active deliveries, warranties & rewards",
+      "url": "/account",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-banner.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Explooro Social Commerce Marketplace"
+    }
+  ]
+}

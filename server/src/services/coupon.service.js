@@ -347,11 +347,11 @@ export async function redeemCouponInTransaction(client, {
 export async function listCoupons(db, { scopeType, fundedBy, isActive, limit = 50, offset = 0 } = {}) {
   let query = `
     SELECT c.*,
-           u.display_name_en as creator_name,
-           fu.display_name_en as funder_name
+           u.display_name as creator_name,
+           fu.display_name as funder_name
     FROM coupons c
-    LEFT JOIN users u ON u.id = c.created_by
-    LEFT JOIN users fu ON fu.id = c.funded_by_user_id
+    LEFT JOIN user_profiles u ON u.user_id = c.created_by
+    LEFT JOIN user_profiles fu ON fu.user_id = c.funded_by_user_id
     WHERE 1=1
   `;
   const params = [];

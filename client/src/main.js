@@ -117,6 +117,7 @@ async function bootRouterDemo() {
         item.path !== '/saler/creative-studio' &&
         item.path !== '/admin/platform/modules' &&
         item.path !== '/admin/users' &&
+        item.path !== '/admin/staff' &&
         item.path !== '/admin/roles' &&
         item.path !== '/admin/grants' &&
         item.path !== '/admin/approvals' &&
@@ -145,9 +146,36 @@ async function bootRouterDemo() {
         item.path !== '/saler/cart-insights' &&
         item.path !== '/warranties' &&
         item.path !== '/account/warranties' &&
-        item.path !== '/customer/warranties' &&
         item.path !== '/supplier/claims' &&
-        item.path !== '/supplier/warranty-claims'
+        item.path !== '/saler/bundles' &&
+        item.path !== '/supplier/b2b-escrow' &&
+        item.path !== '/saler/b2b-escrow' &&
+        item.path !== '/admin/platform/api-keys' &&
+        item.path !== '/admin/api-keys' &&
+        item.path !== '/stories' &&
+        item.path !== '/reels' &&
+        item.path !== '/academy' &&
+        item.path !== '/editor' &&
+        item.path !== '/editor/translations' &&
+        item.path !== '/supplier' &&
+        item.path !== '/supplier/inventory' &&
+        item.path !== '/supplier/batches' &&
+        item.path !== '/supplier/warehouses' &&
+        item.path !== '/supplier/fulfilment' &&
+        item.path !== '/supplier/resellers' &&
+        item.path !== '/saler' &&
+        item.path !== '/saler/analytics' &&
+        item.path !== '/account' &&
+        item.path !== '/customer' &&
+        item.path !== '/account/orders' &&
+        item.path !== '/account/following' &&
+        item.path !== '/account/become-saler' &&
+        item.path !== '/admin' &&
+        item.path !== '/admin/dashboard' &&
+        item.path !== '/admin/health' &&
+        item.path !== '/admin/system/health' &&
+        item.path !== '/admin/restrictions' &&
+        item.path !== '/admin/users/restrictions'
     )
     .map((item) => ({
       path: item.path,
@@ -179,14 +207,6 @@ async function bootRouterDemo() {
       { path: '/saler/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.js') },
       { path: '/supplier/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.js') },
       { path: '/moderator/live', title: 'Live Moderation — Explooro', requiresAuth: true, permission: 'moderation.live.handle', module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
-      {
-        path: '/saler',
-        title: 'Saler Dashboard — Explooro',
-        requiresAuth: true,
-        permission: 'saler.dashboard.view',
-        module: 'core',
-        load: () => import('./pages/dev/SalerDashboardStub.js'),
-      },
       // Prompt 4.7: Saler Sourcing Catalog & Profit Calculator
       {
         path: '/saler/sourcing',
@@ -246,6 +266,136 @@ async function bootRouterDemo() {
         module: 'digital_warranty',
         load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
       },
+      // Prompt 10.5: Cross-Seller Bundling & Demand Surge Pricing
+      {
+        path: '/saler/bundles',
+        title: 'Bundle Studio — Explooro',
+        requiresAuth: true,
+        permission: 'saler.bundle.manage',
+        module: 'product_bundling',
+        load: () => import('./pages/saler/BundleStudioPage.js'),
+      },
+      // Prompt 10.6: B2B Wholesale Escrow & Milestone Settlement
+      {
+        path: '/supplier/b2b-escrow',
+        title: 'B2B Wholesale Escrow — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'b2b_escrow',
+        load: () => import('./pages/supplier/B2bEscrowPage.js'),
+      },
+      {
+        path: '/saler/b2b-escrow',
+        title: 'B2B Wholesale Escrow — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'b2b_escrow',
+        load: () => import('./pages/supplier/B2bEscrowPage.js'),
+      },
+      // Prompt 10.7: Open Marketplace API, Webhooks & Developer SDK
+      {
+        path: '/admin/platform/api-keys',
+        title: 'Developer Portal & API Keys — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'open_api',
+        load: () => import('./pages/admin/ApiKeysPage.js'),
+      },
+      {
+        path: '/admin/api-keys',
+        title: 'Developer Portal & API Keys — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'open_api',
+        load: () => import('./pages/admin/ApiKeysPage.js'),
+      },
+      // Prompt 10.8: Content Commerce, Reels, Academy & Editor Dashboard
+      {
+        path: '/stories',
+        title: 'Stories & UGC Feed — Explooro',
+        permission: null,
+        module: 'content_commerce',
+        load: () => import('./pages/StoriesFeedPage.js'),
+      },
+      {
+        path: '/reels',
+        title: 'Shoppable Video Reels — Explooro',
+        permission: null,
+        module: 'content_commerce',
+        load: () => import('./pages/ReelsPage.js'),
+      },
+      {
+        path: '/academy',
+        title: 'Seller Academy — Explooro',
+        permission: null,
+        module: 'seller_academy',
+        load: () => import('./pages/AcademyPage.js'),
+      },
+      {
+        path: '/editor',
+        title: 'Editor Dashboard — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/editor/EditorDashboardPage.js'),
+      },
+      {
+        path: '/editor/translations',
+        title: 'Localization & Translations — Explooro',
+        requiresAuth: true,
+        permission: 'content.i18n.update',
+        module: 'i18n',
+        load: () => import('./pages/editor/TranslationManagerPage.js'),
+      },
+      // Prompt 11.1: Supplier / Manufacturer Dashboard & Operational Pages
+      {
+        path: '/supplier',
+        title: 'Supplier Dashboard — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.dashboard.view',
+        module: 'core',
+        load: () => import('./pages/supplier/SupplierDashboardPage.js'),
+      },
+      {
+        path: '/supplier/inventory',
+        title: 'Live Stock & Inventory — Explooro',
+        requiresAuth: true,
+        permission: 'catalog.inventory.manage',
+        module: 'core',
+        load: () => import('./pages/supplier/InventoryPage.js'),
+      },
+      {
+        path: '/supplier/batches',
+        title: 'FEFO Batch Manager — Explooro',
+        requiresAuth: true,
+        permission: 'catalog.batch.manage',
+        module: 'fefo_batches',
+        load: () => import('./pages/supplier/BatchManagerPage.js'),
+      },
+      {
+        path: '/supplier/warehouses',
+        title: 'Multi-Location Warehouses — Explooro',
+        requiresAuth: true,
+        permission: 'catalog.warehouse.manage',
+        module: 'multi_warehouse',
+        load: () => import('./pages/supplier/WarehousePage.js'),
+      },
+      {
+        path: '/supplier/fulfilment',
+        title: 'Fulfilment Queue & Labels — Explooro',
+        requiresAuth: true,
+        permission: 'logistics.consignment.create',
+        module: 'courier_hub',
+        load: () => import('./pages/supplier/FulfilmentPage.js'),
+      },
+      {
+        path: '/supplier/resellers',
+        title: 'Reseller Network Insights — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.analytics.view',
+        module: 'core',
+        load: () => import('./pages/supplier/ResellerInsightsPage.js'),
+      },
       // Prompt 4.8: Saler Virtual Storefront Builder
       {
         path: '/saler/store-builder',
@@ -254,6 +404,100 @@ async function bootRouterDemo() {
         permission: 'saler.store.manage',
         module: 'virtual_storefront',
         load: () => import('./pages/saler/StoreBuilderPage.js'),
+      },
+      // Prompt 11.2: Saler Dashboard & Analytics
+      // WHY this is the only `/saler` entry: a Prompt-3 guard-demo stub (pages/dev/SalerDashboardStub.js)
+      // was also registered at this path, ~200 lines earlier. The router matches first-wins, so the
+      // stub shadowed the real dashboard and every saler landing on /saler saw a permissions demo.
+      {
+        path: '/saler',
+        title: 'Saler Dashboard — Explooro',
+        requiresAuth: true,
+        permission: 'saler.dashboard.view',
+        module: 'core',
+        load: () => import('./pages/saler/SalerDashboardPage.js'),
+      },
+      {
+        path: '/saler/analytics',
+        title: 'Sales & Profit Analytics — Explooro',
+        requiresAuth: true,
+        permission: 'saler.order.view',
+        module: 'core',
+        load: () => import('./pages/saler/AnalyticsPage.js'),
+      },
+      // Prompt 11.3: Customer Portal, Orders & Following Feed
+      {
+        path: '/account',
+        title: 'My Account — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/customer/CustomerDashboardPage.js'),
+      },
+      {
+        path: '/customer',
+        title: 'Customer Dashboard — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/customer/CustomerDashboardPage.js'),
+      },
+      {
+        path: '/account/orders',
+        title: 'My Orders & Tracking — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/customer/OrdersPage.js'),
+      },
+      {
+        path: '/account/following',
+        title: 'Followed Stores Feed — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'follow_feed',
+        load: () => import('./pages/customer/FollowingFeedPage.js'),
+      },
+      {
+        path: '/account/become-saler',
+        title: '1-Click Saler Upgrade — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'virtual_storefront',
+        load: () => import('./pages/customer/CustomerDashboardPage.js'),
+      },
+      // Prompt 11.4: Super Admin Executive Dashboard & System Health
+      {
+        path: '/admin',
+        title: 'Executive Analytics — Explooro Admin',
+        requiresAuth: true,
+        permission: 'admin.dashboard.view',
+        module: 'core',
+        load: () => import('./pages/admin/AdminDashboardPage.js'),
+      },
+      {
+        path: '/admin/dashboard',
+        title: 'Executive Analytics — Explooro Admin',
+        requiresAuth: true,
+        permission: 'admin.dashboard.view',
+        module: 'core',
+        load: () => import('./pages/admin/AdminDashboardPage.js'),
+      },
+      {
+        path: '/admin/health',
+        title: 'System Health & Diagnostics — Explooro Admin',
+        requiresAuth: true,
+        permission: 'system.health.view',
+        module: 'core',
+        load: () => import('./pages/admin/SystemHealthPage.js'),
+      },
+      {
+        path: '/admin/system/health',
+        title: 'System Health & Diagnostics — Explooro Admin',
+        requiresAuth: true,
+        permission: 'system.health.view',
+        module: 'core',
+        load: () => import('./pages/admin/SystemHealthPage.js'),
       },
       // Prompt 2.8: Real Auth Pages
       { path: '/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.js') },
@@ -296,6 +540,14 @@ async function bootRouterDemo() {
         load: () => import('./pages/admin/UserDetailPage.js'),
       },
       {
+        path: '/admin/staff',
+        title: 'Staff Management — Explooro',
+        requiresAuth: true,
+        permission: 'staff.account.view',
+        module: 'core',
+        load: () => import('./pages/admin/StaffPage.js'),
+      },
+      {
         path: '/admin/roles',
         title: 'Roles & Permissions — Explooro',
         requiresAuth: true,
@@ -318,6 +570,22 @@ async function bootRouterDemo() {
         permission: 'admin.approval.decide',
         module: 'core',
         load: () => import('./pages/admin/ApprovalInboxPage.js'),
+      },
+      {
+        path: '/admin/restrictions',
+        title: 'User Restrictions & Sanctions — Explooro',
+        requiresAuth: true,
+        permission: 'users.restriction.manage',
+        module: 'core',
+        load: () => import('./pages/admin/RestrictionsPage.js'),
+      },
+      {
+        path: '/admin/users/restrictions',
+        title: 'User Restrictions & Sanctions — Explooro',
+        requiresAuth: true,
+        permission: 'users.restriction.manage',
+        module: 'core',
+        load: () => import('./pages/admin/RestrictionsPage.js'),
       },
       // Prompt 3.4: Audit Explorer
       {
@@ -441,7 +709,7 @@ async function bootRouterDemo() {
         path: '/admin/returns',
         title: 'Returns Moderation Queue — Explooro',
         requiresAuth: true,
-        permission: 'orders.return.manage',
+        permission: 'orders.return.review',
         module: 'returns_engine',
         load: () => import('./pages/admin/ReturnsQueuePage.js'),
       },
@@ -449,7 +717,7 @@ async function bootRouterDemo() {
         path: '/admin/returns/queue',
         title: 'Returns Moderation Queue — Explooro',
         requiresAuth: true,
-        permission: 'orders.return.manage',
+        permission: 'orders.return.review',
         module: 'returns_engine',
         load: () => import('./pages/admin/ReturnsQueuePage.js'),
       },
@@ -730,6 +998,15 @@ if (import.meta.env.DEV) {
     initA11yAudit();
   });
 }
+
+// Prompt 11.6: PWA, Service Worker, Offline Resilience & Install Prompt
+import { registerServiceWorker } from './sw.js';
+import { initOfflineBanner } from './services/offlineQueue.js';
+import { initPwaInstallPrompt } from './components/pwa/PwaInstallPrompt.js';
+
+registerServiceWorker();
+initOfflineBanner();
+initPwaInstallPrompt();
 
 // Re-check on HMR so the panel stays truthful while the server restarts under --watch.
 if (import.meta.hot) {

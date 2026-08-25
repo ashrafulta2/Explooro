@@ -81,16 +81,26 @@ function createMockDb() {
     async query(sql, params = []) {
       const q = sql.trim();
 
-      // SELECT users WHERE phone = $1
-      if (q.includes('FROM users WHERE phone = $1')) {
+      // SELECT users (+ profile name) WHERE u.phone = $1
+      if (q.includes('FROM users u') && q.includes('WHERE u.phone = $1')) {
         const ph = params[0];
         const found = users.filter((u) => u.phone === ph);
         return { rows: found };
       }
 
       // INSERT INTO users
+      if (q.startsWith('INSERT INTO user_profiles')) {
+        const u = users.find((x) => x.id === Number(params[0]));
+        if (u) u.full_name = params[1];
+        return { rows: [] };
+      }
+
+      if (q.startsWith('INSERT INTO user_roles')) {
+        return { rows: [] };
+      }
+
       if (q.startsWith('INSERT INTO users')) {
-        const u = { id: nextUserId++, phone: params[0], full_name: params[1], role: 'customer' };
+        const u = { id: nextUserId++, ref: params[0], phone: params[1], full_name: null };
         users.push(u);
         return { rows: [u] };
       }

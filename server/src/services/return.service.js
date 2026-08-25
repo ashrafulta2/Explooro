@@ -454,10 +454,11 @@ export async function getReturnDetails(db, returnRequestIdOrRef, { customerId = 
 
   let query = `
     SELECT r.*, s.ref AS sub_order_ref, s.total_amount AS sub_order_total, s.status AS sub_order_status,
-           u.full_name AS customer_name, u.phone AS customer_phone
+           up.full_name AS customer_name, u.phone AS customer_phone
     FROM return_requests r
     JOIN sub_orders s ON s.id = r.sub_order_id
     JOIN users u ON u.id = r.customer_id
+    LEFT JOIN user_profiles up ON up.user_id = r.customer_id
     WHERE (r.id = $1 OR r.ref = $2)
   `;
   const params = [parseInt(returnRequestIdOrRef, 10) || 0, String(returnRequestIdOrRef)];
@@ -497,11 +498,12 @@ export async function getAdminReturnsQueue(db, { status = null, limit = 50, offs
 
   let query = `
     SELECT r.*, s.ref AS sub_order_ref, s.total_amount AS sub_order_total,
-           u.full_name AS customer_name, u.phone AS customer_phone,
+           up.full_name AS customer_name, u.phone AS customer_phone,
            ts.score AS customer_trust_score, ts.tier AS customer_trust_tier, ts.return_rate AS customer_return_rate
     FROM return_requests r
     JOIN sub_orders s ON s.id = r.sub_order_id
     JOIN users u ON u.id = r.customer_id
+    LEFT JOIN user_profiles up ON up.user_id = r.customer_id
     LEFT JOIN trust_scores ts ON ts.user_id = r.customer_id
   `;
   const params = [];

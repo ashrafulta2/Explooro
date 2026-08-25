@@ -21,7 +21,7 @@ import { toast } from '../services/toast.js';
 import { t } from '../services/i18n.js';
 import { Button } from '../components/ui/Button.js';
 
-export default function CheckoutPage({ navigate }) {
+export default function CheckoutPage(root, { navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'checkout-page container';
 
@@ -43,17 +43,20 @@ export default function CheckoutPage({ navigate }) {
   `;
   container.append(offlineBanner);
 
-  // Connectivity event listeners
-  window.addEventListener('online', () => {
+  // Connectivity event listeners. Named so the router's cleanup can unbind them — they live on
+  // `window`, so leaving them attached would fire toasts long after checkout is gone.
+  const handleOnline = () => {
     isOnline = true;
     offlineBanner.classList.add('hidden');
     toast.success(t('checkout.online_restored_toast'));
-  });
-  window.addEventListener('offline', () => {
+  };
+  const handleOffline = () => {
     isOnline = false;
     offlineBanner.classList.remove('hidden');
     toast.warn(t('checkout.offline_toast'));
-  });
+  };
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
 
   // Page Header
   const header = document.createElement('div');
@@ -376,5 +379,10 @@ export default function CheckoutPage({ navigate }) {
   }
 
   loadCartData();
-  return container;
+  root.append(container);
+
+  return () => {
+    window.removeEventListener('online', handleOnline);
+    window.removeEventListener('offline', handleOffline);
+  };
 }

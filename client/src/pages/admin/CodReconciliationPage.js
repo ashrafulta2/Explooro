@@ -13,7 +13,7 @@ import { formatCurrency, formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 
-export function CodReconciliationPage() {
+export default function CodReconciliationPage(root) {
   const container = document.createElement('div');
   container.className = 'page cod-recon-page';
 
@@ -38,8 +38,8 @@ export function CodReconciliationPage() {
       params.set('limit', '50');
 
       const [reconRes, agingRes] = await Promise.all([
-        api.get(`/api/v1/admin/finance/cod?${params.toString()}`).catch(() => ({ data: { reconciliations: [] } })),
-        api.get('/api/v1/admin/finance/cod/aging').catch(() => ({ data: null })),
+        api.get(`/admin/finance/cod?${params.toString()}`).catch(() => ({ data: { reconciliations: [] } })),
+        api.get('/admin/finance/cod/aging').catch(() => ({ data: null })),
       ]);
 
       reconciliations = reconRes.data?.reconciliations || [];
@@ -80,7 +80,7 @@ export function CodReconciliationPage() {
     if (!reason) return;
 
     try {
-      const res = await api.post(`/api/v1/admin/finance/cod/${item.id}/resolve`, {
+      const res = await api.post(`/admin/finance/cod/${item.id}/resolve`, {
         resolution_reason: reason.trim(),
       });
 
@@ -105,7 +105,7 @@ export function CodReconciliationPage() {
     render();
 
     try {
-      const res = await api.post('/api/v1/admin/finance/cod/upload', {
+      const res = await api.post('/admin/finance/cod/upload', {
         courier: uploadCourier,
         csv_content: csvText.trim(),
       });
@@ -351,5 +351,5 @@ export function CodReconciliationPage() {
   }
 
   loadData();
-  return container;
+  root.append(container);
 }

@@ -7,8 +7,25 @@
  */
 
 export async function findUserByPhone(db, phone) {
+  if (!phone) return null;
   const { rows } = await db.query('SELECT * FROM users WHERE phone = $1 AND deleted_at IS NULL', [phone]);
   return rows[0] ?? null;
+}
+
+export async function findUserByEmail(db, email) {
+  if (!email) return null;
+  const { rows } = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1) AND deleted_at IS NULL', [email]);
+  return rows[0] ?? null;
+}
+
+export async function findUserByIdentifier(db, identifier) {
+  if (!identifier) return null;
+  const trimmed = identifier.trim();
+  const isEmail = trimmed.includes('@');
+  if (isEmail) {
+    return findUserByEmail(db, trimmed);
+  }
+  return findUserByPhone(db, trimmed);
 }
 
 export async function findUserById(db, id) {
@@ -16,11 +33,11 @@ export async function findUserById(db, id) {
   return rows[0] ?? null;
 }
 
-export async function createUser(db, { ref, phone, email = null, passwordHash = null, isPhoneVerified = false }) {
+export async function createUser(db, { ref, phone = null, email = null, passwordHash = null, isPhoneVerified = false, isEmailVerified = false }) {
   const { rows } = await db.query(
-    `INSERT INTO users (ref, phone, email, password_hash, is_phone_verified)
-     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [ref, phone, email, passwordHash, isPhoneVerified]
+    `INSERT INTO users (ref, phone, email, password_hash, is_phone_verified, is_email_verified)
+     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [ref, phone, email, passwordHash, isPhoneVerified, isEmailVerified]
   );
   return rows[0];
 }
@@ -35,6 +52,10 @@ export async function createUserProfile(db, { userId, fullName = null }) {
 
 export async function markPhoneVerified(db, userId) {
   await db.query('UPDATE users SET is_phone_verified = true WHERE id = $1', [userId]);
+}
+
+export async function markEmailVerified(db, userId) {
+  await db.query('UPDATE users SET is_email_verified = true WHERE id = $1', [userId]);
 }
 
 export async function updateLastLogin(db, userId) {
@@ -88,6 +109,28 @@ export async function getSessionById(db, id) {
   return rows[0] ?? null;
 }
 
+/**
+ * Session lookup that also carries the identity fields every authenticated request needs.
+ *
+ * WHY this exists alongside `getSessionById`: `authenticate.js` already pays for one session query
+ * per request, and callers downstream (chat tickets, live-stream tokens, in-stream orders) need the
+ * user's display name and phone. Folding them into the existing round trip keeps `req.user` useful
+ * without adding a second query. `getSessionById` keeps its narrower contract for auth.service.js.
+ */
+export async function getSessionWithIdentity(db, id) {
+  const { rows } = await db.query(
+    `SELECT s.*,
+            COALESCE(up.display_name, up.full_name) AS full_name,
+            u.phone AS user_phone
+     FROM sessions s
+     JOIN users u ON u.id = s.user_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     WHERE s.id = $1`,
+    [id]
+  );
+  return rows[0] ?? null;
+}
+
 export async function revokeSession(db, id, reason) {
   await db.query('UPDATE sessions SET revoked_at = now(), revoked_reason = $2 WHERE id = $1', [id, reason]);
 }
@@ -113,15 +156,24 @@ export async function markRefreshTokenUsed(db, id, replacedById) {
   await db.query('UPDATE refresh_tokens SET used_at = now(), replaced_by = $2 WHERE id = $1', [id, replacedById]);
 }
 
-export async function createOtp(db, { phone, codeHash, purpose, expiresAt }) {
+export async function createOtp(db, { phone = null, email = null, codeHash, purpose, expiresAt }) {
   const { rows } = await db.query(
-    `INSERT INTO otp_codes (phone, code_hash, purpose, expires_at) VALUES ($1, $2, $3, $4) RETURNING *`,
-    [phone, codeHash, purpose, expiresAt]
+    `INSERT INTO otp_codes (phone, email, code_hash, purpose, expires_at) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [phone, email ? email.toLowerCase().trim() : null, codeHash, purpose, expiresAt]
   );
   return rows[0];
 }
 
-export async function getLatestActiveOtp(db, { phone, purpose }) {
+export async function getLatestActiveOtp(db, { phone = null, email = null, purpose }) {
+  if (email) {
+    const { rows } = await db.query(
+      `SELECT * FROM otp_codes
+       WHERE LOWER(email) = LOWER($1) AND purpose = $2 AND consumed_at IS NULL AND expires_at > now()
+       ORDER BY created_at DESC LIMIT 1`,
+      [email.trim(), purpose]
+    );
+    return rows[0] ?? null;
+  }
   const { rows } = await db.query(
     `SELECT * FROM otp_codes
      WHERE phone = $1 AND purpose = $2 AND consumed_at IS NULL AND expires_at > now()

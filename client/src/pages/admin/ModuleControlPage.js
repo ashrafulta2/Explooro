@@ -28,7 +28,7 @@ const GROUP_ORDER = [
   { key: 'system', icon: '⚙️', label_en: 'System', label_bn: 'সিস্টেম' },
 ];
 
-export default function ModuleControlPage() {
+export default function ModuleControlPage(root) {
   const container = document.createElement('div');
   container.className = 'module-control';
 
@@ -397,7 +397,7 @@ export default function ModuleControlPage() {
 
   loadModules();
 
-  return container;
+  root.append(container);
 }
 
 /** docs/ai-strategy.md §6 — current-month AI spend vs. the admin-editable monthly cap. */

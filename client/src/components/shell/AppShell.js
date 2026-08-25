@@ -76,6 +76,8 @@ export function createAppShell({ container, navigate }) {
     shellEl.dataset.hasChrome = 'true';
     const ctx = currentCtx();
     const currentPath = window.location.pathname;
+    const oldSidebar = sidebarSlot.querySelector('.sidebar');
+    const sidebarScrollTop = oldSidebar ? oldSidebar.scrollTop : 0;
 
     sidebarSlot.replaceChildren(
       Sidebar({
@@ -88,6 +90,11 @@ export function createAppShell({ container, navigate }) {
         collapsedGroups: s.shell.collapsedGroups,
       })
     );
+
+    const newSidebar = sidebarSlot.querySelector('.sidebar');
+    if (newSidebar && sidebarScrollTop > 0) {
+      newSidebar.scrollTop = sidebarScrollTop;
+    }
     topbarSlot.replaceChildren(
       TopBar({
         role: s.auth.role,
@@ -105,6 +112,33 @@ export function createAppShell({ container, navigate }) {
   appStore.subscribe(render);
   subscribeLang(render);
   render();
+
+  // Scroll-shrink topbar: more content visibility while scrolling, full height restored at the
+  // top. `.is-scrolled` on the shell drives the CSS (shell.css); a ResizeObserver keeps
+  // `--topbar-h` in sync with the topbar's actual (transitioning) rendered height so the sidebar's
+  // sticky offset and the grid row track it smoothly — those can't reference the topbar's box size
+  // directly since it's a CSS-grid sibling, not an ancestor.
+  let scrollTicking = false;
+  function updateScrolledState() {
+    scrollTicking = false;
+    shellEl.classList.toggle('is-scrolled', window.scrollY > 8);
+  }
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (scrollTicking) return;
+      scrollTicking = true;
+      requestAnimationFrame(updateScrolledState);
+    },
+    { passive: true }
+  );
+  updateScrolledState();
+
+  const topbarResizeObserver = new ResizeObserver((entries) => {
+    const height = entries[0]?.contentRect.height;
+    if (height) shellEl.style.setProperty('--topbar-h', `${Math.round(height)}px`);
+  });
+  topbarResizeObserver.observe(topbarSlot);
 
   // ia-sitemap.md §3: "Ctrl+K / Cmd+K anywhere EXCEPT inside a text input."
   function onGlobalKeydown(event) {

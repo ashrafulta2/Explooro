@@ -99,24 +99,46 @@ function buildHeaders(method, path, options) {
   return headers;
 }
 
-async function refreshAccessToken() {
+// WHY single-flight: refresh tokens are single-use and rotating, and the server treats a second
+// presentation of an already-used one as token theft — it revokes the whole session
+// (auth.service.js `refresh_reuse_detected`), which logs the user out for good. A page that fires
+// several requests in parallel produces several simultaneous 401s, so without de-duplication the
+// *second* refresh would kill the session the first one just renewed. Every caller — the 401 retry
+// below and session.js's bootstrap/proactive timer alike — must go through this one promise.
+let refreshInFlight = null;
+
+/**
+ * Renews the access token from the HttpOnly refresh cookie, at most once at a time.
+ * Resolves to the refresh payload (`{ access_token, user, ... }`) on success, `null` on failure.
+ */
+export function refreshSession() {
   // The real refresh endpoint lands in Prompt 2.3 — until then there is nothing to refresh, and
   // 401s in mock mode never happen because no mock handler returns one.
-  if (MODE !== 'live') return false;
-  try {
-    const csrfToken = currentCsrfToken();
-    const res = await fetch(`${BASE}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: csrfToken ? { 'x-csrf-token': csrfToken } : undefined,
-    });
-    if (!res.ok) return false;
-    const parsed = await res.json().catch(() => null);
-    accessToken = parsed?.data?.access_token ?? null;
-    return Boolean(accessToken);
-  } catch {
-    return false;
-  }
+  if (MODE !== 'live') return Promise.resolve(null);
+  if (refreshInFlight) return refreshInFlight;
+
+  refreshInFlight = (async () => {
+    try {
+      const csrfToken = currentCsrfToken();
+      const res = await fetch(`${BASE}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: csrfToken ? { 'x-csrf-token': csrfToken } : undefined,
+      });
+      if (!res.ok) return null;
+      const parsed = await res.json().catch(() => null);
+      const token = parsed?.data?.access_token ?? null;
+      if (!token) return null;
+      accessToken = token;
+      return parsed.data;
+    } catch {
+      return null;
+    } finally {
+      refreshInFlight = null;
+    }
+  })();
+
+  return refreshInFlight;
 }
 
 async function performLive(method, path, { body, query, headers }) {
@@ -136,11 +158,12 @@ async function performLive(method, path, { body, query, headers }) {
   return { status: res.status, body: parsed };
 }
 
-async function performMock(method, path, { body, query }) {
+async function performMock(method, path, { body, query, params }) {
   // Simulated network latency (150–400ms) so loading states are real, not instant, in dev.
   const delay = 150 + Math.random() * 250;
   await new Promise((resolve) => setTimeout(resolve, delay));
-  return handleMockRequest({ method, path, query, body });
+  const q = query || params || {};
+  return handleMockRequest({ method, path, query: q, body });
 }
 
 function handleGlobalCodes(err) {
@@ -170,7 +193,13 @@ async function request(method, path, options = {}, retried = false) {
   }
 
   if (status >= 200 && status < 300) {
-    return { data: body.data ?? null, meta: body.meta ?? {} };
+    // docs/api-contract.md §2 specifies a { data, meta } envelope, but most endpoints still reply
+    // with a bare payload ({ users, total }, { modules }, …). Unwrapping `data` unconditionally
+    // turned every one of those into `null` at the call site — the page mounted, the request
+    // returned 200, and the table rendered empty with nothing logged. So: keep `data` for
+    // enveloped responses, and also spread the raw body so call sites written against the bare
+    // shape keep working. `!== undefined` (not `??`) so an explicit `data: null` stays null.
+    return { ...body, data: body.data !== undefined ? body.data : body, meta: body.meta ?? {} };
   }
 
   const err =
@@ -181,7 +210,7 @@ async function request(method, path, options = {}, retried = false) {
     };
 
   if (status === 401 && err.code === 'AUTH_EXPIRED' && !retried) {
-    const refreshed = await refreshAccessToken();
+    const refreshed = await refreshSession();
     if (refreshed) return request(method, path, options, true);
   }
 

@@ -94,20 +94,46 @@ function IconButton({ icon, label, badgeCount, onClick }) {
   return btn;
 }
 
+// ia-sitemap.md role set — labels sourced from server/src/db/seeds/001_roles_permissions.sql so
+// they stay in sync with the RBAC `roles` table's label_en/label_bn.
+const ROLE_LABEL_KEYS = {
+  super_admin: 'shell.role_names.super_admin',
+  admin: 'shell.role_names.admin',
+  moderator: 'shell.role_names.moderator',
+  editor: 'shell.role_names.editor',
+  supplier: 'shell.role_names.supplier',
+  saler: 'shell.role_names.saler',
+  customer: 'shell.role_names.customer',
+};
+
+function roleLabel(role) {
+  const key = ROLE_LABEL_KEYS[role];
+  return key ? t(key) : role;
+}
+
 function AvatarMenu({ role, onNavigate }) {
   const wrap = document.createElement('div');
   wrap.className = 'topbar__avatar-menu';
+
+  const label = roleLabel(role);
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'topbar__avatar-trigger';
   trigger.textContent = (role ?? '?').slice(0, 1).toUpperCase();
+  trigger.title = label;
   trigger.setAttribute('aria-haspopup', 'true');
   trigger.setAttribute('aria-expanded', 'false');
+  trigger.setAttribute('aria-label', `${t('shell.account_menu')} — ${label}`);
 
   const panel = document.createElement('div');
   panel.className = 'topbar__avatar-panel';
   panel.hidden = true;
+
+  const panelHeader = document.createElement('div');
+  panelHeader.className = 'topbar__avatar-panel-header';
+  panelHeader.innerHTML = `<span class="topbar__avatar-panel-role">${label}</span>`;
+  panel.append(panelHeader);
 
   const settingsLink = document.createElement('a');
   settingsLink.href = '/account/settings';

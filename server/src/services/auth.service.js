@@ -129,19 +129,45 @@ async function completeLogin(db, cache, config, user, { ip, userAgent }) {
 // Mirrors auth.routes.js's SELF_SERVICE_ROLE enum — kept in sync there, not re-validated here.
 const SELF_SERVICE_ROLES = new Set(['customer', 'saler', 'supplier']);
 
-export async function registerUser(db, { phone, password, fullName, role }) {
-  const existing = await userRepo.findUserByPhone(db, phone);
-  if (existing) {
+export async function registerUser(db, { phone, email, password, fullName, role }) {
+  if (!phone && !email) {
     throw new AppError(
-      'CONFLICT',
-      'An account with this phone number already exists.',
-      'এই ফোন নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।'
+      'VALIDATION_ERROR',
+      'Either a mobile number or email address is required to register.',
+      'রেজিস্টার করতে মোবাইল নম্বর বা ইমেইল ঠিকানা আবশ্যক।'
     );
+  }
+
+  if (phone) {
+    const existingPhone = await userRepo.findUserByPhone(db, phone);
+    if (existingPhone) {
+      throw new AppError(
+        'CONFLICT',
+        'An account with this phone number already exists.',
+        'এই ফোন নম্বর দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।'
+      );
+    }
+  }
+
+  if (email) {
+    const existingEmail = await userRepo.findUserByEmail(db, email);
+    if (existingEmail) {
+      throw new AppError(
+        'CONFLICT',
+        'An account with this email address already exists.',
+        'এই ইমেইল ঠিকানা দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট আছে।'
+      );
+    }
   }
 
   const passwordHash = password ? await hashPassword(password) : null;
   const ref = generateRef('USR');
-  const user = await userRepo.createUser(db, { ref, phone, passwordHash });
+  const user = await userRepo.createUser(db, {
+    ref,
+    phone: phone || null,
+    email: email ? email.toLowerCase().trim() : null,
+    passwordHash,
+  });
   await userRepo.createUserProfile(db, { userId: user.id, fullName });
   const roleKey = SELF_SERVICE_ROLES.has(role) ? role : 'customer';
   await userRepo.assignRole(db, { userId: user.id, roleKey });
@@ -151,18 +177,28 @@ export async function registerUser(db, { phone, password, fullName, role }) {
     action: 'auth.register',
     targetType: 'user',
     targetRef: ref,
-    afterJson: { phone, has_password: Boolean(password), role: roleKey },
+    afterJson: {
+      phone: phone || null,
+      email: email ? email.toLowerCase().trim() : null,
+      has_password: Boolean(password),
+      role: roleKey,
+    },
   });
 
   return user;
 }
 
-export async function loginWithPassword(db, cache, config, { phone, password, ip, userAgent }) {
+export async function loginWithPassword(db, cache, config, { phone, email, identifier, password, ip, userAgent }) {
   await checkBucket(cache, `login:ip:${ip}`, 10, 60);
 
-  const user = await userRepo.findUserByPhone(db, phone);
+  const targetIdentifier = identifier || email || phone;
+  let user = null;
+  if (targetIdentifier) {
+    user = await userRepo.findUserByIdentifier(db, targetIdentifier);
+  }
+
   const genericFailure = () =>
-    new AppError('AUTH_INVALID', 'Incorrect phone or password.', 'ভুল ফোন নম্বর বা পাসওয়ার্ড।');
+    new AppError('AUTH_INVALID', 'Incorrect credentials or password.', 'ভুল তথ্য বা পাসওয়ার্ড।');
 
   if (!user || !user.password_hash) {
     throw genericFailure();
@@ -192,10 +228,22 @@ export async function loginWithPassword(db, cache, config, { phone, password, ip
 }
 
 /** Called by the controller after otp.service.verifyOtp succeeds for purpose LOGIN. */
-export async function completeOtpLogin(db, cache, config, phone, { ip, userAgent }) {
-  const user = await userRepo.findUserByPhone(db, phone);
+export async function completeOtpLogin(db, cache, config, identifierOrObj, meta) {
+  const { ip, userAgent } = meta || {};
+  let user = null;
+
+  if (typeof identifierOrObj === 'string') {
+    user = await userRepo.findUserByIdentifier(db, identifierOrObj);
+  } else if (identifierOrObj && typeof identifierOrObj === 'object') {
+    const { phone, email, identifier } = identifierOrObj;
+    const target = identifier || email || phone;
+    if (target) {
+      user = await userRepo.findUserByIdentifier(db, target);
+    }
+  }
+
   if (!user) {
-    throw new AppError('NOT_FOUND', 'No account found for this phone number.', 'এই ফোন নম্বরের জন্য কোনো অ্যাকাউন্ট নেই।');
+    throw new AppError('NOT_FOUND', 'No account found for this user.', 'এই তথ্যের জন্য কোনো অ্যাকাউন্ট পাওয়া যায়নি।');
   }
   if (user.status !== 'ACTIVE') {
     throw new AppError('ACCOUNT_SUSPENDED', 'This account is suspended.', 'এই অ্যাকাউন্টটি স্থগিত করা হয়েছে।');

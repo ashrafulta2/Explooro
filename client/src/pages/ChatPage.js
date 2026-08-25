@@ -19,7 +19,7 @@ import { wsManager, WS_STATUS } from '../services/websocket.js';
 import { t } from '../services/i18n.js';
 import { toast } from '../services/toast.js';
 
-export default function ChatPage() {
+export default function ChatPage(root) {
   const container = document.createElement('div');
   container.className = 'chat-page-container flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-base';
 
@@ -360,5 +360,5 @@ export default function ChatPage() {
   wsManager.connect();
   loadData();
 
-  return container;
+  root.append(container);
 }

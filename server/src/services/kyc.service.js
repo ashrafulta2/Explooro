@@ -494,15 +494,15 @@ export async function getKycQueue(db, {
     SELECT k.id, k.ref, k.user_id, k.kyc_type, k.business_name, k.business_address,
            k.current_step, k.status, k.rejection_reason, k.rejection_reason_bn,
            k.created_at, k.reviewed_at, k.verified_at,
-           u.full_name AS applicant_name,
+           up.full_name AS applicant_name,
            u.email AS applicant_email,
            u.phone AS applicant_phone,
-           u.role AS applicant_role,
            COALESCE(ts.tier, 'STARTER') as current_tier,
            COALESCE(ts.score, 50) as trust_score,
            (SELECT COUNT(d.id) FROM kyc_documents d WHERE d.kyc_id = k.id) as doc_count
     FROM kyc_verifications k
     JOIN users u ON u.id = k.user_id
+    LEFT JOIN user_profiles up ON up.user_id = k.user_id
     LEFT JOIN trust_scores ts ON ts.user_id = k.user_id
     WHERE 1=1
   `;

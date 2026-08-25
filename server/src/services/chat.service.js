@@ -240,7 +240,9 @@ export async function sendMessage(db, {
 
     // 8. Fetch sender display name
     const { rows: senderRows } = await txClient.query(
-      `SELECT full_name FROM users WHERE id = $1`,
+      `SELECT COALESCE(up.display_name, up.full_name) AS full_name
+       FROM users u LEFT JOIN user_profiles up ON up.user_id = u.id
+       WHERE u.id = $1`,
       [senderId]
     );
     const senderName = senderRows[0]?.full_name || 'Participant';
@@ -343,10 +345,12 @@ export async function getThreadMessages(db, {
   let query = `
     SELECT m.id, m.client_msg_id, m.thread_id, m.sender_id, m.content,
            m.msg_type, m.payload_json, m.flagged_for_moderation, m.created_at,
-           u.full_name as sender_name,
-           u.role as sender_role
+           COALESCE(up.display_name, up.full_name) as sender_name,
+           (SELECT r.key FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+             WHERE ur.user_id = u.id ORDER BY r.level DESC LIMIT 1) as sender_role
     FROM chat_messages m
     JOIN users u ON u.id = m.sender_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     WHERE m.thread_id = $1
   `;
   const params = [threadId];
@@ -392,10 +396,11 @@ export async function getMissedMessages(db, { userId, sinceMessageId = 0 }) {
   const { rows } = await db.query(
     `SELECT m.id, m.client_msg_id, m.thread_id, m.sender_id, m.content,
             m.msg_type, m.payload_json, m.flagged_for_moderation, m.created_at,
-            u.full_name as sender_name
+            COALESCE(up.display_name, up.full_name) as sender_name
      FROM chat_messages m
      JOIN chat_threads t ON t.id = m.thread_id
      JOIN users u ON u.id = m.sender_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
      WHERE (t.participant_ids @> to_jsonb($1::bigint) OR t.participant_ids @> to_jsonb(ARRAY[$1::bigint]))
        AND m.id > $2
      ORDER BY m.id ASC

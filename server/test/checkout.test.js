@@ -168,7 +168,7 @@ function createMockDb() {
       }
 
       // Users
-      if (q.includes('FROM users WHERE id = $1')) {
+      if (q.includes('FROM users WHERE id = $1') || (q.includes('FROM users u') && q.includes('u.locale'))) {
         const u = users.find((x) => x.id === Number(params[0]));
         return { rows: u ? [u] : [] };
       }
@@ -385,9 +385,10 @@ function createMockDb() {
         const otpRecord = {
           id: otpCodes.length + 1,
           phone: params[0],
-          code_hash: params[1],
-          purpose: params[2],
-          expires_at: params[3],
+          email: params[1],
+          code_hash: params[2],
+          purpose: params[3],
+          expires_at: params[4],
           attempts: 0,
           max_attempts: 5,
           consumed_at: null,

@@ -45,13 +45,14 @@ export async function findStreamById(client, streamId) {
   const query = `
     SELECT 
       ls.*,
-      u.full_name AS host_name,
+      COALESCE(up.display_name, up.full_name) AS host_name,
       u.phone AS host_phone,
-      s.name AS store_name,
+      s.shop_name AS store_name,
       s.slug AS store_slug
     FROM live_streams ls
     JOIN users u ON u.id = ls.host_id
-    LEFT JOIN stores s ON s.id = ls.store_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
+    LEFT JOIN virtual_stores s ON s.id = ls.store_id
     WHERE ls.id = $1;
   `;
   const { rows } = await client.query(query, [streamId]);
@@ -83,13 +84,14 @@ export async function listStreams(client, { status = null, hostId = null, limit 
   const query = `
     SELECT 
       ls.*,
-      u.full_name AS host_name,
-      s.name AS store_name,
+      COALESCE(up.display_name, up.full_name) AS host_name,
+      s.shop_name AS store_name,
       s.slug AS store_slug,
       (SELECT COUNT(*)::int FROM live_stream_products lsp WHERE lsp.live_stream_id = ls.id) AS product_count
     FROM live_streams ls
     JOIN users u ON u.id = ls.host_id
-    LEFT JOIN stores s ON s.id = ls.store_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
+    LEFT JOIN virtual_stores s ON s.id = ls.store_id
     ${whereSql}
     ORDER BY 
       CASE WHEN ls.status = 'LIVE' THEN 1 WHEN ls.status = 'SCHEDULED' THEN 2 ELSE 3 END,
@@ -185,10 +187,15 @@ export async function getStreamProducts(client, streamId) {
       p.title_en,
       p.title_bn,
       p.slug,
-      p.main_image,
+      (SELECT m.storage_key
+       FROM product_images pi2
+       JOIN media_assets m ON m.id = pi2.media_id
+       WHERE pi2.product_id = p.id
+       ORDER BY pi2.is_primary DESC, pi2.display_order ASC
+       LIMIT 1) AS main_image,
       p.base_cost,
       p.wholesale_margin,
-      p.stock_quantity,
+      p.stock_qty AS stock_quantity,
       p.status AS product_status
     FROM live_stream_products lsp
     JOIN products p ON p.id = lsp.product_id
@@ -243,10 +250,15 @@ export async function getPinnedProduct(client, streamId) {
       p.title_en,
       p.title_bn,
       p.slug,
-      p.main_image,
+      (SELECT m.storage_key
+       FROM product_images pi2
+       JOIN media_assets m ON m.id = pi2.media_id
+       WHERE pi2.product_id = p.id
+       ORDER BY pi2.is_primary DESC, pi2.display_order ASC
+       LIMIT 1) AS main_image,
       p.base_cost,
       p.wholesale_margin,
-      p.stock_quantity,
+      p.stock_qty AS stock_quantity,
       p.status AS product_status
     FROM live_stream_products lsp
     JOIN products p ON p.id = lsp.product_id
@@ -272,10 +284,18 @@ export async function getStreamMessages(client, streamId, { limit = 50, sinceId 
   const query = `
     SELECT 
       lsm.*,
-      u.full_name AS user_name,
-      u.roles AS user_roles
+      COALESCE(up.display_name, up.full_name) AS user_name,
+      -- Roles are a many-to-many (user_roles → roles), not a column on users; aggregated to the
+      -- text[] the chat renderer expects for its moderator/host badges.
+      COALESCE(
+        (SELECT array_agg(r.key ORDER BY r.key)
+         FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+         WHERE ur.user_id = u.id),
+        ARRAY[]::text[]
+      ) AS user_roles
     FROM live_stream_messages lsm
     LEFT JOIN users u ON u.id = lsm.user_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     WHERE lsm.live_stream_id = $1 AND lsm.id > $2
     ORDER BY lsm.id ASC
     LIMIT $3;

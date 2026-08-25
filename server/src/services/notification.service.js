@@ -104,6 +104,17 @@ export const DEFAULT_TEMPLATES = {
     default_channels: ['INAPP'],
     can_override_preferences: true,
   },
+  PRICE_DROP_ALERT: {
+    template_key: 'PRICE_DROP_ALERT',
+    category: 'MARKETING',
+    priority: 'MEDIUM',
+    title_en: 'Price Drop Alert! 📉',
+    title_bn: 'দাম কমেছে! 📉',
+    body_template_en: 'Great news! {{productTitle}} in your wishlist dropped by ৳{{dropAmount}} to ৳{{currentPrice}}.',
+    body_template_bn: 'সুসংবাদ! আপনার উইশলিস্টের {{productTitle}} এর দাম ৳{{dropAmount}} কমে এখন ৳{{currentPrice}} হয়েছে।',
+    default_channels: ['INAPP', 'PUSH'],
+    can_override_preferences: false,
+  },
 };
 
 /**
@@ -173,7 +184,11 @@ export async function notify(db, {
   const runner = async (txClient) => {
     // 1. Fetch user info
     const { rows: userRows } = await txClient.query(
-      `SELECT id, full_name, phone, email, locale FROM users WHERE id = $1`,
+      `SELECT u.id, COALESCE(up.display_name, up.full_name) AS full_name,
+              u.phone, u.email, u.locale
+       FROM users u
+       LEFT JOIN user_profiles up ON up.user_id = u.id
+       WHERE u.id = $1`,
       [userId]
     );
 
@@ -272,7 +287,9 @@ export async function notify(db, {
     };
   };
 
-  return client ? runner(client) : withTransaction(db, runner);
+  if (client) return runner(client);
+  if (typeof db.connect === 'function') return withTransaction(db, runner);
+  return runner(db);
 }
 
 /**

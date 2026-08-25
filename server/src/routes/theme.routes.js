@@ -5,6 +5,9 @@
 import * as themeController from '../controllers/theme.controller.js';
 
 export default async function themeRoutes(app) {
+  const auth = app.authenticate || (async () => {});
+  const reqPerm = (perm) => (app.requirePermission ? app.requirePermission(perm) : async () => {});
+
   // Public endpoint: get active theme tokens for client styling
   app.get('/theme/active', themeController.getActive);
 
@@ -12,7 +15,7 @@ export default async function themeRoutes(app) {
   app.get(
     '/admin/theme/palettes',
     {
-      preHandler: [app.requirePermission('platform.module.view')],
+      preHandler: [auth, reqPerm('platform.theme.view')],
     },
     themeController.listPalettes
   );
@@ -20,7 +23,7 @@ export default async function themeRoutes(app) {
   app.post(
     '/admin/theme/draft',
     {
-      preHandler: [app.requirePermission('platform.module.view')],
+      preHandler: [auth, reqPerm('platform.theme.draft')],
     },
     themeController.saveDraft
   );
@@ -29,7 +32,7 @@ export default async function themeRoutes(app) {
   app.post(
     '/admin/theme/:id/publish',
     {
-      preHandler: [app.requirePermission('platform.module.toggle')],
+      preHandler: [auth, reqPerm('platform.theme.publish')],
     },
     themeController.publishTheme
   );

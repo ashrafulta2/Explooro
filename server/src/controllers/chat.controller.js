@@ -6,10 +6,13 @@ import { createTicket } from '../sockets/presence.js';
 import * as chatService from '../services/chat.service.js';
 
 export async function getTicket(req, reply) {
+  // WHY `roles[0]` and `full_name`: authenticate.js populates `req.user` from the JWT claims, which
+  // carry `roles` (an array) — there is no scalar `role`. Both fields were reaching createTicket as
+  // `undefined`, so every socket registered a nameless participant and chat rendered "Participant".
   const result = createTicket({
     userId: req.user.id,
-    role: req.user.role,
-    name: req.user.full_name,
+    role: Array.isArray(req.user.roles) ? req.user.roles[0] : req.user.roles,
+    full_name: req.user.full_name,
   });
 
   return reply.send({

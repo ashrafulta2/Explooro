@@ -16,6 +16,17 @@ import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { isEnabled } from './module.service.js';
 
+// WHY a subquery: products carry no image column. The primary image is the top-ranked row in
+// product_images, whose bytes live on media_assets.storage_key (006_catalog.sql).
+const PRIMARY_IMAGE_SQL = `(
+  SELECT m.storage_key
+  FROM product_images pi2
+  JOIN media_assets m ON m.id = pi2.media_id
+  WHERE pi2.product_id = p.id
+  ORDER BY pi2.is_primary DESC, pi2.display_order ASC
+  LIMIT 1
+)`;
+
 async function runWithClient(db, fn) {
   if (db && typeof db.connect === 'function') {
     return withTransaction(db, fn);
@@ -263,10 +274,10 @@ export async function restoreCartByToken(db, recoveryToken) {
 
   const { rows: items } = await db.query(
     `SELECT ci.*,
-            p.name_en as product_name_en,
-            p.name_bn as product_name_bn,
-            p.base_price,
-            p.primary_image_url,
+            p.title_en as product_name_en,
+            p.title_bn as product_name_bn,
+            p.base_cost as base_price,
+            ${PRIMARY_IMAGE_SQL} as primary_image_url,
             pv.sku as variant_sku,
             pv.attributes_json as variant_attributes
      FROM cart_items ci
@@ -409,16 +420,16 @@ export async function getSalerCartInsights(db, salerUserId) {
   const { rows: topProducts } = await db.query(
     `SELECT
        p.id as product_id,
-       p.name_en,
-       p.name_bn,
-       p.primary_image_url,
+       p.title_en as name_en,
+       p.title_bn as name_bn,
+       ${PRIMARY_IMAGE_SQL} as primary_image_url,
        COUNT(ci.id) as abandon_count,
        SUM(ci.qty * ci.price_at_add) as lost_revenue_estimate
      FROM cart_items ci
      JOIN abandoned_carts ac ON ac.cart_id = ci.cart_id
      JOIN products p ON p.id = ci.product_id
      WHERE ci.saler_id = $1 OR $1 IS NULL
-     GROUP BY p.id, p.name_en, p.name_bn, p.primary_image_url
+     GROUP BY p.id, p.title_en, p.title_bn
      ORDER BY abandon_count DESC
      LIMIT 5`,
     [salerUserId || null]
@@ -433,10 +444,11 @@ export async function getSalerCartInsights(db, salerUserId) {
             ac.recovery_token,
             ac.last_nudge_at,
             ac.detected_at,
-            u.display_name_en as customer_name,
+            COALESCE(up.display_name, up.full_name) as customer_name,
             ROUND(EXTRACT(EPOCH FROM (now() - ac.detected_at))/3600, 1) as hours_abandoned
      FROM abandoned_carts ac
      LEFT JOIN users u ON u.id = ac.user_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
      WHERE ac.recovered_at IS NULL
      ORDER BY ac.detected_at DESC
      LIMIT 15`

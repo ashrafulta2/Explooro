@@ -20,7 +20,7 @@ const listeners = new Set();
 export async function initFeatureFlags() {
   try {
     const res = await api.get('/modules');
-    if (res && res.modules) {
+    if (res?.modules) {
       setFlags(res.modules);
     }
   } catch {

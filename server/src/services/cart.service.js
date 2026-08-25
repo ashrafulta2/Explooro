@@ -17,6 +17,16 @@ export function generateGuestToken() {
   return `gst_${randomUUID().replace(/-/g, '')}`;
 }
 
+/**
+ * Variants have no name column — they are identified by `attributes_json`
+ * ({"size":"L","color":"Navy"}), so the display label is derived: "L / Navy".
+ */
+function formatVariantTitle(attributes) {
+  if (!attributes || typeof attributes !== 'object') return null;
+  const values = Object.values(attributes).filter(Boolean);
+  return values.length ? values.join(' / ') : null;
+}
+
 export async function getOrCreateActiveCart(db, { userId = null, guestToken = null }) {
   let cart = null;
   if (userId) {
@@ -105,7 +115,7 @@ export async function getCart(db, { userId = null, guestToken = null }) {
       product_title_bn: raw.product_title_bn,
       product_slug: raw.product_slug,
       variant_id: raw.variant_id ? Number(raw.variant_id) : null,
-      variant_title: raw.variant_title,
+      variant_title: formatVariantTitle(raw.variant_attributes),
       variant_sku: raw.variant_sku,
       saler_id: raw.saler_id ? Number(raw.saler_id) : null,
       bundle_id: raw.bundle_id ? Number(raw.bundle_id) : null,
@@ -177,25 +187,26 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
 
   // Verify product & active price
   const { rows: prodRows } = await db.query(
-    `SELECT id, retail_price, stock_qty, status FROM products WHERE id = $1`,
+    `SELECT id, default_retail_price, stock_qty, status FROM products WHERE id = $1`,
     [productId]
   );
   if (!prodRows.length || prodRows[0].status !== 'ACTIVE') {
     throw new AppError('NOT_FOUND', 'Product not available.', 'পণ্যটি উপলব্ধ নেই।');
   }
 
-  let unitPrice = Number(prodRows[0].retail_price);
+  let unitPrice = Number(prodRows[0].default_retail_price);
   let availableStock = Number(prodRows[0].stock_qty);
 
   if (variantId) {
     const { rows: varRows } = await db.query(
-      `SELECT id, price_override, stock_qty, is_active FROM product_variants WHERE id = $1 AND product_id = $2`,
+      `SELECT id, price_delta, stock_qty, is_active FROM product_variants WHERE id = $1 AND product_id = $2`,
       [variantId, productId]
     );
     if (!varRows.length || !varRows[0].is_active) {
       throw new AppError('NOT_FOUND', 'Selected variant is not available.', 'নির্বাচিত ভ্যারিয়েন্টটি উপলব্ধ নেই।');
     }
-    if (varRows[0].price_override != null) unitPrice = Number(varRows[0].price_override);
+    // price_delta is signed and relative to the product price, not a replacement for it.
+    unitPrice += Number(varRows[0].price_delta ?? 0);
     availableStock = Number(varRows[0].stock_qty);
   }
 

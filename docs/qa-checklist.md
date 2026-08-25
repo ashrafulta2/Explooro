@@ -29,6 +29,7 @@ Every component, surface, or page created must be evaluated against these 12 req
 - [ ] Modals and Drawers trap focus while active and return focus to the trigger element on close (`Escape` or dismiss).
 - [ ] Radio groups and segmented controls support standard Arrow key navigation.
 - [ ] `Space` and `Enter` trigger buttons, checkboxes, and expandable toggles predictably.
+- [ ] Sidebar and scrollable chrome preserve their scroll position across route changes and state re-renders (no scroll jumps to top on nav link clicks).
 
 ### 2. 🎯 Visible Custom Focus Ring
 - [ ] Custom brand-tinted focus ring (`outline: 2px solid var(--brand); outline-offset: 2px;`) is clearly visible on `:focus-visible`.

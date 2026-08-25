@@ -55,27 +55,32 @@ export async function getCartItemsWithDetails(db, cartId) {
       p.title_bn AS product_title_bn,
       p.slug AS product_slug,
       p.status AS product_status,
-      p.retail_price AS current_product_retail_price,
-      p.base_price AS current_product_base_price,
+      p.default_retail_price AS current_product_retail_price,
+      p.base_cost AS current_product_base_price,
       p.stock_qty AS current_product_stock_qty,
-      p.sku AS product_sku,
       p.supplier_id,
-      u.full_name AS supplier_name,
+      up.full_name AS supplier_name,
       u.phone AS supplier_phone,
-      pv.title AS variant_title,
+      -- Variants carry a delta off the product price, not an absolute override; the service reads
+      -- variant_price_override ?? current_product_retail_price, so resolve the delta here.
+      pv.attributes_json AS variant_attributes,
       pv.sku AS variant_sku,
-      pv.price_override AS variant_price_override,
+      CASE WHEN pv.id IS NULL THEN NULL
+           ELSE p.default_retail_price + pv.price_delta END AS variant_price_override,
       pv.stock_qty AS variant_stock_qty,
       pv.is_active AS variant_is_active,
       (
-        SELECT url FROM product_images
-        WHERE product_id = p.id
-        ORDER BY is_primary DESC, sort_order ASC
+        SELECT m.storage_key
+        FROM product_images pi2
+        JOIN media_assets m ON m.id = pi2.media_id
+        WHERE pi2.product_id = p.id
+        ORDER BY pi2.is_primary DESC, pi2.display_order ASC
         LIMIT 1
       ) AS primary_image_url
     FROM cart_items ci
     JOIN products p ON p.id = ci.product_id
     JOIN users u ON u.id = p.supplier_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     LEFT JOIN product_variants pv ON pv.id = ci.variant_id
     WHERE ci.cart_id = $1
     ORDER BY ci.added_at ASC
@@ -157,13 +162,15 @@ export async function getWishlistByUser(db, userId) {
       p.title_en AS product_title_en,
       p.title_bn AS product_title_bn,
       p.slug AS product_slug,
-      p.retail_price AS current_retail_price,
+      p.default_retail_price AS current_retail_price,
       p.status AS product_status,
       p.stock_qty,
       (
-        SELECT url FROM product_images
-        WHERE product_id = p.id
-        ORDER BY is_primary DESC, sort_order ASC
+        SELECT m.storage_key
+        FROM product_images pi2
+        JOIN media_assets m ON m.id = pi2.media_id
+        WHERE pi2.product_id = p.id
+        ORDER BY pi2.is_primary DESC, pi2.display_order ASC
         LIMIT 1
       ) AS primary_image_url
     FROM wishlists w

@@ -62,6 +62,11 @@ import { PinnedProductOverlay } from '../../components/live/PinnedProductOverlay
 import { AssistantPanel } from '../../components/ai/AssistantPanel.js';
 import { WarrantyCard } from '../../components/warranty/WarrantyCard.js';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.js';
+import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfitBreakdown.js';
+import { createMilestoneProgressStepper } from '../../components/b2b/MilestoneProgressStepper.js';
+import { ShoppableReels } from '../../components/content/ShoppableReels.js';
+import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
+import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */
 function specimen(title, ...nodes) {
@@ -1022,6 +1027,18 @@ export function buildGalleryEntries(detachedNodes) {
     // Prompt 10.4 — Digital Warranty & Claims Engine
     { id: 'warranty-card', label: 'WarrantyCard', group: 'Trust & Protection', render: renderWarrantyCardSpecimen },
     { id: 'claim-timeline', label: 'ClaimTimeline', group: 'Trust & Protection', render: renderClaimTimelineSpecimen },
+    // Prompt 10.5 — Cross-Seller Bundling & Surge Pricing
+    { id: 'bundle-profit-breakdown', label: 'BundleProfitBreakdown', group: 'Saler Sourcing & Profit', render: renderBundleBreakdownSpecimen },
+    // Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement
+    { id: 'b2b-milestone-stepper', label: 'MilestoneProgressStepper', group: 'Vault & Payouts', render: renderB2bMilestoneStepperSpecimen },
+    // Prompt 10.8 — Content Commerce & Shoppable Reels
+    { id: 'shoppable-reels', label: 'ShoppableReels', group: 'Communication & Live', render: renderShoppableReelsSpecimen },
+    // Prompt 11.1 — Supplier / Manufacturer Dashboard & Operational Widgets
+    { id: 'supplier-dashboard-widgets', label: 'SupplierDashboardWidgets', group: 'Commerce & Catalog', render: renderSupplierDashboardWidgetsSpecimen },
+    // Prompt 11.2 — Saler Prescriptive AI Growth Assistant
+    { id: 'growth-assistant', label: 'GrowthAssistant', group: 'Saler Sourcing & Profit', render: renderGrowthAssistantSpecimen },
+    // Prompt 11.3 — 1-Click Saler Upgrade CTA
+    { id: 'become-saler-cta', label: 'BecomeSalerCta', group: 'Saler Sourcing & Profit', render: renderBecomeSalerCtaSpecimen },
   ];
 }
 
@@ -1861,6 +1878,234 @@ function renderClaimTimelineSpecimen() {
   wrap.append(specimen('Approved Claim with Reverse Courier Consignment', ClaimTimeline({ claim: sampleClaim })));
   return wrap;
 }
+
+function renderBundleBreakdownSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Cross-Seller Multi-Merchant Combo Profit Breakdown (Prompt 10.5)'));
+
+  const sampleBreakdown = {
+    sum_of_parts: 3000.00,
+    bundle_price: 2550.00,
+    discount_amount: 450.00,
+    discount_pct: 15.0,
+    total_wholesale_cost: 2050.00,
+    total_net_margin: 500.00,
+    total_saler_commission: 200.00,
+    total_platform_margin: 300.00,
+    saler_margin_pct: 7.84,
+    saler_split_pct: 40,
+    platform_split_pct: 60,
+    is_multi_supplier: true,
+    supplier_count: 2,
+    suppliers: [
+      { supplier_id: 5, supplier_name: 'Walton Apparel', item_count: 1, total_wholesale_payout: 800.00, items: [] },
+      { supplier_id: 6, supplier_name: 'Apex Footwear & Textiles', item_count: 1, total_wholesale_payout: 1250.00, items: [] },
+    ],
+    items: [
+      {
+        productId: 1,
+        productTitleEn: 'Walton Formal Cotton Shirt',
+        productTitleBn: 'ওয়ালটন ফর্মাল সুতি শার্ট',
+        qty: 1,
+        originalRetailPrice: 1200.00,
+        discountShare: 180.00,
+        effectiveUnitPrice: 1020.00,
+        baseCost: 700.00,
+        wholesaleMargin: 100.00,
+        wholesaleCost: 800.00,
+        netRetailMargin: 220.00,
+        salerCommission: 88.00,
+        platformMargin: 132.00,
+      },
+      {
+        productId: 2,
+        productTitleEn: 'Apex Executive Trousers',
+        productTitleBn: 'এপেক্স এক্সিকিউটিভ ট্রাউজার',
+        qty: 1,
+        originalRetailPrice: 1800.00,
+        discountShare: 270.00,
+        effectiveUnitPrice: 1530.00,
+        baseCost: 1100.00,
+        wholesaleMargin: 150.00,
+        wholesaleCost: 1250.00,
+        netRetailMargin: 280.00,
+        salerCommission: 112.00,
+        platformMargin: 168.00,
+      },
+    ],
+  };
+
+  const widget = createBundleProfitBreakdown({ breakdown: sampleBreakdown });
+  wrap.append(specimen('Multi-Supplier Bundle (Walton + Apex) with Deterministic Apportionment', widget.element));
+  return wrap;
+}
+
+function renderB2bMilestoneStepperSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('B2B Wholesale Escrow Staged Milestone Stepper (Prompt 10.6)'));
+
+  const sampleMilestones = [
+    {
+      id: 1,
+      ref: 'MLS-8812-CONF',
+      sequence_no: 1,
+      label_en: 'Phase 1: Fabric Sourcing & Loom Setup',
+      label_bn: 'পর্যায় ১: কাপড় সংগ্রহ ও লুম সেটআপ',
+      release_pct: 30.0,
+      amount: 300000.00,
+      evidence_required: 'NONE',
+      status: 'RELEASED',
+    },
+    {
+      id: 2,
+      ref: 'MLS-8813-DISP',
+      sequence_no: 2,
+      label_en: 'Phase 2: Factory Inspection & Bill of Lading Dispatch',
+      label_bn: 'পর্যায় ২: কারখানা পরিদর্শন ও চালান হস্তান্তর',
+      release_pct: 40.0,
+      amount: 400000.00,
+      evidence_required: 'DISPATCH_PROOF',
+      status: 'EVIDENCE_SUBMITTED',
+      evidence_media_json: {
+        evidence_type: 'DISPATCH_PROOF',
+        notes: 'Challan #CH-9921 signed by logistics driver.',
+      },
+    },
+    {
+      id: 3,
+      ref: 'MLS-8814-INSP',
+      sequence_no: 3,
+      label_en: 'Phase 3: Warehouse QA Inspection & Final Acceptance',
+      label_bn: 'পর্যায় ৩: গুদাম গুণমান পরিদর্শন ও চূড়ান্ত গ্রহণ',
+      release_pct: 30.0,
+      amount: 300000.00,
+      evidence_required: 'INSPECTION',
+      status: 'PENDING',
+    },
+  ];
+
+  const stepper = createMilestoneProgressStepper({
+    milestones: sampleMilestones,
+    dealStatus: 'IN_PROGRESS',
+    userRole: 'supplier',
+    isBuyer: true,
+    isAdmin: false,
+    onEvidenceClick: (m) => toast.info(`Submitted proof for ${m.ref}`),
+    onReleaseClick: (m) => toast.success(`Released funds for ${m.ref}`),
+  });
+
+  wrap.append(specimen('Staged 3-Phase Escrow Release (30% / 40% / 30%) with Evidence Gating', stepper.element));
+  return wrap;
+}
+
+function renderShoppableReelsSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Shoppable Video Reels Feed (Prompt 10.8)'));
+
+  const reels = ShoppableReels({
+    onBuyProduct: (prod) => toast.info(`Clicked buy for ${prod.title_en}`),
+  });
+
+  wrap.append(specimen('Vertical Feed with Pinned Product Cards, 1-Tap Checkout & Data-Saver Mode', reels.element));
+  return wrap;
+}
+
+function renderSupplierDashboardWidgetsSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Supplier / Manufacturer Dashboard Widgets (Prompt 11.1)'));
+
+  // 1. FEFO Batch Expiry Widget Card
+  const batchWidget = document.createElement('div');
+  batchWidget.className = 'p-4 rounded-xl border border-amber-500/40 bg-amber-500/5 max-w-sm space-y-2';
+  batchWidget.innerHTML = `
+    <div class="flex justify-between items-center text-xs">
+      <span class="font-mono font-bold text-primary">#LOT-2026-OCT-15</span>
+      <span class="badge badge--warning">⚠️ Expiring in 45d</span>
+    </div>
+    <div class="font-bold text-sm">Organic Mustard Oil (500ml)</div>
+    <div class="text-xs text-muted font-mono">Qty: 80 units · Depot: Tejgaon Depot</div>
+    <div class="pt-2 flex gap-2">
+      <button class="btn btn--2xs btn--primary flex-1">⚡ 1-Click Clearance (15% Off)</button>
+    </div>
+  `;
+
+  // 2. Multi-Warehouse Node Card
+  const whWidget = document.createElement('div');
+  whWidget.className = 'p-4 rounded-xl border border-subtle bg-surface max-w-sm space-y-2';
+  whWidget.innerHTML = `
+    <div class="flex justify-between items-center text-xs">
+      <span class="font-mono font-bold text-primary">WH-DHK-01</span>
+      <span class="badge badge--success">🟢 Active (Priority 20)</span>
+    </div>
+    <div class="font-bold text-sm">Tejgaon Central Depot</div>
+    <div class="text-xs text-muted">📍 Plot 12, Tejgaon I/A, Dhaka</div>
+    <div class="text-xs font-mono text-green-600 font-bold">14 SKUs · 450 Units Stocked</div>
+  `;
+
+  wrap.append(
+    specimen('FEFO Batch Expiration Card with 1-Click Clearance Trigger', batchWidget),
+    specimen('Multi-Location Warehouse Node Card with GIS Proximity Score', whWidget)
+  );
+
+  return wrap;
+}
+
+function renderGrowthAssistantSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Prescriptive AI Growth Assistant with 1-Click Actions (Prompt 11.2)'));
+
+  const sampleRecs = [
+    {
+      id: 'rec_demo_1',
+      type: 'PRICE_OPPORTUNITY',
+      title: 'Jamdani Silk Saree (Red & Gold)',
+      message: 'Lower price by ৳120 to match peer seller volume.',
+      recommendation: 'Matching the top-seller price of ৳4,800 is projected to increase order volume by 2.4x.',
+      action: {
+        type: 'QUICK_PRICE_MATCH',
+        label_en: '⚡ Match Price (৳4,800)',
+        url: '/saler/store-builder',
+      },
+    },
+    {
+      id: 'rec_demo_2',
+      type: 'HERO_PRODUCT',
+      title: 'Pure Mustard Oil (Cold Pressed)',
+      message: 'Top-selling hero product with 32% margin.',
+      recommendation: 'Bundle this with Organic Honey to create a high-converting healthy living grocery combo.',
+      action: {
+        type: 'CREATE_BUNDLE',
+        label_en: '🎁 Build Bundle Combo',
+        url: '/saler/bundles',
+      },
+    },
+  ];
+
+  const assistant = GrowthAssistant({ recommendations: sampleRecs });
+  wrap.append(specimen('Live Advice Cards with Directly Executable 1-Click Triggers', assistant.element));
+  return wrap;
+}
+
+function renderBecomeSalerCtaSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('1-Click Zero-Paperwork Saler Upgrade Component (Prompt 11.3)'));
+
+  const cta = BecomeSalerCta({
+    onUpgradeSuccess: () => toast.success('Mock upgrade triggered!'),
+    onNavigate: (url) => toast.info(`Navigating to ${url}`),
+  });
+
+  wrap.append(specimen('1-Click Upgrade Hero Card with Benefits & Live Trigger', cta.element));
+  return wrap;
+}
+
+
 
 
 

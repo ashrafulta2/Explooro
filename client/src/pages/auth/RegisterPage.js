@@ -40,6 +40,29 @@ export default function RegisterPage(container, { query = {}, navigate }) {
 
   header.append(brand, title, subtitle);
 
+  // Registration mode tabs (Phone vs Email)
+  let regMode = 'phone'; // 'phone' | 'email'
+
+  const tabs = document.createElement('div');
+  tabs.className = 'auth-tabs';
+  tabs.setAttribute('role', 'tablist');
+
+  const tabPhone = document.createElement('button');
+  tabPhone.type = 'button';
+  tabPhone.className = 'auth-tab';
+  tabPhone.textContent = t('auth.register.tab_phone');
+  tabPhone.setAttribute('role', 'tab');
+  tabPhone.setAttribute('aria-selected', 'true');
+
+  const tabEmail = document.createElement('button');
+  tabEmail.type = 'button';
+  tabEmail.className = 'auth-tab';
+  tabEmail.textContent = t('auth.register.tab_email');
+  tabEmail.setAttribute('role', 'tab');
+  tabEmail.setAttribute('aria-selected', 'false');
+
+  tabs.append(tabPhone, tabEmail);
+
   // Form
   const form = document.createElement('form');
   form.className = 'auth-form';
@@ -85,7 +108,7 @@ export default function RegisterPage(container, { query = {}, navigate }) {
   rolesGrid.append(...roleCards);
   roleSection.append(roleLabel, rolesGrid);
 
-  // Phone
+  // Phone Field
   const phoneField = document.createElement('div');
   phoneField.className = 'auth-field';
   const phoneLabel = document.createElement('label');
@@ -101,6 +124,51 @@ export default function RegisterPage(container, { query = {}, navigate }) {
   phoneInput.value = '+8801';
   phoneInput.setAttribute('aria-label', t('auth.register.phone_label'));
   phoneField.append(phoneLabel, phoneInput);
+
+  // Email Field
+  const emailField = document.createElement('div');
+  emailField.className = 'auth-field';
+  emailField.style.display = 'none';
+  const emailLabel = document.createElement('label');
+  emailLabel.className = 'auth-field__label';
+  emailLabel.htmlFor = 'register-email';
+  emailLabel.textContent = t('auth.register.email_label');
+  const emailInput = document.createElement('input');
+  emailInput.id = 'register-email';
+  emailInput.className = 'auth-field__input';
+  emailInput.type = 'email';
+  emailInput.required = false;
+  emailInput.placeholder = t('auth.register.email_placeholder');
+  emailInput.setAttribute('aria-label', t('auth.register.email_label'));
+  emailField.append(emailLabel, emailInput);
+
+  function updateRegModeUi() {
+    if (regMode === 'phone') {
+      tabPhone.setAttribute('aria-selected', 'true');
+      tabEmail.setAttribute('aria-selected', 'false');
+      phoneField.style.display = 'flex';
+      phoneInput.required = true;
+      emailField.style.display = 'none';
+      emailInput.required = false;
+    } else {
+      tabPhone.setAttribute('aria-selected', 'false');
+      tabEmail.setAttribute('aria-selected', 'true');
+      phoneField.style.display = 'none';
+      phoneInput.required = false;
+      emailField.style.display = 'flex';
+      emailInput.required = true;
+    }
+  }
+
+  tabPhone.addEventListener('click', () => {
+    regMode = 'phone';
+    updateRegModeUi();
+  });
+
+  tabEmail.addEventListener('click', () => {
+    regMode = 'email';
+    updateRegModeUi();
+  });
 
   // Name
   const nameField = document.createElement('div');
@@ -183,24 +251,33 @@ export default function RegisterPage(container, { query = {}, navigate }) {
     errorDiv.style.display = 'none';
     submitBtn.setLoading(true);
 
-    const phone = phoneInput.value.trim();
+    const phone = regMode === 'phone' ? phoneInput.value.trim() : null;
+    const email = regMode === 'email' ? emailInput.value.trim() : null;
     const name = nameInput.value.trim();
     const password = passwordInput.value;
 
     try {
       await register({
-        phone,
+        phone: phone || undefined,
+        email: email || undefined,
         role: selectedRole,
         name,
         password,
       });
 
-      // register() only creates the account — it doesn't send a code, so the OTP screen would
-      // otherwise sit with nothing sent until the 60s resend timer expires.
-      await sendOtp({ phone, purpose: 'REGISTER' });
+      // Send OTP code to verify the chosen contact method
+      await sendOtp({
+        phone: phone || undefined,
+        email: email || undefined,
+        purpose: 'REGISTER',
+      });
+
+      const identifierQuery = phone
+        ? `phone=${encodeURIComponent(phone)}`
+        : `email=${encodeURIComponent(email)}`;
 
       navigate(
-        `/auth/otp?phone=${encodeURIComponent(phone)}&purpose=REGISTER&redirect=${encodeURIComponent(redirectPath)}`
+        `/auth/otp?${identifierQuery}&purpose=REGISTER&redirect=${encodeURIComponent(redirectPath)}`
       );
     } catch (err) {
       errorDiv.textContent = pickMessage(err) || err.message || t('common.error_generic');
@@ -210,7 +287,7 @@ export default function RegisterPage(container, { query = {}, navigate }) {
     }
   });
 
-  form.append(roleSection, phoneField, nameField, passwordField, errorDiv, submitBtn);
+  form.append(roleSection, phoneField, emailField, nameField, passwordField, errorDiv, submitBtn);
 
   // Footer / Login link
   const footer = document.createElement('div');
@@ -223,7 +300,7 @@ export default function RegisterPage(container, { query = {}, navigate }) {
 
   footer.append(hasAccountSpan, loginLink);
 
-  card.append(header, form, footer);
+  card.append(header, tabs, form, footer);
   wrapper.append(card);
   container.append(wrapper);
 

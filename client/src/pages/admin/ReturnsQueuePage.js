@@ -16,7 +16,7 @@ import { formatCurrency, formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
-export default function ReturnsQueuePage() {
+export default function ReturnsQueuePage(root) {
   const container = document.createElement('div');
   container.className = 'page-container returns-queue-page';
 
@@ -240,5 +240,5 @@ export default function ReturnsQueuePage() {
   }
 
   fetchQueue();
-  return container;
+  root.append(container);
 }

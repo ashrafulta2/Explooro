@@ -17,7 +17,7 @@
  */
 
 import { verifyAccessToken } from '../lib/jwt.js';
-import { getSessionById } from '../repositories/user.repository.js';
+import { getSessionWithIdentity } from '../repositories/user.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
 
 async function resolveUser(app, req) {
@@ -37,7 +37,7 @@ async function resolveUser(app, req) {
     );
   }
 
-  const session = await getSessionById(app.db, Number(claims.sessionId));
+  const session = await getSessionWithIdentity(app.db, Number(claims.sessionId));
   if (!session || session.revoked_at) {
     throw new AppError('AUTH_INVALID', 'Your session is invalid. Please log in again.', 'আপনার সেশন অবৈধ। আবার লগইন করুন।');
   }
@@ -47,6 +47,11 @@ async function resolveUser(app, req) {
     roles: claims.roles,
     sessionId: session.id,
     permissionVersion: claims.permissionVersion,
+    // WHY these two are here: `users` carries neither — the display name lives on `user_profiles`.
+    // Chat handshake tickets, live-stream publisher/viewer tokens and in-stream orders all read
+    // `req.user.full_name`, and every one of them was getting `undefined`.
+    full_name: session.full_name ?? null,
+    phone: session.user_phone ?? null,
   };
 }
 

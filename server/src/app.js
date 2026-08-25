@@ -59,6 +59,13 @@ import socialKitRoutes from './routes/socialKit.routes.js';
 import liveStreamRoutes from './routes/liveStream.routes.js';
 import aiRoutes from './routes/ai.routes.js';
 import warrantyRoutes from './routes/warranty.routes.js';
+import bundleRoutes from './routes/bundle.routes.js';
+import b2bEscrowRoutes from './routes/b2bEscrow.routes.js';
+import publicApiRoutes from './routes/publicApi.routes.js';
+import contentRoutes from './routes/content.routes.js';
+import supplierRoutes from './routes/supplier.routes.js';
+import salerRoutes from './routes/saler.routes.js';
+import customerRoutes from './routes/customer.routes.js';
 import fastifyWebsocket from '@fastify/websocket';
 import websocketGateway from './sockets/gateway.js';
 import { startGrantExpiryScheduler } from './jobs/grantExpiryCron.js';
@@ -66,7 +73,12 @@ import { startScheduler, stopScheduler } from './jobs/scheduler.js';
 import './jobs/escrowRelease.job.js'; // Registers escrow_release job with scheduler
 import './jobs/teamPurchaseExpiry.job.js'; // Registers team_purchase_expiry job with scheduler
 import './jobs/cartRecovery.job.js'; // Registers cart_recovery_sweep job with scheduler
+import './jobs/expiryWarning.job.js'; // Registers batch_expiry_warning_sweep with scheduler
+import './jobs/analyticsRollup.job.js'; // Registers analytics_nightly_rollup with scheduler
+import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
+import sitemapRoutes from './routes/sitemap.routes.js';
 import { createSmsSender } from './integrations/sms/index.js';
+import { createEmailSender } from './integrations/email/index.js';
 
 /**
  * A @fastify/rate-limit custom Store, backed by our cache adapter instead of the plugin's
@@ -116,6 +128,7 @@ export async function buildApp(overrides = {}) {
   app.decorate('db', pool);
   app.decorate('cache', cache);
   app.decorate('smsSender', createSmsSender(config));
+  app.decorate('emailSender', createEmailSender(config));
 
   app.register(requestContextPlugin);
   app.register(errorHandlerPlugin);
@@ -188,6 +201,15 @@ export async function buildApp(overrides = {}) {
   await app.register(liveStreamRoutes, { prefix: '/api/v1' });
   await app.register(aiRoutes, { prefix: '/api/v1' });
   await app.register(warrantyRoutes, { prefix: '/api/v1' });
+  await app.register(bundleRoutes, { prefix: '/api/v1' });
+  await app.register(b2bEscrowRoutes, { prefix: '/api/v1' });
+  await app.register(publicApiRoutes, { prefix: '/api/v1' });
+  await app.register(contentRoutes, { prefix: '/api/v1' });
+  await app.register(supplierRoutes, { prefix: '/api/v1' });
+  await app.register(salerRoutes, { prefix: '/api/v1' });
+  await app.register(customerRoutes, { prefix: '/api/v1' });
+  await app.register(adminAnalyticsRoutes, { prefix: '/api/v1' });
+  await app.register(sitemapRoutes); // Root registration for /sitemap.xml and /robots.txt
 
   // Register WebSocket Gateway (Prompt 8.1)
   await app.register(fastifyWebsocket);

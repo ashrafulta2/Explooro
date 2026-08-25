@@ -29,6 +29,7 @@ import { addToCart } from '../services/cart.js';
 import { CategoryPills } from '../components/product/CategoryPills.js';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.js';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
+import { updateHead, buildWebsiteJsonLd } from '../services/seo.js';
 
 // All categories derived from the product fixture — populated lazily from the first API response
 const KNOWN_CATEGORIES = [
@@ -77,6 +78,15 @@ export default function HomePage(root, { navigate }) {
   const lang = getLanguage();
   const { auth, modules } = appStore.get();
   const role = auth.role || 'customer';
+
+  // Prompt 11.5: Dynamic SEO Head & WebSite JSON-LD
+  updateHead({
+    title: t('marketplace.hero.tagline', 'Explooro — Bangladesh\'s #1 Social Commerce Platform'),
+    description: t('marketplace.hero.sub', 'Buy from verified suppliers. Sell from your own branded store with zero upfront capital.'),
+    canonicalPath: '/',
+    locale: lang,
+    jsonLd: buildWebsiteJsonLd(),
+  });
 
   // ── Page root ───────────────────────────────────────────────────────────
   const page = document.createElement('div');

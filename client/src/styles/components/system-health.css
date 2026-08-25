@@ -1,0 +1,321 @@
+/**
+ * system-health.css — Platform Infrastructure & System Diagnostics Styles.
+ * Follows Explooro Design Tokens & Vanilla CSS guidelines.
+ */
+
+.system-health-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .system-health-page {
+    padding: var(--space-6) var(--space-6);
+    gap: var(--space-7);
+  }
+}
+
+/* Header */
+.system-health__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-5);
+  border-bottom: var(--border-width) solid var(--border-subtle);
+}
+
+@media (min-width: 768px) {
+  .system-health__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.system-health__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.system-health__status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--status-success, #22c55e);
+  border: var(--border-width) solid var(--border-subtle);
+}
+
+.system-health__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: var(--line-height-tight);
+  margin: 0;
+}
+
+.system-health__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: var(--space-1);
+}
+
+.system-health__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Vitals Cards Grid */
+.system-vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .system-vitals-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-4);
+  }
+}
+
+.system-vital-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-1);
+  gap: var(--space-1);
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.system-vital-card:hover {
+  box-shadow: var(--elevation-2);
+  border-color: var(--border-strong);
+}
+
+.system-vital-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.system-vital-card__val {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.system-vital-card__hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--status-success, #22c55e);
+  margin: 0;
+}
+
+/* Infrastructure Components Grid (DB, Cache, Webhooks) */
+.system-infra-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .system-infra-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.system-infra-card {
+  padding: var(--space-5);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.system-infra-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.system-infra-card__title {
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.system-infra-card__badge {
+  padding: 2px var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--status-success, #22c55e);
+}
+
+.system-infra-card__badge--warn {
+  color: var(--status-warning, #f59e0b);
+}
+
+.system-infra-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+.system-infra-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.system-infra-card__key {
+  color: var(--text-secondary);
+}
+
+.system-infra-card__val {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Scheduler Jobs & Tables */
+.system-panel {
+  padding: var(--space-5);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.system-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.system-panel__title {
+  font-size: var(--font-size-base);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.system-panel__sub {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.system-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.system-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--font-size-xs);
+}
+
+.system-table th {
+  padding: var(--space-2) var(--space-3);
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: var(--border-width) solid var(--border-subtle);
+}
+
+.system-table td {
+  padding: var(--space-3);
+  border-bottom: var(--border-width) solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.system-table tr:hover td {
+  background: var(--surface-2);
+}
+
+.system-table__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.system-table__badge--success {
+  background: hsl(var(--shadow-color) / 0.08);
+  color: var(--status-success, #22c55e);
+}
+
+.system-table__badge--danger {
+  background: hsl(var(--shadow-color) / 0.08);
+  color: var(--status-danger, #ef4444);
+}
+
+.system-table__badge--info {
+  background: hsl(var(--shadow-color) / 0.08);
+  color: var(--brand-primary);
+}
+
+/* Disaster Recovery Panel */
+.system-backup-panel {
+  padding: var(--space-6);
+  background: var(--surface-1);
+  border: 2px solid var(--brand-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.system-backup-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-width) solid var(--border-subtle);
+}
+
+@media (min-width: 640px) {
+  .system-backup-panel__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

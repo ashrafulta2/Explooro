@@ -15,7 +15,7 @@ import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 
-export function PayoutQueuePage() {
+export default function PayoutQueuePage(root) {
   const container = document.createElement('div');
   container.className = 'page payout-queue-page';
 
@@ -35,7 +35,7 @@ export function PayoutQueuePage() {
       if (methodFilter) params.set('method', methodFilter);
       params.set('limit', '50');
 
-      const res = await api.get(`/api/v1/admin/finance/payouts?${params.toString()}`);
+      const res = await api.get(`/admin/finance/payouts?${params.toString()}`);
       payouts = res.data?.payouts || [];
     } catch (err) {
       toast.error(err.message || 'Failed to load payout queue');
@@ -81,7 +81,7 @@ export function PayoutQueuePage() {
 
   async function handleApprove(payout) {
     try {
-      const res = await api.post(`/api/v1/admin/finance/payouts/${payout.id}/approve`, {
+      const res = await api.post(`/admin/finance/payouts/${payout.id}/approve`, {
         note: 'Approved from Admin Payout Queue',
       });
 
@@ -101,7 +101,7 @@ export function PayoutQueuePage() {
     if (!reason) return;
 
     try {
-      await api.post(`/api/v1/admin/finance/payouts/${payout.id}/reject`, { reason });
+      await api.post(`/admin/finance/payouts/${payout.id}/reject`, { reason });
       toast.success(t('payout.reject_success_notice'));
       await loadData();
     } catch (err) {
@@ -121,7 +121,7 @@ export function PayoutQueuePage() {
     if (!confirmed) return;
 
     try {
-      const res = await api.post('/api/v1/admin/finance/payouts/batch-disburse', {
+      const res = await api.post('/admin/finance/payouts/batch-disburse', {
         payout_ids: Array.from(selectedIds),
       });
 
@@ -349,5 +349,5 @@ export function PayoutQueuePage() {
   }
 
   loadData();
-  return container;
+  root.append(container);
 }

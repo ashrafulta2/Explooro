@@ -48,7 +48,7 @@ export default async function returnRoutes(app) {
   app.get('/admin/returns/queue', {
     preHandler: [
       app.authenticate,
-      app.requirePermission('orders.return.manage', {
+      app.requirePermission('orders.return.review', {
         tier: 'MEDIUM',
         module: 'returns_engine',
       }),
@@ -60,7 +60,7 @@ export default async function returnRoutes(app) {
   app.post('/admin/returns/:id/review', {
     preHandler: [
       app.authenticate,
-      app.requirePermission('orders.return.manage', {
+      app.requirePermission('orders.return.review', {
         tier: 'MEDIUM',
         module: 'returns_engine',
       }),
@@ -87,7 +87,7 @@ export default async function returnRoutes(app) {
   app.post('/admin/returns/:id/inspect', {
     preHandler: [
       app.authenticate,
-      app.requirePermission('orders.return.manage', {
+      app.requirePermission('orders.return.review', {
         tier: 'MEDIUM',
         module: 'returns_engine',
       }),
@@ -113,7 +113,7 @@ export default async function returnRoutes(app) {
   app.post('/admin/returns/:id/refund', {
     preHandler: [
       app.authenticate,
-      app.requirePermission('orders.return.manage', {
+      app.requirePermission('orders.return.review', {
         tier: 'MEDIUM',
         module: 'returns_engine',
       }),

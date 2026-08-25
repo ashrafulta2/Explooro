@@ -157,11 +157,14 @@ export async function getCustomerWarrantyCards(db, customerId, { status = 'all',
     statusClause = 'AND wc.expires_at <= now()';
   }
 
+  // WHY the shop name comes from kyc_verifications: there is no `stores` table. A supplier's
+  // trading name is the `business_name` on their approved KYC record; `virtual_stores` is the
+  // saler-side storefront and holds no supplier rows.
   const { rows } = await db.query(
     `SELECT wc.*,
             p.id AS product_id, p.title_en AS product_title_en, p.title_bn AS product_title_bn,
             p.brand, p.warranty_months,
-            u.full_name AS supplier_name,
+            COALESCE(up.display_name, up.full_name) AS supplier_name,
             s.business_name AS supplier_shop_name,
             so.ref AS sub_order_ref,
             (
@@ -178,9 +181,12 @@ export async function getCustomerWarrantyCards(db, customerId, { status = 'all',
               WHERE c.warranty_card_id = wc.id
             ) AS claims_json,
             COALESCE(
-              (SELECT storage_key FROM media_assets WHERE id = (
-                 SELECT media_id FROM product_media WHERE product_id = p.id ORDER BY position ASC LIMIT 1
-               )),
+              (SELECT m.storage_key
+               FROM product_images pi2
+               JOIN media_assets m ON m.id = pi2.media_id
+               WHERE pi2.product_id = p.id
+               ORDER BY pi2.is_primary DESC, pi2.display_order ASC
+               LIMIT 1),
               '/placeholder-product.svg'
             ) AS product_image
      FROM warranty_cards wc
@@ -188,7 +194,9 @@ export async function getCustomerWarrantyCards(db, customerId, { status = 'all',
      JOIN sub_orders so ON so.id = oi.sub_order_id
      JOIN products p ON p.id = oi.product_id
      JOIN users u ON u.id = wc.supplier_id
-     LEFT JOIN stores s ON s.user_id = wc.supplier_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     LEFT JOIN kyc_verifications s
+            ON s.user_id = wc.supplier_id AND s.status = 'APPROVED'
      WHERE wc.customer_id = $1 ${statusClause}
      ORDER BY wc.expires_at DESC
      LIMIT $2 OFFSET $3`,
@@ -253,8 +261,8 @@ export async function getWarrantyCardById(db, cardIdOrRef, { customerId = null, 
     `SELECT wc.*,
             p.id AS product_id, p.title_en AS product_title_en, p.title_bn AS product_title_bn,
             p.brand, p.warranty_months,
-            u.full_name AS supplier_name, u.phone AS supplier_phone,
-            cust.full_name AS customer_name, cust.phone AS customer_phone,
+            COALESCE(up.display_name, up.full_name) AS supplier_name, u.phone AS supplier_phone,
+            COALESCE(custp.display_name, custp.full_name) AS customer_name, cust.phone AS customer_phone,
             s.business_name AS supplier_shop_name,
             so.ref AS sub_order_ref,
             (
@@ -267,8 +275,11 @@ export async function getWarrantyCardById(db, cardIdOrRef, { customerId = null, 
      JOIN sub_orders so ON so.id = oi.sub_order_id
      JOIN products p ON p.id = oi.product_id
      JOIN users u ON u.id = wc.supplier_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
      JOIN users cust ON cust.id = wc.customer_id
-     LEFT JOIN stores s ON s.user_id = wc.supplier_id
+     LEFT JOIN user_profiles custp ON custp.user_id = cust.id
+     LEFT JOIN kyc_verifications s
+            ON s.user_id = wc.supplier_id AND s.status = 'APPROVED'
      WHERE ${whereColumn} = $1 ${roleFilter}
      LIMIT 1`,
     params
@@ -730,8 +741,10 @@ export async function transferWarrantyCard(db, {
     // 2. Find target user
     const targetIdentifier = targetPhoneOrEmail.trim();
     const { rows: targetUsers } = await txClient.query(
-      `SELECT id, full_name, email, phone FROM users
-       WHERE (phone = $1 OR email ILIKE $1) AND status = 'ACTIVE'
+      `SELECT u.id, COALESCE(up.display_name, up.full_name) AS full_name, u.email, u.phone
+       FROM users u
+       LEFT JOIN user_profiles up ON up.user_id = u.id
+       WHERE (u.phone = $1 OR u.email ILIKE $1) AND u.status = 'ACTIVE'
        LIMIT 1`,
       [targetIdentifier]
     );
@@ -819,7 +832,13 @@ export async function checkAndEscalateBreachedSla(db) {
 
     // Notify admins / moderators
     const { rows: adminUsers } = await db.query(
-      `SELECT id FROM users WHERE role IN ('admin', 'super_admin', 'moderator') LIMIT 3`
+      `SELECT DISTINCT u.id
+       FROM users u
+       JOIN user_roles ur ON ur.user_id = u.id
+       JOIN roles r ON r.id = ur.role_id
+       WHERE r.key IN ('admin', 'super_admin', 'moderator')
+         AND u.status = 'ACTIVE' AND u.deleted_at IS NULL
+       LIMIT 3`
     );
 
     for (const admin of adminUsers) {
@@ -863,7 +882,7 @@ export async function getProductClaimAnalytics(db, { supplierId = null, productI
   const { rows } = await db.query(
     `SELECT p.id AS product_id,
             p.title_en, p.title_bn, p.brand, p.warranty_months,
-            p.supplier_id, u.full_name AS supplier_name,
+            p.supplier_id, COALESCE(up.display_name, up.full_name) AS supplier_name,
             COUNT(DISTINCT wc.id) AS total_warranties_issued,
             COUNT(DISTINCT c.id) AS total_claims_count,
             COUNT(DISTINCT CASE WHEN c.status = 'APPROVED' THEN c.id END) AS approved_claims_count,
@@ -871,11 +890,13 @@ export async function getProductClaimAnalytics(db, { supplierId = null, productI
             COUNT(DISTINCT CASE WHEN c.status IN ('SUBMITTED','UNDER_REVIEW','ESCALATED') THEN c.id END) AS active_claims_count
      FROM products p
      JOIN users u ON u.id = p.supplier_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
      LEFT JOIN order_items oi ON oi.product_id = p.id
      LEFT JOIN warranty_cards wc ON wc.order_item_id = oi.id
      LEFT JOIN warranty_claims c ON c.warranty_card_id = wc.id
      WHERE p.warranty_months IS NOT NULL AND p.warranty_months > 0 ${filterClause}
-     GROUP BY p.id, p.title_en, p.title_bn, p.brand, p.warranty_months, p.supplier_id, u.full_name
+     GROUP BY p.id, p.title_en, p.title_bn, p.brand, p.warranty_months, p.supplier_id,
+              up.display_name, up.full_name
      ORDER BY total_claims_count DESC, total_warranties_issued DESC`,
     params
   );
@@ -932,7 +953,7 @@ export async function getSupplierClaims(db, supplierId, { status = null, limit =
     `SELECT c.*,
             wc.ref AS warranty_card_ref, wc.serial_number, wc.expires_at AS warranty_expires_at,
             p.id AS product_id, p.title_en AS product_title_en, p.title_bn AS product_title_bn,
-            u.full_name AS customer_name, u.phone AS customer_phone,
+            COALESCE(up.display_name, up.full_name) AS customer_name, u.phone AS customer_phone,
             so.ref AS sub_order_ref,
             sh.tracking_number AS reverse_tracking_number, sh.carrier AS reverse_carrier
      FROM warranty_claims c
@@ -941,6 +962,7 @@ export async function getSupplierClaims(db, supplierId, { status = null, limit =
      JOIN sub_orders so ON so.id = oi.sub_order_id
      JOIN products p ON p.id = oi.product_id
      JOIN users u ON u.id = c.customer_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
      LEFT JOIN shipments sh ON sh.id = c.reverse_shipment_id
      WHERE wc.supplier_id = $1 ${statusClause}
      ORDER BY c.created_at DESC
@@ -987,8 +1009,8 @@ export async function getAdminClaimsQueue(db, { status = null, limit = 50, offse
     `SELECT c.*,
             wc.ref AS warranty_card_ref, wc.serial_number,
             p.id AS product_id, p.title_en AS product_title_en,
-            cust.full_name AS customer_name,
-            supp.full_name AS supplier_name,
+            COALESCE(custp.display_name, custp.full_name) AS customer_name,
+            COALESCE(suppp.display_name, suppp.full_name) AS supplier_name,
             so.ref AS sub_order_ref
      FROM warranty_claims c
      JOIN warranty_cards wc ON wc.id = c.warranty_card_id
@@ -996,7 +1018,9 @@ export async function getAdminClaimsQueue(db, { status = null, limit = 50, offse
      JOIN sub_orders so ON so.id = oi.sub_order_id
      JOIN products p ON p.id = oi.product_id
      JOIN users cust ON cust.id = c.customer_id
+     LEFT JOIN user_profiles custp ON custp.user_id = cust.id
      JOIN users supp ON supp.id = wc.supplier_id
+     LEFT JOIN user_profiles suppp ON suppp.user_id = supp.id
      ${statusClause}
      ORDER BY
        CASE WHEN c.status = 'ESCALATED' THEN 1 WHEN c.status = 'SUBMITTED' THEN 2 ELSE 3 END ASC,

@@ -28,89 +28,40 @@ import { WishlistButton } from '../components/cart/WishlistButton.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { addToCart } from '../services/cart.js';
 import * as catalogApi from '../services/catalog.api.js';
-
-const SITE_NAME = 'Explooro';
-
-// ── SEO head-tag management ─────────────────────────────────────────────────
-// A page-local helper for now — Prompt 11.5 ("SEO: prerender + JSON-LD + sitemap") is where this
-// gets generalized into a shared service once more pages need the same OG/Twitter/JSON-LD pattern.
-const JSONLD_ID = 'product-detail-jsonld';
-let restoreHead = null;
-
-function upsertMeta(attrName, attrValue, content) {
-  let el = document.head.querySelector(`meta[${attrName}="${attrValue}"]`);
-  const existed = !!el;
-  const previousContent = el?.getAttribute('content') ?? null;
-  if (!el) {
-    el = document.createElement('meta');
-    el.setAttribute(attrName, attrValue);
-    document.head.append(el);
-  }
-  el.setAttribute('content', content);
-  return () => {
-    if (!existed) el.remove();
-    else if (previousContent !== null) el.setAttribute('content', previousContent);
-  };
-}
+import { updateHead, buildProductJsonLd } from '../services/seo.js';
 
 function applySeo(product, lang) {
-  const title = lang === 'bn' ? product.title_bn : product.title_en;
+  const title = lang === 'bn' ? (product.title_bn || product.title_en) : product.title_en;
   const description = (lang === 'bn' ? product.description_bn : product.description_en) || '';
   const imageUrl = product.images?.[0]?.url || '';
   const previousTitle = document.title;
-  document.title = `${title} — ${SITE_NAME}`;
 
-  const restorers = [
-    upsertMeta('name', 'description', description),
-    upsertMeta('property', 'og:type', 'product'),
-    upsertMeta('property', 'og:title', title),
-    upsertMeta('property', 'og:description', description),
-    upsertMeta('property', 'og:url', window.location.href),
-    ...(imageUrl ? [upsertMeta('property', 'og:image', imageUrl)] : []),
-    upsertMeta('name', 'twitter:card', imageUrl ? 'summary_large_image' : 'summary'),
-    upsertMeta('name', 'twitter:title', title),
-    upsertMeta('name', 'twitter:description', description),
-    ...(imageUrl ? [upsertMeta('name', 'twitter:image', imageUrl)] : []),
-  ];
-
-  const jsonLd = {
-    '@context': 'https://schema.org/',
-    '@type': 'Product',
+  const jsonLd = buildProductJsonLd({
+    id: product.id,
     name: title,
     description,
-    image: imageUrl ? [imageUrl] : undefined,
-    sku: product.ref,
-    brand: product.brand ? { '@type': 'Brand', name: product.brand } : undefined,
-    offers: {
-      '@type': 'Offer',
-      priceCurrency: 'BDT',
-      price: String(product.default_retail_price ?? product.price),
-      availability: (product.stock_qty ?? product.stock ?? 0) > 0
-        ? 'https://schema.org/InStock'
-        : 'https://schema.org/OutOfStock',
-      url: window.location.href,
-    },
-    ...(Number(product.rating_count ?? product.rating_count) > 0
-      ? {
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: String(product.rating_avg ?? product.rating),
-            reviewCount: String(product.rating_count),
-          },
-        }
-      : {}),
-  };
+    images: imageUrl ? [imageUrl] : [],
+    sku: product.ref || `EXP-${product.id}`,
+    retailPrice: product.default_retail_price ?? product.price ?? 0,
+    inStock: (product.stock_qty ?? product.stock ?? 0) > 0,
+    brand: product.brand || product.supplier_name || 'Explooro Verified Supplier',
+    ratingValue: product.rating_avg ?? product.rating ?? 4.8,
+    reviewCount: product.rating_count ?? 1,
+  });
 
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.id = JSONLD_ID;
-  script.textContent = JSON.stringify(jsonLd);
-  document.head.append(script);
+  updateHead({
+    title,
+    description,
+    canonicalPath: `/products/${product.slug || product.ref || product.id}`,
+    locale: lang,
+    ogImage: imageUrl,
+    ogType: 'product',
+    jsonLd,
+  });
 
   return () => {
     document.title = previousTitle;
-    for (const restore of restorers) restore();
-    document.getElementById(JSONLD_ID)?.remove();
+    document.getElementById('seo-structured-data')?.remove();
   };
 }
 

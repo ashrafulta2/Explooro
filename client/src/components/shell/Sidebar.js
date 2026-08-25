@@ -14,7 +14,7 @@ import { t } from '../../services/i18n.js';
 import { LockedNavItem } from './LockedNavItem.js';
 import { Badge } from '../ui/Badge.js';
 import { toggleGroupCollapsed, toggleSidebarCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.js';
-import { getGroupIcon, ICONS } from '../ui/icons.js';
+import { getGroupIcon, getItemIcon } from '../ui/icons.js';
 
 function hasModule(modules, key) {
   return !key || key === 'core' || modules[key] === true;
@@ -22,22 +22,6 @@ function hasModule(modules, key) {
 
 function hasPermission(permissions, key) {
   return !key || permissions.includes(key);
-}
-
-function getItemIcon(item) {
-  if (item.icon && typeof item.icon === 'string' && item.icon.trim().startsWith('<svg')) return item.icon;
-  const key = item.key || '';
-  if (key.includes('become_saler') || key.includes('star')) return ICONS.star;
-  if (key.includes('add_product') || key.includes('sourcing')) return ICONS.sourcing || ICONS.catalog;
-  if (key.includes('share_store') || key.includes('my_store') || key.includes('my_shop') || key.includes('store-builder')) return ICONS.my_store;
-  if (key.includes('orders')) return ICONS.orders;
-  if (key.includes('earnings') || key.includes('vault') || key.includes('finance')) return ICONS.vault;
-  if (key.includes('messages') || key.includes('inbox') || key.includes('engage')) return ICONS.engage;
-  if (key.includes('stock') || key.includes('inventory')) return ICONS.inventory;
-  if (key.includes('help') || key.includes('academy')) return ICONS.content;
-  if (key.includes('print_labels') || key.includes('fulfilment')) return ICONS.catalog;
-  if (item.group) return getGroupIcon(item.group);
-  return null;
 }
 
 function navLink({ item, label, currentPath, navigate, badges }) {

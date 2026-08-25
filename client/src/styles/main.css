@@ -49,5 +49,9 @@
 @import './components/live.css';
 /* Prompt 10.2: AI service layer & conversational assistants */
 @import './components/ai.css';
+/* Prompt 11.4: Super Admin Executive Dashboard & System Health */
+@import './components/admin-dashboard.css';
+@import './components/system-health.css';
+@import './components/admin-staff.css';
 
 

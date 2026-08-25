@@ -11,7 +11,14 @@
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import * as authService from '../services/auth.service.js';
 import * as otpService from '../services/otp.service.js';
-import { markPhoneVerified, findUserByPhone, getRefreshTokenByHash } from '../repositories/user.repository.js';
+import {
+  markPhoneVerified,
+  markEmailVerified,
+  findUserByPhone,
+  findUserByEmail,
+  findUserByIdentifier,
+  getRefreshTokenByHash,
+} from '../repositories/user.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
 
 const REFRESH_COOKIE = 'rt';
@@ -70,10 +77,10 @@ function loginResponseBody(result) {
 
 export async function register(req, reply) {
   const { db } = req.server;
-  const { phone, password, full_name: fullName, role } = req.body;
-  const user = await authService.registerUser(db, { phone, password, fullName, role });
+  const { phone, email, password, full_name: fullName, role } = req.body;
+  const user = await authService.registerUser(db, { phone, email, password, fullName, role });
   reply.code(201).send({
-    data: { user: { ref: user.ref, phone: user.phone, status: user.status } },
+    data: { user: { ref: user.ref, phone: user.phone, email: user.email, status: user.status } },
   });
 }
 
@@ -88,10 +95,11 @@ export async function login(req, reply) {
 }
 
 export async function sendOtp(req, reply) {
-  const { db, cache, config, smsSender } = req.server;
-  const { phone, purpose } = req.body;
-  const { devCode, expiresInS } = await otpService.sendOtp(db, cache, smsSender, {
+  const { db, cache, config, smsSender, emailSender } = req.server;
+  const { phone, email, purpose } = req.body;
+  const { devCode, expiresInS } = await otpService.sendOtp(db, cache, smsSender, emailSender, {
     phone,
+    email,
     purpose,
     ip: req.ip,
     isDevelopment: config.isDevelopment,
@@ -105,19 +113,22 @@ export async function sendOtp(req, reply) {
 
 export async function verifyOtp(req, reply) {
   const { db, cache, config } = req.server;
-  const { phone, purpose, code } = req.body;
+  const { phone, email, purpose, code } = req.body;
 
-  await otpService.verifyOtp(db, { phone, purpose, code });
+  await otpService.verifyOtp(db, { phone, email, purpose, code });
 
   if (purpose === 'REGISTER') {
-    const user = await findUserByPhone(db, phone);
-    if (user) await markPhoneVerified(db, user.id);
+    const user = email ? await findUserByEmail(db, email) : await findUserByPhone(db, phone);
+    if (user) {
+      if (email) await markEmailVerified(db, user.id);
+      if (phone) await markPhoneVerified(db, user.id);
+    }
     reply.send({ data: { verified: true } });
     return;
   }
 
   if (purpose === 'LOGIN') {
-    const result = await authService.completeOtpLogin(db, cache, config, phone, requestMeta(req));
+    const result = await authService.completeOtpLogin(db, cache, config, { phone, email }, requestMeta(req));
     setAuthCookies(reply, config, result);
     reply.send({ data: loginResponseBody(result) });
     return;

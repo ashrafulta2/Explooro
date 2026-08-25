@@ -6,7 +6,7 @@
  * `{ method, path, handler(ctx) }` entries; `path` is matched the same way core/router.js matches
  * page routes, reusing its `matchPath` so the two systems agree on `:param` syntax.
  */
-import { matchPath } from '../core/router.js';
+import { matchPath, parseQuery } from '../core/router.js';
 import productHandlers from './handlers/products.js';
 import storeHandlers from './handlers/stores.js';
 import accessHandlers from './handlers/access.js';
@@ -15,6 +15,13 @@ import qnaHandlers from './handlers/qna.js';
 import authHandlers from './handlers/auth.js';
 import cartHandlers from './handlers/cart.js';
 import orderHandlers from './handlers/orders.js';
+import bundleHandlers from './handlers/bundles.js';
+import { b2bEscrowHandlers } from './handlers/b2bEscrow.js';
+import { developerHandlers } from './handlers/developer.js';
+import { contentHandlers } from './handlers/content.js';
+import supplierHandlers from './handlers/supplier.js';
+import salerHandlers from './handlers/saler.js';
+import adminHandlers from './handlers/admin.js';
 
 const handlers = [
   ...authHandlers,
@@ -25,6 +32,13 @@ const handlers = [
   ...qnaHandlers,
   ...cartHandlers,
   ...orderHandlers,
+  ...bundleHandlers,
+  ...b2bEscrowHandlers,
+  ...developerHandlers,
+  ...contentHandlers,
+  ...supplierHandlers,
+  ...salerHandlers,
+  ...adminHandlers,
 ];
 
 function notFoundBody(path) {
@@ -43,11 +57,14 @@ function notFoundBody(path) {
 
 /** Resolves one mock "request" to `{ status, body }`, mirroring the shape a real fetch would give api.js. */
 export function handleMockRequest({ method, path, query, body }) {
+  const [cleanPath, search] = path.split('?');
+  const parsedQuery = { ...(search ? parseQuery(search) : {}), ...(query ?? {}) };
+
   for (const entry of handlers) {
     if (entry.method !== method) continue;
-    const params = matchPath(entry.path, path);
+    const params = matchPath(entry.path, cleanPath);
     if (!params) continue;
-    return entry.handler({ params, query: query ?? {}, body });
+    return entry.handler({ params, query: parsedQuery, body });
   }
   return notFoundBody(path);
 }

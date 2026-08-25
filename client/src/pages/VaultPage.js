@@ -15,7 +15,7 @@ import { BalanceSummary } from '../components/vault/BalanceSummary.js';
 import { EscrowTimeline } from '../components/vault/EscrowTimeline.js';
 import { LedgerTable } from '../components/vault/LedgerTable.js';
 
-export function VaultPage() {
+export default function VaultPage(root) {
   const container = document.createElement('div');
   container.className = 'page vault-page';
 
@@ -111,5 +111,5 @@ export function VaultPage() {
   }
 
   loadVaultData();
-  return container;
+  root.append(container);
 }

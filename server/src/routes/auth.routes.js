@@ -7,7 +7,9 @@
 
 import * as controller from '../controllers/auth.controller.js';
 
-const PHONE = { type: 'string', pattern: '^\\+8801[3-9]\\d{8}$' };
+const PHONE = { type: 'string', pattern: '^\\+8801[3-9]\\d{8}$', nullable: true };
+const EMAIL = { type: 'string', format: 'email', maxLength: 255, nullable: true };
+const IDENTIFIER = { type: 'string', minLength: 3, maxLength: 255, nullable: true };
 const OTP_PURPOSE = { type: 'string', enum: ['LOGIN', 'REGISTER', 'COD_CONFIRM', 'PAYOUT_CONFIRM', 'RESET'] };
 const OTP_CODE = { type: 'string', pattern: '^\\d{6}$' };
 // Self-registration only ever grants one of these three — staff/admin roles are assigned by an
@@ -19,14 +21,15 @@ export default async function authRoutes(app) {
     schema: {
       body: {
         type: 'object',
-        required: ['phone'],
         additionalProperties: false,
         properties: {
           phone: PHONE,
+          email: EMAIL,
           password: { type: 'string', minLength: 8, maxLength: 128, nullable: true },
           full_name: { type: 'string', minLength: 1, maxLength: 200, nullable: true },
           role: SELF_SERVICE_ROLE,
         },
+        anyOf: [{ required: ['phone'] }, { required: ['email'] }],
       },
     },
     handler: controller.register,
@@ -36,9 +39,14 @@ export default async function authRoutes(app) {
     schema: {
       body: {
         type: 'object',
-        required: ['phone', 'password'],
         additionalProperties: false,
-        properties: { phone: PHONE, password: { type: 'string', minLength: 1 } },
+        properties: {
+          phone: PHONE,
+          email: EMAIL,
+          identifier: IDENTIFIER,
+          password: { type: 'string', minLength: 1 },
+        },
+        anyOf: [{ required: ['phone'] }, { required: ['email'] }, { required: ['identifier'] }],
       },
     },
     handler: controller.login,
@@ -48,9 +56,9 @@ export default async function authRoutes(app) {
     schema: {
       body: {
         type: 'object',
-        required: ['phone', 'purpose'],
         additionalProperties: false,
-        properties: { phone: PHONE, purpose: OTP_PURPOSE },
+        properties: { phone: PHONE, email: EMAIL, purpose: OTP_PURPOSE },
+        anyOf: [{ required: ['phone'] }, { required: ['email'] }],
       },
     },
     handler: controller.sendOtp,
@@ -60,9 +68,10 @@ export default async function authRoutes(app) {
     schema: {
       body: {
         type: 'object',
-        required: ['phone', 'purpose', 'code'],
+        required: ['purpose', 'code'],
         additionalProperties: false,
-        properties: { phone: PHONE, purpose: OTP_PURPOSE, code: OTP_CODE },
+        properties: { phone: PHONE, email: EMAIL, purpose: OTP_PURPOSE, code: OTP_CODE },
+        anyOf: [{ required: ['phone'] }, { required: ['email'] }],
       },
     },
     handler: controller.verifyOtp,

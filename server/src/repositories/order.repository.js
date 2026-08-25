@@ -4,6 +4,44 @@
  * Implements deterministic row locking, FEFO batch allocation, and multi-supplier queries.
  */
 
+/**
+ * SQL fragment yielding a customer-facing status for one order.
+ *
+ * WHY this exists: `orders` has no `status` column by design — an order fans out into one
+ * `sub_orders` row per supplier parcel, and each parcel moves through the lifecycle on its own
+ * (cancelOrder() below only ever writes sub_orders.status). The root order therefore has no single
+ * stored status to read; it has to be derived, and deriving it in more than one place is how the
+ * definitions drift apart. Every caller uses this fragment.
+ *
+ * The rule: an order is only as far along as its least-advanced parcel that is still moving.
+ * Terminal parcels (cancelled/returned/refunded) are ignored while any parcel is still active, so
+ * one cancelled item does not make a live order look cancelled. If every parcel is terminal, the
+ * most consequential of those wins (RETURNED > REFUNDED > CANCELLED).
+ *
+ * @param {string} orderAlias SQL alias of the `orders` row in the enclosing query (e.g. 'o').
+ * @returns {string} a scalar subquery, safe to interpolate — takes no user input.
+ */
+export function orderStatusSql(orderAlias = 'o') {
+  return `COALESCE(
+    (SELECT so_a.status FROM sub_orders so_a
+      WHERE so_a.order_id = ${orderAlias}.id
+        AND so_a.status NOT IN ('CANCELLED', 'RETURNED', 'REFUNDED')
+      ORDER BY CASE so_a.status
+        WHEN 'PLACED' THEN 1 WHEN 'CONFIRMED' THEN 2 WHEN 'PACKED' THEN 3
+        WHEN 'SHIPPED' THEN 4 WHEN 'IN_TRANSIT' THEN 5 WHEN 'DELIVERED' THEN 6 ELSE 7 END
+      LIMIT 1),
+    (SELECT so_t.status FROM sub_orders so_t
+      WHERE so_t.order_id = ${orderAlias}.id
+      ORDER BY CASE so_t.status
+        WHEN 'RETURNED' THEN 1 WHEN 'REFUNDED' THEN 2 WHEN 'CANCELLED' THEN 3 ELSE 4 END
+      LIMIT 1),
+    'PLACED'
+  )`;
+}
+
+/** Lifecycle statuses in order, for callers that need to map a status to a progress step. */
+export const ORDER_STATUS_SEQUENCE = ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED'];
+
 export async function createOrder(db, {
   ref,
   customerId,
@@ -294,11 +332,12 @@ export async function findOrderByRef(db, ref, { userId = null, allowAny = false 
   let query = `
     SELECT
       o.*,
-      u.full_name AS customer_name,
+      COALESCE(up.display_name, up.full_name) AS customer_name,
       u.phone AS customer_phone,
       c.code AS coupon_code
     FROM orders o
     JOIN users u ON u.id = o.customer_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     LEFT JOIN coupons c ON c.id = o.coupon_id
     WHERE o.ref = $1
   `;
@@ -321,11 +360,12 @@ export async function findOrderById(db, id, { userId = null, allowAny = false } 
   let query = `
     SELECT
       o.*,
-      u.full_name AS customer_name,
+      COALESCE(up.display_name, up.full_name) AS customer_name,
       u.phone AS customer_phone,
       c.code AS coupon_code
     FROM orders o
     JOIN users u ON u.id = o.customer_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
     LEFT JOIN coupons c ON c.id = o.coupon_id
     WHERE o.id = $1
   `;
@@ -360,13 +400,15 @@ export async function getSubOrdersByOrderId(db, orderId) {
   const { rows: subOrders } = await db.query(
     `SELECT
        so.*,
-       supp.full_name AS supplier_name,
+       COALESCE(suppp.display_name, suppp.full_name) AS supplier_name,
        supp.phone AS supplier_phone,
-       saler.full_name AS saler_name,
+       COALESCE(salerp.display_name, salerp.full_name) AS saler_name,
        wn.name AS warehouse_node_name
      FROM sub_orders so
      JOIN users supp ON supp.id = so.supplier_id
+     LEFT JOIN user_profiles suppp ON suppp.user_id = supp.id
      LEFT JOIN users saler ON saler.id = so.saler_id
+     LEFT JOIN user_profiles salerp ON salerp.user_id = saler.id
      LEFT JOIN warehouse_nodes wn ON wn.id = so.warehouse_node_id
      WHERE so.order_id = $1
      ORDER BY so.id ASC`,

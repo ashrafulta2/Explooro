@@ -14,7 +14,7 @@ import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js'
 import { toast } from '../../services/toast.js';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';
 
-export default class CoinsPage {
+export class CoinsPage {
   constructor() {
     this.coinBalance = null;
     this.history = [];
@@ -298,4 +298,13 @@ export default class CoinsPage {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+}
+
+// WHY: this page is written as a class, but the router page contract (core/router.js) is a
+// plain function `(container, ctx) => cleanup?`. Calling a class without `new` throws, so the
+// default export adapts the two — mount() is fire-and-forget async, unmount() is the cleanup.
+export default function mountCoinsPage(root, ctx = {}) {
+  const page = new CoinsPage();
+  page.mount(root);
+  return () => page.unmount();
 }

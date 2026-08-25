@@ -12,6 +12,7 @@ import { EmptyState } from '../components/ui/EmptyState.js';
 import { toast } from '../services/toast.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { appStore } from '../state/appStore.js';
+import { updateHead, buildStoreJsonLd } from '../services/seo.js';
 
 export default function StorefrontPage(root, { params, navigate }) {
   const container = document.createElement('div');
@@ -34,10 +35,14 @@ export default function StorefrontPage(root, { params, navigate }) {
   const slug = params?.slug;
 
   getStoreBySlug(slug)
-    .then(({ data }) => {
+    // store.api.js already unwraps the envelope, so this is the payload itself — destructuring
+    // `{ data }` here unwrapped a second time, threw on `data.store`, and sent every existing
+    // storefront down the "store not found" path.
+    .then((payload) => {
       if (isCancelled) return;
       container.replaceChildren();
 
+      const data = payload || {};
       const store = data.store || {};
       const shelves = data.shelves || [];
       const products = data.products || [];
@@ -49,10 +54,15 @@ export default function StorefrontPage(root, { params, navigate }) {
     })
     .catch((err) => {
       if (isCancelled) return;
+      // WHY the status check: this catch also sees exceptions thrown while *rendering* a store that
+      // loaded perfectly well. Reporting those as "store not found" hid a real render bug behind a
+      // plausible-looking empty state, so anything that isn't a genuine 404 is surfaced as an error.
+      const isMissing = err?.status === 404 || err?.code === 'NOT_FOUND';
+      if (!isMissing) console.error('[storefront] failed to render store', slug, err);
       container.replaceChildren();
       const empty = EmptyState({
-        title: t('store.not_found_title'),
-        description: t('store.not_found_desc', { slug }),
+        title: isMissing ? t('store.not_found_title') : t('common.error_generic'),
+        description: isMissing ? t('store.not_found_desc', { slug }) : String(err?.message ?? err),
         actionLabel: t('common.back_to_marketplace'),
         onAction: () => navigate('/'),
       });
@@ -92,9 +102,9 @@ export default function StorefrontPage(root, { params, navigate }) {
           const grid = document.createElement('div');
           grid.className = 'storefront-shelf__grid';
 
-          const userState = appStore.getState();
-          const role = userState?.user?.role || 'customer';
-          const modules = userState?.features || { physical_shop_status: true };
+          const userState = appStore.get();
+          const role = userState?.auth?.role || 'customer';
+          const modules = userState?.modules || { physical_shop_status: true };
 
           shelf.items.forEach((p) => {
             const card = ProductCard({
@@ -135,9 +145,9 @@ export default function StorefrontPage(root, { params, navigate }) {
     const allGrid = document.createElement('div');
     allGrid.className = 'storefront-shelf__grid';
 
-    const userState = appStore.getState();
-    const role = userState?.user?.role || 'customer';
-    const modules = userState?.features || { physical_shop_status: true };
+    const userState = appStore.get();
+    const role = userState?.auth?.role || 'customer';
+    const modules = userState?.modules || { physical_shop_status: true };
 
     if (products.length === 0) {
       const empty = document.createElement('p');
@@ -333,53 +343,24 @@ function drawFinderPattern(ctx, startX, startY, cellSize) {
   ctx.fillRect((startX + 2) * cellSize, (startY + 2) * cellSize, 3 * cellSize, 3 * cellSize);
 }
 
-/**
- * Injects OpenGraph meta tags & JSON-LD Structured Data for crawlers.
- */
 function injectStoreSeo(store) {
-  document.title = `${store.shop_name} — Explooro Store`;
+  if (!store || !store.shop_name) return;
 
-  // Set OpenGraph meta tags
-  setMetaTag('property', 'og:title', `${store.shop_name} — Explooro Virtual Store`);
-  setMetaTag('property', 'og:description', store.bio || 'Verified Bangladeshi Social Seller · 100% Escrow Protection');
-  setMetaTag('property', 'og:image', `${window.location.origin}/api/v1/og/store/${store.slug}.png`);
-  setMetaTag('property', 'og:url', `${window.location.origin}/store/${store.slug}`);
-  setMetaTag('property', 'og:type', 'website');
-  setMetaTag('name', 'twitter:card', 'summary_large_image');
+  const jsonLd = buildStoreJsonLd({
+    slug: store.slug,
+    shopName: store.shop_name,
+    bio: store.bio,
+    logoUrl: `${window.location.origin}/api/v1/og/store/${store.slug}.png`,
+    salerName: store.saler_name,
+  });
 
-  // JSON-LD Structured Data
-  const jsonLdId = 'store-jsonld';
-  let script = document.getElementById(jsonLdId);
-  if (!script) {
-    script = document.createElement('script');
-    script.id = jsonLdId;
-    script.type = 'application/ld+json';
-    document.head.append(script);
-  }
-
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'Store',
-    name: store.shop_name,
-    description: store.bio,
-    url: `${window.location.origin}/store/${store.slug}`,
-    image: `${window.location.origin}/api/v1/og/store/${store.slug}.png`,
-    priceRange: '৳৳',
-    address: {
-      '@type': 'PostalAddress',
-      addressCountry: 'BD',
-    },
-  };
-
-  script.textContent = JSON.stringify(structuredData);
-}
-
-function setMetaTag(attrName, attrVal, content) {
-  let tag = document.querySelector(`meta[${attrName}="${attrVal}"]`);
-  if (!tag) {
-    tag = document.createElement('meta');
-    tag.setAttribute(attrName, attrVal);
-    document.head.append(tag);
-  }
-  tag.setAttribute('content', content);
+  updateHead({
+    title: `${store.shop_name} — Explooro Store`,
+    description: store.bio || 'Verified Bangladeshi Social Seller · 100% Escrow Protection',
+    canonicalPath: `/store/${store.slug}`,
+    locale: getLanguage(),
+    ogImage: `${window.location.origin}/api/v1/og/store/${store.slug}.png`,
+    ogType: 'profile',
+    jsonLd,
+  });
 }

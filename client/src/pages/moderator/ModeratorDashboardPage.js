@@ -17,7 +17,7 @@ import WorkloadSummary from '../../components/moderator/WorkloadSummary.js';
 import SlaMonitor from '../../components/moderator/SlaMonitor.js';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
 
-export default function ModeratorDashboardPage() {
+export default function ModeratorDashboardPage(root) {
   const container = document.createElement('div');
   container.className = 'page-container moderator-dashboard-page space-y-6';
 
@@ -396,5 +396,5 @@ export default function ModeratorDashboardPage() {
   }
 
   init();
-  return container;
+  root.append(container);
 }

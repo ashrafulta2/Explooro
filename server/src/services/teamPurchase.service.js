@@ -310,9 +310,12 @@ export async function expireIncompleteTeams(db, cache) {
 export async function getTeamPurchaseById(db, teamId) {
   const { rows: teamRows } = await db.query(
     `SELECT tp.*,
-            p.name_en as product_name_en,
-            p.name_bn as product_name_bn,
-            p.primary_image_url as product_image_url
+            p.title_en as product_name_en,
+            p.title_bn as product_name_bn,
+            (SELECT m.storage_key FROM product_images pi2
+              JOIN media_assets m ON m.id = pi2.media_id
+              WHERE pi2.product_id = p.id
+              ORDER BY pi2.is_primary DESC, pi2.display_order ASC LIMIT 1) AS product_image_url
      FROM team_purchases tp
      JOIN products p ON p.id = tp.product_id
      WHERE tp.id = $1`,
@@ -324,10 +327,12 @@ export async function getTeamPurchaseById(db, teamId) {
 
   const { rows: members } = await db.query(
     `SELECT tpm.*,
-            u.display_name_en as user_name,
-            u.avatar_url
+            COALESCE(up.display_name, up.full_name) as user_name,
+            am.storage_key as avatar_key
      FROM team_purchase_members tpm
      JOIN users u ON u.id = tpm.user_id
+     LEFT JOIN user_profiles up ON up.user_id = u.id
+     LEFT JOIN media_assets am ON am.id = up.avatar_media_id
      WHERE tpm.team_purchase_id = $1
      ORDER BY tpm.joined_at ASC`,
     [teamId]
@@ -351,9 +356,12 @@ export async function getUserTeamPurchases(db, userId) {
            tpm.payment_hold_status,
            tpm.order_id,
            tpm.joined_at as my_joined_at,
-           p.name_en as product_name_en,
-           p.name_bn as product_name_bn,
-           p.primary_image_url as product_image_url
+           p.title_en as product_name_en,
+           p.title_bn as product_name_bn,
+           (SELECT m.storage_key FROM product_images pi2
+              JOIN media_assets m ON m.id = pi2.media_id
+              WHERE pi2.product_id = p.id
+              ORDER BY pi2.is_primary DESC, pi2.display_order ASC LIMIT 1) AS product_image_url
     FROM team_purchase_members tpm
     JOIN team_purchases tp ON tp.id = tpm.team_purchase_id
     JOIN products p ON p.id = tp.product_id

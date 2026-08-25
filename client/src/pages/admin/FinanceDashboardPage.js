@@ -15,7 +15,7 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 
-export function FinanceDashboardPage() {
+export default function FinanceDashboardPage(root) {
   const container = document.createElement('div');
   container.className = 'page finance-dashboard-page';
 
@@ -28,7 +28,7 @@ export function FinanceDashboardPage() {
     render();
 
     try {
-      const res = await api.get('/api/v1/admin/finance/overview');
+      const res = await api.get('/admin/finance/overview');
       overviewData = res.data || null;
     } catch (err) {
       toast.error(err.message || 'Failed to load financial metrics');
@@ -43,7 +43,7 @@ export function FinanceDashboardPage() {
     render();
 
     try {
-      const res = await api.post('/api/v1/admin/finance/escrow/sweep');
+      const res = await api.post('/admin/finance/escrow/sweep');
       const { releasedCount, totalReleasedAmount } = res.data;
       toast.success(
         t('finance_admin.sweep_success', {
@@ -259,5 +259,5 @@ export function FinanceDashboardPage() {
   }
 
   loadDashboard();
-  return container;
+  root.append(container);
 }
