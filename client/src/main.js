@@ -82,6 +82,11 @@ if (import.meta.env.DEV) {
 const routerOutlet = document.getElementById('router-outlet');
 
 async function bootRouterDemo() {
+  // Prompt 3.5: the runtime palette goes FIRST. Its default mount is synchronous, so putting it
+  // ahead of the three awaits below is the difference between the shell wearing the right colours
+  // immediately and wearing the CSS baseline for three round trips.
+  await initTheme();
+
   // i18n loads before the first route mounts so pages never flash an untranslated frame — see
   // services/i18n.js. The static shell (data-i18n attributes in index.html) is scanned as part of
   // this same call.
@@ -92,9 +97,6 @@ async function bootRouterDemo() {
 
   // Prompt 3.2: Bootstrap live feature flags
   await initFeatureFlags();
-
-  // Prompt 3.5: Bootstrap runtime theme palette
-  await initTheme();
 
   // AppShell needs `navigate` before the router that provides it exists (the router, in turn,
   // needs AppShell's `pageOutlet` as its mount root) — a proxy breaks the cycle. Every real call

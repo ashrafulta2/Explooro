@@ -1575,25 +1575,12 @@ export const adminHandlers = [
     method: 'GET',
     path: '/theme/active',
     handler() {
-      return {
-        status: 200,
-        body: {
-          theme: {
-            id: 1,
-            preset_key: 'default',
-            name: 'Explooro Pink (Default)',
-            is_published: true,
-            tokens_json: {
-              navbar: { bg: '#ffffff', text: '#192026', border: '#f9cee6', search_bg: '#eff2f5' },
-              surfaces: { page: '#fcf7f9', card: '#ffffff', subtle: '#eff2f5', border: '#f9cee6' },
-              brand: { primary: '#eea1ce', hover: '#e58bc1', contrast: '#192026', secondary_bg: '#eff2f5', secondary_text: '#192026' },
-              typography: { primary: '#192026', secondary: '#464e55', muted: '#626a70', inverse: '#ffffff' },
-              badges: { success_bg: '#e7f7e9', success_text: '#205b31', warning_bg: '#feefdc', warning_text: '#6e4b0e', danger_bg: '#fceeec', danger_text: '#8b1f17', info_bg: '#eaf3fc', info_text: '#16558c' },
-              footer: { bg: '#192026', text: '#ffffff', muted: '#a6acb1', border: '#2c343a' },
-            },
-          },
-        },
-      };
+      // A fresh install has published nothing, and this fixture now says so. It used to return a
+      // hand-pasted pink legacy palette flagged is_published, which meant mock mode overrode the
+      // shipped default on every boot — a developer could never see the colour the product
+      // actually ships with. The migration path it exercised is covered by the Theme Studio's own
+      // preset grid, which routes the same legacy tokens through themeFromLegacyTokens().
+      return { status: 200, body: { theme: null } };
     },
   },
 

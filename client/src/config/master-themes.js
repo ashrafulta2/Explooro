@@ -11,12 +11,29 @@
  */
 
 export const MASTER_PRESETS = {
+  midnight_slate: {
+    key: 'midnight_slate',
+    name_en: 'Midnight Slate',
+    name_bn: 'মিডনাইট স্লেট',
+    description_en: 'Near-monochrome slate — the shipped default. Typography and product photography carry all the colour.',
+    description_bn: 'প্রায়-মনোক্রোম স্লেট — এটিই ডিফল্ট। রঙের ভার টাইপোগ্রাফি ও পণ্যের ছবির উপর।',
+    master: {
+      seed: '#334155',
+      vividness: 1,
+      neutralMode: 'match',
+      neutralTint: 1,
+      accentHarmony: 'complement',
+      statusPull: 0,
+      surfaceWash: false,
+      borderTint: false,
+    },
+  },
   explooro_pink: {
     key: 'explooro_pink',
     name_en: 'Explooro Pink',
     name_bn: 'এক্সপ্লোরো পিংক',
-    description_en: 'The signature soft pink on cool charcoal neutrals. This is the shipped default.',
-    description_bn: 'সিগনেচার সফট পিংক, কুল চারকোল নিউট্রালের সাথে। এটিই ডিফল্ট।',
+    description_en: 'The signature soft pink on cool charcoal neutrals — the identity this system shipped with, now the alternate.',
+    description_bn: 'সিগনেচার সফট পিংক, কুল চারকোল নিউট্রালের সাথে — শুরুর পরিচয়, এখন বিকল্প।',
     // WHY these exact values: fed through colorRamp.js they reproduce styles/themes.css as
     // authored, so "Reset to default" is a real round-trip and not an approximation.
     master: {
@@ -139,23 +156,15 @@ export const MASTER_PRESETS = {
     },
   },
 
-  midnight_slate: {
-    key: 'midnight_slate',
-    name_en: 'Midnight Slate',
-    name_bn: 'মিডনাইট স্লেট',
-    description_en: 'Near-monochrome slate. Typography and product photography carry all the colour.',
-    description_bn: 'প্রায়-মনোক্রোম স্লেট। রঙের ভার টাইপোগ্রাফি ও পণ্যের ছবির উপর।',
-    master: {
-      seed: '#334155',
-      vividness: 1,
-      neutralMode: 'match',
-      neutralTint: 1,
-      accentHarmony: 'complement',
-      statusPull: 0,
-      surfaceWash: false,
-      borderTint: false,
-    },
-  },
 };
 
-export const DEFAULT_MASTER_PRESET = 'explooro_pink';
+/**
+ * The colour the product ships with. `initTheme()` mounts this on every boot that has no published
+ * palette, so it is the real default — not just where the Theme Studio starts.
+ *
+ * WHY it is not colorRamp.js's DEFAULT_MASTER: that constant is the ENGINE's calibration baseline,
+ * pinned to the pink ladder authored in styles/themes.css so the generator can be proved to
+ * reproduce it (client/test/colorRamp.test.js). Which colour the PRODUCT defaults to is a separate
+ * decision, and it lives here.
+ */
+export const DEFAULT_MASTER_PRESET = 'midnight_slate';

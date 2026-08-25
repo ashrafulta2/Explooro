@@ -307,9 +307,15 @@ export function themeFromLegacyTokens(tokens = {}) {
 }
 
 /**
- * Initializes active theme from server or default fallback on boot.
+ * Boots the runtime theme.
+ *
+ * The shipped default is mounted SYNCHRONOUSLY, before the API is asked anything: the master
+ * engine — not themes.css — is what defines the product's colours now, and a published palette
+ * only ever replaces that default. Waiting for the round trip first would leave the shell painting
+ * the engine's pink calibration baseline for the whole request.
  */
 export async function initTheme() {
+  applyTheme(themeFromMasterPreset(DEFAULT_MASTER_PRESET));
   try {
     const { api } = await import('../core/api.js');
     const res = await api.get('/theme/active');
@@ -326,8 +332,10 @@ export async function initTheme() {
       return;
     }
   } catch {
-    // Fall back to default
+    // Fall back to the default mounted above.
   }
-  clearThemeOverrides();
+  // Nothing published, or the call failed — the default mounted at the top of this function
+  // stands. Deliberately NOT clearThemeOverrides(), which would strip it back to the authored
+  // themes.css baseline and leave the product wearing a colour no longer chosen as its default.
 }
 
