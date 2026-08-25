@@ -48,6 +48,9 @@ export function showInstallBanner() {
 
   const banner = document.createElement('div');
   banner.id = 'pwa-install-banner';
+  // WHY tokens and not hexes: the three colours below were a hand-pasted copy of neutral-900/0/700
+  // from the pink era, so the banner kept wearing the old palette once themes.css was regenerated
+  // from the master seed. Anything that names a hex here is invisible to a re-theme.
   banner.style.cssText = `
     position: fixed;
     bottom: 20px;
@@ -56,9 +59,9 @@ export function showInstallBanner() {
     max-width: 440px;
     margin: 0 auto;
     z-index: 9998;
-    background: #192026;
-    color: #fbfdfe;
-    border: 1px solid #334155;
+    background: var(--neutral-900);
+    color: var(--neutral-0);
+    border: 1px solid var(--neutral-700);
     border-radius: 16px;
     padding: 16px 20px;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);

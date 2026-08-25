@@ -12,6 +12,9 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
 import {
   generatePalette,
@@ -21,8 +24,10 @@ import {
   hexToRgb255,
   adjustForContrast,
   BRAND_STEPS,
+  NEUTRAL_STEPS,
   DEFAULT_MASTER,
 } from '../src/services/colorRamp.js';
+import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.js';
 
 /** Spread chosen to cover each branch the generator can take, not to look pretty. */
 const SEEDS = [
@@ -63,25 +68,114 @@ test('sRGB <-> OKLCH round-trips within one 8-bit step', () => {
   }
 });
 
-test('the default seed reproduces the authored themes.css brand ramp', () => {
-  // Guards the claim in colorRamp.js's header: swapping themes.css for the generator must not
-  // change what ships today. Tolerance is 2/255 per channel — the ladder is authored in OKLCH and
-  // themes.css also carries a hand-rounded hex fallback for each step.
-  const expected = [
-    '#fcf7f9', '#f9eef4', '#fce3f1', '#f9cee6', '#f4b8da', '#eea1ce',
-    '#e58bc1', '#d372ad', '#bd5b98', '#9b467b', '#793861', '#592a47',
+/* -------------------------------------------------------------------------
+ * styles/themes.css is generated from DEFAULT_MASTER by scripts/palette.mjs. These two tests are
+ * what make that claim enforceable: without them the CSS could be hand-edited, or the seed changed
+ * without re-running the generator, and the only symptom would be a colour flash on cold load that
+ * nobody thinks to look for.
+ * ---------------------------------------------------------------------- */
+
+const CSS = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '..', 'src', 'styles', 'themes.css'),
+  'utf8',
+).replace(/\/\*[\s\S]*?\*\//g, ''); // comments carry example values; only declarations count
+
+/** The body of the first `<selector> {` block at or after `from`, brace-matched. */
+function block(selector, from = 0) {
+  const at = CSS.indexOf(`${selector} {`, from);
+  assert.ok(at >= 0, `themes.css has no "${selector}" block after index ${from}`);
+  const open = CSS.indexOf('{', at);
+  let depth = 0;
+  for (let i = open; i < CSS.length; i += 1) {
+    if (CSS[i] === '{') depth += 1;
+    else if (CSS[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return { body: CSS.slice(open + 1, i), end: i };
+    }
+  }
+  throw new Error(`themes.css: unterminated "${selector}" block`);
+}
+
+function declarations(body) {
+  const out = {};
+  for (const [, prop, value] of body.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+    out[prop] = value.trim();
+  }
+  return out;
+}
+
+test('styles/themes.css is exactly what the engine generates for DEFAULT_MASTER', () => {
+  const palette = generatePalette(DEFAULT_MASTER);
+  const ramps = [
+    ['brand', BRAND_STEPS],
+    ['neutral', NEUTRAL_STEPS],
+    ...['success', 'warning', 'danger', 'info'].map((n) => [n, [50, 100, 300, 500, 700, 800]]),
+    ['accent', [50, 100, 200, 300, 400, 500, 600, 700]],
   ];
-  const { brand } = generatePalette(DEFAULT_MASTER);
-  BRAND_STEPS.forEach((step, i) => {
-    const got = hexToRgb255(brand[step]);
-    const want = hexToRgb255(expected[i]);
-    for (const ch of ['r', 'g', 'b']) {
-      assert.ok(
-        Math.abs(got[ch] - want[ch]) <= 2,
-        `brand-${step}: generated ${brand[step]}, themes.css authors ${expected[i]}`,
+
+  // Layer 1a — the hex fallback ramps.
+  const hexes = declarations(block(':root').body);
+  for (const [name, steps] of ramps) {
+    for (const step of steps) {
+      assert.equal(
+        hexes[`--${name}-${step}`],
+        palette[name][step],
+        `themes.css --${name}-${step} is stale; re-run \`node scripts/palette.mjs --write\``,
       );
     }
-  });
+  }
+
+  // Layer 1b — the OKLCH override must be the SAME pixel as the fallback above it, not merely a
+  // near-miss. A hand-rounded triplet that renders one 8-bit step off is the classic drift here.
+  const oklch = declarations(block(':root', CSS.indexOf('@supports')).body);
+  for (const [name, steps] of ramps) {
+    for (const step of steps) {
+      const m = /^oklch\(([\d.]+)% ([\d.]+) ([\d.]+)\)$/.exec(oklch[`--${name}-${step}`] || '');
+      assert.ok(m, `themes.css --${name}-${step} has no OKLCH override`);
+      assert.equal(
+        oklchToHex(Number(m[1]) / 100, Number(m[2]), Number(m[3])),
+        palette[name][step],
+        `themes.css --${name}-${step}: the OKLCH value and its hex fallback are different colours`,
+      );
+    }
+  }
+
+  // Layer 2 — the four semantic blocks, in the order that makes an explicit toggle outrank the OS.
+  const sectionTwo = CSS.indexOf('@supports');
+  const afterSupports = block(':root', sectionTwo).end;
+  const blocks = [
+    [':root', palette.roles.light],
+    [":root:not([data-theme='light'])", palette.roles.dark],
+    [":root[data-theme='dark']", palette.roles.dark],
+    [":root[data-theme='light']", palette.roles.light],
+  ];
+  let cursor = afterSupports;
+  for (const [selector, roleMap] of blocks) {
+    const found = block(selector, cursor);
+    cursor = found.end;
+    const got = declarations(found.body);
+    const want = Object.fromEntries(
+      Object.entries(roleMap).filter(([prop]) => prop.startsWith('--')),
+    );
+    assert.deepEqual(
+      got,
+      want,
+      `themes.css "${selector}" does not match the generated ${roleMap === palette.roles.dark ? 'dark' : 'light'} roles`,
+    );
+  }
+});
+
+test('the shipped CSS, the engine default and the default preset are one colour', () => {
+  // Three places name the shipped default: DEFAULT_MASTER (which themes.css is generated from),
+  // and the preset DEFAULT_MASTER_PRESET points at (which initTheme() mounts a beat later). If
+  // they disagree the product visibly changes colour partway through boot.
+  const preset = MASTER_PRESETS[DEFAULT_MASTER_PRESET];
+  assert.ok(preset, `master-themes.js has no preset "${DEFAULT_MASTER_PRESET}"`);
+  assert.deepEqual(
+    preset.master,
+    DEFAULT_MASTER,
+    `preset "${DEFAULT_MASTER_PRESET}" and colorRamp.js's DEFAULT_MASTER describe different palettes`,
+  );
 });
 
 test('brand ramp lightness is strictly descending for every seed', () => {

@@ -7,10 +7,16 @@
  * tokens and no ramp step at all, so switching preset left every one of those surfaces pink.
  * Re-theming the product therefore means regenerating the RAMPS, not repainting a few roles.
  *
- * The ladder (per-step lightness + chroma) is lifted verbatim from styles/themes.css, so feeding
- * the current brand seed (#eea1ce) back through this engine reproduces today's palette. Only the
- * hue and the chroma envelope move with the seed; the lightness ladder is a contrast contract
- * (border-interactive >= 3:1 on surface-0, text-brand >= 4.5:1) and is preserved by construction.
+ * The ladder shape below (per-step lightness + chroma) is the one originally authored by hand in
+ * styles/themes.css. Only the hue and the chroma envelope move with the seed; the lightness ladder
+ * is a contrast contract (border-interactive >= 3:1 on surface-0, text-brand >= 4.5:1) and is
+ * preserved by construction.
+ *
+ * The direction of that relationship has since reversed: styles/themes.css is now GENERATED from
+ * `DEFAULT_MASTER` below (`node scripts/palette.mjs --write`) rather than transcribed into it. WHY:
+ * themes.css is what paints before main.js can run `initTheme()`, so while it was hand-authored
+ * against one seed and the product booted with another, every cold load flashed the wrong colour
+ * and then swapped. client/test/colorRamp.test.js parses the CSS and fails if the two diverge.
  *
  * Zero dependencies — client/package.json dependencies stays {}.
  */
@@ -139,7 +145,7 @@ export function bestContrastOn(bg, candidates) {
 }
 
 /* =========================================================================
- * 3. Ladder shapes — transcribed from styles/themes.css
+ * 3. Ladder shapes — the hand-authored contrast contract every seed is fitted to
  * ======================================================================= */
 
 export const BRAND_STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950, 1000];
@@ -265,15 +271,28 @@ function interactionSteps(anchorIndex) {
   return { hover: Math.max(0, anchorIndex - 1), active: Math.max(0, anchorIndex - 2) };
 }
 
+/**
+ * The colour the product ships with, in engine terms.
+ *
+ * Three things are pinned to this one object and a test asserts each: styles/themes.css is
+ * generated from it, `MASTER_PRESETS.midnight_slate` in config/master-themes.js carries the same
+ * settings (it is the preset `DEFAULT_MASTER_PRESET` names), and `normaliseMasterConfig` falls
+ * back to it field by field when a stored master block is partial.
+ *
+ * WHY those must agree rather than merely resemble each other: themes.css paints first, the
+ * preset is what `initTheme()` mounts a beat later, and the fallback is what a half-written blob
+ * resolves to. Any two of them disagreeing shows up as a colour flash on load, which is precisely
+ * what this used to do while the CSS was pink and the boot default was slate.
+ */
 export const DEFAULT_MASTER = {
-  seed: '#eea1ce',
+  seed: '#334155',
   vividness: 1,
-  neutralMode: 'cool',
+  neutralMode: 'match',
   neutralTint: 1,
   accentHarmony: 'complement',
   statusPull: 0,
-  surfaceWash: true,
-  borderTint: true,
+  surfaceWash: false,
+  borderTint: false,
 };
 
 const NEUTRAL_COOL_HUE = 242.5;
@@ -735,7 +754,10 @@ export function normaliseMasterConfig(raw) {
       ? raw.accentHarmony
       : DEFAULT_MASTER.accentHarmony,
     statusPull: num(raw.statusPull, DEFAULT_MASTER.statusPull),
-    surfaceWash: raw.surfaceWash !== false,
-    borderTint: raw.borderTint !== false,
+    // An absent flag falls back to DEFAULT_MASTER like every other field. It used to read
+    // `raw.surfaceWash !== false`, which hardcoded `true` — harmless while the default WAS true,
+    // but a silent disagreement with DEFAULT_MASTER the moment the shipped default changed.
+    surfaceWash: typeof raw.surfaceWash === 'boolean' ? raw.surfaceWash : DEFAULT_MASTER.surfaceWash,
+    borderTint: typeof raw.borderTint === 'boolean' ? raw.borderTint : DEFAULT_MASTER.borderTint,
   };
 }

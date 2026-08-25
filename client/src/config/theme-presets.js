@@ -7,10 +7,14 @@
  */
 
 export const THEME_PRESETS = {
+  // WHY the key is still `default` when the product no longer ships pink: services/themePalette.js
+  // uses this exact object as its "no theme applied" sentinel, and the key is what a stored legacy
+  // theme_preset row names. The SHIPPED default is DEFAULT_MASTER_PRESET in config/master-themes.js
+  // (Midnight Slate) — this is the pink palette kept as a selectable alternate, nothing more.
   default: {
     key: 'default',
-    name_en: 'Explooro Pink (Default)',
-    name_bn: 'এক্সপ্লোরো পিংক (ডিফল্ট)',
+    name_en: 'Explooro Pink',
+    name_bn: 'এক্সপ্লোরো পিংক',
     description_en: 'Signature soft pink with balanced charcoal slate surfaces.',
     description_bn: 'সিগনেচার সফট পিংক এবং সুষম চারকোল সারফেস।',
     preview_swatch: '#eea1ce',

@@ -295,6 +295,11 @@ export function themeFromLegacyTokens(tokens = {}) {
     neutralMode: 'match',
     neutralTint: 1.3,
     statusPull: 0.25,
+    // Stated rather than inherited from DEFAULT_MASTER. A legacy palette was published in the era
+    // when tinted surfaces and borders were the house style, so migrating one should keep that
+    // look — it must not silently flatten because the SHIPPED default later turned both off.
+    surfaceWash: true,
+    borderTint: true,
   });
   return {
     ...generated,

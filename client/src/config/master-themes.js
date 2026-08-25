@@ -162,9 +162,14 @@ export const MASTER_PRESETS = {
  * The colour the product ships with. `initTheme()` mounts this on every boot that has no published
  * palette, so it is the real default — not just where the Theme Studio starts.
  *
- * WHY it is not colorRamp.js's DEFAULT_MASTER: that constant is the ENGINE's calibration baseline,
- * pinned to the pink ladder authored in styles/themes.css so the generator can be proved to
- * reproduce it (client/test/colorRamp.test.js). Which colour the PRODUCT defaults to is a separate
- * decision, and it lives here.
+ * It must stay identical to `DEFAULT_MASTER` in services/colorRamp.js, which is what
+ * styles/themes.css is generated from — and client/test/colorRamp.test.js fails if the two drift.
+ * WHY both exist rather than one: this file is the human-facing preset list (names, descriptions,
+ * the Studio's chips), while DEFAULT_MASTER is the engine's own fallback for a partial config and
+ * has to live beside the generator that the server imports too. They are different jobs that
+ * happen to need the same numbers, so the test — not a comment — is what keeps them equal.
+ *
+ * Changing the shipped colour therefore means: edit both, then run `node scripts/palette.mjs
+ * --write`. Skip the regenerate and the product flashes the old colour on every cold load.
  */
 export const DEFAULT_MASTER_PRESET = 'midnight_slate';

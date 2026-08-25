@@ -1,19 +1,36 @@
 /**
  * Explooro — Design Tokens: colour.
  *
- * Spec: docs/design-system.md §1–§2. This is the ONLY file (with tokens.css, which stays
- * colour-free) where a raw hex value may appear. Everything else in the codebase consumes the
- * semantic custom properties defined at the bottom of this file — never a raw ramp step, never a
- * hand-picked hex — so the whole product can be re-themed (Prompt 3.5's Theme Studio) by editing
- * exactly this file.
+ * GENERATED FILE. Do not hand-edit — run `node scripts/palette.mjs --write`.
+ *
+ * Every value below is the output of the Master Colour engine
+ * (client/src/services/colorRamp.js) fed the shipped default seed. That is the same engine the
+ * Theme Studio previews with and the same one the server re-derives and validates against, so this
+ * baseline and a freshly booted runtime theme are the same palette rather than two palettes that
+ * happen to look alike. WHY that matters: this file paints during the frames BEFORE main.js runs
+ * `initTheme()`. While it was authored by hand against a different seed, every cold load flashed
+ * the old colour and then swapped.
+ *
+ * To change the colour the product ships with, change `DEFAULT_MASTER` in colorRamp.js (and the
+ * matching preset in config/master-themes.js — client/test/colorRamp.test.js asserts the two
+ * agree), then re-run the command above. Hand-editing a step here is the one thing that CAN put
+ * this file out of step with the engine, and that same test fails if you do.
+ *
+ *   seed          #334155 (hue 257.3)
+ *   brand anchor  step 950, chroma scale 0.37
+ *   neutral hue   257.3 (match)
+ *   accent hue    77.3 (complement)
+ *   surface wash  off, border tint off
  *
  * Two layers:
- *   1. Raw ramps  — brand / neutral / success / warning / danger / info / accent. Theme-independent:
- *      a ramp step is the same colour in light and dark mode. Authored in OKLCH per §1.1 for
- *      perceptually-uniform steps, with an sRGB hex fallback for engines lacking oklch() support.
+ *   1. Raw ramps — brand / neutral / success / warning / danger / info / accent. Theme-independent:
+ *      a ramp step is the same colour in light and dark mode. Emitted as hex, then overridden in
+ *      OKLCH for engines that support it — the same pixel at sub-8-bit precision, at a precision
+ *      the generator verifies round-trips exactly rather than assumes.
  *   2. Semantic tokens — surface/text/border/brand/status roles. THEME-dependent: which ramp step
- *      backs "surface-0" flips between light and dark. Defined four times per the design-system
- *      checklist so an explicit `data-theme` toggle always wins over the OS preference.
+ *      backs "surface-0" flips between light and dark. Emitted four times (base / OS-dark /
+ *      explicit-dark / explicit-light) so an explicit `data-theme` toggle always outranks the OS
+ *      preference — the same block order services/masterTheme.js mounts at runtime.
  */
 
 /* =========================================================================
@@ -21,165 +38,136 @@
  * ======================================================================= */
 
 :root {
-  /* Brand — PINK, hue 344 (was CORAL, hue 35.4; see git history to revert). Generated and
-     contrast-verified by scripts/palette.mjs — regenerate from there rather than hand-editing a
-     step, or the hex fallback and the OKLCH value below will silently drift apart.
-     brand-50..600 track 5 client-supplied reference swatches almost exactly; 700..1000 are
-     extrapolated for roles the reference didn't cover (hover/active fills, link text) and picked
-     to clear contrast minimums — capped lighter than the old coral ramp at every step (the
-     deepest, brand-1000, sits at L36% vs coral's L27%). See the semantic re-mapping below (§2)
-     for which step does which job and the contrast numbers behind that choice. */
-  --brand-50: #fcf7f9;
-  --brand-100: #f9eef4;
-  --brand-200: #fce3f1;
-  --brand-300: #f9cee6;
-  --brand-400: #f4b8da;
-  --brand-500: #eea1ce;
-  --brand-600: #e58bc1;
-  --brand-700: #d372ad;
-  --brand-800: #bd5b98;
-  --brand-900: #9b467b;
-  --brand-950: #793861;
-  --brand-1000: #592a47;
+  --brand-50: #f7f8fa;
+  --brand-100: #eef0f3;
+  --brand-200: #e2e8f0;
+  --brand-300: #ced7e5;
+  --brand-400: #b9c6d9;
+  --brand-500: #a4b5cd;
+  --brand-600: #8fa3c0;
+  --brand-700: #788dac;
+  --brand-800: #617695;
+  --brand-900: #485b75;
+  --brand-950: #334155;
+  --brand-1000: #333e4d;
 
-  /* Neutral — CHARCOAL, hue 242.5, from the reference image's #232d35 = oklch(29.1% 0.020 242.5).
-     Kept when the brand moved from coral to violet: a cool charcoal reads as a deliberate ground
-     under either, and 242 sits far enough from the violet brand (295) that the greys stay greys
-     rather than turning into a washed-out tint of the brand. */
-  --neutral-0: #fbfdfe;
-  --neutral-50: #f7f9fa;
-  --neutral-100: #eff2f5;
-  --neutral-200: #e1e5e8;
-  --neutral-300: #cdd2d6;
-  --neutral-400: #a6acb1;
-  --neutral-500: #80878d;
-  --neutral-600: #626a70;
-  --neutral-700: #464e55;
-  --neutral-800: #2c343a;
-  --neutral-900: #192026;
-  --neutral-950: #0c1217;
-  --neutral-1000: #04080c;
+  --neutral-0: #fcfcfe;
+  --neutral-50: #f7f8fa;
+  --neutral-100: #f0f2f5;
+  --neutral-200: #e2e5e9;
+  --neutral-300: #ced1d6;
+  --neutral-400: #a7abb1;
+  --neutral-500: #82878e;
+  --neutral-600: #646971;
+  --neutral-700: #484e56;
+  --neutral-800: #2e333b;
+  --neutral-900: #1b2026;
+  --neutral-950: #0e1218;
+  --neutral-1000: #05070c;
 
-  /* Status ramps (§1.4) */
-  --success-50: #e7f7e9;
-  --success-100: #bce3c3;
-  --success-300: #73bf84;
-  --success-500: #3e9c58;
-  --success-700: #2d7b44;
-  --success-800: #205b31;
+  --success-50: #e9f6eb;
+  --success-100: #c2e0c7;
+  --success-300: #97d2a3;
+  --success-500: #549863;
+  --success-700: #3f774d;
+  --success-800: #2e5838;
 
-  --warning-50: #feefdc;
-  --warning-100: #f6d19e;
-  --warning-300: #e3a340;
-  --warning-500: #c28412;
-  --warning-700: #936412;
-  --warning-800: #6e4b0e;
+  --warning-50: #fbf0e1;
+  --warning-100: #efd3ab;
+  --warning-300: #f1be78;
+  --warning-500: #b88841;
+  --warning-700: #87642e;
+  --warning-800: #684d25;
 
-  --danger-50: #fceeec;
-  --danger-100: #fbd4cd;
-  --danger-300: #ef9688;
-  --danger-500: #fd1913;
-  --danger-700: #c9120d;
-  --danger-800: #8b1f17;
+  --danger-50: #faefed;
+  --danger-100: #f5d6d1;
+  --danger-300: #efa89c;
+  --danger-500: #e74b3d;
+  --danger-700: #b83a2e;
+  --danger-800: #7f2f26;
 
-  --info-50: #eaf3fc;
-  --info-100: #c8e1fb;
-  --info-300: #82b6ec;
-  --info-500: #3f90dd;
-  --info-700: #1b71bc;
-  --info-800: #16558c;
+  --info-50: #ecf3fa;
+  --info-100: #cde0f5;
+  --info-300: #a3ccf7;
+  --info-500: #5590cc;
+  --info-700: #336ea7;
+  --info-800: #2a5580;
 
-  /* Accent — amber, hue 75. Commercial urgency only: countdowns, margin badges, coin balances.
-     Referenced directly by components per §1.4 — it is deliberately not aliased into a semantic
-     surface/text/brand role, so overuse stays visible in code review. */
-  --accent-50: #fdf0de;
-  --accent-100: #f8d9af;
-  --accent-200: #eeba70;
-  --accent-300: #de9c31;
-  --accent-400: #c28412;
-  --accent-500: #a26f17;
-  --accent-600: #835a18;
-  --accent-700: #664613;
+  --accent-50: #f7f1e8;
+  --accent-100: #ebdcc7;
+  --accent-200: #d9c09d;
+  --accent-300: #c4a678;
+  --accent-400: #aa8d63;
+  --accent-500: #8e7653;
+  --accent-600: #736044;
+  --accent-700: #594b35;
 }
 
-/* Brand + neutral ramps, authored in OKLCH so the steps are perceptually even. Brand is generated
-   and contrast-verified by scripts/palette.mjs (BRAND_H = 344); neutral is unchanged from the
-   coral era. Regenerate from that script rather than hand-editing a step, or the hex fallback and
-   the OKLCH value will silently drift apart. */
 @supports (color: oklch(0 0 0)) {
   :root {
-    --brand-50: oklch(98% 0.006 344);
-    --brand-100: oklch(96% 0.014 344);
-    --brand-200: oklch(94% 0.033 344);
-    --brand-300: oklch(89.5% 0.058 344);
-    --brand-400: oklch(84.7% 0.082 344);
-    --brand-500: oklch(79.7% 0.106 344);
-    --brand-600: oklch(74.7% 0.127 344);
-    --brand-700: oklch(68% 0.14 344);
-    --brand-800: oklch(61% 0.145 344);
-    --brand-900: oklch(52% 0.13 344);
-    --brand-950: oklch(44% 0.105 344);
-    --brand-1000: oklch(36% 0.08 344);
+    --brand-50: oklch(97.89% 0.0029 264.54);
+    --brand-100: oklch(95.45% 0.0046 258.32);
+    --brand-200: oklch(92.88% 0.0126 255.51);
+    --brand-300: oklch(87.65% 0.0216 259.19);
+    --brand-400: oklch(82.25% 0.0303 257.77);
+    --brand-500: oklch(76.79% 0.0393 256.99);
+    --brand-600: oklch(71% 0.0482 257.61);
+    --brand-700: oklch(63.82% 0.0527 258.01);
+    --brand-800: oklch(56.1% 0.0544 258);
+    --brand-900: oklch(46.61% 0.0486 256.34);
+    --brand-950: oklch(37.17% 0.0392 257.29);
+    --brand-1000: oklch(36.02% 0.0299 256.23);
 
-    --neutral-0: oklch(99.2% 0.002 242.5);
-    --neutral-50: oklch(98% 0.003 242.5);
-    --neutral-100: oklch(96% 0.005 242.5);
-    --neutral-200: oklch(92% 0.006 242.5);
-    --neutral-300: oklch(86% 0.008 242.5);
-    --neutral-400: oklch(74% 0.01 242.5);
-    --neutral-500: oklch(62% 0.012 242.5);
-    --neutral-600: oklch(52% 0.014 242.5);
-    --neutral-700: oklch(42% 0.016 242.5);
-    --neutral-800: oklch(32% 0.016 242.5);
-    --neutral-900: oklch(24% 0.015 242.5);
-    --neutral-950: oklch(18% 0.014 242.5);
-    --neutral-1000: oklch(13% 0.012 242.5);
-  }
-}
+    --neutral-0: oklch(99.16% 0.0026 286.35);
+    --neutral-50: oklch(97.89% 0.0029 264.54);
+    --neutral-100: oklch(96.05% 0.0046 258.32);
+    --neutral-200: oklch(92.08% 0.0063 255.48);
+    --neutral-300: oklch(85.98% 0.0076 260.73);
+    --neutral-400: oklch(73.98% 0.0097 258.34);
+    --neutral-500: oklch(62.15% 0.0121 256.72);
+    --neutral-600: oklch(51.92% 0.014 259.82);
+    --neutral-700: oklch(42.15% 0.0154 255.59);
+    --neutral-800: oklch(31.95% 0.0159 259.8);
+    --neutral-900: oklch(24.11% 0.0137 253.09);
+    --neutral-950: oklch(18.08% 0.0139 258.36);
+    --neutral-1000: oklch(12.84% 0.0129 263.62);
 
-/* Status + accent ramps: docs/design-system.md §1.4 publishes only the resulting hex, not the
-   source OKLCH triplet. Rather than hand-guess lightness/chroma numbers and risk an out-of-gamut
-   or off-hue value, the relative-colour form reads OKLCH straight out of the authored hex — same
-   pixel, expressed in OKLCH, with no hand-rounded numbers to get wrong. Gated on its own
-   @supports query since relative-colour syntax landed after plain oklch() in some engines. */
-@supports (color: oklch(from red l c h)) {
-  :root {
-    --success-50: oklch(from #e7f7e9 l c h);
-    --success-100: oklch(from #bce3c3 l c h);
-    --success-300: oklch(from #73bf84 l c h);
-    --success-500: oklch(from #3e9c58 l c h);
-    --success-700: oklch(from #2d7b44 l c h);
-    --success-800: oklch(from #205b31 l c h);
+    --success-50: oklch(96.04% 0.02 150.1);
+    --success-100: oklch(87.79% 0.0465 150.07);
+    --success-300: oklch(81.08% 0.0896 150.3);
+    --success-500: oklch(62.03% 0.1059 149.58);
+    --success-700: oklch(51.89% 0.0892 150.39);
+    --success-800: oklch(42.02% 0.0712 150.11);
 
-    --warning-50: oklch(from #feefdc l c h);
-    --warning-100: oklch(from #f6d19e l c h);
-    --warning-300: oklch(from #e3a340 l c h);
-    --warning-500: oklch(from #c28412 l c h);
-    --warning-700: oklch(from #936412 l c h);
-    --warning-800: oklch(from #6e4b0e l c h);
+    --warning-50: oklch(95.97% 0.0231 75.86);
+    --warning-100: oklch(88.04% 0.0612 76.6);
+    --warning-300: oklch(83.23% 0.1054 74.28);
+    --warning-500: oklch(65.96% 0.1058 74.74);
+    --warning-700: oklch(52.79% 0.084 75.92);
+    --warning-800: oklch(44.01% 0.0668 75.26);
 
-    --danger-50: oklch(from #fceeec l c h);
-    --danger-100: oklch(from #fbd4cd l c h);
-    --danger-300: oklch(from #ef9688 l c h);
-    --danger-500: oklch(from #fd1913 l c h);
-    --danger-700: oklch(from #c9120d l c h);
-    --danger-800: oklch(from #8b1f17 l c h);
+    --danger-50: oklch(96.02% 0.0122 29.87);
+    --danger-100: oklch(90.05% 0.0354 28.67);
+    --danger-300: oklch(79.64% 0.0863 29.79);
+    --danger-500: oklch(62.97% 0.1947 28.89);
+    --danger-700: oklch(53.11% 0.1643 29.13);
+    --danger-800: oklch(41.89% 0.113 29.14);
 
-    --info-50: oklch(from #eaf3fc l c h);
-    --info-100: oklch(from #c8e1fb l c h);
-    --info-300: oklch(from #82b6ec l c h);
-    --info-500: oklch(from #3f90dd l c h);
-    --info-700: oklch(from #1b71bc l c h);
-    --info-800: oklch(from #16558c l c h);
+    --info-50: oklch(96.09% 0.012 247.95);
+    --info-100: oklch(89.9% 0.0354 250.87);
+    --info-300: oklch(83.08% 0.0747 249.95);
+    --info-500: oklch(63.89% 0.1099 250.28);
+    --info-700: oklch(52.63% 0.1092 249.98);
+    --info-800: oklch(43.98% 0.086 250.39);
 
-    --accent-50: oklch(from #fdf0de l c h);
-    --accent-100: oklch(from #f8d9af l c h);
-    --accent-200: oklch(from #eeba70 l c h);
-    --accent-300: oklch(from #de9c31 l c h);
-    --accent-400: oklch(from #c28412 l c h);
-    --accent-500: oklch(from #a26f17 l c h);
-    --accent-600: oklch(from #835a18 l c h);
-    --accent-700: oklch(from #664613 l c h);
+    --accent-50: oklch(96.03% 0.0136 78.26);
+    --accent-100: oklch(90.1% 0.0326 76.43);
+    --accent-200: oklch(82.01% 0.0549 76.11);
+    --accent-300: oklch(74.08% 0.0709 77.98);
+    --accent-400: oklch(66% 0.0674 76.38);
+    --accent-500: oklch(57.98% 0.058 76.61);
+    --accent-600: oklch(50.03% 0.0481 76.96);
+    --accent-700: oklch(42.1% 0.0389 78.65);
   }
 }
 
@@ -187,55 +175,44 @@
  * 2. Semantic tokens — theme-dependent. Components reference ONLY these.
  * ======================================================================= */
 
-/* ---- Light (default) --------------------------------------------------- */
+/* ---- Light (default) ---------------------------------------------------
+   What the engine resolved for this seed, and the measurement behind each choice:
+     --brand              var(--brand-950) with var(--neutral-0) ink — 10.11:1. The ink is
+                          picked per seed, never assumed: a light seed takes dark ink and vice versa.
+     --text-brand         var(--brand-900) on the canvas — 6.52:1. The SHALLOWEST step clearing
+                          4.5:1, so link text is as light as AA permits and no lighter.
+     --border-interactive var(--neutral-600) — 5.20:1. WCAG 1.4.11 wants 3:1 for an input
+                          boundary; border-subtle/strong stay decorative and are not gated.
+   None of those steps are fixed by hand. A different seed lands on different ones. */
 :root {
-  /* Page (surface-0) and card (surface-1) backgrounds carry a light pink wash (brand-50/100)
-     instead of neutral, on request. surface-2/3 (raised/sunken — input fills, hover states) stay
-     neutral: tinting those too would leave nothing to separate a sunken well from the now-pink
-     borders sitting on it. */
-  --surface-0: var(--brand-50);
-  --surface-1: var(--brand-100);
+  /* Surfaces (elevation ladder) — dark mode LIGHTENS as elevation rises, never darkens */
+  --surface-0: var(--neutral-50);
+  --surface-1: var(--neutral-0);
   --surface-2: var(--neutral-100);
   --surface-3: var(--neutral-200);
 
-  /* Borders moved from the neutral ramp to the brand ramp on request — every border (card,
-     divider, table, input) now reads pink instead of grey. border-interactive keeps brand-800
-     rather than following the 300/400 pattern of the other two: it backs input/select/textarea
-     boundaries, which the a11y note in §2 documents as needing >=3:1 against surface-0 to stay
-     perceivable — brand-800 measures 4.03:1, brand-700 only 3.04:1, and anything lighter fails
-     outright (brand-600 measures 2.34:1). border-subtle/strong stay decorative-only, so they can
-     sit lighter without breaking that guarantee. */
-  --border-subtle: var(--brand-300);
-  --border-strong: var(--brand-400);
-  --border-interactive: var(--brand-800);
-  /* Referenced by ~18 component rules (card hover, scrollbar thumbs, cart/store borders) that
-     were never actually getting a value — this custom property had no definition anywhere in the
-     file before now, so those borders were silently resolving to currentcolor. Aliased to
-     --border-strong: same visible weight as the rest of the pink border set. */
+  /* Borders — subtle/strong are decorative; interactive is the a11y-gated one */
+  --border-subtle: var(--neutral-200);
+  --border-strong: var(--neutral-300);
+  --border-interactive: var(--neutral-600);
   --border-default: var(--border-strong);
 
+  /* Text */
   --text-primary: var(--neutral-900);
   --text-secondary: var(--neutral-700);
   --text-muted: var(--neutral-600);
   --text-inverse: var(--neutral-0);
 
-  /* --brand sits at brand-500 (matches the client's own reference swatch almost exactly) — this
-     is what nearly every button/checkbox/badge/focus-ring paints with, so it carries the "light
-     pink, not deep" brief directly. --brand-alt (solid pill/badge fills, e.g. sidebar active item)
-     uses brand-600 with DARK text rather than white: white needs 4.5:1 and no step this light
-     clears it with white (600 only hits 2.4:1), so the fill stays light and the text adapts
-     instead of the fill going deeper. --text-brand stays at brand-900 — it is plain TEXT sitting
-     directly on a white page (nav links, active tabs, sort arrows) where AA needs 4.5:1, and
-     brand-900 (5.79:1) is the shallowest step that clears it; lighter breaks legibility outright
-     rather than just looking softer. */
-  --brand: var(--brand-500);
-  --brand-hover: var(--brand-600);
-  --brand-active: var(--brand-700);
-  --brand-contrast: var(--neutral-900);
+  /* Brand */
+  --brand: var(--brand-950);
+  --brand-hover: var(--brand-900);
+  --brand-active: var(--brand-800);
+  --brand-contrast: var(--neutral-0);
   --text-brand: var(--brand-900);
-  --brand-alt: var(--brand-600);
-  --brand-alt-contrast: var(--neutral-900);
+  --brand-alt: var(--brand-900);
+  --brand-alt-contrast: var(--neutral-0);
 
+  /* Status triads */
   --success: var(--success-700);
   --success-bg: var(--success-50);
   --success-border: var(--success-300);
@@ -249,62 +226,64 @@
   --info-bg: var(--info-50);
   --info-border: var(--info-300);
 
-  /* Flash sale / promo strip (§ commerce urgency). Authored here rather than inline in
-     product.css so the Theme Studio can re-colour the campaign chrome without touching the
-     danger ramp that error states depend on. n900 on danger-300 measures 7.36:1. */
+  /* Flash sale / campaign strip — countdown digits inherit --flash-text */
   --flash-bg: var(--danger-300);
   --flash-text: var(--neutral-900);
   --flash-chip-bg: var(--neutral-0);
   --flash-tag-bg: var(--danger-800);
   --flash-tag-text: var(--neutral-0);
 
-  --focus-ring: var(--brand-500);
-  /* HSL triplet (hue, sat, lightness) — consumed as hsl(var(--shadow-color) / alpha) by the
-     elevation tokens in tokens.css. Tinted toward the CHARCOAL surface hue (242) per §1.5, not
-     the violet brand hue: a shadow reads as the surface being lit, and the surfaces are cool. */
-  --shadow-color: 242deg 14% 14%;
-  --scrim: hsl(242deg 28% 9% / 48%);
+  /* Chrome */
+  --navbar-bg: var(--neutral-0);
+  --navbar-text: var(--neutral-900);
+  --navbar-border: var(--neutral-200);
+  --navbar-search-bg: var(--neutral-100);
+  --footer-bg: var(--neutral-900);
+  --footer-text: var(--neutral-0);
+  --footer-muted: var(--neutral-400);
+  --footer-border: var(--neutral-800);
+
+  /* Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a) */
+  --focus-ring: var(--brand-950);
+  --shadow-color: 213deg 14% 14%;
+  --scrim: hsl(216deg 28% 9% / 48%);
 }
 
 /* ---- Dark, following the OS preference ---------------------------------
-   :not([data-theme='light']) so an explicit light toggle (block 4) always outranks the OS. */
+   :not([data-theme='light']) so an explicit light toggle (block 4) always outranks the OS.
+   Dark is designed, not inverted: surfaces LIGHTEN with elevation, and --brand takes the DEEPEST
+   step still clearing 6:1 on the canvas (var(--brand-600), measured 7.30:1) rather than
+   the shallowest, which would leave every dark-mode button washed out. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
+    /* Surfaces (elevation ladder) — dark mode LIGHTENS as elevation rises, never darkens */
     --surface-0: var(--neutral-950);
     --surface-1: var(--neutral-900);
     --surface-2: var(--neutral-800);
     --surface-3: var(--neutral-700);
 
+    /* Borders — subtle/strong are decorative; interactive is the a11y-gated one */
     --border-subtle: var(--neutral-800);
     --border-strong: var(--neutral-700);
     --border-interactive: var(--neutral-600);
     --border-default: var(--border-strong);
 
+    /* Text */
     --text-primary: var(--neutral-100);
     --text-secondary: var(--neutral-300);
     --text-muted: var(--neutral-400);
     --text-inverse: var(--neutral-950);
 
-    /* On dark, the brand INVERTS: a light tint carries the action and dark text sits on it, since
-       a 50%-lightness fill has nowhere near enough contrast against a near-black page. Hover and
-       active step 300 -> 400 -> 500, which deepens and saturates rather than lightening. That is
-       the opposite direction from the surface ladder (§1.6 rule 1) and is deliberate: surfaces
-       rise toward the light, but a control being pressed should read as recessed, not lifted. */
-    --brand: var(--brand-300);
-    --brand-hover: var(--brand-400);
-    --brand-active: var(--brand-500);
+    /* Brand */
+    --brand: var(--brand-600);
+    --brand-hover: var(--brand-700);
+    --brand-active: var(--brand-800);
     --brand-contrast: var(--neutral-950);
-    --text-brand: var(--brand-300);
-    /* Dark theme's base --brand is already a light fill + dark text (the inverted ladder, §1.6
-       rule 1 doesn't apply to brand itself but the same "light carries the action" logic does) —
-       there's no readability problem to solve here, so alt collapses to the same pair rather than
-       inventing an unverified light-on-dark-fill combo. */
-    --brand-alt: var(--brand-300);
+    --text-brand: var(--brand-600);
+    --brand-alt: var(--brand-600);
     --brand-alt-contrast: var(--neutral-950);
 
-    /* Status triads: text takes the -300 step (measured 8+:1 on dark surface-0 per §2), bg takes
-       the -800 step (dark enough to sit as a tinted panel on a dark surface without vibrating,
-       per §1.6 rule 2's ~15% chroma reduction), border takes the -500 step in between. */
+    /* Status triads */
     --success: var(--success-300);
     --success-bg: var(--success-800);
     --success-border: var(--success-500);
@@ -318,44 +297,60 @@
     --info-bg: var(--info-800);
     --info-border: var(--info-500);
 
-    /* On dark the strip takes the deep -800 fill: a coral-300 band across a near-black page glares. */
+    /* Flash sale / campaign strip — countdown digits inherit --flash-text */
     --flash-bg: var(--danger-800);
     --flash-text: var(--neutral-100);
     --flash-chip-bg: var(--neutral-900);
     --flash-tag-bg: var(--danger-800);
     --flash-tag-text: var(--neutral-100);
 
-    --focus-ring: var(--brand-400);
-    --shadow-color: 242deg 12% 2%;
-    --scrim: hsl(242deg 42% 3% / 60%);
+    /* Chrome */
+    --navbar-bg: var(--neutral-900);
+    --navbar-text: var(--neutral-100);
+    --navbar-border: var(--neutral-800);
+    --navbar-search-bg: var(--neutral-800);
+    --footer-bg: var(--neutral-1000);
+    --footer-text: var(--neutral-100);
+    --footer-muted: var(--neutral-400);
+    --footer-border: var(--neutral-800);
+
+    /* Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a) */
+    --focus-ring: var(--brand-700);
+    --shadow-color: 223deg 12% 2%;
+    --scrim: hsl(223deg 42% 3% / 60%);
   }
 }
 
 /* ---- Dark, explicit toggle (wins over OS preference) ------------------- */
 :root[data-theme='dark'] {
+  /* Surfaces (elevation ladder) — dark mode LIGHTENS as elevation rises, never darkens */
   --surface-0: var(--neutral-950);
   --surface-1: var(--neutral-900);
   --surface-2: var(--neutral-800);
   --surface-3: var(--neutral-700);
 
+  /* Borders — subtle/strong are decorative; interactive is the a11y-gated one */
   --border-subtle: var(--neutral-800);
   --border-strong: var(--neutral-700);
   --border-interactive: var(--neutral-600);
   --border-default: var(--border-strong);
 
+  /* Text */
   --text-primary: var(--neutral-100);
   --text-secondary: var(--neutral-300);
   --text-muted: var(--neutral-400);
   --text-inverse: var(--neutral-950);
 
-  --brand: var(--brand-300);
-  --brand-hover: var(--brand-400);
-  --brand-active: var(--brand-500);
+  /* Brand */
+  --brand: var(--brand-600);
+  --brand-hover: var(--brand-700);
+  --brand-active: var(--brand-800);
   --brand-contrast: var(--neutral-950);
-  --text-brand: var(--brand-300);
-  --brand-alt: var(--brand-300);
+  --text-brand: var(--brand-600);
+  --brand-alt: var(--brand-600);
   --brand-alt-contrast: var(--neutral-950);
 
+  /* Status triads */
   --success: var(--success-300);
   --success-bg: var(--success-800);
   --success-border: var(--success-500);
@@ -369,48 +364,60 @@
   --info-bg: var(--info-800);
   --info-border: var(--info-500);
 
-  /* On dark the strip takes the deep -800 fill: a coral-300 band across a near-black page glares. */
+  /* Flash sale / campaign strip — countdown digits inherit --flash-text */
   --flash-bg: var(--danger-800);
   --flash-text: var(--neutral-100);
   --flash-chip-bg: var(--neutral-900);
   --flash-tag-bg: var(--danger-800);
   --flash-tag-text: var(--neutral-100);
 
-  --focus-ring: var(--brand-400);
-  --shadow-color: 242deg 12% 2%;
-  --scrim: hsl(242deg 42% 3% / 60%);
+  /* Chrome */
+  --navbar-bg: var(--neutral-900);
+  --navbar-text: var(--neutral-100);
+  --navbar-border: var(--neutral-800);
+  --navbar-search-bg: var(--neutral-800);
+  --footer-bg: var(--neutral-1000);
+  --footer-text: var(--neutral-100);
+  --footer-muted: var(--neutral-400);
+  --footer-border: var(--neutral-800);
+
+  /* Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a) */
+  --focus-ring: var(--brand-700);
+  --shadow-color: 223deg 12% 2%;
+  --scrim: hsl(223deg 42% 3% / 60%);
 }
 
-/* ---- Light, explicit toggle (wins over a dark OS preference) ----------- */
+/* ---- Light, explicit toggle (wins over a dark OS preference) -----------
+   Last, so it takes the specificity tie against the OS-dark block above. */
 :root[data-theme='light'] {
-  /* See the base :root block above for why surface-0/1 are pink-tinted and surface-2/3 are not. */
-  --surface-0: var(--brand-50);
-  --surface-1: var(--brand-100);
+  /* Surfaces (elevation ladder) — dark mode LIGHTENS as elevation rises, never darkens */
+  --surface-0: var(--neutral-50);
+  --surface-1: var(--neutral-0);
   --surface-2: var(--neutral-100);
   --surface-3: var(--neutral-200);
 
-  /* See the base :root block above for why border-interactive uses brand-800 rather than
-     following the 300/400 pattern of the other two, and for the --border-default backstory. */
-  --border-subtle: var(--brand-300);
-  --border-strong: var(--brand-400);
-  --border-interactive: var(--brand-800);
+  /* Borders — subtle/strong are decorative; interactive is the a11y-gated one */
+  --border-subtle: var(--neutral-200);
+  --border-strong: var(--neutral-300);
+  --border-interactive: var(--neutral-600);
   --border-default: var(--border-strong);
 
+  /* Text */
   --text-primary: var(--neutral-900);
   --text-secondary: var(--neutral-700);
   --text-muted: var(--neutral-600);
   --text-inverse: var(--neutral-0);
 
-  /* See the base :root block above for the reasoning behind this step choice and its contrast
-     measurements. */
-  --brand: var(--brand-500);
-  --brand-hover: var(--brand-600);
-  --brand-active: var(--brand-700);
-  --brand-contrast: var(--neutral-900);
+  /* Brand */
+  --brand: var(--brand-950);
+  --brand-hover: var(--brand-900);
+  --brand-active: var(--brand-800);
+  --brand-contrast: var(--neutral-0);
   --text-brand: var(--brand-900);
-  --brand-alt: var(--brand-600);
-  --brand-alt-contrast: var(--neutral-900);
+  --brand-alt: var(--brand-900);
+  --brand-alt-contrast: var(--neutral-0);
 
+  /* Status triads */
   --success: var(--success-700);
   --success-bg: var(--success-50);
   --success-border: var(--success-300);
@@ -424,16 +431,25 @@
   --info-bg: var(--info-50);
   --info-border: var(--info-300);
 
-  /* Flash sale / promo strip (§ commerce urgency). Authored here rather than inline in
-     product.css so the Theme Studio can re-colour the campaign chrome without touching the
-     danger ramp that error states depend on. n900 on danger-300 measures 7.36:1. */
+  /* Flash sale / campaign strip — countdown digits inherit --flash-text */
   --flash-bg: var(--danger-300);
   --flash-text: var(--neutral-900);
   --flash-chip-bg: var(--neutral-0);
   --flash-tag-bg: var(--danger-800);
   --flash-tag-text: var(--neutral-0);
 
-  --focus-ring: var(--brand-500);
-  --shadow-color: 242deg 14% 14%;
-  --scrim: hsl(242deg 28% 9% / 48%);
+  /* Chrome */
+  --navbar-bg: var(--neutral-0);
+  --navbar-text: var(--neutral-900);
+  --navbar-border: var(--neutral-200);
+  --navbar-search-bg: var(--neutral-100);
+  --footer-bg: var(--neutral-900);
+  --footer-text: var(--neutral-0);
+  --footer-muted: var(--neutral-400);
+  --footer-border: var(--neutral-800);
+
+  /* Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a) */
+  --focus-ring: var(--brand-950);
+  --shadow-color: 213deg 14% 14%;
+  --scrim: hsl(216deg 28% 9% / 48%);
 }

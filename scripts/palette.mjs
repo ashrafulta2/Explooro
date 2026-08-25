@@ -1,161 +1,383 @@
 /**
- * Palette generator + contrast verifier for docs/design-system.md.
+ * scripts/palette.mjs — generates client/src/styles/themes.css, and measures it.
  *
- * Run:  node scripts/palette.mjs
+ * Run:  node scripts/palette.mjs            print the ramps + every contrast pairing
+ *       node scripts/palette.mjs --write    regenerate client/src/styles/themes.css
+ *       node scripts/palette.mjs --markdown emit the §1/§2 tables for docs/design-system.md
  *
  * WHY this exists: every colour value and every contrast figure in the design system is GENERATED
  * and MEASURED here, never eyeballed. Eyeballing is how `brand-600` almost shipped as the primary
  * button colour at 4.07:1 — a real AA failure this script caught before any CSS was written.
  *
- * If you change a ramp, re-run this and update docs/design-system.md from its output. The two must
- * never drift. Zero dependencies, by the Dependency Policy in docs/prompt.md.
+ * WHY it no longer authors its own ladder: it used to carry a second, hand-typed copy of every
+ * OKLCH triplet, which meant "the palette" existed twice — here and in themes.css — with nothing
+ * but discipline keeping them equal. Both are now derived from `DEFAULT_MASTER` in
+ * client/src/services/colorRamp.js, the same engine the Theme Studio and the server run, so the
+ * shipped CSS baseline and a freshly booted runtime theme cannot disagree. What stays local is the
+ * MEASUREMENT: the WCAG and APCA implementations below are deliberately independent of the
+ * engine's, so a bug in the engine's contrast maths cannot hide itself from this script.
  *
- * EXPECTED FAILURES (3): the switch off-state track at ~2.2:1 (light + dark), and LIGHT: focus
- * ring (brand-500) on surface-0 at ~1.86:1. All three are documented and accepted in
- * design-system.md §2 — the switch conveys its boundary with a --border-interactive outline rather
- * than track fill, and the light brand-500 fill/ring was a deliberate "favour lighter over 1.4.11"
- * tradeoff (every TEXT pairing on top of a brand fill still clears AA). Any OTHER failure is a real
- * regression.
+ * Zero dependencies, by the Dependency Policy in docs/prompt.md.
  */
 
-const clamp01 = (x) => Math.min(1, Math.max(0, x));
+import { writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
-function oklchToRgb(L, C, H) {
-  const h = (H * Math.PI) / 180;
-  const a = C * Math.cos(h);
-  const b = C * Math.sin(h);
+import {
+  generatePalette,
+  hexToOklch,
+  oklchToHex,
+  DEFAULT_MASTER,
+  BRAND_STEPS,
+  NEUTRAL_STEPS,
+} from '../client/src/services/colorRamp.js';
 
-  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
-  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
-  const s_ = L - 0.0894841775 * a - 1.291485548 * b;
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const THEMES_CSS = join(ROOT, 'client', 'src', 'styles', 'themes.css');
 
-  const l = l_ ** 3, m = m_ ** 3, s = s_ ** 3;
+const STATUS_NAMES = ['success', 'warning', 'danger', 'info'];
+const STATUS_STEPS = [50, 100, 300, 500, 700, 800];
+const ACCENT_STEPS = [50, 100, 200, 300, 400, 500, 600, 700];
+const RAMPS = [
+  ['brand', BRAND_STEPS],
+  ['neutral', NEUTRAL_STEPS],
+  ...STATUS_NAMES.map((n) => [n, STATUS_STEPS]),
+  ['accent', ACCENT_STEPS],
+];
 
-  const lr = +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
-  const lg = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
-  const lb = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s;
+const palette = generatePalette(DEFAULT_MASTER);
 
-  const gamma = (u) => (u <= 0.0031308 ? 12.92 * u : 1.055 * Math.pow(u, 1 / 2.4) - 0.055);
-  return {
-    r: clamp01(gamma(lr)), g: clamp01(gamma(lg)), b: clamp01(gamma(lb)),
-    inGamut: [lr, lg, lb].every((v) => v >= -0.0001 && v <= 1.0001),
-  };
+/* =========================================================================
+ * 1. Contrast maths — independent of the engine's, on purpose (see header).
+ * ======================================================================= */
+
+function rgb01(hexStr) {
+  const n = parseInt(hexStr.replace('#', ''), 16);
+  return { r: ((n >> 16) & 255) / 255, g: ((n >> 8) & 255) / 255, b: (n & 255) / 255 };
 }
-
-const hex = ({ r, g, b }) =>
-  '#' + [r, g, b].map((v) => Math.round(v * 255).toString(16).padStart(2, '0')).join('');
 
 function relLum({ r, g, b }) {
   const lin = (u) => (u <= 0.04045 ? u / 12.92 : ((u + 0.055) / 1.055) ** 2.4);
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
 }
 
-function wcag(c1, c2) {
-  const [a, b] = [relLum(c1), relLum(c2)].sort((x, y) => y - x);
+function wcag(hexA, hexB) {
+  const [a, b] = [relLum(rgb01(hexA)), relLum(rgb01(hexB))].sort((x, y) => y - x);
   return (a + 0.05) / (b + 0.05);
 }
 
-// APCA 0.1.9 (W3 draft) — simplified bg/txt path
-function apca(txt, bg) {
+// APCA 0.1.9 (W3 draft) — simplified bg/txt path. Reported alongside WCAG because WCAG 2 is known
+// to misjudge mid-tone pairs; where the two disagree, investigate rather than trusting either.
+function apca(txtHex, bgHex) {
+  const txt = rgb01(txtHex);
+  const bg = rgb01(bgHex);
   const Y = (c) => 0.2126729 * c.r ** 2.4 + 0.7151522 * c.g ** 2.4 + 0.072175 * c.b ** 2.4;
-  let Ytxt = Y(txt), Ybg = Y(bg);
   const soft = (y) => (y > 0.022 ? y : y + (0.022 - y) ** 1.414);
-  Ytxt = soft(Ytxt); Ybg = soft(Ybg);
+  const Ytxt = soft(Y(txt));
+  const Ybg = soft(Y(bg));
   let Lc;
-  if (Ybg > Ytxt) Lc = (Ybg ** 0.56 - Ytxt ** 0.57) * 1.14, Lc = Lc < 0.001 ? 0 : (Lc - 0.027) * 100;
-  else Lc = (Ybg ** 0.65 - Ytxt ** 0.62) * 1.14, Lc = Lc > -0.001 ? 0 : (Lc + 0.027) * 100;
+  if (Ybg > Ytxt) {
+    Lc = (Ybg ** 0.56 - Ytxt ** 0.57) * 1.14;
+    Lc = Lc < 0.001 ? 0 : (Lc - 0.027) * 100;
+  } else {
+    Lc = (Ybg ** 0.65 - Ytxt ** 0.62) * 1.14;
+    Lc = Lc > -0.001 ? 0 : (Lc + 0.027) * 100;
+  }
   return Lc;
 }
 
-const O = (L, C, H) => { const c = oklchToRgb(L / 100, C, H); return { ...c, hex: hex(c), css: `oklch(${L}% ${C} ${H})` }; };
+/* =========================================================================
+ * 2. Resolving a semantic token back to a pixel
+ * ======================================================================= */
 
-// ---------- ramps ----------
-// Brand is PINK (344) and the neutral is a COOL CHARCOAL (242.5) — deliberately NOT the same hue.
-// See docs/design-system.md §1.2.1 for the hue screen that rejected teal, green, and blue.
-// Hue + the first 6 (L, C) pairs below are derived from 5 client-supplied reference swatches
-// (fde4f2 / f9cee7 / f4b8da / eea1cd / e68bbe, all landing within ~2° of hue 344); steps 700-1000
-// are extrapolated to stay lighter than the coral ramp ever was (old brand-1000 was L27%, this
-// one bottoms out at L36%).
-const BRAND_H = 344, NEUT_H = 242.5;
-
-const ramps = {
-  brand: [[98, 0.006], [96, 0.014], [94, 0.033], [89.5, 0.058], [84.7, 0.082], [79.7, 0.106], [74.7, 0.127], [68, 0.14], [61, 0.145], [52, 0.13], [44, 0.105], [36, 0.08]].map(([l, c]) => O(l, c, BRAND_H)),
-  neutral: [[99.2, 0.002], [98, 0.003], [96, 0.005], [92, 0.006], [86, 0.008], [74, 0.010], [62, 0.012], [52, 0.014], [42, 0.016], [32, 0.016], [24, 0.015], [18, 0.014], [13, 0.012]].map(([l, c]) => O(l, c, NEUT_H)),
-  accent: [[96, 0.028], [90, 0.065], [82, 0.110], [74, 0.140], [66, 0.135], [58, 0.115], [50, 0.095], [42, 0.078]].map(([l, c]) => O(l, c, 75)),
-  success: [[96, 0.025], [88, 0.060], [74, 0.115], [62, 0.135], [52, 0.115], [42, 0.092]].map(([l, c]) => O(l, c, 150)),
-  warning: [[96, 0.030], [88, 0.078], [76, 0.135], [66, 0.135], [54, 0.108], [44, 0.086]].map(([l, c]) => O(l, c, 75)),
-  danger: [[96, 0.016], [90, 0.045], [76, 0.110], [63, 0.250], [53, 0.210], [42, 0.145]].map(([l, c]) => O(l, c, 29)),
-  info: [[96, 0.016], [90, 0.045], [76, 0.095], [64, 0.140], [54, 0.140], [44, 0.110]].map(([l, c]) => O(l, c, 250)),
-};
-
-const STEPS = { brand: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950, 1000], neutral: [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950, 1000], accent: [50, 100, 200, 300, 400, 500, 600, 700], success: [50, 100, 300, 500, 700, 800], warning: [50, 100, 300, 500, 700, 800], danger: [50, 100, 300, 500, 700, 800], info: [50, 100, 300, 500, 700, 800] };
-
-for (const [name, arr] of Object.entries(ramps)) {
-  console.log(`\n## ${name}`);
-  arr.forEach((c, i) => console.log(`  ${String(STEPS[name][i]).padEnd(5)} ${c.css.padEnd(26)} ${c.hex}  ${c.inGamut ? '' : ' <-- OUT OF GAMUT'}`));
+/**
+ * Follows a role's value down to a hex. WHY resolve rather than name steps directly: WHICH step
+ * backs a role is a decision the engine makes per seed — the slate default anchors its brand at
+ * 950, the pink one anchored at 500 — so a pairing list naming steps would quietly start measuring
+ * the wrong pixels the moment the seed moved. That is exactly how this file drifted before.
+ */
+function resolve(roleMap, prop, depth = 0) {
+  const value = roleMap[prop];
+  if (!value || depth > 4) return null;
+  if (/^#[0-9a-f]{6}$/i.test(value)) return value.toLowerCase();
+  const ramp = /^var\(--([a-z]+)-(\d+)\)$/.exec(value);
+  if (ramp && palette[ramp[1]]) return palette[ramp[1]][ramp[2]] || null;
+  const alias = /^var\((--[a-z0-9-]+)\)$/.exec(value);
+  if (alias) return resolve(roleMap, alias[1], depth + 1);
+  return null; // hsl() triplets (shadow, scrim) are not contrast-checked
 }
 
-// ---------- contrast pairings ----------
-const n = (s) => ramps.neutral[STEPS.neutral.indexOf(s)];
-const br = (s) => ramps.brand[STEPS.brand.indexOf(s)];
-const dg = (s) => ramps.danger[STEPS.danger.indexOf(s)];
-const white = O(100, 0, 0);
+/* =========================================================================
+ * 3. Pairings — named semantically, resolved per theme
+ * ======================================================================= */
 
-// LIGHT surfaces: 0=brand-50, 1=brand-100, 2=neutral-100, 3=neutral-200 (0/1 pink-tinted on
-//   request; 2/3 stay neutral so raised/sunken surfaces don't blend into the pink borders)
-// DARK  surfaces: 0=neutral-950, 1=neutral-900, 2=neutral-800, 3=neutral-700  (lighter with elevation)
-const pairs = [
-  ['LIGHT: text-primary on surface-0', n(900), br(50)],
-  ['LIGHT: text-primary on surface-2', n(900), n(100)],
-  ['LIGHT: text-secondary on surface-0', n(700), br(50)],
-  ['LIGHT: text-muted on surface-0', n(600), br(50)],
-  ['LIGHT: brand-900 text-brand on surface-0', br(900), br(50)],
-  ['LIGHT: n-900 on brand-500 (primary btn)', n(900), br(500)],
-  ['LIGHT: n-900 on brand-600 (brand-alt fill)', n(900), br(600)],
-  ['LIGHT: n-900 on brand-700 (btn:active)', n(900), br(700)],
-  ['LIGHT: danger-700 on surface-0', ramps.danger[4], br(50)],
-  ['LIGHT: success-700 on surface-0', ramps.success[4], br(50)],
-  // Flash-sale strip: the three pairings components/product.css actually renders. The strip reads
-  // --flash-* now, but those default to the danger ramp, so this is where the SHIPPED values are
-  // measured — the generated-per-seed versions are covered by client/test/colorRamp.test.js.
-  ['LIGHT: flash-text n-900 on bg (d-300)', n(900), dg(300)],
-  ['LIGHT: flash-text n-900 on chip (n-0)', n(900), n(0)],
-  ['LIGHT: flash-tag n-0 on tag (d-800)', n(0), dg(800)],
-  ['DARK:  flash-text n-100 on bg (d-800)', n(100), dg(800)],
-  ['DARK:  flash-text n-100 on chip n-900', n(100), n(900)],
-  ['LIGHT: border-subtle (brand-300) vs surface-0', br(300), br(50)],
-  ['LIGHT: border-strong (brand-400) vs surface-0', br(400), br(50)],
-  ['DARK:  text-primary on surface-0', n(100), n(950)],
-  ['DARK:  text-primary on surface-2', n(100), n(800)],
-  ['DARK:  text-secondary on surface-0', n(300), n(950)],
-  ['DARK:  text-muted on surface-0', n(400), n(950)],
-  ['DARK:  brand-300 link on surface-0', br(300), n(950)],
-  ['DARK:  neutral-950 on brand-300 (btn)', n(950), br(300)],
-  ['DARK:  danger-300 on surface-0', ramps.danger[2], n(950)],
-  ['DARK:  border-subtle vs surface-0', n(800), n(950)],
-  ['DARK:  border-strong vs surface-0', n(700), n(950)],
+/** [label, foreground prop, background prop, minimum ratio]. */
+const TEXT_PAIRS = [
+  ['text-primary on surface-0', '--text-primary', '--surface-0', 4.5],
+  ['text-primary on surface-2', '--text-primary', '--surface-2', 4.5],
+  ['text-secondary on surface-0', '--text-secondary', '--surface-0', 4.5],
+  ['text-muted on surface-0', '--text-muted', '--surface-0', 4.5],
+  ['text-brand on surface-0', '--text-brand', '--surface-0', 4.5],
+  ['brand-contrast on brand (button)', '--brand-contrast', '--brand', 4.5],
+  ['brand-contrast on brand-hover', '--brand-contrast', '--brand-hover', 4.5],
+  ['brand-alt-contrast on brand-alt', '--brand-alt-contrast', '--brand-alt', 4.5],
+  ['navbar-text on navbar-bg', '--navbar-text', '--navbar-bg', 4.5],
+  ['footer-text on footer-bg', '--footer-text', '--footer-bg', 4.5],
+  ['footer-muted on footer-bg', '--footer-muted', '--footer-bg', 3],
+  ['success text on success-bg', '--success', '--success-bg', 4.5],
+  ['warning text on warning-bg', '--warning', '--warning-bg', 4.5],
+  ['danger text on danger-bg', '--danger', '--danger-bg', 4.5],
+  ['info text on info-bg', '--info', '--info-bg', 4.5],
+  ['danger text on surface-0', '--danger', '--surface-0', 4.5],
+  ['success text on surface-0', '--success', '--surface-0', 4.5],
+  ['flash-text on flash-bg', '--flash-text', '--flash-bg', 4.5],
+  ['flash-text on flash-chip-bg', '--flash-text', '--flash-chip-bg', 4.5],
+  ['flash-tag-text on flash-tag-bg', '--flash-tag-text', '--flash-tag-bg', 4.5],
 ];
 
-console.log('\n## contrast');
-console.log('  ' + 'pairing'.padEnd(38) + 'WCAG'.padEnd(9) + 'AA?'.padEnd(6) + 'APCA Lc');
-for (const [label, fg, bg] of pairs) {
-  const r = wcag(fg, bg);
-  const lc = apca(fg, bg);
-  const isBorder = label.includes('border');
-  const pass = isBorder ? (r >= 1.5 ? 'ok' : 'LOW') : r >= 4.5 ? 'PASS' : r >= 3 ? 'lg-only' : 'FAIL';
-  console.log('  ' + label.padEnd(38) + (r.toFixed(2) + ':1').padEnd(9) + pass.padEnd(6) + lc.toFixed(1));
+/** WCAG 1.4.11: a non-text boundary needs >= 3:1 to be perceivable. */
+const UI_PAIRS = [
+  ['border-interactive on surface-0', '--border-interactive', '--surface-0', 3],
+  ['focus-ring on surface-0', '--focus-ring', '--surface-0', 3],
+  ['brand fill on surface-0', '--brand', '--surface-0', 3],
+];
+
+/**
+ * Decorative separators — reported, never gated. They may not be a sole interactive boundary.
+ * The switch track is here rather than in UI_PAIRS because it is a KNOWN, accepted 1.4.11 miss
+ * (design-system.md §2): a switch conveys its boundary with a --border-interactive outline, not
+ * with track fill, and darkening the track to pass would make "off" look like "on".
+ */
+const DECORATIVE = [
+  ['border-subtle on surface-0', '--border-subtle', '--surface-0'],
+  ['border-strong on surface-0', '--border-strong', '--surface-0'],
+  ['switch track off on surface-0', '--surface-3', '--surface-0'],
+];
+
+function measure(roleMap, pairs) {
+  return pairs.flatMap(([label, fgProp, bgProp, min]) => {
+    const fg = resolve(roleMap, fgProp);
+    const bg = resolve(roleMap, bgProp);
+    if (!fg || !bg) return [];
+    return [{ label, fg, bg, min, ratio: wcag(fg, bg), lc: apca(fg, bg) }];
+  });
 }
 
-console.log('\n## non-text UI components (WCAG 1.4.11 needs >= 3:1)');
-const extra = [
-  ['LIGHT: input border (brand-800) on surface-0', br(800), br(50)],
-  ['LIGHT: focus ring (brand-500) on surface-0', br(500), br(50)],
-  ['LIGHT: switch track off (n-400) [expected fail]', n(400), br(50)],
-  ['DARK:  input border (neutral-600) on surface-0', n(600), n(950)],
-  ['DARK:  focus ring (brand-400) on surface-0', br(400), n(950)],
-  ['DARK:  switch track off (n-700) [expected fail]', n(700), n(950)],
-];
-for (const [label, fg, bg] of extra) {
-  const r = wcag(fg, bg);
-  console.log('  ' + label.padEnd(48) + (r.toFixed(2) + ':1').padEnd(9) + (r >= 3 ? 'PASS' : 'FAIL'));
+/* =========================================================================
+ * 4. themes.css emission
+ * ======================================================================= */
+
+/**
+ * The OKLCH override layer. Precision is not a style choice: it is raised until the triplet
+ * re-renders to the exact hex written in the fallback layer above it, so the two representations
+ * are provably the same pixel rather than the same pixel by convention. Hex fallback and OKLCH
+ * value quietly disagreeing after someone hand-edits one is the drift this file used to warn
+ * about in prose; it is now ruled out by construction.
+ */
+function oklchFor(hexValue) {
+  const o = hexToOklch(hexValue);
+  for (const [pl, pc, ph] of [[2, 4, 2], [3, 5, 3], [4, 6, 4]]) {
+    const L = Number((o.l * 100).toFixed(pl));
+    const C = Number(o.c.toFixed(pc));
+    const H = Number(o.h.toFixed(ph));
+    if (oklchToHex(L / 100, C, H) === hexValue) return `oklch(${L}% ${C} ${H})`;
+  }
+  throw new Error(`${hexValue}: no OKLCH precision reproduces it exactly`);
+}
+
+function rampBlock(fmt, indent) {
+  return RAMPS.map(([name, steps]) => steps
+    .map((s) => `${indent}--${name}-${s}: ${fmt(palette[name][s])};`)
+    .join('\n')).join('\n\n');
+}
+
+function roleBlock(roleMap, indent) {
+  const out = [];
+  const group = (heading, props) => {
+    const lines = props
+      .filter((p) => roleMap[p] !== undefined)
+      .map((p) => `${indent}${p}: ${roleMap[p]};`);
+    if (lines.length) out.push(`${indent}/* ${heading} */\n${lines.join('\n')}`);
+  };
+  group('Surfaces (elevation ladder) — dark mode LIGHTENS as elevation rises, never darkens', ['--surface-0', '--surface-1', '--surface-2', '--surface-3']);
+  group('Borders — subtle/strong are decorative; interactive is the a11y-gated one', ['--border-subtle', '--border-strong', '--border-interactive', '--border-default']);
+  group('Text', ['--text-primary', '--text-secondary', '--text-muted', '--text-inverse']);
+  group('Brand', ['--brand', '--brand-hover', '--brand-active', '--brand-contrast', '--text-brand', '--brand-alt', '--brand-alt-contrast']);
+  group('Status triads', STATUS_NAMES.flatMap((n) => [`--${n}`, `--${n}-bg`, `--${n}-border`]));
+  group('Flash sale / campaign strip — countdown digits inherit --flash-text', ['--flash-bg', '--flash-text', '--flash-chip-bg', '--flash-tag-bg', '--flash-tag-text']);
+  group('Chrome', ['--navbar-bg', '--navbar-text', '--navbar-border', '--navbar-search-bg', '--footer-bg', '--footer-text', '--footer-muted', '--footer-border']);
+  group('Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a)', ['--focus-ring', '--shadow-color', '--scrim']);
+  return out.join('\n\n');
+}
+
+function ratioNote(roleMap, prop, againstProp) {
+  const fg = resolve(roleMap, prop);
+  const bg = resolve(roleMap, againstProp);
+  return fg && bg ? `${wcag(fg, bg).toFixed(2)}:1` : 'n/a';
+}
+
+function themesCss() {
+  const { meta, config } = palette;
+  const light = palette.roles.light;
+  const dark = palette.roles.dark;
+
+  return `/**
+ * Explooro — Design Tokens: colour.
+ *
+ * GENERATED FILE. Do not hand-edit — run \`node scripts/palette.mjs --write\`.
+ *
+ * Every value below is the output of the Master Colour engine
+ * (client/src/services/colorRamp.js) fed the shipped default seed. That is the same engine the
+ * Theme Studio previews with and the same one the server re-derives and validates against, so this
+ * baseline and a freshly booted runtime theme are the same palette rather than two palettes that
+ * happen to look alike. WHY that matters: this file paints during the frames BEFORE main.js runs
+ * \`initTheme()\`. While it was authored by hand against a different seed, every cold load flashed
+ * the old colour and then swapped.
+ *
+ * To change the colour the product ships with, change \`DEFAULT_MASTER\` in colorRamp.js (and the
+ * matching preset in config/master-themes.js — client/test/colorRamp.test.js asserts the two
+ * agree), then re-run the command above. Hand-editing a step here is the one thing that CAN put
+ * this file out of step with the engine, and that same test fails if you do.
+ *
+ *   seed          ${config.seed} (hue ${meta.seedHue})
+ *   brand anchor  step ${meta.anchorStep}, chroma scale ${meta.chromaScale}
+ *   neutral hue   ${meta.neutralHue} (${config.neutralMode})
+ *   accent hue    ${meta.accentHue} (${config.accentHarmony})
+ *   surface wash  ${config.surfaceWash ? 'on' : 'off'}, border tint ${config.borderTint ? 'on' : 'off'}
+ *
+ * Two layers:
+ *   1. Raw ramps — brand / neutral / success / warning / danger / info / accent. Theme-independent:
+ *      a ramp step is the same colour in light and dark mode. Emitted as hex, then overridden in
+ *      OKLCH for engines that support it — the same pixel at sub-8-bit precision, at a precision
+ *      the generator verifies round-trips exactly rather than assumes.
+ *   2. Semantic tokens — surface/text/border/brand/status roles. THEME-dependent: which ramp step
+ *      backs "surface-0" flips between light and dark. Emitted four times (base / OS-dark /
+ *      explicit-dark / explicit-light) so an explicit \`data-theme\` toggle always outranks the OS
+ *      preference — the same block order services/masterTheme.js mounts at runtime.
+ */
+
+/* =========================================================================
+ * 1. Raw ramps — hex fallback first, OKLCH override for engines that support it.
+ * ======================================================================= */
+
+:root {
+${rampBlock((h) => h, '  ')}
+}
+
+@supports (color: oklch(0 0 0)) {
+  :root {
+${rampBlock(oklchFor, '    ')}
+  }
+}
+
+/* =========================================================================
+ * 2. Semantic tokens — theme-dependent. Components reference ONLY these.
+ * ======================================================================= */
+
+/* ---- Light (default) ---------------------------------------------------
+   What the engine resolved for this seed, and the measurement behind each choice:
+     --brand              ${light['--brand']} with ${light['--brand-contrast']} ink — ${ratioNote(light, '--brand-contrast', '--brand')}. The ink is
+                          picked per seed, never assumed: a light seed takes dark ink and vice versa.
+     --text-brand         ${light['--text-brand']} on the canvas — ${ratioNote(light, '--text-brand', '--surface-0')}. The SHALLOWEST step clearing
+                          4.5:1, so link text is as light as AA permits and no lighter.
+     --border-interactive ${light['--border-interactive']} — ${ratioNote(light, '--border-interactive', '--surface-0')}. WCAG 1.4.11 wants 3:1 for an input
+                          boundary; border-subtle/strong stay decorative and are not gated.
+   None of those steps are fixed by hand. A different seed lands on different ones. */
+:root {
+${roleBlock(light, '  ')}
+}
+
+/* ---- Dark, following the OS preference ---------------------------------
+   :not([data-theme='light']) so an explicit light toggle (block 4) always outranks the OS.
+   Dark is designed, not inverted: surfaces LIGHTEN with elevation, and --brand takes the DEEPEST
+   step still clearing 6:1 on the canvas (${dark['--brand']}, measured ${ratioNote(dark, '--brand', '--surface-0')}) rather than
+   the shallowest, which would leave every dark-mode button washed out. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+${roleBlock(dark, '    ')}
+  }
+}
+
+/* ---- Dark, explicit toggle (wins over OS preference) ------------------- */
+:root[data-theme='dark'] {
+${roleBlock(dark, '  ')}
+}
+
+/* ---- Light, explicit toggle (wins over a dark OS preference) -----------
+   Last, so it takes the specificity tie against the OS-dark block above. */
+:root[data-theme='light'] {
+${roleBlock(light, '  ')}
+}
+`;
+}
+
+/* =========================================================================
+ * 5. Output
+ * ======================================================================= */
+
+const args = new Set(process.argv.slice(2));
+
+if (args.has('--write')) {
+  writeFileSync(THEMES_CSS, themesCss(), 'utf8');
+  console.log(`wrote ${THEMES_CSS}`);
+}
+
+function contrastTable(title, roleMap) {
+  const pad = (s, n) => String(s).padEnd(n).slice(0, n);
+  console.log(`\n## ${title}`);
+  console.log('  ' + pad('pairing', 36) + pad('colours', 22) + pad('WCAG', 9) + pad('AA?', 9) + 'APCA Lc');
+  let failed = 0;
+  for (const row of measure(roleMap, TEXT_PAIRS)) {
+    if (row.ratio < row.min) failed += 1;
+    const verdict = row.ratio >= row.min ? 'PASS' : row.ratio >= 3 ? 'lg-only' : 'FAIL';
+    console.log('  ' + pad(row.label, 36) + pad(`${row.fg} on ${row.bg}`, 22)
+      + pad(`${row.ratio.toFixed(2)}:1`, 9) + pad(verdict, 9) + row.lc.toFixed(1));
+  }
+  console.log('  -- non-text UI (WCAG 1.4.11 needs >= 3:1)');
+  for (const row of measure(roleMap, UI_PAIRS)) {
+    if (row.ratio < row.min) failed += 1;
+    console.log('  ' + pad(row.label, 36) + pad(`${row.fg} on ${row.bg}`, 22)
+      + pad(`${row.ratio.toFixed(2)}:1`, 9) + (row.ratio >= row.min ? 'PASS' : 'FAIL'));
+  }
+  console.log('  -- decorative separators (reported, not gated)');
+  for (const [label, fgProp, bgProp] of DECORATIVE) {
+    const fg = resolve(roleMap, fgProp);
+    const bg = resolve(roleMap, bgProp);
+    if (!fg || !bg) continue;
+    console.log('  ' + pad(label, 36) + pad(`${fg} on ${bg}`, 22) + pad(`${wcag(fg, bg).toFixed(2)}:1`, 9) + 'decorative');
+  }
+  return failed;
+}
+
+if (args.has('--markdown')) {
+  for (const [name, steps] of RAMPS) {
+    console.log(`\n#### ${name}\n`);
+    console.log('| Step | OKLCH | Hex |');
+    console.log('| :--- | :--- | :--- |');
+    steps.forEach((s) => console.log(`| ${s} | \`${oklchFor(palette[name][s])}\` | \`${palette[name][s]}\` |`));
+  }
+  for (const [title, roleMap] of [['Light theme', palette.roles.light], ['Dark theme', palette.roles.dark]]) {
+    console.log(`\n#### ${title}\n`);
+    console.log('| Pairing | Colours | Ratio | AA | APCA Lc |');
+    console.log('| :--- | :--- | :--- | :--- | :--- |');
+    for (const row of [...measure(roleMap, TEXT_PAIRS), ...measure(roleMap, UI_PAIRS)]) {
+      const ok = row.ratio >= row.min ? '✅' : '❌';
+      console.log(`| ${row.label} | \`${row.fg}\` on \`${row.bg}\` | **${row.ratio.toFixed(2)}:1** | ${ok} | ${row.lc.toFixed(1)} |`);
+    }
+    for (const [label, fgProp, bgProp] of DECORATIVE) {
+      const fg = resolve(roleMap, fgProp);
+      const bg = resolve(roleMap, bgProp);
+      if (fg && bg) console.log(`| ${label} | \`${fg}\` on \`${bg}\` | ${wcag(fg, bg).toFixed(2)}:1 | decorative only | ${apca(fg, bg).toFixed(1)} |`);
+    }
+  }
+} else if (!args.has('--write')) {
+  console.log(`## seed ${palette.config.seed} -> ${JSON.stringify(palette.meta)}`);
+  for (const [name, steps] of RAMPS) {
+    console.log(`\n## ${name}`);
+    steps.forEach((s) => console.log(`  ${String(s).padEnd(5)} ${oklchFor(palette[name][s]).padEnd(28)} ${palette[name][s]}`));
+  }
+  const failures = contrastTable('LIGHT', palette.roles.light) + contrastTable('DARK', palette.roles.dark);
+  console.log(`\n${failures === 0 ? 'All gated pairings PASS.' : `${failures} gated pairing(s) FAILED.`}`);
+  process.exitCode = failures === 0 ? 0 : 1;
 }

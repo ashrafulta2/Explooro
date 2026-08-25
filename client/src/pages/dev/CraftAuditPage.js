@@ -2,7 +2,8 @@
  * CraftAuditPage — `/dev/craft` Automated Craft Regression Detector (Prompt 1.10).
  *
  * Runs automated checks across the rendered DOM against the Craft Layer of docs/design-system.md:
- *  1. Pure-gray colors in use (neutrals must be tinted at hue 242.5 with chroma > 0).
+ *  1. Pure-gray colors in use (neutrals must carry chroma > 0; the HUE is whatever the master
+ *     seed resolved to, so this checks for achromatic R===G===B rather than a fixed hue).
  *  2. Display-size text (>= 24px) using generic letter-spacing: normal instead of optical tracking.
  *  3. Nested radius violations (child radius equal to parent radius when padded).
  *  4. Interactive elements missing press feedback cues.
@@ -62,7 +63,7 @@ export function runCraftAudit(root = document.body) {
       findings.push({
         type: 'PURE_GRAY_COLOR',
         category: 'Colour Craft',
-        message: `Element uses pure untinted gray color: ${color}. Neutral tokens must be tinted (hue 242.5).`,
+        message: `Element uses pure untinted gray color: ${color}. Neutral tokens carry chroma, never R===G===B.`,
         target: `${el.tagName.toLowerCase()}${el.className ? '.' + el.className.split(' ')[0] : ''}`,
         element: el,
       });
