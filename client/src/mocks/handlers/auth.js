@@ -2,7 +2,7 @@
  * Mock Auth Handlers — enables full login, OTP, registration, session, and permission
  * preview in development when running in mock mode (VITE_API_MODE=mock).
  */
-import catalog from '../../../../docs/permission-catalog.json';
+import catalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
 
 const DEV_USERS = {
   '+8801700000001': { id: 'usr-dev-1', ref: 'USR-DEV-SUPER-ADMIN', name: 'Dev Super Admin', role: 'super_admin', email: 'super_admin@dev.explooro.local' },

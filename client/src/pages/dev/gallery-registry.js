@@ -1039,8 +1039,8 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'supplier-dashboard-widgets', label: 'SupplierDashboardWidgets', group: 'Commerce & Catalog', render: renderSupplierDashboardWidgetsSpecimen },
     // Prompt 11.2 — Saler Prescriptive AI Growth Assistant
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'Saler Sourcing & Profit', render: renderGrowthAssistantSpecimen },
-    // Prompt 11.3 — 1-Click Saler Upgrade CTA
-    { id: 'become-saler-cta', label: 'BecomeSalerCta', group: 'Saler Sourcing & Profit', render: renderBecomeSalerCtaSpecimen },
+    // Catalog & Products Governance
+    { id: 'catalog-products-governance', label: 'CatalogProductsGovernance', group: 'Commerce & Catalog', render: renderCatalogProductsSpecimen },
     // Master Colour engine (services/colorRamp.js) — the generated ramps behind Theme Studio
     { id: 'master-palette', label: 'MasterPalette', group: 'Foundations', render: renderMasterPaletteSpecimen },
   ];
@@ -2106,6 +2106,40 @@ function renderBecomeSalerCtaSpecimen() {
   });
 
   wrap.append(specimen('1-Click Upgrade Hero Card with Benefits & Live Trigger', cta.element));
+  return wrap;
+}
+
+function renderCatalogProductsSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Platform Catalog & Products Governance (Admin/Supplier)'));
+
+  const preview = document.createElement('div');
+  preview.className = 'catalog-stats';
+  preview.innerHTML = `
+    <div class="catalog-stat-card">
+      <span class="catalog-stat-card__label">Total Products</span>
+      <span class="catalog-stat-card__value">62</span>
+      <span class="catalog-stat-card__meta">12 Active Categories</span>
+    </div>
+    <div class="catalog-stat-card">
+      <span class="catalog-stat-card__label">In-Stock & Live</span>
+      <span class="catalog-stat-card__value">58</span>
+      <span class="catalog-stat-card__meta catalog-stat-card__meta--success">94% Available</span>
+    </div>
+    <div class="catalog-stat-card">
+      <span class="catalog-stat-card__label">Low Stock (≤ 10)</span>
+      <span class="catalog-stat-card__value">6</span>
+      <span class="catalog-stat-card__meta catalog-stat-card__meta--warning">2 Out of Stock</span>
+    </div>
+    <div class="catalog-stat-card">
+      <span class="catalog-stat-card__label">Potential GMV Value</span>
+      <span class="catalog-stat-card__value">৳1,485,000</span>
+      <span class="catalog-stat-card__meta catalog-stat-card__meta--success">48 Verified Suppliers</span>
+    </div>
+  `;
+
+  wrap.append(specimen('Catalog Governance KPIs & Inventory Roster', preview));
   return wrap;
 }
 

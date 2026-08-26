@@ -22,6 +22,14 @@ import { contentHandlers } from './handlers/content.js';
 import supplierHandlers from './handlers/supplier.js';
 import salerHandlers from './handlers/saler.js';
 import adminHandlers from './handlers/admin.js';
+import vaultHandlers from './handlers/vault.js';
+import liveHandlers from './handlers/live.js';
+import warrantyHandlers from './handlers/warranty.js';
+import moderatorHandlers from './handlers/moderator.js';
+import disputeHandlers from './handlers/disputes.js';
+import returnHandlers from './handlers/returns.js';
+import campaignHandlers from './handlers/campaigns.js';
+import themeHandlers from './handlers/theme.js';
 
 const handlers = [
   ...authHandlers,
@@ -39,6 +47,14 @@ const handlers = [
   ...supplierHandlers,
   ...salerHandlers,
   ...adminHandlers,
+  ...vaultHandlers,
+  ...liveHandlers,
+  ...warrantyHandlers,
+  ...moderatorHandlers,
+  ...disputeHandlers,
+  ...returnHandlers,
+  ...campaignHandlers,
+  ...themeHandlers,
 ];
 
 function notFoundBody(path) {

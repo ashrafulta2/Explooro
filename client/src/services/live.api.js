@@ -9,12 +9,12 @@ export async function scheduleLiveStream(payload) {
 }
 
 export async function listLiveStreams(params = {}) {
-  return api.get('/live/streams', { params });
+  return api.get('/live/streams', { query: params });
 }
 
 export async function getLiveStream(id, audioOnly = false) {
   return api.get(`/live/streams/${id}`, {
-    params: { audio_only: audioOnly ? 'true' : 'false' },
+    query: { audio_only: audioOnly ? 'true' : 'false' },
   });
 }
 

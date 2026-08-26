@@ -4,6 +4,8 @@
  * so their color dynamically responds to theme, hover, and active states.
  */
 
+import { buildLogoMarkSvg } from '../../services/logoMark.js';
+
 function svg(paths, { viewBox = '0 0 24 24', width = 18, height = 18, strokeWidth = 1.8 } = {}) {
   return `<svg viewBox="${viewBox}" width="${width}" height="${height}" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
 }
@@ -173,22 +175,18 @@ export function getItemIcon(item) {
 
 /**
  * Explooro Brand Logo Mark
- * "E." wordmark badge, hand-drawn "E" glyph: bars grow top → bottom (top
- * smallest, middle a bit longer, bottom longest) — matching the supplied
- * logo, not a font "E" or the earlier top/bottom-equal draft — plus a
- * diamond (rotated square), not a round dot, standing in for the period.
- * Fill color (#A6337E) is hand-matched by eye to the supplied logo image —
- * no exact hex/eyedropper value was provided, so nudge this if it's off.
+ * A four-point sparkle punched with a circle, on a badge — painted entirely with the raw brand
+ * ramp custom properties (--brand-900/--brand-500/--neutral-0), which services/masterTheme.js
+ * re-emits for every Master Colour preset AND any custom Theme Studio seed. The mark therefore
+ * repaints with the live theme automatically; nothing here is theme-specific. Geometry lives once
+ * in services/logoMark.js so this and the static files scripts/logo.mjs bakes never drift apart.
  */
 export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark' } = {}) {
-  return `<svg viewBox="0 0 32 32" width="${size}" height="${size}" class="${className}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <rect x="1" y="1" width="30" height="30" rx="8" fill="#A6337E" />
-    <!-- 'E' glyph: left stem + three bars, growing top -> bottom -->
-    <rect x="8.5" y="7" width="3" height="18" fill="#ffffff" />
-    <rect x="8.5" y="7" width="8" height="3.4" fill="#ffffff" />
-    <rect x="8.5" y="14.3" width="10.5" height="3.4" fill="#ffffff" />
-    <rect x="8.5" y="21.6" width="13" height="3.4" fill="#ffffff" />
-    <!-- Period, drawn as a diamond (rotated square), not a circle -->
-    <rect x="22.5" y="20.5" width="5" height="5" rx="0.6" fill="#ffffff" transform="rotate(45 25 23)" />
-  </svg>`;
+  return buildLogoMarkSvg({
+    size,
+    className,
+    bg: 'var(--logo-bg, var(--neutral-900))',
+    star: 'var(--logo-star, #ffffff)',
+    hole: 'var(--logo-hole, var(--neutral-900))',
+  });
 }

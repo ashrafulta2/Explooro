@@ -18,7 +18,18 @@ import { EvidenceTimeline } from '../../components/dispute/EvidenceTimeline.js';
 
 export default function DisputePanelPage(root) {
   const container = document.createElement('div');
-  container.className = 'page-container dispute-panel-page';
+  container.className = 'dispute-panel-page';
+  container.style.cssText = `
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    color: var(--text-primary, #0f172a);
+    background: var(--surface-0, transparent);
+    font-family: inherit;
+  `;
 
   let currentTab = 'ALL';
   let disputes = [];
@@ -38,7 +49,7 @@ export default function DisputePanelPage(root) {
       const res = await api.get(`/disputes${statusParam}`);
       disputes = res.data?.disputes || [];
       if (disputes.length > 0 && !selectedDispute) {
-        selectDispute(disputes[0].id);
+        await selectDispute(disputes[0].id);
       }
     } catch (err) {
       toast.error(err.message || 'Failed to fetch disputes.');
@@ -58,8 +69,7 @@ export default function DisputePanelPage(root) {
         api.get(`/disputes/${disputeId}/timeline`),
       ]);
       selectedDispute = disputeRes.data;
-      timelineData = timelineRes.data;
-      // Also fetch precedents based on dispute reason
+      timelineData = timelineRes.data?.timeline || [];
       if (selectedDispute?.reason) {
         try {
           const precRes = await api.get(`/disputes/precedents?reason=${encodeURIComponent(selectedDispute.reason)}`);
@@ -82,7 +92,7 @@ export default function DisputePanelPage(root) {
         attachments,
         is_internal_note: isInternalNote,
       });
-      toast.success(isInternalNote ? t('dispute.internal_note_saved') : t('dispute.message_sent'));
+      toast.success(isInternalNote ? t('dispute.internal_note_saved', 'Staff note saved.') : t('dispute.message_sent', 'Message sent.'));
       await selectDispute(selectedDispute.id);
     } catch (err) {
       toast.error(err.message || 'Failed to post message.');
@@ -99,9 +109,9 @@ export default function DisputePanelPage(root) {
       });
 
       if (res.meta?.maker_checker?.requires_super_admin) {
-        toast.info(t('dispute.maker_checker_pending'));
+        toast.info(t('dispute.maker_checker_pending', 'Arbitration submitted for Super Admin sign-off.'));
       } else {
-        toast.success(t('dispute.arbitrate_success'));
+        toast.success(t('dispute.arbitrate_success', 'Dispute resolved successfully.'));
       }
 
       await fetchDisputes();
@@ -115,290 +125,470 @@ export default function DisputePanelPage(root) {
 
   async function handleEscalate() {
     if (!selectedDispute) return;
-    const reason = prompt(t('dispute.prompt_escalation_reason'));
+    const reason = prompt(t('dispute.prompt_escalation_reason', 'Enter reason for Super Admin escalation:'));
     if (!reason) return;
 
     try {
-      await api.post(`/disputes/${selectedDispute.id}/escalate`, { reason });
-      toast.success(t('dispute.escalate_success'));
+      await api.post(`/disputes/${selectedDispute.id}/arbitrate`, {
+        outcome: 'ESCALATED',
+        resolution_notes: reason,
+      });
+      toast.success(t('dispute.escalate_success', 'Dispute escalated to Super Admin.'));
       await fetchDisputes();
-      if (selectedDispute) {
-        await selectDispute(selectedDispute.id);
-      }
     } catch (err) {
       toast.error(err.message || 'Escalation failed.');
     }
   }
 
-  function renderStatusBadge(status) {
-    switch (status) {
-      case 'OPEN':
-        return `<span class="badge badge--blue">${t('dispute.status.open')}</span>`;
-      case 'UNDER_ARBITRATION':
-        return `<span class="badge badge--amber">${t('dispute.status.under_arbitration')}</span>`;
-      case 'ESCALATED':
-        return `<span class="badge badge--rose animate-pulse">${t('dispute.status.escalated')}</span>`;
-      case 'AWAITING_SUPER_ADMIN':
-        return `<span class="badge badge--purple">${t('dispute.status.awaiting_super_admin')}</span>`;
-      case 'RESOLVED':
-        return `<span class="badge badge--emerald">${t('dispute.status.resolved')}</span>`;
-      case 'CLOSED':
-        return `<span class="badge badge--gray">${t('dispute.status.closed')}</span>`;
-      default:
-        return `<span class="badge badge--gray">${status}</span>`;
-    }
-  }
+  function openArbitrationModal() {
+    if (!selectedDispute) return;
 
-  function renderSlaBadge(dispute) {
-    if (['RESOLVED', 'CLOSED'].includes(dispute.status)) return '';
-    if (dispute.is_sla_breached) {
-      return `<span class="badge badge--rose badge--xs">⚠️ ${t('dispute.sla_breached')}</span>`;
-    }
-    const hours = Math.round(dispute.remaining_sla_minutes / 60);
-    const badgeClass = hours < 6 ? 'badge--rose' : hours < 24 ? 'badge--amber' : 'badge--emerald';
-    return `<span class="badge ${badgeClass} badge--xs">⏱️ ${hours}h ${t('dispute.sla_left')}</span>`;
-  }
+    const modalBackdrop = document.createElement('div');
+    modalBackdrop.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    `;
 
-  function render() {
-    container.innerHTML = `
-      <div class="dispute-panel">
-        <!-- Top Workspace Bar -->
-        <div class="dispute-panel__header flex items-center justify-between pb-4 border-b">
-          <div>
-            <h1 class="text-2xl font-bold flex items-center gap-2">
-              ⚖️ ${t('dispute.panel_title')}
-            </h1>
-            <p class="text-sm text-secondary">${t('dispute.panel_subtitle')}</p>
-          </div>
-          <button class="btn btn--secondary btn--sm" id="btn-refresh-disputes">
-            🔄 ${t('common.refresh')}
-          </button>
+    modalBackdrop.innerHTML = `
+      <div style="
+        background: var(--surface-1, #ffffff);
+        border: 1px solid var(--border-subtle, #e2e8f0);
+        border-radius: var(--radius-lg, 12px);
+        max-width: 520px;
+        width: 100%;
+        padding: 24px;
+        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      ">
+        <div>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary, #0f172a); display: flex; align-items: center; gap: 6px;">
+            ⚖️ ${t('dispute.arbitrate_modal_title', 'Execute Arbitration Verdict')} (${selectedDispute.ref})
+          </h3>
+          <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted, #64748b);">
+            ${t('dispute.arbitrate_modal_desc', 'Select binding settlement outcome and allocate liability across parties.')}
+          </p>
         </div>
 
-        <!-- Filter Tabs -->
-        <div class="dispute-panel__tabs flex gap-2 my-4">
-          ${['ALL', 'OPEN', 'UNDER_ARBITRATION', 'ESCALATED', 'RESOLVED']
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${t('dispute.outcome_type', 'Settlement Outcome')}:</label>
+            <select id="sel-outcome" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;">
+              <option value="FULL_REFUND">Full Refund to Buyer (Supplier Liable)</option>
+              <option value="PARTIAL_REFUND">Partial Refund (Mutual Concession)</option>
+              <option value="SPLIT_LIABILITY">Split Liability 50/50 (Saler & Supplier)</option>
+              <option value="REPLACEMENT">Issue Free Replacement Delivery</option>
+              <option value="REJECTED">Reject Dispute (Buyer Claim Invalid)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${t('dispute.resolution_notes', 'Arbitration Rationale & Directives')}:</label>
+            <textarea id="txt-resolution-notes" rows="3" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="Document evidence findings, courier reports, and accounting adjustment directives..."></textarea>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+          <button id="btn-cancel-modal" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${t('common.cancel', 'Cancel')}</button>
+          <button id="btn-confirm-verdict" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">${t('dispute.confirm_verdict', 'Confirm Verdict')}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalBackdrop);
+
+    modalBackdrop.querySelector('#btn-cancel-modal').addEventListener('click', () => modalBackdrop.remove());
+
+    modalBackdrop.querySelector('#btn-confirm-verdict').addEventListener('click', async () => {
+      const outcome = modalBackdrop.querySelector('#sel-outcome').value;
+      const notes = modalBackdrop.querySelector('#txt-resolution-notes').value.trim();
+      modalBackdrop.remove();
+
+      await handleArbitrate({
+        outcome,
+        outcomeSplit: {},
+        resolutionNotes: notes,
+      });
+    });
+  }
+
+  function renderHeader() {
+    return `
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+        flex-wrap: wrap;
+        gap: 16px;
+      ">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 26px;">⚖️</span>
+            <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: var(--text-primary, #0f172a); letter-spacing: -0.02em;">
+              ${t('dispute.page_title', 'Dispute Resolution & Arbitration Panel')}
+            </h1>
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
+            ${t('dispute.page_subtitle', 'Mediate 3-way buyer-saler-supplier conflicts, examine audit timelines, and execute binding verdicts.')}
+          </p>
+        </div>
+
+        <button id="btn-refresh-disputes" style="
+          padding: 8px 16px;
+          font-size: 12px;
+          font-weight: 600;
+          border-radius: var(--radius-md, 8px);
+          border: 1px solid var(--border-subtle, #e2e8f0);
+          background: var(--surface-1, #ffffff);
+          color: var(--text-primary, #0f172a);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+          transition: all 0.15s ease;
+        ">
+          🔄 ${t('common.refresh', 'Refresh')}
+        </button>
+      </div>
+    `;
+  }
+
+  function renderStatusBadge(status) {
+    if (status === 'OPEN') {
+      return `<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--info-bg, rgba(79, 70, 229, 0.1)); color: var(--text-brand, #4f46e5); font-weight: 700; border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));">OPEN</span>`;
+    }
+    if (status === 'UNDER_REVIEW') {
+      return `<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--warning-bg, rgba(217, 119, 6, 0.1)); color: var(--warning, #d97706); font-weight: 700; border: 1px solid var(--warning-border, rgba(217, 119, 6, 0.25));">UNDER REVIEW</span>`;
+    }
+    if (status === 'RESOLVED') {
+      return `<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--success-bg, rgba(5, 150, 105, 0.1)); color: var(--success, #059669); font-weight: 700; border: 1px solid var(--success-border, rgba(5, 150, 105, 0.25));">RESOLVED</span>`;
+    }
+    return `<span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--danger-bg, rgba(225, 29, 72, 0.1)); color: var(--danger, #e11d48); font-weight: 700; border: 1px solid var(--danger-border, rgba(225, 29, 72, 0.25));">${status}</span>`;
+  }
+
+  function renderDisputeList() {
+    const tabs = [
+      { key: 'ALL', label: 'All Cases' },
+      { key: 'OPEN', label: 'Open' },
+      { key: 'UNDER_REVIEW', label: 'Under Review' },
+      { key: 'RESOLVED', label: 'Resolved' },
+    ];
+
+    return `
+      <div style="
+        background: var(--surface-1, #ffffff);
+        border: 1px solid var(--border-subtle, #e2e8f0);
+        border-radius: var(--radius-lg, 12px);
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      ">
+        <div style="padding: 12px 14px; border-bottom: 1px solid var(--border-subtle, #e2e8f0); display: flex; gap: 6px; flex-wrap: wrap;">
+          ${tabs
             .map(
               (tab) => `
-            <button class="btn btn--sm ${currentTab === tab ? 'btn--primary' : 'btn--ghost'}" data-tab="${tab}">
-              ${t(`dispute.tab_${tab.toLowerCase()}`)}
+            <button class="btn-dispute-tab" data-tab="${tab.key}" style="
+              padding: 4px 10px;
+              font-size: 11px;
+              font-weight: 700;
+              border-radius: var(--radius-sm, 6px);
+              border: 1px solid ${currentTab === tab.key ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'};
+              background: ${currentTab === tab.key ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'};
+              color: ${currentTab === tab.key ? 'var(--brand-contrast, #ffffff)' : 'var(--text-secondary, #475569)'};
+              cursor: pointer;
+            ">
+              ${tab.label}
             </button>
           `
             )
             .join('')}
         </div>
 
-        <!-- Two-Column Workspace Layout -->
-        <div class="dispute-panel__grid grid grid-cols-12 gap-4">
-          <!-- Left Column: Dispute Queue -->
-          <div class="col-span-4 dispute-queue-card card p-0 overflow-hidden">
-            <div class="p-3 border-b bg-surface-hover font-semibold text-sm flex items-center justify-between">
-              <span>${t('dispute.queue_list')} (${disputes.length})</span>
-            </div>
-            <div class="dispute-queue-list divide-y max-h-[700px] overflow-y-auto">
-              ${
-                loading
-                  ? `<div class="p-8 text-center text-secondary text-sm">${t('common.loading')}...</div>`
-                  : disputes.length === 0
-                  ? `<div class="p-8 text-center text-secondary text-sm">${t('dispute.no_disputes')}</div>`
-                  : disputes
-                      .map(
-                        (d) => `
-                  <div class="dispute-queue-item p-3 cursor-pointer transition hover:bg-surface-hover ${selectedDispute?.id === d.id ? 'bg-surface-selected border-l-4 border-primary' : ''}" data-dispute-id="${d.id}">
-                    <div class="flex items-center justify-between mb-1">
-                      <span class="font-bold text-sm text-primary">${d.ref}</span>
-                      ${renderStatusBadge(d.status)}
-                    </div>
-                    <div class="text-xs text-secondary mb-1 flex items-center justify-between">
-                      <span>Order: #${d.sub_order_ref}</span>
-                      <span class="font-semibold text-text">${formatCurrency(d.disputed_amount)}</span>
-                    </div>
-                    <div class="text-xs text-secondary truncate">
-                      👤 ${d.customer_name} ↔️ 🏪 ${d.saler_name || 'Direct'} ↔️ 🏭 ${d.supplier_name}
-                    </div>
-                    <div class="mt-2 flex items-center justify-between">
-                      <span class="text-xs text-tertiary">${formatDate(d.created_at)}</span>
-                      ${renderSlaBadge(d)}
-                    </div>
+        <div style="display: flex; flex-direction: column; overflow-y: auto; max-height: 600px;">
+          ${
+            loading
+              ? `<div style="padding: 32px; text-align: center; color: var(--text-muted, #64748b); font-size: 12px;">Loading disputes...</div>`
+              : disputes.length === 0
+              ? `<div style="padding: 32px; text-align: center; color: var(--text-muted, #64748b); font-size: 12px;">No disputes found.</div>`
+              : disputes
+                  .map(
+                    (d) => `
+                <div class="dispute-item-row" data-id="${d.id}" style="
+                  padding: 14px 16px;
+                  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+                  background: ${selectedDispute?.id === d.id ? 'var(--surface-2, #f8fafc)' : 'var(--surface-1, #ffffff)'};
+                  border-left: 4px solid ${selectedDispute?.id === d.id ? 'var(--brand, #4f46e5)' : 'transparent'};
+                  cursor: pointer;
+                  display: flex;
+                  flex-direction: column;
+                  gap: 6px;
+                  transition: all 0.15s ease;
+                ">
+                  <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${d.ref}</span>
+                    ${renderStatusBadge(d.status)}
                   </div>
-                `
-                      )
-                      .join('')
-              }
+                  <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px;">
+                    <span style="color: var(--text-muted, #64748b);">Order #${d.sub_order_ref}</span>
+                    <strong style="color: var(--text-primary, #0f172a);">${formatCurrency(d.disputed_amount)}</strong>
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-muted, #64748b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    👤 ${d.customer_name} ↔️ 🏪 ${d.saler_name || 'Direct'} ↔️ 🏭 ${d.supplier_name}
+                  </div>
+                </div>
+              `
+                  )
+                  .join('')
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDisputeDetails() {
+    if (detailsLoading) {
+      return `<div style="padding: 48px; text-align: center; color: var(--text-muted, #64748b);">Loading dispute workspace...</div>`;
+    }
+
+    if (!selectedDispute) {
+      return `
+        <div style="padding: 60px 20px; text-align: center; color: var(--text-muted, #64748b); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-radius: var(--radius-lg, 12px);">
+          <span style="font-size: 32px;">⚖️</span>
+          <h3 style="margin: 8px 0 0 0; font-size: 15px; font-weight: 700; color: var(--text-primary, #0f172a);">Select a Dispute Case</h3>
+          <p style="margin: 4px 0 0 0; font-size: 12px;">Choose a dispute from the left queue to open the three-way arbitration panel.</p>
+        </div>
+      `;
+    }
+
+    return `
+      <div style="
+        background: var(--surface-1, #ffffff);
+        border: 1px solid var(--border-subtle, #e2e8f0);
+        border-radius: var(--radius-lg, 12px);
+        padding: 20px;
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      ">
+        <!-- Top Case Header -->
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle, #e2e8f0); flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary, #0f172a); font-family: monospace;">${selectedDispute.ref}</h2>
+              ${renderStatusBadge(selectedDispute.status)}
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 4px;">
+              Sub-Order: <strong>${selectedDispute.sub_order_ref}</strong> • Disputed: <strong style="color: var(--danger, #e11d48);">${formatCurrency(selectedDispute.disputed_amount)}</strong> • Reason: <em>${selectedDispute.reason}</em>
             </div>
           </div>
 
-          <!-- Right Column: Dispute Detail & Action Panel -->
-          <div class="col-span-8 dispute-detail-panel card p-4">
+          <div style="display: flex; align-items: center; gap: 8px;">
             ${
-              detailsLoading
-                ? `<div class="p-16 text-center text-secondary">${t('common.loading')}...</div>`
-                : !selectedDispute
-                ? `<div class="p-16 text-center text-secondary">${t('dispute.select_a_dispute')}</div>`
-                : `
-                <!-- Dispute Header -->
-                <div class="dispute-detail__header flex items-start justify-between pb-4 border-b">
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <h2 class="text-xl font-bold">${selectedDispute.ref}</h2>
-                      ${renderStatusBadge(selectedDispute.status)}
-                      ${renderSlaBadge(selectedDispute)}
-                    </div>
-                    <div class="text-xs text-secondary mt-1">
-                      Sub-Order: <strong>${selectedDispute.sub_order_ref}</strong> |
-                      Disputed: <strong class="text-rose font-semibold">${formatCurrency(selectedDispute.disputed_amount)}</strong> |
-                      Reason: <em>${selectedDispute.reason}</em>
-                    </div>
-                  </div>
+              !['RESOLVED', 'CLOSED'].includes(selectedDispute.status)
+                ? `
+              <button id="btn-escalate-dispute" style="padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--danger-border, #e11d48); background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">🚨 ${t('dispute.btn_escalate', 'Escalate')}</button>
+              <button id="btn-open-arbitrate-modal" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; cursor: pointer;">⚖️ ${t('dispute.btn_arbitrate', 'Execute Verdict')}</button>
+            `
+                : `<span style="font-size: 12px; font-weight: 700; color: var(--success, #059669);">✓ Case Resolved</span>`
+            }
+          </div>
+        </div>
 
-                  <!-- Quick Action Buttons -->
-                  <div class="flex items-center gap-2">
-                    ${
-                      !['RESOLVED', 'CLOSED'].includes(selectedDispute.status)
-                        ? `
-                      <button class="btn btn--danger btn--sm" id="btn-escalate-dispute">
-                        🚨 ${t('dispute.btn_escalate')}
-                      </button>
-                      <button class="btn btn--primary btn--sm" id="btn-open-arbitrate-modal">
-                        ⚖️ ${t('dispute.btn_arbitrate')}
-                      </button>
-                    `
-                        : ''
-                    }
-                  </div>
-                </div>
+        <!-- 3 Parties Mini Cards -->
+        <div style="
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: 12px;
+        ">
+          <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
+            <span style="font-size: 11px; font-weight: 600; color: var(--text-brand, #4f46e5); display: block;">👤 Buyer (Customer)</span>
+            <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.customer_name}</strong>
+          </div>
+          <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
+            <span style="font-size: 11px; font-weight: 600; color: #8b5cf6; display: block;">🏪 Reseller (Saler)</span>
+            <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.saler_name || 'Direct Sale'}</strong>
+          </div>
+          <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
+            <span style="font-size: 11px; font-weight: 600; color: var(--warning, #d97706); display: block;">🏭 Manufacturer (Supplier)</span>
+            <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.supplier_name}</strong>
+          </div>
+        </div>
 
-                <!-- Three Parties Summary Cards -->
-                <div class="grid grid-cols-3 gap-2 my-3">
-                  <div class="p-2 border rounded text-xs bg-surface-subtle">
-                    <span class="font-bold block text-blue">👤 ${t('dispute.party_buyer')}</span>
-                    <span class="font-medium">${selectedDispute.customer_name}</span>
-                  </div>
-                  <div class="p-2 border rounded text-xs bg-surface-subtle">
-                    <span class="font-bold block text-purple">🏪 ${t('dispute.party_saler')}</span>
-                    <span class="font-medium">${selectedDispute.saler_name || t('common.none')}</span>
-                  </div>
-                  <div class="p-2 border rounded text-xs bg-surface-subtle">
-                    <span class="font-bold block text-amber">🏭 ${t('dispute.party_supplier')}</span>
-                    <span class="font-medium">${selectedDispute.supplier_name}</span>
-                  </div>
-                </div>
+        <!-- Workspace Tabs -->
+        <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-subtle, #e2e8f0); padding-bottom: 8px;">
+          <button class="btn-subview-tab" data-view="CHAT" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: var(--radius-sm, 6px); border: 1px solid ${activeView === 'CHAT' ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'}; background: ${activeView === 'CHAT' ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'}; color: ${activeView === 'CHAT' ? 'var(--brand-contrast, #ffffff)' : 'var(--text-secondary, #475569)'}; cursor: pointer;">
+            💬 3-Way Chat (${selectedDispute.messages?.length || 0})
+          </button>
+          <button class="btn-subview-tab" data-view="TIMELINE" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: var(--radius-sm, 6px); border: 1px solid ${activeView === 'TIMELINE' ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'}; background: ${activeView === 'TIMELINE' ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'}; color: ${activeView === 'TIMELINE' ? 'var(--brand-contrast, #ffffff)' : 'var(--text-secondary, #475569)'}; cursor: pointer;">
+            📜 Evidence Timeline
+          </button>
+          <button class="btn-subview-tab" data-view="PRECEDENTS" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: var(--radius-sm, 6px); border: 1px solid ${activeView === 'PRECEDENTS' ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'}; background: ${activeView === 'PRECEDENTS' ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'}; color: ${activeView === 'PRECEDENTS' ? 'var(--brand-contrast, #ffffff)' : 'var(--text-secondary, #475569)'}; cursor: pointer;">
+            🔍 Past Precedents (${precedents.length})
+          </button>
+        </div>
 
-                <!-- Sub-Navigation Tabs for Detail Panel -->
-                <div class="flex gap-2 border-b pb-2 mb-3">
-                  <button class="btn btn--xs ${activeView === 'CHAT' ? 'btn--primary' : 'btn--ghost'}" id="tab-view-chat">
-                    💬 ${t('dispute.view_chat')} (${selectedDispute.messages?.length || 0})
-                  </button>
-                  <button class="btn btn--xs ${activeView === 'TIMELINE' ? 'btn--primary' : 'btn--ghost'}" id="tab-view-timeline">
-                    📜 ${t('dispute.view_timeline')}
-                  </button>
-                  <button class="btn btn--xs ${activeView === 'PRECEDENTS' ? 'btn--primary' : 'btn--ghost'}" id="tab-view-precedents">
-                    🔍 ${t('dispute.view_precedents')} (${precedents.length})
-                  </button>
-                </div>
-
-                <!-- View Container -->
-                <div class="dispute-view-outlet min-h-[420px]">
+        <!-- View Body -->
+        <div>
+          ${
+            activeView === 'TIMELINE'
+              ? `<div id="dispute-timeline-mount"></div>`
+              : activeView === 'PRECEDENTS'
+              ? `
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <h4 style="margin: 0; font-size: 13px; font-weight: 700; color: var(--text-primary, #0f172a);">Past Precedents for "${selectedDispute.reason}"</h4>
                   ${
-                    activeView === 'TIMELINE'
-                      ? `<div class="timeline-container"></div>`
-                      : activeView === 'PRECEDENTS'
-                      ? `
-                        <div class="precedents-list space-y-3">
-                          <h4 class="text-sm font-bold">${t('dispute.similar_past_cases')}</h4>
-                          ${
-                            precedents.length === 0
-                              ? `<p class="text-xs text-secondary">${t('dispute.no_precedents_found')}</p>`
-                              : precedents
-                                  .map(
-                                    (p) => `
-                              <div class="p-3 border rounded text-xs bg-surface-subtle">
-                                <div class="flex justify-between font-bold mb-1">
-                                  <span>${p.ref} (${p.reason})</span>
-                                  <span class="text-primary">${p.outcome}</span>
-                                </div>
-                                <div class="text-secondary mb-1">Amount: ${formatCurrency(p.disputed_amount)} | Resolved: ${formatDate(p.resolved_at)}</div>
-                                <div class="text-tertiary">Notes: ${p.resolution_notes || 'N/A'}</div>
-                              </div>
-                            `
-                                  )
-                                  .join('')
-                          }
-                        </div>
-                      `
-                      : `
-                        <!-- Chat View with Internal Note Toggle -->
-                        <div class="dispute-chat flex flex-col h-[420px]">
-                          <div class="dispute-chat__messages flex-1 overflow-y-auto space-y-3 p-2 border rounded bg-surface-subtle" id="chat-messages-container">
-                            ${
-                              selectedDispute.messages?.length === 0
-                                ? `<p class="text-center text-xs text-secondary mt-8">${t('dispute.no_messages')}</p>`
-                                : selectedDispute.messages
-                                    .map(
-                                      (m) => `
-                              <div class="chat-bubble p-2 rounded max-w-[85%] text-xs ${
-                                m.is_internal_note
-                                  ? 'bg-rose-subtle border border-rose text-rose-dark ml-auto'
-                                  : m.sender_role === 'MODERATOR'
-                                  ? 'bg-primary-subtle text-primary border ml-auto'
-                                  : 'bg-surface text-text border mr-auto'
-                              }">
-                                <div class="flex items-center justify-between gap-4 font-semibold mb-1">
-                                  <span>${m.sender_name} (${m.sender_role})</span>
-                                  <span class="text-[10px] text-secondary">${formatDate(m.created_at)}</span>
-                                </div>
-                                <div class="chat-bubble__body">${m.body}</div>
-                                ${
-                                  m.is_internal_note
-                                    ? `<span class="badge badge--rose badge--xs mt-1">🔒 ${t('dispute.internal_note')}</span>`
-                                    : ''
-                                }
-                              </div>
-                            `
-                                    )
-                                    .join('')
-                            }
+                    precedents.length === 0
+                      ? `<p style="font-size: 12px; color: var(--text-muted, #64748b);">No historical precedent records matching this reason.</p>`
+                      : precedents
+                          .map(
+                            (p) => `
+                        <div style="padding: 12px 14px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0); font-size: 12px;">
+                          <div style="display: flex; justify-content: space-between; font-weight: 700;">
+                            <span style="font-family: monospace; color: var(--text-brand, #4f46e5);">${p.ref}</span>
+                            <span style="color: var(--success, #059669);">${p.outcome}</span>
                           </div>
-
-                          <!-- Message Input -->
-                          ${
-                            !['RESOLVED', 'CLOSED'].includes(selectedDispute.status)
-                              ? `
-                            <div class="dispute-chat__input mt-3 flex flex-col gap-2">
-                              <div class="flex items-center justify-between text-xs">
-                                <label class="flex items-center gap-1 cursor-pointer">
-                                  <input type="checkbox" id="chk-internal-note" ${isInternalNote ? 'checked' : ''}/>
-                                  <span class="text-rose font-medium">🔒 ${t('dispute.toggle_internal_note')}</span>
-                                </label>
-                              </div>
-                              <div class="flex gap-2">
-                                <textarea id="txt-dispute-message" class="form-textarea flex-1 text-xs" rows="2" placeholder="${t('dispute.placeholder_message')}"></textarea>
-                                <button class="btn btn--primary btn--sm px-4" id="btn-send-message">
-                                  ${t('common.send')}
-                                </button>
-                              </div>
-                            </div>
-                          `
-                              : `<div class="p-2 text-center text-xs text-secondary bg-surface-subtle mt-2 rounded">${t('dispute.thread_resolved')}</div>`
-                          }
+                          <div style="color: var(--text-muted, #64748b); margin-top: 4px;">Amount: ${formatCurrency(p.disputed_amount)} • Resolved: ${formatDate(p.resolved_at)}</div>
+                          <div style="color: var(--text-secondary, #475569); margin-top: 4px;">Verdict Directives: ${p.resolution_notes || 'Standard liability allocation.'}</div>
                         </div>
                       `
+                          )
+                          .join('')
                   }
                 </div>
               `
-            }
-          </div>
+              : `
+                <!-- Chat Window -->
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                  <div id="chat-messages-container" style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    padding: 14px;
+                    border-radius: var(--radius-md, 8px);
+                    background: var(--surface-2, #f8fafc);
+                    border: 1px solid var(--border-subtle, #e2e8f0);
+                    max-height: 320px;
+                    overflow-y: auto;
+                  ">
+                    ${
+                      selectedDispute.messages?.length === 0
+                        ? `<p style="text-align: center; font-size: 12px; color: var(--text-muted, #64748b); margin: 20px 0;">No messages exchanged yet.</p>`
+                        : selectedDispute.messages
+                            .map(
+                              (m) => `
+                          <div style="
+                            padding: 10px 14px;
+                            border-radius: var(--radius-md, 8px);
+                            max-width: 80%;
+                            font-size: 12px;
+                            ${
+                              m.is_internal_note
+                                ? 'background: var(--danger-bg, rgba(225, 29, 72, 0.08)); border: 1px solid var(--danger-border, rgba(225, 29, 72, 0.25)); color: var(--danger, #e11d48); margin-left: auto;'
+                                : m.sender_role === 'MODERATOR'
+                                ? 'background: var(--info-bg, rgba(79, 70, 229, 0.1)); border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25)); color: var(--text-brand, #4f46e5); margin-left: auto;'
+                                : 'background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); color: var(--text-primary, #0f172a); margin-right: auto;'
+                            }
+                          ">
+                            <div style="display: flex; justify-content: space-between; gap: 8px; font-weight: 700; margin-bottom: 4px;">
+                              <span>${m.sender_name} (${m.sender_role})</span>
+                              <span style="font-size: 10px; color: var(--text-muted, #64748b);">${formatDate(m.created_at)}</span>
+                            </div>
+                            <div>${m.body}</div>
+                            ${m.is_internal_note ? `<div style="font-size: 10px; font-weight: 700; margin-top: 4px;">🔒 Staff-Only Internal Note</div>` : ''}
+                          </div>
+                        `
+                            )
+                            .join('')
+                    }
+                  </div>
+
+                  <!-- Message Sender Toolbar -->
+                  ${
+                    !['RESOLVED', 'CLOSED'].includes(selectedDispute.status)
+                      ? `
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                      <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--danger, #e11d48); cursor: pointer;">
+                          <input type="checkbox" id="chk-internal-note" ${isInternalNote ? 'checked' : ''}/>
+                          🔒 Staff-Only Internal Note (Invisible to Buyer/Seller)
+                        </label>
+                      </div>
+
+                      <div style="display: flex; gap: 8px;">
+                        <textarea id="txt-dispute-message" rows="2" style="
+                          flex: 1;
+                          padding: 8px 12px;
+                          border-radius: var(--radius-md, 8px);
+                          border: 1px solid var(--border-subtle, #e2e8f0);
+                          background: var(--surface-1, #ffffff);
+                          color: var(--text-primary, #0f172a);
+                          font-size: 12px;
+                          resize: none;
+                        " placeholder="Type a response or staff directive..."></textarea>
+                        <button id="btn-send-message" style="
+                          padding: 0 20px;
+                          border-radius: var(--radius-md, 8px);
+                          border: none;
+                          background: var(--brand, #4f46e5);
+                          color: #ffffff;
+                          font-size: 12px;
+                          font-weight: 700;
+                          cursor: pointer;
+                        ">
+                          Send
+                        </button>
+                      </div>
+                    </div>
+                  `
+                      : ''
+                  }
+                </div>
+              `
+          }
+        </div>
+      </div>
+    `;
+  }
+
+  function render() {
+    container.innerHTML = `
+      ${renderHeader()}
+
+      <div style="
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 20px;
+        align-items: flex-start;
+      ">
+        <div>
+          ${renderDisputeList()}
+        </div>
+        <div>
+          ${renderDisputeDetails()}
         </div>
       </div>
     `;
 
     // Mount EvidenceTimeline if active view is TIMELINE
-    if (activeView === 'TIMELINE' && selectedDispute && timelineData) {
-      const outlet = container.querySelector('.timeline-container');
-      if (outlet) {
-        outlet.appendChild(
+    if (activeView === 'TIMELINE' && selectedDispute) {
+      const timelineMount = container.querySelector('#dispute-timeline-mount');
+      if (timelineMount) {
+        timelineMount.appendChild(
           EvidenceTimeline({
-            timeline: timelineData.timeline || [],
+            timeline: timelineData,
             disputeRef: selectedDispute.ref,
           })
         );
@@ -408,153 +598,39 @@ export default function DisputePanelPage(root) {
     attachListeners();
   }
 
-  function openArbitrationModal() {
-    if (!selectedDispute) return;
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop';
-
-    const totalAmount = parseFloat(selectedDispute.disputed_amount);
-
-    modalBackdrop.innerHTML = `
-      <div class="modal-dialog card max-w-lg p-6 animate-scale-in">
-        <h3 class="text-lg font-bold mb-2">⚖️ ${t('dispute.arbitrate_modal_title')} (${selectedDispute.ref})</h3>
-        <p class="text-xs text-secondary mb-4">${t('dispute.arbitrate_modal_desc')}</p>
-
-        <div class="space-y-4 text-xs">
-          <div>
-            <label class="font-semibold block mb-1">${t('dispute.select_outcome')}</label>
-            <select id="sel-outcome" class="form-select w-full">
-              <option value="FULL_REFUND">Full Refund (100% to Customer)</option>
-              <option value="PARTIAL_REFUND">Partial Refund (Split Amount)</option>
-              <option value="SPLIT_LIABILITY">Split Liability (Multi-party settlement)</option>
-              <option value="REPLACEMENT">Replacement Authorized</option>
-              <option value="REJECTED">Reject Dispute (Claim Denied)</option>
-            </select>
-          </div>
-
-          <div id="split-inputs-group" class="p-3 border rounded bg-surface-subtle space-y-2">
-            <div class="flex justify-between items-center">
-              <label>Customer Refund (BDT):</label>
-              <input type="number" id="num-buyer-refund" class="form-input w-28 text-right" value="${totalAmount}" max="${totalAmount}"/>
-            </div>
-            <div class="flex justify-between items-center">
-              <label>Supplier Clawback (BDT):</label>
-              <input type="number" id="num-supplier-clawback" class="form-input w-28 text-right" value="${totalAmount}" max="${totalAmount}"/>
-            </div>
-            <div class="flex justify-between items-center">
-              <label>Saler Clawback (BDT):</label>
-              <input type="number" id="num-saler-clawback" class="form-input w-28 text-right" value="0" max="${totalAmount}"/>
-            </div>
-          </div>
-
-          <div>
-            <label class="font-semibold block mb-1">${t('dispute.resolution_notes')}</label>
-            <textarea id="txt-resolution-notes" class="form-textarea w-full" rows="3" placeholder="${t('dispute.resolution_notes_placeholder')}"></textarea>
-          </div>
-
-          ${
-            totalAmount > 5000
-              ? `<div class="p-2 border border-purple rounded bg-purple-subtle text-purple text-xs">
-                  ℹ️ ${t('dispute.maker_checker_notice')}
-                </div>`
-              : ''
-          }
-        </div>
-
-        <div class="flex justify-end gap-2 mt-6">
-          <button class="btn btn--secondary btn--sm" id="btn-cancel-modal">${t('common.cancel')}</button>
-          <button class="btn btn--primary btn--sm" id="btn-submit-arbitration">${t('dispute.confirm_decision')}</button>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(modalBackdrop);
-
-    modalBackdrop.querySelector('#btn-cancel-modal').addEventListener('click', () => modalBackdrop.remove());
-
-    modalBackdrop.querySelector('#sel-outcome').addEventListener('change', (e) => {
-      const outcome = e.target.value;
-      const splitGroup = modalBackdrop.querySelector('#split-inputs-group');
-      const buyerInput = modalBackdrop.querySelector('#num-buyer-refund');
-      const suppInput = modalBackdrop.querySelector('#num-supplier-clawback');
-      const salerInput = modalBackdrop.querySelector('#num-saler-clawback');
-
-      if (outcome === 'FULL_REFUND') {
-        buyerInput.value = totalAmount;
-        suppInput.value = totalAmount;
-        salerInput.value = 0;
-      } else if (outcome === 'PARTIAL_REFUND') {
-        buyerInput.value = (totalAmount * 0.5).toFixed(2);
-        suppInput.value = (totalAmount * 0.5).toFixed(2);
-        salerInput.value = 0;
-      } else if (outcome === 'REJECTED' || outcome === 'REPLACEMENT') {
-        buyerInput.value = 0;
-        suppInput.value = 0;
-        salerInput.value = 0;
-      }
-    });
-
-    modalBackdrop.querySelector('#btn-submit-arbitration').addEventListener('click', async () => {
-      const outcome = modalBackdrop.querySelector('#sel-outcome').value;
-      const notes = modalBackdrop.querySelector('#txt-resolution-notes').value;
-      const buyerRefund = parseFloat(modalBackdrop.querySelector('#num-buyer-refund').value) || 0;
-      const suppClawback = parseFloat(modalBackdrop.querySelector('#num-supplier-clawback').value) || 0;
-      const salerClawback = parseFloat(modalBackdrop.querySelector('#num-saler-clawback').value) || 0;
-
-      modalBackdrop.remove();
-      await handleArbitrate({
-        outcome,
-        outcomeSplit: {
-          buyer_refund: buyerRefund,
-          supplier_clawback: suppClawback,
-          saler_clawback: salerClawback,
-        },
-        resolutionNotes: notes,
-      });
-    });
-  }
-
   function attachListeners() {
     container.querySelector('#btn-refresh-disputes')?.addEventListener('click', fetchDisputes);
 
-    container.querySelectorAll('[data-tab]').forEach((btn) => {
+    container.querySelectorAll('.btn-dispute-tab').forEach((btn) => {
       btn.addEventListener('click', () => {
         currentTab = btn.getAttribute('data-tab');
         fetchDisputes();
       });
     });
 
-    container.querySelectorAll('[data-dispute-id]').forEach((el) => {
-      el.addEventListener('click', () => {
-        const id = parseInt(el.getAttribute('data-dispute-id'), 10);
+    container.querySelectorAll('.dispute-item-row').forEach((row) => {
+      row.addEventListener('click', () => {
+        const id = row.getAttribute('data-id');
         selectDispute(id);
       });
     });
 
-    container.querySelector('#tab-view-chat')?.addEventListener('click', () => {
-      activeView = 'CHAT';
-      render();
-    });
-
-    container.querySelector('#tab-view-timeline')?.addEventListener('click', () => {
-      activeView = 'TIMELINE';
-      render();
-    });
-
-    container.querySelector('#tab-view-precedents')?.addEventListener('click', () => {
-      activeView = 'PRECEDENTS';
-      render();
+    container.querySelectorAll('.btn-subview-tab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeView = btn.getAttribute('data-view');
+        render();
+      });
     });
 
     container.querySelector('#chk-internal-note')?.addEventListener('change', (e) => {
       isInternalNote = e.target.checked;
     });
 
-    container.querySelector('#btn-send-message')?.addEventListener('click', () => {
+    container.querySelector('#btn-send-message')?.addEventListener('click', async () => {
       const txt = container.querySelector('#txt-dispute-message');
-      if (txt && txt.value.trim().length > 0) {
-        handleSendMessage(txt.value.trim());
-      }
+      const val = txt?.value?.trim();
+      if (!val) return;
+      await handleSendMessage(val);
     });
 
     container.querySelector('#btn-open-arbitrate-modal')?.addEventListener('click', openArbitrationModal);

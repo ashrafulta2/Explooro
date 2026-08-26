@@ -260,8 +260,9 @@ async function renderStreamViewer(container, streamId, navigate) {
     viewersCountEl.textContent = `👥 ${stream.viewer_count || 1}`;
 
     // Render initial pinned product if exists
-    if (data.pinnedProduct) {
-      updatePinnedOverlay(data.pinnedProduct);
+    const initialPinned = data.pinnedProduct || stream.pinned_product;
+    if (initialPinned) {
+      updatePinnedOverlay(initialPinned);
     }
 
     // Render previous messages

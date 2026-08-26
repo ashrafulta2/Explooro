@@ -82,7 +82,7 @@ export function showInstallBanner() {
     </div>
     <div style="display: flex; align-items: center; gap: 8px;">
       <button id="pwa-install-btn" style="
-        background: #a6337e;
+        background: var(--brand-900);
         color: #ffffff;
         border: none;
         padding: 8px 16px;

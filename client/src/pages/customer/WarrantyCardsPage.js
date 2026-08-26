@@ -85,7 +85,7 @@ export default function WarrantyCardsPage(root) {
     renderContent();
 
     try {
-      const res = await api.get('/api/v1/warranties/my-cards');
+      const res = await api.get('/warranties/my-cards');
       cards = res.data?.cards || [];
     } catch (err) {
       toast.error(err.message || t('warranty.load_error'));
@@ -241,7 +241,7 @@ export default function WarrantyCardsPage(root) {
     const targetPhoneOrEmail = window.prompt(t('warranty.enter_recipient_prompt'));
     if (!targetPhoneOrEmail || !targetPhoneOrEmail.trim()) return;
 
-    api.post(`/api/v1/warranties/${card.id}/transfer`, {
+    api.post(`/warranties/${card.id}/transfer`, {
       target_phone_or_email: targetPhoneOrEmail.trim(),
     })
       .then((res) => {

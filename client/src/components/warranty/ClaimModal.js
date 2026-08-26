@@ -128,7 +128,7 @@ export function openClaimModal({ card, onSuccess = null } = {}) {
         evidence_media: evidenceUrl ? [evidenceUrl] : [],
       };
 
-      const res = await api.post(`/api/v1/warranties/${card.id}/claim`, payload);
+      const res = await api.post(`/warranties/${card.id}/claim`, payload);
 
       toast.success(t('warranty.claim_submitted_success'));
       close();

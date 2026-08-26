@@ -31,9 +31,9 @@ export default function VaultPage(root) {
 
     try {
       const [overviewRes, ledgerRes, payoutRes] = await Promise.all([
-        api.get('/api/v1/vault/overview').catch(() => ({ data: {} })),
-        api.get('/api/v1/vault/ledger?limit=50').catch(() => ({ data: { ledger_transactions: [] } })),
-        api.get('/api/v1/vault/payouts/me').catch(() => ({ data: { payout_requests: [] } })),
+        api.get('/vault/overview').catch(() => ({ data: {} })),
+        api.get('/vault/ledger', { query: { limit: 50 } }).catch(() => ({ data: { ledger_transactions: [] } })),
+        api.get('/vault/payouts/me').catch(() => ({ data: { payout_requests: [] } })),
       ]);
 
       wallet = overviewRes.data?.wallet || null;

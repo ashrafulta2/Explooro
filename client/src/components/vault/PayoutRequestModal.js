@@ -183,7 +183,7 @@ export function openPayoutRequestModal({
       render();
 
       try {
-        const res = await api.post('/api/v1/vault/withdraw', {
+        const res = await api.post('/vault/withdraw', {
           method: selectedMethod,
           account_number: accountNumber.trim(),
           account_name: accountName.trim(),

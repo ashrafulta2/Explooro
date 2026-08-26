@@ -108,6 +108,79 @@
   color: var(--text-primary);
 }
 
+/* My Saved Themes — named custom palettes the admin can reapply later */
+.theme-saved {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.theme-saved__desc {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.theme-saved__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.theme-saved__empty {
+  margin: 0;
+  padding: var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: center;
+  background: var(--surface-subtle);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.theme-saved__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.theme-saved__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.theme-saved__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.theme-saved__name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.theme-saved__name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.theme-saved__meta {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+
 /* Section Color Controls Accordion */
 .theme-sections {
   display: flex;
@@ -214,6 +287,50 @@
   text-transform: uppercase;
 }
 
+.theme-quick-swatches {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.theme-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard);
+  white-space: nowrap;
+}
+
+.theme-quick-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--border-interactive);
+  color: var(--text-primary);
+}
+
+.theme-quick-swatch {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  padding: 0;
+}
+
+.theme-quick-swatch:hover {
+  transform: scale(1.18);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
 /* Live Preview Box */
 .theme-preview-pane {
   position: sticky;
@@ -252,7 +369,61 @@
   padding: 10px 14px;
   background: var(--navbar-bg, #ffffff);
   color: var(--navbar-text, #192026);
-  border-bottom: 1px solid var(--navbar-border, #e1e5e8);
+  border-bottom: none;
+  transition: box-shadow 0.2s ease;
+}
+.mini-navbar:hover {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.mini-body {
+  display: flex;
+  min-height: 280px;
+}
+
+.mini-sidebar {
+  width: 150px;
+  background: var(--sidebar-bg, #ffffff);
+  border-right: none;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+  transition: box-shadow 0.2s ease;
+}
+.mini-sidebar:hover {
+  box-shadow: 3px 0 10px rgba(0,0,0,0.06);
+}
+
+.mini-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--sidebar-text, #192026);
+}
+
+.mini-sidebar__item:hover {
+  background: var(--sidebar-hover-bg, rgba(0,0,0,0.04));
+  color: var(--sidebar-icon-hover, #192026);
+}
+
+.mini-sidebar__item--active {
+  background: var(--sidebar-active-bg, #f1f5f9);
+  color: var(--sidebar-active-text, #192026);
+  font-weight: 600;
+}
+
+.mini-sidebar__icon {
+  color: var(--sidebar-icon-color, #192026);
+  font-size: 11px;
+}
+
+.mini-sidebar__item--active .mini-sidebar__icon {
+  color: var(--sidebar-active-text, #192026);
 }
 
 .mini-content {
@@ -261,6 +432,7 @@
   flex-direction: column;
   gap: 12px;
   background: var(--surface-page, #fbfdfe);
+  flex: 1;
 }
 
 .mini-card {

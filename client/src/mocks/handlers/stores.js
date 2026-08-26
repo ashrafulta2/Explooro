@@ -1,8 +1,8 @@
 /**
  * Mock handlers for Saler storefronts & store builder (Prompt 4.8).
  */
-import stores from '../fixtures/stores.json';
-import products from '../fixtures/products.json';
+import stores from '../fixtures/stores.json' with { type: 'json' };
+import products from '../fixtures/products.json' with { type: 'json' };
 
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;

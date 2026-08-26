@@ -136,9 +136,10 @@ export function createAppShell({ container, navigate }) {
 
   const topbarResizeObserver = new ResizeObserver((entries) => {
     const height = entries[0]?.contentRect.height;
-    if (height) shellEl.style.setProperty('--topbar-h', `${Math.round(height)}px`);
+    if (height && height > 0) shellEl.style.setProperty('--topbar-h', `${Math.round(height)}px`);
   });
-  topbarResizeObserver.observe(topbarSlot);
+  const topbarEl = topbarSlot.firstElementChild || topbarSlot;
+  topbarResizeObserver.observe(topbarEl);
 
   // ia-sitemap.md §3: "Ctrl+K / Cmd+K anywhere EXCEPT inside a text input."
   function onGlobalKeydown(event) {

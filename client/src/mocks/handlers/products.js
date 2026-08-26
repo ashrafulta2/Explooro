@@ -1,8 +1,8 @@
 /**
  * Mock handlers for the product catalog — cursor-paginated per docs/api-contract.md §4.1.
  */
-import products from '../fixtures/products.json';
-import stores from '../fixtures/stores.json';
+import products from '../fixtures/products.json' with { type: 'json' };
+import stores from '../fixtures/stores.json' with { type: 'json' };
 
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
@@ -154,6 +154,9 @@ function toPaisa(amount) {
   return Math.round(num * 100);
 }
 
+// In-memory mutable products store initialized from static fixtures
+let activeProducts = [...products];
+
 // In-memory store items for mock saler storefront
 const mockSalerStoreItems = [
   {
@@ -177,7 +180,7 @@ export default [
     method: 'GET',
     path: '/products',
     handler({ query }) {
-      let filtered = [...products];
+      let filtered = [...activeProducts];
 
       if (query.q || query.search) {
         const q = (query.q || query.search).toLowerCase().trim();
@@ -216,7 +219,7 @@ export default [
         filtered = filtered.filter((p) => (p.margin_pct ?? 0) >= Number(query.min_margin));
       }
 
-      const limit = Math.min(Number(query.limit) || 20, 100);
+      const limit = Math.min(Number(query.limit) || 100, 200);
       const start = query.cursor ? decodeCursor(query.cursor) : 0;
       const page = filtered.slice(start, start + limit);
       const nextIndex = start + limit;
@@ -240,17 +243,159 @@ export default [
     handler({ params }) {
       const idParam = String(params?.id || '');
       const numIdx = Number(idParam);
-      const product = products.find((p, idx) =>
+      const product = activeProducts.find((p, idx) =>
         p.ref === idParam ||
         p.slug === idParam ||
         String(p.id) === idParam ||
         (!isNaN(numIdx) && numIdx > 0 && (idx === numIdx - 1 || numIdx === 1))
-      ) || products[0];
+      ) || activeProducts[0];
 
       if (!product) {
         return notFound(`No product with ref "${params.id}".`, `"${params.id}" নামে কোনো পণ্য নেই।`);
       }
       return { status: 200, body: { data: { product: toDetailShape(product) } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/products',
+    handler({ body }) {
+      const b = body || {};
+      const ref = b.ref || `PRD-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      const newProduct = {
+        ref,
+        id: activeProducts.length + 1,
+        title_en: b.title_en || 'New Sample Product',
+        title_bn: b.title_bn || 'নতুন স্যাম্পল পণ্য',
+        price: (parseFloat(b.price) || 999.00).toFixed(2),
+        currency: b.currency || 'BDT',
+        district: b.district || 'Dhaka',
+        store_ref: b.store_ref || 'STR-RAHIM001',
+        stock: parseInt(b.stock, 10) || 50,
+        category: b.category || 'Clothing',
+        category_bn: b.category_bn || 'পোশাক',
+        rating: b.rating ? String(b.rating) : '4.5',
+        rating_count: b.rating_count || 1,
+        supplier_tier: b.supplier_tier || 'verified',
+        margin_pct: parseFloat(b.margin_pct) || 20,
+        image_index: Math.floor(Math.random() * 10),
+        is_flash_sale: Boolean(b.is_flash_sale),
+        store_open: true,
+        is_verified_supplier: b.supplier_tier === 'verified' || b.supplier_tier === 'elite',
+        image_url: b.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80',
+        description_en: b.description_en || 'High quality commercial sample product listed on platform.',
+        description_bn: b.description_bn || 'প্ল্যাটফর্মে তালিকাভুক্ত উচ্চ মানের বাণিজ্যিক স্যাম্পল পণ্য।',
+        created_at: new Date().toISOString(),
+      };
+
+      activeProducts.unshift(newProduct);
+
+      return {
+        status: 201,
+        body: {
+          data: { product: newProduct },
+          meta: {
+            message_en: 'Product created and listed successfully in catalog.',
+            message_bn: 'পণ্য সফলভাবে তৈরি এবং ক্যাটালগে যুক্ত করা হয়েছে।',
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/products/:id',
+    handler({ params, body }) {
+      const idParam = String(params?.id || '');
+      const idx = activeProducts.findIndex((p) => p.ref === idParam || String(p.id) === idParam);
+      if (idx === -1) {
+        return notFound(`Product "${idParam}" not found.`, `"${idParam}" পণ্যটি পাওয়া যায়নি।`);
+      }
+
+      const b = body || {};
+      const updated = {
+        ...activeProducts[idx],
+        ...b,
+        price: b.price !== undefined ? (parseFloat(b.price) || 0).toFixed(2) : activeProducts[idx].price,
+        stock: b.stock !== undefined ? parseInt(b.stock, 10) : activeProducts[idx].stock,
+        margin_pct: b.margin_pct !== undefined ? parseFloat(b.margin_pct) : activeProducts[idx].margin_pct,
+        updated_at: new Date().toISOString(),
+      };
+
+      activeProducts[idx] = updated;
+
+      return {
+        status: 200,
+        body: {
+          data: { product: updated },
+          meta: {
+            message_en: 'Product updated successfully.',
+            message_bn: 'পণ্য সফলভাবে আপডেট করা হয়েছে।',
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/products/:id',
+    handler({ params }) {
+      const idParam = String(params?.id || '');
+      const initialLength = activeProducts.length;
+      activeProducts = activeProducts.filter((p) => p.ref !== idParam && String(p.id) !== idParam);
+      if (activeProducts.length === initialLength) {
+        return notFound(`Product "${idParam}" not found.`, `"${idParam}" পণ্যটি পাওয়া যায়নি।`);
+      }
+
+      return {
+        status: 200,
+        body: {
+          data: { success: true, ref: idParam },
+          meta: {
+            message_en: 'Product removed from catalog.',
+            message_bn: 'পণ্য ক্যাটালগ থেকে মুছে ফেলা হয়েছে।',
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/admin/catalog/stats',
+    handler() {
+      const totalProducts = activeProducts.length;
+      const inStockCount = activeProducts.filter((p) => (p.stock ?? 0) > 0).length;
+      const lowStockCount = activeProducts.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10).length;
+      const outOfStockCount = activeProducts.filter((p) => (p.stock ?? 0) === 0).length;
+      const flashSaleCount = activeProducts.filter((p) => Boolean(p.is_flash_sale)).length;
+      const verifiedSuppliersCount = activeProducts.filter((p) => p.supplier_tier === 'verified' || p.supplier_tier === 'elite').length;
+      
+      const categoriesMap = {};
+      let totalGmvPaisa = 0;
+      for (const p of activeProducts) {
+        const cat = p.category || 'Other';
+        categoriesMap[cat] = (categoriesMap[cat] || 0) + 1;
+        totalGmvPaisa += (parseFloat(p.price) || 0) * (p.stock || 0);
+      }
+
+      return {
+        status: 200,
+        body: {
+          data: {
+            stats: {
+              total_products: totalProducts,
+              in_stock_count: inStockCount,
+              low_stock_count: lowStockCount,
+              out_of_stock_count: outOfStockCount,
+              flash_sale_count: flashSaleCount,
+              verified_suppliers_count: verifiedSuppliersCount,
+              total_categories: Object.keys(categoriesMap).length,
+              total_potential_inventory_value: Math.round(totalGmvPaisa),
+              categories_breakdown: categoriesMap,
+            },
+          },
+        },
+      };
     },
   },
   {
@@ -527,6 +672,131 @@ export default [
           suggestions,
           categories: [],
           driver: 'mock',
+        },
+      };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/sourcing/catalog',
+    handler({ query }) {
+      const category = query?.category;
+      const minMargin = parseFloat(query?.min_margin_pct || 0);
+      const tier = query?.verification_tier;
+
+      let catalog = products.map((p) => {
+        const price = parseFloat(p.price || 500);
+        const wholesale = Math.round(price * 0.75);
+        const profit = Math.round(price - wholesale - (price * 0.05));
+        const marginPct = Math.round((profit / price) * 100);
+
+        return {
+          ...p,
+          wholesale_price: wholesale.toString(),
+          margin_pct: marginPct,
+          supplier_tier: p.supplier_tier || 'verified',
+          pricing: {
+            wholesale_cost: wholesale,
+            suggested_retail: price,
+            saler_earning: profit,
+            saler_margin_pct: marginPct,
+          },
+          sourcing_opportunity: {
+            wholesale_cost: wholesale,
+            potential_profit: profit,
+            margin_pct: marginPct,
+          },
+        };
+      });
+
+      if (category && category !== 'all') {
+        catalog = catalog.filter((p) => p.category === category);
+      }
+      if (minMargin > 0) {
+        catalog = catalog.filter((p) => p.margin_pct >= minMargin);
+      }
+      if (tier && tier !== 'all') {
+        catalog = catalog.filter((p) => (p.supplier_tier || 'standard').toLowerCase() === tier.toLowerCase());
+      }
+
+      return {
+        status: 200,
+        body: {
+          data: {
+            catalog,
+          },
+          meta: {
+            total: catalog.length,
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/pricing/preview',
+    handler({ body }) {
+      const b = body || {};
+      const baseCost = parseFloat(b.base_cost || 500);
+      const wholesaleMargin = parseFloat(b.wholesale_margin || 0);
+      const retailPrice = parseFloat(b.retail_price || 700);
+
+      const wholesaleCost = baseCost + wholesaleMargin;
+      const platformFee = Math.round(retailPrice * 0.05);
+      const salerEarning = Math.max(0, retailPrice - wholesaleCost - platformFee);
+      const marginPct = retailPrice > 0 ? ((salerEarning / retailPrice) * 100).toFixed(1) : '0';
+
+      return {
+        status: 200,
+        body: {
+          data: {
+            preview: {
+              wholesale_cost: wholesaleCost,
+              suggested_retail: retailPrice,
+              platform_fee: platformFee,
+              saler_earning: salerEarning,
+              saler_margin_pct: parseFloat(marginPct),
+              supplier_earning: wholesaleCost,
+            },
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/sourcing/add-to-store',
+    handler({ body }) {
+      const b = body || {};
+      return {
+        status: 201,
+        body: {
+          data: {
+            item: {
+              id: Date.now(),
+              product_id: b.product_id,
+              custom_retail_price: b.custom_retail_price,
+              collection_name: b.collection_name || 'General',
+              created_at: new Date().toISOString(),
+            },
+          },
+          meta: {
+            message_en: 'Product added to your virtual storefront successfully',
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/sourcing/my-store',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            store_items: [],
+          },
         },
       };
     },

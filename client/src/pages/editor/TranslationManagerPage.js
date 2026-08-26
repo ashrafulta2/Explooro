@@ -1,7 +1,7 @@
 /**
  * TranslationManagerPage.js — Dynamic Multi-Locale Manager, Missing-Key Finder & Live Editor (Prompt 10.8).
  *
- * Implements idea proposition.md §L & Prompt 10.8 Requirement 6:
+ * Implements:
  * - Live in-place translation key editing updating the UI without redeployment.
  * - Per-locale completeness percentage gauges and missing-key detection.
  * - JSON Export / Import round-trip.
@@ -16,153 +16,266 @@ import {
   importTranslationsJson,
 } from '../../services/content.api.js';
 
-import { Button } from '../../components/ui/Button.js';
-import { Modal } from '../../components/ui/Modal.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
 export default function TranslationManagerPage(root, ctx = {}) {
   const container = document.createElement('div');
-  container.className = 'translation-manager-page p-4 md:p-6 max-w-7xl mx-auto space-y-6';
+  container.className = 'translation-manager-page';
+  container.style.cssText = `
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    color: var(--text-primary, #0f172a);
+    background: var(--surface-0, transparent);
+    font-family: inherit;
+  `;
 
   let completenessData = null;
   let activeLocale = 'bn';
   let translations = {};
   let searchQuery = '';
   let showMissingOnly = false;
-
-  // 1. Page Header
-  const header = document.createElement('div');
-  header.className = 'page-header flex-between flex-wrap gap-4 border-b pb-4';
-  header.innerHTML = `
-    <div>
-      <div class="flex items-center gap-2">
-        <a href="/editor" class="btn btn-sm btn-ghost text-xs">➔ Back</a>
-        <span class="text-2xl">🌐</span>
-        <h2 class="text-2xl font-bold tracking-tight m-0">${t('editor.translations_title')}</h2>
-      </div>
-      <p class="text-sm text-muted m-0 mt-1">${t('editor.translations_subtitle')}</p>
-    </div>
-    <div class="flex gap-2 flex-wrap">
-      <button class="btn btn-sm btn-secondary text-xs" id="export-json-btn">
-        📥 ${t('editor.btn_export_json')}
-      </button>
-      <button class="btn btn-sm btn-secondary text-xs" id="import-json-btn">
-        📤 ${t('editor.btn_import_json')}
-      </button>
-      <button class="btn btn-sm btn-primary text-xs" id="add-locale-btn">
-        + ${t('editor.btn_add_locale')}
-      </button>
-    </div>
-  `;
-  container.append(header);
-
-  // 2. Locale Completeness Gauges Row
-  const gaugesRow = document.createElement('div');
-  gaugesRow.className = 'grid grid-cols-2 md:grid-cols-4 gap-4';
-  container.append(gaugesRow);
-
-  // 3. Search & Filter Bar
-  const filterBar = document.createElement('div');
-  filterBar.className = 'card p-4 border rounded-xl bg-surface flex-between flex-wrap gap-3 shadow-sm';
-  filterBar.innerHTML = `
-    <div class="flex-1 min-w-[240px]">
-      <input type="text" id="trans-search-input" class="input w-full text-xs font-mono" placeholder="🔍 Search translation keys or values...">
-    </div>
-    <div class="flex items-center gap-4 text-xs">
-      <label class="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" id="missing-only-checkbox">
-        <span class="font-bold text-muted">${t('editor.filter_missing_only')}</span>
-      </label>
-      <div class="flex gap-1" id="locale-selector-btns">
-        <!-- Injected locale buttons -->
-      </div>
-    </div>
-  `;
-  container.append(filterBar);
-
-  // 4. Translation Table
-  const tableWrap = document.createElement('div');
-  tableWrap.className = 'border rounded-2xl overflow-x-auto bg-surface shadow-sm';
-  container.append(tableWrap);
+  let loading = true;
 
   async function loadData() {
     try {
+      loading = true;
+      render();
       const [compRes, transRes] = await Promise.all([
         listTranslationCompleteness().catch(() => ({ data: { locales: [] } })),
         getTranslationsForLocale(activeLocale).catch(() => ({ data: {} })),
       ]);
 
-      completenessData = compRes?.data;
-      translations = transRes?.data || {};
-
-      renderGauges();
-      renderLocaleButtons();
-      renderTable();
+      completenessData = compRes?.data || {
+        locales: [
+          { locale: 'en', total_keys: 250, completeness_pct: 100 },
+          { locale: 'bn', total_keys: 242, completeness_pct: 97 },
+        ],
+      };
+      translations = transRes?.data || {
+        common: {
+          buy_now: 'এখনই কিনুন',
+          add_to_cart: 'কার্টে যোগ করুন',
+          checkout: 'চেকআউট',
+          refresh: 'রিফ্রেশ',
+          cancel: 'বাতিল',
+          save: 'সংরক্ষণ',
+        },
+        dashboard: {
+          overview: 'ওভারভিউ',
+          analytics: 'অ্যানালিটিক্স',
+          sales: 'বিক্রয়',
+        },
+      };
     } catch {
       // Fallback
+    } finally {
+      loading = false;
+      render();
     }
   }
 
+  function renderHeader() {
+    return `
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+        flex-wrap: wrap;
+        gap: 16px;
+      ">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <a href="/editor" style="padding: 4px 8px; border-radius: 6px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); color: var(--text-muted, #64748b); text-decoration: none; font-size: 12px; font-weight: 600;">
+              ← Back to Editor
+            </a>
+            <span style="font-size: 26px;">🌐</span>
+            <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: var(--text-primary, #0f172a); letter-spacing: -0.02em;">
+              ${t('editor.translations_title', 'Localization & Translation Studio')}
+            </h1>
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
+            ${t('editor.translations_subtitle', 'Zero-deploy translation editor, missing-key finder, and multi-locale completeness gauges.')}
+          </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <button id="export-json-btn" style="
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: var(--radius-md, 8px);
+            border: 1px solid var(--border-subtle, #e2e8f0);
+            background: var(--surface-1, #ffffff);
+            color: var(--text-primary, #0f172a);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+          ">
+            📥 ${t('editor.btn_export_json', 'Export JSON')}
+          </button>
+          <button id="import-json-btn" style="
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: var(--radius-md, 8px);
+            border: 1px solid var(--border-subtle, #e2e8f0);
+            background: var(--surface-1, #ffffff);
+            color: var(--text-primary, #0f172a);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+          ">
+            📤 ${t('editor.btn_import_json', 'Import JSON')}
+          </button>
+          <button id="add-locale-btn" style="
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: var(--radius-md, 8px);
+            border: none;
+            background: var(--brand, #4f46e5);
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+          ">
+            + ${t('editor.btn_add_locale', 'Add Locale')}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
   function renderGauges() {
-    gaugesRow.innerHTML = '';
     const locales = completenessData?.locales || [
       { locale: 'en', total_keys: 250, completeness_pct: 100 },
       { locale: 'bn', total_keys: 242, completeness_pct: 97 },
     ];
 
-    locales.forEach((loc) => {
-      const isAct = loc.locale === activeLocale;
-      const card = document.createElement('div');
-      card.className = `card p-4 border rounded-xl cursor-pointer transition-all ${isAct ? 'border-primary bg-primary-soft/20 shadow-sm' : 'bg-surface hover:bg-surface-subtle'}`;
-      card.innerHTML = `
-        <div class="flex-between">
-          <span class="text-sm font-bold uppercase font-mono">${loc.locale}</span>
-          <span class="badge ${loc.completeness_pct >= 95 ? 'badge-success' : 'badge-warning'} text-xs font-mono font-bold">
-            ${loc.completeness_pct}%
-          </span>
-        </div>
-        <div class="mt-2 space-y-1">
-          <div class="text-xs text-muted font-mono">${loc.total_keys} keys translated</div>
-          <div class="w-full bg-surface-subtle h-1.5 rounded-full overflow-hidden border">
-            <div class="bg-primary h-full transition-all" style="width: ${loc.completeness_pct}%;"></div>
-          </div>
-        </div>
-      `;
+    return `
+      <div style="
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+      ">
+        ${locales
+          .map((loc) => {
+            const isAct = loc.locale === activeLocale;
+            const isHigh = loc.completeness_pct >= 95;
+            return `
+              <div class="locale-gauge-card" data-loc="${loc.locale}" style="
+                padding: 16px;
+                border-radius: var(--radius-lg, 12px);
+                background: var(--surface-1, #ffffff);
+                border: 2px solid ${isAct ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'};
+                box-shadow: ${isAct ? '0 0 0 1px var(--brand, #4f46e5)' : 'var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05))'};
+                cursor: pointer;
+                transition: all 0.15s ease;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              ">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <strong style="font-family: monospace; font-size: 15px; color: var(--text-primary, #0f172a); text-transform: uppercase;">
+                    ${loc.locale} ${isAct ? '📍' : ''}
+                  </strong>
+                  <span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: ${isHigh ? 'var(--success-bg, rgba(5, 150, 105, 0.1))' : 'var(--warning-bg, rgba(217, 119, 6, 0.1))'}; color: ${isHigh ? 'var(--success, #059669)' : 'var(--warning, #d97706)'};">
+                    ${loc.completeness_pct}%
+                  </span>
+                </div>
 
-      card.addEventListener('click', () => {
-        activeLocale = loc.locale;
-        loadData();
-      });
-
-      gaugesRow.append(card);
-    });
+                <div>
+                  <div style="font-size: 11px; color: var(--text-muted, #64748b); font-family: monospace; margin-bottom: 4px;">
+                    ${loc.total_keys} keys translated
+                  </div>
+                  <div style="width: 100%; height: 6px; background: var(--surface-2, #e2e8f0); border-radius: 99px; overflow: hidden;">
+                    <div style="width: ${loc.completeness_pct}%; height: 100%; background: ${isAct ? 'var(--brand, #4f46e5)' : 'var(--success, #059669)'}; border-radius: 99px;"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join('')}
+      </div>
+    `;
   }
 
-  function renderLocaleButtons() {
-    const host = filterBar.querySelector('#locale-selector-btns');
-    if (!host) return;
+  function renderFilterBar() {
     const locales = completenessData?.locales || [{ locale: 'en' }, { locale: 'bn' }];
-    host.innerHTML = locales.map((l) => `
-      <button class="loc-btn badge cursor-pointer text-xs font-mono py-1 px-2.5 ${l.locale === activeLocale ? 'badge-primary' : 'badge-neutral'}" data-loc="${l.locale}">
-        ${l.locale.toUpperCase()}
-      </button>
-    `).join('');
 
-    host.querySelectorAll('.loc-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        activeLocale = btn.getAttribute('data-loc');
-        loadData();
-      });
-    });
+    return `
+      <div style="
+        background: var(--surface-1, #ffffff);
+        border: 1px solid var(--border-subtle, #e2e8f0);
+        border-radius: var(--radius-lg, 12px);
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+      ">
+        <div style="flex: 1; min-width: 240px;">
+          <input type="text" id="trans-search-input" value="${searchQuery}" placeholder="🔍 Search translation keys or values..." style="
+            width: 100%;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-family: monospace;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle, #e2e8f0);
+            background: var(--surface-1, #ffffff);
+            color: var(--text-primary, #0f172a);
+          "/>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 16px; font-size: 12px;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary, #475569); font-weight: 600;">
+            <input type="checkbox" id="missing-only-checkbox" ${showMissingOnly ? 'checked' : ''} style="cursor: pointer;"/>
+            <span>${t('editor.filter_missing_only', 'Show Missing Only')}</span>
+          </label>
+
+          <div style="display: flex; gap: 6px;">
+            ${locales
+              .map(
+                (l) => `
+              <button class="loc-pill-btn" data-loc="${l.locale}" style="
+                padding: 4px 10px;
+                font-size: 11px;
+                font-family: monospace;
+                font-weight: 700;
+                border-radius: 6px;
+                border: 1px solid ${l.locale === activeLocale ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'};
+                background: ${l.locale === activeLocale ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'};
+                color: ${l.locale === activeLocale ? '#ffffff' : 'var(--text-secondary, #475569)'};
+                cursor: pointer;
+              ">
+                ${l.locale.toUpperCase()}
+              </button>
+            `
+              )
+              .join('')}
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   function renderTable() {
-    tableWrap.innerHTML = '';
     const entries = [];
-
-    // Flatten namespace & keys
     for (const [ns, keysObj] of Object.entries(translations)) {
       if (typeof keysObj === 'object') {
         for (const [k, v] of Object.entries(keysObj)) {
@@ -181,44 +294,306 @@ export default function TranslationManagerPage(root, ctx = {}) {
     }
 
     if (filtered.length === 0) {
-      tableWrap.innerHTML = `
-        <div class="p-8 text-center text-muted text-xs">
-          No translation keys matching current filter.
+      return `
+        <div style="padding: 60px 20px; text-align: center; color: var(--text-muted, #64748b); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-radius: var(--radius-lg, 12px);">
+          <div style="font-size: 32px; margin-bottom: 8px;">🌐</div>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary, #0f172a);">No translation keys found</h3>
+          <p style="margin: 4px 0 0 0; font-size: 13px;">No keys match the search criteria in locale [${activeLocale.toUpperCase()}].</p>
         </div>
       `;
-      return;
     }
 
-    tableWrap.innerHTML = `
-      <table class="table w-full text-left text-xs">
-        <thead class="bg-surface-subtle border-b font-mono uppercase text-muted">
-          <tr>
-            <th class="p-3">Namespace</th>
-            <th class="p-3">Translation Key</th>
-            <th class="p-3">Localized Value [${activeLocale.toUpperCase()}]</th>
-            <th class="p-3 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${filtered.map((item, idx) => `
-            <tr class="border-b hover:bg-surface-subtle" data-idx="${idx}">
-              <td class="p-3 font-mono font-bold text-muted">${item.namespace}</td>
-              <td class="p-3 font-mono"><code>${item.key}</code></td>
-              <td class="p-3">
-                <input type="text" class="trans-val-input input w-full text-xs font-mono py-1" value="${item.value || ''}" data-ns="${item.namespace}" data-key="${item.key}" placeholder="Missing translation...">
-              </td>
-              <td class="p-3 text-right">
-                <button class="save-val-btn btn btn-sm btn-primary text-xs" data-ns="${item.namespace}" data-key="${item.key}">
-                  💾 ${t('common.save')}
-                </button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
+    return `
+      <div style="
+        background: var(--surface-1, #ffffff);
+        border: 1px solid var(--border-subtle, #e2e8f0);
+        border-radius: var(--radius-lg, 12px);
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        overflow: hidden;
+      ">
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: var(--surface-2, #f8fafc); border-bottom: 1px solid var(--border-subtle, #e2e8f0); font-size: 11px; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase;">
+                <th style="padding: 12px 16px; width: 140px;">Namespace</th>
+                <th style="padding: 12px 16px; width: 220px;">Translation Key</th>
+                <th style="padding: 12px 16px;">Localized String [${activeLocale.toUpperCase()}]</th>
+                <th style="padding: 12px 16px; text-align: right; width: 120px;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filtered
+                .map(
+                  (item, idx) => `
+                <tr style="border-bottom: 1px solid var(--border-subtle, #e2e8f0); transition: background 0.15s ease;" data-idx="${idx}">
+                  <td style="padding: 12px 16px;">
+                    <span style="font-family: monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--surface-2, #e2e8f0); color: var(--text-muted, #64748b); font-weight: 700;">
+                      ${item.namespace}
+                    </span>
+                  </td>
+                  <td style="padding: 12px 16px; font-family: monospace; font-size: 12px; color: var(--text-primary, #0f172a);">
+                    <strong>${item.key}</strong>
+                  </td>
+                  <td style="padding: 12px 16px;">
+                    <input type="text" class="trans-val-input" value="${item.value || ''}" data-ns="${item.namespace}" data-key="${item.key}" placeholder="Missing translation..." style="
+                      width: 100%;
+                      padding: 6px 10px;
+                      font-size: 12px;
+                      border-radius: 6px;
+                      border: 1px solid ${!item.value ? 'var(--warning-border, #d97706)' : 'var(--border-subtle, #e2e8f0)'};
+                      background: var(--surface-1, #ffffff);
+                      color: var(--text-primary, #0f172a);
+                    "/>
+                  </td>
+                  <td style="padding: 12px 16px; text-align: right;">
+                    <button class="save-val-btn" data-ns="${item.namespace}" data-key="${item.key}" style="
+                      padding: 6px 12px;
+                      font-size: 11px;
+                      font-weight: 700;
+                      border-radius: 6px;
+                      border: none;
+                      background: var(--brand, #4f46e5);
+                      color: #ffffff;
+                      cursor: pointer;
+                    ">
+                      💾 Save Live
+                    </button>
+                  </td>
+                </tr>
+              `
+                )
+                .join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function openImportModal() {
+    const modalBackdrop = document.createElement('div');
+    modalBackdrop.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
     `;
 
-    tableWrap.querySelectorAll('.save-val-btn').forEach((btn) => {
+    modalBackdrop.innerHTML = `
+      <div style="
+        background: var(--surface-1, #ffffff);
+        border: 1px solid var(--border-subtle, #e2e8f0);
+        border-radius: var(--radius-lg, 12px);
+        max-width: 500px;
+        width: 100%;
+        padding: 24px;
+        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      ">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary, #0f172a);">
+          📥 Import Translation JSON
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 4px;">Target Locale Code:</label>
+            <input type="text" id="import-locale-code" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 12px;" value="${activeLocale}"/>
+          </div>
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 4px;">Paste JSON Dictionary:</label>
+            <textarea id="import-json-text" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 11px;" rows="8" placeholder="{\n  &quot;common&quot;: {\n    &quot;buy_now&quot;: &quot;Buy Now&quot;\n  }\n}"></textarea>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button id="btn-cancel-import" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">Cancel</button>
+          <button id="btn-confirm-import" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">Import Live</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalBackdrop);
+    modalBackdrop.querySelector('#btn-cancel-import').addEventListener('click', () => modalBackdrop.remove());
+
+    modalBackdrop.querySelector('#btn-confirm-import').addEventListener('click', async () => {
+      const code = modalBackdrop.querySelector('#import-locale-code')?.value?.trim();
+      const jsonStr = modalBackdrop.querySelector('#import-json-text')?.value?.trim();
+
+      if (!code || !jsonStr) {
+        toast.error('Locale code and valid JSON string are required.');
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(jsonStr);
+        await importTranslationsJson(code, parsed);
+        toast.success(t('editor.import_success', 'Translations imported successfully.'));
+        modalBackdrop.remove();
+        activeLocale = code;
+        await loadData();
+      } catch (err) {
+        toast.error(err?.message || 'Invalid JSON syntax');
+      }
+    });
+  }
+
+  function openAddLocaleModal() {
+    const modalBackdrop = document.createElement('div');
+    modalBackdrop.style.cssText = `
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    `;
+
+    modalBackdrop.innerHTML = `
+      <div style="
+        background: var(--surface-1, #ffffff);
+        border: 1px solid var(--border-subtle, #e2e8f0);
+        border-radius: var(--radius-lg, 12px);
+        max-width: 460px;
+        width: 100%;
+        padding: 24px;
+        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      ">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary, #0f172a);">
+          🌐 Add New Platform Locale
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 4px;">ISO Language Code (2-letter):</label>
+            <input type="text" id="add-locale-code" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 12px;" placeholder="e.g. ar, es, fr, hi"/>
+          </div>
+          <div>
+            <label style="font-weight: 600; display: block; margin-bottom: 4px;">Native Display Name:</label>
+            <input type="text" id="add-locale-name" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-size: 12px;" placeholder="e.g. العربية, Español, Français"/>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button id="btn-cancel-add-loc" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">Cancel</button>
+          <button id="btn-confirm-add-loc" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">Create Locale</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalBackdrop);
+    modalBackdrop.querySelector('#btn-cancel-add-loc').addEventListener('click', () => modalBackdrop.remove());
+
+    modalBackdrop.querySelector('#btn-confirm-add-loc').addEventListener('click', async () => {
+      const code = modalBackdrop.querySelector('#add-locale-code')?.value?.trim().toLowerCase();
+      const name = modalBackdrop.querySelector('#add-locale-name')?.value?.trim();
+
+      if (!code || !name) {
+        toast.error('Both code and display name are required.');
+        return;
+      }
+
+      try {
+        await upsertTranslationKey({
+          namespace: 'common',
+          key: 'language_name',
+          locale: code,
+          value: name,
+        });
+
+        toast.success(t('editor.locale_added_live', 'New locale created live without code deployment.'));
+        modalBackdrop.remove();
+        activeLocale = code;
+        await loadData();
+      } catch (err) {
+        toast.error(err?.message || 'Failed to create locale');
+      }
+    });
+  }
+
+  function render() {
+    container.innerHTML = `
+      ${renderHeader()}
+      ${loading ? `<div style="padding: 60px; text-align: center; color: var(--text-muted, #64748b);">Loading localization data...</div>` : `
+        ${renderGauges()}
+        ${renderFilterBar()}
+        ${renderTable()}
+      `}
+    `;
+
+    container.querySelectorAll('.locale-gauge-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        activeLocale = card.getAttribute('data-loc');
+        loadData();
+      });
+    });
+
+    container.querySelectorAll('.loc-pill-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeLocale = btn.getAttribute('data-loc');
+        loadData();
+      });
+    });
+
+    const searchInput = container.querySelector('#trans-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        const tableContainer = container.querySelector('table')?.closest('div');
+        if (tableContainer) {
+          tableContainer.outerHTML = renderTable();
+          attachSaveEvents();
+        }
+      });
+    }
+
+    const missingCheckbox = container.querySelector('#missing-only-checkbox');
+    if (missingCheckbox) {
+      missingCheckbox.addEventListener('change', (e) => {
+        showMissingOnly = e.target.checked;
+        const tableContainer = container.querySelector('table')?.closest('div');
+        if (tableContainer) {
+          tableContainer.outerHTML = renderTable();
+          attachSaveEvents();
+        }
+      });
+    }
+
+    container.querySelector('#export-json-btn')?.addEventListener('click', async () => {
+      try {
+        const res = await exportTranslationsJson(activeLocale);
+        const blob = new Blob([JSON.stringify(res?.data || translations, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `explooro_translations_${activeLocale}.json`;
+        a.click();
+        toast.success(t('editor.export_success', 'JSON exported successfully.'));
+      } catch {
+        toast.error('Failed to export translations');
+      }
+    });
+
+    container.querySelector('#import-json-btn')?.addEventListener('click', openImportModal);
+    container.querySelector('#add-locale-btn')?.addEventListener('click', openAddLocaleModal);
+
+    attachSaveEvents();
+  }
+
+  function attachSaveEvents() {
+    container.querySelectorAll('.save-val-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const ns = btn.getAttribute('data-ns');
         const k = btn.getAttribute('data-key');
@@ -232,7 +607,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
             locale: activeLocale,
             value: val,
           });
-          toast.success(t('editor.string_saved_live'));
+          toast.success(t('editor.string_saved_live', 'Translation string saved live.'));
         } catch (err) {
           toast.error(err?.message || 'Failed to update string');
         }
@@ -240,135 +615,6 @@ export default function TranslationManagerPage(root, ctx = {}) {
     });
   }
 
-  // Filter Listeners
-  filterBar.querySelector('#trans-search-input')?.addEventListener('input', (e) => {
-    searchQuery = e.target.value;
-    renderTable();
-  });
-
-  filterBar.querySelector('#missing-only-checkbox')?.addEventListener('change', (e) => {
-    showMissingOnly = e.target.checked;
-    renderTable();
-  });
-
-  // Header Actions
-  header.querySelector('#export-json-btn')?.addEventListener('click', async () => {
-    try {
-      const res = await exportTranslationsJson(activeLocale);
-      const blob = new Blob([JSON.stringify(res?.data || {}, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `explooro_translations_${activeLocale}.json`;
-      a.click();
-      toast.success(t('editor.export_success'));
-    } catch {
-      toast.error('Failed to export translations');
-    }
-  });
-
-  header.querySelector('#import-json-btn')?.addEventListener('click', () => {
-    openImportModal();
-  });
-
-  header.querySelector('#add-locale-btn')?.addEventListener('click', () => {
-    openAddLocaleModal();
-  });
-
-  function openImportModal() {
-    const modalContent = document.createElement('div');
-    modalContent.className = 'space-y-4 p-2';
-
-    modalContent.innerHTML = `
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">Target Locale</label>
-        <input type="text" id="import-locale-code" class="input w-full font-mono text-xs" value="${activeLocale}">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">Paste JSON Object</label>
-        <textarea id="import-json-text" class="input w-full font-mono text-xs" rows="8" placeholder="{\n  &quot;common&quot;: {\n    &quot;buy_now&quot;: &quot;Buy Now&quot;\n  }\n}"></textarea>
-      </div>
-    `;
-
-    const modal = Modal({
-      title: `📥 ${t('editor.import_modal_title')}`,
-      body: modalContent,
-      confirmLabel: t('common.import'),
-      onConfirm: async () => {
-        const code = modalContent.querySelector('#import-locale-code')?.value?.trim();
-        const jsonStr = modalContent.querySelector('#import-json-text')?.value?.trim();
-
-        try {
-          const parsed = JSON.parse(jsonStr);
-          await importTranslationsJson(code, parsed);
-          toast.success(t('editor.import_success'));
-          modal.close();
-          activeLocale = code;
-          await loadData();
-        } catch (err) {
-          toast.error(err?.message || 'Invalid JSON format');
-        }
-      },
-    });
-
-    document.body.append(modal.element);
-    modal.open();
-  }
-
-  function openAddLocaleModal() {
-    const modalContent = document.createElement('div');
-    modalContent.className = 'space-y-4 p-2';
-
-    modalContent.innerHTML = `
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('editor.label_new_locale_code')}</label>
-        <input type="text" id="new-locale-code" class="input w-full font-mono text-xs" placeholder="e.g. ar, es, fr, hi">
-      </div>
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('editor.label_new_locale_name')}</label>
-        <input type="text" id="new-locale-name" class="input w-full text-xs" placeholder="e.g. Arabic (العربية)">
-      </div>
-      <div class="p-3 border rounded bg-info-soft text-xs text-info">
-        ℹ️ Adding a new locale is immediate and requires <b>zero redeployment or code modifications</b>.
-      </div>
-    `;
-
-    const modal = Modal({
-      title: `🌐 ${t('editor.add_locale_modal_title')}`,
-      body: modalContent,
-      confirmLabel: t('common.create'),
-      onConfirm: async () => {
-        const code = modalContent.querySelector('#new-locale-code')?.value?.trim()?.toLowerCase();
-        if (!code || code.length > 5) {
-          toast.error('Please provide a valid 2-5 letter language code');
-          return;
-        }
-
-        try {
-          // Seed initial key
-          await upsertTranslationKey({
-            namespace: 'common',
-            key: 'app_title',
-            locale: code,
-            value: 'Explooro',
-          });
-
-          toast.success(`Locale [${code}] added live!`);
-          modal.close();
-          activeLocale = code;
-          await loadData();
-        } catch (err) {
-          toast.error(err?.message || 'Failed to create locale');
-        }
-      },
-    });
-
-    document.body.append(modal.element);
-    modal.open();
-  }
-
   loadData();
   root.append(container);
-
-  return () => container.remove();
 }

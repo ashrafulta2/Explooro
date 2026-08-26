@@ -14,7 +14,10 @@
  * title/body/footer shape.
  */
 import { navItems, navGroups } from '../../config/navigation.js';
-import { t } from '../../services/i18n.js';
+import { MASTER_PRESETS } from '../../config/master-themes.js';
+import { switchThemePreset } from '../../services/themePalette.js';
+import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.js';
 import { lockScroll, unlockScroll } from '../ui/Modal.js';
 import { getGroupIcon, ICONS } from '../ui/icons.js';
 
@@ -123,6 +126,9 @@ export function createCommandPalette({ getState }) {
 
     const visible = navItems.filter((item) => hasModule(ctx.modules, item.module) && hasPermission(ctx.permissions, item.permission));
 
+    const isBn = getLanguage() === 'bn';
+    const groups = [];
+
     if (!q) {
       const recent = loadRecent()
         .map((path) => visible.find((i) => i.path === path))
@@ -136,7 +142,38 @@ export function createCommandPalette({ getState }) {
             icon: item.icon || getGroupIcon(item.group),
           };
         });
-      return recent.length ? [{ labelKey: 'palette.group_recent', entries: recent }] : [];
+      if (recent.length) groups.push({ labelKey: 'palette.group_recent', entries: recent });
+      return groups;
+    }
+
+    // Match Theme Presets if user types 'theme' or preset names
+    const themeMatches = [];
+    const qLower = q.toLowerCase();
+    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+      const nameEn = preset.name_en.toLowerCase();
+      const nameBn = (preset.name_bn || '').toLowerCase();
+      const descEn = (preset.description_en || '').toLowerCase();
+      const isThemeQuery = qLower.includes('theme') || qLower.includes('থিম') || qLower.includes('color') || qLower.includes('রং') || qLower.includes('preset');
+      
+      const score = fuzzyScore(q, nameEn) ?? fuzzyScore(q, nameBn) ?? fuzzyScore(q, key) ?? (isThemeQuery ? 10 : null);
+      if (score !== null) {
+        themeMatches.push({
+          label: isBn ? preset.name_bn : preset.name_en,
+          groupLabel: t('palette.group_themes') || '1-Click Marketplace Themes',
+          icon: `<span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: ${preset.master.seed}; border: 1px solid rgba(0,0,0,0.2);"></span>`,
+          onSelect: () => {
+            switchThemePreset(key);
+            const nameText = isBn ? preset.name_bn : preset.name_en;
+            toast.info(t('shell.theme_applied_toast', { name: nameText }) || `Theme applied: ${nameText}`);
+          },
+          score,
+        });
+      }
+    }
+
+    if (themeMatches.length) {
+      themeMatches.sort((a, b) => a.score - b.score);
+      groups.push({ labelKey: 'palette.group_themes', entries: themeMatches.slice(0, 4) });
     }
 
     const scored = [];
@@ -156,7 +193,10 @@ export function createCommandPalette({ getState }) {
       }
     }
     scored.sort((a, b) => a.score - b.score);
-    return [{ labelKey: 'palette.group_routes', entries: scored.slice(0, MAX_RESULTS) }];
+    if (scored.length) {
+      groups.push({ labelKey: 'palette.group_routes', entries: scored.slice(0, MAX_RESULTS) });
+    }
+    return groups;
   }
 
   function render(query) {
@@ -218,7 +258,7 @@ export function createCommandPalette({ getState }) {
         cue.innerHTML = `<kbd class="command-palette__key-cue">↵</kbd>`;
 
         row.append(iconBox, info, cue);
-        row.addEventListener('click', () => choose(entry.item));
+        row.addEventListener('click', () => choose(entry));
         resultsEl.append(row);
         flat.push(row);
       }
@@ -271,10 +311,17 @@ export function createCommandPalette({ getState }) {
     flat[activeIndex]?.scrollIntoView({ block: 'nearest' });
   }
 
-  function choose(item) {
-    pushRecent(item.path);
-    close();
-    getState().navigate(item.path);
+  function choose(entry) {
+    if (entry.onSelect) {
+      close();
+      entry.onSelect();
+      return;
+    }
+    if (entry.item?.path) {
+      pushRecent(entry.item.path);
+      close();
+      getState().navigate(entry.item.path);
+    }
   }
 
   function onKeydown(event) {

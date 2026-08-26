@@ -9,7 +9,7 @@
 import { handleMockRequest } from '../mocks/index.js';
 import { toast } from '../services/toast.js';
 
-const MODE = import.meta.env.VITE_API_MODE === 'live' ? 'live' : 'mock';
+const MODE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_MODE === 'live') ? 'live' : 'mock';
 const BASE = '/api/v1';
 export const API_BASE = BASE;
 

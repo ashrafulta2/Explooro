@@ -12,7 +12,7 @@
  * reads the same catalog Prompt 0.4 already produced. Deleted whole in Prompt 2.4 once the server
  * resolves this for real.
  */
-import catalog from '../../../docs/permission-catalog.json';
+import catalog from '../../../docs/permission-catalog.json' with { type: 'json' };
 
 const byKey = new Map(catalog.permissions.map((p) => [p.key, p]));
 const roleLabels = new Map(catalog.roles.map((r) => [r.key, r]));

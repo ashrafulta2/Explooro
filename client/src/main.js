@@ -177,7 +177,11 @@ async function bootRouterDemo() {
         item.path !== '/admin/health' &&
         item.path !== '/admin/system/health' &&
         item.path !== '/admin/restrictions' &&
-        item.path !== '/admin/users/restrictions'
+        item.path !== '/admin/users/restrictions' &&
+        item.path !== '/admin/catalog/products' &&
+        item.path !== '/admin/products' &&
+        item.path !== '/supplier/products' &&
+        item.path !== '/saler/products'
     )
     .map((item) => ({
       path: item.path,
@@ -262,6 +266,22 @@ async function bootRouterDemo() {
         load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
       },
       {
+        path: '/supplier/warranty',
+        title: 'Warranty Claims & Hub — Explooro',
+        requiresAuth: true,
+        permission: 'support.warranty.manage',
+        module: 'digital_warranty',
+        load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
+      },
+      {
+        path: '/supplier/warranties',
+        title: 'Warranty Claims & Hub — Explooro',
+        requiresAuth: true,
+        permission: 'support.warranty.manage',
+        module: 'digital_warranty',
+        load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
+      },
+      {
         path: '/supplier/warranty-claims',
         title: 'Warranty Claims — Explooro',
         requiresAuth: true,
@@ -289,6 +309,14 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/b2b-escrow',
+        title: 'B2B Wholesale Escrow — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'b2b_escrow',
+        load: () => import('./pages/supplier/B2bEscrowPage.js'),
+      },
+      {
+        path: '/b2b-escrow',
         title: 'B2B Wholesale Escrow — Explooro',
         requiresAuth: true,
         permission: null,
@@ -343,7 +371,23 @@ async function bootRouterDemo() {
         load: () => import('./pages/editor/EditorDashboardPage.js'),
       },
       {
+        path: '/editor/dashboard',
+        title: 'Editor Dashboard — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/editor/EditorDashboardPage.js'),
+      },
+      {
         path: '/editor/translations',
+        title: 'Localization & Translations — Explooro',
+        requiresAuth: true,
+        permission: 'content.i18n.update',
+        module: 'i18n',
+        load: () => import('./pages/editor/TranslationManagerPage.js'),
+      },
+      {
+        path: '/admin/localization',
         title: 'Localization & Translations — Explooro',
         requiresAuth: true,
         permission: 'content.i18n.update',
@@ -353,6 +397,14 @@ async function bootRouterDemo() {
       // Prompt 11.1: Supplier / Manufacturer Dashboard & Operational Pages
       {
         path: '/supplier',
+        title: 'Supplier Dashboard — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.dashboard.view',
+        module: 'core',
+        load: () => import('./pages/supplier/SupplierDashboardPage.js'),
+      },
+      {
+        path: '/supplier/dashboard',
         title: 'Supplier Dashboard — Explooro',
         requiresAuth: true,
         permission: 'supplier.dashboard.view',
@@ -384,7 +436,31 @@ async function bootRouterDemo() {
         load: () => import('./pages/supplier/WarehousePage.js'),
       },
       {
+        path: '/supplier/warehouse',
+        title: 'Multi-Location Warehouses — Explooro',
+        requiresAuth: true,
+        permission: 'catalog.warehouse.manage',
+        module: 'multi_warehouse',
+        load: () => import('./pages/supplier/WarehousePage.js'),
+      },
+      {
         path: '/supplier/fulfilment',
+        title: 'Fulfilment Queue & Labels — Explooro',
+        requiresAuth: true,
+        permission: 'logistics.consignment.create',
+        module: 'courier_hub',
+        load: () => import('./pages/supplier/FulfilmentPage.js'),
+      },
+      {
+        path: '/supplier/fulfillment',
+        title: 'Fulfilment Queue & Labels — Explooro',
+        requiresAuth: true,
+        permission: 'logistics.consignment.create',
+        module: 'courier_hub',
+        load: () => import('./pages/supplier/FulfilmentPage.js'),
+      },
+      {
+        path: '/supplier/shipping',
         title: 'Fulfilment Queue & Labels — Explooro',
         requiresAuth: true,
         permission: 'logistics.consignment.create',
@@ -420,6 +496,30 @@ async function bootRouterDemo() {
         permission: 'saler.dashboard.view',
         module: 'core',
         load: () => import('./pages/saler/SalerDashboardPage.js'),
+      },
+      {
+        path: '/saler/dashboard',
+        title: 'Saler Dashboard — Explooro',
+        requiresAuth: true,
+        permission: 'saler.dashboard.view',
+        module: 'core',
+        load: () => import('./pages/saler/SalerDashboardPage.js'),
+      },
+      {
+        path: '/saler/orders',
+        title: 'Customer Orders — Explooro',
+        requiresAuth: true,
+        permission: 'saler.order.view',
+        module: 'core',
+        load: () => import('./pages/customer/OrdersPage.js'),
+      },
+      {
+        path: '/saler/orders/:id',
+        title: 'Order Details — Explooro',
+        requiresAuth: true,
+        permission: 'saler.order.view',
+        module: 'core',
+        load: () => import('./pages/customer/OrderDetailPage.js'),
       },
       {
         path: '/saler/analytics',
@@ -725,7 +825,31 @@ async function bootRouterDemo() {
         module: 'returns_engine',
         load: () => import('./pages/admin/ReturnsQueuePage.js'),
       },
+      {
+        path: '/moderator/returns',
+        title: 'Returns Moderation Queue — Explooro',
+        requiresAuth: true,
+        permission: 'orders.return.review',
+        module: 'returns_engine',
+        load: () => import('./pages/admin/ReturnsQueuePage.js'),
+      },
       // Prompt 7.3: Dispute Arbitration (Three-Way)
+      {
+        path: '/disputes',
+        title: 'Dispute Arbitration — Explooro',
+        requiresAuth: true,
+        permission: 'orders.dispute.arbitrate',
+        module: 'dispute_panel',
+        load: () => import('./pages/moderator/DisputePanelPage.js'),
+      },
+      {
+        path: '/disputes/:id',
+        title: 'Dispute Arbitration — Explooro',
+        requiresAuth: true,
+        permission: 'orders.dispute.arbitrate',
+        module: 'dispute_panel',
+        load: () => import('./pages/moderator/DisputePanelPage.js'),
+      },
       {
         path: '/moderator/disputes',
         title: 'Dispute Arbitration — Explooro',
@@ -760,12 +884,53 @@ async function bootRouterDemo() {
         load: () => import('./pages/moderator/ModerationQueuePage.js'),
       },
       {
+        path: '/moderator/moderation-queue',
+        title: 'Product & Content Moderation — Explooro',
+        requiresAuth: true,
+        permission: 'moderation.product.approve',
+        module: 'product_moderation',
+        load: () => import('./pages/moderator/ModerationQueuePage.js'),
+      },
+      {
         path: '/admin/catalog/moderation',
         title: 'Catalog Moderation — Explooro',
         requiresAuth: true,
         permission: 'moderation.product.approve',
         module: 'product_moderation',
         load: () => import('./pages/moderator/ModerationQueuePage.js'),
+      },
+      // Catalog & Products Governance
+      {
+        path: '/admin/catalog/products',
+        title: 'Catalog & Products — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.product.view_all',
+        module: 'core',
+        load: () => import('./pages/admin/CatalogProductsPage.js'),
+      },
+      {
+        path: '/admin/products',
+        title: 'Catalog & Products — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.product.view_all',
+        module: 'core',
+        load: () => import('./pages/admin/CatalogProductsPage.js'),
+      },
+      {
+        path: '/supplier/products',
+        title: 'Supplier Inventory & Products — Explooro',
+        requiresAuth: true,
+        permission: 'catalog.product.manage_own',
+        module: 'core',
+        load: () => import('./pages/admin/CatalogProductsPage.js'),
+      },
+      {
+        path: '/saler/products',
+        title: 'Saler Store Products — Explooro',
+        requiresAuth: true,
+        permission: 'saler.store.manage',
+        module: 'virtual_storefront',
+        load: () => import('./pages/saler/StoreBuilderPage.js'),
       },
       // Prompt 7.5: KYC Verification, Blue-Tick & Trust Tiers
       {
@@ -794,6 +959,14 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/users/verification',
+        title: 'KYC Verification Center — Explooro',
+        requiresAuth: true,
+        permission: 'users.kyc.approve',
+        module: 'supplier_verification',
+        load: () => import('./pages/admin/VerificationCenterPage.js'),
+      },
+      {
+        path: '/moderator/kyc',
         title: 'KYC Verification Center — Explooro',
         requiresAuth: true,
         permission: 'users.kyc.approve',
@@ -868,6 +1041,22 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.coupon.manage',
         module: 'coupons',
+        load: () => import('./pages/admin/CampaignManagerPage.js'),
+      },
+      {
+        path: '/editor/campaigns',
+        title: 'Visual Banner & Campaign Studio — Explooro',
+        requiresAuth: true,
+        permission: 'growth.campaign.manage',
+        module: 'flash_sale',
+        load: () => import('./pages/admin/CampaignManagerPage.js'),
+      },
+      {
+        path: '/campaigns',
+        title: 'Campaign & Promotion Manager — Explooro',
+        requiresAuth: true,
+        permission: 'growth.campaign.manage',
+        module: 'flash_sale',
         load: () => import('./pages/admin/CampaignManagerPage.js'),
       },
       // Prompt 9.3: Multi-Tier Referral & Network Growth Engine

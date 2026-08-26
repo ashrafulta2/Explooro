@@ -33,6 +33,44 @@ export async function saveDraft(req, reply) {
   return reply.status(201).send({ draft });
 }
 
+export async function renameTheme(req, reply) {
+  const db = req.db || req.server?.db;
+  const { id } = req.params;
+  const { name } = req.body || {};
+  const userId = req.user?.id || 1;
+
+  const renamed = await themeService.renameTheme(db, auditService, {
+    id: parseInt(id, 10),
+    name,
+    userId,
+    reqContext: {
+      traceId: req.traceId,
+      ip: req.ip,
+      userAgent: req.headers?.['user-agent'],
+    },
+  });
+
+  return reply.send({ palette: renamed });
+}
+
+export async function deleteTheme(req, reply) {
+  const db = req.db || req.server?.db;
+  const { id } = req.params;
+  const userId = req.user?.id || 1;
+
+  const result = await themeService.deleteTheme(db, auditService, {
+    id: parseInt(id, 10),
+    userId,
+    reqContext: {
+      traceId: req.traceId,
+      ip: req.ip,
+      userAgent: req.headers?.['user-agent'],
+    },
+  });
+
+  return reply.send({ deleted: result });
+}
+
 export async function publishTheme(req, reply) {
   const db = req.db || req.server?.db;
   const cache = req.cache || req.server?.cache;

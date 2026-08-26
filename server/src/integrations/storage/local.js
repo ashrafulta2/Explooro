@@ -22,7 +22,7 @@ export class LocalStorageDriver {
   constructor(options = {}) {
     this.name = 'local';
     this.baseDir = options.baseDir || STORAGE_DIR;
-    this.baseUrl = options.baseUrl || '/api/v1/storage';
+    this.baseUrl = options.baseUrl || '/storage';
   }
 
   async init() {

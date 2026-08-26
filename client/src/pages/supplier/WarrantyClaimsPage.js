@@ -107,8 +107,8 @@ export default function WarrantyClaimsPage(root) {
 
     try {
       const [claimsRes, analyticsRes] = await Promise.all([
-        api.get('/api/v1/supplier/claims'),
-        api.get('/api/v1/supplier/claims/analytics'),
+        api.get('/supplier/claims'),
+        api.get('/supplier/claims/analytics'),
       ]);
 
       claims = claimsRes.data?.claims || [];
@@ -437,7 +437,7 @@ export default function WarrantyClaimsPage(root) {
 
         approveBtn.disabled = true;
         try {
-          await api.post(`/api/v1/supplier/claims/${claim.id}/review`, {
+          await api.post(`/supplier/claims/${claim.id}/review`, {
             action: 'APPROVE',
             resolution,
             supplier_notes: notes,
@@ -463,7 +463,7 @@ export default function WarrantyClaimsPage(root) {
 
         rejectBtn.disabled = true;
         try {
-          await api.post(`/api/v1/supplier/claims/${claim.id}/review`, {
+          await api.post(`/supplier/claims/${claim.id}/review`, {
             action: 'REJECT',
             rejection_reason: reason.trim(),
           });
@@ -481,7 +481,7 @@ export default function WarrantyClaimsPage(root) {
     if (inProgressBtn) {
       inProgressBtn.addEventListener('click', async () => {
         try {
-          await api.post(`/api/v1/supplier/claims/${claim.id}/progress`, {
+          await api.post(`/supplier/claims/${claim.id}/progress`, {
             status: 'IN_PROGRESS',
           });
           toast.success(t('warranty.status_updated'));
@@ -497,7 +497,7 @@ export default function WarrantyClaimsPage(root) {
     if (completeBtn) {
       completeBtn.addEventListener('click', async () => {
         try {
-          await api.post(`/api/v1/supplier/claims/${claim.id}/progress`, {
+          await api.post(`/supplier/claims/${claim.id}/progress`, {
             status: 'COMPLETED',
           });
           toast.success(t('warranty.claim_completed_success'));

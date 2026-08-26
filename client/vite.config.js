@@ -85,6 +85,16 @@ export default defineConfig({
         target: 'ws://localhost:5000',
         ws: true,
       },
+      // WHY rewritten and not proxied 1:1 like /api: media URLs (driver.getPublicUrl()) are
+      // deliberately version-agnostic — /storage/<key>, not /api/v1/storage/<key> — so a future CDN
+      // or nginx rule can own that path without every stored URL baking in the API version. The
+      // route itself lives under the /api/v1 prefix server-side (server/src/app.js), so dev has to
+      // rewrite here instead of proxying the literal path.
+      '/storage': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => `/api/v1${path}`,
+      },
     },
   },
 

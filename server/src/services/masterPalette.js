@@ -33,5 +33,5 @@ export {
  * a palette stored before it simply has no such key, which every consumer treats as "generate it".
  */
 export const TOKEN_SECTIONS = [
-  'navbar', 'surfaces', 'brand', 'typography', 'badges', 'footer', 'flash_sale',
+  'navbar', 'sidebar', 'surfaces', 'brand', 'typography', 'badges', 'footer', 'flash_sale',
 ];

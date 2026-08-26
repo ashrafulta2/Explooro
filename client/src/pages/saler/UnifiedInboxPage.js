@@ -79,7 +79,7 @@ export default function UnifiedInboxPage(root) {
 
   async function fetchThreads() {
     try {
-      const res = await api.get('/api/v1/saler/inbox/threads');
+      const res = await api.get('/saler/inbox/threads');
       threads = res?.data?.items || [];
       renderThreads();
     } catch (err) {
@@ -249,7 +249,7 @@ export default function UnifiedInboxPage(root) {
       input.value = '';
 
       try {
-        const res = await api.post(`/api/v1/saler/inbox/threads/${thread.id}/send`, { content: text });
+        const res = await api.post(`/saler/inbox/threads/${thread.id}/send`, { content: text });
         messages.push(res.data.message);
         renderChat(thread);
       } catch (err) {
@@ -330,7 +330,7 @@ export default function UnifiedInboxPage(root) {
           }
 
           try {
-            const res = await api.post(`/api/v1/saler/inbox/threads/${thread.id}/send-product`, {
+            const res = await api.post(`/saler/inbox/threads/${thread.id}/send-product`, {
               product_id: prodId,
               note,
             });

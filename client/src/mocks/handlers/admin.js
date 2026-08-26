@@ -1570,63 +1570,9 @@ export const adminHandlers = [
     },
   },
 
-  // 37. Get Active Theme
-  {
-    method: 'GET',
-    path: '/theme/active',
-    handler() {
-      // A fresh install has published nothing, and this fixture now says so. It used to return a
-      // hand-pasted pink legacy palette flagged is_published, which meant mock mode overrode the
-      // shipped default on every boot — a developer could never see the colour the product
-      // actually ships with. The migration path it exercised is covered by the Theme Studio's own
-      // preset grid, which routes the same legacy tokens through themeFromLegacyTokens().
-      return { status: 200, body: { theme: null } };
-    },
-  },
-
-  // 38. Save Theme Draft
-  {
-    method: 'POST',
-    path: '/admin/theme/draft',
-    handler({ body }) {
-      return {
-        status: 200,
-        body: {
-          draft: {
-            id: Math.floor(10 + Math.random() * 90),
-            name: body?.name || 'Custom Theme Draft',
-            preset_key: body?.preset_key || 'custom',
-            tokens_json: body?.tokens,
-            is_published: false,
-            updated_at: new Date().toISOString(),
-          },
-          message_en: 'Theme draft saved successfully.',
-          message_bn: 'থিম ড্রাফট সফলভাবে সংরক্ষিত হয়েছে।',
-        },
-      };
-    },
-  },
-
-  // 39. Publish Theme Palette (CRITICAL Action)
-  {
-    method: 'POST',
-    path: '/admin/theme/:id/publish',
-    handler({ params, body }) {
-      return {
-        status: 200,
-        body: {
-          data: {
-            palette_id: params?.id,
-            is_published: true,
-            reason: body?.reason,
-            published_at: new Date().toISOString(),
-          },
-          message_en: 'Theme palette published and applied across all marketplace interfaces.',
-          message_bn: 'নতুন থিম সফলভাবে প্রকাশিত ও কার্যকর করা হয়েছে।',
-        },
-      };
-    },
-  },
+  // 37-39. Theme Studio (Get Active / Save Draft / Publish) now live in mocks/handlers/theme.js -
+  // that version actually persists to an in-memory palette list, so GET /theme/active reflects
+  // what was published instead of a hardcoded { theme: null } no matter what the admin does.
 
   // 40. Finance Overview Dashboard
   {

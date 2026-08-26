@@ -276,6 +276,7 @@ function runContrastChecks(sections) {
   };
 
   const nav = sections.navbar || {};
+  const side = sections.sidebar || {};
   const surf = sections.surfaces || {};
   const brand = sections.brand || {};
   const typo = sections.typography || {};
@@ -284,6 +285,8 @@ function runContrastChecks(sections) {
   const flash = sections.flash_sale || {};
 
   check('Navbar Text on Navbar BG', nav.text, nav.bg, 4.5);
+  if (side.text && side.bg) check('Sidebar Text on Sidebar BG', side.text, side.bg, 4.5);
+  if (side.active_text && side.active_bg) check('Sidebar Active Text on Active BG', side.active_text, side.active_bg, 4.5);
   check('Body Text on Page Canvas', typo.primary, surf.page, 4.5);
   check('Body Text on Card Surface', typo.primary, surf.card, 4.5);
   check('Secondary Text on Card Surface', typo.secondary, surf.card, 3.5);
@@ -389,6 +392,72 @@ export async function saveDraft(db, { name, presetKey = null, tokens, userId }) 
     tokensJson,
     createdBy: userId,
   });
+}
+
+export async function renameTheme(db, auditService, { id, name, userId, reqContext = {} }) {
+  const trimmed = typeof name === 'string' ? name.trim() : '';
+  if (!trimmed) {
+    throw new AppError('VALIDATION_FAILED', 'A theme name is required.', 'থিমের নাম আবশ্যক।');
+  }
+
+  const target = await themeRepo.getThemePaletteById(db, id);
+  if (!target) {
+    throw new AppError('NOT_FOUND', `Theme palette #${id} not found.`, `থিম প্যালেট #${id} পাওয়া যায়নি।`);
+  }
+
+  const renamed = await themeRepo.renameThemePalette(db, id, trimmed);
+
+  if (auditService) {
+    await auditService.record(db, {
+      actor: userId,
+      action: 'theme.rename',
+      targetType: 'theme_palette',
+      targetRef: String(id),
+      before: { name: target.name },
+      after: { name: renamed.name },
+      traceId: reqContext.traceId,
+      ip: reqContext.ip,
+      userAgent: reqContext.userAgent,
+    });
+  }
+
+  return renamed;
+}
+
+export async function deleteTheme(db, auditService, { id, userId, reqContext = {} }) {
+  const target = await themeRepo.getThemePaletteById(db, id);
+  if (!target) {
+    throw new AppError('NOT_FOUND', `Theme palette #${id} not found.`, `থিম প্যালেট #${id} পাওয়া যায়নি।`);
+  }
+
+  // The live site theme cannot be deleted out from under itself — publish a replacement first.
+  // WHY code CONFLICT rather than a new THEME_* code: the error code enum in
+  // docs/api-contract.md §3 is closed, and this is a state conflict (existing generic code fits).
+  if (target.is_active) {
+    throw new AppError(
+      'CONFLICT',
+      'The theme currently live on the site cannot be deleted. Publish a different theme first.',
+      'সাইটে বর্তমানে লাইভ থাকা থিম মুছে ফেলা যাবে না। প্রথমে অন্য একটি থিম পাবলিশ করুন।'
+    );
+  }
+
+  await themeRepo.deleteThemePalette(db, id);
+
+  if (auditService) {
+    await auditService.record(db, {
+      actor: userId,
+      action: 'theme.delete',
+      targetType: 'theme_palette',
+      targetRef: String(id),
+      before: { name: target.name, preset_key: target.preset_key },
+      after: {},
+      traceId: reqContext.traceId,
+      ip: reqContext.ip,
+      userAgent: reqContext.userAgent,
+    });
+  }
+
+  return { id };
 }
 
 export async function publishTheme(db, cache, auditService, { id, userId, reqContext = {} }) {

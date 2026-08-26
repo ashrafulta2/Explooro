@@ -99,28 +99,34 @@ export function validatePaletteContrast(tokens = {}) {
   const footer = tokens.footer || {};
   const flash = tokens.flash_sale || {};
 
+  const side = tokens.sidebar || {};
+
   // 1. Navbar
   check('Navbar Text on Navbar BG', nav.text, nav.bg, 4.5);
 
-  // 2. Surfaces & Typography
+  // 2. Sidebar
+  if (side.text && side.bg) check('Sidebar Text on Sidebar BG', side.text, side.bg, 4.5);
+  if (side.active_text && side.active_bg) check('Sidebar Active Text on Active BG', side.active_text, side.active_bg, 4.5);
+
+  // 3. Surfaces & Typography
   check('Body Text on Page Canvas', typo.primary, surf.page, 4.5);
   check('Body Text on Card Surface', typo.primary, surf.card, 4.5);
   check('Secondary Text on Card Surface', typo.secondary, surf.card, 3.5);
 
-  // 3. Brand Button
+  // 4. Brand Button
   check('Brand Button Contrast Text on Brand Primary', brand.contrast, brand.primary, 4.5);
 
-  // 4. Badges
+  // 5. Badges
   check('Success Badge Text on BG', badges.success_text, badges.success_bg, 4.5);
   check('Warning Badge Text on BG', badges.warning_text, badges.warning_bg, 4.5);
   check('Danger Badge Text on BG', badges.danger_text, badges.danger_bg, 4.5);
   check('Info Badge Text on BG', badges.info_text, badges.info_bg, 4.5);
 
-  // 5. Footer
+  // 6. Footer
   check('Footer Text on Footer BG', footer.text, footer.bg, 4.5);
   check('Footer Muted Text on Footer BG', footer.muted, footer.bg, 3.0);
 
-  // 6. Flash sale strip. The countdown digits inherit the header's ink, so the chip is checked
+  // 7. Flash sale strip. The countdown digits inherit the header's ink, so the chip is checked
   // against flash.text and not against a colour of its own.
   check('Flash Sale Header Text on Header BG', flash.text, flash.bg, 4.5);
   check('Flash Sale Countdown Digits on Chip', flash.text, flash.chip_bg, 4.5);
@@ -135,6 +141,9 @@ export function validatePaletteContrast(tokens = {}) {
 /** Every inline custom property a section override can pin, so a reset is exhaustive. */
 const SECTION_OVERRIDE_PROPS = [
   '--navbar-bg', '--navbar-text', '--navbar-border', '--navbar-search-bg',
+  '--navbar-icon-color', '--navbar-icon-hover', '--logo-bg', '--logo-star', '--logo-hole', '--logo-text',
+  '--sidebar-bg', '--sidebar-text', '--sidebar-border', '--sidebar-icon-color', '--sidebar-icon-hover',
+  '--sidebar-active-bg', '--sidebar-active-text',
   '--surface-page', '--surface-0', '--surface-1', '--surface-card', '--surface-subtle',
   '--surface-2', '--border-subtle',
   '--brand', '--brand-primary', '--brand-hover', '--brand-contrast',
@@ -159,9 +168,7 @@ export function clearThemeOverrides() {
 }
 
 /**
- * Maps a 6-section token to the custom properties it drives. Several tokens feed more than one
- * property because the section vocabulary (page/card/subtle) is coarser than the surface ladder
- * the components read (surface-0..3).
+ * Maps section tokens to the custom properties they drive.
  */
 const SECTION_PROPERTY_MAP = {
   navbar: {
@@ -169,6 +176,21 @@ const SECTION_PROPERTY_MAP = {
     text: ['--navbar-text'],
     border: ['--navbar-border'],
     search_bg: ['--navbar-search-bg'],
+    icon_color: ['--navbar-icon-color'],
+    icon_hover: ['--navbar-icon-hover'],
+    logo_bg: ['--logo-bg'],
+    logo_star: ['--logo-star'],
+    logo_hole: ['--logo-hole'],
+    logo_text: ['--logo-text'],
+  },
+  sidebar: {
+    bg: ['--sidebar-bg'],
+    text: ['--sidebar-text'],
+    border: ['--sidebar-border'],
+    icon_color: ['--sidebar-icon-color'],
+    icon_hover: ['--sidebar-icon-hover'],
+    active_bg: ['--sidebar-active-bg'],
+    active_text: ['--sidebar-active-text'],
   },
   surfaces: {
     page: ['--surface-page', '--surface-0', '--surface-1'],
@@ -282,45 +304,112 @@ export function themeFromMaster(masterConfig) {
 }
 
 /**
- * Migrates a palette published before the master engine existed. Its brand fill becomes the seed,
- * so the ramps, borders, hovers and dark theme it never carried are generated; its navbar and
- * footer are kept verbatim, because a deliberately dark header is identity rather than something
- * the generator should overrule. Shared with the Theme Studio's preset grid so the live site and
- * the studio preview cannot disagree about what a legacy palette looks like.
+ * Migrates a palette published before the master engine existed or from custom token presets.
+ * Its brand fill becomes the seed, so ramps and roles are generated cleanly with neutral surfaces.
  */
 export function themeFromLegacyTokens(tokens = {}) {
   const generated = themeFromMaster({
     ...DEFAULT_MASTER,
     seed: tokens.brand?.primary || DEFAULT_MASTER.seed,
     neutralMode: 'match',
-    neutralTint: 1.3,
-    statusPull: 0.25,
-    // Stated rather than inherited from DEFAULT_MASTER. A legacy palette was published in the era
-    // when tinted surfaces and borders were the house style, so migrating one should keep that
-    // look — it must not silently flatten because the SHIPPED default later turned both off.
-    surfaceWash: true,
-    borderTint: true,
+    neutralTint: 0,
+    statusPull: 0,
+    surfaceWash: false,
+    borderTint: false,
   });
+  const nav = tokens.navbar ? { ...tokens.navbar } : { ...generated.navbar };
+  if (nav.bg && nav.text && getContrastRatio(nav.text, nav.bg) < 4.5) {
+    nav.text = getContrastRatio('#ffffff', nav.bg) >= 4.5 ? '#ffffff' : '#0f172a';
+  }
   return {
     ...generated,
-    navbar: { ...(tokens.navbar || generated.navbar) },
+    navbar: nav,
     footer: { ...(tokens.footer || generated.footer) },
+    sidebar: { ...(tokens.sidebar || generated.sidebar) },
     // No `flash_sale` carry-over: a pre-master palette never had one, so the generated strip is
     // the only value that exists and must not be replaced with an undefined.
     flash_sale: { ...(tokens.flash_sale || generated.flash_sale) },
   };
 }
 
+const ACTIVE_THEME_STORAGE_KEY = 'explooro:theme:active_tokens';
+const ACTIVE_PRESET_STORAGE_KEY = 'explooro:theme:active_preset';
+
+export function getCachedActiveTheme() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem(ACTIVE_THEME_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    }
+  } catch {
+    // fallback
+  }
+  return null;
+}
+
+export function getActivePresetKey() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem(ACTIVE_PRESET_STORAGE_KEY) || DEFAULT_MASTER_PRESET;
+    }
+  } catch {
+    // fallback
+  }
+  return DEFAULT_MASTER_PRESET;
+}
+
+export function cacheActiveTheme(tokens, presetKey = null) {
+  try {
+    if (typeof localStorage !== 'undefined' && tokens) {
+      localStorage.setItem(ACTIVE_THEME_STORAGE_KEY, JSON.stringify(tokens));
+      if (presetKey) {
+        localStorage.setItem(ACTIVE_PRESET_STORAGE_KEY, presetKey);
+      }
+    }
+  } catch {
+    // fallback
+  }
+}
+
+/**
+ * 1-Click theme preset switcher. Applies theme instantly and persists to localStorage.
+ */
+export function switchThemePreset(presetKey) {
+  const targetKey = MASTER_PRESETS[presetKey] ? presetKey : (THEME_PRESETS[presetKey] ? presetKey : DEFAULT_MASTER_PRESET);
+  let nextTokens;
+  if (MASTER_PRESETS[targetKey]) {
+    nextTokens = themeFromMasterPreset(targetKey);
+  } else if (THEME_PRESETS[targetKey]) {
+    nextTokens = themeFromLegacyTokens(THEME_PRESETS[targetKey].tokens);
+  } else {
+    nextTokens = themeFromMasterPreset(DEFAULT_MASTER_PRESET);
+  }
+
+  cacheActiveTheme(nextTokens, targetKey);
+  applyTheme(nextTokens);
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('explooro:theme:preset-change', { detail: { presetKey: targetKey } }));
+  }
+  return nextTokens;
+}
+
 /**
  * Boots the runtime theme.
  *
- * The shipped default is mounted SYNCHRONOUSLY, before the API is asked anything: the master
- * engine — not themes.css — is what defines the product's colours now, and a published palette
- * only ever replaces that default. Waiting for the round trip first would leave the shell painting
- * the engine's pink calibration baseline for the whole request.
+ * Mounts cached theme (or shipped default) SYNCHRONOUSLY before the API is asked anything,
+ * then reconciles against the server's /theme/active endpoint.
  */
 export async function initTheme() {
-  applyTheme(themeFromMasterPreset(DEFAULT_MASTER_PRESET));
+  const cached = getCachedActiveTheme();
+  if (cached?.master) {
+    applyTheme(cached);
+  } else if (cached?.brand?.primary) {
+    applyTheme(themeFromLegacyTokens(cached));
+  } else {
+    applyTheme(themeFromMasterPreset(DEFAULT_MASTER_PRESET));
+  }
+
   try {
     const { api } = await import('../core/api.js');
     const res = await api.get('/theme/active');
@@ -329,10 +418,12 @@ export async function initTheme() {
     // shape the API actually returns instead.
     const tokens = res?.theme?.tokens_json || res?.tokens || null;
     if (tokens?.master) {
+      cacheActiveTheme(tokens);
       applyTheme(tokens);
       return;
     }
     if (tokens?.brand?.primary) {
+      cacheActiveTheme(tokens);
       applyTheme(themeFromLegacyTokens(tokens));
       return;
     }

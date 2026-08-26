@@ -8,8 +8,8 @@
  * session — the same "no real persistence, just a believable live demo" contract every other mock
  * handler in this app follows.
  */
-import seedReviews from '../fixtures/reviews.json';
-import purchases from '../fixtures/purchases.json';
+import seedReviews from '../fixtures/reviews.json' with { type: 'json' };
+import purchases from '../fixtures/purchases.json' with { type: 'json' };
 import { appStore } from '../../state/appStore.js';
 
 let reviews = seedReviews.map((r) => ({ ...r }));

@@ -41,6 +41,22 @@ export async function saveThemeDraft(db, { name, presetKey = null, tokensJson, c
   return rows[0];
 }
 
+export async function renameThemePalette(db, id, name) {
+  const { rows } = await db.query(
+    `UPDATE theme_palettes SET name = $2, updated_at = now() WHERE id = $1 RETURNING *`,
+    [id, name]
+  );
+  return rows[0] ?? null;
+}
+
+export async function deleteThemePalette(db, id) {
+  const { rows } = await db.query(
+    `DELETE FROM theme_palettes WHERE id = $1 RETURNING *`,
+    [id]
+  );
+  return rows[0] ?? null;
+}
+
 export async function publishThemePalette(db, id, { publishedBy }) {
   // Deactivate all palettes
   await db.query(`UPDATE theme_palettes SET is_active = false WHERE is_active = true`);

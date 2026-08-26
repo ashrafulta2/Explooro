@@ -181,6 +181,182 @@ function AvatarMenu({ role, onNavigate }) {
   return wrap;
 }
 
+import { MASTER_PRESETS } from '../../config/master-themes.js';
+import { switchThemePreset, getActivePresetKey } from '../../services/themePalette.js';
+import { toast } from '../../services/toast.js';
+
+function ThemeMenu() {
+  const wrap = document.createElement('div');
+  wrap.className = 'topbar__theme-menu topbar__avatar-menu';
+
+  let activePreset = getActivePresetKey();
+
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'topbar__icon-btn topbar__theme-btn';
+  trigger.setAttribute('aria-haspopup', 'true');
+  trigger.setAttribute('aria-expanded', 'false');
+  trigger.setAttribute('aria-label', t('shell.theme_menu_title') || 'Theme & Presets');
+  trigger.title = t('shell.theme_menu_title') || 'Theme & Presets';
+
+  const updateTriggerIcon = () => {
+    const mode = getTheme();
+    trigger.innerHTML = THEME_ICONS_SVG[mode] || THEME_ICONS_SVG.system;
+  };
+  updateTriggerIcon();
+
+  const panel = document.createElement('div');
+  panel.className = 'topbar__avatar-panel topbar__theme-panel';
+  panel.style.minWidth = '230px';
+  panel.hidden = true;
+
+  const renderPanel = () => {
+    panel.innerHTML = '';
+    const isBn = getLanguage() === 'bn';
+    const mode = getTheme();
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'topbar__theme-panel-header';
+    header.style.padding = '2px 4px 6px 4px';
+    header.style.borderBottom = '1px solid var(--border-subtle)';
+    header.innerHTML = `
+      <span style="font-weight: 700; font-size: 11px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">${t('shell.theme_menu_title') || 'Theme & Presets'}</span>
+    `;
+    panel.append(header);
+
+    // Mode Row (Light, Dark, System)
+    const modeRow = document.createElement('div');
+    modeRow.className = 'topbar__theme-mode-row';
+    modeRow.style.display = 'flex';
+    modeRow.style.gap = '4px';
+    modeRow.style.padding = '8px 0';
+    modeRow.style.borderBottom = '1px solid var(--border-subtle)';
+
+    const modes = [
+      { id: 'light', label: t('shell.theme_mode_light') || 'Light', icon: THEME_ICONS_SVG.light },
+      { id: 'dark', label: t('shell.theme_mode_dark') || 'Dark', icon: THEME_ICONS_SVG.dark },
+      { id: 'system', label: t('shell.theme_mode_system') || 'System', icon: THEME_ICONS_SVG.system },
+    ];
+
+    modes.forEach((m) => {
+      const modeBtn = document.createElement('button');
+      modeBtn.type = 'button';
+      modeBtn.className = `btn btn--sm ${mode === m.id ? 'btn--primary' : 'btn--ghost'}`;
+      modeBtn.style.flex = '1';
+      modeBtn.style.padding = '4px 6px';
+      modeBtn.style.fontSize = '11px';
+      modeBtn.style.display = 'flex';
+      modeBtn.style.alignItems = 'center';
+      modeBtn.style.justifyContent = 'center';
+      modeBtn.style.gap = '4px';
+      modeBtn.innerHTML = `<span>${m.icon}</span> <span>${m.label}</span>`;
+      modeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        applyTheme(m.id);
+        updateTriggerIcon();
+        renderPanel();
+      });
+      modeRow.append(modeBtn);
+    });
+    panel.append(modeRow);
+
+    // Presets Header
+    const presetsHeader = document.createElement('div');
+    presetsHeader.style.padding = '8px 4px 4px 4px';
+    presetsHeader.style.fontSize = '11px';
+    presetsHeader.style.fontWeight = '600';
+    presetsHeader.style.color = 'var(--text-muted)';
+    presetsHeader.textContent = t('shell.theme_presets_title') || 'Marketplace Style (1-Click)';
+    panel.append(presetsHeader);
+
+    // Presets List
+    const presetsList = document.createElement('div');
+    presetsList.className = 'topbar__theme-presets-list';
+    presetsList.style.display = 'flex';
+    presetsList.style.flexDirection = 'column';
+    presetsList.style.gap = '2px';
+    presetsList.style.maxHeight = '240px';
+    presetsList.style.overflowY = 'auto';
+
+    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+      const pBtn = document.createElement('button');
+      pBtn.type = 'button';
+      pBtn.className = 'topbar__theme-preset-btn';
+      pBtn.style.display = 'flex';
+      pBtn.style.alignItems = 'center';
+      pBtn.style.gap = '8px';
+      pBtn.style.padding = '6px 8px';
+      pBtn.style.borderRadius = 'var(--radius-sm)';
+      pBtn.style.border = 'none';
+      pBtn.style.background = activePreset === key ? 'var(--surface-2)' : 'transparent';
+      pBtn.style.cursor = 'pointer';
+      pBtn.style.textAlign = 'left';
+      pBtn.style.width = '100%';
+
+      const dot = document.createElement('span');
+      dot.style.width = '12px';
+      dot.style.height = '12px';
+      dot.style.borderRadius = '50%';
+      dot.style.background = preset.master.seed;
+      dot.style.flexShrink = '0';
+      dot.style.border = '1px solid rgba(0,0,0,0.15)';
+
+      const name = document.createElement('span');
+      name.style.fontSize = '12px';
+      name.style.fontWeight = activePreset === key ? '700' : '500';
+      name.style.color = activePreset === key ? 'var(--brand)' : 'var(--text-primary)';
+      name.style.flex = '1';
+      name.textContent = isBn ? preset.name_bn : preset.name_en;
+
+      const check = document.createElement('span');
+      check.style.fontSize = '12px';
+      check.style.fontWeight = '700';
+      check.style.color = 'var(--brand)';
+      check.textContent = activePreset === key ? '✓' : '';
+
+      pBtn.append(dot, name, check);
+
+      pBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        activePreset = key;
+        switchThemePreset(key);
+        const nameText = isBn ? preset.name_bn : preset.name_en;
+        toast.info(t('shell.theme_applied_toast', { name: nameText }) || `Theme applied: ${nameText}`);
+        renderPanel();
+      });
+
+      presetsList.append(pBtn);
+    }
+
+    panel.append(presetsList);
+  };
+
+  function open() {
+    renderPanel();
+    panel.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    document.addEventListener('click', onOutsideClick, { capture: true });
+    document.addEventListener('keydown', onKeydown);
+  }
+  function close() {
+    panel.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('click', onOutsideClick, { capture: true });
+    document.removeEventListener('keydown', onKeydown);
+  }
+  function onOutsideClick(event) {
+    if (!wrap.contains(event.target)) close();
+  }
+  function onKeydown(event) {
+    if (event.key === 'Escape') close();
+  }
+
+  trigger.addEventListener('click', () => (panel.hidden ? open() : close()));
+  wrap.append(trigger, panel);
+  return wrap;
+}
+
 export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette }) {
   const bar = document.createElement('header');
   bar.className = 'topbar';
@@ -261,22 +437,8 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
   langBtn.addEventListener('click', () => setLanguage(getLanguage() === 'bn' ? 'en' : 'bn'));
   bar.append(langBtn);
 
-  const currentTheme = getTheme();
-  const themeBtn = document.createElement('button');
-  themeBtn.type = 'button';
-  themeBtn.className = 'topbar__icon-btn topbar__theme-btn';
-  themeBtn.innerHTML = THEME_ICONS_SVG[currentTheme] || THEME_ICONS_SVG.system;
-  themeBtn.title = `Theme: ${currentTheme}`;
-  themeBtn.setAttribute('aria-label', `Theme: ${currentTheme}`);
-  themeBtn.addEventListener('click', () => {
-    const current = getTheme();
-    const next = { system: 'light', light: 'dark', dark: 'system' }[current] || 'light';
-    applyTheme(next);
-    themeBtn.innerHTML = THEME_ICONS_SVG[next];
-    themeBtn.title = `Theme: ${next}`;
-    themeBtn.setAttribute('aria-label', `Theme: ${next}`);
-  });
-  bar.append(themeBtn);
+  // Theme & Marketplace Preset Switcher Menu
+  bar.append(ThemeMenu());
 
   if (badges && badges.cart !== undefined) {
     bar.append(

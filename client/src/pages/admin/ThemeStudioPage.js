@@ -4,7 +4,9 @@
 
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
-import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { Input } from '../../components/ui/Input.js';
+import { Modal } from '../../components/ui/Modal.js';
+import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { THEME_PRESETS } from '../../config/theme-presets.js';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.js';
 import {
@@ -14,13 +16,17 @@ import {
   validateNoGradients,
   themeFromMaster,
   themeFromLegacyTokens,
+  getCurrentTokens,
+  getCurrentMaster,
+  cacheActiveTheme,
 } from '../../services/themePalette.js';
 import {
-  generatePalette, BRAND_STEPS, NEUTRAL_STEPS, MASTER_RANGES,
+  generatePalette, paletteToSectionTokens, BRAND_STEPS, NEUTRAL_STEPS, MASTER_RANGES,
 } from '../../services/colorRamp.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { formatRelativeTime } from '../../services/format.js';
 import { appStore } from '../../state/appStore.js';
 
 export default function ThemeStudioPage(root) {
@@ -30,12 +36,40 @@ export default function ThemeStudioPage(root) {
 
   const authState = appStore.get()?.auth || {};
   const isSuperAdmin = (authState.roles || []).includes('super_admin') || authState.role === 'super_admin';
+  const isAdmin = isSuperAdmin || (authState.roles || []).includes('admin') || authState.role === 'admin';
+  const isModerator = (authState.roles || []).includes('moderator') || authState.role === 'moderator' || (authState.roles || []).includes('editor') || authState.role === 'editor';
+
+  // Seed from whatever the site is ALREADY showing, not the shipped default — applyTheme() below
+  // writes CSS custom properties onto document.documentElement, which is global, site-wide state.
+  // Bootstrapping from DEFAULT_MASTER_PRESET here used to force-repaint the live site to the
+  // default palette the instant this page mounted, before the async fetch below could correct it.
+  const liveMaster = getCurrentMaster();
+  const liveTokens = getCurrentTokens();
 
   let activePresetKey = DEFAULT_MASTER_PRESET;
-  let masterConfig = { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master };
-  let workingTokens = themeFromMaster(masterConfig);
+  if (liveMaster?.seed) {
+    const matchedMaster = Object.entries(MASTER_PRESETS).find(
+      ([, p]) => p.master?.seed?.toLowerCase() === liveMaster.seed.toLowerCase()
+    );
+    if (matchedMaster) {
+      activePresetKey = matchedMaster[0];
+    } else {
+      const matchedLegacy = Object.entries(THEME_PRESETS).find(
+        ([, p]) => (p.tokens?.brand?.primary || p.preview_swatch)?.toLowerCase() === liveMaster.seed.toLowerCase()
+      );
+      activePresetKey = matchedLegacy ? matchedLegacy[0] : 'custom';
+    }
+  }
+
+  let masterConfig = liveMaster
+    ? { ...liveMaster }
+    : { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master };
+  let workingTokens = liveMaster
+    ? JSON.parse(JSON.stringify(liveTokens))
+    : themeFromMaster(masterConfig);
   let publishedTokens = JSON.parse(JSON.stringify(workingTokens));
   let activePaletteId = null;
+  let savedThemes = [];
 
   // Header
   const header = document.createElement('div');
@@ -73,7 +107,9 @@ export default function ThemeStudioPage(root) {
   });
 
   const publishBtn = Button({
-    label: `🚀 ${t('theme_studio.btn_publish')}`,
+    label: isAdmin
+      ? `🚀 ${t('theme_studio.btn_publish')}`
+      : `📝 ${t('theme_studio.btn_submit_approval') || 'Submit for Admin Approval'}`,
     variant: 'primary',
     size: 'sm',
     onClick: handlePublishTheme,
@@ -98,11 +134,7 @@ export default function ThemeStudioPage(root) {
   leftCol.style.flexDirection = 'column';
   leftCol.style.gap = 'var(--space-6)';
 
-  // Master Colour Section - the one control that re-themes the whole product.
-  const masterWrap = document.createElement('div');
-  masterWrap.className = 'theme-master';
-
-  // Presets Section
+  // 1. Primary: 1-Click Clean Marketplace Themes (Standard)
   const presetsWrap = document.createElement('div');
   presetsWrap.className = 'theme-presets';
 
@@ -116,7 +148,7 @@ export default function ThemeStudioPage(root) {
 
   presetsWrap.append(presetsHeading, presetsGrid);
 
-  // 6 Section Color Controls
+  // 2. Primary: Section Color Controls (Navbar/Logo, Sidebar, Action Buttons, Badges, etc.)
   const sectionsWrap = document.createElement('div');
   sectionsWrap.className = 'theme-sections';
 
@@ -127,7 +159,63 @@ export default function ThemeStudioPage(root) {
   sectionsWrap.append(sectionsHeading);
   renderSectionAccordions(sectionsWrap);
 
-  leftCol.append(masterWrap, presetsWrap, sectionsWrap);
+  // 3. Secondary / Advanced: Master Seed & Procedural Palette Engine (Optional)
+  const masterCard = document.createElement('div');
+  masterCard.className = 'theme-section-card';
+
+  const masterHeader = document.createElement('div');
+  masterHeader.className = 'theme-section-card__header';
+  masterHeader.innerHTML = `<span>${t('theme_studio.master_advanced_title')}</span> <span>▶</span>`;
+
+  const masterBody = document.createElement('div');
+  masterBody.className = 'theme-section-card__body';
+  masterBody.style.display = 'none';
+
+  masterHeader.addEventListener('click', () => {
+    const isHidden = masterBody.style.display === 'none';
+    masterBody.style.display = isHidden ? 'flex' : 'none';
+    masterHeader.querySelector('span:last-child').textContent = isHidden ? '▼' : '▶';
+  });
+
+  const masterWrap = document.createElement('div');
+  masterWrap.className = 'theme-master';
+  masterWrap.style.padding = '0';
+  masterWrap.style.border = 'none';
+  masterWrap.style.background = 'transparent';
+
+  masterBody.append(masterWrap);
+  masterCard.append(masterHeader, masterBody);
+
+  // 4. My Saved Themes — custom palettes the admin has named and saved for reuse.
+  const savedWrap = document.createElement('div');
+  savedWrap.className = 'theme-section-card';
+
+  const savedHeader = document.createElement('div');
+  savedHeader.className = 'theme-section-card__header';
+  savedHeader.innerHTML = `<span>${t('theme_studio.saved_title')}</span> <span>▶</span>`;
+
+  const savedBody = document.createElement('div');
+  savedBody.className = 'theme-section-card__body';
+  savedBody.style.display = 'none';
+
+  savedHeader.addEventListener('click', () => {
+    const isHidden = savedBody.style.display === 'none';
+    savedBody.style.display = isHidden ? 'flex' : 'none';
+    savedHeader.querySelector('span:last-child').textContent = isHidden ? '▼' : '▶';
+  });
+
+  const savedDesc = document.createElement('p');
+  savedDesc.className = 'theme-saved__desc';
+  savedDesc.textContent = t('theme_studio.saved_desc');
+
+  const savedThemesList = document.createElement('div');
+  savedThemesList.className = 'theme-saved__list';
+  renderSavedThemesList(savedThemesList);
+
+  savedBody.append(savedDesc, savedThemesList);
+  savedWrap.append(savedHeader, savedBody);
+
+  leftCol.append(presetsWrap, sectionsWrap, masterCard, savedWrap);
 
   // Right Column: Live Site Component Preview
   const rightCol = document.createElement('div');
@@ -162,14 +250,14 @@ export default function ThemeStudioPage(root) {
    */
   function renderPresetsGrid(wrap) {
     wrap.innerHTML = '';
-    for (const [key, preset] of Object.entries(THEME_PRESETS)) {
-      const seed = preset.tokens.brand?.primary || preset.preview_swatch || '#333333';
+    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+      const seed = preset.master?.seed || '#334155';
       const card = document.createElement('div');
       card.className = `theme-preset-card ${activePresetKey === key ? 'theme-preset-card--active' : ''}`;
 
       const swatch = document.createElement('div');
       swatch.className = 'theme-preset-card__swatch';
-      swatch.style.background = preset.preview_swatch || seed;
+      swatch.style.background = seed;
       swatch.textContent = preset.key.toUpperCase().substring(0, 3);
 
       const name = document.createElement('span');
@@ -180,8 +268,8 @@ export default function ThemeStudioPage(root) {
 
       card.addEventListener('click', () => {
         activePresetKey = key;
-        workingTokens = themeFromLegacyTokens(preset.tokens);
-        masterConfig = { ...workingTokens.master };
+        masterConfig = { ...preset.master };
+        workingTokens = themeFromMaster(masterConfig);
         refreshAll();
         toast.info(isBn ? `প্রিসেট প্রয়োগ করা হয়েছে: ${preset.name_bn}` : `Applied preset: ${preset.name_en}`);
       });
@@ -429,9 +517,27 @@ export default function ThemeStudioPage(root) {
         title: t('theme_studio.section_navbar'),
         items: [
           { token: 'navbar.bg', label: 'Navbar Background', fgOrBg: 'bg', compareToken: 'navbar.text' },
-          { token: 'navbar.text', label: 'Navbar Text / Icons', fgOrBg: 'fg', compareToken: 'navbar.bg' },
+          { token: 'navbar.text', label: 'Navbar Text', fgOrBg: 'fg', compareToken: 'navbar.bg' },
+          { token: 'navbar.logo_text', label: 'Logo Brand Text ("EXPLOORO")', fgOrBg: 'fg', compareToken: 'navbar.bg' },
+          { token: 'navbar.logo_bg', label: 'Logo Badge BG', fgOrBg: 'other' },
+          { token: 'navbar.logo_star', label: 'Logo Sparkle Star', fgOrBg: 'other' },
+          { token: 'navbar.icon_color', label: 'Header Icons Color', fgOrBg: 'other' },
+          { token: 'navbar.icon_hover', label: 'Header Icons Hover Color', fgOrBg: 'other' },
           { token: 'navbar.border', label: 'Navbar Border', fgOrBg: 'other' },
           { token: 'navbar.search_bg', label: 'Search Input BG', fgOrBg: 'other' },
+        ],
+      },
+      {
+        id: 'sidebar',
+        title: t('theme_studio.section_sidebar') || 'Left Sidebar & Navigation Icons',
+        items: [
+          { token: 'sidebar.bg', label: 'Sidebar Background', fgOrBg: 'bg', compareToken: 'sidebar.text' },
+          { token: 'sidebar.text', label: 'Sidebar Item Text', fgOrBg: 'fg', compareToken: 'sidebar.bg' },
+          { token: 'sidebar.icon_color', label: 'Sidebar Icons Color', fgOrBg: 'other' },
+          { token: 'sidebar.icon_hover', label: 'Sidebar Icons Hover Color', fgOrBg: 'other' },
+          { token: 'sidebar.active_bg', label: 'Sidebar Active Item BG', fgOrBg: 'bg', compareToken: 'sidebar.active_text' },
+          { token: 'sidebar.active_text', label: 'Sidebar Active Item Text & Icon', fgOrBg: 'fg', compareToken: 'sidebar.active_bg' },
+          { token: 'sidebar.border', label: 'Sidebar Separator Border', fgOrBg: 'other' },
         ],
       },
       {
@@ -536,7 +642,8 @@ export default function ThemeStudioPage(root) {
     row.className = 'theme-color-row';
 
     const [secKey, propKey] = item.token.split('.');
-    const currentValue = workingTokens[secKey]?.[propKey] || '#ffffff';
+    const fallbackPalette = paletteToSectionTokens(generatePalette(masterConfig));
+    const currentValue = workingTokens[secKey]?.[propKey] || fallbackPalette[secKey]?.[propKey] || '#ffffff';
 
     const info = document.createElement('div');
     info.className = 'theme-color-row__info';
@@ -590,7 +697,44 @@ export default function ThemeStudioPage(root) {
     picker.addEventListener('input', (e) => onColorChange(e.target.value));
     hexInput.addEventListener('input', (e) => onColorChange(e.target.value));
 
-    control.append(picker, hexInput, contrastBadge);
+    // 1-Click quick presets / swatches
+    const quickSwatchesWrap = document.createElement('div');
+    quickSwatchesWrap.className = 'theme-quick-swatches';
+
+    // 1-Click Reset to Default Preset button
+    const defaultVal = fallbackPalette[secKey]?.[propKey] || '#ffffff';
+    const resetBtn = document.createElement('button');
+    resetBtn.type = 'button';
+    resetBtn.className = 'theme-quick-btn';
+    resetBtn.title = isBn ? `ডিফল্ট রঙে ফিরুন: ${defaultVal}` : `Reset to default preset: ${defaultVal}`;
+    resetBtn.innerHTML = `<span>↺</span> <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${defaultVal};border:1px solid rgba(0,0,0,0.25);"></span>`;
+    resetBtn.addEventListener('click', () => {
+      onColorChange(defaultVal);
+      toast.info(isBn ? `রং ডিফল্টে রিসেট করা হয়েছে: ${defaultVal}` : `Reset color to default: ${defaultVal}`);
+    });
+    quickSwatchesWrap.append(resetBtn);
+
+    // 1-Click Quick Swatches: Solid Black, Pure White, Brand Seed
+    const quickPresetsList = [
+      { title: isBn ? 'সলিড ব্ল্যাক (#192026)' : 'Solid Black (#192026)', hex: '#192026' },
+      { title: isBn ? 'পিওর হোয়াইট (#ffffff)' : 'Pure White (#ffffff)', hex: '#ffffff' },
+      { title: isBn ? 'ব্র্যান্ড অ্যাকসেন্ট' : 'Brand Accent', hex: masterConfig.seed || '#1d4ed8' },
+    ];
+
+    for (const qp of quickPresetsList) {
+      const swatchBtn = document.createElement('button');
+      swatchBtn.type = 'button';
+      swatchBtn.className = 'theme-quick-swatch';
+      swatchBtn.title = qp.title;
+      swatchBtn.style.backgroundColor = qp.hex;
+      swatchBtn.addEventListener('click', () => {
+        onColorChange(qp.hex);
+        toast.info(isBn ? `রং সেট করা হয়েছে: ${qp.hex}` : `Set color to: ${qp.hex}`);
+      });
+      quickSwatchesWrap.append(swatchBtn);
+    }
+
+    control.append(picker, hexInput, quickSwatchesWrap, contrastBadge);
     row.append(info, control);
 
     return row;
@@ -602,7 +746,8 @@ export default function ThemeStudioPage(root) {
       return;
     }
     const [cSec, cProp] = item.compareToken.split('.');
-    const compareVal = workingTokens[cSec]?.[cProp] || '#ffffff';
+    const fallbackPalette = paletteToSectionTokens(generatePalette(masterConfig));
+    const compareVal = workingTokens[cSec]?.[cProp] || fallbackPalette[cSec]?.[cProp] || '#ffffff';
     const ratio = getContrastRatio(val, compareVal);
     const passes = ratio >= 4.5;
 
@@ -624,7 +769,12 @@ export default function ThemeStudioPage(root) {
   }
 
   function updateContrastStatusBanner(bannerEl) {
-    const val = validatePaletteContrast(workingTokens);
+    const fallbackPalette = paletteToSectionTokens(generatePalette(masterConfig));
+    const mergedTokens = { ...workingTokens };
+    for (const [secKey, secVals] of Object.entries(fallbackPalette)) {
+      mergedTokens[secKey] = { ...secVals, ...(mergedTokens[secKey] || {}) };
+    }
+    const val = validatePaletteContrast(mergedTokens);
     bannerEl.innerHTML = '';
 
     if (val.isValid) {
@@ -632,8 +782,8 @@ export default function ThemeStudioPage(root) {
       bannerEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
       bannerEl.style.background = 'rgba(16, 185, 129, 0.08)';
       bannerEl.style.color = '#065f46';
-      bannerEl.textContent = `🛡️ All 6 UI section pairings satisfy WCAG AA standards.`;
-      publishBtn.disabled = !isSuperAdmin;
+      bannerEl.textContent = `🛡️ All UI section pairings satisfy WCAG AA standards.`;
+      publishBtn.disabled = false;
     } else {
       bannerEl.className = 'grant-preview-box';
       bannerEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
@@ -655,61 +805,81 @@ export default function ThemeStudioPage(root) {
     wrap.innerHTML = `
       <div class="mini-navbar">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-weight: 700;">Explooro</span>
-          <span style="font-size: 10px; opacity: 0.7;">Marketplace</span>
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--logo-bg, var(--brand-900)); color: var(--logo-star, var(--brand-500));">
+            <svg viewBox="0 0 100 100" width="16" height="16" aria-hidden="true">
+              <path d="M50,4 C58,34 66,42 96,50 C66,58 58,66 50,96 C42,66 34,58 4,50 C34,42 42,34 50,4 Z" fill="var(--logo-star, var(--brand-500))" />
+              <circle cx="50" cy="50" r="9" fill="var(--logo-hole, var(--neutral-0))" />
+            </svg>
+          </div>
+          <span style="font-weight: 700; color: var(--logo-text, var(--navbar-text)); font-size: 13px;">EXPLOORO</span>
         </div>
         <div style="padding: 3px 10px; background: var(--navbar-search-bg); border: 1px solid var(--navbar-border); border-radius: 4px; font-size: 10px; color: var(--navbar-text);">
           Search products, brands…
         </div>
-        <div style="display: flex; gap: 6px;">
-          <span>🛒 Cart</span>
-          <span>👤 Profile</span>
+        <div style="display: flex; gap: 8px; align-items: center; color: var(--navbar-icon-color, var(--brand-800)); font-size: 12px;">
+          <span>🛒</span>
+          <span>🔔</span>
+          <span>👤</span>
         </div>
       </div>
 
-      <div class="mini-content">
-        <div class="mini-card">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-weight: 700; color: var(--text-primary);">Cotton Casual Shirt</span>
-            <span style="padding: 2px 6px; background: var(--success-bg); color: var(--success); border-radius: 4px; font-size: 10px; font-weight: 600;">In Stock</span>
+      <div class="mini-body">
+        <div class="mini-sidebar">
+          <div class="mini-sidebar__item mini-sidebar__item--active">
+            <span class="mini-sidebar__icon">📊</span>
+            <span>Dashboard</span>
           </div>
-          <span style="color: var(--text-secondary); font-size: 11px;">Premium 100% combed cotton. Fast delivery across 64 districts.</span>
+          <div class="mini-sidebar__item">
+            <span class="mini-sidebar__icon">📦</span>
+            <span>Products</span>
+          </div>
+          <div class="mini-sidebar__item">
+            <span class="mini-sidebar__icon">🛒</span>
+            <span>Orders</span>
+          </div>
+          <div class="mini-sidebar__item">
+            <span class="mini-sidebar__icon">⚙️</span>
+            <span>Settings</span>
+          </div>
+        </div>
 
-          <input class="mini-input" placeholder="Quantity — input border uses --border-interactive" />
-
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; gap: 8px;">
-            <strong style="font-size: 14px; color: var(--text-primary);">৳1,450</strong>
-            <div style="display: flex; gap: 6px;">
-              <button class="mini-btn mini-btn--secondary">Wishlist</button>
-              <button class="mini-btn mini-btn--primary">Buy Now</button>
+        <div class="mini-content">
+          <div class="mini-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-weight: 700; color: var(--text-primary);">Cotton Casual Shirt</span>
+              <span style="padding: 2px 6px; background: var(--success-bg); color: var(--success); border-radius: 4px; font-size: 10px; font-weight: 600;">In Stock</span>
             </div>
-          </div>
-          <span class="mini-hint">Hover either button — the fill steps to --brand-hover / --brand-200.</span>
-        </div>
+            <span style="color: var(--text-secondary); font-size: 11px;">Premium 100% combed cotton. Fast delivery across 64 districts.</span>
 
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          <span style="padding: 2px 6px; background: var(--warning-bg); color: var(--warning); border-radius: 4px; font-size: 10px; font-weight: 600;">Low Stock</span>
-          <span style="padding: 2px 6px; background: var(--danger-bg); color: var(--danger); border-radius: 4px; font-size: 10px; font-weight: 600;">Flash Sale</span>
-          <span style="padding: 2px 6px; background: var(--info-bg); color: var(--info); border-radius: 4px; font-size: 10px; font-weight: 600;">Verified Merchant</span>
-          <span style="padding: 2px 6px; background: var(--accent-100); color: var(--accent-700); border-radius: 4px; font-size: 10px; font-weight: 600;">Accent · 2h left</span>
-        </div>
+            <input class="mini-input" placeholder="Quantity — input border uses --border-interactive" />
 
-        <div class="mini-flash">
-          <div class="mini-flash__header">
-            <span class="mini-flash__title">⚡ FLASH SALE</span>
-            <span class="mini-flash__timer">
-              <span class="mini-flash__chip">02</span>:<span class="mini-flash__chip">14</span>:<span class="mini-flash__chip">09</span>
-            </span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; gap: 8px;">
+              <strong style="font-size: 14px; color: var(--text-primary);">৳1,450</strong>
+              <div style="display: flex; gap: 6px;">
+                <button class="mini-btn mini-btn--secondary">Wishlist</button>
+                <button class="mini-btn mini-btn--primary">Buy Now</button>
+              </div>
+            </div>
+            <span class="mini-hint">Hover either button — the fill steps to --brand-hover / --brand-200.</span>
           </div>
-          <div class="mini-flash__body">
-            <span class="mini-flash__tag">FLASH</span>
-            <span>Product cards in the strip carry the tag above.</span>
-          </div>
-        </div>
 
-        <div class="mini-scroll" tabindex="0" aria-label="Scrollbar preview">
-          <div class="mini-scroll__inner">
-            <span>Scroll this strip sideways — the thumb paints with --border-strong.</span>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <span style="padding: 2px 6px; background: var(--warning-bg); color: var(--warning); border-radius: 4px; font-size: 10px; font-weight: 600;">Low Stock</span>
+            <span style="padding: 2px 6px; background: var(--danger-bg); color: var(--danger); border-radius: 4px; font-size: 10px; font-weight: 600;">Flash Sale</span>
+            <span style="padding: 2px 6px; background: var(--info-bg); color: var(--info); border-radius: 4px; font-size: 10px; font-weight: 600;">Verified Merchant</span>
+          </div>
+
+          <div class="mini-flash">
+            <div class="mini-flash__header">
+              <span class="mini-flash__title">⚡ FLASH SALE</span>
+              <span class="mini-flash__timer">
+                <span class="mini-flash__chip">02</span>:<span class="mini-flash__chip">14</span>:<span class="mini-flash__chip">09</span>
+              </span>
+            </div>
+            <div class="mini-flash__body">
+              <span class="mini-flash__tag">FLASH</span>
+              <span>Product cards in the strip carry the tag above.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -726,8 +896,9 @@ export default function ThemeStudioPage(root) {
   function handleResetDefault() {
     activePresetKey = DEFAULT_MASTER_PRESET;
     masterConfig = { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master };
-    regenerateFromMaster();
-    toast.info(isBn ? 'ডিফল্ট থিমে ফিরিয়ে নেওয়া হয়েছে' : 'Reset to default theme');
+    workingTokens = themeFromMaster(masterConfig);
+    refreshAll();
+    toast.info(t('theme_studio.reset_info'));
   }
 
   function handleRevertPublished() {
@@ -745,14 +916,197 @@ export default function ThemeStudioPage(root) {
       return;
     }
 
+    const name = await promptForThemeName(isBn ? 'আমার থিম' : 'My Theme');
+    if (!name) return;
+
     try {
       const res = await api.post('/admin/theme/draft', {
-        name: `${activePresetKey.toUpperCase()} Draft`,
+        name,
         preset_key: activePresetKey,
         tokens: workingTokens,
       });
       activePaletteId = res.draft?.id || activePaletteId;
       toast.success(t('theme_studio.draft_success'));
+      loadSavedThemes();
+    } catch (err) {
+      toast.error(err.message || t('common.error_generic'));
+    }
+  }
+
+  /** Small text-entry dialog so a saved theme can be found again by name, not by guesswork. */
+  function promptForThemeName(defaultValue = '') {
+    return new Promise((resolve) => {
+      let settled = false;
+
+      const nameField = Input({
+        label: t('theme_studio.save_name_label'),
+        placeholder: t('theme_studio.save_name_placeholder'),
+        value: defaultValue,
+        maxLength: 60,
+        showCounter: true,
+      });
+
+      const cancelBtn = Button({
+        label: t('common.cancel'),
+        variant: 'secondary',
+        onClick: () => finish(null),
+      });
+
+      const confirmBtn = Button({
+        label: t('theme_studio.save_name_confirm'),
+        variant: 'primary',
+        onClick: () => {
+          const value = nameField.value.trim();
+          if (!value) {
+            nameField.setError(t('theme_studio.save_name_required'));
+            return;
+          }
+          finish(value);
+        },
+      });
+
+      const footer = document.createDocumentFragment();
+      footer.append(cancelBtn, confirmBtn);
+
+      const modal = Modal({
+        title: t('theme_studio.save_name_title'),
+        content: nameField,
+        footer,
+        size: 'sm',
+        onClose: () => finish(null),
+      });
+
+      function finish(value) {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+        modal.closeModal(Boolean(value));
+        setTimeout(() => modal.remove(), 400);
+      }
+
+      document.body.append(modal);
+      modal.openModal(draftBtn);
+      requestAnimationFrame(() => nameField.focus());
+    });
+  }
+
+  async function loadSavedThemes() {
+    try {
+      const res = await api.get('/admin/theme/palettes');
+      savedThemes = res.palettes || [];
+    } catch {
+      savedThemes = [];
+    }
+    renderSavedThemesList(savedThemesList);
+  }
+
+  function renderSavedThemesList(wrap) {
+    wrap.innerHTML = '';
+
+    if (!savedThemes.length) {
+      const empty = document.createElement('p');
+      empty.className = 'theme-saved__empty';
+      empty.textContent = t('theme_studio.saved_empty');
+      wrap.append(empty);
+      return;
+    }
+
+    for (const palette of savedThemes) {
+      const row = document.createElement('div');
+      row.className = 'theme-saved__row';
+
+      const info = document.createElement('div');
+      info.className = 'theme-saved__info';
+
+      const nameRow = document.createElement('div');
+      nameRow.className = 'theme-saved__name-row';
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'theme-saved__name';
+      nameEl.textContent = palette.name;
+      nameRow.append(nameEl);
+
+      if (palette.is_active) {
+        nameRow.append(Badge({ label: t('theme_studio.saved_badge_live'), variant: 'success', size: 'sm' }));
+      } else if (palette.is_published) {
+        nameRow.append(Badge({ label: t('theme_studio.saved_badge_published'), variant: 'neutral', size: 'sm' }));
+      }
+
+      const meta = document.createElement('span');
+      meta.className = 'theme-saved__meta';
+      meta.textContent = formatRelativeTime(palette.updated_at, { lang: isBn ? 'bn' : 'en' });
+
+      info.append(nameRow, meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'theme-saved__actions';
+
+      const applyBtn = Button({
+        label: t('theme_studio.saved_apply'),
+        variant: 'secondary',
+        size: 'sm',
+        onClick: () => applySavedTheme(palette),
+      });
+
+      const editBtn = Button({
+        label: `✏️ ${t('theme_studio.saved_edit')}`,
+        variant: 'ghost',
+        size: 'sm',
+        onClick: () => handleRenameTheme(palette),
+      });
+
+      const deleteBtn = Button({
+        label: `🗑️ ${t('theme_studio.saved_delete')}`,
+        variant: 'ghost',
+        size: 'sm',
+        onClick: () => handleDeleteTheme(palette),
+      });
+
+      actions.append(applyBtn, editBtn, deleteBtn);
+      row.append(info, actions);
+      wrap.append(row);
+    }
+  }
+
+  function applySavedTheme(palette) {
+    const stored = typeof palette.tokens_json === 'string'
+      ? JSON.parse(palette.tokens_json)
+      : palette.tokens_json;
+
+    activePaletteId = palette.id;
+    activePresetKey = palette.preset_key || 'custom';
+    workingTokens = stored.master ? stored : themeFromLegacyTokens(stored);
+    masterConfig = { ...workingTokens.master };
+    refreshAll();
+    toast.info(isBn ? `থিম প্রয়োগ করা হয়েছে: ${palette.name}` : `Applied theme: ${palette.name}`);
+  }
+
+  async function handleRenameTheme(palette) {
+    const name = await promptForThemeName(palette.name);
+    if (!name || name === palette.name) return;
+
+    try {
+      await api.patch(`/admin/theme/${palette.id}`, { name });
+      toast.success(t('theme_studio.saved_rename_success'));
+      loadSavedThemes();
+    } catch (err) {
+      toast.error(err.message || t('common.error_generic'));
+    }
+  }
+
+  async function handleDeleteTheme(palette) {
+    const confirmed = await confirmDialog({
+      title: t('theme_studio.saved_delete_confirm_title'),
+      description: t('theme_studio.saved_delete_confirm_desc', { name: palette.name }),
+      confirmLabel: t('theme_studio.saved_delete'),
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    try {
+      await api.delete(`/admin/theme/${palette.id}`);
+      toast.success(t('theme_studio.saved_delete_success'));
+      loadSavedThemes();
     } catch (err) {
       toast.error(err.message || t('common.error_generic'));
     }
@@ -771,6 +1125,48 @@ export default function ThemeStudioPage(root) {
       return;
     }
 
+    if (!isAdmin) {
+      // Moderator / non-admin Maker-Checker elevation request flow
+      const conf = await confirmDialogWithReason({
+        title: t('theme_studio.mod_request_title') || (isBn ? 'থিম পরিবর্তনের অনুমতি আবেদন' : 'Submit Theme Change Request'),
+        description: t('theme_studio.mod_request_desc') || (isBn ? 'মডারেটর হিসেবে আপনার থিম পরিবর্তনটি অ্যাডমিনের Approval Inbox-এ অনুমোদনের জন্য জমা হবে।' : 'As a moderator, your theme customization will be submitted to the Admin Approval Inbox for verification before going live.'),
+        reasonRequired: true,
+        trigger: publishBtn,
+      });
+
+      if (!conf || !conf.confirmed || !conf.reason || conf.reason.trim().length < 5) return;
+
+      try {
+        publishBtn.setLoading(true);
+        // Save draft first to get/update palette id
+        const draftRes = await api.post('/admin/theme/draft', {
+          name: `${activePresetKey.toUpperCase()} Proposed Palette`,
+          preset_key: activePresetKey,
+          tokens: workingTokens,
+        });
+
+        await api.post('/access-requests/action', {
+          action_key: 'platform.theme.publish',
+          target_entity_type: 'THEME_PALETTE',
+          target_entity_id: activePresetKey,
+          reason: conf.reason.trim(),
+          payload_json: {
+            preset_key: activePresetKey,
+            tokens: workingTokens,
+            draft_id: draftRes.draft?.id,
+          },
+        }).catch(() => ({}));
+
+        toast.info(isBn ? 'থিম পরিবর্তনের আবেদন এডমিনের অনুমোদনের জন্য পাঠানো হয়েছে।' : 'Theme publish request submitted to Admin Approval Inbox.');
+      } catch (err) {
+        toast.error(err.message || t('common.error_generic'));
+      } finally {
+        publishBtn.setLoading(false);
+      }
+      return;
+    }
+
+    // Admin / SuperAdmin direct publish flow
     const conf = await confirmDialogWithReason({
       title: t('theme_studio.confirm_publish_title'),
       description: t('theme_studio.confirm_publish_desc'),
@@ -778,7 +1174,7 @@ export default function ThemeStudioPage(root) {
       trigger: publishBtn,
     });
 
-    if (!conf || !conf.confirmed || !conf.reason || conf.reason.trim().length < 10) return;
+    if (!conf || !conf.confirmed || !conf.reason || conf.reason.trim().length < 5) return;
 
     try {
       publishBtn.setLoading(true);
@@ -797,6 +1193,8 @@ export default function ThemeStudioPage(root) {
       });
 
       publishedTokens = JSON.parse(JSON.stringify(workingTokens));
+      cacheActiveTheme(workingTokens, activePresetKey);
+      loadSavedThemes();
       toast.success(t('theme_studio.publish_success'));
     } catch (err) {
       toast.error(err.message || t('common.error_generic'));
@@ -811,14 +1209,15 @@ export default function ThemeStudioPage(root) {
       if (res?.theme?.tokens_json) {
         publishedTokens = res.theme.tokens_json;
         activePaletteId = res.theme.id;
-        activePresetKey = res.theme.preset_key || DEFAULT_MASTER_PRESET;
-        const stored = JSON.parse(JSON.stringify(publishedTokens));
-        // A palette published before the master engine existed has no `master` block. The same
-        // migration initTheme() uses on boot runs here, so the studio opens showing exactly what
-        // the live site renders rather than a second interpretation of the same stored palette.
-        workingTokens = stored.master ? stored : themeFromLegacyTokens(stored);
-        masterConfig = { ...workingTokens.master };
-        refreshAll();
+        // Only initialise workingTokens from server if there was no theme already loaded in the client runtime.
+        // Overwriting workingTokens when a theme is already applied would wipe out the user's active theme on nav click.
+        if (!liveMaster && !liveTokens) {
+          activePresetKey = res.theme.preset_key || DEFAULT_MASTER_PRESET;
+          const stored = JSON.parse(JSON.stringify(publishedTokens));
+          workingTokens = stored.master ? stored : themeFromLegacyTokens(stored);
+          masterConfig = { ...workingTokens.master };
+          refreshAll();
+        }
       }
     } catch {
       // Offline fallback
@@ -826,6 +1225,7 @@ export default function ThemeStudioPage(root) {
   }
 
   loadActiveThemeFromServer();
+  loadSavedThemes();
 
   root.append(container);
 }

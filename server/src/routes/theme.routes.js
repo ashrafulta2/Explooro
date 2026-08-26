@@ -28,6 +28,22 @@ export default async function themeRoutes(app) {
     themeController.saveDraft
   );
 
+  app.patch(
+    '/admin/theme/:id',
+    {
+      preHandler: [auth, reqPerm('platform.theme.draft')],
+    },
+    themeController.renameTheme
+  );
+
+  app.delete(
+    '/admin/theme/:id',
+    {
+      preHandler: [auth, reqPerm('platform.theme.draft')],
+    },
+    themeController.deleteTheme
+  );
+
   // Publishing a theme palette is a CRITICAL action (Super Admin only)
   app.post(
     '/admin/theme/:id/publish',

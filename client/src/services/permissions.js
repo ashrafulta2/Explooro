@@ -12,7 +12,7 @@
 
 import { api } from '../core/api.js';
 import { appStore } from '../state/appStore.js';
-import catalog from '../../../docs/permission-catalog.json';
+import catalog from '../../../docs/permission-catalog.json' with { type: 'json' };
 
 const catalogPermissions = new Map(catalog.permissions.map((p) => [p.key, p]));
 

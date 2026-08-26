@@ -181,4 +181,93 @@ export default [
       },
     }),
   },
+  {
+    method: 'GET',
+    path: '/saler/inbox/threads',
+    handler: () => ({
+      status: 200,
+      body: {
+        data: {
+          items: [
+            {
+              id: 10,
+              ref: 'THR-WA-89K2L1',
+              channel: 'WHATSAPP',
+              customerPhone: '+8801812345678',
+              participant_ids: [100, 1],
+              last_message_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+              last_message_preview: 'Ami Dhakai Jamdani Saree ta order korte chai, delivery kobe pabo?',
+              inside24h: true,
+              unread_count: 1,
+            },
+            {
+              id: 11,
+              ref: 'THR-MS-44A9X2',
+              channel: 'MESSENGER',
+              customerPhone: 'facebook:user:tanvir.hossain',
+              participant_ids: [101, 1],
+              last_message_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+              last_message_preview: 'Rajshahi silk dupatta ki red color available ache?',
+              inside24h: true,
+              unread_count: 0,
+            },
+            {
+              id: 12,
+              ref: 'THR-DP-11C8Q9',
+              channel: 'IN_PLATFORM',
+              customerPhone: '+8801711998877',
+              participant_ids: [102, 1],
+              last_message_at: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
+              last_message_preview: 'Thank you for the quick parcel dispatch!',
+              inside24h: false,
+              unread_count: 0,
+            },
+          ],
+        },
+      },
+    }),
+  },
+  {
+    method: 'POST',
+    path: '/saler/inbox/threads/:id/send',
+    handler: ({ params, body }) => ({
+      status: 201,
+      body: {
+        data: {
+          message: {
+            id: Date.now(),
+            thread_id: Number(params.id),
+            sender_id: 1,
+            content: body?.content || '',
+            msg_type: 'TEXT',
+            created_at: new Date().toISOString(),
+          },
+        },
+      },
+    }),
+  },
+  {
+    method: 'POST',
+    path: '/saler/inbox/threads/:id/send-product',
+    handler: ({ params, body }) => ({
+      status: 201,
+      body: {
+        data: {
+          message: {
+            id: Date.now(),
+            thread_id: Number(params.id),
+            sender_id: 1,
+            msg_type: 'PRODUCT_CARD',
+            payload_json: {
+              productId: body?.product_id || 1,
+              productTitle: 'Authentic Handloom Dhakai Jamdani Saree',
+              price: '3500.00',
+              checkoutUrl: `${window.location.origin}/checkout/wa/mock-wa-token-123`,
+            },
+            created_at: new Date().toISOString(),
+          },
+        },
+      },
+    }),
+  },
 ];

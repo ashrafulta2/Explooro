@@ -53,5 +53,7 @@
 @import './components/admin-dashboard.css';
 @import './components/system-health.css';
 @import './components/admin-staff.css';
+/* Catalog & Product Governance */
+@import './components/catalog-products.css';
 
 

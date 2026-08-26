@@ -1,5 +1,5 @@
 /**
- * theme-presets.js — 5 Marketplace Presets for Granular Component-Level Color Studio (Prompt 3.5).
+ * theme-presets.js — Marketplace Presets for Granular Component-Level Color Studio (Prompt 3.5).
  *
  * Each preset satisfies WCAG AA on every pairing across 6 distinct UI sections:
  * Navbar · Canvas/Surfaces · Brand/Buttons · Typography · Badges · Footer.
@@ -319,6 +319,110 @@ export const THEME_PRESETS = {
         text: '#ffffff',
         muted: '#94a3b8',
         border: '#1e293b',
+      },
+    },
+  },
+
+  fresh_black_white: {
+    key: 'fresh_black_white',
+    name_en: 'Fresh Black & White',
+    name_bn: 'ফ্রেশ ব্ল্যাক অ্যান্ড হোয়াইট',
+    description_en: 'Pure achromatic identity — true black ink brand on a crisp white canvas. No hue anywhere.',
+    description_bn: 'সম্পূর্ণ বর্ণহীন পরিচয় — সাদা ক্যানভাসে খাঁটি কালো ব্র্যান্ড। কোথাও কোনো রঙের ছোঁয়া নেই।',
+    preview_swatch: '#111111',
+    tokens: {
+      navbar: {
+        bg: '#ffffff',
+        text: '#0a0a0a',
+        border: '#e5e5e5',
+        search_bg: '#f5f5f5',
+      },
+      surfaces: {
+        page: '#fafafa',
+        card: '#ffffff',
+        subtle: '#f0f0f0',
+        border: '#e0e0e0',
+      },
+      brand: {
+        primary: '#111111',
+        hover: '#000000',
+        contrast: '#ffffff',
+        secondary_bg: '#f0f0f0',
+        secondary_text: '#111111',
+      },
+      typography: {
+        primary: '#0a0a0a',
+        secondary: '#4b4b4b',
+        muted: '#737373',
+        inverse: '#ffffff',
+      },
+      badges: {
+        success_bg: '#eafaf0',
+        success_text: '#14532d',
+        warning_bg: '#fff6e0',
+        warning_text: '#7c4a03',
+        danger_bg: '#fdecec',
+        danger_text: '#971b1b',
+        info_bg: '#eaf3fb',
+        info_text: '#1d4e89',
+      },
+      footer: {
+        bg: '#0a0a0a',
+        text: '#ffffff',
+        muted: '#a3a3a3',
+        border: '#262626',
+      },
+    },
+  },
+
+  onyx_midnight: {
+    key: 'onyx_midnight',
+    name_en: 'Onyx Midnight',
+    name_bn: 'অনিক্স মিডনাইট',
+    description_en: "Fresh Black & White's dark twin — true black canvas with a white ink brand button.",
+    description_bn: 'ফ্রেশ ব্ল্যাক অ্যান্ড হোয়াইটের ডার্ক সংস্করণ — কালো ক্যানভাসে সাদা ব্র্যান্ড বাটন।',
+    preview_swatch: '#000000',
+    tokens: {
+      navbar: {
+        bg: '#000000',
+        text: '#ffffff',
+        border: '#1f1f1f',
+        search_bg: '#141414',
+      },
+      surfaces: {
+        page: '#0a0a0a',
+        card: '#141414',
+        subtle: '#1f1f1f',
+        border: '#262626',
+      },
+      brand: {
+        primary: '#ffffff',
+        hover: '#e5e5e5',
+        contrast: '#0a0a0a',
+        secondary_bg: '#1f1f1f',
+        secondary_text: '#ffffff',
+      },
+      typography: {
+        primary: '#f5f5f5',
+        secondary: '#b3b3b3',
+        muted: '#8a8a8a',
+        inverse: '#0a0a0a',
+      },
+      badges: {
+        success_bg: '#0d2818',
+        success_text: '#4ade80',
+        warning_bg: '#2b2008',
+        warning_text: '#fbbf24',
+        danger_bg: '#2c0f0f',
+        danger_text: '#f87171',
+        info_bg: '#0d1f2e',
+        info_text: '#60a5fa',
+      },
+      footer: {
+        bg: '#000000',
+        text: '#f5f5f5',
+        muted: '#8a8a8a',
+        border: '#1f1f1f',
       },
     },
   },

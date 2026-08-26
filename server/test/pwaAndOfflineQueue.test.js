@@ -33,7 +33,7 @@ describe('Prompt 11.6 — PWA, Offline Resilience & Performance Pass', () => {
     assert.equal(manifest.short_name, 'Explooro');
     assert.equal(manifest.display, 'standalone');
     assert.equal(manifest.start_url, '/');
-    assert.equal(manifest.theme_color, '#d372ad');
+    assert.equal(manifest.theme_color, '#485b75');
     assert.equal(manifest.background_color, '#fbfdfe');
 
     // Icons check

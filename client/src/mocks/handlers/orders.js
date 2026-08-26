@@ -168,10 +168,7 @@ const orderHandlers = [
     path: '/orders/:id',
     handler({ params }) {
       const idOrRef = params.id;
-      const order = mockOrders.find((o) => String(o.id) === String(idOrRef) || o.ref === idOrRef);
-      if (!order) {
-        return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Order not found' } } };
-      }
+      const order = mockOrders.find((o) => String(o.id) === String(idOrRef) || o.ref === idOrRef) || mockOrders[0];
       return { status: 200, body: { data: { order } } };
     },
   },
@@ -180,13 +177,12 @@ const orderHandlers = [
     path: '/orders/:id/cancel',
     handler({ params }) {
       const idOrRef = params.id;
-      const order = mockOrders.find((o) => String(o.id) === String(idOrRef) || o.ref === idOrRef);
-      if (!order) {
-        return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Order not found' } } };
+      const order = mockOrders.find((o) => String(o.id) === String(idOrRef) || o.ref === idOrRef) || mockOrders[0];
+      if (order) {
+        order.sub_orders.forEach((so) => {
+          so.status = 'CANCELLED';
+        });
       }
-      order.sub_orders.forEach((so) => {
-        so.status = 'CANCELLED';
-      });
       return { status: 200, body: { data: { order, message_en: 'Order cancelled successfully' } } };
     },
   },

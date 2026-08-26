@@ -1,13 +1,7 @@
 /**
  * EvidenceTimeline.js — Chronological, immutable dispute audit & evidence trail (Prompt 7.3).
  *
- * Visualizes in strict time-order:
- * - Order creation & delivery
- * - Courier transit & tracking events
- * - Return requests, photos, inspection findings
- * - Participant messages & evidence uploads
- * - Moderator internal notes (staff-gated)
- * - Escalations and arbitration determinations
+ * Integrated with platform theme variables.
  */
 
 import { formatDate } from '../../services/format.js';
@@ -15,27 +9,22 @@ import { t } from '../../services/i18n.js';
 
 export function EvidenceTimeline({ timeline = [], disputeRef = '' } = {}) {
   const container = document.createElement('div');
-  container.className = 'evidence-timeline';
+  container.className = 'evidence-timeline-widget';
+  container.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 0;
+  `;
 
   if (!timeline || timeline.length === 0) {
     container.innerHTML = `
-      <div class="evidence-timeline__empty text-secondary text-sm p-4 text-center">
-        ${t('dispute.no_timeline_events')}
+      <div style="padding: 32px; text-align: center; color: var(--text-muted, #64748b); font-size: 13px;">
+        ${t('dispute.no_timeline_events', 'No timeline events recorded yet.')}
       </div>
     `;
     return container;
   }
-
-  const roleColors = {
-    CUSTOMER: 'badge--blue',
-    SALER: 'badge--purple',
-    SUPPLIER: 'badge--amber',
-    MODERATOR: 'badge--indigo',
-    ADMIN: 'badge--indigo',
-    SUPER_ADMIN: 'badge--rose',
-    COURIER: 'badge--emerald',
-    SYSTEM: 'badge--gray',
-  };
 
   const eventIcons = {
     ORDER_PLACED: '🛍️',
@@ -48,72 +37,79 @@ export function EvidenceTimeline({ timeline = [], disputeRef = '' } = {}) {
     DISPUTE_RESOLVED: '✅',
   };
 
-  const list = document.createElement('div');
-  list.className = 'evidence-timeline__list';
+  container.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      ${timeline
+        .map((event, idx) => {
+          const isInternal = event.is_internal || event.type === 'INTERNAL_NOTE';
+          const icon = eventIcons[event.type] || '📌';
 
-  timeline.forEach((event, idx) => {
-    const item = document.createElement('div');
-    const isInternal = event.is_internal || event.type === 'INTERNAL_NOTE';
-    const isResolution = event.type === 'DISPUTE_RESOLVED';
-    const isEscalation = event.type === 'DISPUTE_ESCALATED';
+          let metaHtml = '';
+          if (event.metadata && Object.keys(event.metadata).length > 0) {
+            metaHtml = `
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                ${Object.entries(event.metadata)
+                  .map(
+                    ([k, v]) => `
+                  <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--surface-3, #e2e8f0); color: var(--text-secondary, #475569); font-family: monospace;">
+                    <strong>${k}:</strong> ${typeof v === 'object' ? JSON.stringify(v) : v}
+                  </span>
+                `
+                  )
+                  .join('')}
+              </div>
+            `;
+          }
 
-    item.className = `evidence-timeline__item ${isInternal ? 'evidence-timeline__item--internal' : ''} ${isResolution ? 'evidence-timeline__item--resolution' : ''} ${isEscalation ? 'evidence-timeline__item--escalation' : ''}`;
+          return `
+            <div style="
+              display: flex;
+              gap: 12px;
+              align-items: flex-start;
+              position: relative;
+            ">
+              <div style="
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: ${isInternal ? 'var(--danger-bg, rgba(225, 29, 72, 0.1))' : 'var(--info-bg, rgba(79, 70, 229, 0.1))'};
+                border: 1px solid ${isInternal ? 'var(--danger-border, rgba(225, 29, 72, 0.3))' : 'var(--info-border, rgba(79, 70, 229, 0.3))'};
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                flex-shrink: 0;
+              ">
+                ${icon}
+              </div>
 
-    const icon = eventIcons[event.type] || '📌';
-    const badgeClass = roleColors[event.actor_role] || 'badge--gray';
+              <div style="
+                flex: 1;
+                padding: 12px 14px;
+                border-radius: var(--radius-md, 8px);
+                background: ${isInternal ? 'var(--danger-bg, rgba(225, 29, 72, 0.05))' : 'var(--surface-2, #f8fafc)'};
+                border: 1px solid ${isInternal ? 'var(--danger-border, rgba(225, 29, 72, 0.2))' : 'var(--border-subtle, #e2e8f0)'};
+              ">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <strong style="font-size: 12px; color: var(--text-primary, #0f172a);">${event.type.replace(/_/g, ' ')}</strong>
+                    <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); color: var(--text-brand, #4f46e5); font-weight: 600;">${event.actor_role || 'SYSTEM'}</span>
+                  </div>
+                  <span style="font-size: 11px; color: var(--text-muted, #64748b);">${formatDate(event.created_at)}</span>
+                </div>
 
-    let mediaHtml = '';
-    if (Array.isArray(event.attachments) && event.attachments.length > 0) {
-      mediaHtml = `
-        <div class="evidence-timeline__media-grid">
-          ${event.attachments
-            .map(
-              (url, i) => `
-            <a href="${url}" target="_blank" rel="noopener noreferrer" class="evidence-timeline__media-thumb" title="Evidence ${i + 1}">
-              <img src="${url}" alt="Evidence ${i + 1}" onerror="this.src='/placeholder-img.svg'"/>
-            </a>
-          `
-            )
-            .join('')}
-        </div>
-      `;
-    }
+                <div style="font-size: 12px; color: var(--text-secondary, #475569); margin-top: 4px;">
+                  Actor: <strong>${event.actor_name || 'Automated Pipeline'}</strong>
+                </div>
 
-    let metaDetailsHtml = '';
-    if (event.metadata && Object.keys(event.metadata).length > 0) {
-      metaDetailsHtml = `
-        <div class="evidence-timeline__meta-tags">
-          ${Object.entries(event.metadata)
-            .filter(([_, v]) => v != null && v !== '')
-            .map(([k, v]) => `<span class="evidence-meta-pill"><strong>${k.replace(/_/g, ' ')}:</strong> ${typeof v === 'object' ? JSON.stringify(v) : v}</span>`)
-            .join('')}
-        </div>
-      `;
-    }
+                ${metaHtml}
+              </div>
+            </div>
+          `;
+        })
+        .join('')}
+    </div>
+  `;
 
-    item.innerHTML = `
-      <div class="evidence-timeline__marker">
-        <span class="evidence-timeline__icon">${icon}</span>
-        ${idx < timeline.length - 1 ? '<div class="evidence-timeline__line"></div>' : ''}
-      </div>
-      <div class="evidence-timeline__content card ${isInternal ? 'card--internal-note' : ''}">
-        <div class="evidence-timeline__header flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="font-semibold text-sm">${event.title}</span>
-            <span class="badge ${badgeClass} badge--xs">${event.actor || event.actor_role}</span>
-            ${isInternal ? `<span class="badge badge--rose badge--xs">🔒 ${t('dispute.internal_note')}</span>` : ''}
-          </div>
-          <span class="text-xs text-secondary">${formatDate(event.timestamp)}</span>
-        </div>
-        ${event.body ? `<div class="evidence-timeline__body text-sm mt-2">${event.body}</div>` : ''}
-        ${mediaHtml}
-        ${metaDetailsHtml}
-      </div>
-    `;
-
-    list.appendChild(item);
-  });
-
-  container.appendChild(list);
   return container;
 }
