@@ -97,11 +97,13 @@ export function formatNumber(amount, { lang, numerals } = {}) {
 }
 
 /** `formatCurrency('123456.00')` → `'৳ 1,23,456.00'` (or `'৳ ১,২৩,৪৫৬.০০'` in Bengali). */
-export function formatCurrency(amount, { lang, numerals, symbol = '৳' } = {}) {
+export function formatCurrency(amount, { lang, numerals, symbol } = {}) {
   const activeLang = resolveLang(lang);
   const { negative, intPart, fracPart } = splitAmount(amount);
   const grouped = `${groupSouthAsian(intPart)}.${fracPart}`;
-  return `${negative ? '-' : ''}${symbol} ${applyNumerals(grouped, activeLang, numerals)}`;
+  const defaultSymbol = activeLang === 'bn' ? '৳' : 'Tk';
+  const finalSymbol = symbol !== undefined ? symbol : defaultSymbol;
+  return `${negative ? '-' : ''}${finalSymbol} ${applyNumerals(grouped, activeLang, numerals)}`;
 }
 
 export const formatBdt = formatCurrency;

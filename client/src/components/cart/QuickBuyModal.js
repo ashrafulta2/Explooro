@@ -6,12 +6,16 @@
  *  2. Payment Method & Instant Order Placement
  */
 
+import '../../styles/components/checkout.css';
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
 import { AddressForm } from '../checkout/AddressForm.js';
 import { PaymentSelector } from '../checkout/PaymentSelector.js';
-import { placeCheckout } from '../../services/order.api.js';
+import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.js';
+import { addToCart } from '../../services/cart.js';
+import { getCurrentUser } from '../../services/session.js';
 import { formatCurrency } from '../../services/format.js';
+import { resolveProductImage } from '../product/ProductCard.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 
@@ -22,9 +26,20 @@ export function openQuickBuyModal({
   onSuccess,
   navigate,
 }) {
+  if (!product) return null;
+
   let step = 1;
   let qty = initialQty;
-  let addressData = {};
+  const currentUser = getCurrentUser();
+  const savedDraft = loadCheckoutDraft();
+  let addressData = savedDraft || (currentUser ? {
+    recipient_name: currentUser.name || currentUser.full_name || '',
+    recipient_phone: currentUser.phone || '',
+    division: currentUser.division || 'dhaka',
+    district: currentUser.district || 'dhaka_city',
+    upazila: currentUser.upazila || '',
+    address_line: currentUser.address || currentUser.address_line || '',
+  } : {});
   let paymentMethod = 'COD';
   let isSubmitting = false;
 
@@ -32,7 +47,7 @@ export function openQuickBuyModal({
   contentEl.className = 'quick-buy-modal';
 
   const modal = Modal({
-    title: t('quick_buy.title'),
+    title: t('quick_buy.title') || 'Quick Buy (1-Click Order)',
     content: contentEl,
     size: 'lg',
     showClose: true,
@@ -45,12 +60,13 @@ export function openQuickBuyModal({
     const header = document.createElement('div');
     header.className = 'quick-buy-modal__product-header';
     const isBn = document.documentElement.lang === 'bn';
-    const title = isBn && product.title_bn ? product.title_bn : product.title_en;
-    const price = selectedVariant?.price_override || product.retail_price || product.default_retail_price;
+    const title = isBn && product.title_bn ? product.title_bn : (product.title_en || product.title_bn || product.title || 'Product');
+    const price = selectedVariant?.price_override ?? product.price ?? product.pricing?.retail_price ?? product.default_retail_price ?? product.retail_price ?? 0;
+    const imageUrl = product.primary_image_url || product.image_url || product.images?.[0]?.url || resolveProductImage(product) || '/placeholder.svg';
 
     header.innerHTML = `
       <div class="quick-buy-modal__thumb">
-        <img src="${product.primary_image_url || '/placeholder.svg'}" alt="${title}" />
+        <img src="${imageUrl}" alt="${title}" />
       </div>
       <div class="quick-buy-modal__info">
         <h4 class="quick-buy-modal__title">${title}</h4>
@@ -178,6 +194,22 @@ export function openQuickBuyModal({
           confirmBtn.disabled = true;
 
           try {
+            await addToCart({
+              product_id: product.id,
+              variant_id: selectedVariant?.id || null,
+              qty,
+              title_en: product.title_en || product.title || '',
+              title_bn: product.title_bn || product.title || '',
+              slug: product.slug || product.product_slug || '',
+              variant_title: selectedVariant?.title || null,
+              variant_sku: selectedVariant?.sku || null,
+              price: selectedVariant?.price_override ?? product.retail_price ?? product.default_retail_price ?? product.price ?? 0,
+              image_url: product.primary_image_url || product.image_url || product.images?.[0]?.url || resolveProductImage(product) || '',
+              supplier_id: product.supplier_id || product.supplier?.id || 1,
+              supplier_name: product.supplier_name || product.supplier?.name || 'Verified Supplier',
+              stock_qty: selectedVariant?.stock_qty ?? product.stock_qty ?? product.stock ?? 10,
+            });
+
             const payload = {
               recipient_name: addressData.recipient_name,
               recipient_phone: addressData.recipient_phone,
@@ -191,7 +223,7 @@ export function openQuickBuyModal({
 
             const result = await placeCheckout(payload);
             toast.success(t('quick_buy.success') || 'Quick order placed successfully!');
-            modal.close();
+            modal.closeModal();
 
             if (onSuccess) onSuccess(result.order);
             if (navigate && result.order?.ref) {
@@ -201,8 +233,14 @@ export function openQuickBuyModal({
             if (err.code === 'COD_OTP_REQUIRED') {
               paymentSelector.promptOtp(err.details?.phone || addressData.recipient_phone);
               toast.warn(t('checkout.cod_otp_required_notice'));
+            } else if (err.code === 'AUTH_REQUIRED' || err.status === 401) {
+              toast.info(t('quick_buy.login_required') || 'Please sign in to complete your purchase.');
+              modal.closeModal();
+              if (navigate) {
+                navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+              }
             } else {
-              const msg = isBn && err.messageBn ? err.messageBn : err.message;
+              const msg = isBn && err.message_bn ? err.message_bn : (err.message_en || err.message || err.messageBn);
               toast.error(msg);
             }
           } finally {
@@ -219,6 +257,6 @@ export function openQuickBuyModal({
   }
 
   renderStep();
-  modal.open();
+  modal.openModal();
   return modal;
 }

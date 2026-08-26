@@ -38,7 +38,29 @@ export function CartDrawer({ navigate = null } = {}) {
     const state = cartStore.get();
     const cart = state.cart || { items: [], parcels: [], subtotal: '0.00', grand_total: '0.00' };
     const items = cart.items || [];
-    const parcels = cart.parcels || [];
+    let parcels = cart.parcels || [];
+
+    // Derive parcels on the fly if items exist but parcels is missing/empty
+    if (parcels.length === 0 && items.length > 0) {
+      const sMap = new Map();
+      items.forEach((item) => {
+        const suppId = item.supplier_id || 1;
+        if (!sMap.has(suppId)) {
+          sMap.set(suppId, {
+            supplier_id: suppId,
+            supplier_name: item.supplier_name || 'Verified Supplier',
+            items: [],
+            items_count: 0,
+            subtotal: '0.00',
+          });
+        }
+        const p = sMap.get(suppId);
+        p.items.push(item);
+        p.items_count += item.qty;
+        p.subtotal = (Number(p.subtotal) + Number(item.line_total || item.unit_price * item.qty || 0)).toFixed(2);
+      });
+      parcels = Array.from(sMap.values());
+    }
 
     // Header
     const header = document.createElement('div');
@@ -52,10 +74,11 @@ export function CartDrawer({ navigate = null } = {}) {
     title.textContent = t('cart.title') || 'Shopping Cart';
     titleWrap.append(title);
 
-    if (cart.items_count > 0) {
+    const totalItemCount = cart.items_count || items.reduce((acc, i) => acc + (i.qty || 1), 0);
+    if (totalItemCount > 0) {
       const badge = document.createElement('span');
       badge.className = 'cart-drawer__badge';
-      badge.textContent = cart.items_count;
+      badge.textContent = totalItemCount;
       titleWrap.append(badge);
     }
     header.append(titleWrap);

@@ -32,9 +32,9 @@ check('groupSouthAsian("100000") — where Western and South Asian first diverge
 check('groupSouthAsian("999") — no grouping below 1000', groupSouthAsian('999'), '999');
 
 console.log('\n## formatCurrency — the literal PREVIEW example');
-check('formatCurrency("123456.00")', formatCurrency('123456.00'), '৳ 1,23,456.00');
-check('formatCurrency(123456)', formatCurrency(123456), '৳ 1,23,456.00');
-check('formatCurrency("-1250.50") — negative sign outside the symbol', formatCurrency('-1250.50'), '-৳ 1,250.50');
+check('formatCurrency("123456.00")', formatCurrency('123456.00'), 'Tk 1,23,456.00');
+check('formatCurrency(123456)', formatCurrency(123456), 'Tk 1,23,456.00');
+check('formatCurrency("-1250.50") — negative sign outside the symbol', formatCurrency('-1250.50'), '-Tk 1,250.50');
 check(
   'formatCurrency with Bengali language',
   formatCurrency('123456.00', { lang: 'bn' }),

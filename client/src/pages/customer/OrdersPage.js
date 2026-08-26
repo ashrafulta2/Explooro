@@ -1,24 +1,26 @@
 /**
- * OrdersPage.js — Visual Tracking Orders Hub (Prompt 11.3 / idea §AL.3).
- *
- * Implements:
- * 1. Filter tabs (All, Processing, In-Transit, Delivered, Cancelled/Returned).
- * 2. Visual multi-stage status progress bar for low-literacy users.
- * 3. 3PL courier consignment integration and live tracking.
- * 4. 1-Click invoice download, warranty certificates links, and return request triggers.
+ * OrdersPage.js — Customer Orders & Visual Tracking Hub (Prompt 11.3 / idea §AL.3).
  *
  * Route: /account/orders
+ *
+ * Data source: getMyOrders() → GET /orders/my-orders (handled by mock orders.js handler).
+ * All UI strings resolved via t('order_tracking.*') so language-switching works correctly.
  */
 
-import { customerApi } from '../../services/customer.api.js';
-import { t } from '../../services/i18n.js';
-import { formatCurrency, formatNumber } from '../../services/format.js';
+import '../../styles/components/customer-orders.css';
+import { getMyOrders } from '../../services/order.api.js';
+import { t, getLanguage } from '../../services/i18n.js';
+import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
-import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
 import { Tabs } from '../../components/ui/Tabs.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
+import {
+  getSubOrderStatusLabel,
+  getStageIndex,
+  ORDER_STAGES,
+} from '../../components/order/OrderTracker.js';
 
 export default function OrdersPage(root, { navigate } = {}) {
   const nav = (url) => {
@@ -30,25 +32,23 @@ export default function OrdersPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'orders-page container mx-auto p-4 md:p-6 space-y-6 max-w-5xl';
+  container.className = 'orders-page';
 
   let currentTab = 'ALL';
 
   // 1. Header
   const header = document.createElement('div');
-  header.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-subtle pb-5';
+  header.className = 'orders-page__header';
   header.innerHTML = `
     <div>
-      <div class="flex items-center gap-2 mb-1">
-        <a href="/account" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
-          ← ${t('customer.orders.back_to_account', 'ড্যাশবোর্ড')}
-        </a>
-      </div>
-      <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
-        ${t('customer.orders.title', 'আমার সকল অর্ডার ও ট্র্যাকিং')}
+      <a href="/account" class="orders-page__back-link">
+        ${t('order_tracking.back_to_account')}
+      </a>
+      <h1 class="orders-page__title">
+        ${t('order_tracking.my_orders_title')}
       </h1>
-      <p class="text-xs md:text-sm text-muted mt-1">
-        ${t('customer.orders.subtitle', 'আপনার সমস্ত অর্ডারের বর্তমান অবস্থা এবং কুরিয়ার ডেলিভারি ট্র্যাক করুন।')}
+      <p class="orders-page__subtitle">
+        ${t('order_tracking.page_subtitle')}
       </p>
     </div>
   `;
@@ -56,26 +56,22 @@ export default function OrdersPage(root, { navigate } = {}) {
 
   // 2. Status Filter Tabs
   const tabFilterSlot = document.createElement('div');
+  tabFilterSlot.className = 'orders-page__tabs';
   container.append(tabFilterSlot);
 
-  // Declared before Tabs(): Tabs runs select(activeTab) during construction, which fires onChange
-  // synchronously — so loadOrders() can run before this line is reached, hitting the temporal dead
-  // zone on a `const` declared further down.
   const ordersListSlot = document.createElement('div');
-  ordersListSlot.className = 'space-y-4';
+  ordersListSlot.className = 'orders-page__list';
 
   const tabs = Tabs({
     tabs: [
-      { id: 'ALL', label: 'সব অর্ডার (All)' },
-      { id: 'PROCESSING', label: '📦 প্রসেসিং' },
-      { id: 'IN_TRANSIT', label: '🚚 কুরিয়ারে রওয়ানা' },
-      { id: 'DELIVERED', label: '✓ সম্পন্ন (Delivered)' },
-      { id: 'CANCELLED', label: 'বাতিল / ফেরত' },
+      { id: 'ALL',        label: t('order_tracking.tab_all') },
+      { id: 'PROCESSING', label: `📦 ${t('order_tracking.tab_processing')}` },
+      { id: 'IN_TRANSIT', label: `🚚 ${t('order_tracking.tab_in_transit')}` },
+      { id: 'DELIVERED',  label: `✓ ${t('order_tracking.tab_delivered')}` },
+      { id: 'CANCELLED',  label: t('order_tracking.tab_cancelled') },
     ],
     activeTab: currentTab,
     onChange: (tabId) => {
-      // Ignore the callback Tabs fires for the already-active tab while mounting; the initial
-      // fetch is the explicit loadOrders() below, so this would otherwise double-request.
       if (tabId === currentTab) return;
       currentTab = tabId;
       loadOrders();
@@ -95,14 +91,28 @@ export default function OrdersPage(root, { navigate } = {}) {
     );
 
     try {
-      const res = await customerApi.getOrders({ status: currentTab });
-      const orders = res.data?.orders || [];
-      renderOrdersList(ordersListSlot, orders, nav);
+      // Uses order.api.js → GET /orders/my-orders (mocked)
+      const res = await getMyOrders({ status: currentTab !== 'ALL' ? currentTab : undefined });
+      const allOrders = res.orders || res.data?.orders || [];
+
+      // Client-side status filter (mock returns all; real API would filter server-side)
+      const orders = currentTab === 'ALL'
+        ? allOrders
+        : allOrders.filter((o) => {
+            const statuses = (o.sub_orders || []).map((s) => s.status);
+            if (currentTab === 'PROCESSING') return statuses.some((s) => ['PLACED', 'CONFIRMED', 'PROCESSING'].includes(s));
+            if (currentTab === 'IN_TRANSIT') return statuses.some((s) => ['SHIPPED', 'IN_TRANSIT'].includes(s));
+            if (currentTab === 'DELIVERED')  return statuses.every((s) => s === 'DELIVERED');
+            if (currentTab === 'CANCELLED')  return statuses.every((s) => s === 'CANCELLED');
+            return true;
+          });
+
+      renderOrdersList(ordersListSlot, orders, nav, currentTab);
     } catch (err) {
       ordersListSlot.innerHTML = '';
       const errBox = document.createElement('div');
-      errBox.className = 'py-8 text-center text-danger';
-      errBox.textContent = t('customer.orders.load_failed', 'অর্ডার লোড করতে ব্যর্থ হয়েছে।');
+      errBox.className = 'alert alert--danger';
+      errBox.textContent = t('order_tracking.load_orders_failed', { message: err.message });
       ordersListSlot.append(errBox);
     }
   }
@@ -117,16 +127,17 @@ export default function OrdersPage(root, { navigate } = {}) {
 /**
  * Renders the list of order cards or an empty state.
  */
-function renderOrdersList(container, orders, nav) {
+function renderOrdersList(container, orders, nav, currentTab) {
   container.innerHTML = '';
 
   if (orders.length === 0) {
+    const isFiltered = currentTab !== 'ALL';
     const empty = EmptyState({
       icon: '📦',
-      title: 'কোনো অর্ডার পাওয়া যায়নি',
-      description: 'এই ক্যাটাগরিতে আপনার কোনো অর্ডার নেই। এক্সপ্লোরোতে এখনই নতুন কেনাকাটা করুন!',
+      title: isFiltered ? t('order_tracking.no_orders_filter') : t('order_tracking.no_orders'),
+      description: isFiltered ? '' : t('cart.empty_description'),
       action: Button({
-        label: '🛍️ কেনাকাটা শুরু করুন',
+        label: `🛍️ ${t('order_tracking.start_shopping')}`,
         variant: 'primary',
         size: 'sm',
         onClick: () => nav('/'),
@@ -143,105 +154,122 @@ function renderOrdersList(container, orders, nav) {
 }
 
 /**
+ * Derives an aggregate order-level status from its sub-orders.
+ * If all are DELIVERED → DELIVERED; any CANCELLED → CANCELLED; any SHIPPED/IN_TRANSIT → SHIPPED; else PLACED/PROCESSING.
+ */
+function deriveOrderStatus(order) {
+  const subStatuses = (order.sub_orders || []).map((s) => s.status);
+  if (!subStatuses.length) return order.status || 'PLACED';
+  if (subStatuses.every((s) => s === 'DELIVERED')) return 'DELIVERED';
+  if (subStatuses.every((s) => s === 'CANCELLED')) return 'CANCELLED';
+  if (subStatuses.some((s) => s === 'SHIPPED' || s === 'IN_TRANSIT')) return 'SHIPPED';
+  if (subStatuses.some((s) => s === 'PROCESSING' || s === 'CONFIRMED')) return 'PROCESSING';
+  return 'PLACED';
+}
+
+/**
  * Builds a single order card with visual tracking progress bar.
  */
 function renderSingleOrderCard(order, nav) {
   const card = document.createElement('div');
-  card.className = 'p-5 md:p-6 rounded-2xl border border-subtle bg-surface shadow-xs space-y-4 hover:border-primary/30 transition-all';
+  card.className = 'customer-order-card';
 
-  const statusColor = order.status === 'DELIVERED' ? 'success'
-    : order.status === 'CANCELLED' ? 'danger'
-    : order.status === 'RETURNED' ? 'neutral'
+  const status = deriveOrderStatus(order);
+
+  const statusColor =
+    status === 'DELIVERED' ? 'success'
+    : status === 'CANCELLED' ? 'danger'
+    : status === 'RETURNED' ? 'neutral'
     : 'primary';
 
-  const statusLabel = order.status === 'DELIVERED' ? '✓ ডেলিভারি সম্পন্ন'
-    : order.status === 'CANCELLED' ? '✕ অর্ডার বাতিল'
-    : order.status === 'RETURNED' ? '🔄 পণ্য ফেরত গৃহীত'
-    : order.status === 'DISPATCHED' ? '🚚 কুরিয়ারে রওয়ানা'
-    : order.status === 'PROCESSING' ? '📦 প্যাকিং চলছে'
-    : '⏳ অর্ডার গৃহীত';
+  // Resolve status label through i18n-aware function
+  const statusLabel = getSubOrderStatusLabel(status);
 
-  const orderDate = new Date(order.created_at).toLocaleDateString('bn-BD', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
+  // Locale-aware date formatting
+  const lang = getLanguage();
+  const locale = lang === 'bn' ? 'bn-BD' : 'en-US';
+  const orderDate = new Date(order.created_at || order.placed_at || Date.now())
+    .toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
 
   // Top Row: Ref, Date, Status, Total
   const topRow = document.createElement('div');
-  topRow.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-subtle pb-3';
+  topRow.className = 'customer-order-card__top';
   topRow.innerHTML = `
-    <div class="flex items-center gap-3">
-      <div class="space-y-0.5">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-mono font-bold text-foreground">#${order.ref}</span>
-          <span class="badge badge--${statusColor} text-[10px] font-bold">${statusLabel}</span>
-        </div>
-        <div class="text-[11px] text-muted">অর্ডারের তারিখ: ${orderDate}</div>
+    <div class="customer-order-card__ref-group">
+      <div class="customer-order-card__ref-row">
+        <span class="customer-order-card__ref">#${order.ref}</span>
+        <span class="badge badge--${statusColor}">${statusLabel}</span>
       </div>
+      <div class="customer-order-card__date">${t('order_tracking.order_date_label')}: ${orderDate}</div>
     </div>
-    <div class="text-right">
-      <div class="text-[10px] text-muted uppercase">মোট মূল্য (${order.payment_method})</div>
-      <div class="text-base font-extrabold text-foreground font-mono">${formatCurrency(order.total_amount)}</div>
+    <div class="customer-order-card__price-group">
+      <div class="customer-order-card__payment-label">${t('order_tracking.total_label')} (${order.payment_method || 'COD'})</div>
+      <div class="customer-order-card__total">${formatCurrency(order.total_amount || 0)}</div>
     </div>
   `;
   card.append(topRow);
 
-  // Visual Tracking Progress Stepper (Steps 1 to 5)
-  if (!['CANCELLED', 'RETURNED'].includes(order.status)) {
-    const stepper = document.createElement('div');
-    stepper.className = 'py-2 px-3 rounded-xl bg-subtle/20';
+  // Visual Tracking Progress Stepper (skip for cancelled/returned)
+  if (!['CANCELLED', 'RETURNED'].includes(status)) {
+    const stepperWrap = document.createElement('div');
+    stepperWrap.className = 'customer-order-card__stepper-wrap';
 
-    const currentStep = order.tracking_step || 1;
-    stepper.innerHTML = `
-      <div class="grid grid-cols-4 gap-1 text-center">
-        <div class="space-y-1">
-          <div class="w-6 h-6 mx-auto rounded-full ${currentStep >= 1 ? 'bg-emerald-500 text-white' : 'bg-subtle text-muted'} flex items-center justify-center text-[10px] font-bold">1</div>
-          <div class="text-[10px] font-bold text-foreground">অর্ডার গৃহীত</div>
+    // Use stage index from OrderTracker's shared logic
+    const currentStageIdx = getStageIndex(status);
+
+    const stepsHtml = ORDER_STAGES.map((stage, idx) => {
+      const isDone   = idx < currentStageIdx;
+      const isActive = idx === currentStageIdx;
+      const cls = isDone ? 'customer-order-card__step--done'
+                : isActive ? 'customer-order-card__step--active'
+                : '';
+      return `
+        <div class="customer-order-card__step ${cls}">
+          <div class="customer-order-card__step-num">${stage.icon}</div>
+          <div class="customer-order-card__step-label">${t(stage.labelKey)}</div>
         </div>
-        <div class="space-y-1">
-          <div class="w-6 h-6 mx-auto rounded-full ${currentStep >= 3 ? 'bg-emerald-500 text-white' : 'bg-subtle text-muted'} flex items-center justify-center text-[10px] font-bold">2</div>
-          <div class="text-[10px] font-bold text-foreground">প্যাকেজিং</div>
-        </div>
-        <div class="space-y-1">
-          <div class="w-6 h-6 mx-auto rounded-full ${currentStep >= 4 ? 'bg-emerald-500 text-white' : 'bg-subtle text-muted'} flex items-center justify-center text-[10px] font-bold">3</div>
-          <div class="text-[10px] font-bold text-foreground">কুরিয়ারে রওয়ানা</div>
-        </div>
-        <div class="space-y-1">
-          <div class="w-6 h-6 mx-auto rounded-full ${currentStep >= 5 ? 'bg-emerald-500 text-white' : 'bg-subtle text-muted'} flex items-center justify-center text-[10px] font-bold">4</div>
-          <div class="text-[10px] font-bold text-foreground">ডেলিভারি সম্পন্ন</div>
-        </div>
-      </div>
-    `;
-    card.append(stepper);
+      `;
+    }).join('');
+
+    stepperWrap.innerHTML = `<div class="customer-order-card__stepper">${stepsHtml}</div>`;
+    card.append(stepperWrap);
   }
 
-  // Items List
+  // Items List — flatten from sub_orders if top-level items is empty
   const itemsContainer = document.createElement('div');
-  itemsContainer.className = 'space-y-2.5';
+  itemsContainer.className = 'customer-order-card__items';
 
-  order.items.forEach((item) => {
+  const topItems = order.items || [];
+  const subItems = (order.sub_orders || []).flatMap((so) => so.items || []);
+  const allItems = topItems.length ? topItems : subItems;
+
+  allItems.forEach((item) => {
     const itemRow = document.createElement('div');
-    itemRow.className = 'flex items-center justify-between gap-3 p-2 rounded-xl bg-surface hover:bg-subtle/10 transition-colors';
+    itemRow.className = 'customer-order-card__item';
+
+    const itemTitle = item.title_bn || item.title_en || item.title_snapshot || item.title
+      || t('order_tracking.product_fallback');
+    const itemImg = item.image_url || item.primary_image_url || '/placeholder.svg';
+    const qty = item.quantity || item.qty || 1;
+    const unitPrice = item.unit_price || item.retail_price || 0;
+    const lineTotal = item.total_price || item.line_total || 0;
 
     itemRow.innerHTML = `
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-lg bg-subtle overflow-hidden shrink-0 flex items-center justify-center">
-          <img src="${item.image_url}" alt="${item.title_en}" class="w-full h-full object-cover" onerror="this.src='/placeholder-product.svg'"/>
+      <div class="customer-order-card__item-left">
+        <div class="customer-order-card__item-img-wrap">
+          <img src="${itemImg}" alt="${itemTitle}" class="customer-order-card__item-img" onerror="this.src='/placeholder.svg'"/>
         </div>
-        <div>
-          <div class="text-xs font-bold text-foreground line-clamp-1">${item.title_bn || item.title_en}</div>
-          <div class="text-[11px] text-muted font-mono">পরিমাণ: ${item.quantity} × ৳${item.unit_price}</div>
+        <div class="customer-order-card__item-info">
+          <div class="customer-order-card__item-title">${itemTitle}</div>
+          <div class="customer-order-card__item-meta">${t('order_tracking.qty_label')}: ${qty} × ${formatCurrency(unitPrice)}</div>
           ${
             item.warranty_card_id
-              ? `<span class="badge badge--success text-[9px] font-bold mt-0.5 inline-block">🛡️ ডিজিটাল ওয়ারেন্টি সক্রিয়</span>`
+              ? `<span class="badge badge--success badge--sm" style="margin-top:2px;">🛡️ ${t('order_tracking.warranty_active')}</span>`
               : ''
           }
         </div>
       </div>
-      <div class="text-right">
-        <div class="text-xs font-extrabold text-foreground font-mono">৳${item.total_price}</div>
-      </div>
+      <div class="customer-order-card__item-price">${formatCurrency(lineTotal)}</div>
     `;
 
     itemsContainer.append(itemRow);
@@ -249,65 +277,71 @@ function renderSingleOrderCard(order, nav) {
   card.append(itemsContainer);
 
   // 3PL Courier Logistics Row (if available)
-  const subOrderWithTracking = order.sub_orders.find((s) => s.tracking_number);
+  const subOrderWithTracking = (order.sub_orders || []).find((s) => s.tracking_number);
   if (subOrderWithTracking) {
     const courierRow = document.createElement('div');
-    courierRow.className = 'p-3 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs';
+    courierRow.className = 'customer-order-card__courier';
+    const trackUrl = subOrderWithTracking.tracking_url || '#';
     courierRow.innerHTML = `
-      <div class="flex items-center gap-2">
-        <span class="text-base">🚚</span>
+      <div class="customer-order-card__courier-info">
+        <span>🚚</span>
         <div>
-          <span class="font-bold text-foreground">${subOrderWithTracking.courier_name}:</span>
-          <span class="font-mono text-primary font-bold">#${subOrderWithTracking.tracking_number}</span>
+          <strong>${subOrderWithTracking.courier_partner || subOrderWithTracking.courier_name || t('order_tracking.courier_partner')}:</strong>
+          <code class="font-mono">${subOrderWithTracking.tracking_number}</code>
         </div>
       </div>
-      <a href="${subOrderWithTracking.tracking_url || '#'}" target="_blank" class="text-xs font-bold text-primary hover:underline">
-        কুরিয়ারে ট্র্যাক করুন ↗
+      <a href="${trackUrl}" target="_blank" rel="noopener noreferrer" class="customer-order-card__courier-link">
+        ${t('order_tracking.courier_track_link')}
       </a>
     `;
     card.append(courierRow);
   }
 
-  // Bottom Actions Row (Invoice, Return, Warranties)
+  // Bottom Actions Row
   const bottomRow = document.createElement('div');
-  bottomRow.className = 'flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-subtle';
+  bottomRow.className = 'customer-order-card__actions';
 
   const leftActions = document.createElement('div');
-  leftActions.className = 'flex items-center gap-2';
+  leftActions.className = 'customer-order-card__action-left';
 
-  const invoiceBtn = Button({
-    label: '🖨️ রশিদ / ইনভয়েস',
-    variant: 'secondary',
-    size: 'xs',
-    onClick: () => {
-      toast.success('ইনভয়েস ডাউনলোড প্রস্তুত হচ্ছে...');
-      window.print();
-    },
+  // Print Invoice — subtle ghost style
+  const invoiceBtn = document.createElement('button');
+  invoiceBtn.type = 'button';
+  invoiceBtn.className = 'order-action-btn order-action-btn--ghost';
+  invoiceBtn.innerHTML = `<span class="order-action-btn__icon">🖨️</span><span>${t('order_tracking.invoice_btn')}</span>`;
+  invoiceBtn.addEventListener('click', () => {
+    toast.success(t('order_tracking.invoice_btn'));
+    window.print();
   });
   leftActions.append(invoiceBtn);
 
   if (order.is_return_eligible) {
-    const returnBtn = Button({
-      label: '🔄 পণ্য ফেরত চান?',
-      variant: 'secondary',
-      size: 'xs',
-      onClick: () => nav('/account/returns'),
-    });
+    const returnBtn = document.createElement('button');
+    returnBtn.type = 'button';
+    returnBtn.className = 'order-action-btn order-action-btn--ghost';
+    returnBtn.innerHTML = `<span class="order-action-btn__icon">🔄</span><span>${t('order_tracking.request_return')}</span>`;
+    returnBtn.addEventListener('click', () => nav('/account/returns'));
     leftActions.append(returnBtn);
   }
 
   const rightActions = document.createElement('div');
-  rightActions.className = 'flex items-center gap-2';
+  rightActions.className = 'customer-order-card__action-right';
 
-  // Check if order has warranty
-  const hasWarranty = order.items.some((i) => i.warranty_card_id);
+  // Track Details — branded pill CTA
+  const trackDetailBtn = document.createElement('button');
+  trackDetailBtn.type = 'button';
+  trackDetailBtn.className = 'order-action-btn order-action-btn--primary';
+  trackDetailBtn.innerHTML = `<span>${t('order_tracking.view_tracking')}</span><span class="order-action-btn__arrow">→</span>`;
+  trackDetailBtn.addEventListener('click', () => nav(`/orders/${order.ref}`));
+  rightActions.append(trackDetailBtn);
+
+  const hasWarranty = allItems.some((i) => i.warranty_card_id);
   if (hasWarranty) {
-    const warrantyBtn = Button({
-      label: '🛡️ ওয়ারেন্টি কার্ড',
-      variant: 'primary',
-      size: 'xs',
-      onClick: () => nav('/account/warranties'),
-    });
+    const warrantyBtn = document.createElement('button');
+    warrantyBtn.type = 'button';
+    warrantyBtn.className = 'order-action-btn order-action-btn--ghost';
+    warrantyBtn.innerHTML = `<span class="order-action-btn__icon">🛡️</span><span>${t('order_tracking.warranty_active')}</span>`;
+    warrantyBtn.addEventListener('click', () => nav('/account/warranties'));
     rightActions.append(warrantyBtn);
   }
 

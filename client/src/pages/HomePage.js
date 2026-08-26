@@ -27,6 +27,7 @@ import { Button } from '../components/ui/Button.js';
 import { ProductGrid } from '../components/product/ProductGrid.js';
 import { resolveProductImage } from '../components/product/ProductCard.js';
 import { addToCart } from '../services/cart.js';
+import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { CategoryPills } from '../components/product/CategoryPills.js';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.js';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
@@ -350,19 +351,13 @@ export default function HomePage(root, { navigate }) {
 
   function handleAction(product, actionType) {
     if (actionType === 'quick_buy') {
-      addToCart({
-        product_id: product.id,
-        title_en: product.title_en,
-        title_bn: product.title_bn,
-        slug: product.slug,
-        price: product.price,
-        image_url: resolveProductImage(product),
-        supplier_id: product.supplier_id || 1,
-        supplier_name: product.supplier_name || 'Verified Supplier',
-        stock_qty: product.stock ?? 10,
+      openQuickBuyModal({
+        product,
+        initialQty: 1,
+        navigate,
       });
     } else {
-      navigate(`/product/${product.ref}`);
+      navigate(`/product/${product.ref || product.slug || product.id}`);
     }
   }
 

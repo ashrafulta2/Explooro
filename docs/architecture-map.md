@@ -333,6 +333,13 @@ style preferences; each one exists because violating it loses money, leaks data,
 9. **Never edit an applied migration.** Write a new forward one.
 10. **`// WHY:` comments on non-obvious decisions.** An agent can read *what* the code does; it
     cannot recover *why*, and that is exactly how correct code gets "refactored" into broken code.
+11. **`Modal()` returns a real `<dialog>` element — call `openModal()`/`closeModal()`, never
+    `.open()`/`.close()`.** `open` is a native boolean *attribute* on `<dialog>`, not a method, so
+    `modal.open()` throws `TypeError: modal.open is not a function`; `.close()` happens to work
+    (native `HTMLDialogElement.close()` exists and fires the same `close` event) but skips the
+    component's own `result` bookkeeping. `QuickBuyModal.js` and the order-cancel dialog in
+    `OrderDetailPage.js` both shipped calling `.open()`/`.close()` and neither modal ever opened
+    until fixed 2026-08-26 — see `docs/prompt.md` traceability rows 30 and 61.
 
 ---
 

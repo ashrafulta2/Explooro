@@ -8,6 +8,8 @@
  *  - Fallback list view when accessed at /orders or /orders/my-orders
  */
 
+import '../../styles/components/checkout.css';
+import '../../styles/components/customer-orders.css';
 import { getOrderById, getMyOrders, cancelOrder } from '../../services/order.api.js';
 import { OrderTracker, getSubOrderStatusLabel, getPaymentStatusLabel } from '../../components/order/OrderTracker.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
@@ -93,44 +95,63 @@ async function renderOrdersList(container, navigate) {
 }
 
 async function renderOrderDetail(container, orderIdOrRef, navigate) {
+  container.className = 'orders-page';
   container.innerHTML = `
-    <div class="order-detail-page__header">
-      <h1 class="order-detail-page__title">${t('order_tracking.title')}</h1>
-      <p class="text-secondary">${t('order_tracking.ref_label')}: <code class="font-bold">${orderIdOrRef}</code></p>
+    <div class="orders-page__header">
+      <a href="/orders" class="orders-page__back-link" id="back-to-orders">
+        <span>←</span> ${t('order_tracking.my_orders_title') || 'Back to Orders'}
+      </a>
+      <h1 class="orders-page__title">${t('order_tracking.title')}</h1>
+      <p class="orders-page__subtitle">${t('order_tracking.ref_label')}: <code class="font-bold text-primary">${orderIdOrRef}</code></p>
     </div>
     <div class="order-detail-page__loading text-center p-8">${t('common.loading')}</div>
   `;
+
+  const backLink = container.querySelector('#back-to-orders');
+  if (backLink) {
+    backLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (navigate) navigate('/orders');
+    });
+  }
 
   try {
     const order = await getOrderById(orderIdOrRef);
     container.querySelector('.order-detail-page__loading')?.remove();
 
     if (!order) {
-      container.innerHTML = `<div class="alert alert--danger">${t('order_tracking.not_found')}</div>`;
+      container.innerHTML += `<div class="alert alert--danger mt-4">${t('order_tracking.not_found')}</div>`;
       return;
     }
 
-    // Top Summary Banner
     const isPaid = order.payment_status === 'PAID';
+    
+    // Summary Banner
     const banner = document.createElement('div');
-    banner.className = 'order-detail__summary-banner card';
+    banner.className = 'customer-order-card mb-6';
     banner.innerHTML = `
-      <div class="order-detail__banner-grid">
-        <div>
-          <span class="text-xs text-secondary uppercase font-semibold">${t('order_tracking.placed_on')}</span>
-          <div>${formatDate(order.placed_at || order.created_at)}</div>
+      <div class="customer-order-card__top">
+        <div class="customer-order-card__ref-group">
+          <div class="customer-order-card__ref-row">
+            <span class="text-xs text-secondary uppercase font-semibold">${t('order_tracking.placed_on')}</span>
+          </div>
+          <div class="customer-order-card__date">${formatDate(order.placed_at || order.created_at)}</div>
         </div>
-        <div>
-          <span class="text-xs text-secondary uppercase font-semibold">${t('checkout.payment_method')}</span>
-          <div><strong>${order.payment_method}</strong></div>
+        <div class="customer-order-card__ref-group">
+          <div class="customer-order-card__ref-row">
+            <span class="text-xs text-secondary uppercase font-semibold">${t('checkout.payment_method')}</span>
+          </div>
+          <div class="customer-order-card__date"><strong>${order.payment_method}</strong></div>
         </div>
-        <div>
-          <span class="text-xs text-secondary uppercase font-semibold">${t('order_tracking.payment_status')}</span>
+        <div class="customer-order-card__ref-group">
+          <div class="customer-order-card__ref-row">
+            <span class="text-xs text-secondary uppercase font-semibold">${t('order_tracking.payment_status')}</span>
+          </div>
           <div><span class="badge ${isPaid ? 'badge--success' : 'badge--warning'}">${getPaymentStatusLabel(order.payment_status)}</span></div>
         </div>
-        <div>
+        <div class="customer-order-card__price-group">
           <span class="text-xs text-secondary uppercase font-semibold">${t('cart.total')}</span>
-          <div class="text-lg text-primary font-bold">${formatCurrency(order.total_amount)}</div>
+          <div class="customer-order-card__total text-primary">${formatCurrency(order.total_amount)}</div>
         </div>
       </div>
     `;
@@ -152,31 +173,35 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
     const subOrders = order.sub_orders || [];
     subOrders.forEach((so, idx) => {
       const parcelCard = document.createElement('div');
-      parcelCard.className = 'order-parcel card';
+      parcelCard.className = 'customer-order-card mb-5';
 
       const pHeader = document.createElement('div');
-      pHeader.className = 'order-parcel__header';
+      pHeader.className = 'customer-order-card__top';
       pHeader.innerHTML = `
-        <div>
-          <h4>${t('order_tracking.parcel_num', { index: idx + 1, total: subOrders.length })}</h4>
-          <span class="text-xs text-secondary">${t('checkout.supplier_label')}: <strong>${so.supplier_name || t('product_detail.supplier.tier.verified')}</strong></span>
+        <div class="customer-order-card__ref-group">
+          <div class="customer-order-card__ref-row">
+            <span class="customer-order-card__ref">${t('order_tracking.parcel_num', { index: idx + 1, total: subOrders.length })}</span>
+            <span class="badge ${so.status === 'DELIVERED' ? 'badge--success' : so.status === 'CANCELLED' ? 'badge--danger' : 'badge--primary'}">${getSubOrderStatusLabel(so.status)}</span>
+          </div>
+          <div class="customer-order-card__date">${t('checkout.supplier_label')}: <strong>${so.supplier_name || t('product_detail.supplier.tier.verified')}</strong></div>
         </div>
-        <span class="badge ${so.status === 'DELIVERED' ? 'badge--success' : so.status === 'CANCELLED' ? 'badge--danger' : 'badge--primary'}">${getSubOrderStatusLabel(so.status)}</span>
       `;
       parcelCard.append(pHeader);
 
       // Line Items
       const itemsList = document.createElement('div');
-      itemsList.className = 'order-parcel__items';
+      itemsList.className = 'customer-order-card__items mt-2 mb-4';
       (so.items || []).forEach((item) => {
         const itemRow = document.createElement('div');
-        itemRow.className = 'order-parcel__item-row';
+        itemRow.className = 'customer-order-card__item';
         itemRow.innerHTML = `
-          <div class="order-parcel__item-info">
-            <strong>${item.qty}x ${item.title_snapshot || t('order_tracking.product_fallback')}</strong>
-            <div class="text-xs text-secondary">${t('order_tracking.unit_price_label')}: ${formatCurrency(item.retail_price)}</div>
+          <div class="customer-order-card__item-left">
+            <div class="customer-order-card__item-info">
+              <span class="customer-order-card__item-title">${item.qty}x ${item.title_snapshot || t('order_tracking.product_fallback')}</span>
+              <span class="customer-order-card__item-meta">${t('order_tracking.unit_price_label')}: ${formatCurrency(item.retail_price)}</span>
+            </div>
           </div>
-          <div class="order-parcel__item-total font-semibold">${formatCurrency(item.line_total)}</div>
+          <div class="customer-order-card__item-price">${formatCurrency(item.line_total)}</div>
         `;
         itemsList.append(itemRow);
       });
@@ -191,56 +216,77 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
 
     contentLayout.append(parcelsCol);
 
-    // Right Column: Delivery Address & Billing Breakdown
+    // Right Column: Sidebar
     const sidebarCol = document.createElement('div');
     sidebarCol.className = 'order-detail__sidebar-col';
+    
+    // Add matching header to align perfectly with the "Parcels in this Order" header on the left
+    const sidebarHeader = document.createElement('h3');
+    sidebarHeader.className = 'order-detail__section-title';
+    sidebarHeader.textContent = t('order_tracking.summary_title') || 'Order Overview';
+    sidebarCol.append(sidebarHeader);
 
-    // Address Card
-    const addrCard = document.createElement('div');
-    addrCard.className = 'card order-detail__address-card';
-    addrCard.innerHTML = `
-      <h3 class="order-detail__card-title">📍 ${t('order_tracking.delivery_address')}</h3>
-      <div class="order-detail__address-body">
-        <strong>${order.recipient_name}</strong><br />
-        📞 ${order.recipient_phone}<br />
-        ${order.address_line}<br />
-        ${order.upazila ? order.upazila + ', ' : ''}${order.district}, ${order.division}
+    const summaryCard = document.createElement('div');
+    summaryCard.className = 'checkout-summary';
+    
+    // Address Section
+    const addrSection = document.createElement('div');
+    addrSection.className = 'mb-6';
+    addrSection.innerHTML = `
+      <h3 class="checkout-summary__title" style="margin-bottom: 12px; font-size: 1.05rem;">
+        <span style="opacity: 0.8; margin-right: 4px;">📍</span> ${t('order_tracking.delivery_address')}
+      </h3>
+      <div style="line-height: 1.6; font-size: 0.925rem; color: var(--color-text-secondary);">
+        <strong style="color: var(--color-text-primary); font-size: 0.95rem;">${order.recipient_name}</strong><br />
+        <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+          <span style="opacity: 0.7;">📞</span> ${order.recipient_phone}
+        </div>
+        <div style="margin-top: 6px;">
+          ${order.address_line}<br />
+          ${order.upazila ? order.upazila + ', ' : ''}${order.district}, ${order.division}
+        </div>
       </div>
     `;
-    sidebarCol.append(addrCard);
+    summaryCard.append(addrSection);
 
-    // Billing Breakdown Card
-    const billCard = document.createElement('div');
-    billCard.className = 'card order-detail__bill-card';
-    billCard.innerHTML = `
-      <h3 class="order-detail__card-title">💳 ${t('order_tracking.billing_summary')}</h3>
-      <div class="order-detail__bill-row">
+    // Divider
+    const divider = document.createElement('div');
+    divider.className = 'checkout-summary__divider';
+    summaryCard.append(divider);
+
+    // Billing Breakdown
+    const billSection = document.createElement('div');
+    billSection.innerHTML = `
+      <h3 class="checkout-summary__title" style="margin-bottom: 16px; font-size: 1.05rem;">
+        <span style="opacity: 0.8; margin-right: 4px;">💳</span> ${t('order_tracking.billing_summary')}
+      </h3>
+      <div class="checkout-summary__row">
         <span>${t('cart.subtotal')}</span>
-        <span>${formatCurrency(order.items_amount)}</span>
+        <span style="font-family: monospace; font-weight: 500;">${formatCurrency(order.items_amount)}</span>
       </div>
-      <div class="order-detail__bill-row">
+      <div class="checkout-summary__row">
         <span>${t('cart.shipping_estimate', { count: subOrders.length })}</span>
-        <span>${formatCurrency(order.shipping_amount)}</span>
+        <span style="font-family: monospace; font-weight: 500;">${formatCurrency(order.shipping_amount)}</span>
       </div>
       ${Number(order.discount_amount) > 0 ? `
-        <div class="order-detail__bill-row text-success">
+        <div class="checkout-summary__row" style="color: var(--color-success);">
           <span>${t('cart.discount')}</span>
-          <span>- ${formatCurrency(order.discount_amount)}</span>
+          <span style="font-family: monospace; font-weight: 500;">- ${formatCurrency(order.discount_amount)}</span>
         </div>
       ` : ''}
-      <div class="order-detail__divider"></div>
-      <div class="order-detail__bill-row order-detail__bill-row--total">
+      <div class="checkout-summary__divider" style="margin: 12px 0;"></div>
+      <div class="checkout-summary__row checkout-summary__row--total">
         <span>${t('cart.total')}</span>
-        <span class="text-primary font-bold">${formatCurrency(order.total_amount)}</span>
+        <span class="checkout-summary__total-val">${formatCurrency(order.total_amount)}</span>
       </div>
     `;
-    sidebarCol.append(billCard);
+    summaryCard.append(billSection);
 
     // Cancellation Action (if eligible)
     const canCancel = subOrders.some((s) => s.status === 'PLACED');
     if (canCancel) {
       const cancelWrap = document.createElement('div');
-      cancelWrap.className = 'order-detail__cancel-wrap mt-4';
+      cancelWrap.className = 'mt-6';
 
       const cancelBtn = Button({
         label: t('order_tracking.cancel_order_btn'),
@@ -254,13 +300,14 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
         },
       });
       cancelWrap.append(cancelBtn);
-      sidebarCol.append(cancelWrap);
+      summaryCard.append(cancelWrap);
     }
 
+    sidebarCol.append(summaryCard);
     contentLayout.append(sidebarCol);
     container.append(contentLayout);
   } catch (err) {
-    container.innerHTML = `<div class="alert alert--danger">${t('order_tracking.load_details_failed', { message: err.message })}</div>`;
+    container.innerHTML += `<div class="alert alert--danger mt-4">${t('order_tracking.load_details_failed', { message: err.message })}</div>`;
   }
 }
 
@@ -285,18 +332,18 @@ function showCancelModal(order, navigate, onRefresh) {
     size: 'sm',
   });
 
-  modalContent.querySelector('#modal-cancel-btn').addEventListener('click', () => modal.close());
+  modalContent.querySelector('#modal-cancel-btn').addEventListener('click', () => modal.closeModal());
   modalContent.querySelector('#modal-confirm-btn').addEventListener('click', async () => {
     const reason = modalContent.querySelector('#cancel-reason-input').value.trim();
     try {
       await cancelOrder(order.id, reason);
       toast.success(t('order_tracking.cancel_success') || 'Order cancelled successfully.');
-      modal.close();
+      modal.closeModal();
       if (onRefresh) onRefresh();
     } catch (err) {
       toast.error(err.message || t('order_tracking.cancel_failed'));
     }
   });
 
-  modal.open();
+  modal.openModal();
 }

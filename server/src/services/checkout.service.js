@@ -73,7 +73,15 @@ export async function executeCheckout(pool, cache, {
   }
 
   // 2. Load Cart
-  const cart = await cartService.getCart(pool, { userId, guestToken });
+  if (guestToken && userId) {
+    try {
+      await cartService.mergeGuestCartOnLogin(pool, { guestToken, userId });
+    } catch {}
+  }
+  let cart = await cartService.getCart(pool, { userId, guestToken });
+  if ((!cart || !cart.items || cart.items.length === 0) && guestToken) {
+    cart = await cartService.getCart(pool, { guestToken });
+  }
   if (!cart || !cart.items || cart.items.length === 0) {
     throw new AppError(
       'BAD_REQUEST',

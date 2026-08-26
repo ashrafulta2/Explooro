@@ -4,6 +4,8 @@
  * Implements realistic checkout processing, multi-supplier order splitting, and tracking in mock mode.
  */
 
+import { clearMockCart } from './cart.js';
+
 let mockOrders = [
   {
     id: 1,
@@ -85,7 +87,8 @@ let mockOrders = [
   },
 ];
 
-let nextOrderId = 2;
+let nextOrderId = 100;
+let nextSubOrderId = 1000;
 
 const orderHandlers = [
   {
@@ -116,7 +119,7 @@ const orderHandlers = [
         created_at: new Date().toISOString(),
         sub_orders: [
           {
-            id: nextOrderId * 10,
+            id: nextSubOrderId++,
             ref: `${orderRef}-1`,
             order_id: nextOrderId,
             supplier_id: 101,
@@ -147,6 +150,7 @@ const orderHandlers = [
       };
 
       mockOrders.unshift(newOrder);
+      clearMockCart();
       return { status: 201, body: { data: { order: newOrder } } };
     },
   },

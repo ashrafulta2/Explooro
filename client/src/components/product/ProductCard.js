@@ -23,6 +23,7 @@
 import '../../styles/components/product.css';
 import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
+import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
 
 // Ten HSL-defined, accessible background colours for the SVG image placeholder.
 // Each maps to a distinct category visual identity — consistent per image_index.
@@ -428,7 +429,8 @@ export function ProductCard({
     const actionWrap = document.createElement('div');
     actionWrap.className = 'product-card__action';
 
-    const inStock = (product.stock ?? 0) > 0;
+    const stockVal = product.stock ?? product.stock_qty ?? product.stock_quantity ?? 10;
+    const inStock = Number(stockVal) > 0;
     const isSaler = role === 'saler';
 
     const actionBtn = document.createElement('button');
@@ -451,7 +453,15 @@ export function ProductCard({
     // Stop propagation so clicking the button doesn't also navigate to product detail
     actionBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      onAction && onAction(product, isSaler ? 'add_to_store' : 'quick_buy');
+      if (onAction) {
+        onAction(product, isSaler ? 'add_to_store' : 'quick_buy');
+      } else if (!isSaler) {
+        openQuickBuyModal({
+          product,
+          initialQty: 1,
+          navigate: onNavigate,
+        });
+      }
     });
 
     actionWrap.append(actionBtn);

@@ -9,9 +9,11 @@ import * as orderService from '../services/order.service.js';
 
 export async function checkout(req, reply) {
   const idempotencyKey = req.headers['idempotency-key'];
+  const guestToken = req.cookies?.cart_token || req.headers['x-cart-token'] || req.body?.guest_token || null;
 
   const result = await checkoutService.executeCheckout(req.server.db, req.server.cache, {
     userId: req.user.id,
+    guestToken,
     idempotencyKey,
     recipientName: req.body?.recipient_name,
     recipientPhone: req.body?.recipient_phone,

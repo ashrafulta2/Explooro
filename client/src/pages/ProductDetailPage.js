@@ -26,6 +26,7 @@ import { ReviewList } from '../components/product/ReviewList.js';
 import { QnASection } from '../components/product/QnASection.js';
 import { WishlistButton } from '../components/cart/WishlistButton.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
+import { resolveProductImage } from '../components/product/ProductCard.js';
 import { addToCart } from '../services/cart.js';
 import * as catalogApi from '../services/catalog.api.js';
 import { updateHead, buildProductJsonLd } from '../services/seo.js';
@@ -155,11 +156,11 @@ export default function ProductDetailPage(root, { params, navigate }) {
           slug: product.slug,
           variant_title: sel?.title || null,
           variant_sku: sel?.sku || null,
-          price: sel?.price_override ?? product.retail_price,
-          image_url: product.images?.[0]?.url || product.primary_image_url,
-          supplier_id: product.supplier_id || 1,
-          supplier_name: product.supplier_name || 'Verified Supplier',
-          stock_qty: sel?.stock_qty ?? product.stock_qty,
+          price: sel?.price_override ?? product.retail_price ?? product.default_retail_price ?? product.price ?? 0,
+          image_url: product.images?.[0]?.url || product.primary_image_url || resolveProductImage(product),
+          supplier_id: product.supplier_id || product.supplier?.id || 1,
+          supplier_name: product.supplier_name || product.supplier?.name || 'Verified Supplier',
+          stock_qty: sel?.stock_qty ?? product.stock_qty ?? product.stock ?? 10,
         });
       },
     });

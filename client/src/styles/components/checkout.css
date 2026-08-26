@@ -58,7 +58,7 @@
 }
 
 .checkout-stepper__step--active {
-  color: var(--color-primary, #e11d48);
+  color: var(--brand-700, #c08c00);
   font-weight: 700;
 }
 
@@ -83,10 +83,10 @@
 }
 
 .checkout-stepper__step--active .checkout-stepper__num {
-  background: var(--color-primary, #e11d48);
+  background: var(--brand-500, #ecae00);
   color: #ffffff;
-  border-color: var(--color-primary, #e11d48);
-  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.15);
+  border-color: var(--brand-600, #d99f00);
+  box-shadow: 0 0 0 4px rgba(255, 188, 0, 0.2);
 }
 
 .checkout-stepper__step--done .checkout-stepper__num {
@@ -153,7 +153,7 @@
 }
 
 .checkout-section-card:hover {
-  border-color: var(--color-primary, #e11d48);
+  border-color: var(--brand-400, #ffbc00);
 }
 
 .checkout-section-card__header {
@@ -200,8 +200,8 @@
 }
 
 .checkout-step--active {
-  border-color: var(--color-primary, #e11d48);
-  box-shadow: 0 4px 20px -2px rgba(225, 29, 72, 0.08);
+  border-color: var(--brand-400, #ffbc00);
+  box-shadow: 0 4px 20px -2px rgba(255, 188, 0, 0.15);
 }
 
 .checkout-step__header {
@@ -233,7 +233,7 @@
 }
 
 .checkout-step--active .checkout-step__badge {
-  background: var(--color-primary, #e11d48);
+  background: var(--brand-500, #ecae00);
   color: #ffffff;
 }
 
@@ -354,8 +354,8 @@
 .address-form .form-input:focus,
 .address-form .form-select:focus,
 .address-form .form-textarea:focus {
-  border-color: var(--color-primary, #e11d48);
-  box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.15);
+  border-color: var(--brand-500, #ecae00);
+  box-shadow: 0 0 0 3px rgba(255, 188, 0, 0.25);
 }
 
 .address-form .form-error {
@@ -391,14 +391,14 @@
 }
 
 .payment-selector__card:hover {
-  border-color: var(--color-primary, #e11d48);
-  background: var(--color-surface-subtle, #fdf2f4);
+  border-color: var(--brand-400, #ffbc00);
+  background: var(--brand-50, #fdf8ef);
 }
 
 .payment-selector__card--selected {
-  border-color: var(--color-primary, #e11d48);
-  background: rgba(225, 29, 72, 0.04);
-  box-shadow: 0 0 0 1px var(--color-primary, #e11d48);
+  border-color: var(--brand-500, #ecae00);
+  background: var(--brand-50, #fdf8ef);
+  box-shadow: 0 0 0 1px var(--brand-500, #ecae00);
 }
 
 .payment-selector__icon {
@@ -506,7 +506,7 @@
 }
 
 .checkout-summary__total-val {
-  color: var(--color-primary, #e11d48);
+  color: var(--brand-700, #c08c00);
   font-size: 1.35rem;
   font-weight: 800;
 }
@@ -548,7 +548,7 @@
 
 .quick-buy-modal__price {
   font-weight: var(--font-bold);
-  color: var(--color-primary);
+  color: var(--brand-700, #c08c00);
 }
 
 .quick-buy-modal__stepper {
@@ -568,7 +568,7 @@
 }
 
 .quick-buy-modal__step--active {
-  color: var(--color-primary);
+  color: var(--brand-700, #c08c00);
   font-weight: var(--font-semibold);
 }
 
@@ -584,7 +584,7 @@
 }
 
 .quick-buy-modal__step--active .quick-buy-modal__step-num {
-  background: var(--color-primary);
+  background: var(--brand-500, #ecae00);
   color: #fff;
 }
 
@@ -725,9 +725,9 @@
 }
 
 .order-tracker__step--active .order-tracker__node {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
+  border-color: var(--brand-500, #ecae00);
+  background: var(--brand-50, #fdf8ef);
+  color: var(--brand-700, #c08c00);
   transform: scale(1.1);
 }
 
@@ -738,7 +738,7 @@
 }
 
 .order-tracker__step--active .order-tracker__label {
-  color: var(--color-primary);
+  color: var(--brand-700, #c08c00);
   font-weight: var(--font-bold);
 }
 

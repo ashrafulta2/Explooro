@@ -35,6 +35,7 @@
 @import './components/cart.css';
 /* Prompt 5.4: checkout, quick buy & order tracking components */
 @import './components/checkout.css';
+@import './components/customer-orders.css';
 /* Prompt 6.3: vault withdrawals & admin payout queue */
 @import './components/payout.css';
 /* Prompt 6.4: COD reconciliation & courier settlement */

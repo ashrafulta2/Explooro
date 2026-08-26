@@ -5,7 +5,7 @@
  * live price change warnings, stock ceilings, and optimistic updates.
  */
 
-let mockCartItems = [
+export let mockCartItems = [
   {
     id: 101,
     product_id: 1,
@@ -294,5 +294,9 @@ const handlers = [
     },
   },
 ];
+
+export function clearMockCart() {
+  mockCartItems.length = 0;
+}
 
 export default handlers;

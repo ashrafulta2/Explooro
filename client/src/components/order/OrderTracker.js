@@ -68,12 +68,15 @@ export function OrderTracker({
   const currentStageIdx = getStageIndex(status);
 
   // 1. Status Stepper
+  const stepperWrap = document.createElement('div');
+  stepperWrap.className = 'customer-order-card__stepper-wrap mb-4';
+  
   const stepper = document.createElement('div');
-  stepper.className = `order-tracker__stepper ${isCancelled ? 'order-tracker__stepper--cancelled' : ''}`;
+  stepper.className = `customer-order-card__stepper ${isCancelled ? 'order-tracker__stepper--cancelled' : ''}`;
 
   if (isCancelled) {
     stepper.innerHTML = `
-      <div class="order-tracker__cancelled-badge alert alert--danger">
+      <div class="order-tracker__cancelled-badge alert alert--danger grid-col-span-4">
         <strong>⚠️ ${t('order_tracking.status_cancelled')}</strong>
         <p class="text-sm">${subOrder.cancel_reason || 'This sub-order was cancelled and inventory was released back to stock.'}</p>
       </div>
@@ -82,32 +85,23 @@ export function OrderTracker({
     ORDER_STAGES.forEach((stage, idx) => {
       const isDone = idx < currentStageIdx;
       const isActive = idx === currentStageIdx;
-      const isPending = idx > currentStageIdx;
 
-      let stepClass = 'order-tracker__step';
-      if (isDone) stepClass += ' order-tracker__step--done';
-      if (isActive) stepClass += ' order-tracker__step--active';
-      if (isPending) stepClass += ' order-tracker__step--pending';
+      let stepClass = 'customer-order-card__step';
+      if (isDone) stepClass += ' customer-order-card__step--done';
+      if (isActive) stepClass += ' customer-order-card__step--active';
 
       const stepEl = document.createElement('div');
       stepEl.className = stepClass;
       stepEl.innerHTML = `
-        <div class="order-tracker__node">
-          <span class="order-tracker__icon">${isDone ? '✓' : stage.icon}</span>
-        </div>
-        <div class="order-tracker__label">${t(stage.labelKey)}</div>
+        <div class="customer-order-card__step-num">${isDone ? '✓' : (idx + 1)}</div>
+        <div class="customer-order-card__step-label">${t(stage.labelKey)}</div>
       `;
       stepper.append(stepEl);
-
-      if (idx < ORDER_STAGES.length - 1) {
-        const line = document.createElement('div');
-        line.className = `order-tracker__line ${idx < currentStageIdx ? 'order-tracker__line--done' : ''}`;
-        stepper.append(line);
-      }
     });
   }
 
-  container.append(stepper);
+  stepperWrap.append(stepper);
+  container.append(stepperWrap);
 
   // 2. Courier & Shipping Logistics Info
   const courierCard = document.createElement('div');

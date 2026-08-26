@@ -1,4 +1,5 @@
 import { api } from '../core/api.js';
+import { clearCart, syncCartToServer } from './cart.js';
 
 const CHECKOUT_DRAFT_KEY = 'explooro_checkout_draft';
 
@@ -37,12 +38,16 @@ export function clearCheckoutDraft() {
 }
 
 export async function placeCheckout(payload, { idempotencyKey = null } = {}) {
+  // Sync client-side items to server cart to guarantee server cart has the items
+  await syncCartToServer();
+
   const key = idempotencyKey || generateIdempotencyKey();
   const res = await api.post('/orders/checkout', payload, {
     idempotencyKey: key,
   });
 
   clearCheckoutDraft();
+  clearCart();
   return res.data || res;
 }
 

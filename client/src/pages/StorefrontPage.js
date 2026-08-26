@@ -5,6 +5,7 @@
 import { getStoreBySlug } from '../services/store.api.js';
 import { StoreHeader } from '../components/store/StoreHeader.js';
 import { ProductCard } from '../components/product/ProductCard.js';
+import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Skeleton } from '../components/ui/Skeleton.js';
@@ -104,6 +105,18 @@ export default function StorefrontPage(root, { params, navigate }) {
           const role = userState?.auth?.role || 'customer';
           const modules = userState?.modules || { physical_shop_status: true };
 
+          const handleCardAction = (prod, actionType) => {
+            if (actionType === 'quick_buy') {
+              openQuickBuyModal({
+                product: prod,
+                initialQty: 1,
+                navigate: nav,
+              });
+            } else {
+              nav(`/product/${prod.slug || prod.product_ref || prod.ref || prod.id}`);
+            }
+          };
+
           shelf.items.forEach((p) => {
             const card = ProductCard({
               product: p,
@@ -111,7 +124,7 @@ export default function StorefrontPage(root, { params, navigate }) {
               modules,
               lang: getLanguage(),
               onNavigate: nav,
-              onAction: (prod) => nav(`/product/${prod.slug || prod.product_ref || prod.id}`),
+              onAction: handleCardAction,
             });
             grid.append(card);
           });
@@ -147,6 +160,18 @@ export default function StorefrontPage(root, { params, navigate }) {
     const role = userState?.auth?.role || 'customer';
     const modules = userState?.modules || { physical_shop_status: true };
 
+    const handleAllCardAction = (prod, actionType) => {
+      if (actionType === 'quick_buy') {
+        openQuickBuyModal({
+          product: prod,
+          initialQty: 1,
+          navigate: nav,
+        });
+      } else {
+        nav(`/product/${prod.slug || prod.product_ref || prod.ref || prod.id}`);
+      }
+    };
+
     if (products.length === 0) {
       const empty = document.createElement('p');
       empty.className = 'text-sm text-muted';
@@ -161,7 +186,7 @@ export default function StorefrontPage(root, { params, navigate }) {
           modules,
           lang: getLanguage(),
           onNavigate: nav,
-          onAction: (prod) => nav(`/product/${prod.slug || prod.product_ref || prod.id}`),
+          onAction: handleAllCardAction,
         });
         allGrid.append(card);
       });

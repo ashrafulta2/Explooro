@@ -11,7 +11,7 @@
 
 import { AddressForm } from '../components/checkout/AddressForm.js';
 import { PaymentSelector } from '../components/checkout/PaymentSelector.js';
-import { getCart, fetchCart } from '../services/cart.js';
+import { getCart, fetchCart, clearCart } from '../services/cart.js';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.js';
 import { getCurrentUser } from '../services/session.js';
 import { appStore } from '../state/appStore.js';
@@ -313,6 +313,7 @@ export default function CheckoutPage(root, { navigate } = {}) {
           const result = await placeCheckout(payload);
           toast.success(t('checkout.order_success') || 'Order placed successfully!');
           clearCheckoutDraft();
+          clearCart();
 
           if (navigate && result.order?.ref) {
             navigate(`/orders/${result.order.ref}`);
