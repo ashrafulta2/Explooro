@@ -142,7 +142,54 @@
   gap: 20px;
 }
 
-/* 2. Collapsible Checkout Step Card */
+/* 2. Express Single-Phase Section Cards */
+.checkout-section-card {
+  border: 1.5px solid var(--color-border, #e5e7eb);
+  border-radius: 16px;
+  background: var(--color-surface, #ffffff);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.checkout-section-card:hover {
+  border-color: var(--color-primary, #e11d48);
+}
+
+.checkout-section-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--color-surface-subtle, #f9fafb);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.checkout-section-card__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.checkout-section-card__icon {
+  font-size: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkout-section-card__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #111827);
+  margin: 0;
+}
+
+.checkout-section-card__content {
+  padding: 20px;
+}
+
+/* Legacy Collapsible Checkout Step Card (for backward compatibility) */
 .checkout-step {
   border: 1.5px solid var(--color-border, #e5e7eb);
   border-radius: 16px;

@@ -167,6 +167,11 @@
   --control-height: 40px;
   --density-body-size: 15px;
   --card-padding: var(--space-5);
+
+  /* ---------------------------------------------------------------------
+   * Rating star color — bright warm golden for high-contrast star ratings
+   * ------------------------------------------------------------------- */
+  --star-color: #ffb800;
 }
 
 :root[data-density='compact'] {

@@ -488,7 +488,7 @@
 .product-card__stars {
   display: inline-flex;
   gap: 1px;
-  color: var(--warning-500);
+  color: var(--star-color, #ffb800);
 }
 
 .product-card__stars svg {
@@ -842,7 +842,7 @@
   transition: background 100ms, border-color 100ms, color 100ms;
 }
 
-.filter-panel__star-btn svg { width: 12px; height: 12px; color: var(--warning-500); }
+.filter-panel__star-btn svg { width: 12px; height: 12px; color: var(--star-color, #ffb800); }
 
 .filter-panel__star-btn[aria-pressed='true'] {
   background: var(--warning-50);
@@ -1367,7 +1367,7 @@
 .star-row {
   display: inline-flex;
   gap: 2px;
-  color: var(--warning-500);
+  color: var(--star-color, #ffb800);
 }
 .star-row__star { display: inline-flex; width: 16px; height: 16px; }
 .star-row__star[data-filled='false'] { color: var(--border-strong); }
@@ -1450,7 +1450,7 @@ button.star-row__star:focus-visible { outline: 2px solid var(--brand); outline-o
 .review-distribution__fill {
   display: block;
   height: 100%;
-  background: var(--warning-500);
+  background: var(--star-color, #ffb800);
 }
 
 .review-distribution__count {

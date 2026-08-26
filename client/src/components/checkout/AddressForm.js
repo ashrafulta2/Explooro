@@ -28,6 +28,7 @@ export function isValidBdPhone(phone) {
 export function AddressForm({
   initialData = {},
   savedAddresses = [],
+  hideSubmitButton = false,
   onSave,
   onChange,
 } = {}) {
@@ -255,33 +256,38 @@ export function AddressForm({
   // Initial population of cascading dropdowns
   updateDistricts(state.division);
 
-  // Form Submission & Action Buttons
-  const actions = document.createElement('div');
-  actions.className = 'address-form__actions';
+  // Form Submission & Action Buttons (only if not hidden)
+  if (!hideSubmitButton) {
+    const actions = document.createElement('div');
+    actions.className = 'address-form__actions';
 
-  const saveBtn = Button({
-    label: t('checkout.save_continue') || 'Save & Continue',
-    variant: 'primary',
-    size: 'md',
-    onClick: (e) => {
-      e.preventDefault();
-      if (validate()) {
-        if (onSave) onSave(state);
-      }
-    },
-  });
-  actions.append(saveBtn);
-  formEl.append(actions);
+    const saveBtn = Button({
+      label: t('checkout.save_continue') || 'Save & Continue',
+      variant: 'primary',
+      size: 'md',
+      onClick: (e) => {
+        e.preventDefault();
+        if (validate()) {
+          if (onSave) onSave(state);
+        }
+      },
+    });
+    actions.append(saveBtn);
+    formEl.append(actions);
+  }
 
   function validate() {
     let isValid = true;
+    let firstInvalidEl = null;
+
     const clearError = (id) => {
       const el = formEl.querySelector(`#${id}`);
       if (el) el.textContent = '';
     };
-    const setError = (id, msg) => {
+    const setError = (id, msg, inputEl) => {
       const el = formEl.querySelector(`#${id}`);
       if (el) el.textContent = msg;
+      if (!firstInvalidEl && inputEl) firstInvalidEl = inputEl;
       isValid = false;
     };
 
@@ -292,23 +298,30 @@ export function AddressForm({
     clearError('err-address-line');
 
     if (!state.recipient_name.trim()) {
-      setError('err-recipient-name', t('checkout.validation_name'));
+      setError('err-recipient-name', t('checkout.validation_name'), nameInput);
     }
 
     if (!isValidBdPhone(state.recipient_phone)) {
-      setError('err-recipient-phone', t('checkout.validation_phone'));
+      setError('err-recipient-phone', t('checkout.validation_phone'), phoneInput);
     }
 
     if (!state.division) {
-      setError('err-address-division', t('checkout.validation_division'));
+      setError('err-address-division', t('checkout.validation_division'), divSelect);
     }
 
     if (!state.district) {
-      setError('err-address-district', t('checkout.validation_district'));
+      setError('err-address-district', t('checkout.validation_district'), distSelect);
     }
 
     if (!state.address_line.trim()) {
-      setError('err-address-line', t('checkout.validation_address'));
+      setError('err-address-line', t('checkout.validation_address'), addrInput);
+    }
+
+    if (firstInvalidEl) {
+      firstInvalidEl.focus();
+      if (firstInvalidEl.scrollIntoView) {
+        firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     }
 
     return isValid;

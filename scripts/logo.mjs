@@ -35,13 +35,12 @@ const PUBLIC_DIR = join(ROOT, 'client', 'public');
 const ICONS_DIR = join(PUBLIC_DIR, 'icons');
 const BRAND_DIR = join(ICONS_DIR, 'brand');
 
-const HOLE = '#ffffff';
-
-/** { bg, star, hole } for a preset key — bg/star are raw ramp steps, stable across every seed. */
+/** { bg, star, hole } for a preset key — aligns with the present site logo brand mark */
 function colorsFor(presetKey) {
   const preset = MASTER_PRESETS[presetKey];
   const palette = generatePalette(preset.master);
-  return { bg: palette.brand[900], star: palette.brand[500], hole: HOLE };
+  const darkInk = palette.neutral[900] || '#192026';
+  return { bg: darkInk, star: '#ffbc00', hole: darkInk };
 }
 
 const args = new Set(process.argv.slice(2));
