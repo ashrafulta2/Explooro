@@ -780,8 +780,9 @@
   width: var(--tb-icon-btn, var(--control-height));
   height: var(--tb-icon-btn, var(--control-height));
   border-radius: var(--radius-full);
-  background: var(--brand-alt);
-  color: var(--brand-alt-contrast);
+  border: none;
+  background: var(--brand);
+  color: var(--brand-contrast);
   font-size: var(--tb-avatar-font, var(--text-base));
   font-weight: var(--weight-lg);
   cursor: pointer;
@@ -792,13 +793,12 @@
 }
 .topbar__avatar-trigger:hover,
 .topbar__avatar-trigger:focus-visible {
-  /* One step deeper than --brand-alt itself for a visible hover cue (base and --brand-hover are
-     the same ramp step in light theme). */
-  background: var(--brand-active);
-  box-shadow: 0 0 0 2px var(--brand-active);
+  background: var(--brand-hover);
+  box-shadow: 0 0 0 2px var(--brand-hover);
   transform: scale(1.08);
 }
 .topbar__avatar-trigger:active {
+  background: var(--brand-active);
   transform: scale(0.96);
 }
 .topbar__avatar-panel {
