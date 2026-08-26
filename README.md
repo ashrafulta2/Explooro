@@ -164,9 +164,23 @@ The full reasoning lives in [`docs/prompt.md`](docs/prompt.md) under **Master In
 | Phase | State |
 | :--- | :--- |
 | 0 — Foundations & Contracts | ✅ **Complete** — 0.1–0.8 all done |
-| 1 — Design System & Shell | ✅ **Complete** — 1.1–1.10 all done |
-| 2 — Auth, RBAC & Delegation | 🟡 In progress — 2.1–2.6 done, next is 2.7 |
-| 3 – 12 | ⬜ Not started |
+| 1 — Design System, App Shell, Router, i18n | ✅ **Complete** — 1.1–1.10 all done |
+| 2 — Auth, RBAC Engine, Delegation & Audit | 🟡 In progress — 2.1–2.6 done; 2.7's `audit_logs` table exists but application code doesn't yet write to it; 2.8 (Auth & Access frontend) isn't yet reflected in the matrix |
+| 3 — Admin Shell, Module Control & Theme Studio | 🟡 In progress — 3.5 (Theme & Color Studio) substantially built via a later Master Colour engine, though 3.5's own original ACCEPTANCE lines are still unaudited; 3.1–3.4 (module control backend/UI, users & access admin UI, audit explorer) not started |
+| 4 — Catalog, Media, Search & Storefronts | 🟡 In progress — 4.5 (marketplace home) and 4.6 (product detail) done; 4.1–4.4, 4.7, 4.8 (catalog schema, media pipeline, pricing engine, search, sourcing calculator, storefront builder) not started |
+| 5 — Cart, Checkout, Orders & Payments | 🟡 In progress — 5.1, 5.2, 5.4 done; 5.3 (payments + webhooks) not started |
+| 6 — Vault, Escrow, Ledger, Payouts & COD Reconciliation | ✅ **Complete** — 6.1–6.5 all done |
+| 7 — Logistics, Returns, Disputes, Moderation & KYC | ✅ **Complete** — 7.1–7.6 all done |
+| 8 — Real-Time Chat & Unified Notifications | ✅ **Complete** — 8.1–8.4 all done |
+| 9 — Growth Engines | ✅ **Complete** — 9.1–9.7 all done |
+| 10 — Advanced Subsystems | ✅ **Complete** — 10.1–10.8 all done |
+| 11 — Role Dashboards, Analytics, SEO & PWA | ✅ **Complete** — 11.1–11.6 all done |
+| 12 — Hardening, Mobile & Deployment | ⬜ Not started |
+
+Rolled up from the per-prompt status markers in `docs/prompt.md`'s traceability matrix as of 2026-08-26 —
+that document carries the verification evidence behind each ✅/🟡/⬜ and is the source of truth if the
+two ever disagree. This table was not independently re-verified prompt-by-prompt in this pass; it's a
+summary, not a substitute for the matrix.
 
 ### Design
 
