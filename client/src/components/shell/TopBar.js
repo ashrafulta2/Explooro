@@ -18,7 +18,7 @@ import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
 import { openCartDrawer } from '../../services/cart.js';
 import { openNotificationCenter } from '../notifications/NotificationCenter.js';
 import { openAssistantPanel } from '../ai/AssistantPanel.js';
-import { ICONS, getExplooroLogoSvg } from '../ui/icons.js';
+import { ICONS, getExplooroLogoSvg, formatExplooroBrandText } from '../ui/icons.js';
 
 export function formatRemaining(ms, lang = 'en') {
   const totalMinutes = Math.max(0, Math.round(ms / 60_000));
@@ -366,7 +366,7 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
   const brand = document.createElement('a');
   brand.className = 'topbar__brand';
   brand.href = '/';
-  brand.innerHTML = `${getExplooroLogoSvg({ size: 28 })} <span class="topbar__brand-text">EXPLOORO</span>`;
+  brand.innerHTML = `${getExplooroLogoSvg({ size: 28 })} <span class="topbar__brand-text">${formatExplooroBrandText('EXPLOORO')}</span>`;
   brand.addEventListener('click', (e) => {
     e.preventDefault();
     navigate('/');

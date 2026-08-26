@@ -189,7 +189,10 @@ export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarColla
   const collapseBtn = document.createElement('button');
   collapseBtn.type = 'button';
   collapseBtn.className = 'sidebar__collapse-toggle';
-  collapseBtn.textContent = sidebarCollapsed ? '›' : '‹';
+  const chevronSvg = sidebarCollapsed
+    ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
+    : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+  collapseBtn.innerHTML = chevronSvg;
   collapseBtn.setAttribute('aria-label', t(sidebarCollapsed ? 'shell.expand_sidebar' : 'shell.collapse_sidebar'));
   collapseBtn.addEventListener('click', () => toggleSidebarCollapsed());
 

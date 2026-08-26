@@ -186,7 +186,24 @@ export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark'
     size,
     className,
     bg: 'var(--logo-bg, var(--neutral-900))',
-    star: 'var(--logo-star, #ffffff)',
+    star: 'var(--logo-star, #ffbc00)',
     hole: 'var(--logo-hole, var(--neutral-900))',
   });
 }
+
+/**
+ * Formats "Explooro" brand text with the 5th letter ("o" / "O") styled in brand gold accent color.
+ */
+export function formatExplooroBrandText(text = 'Explooro') {
+  if (text.startsWith('EXPLOORO')) {
+    return `EXPL<span class="brand-text__accent">O</span>ORO${text.slice(8)}`;
+  }
+  if (text.startsWith('Explooro')) {
+    return `Expl<span class="brand-text__accent">o</span>oro${text.slice(8)}`;
+  }
+  if (text.length >= 5) {
+    return `${text.slice(0, 4)}<span class="brand-text__accent">${text.charAt(4)}</span>${text.slice(5)}`;
+  }
+  return text;
+}
+

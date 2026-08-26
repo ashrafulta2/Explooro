@@ -13,17 +13,19 @@
  * could ship (docs/prompt.md Prompt 1.6 REQUIREMENT 2).
  */
 
+import { getLanguage } from './i18n.js';
+
 const NUMERAL_KEY = 'explooro:numerals';
 const BENGALI_DIGITS = '০১২৩৪৫৬৭৮৯';
 
-let numeralPreference = 'latin';
+let numeralPreference = 'bengali';
 try {
   if (typeof localStorage !== 'undefined') {
     const saved = localStorage.getItem(NUMERAL_KEY);
     if (saved === 'bengali' || saved === 'latin') numeralPreference = saved;
   }
 } catch {
-  // Storage unavailable — default to Western numerals, same as design-system.md §3.5.6.
+  // Storage unavailable
 }
 
 export function getNumeralPreference() {
@@ -31,11 +33,20 @@ export function getNumeralPreference() {
 }
 
 export function setNumeralPreference(pref) {
-  numeralPreference = pref === 'bengali' ? 'bengali' : 'latin';
+  numeralPreference = pref === 'latin' ? 'latin' : 'bengali';
   try {
     if (typeof localStorage !== 'undefined') localStorage.setItem(NUMERAL_KEY, numeralPreference);
   } catch {
     // Persistence is a convenience, not a guarantee.
+  }
+}
+
+export function resolveLang(lang) {
+  if (lang) return lang;
+  try {
+    return getLanguage() || 'en';
+  } catch {
+    return 'en';
   }
 }
 
@@ -64,30 +75,33 @@ export function groupSouthAsian(digits) {
   return [...groups, last3].join(',');
 }
 
-/** Design-system.md §3.5.6: numerals default to Western even in `bn` — Bengali digits are opt-in. */
+/** Converts Western digits to Bengali digits. */
 function toBengaliDigits(str) {
   return str.replace(/\d/g, (d) => BENGALI_DIGITS[Number(d)]);
 }
 
 function applyNumerals(str, lang, numerals) {
-  const useBengali = (numerals ?? numeralPreference) === 'bengali' && lang === 'bn';
+  const activeLang = resolveLang(lang);
+  const useBengali = activeLang === 'bn' && (numerals ?? numeralPreference) !== 'latin';
   return useBengali ? toBengaliDigits(str) : str;
 }
 
 /** Grouped integer/decimal, no currency symbol. `formatNumber(1234567)` → `'12,34,567'`. */
-export function formatNumber(amount, { lang = 'en', numerals } = {}) {
+export function formatNumber(amount, { lang, numerals } = {}) {
+  const activeLang = resolveLang(lang);
   const { negative, intPart, fracPart } = splitAmount(amount);
   const grouped = groupSouthAsian(intPart);
   const hasFraction = typeof amount === 'string' ? amount.includes('.') : !Number.isInteger(amount);
   const out = hasFraction ? `${grouped}.${fracPart}` : grouped;
-  return `${negative ? '-' : ''}${applyNumerals(out, lang, numerals)}`;
+  return `${negative ? '-' : ''}${applyNumerals(out, activeLang, numerals)}`;
 }
 
-/** `formatCurrency('123456.00')` → `'৳ 1,23,456.00'` (or `'৳ ১,২৩,৪৫৬.০০'` with Bengali numerals). */
-export function formatCurrency(amount, { lang = 'en', numerals, symbol = '৳' } = {}) {
+/** `formatCurrency('123456.00')` → `'৳ 1,23,456.00'` (or `'৳ ১,২৩,৪৫৬.০০'` in Bengali). */
+export function formatCurrency(amount, { lang, numerals, symbol = '৳' } = {}) {
+  const activeLang = resolveLang(lang);
   const { negative, intPart, fracPart } = splitAmount(amount);
   const grouped = `${groupSouthAsian(intPart)}.${fracPart}`;
-  return `${negative ? '-' : ''}${symbol} ${applyNumerals(grouped, lang, numerals)}`;
+  return `${negative ? '-' : ''}${symbol} ${applyNumerals(grouped, activeLang, numerals)}`;
 }
 
 export const formatBdt = formatCurrency;
@@ -100,8 +114,9 @@ export function formatPhone(raw) {
   return `+880 ${national.slice(0, 4)}-${national.slice(4)}`;
 }
 
-export function formatDate(date, { lang = 'en', dateStyle = 'medium' } = {}) {
-  return new Intl.DateTimeFormat(lang === 'bn' ? 'bn' : 'en', { dateStyle }).format(new Date(date));
+export function formatDate(date, { lang, dateStyle = 'medium' } = {}) {
+  const activeLang = resolveLang(lang);
+  return new Intl.DateTimeFormat(activeLang === 'bn' ? 'bn' : 'en', { dateStyle }).format(new Date(date));
 }
 
 const RELATIVE_UNITS = [
@@ -115,8 +130,9 @@ const RELATIVE_UNITS = [
 ];
 
 /** `formatRelativeTime(threeHoursAgo, { lang: 'bn' })` → `'৩ ঘণ্টা আগে'`. */
-export function formatRelativeTime(date, { lang = 'en' } = {}) {
-  const rtf = new Intl.RelativeTimeFormat(lang === 'bn' ? 'bn' : 'en', { numeric: 'auto' });
+export function formatRelativeTime(date, { lang } = {}) {
+  const activeLang = resolveLang(lang);
+  const rtf = new Intl.RelativeTimeFormat(activeLang === 'bn' ? 'bn' : 'en', { numeric: 'auto' });
   let duration = (new Date(date).getTime() - Date.now()) / 1000;
   for (const { amount, unit } of RELATIVE_UNITS) {
     if (Math.abs(duration) < amount) return rtf.format(Math.round(duration), unit);

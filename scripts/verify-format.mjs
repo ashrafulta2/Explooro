@@ -36,19 +36,20 @@ check('formatCurrency("123456.00")', formatCurrency('123456.00'), '৳ 1,23,456.
 check('formatCurrency(123456)', formatCurrency(123456), '৳ 1,23,456.00');
 check('formatCurrency("-1250.50") — negative sign outside the symbol', formatCurrency('-1250.50'), '-৳ 1,250.50');
 check(
-  'formatCurrency with Bengali numerals opted in',
-  formatCurrency('123456.00', { lang: 'bn', numerals: 'bengali' }),
+  'formatCurrency with Bengali language',
+  formatCurrency('123456.00', { lang: 'bn' }),
   '৳ ১,২৩,৪৫৬.০০'
 );
 check(
-  'formatCurrency stays Western when lang=bn but numerals not opted in (design-system.md §3.5.6)',
-  formatCurrency('123456.00', { lang: 'bn' }),
+  'formatCurrency stays Western when numerals explicitly set to latin',
+  formatCurrency('123456.00', { lang: 'bn', numerals: 'latin' }),
   '৳ 1,23,456.00'
 );
 
 console.log('\n## formatNumber — grouping without a currency symbol');
-check('formatNumber(9876543)', formatNumber(9876543), '98,76,543');
-check('formatNumber(42) — integer, no forced decimals', formatNumber(42), '42');
+check('formatNumber(9876543, { lang: "en" })', formatNumber(9876543, { lang: 'en' }), '98,76,543');
+check('formatNumber(9876543, { lang: "bn" })', formatNumber(9876543, { lang: 'bn' }), '৯৮,৭৬,৫৪৩');
+check('formatNumber(42, { lang: "en" }) — integer, no forced decimals', formatNumber(42, { lang: 'en' }), '42');
 
 console.log('\n## formatPhone — always Western digits (an ID, not prose)');
 check('formatPhone("+8801712345678")', formatPhone('+8801712345678'), '+880 1712-345678');
@@ -61,6 +62,9 @@ check('formatPhone with Bengali numerals active — must NOT convert', (() => {
 })(), '+880 1712-345678');
 
 console.log('\n## numeral preference persistence guard (no localStorage under plain Node)');
-check('getNumeralPreference() default', getNumeralPreference(), 'latin');
+setNumeralPreference('bengali');
+check('getNumeralPreference() bengali', getNumeralPreference(), 'bengali');
+setNumeralPreference('latin');
+check('getNumeralPreference() latin', getNumeralPreference(), 'latin');
 
 console.log(`\n${passed} assertions passed.`);

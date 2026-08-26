@@ -18,9 +18,20 @@ export const LOGO_HOLE_RADIUS = 9;
 
 /** The circular badge: background disc + sparkle + centre hole. Used at any size. */
 export function buildLogoMarkSvg({ size = 28, className = '', bg, star, hole } = {}) {
+  const gradId = `explooro-sparkle-gold-${size}`;
+  const starFill = star && !star.includes('logo-star') && !star.includes('#ffbc00') && !star.includes('url(')
+    ? star
+    : `url(#${gradId})`;
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}"${className ? ` class="${className}"` : ''} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ffe58f" />
+        <stop offset="45%" stop-color="#ffbc00" />
+        <stop offset="100%" stop-color="#d98200" />
+      </linearGradient>
+    </defs>
     <circle cx="50" cy="50" r="${LOGO_BADGE_RADIUS}" fill="${bg}" />
-    <path d="${LOGO_SPARKLE_PATH}" fill="${star}" />
+    <path d="${LOGO_SPARKLE_PATH}" fill="${starFill}" />
     <circle cx="50" cy="50" r="${LOGO_HOLE_RADIUS}" fill="${hole}" />
   </svg>`;
 }
@@ -31,10 +42,21 @@ export function buildLogoMarkSvg({ size = 28, className = '', bg, star, hole } =
  * cropping (the maskable spec's "safe zone").
  */
 export function buildLogoMaskableSvg({ size = 512, bg, star, hole } = {}) {
+  const gradId = `explooro-sparkle-gold-mask`;
+  const starFill = star && !star.includes('logo-star') && !star.includes('#ffbc00') && !star.includes('url(')
+    ? star
+    : `url(#${gradId})`;
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#ffe58f" />
+        <stop offset="45%" stop-color="#ffbc00" />
+        <stop offset="100%" stop-color="#d98200" />
+      </linearGradient>
+    </defs>
     <rect width="100" height="100" fill="${bg}" />
     <g transform="translate(50 50) scale(0.8) translate(-50 -50)">
-      <path d="${LOGO_SPARKLE_PATH}" fill="${star}" />
+      <path d="${LOGO_SPARKLE_PATH}" fill="${starFill}" />
       <circle cx="50" cy="50" r="${LOGO_HOLE_RADIUS}" fill="${hole}" />
     </g>
   </svg>`;

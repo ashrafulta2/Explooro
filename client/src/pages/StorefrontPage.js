@@ -13,6 +13,7 @@ import { toast } from '../services/toast.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { appStore } from '../state/appStore.js';
 import { updateHead, buildStoreJsonLd } from '../services/seo.js';
+import { formatExplooroBrandText } from '../components/ui/icons.js';
 
 export default function StorefrontPage(root, { params, navigate }) {
   const container = document.createElement('div');
@@ -240,7 +241,7 @@ function openQrFlyerModal(store, storeUrl) {
 
   const logo = document.createElement('div');
   logo.className = 'qr-flyer-card__logo';
-  logo.textContent = 'EXPLOORO';
+  logo.innerHTML = formatExplooroBrandText('EXPLOORO');
 
   const shopTitle = document.createElement('h3');
   shopTitle.className = 'qr-flyer-card__shop-name';

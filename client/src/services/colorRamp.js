@@ -285,7 +285,7 @@ function interactionSteps(anchorIndex) {
  * what this used to do while the CSS was pink and the boot default was slate.
  */
 export const DEFAULT_MASTER = {
-  seed: '#334155',
+  seed: '#ffbc00',
   vividness: 1,
   neutralMode: 'match',
   neutralTint: 0,

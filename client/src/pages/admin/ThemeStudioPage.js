@@ -805,13 +805,13 @@ export default function ThemeStudioPage(root) {
     wrap.innerHTML = `
       <div class="mini-navbar">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <div style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--logo-bg, var(--brand-900)); color: var(--logo-star, var(--brand-500));">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--logo-bg, var(--neutral-900)); color: var(--logo-star, #ffbc00);">
             <svg viewBox="0 0 100 100" width="16" height="16" aria-hidden="true">
-              <path d="M50,4 C58,34 66,42 96,50 C66,58 58,66 50,96 C42,66 34,58 4,50 C34,42 42,34 50,4 Z" fill="var(--logo-star, var(--brand-500))" />
-              <circle cx="50" cy="50" r="9" fill="var(--logo-hole, var(--neutral-0))" />
+              <path d="M50,4 C58,34 66,42 96,50 C66,58 58,66 50,96 C42,66 34,58 4,50 C34,42 42,34 50,4 Z" fill="var(--logo-star, #ffbc00)" />
+              <circle cx="50" cy="50" r="9" fill="var(--logo-hole, var(--neutral-900))" />
             </svg>
           </div>
-          <span style="font-weight: 700; color: var(--logo-text, var(--navbar-text)); font-size: 13px;">EXPLOORO</span>
+          <span style="font-weight: 700; color: var(--logo-text, var(--navbar-text)); font-size: 13px;">EXPL<span style="color: var(--brand, #ffbc00);">O</span>ORO</span>
         </div>
         <div style="padding: 3px 10px; background: var(--navbar-search-bg); border: 1px solid var(--navbar-border); border-radius: 4px; font-size: 10px; color: var(--navbar-text);">
           Search products, brands…

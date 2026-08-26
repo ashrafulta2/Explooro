@@ -661,15 +661,22 @@
   border: var(--border-width) solid var(--brand-active);
 }
 
-.mini-btn--primary:hover { background: var(--brand-hover); }
-
-.mini-btn--secondary {
-  background: var(--brand-100);
-  color: var(--text-brand);
-  border: var(--border-width) solid var(--brand-200);
+.mini-btn--primary:hover {
+  background: var(--brand-hover, #d99b00);
+  border-color: var(--brand-hover, #d99b00);
 }
 
-.mini-btn--secondary:hover { background: var(--brand-200); }
+.mini-btn--secondary {
+  background: var(--surface-card, #ffffff);
+  color: var(--text-primary, #192026);
+  border: var(--border-width) solid var(--border-subtle, #e2e8f0);
+}
+
+.mini-btn--secondary:hover {
+  background: var(--brand-hover, var(--brand, #ffbc00));
+  border-color: var(--brand-hover, var(--brand, #ffbc00));
+  color: var(--brand-contrast, #0f172a);
+}
 
 .mini-hint {
   font-size: 9px;

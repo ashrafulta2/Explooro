@@ -38,7 +38,7 @@
   margin-bottom: var(--space-3);
   font-weight: var(--weight-bold, 700);
   font-size: var(--text-xl);
-  color: var(--text-brand);
+  color: var(--logo-text, var(--text-primary));
 }
 
 .auth-title {

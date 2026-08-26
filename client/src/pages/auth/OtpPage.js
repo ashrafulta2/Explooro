@@ -11,7 +11,7 @@ import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
-import { getExplooroLogoSvg } from '../../components/ui/icons.js';
+import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.js';
 
 export default function OtpPage(container, { query = {}, navigate }) {
   container.replaceChildren();
@@ -34,7 +34,7 @@ export default function OtpPage(container, { query = {}, navigate }) {
 
   const brand = document.createElement('div');
   brand.className = 'auth-brand';
-  brand.innerHTML = `${getExplooroLogoSvg({ size: 30 })} <span>Explooro</span>`;
+  brand.innerHTML = `${getExplooroLogoSvg({ size: 30 })} <span>${formatExplooroBrandText('Explooro')}</span>`;
 
   const title = document.createElement('h1');
   title.className = 'auth-title';

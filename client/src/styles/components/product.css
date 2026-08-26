@@ -26,10 +26,9 @@
 /* Hero -------------------------------------------------------------------- */
 
 .home-hero {
-  /* brand-800 ("Deep accent" per docs/design-system.md §1.2) — brand-900/950 read as a dull,
-     muddy brown at hero scale and are documented as reserved/unassigned, not a hero colour. */
-  background: var(--brand-800);
-  color: var(--neutral-0);
+  /* Radiant light gold background with elegant subtle pattern */
+  background: var(--brand-100, #fff3c4);
+  color: var(--neutral-900, #192026);
   padding: var(--space-8) var(--space-6);
   display: flex;
   align-items: center;
@@ -37,6 +36,7 @@
   position: relative;
   overflow: hidden;
   min-height: 140px;
+  border-bottom: 1px solid var(--brand-200, #ffea9f);
 }
 
 .home-hero::before {
@@ -49,8 +49,8 @@
       45deg,
       transparent,
       transparent 40px,
-      oklch(1 0 0 / 0.03) 40px,
-      oklch(1 0 0 / 0.03) 41px
+      oklch(0 0 0 / 0.02) 40px,
+      oklch(0 0 0 / 0.02) 41px
     );
   pointer-events: none;
 }
@@ -67,21 +67,31 @@
   line-height: var(--text-2xl-lh);
   letter-spacing: var(--text-2xl-tracking);
   margin: 0 0 var(--space-2);
-  color: var(--neutral-0);
+  color: var(--neutral-950, #0f172a);
 }
 
 .home-hero__sub {
   font-size: var(--text-sm-size);
   line-height: var(--text-sm-lh);
-  /* WHY: opacity bumped from .75 -> .88 — brand-800 is lighter than the brand-900 this used to
-     sit on, and .75 no longer clears the 4.5:1 contrast floor against it. */
-  color: oklch(from var(--neutral-0) l c h / 0.88);
+  color: var(--neutral-800, #334155);
   margin: 0 0 var(--space-4);
+  font-weight: 500;
 }
 
-.home-hero__cta {
-  /* Uses existing Button component — additional overrides just for the hero contrast */
-  display: inline-flex;
+.home-hero .btn {
+  background: var(--neutral-900, #0f172a);
+  color: #ffffff;
+  border: 1px solid var(--neutral-950, #0f172a);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+
+.home-hero .btn:hover {
+  background: #000000;
+  color: var(--brand-400, #ffbc00);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Section structure ------------------------------------------------------- */
@@ -502,23 +512,28 @@
 .product-card__action-btn {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  /* Solid light-pink fill (not the outline/ghost style the design originally used) with dark text
-     — n900 on brand-400 measures 9.97:1. */
-  background: var(--brand-400);
-  color: var(--neutral-900);
-  border: var(--border-width) solid var(--brand-500);
+  background: var(--surface-card, #ffffff);
+  color: var(--text-primary, #192026);
+  border: var(--border-width) solid var(--border-subtle, #e2e8f0);
   border-radius: var(--radius-sm);
   font-size: var(--text-xs-size);
   font-weight: 600;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease, transform 80ms ease;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease, transform 80ms ease, box-shadow 120ms ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.product-card__action-btn:hover { background: var(--brand-500); border-color: var(--brand-600); }
-.product-card__action-btn:active { transform: scale(0.97); }
+.product-card__action-btn:hover {
+  background: var(--surface-subtle, #f1f5f9);
+  border-color: var(--border-interactive, #cbd5e1);
+  color: var(--brand-primary, #d99b00);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.product-card__action-btn:active {
+  transform: scale(0.97);
+}
 
 /* Skeleton mirror — same shape as the real card, prevents CLS on load */
 .skeleton--product-card {

@@ -29,6 +29,24 @@ export const MASTER_PRESETS = {
     },
   },
 
+  pure_gold: {
+    key: 'pure_gold',
+    name_en: 'Pure Gold & Black',
+    name_bn: 'পিওর গোল্ড ও ব্ল্যাক',
+    description_en: 'Royal luxury identity featuring pure gold accents (#ffbc00) paired with solid obsidian black.',
+    description_bn: 'বিলাসবহুল রয়্যাল লুক — খাঁটি গোল্ড অ্যাকসেন্ট (#ffbc00) এবং অবসিডিয়ান ব্ল্যাক কম্বিনেশন।',
+    master: {
+      seed: '#ffbc00',
+      vividness: 1,
+      neutralMode: 'match',
+      neutralTint: 0,
+      accentHarmony: 'complement',
+      statusPull: 0,
+      surfaceWash: false,
+      borderTint: false,
+    },
+  },
+
   amazon_pro: {
     key: 'amazon_pro',
     name_en: 'Amazon Pro',
@@ -188,4 +206,4 @@ export const MASTER_PRESETS = {
  * Changing the shipped colour therefore means: edit both, then run `node scripts/palette.mjs
  * --write`. Skip the regenerate and the product flashes the old colour on every cold load.
  */
-export const DEFAULT_MASTER_PRESET = 'midnight_slate';
+export const DEFAULT_MASTER_PRESET = 'pure_gold';

@@ -64,7 +64,7 @@
   /* One step above --text-base — the topbar reads too small at the base site-wide type scale. */
   font-size: var(--tb-brand-font, var(--text-lg));
   letter-spacing: -0.02em;
-  color: var(--text-brand);
+  color: var(--logo-text, #192026);
   text-decoration: none;
   margin-right: var(--space-2);
   cursor: pointer;
@@ -76,6 +76,7 @@
   flex: none;
   width: var(--tb-brand-icon, 28px);
   height: var(--tb-brand-icon, 28px);
+  --logo-star: var(--brand-primary, #ffbc00);
   transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard);
 }
 
@@ -384,20 +385,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: var(--border-width) solid var(--neutral-400);
+  width: 28px;
+  height: 28px;
+  border: var(--border-width) solid var(--border-subtle, var(--neutral-300));
   border-radius: var(--radius-full);
-  background: var(--surface-0);
-  color: var(--sidebar-icon-color, #192026);
-  box-shadow: var(--elevation-2);
+  background: var(--surface-card, var(--surface-0));
+  color: var(--sidebar-icon-color, var(--neutral-900));
+  box-shadow: 0 2px 8px hsl(var(--shadow-color) / 0.10);
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
 }
+
+.sidebar__collapse-toggle svg {
+  display: block;
+  stroke: currentColor;
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
 .sidebar__collapse-toggle:hover {
-  background: var(--neutral-100);
-  color: #192026;
-  box-shadow: var(--elevation-3);
+  background: var(--brand-hover, var(--brand, #ffbc00));
+  border-color: var(--brand-hover, var(--brand, #ffbc00));
+  color: var(--brand-contrast, #0f172a);
+  box-shadow: 0 4px 14px hsl(var(--shadow-color) / 0.16);
+  transform: translate(50%, -50%) scale(1.1);
 }
 
 /* =========================================================================

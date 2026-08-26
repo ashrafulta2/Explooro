@@ -16,10 +16,10 @@
  * agree), then re-run the command above. Hand-editing a step here is the one thing that CAN put
  * this file out of step with the engine, and that same test fails if you do.
  *
- *   seed          #334155 (hue 257.3)
- *   brand anchor  step 950, chroma scale 0.37
- *   neutral hue   257.3 (match)
- *   accent hue    77.3 (complement)
+ *   seed          #ffbc00 (hue 82.6)
+ *   brand anchor  step 400, chroma scale 2.09
+ *   neutral hue   82.6 (match)
+ *   accent hue    262.6 (complement)
  *   surface wash  off, border tint off
  *
  * Two layers:
@@ -38,18 +38,18 @@
  * ======================================================================= */
 
 :root {
-  --brand-50: #f7f8fa;
-  --brand-100: #eef0f3;
-  --brand-200: #e2e8f0;
-  --brand-300: #ced7e5;
-  --brand-400: #b9c6d9;
-  --brand-500: #a4b5cd;
-  --brand-600: #8fa3c0;
-  --brand-700: #788dac;
-  --brand-800: #617695;
-  --brand-900: #485b75;
-  --brand-950: #334155;
-  --brand-1000: #333e4d;
+  --brand-50: #fdf8ef;
+  --brand-100: #fbefdb;
+  --brand-200: #ffe6b8;
+  --brand-300: #ffd27d;
+  --brand-400: #ffbc00;
+  --brand-500: #ecae00;
+  --brand-600: #d99f00;
+  --brand-700: #c08c00;
+  --brand-800: #a67900;
+  --brand-900: #866100;
+  --brand-950: #6a4c00;
+  --brand-1000: #503900;
 
   --neutral-0: #fcfcfc;
   --neutral-50: #f8f8f8;
@@ -65,58 +65,58 @@
   --neutral-950: #121212;
   --neutral-1000: #070707;
 
-  --success-50: #e9f6eb;
-  --success-100: #c2e0c7;
-  --success-300: #97d2a3;
-  --success-500: #549863;
-  --success-700: #3f774d;
-  --success-800: #2e5838;
+  --success-50: #e3f9e6;
+  --success-100: #b0e7bb;
+  --success-300: #6cde89;
+  --success-500: #00a148;
+  --success-700: #007f39;
+  --success-800: #005e28;
 
-  --warning-50: #fbf0e1;
-  --warning-100: #efd3ab;
-  --warning-300: #f1be78;
-  --warning-500: #b88841;
-  --warning-700: #87642e;
-  --warning-800: #684d25;
+  --warning-50: #ffefda;
+  --warning-100: #ffce8a;
+  --warning-300: #ffb94e;
+  --warning-500: #c38300;
+  --warning-700: #916000;
+  --warning-800: #704a00;
 
-  --danger-50: #faefed;
-  --danger-100: #f5d6d1;
-  --danger-300: #efa89c;
-  --danger-500: #e74b3d;
-  --danger-700: #b83a2e;
-  --danger-800: #7f2f26;
+  --danger-50: #ffedea;
+  --danger-100: #ffd2ca;
+  --danger-300: #ff9f90;
+  --danger-500: #ff0c0a;
+  --danger-700: #cc0002;
+  --danger-800: #950001;
 
-  --info-50: #ecf3fa;
-  --info-100: #cde0f5;
-  --info-300: #a3ccf7;
-  --info-500: #5590cc;
-  --info-700: #336ea7;
-  --info-800: #2a5580;
+  --info-50: #e8f3ff;
+  --info-100: #c5e1ff;
+  --info-300: #9dcdff;
+  --info-500: #008ff4;
+  --info-700: #006cbd;
+  --info-800: #005593;
 
-  --accent-50: #f7f1e8;
-  --accent-100: #ebdcc7;
-  --accent-200: #d9c09d;
-  --accent-300: #c4a678;
-  --accent-400: #aa8d63;
-  --accent-500: #8e7653;
-  --accent-600: #736044;
-  --accent-700: #594b35;
+  --accent-50: #ebf2ff;
+  --accent-100: #cedfff;
+  --accent-200: #a5c5ff;
+  --accent-300: #7da9ff;
+  --accent-400: #538dff;
+  --accent-500: #3b73e6;
+  --accent-600: #315eb9;
+  --accent-700: #264990;
 }
 
 @supports (color: oklch(0 0 0)) {
   :root {
-    --brand-50: oklch(97.89% 0.0029 264.54);
-    --brand-100: oklch(95.45% 0.0046 258.32);
-    --brand-200: oklch(92.88% 0.0126 255.51);
-    --brand-300: oklch(87.65% 0.0216 259.19);
-    --brand-400: oklch(82.25% 0.0303 257.77);
-    --brand-500: oklch(76.79% 0.0393 256.99);
-    --brand-600: oklch(71% 0.0482 257.61);
-    --brand-700: oklch(63.82% 0.0527 258.01);
-    --brand-800: oklch(56.1% 0.0544 258);
-    --brand-900: oklch(46.61% 0.0486 256.34);
-    --brand-950: oklch(37.17% 0.0392 257.29);
-    --brand-1000: oklch(36.02% 0.0299 256.23);
+    --brand-50: oklch(98.05% 0.013 82.4);
+    --brand-100: oklch(95.63% 0.0294 80.66);
+    --brand-200: oklch(93.41% 0.0654 82.66);
+    --brand-300: oklch(88.51% 0.1153 82.22);
+    --brand-400: oklch(83.46% 0.1718 82.56);
+    --brand-500: oklch(78.76% 0.1621 82.71);
+    --brand-600: oklch(73.8% 0.152 82.29);
+    --brand-700: oklch(67.28% 0.1386 82.11);
+    --brand-800: oklch(60.49% 0.1245 82.44);
+    --brand-900: oklch(51.72% 0.1065 82.44);
+    --brand-950: oklch(43.74% 0.09 82.44);
+    --brand-1000: oklch(36.09% 0.0742 83.17);
 
     --neutral-0: oklch(99.11% 0 0);
     --neutral-50: oklch(97.91% 0 0);
@@ -132,42 +132,42 @@
     --neutral-950: oklch(18.22% 0 0);
     --neutral-1000: oklch(12.86% 0 0);
 
-    --success-50: oklch(96.04% 0.02 150.1);
-    --success-100: oklch(87.79% 0.0465 150.07);
-    --success-300: oklch(81.08% 0.0896 150.3);
-    --success-500: oklch(62.03% 0.1059 149.58);
-    --success-700: oklch(51.89% 0.0892 150.39);
-    --success-800: oklch(42.02% 0.0712 150.11);
+    --success-50: oklch(96.08% 0.0341 149.33);
+    --success-100: oklch(87.84% 0.0826 150.49);
+    --success-300: oklch(81.28% 0.1589 149.89);
+    --success-500: oklch(61.95% 0.1718 149.7);
+    --success-700: oklch(52.14% 0.143 150.17);
+    --success-800: oklch(42.12% 0.1159 150.03);
 
-    --warning-50: oklch(95.97% 0.0231 75.86);
-    --warning-100: oklch(88.04% 0.0612 76.6);
-    --warning-300: oklch(83.23% 0.1054 74.28);
-    --warning-500: oklch(65.96% 0.1058 74.74);
-    --warning-700: oklch(52.79% 0.084 75.92);
-    --warning-800: oklch(44.01% 0.0668 75.26);
+    --warning-50: oklch(95.93% 0.0327 74.8);
+    --warning-100: oklch(87.94% 0.1017 74.92);
+    --warning-300: oklch(83.24% 0.1448 74.64);
+    --warning-500: oklch(65.89% 0.1392 74.64);
+    --warning-700: oklch(52.88% 0.1119 74.36);
+    --warning-800: oklch(44.08% 0.0929 75.29);
 
-    --danger-50: oklch(96.02% 0.0122 29.87);
-    --danger-100: oklch(90.05% 0.0354 28.67);
-    --danger-300: oklch(79.64% 0.0863 29.79);
-    --danger-500: oklch(62.97% 0.1947 28.89);
-    --danger-700: oklch(53.11% 0.1643 29.13);
-    --danger-800: oklch(41.89% 0.113 29.14);
+    --danger-50: oklch(95.96% 0.02 28.9);
+    --danger-100: oklch(90.02% 0.0521 29.87);
+    --danger-300: oklch(79.63% 0.1174 29.5);
+    --danger-500: oklch(63.03% 0.2553 29.05);
+    --danger-700: oklch(53.08% 0.2177 29.05);
+    --danger-800: oklch(42.07% 0.1725 29.05);
 
-    --info-50: oklch(96.09% 0.012 247.95);
-    --info-100: oklch(89.9% 0.0354 250.87);
-    --info-300: oklch(83.08% 0.0747 249.95);
-    --info-500: oklch(63.89% 0.1099 250.28);
-    --info-700: oklch(52.63% 0.1092 249.98);
-    --info-800: oklch(43.98% 0.086 250.39);
+    --info-50: oklch(95.94% 0.02 250.38);
+    --info-100: oklch(89.89% 0.051 250.2);
+    --info-300: oklch(83.25% 0.0868 249.93);
+    --info-500: oklch(64% 0.1809 249.95);
+    --info-700: oklch(52.48% 0.151 250.62);
+    --info-800: oklch(44.14% 0.1229 249.36);
 
-    --accent-50: oklch(96.03% 0.0136 78.26);
-    --accent-100: oklch(90.1% 0.0326 76.43);
-    --accent-200: oklch(82.01% 0.0549 76.11);
-    --accent-300: oklch(74.08% 0.0709 77.98);
-    --accent-400: oklch(66% 0.0674 76.38);
-    --accent-500: oklch(57.98% 0.058 76.61);
-    --accent-600: oklch(50.03% 0.0481 76.96);
-    --accent-700: oklch(42.1% 0.0389 78.65);
+    --accent-50: oklch(95.97% 0.019 263.01);
+    --accent-100: oklch(90.11% 0.0477 263.14);
+    --accent-200: oklch(82.08% 0.0893 262.1);
+    --accent-300: oklch(73.92% 0.1341 262.9);
+    --accent-400: oklch(66.07% 0.18 262.31);
+    --accent-500: oklch(58.11% 0.1846 262.59);
+    --accent-600: oklch(50.1% 0.1524 262.49);
+    --accent-700: oklch(42.03% 0.1244 262.57);
   }
 }
 
@@ -177,9 +177,9 @@
 
 /* ---- Light (default) ---------------------------------------------------
    What the engine resolved for this seed, and the measurement behind each choice:
-     --brand              var(--brand-950) with var(--neutral-0) ink — 10.09:1. The ink is
+     --brand              var(--brand-400) with var(--neutral-900) ink — 9.77:1. The ink is
                           picked per seed, never assumed: a light seed takes dark ink and vice versa.
-     --text-brand         var(--brand-900) on the canvas — 6.53:1. The SHALLOWEST step clearing
+     --text-brand         var(--brand-900) on the canvas — 5.31:1. The SHALLOWEST step clearing
                           4.5:1, so link text is as light as AA permits and no lighter.
      --border-interactive var(--neutral-600) — 5.17:1. WCAG 1.4.11 wants 3:1 for an input
                           boundary; border-subtle/strong stay decorative and are not gated.
@@ -204,13 +204,13 @@
   --text-inverse: var(--neutral-0);
 
   /* Brand */
-  --brand: var(--brand-950);
-  --brand-hover: var(--brand-900);
-  --brand-active: var(--brand-800);
-  --brand-contrast: var(--neutral-0);
+  --brand: var(--brand-400);
+  --brand-hover: var(--brand-500);
+  --brand-active: var(--brand-600);
+  --brand-contrast: var(--neutral-900);
   --text-brand: var(--brand-900);
-  --brand-alt: var(--brand-900);
-  --brand-alt-contrast: var(--neutral-0);
+  --brand-alt: var(--brand-500);
+  --brand-alt-contrast: var(--neutral-900);
 
   /* Status triads */
   --success: var(--success-700);
@@ -244,7 +244,7 @@
   --footer-border: var(--neutral-800);
 
   /* Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a) */
-  --focus-ring: var(--brand-950);
+  --focus-ring: var(--brand-400);
   --shadow-color: 0deg 14% 14%;
   --scrim: hsl(0deg 28% 9% / 48%);
 }
@@ -252,7 +252,7 @@
 /* ---- Dark, following the OS preference ---------------------------------
    :not([data-theme='light']) so an explicit light toggle (block 4) always outranks the OS.
    Dark is designed, not inverted: surfaces LIGHTEN with elevation, and --brand takes the DEEPEST
-   step still clearing 6:1 on the canvas (var(--brand-600), measured 7.29:1) rather than
+   step still clearing 6:1 on the canvas (var(--brand-700), measured 6.24:1) rather than
    the shallowest, which would leave every dark-mode button washed out. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
@@ -275,12 +275,12 @@
     --text-inverse: var(--neutral-950);
 
     /* Brand */
-    --brand: var(--brand-600);
-    --brand-hover: var(--brand-700);
-    --brand-active: var(--brand-800);
+    --brand: var(--brand-700);
+    --brand-hover: var(--brand-800);
+    --brand-active: var(--brand-900);
     --brand-contrast: var(--neutral-950);
-    --text-brand: var(--brand-600);
-    --brand-alt: var(--brand-600);
+    --text-brand: var(--brand-700);
+    --brand-alt: var(--brand-700);
     --brand-alt-contrast: var(--neutral-950);
 
     /* Status triads */
@@ -315,7 +315,7 @@
     --footer-border: var(--neutral-800);
 
     /* Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a) */
-    --focus-ring: var(--brand-700);
+    --focus-ring: var(--brand-800);
     --shadow-color: 0deg 12% 2%;
     --scrim: hsl(0deg 42% 3% / 60%);
   }
@@ -342,12 +342,12 @@
   --text-inverse: var(--neutral-950);
 
   /* Brand */
-  --brand: var(--brand-600);
-  --brand-hover: var(--brand-700);
-  --brand-active: var(--brand-800);
+  --brand: var(--brand-700);
+  --brand-hover: var(--brand-800);
+  --brand-active: var(--brand-900);
   --brand-contrast: var(--neutral-950);
-  --text-brand: var(--brand-600);
-  --brand-alt: var(--brand-600);
+  --text-brand: var(--brand-700);
+  --brand-alt: var(--brand-700);
   --brand-alt-contrast: var(--neutral-950);
 
   /* Status triads */
@@ -382,7 +382,7 @@
   --footer-border: var(--neutral-800);
 
   /* Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a) */
-  --focus-ring: var(--brand-700);
+  --focus-ring: var(--brand-800);
   --shadow-color: 0deg 12% 2%;
   --scrim: hsl(0deg 42% 3% / 60%);
 }
@@ -409,13 +409,13 @@
   --text-inverse: var(--neutral-0);
 
   /* Brand */
-  --brand: var(--brand-950);
-  --brand-hover: var(--brand-900);
-  --brand-active: var(--brand-800);
-  --brand-contrast: var(--neutral-0);
+  --brand: var(--brand-400);
+  --brand-hover: var(--brand-500);
+  --brand-active: var(--brand-600);
+  --brand-contrast: var(--neutral-900);
   --text-brand: var(--brand-900);
-  --brand-alt: var(--brand-900);
-  --brand-alt-contrast: var(--neutral-0);
+  --brand-alt: var(--brand-500);
+  --brand-alt-contrast: var(--neutral-900);
 
   /* Status triads */
   --success: var(--success-700);
@@ -449,7 +449,7 @@
   --footer-border: var(--neutral-800);
 
   /* Focus, shadow, scrim — shadow-color is an HSL triplet, consumed as hsl(var(--shadow-color) / a) */
-  --focus-ring: var(--brand-950);
+  --focus-ring: var(--brand-400);
   --shadow-color: 0deg 14% 14%;
   --scrim: hsl(0deg 28% 9% / 48%);
 }

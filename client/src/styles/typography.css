@@ -229,3 +229,11 @@ td,
   word-break: normal;
   overflow-wrap: anywhere;
 }
+
+/* Brand text accent — colors the 5th character 'o'/'O' in Explooro */
+.brand-text__accent,
+.brand-accent,
+.logo-accent {
+  color: var(--brand, #ffbc00);
+}
+
