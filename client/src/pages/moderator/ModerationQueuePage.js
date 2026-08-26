@@ -48,7 +48,7 @@ export default function ModerationQueuePage(root) {
 
   async function init() {
     try {
-      const meRes = await api.get('/me');
+      const meRes = await api.get('/auth/me');
       currentUserId = meRes.data?.id;
     } catch {}
     await fetchStats();
