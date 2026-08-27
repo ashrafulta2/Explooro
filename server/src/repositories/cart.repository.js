@@ -165,6 +165,9 @@ export async function getWishlistByUser(db, userId) {
       p.default_retail_price AS current_retail_price,
       p.status AS product_status,
       p.stock_qty,
+      c.name_en AS category,
+      c.name_en AS category_name_en,
+      c.name_bn AS category_name_bn,
       (
         SELECT m.storage_key
         FROM product_images pi2
@@ -175,6 +178,7 @@ export async function getWishlistByUser(db, userId) {
       ) AS primary_image_url
     FROM wishlists w
     JOIN products p ON p.id = w.product_id
+    LEFT JOIN categories c ON c.id = p.category_id
     WHERE w.user_id = $1
     ORDER BY w.created_at DESC
   `;
@@ -208,4 +212,14 @@ export async function isProductInWishlist(db, { userId, productId }) {
     [userId, productId]
   );
   return rows.length > 0;
+}
+
+export async function setWishlistNotify(db, { userId, productId, notifyOnDrop }) {
+  const { rows } = await db.query(
+    `UPDATE wishlists SET notify_on_drop = $3
+     WHERE user_id = $1 AND product_id = $2
+     RETURNING product_id, notify_on_drop`,
+    [userId, productId, notifyOnDrop]
+  );
+  return rows[0] || null;
 }

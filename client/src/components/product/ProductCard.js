@@ -104,6 +104,55 @@ const CATEGORY_DUMMY_IMAGES = {
     'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=500&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500&auto=format&fit=crop&q=80',
   ],
+  'Sports & Fitness': [
+    'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Sports': [
+    'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Books & Stationery': [
+    'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Books': [
+    'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Fashion & Apparel': [
+    'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Home & Living': [
+    'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Health & Beauty': [
+    'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1608248597359-bb5e7a9b0c20?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Groceries & Organic Foods': [
+    'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Traditional Crafts & Jute': [
+    'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&auto=format&fit=crop&q=80',
+  ],
+  'Crafts': [
+    'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500&auto=format&fit=crop&q=80',
+  ],
   'Furniture': [
     'https://images.unsplash.com/photo-1503602642458-232111445657?w=500&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1594671581654-2785ac5ced4b?w=500&auto=format&fit=crop&q=80',
@@ -120,9 +169,20 @@ const KEYWORD_IMAGE_RULES = [
   { match: /(kurti|কুর্তি|shalwar|সালোয়ার|three-piece|থ্রি-পিস)/i, url: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500&auto=format&fit=crop&q=80' },
   { match: /(jacket|জ্যাকেট|denim)/i, url: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=500&auto=format&fit=crop&q=80' },
   { match: /(shirt|শার্ট)/i, url: 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500&auto=format&fit=crop&q=80' },
-  { match: /(jersey|জার্সি|cricket)/i, url: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=500&auto=format&fit=crop&q=80' },
+  { match: /(jersey|জার্সি)/i, url: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=500&auto=format&fit=crop&q=80' },
   { match: /(scarf|স্কার্ফ|dupatta|ওড়না)/i, url: 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=500&auto=format&fit=crop&q=80' },
   
+  // Sports, Fitness & Outdoor
+  { match: /(badminton|ব্যাডমিন্টন|racket|র‌্যাকেট|র‍্যাকেট|shuttle|শাটলকক|shuttlecock)/i, url: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=500&auto=format&fit=crop&q=80' },
+  { match: /(cricket|ক্রিকেট|bat|ব্যাট|cricket ball|বল)/i, url: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=500&auto=format&fit=crop&q=80' },
+  { match: /(football|ফুটবল|soccer)/i, url: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500&auto=format&fit=crop&q=80' },
+  { match: /(dumbbell|ডাম্বেল|gym|fitness|ফিটনেস|yoga|yoga mat|ম্যাট)/i, url: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=500&auto=format&fit=crop&q=80' },
+  { match: /(sports|খেলাধুলা)/i, url: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=500&auto=format&fit=crop&q=80' },
+
+  // Books & Stationery
+  { match: /(book|বই|novel|উপন্যাস|story|গল্পের বই)/i, url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&auto=format&fit=crop&q=80' },
+  { match: /(pen|কলম|pencil|পেন্সিল|notebook|নোটবুক|diary|ডায়েরি|stationery|স্টেশনারি)/i, url: 'https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=500&auto=format&fit=crop&q=80' },
+
   // Kids
   { match: /(duck|হাঁস|rubber duck|টয়|toy|খেলনা)/i, url: 'https://images.unsplash.com/photo-1559715745-e1b33a271c8f?w=500&auto=format&fit=crop&q=80' },
   { match: /(board game|বোর্ড গেম|game)/i, url: 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=500&auto=format&fit=crop&q=80' },
@@ -199,16 +259,19 @@ const DEFAULT_DUMMY_IMAGES = [
 
 export function resolveProductImage(product) {
   if (!product) return DEFAULT_DUMMY_IMAGES[0];
-  if (product.image_url) return product.image_url;
-  if (product.image) return product.image;
-  if (product.primary_image) return product.primary_image;
+  const isRealUrl = (u) => typeof u === 'string' && u.trim().length > 0 && !u.includes('placeholder');
+
+  if (isRealUrl(product.image_url)) return product.image_url;
+  if (isRealUrl(product.image)) return product.image;
+  if (isRealUrl(product.primary_image)) return product.primary_image;
+  if (isRealUrl(product.primary_image_url)) return product.primary_image_url;
   if (product.images && product.images.length > 0) {
-    const p = product.images.find((img) => img.is_primary && img.url) || product.images.find((img) => img.url);
+    const p = product.images.find((img) => img.is_primary && isRealUrl(img.url)) || product.images.find((img) => isRealUrl(img.url));
     if (p && p.url) return p.url;
   }
 
   // Check title and category keywords
-  const searchableText = `${product.title_en || ''} ${product.title_bn || ''} ${product.title || ''} ${product.name || ''} ${product.category || ''} ${product.category_bn || ''} ${product.category_name_en || ''} ${product.slug || ''}`;
+  const searchableText = `${product.title_en || ''} ${product.title_bn || ''} ${product.product_title_en || ''} ${product.product_title_bn || ''} ${product.title || ''} ${product.name || ''} ${product.category || ''} ${product.category_bn || ''} ${product.category_name_en || ''} ${product.category_name_bn || ''} ${product.slug || ''} ${product.product_slug || ''}`;
   for (const rule of KEYWORD_IMAGE_RULES) {
     if (rule.match.test(searchableText)) {
       return rule.url;
@@ -217,9 +280,10 @@ export function resolveProductImage(product) {
 
   const cat = product.category || product.category_name_en;
   const catList = CATEGORY_DUMMY_IMAGES[cat];
+  const rawId = product.id ?? product.product_id ?? 0;
   const idx = typeof product.image_index === 'number'
     ? product.image_index
-    : (typeof product.id === 'number' ? product.id : 0);
+    : (typeof rawId === 'number' ? rawId : parseInt(rawId, 10) || 0);
   if (catList && catList.length > 0) {
     return catList[Math.abs(idx) % catList.length];
   }

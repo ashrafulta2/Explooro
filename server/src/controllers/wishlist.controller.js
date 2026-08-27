@@ -26,3 +26,12 @@ export async function removeWishlistItem(req, reply) {
   const result = await wishlistService.removeFromWishlist(db, { userId, productId });
   reply.send({ data: result });
 }
+
+export async function setWishlistNotify(req, reply) {
+  const { db } = req.server;
+  const userId = req.user?.id;
+  const productId = Number(req.params.productId);
+  const notifyOnDrop = req.body.notify_on_drop;
+  const result = await wishlistService.setNotifyOnDrop(db, { userId, productId, notifyOnDrop });
+  reply.send({ data: result });
+}

@@ -431,7 +431,14 @@
     "expand_sidebar": "Expand sidebar",
     "more_sheet_title": "More",
     "coming_soon": "This page is not built yet — it's coming in a later phase.",
-    "back_to_shell": "Back to shell preview"
+    "back_to_shell": "Back to shell preview",
+    "theme_menu_title": "Theme & Presets",
+    "theme_mode_title": "Mode",
+    "theme_presets_title": "Marketplace Style (1-Click)",
+    "theme_mode_light": "Light",
+    "theme_mode_dark": "Dark",
+    "theme_mode_system": "System",
+    "theme_applied_toast": "Theme applied: {{name}}"
   },
   "modules": {
     "title": "Module Control Panel",
@@ -1218,12 +1225,27 @@
   },
   "wishlist": {
     "title": "Saved Items (Wishlist)",
+    "page_title": "My Wishlist",
+    "page_subtitle": "Products you've saved. We'll alert you when a price drops.",
+    "back_to_account": "Back to Account",
     "add_to_wishlist": "Add to Wishlist",
     "remove_from_wishlist": "Remove from Wishlist",
     "added_toast": "Saved to your wishlist",
     "removed_toast": "Removed from wishlist",
     "empty_title": "No saved items yet",
     "empty_description": "Click the heart icon on any product to save it and get price drop alerts.",
+    "browse_products": "Browse Products",
+    "in_stock": "In Stock",
+    "out_of_stock": "Out of Stock",
+    "price_drop_badge": "Price dropped {amount}",
+    "move_to_cart": "Move to Cart",
+    "remove": "Remove",
+    "notify_label": "Price drop alerts",
+    "notify_hint": "Get notified if this item's price falls",
+    "notify_failed": "Couldn't update alert setting",
+    "move_failed": "Couldn't move item to cart",
+    "remove_failed": "Couldn't remove item",
+    "load_failed": "Couldn't load your wishlist. Please try again.",
     "update_failed": "Wishlist update failed"
   },
   "checkout": {
@@ -2829,28 +2851,6 @@
     "confirm_delete_msg": "Are you sure you want to permanently remove \"{name}\" ({ref}) from the marketplace catalog?",
     "product_deleted_success": "Product removed from catalog.",
     "csv_exported": "Catalog CSV exported successfully."
-  },
-  "shell": {
-    "role_names": {
-      "super_admin": "Super Admin",
-      "admin": "Admin",
-      "moderator": "Moderator",
-      "editor": "Editor",
-      "supplier": "Supplier",
-      "saler": "Saler",
-      "customer": "Customer"
-    },
-    "account_menu": "Account Menu",
-    "log_out": "Log Out",
-    "cart": "Cart",
-    "notifications": "Notifications",
-    "theme_menu_title": "Theme & Presets",
-    "theme_mode_title": "Mode",
-    "theme_presets_title": "Marketplace Style (1-Click)",
-    "theme_mode_light": "Light",
-    "theme_mode_dark": "Dark",
-    "theme_mode_system": "System",
-    "theme_applied_toast": "Theme applied: {{name}}"
   },
   "palette": {
     "trigger_btn": "Quick Actions",

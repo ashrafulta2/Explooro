@@ -170,6 +170,7 @@ async function bootRouterDemo() {
         item.path !== '/account' &&
         item.path !== '/customer' &&
         item.path !== '/account/orders' &&
+        item.path !== '/account/wishlist' &&
         item.path !== '/account/following' &&
         item.path !== '/account/become-saler' &&
         item.path !== '/admin' &&
@@ -553,6 +554,14 @@ async function bootRouterDemo() {
         permission: null,
         module: 'core',
         load: () => import('./pages/customer/OrdersPage.js'),
+      },
+      {
+        path: '/account/wishlist',
+        title: 'My Wishlist — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'wishlist',
+        load: () => import('./pages/customer/WishlistPage.js'),
       },
       {
         path: '/account/following',

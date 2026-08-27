@@ -46,4 +46,29 @@ export default async function wishlistRoutes(fastify) {
     },
     wishlistCtrl.removeWishlistItem
   );
+
+  fastify.patch(
+    '/wishlist/:productId/notify',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        params: {
+          type: 'object',
+          required: ['productId'],
+          properties: {
+            productId: { type: 'string' },
+          },
+        },
+        body: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['notify_on_drop'],
+          properties: {
+            notify_on_drop: { type: 'boolean' },
+          },
+        },
+      },
+    },
+    wishlistCtrl.setWishlistNotify
+  );
 }

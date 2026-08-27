@@ -1,0 +1,188 @@
+/**
+ * wishlist.css — Customer Saved Items (Wishlist) listing page.
+ *
+ * WHY this file exists: the project has no Tailwind/utility layer, so pages must be styled with
+ * real component classes and design tokens. A wishlist card carries a product image, which is the
+ * one element that MUST be size-constrained — an unsized <img> (or the placeholder SVG fallback)
+ * renders at its intrinsic size and blows out the whole page.
+ */
+
+.wishlist-page {
+  max-width: 900px;
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.wishlist-page__header {
+  border-bottom: var(--border-width) solid var(--border-subtle);
+  padding-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.wishlist-page__back {
+  align-self: flex-start;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-brand);
+  margin-bottom: var(--space-2);
+}
+.wishlist-page__back:hover { text-decoration: underline; }
+
+.wishlist-page__title {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: var(--tracking-tight, -0.01em);
+}
+
+.wishlist-page__subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.wishlist-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.wishlist-page__error {
+  padding: var(--space-6) 0;
+  text-align: center;
+  color: var(--danger);
+}
+
+/* ---------------- Card ---------------- */
+
+.wishlist-card {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-0);
+}
+
+.wishlist-card__thumb {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: var(--border-width) solid var(--border-subtle);
+  background: var(--surface-2);
+}
+
+.wishlist-card__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wishlist-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.wishlist-card__title {
+  font-weight: 700;
+  color: var(--text-primary);
+  /* Clamp long product names to two lines so cards stay uniform height. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.wishlist-card__title:hover { color: var(--text-brand); }
+
+.wishlist-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.wishlist-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  border: var(--border-width) solid transparent;
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+.wishlist-badge--in {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success-border);
+}
+.wishlist-badge--out {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+.wishlist-badge--drop {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success-border);
+}
+
+.wishlist-card__price-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.wishlist-card__price {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.wishlist-card__price--old {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.wishlist-card__notify {
+  margin-top: var(--space-1);
+}
+
+.wishlist-card__actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 150px;
+  flex: none;
+}
+.wishlist-card__actions .btn { width: 100%; }
+
+/* ---------------- Responsive ---------------- */
+
+@media (max-width: 640px) {
+  .wishlist-card {
+    flex-wrap: wrap;
+  }
+  .wishlist-card__thumb {
+    width: 72px;
+    height: 72px;
+  }
+  .wishlist-card__actions {
+    flex-direction: row;
+    width: 100%;
+  }
+}

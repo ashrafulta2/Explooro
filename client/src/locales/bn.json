@@ -431,7 +431,14 @@
     "expand_sidebar": "সাইডবার প্রসারিত করুন",
     "more_sheet_title": "আরও",
     "coming_soon": "এই পেজটি এখনো তৈরি হয়নি — এটি পরবর্তী ধাপে আসবে।",
-    "back_to_shell": "শেল প্রিভিউতে ফিরুন"
+    "back_to_shell": "শেল প্রিভিউতে ফিরুন",
+    "theme_menu_title": "থিম ও প্রিসেট",
+    "theme_mode_title": "মোড",
+    "theme_presets_title": "মার্কেটপ্লেস স্টাইল (১-ক্লিক)",
+    "theme_mode_light": "লাইট",
+    "theme_mode_dark": "ডার্ক",
+    "theme_mode_system": "সিস্টেম",
+    "theme_applied_toast": "থিম প্রয়োগ করা হয়েছে: {{name}}"
   },
   "modules": {
     "title": "মডিউল নিয়ন্ত্রণ প্যানেল",
@@ -1218,12 +1225,27 @@
   },
   "wishlist": {
     "title": "সংরক্ষিত পণ্য (উইশলিস্ট)",
+    "page_title": "আমার উইশলিস্ট",
+    "page_subtitle": "আপনার সংরক্ষিত পণ্যসমূহ। মূল্য কমলে আমরা আপনাকে জানিয়ে দেব।",
+    "back_to_account": "অ্যাকাউন্টে ফিরে যান",
     "add_to_wishlist": "উইশলিস্টে যোগ করুন",
     "remove_from_wishlist": "উইশলিস্ট থেকে সরান",
     "added_toast": "উইশলিস্টে সংরক্ষিত হয়েছে",
     "removed_toast": "উইশলিস্ট থেকে সরানো হয়েছে",
     "empty_title": "এখনও কোনো পণ্য সংরক্ষিত নেই",
     "empty_description": "পণ্য সংরক্ষণ করতে এবং মূল্য হ্রাসের নোটিফিকেশন পেতে হার্ট আইকনে ক্লিক করুন।",
+    "browse_products": "পণ্য দেখুন",
+    "in_stock": "স্টকে আছে",
+    "out_of_stock": "স্টকে নেই",
+    "price_drop_badge": "মূল্য কমেছে {amount}",
+    "move_to_cart": "কার্টে নিন",
+    "remove": "সরান",
+    "notify_label": "মূল্য হ্রাসের সতর্কতা",
+    "notify_hint": "এই পণ্যের দাম কমলে জানিয়ে দেওয়া হবে",
+    "notify_failed": "সতর্কতা সেটিং আপডেট করা যায়নি",
+    "move_failed": "পণ্যটি কার্টে নেওয়া যায়নি",
+    "remove_failed": "পণ্যটি সরানো যায়নি",
+    "load_failed": "আপনার উইশলিস্ট লোড করা যায়নি। আবার চেষ্টা করুন।",
     "update_failed": "উইশলিস্ট আপডেট করা যায়নি"
   },
   "checkout": {
@@ -2829,28 +2851,6 @@
     "confirm_delete_msg": "আপনি কি নিশ্চিতভাবে \"{name}\" ({ref}) ক্যাটালগ থেকে মুছে ফেলতে চান?",
     "product_deleted_success": "পণ্য ক্যাটালগ থেকে মুছে ফেলা হয়েছে।",
     "csv_exported": "ক্যাটালগ CSV সফলভাবে ডাউনলোড হয়েছে।"
-  },
-  "shell": {
-    "role_names": {
-      "super_admin": "সুপার এডমিন",
-      "admin": "এডমিন",
-      "moderator": "মডারেটর",
-      "editor": "এডিটর",
-      "supplier": "সাপ্লায়ার",
-      "saler": "সেলার",
-      "customer": "কাস্টমার"
-    },
-    "account_menu": "অ্যাকাউন্ট মেনু",
-    "log_out": "লগ আউট",
-    "cart": "কার্ট",
-    "notifications": "নোটিফিকেশন",
-    "theme_menu_title": "থিম ও প্রিসেট",
-    "theme_mode_title": "মোড",
-    "theme_presets_title": "মার্কেটপ্লেস স্টাইল (১-ক্লিক)",
-    "theme_mode_light": "লাইট",
-    "theme_mode_dark": "ডার্ক",
-    "theme_mode_system": "সিস্টেম",
-    "theme_applied_toast": "থিম প্রয়োগ করা হয়েছে: {{name}}"
   },
   "palette": {
     "trigger_btn": "কুইক অ্যাকশন",

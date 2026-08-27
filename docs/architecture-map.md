@@ -143,6 +143,9 @@ The 35 most likely change requests, with exact paths.
 | Change the product image aspect ratio | `design-system.md` §12 first, then `styles/components/product.css` + `services/media.service.js` derivatives |
 | Change FEFO batch selection | `services/inventory.service.js` → `getFEFOBatch()` |
 | Change warehouse routing | `services/warehouseRouting.service.js` |
+| Add/modify product image fallback keywords | `client/src/components/product/ProductCard.js` (`KEYWORD_IMAGE_RULES`, `CATEGORY_DUMMY_IMAGES`, `resolveProductImage`) |
+| Modify customer wishlist | `client/src/pages/customer/WishlistPage.js` (UI), `server/src/services/wishlist.service.js` (logic), `server/src/repositories/cart.repository.js` (SQL) |
+| Modify customer returns listing | `client/src/pages/customer/ReturnsPage.js` (UI), `server/src/services/return.service.js` (logic), `server/src/routes/return.routes.js` (`/returns/my-returns`) |
 
 ### Access & permissions
 

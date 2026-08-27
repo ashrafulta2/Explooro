@@ -293,6 +293,25 @@ const handlers = [
       };
     },
   },
+  {
+    method: 'PATCH',
+    path: '/wishlist/:productId/notify',
+    handler: ({ params, body }) => {
+      const productId = Number(params.productId);
+      const item = mockWishlist.find((w) => w.product_id === productId);
+      if (!item) {
+        return {
+          status: 404,
+          body: { error: { code: 'NOT_FOUND', message_en: 'This item is not in your wishlist.' } },
+        };
+      }
+      item.notify_on_drop = !!body?.notify_on_drop;
+      return {
+        status: 200,
+        body: { data: { product_id: productId, notify_on_drop: item.notify_on_drop } },
+      };
+    },
+  },
 ];
 
 export function clearMockCart() {

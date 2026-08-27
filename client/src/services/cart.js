@@ -363,6 +363,15 @@ export function isProductWishlisted(productId) {
   return cartStore.get().wishlistProductIds.has(Number(productId));
 }
 
+/**
+ * Toggle the price-drop alert flag for a wishlisted product.
+ * Returns the confirmed server value so the caller can reconcile its own UI.
+ */
+export async function setWishlistNotify(productId, notifyOnDrop) {
+  const res = await api.patch(`/wishlist/${productId}/notify`, { notify_on_drop: !!notifyOnDrop });
+  return res?.data?.notify_on_drop;
+}
+
 export function getCart() {
   return cartStore.get().cart;
 }
