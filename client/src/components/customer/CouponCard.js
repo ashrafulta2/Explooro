@@ -100,28 +100,31 @@ export function CouponCard({
 
       <div class="coupon-card__details">
         <div class="coupon-card__code-row">
-          <div class="coupon-card__code-pill font-mono" title="${coupon.code}">
+          <div class="coupon-card__code-pill" title="${coupon.code}">
             🎟️ ${coupon.code}
           </div>
-          <button type="button" class="coupon-card__copy-btn btn btn--secondary btn--sm" data-action="copy">
-            📋 ${t('customer_coupons.btn_copy_code')}
+          <button type="button" class="coupon-card__btn-copy" data-action="copy" title="${t('customer_coupons.btn_copy_code')}">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>${t('customer_coupons.btn_copy_code')}</span>
           </button>
         </div>
 
-        <div class="coupon-card__rules text-xs text-muted">
+        <div class="coupon-card__rules">
           ${minSpend > 0 ? `<span>• ${t('customer_coupons.min_spend', { amount: formatCurrency(minSpend) })}</span>` : ''}
           ${maxDiscount > 0 ? `<span>• ${t('customer_coupons.max_discount', { amount: formatCurrency(maxDiscount) })}</span>` : ''}
         </div>
       </div>
 
       <div class="coupon-card__footer">
-        <button type="button" class="coupon-card__terms-btn text-xs text-primary hover:underline" data-action="terms">
-          ℹ️ ${t('customer_coupons.btn_view_terms')}
+        <button type="button" class="coupon-card__btn-terms" data-action="terms">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <span>${t('customer_coupons.btn_view_terms')}</span>
         </button>
 
         ${coupon.is_active && !coupon.is_used && !isExpired ? `
-          <button type="button" class="coupon-card__shop-btn btn btn--primary btn--sm" data-action="shop">
-            🛍️ ${t('customer_coupons.btn_shop_now')}
+          <button type="button" class="coupon-card__btn-shop" data-action="shop">
+            <span>🛍️</span>
+            <span>${t('customer_coupons.btn_shop_now')}</span>
           </button>
         ` : ''}
       </div>
@@ -143,9 +146,11 @@ export function CouponCard({
         textarea.remove();
       }
       toast.success(t('customer_coupons.code_copied', { code: coupon.code }));
-      copyBtn.textContent = isBn ? '✓ কপি হয়েছে' : '✓ Copied!';
+      copyBtn.innerHTML = `<span>✓</span><span>${isBn ? 'কপি হয়েছে' : 'Copied!'}</span>`;
       setTimeout(() => {
-        if (copyBtn) copyBtn.textContent = `📋 ${t('customer_coupons.btn_copy_code')}`;
+        if (copyBtn) {
+          copyBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span>${t('customer_coupons.btn_copy_code')}</span>`;
+        }
       }, 2000);
     } catch (e) {
       toast.info(coupon.code);

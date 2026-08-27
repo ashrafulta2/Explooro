@@ -1,253 +1,51 @@
 /**
  * Feedback — Skeleton, EmptyState, Toast, Tooltip, ConfirmDialog.
- *
- * These are designed surfaces, not fallbacks (design-system §16): they are what a new user sees
- * first and what a frustrated user sees most.
  */
 
-/* =========================================================================
- * Skeleton
- * ======================================================================= */
-
-.skeleton {
-  --skeleton-base: var(--surface-2);
-  --skeleton-sheen: var(--surface-3);
-}
-
-.skeleton__line,
-.skeleton__cell,
-.skeleton__media,
-.skeleton--block,
-.skeleton--circle {
-  display: block;
-  background: var(--skeleton-base);
-  border-radius: var(--radius-xs);
-  position: relative;
-  overflow: hidden;
-}
-
-/* The sheen is an overlay, so the shimmer never changes the element's box — a skeleton that
-   resizes as it animates defeats the entire point of reserving space. */
-.skeleton__line::after,
-.skeleton__cell::after,
-.skeleton__media::after,
-.skeleton--block::after,
-.skeleton--circle::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--skeleton-sheen);
-  opacity: 0;
-  animation: skeleton-pulse 1.4s var(--ease-standard) infinite;
-}
-
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 0; }
-  50% { opacity: 1; }
-}
-
+.skeleton { --skeleton-base: var(--surface-2); --skeleton-sheen: var(--surface-3); }
+.skeleton__line, .skeleton__cell, .skeleton__media, .skeleton--block, .skeleton--circle { display: block; background: var(--skeleton-base); border-radius: var(--radius-xs); position: relative; overflow: hidden; }
+.skeleton__line::after, .skeleton__cell::after, .skeleton__media::after, .skeleton--block::after, .skeleton--circle::after { content: ''; position: absolute; inset: 0; background: var(--skeleton-sheen); opacity: 0; animation: skeleton-pulse 1.4s var(--ease-standard) infinite; }
+@keyframes skeleton-pulse { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 .skeleton--text { display: flex; flex-direction: column; gap: var(--space-2); }
 .skeleton__line { height: 12px; width: 100%; }
-
 .skeleton--block { width: 100%; height: 16px; }
-
-.skeleton--circle {
-  border-radius: var(--radius-full);
-  width: 40px;
-  height: 40px;
-  flex: none;
-}
-
-.skeleton--card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--card-padding);
-  background: var(--surface-1);
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-md);
-}
-.skeleton__media {
-  /* Matches Card's locked 1:1 product ratio, so the swap is a crossfade, not a jump. */
-  aspect-ratio: 1;
-  width: 100%;
-  border-radius: var(--radius-sm);
-}
+.skeleton--circle { border-radius: var(--radius-full); width: 40px; height: 40px; flex: none; }
+.skeleton--card { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--card-padding); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); }
+.skeleton__media { aspect-ratio: 1; width: 100%; border-radius: var(--radius-sm); }
 .skeleton__card-body { display: flex; flex-direction: column; gap: var(--space-2); }
-
-.skeleton--table-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  height: var(--row-height);
-}
+.skeleton--table-row { display: flex; align-items: center; gap: var(--space-4); height: var(--row-height); }
 .skeleton__cell { height: 12px; flex: 1; }
-
-/* §15 — skeleton to content is a 150ms crossfade, never a pop. */
 @media (prefers-reduced-motion: reduce) {
-  .skeleton__line::after,
-  .skeleton__cell::after,
-  .skeleton__media::after,
-  .skeleton--block::after,
-  .skeleton--circle::after {
-    animation: none !important;
-    opacity: 0.5;
-  }
+  .skeleton__line::after, .skeleton__cell::after, .skeleton__media::after, .skeleton--block::after, .skeleton--circle::after { animation: none !important; opacity: 0.5; }
 }
 
-/* =========================================================================
- * EmptyState
- * ======================================================================= */
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--space-3);
-  padding: var(--space-10) var(--space-5);
-}
+/* EmptyState */
+.empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-10) var(--space-5); }
 .empty-state--compact { padding: var(--space-7) var(--space-4); }
-
-.empty-state__icon {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  margin-bottom: var(--space-1);
-  border-radius: var(--radius-full);
-  /* §13 — single-weight line art in brand-300 on surface-2. No gradient, no drop shadow. */
-  background: var(--surface-2);
-  color: var(--brand-300);
-}
+.empty-state__icon { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: var(--space-1); border-radius: var(--radius-full); background: var(--surface-2); color: var(--brand-300); }
 .empty-state__icon svg { width: 28px; height: 28px; }
+.empty-state__title { font-size: var(--text-lg); line-height: var(--leading-lg); font-weight: var(--weight-xl); color: var(--text-primary); max-width: none; }
+.empty-state__description { font-size: var(--text-sm); line-height: var(--leading-sm); color: var(--text-muted); max-width: 42ch; }
+.empty-state__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-2); }
+.empty-state--firstRun .empty-state__icon { background: var(--brand-100); color: var(--brand-700); }
 
-.empty-state__title {
-  font-size: var(--text-lg);
-  line-height: var(--leading-lg);
-  font-weight: var(--weight-xl);
-  color: var(--text-primary);
-  max-width: none;
-}
-
-.empty-state__description {
-  font-size: var(--text-sm);
-  line-height: var(--leading-sm);
-  color: var(--text-muted);
-  max-width: 42ch;
-}
-
-/* Content -> action: 16px, clearly separating what it says from what to do about it. */
-.empty-state__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
-}
-
-/* A first run is an opportunity, not a void — warmer than a plain empty list. */
-.empty-state--firstRun .empty-state__icon {
-  background: var(--brand-100);
-  color: var(--brand-700);
-}
-
-/* =========================================================================
- * Toast
- * ======================================================================= */
-
-.toast-container {
-  position: fixed;
-  inset: auto var(--space-5) var(--space-5) auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  width: min(380px, calc(100vw - var(--space-8)));
-  /* Popover puts this in the top layer; the container itself must not eat clicks on the page
-     behind it, so only the toasts are interactive. */
-  padding: 0;
-  margin: 0;
-  border: none;
-  background: transparent;
-  overflow: visible;
-  pointer-events: none;
-}
-/* Fallback for engines without the Popover API — z-index instead of the top layer. */
+/* Toast */
+.toast-container { position: fixed; inset: auto var(--space-5) var(--space-5) auto; display: flex; flex-direction: column; gap: var(--space-3); width: min(380px, calc(100vw - var(--space-8))); padding: 0; margin: 0; border: none; background: transparent; overflow: visible; pointer-events: none; }
 .toast-container[data-fallback='true'] { z-index: var(--z-toast); }
-
-.toast {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  background: var(--surface-1);
-  border: var(--border-width) solid var(--border-subtle);
-  border-inline-start-width: 3px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--elevation-3);
-  pointer-events: auto;
-  opacity: 0;
-  transform: translateY(8px);
-  transition:
-    opacity var(--dur-base) var(--ease-out-quart),
-    transform var(--dur-base) var(--ease-out-quart);
-}
+.toast { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-4); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-inline-start-width: 3px; border-radius: var(--radius-md); box-shadow: var(--elevation-3); pointer-events: auto; opacity: 0; transform: translateY(8px); transition: opacity var(--dur-base) var(--ease-out-quart), transform var(--dur-base) var(--ease-out-quart); }
 .toast[data-entered='true'] { opacity: 1; transform: none; }
-.toast[data-leaving='true'] {
-  opacity: 0;
-  /* Exits accelerate away — §6.3. */
-  transform: translateX(12px);
-  transition-duration: 160ms;
-  transition-timing-function: var(--ease-in-quad);
-}
-
+.toast[data-leaving='true'] { opacity: 0; transform: translateX(12px); transition-duration: 160ms; transition-timing-function: var(--ease-in-quad); }
 .toast__icon { display: inline-flex; width: 20px; height: 20px; flex: none; margin-top: 1px; }
 .toast__icon svg { width: 100%; height: 100%; }
-
 .toast__body { flex: 1; min-width: 0; }
-.toast__title {
-  font-size: var(--text-sm);
-  font-weight: var(--weight-xl);
-  color: var(--text-primary);
-  max-width: none;
-}
-.toast__message {
-  font-size: var(--text-sm);
-  line-height: var(--leading-sm);
-  color: var(--text-secondary);
-  max-width: none;
-  /* A long message must wrap, not stretch the toast off-screen. */
-  overflow-wrap: anywhere;
-}
+.toast__title { font-size: var(--text-sm); font-weight: var(--weight-xl); color: var(--text-primary); max-width: none; }
+.toast__message { font-size: var(--text-sm); line-height: var(--leading-sm); color: var(--text-secondary); max-width: none; overflow-wrap: anywhere; }
 .toast__title + .toast__message { margin-top: 2px; }
-
-.toast__action {
-  flex: none;
-  align-self: center;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-lg);
-  color: var(--text-brand);
-  background: none;
-  cursor: pointer;
-}
+.toast__action { flex: none; align-self: center; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: var(--weight-lg); color: var(--text-brand); background: none; cursor: pointer; }
 .toast__action:hover { background: var(--surface-2); }
-
-.toast__close {
-  flex: none;
-  display: inline-flex;
-  width: 24px;
-  height: 24px;
-  padding: 2px;
-  border-radius: var(--radius-xs);
-  color: var(--text-muted);
-  background: none;
-  cursor: pointer;
-}
+.toast__close { flex: none; display: inline-flex; width: 24px; height: 24px; padding: 2px; border-radius: var(--radius-xs); color: var(--text-muted); background: none; cursor: pointer; }
 .toast__close:hover { color: var(--text-primary); background: var(--surface-2); }
 .toast__close svg { width: 100%; height: 100%; }
-
 .toast--success { border-inline-start-color: var(--success); }
 .toast--success .toast__icon { color: var(--success); }
 .toast--error { border-inline-start-color: var(--danger); }
@@ -256,74 +54,20 @@
 .toast--warning .toast__icon { color: var(--warning); }
 .toast--info { border-inline-start-color: var(--info); }
 .toast--info .toast__icon { color: var(--info); }
+@media (max-width: 480px) { .toast-container { inset: auto var(--space-4) var(--space-4) var(--space-4); width: auto; } }
 
-@media (max-width: 480px) {
-  /* On a phone the toast spans the width and sits above the thumb zone, not under it. */
-  .toast-container {
-    inset: auto var(--space-4) var(--space-4) var(--space-4);
-    width: auto;
-  }
-}
-
-/* =========================================================================
- * Tooltip
- * ======================================================================= */
-
-.tooltip {
-  position: fixed;
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  max-width: 260px;
-  border: var(--border-width) solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  /* Inverted surface: a tooltip is an overlay on the page, not part of it. */
-  background: var(--surface-3);
-  color: var(--text-primary);
-  box-shadow: var(--elevation-3);
-  font-size: var(--text-xs);
-  line-height: var(--leading-xs);
-  /* Never intercept the pointer — a tooltip under the cursor would flicker endlessly. */
-  pointer-events: none;
-  opacity: 0;
-  transform: scale(0.96);
-  transition:
-    opacity var(--dur-fast) var(--ease-out-quart),
-    transform var(--dur-fast) var(--ease-out-quart);
-  z-index: var(--z-tooltip);
-}
+/* Tooltip */
+.tooltip { position: fixed; margin: 0; padding: var(--space-2) var(--space-3); max-width: 260px; border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface-3); color: var(--text-primary); box-shadow: var(--elevation-3); font-size: var(--text-xs); line-height: var(--leading-xs); pointer-events: none; opacity: 0; transform: scale(0.96); transition: opacity var(--dur-fast) var(--ease-out-quart), transform var(--dur-fast) var(--ease-out-quart); z-index: var(--z-tooltip); }
 .tooltip[data-open='true'] { opacity: 1; transform: none; }
-
-/* §6.2 — expand from the element being described, not from the tooltip's own centre. */
 .tooltip[data-placement='top'] { transform-origin: bottom center; }
 .tooltip[data-placement='bottom'] { transform-origin: top center; }
 .tooltip[data-placement='left'] { transform-origin: right center; }
 .tooltip[data-placement='right'] { transform-origin: left center; }
 
-/* =========================================================================
- * ConfirmDialog
- * ======================================================================= */
-
+/* ConfirmDialog */
 .confirm[data-variant='danger'] .modal__title { color: var(--danger); }
-
-/* §15 — a rejected confirmation shakes rather than doing nothing. Silence reads as a broken
-   button; the shake says "I heard you, and no". */
-.confirm[data-shake='true'] .modal__panel {
-  animation: confirm-shake 320ms var(--ease-standard);
-}
-
-@keyframes confirm-shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-2px); }
-  40% { transform: translateX(2px); }
-  60% { transform: translateX(-2px); }
-  80% { transform: translateX(2px); }
-}
-
+.confirm[data-shake='true'] .modal__panel { animation: confirm-shake 320ms var(--ease-standard); }
+@keyframes confirm-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-2px); } 40% { transform: translateX(2px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
 @media (prefers-reduced-motion: reduce) {
-  /* Translation is what triggers vestibular discomfort, so the rejection is signalled by the
-     error text and a border flash instead of movement. */
-  .confirm[data-shake='true'] .modal__panel {
-    animation: none !important;
-    border-color: var(--danger);
-  }
+  .confirm[data-shake='true'] .modal__panel { animation: none !important; border-color: var(--danger); }
 }

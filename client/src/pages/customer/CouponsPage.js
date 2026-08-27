@@ -152,7 +152,10 @@ export default function CouponsPage(root, { navigate } = {}) {
   const header = document.createElement('header');
   header.className = 'coupons-page__header';
   header.innerHTML = `
-    <a href="/account" class="coupons-page__back" data-nav-back>← ${t('wishlist.back_to_account') || 'Back to Account'}</a>
+    <a href="/account" class="coupons-page__back" data-nav-back>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      <span>${t('wishlist.back_to_account') || 'Back to Account'}</span>
+    </a>
     <div class="coupons-page__title-wrap">
       <div>
         <h1 class="coupons-page__title">
@@ -184,11 +187,12 @@ export default function CouponsPage(root, { navigate } = {}) {
         autocomplete="off"
         spellcheck="false"
       />
-      <button type="submit" class="btn btn--primary btn--md" id="coupon-claim-submit">
-        ✨ ${t('customer_coupons.btn_claim')}
+      <button type="submit" class="coupons-claim-btn" id="coupon-claim-submit">
+        <span>✨</span>
+        <span>${t('customer_coupons.btn_claim')}</span>
       </button>
     </form>
-    <div class="text-xs text-muted hidden sm:block">
+    <div class="text-xs text-muted hidden sm:block font-medium">
       💡 ${getLanguage() === 'bn' ? 'অর্ডারে কোড ব্যবহার করে অতিরিক্ত ছাড় উপভোগ করুন' : 'Apply coupon codes during checkout for instant savings'}
     </div>
   `;

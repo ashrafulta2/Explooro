@@ -30,6 +30,7 @@ import disputeHandlers from './handlers/disputes.js';
 import returnHandlers from './handlers/returns.js';
 import campaignHandlers from './handlers/campaigns.js';
 import themeHandlers from './handlers/theme.js';
+import { teamPurchaseHandlers } from './handlers/teamPurchase.js';
 
 const handlers = [
   ...authHandlers,
@@ -55,6 +56,7 @@ const handlers = [
   ...returnHandlers,
   ...campaignHandlers,
   ...themeHandlers,
+  ...teamPurchaseHandlers,
 ];
 
 function notFoundBody(path) {

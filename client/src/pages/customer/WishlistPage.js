@@ -37,8 +37,14 @@ export default function WishlistPage(root, { navigate } = {}) {
   const header = document.createElement('div');
   header.className = 'wishlist-page__header';
   header.innerHTML = `
-    <a href="/account" class="wishlist-page__back" data-nav-back>${t('wishlist.back_to_account')}</a>
-    <h1 class="wishlist-page__title">${t('wishlist.page_title')}</h1>
+    <a href="/account" class="wishlist-page__back" data-nav-back>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      <span>${t('wishlist.back_to_account')}</span>
+    </a>
+    <h1 class="wishlist-page__title">
+      <span>💚</span>
+      <span>${t('wishlist.page_title')}</span>
+    </h1>
     <p class="wishlist-page__subtitle">${t('wishlist.page_subtitle')}</p>
   `;
   container.append(header);
@@ -88,8 +94,8 @@ export default function WishlistPage(root, { navigate } = {}) {
     if (items.length === 0) {
       const browseBtn = document.createElement('button');
       browseBtn.type = 'button';
-      browseBtn.className = 'btn btn--primary';
-      browseBtn.textContent = t('wishlist.browse_products');
+      browseBtn.className = 'wishlist-empty-btn';
+      browseBtn.innerHTML = `<span>🛍️</span> <span>${t('wishlist.browse_products')}</span>`;
       browseBtn.addEventListener('click', () => nav('/'));
 
       const empty = EmptyState({
@@ -135,13 +141,13 @@ export default function WishlistPage(root, { navigate } = {}) {
         ? `<div class="wishlist-card__price-row">
              <span class="wishlist-card__price">${formatCurrency(currentPrice)}</span>
              <span class="wishlist-card__price--old">${formatCurrency(savedPrice)}</span>
-             <span class="wishlist-badge wishlist-badge--drop">${t('wishlist.price_drop_badge', { amount: formatCurrency(Number(item.drop_amount || savedPrice - currentPrice)) })}</span>
+             <span class="wishlist-badge wishlist-badge--drop">📉 ${t('wishlist.price_drop_badge', { amount: formatCurrency(Number(item.drop_amount || savedPrice - currentPrice)) })}</span>
            </div>`
         : `<div class="wishlist-card__price-row"><span class="wishlist-card__price">${formatCurrency(currentPrice)}</span></div>`;
 
       const stockBadge = inStock
-        ? `<span class="wishlist-badge wishlist-badge--in">${t('wishlist.in_stock')}</span>`
-        : `<span class="wishlist-badge wishlist-badge--out">${t('wishlist.out_of_stock')}</span>`;
+        ? `<span class="wishlist-badge wishlist-badge--in">✓ ${t('wishlist.in_stock')}</span>`
+        : `<span class="wishlist-badge wishlist-badge--out">✕ ${t('wishlist.out_of_stock')}</span>`;
 
       body.innerHTML = `
         <a href="${productUrl}" class="wishlist-card__title" data-nav-product>${title}</a>
@@ -180,8 +186,11 @@ export default function WishlistPage(root, { navigate } = {}) {
 
       const moveBtn = document.createElement('button');
       moveBtn.type = 'button';
-      moveBtn.className = 'btn btn--primary btn--sm';
-      moveBtn.textContent = t('wishlist.move_to_cart');
+      moveBtn.className = 'wishlist-card__btn-cart';
+      moveBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        <span>${t('wishlist.move_to_cart')}</span>
+      `;
       moveBtn.disabled = !inStock;
       moveBtn.addEventListener('click', async () => {
         moveBtn.disabled = true;
@@ -209,8 +218,11 @@ export default function WishlistPage(root, { navigate } = {}) {
 
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
-      removeBtn.className = 'btn btn--ghost btn--sm';
-      removeBtn.textContent = t('wishlist.remove');
+      removeBtn.className = 'wishlist-card__btn-remove';
+      removeBtn.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        <span>${t('wishlist.remove')}</span>
+      `;
       removeBtn.addEventListener('click', async () => {
         removeBtn.disabled = true;
         try {
