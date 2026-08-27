@@ -140,6 +140,9 @@ async function bootRouterDemo() {
         item.path !== '/admin/returns' &&
         item.path !== '/admin/growth/campaigns' &&
         item.path !== '/admin/growth/coupons' &&
+        item.path !== '/account/coupons' &&
+        item.path !== '/customer/coupons' &&
+        item.path !== '/coupons' &&
         item.path !== '/saler/referrals' &&
         item.path !== '/account/coins' &&
         item.path !== '/saler/quests' &&
@@ -1059,6 +1062,31 @@ async function bootRouterDemo() {
         permission: 'growth.coupon.manage',
         module: 'coupons',
         load: () => import('./pages/admin/CampaignManagerPage.js'),
+      },
+      // Customer Coupons & Vouchers Hub
+      {
+        path: '/account/coupons',
+        title: 'My Coupons & Vouchers — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'coupons',
+        load: () => import('./pages/customer/CouponsPage.js'),
+      },
+      {
+        path: '/customer/coupons',
+        title: 'My Coupons & Vouchers — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'coupons',
+        load: () => import('./pages/customer/CouponsPage.js'),
+      },
+      {
+        path: '/coupons',
+        title: 'My Coupons & Vouchers — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'coupons',
+        load: () => import('./pages/customer/CouponsPage.js'),
       },
       {
         path: '/editor/campaigns',

@@ -70,9 +70,61 @@ let mockCoupons = [
     redemption_count: 237,
     per_user_limit: 3,
     scope_type: 'CATEGORY',
+    category_name: 'Dhaka Delivery',
     starts_at: new Date(Date.now() - 10 * 86400 * 1000).toISOString(),
     expires_at: new Date(Date.now() + 20 * 86400 * 1000).toISOString(),
     is_active: true,
+  },
+  {
+    id: 3,
+    code: 'HERITAGE20',
+    discount_type: 'PERCENT',
+    discount_value: 20,
+    max_discount_amount: 800,
+    min_spend_amount: 2500,
+    budget_cap: 30000,
+    spent_amount: 12400,
+    redemption_count: 45,
+    per_user_limit: 1,
+    scope_type: 'SALER',
+    store_name: 'Heritage Crafts BD',
+    starts_at: new Date(Date.now() - 3 * 86400 * 1000).toISOString(),
+    expires_at: new Date(Date.now() + 2 * 86400 * 1000).toISOString(), // Expiring soon
+    is_active: true,
+  },
+  {
+    id: 4,
+    code: 'JAMDANI500',
+    discount_type: 'FIXED',
+    discount_value: 500,
+    max_discount_amount: 500,
+    min_spend_amount: 4000,
+    budget_cap: 25000,
+    spent_amount: 8500,
+    redemption_count: 17,
+    per_user_limit: 1,
+    scope_type: 'CATEGORY',
+    category_name: 'Sarees & Traditional Wear',
+    starts_at: new Date(Date.now() - 5 * 86400 * 1000).toISOString(),
+    expires_at: new Date(Date.now() + 10 * 86400 * 1000).toISOString(),
+    is_active: true,
+  },
+  {
+    id: 5,
+    code: 'NEWYEAR2026',
+    discount_type: 'PERCENT',
+    discount_value: 10,
+    max_discount_amount: 500,
+    min_spend_amount: 1500,
+    budget_cap: 20000,
+    spent_amount: 20000,
+    redemption_count: 120,
+    per_user_limit: 1,
+    scope_type: 'PLATFORM',
+    starts_at: new Date(Date.now() - 60 * 86400 * 1000).toISOString(),
+    expires_at: new Date(Date.now() - 15 * 86400 * 1000).toISOString(),
+    is_active: false,
+    is_used: true,
   },
 ];
 
@@ -147,6 +199,90 @@ export const campaignHandlers = [
             coupons: mockCoupons,
           },
           coupons: mockCoupons,
+        },
+      };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/promotions/coupons',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            coupons: mockCoupons,
+          },
+          coupons: mockCoupons,
+        },
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/promotions/coupons/validate',
+    handler({ body }) {
+      const code = String(body?.code || '').trim().toUpperCase();
+      const coupon = mockCoupons.find((c) => c.code.toUpperCase() === code);
+      if (!coupon || !coupon.is_active) {
+        return {
+          status: 400,
+          body: {
+            valid: false,
+            reason: 'INVALID_OR_EXPIRED_COUPON',
+          },
+        };
+      }
+      return {
+        status: 200,
+        body: {
+          valid: true,
+          coupon,
+          discountAmount: coupon.discount_type === 'PERCENT' ? 150 : (coupon.discount_value || 100),
+        },
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/promotions/coupons/claim',
+    handler({ body }) {
+      const code = String(body?.code || '').trim().toUpperCase();
+      const existing = mockCoupons.find((c) => c.code.toUpperCase() === code);
+      if (existing) {
+        existing.is_active = true;
+        existing.is_used = false;
+        return {
+          status: 200,
+          body: {
+            success: true,
+            coupon: existing,
+          },
+        };
+      }
+      // If code starts with valid pattern e.g. SAVE, EID, PROMO
+      const newCoupon = {
+        id: Date.now(),
+        code,
+        discount_type: 'PERCENT',
+        discount_value: 10,
+        max_discount_amount: 500,
+        min_spend_amount: 1000,
+        budget_cap: 10000,
+        spent_amount: 0,
+        redemption_count: 0,
+        per_user_limit: 1,
+        scope_type: 'PLATFORM',
+        starts_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 14 * 86400000).toISOString(),
+        is_active: true,
+      };
+      mockCoupons.unshift(newCoupon);
+      return {
+        status: 200,
+        body: {
+          success: true,
+          coupon: newCoupon,
         },
       };
     },

@@ -69,6 +69,7 @@ import { createMilestoneProgressStepper } from '../../components/b2b/MilestonePr
 import { ShoppableReels } from '../../components/content/ShoppableReels.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
+import { CouponCard } from '../../components/customer/CouponCard.js';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */
 function specimen(title, ...nodes) {
@@ -1008,6 +1009,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'sponsored-slot', label: 'SponsoredSlot', group: 'Growth & Monetization', render: renderSponsoredSlotSpecimen },
     // Prompt 9.2 — Coupons, Vouchers & Flash Sales
     { id: 'campaign-manager', label: 'CampaignManager', group: 'Growth & Monetization', render: renderCampaignManagerSpecimen },
+    { id: 'coupon-card', label: 'CouponCard', group: 'Growth & Monetization', render: renderCouponCardSpecimen },
     // Prompt 9.3 — Multi-Tier Referral & Network Growth
     { id: 'referral-hub', label: 'ReferralHub', group: 'Growth & Monetization', render: renderReferralHubSpecimen },
     // Prompt 9.4 — Loyalty Coins, Quests & Leaderboards
@@ -1442,6 +1444,58 @@ function renderCampaignManagerSpecimen() {
   `;
 
   wrap.append(specimen('Flash Deal Admin / Merchandising Specimen', sampleCard));
+  return wrap;
+}
+
+function renderCouponCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Customer Discount Voucher & Free Delivery Ticket Cards (Prompt 9.2)'));
+
+  const samplePercentCoupon = {
+    id: 1,
+    code: 'EIDMUBARAK2026',
+    discount_type: 'PERCENT',
+    discount_value: 15,
+    max_discount_amount: 1500,
+    min_spend_amount: 3000,
+    scope_type: 'PLATFORM',
+    starts_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 10 * 86400000).toISOString(),
+    is_active: true,
+  };
+
+  const sampleFreeShipCoupon = {
+    id: 2,
+    code: 'FREESHIPDHAKA',
+    discount_type: 'FREE_SHIPPING',
+    discount_value: 120,
+    max_discount_amount: 120,
+    min_spend_amount: 1000,
+    scope_type: 'CATEGORY',
+    category_name: 'Dhaka Delivery',
+    starts_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 2 * 86400000).toISOString(), // Expiring in 2 days
+    is_active: true,
+  };
+
+  const card1 = CouponCard({
+    coupon: samplePercentCoupon,
+    onShopClick: () => toast.info('Navigating to marketplace...'),
+    onTermsClick: () => toast.info('Opened Terms & Conditions'),
+  });
+
+  const card2 = CouponCard({
+    coupon: sampleFreeShipCoupon,
+    onShopClick: () => toast.info('Navigating to category products...'),
+    onTermsClick: () => toast.info('Opened Terms & Conditions'),
+  });
+
+  const grid = document.createElement('div');
+  grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+  grid.append(card1, card2);
+
+  wrap.append(specimen('Ticket Voucher Cards (Percentage & Free Shipping)', grid));
   return wrap;
 }
 
