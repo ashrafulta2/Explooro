@@ -93,7 +93,7 @@ export default function ReturnRequestPage(root, { params = {}, navigate } = {}) 
 
       const res = await api.post('/returns/request', payload);
       toast.success(t('returns.request_success'));
-      goTo('/customer/returns');
+      goTo('/account/returns');
     } catch (err) {
       toast.error(err.message || t('returns.request_failed'));
       isSubmitting = false;

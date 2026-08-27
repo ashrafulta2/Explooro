@@ -2864,5 +2864,42 @@
     "no_results": "No results found for \"{{query}}\"",
     "no_results_tip": "Check for typos or try searching for another page or theme name.",
     "no_results_fallback": "Search marketplace for \"{{query}}\""
+  },
+  "customer_returns": {
+    "page_title": "My Returns & Refunds",
+    "page_subtitle": "View all your return requests and refund statuses.",
+    "back_to_account": "← My Account",
+    "empty_title": "No Returns Yet",
+    "empty_desc": "You haven't submitted any return requests yet.",
+    "load_failed": "Failed to load returns. Please try again.",
+    "order_ref_label": "Order",
+    "reason_label": "Reason",
+    "refund_amount_label": "Refund Amount",
+    "note_label": "Note",
+    "tracking_label": "Tracking Number",
+    "carrier_label": "Carrier",
+    "submitted_on_label": "Submitted On",
+    "evidence_label": "Evidence",
+    "evidence_photo": "Photo {{index}}",
+    "no_note": "N/A",
+    "reason_codes": {
+      "DEFECTIVE_PRODUCT": "Defective Product",
+      "SIZE_MISMATCH": "Size Mismatch",
+      "TRANSIT_DAMAGE": "Damaged During Transit",
+      "WRONG_ITEM": "Wrong Item Received",
+      "DAMAGED": "Product Damaged",
+      "DEFECTIVE": "Defective Item",
+      "NOT_AS_DESCRIBED": "Not As Described",
+      "CHANGED_MIND": "Changed My Mind"
+    },
+    "status": {
+      "REQUESTED": "Request Submitted",
+      "RECEIVED": "Product Received",
+      "INSPECTED": "Under Inspection",
+      "APPROVED": "Approved",
+      "REFUNDED": "Refund Completed",
+      "REJECTED": "Rejected",
+      "DISPUTED": "Disputed"
+    }
   }
 }

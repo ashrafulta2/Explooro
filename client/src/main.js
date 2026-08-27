@@ -802,6 +802,14 @@ async function bootRouterDemo() {
       },
       // Prompt 7.2: Returns & Refunds
       {
+        path: '/account/returns',
+        title: 'My Returns — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'returns_engine',
+        load: () => import('./pages/customer/ReturnsPage.js'),
+      },
+      {
         path: '/customer/orders/:id/return',
         title: 'Request Return — Explooro',
         requiresAuth: true,

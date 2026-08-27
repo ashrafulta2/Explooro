@@ -2864,5 +2864,42 @@
     "no_results": "\"{{query}}\"-এর জন্য কিছু পাওয়া যায়নি",
     "no_results_tip": "বানান পরীক্ষা করুন বা অন্য কোনো পেইজ বা থিমের নাম খুঁজুন।",
     "no_results_fallback": "মার্কেটপ্লেসে খুঁজুন \"{{query}}\""
+  },
+  "customer_returns": {
+    "page_title": "আমার রিটার্ন ও রিফান্ড",
+    "page_subtitle": "আপনার সব রিটার্ন রিকোয়েস্ট এবং রিফান্ডের অবস্থা দেখুন।",
+    "back_to_account": "← আমার অ্যাকাউন্ট",
+    "empty_title": "কোনো রিটার্ন নেই",
+    "empty_desc": "আপনি এখনো কোনো পণ্য রিটার্ন করেননি।",
+    "load_failed": "রিটার্ন তথ্য লোড করা যায়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।",
+    "order_ref_label": "অর্ডার",
+    "reason_label": "কারণ",
+    "refund_amount_label": "রিফান্ড পরিমাণ",
+    "note_label": "নোট",
+    "tracking_label": "ট্র্যাকিং নম্বর",
+    "carrier_label": "কুরিয়ার",
+    "submitted_on_label": "জমা দেওয়ার তারিখ",
+    "evidence_label": "প্রমাণ",
+    "evidence_photo": "ছবি {{index}}",
+    "no_note": "কিছু উল্লেখ নেই",
+    "reason_codes": {
+      "DEFECTIVE_PRODUCT": "পণ্য ত্রুটিপূর্ণ",
+      "SIZE_MISMATCH": "সাইজে অমিল",
+      "TRANSIT_DAMAGE": "পরিবহনে ক্ষতিগ্রস্ত",
+      "WRONG_ITEM": "ভুল পণ্য প্রাপ্ত",
+      "DAMAGED": "পণ্য ক্ষতিগ্রস্ত",
+      "DEFECTIVE": "ত্রুটিপূর্ণ পণ্য",
+      "NOT_AS_DESCRIBED": "বিবরণের সাথে মিলেনি",
+      "CHANGED_MIND": "মত পরিবর্তন"
+    },
+    "status": {
+      "REQUESTED": "রিকোয়েস্ট জমা হয়েছে",
+      "RECEIVED": "পণ্য গ্রহণ করা হয়েছে",
+      "INSPECTED": "যাচাই করা হচ্ছে",
+      "APPROVED": "গৃহীত হয়েছে",
+      "REFUNDED": "টাকা ফেরত দেওয়া হয়েছে",
+      "REJECTED": "বাতিল করা হয়েছে",
+      "DISPUTED": "বিতর্কিত"
+    }
   }
 }

@@ -66,6 +66,41 @@ let mockReturns = [
 export const returnHandlers = [
   {
     method: 'GET',
+    path: '/returns/my-returns',
+    handler({ query }) {
+      const status = query?.status;
+      let list = [...mockReturns];
+      if (status && status !== 'ALL') {
+        list = list.filter((r) => r.status === status);
+      }
+      return {
+        status: 200,
+        body: {
+          data: {
+            returns: list,
+            total: list.length,
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/returns/request',
+    handler({ body }) {
+      const newReturn = {
+        id: mockReturns.length + 1,
+        ref: `RET-2026-00${mockReturns.length + 42}`,
+        ...body,
+        status: 'REQUESTED',
+        created_at: new Date().toISOString()
+      };
+      mockReturns.unshift(newReturn);
+      return { status: 200, body: { data: newReturn } };
+    },
+  },
+  {
+    method: 'GET',
     path: '/admin/returns/queue',
     handler({ query }) {
       const status = query?.status;
