@@ -34,6 +34,7 @@ export class ReferralHubPage {
     this.loading = true;
     this.rootEl = null;
     this.unsubscribeLang = null;
+    this._activeModals = [];
   }
 
   async mount(outlet) {
@@ -48,6 +49,13 @@ export class ReferralHubPage {
       this.unsubscribeLang();
       this.unsubscribeLang = null;
     }
+    // Clean up all active modals attached to document.body
+    this._activeModals.forEach((modal) => {
+      if (modal && document.body.contains(modal)) {
+        document.body.removeChild(modal);
+      }
+    });
+    this._activeModals = [];
   }
 
   async fetchData() {
@@ -684,8 +692,8 @@ export class ReferralHubPage {
     // Copy Code button
     const btnCopyCode = this.rootEl.querySelector('#btn-copy-code');
     if (btnCopyCode) {
-      btnCopyCode.addEventListener('click', () => {
-        navigator.clipboard.writeText(refCode);
+      btnCopyCode.addEventListener('click', async () => {
+        await this._copyText(refCode);
         toast.success(t('referrals.code_copied', 'রেফারেল কোড কপি করা হয়েছে!'));
       });
     }
@@ -693,8 +701,8 @@ export class ReferralHubPage {
     // Copy Link button
     const btnCopyLink = this.rootEl.querySelector('#btn-copy-link');
     if (btnCopyLink) {
-      btnCopyLink.addEventListener('click', () => {
-        navigator.clipboard.writeText(refLink);
+      btnCopyLink.addEventListener('click', async () => {
+        await this._copyText(refLink);
         toast.success(t('referrals.copied', 'রেফারেল লিংক কপি করা হয়েছে!'));
       });
     }
@@ -702,9 +710,9 @@ export class ReferralHubPage {
     // SMS button
     const btnSms = this.rootEl.querySelector('#btn-copy-sms');
     if (btnSms) {
-      btnSms.addEventListener('click', () => {
+      btnSms.addEventListener('click', async () => {
         const msg = (isBn ? 'এক্সপ্লুরোতে যোগ দিন: ' : 'Join Explooro: ') + refLink;
-        navigator.clipboard.writeText(msg);
+        await this._copyText(msg);
         toast.success(isBn ? 'এসএমএস বার্তা ক্লিপবোর্ডে কপি করা হয়েছে!' : 'SMS invite text copied to clipboard!');
       });
     }
@@ -800,9 +808,41 @@ export class ReferralHubPage {
     });
   }
 
+  async _copyText(text) {
+    if (!text) return false;
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        // Continue to fallback
+      }
+    }
+    try {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      textArea.setAttribute('readonly', '');
+      textArea.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return successful;
+    } catch {
+      return false;
+    }
+  }
+
   _openQrModal(refLink, refCode, isBn) {
     const modalBackdrop = document.createElement('div');
     modalBackdrop.className = 'modal-backdrop fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4';
+    modalBackdrop.setAttribute('role', 'dialog');
+    modalBackdrop.setAttribute('aria-modal', 'true');
+    modalBackdrop.setAttribute('aria-label', isBn ? 'রেফারেল কিউআর ও সোশ্যাল কার্ড' : 'Referral QR and Story Card');
 
     modalBackdrop.innerHTML = `
       <div class="modal-dialog bg-surface border border-subtle rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
@@ -810,7 +850,7 @@ export class ReferralHubPage {
           <h3 class="font-bold text-base text-foreground">
             📱 ${isBn ? 'আপনার রেফারেল QR ও সোশ্যাল কার্ড' : 'Your Referral QR & Story Card'}
           </h3>
-          <button type="button" class="btn-close text-muted hover:text-foreground font-bold text-xl cursor-pointer">×</button>
+          <button type="button" class="btn-close text-muted hover:text-foreground font-bold text-xl cursor-pointer" aria-label="Close modal">×</button>
         </div>
 
         <div class="p-4 bg-white rounded-2xl mx-auto w-52 h-52 flex items-center justify-center border shadow-inner">
@@ -837,18 +877,31 @@ export class ReferralHubPage {
     `;
 
     document.body.appendChild(modalBackdrop);
+    this._activeModals.push(modalBackdrop);
 
     const closeModal = () => {
+      window.removeEventListener('keydown', onKeyDown);
       if (document.body.contains(modalBackdrop)) {
         document.body.removeChild(modalBackdrop);
       }
+      const idx = this._activeModals.indexOf(modalBackdrop);
+      if (idx !== -1) this._activeModals.splice(idx, 1);
     };
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    window.addEventListener('keydown', onKeyDown);
+
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) closeModal();
+    });
 
     modalBackdrop.querySelectorAll('.btn-close').forEach((b) => b.addEventListener('click', closeModal));
     const btnCopy = modalBackdrop.querySelector('.btn-copy-modal');
     if (btnCopy) {
-      btnCopy.addEventListener('click', () => {
-        navigator.clipboard.writeText(refLink);
+      btnCopy.addEventListener('click', async () => {
+        await this._copyText(refLink);
         toast.success(isBn ? 'রেফারেল লিংক কপি করা হয়েছে!' : 'Referral link copied!');
       });
     }
@@ -857,6 +910,9 @@ export class ReferralHubPage {
   _openSlugModal(isBn) {
     const modalBackdrop = document.createElement('div');
     modalBackdrop.className = 'modal-backdrop fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4';
+    modalBackdrop.setAttribute('role', 'dialog');
+    modalBackdrop.setAttribute('aria-modal', 'true');
+    modalBackdrop.setAttribute('aria-label', isBn ? 'কাস্টম রেফারেল লিংক' : 'Custom Vanity Slug');
 
     modalBackdrop.innerHTML = `
       <div class="modal-dialog bg-surface border border-subtle rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
@@ -864,7 +920,7 @@ export class ReferralHubPage {
           <h3 class="font-bold text-base text-foreground">
             ✏️ ${isBn ? 'কাস্টম রেফারেল লিংক তৈরি' : 'Custom Vanity Slug'}
           </h3>
-          <button type="button" class="btn-close text-muted hover:text-foreground font-bold text-xl cursor-pointer">×</button>
+          <button type="button" class="btn-close text-muted hover:text-foreground font-bold text-xl cursor-pointer" aria-label="Close modal">×</button>
         </div>
 
         <form id="form-custom-slug" class="space-y-4">
@@ -878,13 +934,15 @@ export class ReferralHubPage {
                 type="text"
                 name="custom_slug"
                 required
+                minlength="3"
+                maxlength="40"
                 pattern="^[a-z0-9-]+$"
                 placeholder="tanvir-deals"
                 value="${this.overview?.custom_slug || ''}"
                 class="input input--sm w-full font-mono" />
             </div>
             <p class="text-[11px] text-muted mt-1">
-              ${isBn ? 'ছোট হাতের অক্ষর (a-z), সংখ্যা (0-9) ও হাইফেন (-) ব্যবহার করুন' : 'Letters, numbers, and hyphens only (e.g. fahim-deals)'}
+              ${isBn ? 'ছোট হাতের অক্ষর (a-z), সংখ্যা (0-9) ও হাইফেন (-) ব্যবহার করুন (৩-৪০ অক্ষর)' : 'Letters, numbers, and hyphens only, 3-40 chars (e.g. fahim-deals)'}
             </p>
           </div>
 
@@ -901,20 +959,45 @@ export class ReferralHubPage {
     `;
 
     document.body.appendChild(modalBackdrop);
+    this._activeModals.push(modalBackdrop);
 
     const closeModal = () => {
+      window.removeEventListener('keydown', onKeyDown);
       if (document.body.contains(modalBackdrop)) {
         document.body.removeChild(modalBackdrop);
       }
+      const idx = this._activeModals.indexOf(modalBackdrop);
+      if (idx !== -1) this._activeModals.splice(idx, 1);
     };
+
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    window.addEventListener('keydown', onKeyDown);
+
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) closeModal();
+    });
 
     modalBackdrop.querySelector('.btn-close').addEventListener('click', closeModal);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
 
     const form = modalBackdrop.querySelector('#form-custom-slug');
+    const inputSlug = form.querySelector('input[name="custom_slug"]');
+    if (inputSlug) {
+      inputSlug.focus();
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const slug = new FormData(form).get('custom_slug');
+      const rawSlug = new FormData(form).get('custom_slug') || '';
+      const slug = String(rawSlug).trim().toLowerCase();
+
+      if (!/^[a-z0-9-]+$/.test(slug) || slug.length < 3 || slug.length > 40) {
+        toast.error(isBn ? 'অবৈধ লিংক ফরম্যাট! শুধুমাত্র ছোট হাতের অক্ষর, সংখ্যা ও হাইফেন ব্যবহার করুন (৩-৪০ অক্ষর)।' : 'Invalid slug! Use only letters, numbers, and hyphens (3-40 chars).');
+        return;
+      }
+
       try {
         await api.post('/saler/referrals/custom-code', { custom_slug: slug }).catch(() =>
           api.post('/referrals/custom-code', { custom_slug: slug })
