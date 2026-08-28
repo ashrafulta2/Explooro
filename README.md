@@ -155,7 +155,10 @@ The full reasoning lives in [`docs/prompt.md`](docs/prompt.md) under **Master In
 - **Building the platform:** work through [`docs/prompt.md`](docs/prompt.md) in order. Each prompt
   declares its dependencies, its exact file list, its acceptance criteria, and what you should see
   in the browser when it is done.
-- **Current phase:** Phase 2 — Auth, RBAC Engine, Delegation & Audit (Phases 0–1 complete, Prompts 2.1–2.6 done, next is 2.7).
+- **Current phase:** not a single phase — work is proceeding out of strict prompt order across several
+  partially-done phases (2–5), with active polish on already-"done" Phase 9/10 customer surfaces
+  (coupons, team purchases, wishlist, returns, live stream, gamification). See the Status table below
+  and the traceability matrix for the honest per-prompt picture; don't trust a single "current phase" label.
 - **Orientation:** [`docs/architecture-map.md`](docs/architecture-map.md) maps 50 common changes to exact files.
 - **Progress:** the honest traceability matrix at the end of `docs/prompt.md`.
 

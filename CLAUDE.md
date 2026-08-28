@@ -19,12 +19,15 @@ criteria, and a `PREVIEW` describing what must be visible in the browser afterwa
 
 **Do not skip or reorder prompts, and do not consider one done until every ACCEPTANCE line is
 satisfied.** The current state — check the traceability matrix at the end of `docs/prompt.md` and
-the Status table in `README.md` — is, as of 2026-08-26: Phases 0, 1, 6, 7, 8, 9, 10, and 11 fully
+the Status table in `README.md` — was, as of 2026-08-26: Phases 0, 1, 6, 7, 8, 9, 10, and 11 fully
 done; Phases 2–5 partially done (see README's Status table for which individual prompts within
-each); Phase 3's Theme & Color Studio (3.5) is the most active area of ongoing work; Phase 12 not
-started — verify against the traceability matrix rather than trusting this file, since it will
-drift. Most of what's described below as "architecture" is the target the prompts build toward, not
-necessarily code that exists yet — check before assuming.
+each); Phase 12 not started. As of 2026-08-28 that "fully done" label no longer holds cleanly for
+9 and 10: active out-of-order polish is touching already-shipped customer surfaces — Coupons
+(9.2), Team Purchases (9.5), Wishlist/Returns (5.1/7.2), and Live Stream + Gamification (10.1/9.4,
+currently mid-edit and uncommitted) — some of which outran the traceability matrix (see rows 46/49's
+2026-08-27/28 notes). Verify against the traceability matrix rather than trusting this file, since
+it will drift. Most of what's described below as "architecture" is the target the prompts build
+toward, not necessarily code that exists yet — check before assuming.
 
 Source documents that `docs/prompt.md` was synthesized from, useful for "why" context:
 `docs/idea proposition.md`, `docs/PRD.md` (product requirements), `docs/DFD.md` (data flow
