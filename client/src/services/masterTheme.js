@@ -65,23 +65,27 @@ ${rampDeclarations(palette)}
 
   /* Light (default) */
   :root:root {
+    color-scheme: light;
 ${light}
   }
 
   /* Dark, following the OS preference — an explicit light toggle still outranks it below. */
   @media (prefers-color-scheme: dark) {
     :root:root:not([data-theme='light']) {
+      color-scheme: dark;
 ${dark}
     }
   }
 
   /* Dark, explicit toggle */
   :root:root[data-theme='dark'] {
+    color-scheme: dark;
 ${darkToggle}
   }
 
   /* Light, explicit toggle — last, so it wins the specificity tie against the OS-dark block. */
   :root:root[data-theme='light'] {
+    color-scheme: light;
 ${light}
   }`;
 }

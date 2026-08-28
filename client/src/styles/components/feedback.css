@@ -27,7 +27,7 @@
 .empty-state__title { font-size: var(--text-lg); line-height: var(--leading-lg); font-weight: var(--weight-xl); color: var(--text-primary); max-width: none; }
 .empty-state__description { font-size: var(--text-sm); line-height: var(--leading-sm); color: var(--text-muted); max-width: 42ch; }
 .empty-state__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-top: var(--space-2); }
-.empty-state--firstRun .empty-state__icon { background: var(--brand-100); color: var(--brand-700); }
+.empty-state--firstRun .empty-state__icon { background: var(--surface-2); color: var(--text-brand); border: var(--border-width) solid var(--border-subtle); }
 
 /* Toast */
 .toast-container { position: fixed; inset: auto var(--space-5) var(--space-5) auto; display: flex; flex-direction: column; gap: var(--space-3); width: min(380px, calc(100vw - var(--space-8))); padding: 0; margin: 0; border: none; background: transparent; overflow: visible; pointer-events: none; }

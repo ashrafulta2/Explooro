@@ -106,9 +106,9 @@ export default function LiveStudioPage(root, { navigate }) {
       title: '📹 Schedule Live Broadcast Session',
       content: modalContent,
     });
-    document.body.append(modal);
+    modal.openModal();
 
-    modalContent.querySelector('#modal-cancel-btn')?.addEventListener('click', () => modal.remove());
+    modalContent.querySelector('#modal-cancel-btn')?.addEventListener('click', () => modal.closeModal());
 
     modalContent.querySelector('#schedule-stream-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -131,7 +131,7 @@ export default function LiveStudioPage(root, { navigate }) {
 
         const created = res?.data?.stream;
         toast.success('Live stream session created!');
-        modal.remove();
+        modal.closeModal();
         loadAndRenderLiveDashboard(created.id);
       } catch (err) {
         toast.error(err.message || 'Failed to create stream.');

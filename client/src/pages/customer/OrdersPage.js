@@ -21,6 +21,7 @@ import {
   getStageIndex,
   ORDER_STAGES,
 } from '../../components/order/OrderTracker.js';
+import { resolveProductImage } from '../../components/product/ProductCard.js';
 
 export default function OrdersPage(root, { navigate } = {}) {
   const nav = (url) => {
@@ -249,7 +250,12 @@ function renderSingleOrderCard(order, nav) {
 
     const itemTitle = item.title_bn || item.title_en || item.title_snapshot || item.title
       || t('order_tracking.product_fallback');
-    const itemImg = item.image_url || item.primary_image_url || '/placeholder.svg';
+    const itemImg = resolveProductImage({
+      ...item,
+      id: item.product_id || item.id,
+      title_en: item.title_en || item.title_snapshot || item.title,
+      title_bn: item.title_bn,
+    });
     const qty = item.quantity || item.qty || 1;
     const unitPrice = item.unit_price || item.retail_price || 0;
     const lineTotal = item.total_price || item.line_total || 0;

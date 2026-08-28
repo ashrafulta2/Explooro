@@ -2,7 +2,7 @@
  * Actions & indicators — Button, spinner, Badge.
  */
 
-.btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); border: var(--border-width) solid transparent; border-radius: var(--radius-sm); font-family: inherit; font-weight: var(--weight-lg); line-height: 1; white-space: nowrap; cursor: pointer; user-select: none; transition: background-color var(--dur-fast) var(--ease-standard), border-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard), transform var(--dur-instant) var(--ease-standard); }
+.btn { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); height: var(--control-height); padding-inline: var(--space-4); font-size: var(--text-sm); border: var(--border-width) solid transparent; border-radius: var(--radius-sm); font-family: inherit; font-weight: var(--weight-lg); line-height: 1; white-space: nowrap; cursor: pointer; user-select: none; transition: all var(--dur-fast) var(--ease-standard); text-decoration: none; }
 .btn:active:not(:disabled) { transform: scale(0.97); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn--full { width: 100%; }
@@ -19,11 +19,11 @@
 .btn--primary:hover:not(:disabled) { background: transparent; color: var(--text-brand); }
 .btn--primary:active:not(:disabled) { background: var(--brand-hover); border-color: var(--brand-hover); color: var(--brand-alt-contrast); }
 .btn--secondary { background: var(--surface-1); color: var(--text-primary); border-color: var(--border-strong); }
-.btn--secondary:hover:not(:disabled) { background: var(--brand-100); border-color: var(--brand-200); color: var(--text-brand); }
-.btn--secondary:active:not(:disabled) { background: var(--brand-200); }
+.btn--secondary:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-interactive); color: var(--text-brand); }
+.btn--secondary:active:not(:disabled) { background: var(--surface-3); }
 .btn--ghost { background: transparent; color: var(--text-primary); }
-.btn--ghost:hover:not(:disabled) { background: var(--brand-100); color: var(--text-brand); }
-.btn--ghost:active:not(:disabled) { background: var(--brand-200); }
+.btn--ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text-brand); }
+.btn--ghost:active:not(:disabled) { background: var(--surface-3); }
 .btn--danger { background: var(--danger); color: var(--text-inverse); }
 .btn--danger:hover:not(:disabled) { background: var(--danger); filter: brightness(0.92); }
 .btn--danger:active:not(:disabled) { filter: brightness(0.85); }
@@ -62,4 +62,6 @@
 .badge--status[data-status='closed'] .badge__dot { background: var(--text-muted); }
 .badge--count, .badge--numeric { background: var(--danger); color: var(--text-inverse); font-variant-numeric: tabular-nums; min-width: 20px; justify-content: center; padding-inline: var(--space-2); }
 .badge--tier { background: var(--brand-100); color: var(--brand-800); border-color: var(--brand-200); text-transform: uppercase; font-size: var(--text-2xs); letter-spacing: var(--tracking-2xs); }
+:root[data-theme='dark'] .badge--tier { background: var(--surface-2); color: var(--text-brand); border-color: var(--border-interactive); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .badge--tier { background: var(--surface-2); color: var(--text-brand); border-color: var(--border-interactive); } }
 .badge--tier:lang(bn) { text-transform: none; }

@@ -2,22 +2,24 @@
  * QuestPanel.js — Daily & Weekly Quest Progress Widget (Prompt 9.4).
  *
  * Implements:
- * 1. Progress cards for active role quests.
- * 2. Visual completion progress bars.
- * 3. Atomic reward claiming triggers with instant toast notifications.
- * 4. Bilingual localization.
+ * 1. Progress cards for active role quests with cadence categorization.
+ * 2. Visual completion progress bars with target counters.
+ * 3. Filter chips (All, Daily, Weekly).
+ * 4. Atomic reward claiming triggers with instant toast notifications.
+ * 5. Bilingual English ↔ Bangla localization.
  */
 
 import { api } from '../../core/api.js';
-import { getLanguage } from '../../services/i18n.js';
+import { getLanguage, t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
 export class QuestPanel {
   constructor({ quests = [], onRewardClaimed = null } = {}) {
-    this.quests = quests;
+    this.quests = quests || [];
     this.onRewardClaimed = onRewardClaimed;
+    this.filter = 'ALL'; // 'ALL' | 'DAILY' | 'WEEKLY'
     this.rootEl = document.createElement('div');
-    this.rootEl.className = 'quest-panel space-y-4';
+    this.rootEl.className = 'quest-panel';
     this.render();
   }
 
@@ -29,71 +31,108 @@ export class QuestPanel {
   render() {
     const isBn = getLanguage() === 'bn';
 
-    if (this.quests.length === 0) {
-      this.rootEl.innerHTML = `
-        <div class="card p-6 text-center text-muted bg-surface border border-border rounded-xl">
-          <span class="text-2xl block mb-1">🎯</span>
-          <p class="text-sm font-semibold">${isBn ? 'বর্তমানে কোনো সক্রিয় কোয়েস্ট নেই।' : 'No active quests right now.'}</p>
-        </div>
-      `;
-      return this.rootEl;
-    }
+    const filtered = this.quests.filter(q => {
+      if (this.filter === 'DAILY') return q.cadence === 'DAILY';
+      if (this.filter === 'WEEKLY') return q.cadence === 'WEEKLY';
+      return true;
+    });
+
+    const dailyCount = this.quests.filter(q => q.cadence === 'DAILY').length;
+    const weeklyCount = this.quests.filter(q => q.cadence === 'WEEKLY').length;
+    const claimableCount = this.quests.filter(q => (q.is_completed || q.current_count >= q.target_count) && !q.is_claimed).length;
 
     this.rootEl.innerHTML = `
-      <div class="space-y-3">
-        ${this.quests.map(q => {
-          const title = isBn ? q.title_bn : q.title_en;
-          const desc = isBn ? q.description_bn : q.description_en;
-          const isCompleted = q.is_completed || q.current_count >= q.target_count;
-          const isClaimed = q.is_claimed;
+      <div class="quest-panel-wrap" style="display: flex; flex-direction: column; gap: var(--space-4);">
+        <!-- Filter Header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3);">
+          <div class="coins-filter-chips">
+            <button type="button" class="coins-filter-chip ${this.filter === 'ALL' ? 'coins-filter-chip--active' : ''}" data-filter="ALL">
+              ${isBn ? 'সকল মিশন' : 'All Missions'} (${this.quests.length})
+            </button>
+            <button type="button" class="coins-filter-chip ${this.filter === 'DAILY' ? 'coins-filter-chip--active' : ''}" data-filter="DAILY">
+              ⚡ ${isBn ? 'দৈনিক' : 'Daily'} (${dailyCount})
+            </button>
+            <button type="button" class="coins-filter-chip ${this.filter === 'WEEKLY' ? 'coins-filter-chip--active' : ''}" data-filter="WEEKLY">
+              🏆 ${isBn ? 'সাপ্তাহিক' : 'Weekly'} (${weeklyCount})
+            </button>
+          </div>
 
-          return `
-            <div class="card p-4 bg-surface border border-border rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all hover:border-primary/30">
-              <div class="space-y-1.5 flex-1 min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="badge badge-${q.cadence === 'DAILY' ? 'accent' : 'warning'} text-[10px] uppercase font-bold">
-                    ${q.cadence === 'DAILY' ? (isBn ? 'দৈনিক' : 'Daily') : (isBn ? 'সাপ্তাহিক' : 'Weekly')}
-                  </span>
-                  <h4 class="font-bold text-sm text-foreground truncate">${title}</h4>
-                </div>
-                ${desc ? `<p class="text-xs text-muted truncate">${desc}</p>` : ''}
+          ${claimableCount > 0 ? `
+            <span style="font-size: 11px; font-weight: 800; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 3px 10px; border-radius: var(--radius-full);">
+              🎁 ${claimableCount} ${isBn ? 'টি রিওয়ার্ড সংগ্রহযোগ্য' : 'Reward(s) ready to claim!'}
+            </span>
+          ` : ''}
+        </div>
 
-                <!-- Progress Bar -->
-                <div class="space-y-1 pt-1">
-                  <div class="flex justify-between text-[11px] font-mono text-muted">
-                    <span>${isBn ? 'অগ্রগতি' : 'Progress'}: ${q.current_count} / ${q.target_count}</span>
-                    <span>${q.progress_pct}%</span>
+        <!-- Quests List -->
+        ${filtered.length === 0 ? `
+          <div style="background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-6); text-align: center; color: var(--text-muted);">
+            <div style="font-size: 2rem; margin-bottom: 6px;">🎯</div>
+            <p style="font-size: var(--text-sm); font-weight: 700; margin: 0;">
+              ${isBn ? 'এই ক্যাটাগরিতে কোনো সক্রিয় মিশন নেই।' : 'No active quests in this category.'}
+            </p>
+          </div>
+        ` : `
+          <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+            ${filtered.map(q => {
+              const title = (isBn && q.title_bn) ? q.title_bn : (q.title_en || q.title || 'Quest');
+              const desc = (isBn && q.description_bn) ? q.description_bn : (q.description_en || q.description || '');
+              const currentCount = q.current_count ?? 0;
+              const targetCount = q.target_count ?? 1;
+              const isCompleted = q.is_completed || currentCount >= targetCount;
+              const isClaimed = q.is_claimed;
+              const pct = Math.min(100, Math.round((currentCount / targetCount) * 100));
+
+              return `
+                <div class="quest-item-card">
+                  <div class="quest-item-card__main">
+                    <div class="quest-item-card__header">
+                      <span class="quest-cadence-badge quest-cadence-badge--${q.cadence === 'DAILY' ? 'daily' : 'weekly'}">
+                        ${q.cadence === 'DAILY' ? (isBn ? 'দৈনিক' : 'Daily') : (isBn ? 'সাপ্তাহিক' : 'Weekly')}
+                      </span>
+                      <h4 class="quest-item-card__title">${this._escapeHtml(title)}</h4>
+                    </div>
+
+                    ${desc ? `<p class="quest-item-card__desc">${this._escapeHtml(desc)}</p>` : ''}
+
+                    <!-- Progress Bar -->
+                    <div class="quest-progress-wrap">
+                      <div class="quest-progress-head">
+                        <span>${isBn ? 'অগ্রগতি' : 'Progress'}: ${currentCount}/${targetCount}</span>
+                        <span>${pct}%</span>
+                      </div>
+                      <div class="quest-progress-bar">
+                        <div class="quest-progress-fill" style="width: ${pct}%;"></div>
+                      </div>
+                    </div>
                   </div>
-                  <div class="w-full bg-border rounded-full h-1.5 overflow-hidden">
-                    <div class="bg-primary h-1.5 rounded-full transition-all duration-300" style="width: ${q.progress_pct}%"></div>
+
+                  <!-- Reward & Claim CTA -->
+                  <div class="quest-item-card__side">
+                    <div class="quest-reward-pill">
+                      <span>🪙</span>
+                      <span>+${q.reward_coins} ${isBn ? 'কয়েন' : 'Coins'}</span>
+                    </div>
+
+                    ${isClaimed ? `
+                      <span class="quest-btn-claimed">
+                        ✓ ${isBn ? 'দাবি করা হয়েছে' : 'Claimed'}
+                      </span>
+                    ` : isCompleted ? `
+                      <button type="button" class="quest-btn-claim btn-claim-quest" data-id="${q.id}">
+                        🎁 ${isBn ? 'রিওয়ার্ড নিন' : 'Claim Reward'}
+                      </button>
+                    ` : `
+                      <span class="quest-btn-pending">
+                        ⏳ ${isBn ? 'চলছে' : 'In Progress'}
+                      </span>
+                    `}
                   </div>
                 </div>
-              </div>
-
-              <!-- Reward & Action CTA -->
-              <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-border">
-                <div class="flex items-center gap-1 font-bold text-xs text-warning bg-warning/10 px-2.5 py-1 rounded-full whitespace-nowrap">
-                  <span>🪙</span>
-                  <span>+${q.reward_coins} ${isBn ? 'কয়েন' : 'Coins'}</span>
-                </div>
-
-                ${isClaimed ? `
-                  <button class="btn btn-sm btn-outline text-xs text-success border-success/30 cursor-default" disabled>
-                    ✓ ${isBn ? 'দাবি করা হয়েছে' : 'Claimed'}
-                  </button>
-                ` : isCompleted ? `
-                  <button class="btn btn-sm btn-primary text-xs font-bold whitespace-nowrap btn-claim animate-bounce" data-id="${q.id}">
-                    🎁 ${isBn ? 'রিওয়ার্ড নিন' : 'Claim'}
-                  </button>
-                ` : `
-                  <button class="btn btn-sm btn-neutral text-xs text-muted" disabled>
-                    ⏳ ${isBn ? 'চলছে' : 'In Progress'}
-                  </button>
-                `}
-              </div>
-            </div>
-          `;
-        }).join('')}
+              `;
+            }).join('')}
+          </div>
+        `}
       </div>
     `;
 
@@ -102,7 +141,16 @@ export class QuestPanel {
   }
 
   _attachEvents(isBn) {
-    this.rootEl.querySelectorAll('.btn-claim').forEach(btn => {
+    // Filter click
+    this.rootEl.querySelectorAll('.coins-filter-chip').forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.filter = btn.dataset.filter;
+        this.render();
+      });
+    });
+
+    // Claim reward button
+    this.rootEl.querySelectorAll('.btn-claim-quest').forEach(btn => {
       btn.addEventListener('click', async () => {
         const questId = btn.dataset.id;
         btn.disabled = true;
@@ -110,17 +158,31 @@ export class QuestPanel {
 
         try {
           const res = await api.post(`/quests/${questId}/claim`);
-          toast.success(isBn ? `অভিনন্দন! +${res.claim.rewardCoins} কয়েন যুক্ত হয়েছে!` : `Reward claimed! +${res.claim.rewardCoins} coins added!`);
+          const awarded = res.claim?.rewardCoins || 20;
+          toast.success(
+            isBn
+              ? `অভিনন্দন! +${awarded} কয়েন সফলভাবে আপনার অ্যাকাউন্টে যুক্ত হয়েছে!`
+              : `Reward claimed! +${awarded} coins added to your balance!`
+          );
           if (this.onRewardClaimed) {
-            this.onRewardClaimed(res.claim);
+            await this.onRewardClaimed(res.claim);
           }
         } catch (err) {
           toast.error(err.message || 'Failed to claim quest');
           btn.disabled = false;
-          btn.innerHTML = `🎁 ${isBn ? 'রিওয়ার্ড নিন' : 'Claim'}`;
+          btn.innerHTML = `🎁 ${isBn ? 'রিওয়ার্ড নিন' : 'Claim Reward'}`;
         }
       });
     });
+  }
+
+  _escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   getElement() {

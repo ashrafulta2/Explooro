@@ -17,7 +17,7 @@ import { cartStore, closeCartDrawer, updateItemQuantity, removeFromCart } from '
 import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { PLACEHOLDER_COLOURS, placeholderInitials } from '../product/ProductCard.js';
+import { PLACEHOLDER_COLOURS, placeholderInitials, resolveProductImage } from '../product/ProductCard.js';
 
 const PARCEL_ICON_SVG = `
 <svg class="cart-drawer__split-banner-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -160,8 +160,8 @@ export function CartDrawer({ navigate = null } = {}) {
         const itemEl = document.createElement('div');
         itemEl.className = 'cart-item';
 
-        // Image (falls back to an initials placeholder, matching ProductCard, when a product
-        // has no seeded image or its storage_key 404s — see 007_demo_gallery_media.sql)
+        // Image (resolves catalog dummy/curated photo and falls back to an initials placeholder,
+        // matching ProductCard, when an image fails to load or is unavailable)
         const imgWrap = document.createElement('div');
         imgWrap.className = 'cart-item__image-wrap';
 
@@ -169,13 +169,26 @@ export function CartDrawer({ navigate = null } = {}) {
         const placeholder = document.createElement('div');
         placeholder.className = 'cart-item__image-placeholder';
         placeholder.style.cssText = `background:${palette.bg};color:${palette.fg}`;
-        placeholder.textContent = placeholderInitials(item.product_title_en);
+        placeholder.textContent = placeholderInitials(item.product_title_en || item.title_en || item.title);
 
-        if (item.image_url) {
+        const imgSrc = resolveProductImage({
+          id: item.product_id || item.id,
+          product_id: item.product_id || item.id,
+          image_url: item.image_url,
+          primary_image_url: item.primary_image_url,
+          title_en: item.product_title_en || item.title_en || item.title,
+          title_bn: item.product_title_bn || item.title_bn || item.title,
+          title: item.product_title_en || item.title_en || item.title,
+          category: item.category,
+          category_name_en: item.category_name_en,
+          slug: item.product_slug,
+        });
+
+        if (imgSrc) {
           const img = document.createElement('img');
           img.className = 'cart-item__image';
-          img.src = item.image_url;
-          img.alt = item.product_title_en;
+          img.src = imgSrc;
+          img.alt = (document.documentElement.lang === 'bn' && item.product_title_bn ? item.product_title_bn : (item.product_title_en || item.title_en || '')) || '';
           img.loading = 'lazy';
           img.addEventListener('error', () => img.replaceWith(placeholder), { once: true });
           imgWrap.append(img);

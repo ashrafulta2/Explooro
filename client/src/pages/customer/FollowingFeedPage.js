@@ -18,6 +18,7 @@ import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
+import { resolveProductImage } from '../../components/product/ProductCard.js';
 
 export default function FollowingFeedPage(root, { navigate } = {}) {
   const nav = (url) => {
@@ -203,7 +204,7 @@ function renderProductDropsSection(container, drops, nav) {
     card.innerHTML = `
       <div class="space-y-2">
         <div class="w-full aspect-square rounded-xl bg-subtle overflow-hidden relative">
-          <img src="${drop.image_url}" alt="${drop.title_en}" class="w-full h-full object-cover" onerror="this.src='/placeholder-product.svg'"/>
+          <img src="${resolveProductImage(drop)}" alt="${drop.title_en || drop.title_bn || ''}" class="w-full h-full object-cover" onerror="this.src='/placeholder-product.svg'"/>
           <span class="absolute top-2 left-2 badge badge--primary text-[9px] font-bold">New</span>
         </div>
         <div>

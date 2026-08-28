@@ -85,11 +85,32 @@ input, textarea, select, [contenteditable='true'] {
   accent-color: var(--brand);
 }
 
+select option {
+  background-color: var(--surface-1);
+  color: var(--text-primary);
+}
+
 select option:checked,
 select option:hover,
 select option:focus {
   background-color: var(--brand-100, #fdf0f7);
   color: var(--brand-900, #5c1445);
+}
+
+:root[data-theme='dark'] select option:checked,
+:root[data-theme='dark'] select option:hover,
+:root[data-theme='dark'] select option:focus {
+  background-color: var(--surface-3);
+  color: var(--text-brand);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) select option:checked,
+  :root:not([data-theme='light']) select option:hover,
+  :root:not([data-theme='light']) select option:focus {
+    background-color: var(--surface-3);
+    color: var(--text-brand);
+  }
 }
 
 /* Autofill restyling — prevents browser yellow background from breaking dark themes */

@@ -105,12 +105,12 @@
 .table--compact .table__cell { height: 36px; padding-inline: var(--space-3); }
 .table__row { transition: background-color var(--dur-fast) var(--ease-standard); }
 .table__row:hover:not(.table__row--empty):not(.table__row--skeleton) { background: var(--surface-2); }
-.table__row[data-selected='true'] { background: var(--brand-100); }
+.table__row[data-selected='true'] { background: var(--surface-2); }
 .table__row:last-child .table__cell { border-bottom: none; }
 .table__sort { display: inline-flex; align-items: center; gap: var(--space-1); font: inherit; color: inherit; cursor: pointer; background: none; padding: var(--space-2) 0; }
 .table__sort:hover { color: var(--text-primary); }
 .table__sort-icon { display: inline-flex; width: 14px; height: 14px; opacity: 0.4; }
-.table__sort-icon svg { width: 100%; height: 100%; }
+.table__sort-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; }
 .table__sort[data-direction='asc'], .table__sort[data-direction='desc'] { color: var(--text-brand); }
 .table__sort[data-direction='asc'] .table__sort-icon, .table__sort[data-direction='desc'] .table__sort-icon { opacity: 1; }
 .table__cell--empty { height: auto; padding: 0; white-space: normal; }
@@ -126,7 +126,7 @@
 .tabs__tab[data-active='true'] { color: var(--text-brand); }
 .tabs__tab[data-active='true']::after { content: ''; position: absolute; inset-inline: var(--space-2); bottom: calc(var(--border-width) * -1); height: 2px; background: var(--brand); border-radius: var(--radius-full) var(--radius-full) 0 0; }
 .tabs__badge { display: inline-block; margin-inline-start: var(--space-2); padding: 0 var(--space-2); border-radius: var(--radius-full); background: var(--surface-3); color: var(--text-secondary); font-size: var(--text-2xs); font-variant-numeric: tabular-nums; }
-.tabs__tab[data-active='true'] .tabs__badge { background: var(--brand-100); color: var(--brand-800); }
+.tabs__tab[data-active='true'] .tabs__badge { background: var(--surface-2); color: var(--text-brand); border: var(--border-width) solid var(--border-subtle); }
 .tabs__panel { padding-top: var(--space-5); min-width: 0; }
 .tabs__panel[hidden] { display: none; }
 .tabs__panel:focus { outline: none; }

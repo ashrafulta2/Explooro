@@ -26,7 +26,7 @@
 .auth-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); margin-top: var(--space-1); }
 .auth-role-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-3) var(--space-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-0); color: var(--text-primary); cursor: pointer; min-height: 72px; text-align: center; }
 .auth-role-card:hover { border-color: var(--border-strong); background: var(--surface-2); }
-.auth-role-card[data-selected="true"] { border-color: var(--brand); background: var(--brand-100); color: var(--brand-900); font-weight: var(--weight-md, 600); }
+.auth-role-card[data-selected="true"] { border-color: var(--brand); background: var(--surface-2); color: var(--text-brand); font-weight: var(--weight-md, 600); }
 .auth-role-card__title { font-weight: var(--weight-md, 600); font-size: var(--text-sm); }
 .otp-container { display: flex; justify-content: space-between; gap: var(--space-2); margin: var(--space-4) 0; }
 .otp-box { flex: 1; max-width: 52px; height: 58px; text-align: center; font-size: var(--text-2xl); font-weight: var(--weight-bold, 700); border: var(--border-width) solid var(--border-default); border-radius: var(--radius-md); background: var(--surface-0); color: var(--text-primary); }

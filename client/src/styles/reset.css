@@ -115,10 +115,36 @@ h6 {
   -webkit-tap-highlight-color: transparent;
 }
 
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+  }
+}
+
 /* §17 — the browser's default selection blue belongs to no brand. */
 ::selection {
   background: var(--brand-100);
   color: var(--text-primary);
+}
+
+:root[data-theme='dark'] ::selection {
+  background: var(--brand-700);
+  color: var(--text-inverse);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) ::selection {
+    background: var(--brand-700);
+    color: var(--text-inverse);
+  }
 }
 
 /* Reduced motion (design-system §6.4). tokens.css zeroes the duration tokens; this removes

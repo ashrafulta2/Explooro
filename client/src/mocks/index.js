@@ -31,6 +31,8 @@ import returnHandlers from './handlers/returns.js';
 import campaignHandlers from './handlers/campaigns.js';
 import themeHandlers from './handlers/theme.js';
 import { teamPurchaseHandlers } from './handlers/teamPurchase.js';
+import { gamificationHandlers } from './handlers/gamification.js';
+import { referralHandlers } from './handlers/referral.js';
 
 const handlers = [
   ...authHandlers,
@@ -57,6 +59,8 @@ const handlers = [
   ...campaignHandlers,
   ...themeHandlers,
   ...teamPurchaseHandlers,
+  ...gamificationHandlers,
+  ...referralHandlers,
 ];
 
 function notFoundBody(path) {

@@ -70,6 +70,7 @@ import { ShoppableReels } from '../../components/content/ShoppableReels.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
+import { QuestPanel } from '../../components/gamification/QuestPanel.js';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */
 function specimen(title, ...nodes) {
@@ -1505,27 +1506,48 @@ function renderReferralHubSpecimen() {
   wrap.append(subgroup('Multi-Tier Referral Network Tree & Link Specimen (Prompt 9.3)'));
 
   const shareBox = document.createElement('div');
-  shareBox.className = 'card p-4 space-y-3';
+  shareBox.className = 'card p-5 space-y-4 border border-subtle bg-surface rounded-2xl shadow-xs';
   shareBox.innerHTML = `
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between border-b border-subtle pb-3">
       <div>
-        <h4 class="font-bold text-sm">🌳 2-Tier Referral Network Hub</h4>
-        <div class="text-xs text-muted">Tier 1: 5% direct commission • Tier 2: 2% sub-network commission</div>
+        <h4 class="font-bold text-base text-foreground">🤝 2-Tier Referral & Network Growth Hub</h4>
+        <div class="text-xs text-muted">Tier 1: 5% direct commission • Tier 2: 2% sub-network commission • 100 Coins/invite</div>
       </div>
-      <span class="badge badge-accent text-xs font-semibold">REF-S9F2K1</span>
+      <span class="badge badge--primary text-xs font-bold font-mono">REF-EXP8820</span>
     </div>
-    <div class="grid grid-cols-3 gap-2 text-center text-xs">
-      <div class="p-2 bg-base rounded">
-        <div class="text-muted">Network Size</div>
-        <div class="font-bold text-sm text-primary">24 Referees</div>
+
+    <!-- 4 KPIs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs">
+      <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
+        <div class="text-muted text-[11px] font-bold uppercase">Total Network</div>
+        <div class="font-bold text-lg text-primary font-mono mt-1">18 Referees</div>
+        <div class="text-[10px] text-muted">14 Qualified</div>
       </div>
-      <div class="p-2 bg-base rounded">
-        <div class="text-muted">Tier 1 (5%)</div>
-        <div class="font-bold text-sm text-accent">18 Direct</div>
+      <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
+        <div class="text-muted text-[11px] font-bold uppercase">Tier 1 (5%)</div>
+        <div class="font-bold text-lg text-foreground font-mono mt-1">12 Direct</div>
+        <div class="text-[10px] text-muted">Direct friends</div>
       </div>
-      <div class="p-2 bg-base rounded">
-        <div class="text-muted">Tier 2 (2%)</div>
-        <div class="font-bold text-sm text-warning">6 Sub-Tier</div>
+      <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
+        <div class="text-muted text-[11px] font-bold uppercase">Tier 2 (2%)</div>
+        <div class="font-bold text-lg text-warning font-mono mt-1">6 Sub-Tier</div>
+        <div class="text-[10px] text-muted">Friend's network</div>
+      </div>
+      <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
+        <div class="text-muted text-[11px] font-bold uppercase">Total Earned</div>
+        <div class="font-bold text-lg text-green-600 font-mono mt-1">৳8,450.00</div>
+        <div class="text-[10px] text-muted">৳2,100 in escrow</div>
+      </div>
+    </div>
+
+    <!-- Share row -->
+    <div class="p-3 bg-surface-1 border border-subtle rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+      <div class="font-mono text-muted text-xs break-all">
+        https://explooro.com/join/tanvir-deals
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn--sm btn--primary">📋 Copy Link</button>
+        <button class="btn btn--sm btn--outline">📱 QR Code</button>
       </div>
     </div>
   `;
@@ -1537,63 +1559,162 @@ function renderReferralHubSpecimen() {
 function renderLoyaltyCoinsSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section space-y-4';
-  wrap.append(subgroup('Loyalty Coins & Streak Calendar Specimen (Prompt 9.4)'));
+  wrap.append(subgroup('Loyalty Coins, Streak Calendar & Conversion Value (Prompt 9.4)'));
 
-  const coinCard = document.createElement('div');
-  coinCard.className = 'card p-4 space-y-3';
-  coinCard.innerHTML = `
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-warning/20 flex items-center justify-center text-xl">🪙</div>
-        <div>
-          <div class="font-bold text-sm">480 Loyalty Coins</div>
-          <div class="text-xs text-success font-semibold">≈ ৳48.00 BDT Value</div>
+  const heroCard = document.createElement('div');
+  heroCard.className = 'coins-hero';
+  heroCard.innerHTML = `
+    <div class="coins-hero__top">
+      <div class="coins-hero__main">
+        <div class="coins-medallion">🪙</div>
+        <div class="coins-hero__info">
+          <span class="coins-hero__label">Available Coins</span>
+          <div class="coins-hero__balance-row">
+            <span class="coins-hero__balance">1,250</span>
+            <span class="coins-hero__unit">Coins</span>
+          </div>
+          <div class="coins-hero__cash-tag">
+            <span>💰</span>
+            <span>≈ ৳125.00 BDT Cash Value (100 coins = ৳10)</span>
+          </div>
         </div>
       </div>
-      <span class="badge badge-warning text-xs font-bold">🔥 5-Day Streak</span>
+      <div class="coins-hero__stats">
+        <div class="coins-stat-pill">
+          <span class="coins-stat-pill__label">Total Earned</span>
+          <span class="coins-stat-pill__value coins-stat-pill__value--green">+2,450</span>
+        </div>
+        <div class="coins-stat-pill">
+          <span class="coins-stat-pill__label">Total Spent</span>
+          <span class="coins-stat-pill__value">-1,200</span>
+        </div>
+        <div class="coins-stat-pill">
+          <span class="coins-stat-pill__label">Active Streak</span>
+          <span class="coins-stat-pill__value coins-stat-pill__value--amber">🔥 4 Days</span>
+        </div>
+      </div>
     </div>
-    <div class="grid grid-cols-7 gap-1 pt-2 text-center text-[10px]">
-      <div class="p-1.5 bg-surface border border-success/40 rounded text-success">D1 ✓<br>+10</div>
-      <div class="p-1.5 bg-surface border border-success/40 rounded text-success">D2 ✓<br>+15</div>
-      <div class="p-1.5 bg-surface border border-success/40 rounded text-success">D3 ✓<br>+20</div>
-      <div class="p-1.5 bg-surface border border-success/40 rounded text-success">D4 ✓<br>+25</div>
-      <div class="p-1.5 bg-primary/10 border border-primary rounded text-primary font-bold">D5 ✨<br>+30</div>
-      <div class="p-1.5 bg-base rounded opacity-50">D6<br>+35</div>
-      <div class="p-1.5 bg-base rounded opacity-50">D7<br>+50</div>
+    <div class="coins-hero__actions">
+      <div class="coins-hero__rate-tip">
+        <span>💡</span>
+        <span>Redeem coins at checkout for ৳10 discount per 100 coins (up to 20% cart total)</span>
+      </div>
+      <button class="coins-hero__btn-redeem" type="button">
+        <span>🛒</span>
+        <span>Use Coins at Checkout</span>
+      </button>
     </div>
   `;
 
-  wrap.append(specimen('Coins Balance & Streak Calendar', coinCard));
+  const streakCard = document.createElement('div');
+  streakCard.className = 'coins-streak-card';
+  streakCard.innerHTML = `
+    <div class="coins-streak-card__header">
+      <div class="coins-streak-card__title-group">
+        <h3 class="coins-streak-card__title">🔥 7-Day Daily Streak Calendar</h3>
+        <p class="coins-streak-card__subtitle">Check in every day without breaking streak to unlock the Day 7 Mega Reward!</p>
+      </div>
+      <div class="coins-streak-card__controls">
+        <span class="coins-streak-badge">🔥 4 Day Streak</span>
+        <button class="coins-checkin-btn" type="button">✨ Claim Today (+25 Coins)</button>
+      </div>
+    </div>
+    <div class="coins-streak-grid">
+      <div class="coins-day-node coins-day-node--claimed">
+        <span class="coins-day-node__day">Day 1</span>
+        <div class="coins-day-node__icon">✅</div>
+        <span class="coins-day-node__reward">+10 Coins</span>
+      </div>
+      <div class="coins-day-node coins-day-node--claimed">
+        <span class="coins-day-node__day">Day 2</span>
+        <div class="coins-day-node__icon">✅</div>
+        <span class="coins-day-node__reward">+15 Coins</span>
+      </div>
+      <div class="coins-day-node coins-day-node--claimed">
+        <span class="coins-day-node__day">Day 3</span>
+        <div class="coins-day-node__icon">✅</div>
+        <span class="coins-day-node__reward">+20 Coins</span>
+      </div>
+      <div class="coins-day-node coins-day-node--today">
+        <span class="coins-day-node__day">Day 4</span>
+        <div class="coins-day-node__icon">🪙</div>
+        <span class="coins-day-node__reward">+25 Coins</span>
+      </div>
+      <div class="coins-day-node coins-day-node--locked">
+        <span class="coins-day-node__day">Day 5</span>
+        <div class="coins-day-node__icon">🔒</div>
+        <span class="coins-day-node__reward">+30 Coins</span>
+      </div>
+      <div class="coins-day-node coins-day-node--locked">
+        <span class="coins-day-node__day">Day 6</span>
+        <div class="coins-day-node__icon">🔒</div>
+        <span class="coins-day-node__reward">+35 Coins</span>
+      </div>
+      <div class="coins-day-node coins-day-node--mega coins-day-node--locked">
+        <span class="coins-day-node__day">Day 7</span>
+        <div class="coins-day-node__icon">🎁</div>
+        <span class="coins-day-node__reward">+50 Coins</span>
+      </div>
+    </div>
+  `;
+
+  wrap.append(
+    specimen('Gold Coin Hero Balance Banner', heroCard),
+    specimen('Interactive 7-Day Streak Calendar', streakCard)
+  );
   return wrap;
 }
 
 function renderQuestPanelSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section space-y-4';
-  wrap.append(subgroup('Daily & Weekly Quests Specimen (Prompt 9.4)'));
+  wrap.append(subgroup('Daily & Weekly Quests & Missions (Prompt 9.4)'));
 
-  const questCard = document.createElement('div');
-  questCard.className = 'card p-4 space-y-3';
-  questCard.innerHTML = `
-    <div class="flex items-center justify-between">
-      <div class="space-y-1">
-        <div class="flex items-center gap-2">
-          <span class="badge badge-accent text-[10px] uppercase font-bold">Daily</span>
-          <h4 class="font-bold text-sm">Share 3 Products to Social Kit</h4>
-        </div>
-        <div class="text-xs text-muted">Progress: 2 / 3</div>
-        <div class="w-48 bg-border rounded-full h-1.5 overflow-hidden">
-          <div class="bg-primary h-1.5 rounded-full" style="width: 66%"></div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="font-bold text-xs text-warning bg-warning/10 px-2 py-1 rounded">🪙 +25 Coins</span>
-        <button class="btn btn-sm btn-neutral text-xs" disabled>In Progress</button>
-      </div>
-    </div>
-  `;
+  const sampleQuests = [
+    {
+      id: 1,
+      title_en: 'Daily Explorer Check-in',
+      title_bn: 'দৈনিক এক্সপ্লোরার চেক-ইন',
+      description_en: 'Open the app and claim your daily streak reward',
+      cadence: 'DAILY',
+      target_count: 1,
+      current_count: 1,
+      reward_coins: 10,
+      is_completed: true,
+      is_claimed: true,
+    },
+    {
+      id: 2,
+      title_en: 'Browse Trending Flash Deals',
+      title_bn: 'ট্রেন্ডিং ফ্ল্যাশ ডিল এক্সপ্লোর করুন',
+      description_en: 'View at least 3 products from today’s campaign sale',
+      cadence: 'DAILY',
+      target_count: 3,
+      current_count: 3,
+      reward_coins: 15,
+      is_completed: true,
+      is_claimed: false,
+    },
+    {
+      id: 3,
+      title_en: 'Social Group Buying Champion',
+      title_bn: 'সোশ্যাল টিম পারচেজ মিশন',
+      description_en: 'Start or join a group buying team with friends',
+      cadence: 'WEEKLY',
+      target_count: 1,
+      current_count: 0,
+      reward_coins: 35,
+      is_completed: false,
+      is_claimed: false,
+    },
+  ];
 
-  wrap.append(specimen('Daily Quest Progress Card', questCard));
+  const panel = new QuestPanel({
+    quests: sampleQuests,
+    onRewardClaimed: (claim) => toast.success(`Specimen reward claimed: +${claim.rewardCoins || 15} coins!`),
+  });
+
+  wrap.append(specimen('Quest & Mission Widget with Filters & Progress Bars', panel.getElement()));
   return wrap;
 }
 
