@@ -144,6 +144,10 @@ async function bootRouterDemo() {
         item.path !== '/customer/coupons' &&
         item.path !== '/coupons' &&
         item.path !== '/saler/referrals' &&
+        item.path !== '/account/referrals' &&
+        item.path !== '/customer/referrals' &&
+        item.path !== '/referrals' &&
+        item.path !== '/admin/growth/referrals' &&
         item.path !== '/account/coins' &&
         item.path !== '/saler/quests' &&
         item.path !== '/saler/leaderboard' &&
@@ -1106,10 +1110,42 @@ async function bootRouterDemo() {
       },
       // Prompt 9.3: Multi-Tier Referral & Network Growth Engine
       {
+        path: '/account/referrals',
+        title: 'Referrals & Rewards — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'referral_engine',
+        load: () => import('./pages/saler/ReferralHubPage.js'),
+      },
+      {
+        path: '/customer/referrals',
+        title: 'Referrals & Rewards — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'referral_engine',
+        load: () => import('./pages/saler/ReferralHubPage.js'),
+      },
+      {
+        path: '/referrals',
+        title: 'Referrals & Rewards — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'referral_engine',
+        load: () => import('./pages/saler/ReferralHubPage.js'),
+      },
+      {
         path: '/saler/referrals',
         title: 'Referral & Network Growth — Explooro',
         requiresAuth: true,
         permission: 'growth.referral.view_own',
+        module: 'referral_engine',
+        load: () => import('./pages/saler/ReferralHubPage.js'),
+      },
+      {
+        path: '/admin/growth/referrals',
+        title: 'Referral Governance — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.referral.govern',
         module: 'referral_engine',
         load: () => import('./pages/saler/ReferralHubPage.js'),
       },
