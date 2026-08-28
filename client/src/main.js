@@ -179,6 +179,9 @@ async function bootRouterDemo() {
         item.path !== '/account/orders' &&
         item.path !== '/account/wishlist' &&
         item.path !== '/account/following' &&
+        item.path !== '/account/reviews' &&
+        item.path !== '/customer/reviews' &&
+        item.path !== '/reviews' &&
         item.path !== '/account/become-saler' &&
         item.path !== '/admin' &&
         item.path !== '/admin/dashboard' &&
@@ -577,6 +580,30 @@ async function bootRouterDemo() {
         permission: null,
         module: 'follow_feed',
         load: () => import('./pages/customer/FollowingFeedPage.js'),
+      },
+      {
+        path: '/account/reviews',
+        title: 'My Reviews & UGC — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'ugc_video_wall',
+        load: () => import('./pages/customer/ReviewsPage.js'),
+      },
+      {
+        path: '/customer/reviews',
+        title: 'My Reviews & UGC — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'ugc_video_wall',
+        load: () => import('./pages/customer/ReviewsPage.js'),
+      },
+      {
+        path: '/reviews',
+        title: 'My Reviews & UGC — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'ugc_video_wall',
+        load: () => import('./pages/customer/ReviewsPage.js'),
       },
       {
         path: '/account/become-saler',

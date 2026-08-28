@@ -261,25 +261,16 @@ function ThemeMenu() {
     });
     panel.append(modeRow);
 
-    // Presets Header
-    const presetsHeader = document.createElement('div');
-    presetsHeader.style.padding = '8px 4px 4px 4px';
-    presetsHeader.style.fontSize = '11px';
-    presetsHeader.style.fontWeight = '600';
-    presetsHeader.style.color = 'var(--text-muted)';
-    presetsHeader.textContent = t('shell.theme_presets_title') || 'Marketplace Style (1-Click)';
-    panel.append(presetsHeader);
-
     // Presets List
     const presetsList = document.createElement('div');
     presetsList.className = 'topbar__theme-presets-list';
     presetsList.style.display = 'flex';
     presetsList.style.flexDirection = 'column';
     presetsList.style.gap = '2px';
-    presetsList.style.maxHeight = '240px';
+    presetsList.style.maxHeight = '280px';
     presetsList.style.overflowY = 'auto';
 
-    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+    const createPresetBtn = (key, preset) => {
       const pBtn = document.createElement('button');
       pBtn.type = 'button';
       pBtn.className = 'topbar__theme-preset-btn';
@@ -326,7 +317,41 @@ function ThemeMenu() {
         renderPanel();
       });
 
-      presetsList.append(pBtn);
+      return pBtn;
+    };
+
+    // Explooro Group Header
+    const explooroHeader = document.createElement('div');
+    explooroHeader.style.padding = '8px 4px 4px 4px';
+    explooroHeader.style.fontSize = '11px';
+    explooroHeader.style.fontWeight = '600';
+    explooroHeader.style.color = 'var(--text-muted)';
+    explooroHeader.textContent = t('shell.theme_group_explooro') || 'Explooro';
+    presetsList.append(explooroHeader);
+
+    // Explooro Presets
+    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+      if (preset.group === 'explooro' || key === 'pure_gold' || key === 'explooro_pink') {
+        presetsList.append(createPresetBtn(key, preset));
+      }
+    }
+
+    // Marketplace Style Header
+    const marketplaceHeader = document.createElement('div');
+    marketplaceHeader.style.padding = '10px 4px 4px 4px';
+    marketplaceHeader.style.fontSize = '11px';
+    marketplaceHeader.style.fontWeight = '600';
+    marketplaceHeader.style.color = 'var(--text-muted)';
+    marketplaceHeader.style.borderTop = '1px solid var(--border-subtle)';
+    marketplaceHeader.style.marginTop = '4px';
+    marketplaceHeader.textContent = t('shell.theme_presets_title') || 'Marketplace Style (1-Click)';
+    presetsList.append(marketplaceHeader);
+
+    // Marketplace Presets
+    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+      if (preset.group !== 'explooro' && key !== 'pure_gold' && key !== 'explooro_pink') {
+        presetsList.append(createPresetBtn(key, preset));
+      }
     }
 
     panel.append(presetsList);

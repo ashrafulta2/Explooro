@@ -163,9 +163,24 @@ export default function HomePage(root, { navigate }) {
   let flashWidgetCleanup = null;
   let flashSection = null;
 
-  function mountFlashWidget(allProducts) {
+  async function mountFlashWidget(allProducts) {
     if (!isFeatureEnabled('flash_sale')) return;
     if (flashSection) return; // already mounted
+
+    let flashList = allProducts?.filter((p) => p.is_flash_sale) || [];
+    if (flashList.length === 0) {
+      try {
+        const flashRes = await listProducts({ flash_sale: '1', limit: 12 });
+        if (flashRes?.products?.length > 0) {
+          flashList = flashRes.products;
+        }
+      } catch {
+        // Fallback to allProducts
+      }
+    }
+    if (flashList.length === 0) {
+      flashList = allProducts || [];
+    }
 
     const sec = document.createElement('div');
     sec.className = 'home-section';
@@ -173,7 +188,7 @@ export default function HomePage(root, { navigate }) {
 
     // Flash sale ends at a fixed 4h window for demo; real data would come from API
     const { el, cleanup } = FlashSaleWidget({
-      products: allProducts,
+      products: flashList,
       endsAt: Date.now() + 4 * 60 * 60 * 1000,
       role,
       modules,
@@ -184,7 +199,7 @@ export default function HomePage(root, { navigate }) {
     sec.append(el);
 
     // Insert before the catalog section
-    if (catalogSection) {
+    if (catalogSection && catalogSection.parentNode === page) {
       page.insertBefore(sec, catalogSection);
     } else {
       page.append(sec);

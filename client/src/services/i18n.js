@@ -88,8 +88,27 @@ function resolve(dict, key, params) {
   return dict?.[key];
 }
 
-/** Translates `key`. Missing keys fall back to English, then to a humanized label — never blank. */
-export function t(key, params) {
+/**
+ * Translates `key`. Missing keys fall back to English, then to an inline default, then to a
+ * humanized label — never blank.
+ *
+ * Two call shapes are supported:
+ *   t('cart.title')                          → dictionary lookup
+ *   t('cart.items', { count: 3 })            → lookup + plural selection + {{count}} interpolation
+ *   t('cart.title', 'Your Cart')             → lookup, using the literal as the last-resort default
+ *   t('cart.items', 'Cart', { count: 3 })    → both
+ *
+ * WHY the string form: ~860 call sites across the app were already written as
+ * `t('some.key', 'English text')`, on the reasonable assumption that the second argument was a
+ * default. It was being passed straight into `interpolate` as `params` instead, so a missing key
+ * rendered a humanized slug ("Btn Explore All") rather than the author's English. Accepting a
+ * string here honours the convention the codebase already uses, and keeps the object form intact.
+ */
+export function t(key, paramsOrDefault, maybeParams) {
+  const hasStringDefault = typeof paramsOrDefault === 'string';
+  const defaultValue = hasStringDefault ? paramsOrDefault : undefined;
+  const params = hasStringDefault ? maybeParams : paramsOrDefault;
+
   let value = resolve(dictionaries[currentLang], key, params);
 
   if (value === undefined) {
@@ -100,6 +119,7 @@ export function t(key, params) {
     value = resolve(dictionaries[FALLBACK_LANG], key, params);
   }
 
+  if (value === undefined) value = defaultValue;
   if (value === undefined) value = humanize(key);
 
   return interpolate(value, params);

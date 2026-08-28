@@ -402,7 +402,7 @@ export function ProductCard({
   }
 
   // Flash sale tag overlaid on the image
-  if (product.is_flash_sale && modules.flash_sale) {
+  if (product.is_flash_sale && (modules?.flash_sale !== false)) {
     const flashTag = document.createElement('div');
     flashTag.className = 'product-card__flash-tag';
     flashTag.append(boltSvg());

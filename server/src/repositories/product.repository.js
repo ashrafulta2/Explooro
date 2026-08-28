@@ -204,6 +204,10 @@ export async function listProducts(
     limit = 20,
     offset = 0,
     supplierId,
+    flashSale,
+    supplierTier,
+    district,
+    q,
   } = {}
 ) {
   const conditions = ['p.deleted_at IS NULL'];
@@ -244,6 +248,35 @@ export async function listProducts(
     conditions.push(`p.default_retail_price <= $${params.length}`);
   }
 
+  if (district) {
+    params.push(district);
+    conditions.push(`up.district ILIKE $${params.length}`);
+  }
+
+  if (supplierTier) {
+    const tiers = supplierTier.split(',').map((t) => t.trim().toUpperCase());
+    const tierMap = {
+      STANDARD: 'STARTER',
+      VERIFIED: 'VERIFIED_TRADER',
+      ELITE: 'ELITE_PARTNER',
+      STARTER: 'STARTER',
+      VERIFIED_TRADER: 'VERIFIED_TRADER',
+      ELITE_PARTNER: 'ELITE_PARTNER',
+    };
+    const dbTiers = tiers.map((t) => tierMap[t] || t);
+    params.push(dbTiers);
+    conditions.push(`COALESCE(ts.tier, 'STARTER') = ANY($${params.length})`);
+  }
+
+  if (flashSale) {
+    conditions.push(`fs.id IS NOT NULL`);
+  }
+
+  if (q) {
+    params.push(`%${q}%`);
+    conditions.push(`(p.title_en ILIKE $${params.length} OR p.title_bn ILIKE $${params.length})`);
+  }
+
   let orderClause = 'p.created_at DESC';
   if (sortBy === 'price_asc') orderClause = 'p.default_retail_price ASC';
   else if (sortBy === 'price_desc') orderClause = 'p.default_retail_price DESC';
@@ -257,9 +290,28 @@ export async function listProducts(
 
   const { rows } = await db.query(
     `SELECT p.*,
-            c.name_en as category_name_en, c.name_bn as category_name_bn, c.slug as category_slug
+            p.default_retail_price as price,
+            c.name_en as category_name_en, c.name_bn as category_name_bn, c.slug as category_slug,
+            COALESCE(
+              CASE ts.tier
+                WHEN 'ELITE_PARTNER' THEN 'elite'
+                WHEN 'VERIFIED_TRADER' THEN 'verified'
+                ELSE 'standard'
+              END,
+              'standard'
+            ) as supplier_tier,
+            CASE WHEN ts.tier IN ('VERIFIED_TRADER', 'ELITE_PARTNER') THEN true ELSE false END as is_verified_supplier,
+            COALESCE(up.district, 'Dhaka') as district,
+            COALESCE(vs.physical_open_status = 'OPEN', true) as store_open,
+            CASE WHEN fs.id IS NOT NULL THEN true ELSE false END as is_flash_sale,
+            fs.discount_price as flash_discount_price,
+            fs.ends_at as flash_ends_at
      FROM products p
      JOIN categories c ON c.id = p.category_id
+     LEFT JOIN trust_scores ts ON ts.user_id = p.supplier_id
+     LEFT JOIN user_profiles up ON up.user_id = p.supplier_id
+     LEFT JOIN virtual_stores vs ON vs.saler_id = p.supplier_id
+     LEFT JOIN flash_sales fs ON fs.product_id = p.id AND fs.status = 'ACTIVE' AND now() BETWEEN fs.starts_at AND fs.ends_at
      WHERE ${conditions.join(' AND ')}
      ORDER BY ${orderClause}
      LIMIT $${limitIdx} OFFSET $${offsetIdx}`,

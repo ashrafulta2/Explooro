@@ -70,6 +70,8 @@ import { ShoppableReels } from '../../components/content/ShoppableReels.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
+import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.js';
+import { PendingReviewCard } from '../../components/customer/PendingReviewCard.js';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */
@@ -1044,6 +1046,11 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'Saler Sourcing & Profit', render: renderGrowthAssistantSpecimen },
     // Catalog & Products Governance
     { id: 'catalog-products-governance', label: 'CatalogProductsGovernance', group: 'Commerce & Catalog', render: renderCatalogProductsSpecimen },
+    // Prompt 11.3 — Followed Stores & Product Drops Feed
+    { id: 'following-feed', label: 'FollowingFeed', group: 'Commerce & Catalog', render: renderFollowingFeedSpecimen },
+    // Customer Reviews & UGC Hub
+    { id: 'customer-review-card', label: 'CustomerReviewCard', group: 'Trust & Protection', render: renderCustomerReviewCardSpecimen },
+    { id: 'pending-review-card', label: 'PendingReviewCard', group: 'Trust & Protection', render: renderPendingReviewCardSpecimen },
     // Master Colour engine (services/colorRamp.js) — the generated ramps behind Theme Studio
     { id: 'master-palette', label: 'MasterPalette', group: 'Foundations', render: renderMasterPaletteSpecimen },
   ];
@@ -2315,6 +2322,246 @@ function renderCatalogProductsSpecimen() {
   `;
 
   wrap.append(specimen('Catalog Governance KPIs & Inventory Roster', preview));
+  return wrap;
+}
+
+function renderFollowingFeedSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Followed Stores & Activity Feed Specimens (Prompt 11.3)'));
+
+  // 1. Followed Store Card
+  const storeCard = document.createElement('div');
+  storeCard.className = 'store-card max-w-sm';
+  storeCard.innerHTML = `
+    <div>
+      <div class="store-card__header">
+        <div class="store-card__avatar">👗</div>
+        <div class="store-card__info">
+          <div class="store-card__name-row">
+            <h4 class="store-card__name">Priyo Collection</h4>
+            <span class="store-card__verified-badge">✓</span>
+          </div>
+          <div class="store-card__slug">@priyo-collection</div>
+          <p class="store-card__bio">Authentic Bangladeshi Handloom, Tangail Sarees & Traditional Wear.</p>
+        </div>
+      </div>
+      <div class="store-card__meta-bar mt-3">
+        <div class="store-card__meta-item"><span aria-hidden="true">📦</span><span>42 products</span></div>
+        <div class="store-card__meta-item"><span aria-hidden="true">⭐</span><span>4.9 (196 reviews)</span></div>
+        <div class="store-card__meta-item"><span aria-hidden="true">👥</span><span>1,840 followers</span></div>
+      </div>
+    </div>
+    <div class="store-card__actions">
+      <button class="btn btn--primary btn--sm">Visit Storefront →</button>
+      <button class="btn btn--secondary btn--sm">Unfollow</button>
+    </div>
+  `;
+
+  // 1b. Unrated store — the metric is omitted, never defaulted to an invented 4.8 / "500+".
+  const unratedCard = document.createElement('div');
+  unratedCard.className = 'store-card max-w-sm';
+  unratedCard.innerHTML = `
+    <div>
+      <div class="store-card__header">
+        <div class="store-card__avatar" aria-hidden="true">✨</div>
+        <div class="store-card__info">
+          <div class="store-card__name-row">
+            <h4 class="store-card__name">Notun Bazar Handicrafts</h4>
+          </div>
+          <div class="store-card__slug">@notun-bazar</div>
+          <p class="store-card__bio">This seller has not added a description yet.</p>
+        </div>
+      </div>
+      <div class="store-card__meta-bar mt-3">
+        <div class="store-card__meta-item"><span aria-hidden="true">📦</span><span>3 products</span></div>
+        <div class="store-card__meta-item store-card__meta-item--muted"><span aria-hidden="true">⭐</span><span>Not yet rated</span></div>
+        <div class="store-card__meta-item"><span aria-hidden="true">👥</span><span>0 followers</span></div>
+      </div>
+    </div>
+    <div class="store-card__actions">
+      <button class="btn btn--secondary btn--sm">Visit Storefront →</button>
+      <button class="btn btn--primary btn--sm">Follow Store</button>
+    </div>
+  `;
+
+  // 2. Product Drop Card
+  const dropCard = document.createElement('div');
+  dropCard.className = 'product-drop-card max-w-[220px]';
+  dropCard.innerHTML = `
+    <div class="product-drop-card__media">
+      <img src="/placeholder-product.svg" class="product-drop-card__img" alt="Product"/>
+      <span class="product-drop-card__badge">2 hours ago</span>
+    </div>
+    <div class="product-drop-card__body">
+      <div class="product-drop-card__store-row">
+        <span class="product-drop-card__store-link"><span aria-hidden="true">🏪</span> Priyo Collection</span>
+        <span class="badge badge--warning product-drop-card__discount">11% off</span>
+      </div>
+      <h4 class="product-drop-card__title">Royal Crimson Handloom Dhakai Jamdani Saree</h4>
+      <div class="product-drop-card__pricing">
+        <span class="product-drop-card__price">৳4,250.00</span>
+        <span class="product-drop-card__was">৳4,800.00</span>
+      </div>
+    </div>
+    <div class="product-drop-card__footer">
+      <button class="btn btn--primary btn--sm btn--full">View Product →</button>
+    </div>
+  `;
+
+  // 2b. Out-of-stock drop.
+  const soldOutCard = document.createElement('div');
+  soldOutCard.className = 'product-drop-card max-w-[220px]';
+  soldOutCard.innerHTML = `
+    <div class="product-drop-card__media">
+      <img src="/placeholder-product.svg" class="product-drop-card__img" alt="Product"/>
+      <span class="product-drop-card__badge">yesterday</span>
+      <span class="product-drop-card__stock">Out of stock</span>
+    </div>
+    <div class="product-drop-card__body">
+      <div class="product-drop-card__store-row">
+        <span class="product-drop-card__store-link"><span aria-hidden="true">🏪</span> Rajshahi Silk</span>
+      </div>
+      <h4 class="product-drop-card__title">Emerald Green Pure Rajshahi Silk Dupatta</h4>
+      <div class="product-drop-card__pricing">
+        <span class="product-drop-card__price">৳1,450.00</span>
+      </div>
+    </div>
+    <div class="product-drop-card__footer">
+      <button class="btn btn--primary btn--sm btn--full">View Product →</button>
+    </div>
+  `;
+
+  // 3. Live Broadcast Card
+  const liveCard = document.createElement('div');
+  liveCard.className = 'following-live-card max-w-sm';
+  liveCard.innerHTML = `
+    <div>
+      <div class="following-live-card__head">
+        <span class="following-live-badge"><span class="pulse-dot-red" aria-hidden="true"></span> LIVE</span>
+        <span class="following-live-card__viewers"><span aria-hidden="true">👥</span> 142 watching</span>
+      </div>
+      <div class="following-live-card__body mt-2">
+        <h4 class="following-live-card__title">Eid Exclusive Jamdani Showcase</h4>
+        <div class="following-live-card__store mt-1"><span aria-hidden="true">🏪</span><span>Priyo Collection</span></div>
+      </div>
+    </div>
+    <button class="btn btn--primary btn--sm btn--full">Watch &amp; Order Live</button>
+  `;
+
+  // 3b. Scheduled broadcast — carries its start time, and drops the urgent red treatment.
+  const scheduledCard = document.createElement('div');
+  scheduledCard.className = 'following-live-card following-live-card--scheduled max-w-sm';
+  scheduledCard.innerHTML = `
+    <div>
+      <div class="following-live-card__head">
+        <span class="following-live-badge following-live-badge--scheduled"><span aria-hidden="true">⏰</span> SCHEDULED</span>
+        <span class="following-live-card__viewers"><span aria-hidden="true">🗓️</span> Starts in 3 hours</span>
+      </div>
+      <div class="following-live-card__body mt-2">
+        <h4 class="following-live-card__title">Pure Rajshahi Silk Quality Inspection</h4>
+        <div class="following-live-card__store mt-1"><span aria-hidden="true">🏪</span><span>Rajshahi Silk Emporium</span></div>
+        <p class="following-live-card__schedule">28 Aug 2026</p>
+      </div>
+    </div>
+    <button class="btn btn--secondary btn--sm btn--full">View Broadcast</button>
+  `;
+
+  // 4. KPI tile — a real <button>, so it is reachable by Tab and activated by Enter/Space.
+  const kpiTile = document.createElement('div');
+  kpiTile.className = 'following-kpis max-w-md';
+  kpiTile.innerHTML = `
+    <button type="button" class="following-kpi-card" aria-label="Show Followed Stores">
+      <span class="following-kpi-card__head">
+        <span class="following-kpi-card__label">Followed Stores</span>
+        <span class="following-kpi-card__icon" aria-hidden="true">🏪</span>
+      </span>
+      <span class="following-kpi-card__val">1</span>
+      <span class="following-kpi-card__sub">1 shop saved</span>
+    </button>
+    <button type="button" class="following-kpi-card" aria-label="Show New Drops">
+      <span class="following-kpi-card__head">
+        <span class="following-kpi-card__label">New Drops</span>
+        <span class="following-kpi-card__icon" aria-hidden="true">✨</span>
+      </span>
+      <span class="following-kpi-card__val">6</span>
+      <span class="following-kpi-card__sub">Freshly curated arrivals</span>
+    </button>
+  `;
+
+  wrap.append(
+    specimen('Followed Merchant Store Card', storeCard),
+    specimen('Store Card — unrated / no metrics to show', unratedCard),
+    specimen('Product Drop Arrival Card', dropCard),
+    specimen('Product Drop — out of stock', soldOutCard),
+    specimen('Live Shopping Broadcast Card', liveCard),
+    specimen('Scheduled Broadcast Card', scheduledCard),
+    specimen('Activity KPI Tiles (keyboard-reachable)', kpiTile)
+  );
+
+  return wrap;
+}
+
+function renderCustomerReviewCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Customer Published Review Card with Verified Purchase & Lightbox'));
+
+  const sampleReview = {
+    id: 1,
+    product_ref: 'PRD-8F2K9QX7',
+    product_title_en: 'Premium Cotton Saree — Deep Maroon',
+    product_title_bn: 'প্রিমিয়াম কটন শাড়ি — মেরুন',
+    product_image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=80',
+    product_price: '1,250.00',
+    store_ref: 'STR-RAHIM001',
+    rating: 5,
+    title: 'Beautiful fabric, colour is exact!',
+    body: 'The saree drapes beautifully and the colour matches the photos exactly. Delivered well packed within 3 days to Dhaka.',
+    reviewer_name: 'Dev Customer',
+    is_verified_purchase: true,
+    helpful_count: 14,
+    coins_earned: 20,
+    created_at: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
+    media: [
+      { id: 901, url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500', media_kind: 'IMAGE' },
+    ],
+  };
+
+  const card = CustomerReviewCard({
+    review: sampleReview,
+    onEdit: (r) => toast.info(`Editing review #${r.id}`),
+    onDelete: (r) => toast.error(`Deleting review #${r.id}`),
+  });
+
+  wrap.append(specimen('5-Star Verified Purchase Review with Attached Photo', card));
+  return wrap;
+}
+
+function renderPendingReviewCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Delivered Purchase Awaiting Customer Review & Coin Bonus'));
+
+  const samplePending = {
+    order_item_id: 'MOCK-OI-1',
+    product_ref: 'PRD-9K1L4XC6',
+    product_title_en: 'Authentic Handloom Tant Saree — Gold Zari Border',
+    product_title_bn: 'হাতে বোনা তাঁতের শাড়ি — জরি পাড়',
+    product_image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500&auto=format&fit=crop&q=80',
+    product_price: '3,200.00',
+    store_name: 'Rahim Handloom & Silks',
+    order_ref: 'ORD-849102',
+    delivered_at: new Date(Date.now() - 2 * 24 * 3600 * 1000).toISOString(),
+    potential_coins: { text_photo: 20, video: 40 },
+  };
+
+  const card = PendingReviewCard({
+    item: samplePending,
+    onWriteReview: (item) => toast.info(`Opening review writer for ${item.product_title_en}`),
+  });
+
+  wrap.append(specimen('Delivered Item Card with +20/+40 Coin Bounty Callout', card));
   return wrap;
 }
 

@@ -4,149 +4,224 @@
  * Implements:
  * 1. Security guarantee certificate layout with verification seal.
  * 2. Live countdown timer with Days : Hours : Minutes breakdown.
- * 3. Serial / IMEI number identifier chip and copy helper.
+ * 3. Serial / IMEI number identifier chip and 1-click copy helper.
  * 4. Bilingual coverage terms viewer.
- * 5. 1-click Claim button and secondary transfer button for eligible categories.
+ * 5. 1-click Claim button, official Certificate viewer, and secondary transfer.
  */
 
 import { t, getLanguage } from '../../services/i18n.js';
-import { Button } from '../ui/Button.js';
-import { Badge } from '../ui/Badge.js';
+import { toast } from '../../services/toast.js';
+import { openCertificateModal } from './CertificateModal.js';
 
 export function WarrantyCard({
   card,
   onClaimClick = null,
   onTransferClick = null,
   onViewClaimsClick = null,
+  onViewCertificateClick = null,
 } = {}) {
   const container = document.createElement('div');
   container.className = 'warranty-card';
   container.dataset.cardId = card.id;
 
   const locale = getLanguage();
-  const title = locale === 'bn' ? (card.product_title_bn || card.title_bn || card.title_snapshot || card.product_title_en || card.title_en) : (card.product_title_en || card.title_en || card.title_snapshot);
-  const terms = locale === 'bn' ? (card.coverage_terms_bn || card.coverage_terms_en) : (card.coverage_terms_en || card.coverage_terms_bn);
+  const title = locale === 'bn'
+    ? (card.product_title_bn || card.title_bn || card.title_snapshot || card.product_title_en || card.title_en || 'Product')
+    : (card.product_title_en || card.title_en || card.title_snapshot || 'Product');
 
-  const isActive = card.is_active !== false;
+  const terms = locale === 'bn'
+    ? (card.coverage_terms_bn || card.coverage_terms_en || t('warranty.standard_coverage_text'))
+    : (card.coverage_terms_en || card.coverage_terms_bn || t('warranty.standard_coverage_text'));
+
+  const isActive = card.is_active !== false && card.status !== 'EXPIRED';
   const isTransferable = Boolean(card.is_transferable);
   const claims = card.claims || [];
   const activeClaim = claims.find((c) => ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'IN_PROGRESS'].includes(c.status));
 
+  const certRef = card.ref || `WAR-${card.serial_number ? card.serial_number.slice(-8) : card.id || '2026-001'}`;
+  const remainingDays = card.remaining_days ?? (card.expires_at ? Math.max(0, Math.floor((new Date(card.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0);
+  const remainingHours = card.remaining_hours ?? (card.expires_at ? Math.max(0, Math.floor(((new Date(card.expires_at).getTime() - Date.now()) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))) : 0);
+  const remainingMinutes = card.remaining_minutes ?? (card.expires_at ? Math.max(0, Math.floor(((new Date(card.expires_at).getTime() - Date.now()) % (1000 * 60 * 60)) / (1000 * 60))) : 0);
+  const isUrgent = isActive && remainingDays < 30;
+
+  // Calculate elapsed progress percentage
+  let progressPercent = card.progress_percent;
+  if (progressPercent === undefined && card.starts_at && card.expires_at) {
+    const totalMs = Math.max(1, new Date(card.expires_at).getTime() - new Date(card.starts_at).getTime());
+    const elapsedMs = Math.min(totalMs, Math.max(0, Date.now() - new Date(card.starts_at).getTime()));
+    progressPercent = Math.min(100, Math.max(0, Math.round((elapsedMs / totalMs) * 100)));
+  }
+  progressPercent = progressPercent || (isActive ? 65 : 100);
+
   container.innerHTML = `
-    <div class="warranty-card__inner ${isActive ? 'warranty-card--active' : 'warranty-card--expired'}">
-      <div class="warranty-card__header">
-        <div class="warranty-card__cert-seal">
-          <span class="warranty-card__shield-icon">🛡️</span>
-          <div>
-            <div class="warranty-card__cert-title">${t('warranty.official_certificate')}</div>
-            <div class="warranty-card__ref text-xs font-mono text-muted">${card.ref}</div>
-          </div>
+    <div class="warranty-card__header">
+      <div class="warranty-card__cert-seal">
+        <div class="warranty-card__shield-icon">🛡️</div>
+        <div>
+          <div class="warranty-card__cert-title">${t('warranty.official_certificate')}</div>
+          <button class="warranty-card__ref-chip copy-ref-btn" type="button" title="${t('common.copy') || 'Copy ID'}">
+            <span>${certRef}</span>
+            <span style="font-size: 9px; opacity: 0.7;">📋</span>
+          </button>
         </div>
-        <div class="warranty-card__status">
-          ${isActive
-            ? `<span class="badge badge--success">${t('warranty.active_coverage')}</span>`
-            : `<span class="badge badge--gray">${t('warranty.coverage_expired')}</span>`}
-          ${isTransferable ? `<span class="badge badge--info text-xs">${t('warranty.transferable')}</span>` : ''}
+      </div>
+      <div class="warranty-card__status-wrap">
+        ${isActive
+          ? `<span class="badge ${isUrgent ? 'badge--warning' : 'badge--success'}" style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: var(--radius-full);">
+              ${isUrgent ? '⚠️ ' + t('warranty.expiring_soon') : '● ' + t('warranty.active_coverage')}
+             </span>`
+          : `<span class="badge badge--gray" style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: var(--radius-full);">${t('warranty.coverage_expired')}</span>`}
+        ${isTransferable ? `<span class="badge badge--info" style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: var(--radius-full);">${t('warranty.transferable')}</span>` : ''}
+      </div>
+    </div>
+
+    <div class="warranty-card__body">
+      <div class="warranty-card__product-row">
+        <div class="warranty-card__thumb-wrap">
+          <img
+            src="${card.product_image || card.image_url || '/placeholder-product.svg'}"
+            alt="${title}"
+            class="warranty-card__thumb"
+            onerror="this.src='/placeholder-product.svg'"
+          />
+        </div>
+        <div class="warranty-card__product-info">
+          <h4 class="warranty-card__product-title" title="${title}">${title}</h4>
+          <div class="warranty-card__supplier-tag">
+            <span>✓</span> ${t('warranty.supplier')}: <strong>${card.supplier_shop_name || card.supplier_name || 'Verified Partner'}</strong>
+          </div>
         </div>
       </div>
 
-      <div class="warranty-card__body">
-        <div class="warranty-card__product-row">
-          <div class="warranty-card__thumb">
-            <img src="${card.product_image || '/placeholder-product.svg'}" alt="${title}" onerror="this.src='/placeholder-product.svg'"/>
+      <!-- Identifier Details Grid -->
+      <div class="warranty-card__meta-grid">
+        <div class="warranty-meta-item">
+          <span class="warranty-meta-item__label">${t('warranty.serial_number')}</span>
+          <div class="warranty-meta-item__val">
+            <span class="serial-text select-all">${card.serial_number || 'N/A'}</span>
+            ${card.serial_number ? `<button class="warranty-meta-item__btn-copy copy-sn-btn" type="button" title="Copy Serial">📋</button>` : ''}
           </div>
-          <div class="warranty-card__product-info">
-            <h4 class="warranty-card__product-title">${title}</h4>
-            <div class="warranty-card__meta-grid">
-              <div class="warranty-meta-item">
-                <span class="text-xs text-muted">${t('warranty.serial_number')}:</span>
-                <span class="font-mono text-xs font-semibold select-all">${card.serial_number || 'N/A'}</span>
-              </div>
-              <div class="warranty-meta-item">
-                <span class="text-xs text-muted">${t('warranty.supplier')}:</span>
-                <span class="text-xs font-medium">${card.supplier_shop_name || card.supplier_name || 'Verified Partner'}</span>
-              </div>
-            </div>
+        </div>
+        <div class="warranty-meta-item">
+          <span class="warranty-meta-item__label">${t('warranty.coverage_months') || 'Duration'}</span>
+          <span class="warranty-meta-item__val" style="font-family: inherit;">
+            ${card.duration_months || card.warranty_months || '12'} ${t('warranty.months') || 'Months'}
+          </span>
+        </div>
+      </div>
+
+      <!-- Live Countdown Timer -->
+      <div class="warranty-countdown ${isUrgent ? 'warranty-countdown--urgent' : (!isActive ? 'warranty-countdown--expired' : '')}">
+        <div class="warranty-countdown__header">
+          <span class="text-muted font-medium">⏱️ ${t('warranty.coverage_time_remaining')}:</span>
+          <span class="warranty-countdown__status ${isActive ? (isUrgent ? 'warranty-countdown__status--urgent' : 'warranty-countdown__status--active') : 'warranty-countdown__status--expired'}">
+            ${isActive
+              ? `${t('warranty.expires_on')}: ${new Date(card.expires_at).toLocaleDateString(locale === 'bn' ? 'bn-BD' : 'en-GB')}`
+              : t('warranty.expired')}
+          </span>
+        </div>
+
+        <div class="warranty-countdown__digits" data-expires="${card.expires_at}">
+          <div class="countdown-slot">
+            <span class="countdown-val" data-unit="days">${String(remainingDays).padStart(2, '0')}</span>
+            <span class="countdown-label">${t('warranty.days')}</span>
+          </div>
+          <span class="countdown-sep">:</span>
+          <div class="countdown-slot">
+            <span class="countdown-val" data-unit="hours">${String(remainingHours).padStart(2, '0')}</span>
+            <span class="countdown-label">${t('warranty.hours')}</span>
+          </div>
+          <span class="countdown-sep">:</span>
+          <div class="countdown-slot">
+            <span class="countdown-val" data-unit="minutes">${String(remainingMinutes).padStart(2, '0')}</span>
+            <span class="countdown-label">${t('warranty.mins')}</span>
           </div>
         </div>
 
-        <!-- Live Countdown Timer -->
-        <div class="warranty-countdown ${isActive ? '' : 'warranty-countdown--expired'}">
-          <div class="warranty-countdown__header flex justify-between items-center text-xs">
-            <span class="text-muted font-medium">${t('warranty.coverage_time_remaining')}:</span>
-            <span class="font-medium ${isActive ? 'text-success' : 'text-danger'}">
-              ${isActive ? `${t('warranty.expires_on')}: ${new Date(card.expires_at).toLocaleDateString(locale === 'bn' ? 'bn-BD' : 'en-GB')}` : t('warranty.expired')}
-            </span>
-          </div>
-          <div class="warranty-countdown__digits" data-expires="${card.expires_at}">
-            <div class="countdown-slot">
-              <span class="countdown-val" data-unit="days">${String(card.remaining_days || 0).padStart(2, '0')}</span>
-              <span class="countdown-label">${t('warranty.days')}</span>
-            </div>
-            <span class="countdown-sep">:</span>
-            <div class="countdown-slot">
-              <span class="countdown-val" data-unit="hours">${String(card.remaining_hours || 0).padStart(2, '0')}</span>
-              <span class="countdown-label">${t('warranty.hours')}</span>
-            </div>
-            <span class="countdown-sep">:</span>
-            <div class="countdown-slot">
-              <span class="countdown-val" data-unit="minutes">${String(card.remaining_minutes || 0).padStart(2, '0')}</span>
-              <span class="countdown-label">${t('warranty.mins')}</span>
-            </div>
-          </div>
-          <div class="warranty-progress-bar">
-            <div class="warranty-progress-fill" style="width: ${card.progress_percent || 0}%;"></div>
-          </div>
+        <div class="warranty-progress-bar">
+          <div class="warranty-progress-fill ${isUrgent ? 'warranty-progress-fill--urgent' : (!isActive ? 'warranty-progress-fill--expired' : '')}" style="width: ${progressPercent}%;"></div>
         </div>
+      </div>
 
-        <!-- Expandable Terms Accordion -->
-        <details class="warranty-terms-details">
-          <summary class="text-xs text-secondary font-medium cursor-pointer py-1">
-            📜 ${t('warranty.view_coverage_terms')}
-          </summary>
-          <div class="warranty-terms-box text-xs text-muted p-2 mt-1 bg-surface-2 rounded">
-            ${terms || t('warranty.standard_coverage_text')}
-          </div>
-        </details>
+      <!-- Expandable Terms Accordion -->
+      <details class="warranty-terms-details">
+        <summary>
+          <span>📜 ${t('warranty.view_coverage_terms')}</span>
+        </summary>
+        <div class="warranty-terms-box">
+          ${terms}
+        </div>
+      </details>
 
-        ${activeClaim ? `
-          <div class="warranty-active-claim-banner mt-2 p-2 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs flex justify-between items-center">
-            <div>
-              <span class="font-semibold text-amber-700 dark:text-amber-300">⚠️ ${t('warranty.claim_in_progress')}: #${activeClaim.ref}</span>
-              <div class="text-muted text-xs">${t('warranty.status')}: <strong>${activeClaim.status}</strong></div>
-            </div>
-            <button class="btn btn--sm btn--secondary view-claim-btn" type="button">
-              ${t('warranty.track_claim')}
-            </button>
+      ${activeClaim ? `
+        <div class="warranty-active-claim-banner">
+          <div>
+            <div class="warranty-active-claim-banner__title">⚠️ ${t('warranty.claim_in_progress')}: #${activeClaim.ref || activeClaim.id}</div>
+            <div class="warranty-active-claim-banner__sub">${t('warranty.status')}: <strong>${activeClaim.status}</strong></div>
           </div>
+          <button class="warranty-btn warranty-btn--secondary view-claim-btn" type="button">
+            ${t('warranty.track_claim')}
+          </button>
+        </div>
+      ` : ''}
+    </div>
+
+    <div class="warranty-card__footer">
+      <div class="warranty-card__actions-left">
+        <button class="warranty-btn warranty-btn--secondary view-cert-btn" type="button" title="${t('warranty.view_certificate') || 'View Certificate'}">
+          📄 ${t('warranty.certificate') || 'Certificate'}
+        </button>
+        ${isTransferable && isActive ? `
+          <button class="warranty-btn warranty-btn--ghost transfer-btn" type="button" title="${t('warranty.transfer_tooltip')}">
+            🔄 ${t('warranty.transfer')}
+          </button>
+        ` : ''}
+        ${claims.length > 0 && !activeClaim ? `
+          <button class="warranty-btn warranty-btn--ghost history-btn" type="button">
+            📋 (${claims.length})
+          </button>
         ` : ''}
       </div>
-
-      <div class="warranty-card__footer flex items-center justify-between gap-2 pt-3 border-t border-subtle">
-        <div class="warranty-card__actions-left flex gap-1">
-          ${isTransferable && isActive ? `
-            <button class="btn btn--sm btn--ghost transfer-btn" type="button" title="${t('warranty.transfer_tooltip')}">
-              🔄 ${t('warranty.transfer')}
-            </button>
-          ` : ''}
-          ${claims.length > 0 ? `
-            <button class="btn btn--sm btn--ghost history-btn" type="button">
-              📋 ${t('warranty.claim_history')} (${claims.length})
-            </button>
-          ` : ''}
-        </div>
-        <div class="warranty-card__actions-right">
-          ${isActive && !activeClaim ? `
-            <button class="btn btn--sm btn--primary claim-btn" type="button">
-              🛡️ ${t('warranty.file_claim_btn')}
-            </button>
-          ` : ''}
-        </div>
+      <div class="warranty-card__actions-right">
+        ${isActive && !activeClaim ? `
+          <button class="warranty-btn warranty-btn--primary claim-btn" type="button">
+            🛡️ ${t('warranty.file_claim_btn')}
+          </button>
+        ` : ''}
       </div>
     </div>
   `;
 
   // Attach event handlers
+  const copyRefBtn = container.querySelector('.copy-ref-btn');
+  if (copyRefBtn) {
+    copyRefBtn.addEventListener('click', () => {
+      navigator.clipboard?.writeText(certRef).then(() => {
+        toast.success(t('warranty.ref_copied') || `Certificate ID #${certRef} copied!`);
+      }).catch(() => {});
+    });
+  }
+
+  const copySnBtn = container.querySelector('.copy-sn-btn');
+  if (copySnBtn && card.serial_number) {
+    copySnBtn.addEventListener('click', () => {
+      navigator.clipboard?.writeText(card.serial_number).then(() => {
+        toast.success(t('warranty.serial_copied') || `Serial #${card.serial_number} copied!`);
+      }).catch(() => {});
+    });
+  }
+
+  const viewCertBtn = container.querySelector('.view-cert-btn');
+  if (viewCertBtn) {
+    viewCertBtn.addEventListener('click', () => {
+      if (onViewCertificateClick) {
+        onViewCertificateClick(card);
+      } else {
+        openCertificateModal({ card });
+      }
+    });
+  }
+
   const claimBtn = container.querySelector('.claim-btn');
   if (claimBtn && onClaimClick) {
     claimBtn.addEventListener('click', () => onClaimClick(card));
@@ -167,8 +242,8 @@ export function WarrantyCard({
     historyBtn.addEventListener('click', () => onViewClaimsClick(card));
   }
 
-  // Live timer interval for remaining time countdown
-  if (isActive) {
+  // Live timer interval
+  if (isActive && card.expires_at) {
     const digitsContainer = container.querySelector('.warranty-countdown__digits');
     const expiresMs = new Date(card.expires_at).getTime();
 
@@ -189,7 +264,7 @@ export function WarrantyCard({
       if (dayEl) dayEl.textContent = String(days).padStart(2, '0');
       if (hrEl) hrEl.textContent = String(hours).padStart(2, '0');
       if (minEl) minEl.textContent = String(minutes).padStart(2, '0');
-    }, 30000); // update every 30s
+    }, 30000);
   }
 
   return container;

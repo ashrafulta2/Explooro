@@ -48,4 +48,46 @@ export const customerApi = {
   async checkPriceDrops() {
     return api.post('/customer/wishlist/check-price-drops');
   },
+
+  /**
+   * Fetches customer's submitted reviews and review KPIs.
+   */
+  async getReviews(params = {}) {
+    const searchParams = new URLSearchParams();
+    if (params.sort) searchParams.set('sort', params.sort);
+    if (params.rating) searchParams.set('rating', params.rating);
+    if (params.q) searchParams.set('q', params.q);
+    if (params.has_media) searchParams.set('has_media', '1');
+
+    const qs = searchParams.toString();
+    return api.get(`/account/reviews${qs ? `?${qs}` : ''}`);
+  },
+
+  /**
+   * Fetches delivered orders pending review.
+   */
+  async getPendingReviews() {
+    return api.get('/account/reviews/pending');
+  },
+
+  /**
+   * Submits a customer review for a delivered product.
+   */
+  async submitReview(payload) {
+    return api.post('/account/reviews', payload);
+  },
+
+  /**
+   * Updates an existing customer review.
+   */
+  async updateReview(id, payload) {
+    return api.put(`/account/reviews/${id}`, payload);
+  },
+
+  /**
+   * Deletes a customer review.
+   */
+  async deleteReview(id) {
+    return api.delete(`/account/reviews/${id}`);
+  },
 };

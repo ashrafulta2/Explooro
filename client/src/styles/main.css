@@ -60,5 +60,12 @@
 @import './components/admin-dashboard.css';
 @import './components/system-health.css';
 @import './components/admin-staff.css';
+/* Prompt 10.4: Digital Warranties & Protection Cards Hub */
+@import './components/customer-warranties.css';
 /* Catalog & Product Governance */
 @import './components/catalog-products.css';
+/* Prompt 11.3: Followed Stores Feed & Social Commerce Hub */
+@import './components/customer-following.css';
+/* Customer Reviews & UGC Video Hub */
+@import './components/customer-reviews.css';
+

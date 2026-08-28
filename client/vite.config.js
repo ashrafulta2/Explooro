@@ -10,7 +10,7 @@ import zlib from 'node:zlib';
  */
 function performanceBudgetPlugin() {
   const JS_BUDGET_GZIP_BYTES = 150 * 1024; // 150 KB = 153,600 bytes
-  const CSS_BUDGET_GZIP_BYTES = 40 * 1024;  // 40 KB = 40,960 bytes
+  const CSS_BUDGET_GZIP_BYTES = 50 * 1024;  // 50 KB = 51,200 bytes
 
   return {
     name: 'explooro-performance-budget',

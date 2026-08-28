@@ -335,7 +335,7 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
 
     const mockDb = createMockDb({
       queryHandler: async (sql, params) => {
-        if (sql.includes('FROM store_follows sf') && sql.includes('JOIN virtual_stores vs')) {
+        if (sql.includes('sf.created_at AS followed_at')) {
           return {
             rows: [
               {
@@ -345,13 +345,19 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
                 shop_name: 'Heritage Crafts BD',
                 bio: 'Handcrafted items',
                 total_products: 24,
-                saler_name_en: 'Farhana',
+                followers_count: 91,
+                rating: '4.6',
+                rating_count: 37,
+                is_verified: true,
+                has_physical_shop: true,
+                physical_open_status: 'OPEN',
+                category_path: 'handicrafts.brass.teaware',
                 followed_at: new Date().toISOString(),
               },
             ],
           };
         }
-        if (sql.includes('FROM store_follows sf') && sql.includes('JOIN saler_store_items ssi')) {
+        if (sql.includes('ssi.added_at AS dropped_at')) {
           return {
             rows: [
               {
@@ -360,9 +366,16 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
                 store_slug: 'heritage-crafts',
                 shop_name: 'Heritage Crafts BD',
                 product_id: 88,
+                product_slug: 'brass-tea-set',
                 title_en: 'Brass Tea Set',
                 title_bn: 'পিতলের চা সেট',
-                retail_price: '1800.00',
+                default_retail_price: '2000.00',
+                custom_retail_price: '1800.00',
+                stock_qty: 6,
+                category_path: 'handicrafts.brass.teaware',
+                category_slug: 'teaware',
+                category_name_en: 'Brass Teaware',
+                category_name_bn: 'পিতলের চা-সামগ্রী',
                 image_key: 'brass.jpg',
                 dropped_at: new Date().toISOString(),
               },
@@ -374,11 +387,13 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
             rows: [
               {
                 id: 7,
+                ref: 'LS-07',
                 title: 'Live Handloom Showcase',
                 status: 'LIVE',
                 viewer_count: 85,
                 store_slug: 'heritage-crafts',
                 shop_name: 'Heritage Crafts BD',
+                category_path: 'handicrafts.brass.teaware',
               },
             ],
           };
@@ -389,7 +404,8 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
               {
                 id: 12,
                 slug: 'brass-crafting-art',
-                title: 'Making Brass Crafts',
+                title_en: 'Making Brass Crafts',
+                title_bn: 'পিতলের কারুকাজ',
                 cover_image_url: '/brass.jpg',
                 view_count: 320,
                 store_slug: 'heritage-crafts',
@@ -397,6 +413,34 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
               },
             ],
           };
+        }
+        // Suggested stores — computed for EVERY customer, not only those following nobody.
+        if (sql.includes('FROM virtual_stores vs') && sql.includes('NOT (vs.id = ANY')) {
+          return {
+            rows: [
+              {
+                id: 21,
+                ref: 'VS-021',
+                slug: 'dhaka-gadgets',
+                shop_name: 'Dhaka Gadgets',
+                bio: 'Smart accessories',
+                total_products: 40,
+                followers_count: 400,
+                rating: null,
+                rating_count: 0,
+                is_verified: false,
+                has_physical_shop: false,
+                physical_open_status: null,
+                category_path: 'electronics.audio',
+              },
+            ],
+          };
+        }
+        if (sql.includes('SELECT id, slug, shop_name FROM virtual_stores')) {
+          return { rows: [{ id: 99, slug: 'heritage-crafts', shop_name: 'Heritage Crafts BD' }] };
+        }
+        if (sql.includes('COUNT(*)::int AS followers_count')) {
+          return { rows: [{ followers_count: 92 }] };
         }
         if (sql.includes('SELECT id FROM store_follows WHERE user_id = $1 AND store_id = $2')) {
           const exists = followedDb.includes(Number(params[1]));
@@ -421,10 +465,46 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
     assert.equal(feed.live_streams.length, 1);
     assert.equal(feed.stories.length, 1);
 
-    // 2. Toggle Follow Store
+    // 2. Suggestions are returned even though the customer already follows a store.
+    // Regression guard: this used to be computed ONLY on the zero-follow path, so the client's
+    // "Discover Sellers" tab and its header CTA were permanently empty for every real follower.
+    assert.equal(feed.suggested_stores.length, 1, 'suggestions must not be gated on having zero follows');
+    assert.equal(feed.suggested_stores[0].is_following, false);
+
+    // 3. Every card field the client renders is sourced here, so it never has to invent one.
+    const store = feed.followed_stores[0];
+    assert.equal(store.category, 'handicrafts', 'category root drives the filter chips');
+    assert.equal(store.rating, 4.6);
+    assert.equal(store.rating_count, 37);
+    assert.equal(store.followers_count, 91);
+    assert.equal(store.is_verified, true);
+    assert.equal(store.open_status, 'OPEN');
+
+    // 4. A store with no reviews reports null — never a default the UI would print as real.
+    const unrated = feed.suggested_stores[0];
+    assert.equal(unrated.rating, null, 'an unrated store must not carry a fabricated score');
+    assert.equal(unrated.rating_count, 0);
+    assert.equal(unrated.is_verified, false);
+
+    // 5. The markdown is derived from the two real prices, not sent as a pre-baked label.
+    const drop = feed.product_drops[0];
+    assert.equal(drop.retail_price, '1800.00');
+    assert.equal(drop.original_price, '2000.00');
+    assert.equal(drop.discount_pct, 10);
+    assert.equal(drop.category, 'handicrafts');
+    assert.equal(drop.stock_status, 'IN_STOCK');
+    assert.ok(drop.dropped_at, 'the client formats relative time from this timestamp');
+
+    // 6. Stories carry both languages.
+    assert.equal(feed.stories[0].title_en, 'Making Brass Crafts');
+    assert.equal(feed.stories[0].title_bn, 'পিতলের কারুকাজ');
+
+    // 7. Toggle Follow Store
     const followRes = await customerService.toggleFollowStore(mockDb, { userId: 42, storeId: 99 });
     assert.equal(followRes.is_following, true);
     assert.equal(followRes.store_id, 99);
+    assert.equal(followRes.shop_name, 'Heritage Crafts BD', 'the toast needs the store name');
+    assert.equal(followRes.followers_count, 92);
   });
 
   // ---------------------------------------------------------------------------
@@ -461,8 +541,30 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
         if (sql.includes('FROM store_follows sf') && sql.includes('JOIN virtual_stores vs')) {
           return { rows: [] }; // 0 follows
         }
-        if (sql.includes('FROM virtual_stores vs WHERE vs.deleted_at IS NULL')) {
-          return { rows: [{ id: 1, ref: 'VS-01', slug: 'popular-shop', shop_name: 'Popular Shop', total_products: 10 }] };
+        if (sql.includes('FROM virtual_stores vs') && sql.includes('vs.deleted_at IS NULL')) {
+          return {
+            rows: [
+              {
+                id: 1,
+                ref: 'VS-01',
+                slug: 'popular-shop',
+                shop_name: 'Popular Shop',
+                total_products: 10,
+                followers_count: 12,
+                rating: '4.5',
+                rating_count: 8,
+                is_verified: true,
+                category_path: 'handicrafts.brass',
+              },
+            ],
+          };
+        }
+        // toggleFollowStore resolves the store first so the response can name it.
+        if (sql.includes('SELECT id, slug, shop_name FROM virtual_stores')) {
+          return { rows: [{ id: 1, slug: 'popular-shop', shop_name: 'Popular Shop' }] };
+        }
+        if (sql.includes('COUNT(*)::int AS followers_count')) {
+          return { rows: [{ followers_count: 13 }] };
         }
         return { rows: [] };
       },
@@ -505,6 +607,9 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
     const resFollow = await app.inject({ method: 'POST', url: '/api/v1/customer/follow/1' });
     assert.equal(resFollow.statusCode, 200);
     assert.equal(resFollow.json().success, true);
+    // The shop name travels back so the client can name the store in its confirmation toast.
+    assert.equal(resFollow.json().data.shop_name, 'Popular Shop');
+    assert.equal(resFollow.json().data.is_following, true);
 
     await app.close();
   });

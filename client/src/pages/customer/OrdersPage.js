@@ -321,6 +321,15 @@ function renderSingleOrderCard(order, nav) {
   });
   leftActions.append(invoiceBtn);
 
+  if (status === 'DELIVERED') {
+    const reviewBtn = document.createElement('button');
+    reviewBtn.type = 'button';
+    reviewBtn.className = 'order-action-btn order-action-btn--ghost';
+    reviewBtn.innerHTML = `<span class="order-action-btn__icon">⭐</span><span>${getLanguage() === 'bn' ? 'রিভিউ দিন' : 'Review'}</span>`;
+    reviewBtn.addEventListener('click', () => nav(`/account/reviews?order_ref=${order.ref}`));
+    leftActions.append(reviewBtn);
+  }
+
   if (order.is_return_eligible) {
     const returnBtn = document.createElement('button');
     returnBtn.type = 'button';

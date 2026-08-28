@@ -363,134 +363,144 @@ export async function getCustomerOrders(db, userId, { status = 'ALL', limit = 20
 
 /**
  * Returns activity feed from stores followed by the customer.
+ *
+ * WHY: every field the client renders must be sourced here. The client used to fall back to
+ * invented placeholders (a hardcoded 4.8 rating, a "500+" follower count) when a key was absent,
+ * which showed identical fake trust signals on every store. Ratings, follower counts, verification
+ * and category are all derivable from real tables, so they are computed here and the client renders
+ * only what it is actually given.
  */
+const FEED_LIMITS = { drops: 12, live: 6, stories: 6, suggested: 6 };
+
+/**
+ * Aggregate columns shared by followed and suggested store cards.
+ * Correlated subqueries keep this readable and are index-backed (idx_store_follows_store,
+ * idx_saler_items_store, idx_products_category).
+ */
+const STORE_STATS_SQL = `
+  (SELECT COUNT(*) FROM store_follows f2 WHERE f2.store_id = vs.id) AS followers_count,
+  (SELECT COUNT(*) FROM saler_store_items ssi2
+     WHERE ssi2.store_id = vs.id AND ssi2.is_active = true) AS total_products,
+  (SELECT ROUND(AVG(p2.rating_avg), 1) FROM saler_store_items ssi3
+     JOIN products p2 ON p2.id = ssi3.product_id
+     WHERE ssi3.store_id = vs.id AND p2.rating_avg IS NOT NULL) AS rating,
+  (SELECT COALESCE(SUM(p3.rating_count), 0) FROM saler_store_items ssi4
+     JOIN products p3 ON p3.id = ssi4.product_id
+     WHERE ssi4.store_id = vs.id) AS rating_count,
+  (SELECT EXISTS (SELECT 1 FROM kyc_verifications k
+     WHERE k.user_id = vs.saler_id AND k.status = 'VERIFIED')) AS is_verified,
+  (SELECT c2.path FROM saler_store_items ssi5
+     JOIN products p4 ON p4.id = ssi5.product_id
+     JOIN categories c2 ON c2.id = p4.category_id
+     WHERE ssi5.store_id = vs.id AND ssi5.is_active = true
+     GROUP BY c2.path ORDER BY COUNT(*) DESC, c2.path ASC LIMIT 1) AS category_path
+`;
+
+/** Root segment of a category ltree path ('fashion.mens.shirts' -> 'fashion'). */
+function categoryRoot(path) {
+  if (!path || typeof path !== 'string') return null;
+  return path.split('.')[0] || null;
+}
+
+function mapStoreRow(row, { isFollowing }) {
+  const ratingCount = Number(row.rating_count || 0);
+  return {
+    id: Number(row.id),
+    ref: row.ref,
+    slug: row.slug,
+    shop_name: row.shop_name,
+    bio: row.bio,
+    total_products: Number(row.total_products || 0),
+    followers_count: Number(row.followers_count || 0),
+    // WHY: null (not a default) when nothing has been rated — the client hides the metric
+    // rather than printing a fabricated score.
+    rating: ratingCount > 0 && row.rating != null ? Number(row.rating) : null,
+    rating_count: ratingCount,
+    is_verified: row.is_verified === true,
+    has_physical_shop: row.has_physical_shop === true,
+    open_status: row.physical_open_status || null,
+    category: categoryRoot(row.category_path),
+    category_path: row.category_path || null,
+    is_following: isFollowing,
+    followed_at: row.followed_at || null,
+  };
+}
+
 export async function getFollowingFeed(db, userId) {
   const parsedUserId = Number(userId);
 
   // 1. Followed Stores List
   const { rows: storeRows } = await db.query(
-    `SELECT vs.id, vs.ref, vs.slug, vs.shop_name, vs.bio, vs.is_active as is_published,
-            COALESCE(up.display_name, up.full_name) as saler_name_en,
-            COALESCE(up.display_name, up.full_name) as saler_name_bn,
-            (SELECT COUNT(*) FROM saler_store_items WHERE saler_id = vs.saler_id) as total_products,
-            sf.created_at as followed_at
+    `SELECT vs.id, vs.ref, vs.slug, vs.shop_name, vs.bio, vs.has_physical_shop,
+            vs.physical_open_status, sf.created_at AS followed_at,
+            ${STORE_STATS_SQL}
      FROM store_follows sf
      JOIN virtual_stores vs ON vs.id = sf.store_id
-     JOIN users u ON u.id = vs.saler_id
-     LEFT JOIN user_profiles up ON up.user_id = u.id
      WHERE sf.user_id = $1 AND vs.deleted_at IS NULL
      ORDER BY sf.created_at DESC`,
     [parsedUserId]
   );
 
-  const followedStoreIds = storeRows.map((s) => s.id);
+  const followedStores = storeRows.map((s) => mapStoreRow(s, { isFollowing: true }));
+  const followedStoreIds = followedStores.map((s) => s.id);
+
+  // 2. Suggested stores.
+  // WHY: this used to be computed only when the customer followed zero stores, so the
+  // "Discover Sellers" tab and its header CTA were permanently empty for anyone who already
+  // followed at least one store. It is now always populated, excluding stores already followed.
+  const { rows: suggestedRows } = await db.query(
+    `SELECT vs.id, vs.ref, vs.slug, vs.shop_name, vs.bio, vs.has_physical_shop,
+            vs.physical_open_status, NULL::timestamptz AS followed_at,
+            ${STORE_STATS_SQL}
+     FROM virtual_stores vs
+     WHERE vs.deleted_at IS NULL
+       AND vs.is_active = true
+       AND NOT (vs.id = ANY ($1::bigint[]))
+     ORDER BY followers_count DESC, vs.created_at DESC
+     LIMIT $2`,
+    [followedStoreIds, FEED_LIMITS.suggested]
+  );
+  const suggestedStores = suggestedRows.map((s) => mapStoreRow(s, { isFollowing: false }));
 
   if (followedStoreIds.length === 0) {
-    // If user follows 0 stores, provide suggested popular stores
-    const { rows: suggestedRows } = await db.query(
-      `SELECT vs.id, vs.ref, vs.slug, vs.shop_name, vs.bio,
-              (SELECT COUNT(*) FROM saler_store_items WHERE saler_id = vs.saler_id) as total_products
-       FROM virtual_stores vs
-       WHERE vs.deleted_at IS NULL AND vs.is_active = true
-       ORDER BY vs.created_at DESC
-       LIMIT 4`
-    );
-
     return {
       followed_stores: [],
-      suggested_stores: suggestedRows.map((s) => ({
-        id: Number(s.id),
-        slug: s.slug,
-        shop_name: s.shop_name,
-        bio: s.bio,
-        total_products: Number(s.total_products || 0),
-        is_following: false,
-      })),
+      suggested_stores: suggestedStores,
       product_drops: [],
       live_streams: [],
       stories: [],
+      limits: FEED_LIMITS,
     };
   }
 
-  // 2. Product Drops from Followed Stores (Recently curated items)
+  // 3. Product Drops from Followed Stores (recently curated items).
+  // ssi.custom_retail_price is the saler's own price; when it undercuts the supplier's
+  // default_retail_price the difference is a genuine markdown, so both are returned and the
+  // client renders a strike-through only when a real discount exists.
   const { rows: dropRows } = await db.query(
-    `SELECT ssi.id as item_id, ssi.added_at as dropped_at,
-            vs.id as store_id, vs.slug as store_slug, vs.shop_name,
-            p.id as product_id, p.ref as product_ref, p.slug as product_slug,
-            p.title_en, p.title_bn, p.default_retail_price as retail_price,
-            ${PRIMARY_IMAGE_SQL} as image_key
+    `SELECT ssi.id AS item_id, ssi.added_at AS dropped_at, ssi.custom_retail_price,
+            vs.id AS store_id, vs.slug AS store_slug, vs.shop_name,
+            p.id AS product_id, p.ref AS product_ref, p.slug AS product_slug,
+            p.title_en, p.title_bn, p.default_retail_price, p.stock_qty,
+            c.path AS category_path, c.slug AS category_slug,
+            c.name_en AS category_name_en, c.name_bn AS category_name_bn,
+            ${PRIMARY_IMAGE_SQL} AS image_key
      FROM store_follows sf
      JOIN virtual_stores vs ON vs.id = sf.store_id
-     JOIN saler_store_items ssi ON ssi.saler_id = vs.saler_id
+     JOIN saler_store_items ssi ON ssi.store_id = vs.id AND ssi.is_active = true
      JOIN products p ON p.id = ssi.product_id
-     WHERE sf.user_id = $1 AND p.status = 'ACTIVE'
+     JOIN categories c ON c.id = p.category_id
+     WHERE sf.user_id = $1 AND p.status = 'ACTIVE' AND p.deleted_at IS NULL
      ORDER BY ssi.added_at DESC
-     LIMIT 12`,
-    [parsedUserId]
+     LIMIT $2`,
+    [parsedUserId, FEED_LIMITS.drops]
   );
 
-  // 3. Active & Scheduled Live Streams from Followed Merchants
-  let liveStreams = [];
-  try {
-    const { rows: liveRows } = await db.query(
-      `SELECT ls.id, ls.title, ls.status, ls.viewer_count, ls.scheduled_for as scheduled_at,
-              vs.slug as store_slug, vs.shop_name
-       FROM store_follows sf
-       JOIN virtual_stores vs ON vs.id = sf.store_id
-       JOIN live_streams ls ON ls.host_id = vs.saler_id
-       WHERE sf.user_id = $1 AND ls.status IN ('LIVE', 'SCHEDULED')
-       ORDER BY ls.status DESC, ls.created_at DESC
-       LIMIT 6`,
-      [parsedUserId]
-    );
-    liveStreams = liveRows.map((l) => ({
-      id: Number(l.id),
-      title: l.title,
-      status: l.status,
-      viewer_count: Number(l.viewer_count || 0),
-      store_slug: l.store_slug,
-      shop_name: l.shop_name,
-      scheduled_at: l.scheduled_at,
-    }));
-  } catch {}
-
-  // 4. Stories from Followed Merchants
-  let stories = [];
-  try {
-    const { rows: storyRows } = await db.query(
-      `SELECT st.id, st.slug, st.title_en as title, st.title_bn, st.cover_image_url, st.view_count, st.created_at,
-              vs.slug as store_slug, vs.shop_name
-       FROM store_follows sf
-       JOIN virtual_stores vs ON vs.id = sf.store_id
-       JOIN stories st ON st.author_id = vs.saler_id
-       WHERE sf.user_id = $1 AND st.status = 'PUBLISHED'
-       ORDER BY st.created_at DESC
-       LIMIT 6`,
-      [parsedUserId]
-    );
-    stories = storyRows.map((s) => ({
-      id: Number(s.id),
-      slug: s.slug,
-      title: s.title,
-      cover_image_url: s.cover_image_url || '/placeholder-product.svg',
-      view_count: Number(s.view_count || 0),
-      store_slug: s.store_slug,
-      shop_name: s.shop_name,
-      created_at: s.created_at,
-    }));
-  } catch {}
-
-  return {
-    followed_stores: storeRows.map((s) => ({
-      id: Number(s.id),
-      slug: s.slug,
-      shop_name: s.shop_name,
-      bio: s.bio,
-      total_products: Number(s.total_products || 0),
-      is_following: true,
-      followed_at: s.followed_at,
-    })),
-    product_drops: dropRows.map((d) => ({
+  const productDrops = dropRows.map((d) => {
+    const listPrice = Number(d.default_retail_price);
+    const salePrice = d.custom_retail_price != null ? Number(d.custom_retail_price) : listPrice;
+    const hasMarkdown = salePrice < listPrice && listPrice > 0;
+    return {
       item_id: Number(d.item_id),
       store_id: Number(d.store_id),
       store_slug: d.store_slug,
@@ -500,12 +510,100 @@ export async function getFollowingFeed(db, userId) {
       slug: d.product_slug,
       title_en: d.title_en,
       title_bn: d.title_bn,
-      retail_price: Number(d.retail_price).toFixed(2),
-      image_url: d.image_key ? `/media/${d.image_key}` : '/placeholder-product.svg',
+      retail_price: salePrice.toFixed(2),
+      original_price: hasMarkdown ? listPrice.toFixed(2) : null,
+      discount_pct: hasMarkdown ? Math.round(((listPrice - salePrice) / listPrice) * 100) : null,
+      category: categoryRoot(d.category_path),
+      category_path: d.category_path,
+      category_slug: d.category_slug,
+      category_name_en: d.category_name_en,
+      category_name_bn: d.category_name_bn,
+      stock_status: Number(d.stock_qty || 0) > 0 ? 'IN_STOCK' : 'OUT_OF_STOCK',
+      image_url: d.image_key ? `/media/${d.image_key}` : null,
       dropped_at: d.dropped_at,
-    })),
+    };
+  });
+
+  // 4. Active & Scheduled Live Streams from Followed Merchants.
+  // WHY ls.store_id first: host_id only identifies the saler, so a saler running two storefronts
+  // used to surface the same stream under both. store_id is the precise link; the host_id branch
+  // remains as a fallback for streams created before store_id was populated.
+  let liveStreams = [];
+  try {
+    const { rows: liveRows } = await db.query(
+      `SELECT DISTINCT ON (ls.id)
+              ls.id, ls.ref, ls.title, ls.description, ls.status, ls.viewer_count,
+              ls.scheduled_for AS scheduled_at, ls.started_at, ls.cover_image,
+              vs.slug AS store_slug, vs.shop_name,
+              (SELECT c3.path FROM saler_store_items ssi6
+                 JOIN products p5 ON p5.id = ssi6.product_id
+                 JOIN categories c3 ON c3.id = p5.category_id
+                 WHERE ssi6.store_id = vs.id
+                 GROUP BY c3.path ORDER BY COUNT(*) DESC, c3.path ASC LIMIT 1) AS category_path
+       FROM store_follows sf
+       JOIN virtual_stores vs ON vs.id = sf.store_id
+       JOIN live_streams ls ON (ls.store_id = vs.id OR (ls.store_id IS NULL AND ls.host_id = vs.saler_id))
+       WHERE sf.user_id = $1 AND ls.status IN ('LIVE', 'SCHEDULED')
+       ORDER BY ls.id, ls.status DESC, ls.created_at DESC
+       LIMIT $2`,
+      [parsedUserId, FEED_LIMITS.live]
+    );
+    liveStreams = liveRows
+      .map((l) => ({
+        id: Number(l.id),
+        ref: l.ref,
+        title: l.title,
+        description: l.description,
+        status: l.status,
+        viewer_count: Number(l.viewer_count || 0),
+        store_slug: l.store_slug,
+        shop_name: l.shop_name,
+        cover_image: l.cover_image || null,
+        category: categoryRoot(l.category_path),
+        scheduled_at: l.scheduled_at,
+        started_at: l.started_at,
+      }))
+      // LIVE first, then the soonest scheduled broadcast.
+      .sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'LIVE' ? -1 : 1;
+        return new Date(a.scheduled_at || 0) - new Date(b.scheduled_at || 0);
+      });
+  } catch {}
+
+  // 5. Stories from Followed Merchants
+  let stories = [];
+  try {
+    const { rows: storyRows } = await db.query(
+      `SELECT st.id, st.slug, st.title_en, st.title_bn, st.cover_image_url, st.view_count,
+              st.published_at, st.created_at, vs.slug AS store_slug, vs.shop_name
+       FROM store_follows sf
+       JOIN virtual_stores vs ON vs.id = sf.store_id
+       JOIN stories st ON st.author_id = vs.saler_id
+       WHERE sf.user_id = $1 AND st.status = 'PUBLISHED'
+       ORDER BY COALESCE(st.published_at, st.created_at) DESC
+       LIMIT $2`,
+      [parsedUserId, FEED_LIMITS.stories]
+    );
+    stories = storyRows.map((s) => ({
+      id: Number(s.id),
+      slug: s.slug,
+      title_en: s.title_en,
+      title_bn: s.title_bn,
+      cover_image_url: s.cover_image_url || null,
+      view_count: Number(s.view_count || 0),
+      store_slug: s.store_slug,
+      shop_name: s.shop_name,
+      created_at: s.published_at || s.created_at,
+    }));
+  } catch {}
+
+  return {
+    followed_stores: followedStores,
+    suggested_stores: suggestedStores,
+    product_drops: productDrops,
     live_streams: liveStreams,
-    stories: stories,
+    stories,
+    limits: FEED_LIMITS,
   };
 }
 
@@ -520,6 +618,17 @@ export async function toggleFollowStore(db, { userId, storeId }) {
     throw new AppError('VALIDATION_ERROR', 'User ID and Store ID are required.');
   }
 
+  // WHY: the shop name travels back with the result so the client can name the store in its
+  // confirmation toast ("Unfollowed Priyo Collection") instead of a generic "Action completed".
+  const { rows: storeRows } = await db.query(
+    `SELECT id, slug, shop_name FROM virtual_stores WHERE id = $1 AND deleted_at IS NULL`,
+    [parsedStoreId]
+  );
+  const store = storeRows[0];
+  if (!store) {
+    throw new AppError('NOT_FOUND', 'Store not found.');
+  }
+
   const { rows: existing } = await db.query(
     `SELECT id FROM store_follows WHERE user_id = $1 AND store_id = $2`,
     [parsedUserId, parsedStoreId]
@@ -527,17 +636,28 @@ export async function toggleFollowStore(db, { userId, storeId }) {
 
   if (existing.length > 0) {
     await db.query(`DELETE FROM store_follows WHERE id = $1`, [existing[0].id]);
-    return { is_following: false, store_id: parsedStoreId };
+  } else {
+    await db.query(
+      `INSERT INTO store_follows (user_id, store_id, created_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (user_id, store_id) DO NOTHING`,
+      [parsedUserId, parsedStoreId]
+    );
   }
 
-  await db.query(
-    `INSERT INTO store_follows (user_id, store_id, created_at)
-     VALUES ($1, $2, NOW())
-     ON CONFLICT (user_id, store_id) DO NOTHING`,
-    [parsedUserId, parsedStoreId]
+  const isFollowing = existing.length === 0;
+  const { rows: countRows } = await db.query(
+    `SELECT COUNT(*)::int AS followers_count FROM store_follows WHERE store_id = $1`,
+    [parsedStoreId]
   );
 
-  return { is_following: true, store_id: parsedStoreId };
+  return {
+    is_following: isFollowing,
+    store_id: parsedStoreId,
+    store_slug: store.slug,
+    shop_name: store.shop_name,
+    followers_count: Number(countRows[0]?.followers_count || 0),
+  };
 }
 
 /**

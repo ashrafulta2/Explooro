@@ -7,6 +7,58 @@
  */
 
 export const THEME_PRESETS = {
+  pure_gold: {
+    key: 'pure_gold',
+    name_en: 'Explooro Gold',
+    name_bn: 'এক্সপ্লোরো গোল্ড',
+    description_en: 'Royal luxury identity featuring pure gold accents (#ffbc00) paired with solid obsidian black.',
+    description_bn: 'বিলাসবহুল রয়্যাল লুক — খাঁটি গোল্ড অ্যাকসেন্ট (#ffbc00) এবং অবসিডিয়ান ব্ল্যাক কম্বিনেশন।',
+    preview_swatch: '#ffbc00',
+    tokens: {
+      navbar: {
+        bg: '#0f172a',
+        text: '#ffffff',
+        border: '#1e293b',
+        search_bg: '#ffffff',
+      },
+      surfaces: {
+        page: '#f8fafc',
+        card: '#ffffff',
+        subtle: '#f1f5f9',
+        border: '#e2e8f0',
+      },
+      brand: {
+        primary: '#d99b00',
+        hover: '#b47800',
+        contrast: '#0f172a',
+        secondary_bg: '#fff8e6',
+        secondary_text: '#0f172a',
+      },
+      typography: {
+        primary: '#0f172a',
+        secondary: '#475569',
+        muted: '#64748b',
+        inverse: '#ffffff',
+      },
+      badges: {
+        success_bg: '#e6f4ea',
+        success_text: '#137333',
+        warning_bg: '#fef7e0',
+        warning_text: '#8a4b00',
+        danger_bg: '#fce8e6',
+        danger_text: '#c5221f',
+        info_bg: '#e8f0fe',
+        info_text: '#174ea6',
+      },
+      footer: {
+        bg: '#0f172a',
+        text: '#ffffff',
+        muted: '#94a3b8',
+        border: '#1e293b',
+      },
+    },
+  },
+
   // WHY the key is still `default` when the product no longer ships pink: services/themePalette.js
   // uses this exact object as its "no theme applied" sentinel, and the key is what a stored legacy
   // theme_preset row names. The SHIPPED default is DEFAULT_MASTER_PRESET in config/master-themes.js
@@ -59,58 +111,6 @@ export const THEME_PRESETS = {
         text: '#ffffff',
         muted: '#a6acb1',
         border: '#2c343a',
-      },
-    },
-  },
-
-  pure_gold: {
-    key: 'pure_gold',
-    name_en: 'Pure Gold & Black',
-    name_bn: 'পিওর গোল্ড ও ব্ল্যাক',
-    description_en: 'Royal luxury identity featuring pure gold accents (#ffbc00) paired with solid obsidian black.',
-    description_bn: 'বিলাসবহুল রয়্যাল লুক — খাঁটি গোল্ড অ্যাকসেন্ট (#ffbc00) এবং অবসিডিয়ান ব্ল্যাক কম্বিনেশন।',
-    preview_swatch: '#ffbc00',
-    tokens: {
-      navbar: {
-        bg: '#0f172a',
-        text: '#ffffff',
-        border: '#1e293b',
-        search_bg: '#ffffff',
-      },
-      surfaces: {
-        page: '#f8fafc',
-        card: '#ffffff',
-        subtle: '#f1f5f9',
-        border: '#e2e8f0',
-      },
-      brand: {
-        primary: '#d99b00',
-        hover: '#b47800',
-        contrast: '#0f172a',
-        secondary_bg: '#fff8e6',
-        secondary_text: '#0f172a',
-      },
-      typography: {
-        primary: '#0f172a',
-        secondary: '#475569',
-        muted: '#64748b',
-        inverse: '#ffffff',
-      },
-      badges: {
-        success_bg: '#e6f4ea',
-        success_text: '#137333',
-        warning_bg: '#fef7e0',
-        warning_text: '#8a4b00',
-        danger_bg: '#fce8e6',
-        danger_text: '#c5221f',
-        info_bg: '#e8f0fe',
-        info_text: '#174ea6',
-      },
-      footer: {
-        bg: '#0f172a',
-        text: '#ffffff',
-        muted: '#94a3b8',
-        border: '#1e293b',
       },
     },
   },

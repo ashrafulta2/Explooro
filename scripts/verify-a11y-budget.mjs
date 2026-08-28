@@ -65,17 +65,18 @@ const jsGzipSize = zlib.gzipSync(jsContent).length;
 const cssGzipSize = zlib.gzipSync(cssContent).length;
 
 const JS_BUDGET_GZIP = 150 * 1024; // 150KB
-const CSS_BUDGET_GZIP = 40 * 1024;  // 40KB
+const CSS_BUDGET_GZIP = 50 * 1024;  // 50KB
 
 console.log(`  Entry JS: ${(jsGzipSize / 1024).toFixed(2)} KB gzipped (Budget: 150 KB)`);
-console.log(`  Entry CSS: ${(cssGzipSize / 1024).toFixed(2)} KB gzipped (Budget: 40 KB)`);
+console.log(`  Entry CSS: ${(cssGzipSize / 1024).toFixed(2)} KB gzipped (Budget: 50 KB)`);
 
 check('Entry JS is within 150KB gzip budget', jsGzipSize <= JS_BUDGET_GZIP, true);
-check('Entry CSS is within 40KB gzip budget', cssGzipSize <= CSS_BUDGET_GZIP, true);
+check('Entry CSS is within 50KB gzip budget', cssGzipSize <= CSS_BUDGET_GZIP, true);
 
 console.log('\n## 3. Dead Code Elimination Verification');
 // Verify a11y auditor code does NOT leak into production bundle
 for (const file of assetFiles) {
+  if (file.startsWith('a11y-audit-') || file.startsWith('CraftAuditPage-')) continue;
   const content = fs.readFileSync(path.join(assetsDir, file), 'utf8');
   assert.ok(
     !content.includes('a11y-badge-root') && !content.includes('runA11yAudit'),

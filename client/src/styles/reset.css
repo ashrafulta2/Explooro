@@ -161,3 +161,21 @@ h6 {
     scroll-behavior: auto !important;
   }
 }
+
+/* Screen-reader-only text. Visually removed but still announced and still reachable by AT.
+   WHY clip-path AND clip: `clip` is deprecated but is what older Safari honours; `clip-path` is
+   what everything current honours. Both are needed for the text to be reliably invisible.
+   `white-space: nowrap` stops a long label collapsing into a 1px-wide vertical stack that some
+   browsers then expose with wrong reading order. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

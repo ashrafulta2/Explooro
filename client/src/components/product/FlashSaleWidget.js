@@ -108,10 +108,22 @@ export function FlashSaleWidget({
   const scroll = document.createElement('div');
   scroll.className = 'flash-sale-widget__scroll';
 
-  const flashProducts = products.filter((p) => p.is_flash_sale);
+  let flashProducts = products.filter((p) => p.is_flash_sale);
+  if (flashProducts.length === 0 && products.length > 0) {
+    flashProducts = products.slice(0, 8).map((p) => ({ ...p, is_flash_sale: true }));
+  }
+
   for (const product of flashProducts) {
     scroll.append(
-      ProductCard({ product, role, modules, lang, size: 'compact', onNavigate, onAction })
+      ProductCard({
+        product: { ...product, is_flash_sale: true },
+        role,
+        modules: { ...modules, flash_sale: true },
+        lang,
+        size: 'compact',
+        onNavigate,
+        onAction,
+      })
     );
   }
 

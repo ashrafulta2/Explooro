@@ -98,6 +98,10 @@ export async function listProducts(req, reply) {
     limit,
     offset,
     supplier_id,
+    flash_sale,
+    supplier_tier,
+    district,
+    q,
   } = req.query || {};
 
   const products = await productService.listCatalog(db, {
@@ -111,6 +115,10 @@ export async function listProducts(req, reply) {
     limit: limit ? parseInt(limit, 10) : 20,
     offset: offset ? parseInt(offset, 10) : 0,
     supplierId: supplier_id ? parseInt(supplier_id, 10) : undefined,
+    flashSale: flash_sale === '1' || flash_sale === 'true' || flash_sale === true,
+    supplierTier: supplier_tier,
+    district,
+    q,
   });
 
   return reply.send({ data: { products }, products });

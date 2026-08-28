@@ -9,7 +9,8 @@
  * 5. COMPLETED / RESOLVED.
  */
 
-import { t } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.js';
 
 export function ClaimTimeline({ claim, isSupplier = false } = {}) {
   const container = document.createElement('div');
@@ -20,6 +21,7 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
     return container;
   }
 
+  const locale = getLanguage();
   const steps = [
     { key: 'SUBMITTED', label: t('warranty.step_submitted'), icon: '📝' },
     { key: 'UNDER_REVIEW', label: t('warranty.step_under_review'), icon: '🔍' },
@@ -37,27 +39,29 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
   const isEscalated = claim.status === 'ESCALATED';
 
   container.innerHTML = `
-    <div class="claim-timeline__wrapper card p-4">
-      <div class="claim-timeline__header flex justify-between items-center pb-3 border-b border-subtle mb-4">
+    <div class="claim-timeline__wrapper card p-5" style="border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); background: var(--surface-0);">
+      <div class="claim-timeline__header flex justify-between items-center pb-3 border-b border-subtle mb-4" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <span class="font-mono text-sm font-semibold">Claim #${claim.ref}</span>
-          <div class="text-xs text-muted">
-            ${t('warranty.filed_on')}: ${new Date(claim.created_at).toLocaleDateString()}
+          <div style="font-family: var(--font-mono, monospace); font-size: 14px; font-weight: 800; color: var(--text-primary);">
+            Claim #${claim.ref || claim.id}
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+            ${t('warranty.filed_on')}: ${new Date(claim.created_at || Date.now()).toLocaleDateString(locale === 'bn' ? 'bn-BD' : 'en-GB')}
           </div>
         </div>
         <div>
           ${isEscalated ? `
-            <span class="badge badge--danger">🚨 ${t('warranty.status_escalated')}</span>
+            <span class="badge badge--danger" style="font-size: 11px; font-weight: 800;">🚨 ${t('warranty.status_escalated')}</span>
           ` : isRejected ? `
-            <span class="badge badge--danger">❌ ${t('warranty.status_rejected')}</span>
+            <span class="badge badge--danger" style="font-size: 11px; font-weight: 800;">❌ ${t('warranty.status_rejected')}</span>
           ` : `
-            <span class="badge badge--primary">${claim.status}</span>
+            <span class="badge badge--primary" style="font-size: 11px; font-weight: 800;">● ${claim.status}</span>
           `}
         </div>
       </div>
 
       <!-- Stepper Track -->
-      <div class="claim-stepper flex items-center justify-between relative mb-6">
+      <div class="claim-stepper">
         <div class="claim-stepper__track-bg"></div>
         <div class="claim-stepper__track-fill" style="width: ${(currentIndex / (steps.length - 1)) * 100}%;"></div>
 
@@ -76,59 +80,66 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
       </div>
 
       <!-- Claim Details Panel -->
-      <div class="claim-details-panel bg-surface-2 p-3 rounded text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+      <div class="claim-details-panel" style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 14px; margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
           <div>
-            <span class="text-muted">${t('warranty.issue_description')}:</span>
-            <p class="font-medium mt-0.5">${claim.issue_description || 'N/A'}</p>
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">${t('warranty.issue_description')}:</span>
+            <p style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin: 3px 0 0; line-height: 1.4;">
+              ${claim.issue_description || 'N/A'}
+            </p>
           </div>
           <div>
-            <span class="text-muted">${t('warranty.preferred_resolution')}:</span>
-            <p class="font-medium mt-0.5">
-              <span class="badge badge--info">${claim.resolution || claim.preferred_resolution || 'REPAIR'}</span>
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">${t('warranty.preferred_resolution')}:</span>
+            <p style="margin: 3px 0 0;">
+              <span class="badge badge--info" style="font-size: 11px; font-weight: 800;">
+                ${claim.resolution || claim.preferred_resolution || 'REPAIR'}
+              </span>
             </p>
           </div>
         </div>
 
         ${claim.sla_due_at ? `
-          <div class="sla-indicator-row flex items-center justify-between p-2 rounded bg-surface border border-subtle mt-2">
-            <span class="text-muted font-medium">⏱️ ${t('warranty.supplier_sla_deadline')}:</span>
-            <span class="font-mono ${claim.is_sla_breached ? 'text-danger font-bold' : 'text-primary'}">
-              ${new Date(claim.sla_due_at).toLocaleString()}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: var(--radius-md); background: var(--surface-0); border: 1px solid var(--border-subtle); font-size: 11px;">
+            <span style="color: var(--text-muted); font-weight: 600;">⏱️ ${t('warranty.supplier_sla_deadline')}:</span>
+            <span style="font-family: var(--font-mono, monospace); font-weight: 800; color: ${claim.is_sla_breached ? 'var(--danger)' : 'var(--text-primary)'};">
+              ${new Date(claim.sla_due_at).toLocaleString(locale === 'bn' ? 'bn-BD' : 'en-GB')}
               ${claim.is_sla_breached ? `(${t('warranty.sla_breached')})` : ''}
             </span>
           </div>
         ` : ''}
 
         ${claim.reverse_tracking_number ? `
-          <div class="reverse-courier-box p-2 rounded bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 mt-2">
-            <div class="flex justify-between items-center">
-              <span class="font-semibold text-emerald-800 dark:text-emerald-300">🚚 ${t('warranty.reverse_courier_booked')}</span>
-              <span class="badge badge--emerald text-xs">${claim.reverse_carrier || 'Courier'}</span>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-lg); padding: 10px 12px; font-size: 12px; color: #166534;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <strong>🚚 ${t('warranty.reverse_courier_booked')}</strong>
+              <span class="badge badge--emerald" style="font-size: 10px;">${claim.reverse_courier || 'Courier'}</span>
             </div>
-            <div class="font-mono text-xs mt-1">
-              ${t('warranty.tracking_number')}: <strong>${claim.reverse_tracking_number}</strong>
+            <div style="font-family: var(--font-mono, monospace); margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+              <span>${t('warranty.tracking_number')}: <strong>${claim.reverse_tracking_number}</strong></span>
+              <button class="copy-tracking-btn" type="button" style="background:none; border:none; cursor:pointer; font-size:12px;" title="Copy">📋</button>
             </div>
-            <div class="text-muted text-xs mt-0.5">
+            <div style="font-size: 11px; opacity: 0.85; margin-top: 2px;">
               ${t('warranty.reverse_pickup_instructions')}
             </div>
           </div>
         ` : ''}
 
         ${claim.rejection_reason ? `
-          <div class="rejection-box p-2 rounded bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-800 mt-2">
-            <span class="font-semibold text-rose-800 dark:text-rose-300">❌ ${t('warranty.rejection_reason')}:</span>
-            <p class="mt-0.5 text-rose-700 dark:text-rose-200">${claim.rejection_reason}</p>
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-lg); padding: 10px 12px; font-size: 12px; color: #991b1b;">
+            <strong>❌ ${t('warranty.rejection_reason')}:</strong>
+            <p style="margin: 3px 0 0; font-size: 11px;">${claim.rejection_reason}</p>
           </div>
         ` : ''}
 
         ${Array.isArray(claim.evidence_media) && claim.evidence_media.length > 0 ? `
-          <div class="evidence-media-strip mt-3 pt-2 border-t border-subtle">
-            <span class="text-muted block mb-1 font-medium">${t('warranty.customer_evidence_media')}:</span>
-            <div class="flex gap-2 overflow-x-auto py-1">
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 8px; margin-top: 4px;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+              ${t('warranty.customer_evidence_media')}:
+            </span>
+            <div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
               ${claim.evidence_media.map((url, i) => `
-                <a href="${url}" target="_blank" rel="noopener noreferrer" class="evidence-thumb-link">
-                  <img src="${url}" alt="Proof ${i+1}" class="w-14 h-14 object-cover rounded border border-subtle" onerror="this.src='/placeholder-img.svg'"/>
+                <a href="${url}" target="_blank" rel="noopener noreferrer">
+                  <img src="${url}" alt="Proof ${i+1}" style="width: 52px; height: 52px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-subtle);" onerror="this.src='/placeholder-img.svg'"/>
                 </a>
               `).join('')}
             </div>
@@ -137,6 +148,15 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
       </div>
     </div>
   `;
+
+  const copyTrackingBtn = container.querySelector('.copy-tracking-btn');
+  if (copyTrackingBtn && claim.reverse_tracking_number) {
+    copyTrackingBtn.addEventListener('click', () => {
+      navigator.clipboard?.writeText(claim.reverse_tracking_number).then(() => {
+        toast.success(`Tracking number ${claim.reverse_tracking_number} copied!`);
+      }).catch(() => {});
+    });
+  }
 
   return container;
 }
