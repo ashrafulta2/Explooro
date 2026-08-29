@@ -10,7 +10,8 @@
     "add": "Add",
     "delete": "Delete",
     "save": "Save",
-    "save_changes": "Save Changes"
+    "save_changes": "Save Changes",
+    "copy": "Copy"
   },
   "language": {
     "switch_to_bn": "বাংলা",
