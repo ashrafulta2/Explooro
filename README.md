@@ -156,9 +156,11 @@ The full reasoning lives in [`docs/prompt.md`](docs/prompt.md) under **Master In
   declares its dependencies, its exact file list, its acceptance criteria, and what you should see
   in the browser when it is done.
 - **Current phase:** not a single phase — work is proceeding out of strict prompt order across several
-  partially-done phases (2–5), with active polish on already-"done" Phase 9/10 customer surfaces
-  (coupons, team purchases, wishlist, returns, live stream, gamification). See the Status table below
-  and the traceability matrix for the honest per-prompt picture; don't trust a single "current phase" label.
+  partially-done phases (2–5), with active polish on already-"done" Phase 9/10/11 customer surfaces
+  (coupons, team purchases, wishlist, returns, live stream, gamification, and a new saved delivery
+  **address book** — an 11.3 extension, `/account/addresses`, added 2026-08-29). See the Status table
+  below and the traceability matrix for the honest per-prompt picture; don't trust a single "current
+  phase" label.
 - **Orientation:** [`docs/architecture-map.md`](docs/architecture-map.md) maps 50 common changes to exact files.
 - **Progress:** the honest traceability matrix at the end of `docs/prompt.md`.
 
@@ -177,7 +179,7 @@ The full reasoning lives in [`docs/prompt.md`](docs/prompt.md) under **Master In
 | 8 — Real-Time Chat & Unified Notifications | ✅ **Complete** — 8.1–8.4 all done |
 | 9 — Growth Engines | ✅ **Complete** — 9.1–9.7 all done |
 | 10 — Advanced Subsystems | ✅ **Complete** — 10.1–10.8 all done |
-| 11 — Role Dashboards, Analytics, SEO & PWA | ✅ **Complete** — 11.1–11.6 all done |
+| 11 — Role Dashboards, Analytics, SEO & PWA | ✅ **Complete** — 11.1–11.6 all done; +saved delivery address book added 2026-08-29 (`user_addresses`, migration 038, DB-enforced single default; `/account/addresses` + checkout prefill) — traceability matrix row 61 |
 | 12 — Hardening, Mobile & Deployment | ⬜ Not started |
 
 Rolled up from the per-prompt status markers in `docs/prompt.md`'s traceability matrix as of 2026-08-26 —
