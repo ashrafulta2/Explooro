@@ -13,6 +13,7 @@ import { api } from '../../core/api.js';
 import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { goBack } from '../../core/navBack.js';
 
 export default function ReturnRequestPage(root, { params = {}, navigate } = {}) {
   const container = document.createElement('div');
@@ -28,11 +29,12 @@ export default function ReturnRequestPage(root, { params = {}, navigate } = {}) 
   let evidenceUrls = [];
   let preferredResolution = 'WALLET_REFUND';
 
-  function goTo(path) {
+  function goTo(path, opts = {}) {
     if (typeof navigate === 'function') {
-      navigate(path);
+      navigate(path, opts);
     } else {
-      window.history.pushState({}, '', path);
+      if (opts.replace) window.history.replaceState({}, '', path);
+      else window.history.pushState({}, '', path);
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }
@@ -215,7 +217,9 @@ export default function ReturnRequestPage(root, { params = {}, navigate } = {}) 
 
     // Event Bindings
     container.querySelector('#btn-back-order')?.addEventListener('click', () => {
-      goTo(`/customer/orders/${subOrderId}`);
+      // Real history back where possible; otherwise the order this return is for. (The client route
+      // for a single order is /orders/:id — there is no /customer/orders/:id route.)
+      goBack(goTo, `/orders/${subOrderId}`);
     });
 
     container.querySelector('#return-reason-select')?.addEventListener('change', (e) => {

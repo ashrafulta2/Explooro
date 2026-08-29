@@ -16,10 +16,12 @@ import { api } from '../../core/api.js';
 import { getLanguage, t, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';
+import { goBack } from '../../core/navBack.js';
 import '../../styles/components/customer-coins.css';
 
 export class CoinsPage {
-  constructor() {
+  constructor(navigate) {
+    this.navigate = typeof navigate === 'function' ? navigate : null;
     this.coinBalance = null;
     this.history = [];
     this.quests = [];
@@ -96,7 +98,7 @@ export class CoinsPage {
       <div class="coins-page">
         <!-- Page Header -->
         <div class="coins-page__header">
-          <a href="/account" class="coins-page__back" data-nav-link="/account">
+          <a href="/account" class="coins-page__back" data-nav-back>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
@@ -115,7 +117,7 @@ export class CoinsPage {
               </p>
             </div>
             
-            <a href="/products" class="coins-page__header-action" data-nav-link="/products">
+            <a href="/" class="coins-page__header-action" data-nav-link="/">
               <span>🛍️</span>
               <span>${t('gamification.shop_with_coins')}</span>
             </a>
@@ -166,7 +168,7 @@ export class CoinsPage {
               <span>${isBn ? 'চেকআউট পেইজে প্রতি ১০০ কয়েনে ১০ টাকা সরাসরি নগদ ছাড় পাবেন (সর্বোচ্চ ২০% পর্যন্ত)' : 'Redeem coins at checkout for ৳10 discount per 100 coins (up to 20% cart total)'}</span>
             </div>
             
-            <a href="/products" class="coins-hero__btn-redeem" data-nav-link="/products">
+            <a href="/" class="coins-hero__btn-redeem" data-nav-link="/">
               <span>🛒</span>
               <span>${t('gamification.redeem_at_checkout')}</span>
             </a>
@@ -281,7 +283,7 @@ export class CoinsPage {
                   <span class="coins-earn-card__reward">5 Coins / ৳100</span>
                 </div>
                 <p class="coins-earn-card__desc">${t('gamification.earn_orders_desc')}</p>
-                <a href="/products" class="coins-earn-card__action" data-nav-link="/products">
+                <a href="/" class="coins-earn-card__action" data-nav-link="/">
                   <span>${t('gamification.action_shop')} →</span>
                 </a>
               </div>
@@ -341,7 +343,7 @@ export class CoinsPage {
                   <span class="coins-earn-card__reward">+30 Coins</span>
                 </div>
                 <p class="coins-earn-card__desc">${t('gamification.earn_teams_desc')}</p>
-                <a href="/team-purchases" class="coins-earn-card__action" data-nav-link="/team-purchases">
+                <a href="/account/team-purchases" class="coins-earn-card__action" data-nav-link="/account/team-purchases">
                   <span>${t('gamification.action_teams')} →</span>
                 </a>
               </div>
@@ -619,16 +621,26 @@ export class CoinsPage {
       });
     });
 
-    // Navigation links
+    // In-page navigation — go through the router's navigate so history depth (navBack) stays correct.
+    const routerNav = this.navigate || ((path) => {
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+
     this.rootEl.querySelectorAll('[data-nav-link]').forEach(el => {
       el.addEventListener('click', (e) => {
         const path = el.getAttribute('data-nav-link');
         if (path) {
           e.preventDefault();
-          window.history.pushState({}, '', path);
-          window.dispatchEvent(new PopStateEvent('popstate'));
+          routerNav(path);
         }
       });
+    });
+
+    // "← Back to account" — real history back, /account fallback when this is the first entry.
+    this.rootEl.querySelector('[data-nav-back]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      goBack(routerNav, '/account');
     });
 
     // Daily Check-In CTA Button
@@ -672,7 +684,7 @@ export class CoinsPage {
 
 // Router adapter contract
 export default function mountCoinsPage(root, ctx = {}) {
-  const page = new CoinsPage();
+  const page = new CoinsPage(ctx.navigate);
   page.mount(root);
   return () => page.unmount();
 }

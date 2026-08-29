@@ -23,6 +23,7 @@ import { Skeleton } from '../../components/ui/Skeleton.js';
 import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
+import { goBack } from '../../core/navBack.js';
 
 const DEFAULT_FALLBACK_COUPONS = [
   {
@@ -112,8 +113,8 @@ const DEFAULT_FALLBACK_COUPONS = [
 ];
 
 export default function CouponsPage(root, { navigate } = {}) {
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
+  const nav = (url, opts = {}) => {
+    if (typeof navigate === 'function') navigate(url, opts);
     else {
       window.history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -170,7 +171,7 @@ export default function CouponsPage(root, { navigate } = {}) {
 
   header.querySelector('[data-nav-back]')?.addEventListener('click', (e) => {
     e.preventDefault();
-    nav('/account');
+    goBack(nav, '/account');
   });
 
   // 2. Claim Voucher Bar Card

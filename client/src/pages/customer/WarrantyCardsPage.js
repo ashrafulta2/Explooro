@@ -15,8 +15,9 @@ import { openClaimModal } from '../../components/warranty/ClaimModal.js';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.js';
 import { openCertificateModal } from '../../components/warranty/CertificateModal.js';
 import { openRegisterWarrantyModal } from '../../components/warranty/RegisterWarrantyModal.js';
+import { bindBackControl } from '../../core/navBack.js';
 
-export default function WarrantyCardsPage(root) {
+export default function WarrantyCardsPage(root, { navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'warranties-page container';
   container.setAttribute('data-module', 'digital_warranty');
@@ -42,7 +43,7 @@ export default function WarrantyCardsPage(root) {
   const header = document.createElement('header');
   header.className = 'warranties-page__header';
   header.innerHTML = `
-    <a href="/customer/dashboard" class="warranties-page__back">
+    <a href="/account" class="warranties-page__back">
       ← ${t('common.back') || 'Back'}
     </a>
     <div class="warranties-page__title-wrap">
@@ -62,6 +63,8 @@ export default function WarrantyCardsPage(root) {
     </div>
   `;
   container.appendChild(header);
+
+  bindBackControl(header.querySelector('.warranties-page__back'), navigate, '/account');
 
   // KPI Summary Bar
   const kpiBar = document.createElement('div');
@@ -375,7 +378,7 @@ export default function WarrantyCardsPage(root) {
               <button class="btn-register-warranty-empty" type="button" style="height: 38px; padding: 0 18px; border-radius: var(--radius-full); background: var(--brand); border: 1px solid var(--brand); color: var(--brand-contrast); font-size: var(--text-xs); font-weight: 800; cursor: pointer;">
                 ➕ ${t('warranty.register_warranty_title') || 'Register Warranty'}
               </button>
-              <a href="/catalog" style="display: inline-flex; align-items: center; height: 38px; padding: 0 18px; border-radius: var(--radius-full); background: var(--surface-1); border: 1px solid var(--border-strong); color: var(--text-primary); font-size: var(--text-xs); font-weight: 700; text-decoration: none;">
+              <a href="/" style="display: inline-flex; align-items: center; height: 38px; padding: 0 18px; border-radius: var(--radius-full); background: var(--surface-1); border: 1px solid var(--border-strong); color: var(--text-primary); font-size: var(--text-xs); font-weight: 700; text-decoration: none;">
                 🛍️ ${t('warranty.browse_warrantied_products') || 'Browse Products'}
               </a>
             </div>

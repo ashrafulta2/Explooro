@@ -16,6 +16,7 @@ import { api } from '../core/api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { formatCurrency } from '../services/format.js';
 import { toast } from '../services/toast.js';
+import { bindBackControl } from '../core/navBack.js';
 
 const DEFAULT_FALLBACK_TEAMS = [
   {
@@ -189,11 +190,12 @@ export class TeamPurchasePage {
     }
   }
 
-  navTo(url) {
+  navTo(url, opts = {}) {
     if (typeof this.navigate === 'function') {
-      this.navigate(url);
+      this.navigate(url, opts);
     } else {
-      history.pushState({}, '', url);
+      if (opts.replace) history.replaceState({}, '', url);
+      else history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }
@@ -712,6 +714,8 @@ export class TeamPurchasePage {
   }
 
   _attachListEvents(isBn) {
+    bindBackControl(this.rootEl.querySelector('.team-page__back'), (u, o) => this.navTo(u, o), '/account');
+
     // Filter tabs
     this.rootEl.querySelectorAll('.team-tab-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
@@ -749,6 +753,12 @@ export class TeamPurchasePage {
   }
 
   _attachDetailEvents(teamShareUrl, isBn) {
+    bindBackControl(
+      this.rootEl.querySelector('.team-page__back'),
+      (u, o) => this.navTo(u, o),
+      '/account/team-purchases'
+    );
+
     const btnCopy = this.rootEl.querySelector('#btn-copy-team-link');
     if (btnCopy) {
       btnCopy.addEventListener('click', () => {

@@ -112,13 +112,22 @@ let refreshInFlight = null;
  * Resolves to the refresh payload (`{ access_token, user, ... }`) on success, `null` on failure.
  */
 export function refreshSession() {
-  // The real refresh endpoint lands in Prompt 2.3 — until then there is nothing to refresh, and
-  // 401s in mock mode never happen because no mock handler returns one.
-  if (MODE !== 'live') return Promise.resolve(null);
   if (refreshInFlight) return refreshInFlight;
 
   refreshInFlight = (async () => {
     try {
+      // WHY mock is not short-circuited here any more: the mock /auth/refresh handler restores the
+      // session persisted at login (sessionStorage), so reloading the page or opening an
+      // /account/* URL directly keeps the developer signed in instead of bouncing them to /login.
+      if (MODE !== 'live') {
+        const { status, body } = await performMock('POST', '/auth/refresh', {});
+        if (status !== 200) return null;
+        const token = body?.data?.access_token ?? null;
+        if (!token) return null;
+        accessToken = token;
+        return body.data;
+      }
+
       const csrfToken = currentCsrfToken();
       const res = await fetch(`${BASE}/auth/refresh`, {
         method: 'POST',

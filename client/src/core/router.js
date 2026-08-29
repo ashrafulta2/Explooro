@@ -163,7 +163,11 @@ export function createRouter({
   function navigate(path, { replace = false } = {}) {
     const url = new URL(path, window.location.origin);
     const key = crypto.randomUUID();
-    const state = { __routerKey: key };
+    // `idx` is the depth of this entry in the session's history stack — a push deepens it, a
+    // replace keeps it. core/navBack.js reads it to decide between history.back() and a fallback
+    // route. The browser persists history.state across reloads, so it survives a refresh.
+    const currentIdx = history.state?.idx ?? 0;
+    const state = { __routerKey: key, idx: replace ? currentIdx : currentIdx + 1 };
     if (replace) history.replaceState(state, '', url);
     else history.pushState(state, '', url);
     return render(url.pathname, url.search, { key });
@@ -188,7 +192,11 @@ export function createRouter({
 
   function start() {
     if (!history.state) {
-      history.replaceState({ __routerKey: crypto.randomUUID() }, '', window.location.href);
+      history.replaceState({ __routerKey: crypto.randomUUID(), idx: 0 }, '', window.location.href);
+    } else if (history.state.idx == null) {
+      // Entry predates idx tracking (or was pushed by something other than navigate()) — seed it
+      // so navBack has a baseline without clobbering the router key.
+      history.replaceState({ ...history.state, idx: 0 }, '', window.location.href);
     }
     window.addEventListener('popstate', onPopState);
     document.addEventListener('click', onClick);

@@ -21,10 +21,11 @@ import { Modal } from '../../components/ui/Modal.js';
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.js';
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.js';
 import { openWriteReviewModal } from '../../components/customer/WriteReviewModal.js';
+import { bindBackControl } from '../../core/navBack.js';
 
 export default function ReviewsPage(root, { navigate } = {}) {
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
+  const nav = (url, opts = {}) => {
+    if (typeof navigate === 'function') navigate(url, opts);
     else {
       history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -70,6 +71,8 @@ export default function ReviewsPage(root, { navigate } = {}) {
     </div>
   `;
   container.appendChild(header);
+
+  bindBackControl(header.querySelector('.reviews-page__back'), nav, '/account');
 
   // 2. KPI Summary Bar
   const kpiBar = document.createElement('div');

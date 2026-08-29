@@ -20,10 +20,11 @@ import { EmptyState } from '../../components/ui/EmptyState.js';
 import { Switch } from '../../components/ui/Switch.js';
 import { addToCart, toggleWishlist, openCartDrawer, setWishlistNotify } from '../../services/cart.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
+import { goBack } from '../../core/navBack.js';
 
 export default function WishlistPage(root, { navigate } = {}) {
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
+  const nav = (url, opts = {}) => {
+    if (typeof navigate === 'function') navigate(url, opts);
     else {
       window.history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -51,7 +52,7 @@ export default function WishlistPage(root, { navigate } = {}) {
 
   header.querySelector('[data-nav-back]')?.addEventListener('click', (e) => {
     e.preventDefault();
-    nav('/account');
+    goBack(nav, '/account');
   });
 
   // List slot

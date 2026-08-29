@@ -17,6 +17,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
+import { goBack } from '../../core/navBack.js';
 
 export default function OrderDetailPage(root, { params = {}, navigate } = {}) {
   const container = document.createElement('div');
@@ -111,7 +112,7 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
   if (backLink) {
     backLink.addEventListener('click', (e) => {
       e.preventDefault();
-      if (navigate) navigate('/orders');
+      goBack(navigate, '/account/orders');
     });
   }
 

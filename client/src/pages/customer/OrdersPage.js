@@ -22,10 +22,11 @@ import {
   ORDER_STAGES,
 } from '../../components/order/OrderTracker.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
+import { bindBackControl } from '../../core/navBack.js';
 
 export default function OrdersPage(root, { navigate } = {}) {
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
+  const nav = (url, opts = {}) => {
+    if (typeof navigate === 'function') navigate(url, opts);
     else {
       history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -54,6 +55,8 @@ export default function OrdersPage(root, { navigate } = {}) {
     </div>
   `;
   container.append(header);
+
+  bindBackControl(header.querySelector('.orders-page__back-link'), nav, '/account');
 
   // 2. Status Filter Tabs
   const tabFilterSlot = document.createElement('div');

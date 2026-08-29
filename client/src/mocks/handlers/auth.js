@@ -14,7 +14,37 @@ const DEV_USERS = {
   '+8801700000007': { id: 'usr-dev-7', ref: 'USR-DEV-CUSTOMER', name: 'Dev Customer', role: 'customer', email: 'customer@dev.explooro.local' },
 };
 
-let currentMockUser = null;
+// WHY: without persistence the "session" is a module-level variable that dies on every page
+// reload, so opening any /account/* URL directly, refreshing, or restoring a tab bounced the
+// developer to the login screen. sessionStorage keeps the mock login alive for the tab's
+// lifetime (cleared on tab close and by POST /auth/logout) — close enough to a real refresh-cookie
+// session for local work, and never touches a real backend.
+const MOCK_SESSION_KEY = 'explooro.mock.session';
+
+function loadMockUser() {
+  try {
+    const raw = sessionStorage.getItem(MOCK_SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistMockUser(user) {
+  try {
+    if (user) sessionStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(user));
+    else sessionStorage.removeItem(MOCK_SESSION_KEY);
+  } catch {
+    /* sessionStorage unavailable (private mode, etc.) — fall back to in-memory only */
+  }
+}
+
+let currentMockUser = loadMockUser();
+
+function setCurrentMockUser(user) {
+  currentMockUser = user;
+  persistMockUser(user);
+}
 
 function createMockJwt(user) {
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '');
@@ -89,7 +119,7 @@ export default [
       }
 
       const user = resolveUserByIdentifier(identifier);
-      currentMockUser = user;
+      setCurrentMockUser(user);
       const accessToken = createMockJwt(user);
 
       return {
@@ -193,7 +223,7 @@ export default [
     handler({ body }) {
       const identifier = body?.email || body?.phone?.trim();
       const user = resolveUserByIdentifier(identifier);
-      currentMockUser = user;
+      setCurrentMockUser(user);
       const accessToken = createMockJwt(user);
 
       if (body?.purpose === 'REGISTER') {
@@ -238,7 +268,7 @@ export default [
         roles: [role],
       };
 
-      currentMockUser = user;
+      setCurrentMockUser(user);
       const accessToken = createMockJwt(user);
 
       return {
@@ -258,7 +288,7 @@ export default [
     method: 'POST',
     path: '/auth/logout',
     handler() {
-      currentMockUser = null;
+      setCurrentMockUser(null);
       return {
         status: 200,
         body: {
@@ -291,7 +321,7 @@ export default [
     path: '/auth/2fa/verify',
     handler() {
       const user = currentMockUser || resolveUserByPhone('+8801700000002');
-      currentMockUser = user;
+      setCurrentMockUser(user);
       const accessToken = createMockJwt(user);
       return {
         status: 200,

@@ -258,7 +258,8 @@ export const MOBILE_TABS = {
   customer: [
     { key: 'home', label_i18n_key: 'nav.mobile.home', path: '/' },
     { key: 'search', label_i18n_key: 'nav.mobile.search', path: '/search' },
-    { key: 'cart', label_i18n_key: 'nav.mobile.cart', path: '/cart', badge: 'cart' },
+    // Cart is a drawer, not a page — `action` tells MobileNav to open it instead of navigating.
+    { key: 'cart', label_i18n_key: 'nav.mobile.cart', action: 'openCart', badge: 'cart' },
     { key: 'orders', label_i18n_key: 'nav.shared.orders', path: '/account/orders' },
     { key: 'more', label_i18n_key: 'nav.mobile.more', more: true },
   ],

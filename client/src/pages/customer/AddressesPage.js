@@ -21,12 +21,13 @@ import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { bindBackControl } from '../../core/navBack.js';
 
 export default function AddressesPage(root, { navigate } = {}) {
   const isBn = () => document.documentElement.lang === 'bn';
 
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
+  const nav = (url, opts = {}) => {
+    if (typeof navigate === 'function') navigate(url, opts);
     else {
       history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -59,6 +60,8 @@ export default function AddressesPage(root, { navigate } = {}) {
     </div>
   `;
   container.append(header);
+
+  bindBackControl(header.querySelector('.addresses-page__back'), nav, '/account');
 
   // Add Address CTA Button in Header
   const addBtn = Button({

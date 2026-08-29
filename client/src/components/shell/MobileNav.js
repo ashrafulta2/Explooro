@@ -11,6 +11,12 @@ import { t } from '../../services/i18n.js';
 import { Badge } from '../ui/Badge.js';
 import { Drawer } from '../ui/Drawer.js';
 import { Sidebar } from './Sidebar.js';
+import { openCartDrawer } from '../../services/cart.js';
+
+// Non-navigation tab actions — a tab with `action` opens UI in place instead of routing.
+const TAB_ACTIONS = {
+  openCart: () => openCartDrawer(),
+};
 
 export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups }) {
   const tabs = MOBILE_TABS[role] ?? [];
@@ -59,7 +65,11 @@ export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups })
     const count = tab.badge ? ctx.badges[tab.badge] : null;
     if (count) btn.append(Badge({ variant: 'count', count }));
 
-    btn.addEventListener('click', () => (tab.more ? openMoreSheet(btn) : navigate(tab.path)));
+    btn.addEventListener('click', () => {
+      if (tab.more) return openMoreSheet(btn);
+      if (tab.action && TAB_ACTIONS[tab.action]) return TAB_ACTIONS[tab.action]();
+      navigate(tab.path);
+    });
     nav.append(btn);
   }
 

@@ -18,6 +18,7 @@ import '../../styles/components/referrals.css';
 import { api } from '../../core/api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { goBack } from '../../core/navBack.js';
 
 export class ReferralHubPage {
   constructor(ctx = {}) {
@@ -108,9 +109,9 @@ export class ReferralHubPage {
     const coins = this.overview?.coins || { coins_earned: 0, coins_per_signup: 100 };
     const progress = this.overview?.next_tier_progress || { current: stats.total_referrals || 0, target: 20, pct: 50, next_tier: 'PLATINUM_DIRECTOR' };
 
-    const nav = (path) => {
+    const nav = (path, opts = {}) => {
       if (this.ctx?.navigate) {
-        this.ctx.navigate(path);
+        this.ctx.navigate(path, opts);
       } else {
         window.location.href = path;
       }
@@ -643,12 +644,15 @@ export class ReferralHubPage {
   }
 
   _attachEvents(refLink, refCode, isBn, nav) {
-    // Back navigation
+    // Back navigation — real history back, with a role-appropriate fallback when this page was
+    // opened cold (this hub is mounted at /account/referrals, /saler/referrals and /admin/... ).
     const backBtn = this.rootEl.querySelector('#btn-back-account');
     if (backBtn) {
+      const p = window.location.pathname;
+      const backFallback = p.startsWith('/saler') ? '/saler' : p.startsWith('/admin') ? '/admin' : '/account';
       backBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        nav('/account');
+        goBack(nav, backFallback);
       });
     }
 

@@ -19,6 +19,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
+import { bindBackControl } from '../../core/navBack.js';
 
 const TAB_KEYS = ['all', 'drops', 'live', 'stores', 'discover'];
 const SEARCH_DEBOUNCE_MS = 200;
@@ -71,8 +72,8 @@ function localTitle(record, { enKey = 'title_en', bnKey = 'title_bn', fallbackKe
 }
 
 export default function FollowingFeedPage(root, { navigate } = {}) {
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
+  const nav = (url, opts = {}) => {
+    if (typeof navigate === 'function') navigate(url, opts);
     else {
       history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -144,6 +145,8 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
     </div>
   `;
   container.append(header);
+
+  bindBackControl(header.querySelector('.following-page__back'), nav, '/account');
 
   const contentSlot = document.createElement('div');
   contentSlot.className = 'following-content-slot';
@@ -569,7 +572,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
         label: t('customer.following.btn_explore_all', 'Explore All Sellers'),
         variant: 'primary',
         size: 'md',
-        onClick: () => (suggestions.length ? switchTab('discover') : nav('/products')),
+        onClick: () => (suggestions.length ? switchTab('discover') : nav('/')),
       })
     );
     wrap.append(card);
@@ -598,7 +601,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
         label: t('customer.following.browse_marketplace', 'Browse Marketplace'),
         variant: 'primary',
         size: 'sm',
-        onClick: () => navigateTo('/products'),
+        onClick: () => navigateTo('/'),
       })
     );
     return box;

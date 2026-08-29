@@ -885,7 +885,7 @@ async function bootRouterDemo() {
         path: '/customer/orders/:id/return',
         title: 'Request Return — Explooro',
         requiresAuth: true,
-        permission: 'orders.view',
+        permission: 'orders.return.request',
         module: 'returns_engine',
         load: () => import('./pages/customer/ReturnRequestPage.js'),
       },
@@ -1073,6 +1073,26 @@ async function bootRouterDemo() {
       // Prompt 8.2: Notification Preferences
       {
         path: '/settings/notifications',
+        title: 'Notification Preferences — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/settings/NotificationPreferencesPage.js'),
+      },
+      // Account settings — the customer sidebar item and the TopBar user menu both point at
+      // /account/settings; notification preferences is the only settings surface today, so both
+      // aliases resolve to it (navigation.js's header note calls /account/settings/notifications
+      // a real route).
+      {
+        path: '/account/settings',
+        title: 'Account Settings — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/settings/NotificationPreferencesPage.js'),
+      },
+      {
+        path: '/account/settings/notifications',
         title: 'Notification Preferences — Explooro',
         requiresAuth: true,
         permission: null,

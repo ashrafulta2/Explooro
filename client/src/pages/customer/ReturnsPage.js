@@ -14,10 +14,11 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
+import { goBack } from '../../core/navBack.js';
 
 export default function ReturnsPage(root, { navigate } = {}) {
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
+  const nav = (url, opts = {}) => {
+    if (typeof navigate === 'function') navigate(url, opts);
     else {
       window.history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
@@ -41,7 +42,7 @@ export default function ReturnsPage(root, { navigate } = {}) {
 
   header.querySelector('[data-nav-back]')?.addEventListener('click', (e) => {
     e.preventDefault();
-    nav('/account');
+    goBack(nav, '/account');
   });
 
   // List slot
