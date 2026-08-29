@@ -34,6 +34,10 @@ export function CartDrawer({ navigate = null } = {}) {
   let appliedCoupon = null;
 
   function renderDrawerContent() {
+    // WHY: every cart mutation re-renders the whole drawer; without restoring the
+    // body scroll offset, tapping +/- on a lower parcel snaps the view back to the
+    // top and the shopper loses their place in a multi-parcel cart.
+    const prevScroll = container.querySelector('.cart-drawer__body')?.scrollTop || 0;
     container.innerHTML = '';
     const state = cartStore.get();
     const cart = state.cart || { items: [], parcels: [], subtotal: '0.00', grand_total: '0.00' };
@@ -396,6 +400,11 @@ export function CartDrawer({ navigate = null } = {}) {
     footer.append(checkoutBtn);
 
     container.append(footer);
+
+    if (prevScroll > 0) {
+      const newBody = container.querySelector('.cart-drawer__body');
+      if (newBody) newBody.scrollTop = prevScroll;
+    }
   }
 
   renderDrawerContent();

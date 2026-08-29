@@ -1222,7 +1222,10 @@
     "added_to_cart_toast": "কার্টে যোগ করা হয়েছে",
     "add_failed": "কার্টে যোগ করা যায়নি",
     "update_failed": "পরিমাণ পরিবর্তন করা যায়নি",
-    "items_count": "{{count}}টি আইটেম"
+    "items_count": {
+      "one": "{{count}}টি আইটেম",
+      "other": "{{count}}টি আইটেম"
+    }
   },
   "wishlist": {
     "title": "সংরক্ষিত পণ্য (উইশলিস্ট)",

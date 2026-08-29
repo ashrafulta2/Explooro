@@ -1222,7 +1222,10 @@
     "added_to_cart_toast": "Added to shopping cart",
     "add_failed": "Failed to add item to cart",
     "update_failed": "Failed to update item quantity",
-    "items_count": "{{count}} items"
+    "items_count": {
+      "one": "{{count}} item",
+      "other": "{{count}} items"
+    }
   },
   "wishlist": {
     "title": "Saved Items (Wishlist)",

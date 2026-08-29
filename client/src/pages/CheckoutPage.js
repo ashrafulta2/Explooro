@@ -207,7 +207,7 @@ export default function CheckoutPage(root, { navigate } = {}) {
           <span class="checkout-section-card__icon">📦</span>
           <h3 class="checkout-section-card__title">${t('checkout.parcel_breakdown', { count: parcels.length }) || 'Ordered Items'}</h3>
         </div>
-        <span class="text-xs text-secondary">${cartData.items?.length || 0} ${t('cart.items_count') || 'items'}</span>
+        <span class="text-xs text-secondary">${t('cart.items_count', { count: cartData.items?.length || 0 })}</span>
       `;
       itemsCard.append(itemsHeader);
 
