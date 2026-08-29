@@ -68,4 +68,6 @@
 @import './components/customer-following.css';
 /* Customer Reviews & UGC Video Hub */
 @import './components/customer-reviews.css';
+/* Customer Saved Delivery Addresses Book */
+@import './components/customer-addresses.css';
 

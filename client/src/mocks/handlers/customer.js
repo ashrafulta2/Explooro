@@ -270,7 +270,184 @@ let mockStories = [
   },
 ];
 
+// Saved delivery addresses — in-memory address book mirroring server/src/services/customerAddress.service.js
+// (first address is always the default; promoting a new default demotes the old one; deleting the
+// default auto-promotes the most recently touched remaining address).
+let mockAddresses = [
+  {
+    id: 9001,
+    user_id: 1,
+    label: 'HOME',
+    custom_label: '',
+    recipient_name: 'Fatema Begum',
+    recipient_phone: '+8801711223344',
+    division: 'dhaka',
+    district: 'dhaka_city',
+    upazila: 'Dhanmondi',
+    address_line: 'House 42, Road 7/A, Dhanmondi R/A',
+    delivery_notes: 'Ring the bell twice; leave with the guard if unavailable.',
+    postal_code: '1205',
+    is_default: true,
+    created_at: new Date(Date.now() - 86400000 * 12).toISOString(),
+    updated_at: null,
+  },
+  {
+    id: 9002,
+    user_id: 1,
+    label: 'OFFICE',
+    custom_label: 'Agency Desk',
+    recipient_name: 'Fatema Begum',
+    recipient_phone: '+8801811998877',
+    division: 'dhaka',
+    district: 'dhaka_city',
+    upazila: 'Tejgaon',
+    address_line: 'Level 6, Ventura Ind. Park, Tejgaon I/A',
+    delivery_notes: 'Weekday deliveries only, 10am–6pm.',
+    postal_code: '1208',
+    is_default: false,
+    created_at: new Date(Date.now() - 86400000 * 4).toISOString(),
+    updated_at: null,
+  },
+];
+const MAX_MOCK_ADDRESSES = 20;
+let nextAddressId = 9100;
+
+function normalizeMockPhone(input) {
+  const digits = String(input || '').replace(/\D/g, '');
+  if (digits.startsWith('8801') && digits.length === 13) return `+${digits}`;
+  if (digits.startsWith('01') && digits.length === 11) return `+88${digits}`;
+  if (digits.startsWith('1') && digits.length === 10) return `+880${digits}`;
+  return String(input || '').trim();
+}
+
+function sortedAddresses() {
+  return [...mockAddresses].sort(
+    (a, b) =>
+      Number(b.is_default) - Number(a.is_default) ||
+      new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+  );
+}
+
+function validateAddress(body) {
+  const label = String(body?.label || 'HOME').toUpperCase();
+  if (!body?.recipient_name || !body.recipient_name.trim()) return 'Recipient name is required.';
+  if (!/^\+8801[3-9]\d{8}$/.test(normalizeMockPhone(body?.recipient_phone))) return 'A valid Bangladeshi mobile number is required.';
+  if (!body?.division || !body?.district) return 'Division and district are required.';
+  if (!body?.address_line || !body.address_line.trim()) return 'Detailed address line is required.';
+  if (!['HOME', 'OFFICE', 'OTHER'].includes(label)) return 'Address label must be HOME, OFFICE, or OTHER.';
+  if (label === 'OTHER' && !String(body?.custom_label || '').trim()) return 'A custom label is required for "Other" addresses.';
+  return null;
+}
+
+function toAddressRow(body, over = {}) {
+  const label = String(body?.label || 'HOME').toUpperCase();
+  return {
+    id: over.id ?? nextAddressId++,
+    user_id: 1,
+    label,
+    custom_label: label === 'OTHER' ? String(body?.custom_label || '').trim() : '',
+    recipient_name: String(body?.recipient_name || '').trim(),
+    recipient_phone: normalizeMockPhone(body?.recipient_phone),
+    division: String(body?.division || '').toLowerCase(),
+    district: String(body?.district || '').toLowerCase(),
+    upazila: String(body?.upazila || '').trim(),
+    address_line: String(body?.address_line || '').trim(),
+    delivery_notes: String(body?.delivery_notes || '').trim(),
+    postal_code: String(body?.postal_code || '').trim(),
+    is_default: Boolean(over.is_default ?? body?.is_default),
+    created_at: over.created_at ?? new Date().toISOString(),
+    updated_at: over.updated_at ?? null,
+  };
+}
+
+const validationError = (message_en) => ({
+  status: 400,
+  body: { error: { code: 'VALIDATION_FAILED', message_en, message_bn: message_en } },
+});
+
+const addressHandlers = [
+  {
+    method: 'GET',
+    path: '/customer/addresses',
+    handler() {
+      return { status: 200, body: { success: true, data: sortedAddresses() } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/customer/addresses',
+    handler({ body }) {
+      const invalid = validateAddress(body);
+      if (invalid) return validationError(invalid);
+      if (mockAddresses.length >= MAX_MOCK_ADDRESSES) {
+        return validationError(`You can save at most ${MAX_MOCK_ADDRESSES} delivery addresses.`);
+      }
+      const shouldBeDefault = Boolean(body?.is_default) || mockAddresses.length === 0;
+      if (shouldBeDefault) mockAddresses.forEach((a) => { a.is_default = false; });
+      const row = toAddressRow(body, { is_default: shouldBeDefault });
+      mockAddresses.push(row);
+      return { status: 201, body: { success: true, data: row } };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/customer/addresses/:id',
+    handler({ params, body }) {
+      const id = Number(params.id);
+      const idx = mockAddresses.findIndex((a) => a.id === id);
+      if (idx === -1) return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Address not found.', message_bn: 'ঠিকানা পাওয়া যায়নি।' } } };
+      const invalid = validateAddress(body);
+      if (invalid) return validationError(invalid);
+      const nextDefault = Boolean(body?.is_default) || mockAddresses[idx].is_default;
+      if (nextDefault) mockAddresses.forEach((a) => { a.is_default = false; });
+      const updated = toAddressRow(body, {
+        id,
+        is_default: nextDefault,
+        created_at: mockAddresses[idx].created_at,
+        updated_at: new Date().toISOString(),
+      });
+      mockAddresses[idx] = updated;
+      return { status: 200, body: { success: true, data: updated } };
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/customer/addresses/:id',
+    handler({ params }) {
+      const id = Number(params.id);
+      const target = mockAddresses.find((a) => a.id === id);
+      if (!target) return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Address not found.', message_bn: 'ঠিকানা পাওয়া যায়নি।' } } };
+      mockAddresses = mockAddresses.filter((a) => a.id !== id);
+      if (target.is_default && mockAddresses.length > 0) {
+        const promote = sortedAddresses()[0];
+        mockAddresses.forEach((a) => { a.is_default = a.id === promote.id; });
+      }
+      return { status: 200, body: { success: true, data: { success: true, deleted_id: id } } };
+    },
+  },
+  {
+    method: 'PATCH',
+    path: '/customer/addresses/:id/default',
+    handler({ params }) {
+      const id = Number(params.id);
+      const target = mockAddresses.find((a) => a.id === id);
+      if (!target) return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Address not found.', message_bn: 'ঠিকানা পাওয়া যায়নি।' } } };
+      mockAddresses.forEach((a) => { a.is_default = a.id === id; });
+      target.updated_at = new Date().toISOString();
+      return { status: 200, body: { success: true, data: target } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/customer/addresses/:id/default',
+    handler(ctx) {
+      return addressHandlers.find((h) => h.method === 'PATCH').handler(ctx);
+    },
+  },
+];
+
 export const customerHandlers = [
+  ...addressHandlers,
   // 1. Following Feed
   {
     method: 'GET',

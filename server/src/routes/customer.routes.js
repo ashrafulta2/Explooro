@@ -3,6 +3,7 @@
  */
 
 import * as customerCtrl from '../controllers/customer.controller.js';
+import * as addressCtrl from '../controllers/customerAddress.controller.js';
 
 export default async function customerRoutes(fastify) {
   // 1. Customer Dashboard Overview
@@ -45,5 +46,42 @@ export default async function customerRoutes(fastify) {
     '/customer/wishlist/check-price-drops',
     { preHandler: [fastify.authenticate] },
     customerCtrl.checkPriceDropAlerts
+  );
+
+  // 7. Customer Saved Delivery Addresses Book
+  fastify.get(
+    '/customer/addresses',
+    { preHandler: [fastify.authenticate] },
+    addressCtrl.getAddresses
+  );
+
+  fastify.post(
+    '/customer/addresses',
+    { preHandler: [fastify.authenticate] },
+    addressCtrl.createAddress
+  );
+
+  fastify.put(
+    '/customer/addresses/:id',
+    { preHandler: [fastify.authenticate] },
+    addressCtrl.updateAddress
+  );
+
+  fastify.delete(
+    '/customer/addresses/:id',
+    { preHandler: [fastify.authenticate] },
+    addressCtrl.deleteAddress
+  );
+
+  fastify.post(
+    '/customer/addresses/:id/default',
+    { preHandler: [fastify.authenticate] },
+    addressCtrl.setDefaultAddress
+  );
+
+  fastify.patch(
+    '/customer/addresses/:id/default',
+    { preHandler: [fastify.authenticate] },
+    addressCtrl.setDefaultAddress
   );
 }

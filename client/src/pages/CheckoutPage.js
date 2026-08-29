@@ -13,6 +13,7 @@ import { AddressForm } from '../components/checkout/AddressForm.js';
 import { PaymentSelector } from '../components/checkout/PaymentSelector.js';
 import { getCart, fetchCart, clearCart } from '../services/cart.js';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.js';
+import { customerApi } from '../services/customer.api.js';
 import { getCurrentUser } from '../services/session.js';
 import { appStore } from '../state/appStore.js';
 import { formatCurrency } from '../services/format.js';
@@ -100,6 +101,8 @@ export default function CheckoutPage(root, { navigate } = {}) {
     });
   }
 
+  let userAddresses = [];
+
   async function loadCartData() {
     try {
       await fetchCart();
@@ -124,6 +127,25 @@ export default function CheckoutPage(root, { navigate } = {}) {
         layout.append(empty);
         return;
       }
+
+      try {
+        userAddresses = (await customerApi.getAddresses()) || [];
+        if (userAddresses.length > 0 && !draft.address) {
+          const defaultAddr = userAddresses.find((a) => a.is_default) || userAddresses[0];
+          if (defaultAddr) {
+            addressData = {
+              recipient_name: defaultAddr.recipient_name,
+              recipient_phone: defaultAddr.recipient_phone,
+              division: defaultAddr.division,
+              district: defaultAddr.district,
+              upazila: defaultAddr.upazila || '',
+              address_line: defaultAddr.address_line,
+              delivery_notes: defaultAddr.delivery_notes || '',
+            };
+          }
+        }
+      } catch {}
+
       renderCheckoutForm();
       renderSummary();
     } catch {
@@ -145,7 +167,9 @@ export default function CheckoutPage(root, { navigate } = {}) {
         <span class="checkout-section-card__icon">📍</span>
         <h3 class="checkout-section-card__title">${t('checkout.step_delivery') || 'Delivery Address & Contact'}</h3>
       </div>
-      <span class="text-xs text-secondary">${t('checkout.prefilled_notice') || 'Auto-filled from your profile'}</span>
+      <a href="/account/addresses" class="text-xs text-primary font-bold hover:underline" style="text-decoration: none;">
+        ${t('customer_addresses.badge', 'Manage Addresses')} →
+      </a>
     `;
     addressCard.append(addressHeader);
 
@@ -154,6 +178,7 @@ export default function CheckoutPage(root, { navigate } = {}) {
 
     addressForm = AddressForm({
       initialData: addressData,
+      savedAddresses: userAddresses,
       hideSubmitButton: true,
       onChange: (data) => {
         addressData = data;

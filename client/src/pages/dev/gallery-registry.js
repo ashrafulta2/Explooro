@@ -1051,6 +1051,8 @@ export function buildGalleryEntries(detachedNodes) {
     // Customer Reviews & UGC Hub
     { id: 'customer-review-card', label: 'CustomerReviewCard', group: 'Trust & Protection', render: renderCustomerReviewCardSpecimen },
     { id: 'pending-review-card', label: 'PendingReviewCard', group: 'Trust & Protection', render: renderPendingReviewCardSpecimen },
+    // Customer Saved Delivery Addresses Book
+    { id: 'customer-address-card', label: 'CustomerAddressCard', group: 'Commerce & Catalog', render: renderCustomerAddressCardSpecimen },
     // Master Colour engine (services/colorRamp.js) — the generated ramps behind Theme Studio
     { id: 'master-palette', label: 'MasterPalette', group: 'Foundations', render: renderMasterPaletteSpecimen },
   ];
@@ -2562,6 +2564,87 @@ function renderPendingReviewCardSpecimen() {
   });
 
   wrap.append(specimen('Delivered Item Card with +20/+40 Coin Bounty Callout', card));
+  return wrap;
+}
+
+function renderCustomerAddressCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Customer Saved Delivery Address Cards (Primary & Standard)'));
+
+  const sampleDefault = {
+    id: 1,
+    label: 'HOME',
+    recipient_name: 'Fatema Begum',
+    recipient_phone: '+8801711223344',
+    division: 'dhaka',
+    district: 'dhaka_city',
+    upazila: 'Dhanmondi',
+    address_line: 'House 42, Road 7/A, Dhanmondi R/A',
+    delivery_notes: 'Ring the calling bell twice; leave at main gate if unavailable',
+    postal_code: '1205',
+    is_default: true,
+  };
+
+  const sampleOffice = {
+    id: 2,
+    label: 'OFFICE',
+    custom_label: 'Tech HQ',
+    recipient_name: 'Tanvir Ahmed',
+    recipient_phone: '+8801812345678',
+    division: 'dhaka',
+    district: 'dhaka_city',
+    upazila: 'Gulshan',
+    address_line: 'Level 8, Concord Tower, Gulshan 2',
+    delivery_notes: 'Deliver between 9 AM - 6 PM on weekdays',
+    postal_code: '1212',
+    is_default: false,
+  };
+
+  const grid = document.createElement('div');
+  grid.className = 'addresses-grid';
+
+  const card1 = document.createElement('div');
+  card1.className = 'address-card address-card--default';
+  card1.innerHTML = `
+    <div class="address-card__header">
+      <div class="address-card__type-tag address-card__type-tag--home">🏠 Home</div>
+      <div class="address-card__default-badge">⭐ Default</div>
+    </div>
+    <div class="address-card__body">
+      <div class="address-card__recipient">${sampleDefault.recipient_name}</div>
+      <div class="address-card__phone-row">${sampleDefault.recipient_phone}</div>
+      <div class="address-card__address-text">${sampleDefault.address_line}</div>
+      <div class="address-card__geo-hierarchy">📍 Dhanmondi, Dhaka City, Dhaka - 1205</div>
+      <div class="address-card__notes">📝 ${sampleDefault.delivery_notes}</div>
+    </div>
+    <div class="address-card__footer">
+      <span class="text-xs text-muted font-bold">Primary Delivery</span>
+      <button class="btn btn--secondary btn--xs">Edit</button>
+    </div>
+  `;
+
+  const card2 = document.createElement('div');
+  card2.className = 'address-card';
+  card2.innerHTML = `
+    <div class="address-card__header">
+      <div class="address-card__type-tag address-card__type-tag--office">🏢 Tech HQ</div>
+    </div>
+    <div class="address-card__body">
+      <div class="address-card__recipient">${sampleOffice.recipient_name}</div>
+      <div class="address-card__phone-row">${sampleOffice.recipient_phone}</div>
+      <div class="address-card__address-text">${sampleOffice.address_line}</div>
+      <div class="address-card__geo-hierarchy">📍 Gulshan, Dhaka City, Dhaka - 1212</div>
+      <div class="address-card__notes">📝 ${sampleOffice.delivery_notes}</div>
+    </div>
+    <div class="address-card__footer">
+      <button class="btn btn--ghost btn--xs">Set Default</button>
+      <button class="btn btn--secondary btn--xs">Edit</button>
+    </div>
+  `;
+
+  grid.append(card1, card2);
+  wrap.append(specimen('Responsive Address Cards with Tags and Default Badge', grid));
   return wrap;
 }
 

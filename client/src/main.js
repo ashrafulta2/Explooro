@@ -182,6 +182,8 @@ async function bootRouterDemo() {
         item.path !== '/account/reviews' &&
         item.path !== '/customer/reviews' &&
         item.path !== '/reviews' &&
+        item.path !== '/account/addresses' &&
+        item.path !== '/customer/addresses' &&
         item.path !== '/account/become-saler' &&
         item.path !== '/admin' &&
         item.path !== '/admin/dashboard' &&
@@ -612,6 +614,31 @@ async function bootRouterDemo() {
         permission: null,
         module: 'virtual_storefront',
         load: () => import('./pages/customer/CustomerDashboardPage.js'),
+      },
+      // Customer Saved Delivery Addresses Book
+      {
+        path: '/account/addresses',
+        title: 'Saved Delivery Addresses — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/customer/AddressesPage.js'),
+      },
+      {
+        path: '/customer/addresses',
+        title: 'Saved Delivery Addresses — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/customer/AddressesPage.js'),
+      },
+      {
+        path: '/addresses',
+        title: 'Saved Delivery Addresses — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/customer/AddressesPage.js'),
       },
       // Prompt 11.4: Super Admin Executive Dashboard & System Health
       {

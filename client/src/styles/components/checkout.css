@@ -55,6 +55,17 @@
 .address-form .form-error { color: var(--danger); font-size: 0.8rem; font-weight: 500; min-height: 16px; }
 .address-form__actions { margin-top: 8px; display: flex; justify-content: flex-end; }
 
+/* Saved-address picker */
+.address-form__saved-wrap { display: flex; flex-direction: column; gap: 8px; }
+.address-form__saved-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 640px) { .address-form__saved-grid { grid-template-columns: 1fr 1fr; } }
+.address-form__saved-card { border: 1.5px solid var(--border-strong); border-radius: 10px; padding: 12px 14px; cursor: pointer; background: var(--surface-1); transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard); }
+.address-form__saved-card:hover { border-color: var(--brand-300); }
+.address-form__saved-card--selected { border-color: var(--brand); background: var(--brand-50); }
+.address-form__saved-name { font-size: 0.9rem; color: var(--text-primary); display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.address-form__saved-tag { font-size: 0.6875rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; background: var(--surface-2); color: var(--text-secondary); }
+.address-form__saved-details { margin-top: 4px; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.35; }
+
 /* Payment Selector */
 .payment-selector__list { display: flex; flex-direction: column; gap: 12px; }
 .payment-selector__card { display: flex; align-items: center; gap: 16px; padding: 16px; border: 1.5px solid var(--border-subtle); border-radius: 12px; cursor: pointer; background: var(--surface-0); }

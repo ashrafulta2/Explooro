@@ -8,9 +8,27 @@
  *  - Saved address picker for authenticated users
  */
 
-import { BANGLADESH_DIVISIONS, getDistrictsByDivision, getUpazilasByDistrict } from '../../data/bangladeshGeo.js';
+import {
+  BANGLADESH_DIVISIONS,
+  getDistrictsByDivision,
+  getUpazilasByDistrict,
+  getDivisionById,
+  getDistrictById,
+} from '../../data/bangladeshGeo.js';
 import { t } from '../../services/i18n.js';
 import { Button } from '../ui/Button.js';
+
+const esc = (s) =>
+  String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/** Turns stored administrative slugs ("dhaka_city", "dhaka") into display names ("Dhaka City, Dhaka"). */
+function formatSavedGeo(addr, bn) {
+  const div = getDivisionById(addr.division);
+  const dist = getDistrictById(addr.division, addr.district);
+  const divName = div ? (bn ? div.name_bn : div.name_en) : addr.division;
+  const distName = dist ? (bn ? dist.name_bn : dist.name_en) : addr.district;
+  return [distName, divName].filter(Boolean).join(', ');
+}
 
 export function normalizeBdPhone(input) {
   const digits = input.replace(/\D/g, '');
@@ -62,11 +80,17 @@ export function AddressForm({
     savedGrid.className = 'address-form__saved-grid';
 
     savedAddresses.forEach((addr, idx) => {
+      const isSelected = addr.is_default || (idx === 0 && !savedAddresses.some((a) => a.is_default));
       const card = document.createElement('div');
-      card.className = `address-form__saved-card ${idx === 0 ? 'address-form__saved-card--selected' : ''}`;
+      card.className = `address-form__saved-card ${isSelected ? 'address-form__saved-card--selected' : ''}`;
+      const labelIcon = addr.label === 'OFFICE' ? '🏢' : addr.label === 'OTHER' ? '📍' : '🏠';
+      const labelText = addr.custom_label || addr.label || 'Home';
       card.innerHTML = `
-        <div class="address-form__saved-name"><strong>${addr.recipient_name}</strong> · ${addr.recipient_phone}</div>
-        <div class="address-form__saved-details">${addr.address_line}, ${addr.upazila ? addr.upazila + ', ' : ''}${addr.district}, ${addr.division}</div>
+        <div class="address-form__saved-name">
+          <span class="address-form__saved-tag">${labelIcon} ${esc(labelText)}</span>
+          <strong>${esc(addr.recipient_name)}</strong> · ${esc(addr.recipient_phone)}
+        </div>
+        <div class="address-form__saved-details">${esc(addr.address_line)}${addr.upazila ? ', ' + esc(addr.upazila) : ''}, ${esc(formatSavedGeo(addr, isBn()))}</div>
       `;
 
       card.addEventListener('click', () => {
