@@ -41,6 +41,7 @@ import { ProductCard, ProductCardSkeleton } from '../../components/product/Produ
 import { MASTER_PRESETS } from '../../config/master-themes.js';
 import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.js';
 import { CategoryPills } from '../../components/product/CategoryPills.js';
+import { attachSearchSuggest } from '../../components/search/SearchSuggest.js';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.js';
 import { ImageGallery } from '../../components/product/ImageGallery.js';
 import { VariantSelector } from '../../components/product/VariantSelector.js';
@@ -673,6 +674,36 @@ function renderCategoryPills() {
   return wrap;
 }
 
+function renderSearchSuggest() {
+  const wrap = document.createDocumentFragment();
+  wrap.append(subgroup('SearchSuggest — type “saree”, “shari”, or “bag” (min 2 chars)'));
+
+  const form = document.createElement('form');
+  form.setAttribute('role', 'search');
+  form.className = 'topbar__product-search';
+  form.style.position = 'relative';
+  form.style.maxWidth = '440px';
+
+  const btn = document.createElement('button');
+  btn.type = 'submit';
+  btn.className = 'topbar__product-search-btn';
+  btn.setAttribute('aria-label', 'Search');
+  btn.textContent = '🔍';
+
+  const input = document.createElement('input');
+  input.type = 'search';
+  input.className = 'topbar__product-search-input';
+  input.placeholder = 'Search products, brands, categories…';
+  input.autocomplete = 'off';
+
+  form.append(btn, input);
+  form.addEventListener('submit', (e) => e.preventDefault());
+  attachSearchSuggest({ form, input, navigate: (path) => toast.info(`navigate → ${path}`) });
+
+  wrap.append(specimen('typeahead dropdown', form));
+  return wrap;
+}
+
 function renderFlashSaleWidget() {
   const wrap = document.createDocumentFragment();
   wrap.append(subgroup('FlashSaleWidget — 4h countdown with demo products'));
@@ -965,6 +996,7 @@ export function buildGalleryEntries(detachedNodes) {
     // Prompt 4.5 — Product Discovery
     { id: 'product-card', label: 'ProductCard', group: 'Product Discovery', render: renderProductCard },
     { id: 'category-pills', label: 'CategoryPills', group: 'Product Discovery', render: renderCategoryPills },
+    { id: 'search-suggest', label: 'SearchSuggest (typeahead)', group: 'Product Discovery', render: renderSearchSuggest },
     { id: 'flash-sale-widget', label: 'FlashSaleWidget', group: 'Product Discovery', render: renderFlashSaleWidget },
     // Prompt 4.6 — Product Detail
     { id: 'image-gallery', label: 'ImageGallery', group: 'Product Detail', render: renderImageGallery },

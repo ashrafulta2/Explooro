@@ -191,7 +191,10 @@ export function QnASection({ productId, lang = 'en' } = {}) {
     }
     if (destroyed) return;
 
-    if (result.questions.length === 0) {
+    const questionsList = Array.isArray(result?.questions) ? result.questions : [];
+    const pagination = result?.pagination || { total_pages: 1 };
+
+    if (questionsList.length === 0) {
       listSlot.replaceChildren(
         EmptyState({
           title: t('product_detail.qna.empty_title'),
@@ -204,18 +207,18 @@ export function QnASection({ productId, lang = 'en' } = {}) {
 
     const canAnswer = currentRole() === 'saler' || currentRole() === 'supplier';
     listSlot.replaceChildren(
-      ...result.questions.map((q) => questionCard(q, lang, { onUpvote: handleUpvote, canAnswer, onAnswer: handleAnswer }))
+      ...questionsList.map((q) => questionCard(q, lang, { onUpvote: handleUpvote, canAnswer, onAnswer: handleAnswer }))
     );
 
-    if (result.pagination.total_pages > 1) {
+    if (pagination.total_pages > 1) {
       paginationSlot.replaceChildren(
         Pagination({
           mode: 'offset',
-          page: result.pagination.page,
-          totalPages: result.pagination.total_pages,
-          totalItems: result.pagination.total_count,
-          pageSize: result.pagination.page_size,
-          onChange: ({ page: nextPage }) => { page = nextPage; load(); },
+          page: pagination.page || 1,
+          totalPages: pagination.total_pages,
+          totalItems: pagination.total_count || questionsList.length,
+          pageSize: pagination.page_size || 5,
+          onChange: ({ page: nextPage }) => { page = nextPage; load(); window.scrollTo({ top: listSlot.offsetTop, behavior: 'smooth' }); },
         })
       );
     } else {

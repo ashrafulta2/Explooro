@@ -43,6 +43,8 @@ export function ProductGrid({
   lang = 'en',
   onNavigate = null,
   onAction = null,
+  emptyTitle = null,
+  emptyDescription = null,
 } = {}) {
   // ── Back-to-top button (fixed, outside the grid scroll) ─────────────────
   const backTop = document.createElement('button');
@@ -123,8 +125,8 @@ export function ProductGrid({
         emptyWrap.className = 'product-grid__empty';
         emptyWrap.append(
           EmptyState({
-            title: t('marketplace.empty.title'),
-            description: t('marketplace.empty.description'),
+            title: emptyTitle || t('marketplace.empty.title'),
+            description: emptyDescription || t('marketplace.empty.description'),
             variant: 'empty',
           })
         );

@@ -1,0 +1,111 @@
+/* Search — TopBar typeahead dropdown (SearchSuggest) + /search results page (Prompt 4.4, plan A) */
+
+/* ── Typeahead dropdown ──────────────────────────────────────────────────── */
+.topbar__search-suggest {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  right: 0;
+  z-index: var(--z-dropdown);
+  max-height: min(60vh, 460px);
+  overflow-y: auto;
+  padding: var(--space-1);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-3);
+}
+
+.topbar__search-suggest-heading,
+.topbar__search-suggest-empty {
+  margin: 0;
+  padding: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.topbar__search-suggest-heading {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: var(--weight-md, 600);
+}
+
+.topbar__search-suggest-row,
+.topbar__search-suggest-all {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2);
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  font: inherit;
+}
+.topbar__search-suggest-row:hover,
+.topbar__search-suggest-row.is-active,
+.topbar__search-suggest-all:hover,
+.topbar__search-suggest-all.is-active {
+  background: var(--surface-2);
+}
+
+.topbar__search-suggest-thumb {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.topbar__search-suggest-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.topbar__search-suggest-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-md, 500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar__search-suggest-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar__search-suggest-all {
+  margin-top: var(--space-1);
+  border-top: var(--border-width) solid var(--border-subtle);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-md, 600);
+  color: var(--text-brand);
+}
+
+/* ── /search results page ───────────────────────────────────────────────── */
+.search-results-page {
+  max-width: var(--container-xl, 1280px);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) var(--space-8);
+}
+.search-results-page__header {
+  margin-bottom: var(--space-4);
+}
+.search-results-page__heading {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-lg, 700);
+  color: var(--text-primary);
+}
+.search-results-page__count {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}

@@ -370,12 +370,21 @@
     },
     "product_count": "{{count}}টি পণ্য",
     "flash_sale": {
-      "title": "ফ্লাশ সেল",
+      "title": "ফ্ল্যাশ সেল",
       "ends_in": "শেষ হচ্ছে",
       "tag": "সেল",
       "h": "ঘ",
       "m": "মি",
-      "s": "সে"
+      "s": "সে",
+      "view_all": "সবগুলো দেখুন",
+      "view_all_deals": "সব অফার দেখুন",
+      "claimed": "{{pct}}% বিক্রিত",
+      "items_left": "বাকি {{count}}টি",
+      "discount_off": "{{pct}}% ছাড়",
+      "quick_buy": "দ্রুত কিনুন",
+      "add_to_store": "+ স্টোরে",
+      "scroll_prev": "আগের পণ্যগুলো",
+      "scroll_next": "পরের পণ্যগুলো"
     },
     "filter": {
       "title": "ফিল্টার",
@@ -405,7 +414,25 @@
     },
     "back_to_top": "উপরে ফিরুন",
     "search_btn": "অনুসন্ধান",
-    "search_placeholder": "পণ্য, ব্র্যান্ড, ক্যাটাগরি খুঁজুন…"
+    "search_placeholder": "পণ্য, ব্র্যান্ড, ক্যাটাগরি খুঁজুন…",
+    "search_results_for": "“{{query}}” এর ফলাফল",
+    "clear_search": "অনুসন্ধান মুছুন",
+    "search_suggest": {
+      "heading": "পণ্য",
+      "view_all": "“{{query}}” এর সব ফলাফল দেখুন",
+      "no_results": "“{{query}}” এর কোনো মিল নেই"
+    },
+    "search_page": {
+      "heading": "অনুসন্ধান",
+      "results_count": {
+        "one": "“{{query}}” এর জন্য {{count}}টি ফলাফল",
+        "other": "“{{query}}” এর জন্য {{count}}টি ফলাফল"
+      },
+      "empty_title": "কোনো ফলাফল পাওয়া যায়নি",
+      "empty_desc": "“{{query}}” এর জন্য কিছু পাওয়া যায়নি। অন্য কীওয়ার্ড চেষ্টা করুন বা বানান দেখে নিন।",
+      "prompt_title": "মার্কেটপ্লেসে খুঁজুন",
+      "prompt_desc": "শুরু করতে উপরের সার্চ বারে একটি পণ্য, ব্র্যান্ড বা ক্যাটাগরির নাম লিখুন।"
+    }
   },
   "shell": {
     "mode": {

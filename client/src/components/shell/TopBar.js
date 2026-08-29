@@ -19,6 +19,7 @@ import { openCartDrawer } from '../../services/cart.js';
 import { openNotificationCenter } from '../notifications/NotificationCenter.js';
 import { openAssistantPanel } from '../ai/AssistantPanel.js';
 import { ICONS, getExplooroLogoSvg, formatExplooroBrandText } from '../ui/icons.js';
+import { attachSearchSuggest } from '../search/SearchSuggest.js';
 
 export function formatRemaining(ms, lang = 'en') {
   const totalMinutes = Math.max(0, Math.round(ms / 60_000));
@@ -423,19 +424,19 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
 
   searchForm.append(searchSubmitBtn, searchInput);
 
+  // Typeahead dropdown (Prompt 4.4, plan A). Self-contained inside the form — no cleanup contract
+  // needed because AppShell rebuilds the whole TopBar on every store/lang change.
+  attachSearchSuggest({ form: searchForm, input: searchInput, navigate });
+
   searchForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const query = searchInput.value.trim();
-    if (window.location.pathname === '/') {
-      const sp = new URLSearchParams(window.location.search);
-      if (query) sp.set('q', query);
-      else sp.delete('q');
-      const newUrl = `/${sp.toString() ? '?' + sp.toString() : ''}`;
-      window.history.pushState(null, '', newUrl);
-      window.dispatchEvent(new CustomEvent('explooro:search', { detail: { query } }));
-    } else {
-      navigate(`/${query ? '?q=' + encodeURIComponent(query) : ''}`);
+    // Empty submit from the results page clears back to the marketplace home.
+    if (!query) {
+      if (window.location.pathname === '/search') navigate('/');
+      return;
     }
+    navigate(`/search?q=${encodeURIComponent(query)}`);
   });
 
   bar.append(searchForm);

@@ -224,139 +224,146 @@ export default function ProductDetailPage(root, { params, navigate }) {
       const targetId = params?.id || window.location.pathname.split('/').filter(Boolean).pop() || 'PRD-8F2K9QX7';
       product = await catalogApi.getProduct(targetId);
       if (!product) throw new Error('Product not found.');
+
+      if (destroyed) return;
+
+      const title = lang === 'bn' ? product.title_bn : product.title_en;
+      const description = lang === 'bn' ? product.description_bn : product.description_en;
+      restoreHead = applySeo(product, lang);
+
+      let currentSelection = null; // set by VariantSelector.onChange when a full variant is chosen
+      const basePrice = Number(product.default_retail_price ?? product.price ?? 0);
+
+      const layout = document.createElement('div');
+      layout.className = 'product-detail-page__layout';
+
+      // ── Gallery column ──────────────────────────────────────────────────
+      const gallery = ImageGallery({ images: product.images, title, product });
+      const galleryCol = document.createElement('div');
+      galleryCol.className = 'product-detail-page__gallery-col';
+      galleryCol.append(gallery);
+      layout.append(galleryCol);
+
+      // ── Info column ──────────────────────────────────────────────────────
+      const infoCol = document.createElement('div');
+      infoCol.className = 'product-detail-page__info-col';
+
+      const titleEl = document.createElement('h1');
+      titleEl.className = 'product-detail-page__title';
+      titleEl.textContent = title;
+      infoCol.append(titleEl);
+
+      const ratingVal = Number(product.rating_avg ?? product.rating ?? 4.8);
+      const ratingCountVal = Number(product.rating_count ?? 0);
+      if (ratingCountVal > 0) {
+        const ratingLink = document.createElement('a');
+        ratingLink.href = '#product-reviews';
+        ratingLink.className = 'product-detail-page__rating-link';
+        ratingLink.textContent = t('product_detail.rating_summary', {
+          rating: ratingVal.toFixed(1),
+          count: ratingCountVal,
+        });
+        infoCol.append(ratingLink);
+      }
+
+      const priceSlot = document.createElement('div');
+      infoCol.append(priceSlot);
+      function renderPrice() {
+        priceSlot.replaceChildren(
+          PriceBreakdown({
+            retailPrice: currentSelection ? currentSelection.price : basePrice,
+            pricing: product.pricing,
+            role,
+            modules,
+            lang,
+          })
+        );
+      }
+      renderPrice();
+
+      const stockEl = document.createElement('p');
+      stockEl.className = 'product-detail-page__stock';
+      function renderStock() {
+        const qty = currentSelection ? currentSelection.stockQty : (product.stock_qty ?? product.stock ?? 0);
+        stockEl.textContent = stockLabel(qty);
+        stockEl.dataset.state = qty > 0 ? 'in-stock' : 'out-of-stock';
+      }
+      renderStock();
+      infoCol.append(stockEl);
+
+      // Pre-initialize CTAs before VariantSelector so ctaState is safely accessible
+      const ctaState = buildCtas(product, () => currentSelection);
+
+      if (product.has_variants && product.variants?.length) {
+        const variantSelector = VariantSelector({
+          variants: product.variants,
+          basePrice,
+          onChange: (selection) => {
+            currentSelection = selection;
+            renderPrice();
+            renderStock();
+            if (selection?.imageUrl != null || selection?.imageIndex != null) {
+              gallery.setOverrideImage(
+                selection ? { url: selection.imageUrl, image_index: selection.imageIndex } : null
+              );
+            } else {
+              gallery.setOverrideImage(null);
+            }
+            ctaState?.refreshCtas?.();
+          },
+        });
+        infoCol.append(variantSelector);
+      }
+
+      const supplierEl = supplierCard(product.supplier, lang);
+      if (supplierEl) infoCol.append(supplierEl);
+
+      infoCol.append(ctaState.ctaRow);
+
+      if (description) {
+        const descHeading = document.createElement('h2');
+        descHeading.className = 'product-detail-page__section-heading';
+        descHeading.textContent = t('product_detail.description_heading');
+        const descBody = document.createElement('p');
+        descBody.className = 'product-detail-page__description';
+        descBody.textContent = description;
+        infoCol.append(descHeading, descBody);
+      }
+
+      layout.append(infoCol);
+      page.replaceChildren(layout);
+
+      // ── Reviews + Q&A (below the fold) ──────────────────────────────────
+      const belowFold = document.createElement('div');
+      belowFold.className = 'product-detail-page__below-fold';
+      belowFold.id = 'product-reviews';
+
+      const productId = product.ref || product.id || targetId;
+
+      const reviewList = ReviewList({
+        productId,
+        ratingAvg: ratingVal,
+        ratingCount: ratingCountVal,
+        lang,
+      });
+      belowFold.append(reviewList.el);
+      cleanups.push(reviewList.cleanup);
+
+      const qna = QnASection({ productId, lang });
+      belowFold.append(qna.el);
+      cleanups.push(qna.cleanup);
+
+      page.append(belowFold);
     } catch (err) {
       if (destroyed) return;
       page.replaceChildren(
         EmptyState({
           title: t('product_detail.load_failed_title'),
-          description: err.message_en || t('product_detail.load_failed_description'),
+          description: err.message_en || err.message || t('product_detail.load_failed_description'),
         })
       );
       return;
     }
-    if (destroyed) return;
-
-    const title = lang === 'bn' ? product.title_bn : product.title_en;
-    const description = lang === 'bn' ? product.description_bn : product.description_en;
-    restoreHead = applySeo(product, lang);
-
-    let currentSelection = null; // set by VariantSelector.onChange when a full variant is chosen
-    const basePrice = Number(product.default_retail_price ?? product.price);
-
-    const layout = document.createElement('div');
-    layout.className = 'product-detail-page__layout';
-
-    // ── Gallery column ──────────────────────────────────────────────────
-    const gallery = ImageGallery({ images: product.images, title, product });
-    const galleryCol = document.createElement('div');
-    galleryCol.className = 'product-detail-page__gallery-col';
-    galleryCol.append(gallery);
-    layout.append(galleryCol);
-
-    // ── Info column ──────────────────────────────────────────────────────
-    const infoCol = document.createElement('div');
-    infoCol.className = 'product-detail-page__info-col';
-
-    const titleEl = document.createElement('h1');
-    titleEl.className = 'product-detail-page__title';
-    titleEl.textContent = title;
-    infoCol.append(titleEl);
-
-    if (Number(product.rating_count ?? 0) > 0) {
-      const ratingLink = document.createElement('a');
-      ratingLink.href = '#product-reviews';
-      ratingLink.className = 'product-detail-page__rating-link';
-      ratingLink.textContent = t('product_detail.rating_summary', {
-        rating: Number(product.rating_avg).toFixed(1),
-        count: product.rating_count,
-      });
-      infoCol.append(ratingLink);
-    }
-
-    const priceSlot = document.createElement('div');
-    infoCol.append(priceSlot);
-    function renderPrice() {
-      priceSlot.replaceChildren(
-        PriceBreakdown({
-          retailPrice: currentSelection ? currentSelection.price : basePrice,
-          pricing: product.pricing,
-          role,
-          modules,
-          lang,
-        })
-      );
-    }
-    renderPrice();
-
-    const stockEl = document.createElement('p');
-    stockEl.className = 'product-detail-page__stock';
-    function renderStock() {
-      const qty = currentSelection ? currentSelection.stockQty : (product.stock_qty ?? product.stock ?? 0);
-      stockEl.textContent = stockLabel(qty);
-      stockEl.dataset.state = qty > 0 ? 'in-stock' : 'out-of-stock';
-    }
-    renderStock();
-    infoCol.append(stockEl);
-
-    if (product.has_variants && product.variants?.length) {
-      const variantSelector = VariantSelector({
-        variants: product.variants,
-        basePrice,
-        onChange: (selection) => {
-          currentSelection = selection;
-          renderPrice();
-          renderStock();
-          if (selection?.imageUrl != null || selection?.imageIndex != null) {
-            gallery.setOverrideImage(
-              selection ? { url: selection.imageUrl, image_index: selection.imageIndex } : null
-            );
-          } else {
-            gallery.setOverrideImage(null);
-          }
-          ctaState.refreshCtas();
-        },
-      });
-      infoCol.append(variantSelector);
-    }
-
-    const supplierEl = supplierCard(product.supplier, lang);
-    if (supplierEl) infoCol.append(supplierEl);
-
-    const ctaState = buildCtas(product, () => currentSelection);
-    infoCol.append(ctaState.ctaRow);
-
-    if (description) {
-      const descHeading = document.createElement('h2');
-      descHeading.className = 'product-detail-page__section-heading';
-      descHeading.textContent = t('product_detail.description_heading');
-      const descBody = document.createElement('p');
-      descBody.className = 'product-detail-page__description';
-      descBody.textContent = description;
-      infoCol.append(descHeading, descBody);
-    }
-
-    layout.append(infoCol);
-    page.replaceChildren(layout);
-
-    // ── Reviews + Q&A (below the fold) ──────────────────────────────────
-    const belowFold = document.createElement('div');
-    belowFold.className = 'product-detail-page__below-fold';
-    belowFold.id = 'product-reviews';
-
-    const reviewList = ReviewList({
-      productId: product.ref,
-      ratingAvg: product.rating_avg,
-      ratingCount: product.rating_count,
-      lang,
-    });
-    belowFold.append(reviewList.el);
-    cleanups.push(reviewList.cleanup);
-
-    const qna = QnASection({ productId: product.ref, lang });
-    belowFold.append(qna.el);
-    cleanups.push(qna.cleanup);
-
-    page.append(belowFold);
   }
 
   init();

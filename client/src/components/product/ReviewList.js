@@ -275,9 +275,13 @@ export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = '
     }
     if (destroyed) return;
 
-    distributionSlot.replaceChildren(distributionBars(result.distribution, ratingCount));
+    const distribution = result?.distribution || { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    const reviewsList = Array.isArray(result?.reviews) ? result.reviews : [];
+    const pagination = result?.pagination || { total_pages: 1 };
 
-    if (result.reviews.length === 0) {
+    distributionSlot.replaceChildren(distributionBars(distribution, ratingCount));
+
+    if (reviewsList.length === 0) {
       listSlot.replaceChildren(
         EmptyState({
           title: t('product_detail.review.empty_title'),
@@ -288,16 +292,16 @@ export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = '
       return;
     }
 
-    listSlot.replaceChildren(...result.reviews.map((r) => reviewCard(r, lang, markHelpful)));
+    listSlot.replaceChildren(...reviewsList.map((r) => reviewCard(r, lang, markHelpful)));
 
-    if (result.pagination.total_pages > 1) {
+    if (pagination.total_pages > 1) {
       paginationSlot.replaceChildren(
         Pagination({
           mode: 'offset',
-          page: result.pagination.page,
-          totalPages: result.pagination.total_pages,
-          totalItems: result.pagination.total_count,
-          pageSize: result.pagination.page_size,
+          page: pagination.page || 1,
+          totalPages: pagination.total_pages,
+          totalItems: pagination.total_count || reviewsList.length,
+          pageSize: pagination.page_size || 5,
           onChange: ({ page: nextPage }) => { page = nextPage; load(); window.scrollTo({ top: listSlot.offsetTop, behavior: 'smooth' }); },
         })
       );

@@ -211,6 +211,8 @@ async function bootRouterDemo() {
     routes: [
       // Prompt 4.5: real marketplace home replaces the Prompt 1.5 stub.
       { path: '/', title: 'Explooro — Marketplace', permission: null, module: 'core', load: () => import('./pages/HomePage.js') },
+      // Prompt 4.4 (plan A): TopBar search results page.
+      { path: '/search', title: 'Search — Explooro', permission: null, module: 'core', load: () => import('./pages/SearchResultsPage.js') },
       // Prompt 4.6: real product detail page replaces the Prompt 1.5 stub.
       { path: '/product/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
       { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },

@@ -97,6 +97,19 @@ export async function listProducts(query = {}) {
   return { products, meta };
 }
 
+/**
+ * Typeahead for the TopBar search box (Prompt 4.4 `GET /search/suggest`). Returns a short list of
+ * matching products plus the full match count so the dropdown can offer "see all N results".
+ * The mock driver ships a seed Banglish→Bengali map; the live engine does the real transliteration.
+ */
+export async function searchSuggest(q, { limit = 6 } = {}) {
+  const term = (q ?? '').trim();
+  if (!term) return { suggestions: [], total: 0, query: '' };
+  const res = await api.get('/search/suggest', { query: { q: term, limit } });
+  const suggestions = (res?.suggestions ?? res?.data?.suggestions ?? []).map(normalizeProductListItem);
+  return { suggestions, total: res?.total ?? suggestions.length, query: res?.query ?? term };
+}
+
 export async function listReviews(productId, { rating, hasPhotos, sort, page = 1, pageSize = 10 } = {}) {
   const query = { page, page_size: pageSize };
   if (rating) query.rating = rating;

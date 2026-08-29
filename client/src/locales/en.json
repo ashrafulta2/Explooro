@@ -375,7 +375,16 @@
       "tag": "Sale",
       "h": "h",
       "m": "m",
-      "s": "s"
+      "s": "s",
+      "view_all": "View All",
+      "view_all_deals": "View All Deals",
+      "claimed": "{{pct}}% Claimed",
+      "items_left": "{{count}} left",
+      "discount_off": "{{pct}}% OFF",
+      "quick_buy": "Quick Buy",
+      "add_to_store": "+ Store",
+      "scroll_prev": "Previous products",
+      "scroll_next": "Next products"
     },
     "filter": {
       "title": "Filters",
@@ -405,7 +414,25 @@
     },
     "back_to_top": "Back to top",
     "search_btn": "Search",
-    "search_placeholder": "Search products, brands, categories…"
+    "search_placeholder": "Search products, brands, categories…",
+    "search_results_for": "Results for “{{query}}”",
+    "clear_search": "Clear search",
+    "search_suggest": {
+      "heading": "Products",
+      "view_all": "See all results for “{{query}}”",
+      "no_results": "No matches for “{{query}}”"
+    },
+    "search_page": {
+      "heading": "Search",
+      "results_count": {
+        "one": "{{count}} result for “{{query}}”",
+        "other": "{{count}} results for “{{query}}”"
+      },
+      "empty_title": "No results found",
+      "empty_desc": "We couldn't find anything for “{{query}}”. Try a different keyword or check the spelling.",
+      "prompt_title": "Search the marketplace",
+      "prompt_desc": "Type a product, brand, or category into the search bar above to get started."
+    }
   },
   "shell": {
     "mode": {

@@ -8,6 +8,43 @@ function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
 
+// A tiny Banglish → Bengali seed map so "shari"/"saree" find "শাড়ি" in mock mode. The real
+// engine (Prompt 4.4) replaces this with server/src/utils/transliterate.js + the i18n_strings
+// table — this is only here so the mock search feels like the finished feature during preview.
+const SEARCH_SYNONYMS = {
+  saree: ['শাড়ি'], shari: ['শাড়ি'], sari: ['শাড়ি'],
+  panjabi: ['পাঞ্জাবি'], panjabi_: ['পাঞ্জাবি'], punjabi: ['পাঞ্জাবি'],
+  kurti: ['কুর্তি'], jhola: ['ব্যাগ'], bag: ['ব্যাগ', 'bag'],
+  juta: ['জুতা'], joota: ['জুতা'], shoe: ['জুতা', 'shoe'],
+  modhu: ['মধু'], honey: ['মধু', 'honey'], cha: ['চা', 'tea'], tea: ['চা', 'tea'],
+  gohona: ['গহনা'], jewellery: ['গহনা'], jewelry: ['গহনা'],
+};
+
+/** Expands a raw query into the lowercased needles the mock search should test against. */
+function searchNeedles(raw) {
+  const q = (raw || '').toLowerCase().trim();
+  if (!q) return [];
+  const needles = new Set([q]);
+  for (const word of q.split(/\s+/)) {
+    if (SEARCH_SYNONYMS[word]) for (const syn of SEARCH_SYNONYMS[word]) needles.add(syn.toLowerCase());
+  }
+  return [...needles];
+}
+
+/** True when any needle is a substring of the product's searchable text. */
+function productMatchesQuery(p, raw) {
+  const needles = searchNeedles(raw);
+  if (needles.length === 0) return true;
+  const haystack = [
+    p.title_en, p.title_bn, p.category, p.category_bn, p.brand, p.district, p.ref,
+    p.description_en, p.description_bn,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return needles.some((n) => haystack.includes(n));
+}
+
 // Response time copy keyed by trust tier — mirrors server/src/services/product.service.js's
 // RESPONSE_TIME_BY_TIER (chat/messaging response tracking doesn't exist yet, Phase 8).
 const RESPONSE_TIME_BY_TIER = {
@@ -183,15 +220,7 @@ export default [
       let filtered = [...activeProducts];
 
       if (query.q || query.search) {
-        const q = (query.q || query.search).toLowerCase().trim();
-        filtered = filtered.filter(
-          (p) =>
-            p.title_en?.toLowerCase().includes(q) ||
-            p.title_bn?.toLowerCase().includes(q) ||
-            p.category?.toLowerCase().includes(q) ||
-            p.district?.toLowerCase().includes(q) ||
-            p.ref?.toLowerCase().includes(q)
-        );
+        filtered = filtered.filter((p) => productMatchesQuery(p, query.q || query.search));
       }
       if (query.category && query.category !== 'all') {
         filtered = filtered.filter((p) => p.category === query.category);
@@ -241,12 +270,17 @@ export default [
     method: 'GET',
     path: '/products/:id',
     handler({ params }) {
-      const idParam = String(params?.id || '');
+      const rawId = String(params?.id || '').trim();
+      const idParam = decodeURIComponent(rawId);
       const numIdx = Number(idParam);
       const product = activeProducts.find((p, idx) =>
         p.ref === idParam ||
         p.slug === idParam ||
         String(p.id) === idParam ||
+        p.ref === rawId ||
+        p.slug === rawId ||
+        p.ref?.toLowerCase() === idParam.toLowerCase() ||
+        p.slug?.toLowerCase() === idParam.toLowerCase() ||
         (!isNaN(numIdx) && numIdx > 0 && (idx === numIdx - 1 || numIdx === 1))
       ) || activeProducts[0];
 
@@ -631,18 +665,13 @@ export default [
     method: 'GET',
     path: '/search',
     handler({ query }) {
-      const q = (query.q || query.query || '').toLowerCase().trim();
-      const matched = products.filter(
-        (p) =>
-          !q ||
-          (p.title_en && p.title_en.toLowerCase().includes(q)) ||
-          (p.title_bn && p.title_bn.includes(q)) ||
-          (p.description_en && p.description_en.toLowerCase().includes(q)) ||
-          (p.brand && p.brand.toLowerCase().includes(q))
-      );
+      const raw = query.q || query.query || '';
+      const matched = activeProducts.filter((p) => productMatchesQuery(p, raw));
       return {
         status: 200,
         body: {
+          data: { products: matched },
+          meta: { count: matched.length, total: matched.length },
           products: matched,
           stores: [],
           categories: [],
@@ -656,20 +685,15 @@ export default [
     method: 'GET',
     path: '/search/suggest',
     handler({ query }) {
-      const q = (query.q || query.query || '').toLowerCase().trim();
-      const suggestions = products
-        .filter(
-          (p) =>
-            !q ||
-            (p.title_en && p.title_en.toLowerCase().includes(q)) ||
-            (p.title_bn && p.title_bn.includes(q))
-        )
-        .slice(0, 6);
+      const raw = query.q || query.query || '';
+      const limit = Math.min(Number(query.limit) || 6, 12);
+      const allMatches = activeProducts.filter((p) => productMatchesQuery(p, raw));
       return {
         status: 200,
         body: {
-          query: q,
-          suggestions,
+          query: raw.trim(),
+          suggestions: allMatches.slice(0, limit),
+          total: allMatches.length,
           categories: [],
           driver: 'mock',
         },

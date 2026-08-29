@@ -27,6 +27,8 @@
 @import './components/media.css';
 /* Prompt 4.5: product discovery components */
 @import './components/product.css';
+/* Prompt 4.4 (plan A): TopBar typeahead + /search results page */
+@import './components/search.css';
 /* Prompt 4.7: saler sourcing & profit calculator components */
 @import './components/sourcing.css';
 /* Prompt 4.8: virtual storefront & builder components */

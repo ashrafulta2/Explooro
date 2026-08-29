@@ -30,6 +30,26 @@ function boltSvg() {
   return wrap;
 }
 
+/** Inline SVG: chevron left. */
+function chevronLeftSvg() {
+  const wrap = document.createElement('span');
+  wrap.className = 'flash-sale-widget__nav-icon';
+  wrap.setAttribute('aria-hidden', 'true');
+  wrap.innerHTML =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+  return wrap;
+}
+
+/** Inline SVG: chevron right. */
+function chevronRightSvg() {
+  const wrap = document.createElement('span');
+  wrap.className = 'flash-sale-widget__nav-icon';
+  wrap.setAttribute('aria-hidden', 'true');
+  wrap.innerHTML =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+  return wrap;
+}
+
 /** Format seconds into { hh, mm, ss } zero-padded strings. */
 function secondsToHMS(totalSeconds) {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -69,12 +89,16 @@ export function FlashSaleWidget({
   onNavigate = null,
   onAction = null,
 } = {}) {
-  const root = document.createElement('div');
+  const root = document.createElement('section');
   root.className = 'flash-sale-widget';
+  root.setAttribute('aria-label', t('marketplace.flash_sale.title'));
 
   // ── Header strip ─────────────────────────────────────────────────────────
   const header = document.createElement('div');
   header.className = 'flash-sale-widget__header';
+
+  const headerLeft = document.createElement('div');
+  headerLeft.className = 'flash-sale-widget__header-left';
 
   const titleWrap = document.createElement('div');
   titleWrap.className = 'flash-sale-widget__title';
@@ -82,12 +106,13 @@ export function FlashSaleWidget({
   const titleText = document.createElement('span');
   titleText.textContent = t('marketplace.flash_sale.title');
   titleWrap.append(titleText);
-  header.append(titleWrap);
+  headerLeft.append(titleWrap);
 
   // Countdown
   const countdownWrap = document.createElement('div');
   countdownWrap.className = 'flash-sale-widget__countdown';
   const endsLabel = document.createElement('span');
+  endsLabel.className = 'flash-sale-widget__ends-label';
   endsLabel.textContent = t('marketplace.flash_sale.ends_in');
   countdownWrap.append(endsLabel);
 
@@ -101,16 +126,47 @@ export function FlashSaleWidget({
 
   timerWrap.append(hhWrap, makeSep(), mmWrap, makeSep(), ssWrap);
   countdownWrap.append(timerWrap);
-  header.append(countdownWrap);
+  headerLeft.append(countdownWrap);
+  header.append(headerLeft);
+
+  // View all action in header
+  const viewAllBtn = document.createElement('button');
+  viewAllBtn.type = 'button';
+  viewAllBtn.className = 'flash-sale-widget__view-all';
+  viewAllBtn.innerHTML = `<span>${t('marketplace.flash_sale.view_all_deals') || 'View All Deals'}</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
+  viewAllBtn.addEventListener('click', () => {
+    if (typeof onNavigate === 'function') {
+      onNavigate('/?feed=flash');
+    } else {
+      window.location.search = '?feed=flash';
+    }
+  });
+  header.append(viewAllBtn);
+
   root.append(header);
 
-  // ── Product scroll row ───────────────────────────────────────────────────
+  // ── Product scroll wrapper with navigation arrows ────────────────────────
+  const scrollWrapper = document.createElement('div');
+  scrollWrapper.className = 'flash-sale-widget__scroll-wrapper';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.type = 'button';
+  prevBtn.className = 'flash-sale-widget__nav-btn flash-sale-widget__nav-btn--prev is-hidden';
+  prevBtn.setAttribute('aria-label', t('marketplace.flash_sale.scroll_prev'));
+  prevBtn.append(chevronLeftSvg());
+
+  const nextBtn = document.createElement('button');
+  nextBtn.type = 'button';
+  nextBtn.className = 'flash-sale-widget__nav-btn flash-sale-widget__nav-btn--next';
+  nextBtn.setAttribute('aria-label', t('marketplace.flash_sale.scroll_next'));
+  nextBtn.append(chevronRightSvg());
+
   const scroll = document.createElement('div');
   scroll.className = 'flash-sale-widget__scroll';
 
   let flashProducts = products.filter((p) => p.is_flash_sale);
   if (flashProducts.length === 0 && products.length > 0) {
-    flashProducts = products.slice(0, 8).map((p) => ({ ...p, is_flash_sale: true }));
+    flashProducts = products.slice(0, 10).map((p) => ({ ...p, is_flash_sale: true }));
   }
 
   for (const product of flashProducts) {
@@ -127,7 +183,29 @@ export function FlashSaleWidget({
     );
   }
 
-  root.append(scroll);
+  const updateArrows = () => {
+    // WHY: scroll-snap (mandatory) parks the rest position at the first card's
+    // offsetLeft (the scroll container's left padding), never a true 0 — so the
+    // "at start" test has to tolerate that inset or the prev arrow never hides.
+    const startInset = (scroll.firstElementChild?.offsetLeft ?? 0) + 5;
+    const atStart = scroll.scrollLeft <= startInset;
+    const atEnd = scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 5;
+    prevBtn.classList.toggle('is-hidden', atStart);
+    nextBtn.classList.toggle('is-hidden', atEnd);
+  };
+
+  prevBtn.addEventListener('click', () => {
+    scroll.scrollBy({ left: -380, behavior: 'smooth' });
+  });
+  nextBtn.addEventListener('click', () => {
+    scroll.scrollBy({ left: 380, behavior: 'smooth' });
+  });
+
+  scroll.addEventListener('scroll', updateArrows, { passive: true });
+  setTimeout(updateArrows, 100);
+
+  scrollWrapper.append(prevBtn, scroll, nextBtn);
+  root.append(scrollWrapper);
 
   // ── Countdown interval ───────────────────────────────────────────────────
   const interval = setInterval(() => {
@@ -140,6 +218,7 @@ export function FlashSaleWidget({
 
   function cleanup() {
     clearInterval(interval);
+    scroll.removeEventListener('scroll', updateArrows);
   }
 
   return { el: root, cleanup };

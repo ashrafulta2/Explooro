@@ -360,18 +360,39 @@ export function ProductCard({
 } = {}) {
   const card = document.createElement('article');
   card.className = size === 'compact' ? 'product-card product-card--compact' : 'product-card';
-  // Keyboard accessibility — the whole card is clickable
   card.setAttribute('tabindex', '0');
   card.setAttribute('role', 'button');
-  card.setAttribute(
-    'aria-label',
-    lang === 'bn' ? (product.title_bn || product.title_en || '') : (product.title_en || product.title_bn || '')
-  );
+  
+  const titleText = lang === 'bn'
+    ? (product.title_bn || product.title_en || '')
+    : (product.title_en || product.title_bn || '');
+  card.setAttribute('aria-label', titleText);
 
-  const navigate = () => onNavigate && onNavigate(`/product/${product.ref}`);
+  // Robust product target resolution
+  const targetRef = product.ref || product.slug || product.product_ref || product.id || product.product_id;
+  const productUrl = targetRef ? `/product/${encodeURIComponent(targetRef)}` : '/';
+
+  const navigate = (e) => {
+    // If the click originated from an interactive CTA button or link inside, don't double navigate
+    if (e && (e.target.closest('button') || (e.target.closest('a') && e.target.closest('a') !== e.currentTarget))) {
+      return;
+    }
+    if (typeof onNavigate === 'function') {
+      onNavigate(productUrl);
+    } else if (typeof window.__explooroRouter?.navigate === 'function') {
+      window.__explooroRouter.navigate(productUrl);
+    } else {
+      window.location.href = productUrl;
+    }
+  };
+
   card.addEventListener('click', navigate);
   card.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(); }
+    if (e.key === 'Enter' || e.key === ' ') {
+      if (e.target.closest('button')) return;
+      e.preventDefault();
+      navigate(e);
+    }
   });
 
   // ── Image / placeholder ─────────────────────────────────────────────────
@@ -382,7 +403,7 @@ export function ProductCard({
   const placeholder = document.createElement('div');
   placeholder.className = 'product-card__image-placeholder';
   placeholder.style.cssText = `background:${palette.bg};color:${palette.fg}`;
-  placeholder.textContent = placeholderInitials(lang === 'bn' ? product.title_bn : product.title_en);
+  placeholder.textContent = placeholderInitials(titleText);
 
   const imageUrl = resolveProductImage(product);
 
@@ -390,7 +411,7 @@ export function ProductCard({
     const img = document.createElement('img');
     img.className = 'product-card__image';
     img.src = imageUrl;
-    img.alt = (lang === 'bn' ? (product.title_bn || product.title_en) : (product.title_en || product.title_bn)) || '';
+    img.alt = titleText;
     img.loading = 'lazy';
     img.decoding = 'async';
     img.addEventListener('error', () => {
@@ -401,7 +422,7 @@ export function ProductCard({
     imgWrap.append(placeholder);
   }
 
-  // Flash sale tag overlaid on the image
+  // Flash sale tag and discount badge overlaid on the image
   if (product.is_flash_sale && (modules?.flash_sale !== false)) {
     const flashTag = document.createElement('div');
     flashTag.className = 'product-card__flash-tag';
@@ -450,12 +471,14 @@ export function ProductCard({
   // Title
   const title = document.createElement('h3');
   title.className = 'product-card__title';
-  title.textContent = lang === 'bn'
-    ? (product.title_bn || product.title_en || '')
-    : (product.title_en || product.title_bn || '');
+  const titleLink = document.createElement('a');
+  titleLink.href = productUrl;
+  titleLink.className = 'product-card__title-link';
+  titleLink.textContent = titleText;
+  title.append(titleLink);
   body.append(title);
 
-  // Price row + margin badge
+  // Price row + margin badge + discount strikethrough
   const priceRow = document.createElement('div');
   priceRow.className = 'product-card__price-row';
 
@@ -463,6 +486,26 @@ export function ProductCard({
   priceEl.className = 'product-card__price';
   priceEl.textContent = formatCurrency(product.price, { lang });
   priceRow.append(priceEl);
+
+  // Flash Sale Original Price Strikethrough & Discount Tag
+  if (product.is_flash_sale && (modules?.flash_sale !== false)) {
+    const numPrice = parseFloat(product.price) || 0;
+    const origPrice = product.original_price ?? (numPrice > 0 ? Math.round(numPrice * 1.25) : 0);
+    if (origPrice > numPrice) {
+      const origEl = document.createElement('span');
+      origEl.className = 'product-card__original-price';
+      origEl.textContent = formatCurrency(origPrice, { lang });
+      priceRow.append(origEl);
+
+      const discountPct = Math.round(((origPrice - numPrice) / origPrice) * 100);
+      if (discountPct > 0) {
+        const discBadge = document.createElement('span');
+        discBadge.className = 'product-card__discount-badge';
+        discBadge.textContent = t('marketplace.flash_sale.discount_off', { pct: discountPct }) || `-${discountPct}%`;
+        priceRow.append(discBadge);
+      }
+    }
+  }
 
   // WHY: margin badge only visible to Salers AND only when 'sourcing' module is on —
   // a divergence here (client vs server) is a financial bug; the badge is informational only.
@@ -486,52 +529,76 @@ export function ProductCard({
   ratingWrap.append(ratingCount);
   body.append(ratingWrap);
 
-  card.append(body);
+  // Flash Sale Claimed Stock Progress Bar
+  if (product.is_flash_sale && (modules?.flash_sale !== false)) {
+    const progressWrap = document.createElement('div');
+    progressWrap.className = 'product-card__flash-progress';
+    const totalStock = Math.max(20, (product.stock_qty ?? product.stock ?? 10) + 15);
+    const currStock = product.stock_qty ?? product.stock ?? 10;
+    const soldPct = Math.min(95, Math.max(35, Math.round(((totalStock - currStock) / totalStock) * 100)));
 
-  // ── CTA action button (hidden in compact mode to save space) ────────────
-  if (size === 'full') {
-    const actionWrap = document.createElement('div');
-    actionWrap.className = 'product-card__action';
+    const bar = document.createElement('div');
+    bar.className = 'product-card__progress-bar';
+    const fill = document.createElement('div');
+    fill.className = 'product-card__progress-fill';
+    fill.style.width = `${soldPct}%`;
+    bar.append(fill);
 
-    const stockVal = product.stock ?? product.stock_qty ?? product.stock_quantity ?? 10;
-    const inStock = Number(stockVal) > 0;
-    const isSaler = role === 'saler';
+    const labelRow = document.createElement('div');
+    labelRow.className = 'product-card__progress-label';
+    const claimedText = document.createElement('span');
+    claimedText.textContent = t('marketplace.flash_sale.claimed', { pct: soldPct }) || `${soldPct}% Claimed`;
+    labelRow.append(claimedText);
 
-    const actionBtn = document.createElement('button');
-    actionBtn.type = 'button';
-    actionBtn.className = isSaler
-      ? 'product-card__action-btn product-card__action-btn--add-to-store'
-      : 'product-card__action-btn';
-    actionBtn.disabled = !inStock && !isSaler;
-
-    if (!inStock && !isSaler) {
-      actionBtn.textContent = t('marketplace.product.out_of_stock');
-      actionBtn.style.background = 'var(--surface-2)';
-      actionBtn.style.color = 'var(--text-muted)';
-    } else if (isSaler) {
-      actionBtn.textContent = t('marketplace.product.add_to_store');
-    } else {
-      actionBtn.textContent = t('marketplace.product.quick_buy');
-    }
-
-    // Stop propagation so clicking the button doesn't also navigate to product detail
-    actionBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (onAction) {
-        onAction(product, isSaler ? 'add_to_store' : 'quick_buy');
-      } else if (!isSaler) {
-        openQuickBuyModal({
-          product,
-          initialQty: 1,
-          navigate: onNavigate,
-        });
-      }
-    });
-
-    actionWrap.append(actionBtn);
-    card.append(actionWrap);
+    progressWrap.append(bar, labelRow);
+    body.append(progressWrap);
   }
 
+  const stockVal = product.stock ?? product.stock_qty ?? product.stock_quantity ?? 10;
+  const inStock = Number(stockVal) > 0;
+  const isSaler = role === 'saler';
+
+  // ── CTA action button (rendered between image and body) ───────
+  const actionWrap = document.createElement('div');
+  actionWrap.className = 'product-card__action';
+
+  const actionBtn = document.createElement('button');
+  actionBtn.type = 'button';
+  actionBtn.className = isSaler
+    ? 'product-card__action-btn product-card__action-btn--add-to-store'
+    : 'product-card__action-btn';
+  actionBtn.disabled = !inStock && !isSaler;
+
+  if (!inStock && !isSaler) {
+    actionBtn.textContent = t('marketplace.product.out_of_stock');
+    actionBtn.style.background = 'var(--surface-2)';
+    actionBtn.style.color = 'var(--text-muted)';
+  } else if (isSaler) {
+    actionBtn.textContent = size === 'compact'
+      ? (t('marketplace.flash_sale.add_to_store') || t('marketplace.product.add_to_store') || '+ Store')
+      : (t('marketplace.product.add_to_store') || 'Add to My Store');
+  } else {
+    actionBtn.textContent = t('marketplace.flash_sale.quick_buy') || t('marketplace.product.quick_buy') || 'Quick Buy';
+  }
+
+  // Stop propagation so clicking the button doesn't also navigate to product detail
+  actionBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (onAction) {
+      onAction(product, isSaler ? 'add_to_store' : 'quick_buy');
+    } else if (!isSaler) {
+      openQuickBuyModal({
+        product,
+        initialQty: 1,
+        navigate: onNavigate,
+      });
+    }
+  });
+
+  actionWrap.append(actionBtn);
+  card.append(actionWrap);
+
+  card.append(body);
   return card;
 }
 
