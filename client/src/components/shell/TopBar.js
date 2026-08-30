@@ -21,6 +21,11 @@ import { openAssistantPanel } from '../ai/AssistantPanel.js';
 import { ICONS, getExplooroLogoSvg, formatExplooroBrandText } from '../ui/icons.js';
 import { attachSearchSuggest } from '../search/SearchSuggest.js';
 
+// Grace period before an emptied search box resets the results page. Long enough that
+// select-all-and-retype (or a fast backspace-then-type) doesn't bounce through the home page
+// mid-keystroke, short enough that a deliberate clear feels immediate.
+const SEARCH_CLEAR_RESET_MS = 250;
+
 export function formatRemaining(ms, lang = 'en') {
   const totalMinutes = Math.max(0, Math.round(ms / 60_000));
   const h = Math.floor(totalMinutes / 60);
@@ -428,8 +433,37 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
   // needed because AppShell rebuilds the whole TopBar on every store/lang change.
   attachSearchSuggest({ form: searchForm, input: searchInput, navigate });
 
+  // WHY: emptying the box has to undo the search, not just blank the input. Without this, the
+  // results page keeps rendering the old term's grid under an empty search box, which reads as
+  // "clearing did nothing" — the box and the page disagree about what is being searched.
+  // Covers every way to empty it: backspacing, Ctrl+A + Delete, the native type=search "x", and
+  // Escape (the last two fire `search`, not just `input`, in Chromium).
+  let clearResetTimer = null;
+  function cancelClearReset() {
+    if (clearResetTimer) {
+      clearTimeout(clearResetTimer);
+      clearResetTimer = null;
+    }
+  }
+  function resetToUnsearchedState() {
+    cancelClearReset();
+    // Only the results page has a search to undo, and re-checking the path here is also what
+    // keeps a stale timer from a replaced TopBar from pushing a second history entry.
+    if (searchInput.value.trim()) return;
+    if (window.location.pathname !== '/search') return;
+    navigate('/');
+  }
+  searchInput.addEventListener('input', () => {
+    cancelClearReset();
+    if (searchInput.value.trim()) return;
+    clearResetTimer = setTimeout(resetToUnsearchedState, SEARCH_CLEAR_RESET_MS);
+  });
+  // The "x" button and Escape are unambiguous — reset without waiting out the grace period.
+  searchInput.addEventListener('search', resetToUnsearchedState);
+
   searchForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    cancelClearReset();
     const query = searchInput.value.trim();
     // Empty submit from the results page clears back to the marketplace home.
     if (!query) {

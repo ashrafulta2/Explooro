@@ -56,21 +56,53 @@ export function createAppShell({ container, navigate }) {
   document.body.append(cartDrawer);
   initCart();
 
+  // WHY: the TopBar is rebuilt wholesale on every store, language, and route change, so a naive
+  // replaceChildren() throws away the product-search box the user is typing in — blur plus the
+  // half-typed term, since the fresh input only re-seeds itself from the URL's `q`. That bites
+  // hardest right after clearing the box on /search: the reset navigation rebuilds the TopBar and
+  // the caret would land on <body> mid-thought.
+  //
+  // Focus follows the box across every rebuild, but the typed text only survives a rebuild that
+  // did NOT change `q` — otherwise a Back into a results page would restore the stale text over
+  // the term the page is actually showing, which is the very desync this is here to prevent.
+  let lastSearchQuery = null;
+  function renderTopBar(props) {
+    const searchQuery = new URLSearchParams(window.location.search).get('q') || '';
+    const previous = topbarSlot.querySelector('.topbar__product-search-input');
+    const hadFocus = Boolean(previous) && document.activeElement === previous;
+    const carriedText =
+      hadFocus && searchQuery === lastSearchQuery
+        ? { value: previous.value, start: previous.selectionStart, end: previous.selectionEnd }
+        : null;
+    lastSearchQuery = searchQuery;
+
+    topbarSlot.replaceChildren(TopBar(props));
+    if (!hadFocus) return;
+    const next = topbarSlot.querySelector('.topbar__product-search-input');
+    if (!next) return;
+    if (carriedText) {
+      next.value = carriedText.value;
+      next.focus();
+      if (carriedText.start != null) next.setSelectionRange(carriedText.start, carriedText.end);
+      return;
+    }
+    next.focus();
+    next.setSelectionRange(next.value.length, next.value.length);
+  }
+
   function render() {
     const s = appStore.get();
     if (!s.auth.isAuthenticated || !s.auth.role) {
       sidebarSlot.replaceChildren();
       mobileNavSlot.replaceChildren();
       shellEl.dataset.hasChrome = 'guest';
-      topbarSlot.replaceChildren(
-        TopBar({
-          role: null,
-          elevatedGrant: null,
-          badges: s.badges || {},
-          navigate,
-          onOpenPalette: () => palette.open(),
-        })
-      );
+      renderTopBar({
+        role: null,
+        elevatedGrant: null,
+        badges: s.badges || {},
+        navigate,
+        onOpenPalette: () => palette.open(),
+      });
       return;
     }
     shellEl.dataset.hasChrome = 'true';
@@ -95,15 +127,13 @@ export function createAppShell({ container, navigate }) {
     if (newSidebar && sidebarScrollTop > 0) {
       newSidebar.scrollTop = sidebarScrollTop;
     }
-    topbarSlot.replaceChildren(
-      TopBar({
-        role: s.auth.role,
-        elevatedGrant: s.shell.elevatedGrant,
-        badges: s.badges,
-        navigate,
-        onOpenPalette: () => palette.open(),
-      })
-    );
+    renderTopBar({
+      role: s.auth.role,
+      elevatedGrant: s.shell.elevatedGrant,
+      badges: s.badges,
+      navigate,
+      onOpenPalette: () => palette.open(),
+    });
     mobileNavSlot.replaceChildren(
       MobileNav({ role: s.auth.role, ctx, currentPath, navigate, collapsedGroups: s.shell.collapsedGroups })
     );
