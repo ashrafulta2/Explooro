@@ -2,7 +2,7 @@
  * websocket.js — WebSocket Connection Manager (Prompt 8.4 / DFD Subsystem 7.0 & PRD Gap #7).
  *
  * Implements:
- * 1. Single-use ticket authentication handshake (/api/v1/chat/ticket).
+ * 1. Single-use ticket authentication handshake (POST /chat/ticket).
  * 2. Auto-reconnect with exponential backoff and randomized jitter.
  * 3. Outbound offline queue persisted to IndexedDB (survives page reloads).
  * 4. Automatic queue flushing and missed-message replay (chat:sync) on reconnect.
@@ -10,6 +10,12 @@
  */
 
 import { api } from '../core/api.js';
+import { createMockChatSocket } from '../mocks/chatSocket.js';
+
+// Same switch core/api.js reads. In mock mode the ticket resolves but there is no /ws upgrade to
+// make, so the manager talks to a loopback socket instead of retry-storming a backend that is not
+// running. Every other code path — backoff, queue, heartbeat, status — is unchanged.
+const MOCK_MODE = !(typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_MODE === 'live');
 
 // Connection States
 export const WS_STATUS = {
@@ -173,7 +179,7 @@ class WebSocketManager {
       const host = (typeof window !== 'undefined' && window.location.host) || 'localhost:3000';
       const wsUrl = `${protocol}//${host}/ws?ticket=${ticket}`;
 
-      this.socket = new WebSocket(wsUrl);
+      this.socket = MOCK_MODE ? createMockChatSocket(wsUrl) : new WebSocket(wsUrl);
 
       this.socket.onopen = () => {
         this.setStatus(WS_STATUS.CONNECTED);
@@ -251,16 +257,28 @@ class WebSocketManager {
   }
 
   handleIncomingFrame(frame) {
-    const { type, payload } = frame;
+    // WHY the flat reads: server/src/sockets/chat.handler.js sends
+    // { type, clientMsgId, messageId, threadId } and { type, threadId, message: {...} } — it has
+    // never wrapped frames in a `payload` object. Destructuring `payload` off the frame left it
+    // undefined, so no ack ever cleared the outbound queue and no inbound message ever advanced
+    // the replay cursor: after a reconnect chat:sync asked for everything since message 0 and
+    // every queued message was re-sent forever.
+    const { type } = frame;
 
     // Track last received message id for replay
-    if (type === 'chat:message' && payload?.id) {
-      this.lastReceivedMessageId = Math.max(this.lastReceivedMessageId, Number(payload.id));
+    const incomingId = frame.message?.id;
+    if (type === 'chat:message' && incomingId) {
+      this.lastReceivedMessageId = Math.max(this.lastReceivedMessageId, Number(incomingId));
     }
 
     // Ack handling: remove confirmed item from queue and indexedDB
-    if (type === 'chat:ack' && payload?.client_msg_id) {
-      this.dequeue(payload.client_msg_id);
+    if (type === 'chat:ack' && frame.clientMsgId) {
+      this.dequeue(frame.clientMsgId);
+    }
+
+    // A rejected send must not sit in the queue forever being retried on every reconnect.
+    if (type === 'chat:error' && frame.clientMsgId) {
+      this.dequeue(frame.clientMsgId);
     }
 
     // Dispatch to subscribers

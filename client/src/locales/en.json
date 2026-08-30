@@ -1898,7 +1898,9 @@
     "report_prompt": "Please provide a reason for reporting this message:",
     "report_submitted": "Message reported to moderation team.",
     "modal_insert_product": "Insert Product Card",
-    "btn_insert_card": "Insert Product Card"
+    "btn_insert_card": "Insert Product Card",
+    "is_typing": "is typing…",
+    "send_failed": "Message could not be sent."
   },
   "ads": {
     "sponsored": "Sponsored",

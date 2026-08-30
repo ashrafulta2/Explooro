@@ -147,6 +147,25 @@ export default function ChatPage(root) {
     }
   }
 
+  // The gateway's live payload is camelCase and nested under `message`; every other code path
+  // here (HTTP load, optimistic send) uses the snake_case row shape chat.service.js returns over
+  // HTTP. Normalise once at the boundary so MessageBubble only ever sees one shape.
+  function normalizeWireMessage(threadId, m) {
+    return {
+      id: m.id,
+      client_msg_id: m.clientMsgId ?? null,
+      thread_id: threadId,
+      sender_id: m.senderId,
+      sender_name: m.senderName,
+      content: m.content,
+      msg_type: m.msgType || 'TEXT',
+      payload_json: m.payloadJson || {},
+      flagged_for_moderation: Boolean(m.flaggedForModeration),
+      created_at: m.createdAt || new Date().toISOString(),
+      status: 'DELIVERED',
+    };
+  }
+
   // 4. Render Active Conversation Pane
   function renderActiveConversation() {
     const convoBox = container.querySelector('#chat-conversation-box');
@@ -297,36 +316,57 @@ export default function ChatPage(root) {
     updateConnectionBadge(status);
   });
 
+  // WHY the flat camelCase reads below: server/src/sockets/chat.handler.js and
+  // chat.service.js send frames as { type, clientMsgId, messageId, threadId } and
+  // { type, threadId, message: {...} } — never wrapped in a `payload` object. This handler
+  // destructured `payload` off the frame, so it was undefined on every live frame and the whole
+  // real-time half of the page (acks, inbound messages, typing) silently did nothing.
   const unsubMsg = wsManager.onMessage((frame) => {
-    const { type, payload } = frame;
+    const { type } = frame;
+    const threadId = frame.threadId !== undefined ? Number(frame.threadId) : null;
 
     // Message Ack -> update optimistic message to delivered
     if (type === 'chat:ack') {
-      const msg = messages.find((m) => m.client_msg_id === payload.client_msg_id);
+      const msg = messages.find((m) => m.client_msg_id === frame.clientMsgId);
       if (msg) {
-        msg.id = payload.message_id;
+        msg.id = frame.messageId;
         msg.status = 'DELIVERED';
         renderActiveConversation();
       }
     }
 
+    // Send rejected (restriction, empty content, thread gone) -> offer the retry affordance
+    // rather than leaving the bubble stuck on ⏳ forever.
+    if (type === 'chat:error') {
+      const msg = messages.find((m) => m.client_msg_id === frame.clientMsgId);
+      if (msg) {
+        msg.status = 'FAILED';
+        renderActiveConversation();
+      }
+      toast.error(frame.reasonEn || frame.message || t('chat.send_failed') || 'Message could not be sent.');
+    }
+
     // Inbound Message
-    if (type === 'chat:message') {
-      if (selectedThread && payload.thread_id === selectedThread.id) {
+    if (type === 'chat:message' && frame.message) {
+      const incoming = normalizeWireMessage(threadId, frame.message);
+
+      if (selectedThread && threadId === Number(selectedThread.id)) {
         // Prevent duplicate append
-        const exists = messages.some((m) => m.id === payload.id || (m.client_msg_id && m.client_msg_id === payload.client_msg_id));
+        const exists = messages.some(
+          (m) => (incoming.id && m.id === incoming.id) || (m.client_msg_id && m.client_msg_id === incoming.client_msg_id)
+        );
         if (!exists) {
-          messages.push(payload);
+          messages.push(incoming);
           renderActiveConversation();
-          wsManager.sendReadReceipt({ threadId: selectedThread.id, lastReadMessageId: payload.id });
+          wsManager.sendReadReceipt({ threadId: selectedThread.id, lastReadMessageId: incoming.id });
         }
       }
       // Update preview in thread list
-      const th = threads.find((t) => t.id === payload.thread_id);
+      const th = threads.find((item) => Number(item.id) === threadId);
       if (th) {
-        th.last_message_preview = payload.content;
-        th.last_message_at = payload.created_at || new Date().toISOString();
-        if (!selectedThread || selectedThread.id !== payload.thread_id) {
+        th.last_message_preview = incoming.content;
+        th.last_message_at = incoming.created_at;
+        if (!selectedThread || Number(selectedThread.id) !== threadId) {
           th.unread_count = (Number(th.unread_count) || 0) + 1;
         }
         renderThreadList();
@@ -334,10 +374,12 @@ export default function ChatPage(root) {
     }
 
     // Typing Event
-    if (type === 'chat:typing' && selectedThread && payload.thread_id === selectedThread.id) {
+    if (type === 'chat:typing' && selectedThread && threadId === Number(selectedThread.id)) {
       const banner = container.querySelector('#typing-indicator-box');
       if (banner) {
-        if (payload.is_typing) {
+        const who = frame.userName || 'Someone';
+        if (frame.isTyping) {
+          banner.innerHTML = `<span>${who} ${t('chat.is_typing') || 'is typing…'}</span>`;
           banner.classList.remove('hidden');
           if (typingTimer) clearTimeout(typingTimer);
           typingTimer = setTimeout(() => banner.classList.add('hidden'), 3000);
@@ -345,16 +387,6 @@ export default function ChatPage(root) {
           banner.classList.add('hidden');
         }
       }
-    }
-
-    // Read Receipt Event
-    if (type === 'chat:read' && selectedThread && payload.thread_id === selectedThread.id) {
-      messages.forEach((m) => {
-        if (m.sender_id === currentUserId) {
-          m.read_by = [currentUserId, 999]; // Mark as read
-        }
-      });
-      renderActiveConversation();
     }
   });
 

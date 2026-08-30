@@ -35,6 +35,7 @@ import { gamificationHandlers } from './handlers/gamification.js';
 import { referralHandlers } from './handlers/referral.js';
 import { customerHandlers } from './handlers/customer.js';
 import { notificationHandlers } from './handlers/notifications.js';
+import chatHandlers from './handlers/chat.js';
 
 const handlers = [
   ...authHandlers,
@@ -65,6 +66,7 @@ const handlers = [
   ...referralHandlers,
   ...customerHandlers,
   ...notificationHandlers,
+  ...chatHandlers,
 ];
 
 function notFoundBody(path) {
