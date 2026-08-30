@@ -42,7 +42,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
     size: 'sm',
     onClick: async () => {
       try {
-        await api.post('/api/v1/notifications/read-all');
+        await api.post('/notifications/read-all');
         notifications.forEach((n) => (n.is_read = true));
         unreadCount = 0;
         updateBadge();
@@ -57,6 +57,14 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
   headerBar.appendChild(markAllBtn);
   container.appendChild(headerBar);
 
+  // Notification list container.
+  // WHY it is declared BEFORE the tabs: Tabs() calls select(activeId) during construction, which
+  // fires onChange -> renderList() synchronously. Declaring listContainer after that call put it
+  // in the temporal dead zone, so building the tabs threw ReferenceError and the whole drawer
+  // never opened.
+  const listContainer = document.createElement('div');
+  listContainer.className = 'notification-list-container';
+
   // Category filter tabs
   const categoryTabs = Tabs({
     tabs: [
@@ -66,17 +74,13 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
       { id: 'SECURITY', label: t('notifications.tab_security') || 'Security' },
       { id: 'MARKETING', label: t('notifications.tab_promos') || 'Promos' },
     ],
-    activeTab: 'ALL',
+    active: 'ALL',
     onChange: (catId) => {
       currentCategory = catId;
       renderList();
     },
   });
   container.appendChild(categoryTabs);
-
-  // Notification list container
-  const listContainer = document.createElement('div');
-  listContainer.className = 'notification-list-container';
   container.appendChild(listContainer);
 
   function updateBadge() {
@@ -149,7 +153,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
       itemNode.addEventListener('click', async () => {
         if (!notif.is_read) {
           try {
-            await api.post(`/api/v1/notifications/${notif.id}/read`);
+            await api.post(`/notifications/${notif.id}/read`);
             notif.is_read = true;
             unreadCount = Math.max(0, unreadCount - 1);
             updateBadge();
@@ -162,8 +166,12 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
         }
 
         if (notif.data_json?.linkUrl) {
-          window.location.hash = notif.data_json.linkUrl;
-          drawerInstance.close();
+          // WHY pushState and not location.hash: the app is on the History API router
+          // (core/router.js matches pathname), so a hash write changed the URL fragment and
+          // navigated nowhere.
+          drawerInstance.closeDrawer();
+          history.pushState({}, '', notif.data_json.linkUrl);
+          window.dispatchEvent(new PopStateEvent('popstate'));
         }
       });
 
@@ -174,7 +182,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
   async function fetchNotifications() {
     listContainer.innerHTML = `<div class="notification-loading">Loading notifications...</div>`;
     try {
-      const res = await api.get('/api/v1/notifications?limit=50');
+      const res = await api.get('/notifications?limit=50');
       notifications = res?.data?.items || [];
       unreadCount = notifications.filter((n) => !n.is_read).length;
       updateBadge();
@@ -184,14 +192,22 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
     }
   }
 
-  // Open Drawer
+  // Open Drawer. Drawer's options are `side`/`size` (not position/width), and it returns a
+  // closed <dialog> — nothing appears until openDrawer() is called.
   const drawerInstance = Drawer({
     title: t('notifications.center_title') || 'Notifications',
     content: container,
-    position: 'right',
-    width: '420px',
+    side: 'right',
+    size: 'md',
+    onClose: () => {
+      // Without this the listener outlives every closed drawer and each reopen adds another,
+      // so one live notification would be appended N times.
+      window.removeEventListener('explooro:notification', handleLiveNotification);
+    },
   });
 
+  // Drawer restores focus to whatever it was handed on open, so the bell gets it back on close.
+  drawerInstance.openDrawer(trigger);
   fetchNotifications();
 
   // Listen to live WebSocket arrival

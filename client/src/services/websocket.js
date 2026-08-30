@@ -160,7 +160,7 @@ class WebSocketManager {
 
     try {
       // 1. Obtain short-lived ticket via HTTP
-      const res = await api.post('/api/v1/chat/ticket', {});
+      const res = await api.post('/chat/ticket', {});
       const ticket = res?.data?.ticket;
 
       if (!ticket) {

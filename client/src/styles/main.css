@@ -73,3 +73,5 @@
 /* Customer Saved Delivery Addresses Book */
 @import './components/customer-addresses.css';
 
+/* Prompt 8.2: notification preference centre */
+@import './components/notification-prefs.css';

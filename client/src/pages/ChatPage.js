@@ -15,6 +15,7 @@ import { MessageComposer } from '../components/chat/MessageComposer.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Button } from '../components/ui/Button.js';
 import { api } from '../core/api.js';
+import { getCurrentUser } from '../services/session.js';
 import { wsManager, WS_STATUS } from '../services/websocket.js';
 import { t } from '../services/i18n.js';
 import { toast } from '../services/toast.js';
@@ -85,12 +86,13 @@ export default function ChatPage(root) {
   // 2. Fetch User & Thread List
   async function loadData() {
     try {
-      const userRes = await api.get('/api/v1/me').catch(() => null);
-      if (userRes?.data?.user?.id) {
-        currentUserId = userRes.data.user.id;
-      }
+      // WHY the session store and not a request: this used to GET /me, which is not a route —
+      // me.routes.js mounts at /api/v1/me and registers only /permissions, so there has never
+      // been a bare /me endpoint to call. initSession() already holds the authenticated user,
+      // so read it there rather than round-tripping for something we have.
+      currentUserId = getCurrentUser()?.id ?? currentUserId;
 
-      const threadsRes = await api.get('/api/v1/chat/threads');
+      const threadsRes = await api.get('/chat/threads');
       threads = threadsRes?.data?.items || [];
       renderThreadList();
     } catch (err) {
@@ -130,12 +132,12 @@ export default function ChatPage(root) {
     convoBox.innerHTML = `<div class="p-8 text-center text-xs text-muted">Loading messages...</div>`;
 
     try {
-      const res = await api.get(`/api/v1/chat/threads/${thread.id}/messages`);
+      const res = await api.get(`/chat/threads/${thread.id}/messages`);
       messages = res?.data?.items || [];
       renderActiveConversation();
 
       // Mark read over HTTP and WebSocket
-      api.post(`/api/v1/chat/threads/${thread.id}/read`).catch(() => {});
+      api.post(`/chat/threads/${thread.id}/read`).catch(() => {});
       if (messages.length > 0) {
         const lastId = messages[messages.length - 1].id;
         wsManager.sendReadReceipt({ threadId: thread.id, lastReadMessageId: lastId });
@@ -271,7 +273,7 @@ export default function ChatPage(root) {
           modal.close();
 
           try {
-            const res = await api.post(`/api/v1/saler/inbox/threads/${selectedThread.id}/send-product`, {
+            const res = await api.post(`/saler/inbox/threads/${selectedThread.id}/send-product`, {
               product_id: prodId,
               note,
             });

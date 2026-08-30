@@ -145,7 +145,7 @@ export default function UnifiedInboxPage(root) {
     chatPane.innerHTML = `<div class="loading-spinner p-8">Loading messages...</div>`;
 
     try {
-      const res = await api.get(`/api/v1/chat/threads/${thread.id}/messages`);
+      const res = await api.get(`/chat/threads/${thread.id}/messages`);
       messages = res?.data?.items || [];
       renderChat(thread);
       renderContext(thread);

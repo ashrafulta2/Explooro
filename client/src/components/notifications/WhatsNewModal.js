@@ -16,7 +16,7 @@ export async function checkAndShowWhatsNew() {
   const isBn = getLanguage() === 'bn';
 
   try {
-    const res = await api.get('/api/v1/notifications/whats-new');
+    const res = await api.get('/notifications/whats-new');
     const release = res?.data?.releaseNote;
 
     if (!release) return null;
@@ -54,7 +54,7 @@ export async function checkAndShowWhatsNew() {
 
     async function acknowledge() {
       try {
-        await api.post('/api/v1/notifications/whats-new/ack', {
+        await api.post('/notifications/whats-new/ack', {
           version_tag: release.version_tag,
         });
       } catch {}

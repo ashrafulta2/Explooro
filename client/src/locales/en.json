@@ -11,7 +11,8 @@
     "delete": "Delete",
     "save": "Save",
     "save_changes": "Save Changes",
-    "copy": "Copy"
+    "copy": "Copy",
+    "retry": "Retry"
   },
   "language": {
     "switch_to_bn": "বাংলা",
@@ -1849,7 +1850,27 @@
     "pref_page_title": "Notification Preferences",
     "pref_page_subtitle": "Manage channels and quiet hours across notification categories.",
     "btn_save_preferences": "Save Notification Preferences",
-    "pref_saved_success": "Notification preferences updated successfully."
+    "pref_saved_success": "Notification preferences updated successfully.",
+    "pref_badge": "Preference Centre",
+    "channel_inapp": "In-App",
+    "channel_sms": "SMS",
+    "channel_push": "Push",
+    "channel_email": "Email",
+    "cat_order_title": "Order Updates",
+    "cat_order_desc": "Order placed, status changes, delivery tracking.",
+    "cat_finance_title": "Wallet & Payouts",
+    "cat_finance_desc": "Escrow releases, earnings, and payout disbursements.",
+    "cat_security_title": "Security & Login",
+    "cat_security_desc": "Password resets, OTP codes, and login alerts.",
+    "cat_marketing_title": "Promotions & Discounts",
+    "cat_marketing_desc": "Flash sales, campaign bonuses, and special offers.",
+    "cat_system_title": "System & Policy",
+    "cat_system_desc": "Terms updates, maintenance notices, and compliance.",
+    "locked_note": "Security alerts are always delivered on every channel and cannot be turned off.",
+    "quiet_hours": "Quiet hours",
+    "quiet_hours_from": "Quiet hours from",
+    "quiet_hours_to": "Quiet hours until",
+    "quiet_hours_to_short": "to"
   },
   "saler_inbox": {
     "page_title": "Unified Commerce Inbox",

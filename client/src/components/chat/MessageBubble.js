@@ -86,7 +86,7 @@ export function MessageBubble({ message, isOutgoing, currentUserId, onRetry }) {
       const reason = prompt(t('chat.report_prompt') || 'Please provide a reason for reporting this message:');
       if (!reason) return;
       try {
-        await api.post(`/api/v1/chat/messages/${message.id}/report`, { reason });
+        await api.post(`/chat/messages/${message.id}/report`, { reason });
         toast.success(t('chat.report_submitted') || 'Message reported to moderation team.');
       } catch (err) {
         toast.error(err.message);
