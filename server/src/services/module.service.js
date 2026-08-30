@@ -153,7 +153,7 @@ export async function isEnabled(db, cache, moduleKey, context = {}) {
   }
 
   // 4. Default
-  const finalResult = moduleRow.default_enabled !== false;
+  const finalResult = Boolean(moduleRow.is_enabled);
   if (cache) await cache.set(cacheKey, String(finalResult), 60).catch(() => {});
   return finalResult;
 }
@@ -218,6 +218,21 @@ export async function toggleModule(db, cache, actor, moduleKey, { enabled, reaso
 
   const isDisabling = enabled === false;
   const disabledModules = [];
+
+  // Check parent dependencies if enabling
+  if (!isDisabling && Array.isArray(existing.depends_on) && existing.depends_on.length > 0) {
+    for (const parentKey of existing.depends_on) {
+      const parent = await repo.getModuleByKey(db, parentKey);
+      if (parent && !parent.is_enabled) {
+        const err = new Error(`Cannot enable "${existing.label_en}" because required parent module "${parent.label_en}" (${parentKey}) is disabled.`);
+        err.statusCode = 409;
+        err.code = 'PARENT_MODULE_DISABLED';
+        err.message_en = `Cannot enable "${existing.label_en}" because required module "${parent.label_en}" (${parentKey}) is disabled.`;
+        err.message_bn = `"${existing.label_bn}" চালু করা যাচ্ছে না কারণ প্রয়োজনীয় মডিউল "${parent.label_bn}" (${parentKey}) বন্ধ রয়েছে।`;
+        throw err;
+      }
+    }
+  }
 
   // Check dependencies if turning off
   if (isDisabling) {

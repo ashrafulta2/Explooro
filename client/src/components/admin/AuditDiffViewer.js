@@ -57,7 +57,12 @@ export function generatePlainLanguageSummary(record = {}) {
     return isBn ? `"${mod}" মডিউলটি সক্রিয় করা হয়েছে` : `Enabled module "${mod}"`;
   }
 
-  if (action.includes('grant.create') || action === 'users.grant.create') {
+  if (action.includes('grant.revoke') || action.includes('grant.delete')) {
+    const perm = before.permission_key || meta.permission_key || record.target_ref;
+    return isBn ? `"${perm}" পারমিশন প্রত্যাহার করা হয়েছে` : `Revoked standing grant "${perm}"`;
+  }
+
+  if (action.includes('grant') || action.includes('permission.grant')) {
     const perm = after.permission_key || meta.permission_key || record.target_ref;
     const target = record.target_ref || meta.user_ref || 'user';
     return isBn
@@ -65,23 +70,18 @@ export function generatePlainLanguageSummary(record = {}) {
       : `Granted permission "${perm}" to ${target}`;
   }
 
-  if (action.includes('grant.revoke') || action === 'users.grant.revoke') {
-    const perm = before.permission_key || meta.permission_key || record.target_ref;
-    return isBn ? `"${perm}" পারমিশন প্রত্যাহার করা হয়েছে` : `Revoked standing grant "${perm}"`;
+  if (action.includes('restriction.lift') || action.includes('restriction.delete')) {
+    const cap = before.capability_key || before.capability || meta.capability_key || record.target_ref;
+    return isBn ? `"${cap}" সীমাবদ্ধতা তুলে নেওয়া হয়েছে` : `Lifted capability restriction "${cap}"`;
   }
 
-  if (action.includes('restriction.create') || action === 'users.restriction.create') {
-    const cap = after.capability_key || meta.capability_key;
+  if (action.includes('restriction')) {
+    const cap = after.capability_key || after.capability || meta.capability_key || record.target_ref;
     const mode = after.mode || 'BLOCK';
     const target = record.target_ref || 'user';
     return isBn
       ? `"${target}" এর উপর ${cap}=${mode} সীমাবদ্ধতা প্রয়োগ করা হয়েছে`
       : `Applied capability restriction ${cap}=${mode} on ${target}`;
-  }
-
-  if (action.includes('restriction.lift') || action === 'users.restriction.lift') {
-    const cap = before.capability_key || meta.capability_key || record.target_ref;
-    return isBn ? `"${cap}" সীমাবদ্ধতা তুলে নেওয়া হয়েছে` : `Lifted capability restriction "${cap}"`;
   }
 
   // Key-level differences summary
@@ -174,4 +174,37 @@ export function openAuditDiffModal({ record = {}, trigger = null }) {
 
   document.body.append(modal);
   modal.openModal(trigger);
+}
+
+/**
+ * Serializes an array of audit record objects into CSV format with standard quoting & escaping.
+ */
+export function serializeAuditRecordsToCsv(records = []) {
+  const headers = ['ID', 'Timestamp', 'Actor Role', 'Action', 'Target Type', 'Target Ref', 'IP Address', 'Trace ID', 'Risk Tier'];
+  const rows = records.map((r) => [
+    r.id ?? '',
+    r.created_at ?? '',
+    r.actor_role ?? r.actor ?? '',
+    r.action ?? '',
+    r.target_type ?? '',
+    r.target_ref ?? '',
+    r.ip_address ?? '',
+    r.trace_id ?? '',
+    r.risk_tier ?? '',
+  ]);
+
+  return [
+    headers.join(','),
+    ...rows.map((row) =>
+      row
+        .map((cell) => {
+          const str = String(cell ?? '');
+          if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        })
+        .join(',')
+    ),
+  ].join('\n');
 }

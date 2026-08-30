@@ -39,6 +39,7 @@ import storeRoutes from './routes/store.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import orderRoutes from './routes/order.routes.js';
+import paymentRoutes from './routes/payment.routes.js';
 import financeRoutes from './routes/finance.routes.js';
 import logisticsRoutes from './routes/logistics.routes.js';
 import returnRoutes from './routes/return.routes.js';
@@ -180,6 +181,7 @@ export async function buildApp(overrides = {}) {
   await app.register(cartRoutes, { prefix: '/api/v1' });
   await app.register(wishlistRoutes, { prefix: '/api/v1' });
   await app.register(orderRoutes, { prefix: '/api/v1' });
+  await app.register(paymentRoutes, { prefix: '/api/v1' });
   await app.register(financeRoutes, { prefix: '/api/v1' });
   await app.register(logisticsRoutes, { prefix: '/api/v1' });
   await app.register(returnRoutes, { prefix: '/api/v1' });
