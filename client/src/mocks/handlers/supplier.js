@@ -216,7 +216,30 @@ const SEEDED_RESELLER_INSIGHTS = {
   ],
 };
 
-let physicalShop = { is_open: true, opening_time: '09:00', closing_time: '20:00' };
+let physicalShop = {
+  is_open: true,
+  show_public_status: true,
+  name: 'Rahim Textiles Factory Outlet & Showroom',
+  address: 'Plot 12, Road 4, BSCIC Industrial Area, Tejgaon',
+  district: 'Dhaka',
+  phone: '01711223344',
+  open_time: '09:00 AM',
+  close_time: '08:00 PM',
+  opening_time: '09:00',
+  closing_time: '20:00',
+  pickup_enabled: true,
+  pickup_notes: 'Buyers must present their Order ID and OTP verification code at the front dispatch desk to claim orders.',
+  closed_days: ['Friday'],
+  weekly_schedule: {
+    Saturday: { is_open: true, open_time: '09:00 AM', close_time: '08:00 PM' },
+    Sunday: { is_open: true, open_time: '09:00 AM', close_time: '08:00 PM' },
+    Monday: { is_open: true, open_time: '09:00 AM', close_time: '08:00 PM' },
+    Tuesday: { is_open: true, open_time: '09:00 AM', close_time: '08:00 PM' },
+    Wednesday: { is_open: true, open_time: '09:00 AM', close_time: '08:00 PM' },
+    Thursday: { is_open: true, open_time: '09:00 AM', close_time: '08:00 PM' },
+    Friday: { is_open: false, open_time: '09:00 AM', close_time: '08:00 PM' },
+  },
+};
 
 function filterInventory({ search, status }) {
   let items = SEEDED_PRODUCTS;
@@ -238,7 +261,7 @@ function filterBatches(status) {
   return SEEDED_BATCHES.filter((b) => b.status === status);
 }
 
-export default [
+export const supplierHandlers = [
   {
     method: 'GET',
     path: '/supplier/dashboard',
@@ -274,8 +297,8 @@ export default [
     method: 'POST',
     path: '/supplier/inventory/stock',
     handler: ({ body }) => {
-      const product = SEEDED_PRODUCTS.find((p) => String(p.id) === String(body?.productId));
-      if (product) product.stock_qty = Number(body.stockQty);
+      const product = SEEDED_PRODUCTS.find((p) => String(p.id) === String(body?.productId || body?.product_id || body?.id));
+      if (product) product.stock_qty = Number(body?.stockQty ?? body?.stock_qty ?? body?.quantity);
       return { status: 200, body: { data: product } };
     },
   },
@@ -288,21 +311,23 @@ export default [
     method: 'POST',
     path: '/supplier/batches',
     handler: ({ body }) => {
-      const product = SEEDED_PRODUCTS.find((p) => String(p.id) === String(body?.productId));
-      const expDate = body?.expDate ? new Date(body.expDate) : new Date(Date.now() + 86400000 * 90);
+      const product = SEEDED_PRODUCTS.find((p) => String(p.id) === String(body?.productId || body?.product_id || 1));
+      const expDate = body?.expDate ? new Date(body.expDate) : (body?.expiry_date ? new Date(body.expiry_date) : new Date(Date.now() + 86400000 * 90));
       const daysToExpiry = Math.round((expDate.getTime() - Date.now()) / 86400000);
       const newBatch = {
         id: SEEDED_BATCHES.length ? Math.max(...SEEDED_BATCHES.map((b) => b.id)) + 1 : 1,
-        batch_number: body?.batchNumber,
-        product_id: body?.productId,
+        batch_number: body?.batchNumber || body?.batch_number || `LOT-${Date.now()}`,
+        product_id: body?.productId || body?.product_id || 1,
         product_title_en: product?.title_en || 'New Product',
         product_title_bn: product?.title_bn || '',
-        qty: Number(body?.qty) || 0,
-        mfg_date: body?.mfgDate || null,
+        quantity_available: Number(body?.qty || body?.quantity_available || body?.quantity_initial) || 100,
+        qty: Number(body?.qty || body?.quantity_available || body?.quantity_initial) || 100,
+        mfg_date: body?.mfgDate || body?.mfg_date || null,
         exp_date: expDate.toISOString(),
+        expiry_date: expDate.toISOString(),
         days_to_expiry: daysToExpiry,
         status: 'ACTIVE',
-        warehouse_name: SEEDED_WAREHOUSES.find((w) => String(w.id) === String(body?.warehouseNodeId))?.name || 'Central Depot',
+        warehouse_name: SEEDED_WAREHOUSES.find((w) => String(w.id) === String(body?.warehouseNodeId || body?.warehouse_id))?.name || 'Central Depot',
       };
       SEEDED_BATCHES.unshift(newBatch);
       return { status: 201, body: { data: newBatch } };
@@ -312,7 +337,7 @@ export default [
     method: 'POST',
     path: '/supplier/batches/:id/clearance',
     handler: ({ params, body }) => {
-      const batch = SEEDED_BATCHES.find((b) => String(b.id) === params.id);
+      const batch = SEEDED_BATCHES.find((b) => String(b.id) === String(params.id));
       return {
         status: 200,
         body: { data: { message: `Clearance sale activated at ${body?.discountPct ?? 20}% off.`, batch } },
@@ -323,7 +348,7 @@ export default [
     method: 'POST',
     path: '/supplier/batches/:id/recall',
     handler: ({ params, body }) => {
-      const batch = SEEDED_BATCHES.find((b) => String(b.id) === params.id);
+      const batch = SEEDED_BATCHES.find((b) => String(b.id) === String(params.id));
       if (batch) {
         batch.status = 'RECALLED';
         batch.recall_reason = body?.reason || '';
@@ -342,16 +367,19 @@ export default [
     handler: ({ body }) => {
       const newWarehouse = {
         id: SEEDED_WAREHOUSES.length ? Math.max(...SEEDED_WAREHOUSES.map((w) => w.id)) + 1 : 1,
-        ref: `WH-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
-        name: body?.name,
-        address_line: body?.addressLine,
-        upazila: body?.upazila,
-        district: body?.district,
-        division: body?.division,
-        priority: Number(body?.priority) || 0,
-        latitude: null,
-        longitude: null,
+        ref: body?.code || `WH-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+        code: body?.code || `WH-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+        name: body?.name || 'New Depot Node',
+        address_line: body?.addressLine || body?.address || 'Industrial Area',
+        address: body?.address || body?.addressLine || 'Industrial Area',
+        upazila: body?.upazila || '',
+        district: body?.district || 'Dhaka',
+        division: body?.division || 'Dhaka',
+        priority: Number(body?.priority) || 10,
+        latitude: body?.latitude || 23.8103,
+        longitude: body?.longitude || 90.4125,
         sku_count: 0,
+        stock_units: 0,
         total_units_stored: 0,
         is_active: true,
       };
@@ -365,13 +393,19 @@ export default [
     handler: () => ({ status: 200, body: { data: SEEDED_FULFILMENT_QUEUE, meta: { total: SEEDED_FULFILMENT_QUEUE.length } } }),
   },
   {
+    method: 'GET',
+    path: '/supplier/orders',
+    handler: () => ({ status: 200, body: { data: SEEDED_FULFILMENT_QUEUE, meta: { total: SEEDED_FULFILMENT_QUEUE.length } } }),
+  },
+  {
     method: 'POST',
     path: '/supplier/fulfilment/consign',
     handler: ({ body }) => {
-      const order = SEEDED_FULFILMENT_QUEUE.find((o) => String(o.id) === String(body?.subOrderId));
+      const order = SEEDED_FULFILMENT_QUEUE.find((o) => String(o.id) === String(body?.subOrderId || body?.orderId || body?.id));
       if (order) {
         order.tracking_number = `${(body?.carrier || 'STEADFAST').slice(0, 3)}-${Math.floor(10000000 + Math.random() * 89999999)}`;
         order.carrier = body?.carrier || 'STEADFAST';
+        order.status = 'PACKED';
       }
       return { status: 200, body: { data: { message: 'Consignment booked successfully.', order } } };
     },
@@ -390,8 +424,30 @@ export default [
     method: 'PATCH',
     path: '/supplier/store-status',
     handler: ({ body }) => {
-      physicalShop = { ...physicalShop, is_open: Boolean(body?.isOpen) };
+      const b = body || {};
+      const isOpenVal = b.isOpen !== undefined ? Boolean(b.isOpen) : (b.is_open !== undefined ? Boolean(b.is_open) : physicalShop.is_open);
+      const showPublicVal = b.showPublicStatus !== undefined ? Boolean(b.showPublicStatus) : (b.show_public_status !== undefined ? Boolean(b.show_public_status) : physicalShop.show_public_status);
+      const pickupVal = b.pickupEnabled !== undefined ? Boolean(b.pickupEnabled) : (b.pickup_enabled !== undefined ? Boolean(b.pickup_enabled) : physicalShop.pickup_enabled);
+
+      physicalShop = {
+        ...physicalShop,
+        ...b,
+        is_open: isOpenVal,
+        show_public_status: showPublicVal,
+        pickup_enabled: pickupVal,
+        name: b.name || physicalShop.name,
+        address: b.address || physicalShop.address,
+        district: b.district || physicalShop.district,
+        phone: b.phone || physicalShop.phone,
+        open_time: b.open_time || b.openTime || physicalShop.open_time,
+        close_time: b.close_time || b.closeTime || physicalShop.close_time,
+        pickup_notes: b.pickup_notes || b.pickupNotes || physicalShop.pickup_notes,
+        closed_days: b.closed_days || b.closedDays || physicalShop.closed_days,
+        weekly_schedule: b.weekly_schedule || b.weeklySchedule || physicalShop.weekly_schedule,
+      };
       return { status: 200, body: { data: physicalShop } };
     },
   },
 ];
+
+export default supplierHandlers;

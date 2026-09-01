@@ -383,6 +383,29 @@ export const warrantyHandlers = [
   },
   {
     method: 'POST',
+    path: '/supplier/claims/:id/resolve',
+    handler({ params, body }) {
+      const claim = mockClaims.find((c) => c.id === Number(params.id));
+      if (claim) {
+        claim.status = body?.action === 'REJECT' ? 'REJECTED' : 'APPROVED';
+        claim.resolution = body?.action || 'RESOLVED';
+        if (body?.notes) {
+          claim.technician_notes = body.notes;
+        }
+      }
+      return {
+        status: 200,
+        body: {
+          data: {
+            claim,
+            message_en: 'Warranty claim resolved successfully.',
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'POST',
     path: '/supplier/claims/:id/progress',
     handler({ params, body }) {
       const claim = mockClaims.find((c) => c.id === Number(params.id));

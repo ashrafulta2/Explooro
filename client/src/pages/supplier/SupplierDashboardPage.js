@@ -2,11 +2,10 @@
  * SupplierDashboardPage.js — Manufacturer & Physical Inventory Hub Dashboard (Prompt 11.1).
  *
  * Implements `idea proposition.md` §AL.1 & Prompt 11.1 REQUIREMENTS 3, 4, 5:
- * - Advanced Mode: Live stock, batch manager & expiry timeline, multi-warehouse allocation,
- *   fulfilment queue with 1-click consignment and label printing, reseller network insights,
- *   earnings vault, wholesale inquiries, physical store status toggle, warranty claims, and live studio.
- * - Simple Mode: Surfaces at most 6 primary actions (Pending Orders, Low Stock Alerts, Today's Earnings, Print Labels).
- * - Every card is module-gated and permission-gated with graceful fallbacks.
+ * - Simple Mode: Surfaces 4 primary KPI action cards + 6 essential daily task tiles.
+ * - Pro Mode: Full 6-metric telemetry grid, operational control matrix (Live stock, FEFO batches,
+ *   Multi-Depot routing, 3PL fulfilment queue, Reseller analytics, Digital Vault, Physical Shop Status).
+ * - Styled with native design tokens and CSS in `supplier.css`.
  */
 
 import { supplierApi } from '../../services/supplier.api.js';
@@ -21,7 +20,7 @@ import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function SupplierDashboardPage(root) {
   const container = document.createElement('div');
-  container.className = 'supplier-dashboard-page container py-6 space-y-6';
+  container.className = 'supplier-page-container';
 
   let isSimpleMode = localStorage.getItem('supplier_simple_mode') === 'true';
   let overviewData = null;
@@ -35,17 +34,17 @@ export default function SupplierDashboardPage(root) {
       overviewData = res.data || res;
     } catch (err) {
       console.error('Failed to load supplier dashboard data:', err);
-      // Fallback mock values so UI never crashes
+      // Resilient fallback values
       overviewData = {
         metrics: {
-          total_products: 12,
-          total_units: 450,
-          low_stock_count: 3,
-          out_of_stock_count: 0,
-          pending_orders_count: 8,
+          total_products: 4,
+          total_units: 310,
+          low_stock_count: 1,
+          out_of_stock_count: 1,
+          pending_orders_count: 2,
           today_earnings: 14500,
           total_settled_earnings: 284000,
-          total_active_batches: 6,
+          total_active_batches: 3,
           expiring_soon_count: 2,
           expired_count: 0,
           total_warehouses: 3,
@@ -62,24 +61,25 @@ export default function SupplierDashboardPage(root) {
   function render() {
     container.innerHTML = '';
 
-    // 1. Header with Mode Toggle & Quick Actions
+    // 1. Header with Mode Switcher & Refresh
     const header = document.createElement('header');
-    header.className = 'page-header flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-subtle';
+    header.className = 'supplier-header';
     header.innerHTML = `
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-bold flex items-center gap-2">
-            <span>🏭</span> ${t('supplier.dashboard_title', 'Supplier / Manufacturer Dashboard')}
-          </h1>
-          <span class="badge ${isSimpleMode ? 'badge--info' : 'badge--primary'} text-xs uppercase px-2 py-0.5 rounded font-mono">
+      <div class="supplier-header__titles">
+        <div class="supplier-header__badge-row">
+          <span class="badge ${isSimpleMode ? 'badge--info' : 'badge--primary'} text-xs font-mono font-bold">
             ${isSimpleMode ? t('supplier.mode_simple', 'Simple Mode') : t('supplier.mode_pro', 'Pro Dashboard')}
           </span>
+          <span class="text-xs text-muted">🏭 Hub</span>
         </div>
-        <p class="text-sm text-muted mt-1">
+        <h1 class="supplier-header__title">
+          <span>🏭</span> ${t('supplier.dashboard_title', 'Supplier / Manufacturer Dashboard')}
+        </h1>
+        <p class="supplier-header__subtitle">
           ${t('supplier.dashboard_subtitle', 'Live physical inventory, FEFO batch routing, multi-depot fulfilment & wholesale analytics.')}
         </p>
       </div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="supplier-header__actions">
         <button class="btn btn--sm btn--secondary" id="toggle-mode-btn">
           ${isSimpleMode ? '⚡ ' + t('supplier.switch_to_pro', 'Switch to Pro Hub') : '🌱 ' + t('supplier.switch_to_simple', 'Switch to Simple Mode')}
         </button>
@@ -101,7 +101,10 @@ export default function SupplierDashboardPage(root) {
     if (loading && !overviewData) {
       const loader = document.createElement('div');
       loader.className = 'p-12 text-center text-muted';
-      loader.innerHTML = `<div class="animate-spin inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-3"></div><p>${t('common.loading', 'Loading dashboard...')}</p>`;
+      loader.innerHTML = `
+        <div class="spinner" style="margin: 0 auto 16px auto;"></div>
+        <p>${t('common.loading', 'Loading dashboard...')}</p>
+      `;
       container.appendChild(loader);
       return;
     }
@@ -110,118 +113,145 @@ export default function SupplierDashboardPage(root) {
     const shop = overviewData?.physical_shop || { is_open: true };
 
     // ==========================================
-    // SIMPLE MODE VIEW (At most 6 primary actions)
+    // SIMPLE MODE VIEW (4 primary KPI action cards + 6 quick task tiles)
     // ==========================================
     if (isSimpleMode) {
       const simpleSection = document.createElement('div');
-      simpleSection.className = 'simple-mode-container space-y-6';
+      simpleSection.style.display = 'flex';
+      simpleSection.style.flexDirection = 'column';
+      simpleSection.style.gap = 'var(--space-6, 24px)';
 
-      // 4 Primary KPI Cards
-      simpleSection.innerHTML = `
-        <div class="alert alert--info p-4 rounded-lg bg-surface-2 border border-primary/20 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <span class="text-2xl">🌱</span>
-            <div>
-              <h4 class="font-bold text-sm text-primary">${t('supplier.simple_mode_welcome', 'Simple Mode Active')}</h4>
-              <p class="text-xs text-muted">${t('supplier.simple_mode_desc', 'Showing your 4 most essential daily tasks with zero clutter.')}</p>
-            </div>
-          </div>
-          <button class="text-xs font-semibold text-primary underline" id="simple-mode-expand-btn">${t('supplier.show_all_features', 'Show All Tools →')}</button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- 1. Pending Orders -->
-          <a href="/supplier/orders" class="kpi-card p-5 rounded-xl border border-subtle bg-surface hover:shadow-md transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-medium text-muted uppercase tracking-wider">${t('supplier.pending_orders', 'Pending Orders')}</span>
-              <span class="p-2 rounded-lg bg-amber-500/10 text-amber-600 text-lg">🛒</span>
-            </div>
-            <div class="mt-4">
-              <div class="text-3xl font-bold">${metrics.pending_orders_count || 0}</div>
-              <p class="text-xs text-muted mt-1">${t('supplier.orders_awaiting_pack', 'Orders awaiting packing')}</p>
-            </div>
-            <span class="text-xs font-semibold text-primary mt-4 inline-flex items-center gap-1">${t('supplier.view_orders', 'View Orders →')}</span>
-          </a>
-
-          <!-- 2. Low Stock Alerts -->
-          <a href="/supplier/inventory" class="kpi-card p-5 rounded-xl border border-subtle bg-surface hover:shadow-md transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-medium text-muted uppercase tracking-wider">${t('supplier.low_stock_alerts', 'Low Stock')}</span>
-              <span class="p-2 rounded-lg ${metrics.low_stock_count > 0 ? 'bg-red-500/10 text-red-600' : 'bg-green-500/10 text-green-600'} text-lg">⚠️</span>
-            </div>
-            <div class="mt-4">
-              <div class="text-3xl font-bold ${metrics.low_stock_count > 0 ? 'text-red-600' : 'text-green-600'}">${metrics.low_stock_count || 0}</div>
-              <p class="text-xs text-muted mt-1">${metrics.low_stock_count > 0 ? t('supplier.items_below_threshold', 'SKUs below safety threshold') : t('supplier.all_stocks_healthy', 'Stock levels healthy')}</p>
-            </div>
-            <span class="text-xs font-semibold text-primary mt-4 inline-flex items-center gap-1">${t('supplier.manage_stock', 'Manage Stock →')}</span>
-          </a>
-
-          <!-- 3. Today's Earnings -->
-          <a href="/supplier/vault" class="kpi-card p-5 rounded-xl border border-subtle bg-surface hover:shadow-md transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-medium text-muted uppercase tracking-wider">${t('supplier.today_earnings', "Today's Earnings")}</span>
-              <span class="p-2 rounded-lg bg-green-500/10 text-green-600 text-lg">💰</span>
-            </div>
-            <div class="mt-4">
-              <div class="text-3xl font-bold text-green-600">${formatCurrency(metrics.today_earnings || 0)}</div>
-              <p class="text-xs text-muted mt-1">${t('supplier.net_wholesale_profit', 'Net wholesale profit accrued')}</p>
-            </div>
-            <span class="text-xs font-semibold text-primary mt-4 inline-flex items-center gap-1">${t('supplier.view_vault', 'View Vault →')}</span>
-          </a>
-
-          <!-- 4. Print Labels -->
-          <a href="/supplier/fulfilment" class="kpi-card p-5 rounded-xl border border-subtle bg-surface hover:shadow-md transition-all flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-medium text-muted uppercase tracking-wider">${t('supplier.print_labels', 'Print Labels')}</span>
-              <span class="p-2 rounded-lg bg-blue-500/10 text-blue-600 text-lg">🖨️</span>
-            </div>
-            <div class="mt-4">
-              <div class="text-3xl font-bold">${metrics.pending_orders_count || 0}</div>
-              <p class="text-xs text-muted mt-1">${t('supplier.labels_ready_to_print', 'Packing slips & courier labels')}</p>
-            </div>
-            <span class="text-xs font-semibold text-primary mt-4 inline-flex items-center gap-1">${t('supplier.open_fulfilment_queue', 'Print & Dispatch →')}</span>
-          </a>
-        </div>
-
-        <!-- 6 Simple Mode Actions Total -->
-        <div class="p-6 bg-surface border border-subtle rounded-xl">
-          <h3 class="font-bold text-base mb-4 flex items-center gap-2">
-            <span>⚡</span> ${t('supplier.quick_daily_actions', 'Quick Daily Actions')}
-          </h3>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <a href="/supplier/fulfilment" class="btn btn--primary flex flex-col items-center justify-center p-4 h-auto text-center">
-              <span class="text-2xl mb-1">🚚</span>
-              <span class="text-xs font-bold">${t('supplier.dispatch_orders', '1-Click Dispatch')}</span>
-            </a>
-            <a href="/supplier/inventory" class="btn btn--secondary flex flex-col items-center justify-center p-4 h-auto text-center">
-              <span class="text-2xl mb-1">📦</span>
-              <span class="text-xs font-bold">${t('supplier.adjust_stock', 'Update Stock')}</span>
-            </a>
-            <a href="/supplier/products" class="btn btn--secondary flex flex-col items-center justify-center p-4 h-auto text-center">
-              <span class="text-2xl mb-1">➕</span>
-              <span class="text-xs font-bold">${t('supplier.add_product', 'Add Product')}</span>
-            </a>
-            <a href="/supplier/batches" class="btn btn--secondary flex flex-col items-center justify-center p-4 h-auto text-center">
-              <span class="text-2xl mb-1">🏷️</span>
-              <span class="text-xs font-bold">${t('supplier.batches_fefo', 'FEFO Batches')}</span>
-            </a>
-            <a href="/supplier/vault" class="btn btn--secondary flex flex-col items-center justify-center p-4 h-auto text-center">
-              <span class="text-2xl mb-1">🏦</span>
-              <span class="text-xs font-bold">${t('supplier.withdraw_money', 'Withdraw')}</span>
-            </a>
-            <a href="/supplier/resellers" class="btn btn--secondary flex flex-col items-center justify-center p-4 h-auto text-center">
-              <span class="text-2xl mb-1">👥</span>
-              <span class="text-xs font-bold">${t('supplier.top_resellers', 'Top Resellers')}</span>
-            </a>
+      // 1. Simple Mode Banner
+      const banner = document.createElement('div');
+      banner.className = 'supplier-mode-banner';
+      banner.innerHTML = `
+        <div class="supplier-mode-banner__content">
+          <span class="supplier-mode-banner__icon">🌱</span>
+          <div>
+            <h4 class="supplier-mode-banner__title">${t('supplier.simple_mode_welcome', 'Simple Mode Active')}</h4>
+            <p class="supplier-mode-banner__desc">${t('supplier.simple_mode_desc', 'Showing your 4 most essential daily tasks with zero clutter.')}</p>
           </div>
         </div>
+        <button class="btn btn--xs btn--outline" id="simple-mode-expand-btn">
+          ${t('supplier.show_all_features', 'Show All Tools →')}
+        </button>
       `;
-
-      simpleSection.querySelector('#simple-mode-expand-btn').onclick = () => {
+      banner.querySelector('#simple-mode-expand-btn').onclick = () => {
         isSimpleMode = false;
         localStorage.setItem('supplier_simple_mode', 'false');
         render();
       };
+      simpleSection.appendChild(banner);
+
+      // 2. 4 Primary KPI Cards
+      const kpiGrid = document.createElement('div');
+      kpiGrid.className = 'supplier-kpi-grid';
+      kpiGrid.innerHTML = `
+        <!-- 1. Orders to Pack -->
+        <a href="/supplier/orders" class="supplier-kpi-card">
+          <div class="supplier-kpi-card__top">
+            <span class="supplier-kpi-card__label">${t('supplier.pending_orders', 'Orders to Pack')}</span>
+            <span class="supplier-kpi-card__icon-box supplier-kpi-card__icon-box--warning">🛒</span>
+          </div>
+          <div class="supplier-kpi-card__main">
+            <div class="supplier-kpi-card__value text-warning">${metrics.pending_orders_count || 0}</div>
+            <p class="supplier-kpi-card__hint">${t('supplier.orders_awaiting_pack', 'Orders awaiting packing')}</p>
+          </div>
+          <div class="supplier-kpi-card__footer">
+            <span>${t('supplier.view_orders', 'View Orders →')}</span>
+            <span>⚡ Urgent</span>
+          </div>
+        </a>
+
+        <!-- 2. Low Stock Alerts -->
+        <a href="/supplier/inventory" class="supplier-kpi-card">
+          <div class="supplier-kpi-card__top">
+            <span class="supplier-kpi-card__label">${t('supplier.low_stock_alerts', 'Live Stock')}</span>
+            <span class="supplier-kpi-card__icon-box ${metrics.low_stock_count > 0 ? 'supplier-kpi-card__icon-box--danger' : 'supplier-kpi-card__icon-box--success'}">📦</span>
+          </div>
+          <div class="supplier-kpi-card__main">
+            <div class="supplier-kpi-card__value ${metrics.low_stock_count > 0 ? 'supplier-kpi-card__value--danger' : 'supplier-kpi-card__value--success'}">
+              ${metrics.low_stock_count || 0}
+            </div>
+            <p class="supplier-kpi-card__hint">
+              ${metrics.low_stock_count > 0 ? t('supplier.items_below_threshold', 'SKUs below safety threshold') : t('supplier.all_stocks_healthy', 'Stock levels healthy')}
+            </p>
+          </div>
+          <div class="supplier-kpi-card__footer">
+            <span>${t('supplier.manage_stock', 'Manage Stock →')}</span>
+            <span>${metrics.total_units || 0} units</span>
+          </div>
+        </a>
+
+        <!-- 3. Today's Earnings -->
+        <a href="/supplier/vault" class="supplier-kpi-card">
+          <div class="supplier-kpi-card__top">
+            <span class="supplier-kpi-card__label">${t('supplier.today_earnings', "Today's Earnings")}</span>
+            <span class="supplier-kpi-card__icon-box supplier-kpi-card__icon-box--success">💰</span>
+          </div>
+          <div class="supplier-kpi-card__main">
+            <div class="supplier-kpi-card__value supplier-kpi-card__value--success">${formatCurrency(metrics.today_earnings || 0)}</div>
+            <p class="supplier-kpi-card__hint">${t('supplier.net_wholesale_profit', 'Net wholesale profit accrued')}</p>
+          </div>
+          <div class="supplier-kpi-card__footer">
+            <span>${t('supplier.view_vault', 'View Vault →')}</span>
+            <span>🏦 Settle</span>
+          </div>
+        </a>
+
+        <!-- 4. Print Labels -->
+        <a href="/supplier/fulfilment" class="supplier-kpi-card">
+          <div class="supplier-kpi-card__top">
+            <span class="supplier-kpi-card__label">${t('supplier.print_labels', 'Print Labels')}</span>
+            <span class="supplier-kpi-card__icon-box supplier-kpi-card__icon-box--info">🖨️</span>
+          </div>
+          <div class="supplier-kpi-card__main">
+            <div class="supplier-kpi-card__value">${metrics.pending_orders_count || 0}</div>
+            <p class="supplier-kpi-card__hint">${t('supplier.labels_ready_to_print', 'Packing slips & courier labels')}</p>
+          </div>
+          <div class="supplier-kpi-card__footer">
+            <span>${t('supplier.open_fulfilment_queue', 'Print & Dispatch →')}</span>
+            <span>🚚 Courier</span>
+          </div>
+        </a>
+      `;
+      simpleSection.appendChild(kpiGrid);
+
+      // 3. Quick Daily Actions Panel
+      const actionsPanel = document.createElement('div');
+      actionsPanel.className = 'supplier-quick-actions-panel';
+      actionsPanel.innerHTML = `
+        <h3 class="supplier-quick-actions-panel__title">
+          <span>⚡</span> ${t('supplier.quick_daily_actions', 'Quick Daily Actions')}
+        </h3>
+        <div class="supplier-action-tiles-grid">
+          <a href="/supplier/orders" class="supplier-action-tile supplier-action-tile--primary">
+            <span class="supplier-action-tile__icon">📦</span>
+            <span class="supplier-action-tile__label">${t('supplier.orders_to_pack', 'Orders to Pack')}</span>
+          </a>
+          <a href="/supplier/fulfilment" class="supplier-action-tile">
+            <span class="supplier-action-tile__icon">🖨️</span>
+            <span class="supplier-action-tile__label">${t('supplier.print_labels', 'Print Labels')}</span>
+          </a>
+          <a href="/supplier/inventory" class="supplier-action-tile">
+            <span class="supplier-action-tile__icon">📊</span>
+            <span class="supplier-action-tile__label">${t('supplier.stock', 'Stock Levels')}</span>
+          </a>
+          <a href="/supplier/products" class="supplier-action-tile">
+            <span class="supplier-action-tile__icon">➕</span>
+            <span class="supplier-action-tile__label">${t('supplier.add_product', 'Add Product')}</span>
+          </a>
+          <a href="/supplier/vault" class="supplier-action-tile">
+            <span class="supplier-action-tile__icon">🏦</span>
+            <span class="supplier-action-tile__label">${t('supplier.my_earnings', 'My Earnings')}</span>
+          </a>
+          <a href="/supplier/help" class="supplier-action-tile">
+            <span class="supplier-action-tile__icon">❓</span>
+            <span class="supplier-action-tile__label">${t('nav.simple.help', 'Help & Guides')}</span>
+          </a>
+        </div>
+      `;
+      simpleSection.appendChild(actionsPanel);
 
       container.appendChild(simpleSection);
       return;
@@ -231,277 +261,249 @@ export default function SupplierDashboardPage(root) {
     // PRO MODE VIEW (Full Multi-Subsystem Hub)
     // ==========================================
     const proSection = document.createElement('div');
-    proSection.className = 'pro-dashboard space-y-6';
+    proSection.style.display = 'flex';
+    proSection.style.flexDirection = 'column';
+    proSection.style.gap = 'var(--space-6, 24px)';
 
-    // 1. KPI Metric Grid
-    const kpiGrid = document.createElement('div');
-    kpiGrid.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3';
-    kpiGrid.innerHTML = `
-      <div class="p-4 rounded-xl border border-subtle bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('supplier.total_sku', 'Active SKUs')}</span>
-        <div class="text-2xl font-bold mt-1">${metrics.total_products || 0}</div>
-        <span class="text-xs text-muted">${metrics.total_units || 0} ${t('supplier.units_stored', 'units')}</span>
+    // 1. Full 6-Metric Telemetry Strip
+    const proKpiGrid = document.createElement('div');
+    proKpiGrid.className = 'supplier-kpi-grid supplier-kpi-grid--6';
+    proKpiGrid.innerHTML = `
+      <div class="supplier-kpi-card">
+        <span class="supplier-kpi-card__label">${t('supplier.total_sku', 'Active SKUs')}</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 8px 0;">${metrics.total_products || 0}</div>
+        <span class="text-xs text-muted">${metrics.total_units || 0} ${t('supplier.units_stored', 'units stored')}</span>
       </div>
-      <div class="p-4 rounded-xl border border-subtle bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('supplier.low_stock', 'Low Stock')}</span>
-        <div class="text-2xl font-bold mt-1 ${metrics.low_stock_count > 0 ? 'text-amber-600' : 'text-green-600'}">${metrics.low_stock_count || 0}</div>
-        <span class="text-xs ${metrics.out_of_stock_count > 0 ? 'text-red-500 font-bold' : 'text-muted'}">${metrics.out_of_stock_count || 0} ${t('supplier.stockout', 'stockouts')}</span>
+
+      <div class="supplier-kpi-card">
+        <span class="supplier-kpi-card__label">${t('supplier.low_stock', 'Low Stock')}</span>
+        <div class="supplier-kpi-card__value ${metrics.low_stock_count > 0 ? 'supplier-kpi-card__value--warning' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 8px 0;">
+          ${metrics.low_stock_count || 0}
+        </div>
+        <span class="text-xs ${metrics.out_of_stock_count > 0 ? 'text-danger font-bold' : 'text-muted'}">
+          ${metrics.out_of_stock_count || 0} ${t('supplier.stockout', 'stockouts')}
+        </span>
       </div>
-      <div class="p-4 rounded-xl border border-subtle bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('supplier.pending_packing', 'Pending Orders')}</span>
-        <div class="text-2xl font-bold mt-1 text-primary">${metrics.pending_orders_count || 0}</div>
-        <a href="/supplier/fulfilment" class="text-xs text-primary underline">${t('supplier.pack_now', 'Pack Now →')}</a>
+
+      <div class="supplier-kpi-card">
+        <span class="supplier-kpi-card__label">${t('supplier.pending_packing', 'Pending Orders')}</span>
+        <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 8px 0;">
+          ${metrics.pending_orders_count || 0}
+        </div>
+        <a href="/supplier/orders" class="text-xs text-primary font-bold underline">${t('supplier.pack_now', 'Pack Now →')}</a>
       </div>
-      <div class="p-4 rounded-xl border border-subtle bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('supplier.today_margin', "Today's Margin")}</span>
-        <div class="text-2xl font-bold mt-1 text-green-600">${formatCurrency(metrics.today_earnings || 0)}</div>
+
+      <div class="supplier-kpi-card">
+        <span class="supplier-kpi-card__label">${t('supplier.today_margin', "Today's Margin")}</span>
+        <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 8px 0;">
+          ${formatCurrency(metrics.today_earnings || 0)}
+        </div>
         <span class="text-xs text-muted">${formatCurrency(metrics.total_settled_earnings || 0)} ${t('supplier.total_settled', 'settled')}</span>
       </div>
-      <div class="p-4 rounded-xl border border-subtle bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('supplier.active_batches', 'FEFO Batches')}</span>
-        <div class="text-2xl font-bold mt-1">${metrics.total_active_batches || 0}</div>
-        <span class="text-xs ${metrics.expiring_soon_count > 0 ? 'text-amber-600 font-bold' : 'text-muted'}">${metrics.expiring_soon_count || 0} ${t('supplier.expiring_soon', 'expiring soon')}</span>
+
+      <div class="supplier-kpi-card">
+        <span class="supplier-kpi-card__label">${t('supplier.active_batches', 'FEFO Batches')}</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 8px 0;">
+          ${metrics.total_active_batches || 0}
+        </div>
+        <span class="text-xs ${metrics.expiring_soon_count > 0 ? 'text-warning font-bold' : 'text-muted'}">
+          ${metrics.expiring_soon_count || 0} ${t('supplier.expiring_soon', 'expiring soon')}
+        </span>
       </div>
-      <div class="p-4 rounded-xl border border-subtle bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('supplier.warehouses_count', 'Depot Nodes')}</span>
-        <div class="text-2xl font-bold mt-1">${metrics.total_warehouses || 0}</div>
+
+      <div class="supplier-kpi-card">
+        <span class="supplier-kpi-card__label">${t('supplier.warehouses_count', 'Depot Nodes')}</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 8px 0;">
+          ${metrics.total_warehouses || 0}
+        </div>
         <span class="text-xs text-muted">${metrics.active_curators_count || 0} ${t('supplier.curators', 'salers selling')}</span>
       </div>
     `;
-    proSection.appendChild(kpiGrid);
+    proSection.appendChild(proKpiGrid);
 
     // 2. Operational Control Matrix
     const matrixGrid = document.createElement('div');
-    matrixGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
+    matrixGrid.className = 'supplier-matrix-grid';
 
-    // Module Card 1: Inventory & Stock Hub (Core)
+    // Matrix Card 1: Stock & Inventory Hub
     const inventoryCard = document.createElement('div');
-    inventoryCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
+    inventoryCard.className = 'supplier-matrix-card';
     inventoryCard.innerHTML = `
       <div>
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">📦</span>
-            <h3 class="font-bold text-base">${t('supplier.inventory_management', 'Stock & Inventory')}</h3>
+        <div class="supplier-matrix-card__header">
+          <div class="supplier-matrix-card__title-group">
+            <span style="font-size: 1.25rem;">📦</span>
+            <h3 class="supplier-matrix-card__title">${t('supplier.inventory_management', 'Stock & Inventory')}</h3>
           </div>
-          <span class="badge badge--success text-xs">${metrics.total_products || 0} SKUs</span>
+          <span class="badge badge--success text-xs font-mono font-bold">${metrics.total_products || 0} SKUs</span>
         </div>
-        <p class="text-xs text-muted mb-4">
+        <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
           ${t('supplier.inventory_desc', 'Track real-time SKU counts, configure low-stock reorder thresholds, and distribute inventory across regional warehouses.')}
         </p>
       </div>
-      <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-        <a href="/supplier/inventory" class="btn btn--sm btn--primary flex-1 text-center">${t('supplier.view_inventory', 'View Live Stock')}</a>
+      <div class="supplier-matrix-card__footer">
+        <a href="/supplier/inventory" class="btn btn--sm btn--primary" style="flex: 1; text-align: center;">${t('supplier.view_inventory', 'View Live Stock')}</a>
         <a href="/supplier/products" class="btn btn--sm btn--secondary">${t('supplier.add_sku', '+ Add SKU')}</a>
       </div>
     `;
     matrixGrid.appendChild(inventoryCard);
 
-    // Module Card 2: FEFO Batch Expiry & Recalls (fefo_batches)
-    if (isFeatureEnabled('fefo_batches')) {
-      const batchCard = document.createElement('div');
-      batchCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
-      batchCard.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">🏷️</span>
-              <h3 class="font-bold text-base">${t('supplier.batch_fefo_title', 'FEFO Batch Manager')}</h3>
-            </div>
-            ${metrics.expiring_soon_count > 0 ? `<span class="badge badge--warning text-xs">⚠️ ${metrics.expiring_soon_count} Expiring</span>` : `<span class="badge badge--neutral text-xs">All Good</span>`}
+    // Matrix Card 2: FEFO Batch Manager
+    const batchCard = document.createElement('div');
+    batchCard.className = 'supplier-matrix-card';
+    batchCard.innerHTML = `
+      <div>
+        <div class="supplier-matrix-card__header">
+          <div class="supplier-matrix-card__title-group">
+            <span style="font-size: 1.25rem;">🏷️</span>
+            <h3 class="supplier-matrix-card__title">${t('supplier.batch_fefo_title', 'FEFO Batch Manager')}</h3>
           </div>
-          <p class="text-xs text-muted mb-4">
-            ${t('supplier.batch_fefo_desc', 'Automated First-Expired, First-Out dispatch prioritization, 30/60-day clearance discount alerts, and 1-click rapid recall isolation.')}
-          </p>
+          <span class="badge ${metrics.expiring_soon_count > 0 ? 'badge--warning' : 'badge--neutral'} text-xs font-mono">
+            ${metrics.expiring_soon_count || 0} near expiry
+          </span>
         </div>
-        <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-          <a href="/supplier/batches" class="btn btn--sm btn--primary flex-1 text-center">${t('supplier.manage_batches', 'Batch Timeline')}</a>
-          <a href="/supplier/batches?status=EXPIRING_SOON" class="btn btn--sm btn--secondary">${t('supplier.clearance_action', 'Clearance Deals')}</a>
-        </div>
-      `;
-      matrixGrid.appendChild(batchCard);
-    }
+        <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
+          ${t('supplier.batch_fefo_desc', 'Automated First-Expired, First-Out dispatch prioritization, 30/60-day clearance discount alerts, and 1-click rapid recall isolation.')}
+        </p>
+      </div>
+      <div class="supplier-matrix-card__footer">
+        <a href="/supplier/batches" class="btn btn--sm btn--secondary" style="flex: 1; text-align: center;">${t('supplier.manage_batches', 'Batch Timeline')}</a>
+        <a href="/supplier/batches?tab=clearance" class="btn btn--sm btn--outline">${t('supplier.clearance_action', 'Clearance Deals')}</a>
+      </div>
+    `;
+    matrixGrid.appendChild(batchCard);
 
-    // Module Card 3: Multi-Location Warehouse GIS Routing (multi_warehouse)
-    if (isFeatureEnabled('multi_warehouse')) {
-      const warehouseCard = document.createElement('div');
-      warehouseCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
-      warehouseCard.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">🏭</span>
-              <h3 class="font-bold text-base">${t('supplier.warehouse_routing_title', 'Multi-Node Warehouses')}</h3>
-            </div>
-            <span class="badge badge--info text-xs">${metrics.total_warehouses || 0} Nodes</span>
+    // Matrix Card 3: Multi-Node Warehouses
+    const warehouseCard = document.createElement('div');
+    warehouseCard.className = 'supplier-matrix-card';
+    warehouseCard.innerHTML = `
+      <div>
+        <div class="supplier-matrix-card__header">
+          <div class="supplier-matrix-card__title-group">
+            <span style="font-size: 1.25rem;">🏭</span>
+            <h3 class="supplier-matrix-card__title">${t('supplier.warehouse_routing_title', 'Multi-Node Warehouses')}</h3>
           </div>
-          <p class="text-xs text-muted mb-4">
-            ${t('supplier.warehouse_routing_desc', 'Manage regional factories (Dhaka, Chittagong, Sylhet, Bogura) with smart GIS great-circle proximity routing.')}
-          </p>
+          <span class="badge badge--info text-xs font-mono">${metrics.total_warehouses || 3} nodes active</span>
         </div>
-        <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-          <a href="/supplier/warehouses" class="btn btn--sm btn--primary flex-1 text-center">${t('supplier.manage_warehouses', 'Manage Depots')}</a>
-        </div>
-      `;
-      matrixGrid.appendChild(warehouseCard);
-    }
+        <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
+          ${t('supplier.warehouse_routing_desc', 'Manage regional factory depots (Dhaka, Chittagong, Sylhet, Bogura) with smart GIS great-circle proximity routing.')}
+        </p>
+      </div>
+      <div class="supplier-matrix-card__footer">
+        <a href="/supplier/warehouses" class="btn btn--sm btn--secondary" style="flex: 1; text-align: center;">${t('supplier.manage_warehouses', 'Manage Depots')}</a>
+        <a href="/supplier/warehouses" class="btn btn--sm btn--primary">+ Add Node</a>
+      </div>
+    `;
+    matrixGrid.appendChild(warehouseCard);
 
-    // Module Card 4: Fulfilment Queue & 1-Click Labels (courier_hub)
-    if (isFeatureEnabled('courier_hub')) {
-      const fulfilmentCard = document.createElement('div');
-      fulfilmentCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
-      fulfilmentCard.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">🚚</span>
-              <h3 class="font-bold text-base">${t('supplier.fulfilment_queue', '3PL Fulfilment Queue')}</h3>
-            </div>
-            <span class="badge badge--primary text-xs">${metrics.pending_orders_count || 0} Pending</span>
+    // Matrix Card 4: Fulfilment Queue & 3PL Labels
+    const fulfilmentCard = document.createElement('div');
+    fulfilmentCard.className = 'supplier-matrix-card';
+    fulfilmentCard.innerHTML = `
+      <div>
+        <div class="supplier-matrix-card__header">
+          <div class="supplier-matrix-card__title-group">
+            <span style="font-size: 1.25rem;">🚚</span>
+            <h3 class="supplier-matrix-card__title">${t('supplier.fulfilment_queue', '3PL Fulfilment Queue')}</h3>
           </div>
-          <p class="text-xs text-muted mb-4">
-            ${t('supplier.fulfilment_desc', '1-Click courier booking (Steadfast, Pathao, RedX), batch-directed packing slips, and printable thermal shipping labels.')}
-          </p>
+          <span class="badge badge--warning text-xs font-mono font-bold">${metrics.pending_orders_count || 0} to pack</span>
         </div>
-        <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-          <a href="/supplier/fulfilment" class="btn btn--sm btn--primary flex-1 text-center">${t('supplier.print_pack_slips', 'Pack & Dispatch')}</a>
-        </div>
-      `;
-      matrixGrid.appendChild(fulfilmentCard);
-    }
+        <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
+          ${t('supplier.fulfilment_desc', '1-Click courier booking (Steadfast, Pathao, RedX), batch-directed packing slips, and printable thermal shipping labels.')}
+        </p>
+      </div>
+      <div class="supplier-matrix-card__footer">
+        <a href="/supplier/orders" class="btn btn--sm btn--primary" style="flex: 1; text-align: center;">${t('supplier.orders_to_pack', 'Orders to Pack')}</a>
+        <a href="/supplier/fulfilment" class="btn btn--sm btn--outline">${t('supplier.print_labels', 'Print Labels')}</a>
+      </div>
+    `;
+    matrixGrid.appendChild(fulfilmentCard);
 
-    // Module Card 5: Reseller Network Insights & Curators
+    // Matrix Card 5: Reseller Network Insights
     const resellerCard = document.createElement('div');
-    resellerCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
+    resellerCard.className = 'supplier-matrix-card';
     resellerCard.innerHTML = `
       <div>
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">👥</span>
-            <h3 class="font-bold text-base">${t('supplier.reseller_insights_title', 'Reseller Network')}</h3>
+        <div class="supplier-matrix-card__header">
+          <div class="supplier-matrix-card__title-group">
+            <span style="font-size: 1.25rem;">👥</span>
+            <h3 class="supplier-matrix-card__title">${t('supplier.reseller_insights_title', 'Reseller Network')}</h3>
           </div>
-          <span class="badge badge--success text-xs">${metrics.active_curators_count || 0} Curators</span>
+          <span class="badge badge--success text-xs font-mono">${metrics.active_curators_count || 0} salers</span>
         </div>
-        <p class="text-xs text-muted mb-4">
+        <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
           ${t('supplier.reseller_insights_desc', 'See which Salers curate and sell your products most effectively, top conversion districts, and sales volume analytics.')}
         </p>
       </div>
-      <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-        <a href="/supplier/resellers" class="btn btn--sm btn--primary flex-1 text-center">${t('supplier.view_salers', 'View Reseller Stats')}</a>
+      <div class="supplier-matrix-card__footer">
+        <a href="/supplier/resellers" class="btn btn--sm btn--secondary" style="flex: 1; text-align: center;">${t('supplier.view_salers', 'View Reseller Stats')}</a>
       </div>
     `;
     matrixGrid.appendChild(resellerCard);
 
-    // Module Card 6: Earnings Vault & Wholesale Payouts (core)
+    // Matrix Card 6: Earnings Vault & Escrow
     const vaultCard = document.createElement('div');
-    vaultCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
+    vaultCard.className = 'supplier-matrix-card';
     vaultCard.innerHTML = `
       <div>
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <span class="text-xl">💰</span>
-            <h3 class="font-bold text-base">${t('supplier.vault_title', 'Supplier Digital Vault')}</h3>
+        <div class="supplier-matrix-card__header">
+          <div class="supplier-matrix-card__title-group">
+            <span style="font-size: 1.25rem;">💰</span>
+            <h3 class="supplier-matrix-card__title">${t('supplier.vault_title', 'Supplier Digital Vault')}</h3>
           </div>
-          <span class="badge badge--success text-xs font-mono">${formatCurrency(metrics.today_earnings || 0)}</span>
+          <span class="badge badge--success text-xs font-mono">${formatCurrency(metrics.total_settled_earnings || 0)} settled</span>
         </div>
-        <p class="text-xs text-muted mb-4">
+        <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
           ${t('supplier.vault_desc', 'Track delivered order payouts, pending escrow settlements, and request instant bank or bKash withdrawals.')}
         </p>
       </div>
-      <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-        <a href="/supplier/vault" class="btn btn--sm btn--primary flex-1 text-center">${t('supplier.open_vault', 'Open Vault')}</a>
+      <div class="supplier-matrix-card__footer">
+        <a href="/supplier/vault" class="btn btn--sm btn--primary" style="flex: 1; text-align: center;">${t('supplier.open_vault', 'Open Vault')}</a>
       </div>
     `;
     matrixGrid.appendChild(vaultCard);
 
-    // Module Card 7: Digital Warranty Claims (digital_warranty)
-    if (isFeatureEnabled('digital_warranty')) {
-      const warrantyCard = document.createElement('div');
-      warrantyCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
-      warrantyCard.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">🛡️</span>
-              <h3 class="font-bold text-base">${t('supplier.warranty_claims_title', 'Warranty & Claims')}</h3>
-            </div>
-            <span class="badge badge--neutral text-xs">Claims Hub</span>
+    // Matrix Card 7: Physical Store Walk-in Status
+    const storeStatusCard = document.createElement('div');
+    storeStatusCard.className = 'supplier-matrix-card';
+    storeStatusCard.innerHTML = `
+      <div>
+        <div class="supplier-matrix-card__header">
+          <div class="supplier-matrix-card__title-group">
+            <span style="font-size: 1.25rem;">🏪</span>
+            <h3 class="supplier-matrix-card__title">${t('supplier.physical_store_status', 'Physical Store Status')}</h3>
           </div>
-          <p class="text-xs text-muted mb-4">
-            ${t('supplier.warranty_claims_desc', 'Review customer repair/replacement requests within 72h SLA and manage reverse logistics.')}
-          </p>
+          <span class="badge ${shop.is_open ? 'badge--success' : 'badge--neutral'} text-xs font-mono font-bold" id="shop-status-badge">
+            ${shop.is_open ? '🟢 ' + t('supplier.open', 'Open') : '🔴 ' + t('supplier.closed', 'Closed')}
+          </span>
         </div>
-        <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-          <a href="/supplier/warranty-claims" class="btn btn--sm btn--secondary flex-1 text-center">${t('supplier.view_claims', 'Review Claims')}</a>
-        </div>
-      `;
-      matrixGrid.appendChild(warrantyCard);
-    }
+        <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
+          ${t('supplier.physical_store_desc', 'Toggle your physical factory/warehouse customer walk-in status and operational hours.')}
+        </p>
+      </div>
+      <div class="supplier-matrix-card__footer">
+        <button class="btn btn--sm ${shop.is_open ? 'btn--secondary' : 'btn--primary'}" id="toggle-shop-btn" style="flex: 1;">
+          ${shop.is_open ? '🔴 ' + t('supplier.mark_closed', 'Mark Closed') : '🟢 ' + t('supplier.mark_open', 'Mark Open')}
+        </button>
+      </div>
+    `;
 
-    // Module Card 8: Live Commerce Host Studio (live_commerce)
-    if (isFeatureEnabled('live_commerce')) {
-      const liveCard = document.createElement('div');
-      liveCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
-      liveCard.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">📹</span>
-              <h3 class="font-bold text-base">${t('supplier.live_studio_title', 'Live Commerce Studio')}</h3>
-            </div>
-            <span class="badge badge--primary text-xs">Host Stream</span>
-          </div>
-          <p class="text-xs text-muted mb-4">
-            ${t('supplier.live_studio_desc', 'Broadcast live wholesale and product demonstration sessions to hundreds of Salers and shoppers.')}
-          </p>
-        </div>
-        <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-          <a href="/supplier/live-studio" class="btn btn--sm btn--secondary flex-1 text-center">${t('supplier.launch_studio', 'Launch Live Stream')}</a>
-        </div>
-      `;
-      matrixGrid.appendChild(liveCard);
-    }
-
-    // Module Card 9: Physical Store Status Toggle (physical_shop_status)
-    if (isFeatureEnabled('physical_shop_status')) {
-      const shopCard = document.createElement('div');
-      shopCard.className = 'dashboard-card p-5 rounded-xl border border-subtle bg-surface flex flex-col justify-between';
-      shopCard.innerHTML = `
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">🏪</span>
-              <h3 class="font-bold text-base">${t('supplier.physical_store_status', 'Physical Store Status')}</h3>
-            </div>
-            <span class="badge ${shop.is_open ? 'badge--success' : 'badge--danger'} text-xs" id="shop-status-badge">
-              ${shop.is_open ? '🟢 ' + t('supplier.open', 'Open') : '🔴 ' + t('supplier.closed', 'Closed')}
-            </span>
-          </div>
-          <p class="text-xs text-muted mb-4">
-            ${t('supplier.physical_store_desc', 'Toggle your physical factory/warehouse customer walk-in status and operational hours.')}
-          </p>
-        </div>
-        <div class="flex items-center gap-2 pt-3 border-t border-subtle">
-          <button class="btn btn--sm ${shop.is_open ? 'btn--outline' : 'btn--primary'} flex-1 text-center" id="toggle-shop-status-btn">
-            ${shop.is_open ? t('supplier.mark_closed', 'Mark Closed') : t('supplier.mark_open', 'Mark Open')}
-          </button>
-        </div>
-      `;
-
-      shopCard.querySelector('#toggle-shop-status-btn').onclick = async () => {
-        try {
-          const nextState = !shop.is_open;
-          await supplierApi.updateStoreStatus({ isOpen: nextState });
-          shop.is_open = nextState;
-          toast.success(nextState ? t('supplier.shop_now_open', 'Physical store marked OPEN.') : t('supplier.shop_now_closed', 'Physical store marked CLOSED.'));
-          render();
-        } catch (err) {
-          toast.error(t('supplier.failed_status_update', 'Failed to update shop status.'));
-        }
-      };
-
-      matrixGrid.appendChild(shopCard);
-    }
+    const toggleShopBtn = storeStatusCard.querySelector('#toggle-shop-btn');
+    toggleShopBtn.onclick = async () => {
+      try {
+        const nextState = !shop.is_open;
+        await supplierApi.updateStoreStatus({ isOpen: nextState });
+        shop.is_open = nextState;
+        storeStatusCard.querySelector('#shop-status-badge').textContent = nextState ? '🟢 ' + t('supplier.open', 'Open') : '🔴 ' + t('supplier.closed', 'Closed');
+        storeStatusCard.querySelector('#shop-status-badge').className = `badge ${nextState ? 'badge--success' : 'badge--neutral'} text-xs font-mono font-bold`;
+        toggleShopBtn.textContent = nextState ? '🔴 ' + t('supplier.mark_closed', 'Mark Closed') : '🟢 ' + t('supplier.mark_open', 'Mark Open');
+        toggleShopBtn.className = `btn btn--sm ${nextState ? 'btn--secondary' : 'btn--primary'}`;
+        toast.success(nextState ? t('supplier.shop_now_open', 'Physical store marked OPEN.') : t('supplier.shop_now_closed', 'Physical store marked CLOSED.'));
+      } catch (e) {
+        toast.error(t('supplier.failed_status_update', 'Failed to update shop status.'));
+      }
+    };
+    matrixGrid.appendChild(storeStatusCard);
 
     proSection.appendChild(matrixGrid);
     container.appendChild(proSection);

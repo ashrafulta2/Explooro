@@ -134,9 +134,10 @@ export function Modal({
 
   let previouslyFocused = null;
   let result;
+  const nativeClose = dialog.close.bind(dialog);
 
   function open(trigger = null) {
-    if (dialog.open) return;
+    if (dialog.hasAttribute('open')) return;
     previouslyFocused = trigger ?? document.activeElement;
 
     if (!dialog.isConnected) document.body.append(dialog);
@@ -157,9 +158,9 @@ export function Modal({
   }
 
   function close(value = false) {
-    if (!dialog.open) return;
+    if (!dialog.hasAttribute('open')) return;
     result = value;
-    dialog.close();
+    nativeClose();
   }
 
   // `close` fires for Escape too, so cleanup lives here and nowhere else — that is what keeps
@@ -183,6 +184,19 @@ export function Modal({
   dialog.open_ = open;
   dialog.openModal = open;
   dialog.closeModal = close;
+  dialog.isOpen = () => Boolean(dialog.hasAttribute('open'));
+
+  Object.defineProperty(dialog, 'open', {
+    value: open,
+    writable: true,
+    configurable: true,
+  });
+  Object.defineProperty(dialog, 'close', {
+    value: close,
+    writable: true,
+    configurable: true,
+  });
+
   dialog.setContent = (node) => {
     bodyEl.replaceChildren(node);
   };

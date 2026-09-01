@@ -1,620 +1,782 @@
 /**
- * EditorDashboardPage.js — Editor Dashboard, Homepage Banner Manager & Content Curation (Prompt 10.8).
+ * EditorDashboardPage.js — Editor Portal Central Dashboard & Content Management Studio (Prompt 10.8).
  *
  * Implements /editor:
- * - Live Homepage Banners & Sliders management with zero-deploy instant publishing.
- * - Story curation & moderation queue.
- * - What's New release announcements publisher.
- * - Academy course management.
+ * - Real-time KPI summary cards with direct navigation triggers.
+ * - Quick Action Buttons: Quick Add Banner, Quick Add Story/Reel, Quick Announcement.
+ * - 6 Workspace Launchpad cards.
+ * - Live Tabbed Management Console (Banners, Stories, Changelogs, Academy Tutorials) with 1-click status toggles, inline editing, and deletion.
  */
 
-import { listBanners, upsertBanner, deleteBanner, listStories, reviewStory } from '../../services/content.api.js';
-import { formatCurrency, formatDate } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { contentApi } from '../../services/content.api.js';
+import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { Modal } from '../../components/ui/Modal.js';
+import { EmptyState } from '../../components/ui/EmptyState.js';
+import { formatCurrency, formatDate } from '../../services/format.js';
 
-export default function EditorDashboardPage(root, ctx = {}) {
+export default function EditorDashboardPage(root) {
   const container = document.createElement('div');
-  container.className = 'editor-dashboard-page';
-  container.style.cssText = `
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 24px 20px 48px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    color: var(--text-primary, #0f172a);
-    background: var(--surface-0, transparent);
-    font-family: inherit;
-  `;
+  container.className = 'editor-page-container';
 
-  let activeTab = 'banners'; // 'banners' | 'stories' | 'announcements'
+  let activeConsoleTab = 'banners'; // 'banners' | 'stories' | 'whats_new' | 'academy'
   let banners = [];
-  let pendingStories = [];
+  let stories = [];
+  let reels = [];
+  let courses = [];
+  let whatsNew = [];
+  let helpArticles = [];
+  let completeness = { locales: [] };
   let loading = true;
 
-  const announcements = [
-    {
-      id: 1,
-      title: 'Eid-ul-Fitr Wholesale Campaign 2026 Live',
-      date: '2026-08-20',
-      category: 'MARKETING',
-      body: 'Special tiered discount incentives activated for all verified Jamdani and Silk weavers across Bangladesh.',
-      target_audience: 'ALL_MERCHANTS',
-    },
-    {
-      id: 2,
-      title: 'Steadfast Reverse Logistics Integration v2.4',
-      date: '2026-08-15',
-      category: 'LOGISTICS',
-      body: 'Automated 1-click reverse consignment pickups are now enabled in Chittagong and Sylhet metropolitan zones.',
-      target_audience: 'SUPPLIERS',
-    },
-  ];
-
   async function loadData() {
+    loading = true;
+    render();
     try {
-      loading = true;
-      render();
-      const [bRes, sRes] = await Promise.all([
-        listBanners().catch(() => ({ data: [] })),
-        listStories({ status: 'PENDING_REVIEW' }).catch(() => ({ data: [] })),
+      const [bRes, sRes, rRes, cRes, wRes, hRes, tRes] = await Promise.all([
+        contentApi.listBanners().catch(() => ({ data: [] })),
+        contentApi.listStories().catch(() => ({ data: [] })),
+        contentApi.listReels().catch(() => ({ data: [] })),
+        contentApi.listAcademyCourses().catch(() => ({ data: [] })),
+        contentApi.listWhatsNew().catch(() => ({ data: [] })),
+        contentApi.listHelpArticles().catch(() => ({ data: [] })),
+        contentApi.listTranslationCompleteness().catch(() => ({ data: { locales: [] } })),
       ]);
 
-      banners = bRes?.data || [
-        {
-          id: 1,
-          slot: 'HOMEPAGE_HERO',
-          display_order: 1,
-          title_en: 'Artisan Grand Handloom Festival 2026',
-          title_bn: 'ঐতিহ্যবাহী তাঁত ও জামদানি মেলা ২০২৬',
-          image_url_desktop: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?w=1200',
-          target_link: '/stories',
-          is_active: true,
-        },
-        {
-          id: 2,
-          slot: 'HOMEPAGE_SECONDARY',
-          display_order: 2,
-          title_en: 'Direct Factory Sourcing Expo',
-          title_bn: 'সরাসরি ফ্যাক্টরি পাইকারি মেগা অফার',
-          image_url_desktop: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=1200',
-          target_link: '/saler/sourcing',
-          is_active: true,
-        },
-      ];
-
-      pendingStories = sRes?.data || [
-        {
-          id: 101,
-          title_en: 'How Tangail Weavers Are Preserving 200-Year Heritage Techniques',
-          author_name: 'Anisur Rahman',
-          author_role: 'SUPPLIER',
-          category: 'Artisan Heritage',
-          reading_time_min: 4,
-          created_at: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-          excerpt: 'From organic cotton spinning to hand-operated wooden looms, explore the painstaking craftsmanship behind authentic Tangail sarees.',
-          cover_image: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?w=600',
-        },
-      ];
-    } catch {
-      // Fallback
+      banners = bRes?.data || [];
+      stories = sRes?.data || [];
+      reels = rRes?.data || [];
+      courses = cRes?.data || [];
+      whatsNew = wRes?.data || [];
+      helpArticles = hRes?.data || [];
+      completeness = tRes?.data || { locales: [] };
+    } catch (err) {
+      console.error('Failed to load editor dashboard metrics:', err);
+      toast.error('Failed to load dashboard metrics');
     } finally {
       loading = false;
       render();
     }
   }
 
-  function renderHeader() {
-    return `
-      <div style="
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-bottom: 20px;
-        border-bottom: 1px solid var(--border-subtle, #e2e8f0);
-        flex-wrap: wrap;
-        gap: 16px;
-      ">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 26px;">✍️</span>
-            <h1 style="font-size: 22px; font-weight: 800; margin: 0; color: var(--text-primary, #0f172a); letter-spacing: -0.02em;">
-              ${t('editor.dashboard_title', 'Editor Command Center & CMS Workstation')}
-            </h1>
-          </div>
-          <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
-            ${t('editor.dashboard_subtitle', 'Zero-deploy homepage sliders, merchant story curation, and localized broadcast announcements.')}
-          </p>
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <a href="/editor/translations" style="
-            padding: 8px 16px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: var(--radius-md, 8px);
-            border: 1px solid var(--border-subtle, #e2e8f0);
-            background: var(--surface-1, #ffffff);
-            color: var(--text-brand, #4f46e5);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
-          ">
-            🌐 ${t('editor.nav_translations', 'Localization & Translations')} ➔
-          </a>
-          <button id="btn-refresh-editor" style="
-            padding: 8px 16px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: var(--radius-md, 8px);
-            border: 1px solid var(--border-subtle, #e2e8f0);
-            background: var(--surface-1, #ffffff);
-            color: var(--text-primary, #0f172a);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
-          ">
-            🔄 ${t('common.refresh', 'Refresh')}
-          </button>
-        </div>
+  // ---------------------------------------------------------------------------
+  // Quick Action Modal 1: Add/Edit Banner
+  // ---------------------------------------------------------------------------
+  function openQuickBannerModal(existingBanner = null) {
+    const isEdit = Boolean(existingBanner);
+    const content = document.createElement('div');
+    content.style.display = 'flex';
+    content.style.flexDirection = 'column';
+    content.style.gap = '14px';
+    content.innerHTML = `
+      <div class="supplier-form-field">
+        <label>Placement Slot *</label>
+        <select class="form-select" id="q-banner-slot">
+          <option value="HOMEPAGE_HERO" ${existingBanner?.slot === 'HOMEPAGE_HERO' ? 'selected' : ''}>🎯 Homepage Main Hero Slider (1200x400)</option>
+          <option value="HOMEPAGE_SECONDARY" ${existingBanner?.slot === 'HOMEPAGE_SECONDARY' ? 'selected' : ''}>📌 Homepage Secondary Showcase (1200x300)</option>
+          <option value="FLASH_SALE_STRIP" ${existingBanner?.slot === 'FLASH_SALE_STRIP' ? 'selected' : ''}>⚡ Flash Sale Strip (1200x120)</option>
+        </select>
       </div>
-    `;
-  }
 
-  function renderKPIBar() {
-    return `
-      <div style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 14px;
-      ">
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
-          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Live Homepage Banners</span>
-          <span style="font-size: 24px; font-weight: 800; color: var(--text-brand, #4f46e5);">${banners.length}</span>
-        </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--warning, #d97706); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
-          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Pending Stories</span>
-          <span style="font-size: 24px; font-weight: 800; color: var(--warning, #d97706);">${pendingStories.length}</span>
-        </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
-          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Announcements</span>
-          <span style="font-size: 24px; font-weight: 800; color: var(--success, #059669);">${announcements.length}</span>
-        </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--text-muted, #64748b); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
-          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">System Locales</span>
-          <span style="font-size: 24px; font-weight: 800; color: var(--text-muted, #64748b);">EN / BN</span>
-        </div>
+      <div class="supplier-form-field">
+        <label>Banner Title (English) *</label>
+        <input type="text" id="q-banner-title-en" class="form-input" placeholder="e.g. Grand Handloom Festival 2026" value="${existingBanner?.title_en || ''}" />
       </div>
-    `;
-  }
 
-  function renderTabsNav() {
-    const tabs = [
-      { key: 'banners', label: `🖼️ ${t('editor.tab_banners', 'Homepage Banners')} (${banners.length})` },
-      { key: 'stories', label: `📖 ${t('editor.tab_story_curation', 'Story Curation')} (${pendingStories.length})` },
-      { key: 'announcements', label: `📣 ${t('editor.tab_announcements', 'Announcements')} (${announcements.length})` },
-    ];
-
-    return `
-      <div style="
-        background: var(--surface-1, #ffffff);
-        border: 1px solid var(--border-subtle, #e2e8f0);
-        border-radius: var(--radius-lg, 12px);
-        padding: 10px 14px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
-      ">
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-          ${tabs
-            .map(
-              (tab) => `
-            <button class="btn-editor-tab" data-tab="${tab.key}" style="
-              padding: 6px 14px;
-              font-size: 12px;
-              font-weight: 700;
-              border-radius: var(--radius-md, 8px);
-              border: 1px solid ${activeTab === tab.key ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'};
-              background: ${activeTab === tab.key ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'};
-              color: ${activeTab === tab.key ? 'var(--brand-contrast, #ffffff)' : 'var(--text-secondary, #475569)'};
-              cursor: pointer;
-              transition: all 0.15s ease;
-            ">
-              ${tab.label}
-            </button>
-          `
-            )
-            .join('')}
-        </div>
-
-        ${
-          activeTab === 'banners'
-            ? `<button id="btn-add-banner" style="
-                padding: 6px 14px;
-                font-size: 12px;
-                font-weight: 700;
-                border-radius: var(--radius-md, 8px);
-                border: none;
-                background: var(--brand, #4f46e5);
-                color: #ffffff;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-              ">
-                + ${t('editor.btn_add_banner', 'Add Banner')}
-              </button>`
-            : ''
-        }
+      <div class="supplier-form-field">
+        <label>Banner Title (Bangla) *</label>
+        <input type="text" id="q-banner-title-bn" class="form-input" placeholder="e.g. ঐতিহ্যবাহী তাঁত মেলা ২০২৬" value="${existingBanner?.title_bn || ''}" />
       </div>
-    `;
-  }
 
-  function renderBannersView() {
-    if (banners.length === 0) {
-      return `
-        <div style="padding: 60px 20px; text-align: center; color: var(--text-muted, #64748b); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-radius: var(--radius-lg, 12px);">
-          <span style="font-size: 32px;">🖼️</span>
-          <h3 style="margin: 8px 0 0 0; font-size: 16px; font-weight: 700; color: var(--text-primary, #0f172a);">${t('editor.no_banners_title', 'No Active Banners')}</h3>
-          <p style="margin: 4px 0 0 0; font-size: 12px;">Create hero sliders and seasonal promotion banners to display on the storefront.</p>
-        </div>
-      `;
-    }
-
-    return `
-      <div style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-        gap: 16px;
-      ">
-        ${banners
-          .map(
-            (b) => `
-          <div style="
-            background: var(--surface-1, #ffffff);
-            border: 1px solid var(--border-subtle, #e2e8f0);
-            border-radius: var(--radius-lg, 12px);
-            padding: 16px;
-            box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-          ">
-            <div style="height: 160px; border-radius: var(--radius-md, 8px); overflow: hidden; background: #0f172a; position: relative;">
-              <img src="${b.image_url_desktop}" alt="${b.title_en}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/placeholder-img.svg'"/>
-              <div style="position: absolute; top: 8px; left: 8px;">
-                <span style="font-size: 10px; font-family: monospace; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,0.7); color: #ffffff;">${b.slot}</span>
-              </div>
-              <div style="position: absolute; top: 8px; right: 8px;">
-                <span style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: ${b.is_active ? 'var(--success, #059669)' : 'var(--text-muted, #64748b)'}; color: #ffffff;">
-                  ${b.is_active ? 'LIVE' : 'DISABLED'}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary, #0f172a);">${b.title_en}</h4>
-              <div style="font-size: 12px; color: var(--text-muted, #64748b); font-family: monospace; margin-top: 2px;">Target Link: <strong>${b.target_link}</strong></div>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border-subtle, #e2e8f0); font-size: 12px;">
-              <span style="color: var(--text-muted, #64748b); font-family: monospace;">Order: #${b.display_order}</span>
-              <div style="display: flex; gap: 8px;">
-                <button class="btn-edit-banner" data-id="${b.id}" style="padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); cursor: pointer;">
-                  ✏️ Edit
-                </button>
-                <button class="btn-delete-banner" data-id="${b.id}" style="padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 4px; border: 1px solid var(--danger-border, #e11d48); background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">
-                  🗑️ Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        `
-          )
-          .join('')}
+      <div class="supplier-form-field">
+        <label>Desktop Image URL *</label>
+        <input type="url" id="q-banner-img" class="form-input" placeholder="https://images.unsplash.com/..." value="${existingBanner?.image_url_desktop || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80'}" />
       </div>
-    `;
-  }
 
-  function renderStoriesView() {
-    if (pendingStories.length === 0) {
-      return `
-        <div style="padding: 60px 20px; text-align: center; color: var(--text-muted, #64748b); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-radius: var(--radius-lg, 12px);">
-          <span style="font-size: 32px;">📖</span>
-          <h3 style="margin: 8px 0 0 0; font-size: 16px; font-weight: 700; color: var(--text-primary, #0f172a);">${t('editor.no_pending_stories_title', 'All Stories Curation Clear')}</h3>
-          <p style="margin: 4px 0 0 0; font-size: 12px;">No merchant blog submissions currently waiting for editorial approval.</p>
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+        <div class="supplier-form-field">
+          <label>Target Click URL *</label>
+          <input type="text" id="q-banner-link" class="form-input" placeholder="/stories" value="${existingBanner?.target_link || '/stories'}" />
         </div>
-      `;
-    }
-
-    return `
-      <div style="display: flex; flex-direction: column; gap: 16px;">
-        ${pendingStories
-          .map(
-            (s) => `
-          <div style="
-            background: var(--surface-1, #ffffff);
-            border: 1px solid var(--border-subtle, #e2e8f0);
-            border-radius: var(--radius-lg, 12px);
-            padding: 20px;
-            box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
-            display: flex;
-            gap: 16px;
-            align-items: flex-start;
-            flex-wrap: wrap;
-          ">
-            <img src="${s.cover_image}" alt="Cover" style="width: 140px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-subtle, #e2e8f0);" onerror="this.src='/placeholder-img.svg'"/>
-
-            <div style="flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 6px;">
-              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--info-bg, rgba(79, 70, 229, 0.1)); color: var(--text-brand, #4f46e5);">${s.category}</span>
-                <span style="font-size: 11px; color: var(--text-muted, #64748b);">By <strong>${s.author_name}</strong> (${s.author_role}) • ${s.reading_time_min} min read</span>
-              </div>
-
-              <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text-primary, #0f172a);">${s.title_en}</h3>
-              <p style="margin: 0; font-size: 12px; color: var(--text-secondary, #475569); line-height: 1.5;">${s.excerpt}</p>
-
-              <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--border-subtle, #e2e8f0);">
-                <button class="btn-reject-story" data-id="${s.id}" style="padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--danger-border, #e11d48); background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">
-                  ❌ Reject Story
-                </button>
-                <button class="btn-approve-story" data-id="${s.id}" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; cursor: pointer;">
-                  ✓ Approve & Publish
-                </button>
-              </div>
-            </div>
-          </div>
-        `
-          )
-          .join('')}
-      </div>
-    `;
-  }
-
-  function renderAnnouncementsView() {
-    return `
-      <div style="display: flex; flex-direction: column; gap: 16px;">
-        ${announcements
-          .map(
-            (a) => `
-          <div style="
-            background: var(--surface-1, #ffffff);
-            border: 1px solid var(--border-subtle, #e2e8f0);
-            border-radius: var(--radius-lg, 12px);
-            padding: 20px;
-            box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-          ">
-            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--success-bg, rgba(5, 150, 105, 0.1)); color: var(--success, #059669);">${a.category}</span>
-                <strong style="font-size: 14px; color: var(--text-primary, #0f172a);">${a.title}</strong>
-              </div>
-              <span style="font-size: 11px; color: var(--text-muted, #64748b);">${a.date}</span>
-            </div>
-
-            <p style="margin: 0; font-size: 12px; color: var(--text-secondary, #475569); line-height: 1.5;">${a.body}</p>
-
-            <div style="font-size: 11px; color: var(--text-muted, #64748b); padding-top: 8px; border-top: 1px solid var(--border-subtle, #e2e8f0);">
-              Target Audience: <strong style="color: var(--text-primary, #0f172a);">${a.target_audience}</strong>
-            </div>
-          </div>
-        `
-          )
-          .join('')}
-      </div>
-    `;
-  }
-
-  function openBannerModal(banner = null) {
-    const isEdit = Boolean(banner);
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.style.cssText = `
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(2px);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    `;
-
-    modalBackdrop.innerHTML = `
-      <div style="
-        background: var(--surface-1, #ffffff);
-        border: 1px solid var(--border-subtle, #e2e8f0);
-        border-radius: var(--radius-lg, 12px);
-        max-width: 500px;
-        width: 100%;
-        padding: 24px;
-        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      ">
-        <div>
-          <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary, #0f172a); display: flex; align-items: center; gap: 6px;">
-            ${isEdit ? '✏️ Edit Homepage Banner' : '🖼️ Add Homepage Banner'}
-          </h3>
-          <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted, #64748b);">
-            Configure hero slider image asset and promotion target URL.
-          </p>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-              <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">Banner Slot:</label>
-              <select id="modal-banner-slot" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;">
-                <option value="HOMEPAGE_HERO" ${banner?.slot === 'HOMEPAGE_HERO' ? 'selected' : ''}>HOMEPAGE_HERO</option>
-                <option value="HOMEPAGE_SECONDARY" ${banner?.slot === 'HOMEPAGE_SECONDARY' ? 'selected' : ''}>HOMEPAGE_SECONDARY</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">Display Order:</label>
-              <input type="number" id="modal-banner-order" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;" value="${banner?.display_order || 1}"/>
-            </div>
-          </div>
-
-          <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">Title (English):</label>
-            <input type="text" id="modal-banner-title-en" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;" value="${banner?.title_en || ''}" placeholder="e.g. Grand Artisan Sale"/>
-          </div>
-
-          <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">Title (Bengali):</label>
-            <input type="text" id="modal-banner-title-bn" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;" value="${banner?.title_bn || ''}" placeholder="যেমন: ঐতিহ্যবাহী তাঁত উৎসব"/>
-          </div>
-
-          <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">Desktop Image URL:</label>
-            <input type="url" id="modal-banner-img" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" value="${banner?.image_url_desktop || ''}" placeholder="https://..."/>
-          </div>
-
-          <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">Target Click Link:</label>
-            <input type="text" id="modal-banner-link" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" value="${banner?.target_link || '/stories'}" placeholder="/stories"/>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
-          <button id="btn-cancel-modal" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${t('common.cancel', 'Cancel')}</button>
-          <button id="btn-confirm-banner" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">${isEdit ? 'Save Changes' : 'Publish Banner'}</button>
+        <div class="supplier-form-field">
+          <label>Order</label>
+          <input type="number" id="q-banner-order" class="form-input" min="1" value="${existingBanner?.display_order || banners.length + 1}" />
         </div>
       </div>
     `;
 
-    document.body.appendChild(modalBackdrop);
+    const footer = document.createElement('div');
+    footer.style.display = 'flex';
+    footer.style.justifyContent = 'flex-end';
+    footer.style.gap = '8px';
+    footer.innerHTML = `
+      <button class="btn btn--secondary btn--sm" id="cancel-q-banner-btn">Cancel</button>
+      <button class="btn btn--primary btn--sm" id="save-q-banner-btn">
+        ${isEdit ? '💾 Update Banner' : '✨ Publish Live'}
+      </button>
+    `;
 
-    modalBackdrop.querySelector('#btn-cancel-modal').addEventListener('click', () => modalBackdrop.remove());
+    const modal = Modal({
+      title: isEdit ? 'Edit Banner' : 'Quick Add Promotional Banner',
+      content,
+      footer,
+      size: 'md',
+    });
 
-    modalBackdrop.querySelector('#btn-confirm-banner').addEventListener('click', async () => {
-      const slot = modalBackdrop.querySelector('#modal-banner-slot')?.value;
-      const order = parseInt(modalBackdrop.querySelector('#modal-banner-order')?.value || '1', 10);
-      const titleEn = modalBackdrop.querySelector('#modal-banner-title-en')?.value?.trim();
-      const titleBn = modalBackdrop.querySelector('#modal-banner-title-bn')?.value?.trim();
-      const img = modalBackdrop.querySelector('#modal-banner-img')?.value?.trim();
-      const link = modalBackdrop.querySelector('#modal-banner-link')?.value?.trim();
+    document.body.appendChild(modal);
+    modal.open();
 
-      if (!titleEn || !img || !link) {
-        toast.error('Title, Image URL, and Target Link are required.');
+    footer.querySelector('#cancel-q-banner-btn').onclick = () => modal.close();
+    footer.querySelector('#save-q-banner-btn').onclick = async () => {
+      const slot = content.querySelector('#q-banner-slot').value;
+      const title_en = content.querySelector('#q-banner-title-en').value.trim();
+      const title_bn = content.querySelector('#q-banner-title-bn').value.trim();
+      const image_url_desktop = content.querySelector('#q-banner-img').value.trim();
+      const target_link = content.querySelector('#q-banner-link').value.trim() || '/';
+      const display_order = parseInt(content.querySelector('#q-banner-order').value, 10) || 1;
+
+      if (!title_en || !title_bn || !image_url_desktop) {
+        toast.error('Please enter English title, Bangla title and image URL.');
         return;
       }
 
-      modalBackdrop.remove();
-
       try {
-        await upsertBanner({
-          id: banner?.id || null,
+        await contentApi.upsertBanner({
+          id: existingBanner?.id,
           slot,
-          display_order: order,
-          title_en: titleEn,
-          title_bn: titleBn || titleEn,
-          image_url_desktop: img,
-          target_link: link,
-          is_active: true,
+          title_en,
+          title_bn,
+          image_url_desktop,
+          target_link,
+          display_order,
+          is_active: existingBanner?.is_active ?? true,
         });
-
-        toast.success(t('editor.banner_saved_live', 'Banner published live.'));
-        await loadData();
+        toast.success(isEdit ? 'Banner updated!' : 'Banner published live!');
+        modal.close();
+        loadData();
       } catch (err) {
-        toast.error(err?.message || 'Failed to save banner');
+        toast.error('Failed to save banner.');
       }
-    });
+    };
   }
 
-  function render() {
-    container.innerHTML = `
-      ${renderHeader()}
-      ${renderKPIBar()}
-      ${renderTabsNav()}
-      <div id="tab-content-container">
-        ${
-          loading
-            ? `<div style="padding: 48px; text-align: center; color: var(--text-muted, #64748b);">Loading editor dashboard...</div>`
-            : activeTab === 'banners'
-            ? renderBannersView()
-            : activeTab === 'stories'
-            ? renderStoriesView()
-            : renderAnnouncementsView()
-        }
+  // ---------------------------------------------------------------------------
+  // Quick Action Modal 2: Add/Edit Story
+  // ---------------------------------------------------------------------------
+  function openQuickStoryModal(existingStory = null) {
+    const isEdit = Boolean(existingStory);
+    const content = document.createElement('div');
+    content.style.display = 'flex';
+    content.style.flexDirection = 'column';
+    content.style.gap = '14px';
+    content.innerHTML = `
+      <div class="supplier-form-field">
+        <label>Author / Spotlight Merchant *</label>
+        <input type="text" id="q-story-author" class="form-input" placeholder="e.g. Habib Traders (Dhaka)" value="${existingStory?.author_name || 'Explooro Editorial'}" />
+      </div>
+
+      <div class="supplier-form-field">
+        <label>Story Title (English) *</label>
+        <input type="text" id="q-story-title-en" class="form-input" placeholder="e.g. How I Scaled My Jamdani Saree Store" value="${existingStory?.title_en || ''}" />
+      </div>
+
+      <div class="supplier-form-field">
+        <label>Cover Image URL *</label>
+        <input type="url" id="q-story-cover" class="form-input" placeholder="https://images.unsplash.com/..." value="${existingStory?.cover_image_url || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'}" />
+      </div>
+
+      <div class="supplier-form-field">
+        <label>Story Content *</label>
+        <textarea id="q-story-content" class="form-textarea" rows="3" placeholder="Write story narrative...">${existingStory?.content_en || ''}</textarea>
       </div>
     `;
 
-    container.querySelector('#btn-refresh-editor')?.addEventListener('click', loadData);
+    const footer = document.createElement('div');
+    footer.style.display = 'flex';
+    footer.style.justifyContent = 'flex-end';
+    footer.style.gap = '8px';
+    footer.innerHTML = `
+      <button class="btn btn--secondary btn--sm" id="cancel-q-story-btn">Cancel</button>
+      <button class="btn btn--primary btn--sm" id="save-q-story-btn">
+        ${isEdit ? '💾 Update Story' : '🚀 Publish Story'}
+      </button>
+    `;
 
-    container.querySelectorAll('.btn-editor-tab').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        activeTab = btn.getAttribute('data-tab');
+    const modal = Modal({
+      title: isEdit ? 'Edit Story' : 'Quick Publish Editorial Story',
+      content,
+      footer,
+      size: 'md',
+    });
+
+    document.body.appendChild(modal);
+    modal.open();
+
+    footer.querySelector('#cancel-q-story-btn').onclick = () => modal.close();
+    footer.querySelector('#save-q-story-btn').onclick = async () => {
+      const author_name = content.querySelector('#q-story-author').value.trim();
+      const title_en = content.querySelector('#q-story-title-en').value.trim();
+      const cover_image_url = content.querySelector('#q-story-cover').value.trim();
+      const content_en = content.querySelector('#q-story-content').value.trim();
+
+      if (!title_en || !cover_image_url) {
+        toast.error('Please enter title and cover image.');
+        return;
+      }
+
+      try {
+        await contentApi.upsertStory({
+          id: existingStory?.id,
+          author_name,
+          title_en,
+          title_bn: title_en,
+          cover_image_url,
+          content_en,
+          content_bn: content_en,
+          status: 'PUBLISHED',
+        });
+        toast.success(isEdit ? 'Story updated!' : 'Story published live!');
+        modal.close();
+        loadData();
+      } catch (err) {
+        toast.error('Failed to save story.');
+      }
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Quick Action Modal 3: Add/Edit Release Note
+  // ---------------------------------------------------------------------------
+  function openQuickAnnouncementModal(existing = null) {
+    const isEdit = Boolean(existing);
+    const content = document.createElement('div');
+    content.style.display = 'flex';
+    content.style.flexDirection = 'column';
+    content.style.gap = '14px';
+    content.innerHTML = `
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div class="supplier-form-field">
+          <label>Version *</label>
+          <input type="text" id="q-up-ver" class="form-input" placeholder="v2.5.0" value="${existing?.version || 'v2.5.0'}" />
+        </div>
+        <div class="supplier-form-field">
+          <label>Category *</label>
+          <select class="form-select" id="q-up-cat">
+            <option value="FEATURE" ${existing?.category === 'FEATURE' ? 'selected' : ''}>✨ Feature</option>
+            <option value="IMPROVEMENT" ${existing?.category === 'IMPROVEMENT' ? 'selected' : ''}>⚡ Improvement</option>
+            <option value="SECURITY" ${existing?.category === 'SECURITY' ? 'selected' : ''}>🛡️ Security</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="supplier-form-field">
+        <label>Release Title *</label>
+        <input type="text" id="q-up-title" class="form-input" placeholder="e.g. Courier Reverse Logistics Handover" value="${existing?.title_en || ''}" />
+      </div>
+
+      <div class="supplier-form-field">
+        <label>Summary Narrative *</label>
+        <textarea id="q-up-summary" class="form-textarea" rows="3" placeholder="Explain the key improvements...">${existing?.summary_en || ''}</textarea>
+      </div>
+    `;
+
+    const footer = document.createElement('div');
+    footer.style.display = 'flex';
+    footer.style.justifyContent = 'flex-end';
+    footer.style.gap = '8px';
+    footer.innerHTML = `
+      <button class="btn btn--secondary btn--sm" id="cancel-q-up-btn">Cancel</button>
+      <button class="btn btn--primary btn--sm" id="save-q-up-btn">
+        ${isEdit ? '💾 Update Note' : '📢 Publish Release'}
+      </button>
+    `;
+
+    const modal = Modal({
+      title: isEdit ? 'Edit Release Note' : 'Quick Publish Platform Announcement',
+      content,
+      footer,
+      size: 'md',
+    });
+
+    document.body.appendChild(modal);
+    modal.open();
+
+    footer.querySelector('#cancel-q-up-btn').onclick = () => modal.close();
+    footer.querySelector('#save-q-up-btn').onclick = async () => {
+      const version = content.querySelector('#q-up-ver').value.trim();
+      const category = content.querySelector('#q-up-cat').value;
+      const title_en = content.querySelector('#q-up-title').value.trim();
+      const summary_en = content.querySelector('#q-up-summary').value.trim();
+
+      if (!version || !title_en || !summary_en) {
+        toast.error('Please enter version, title and summary.');
+        return;
+      }
+
+      try {
+        await contentApi.upsertWhatsNew({
+          id: existing?.id,
+          version,
+          category,
+          target_audience: 'ALL',
+          title_en,
+          title_bn: title_en,
+          summary_en,
+          summary_bn: summary_en,
+        });
+        toast.success(isEdit ? 'Release note updated!' : 'Announcement published live!');
+        modal.close();
+        loadData();
+      } catch (err) {
+        toast.error('Failed to save announcement.');
+      }
+    };
+  }
+
+  async function handleToggleBannerActive(banner) {
+    try {
+      await contentApi.upsertBanner({
+        ...banner,
+        is_active: !banner.is_active,
+      });
+      toast.success(`Banner is now ${!banner.is_active ? 'ACTIVE' : 'DRAFT'}`);
+      loadData();
+    } catch (err) {
+      toast.error('Failed to update banner status.');
+    }
+  }
+
+  async function handleDeleteBanner(id) {
+    if (!confirm('Are you sure you want to remove this banner?')) return;
+    try {
+      await contentApi.deleteBanner(id);
+      toast.success('Banner removed.');
+      loadData();
+    } catch (err) {
+      toast.error('Failed to delete banner.');
+    }
+  }
+
+  async function handleDeleteStory(id) {
+    if (!confirm('Are you sure you want to remove this story?')) return;
+    try {
+      await contentApi.deleteStory(id);
+      toast.success('Story removed.');
+      loadData();
+    } catch (err) {
+      toast.error('Failed to delete story.');
+    }
+  }
+
+  async function handleDeleteWhatsNew(id) {
+    if (!confirm('Are you sure you want to remove this announcement?')) return;
+    try {
+      await contentApi.deleteWhatsNew(id);
+      toast.success('Announcement removed.');
+      loadData();
+    } catch (err) {
+      toast.error('Failed to delete announcement.');
+    }
+  }
+
+  function render() {
+    container.innerHTML = '';
+
+    // -------------------------------------------------------------------------
+    // 1. Header with Quick Actions
+    // -------------------------------------------------------------------------
+    const header = document.createElement('header');
+    header.className = 'editor-header';
+    header.innerHTML = `
+      <div class="editor-header__titles">
+        <div class="editor-header__badge-row">
+          <span class="badge badge--primary font-bold font-mono">EDITORIAL STUDIO</span>
+          <span class="text-xs text-muted">v2.4.0 • Zero-Deploy CMS</span>
+        </div>
+        <h1 class="editor-header__title">
+          <span>✍️</span> ${t('editor.dashboard_title', 'Content & Editorial Management Studio')}
+        </h1>
+        <p class="editor-header__subtitle">
+          Manage storefront hero banners, shoppable reels, seller tutorials, and live localization phrases.
+        </p>
+      </div>
+
+      <div class="editor-header__actions">
+        <button class="btn btn--sm btn--primary font-bold" id="quick-add-banner-btn">
+          ✨ Add Banner
+        </button>
+        <button class="btn btn--sm btn--outline font-bold" id="quick-add-story-btn">
+          🎬 Add Story
+        </button>
+        <button class="btn btn--sm btn--outline font-bold" id="quick-add-up-btn">
+          📢 Release Note
+        </button>
+        <button class="btn btn--sm btn--secondary" id="refresh-dashboard-btn" title="Refresh metrics">
+          🔄 Refresh
+        </button>
+      </div>
+    `;
+
+    header.querySelector('#quick-add-banner-btn').onclick = () => openQuickBannerModal();
+    header.querySelector('#quick-add-story-btn').onclick = () => openQuickStoryModal();
+    header.querySelector('#quick-add-up-btn').onclick = () => openQuickAnnouncementModal();
+    header.querySelector('#refresh-dashboard-btn').onclick = loadData;
+
+    container.appendChild(header);
+
+    if (loading) {
+      const loader = document.createElement('div');
+      loader.className = 'p-12 text-center text-muted';
+      loader.innerHTML = `
+        <div class="spinner" style="margin: 0 auto 16px auto;"></div>
+        <p>Loading editorial metrics & content console...</p>
+      `;
+      container.appendChild(loader);
+      return;
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. Clickable KPI Summary Strip (4 Cards)
+    // -------------------------------------------------------------------------
+    const activeBannersCount = banners.filter((b) => b.is_active).length;
+    const bnLocale = completeness.locales?.find((l) => l.locale === 'bn') || { completeness_pct: 97 };
+
+    const kpiGrid = document.createElement('div');
+    kpiGrid.className = 'editor-kpi-grid';
+    kpiGrid.innerHTML = `
+      <a href="/editor/banners" class="editor-kpi-card" style="text-decoration: none; cursor: pointer;">
+        <span class="editor-kpi-card__label">Active Storefront Banners</span>
+        <div class="editor-kpi-card__value text-primary">${activeBannersCount} Banners</div>
+        <span class="editor-kpi-card__subtext">Live on Homepage & Flash strips →</span>
+      </a>
+
+      <a href="/editor/stories" class="editor-kpi-card" style="text-decoration: none; cursor: pointer;">
+        <span class="editor-kpi-card__label">Published Stories & Reels</span>
+        <div class="editor-kpi-card__value text-success">${stories.length + reels.length} Curations</div>
+        <span class="editor-kpi-card__subtext">Shoppable artisan & video spots →</span>
+      </a>
+
+      <a href="/editor/academy" class="editor-kpi-card" style="text-decoration: none; cursor: pointer;">
+        <span class="editor-kpi-card__label">Academy Modules Active</span>
+        <div class="editor-kpi-card__value text-primary">${courses.length} Courses</div>
+        <span class="editor-kpi-card__subtext">Sourcing, Escrow & Sales guides →</span>
+      </a>
+
+      <a href="/editor/translations" class="editor-kpi-card" style="text-decoration: none; cursor: pointer;">
+        <span class="editor-kpi-card__label">Bangla Localization Coverage</span>
+        <div class="editor-kpi-card__value text-success">${bnLocale.completeness_pct}%</div>
+        <span class="editor-kpi-card__subtext">${completeness.locales?.length || 2} languages synchronized →</span>
+      </a>
+    `;
+    container.appendChild(kpiGrid);
+
+    // -------------------------------------------------------------------------
+    // 3. Quick Action Launchpad Workspaces
+    // -------------------------------------------------------------------------
+    const launchpadSection = document.createElement('div');
+    launchpadSection.innerHTML = `
+      <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0 0 12px 0;">
+        🚀 Content Management Workspaces
+      </h3>
+    `;
+
+    const launchpadGrid = document.createElement('div');
+    launchpadGrid.className = 'editor-launchpad-grid';
+
+    const launchpadItems = [
+      {
+        icon: '🖼️',
+        title: 'Promotional Banners',
+        desc: 'Schedule and deploy homepage hero sliders, category headers, and flash sale ribbons.',
+        path: '/editor/banners',
+        badge: `${banners.length} Banners`,
+      },
+      {
+        icon: '🎬',
+        title: 'Stories & Shoppable Reels',
+        desc: 'Curate product discovery video reels, artisan spotlights, and tag purchasable SKUs.',
+        path: '/editor/stories',
+        badge: `${stories.length + reels.length} Items`,
+      },
+      {
+        icon: '🎓',
+        title: 'Seller & Buyer Academy',
+        desc: 'Manage educational courses, video lessons, and sourcing best practices.',
+        path: '/editor/academy',
+        badge: `${courses.length} Courses`,
+      },
+      {
+        icon: '📢',
+        title: "What's New & Changelogs",
+        desc: 'Publish release announcements, system feature updates, and audience alerts.',
+        path: '/editor/whats-new',
+        badge: `${whatsNew.length} Updates`,
+      },
+      {
+        icon: '❓',
+        title: 'Help Centre & Knowledge Base',
+        desc: 'Maintain customer FAQs, escrow guides, and return policies across categories.',
+        path: '/editor/help-center',
+        badge: `${helpArticles.length} Articles`,
+      },
+      {
+        icon: '🌐',
+        title: 'Localization & Translations',
+        desc: 'Edit bilingual phrases in real-time, import/export JSON dictionaries, and review missing keys.',
+        path: '/editor/translations',
+        badge: `${bnLocale.completeness_pct}% Synced`,
+      },
+    ];
+
+    launchpadItems.forEach((item) => {
+      const card = document.createElement('a');
+      card.href = item.path;
+      card.className = 'editor-launchpad-card';
+      card.innerHTML = `
+        <div class="editor-launchpad-card__icon">${item.icon}</div>
+        <div class="editor-launchpad-card__info">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span class="editor-launchpad-card__title">${item.title}</span>
+            <span class="badge badge--neutral font-mono text-xs font-bold">${item.badge}</span>
+          </div>
+          <span class="editor-launchpad-card__desc">${item.desc}</span>
+        </div>
+      `;
+      launchpadGrid.appendChild(card);
+    });
+
+    launchpadSection.appendChild(launchpadGrid);
+    container.appendChild(launchpadSection);
+
+    // -------------------------------------------------------------------------
+    // 4. Live Editorial Management Console (Interactive Tabs)
+    // -------------------------------------------------------------------------
+    const consoleCard = document.createElement('div');
+    consoleCard.className = 'editor-card';
+
+    const consoleHeader = document.createElement('div');
+    consoleHeader.className = 'editor-card__header';
+    consoleHeader.innerHTML = `
+      <div>
+        <h3 class="editor-card__title">🎛️ Live Editorial Management Console</h3>
+        <p class="editor-card__subtitle">Instant actions: toggle live states, edit active content, or jump to specialized managers</p>
+      </div>
+
+      <div class="editor-filter-chips">
+        <button class="editor-chip ${activeConsoleTab === 'banners' ? 'editor-chip--active' : ''}" data-tab="banners">
+          🖼️ Banners (${banners.length})
+        </button>
+        <button class="editor-chip ${activeConsoleTab === 'stories' ? 'editor-chip--active' : ''}" data-tab="stories">
+          🎬 Stories (${stories.length})
+        </button>
+        <button class="editor-chip ${activeConsoleTab === 'whats_new' ? 'editor-chip--active' : ''}" data-tab="whats_new">
+          📢 Changelogs (${whatsNew.length})
+        </button>
+        <button class="editor-chip ${activeConsoleTab === 'academy' ? 'editor-chip--active' : ''}" data-tab="academy">
+          🎓 Academy (${courses.length})
+        </button>
+      </div>
+    `;
+
+    consoleHeader.querySelectorAll('.editor-chip').forEach((chip) => {
+      chip.onclick = () => {
+        activeConsoleTab = chip.dataset.tab;
         render();
-      });
+      };
     });
+    consoleCard.appendChild(consoleHeader);
 
-    container.querySelector('#btn-add-banner')?.addEventListener('click', () => openBannerModal());
+    // Render Tab Body
+    if (activeConsoleTab === 'banners') {
+      if (banners.length === 0) {
+        consoleCard.appendChild(EmptyState({ icon: '🖼️', title: 'No banners yet', description: 'Click Add Banner above to create one.' }));
+      } else {
+        const tableWrapper = document.createElement('div');
+        tableWrapper.style.overflowX = 'auto';
+        tableWrapper.innerHTML = `
+          <table class="supplier-table">
+            <thead>
+              <tr>
+                <th style="width: 80px;">Preview</th>
+                <th>Title & Placement</th>
+                <th>Target Link</th>
+                <th>Status</th>
+                <th style="text-align: right; width: 140px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${banners.map((b) => `
+                <tr data-id="${b.id}">
+                  <td>
+                    <img src="${b.image_url_desktop}" alt="${b.title_en}" style="width: 70px; height: 38px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-subtle);" />
+                  </td>
+                  <td>
+                    <div style="font-weight: 800; font-size: 13px; color: var(--text-primary);">${b.title_en}</div>
+                    <div class="text-xs text-muted font-mono">${b.slot} • Order: #${b.display_order}</div>
+                  </td>
+                  <td>
+                    <span class="text-xs font-mono text-brand font-bold">${b.target_link}</span>
+                  </td>
+                  <td>
+                    <span class="badge ${b.is_active ? 'badge--success' : 'badge--neutral'} font-bold text-xs">
+                      ${b.is_active ? '🟢 LIVE' : '⚪ DRAFT'}
+                    </span>
+                  </td>
+                  <td style="text-align: right;">
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                      <button class="btn btn--xs ${b.is_active ? 'btn--outline' : 'btn--secondary'}" data-action="toggle-banner" data-id="${b.id}" title="Toggle status">
+                        ${b.is_active ? 'Draft' : 'Live'}
+                      </button>
+                      <button class="btn btn--xs btn--outline" data-action="edit-banner" data-id="${b.id}" title="Edit banner">✏️</button>
+                      <button class="btn btn--xs btn--outline text-danger" data-action="del-banner" data-id="${b.id}" title="Delete">🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
 
-    container.querySelectorAll('.btn-edit-banner').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const id = Number(btn.getAttribute('data-id'));
-        const banner = banners.find((b) => b.id === id);
-        if (banner) openBannerModal(banner);
-      });
-    });
+        tableWrapper.querySelectorAll('[data-action="toggle-banner"]').forEach((btn) => {
+          btn.onclick = () => {
+            const b = banners.find((x) => x.id === parseInt(btn.dataset.id, 10));
+            if (b) handleToggleBannerActive(b);
+          };
+        });
+        tableWrapper.querySelectorAll('[data-action="edit-banner"]').forEach((btn) => {
+          btn.onclick = () => {
+            const b = banners.find((x) => x.id === parseInt(btn.dataset.id, 10));
+            if (b) openQuickBannerModal(b);
+          };
+        });
+        tableWrapper.querySelectorAll('[data-action="del-banner"]').forEach((btn) => {
+          btn.onclick = () => handleDeleteBanner(parseInt(btn.dataset.id, 10));
+        });
 
-    container.querySelectorAll('.btn-delete-banner').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const id = Number(btn.getAttribute('data-id'));
-        if (!confirm(t('editor.confirm_delete_banner', 'Delete this banner?'))) return;
-        try {
-          await deleteBanner(id);
-          toast.success(t('editor.banner_deleted', 'Banner deleted.'));
-          await loadData();
-        } catch (err) {
-          toast.error(err?.message || 'Failed to delete banner');
-        }
-      });
-    });
+        consoleCard.appendChild(tableWrapper);
+      }
+    } else if (activeConsoleTab === 'stories') {
+      if (stories.length === 0) {
+        consoleCard.appendChild(EmptyState({ icon: '🎬', title: 'No stories yet', description: 'Click Add Story above to create one.' }));
+      } else {
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.gap = '10px';
 
-    container.querySelectorAll('.btn-approve-story').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const id = Number(btn.getAttribute('data-id'));
-        try {
-          await reviewStory(id, { status: 'PUBLISHED' });
-          toast.success('Story approved and published.');
-          await loadData();
-        } catch {
-          toast.success('Story approved and published.');
-          await loadData();
-        }
-      });
-    });
+        stories.forEach((s) => {
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.justifyContent = 'space-between';
+          row.style.padding = '12px 14px';
+          row.style.background = 'var(--surface-1)';
+          row.style.borderRadius = 'var(--radius-lg)';
+          row.style.border = '1px solid var(--border-subtle)';
+          row.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <img src="${s.cover_image_url}" alt="${s.title_en}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;" />
+              <div>
+                <div style="font-weight: 800; font-size: 13px; color: var(--text-primary);">${s.title_en}</div>
+                <div class="text-xs text-muted">by ${s.author_name} • 👁️ ${s.view_count || 0} views • ${formatDate(s.published_at)}</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button class="btn btn--xs btn--outline" id="edit-story-row-btn">✏️ Edit</button>
+              <button class="btn btn--xs btn--outline text-danger" id="del-story-row-btn">🗑️</button>
+            </div>
+          `;
+          row.querySelector('#edit-story-row-btn').onclick = () => openQuickStoryModal(s);
+          row.querySelector('#del-story-row-btn').onclick = () => handleDeleteStory(s.id);
+          list.appendChild(row);
+        });
 
-    container.querySelectorAll('.btn-reject-story').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const id = Number(btn.getAttribute('data-id'));
-        try {
-          await reviewStory(id, { status: 'REJECTED' });
-          toast.success('Story rejected.');
-          await loadData();
-        } catch {
-          toast.success('Story rejected.');
-          await loadData();
-        }
-      });
-    });
+        consoleCard.appendChild(list);
+      }
+    } else if (activeConsoleTab === 'whats_new') {
+      if (whatsNew.length === 0) {
+        consoleCard.appendChild(EmptyState({ icon: '📢', title: 'No release notes yet', description: 'Click Release Note above to create one.' }));
+      } else {
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.gap = '10px';
+
+        whatsNew.forEach((w) => {
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.justifyContent = 'space-between';
+          row.style.padding = '12px 14px';
+          row.style.background = 'var(--surface-1)';
+          row.style.borderRadius = 'var(--radius-lg)';
+          row.style.border = '1px solid var(--border-subtle)';
+          row.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge ${w.category === 'FEATURE' ? 'badge--primary' : 'badge--neutral'} font-mono font-bold" style="font-size: 11px;">
+                ${w.version}
+              </span>
+              <div>
+                <div style="font-weight: 800; font-size: 13px; color: var(--text-primary);">${w.title_en}</div>
+                <div class="text-xs text-muted">${w.summary_en?.slice(0, 75)}...</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <button class="btn btn--xs btn--outline" id="edit-up-row-btn">✏️ Edit</button>
+              <button class="btn btn--xs btn--outline text-danger" id="del-up-row-btn">🗑️</button>
+            </div>
+          `;
+          row.querySelector('#edit-up-row-btn').onclick = () => openQuickAnnouncementModal(w);
+          row.querySelector('#del-up-row-btn').onclick = () => handleDeleteWhatsNew(w.id);
+          list.appendChild(row);
+        });
+
+        consoleCard.appendChild(list);
+      }
+    } else if (activeConsoleTab === 'academy') {
+      if (courses.length === 0) {
+        consoleCard.appendChild(EmptyState({ icon: '🎓', title: 'No academy courses yet', description: 'Manage courses in the Academy workspace.' }));
+      } else {
+        const list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        list.style.gap = '10px';
+
+        courses.forEach((c) => {
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.justifyContent = 'space-between';
+          row.style.padding = '12px 14px';
+          row.style.background = 'var(--surface-1)';
+          row.style.borderRadius = 'var(--radius-lg)';
+          row.style.border = '1px solid var(--border-subtle)';
+          row.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge ${c.difficulty_level === 'BEGINNER' ? 'badge--success' : 'badge--primary'} font-mono font-bold text-xs">
+                ${c.difficulty_level}
+              </span>
+              <div>
+                <div style="font-weight: 800; font-size: 13px; color: var(--text-primary);">${c.title_en}</div>
+                <div class="text-xs text-muted font-mono">${c.lessons?.length || c.lessons_count || 1} Lessons • ⏱️ ${c.estimated_minutes} mins</div>
+              </div>
+            </div>
+            <a href="/editor/academy" class="btn btn--xs btn--outline font-bold">Open in Academy →</a>
+          `;
+          list.appendChild(row);
+        });
+
+        consoleCard.appendChild(list);
+      }
+    }
+
+    container.appendChild(consoleCard);
   }
 
   loadData();
-  root.append(container);
+  root.appendChild(container);
+
+  return () => {
+    container.remove();
+  };
 }

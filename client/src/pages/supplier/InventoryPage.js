@@ -4,7 +4,8 @@
  * Implements:
  * - Real-time SKU stock levels, low-stock threshold warning indicators, and out-of-stock telemetry.
  * - Multi-depot warehouse breakdown per product.
- * - Inline stock adjuster modal to update regional counts.
+ * - Interactive inline Stock Adjuster modal with step counters and instant live persistence.
+ * - Search by title, SKU ref, or category + status filter chips.
  */
 
 import { supplierApi } from '../../services/supplier.api.js';
@@ -17,13 +18,12 @@ import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function InventoryPage(root) {
   const container = document.createElement('div');
-  container.className = 'supplier-inventory-page container py-6 space-y-6';
+  container.className = 'supplier-page-container';
 
   let items = [];
   let loading = true;
   let searchQuery = '';
   let filterStatus = 'all'; // 'all' | 'low_stock' | 'out_of_stock'
-  let selectedItemForStock = null;
 
   async function loadInventory() {
     loading = true;
@@ -46,20 +46,22 @@ export default function InventoryPage(root) {
 
     // 1. Page Header
     const header = document.createElement('header');
-    header.className = 'page-header flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-subtle';
+    header.className = 'supplier-header';
     header.innerHTML = `
-      <div>
-        <div class="flex items-center gap-2">
-          <a href="/supplier" class="text-xs text-muted hover:text-primary">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
+      <div class="supplier-header__titles">
+        <div class="supplier-header__badge-row">
+          <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
+          <span class="text-muted">/</span>
+          <span class="text-xs text-muted font-mono">Stock & Inventory</span>
         </div>
-        <h1 class="text-2xl font-bold flex items-center gap-2 mt-1">
+        <h1 class="supplier-header__title">
           <span>📦</span> ${t('supplier.inventory_title', 'Live Stock & SKU Inventory')}
         </h1>
-        <p class="text-sm text-muted mt-1">
+        <p class="supplier-header__subtitle">
           ${t('supplier.inventory_subtitle', 'Monitor physical warehouse quantities, threshold alerts, and FEFO lot associations.')}
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="supplier-header__actions">
         <a href="/supplier/products" class="btn btn--sm btn--primary">
           ➕ ${t('supplier.add_product', 'Add New SKU')}
         </a>
@@ -72,28 +74,67 @@ export default function InventoryPage(root) {
     header.querySelector('#refresh-inv-btn').onclick = loadInventory;
     container.appendChild(header);
 
-    // 2. Filter & Search Toolbar
+    // 2. Summary Metric Strip
+    const totalUnits = items.reduce((acc, i) => acc + (Number(i.stock_qty) || 0), 0);
+    const lowStockCount = items.filter((i) => i.stock_qty > 0 && i.stock_qty <= i.low_stock_threshold).length;
+    const outOfStockCount = items.filter((i) => i.stock_qty === 0).length;
+
+    const metricStrip = document.createElement('div');
+    metricStrip.className = 'supplier-kpi-grid';
+    metricStrip.innerHTML = `
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('supplier.total_sku', 'Total Tracked SKUs')}</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">${items.length}</div>
+        <span class="text-xs text-muted">Active physical listings</span>
+      </div>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('supplier.units_stored', 'Total Units in Warehouses')}</span>
+        <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 4px 0;">${totalUnits}</div>
+        <span class="text-xs text-muted">Across all regional depots</span>
+      </div>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('supplier.low_stock', 'Low Stock Warnings')}</span>
+        <div class="supplier-kpi-card__value ${lowStockCount > 0 ? 'supplier-kpi-card__value--warning' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 4px 0;">
+          ${lowStockCount}
+        </div>
+        <span class="text-xs text-muted">Below safety threshold</span>
+      </div>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('supplier.out_of_stock', 'Out of Stock SKUs')}</span>
+        <div class="supplier-kpi-card__value ${outOfStockCount > 0 ? 'supplier-kpi-card__value--danger' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 4px 0;">
+          ${outOfStockCount}
+        </div>
+        <span class="text-xs text-muted">Needs immediate restocking</span>
+      </div>
+    `;
+    container.appendChild(metricStrip);
+
+    // 3. Filter & Search Toolbar
     const toolbar = document.createElement('div');
-    toolbar.className = 'filter-toolbar flex flex-wrap items-center justify-between gap-3 p-3 bg-surface-2 rounded-xl border border-subtle';
+    toolbar.className = 'supplier-toolbar';
     toolbar.innerHTML = `
-      <div class="flex items-center gap-2 flex-1 min-w-[240px]">
+      <div class="supplier-toolbar__search">
         <input
           type="text"
           id="search-input"
-          class="input input--sm w-full bg-surface"
+          class="input input--sm"
+          style="width: 100%;"
           placeholder="${t('supplier.search_sku_placeholder', 'Search SKU by title, reference, or brand...')}"
           value="${searchQuery}"
         />
       </div>
-      <div class="flex items-center gap-2">
-        <button class="filter-chip px-3 py-1.5 rounded-lg text-xs font-semibold ${filterStatus === 'all' ? 'bg-primary text-white' : 'bg-surface border border-subtle text-secondary'}" data-status="all">
-          ${t('common.all', 'All SKUs')}
+      <div class="supplier-toolbar__filters">
+        <button class="supplier-chip ${filterStatus === 'all' ? 'supplier-chip--active' : ''}" data-status="all">
+          ${t('common.all', 'All SKUs')} (${items.length})
         </button>
-        <button class="filter-chip px-3 py-1.5 rounded-lg text-xs font-semibold ${filterStatus === 'low_stock' ? 'bg-amber-600 text-white' : 'bg-surface border border-subtle text-secondary'}" data-status="low_stock">
-          ⚠️ ${t('supplier.low_stock', 'Low Stock')}
+        <button class="supplier-chip supplier-chip--warning ${filterStatus === 'low_stock' ? 'supplier-chip--active' : ''}" data-status="low_stock">
+          ⚠️ ${t('supplier.low_stock', 'Low Stock')} (${lowStockCount})
         </button>
-        <button class="filter-chip px-3 py-1.5 rounded-lg text-xs font-semibold ${filterStatus === 'out_of_stock' ? 'bg-red-600 text-white' : 'bg-surface border border-subtle text-secondary'}" data-status="out_of_stock">
-          🚫 ${t('supplier.out_of_stock', 'Out of Stock')}
+        <button class="supplier-chip supplier-chip--danger ${filterStatus === 'out_of_stock' ? 'supplier-chip--active' : ''}" data-status="out_of_stock">
+          🚫 ${t('supplier.out_of_stock', 'Out of Stock')} (${outOfStockCount})
         </button>
       </div>
     `;
@@ -108,7 +149,7 @@ export default function InventoryPage(root) {
       }, 300);
     };
 
-    toolbar.querySelectorAll('.filter-chip').forEach((chip) => {
+    toolbar.querySelectorAll('.supplier-chip').forEach((chip) => {
       chip.onclick = () => {
         filterStatus = chip.dataset.status;
         loadInventory();
@@ -117,11 +158,14 @@ export default function InventoryPage(root) {
 
     container.appendChild(toolbar);
 
-    // 3. Main Inventory Table / Cards
+    // 4. Main Inventory Table / Cards
     if (loading) {
       const loader = document.createElement('div');
       loader.className = 'p-12 text-center text-muted';
-      loader.innerHTML = `<div class="animate-spin inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-3"></div><p>${t('common.loading', 'Loading stock data...')}</p>`;
+      loader.innerHTML = `
+        <div class="spinner" style="margin: 0 auto 16px auto;"></div>
+        <p>${t('common.loading', 'Loading stock data...')}</p>
+      `;
       container.appendChild(loader);
       return;
     }
@@ -142,121 +186,160 @@ export default function InventoryPage(root) {
     }
 
     const tableWrapper = document.createElement('div');
-    tableWrapper.className = 'table-container overflow-x-auto bg-surface border border-subtle rounded-xl';
+    tableWrapper.className = 'supplier-table-card';
 
     let tableHtml = `
-      <table class="table w-full text-left border-collapse text-sm">
-        <thead>
-          <tr class="border-b border-subtle bg-surface-2 text-xs uppercase text-muted">
-            <th class="py-3 px-4">${t('supplier.product_sku', 'Product SKU')}</th>
-            <th class="py-3 px-4">${t('supplier.category', 'Category')}</th>
-            <th class="py-3 px-4">${t('supplier.pricing', 'Base / Margin / Retail')}</th>
-            <th class="py-3 px-4">${t('supplier.stock_status', 'Stock Level')}</th>
-            <th class="py-3 px-4">${t('supplier.batches_fefo', 'FEFO Batches')}</th>
-            <th class="py-3 px-4 text-right">${t('common.actions', 'Actions')}</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-subtle">
+      <div style="overflow-x: auto;">
+        <table class="supplier-table">
+          <thead>
+            <tr>
+              <th>${t('supplier.product_sku', 'Product SKU')}</th>
+              <th>${t('supplier.category', 'Category')}</th>
+              <th>${t('supplier.pricing', 'Wholesale / Retail')}</th>
+              <th>${t('supplier.stock_status', 'Physical Stock')}</th>
+              <th>Warehouses & Batches</th>
+              <th style="text-align: right;">${t('common.actions', 'Actions')}</th>
+            </tr>
+          </thead>
+          <tbody>
     `;
 
     items.forEach((item) => {
-      const isLow = Number(item.stock_qty) <= Number(item.low_stock_threshold);
-      const isOut = Number(item.stock_qty) === 0;
-
-      let statusBadge = `<span class="badge badge--success text-xs font-semibold">🟢 ${item.stock_qty} in stock</span>`;
-      if (isOut) {
-        statusBadge = `<span class="badge badge--danger text-xs font-semibold">🚫 Out of Stock</span>`;
-      } else if (isLow) {
-        statusBadge = `<span class="badge badge--warning text-xs font-semibold">⚠️ Low (${item.stock_qty} / Min ${item.low_stock_threshold})</span>`;
-      }
-
-      const batches = Array.isArray(item.batches) ? item.batches : [];
-      const batchCount = batches.length;
+      const isLowStock = item.stock_qty > 0 && item.stock_qty <= item.low_stock_threshold;
+      const isOutOfStock = item.stock_qty === 0;
 
       tableHtml += `
-        <tr class="hover:bg-surface-2 transition-colors">
-          <td class="py-3.5 px-4">
-            <div class="font-bold text-base text-foreground">${item.title_en}</div>
-            <div class="text-xs text-muted font-bangla">${item.title_bn || ''}</div>
-            <span class="text-xs font-mono text-muted block mt-0.5">Ref: ${item.ref}</span>
-          </td>
-          <td class="py-3.5 px-4">
-            <span class="badge badge--neutral text-xs">${item.category_name_en || 'General'}</span>
-            ${item.requires_fefo ? '<span class="badge badge--info text-2xs block mt-1">FEFO Tracked</span>' : ''}
-          </td>
-          <td class="py-3.5 px-4 font-mono text-xs">
-            <div><span class="text-muted">Base:</span> ${formatCurrency(item.base_cost)}</div>
-            <div><span class="text-muted">Margin:</span> ${formatCurrency(item.wholesale_margin)}</div>
-            <div><span class="text-muted">Retail:</span> ${formatCurrency(item.default_retail_price)}</div>
-          </td>
-          <td class="py-3.5 px-4">
-            ${statusBadge}
-            <div class="text-xs text-muted mt-1">Threshold: ${item.low_stock_threshold} units</div>
-          </td>
-          <td class="py-3.5 px-4">
-            <div class="text-xs font-semibold">${batchCount} active batch${batchCount !== 1 ? 'es' : ''}</div>
-            ${batches.slice(0, 2).map((b) => `
-              <div class="text-2xs text-muted font-mono mt-0.5">
-                #${b.batch_number} (${b.qty}u) · Exp: ${b.exp_date ? b.exp_date.slice(0, 10) : 'N/A'}
+        <tr data-id="${item.id}">
+          <td>
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-weight: 700; color: var(--text-primary);">${item.title_en}</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="supplier-order-card__ref">${item.ref}</span>
+                ${item.requires_fefo ? '<span class="badge badge--info text-xs font-mono">🏷️ FEFO Batch</span>' : ''}
               </div>
-            `).join('')}
-          </td>
-          <td class="py-3.5 px-4 text-right">
-            <div class="flex items-center justify-end gap-1.5">
-              <button class="btn btn--2xs btn--outline adjust-stock-btn" data-id="${item.id}" data-title="${item.title_en}" data-qty="${item.stock_qty}">
-                ✏️ ${t('supplier.adjust_stock', 'Update Stock')}
-              </button>
-              <a href="/supplier/batches?productId=${item.id}" class="btn btn--2xs btn--secondary">
-                🏷️ ${t('supplier.batches', 'Batches')}
-              </a>
             </div>
+          </td>
+          <td>
+            <span class="badge badge--neutral text-xs">${item.category_name_en || 'General'}</span>
+          </td>
+          <td>
+            <div style="display: flex; flex-direction: column; font-size: var(--font-size-xs);">
+              <span>Base: <strong>${formatCurrency(item.base_cost)}</strong></span>
+              <span class="text-success font-bold">Wholesale Margin: +${formatCurrency(item.wholesale_margin)}</span>
+              <span class="text-muted">MSRP: ${formatCurrency(item.default_retail_price)}</span>
+            </div>
+          </td>
+          <td>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.125rem; font-weight: 800; font-family: var(--font-mono); color: ${isOutOfStock ? 'var(--status-danger)' : isLowStock ? 'var(--status-warning)' : 'var(--status-success)'};">
+                  ${item.stock_qty}
+                </span>
+                <span class="text-xs text-muted">units</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                ${isOutOfStock ? '<span class="badge badge--danger text-xs font-bold">🚫 Out of Stock</span>' : isLowStock ? '<span class="badge badge--warning text-xs font-bold">⚠️ Low Stock (Min ' + item.low_stock_threshold + ')</span>' : '<span class="badge badge--success text-xs">✅ Healthy</span>'}
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="font-size: var(--font-size-xs); color: var(--text-secondary);">
+              ${(item.batches || []).length > 0 ? `
+                <span class="font-mono">${item.batches.length} lots registered</span>
+              ` : `
+                <span>Central Depot (Default)</span>
+              `}
+            </div>
+          </td>
+          <td style="text-align: right;">
+            <button class="btn btn--xs btn--primary adjust-stock-btn" data-id="${item.id}">
+              ✏️ ${t('supplier.adjust_stock', 'Update Stock')}
+            </button>
           </td>
         </tr>
       `;
     });
 
-    tableHtml += `</tbody></table>`;
+    tableHtml += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
     tableWrapper.innerHTML = tableHtml;
 
-    // Attach adjust stock buttons
+    // Attach Stock Adjuster click listeners
     tableWrapper.querySelectorAll('.adjust-stock-btn').forEach((btn) => {
       btn.onclick = () => {
         const id = btn.dataset.id;
-        const title = btn.dataset.title;
-        const currentQty = btn.dataset.qty;
-        openStockAdjustModal(id, title, currentQty);
+        const item = items.find((i) => String(i.id) === String(id));
+        if (item) openStockAdjusterModal(item);
       };
     });
 
     container.appendChild(tableWrapper);
   }
 
-  function openStockAdjustModal(productId, productTitle, currentQty) {
+  // 5. Interactive Stock Adjuster Modal
+  function openStockAdjusterModal(item) {
     const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
+    modalBackdrop.className = 'supplier-modal-scrim';
+
+    let currentQty = Number(item.stock_qty) || 0;
+
     modalBackdrop.innerHTML = `
-      <div class="modal-box bg-surface p-6 rounded-2xl border border-subtle max-w-md w-full shadow-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-subtle pb-3">
-          <h3 class="font-bold text-lg flex items-center gap-2">
-            <span>📦</span> ${t('supplier.adjust_stock_title', 'Update Physical Stock')}
-          </h3>
-          <button class="text-muted hover:text-foreground text-xl close-modal-btn">&times;</button>
+      <div class="supplier-modal">
+        <div class="supplier-modal__header">
+          <h3 class="supplier-modal__title">✏️ ${t('supplier.adjust_stock_title', 'Update Physical Stock')}</h3>
+          <button class="supplier-modal__close close-modal-btn">&times;</button>
         </div>
 
-        <p class="text-xs text-muted">
-          ${t('supplier.adjust_stock_for', 'Updating live physical stock quantity for:')} <strong>${productTitle}</strong>
-        </p>
+        <div style="display: flex; flex-direction: column; gap: var(--space-4, 16px);">
+          <div style="background: var(--surface-1); padding: 12px 16px; border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
+            <div style="font-weight: 700; color: var(--text-primary);">${item.title_en}</div>
+            <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 2px;">
+              SKU: <span class="supplier-order-card__ref">${item.ref}</span> · Threshold: <strong>${item.low_stock_threshold} units</strong>
+            </div>
+          </div>
 
-        <div class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold mb-1">${t('supplier.new_stock_qty', 'Total New Stock Quantity')}</label>
-            <input type="number" id="new-stock-input" class="input w-full" min="0" value="${currentQty}" />
+          <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
+            <label class="label" style="font-weight: 700; font-size: var(--font-size-xs);">
+              ${t('supplier.new_stock_qty', 'Total Available Physical Units')}
+            </label>
+            <div style="display: flex; align-items: center; gap: var(--space-2, 8px);">
+              <button type="button" class="btn btn--secondary" id="decrement-10-btn">-10</button>
+              <button type="button" class="btn btn--secondary" id="decrement-1-btn">-1</button>
+              <input
+                type="number"
+                id="stock-qty-input"
+                class="input"
+                style="text-align: center; font-size: 1.25rem; font-weight: 800; font-family: var(--font-mono);"
+                value="${currentQty}"
+                min="0"
+              />
+              <button type="button" class="btn btn--secondary" id="increment-1-btn">+1</button>
+              <button type="button" class="btn btn--secondary" id="increment-10-btn">+10</button>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
+            <label class="label" style="font-weight: 700; font-size: var(--font-size-xs);">
+              Reason for Adjustment (Audit Log)
+            </label>
+            <select class="input input--sm" id="adjust-reason-select">
+              <option value="NEW_SHIPMENT_RECEIVED">📦 New Manufacturing Batch Received</option>
+              <option value="PHYSICAL_AUDIT_CORRECTION">🔍 Physical Recount / Audit Correction</option>
+              <option value="DAMAGED_ITEMS">⚠️ Damaged / Expired Goods Discarded</option>
+              <option value="INTERNAL_TRANSFER">🚚 Depot Warehouse Transfer</option>
+            </select>
           </div>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-subtle">
+        <div class="supplier-modal__footer">
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
-          <button class="btn btn--sm btn--primary" id="save-stock-btn">${t('common.save', 'Save Quantity')}</button>
+          <button class="btn btn--sm btn--primary" id="save-stock-btn">
+            💾 ${t('common.save_changes', 'Save Stock Count')}
+          </button>
         </div>
       </div>
     `;
@@ -264,17 +347,28 @@ export default function InventoryPage(root) {
     const close = () => modalBackdrop.remove();
     modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
 
+    const qtyInput = modalBackdrop.querySelector('#stock-qty-input');
+    modalBackdrop.querySelector('#decrement-10-btn').onclick = () => {
+      qtyInput.value = Math.max(0, parseInt(qtyInput.value || '0', 10) - 10);
+    };
+    modalBackdrop.querySelector('#decrement-1-btn').onclick = () => {
+      qtyInput.value = Math.max(0, parseInt(qtyInput.value || '0', 10) - 1);
+    };
+    modalBackdrop.querySelector('#increment-1-btn').onclick = () => {
+      qtyInput.value = parseInt(qtyInput.value || '0', 10) + 1;
+    };
+    modalBackdrop.querySelector('#increment-10-btn').onclick = () => {
+      qtyInput.value = parseInt(qtyInput.value || '0', 10) + 10;
+    };
+
     modalBackdrop.querySelector('#save-stock-btn').onclick = async () => {
-      const newQty = parseInt(modalBackdrop.querySelector('#new-stock-input').value, 10);
-      if (isNaN(newQty) || newQty < 0) {
-        toast.error(t('supplier.invalid_qty', 'Please enter a valid non-negative number.'));
-        return;
-      }
+      const newQty = parseInt(qtyInput.value || '0', 10);
       try {
-        await supplierApi.updateStock({ productId, stockQty: newQty });
+        await supplierApi.updateStock({ productId: item.id, stockQty: newQty });
+        item.stock_qty = newQty;
         toast.success(t('supplier.stock_updated_success', 'Stock updated successfully.'));
         close();
-        loadInventory();
+        render();
       } catch (err) {
         toast.error(t('supplier.stock_update_failed', 'Failed to update stock quantity.'));
       }

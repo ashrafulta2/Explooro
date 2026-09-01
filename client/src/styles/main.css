@@ -72,6 +72,15 @@
 @import './components/customer-reviews.css';
 /* Customer Saved Delivery Addresses Book */
 @import './components/customer-addresses.css';
+/* Customer Dashboard Hub & 1-Click Saler Upgrade */
+@import './components/customer-dashboard.css';
+@import './components/customer-become-saler.css';
 
 /* Prompt 8.2: notification preference centre */
 @import './components/notification-prefs.css';
+
+/* Prompt 11.1: Supplier & Manufacturer Hub, Simple Mode, Stock, Orders to Pack, Fulfilment & Help */
+@import './components/supplier.css';
+
+/* Editor Portal: Dashboard, Banners, Stories, Academy, What's New, Help Center, Translations */
+@import './components/editor.css';

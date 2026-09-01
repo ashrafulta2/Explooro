@@ -53,22 +53,35 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   // ---------------------------------------------------------------------------
   // 1. Header & Actions
   // ---------------------------------------------------------------------------
+  const isSupplierView = window.location.pathname.startsWith('/supplier');
+
   const header = document.createElement('div');
   header.className = 'catalog-page__header';
 
   const titles = document.createElement('div');
   titles.className = 'catalog-page__titles';
 
+  if (isSupplierView) {
+    const breadcrumb = document.createElement('div');
+    breadcrumb.style.fontSize = 'var(--font-size-xs)';
+    breadcrumb.style.color = 'var(--text-secondary)';
+    breadcrumb.style.marginBottom = '4px';
+    breadcrumb.innerHTML = `<a href="/supplier" style="color: inherit; text-decoration: none; font-weight: 700;">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a> / <span class="font-mono">Products Catalog</span>`;
+    titles.append(breadcrumb);
+  }
+
   const title = document.createElement('h1');
   title.className = 'catalog-page__title';
-  title.textContent = t('admin_catalog.title', 'Catalog & Products Governance');
+  title.textContent = isSupplierView ? '📦 ' + t('supplier.products_title', 'Supplier Products & Catalog') : t('admin_catalog.title', 'Catalog & Products Governance');
 
   const subtitle = document.createElement('p');
   subtitle.className = 'catalog-page__subtitle';
-  subtitle.textContent = t(
-    'admin_catalog.subtitle',
-    'Oversee platform inventory, audit commercial margins, manage live supplier listings, and register new sample products.'
-  );
+  subtitle.textContent = isSupplierView
+    ? t('supplier.products_subtitle', 'Manage your manufacturing SKUs, adjust physical stock counts, set wholesale margins, and publish new products.')
+    : t(
+        'admin_catalog.subtitle',
+        'Oversee platform inventory, audit commercial margins, manage live supplier listings, and register new sample products.'
+      );
 
   titles.append(title, subtitle);
 
@@ -938,14 +951,22 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         };
 
         try {
+          submitBtn.setLoading(true);
           await api.post('/products', payload);
           toast.success(t('admin_catalog.product_created_success', 'Product registered in catalog!'));
           modal.close();
           await loadData();
         } catch (err) {
           toast.error(err.message || 'Failed to create product.');
+        } finally {
+          submitBtn.setLoading(false);
         }
       },
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      submitBtn.click();
     });
 
     modalFooter.append(cancelBtn, submitBtn);
@@ -1060,14 +1081,22 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         };
 
         try {
+          saveBtn.setLoading(true);
           await api.put(`/products/${product.ref}`, payload);
           toast.success(t('admin_catalog.product_updated_success', 'Product updated successfully!'));
           modal.close();
           await loadData();
         } catch (err) {
           toast.error(err.message || 'Failed to update product.');
+        } finally {
+          saveBtn.setLoading(false);
         }
       },
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveBtn.click();
     });
 
     modalFooter.append(cancelBtn, saveBtn);

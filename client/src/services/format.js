@@ -52,6 +52,9 @@ export function resolveLang(lang) {
 
 /** `123456` (number or decimal string) → `{ negative, intPart: '123456', fracPart: '00' }`. */
 function splitAmount(amount) {
+  if (amount == null || amount === '' || (typeof amount !== 'number' && isNaN(Number(amount)))) {
+    return { negative: false, intPart: '0', fracPart: '00' };
+  }
   const str = typeof amount === 'number' ? amount.toFixed(2) : String(amount).trim();
   const negative = str.startsWith('-');
   const clean = negative ? str.slice(1) : str;

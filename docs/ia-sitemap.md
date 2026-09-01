@@ -153,6 +153,7 @@
 | `/supplier/inquiries` | Wholesale inquiries | `chat.thread.view_own` | `chat` |
 | `/supplier/live-studio` | Live host panel | `live.stream.host` | `live_commerce` |
 | `/supplier/store-status` | Physical shop open/close | `supplier.store.manage` | `physical_shop_status` |
+| `/supplier/help` | Supplier operations & help centre | none | core |
 
 ### 1.7 Moderator — `/moderator/*`
 

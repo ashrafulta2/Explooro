@@ -165,9 +165,21 @@ async function bootRouterDemo() {
         item.path !== '/reels' &&
         item.path !== '/academy' &&
         item.path !== '/editor' &&
+        item.path !== '/editor/dashboard' &&
+        item.path !== '/editor/banners' &&
+        item.path !== '/editor/stories' &&
+        item.path !== '/editor/academy' &&
+        item.path !== '/editor/whats-new' &&
+        item.path !== '/editor/help-center' &&
+        item.path !== '/editor/help' &&
         item.path !== '/editor/translations' &&
         item.path !== '/supplier' &&
         item.path !== '/supplier/inventory' &&
+        item.path !== '/supplier/orders' &&
+        item.path !== '/supplier/shipments' &&
+        item.path !== '/supplier/inquiries' &&
+        item.path !== '/supplier/store-status' &&
+        item.path !== '/supplier/help' &&
         item.path !== '/supplier/batches' &&
         item.path !== '/supplier/warehouses' &&
         item.path !== '/supplier/fulfilment' &&
@@ -185,6 +197,8 @@ async function bootRouterDemo() {
         item.path !== '/account/addresses' &&
         item.path !== '/customer/addresses' &&
         item.path !== '/account/become-saler' &&
+        item.path !== '/customer/become-saler' &&
+        item.path !== '/become-saler' &&
         item.path !== '/admin' &&
         item.path !== '/admin/dashboard' &&
         item.path !== '/admin/health' &&
@@ -394,6 +408,54 @@ async function bootRouterDemo() {
         load: () => import('./pages/editor/EditorDashboardPage.js'),
       },
       {
+        path: '/editor/banners',
+        title: 'Banners & Sliders — Explooro',
+        requiresAuth: true,
+        permission: 'content.banner.publish',
+        module: 'core',
+        load: () => import('./pages/editor/BannersManagerPage.js'),
+      },
+      {
+        path: '/editor/stories',
+        title: 'Stories & Reels — Explooro',
+        requiresAuth: true,
+        permission: 'content.story.curate',
+        module: 'content_commerce',
+        load: () => import('./pages/editor/StoriesManagerPage.js'),
+      },
+      {
+        path: '/editor/academy',
+        title: 'Seller Academy — Explooro',
+        requiresAuth: true,
+        permission: 'content.academy.manage',
+        module: 'seller_academy',
+        load: () => import('./pages/editor/AcademyManagerPage.js'),
+      },
+      {
+        path: '/editor/whats-new',
+        title: "What's New & Changelogs — Explooro",
+        requiresAuth: true,
+        permission: 'content.announcement.publish',
+        module: 'whats_new',
+        load: () => import('./pages/editor/WhatsNewManagerPage.js'),
+      },
+      {
+        path: '/editor/help-center',
+        title: 'Help Centre & Knowledge Base — Explooro',
+        requiresAuth: true,
+        permission: 'content.help.manage',
+        module: 'core',
+        load: () => import('./pages/editor/HelpCenterManagerPage.js'),
+      },
+      {
+        path: '/editor/help',
+        title: 'Help Centre & Knowledge Base — Explooro',
+        requiresAuth: true,
+        permission: 'content.help.manage',
+        module: 'core',
+        load: () => import('./pages/editor/HelpCenterManagerPage.js'),
+      },
+      {
         path: '/editor/translations',
         title: 'Localization & Translations — Explooro',
         requiresAuth: true,
@@ -489,6 +551,46 @@ async function bootRouterDemo() {
         permission: 'supplier.analytics.view',
         module: 'core',
         load: () => import('./pages/supplier/ResellerInsightsPage.js'),
+      },
+      {
+        path: '/supplier/orders',
+        title: 'Orders to Pack — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.order.view',
+        module: 'core',
+        load: () => import('./pages/supplier/SupplierOrdersPage.js'),
+      },
+      {
+        path: '/supplier/help',
+        title: 'Supplier Help Center & Operations — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/supplier/SupplierHelpPage.js'),
+      },
+      {
+        path: '/supplier/shipments',
+        title: 'Courier Shipments & Tracking — Explooro',
+        requiresAuth: true,
+        permission: 'logistics.shipment.view',
+        module: 'courier_hub',
+        load: () => import('./pages/supplier/SupplierShipmentsPage.js'),
+      },
+      {
+        path: '/supplier/inquiries',
+        title: 'Wholesale Quotation Requests & Inquiries — Explooro',
+        requiresAuth: true,
+        permission: 'chat.thread.view_own',
+        module: 'chat',
+        load: () => import('./pages/supplier/SupplierInquiriesPage.js'),
+      },
+      {
+        path: '/supplier/store-status',
+        title: 'Physical Factory & Showroom Status — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.store.manage',
+        module: 'physical_shop_status',
+        load: () => import('./pages/supplier/StoreStatusPage.js'),
       },
       // Prompt 4.8: Saler Virtual Storefront Builder
       {
@@ -615,7 +717,23 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
-        load: () => import('./pages/customer/CustomerDashboardPage.js'),
+        load: () => import('./pages/customer/BecomeSalerPage.js'),
+      },
+      {
+        path: '/customer/become-saler',
+        title: '1-Click Saler Upgrade — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'virtual_storefront',
+        load: () => import('./pages/customer/BecomeSalerPage.js'),
+      },
+      {
+        path: '/become-saler',
+        title: '1-Click Saler Upgrade — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'virtual_storefront',
+        load: () => import('./pages/customer/BecomeSalerPage.js'),
       },
       // Customer Saved Delivery Addresses Book
       {

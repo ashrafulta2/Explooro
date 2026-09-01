@@ -1,0 +1,631 @@
+/**
+ * customer-become-saler.css — 1-Click Zero-Paperwork Reseller Upgrade & Onboarding Hub.
+ *
+ * Implements:
+ * - Page container & breadcrumb navigation
+ * - Value proposition hero card & 1-click provisioning box
+ * - Already-Saler active status notification banner
+ * - Interactive monthly profit potential calculator with sliders
+ * - Explooro Reselling vs Traditional Business comparison matrix
+ * - 4-Step visual workflow roadmap
+ * - FAQ accordion cards
+ * - 15-Second video guide simulator modal
+ * - Coarse touch targets (44px+) and high contrast solid surfaces
+ */
+
+.become-saler-page {
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* Header */
+.become-saler-page__header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.become-saler-page__breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.become-saler-page__breadcrumb a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.become-saler-page__breadcrumb a:hover {
+  color: var(--primary);
+}
+
+.become-saler-page__header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.become-saler-page__badge-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.become-saler-page__title {
+  font-size: var(--text-3xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.become-saler-page__subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 760px;
+}
+
+/* Status Banner (for already active Salers) */
+.become-saler-status {
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.become-saler-status__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.become-saler-status__icon {
+  font-size: var(--text-2xl);
+  line-height: 1;
+}
+
+.become-saler-status__content {
+  flex: 1;
+}
+
+.become-saler-status__title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-1) 0;
+}
+
+.become-saler-status__desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.become-saler-status__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* 1-Click Provisioning Hero Card */
+.become-saler-hero {
+  padding: var(--space-6) var(--space-6);
+  border-radius: var(--radius-xl);
+  border: 2px solid var(--primary);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 768px) {
+  .become-saler-hero {
+    padding: var(--space-8);
+  }
+}
+
+.become-saler-hero__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.become-saler-hero__headline {
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.25;
+}
+
+.become-saler-hero__subtext {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.become-saler-hero__benefits {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+@media (min-width: 640px) {
+  .become-saler-hero__benefits {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.become-saler-hero__benefit-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--surface-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.become-saler-hero__benefit-check {
+  color: var(--primary);
+  font-weight: 900;
+  font-size: var(--text-sm);
+}
+
+/* Provisioning Action Box inside Hero */
+.become-saler-hero__action-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .become-saler-hero__action-box {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.become-saler-hero__slug-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.become-saler-hero__slug-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.become-saler-hero__slug-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.become-saler-hero__slug-prefix {
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.become-saler-hero__slug-val {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.become-saler-hero__slug-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.become-saler-hero__cta-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  min-width: 260px;
+}
+
+.become-saler-hero__promise {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Profit Calculator Section */
+.become-saler-calculator {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.become-saler-calculator__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.become-saler-calculator__title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.become-saler-calculator__subtitle {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.become-saler-calculator__body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .become-saler-calculator__body {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: center;
+  }
+}
+
+.become-saler-calculator__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.become-saler-calculator__control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.become-saler-calculator__label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.become-saler-calculator__slider-val {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.become-saler-calculator__range {
+  width: 100%;
+  accent-color: var(--primary);
+  height: 6px;
+  cursor: pointer;
+}
+
+.become-saler-calculator__readouts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.become-saler-calculator__kpi-card {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.become-saler-calculator__kpi-card--primary {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.become-saler-calculator__kpi-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.become-saler-calculator__kpi-val {
+  font-size: var(--text-xl);
+  font-weight: 900;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.become-saler-calculator__kpi-card--primary .become-saler-calculator__kpi-val {
+  color: var(--primary);
+  font-size: var(--text-2xl);
+}
+
+/* Comparison Section */
+.become-saler-comparison {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.become-saler-comparison__title {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.become-saler-comparison__table-wrap {
+  overflow-x: auto;
+}
+
+.become-saler-comparison__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+  text-align: left;
+}
+
+.become-saler-comparison__table th {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-weight: 800;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.become-saler-comparison__table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+
+.become-saler-comparison__table tr:last-child td {
+  border-bottom: none;
+}
+
+.become-saler-comparison__cell-feature {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.become-saler-comparison__cell-trad {
+  color: var(--text-muted);
+}
+
+.become-saler-comparison__cell-exp {
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--surface-2);
+}
+
+/* 4-Step How It Works Grid */
+.become-saler-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.become-saler-steps__title {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.become-saler-steps__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .become-saler-steps__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .become-saler-steps__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.become-saler-step-card {
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  position: relative;
+}
+
+.become-saler-step-card__num {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: var(--surface);
+  font-weight: 900;
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.become-saler-step-card__title {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.become-saler-step-card__desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* FAQ Section */
+.become-saler-faq {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.become-saler-faq__title {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.become-saler-faq__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.become-saler-faq__item {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+}
+
+.become-saler-faq__item[open] {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.become-saler-faq__summary {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+  min-height: 44px;
+}
+
+.become-saler-faq__summary::-webkit-details-marker {
+  display: none;
+}
+
+.become-saler-faq__content {
+  padding: 0 var(--space-4) var(--space-4) var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Video Guide Modal */
+.become-saler-video-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.become-saler-video-modal__screen {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-4);
+}
+
+.become-saler-video-modal__play-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: var(--surface);
+  font-size: var(--text-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.become-saler-video-modal__tips {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--text-xs);
+}
+
+.become-saler-video-modal__tips ul {
+  margin: var(--space-2) 0 0 0;
+  padding-left: var(--space-4);
+  color: var(--text-muted);
+}

@@ -34,7 +34,7 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 
 export default function B2bEscrowPage(root, ctx = {}) {
   const container = document.createElement('div');
-  container.className = 'b2b-escrow-page p-4 md:p-6 max-w-7xl mx-auto space-y-6';
+  container.className = 'supplier-page-container';
 
   let activeTab = 'deals';
   let deals = [];
@@ -47,8 +47,8 @@ export default function B2bEscrowPage(root, ctx = {}) {
   if (!isFeatureEnabled('b2b_escrow')) {
     container.append(
       EmptyState({
-        title: t('b2b_escrow.module_disabled_title'),
-        description: t('b2b_escrow.module_disabled_desc'),
+        title: t('b2b_escrow.module_disabled_title', 'B2B Escrow Milestone Settlement'),
+        description: t('b2b_escrow.module_disabled_desc', 'The B2B Escrow module is currently disabled.'),
       })
     );
     root.append(container);
@@ -58,41 +58,51 @@ export default function B2bEscrowPage(root, ctx = {}) {
   }
 
   // 2. Page Header
-  const header = document.createElement('div');
-  header.className = 'page-header flex-between flex-wrap gap-4 border-b pb-4';
+  const header = document.createElement('header');
+  header.className = 'supplier-header';
   header.innerHTML = `
-    <div>
-      <div class="flex items-center gap-2">
-        <span class="text-2xl">🤝</span>
-        <h2 class="text-2xl font-bold tracking-tight m-0">${t('b2b_escrow.page_title')}</h2>
+    <div class="supplier-header__titles">
+      <div class="supplier-header__badge-row">
+        <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
+        <span class="text-muted">/</span>
+        <span class="text-xs text-muted font-mono">B2B Wholesale Escrow</span>
       </div>
-      <p class="text-sm text-muted m-0 mt-1">${t('b2b_escrow.page_subtitle')}</p>
+      <h1 class="supplier-header__title">
+        <span>🤝</span> ${t('b2b_escrow.page_title', 'B2B Escrow & Milestone Settlement')}
+      </h1>
+      <p class="supplier-header__subtitle">
+        ${t('b2b_escrow.page_subtitle', 'Secure large-scale wholesale supply agreements with milestone-based escrow settlements and digital contracts.')}
+      </p>
+    </div>
+    <div class="supplier-header__actions">
+      <button class="btn btn--sm btn--primary" id="new-deal-header-btn">
+        ➕ ${t('b2b_escrow.new_proposal_btn', 'New B2B Proposal')}
+      </button>
+      <button class="btn btn--sm btn--secondary" id="refresh-b2b-btn">
+        🔄 ${t('common.refresh', 'Refresh')}
+      </button>
     </div>
   `;
 
-  const newDealBtn = Button({
-    label: `+ ${t('b2b_escrow.new_proposal_btn')}`,
-    variant: 'primary',
-    onClick: () => {
-      activeTab = 'new_proposal';
-      renderCurrentTab();
-    },
-  });
-  header.append(newDealBtn);
+  header.querySelector('#new-deal-header-btn').onclick = () => {
+    activeTab = 'new_proposal';
+    renderCurrentTab();
+  };
+  header.querySelector('#refresh-b2b-btn').onclick = loadDeals;
   container.append(header);
 
   // 3. KPI Metrics Summary Row
   const metricsRow = document.createElement('div');
-  metricsRow.className = 'grid grid-cols-2 md:grid-cols-4 gap-4';
+  metricsRow.className = 'supplier-kpi-grid';
   container.append(metricsRow);
 
-  // 4. Tab Navigation
+  // 4. Tab Navigation Toolbar
   const tabNav = document.createElement('div');
-  tabNav.className = 'tabs-navigation border-b';
+  tabNav.className = 'supplier-toolbar';
   container.append(tabNav);
 
   const contentArea = document.createElement('div');
-  contentArea.className = 'tab-content-area space-y-6';
+  contentArea.className = 'supplier-b2b-content';
   container.append(contentArea);
 
   async function loadDeals() {
@@ -100,8 +110,11 @@ export default function B2bEscrowPage(root, ctx = {}) {
       const res = await listB2bDeals();
       deals = res?.data || res || [];
       renderMetrics();
+      renderCurrentTab();
     } catch {
       deals = [];
+      renderMetrics();
+      renderCurrentTab();
     }
   }
 
@@ -112,41 +125,51 @@ export default function B2bEscrowPage(root, ctx = {}) {
     const totalDisputed = deals.filter((d) => d.status === 'DISPUTED').length;
 
     metricsRow.innerHTML = `
-      <div class="card p-3 border rounded bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('b2b_escrow.metric_active_contracts')}</span>
-        <span class="text-xl font-bold font-mono">${totalDeals}</span>
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('b2b_escrow.metric_active_contracts', 'Active B2B Deals')}</span>
+        <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${totalDeals}</div>
+        <span class="text-xs text-muted">Legally signed contracts</span>
       </div>
-      <div class="card p-3 border rounded bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('b2b_escrow.metric_total_escrow')}</span>
-        <span class="text-xl font-bold font-mono text-primary">${formatCurrency(totalEscrow)}</span>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('b2b_escrow.metric_total_escrow', 'Total Escrow Committed')}</span>
+        <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${formatCurrency(totalEscrow)}</div>
+        <span class="text-xs text-muted">Secured platform escrow</span>
       </div>
-      <div class="card p-3 border rounded bg-success-soft">
-        <span class="text-xs text-muted block uppercase">${t('b2b_escrow.metric_total_released')}</span>
-        <span class="text-xl font-bold font-mono text-success">${formatCurrency(totalReleased)}</span>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('b2b_escrow.metric_total_released', 'Settled & Released')}</span>
+        <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 4px 0;">${formatCurrency(totalReleased)}</div>
+        <span class="text-xs text-muted">Disbursed to supplier vault</span>
       </div>
-      <div class="card p-3 border rounded ${totalDisputed > 0 ? 'bg-danger-soft' : 'bg-surface'}">
-        <span class="text-xs text-muted block uppercase">${t('b2b_escrow.metric_in_dispute')}</span>
-        <span class="text-xl font-bold font-mono ${totalDisputed > 0 ? 'text-danger' : ''}">${totalDisputed}</span>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('b2b_escrow.metric_in_dispute', 'Dispute Cases')}</span>
+        <div class="supplier-kpi-card__value ${totalDisputed > 0 ? 'supplier-kpi-card__value--danger' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 4px 0;">
+          ${totalDisputed}
+        </div>
+        <span class="text-xs ${totalDisputed > 0 ? 'text-danger font-bold' : 'text-muted'}">
+          ${totalDisputed > 0 ? 'Frozen in arbitration' : 'Zero disputes active'}
+        </span>
       </div>
     `;
   }
 
   function renderTabNav() {
     tabNav.innerHTML = `
-      <div class="flex gap-4">
-        <button class="tab-btn py-2 px-1 text-sm font-semibold border-b-2 ${activeTab === 'deals' ? 'border-primary text-primary' : 'border-transparent text-muted'}" data-tab="deals">
-          📋 ${t('b2b_escrow.tab_deals')} (${deals.length})
+      <div class="supplier-toolbar__filters">
+        <button class="supplier-chip ${activeTab === 'deals' ? 'supplier-chip--active' : ''}" data-tab="deals">
+          📋 ${t('b2b_escrow.tab_deals', 'B2B Deals')} (${deals.length})
         </button>
-        <button class="tab-btn py-2 px-1 text-sm font-semibold border-b-2 ${activeTab === 'new_proposal' ? 'border-primary text-primary' : 'border-transparent text-muted'}" data-tab="new_proposal">
-          📝 ${t('b2b_escrow.tab_new_proposal')}
+        <button class="supplier-chip ${activeTab === 'new_proposal' ? 'supplier-chip--active' : ''}" data-tab="new_proposal">
+          📝 ${t('b2b_escrow.tab_new_proposal', 'Draft New Proposal')}
         </button>
       </div>
     `;
 
-    tabNav.querySelectorAll('.tab-btn').forEach((btn) => {
+    tabNav.querySelectorAll('.supplier-chip').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeTab = btn.getAttribute('data-tab');
-        renderTabNav();
         renderCurrentTab();
       });
     });
@@ -170,15 +193,23 @@ export default function B2bEscrowPage(root, ctx = {}) {
     if (deals.length === 0) {
       contentArea.append(
         EmptyState({
-          title: t('b2b_escrow.no_deals_title'),
-          description: t('b2b_escrow.no_deals_desc'),
+          icon: '🤝',
+          title: t('b2b_escrow.no_deals_title', 'No wholesale deals found'),
+          description: t('b2b_escrow.no_deals_desc', 'Initiate a new wholesale milestone proposal to secure large-volume transactions.'),
+          actionLabel: t('b2b_escrow.new_proposal_btn', 'Create Proposal'),
+          onAction: () => {
+            activeTab = 'new_proposal';
+            renderCurrentTab();
+          },
         })
       );
       return;
     }
 
     const listContainer = document.createElement('div');
-    listContainer.className = 'space-y-6';
+    listContainer.style.display = 'flex';
+    listContainer.style.flexDirection = 'column';
+    listContainer.style.gap = 'var(--space-4, 16px)';
 
     deals.forEach((deal) => {
       const isBuyer = Number(deal.buyer_id) === Number(currentUserId);
@@ -189,32 +220,36 @@ export default function B2bEscrowPage(root, ctx = {}) {
       const title = lang === 'bn' ? deal.title_bn : deal.title_en;
 
       const dealCard = document.createElement('div');
-      dealCard.className = `card p-5 border rounded bg-surface shadow-sm space-y-4 ${isDisputed ? 'border-danger' : ''}`;
+      dealCard.className = 'supplier-order-card';
+      if (isDisputed) dealCard.style.borderColor = 'var(--status-danger)';
 
       dealCard.innerHTML = `
-        <div class="flex-between flex-wrap gap-3 border-b pb-3">
-          <div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="badge badge-primary font-mono text-xs font-bold">${deal.ref}</span>
-              <span class="badge ${deal.status === 'COMPLETED' ? 'badge-success' : deal.status === 'DISPUTED' ? 'badge-danger' : 'badge-neutral'} text-xs font-mono">
-                ${deal.status}
+        <div class="supplier-order-card__header">
+          <div class="supplier-order-card__ref-group">
+            <span class="supplier-order-card__ref">${deal.ref}</span>
+            <span class="badge ${deal.status === 'COMPLETED' ? 'badge--success' : deal.status === 'DISPUTED' ? 'badge--danger' : 'badge--primary'} text-xs font-mono">
+              ${deal.status}
+            </span>
+            ${deal.agreed_terms_hash ? `
+              <span class="badge badge--neutral text-xs font-mono" title="${deal.agreed_terms_hash}">
+                🔒 SHA-256: ${deal.agreed_terms_hash.substring(0, 8)}...
               </span>
-              ${deal.agreed_terms_hash ? `
-                <span class="badge badge-neutral text-xs font-mono text-muted" title="${deal.agreed_terms_hash}">
-                  🔒 SHA-256: ${deal.agreed_terms_hash.substring(0, 8)}...
-                </span>
-              ` : ''}
-            </div>
-            <h3 class="text-lg font-bold mt-1 mb-0">${title}</h3>
-            <div class="text-xs text-muted mt-1 flex gap-4 flex-wrap">
-              <span>🛒 Buyer: <b>${deal.buyer_name || `User #${deal.buyer_id}`}</b></span>
-              <span>🏭 Supplier: <b>${deal.supplier_name || `User #${deal.supplier_id}`}</b></span>
-            </div>
+            ` : ''}
           </div>
 
-          <div class="text-right">
-            <span class="text-xs text-muted block uppercase">${t('b2b_escrow.total_deal_value')}</span>
-            <span class="text-2xl font-bold font-mono text-primary">${formatCurrency(deal.total_amount)}</span>
+          <div style="text-align: right;">
+            <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase;">${t('b2b_escrow.total_deal_value', 'Total Deal Value')}</div>
+            <div style="font-size: 1.25rem; font-weight: 800; font-family: var(--font-mono); color: var(--brand-primary);">
+              ${formatCurrency(deal.total_amount)}
+            </div>
+          </div>
+        </div>
+
+        <div style="padding: 10px 14px; background: var(--surface-1); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+          <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">${title || 'Wholesale Supply Contract'}</h3>
+          <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 4px; display: flex; gap: 16px;">
+            <span>🛒 Buyer: <strong>${deal.buyer_name || `User #${deal.buyer_id}`}</strong></span>
+            <span>🏭 Supplier: <strong>${deal.supplier_name || `User #${deal.supplier_id}`}</strong></span>
           </div>
         </div>
 
@@ -222,28 +257,28 @@ export default function B2bEscrowPage(root, ctx = {}) {
         <div class="milestones-mount-point" id="milestones-${deal.id}"></div>
 
         <!-- Footer Actions Bar -->
-        <div class="pt-3 border-t flex-between flex-wrap gap-2 text-xs">
-          <div class="flex items-center gap-2">
-            <a href="${getContractPdfUrl(deal.id)}" target="_blank" download="contract-${deal.ref}.pdf" class="btn btn-sm btn-secondary text-xs inline-flex items-center gap-1">
-              📄 ${t('b2b_escrow.download_pdf')}
+        <div class="supplier-order-card__footer">
+          <div style="display: flex; align-items: center; gap: var(--space-2, 8px);">
+            <a href="${getContractPdfUrl(deal.id)}" target="_blank" download="contract-${deal.ref}.pdf" class="btn btn--xs btn--outline">
+              📄 ${t('b2b_escrow.download_pdf', 'Download Signed Contract')}
             </a>
             ${deal.contract_terms_json ? `
-              <button class="view-terms-btn text-muted hover:underline" data-id="${deal.id}">
-                📜 ${t('b2b_escrow.view_terms')}
+              <button class="btn btn--xs btn--ghost view-terms-btn" data-id="${deal.id}">
+                📜 View Terms
               </button>
             ` : ''}
           </div>
 
-          <div class="flex items-center gap-2">
+          <div style="display: flex; align-items: center; gap: var(--space-2, 8px);">
             ${isPendingSign && ((isBuyer && !deal.buyer_signed_at) || (isSupplier && !deal.supplier_signed_at)) ? `
-              <button class="sign-terms-btn btn btn-sm btn-success font-bold text-xs" data-id="${deal.id}">
-                ✍️ ${t('b2b_escrow.sign_and_accept')}
+              <button class="sign-terms-btn btn btn--xs btn--primary" data-id="${deal.id}">
+                ✍️ ${t('b2b_escrow.sign_and_accept', 'Sign & Accept Terms')}
               </button>
             ` : ''}
 
             ${!isDisputed && deal.status === 'IN_PROGRESS' ? `
-              <button class="dispute-deal-btn btn btn-sm btn-ghost text-danger text-xs" data-id="${deal.id}">
-                ⚠️ ${t('b2b_escrow.raise_dispute')}
+              <button class="dispute-deal-btn btn btn--xs btn--outline text-danger" data-id="${deal.id}">
+                ⚠️ ${t('b2b_escrow.raise_dispute', 'Raise Dispute')}
               </button>
             ` : ''}
           </div>
@@ -268,11 +303,10 @@ export default function B2bEscrowPage(root, ctx = {}) {
       dealCard.querySelector('.sign-terms-btn')?.addEventListener('click', async () => {
         try {
           await acceptB2bDeal(deal.id);
-          toast.success(t('b2b_escrow.signed_success'));
+          toast.success(t('b2b_escrow.signed_success', 'Contract signed and accepted.'));
           await loadDeals();
-          renderCurrentTab();
         } catch (err) {
-          toast.error(err?.message || t('b2b_escrow.sign_failed'));
+          toast.error(err?.message || t('b2b_escrow.sign_failed', 'Failed to sign contract.'));
         }
       });
 
@@ -281,8 +315,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
       });
 
       dealCard.querySelector('.view-terms-btn')?.addEventListener('click', () => {
-        const terms = deal.contract_terms_json || {};
-        alert(`Contract Terms & Quality Specs:\n\nDelivery Days: ${terms.delivery_days || 30}\nInspection Window: ${terms.inspection_period_hours || 48}h\nQuality Specs: ${terms.quality_specs || 'Standard'}\n\nAgreed SHA-256 Hash:\n${deal.agreed_terms_hash}`);
+        openTermsModal(deal);
       });
 
       listContainer.append(dealCard);
@@ -296,259 +329,223 @@ export default function B2bEscrowPage(root, ctx = {}) {
   // -------------------------------------------------------------
   function renderNewProposalTab() {
     const proposalCard = document.createElement('div');
-    proposalCard.className = 'card p-6 border rounded bg-surface space-y-6 max-w-3xl';
+    proposalCard.className = 'supplier-store-status-card';
+    proposalCard.style.maxWidth = '760px';
 
     proposalCard.innerHTML = `
-      <h3 class="text-xl font-bold m-0 border-b pb-3">${t('b2b_escrow.new_proposal_heading')}</h3>
-
-      <div class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold uppercase text-muted mb-1">${t('b2b_escrow.deal_title_en')}</label>
-            <input type="text" id="deal-title-en" class="input w-full" placeholder="e.g. Bulk 1,000 Pcs Export Cotton Shirts Batch">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase text-muted mb-1">${t('b2b_escrow.deal_title_bn')}</label>
-            <input type="text" id="deal-title-bn" class="input w-full" placeholder="উদাঃ ১,০০০ পিস রপ্তানি সুতি শার্ট পাইকারি লট">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-semibold uppercase text-muted mb-1">${t('b2b_escrow.supplier_id_label')}</label>
-            <input type="number" id="deal-supplier-id" class="input w-full font-mono" value="5">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase text-muted mb-1">${t('b2b_escrow.total_amount_label')}</label>
-            <input type="number" id="deal-total-amount" class="input w-full font-mono font-bold" value="500000" step="1000">
-          </div>
-        </div>
-
-        <div class="border-t pt-4">
-          <h4 class="text-sm font-bold uppercase tracking-wider text-muted mb-2">${t('b2b_escrow.milestone_template_heading')}</h4>
-          <div class="space-y-2" id="milestones-template-editor">
-            <div class="p-3 border rounded bg-surface-subtle flex-between text-xs font-mono">
-              <span>Phase 1 (30%): Order Confirmation & Material Sourcing</span>
-              <span class="badge badge-neutral">NONE</span>
-            </div>
-            <div class="p-3 border rounded bg-surface-subtle flex-between text-xs font-mono">
-              <span>Phase 2 (40%): Factory Dispatch & Bill of Lading</span>
-              <span class="badge badge-primary">DISPATCH_PROOF</span>
-            </div>
-            <div class="p-3 border rounded bg-surface-subtle flex-between text-xs font-mono">
-              <span>Phase 3 (30%): Central Warehouse Quality Inspection</span>
-              <span class="badge badge-success">INSPECTION</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="border-t pt-4 flex justify-end gap-3">
-          <button class="btn btn-secondary text-sm" id="cancel-proposal-btn">${t('common.cancel')}</button>
-          <button class="btn btn-primary text-sm font-bold" id="submit-proposal-btn">${t('b2b_escrow.create_proposal_btn')}</button>
-        </div>
+      <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+        <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+          📝 ${t('b2b_escrow.proposal_title', 'Draft New Wholesale Supply Agreement')}
+        </h3>
+        <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+          Specify buyer details, multi-stage delivery milestones, and quality inspection terms.
+        </p>
       </div>
+
+      <form id="new-b2b-deal-form" style="display: flex; flex-direction: column; gap: var(--space-4, 16px);">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3, 12px);">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Agreement Title (English) *</label>
+            <input type="text" name="title_en" class="input input--sm" placeholder="e.g. 5,000 Cotton Sarees Supply Contract" required />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Agreement Title (Bangla)</label>
+            <input type="text" name="title_bn" class="input input--sm" placeholder="যেমন: ৫,০০০ সুতি শাড়ি পাইকারি চুক্তি" />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3, 12px);">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Buyer User ID / Account *</label>
+            <input type="number" name="buyer_id" class="input input--sm font-mono" placeholder="e.g. 5" required />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Total Agreement Value (BDT) *</label>
+            <input type="number" name="total_amount" class="input input--sm font-mono" placeholder="250000.00" required />
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: var(--space-2, 8px); margin-top: 8px;">
+          <button type="button" class="btn btn--sm btn--secondary" id="cancel-proposal-btn">${t('common.cancel', 'Cancel')}</button>
+          <button type="submit" class="btn btn--sm btn--primary">🚀 Submit Wholesale Proposal</button>
+        </div>
+      </form>
     `;
 
-    proposalCard.querySelector('#cancel-proposal-btn')?.addEventListener('click', () => {
+    proposalCard.querySelector('#cancel-proposal-btn').onclick = () => {
       activeTab = 'deals';
       renderCurrentTab();
-    });
+    };
 
-    proposalCard.querySelector('#submit-proposal-btn')?.addEventListener('click', async () => {
-      const titleEn = proposalCard.querySelector('#deal-title-en')?.value?.trim();
-      const titleBn = proposalCard.querySelector('#deal-title-bn')?.value?.trim();
-      const supplierId = parseInt(proposalCard.querySelector('#deal-supplier-id')?.value, 10);
-      const totalAmount = parseFloat(proposalCard.querySelector('#deal-total-amount')?.value);
+    proposalCard.querySelector('#new-b2b-deal-form').onsubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const title_en = form.title_en.value.trim();
+      const title_bn = form.title_bn.value.trim() || title_en;
+      const buyer_id = parseInt(form.buyer_id.value, 10);
+      const total_amount = parseFloat(form.total_amount.value);
 
-      if (!titleEn || !titleBn) {
-        toast.error(t('b2b_escrow.error_titles_required'));
-        return;
-      }
-      if (!totalAmount || totalAmount <= 0) {
-        toast.error(t('b2b_escrow.error_amount_required'));
+      if (!title_en || isNaN(buyer_id) || isNaN(total_amount)) {
+        toast.error('Please fill in all required fields.');
         return;
       }
 
       try {
         await createB2bDeal({
-          title_en: titleEn,
-          title_bn: titleBn,
-          supplier_id: supplierId,
-          total_amount: totalAmount,
-          contract_terms: {
-            delivery_days: 21,
-            inspection_period_hours: 48,
-            quality_specs: 'Commercial Grade Wholesale A1',
-          },
+          title_en,
+          title_bn,
+          buyer_id,
+          supplier_id: currentUserId,
+          total_amount,
           milestones: [
-            { sequence_no: 1, release_pct: 30.0, evidence_required: 'NONE', label_en: 'Order Confirmation & Sourcing', label_bn: 'অর্ডার নিশ্চিতকরণ ও সোর্সিং' },
-            { sequence_no: 2, release_pct: 40.0, evidence_required: 'DISPATCH_PROOF', label_en: 'Factory Dispatch & Challan', label_bn: 'কারখানা থেকে প্রেরণ ও চালান' },
-            { sequence_no: 3, release_pct: 30.0, evidence_required: 'INSPECTION', label_en: 'Quality Inspection & Final Acceptance', label_bn: 'গুণমান পরিদর্শন ও গ্রহণ' },
+            { step_index: 1, title_en: 'Advance Raw Materials Deposit (30%)', amount: total_amount * 0.3, status: 'LOCKED' },
+            { step_index: 2, title_en: 'Factory Batch Production QA (40%)', amount: total_amount * 0.4, status: 'LOCKED' },
+            { step_index: 3, title_en: 'Final Delivery & Warehouse Acceptance (30%)', amount: total_amount * 0.3, status: 'LOCKED' },
           ],
         });
-
-        toast.success(t('b2b_escrow.proposal_created_success'));
-        await loadDeals();
+        toast.success('B2B wholesale proposal created successfully.');
         activeTab = 'deals';
-        renderCurrentTab();
+        await loadDeals();
       } catch (err) {
-        toast.error(err?.message || t('b2b_escrow.proposal_create_failed'));
+        toast.error(err?.message || 'Failed to create proposal.');
       }
-    });
+    };
 
     contentArea.append(proposalCard);
   }
 
-  // -------------------------------------------------------------
-  // ACTIONS: EVIDENCE MODAL & RELEASE
-  // -------------------------------------------------------------
   function openEvidenceModal(deal, milestone) {
-    const modalContent = document.createElement('div');
-    modalContent.className = 'space-y-4 p-2';
-
-    modalContent.innerHTML = `
-      <p class="text-xs text-muted m-0">
-        Milestone: <b>${milestone.label_en}</b> (${milestone.release_pct}% · ${formatCurrency(milestone.amount)})
-      </p>
-
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('b2b_escrow.evidence_type_label')}</label>
-        <select id="evidence-type-select" class="input w-full">
-          <option value="DISPATCH_PROOF">DISPATCH_PROOF (Challan / Bill of Lading)</option>
-          <option value="DELIVERY_PROOF">DELIVERY_PROOF (Courier Signed Receipt)</option>
-          <option value="INSPECTION">INSPECTION (Quality Lab / Inspection Certificate)</option>
-        </select>
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('b2b_escrow.evidence_url_label')}</label>
-        <input type="text" id="evidence-url-input" class="input w-full font-mono text-xs" placeholder="https://cdn.explooro.com/proofs/challan-9921.pdf" value="/placeholder-challan.pdf">
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('b2b_escrow.evidence_notes_label')}</label>
-        <textarea id="evidence-notes-input" class="input w-full text-xs" rows="3" placeholder="Dispatched via truck #DH-8812 with QA inspector signoff..."></textarea>
+    const modal = document.createElement('div');
+    modal.className = 'supplier-modal-scrim';
+    modal.innerHTML = `
+      <div class="supplier-modal">
+        <div class="supplier-modal__header">
+          <h3 class="supplier-modal__title">📤 Upload Milestone Evidence</h3>
+          <button class="supplier-modal__close close-modal-btn">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+          <p>Provide shipment tracking reference, inspection certificate, or photos for <strong>${milestone.title_en}</strong>.</p>
+          <input type="text" id="evidence-text-input" class="input input--sm" placeholder="e.g. Steadfast Consignment #STF-881290" />
+        </div>
+        <div class="supplier-modal__footer">
+          <button class="btn btn--sm btn--secondary close-modal-btn">Cancel</button>
+          <button class="btn btn--sm btn--primary" id="submit-evidence-btn">Submit Proof</button>
+        </div>
       </div>
     `;
-
-    const modal = Modal({
-      title: `📤 ${t('b2b_escrow.submit_evidence_modal_title')}`,
-      body: modalContent,
-      confirmLabel: t('common.submit'),
-      onConfirm: async () => {
-        const evidenceType = modalContent.querySelector('#evidence-type-select')?.value;
-        const url = modalContent.querySelector('#evidence-url-input')?.value?.trim();
-        const notes = modalContent.querySelector('#evidence-notes-input')?.value?.trim();
-
-        try {
-          await submitMilestoneEvidence(milestone.id, {
-            evidence_type: evidenceType,
-            media_urls: url ? [url] : [],
-            notes,
-          });
-          toast.success(t('b2b_escrow.evidence_submitted_success'));
-          modal.close();
-          await loadDeals();
-          renderCurrentTab();
-        } catch (err) {
-          toast.error(err?.message || t('b2b_escrow.evidence_submit_failed'));
-        }
-      },
-    });
-
-    document.body.append(modal.element);
-    modal.open();
+    const close = () => modal.remove();
+    modal.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    modal.querySelector('#submit-evidence-btn').onclick = async () => {
+      const text = modal.querySelector('#evidence-text-input').value.trim();
+      if (!text) return toast.error('Please enter proof reference.');
+      try {
+        await submitMilestoneEvidence(deal.id, milestone.id, { proof: text });
+        toast.success('Milestone evidence submitted.');
+        close();
+        await loadDeals();
+      } catch (err) {
+        toast.error(err?.message || 'Failed to submit evidence.');
+      }
+    };
+    document.body.appendChild(modal);
   }
 
   async function handleReleaseMilestone(deal, milestone) {
-    if (!confirm(t('b2b_escrow.confirm_release', { amount: formatCurrency(milestone.amount) }))) return;
-
+    if (!confirm(`Release ${formatCurrency(milestone.amount)} for milestone "${milestone.title_en}"?`)) return;
     try {
-      const res = await releaseMilestone(milestone.id);
-      if (res?.data?.is_pending_maker_checker) {
-        toast.info(res.data.message || t('b2b_escrow.maker_checker_queued'));
-      } else {
-        toast.success(t('b2b_escrow.released_success'));
-      }
+      await releaseMilestone(deal.id, milestone.id);
+      toast.success('Milestone funds released successfully.');
       await loadDeals();
-      renderCurrentTab();
     } catch (err) {
-      toast.error(err?.message || t('b2b_escrow.release_failed'));
+      toast.error(err?.message || 'Failed to release milestone.');
     }
   }
 
   async function handleRefundMilestone(deal, milestone) {
-    const reason = prompt(t('b2b_escrow.prompt_refund_reason'));
-    if (!reason) return;
-
+    if (!confirm(`Refund ${formatCurrency(milestone.amount)} to buyer?`)) return;
     try {
-      await refundMilestone(milestone.id, { reason });
-      toast.success(t('b2b_escrow.refunded_success'));
+      await refundMilestone(deal.id, milestone.id);
+      toast.success('Milestone refunded.');
       await loadDeals();
-      renderCurrentTab();
     } catch (err) {
-      toast.error(err?.message || t('b2b_escrow.refund_failed'));
+      toast.error(err?.message || 'Failed to refund milestone.');
     }
   }
 
-  function openDisputeModal(deal) {
-    const modalContent = document.createElement('div');
-    modalContent.className = 'space-y-4 p-2';
-
-    modalContent.innerHTML = `
-      <div class="card p-3 border rounded bg-danger-soft text-xs text-danger">
-        ⚠️ <b>Freeze Warning:</b> Raising a dispute will immediately freeze all remaining unreleased milestones in this deal and route to the Arbitration Workspace.
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">Dispute Reason (English)</label>
-        <input type="text" id="dispute-reason-en" class="input w-full" placeholder="e.g. Quality inspection failed; fabric weight below specification">
-      </div>
-
-      <div>
-        <label class="block text-xs font-semibold text-muted mb-1">Dispute Reason (Bengali)</label>
-        <input type="text" id="dispute-reason-bn" class="input w-full" placeholder="উদাঃ গুণমান পরিদর্শন ব্যর্থ; কাপড়ের স্পেসিফিকেশন সঠিক নয়">
+  function openTermsModal(deal) {
+    const terms = deal.contract_terms_json || {};
+    const modal = document.createElement('div');
+    modal.className = 'supplier-modal-scrim';
+    modal.innerHTML = `
+      <div class="supplier-modal" style="max-width: 520px;">
+        <div class="supplier-modal__header">
+          <h3 class="supplier-modal__title">📜 Contract Terms & Quality Specifications</h3>
+          <button class="supplier-modal__close close-modal-btn">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--font-size-xs);">
+          <div style="background: var(--surface-1); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 6px;">
+            <div><strong>Agreement:</strong> ${deal.title_en || deal.ref}</div>
+            <div><strong>Delivery Window:</strong> ${terms.delivery_days || 30} days from mutual signoff</div>
+            <div><strong>Inspection Period:</strong> ${terms.inspection_period_hours || 48} hours post-delivery</div>
+            <div><strong>Quality Specs:</strong> ${terms.quality_specs || '100% Export Quality Standard'}</div>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); word-break: break-all; background: var(--surface-2); padding: 8px 10px; border-radius: var(--radius-sm);">
+            <strong>Agreed SHA-256 Hash:</strong><br/>
+            ${deal.agreed_terms_hash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
+          </div>
+        </div>
+        <div class="supplier-modal__footer">
+          <button class="btn btn--sm btn--primary close-modal-btn">Close</button>
+        </div>
       </div>
     `;
-
-    const modal = Modal({
-      title: `⚠️ ${t('b2b_escrow.raise_dispute_modal_title')}`,
-      body: modalContent,
-      confirmLabel: t('b2b_escrow.confirm_dispute_btn'),
-      confirmVariant: 'danger',
-      onConfirm: async () => {
-        const reasonEn = modalContent.querySelector('#dispute-reason-en')?.value?.trim();
-        const reasonBn = modalContent.querySelector('#dispute-reason-bn')?.value?.trim();
-
-        if (!reasonEn) {
-          toast.error('Please enter a dispute reason.');
-          return;
-        }
-
-        try {
-          await raiseB2bDispute(deal.id, {
-            reason_en: reasonEn,
-            reason_bn: reasonBn || reasonEn,
-          });
-          toast.success(t('b2b_escrow.dispute_raised_success'));
-          modal.close();
-          await loadDeals();
-          renderCurrentTab();
-        } catch (err) {
-          toast.error(err?.message || t('b2b_escrow.dispute_failed'));
-        }
-      },
-    });
-
-    document.body.append(modal.element);
-    modal.open();
+    const close = () => modal.remove();
+    modal.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    document.body.appendChild(modal);
   }
 
-  // Initial Load
-  loadDeals().then(() => {
-    renderCurrentTab();
-  });
+  function openDisputeModal(deal) {
+    const modal = document.createElement('div');
+    modal.className = 'supplier-modal-scrim';
+    modal.innerHTML = `
+      <div class="supplier-modal" style="max-width: 500px;">
+        <div class="supplier-modal__header">
+          <h3 class="supplier-modal__title text-danger">⚠️ Raise Milestone Dispute</h3>
+          <button class="supplier-modal__close close-modal-btn">&times;</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--font-size-xs);">
+          <p style="margin: 0; color: var(--text-secondary);">
+            Raising a dispute will immediately freeze escrow release and escalate agreement #${deal.ref} to platform arbitration.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="label" style="font-weight: 700;">Reason for Dispute *</label>
+            <textarea id="dispute-reason-text" class="input input--sm" style="height: 80px; resize: vertical;" placeholder="Provide specific defect or breach of agreement details..."></textarea>
+          </div>
+        </div>
+        <div class="supplier-modal__footer">
+          <button class="btn btn--sm btn--secondary close-modal-btn">Cancel</button>
+          <button class="btn btn--sm btn--danger" id="confirm-dispute-btn">⚠️ Confirm & Freeze Escrow</button>
+        </div>
+      </div>
+    `;
+    const close = () => modal.remove();
+    modal.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    modal.querySelector('#confirm-dispute-btn').onclick = async () => {
+      const reason = modal.querySelector('#dispute-reason-text').value.trim();
+      if (!reason) return toast.error('Please enter a reason for the dispute.');
+      try {
+        await raiseB2bDispute(deal.id, { reason });
+        toast.success('Dispute raised. Funds locked for arbitration.');
+        close();
+        await loadDeals();
+      } catch (err) {
+        toast.error(err?.message || 'Failed to raise dispute.');
+      }
+    };
+    document.body.appendChild(modal);
+  }
 
+  loadDeals();
   root.append(container);
 
   return () => {

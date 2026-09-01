@@ -64,9 +64,42 @@ Explooro measures its design execution against 7 calibrated industry references:
 
 ---
 
-## 4. Phase Review Schedule
+## 4. Review Cycle 4: Supplier Portal Overhaul (Simple Mode & Advanced Suite)
+
+**Date:** 2026-08-31  
+**Scope:** Supplier Account Experience — Simple View (6 core pages) & Advanced Suite (15 comprehensive pages).
+
+### Surface: Supplier Hub & Advanced Operations (`/supplier/*`)
+
+| Metric | Evaluation |
+| :--- | :--- |
+| **Reference Calibration** | Shopify Polaris (merchant dashboard & order fulfilment) + Linear (status steppers & restrained density) |
+| **What the reference does better** | Shopify provides clear action tiles for low-complexity merchants; Linear maintains clean hairline card borders and high-contrast telemetry metrics. |
+| **Critique & Specific Refinements Made** | - Eliminated all unstyled utility classes in favor of zero-runtime native design tokens via `supplier.css`.<br>- Created dual-mode dashboard architecture: Simple Mode (4 KPI cards + 6 action tiles) and Pro Hub (6 telemetry metrics + operations matrix).<br>- Implemented high-contrast Reseller Leaderboard with medal ranks (`🥇`, `🥈`, `🥉`) and CSS regional demand distribution bars.<br>- Designed 4x6" thermal shipping labels with courier barcodes and printable packing slips (`@media print`).<br>- Added interactive stock adjuster modals, 72h SLA warranty countdowns, 3PL shipment tracking steppers, and physical showroom availability switches. |
+| **Squint Test Result** | **PASS** — Summary metric strips command instant focus; table rows and action buttons maintain clear luminosity boundaries against `--surface-0` and `--surface-1`. |
+
+---
+
+## 5. Review Cycle 5: Editor Portal Suite (Zero-Deploy CMS & Content Studio)
+
+**Date:** 2026-09-01  
+**Scope:** Editor Portal Suite — Dashboard, Banners & Sliders, Stories & Reels, Academy, What's New, Help Centre, and Localization Studio (`/editor/*`).
+
+### Surface: Editor Studio & Content Workspaces (`/editor/*`)
+
+| Metric | Evaluation |
+| :--- | :--- |
+| **Reference Calibration** | Vercel (clean typography & launchpad minimalism) + Linear (interactive console & quick actions) + Shopify (banner & media management) |
+| **What the reference does better** | Vercel organizes complex workspaces into clear actionable cards; Linear provides instantaneous inline editing without heavy page transitions. |
+| **Critique & Specific Refinements Made** | - Shipped dedicated `editor.css` consuming Explooro's Amber/Gold (`--brand`) and slate neutral tokens.<br>- Built interactive KPI summary cards and 6 quick-launch workspace cards.<br>- Implemented Live Editorial Management Console with interactive tabs (Banners, Stories, Changelogs, Academy) allowing 1-click status toggling (`🟢 LIVE` / `⚪ DRAFT`) and direct modal editors.<br>- Added shoppable SKU tags to video reels and articles with direct buy links.<br>- Created full bilingual localization support (EN/BN) across all release notes, tutorials, banners, and help articles. |
+| **Squint Test Result** | **PASS** — Top action toolbars and status badges (`🟢 LIVE`, `⚪ DRAFT`) stand out immediately; card elevation ladders and modal dialogs maintain crisp separation. |
+
+---
+
+## 6. Phase Review Schedule
 
 - [x] **Cycle 1 (Prompt 1.10)**: Phase 1 Foundations & Component Library — Completed.
 - [ ] **Cycle 2 (Prompt 4.9)**: Phase 4 Catalog, Sourcing & Virtual Storefront.
 - [ ] **Cycle 3 (Prompt 5.5)**: Phase 5 Checkout & Payment Flow.
-- [ ] **Cycle 4 (Prompt 11.7)**: Phase 11 Multi-Role Dashboards (Supplier, Saler, Customer, Admin).
+- [x] **Cycle 4 (Prompt 11.1/11.7)**: Supplier Account Overhaul (Simple & Advanced 15-page suite) — Completed.
+- [x] **Cycle 5 (Prompt 10.8)**: Editor Portal Suite (7 Submodules & Zero-Deploy CMS) — Completed.

@@ -92,7 +92,11 @@ export function handleMockRequest({ method, path, query, body }) {
     if (entry.method !== method) continue;
     const params = matchPath(entry.path, cleanPath);
     if (!params) continue;
-    return entry.handler({ params, query: parsedQuery, body });
+    const res = entry.handler({ params, query: parsedQuery, body });
+    if (res && typeof res === 'object' && res.status !== undefined) {
+      return res;
+    }
+    return { status: 200, body: res };
   }
   return notFoundBody(path);
 }

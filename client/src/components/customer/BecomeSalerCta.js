@@ -11,63 +11,60 @@ import { customerApi } from '../../services/customer.api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../ui/Button.js';
-import { appStore } from '../../state/appStore.js';
+import { appStore, setMockRole } from '../../state/appStore.js';
+import { defaultPermissionsForRole } from '../../config/permissions.mock.js';
 
 export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null } = {}) {
   const container = document.createElement('div');
-  container.className = 'become-saler-cta relative overflow-hidden rounded-3xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-surface to-primary/5 p-6 md:p-8 shadow-md';
+  container.className = 'become-saler-cta';
 
   container.innerHTML = `
-    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-      <div class="space-y-3 max-w-2xl">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
-          <span>✨ ৳০ পুঁজিতে ব্যবসা</span>
-          <span>·</span>
-          <span>Zero Paperwork</span>
+    <div class="become-saler-cta__body">
+      <div class="become-saler-cta__info">
+        <div class="inline-flex items-center gap-2">
+          <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">
+            ✨ ${t('customer.become_saler.badge', 'Zero-Capital Reseller Hub')}
+          </span>
         </div>
-        <h2 class="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight leading-tight">
-          ${t('customer.become_saler.headline', '১ ক্লিকে নিজের অনলাইন দোকান খুলুন 🚀')}
+        <h2 class="become-saler-cta__title">
+          ${t('customer.become_saler.headline', 'Open Your Online Store in 1 Tap')} 🚀
         </h2>
-        <p class="text-sm md:text-base text-muted leading-relaxed">
-          ${t('customer.become_saler.subtext', 'হোলসেলের দামে ১০০+ সেরা পণ্য আপনার নামে বিক্রি করে প্রতি অর্ডারে ২০-৩৫% লাভ করুন। ডেলিভারি ও প্যাকেজিংয়ের ঝামেলা ছাড়াই সরাসরি বিকাশে টাকা তুলুন।')}
+        <p class="become-saler-cta__desc">
+          ${t('customer.become_saler.subtext', 'Sell 100+ wholesale products under your own store name and earn 20-35% profit per order. Zero hassle packaging & shipping, with instant bKash/Bank cashouts.')}
         </p>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          <div class="flex items-center gap-2 text-xs font-bold text-foreground">
-            <span class="text-base text-emerald-500">✓</span>
-            <span>${t('customer.become_saler.benefit_1', 'কোনো অগ্রিম পুঁজি লাগবে না')}</span>
+        <div class="become-saler-cta__benefits">
+          <div class="become-saler-cta__benefit-item">
+            <span class="text-primary font-bold">✓</span>
+            <span>${t('customer.become_saler.benefit_1', 'Zero upfront capital required')}</span>
           </div>
-          <div class="flex items-center gap-2 text-xs font-bold text-foreground">
-            <span class="text-base text-emerald-500">✓</span>
-            <span>${t('customer.become_saler.benefit_2', 'সাপ্লায়ার নিজে ডেলিভারি করবে')}</span>
+          <div class="become-saler-cta__benefit-item">
+            <span class="text-primary font-bold">✓</span>
+            <span>${t('customer.become_saler.benefit_2', 'Suppliers pack & ship directly')}</span>
           </div>
-          <div class="flex items-center gap-2 text-xs font-bold text-foreground">
-            <span class="text-base text-emerald-500">✓</span>
-            <span>${t('customer.become_saler.benefit_3', 'তাৎক্ষণিক বিকাশ ও ব্যাংক ক্যাশআউট')}</span>
+          <div class="become-saler-cta__benefit-item">
+            <span class="text-primary font-bold">✓</span>
+            <span>${t('customer.become_saler.benefit_3', 'Instant bKash & Bank cashouts')}</span>
           </div>
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-row lg:flex-col items-center lg:items-end justify-center gap-3 shrink-0">
+      <div class="become-saler-cta__action-wrap">
         <div id="upgrade-action-slot"></div>
         <span class="text-[11px] text-muted font-medium text-center">
-          ${t('customer.become_saler.instant_note', '⚡ কোনো কাগজপত্র ছাড়াই ৩ সেকেন্ডে শুরু')}
+          ⚡ ${t('customer.become_saler.instant_note', '3-Second instant start · Zero paperwork')}
         </span>
       </div>
     </div>
-
-    <!-- Ambient Decorative Background Glow -->
-    <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-primary/10 blur-2xl pointer-events-none"></div>
   `;
 
   const actionSlot = container.querySelector('#upgrade-action-slot');
   let isUpgrading = false;
 
   const upgradeBtn = Button({
-    label: `🚀 ${t('customer.become_saler.cta_btn', 'বিক্রেতা হতে ক্লিক করুন')}`,
+    label: `🚀 ${t('customer.become_saler.cta_btn', 'Click to Become a Saler')}`,
     variant: 'primary',
     size: 'lg',
-    className: 'px-8 py-4 text-base font-extrabold shadow-lg hover:shadow-primary/30 active:scale-95 transition-all',
     onClick: handleUpgrade,
   });
 
@@ -76,24 +73,28 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null } = 
   async function handleUpgrade() {
     if (isUpgrading) return;
     isUpgrading = true;
-    upgradeBtn.disabled = true;
-    upgradeBtn.textContent = '⏳ Creating Storefront...';
+    upgradeBtn.setLoading(true);
+    upgradeBtn.setLabel(`⏳ ${t('customer.become_saler.btn_upgrading', 'Provisioning Storefront...')}`);
 
     try {
       const res = await customerApi.becomeSaler();
       const data = res.data || {};
 
-      toast.success(data.message_bn || data.message_en || 'বিক্রেতা হিসেবে অ্যাকাউন্ট তৈরি সম্পন্ন!');
+      toast.success(data.message_bn || data.message_en || t('customer.become_saler.upgrade_success', 'Congratulations! Your digital store is active.'));
 
-      // Update auth store user roles if available
+      // Elevate session to saler role
       try {
-        const auth = appStore.get()?.auth;
-        if (auth && auth.isAuthenticated) {
+        if (typeof setMockRole === 'function') {
+          setMockRole('saler');
+        } else {
+          const auth = appStore.get()?.auth || {};
+          const salerPerms = defaultPermissionsForRole('saler');
           appStore.update({
             auth: {
               ...auth,
+              isAuthenticated: true,
               role: 'saler',
-              permissions: [...(auth.permissions || []), 'saler.store.manage', 'saler.order.view'],
+              permissions: Array.from(new Set([...(auth.permissions || []), ...salerPerms])),
             },
           });
         }
@@ -114,8 +115,8 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null } = 
     } catch (err) {
       toast.error(err.message || 'Upgrade failed. Please try again.');
       isUpgrading = false;
-      upgradeBtn.disabled = false;
-      upgradeBtn.textContent = `🚀 ${t('customer.become_saler.cta_btn', 'বিক্রেতা হতে ক্লিক করুন')}`;
+      upgradeBtn.setLoading(false);
+      upgradeBtn.setLabel(`🚀 ${t('customer.become_saler.cta_btn', 'Click to Become a Saler')}`);
     }
   }
 

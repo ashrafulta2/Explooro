@@ -248,8 +248,8 @@ export const SIMPLE_MODE_ITEMS = {
     { key: 'supplier.simple.stock', label_i18n_key: 'nav.supplier.stock', path: '/supplier/inventory', permission: 'catalog.inventory.manage', module: 'core' },
     { key: 'supplier.simple.orders_to_pack', label_i18n_key: 'nav.simple.supplier.orders_to_pack', path: '/supplier/orders', permission: 'supplier.order.view', module: 'core' },
     { key: 'supplier.simple.print_labels', label_i18n_key: 'nav.simple.supplier.print_labels', path: '/supplier/fulfilment', permission: 'logistics.consignment.create', module: 'courier_hub' },
-    { key: 'supplier.simple.my_earnings', label_i18n_key: 'nav.simple.saler.my_earnings', path: '/supplier/vault', permission: 'finance.wallet.view_own', module: 'core' },
-    { key: 'supplier.simple.help', label_i18n_key: 'nav.simple.help', path: '/supplier', permission: 'supplier.dashboard.view', module: 'core' },
+    { key: 'supplier.simple.my_earnings', label_i18n_key: 'nav.simple.supplier.my_earnings', path: '/supplier/vault', permission: 'finance.wallet.view_own', module: 'core' },
+    { key: 'supplier.simple.help', label_i18n_key: 'nav.simple.help', path: '/supplier/help', permission: null, module: 'core' },
   ],
 };
 

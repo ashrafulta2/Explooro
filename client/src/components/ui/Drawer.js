@@ -120,7 +120,7 @@ export function Drawer({
   let result;
 
   function open(trigger = null) {
-    if (dialog.open) return;
+    if (dialog.hasAttribute('open')) return;
     previouslyFocused = trigger ?? document.activeElement;
     if (!dialog.isConnected) document.body.append(dialog);
     dialog.showModal();
@@ -131,7 +131,7 @@ export function Drawer({
   const nativeClose = dialog.close.bind(dialog);
 
   function close(value = false) {
-    if (!dialog.open) return;
+    if (!dialog.hasAttribute('open')) return;
     result = value;
     nativeClose();
   }
@@ -226,6 +226,18 @@ export function Drawer({
   dialog.openDrawer = open;
   dialog.closeDrawer = close;
   dialog.isOpen = () => Boolean(dialog.hasAttribute('open'));
+
+  Object.defineProperty(dialog, 'open', {
+    value: open,
+    writable: true,
+    configurable: true,
+  });
+  Object.defineProperty(dialog, 'close', {
+    value: close,
+    writable: true,
+    configurable: true,
+  });
+
   dialog.setContent = (node) => {
     bodyEl.replaceChildren(node);
   };

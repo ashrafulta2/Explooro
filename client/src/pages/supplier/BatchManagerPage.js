@@ -20,7 +20,7 @@ import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function BatchManagerPage(root) {
   const container = document.createElement('div');
-  container.className = 'supplier-batches-page container py-6 space-y-6';
+  container.className = 'supplier-page-container';
 
   if (!isFeatureEnabled('fefo_batches')) {
     container.appendChild(
@@ -59,25 +59,32 @@ export default function BatchManagerPage(root) {
     }
   }
 
+  function getFilteredBatches() {
+    if (filterStatus === 'all') return batches;
+    return batches.filter((b) => b.status === filterStatus);
+  }
+
   function render() {
     container.innerHTML = '';
 
     // 1. Header
     const header = document.createElement('header');
-    header.className = 'page-header flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-subtle';
+    header.className = 'supplier-header';
     header.innerHTML = `
-      <div>
-        <div class="flex items-center gap-2">
-          <a href="/supplier" class="text-xs text-muted hover:text-primary">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
+      <div class="supplier-header__titles">
+        <div class="supplier-header__badge-row">
+          <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
+          <span class="text-muted">/</span>
+          <span class="text-xs text-muted font-mono">Batches & Expiry (FEFO)</span>
         </div>
-        <h1 class="text-2xl font-bold flex items-center gap-2 mt-1">
+        <h1 class="supplier-header__title">
           <span>🏷️</span> ${t('supplier.batches_title', 'FEFO Batch & Expiry Timeline')}
         </h1>
-        <p class="text-sm text-muted mt-1">
+        <p class="supplier-header__subtitle">
           ${t('supplier.batches_subtitle', 'Automated First-Expired First-Out dispatch, 30/60-day early clearance alerts, and batch recall isolation.')}
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="supplier-header__actions">
         <button class="btn btn--sm btn--primary" id="create-batch-btn">
           ➕ ${t('supplier.create_batch_btn', 'New Stock Lot / Batch')}
         </button>
@@ -91,54 +98,93 @@ export default function BatchManagerPage(root) {
     header.querySelector('#refresh-batch-btn').onclick = loadData;
     container.appendChild(header);
 
-    // 2. Timeline Status Filters
-    const filterBar = document.createElement('div');
-    filterBar.className = 'flex flex-wrap items-center justify-between gap-3 p-3 bg-surface-2 rounded-xl border border-subtle';
-    filterBar.innerHTML = `
-      <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
-        <span class="text-muted mr-1">${t('supplier.filter_by_timeline', 'Timeline')}:</span>
-        <button class="filter-chip px-3 py-1.5 rounded-lg ${filterStatus === 'all' ? 'bg-primary text-white' : 'bg-surface border border-subtle text-secondary'}" data-status="all">
-          ${t('common.all', 'All Batches')}
+    // 2. Timeline KPI Summary Strip
+    const expiringSoonCount = batches.filter((b) => b.status === 'EXPIRING_SOON' || (b.days_to_expiry > 0 && b.days_to_expiry <= 45)).length;
+    const recalledCount = batches.filter((b) => b.status === 'RECALLED').length;
+    const activeCount = batches.filter((b) => b.status === 'ACTIVE').length;
+
+    const summaryStrip = document.createElement('div');
+    summaryStrip.className = 'supplier-kpi-grid';
+    summaryStrip.innerHTML = `
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">Total Tracked Lots</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">${batches.length}</div>
+        <span class="text-xs text-muted">Across all regional depots</span>
+      </div>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">Active Healthy Lots</span>
+        <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 4px 0;">${activeCount}</div>
+        <span class="text-xs text-muted">> 60 days to expiry</span>
+      </div>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">Expiring Soon (≤ 45 Days)</span>
+        <div class="supplier-kpi-card__value ${expiringSoonCount > 0 ? 'supplier-kpi-card__value--warning' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 4px 0;">
+          ${expiringSoonCount}
+        </div>
+        <span class="text-xs text-muted">Eligible for 1-click clearance deal</span>
+      </div>
+
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">Isolated Recalls</span>
+        <div class="supplier-kpi-card__value ${recalledCount > 0 ? 'supplier-kpi-card__value--danger' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 4px 0;">
+          ${recalledCount}
+        </div>
+        <span class="text-xs text-muted">Frozen from customer checkout</span>
+      </div>
+    `;
+    container.appendChild(summaryStrip);
+
+    // 3. Filter Toolbar
+    const toolbar = document.createElement('div');
+    toolbar.className = 'supplier-toolbar';
+    toolbar.innerHTML = `
+      <div class="supplier-toolbar__filters">
+        <button class="supplier-chip ${filterStatus === 'all' ? 'supplier-chip--active' : ''}" data-status="all">
+          ${t('common.all', 'All Batches')} (${batches.length})
         </button>
-        <button class="filter-chip px-3 py-1.5 rounded-lg ${filterStatus === 'EXPIRING_SOON' ? 'bg-amber-600 text-white' : 'bg-surface border border-subtle text-secondary'}" data-status="EXPIRING_SOON">
-          ⚠️ ${t('supplier.expiring_soon', 'Expiring Soon (≤60d)')}
+        <button class="supplier-chip supplier-chip--warning ${filterStatus === 'EXPIRING_SOON' ? 'supplier-chip--active' : ''}" data-status="EXPIRING_SOON">
+          ⚠️ ${t('supplier.expiring_soon', 'Expiring Soon')} (${expiringSoonCount})
         </button>
-        <button class="filter-chip px-3 py-1.5 rounded-lg ${filterStatus === 'ACTIVE' ? 'bg-green-600 text-white' : 'bg-surface border border-subtle text-secondary'}" data-status="ACTIVE">
-          🟢 ${t('supplier.active_healthy', 'Healthy (>60d)')}
+        <button class="supplier-chip ${filterStatus === 'ACTIVE' ? 'supplier-chip--active' : ''}" data-status="ACTIVE">
+          ✅ ${t('supplier.active_batches', 'Active Lots')} (${activeCount})
         </button>
-        <button class="filter-chip px-3 py-1.5 rounded-lg ${filterStatus === 'EXPIRED' ? 'bg-red-600 text-white' : 'bg-surface border border-subtle text-secondary'}" data-status="EXPIRED">
-          🚫 ${t('supplier.expired', 'Expired')}
-        </button>
-        <button class="filter-chip px-3 py-1.5 rounded-lg ${filterStatus === 'RECALLED' ? 'bg-purple-600 text-white' : 'bg-surface border border-subtle text-secondary'}" data-status="RECALLED">
-          🚨 ${t('supplier.recalled', 'Recalled')}
+        <button class="supplier-chip supplier-chip--danger ${filterStatus === 'RECALLED' ? 'supplier-chip--active' : ''}" data-status="RECALLED">
+          🚫 ${t('supplier.recalled_batches', 'Recalled / Frozen')} (${recalledCount})
         </button>
       </div>
     `;
 
-    filterBar.querySelectorAll('.filter-chip').forEach((chip) => {
+    toolbar.querySelectorAll('.supplier-chip').forEach((chip) => {
       chip.onclick = () => {
         filterStatus = chip.dataset.status;
-        loadData();
+        render();
       };
     });
 
-    container.appendChild(filterBar);
+    container.appendChild(toolbar);
 
-    // 3. Batch List or Empty State
+    // 4. Batches Grid or Empty State
     if (loading) {
       const loader = document.createElement('div');
       loader.className = 'p-12 text-center text-muted';
-      loader.innerHTML = `<div class="animate-spin inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full mb-3"></div><p>${t('common.loading', 'Loading batch timeline...')}</p>`;
+      loader.innerHTML = `
+        <div class="spinner" style="margin: 0 auto 16px auto;"></div>
+        <p>${t('common.loading', 'Loading batch records...')}</p>
+      `;
       container.appendChild(loader);
       return;
     }
 
-    if (batches.length === 0) {
+    const filtered = getFilteredBatches();
+
+    if (filtered.length === 0) {
       container.appendChild(
         EmptyState({
           icon: '🏷️',
           title: t('supplier.no_batches_found', 'No batches found in this view'),
-          description: t('supplier.no_batches_desc', 'Track FMCG, skincare, food or medicine lots by recording your manufacturing and expiration dates.'),
+          description: t('supplier.no_batches_desc', 'Create a new stock lot or change your status filter to see other batches.'),
           actionLabel: t('supplier.create_batch_btn', 'Create New Batch'),
           onAction: openCreateBatchModal,
         })
@@ -147,104 +193,93 @@ export default function BatchManagerPage(root) {
     }
 
     const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4';
+    grid.className = 'supplier-batches-grid';
 
-    batches.forEach((batch) => {
-      const daysLeft = Number(batch.days_to_expiry);
-      const isUrgent = daysLeft <= 30 && daysLeft > 0;
-      const isApproaching = daysLeft > 30 && daysLeft <= 60;
-      const isExpired = daysLeft <= 0 || batch.status === 'EXPIRED';
+    filtered.forEach((batch) => {
+      const isUrgent = batch.status === 'EXPIRING_SOON' || (batch.days_to_expiry > 0 && batch.days_to_expiry <= 45);
       const isRecalled = batch.status === 'RECALLED';
-
-      let timelineBadge = `<span class="badge badge--success text-xs">🟢 ${daysLeft} days left</span>`;
-      let cardBorder = 'border-subtle';
-
-      if (isRecalled) {
-        timelineBadge = `<span class="badge badge--danger text-xs">🚨 RECALLED</span>`;
-        cardBorder = 'border-purple-500/40 bg-purple-500/5';
-      } else if (isExpired) {
-        timelineBadge = `<span class="badge badge--danger text-xs">🚫 EXPIRED</span>`;
-        cardBorder = 'border-red-500/40 bg-red-500/5';
-      } else if (isUrgent) {
-        timelineBadge = `<span class="badge badge--warning text-xs animate-pulse">⚠️ Expiring in ${daysLeft}d</span>`;
-        cardBorder = 'border-red-500/40 bg-red-500/5';
-      } else if (isApproaching) {
-        timelineBadge = `<span class="badge badge--warning text-xs">⏳ ${daysLeft} days left</span>`;
-        cardBorder = 'border-amber-500/40 bg-amber-500/5';
-      }
+      const isExpired = batch.days_to_expiry <= 0 || batch.status === 'EXPIRED';
 
       const card = document.createElement('div');
-      card.className = `batch-card p-5 rounded-2xl border ${cardBorder} bg-surface flex flex-col justify-between shadow-sm`;
+      card.className = `supplier-batch-card ${isRecalled ? 'supplier-batch-card--expired' : isUrgent ? 'supplier-batch-card--urgent' : ''}`;
 
       card.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span class="supplier-order-card__ref" style="font-size: 13px; font-weight: 800;">
+            #${batch.batch_number}
+          </span>
+          ${isRecalled ? `
+            <span class="badge badge--danger text-xs font-bold">🚫 RECALLED</span>
+          ` : isExpired ? `
+            <span class="badge badge--danger text-xs font-bold">⚠️ EXPIRED</span>
+          ` : isUrgent ? `
+            <span class="badge badge--warning text-xs font-bold">⏰ Expiring in ${batch.days_to_expiry}d</span>
+          ` : `
+            <span class="badge badge--success text-xs">🟢 Active (${batch.days_to_expiry}d left)</span>
+          `}
+        </div>
+
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-mono text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
-              #${batch.batch_number}
-            </span>
-            ${timelineBadge}
-          </div>
-
-          <h3 class="font-bold text-base text-foreground mb-1">${batch.product_title_en}</h3>
-          <p class="text-xs text-muted font-bangla mb-3">${batch.product_title_bn || ''}</p>
-
-          <div class="space-y-1.5 text-xs text-secondary bg-surface-2 p-3 rounded-lg border border-subtle font-mono">
-            <div class="flex justify-between">
-              <span class="text-muted">Available Stock:</span>
-              <span class="font-bold">${batch.qty} units</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-muted">Expiry Date:</span>
-              <span>${batch.exp_date ? batch.exp_date.slice(0, 10) : 'N/A'}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-muted">Mfg Date:</span>
-              <span>${batch.mfg_date ? batch.mfg_date.slice(0, 10) : 'N/A'}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-muted">Depot Node:</span>
-              <span>${batch.warehouse_name || 'Dhaka Central'}</span>
-            </div>
-            ${batch.recall_reason ? `<div class="text-red-500 font-sans text-2xs mt-1">Reason: ${batch.recall_reason}</div>` : ''}
+          <div style="font-weight: 800; color: var(--text-primary); font-size: var(--font-size-sm);">${batch.product_title || 'Product SKU'}</div>
+          <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 2px;">
+            Depot: <strong>${batch.warehouse_name || 'Central Depot'}</strong>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 pt-4 border-t border-subtle mt-4">
-          ${(isUrgent || isApproaching) && !isRecalled ? `
-            <button class="btn btn--xs btn--primary flex-1 clearance-btn" data-id="${batch.id}" data-num="${batch.batch_number}">
-              ⚡ 1-Click Clearance (${isUrgent ? '30%' : '15%'} Off)
-            </button>
-          ` : ''}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--surface-1); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: var(--font-size-xs);">
+          <div>
+            <div class="text-muted" style="font-size: 10px;">AVAILABLE QTY</div>
+            <div style="font-weight: 800; color: var(--brand-primary); font-size: 1.125rem;">${batch.quantity_available} <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary);">units</span></div>
+          </div>
+          <div style="text-align: right;">
+            <div class="text-muted" style="font-size: 10px;">EXPIRY DATE</div>
+            <div style="font-weight: 700;">${batch.expiry_date ? batch.expiry_date.slice(0, 10) : 'N/A'}</div>
+          </div>
+        </div>
 
-          ${!isRecalled ? `
-            <button class="btn btn--xs btn--outline text-red-500 hover:bg-red-500/10 recall-btn" data-id="${batch.id}" data-num="${batch.batch_number}">
-              🚨 Recall
+        <div style="display: flex; align-items: center; gap: var(--space-2, 8px); margin-top: 4px;">
+          ${!isRecalled && !isExpired ? `
+            <button class="btn btn--xs btn--warning clearance-btn" style="flex: 1;" data-id="${batch.id}">
+              ⚡ 1-Click Clearance (-15%)
             </button>
+            <button class="btn btn--xs btn--outline recall-btn" data-id="${batch.id}">
+              🚫 Recall
+            </button>
+          ` : isRecalled ? `
+            <span class="text-xs text-danger font-bold" style="padding: 4px 0;">Isolated from ordering</span>
           ` : `
-            <span class="text-xs text-purple-600 font-bold">🔒 Isolated in Quarantine</span>
+            <span class="text-xs text-danger font-bold" style="padding: 4px 0;">Expired: Do not sell</span>
           `}
         </div>
       `;
 
-      // 1-Click clearance action handler
+      // 1-Click Clearance Action
       const clearanceBtn = card.querySelector('.clearance-btn');
       if (clearanceBtn) {
         clearanceBtn.onclick = async () => {
-          const discountPct = isUrgent ? 30 : 15;
           try {
-            const res = await supplierApi.triggerBatchClearance(batch.id, discountPct);
-            toast.success(res.data?.message || t('supplier.clearance_success', 'Clearance flash sale activated!'));
+            await supplierApi.triggerClearanceSale({ batchId: batch.id, discountPct: 15 });
+            toast.success(t('supplier.clearance_triggered', '15% clearance discount applied to batch.'));
             loadData();
           } catch (err) {
-            toast.error(t('supplier.clearance_failed', 'Failed to activate clearance sale.'));
+            toast.error(t('supplier.clearance_failed', 'Failed to trigger clearance action.'));
           }
         };
       }
 
-      // Recall handler
+      // Recall Isolation
       const recallBtn = card.querySelector('.recall-btn');
       if (recallBtn) {
-        recallBtn.onclick = () => openRecallModal(batch.id, batch.batch_number, batch.product_title_en);
+        recallBtn.onclick = async () => {
+          if (!confirm(`Are you sure you want to recall batch #${batch.batch_number}? This will immediately freeze checkout for these units.`)) return;
+          try {
+            await supplierApi.recallBatch({ batchId: batch.id, reason: 'Supplier Quality Recall' });
+            toast.success(t('supplier.recall_success', `Batch #${batch.batch_number} recalled and isolated.`));
+            loadData();
+          } catch (err) {
+            toast.error(t('supplier.recall_failed', 'Failed to recall batch.'));
+          }
+        };
       }
 
       grid.appendChild(card);
@@ -253,55 +288,47 @@ export default function BatchManagerPage(root) {
     container.appendChild(grid);
   }
 
+  // 5. Intake New Batch Modal
   function openCreateBatchModal() {
     const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
+    modalBackdrop.className = 'supplier-modal-scrim';
     modalBackdrop.innerHTML = `
-      <div class="modal-box bg-surface p-6 rounded-2xl border border-subtle max-w-lg w-full shadow-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-subtle pb-3">
-          <h3 class="font-bold text-lg flex items-center gap-2">
-            <span>🏷️</span> ${t('supplier.create_batch_modal_title', 'Create New FEFO Stock Batch')}
-          </h3>
-          <button class="text-muted hover:text-foreground text-xl close-modal-btn">&times;</button>
+      <div class="supplier-modal">
+        <div class="supplier-modal__header">
+          <h3 class="supplier-modal__title">➕ ${t('supplier.create_batch_btn', 'New Stock Lot / Batch Intake')}</h3>
+          <button class="supplier-modal__close close-modal-btn">&times;</button>
         </div>
 
-        <div class="space-y-3">
-          <div>
-            <label class="block text-xs font-semibold mb-1">${t('supplier.batch_product_id', 'Product ID')}</label>
-            <input type="number" id="batch-product-id" class="input w-full" placeholder="e.g. 1" required />
+        <form id="new-batch-form" style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Lot / Batch Number *</label>
+            <input type="text" id="batch-number-input" class="input input--sm font-mono" placeholder="e.g. LOT-2026-NOV-15" required />
           </div>
-          <div>
-            <label class="block text-xs font-semibold mb-1">${t('supplier.batch_number', 'Batch / Lot Number')}</label>
-            <input type="text" id="batch-num-input" class="input w-full font-mono" placeholder="e.g. LOT-2026-OCT-01" required />
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold mb-1">${t('supplier.mfg_date', 'Manufacturing Date')}</label>
-              <input type="date" id="batch-mfg-date" class="input w-full" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold mb-1">${t('supplier.exp_date', 'Expiration Date (FEFO)')}</label>
-              <input type="date" id="batch-exp-date" class="input w-full" required />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-semibold mb-1">${t('supplier.initial_qty', 'Initial Units')}</label>
-              <input type="number" id="batch-qty-input" class="input w-full" min="1" value="100" required />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold mb-1">${t('supplier.warehouse_node', 'Warehouse Node')}</label>
-              <select id="batch-warehouse-node" class="select w-full">
-                ${warehouses.map((w) => `<option value="${w.id}">${w.name} (${w.district})</option>`).join('')}
-                ${warehouses.length === 0 ? '<option value="1">Central Depot (Dhaka)</option>' : ''}
-              </select>
-            </div>
-          </div>
-        </div>
 
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-subtle">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Depot Warehouse Node *</label>
+            <select id="warehouse-select" class="input input--sm">
+              ${warehouses.map((w) => `<option value="${w.id}">${w.name} (${w.district})</option>`).join('')}
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2, 8px);">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Initial Quantity *</label>
+              <input type="number" id="batch-qty-input" class="input input--sm font-mono" min="1" value="100" required />
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Expiration Date *</label>
+              <input type="date" id="batch-exp-input" class="input input--sm" required />
+            </div>
+          </div>
+        </form>
+
+        <div class="supplier-modal__footer">
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
-          <button class="btn btn--sm btn--primary" id="save-batch-btn">${t('supplier.save_batch', 'Save Batch')}</button>
+          <button class="btn btn--sm btn--primary" id="save-batch-btn">
+            💾 Save Batch
+          </button>
         </div>
       </div>
     `;
@@ -310,82 +337,29 @@ export default function BatchManagerPage(root) {
     modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
 
     modalBackdrop.querySelector('#save-batch-btn').onclick = async () => {
-      const productId = parseInt(modalBackdrop.querySelector('#batch-product-id').value, 10);
-      const batchNumber = modalBackdrop.querySelector('#batch-num-input').value.trim();
-      const mfgDate = modalBackdrop.querySelector('#batch-mfg-date').value || null;
-      const expDate = modalBackdrop.querySelector('#batch-exp-date').value || null;
+      const batchNum = modalBackdrop.querySelector('#batch-number-input').value.trim();
+      const whId = modalBackdrop.querySelector('#warehouse-select').value;
       const qty = parseInt(modalBackdrop.querySelector('#batch-qty-input').value, 10);
-      const warehouseNodeId = parseInt(modalBackdrop.querySelector('#batch-warehouse-node').value, 10);
+      const expDate = modalBackdrop.querySelector('#batch-exp-input').value;
 
-      if (!productId || !batchNumber || !expDate || isNaN(qty)) {
-        toast.error(t('supplier.fill_required_fields', 'Please fill all required batch fields.'));
+      if (!batchNum || !expDate || isNaN(qty)) {
+        toast.error('Please fill in all required fields.');
         return;
       }
 
       try {
         await supplierApi.createBatch({
-          productId,
-          warehouseNodeId,
-          batchNumber,
-          mfgDate,
-          expDate,
-          qty,
+          batch_number: batchNum,
+          warehouse_id: whId,
+          quantity_initial: qty,
+          quantity_available: qty,
+          expiry_date: expDate,
         });
-        toast.success(t('supplier.batch_created_success', 'Batch lot registered successfully.'));
+        toast.success(t('supplier.batch_created_success', 'New batch registered successfully.'));
         close();
         loadData();
       } catch (err) {
-        toast.error(t('supplier.batch_create_failed', 'Failed to register batch lot.'));
-      }
-    };
-
-    document.body.appendChild(modalBackdrop);
-  }
-
-  function openRecallModal(batchId, batchNumber, productTitle) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4';
-    modalBackdrop.innerHTML = `
-      <div class="modal-box bg-surface p-6 rounded-2xl border border-red-500/40 max-w-md w-full shadow-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-subtle pb-3">
-          <h3 class="font-bold text-lg text-red-600 flex items-center gap-2">
-            <span>🚨</span> ${t('supplier.recall_batch_title', 'Isolate & Recall Batch')}
-          </h3>
-          <button class="text-muted hover:text-foreground text-xl close-modal-btn">&times;</button>
-        </div>
-
-        <p class="text-xs text-muted">
-          ${t('supplier.recall_warning_desc', 'This action will instantly isolate batch')} <strong>#${batchNumber}</strong> (${productTitle}) ${t('supplier.recall_warning_suffix', 'and block further dispatches without affecting the rest of your catalog.')}
-        </p>
-
-        <div>
-          <label class="block text-xs font-semibold mb-1">${t('supplier.recall_reason_label', 'Reason for Recall (Defect / Quality / Contamination)')}</label>
-          <textarea id="recall-reason-input" class="textarea w-full" rows="3" placeholder="e.g. Packaging seal integrity compromised during transit."></textarea>
-        </div>
-
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-subtle">
-          <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
-          <button class="btn btn--sm btn--danger" id="confirm-recall-btn">${t('supplier.confirm_recall', 'Confirm Recall')}</button>
-        </div>
-      </div>
-    `;
-
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
-
-    modalBackdrop.querySelector('#confirm-recall-btn').onclick = async () => {
-      const reason = modalBackdrop.querySelector('#recall-reason-input').value.trim();
-      if (!reason) {
-        toast.error(t('supplier.recall_reason_required', 'Please state a reason for the batch recall.'));
-        return;
-      }
-      try {
-        await supplierApi.recallBatch(batchId, reason);
-        toast.success(t('supplier.batch_recalled_success', 'Batch isolated and recalled successfully.'));
-        close();
-        loadData();
-      } catch (err) {
-        toast.error(t('supplier.batch_recall_failed', 'Failed to recall batch.'));
+        toast.error(t('supplier.batch_create_failed', 'Failed to register batch.'));
       }
     };
 

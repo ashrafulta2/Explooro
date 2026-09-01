@@ -1074,6 +1074,11 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'shoppable-reels', label: 'ShoppableReels', group: 'Communication & Live', render: renderShoppableReelsSpecimen },
     // Prompt 11.1 — Supplier / Manufacturer Dashboard & Operational Widgets
     { id: 'supplier-dashboard-widgets', label: 'SupplierDashboardWidgets', group: 'Commerce & Catalog', render: renderSupplierDashboardWidgetsSpecimen },
+    { id: 'supplier-orders-to-pack', label: 'SupplierOrdersToPack', group: 'Commerce & Catalog', render: renderSupplierOrdersSpecimen },
+    { id: 'supplier-help-center', label: 'SupplierHelpCenter', group: 'Commerce & Catalog', render: renderSupplierHelpSpecimen },
+    { id: 'supplier-shipments-tracking', label: 'SupplierShipmentsTracking', group: 'Commerce & Catalog', render: renderSupplierShipmentsSpecimen },
+    { id: 'supplier-wholesale-inquiries', label: 'SupplierWholesaleInquiries', group: 'Commerce & Catalog', render: renderSupplierInquiriesSpecimen },
+    { id: 'supplier-store-status', label: 'SupplierStoreStatus', group: 'Commerce & Catalog', render: renderSupplierStoreStatusSpecimen },
     // Prompt 11.2 — Saler Prescriptive AI Growth Assistant
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'Saler Sourcing & Profit', render: renderGrowthAssistantSpecimen },
     // Catalog & Products Governance
@@ -2271,6 +2276,137 @@ function renderSupplierDashboardWidgetsSpecimen() {
     specimen('Multi-Location Warehouse Node Card with GIS Proximity Score', whWidget)
   );
 
+  return wrap;
+}
+
+function renderSupplierOrdersSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Supplier Orders to Pack & 1-Click Consignment Booking'));
+
+  const orderCard = document.createElement('div');
+  orderCard.className = 'supplier-order-card';
+  orderCard.innerHTML = `
+    <div class="supplier-order-card__header">
+      <div class="supplier-order-card__ref-group">
+        <span class="supplier-order-card__ref">ORD-9K2P4L</span>
+        <span class="badge badge--warning text-xs font-mono">PROCESSING</span>
+        <span class="badge badge--neutral text-xs font-bold">💵 Cash on Delivery (৳ 1,950.00)</span>
+      </div>
+      <div class="supplier-order-card__meta">
+        Customer: <strong>Nusrat Jahan</strong> (01711998877) · 📍 Dhanmondi, Dhaka
+      </div>
+    </div>
+    <div class="supplier-order-card__items-box">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700;">
+        <span>📦 Items to Pack (FEFO Directives)</span>
+        <span class="font-mono text-muted">Node: Tejgaon Central Depot</span>
+      </div>
+      <div class="supplier-order-card__item-row" style="margin-top: 6px;">
+        <div>
+          <strong>Miniket Premium Rice 25kg Bag</strong>
+          <span class="badge badge--info text-xs font-mono" style="margin-left: 6px;">🏷️ Lot: #LOT-2026-OCT-01</span>
+        </div>
+        <div style="font-weight: 800; font-family: var(--font-mono); color: var(--brand-primary);">Qty: 1</div>
+      </div>
+    </div>
+    <div class="supplier-order-card__footer">
+      <div style="font-size: 12px; color: var(--status-warning); font-weight: 700;">
+        ⚠️ Courier consignment not yet booked.
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn--xs btn--outline">📄 Print Slip</button>
+        <button class="btn btn--xs btn--primary">🚚 1-Click Book (Pathao)</button>
+      </div>
+    </div>
+  `;
+
+  wrap.append(specimen('Supplier Order to Pack with FEFO Directive & Consignment Trigger', orderCard));
+  return wrap;
+}
+
+function renderSupplierHelpSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Supplier Hub Operational Routine Checklist & Help'));
+
+  const helpBox = document.createElement('div');
+  helpBox.className = 'supplier-checklist-card';
+  helpBox.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h4 style="font-weight: 800; margin: 0;">🚀 Daily Operational Routine Checklist</h4>
+      <span class="badge badge--success text-xs font-mono">4/5 Completed (80%)</span>
+    </div>
+    <div class="supplier-checklist-item supplier-checklist-item--done" style="margin-top: 8px;">
+      <input type="checkbox" checked />
+      <div>
+        <div style="font-weight: 700; font-size: 13px;">1. Register & Price Your Products</div>
+        <div style="font-size: 11px; color: var(--text-secondary);">Set competitive wholesale margins for Saler storefronts.</div>
+      </div>
+    </div>
+  `;
+
+  wrap.append(specimen('Supplier Onboarding & Daily Routine Checklist Card', helpBox));
+  return wrap;
+}
+
+function renderSupplierShipmentsSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Supplier Courier Shipments & 3PL Pipeline'));
+
+  const card = document.createElement('div');
+  card.className = 'supplier-shipment-card';
+  card.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span class="supplier-order-card__ref">STF-88992102</span>
+      <span class="badge badge--success text-xs font-mono">DELIVERED</span>
+    </div>
+    <div style="font-size: 13px; font-weight: 700;">Dhaka to Chittagong Express Consignment</div>
+    <div class="supplier-timeline-stepper" style="margin-top: 8px;">
+      <div class="supplier-timeline-step supplier-timeline-step--active"><div class="supplier-timeline-step__dot"></div><span>Picked Up</span></div>
+      <div class="supplier-timeline-step supplier-timeline-step--active"><div class="supplier-timeline-step__dot"></div><span>Hub Sorting</span></div>
+      <div class="supplier-timeline-step supplier-timeline-step--active"><div class="supplier-timeline-step__dot"></div><span>Delivered</span></div>
+    </div>
+  `;
+  wrap.append(specimen('3PL Parcel Shipment Tracking Stepper', card));
+  return wrap;
+}
+
+function renderSupplierInquiriesSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Wholesale Quotation Request & Negotiation'));
+
+  const inq = document.createElement('div');
+  inq.className = 'supplier-inquiry-card';
+  inq.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span class="supplier-order-card__ref">INQ-101</span>
+      <span class="badge badge--warning text-xs font-mono">AWAITING QUOTE</span>
+    </div>
+    <div style="font-size: 13px; font-weight: 700;">Jamdani Saree Bulk Wholesale (MOQ: 150)</div>
+    <p style="font-size: 12px; color: var(--text-secondary); margin: 4px 0;">Looking to purchase 150 units for Eid campaign.</p>
+  `;
+  wrap.append(specimen('Wholesale B2B Inquiry Card with MOQ Request', inq));
+  return wrap;
+}
+
+function renderSupplierStoreStatusSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Physical Factory Showroom Walk-in Status'));
+
+  const box = document.createElement('div');
+  box.className = 'supplier-store-status-card';
+  box.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h4 style="margin: 0; font-weight: 800;">Showroom Walk-in Status</h4>
+      <span class="badge badge--success text-xs font-bold">🟢 Open for Visitors</span>
+    </div>
+    <div style="font-size: 12px; color: var(--text-secondary);">Tejgaon Industrial Area Showroom (09:00 AM - 08:00 PM)</div>
+  `;
+  wrap.append(specimen('Physical Store & Showroom Walk-in Availability', box));
   return wrap;
 }
 

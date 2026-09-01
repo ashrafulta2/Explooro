@@ -8,14 +8,12 @@
  * 4. 15-Second interactive video walkthrough modals for seamless low-literacy onboarding.
  * 5. Complete 2-click access to all customer features.
  *
- * Route: /account
+ * Route: /account, /customer
  */
 
 import { customerApi } from '../../services/customer.api.js';
 import { t } from '../../services/i18n.js';
-import { formatCurrency, formatNumber } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { formatCurrency } from '../../services/format.js';
 import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { Modal } from '../../components/ui/Modal.js';
@@ -31,25 +29,25 @@ export default function CustomerDashboardPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'customer-dashboard-page container mx-auto p-4 md:p-6 space-y-6 max-w-6xl';
+  container.className = 'customer-dashboard';
 
   // 1. Header Banner
   const header = document.createElement('div');
-  header.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-subtle pb-5';
+  header.className = 'customer-dashboard__header';
   header.innerHTML = `
-    <div>
-      <div class="flex items-center gap-2 mb-1">
+    <div class="customer-dashboard__header-info">
+      <div class="customer-dashboard__header-badge-row">
         <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">
           ${t('customer.dashboard.badge', 'গ্রাহক একাউন্ট')}
         </span>
-        <button id="walkthrough-guide-btn" class="text-xs text-primary font-bold hover:underline flex items-center gap-1">
+        <button id="walkthrough-guide-btn" class="customer-dashboard__guide-btn">
           🎬 ${t('customer.dashboard.watch_guide', '১৫ সেকেন্ডের টিউটোরিয়াল')}
         </button>
       </div>
-      <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
+      <h1 class="customer-dashboard__title">
         ${t('customer.dashboard.title', 'আমার অ্যাকাউন্ট ড্যাশবোর্ড')}
       </h1>
-      <p class="text-xs md:text-sm text-muted mt-1">
+      <p class="customer-dashboard__subtitle">
         ${t('customer.dashboard.subtitle', 'অর্ডার ট্র্যাক করুন, কয়েন দিয়ে ছাড় নিন ও পছন্দের দোকানের আপডেট দেখুন।')}
       </p>
     </div>
@@ -88,7 +86,7 @@ export default function CustomerDashboardPage(root, { navigate } = {}) {
     } catch (err) {
       contentSlot.innerHTML = '';
       const errBox = document.createElement('div');
-      errBox.className = 'py-8 text-center text-danger';
+      errBox.className = 'py-8 text-center text-danger font-bold text-xs';
       errBox.textContent = t('customer.dashboard.load_failed', 'তথ্য লোড করা যায়নি। অনুগ্রহ করে পুনরায় চেষ্টা করুন।');
       contentSlot.append(errBox);
     }
@@ -109,7 +107,7 @@ function renderDashboard(container, data, nav) {
   const wrap = document.createElement('div');
   wrap.className = 'space-y-6';
 
-  // 1. Telemetry Highlights Bar (Active orders, Streak Coins, Wishlist drops)
+  // 1. Telemetry Highlights Bar (Active orders, Streak Coins, Wishlist drops, Referral)
   renderTelemetryBar(wrap, data, nav);
 
   // 2. Active In-Flight Order Tracker (if any order is in transit or placed)
@@ -148,7 +146,6 @@ function renderTelemetryBar(container, data, nav) {
       value: `${o.active_count || 0} টি`,
       sub: `${o.delivered_count || 0} টি সফল ডেলিভারি`,
       icon: '📦',
-      color: 'primary',
       url: '/account/orders',
     },
     {
@@ -156,7 +153,6 @@ function renderTelemetryBar(container, data, nav) {
       value: `${r.coins_balance || 0} 🪙`,
       sub: `🔥 ${r.current_streak_days || 1} দিনের ডেইলি স্ট্রিক`,
       icon: '💎',
-      color: 'amber-500',
       url: '/account/coins',
     },
     {
@@ -164,7 +160,6 @@ function renderTelemetryBar(container, data, nav) {
       value: `${w.total_items || 0} টি`,
       sub: w.price_drops_count > 0 ? `📉 ${w.price_drops_count} টির দাম কমেছে!` : 'সংরক্ষিত পণ্য',
       icon: '💖',
-      color: w.price_drops_count > 0 ? 'emerald-600' : 'foreground',
       url: '/account/wishlist',
     },
     {
@@ -172,26 +167,25 @@ function renderTelemetryBar(container, data, nav) {
       value: r.referral_code || 'REF000000',
       sub: 'বন্ধুকে ইনভাইট করে আয় করুন',
       icon: '🤝',
-      color: 'blue-600',
       url: '/account/referrals',
     },
   ];
 
   const grid = document.createElement('div');
-  grid.className = 'grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4';
+  grid.className = 'customer-dashboard__telemetry';
 
   cards.forEach((c) => {
     const card = document.createElement('div');
-    card.className = 'p-4 rounded-2xl border border-subtle bg-surface shadow-xs hover:border-primary/40 cursor-pointer transition-all space-y-1';
+    card.className = 'customer-dashboard__telemetry-card';
     card.onclick = () => nav(c.url);
 
     card.innerHTML = `
-      <div class="flex items-center justify-between text-xs text-muted font-bold">
+      <div class="customer-dashboard__telemetry-head">
         <span>${c.title}</span>
         <span class="text-base">${c.icon}</span>
       </div>
-      <div class="text-xl font-extrabold text-${c.color} tracking-tight font-mono">${c.value}</div>
-      <div class="text-[11px] text-muted truncate">${c.sub}</div>
+      <div class="customer-dashboard__telemetry-val">${c.value}</div>
+      <div class="customer-dashboard__telemetry-sub">${c.sub}</div>
     `;
 
     grid.append(card);
@@ -205,45 +199,49 @@ function renderTelemetryBar(container, data, nav) {
  */
 function renderInFlightOrderWidget(container, order, nav) {
   const card = document.createElement('div');
-  card.className = 'p-5 rounded-2xl border-2 border-primary/30 bg-primary/5 space-y-4 shadow-sm';
+  card.className = 'customer-dashboard__order-widget';
 
   const orderItems = order.items || [];
   const firstItemTitle = orderItems[0]?.product_title_bn || orderItems[0]?.product_title_en || 'পণ্য';
 
+  const isConfirmed = ['PROCESSING', 'CONFIRMED', 'PACKED', 'DISPATCHED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED'].includes(order.status);
+  const isShipped = ['DISPATCHED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED'].includes(order.status);
+  const isDelivered = order.status === 'DELIVERED';
+
   card.innerHTML = `
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-primary/20 pb-3">
+    <div class="customer-dashboard__order-head">
       <div>
         <div class="flex items-center gap-2">
           <span class="badge badge--primary text-[10px] font-bold">অর্ডার ট্র্যাকিং</span>
-          <span class="text-xs font-mono font-bold text-foreground">#${order.ref}</span>
+          <span class="text-xs font-mono font-bold text-foreground">#${order.ref || 'ORD-0000'}</span>
         </div>
-        <h3 class="text-sm font-bold text-foreground mt-1">
+        <h3 class="customer-dashboard__order-title">
           ${firstItemTitle} ${orderItems.length > 1 ? `(+${orderItems.length - 1} টি পণ্য)` : ''}
         </h3>
       </div>
-      <div class="text-right">
+      <div>
         <div class="text-xs text-muted">মোট মূল্য</div>
         <div class="text-base font-extrabold text-foreground font-mono">${formatCurrency(order.total_amount || 0)}</div>
       </div>
     </div>
 
     <!-- Visual Tracking Stepper -->
-    <div class="grid grid-cols-4 gap-2 pt-1 text-center">
-      <div class="space-y-1">
-        <div class="w-8 h-8 mx-auto rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold">✓</div>
-        <div class="text-[11px] font-bold text-foreground">অর্ডার গৃহীত</div>
+    <div class="customer-dashboard__stepper">
+      <div class="customer-dashboard__step">
+        <div class="customer-dashboard__step-circle customer-dashboard__step-circle--active">✓</div>
+        <div class="customer-dashboard__step-label">অর্ডার গৃহীত</div>
       </div>
-      <div class="space-y-1">
-        <div class="w-8 h-8 mx-auto rounded-full ${['PROCESSING', 'DISPATCHED', 'SHIPPED', 'DELIVERED'].includes(order.status) ? 'bg-emerald-500 text-white' : 'bg-subtle text-muted'} flex items-center justify-center text-xs font-bold">📦</div>
-        <div class="text-[11px] font-bold text-foreground">প্যাকেজিং</div>
+      <div class="customer-dashboard__step">
+        <div class="customer-dashboard__step-circle ${isConfirmed ? 'customer-dashboard__step-circle--active' : ''}">📦</div>
+        <div class="customer-dashboard__step-label">প্যাকেজিং</div>
       </div>
-      <div class="space-y-1">
-        <div class="w-8 h-8 mx-auto rounded-full ${['DISPATCHED', 'SHIPPED', 'DELIVERED'].includes(order.status) ? 'bg-emerald-500 text-white' : 'bg-subtle text-muted'} flex items-center justify-center text-xs font-bold">🚚</div>
-        <div class="text-[11px] font-bold text-foreground">কুরিয়ারে রওয়ানা</div>
+      <div class="customer-dashboard__step">
+        <div class="customer-dashboard__step-circle ${isShipped ? 'customer-dashboard__step-circle--active' : ''}">🚚</div>
+        <div class="customer-dashboard__step-label">কুরিয়ারে রওয়ানা</div>
       </div>
-      <div class="space-y-1">
-        <div class="w-8 h-8 mx-auto rounded-full ${order.status === 'DELIVERED' ? 'bg-emerald-500 text-white' : 'bg-subtle text-muted'} flex items-center justify-center text-xs font-bold">🏠</div>
-        <div class="text-[11px] font-bold text-foreground">ডেলিভারি</div>
+      <div class="customer-dashboard__step">
+        <div class="customer-dashboard__step-circle ${isDelivered ? 'customer-dashboard__step-circle--active' : ''}">🏠</div>
+        <div class="customer-dashboard__step-label">ডেলিভারি</div>
       </div>
     </div>
   `;
@@ -268,14 +266,14 @@ function renderInFlightOrderWidget(container, order, nav) {
  */
 function renderActionGrid(container, data, nav) {
   const section = document.createElement('div');
-  section.className = 'space-y-4';
+  section.className = 'customer-dashboard__actions-section';
 
   section.innerHTML = `
-    <div class="border-b border-subtle pb-2">
-      <h3 class="text-base font-bold text-foreground">
+    <div class="customer-dashboard__actions-header">
+      <h2 class="customer-dashboard__actions-title">
         🧭 ${t('customer.dashboard.actions_title', 'এক নজরে সব ফিচার')}
-      </h3>
-      <p class="text-xs text-muted">
+      </h2>
+      <p class="customer-dashboard__actions-subtitle">
         ${t('customer.dashboard.actions_desc', 'যেকোনো অপশনে ক্লিক করে সহজেই আপনার সেবা নিন।')}
       </p>
     </div>
@@ -289,7 +287,6 @@ function renderActionGrid(container, data, nav) {
       icon: '📦',
       url: '/account/orders',
       badge: `${data.orders?.total_count || 0} টি`,
-      bgColor: 'bg-blue-500/10 text-blue-600',
     },
     {
       id: 'act_following',
@@ -298,7 +295,6 @@ function renderActionGrid(container, data, nav) {
       icon: '🏪',
       url: '/account/following',
       badge: `${data.social?.followed_stores_count || 0} টি`,
-      bgColor: 'bg-purple-500/10 text-purple-600',
     },
     {
       id: 'act_wishlist',
@@ -307,7 +303,6 @@ function renderActionGrid(container, data, nav) {
       icon: '💖',
       url: '/account/wishlist',
       badge: `${data.wishlist?.total_items || 0} টি`,
-      bgColor: 'bg-pink-500/10 text-pink-600',
     },
     {
       id: 'act_coins',
@@ -316,7 +311,6 @@ function renderActionGrid(container, data, nav) {
       icon: '🪙',
       url: '/account/coins',
       badge: `${data.rewards?.coins_balance || 0} 🪙`,
-      bgColor: 'bg-amber-500/10 text-amber-600',
     },
     {
       id: 'act_warranties',
@@ -325,7 +319,6 @@ function renderActionGrid(container, data, nav) {
       icon: '🛡️',
       url: '/account/warranties',
       badge: `${data.protection?.active_warranties_count || 0} টি`,
-      bgColor: 'bg-emerald-500/10 text-emerald-600',
     },
     {
       id: 'act_teams',
@@ -334,7 +327,6 @@ function renderActionGrid(container, data, nav) {
       icon: '👥',
       url: '/account/team-purchases',
       badge: `${data.social?.active_teams_count || 0} টি দল`,
-      bgColor: 'bg-indigo-500/10 text-indigo-600',
     },
     {
       id: 'act_coupons',
@@ -343,7 +335,6 @@ function renderActionGrid(container, data, nav) {
       icon: '🎟️',
       url: '/account/coupons',
       badge: 'ডিসকাউন্ট',
-      bgColor: 'bg-rose-500/10 text-rose-600',
     },
     {
       id: 'act_returns',
@@ -352,7 +343,6 @@ function renderActionGrid(container, data, nav) {
       icon: '🔄',
       url: '/account/returns',
       badge: `${data.protection?.active_returns_count || 0} টি`,
-      bgColor: 'bg-cyan-500/10 text-cyan-600',
     },
     {
       id: 'act_reviews',
@@ -361,7 +351,6 @@ function renderActionGrid(container, data, nav) {
       icon: '🎬',
       url: '/account/reviews',
       badge: 'ইউজিসির গল্প',
-      bgColor: 'bg-violet-500/10 text-violet-600',
     },
     {
       id: 'act_live',
@@ -370,7 +359,6 @@ function renderActionGrid(container, data, nav) {
       icon: '🎥',
       url: '/live',
       badge: 'লাইভ স্টুডিও',
-      bgColor: 'bg-red-500/10 text-red-600',
     },
     {
       id: 'act_referrals',
@@ -379,7 +367,6 @@ function renderActionGrid(container, data, nav) {
       icon: '🤝',
       url: '/account/referrals',
       badge: 'বোনাস',
-      bgColor: 'bg-teal-500/10 text-teal-600',
     },
     {
       id: 'act_addresses',
@@ -388,28 +375,27 @@ function renderActionGrid(container, data, nav) {
       icon: '📍',
       url: '/account/addresses',
       badge: 'ঠিকানা',
-      bgColor: 'bg-slate-500/10 text-slate-600',
     },
   ];
 
   const grid = document.createElement('div');
-  grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4';
+  grid.className = 'customer-dashboard__actions-grid';
 
   actions.forEach((act) => {
     const btn = document.createElement('button');
-    btn.className = 'min-h-[96px] p-4 rounded-2xl border border-subtle bg-surface hover:border-primary/40 hover:shadow-sm active:scale-98 transition-all flex flex-col justify-between text-left space-y-2';
+    btn.className = 'customer-dashboard__action-btn';
     btn.onclick = () => nav(act.url);
 
     btn.innerHTML = `
-      <div class="flex items-center justify-between w-full">
-        <div class="w-11 h-11 rounded-2xl ${act.bgColor} flex items-center justify-center text-2xl shadow-xs">
+      <div class="customer-dashboard__action-top">
+        <div class="customer-dashboard__action-icon">
           ${act.icon}
         </div>
         <span class="badge badge--neutral text-[10px] font-bold">${act.badge}</span>
       </div>
       <div>
-        <div class="text-sm font-extrabold text-foreground leading-tight">${act.title}</div>
-        <div class="text-[11px] text-muted mt-0.5 leading-tight line-clamp-1">${act.desc}</div>
+        <div class="customer-dashboard__action-title">${act.title}</div>
+        <div class="customer-dashboard__action-desc">${act.desc}</div>
       </div>
     `;
 
@@ -425,7 +411,7 @@ function renderActionGrid(container, data, nav) {
  */
 function renderPriceDropHighlights(container, wishlist, nav) {
   const section = document.createElement('div');
-  section.className = 'p-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 space-y-3';
+  section.className = 'p-5 rounded-2xl border border-subtle bg-surface space-y-3';
 
   section.innerHTML = `
     <div class="flex items-center justify-between">
@@ -448,13 +434,13 @@ function renderPriceDropHighlights(container, wishlist, nav) {
 
   droppedItems.forEach((it) => {
     const row = document.createElement('div');
-    row.className = 'p-3 rounded-xl bg-surface border border-subtle flex items-center justify-between gap-3 shadow-xs';
+    row.className = 'p-3 rounded-xl bg-surface-2 border border-subtle flex items-center justify-between gap-3 shadow-xs';
     row.innerHTML = `
       <div class="space-y-0.5">
         <div class="text-xs font-bold text-foreground line-clamp-1">${it.title_bn || it.title_en}</div>
         <div class="flex items-center gap-2 text-xs">
           <span class="text-muted line-through">৳${it.saved_price}</span>
-          <span class="font-extrabold text-emerald-600 font-mono">৳${it.current_price}</span>
+          <span class="font-extrabold text-primary font-mono">৳${it.current_price}</span>
           <span class="badge badge--success text-[9px] font-bold">৳${it.drop_amount} ছাড়!</span>
         </div>
       </div>
@@ -482,24 +468,21 @@ function renderPriceDropHighlights(container, wishlist, nav) {
 function openCustomerWalkthroughModal(nav) {
   let modal;
   const body = document.createElement('div');
-  body.className = 'space-y-4';
+  body.className = 'become-saler-video-modal';
 
   body.innerHTML = `
-    <div class="relative w-full aspect-video rounded-2xl bg-slate-900 border border-subtle overflow-hidden flex flex-col items-center justify-center text-white p-6 text-center space-y-3 shadow-inner">
-      <div class="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-2xl shadow-lg animate-pulse">
+    <div class="become-saler-video-modal__screen">
+      <div class="become-saler-video-modal__play-btn">
         ▶
       </div>
-      <div class="space-y-1">
-        <div class="text-sm font-bold">১৫ সেকেন্ডের সহজ ভিডিও গাইড</div>
-        <div class="text-xs text-slate-400">কীভাবে সহজেই অর্ডার ট্র্যাক করবেন এবং কয়েন ব্যবহার করবেন</div>
-      </div>
-      <div class="w-full max-w-xs bg-slate-800 h-1.5 rounded-full overflow-hidden">
-        <div class="bg-primary h-full w-3/4 rounded-full"></div>
+      <div>
+        <div class="text-sm font-bold text-primary">১৫ সেকেন্ডের সহজ ভিডিও গাইড</div>
+        <div class="text-xs text-muted">কীভাবে সহজেই অর্ডার ট্র্যাক করবেন এবং কয়েন ব্যবহার করবেন</div>
       </div>
     </div>
-    <div class="p-3 rounded-xl bg-surface border border-subtle space-y-2">
-      <div class="text-xs font-bold text-foreground">💡 তিনটি সহজ টিপস:</div>
-      <ul class="text-xs text-muted space-y-1 list-disc pl-4">
+    <div class="become-saler-video-modal__tips">
+      <div class="font-bold text-foreground">💡 তিনটি সহজ টিপস:</div>
+      <ul>
         <li>প্রতিদিন অ্যাপে ঢুকে ডেইলি লগইন কয়েন সংগ্রহ করুন।</li>
         <li>অর্ডার ট্র্যাক করতে 'আমার সব অর্ডার' অপশনে ক্লিক করুন।</li>
         <li>১ ক্লিকেই কোনো পুঁজি ছাড়া নিজের অনলাইন দোকান শুরু করুন।</li>

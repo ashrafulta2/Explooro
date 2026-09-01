@@ -14,7 +14,11 @@ export const supplierApi = {
   },
 
   updateStock(payload) {
-    return api.post('/supplier/inventory/stock', payload);
+    const formatted = {
+      productId: payload?.productId ?? payload?.product_id ?? payload?.id,
+      stockQty: payload?.stockQty ?? payload?.stock_qty ?? payload?.quantity,
+    };
+    return api.post('/supplier/inventory/stock', formatted);
   },
 
   getBatches(params = {}) {
@@ -22,14 +26,38 @@ export const supplierApi = {
   },
 
   createBatch(payload) {
-    return api.post('/supplier/batches', payload);
+    const formatted = {
+      batchNumber: payload?.batchNumber || payload?.batch_number,
+      productId: payload?.productId || payload?.product_id || 1,
+      qty: payload?.qty || payload?.quantity_available || payload?.quantity_initial || 100,
+      mfgDate: payload?.mfgDate || payload?.mfg_date,
+      expDate: payload?.expDate || payload?.expiry_date || payload?.exp_date,
+      warehouseNodeId: payload?.warehouseNodeId || payload?.warehouse_id || payload?.warehouse_node_id || 1,
+    };
+    return api.post('/supplier/batches', formatted);
+  },
+
+  triggerClearanceSale(payloadOrId, maybeDiscount) {
+    let batchId = payloadOrId;
+    let discountPct = maybeDiscount ?? 15;
+    if (typeof payloadOrId === 'object' && payloadOrId !== null) {
+      batchId = payloadOrId.batchId || payloadOrId.id;
+      discountPct = payloadOrId.discountPct ?? 15;
+    }
+    return api.post(`/supplier/batches/${batchId}/clearance`, { discountPct });
   },
 
   triggerBatchClearance(batchId, discountPct = 20) {
     return api.post(`/supplier/batches/${batchId}/clearance`, { discountPct });
   },
 
-  recallBatch(batchId, reason) {
+  recallBatch(payloadOrId, maybeReason) {
+    let batchId = payloadOrId;
+    let reason = maybeReason || 'Supplier Recall';
+    if (typeof payloadOrId === 'object' && payloadOrId !== null) {
+      batchId = payloadOrId.batchId || payloadOrId.id;
+      reason = payloadOrId.reason || 'Supplier Recall';
+    }
     return api.post(`/supplier/batches/${batchId}/recall`, { reason });
   },
 
