@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { navGroups, navItems, NAV_ROLES, MOBILE_TABS } from '../src/config/navigation.js';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
+import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
 
 describe('Admin Navigation & Sidebar Structure Invariants', () => {
   it('1. NAV_ROLES includes both super_admin and admin roles', () => {
@@ -47,11 +48,21 @@ describe('Admin Navigation & Sidebar Structure Invariants', () => {
     const adminItems = navItems.filter((item) => item.group?.startsWith('admin.'));
     assert.equal(adminItems.length, 49, 'Expected exactly 49 admin nav items');
 
+    const catalogMap = new Map(catalog.permissions.map((p) => [p.key, p]));
+
     adminItems.forEach((item) => {
       assert.ok(item.roles?.includes('super_admin'), `Nav item ${item.key} must include super_admin`);
       assert.ok(item.roles?.includes('admin'), `Nav item ${item.key} must include admin`);
       assert.ok(item.path.startsWith('/admin'), `Nav item ${item.key} path must start with /admin`);
       assert.ok(item.permission, `Nav item ${item.key} must define a permission key`);
+
+      // Verify permission is a real catalog permission key
+      const catPerm = catalogMap.get(item.permission);
+      assert.ok(catPerm, `Permission "${item.permission}" for "${item.key}" must exist in permission-catalog.json`);
+      assert.ok(
+        catPerm.default_roles?.includes('admin') || catPerm.default_roles?.includes('super_admin'),
+        `Permission "${item.permission}" must be granted to admin or super_admin`
+      );
     });
   });
 
