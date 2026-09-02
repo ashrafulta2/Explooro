@@ -136,7 +136,7 @@ export default function UsersPage(root, { navigate } = {}) {
   bulkBar.style.border = 'var(--border-width) solid var(--border-subtle)';
 
   const bulkText = document.createElement('span');
-  bulkText.style.fontSize = 'var(--font-size-sm)';
+  bulkText.style.fontSize = 'var(--text-sm)';
   bulkText.style.fontWeight = '700';
   bulkText.style.color = 'var(--text-primary)';
 
@@ -341,7 +341,7 @@ export default function UsersPage(root, { navigate } = {}) {
         const rBadge = Badge({ label: `⚠️ ${u.active_restrictions_count} Restricted`, variant: 'danger' });
         tdRestrictions.append(rBadge);
       } else {
-        tdRestrictions.innerHTML = '<span style="color: var(--status-success, #10b981); font-size: 11px; font-weight: 700;">✓ Clean</span>';
+        tdRestrictions.innerHTML = '<span style="color: var(--success); font-size: 11px; font-weight: 700;">✓ Clean</span>';
       }
 
       // Actions

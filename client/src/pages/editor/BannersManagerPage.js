@@ -288,10 +288,10 @@ export default function BannersManagerPage(root) {
             </span>
           </div>
 
-          <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 4px 0 2px 0;">
+          <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 4px 0 2px 0;">
             ${banner.title_en}
           </h3>
-          <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 0;">
+          <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 0;">
             ${banner.title_bn}
           </p>
 

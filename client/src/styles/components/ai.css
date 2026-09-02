@@ -15,9 +15,9 @@
 .assistant-panel__disclaimer {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-subtle);
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 8px 12px;
   margin-bottom: 12px;
@@ -33,11 +33,11 @@
 }
 
 .assistant-panel__empty {
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
   font-size: 13px;
   padding: 16px;
   text-align: center;
-  border: 1px dashed var(--color-border-subtle);
+  border: 1px dashed var(--border-subtle);
   border-radius: var(--radius-md);
 }
 
@@ -52,22 +52,22 @@
 
 .assistant-panel__bubble--user {
   align-self: flex-end;
-  background: var(--color-primary);
+  background: var(--brand);
   color: #ffffff;
 }
 
 .assistant-panel__bubble--assistant {
   align-self: flex-start;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-subtle);
-  color: var(--color-text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
 }
 
 .assistant-panel__degraded-banner {
   margin-top: 8px;
   font-size: 12px;
-  color: var(--color-warning, #92400e);
-  background: var(--color-warning-bg, #fef3c7);
+  color: var(--warning, #92400e);
+  background: var(--warning-bg);
   border-radius: var(--radius-sm);
   padding: 6px 10px;
 }
@@ -80,10 +80,10 @@
 }
 
 .assistant-panel__product-card {
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 10px 12px;
-  background: var(--color-bg-secondary);
+  background: var(--surface-2);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -92,18 +92,18 @@
 .assistant-panel__product-title {
   font-weight: 600;
   font-size: 13px;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
 }
 
 .assistant-panel__product-price {
   font-weight: 700;
   font-size: 14px;
-  color: var(--color-primary);
+  color: var(--text-brand);
 }
 
 .assistant-panel__product-meta {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
 }
 
 .assistant-panel__product-card .btn {
@@ -125,14 +125,14 @@
 
 .assistant-panel__suggestions-label {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
   margin-right: 4px;
 }
 
 .assistant-panel__suggestion-chip {
-  border: 1px solid var(--color-border-subtle);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-1);
+  color: var(--text-secondary);
   border-radius: var(--radius-full, 999px);
   padding: 6px 12px;
   font-size: 12px;
@@ -141,30 +141,30 @@
 }
 
 .assistant-panel__suggestion-chip:hover {
-  background: var(--color-bg-secondary);
+  background: var(--surface-2);
 }
 
 .assistant-panel__composer {
   display: flex;
   gap: 8px;
   padding-top: 10px;
-  border-top: 1px solid var(--color-border-subtle);
+  border-top: 1px solid var(--border-subtle);
 }
 
 .assistant-panel__input {
   flex: 1;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 8px 12px;
   font-size: 14px;
-  background: var(--color-surface);
-  color: var(--color-text-primary);
+  background: var(--surface-1);
+  color: var(--text-primary);
 }
 
 .assistant-panel__usage-card {
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  background: var(--surface-1);
   padding: 16px;
   margin-bottom: 20px;
   display: flex;
@@ -183,13 +183,13 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
 }
 
 .assistant-panel__usage-stat-value {
   font-size: 16px;
   font-weight: 700;
-  color: var(--color-text-primary);
+  color: var(--text-primary);
 }
 
 .assistant-panel__usage-bar-track {
@@ -197,13 +197,13 @@
   min-width: 160px;
   height: 8px;
   border-radius: var(--radius-full, 999px);
-  background: var(--color-bg-secondary);
+  background: var(--surface-2);
   overflow: hidden;
 }
 
 .assistant-panel__usage-bar-fill {
   height: 100%;
-  background: var(--color-primary);
+  background: var(--brand);
 }
 
 .assistant-panel__usage-cap-form {
@@ -214,7 +214,7 @@
 
 .assistant-panel__usage-cap-input {
   width: 90px;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   padding: 6px 8px;
   font-size: 13px;
@@ -238,7 +238,7 @@
 }
 
 .creative-studio-page__subtitle {
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
   font-size: 14px;
   margin: 0;
 }
@@ -246,9 +246,9 @@
 .creative-studio-page__disclaimer {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border-subtle);
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 8px 12px;
   margin: 0;
@@ -266,7 +266,7 @@
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
 }
 
 .creative-studio-page__controls {
@@ -275,10 +275,10 @@
 }
 
 .creative-studio-page__result {
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 16px;
-  background: var(--color-bg-secondary);
+  background: var(--surface-2);
 }
 
 .creative-studio-page__result h2 {

@@ -14,6 +14,7 @@ import { Card } from '../../components/ui/Card.js';
 
 const ROLE_HOME = {
   super_admin: '/admin',
+  admin: '/admin',
   moderator: '/moderator',
   editor: '/editor',
   supplier: '/supplier',

@@ -175,7 +175,7 @@ export default function VerificationCenterPage(root) {
           <div style="width: 100px; height: 120px; background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 8px; box-shadow: var(--elevation-1);">
             🪪
           </div>
-          <span style="font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 700; color: var(--brand-primary);">[WATERMARKED SECURE VAULT PREVIEW]</span>
+          <span style="font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 700; color: var(--text-brand);">[WATERMARKED SECURE VAULT PREVIEW]</span>
           <span style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Storage Key: <code>${inspectingDoc.storage_key}</code></span>
         </div>
 
@@ -217,7 +217,7 @@ export default function VerificationCenterPage(root) {
 
     modalBackdrop.innerHTML = `
       <div class="modal-dialog card max-w-md p-6 animate-scale-in" style="background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xl); box-shadow: var(--elevation-3);">
-        <h3 style="font-size: 18px; font-weight: 800; color: var(--status-danger); margin: 0 0 4px 0;">❌ ${t('kyc.reject_modal_title', 'Reject KYC Submission')}</h3>
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--danger); margin: 0 0 4px 0;">❌ ${t('kyc.reject_modal_title', 'Reject KYC Submission')}</h3>
         <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: var(--space-4);">${t('kyc.reject_modal_desc', 'Please provide clear feedback so the applicant can correct their documents.')}</p>
 
         <div style="display: flex; flex-direction: column; gap: var(--space-3); font-size: 12px;">
@@ -288,9 +288,9 @@ export default function VerificationCenterPage(root) {
         ${queueItems
           .map(
             (item) => `
-          <div style="padding: var(--space-3); cursor: pointer; border-bottom: var(--border-width) solid var(--border-subtle); transition: background var(--transition-fast); ${selectedKyc?.id === item.id ? 'background: var(--surface-2); border-left: 3px solid var(--brand-primary);' : ''}" data-kyc-id="${item.id}">
+          <div style="padding: var(--space-3); cursor: pointer; border-bottom: var(--border-width) solid var(--border-subtle); transition: background var(--dur-fast); ${selectedKyc?.id === item.id ? 'background: var(--surface-2); border-left: 3px solid var(--brand);' : ''}" data-kyc-id="${item.id}">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
-              <span style="font-family: var(--font-mono, monospace); font-weight: 700; font-size: 11px; color: var(--brand-primary);">${item.ref}</span>
+              <span style="font-family: var(--font-mono, monospace); font-weight: 700; font-size: 11px; color: var(--text-brand);">${item.ref}</span>
               <span class="badge ${item.status === 'VERIFIED' ? 'badge--success' : item.status === 'REJECTED' ? 'badge--danger' : 'badge--warning'}" style="font-size: 10px;">
                 ${item.status}
               </span>
@@ -310,7 +310,7 @@ export default function VerificationCenterPage(root) {
 
   function renderDetailsPane() {
     if (!selectedKyc) {
-      return `<div class="card" style="padding: var(--space-12); text-align: center; color: var(--text-muted); font-size: 13px;">${t('kyc.select_submission_hint', 'Select a submission from the list to review documents.')}</div>`;
+      return `<div class="card" style="padding: var(--space-9); text-align: center; color: var(--text-muted); font-size: 13px;">${t('kyc.select_submission_hint', 'Select a submission from the list to review documents.')}</div>`;
     }
 
     const isPending = ['PENDING', 'UNDER_REVIEW', 'APPEALED'].includes(selectedKyc.status);
@@ -321,7 +321,7 @@ export default function VerificationCenterPage(root) {
         <div style="display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: var(--space-4); border-bottom: var(--border-width) solid var(--border-subtle); flex-wrap: wrap; gap: var(--space-2);">
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-family: var(--font-mono, monospace); font-size: 16px; font-weight: 800; color: var(--brand-primary);">${selectedKyc.ref}</span>
+              <span style="font-family: var(--font-mono, monospace); font-size: 16px; font-weight: 800; color: var(--text-brand);">${selectedKyc.ref}</span>
               <span class="badge ${selectedKyc.status === 'VERIFIED' ? 'badge--success' : selectedKyc.status === 'REJECTED' ? 'badge--danger' : 'badge--warning'}">
                 ${selectedKyc.status}
               </span>

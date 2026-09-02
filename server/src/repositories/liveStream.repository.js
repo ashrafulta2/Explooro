@@ -103,6 +103,52 @@ export async function listStreams(client, { status = null, hostId = null, limit 
   return rows;
 }
 
+/**
+ * The moderation console's stream list. Same rows as listStreams plus the two counts a moderator
+ * triages on — how much chat a broadcast is generating, and how much of it has already been taken
+ * down — computed in SQL so the console does not have to pull every message of every stream.
+ *
+ * Ordering is deliberate: LIVE first (only a running stream can still be stopped), then by chat
+ * volume, because that is the signal that correlates with something needing attention.
+ */
+export async function listStreamsForModeration(client, { status = null, limit = 50 } = {}) {
+  const params = [];
+  let whereSql = '';
+
+  if (status && status !== 'ALL') {
+    params.push(status);
+    whereSql = `WHERE ls.status = $${params.length}`;
+  }
+
+  params.push(limit);
+
+  const query = `
+    SELECT
+      ls.*,
+      COALESCE(up.display_name, up.full_name) AS host_name,
+      s.shop_name AS store_name,
+      s.slug AS store_slug,
+      (SELECT COUNT(*)::int FROM live_stream_products lsp WHERE lsp.live_stream_id = ls.id) AS product_count,
+      (SELECT COUNT(*)::int FROM live_stream_messages m
+        WHERE m.live_stream_id = ls.id AND m.message_type = 'CHAT' AND m.deleted_at IS NULL) AS chat_message_count,
+      (SELECT COUNT(*)::int FROM live_stream_messages m
+        WHERE m.live_stream_id = ls.id AND m.deleted_at IS NOT NULL) AS removed_message_count
+    FROM live_streams ls
+    JOIN users u ON u.id = ls.host_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
+    LEFT JOIN virtual_stores s ON s.id = ls.store_id
+    ${whereSql}
+    ORDER BY
+      CASE WHEN ls.status = 'LIVE' THEN 1 WHEN ls.status = 'SCHEDULED' THEN 2 ELSE 3 END,
+      chat_message_count DESC,
+      ls.id DESC
+    LIMIT $${params.length};
+  `;
+
+  const { rows } = await client.query(query, params);
+  return rows;
+}
+
 export async function updateStreamStatus(client, streamId, status, extra = {}) {
   const fields = ['status = $2', 'updated_at = now()'];
   const values = [streamId, status];
@@ -297,11 +343,57 @@ export async function getStreamMessages(client, streamId, { limit = 50, sinceId 
     LEFT JOIN users u ON u.id = lsm.user_id
     LEFT JOIN user_profiles up ON up.user_id = u.id
     WHERE lsm.live_stream_id = $1 AND lsm.id > $2
+      -- A message a moderator removed must not reappear in any viewer's feed.
+      AND lsm.deleted_at IS NULL
     ORDER BY lsm.id ASC
     LIMIT $3;
   `;
   const { rows } = await client.query(query, [streamId, sinceId, limit]);
   return rows;
+}
+
+/**
+ * The moderation console's view of a stream's chat: unlike getStreamMessages it KEEPS removed
+ * messages (marked with deleted_at / deleted_by / deletion_reason) so a moderator can see what was
+ * taken down and by whom, and so a later dispute can still be argued from the evidence.
+ */
+export async function getStreamMessagesForModeration(client, streamId, { limit = 200, sinceId = 0 } = {}) {
+  const query = `
+    SELECT
+      lsm.*,
+      COALESCE(up.display_name, up.full_name) AS user_name,
+      COALESCE(dp.display_name, dp.full_name) AS deleted_by_name,
+      COALESCE(
+        (SELECT array_agg(r.key ORDER BY r.key)
+         FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+         WHERE ur.user_id = u.id),
+        ARRAY[]::text[]
+      ) AS user_roles
+    FROM live_stream_messages lsm
+    LEFT JOIN users u ON u.id = lsm.user_id
+    LEFT JOIN user_profiles up ON up.user_id = u.id
+    LEFT JOIN user_profiles dp ON dp.user_id = lsm.deleted_by
+    WHERE lsm.live_stream_id = $1 AND lsm.id > $2
+    ORDER BY lsm.id ASC
+    LIMIT $3;
+  `;
+  const { rows } = await client.query(query, [streamId, sinceId, limit]);
+  return rows;
+}
+
+/**
+ * Soft-deletes one chat message. Returns null when the id does not belong to this stream, so the
+ * caller cannot remove a message by guessing an id from another broadcast.
+ */
+export async function softDeleteMessage(client, { streamId, messageId, moderatorId, reason }) {
+  const query = `
+    UPDATE live_stream_messages
+    SET deleted_at = now(), deleted_by = $3, deletion_reason = $4
+    WHERE id = $2 AND live_stream_id = $1 AND deleted_at IS NULL
+    RETURNING *;
+  `;
+  const { rows } = await client.query(query, [streamId, messageId, moderatorId, reason]);
+  return rows[0] ?? null;
 }
 
 export async function incrementLikes(client, streamId, delta = 1) {

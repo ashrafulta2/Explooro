@@ -321,16 +321,57 @@ let mockHelpArticles = [
   },
 ];
 
+/**
+ * Dynamic (DB-backed) i18n strings, keyed `locale -> namespace -> key -> value`.
+ *
+ * WHY the nesting: content.service.js's getTranslationsForLocale() folds its
+ * `SELECT namespace, key, value` rows into `result[namespace][key] = value`, and
+ * pages/editor/TranslationManagerPage.js's renderTable() walks exactly that two-level shape —
+ * it skips any entry whose value is not an object. This fixture used to be a flat
+ * `locale -> key -> value` map, so every value was a string, every row was skipped, and the
+ * Translation Manager showed "No translation keys found" while its own completeness header
+ * reported 242 translated keys.
+ *
+ * These are dynamic overrides only — the static dictionaries live in src/locales/*.json.
+ */
 let mockDynamicTranslations = {
   en: {
-    welcome_banner: 'Welcome to Explooro Multi-Tier Commerce',
-    slogan: 'Empowering local weavers, direct manufacturers & reseller entrepreneurs',
-    tagline: 'Bangladesh’s Premier Factory-Direct & Social Commerce Platform',
+    marketing: {
+      welcome_banner: 'Welcome to Explooro Multi-Tier Commerce',
+      slogan: 'Empowering local weavers, direct manufacturers & reseller entrepreneurs',
+      tagline: 'Bangladesh’s Premier Factory-Direct & Social Commerce Platform',
+    },
+    common: {
+      buy_now: 'Buy Now',
+      add_to_cart: 'Add to Cart',
+      checkout: 'Checkout',
+    },
   },
   bn: {
-    welcome_banner: 'এক্সপ্লোরো মাল্টি-টিয়ার কমার্সে স্বাগতম',
-    slogan: 'স্থানীয় তাঁতি, কারখানা ও রিসেলার উদ্যোক্তাদের ক্ষমতায়ন',
-    tagline: 'বাংলাদেশের শীর্ষস্থানীয় ফ্যাক্টরি-ডিরেক্ট ও সোশ্যাল কমার্স প্ল্যাটফর্ম',
+    marketing: {
+      welcome_banner: 'এক্সপ্লোরো মাল্টি-টিয়ার কমার্সে স্বাগতম',
+      slogan: 'স্থানীয় তাঁতি, কারখানা ও রিসেলার উদ্যোক্তাদের ক্ষমতায়ন',
+      tagline: 'বাংলাদেশের শীর্ষস্থানীয় ফ্যাক্টরি-ডিরেক্ট ও সোশ্যাল কমার্স প্ল্যাটফর্ম',
+    },
+    common: {
+      buy_now: 'এখনই কিনুন',
+      add_to_cart: 'কার্টে যোগ করুন',
+      checkout: 'চেকআউট',
+    },
+  },
+  // Listed at 44% by the completeness endpoint below — deliberately missing values so the
+  // "Show Missing Only" filter has something to find.
+  ar: {
+    marketing: {
+      welcome_banner: 'مرحبًا بكم في إكسبلورو',
+      slogan: '',
+      tagline: '',
+    },
+    common: {
+      buy_now: 'اشتر الآن',
+      add_to_cart: '',
+      checkout: '',
+    },
   },
 };
 
@@ -691,9 +732,12 @@ export const contentHandlers = [
     method: 'POST',
     path: '/editor/translations',
     handler: (req) => {
-      const { locale, namespace, key, value } = req.body || {};
+      const { locale, namespace = 'common', key, value } = req.body || {};
+      // Mirrors the service's ON CONFLICT (namespace, key, locale) upsert — the namespace is part
+      // of a translation's identity, not decoration.
       if (!mockDynamicTranslations[locale]) mockDynamicTranslations[locale] = {};
-      mockDynamicTranslations[locale][key] = value;
+      if (!mockDynamicTranslations[locale][namespace]) mockDynamicTranslations[locale][namespace] = {};
+      mockDynamicTranslations[locale][namespace][key] = value;
       return { status: 200, body: { data: { locale, namespace, key, value } } };
     },
   },
@@ -713,8 +757,20 @@ export const contentHandlers = [
     handler: (req) => {
       const { locale } = req.params;
       const { translations } = req.body || {};
-      mockDynamicTranslations[locale] = { ...mockDynamicTranslations[locale], ...translations };
-      return { status: 200, body: { data: { locale, imported_keys: Object.keys(translations || {}).length } } };
+      const existing = mockDynamicTranslations[locale] || {};
+      const merged = { ...existing };
+      let importedKeys = 0;
+
+      // A shallow spread would replace whole namespaces rather than merging into them, and would
+      // count namespaces instead of keys.
+      for (const [namespace, keys] of Object.entries(translations || {})) {
+        if (!keys || typeof keys !== 'object') continue;
+        merged[namespace] = { ...(existing[namespace] || {}), ...keys };
+        importedKeys += Object.keys(keys).length;
+      }
+
+      mockDynamicTranslations[locale] = merged;
+      return { status: 200, body: { data: { locale, imported_keys: importedKeys } } };
     },
   },
 ];

@@ -14,7 +14,16 @@ import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import * as liveRepo from '../repositories/liveStream.repository.js';
 import { streaming } from '../integrations/streaming/index.js';
-import { broadcastToStream, isUserMutedInStream, muteUserInStream } from '../sockets/presence.js';
+import {
+  broadcastToStream,
+  isUserMutedInStream,
+  muteUserInStream,
+  unmuteUserInStream,
+  getStreamMutes,
+} from '../sockets/presence.js';
+import * as auditService from './audit.service.js';
+import { detectContactInfoLeak } from './chat.service.js';
+import { preScreenContent } from './moderation.service.js';
 
 export async function scheduleStream(db, {
   hostId,
@@ -170,7 +179,20 @@ export async function terminateStream(db, { streamId, moderatorId, reason }) {
     userId: moderatorId,
     messageType: 'MODERATION',
     content: `Stream was terminated by moderation. Reason: ${reason}`,
-    metadataJson: { moderatorId, reason },
+    metadataJson: { action: 'TERMINATE', moderatorId, reason },
+  });
+
+  // WHY: cutting a seller's broadcast off mid-sale is one of the most contestable actions a
+  // moderator can take, and it was writing nothing to audit_logs — leaving no before/after to
+  // answer "who stopped my stream, and on what grounds?" with.
+  await auditService.record(db, {
+    actor: moderatorId,
+    action: 'live.stream.terminate',
+    target_type: 'live_stream',
+    target_ref: stream.ref ?? String(stream.id),
+    before: { status: stream.status, terminated_by: stream.terminated_by, termination_reason: stream.termination_reason },
+    after: { status: updated.status, terminated_by: moderatorId, termination_reason: reason || 'Policy Violation' },
+    risk_tier: 'HIGH',
   });
 
   broadcastToStream(stream.id, {
@@ -397,4 +419,348 @@ export async function executeInStreamBuy(pool, cache, {
     messageEn: 'In-stream purchase completed successfully!',
     messageBn: 'লাইভ স্ট্রিমে অর্ডারটি সফলভাবে সম্পন্ন হয়েছে!',
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Live Moderation Console (/moderator/live)
+//
+// Prompt 10.1 REQUIREMENT 6 gave moderators two blunt controls — mute a participant, terminate a
+// stream — with nothing in between, and no surface to decide from. Everything below serves the
+// console: the signals a moderator triages on, and the one action that sits between "watch" and
+// "kill the broadcast" (removing a single message).
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Advisory flags on one chat message. Deliberately reuses the two detectors the platform already
+ * trusts elsewhere rather than inventing a third vocabulary:
+ *   - chat.service.js's detectContactInfoLeak — the Phase 8 off-platform-contact detector.
+ *   - moderation.service.js's preScreenContent — the same EN/BN banned-keyword blocklist the
+ *     product queue screens against, so a term banned for a listing is banned in live chat too.
+ *
+ * ADVISORY, never automatic: nothing here removes a message on its own. It only decides what a
+ * human sees first.
+ */
+export async function flagLiveMessage(db, content) {
+  const flags = [];
+
+  const leak = detectContactInfoLeak(content);
+  if (leak.isLeaked) {
+    flags.push({
+      code: 'EXTERNAL_CONTACT_LEAK',
+      severity: 'HIGH',
+      label_en: 'Off-platform contact details shared in chat',
+      label_bn: 'চ্যাটে প্ল্যাটফর্মের বাইরের যোগাযোগের তথ্য শেয়ার করা হয়েছে',
+      matches: leak.matches,
+    });
+  }
+
+  try {
+    // preScreenContent screens a title+description pair; a chat line is just a description with
+    // no title, and it is passed as both EN and BN so either blocklist can match it — live chat
+    // is routinely code-mixed Banglish, so language cannot be inferred from the field it arrived in.
+    // preScreenContent returns a bare array of flags, not a { flags } envelope.
+    const screened = await preScreenContent({
+      descriptionEn: content,
+      descriptionBn: content,
+      db,
+    });
+    for (const flag of Array.isArray(screened) ? screened : (screened?.flags ?? [])) {
+      if (flag.code === 'PROHIBITED_KEYWORD_EN' || flag.code === 'PROHIBITED_KEYWORD_BN') {
+        flags.push(flag);
+      }
+    }
+  } catch {
+    // A blocklist lookup failure must not blank the moderator's chat feed — the leak detector
+    // above is pure and already ran, so the feed degrades to fewer flags rather than to nothing.
+  }
+
+  return flags;
+}
+
+/**
+ * Stream list for the console's left rail, with the counts a moderator triages on.
+ */
+export async function listStreamsForModeration(db, { status = null, limit = 50 } = {}) {
+  const streams = await liveRepo.listStreamsForModeration(db, { status, limit });
+  return streams.map((stream) => ({
+    ...stream,
+    muted_count: getStreamMutes(stream.id).length,
+  }));
+}
+
+/**
+ * Everything the console's right pane renders for one stream: the broadcast, its chat with
+ * advisory flags resolved, who is currently muted, and the moderation actions already taken.
+ */
+/**
+ * What the console can actually show of the broadcast itself.
+ *
+ *   LIVE                  -> an OBSERVER token. Covert by design: the moderator subscribes without
+ *                            joining the roster and without the ability to publish data, so the
+ *                            host cannot see they are being watched and the moderator cannot speak
+ *                            as a viewer. Observation is silent; enforcement is not — every mute,
+ *                            removal and termination is announced into the stream's own log.
+ *   ENDED / TERMINATED    -> the recording, because a termination gets contested after the fact and
+ *                            "what did the stream actually show" is the whole question then.
+ *   SCHEDULED             -> nothing has been broadcast yet.
+ */
+async function buildPreview(stream, { moderator = null, audioOnly = false } = {}) {
+  if (stream.status === 'LIVE') {
+    const token = await streaming.getViewerToken({
+      streamId: stream.id,
+      roomId: stream.room_id,
+      userId: moderator?.id ?? null,
+      userName: 'Moderation',
+      audioOnly,
+      observer: true,
+    });
+    return {
+      mode: 'LIVE',
+      driver: streaming.driverName,
+      room_id: stream.room_id,
+      playback_url: stream.playback_url ?? null,
+      audio_only: Boolean(audioOnly),
+      token: token.token,
+      identity: token.identity,
+      hidden: token.hidden,
+      can_publish_data: token.permissions.canPublishData,
+      expires_at: token.expiresAt,
+    };
+  }
+
+  if (stream.status === 'ENDED' || stream.status === 'TERMINATED') {
+    // A recording is not always there — the pipeline may still be processing, or the broadcast may
+    // have been cut before anything was captured. Returning mode UNAVAILABLE lets the console say
+    // so rather than render a dead player.
+    try {
+      const recording = await streaming.getRecording({ streamId: stream.id, roomId: stream.room_id });
+      if (recording?.status === 'READY' && recording.recordingUrl) {
+        return {
+          mode: 'RECORDING',
+          driver: streaming.driverName,
+          recording_url: stream.recording_url ?? recording.recordingUrl,
+          duration_seconds: recording.durationSeconds ?? null,
+          recorded_at: recording.recordedAt ?? null,
+        };
+      }
+      return { mode: 'UNAVAILABLE', reason: 'RECORDING_NOT_READY' };
+    } catch {
+      return { mode: 'UNAVAILABLE', reason: 'RECORDING_NOT_READY' };
+    }
+  }
+
+  return { mode: 'NOT_STARTED' };
+}
+
+export async function getStreamModerationFeed(db, streamId, { sinceId = 0, limit = 200, moderator = null, audioOnly = false } = {}) {
+  const stream = await liveRepo.findStreamById(db, streamId);
+  if (!stream) {
+    throw new AppError('STREAM_NOT_FOUND', 'Live stream not found.', 'লাইভ স্ট্রিমটি খুঁজে পাওয়া যায়নি।');
+  }
+
+  const rows = await liveRepo.getStreamMessagesForModeration(db, stream.id, { sinceId, limit });
+
+  const messages = [];
+  const actionLog = [];
+
+  for (const row of rows) {
+    if (row.message_type === 'MODERATION') {
+      actionLog.push({
+        id: row.id,
+        action: row.metadata_json?.action ?? 'MODERATION',
+        content: row.content,
+        actor_id: row.user_id,
+        actor_name: row.user_name,
+        metadata: row.metadata_json ?? {},
+        created_at: row.created_at,
+      });
+      continue;
+    }
+
+    // Only real chat carries user-authored text worth screening; PIN_PRODUCT / BUY / REACTION
+    // rows are system-generated and can never contain a policy violation.
+    const flags =
+      row.message_type === 'CHAT' && !row.deleted_at ? await flagLiveMessage(db, row.content) : [];
+
+    messages.push({
+      id: row.id,
+      message_type: row.message_type,
+      content: row.content,
+      user_id: row.user_id,
+      user_name: row.user_name,
+      user_roles: row.user_roles ?? [],
+      created_at: row.created_at,
+      deleted_at: row.deleted_at,
+      deleted_by: row.deleted_by,
+      deleted_by_name: row.deleted_by_name,
+      deletion_reason: row.deletion_reason,
+      flags,
+    });
+  }
+
+  return {
+    stream,
+    preview: await buildPreview(stream, { moderator, audioOnly }),
+    messages,
+    action_log: actionLog.reverse(),
+    mutes: getStreamMutes(stream.id),
+    flagged_count: messages.filter((m) => m.flags.length > 0).length,
+    removed_count: messages.filter((m) => m.deleted_at).length,
+  };
+}
+
+/**
+ * Removes one abusive chat message without stopping the broadcast — the proportionate action the
+ * console previously had no way to take, since mute silences a person and terminate kills the sale.
+ */
+export async function removeStreamMessage(db, { streamId, messageId, moderatorId, reason }) {
+  const stream = await liveRepo.findStreamById(db, streamId);
+  if (!stream) {
+    throw new AppError('STREAM_NOT_FOUND', 'Live stream not found.', 'লাইভ স্ট্রিমটি খুঁজে পাওয়া যায়নি।');
+  }
+
+  const removed = await liveRepo.softDeleteMessage(db, {
+    streamId: stream.id,
+    messageId,
+    moderatorId,
+    reason: reason || 'Policy Violation',
+  });
+
+  if (!removed) {
+    // Covers both "no such message" and "belongs to a different stream" on purpose: a moderator
+    // must not be able to probe another broadcast's message ids through the difference.
+    throw new AppError(
+      'MESSAGE_NOT_FOUND',
+      'That message is not in this stream, or has already been removed.',
+      'বার্তাটি এই স্ট্রিমে নেই, অথবা এটি ইতিমধ্যে সরানো হয়েছে।'
+    );
+  }
+
+  await liveRepo.createMessage(db, {
+    streamId: stream.id,
+    userId: moderatorId,
+    messageType: 'MODERATION',
+    content: `A chat message was removed. Reason: ${reason || 'Policy Violation'}`,
+    metadataJson: {
+      action: 'REMOVE_MESSAGE',
+      moderatorId,
+      messageId: removed.id,
+      targetUserId: removed.user_id,
+      reason: reason || 'Policy Violation',
+    },
+  });
+
+  await auditService.record(db, {
+    actor: moderatorId,
+    action: 'live.message.remove',
+    target_type: 'live_stream_message',
+    target_ref: String(removed.id),
+    before: { content: removed.content, deleted_at: null, user_id: removed.user_id },
+    after: {
+      deleted_at: removed.deleted_at,
+      deleted_by: moderatorId,
+      deletion_reason: removed.deletion_reason,
+    },
+    risk_tier: 'MEDIUM',
+  });
+
+  // Viewers still have the message on screen; without this it stays there until they reload.
+  broadcastToStream(stream.id, {
+    type: 'live:message_removed',
+    payload: { streamId: stream.id, messageId: removed.id, timestamp: Date.now() },
+  });
+
+  return removed;
+}
+
+/**
+ * Silences a participant for a bounded window, and records it. Enforcement stays in the socket
+ * layer (that is where the connection to silence lives); this adds the paper trail around it.
+ */
+export async function muteParticipant(db, { streamId, targetUserId, moderatorId, durationMinutes = 15, reason }) {
+  const stream = await liveRepo.findStreamById(db, streamId);
+  if (!stream) {
+    throw new AppError('STREAM_NOT_FOUND', 'Live stream not found.', 'লাইভ স্ট্রিমটি খুঁজে পাওয়া যায়নি।');
+  }
+
+  muteUserInStream(stream.id, targetUserId, durationMinutes * 60 * 1000);
+
+  await liveRepo.createMessage(db, {
+    streamId: stream.id,
+    userId: moderatorId,
+    messageType: 'MODERATION',
+    content: `Participant muted for ${durationMinutes} minutes. Reason: ${reason || 'Chat policy violation'}`,
+    metadataJson: {
+      action: 'MUTE',
+      moderatorId,
+      targetUserId,
+      durationMinutes,
+      reason: reason || 'Chat policy violation',
+    },
+  });
+
+  await auditService.record(db, {
+    actor: moderatorId,
+    action: 'live.participant.mute',
+    target_type: 'user',
+    target_ref: String(targetUserId),
+    before: { muted: false, stream_id: stream.id },
+    after: {
+      muted: true,
+      stream_id: stream.id,
+      duration_minutes: durationMinutes,
+      reason: reason || null,
+    },
+    risk_tier: 'MEDIUM',
+  });
+
+  broadcastToStream(stream.id, {
+    type: 'live:participant_muted',
+    payload: { streamId: stream.id, targetUserId, durationMinutes, timestamp: Date.now() },
+  });
+
+  return { target_user_id: targetUserId, duration_minutes: durationMinutes };
+}
+
+/**
+ * Lifts a mute early — the counterpart to muteParticipant, so a mistaken or heeded mute is not a
+ * one-way door the moderator has to wait out.
+ */
+export async function unmuteParticipant(db, { streamId, targetUserId, moderatorId }) {
+  const stream = await liveRepo.findStreamById(db, streamId);
+  if (!stream) {
+    throw new AppError('STREAM_NOT_FOUND', 'Live stream not found.', 'লাইভ স্ট্রিমটি খুঁজে পাওয়া যায়নি।');
+  }
+
+  const wasMuted = unmuteUserInStream(stream.id, targetUserId);
+  if (!wasMuted) {
+    // Nothing changed, so nothing is logged — an audit trail of no-ops is noise that makes the
+    // real entries harder to find.
+    return { target_user_id: targetUserId, was_muted: false };
+  }
+
+  await liveRepo.createMessage(db, {
+    streamId: stream.id,
+    userId: moderatorId,
+    messageType: 'MODERATION',
+    content: 'Participant mute lifted by moderation.',
+    metadataJson: { action: 'UNMUTE', moderatorId, targetUserId },
+  });
+
+  await auditService.record(db, {
+    actor: moderatorId,
+    action: 'live.participant.unmute',
+    target_type: 'user',
+    target_ref: String(targetUserId),
+    before: { muted: true, stream_id: stream.id },
+    after: { muted: false, stream_id: stream.id },
+    risk_tier: 'MEDIUM',
+  });
+
+  broadcastToStream(stream.id, {
+    type: 'live:participant_unmuted',
+    payload: { streamId: stream.id, targetUserId, timestamp: Date.now() },
+  });
+
+  return { target_user_id: targetUserId, was_muted: true };
 }

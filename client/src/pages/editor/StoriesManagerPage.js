@@ -368,11 +368,11 @@ export default function StoriesManagerPage(root) {
               <span class="badge badge--success font-mono font-bold text-xs">PUBLISHED</span>
             </div>
 
-            <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 2px 0;">
+            <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 2px 0;">
               ${story.title_en}
             </h3>
 
-            <p style="font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            <p style="font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
               ${story.content_en}
             </p>
 
@@ -441,7 +441,7 @@ export default function StoriesManagerPage(root) {
               <span class="badge badge--primary font-mono font-bold text-xs">REEL</span>
             </div>
 
-            <p style="font-size: var(--font-size-sm); font-weight: 700; color: var(--text-primary); margin: 2px 0; line-height: 1.4;">
+            <p style="font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); margin: 2px 0; line-height: 1.4;">
               ${reel.caption_en}
             </p>
 

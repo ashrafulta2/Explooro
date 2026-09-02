@@ -12,7 +12,7 @@
 .coupons-page__subtitle { font-size: var(--text-sm); color: var(--text-muted); margin: 4px 0 0; }
 
 /* Claim Bar */
-.coupons-claim-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); padding: var(--space-4) var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+.coupons-claim-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
 .coupons-claim-form { display: flex; align-items: center; gap: var(--space-2); width: 100%; max-width: 480px; }
 .coupons-claim-input { flex: 1; height: 38px; padding: 0 16px; font-size: var(--text-sm); border: 1px solid var(--border-strong); border-radius: var(--radius-full); background: var(--surface-1); color: var(--text-primary); text-transform: uppercase; font-family: var(--font-mono, monospace); font-weight: 700; letter-spacing: 0.05em; outline: none; transition: border-color 0.18s ease, box-shadow 0.18s ease; }
 .coupons-claim-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-100); }
@@ -39,7 +39,7 @@
 
 /* Coupon Grid */
 .coupons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: var(--space-4); }
-.coupon-card { display: flex; background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); overflow: hidden; position: relative; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03); transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
+.coupon-card { display: flex; background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; position: relative; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03); transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease; }
 .coupon-card:hover { border-color: var(--brand); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06); transform: translateY(-2px); }
 .coupon-card--disabled { opacity: 0.6; filter: grayscale(0.2); }
 

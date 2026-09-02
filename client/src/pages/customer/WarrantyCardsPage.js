@@ -364,7 +364,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
       if (activeTab === 'active') {
         const emptyEl = document.createElement('div');
         emptyEl.innerHTML = `
-          <div style="background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); padding: var(--space-8) var(--space-4); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-3);">
+          <div style="background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-8) var(--space-4); text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-3);">
             <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 28px;">
               🛡️
             </div>

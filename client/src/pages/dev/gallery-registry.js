@@ -1060,6 +1060,8 @@ export function buildGalleryEntries(detachedNodes) {
     // Prompt 10.1 — Live Stream Commerce
     { id: 'live-stream-card', label: 'LiveStreamCard', group: 'Communication & Live', render: renderLiveStreamCardSpecimen },
     { id: 'pinned-product-overlay', label: 'PinnedProductOverlay', group: 'Communication & Live', render: renderPinnedProductOverlaySpecimen },
+    // Live Moderation Console (/moderator/live)
+    { id: 'live-moderation-console', label: 'LiveModerationConsole', group: 'Trust & Moderation', render: renderLiveModerationSpecimen },
     // Prompt 10.2 — AI Service Layer & Conversational Assistants
     { id: 'assistant-panel-concierge', label: 'AssistantPanel (Concierge)', group: 'AI & Intelligence', render: renderAssistantPanelConciergeSpecimen },
     { id: 'assistant-panel-sourcing', label: 'AssistantPanel (Sourcing)', group: 'AI & Intelligence', render: renderAssistantPanelSourcingSpecimen },
@@ -1108,7 +1110,7 @@ function renderEvidenceTimelineSpecimen() {
       title: 'Order Placed & Escrow Locked',
       actor: 'Rahim Customer',
       actor_role: 'CUSTOMER',
-      timestamp: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
+      created_at: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
       metadata: { sub_order_ref: 'SO-9921', disputed_amount: '৳2,400.00' },
     },
     {
@@ -1118,7 +1120,7 @@ function renderEvidenceTimelineSpecimen() {
       title: 'Courier: DELIVERED',
       actor: 'Steadfast Courier',
       actor_role: 'COURIER',
-      timestamp: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
+      created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
       metadata: { tracking_note: 'Delivered to customer doorstep' },
     },
     {
@@ -1128,7 +1130,7 @@ function renderEvidenceTimelineSpecimen() {
       title: 'Dispute Thread Initiated (DSP-8821)',
       actor: 'Rahim Customer',
       actor_role: 'CUSTOMER',
-      timestamp: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
+      created_at: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
       body: 'Item fabric is torn and color does not match description photos.',
       attachments: ['/demo-product-1.jpg'],
     },
@@ -1139,7 +1141,7 @@ function renderEvidenceTimelineSpecimen() {
       title: 'Moderator Private Note',
       actor: 'Nabila Moderator',
       actor_role: 'MODERATOR',
-      timestamp: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+      created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
       body: 'Supplier has 3 previous fabric defect complaints. Recommending full refund.',
       is_internal: true,
     },
@@ -1181,7 +1183,7 @@ function renderLiveTrackingMapSpecimen() {
   card.className = 'card p-4';
   card.innerHTML = `
     <div class="live-map-viewport mb-3">
-      <div class="live-map-tiles" style="background: var(--color-bg-secondary);">
+      <div class="live-map-tiles" style="background: var(--surface-2);">
         <div class="courier-pin" title="Dhaka Transit Hub">
           <div class="courier-pin__pulse"></div>
           <div class="courier-pin__icon">🛵</div>
@@ -1292,6 +1294,93 @@ function renderModeratorDashboardSpecimen() {
   `;
 
   wrap.append(specimen('workload kpis preview', kpiGrid));
+  return wrap;
+}
+
+function renderLiveModerationSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Live Moderation Console — chat monitor states (/moderator/live)'));
+
+  // The three states a moderator distinguishes at a glance: clean chat, an advisory flag, and a
+  // message already taken down. Everything else on the page is chrome around this distinction.
+  const feed = document.createElement('ul');
+  feed.style.cssText = 'margin:0;padding:0;display:flex;flex-direction:column;gap:8px;';
+  feed.innerHTML = `
+    <li style="list-style:none;padding:10px 12px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--surface-1);">
+      <strong style="font-size:12px;">Shopper_Dhaka_99</strong>
+      <p style="margin:4px 0 0;font-size:13px;">Apu eta ki khati cotton? Dam koto pordbe?</p>
+    </li>
+    <li style="list-style:none;padding:10px 12px;border:1px solid var(--danger);border-radius:var(--radius-md);background:var(--surface-1);">
+      <strong style="font-size:12px;">WholesaleBroker_BD</strong>
+      <span style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;background:var(--danger-bg);color:var(--danger);">&#9888; Flagged</span>
+      <p style="margin:4px 0 0;font-size:13px;">Direct kotha bolen &mdash; 01711998877, WhatsApp e cheaper dibo.</p>
+      <span style="font-size:10px;font-family:monospace;font-weight:800;color:var(--danger);">EXTERNAL_CONTACT_LEAK</span>
+    </li>
+    <li style="list-style:none;padding:10px 12px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--surface-2);opacity:0.72;">
+      <strong style="font-size:12px;">Rakib_Hasan_01</strong>
+      <span style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--text-muted);">Removed</span>
+      <p style="margin:4px 0 0;font-size:13px;text-decoration:line-through;color:var(--text-muted);">Eta to first copy replica.</p>
+      <span style="font-size:11px;color:var(--text-muted);">Removed by Dev Moderator &mdash; Unsubstantiated counterfeit claim</span>
+    </li>
+  `;
+
+  const signals = document.createElement('div');
+  signals.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;';
+  signals.innerHTML = `
+    <span style="padding:4px 10px;border-radius:var(--radius-md);background:var(--surface-2);border:1px solid var(--border-subtle);font-size:12px;font-weight:600;">Viewers <strong>142</strong></span>
+    <span style="padding:4px 10px;border-radius:var(--radius-md);background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border);font-size:12px;font-weight:600;">Flagged messages <strong>2</strong></span>
+    <span style="padding:4px 10px;border-radius:var(--radius-md);background:var(--warning-bg);color:var(--warning);border:1px solid var(--warning-border);font-size:12px;font-weight:600;">Muted <strong>1</strong></span>
+  `;
+
+  // The preview stage, in the two states worth eyeballing: observing a running broadcast, and
+  // reviewing the recording of one that has already been cut. The observer notice is part of the
+  // specimen because it is the load-bearing part — a moderator who thinks the host can see them
+  // watches differently.
+  const previewLive = document.createElement('div');
+  previewLive.style.cssText =
+    'border:1px solid var(--border-subtle);border-radius:var(--radius-lg);overflow:hidden;background:var(--surface-2);';
+  previewLive.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;">
+        <span class="pulse-dot"></span>Broadcast preview
+        <span style="font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--danger);color:#fff;">LIVE</span>
+        <span style="font-size:11px;font-weight:600;color:var(--text-muted);">142 watching</span>
+      </div>
+      <span style="font-size:12px;font-weight:600;color:var(--text-secondary);">Audio only (data saver)</span>
+    </div>
+    <div style="position:relative;width:100%;aspect-ratio:16/9;max-height:220px;background:#090d16;display:flex;align-items:center;justify-content:center;">
+      <div class="mock-presenter-canvas">
+        <div class="mock-presenter-avatar">&#128248;</div>
+        <div class="mock-stream-wave"><span></span><span></span><span></span><span></span><span></span></div>
+        <div style="font-size:13px;font-weight:700;">Observing the live feed&hellip;</div>
+      </div>
+    </div>
+    <div style="padding:9px 12px;background:var(--info-bg);border-top:1px solid var(--border-subtle);font-size:11px;line-height:1.55;color:var(--text-secondary);">
+      <strong style="color:var(--text-primary);">&#128065; Hidden observer.</strong>
+      The host and viewers cannot see that you joined, and you cannot post in this chat. Every action
+      you take &mdash; mute, removal, termination &mdash; is logged and visible to them.
+    </div>
+  `;
+
+  const previewRecording = document.createElement('div');
+  previewRecording.style.cssText =
+    'position:relative;width:100%;aspect-ratio:16/9;max-height:220px;background:#090d16;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-lg);overflow:hidden;';
+  previewRecording.innerHTML = `
+    <div class="mock-presenter-canvas">
+      <div style="font-size:34px;line-height:1;">&#127902;</div>
+      <div style="font-size:14px;font-weight:700;">Recording</div>
+      <div style="font-size:12px;opacity:0.75;max-width:420px;line-height:1.5;">This broadcast has ended. Review the recording before acting on any report about it.</div>
+      <div style="font-size:11px;opacity:0.75;">Duration: 60m &middot; Recorded: Aug 30, 2026</div>
+    </div>
+  `;
+
+  wrap.append(
+    specimen('triage signals', signals),
+    specimen('broadcast preview: observing a LIVE stream', previewLive),
+    specimen('broadcast preview: recording of an ended stream', previewRecording),
+    specimen('chat monitor: clean / flagged / removed', feed)
+  );
   return wrap;
 }
 
@@ -1986,7 +2075,7 @@ function renderAssistantPanelConciergeSpecimen() {
   const frame = document.createElement('div');
   frame.style.height = '520px';
   frame.style.maxWidth = '420px';
-  frame.style.border = '1px solid var(--color-border-subtle)';
+  frame.style.border = '1px solid var(--border-subtle)';
   frame.style.borderRadius = 'var(--radius-lg)';
   frame.style.padding = '12px';
   frame.append(AssistantPanel({ agentType: 'concierge' }));
@@ -2003,7 +2092,7 @@ function renderAssistantPanelSourcingSpecimen() {
   const frame = document.createElement('div');
   frame.style.height = '520px';
   frame.style.maxWidth = '420px';
-  frame.style.border = '1px solid var(--color-border-subtle)';
+  frame.style.border = '1px solid var(--border-subtle)';
   frame.style.borderRadius = 'var(--radius-lg)';
   frame.style.padding = '12px';
   frame.append(AssistantPanel({ agentType: 'sourcing' }));
@@ -2307,11 +2396,11 @@ function renderSupplierOrdersSpecimen() {
           <strong>Miniket Premium Rice 25kg Bag</strong>
           <span class="badge badge--info text-xs font-mono" style="margin-left: 6px;">🏷️ Lot: #LOT-2026-OCT-01</span>
         </div>
-        <div style="font-weight: 800; font-family: var(--font-mono); color: var(--brand-primary);">Qty: 1</div>
+        <div style="font-weight: 800; font-family: var(--font-mono); color: var(--text-brand);">Qty: 1</div>
       </div>
     </div>
     <div class="supplier-order-card__footer">
-      <div style="font-size: 12px; color: var(--status-warning); font-weight: 700;">
+      <div style="font-size: 12px; color: var(--warning); font-weight: 700;">
         ⚠️ Courier consignment not yet booked.
       </div>
       <div style="display: flex; gap: 8px;">

@@ -165,16 +165,84 @@ export async function moderateTerminate(req, reply) {
 }
 
 export async function moderateMute(req, reply) {
-  const { target_user_id, duration_minutes = 15 } = req.body || {};
-  // Call socket presence muting
-  const { muteUserInStream } = await import('../sockets/presence.js');
-  muteUserInStream(req.params.id, target_user_id, duration_minutes * 60 * 1000);
+  const { target_user_id, duration_minutes = 15, reason } = req.body || {};
+
+  // WHY: this used to reach straight into sockets/presence.js and silence the user with nothing
+  // written anywhere — no audit_logs row, no entry in the stream's own moderation log. It now
+  // goes through the service so muting a participant leaves the same trail every other staff
+  // action does.
+  const result = await liveService.muteParticipant(req.server.db, {
+    streamId: req.params.id,
+    targetUserId: target_user_id,
+    moderatorId: req.user.id,
+    durationMinutes: duration_minutes,
+    reason,
+  });
 
   return reply.send({
-    data: { success: true, target_user_id, duration_minutes },
+    data: { success: true, ...result },
     meta: {
       message_en: 'User muted successfully.',
       message_bn: 'ব্যবহারকারীকে সফলভাবে মিউট করা হয়েছে।',
+    },
+  });
+}
+
+// ── Live Moderation Console (/moderator/live) ────────────────────────────────
+
+export async function listModerationStreams(req, reply) {
+  const streams = await liveService.listStreamsForModeration(req.server.db, {
+    status: req.query?.status ?? null,
+    limit: Math.min(Number(req.query?.limit) || 50, 100),
+  });
+
+  return reply.send({ data: { streams, total: streams.length } });
+}
+
+export async function getModerationFeed(req, reply) {
+  const feed = await liveService.getStreamModerationFeed(req.server.db, req.params.id, {
+    sinceId: Number(req.query?.since_id) || 0,
+    limit: Math.min(Number(req.query?.limit) || 200, 500),
+    moderator: req.user,
+    // Data saver matters here as much as it does for shoppers: a moderator sweeping a dozen
+    // broadcasts on a mobile connection should be able to drop to audio.
+    audioOnly: req.query?.audio_only === 'true',
+  });
+
+  return reply.send({ data: feed });
+}
+
+export async function moderateRemoveMessage(req, reply) {
+  const removed = await liveService.removeStreamMessage(req.server.db, {
+    streamId: req.params.id,
+    messageId: req.params.messageId,
+    moderatorId: req.user.id,
+    reason: req.body?.reason,
+  });
+
+  return reply.send({
+    data: { message_id: removed.id, deleted_at: removed.deleted_at },
+    meta: {
+      message_en: 'Message removed from the live chat.',
+      message_bn: 'লাইভ চ্যাট থেকে বার্তাটি সরানো হয়েছে।',
+    },
+  });
+}
+
+export async function moderateUnmute(req, reply) {
+  const result = await liveService.unmuteParticipant(req.server.db, {
+    streamId: req.params.id,
+    targetUserId: req.body?.target_user_id,
+    moderatorId: req.user.id,
+  });
+
+  return reply.send({
+    data: result,
+    meta: {
+      message_en: result.was_muted ? 'Mute lifted.' : 'That participant was not muted.',
+      message_bn: result.was_muted
+        ? 'মিউট তুলে নেওয়া হয়েছে।'
+        : 'এই অংশগ্রহণকারী মিউট করা ছিল না।',
     },
   });
 }

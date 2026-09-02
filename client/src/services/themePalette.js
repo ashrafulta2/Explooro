@@ -144,9 +144,8 @@ const SECTION_OVERRIDE_PROPS = [
   '--navbar-icon-color', '--navbar-icon-hover', '--logo-bg', '--logo-star', '--logo-hole', '--logo-text',
   '--sidebar-bg', '--sidebar-text', '--sidebar-border', '--sidebar-icon-color', '--sidebar-icon-hover',
   '--sidebar-active-bg', '--sidebar-active-text',
-  '--surface-page', '--surface-0', '--surface-1', '--surface-card', '--surface-subtle',
-  '--surface-2', '--border-subtle',
-  '--brand', '--brand-primary', '--brand-hover', '--brand-contrast',
+  '--surface-0', '--surface-1', '--surface-2', '--border-subtle',
+  '--brand', '--brand-hover', '--brand-contrast',
   '--btn-secondary-bg', '--btn-secondary-text',
   '--text-primary', '--text-secondary', '--text-muted', '--text-inverse',
   '--success-bg', '--success', '--warning-bg', '--warning',
@@ -192,14 +191,19 @@ const SECTION_PROPERTY_MAP = {
     active_bg: ['--sidebar-active-bg'],
     active_text: ['--sidebar-active-text'],
   },
+  // WHY one property each: these used to pin a legacy alias beside the canonical token
+  // (`page` drove --surface-page AND --surface-0 AND --surface-1) because component CSS
+  // was split across both naming schemes. Nothing references the aliases now, and leaving
+  // `page` on --surface-1 would have quietly stolen every former --surface-card element
+  // away from the `card` control.
   surfaces: {
-    page: ['--surface-page', '--surface-0', '--surface-1'],
-    card: ['--surface-card'],
-    subtle: ['--surface-subtle', '--surface-2'],
+    page: ['--surface-0'],
+    card: ['--surface-1'],
+    subtle: ['--surface-2'],
     border: ['--border-subtle'],
   },
   brand: {
-    primary: ['--brand', '--brand-primary'],
+    primary: ['--brand'],
     hover: ['--brand-hover'],
     contrast: ['--brand-contrast'],
     secondary_bg: ['--btn-secondary-bg'],

@@ -39,7 +39,7 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
   const isEscalated = claim.status === 'ESCALATED';
 
   container.innerHTML = `
-    <div class="claim-timeline__wrapper card p-5" style="border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); background: var(--surface-0);">
+    <div class="claim-timeline__wrapper card p-5" style="border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); background: var(--surface-0);">
       <div class="claim-timeline__header flex justify-between items-center pb-3 border-b border-subtle mb-4" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
         <div>
           <div style="font-family: var(--font-mono, monospace); font-size: 14px; font-weight: 800; color: var(--text-primary);">

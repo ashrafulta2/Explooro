@@ -475,7 +475,7 @@ export default function EditorDashboardPage(root) {
     // -------------------------------------------------------------------------
     const launchpadSection = document.createElement('div');
     launchpadSection.innerHTML = `
-      <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0 0 12px 0;">
+      <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0 0 12px 0;">
         🚀 Content Management Workspaces
       </h3>
     `;

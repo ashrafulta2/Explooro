@@ -448,7 +448,7 @@ export default function AuditLogPage(root) {
       // Trace ID
       const tdTrace = document.createElement('td');
       const traceShort = r.trace_id ? r.trace_id.substring(0, 11) : '—';
-      tdTrace.innerHTML = `<code style="font-size: 10px; font-weight: 700; color: var(--brand-primary);" title="${r.trace_id || ''}">${traceShort}</code>`;
+      tdTrace.innerHTML = `<code style="font-size: 10px; font-weight: 700; color: var(--text-brand);" title="${r.trace_id || ''}">${traceShort}</code>`;
 
       // Actions
       const tdActions = document.createElement('td');

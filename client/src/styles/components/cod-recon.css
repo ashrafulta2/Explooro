@@ -87,5 +87,5 @@
   justify-content: center;
   padding: var(--space-8);
   gap: var(--space-3);
-  color: var(--color-text-secondary);
+  color: var(--text-secondary);
 }

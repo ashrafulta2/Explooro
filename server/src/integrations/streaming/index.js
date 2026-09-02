@@ -55,20 +55,24 @@ const mockDriver = {
     };
   },
 
-  async getViewerToken({ streamId, roomId, userId, userName, audioOnly = false }) {
+  async getViewerToken({ streamId, roomId, userId, userName, audioOnly = false, observer = false }) {
     const effectiveUserId = userId || `guest_${randomUUID().slice(0, 6)}`;
     return {
-      token: `mock_view_token_${streamId}_${effectiveUserId}_${Date.now()}`,
-      identity: `viewer_${effectiveUserId}`,
-      name: userName || `Viewer_${effectiveUserId}`,
+      token: `mock_${observer ? 'obs' : 'view'}_token_${streamId}_${effectiveUserId}_${Date.now()}`,
+      identity: `${observer ? 'moderator' : 'viewer'}_${effectiveUserId}`,
+      name: observer ? 'Moderation' : userName || `Viewer_${effectiveUserId}`,
       role: 'SUBSCRIBER',
       roomId: roomId || `room_mock_${streamId}`,
       audioOnly: Boolean(audioOnly),
-      expiresAt: new Date(Date.now() + 6 * 3600 * 1000).toISOString(),
+      observer: Boolean(observer),
+      hidden: Boolean(observer),
+      expiresAt: new Date(Date.now() + (observer ? 1 : 6) * 3600 * 1000).toISOString(),
       permissions: {
         canPublish: false,
         canSubscribe: true,
-        canPublishData: true,
+        // An observer subscribes and nothing else: it cannot post chat into the room it is
+        // policing, so a moderator can never accidentally speak as a viewer.
+        canPublishData: !observer,
       },
     };
   },
@@ -140,21 +144,27 @@ const livekitDriver = {
     };
   },
 
-  async getViewerToken({ streamId, roomId, userId, userName, audioOnly = false }) {
+  async getViewerToken({ streamId, roomId, userId, userName, audioOnly = false, observer = false }) {
     const effectiveUserId = userId || `guest_${randomUUID().slice(0, 6)}`;
-    const token = `lk_jwt_sub_${streamId}_${effectiveUserId}_${randomUUID().slice(0, 8)}`;
+    const token = `lk_jwt_${observer ? 'obs' : 'sub'}_${streamId}_${effectiveUserId}_${randomUUID().slice(0, 8)}`;
     return {
       token,
-      identity: `viewer_${effectiveUserId}`,
-      name: userName || `Viewer_${effectiveUserId}`,
+      identity: `${observer ? 'moderator' : 'viewer'}_${effectiveUserId}`,
+      name: observer ? 'Moderation' : userName || `Viewer_${effectiveUserId}`,
       role: 'SUBSCRIBER',
       roomId: roomId || `room_live_${streamId}`,
       audioOnly: Boolean(audioOnly),
-      expiresAt: new Date(Date.now() + 6 * 3600 * 1000).toISOString(),
+      observer: Boolean(observer),
+      // LiveKit maps this to `hidden` on the access-token grant: the participant subscribes without
+      // appearing in the room roster. A seller who could see a moderator join would simply behave
+      // differently for the duration of the watch, which defeats the point of watching.
+      hidden: Boolean(observer),
+      // Short-lived on purpose. An observation token is scoped to the sitting, not to the shift.
+      expiresAt: new Date(Date.now() + (observer ? 1 : 6) * 3600 * 1000).toISOString(),
       permissions: {
         canPublish: false,
         canSubscribe: true,
-        canPublishData: true,
+        canPublishData: !observer,
       },
     };
   },

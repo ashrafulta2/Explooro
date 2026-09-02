@@ -63,7 +63,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
   if (isSupplierView) {
     const breadcrumb = document.createElement('div');
-    breadcrumb.style.fontSize = 'var(--font-size-xs)';
+    breadcrumb.style.fontSize = 'var(--text-xs)';
     breadcrumb.style.color = 'var(--text-secondary)';
     breadcrumb.style.marginBottom = '4px';
     breadcrumb.innerHTML = `<a href="/supplier" style="color: inherit; text-decoration: none; font-weight: 700;">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a> / <span class="font-mono">Products Catalog</span>`;
@@ -434,7 +434,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
     if (isLoading) {
       contentArea.innerHTML = `
-        <div style="padding: var(--space-8); text-align: center; color: var(--color-text-muted);">
+        <div style="padding: var(--space-8); text-align: center; color: var(--text-muted);">
           <div class="skeleton" style="height: 300px; width: 100%; border-radius: var(--radius-lg);"></div>
         </div>
       `;
@@ -443,10 +443,10 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
     if (filtered.length === 0) {
       contentArea.innerHTML = `
-        <div style="padding: var(--space-12); text-align: center; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg);">
+        <div style="padding: var(--space-9); text-align: center; background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-lg);">
           <div style="font-size: 40px; margin-bottom: var(--space-2);">📦</div>
-          <h3 style="font-size: var(--text-base); font-weight: 600; margin: 0 0 var(--space-1); color: var(--color-text);">${t('admin_catalog.no_products_found', 'No products match your filters')}</h3>
-          <p style="font-size: var(--text-sm); color: var(--color-text-muted); margin: 0 0 var(--space-4);">${t('admin_catalog.try_adjusting_filters', 'Try modifying search criteria or clearing selected category.')}</p>
+          <h3 style="font-size: var(--text-base); font-weight: 600; margin: 0 0 var(--space-1); color: var(--text-primary);">${t('admin_catalog.no_products_found', 'No products match your filters')}</h3>
+          <p style="font-size: var(--text-sm); color: var(--text-muted); margin: 0 0 var(--space-4);">${t('admin_catalog.try_adjusting_filters', 'Try modifying search criteria or clearing selected category.')}</p>
           <button class="catalog-icon-btn" id="reset-filters-btn">${t('admin_catalog.reset_filters', 'Reset Filters')}</button>
         </div>
       `;
@@ -545,8 +545,8 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         </td>
         <td>
           <div style="display: flex; flex-direction: column; gap: 2px;">
-            <span style="font-weight: 500; color: var(--color-text);">${p.category || 'General'}</span>
-            <span style="font-size: var(--text-xs); color: var(--color-text-muted);">📍 ${p.district || 'Dhaka'}</span>
+            <span style="font-weight: 500; color: var(--text-primary);">${p.category || 'General'}</span>
+            <span style="font-size: var(--text-xs); color: var(--text-muted);">📍 ${p.district || 'Dhaka'}</span>
           </div>
         </td>
         <td>
@@ -565,8 +565,8 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           <div class="catalog-stock-wrap">
             <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
               <span>${p.stock ?? 0} ${t('admin_catalog.units', 'units')}</span>
-              ${isOutOfStock ? `<span style="color: var(--color-danger);">${t('admin_catalog.out_of_stock', 'Out')}</span>` : ''}
-              ${isLowStock ? `<span style="color: var(--color-warning);">${t('admin_catalog.low_stock', 'Low')}</span>` : ''}
+              ${isOutOfStock ? `<span style="color: var(--danger);">${t('admin_catalog.out_of_stock', 'Out')}</span>` : ''}
+              ${isLowStock ? `<span style="color: var(--warning);">${t('admin_catalog.low_stock', 'Low')}</span>` : ''}
             </div>
             <div class="catalog-stock-bar">
               <div class="catalog-stock-fill ${fillClass}" style="width: ${stockPct}%;"></div>
@@ -648,17 +648,17 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
             <h4 class="catalog-card__title">${isBn ? (p.title_bn || p.title_en) : (p.title_en || p.title_bn)}</h4>
             <span class="catalog-item-ref">${p.ref}</span>
           </div>
-          <p style="font-size: var(--text-xs); color: var(--color-text-muted); margin: 0;">📍 ${p.district || 'Dhaka'} • ${p.store_ref || 'Supplier'}</p>
+          <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">📍 ${p.district || 'Dhaka'} • ${p.store_ref || 'Supplier'}</p>
           <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: auto; padding-top: var(--space-2);">
             <div>
-              <div style="font-size: var(--text-base); font-weight: 700; color: var(--color-text);">৳${parseFloat(p.price || 0).toLocaleString()}</div>
-              <div style="font-size: 11px; color: var(--color-success); font-weight: 600;">${p.margin_pct ?? 18}% ${t('admin_catalog.saler_margin', 'margin')}</div>
+              <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary);">৳${parseFloat(p.price || 0).toLocaleString()}</div>
+              <div style="font-size: 11px; color: var(--success); font-weight: 600;">${p.margin_pct ?? 18}% ${t('admin_catalog.saler_margin', 'margin')}</div>
             </div>
             <div style="text-align: right;">
-              <span style="font-size: 12px; font-weight: 600; color: ${isOutOfStock ? 'var(--color-danger)' : isLowStock ? 'var(--color-warning)' : 'var(--color-text)'};">
+              <span style="font-size: 12px; font-weight: 600; color: ${isOutOfStock ? 'var(--danger)' : isLowStock ? 'var(--warning)' : 'var(--text-primary)'};">
                 ${p.stock ?? 0} in stock
               </span>
-              <div style="font-size: 11px; color: var(--color-text-subtle);">⭐ ${p.rating || '4.5'} (${p.rating_count || 12})</div>
+              <div style="font-size: 11px; color: var(--text-muted);">⭐ ${p.rating || '4.5'} (${p.rating_count || 12})</div>
             </div>
           </div>
         </div>
@@ -698,18 +698,18 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     drawerContent.style.gap = 'var(--space-5)';
 
     drawerContent.innerHTML = `
-      <div style="border-radius: var(--radius-lg); overflow: hidden; background: var(--color-surface-sunken); border: 1px solid var(--color-border);">
+      <div style="border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-2); border: 1px solid var(--border-strong);">
         <img src="${product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80'}" alt="${product.title_en}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;" />
       </div>
 
       <div style="display: flex; flex-direction: column; gap: var(--space-2);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2);">
-          <h3 style="font-size: var(--text-lg); font-weight: 700; margin: 0; color: var(--color-text); line-height: 1.3;">
+          <h3 style="font-size: var(--text-lg); font-weight: 700; margin: 0; color: var(--text-primary); line-height: 1.3;">
             ${product.title_en}
           </h3>
           <span class="catalog-item-ref">${product.ref}</span>
         </div>
-        <p style="font-size: var(--text-sm); color: var(--color-text-muted); margin: 0;">${product.title_bn || ''}</p>
+        <p style="font-size: var(--text-sm); color: var(--text-muted); margin: 0;">${product.title_bn || ''}</p>
         <div style="display: flex; gap: var(--space-2); margin-top: var(--space-1); flex-wrap: wrap;">
           <span class="badge badge--neutral">${product.category}</span>
           <span class="badge badge--${product.supplier_tier === 'elite' ? 'brand' : 'success'}">${product.supplier_tier || 'verified'} supplier</span>
@@ -718,46 +718,46 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       </div>
 
       <!-- Financial Split Breakdown -->
-      <div style="background: var(--color-surface-sunken); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);">
-        <div style="font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 0.05em;">
+      <div style="background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);">
+        <div style="font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
           ${t('admin_catalog.financial_split_title', 'Commerce Margin & Settlement Split')}
         </div>
         <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
-          <span style="color: var(--color-text-muted);">${t('admin_catalog.suggested_retail', 'Suggested Retail Price')}:</span>
-          <strong style="color: var(--color-text);">৳${retail.toFixed(2)}</strong>
+          <span style="color: var(--text-muted);">${t('admin_catalog.suggested_retail', 'Suggested Retail Price')}:</span>
+          <strong style="color: var(--text-primary);">৳${retail.toFixed(2)}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
-          <span style="color: var(--color-text-muted);">${t('admin_catalog.wholesale_cost', 'Supplier Wholesale Cost')}:</span>
+          <span style="color: var(--text-muted);">${t('admin_catalog.wholesale_cost', 'Supplier Wholesale Cost')}:</span>
           <span>৳${wholesaleCost.toFixed(2)}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); border-top: 1px dashed var(--color-border); padding-top: var(--space-2);">
-          <span style="color: var(--color-success); font-weight: 600;">💰 ${t('admin_catalog.saler_earning', 'Saler Reseller Earning (40%)')}:</span>
-          <strong style="color: var(--color-success);">৳${salerEarning.toFixed(2)}</strong>
+        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); border-top: 1px dashed var(--border-strong); padding-top: var(--space-2);">
+          <span style="color: var(--success); font-weight: 600;">💰 ${t('admin_catalog.saler_earning', 'Saler Reseller Earning (40%)')}:</span>
+          <strong style="color: var(--success);">৳${salerEarning.toFixed(2)}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
-          <span style="color: var(--color-text-subtle);">${t('admin_catalog.platform_fee', 'Platform Escrow Fee (60%)')}:</span>
-          <span style="color: var(--color-text-subtle);">৳${platformEarning.toFixed(2)}</span>
+          <span style="color: var(--text-muted);">${t('admin_catalog.platform_fee', 'Platform Escrow Fee (60%)')}:</span>
+          <span style="color: var(--text-muted);">৳${platformEarning.toFixed(2)}</span>
         </div>
       </div>
 
       <!-- Inventory & Supplier Details -->
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); font-size: var(--text-xs);">
-        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3);">
-          <div style="color: var(--color-text-muted);">${t('admin_catalog.stock_level', 'Stock Quantity')}</div>
-          <div style="font-size: var(--text-base); font-weight: 700; color: var(--color-text); margin-top: 2px;">${product.stock ?? 0} units</div>
+        <div style="background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-3);">
+          <div style="color: var(--text-muted);">${t('admin_catalog.stock_level', 'Stock Quantity')}</div>
+          <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-top: 2px;">${product.stock ?? 0} units</div>
         </div>
-        <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3);">
-          <div style="color: var(--color-text-muted);">${t('admin_catalog.origin_district', 'District Origin')}</div>
-          <div style="font-size: var(--text-base); font-weight: 700; color: var(--color-text); margin-top: 2px;">📍 ${product.district || 'Dhaka'}</div>
+        <div style="background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-3);">
+          <div style="color: var(--text-muted);">${t('admin_catalog.origin_district', 'District Origin')}</div>
+          <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-top: 2px;">📍 ${product.district || 'Dhaka'}</div>
         </div>
       </div>
 
       <!-- Description -->
       <div style="display: flex; flex-direction: column; gap: var(--space-1);">
-        <span style="font-size: var(--text-xs); font-weight: 700; color: var(--color-text-muted); text-transform: uppercase;">
+        <span style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
           ${t('admin_catalog.description', 'Catalog Description')}
         </span>
-        <p style="font-size: var(--text-sm); color: var(--color-text); line-height: 1.5; margin: 0;">
+        <p style="font-size: var(--text-sm); color: var(--text-primary); line-height: 1.5; margin: 0;">
           ${product.description_en || 'High-grade commercial sample catalog product with guaranteed quality assurance.'}
         </p>
       </div>

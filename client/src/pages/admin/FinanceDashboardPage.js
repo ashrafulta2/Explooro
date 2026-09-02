@@ -82,25 +82,25 @@ export default function FinanceDashboardPage(root) {
       <svg viewBox="0 0 ${width} ${height}" class="finance-svg-chart" preserveAspectRatio="none">
         <defs>
           <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="0.3"/>
-            <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0.0"/>
+            <stop offset="0%" stop-color="var(--brand)" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="var(--brand)" stop-opacity="0.0"/>
           </linearGradient>
         </defs>
 
         <!-- Grid Lines -->
-        <line x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}" stroke="var(--color-border)" stroke-dasharray="3 3"/>
-        <line x1="${padding}" y1="${(height - padding) / 2}" x2="${width - padding}" y2="${(height - padding) / 2}" stroke="var(--color-border)" stroke-dasharray="3 3"/>
-        <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="var(--color-border)"/>
+        <line x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}" stroke="var(--border-strong)" stroke-dasharray="3 3"/>
+        <line x1="${padding}" y1="${(height - padding) / 2}" x2="${width - padding}" y2="${(height - padding) / 2}" stroke="var(--border-strong)" stroke-dasharray="3 3"/>
+        <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="var(--border-strong)"/>
 
         <!-- Area Fill & Stroke Line -->
         <path d="${areaD}" fill="url(#trendGrad)" />
-        <path d="${pathD}" fill="none" stroke="var(--color-primary)" stroke-width="3" stroke-linecap="round" />
+        <path d="${pathD}" fill="none" stroke="var(--brand)" stroke-width="3" stroke-linecap="round" />
 
         <!-- Data Point Circles & Text -->
         ${points.map((p) => `
-          <circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--color-primary)" />
-          <text x="${p.x}" y="${height - 10}" text-anchor="middle" font-size="11" fill="var(--color-text-secondary)">${p.label}</text>
-          <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--color-text-primary)">৳${p.amount}</text>
+          <circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--brand)" />
+          <text x="${p.x}" y="${height - 10}" text-anchor="middle" font-size="11" fill="var(--text-secondary)">${p.label}</text>
+          <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--text-primary)">৳${p.amount}</text>
         `).join('')}
       </svg>
     `;

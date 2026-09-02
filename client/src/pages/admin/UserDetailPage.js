@@ -294,7 +294,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
     }
 
     const titleH3 = document.createElement('h3');
-    titleH3.style.fontSize = 'var(--font-size-sm)';
+    titleH3.style.fontSize = 'var(--text-sm)';
     titleH3.style.fontWeight = '800';
     titleH3.style.color = 'var(--text-primary)';
     titleH3.textContent = isBn ? `সক্রিয় পারমিশনসমূহ (${perms.length})` : `Active Held Permissions (${perms.length})`;
@@ -338,7 +338,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
     if (restrictions.length === 0) {
       pane.innerHTML = `
         <div style="padding: var(--space-6); text-align: center;">
-          <p style="font-weight: 700; color: var(--status-success); margin: 0;">✓ ${t('user_detail.no_restrictions', 'No active capability restrictions on this account.')}</p>
+          <p style="font-weight: 700; color: var(--success); margin: 0;">✓ ${t('user_detail.no_restrictions', 'No active capability restrictions on this account.')}</p>
           <span style="font-size: 12px; color: var(--text-muted);">All features and transaction capabilities are enabled without sanctions.</span>
         </div>
       `;
@@ -354,7 +354,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
 
       const title = document.createElement('span');
       title.className = 'perm-source-card__title';
-      title.style.color = 'var(--status-danger)';
+      title.style.color = 'var(--danger)';
       title.textContent = `🚫 ${r.capability_key || r.key} (${r.mode || 'BLOCKED'})`;
 
       const reason = document.createElement('span');
@@ -403,15 +403,15 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
         <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
           <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Total Orders</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--font-size-2xl); font-weight: 800; color: var(--text-primary);">${userData.total_orders_count ?? 89}</h4>
+          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--text-primary);">${userData.total_orders_count ?? 89}</h4>
         </div>
         <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
           <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Lifetime GMV</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--font-size-2xl); font-weight: 800; color: var(--text-primary);">৳${(userData.total_gmv_bdt || 385000).toLocaleString()}</h4>
+          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--text-primary);">৳${(userData.total_gmv_bdt || 385000).toLocaleString()}</h4>
         </div>
         <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
           <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Return Rate</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--font-size-2xl); font-weight: 800; color: var(--status-success);">1.2%</h4>
+          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--success);">1.2%</h4>
         </div>
       </div>
     `;
@@ -422,11 +422,11 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
         <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
           <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Available Balance</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--font-size-2xl); font-weight: 800; color: var(--status-success);">৳${(userData.wallet_balance_bdt || 45800.50).toLocaleString()}</h4>
+          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--success);">৳${(userData.wallet_balance_bdt || 45800.50).toLocaleString()}</h4>
         </div>
         <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
           <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Escrow Hold</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--font-size-2xl); font-weight: 800; color: var(--status-warning);">৳${(userData.escrow_held_bdt || 12400.00).toLocaleString()}</h4>
+          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--warning);">৳${(userData.escrow_held_bdt || 12400.00).toLocaleString()}</h4>
         </div>
       </div>
     `;
@@ -438,20 +438,20 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
       <div style="display: flex; flex-direction: column; gap: var(--space-4);">
         <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--surface-2); border-radius: var(--radius-md); border: var(--border-width) solid var(--border-subtle);">
           <div>
-            <span style="font-weight: 700; font-size: var(--font-size-sm); color: var(--text-primary);">National ID (Smart NID)</span>
+            <span style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary);">National ID (Smart NID)</span>
             <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-secondary);">Verified on: ${userData.kyc_verified_at ? formatDate(new Date(userData.kyc_verified_at).getTime(), { lang: isBn ? 'bn' : 'en' }) : 'Pending'}</p>
           </div>
-          <span style="color: ${isKycVerified ? 'var(--status-success)' : 'var(--status-warning)'}; font-weight: 700;">
+          <span style="color: ${isKycVerified ? 'var(--success)' : 'var(--warning)'}; font-weight: 700;">
             ${isKycVerified ? '✓ ' + t('user_detail.kyc_approved', 'KYC Verified') : t('user_detail.kyc_pending', 'Verification Pending')}
           </span>
         </div>
 
         <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--surface-2); border-radius: var(--radius-md); border: var(--border-width) solid var(--border-subtle);">
           <div>
-            <span style="font-weight: 700; font-size: var(--font-size-sm); color: var(--text-primary);">Trade License</span>
+            <span style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary);">Trade License</span>
             <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-secondary);">Enterprise merchant verification</p>
           </div>
-          <span style="color: var(--text-muted); font-size: var(--font-size-xs);">Optional for Salers</span>
+          <span style="color: var(--text-muted); font-size: var(--text-xs);">Optional for Salers</span>
         </div>
       </div>
     `;

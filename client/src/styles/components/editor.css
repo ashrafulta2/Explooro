@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--font-size-xs, 0.75rem);
+  font-size: var(--text-xs, 0.75rem);
 }
 
 .editor-header__title {
@@ -46,7 +46,7 @@
 }
 
 .editor-header__subtitle {
-  font-size: var(--font-size-sm, 0.875rem);
+  font-size: var(--text-sm, 0.875rem);
   color: var(--text-secondary, #64748b);
   margin: 0;
 }
@@ -90,7 +90,7 @@
 }
 
 .editor-kpi-card__label {
-  font-size: var(--font-size-xs, 0.75rem);
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 700;
   color: var(--text-secondary, #64748b);
   text-transform: uppercase;
@@ -157,12 +157,12 @@
 
 .editor-launchpad-card__title {
   font-weight: 800;
-  font-size: var(--font-size-base, 1rem);
+  font-size: var(--text-base, 1rem);
   color: var(--text-primary, #0f172a);
 }
 
 .editor-launchpad-card__desc {
-  font-size: var(--font-size-xs, 0.75rem);
+  font-size: var(--text-xs, 0.75rem);
   color: var(--text-secondary, #64748b);
   line-height: 1.4;
 }
@@ -200,7 +200,7 @@
 }
 
 .editor-card__subtitle {
-  font-size: var(--font-size-xs, 0.75rem);
+  font-size: var(--text-xs, 0.75rem);
   color: var(--text-secondary, #64748b);
   margin: 2px 0 0 0;
 }
@@ -382,7 +382,7 @@
   background: var(--surface-1, #f1f5f9);
   border: 1px solid var(--border-subtle, #cbd5e1);
   border-radius: 9999px;
-  font-size: var(--font-size-xs, 0.75rem);
+  font-size: var(--text-xs, 0.75rem);
   font-weight: 700;
   color: var(--text-secondary, #64748b);
   cursor: pointer;

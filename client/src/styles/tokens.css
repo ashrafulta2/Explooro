@@ -110,6 +110,26 @@
   --weight-5xl: 700;
 
   /* ---------------------------------------------------------------------
+   * Weight axis, independent of the size step (§3.4)
+   *
+   * WHY this exists alongside `--weight-<step>`: the scale above gives each
+   * size its *default* weight, but §3.4 requires hierarchy to be "built from
+   * weight and space, not size", capped at three distinct sizes per screen.
+   * That is only expressible if weight can vary while the size step is held
+   * — a 13px `--text-sm` label rendered semibold is the ordinary case, not an
+   * exception. Reaching for `--weight-3xl` to get 700 on a badge would couple
+   * that badge to the Display step, so retuning Display silently restyles it.
+   *
+   * Only 400 and 700 are shipped for Noto Sans Bengali (§3, "no faux bold"),
+   * so 500/600 apply to Latin runs and degrade to the nearest real Bengali
+   * weight — never author a weight outside this list.
+   * ------------------------------------------------------------------- */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---------------------------------------------------------------------
    * Font stacks (§3.1) — the webfont names are declared here; the
    * @font-face rules that back them are Prompt 1.2's job.
    * ------------------------------------------------------------------- */

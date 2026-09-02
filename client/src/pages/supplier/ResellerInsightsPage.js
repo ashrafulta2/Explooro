@@ -47,7 +47,7 @@ export default function ResellerInsightsPage(root) {
     content.style.flexDirection = 'column';
     content.style.gap = '14px';
     content.innerHTML = `
-      <p style="font-size: var(--font-size-sm); color: var(--text-secondary); margin: 0;">
+      <p style="font-size: var(--text-sm); color: var(--text-secondary); margin: 0;">
         Incentivize Salers curating your products with an exclusive wholesale discount or flash commission bonus.
       </p>
       <div class="supplier-form-field">
@@ -106,7 +106,7 @@ export default function ResellerInsightsPage(root) {
     content.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-1); padding: 12px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
         <div>
-          <div style="font-weight: 800; font-size: var(--font-size-base); color: var(--text-primary);">${saler.saler_name}</div>
+          <div style="font-weight: 800; font-size: var(--text-base); color: var(--text-primary);">${saler.saler_name}</div>
           <div class="text-xs text-muted">Virtual Storefront: <span class="font-mono text-brand font-bold">explooro.com/store/${saler.store_slug || saler.slug || 'store'}</span></div>
         </div>
         <span class="badge badge--success font-bold text-xs">⭐ Verified Top Saler</span>
@@ -123,12 +123,12 @@ export default function ResellerInsightsPage(root) {
         </div>
         <div class="supplier-kpi-card" style="padding: 12px;">
           <span class="supplier-kpi-card__label">Sales Volume</span>
-          <div style="font-weight: 800; font-size: 1.15rem; color: var(--status-success); margin-top: 2px;">${formatCurrency(saler.total_revenue_generated || 0)}</div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: var(--success); margin-top: 2px;">${formatCurrency(saler.total_revenue_generated || 0)}</div>
         </div>
       </div>
 
       <div>
-        <h4 style="font-size: var(--font-size-xs); font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0;">
+        <h4 style="font-size: var(--text-xs); font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0;">
           Supplier Collaboration Options
         </h4>
         <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -298,10 +298,10 @@ export default function ResellerInsightsPage(root) {
     tableHeader.style.paddingBottom = '14px';
     tableHeader.innerHTML = `
       <div>
-        <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+        <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           🏆 ${t('supplier.top_curators_leaderboard', 'Top Resellers Leaderboard')}
         </h3>
-        <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           Ranked by direct customer sales volume and retail merchandise demand
         </p>
       </div>
@@ -381,7 +381,7 @@ export default function ResellerInsightsPage(root) {
             <strong style="font-family: var(--font-mono); font-size: 13px;">${orders} orders</strong>
           </td>
           <td style="text-align: right;">
-            <span style="font-weight: 800; font-family: var(--font-mono); font-size: 14px; color: var(--status-success);">
+            <span style="font-weight: 800; font-family: var(--font-mono); font-size: 14px; color: var(--success);">
               ${formatCurrency(revenue)}
             </span>
           </td>
@@ -414,10 +414,10 @@ export default function ResellerInsightsPage(root) {
     regionCard.innerHTML = `
       <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
         <div>
-          <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+          <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
             📍 ${t('supplier.regional_demand', 'Regional Demand & Logistics Breakdown')}
           </h3>
-          <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+          <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
             Geographic sales distribution across Bangladesh districts to optimize warehouse stocking and courier fulfillment
           </p>
         </div>

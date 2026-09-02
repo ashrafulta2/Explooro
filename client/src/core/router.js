@@ -134,7 +134,11 @@ export function createRouter({
     const query = parseQuery(search);
 
     beforeEach?.({ path: pathname, route, params, query });
-    document.title = route.title ?? 'Explooro';
+    // WHY: a title may be a function so it can be translated at navigation time. The ~115
+    // stub routes build theirs from t(), and a plain string would freeze every browser-tab
+    // title in whatever language the app happened to boot in — subscribeLang's router.refresh()
+    // re-runs this line, so a function follows the language switch and a string cannot.
+    document.title = (typeof route.title === 'function' ? route.title() : route.title) ?? 'Explooro';
 
     root.replaceChildren();
     const mod = await route.load();

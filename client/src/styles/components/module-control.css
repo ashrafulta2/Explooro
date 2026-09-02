@@ -6,17 +6,17 @@
 .module-control__header { display: flex; flex-direction: column; gap: var(--space-2); }
 .module-control__title-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); }
 .module-control__title { font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary); margin: 0; }
-.module-control__stats { display: inline-flex; align-items: center; padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); background: var(--surface-subtle); border: 1px solid var(--border-subtle); font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary); }
+.module-control__stats { display: inline-flex; align-items: center; padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); background: var(--surface-2); border: 1px solid var(--border-subtle); font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary); }
 .module-control__subtitle { font-size: var(--text-base); color: var(--text-secondary); margin: 0; }
-.module-control__banner { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--warning-surface, #fffbeb); border: 1px solid var(--warning-border, #fef3c7); border-radius: var(--radius-md); color: var(--warning-text, #92400e); font-size: var(--text-sm); }
-.module-control__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-4); background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }
+.module-control__banner { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--warning-bg); border: 1px solid var(--warning-300); border-radius: var(--radius-md); color: var(--warning); font-size: var(--text-sm); }
+.module-control__toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-4); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }
 .module-control__search { flex: 1 1 240px; position: relative; }
-.module-control__search input { width: 100%; padding: var(--space-2) var(--space-3) var(--space-2) var(--space-8); border-radius: var(--radius-md); border: 1px solid var(--border-interactive); background: var(--surface-page); color: var(--text-primary); font-size: var(--text-sm); }
+.module-control__search input { width: 100%; padding: var(--space-2) var(--space-3) var(--space-2) var(--space-8); border-radius: var(--radius-md); border: 1px solid var(--border-interactive); background: var(--surface-0); color: var(--text-primary); font-size: var(--text-sm); }
 .module-control__search-icon { position: absolute; left: var(--space-3); top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 14px; }
-.module-group { display: flex; flex-direction: column; background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
-.module-group__head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) var(--space-5); background: var(--surface-subtle); cursor: pointer; }
+.module-group { display: flex; flex-direction: column; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
+.module-group__head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) var(--space-5); background: var(--surface-2); cursor: pointer; }
 .module-group__title { font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin: 0; }
-.module-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border-subtle); background: var(--surface-card); }
+.module-item { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border-subtle); background: var(--surface-1); }
 .module-item__info { display: flex; flex-direction: column; gap: 2px; }
 .module-item__name { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
 .module-item__desc { font-size: var(--text-xs); color: var(--text-secondary); }

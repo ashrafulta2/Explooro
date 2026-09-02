@@ -206,12 +206,42 @@ describe('Editor Portal — Content Handlers & CRUD Integrity', () => {
     assert.equal(exported.status, 200);
     assert.ok(typeof exported.data === 'object');
 
+    // The payload is `namespace -> { key: value }`, matching content.service.js's
+    // importTranslationsJson(), which walks Object.entries(data) as namespaces and upserts each
+    // (namespace, key, locale) triple. A flat `{ key: value }` map is NOT the contract — the
+    // mock used to accept one and report it as imported, which is why the Translation Manager's
+    // fixture ended up flat and its table rendered empty.
     const imported = importJson({
       params: { locale: 'bn' },
-      body: { translations: { automated_test_key: 'স্বয়ংক্রিয় টেস্ট কী' } },
+      body: { translations: { testing: { automated_test_key: 'স্বয়ংক্রিয় টেস্ট কী' } } },
     });
     assert.equal(imported.status, 200);
     assert.equal(imported.data.locale, 'bn');
     assert.equal(imported.data.imported_keys, 1);
+
+    // Importing into an existing namespace merges rather than replacing it.
+    const merged = importJson({
+      params: { locale: 'bn' },
+      body: { translations: { testing: { second_key: 'দ্বিতীয় কী' } } },
+    });
+    assert.equal(merged.data.imported_keys, 1);
+    const after = exportJson({ params: { locale: 'bn' } });
+    assert.deepEqual(
+      Object.keys(after.data.testing).sort(),
+      ['automated_test_key', 'second_key'],
+      'a second import into the same namespace must not drop the keys from the first'
+    );
+
+    // Every locale the completeness endpoint advertises must actually be exportable as
+    // namespace objects, or TranslationManagerPage's renderTable() shows "No keys found".
+    for (const { locale } of comp.data.locales) {
+      const dump = exportJson({ params: { locale } });
+      const values = Object.values(dump.data);
+      assert.ok(values.length > 0, `locale ${locale} exported no namespaces`);
+      assert.ok(
+        values.every((v) => v && typeof v === 'object' && !Array.isArray(v)),
+        `locale ${locale} must export namespace objects, not flat key -> string pairs`
+      );
+    }
   });
 });

@@ -243,7 +243,7 @@ export function CraftAuditPage() {
           wrap.style.cssText = 'display: flex; flex-direction: column; gap: var(--space-3);';
 
           const title = document.createElement('h2');
-          title.style.cssText = 'font-size: var(--text-md); font-weight: var(--weight-lg); margin: 0 0 var(--space-2);';
+          title.style.cssText = 'font-size: var(--text-base); font-weight: var(--weight-lg); margin: 0 0 var(--space-2);';
           title.textContent = `Findings (${findings.length})`;
           wrap.append(title);
 

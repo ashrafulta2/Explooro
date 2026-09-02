@@ -221,7 +221,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
 
       const dealCard = document.createElement('div');
       dealCard.className = 'supplier-order-card';
-      if (isDisputed) dealCard.style.borderColor = 'var(--status-danger)';
+      if (isDisputed) dealCard.style.borderColor = 'var(--danger)';
 
       dealCard.innerHTML = `
         <div class="supplier-order-card__header">
@@ -239,15 +239,15 @@ export default function B2bEscrowPage(root, ctx = {}) {
 
           <div style="text-align: right;">
             <div style="font-size: 10px; color: var(--text-secondary); text-transform: uppercase;">${t('b2b_escrow.total_deal_value', 'Total Deal Value')}</div>
-            <div style="font-size: 1.25rem; font-weight: 800; font-family: var(--font-mono); color: var(--brand-primary);">
+            <div style="font-size: 1.25rem; font-weight: 800; font-family: var(--font-mono); color: var(--text-brand);">
               ${formatCurrency(deal.total_amount)}
             </div>
           </div>
         </div>
 
         <div style="padding: 10px 14px; background: var(--surface-1); border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-          <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">${title || 'Wholesale Supply Contract'}</h3>
-          <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 4px; display: flex; gap: 16px;">
+          <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">${title || 'Wholesale Supply Contract'}</h3>
+          <div style="font-size: var(--text-xs); color: var(--text-secondary); margin-top: 4px; display: flex; gap: 16px;">
             <span>🛒 Buyer: <strong>${deal.buyer_name || `User #${deal.buyer_id}`}</strong></span>
             <span>🏭 Supplier: <strong>${deal.supplier_name || `User #${deal.supplier_id}`}</strong></span>
           </div>
@@ -334,10 +334,10 @@ export default function B2bEscrowPage(root, ctx = {}) {
 
     proposalCard.innerHTML = `
       <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
-        <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+        <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           📝 ${t('b2b_escrow.proposal_title', 'Draft New Wholesale Supply Agreement')}
         </h3>
-        <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           Specify buyer details, multi-stage delivery milestones, and quality inspection terms.
         </p>
       </div>
@@ -345,22 +345,22 @@ export default function B2bEscrowPage(root, ctx = {}) {
       <form id="new-b2b-deal-form" style="display: flex; flex-direction: column; gap: var(--space-4, 16px);">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Agreement Title (English) *</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Agreement Title (English) *</label>
             <input type="text" name="title_en" class="input input--sm" placeholder="e.g. 5,000 Cotton Sarees Supply Contract" required />
           </div>
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Agreement Title (Bangla)</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Agreement Title (Bangla)</label>
             <input type="text" name="title_bn" class="input input--sm" placeholder="যেমন: ৫,০০০ সুতি শাড়ি পাইকারি চুক্তি" />
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Buyer User ID / Account *</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Buyer User ID / Account *</label>
             <input type="number" name="buyer_id" class="input input--sm font-mono" placeholder="e.g. 5" required />
           </div>
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Total Agreement Value (BDT) *</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Total Agreement Value (BDT) *</label>
             <input type="number" name="total_amount" class="input input--sm font-mono" placeholder="250000.00" required />
           </div>
         </div>
@@ -482,7 +482,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
           <h3 class="supplier-modal__title">📜 Contract Terms & Quality Specifications</h3>
           <button class="supplier-modal__close close-modal-btn">&times;</button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--font-size-xs);">
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--text-xs);">
           <div style="background: var(--surface-1); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 6px;">
             <div><strong>Agreement:</strong> ${deal.title_en || deal.ref}</div>
             <div><strong>Delivery Window:</strong> ${terms.delivery_days || 30} days from mutual signoff</div>
@@ -513,7 +513,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
           <h3 class="supplier-modal__title text-danger">⚠️ Raise Milestone Dispute</h3>
           <button class="supplier-modal__close close-modal-btn">&times;</button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--font-size-xs);">
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--text-xs);">
           <p style="margin: 0; color: var(--text-secondary);">
             Raising a dispute will immediately freeze escrow release and escalate agreement #${deal.ref} to platform arbitration.
           </p>

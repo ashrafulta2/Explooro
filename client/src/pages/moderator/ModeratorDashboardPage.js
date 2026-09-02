@@ -52,12 +52,12 @@ export default function ModeratorDashboardPage(root) {
 
   let permissions = [
     'moderation.product.approve',
-    'orders.return.handle',
-    'disputes.arbitrate',
+    'orders.return.review',
+    'orders.dispute.arbitrate',
     'moderation.report.handle',
     'moderation.review.handle',
   ];
-  let userRole = 'moderator';
+  let userRoles = ['moderator'];
   let loading = true;
 
   const WORKSPACES = [
@@ -74,16 +74,16 @@ export default function ModeratorDashboardPage(root) {
       title: 'Returns & Inspection Queue',
       desc: 'Inspect customer return requests, damaged product media evidence, and reverse couriers.',
       icon: '🔄',
-      permissionKey: 'orders.return.handle',
-      route: '/admin/returns/queue',
+      permissionKey: 'orders.return.review',
+      route: '/moderator/returns',
     },
     {
       id: 'disputes-panel',
       title: 'Dispute Arbitration Panel',
       desc: 'Mediate 3-way buyer-saler-supplier conflicts and execute fair multi-outcome verdicts.',
       icon: '⚖️',
-      permissionKey: 'disputes.arbitrate',
-      route: '/disputes',
+      permissionKey: 'orders.dispute.arbitrate',
+      route: '/moderator/disputes',
     },
     {
       id: 'kyc-verification',
@@ -91,7 +91,7 @@ export default function ModeratorDashboardPage(root) {
       desc: 'Inspect government NIDs, business trade licenses, facility photos, and issue Blue-Tick badges.',
       icon: '🛡️',
       permissionKey: 'users.kyc.approve',
-      route: '/admin/verification',
+      route: '/moderator/kyc',
     },
     {
       id: 'community-reports',
@@ -99,7 +99,7 @@ export default function ModeratorDashboardPage(root) {
       desc: 'Investigate user flags regarding fake products, harassment, or policy violations.',
       icon: '🚩',
       permissionKey: 'moderation.report.handle',
-      route: '/moderator/queue?filter=reports',
+      route: '/moderator/queue?item_type=CHAT_REPORT',
     },
     {
       id: 'review-integrity',
@@ -125,8 +125,11 @@ export default function ModeratorDashboardPage(root) {
         if (permRes?.data?.permissions) {
           permissions = permRes.data.permissions;
         }
-        if (permRes?.data?.role) {
-          userRole = permRes.data.role;
+        // WHY: /me/permissions returns `roles` (an array) — never a singular `role`. Reading
+        // `data.role` silently left userRole at its 'moderator' seed, so the admin bypass in
+        // hasPermission() below never fired and admins saw every workspace card locked.
+        if (Array.isArray(permRes?.data?.roles) && permRes.data.roles.length > 0) {
+          userRoles = permRes.data.roles;
         }
       } catch {}
 
@@ -148,7 +151,7 @@ export default function ModeratorDashboardPage(root) {
   }
 
   function hasPermission(permissionKey) {
-    if (userRole === 'super_admin' || userRole === 'admin') return true;
+    if (userRoles.includes('super_admin') || userRoles.includes('admin')) return true;
     return permissions.includes(permissionKey);
   }
 
@@ -191,7 +194,7 @@ export default function ModeratorDashboardPage(root) {
               border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));
               text-transform: uppercase;
             ">
-              ROLE: ${userRole.toUpperCase()}
+              ROLE: ${userRoles.join(', ').toUpperCase()}
             </span>
           </div>
           <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
@@ -212,7 +215,7 @@ export default function ModeratorDashboardPage(root) {
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+            box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
             transition: all 0.15s ease;
           ">
             🔄 ${t('common.refresh', 'Refresh Data')}
@@ -230,7 +233,7 @@ export default function ModeratorDashboardPage(root) {
         border: 1px solid var(--border-subtle, #e2e8f0);
         border-radius: var(--radius-lg, 12px);
         padding: 20px;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -290,7 +293,7 @@ export default function ModeratorDashboardPage(root) {
                 border: 1px solid ${isUnlocked ? 'var(--info-border, rgba(79, 70, 229, 0.25))' : 'var(--border-subtle, #e2e8f0)'};
                 border-radius: var(--radius-lg, 12px);
                 padding: 18px;
-                box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+                box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -383,7 +386,7 @@ export default function ModeratorDashboardPage(root) {
         border: 1px solid var(--border-subtle, #e2e8f0);
         border-radius: var(--radius-lg, 12px);
         padding: 20px;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -442,7 +445,7 @@ export default function ModeratorDashboardPage(root) {
         border: 1px solid var(--border-subtle, #e2e8f0);
         border-radius: var(--radius-lg, 12px);
         padding: 20px;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         display: flex;
         flex-direction: column;
         gap: 12px;

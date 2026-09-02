@@ -571,9 +571,17 @@ export async function getQueue(db, {
   `;
   const params = [];
 
+  // WHY: a single tab can cover several item types — the "Products" tab must match both
+  // PRODUCT_NEW and PRODUCT_EDIT — so item_type accepts a comma-separated list.
   if (itemType && itemType !== 'ALL') {
-    params.push(itemType);
-    query += ` AND q.item_type = $${params.length}`;
+    const types = String(itemType)
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (types.length > 0) {
+      params.push(types);
+      query += ` AND q.item_type = ANY($${params.length})`;
+    }
   }
 
   if (status && status !== 'ALL') {

@@ -223,7 +223,7 @@ export default function InventoryPage(root) {
             <span class="badge badge--neutral text-xs">${item.category_name_en || 'General'}</span>
           </td>
           <td>
-            <div style="display: flex; flex-direction: column; font-size: var(--font-size-xs);">
+            <div style="display: flex; flex-direction: column; font-size: var(--text-xs);">
               <span>Base: <strong>${formatCurrency(item.base_cost)}</strong></span>
               <span class="text-success font-bold">Wholesale Margin: +${formatCurrency(item.wholesale_margin)}</span>
               <span class="text-muted">MSRP: ${formatCurrency(item.default_retail_price)}</span>
@@ -232,7 +232,7 @@ export default function InventoryPage(root) {
           <td>
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.125rem; font-weight: 800; font-family: var(--font-mono); color: ${isOutOfStock ? 'var(--status-danger)' : isLowStock ? 'var(--status-warning)' : 'var(--status-success)'};">
+                <span style="font-size: 1.125rem; font-weight: 800; font-family: var(--font-mono); color: ${isOutOfStock ? 'var(--danger)' : isLowStock ? 'var(--warning)' : 'var(--success)'};">
                   ${item.stock_qty}
                 </span>
                 <span class="text-xs text-muted">units</span>
@@ -243,7 +243,7 @@ export default function InventoryPage(root) {
             </div>
           </td>
           <td>
-            <div style="font-size: var(--font-size-xs); color: var(--text-secondary);">
+            <div style="font-size: var(--text-xs); color: var(--text-secondary);">
               ${(item.batches || []).length > 0 ? `
                 <span class="font-mono">${item.batches.length} lots registered</span>
               ` : `
@@ -297,13 +297,13 @@ export default function InventoryPage(root) {
         <div style="display: flex; flex-direction: column; gap: var(--space-4, 16px);">
           <div style="background: var(--surface-1); padding: 12px 16px; border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
             <div style="font-weight: 700; color: var(--text-primary);">${item.title_en}</div>
-            <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 2px;">
+            <div style="font-size: var(--text-xs); color: var(--text-secondary); margin-top: 2px;">
               SKU: <span class="supplier-order-card__ref">${item.ref}</span> · Threshold: <strong>${item.low_stock_threshold} units</strong>
             </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
-            <label class="label" style="font-weight: 700; font-size: var(--font-size-xs);">
+            <label class="label" style="font-weight: 700; font-size: var(--text-xs);">
               ${t('supplier.new_stock_qty', 'Total Available Physical Units')}
             </label>
             <div style="display: flex; align-items: center; gap: var(--space-2, 8px);">
@@ -323,7 +323,7 @@ export default function InventoryPage(root) {
           </div>
 
           <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
-            <label class="label" style="font-weight: 700; font-size: var(--font-size-xs);">
+            <label class="label" style="font-weight: 700; font-size: var(--text-xs);">
               Reason for Adjustment (Audit Log)
             </label>
             <select class="input input--sm" id="adjust-reason-select">

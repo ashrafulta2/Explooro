@@ -237,8 +237,8 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
       <h3 class="checkout-summary__title" style="margin-bottom: 12px; font-size: 1.05rem;">
         <span style="opacity: 0.8; margin-right: 4px;">📍</span> ${t('order_tracking.delivery_address')}
       </h3>
-      <div style="line-height: 1.6; font-size: 0.925rem; color: var(--color-text-secondary);">
-        <strong style="color: var(--color-text-primary); font-size: 0.95rem;">${order.recipient_name}</strong><br />
+      <div style="line-height: 1.6; font-size: 0.925rem; color: var(--text-secondary);">
+        <strong style="color: var(--text-primary); font-size: 0.95rem;">${order.recipient_name}</strong><br />
         <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
           <span style="opacity: 0.7;">📞</span> ${order.recipient_phone}
         </div>
@@ -270,7 +270,7 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
         <span style="font-family: monospace; font-weight: 500;">${formatCurrency(order.shipping_amount)}</span>
       </div>
       ${Number(order.discount_amount) > 0 ? `
-        <div class="checkout-summary__row" style="color: var(--color-success);">
+        <div class="checkout-summary__row" style="color: var(--success);">
           <span>${t('cart.discount')}</span>
           <span style="font-family: monospace; font-weight: 500;">- ${formatCurrency(order.discount_amount)}</span>
         </div>

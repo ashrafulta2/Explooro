@@ -88,7 +88,7 @@ export default function WorkloadSummary({
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
-      box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+      box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
       transition: all 0.2s ease;
     ">
       <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -116,12 +116,12 @@ export default function WorkloadSummary({
     card.addEventListener('mouseenter', () => {
       card.style.transform = 'translateY(-2px)';
       card.style.background = 'var(--surface-2, #f8fafc)';
-      card.style.boxShadow = 'var(--shadow-md, 0 4px 12px rgba(0,0,0,0.08))';
+      card.style.boxShadow = 'var(--elevation-2, 0 4px 12px rgba(0,0,0,0.08))';
     });
     card.addEventListener('mouseleave', () => {
       card.style.transform = 'translateY(0)';
       card.style.background = 'var(--surface-1, #ffffff)';
-      card.style.boxShadow = 'var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05))';
+      card.style.boxShadow = 'var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05))';
     });
     card.addEventListener('click', () => {
       const route = card.getAttribute('data-route');

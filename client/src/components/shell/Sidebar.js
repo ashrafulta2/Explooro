@@ -86,10 +86,12 @@ function renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups,
   const wrap = document.createElement('div');
   wrap.className = 'sidebar__groups';
 
-  const groups = navGroups.filter((g) => g.role === role).sort((a, b) => a.order - b.order);
+  const groups = navGroups
+    .filter((g) => g.role === role || (Array.isArray(g.roles) && g.roles.includes(role)) || (role === 'admin' && g.role === 'super_admin'))
+    .sort((a, b) => a.order - b.order);
   for (const group of groups) {
     const items = navItems
-      .filter((item) => item.group === group.key && item.roles.includes(role))
+      .filter((item) => item.group === group.key && (item.roles?.includes(role) || item.role === role || (role === 'admin' && item.roles?.includes('super_admin'))))
       .sort((a, b) => a.order - b.order);
 
     const nodes = items.map((item) => renderItem({ item, ctx, currentPath, navigate })).filter(Boolean);

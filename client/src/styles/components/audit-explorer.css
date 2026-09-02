@@ -14,8 +14,8 @@
 .audit-integrity-banner--broken { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #991b1b; font-weight: 700; }
 
 /* Toolbar & Filters */
-.audit-toolbar { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }
+.audit-toolbar { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }
 .audit-toolbar__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-3); }
-.audit-toolbar__input, .audit-toolbar__select { width: 100%; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--border-interactive); background: var(--surface-page); color: var(--text-primary); font-size: var(--text-xs); }
-.audit-table-wrap { background: var(--surface-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
+.audit-toolbar__input, .audit-toolbar__select { width: 100%; padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--border-interactive); background: var(--surface-0); color: var(--text-primary); font-size: var(--text-xs); }
+.audit-table-wrap { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }
 .audit-diff-view { background: #0f172a; color: #f8fafc; font-family: monospace; font-size: 12px; padding: 16px; border-radius: var(--radius-md); overflow-x: auto; }

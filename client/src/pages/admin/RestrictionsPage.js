@@ -249,7 +249,7 @@ export default function RestrictionsPage(root) {
       const capTitle = getFriendlyCapabilityLabel(r.capability_key, isLangBn);
       tdCap.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <strong style="font-size: 13px; color: var(--status-danger);">${capTitle}</strong>
+          <strong style="font-size: 13px; color: var(--danger);">${capTitle}</strong>
           <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${r.capability_key}</span>
         </div>
       `;
@@ -267,7 +267,7 @@ export default function RestrictionsPage(root) {
         ? `<br><span style="font-size: 10px; color: var(--text-muted);">Expires: ${formatDate(new Date(r.expires_at).getTime())}</span>`
         : '<br><span style="font-size: 10px; color: var(--text-muted);">Duration: Permanent</span>';
       const liftStr = r.lifted_at
-        ? `<br><span style="font-size: 10px; color: var(--status-success);">Lifted by ${r.lifted_by || 'Admin'} on ${formatDate(new Date(r.lifted_at).getTime())}: "${r.lift_reason || 'Resolved'}"</span>`
+        ? `<br><span style="font-size: 10px; color: var(--success);">Lifted by ${r.lifted_by || 'Admin'} on ${formatDate(new Date(r.lifted_at).getTime())}: "${r.lift_reason || 'Resolved'}"</span>`
         : '';
       tdReason.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">

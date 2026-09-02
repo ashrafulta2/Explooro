@@ -177,17 +177,17 @@ export default function SupplierInquiriesPage(root) {
         </div>
 
         <div>
-          <div style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary);">${inq.product_title}</div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 2px;">
+          <div style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary);">${inq.product_title}</div>
+          <div style="font-size: var(--text-xs); color: var(--text-secondary); margin-top: 2px;">
             Buyer: <strong>${inq.saler_name}</strong> · Phone: <strong>${inq.buyer_phone}</strong>
           </div>
         </div>
 
-        <div style="padding: 12px 14px; background: var(--surface-1); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); font-size: var(--font-size-xs);">
+        <div style="padding: 12px 14px; background: var(--surface-1); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); font-size: var(--text-xs);">
           <p style="margin: 0; color: var(--text-primary); font-style: italic;">"${inq.message}"</p>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--font-size-xs); font-family: var(--font-mono);">
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); font-family: var(--font-mono);">
           <div>
             Requested MOQ: <strong>${inq.requested_moq} units</strong>
           </div>
@@ -231,7 +231,7 @@ export default function SupplierInquiriesPage(root) {
           <button class="supplier-modal__close close-modal-btn">&times;</button>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--font-size-xs);">
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--text-xs);">
           <div style="background: var(--surface-1); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
             <div><strong>Product:</strong> ${inq.product_title}</div>
             <div><strong>Buyer MOQ:</strong> ${inq.requested_moq} units (Buyer Target: ${formatCurrency(inq.target_unit_price)})</div>

@@ -244,7 +244,7 @@ export default function WarrantyClaimsPage(root) {
             </div>
           </td>
           <td>
-            <div style="font-size: var(--font-size-xs); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <div style="font-size: var(--text-xs); max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               <strong>${claim.issue_category || 'Defect'}:</strong> ${claim.issue_description || 'Customer reported issue.'}
             </div>
           </td>
@@ -330,7 +330,7 @@ export default function WarrantyClaimsPage(root) {
           <td>${prod.total_warranties_issued} units</td>
           <td>${prod.total_claims} claims</td>
           <td>
-            <strong style="font-family: var(--font-mono); color: ${isHighDefect ? 'var(--status-danger)' : 'var(--status-success)'};">
+            <strong style="font-family: var(--font-mono); color: ${isHighDefect ? 'var(--danger)' : 'var(--success)'};">
               ${claimRate}%
             </strong>
           </td>
@@ -365,7 +365,7 @@ export default function WarrantyClaimsPage(root) {
           <button class="supplier-modal__close close-modal-btn">&times;</button>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--font-size-xs);">
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--text-xs);">
           <div style="background: var(--surface-1); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
             <div><strong>Product:</strong> ${claim.product_title || 'Item'}</div>
             <div style="margin-top: 4px;"><strong>Reported Issue:</strong> ${claim.issue_description || 'N/A'}</div>

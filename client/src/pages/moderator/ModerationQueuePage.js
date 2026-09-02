@@ -16,7 +16,13 @@ import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { ReviewCard } from '../../components/moderation/ReviewCard.js';
 
-export default function ModerationQueuePage(root) {
+// Tab key -> the item_type values it covers. A key may list several types (a "Products"
+// submission is either a brand-new listing or an edit to a live one), so the API takes a
+// comma-separated list. Hoisted out of the render so deep links can be validated against it.
+const TYPE_TAB_KEYS = ['ALL', 'PRODUCT_NEW,PRODUCT_EDIT', 'REVIEW', 'UGC_VIDEO', 'CHAT_REPORT'];
+const STATUS_KEYS = ['PENDING', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'ALL'];
+
+export default function ModerationQueuePage(root, ctx = {}) {
   const container = document.createElement('div');
   container.className = 'moderation-queue-page';
   container.style.cssText = `
@@ -31,8 +37,12 @@ export default function ModerationQueuePage(root) {
     font-family: inherit;
   `;
 
-  let currentTypeTab = 'ALL';
-  let currentStatus = 'PENDING';
+  // WHY: the Moderator Dashboard's workspace cards deep-link here with a preselected queue
+  // (e.g. /moderator/queue?item_type=REVIEW). Ignoring the query made every card land on the
+  // default "All Items / Pending" view, so the cards silently did not do what they said.
+  const query = ctx.query ?? {};
+  let currentTypeTab = TYPE_TAB_KEYS.includes(query.item_type) ? query.item_type : 'ALL';
+  let currentStatus = STATUS_KEYS.includes(query.status) ? query.status : 'PENDING';
   let queueItems = [];
   let stats = {
     pending_count: 4,
@@ -74,7 +84,7 @@ export default function ModerationQueuePage(root) {
       render();
       let url = `/moderation/queue?status=${currentStatus}`;
       if (currentTypeTab !== 'ALL') {
-        url += `&item_type=${currentTypeTab}`;
+        url += `&item_type=${encodeURIComponent(currentTypeTab)}`;
       }
       const res = await api.get(url);
       queueItems = res.data?.items || [];
@@ -156,7 +166,7 @@ export default function ModerationQueuePage(root) {
         max-width: 480px;
         width: 100%;
         padding: 24px;
-        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
         display: flex;
         flex-direction: column;
         gap: 16px;
@@ -280,7 +290,7 @@ export default function ModerationQueuePage(root) {
         max-width: 480px;
         width: 100%;
         padding: 24px;
-        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
         display: flex;
         flex-direction: column;
         gap: 16px;
@@ -433,7 +443,7 @@ export default function ModerationQueuePage(root) {
           display: flex;
           align-items: center;
           gap: 6px;
-          box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+          box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
           transition: all 0.15s ease;
         ">
           🔄 ${t('common.refresh', 'Refresh')}
@@ -449,20 +459,20 @@ export default function ModerationQueuePage(root) {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 14px;
       ">
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
-          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Pending Review</span>
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
+          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${t('moderation.stat_pending', 'Pending Review')}</span>
           <span style="font-size: 24px; font-weight: 800; color: var(--text-brand, #4f46e5);">${stats.pending_count || 0}</span>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--danger, #e11d48); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
-          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Flagged Content</span>
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--danger, #e11d48); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
+          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${t('moderation.stat_flagged', 'Flagged Content')}</span>
           <span style="font-size: 24px; font-weight: 800; color: var(--danger, #e11d48);">${stats.flagged_count || 0}</span>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
-          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Approved Today</span>
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
+          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${t('moderation.stat_approved', 'Approved Today')}</span>
           <span style="font-size: 24px; font-weight: 800; color: var(--success, #059669);">${stats.approved_today || 18}</span>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--text-muted, #64748b); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
-          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">Rejections</span>
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--text-muted, #64748b); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
+          <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${t('moderation.stat_rejected', 'Rejections')}</span>
           <span style="font-size: 24px; font-weight: 800; color: var(--text-muted, #64748b);">${stats.rejected_today || 3}</span>
         </div>
       </div>
@@ -470,13 +480,14 @@ export default function ModerationQueuePage(root) {
   }
 
   function renderFilterToolbar() {
-    const tabs = [
-      { key: 'ALL', label: t('moderation.tab_all', 'All Items') },
-      { key: 'PRODUCT_NEW', label: t('moderation.tab_products', 'Products') },
-      { key: 'REVIEW', label: t('moderation.tab_reviews', 'Reviews') },
-      { key: 'UGC_VIDEO', label: t('moderation.tab_ugc', 'UGC Videos') },
-      { key: 'CHAT_REPORT', label: t('moderation.tab_reports', 'User Reports') },
+    const labels = [
+      t('moderation.tab_all', 'All Items'),
+      t('moderation.tab_products', 'Products'),
+      t('moderation.tab_reviews', 'Reviews'),
+      t('moderation.tab_ugc', 'UGC Videos'),
+      t('moderation.tab_reports', 'User Reports'),
     ];
+    const tabs = TYPE_TAB_KEYS.map((key, i) => ({ key, label: labels[i] }));
 
     return `
       <div style="
@@ -489,7 +500,7 @@ export default function ModerationQueuePage(root) {
         justify-content: space-between;
         gap: 16px;
         flex-wrap: wrap;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
       ">
         <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="type-tabs">
           ${tabs
@@ -514,7 +525,7 @@ export default function ModerationQueuePage(root) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted, #64748b);">Status:</span>
+          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted, #64748b);">${t('moderation.status_label', 'Status:')}</span>
           <select id="sel-status-filter" style="
             padding: 6px 12px;
             font-size: 12px;
@@ -551,15 +562,15 @@ export default function ModerationQueuePage(root) {
         gap: 12px;
       ">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span>⌨️ Keyboard Shortcuts:</span>
-          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">A</span> Approve
-          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">R</span> Reject
-          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">C</span> Claim
-          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">J/K</span> Navigate
+          <span>⌨️ ${t('moderation.shortcuts_label', 'Keyboard Shortcuts:')}</span>
+          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">A</span> ${t('moderation.shortcut_approve', 'Approve')}
+          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">R</span> ${t('moderation.shortcut_reject', 'Reject')}
+          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">C</span> ${t('moderation.shortcut_claim', 'Claim')}
+          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">J/K</span> ${t('moderation.shortcut_navigate', 'Navigate')}
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-weight: 600; color: var(--text-primary, #0f172a);">${queueItems.length} items in queue</span>
+          <span style="font-weight: 600; color: var(--text-primary, #0f172a);">${t('moderation.queue_count', { count: queueItems.length })}</span>
         </div>
       </div>
     `;
@@ -570,7 +581,7 @@ export default function ModerationQueuePage(root) {
       return `
         <div style="padding: 48px; text-align: center; color: var(--text-muted, #64748b);">
           <div style="display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border-subtle, #e2e8f0); border-top-color: var(--brand, #4f46e5); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;"></div>
-          <div>Loading moderation queue items...</div>
+          <div>${t('moderation.loading_queue', 'Loading moderation queue items…')}</div>
         </div>
       `;
     }
@@ -594,7 +605,7 @@ export default function ModerationQueuePage(root) {
             ${t('moderation.queue_empty', 'Queue Clear!')}
           </h3>
           <p style="margin: 0; font-size: 13px; color: var(--text-muted, #64748b); max-width: 420px;">
-            No pending submissions found matching current filter criteria. All content is up to date.
+            ${t('moderation.queue_empty_desc', 'No pending submissions match the current filters. All content is up to date.')}
           </p>
         </div>
       `;

@@ -13,7 +13,7 @@
 .coins-page__header-action:hover { background: var(--brand-hover); }
 
 /* Hero Balance Card */
-.coins-hero { background: var(--surface-0); border: 1.5px solid #f59e0b; border-radius: var(--radius-2xl); padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); box-shadow: 0 4px 20px rgba(245,158,11,0.08); }
+.coins-hero { background: var(--surface-0); border: 1.5px solid #f59e0b; border-radius: var(--radius-xl); padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); box-shadow: 0 4px 20px rgba(245,158,11,0.08); }
 .coins-hero__top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-5); }
 .coins-hero__main { display: flex; align-items: center; gap: var(--space-4); }
 .coins-medallion { width: 72px; height: 72px; border-radius: var(--radius-full); background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #f59e0b 100%); border: 2px solid #d97706; box-shadow: 0 0 0 4px rgba(245,158,11,0.15); display: flex; align-items: center; justify-content: center; font-size: 2.25rem; flex-shrink: 0; }
@@ -35,7 +35,7 @@
 .coins-hero__btn-redeem:hover { background: #fef3c7; color: #92400e; }
 
 /* Streak Calendar */
-.coins-streak-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); padding: var(--space-5) var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+.coins-streak-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-5) var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
 .coins-streak-card__header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-subtle); }
 .coins-streak-card__title-group { display: flex; flex-direction: column; gap: 2px; }
 .coins-streak-card__title { font-size: var(--text-base); font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 6px; margin: 0; }
@@ -73,7 +73,7 @@
 .coins-earn-card__action { font-size: var(--text-xs); font-weight: 700; color: var(--text-brand); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; cursor: pointer; }
 
 /* Spend Guide */
-.coins-spend-guide { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); padding: var(--space-5) var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+.coins-spend-guide { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-5) var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
 .coins-spend-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4); }
 .coins-spend-step { display: flex; flex-direction: column; gap: 6px; padding: var(--space-3); border-radius: var(--radius-lg); background: var(--surface-1); border: 1px solid var(--border-subtle); }
 .coins-spend-step__num { width: 26px; height: 26px; border-radius: var(--radius-full); background: var(--brand); color: var(--brand-contrast, #111827); font-size: var(--text-xs); font-weight: 900; display: flex; align-items: center; justify-content: center; }
@@ -89,7 +89,7 @@
 .coins-tab-btn--active .coins-tab-count { background: rgba(0,0,0,0.16); color: var(--brand-contrast, #111827); }
 
 /* History Ledger */
-.coins-history-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); overflow: hidden; }
+.coins-history-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; }
 .coins-history-filters { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); background: var(--surface-1); }
 .coins-filter-chips { display: flex; gap: 6px; }
 .coins-filter-chip { padding: 4px 12px; font-size: 11px; font-weight: 700; border-radius: var(--radius-full); border: 1px solid var(--border-subtle); background: var(--surface-0); color: var(--text-secondary); cursor: pointer; }

@@ -131,11 +131,11 @@
   padding: var(--space-6) var(--space-6);
   border-radius: var(--radius-xl);
   border: 2px solid var(--primary);
-  background: var(--surface);
+  background: var(--surface-1);
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--elevation-1);
 }
 
 @media (min-width: 768px) {
@@ -233,7 +233,7 @@
 .become-saler-hero__slug-input-wrap {
   display: inline-flex;
   align-items: center;
-  background: var(--surface);
+  background: var(--surface-1);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
@@ -274,7 +274,7 @@
 .become-saler-calculator {
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-subtle);
-  background: var(--surface);
+  background: var(--surface-1);
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
@@ -369,7 +369,7 @@
 
 .become-saler-calculator__kpi-card--primary {
   border-color: var(--primary);
-  background: var(--surface);
+  background: var(--surface-1);
 }
 
 .become-saler-calculator__kpi-label {
@@ -394,7 +394,7 @@
 .become-saler-comparison {
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-subtle);
-  background: var(--surface);
+  background: var(--surface-1);
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
@@ -488,7 +488,7 @@
   padding: var(--space-5);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-subtle);
-  background: var(--surface);
+  background: var(--surface-1);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -500,7 +500,7 @@
   height: 28px;
   border-radius: var(--radius-full);
   background: var(--primary);
-  color: var(--surface);
+  color: var(--surface-1);
   font-weight: 900;
   font-size: var(--text-xs);
   display: flex;
@@ -526,7 +526,7 @@
 .become-saler-faq {
   border-radius: var(--radius-xl);
   border: 1px solid var(--border-subtle);
-  background: var(--surface);
+  background: var(--surface-1);
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
@@ -556,7 +556,7 @@
 
 .become-saler-faq__item[open] {
   border-color: var(--primary);
-  background: var(--surface);
+  background: var(--surface-1);
 }
 
 .become-saler-faq__summary {
@@ -609,7 +609,7 @@
   height: 52px;
   border-radius: var(--radius-full);
   background: var(--primary);
-  color: var(--surface);
+  color: var(--surface-1);
   font-size: var(--text-xl);
   display: flex;
   align-items: center;

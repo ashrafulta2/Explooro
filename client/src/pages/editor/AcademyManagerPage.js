@@ -287,11 +287,11 @@ export default function AcademyManagerPage(root) {
             <span class="text-xs text-muted font-bold font-mono">⏱️ ${course.estimated_minutes} mins</span>
           </div>
 
-          <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 2px 0;">
+          <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 2px 0;">
             ${course.title_en}
           </h3>
 
-          <p style="font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+          <p style="font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.4; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
             ${course.description_en}
           </p>
 

@@ -21,7 +21,7 @@ export default function SlaMonitor({
     border: 1px solid var(--border-subtle, #e2e8f0);
     border-radius: var(--radius-lg, 12px);
     padding: 20px;
-    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+    box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
     display: flex;
     flex-direction: column;
     height: 100%;

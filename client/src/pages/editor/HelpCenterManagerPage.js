@@ -264,11 +264,11 @@ export default function HelpCenterManagerPage(root) {
           </div>
         </div>
 
-        <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 2px 0;">
+        <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 2px 0;">
           ${article.title_en}
         </h3>
 
-        <p style="font-size: var(--font-size-xs); color: var(--text-secondary); line-height: 1.5; margin: 0;">
+        <p style="font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5; margin: 0;">
           ${article.content_en}
         </p>
 

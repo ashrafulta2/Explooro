@@ -276,4 +276,34 @@ export function muteUserInStream(streamId, userId, durationMs = 15 * 60 * 1000) 
   streamMutedUsers.set(key, Date.now() + durationMs);
 }
 
+/**
+ * Lifts a mute early. A mute is a timed silence, not a ban, so a moderator who muted the wrong
+ * person — or whose warning was heeded — needs a way to undo it before the timer runs out.
+ * Returns whether a mute was actually lifted, so the caller can avoid logging a no-op.
+ */
+export function unmuteUserInStream(streamId, userId) {
+  const key = `${Number(streamId)}:${Number(userId)}`;
+  return streamMutedUsers.delete(key);
+}
+
+/**
+ * Every user currently silenced in a stream, with the millisecond timestamp their mute lapses.
+ * The moderation console needs this to show who is muted and for how much longer — enforcement
+ * lives in this module, so the truth about it does too. Expired entries are swept on read.
+ */
+export function getStreamMutes(streamId) {
+  const prefix = `${Number(streamId)}:`;
+  const now = Date.now();
+  const mutes = [];
+  for (const [key, expires] of streamMutedUsers.entries()) {
+    if (!key.startsWith(prefix)) continue;
+    if (now > expires) {
+      streamMutedUsers.delete(key);
+      continue;
+    }
+    mutes.push({ user_id: Number(key.slice(prefix.length)), expires_at: new Date(expires).toISOString() });
+  }
+  return mutes;
+}
+
 export { eventBus };

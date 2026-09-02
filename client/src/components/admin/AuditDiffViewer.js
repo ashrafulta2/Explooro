@@ -128,7 +128,7 @@ export function AuditDiffViewer({ record = {} }) {
   beforePane.className = 'diff-pane';
   const beforeHeader = document.createElement('div');
   beforeHeader.className = 'diff-pane__header';
-  beforeHeader.style.color = 'var(--color-danger, #ef4444)';
+  beforeHeader.style.color = 'var(--danger, #ef4444)';
   beforeHeader.textContent = t('audit_diff.before_label');
 
   const beforePre = document.createElement('pre');
@@ -141,7 +141,7 @@ export function AuditDiffViewer({ record = {} }) {
   afterPane.className = 'diff-pane';
   const afterHeader = document.createElement('div');
   afterHeader.className = 'diff-pane__header';
-  afterHeader.style.color = 'var(--color-success, #10b981)';
+  afterHeader.style.color = 'var(--success, #10b981)';
   afterHeader.textContent = t('audit_diff.after_label');
 
   const afterPre = document.createElement('pre');

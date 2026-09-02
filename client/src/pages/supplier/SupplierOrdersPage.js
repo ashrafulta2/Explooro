@@ -246,7 +246,7 @@ export default function SupplierOrdersPage(root) {
 
         <!-- Packing Slip Directive -->
         <div class="supplier-order-card__items-box">
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--font-size-xs); font-weight: 700;">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); font-weight: 700;">
             <span>📦 ${t('supplier.packing_slip_items', 'Items to Pack (FEFO Directives)')}</span>
             <span class="text-muted font-mono">Node: ${order.warehouse_name || 'Central Depot'}</span>
           </div>
@@ -262,7 +262,7 @@ export default function SupplierOrdersPage(root) {
                     </span>
                   ` : '<span class="text-xs text-muted" style="margin-left: 8px;">(Standard Inventory)</span>'}
                 </div>
-                <div style="font-family: var(--font-mono); font-weight: 800; color: var(--brand-primary);">
+                <div style="font-family: var(--font-mono); font-weight: 800; color: var(--text-brand);">
                   Qty: ${item.qty}
                 </div>
               </div>
@@ -274,12 +274,12 @@ export default function SupplierOrdersPage(root) {
         <div class="supplier-order-card__footer">
           <div>
             ${hasConsignment ? `
-              <div style="font-size: var(--font-size-xs);">
+              <div style="font-size: var(--text-xs);">
                 <span class="text-muted">${t('supplier.carrier', 'Courier')}:</span> <strong>${order.carrier}</strong> ·
                 <span class="text-muted">${t('supplier.tracking', 'Tracking')}:</span> <span class="supplier-order-card__ref" style="font-size: 11px;">${order.tracking_number}</span>
               </div>
             ` : `
-              <div style="font-size: var(--font-size-xs); color: var(--status-warning); font-weight: 700; display: flex; align-items: center; gap: 4px;">
+              <div style="font-size: var(--text-xs); color: var(--warning); font-weight: 700; display: flex; align-items: center; gap: 4px;">
                 <span>⚠️</span> ${t('supplier.consignment_not_booked', 'Courier consignment not yet booked.')}
               </div>
             `}
@@ -348,7 +348,7 @@ export default function SupplierOrdersPage(root) {
           <button class="supplier-modal__close close-modal-btn">&times;</button>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-family: var(--font-mono); font-size: var(--font-size-xs);">
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-family: var(--font-mono); font-size: var(--text-xs);">
           <div style="background: var(--surface-1); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
             <div><strong>Order Ref:</strong> ${order.ref}</div>
             <div><strong>Depot Node:</strong> ${order.warehouse_name || 'Tejgaon Central Depot'}</div>
@@ -369,13 +369,13 @@ export default function SupplierOrdersPage(root) {
                 <tr>
                   <td><strong>${i.title_snapshot}</strong></td>
                   <td class="font-mono font-bold">${i.batch_number ? '#' + i.batch_number : 'Standard SKU'}</td>
-                  <td style="text-align: right; font-weight: 800; color: var(--brand-primary);">${i.qty}</td>
+                  <td style="text-align: right; font-weight: 800; color: var(--text-brand);">${i.qty}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
 
-          <div style="font-size: 11px; color: var(--text-secondary); padding: 8px 12px; background: rgba(59, 130, 246, 0.08); border-radius: var(--radius-md); border-left: 3px solid var(--status-info);">
+          <div style="font-size: 11px; color: var(--text-secondary); padding: 8px 12px; background: rgba(59, 130, 246, 0.08); border-radius: var(--radius-md); border-left: 3px solid var(--info);">
             * <strong>FEFO Rule:</strong> Strictly fulfill from indicated lot numbers to guarantee shelf-life compliance.
           </div>
         </div>

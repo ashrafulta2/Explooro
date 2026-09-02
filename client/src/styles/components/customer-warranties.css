@@ -29,7 +29,7 @@
 .warranties-tab-badge{font-size:11px;font-weight:800;padding:1px 7px;border-radius:var(--radius-full);background:var(--surface-2);color:var(--text-muted)}
 .warranties-tab-btn--active .warranties-tab-badge{background:rgba(0,0,0,0.16);color:var(--brand-contrast,#111827)}
 .warranties-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:var(--space-5)}
-.warranty-card{display:flex;flex-direction:column;background:var(--surface-0);border:1px solid var(--border-subtle);border-radius:var(--radius-2xl);overflow:hidden}
+.warranty-card{display:flex;flex-direction:column;background:var(--surface-0);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);overflow:hidden}
 .warranty-card:hover{border-color:var(--brand)}
 .warranty-card--expired{opacity:0.85}
 .warranty-card__header{background:var(--surface-1);padding:var(--space-4);border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
@@ -76,7 +76,7 @@
 .warranty-active-claim-banner__sub{font-size:11px;color:#92400e;margin-top:2px}
 .warranty-card__footer{padding:var(--space-3) var(--space-4);border-top:1px solid var(--border-subtle);background:var(--surface-1);display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
 .warranty-card__actions-left,.warranty-card__actions-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.warranties-guide{background:var(--surface-0);border:1px solid var(--border-subtle);border-radius:var(--radius-2xl);padding:var(--space-5) var(--space-6);display:flex;flex-direction:column;gap:var(--space-4)}
+.warranties-guide{background:var(--surface-0);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);padding:var(--space-5) var(--space-6);display:flex;flex-direction:column;gap:var(--space-4)}
 .warranties-guide__head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);padding-bottom:var(--space-3);border-bottom:1px solid var(--border-subtle)}
 .warranties-guide__title{font-size:var(--text-base);font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;margin:0}
 .warranties-guide__subtitle{font-size:var(--text-xs);color:var(--text-muted);margin:0}
@@ -90,7 +90,7 @@
 .warranties-faq-card__q{font-size:var(--text-xs);font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;margin:0}
 .warranties-faq-card__a{font-size:11px;color:var(--text-secondary);line-height:1.45;margin:0}
 .cert-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:var(--space-4);overflow-y:auto}
-.cert-modal{background:var(--surface-0);border:1px solid var(--border-subtle);border-radius:var(--radius-2xl);max-width:640px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;overflow:hidden}
+.cert-modal{background:var(--surface-0);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);max-width:640px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;overflow:hidden}
 .cert-modal__header{padding:var(--space-4) var(--space-5);border-bottom:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;background:var(--surface-1)}
 .cert-modal__title{font-size:var(--text-base);font-weight:800;color:var(--text-primary);margin:0;display:flex;align-items:center;gap:8px}
 .cert-modal__sheet{padding:var(--space-6);display:flex;flex-direction:column;gap:var(--space-4);background:var(--surface-0);position:relative}
@@ -117,7 +117,7 @@
 .claim-resolution-card__icon{font-size:1.25rem}
 .claim-resolution-card__label{font-size:11px;font-weight:800;color:var(--text-primary)}
 .claim-resolution-card__desc{font-size:9px;color:var(--text-muted);line-height:1.2}
-.claim-timeline__wrapper{background:var(--surface-0);border:1px solid var(--border-subtle);border-radius:var(--radius-2xl);padding:var(--space-5)}
+.claim-timeline__wrapper{background:var(--surface-0);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);padding:var(--space-5)}
 .claim-stepper{position:relative;display:flex;align-items:center;justify-content:space-between;margin:var(--space-4) 0}
 .claim-stepper__track-bg{position:absolute;top:18px;left:20px;right:20px;height:3px;background:var(--surface-3,#e5e7eb);z-index:1}
 .claim-stepper__track-fill{position:absolute;top:18px;left:20px;height:3px;background:#16a34a;z-index:2}

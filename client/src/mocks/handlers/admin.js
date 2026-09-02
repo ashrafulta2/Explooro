@@ -35,6 +35,256 @@ const mockBackups = [
   },
 ];
 
+/**
+ * COD reconciliation rows, in the exact shape server/src/services/codReconciliation.service.js's
+ * listReconciliations() selects — `consignment_id` / `sub_order_ref` / `courier_reported` /
+ * `deposit_received` / `variance`, and statuses drawn from the service's own vocabulary.
+ *
+ * WHY the field names matter: the previous fixture invented `order_id` / `collected_amount` /
+ * `discrepancy_amount` / `MISSING_REMITTANCE`, none of which the server or
+ * pages/admin/CodReconciliationPage.js knows. The page read every one of them as undefined and
+ * rendered a table of "-" placeholders and ৳0.00 variances that looked like real settled data.
+ *
+ * Mutable (rows are rewritten, not frozen) because the resolve and upload handlers below write to
+ * it, so a demo action moves the aging matrix the way the real endpoints would.
+ */
+const mockCodReconciliations = [
+  {
+    id: 1,
+    sub_order_id: 501,
+    sub_order_ref: 'SUB-89201-1',
+    consignment_id: 'ST-9281749',
+    courier: 'STEADFAST',
+    expected_amount: '3250.00',
+    courier_reported: '3250.00',
+    deposit_received: '3250.00',
+    variance: '0.00',
+    status: 'MATCHED',
+    settlement_batch_ref: 'BATCH-STEADFAST-DEMO01',
+    resolution_reason: null,
+    resolved_by_name: null,
+    resolved_at: new Date(Date.now() - 3600000 * 20).toISOString(),
+    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+  },
+  {
+    id: 2,
+    sub_order_id: 505,
+    sub_order_ref: 'SUB-89205-1',
+    consignment_id: 'PT-1029384',
+    courier: 'PATHAO',
+    expected_amount: '4500.00',
+    courier_reported: '4500.00',
+    deposit_received: '4200.00',
+    variance: '-300.00',
+    status: 'SHORT_COLLECTION',
+    settlement_batch_ref: 'BATCH-PATHAO-DEMO01',
+    resolution_reason: null,
+    resolved_by_name: null,
+    resolved_at: null,
+    created_at: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
+  },
+  {
+    id: 3,
+    sub_order_id: 510,
+    sub_order_ref: 'SUB-89210-1',
+    consignment_id: 'RDX-882716',
+    courier: 'REDX',
+    expected_amount: '1800.00',
+    courier_reported: '1800.00',
+    deposit_received: '0.00',
+    variance: '-1800.00',
+    status: 'MISSING_DEPOSIT',
+    settlement_batch_ref: 'BATCH-REDX-DEMO01',
+    resolution_reason: null,
+    resolved_by_name: null,
+    resolved_at: null,
+    created_at: new Date(Date.now() - 3600000 * 24 * 18).toISOString(),
+  },
+  {
+    id: 4,
+    sub_order_id: null,
+    sub_order_ref: null,
+    consignment_id: 'ST-9281812',
+    courier: 'STEADFAST',
+    expected_amount: '0.00',
+    courier_reported: '1150.00',
+    deposit_received: '1150.00',
+    variance: '1150.00',
+    status: 'UNMATCHED_CONSIGNMENT',
+    settlement_batch_ref: 'BATCH-STEADFAST-DEMO01',
+    resolution_reason: null,
+    resolved_by_name: null,
+    resolved_at: null,
+    created_at: new Date(Date.now() - 3600000 * 24 * 9).toISOString(),
+  },
+];
+
+/**
+ * Rebuilds the courier aging matrix from `mockCodReconciliations`, mirroring
+ * codReconciliation.service.js's getAgingReport(): same bucket boundaries (<3 / 3–7 / 8–14 /
+ * 15–30 / >30 days), same `amountFormatted` strings, same MATCHED/RESOLVED exclusion. Derived
+ * rather than hardcoded so the two endpoints can never drift apart, and so resolving a row in the
+ * demo actually moves the matrix.
+ */
+function buildCodAgingReport(alertThresholdDays = 7) {
+  const open = mockCodReconciliations.filter((r) => r.status !== 'MATCHED' && r.status !== 'RESOLVED');
+  const byCourier = new Map();
+  let platformUnreconciled = 0;
+  let platformAlertCount = 0;
+
+  for (const item of open) {
+    const courier = item.courier || 'OTHER';
+    let stats = byCourier.get(courier);
+    if (!stats) {
+      stats = {
+        courier,
+        totalCount: 0,
+        totalUnreconciled: 0,
+        shortCount: 0,
+        missingDepositCount: 0,
+        unmatchedCount: 0,
+        buckets: {
+          under3Days: { count: 0, amount: 0 },
+          days3To7: { count: 0, amount: 0 },
+          days8To14: { count: 0, amount: 0 },
+          days15To30: { count: 0, amount: 0 },
+          over30Days: { count: 0, amount: 0 },
+        },
+        hasAlert: false,
+      };
+      byCourier.set(courier, stats);
+    }
+
+    const ageDays = Math.floor((Date.now() - new Date(item.created_at).getTime()) / (24 * 3600 * 1000));
+    const unreconciled = Math.max(0, parseFloat(item.expected_amount || 0) - parseFloat(item.deposit_received || 0));
+
+    stats.totalCount += 1;
+    stats.totalUnreconciled += unreconciled;
+    platformUnreconciled += unreconciled;
+
+    if (item.status === 'SHORT_COLLECTION') stats.shortCount += 1;
+    if (item.status === 'MISSING_DEPOSIT') stats.missingDepositCount += 1;
+    if (item.status === 'UNMATCHED_CONSIGNMENT') stats.unmatchedCount += 1;
+
+    let bucket;
+    if (ageDays < 3) bucket = stats.buckets.under3Days;
+    else if (ageDays <= 7) bucket = stats.buckets.days3To7;
+    else if (ageDays <= 14) bucket = stats.buckets.days8To14;
+    else if (ageDays <= 30) bucket = stats.buckets.days15To30;
+    else bucket = stats.buckets.over30Days;
+    bucket.count += 1;
+    bucket.amount += unreconciled;
+
+    if (ageDays >= alertThresholdDays) {
+      stats.hasAlert = true;
+      platformAlertCount += 1;
+    }
+  }
+
+  const couriers = [...byCourier.values()].map((c) => ({
+    ...c,
+    totalUnreconciledFormatted: c.totalUnreconciled.toFixed(2),
+    buckets: Object.fromEntries(
+      Object.entries(c.buckets).map(([key, b]) => [key, { ...b, amountFormatted: b.amount.toFixed(2) }])
+    ),
+  }));
+
+  return {
+    alertThresholdDays,
+    totalUnreconciledPlatform: platformUnreconciled.toFixed(2),
+    totalUnreconciledRecords: open.length,
+    platformAlertCount,
+    couriers,
+  };
+}
+
+/**
+ * The single user roster behind BOTH `GET /admin/users` (the list) and `GET /admin/users/:id`
+ * (the detail deep-dive).
+ *
+ * WHY it is shared: the two handlers used to carry independent fixtures — the list held a real
+ * roster (Tariq Ahmed, moderator, Rajshahi…) while the detail synthesised a user from the numeric
+ * id (`User 4 Demo`, ref `USR-${(id*12345).toString(36)}`, email `user4@explooro.com`, district
+ * always Dhaka, role_label_en hardcoded 'Supplier' for every id > 2). Clicking a row therefore
+ * opened a detail page describing a *different person* than the row, with a role label that
+ * contradicted its own role_key. Deriving both from one array makes that class of drift
+ * impossible.
+ *
+ * `roles` is an array, not the flat `role_key`/`role_label_en` pair the old detail fixture used:
+ * pages/admin/UserDetailPage.js iterates `userData.roles` to render its role badges, so the flat
+ * shape rendered no badge at all. The flat fields stay too — UsersPage.js's table columns read
+ * them.
+ */
+const mockUserRoster = [
+  {
+    id: 1, ref: 'USR-8F2K9QX7', phone: '01711000001', email: 'rahim.khan@explooro.com',
+    full_name: 'Rahim Khan', role_key: 'super_admin', role_label_en: 'Super Admin', role_label_bn: 'সুপার অ্যাডমিন',
+    tier: 'ELITE_PARTNER', district: 'Dhaka', division: 'Dhaka', address_line: 'House 42, Road 7, Dhanmondi',
+    status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
+    orders_count: 142, gmv_bdt: 420000, created_at: '2026-01-15T09:00:00Z',
+    wallet_balance_bdt: 45800.50, escrow_held_bdt: 12400.00,
+  },
+  {
+    id: 2, ref: 'USR-3M7V2WQ1', phone: '01711000002', email: 'fatima.fashion@gmail.com',
+    full_name: 'Fatima Sultana', role_key: 'saler', role_label_en: 'Saler', role_label_bn: 'সেলার',
+    tier: 'PRO_SELLER', district: 'Sylhet', division: 'Sylhet', address_line: 'Flat 3B, Zindabazar',
+    status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 1,
+    orders_count: 89, gmv_bdt: 185000, created_at: '2026-02-10T11:20:00Z',
+    wallet_balance_bdt: 18250.75, escrow_held_bdt: 6400.00,
+  },
+  {
+    id: 3, ref: 'USR-9K4P8ZN2', phone: '01711000003', email: 'karim.textiles@ctg.bd',
+    full_name: 'Karim Textile Mills', role_key: 'supplier', role_label_en: 'Supplier', role_label_bn: 'সাপ্লায়ার',
+    tier: 'VERIFIED_SUPPLIER', district: 'Chittagong', division: 'Chattogram', address_line: 'Plot 19, Nasirabad I/A',
+    status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
+    orders_count: 310, gmv_bdt: 980000, created_at: '2026-01-20T08:15:00Z',
+    wallet_balance_bdt: 214300.00, escrow_held_bdt: 58200.00,
+  },
+  {
+    id: 4, ref: 'USR-5X8L3MB9', phone: '01711000004', email: 'tariq.moderation@explooro.com',
+    full_name: 'Tariq Ahmed', role_key: 'moderator', role_label_en: 'Moderator', role_label_bn: 'মডারেটর',
+    tier: 'STAFF', district: 'Rajshahi', division: 'Rajshahi', address_line: 'Staff Quarters, Shaheb Bazar',
+    status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
+    orders_count: 12, gmv_bdt: 24000, created_at: '2026-03-01T14:30:00Z',
+    wallet_balance_bdt: 0, escrow_held_bdt: 0,
+  },
+  {
+    id: 5, ref: 'USR-2P9C7RT4', phone: '01711000005', email: 'nusrat.editor@explooro.com',
+    full_name: 'Nusrat Jahan', role_key: 'editor', role_label_en: 'Editor', role_label_bn: 'এডিটর',
+    tier: 'STAFF', district: 'Dhaka', division: 'Dhaka', address_line: 'House 8, Road 11, Banani',
+    status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
+    orders_count: 5, gmv_bdt: 8500, created_at: '2026-03-12T10:00:00Z',
+    wallet_balance_bdt: 0, escrow_held_bdt: 0,
+  },
+  {
+    id: 6, ref: 'USR-7N1D5KL8', phone: '01711000006', email: 'anwar.customer@yahoo.com',
+    full_name: 'Anwar Hossain', role_key: 'customer', role_label_en: 'Customer', role_label_bn: 'ক্রেতা',
+    tier: 'STARTER', district: 'Khulna', division: 'Khulna', address_line: 'Holding 210, Sonadanga',
+    status: 'ACTIVE', kyc_status: 'UNVERIFIED', active_restrictions_count: 0,
+    orders_count: 18, gmv_bdt: 34500, created_at: '2026-04-05T16:45:00Z',
+    wallet_balance_bdt: 1240.00, escrow_held_bdt: 0,
+  },
+  {
+    id: 7, ref: 'USR-4H6J9PV3', phone: '01711000007', email: 'tanvir.crafts@gmail.com',
+    full_name: 'Tanvir Crafts', role_key: 'saler', role_label_en: 'Saler', role_label_bn: 'সেলার',
+    tier: 'STARTER', district: 'Bogura', division: 'Rajshahi', address_line: 'Ward 4, Sherpur Road',
+    status: 'RESTRICTED', kyc_status: 'PENDING', active_restrictions_count: 2,
+    orders_count: 7, gmv_bdt: 12800, created_at: '2026-05-18T13:10:00Z',
+    wallet_balance_bdt: 3120.40, escrow_held_bdt: 9800.00,
+  },
+];
+
+/** Detail-only extras, keyed by user id — the deep-dive tabs the list has no columns for. */
+const mockUserRestrictions = {
+  2: [
+    { key: 'can_withdraw', status: 'BLOCKED', reason: 'Suspected high-velocity withdrawal spike under manual verification review.', enforced_by: 'Super Admin', created_at: '2026-08-20T10:00:00Z' },
+  ],
+  7: [
+    { key: 'can_withdraw', status: 'BLOCKED', reason: 'KYC still pending — payouts held until identity is verified.', enforced_by: 'Compliance Officer', created_at: '2026-08-22T09:30:00Z' },
+    { key: 'can_list_product', status: 'BLOCKED', reason: 'Three upheld counterfeit reports within 30 days.', enforced_by: 'Moderator', created_at: '2026-08-25T15:05:00Z' },
+  ],
+};
+
 export const adminHandlers = [
   // 1. Executive Analytics Overview
   {
@@ -342,17 +592,7 @@ export const adminHandlers = [
       const district = query?.district || 'ALL';
       const restriction = query?.restriction || 'ALL';
 
-      const mockUsers = [
-        { id: 1, ref: 'USR-8F2K9QX7', phone: '01711000001', email: 'rahim.khan@explooro.com', full_name: 'Rahim Khan', role_key: 'super_admin', role_label_en: 'Super Admin', role_label_bn: 'সুপার অ্যাডমিন', tier: 'ELITE_PARTNER', district: 'Dhaka', status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0, orders_count: 142, gmv_bdt: 420000, created_at: '2026-01-15T09:00:00Z' },
-        { id: 2, ref: 'USR-3M7V2WQ1', phone: '01711000002', email: 'fatima.fashion@gmail.com', full_name: 'Fatima Sultana', role_key: 'saler', role_label_en: 'Saler', role_label_bn: 'সেলার', tier: 'PRO_SELLER', district: 'Sylhet', status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 1, orders_count: 89, gmv_bdt: 185000, created_at: '2026-02-10T11:20:00Z' },
-        { id: 3, ref: 'USR-9K4P8ZN2', phone: '01711000003', email: 'karim.textiles@ctg.bd', full_name: 'Karim Textile Mills', role_key: 'supplier', role_label_en: 'Supplier', role_label_bn: 'সাপ্লায়ার', tier: 'VERIFIED_SUPPLIER', district: 'Chittagong', status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0, orders_count: 310, gmv_bdt: 980000, created_at: '2026-01-20T08:15:00Z' },
-        { id: 4, ref: 'USR-5X8L3MB9', phone: '01711000004', email: 'tariq.moderation@explooro.com', full_name: 'Tariq Ahmed', role_key: 'moderator', role_label_en: 'Moderator', role_label_bn: 'মডারেটর', tier: 'STAFF', district: 'Rajshahi', status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0, orders_count: 12, gmv_bdt: 24000, created_at: '2026-03-01T14:30:00Z' },
-        { id: 5, ref: 'USR-2P9C7RT4', phone: '01711000005', email: 'nusrat.editor@explooro.com', full_name: 'Nusrat Jahan', role_key: 'editor', role_label_en: 'Editor', role_label_bn: 'এডিটর', tier: 'STAFF', district: 'Dhaka', status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0, orders_count: 5, gmv_bdt: 8500, created_at: '2026-03-12T10:00:00Z' },
-        { id: 6, ref: 'USR-7N1D5KL8', phone: '01711000006', email: 'anwar.customer@yahoo.com', full_name: 'Anwar Hossain', role_key: 'customer', role_label_en: 'Customer', role_label_bn: 'ক্রেতা', tier: 'STARTER', district: 'Khulna', status: 'ACTIVE', kyc_status: 'UNVERIFIED', active_restrictions_count: 0, orders_count: 18, gmv_bdt: 34500, created_at: '2026-04-05T16:45:00Z' },
-        { id: 7, ref: 'USR-4H6J9PV3', phone: '01711000007', email: 'tanvir.crafts@gmail.com', full_name: 'Tanvir Crafts', role_key: 'saler', role_label_en: 'Saler', role_label_bn: 'সেলার', tier: 'STARTER', district: 'Bogura', status: 'RESTRICTED', kyc_status: 'PENDING', active_restrictions_count: 2, orders_count: 7, gmv_bdt: 12800, created_at: '2026-05-18T13:10:00Z' },
-      ];
-
-      let filtered = mockUsers.filter((u) => {
+      let filtered = mockUserRoster.filter((u) => {
         if (q && !u.full_name.toLowerCase().includes(q) && !u.phone.includes(q) && !u.ref.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) {
           return false;
         }
@@ -378,42 +618,48 @@ export const adminHandlers = [
     method: 'GET',
     path: '/admin/users/:id',
     handler({ params }) {
-      const id = parseInt(params?.id || '1', 10);
-      const user = {
-        id,
-        ref: `USR-${(id * 12345).toString(36).toUpperCase()}`,
-        phone: `0171100000${id}`,
-        email: `user${id}@explooro.com`,
-        full_name: id === 1 ? 'Rahim Khan' : (id === 2 ? 'Fatima Sultana' : `User ${id} Demo`),
-        role_key: id === 1 ? 'super_admin' : (id === 2 ? 'saler' : (id === 3 ? 'supplier' : 'customer')),
-        role_label_en: id === 1 ? 'Super Admin' : (id === 2 ? 'Saler' : 'Supplier'),
-        role_label_bn: id === 1 ? 'সুপার অ্যাডমিন' : (id === 2 ? 'সেলার' : 'সাপ্লায়ার'),
-        tier: 'ELITE_PARTNER',
-        district: 'Dhaka',
-        status: 'ACTIVE',
-        kyc_status: 'VERIFIED',
-        kyc_document_type: 'NID_SMART_CARD',
-        kyc_verified_at: '2026-02-01T12:00:00Z',
-        active_restrictions_count: id === 2 ? 1 : 0,
-        wallet_balance_bdt: 45800.50,
-        escrow_held_bdt: 12400.00,
-        total_gmv_bdt: 385000.00,
-        total_orders_count: 89,
-        created_at: '2026-01-15T09:00:00Z',
-        last_login_at: new Date().toISOString(),
-        restrictions: id === 2 ? [
-          { key: 'can_withdraw', status: 'BLOCKED', reason: 'Suspected high-velocity withdrawal spike under manual verification review.', enforced_by: 'Super Admin', created_at: '2026-08-20T10:00:00Z' },
-        ] : [],
-        permissions: [
-          { key: 'admin.dashboard.view', label_en: 'Executive Dashboard View', domain: 'admin', why: 'Held via super_admin role', status: 'GRANTED' },
-          { key: 'users.account.view', label_en: 'Inspect User Accounts', domain: 'users', why: 'Held via super_admin role', status: 'GRANTED' },
-          { key: 'finance.payout.approve', label_en: 'Approve Payouts', domain: 'finance', why: 'Standing Grant by Super Admin until 2026-09-30', status: 'GRANTED' },
-        ],
-      };
+      const base = mockUserRoster.find((u) => String(u.id) === String(params?.id));
+
+      // A non-existent (or non-numeric) id used to fall through `parseInt(...)` and render a
+      // "User NaN Demo / USR-NAN / 0171100000NaN" ghost record. Answer the way the real endpoint
+      // does instead, so the page's catch branch runs.
+      if (!base) {
+        return {
+          status: 404,
+          body: {
+            error: {
+              code: 'NOT_FOUND',
+              message_en: 'User not found.',
+              message_bn: 'ব্যবহারকারী পাওয়া যায়নি।',
+              trace_id: traceId(),
+            },
+          },
+        };
+      }
+
+      const restrictions = mockUserRestrictions[base.id] ?? [];
 
       return {
         status: 200,
-        body: { user },
+        body: {
+          user: {
+            ...base,
+            // UserDetailPage.js renders one Badge per entry of `roles`.
+            roles: [{ key: base.role_key, label_en: base.role_label_en, label_bn: base.role_label_bn }],
+            kyc_document_type: base.kyc_status === 'VERIFIED' ? 'NID_SMART_CARD' : null,
+            kyc_verified_at: base.kyc_status === 'VERIFIED' ? '2026-02-01T12:00:00Z' : null,
+            total_gmv_bdt: base.gmv_bdt,
+            total_orders_count: base.orders_count,
+            last_login_at: new Date().toISOString(),
+            active_restrictions_count: restrictions.length,
+            restrictions,
+            permissions: [
+              { key: 'admin.dashboard.view', label_en: 'Executive Dashboard View', domain: 'admin', why: `Held via ${base.role_key} role`, status: 'GRANTED' },
+              { key: 'users.account.view', label_en: 'Inspect User Accounts', domain: 'users', why: `Held via ${base.role_key} role`, status: 'GRANTED' },
+              { key: 'finance.payout.approve', label_en: 'Approve Payouts', domain: 'finance', why: 'Standing Grant by Super Admin until 2026-09-30', status: 'GRANTED' },
+            ],
+          },
+        },
       };
     },
   },
@@ -1635,45 +1881,79 @@ export const adminHandlers = [
     path: '/admin/finance/payouts',
     handler({ query }) {
       const status = query?.status || 'REQUESTED';
+      // Field names follow migrations/012_finance.sql's `payout_requests` columns plus the joins
+      // payout.service.js's queue query adds (`user_full_name`, `user_ref`, `user_phone`) — which
+      // is what pages/admin/PayoutQueuePage.js reads.
+      //
+      // WHY: this fixture previously used `merchant_name` / `risk_flags` / `account_type` and no
+      // `ref` at all, so every row's reference column rendered "undefined" and the recipient fell
+      // back to the "User #<id>" placeholder. `PROCESSED` and `BANK_TRANSFER` were also outside
+      // the table's CHECK vocabularies (`COMPLETED` and `BANK`), so the status filter could never
+      // match that row. Names track mockUserRoster so the payout queue, the users list and the
+      // user detail page agree on who user #2, #3 and #6 are.
       const mockPayouts = [
         {
           id: 1,
-          payout_id: 1,
+          ref: 'PO-20260902-0001',
+          wallet_id: 12,
           user_id: 2,
-          merchant_name: 'Jamdani Heritage Weavers',
-          account_type: 'SUPPLIER',
-          amount: 85000,
+          user_full_name: 'Fatima Sultana',
+          user_ref: 'USR-3M7V2WQ1',
+          user_phone: '01711000002',
           method: 'BKASH',
           account_number: '01711000002',
+          account_name: 'Jamdani Heritage Weavers',
+          bank_name: null,
+          amount: '85000.00',
+          fee_amount: '850.00',
+          net_amount: '84150.00',
           status: 'REQUESTED',
+          risk_flags_json: [{ code: 'HIGH_VALUE_DISBURSEMENT', message: 'Amount exceeds ৳50,000 threshold' }],
+          gateway_ref: null,
+          failure_reason: null,
           created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-          risk_flags: [{ code: 'HIGH_VALUE_DISBURSEMENT', message: 'Amount exceeds ৳50,000 threshold' }],
         },
         {
           id: 2,
-          payout_id: 2,
+          ref: 'PO-20260902-0002',
+          wallet_id: 15,
           user_id: 3,
-          merchant_name: 'Saffron Glam Cosmetics',
-          account_type: 'SALER',
-          amount: 14500,
+          user_full_name: 'Karim Textile Mills',
+          user_ref: 'USR-9K4P8ZN2',
+          user_phone: '01711000003',
           method: 'NAGAD',
           account_number: '01711000003',
+          account_name: 'Saffron Glam Cosmetics',
+          bank_name: null,
+          amount: '14500.00',
+          fee_amount: '145.00',
+          net_amount: '14355.00',
           status: 'REQUESTED',
+          risk_flags_json: [],
+          gateway_ref: null,
+          failure_reason: null,
           created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-          risk_flags: [],
         },
         {
           id: 3,
-          payout_id: 3,
+          ref: 'PO-20260831-0003',
+          wallet_id: 21,
           user_id: 6,
-          merchant_name: 'Bengal Leather Crafts',
-          account_type: 'SUPPLIER',
-          amount: 42000,
-          method: 'BANK_TRANSFER',
+          user_full_name: 'Anwar Hossain',
+          user_ref: 'USR-7N1D5KL8',
+          user_phone: '01711000006',
+          method: 'BANK',
           account_number: 'BRAC-102938481',
-          status: 'PROCESSED',
+          account_name: 'Bengal Leather Crafts',
+          bank_name: 'BRAC Bank',
+          amount: '42000.00',
+          fee_amount: '420.00',
+          net_amount: '41580.00',
+          status: 'COMPLETED',
+          risk_flags_json: [],
+          gateway_ref: 'NGD-TRX-99283746',
+          failure_reason: null,
           created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-          risk_flags: [],
         },
       ];
 
@@ -1748,50 +2028,21 @@ export const adminHandlers = [
   {
     method: 'GET',
     path: '/admin/finance/cod',
-    handler() {
-      const mockRecons = [
-        {
-          id: 1,
-          order_id: 'ORD-89201',
-          courier: 'STEADFAST',
-          courier_tracking_id: 'ST-9281749',
-          expected_amount: 3250,
-          collected_amount: 3250,
-          discrepancy_amount: 0,
-          status: 'MATCHED',
-          created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-        },
-        {
-          id: 2,
-          order_id: 'ORD-89205',
-          courier: 'PATHAO',
-          courier_tracking_id: 'PT-1029384',
-          expected_amount: 4500,
-          collected_amount: 4200,
-          discrepancy_amount: -300,
-          status: 'SHORT_COLLECTION',
-          created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-        },
-        {
-          id: 3,
-          order_id: 'ORD-89210',
-          courier: 'REDX',
-          courier_tracking_id: 'RDX-882716',
-          expected_amount: 1800,
-          collected_amount: 0,
-          discrepancy_amount: -1800,
-          status: 'MISSING_REMITTANCE',
-          created_at: new Date(Date.now() - 3600000 * 96).toISOString(),
-        },
-      ];
+    handler({ query }) {
+      // Honours the same `status` / `courier` filters the page's two <select>s send, so filtering
+      // is exercised in mock mode instead of silently returning the whole list every time.
+      const status = query?.status || null;
+      const courier = query?.courier || null;
+      const limit = query?.limit ? parseInt(query.limit, 10) : 50;
+
+      const filtered = mockCodReconciliations.filter(
+        (r) => (!status || r.status === status) && (!courier || r.courier === courier)
+      );
+      const page = filtered.slice(0, limit);
 
       return {
         status: 200,
-        body: {
-          data: { reconciliations: mockRecons, total: mockRecons.length },
-          reconciliations: mockRecons,
-          total: mockRecons.length,
-        },
+        body: { data: { reconciliations: page, next_cursor: null, count: page.length } },
       };
     },
   },
@@ -1800,18 +2051,165 @@ export const adminHandlers = [
   {
     method: 'GET',
     path: '/admin/finance/cod/aging',
+    handler({ query }) {
+      const threshold = query?.alert_threshold_days ? parseInt(query.alert_threshold_days, 10) : 7;
+      return { status: 200, body: { data: buildCodAgingReport(threshold) } };
+    },
+  },
+
+  // 47b. Resolve a COD discrepancy
+  {
+    method: 'POST',
+    path: '/admin/finance/cod/:id/resolve',
+    handler({ params, body }) {
+      const reason = (body?.resolution_reason || body?.reason || '').trim();
+      if (!reason) {
+        return {
+          status: 400,
+          body: {
+            error: {
+              code: 'RESOLUTION_REASON_REQUIRED',
+              message_en: 'A resolution reason is required.',
+              message_bn: 'নিষ্পত্তির কারণ দেওয়া আবশ্যক।',
+              trace_id: traceId(),
+            },
+          },
+        };
+      }
+
+      const recon = mockCodReconciliations.find((r) => String(r.id) === String(params.id));
+      if (!recon) {
+        return {
+          status: 404,
+          body: {
+            error: {
+              code: 'NOT_FOUND',
+              message_en: 'Reconciliation record not found.',
+              message_bn: 'পুনর্মিলন রেকর্ড পাওয়া যায়নি।',
+              trace_id: traceId(),
+            },
+          },
+        };
+      }
+
+      recon.status = 'RESOLVED';
+      recon.resolution_reason = reason;
+      recon.resolved_by_name = 'Dev Super Admin';
+      recon.resolved_at = new Date().toISOString();
+
+      return { status: 200, body: { data: { success: true, reconciliation: recon } } };
+    },
+  },
+
+  // 47c. Ingest a courier settlement CSV
+  {
+    method: 'POST',
+    path: '/admin/finance/cod/upload',
+    handler({ body }) {
+      const csv = typeof body?.csv_content === 'string' ? body.csv_content.trim() : '';
+      // Mirrors the controller's parseCsvContent contract: a header row, then one record per line.
+      const rows = csv ? csv.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(1) : [];
+
+      if (rows.length === 0) {
+        return {
+          status: 400,
+          body: {
+            error: {
+              code: 'EMPTY_SETTLEMENT_REPORT',
+              message_en: 'No valid settlement records provided for reconciliation.',
+              message_bn: 'পুনর্মিলনের জন্য কোনো বৈধ সেটেলমেন্ট রেকর্ড পাওয়া যায়নি।',
+              trace_id: traceId(),
+            },
+          },
+        };
+      }
+
+      const courier = body?.courier || 'STEADFAST';
+      const batchRef = `BATCH-${courier}-${Date.now().toString(36).toUpperCase()}`;
+      let matchedCount = 0;
+      let shortCount = 0;
+      let missingDepositCount = 0;
+      let nextId = Math.max(0, ...mockCodReconciliations.map((r) => r.id)) + 1;
+
+      for (const line of rows) {
+        const [consignmentId, subOrderRef, reported, deposited] = line.split(',').map((c) => (c ?? '').trim());
+        const expectedNum = parseFloat(reported || 0) || 0;
+        const depositedNum = parseFloat(deposited || 0) || 0;
+        const variance = depositedNum - expectedNum;
+
+        let status;
+        if (depositedNum === 0 && expectedNum > 0) {
+          status = 'MISSING_DEPOSIT';
+          missingDepositCount += 1;
+        } else if (variance < 0) {
+          status = 'SHORT_COLLECTION';
+          shortCount += 1;
+        } else {
+          status = 'MATCHED';
+          matchedCount += 1;
+        }
+
+        mockCodReconciliations.unshift({
+          id: nextId++,
+          sub_order_id: null,
+          sub_order_ref: subOrderRef || null,
+          consignment_id: consignmentId || null,
+          courier,
+          expected_amount: expectedNum.toFixed(2),
+          courier_reported: expectedNum.toFixed(2),
+          deposit_received: depositedNum.toFixed(2),
+          variance: variance.toFixed(2),
+          status,
+          settlement_batch_ref: batchRef,
+          resolution_reason: null,
+          resolved_by_name: null,
+          resolved_at: null,
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      return {
+        status: 201,
+        body: {
+          data: {
+            batchRef,
+            courier,
+            totalCount: rows.length,
+            matchedCount,
+            shortCount,
+            overCount: 0,
+            missingDepositCount,
+            duplicateCount: 0,
+            unmatchedCount: 0,
+            timingCount: 0,
+          },
+        },
+      };
+    },
+  },
+
+  // =========================================================================
+  // Admin Governance Endpoints (Catalog, Orders, Logistics, Finance, Growth, Live & Security)
+  // =========================================================================
+
+  // Categories
+  {
+    method: 'GET',
+    path: '/admin/catalog/categories',
     handler() {
       return {
         status: 200,
         body: {
           data: {
-            unsettled_total: 680000,
-            aging_0_3_days: 340000,
-            aging_4_7_days: 210000,
-            aging_8_14_days: 95000,
-            aging_15_plus_days: 35000,
-            critical_alerts: [
-              { courier: 'RedX', order_id: 'ORD-89210', days_overdue: 18, amount: 1800 },
+            categories: [
+              { id: 1, name_en: 'Traditional Handloom & Sarees', name_bn: 'ঐতিহ্যবাহী তাঁত ও শাড়ি', slug: 'traditional-handloom', icon: '🥻', banner_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600', parent_id: null, commission_pct: 8.0, products_count: 142, gmv_bdt: 420000, is_active: true, display_order: 1 },
+              { id: 2, name_en: 'Jamdani Sarees', name_bn: 'জামদানি শাড়ি', slug: 'jamdani-sarees', icon: '✨', banner_url: '', parent_id: 1, commission_pct: 8.0, products_count: 68, gmv_bdt: 240000, is_active: true, display_order: 1 },
+              { id: 3, name_en: 'Tangail Cotton Handloom', name_bn: 'টাঙ্গাইল কটন তাঁত', slug: 'tangail-cotton', icon: '🧵', banner_url: '', parent_id: 1, commission_pct: 7.5, products_count: 45, gmv_bdt: 120000, is_active: true, display_order: 2 },
+              { id: 4, name_en: 'Electronics & Audio Gadgets', name_bn: 'ইলেকট্রনিক্স ও অডিও গ্যাজেট', slug: 'electronics-gadgets', icon: '🎧', banner_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600', parent_id: null, commission_pct: 6.5, products_count: 98, gmv_bdt: 310000, is_active: true, display_order: 2 },
+              { id: 5, name_en: 'Wireless TWS Earbuds', name_bn: 'ওয়্যারলেস টিডব্লিউএস ইয়ারবাডস', slug: 'wireless-earbuds', icon: '🔋', banner_url: '', parent_id: 4, commission_pct: 6.0, products_count: 42, gmv_bdt: 180000, is_active: true, display_order: 1 },
+              { id: 6, name_en: 'Organic Food & Honey', name_bn: 'অর্গানিক খাদ্য ও মধু', slug: 'organic-food-honey', icon: '🍯', banner_url: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600', parent_id: null, commission_pct: 10.0, products_count: 76, gmv_bdt: 215000, is_active: true, display_order: 3 },
+              { id: 7, name_en: 'Sundarban Raw Honey', name_bn: 'সুন্দরবনের খাঁটি মধু', slug: 'sundarban-honey', icon: '🐝', banner_url: '', parent_id: 6, commission_pct: 10.0, products_count: 31, gmv_bdt: 135000, is_active: true, display_order: 1 },
+              { id: 8, name_en: 'Home Living & Brasscrafts', name_bn: 'গৃহসজ্জা ও কাঁসা-পিতল', slug: 'home-brasscrafts', icon: '🏺', banner_url: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=600', parent_id: null, commission_pct: 9.0, products_count: 54, gmv_bdt: 165000, is_active: true, display_order: 4 },
             ],
           },
         },
@@ -1819,132 +2217,278 @@ export const adminHandlers = [
     },
   },
 
-  // 48. Admin Returns Queue
+  // Batches
   {
     method: 'GET',
-    path: '/admin/returns/queue',
-    handler({ query }) {
-      const statusFilter = query?.status || 'ALL';
-      const mockReturns = [
-        {
-          id: 1,
-          return_ref: 'RET-90124',
-          order_id: 'ORD-84920',
-          customer_name: 'Anisur Rahman',
-          customer_phone: '01711000002',
-          customer_trust_score: 92,
-          customer_return_rate: '2.4%',
-          product_title: 'Handloom Jamdani Saree (Royal Blue)',
-          refund_amount: 8500,
-          status: 'REQUESTED',
-          reason: 'Defective weave pattern on pallu section',
-          evidence_urls: ['/assets/demo/jamdani_defect.jpg'],
-          created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-        },
-        {
-          id: 2,
-          return_ref: 'RET-90125',
-          order_id: 'ORD-84922',
-          customer_name: 'Farzana Akter',
-          customer_phone: '01711000003',
-          customer_trust_score: 64,
-          customer_return_rate: '11.8%',
-          product_title: 'Organic Saffron Face Serum 30ml',
-          refund_amount: 1450,
-          status: 'RECEIVED',
-          reason: 'Broken bottle cap during courier transit',
-          evidence_urls: ['/assets/demo/serum_cap.jpg'],
-          created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-        },
-        {
-          id: 3,
-          return_ref: 'RET-90126',
-          order_id: 'ORD-84930',
-          customer_name: 'Mahmudul Hasan',
-          customer_phone: '01711000006',
-          customer_trust_score: 88,
-          customer_return_rate: '3.1%',
-          product_title: 'Pure Leather Men Executive Wallet',
-          refund_amount: 2200,
-          status: 'INSPECTED',
-          reason: 'Color mismatch with photo',
-          evidence_urls: [],
-          created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-        },
-      ];
-
-      const filtered = statusFilter === 'ALL'
-        ? mockReturns
-        : mockReturns.filter((r) => r.status === statusFilter);
-
+    path: '/admin/catalog/batches',
+    handler() {
+      const now = Date.now();
+      const dayMs = 86400000;
       return {
         status: 200,
         body: {
-          data: { returns: filtered, total: filtered.length },
-          returns: filtered,
-          total: filtered.length,
+          data: {
+            batches: [
+              { id: 1, batch_number: 'BTC-2026-09A', product_title_en: 'Sundarban Raw Natural Honey 500g', product_title_bn: 'সুন্দরবনের খাঁটি মধু ৫০০ গ্রাম', sku: 'HONEY-500-RAW', supplier_name: 'Sundarban Honey House', warehouse_name: 'Dhaka Central Hub', initial_qty: 200, current_stock: 45, manufactured_at: new Date(now - dayMs * 180).toISOString(), expires_at: new Date(now + dayMs * 25).toISOString(), status: 'EXPIRING_SOON', clearance_discount_pct: 15, is_quarantined: false },
+              { id: 2, batch_number: 'BTC-2026-11B', product_title_en: 'Sundarban Raw Natural Honey 500g', product_title_bn: 'সুন্দরবনের খাঁটি মধু ৫০০ গ্রাম', sku: 'HONEY-500-RAW', supplier_name: 'Sundarban Honey House', warehouse_name: 'Chittagong Port Node', initial_qty: 350, current_stock: 280, manufactured_at: new Date(now - dayMs * 60).toISOString(), expires_at: new Date(now + dayMs * 180).toISOString(), status: 'ACTIVE', clearance_discount_pct: 0, is_quarantined: false },
+              { id: 3, batch_number: 'BTC-2026-04C', product_title_en: 'Organic Black Seed Oil 200ml', product_title_bn: 'অর্গানিক কালোজিরা তেল ২০০ মি.লি.', sku: 'OIL-BLACKSEED-200', supplier_name: 'Bengal Organics Ltd.', warehouse_name: 'Dhaka Central Hub', initial_qty: 150, current_stock: 18, manufactured_at: new Date(now - dayMs * 300).toISOString(), expires_at: new Date(now + dayMs * 12).toISOString(), status: 'EXPIRING_SOON', clearance_discount_pct: 20, is_quarantined: false },
+              { id: 4, batch_number: 'BTC-2025-12F', product_title_en: 'Pure Mustard Cold-Pressed Oil 1L', product_title_bn: 'খাঁটি ঘানির সরিষার তেল ১ লিটার', sku: 'OIL-MUSTARD-1L', supplier_name: 'Natore Mustard Mill', warehouse_name: 'Rajshahi Regional Depot', initial_qty: 500, current_stock: 0, manufactured_at: new Date(now - dayMs * 400).toISOString(), expires_at: new Date(now - dayMs * 10).toISOString(), status: 'EXPIRED', clearance_discount_pct: 0, is_quarantined: false },
+              { id: 5, batch_number: 'BTC-2026-08X', product_title_en: 'Herbal Hair Growth Serum 50ml', product_title_bn: 'ভেষজ হেয়ার গ্রোথ সিরাম ৫০ মি.লি.', sku: 'COSM-SERUM-50', supplier_name: 'AyurCare Bangladesh', warehouse_name: 'Sylhet Eastern Facility', initial_qty: 120, current_stock: 85, manufactured_at: new Date(now - dayMs * 90).toISOString(), expires_at: new Date(now + dayMs * 150).toISOString(), status: 'QUARANTINED', clearance_discount_pct: 0, is_quarantined: true, quarantine_reason: 'Quality control seal integrity check' },
+            ],
+          },
         },
       };
     },
   },
 
-  // 49. Review Return (Approve / Reject)
+  // Warehouses
   {
-    method: 'POST',
-    path: '/admin/returns/:id/review',
-    handler({ params, body }) {
-      const action = body?.action || 'APPROVE';
+    method: 'GET',
+    path: '/admin/catalog/warehouses',
+    handler() {
       return {
         status: 200,
         body: {
           data: {
-            return_id: params?.id,
-            status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
-            rejection_reason: body?.rejection_reason || null,
+            warehouses: [
+              { id: 1, node_code: 'WH-DHK-01', name: 'Dhaka Central Fulfilment Hub', division: 'Dhaka', district: 'Dhaka (Tejgaon)', address: 'Plot 42, Tejgaon I/A, Dhaka', latitude: 23.7644, longitude: 90.3927, capacity_units: 100000, current_units: 74200, manager_name: 'Tanvir Hossain', manager_phone: '01711998801', status: 'OPERATIONAL', priority_rank: 1 },
+              { id: 2, node_code: 'WH-CTG-02', name: 'Chittagong Port Terminal Node', division: 'Chittagong', district: 'Chittagong (Agrabad)', address: 'Agrabad Commercial Area, Chittagong', latitude: 22.3304, longitude: 91.8155, capacity_units: 60000, current_units: 41500, manager_name: 'Mahmudul Hasan', manager_phone: '01711998802', status: 'OPERATIONAL', priority_rank: 2 },
+              { id: 3, node_code: 'WH-SYL-03', name: 'Sylhet Eastern Distribution Facility', division: 'Sylhet', district: 'Sylhet (Subidbazar)', address: 'Airport Road, Subidbazar, Sylhet', latitude: 24.8949, longitude: 91.8687, capacity_units: 35000, current_units: 18200, manager_name: 'Kawsar Ahmed', manager_phone: '01711998803', status: 'OPERATIONAL', priority_rank: 3 },
+              { id: 4, node_code: 'WH-RAJ-04', name: 'Rajshahi Regional Depot', division: 'Rajshahi', district: 'Rajshahi (Sopura)', address: 'Sopura BSCIC Industrial Estate, Rajshahi', latitude: 24.3745, longitude: 88.6042, capacity_units: 25000, current_units: 14800, manager_name: 'Nazmul Islam', manager_phone: '01711998804', status: 'OPERATIONAL', priority_rank: 4 },
+              { id: 5, node_code: 'WH-KHU-05', name: 'Khulna Southern Gateway Hub', division: 'Khulna', district: 'Khulna (Khalishpur)', address: 'Khalishpur Industrial Belt, Khulna', latitude: 22.8456, longitude: 89.5403, capacity_units: 30000, current_units: 26100, manager_name: 'Rashedul Karim', manager_phone: '01711998805', status: 'OPERATIONAL', priority_rank: 5 },
+            ],
           },
-          message_en: `Return ${action === 'APPROVE' ? 'approved and courier pickup scheduled' : 'rejected'}.`,
-          message_bn: `রিটার্ন অনুরোধ সফলভাবে ${action === 'APPROVE' ? 'অনুমোদিত' : 'প্রত্যাখ্যাত'} হয়েছে।`,
         },
       };
     },
   },
 
-  // 50. Inspect Return (Pass / Fail)
+  // Courier Fleet
   {
-    method: 'POST',
-    path: '/admin/returns/:id/inspect',
-    handler({ params, body }) {
-      const pass = Boolean(body?.condition_pass ?? true);
+    method: 'GET',
+    path: '/admin/courier/carriers',
+    handler() {
       return {
         status: 200,
         body: {
           data: {
-            return_id: params?.id,
-            status: pass ? 'INSPECTED' : 'DISPUTED',
-            notes: body?.inspection_notes,
+            carriers: [
+              { id: 1, key: 'steadfast', name: 'Steadfast Courier', logo: '⚡', is_active: true, delivery_rate_pct: 98.6, avg_delivery_time_h: 32, total_parcels: 1840, coverage_districts: 64, default_priority: 1, api_key_masked: 'st_live_••••••••89A2' },
+              { id: 2, key: 'pathao', name: 'Pathao Logistics', logo: '🏍️', is_active: true, delivery_rate_pct: 97.9, avg_delivery_time_h: 28, total_parcels: 980, coverage_districts: 45, default_priority: 2, api_key_masked: 'pth_sec_••••••••41F9' },
+              { id: 3, key: 'redx', name: 'RedX Express', logo: '📦', is_active: true, delivery_rate_pct: 96.4, avg_delivery_time_h: 42, total_parcels: 420, coverage_districts: 64, default_priority: 3, api_key_masked: 'rdx_tok_••••••••22B1' },
+              { id: 4, key: 'ecourier', name: 'eCourier Bangladesh', logo: '🚛', is_active: true, delivery_rate_pct: 98.1, avg_delivery_time_h: 36, total_parcels: 180, coverage_districts: 64, default_priority: 4, api_key_masked: 'ecr_app_••••••••77K4' },
+            ],
+            webhooks: [
+              { id: 1, courier: 'Steadfast', event: 'DELIVERED', tracking_id: 'ST-99820-DH', timestamp: new Date(Date.now() - 60000 * 5).toISOString(), status: 'VERIFIED', latency_ms: 18 },
+              { id: 2, courier: 'Pathao', event: 'IN_TRANSIT', tracking_id: 'PT-88120-CTG', timestamp: new Date(Date.now() - 60000 * 18).toISOString(), status: 'VERIFIED', latency_ms: 24 },
+              { id: 3, courier: 'RedX', event: 'RETURNED', tracking_id: 'RDX-44120-RAJ', timestamp: new Date(Date.now() - 60000 * 45).toISOString(), status: 'VERIFIED', latency_ms: 31 },
+              { id: 4, courier: 'eCourier', event: 'PICKED_UP', tracking_id: 'EC-77210-SYL', timestamp: new Date(Date.now() - 60000 * 85).toISOString(), status: 'VERIFIED', latency_ms: 22 },
+            ],
           },
-          message_en: pass ? 'Return inspection passed and ready for refund.' : 'Return marked as disputed.',
-          message_bn: pass ? 'পণ্য পরিদর্শন সফল এবং রিফান্ডের জন্য প্রস্তুত।' : 'রিটার্ন বিরোধের আওতায় পাঠানো হয়েছে।',
         },
       };
     },
   },
 
-  // 51. Execute Refund
+  // General Ledger
   {
-    method: 'POST',
-    path: '/admin/returns/:id/refund',
-    handler({ params }) {
+    method: 'GET',
+    path: '/admin/finance/ledger',
+    handler() {
+      const now = Date.now();
       return {
         status: 200,
         body: {
           data: {
-            return_id: params?.id,
-            status: 'REFUNDED',
-            refunded_at: new Date().toISOString(),
+            transactions: [
+              { id: 1, group_ref: 'TXG-88102', tx_type: 'ESCROW_RELEASE', sub_order_ref: 'SO-99822-1', debit_account: 'ESCROW:CUSTOMER_HOLD', credit_account: 'WALLET:SUPPLIER_AVAILABLE', amount: 4592.00, currency: 'BDT', status: 'BALANCED', created_at: new Date(now - 3600000 * 2).toISOString() },
+              { id: 2, group_ref: 'TXG-88102', tx_type: 'PLATFORM_FEE', sub_order_ref: 'SO-99822-1', debit_account: 'ESCROW:CUSTOMER_HOLD', credit_account: 'PLATFORM:TAKE_RATE_REVENUE', amount: 448.00, currency: 'BDT', status: 'BALANCED', created_at: new Date(now - 3600000 * 2).toISOString() },
+              { id: 3, group_ref: 'TXG-88102', tx_type: 'SALER_COMMISSION', sub_order_ref: 'SO-99822-1', debit_account: 'ESCROW:CUSTOMER_HOLD', credit_account: 'WALLET:SALER_AVAILABLE', amount: 560.00, currency: 'BDT', status: 'BALANCED', created_at: new Date(now - 3600000 * 2).toISOString() },
+              { id: 4, group_ref: 'TXG-88099', tx_type: 'ESCROW_LOCK', sub_order_ref: 'SO-99820-1', debit_account: 'GATEWAY:BKASH_COLLECTION', credit_account: 'ESCROW:CUSTOMER_HOLD', amount: 3200.00, currency: 'BDT', status: 'BALANCED', created_at: new Date(now - 3600000 * 8).toISOString() },
+              { id: 5, group_ref: 'TXG-88098', tx_type: 'PAYOUT_DISBURSEMENT', sub_order_ref: 'PO-33019', debit_account: 'WALLET:SUPPLIER_AVAILABLE', credit_account: 'BANK:DISBURSEMENT_OUTFLOW', amount: 18500.00, currency: 'BDT', status: 'BALANCED', created_at: new Date(now - 3600000 * 24).toISOString() },
+              { id: 6, group_ref: 'TXG-88095', tx_type: 'CLAWBACK_REVERSAL', sub_order_ref: 'SO-99815-1', debit_account: 'WALLET:SALER_AVAILABLE', credit_account: 'CUSTOMER:REFUND_WALLET', amount: 350.00, currency: 'BDT', status: 'BALANCED', created_at: new Date(now - 3600000 * 48).toISOString() },
+            ],
           },
-          message_en: 'Refund executed and customer wallet credited.',
-          message_bn: 'রিফান্ড সফলভাবে কার্যকর করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // Escrow Holdings
+  {
+    method: 'GET',
+    path: '/admin/finance/escrow',
+    handler() {
+      const now = Date.now();
+      const dayMs = 86400000;
+      return {
+        status: 200,
+        body: {
+          data: {
+            holdings: [
+              { id: 1, sub_order_ref: 'SO-99820-1', customer_name: 'Anisur Rahman', supplier_name: 'Jamdani Heritage Weavers', saler_name: 'Fashion Hub Sylhet', amount: 3200.00, delivered_at: new Date(now - dayMs * 8).toISOString(), release_due_at: new Date(now - dayMs * 1).toISOString(), status: 'MATURE_READY', return_window_days: 7 },
+              { id: 2, sub_order_ref: 'SO-99821-1', customer_name: 'Farhana Sultana', supplier_name: 'Aroma Spice Hub', saler_name: 'Organic Mart BD', amount: 1850.00, delivered_at: new Date(now - dayMs * 3).toISOString(), release_due_at: new Date(now + dayMs * 4).toISOString(), status: 'ACTIVE_HOLD', return_window_days: 7 },
+              { id: 3, sub_order_ref: 'SO-99820-2', customer_name: 'Anisur Rahman', supplier_name: 'Sundarban Honey House', saler_name: 'Fashion Hub Sylhet', amount: 1000.00, delivered_at: new Date(now - dayMs * 7).toISOString(), release_due_at: new Date(now - dayMs * 0.1).toISOString(), status: 'MATURE_READY', return_window_days: 7 },
+              { id: 4, sub_order_ref: 'SO-99818-1', customer_name: 'Tariq Ahmed', supplier_name: 'Bengal Leather Crafts', saler_name: 'Executive Store BD', amount: 4800.00, delivered_at: new Date(now - dayMs * 2).toISOString(), release_due_at: new Date(now + dayMs * 5).toISOString(), status: 'ACTIVE_HOLD', return_window_days: 7 },
+            ],
+          },
+        },
+      };
+    },
+  },
+
+  // B2B Escrow Deals
+  {
+    method: 'GET',
+    path: '/admin/finance/b2b-escrow',
+    handler() {
+      const now = Date.now();
+      return {
+        status: 200,
+        body: {
+          data: {
+            deals: [
+              {
+                id: 1,
+                deal_ref: 'B2B-2026-0891',
+                buyer_name: 'Fashion Hub Sylhet (Corporate)',
+                supplier_name: 'Jamdani Heritage Weavers',
+                deal_title: '100x Pure Silk Jamdani Wholesale Lot',
+                total_amount: 320000.00,
+                currency: 'BDT',
+                status: 'ACTIVE_IN_PROGRESS',
+                checksum_sha256: '7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069',
+                created_at: new Date(now - 3600000 * 48).toISOString(),
+                milestones: [
+                  { id: 1, title: 'Milestone 1: 30% Advance Deposit', amount: 96000.00, status: 'RELEASED' },
+                  { id: 2, title: 'Milestone 2: 40% QC & Dispatch Inspection', amount: 128000.00, status: 'PENDING_RELEASE' },
+                  { id: 3, title: 'Milestone 3: 30% Final Delivery & Handover', amount: 96000.00, status: 'LOCKED' },
+                ],
+              },
+              {
+                id: 2,
+                deal_ref: 'B2B-2026-0892',
+                buyer_name: 'Bengal Pure Food Distribution',
+                supplier_name: 'Sundarban Honey House',
+                deal_title: '500kg Pure Honey Bulk Supply Agreement',
+                total_amount: 450000.00,
+                currency: 'BDT',
+                status: 'ACTIVE_IN_PROGRESS',
+                checksum_sha256: 'a1b2c3d4e5f67890123456789abcdef0123456789abcdef0123456789abcdef0',
+                created_at: new Date(now - 3600000 * 96).toISOString(),
+                milestones: [
+                  { id: 1, title: 'Milestone 1: 30% Advance', amount: 135000.00, status: 'RELEASED' },
+                  { id: 2, title: 'Milestone 2: 40% Dispatch', amount: 180000.00, status: 'RELEASED' },
+                  { id: 3, title: 'Milestone 3: 30% Delivery Acceptance', amount: 135000.00, status: 'PENDING_RELEASE' },
+                ],
+              },
+            ],
+          },
+        },
+      };
+    },
+  },
+
+  // Sponsored Ads
+  {
+    method: 'GET',
+    path: '/admin/growth/ads',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            campaigns: [
+              { id: 1, title: 'Eid Mega Flash Sale Jamdani Boost', merchant_name: 'Jamdani Heritage Weavers', merchant_role: 'SUPPLIER', daily_budget: 1500.00, total_spent: 4200.00, impressions: 45000, clicks: 3800, cpc_bdt: 1.10, quality_score: 9.4, status: 'ACTIVE' },
+              { id: 2, title: 'Sundarban Pure Honey Sponsored Placement', merchant_name: 'Sundarban Honey House', merchant_role: 'SUPPLIER', daily_budget: 800.00, total_spent: 2400.00, impressions: 28000, clicks: 2100, cpc_bdt: 1.14, quality_score: 8.8, status: 'ACTIVE' },
+              { id: 3, title: 'Wireless Earbuds Top Category Banner', merchant_name: 'Gadget Express BD', merchant_role: 'SALER', daily_budget: 2000.00, total_spent: 12500.00, impressions: 85000, clicks: 6400, cpc_bdt: 1.95, quality_score: 9.1, status: 'ACTIVE' },
+              { id: 4, title: 'Organic Mustard Oil Search Boost', merchant_name: 'Bengal Organics Ltd.', merchant_role: 'SUPPLIER', daily_budget: 500.00, total_spent: 1500.00, impressions: 14000, clicks: 950, cpc_bdt: 1.58, quality_score: 8.2, status: 'PAUSED' },
+            ],
+          },
+        },
+      };
+    },
+  },
+
+  // Quests
+  {
+    method: 'GET',
+    path: '/admin/growth/quests',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            quests: [
+              { id: 1, title: 'Daily App Check-In', description: 'Open app & check in daily to build consecutive streak', reward_coins: 50, frequency: 'DAILY', completions_today: 3420, is_active: true },
+              { id: 2, title: 'Place Order above ৳1,000', description: 'Complete a purchase of ৳1,000 or higher', reward_coins: 200, frequency: 'DAILY', completions_today: 184, is_active: true },
+              { id: 3, title: 'Photo Review with Verified Badge', description: 'Leave a genuine review with at least 1 clear photo', reward_coins: 100, frequency: 'PER_ORDER', completions_today: 92, is_active: true },
+              { id: 4, title: 'Invite 3 Friends to Explooro', description: 'Share your referral code and achieve 3 registrations', reward_coins: 500, frequency: 'WEEKLY', completions_today: 48, is_active: true },
+            ],
+          },
+        },
+      };
+    },
+  },
+
+  // Group Buy
+  {
+    method: 'GET',
+    path: '/admin/growth/group-buy',
+    handler() {
+      const now = Date.now();
+      return {
+        status: 200,
+        body: {
+          data: {
+            teams: [
+              { id: 1, team_code: 'TEAM-8821A', product_title: 'Handloom Jamdani Saree (Navy Blue)', initiator_name: 'Fatima Sultana', target_members: 3, joined_members: 2, group_price: 2400.00, retail_price: 3200.00, expires_at: new Date(now + 3600000 * 8).toISOString(), status: 'ACTIVE' },
+              { id: 2, team_code: 'TEAM-8820B', product_title: 'Pure Forest Honey 1kg (2-Pack)', initiator_name: 'Rahim Khan', target_members: 2, joined_members: 2, group_price: 1500.00, retail_price: 1900.00, expires_at: new Date(now - 3600000 * 2).toISOString(), status: 'COMPLETED' },
+              { id: 3, team_code: 'TEAM-8819C', product_title: 'Wireless TWS Earbuds Bass Edition', initiator_name: 'Tariq Ahmed', target_members: 3, joined_members: 1, group_price: 850.00, retail_price: 1200.00, expires_at: new Date(now + 3600000 * 14).toISOString(), status: 'ACTIVE' },
+              { id: 4, team_code: 'TEAM-8818D', product_title: 'Mustard Cold-Pressed Oil 5L Can', initiator_name: 'Anwar Hossain', target_members: 3, joined_members: 1, group_price: 1650.00, retail_price: 2100.00, expires_at: new Date(now - 3600000 * 5).toISOString(), status: 'EXPIRED' },
+            ],
+          },
+        },
+      };
+    },
+  },
+
+  // Live Streams
+  {
+    method: 'GET',
+    path: '/admin/live/streams',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            streams: [
+              { id: 1, room_code: 'LIVE-DHK-99', title: 'Eid Exclusive Jamdani Saree Showcase & Flash Sale', host_name: 'Fatima Sultana (Saler)', host_district: 'Sylhet', viewers_count: 1240, in_stream_orders: 34, live_gmv: 68000.00, duration_min: 45, pinned_product: 'Handloom Jamdani Saree (Navy Blue) — ৳2,400', status: 'LIVE', thumbnail: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600' },
+              { id: 2, room_code: 'LIVE-CTG-42', title: 'Sundarban Raw Natural Honey Tasting & Live Extraction', host_name: 'Karim Textile & Honey (Supplier)', host_district: 'Khulna', viewers_count: 600, in_stream_orders: 18, live_gmv: 18400.00, duration_min: 22, pinned_product: 'Raw Forest Honey 1kg Jar — ৳850', status: 'LIVE', thumbnail: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600' },
+            ],
+          },
+        },
+      };
+    },
+  },
+
+  // Active Sessions
+  {
+    method: 'GET',
+    path: '/admin/security/sessions',
+    handler() {
+      const now = Date.now();
+      return {
+        status: 200,
+        body: {
+          data: {
+            sessions: [
+              { id: 1, session_id: 'SES-9981A', user_name: 'Rahim Khan (Super Admin)', user_email: 'rahim.khan@explooro.com', role: 'SUPER_ADMIN', ip_address: '103.145.120.42', location: 'Dhaka, Bangladesh', browser: 'Chrome 128 (Windows 11)', is_current: true, logged_in_at: new Date(now - 3600000 * 2).toISOString(), last_active_at: new Date(now - 60000 * 3).toISOString() },
+              { id: 2, session_id: 'SES-9982B', user_name: 'Tariq Ahmed (Moderator)', user_email: 'tariq.mod@explooro.com', role: 'MODERATOR', ip_address: '103.145.120.88', location: 'Rajshahi, Bangladesh', browser: 'Firefox 130 (macOS)', is_current: false, logged_in_at: new Date(now - 3600000 * 6).toISOString(), last_active_at: new Date(now - 60000 * 15).toISOString() },
+              { id: 3, session_id: 'SES-9983C', user_name: 'Nusrat Jahan (Editor)', user_email: 'nusrat.editor@explooro.com', role: 'EDITOR', ip_address: '103.205.110.14', location: 'Dhaka (Uttara), Bangladesh', browser: 'Safari 18 (iOS)', is_current: false, logged_in_at: new Date(now - 3600000 * 12).toISOString(), last_active_at: new Date(now - 60000 * 40).toISOString() },
+              { id: 4, session_id: 'SES-9984D', user_name: 'Karim Textiles (Supplier Operator)', user_email: 'karim.ops@ctg.bd', role: 'SUPPLIER', ip_address: '118.179.220.15', location: 'Chittagong, Bangladesh', browser: 'Edge 128 (Windows 10)', is_current: false, logged_in_at: new Date(now - 3600000 * 18).toISOString(), last_active_at: new Date(now - 3600000 * 1).toISOString() },
+            ],
+          },
         },
       };
     },

@@ -351,7 +351,7 @@ export default function ApprovalInboxPage(root) {
     const reqInfo = document.createElement('div');
     reqInfo.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 4px;">
-        <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+        <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           ${friendlyTitle}
         </h3>
         <div style="font-size: 12px; color: var(--text-secondary);">
@@ -409,7 +409,7 @@ export default function ApprovalInboxPage(root) {
     const actionInfo = document.createElement('div');
     actionInfo.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 4px;">
-        <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+        <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           ${friendlyTitle}
         </h3>
         <div style="font-size: 12px; color: var(--text-secondary);">
@@ -436,14 +436,14 @@ export default function ApprovalInboxPage(root) {
 
     const beforePane = document.createElement('div');
     beforePane.className = 'approval-diff__pane';
-    beforePane.innerHTML = `<span style="font-weight: 700; color: var(--status-danger, #ef4444);">${t('approvals.diff_before', 'Current / Before State')}</span>`;
+    beforePane.innerHTML = `<span style="font-weight: 700; color: var(--danger);">${t('approvals.diff_before', 'Current / Before State')}</span>`;
     const beforePre = document.createElement('pre');
     beforePre.textContent = JSON.stringify(item.before_state_json || item.preconditions_json || {}, null, 2);
     beforePane.append(beforePre);
 
     const afterPane = document.createElement('div');
     afterPane.className = 'approval-diff__pane';
-    afterPane.innerHTML = `<span style="font-weight: 700; color: var(--status-success, #10b981);">${t('approvals.diff_after', 'Proposed Mutation Payload')}</span>`;
+    afterPane.innerHTML = `<span style="font-weight: 700; color: var(--success);">${t('approvals.diff_after', 'Proposed Mutation Payload')}</span>`;
     const afterPre = document.createElement('pre');
     afterPre.textContent = JSON.stringify(item.payload_json || {}, null, 2);
     afterPane.append(afterPre);

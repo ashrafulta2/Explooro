@@ -72,16 +72,16 @@ export default function SupplierHelpPage(root) {
     checklistCard.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
         <div style="display: flex; align-items: center; justify-content: space-between;">
-          <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+          <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
             🚀 ${t('supplier.onboarding_title', 'Supplier Operational Routine Checklist')}
           </h3>
           <span class="badge badge--primary text-xs font-mono font-bold">${completedSteps.length}/5 Completed (${progressPct}%)</span>
         </div>
-        <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 0;">
+        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 0;">
           Follow this proven 5-step daily routine to maximize order fulfillment speed and maintain an Elite Supplier rating.
         </p>
         <div style="width: 100%; height: 6px; background: var(--surface-2); border-radius: 9999px; overflow: hidden; margin-top: 4px;">
-          <div style="width: ${progressPct}%; height: 100%; background: var(--status-success, #16a34a); transition: width 0.3s ease;"></div>
+          <div style="width: ${progressPct}%; height: 100%; background: var(--success); transition: width 0.3s ease;"></div>
         </div>
       </div>
 
@@ -90,10 +90,10 @@ export default function SupplierHelpPage(root) {
         <div class="supplier-checklist-item ${completedSteps.includes('1') ? 'supplier-checklist-item--done' : ''}">
           <input type="checkbox" id="step-1" style="margin-top: 3px; cursor: pointer;" ${completedSteps.includes('1') ? 'checked' : ''} />
           <div style="flex: 1;">
-            <label for="step-1" style="font-weight: 700; font-size: var(--font-size-sm); color: var(--text-primary); cursor: pointer;">
+            <label for="step-1" style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary); cursor: pointer;">
               ${t('supplier.step_1_title', '1. Register & Price Your Products')}
             </label>
-            <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+            <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
               ${t('supplier.step_1_desc', 'Add your manufacturing SKUs with attractive wholesale margins for Salers to promote.')}
             </p>
           </div>
@@ -104,10 +104,10 @@ export default function SupplierHelpPage(root) {
         <div class="supplier-checklist-item ${completedSteps.includes('2') ? 'supplier-checklist-item--done' : ''}">
           <input type="checkbox" id="step-2" style="margin-top: 3px; cursor: pointer;" ${completedSteps.includes('2') ? 'checked' : ''} />
           <div style="flex: 1;">
-            <label for="step-2" style="font-weight: 700; font-size: var(--font-size-sm); color: var(--text-primary); cursor: pointer;">
+            <label for="step-2" style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary); cursor: pointer;">
               ${t('supplier.step_2_title', '2. Allocate Physical Warehouse Stock')}
             </label>
-            <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+            <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
               ${t('supplier.step_2_desc', 'Configure safety thresholds and regional depot counts (Dhaka, Bogura, Chittagong).')}
             </p>
           </div>
@@ -118,10 +118,10 @@ export default function SupplierHelpPage(root) {
         <div class="supplier-checklist-item ${completedSteps.includes('3') ? 'supplier-checklist-item--done' : ''}">
           <input type="checkbox" id="step-3" style="margin-top: 3px; cursor: pointer;" ${completedSteps.includes('3') ? 'checked' : ''} />
           <div style="flex: 1;">
-            <label for="step-3" style="font-weight: 700; font-size: var(--font-size-sm); color: var(--text-primary); cursor: pointer;">
+            <label for="step-3" style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary); cursor: pointer;">
               ${t('supplier.step_3_title', '3. Pack Orders Following FEFO Lots')}
             </label>
-            <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+            <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
               ${t('supplier.step_3_desc', 'Dispatch oldest lots first to minimize shelf expiry and maintain 100% freshness.')}
             </p>
           </div>
@@ -132,10 +132,10 @@ export default function SupplierHelpPage(root) {
         <div class="supplier-checklist-item ${completedSteps.includes('4') ? 'supplier-checklist-item--done' : ''}">
           <input type="checkbox" id="step-4" style="margin-top: 3px; cursor: pointer;" ${completedSteps.includes('4') ? 'checked' : ''} />
           <div style="flex: 1;">
-            <label for="step-4" style="font-weight: 700; font-size: var(--font-size-sm); color: var(--text-primary); cursor: pointer;">
+            <label for="step-4" style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary); cursor: pointer;">
               ${t('supplier.step_4_title', '4. Print Thermal Labels & Hand to Courier')}
             </label>
-            <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+            <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
               ${t('supplier.step_4_desc', '1-click book Pathao or Steadfast, stick 4x6 labels, and hand over to delivery rider.')}
             </p>
           </div>
@@ -146,10 +146,10 @@ export default function SupplierHelpPage(root) {
         <div class="supplier-checklist-item ${completedSteps.includes('5') ? 'supplier-checklist-item--done' : ''}">
           <input type="checkbox" id="step-5" style="margin-top: 3px; cursor: pointer;" ${completedSteps.includes('5') ? 'checked' : ''} />
           <div style="flex: 1;">
-            <label for="step-5" style="font-weight: 700; font-size: var(--font-size-sm); color: var(--text-primary); cursor: pointer;">
+            <label for="step-5" style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary); cursor: pointer;">
               ${t('supplier.step_5_title', '5. Settle Wholesale Funds into Bank / MFS')}
             </label>
-            <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+            <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
               ${t('supplier.step_5_desc', 'Escrow releases T+3 days post-delivery directly to your Explooro Vault for instant withdrawal.')}
             </p>
           </div>
@@ -169,7 +169,7 @@ export default function SupplierHelpPage(root) {
     const faqSection = document.createElement('div');
     faqSection.className = 'supplier-faq-accordion';
     faqSection.innerHTML = `
-      <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: var(--space-3) 0 var(--space-1) 0;">
+      <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: var(--space-3) 0 var(--space-1) 0;">
         📚 ${t('supplier.faq_section_title', 'Supplier Frequently Asked Questions')}
       </h3>
 
@@ -236,7 +236,7 @@ export default function SupplierHelpPage(root) {
     // 4. Concierge & Support Strip
     const conciergeCard = document.createElement('div');
     conciergeCard.className = 'supplier-mode-banner';
-    conciergeCard.style.borderLeftColor = 'var(--status-success, #16a34a)';
+    conciergeCard.style.borderLeftColor = 'var(--success)';
     conciergeCard.innerHTML = `
       <div class="supplier-mode-banner__content">
         <span class="supplier-mode-banner__icon">🎧</span>
@@ -269,7 +269,7 @@ export default function SupplierHelpPage(root) {
 
         <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Issue Category</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Issue Category</label>
             <select class="input input--sm" id="ticket-category">
               <option value="COURIER_PICKUP">🚚 Courier Pickup / Consignment Delay</option>
               <option value="ESCROW_PAYOUT">💰 Vault Escrow & Bank Payout Inquiry</option>
@@ -280,12 +280,12 @@ export default function SupplierHelpPage(root) {
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Subject / Order Reference</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Subject / Order Reference</label>
             <input type="text" id="ticket-subject" class="input input--sm" placeholder="e.g. Order #ORD-9K2P4L courier did not arrive" />
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Detailed Description</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Detailed Description</label>
             <textarea id="ticket-body" class="input" style="height: 90px; resize: vertical;" placeholder="Describe your issue with full details..."></textarea>
           </div>
         </div>

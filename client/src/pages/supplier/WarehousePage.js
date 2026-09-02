@@ -87,7 +87,7 @@ export default function WarehousePage(root) {
     // 2. Info Banner regarding GIS Proximity & 3PL Transit Time
     const banner = document.createElement('div');
     banner.className = 'supplier-mode-banner';
-    banner.style.borderLeftColor = 'var(--status-info, #2563eb)';
+    banner.style.borderLeftColor = 'var(--info)';
     banner.innerHTML = `
       <div class="supplier-mode-banner__content">
         <span class="supplier-mode-banner__icon">🗺️</span>
@@ -146,20 +146,20 @@ export default function WarehousePage(root) {
         </div>
 
         <div>
-          <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">${wh.name}</h3>
-          <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+          <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">${wh.name}</h3>
+          <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
             📍 ${wh.address || 'Industrial Zone'}, <strong>${wh.district}</strong>
           </p>
         </div>
 
-        <div style="padding: 10px 14px; background: var(--surface-1); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: var(--font-size-xs); display: flex; justify-content: space-between; align-items: center;">
+        <div style="padding: 10px 14px; background: var(--surface-1); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: var(--text-xs); display: flex; justify-content: space-between; align-items: center;">
           <div>
             <div class="text-muted" style="font-size: 10px;">COORDINATES</div>
             <div style="font-weight: 700;">${wh.latitude || '23.8103'}, ${wh.longitude || '90.4125'}</div>
           </div>
           <div style="text-align: right;">
             <div class="text-muted" style="font-size: 10px;">STOCK HELD</div>
-            <div style="font-weight: 800; color: var(--brand-primary);">${wh.stock_units || 450} units</div>
+            <div style="font-weight: 800; color: var(--text-brand);">${wh.stock_units || 450} units</div>
           </div>
         </div>
 
@@ -194,13 +194,13 @@ export default function WarehousePage(root) {
 
         <form id="new-wh-form" style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Depot Name *</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Depot Name *</label>
             <input type="text" id="wh-name-input" class="input input--sm" placeholder="e.g. Bogura Distribution Depot" required />
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2, 8px);">
             <div style="display: flex; flex-direction: column; gap: 4px;">
-              <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">District *</label>
+              <label class="label" style="font-size: var(--text-xs); font-weight: 700;">District *</label>
               <select id="wh-district-select" class="input input--sm">
                 <option value="Dhaka">Dhaka</option>
                 <option value="Chittagong">Chittagong</option>
@@ -214,13 +214,13 @@ export default function WarehousePage(root) {
               </select>
             </div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
-              <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Priority Score (1-100)</label>
+              <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Priority Score (1-100)</label>
               <input type="number" id="wh-priority-input" class="input input--sm font-mono" min="1" max="100" value="10" />
             </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Street Address *</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Street Address *</label>
             <input type="text" id="wh-address-input" class="input input--sm" placeholder="e.g. Plot 14, BSCIC Industrial Estate" required />
           </div>
         </form>

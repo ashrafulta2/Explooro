@@ -134,7 +134,7 @@ export default function ReturnsQueuePage(root) {
           display: flex;
           align-items: center;
           gap: 6px;
-          box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+          box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
           transition: all 0.15s ease;
         ">
           🔄 ${t('common.refresh', 'Refresh')}
@@ -164,7 +164,7 @@ export default function ReturnsQueuePage(root) {
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
       ">
         ${tabs
           .map(
@@ -239,7 +239,7 @@ export default function ReturnsQueuePage(root) {
                 border-left: 4px solid ${ret.status === 'REFUNDED' ? 'var(--success, #059669)' : ret.status === 'REJECTED' || ret.status === 'DISPUTED' ? 'var(--danger, #e11d48)' : 'var(--brand, #4f46e5)'};
                 border-radius: var(--radius-lg, 12px);
                 padding: 20px;
-                box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+                box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
                 display: flex;
                 flex-direction: column;
                 gap: 14px;

@@ -15,6 +15,7 @@ export default async function liveStreamRoutes(fastify) {
   const reqHost = fastify.requirePermission ? fastify.requirePermission('live.stream.host') : async () => {};
   const reqModLive = fastify.requirePermission ? fastify.requirePermission('moderation.live.handle') : async () => {};
   const reqTermLive = fastify.requirePermission ? fastify.requirePermission('live.stream.terminate') : async () => {};
+  const reqChatMod = fastify.requirePermission ? fastify.requirePermission('chat.message.moderate') : async () => {};
   const checkCanOrder = requireRestriction('can_place_order');
 
   // 1. List Live Streams (Public / Filterable)
@@ -223,5 +224,63 @@ export default async function liveStreamRoutes(fastify) {
       },
     },
     liveCtrl.moderateTerminate
+  );
+
+  // ── Live Moderation Console (/moderator/live) ──────────────────────────────
+  // Read routes gate on moderation.live.handle (MEDIUM). Removing a message gates on
+  // chat.message.moderate — the same permission that governs message removal in ordinary chat, so
+  // the rule does not change just because the message was typed during a broadcast.
+
+  // 12. Moderation: Stream List (triage rail)
+  fastify.get(
+    '/live/moderation/streams',
+    {
+      preHandler: [fastify.authenticate, reqMod, reqModLive],
+    },
+    liveCtrl.listModerationStreams
+  );
+
+  // 13. Moderation: Single Stream Feed (chat + flags + mutes + action log)
+  fastify.get(
+    '/live/moderation/streams/:id',
+    {
+      preHandler: [fastify.authenticate, reqMod, reqModLive],
+    },
+    liveCtrl.getModerationFeed
+  );
+
+  // 14. Moderation: Remove One Chat Message
+  fastify.post(
+    '/live/streams/:id/moderate/messages/:messageId/remove',
+    {
+      preHandler: [fastify.authenticate, reqMod, reqChatMod],
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            reason: { type: 'string' },
+          },
+        },
+      },
+    },
+    liveCtrl.moderateRemoveMessage
+  );
+
+  // 15. Moderation: Lift a Mute
+  fastify.post(
+    '/live/streams/:id/moderate/unmute',
+    {
+      preHandler: [fastify.authenticate, reqMod, reqModLive],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['target_user_id'],
+          properties: {
+            target_user_id: { type: 'number' },
+          },
+        },
+      },
+    },
+    liveCtrl.moderateUnmute
   );
 }

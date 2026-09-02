@@ -36,6 +36,38 @@ let mockModerationItems = [
     created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
   },
   {
+    id: 5,
+    ref: 'MOD-PRD-2026-094',
+    item_type: 'PRODUCT_EDIT',
+    target_entity: 'PRODUCT',
+    target_id: 5510,
+    status: 'PENDING',
+    claimed_by: null,
+    claimed_by_name: null,
+    submitted_by: 7,
+    submitter_name: 'Rajshahi Silk House',
+    data: {
+      title_en: 'Rajshahi Pure Silk Saree — Price & Description Update',
+      title_bn: 'রাজশাহী খাঁটি সিল্ক শাড়ি — মূল্য ও বিবরণ হালনাগাদ',
+      category: 'Fashion > Sarees',
+      price: 7800,
+      description: 'Seller raised retail price by Tk 800 and rewrote the fabric-care section.',
+      images: [
+        'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?w=600',
+      ],
+    },
+    pre_screening: {
+      has_flags: false,
+      banned_keywords: [],
+      price_anomaly: false,
+      duplicate_risk: 'LOW',
+      auto_decision_eligible: false,
+      flags: [],
+    },
+    sla_due_at: new Date(Date.now() + 200 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 40 * 60 * 1000).toISOString(),
+  },
+  {
     id: 2,
     ref: 'MOD-REV-2026-088',
     item_type: 'REVIEW',
@@ -217,7 +249,10 @@ export const moderatorHandlers = [
         items = items.filter((i) => i.status === status);
       }
       if (itemType && itemType !== 'ALL') {
-        items = items.filter((i) => i.item_type === itemType || i.item_type.startsWith(itemType));
+        // Mirrors the server: item_type accepts a comma-separated list so one tab can cover
+        // several types (the "Products" tab is PRODUCT_NEW + PRODUCT_EDIT).
+        const types = String(itemType).split(',').map((s) => s.trim()).filter(Boolean);
+        items = items.filter((i) => types.includes(i.item_type));
       }
       if (query?.filter === 'claimed_by_me') {
         items = items.filter((i) => i.claimed_by !== null);

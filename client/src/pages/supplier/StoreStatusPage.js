@@ -261,7 +261,7 @@ export default function StoreStatusPage(root) {
       <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 4px 0 0 0;">
         ${store.name}
       </h2>
-      <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 0; line-height: 1.4;">
+      <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 0; line-height: 1.4;">
         📍 ${store.address}, ${store.district} • 🕒 ${store.open_time} – ${store.close_time}
       </p>
     `;
@@ -361,10 +361,10 @@ export default function StoreStatusPage(root) {
     hoursCard.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
         <div>
-          <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+          <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
             🕒 ${t('supplier.general_hours_title', 'General Operating Hours & 1-Click Presets')}
           </h3>
-          <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+          <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
             Set your standard daily business hours and instantly apply preset schedules for Bangladesh.
           </p>
         </div>
@@ -433,10 +433,10 @@ export default function StoreStatusPage(root) {
     deckHeader.style.paddingBottom = '12px';
     deckHeader.innerHTML = `
       <div>
-        <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+        <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           📅 ${t('supplier.weekly_schedule_title', 'Weekly Operating Schedule (Day by Day Matrix)')}
         </h3>
-        <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           Click on any day card button below to toggle it OPEN 🟢 or CLOSED (Holiday) 🏖️, and customize hours per day.
         </p>
       </div>
@@ -513,7 +513,7 @@ export default function StoreStatusPage(root) {
       } else {
         const closedText = document.createElement('div');
         closedText.style.fontSize = '11px';
-        closedText.style.color = 'var(--text-danger)';
+        closedText.style.color = 'var(--danger)';
         closedText.style.fontWeight = '700';
         closedText.style.textAlign = 'center';
         closedText.style.padding = '8px 0';
@@ -535,10 +535,10 @@ export default function StoreStatusPage(root) {
     addressCard.className = 'supplier-store-status-card';
     addressCard.innerHTML = `
       <div style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
-        <h3 style="font-size: var(--font-size-base); font-weight: 800; color: var(--text-primary); margin: 0;">
+        <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           📍 ${t('supplier.address_contact_title', 'Showroom Address & Self-Pickup Configuration')}
         </h3>
-        <p style="font-size: var(--font-size-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           Ensure your street address and customer pickup notes are accurate for walk-in buyers and consignments.
         </p>
       </div>
@@ -567,8 +567,8 @@ export default function StoreStatusPage(root) {
         </div>
 
         <div class="supplier-form-field" style="grid-column: 1 / -1; background: var(--surface-1); padding: 14px 18px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
-          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: var(--font-size-sm); color: var(--text-primary);">
-            <input type="checkbox" id="store-pickup-toggle" ${store.pickup_enabled ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--color-primary);" />
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: var(--text-sm); color: var(--text-primary);">
+            <input type="checkbox" id="store-pickup-toggle" ${store.pickup_enabled ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--brand);" />
             <strong>${t('supplier.pickup_desk_toggle', 'Enable Direct Customer & Reseller Self-Pickup at Showroom')}</strong>
           </label>
         </div>

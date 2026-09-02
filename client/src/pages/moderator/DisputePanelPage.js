@@ -164,7 +164,7 @@ export default function DisputePanelPage(root) {
         max-width: 520px;
         width: 100%;
         padding: 24px;
-        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
         display: flex;
         flex-direction: column;
         gap: 16px;
@@ -255,7 +255,7 @@ export default function DisputePanelPage(root) {
           display: flex;
           align-items: center;
           gap: 6px;
-          box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+          box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
           transition: all 0.15s ease;
         ">
           🔄 ${t('common.refresh', 'Refresh')}
@@ -290,7 +290,7 @@ export default function DisputePanelPage(root) {
         background: var(--surface-1, #ffffff);
         border: 1px solid var(--border-subtle, #e2e8f0);
         border-radius: var(--radius-lg, 12px);
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -378,7 +378,7 @@ export default function DisputePanelPage(root) {
         border: 1px solid var(--border-subtle, #e2e8f0);
         border-radius: var(--radius-lg, 12px);
         padding: 20px;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         display: flex;
         flex-direction: column;
         gap: 16px;

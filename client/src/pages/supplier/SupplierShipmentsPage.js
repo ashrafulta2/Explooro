@@ -237,13 +237,13 @@ export default function SupplierShipmentsPage(root) {
               ${s.status}
             </span>
           </div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-secondary);">
+          <div style="font-size: var(--text-xs); color: var(--text-secondary);">
             Order: <strong class="font-mono">${s.order_ref}</strong> · Dispatched: ${s.dispatched_at}
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--font-size-xs);">
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs);">
             <div>
               <span>Recipient: <strong>${s.recipient_name}</strong> (${s.recipient_phone})</span> ·
               <span>Destination: 📍 <strong>${s.district}</strong></span>
@@ -274,7 +274,7 @@ export default function SupplierShipmentsPage(root) {
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--font-size-xs); padding-top: 6px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); padding-top: 6px;">
           <span class="text-muted">Current Node: <strong>${s.current_hub}</strong></span>
           <button class="btn btn--xs btn--outline track-btn" data-track="${s.tracking_number}">
             🌐 Track with Courier API

@@ -118,7 +118,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+            box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
           ">
             📥 ${t('editor.btn_export_json', 'Export JSON')}
           </button>
@@ -134,7 +134,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+            box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
           ">
             📤 ${t('editor.btn_import_json', 'Import JSON')}
           </button>
@@ -150,7 +150,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+            box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
           ">
             + ${t('editor.btn_add_locale', 'Add Locale')}
           </button>
@@ -181,7 +181,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
                 border-radius: var(--radius-lg, 12px);
                 background: var(--surface-1, #ffffff);
                 border: 2px solid ${isAct ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'};
-                box-shadow: ${isAct ? '0 0 0 1px var(--brand, #4f46e5)' : 'var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05))'};
+                box-shadow: ${isAct ? '0 0 0 1px var(--brand, #4f46e5)' : 'var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05))'};
                 cursor: pointer;
                 transition: all 0.15s ease;
                 display: flex;
@@ -227,7 +227,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         justify-content: space-between;
         gap: 16px;
         flex-wrap: wrap;
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
       ">
         <div style="flex: 1; min-width: 240px;">
           <input type="text" id="trans-search-input" value="${searchQuery}" placeholder="🔍 Search translation keys or values..." style="
@@ -308,7 +308,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         background: var(--surface-1, #ffffff);
         border: 1px solid var(--border-subtle, #e2e8f0);
         border-radius: var(--radius-lg, 12px);
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         overflow: hidden;
       ">
         <div style="overflow-x: auto;">
@@ -392,7 +392,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         max-width: 500px;
         width: 100%;
         padding: 24px;
-        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
         display: flex;
         flex-direction: column;
         gap: 16px;
@@ -466,7 +466,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         max-width: 460px;
         width: 100%;
         padding: 24px;
-        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
         display: flex;
         flex-direction: column;
         gap: 16px;

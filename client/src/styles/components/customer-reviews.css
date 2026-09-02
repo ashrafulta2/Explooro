@@ -282,7 +282,7 @@
 .customer-review-card {
   background: var(--surface-0);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-xl);
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
@@ -480,7 +480,7 @@
 .pending-review-card {
   background: var(--surface-0);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-xl);
   padding: var(--space-4) var(--space-5);
   display: flex;
   align-items: center;
@@ -594,7 +594,7 @@
 .ugc-media-card {
   background: var(--surface-0);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-2xl);
+  border-radius: var(--radius-xl);
   overflow: hidden;
   position: relative;
   display: flex;

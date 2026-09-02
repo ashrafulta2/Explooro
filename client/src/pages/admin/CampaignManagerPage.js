@@ -124,7 +124,7 @@ export class CampaignManagerPage {
               display: flex;
               align-items: center;
               gap: 6px;
-              box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+              box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
             ">
               + ${this.activeTab === 'flash_sales'
                 ? (isBn ? 'নতুন ফ্ল্যাশ সেল চালু করুন' : 'Schedule Flash Sale')
@@ -142,7 +142,7 @@ export class CampaignManagerPage {
               display: flex;
               align-items: center;
               gap: 6px;
-              box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,0.05));
+              box-shadow: var(--elevation-1, 0 1px 2px rgba(0,0,0,0.05));
             ">
               🔄 ${isBn ? 'রিফ্রেশ' : 'Refresh'}
             </button>
@@ -157,7 +157,7 @@ export class CampaignManagerPage {
           padding: 8px 12px;
           display: flex;
           gap: 8px;
-          box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+          box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         ">
           <button
             class="tab-btn"
@@ -221,19 +221,19 @@ export class CampaignManagerPage {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 14px;
       ">
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--warning, #d97706); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--warning, #d97706); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'সক্রিয় ফ্ল্যাশ সেল' : 'Active Flash Deals'}</span>
           <div style="font-size: 24px; font-weight: 800; color: var(--warning, #d97706);">${activeCount}</div>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'বরাদ্দকৃত স্টক' : 'Allocated Stock'}</span>
           <div style="font-size: 24px; font-weight: 800; color: var(--text-brand, #4f46e5);">${totalAllocated.toLocaleString('en-US')}</div>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'বিক্রি হওয়া ইউনিট' : 'Units Claimed'}</span>
           <div style="font-size: 24px; font-weight: 800; color: var(--success, #059669);">${totalSold.toLocaleString('en-US')}</div>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--text-muted, #64748b); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--text-muted, #64748b); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'স্টক ক্লিয়ারেন্স হার' : 'Clearance Rate'}</span>
           <div style="font-size: 24px; font-weight: 800; color: var(--text-primary, #0f172a);">${clearanceRate}%</div>
         </div>
@@ -244,7 +244,7 @@ export class CampaignManagerPage {
         background: var(--surface-1, #ffffff);
         border: 1px solid var(--border-subtle, #e2e8f0);
         border-radius: var(--radius-lg, 12px);
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         overflow: hidden;
       ">
         ${this.flashSales.length === 0 ? `
@@ -286,15 +286,19 @@ export class CampaignManagerPage {
     const startsMs = new Date(fs.starts_at).getTime();
     const isLive = startsMs <= now && now <= endsMs;
     const targetMs = isLive ? endsMs : startsMs;
+    // WHY: the campaigns API sends product_title_en AND product_title_bn; this row rendered the
+    // English one unconditionally, so a Bangla admin saw English product names in the flash-sale
+    // table. `isBn` was already a parameter here — it just was not applied to the title.
+    const productTitle = (isBn ? fs.product_title_bn || fs.product_title_en : fs.product_title_en || fs.product_title_bn) || '';
 
     return `
       <tr style="border-bottom: 1px solid var(--border-subtle, #e2e8f0); transition: background 0.15s ease;">
         <td style="padding: 14px 16px;">
-          <div style="font-weight: 700; color: var(--text-primary, #0f172a);">${this._escapeHtml(fs.title || fs.product_title_en || 'Flash Deal')}</div>
+          <div style="font-weight: 700; color: var(--text-primary, #0f172a);">${this._escapeHtml(fs.title || productTitle || 'Flash Deal')}</div>
           <div style="font-family: monospace; font-size: 11px; color: var(--text-brand, #4f46e5); margin-top: 2px;">${fs.ref}</div>
         </td>
         <td style="padding: 14px 16px;">
-          <div style="font-weight: 500; color: var(--text-primary, #0f172a);">${this._escapeHtml(fs.product_title_en || `Product #${fs.product_id}`)}</div>
+          <div style="font-weight: 500; color: var(--text-primary, #0f172a);">${this._escapeHtml(productTitle || `Product #${fs.product_id}`)}</div>
         </td>
         <td style="padding: 14px 16px; font-family: monospace;">
           <span style="text-decoration: line-through; color: var(--text-muted, #64748b); font-size: 12px;">৳${Number(fs.original_price || 0).toFixed(2)}</span>
@@ -325,7 +329,7 @@ export class CampaignManagerPage {
             <button
               class="btn-emergency-stop"
               data-id="${fs.id}"
-              data-title="${this._escapeHtml(fs.title || fs.product_title_en || 'Deal')}"
+              data-title="${this._escapeHtml(fs.title || productTitle || 'Deal')}"
               style="padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px; border: 1px solid var(--danger-border, #e11d48); background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">
               🚨 ${isBn ? 'জরুরি বন্ধ' : 'Emergency Stop'}
             </button>
@@ -348,19 +352,19 @@ export class CampaignManagerPage {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 14px;
       ">
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'সক্রিয় কুপন' : 'Active Coupons'}</span>
           <div style="font-size: 24px; font-weight: 800; color: var(--text-brand, #4f46e5);">${activeCoupons}</div>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--warning, #d97706); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--warning, #d97706); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'মোট বাজেট বরাদ্দ' : 'Total Budget Allocated'}</span>
           <div style="font-size: 24px; font-weight: 800; color: var(--warning, #d97706);">৳${totalBudget.toLocaleString('en-US')}</div>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--danger, #e11d48); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--danger, #e11d48); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'ব্যবহৃত বাজেট' : 'Budget Spent'}</span>
           <div style="font-size: 24px; font-weight: 800; color: var(--danger, #e11d48);">৳${totalUsed.toFixed(2)}</div>
         </div>
-        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+        <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'মোট রিডেম্পশন' : 'Total Redemptions'}</span>
           <div style="font-size: 24px; font-weight: 800; color: var(--success, #059669);">${totalRedemptions.toLocaleString('en-US')}</div>
         </div>
@@ -371,7 +375,7 @@ export class CampaignManagerPage {
         background: var(--surface-1, #ffffff);
         border: 1px solid var(--border-subtle, #e2e8f0);
         border-radius: var(--radius-lg, 12px);
-        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+        box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
         overflow: hidden;
       ">
         ${this.coupons.length === 0 ? `
@@ -579,7 +583,7 @@ export class CampaignManagerPage {
         max-width: 520px;
         width: 100%;
         padding: 24px;
-        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
         display: flex;
         flex-direction: column;
         gap: 16px;
@@ -670,7 +674,7 @@ export class CampaignManagerPage {
         max-width: 520px;
         width: 100%;
         padding: 24px;
-        box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.15));
+        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
         display: flex;
         flex-direction: column;
         gap: 16px;

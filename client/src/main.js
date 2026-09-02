@@ -30,6 +30,7 @@ import { initTheme } from './services/themePalette.js';
 
 // Prompt 1.7 — role-aware shell.
 import { navItems } from './config/navigation.js';
+import { toast } from './services/toast.js';
 import { createAppShell } from './components/shell/AppShell.js';
 
 // ── Dev-only status bar (shown only if there is an error / connection issue) ──
@@ -138,6 +139,34 @@ async function bootRouterDemo() {
         item.path !== '/customer/orders' &&
         item.path !== '/customer/returns' &&
         item.path !== '/admin/returns' &&
+        item.path !== '/admin/catalog/categories' &&
+        item.path !== '/admin/categories' &&
+        item.path !== '/admin/catalog/batches' &&
+        item.path !== '/admin/batches' &&
+        item.path !== '/admin/catalog/warehouses' &&
+        item.path !== '/admin/warehouses' &&
+        item.path !== '/admin/orders' &&
+        item.path !== '/admin/courier' &&
+        item.path !== '/admin/finance/ledger' &&
+        item.path !== '/admin/ledger' &&
+        item.path !== '/admin/finance/escrow' &&
+        item.path !== '/admin/escrow' &&
+        item.path !== '/admin/finance/b2b-escrow' &&
+        item.path !== '/admin/growth/ads' &&
+        item.path !== '/admin/ads' &&
+        item.path !== '/admin/growth/quests' &&
+        item.path !== '/admin/quests' &&
+        item.path !== '/admin/growth/coins' &&
+        item.path !== '/admin/growth/group-buy' &&
+        item.path !== '/admin/group-buy' &&
+        item.path !== '/admin/content/banners' &&
+        item.path !== '/admin/content/stories' &&
+        item.path !== '/admin/content/academy' &&
+        item.path !== '/admin/content/whats-new' &&
+        item.path !== '/admin/content/translations' &&
+        item.path !== '/admin/live' &&
+        item.path !== '/admin/security/sessions' &&
+        item.path !== '/admin/sessions' &&
         item.path !== '/admin/growth/campaigns' &&
         item.path !== '/admin/growth/coupons' &&
         item.path !== '/account/coupons' &&
@@ -212,7 +241,7 @@ async function bootRouterDemo() {
     )
     .map((item) => ({
       path: item.path,
-      title: `${t(item.label_i18n_key)} — Explooro`,
+      title: () => `${t(item.label_i18n_key)} — Explooro`,
       requiresAuth: true,
       permission: item.permission,
       module: item.module,
@@ -242,7 +271,10 @@ async function bootRouterDemo() {
       { path: '/live/:id', title: 'Live Shopping — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
       { path: '/saler/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.js') },
       { path: '/supplier/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.js') },
-      { path: '/moderator/live', title: 'Live Moderation — Explooro', requiresAuth: true, permission: 'moderation.live.handle', module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
+      // WHY not LiveStreamPage: /moderator/live used to load the customer-facing shopping browse
+      // page, so the "Live Streams" nav item under REVIEW QUEUES opened a storefront with a "Host a
+      // Live Stream" button and no moderation controls at all.
+      { path: '/moderator/live', title: 'Live Moderation — Explooro', requiresAuth: true, permission: 'moderation.live.handle', module: 'live_commerce', load: () => import('./pages/moderator/LiveModerationPage.js') },
       // Prompt 4.7: Saler Sourcing Catalog & Profit Calculator
       {
         path: '/saler/sourcing',
@@ -792,6 +824,241 @@ async function bootRouterDemo() {
         permission: 'system.health.view',
         module: 'core',
         load: () => import('./pages/admin/SystemHealthPage.js'),
+      },
+      // Admin Catalog Governance (Categories, Batches, Warehouses)
+      {
+        path: '/admin/catalog/categories',
+        title: 'Categories & Commissions — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.product.edit_any',
+        module: 'core',
+        load: () => import('./pages/admin/CategoriesPage.js'),
+      },
+      {
+        path: '/admin/categories',
+        title: 'Categories & Commissions — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.product.edit_any',
+        module: 'core',
+        load: () => import('./pages/admin/CategoriesPage.js'),
+      },
+      {
+        path: '/admin/catalog/batches',
+        title: 'Batches & FEFO Expiration — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.batch.manage',
+        module: 'fefo_batches',
+        load: () => import('./pages/admin/BatchesPage.js'),
+      },
+      {
+        path: '/admin/batches',
+        title: 'Batches & FEFO Expiration — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.batch.manage',
+        module: 'fefo_batches',
+        load: () => import('./pages/admin/BatchesPage.js'),
+      },
+      {
+        path: '/admin/catalog/warehouses',
+        title: 'Warehouses & Regional Hubs — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.warehouse.manage',
+        module: 'multi_warehouse',
+        load: () => import('./pages/admin/WarehousesPage.js'),
+      },
+      {
+        path: '/admin/warehouses',
+        title: 'Warehouses & Regional Hubs — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.warehouse.manage',
+        module: 'multi_warehouse',
+        load: () => import('./pages/admin/WarehousesPage.js'),
+      },
+
+      // Admin Orders & Logistics (Orders Central, Courier Hub)
+      {
+        path: '/admin/orders',
+        title: 'Platform Orders & Splits — Explooro Admin',
+        requiresAuth: true,
+        permission: 'orders.order.view_any',
+        module: 'core',
+        load: () => import('./pages/admin/AdminOrdersPage.js'),
+      },
+      {
+        path: '/admin/courier',
+        title: '3PL Courier Logistics Hub — Explooro Admin',
+        requiresAuth: true,
+        permission: 'logistics.shipment.view',
+        module: 'courier_hub',
+        load: () => import('./pages/admin/CourierHubPage.js'),
+      },
+
+      // Admin Finance (Ledger, Escrow, B2B Escrow)
+      {
+        path: '/admin/finance/ledger',
+        title: 'General Ledger — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.overview.view',
+        module: 'core',
+        load: () => import('./pages/admin/LedgerPage.js'),
+      },
+      {
+        path: '/admin/ledger',
+        title: 'General Ledger — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.overview.view',
+        module: 'core',
+        load: () => import('./pages/admin/LedgerPage.js'),
+      },
+      {
+        path: '/admin/finance/escrow',
+        title: 'Escrow Holdings & Sweeps — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.overview.view',
+        module: 'core',
+        load: () => import('./pages/admin/EscrowHoldingsPage.js'),
+      },
+      {
+        path: '/admin/escrow',
+        title: 'Escrow Holdings & Sweeps — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.overview.view',
+        module: 'core',
+        load: () => import('./pages/admin/EscrowHoldingsPage.js'),
+      },
+      {
+        path: '/admin/finance/b2b-escrow',
+        title: 'B2B Wholesale Escrow — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.overview.view',
+        module: 'b2b_escrow',
+        load: () => import('./pages/admin/AdminB2bEscrowPage.js'),
+      },
+
+      // Admin Growth & Gamification (Ads, Quests, Group Buy)
+      {
+        path: '/admin/growth/ads',
+        title: 'Sponsored Ads & Auctions — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.ad.manage',
+        module: 'sponsored_ads',
+        load: () => import('./pages/admin/AdminAdsPage.js'),
+      },
+      {
+        path: '/admin/ads',
+        title: 'Sponsored Ads & Auctions — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.ad.manage',
+        module: 'sponsored_ads',
+        load: () => import('./pages/admin/AdminAdsPage.js'),
+      },
+      {
+        path: '/admin/growth/quests',
+        title: 'Quests & Loyalty Coins — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.campaign.manage',
+        module: 'daily_quests',
+        load: () => import('./pages/admin/AdminQuestsPage.js'),
+      },
+      {
+        path: '/admin/quests',
+        title: 'Quests & Loyalty Coins — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.campaign.manage',
+        module: 'daily_quests',
+        load: () => import('./pages/admin/AdminQuestsPage.js'),
+      },
+      {
+        path: '/admin/growth/coins',
+        title: 'Quests & Loyalty Coins — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.campaign.manage',
+        module: 'daily_quests',
+        load: () => import('./pages/admin/AdminQuestsPage.js'),
+      },
+      {
+        path: '/admin/growth/group-buy',
+        title: 'Group Buying Pools — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.campaign.manage',
+        module: 'group_buying',
+        load: () => import('./pages/admin/AdminGroupBuyPage.js'),
+      },
+      {
+        path: '/admin/group-buy',
+        title: 'Group Buying Pools — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.campaign.manage',
+        module: 'group_buying',
+        load: () => import('./pages/admin/AdminGroupBuyPage.js'),
+      },
+
+      // Admin Content Suite
+      {
+        path: '/admin/content/banners',
+        title: 'Banners & Sliders — Explooro Admin',
+        requiresAuth: true,
+        permission: 'content.banner.publish',
+        module: 'core',
+        load: () => import('./pages/editor/BannersManagerPage.js'),
+      },
+      {
+        path: '/admin/content/stories',
+        title: 'Stories & Reels — Explooro Admin',
+        requiresAuth: true,
+        permission: 'content.story.curate',
+        module: 'content_commerce',
+        load: () => import('./pages/editor/StoriesManagerPage.js'),
+      },
+      {
+        path: '/admin/content/academy',
+        title: 'Seller Academy — Explooro Admin',
+        requiresAuth: true,
+        permission: 'content.academy.manage',
+        module: 'seller_academy',
+        load: () => import('./pages/editor/AcademyManagerPage.js'),
+      },
+      {
+        path: '/admin/content/whats-new',
+        title: "What's New & Changelogs — Explooro Admin",
+        requiresAuth: true,
+        permission: 'content.announcement.publish',
+        module: 'whats_new',
+        load: () => import('./pages/editor/WhatsNewManagerPage.js'),
+      },
+      {
+        path: '/admin/content/translations',
+        title: 'Translation Studio — Explooro Admin',
+        requiresAuth: true,
+        permission: 'content.i18n.update',
+        module: 'i18n',
+        load: () => import('./pages/editor/TranslationManagerPage.js'),
+      },
+
+      // Admin Live Stream & Security
+      {
+        path: '/admin/live',
+        title: 'Live Broadcast Governance — Explooro Admin',
+        requiresAuth: true,
+        permission: 'moderation.live.handle',
+        module: 'live_commerce',
+        load: () => import('./pages/admin/AdminLiveCommercePage.js'),
+      },
+      {
+        path: '/admin/security/sessions',
+        title: 'Active Security Sessions — Explooro Admin',
+        requiresAuth: true,
+        permission: 'staff.account.view',
+        module: 'core',
+        load: () => import('./pages/admin/ActiveSessionsPage.js'),
+      },
+      {
+        path: '/admin/sessions',
+        title: 'Active Security Sessions — Explooro Admin',
+        requiresAuth: true,
+        permission: 'staff.account.view',
+        module: 'core',
+        load: () => import('./pages/admin/ActiveSessionsPage.js'),
       },
       // Prompt 2.8: Real Auth Pages
       { path: '/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.js') },
@@ -1434,6 +1701,14 @@ async function bootRouterDemo() {
     ],
     notFound: { load: () => import('./pages/dev/NotFoundStub.js') },
     getAuthContext: () => ({ ...appStore.get().auth, modules: appStore.get().modules }),
+    // WHY: a permission/module guard failure used to bounce the user to `/` in total silence —
+    // a moderator clicking a queue they lack the grant for just found themselves on the
+    // marketplace home with no idea why. Returning nothing keeps the router's own fallback.
+    onGuardFail: (reason) => {
+      if (reason === 'permission') toast.error(t('access.route_denied'));
+      else if (reason === 'module') toast.warning(t('access.route_module_off'));
+      return undefined;
+    },
     // Keeps Sidebar/MobileNav's active-item highlight correct after every navigation and scans DOM module gates
     beforeEach: () => {
       appShell.render();

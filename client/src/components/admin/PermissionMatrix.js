@@ -129,7 +129,7 @@ export function PermissionMatrix({
           tdCheck.innerHTML = `<span title="${t('perm_matrix.locked_super_admin')}" style="opacity: 0.4; cursor: not-allowed;">🔒</span>`;
         } else if (isSuperAdminRole) {
           // Super admin always has everything
-          tdCheck.innerHTML = `<span style="color: var(--color-success, #10b981); font-weight: bold;">✓</span>`;
+          tdCheck.innerHTML = `<span style="color: var(--success, #10b981); font-weight: bold;">✓</span>`;
         } else {
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';

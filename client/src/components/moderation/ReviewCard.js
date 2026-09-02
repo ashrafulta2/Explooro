@@ -31,7 +31,7 @@ export function ReviewCard({
     border-left: 4px solid ${item.pre_screening?.has_flags ? 'var(--danger, #e11d48)' : isClaimedByMe ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #cbd5e1)'};
     border-radius: var(--radius-lg, 12px);
     padding: 20px;
-    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));
+    box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
     display: flex;
     flex-direction: column;
     gap: 14px;

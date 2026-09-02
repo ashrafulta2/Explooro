@@ -26,7 +26,7 @@
 .topbar__search-suggest-heading {
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-weight: var(--weight-md, 600);
+  font-weight: var(--weight-semibold);
 }
 
 .topbar__search-suggest-row,
@@ -67,7 +67,7 @@
 }
 .topbar__search-suggest-title {
   font-size: var(--text-sm);
-  font-weight: var(--weight-md, 500);
+  font-weight: var(--weight-medium);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -85,7 +85,7 @@
   border-top: var(--border-width) solid var(--border-subtle);
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   font-size: var(--text-sm);
-  font-weight: var(--weight-md, 600);
+  font-weight: var(--weight-semibold);
   color: var(--text-brand);
 }
 

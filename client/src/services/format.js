@@ -119,9 +119,21 @@ export function formatPhone(raw) {
   return `+880 ${national.slice(0, 4)}-${national.slice(4)}`;
 }
 
-export function formatDate(date, { lang, dateStyle = 'medium' } = {}) {
+/**
+ * `timeStyle` is opt-in: most surfaces want a date alone, but anything with an expiry (an
+ * observation token, an OTP, a timed mute) is meaningless without a clock time.
+ */
+export function formatDate(date, { lang, dateStyle = 'medium', timeStyle } = {}) {
   const activeLang = resolveLang(lang);
-  return new Intl.DateTimeFormat(activeLang === 'bn' ? 'bn' : 'en', { dateStyle }).format(new Date(date));
+  // WHY the guard: Intl.DateTimeFormat throws RangeError on an Invalid Date, and these pages
+  // build their markup as one innerHTML string — so a single missing timestamp anywhere in a list
+  // took down the whole page rather than one row. It cost /dev/gallery its entire render.
+  const parsed = new Date(date);
+  if (date == null || Number.isNaN(parsed.getTime())) return '—';
+  return new Intl.DateTimeFormat(activeLang === 'bn' ? 'bn' : 'en', {
+    dateStyle,
+    ...(timeStyle ? { timeStyle } : {}),
+  }).format(parsed);
 }
 
 const RELATIVE_UNITS = [

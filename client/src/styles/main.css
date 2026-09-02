@@ -84,3 +84,6 @@
 
 /* Editor Portal: Dashboard, Banners, Stories, Academy, What's New, Help Center, Translations */
 @import './components/editor.css';
+
+/* Admin Governance Pages (Categories, Batches, Warehouses, Orders, Courier, Ledger, Escrow, Ads, Quests, Groups, Sessions) */
+@import './components/admin-pages.css';

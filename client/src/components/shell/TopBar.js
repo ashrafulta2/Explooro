@@ -141,6 +141,29 @@ function AvatarMenu({ role, onNavigate }) {
   panelHeader.innerHTML = `<span class="topbar__avatar-panel-role">${label}</span>`;
   panel.append(panelHeader);
 
+  const DASHBOARDS = {
+    super_admin: '/admin',
+    admin: '/admin',
+    moderator: '/moderator',
+    editor: '/editor',
+    supplier: '/supplier',
+    saler: '/saler',
+    customer: '/account',
+  };
+
+  const dashPath = DASHBOARDS[role];
+  if (dashPath) {
+    const dashLink = document.createElement('a');
+    dashLink.href = dashPath;
+    dashLink.textContent = (role === 'customer') ? (t('nav.group.customer.me') || 'My Account') : (t('nav.shared.dashboard') || 'Dashboard');
+    dashLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      close();
+      onNavigate(dashPath);
+    });
+    panel.append(dashLink);
+  }
+
   const settingsLink = document.createElement('a');
   settingsLink.href = '/account/settings';
   settingsLink.textContent = t('nav.shared.settings');

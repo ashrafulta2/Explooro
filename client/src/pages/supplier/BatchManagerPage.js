@@ -220,16 +220,16 @@ export default function BatchManagerPage(root) {
         </div>
 
         <div>
-          <div style="font-weight: 800; color: var(--text-primary); font-size: var(--font-size-sm);">${batch.product_title || 'Product SKU'}</div>
-          <div style="font-size: var(--font-size-xs); color: var(--text-secondary); margin-top: 2px;">
+          <div style="font-weight: 800; color: var(--text-primary); font-size: var(--text-sm);">${batch.product_title || 'Product SKU'}</div>
+          <div style="font-size: var(--text-xs); color: var(--text-secondary); margin-top: 2px;">
             Depot: <strong>${batch.warehouse_name || 'Central Depot'}</strong>
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--surface-1); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: var(--font-size-xs);">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--surface-1); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: var(--text-xs);">
           <div>
             <div class="text-muted" style="font-size: 10px;">AVAILABLE QTY</div>
-            <div style="font-weight: 800; color: var(--brand-primary); font-size: 1.125rem;">${batch.quantity_available} <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary);">units</span></div>
+            <div style="font-weight: 800; color: var(--text-brand); font-size: 1.125rem;">${batch.quantity_available} <span style="font-size: 11px; font-weight: normal; color: var(--text-secondary);">units</span></div>
           </div>
           <div style="text-align: right;">
             <div class="text-muted" style="font-size: 10px;">EXPIRY DATE</div>
@@ -301,12 +301,12 @@ export default function BatchManagerPage(root) {
 
         <form id="new-batch-form" style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Lot / Batch Number *</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Lot / Batch Number *</label>
             <input type="text" id="batch-number-input" class="input input--sm font-mono" placeholder="e.g. LOT-2026-NOV-15" required />
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Depot Warehouse Node *</label>
+            <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Depot Warehouse Node *</label>
             <select id="warehouse-select" class="input input--sm">
               ${warehouses.map((w) => `<option value="${w.id}">${w.name} (${w.district})</option>`).join('')}
             </select>
@@ -314,11 +314,11 @@ export default function BatchManagerPage(root) {
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2, 8px);">
             <div style="display: flex; flex-direction: column; gap: 4px;">
-              <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Initial Quantity *</label>
+              <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Initial Quantity *</label>
               <input type="number" id="batch-qty-input" class="input input--sm font-mono" min="1" value="100" required />
             </div>
             <div style="display: flex; flex-direction: column; gap: 4px;">
-              <label class="label" style="font-size: var(--font-size-xs); font-weight: 700;">Expiration Date *</label>
+              <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Expiration Date *</label>
               <input type="date" id="batch-exp-input" class="input input--sm" required />
             </div>
           </div>

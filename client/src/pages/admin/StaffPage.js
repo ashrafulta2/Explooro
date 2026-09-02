@@ -158,19 +158,19 @@ export default function StaffPage(root, { navigate } = {}) {
 
         <div class="admin-staff-vital-card">
           <span class="admin-staff-vital-card__label">${t('admin.staff.active_staff', 'Active Staff')}</span>
-          <span class="admin-staff-vital-card__value" style="color: var(--status-success);">${vitals.active_staff ?? staffList.filter(s => s.status === 'ACTIVE').length}</span>
+          <span class="admin-staff-vital-card__value" style="color: var(--success);">${vitals.active_staff ?? staffList.filter(s => s.status === 'ACTIVE').length}</span>
           <p class="admin-staff-vital-card__hint">Current enabled operators</p>
         </div>
 
         <div class="admin-staff-vital-card">
           <span class="admin-staff-vital-card__label">${t('admin.staff.two_factor_rate', '2FA Enforcement')}</span>
-          <span class="admin-staff-vital-card__value" style="color: var(--status-success);">${vitals.two_factor_rate_pct ?? 100}%</span>
+          <span class="admin-staff-vital-card__value" style="color: var(--success);">${vitals.two_factor_rate_pct ?? 100}%</span>
           <p class="admin-staff-vital-card__hint">Mandatory hardware / TOTP 2FA</p>
         </div>
 
         <div class="admin-staff-vital-card">
           <span class="admin-staff-vital-card__label">${t('admin.staff.privileged_roles', 'Privileged Super Admins')}</span>
-          <span class="admin-staff-vital-card__value" style="color: var(--status-danger);">${vitals.privileged_roles_count ?? 1}</span>
+          <span class="admin-staff-vital-card__value" style="color: var(--danger);">${vitals.privileged_roles_count ?? 1}</span>
           <p class="admin-staff-vital-card__hint">Unrestricted platform controllers</p>
         </div>
       </div>
@@ -227,7 +227,7 @@ export default function StaffPage(root, { navigate } = {}) {
                     </div>
                   </td>
                   <td>
-                    <span style="font-size: 11px; font-weight: 700; color: ${s.two_factor_enabled ? 'var(--status-success)' : 'var(--status-warning)'};">
+                    <span style="font-size: 11px; font-weight: 700; color: ${s.two_factor_enabled ? 'var(--success)' : 'var(--warning)'};">
                       ${s.two_factor_enabled ? '🔒 2FA Active' : '⚠️ Setup Pending'}
                     </span>
                   </td>
@@ -248,7 +248,7 @@ export default function StaffPage(root, { navigate } = {}) {
                         ${t('admin.staff.btn_change_role', 'Role')}
                       </button>
                       ${!isSuper ? `
-                        <button data-id="${s.id}" data-status="${isActive ? 'SUSPENDED' : 'ACTIVE'}" class="btn-toggle-status" style="background: transparent; border: none; font-size: 11px; font-weight: 700; color: ${isActive ? 'var(--status-danger)' : 'var(--status-success)'}; cursor: pointer; text-decoration: underline;">
+                        <button data-id="${s.id}" data-status="${isActive ? 'SUSPENDED' : 'ACTIVE'}" class="btn-toggle-status" style="background: transparent; border: none; font-size: 11px; font-weight: 700; color: ${isActive ? 'var(--danger)' : 'var(--success)'}; cursor: pointer; text-decoration: underline;">
                           ${isActive ? t('admin.staff.btn_deactivate', 'Suspend') : t('admin.staff.btn_activate', 'Activate')}
                         </button>
                       ` : ''}

@@ -12,11 +12,20 @@
  */
 
 import { adminApi } from '../../services/admin.api.js';
-import { t } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
 
 export default function AdminDashboardPage(root, { navigate } = {}) {
+  // WHY: the alert cards below used to hardcode `alert.title_en` / `details_en` /
+  // `action_label_en`, so this page's "full bilingual i18n support" stopped at the chrome — every
+  // alert stayed in English under a Bangla UI even though the API sends both variants. Same
+  // `isBn()` shape the other admin pages use (AccessGrantsPage, ApprovalInboxPage, AuditLogPage).
+  const isBn = () => getLanguage() === 'bn';
+  /** Picks `<field>_bn` or `<field>_en` for the active locale, falling back to the other. */
+  const loc = (obj, field) =>
+    (isBn() ? obj?.[`${field}_bn`] || obj?.[`${field}_en`] : obj?.[`${field}_en`] || obj?.[`${field}_bn`]) ?? '';
+
   let currentTimeframe = '30d';
   let overviewData = null;
   let alertsData = null;
@@ -92,8 +101,8 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
         <svg viewBox="0 0 ${width} ${height}" class="admin-chart-panel__svg" preserveAspectRatio="none" role="img" aria-label="${t('admin.dashboard.chart_title', 'Revenue & GMV Trajectory')}">
           <defs>
             <linearGradient id="gmvAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="var(--brand-primary, #6366f1)" stop-opacity="0.3" />
-              <stop offset="100%" stop-color="var(--brand-primary, #6366f1)" stop-opacity="0.0" />
+              <stop offset="0%" stop-color="var(--brand, #6366f1)" stop-opacity="0.3" />
+              <stop offset="100%" stop-color="var(--brand, #6366f1)" stop-opacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -104,14 +113,14 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
 
           <!-- GMV Area & Line -->
           <path d="${gmvAreaD}" fill="url(#gmvAreaGrad)" />
-          <path d="${gmvPathD}" fill="none" stroke="var(--brand-primary, #6366f1)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="${gmvPathD}" fill="none" stroke="var(--brand, #6366f1)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 
           <!-- Net Revenue Line -->
-          <path d="${revPathD}" fill="none" stroke="var(--status-success, #10b981)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 2" />
+          <path d="${revPathD}" fill="none" stroke="var(--success)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="4 2" />
 
           <!-- Data Points -->
           ${gmvPoints.map((p, i) => `
-            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="var(--surface-0, #ffffff)" stroke="var(--brand-primary, #6366f1)" stroke-width="2" tabindex="0">
+            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="var(--surface-0, #ffffff)" stroke="var(--brand, #6366f1)" stroke-width="2" tabindex="0">
               <title>${data[i].date}: GMV ৳${data[i].gmv.toLocaleString()} | Rev ৳${data[i].revenue.toLocaleString()}</title>
             </circle>
           `).join('')}
@@ -262,13 +271,13 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
                       <span class="admin-alert-card__severity">${sev}</span>
                       <span class="admin-alert-card__count">${alert.count}</span>
                     </div>
-                    <h3 class="admin-alert-card__title">${alert.title_en}</h3>
-                    <p class="admin-alert-card__details">${alert.details_en}</p>
+                    <h3 class="admin-alert-card__title">${loc(alert, 'title')}</h3>
+                    <p class="admin-alert-card__details">${loc(alert, 'details')}</p>
                   </div>
 
                   <div class="admin-alert-card__footer">
-                    <button data-url="${alert.action_url}" class="admin-alert-card__link-btn deep-link-btn" aria-label="${alert.action_label_en}">
-                      <span>${alert.action_label_en}</span>
+                    <button data-url="${alert.action_url}" class="admin-alert-card__link-btn deep-link-btn" aria-label="${loc(alert, 'action_label')}">
+                      <span>${loc(alert, 'action_label')}</span>
                       <span aria-hidden="true">→</span>
                     </button>
                     <span class="admin-alert-card__url">${alert.action_url}</span>
@@ -384,7 +393,7 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
                 <div class="admin-breakdown-item">
                   <div class="admin-breakdown-item__row">
                     <span class="admin-breakdown-item__name">${cat.name}</span>
-                    <span class="admin-breakdown-item__share" style="color: var(--status-success);">${cat.share_pct}%</span>
+                    <span class="admin-breakdown-item__share" style="color: var(--success);">${cat.share_pct}%</span>
                   </div>
                   <div class="admin-breakdown-item__track">
                     <div class="admin-breakdown-item__bar admin-breakdown-item__bar--emerald" style="width: ${cat.share_pct}%;"></div>
