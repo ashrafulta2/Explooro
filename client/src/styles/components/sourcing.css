@@ -299,18 +299,23 @@
   justify-content: center;
   gap: 4px;
   border-radius: var(--radius-md);
-  background: var(--brand-600);
+  background: var(--brand);
+  border: 1px solid var(--brand);
   color: var(--brand-contrast);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  transition: background-color 0.15s ease, transform 0.1s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
 
 .sourcing-card__add-btn:hover:not(:disabled) {
-  background: var(--brand-700);
+  background: var(--brand-hover);
+  border-color: var(--brand-hover);
+  color: var(--brand-alt-contrast, var(--brand-contrast));
   transform: translateY(-1px);
 }
 
 .sourcing-card__add-btn:active:not(:disabled) {
+  background: var(--brand-active);
+  border-color: var(--brand-active);
   transform: translateY(0);
 }
 
