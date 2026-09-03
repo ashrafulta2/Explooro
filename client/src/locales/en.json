@@ -12,7 +12,8 @@
     "save": "Save",
     "save_changes": "Save Changes",
     "copy": "Copy",
-    "retry": "Retry"
+    "retry": "Retry",
+    "click_to_toggle": "Click to toggle"
   },
   "language": {
     "switch_to_bn": "বাংলা",

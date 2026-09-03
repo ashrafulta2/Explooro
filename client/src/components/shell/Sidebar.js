@@ -171,7 +171,9 @@ export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarColla
     compactBtn.type = 'button';
     compactBtn.className = 'sidebar__mode-compact-btn';
     const nextMode = mode === 'simple' ? 'advanced' : 'simple';
-    compactBtn.title = `${t('shell.mode_label') || 'Mode'}: ${t(`shell.mode.${mode}`)} (${t('common.click_to_toggle') || 'Click for'} ${t(`shell.mode.${nextMode}`)})`;
+    const currentModeName = t(`shell.mode.${mode}`, mode === 'simple' ? 'Simple' : 'Advanced');
+    const nextModeName = t(`shell.mode.${nextMode}`, nextMode === 'simple' ? 'Simple' : 'Advanced');
+    compactBtn.title = `${t('shell.mode.toggle_label', 'Mode')}: ${currentModeName} (${t('common.click_to_toggle', 'Click to toggle')} ${nextModeName})`;
     compactBtn.setAttribute('aria-label', compactBtn.title);
     compactBtn.innerHTML = mode === 'simple'
       ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h6"></path></svg>'
