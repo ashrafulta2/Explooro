@@ -6,7 +6,6 @@
  *  2. Payment Method & Instant Order Placement
  */
 
-import '../../styles/components/checkout.css';
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
 import { AddressForm } from '../checkout/AddressForm.js';

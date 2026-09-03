@@ -76,7 +76,7 @@ const DEMO_MODULES = {
   product_bundling: true,
   ai_creative_studio: true,
   social_seller_kit: true,
-  gamification: false, // OFF — hides saler.leaderboard entirely (module-disabled demo)
+  gamification: true,
   whatsapp_bridge: true,
   wishlist: true,
   follow_feed: true,

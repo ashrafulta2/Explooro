@@ -87,3 +87,7 @@
 
 /* Admin Governance Pages (Categories, Batches, Warehouses, Orders, Courier, Ledger, Escrow, Ads, Quests, Groups, Sessions) */
 @import './components/admin-pages.css';
+
+/* Saler Portal: Products, Showroom Status, Orders, Flyer Studio, Withdrawals, Quests & Leaderboard */
+@import './components/saler.css';
+@import './components/referrals.css';

@@ -237,7 +237,14 @@ async function bootRouterDemo() {
         item.path !== '/admin/catalog/products' &&
         item.path !== '/admin/products' &&
         item.path !== '/supplier/products' &&
-        item.path !== '/saler/products'
+        item.path !== '/saler/products' &&
+        item.path !== '/saler/social-kit' &&
+        item.path !== '/saler/store-status' &&
+        item.path !== '/saler/vault/payouts' &&
+        item.path !== '/saler/academy' &&
+        item.path !== '/saler/inbox' &&
+        item.path !== '/saler/orders' &&
+        item.path !== '/saler/orders/:id'
     )
     .map((item) => ({
       path: item.path,
@@ -633,6 +640,22 @@ async function bootRouterDemo() {
         module: 'virtual_storefront',
         load: () => import('./pages/saler/StoreBuilderPage.js'),
       },
+      {
+        path: '/saler/store-status',
+        title: 'Physical Shop Status — Explooro',
+        requiresAuth: true,
+        permission: 'saler.store.manage',
+        module: 'physical_shop_status',
+        load: () => import('./pages/saler/SalerStoreStatusPage.js'),
+      },
+      {
+        path: '/saler/social-kit',
+        title: 'Social Seller Kit — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/saler/SocialKitPage.js'),
+      },
       // Prompt 11.2: Saler Dashboard & Analytics
       // WHY this is the only `/saler` entry: a Prompt-1.5 guard-demo stub was also registered at
       // this path, ~200 lines earlier. The router matches first-wins, so the stub shadowed the real
@@ -660,7 +683,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',
-        load: () => import('./pages/customer/OrdersPage.js'),
+        load: () => import('./pages/saler/SalerOrdersPage.js'),
       },
       {
         path: '/saler/orders/:id',
@@ -668,7 +691,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',
-        load: () => import('./pages/customer/OrderDetailPage.js'),
+        load: () => import('./pages/saler/SalerOrderDetailPage.js'),
       },
       {
         path: '/saler/analytics',
@@ -677,6 +700,14 @@ async function bootRouterDemo() {
         permission: 'saler.order.view',
         module: 'core',
         load: () => import('./pages/saler/AnalyticsPage.js'),
+      },
+      {
+        path: '/saler/academy',
+        title: 'Saler Academy — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/AcademyPage.js'),
       },
       // Prompt 11.3: Customer Portal, Orders & Following Feed
       {
@@ -1242,6 +1273,14 @@ async function bootRouterDemo() {
         load: () => import('./pages/VaultPage.js'),
       },
       {
+        path: '/saler/vault/payouts',
+        title: 'Withdrawals & Payouts — Explooro',
+        requiresAuth: true,
+        permission: 'finance.payout.request',
+        module: 'core',
+        load: () => import('./pages/saler/WithdrawalsPage.js'),
+      },
+      {
         path: '/supplier/vault',
         title: 'Vault & Earnings — Explooro',
         requiresAuth: true,
@@ -1395,7 +1434,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.store.manage',
         module: 'virtual_storefront',
-        load: () => import('./pages/saler/StoreBuilderPage.js'),
+        load: () => import('./pages/saler/MyProductsPage.js'),
       },
       // Prompt 7.5: KYC Verification, Blue-Tick & Trust Tiers
       {
@@ -1455,6 +1494,15 @@ async function bootRouterDemo() {
         module: 'product_moderation',
         load: () => import('./pages/moderator/ModeratorDashboardPage.js'),
       },
+      // Prompt 8.3: Unified Multi-Channel Inbox
+      {
+        path: '/saler/inbox',
+        title: 'Unified Customer Inbox — Explooro',
+        requiresAuth: true,
+        permission: 'chat.thread.view_own',
+        module: 'whatsapp_bridge',
+        load: () => import('./pages/saler/UnifiedInboxPage.js'),
+      },
       // Prompt 8.2: Notification Preferences
       {
         path: '/settings/notifications',
@@ -1483,15 +1531,6 @@ async function bootRouterDemo() {
         permission: null,
         module: 'core',
         load: () => import('./pages/settings/NotificationPreferencesPage.js'),
-      },
-      // Prompt 8.3: WhatsApp & Messenger Unified Inbox
-      {
-        path: '/saler/inbox',
-        title: 'Unified Commerce Inbox — Explooro',
-        requiresAuth: true,
-        permission: null,
-        module: 'whatsapp_bridge',
-        load: () => import('./pages/saler/UnifiedInboxPage.js'),
       },
       // Prompt 8.4: Real-Time Chat Interface
       {
@@ -1633,7 +1672,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'daily_quests',
-        load: () => import('./pages/customer/CoinsPage.js'),
+        load: () => import('./pages/saler/SalerQuestsPage.js'),
       },
       {
         path: '/saler/leaderboard',
@@ -1641,7 +1680,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'gamification',
-        load: () => import('./pages/customer/CoinsPage.js'),
+        load: () => import('./pages/saler/SalerQuestsPage.js'),
       },
       // Prompt 9.5: Social Group Buying (Team Purchase)
       {
@@ -1665,7 +1704,7 @@ async function bootRouterDemo() {
         path: '/saler/cart-insights',
         title: 'Cart Recovery Insights — Explooro',
         requiresAuth: true,
-        permission: null,
+        permission: 'saler.analytics.view',
         module: 'cart_recovery',
         load: () => import('./pages/saler/CartInsightsPage.js'),
       },

@@ -14,7 +14,6 @@
  * 6. 100% Bilingual (English & Bengali) with Explooro design system.
  */
 
-import '../../styles/components/referrals.css';
 import { api } from '../../core/api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

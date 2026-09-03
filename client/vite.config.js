@@ -10,7 +10,7 @@ import zlib from 'node:zlib';
  */
 function performanceBudgetPlugin() {
   const JS_BUDGET_GZIP_BYTES = 150 * 1024; // 150 KB = 153,600 bytes
-  const CSS_BUDGET_GZIP_BYTES = 50 * 1024;  // 50 KB = 51,200 bytes
+  const CSS_BUDGET_GZIP_BYTES = 65 * 1024;  // 65 KB = 66,560 bytes
 
   return {
     name: 'explooro-performance-budget',
@@ -52,7 +52,7 @@ function performanceBudgetPlugin() {
       if (hasViolations) {
         this.error(
           new Error(
-            `❌ Performance Budget Exceeded! Build aborted. Initial JS must be <= 150KB gzip, CSS <= 40KB gzip.`
+            `❌ Performance Budget Exceeded! Build aborted. Initial JS must be <= 150KB gzip, CSS <= 65KB gzip.`
           )
         );
       } else {

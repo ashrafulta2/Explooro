@@ -20,7 +20,6 @@
  *  - Press feedback via scale(0.98) matches craft.css §press — defined in product.css.
  */
 
-import '../../styles/components/product.css';
 import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
