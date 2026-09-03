@@ -1152,6 +1152,7 @@
     }
   },
   "sourcing": {
+    "catalog_heading": "Available Wholesale Products",
     "hero": {
       "title": "Supplier Sourcing Catalog",
       "subtitle": "Discover verified supplier inventory with high resale margins. Add to your virtual storefront in 1-click and start selling immediately with zero upfront inventory.",
@@ -1269,7 +1270,11 @@
     "social_links_section": "Social Seller Links",
     "physical_shop_section": "Physical Shop & Pickup Status",
     "has_physical_shop_label": "I have a physical retail store or pickup point",
-    "live_preview": "Live Storefront Preview"
+    "live_preview": "Live Storefront Preview",
+    "banner_preset_label": "Cover Banner Theme Preset",
+    "need_more_products": "Looking for high-margin authentic items to add?",
+    "load_error_title": "Unable to Load Storefront",
+    "use_default": "Continue with Default Store"
   },
   "shop_status": {
     "title": "Physical Shop Status",

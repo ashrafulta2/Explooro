@@ -12,6 +12,7 @@ import { addToSalerStore, previewPricing } from '../../services/catalog.api.js';
 import { pickMessage } from '../../core/api.js';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { resolveProductImage } from '../product/ProductCard.js';
 
 const COLLECTIONS = [
   { value: 'General', label_en: 'General', label_bn: 'সাধারণ' },
@@ -60,7 +61,20 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
 
     const imgBox = document.createElement('div');
     imgBox.className = 'add-store-product-preview__img';
-    imgBox.textContent = title ? title.slice(0, 2).toUpperCase() : 'PR';
+
+    const previewImageUrl = resolveProductImage(activeProduct);
+    if (previewImageUrl) {
+      const img = document.createElement('img');
+      img.src = previewImageUrl;
+      img.alt = title || '';
+      img.loading = 'lazy';
+      img.addEventListener('error', () => {
+        imgBox.textContent = title ? title.slice(0, 2).toUpperCase() : 'PR';
+      }, { once: true });
+      imgBox.append(img);
+    } else {
+      imgBox.textContent = title ? title.slice(0, 2).toUpperCase() : 'PR';
+    }
 
     const infoBox = document.createElement('div');
     infoBox.className = 'add-store-product-preview__info';

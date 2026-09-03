@@ -218,10 +218,15 @@ export default function SourcingCatalogPage(root) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `sourcing-pill-btn ${m.value === state.minMarginPct ? 'active' : ''}`;
+    btn.setAttribute('aria-pressed', m.value === state.minMarginPct ? 'true' : 'false');
     btn.textContent = m.label;
     btn.addEventListener('click', () => {
       state.minMarginPct = m.value;
-      marginPills.forEach((p) => p.btn.classList.toggle('active', p.value === state.minMarginPct));
+      marginPills.forEach((p) => {
+        const isActive = p.value === state.minMarginPct;
+        p.btn.classList.toggle('active', isActive);
+        p.btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
       loadProducts();
     });
     marginGroup.append(btn);
@@ -231,12 +236,15 @@ export default function SourcingCatalogPage(root) {
   // Verification Tier Select
   const tierGroup = document.createElement('div');
   tierGroup.className = 'sourcing-filter-group';
-  const tierLabel = document.createElement('span');
+  const tierLabel = document.createElement('label');
   tierLabel.className = 'sourcing-filter-label';
+  tierLabel.setAttribute('for', 'sourcing-tier-select');
   tierLabel.textContent = t('sourcing.filters.tier');
 
   const tierSelect = document.createElement('select');
+  tierSelect.id = 'sourcing-tier-select';
   tierSelect.className = 'sourcing-select';
+  tierSelect.setAttribute('aria-label', t('sourcing.filters.tier'));
   tierSelect.innerHTML = `
     <option value="all">${t('sourcing.filters.all_tiers')}</option>
     <option value="elite">${t('sourcing.filters.tier_elite')}</option>
@@ -252,12 +260,15 @@ export default function SourcingCatalogPage(root) {
   // Sort By Select
   const sortGroup = document.createElement('div');
   sortGroup.className = 'sourcing-filter-group ml-auto';
-  const sortLabel = document.createElement('span');
+  const sortLabel = document.createElement('label');
   sortLabel.className = 'sourcing-filter-label';
+  sortLabel.setAttribute('for', 'sourcing-sort-select');
   sortLabel.textContent = t('sourcing.filters.sort_by');
 
   const sortSelect = document.createElement('select');
+  sortSelect.id = 'sourcing-sort-select';
   sortSelect.className = 'sourcing-select';
+  sortSelect.setAttribute('aria-label', t('sourcing.filters.sort_by'));
   sortSelect.innerHTML = SORT_OPTIONS.map((opt) => `
     <option value="${opt.value}">${isBn ? opt.label_bn : opt.label_en}</option>
   `).join('');
@@ -273,6 +284,7 @@ export default function SourcingCatalogPage(root) {
   // 3. Grid Container for Sourcing Cards
   const grid = document.createElement('section');
   grid.className = 'sourcing-grid';
+  grid.setAttribute('aria-label', t('sourcing.catalog_heading', 'Available Wholesale Products'));
 
   container.append(hero, filterBar, grid);
 
@@ -382,6 +394,20 @@ function createStatCard(label, value) {
   return card;
 }
 
+const CATEGORY_META = {
+  'Clothing': { icon: '🥻', bg: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', color: '#9d174d' },
+  'Jewellery': { icon: '💍', bg: 'linear-gradient(135deg, #fae8ff 0%, #f5d0fe 100%)', color: '#86198f' },
+  'Crafts': { icon: '🏺', bg: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534' },
+  'Electronics': { icon: '📱', bg: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', color: '#1e40af' },
+  'Home & Kitchen': { icon: '🍳', bg: 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)', color: '#9a3412' },
+  'Food & Grocery': { icon: '🍯', bg: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', color: '#92400e' },
+  'Footwear': { icon: '👟', bg: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', color: '#334155' },
+  'Bags': { icon: '👜', bg: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)', color: '#5b21b6' },
+  'Beauty & Health': { icon: '✨', bg: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)', color: '#9f1239' },
+  'Kids': { icon: '🧸', bg: 'linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 100%)', color: '#065f46' },
+  default: { icon: '📦', bg: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)', color: '#374151' },
+};
+
 function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestricted = false }) {
   const card = document.createElement('article');
   card.className = 'sourcing-card';
@@ -398,9 +424,20 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
   const media = document.createElement('div');
   media.className = 'sourcing-card__media';
 
-  const placeholder = document.createElement('div');
-  placeholder.className = 'sourcing-card__placeholder';
-  placeholder.textContent = title ? title.slice(0, 2).toUpperCase() : 'PR';
+  function createPlaceholder() {
+    const catName = product.category || 'Crafts';
+    const meta = CATEGORY_META[catName] || CATEGORY_META.default;
+    const ph = document.createElement('div');
+    ph.className = 'sourcing-card__placeholder';
+    ph.style.background = meta.bg;
+    ph.style.color = meta.color;
+    ph.innerHTML = `
+      <span class="sourcing-card__placeholder-icon" aria-hidden="true">${meta.icon}</span>
+      <span class="sourcing-card__placeholder-cat">${isBn ? (product.category_bn || catName) : catName}</span>
+      <span class="sourcing-card__placeholder-title">${title || ''}</span>
+    `;
+    return ph;
+  }
 
   const imageUrl = resolveProductImage(product);
   if (imageUrl) {
@@ -410,10 +447,12 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
     img.alt = title || '';
     img.loading = 'lazy';
     img.decoding = 'async';
-    img.addEventListener('error', () => img.replaceWith(placeholder), { once: true });
+    img.addEventListener('error', () => {
+      img.replaceWith(createPlaceholder());
+    }, { once: true });
     media.append(img);
   } else {
-    media.append(placeholder);
+    media.append(createPlaceholder());
   }
 
   // Badges
@@ -422,11 +461,12 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
 
   const marginBadge = document.createElement('span');
   marginBadge.className = 'sourcing-card__margin-badge';
-  marginBadge.textContent = `+${marginPct}% ${t('sourcing.card.margin')}`;
+  marginBadge.textContent = `⚡ +${marginPct}% ${t('sourcing.card.margin', 'Margin')}`;
 
   const tierBadge = document.createElement('span');
   tierBadge.className = `sourcing-card__tier-badge sourcing-card__tier-badge--${tier}`;
-  tierBadge.textContent = tier.toUpperCase();
+  const tierIcon = tier === 'elite' ? '🏆 ' : tier === 'verified' ? '✓ ' : '';
+  tierBadge.textContent = `${tierIcon}${tier.toUpperCase()}`;
 
   badges.append(marginBadge, tierBadge);
   media.append(badges);
@@ -434,7 +474,7 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
   // Dispatch Speed Tag
   const dispatch = document.createElement('span');
   dispatch.className = 'sourcing-card__dispatch';
-  dispatch.textContent = tier === 'elite' ? `⚡ 24h ${t('sourcing.card.dispatch')}` : `📦 48h ${t('sourcing.card.dispatch')}`;
+  dispatch.textContent = tier === 'elite' ? `⚡ 24h ${t('sourcing.card.dispatch', 'Dispatch')}` : `📦 48h ${t('sourcing.card.dispatch', 'Dispatch')}`;
   media.append(dispatch);
 
   // Content
@@ -460,15 +500,15 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
 
   matrix.innerHTML = `
     <div class="sourcing-card__pricing-row">
-      <span class="sourcing-card__pricing-label">${t('sourcing.calc.wholesale_cost')}</span>
+      <span class="sourcing-card__pricing-label">${t('sourcing.calc.wholesale_cost', 'Wholesale Cost')}</span>
       <span class="sourcing-card__pricing-val">${formatCurrency(wholesaleCost)}</span>
     </div>
     <div class="sourcing-card__pricing-row">
-      <span class="sourcing-card__pricing-label">${t('sourcing.card.suggested_retail')}</span>
+      <span class="sourcing-card__pricing-label">${t('sourcing.card.suggested_retail', 'Suggested Retail')}</span>
       <span class="sourcing-card__pricing-val">${formatCurrency(price)}</span>
     </div>
     <div class="sourcing-card__pricing-row sourcing-card__pricing-row--profit">
-      <span class="sourcing-card__pricing-label font-bold">${t('sourcing.card.profit_per_sale')}</span>
+      <span class="sourcing-card__pricing-label sourcing-card__pricing-label--profit">💰 ${t('sourcing.card.profit_per_sale', 'Your Profit / Sale')}</span>
       <span class="sourcing-card__profit-val">+${formatCurrency(salerProfit)}</span>
     </div>
   `;
@@ -478,19 +518,23 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
   actions.className = 'sourcing-card__actions';
 
   const calcBtn = Button({
-    label: `🧮 ${t('sourcing.card.btn_calc')}`,
+    label: `🧮 ${t('sourcing.card.btn_calc', 'Calculate')}`,
     variant: 'secondary',
     size: 'sm',
+    ariaLabel: `${t('sourcing.card.btn_calc', 'Calculate')} ${t('sourcing.card.profit_per_sale', 'profit')} - ${title}`,
     onClick: (e) => onCalculate(product, e.currentTarget),
   });
+  calcBtn.classList.add('sourcing-card__calc-btn');
 
   const addBtn = Button({
-    label: `+ ${t('sourcing.card.btn_add_store')}`,
+    label: `+ ${t('sourcing.card.btn_add_store', 'Add to Store')}`,
     variant: 'primary',
     size: 'sm',
     disabled: isSellRestricted,
+    ariaLabel: `${t('sourcing.card.btn_add_store', 'Add to Store')}: ${title}`,
     onClick: (e) => onAddToStore(product, e.currentTarget),
   });
+  addBtn.classList.add('sourcing-card__add-btn');
 
   if (isSellRestricted) {
     addBtn.title = t('sourcing.restricted_can_sell_tooltip');

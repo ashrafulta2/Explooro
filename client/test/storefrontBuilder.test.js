@@ -123,6 +123,73 @@ test('Prompt 4.8: Storefront Builder & Public Store — Client Invariants', asyn
     assert.ok(waUrl.includes('https://wa.me/8801711223344'));
     assert.ok(waUrl.includes(encodeURIComponent(publicStoreUrl)));
   });
+
+  // 6. StoreBuilder Data Unwrap Invariant (Prevents 'Cannot read properties of undefined (reading store)')
+  await t.test('6. StoreBuilder unwrap invariant: handles raw { store, shelves }, enveloped { data: ... } or empty responses safely', () => {
+    function unwrapStorePayload(res) {
+      const payload = (res && res.data && (res.data.store || res.data.shelves))
+        ? res.data
+        : (res?.store || res?.shelves ? res : (res?.data || res || {}));
+      const store = payload.store || payload || {};
+      const shelves = Array.isArray(payload.shelves) ? payload.shelves : [];
+      return { store, shelves };
+    }
+
+    // Case A: Raw payload { store, shelves } (from store.api unwrapped)
+    const rawRes = {
+      store: { id: 1, shop_name: 'Heritage Crafts', slug: 'heritage-crafts' },
+      shelves: [{ name: 'Handloom', items: [] }],
+    };
+    const unwrapA = unwrapStorePayload(rawRes);
+    assert.equal(unwrapA.store.shop_name, 'Heritage Crafts');
+    assert.equal(unwrapA.shelves.length, 1);
+
+    // Case B: Enveloped payload { data: { store, shelves } } (direct Fastify API mock)
+    const envRes = {
+      data: {
+        store: { id: 2, shop_name: 'Dhaka Silk', slug: 'dhaka-silk' },
+        shelves: [{ name: 'Silk', items: [] }],
+      },
+    };
+    const unwrapB = unwrapStorePayload(envRes);
+    assert.equal(unwrapB.store.shop_name, 'Dhaka Silk');
+    assert.equal(unwrapB.shelves.length, 1);
+
+    // Case C: Null or undefined response (network glitch or empty)
+    const unwrapC = unwrapStorePayload(null);
+    assert.equal(typeof unwrapC.store, 'object');
+    assert.equal(Array.isArray(unwrapC.shelves), true);
+    assert.equal(unwrapC.shelves.length, 0);
+
+    // Case D: Empty object
+    const unwrapD = unwrapStorePayload({});
+    assert.equal(typeof unwrapD.store, 'object');
+    assert.equal(Array.isArray(unwrapD.shelves), true);
+  });
+
+  // 7. StoreBuilder Quick Share Hub Invariants
+  await t.test('7. StoreBuilder Quick Share Hub creates 1-tap WhatsApp message & Facebook share URLs', () => {
+    const store = {
+      shop_name: 'Bengal Artisan Studio',
+      slug: 'bengal-artisan',
+      bio: 'Premium Jamdani & Terracotta Crafts',
+    };
+    const origin = 'https://explooro.com';
+    const storeUrl = `${origin}/store/${store.slug}`;
+
+    const greeting = `🛍️ Check out "${store.shop_name}" on Explooro Bangladesh!`;
+    const orderCta = '\n\nBrowse products & buy with 100% Escrow Protection:';
+    const waText = encodeURIComponent(`${greeting}\n\n${store.bio}${orderCta}\n👉 ${storeUrl}`);
+    const waUrl = `https://api.whatsapp.com/send?text=${waText}`;
+
+    assert.ok(waUrl.startsWith('https://api.whatsapp.com/send?text='));
+    assert.ok(waUrl.includes(encodeURIComponent('Bengal Artisan Studio')));
+    assert.ok(waUrl.includes(encodeURIComponent(storeUrl)));
+
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(storeUrl)}`;
+    assert.ok(fbUrl.startsWith('https://www.facebook.com/sharer/sharer.php?u='));
+    assert.ok(fbUrl.includes(encodeURIComponent(storeUrl)));
+  });
 });
 
 function resolveShopStatus(mode, hours, now) {

@@ -76,7 +76,7 @@ const CATEGORY_DUMMY_IMAGES = {
     'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&auto=format&fit=crop&q=80',
   ],
   'Jewellery': [
-    'https://images.unsplash.com/photo-1611591475847-f0b48a1b24d7?w=500&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=500&auto=format&fit=crop&q=80',
   ],
   'Food & Grocery': [
@@ -212,7 +212,7 @@ const KEYWORD_IMAGE_RULES = [
   { match: /(sandal|স্যান্ডেল|heel|হিল)/i, url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=500&auto=format&fit=crop&q=80' },
 
   // Jewellery
-  { match: /(bracelet|ব্রেসলেট)/i, url: 'https://images.unsplash.com/photo-1611591475847-f0b48a1b24d7?w=500&auto=format&fit=crop&q=80' },
+  { match: /(bracelet|ব্রেসলেট)/i, url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500&auto=format&fit=crop&q=80' },
   { match: /(earring|দুল|কানের দুল|jewel|গহনা)/i, url: 'https://images.unsplash.com/photo-1630019852942-f89202989a59?w=500&auto=format&fit=crop&q=80' },
 
   // Food & Grocery
