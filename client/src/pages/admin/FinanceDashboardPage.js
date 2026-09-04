@@ -14,6 +14,7 @@ import { api } from '../../core/api.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
+import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 
 export default function FinanceDashboardPage(root) {
   const container = document.createElement('div');
@@ -152,6 +153,8 @@ export default function FinanceDashboardPage(root) {
         </div>
       </div>
 
+      <div class="finance-subnav-mount my-4"></div>
+
       ${isLoading ? `
         <div class="finance-dashboard-page__loading">
           <div class="spinner"></div>
@@ -243,16 +246,30 @@ export default function FinanceDashboardPage(root) {
             <a href="#/admin/finance/payouts" class="btn btn--secondary">
               💸 ${t('finance_admin.goto_payouts')}
             </a>
-            <a href="#/admin/cod-reconciliation" class="btn btn--secondary">
-              📦 ${t('finance_admin.goto_cod')}
+            <a href="#/admin/finance/splits" class="btn btn--secondary">
+              🍰 ${t('admin_splits.page_title', 'Profit Splits')}
+            </a>
+            <a href="#/admin/finance/subscriptions" class="btn btn--secondary">
+              🔁 ${t('admin_subscriptions.page_title', 'Subscriptions')}
+            </a>
+            <a href="#/admin/finance/b2b-escrow" class="btn btn--secondary">
+              🤝 B2B Escrow
             </a>
             <a href="#/admin/finance/escrow" class="btn btn--secondary">
               ⏳ ${t('finance_admin.goto_escrow')}
+            </a>
+            <a href="#/admin/cod-reconciliation" class="btn btn--secondary">
+              📦 ${t('finance_admin.goto_cod')}
             </a>
           </div>
         </div>
       `}
     `;
+
+    const subnavMount = container.querySelector('.finance-subnav-mount');
+    if (subnavMount) {
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'overview' }));
+    }
 
     container.querySelector('.finance-dashboard-page__refresh-btn')?.addEventListener('click', loadDashboard);
     container.querySelector('.finance-dashboard-page__sweep-btn')?.addEventListener('click', handleSweep);

@@ -14,6 +14,7 @@ import { formatCurrency, formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 
 export default function PayoutQueuePage(root) {
   const container = document.createElement('div');
@@ -162,6 +163,8 @@ export default function PayoutQueuePage(root) {
         </div>
       </div>
 
+      <div class="finance-subnav-mount"></div>
+
       <div class="payout-queue-page__metrics-grid">
         <div class="card metric-card">
           <span class="text-secondary text-sm">${t('payout.metric.pending_queue')}</span>
@@ -290,6 +293,11 @@ export default function PayoutQueuePage(root) {
         `}
       </div>
     `;
+
+    const subnavMount = container.querySelector('.finance-subnav-mount');
+    if (subnavMount) {
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'payouts' }));
+    }
 
     // Event listeners
     container.querySelector('.payout-queue-page__refresh-btn')?.addEventListener('click', loadData);

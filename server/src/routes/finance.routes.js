@@ -154,4 +154,70 @@ export default async function financeRoutes(app) {
     preHandler: [app.authenticate, app.requirePermission('finance.overview.view')],
     handler: controller.getFinanceOverview,
   });
+
+  // 21. Profit Splits Governance
+  app.get('/admin/finance/splits', {
+    preHandler: [app.authenticate, app.requirePermission('finance.split.view')],
+    handler: controller.getProfitSplits,
+  });
+
+  // 22. Update Global Profit Split (CRITICAL tier)
+  app.put('/admin/finance/splits/default', {
+    preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
+    handler: controller.updateGlobalSplit,
+  });
+
+  // 23. Update Category Split Override
+  app.put('/admin/finance/splits/categories/:id', {
+    preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
+    handler: controller.updateCategorySplit,
+  });
+
+  // 24. Delete / Reset Category Split Override
+  app.delete('/admin/finance/splits/categories/:id', {
+    preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
+    handler: controller.deleteCategorySplit,
+  });
+
+  // 25. Update Saler Trust Tier Split Bonuses
+  app.put('/admin/finance/splits/tiers', {
+    preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
+    handler: controller.updateTierBonuses,
+  });
+
+  // 26. Simulate Profit Split Calculation
+  app.post('/admin/finance/splits/simulate', {
+    preHandler: [app.authenticate, app.requirePermission('finance.split.view')],
+    handler: controller.simulateSplit,
+  });
+
+  // 27. Merchant Subscriptions Overview & Subscriber Roster
+  app.get('/admin/finance/subscriptions', {
+    preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
+    handler: controller.getSubscriptions,
+  });
+
+  // 28. Update Subscription Engine Settings
+  app.put('/admin/finance/subscriptions/settings', {
+    preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
+    handler: controller.updateSubscriptionSettings,
+  });
+
+  // 29. Create Subscription Plan
+  app.post('/admin/finance/subscriptions/plans', {
+    preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
+    handler: controller.createSubscriptionPlan,
+  });
+
+  // 30. Update Subscription Plan
+  app.put('/admin/finance/subscriptions/plans/:id', {
+    preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
+    handler: controller.updateSubscriptionPlan,
+  });
+
+  // 31. Update Subscriber Status / Grant Fee Waiver
+  app.patch('/admin/finance/subscriptions/subscribers/:id', {
+    preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
+    handler: controller.updateSubscriberStatus,
+  });
 }

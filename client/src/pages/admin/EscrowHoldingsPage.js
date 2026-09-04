@@ -13,6 +13,7 @@
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
@@ -144,6 +145,8 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
         </div>
       </div>
 
+      <div class="finance-subnav-mount"></div>
+
       <!-- KPI Metrics Strip -->
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
@@ -252,6 +255,11 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
         </div>
       </div>
     `;
+
+    const subnavMount = container.querySelector('.finance-subnav-mount');
+    if (subnavMount) {
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'escrow' }));
+    }
 
     // Bind Event Listeners
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());

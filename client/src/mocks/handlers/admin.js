@@ -33,6 +33,69 @@ const mockBackups = [
     status: 'VERIFIED',
     created_at: new Date(Date.now() - 3600000 * 32).toISOString(),
   },
+  {
+    id: 3,
+    ref: 'BAK-20260823-303',
+    snapshot_type: 'SCHEDULED_NIGHTLY',
+    snapshot_tag: 'NIGHTLY_SNAP_20260823',
+    sha256_checksum: 'a35f29d891b9201f98bc19d9213812d1948491823746194821a8128491283912',
+    checksum_sha256: 'a35f29d891b9201f98bc19d9213812d1948491823746194821a8128491283912',
+    table_count: 95,
+    row_count: 139800,
+    size_bytes: 47650000,
+    status: 'VERIFIED',
+    created_at: new Date(Date.now() - 3600000 * 56).toISOString(),
+  },
+  {
+    id: 4,
+    ref: 'BAK-20260822-404',
+    snapshot_type: 'PRE_MIGRATION',
+    snapshot_tag: 'PRE_SCHEMA_V12_MIGRATION',
+    sha256_checksum: 'c27b019284019248201948192048120948102948102948120498102948102948',
+    checksum_sha256: 'c27b019284019248201948192048120948102948102948120498102948102948',
+    table_count: 94,
+    row_count: 138100,
+    size_bytes: 47100000,
+    status: 'RESTORED',
+    created_at: new Date(Date.now() - 3600000 * 80).toISOString(),
+  },
+];
+
+let mock2faPolicy = {
+  enforcement_tier: 'tier_medium_plus',
+  grace_period_days: 7,
+  reauth_hours: 24,
+  allow_sms_fallback: true,
+  enforce_all: false,
+};
+
+let mockStaff2faList = [
+  { id: 1, user_id: 1, name: 'Rahim Khan', email: 'rahim.khan@explooro.com', role: 'SUPER_ADMIN', department: 'Executive Engineering', status: 'ENROLLED', method: 'TOTP', enrolled_at: '2026-08-10T12:00:00Z', last_used_at: new Date(Date.now() - 3600000 * 2).toISOString() },
+  { id: 2, user_id: 2, name: 'Tariq Ahmed', email: 'tariq.mod@explooro.com', role: 'MODERATOR', department: 'Content Integrity', status: 'ENROLLED', method: 'TOTP', enrolled_at: '2026-08-12T14:30:00Z', last_used_at: new Date(Date.now() - 3600000 * 6).toISOString() },
+  { id: 3, user_id: 3, name: 'Nusrat Jahan', email: 'nusrat.editor@explooro.com', role: 'EDITOR', department: 'Catalog Operations', status: 'PENDING', method: 'NONE', enrolled_at: null, last_used_at: null },
+  { id: 4, user_id: 4, name: 'Tanvir Hossain', email: 'tanvir.sec@explooro.com', role: 'ADMIN', department: 'Infrastructure & Security', status: 'ENROLLED', method: 'TOTP', enrolled_at: '2026-08-01T09:15:00Z', last_used_at: new Date(Date.now() - 3600000 * 1).toISOString() },
+  { id: 5, user_id: 5, name: 'Farhana Yeasmin', email: 'farhana.ops@explooro.com', role: 'MODERATOR', department: 'Risk & Trust', status: 'GRACE_PERIOD', method: 'NONE', enrolled_at: null, last_used_at: null },
+];
+
+let mock2faEvents = [
+  { id: 1, event: 'TOTP_VERIFIED', user: 'rahim.khan@explooro.com', ip: '103.145.120.42', timestamp: new Date(Date.now() - 3600000 * 2).toISOString(), status: 'SUCCESS' },
+  { id: 2, event: 'TOTP_VERIFIED', user: 'tanvir.sec@explooro.com', ip: '103.205.110.14', timestamp: new Date(Date.now() - 3600000 * 4).toISOString(), status: 'SUCCESS' },
+  { id: 3, event: '2FA_ENFORCE_CHECK', user: 'nusrat.editor@explooro.com', ip: '103.145.120.88', timestamp: new Date(Date.now() - 3600000 * 12).toISOString(), status: 'GRACE_ACTIVE' },
+  { id: 4, event: 'STAFF_2FA_RESET', user: 'farhana.ops@explooro.com', ip: '103.145.120.42', timestamp: new Date(Date.now() - 3600000 * 24).toISOString(), status: 'ADMIN_TRIGGERED' },
+];
+
+let mockIpAllowlistMode = 'ENFORCING';
+let mockIpAllowlistEntries = [
+  { id: 1, label: 'HQ Main Office Fiber (Primary)', cidr: '103.145.120.42/32', scope: 'ALL_ADMIN', status: 'ACTIVE', added_by: 'Rahim Khan (Super Admin)', added_at: '2026-08-01T10:00:00Z', last_seen_at: new Date(Date.now() - 60000 * 5).toISOString() },
+  { id: 2, label: 'Uttara Engineering Hub Subnet', cidr: '103.205.110.0/24', scope: 'ALL_ADMIN', status: 'ACTIVE', added_by: 'Tanvir Hossain (Admin)', added_at: '2026-08-05T14:20:00Z', last_seen_at: new Date(Date.now() - 3600000 * 3).toISOString() },
+  { id: 3, label: 'Emergency NOC WireGuard Gateway', cidr: '103.145.120.88/32', scope: 'SUPER_ADMIN_ONLY', status: 'ACTIVE', added_by: 'Rahim Khan (Super Admin)', added_at: '2026-08-10T11:00:00Z', last_seen_at: new Date(Date.now() - 3600000 * 8).toISOString() },
+  { id: 4, label: 'Chittagong Regional Office', cidr: '118.179.220.0/24', scope: 'STAFF_ONLY', status: 'DISABLED', added_by: 'Tanvir Hossain (Admin)', added_at: '2026-08-15T09:30:00Z', last_seen_at: new Date(Date.now() - 3600000 * 72).toISOString() },
+];
+
+let mockBlockedIpAttempts = [
+  { id: 1, ip: '185.220.101.5', target_route: '/admin/security/sessions', location: 'Frankfurt, Germany (Tor Exit Node)', reason: 'UNAUTHORIZED_IP_CIDR', timestamp: new Date(Date.now() - 3600000 * 1).toISOString() },
+  { id: 2, ip: '45.134.144.20', target_route: '/admin/users', location: 'Moscow, Russia (Known Scanner)', reason: 'BLOCKED_BY_FIREWALL', timestamp: new Date(Date.now() - 3600000 * 4).toISOString() },
+  { id: 3, ip: '103.48.196.22', target_route: '/admin/vault/ledger', location: 'Dhaka, Bangladesh (Dynamic ISP)', reason: 'IP_NOT_IN_ALLOWLIST', timestamp: new Date(Date.now() - 3600000 * 9).toISOString() },
 ];
 
 /**
@@ -2493,9 +2556,684 @@ export const adminHandlers = [
       };
     },
   },
+
+  // 34. Staff 2FA Status & Directory
+  {
+    method: 'GET',
+    path: '/admin/security/2fa',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            policy: mock2faPolicy,
+            stats: {
+              enforcement_rate: 80,
+              enrolled_count: 4,
+              pending_count: 1,
+              total_staff: 5,
+              breakglass_status: 'ARMED_MONITORED',
+            },
+            staff: mockStaff2faList,
+            recent_events: mock2faEvents,
+          },
+        },
+      };
+    },
+  },
+
+  // 35. Update 2FA Policy
+  {
+    method: 'POST',
+    path: '/admin/security/2fa/policy',
+    handler({ body }) {
+      if (body) {
+        mock2faPolicy = { ...mock2faPolicy, ...body };
+      }
+      return {
+        status: 200,
+        body: {
+          success: true,
+          policy: mock2faPolicy,
+          message_en: '2FA policy updated successfully.',
+          message_bn: '2FA নীতি সফলভাবে আপডেট করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 36. Remind Staff 2FA
+  {
+    method: 'POST',
+    path: '/admin/staff/:id/remind-2fa',
+    handler({ params }) {
+      return {
+        status: 200,
+        body: {
+          success: true,
+          staff_id: params?.id,
+          message_en: 'Setup reminder dispatched via SMS & email.',
+          message_bn: 'এসএমএস ও ইমেইলের মাধ্যমে অনুস্মারক পাঠানো হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 37. IP Allowlist Overview & Entries
+  {
+    method: 'GET',
+    path: '/admin/security/ip-allowlist',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          data: {
+            current_ip: '103.145.120.42',
+            current_ip_whitelisted: true,
+            mode: mockIpAllowlistMode,
+            entries: mockIpAllowlistEntries,
+            blocked_attempts: mockBlockedIpAttempts,
+            stats: {
+              mode: mockIpAllowlistMode,
+              total_entries: mockIpAllowlistEntries.length,
+              active_entries: mockIpAllowlistEntries.filter(e => e.status === 'ACTIVE').length,
+              admin_coverage_pct: 100,
+              blocked_24h: mockBlockedIpAttempts.length,
+            },
+          },
+        },
+      };
+    },
+  },
+
+  // 38. Add IP Allowlist Entry
+  {
+    method: 'POST',
+    path: '/admin/security/ip-allowlist',
+    handler({ body }) {
+      const newEntry = {
+        id: Date.now(),
+        label: body?.label || 'Custom Allowlist Range',
+        cidr: body?.cidr || body?.ip || '103.145.120.42/32',
+        scope: body?.scope || 'ALL_ADMIN',
+        status: 'ACTIVE',
+        added_by: 'Rahim Khan (Super Admin)',
+        added_at: new Date().toISOString(),
+        last_seen_at: new Date().toISOString(),
+      };
+      mockIpAllowlistEntries.unshift(newEntry);
+      return {
+        status: 201,
+        body: {
+          success: true,
+          entry: newEntry,
+          message_en: 'IP allowlist entry created.',
+          message_bn: 'আইপি অ্যালাউলিস্ট এন্ট্রি তৈরি হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 39. Update IP Allowlist Entry (toggle status or edit)
+  {
+    method: 'PATCH',
+    path: '/admin/security/ip-allowlist/:id',
+    handler({ params, body }) {
+      const entry = mockIpAllowlistEntries.find(e => String(e.id) === String(params?.id));
+      if (entry && body) {
+        Object.assign(entry, body);
+      }
+      return {
+        status: 200,
+        body: {
+          success: true,
+          entry,
+          message_en: 'IP allowlist entry updated.',
+          message_bn: 'আইপি এন্ট্রি আপডেট করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 40. Delete IP Allowlist Entry
+  {
+    method: 'DELETE',
+    path: '/admin/security/ip-allowlist/:id',
+    handler({ params }) {
+      mockIpAllowlistEntries = mockIpAllowlistEntries.filter(e => String(e.id) !== String(params?.id));
+      return {
+        status: 200,
+        body: {
+          success: true,
+          message_en: 'IP allowlist entry removed.',
+          message_bn: 'আইপি এন্ট্রি মুছে ফেলা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 41. Toggle IP Allowlist Mode
+  {
+    method: 'POST',
+    path: '/admin/security/ip-allowlist/mode',
+    handler({ body }) {
+      if (body?.mode) {
+        mockIpAllowlistMode = body.mode;
+      } else {
+        mockIpAllowlistMode = mockIpAllowlistMode === 'ENFORCING' ? 'MONITORING' : 'ENFORCING';
+      }
+      return {
+        status: 200,
+        body: {
+          success: true,
+          mode: mockIpAllowlistMode,
+          message_en: `Firewall mode switched to ${mockIpAllowlistMode}.`,
+          message_bn: `ফায়ারওয়াল মোড পরিবর্তন করা হয়েছে (${mockIpAllowlistMode})।`,
+        },
+      };
+    },
+  },
+
+  // ================= PROFIT SPLITS HANDLERS =================
+  // 42. Get Profit Splits Configuration
+  {
+    method: 'GET',
+    path: '/admin/finance/splits',
+    handler() {
+      const activeOverrides = mockCategorySplits.filter(c => c.is_override).length;
+      return {
+        status: 200,
+        body: {
+          global: mockGlobalSplit,
+          categories: mockCategorySplits,
+          tiers: mockTierIncentives,
+          audit_log: mockSplitAuditLog,
+          metrics: {
+            default_saler_split: mockGlobalSplit.saler_split_pct,
+            default_platform_split: mockGlobalSplit.platform_split_pct,
+            active_overrides_count: activeOverrides,
+            max_tier_bonus: 5.0,
+            effective_platform_retention_pct: 58.2,
+          },
+        },
+      };
+    },
+  },
+
+  // 43. Update Global Profit Split
+  {
+    method: 'PUT',
+    path: '/admin/finance/splits/default',
+    handler({ body }) {
+      const saler = parseFloat(body?.saler_split_pct ?? 40);
+      const platform = parseFloat(body?.platform_split_pct ?? (100 - saler));
+      const minMargin = parseFloat(body?.min_margin_pct ?? 5);
+      const reason = body?.reason || 'Administrative split ratio update';
+
+      const before = `${mockGlobalSplit.saler_split_pct}% Saler / ${mockGlobalSplit.platform_split_pct}% Platform`;
+      mockGlobalSplit.saler_split_pct = saler;
+      mockGlobalSplit.platform_split_pct = platform;
+      mockGlobalSplit.min_margin_pct = minMargin;
+      mockGlobalSplit.updated_at = new Date().toISOString();
+
+      mockSplitAuditLog.unshift({
+        id: Date.now(),
+        actor: 'Super Admin #1',
+        scope: 'GLOBAL',
+        before,
+        after: `${saler}% Saler / ${platform}% Platform`,
+        reason,
+        created_at: new Date().toISOString(),
+      });
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          global: mockGlobalSplit,
+          message_en: 'Global profit split policy successfully updated.',
+          message_bn: 'সার্বজনীন প্রফিট স্প্লিট নীতি সফলভাবে সংরক্ষিত হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 44. Update Category Split Override
+  {
+    method: 'PUT',
+    path: '/admin/finance/splits/categories/:id',
+    handler({ params, body }) {
+      const cat = mockCategorySplits.find(c => String(c.id) === String(params?.id));
+      if (!cat) {
+        return {
+          status: 404,
+          body: { error: { message_en: 'Category not found.' } },
+        };
+      }
+
+      const before = cat.is_override
+        ? `${cat.saler_split_pct}% / ${cat.platform_split_pct}%`
+        : 'Global Default';
+
+      cat.saler_split_pct = parseFloat(body?.saler_split_pct ?? 40);
+      cat.platform_split_pct = parseFloat(body?.platform_split_pct ?? (100 - cat.saler_split_pct));
+      cat.is_override = true;
+      cat.updated_at = new Date().toISOString();
+
+      mockSplitAuditLog.unshift({
+        id: Date.now(),
+        actor: 'Super Admin #1',
+        scope: `CATEGORY: ${cat.name_en}`,
+        before,
+        after: `${cat.saler_split_pct}% Saler / ${cat.platform_split_pct}% Platform`,
+        reason: body?.reason || 'Category commission override updated',
+        created_at: new Date().toISOString(),
+      });
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          category: cat,
+          message_en: `Split override updated for ${cat.name_en}.`,
+          message_bn: `${cat.name_bn}-এর স্প্লিট ওভাররাইড আপডেট করা হয়েছে।`,
+        },
+      };
+    },
+  },
+
+  // 45. Delete / Reset Category Split Override
+  {
+    method: 'DELETE',
+    path: '/admin/finance/splits/categories/:id',
+    handler({ params }) {
+      const cat = mockCategorySplits.find(c => String(c.id) === String(params?.id));
+      if (cat) {
+        const before = `${cat.saler_split_pct}% / ${cat.platform_split_pct}%`;
+        cat.saler_split_pct = mockGlobalSplit.saler_split_pct;
+        cat.platform_split_pct = mockGlobalSplit.platform_split_pct;
+        cat.is_override = false;
+        cat.updated_at = new Date().toISOString();
+
+        mockSplitAuditLog.unshift({
+          id: Date.now(),
+          actor: 'Super Admin #1',
+          scope: `CATEGORY: ${cat.name_en}`,
+          before,
+          after: 'Reset to Global Default',
+          reason: 'Reset category split to global baseline',
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          category: cat,
+          message_en: 'Category split reset to global default.',
+          message_bn: 'ক্যাটাগরি স্প্লিট গ্লোবাল ডিফল্টে রিসেট করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 46. Update Tier Incentive Bonuses
+  {
+    method: 'PUT',
+    path: '/admin/finance/splits/tiers',
+    handler({ body }) {
+      if (Array.isArray(body?.tiers)) {
+        mockTierIncentives = body.tiers;
+      }
+      mockSplitAuditLog.unshift({
+        id: Date.now(),
+        actor: 'Super Admin #1',
+        scope: 'TIER_INCENTIVES',
+        before: 'Tier matrix',
+        after: 'Updated bonuses',
+        reason: body?.reason || 'Trust tier commission bonus adjustment',
+        created_at: new Date().toISOString(),
+      });
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          tiers: mockTierIncentives,
+          message_en: 'Trust tier bonuses updated.',
+          message_bn: 'ট্রাস্ট টিয়ার বোনাস আপডেট করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 47. Simulate Profit Split Calculation
+  {
+    method: 'POST',
+    path: '/admin/finance/splits/simulate',
+    handler({ body }) {
+      const retailPrice = parseFloat(body?.retail_price || 1000);
+      const supplierCost = parseFloat(body?.supplier_cost || 700);
+      const categoryId = body?.category_id;
+      const tierKey = body?.tier || 'BRONZE';
+
+      let salerPct = mockGlobalSplit.saler_split_pct;
+      let platformPct = mockGlobalSplit.platform_split_pct;
+      let ruleSource = 'GLOBAL_DEFAULT';
+
+      if (categoryId) {
+        const cat = mockCategorySplits.find(c => String(c.id) === String(categoryId));
+        if (cat && cat.is_override) {
+          salerPct = cat.saler_split_pct;
+          platformPct = cat.platform_split_pct;
+          ruleSource = `CATEGORY_OVERRIDE (${cat.name_en})`;
+        }
+      }
+
+      const tierObj = mockTierIncentives.find(t => t.tier === tierKey);
+      const tierBonusPct = tierObj ? tierObj.bonus_pct : 0;
+      const effectiveSalerPct = Math.min(100, salerPct + tierBonusPct);
+      const effectivePlatformPct = Math.max(0, 100 - effectiveSalerPct);
+
+      const netMargin = Math.max(0, retailPrice - supplierCost);
+      const netMarginPaisa = Math.round(netMargin * 100);
+      const salerCommissionPaisa = Math.floor((netMarginPaisa * effectiveSalerPct) / 100);
+      const platformTakePaisa = netMarginPaisa - salerCommissionPaisa;
+
+      return {
+        status: 200,
+        body: {
+          input: { retail_price: retailPrice, supplier_cost: supplierCost, category_id: categoryId, tier: tierKey },
+          gross_retail_margin: netMargin,
+          supplier_payout: supplierCost,
+          saler_commission: salerCommissionPaisa / 100,
+          platform_share: platformTakePaisa / 100,
+          base_saler_pct: salerPct,
+          tier_bonus_pct: tierBonusPct,
+          effective_saler_pct: effectiveSalerPct,
+          effective_platform_pct: effectivePlatformPct,
+          rule_source: ruleSource,
+        },
+      };
+    },
+  },
+
+  // ================= SUBSCRIPTIONS HANDLERS =================
+  // 48. Get Merchant Subscriptions Overview & Roster
+  {
+    method: 'GET',
+    path: '/admin/finance/subscriptions',
+    handler({ query }) {
+      const q = (query?.q || '').toLowerCase();
+      const role = query?.role || 'ALL';
+      const status = query?.status || 'ALL';
+
+      let filtered = mockSubscribers.filter((s) => {
+        if (q && !s.merchant_name.toLowerCase().includes(q) && !s.store_name.toLowerCase().includes(q) && !s.phone.includes(q) && !s.ref.toLowerCase().includes(q)) {
+          return false;
+        }
+        if (role !== 'ALL' && s.role !== role) return false;
+        if (status !== 'ALL' && s.status !== status) return false;
+        return true;
+      });
+
+      const totalPaidSubscribers = mockSubscribers.filter(s => s.monthly_fee > 0 && s.status === 'ACTIVE').length;
+      const totalMRR = mockSubscribers
+        .filter(s => s.monthly_fee > 0 && s.status === 'ACTIVE')
+        .reduce((sum, s) => sum + s.monthly_fee, 0);
+      const freeTierCount = mockSubscribers.filter(s => s.monthly_fee === 0).length;
+
+      return {
+        status: 200,
+        body: {
+          module: mockSubscriptionSettings,
+          metrics: {
+            mrr_bdt: totalMRR,
+            paid_subscribers_count: totalPaidSubscribers,
+            free_tier_count: freeTierCount,
+            overage_fees_bdt: 14250,
+            churn_rate_pct: 1.8,
+          },
+          plans: mockSubscriptionPlans,
+          subscribers: filtered,
+          total_subscribers: filtered.length,
+        },
+      };
+    },
+  },
+
+  // 49. Update Subscription Engine Settings
+  {
+    method: 'PUT',
+    path: '/admin/finance/subscriptions/settings',
+    handler({ body }) {
+      if (body) {
+        Object.assign(mockSubscriptionSettings, body);
+      }
+      return {
+        status: 200,
+        body: {
+          success: true,
+          settings: mockSubscriptionSettings,
+          message_en: 'Subscription fee engine parameters updated.',
+          message_bn: 'সাবস্ক্রিপশন ফি ইঞ্জিন সেটিংস সফলভাবে আপডেট হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 50. Create Subscription Plan
+  {
+    method: 'POST',
+    path: '/admin/finance/subscriptions/plans',
+    handler({ body }) {
+      const newPlan = {
+        id: `plan_${Date.now()}`,
+        name_en: body?.name_en || 'Custom Plan',
+        name_bn: body?.name_bn || 'কাস্টম প্ল্যান',
+        role: body?.role || 'ALL',
+        monthly_fee: parseFloat(body?.monthly_fee || 0),
+        free_listings: parseInt(body?.free_listings || 100, 10),
+        extra_listing_fee: parseFloat(body?.extra_listing_fee || 0),
+        commission_rebate_pct: parseFloat(body?.commission_rebate_pct || 0),
+        active_subscribers: 0,
+        is_active: true,
+        features_en: body?.features_en || ['Standard features'],
+        features_bn: body?.features_bn || ['সাধারণ সুবিধাসমূহ'],
+      };
+      mockSubscriptionPlans.push(newPlan);
+
+      return {
+        status: 201,
+        body: {
+          success: true,
+          plan: newPlan,
+          message_en: 'Subscription plan created.',
+          message_bn: 'সাবস্ক্রিপশন প্ল্যান তৈরি করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 51. Update Subscription Plan
+  {
+    method: 'PUT',
+    path: '/admin/finance/subscriptions/plans/:id',
+    handler({ params, body }) {
+      const plan = mockSubscriptionPlans.find(p => p.id === params?.id);
+      if (!plan) {
+        return { status: 404, body: { error: { message_en: 'Plan not found.' } } };
+      }
+      if (body) {
+        Object.assign(plan, body);
+      }
+      return {
+        status: 200,
+        body: {
+          success: true,
+          plan,
+          message_en: 'Plan updated.',
+          message_bn: 'প্ল্যান আপডেট করা হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 52. Update Subscriber Status / Grant Fee Waiver
+  {
+    method: 'PATCH',
+    path: '/admin/finance/subscriptions/subscribers/:id',
+    handler({ params, body }) {
+      const sub = mockSubscribers.find(s => String(s.id) === String(params?.id));
+      if (!sub) {
+        return { status: 404, body: { error: { message_en: 'Subscriber not found.' } } };
+      }
+      if (body?.waived !== undefined) {
+        sub.waived = Boolean(body.waived);
+        sub.status = sub.waived ? 'WAIVED' : 'ACTIVE';
+        sub.waiver_reason = body?.waiver_reason || 'Administrative fee waiver';
+      }
+      if (body?.plan_id) {
+        const p = mockSubscriptionPlans.find(pl => pl.id === body.plan_id);
+        if (p) {
+          sub.plan_id = p.id;
+          sub.plan_name = p.name_en;
+          sub.monthly_fee = p.monthly_fee;
+          sub.quota_total = p.free_listings;
+        }
+      }
+      if (body?.status) {
+        sub.status = body.status;
+      }
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          subscriber: sub,
+          message_en: 'Subscriber updated successfully.',
+          message_bn: 'সাবস্ক্রাইবার তথ্য সফলভাবে আপডেট করা হয়েছে।',
+        },
+      };
+    },
+  },
+];
+
+// --- Profit Splits Mock State ---
+let mockGlobalSplit = {
+  saler_split_pct: 40.0,
+  platform_split_pct: 60.0,
+  min_margin_pct: 5.0,
+  updated_at: '2026-08-25T11:20:00Z',
+  updated_by: 'Super Admin #1 (Chief Finance Officer)',
+};
+
+let mockCategorySplits = [
+  { id: 1, name_en: 'Fashion & Apparel', name_bn: 'ফ্যাশন ও পোশাক', slug: 'fashion', saler_split_pct: 45.0, platform_split_pct: 55.0, is_override: true, updated_at: '2026-08-24T14:10:00Z' },
+  { id: 2, name_en: 'Electronics & Gadgets', name_bn: 'ইলেকট্রনিক্স ও গ্যাজেট', slug: 'electronics', saler_split_pct: 35.0, platform_split_pct: 65.0, is_override: true, updated_at: '2026-08-22T09:15:00Z' },
+  { id: 3, name_en: 'Health & Beauty', name_bn: 'স্বাস্থ্য ও রূপচর্চা', slug: 'beauty', saler_split_pct: 42.0, platform_split_pct: 58.0, is_override: true, updated_at: '2026-08-20T16:45:00Z' },
+  { id: 4, name_en: 'Home & Kitchen', name_bn: 'গৃহস্থালি ও রান্নাঘর', slug: 'home', saler_split_pct: 40.0, platform_split_pct: 60.0, is_override: false, updated_at: '2026-08-18T10:00:00Z' },
+  { id: 5, name_en: 'Grocery & Organic Food', name_bn: 'মুদি ও অর্গানিক খাদ্য', slug: 'grocery', saler_split_pct: 30.0, platform_split_pct: 70.0, is_override: true, updated_at: '2026-08-25T11:00:00Z' },
+  { id: 6, name_en: 'Books & Stationery', name_bn: 'বই ও স্টেশনারি', slug: 'books', saler_split_pct: 40.0, platform_split_pct: 60.0, is_override: false, updated_at: '2026-08-15T12:00:00Z' },
+];
+
+let mockTierIncentives = [
+  { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0.0, criteria_en: 'Entry tier / under ৳50,000 GMV', criteria_bn: 'প্রাথমিক স্তর / ৫০,০০০ টাকার কম জিএমভি' },
+  { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 1.0, criteria_en: 'Consistent seller, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক সেলার, ৫০হাজার-২লাখ টাকা জিএমভি' },
+  { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড', bonus_pct: 2.0, criteria_en: 'High volume, ৳200k-৳1M GMV, <1% dispute rate', criteria_bn: 'উচ্চ ভলিউম, ২লাখ-১০লাখ টাকা জিএমভি' },
+  { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 5.0, criteria_en: 'Top 1% elite reseller, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট সেলার, ১০ লাখ টাকার বেশি জিএমভি' },
+];
+
+let mockSplitAuditLog = [
+  { id: 101, actor: 'Super Admin #1', scope: 'GLOBAL', before: '38% Saler / 62% Platform', after: '40% Saler / 60% Platform', reason: 'Platform launch baseline normalization', created_at: '2026-08-25T11:20:00Z' },
+  { id: 102, actor: 'Super Admin #2', scope: 'CATEGORY: Grocery', before: '40% / 60%', after: '30% / 70%', reason: 'Low margin grocery perishable category override', created_at: '2026-08-25T11:00:00Z' },
+  { id: 103, actor: 'Super Admin #1', scope: 'TIERS: Platinum', before: '+4.0% bonus', after: '+5.0% bonus', reason: 'Q3 Elite partner incentive expansion', created_at: '2026-08-23T15:30:00Z' },
+];
+
+// --- Subscriptions Mock State ---
+let mockSubscriptionSettings = {
+  is_enabled: false,
+  monthly_fee: 0,
+  listing_fee: 0,
+  free_listing_quota: 100,
+  default_overage_fee: 5.0,
+  grace_period_days: 5,
+};
+
+let mockSubscriptionPlans = [
+  {
+    id: 'plan_starter',
+    name_en: 'Free Starter',
+    name_bn: 'ফ্রি স্টার্টার',
+    role: 'ALL',
+    monthly_fee: 0,
+    free_listings: 100,
+    extra_listing_fee: 0,
+    commission_rebate_pct: 0,
+    active_subscribers: 1280,
+    is_active: true,
+    features_en: ['Up to 100 live products', 'Standard 7-day escrow release', 'Community support', 'Basic sales dashboard'],
+    features_bn: ['সর্বোচ্চ ১০০টি সক্রিয় পণ্য', 'সাধারণ ৭ দিনের এসক্রো রিলিজ', 'কমিউনিটি সহায়তা', 'বেসিক সেলস ড্যাশবোর্ড'],
+  },
+  {
+    id: 'plan_saler_pro',
+    name_en: 'Saler Pro',
+    name_bn: 'সেলার প্রো',
+    role: 'saler',
+    monthly_fee: 999,
+    free_listings: 1000,
+    extra_listing_fee: 2.0,
+    commission_rebate_pct: 2.0,
+    active_subscribers: 89,
+    is_active: true,
+    features_en: ['1,000 product listings', '+2% commission profit boost', 'Express courier pickup tag', 'Priority support & AI tools'],
+    features_bn: ['১,০০০ পণ্য লিস্টিং', '+২% অতিরিক্ত প্রফিট স্প্লিট', 'এক্সপ্রেস কুরিয়ার পিকআপ ট্যাগ', 'অগ্রাধিকার সাপোর্ট ও এআই টুলস'],
+  },
+  {
+    id: 'plan_supplier_growth',
+    name_en: 'Supplier Growth',
+    name_bn: 'সাপ্লায়ার গ্রোথ',
+    role: 'supplier',
+    monthly_fee: 2499,
+    free_listings: 5000,
+    extra_listing_fee: 1.5,
+    commission_rebate_pct: 1.0,
+    active_subscribers: 53,
+    is_active: true,
+    features_en: ['5,000 catalog items', 'Bulk CSV & inventory sync', 'Dedicated account executive', 'Verified supplier badge'],
+    features_bn: ['৫,০০০ পণ্য ক্যাটালগ', 'বাল্ক সিএসভি ও ইনভেন্টরি সিঙ্ক', 'ডেডিকেটেড অ্যাকাউন্ট এক্সিকিউটিভ', 'ভেরিফাইড সরবরাহকারী ব্যাজ'],
+  },
+  {
+    id: 'plan_enterprise',
+    name_en: 'Enterprise Wholesale',
+    name_bn: 'এন্টারপ্রাইজ হোলসেল',
+    role: 'ALL',
+    monthly_fee: 5999,
+    free_listings: 999999,
+    extra_listing_fee: 0,
+    commission_rebate_pct: 3.0,
+    active_subscribers: 14,
+    is_active: true,
+    features_en: ['Unlimited catalog listings', 'Zero listing overage fees', '3-day expedited escrow', 'Open API & webhook access'],
+    features_bn: ['আনলিমিটেড ক্যাটালগ লিস্টিং', 'কোনো ওভারএজ ফি নেই', '৩ দিনে দ্রুত এসক্রো রিলিজ', 'ওপেন এপিআই ও ওয়েবহুক অ্যাক্সেস'],
+  },
+];
+
+let mockSubscribers = [
+  { id: 1, merchant_name: 'Tanvir Hossain', store_name: 'Dhaka Style Trends', phone: '01711223344', ref: 'SLR-88102', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 420, quota_total: 1000, next_renewal: '2026-09-28', status: 'ACTIVE', waived: false },
+  { id: 2, merchant_name: 'Nasrin Akter', store_name: 'Boutique Shomahar', phone: '01822334455', ref: 'SLR-88103', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 980, quota_total: 1000, next_renewal: '2026-09-15', status: 'ACTIVE', waived: false },
+  { id: 3, merchant_name: 'Rahim Textiles Ltd', store_name: 'Rahim Fabrics Depot', phone: '01933445566', ref: 'SUP-44120', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 2850, quota_total: 5000, next_renewal: '2026-09-20', status: 'ACTIVE', waived: false },
+  { id: 4, merchant_name: 'Bengal Agro Foods', store_name: 'Organic Harvest BD', phone: '01644556677', ref: 'SUP-44125', role: 'supplier', plan_id: 'plan_enterprise', plan_name: 'Enterprise Wholesale', monthly_fee: 5999, quota_used: 6400, quota_total: 999999, next_renewal: '2026-10-01', status: 'ACTIVE', waived: false },
+  { id: 5, merchant_name: 'Ashiqur Rahman', store_name: 'Gadget Express BD', phone: '01555667788', ref: 'SLR-88109', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 350, quota_total: 1000, next_renewal: '2026-09-02', status: 'PAST_DUE', waived: false },
+  { id: 6, merchant_name: 'Karupalli Crafts', store_name: 'Karupalli Artisan', phone: '01799887766', ref: 'SUP-44130', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 1100, quota_total: 5000, next_renewal: '2026-11-30', status: 'WAIVED', waived: true, waiver_reason: 'National SME startup grant' },
+  { id: 7, merchant_name: 'Shakil Ahmed', store_name: 'Apex Footwear Resell', phone: '01712345678', ref: 'SLR-88115', role: 'saler', plan_id: 'plan_starter', plan_name: 'Free Starter', monthly_fee: 0, quota_used: 65, quota_total: 100, next_renewal: '2026-09-30', status: 'ACTIVE', waived: false },
 ];
 
 export default adminHandlers;
+
+
+
 
 
 

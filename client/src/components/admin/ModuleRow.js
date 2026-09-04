@@ -103,6 +103,18 @@ export function ModuleRow({
     actions.append(settingsBtn);
   }
 
+  // Dedicated Page Link (e.g. /admin/finance/subscriptions)
+  const primaryRoute = (module.affected_routes && module.affected_routes[0]) || (module.key === 'subscription_fees' ? '/admin/finance/subscriptions' : null);
+  if (primaryRoute) {
+    const routeBtn = document.createElement('a');
+    routeBtn.href = `#${primaryRoute}`;
+    routeBtn.className = 'module-row__btn-icon';
+    routeBtn.title = isBn ? 'সংশ্লিষ্ট পেজে যান' : 'Go to dedicated page';
+    routeBtn.setAttribute('aria-label', isBn ? 'সংশ্লিষ্ট পেজে যান' : 'Go to dedicated page');
+    routeBtn.textContent = '↗️';
+    actions.append(routeBtn);
+  }
+
   // State Switch
   const switchControl = Switch({
     checked: Boolean(module.is_enabled),

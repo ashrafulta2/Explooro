@@ -966,6 +966,61 @@ function renderVaultOverview() {
   return wrap;
 }
 
+function renderProfitSplitsSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Super Admin Profit Split Governance & Margin Simulator'));
+
+  const card = document.createElement('div');
+  card.className = 'card p-4 flex flex-col gap-3';
+  card.innerHTML = `
+    <div class="flex items-center justify-between">
+      <span class="font-bold text-base">🍰 Platform Profit Split Baseline</span>
+      <span class="badge badge--danger text-xs font-bold">CRITICAL GOVERNANCE</span>
+    </div>
+    <div class="split-visual-bar">
+      <div class="split-visual-bar__supplier" style="width: 65%;">Wholesale 65%</div>
+      <div class="split-visual-bar__saler" style="width: 15%;">Saler 15%</div>
+      <div class="split-visual-bar__platform" style="width: 20%;">Platform 20%</div>
+    </div>
+    <div class="grid grid-cols-2 gap-2 text-xs">
+      <div class="p-2 bg-surface-2 rounded">Default: <strong>40% Saler / 60% Platform</strong></div>
+      <div class="p-2 bg-surface-2 rounded">Elite Boost: <strong class="text-success">+5.0% Commission</strong></div>
+    </div>
+  `;
+  wrap.append(specimen('profit splits preview', card));
+  return wrap;
+}
+
+function renderSubscriptionsSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Super Admin Merchant Subscriptions & Fee Engine'));
+
+  const card = document.createElement('div');
+  card.className = 'card p-4 flex flex-col gap-3';
+  card.innerHTML = `
+    <div class="flex items-center justify-between">
+      <span class="font-bold text-base">🔁 Merchant Subscription Tiers</span>
+      <span class="badge badge--brand text-xs font-bold">COMMERCE</span>
+    </div>
+    <div class="grid grid-cols-2 gap-2 text-xs">
+      <div class="p-2 border rounded">
+        <strong>Free Starter</strong>
+        <div class="text-sm font-bold text-primary mt-1">৳0 / mo</div>
+        <div class="text-secondary text-2xs">100 listings included</div>
+      </div>
+      <div class="p-2 border border-brand rounded bg-surface-2">
+        <strong class="text-brand">Saler Pro</strong>
+        <div class="text-sm font-bold text-primary mt-1">৳999 / mo</div>
+        <div class="text-secondary text-2xs">1,000 listings + 2% split boost</div>
+      </div>
+    </div>
+  `;
+  wrap.append(specimen('subscriptions preview', card));
+  return wrap;
+}
+
 /**
  * Builds the registry. Overlay-based entries (Modal/Drawer) attach nodes to `document.body`
  * rather than the returned section — `detachedNodes` collects every one of them so GalleryPage
@@ -1021,6 +1076,9 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'cod-recon', label: 'CodReconciliation', group: 'Vault & Payouts', render: renderCodRecon },
     // Prompt 6.5 — Earner Vault & Finance
     { id: 'vault-overview', label: 'VaultOverview', group: 'Vault & Payouts', render: renderVaultOverview },
+    // Super Admin Profit Splits & Merchant Subscriptions
+    { id: 'profit-splits-page', label: 'ProfitSplitsPage', group: 'Vault & Payouts', render: renderProfitSplitsSpecimen },
+    { id: 'subscriptions-page', label: 'SubscriptionsPage', group: 'Vault & Payouts', render: renderSubscriptionsSpecimen },
     // Prompt 7.1 — 3PL Logistics & Live Map
     { id: 'live-tracking-map', label: 'LiveTrackingMap', group: 'Order & Logistics', render: renderLiveTrackingMapSpecimen },
     // Prompt 7.2 — Return & Refund Engine

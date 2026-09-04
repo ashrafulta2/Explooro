@@ -152,6 +152,10 @@ async function bootRouterDemo() {
         item.path !== '/admin/finance/escrow' &&
         item.path !== '/admin/escrow' &&
         item.path !== '/admin/finance/b2b-escrow' &&
+        item.path !== '/admin/finance/splits' &&
+        item.path !== '/admin/splits' &&
+        item.path !== '/admin/finance/subscriptions' &&
+        item.path !== '/admin/subscriptions' &&
         item.path !== '/admin/growth/ads' &&
         item.path !== '/admin/ads' &&
         item.path !== '/admin/growth/quests' &&
@@ -167,6 +171,12 @@ async function bootRouterDemo() {
         item.path !== '/admin/live' &&
         item.path !== '/admin/security/sessions' &&
         item.path !== '/admin/sessions' &&
+        item.path !== '/admin/security/2fa' &&
+        item.path !== '/admin/2fa' &&
+        item.path !== '/admin/security/ip-allowlist' &&
+        item.path !== '/admin/ip-allowlist' &&
+        item.path !== '/admin/security/backups' &&
+        item.path !== '/admin/backups' &&
         item.path !== '/admin/growth/campaigns' &&
         item.path !== '/admin/growth/coupons' &&
         item.path !== '/account/coupons' &&
@@ -1090,6 +1100,91 @@ async function bootRouterDemo() {
         permission: 'security.session.revoke',
         module: 'core',
         load: () => import('./pages/admin/ActiveSessionsPage.js'),
+      },
+      // Super Admin Security: 2FA Policy & Staff Directory
+      {
+        path: '/admin/security/2fa',
+        title: 'Staff Two-Factor Authentication — Explooro Admin',
+        requiresAuth: true,
+        permission: 'security.2fa.manage',
+        module: 'core',
+        load: () => import('./pages/admin/Staff2faPage.js'),
+      },
+      {
+        path: '/admin/2fa',
+        title: 'Staff Two-Factor Authentication — Explooro Admin',
+        requiresAuth: true,
+        permission: 'security.2fa.manage',
+        module: 'core',
+        load: () => import('./pages/admin/Staff2faPage.js'),
+      },
+      // Super Admin Security: IP Allowlist & Firewall
+      {
+        path: '/admin/security/ip-allowlist',
+        title: 'Network IP Allowlist — Explooro Admin',
+        requiresAuth: true,
+        permission: 'security.ip.manage',
+        module: 'core',
+        load: () => import('./pages/admin/IpAllowlistPage.js'),
+      },
+      {
+        path: '/admin/ip-allowlist',
+        title: 'Network IP Allowlist — Explooro Admin',
+        requiresAuth: true,
+        permission: 'security.ip.manage',
+        module: 'core',
+        load: () => import('./pages/admin/IpAllowlistPage.js'),
+      },
+      // Super Admin Security: Cryptographic Backups & Disaster Recovery
+      {
+        path: '/admin/security/backups',
+        title: 'System Backups & Snapshots — Explooro Admin',
+        requiresAuth: true,
+        permission: 'system.backup.manage',
+        module: 'core',
+        load: () => import('./pages/admin/BackupPage.js'),
+      },
+      {
+        path: '/admin/backups',
+        title: 'System Backups & Snapshots — Explooro Admin',
+        requiresAuth: true,
+        permission: 'system.backup.manage',
+        module: 'core',
+        load: () => import('./pages/admin/BackupPage.js'),
+      },
+      // Super Admin Finance: Profit Splits Governance
+      {
+        path: '/admin/finance/splits',
+        title: 'Profit Split Governance — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.split.update',
+        module: 'core',
+        load: () => import('./pages/admin/ProfitSplitsPage.js'),
+      },
+      {
+        path: '/admin/splits',
+        title: 'Profit Split Governance — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.split.update',
+        module: 'core',
+        load: () => import('./pages/admin/ProfitSplitsPage.js'),
+      },
+      // Super Admin Finance: Merchant Subscriptions & Fees
+      {
+        path: '/admin/finance/subscriptions',
+        title: 'Merchant Subscriptions & Listing Fees — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.subscription.manage',
+        module: 'core',
+        load: () => import('./pages/admin/SubscriptionsPage.js'),
+      },
+      {
+        path: '/admin/subscriptions',
+        title: 'Merchant Subscriptions & Listing Fees — Explooro Admin',
+        requiresAuth: true,
+        permission: 'finance.subscription.manage',
+        module: 'core',
+        load: () => import('./pages/admin/SubscriptionsPage.js'),
       },
       // Prompt 2.8: Real Auth Pages
       { path: '/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.js') },

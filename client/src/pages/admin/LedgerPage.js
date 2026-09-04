@@ -12,6 +12,7 @@
 
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
+import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
@@ -146,6 +147,8 @@ export default function LedgerPage(root, { navigate } = {}) {
         </div>
       </div>
 
+      <div class="finance-subnav-mount"></div>
+
       <!-- Zero-Drift Integrity Banner -->
       <div class="system-backup-banner" style="background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.25);">
         <span class="system-backup-banner__icon">🛡️</span>
@@ -256,6 +259,11 @@ export default function LedgerPage(root, { navigate } = {}) {
         </div>
       </div>
     `;
+
+    const subnavMount = container.querySelector('.finance-subnav-mount');
+    if (subnavMount) {
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'ledger' }));
+    }
 
     // Bind Event Listeners
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());

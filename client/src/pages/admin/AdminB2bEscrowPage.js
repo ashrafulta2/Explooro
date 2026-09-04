@@ -17,6 +17,7 @@ import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
+import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 
 export default function AdminB2bEscrowPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -149,6 +150,8 @@ export default function AdminB2bEscrowPage(root, { navigate } = {}) {
         </div>
       </div>
 
+      <div class="finance-subnav-mount"></div>
+
       <!-- KPI Metrics Strip -->
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
@@ -241,6 +244,11 @@ export default function AdminB2bEscrowPage(root, { navigate } = {}) {
         `).join('')}
       </div>
     `;
+
+    const subnavMount = container.querySelector('.finance-subnav-mount');
+    if (subnavMount) {
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'b2b-escrow' }));
+    }
 
     // Bind Event Listeners
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
