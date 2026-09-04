@@ -200,6 +200,10 @@ async function bootRouterDemo() {
         item.path !== '/saler/b2b-escrow' &&
         item.path !== '/admin/platform/api-keys' &&
         item.path !== '/admin/api-keys' &&
+        item.path !== '/admin/platform/integrations' &&
+        item.path !== '/admin/integrations' &&
+        item.path !== '/admin/platform/settings' &&
+        item.path !== '/admin/settings' &&
         item.path !== '/stories' &&
         item.path !== '/reels' &&
         item.path !== '/academy' &&
@@ -417,6 +421,40 @@ async function bootRouterDemo() {
         permission: null,
         module: 'open_api',
         load: () => import('./pages/admin/ApiKeysPage.js'),
+      },
+      // Super Admin Platform: Integrations Governance
+      {
+        path: '/admin/platform/integrations',
+        title: 'Gateway & Service Integrations — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.integration.view',
+        module: 'core',
+        load: () => import('./pages/admin/IntegrationsPage.js'),
+      },
+      {
+        path: '/admin/integrations',
+        title: 'Gateway & Service Integrations — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.integration.view',
+        module: 'core',
+        load: () => import('./pages/admin/IntegrationsPage.js'),
+      },
+      // Super Admin Platform: Global Settings Governance
+      {
+        path: '/admin/platform/settings',
+        title: 'Platform Governance & Settings — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.settings.view',
+        module: 'core',
+        load: () => import('./pages/admin/SettingsPage.js'),
+      },
+      {
+        path: '/admin/settings',
+        title: 'Platform Governance & Settings — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.settings.view',
+        module: 'core',
+        load: () => import('./pages/admin/SettingsPage.js'),
       },
       // Prompt 10.8: Content Commerce, Reels, Academy & Editor Dashboard
       {

@@ -9,6 +9,7 @@ import { ModuleRow } from '../../components/admin/ModuleRow.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
+import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
 import { api } from '../../core/api.js';
 import { appStore } from '../../state/appStore.js';
 import { toast } from '../../services/toast.js';
@@ -28,7 +29,7 @@ const GROUP_ORDER = [
   { key: 'system', icon: '⚙️', label_en: 'System', label_bn: 'সিস্টেম' },
 ];
 
-export default function ModuleControlPage(root) {
+export default function ModuleControlPage(root, { navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'module-control';
 
@@ -153,10 +154,11 @@ export default function ModuleControlPage(root) {
 
   // docs/ai-strategy.md §6 — spend cap must be visible (and editable) to the Admin. Lives here
   // because "AI & Advanced" modules already live in this page's mental model.
+  const subnav = PlatformSubnav({ activeKey: 'modules', navigate });
   if (isSuperAdmin) {
-    container.append(header, buildAiUsageCard(), toolbar, groupList);
+    container.append(header, subnav, buildAiUsageCard(), toolbar, groupList);
   } else {
-    container.append(header, toolbar, groupList);
+    container.append(header, subnav, toolbar, groupList);
   }
 
   async function loadModules() {

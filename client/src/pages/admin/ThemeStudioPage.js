@@ -28,8 +28,9 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
 import { appStore } from '../../state/appStore.js';
+import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
 
-export default function ThemeStudioPage(root) {
+export default function ThemeStudioPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'theme-studio';
@@ -235,7 +236,7 @@ export default function ThemeStudioPage(root) {
   rightCol.append(previewHeading, contrastStatusBanner, previewViewport);
 
   layout.append(leftCol, rightCol);
-  container.append(header, layout);
+  container.append(header, PlatformSubnav({ activeKey: 'theme', navigate }), layout);
 
   // Initial paint: refreshAll() renders the master panel, preset grid, section accordions and
   // contrast banner from the same working tokens it applies, so nothing can start out of sync.

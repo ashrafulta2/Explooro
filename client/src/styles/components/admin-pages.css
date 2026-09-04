@@ -708,7 +708,8 @@
 /* ==========================================================================
    5. Finance Suite Subnavigation Tab Strip
    ========================================================================== */
-.finance-subnav {
+.finance-subnav,
+.platform-subnav {
   display: flex;
   width: 100%;
   overflow-x: auto;
@@ -720,7 +721,8 @@
   box-shadow: var(--elevation-1);
 }
 
-.finance-subnav__track {
+.finance-subnav__track,
+.platform-subnav__track {
   display: flex;
   align-items: center;
   gap: var(--space-1);
@@ -728,7 +730,8 @@
   width: 100%;
 }
 
-.finance-subnav__tab {
+.finance-subnav__tab,
+.platform-subnav__tab {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
@@ -742,19 +745,22 @@
   white-space: nowrap;
 }
 
-.finance-subnav__tab:hover {
+.finance-subnav__tab:hover,
+.platform-subnav__tab:hover {
   background: var(--surface-2);
   color: var(--text-primary);
 }
 
-.finance-subnav__tab--active {
+.finance-subnav__tab--active,
+.platform-subnav__tab--active {
   background: var(--surface-2);
   color: var(--brand);
   font-weight: var(--weight-bold);
   border-bottom: 2px solid var(--brand);
 }
 
-.finance-subnav__tab-icon {
+.finance-subnav__tab-icon,
+.platform-subnav__tab-icon {
   font-size: var(--text-base);
 }
 
@@ -1005,4 +1011,255 @@
 .quota-progress-fill--danger {
   background: var(--danger);
 }
+
+/* ==========================================================================
+   8. Platform Integrations Suite
+   ========================================================================== */
+.integrations-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .integrations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .integrations-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.integration-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  box-shadow: var(--elevation-1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.integration-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--elevation-2);
+}
+
+.integration-card--disconnected {
+  opacity: 0.75;
+  background: var(--surface-2);
+}
+
+.integration-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.integration-card__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.integration-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  font-size: 22px;
+  border: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.integration-card__title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.integration-card__type {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.integration-card__desc {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: var(--space-2) 0 var(--space-3) 0;
+  flex: 1;
+}
+
+.integration-card__meta-box {
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  font-size: var(--text-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.integration-card__meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.integration-card__meta-label {
+  color: var(--text-muted);
+}
+
+.integration-card__meta-value {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.integration-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+  margin-top: auto;
+}
+
+.test-latency-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.test-latency-pill--success {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.test-latency-pill--error {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+/* ==========================================================================
+   9. Platform Settings Suite
+   ========================================================================== */
+.settings-section-card {
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--elevation-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.settings-section-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--space-4);
+}
+
+.settings-section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.settings-section-desc {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin: var(--space-1) 0 0 0;
+}
+
+.settings-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .settings-fields-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.settings-field--full {
+  grid-column: 1 / -1;
+}
+
+.settings-field__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+}
+
+.settings-field__helper {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.settings-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-toggle-title {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.settings-toggle-desc {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
 

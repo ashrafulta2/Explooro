@@ -223,5 +223,55 @@ export const adminApi = {
   async updateSubscriberStatus(id, patch) {
     return api.patch(`/admin/finance/subscriptions/subscribers/${id}`, patch);
   },
+
+  /**
+   * Retrieves all platform service and gateway integrations.
+   */
+  async getIntegrations(category = 'ALL') {
+    return api.get(`/admin/platform/integrations?category=${encodeURIComponent(category)}`);
+  },
+
+  /**
+   * Updates credentials, configuration or active state for an integration.
+   */
+  async updateIntegration(id, patch) {
+    return api.put(`/admin/platform/integrations/${id}`, patch);
+  },
+
+  /**
+   * Performs an instant live connection test / handshake ping against a gateway.
+   */
+  async testIntegration(id) {
+    return api.post(`/admin/platform/integrations/${id}/test`, {});
+  },
+
+  /**
+   * Retrieves recent gateway webhook callback logs.
+   */
+  async getIntegrationLogs(limit = 30) {
+    return api.get(`/admin/platform/integrations/logs?limit=${limit}`);
+  },
+
+  /**
+   * Retrieves master global platform settings.
+   */
+  async getPlatformSettings() {
+    return api.get('/admin/platform/settings');
+  },
+
+  /**
+   * Updates master platform governance settings with audit rationale.
+   */
+  async updatePlatformSettings(settings, reason = '') {
+    return api.put('/admin/platform/settings', { settings, reason });
+  },
+
+  /**
+   * Resets platform settings to system default baseline.
+   */
+  async resetPlatformSettings(reason = '') {
+    return api.post('/admin/platform/settings/reset', { reason });
+  },
 };
+
 

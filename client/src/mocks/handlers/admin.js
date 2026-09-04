@@ -3118,6 +3118,256 @@ export const adminHandlers = [
       };
     },
   },
+
+  // ================= PLATFORM INTEGRATIONS HANDLERS =================
+  // 53. Get Integrations List & Health Metrics
+  {
+    method: 'GET',
+    path: '/admin/platform/integrations',
+    handler({ query = {} } = {}) {
+      const cat = (query?.category || 'ALL').toUpperCase();
+      const filtered = cat === 'ALL'
+        ? mockIntegrations
+        : mockIntegrations.filter(i => i.type === cat);
+
+      const totalConnected = mockIntegrations.filter(i => i.status === 'CONNECTED' && i.is_enabled).length;
+      const liveCount = mockIntegrations.filter(i => i.environment === 'LIVE').length;
+
+      return {
+        status: 200,
+        body: {
+          metrics: {
+            total_gateways: mockIntegrations.length,
+            connected_gateways: totalConnected,
+            live_gateways: liveCount,
+            sandbox_gateways: mockIntegrations.length - liveCount,
+            avg_ping_ms: 138,
+            webhooks_24h_count: 148200,
+            webhook_success_pct: 99.92,
+            environment_mode: 'LIVE PRODUCTION',
+          },
+          integrations: filtered,
+        },
+      };
+    },
+  },
+
+  // 54. Update Integration Credentials or Toggle Status (PUT)
+  {
+    method: 'PUT',
+    path: '/admin/platform/integrations/:id',
+    handler({ params = {}, body = {} } = {}) {
+      const item = mockIntegrations.find(i => i.id === params?.id);
+      if (!item) {
+        return { status: 404, body: { error: { message_en: 'Integration not found.' } } };
+      }
+      if (body) {
+        Object.assign(item, body);
+        item.updated_at = new Date().toISOString();
+        if (body.is_enabled !== undefined) {
+          item.status = body.is_enabled ? (item.environment === 'LIVE' ? 'CONNECTED' : 'SANDBOX') : 'DISCONNECTED';
+        }
+      }
+      return {
+        status: 200,
+        body: {
+          success: true,
+          integration: item,
+          message_en: 'Integration credentials saved successfully.',
+          message_bn: 'ইন্টিগ্রেশন ক্রেডেনশিয়াল সফলভাবে সংরক্ষিত হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 54b. Update Integration Credentials or Toggle Status (PATCH alias)
+  {
+    method: 'PATCH',
+    path: '/admin/platform/integrations/:id',
+    handler({ params = {}, body = {} } = {}) {
+      const item = mockIntegrations.find(i => i.id === params?.id);
+      if (!item) {
+        return { status: 404, body: { error: { message_en: 'Integration not found.' } } };
+      }
+      if (body) {
+        Object.assign(item, body);
+        item.updated_at = new Date().toISOString();
+        if (body.is_enabled !== undefined) {
+          item.status = body.is_enabled ? (item.environment === 'LIVE' ? 'CONNECTED' : 'SANDBOX') : 'DISCONNECTED';
+        }
+      }
+      return {
+        status: 200,
+        body: {
+          success: true,
+          integration: item,
+          message_en: 'Integration credentials saved successfully.',
+          message_bn: 'ইন্টিগ্রেশন ক্রেডেনশিয়াল সফলভাবে সংরক্ষিত হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 55. Test Integration Connection Handshake Ping
+  {
+    method: 'POST',
+    path: '/admin/platform/integrations/:id/test',
+    handler({ params = {} } = {}) {
+      const item = mockIntegrations.find(i => i.id === params?.id);
+      if (!item) {
+        return { status: 404, body: { error: { message_en: 'Integration not found.' } } };
+      }
+      const latency = Math.floor(Math.random() * 80) + 70;
+      item.last_ping_ms = latency;
+      item.last_ping_at = new Date().toISOString();
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          latency_ms: latency,
+          status: 'CONNECTED',
+          message_en: `Connection handshake verified. Latency: ${latency}ms.`,
+          message_bn: `সংযোগ হ্যান্ডশেক যাচাই সম্পন্ন। সময়: ${latency} মিলি/সেকেন্ড।`,
+        },
+      };
+    },
+  },
+
+  // 56. Get Recent Webhook Callback Logs
+  {
+    method: 'GET',
+    path: '/admin/platform/integrations/logs',
+    handler({ query = {} } = {}) {
+      const limit = parseInt(query?.limit || 20, 10);
+      return {
+        status: 200,
+        body: {
+          logs: mockIntegrationLogs.slice(0, limit),
+          total: mockIntegrationLogs.length,
+        },
+      };
+    },
+  },
+
+  // ================= PLATFORM SETTINGS HANDLERS =================
+  // 57. Get Master Platform Settings
+  {
+    method: 'GET',
+    path: '/admin/platform/settings',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          settings: mockPlatformSettings,
+          history: mockSettingsAuditLog,
+        },
+      };
+    },
+  },
+
+  // 58. Update Master Platform Settings (PUT)
+  {
+    method: 'PUT',
+    path: '/admin/platform/settings',
+    handler({ body = {} } = {}) {
+      if (body?.settings) {
+        const prev = { ...mockPlatformSettings };
+        Object.assign(mockPlatformSettings, body.settings);
+        mockPlatformSettings.updated_at = new Date().toISOString();
+        mockPlatformSettings.updated_by = 'Super Admin (Chief Architect)';
+
+        mockSettingsAuditLog.unshift({
+          id: `aud_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          actor: 'Super Admin',
+          reason: body?.reason || 'Standard quarterly governance parameter update',
+          changes: Object.keys(body.settings).map(k => ({
+            key: k,
+            old_value: prev[k],
+            new_value: body.settings[k],
+          })),
+        });
+      }
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          settings: mockPlatformSettings,
+          history: mockSettingsAuditLog,
+          message_en: 'Platform settings saved and active across cluster.',
+          message_bn: 'প্ল্যাটফর্ম সেটিংস সংরক্ষিত ও সক্রিয় হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 58b. Update Master Platform Settings (PATCH alias)
+  {
+    method: 'PATCH',
+    path: '/admin/platform/settings',
+    handler({ body = {} } = {}) {
+      if (body?.settings) {
+        const prev = { ...mockPlatformSettings };
+        Object.assign(mockPlatformSettings, body.settings);
+        mockPlatformSettings.updated_at = new Date().toISOString();
+        mockPlatformSettings.updated_by = 'Super Admin (Chief Architect)';
+
+        mockSettingsAuditLog.unshift({
+          id: `aud_${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          actor: 'Super Admin',
+          reason: body?.reason || 'Standard quarterly governance parameter update',
+          changes: Object.keys(body.settings).map(k => ({
+            key: k,
+            old_value: prev[k],
+            new_value: body.settings[k],
+          })),
+        });
+      }
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          settings: mockPlatformSettings,
+          history: mockSettingsAuditLog,
+          message_en: 'Platform settings saved and active across cluster.',
+          message_bn: 'প্ল্যাটফর্ম সেটিংস সংরক্ষিত ও সক্রিয় হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 59. Reset Platform Settings to Defaults
+  {
+    method: 'POST',
+    path: '/admin/platform/settings/reset',
+    handler({ body = {} } = {}) {
+      Object.assign(mockPlatformSettings, defaultPlatformSettings);
+      mockPlatformSettings.updated_at = new Date().toISOString();
+      mockPlatformSettings.updated_by = 'Super Admin (System Reset)';
+
+      mockSettingsAuditLog.unshift({
+        id: `aud_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        actor: 'Super Admin',
+        reason: body?.reason || 'Reset platform settings to system baseline',
+        changes: [{ key: 'ALL', old_value: 'custom', new_value: 'factory_default' }],
+      });
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          settings: mockPlatformSettings,
+          message_en: 'Platform settings successfully reset to factory defaults.',
+          message_bn: 'প্ল্যাটফর্ম সেটিংস সফলভাবে সিস্টেম ডিফল্টে রিসেট করা হয়েছে।',
+        },
+      };
+    },
+  },
 ];
 
 // --- Profit Splits Mock State ---
@@ -3228,6 +3478,284 @@ let mockSubscribers = [
   { id: 5, merchant_name: 'Ashiqur Rahman', store_name: 'Gadget Express BD', phone: '01555667788', ref: 'SLR-88109', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 350, quota_total: 1000, next_renewal: '2026-09-02', status: 'PAST_DUE', waived: false },
   { id: 6, merchant_name: 'Karupalli Crafts', store_name: 'Karupalli Artisan', phone: '01799887766', ref: 'SUP-44130', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 1100, quota_total: 5000, next_renewal: '2026-11-30', status: 'WAIVED', waived: true, waiver_reason: 'National SME startup grant' },
   { id: 7, merchant_name: 'Shakil Ahmed', store_name: 'Apex Footwear Resell', phone: '01712345678', ref: 'SLR-88115', role: 'saler', plan_id: 'plan_starter', plan_name: 'Free Starter', monthly_fee: 0, quota_used: 65, quota_total: 100, next_renewal: '2026-09-30', status: 'ACTIVE', waived: false },
+];
+
+// --- Platform Integrations & Settings Mock State ---
+let mockIntegrations = [
+  {
+    id: 'bkash_checkout',
+    name: 'bKash Tokenized Checkout',
+    type: 'PAYMENTS',
+    category_label: 'Mobile Financial Service',
+    icon: '📱',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: '01711002233',
+    merchant_id: 'EXPLOORO_BKASH_01',
+    app_key: 'bk_live_app_key_88921',
+    app_secret: 'bk_sec_991823901928301928301928',
+    webhook_secret: 'bk_whsec_771928491823',
+    webhook_url: 'https://api.explooro.com/webhooks/bkash',
+    last_ping_ms: 124,
+    description_en: 'Direct consumer checkout via official bKash Tokenized Checkout API v1.2 with automated IPN callback validation.',
+    description_bn: 'অফিসিয়াল বিকাশ টোকেনাইজড চেকআউট এপিআই-এর মাধ্যমে সরাসরি কাস্টমার পেমেন্ট।',
+  },
+  {
+    id: 'bkash_b2c',
+    name: 'bKash B2C Payouts',
+    type: 'PAYMENTS',
+    category_label: 'Disbursement & Vault Payouts',
+    icon: '💸',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: '01711002233',
+    merchant_id: 'EXPLOORO_B2C_01',
+    app_key: 'bk_b2c_live_99214',
+    app_secret: 'bk_b2c_sec_339182049182',
+    webhook_secret: 'bk_b2c_wh_11092834',
+    webhook_url: 'https://api.explooro.com/webhooks/bkash-payouts',
+    last_ping_ms: 148,
+    description_en: 'Automated disbursement engine paying saler and supplier earnings directly into their personal bKash wallets.',
+    description_bn: 'সেলার ও সরবরাহকারীদের ভল্ট ব্যালেন্স সরাসরি বিকাশ ওয়ালেটে স্বয়ংক্রিয় পেআউট।',
+  },
+  {
+    id: 'nagad_direct',
+    name: 'Nagad Direct MFS',
+    type: 'PAYMENTS',
+    category_label: 'Mobile Financial Service',
+    icon: '💳',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: '01899112233',
+    merchant_id: 'NAGAD_EXP_882',
+    app_key: 'ngd_live_pub_7718',
+    app_secret: 'ngd_live_priv_key_99210',
+    webhook_secret: 'ngd_whsec_330192',
+    webhook_url: 'https://api.explooro.com/webhooks/nagad',
+    last_ping_ms: 135,
+    description_en: 'Post Office Nagad gateway integration supporting 1-tap OTP validation and callback verification.',
+    description_bn: 'বাংলাদেশ ডাক বিভাগের নগদ গেটওয়ে সংযোগ ও চেকআউট।',
+  },
+  {
+    id: 'rocket_dbbl',
+    name: 'Rocket (DBBL)',
+    type: 'PAYMENTS',
+    category_label: 'Mobile Banking',
+    icon: '🚀',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: '019112233441',
+    merchant_id: 'DBBL_RCK_1092',
+    app_key: 'rck_app_live_3310',
+    app_secret: 'rck_sec_key_449102',
+    webhook_secret: 'rck_whsec_881920',
+    webhook_url: 'https://api.explooro.com/webhooks/rocket',
+    last_ping_ms: 182,
+    description_en: 'Dutch-Bangla Bank Rocket mobile payment gateway for consumer orders.',
+    description_bn: 'ডাচ-বাংলা ব্যাংক রকেট মোবাইল ব্যাংকিং গেটওয়ে।',
+  },
+  {
+    id: 'sslcommerz_cards',
+    name: 'SSLCommerz Gateway',
+    type: 'PAYMENTS',
+    category_label: 'Credit / Debit Cards & Net Banking',
+    icon: '🌐',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: 'explooro_live_ssl',
+    merchant_id: 'explooro001live',
+    app_key: 'ssl_live_key_991823',
+    app_secret: 'ssl_pass_99201948201',
+    webhook_secret: 'ssl_ipn_secret_5510',
+    webhook_url: 'https://api.explooro.com/webhooks/sslcommerz',
+    last_ping_ms: 196,
+    description_en: 'VISA, Mastercard, Amex, UnionPay, and Bangladeshi Internet Banking aggregator with 3D Secure 2.0.',
+    description_bn: 'ভিসা, মাস্টারকার্ড, অ্যামেক্স এবং ইন্টারনেট ব্যাংকিং পেমেন্ট গেটওয়ে।',
+  },
+  {
+    id: 'steadfast_courier',
+    name: 'Steadfast Courier API',
+    type: 'LOGISTICS',
+    category_label: '3PL Logistics & COD',
+    icon: '🚚',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: 'STF-EXP-992',
+    merchant_id: 'steadfast_explooro',
+    app_key: 'stf_key_8819201948',
+    app_secret: 'stf_sec_771920491820',
+    webhook_secret: 'stf_whsec_441920',
+    webhook_url: 'https://api.explooro.com/webhooks/courier/steadfast',
+    last_ping_ms: 112,
+    description_en: 'Next-day delivery coverage across all 64 districts with automated consignment booking, barcode labels, and real-time COD reconciliation.',
+    description_bn: '৬৪ জেলায় হোম ডেলিভারি ও সিওডি কালেকশন সংযোগ।',
+  },
+  {
+    id: 'pathao_logistics',
+    name: 'Pathao Courier Logistics',
+    type: 'LOGISTICS',
+    category_label: 'Express & On-Demand Parcel',
+    icon: '📦',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: 'pth_store_441',
+    merchant_id: 'pathao_exp_01',
+    app_key: 'pth_client_994812',
+    app_secret: 'pth_secret_339102948102',
+    webhook_secret: 'pth_whsec_991820',
+    webhook_url: 'https://api.explooro.com/webhooks/courier/pathao',
+    last_ping_ms: 140,
+    description_en: 'Pathao Merchant API v2 for on-demand Dhaka metro dispatch and nationwide hub delivery with live geolocation tracking.',
+    description_bn: 'পাঠাও এক্সপ্রেস পার্সেল ও ডেলিভারি সেবা সংযোগ।',
+  },
+  {
+    id: 'redx_delivery',
+    name: 'RedX Logistics',
+    type: 'LOGISTICS',
+    category_label: 'Nationwide Doorstep 3PL',
+    icon: '📮',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: 'RDX-99410',
+    merchant_id: 'redx_explooro_hub',
+    app_key: 'rdx_token_live_7719',
+    app_secret: 'rdx_sec_441029481920',
+    webhook_secret: 'rdx_whsec_220192',
+    webhook_url: 'https://api.explooro.com/webhooks/courier/redx',
+    last_ping_ms: 165,
+    description_en: 'Nationwide door-to-door e-commerce courier with automated reverse logistics for returns and exchanges.',
+    description_bn: 'রেডএক্স ডোরস্টেপ লজিস্টিকস ও রিটার্ন পিকআপ।',
+  },
+  {
+    id: 'greenweb_sms',
+    name: 'Greenweb / Reve SMS Gateway',
+    type: 'MESSAGING',
+    category_label: 'Local SMS & OTP Service',
+    icon: '💬',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: 'gw_exp_masking',
+    merchant_id: 'EXPLOORO_MASK',
+    app_key: 'gw_api_token_44192',
+    app_secret: 'gw_secret_881920491820',
+    webhook_secret: 'gw_dlr_secret_5510',
+    webhook_url: 'https://api.explooro.com/webhooks/sms/dlr',
+    last_ping_ms: 88,
+    description_en: 'BTRC-approved sender ID masking SMS gateway delivering instant OTP codes and order lifecycle updates to GP, Robi, Banglalink & Teletalk.',
+    description_bn: 'স্থানীয় বিটিআরসি অনুমোদিত মাস্কিং এসএমএস গেটওয়ে।',
+  },
+  {
+    id: 'whatsapp_cloud',
+    name: 'WhatsApp Cloud Commerce API',
+    type: 'MESSAGING',
+    category_label: 'Conversational Commerce',
+    icon: '🟢',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: '+8801700998877',
+    merchant_id: 'WABA_ID_998124',
+    app_key: 'EAAG_meta_graph_token_991',
+    app_secret: 'meta_app_sec_330192849102',
+    webhook_secret: 'meta_verify_token_explooro',
+    webhook_url: 'https://api.explooro.com/webhooks/whatsapp',
+    last_ping_ms: 175,
+    description_en: 'Meta WhatsApp Cloud API v18.0 delivering automated order receipts, 1-tap checkout links, and saler conversational bridge.',
+    description_bn: 'মেটা হোয়াটসঅ্যাপ ক্লাউড এপিআই সংযোগ।',
+  },
+  {
+    id: 'cloudflare_r2',
+    name: 'Cloudflare R2 Object Storage',
+    type: 'CLOUD',
+    category_label: 'Edge Media Storage',
+    icon: '☁️',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: 'r2_account_991823',
+    merchant_id: 'explooro-media-bucket',
+    app_key: 'r2_access_key_live_55',
+    app_secret: 'r2_secret_key_8819204918209384',
+    webhook_secret: 'r2_event_secret_3301',
+    webhook_url: 'https://api.explooro.com/webhooks/storage',
+    last_ping_ms: 65,
+    description_en: 'S3-compatible global object storage with zero egress fees for product photos, merchant KYC proofs, and reels.',
+    description_bn: 'ক্লাউডফ্লেয়ার অবজেক্ট স্টোরেজ ও দ্রুত মিডিয়া হোস্টিং।',
+  },
+  {
+    id: 'google_gemini_ai',
+    name: 'Google Gemini AI Engine',
+    type: 'CLOUD',
+    category_label: 'Generative AI & Computer Vision',
+    icon: '✨',
+    status: 'CONNECTED',
+    environment: 'LIVE',
+    is_enabled: true,
+    account_id: 'gemini-pro-vision',
+    merchant_id: 'GOOGLE_VERTEX_EXP',
+    app_key: 'AIzaSy_gemini_pro_key_7719',
+    app_secret: 'gemini_proj_sec_991820491820',
+    webhook_secret: 'gemini_cb_sec_4410',
+    webhook_url: 'https://api.explooro.com/webhooks/ai',
+    last_ping_ms: 210,
+    description_en: 'Multimodal generative AI powering saler product descriptions in Bengali, auto-categorization, and creative studio banners.',
+    description_bn: 'গুগল জেমিনাই এআই ইঞ্জিন।',
+  },
+];
+
+let mockIntegrationLogs = [
+  { id: 'log_101', gateway: 'bKash Tokenized Checkout', event: 'payment.execute', status: 200, trace_id: 'TRX-BK-991823', latency_ms: 124, timestamp: new Date(Date.now() - 1000 * 45).toISOString() },
+  { id: 'log_102', gateway: 'Steadfast Courier API', event: 'consignment.status_update', status: 200, trace_id: 'STF-CN-441920', latency_ms: 98, timestamp: new Date(Date.now() - 1000 * 120).toISOString() },
+  { id: 'log_103', gateway: 'Greenweb / Reve SMS Gateway', event: 'sms.delivery_report', status: 200, trace_id: 'SMS-DLR-88192', latency_ms: 82, timestamp: new Date(Date.now() - 1000 * 240).toISOString() },
+  { id: 'log_104', gateway: 'WhatsApp Cloud Commerce API', event: 'message.template_delivered', status: 200, trace_id: 'WA-MSG-77192', latency_ms: 165, timestamp: new Date(Date.now() - 1000 * 360).toISOString() },
+  { id: 'log_105', gateway: 'SSLCommerz Gateway', event: 'ipn.transaction_validate', status: 200, trace_id: 'SSL-TX-551029', latency_ms: 192, timestamp: new Date(Date.now() - 1000 * 500).toISOString() },
+  { id: 'log_106', gateway: 'Pathao Courier Logistics', event: 'order.in_transit', status: 200, trace_id: 'PTH-OR-330192', latency_ms: 145, timestamp: new Date(Date.now() - 1000 * 720).toISOString() },
+];
+
+const defaultPlatformSettings = {
+  platform_name: 'Explooro Marketplace',
+  support_email: 'support@explooro.com',
+  support_phone: '+880 9612-345678',
+  default_currency: 'BDT',
+  currency_symbol: '৳',
+  default_language: 'bn',
+  timezone: 'Asia/Dhaka',
+  escrow_period_days: 7,
+  b2b_escrow_days: 14,
+  auto_sweep_enabled: true,
+  dispute_auto_freeze: true,
+  min_saler_payout_bdt: 500,
+  min_supplier_payout_bdt: 1000,
+  max_single_payout_bdt: 100000,
+  payout_fee_covered: true,
+  payout_cutoff_time: '17:00',
+  platform_take_pct: 10.0,
+  min_seller_margin_pct: 5.0,
+  merchant_free_quota: 100,
+  staff_2fa_enforced: true,
+  session_timeout_minutes: 60,
+  max_login_attempts: 5,
+  maintenance_mode: false,
+  read_only_mode: false,
+  maintenance_message_en: 'Explooro is temporarily undergoing scheduled maintenance. We will be back online shortly.',
+  maintenance_message_bn: 'এক্সপ্লোরো সাময়িক রক্ষণাবেক্ষণের জন্য ডাউন রয়েছে। আমরা দ্রুতই ফিরে আসছি।',
+};
+
+let mockPlatformSettings = { ...defaultPlatformSettings, updated_at: '2026-08-25T14:30:00Z', updated_by: 'Super Admin (System Governance)' };
+
+let mockSettingsAuditLog = [
+  { id: 'aud_1', timestamp: '2026-08-25T14:30:00Z', actor: 'Super Admin #1', reason: 'Enforced mandatory Staff 2FA across all admin tiers', changes: [{ key: 'staff_2fa_enforced', old_value: false, new_value: true }] },
+  { id: 'aud_2', timestamp: '2026-08-20T10:15:00Z', actor: 'Super Admin #1', reason: 'Reduced minimum saler payout to ৳500 for micro-merchants', changes: [{ key: 'min_saler_payout_bdt', old_value: 1000, new_value: 500 }] },
+  { id: 'aud_3', timestamp: '2026-08-15T09:00:00Z', actor: 'Super Admin #1', reason: 'Initial production system parameter baseline', changes: [{ key: 'ALL', old_value: 'null', new_value: 'baseline' }] },
 ];
 
 export default adminHandlers;

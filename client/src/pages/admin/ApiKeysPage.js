@@ -23,13 +23,15 @@ import {
 import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 
-export default function ApiKeysPage(root, ctx = {}) {
+export default function ApiKeysPage(root, { navigate } = {}) {
   const container = document.createElement('div');
-  container.className = 'developer-portal-page p-4 md:p-6 max-w-7xl mx-auto space-y-6';
+  container.className = 'admin-page api-keys-page';
 
   let activeTab = 'keys'; // 'keys' | 'webhooks' | 'widget'
   let apiKeys = [];
@@ -49,27 +51,31 @@ export default function ApiKeysPage(root, ctx = {}) {
   }
 
   // 2. Page Header
-  const header = document.createElement('div');
-  header.className = 'page-header flex-between flex-wrap gap-4 border-b pb-4';
+  const header = document.createElement('header');
+  header.className = 'admin-page-header';
   header.innerHTML = `
     <div>
-      <div class="flex items-center gap-2">
-        <span class="text-2xl">⚡</span>
-        <h2 class="text-2xl font-bold tracking-tight m-0">${t('developer.page_title')}</h2>
+      <div class="admin-page-eyebrow">
+        <span class="badge badge-primary text-xs font-mono">Open API & SDK</span>
+        <span class="text-xs text-secondary font-mono">v1.4 Scoped RBAC</span>
       </div>
-      <p class="text-sm text-muted m-0 mt-1">${t('developer.page_subtitle')}</p>
+      <h1 class="admin-page-title">⚡ ${t('developer.page_title')}</h1>
+      <p class="admin-page-subtitle">${t('developer.page_subtitle')}</p>
     </div>
   `;
   container.append(header);
 
-  // 3. KPI Metrics Row
+  // 3. Shared Platform Subnav
+  container.append(PlatformSubnav({ activeKey: 'apikeys', navigate }));
+
+  // 4. KPI Metrics Row
   const metricsRow = document.createElement('div');
-  metricsRow.className = 'grid grid-cols-2 md:grid-cols-4 gap-4';
+  metricsRow.className = 'admin-kpi-grid';
   container.append(metricsRow);
 
-  // 4. Tab Navigation
+  // 5. Tab Navigation
   const tabNav = document.createElement('div');
-  tabNav.className = 'tabs-navigation border-b';
+  tabNav.className = 'admin-filter-toolbar';
   container.append(tabNav);
 
   const contentArea = document.createElement('div');
@@ -101,41 +107,45 @@ export default function ApiKeysPage(root, ctx = {}) {
     const dlqCount = deliveries.filter((d) => d.status === 'DEAD_LETTER').length;
 
     metricsRow.innerHTML = `
-      <div class="card p-3 border rounded bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('developer.metric_active_keys')}</span>
-        <span class="text-xl font-bold font-mono">${activeKeys}</span>
+      <div class="admin-kpi-card">
+        <span class="admin-kpi-card__label">${t('developer.metric_active_keys')}</span>
+        <span class="admin-kpi-card__value font-mono text-brand">${activeKeys}</span>
+        <span class="admin-kpi-card__subtext">Scoped credentials</span>
       </div>
-      <div class="card p-3 border rounded bg-surface">
-        <span class="text-xs text-muted block uppercase">${t('developer.metric_webhooks')}</span>
-        <span class="text-xl font-bold font-mono text-primary">${activeSubs}</span>
+      <div class="admin-kpi-card">
+        <span class="admin-kpi-card__label">${t('developer.metric_webhooks')}</span>
+        <span class="admin-kpi-card__value font-mono text-primary">${activeSubs}</span>
+        <span class="admin-kpi-card__subtext">Outbound webhooks</span>
       </div>
-      <div class="card p-3 border rounded bg-success-soft">
-        <span class="text-xs text-muted block uppercase">${t('developer.metric_delivered_events')}</span>
-        <span class="text-xl font-bold font-mono text-success">${deliveredCount}</span>
+      <div class="admin-kpi-card">
+        <span class="admin-kpi-card__label">${t('developer.metric_delivered_events')}</span>
+        <span class="admin-kpi-card__value font-mono text-success">${deliveredCount}</span>
+        <span class="admin-kpi-card__subtext">Delivered (24h)</span>
       </div>
-      <div class="card p-3 border rounded ${dlqCount > 0 ? 'bg-danger-soft' : 'bg-surface'}">
-        <span class="text-xs text-muted block uppercase">${t('developer.metric_dlq_items')}</span>
-        <span class="text-xl font-bold font-mono ${dlqCount > 0 ? 'text-danger' : ''}">${dlqCount}</span>
+      <div class="admin-kpi-card">
+        <span class="admin-kpi-card__label">${t('developer.metric_dlq_items')}</span>
+        <span class="admin-kpi-card__value font-mono ${dlqCount > 0 ? 'text-danger' : 'text-secondary'}">${dlqCount}</span>
+        <span class="admin-kpi-card__subtext">${dlqCount > 0 ? 'Requires attention' : 'DLQ healthy'}</span>
       </div>
     `;
   }
 
   function renderTabNav() {
     tabNav.innerHTML = `
-      <div class="flex gap-4">
-        <button class="tab-btn py-2 px-1 text-sm font-semibold border-b-2 ${activeTab === 'keys' ? 'border-primary text-primary' : 'border-transparent text-muted'}" data-tab="keys">
+      <div class="admin-filter-tabs">
+        <button class="admin-filter-tab ${activeTab === 'keys' ? 'admin-filter-tab--active' : ''}" data-tab="keys">
           🔑 ${t('developer.tab_api_keys')} (${apiKeys.length})
         </button>
-        <button class="tab-btn py-2 px-1 text-sm font-semibold border-b-2 ${activeTab === 'webhooks' ? 'border-primary text-primary' : 'border-transparent text-muted'}" data-tab="webhooks">
+        <button class="admin-filter-tab ${activeTab === 'webhooks' ? 'admin-filter-tab--active' : ''}" data-tab="webhooks">
           📡 ${t('developer.tab_webhooks')} (${webhooks.length})
         </button>
-        <button class="tab-btn py-2 px-1 text-sm font-semibold border-b-2 ${activeTab === 'widget' ? 'border-primary text-primary' : 'border-transparent text-muted'}" data-tab="widget">
+        <button class="admin-filter-tab ${activeTab === 'widget' ? 'admin-filter-tab--active' : ''}" data-tab="widget">
           🧩 ${t('developer.tab_widget_studio')}
         </button>
       </div>
     `;
 
-    tabNav.querySelectorAll('.tab-btn').forEach((btn) => {
+    tabNav.querySelectorAll('.admin-filter-tab').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeTab = btn.getAttribute('data-tab');
         renderTabNav();
@@ -246,7 +256,13 @@ export default function ApiKeysPage(root, ctx = {}) {
     tableWrap.querySelectorAll('.rotate-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = parseInt(btn.getAttribute('data-id'), 10);
-        if (!confirm(t('developer.confirm_rotate'))) return;
+        const confirmed = await confirmDialog({
+          title: t('developer.btn_rotate', 'Rotate API Key'),
+          message: t('developer.confirm_rotate'),
+          confirmLabel: t('developer.btn_rotate', 'Rotate'),
+          variant: 'warning',
+        });
+        if (!confirmed) return;
         try {
           const res = await rotateApiKey(id);
           toast.success(t('developer.rotate_success'));
@@ -262,7 +278,13 @@ export default function ApiKeysPage(root, ctx = {}) {
     tableWrap.querySelectorAll('.revoke-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = parseInt(btn.getAttribute('data-id'), 10);
-        if (!confirm(t('developer.confirm_revoke'))) return;
+        const confirmed = await confirmDialog({
+          title: t('developer.btn_revoke', 'Revoke API Key'),
+          message: t('developer.confirm_revoke'),
+          confirmLabel: t('developer.btn_revoke', 'Revoke'),
+          variant: 'danger',
+        });
+        if (!confirmed) return;
         try {
           await revokeApiKey(id);
           toast.success(t('developer.revoke_success'));
@@ -458,7 +480,13 @@ export default function ApiKeysPage(root, ctx = {}) {
         `;
 
         card.querySelector('.delete-sub-btn')?.addEventListener('click', async () => {
-          if (!confirm(t('developer.confirm_delete_webhook'))) return;
+          const confirmed = await confirmDialog({
+            title: t('common.delete', 'Delete Webhook'),
+            message: t('developer.confirm_delete_webhook'),
+            confirmLabel: t('common.delete', 'Delete'),
+            variant: 'danger',
+          });
+          if (!confirmed) return;
           try {
             await deleteWebhookSubscription(sub.id);
             toast.success(t('developer.webhook_deleted'));
