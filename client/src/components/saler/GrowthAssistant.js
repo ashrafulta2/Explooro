@@ -9,28 +9,29 @@ import { salerApi } from '../../services/saler.api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../ui/Button.js';
-import { Badge } from '../ui/Badge.js';
 import { Skeleton } from '../ui/Skeleton.js';
 import { openAssistantPanel } from '../ai/AssistantPanel.js';
 
 export function GrowthAssistant({ recommendations = null, onActionExecuted = null, onNavigate = null } = {}) {
   const container = document.createElement('div');
-  container.className = 'growth-assistant rounded-2xl border border-primary/20 bg-gradient-to-br from-surface to-primary/5 p-5 shadow-sm space-y-4';
+  container.className = 'growth-assistant';
 
   // Header
   const header = document.createElement('div');
-  header.className = 'flex items-center justify-between gap-3 border-b border-subtle pb-3';
+  header.className = 'growth-assistant-header';
 
   const titleWrap = document.createElement('div');
-  titleWrap.className = 'flex items-center gap-2.5';
+  titleWrap.style.display = 'flex';
+  titleWrap.style.alignItems = 'center';
+  titleWrap.style.gap = '10px';
   titleWrap.innerHTML = `
-    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-lg">💡</div>
+    <div class="saler-card-icon-box">💡</div>
     <div>
-      <h3 class="text-sm font-bold text-foreground flex items-center gap-2">
+      <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
         ${t('saler.growth_assistant.title', 'AI Growth Assistant')}
         <span class="badge badge--primary text-[10px] uppercase tracking-wider font-semibold">Live Advice</span>
       </h3>
-      <p class="text-xs text-muted">
+      <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
         ${t('saler.growth_assistant.subtitle', 'Grounded next-steps derived from your real catalog metrics and peer sales.')}
       </p>
     </div>
@@ -53,7 +54,7 @@ export function GrowthAssistant({ recommendations = null, onActionExecuted = nul
 
   // Cards List container
   const listContainer = document.createElement('div');
-  listContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-3.5';
+  listContainer.className = 'growth-assistant-grid';
   container.append(listContainer);
 
   async function loadAndRender() {
@@ -71,7 +72,11 @@ export function GrowthAssistant({ recommendations = null, onActionExecuted = nul
 
       if (items.length === 0) {
         const empty = document.createElement('div');
-        empty.className = 'col-span-full py-4 text-center text-xs text-muted';
+        empty.style.gridColumn = '1 / -1';
+        empty.style.padding = '16px';
+        empty.style.textAlign = 'center';
+        empty.style.fontSize = '12px';
+        empty.style.color = 'var(--text-muted)';
         empty.textContent = t('saler.growth_assistant.all_caught_up', 'All performance metrics are optimal! Check back after new customer orders.');
         listContainer.append(empty);
         return;
@@ -79,11 +84,13 @@ export function GrowthAssistant({ recommendations = null, onActionExecuted = nul
 
       items.forEach((item) => {
         const card = document.createElement('div');
-        card.className = 'flex flex-col justify-between rounded-xl border border-subtle bg-surface p-3.5 hover:border-primary/40 transition-colors shadow-xs space-y-3';
+        card.className = 'growth-assistant-card';
 
         // Badge & Title
         const cardTop = document.createElement('div');
-        cardTop.className = 'space-y-1.5';
+        cardTop.style.display = 'flex';
+        cardTop.style.flexDirection = 'column';
+        cardTop.style.gap = '6px';
 
         const badgeType = item.type === 'PRICE_OPPORTUNITY' ? 'warning'
           : item.type === 'HERO_PRODUCT' ? 'success'
@@ -96,16 +103,18 @@ export function GrowthAssistant({ recommendations = null, onActionExecuted = nul
           : '💡 Sourcing Opportunity';
 
         cardTop.innerHTML = `
-          <div class="flex items-center justify-between gap-2">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
             <span class="badge badge--${badgeType} text-[10px]">${badgeText}</span>
-            <span class="text-[11px] font-bold text-foreground line-clamp-1">${item.title}</span>
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title}</span>
           </div>
-          <p class="text-xs text-muted leading-relaxed">${item.recommendation}</p>
+          <p style="margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.4;">${item.recommendation}</p>
         `;
 
         // 1-Click Action Button
         const cardAction = document.createElement('div');
-        cardAction.className = 'pt-1 flex justify-end';
+        cardAction.style.display = 'flex';
+        cardAction.style.justifyContent = 'flex-end';
+        cardAction.style.paddingTop = '6px';
 
         const actionBtn = Button({
           label: item.action?.label_en || 'Take Action →',
@@ -133,7 +142,10 @@ export function GrowthAssistant({ recommendations = null, onActionExecuted = nul
     } catch (err) {
       listContainer.innerHTML = '';
       const errBox = document.createElement('div');
-      errBox.className = 'col-span-full text-xs text-danger py-2';
+      errBox.style.gridColumn = '1 / -1';
+      errBox.style.fontSize = '12px';
+      errBox.style.color = 'var(--danger-500)';
+      errBox.style.padding = '8px 0';
       errBox.textContent = t('saler.growth_assistant.load_failed', 'Unable to load growth recommendations.');
       listContainer.append(errBox);
     }

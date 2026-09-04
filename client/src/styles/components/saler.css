@@ -382,3 +382,559 @@
   border-color: #d97706;
   background: linear-gradient(180deg, rgba(217, 119, 6, 0.08) 0%, var(--surface-0, #ffffff) 100%);
 }
+
+/* ── Saler Dashboard Header & Mode Toggle ── */
+.saler-dashboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  padding-bottom: var(--space-4, 16px);
+  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.saler-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  background: var(--surface-1, #f8fafc);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 4px;
+}
+
+.saler-mode-btn {
+  padding: 6px 14px;
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-bold, 700);
+  color: var(--text-muted, #64748b);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.saler-mode-btn:hover {
+  color: var(--text-primary, #0f172a);
+}
+
+.saler-mode-btn.active {
+  background: var(--surface-0, #ffffff);
+  color: var(--text-primary, #0f172a);
+  border-color: var(--border-subtle, #cbd5e1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Simple Mode ── */
+.saler-simple-welcome {
+  padding: var(--space-5, 20px);
+  border-radius: var(--radius-xl, 16px);
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.saler-simple-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4, 16px);
+}
+
+.saler-simple-stat {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.saler-simple-stat-label {
+  font-size: 10px;
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+  letter-spacing: 0.05em;
+}
+
+.saler-simple-stat-val {
+  font-size: var(--text-lg, 17px);
+  font-weight: var(--weight-bold, 700);
+  font-family: var(--font-mono, monospace);
+  color: var(--text-primary, #0f172a);
+}
+
+.saler-simple-stat-val--profit {
+  color: var(--success-600, #16a34a);
+}
+
+.saler-simple-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-4, 16px);
+}
+
+.saler-simple-card {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.saler-simple-card:hover {
+  border-color: var(--brand-400, #ffbc00);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.saler-card-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg, 12px);
+  background: var(--brand-50, #fdf8ef);
+  color: var(--brand-900, #866100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+/* ── Pro Mode Onboarding Widget ── */
+.saler-onboarding-card {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.saler-onboarding-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+}
+
+.saler-onboarding-progress-track {
+  width: 140px;
+  height: 8px;
+  background: var(--surface-2, #e2e8f0);
+  border-radius: var(--radius-full, 9999px);
+  overflow: hidden;
+}
+
+.saler-onboarding-progress-fill {
+  height: 100%;
+  background: var(--brand-500, #ecae00);
+  border-radius: var(--radius-full, 9999px);
+  transition: width 0.4s ease;
+}
+
+.saler-onboarding-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-3, 12px);
+}
+
+.saler-onboarding-step {
+  background: var(--surface-1, #f8fafc);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  transition: border-color 0.2s;
+}
+
+.saler-onboarding-step--completed {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.02);
+}
+
+/* ── Growth Assistant ── */
+.growth-assistant {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.growth-assistant-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  padding-bottom: var(--space-3, 12px);
+  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.growth-assistant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3, 12px);
+}
+
+.growth-assistant-card {
+  background: var(--surface-1, #f8fafc);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  transition: all 0.2s;
+}
+
+.growth-assistant-card:hover {
+  border-color: var(--brand-400, #ffbc00);
+  background: var(--surface-0, #ffffff);
+}
+
+/* ── Saler Tool Suite Grid ── */
+.saler-tools-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+.saler-tools-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  padding-bottom: var(--space-2, 8px);
+  border-bottom: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.saler-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4, 16px);
+}
+
+.saler-tool-card {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.saler-tool-card:hover {
+  border-color: var(--brand-400, #ffbc00);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.saler-tool-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+}
+
+.saler-tool-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-1, #f8fafc);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle, #e2e8f0);
+}
+
+.saler-tool-card__title {
+  font-size: var(--text-sm, 13px);
+  font-weight: var(--weight-bold, 700);
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+}
+
+.saler-tool-card__desc {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-muted, #64748b);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Saler Analytics Page ── */
+.saler-analytics-charts-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4, 16px);
+}
+
+@media (max-width: 1024px) {
+  .saler-analytics-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.saler-chart-card {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.saler-chart-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+}
+
+/* ── Saler Universal Layout Stacks & Rows ── */
+.saler-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+.saler-stack--xs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 4px);
+}
+
+.saler-stack--sm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+
+.saler-stack--lg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 24px);
+}
+
+.saler-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
+}
+
+.saler-row--between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
+}
+
+.saler-two-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6, 24px);
+}
+
+@media (min-width: 1024px) {
+  .saler-two-col {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+.saler-two-col--equal {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4, 16px);
+}
+
+@media (min-width: 640px) {
+  .saler-two-col--equal {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.saler-three-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4, 16px);
+}
+
+@media (min-width: 768px) {
+  .saler-three-col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.saler-four-col {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4, 16px);
+}
+
+/* ── Saler Universal Card ── */
+.saler-card {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.saler-card--subtle {
+  background: var(--surface-1, #f8fafc);
+}
+
+.saler-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2, 8px);
+}
+
+.saler-card__title {
+  font-size: var(--text-base, 16px);
+  font-weight: var(--weight-bold, 700);
+  color: var(--text-primary, #0f172a);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.saler-card__subtitle {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-muted, #64748b);
+  margin: 0;
+}
+
+/* ── Saler Orders List ── */
+.saler-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+/* ── Saler Form & Method Picker ── */
+.saler-method-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2, 8px);
+}
+
+@media (min-width: 640px) {
+  .saler-method-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ── Abandoned Cart Insights ── */
+.saler-funnel-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4, 16px);
+}
+
+.saler-funnel-card {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.saler-funnel-card__step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--brand-50, #fdf8ef);
+  color: var(--brand-900, #866100);
+  border: 1px solid var(--brand-200, #fedc80);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-bold, 700);
+}
+
+/* ── Bundle Studio Components ── */
+.saler-bundle-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6, 24px);
+}
+
+@media (min-width: 1024px) {
+  .saler-bundle-grid {
+    grid-template-columns: 7fr 5fr;
+  }
+}
+
+.saler-bundle-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3, 12px);
+  max-height: 380px;
+  overflow-y: auto;
+  padding: var(--space-1, 4px);
+}
+
+.saler-bundle-picker-item {
+  background: var(--surface-1, #f8fafc);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-3, 12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.saler-bundle-picker-item:hover {
+  border-color: var(--brand-500, #ecae00);
+  background: var(--surface-0, #ffffff);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+

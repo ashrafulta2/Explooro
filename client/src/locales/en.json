@@ -1120,7 +1120,9 @@
       "chat_with_seller": "Chat with Seller",
       "chat_placeholder": "Chat is arriving in a later phase.",
       "team_purchase": "Team Purchase",
-      "team_purchase_placeholder": "Team Purchase is arriving in a later phase."
+      "team_purchase_placeholder": "Team Purchase is arriving in a later phase.",
+      "chat_login_required": "Please sign in to chat with the seller.",
+      "team_login_required": "Please sign in to start or join a team purchase."
     },
     "description_heading": "Description",
     "rating_summary": "{{rating}} · {{count}} reviews",
@@ -1213,7 +1215,7 @@
       "title": "Dynamic Profit Calculator",
       "subtitle": "Server-authoritative commission and earnings calculator",
       "modal_title": "Interactive Profit Calculator & Projection",
-      "modal_desc": "Adjust pricing parameters to inspect wholesale cost, net retail margin, and saler/platform splits.",
+      "modal_desc": "Adjust pricing parameters to inspect wholesale cost, retail price, and your earnings.",
       "base_cost": "Supplier Base Cost",
       "wholesale_margin": "Wholesale Margin",
       "retail_price": "Desired Retail Price",
@@ -1228,6 +1230,8 @@
       "platform_split": "Platform Split",
       "price_distribution": "Price Distribution Breakdown",
       "total_retail": "Total Retail Price",
+      "customer_retail_price": "Customer Retail Price",
+      "margin_performance": "Reseller Profit Margin",
       "error_invalid_price": "Retail price cannot be lower than total wholesale cost."
     },
     "projection": {
@@ -2102,7 +2106,18 @@
     "modal_insert_product": "Insert Product Card",
     "btn_insert_card": "Insert Product Card",
     "is_typing": "is typing…",
-    "send_failed": "Message could not be sent."
+    "send_failed": "Message could not be sent.",
+    "inquiry_about": "Inquiry about",
+    "view_product": "View Product",
+    "status_connected": "Connected",
+    "status_connecting": "Connecting...",
+    "status_reconnecting": "Reconnecting...",
+    "status_offline": "Offline (Queued)",
+    "status_disconnected": "Disconnected",
+    "failed_to_deliver": "Failed to deliver",
+    "retry": "Retry",
+    "no_active_conversation": "No active conversation",
+    "product_inquiry_badge": "Product Inquiry"
   },
   "ads": {
     "sponsored": "Sponsored",
@@ -2407,7 +2422,20 @@
     "payment_method": "Payment Method",
     "confirm_join": "Confirm Join",
     "joined_success": "Joined team successfully!",
-    "goal_reached_success": "Team goal reached! Order created!"
+    "goal_reached_success": "Team goal reached! Order created!",
+    "modal_title": "Social Group Buying & Team Purchase",
+    "modal_subtitle": "Team up with friends or join an open pool to unlock group discounts.",
+    "active_teams_heading": "Join an Active Team for Instant Discount",
+    "no_active_teams": "No open teams currently waiting. Start your own team below and invite friends!",
+    "start_new_heading": "Or Start a New Team (24h Window)",
+    "team_size_label": "Select Team Size",
+    "members_2": "2-Member Team",
+    "members_3": "3-Member Team (Best Deal)",
+    "btn_start": "Start Team Purchase",
+    "view_my_teams": "View all my team purchases & tracking →",
+    "teaser_title": "Social Team Purchase Deal",
+    "teaser_desc": "Team up with friends or join open pools to unlock group pricing.",
+    "explore_teams": "Explore Teams"
   },
   "cart_recovery": {
     "page_title": "Abandoned Cart Recovery & Insights",
@@ -3557,7 +3585,7 @@
     "kpi_categories_active": "Active Categories",
     "kpi_in_stock": "In-Stock & Live",
     "kpi_availability": "Available",
-    "kpi_low_stock": "Low Stock (≤ 10)",
+    "kpi_low_stock": "Low Stock (≤ {{threshold}})",
     "kpi_out_of_stock": "Out of Stock",
     "kpi_inventory_value": "Potential GMV Value",
     "kpi_verified_suppliers": "Verified Suppliers",
@@ -3565,7 +3593,7 @@
     "all_categories": "All Categories",
     "all_stock": "All Stock Status",
     "in_stock_only": "In Stock (> 0)",
-    "low_stock_only": "Low Stock (≤ 10)",
+    "low_stock_only": "Low Stock (≤ {{threshold}})",
     "out_of_stock_only": "Out of Stock (0)",
     "all_tiers": "All Supplier Tiers",
     "all_promos": "All Promotion States",

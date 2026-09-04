@@ -848,27 +848,27 @@ export class ReferralHubPage {
     modalBackdrop.setAttribute('aria-label', isBn ? 'রেফারেল কিউআর ও সোশ্যাল কার্ড' : 'Referral QR and Story Card');
 
     modalBackdrop.innerHTML = `
-      <div class="modal-dialog bg-surface border border-subtle rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl space-y-4">
-        <div class="flex justify-between items-center border-b border-subtle pb-3">
-          <h3 class="font-bold text-base text-foreground">
+      <div class="saler-card saler-stack text-center" style="max-width: 400px; width: 100%; margin: auto; padding: 1.5rem;">
+        <div class="saler-row saler-row--between" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+          <h3 class="saler-card__title" style="font-size: 1rem;">
             📱 ${isBn ? 'আপনার রেফারেল QR ও সোশ্যাল কার্ড' : 'Your Referral QR & Story Card'}
           </h3>
-          <button type="button" class="btn-close text-muted hover:text-foreground font-bold text-xl cursor-pointer" aria-label="Close modal">×</button>
+          <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; line-height: 1;" aria-label="Close modal">×</button>
         </div>
 
-        <div class="p-4 bg-white rounded-2xl mx-auto w-52 h-52 flex items-center justify-center border shadow-inner">
+        <div style="background: #ffffff; padding: 1rem; border-radius: var(--radius-lg); margin: 0 auto; width: 210px; height: 210px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle); box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">
           <img
             src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(refLink)}"
             alt="Referral QR Code"
-            class="w-full h-full object-contain" />
+            style="width: 100%; height: 100%; object-fit: contain;" />
         </div>
 
-        <div class="space-y-1">
+        <div class="saler-stack--xs">
           <div class="text-xs font-mono font-bold text-foreground">Code: ${refCode}</div>
-          <p class="text-[11px] text-muted font-mono break-all">${refLink}</p>
+          <p class="text-xs text-muted font-mono" style="word-break: break-all;">${refLink}</p>
         </div>
 
-        <div class="flex gap-2 pt-2">
+        <div class="saler-row" style="gap: 0.5rem; padding-top: 0.5rem;">
           <button type="button" class="btn btn--outline btn--sm flex-1 btn-copy-modal">
             📋 ${isBn ? 'লিংক কপি' : 'Copy Link'}
           </button>
@@ -918,20 +918,20 @@ export class ReferralHubPage {
     modalBackdrop.setAttribute('aria-label', isBn ? 'কাস্টম রেফারেল লিংক' : 'Custom Vanity Slug');
 
     modalBackdrop.innerHTML = `
-      <div class="modal-dialog bg-surface border border-subtle rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-        <div class="flex justify-between items-center border-b border-subtle pb-3">
-          <h3 class="font-bold text-base text-foreground">
+      <div class="saler-card saler-stack" style="max-width: 480px; width: 100%; margin: auto; padding: 1.5rem;">
+        <div class="saler-row saler-row--between" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
+          <h3 class="saler-card__title" style="font-size: 1rem;">
             ✏️ ${isBn ? 'কাস্টম রেফারেল লিংক তৈরি' : 'Custom Vanity Slug'}
           </h3>
-          <button type="button" class="btn-close text-muted hover:text-foreground font-bold text-xl cursor-pointer" aria-label="Close modal">×</button>
+          <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; line-height: 1;" aria-label="Close modal">×</button>
         </div>
 
-        <form id="form-custom-slug" class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-muted uppercase mb-1">
+        <form id="form-custom-slug" class="saler-stack">
+          <div class="saler-stack--xs">
+            <label class="saler-stat-card__label">
               ${isBn ? 'আপনার পছন্দের লিংক নাম' : 'Vanity Slug'}
             </label>
-            <div class="flex items-center gap-1 font-mono text-xs">
+            <div class="saler-row" style="gap: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">
               <span class="text-muted">explooro.com/join/</span>
               <input
                 type="text"
@@ -942,18 +942,18 @@ export class ReferralHubPage {
                 pattern="^[a-z0-9-]+$"
                 placeholder="tanvir-deals"
                 value="${this.overview?.custom_slug || ''}"
-                class="input input--sm w-full font-mono" />
+                class="input input--sm flex-1 font-mono" />
             </div>
-            <p class="text-[11px] text-muted mt-1">
+            <p class="saler-card__subtitle" style="margin-top: 0.25rem;">
               ${isBn ? 'ছোট হাতের অক্ষর (a-z), সংখ্যা (0-9) ও হাইফেন (-) ব্যবহার করুন (৩-৪০ অক্ষর)' : 'Letters, numbers, and hyphens only, 3-40 chars (e.g. fahim-deals)'}
             </p>
           </div>
 
-          <div class="flex justify-end gap-2 pt-3 border-t border-subtle">
+          <div class="saler-row" style="justify-content: flex-end; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
             <button type="button" class="btn btn--outline btn--sm btn-cancel">
               ${isBn ? 'বাতিল' : 'Cancel'}
             </button>
-            <button type="submit" class="btn btn--primary btn--sm">
+            <button type="submit" class="btn btn--primary btn--sm font-bold">
               ${isBn ? 'সংরক্ষণ করুন' : 'Save Slug'}
             </button>
           </div>

@@ -396,18 +396,30 @@ export default [
   {
     method: 'GET',
     path: '/admin/catalog/stats',
+    // WHY this mirrors server/src/services/product.service.js getCatalogStats() field for field:
+    // the admin catalog page reads this contract in mock mode and the Fastify route in live mode.
+    // When the two drifted, the panel silently changed meaning depending on VITE_API_MODE.
     handler() {
+      const LOW_STOCK_THRESHOLD = 10;
+      const thresholdFor = (p) => Number(p.low_stock_threshold ?? LOW_STOCK_THRESHOLD) || LOW_STOCK_THRESHOLD;
+      const isVerified = (p) => p.supplier_tier === 'verified' || p.supplier_tier === 'elite';
+
       const totalProducts = activeProducts.length;
       const inStockCount = activeProducts.filter((p) => (p.stock ?? 0) > 0).length;
-      const lowStockCount = activeProducts.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10).length;
+      const lowStockCount = activeProducts.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= thresholdFor(p)).length;
       const outOfStockCount = activeProducts.filter((p) => (p.stock ?? 0) === 0).length;
       const flashSaleCount = activeProducts.filter((p) => Boolean(p.is_flash_sale)).length;
-      const verifiedSuppliersCount = activeProducts.filter((p) => p.supplier_tier === 'verified' || p.supplier_tier === 'elite').length;
+
+      // Distinct suppliers, not products with a verified supplier — the KPI is labelled
+      // "Verified Suppliers", and the SQL behind the live endpoint counts DISTINCT supplier_id.
+      const supplierKey = (p) => p.store_ref || p.supplier_ref || p.supplier_id || 'unknown';
+      const totalSuppliers = new Set(activeProducts.map(supplierKey)).size;
+      const verifiedSuppliersCount = new Set(activeProducts.filter(isVerified).map(supplierKey)).size;
       
       const categoriesMap = {};
       let totalGmvPaisa = 0;
       for (const p of activeProducts) {
-        const cat = p.category || 'Other';
+        const cat = p.category || 'Uncategorized';
         categoriesMap[cat] = (categoriesMap[cat] || 0) + 1;
         totalGmvPaisa += (parseFloat(p.price) || 0) * (p.stock || 0);
       }
@@ -422,10 +434,13 @@ export default [
               low_stock_count: lowStockCount,
               out_of_stock_count: outOfStockCount,
               flash_sale_count: flashSaleCount,
+              total_suppliers: totalSuppliers,
               verified_suppliers_count: verifiedSuppliersCount,
               total_categories: Object.keys(categoriesMap).length,
               total_potential_inventory_value: Math.round(totalGmvPaisa),
               categories_breakdown: categoriesMap,
+              low_stock_threshold: LOW_STOCK_THRESHOLD,
+              status_scope: 'ACTIVE',
             },
           },
         },

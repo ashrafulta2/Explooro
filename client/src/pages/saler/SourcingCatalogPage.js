@@ -86,7 +86,7 @@ export default function SourcingCatalogPage(root) {
 
   // Profit Calculator Modal instance
   let calcModalBody = document.createElement('div');
-  calcModalBody.className = 'flex flex-col gap-6';
+  calcModalBody.className = 'saler-stack';
 
   const modalCalc = ProfitCalculator({
     initialBaseCost: 500,

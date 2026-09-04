@@ -15,7 +15,7 @@ import { toast } from '../../services/toast.js';
 
 export function MessageBubble({ message, isOutgoing, currentUserId, onRetry }) {
   const bubble = document.createElement('div');
-  bubble.className = `chat-bubble-container flex mb-3 ${isOutgoing ? 'justify-end' : 'justify-start'}`;
+  bubble.className = `chat-bubble-container ${isOutgoing ? 'outgoing' : 'incoming'}`;
 
   const payload = message.payload_json || {};
   const status = message.status || (message.id ? 'DELIVERED' : 'SENDING');
@@ -25,52 +25,50 @@ export function MessageBubble({ message, isOutgoing, currentUserId, onRetry }) {
   let statusIndicator = '';
   if (isOutgoing) {
     if (status === 'SENDING') {
-      statusIndicator = '<span class="text-muted text-xxs ml-1" title="Sending...">⏳</span>';
+      statusIndicator = '<span class="message-status-icon" title="Sending...">⏳</span>';
     } else if (status === 'FAILED') {
-      statusIndicator = '<span class="text-rose-500 font-bold text-xxs ml-1" title="Failed to send">⚠️</span>';
+      statusIndicator = '<span class="message-status-icon" style="color: var(--danger); font-weight: bold;" title="Failed to send">⚠️</span>';
     } else if (isRead) {
-      statusIndicator = '<span class="text-emerald text-xxs ml-1" title="Read">✓✓</span>';
+      statusIndicator = '<span class="message-status-icon message-status-read" title="Read">✓✓</span>';
     } else {
-      statusIndicator = '<span class="text-secondary text-xxs ml-1" title="Delivered">✓</span>';
+      statusIndicator = '<span class="message-status-icon" title="Delivered">✓</span>';
     }
   }
 
   if (message.msg_type === 'PRODUCT_CARD') {
     bubble.innerHTML = `
-      <div class="product-bubble border rounded-lg p-3 max-w-sm shadow-sm ${isOutgoing ? 'bg-primary-subtle border-primary' : 'bg-surface'}">
-        <div class="flex items-center justify-between gap-2 mb-2">
-          <span class="badge badge--emerald text-xxs font-semibold">🛍️ ${t('chat.product_card_badge') || 'Product Offer'}</span>
-          <button class="btn-report-msg text-xxs text-muted hover:text-rose-500" title="Report message">🚩</button>
+      <div class="product-bubble">
+        <div class="product-bubble-header">
+          <span class="product-bubble-badge">🛍️ ${t('chat.product_card_badge') || 'Product Offer'}</span>
+          <button class="btn-report-msg" title="Report message">🚩</button>
         </div>
-        <h5 class="font-bold text-sm mb-1">${payload.productTitle || 'Featured Product'}</h5>
-        <div class="font-semibold text-primary text-sm mb-2">৳${payload.price || '0.00'}</div>
-        <a href="${payload.checkoutUrl || '#'}" target="_blank" class="btn btn--primary btn--xs w-full block text-center">
+        <h5 class="product-bubble-title">${payload.productTitle || 'Featured Product'}</h5>
+        <div class="product-bubble-price">৳${payload.price || '0.00'}</div>
+        <a href="${payload.checkoutUrl || '#'}" target="_blank" class="product-bubble-cta">
           ${t('chat.buy_now_btn') || 'Buy Now / অর্ডার করুন ⚡'}
         </a>
-        <div class="flex items-center justify-between mt-2 pt-1 border-t text-xxs text-muted">
+        <div class="message-meta-row">
           <span>${formatDate(message.created_at)}</span>
-          <div class="flex items-center">${statusIndicator}</div>
+          ${statusIndicator}
         </div>
       </div>
     `;
   } else {
     bubble.innerHTML = `
-      <div class="message-bubble-body rounded-lg px-3.5 py-2 max-w-md shadow-xs ${
-        isOutgoing ? 'bg-primary text-primary-contrast rounded-br-none' : 'bg-surface text-base rounded-bl-none border'
-      }">
-        <div class="flex items-start justify-between gap-3">
-          <p class="text-sm whitespace-pre-wrap break-words leading-relaxed">${message.content || ''}</p>
-          ${!isOutgoing ? '<button class="btn-report-msg text-xxs text-muted hover:text-rose-500 shrink-0" title="Report message">🚩</button>' : ''}
+      <div class="message-bubble-body">
+        <div class="message-bubble-content">
+          <p class="message-text">${message.content || ''}</p>
+          ${!isOutgoing ? '<button class="btn-report-msg" title="Report message">🚩</button>' : ''}
         </div>
-        <div class="flex items-center justify-end gap-1 mt-1 text-xxs ${isOutgoing ? 'text-primary-contrast opacity-75' : 'text-muted'}">
+        <div class="message-meta-row">
           <span>${formatDate(message.created_at)}</span>
           ${statusIndicator}
         </div>
         ${
           status === 'FAILED'
-            ? `<div class="mt-1 pt-1 border-t border-rose-200 flex items-center justify-between">
-                 <span class="text-xxs text-rose-500">Failed to deliver</span>
-                 <button class="btn-retry-send text-xxs font-bold text-primary underline">Retry</button>
+            ? `<div class="message-failed-footer">
+                 <span style="color: var(--danger);">${t('chat.failed_to_deliver') || 'Failed to deliver'}</span>
+                 <button class="btn-retry-send">${t('chat.retry') || 'Retry'}</button>
                </div>`
             : ''
         }

@@ -145,4 +145,42 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const customPriceInvalid = 480;
     assert.ok(customPriceInvalid < product.min_retail_price, 'Custom price below minimum must be detected as invalid');
   });
+
+  // 8. Zero Platform Profit Leakage Invariant for PriceBreakdown
+  await t.test('8. PriceBreakdown gates platform earnings and split note to admin role only', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const filePath = path.resolve(import.meta.dirname, '../src/components/product/PriceBreakdown.js');
+    const content = fs.readFileSync(filePath, 'utf8');
+
+    assert.ok(content.includes("const isAdmin = role === 'admin' || role === 'super_admin';"), 'Must gate admin role');
+    assert.ok(content.includes('if (isAdmin)'), 'Must condition platform fields on admin role');
+    assert.ok(!content.includes("details.append(\n    row('product_detail.price.platform_earning'"), 'Must not append platform earning unconditionally');
+  });
+
+  // 9. ProfitCalculator Invariant — Reseller only sees wholesale, retail, and their own profit
+  await t.test('9. ProfitCalculator exposes wholesale cost, retail price, and reseller profit with zero platform cards or split leak', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const filePath = path.resolve(import.meta.dirname, '../src/components/saler/ProfitCalculator.js');
+    const content = fs.readFileSync(filePath, 'utf8');
+
+    // Cards must be wholesale, retail price, and saler profit
+    assert.ok(content.includes('retailPriceCard = createCard'), 'Must contain customer retail price card');
+    assert.ok(!content.includes('platformEarningCard = createCard'), 'Must NOT contain platform earning card');
+    assert.ok(!content.includes('segPlatform'), 'Must NOT contain segPlatform element');
+    assert.ok(!content.includes("createLegendItem('#a855f7'"), 'Must NOT contain platform share legend item');
+  });
+
+  // 10. BundleProfitBreakdown Invariant — Platform margin tag suppressed by default
+  await t.test('10. BundleProfitBreakdown suppresses platform margin by default', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const filePath = path.resolve(import.meta.dirname, '../src/components/bundle/BundleProfitBreakdown.js');
+    const content = fs.readFileSync(filePath, 'utf8');
+
+    assert.ok(content.includes('showPlatformShare = false'), 'showPlatformShare must default to false');
+    assert.ok(content.includes('${showPlatformShare && total_platform_margin !== undefined'), 'Platform share tag must be guarded by showPlatformShare');
+  });
 });
+

@@ -277,6 +277,7 @@ const chatHandlers = [
   },
 
   // 3. Create or open a thread with another participant.
+  // 3. Create or open conversation thread
   {
     method: 'POST',
     path: '/chat/threads',
@@ -295,10 +296,17 @@ const chatHandlers = [
         };
       }
 
-      const existing = MOCK_CHAT_THREADS.find((t) => t.participant_ids.includes(targetId));
+      const existing = MOCK_CHAT_THREADS.find((t) =>
+        t.participant_ids.map(resolveSelf).some((id) => String(id) === String(targetId))
+      );
       if (existing) {
+        if (body?.metadata) {
+          existing.metadata_json = { ...(existing.metadata_json || {}), ...body.metadata };
+        }
         return { status: 200, body: { data: { thread: hydrateThread(existing), created: false }, meta: {} } };
       }
+
+      const supplierName = body?.metadata?.supplier_name || body?.metadata?.seller_name || `Supplier #${targetId}`;
 
       const thread = {
         id: Math.max(...MOCK_CHAT_THREADS.map((t) => t.id)) + 1,
@@ -306,7 +314,7 @@ const chatHandlers = [
         thread_type: body?.thread_type || 'CUSTOMER_SALER',
         channel: 'IN_PLATFORM',
         customerPhone: null,
-        other_participant_name: `User #${targetId}`,
+        other_participant_name: supplierName,
         participant_ids: [targetId, SELF],
         metadata_json: { channel: 'IN_PLATFORM', ...(body?.metadata || {}) },
         inside24h: true,
@@ -316,8 +324,30 @@ const chatHandlers = [
         last_message_preview: null,
         created_at: new Date().toISOString(),
       };
-      MOCK_CHAT_THREADS.push(thread);
+      MOCK_CHAT_THREADS.unshift(thread);
       return { status: 201, body: { data: { thread: hydrateThread(thread), created: true }, meta: {} } };
+    },
+  },
+
+  // 3b. Get specific thread detail
+  {
+    method: 'GET',
+    path: '/chat/threads/:id',
+    handler: ({ params }) => {
+      const thread = findThread(params.id);
+      if (!thread) {
+        return {
+          status: 404,
+          body: {
+            error: {
+              code: 'NOT_FOUND',
+              message_en: `Chat thread #${params.id} does not exist.`,
+              message_bn: `#${params.id} নম্বরের কথোপকথন নেই।`,
+            },
+          },
+        };
+      }
+      return { status: 200, body: { data: { thread: hydrateThread(thread) }, meta: {} } };
     },
   },
 

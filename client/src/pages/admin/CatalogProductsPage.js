@@ -20,6 +20,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { formatNumber } from '../../services/format.js';
 
 export default function CatalogProductsPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -37,6 +38,16 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     total_categories: 0,
     total_potential_inventory_value: 0,
   };
+
+  // WHY this is state and not the literal 10 it replaces: "low stock" is a business number, so the
+  // server resolves it (platform_settings -> per-product low_stock_threshold) and reports it back
+  // alongside the counts. The KPI, the filter and the row badge must all use the same figure, or
+  // the strip contradicts the table underneath it.
+  let lowStockThreshold = 10;
+
+  /** A product's own threshold wins over the catalog-wide one, exactly as the SQL does. */
+  const thresholdFor = (p) => Number(p.low_stock_threshold ?? lowStockThreshold) || lowStockThreshold;
+  const isLow = (p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= thresholdFor(p);
 
   let selectedRefs = new Set();
   let isLoading = true;
@@ -128,7 +139,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         metaClass: 'catalog-stat-card__meta--success',
       },
       {
-        label: t('admin_catalog.kpi_low_stock', 'Low Stock (< 10)'),
+        label: t('admin_catalog.kpi_low_stock', { threshold: formatNumber(lowStockThreshold) }),
         value: stats.low_stock_count.toLocaleString(),
         meta: `${stats.out_of_stock_count} ${t('admin_catalog.kpi_out_of_stock', 'Out of Stock')}`,
         metaClass: stats.low_stock_count > 0 ? 'catalog-stat-card__meta--warning' : '',
@@ -221,7 +232,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   stockSelect.innerHTML = `
     <option value="ALL">${t('admin_catalog.all_stock', 'All Stock Status')}</option>
     <option value="IN_STOCK">${t('admin_catalog.in_stock_only', 'In Stock (> 0)')}</option>
-    <option value="LOW_STOCK">${t('admin_catalog.low_stock_only', 'Low Stock (≤ 10)')}</option>
+    <option value="LOW_STOCK">${t('admin_catalog.low_stock_only', { threshold: formatNumber(lowStockThreshold) })}</option>
     <option value="OUT_OF_STOCK">${t('admin_catalog.out_of_stock_only', 'Out of Stock (0)')}</option>
   `;
   stockSelect.addEventListener('change', (e) => {
@@ -338,7 +349,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     if (selectedStockStatus === 'IN_STOCK') {
       list = list.filter((p) => (p.stock ?? 0) > 0);
     } else if (selectedStockStatus === 'LOW_STOCK') {
-      list = list.filter((p) => (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10);
+      list = list.filter(isLow);
     } else if (selectedStockStatus === 'OUT_OF_STOCK') {
       list = list.filter((p) => (p.stock ?? 0) === 0);
     }
@@ -517,7 +528,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     items.forEach((p) => {
       const tr = document.createElement('tr');
       const isSelected = selectedRefs.has(p.ref);
-      const isLowStock = (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10;
+      const isLowStock = isLow(p);
       const isOutOfStock = (p.stock ?? 0) === 0;
 
       const stockPct = Math.min(100, Math.round(((p.stock ?? 0) / 100) * 100));
@@ -632,7 +643,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       const card = document.createElement('div');
       card.className = 'catalog-card';
 
-      const isLowStock = (p.stock ?? 0) > 0 && (p.stock ?? 0) <= 10;
+      const isLowStock = isLow(p);
       const isOutOfStock = (p.stock ?? 0) === 0;
 
       card.innerHTML = `
@@ -1171,6 +1182,23 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   // ---------------------------------------------------------------------------
   // 10. Data Fetching
   // ---------------------------------------------------------------------------
+  /**
+   * Bridges the live API's product shape onto the field names this page reads.
+   *
+   * WHY: the server returns `stock_qty` and `category_name_en`; the page (and the mock fixtures it
+   * was built against) read `stock` and `category`. Against a real server every row therefore
+   * rendered as Out of Stock in the category "General". Mock-shaped fields win where present, so
+   * VITE_API_MODE=mock behaves exactly as before.
+   */
+  function normalizeProducts(list) {
+    return list.map((p) => ({
+      ...p,
+      stock: p.stock ?? p.stock_qty ?? 0,
+      category: p.category || p.category_name_en || null,
+      price: p.price ?? p.default_retail_price ?? 0,
+    }));
+  }
+
   async function loadData() {
     isLoading = true;
     renderContent();
@@ -1178,13 +1206,31 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     try {
       const [prodRes, statsRes] = await Promise.all([
         api.get('/products?limit=200'),
-        api.get('/admin/catalog/stats').catch(() => null),
+        // WHY the fallback survives even now that the endpoint exists: the KPI strip is not worth
+        // failing the whole page over. But it must no longer fail *quietly* — swallowing the 404
+        // from the missing endpoint is why this panel showed page-local totals for months.
+        api.get('/admin/catalog/stats').catch((err) => {
+          if (import.meta.env?.DEV) {
+            // eslint-disable-next-line no-console
+            console.warn('[catalog] /admin/catalog/stats unavailable, falling back to page-local counts:', err?.message || err);
+          }
+          return null;
+        }),
       ]);
 
-      products = prodRes?.data?.products || [];
+      products = normalizeProducts(prodRes?.data?.products || []);
 
       if (statsRes?.data?.stats) {
         stats = statsRes.data.stats;
+        if (Number(stats.low_stock_threshold) > 0) {
+          lowStockThreshold = Number(stats.low_stock_threshold);
+          // The filter dropdown is built once, before this response lands — retitle the option so
+          // it cannot advertise a cutoff different from the one the KPI and the rows now use.
+          const lowOption = stockSelect.querySelector('option[value="LOW_STOCK"]');
+          if (lowOption) {
+            lowOption.textContent = t('admin_catalog.low_stock_only', { threshold: formatNumber(lowStockThreshold) });
+          }
+        }
       } else {
         // Fallback compute locally
         let gmv = 0;
@@ -1198,7 +1244,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         products.forEach((p) => {
           const s = p.stock ?? 0;
           if (s > 0) inStock++;
-          if (s > 0 && s <= 10) lowStock++;
+          if (isLow(p)) lowStock++;
           if (s === 0) outOfStock++;
           if (p.is_flash_sale) flash++;
           if (p.supplier_tier === 'verified' || p.supplier_tier === 'elite') verified++;

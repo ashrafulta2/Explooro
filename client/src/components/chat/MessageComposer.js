@@ -17,10 +17,11 @@ export function MessageComposer({
   onSendTyping,
   onOpenProductModal,
   isOffline = false,
+  initialValue = '',
 }) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
-  container.className = 'chat-composer-component border-t p-3 bg-surface';
+  container.className = 'chat-composer-component';
 
   const quickReplies = [
     { en: 'Is this item available in stock?', bn: 'পণ্যটি কি বর্তমানে স্টকে আছে?' },
@@ -32,36 +33,40 @@ export function MessageComposer({
   container.innerHTML = `
     ${
       isOffline
-        ? `<div class="offline-queue-badge bg-amber-500 text-white text-xxs px-2 py-1 rounded mb-2 flex items-center justify-between">
+        ? `<div class="offline-queue-banner mb-2">
              <span>⚠️ ${t('chat.offline_banner') || 'Offline: Messages will queue and auto-send when connection restores.'}</span>
            </div>`
         : ''
     }
-    <div class="quick-replies-scroll flex items-center gap-1.5 overflow-x-auto pb-2 mb-1" id="composer-quick-replies"></div>
-    <div class="composer-input-row flex items-end gap-2">
-      <button class="btn btn--secondary btn--sm btn-prod-insert shrink-0" id="btn-insert-product" title="Insert Product Card">
+    <div class="quick-replies-scroll" id="composer-quick-replies"></div>
+    <div class="composer-input-row">
+      <button type="button" class="composer-action-btn" id="btn-insert-product" title="${t('chat.btn_insert_card') || 'Insert Product Card'}" aria-label="Insert Product Card">
         📦
       </button>
-      <button class="btn btn--secondary btn--sm btn-img-attach shrink-0" id="btn-attach-image" title="Attach Image">
+      <button type="button" class="composer-action-btn" id="btn-attach-image" title="Attach Image" aria-label="Attach Image">
         📎
       </button>
-      <textarea class="input input--sm flex-1 resize-none py-2" id="composer-textarea" rows="1" placeholder="${t('chat.type_message_placeholder') || 'Type a message...'}" style="min-height: 38px; max-height: 120px;"></textarea>
-      <button class="btn btn--primary btn--sm shrink-0" id="btn-send-msg">
-        ${t('chat.send_button') || 'Send'}
+      <textarea class="composer-textarea" id="composer-textarea" rows="1" placeholder="${t('chat.type_message_placeholder') || 'Type a message...'}"></textarea>
+      <button type="button" class="composer-send-btn" id="btn-send-msg">
+        <span>${t('chat.send_button') || 'Send'}</span>
+        <span>➤</span>
       </button>
     </div>
-    <div class="upload-progress-bar hidden mt-2" id="upload-progress-box">
-      <div class="flex items-center justify-between text-xxs text-secondary mb-1">
+    <div class="upload-progress-box hidden" id="upload-progress-box" hidden>
+      <div class="upload-progress-label-row">
         <span>Uploading image...</span>
         <span id="upload-pct">0%</span>
       </div>
-      <div class="w-full bg-base rounded-full h-1.5 overflow-hidden">
-        <div class="bg-primary h-full transition-all duration-150" id="upload-progress-fill" style="width: 0%;"></div>
+      <div class="upload-progress-track">
+        <div class="upload-progress-bar-fill" id="upload-progress-fill" style="width: 0%;"></div>
       </div>
     </div>
   `;
 
   const textarea = container.querySelector('#composer-textarea');
+  if (initialValue) {
+    textarea.value = initialValue;
+  }
   const sendBtn = container.querySelector('#btn-send-msg');
   const qrBox = container.querySelector('#composer-quick-replies');
 
@@ -130,6 +135,7 @@ export function MessageComposer({
     const progressPct = container.querySelector('#upload-pct');
 
     progressBox.classList.remove('hidden');
+    progressBox.removeAttribute('hidden');
     let pct = 0;
     const interval = setInterval(() => {
       pct += 25;
@@ -139,6 +145,7 @@ export function MessageComposer({
         clearInterval(interval);
         setTimeout(() => {
           progressBox.classList.add('hidden');
+          progressBox.setAttribute('hidden', '');
           progressFill.style.width = '0%';
           if (onSendMessage) {
             onSendMessage('📷 [Image Attachment: product_sample.jpg]');

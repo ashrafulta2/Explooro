@@ -20,9 +20,13 @@ import { wsManager, WS_STATUS } from '../services/websocket.js';
 import { t } from '../services/i18n.js';
 import { toast } from '../services/toast.js';
 
-export default function ChatPage(root) {
+export default function ChatPage(root, { params, query, navigate } = {}) {
   const container = document.createElement('div');
-  container.className = 'chat-page-container flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-base';
+  container.className = 'chat-page-container';
+
+  const targetThreadId = query?.threadId || query?.thread_id ? Number(query.threadId || query.thread_id) : null;
+  const targetProductRef = query?.productRef || query?.ref || null;
+  const targetProductTitle = query?.productTitle || query?.title || null;
 
   let currentUserId = 1;
   let threads = [];
@@ -36,31 +40,40 @@ export default function ChatPage(root) {
   // Initialize layout skeleton
   container.innerHTML = `
     <!-- Top Bar: Connection State & Title -->
-    <div class="chat-topbar flex items-center justify-between px-4 py-2.5 bg-surface border-b shrink-0">
-      <div class="flex items-center gap-3">
-        <h3 class="font-bold text-base m-0">${t('chat.page_title') || 'Messages & Real-Time Chat'}</h3>
-        <span class="text-xs text-secondary hidden sm:inline">|</span>
-        <span class="text-xs text-secondary hidden sm:inline" id="active-thread-subtitle">No active conversation</span>
+    <div class="chat-topbar">
+      <div class="chat-topbar-left">
+        <h3 class="chat-topbar-title">
+          <span class="chat-topbar-title-icon">💬</span>
+          <span>${t('chat.page_title') || 'Messages & Real-Time Chat'}</span>
+        </h3>
+        <span class="chat-topbar-divider">|</span>
+        <div class="chat-topbar-active-partner" id="active-thread-partner">
+          <span id="active-thread-subtitle">${t('chat.no_active_conversation') || 'No active conversation'}</span>
+        </div>
       </div>
-      <div class="flex items-center gap-2" id="ws-status-badge">
-        <span class="status-pill status-connecting text-xxs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-          Connecting...
+      <div class="chat-topbar-right" id="ws-status-badge">
+        <span class="chat-status-pill status-connecting">
+          <span class="chat-status-dot"></span>
+          <span>${t('chat.status_connecting') || 'Connecting...'}</span>
         </span>
       </div>
     </div>
 
     <!-- Main 2-Pane Chat Body -->
-    <div class="chat-main-body flex flex-1 overflow-hidden">
+    <div class="chat-main-body">
       <!-- Left Pane: Thread List -->
-      <div class="chat-threads-sidebar w-80 sm:w-96 border-r bg-surface flex flex-col shrink-0" id="threads-sidebar-box">
-        <div class="p-4 text-center text-xs text-muted">Loading conversations...</div>
+      <div class="chat-threads-sidebar" id="threads-sidebar-box">
+        <div style="padding: 24px; text-align: center; font-size: 12px; color: var(--text-muted);">
+          ${t('common.loading') || 'Loading conversations...'}
+        </div>
       </div>
 
       <!-- Center Pane: Message Feed & Composer -->
-      <div class="chat-conversation-area flex-1 flex flex-col bg-base overflow-hidden" id="chat-conversation-box">
-        <div class="flex-1 flex flex-col items-center justify-center text-muted p-8 text-center" id="no-thread-placeholder">
-          <span class="text-4xl mb-2">💬</span>
-          <p class="text-sm font-semibold">${t('chat.select_thread_prompt') || 'Select a conversation from the left to start messaging.'}</p>
+      <div class="chat-conversation-area" id="chat-conversation-box">
+        <div class="chat-empty-state" id="no-thread-placeholder">
+          <span class="chat-empty-icon">💬</span>
+          <h4>${t('chat.page_title') || 'Messages & Real-Time Chat'}</h4>
+          <p>${t('chat.select_thread_prompt') || 'Select a conversation from the left to start messaging.'}</p>
         </div>
       </div>
     </div>
@@ -73,13 +86,13 @@ export default function ChatPage(root) {
     if (!badge) return;
 
     if (status === WS_STATUS.CONNECTED) {
-      badge.innerHTML = `<span class="status-pill text-xxs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">🟢 Connected</span>`;
+      badge.innerHTML = `<span class="chat-status-pill status-connected"><span class="chat-status-dot"></span><span>${t('chat.status_connected') || 'Connected'}</span></span>`;
     } else if (status === WS_STATUS.RECONNECTING || status === WS_STATUS.CONNECTING) {
-      badge.innerHTML = `<span class="status-pill text-xxs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">🟡 Reconnecting...</span>`;
+      badge.innerHTML = `<span class="chat-status-pill status-connecting"><span class="chat-status-dot"></span><span>${t('chat.status_reconnecting') || 'Reconnecting...'}</span></span>`;
     } else if (status === WS_STATUS.OFFLINE) {
-      badge.innerHTML = `<span class="status-pill text-xxs font-semibold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800">🔴 Offline (Queued)</span>`;
+      badge.innerHTML = `<span class="chat-status-pill status-offline"><span class="chat-status-dot"></span><span>${t('chat.status_offline') || 'Offline (Queued)'}</span></span>`;
     } else {
-      badge.innerHTML = `<span class="status-pill text-xxs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-800">⚪ Disconnected</span>`;
+      badge.innerHTML = `<span class="chat-status-pill status-disconnected"><span class="chat-status-dot"></span><span>${t('chat.status_disconnected') || 'Disconnected'}</span></span>`;
     }
   }
 
@@ -94,7 +107,28 @@ export default function ChatPage(root) {
 
       const threadsRes = await api.get('/chat/threads');
       threads = threadsRes?.data?.items || [];
+
+      if (targetThreadId) {
+        selectedThread = threads.find((t) => Number(t.id) === targetThreadId) || null;
+        if (!selectedThread) {
+          try {
+            const threadRes = await api.get(`/chat/threads/${targetThreadId}`);
+            const directThread = threadRes?.data?.thread || threadRes?.thread;
+            if (directThread) {
+              selectedThread = directThread;
+              threads.unshift(selectedThread);
+            }
+          } catch {
+            // fallback
+          }
+        }
+      }
+
       renderThreadList();
+
+      if (selectedThread) {
+        loadMessages(selectedThread);
+      }
     } catch (err) {
       const sidebar = container.querySelector('#threads-sidebar-box');
       if (sidebar) sidebar.innerHTML = `<div class="p-4 text-xs text-rose-500">${err.message}</div>`;
@@ -124,12 +158,23 @@ export default function ChatPage(root) {
     const convoBox = container.querySelector('#chat-conversation-box');
     if (!convoBox) return;
 
-    const subTitle = container.querySelector('#active-thread-subtitle');
-    if (subTitle) {
-      subTitle.textContent = thread.customerPhone || `Ref: ${thread.ref}`;
+    const partnerBox = container.querySelector('#active-thread-partner');
+    if (partnerBox) {
+      const otherName = thread.other_participant_name || thread.customerPhone || `Ref: ${thread.ref}`;
+      const channel = thread.metadata_json?.channel || thread.channel || 'IN_PLATFORM';
+      const channelBadge = channel === 'WHATSAPP'
+        ? '<span class="channel-pill whatsapp">🟢 WA</span>'
+        : channel === 'MESSENGER'
+        ? '<span class="channel-pill messenger">🔵 FB</span>'
+        : '<span class="channel-pill in-platform">🟣 In-App</span>';
+
+      partnerBox.innerHTML = `
+        <span class="chat-topbar-partner-name">${otherName}</span>
+        ${channelBadge}
+      `;
     }
 
-    convoBox.innerHTML = `<div class="p-8 text-center text-xs text-muted">Loading messages...</div>`;
+    convoBox.innerHTML = `<div style="padding: 32px; text-align: center; font-size: 12px; color: var(--text-muted);">${t('common.loading') || 'Loading messages...'}</div>`;
 
     try {
       const res = await api.get(`/chat/threads/${thread.id}/messages`);
@@ -143,7 +188,7 @@ export default function ChatPage(root) {
         wsManager.sendReadReceipt({ threadId: thread.id, lastReadMessageId: lastId });
       }
     } catch (err) {
-      convoBox.innerHTML = `<div class="p-8 text-center text-xs text-rose-500">${err.message}</div>`;
+      convoBox.innerHTML = `<div style="padding: 32px; text-align: center; font-size: 12px; color: var(--danger);">${err.message}</div>`;
     }
   }
 
@@ -173,11 +218,12 @@ export default function ChatPage(root) {
 
     convoBox.innerHTML = `
       <!-- Messages Stream -->
-      <div class="chat-messages-stream flex-1 overflow-y-auto p-4 space-y-2" id="messages-stream-box"></div>
+      <div class="chat-messages-stream" id="messages-stream-box"></div>
 
       <!-- Typing Indicator -->
-      <div class="typing-banner px-4 py-1 text-xxs text-secondary italic hidden" id="typing-indicator-box">
-        <span>Someone is typing...</span>
+      <div class="typing-banner hidden" id="typing-indicator-box" hidden>
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+        <span class="typing-text">Someone is typing...</span>
       </div>
 
       <!-- Composer Box -->
@@ -185,8 +231,12 @@ export default function ChatPage(root) {
     `;
 
     const streamBox = convoBox.querySelector('#messages-stream-box');
+    const sessionUser = getCurrentUser();
     messages.forEach((msg) => {
-      const isOutgoing = msg.sender_id === currentUserId;
+      const isOutgoing = String(msg.sender_id) === String(currentUserId) ||
+                         msg.sender_id === 'SELF' ||
+                         msg.sender_id === '@self' ||
+                         (sessionUser && msg.sender_name === sessionUser.name);
       const bubble = MessageBubble({
         message: msg,
         isOutgoing,
@@ -198,10 +248,41 @@ export default function ChatPage(root) {
 
     streamBox.scrollTop = streamBox.scrollHeight;
 
+    const prodTitle = targetProductTitle || selectedThread?.metadata_json?.product_name || selectedThread?.metadata_json?.product_title;
+    const prodRef = targetProductRef || selectedThread?.metadata_json?.product_ref;
+
+    if (prodTitle) {
+      const inquiryBanner = document.createElement('div');
+      inquiryBanner.className = 'chat-product-inquiry-banner';
+      inquiryBanner.innerHTML = `
+        <div class="product-inquiry-left">
+          <div class="product-inquiry-icon">🛍️</div>
+          <div class="product-inquiry-details">
+            <span class="product-inquiry-tag">${t('chat.product_inquiry_badge') || 'Product Inquiry'}</span>
+            <span class="product-inquiry-title">
+              ${prodTitle}
+              ${prodRef ? `<span class="product-inquiry-ref">(${prodRef})</span>` : ''}
+            </span>
+          </div>
+        </div>
+        <div class="product-inquiry-actions">
+          <a href="/search?q=${encodeURIComponent(prodTitle)}" class="btn btn--secondary btn--xs" target="_blank">
+            ${t('chat.view_product') || 'View Product'}
+          </a>
+        </div>
+      `;
+      convoBox.insertBefore(inquiryBanner, convoBox.firstChild);
+    }
+
     // Mount Composer
     const composerMount = convoBox.querySelector('#composer-mount-box');
+    const initialInquiry = (messages.length === 0 && prodTitle)
+      ? `Hi, I have an inquiry regarding this product: ${prodTitle}${prodRef ? ` (${prodRef})` : ''}. Is this in stock?`
+      : '';
+
     const composer = MessageComposer({
       isOffline: connectionStatus === WS_STATUS.OFFLINE,
+      initialValue: initialInquiry,
       onSendMessage: (text) => handleSendMessage(text),
       onSendTyping: (isTypingNow) => {
         wsManager.sendTyping({
@@ -379,12 +460,17 @@ export default function ChatPage(root) {
       if (banner) {
         const who = frame.userName || 'Someone';
         if (frame.isTyping) {
-          banner.innerHTML = `<span>${who} ${t('chat.is_typing') || 'is typing…'}</span>`;
+          banner.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div><span class="typing-text">${who} ${t('chat.is_typing') || 'is typing…'}</span>`;
           banner.classList.remove('hidden');
+          banner.removeAttribute('hidden');
           if (typingTimer) clearTimeout(typingTimer);
-          typingTimer = setTimeout(() => banner.classList.add('hidden'), 3000);
+          typingTimer = setTimeout(() => {
+            banner.classList.add('hidden');
+            banner.setAttribute('hidden', '');
+          }, 3000);
         } else {
           banner.classList.add('hidden');
+          banner.setAttribute('hidden', '');
         }
       }
     }

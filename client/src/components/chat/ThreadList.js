@@ -9,15 +9,18 @@ import { formatDate } from '../../services/format.js';
 
 export function ThreadList({ threads = [], selectedThreadId = null, onSelectThread }) {
   const container = document.createElement('div');
-  container.className = 'chat-thread-list-component flex flex-col h-full';
+  container.className = 'chat-thread-list-component';
 
   let currentFilter = '';
 
   container.innerHTML = `
-    <div class="thread-list-search p-3 border-b">
-      <input type="text" class="input input--sm w-full" id="thread-search-input" placeholder="${t('chat.search_threads') || 'Search conversations...'}" />
+    <div class="thread-list-search">
+      <div class="thread-search-input-wrap">
+        <span class="thread-search-icon">🔍</span>
+        <input type="text" class="input input--sm" id="thread-search-input" placeholder="${t('chat.search_threads') || 'Search conversations...'}" />
+      </div>
     </div>
-    <div class="thread-items-container flex-1 overflow-y-auto" id="thread-items-box"></div>
+    <div class="thread-items-container" id="thread-items-box"></div>
   `;
 
   const box = container.querySelector('#thread-items-box');
@@ -31,41 +34,54 @@ export function ThreadList({ threads = [], selectedThreadId = null, onSelectThre
       const preview = (th.last_message_preview || '').toLowerCase();
       const ref = (th.ref || '').toLowerCase();
       const phone = (th.customerPhone || '').toLowerCase();
-      return preview.includes(q) || ref.includes(q) || phone.includes(q);
+      const name = (th.other_participant_name || '').toLowerCase();
+      return preview.includes(q) || ref.includes(q) || phone.includes(q) || name.includes(q);
     });
 
     if (filtered.length === 0) {
-      box.innerHTML = `<div class="p-6 text-center text-xs text-muted">${t('chat.no_conversations') || 'No conversations found.'}</div>`;
+      box.innerHTML = `
+        <div class="chat-empty-state" style="padding: 32px 16px;">
+          <span style="font-size: 28px; margin-bottom: 8px; display: block;">🔍</span>
+          <p style="font-size: 12px; color: var(--text-muted);">${t('chat.no_conversations') || 'No conversations found.'}</p>
+        </div>
+      `;
       return;
     }
 
     filtered.forEach((th) => {
-      const isSelected = th.id === selectedThreadId;
+      const isSelected = String(th.id) === String(selectedThreadId);
       const unread = Number(th.unread_count) || 0;
 
       const card = document.createElement('div');
-      card.className = `chat-thread-card p-3 border-b cursor-pointer transition-colors hover:bg-base ${
-        isSelected ? 'bg-surface font-semibold border-l-4 border-l-primary' : ''
-      }`;
+      card.className = `chat-thread-card ${isSelected ? 'selected active' : ''} ${unread > 0 ? 'unread' : ''}`;
+
+      const displayName = th.other_participant_name || th.customerPhone || `Thread #${th.ref}`;
+      const initial = (displayName.replace(/[^a-zA-Z0-9]/g, '')[0] || displayName[0] || 'C').toUpperCase();
 
       const channel = th.metadata_json?.channel || th.channel || 'IN_PLATFORM';
       const channelBadge = channel === 'WHATSAPP'
-        ? '<span class="badge badge--emerald text-xxs">🟢 WA</span>'
+        ? '<span class="channel-pill whatsapp">🟢 WA</span>'
         : channel === 'MESSENGER'
-        ? '<span class="badge badge--primary text-xxs">🔵 FB</span>'
-        : '<span class="badge badge--indigo text-xxs">🟣 In-App</span>';
+        ? '<span class="channel-pill messenger">🔵 FB</span>'
+        : '<span class="channel-pill in-platform">🟣 In-App</span>';
 
       card.innerHTML = `
-        <div class="flex items-center justify-between gap-2 mb-1">
-          <div class="flex items-center gap-1.5 min-w-0">
-            <span class="truncate text-sm">${th.customerPhone || th.other_participant_name || `Thread #${th.ref}`}</span>
-            ${channelBadge}
+        <div class="thread-card-top">
+          <div class="thread-participant-info">
+            <div class="thread-avatar">${initial}</div>
+            <div class="thread-text-details">
+              <div class="thread-name-row">
+                <span class="thread-name">${displayName}</span>
+                ${channelBadge}
+              </div>
+              ${th.customerPhone && th.other_participant_name ? `<span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">${th.customerPhone}</span>` : ''}
+            </div>
           </div>
-          <span class="text-xxs text-muted shrink-0">${formatDate(th.last_message_at)}</span>
+          <span class="thread-meta-time">${formatDate(th.last_message_at)}</span>
         </div>
-        <div class="flex items-center justify-between gap-2">
-          <p class="text-xs text-secondary truncate flex-1">${th.last_message_preview || 'No messages yet'}</p>
-          ${unread > 0 ? `<span class="badge badge--primary text-xxs rounded-full px-1.5">${unread}</span>` : ''}
+        <div class="thread-card-bottom">
+          <p class="thread-snippet">${th.last_message_preview || 'No messages yet'}</p>
+          ${unread > 0 ? `<div class="thread-unread-badge">${unread}</div>` : ''}
         </div>
       `;
 

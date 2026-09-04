@@ -126,7 +126,7 @@ export default function SalerQuestsPage(root, { navigate } = {}) {
 
     // 3. Tab Content Slot
     const contentSlot = document.createElement('div');
-    contentSlot.className = 'space-y-6';
+    contentSlot.className = 'saler-stack--lg';
 
     if (loading) {
       contentSlot.append(
@@ -145,7 +145,7 @@ export default function SalerQuestsPage(root, { navigate } = {}) {
 
   function renderQuestsTab(slot, isBn) {
     const list = document.createElement('div');
-    list.className = 'space-y-3';
+    list.className = 'saler-stack--sm';
 
     quests.forEach((q) => {
       const card = document.createElement('div');
@@ -156,26 +156,26 @@ export default function SalerQuestsPage(root, { navigate } = {}) {
       const desc = isBn ? (q.desc_bn || q.desc_en) : q.desc_en;
 
       card.innerHTML = `
-        <div class="flex items-center gap-4">
+        <div class="saler-row" style="gap: 16px;">
           <div class="saler-quest-card__icon">${q.icon || '🎯'}</div>
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-sm text-foreground">${title}</span>
-              <span class="badge badge--neutral text-[10px] uppercase font-mono">${q.category}</span>
+          <div class="saler-stack--xs">
+            <div class="saler-row" style="gap: 8px;">
+              <span style="font-weight: 700; font-size: 14px; color: var(--text-primary);">${title}</span>
+              <span class="badge badge--neutral text-[10px] uppercase font-mono font-bold">${q.category}</span>
             </div>
-            <p class="text-xs text-muted leading-relaxed">${desc}</p>
-            <div class="flex items-center gap-3 pt-1">
-              <div class="w-32 h-1.5 rounded-full bg-subtle overflow-hidden">
-                <div class="bg-primary h-full rounded-full transition-all duration-300" style="width: ${progressPct}%;"></div>
+            <p class="text-xs text-muted leading-relaxed" style="margin: 0;">${desc}</p>
+            <div class="saler-row pt-1" style="gap: 12px;">
+              <div style="width: 128px; height: 6px; border-radius: 9999px; background: var(--surface-2); overflow: hidden;">
+                <div style="background: var(--brand-500, #ecae00); height: 100%; border-radius: 9999px; transition: width 0.3s ease; width: ${progressPct}%;"></div>
               </div>
               <span class="text-[10px] font-mono font-bold text-muted">${q.current_count}/${q.target_count}</span>
             </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-3 shrink-0">
-          <div class="text-right">
-            <div class="text-xs font-black font-mono text-amber-600">+${q.reward_coins} 🪙</div>
+        <div class="saler-row shrink-0" style="gap: 12px;">
+          <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 900; font-family: var(--font-mono); color: var(--brand-700, #b48300);">+${q.reward_coins} 🪙</div>
             <div class="text-[10px] text-muted uppercase">Reward</div>
           </div>
           <div>
@@ -183,10 +183,10 @@ export default function SalerQuestsPage(root, { navigate } = {}) {
               q.is_claimed
                 ? `<span class="badge badge--success text-xs font-bold">${t('saler_quests.claimed_badge')}</span>`
                 : q.is_completed
-                ? `<button class="btn-claim btn btn--primary btn--sm font-bold animate-bounce" data-id="${q.id}">
+                ? `<button class="btn-claim btn btn--primary btn--sm font-bold" data-id="${q.id}">
                      ${t('saler_quests.btn_claim_reward', { coins: q.reward_coins })}
                    </button>`
-                : `<span class="badge badge--neutral text-xs font-mono">In Progress</span>`
+                : `<span class="badge badge--neutral text-xs font-mono font-bold">In Progress</span>`
             }
           </div>
         </div>
@@ -214,10 +214,10 @@ export default function SalerQuestsPage(root, { navigate } = {}) {
 
     // Rules Card
     const rulesCard = document.createElement('div');
-    rulesCard.className = 'p-5 rounded-2xl bg-surface-0 border border-subtle space-y-2';
+    rulesCard.className = 'saler-card';
     rulesCard.innerHTML = `
-      <h4 class="font-bold text-sm text-foreground">💡 ${t('saler_quests.rules_title')}</h4>
-      <ul class="text-xs text-muted space-y-1 list-disc list-inside">
+      <h4 class="saler-card__title">💡 ${t('saler_quests.rules_title')}</h4>
+      <ul class="text-xs text-muted saler-stack--xs list-disc list-inside">
         <li>${t('saler_quests.rule_1')}</li>
         <li>${t('saler_quests.rule_2')}</li>
         <li>${t('saler_quests.rule_3')}</li>

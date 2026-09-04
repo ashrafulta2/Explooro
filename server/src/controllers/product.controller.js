@@ -144,3 +144,20 @@ export async function previewPricing(req, reply) {
 
   return reply.send({ data: { preview }, preview });
 }
+
+/**
+ * GET /admin/catalog/stats — KPI strip for the Super Admin catalog dashboard.
+ *
+ * `status` accepts any product status, or ALL. It defaults to ACTIVE so the figures agree with the
+ * product table rendered beneath them, which lists ACTIVE products by default.
+ */
+export async function getCatalogStats(req, reply) {
+  const db = req.db || req.server?.db;
+  const { status } = req.query || {};
+
+  const stats = await productService.getCatalogStats(db, {
+    status: status ? String(status).toUpperCase() : 'ACTIVE',
+  });
+
+  return reply.send({ data: { stats }, stats });
+}

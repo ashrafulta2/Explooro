@@ -178,7 +178,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
 
     // 4. Orders List Cards
     const listSlot = document.createElement('div');
-    listSlot.className = 'space-y-4';
+    listSlot.className = 'saler-orders-list';
 
     if (loading) {
       listSlot.append(

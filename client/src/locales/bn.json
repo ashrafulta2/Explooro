@@ -1120,7 +1120,9 @@
       "chat_with_seller": "বিক্রেতার সাথে চ্যাট করুন",
       "chat_placeholder": "চ্যাট পরবর্তী ধাপে আসছে।",
       "team_purchase": "টিম পারচেজ",
-      "team_purchase_placeholder": "টিম পারচেজ পরবর্তী ধাপে আসছে।"
+      "team_purchase_placeholder": "টিম পারচেজ পরবর্তী ধাপে আসছে।",
+      "chat_login_required": "বিক্রেতার সাথে চ্যাট করতে অনুগ্রহ করে সাইন ইন করুন।",
+      "team_login_required": "টিম পারচেজে অংশ নিতে অনুগ্রহ করে সাইন ইন করুন।"
     },
     "description_heading": "বিবরণ",
     "rating_summary": "{{rating}} · {{count}}টি রিভিউ",
@@ -1213,7 +1215,7 @@
       "title": "ডায়নামিক প্রফিট ক্যালকুলেটর",
       "subtitle": "সার্ভার-নির্ভর কমিশন এবং আয় হিসাবকারী",
       "modal_title": "ইন্টারেক্টিভ প্রফিট ক্যালকুলেটর ও পূর্বাভাস",
-      "modal_desc": "পাইকারি খরচ, নেট মার্জিন এবং সেলার/প্ল্যাটফর্মের লাভ দেখতে মূল্যের প্যারামিটার পরিবর্তন করুন।",
+      "modal_desc": "পাইকারি খরচ, খুচরা মূল্য এবং আপনার সম্ভাব্য লাভ দেখতে মূল্যের প্যারামিটার পরিবর্তন করুন।",
       "base_cost": "সরবরাহকারীর মূল খরচ",
       "wholesale_margin": "পাইকারি মার্জিন",
       "retail_price": "কাঙ্ক্ষিত খুচরা মূল্য",
@@ -1228,6 +1230,8 @@
       "platform_split": "প্ল্যাটফর্ম ভাগ",
       "price_distribution": "মূল্য বণ্টন বিভাজন",
       "total_retail": "মোট খুচরা মূল্য",
+      "customer_retail_price": "গ্রাহক খুচরা মূল্য",
+      "margin_performance": "রিসেলার প্রফিট মার্জিন",
       "error_invalid_price": "খুচরা মূল্য পাইকারি খরচের চেয়ে কম হতে পারে না।"
     },
     "projection": {
@@ -2102,7 +2106,18 @@
     "modal_insert_product": "পণ্য কার্ড যুক্ত করুন",
     "btn_insert_card": "পণ্য কার্ড যুক্ত করুন",
     "is_typing": "টাইপ করছেন…",
-    "send_failed": "বার্তাটি পাঠানো যায়নি।"
+    "send_failed": "বার্তাটি পাঠানো যায়নি।",
+    "inquiry_about": "পণ্য অনুসন্ধান",
+    "view_product": "পণ্য দেখুন",
+    "status_connected": "সংযুক্ত",
+    "status_connecting": "সংযোগ হচ্ছে...",
+    "status_reconnecting": "পুনরায় সংযোগ...",
+    "status_offline": "অফলাইন (কিউতে রাখা)",
+    "status_disconnected": "সংযোগ বিচ্ছিন্ন",
+    "failed_to_deliver": "পাঠাতে ব্যর্থ হয়েছে",
+    "retry": "পুনরায় চেষ্টা",
+    "no_active_conversation": "কোনো সক্রিয় কথোপকথন নেই",
+    "product_inquiry_badge": "পণ্য অনুসন্ধান"
   },
   "ads": {
     "sponsored": "স্পন্সর্ড",
@@ -2407,7 +2422,20 @@
     "payment_method": "পেমেন্ট পদ্ধতি",
     "confirm_join": "নিশ্চিত করুন",
     "joined_success": "সফলভাবে টিমে যুক্ত হয়েছেন!",
-    "goal_reached_success": "অভিনন্দন! টিম পূর্ণ হয়েছে এবং অর্ডার সফল হয়েছে!"
+    "goal_reached_success": "অভিনন্দন! টিম পূর্ণ হয়েছে এবং অর্ডার সফল হয়েছে!",
+    "modal_title": "সোশ্যাল গ্রুপ বাই ও টিম পারচেজ",
+    "modal_subtitle": "বন্ধুদের সাথে দল গড়ে অথবা সক্রিয় পুলে যোগ দিয়ে বিশেষ ছাড়ে কিনুন।",
+    "active_teams_heading": "সরাসরি টিমে যুক্ত হয়ে দ্রুত সাশ্রয় করুন",
+    "no_active_teams": "বর্তমানে এই পণ্যে কোনো খোলা টিম নেই। নিচে নতুন টিম শুরু করে বন্ধুদের আমন্ত্রণ জানান!",
+    "start_new_heading": "অথবা নতুন টিম শুরু করুন (২৪ ঘণ্টা সময়)",
+    "team_size_label": "টিমের সদস্য সংখ্যা নির্বাচন করুন",
+    "members_2": "২ জনের টিম",
+    "members_3": "৩ জনের টিম (সেরা ডিল)",
+    "btn_start": "টিম পারচেজ শুরু করুন",
+    "view_my_teams": "আমার সকল টিম পারচেজ ও ট্র্যাকিং →",
+    "teaser_title": "সোশ্যাল টিম পারচেজ ডিল",
+    "teaser_desc": "বন্ধুদের সাথে দল গড়ে অথবা সক্রিয় পুলে যোগ দিয়ে কম মূল্যে কিনুন।",
+    "explore_teams": "টিম দেখুন"
   },
   "cart_recovery": {
     "page_title": "পরিত্যক্ত কার্ট পুনরুদ্ধার ও অ্যানালিটিক্স",
@@ -3557,7 +3585,7 @@
     "kpi_categories_active": "সক্রিয় ক্যাটাগরি",
     "kpi_in_stock": "স্টকে ও লাইভ",
     "kpi_availability": "উপলব্ধ",
-    "kpi_low_stock": "স্বল্প স্টক (≤ ১০)",
+    "kpi_low_stock": "স্বল্প স্টক (≤ {{threshold}})",
     "kpi_out_of_stock": "স্টক শেষ",
     "kpi_inventory_value": "সম্ভাব্য ইনভেন্টরি মূল্য",
     "kpi_verified_suppliers": "ভেরিফায়েড সরবরাহকারী",
@@ -3565,7 +3593,7 @@
     "all_categories": "সকল ক্যাটাগরি",
     "all_stock": "সকল স্টক স্ট্যাটাস",
     "in_stock_only": "স্টকে আছে (> ০)",
-    "low_stock_only": "স্বল্প স্টক (≤ ১০)",
+    "low_stock_only": "স্বল্প স্টক (≤ {{threshold}})",
     "out_of_stock_only": "স্টক শূন্য (০)",
     "all_tiers": "সকল ট্রাস্ট টিয়ার",
     "all_promos": "সকল প্রমোশন অবস্থা",

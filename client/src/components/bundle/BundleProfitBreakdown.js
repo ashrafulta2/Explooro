@@ -12,7 +12,7 @@
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 
-export function createBundleProfitBreakdown({ breakdown = null }) {
+export function createBundleProfitBreakdown({ breakdown = null, showPlatformShare = false } = {}) {
   const container = document.createElement('div');
   container.className = 'bundle-profit-breakdown';
 
@@ -136,7 +136,7 @@ export function createBundleProfitBreakdown({ breakdown = null }) {
 
         <div class="mt-4 pt-3 border-t flex-between text-xs text-muted">
           <span>🔒 ${t('bundle.zero_drift_guarantee')}</span>
-          <span>${t('bundle.platform_share_tag', { amount: formatCurrency(total_platform_margin) })}</span>
+          ${showPlatformShare && total_platform_margin !== undefined ? `<span>${t('bundle.platform_share_tag', { amount: formatCurrency(total_platform_margin) })}</span>` : ''}
         </div>
       </div>
     `;

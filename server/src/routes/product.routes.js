@@ -25,6 +25,15 @@ export default async function productRoutes(app) {
   app.get('/products/:id', productController.getProduct);
   app.post('/pricing/preview', productController.previewPricing);
 
+  // Admin Catalog Analytics
+  // WHY the same permission as the catalog page it feeds (catalog.product.view_all): a KPI that
+  // totals stock and inventory value across every supplier is exactly as sensitive as the list.
+  app.get(
+    '/admin/catalog/stats',
+    { preHandler: [authenticate, requirePerm('catalog.product.view_all')] },
+    productController.getCatalogStats
+  );
+
   // Supplier Product Management
   app.post(
     '/products',

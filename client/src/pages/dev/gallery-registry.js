@@ -74,6 +74,7 @@ import { CouponCard } from '../../components/customer/CouponCard.js';
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.js';
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.js';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';
+import { openTeamPurchaseModal } from '../../components/product/TeamPurchaseModal.js';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */
 function specimen(title, ...nodes) {
@@ -777,7 +778,7 @@ function renderQnASection() {
 
 function renderProfitCalculator() {
   const wrap = document.createDocumentFragment();
-  wrap.append(subgroup('ProfitCalculator — Base 500 / Wholesale 0 / Retail 700 (Saler ৳80.00 / Platform ৳120.00)'));
+  wrap.append(subgroup('ProfitCalculator — Base 500 / Wholesale 0 / Retail 700 (Saler ৳80.00)'));
   const calc = ProfitCalculator({ initialBaseCost: 500, initialWholesaleMargin: 0, initialRetailPrice: 700 });
   wrap.append(specimen('interactive slider calculator', calc));
   return wrap;
@@ -2047,6 +2048,24 @@ function renderTeamPurchaseSpecimen() {
   `;
 
   wrap.append(specimen('Team Purchase Progress & Join Card', teamCard));
+
+  const modalTriggerBtn = Button({
+    label: 'Open Team Purchase Modal (Preview)',
+    variant: 'secondary',
+    size: 'sm',
+    onClick: () => {
+      openTeamPurchaseModal({
+        product: {
+          id: 5,
+          title_en: 'Authentic Handloom Dhakai Jamdani Saree - Crimson Red',
+          title_bn: 'ঐতিহ্যবাহী তাঁতের খাঁটি ঢাকাই জামদানি শাড়ি - গাঢ় লাল',
+          price: 6500,
+          primary_image_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600',
+        },
+      });
+    },
+  });
+  wrap.append(specimen('Product Detail Team Purchase Modal', modalTriggerBtn));
   return wrap;
 }
 

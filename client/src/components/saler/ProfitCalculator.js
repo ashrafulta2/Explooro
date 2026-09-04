@@ -109,10 +109,10 @@ export function ProfitCalculator({
   breakdownGrid.className = 'profit-calc__breakdown';
 
   const wholesaleCostCard = createCard(t('sourcing.calc.wholesale_cost'), '৳ 0.00', t('sourcing.calc.base_plus_wholesale'));
-  const salerEarningCard = createCard(t('sourcing.calc.your_profit'), '৳ 0.00', '40% split', true);
-  const platformEarningCard = createCard(t('sourcing.calc.platform_share'), '৳ 0.00', '60% split');
+  const retailPriceCard = createCard(t('sourcing.calc.customer_retail_price', 'Customer Retail Price'), '৳ 0.00', t('sourcing.calc.total_retail', 'Total Retail Price'));
+  const salerEarningCard = createCard(t('sourcing.calc.your_profit'), '৳ 0.00', '', true);
 
-  breakdownGrid.append(wholesaleCostCard.element, salerEarningCard.element, platformEarningCard.element);
+  breakdownGrid.append(wholesaleCostCard.element, retailPriceCard.element, salerEarningCard.element);
 
   // Split Visual Bar
   const barWrap = document.createElement('div');
@@ -121,7 +121,7 @@ export function ProfitCalculator({
   const barLabel = document.createElement('div');
   barLabel.className = 'profit-calc__bar-label';
   const barLabelLeft = document.createElement('span');
-  barLabelLeft.textContent = t('sourcing.calc.price_distribution');
+  barLabelLeft.textContent = t('sourcing.calc.margin_performance', 'Reseller Profit Margin');
   const barLabelRight = document.createElement('span');
   barLabelRight.textContent = '';
   barLabel.append(barLabelLeft, barLabelRight);
@@ -129,26 +129,18 @@ export function ProfitCalculator({
   const bar = document.createElement('div');
   bar.className = 'profit-calc__bar';
 
-  const segBase = document.createElement('div');
-  segBase.className = 'profit-calc__bar-seg profit-calc__bar-seg--base';
-  const segWholesale = document.createElement('div');
-  segWholesale.className = 'profit-calc__bar-seg profit-calc__bar-seg--wholesale';
   const segSaler = document.createElement('div');
   segSaler.className = 'profit-calc__bar-seg profit-calc__bar-seg--saler';
-  const segPlatform = document.createElement('div');
-  segPlatform.className = 'profit-calc__bar-seg profit-calc__bar-seg--platform';
+  segSaler.style.width = '0%';
 
-  bar.append(segBase, segWholesale, segSaler, segPlatform);
+  bar.append(segSaler);
 
   // Legend
   const legend = document.createElement('div');
   legend.className = 'profit-calc__legend';
 
   legend.append(
-    createLegendItem('#94a3b8', t('sourcing.calc.base_cost')),
-    createLegendItem('#cbd5e1', t('sourcing.calc.wholesale_margin')),
-    createLegendItem('var(--brand-600)', t('sourcing.calc.saler_share')),
-    createLegendItem('#a855f7', t('sourcing.calc.platform_share'))
+    createLegendItem('var(--brand-600)', t('sourcing.calc.your_profit'))
   );
 
   barWrap.append(barLabel, bar, legend);
@@ -178,32 +170,19 @@ export function ProfitCalculator({
 
       // Update Breakdown cards with server-authoritative numbers
       wholesaleCostCard.setValue(formatCurrency(breakdown.wholesale_cost));
+      retailPriceCard.setValue(formatCurrency(breakdown.retail_price));
+      retailPriceCard.setSub(t('sourcing.calc.total_retail', 'Total Retail Price'));
       salerEarningCard.setValue(formatCurrency(breakdown.saler_earning));
       salerEarningCard.setSub(
-        `${t('sourcing.calc.saler_margin')}: ${breakdown.saler_margin_pct}% (${breakdown.saler_split_pct}% ${t('sourcing.calc.split')})`
-      );
-      platformEarningCard.setValue(formatCurrency(breakdown.platform_earning));
-      platformEarningCard.setSub(
-        `${breakdown.platform_split_pct}% ${t('sourcing.calc.platform_split')}`
+        `${t('sourcing.calc.saler_margin')}: ${breakdown.saler_margin_pct}%`
       );
 
-      // Update Visual Split Bar
-      const total = breakdown.retail_price || 1;
-      const basePct = ((breakdown.base_cost / total) * 100).toFixed(1);
-      const wsPct = ((breakdown.wholesale_margin / total) * 100).toFixed(1);
-      const salerPct = ((breakdown.saler_earning / total) * 100).toFixed(1);
-      const platformPct = ((breakdown.platform_earning / total) * 100).toFixed(1);
+      // Update Visual Margin Bar
+      const marginPct = Math.min(100, Math.max(0, parseFloat(breakdown.saler_margin_pct) || 0));
+      segSaler.style.width = `${marginPct}%`;
+      segSaler.title = `${t('sourcing.calc.your_profit')}: ${formatCurrency(breakdown.saler_earning)} (${marginPct}%)`;
 
-      segBase.style.width = `${basePct}%`;
-      segBase.title = `${t('sourcing.calc.base_cost')}: ${formatCurrency(breakdown.base_cost)}`;
-      segWholesale.style.width = `${wsPct}%`;
-      segWholesale.title = `${t('sourcing.calc.wholesale_margin')}: ${formatCurrency(breakdown.wholesale_margin)}`;
-      segSaler.style.width = `${salerPct}%`;
-      segSaler.title = `${t('sourcing.calc.saler_share')}: ${formatCurrency(breakdown.saler_earning)}`;
-      segPlatform.style.width = `${platformPct}%`;
-      segPlatform.title = `${t('sourcing.calc.platform_share')}: ${formatCurrency(breakdown.platform_earning)}`;
-
-      barLabelRight.textContent = `${t('sourcing.calc.total_retail')}: ${formatCurrency(breakdown.retail_price)}`;
+      barLabelRight.textContent = `${marginPct}% (${formatCurrency(breakdown.saler_earning)})`;
 
       if (typeof onChange === 'function') {
         onChange(breakdown);
@@ -216,12 +195,9 @@ export function ProfitCalculator({
       errorBanner.style.display = 'flex';
 
       wholesaleCostCard.setValue('—');
+      retailPriceCard.setValue('—');
       salerEarningCard.setValue('—');
-      platformEarningCard.setValue('—');
-      segBase.style.width = '0%';
-      segWholesale.style.width = '0%';
       segSaler.style.width = '0%';
-      segPlatform.style.width = '0%';
       barLabelRight.textContent = '';
     }
   }

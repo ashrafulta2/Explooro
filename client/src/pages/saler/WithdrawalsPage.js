@@ -260,13 +260,13 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
     let modal;
     const maxAvailable = summary.available_balance || 24500.0;
     const body = document.createElement('div');
-    body.className = 'space-y-4';
+    body.className = 'saler-stack';
 
     body.innerHTML = `
-      <form id="form-request-payout" class="space-y-4">
-        <div class="space-y-1">
+      <form id="form-request-payout" class="saler-stack">
+        <div class="saler-stack--xs">
           <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_withdrawals.field_method')}</label>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="method-picker">
+          <div class="saler-method-grid" id="method-picker">
             <button type="button" class="btn btn--sm btn--primary font-bold btn-method" data-m="BKASH">bKash</button>
             <button type="button" class="btn btn--sm btn--neutral font-bold btn-method" data-m="NAGAD">Nagad</button>
             <button type="button" class="btn btn--sm btn--neutral font-bold btn-method" data-m="ROCKET">Rocket</button>
@@ -274,32 +274,33 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
           </div>
         </div>
 
-        <div class="space-y-1">
+        <div class="saler-stack--xs">
           <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_withdrawals.field_account_number')}</label>
           <input type="text" id="payout-acc-num" required class="input input--sm w-full font-mono" placeholder="017XXXXXXXX" value="01711223344" />
         </div>
 
-        <div class="space-y-1">
+        <div class="saler-stack--xs">
           <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_withdrawals.field_account_name')}</label>
           <input type="text" id="payout-acc-name" required class="input input--sm w-full" placeholder="Account Holder Full Name" value="Tanvir Ahmed" />
         </div>
 
-        <div id="bank-field-wrap" class="space-y-1 hidden">
+        <div id="bank-field-wrap" class="saler-stack--xs hidden">
           <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_withdrawals.field_bank_name')}</label>
           <input type="text" id="payout-bank-name" class="input input--sm w-full" placeholder="e.g. Dutch-Bangla Bank PLC, City Bank" />
         </div>
 
-        <div class="space-y-1">
+        <div class="saler-stack--xs">
           <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_withdrawals.field_amount')}</label>
-          <div class="relative">
-            <span class="absolute left-3 top-2.5 font-bold text-muted">৳</span>
+          <div style="position: relative;">
+            <span style="position: absolute; left: 12px; top: 10px; font-weight: 700; color: var(--text-muted);">৳</span>
             <input
               type="number"
               id="payout-amount"
               required
               min="100"
               max="${maxAvailable}"
-              class="input input--sm w-full pl-7 font-mono font-bold text-base"
+              class="input input--sm w-full font-mono font-bold text-base"
+              style="padding-left: 28px;"
               placeholder="e.g. 5000"
               value="5000"
             />
@@ -309,7 +310,7 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
           </div>
         </div>
 
-        <div class="modal-actions pt-3 border-t border-subtle flex justify-end gap-2">
+        <div class="saler-row" style="padding-top: 12px; border-top: 1px solid var(--border-subtle); justify-content: flex-end; gap: 8px;">
           <button type="button" class="btn btn--secondary btn--sm" id="btn-cancel-modal">Cancel</button>
           <button type="submit" class="btn btn--primary btn--sm font-bold">${t('saler_withdrawals.btn_submit_payout')}</button>
         </div>

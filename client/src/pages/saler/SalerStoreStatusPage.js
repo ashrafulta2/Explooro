@@ -128,31 +128,33 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
 
     // 2. Hero Live Status Banner
     const banner = document.createElement('div');
-    banner.className = `p-6 rounded-2xl border ${
-      store.is_open
-        ? 'border-emerald-500/30 bg-emerald-500/5'
-        : 'border-rose-500/30 bg-rose-500/5'
-    } flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm transition-all`;
+    banner.className = `saler-card ${
+      store.is_open ? 'border-emerald-500/30' : 'border-rose-500/30'
+    }`;
+    banner.style.borderLeftWidth = '4px';
+    banner.style.borderLeftColor = store.is_open ? 'var(--success-600, #16a34a)' : 'var(--danger-600, #dc2626)';
 
     banner.innerHTML = `
-      <div class="space-y-2">
-        <div class="flex items-center gap-3">
-          <span class="inline-flex h-4 w-4 rounded-full ${store.is_open ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}"></span>
-          <span class="text-xs font-mono font-bold uppercase tracking-wider ${store.is_open ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}">
-            ${store.is_open ? t('saler_store_status.status_open_badge') : t('saler_store_status.status_closed_badge')}
-          </span>
+      <div class="saler-row--between">
+        <div class="saler-stack--xs">
+          <div class="saler-row" style="gap: 8px;">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${store.is_open ? '#10B981' : '#EF4444'};"></span>
+            <span class="badge ${store.is_open ? 'badge--success' : 'badge--danger'} text-xs font-bold font-mono">
+              ${store.is_open ? t('saler_store_status.status_open_badge') : t('saler_store_status.status_closed_badge')}
+            </span>
+          </div>
+          <h2 class="saler-card__title" style="font-size: 18px; margin: 4px 0;">
+            ${store.is_open ? t('saler_store_status.status_banner_open') : t('saler_store_status.status_banner_closed')}
+          </h2>
+          <p class="saler-card__subtitle">
+            ${isBn ? 'শোরুমের স্বাভাবিক কার্যসময়:' : 'Standard walk-in showroom hours:'} <strong class="font-mono text-foreground">${store.open_time} – ${store.close_time}</strong>
+          </p>
         </div>
-        <h2 class="text-xl font-black tracking-tight text-foreground">
-          ${store.is_open ? t('saler_store_status.status_banner_open') : t('saler_store_status.status_banner_closed')}
-        </h2>
-        <p class="text-xs text-muted">
-          ${isBn ? 'শোরুমের স্বাভাবিক কার্যসময়:' : 'Standard walk-in showroom hours:'} <strong class="font-mono text-foreground">${store.open_time} – ${store.close_time}</strong>
-        </p>
-      </div>
-      <div class="flex flex-wrap items-center gap-3">
-        <button id="btn-toggle-open" class="btn ${store.is_open ? 'btn--secondary' : 'btn--primary'} btn--sm font-bold">
-          ${store.is_open ? t('saler_store_status.btn_instant_close') : t('saler_store_status.btn_instant_open')}
-        </button>
+        <div>
+          <button id="btn-toggle-open" class="btn ${store.is_open ? 'btn--secondary' : 'btn--primary'} btn--sm font-bold">
+            ${store.is_open ? t('saler_store_status.btn_instant_close') : t('saler_store_status.btn_instant_open')}
+          </button>
+        </div>
       </div>
     `;
 
@@ -167,75 +169,56 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
 
     // 3. Grid: Left (Master Hours & 7-Day Schedule) + Right (Showroom Location & Self-Pickup)
     const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-1 lg:grid-cols-12 gap-6';
+    grid.className = 'saler-two-col';
 
     // Left Column: Hours & Schedule (7 Cols)
     const leftCol = document.createElement('div');
-    leftCol.className = 'lg:col-span-7 space-y-6';
+    leftCol.className = 'saler-stack';
 
     // Master Hours Tool
     const hoursCard = document.createElement('div');
-    hoursCard.className = 'saler-kpi-card space-y-4';
+    hoursCard.className = 'saler-card';
     hoursCard.innerHTML = `
-      <div class="flex items-center justify-between border-b border-subtle pb-3">
+      <div class="saler-card__header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
         <div>
-          <h3 class="font-bold text-sm text-foreground flex items-center gap-2">
+          <h3 class="saler-card__title">
             ⏰ ${t('saler_store_status.section_hours')}
           </h3>
-          <p class="text-xs text-muted">Set baseline hours or apply regional timing presets.</p>
+          <p class="saler-card__subtitle">Set baseline hours or apply regional timing presets.</p>
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-4">
-        <div class="space-y-1">
+      <div class="saler-two-col--equal">
+        <div class="saler-stack--xs">
           <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_open_time')}</label>
           <select id="master-open-time" class="select select--sm w-full font-mono">
             ${TIME_OPTIONS.map((tOpt) => `<option value="${tOpt}" ${tOpt === store.open_time ? 'selected' : ''}>${tOpt}</option>`).join('')}
           </select>
         </div>
-        <div class="space-y-1">
+        <div class="saler-stack--xs">
           <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_close_time')}</label>
           <select id="master-close-time" class="select select--sm w-full font-mono">
             ${TIME_OPTIONS.map((tOpt) => `<option value="${tOpt}" ${tOpt === store.close_time ? 'selected' : ''}>${tOpt}</option>`).join('')}
           </select>
         </div>
       </div>
-      <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-subtle">
+      <div class="saler-row pt-2" style="border-top: 1px solid var(--border-subtle); justify-content: space-between;">
+        <span class="text-xs text-muted">Apply standard timing across all active business days:</span>
         <button id="btn-apply-all-days" class="btn btn--secondary btn--xs font-bold">
-          ${t('saler_store_status.btn_apply_all')}
-        </button>
-        <button id="btn-preset-standard" class="btn btn--neutral btn--xs">
-          ${t('saler_store_status.preset_standard')}
+          ⚡ Apply to All Open Days
         </button>
       </div>
     `;
 
-    hoursCard.querySelector('#master-open-time').onchange = (e) => {
-      store.open_time = e.target.value;
-    };
-    hoursCard.querySelector('#master-close-time').onchange = (e) => {
-      store.close_time = e.target.value;
-    };
+    hoursCard.querySelector('#master-open-time').onchange = (e) => { store.open_time = e.target.value; };
+    hoursCard.querySelector('#master-close-time').onchange = (e) => { store.close_time = e.target.value; };
     hoursCard.querySelector('#btn-apply-all-days').onclick = () => {
       DAYS_OF_WEEK.forEach((d) => {
-        if (store.weekly_schedule[d]) {
+        if (store.weekly_schedule[d]?.is_open) {
           store.weekly_schedule[d].open_time = store.open_time;
           store.weekly_schedule[d].close_time = store.close_time;
         }
       });
-      toast.success('Applied master hours to all schedule days!');
-      render();
-    };
-    hoursCard.querySelector('#btn-preset-standard').onclick = () => {
-      store.open_time = '10:00 AM';
-      store.close_time = '08:30 PM';
-      DAYS_OF_WEEK.forEach((d) => {
-        if (store.weekly_schedule[d]) {
-          store.weekly_schedule[d].is_open = d !== 'Friday';
-          store.weekly_schedule[d].open_time = '10:00 AM';
-          store.weekly_schedule[d].close_time = '08:30 PM';
-        }
-      });
-      toast.success('Applied Dhaka Standard preset (Fri Closed)!');
+      toast.success('Applied baseline hours to all open days');
       render();
     };
 
@@ -243,15 +226,15 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
 
     // 7-Day Schedule Card Deck
     const scheduleCard = document.createElement('div');
-    scheduleCard.className = 'saler-kpi-card space-y-4';
+    scheduleCard.className = 'saler-card';
     scheduleCard.innerHTML = `
-      <div class="border-b border-subtle pb-2">
-        <h3 class="font-bold text-sm text-foreground flex items-center gap-2">
+      <div class="saler-card__header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+        <h3 class="saler-card__title">
           📅 ${t('saler_store_status.section_schedule')}
         </h3>
-        <p class="text-xs text-muted">Toggle open/closed state for individual days of the week.</p>
+        <p class="saler-card__subtitle">Toggle open/closed state for individual days of the week.</p>
       </div>
-      <div class="space-y-3" id="schedule-deck-list"></div>
+      <div class="saler-stack--sm" id="schedule-deck-list"></div>
     `;
 
     const deckList = scheduleCard.querySelector('#schedule-deck-list');
@@ -261,16 +244,16 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
       const row = document.createElement('div');
       row.className = `p-3 rounded-xl border ${
         dayConfig.is_open ? 'border-subtle bg-surface' : 'border-subtle/50 bg-subtle/10 opacity-75'
-      } flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all`;
+      } saler-row--between transition-all`;
 
       row.innerHTML = `
-        <div class="flex items-center gap-3">
+        <div class="saler-row" style="gap: 12px;">
           <input type="checkbox" class="checkbox day-toggle" id="check-${day}" ${dayConfig.is_open ? 'checked' : ''} />
           <label for="check-${day}" class="font-bold text-xs cursor-pointer text-foreground select-none">
             ${day}
           </label>
         </div>
-        <div class="flex items-center gap-2 ${dayConfig.is_open ? '' : 'opacity-40 pointer-events-none'}">
+        <div class="saler-row ${dayConfig.is_open ? '' : 'opacity-40 pointer-events-none'}" style="gap: 8px;">
           <select class="select select--xs font-mono day-open" data-day="${day}">
             ${TIME_OPTIONS.map((tOpt) => `<option value="${tOpt}" ${tOpt === dayConfig.open_time ? 'selected' : ''}>${tOpt}</option>`).join('')}
           </select>
@@ -303,42 +286,42 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
 
     // Right Column: Showroom Address & Self-Pickup (5 Cols)
     const rightCol = document.createElement('div');
-    rightCol.className = 'lg:col-span-5 space-y-6';
+    rightCol.className = 'saler-stack';
 
     const locationCard = document.createElement('div');
-    locationCard.className = 'saler-kpi-card space-y-4';
+    locationCard.className = 'saler-card';
     locationCard.innerHTML = `
-      <div class="border-b border-subtle pb-2">
-        <h3 class="font-bold text-sm text-foreground flex items-center gap-2">
+      <div class="saler-card__header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+        <h3 class="saler-card__title">
           📍 ${t('saler_store_status.section_location')}
         </h3>
-        <p class="text-xs text-muted">Address and contact information displayed to buyers.</p>
+        <p class="saler-card__subtitle">Address and contact information displayed to buyers.</p>
       </div>
-      <div class="space-y-3">
-        <div class="space-y-1">
+      <div class="saler-stack--sm">
+        <div class="saler-stack--xs">
           <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_shop_name')}</label>
           <input type="text" id="loc-shop-name" class="input input--sm w-full" value="${store.shop_name || ''}" />
         </div>
-        <div class="space-y-1">
+        <div class="saler-stack--xs">
           <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_district')}</label>
           <select id="loc-district" class="select select--sm w-full">
             ${DISTRICT_OPTIONS.map((d) => `<option value="${d}" ${d === store.district ? 'selected' : ''}>${d}</option>`).join('')}
           </select>
         </div>
-        <div class="space-y-1">
+        <div class="saler-stack--xs">
           <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_address')}</label>
           <textarea id="loc-address" class="textarea textarea--sm w-full" rows="3">${store.address || ''}</textarea>
         </div>
-        <div class="space-y-1">
+        <div class="saler-stack--xs">
           <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_phone')}</label>
           <input type="tel" id="loc-phone" class="input input--sm w-full" value="${store.phone || ''}" />
         </div>
-        <div class="pt-3 border-t border-subtle space-y-3">
-          <label class="flex items-center gap-2 cursor-pointer">
+        <div class="pt-3 border-t border-subtle saler-stack--sm">
+          <label class="saler-row cursor-pointer" style="gap: 8px;">
             <input type="checkbox" id="loc-pickup-toggle" class="checkbox" ${store.pickup_enabled ? 'checked' : ''} />
             <span class="text-xs font-bold text-foreground">${t('saler_store_status.field_pickup_enabled')}</span>
           </label>
-          <div class="space-y-1 ${store.pickup_enabled ? '' : 'opacity-40 pointer-events-none'}">
+          <div class="saler-stack--xs ${store.pickup_enabled ? '' : 'opacity-40 pointer-events-none'}">
             <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_pickup_notes')}</label>
             <textarea id="loc-pickup-notes" class="textarea textarea--sm w-full" rows="2" placeholder="e.g. Present order confirmation SMS at counter">${store.pickup_notes || ''}</textarea>
           </div>

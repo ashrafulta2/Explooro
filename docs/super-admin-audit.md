@@ -110,15 +110,28 @@ Flutter app, and non-admin roles beyond the pages the admin sidebar links into.
 
 These are real and were left open on purpose. Do not assume they were missed.
 
-1. **Four contrast flags remain on `/admin/platform/theme`.** All are inside the Theme Studio's live
-   *preview* of the product navbar: the brand-coloured "O" in the EXPLOORO wordmark (1.64:1) and
-   three topbar emoji icons (3.82:1). The wordmark is a brand mark, not body text, and the auditor
-   colours emoji by the CSS `color` property, which mostly does not apply to emoji glyphs. Changing
-   either would break the preview's job of showing what the navbar actually looks like.
-2. **`GET /admin/catalog/stats` still does not exist server-side** (see traceability row 71). The
-   Catalog admin page's stats panel calls it inside a `.catch(() => null)`, so it fails silently and
-   the panel never populates. Implementing the aggregate endpoint is backend feature work —
-   controller, service, repository, and a product decision on what the aggregate contains.
+1. **The brand wordmark and the topbar emoji flag on contrast, and are left alone.** The
+   brand-coloured "O" in EXPLOORO (`span.brand-text__accent`, 1.64:1) and three topbar emoji icons
+   (3.82:1). A brand mark is not body text, and the auditor colours emoji by the CSS `color`
+   property, which mostly does not apply to emoji glyphs.
+
+   *Correction, 2026-09-04:* an earlier revision of this section described these as confined to the
+   Theme Studio's navbar *preview*. They are not — `.brand-text__accent` lives in the real app-shell
+   topbar, so the wordmark flag appears on **every** admin route, one per page. The rationale for
+   leaving it is unchanged; only the scope stated here was wrong.
+2. ~~**`GET /admin/catalog/stats` still does not exist server-side**~~ — **CLOSED 2026-09-04.**
+   Built through the full layer stack: `product.repository.js` (`getCatalogStats`,
+   `getCatalogCategoryBreakdown` — two aggregate queries whose flash-sale and trust-tier joins are
+   deliberately identical to `listProducts()`), `product.service.js` (`getCatalogStats`, plus
+   `resolveLowStockThreshold` reading `platform_settings['catalog.low_stock_threshold']`),
+   `product.controller.js`, and a route gated on `catalog.product.view_all` — the same permission as
+   the page it feeds. Covered by `server/test/catalogStats.test.js` (9 tests) and smoke-run against
+   the seeded Postgres. Two related defects surfaced while wiring it and were fixed with it:
+   - The page read `p.stock` and `p.category`, but the live API returns `stock_qty` and
+     `category_name_en` — against a real server every row rendered as *Out of Stock* in the category
+     *General*. `normalizeProducts()` in `CatalogProductsPage.js` now bridges the two shapes.
+   - `verified_suppliers_count` counted *products whose supplier is verified* under a KPI labelled
+     "Verified Suppliers". Both the endpoint and the mock now count distinct suppliers.
 3. **The Module Control fix is mock-side.** `server/src/routes/module.routes.js` already serves
    `/admin/modules` from the real registry; the fabricated 8-module list was only in
    `client/src/mocks/handlers/admin.js`, which shadows it when `VITE_API_MODE=mock`. Dev and live now

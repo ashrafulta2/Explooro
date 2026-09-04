@@ -141,6 +141,31 @@ let mockTeamPurchases = [
 ];
 
 export const teamPurchaseHandlers = [
+  // 0. List all / active team purchases (filtered by product_id if query present)
+  {
+    method: 'GET',
+    path: '/team-purchases',
+    handler({ query }) {
+      let filtered = mockTeamPurchases;
+      if (query?.product_id) {
+        filtered = filtered.filter((tp) => String(tp.product_id) === String(query.product_id));
+      }
+      const refreshed = filtered.map((tp) => {
+        const remaining = Math.max(0, Math.floor((new Date(tp.expires_at) - Date.now()) / 1000));
+        return {
+          ...tp,
+          remaining_seconds: tp.status === 'ACTIVE' ? remaining : 0,
+        };
+      });
+      return {
+        status: 200,
+        body: {
+          team_purchases: refreshed,
+        },
+      };
+    },
+  },
+
   // 1. List customer's team purchases
   {
     method: 'GET',
@@ -296,10 +321,11 @@ export const teamPurchaseHandlers = [
         id: newId,
         ref,
         product_id: Number(product_id) || 1,
-        product_name_en: 'Selected Team Product',
-        product_name_bn: 'নির্বাচিত টিম পণ্য',
-        product_image_url: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=600',
-        original_price: Number(group_price ? group_price * 1.25 : 2000),
+        product_slug: body?.product_slug || 'team-product',
+        product_name_en: body?.product_name_en || 'Selected Team Product',
+        product_name_bn: body?.product_name_bn || 'নির্বাচিত টিম পণ্য',
+        product_image_url: body?.product_image_url || 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=600',
+        original_price: Number(body?.original_price || (group_price ? group_price * 1.25 : 2000)),
         group_price: Number(group_price || 1600),
         required_members: Number(required_members) || 3,
         current_members_count: 1,

@@ -30,6 +30,8 @@ import { resolveProductImage } from '../components/product/ProductCard.js';
 import { addToCart } from '../services/cart.js';
 import * as catalogApi from '../services/catalog.api.js';
 import { updateHead, buildProductJsonLd } from '../services/seo.js';
+import { api } from '../core/api.js';
+import { openTeamPurchaseModal } from '../components/product/TeamPurchaseModal.js';
 
 function applySeo(product, lang) {
   const title = lang === 'bn' ? (product.title_bn || product.title_en) : product.title_en;
@@ -133,17 +135,27 @@ export default function ProductDetailPage(root, { params, navigate }) {
   }
 
   function buildCtas(product, getSelection) {
-    const ctaRow = document.createElement('div');
-    ctaRow.className = 'product-detail-page__ctas';
+    const ctaContainer = document.createElement('div');
+    ctaContainer.className = 'product-detail-page__cta-section';
 
     const inStock = () => {
       if (product.has_variants) return !!getSelection();
       return (product.stock_qty ?? product.stock ?? 0) > 0;
     };
 
+    // ── Row 1: Primary Purchase Actions ────────────────────────────────
+    const primaryRow = document.createElement('div');
+    primaryRow.className = 'product-detail-page__primary-ctas';
+
+    const cartIcon = document.createElement('span');
+    cartIcon.className = 'btn-icon-svg inline-flex items-center';
+    cartIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`;
+
     const addToCartBtn = Button({
       label: t('product_detail.cta.add_to_cart'),
       variant: 'primary',
+      size: 'lg',
+      iconLeft: cartIcon,
       disabled: !inStock(),
       onClick: () => {
         const sel = getSelection();
@@ -164,19 +176,24 @@ export default function ProductDetailPage(root, { params, navigate }) {
         });
       },
     });
-    ctaRow.append(addToCartBtn);
+    primaryRow.append(addToCartBtn);
 
-    if (isFeatureEnabled('wishlist')) {
-      const wishlistBtn = WishlistButton({ productId: product.id, size: 'lg' });
-      ctaRow.append(wishlistBtn);
-    }
-
+    let quickBuyBtn = null;
     if (isFeatureEnabled('quick_buy')) {
       const quickBuyWrap = document.createElement('div');
       quickBuyWrap.dataset.module = 'quick_buy';
-      const quickBuyBtn = Button({
+      quickBuyWrap.className = 'flex-1 min-w-[140px]';
+
+      const lightningIcon = document.createElement('span');
+      lightningIcon.className = 'btn-icon-svg inline-flex items-center';
+      lightningIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
+
+      quickBuyBtn = Button({
         label: t('marketplace.product.quick_buy') || 'Quick Buy',
         variant: 'secondary',
+        size: 'lg',
+        iconLeft: lightningIcon,
+        fullWidth: true,
         disabled: !inStock(),
         onClick: () => {
           openQuickBuyModal({
@@ -188,34 +205,157 @@ export default function ProductDetailPage(root, { params, navigate }) {
         },
       });
       quickBuyWrap.append(quickBuyBtn);
-      ctaRow.append(quickBuyWrap);
+      primaryRow.append(quickBuyWrap);
     }
+
+    if (isFeatureEnabled('wishlist')) {
+      const wishlistBtn = WishlistButton({ productId: product.id, size: 'lg' });
+      primaryRow.append(wishlistBtn);
+    }
+
+    ctaContainer.append(primaryRow);
+
+    // ── Row 2: Social Commerce & Supplier Actions ──────────────────────
+    const socialBar = document.createElement('div');
+    socialBar.className = 'product-detail-page__social-bar';
 
     if (isFeatureEnabled('chat')) {
       const chatWrap = document.createElement('div');
       chatWrap.dataset.module = 'chat';
+      chatWrap.className = 'product-detail-page__social-action';
+
+      const chatIcon = document.createElement('span');
+      chatIcon.className = 'btn-icon-svg inline-flex items-center';
+      chatIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+
       const chatBtn = Button({
-        label: t('product_detail.cta.chat_with_seller'),
-        variant: 'ghost',
-        onClick: () => placeholderNotice('product_detail.cta.chat_placeholder'),
+        label: t('product_detail.cta.chat_with_seller') || 'Chat with Seller',
+        variant: 'secondary',
+        size: 'md',
+        iconLeft: chatIcon,
+        onClick: async () => {
+          const { auth } = appStore.get();
+          if (!auth?.isAuthenticated) {
+            toast.info(lang === 'bn' ? 'বিক্রেতার সাথে চ্যাট করতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to chat with the seller.');
+            const redirectUrl = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+            if (navigate) navigate(redirectUrl);
+            else window.location.href = redirectUrl;
+            return;
+          }
+
+          chatBtn.setLoading(true);
+          try {
+            const supplierId = product.supplier_id || product.supplier?.id || 1;
+            const supplierName = product.supplier?.name || product.supplier_name || 'Verified Supplier';
+            const productTitle = lang === 'bn' && product.title_bn ? product.title_bn : (product.title_en || product.title || 'Product');
+            const productRef = product.ref || `PRD-${product.id}`;
+
+            const res = await api.post('/chat/threads', {
+              target_user_id: supplierId,
+              thread_type: 'CUSTOMER_SALER',
+              metadata: {
+                product_id: product.id,
+                product_name: productTitle,
+                product_ref: productRef,
+                supplier_name: supplierName,
+              },
+            });
+
+            const createdThread = res?.data?.thread || res?.thread || res?.data;
+            const threadId = createdThread?.id || 10;
+
+            const chatUrl = `/chat?threadId=${threadId}&productRef=${encodeURIComponent(productRef)}&productTitle=${encodeURIComponent(productTitle)}`;
+            if (navigate) navigate(chatUrl);
+            else window.location.href = chatUrl;
+          } catch (err) {
+            toast.error(err.message || (lang === 'bn' ? 'চ্যাট শুরু করতে ব্যর্থ হয়েছে।' : 'Failed to start chat with seller.'));
+          } finally {
+            chatBtn.setLoading(false);
+          }
+        },
       });
+      chatBtn.classList.add('btn--chat-seller');
       chatWrap.append(chatBtn);
-      ctaRow.append(chatWrap);
+      socialBar.append(chatWrap);
     }
 
     if (isFeatureEnabled('group_buying')) {
       const teamWrap = document.createElement('div');
       teamWrap.dataset.module = 'group_buying';
+      teamWrap.className = 'product-detail-page__social-action';
+
+      const teamIcon = document.createElement('span');
+      teamIcon.className = 'btn-icon-svg inline-flex items-center';
+      teamIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+
       const teamBtn = Button({
-        label: t('product_detail.cta.team_purchase'),
-        variant: 'ghost',
-        onClick: () => placeholderNotice('product_detail.cta.team_purchase_placeholder'),
+        label: t('product_detail.cta.team_purchase') || 'Team Purchase',
+        variant: 'secondary',
+        size: 'md',
+        iconLeft: teamIcon,
+        onClick: () => {
+          openTeamPurchaseModal({
+            product,
+            selectedVariant: getSelection(),
+            navigate,
+          });
+        },
       });
+      teamBtn.classList.add('btn--team-purchase');
+
+      const discountBadge = document.createElement('span');
+      discountBadge.className = 'team-badge-discount';
+      discountBadge.textContent = lang === 'bn' ? '২০% ছাড়' : 'Save 20%';
+      teamBtn.append(discountBadge);
+
       teamWrap.append(teamBtn);
-      ctaRow.append(teamWrap);
+      socialBar.append(teamWrap);
     }
 
-    return { ctaRow, refreshCtas: () => { addToCartBtn.setDisabled(!inStock()); } };
+    if (socialBar.children.length > 0) {
+      ctaContainer.append(socialBar);
+    }
+
+    // ── Row 3: Social Group Buying Teaser / Deal Strip ─────────────────
+    if (isFeatureEnabled('group_buying')) {
+      const teaser = document.createElement('div');
+      teaser.className = 'team-purchase-teaser';
+      teaser.setAttribute('role', 'button');
+      teaser.setAttribute('tabindex', '0');
+      teaser.innerHTML = `
+        <div class="team-purchase-teaser__icon">👥</div>
+        <div class="team-purchase-teaser__info">
+          <div class="team-purchase-teaser__title">
+            <span>${lang === 'bn' ? 'সোশ্যাল টিম পারচেজ ডিল' : 'Social Team Purchase Deal'}</span>
+            <span class="badge badge--success badge--sm">${lang === 'bn' ? '২৫% পর্যন্ত সাশ্রয়' : 'Up to 25% OFF'}</span>
+          </div>
+          <div class="team-purchase-teaser__subtitle">
+            ${lang === 'bn' ? 'বন্ধুদের সাথে দল গড়ে অথবা সক্রিয় পুলে যোগ দিয়ে কম মূল্যে কিনুন।' : 'Team up with friends or join open pools to unlock group pricing.'}
+          </div>
+        </div>
+        <button type="button" class="team-purchase-teaser__btn font-bold">
+          ${lang === 'bn' ? 'টিম দেখুন' : 'Explore Teams'} →
+        </button>
+      `;
+
+      const triggerModal = () => openTeamPurchaseModal({ product, selectedVariant: getSelection(), navigate });
+      teaser.addEventListener('click', triggerModal);
+      teaser.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          triggerModal();
+        }
+      });
+      ctaContainer.append(teaser);
+    }
+
+    return {
+      ctaRow: ctaContainer,
+      refreshCtas: () => {
+        addToCartBtn.setDisabled(!inStock());
+        if (quickBuyBtn) quickBuyBtn.setDisabled(!inStock());
+      },
+    };
   }
 
   async function init() {

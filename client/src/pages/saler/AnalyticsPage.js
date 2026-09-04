@@ -22,44 +22,46 @@ import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function AnalyticsPage(root) {
   const container = document.createElement('div');
-  container.className = 'saler-analytics-page container mx-auto p-4 md:p-6 space-y-6 max-w-7xl';
+  container.className = 'saler-page-container';
 
   let currentRange = '30d';
 
   // 1. Header & Time Range Controls
   const header = document.createElement('div');
-  header.className = 'flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-subtle pb-5';
+  header.className = 'saler-header-row';
 
   const titleBox = document.createElement('div');
+  titleBox.className = 'saler-header-row__titles';
   titleBox.innerHTML = `
-    <div class="flex items-center gap-2 mb-1">
-      <a href="/saler" class="text-xs text-muted hover:text-primary transition-colors flex items-center gap-1 font-mono">
+    <div class="saler-header-row__breadcrumb">
+      <a href="/saler" class="hover:text-primary transition-colors">
         ← ${t('saler.analytics.back_to_dashboard', 'Dashboard')}
       </a>
-      <span class="text-xs text-muted">/</span>
-      <span class="text-xs font-bold text-primary">${t('saler.analytics.title', 'Sales & Profit Analytics')}</span>
+      <span>/</span>
+      <span class="font-bold text-primary">${t('saler.analytics.title', 'Sales & Profit Analytics')}</span>
     </div>
-    <h1 class="text-2xl font-bold tracking-tight text-foreground">${t('saler.analytics.title', 'Sales & Profit Analytics')}</h1>
-    <p class="text-xs text-muted mt-1">
+    <h1 class="saler-header-row__title">
+      <span>📊</span>
+      <span>${t('saler.analytics.title', 'Sales & Profit Analytics')}</span>
+    </h1>
+    <p class="saler-header-row__subtitle">
       ${t('saler.analytics.subtitle', 'Live revenue reconciliation, profit margins, conversion funnels, and traffic source attribution.')}
     </p>
   `;
 
   const controlsBox = document.createElement('div');
-  controlsBox.className = 'flex items-center gap-2 bg-surface p-1 rounded-xl border border-subtle';
+  controlsBox.className = 'saler-mode-toggle';
 
   ['7d', '30d', '90d'].forEach((range) => {
     const btn = document.createElement('button');
-    btn.className = `px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-      currentRange === range ? 'bg-primary text-white shadow-xs' : 'text-muted hover:text-foreground'
-    }`;
+    btn.className = `saler-mode-btn ${currentRange === range ? 'active' : ''}`;
     btn.textContent = range === '7d' ? 'Last 7 Days' : range === '30d' ? 'Last 30 Days' : 'Last 90 Days';
     btn.onclick = () => {
       currentRange = range;
       Array.from(controlsBox.children).forEach((c) => {
-        c.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all text-muted hover:text-foreground';
+        c.className = 'saler-mode-btn';
       });
-      btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all bg-primary text-white shadow-xs';
+      btn.className = 'saler-mode-btn active';
       fetchAndRender();
     };
     controlsBox.append(btn);
@@ -70,13 +72,13 @@ export default function AnalyticsPage(root) {
 
   // Content Slots
   const kpiSlot = document.createElement('div');
-  kpiSlot.className = 'grid grid-cols-2 lg:grid-cols-4 gap-4';
+  kpiSlot.className = 'saler-kpi-grid';
 
   const chartsSlot = document.createElement('div');
-  chartsSlot.className = 'grid grid-cols-1 lg:grid-cols-3 gap-6';
+  chartsSlot.className = 'saler-analytics-charts-grid';
 
   const tablesSlot = document.createElement('div');
-  tablesSlot.className = 'grid grid-cols-1 lg:grid-cols-3 gap-6';
+  tablesSlot.className = 'saler-analytics-charts-grid';
 
   container.append(kpiSlot, chartsSlot, tablesSlot);
   root.append(container);
@@ -165,14 +167,16 @@ function renderKpiCards(container, summary = {}) {
 
   kpis.forEach((k) => {
     const card = document.createElement('div');
-    card.className = 'p-4 rounded-2xl border border-subtle bg-surface shadow-xs space-y-2';
+    card.className = 'saler-kpi-card';
     card.innerHTML = `
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-semibold text-muted">${k.title}</span>
-        <span class="text-base">${k.icon}</span>
+      <div class="saler-kpi-card__header">
+        <span>${k.title}</span>
+        <span>${k.icon}</span>
       </div>
-      <div class="text-xl font-extrabold text-foreground tracking-tight">${k.value}</div>
-      <div class="text-[11px] text-muted leading-tight">${k.subtext}</div>
+      <div class="saler-kpi-card__value ${k.color === 'success' ? 'saler-kpi-card__value--profit' : ''}">
+        ${k.value}
+      </div>
+      <div class="saler-kpi-card__subtext">${k.subtext}</div>
     `;
     container.append(card);
   });
@@ -183,23 +187,23 @@ function renderKpiCards(container, summary = {}) {
  */
 function renderRevenueTrendChart(container, trends = [], summary = {}) {
   const card = document.createElement('div');
-  card.className = 'col-span-1 lg:col-span-2 rounded-2xl border border-subtle bg-surface p-5 shadow-xs space-y-4';
+  card.className = 'saler-chart-card';
 
   const header = document.createElement('div');
-  header.className = 'flex items-center justify-between';
+  header.className = 'saler-chart-header';
   header.innerHTML = `
     <div>
-      <h3 class="text-sm font-bold text-foreground flex items-center gap-2">
+      <h3 class="saler-card__title">
         📈 ${t('saler.analytics.trend_title', 'Revenue & Profit Trajectory')}
       </h3>
-      <p class="text-xs text-muted">${t('saler.analytics.trend_desc', 'Daily performance trend line with dual margin breakdown.')}</p>
+      <p class="saler-card__subtitle">${t('saler.analytics.trend_desc', 'Daily performance trend line with dual margin breakdown.')}</p>
     </div>
-    <div class="flex items-center gap-3 text-xs">
-      <span class="flex items-center gap-1.5 text-muted font-medium">
-        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Gross GMV
+    <div class="saler-row text-xs">
+      <span class="saler-row text-muted font-medium" style="gap:6px;">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10B981;"></span> Gross GMV
       </span>
-      <span class="flex items-center gap-1.5 text-muted font-medium">
-        <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-600"></span> Net Profit
+      <span class="saler-row text-muted font-medium" style="gap:6px;">
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2563EB;"></span> Net Profit
       </span>
     </div>
   `;
@@ -266,9 +270,10 @@ function renderRevenueTrendChart(container, trends = [], summary = {}) {
   `).join('');
 
   const svgWrap = document.createElement('div');
-  svgWrap.className = 'w-full overflow-x-auto';
+  svgWrap.style.width = '100%';
+  svgWrap.style.overflowX = 'auto';
   svgWrap.innerHTML = `
-    <svg viewBox="0 0 ${width} ${height}" class="w-full h-auto text-foreground" preserveAspectRatio="none">
+    <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: auto; color: var(--text-primary);" preserveAspectRatio="none">
       <defs>
         <linearGradient id="grossGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#10B981" stop-opacity="0.25" />
@@ -299,19 +304,19 @@ function renderRevenueTrendChart(container, trends = [], summary = {}) {
  */
 function renderTrafficDonutChart(container, sources = [], summary = {}) {
   const card = document.createElement('div');
-  card.className = 'col-span-1 rounded-2xl border border-subtle bg-surface p-5 shadow-xs flex flex-col justify-between space-y-4';
+  card.className = 'saler-chart-card';
 
   card.innerHTML = `
-    <div>
-      <h3 class="text-sm font-bold text-foreground flex items-center gap-2">
-        🍩 ${t('saler.analytics.traffic_sources', 'Traffic Attribution')}
-      </h3>
-      <p class="text-xs text-muted">${t('saler.analytics.traffic_desc', 'Where your storefront visitors & orders originate.')}</p>
+    <div class="saler-chart-header">
+      <div>
+        <h3 class="saler-card__title">
+          🍩 ${t('saler.analytics.traffic_sources', 'Traffic Attribution')}
+        </h3>
+        <p class="saler-card__subtitle">${t('saler.analytics.traffic_desc', 'Where your storefront visitors & orders originate.')}</p>
+      </div>
     </div>
   `;
 
-  // WHY `?? 0` and not `|| 100`: the fallback made a saler with no tracked traffic read
-  // "Total Clicks 100" in the middle of a donut whose slices were all 0% — a number with no source.
   const totalVisitors = summary.total_visitors ?? 0;
 
   // Donut SVG Math
@@ -326,39 +331,44 @@ function renderTrafficDonutChart(container, sources = [], summary = {}) {
 
     return `
       <circle cx="60" cy="60" r="${radius}" fill="none" stroke="${s.color}" stroke-width="15"
-        stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" stroke-linecap="round" class="transition-all duration-500">
+        stroke-dasharray="${strokeDasharray}" stroke-dashoffset="${strokeDashoffset}" stroke-linecap="round" style="transition: all 0.5s ease;">
         <title>${s.source}: ${s.percentage}%</title>
       </circle>
     `;
   }).join('');
 
   const donutWrap = document.createElement('div');
-  donutWrap.className = 'flex flex-col items-center justify-center py-2';
+  donutWrap.style.display = 'flex';
+  donutWrap.style.flexDirection = 'column';
+  donutWrap.style.alignItems = 'center';
+  donutWrap.style.justifyContent = 'center';
+  donutWrap.style.padding = '8px 0';
   donutWrap.innerHTML = `
-    <div class="relative w-36 h-36 flex items-center justify-center">
-      <svg viewBox="0 0 120 120" class="w-full h-full transform -rotate-90">
+    <div style="position: relative; width: 144px; height: 144px; display: flex; align-items: center; justify-content: center;">
+      <svg viewBox="0 0 120 120" style="width: 100%; height: 100%; transform: rotate(-90deg);">
         <circle cx="60" cy="60" r="${radius}" fill="none" stroke="currentColor" stroke-opacity="0.05" stroke-width="15" />
         ${circles}
       </svg>
-      <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-        <span class="text-xs text-muted font-mono">Total Clicks</span>
-        <span class="text-base font-extrabold text-foreground">${formatNumber(totalVisitors)}</span>
+      <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+        <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Total Clicks</span>
+        <span style="font-size: 16px; font-weight: 800; color: var(--text-primary);">${formatNumber(totalVisitors)}</span>
       </div>
     </div>
   `;
 
   // Legend
   const legend = document.createElement('div');
-  legend.className = 'space-y-2 pt-2 border-t border-subtle';
+  legend.className = 'saler-stack--sm pt-2';
+  legend.style.borderTop = '1px solid var(--border-subtle)';
   sources.forEach((s) => {
     const item = document.createElement('div');
-    item.className = 'flex items-center justify-between text-xs';
+    item.className = 'saler-row--between text-xs';
     item.innerHTML = `
-      <span class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${s.color};"></span>
-        <span class="font-medium text-foreground">${s.source}</span>
+      <span class="saler-row" style="gap: 8px;">
+        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: ${s.color};"></span>
+        <span style="font-weight: 600; color: var(--text-primary);">${s.source}</span>
       </span>
-      <span class="font-mono font-bold text-muted">${s.percentage}%</span>
+      <span style="font-family: var(--font-mono); font-weight: 700; color: var(--text-muted);">${s.percentage}%</span>
     `;
     legend.append(item);
   });
@@ -372,17 +382,17 @@ function renderTrafficDonutChart(container, sources = [], summary = {}) {
  */
 function renderTopProductsTable(container, products = []) {
   const card = document.createElement('div');
-  card.className = 'col-span-1 lg:col-span-2 rounded-2xl border border-subtle bg-surface p-5 shadow-xs space-y-4';
+  card.className = 'saler-chart-card';
 
   card.innerHTML = `
-    <div class="flex items-center justify-between">
+    <div class="saler-chart-header">
       <div>
-        <h3 class="text-sm font-bold text-foreground flex items-center gap-2">
+        <h3 class="saler-card__title">
           🏆 ${t('saler.analytics.top_products', 'Top Performing Products')}
         </h3>
-        <p class="text-xs text-muted">${t('saler.analytics.top_products_desc', 'Ranked by customer sales volume and total margin earned.')}</p>
+        <p class="saler-card__subtitle">${t('saler.analytics.top_products_desc', 'Ranked by customer sales volume and total margin earned.')}</p>
       </div>
-      <a href="/saler/sourcing" class="text-xs text-primary font-bold hover:underline">
+      <a href="/saler/sourcing" class="btn btn--secondary btn--xs font-bold">
         + ${t('saler.analytics.source_more', 'Source More')}
       </a>
     </div>
@@ -398,35 +408,35 @@ function renderTopProductsTable(container, products = []) {
   }
 
   const tableWrap = document.createElement('div');
-  tableWrap.className = 'overflow-x-auto';
+  tableWrap.className = 'saler-table-wrap';
   tableWrap.innerHTML = `
-    <table class="w-full text-left text-xs">
+    <table class="saler-table">
       <thead>
-        <tr class="border-b border-subtle text-muted uppercase tracking-wider font-mono text-[10px]">
-          <th class="pb-2">Product Title</th>
-          <th class="pb-2 text-right">Units Sold</th>
-          <th class="pb-2 text-right">Retail Price</th>
-          <th class="pb-2 text-right">Profit Earned</th>
-          <th class="pb-2 text-right">Stock</th>
+        <tr>
+          <th>Product Title</th>
+          <th style="text-align: right;">Units Sold</th>
+          <th style="text-align: right;">Retail Price</th>
+          <th style="text-align: right;">Profit Earned</th>
+          <th style="text-align: right;">Stock</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-subtle">
+      <tbody>
         ${products.map((p) => `
-          <tr class="hover:bg-subtle/20 transition-colors">
-            <td class="py-2.5 pr-2 font-bold text-foreground line-clamp-1 max-w-[220px]">
+          <tr>
+            <td style="font-weight: 700; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
               ${p.title_en}
             </td>
-            <td class="py-2.5 text-right font-mono font-bold text-foreground">
+            <td style="text-align: right; font-family: var(--font-mono); font-weight: 700;">
               ${p.units_sold}
             </td>
-            <td class="py-2.5 text-right font-mono text-muted">
+            <td style="text-align: right; font-family: var(--font-mono); color: var(--text-muted);">
               ${formatCurrency(p.custom_retail_price || p.default_retail_price)}
             </td>
-            <td class="py-2.5 text-right font-mono font-extrabold text-emerald-600">
+            <td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: var(--success-600, #16a34a);">
               +${formatCurrency(p.total_margin_earned)}
             </td>
-            <td class="py-2.5 text-right">
-              <span class="badge badge--${p.stock_qty > 10 ? 'success' : p.stock_qty > 0 ? 'warning' : 'danger'} text-[10px]">
+            <td style="text-align: right;">
+              <span class="badge badge--${p.stock_qty > 10 ? 'success' : p.stock_qty > 0 ? 'warning' : 'danger'} text-xs">
                 ${p.stock_qty} left
               </span>
             </td>
@@ -445,14 +455,16 @@ function renderTopProductsTable(container, products = []) {
  */
 function renderRegionalDemandChart(container, districts = []) {
   const card = document.createElement('div');
-  card.className = 'col-span-1 rounded-2xl border border-subtle bg-surface p-5 shadow-xs space-y-4';
+  card.className = 'saler-chart-card';
 
   card.innerHTML = `
-    <div>
-      <h3 class="text-sm font-bold text-foreground flex items-center gap-2">
-        📍 ${t('saler.analytics.regional_demand', 'Geographic Distribution')}
-      </h3>
-      <p class="text-xs text-muted">${t('saler.analytics.regional_desc', 'Top Bangladesh customer delivery districts.')}</p>
+    <div class="saler-chart-header">
+      <div>
+        <h3 class="saler-card__title">
+          📍 ${t('saler.analytics.regional_demand', 'Geographic Distribution')}
+        </h3>
+        <p class="saler-card__subtitle">${t('saler.analytics.regional_desc', 'Top Bangladesh customer delivery districts.')}</p>
+      </div>
     </div>
   `;
 
@@ -468,19 +480,19 @@ function renderRegionalDemandChart(container, districts = []) {
   const maxOrders = Math.max(...districts.map((d) => d.order_count), 1);
 
   const list = document.createElement('div');
-  list.className = 'space-y-3 pt-1';
+  list.className = 'saler-stack--sm pt-2';
 
   districts.forEach((d) => {
     const pct = Math.round((d.order_count / maxOrders) * 100);
     const row = document.createElement('div');
-    row.className = 'space-y-1';
+    row.className = 'saler-stack--xs';
     row.innerHTML = `
-      <div class="flex items-center justify-between text-xs">
-        <span class="font-bold text-foreground">${d.district}</span>
-        <span class="font-mono text-muted">${d.order_count} orders (${formatCurrency(d.gmv)})</span>
+      <div class="saler-row--between text-xs">
+        <span style="font-weight: 700; color: var(--text-primary);">${d.district}</span>
+        <span style="font-family: var(--font-mono); color: var(--text-muted);">${d.order_count} orders (${formatCurrency(d.gmv)})</span>
       </div>
-      <div class="w-full bg-subtle/40 h-2 rounded-full overflow-hidden">
-        <div class="bg-primary h-full rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
+      <div style="width: 100%; background: var(--surface-2, #e2e8f0); height: 8px; border-radius: 9999px; overflow: hidden;">
+        <div style="background: var(--brand-500, #ecae00); height: 100%; border-radius: 9999px; transition: width 0.5s ease; width: ${pct}%;"></div>
       </div>
     `;
     list.append(row);

@@ -105,24 +105,27 @@ export default function SalerOrderDetailPage(root, { params, navigate } = {}) {
 
     // 2. Settlement & Commission KPI Callout
     const kpiBox = document.createElement('div');
-    kpiBox.className = 'p-6 rounded-2xl bg-surface-0 border border-emerald-500/30 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4';
+    kpiBox.className = 'saler-card';
+    kpiBox.style.borderLeftWidth = '4px';
+    kpiBox.style.borderLeftColor = 'var(--success-600, #16a34a)';
     kpiBox.innerHTML = `
-      <div class="space-y-1">
-        <div class="text-xs font-bold text-muted uppercase tracking-wider">Your Reseller Commission on this Order</div>
-        <div class="text-3xl font-black font-mono text-emerald-600">+${formatCurrency(order.saler_commission_earned)}</div>
-        <div class="text-xs text-muted">
-          Escrow Status: <strong class="${order.escrow_status === 'RELEASED' ? 'text-emerald-600' : 'text-amber-600'}">${order.escrow_status === 'RELEASED' ? '✓ Settled & Available in Vault' : '🔒 Locked in Escrow (Clears upon delivery confirmation)'}</strong>
+      <div class="saler-row--between">
+        <div class="saler-stack--xs">
+          <div class="text-xs font-bold text-muted uppercase tracking-wider">Your Reseller Commission on this Order</div>
+          <div class="text-3xl font-black font-mono text-emerald-600" style="color: var(--success-600, #16a34a);">+${formatCurrency(order.saler_commission_earned)}</div>
+          <div class="text-xs text-muted">
+            Escrow Status: <strong class="${order.escrow_status === 'RELEASED' ? 'text-emerald-600' : 'text-amber-600'}">${order.escrow_status === 'RELEASED' ? '✓ Settled & Available in Vault' : '🔒 Locked in Escrow (Clears upon delivery confirmation)'}</strong>
+          </div>
         </div>
-      </div>
-      <div class="flex items-center gap-4 text-right">
-        <div>
-          <div class="text-[10px] text-muted uppercase">Customer Total</div>
-          <div class="text-lg font-bold font-mono text-foreground">${formatCurrency(order.total_retail_amount)}</div>
-        </div>
-        <div class="h-8 w-px bg-subtle"></div>
-        <div>
-          <div class="text-[10px] text-muted uppercase">Wholesale Cost</div>
-          <div class="text-lg font-bold font-mono text-muted">${formatCurrency(order.total_wholesale_cost)}</div>
+        <div class="saler-row text-right" style="gap: 16px;">
+          <div>
+            <div class="text-[10px] text-muted uppercase">Customer Total</div>
+            <div class="text-lg font-bold font-mono text-foreground">${formatCurrency(order.total_retail_amount)}</div>
+          </div>
+          <div style="border-left: 1px solid var(--border-subtle); padding-left: 16px;">
+            <div class="text-[10px] text-muted uppercase">Supplier Payout</div>
+            <div class="text-lg font-bold font-mono text-muted">${formatCurrency(order.total_wholesale_cost)}</div>
+          </div>
         </div>
       </div>
     `;
@@ -130,36 +133,36 @@ export default function SalerOrderDetailPage(root, { params, navigate } = {}) {
 
     // 3. Grid: Left (Items & Breakdown) + Right (Buyer Info & Courier Timeline)
     const grid = document.createElement('div');
-    grid.className = 'grid grid-cols-1 lg:grid-cols-12 gap-6';
+    grid.className = 'saler-two-col';
 
     // Left Column: Items (7 Cols)
     const leftCol = document.createElement('div');
-    leftCol.className = 'lg:col-span-7 space-y-6';
+    leftCol.className = 'saler-stack';
 
     const itemsCard = document.createElement('div');
-    itemsCard.className = 'saler-kpi-card space-y-4';
+    itemsCard.className = 'saler-card';
     itemsCard.innerHTML = `
-      <div class="border-b border-subtle pb-3">
-        <h3 class="font-bold text-sm text-foreground flex items-center gap-2">
+      <div class="saler-card__header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+        <h3 class="saler-card__title">
           🛍️ ${t('saler_orders.detail_items_title')}
         </h3>
       </div>
-      <div class="space-y-3">
+      <div class="saler-stack--sm">
         ${(order.items || []).map((item) => `
-          <div class="flex items-center justify-between p-3 rounded-xl border border-subtle bg-surface-1">
-            <div class="flex items-center gap-3">
-              <img src="${item.image_url || '/placeholder-product.png'}" alt="${item.title_en}" class="w-14 h-14 rounded-lg object-cover border border-subtle" />
+          <div class="saler-row--between p-3 rounded-xl border border-subtle bg-surface-1">
+            <div class="saler-row" style="gap: 12px;">
+              <img src="${item.image_url || '/placeholder-product.png'}" alt="${item.title_en}" style="width: 56px; height: 56px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-subtle);" />
               <div>
-                <div class="font-bold text-sm text-foreground">${isBn ? (item.title_bn || item.title_en) : item.title_en}</div>
+                <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${isBn ? (item.title_bn || item.title_en) : item.title_en}</div>
                 <div class="text-xs text-muted">Quantity: ${item.qty}</div>
                 <div class="text-xs font-mono mt-1 text-muted">
                   Wholesale Base: ৳${item.wholesale_price} → Your Selling Price: ৳${item.retail_price}
                 </div>
               </div>
             </div>
-            <div class="text-right">
-              <div class="text-base font-black font-mono text-emerald-600">+${formatCurrency(item.saler_profit)}</div>
-              <div class="text-[10px] text-muted uppercase">Net Profit</div>
+            <div style="text-align: right;">
+              <div style="font-size: 16px; font-weight: 800; font-family: var(--font-mono); color: var(--success-600, #16a34a);">+${formatCurrency(item.saler_profit)}</div>
+              <div class="text-xs text-muted" style="text-transform: uppercase;">Net Profit</div>
             </div>
           </div>
         `).join('')}
@@ -170,30 +173,30 @@ export default function SalerOrderDetailPage(root, { params, navigate } = {}) {
 
     // Right Column: Buyer Info & Timeline (5 Cols)
     const rightCol = document.createElement('div');
-    rightCol.className = 'lg:col-span-5 space-y-6';
+    rightCol.className = 'saler-stack';
 
     const buyerCard = document.createElement('div');
-    buyerCard.className = 'saler-kpi-card space-y-3';
+    buyerCard.className = 'saler-card';
     buyerCard.innerHTML = `
-      <div class="border-b border-subtle pb-2">
-        <h3 class="font-bold text-sm text-foreground">👤 Customer & Shipping Details</h3>
+      <div class="saler-card__header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px;">
+        <h3 class="saler-card__title">👤 Customer & Shipping Details</h3>
       </div>
-      <div class="space-y-2 text-xs">
+      <div class="saler-stack--xs text-xs">
         <div>
           <span class="text-muted font-bold uppercase text-[10px]">Name:</span>
-          <div class="font-bold text-sm text-foreground">${order.customer_name}</div>
+          <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${order.customer_name}</div>
         </div>
         <div>
           <span class="text-muted font-bold uppercase text-[10px]">Phone Number:</span>
-          <div class="font-mono text-primary font-bold">${order.customer_phone}</div>
+          <div class="font-mono text-primary" style="font-weight: 700;">${order.customer_phone}</div>
         </div>
         <div>
           <span class="text-muted font-bold uppercase text-[10px]">Delivery Address:</span>
-          <div class="text-foreground">${order.shipping_address} (${order.district})</div>
+          <div style="color: var(--text-primary);">${order.shipping_address} (${order.district})</div>
         </div>
-        <div class="pt-2 border-t border-subtle">
+        <div class="pt-2" style="border-top: 1px solid var(--border-subtle);">
           <span class="text-muted font-bold uppercase text-[10px]">Courier Tracking:</span>
-          <div class="font-bold text-foreground">${order.courier_name}</div>
+          <div style="font-weight: 700; color: var(--text-primary);">${order.courier_name}</div>
           <div class="font-mono text-muted">${order.tracking_number}</div>
         </div>
       </div>
@@ -202,12 +205,12 @@ export default function SalerOrderDetailPage(root, { params, navigate } = {}) {
 
     // Timeline Card
     const timelineCard = document.createElement('div');
-    timelineCard.className = 'saler-kpi-card space-y-3';
+    timelineCard.className = 'saler-card';
     timelineCard.innerHTML = `
       <div class="border-b border-subtle pb-2">
         <h3 class="font-bold text-sm text-foreground">🚚 ${t('saler_orders.detail_timeline_title')}</h3>
       </div>
-      <div class="space-y-3 text-xs pl-2 border-l-2 border-primary/30">
+      <div class="saler-stack--sm text-xs pl-2" style="border-left: 2px solid var(--primary-300, #93c5fd);">
         <div class="relative pl-4">
           <div class="absolute -left-[9px] top-1 w-2.5 h-2.5 rounded-full bg-primary"></div>
           <div class="font-bold text-foreground">${t('saler_orders.timeline_placed')}</div>

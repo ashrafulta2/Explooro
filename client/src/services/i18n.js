@@ -112,7 +112,7 @@ export function t(key, paramsOrDefault, maybeParams) {
   let value = resolve(dictionaries[currentLang], key, params);
 
   if (value === undefined) {
-    if (import.meta.env.DEV) {
+    if (import.meta.env?.DEV) {
       // eslint-disable-next-line no-console
       console.warn(`[i18n] missing key "${key}" for locale "${currentLang}"`);
     }

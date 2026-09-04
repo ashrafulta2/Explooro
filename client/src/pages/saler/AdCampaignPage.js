@@ -68,99 +68,133 @@ export class AdCampaignPage {
       : this.campaigns.filter(c => c.status === this.activeFilter);
 
     this.rootEl.innerHTML = `
-      <div class="ads-page-container">
+      <div class="saler-page-container">
         <!-- Header -->
-        <div class="page-header flex justify-between items-center mb-6">
-          <div>
-            <h1 class="page-title text-2xl font-bold text-gray-900 dark:text-white">
-              ${isBn ? 'স্পন্সর্ড বিজ্ঞাপন ক্যাম্পেইন' : 'Sponsored Ad Campaigns'}
+        <div class="saler-header-row">
+          <div class="saler-header-row__titles">
+            <div class="saler-header-row__breadcrumb">
+              <a href="/saler" class="hover:text-primary transition-colors">← ${isBn ? 'ড্যাশবোর্ড' : 'Dashboard'}</a>
+              <span>/</span>
+              <span class="font-bold text-primary">${isBn ? 'বিজ্ঞাপন ক্যাম্পেইন' : 'Ad Campaigns'}</span>
+            </div>
+            <h1 class="saler-header-row__title">
+              <span>📢</span>
+              <span>${isBn ? 'স্পন্সর্ড বিজ্ঞাপন ক্যাম্পেইন' : 'Sponsored Ad Campaigns'}</span>
             </h1>
-            <p class="page-subtitle text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p class="saler-header-row__subtitle">
               ${isBn ? 'সার্চ, ক্যাটেগরি ব্যানার ও ফিডে আপনার পণ্য প্রচার করে বিক্রি বাড়ান' : 'Boost your products across search results, category banners, and feed'}
             </p>
           </div>
-          <div>
-            <button id="btn-create-campaign" class="btn btn-primary">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-1">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              ${isBn ? 'নতুন ক্যাম্পেইন তৈরি করুন' : 'Create Campaign'}
+          <div class="saler-header-row__actions">
+            <button id="btn-create-campaign" class="btn btn--primary font-bold">
+              + ${isBn ? 'নতুন ক্যাম্পেইন তৈরি করুন' : 'Create Campaign'}
             </button>
           </div>
         </div>
 
         <!-- KPI Metrics Grid -->
-        <div class="metrics-grid grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-          <div class="metric-card p-4 rounded-lg bg-surface border border-border">
-            <span class="text-xs font-semibold text-muted uppercase tracking-wider">${isBn ? 'সক্রিয় ক্যাম্পেইন' : 'Active Ads'}</span>
-            <div class="text-2xl font-bold text-primary mt-1">${activeCount}</div>
+        <div class="saler-kpi-grid">
+          <div class="saler-kpi-card">
+            <div class="saler-kpi-card__header">
+              <span>${isBn ? 'সক্রিয় ক্যাম্পেইন' : 'Active Ads'}</span>
+              <span>🟢</span>
+            </div>
+            <div class="saler-kpi-card__value saler-kpi-card__value--profit">
+              ${activeCount}
+            </div>
+            <div class="saler-kpi-card__subtext">${isBn ? 'বর্তমানে সক্রিয় বিজ্ঞাপন' : 'Running right now'}</div>
           </div>
-          <div class="metric-card p-4 rounded-lg bg-surface border border-border">
-            <span class="text-xs font-semibold text-muted uppercase tracking-wider">${isBn ? 'মোট ইমপ্রেশন' : 'Impressions'}</span>
-            <div class="text-2xl font-bold mt-1">${totalImpressions.toLocaleString('en-US')}</div>
+
+          <div class="saler-kpi-card">
+            <div class="saler-kpi-card__header">
+              <span>${isBn ? 'মোট ইমপ্রেশন' : 'Impressions'}</span>
+              <span>👁️</span>
+            </div>
+            <div class="saler-kpi-card__value">
+              ${totalImpressions.toLocaleString('en-US')}
+            </div>
+            <div class="saler-kpi-card__subtext">${isBn ? 'মোট ভিউয়ার রিচ' : 'Storefront shoppers reach'}</div>
           </div>
-          <div class="metric-card p-4 rounded-lg bg-surface border border-border">
-            <span class="text-xs font-semibold text-muted uppercase tracking-wider">${isBn ? 'মোট ক্লিক' : 'Clicks'}</span>
-            <div class="text-2xl font-bold mt-1">${totalClicks.toLocaleString('en-US')}</div>
+
+          <div class="saler-kpi-card">
+            <div class="saler-kpi-card__header">
+              <span>${isBn ? 'মোট ক্লিক' : 'Clicks'}</span>
+              <span>🖱️</span>
+            </div>
+            <div class="saler-kpi-card__value">
+              ${totalClicks.toLocaleString('en-US')}
+            </div>
+            <div class="saler-kpi-card__subtext">${isBn ? 'সরাসরি প্রোডাক্ট ভিজিট' : 'Direct product visits'}</div>
           </div>
-          <div class="metric-card p-4 rounded-lg bg-surface border border-border">
-            <span class="text-xs font-semibold text-muted uppercase tracking-wider">${isBn ? 'গড় সিটিআর (CTR)' : 'Avg. CTR'}</span>
-            <div class="text-2xl font-bold text-accent mt-1">${overallCtr}%</div>
+
+          <div class="saler-kpi-card">
+            <div class="saler-kpi-card__header">
+              <span>${isBn ? 'গড় সিটিআর (CTR)' : 'Avg. CTR'}</span>
+              <span>🎯</span>
+            </div>
+            <div class="saler-kpi-card__value" style="color: var(--brand-700, #b48300);">
+              ${overallCtr}%
+            </div>
+            <div class="saler-kpi-card__subtext">${isBn ? 'ক্লিক-থ্রু অনুপাত' : 'Click-to-impression ratio'}</div>
           </div>
-          <div class="metric-card p-4 rounded-lg bg-surface border border-border col-span-2 md:col-span-1">
-            <span class="text-xs font-semibold text-muted uppercase tracking-wider">${isBn ? 'মোট খরচ' : 'Total Spend'}</span>
-            <div class="text-2xl font-bold text-danger mt-1">৳${totalSpend.toFixed(2)}</div>
+
+          <div class="saler-kpi-card">
+            <div class="saler-kpi-card__header">
+              <span>${isBn ? 'মোট খরচ' : 'Total Spend'}</span>
+              <span>💸</span>
+            </div>
+            <div class="saler-kpi-card__value" style="color: var(--danger-600, #dc2626);">
+              ৳${totalSpend.toFixed(2)}
+            </div>
+            <div class="saler-kpi-card__subtext">${isBn ? 'বিজ্ঞাপনে মোট ব্যয়' : 'Billed from vault balance'}</div>
           </div>
         </div>
 
         <!-- Filters & Table Section -->
-        <div class="card p-5 bg-surface border border-border rounded-xl">
-          <div class="flex justify-between items-center border-b border-border pb-4 mb-4">
-            <div class="flex gap-2 filter-tabs">
-              ${['ALL', 'ACTIVE', 'PENDING_REVIEW', 'PAUSED', 'COMPLETED'].map(statusKey => `
-                <button
-                  class="btn btn-sm ${this.activeFilter === statusKey ? 'btn-primary' : 'btn-ghost'}"
-                  data-filter="${statusKey}">
-                  ${this._formatFilterLabel(statusKey, isBn)}
-                </button>
-              `).join('')}
-            </div>
-            <button id="btn-refresh" class="btn btn-sm btn-outline">
-              🔄 ${isBn ? 'রিফ্রেশ' : 'Refresh'}
-            </button>
+        <div class="saler-toolbar">
+          <div class="saler-toolbar__filters">
+            ${['ALL', 'ACTIVE', 'PENDING_REVIEW', 'PAUSED', 'COMPLETED'].map(statusKey => `
+              <button
+                class="btn btn--xs ${this.activeFilter === statusKey ? 'btn--primary font-bold' : 'btn--neutral'}"
+                data-filter="${statusKey}">
+                ${this._formatFilterLabel(statusKey, isBn)}
+              </button>
+            `).join('')}
           </div>
-
-          <!-- Campaigns Table -->
-          ${this.loading ? `
-            <div class="p-8 text-center text-muted">${isBn ? 'লোড হচ্ছে…' : 'Loading campaigns…'}</div>
-          ` : filteredCampaigns.length === 0 ? `
-            <div class="empty-state p-8 text-center">
-              <div class="text-4xl mb-3">📢</div>
-              <h3 class="text-lg font-semibold">${isBn ? 'কোনো ক্যাম্পেইন পাওয়া যায়নি' : 'No ad campaigns found'}</h3>
-              <p class="text-sm text-muted mt-1">${isBn ? 'নতুন প্রচার শুরু করতে উপরে "নতুন ক্যাম্পেইন তৈরি করুন" বাটনে চাপুন।' : 'Create your first campaign to boost product reach.'}</p>
-            </div>
-          ` : `
-            <div class="table-responsive overflow-x-auto">
-              <table class="table w-full text-left">
-                <thead>
-                  <tr class="border-b border-border text-xs uppercase text-muted">
-                    <th class="py-3 px-4">${isBn ? 'ক্যাম্পেইন' : 'Campaign'}</th>
-                    <th class="py-3 px-4">${isBn ? 'প্লেসমেন্ট' : 'Placement'}</th>
-                    <th class="py-3 px-4">${isBn ? 'অবস্থা' : 'Status'}</th>
-                    <th class="py-3 px-4">${isBn ? 'বাজেট ও খরচ' : 'Budget & Spend'}</th>
-                    <th class="py-3 px-4">${isBn ? 'সিপিসি বিড' : 'Max Bid'}</th>
-                    <th class="py-3 px-4">${isBn ? 'ফলাফল (Imp/Click)' : 'Results'}</th>
-                    <th class="py-3 px-4 text-right">${isBn ? 'অ্যাকশন' : 'Action'}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${filteredCampaigns.map(c => this._renderCampaignRow(c, isBn)).join('')}
-                </tbody>
-              </table>
-            </div>
-          `}
+          <button id="btn-refresh" class="btn btn--secondary btn--xs font-bold">
+            🔄 ${isBn ? 'রিফ্রেশ' : 'Refresh'}
+          </button>
         </div>
+
+        <!-- Campaigns Table -->
+        ${this.loading ? `
+          <div class="saler-card text-center p-8 text-muted">${isBn ? 'লোড হচ্ছে…' : 'Loading campaigns…'}</div>
+        ` : filteredCampaigns.length === 0 ? `
+          <div class="saler-card text-center p-8">
+            <div class="text-4xl mb-3">📢</div>
+            <h3 class="saler-card__title justify-center">${isBn ? 'কোনো ক্যাম্পেইন পাওয়া যায়নি' : 'No ad campaigns found'}</h3>
+            <p class="saler-card__subtitle mt-1">${isBn ? 'নতুন প্রচার শুরু করতে উপরে "নতুন ক্যাম্পেইন তৈরি করুন" বাটনে চাপুন।' : 'Create your first campaign to boost product reach.'}</p>
+          </div>
+        ` : `
+          <div class="saler-table-wrap">
+            <table class="saler-table">
+              <thead>
+                <tr>
+                  <th>${isBn ? 'ক্যাম্পেইন' : 'Campaign'}</th>
+                  <th>${isBn ? 'প্লেসমেন্ট' : 'Placement'}</th>
+                  <th>${isBn ? 'অবস্থা' : 'Status'}</th>
+                  <th>${isBn ? 'বাজেট ও খরচ' : 'Budget & Spend'}</th>
+                  <th>${isBn ? 'সিপিসি বিড' : 'Max Bid'}</th>
+                  <th>${isBn ? 'ফলাফল (Imp/Click)' : 'Results'}</th>
+                  <th style="text-align: right;">${isBn ? 'অ্যাকশন' : 'Action'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredCampaigns.map(c => this._renderCampaignRow(c, isBn)).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
       </div>
     `;
 
@@ -310,32 +344,33 @@ export class AdCampaignPage {
     const isBn = getLanguage() === 'bn';
 
     const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto';
+    modalBackdrop.className = 'modal-backdrop';
+    modalBackdrop.style.cssText = 'position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto;';
 
     modalBackdrop.innerHTML = `
-      <div class="modal-dialog bg-surface border border-border rounded-xl max-w-2xl w-full p-6 my-8 shadow-2xl">
-        <div class="flex justify-between items-center border-b border-border pb-3 mb-4">
-          <h2 class="text-xl font-bold">${isBn ? 'নতুন বিজ্ঞাপন ক্যাম্পেইন তৈরি করুন' : 'Create New Ad Campaign'}</h2>
-          <button type="button" class="btn-close text-muted hover:text-white text-xl font-bold">×</button>
+      <div class="saler-card saler-stack" style="max-width: 680px; width: 100%; margin: auto; padding: 1.5rem; max-height: 90vh; overflow-y: auto;">
+        <div class="saler-row saler-row--between" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; margin-bottom: 0.5rem;">
+          <h2 class="saler-card__title" style="font-size: 1.25rem;">${isBn ? 'নতুন বিজ্ঞাপন ক্যাম্পেইন তৈরি করুন' : 'Create New Ad Campaign'}</h2>
+          <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; line-height: 1;">×</button>
         </div>
 
-        <form id="form-create-ad" class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-muted uppercase mb-1">${isBn ? 'ক্যাম্পেইনের নাম' : 'Campaign Title'} *</label>
+        <form id="form-create-ad" class="saler-stack">
+          <div class="saler-stack--xs">
+            <label class="saler-stat-card__label">${isBn ? 'ক্যাম্পেইনের নাম' : 'Campaign Title'} *</label>
             <input type="text" name="title" required placeholder="${isBn ? 'যেমন: ঈদ স্পেশাল জামদানি অফার' : 'e.g. Eid Handloom Jamdani Promotion'}" class="input w-full" />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-muted uppercase mb-1">${isBn ? 'উদ্দেশ্য' : 'Objective'}</label>
+          <div class="saler-two-col--equal">
+            <div class="saler-stack--xs">
+              <label class="saler-stat-card__label">${isBn ? 'উদ্দেশ্য' : 'Objective'}</label>
               <select name="objective" class="select w-full">
                 <option value="TRAFFIC">${isBn ? 'ট্রাফিক বৃদ্ধি (Traffic)' : 'Drive Traffic'}</option>
                 <option value="SALES">${isBn ? 'বিক্রি বৃদ্ধি (Sales)' : 'Increase Sales'}</option>
                 <option value="AWARENESS">${isBn ? 'ব্র্যান্ড পরিচিতি (Awareness)' : 'Brand Awareness'}</option>
               </select>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-muted uppercase mb-1">${isBn ? 'প্লেসমেন্ট' : 'Placement'}</label>
+            <div class="saler-stack--xs">
+              <label class="saler-stat-card__label">${isBn ? 'প্লেসমেন্ট' : 'Placement'}</label>
               <select name="placement" class="select w-full">
                 <option value="SEARCH_RESULTS">${isBn ? 'সার্চ ফলাফল (Search Results)' : 'Search Results'}</option>
                 <option value="CATEGORY_BANNER">${isBn ? 'ক্যাটেগরি ব্যানার (Category Banner)' : 'Category Banner'}</option>
@@ -345,48 +380,48 @@ export class AdCampaignPage {
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <label class="block text-xs font-semibold text-muted uppercase mb-1">${isBn ? 'দৈনিক বাজেট (৳)' : 'Daily Budget (৳)'} *</label>
+          <div class="saler-three-col">
+            <div class="saler-stack--xs">
+              <label class="saler-stat-card__label">${isBn ? 'দৈনিক বাজেট (৳)' : 'Daily Budget (৳)'} *</label>
               <input type="number" name="daily_budget" min="10" step="10" value="50" required class="input w-full font-mono" />
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-muted uppercase mb-1">${isBn ? 'মোট বাজেট (৳)' : 'Total Budget (৳)'} *</label>
+            <div class="saler-stack--xs">
+              <label class="saler-stat-card__label">${isBn ? 'মোট বাজেট (৳)' : 'Total Budget (৳)'} *</label>
               <input type="number" name="total_budget" min="50" step="50" value="500" required class="input w-full font-mono" />
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-muted uppercase mb-1">${isBn ? 'সর্বোচ্চ সিপিসি বিড (৳)' : 'Max CPC Bid (৳)'} *</label>
+            <div class="saler-stack--xs">
+              <label class="saler-stat-card__label">${isBn ? 'সর্বোচ্চ সিপিসি বিড (৳)' : 'Max CPC Bid (৳)'} *</label>
               <input type="number" name="bid_amount" min="1" step="0.5" value="2.50" required class="input w-full font-mono" />
             </div>
           </div>
 
           <!-- Targeting -->
-          <div class="p-4 bg-muted/10 rounded-lg border border-border space-y-3">
-            <h4 class="text-xs font-bold uppercase text-primary">${isBn ? 'টার্গেটিং (Targeting)' : 'Targeting'}</h4>
-            <div>
-              <label class="block text-xs text-muted mb-1">${isBn ? 'টার্গেটেড কিওয়ার্ডসমূহ (কমা দিয়ে আলাদা করুন)' : 'Target Keywords (comma-separated)'}</label>
+          <div class="saler-card saler-stack--xs" style="background: var(--surface-2); padding: 1rem; border: 1px solid var(--border-subtle);">
+            <h4 class="saler-stat-card__label" style="color: var(--brand); font-weight: 700;">${isBn ? 'টার্গেটিং (Targeting)' : 'Targeting'}</h4>
+            <div class="saler-stack--xs">
+              <label class="saler-card__subtitle">${isBn ? 'টার্গেটেড কিওয়ার্ডসমূহ (কমা দিয়ে আলাদা করুন)' : 'Target Keywords (comma-separated)'}</label>
               <input type="text" name="keywords" placeholder="${isBn ? 'শাড়ি, জামদানি, পোশাক, লাল' : 'saree, jamdani, clothing, red'}" class="input w-full" />
             </div>
           </div>
 
           <!-- Creative Builder -->
-          <div class="p-4 bg-muted/10 rounded-lg border border-border space-y-3">
-            <h4 class="text-xs font-bold uppercase text-primary">${isBn ? 'ক্রিয়েটিভ ও ব্যানার' : 'Creative & Content'}</h4>
-            <div>
-              <label class="block text-xs text-muted mb-1">${isBn ? 'বিজ্ঞাপনের হেডলাইন' : 'Ad Headline'} *</label>
+          <div class="saler-card saler-stack" style="background: var(--surface-2); padding: 1rem; border: 1px solid var(--border-subtle);">
+            <h4 class="saler-stat-card__label" style="color: var(--brand); font-weight: 700;">${isBn ? 'ক্রিয়েটিভ ও ব্যানার' : 'Creative & Content'}</h4>
+            <div class="saler-stack--xs">
+              <label class="saler-card__subtitle">${isBn ? 'বিজ্ঞাপনের হেডলাইন' : 'Ad Headline'} *</label>
               <input type="text" name="headline" required placeholder="${isBn ? 'খাঁটি তাঁতের ঢাকাই জামদানি — বিশেষ ২০% ছাড়' : 'Authentic Handloom Jamdani — 20% Off'}" class="input w-full" />
             </div>
-            <div>
-              <label class="block text-xs text-muted mb-1">${isBn ? 'বিবরণ' : 'Description'}</label>
-              <textarea name="description" rows="2" placeholder="${isBn ? 'সীমিত সময়ের সেরা ঐতিহ্যবাহী পোশাক কালেকশন' : 'Premium hand-woven collection ready for fast delivery'}" class="textarea w-full"></textarea>
+            <div class="saler-stack--xs">
+              <label class="saler-card__subtitle">${isBn ? 'বিবরণ' : 'Description'}</label>
+              <textarea name="description" rows="2" placeholder="${isBn ? 'সীমিত সময়ের সেরা ঐতিহ্যবাহী পোশাক কালেকশন' : 'Premium hand-woven collection ready for fast delivery'}" class="input w-full" style="height: auto; resize: vertical;"></textarea>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs text-muted mb-1">${isBn ? 'ব্যানার ছবির লিংক (ঐচ্ছিক)' : 'Banner Image URL'}</label>
+            <div class="saler-two-col--equal">
+              <div class="saler-stack--xs">
+                <label class="saler-card__subtitle">${isBn ? 'ব্যানার ছবির লিংক (ঐচ্ছিক)' : 'Banner Image URL'}</label>
                 <input type="url" name="banner_image_url" placeholder="https://..." class="input w-full" />
               </div>
-              <div>
-                <label class="block text-xs text-muted mb-1">${isBn ? 'কল-টু-অ্যাকশন (CTA)' : 'Call To Action'}</label>
+              <div class="saler-stack--xs">
+                <label class="saler-card__subtitle">${isBn ? 'কল-টু-অ্যাকশন (CTA)' : 'Call To Action'}</label>
                 <select name="call_to_action" class="select w-full">
                   <option value="SHOP_NOW">${isBn ? 'এখনই কিনুন (Shop Now)' : 'Shop Now'}</option>
                   <option value="LEARN_MORE">${isBn ? 'বিস্তারিত দেখুন (Learn More)' : 'Learn More'}</option>
@@ -396,9 +431,9 @@ export class AdCampaignPage {
             </div>
           </div>
 
-          <div class="flex justify-end gap-3 pt-4 border-t border-border">
+          <div class="saler-row saler-row--between" style="justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
             <button type="button" class="btn btn-outline btn-cancel">${isBn ? 'বাতিল' : 'Cancel'}</button>
-            <button type="submit" class="btn btn-primary">${isBn ? 'ক্যাম্পেইন প্রকাশ করুন' : 'Publish Campaign'}</button>
+            <button type="submit" class="btn btn-primary font-bold">${isBn ? 'ক্যাম্পেইন প্রকাশ করুন' : 'Publish Campaign'}</button>
           </div>
         </form>
       </div>

@@ -32,9 +32,9 @@ export function PriceBreakdown({ retailPrice, pricing = null, role = 'customer',
   retailRow.textContent = formatCurrency(retailPrice, { lang });
   root.append(retailRow);
 
-  // WHY: identical gate to ProductCard.js's margin badge — Salers only, and only when the
-  // `sourcing` module is on. Showing platform economics to a Customer would be a real leak.
-  if (role !== 'saler' || !modules.sourcing || !pricing) {
+  const isAdmin = role === 'admin' || role === 'super_admin';
+  const canViewMargins = (role === 'saler' || isAdmin) && modules.sourcing && pricing;
+  if (!canViewMargins) {
     return root;
   }
 
@@ -51,17 +51,23 @@ export function PriceBreakdown({ retailPrice, pricing = null, role = 'customer',
     row('product_detail.price.base_cost', pricing.base_cost, lang),
     row('product_detail.price.wholesale_margin', pricing.wholesale_margin, lang),
     row('product_detail.price.net_retail_margin', pricing.net_retail_margin, lang),
-    row('product_detail.price.your_earning', pricing.saler_earning, lang, { emphasize: true }),
-    row('product_detail.price.platform_earning', pricing.platform_earning, lang)
+    row('product_detail.price.your_earning', pricing.saler_earning, lang, { emphasize: true })
   );
 
-  const splitNote = document.createElement('p');
-  splitNote.className = 'price-breakdown__split-note';
-  splitNote.textContent = t('product_detail.price.split_note', {
-    saler_pct: pricing.saler_split_pct,
-    platform_pct: pricing.platform_split_pct,
-  });
-  details.append(splitNote);
+  // Platform profit and split percentages are strictly restricted to Super Admin / Admin
+  if (isAdmin) {
+    details.append(
+      row('product_detail.price.platform_earning', pricing.platform_earning, lang)
+    );
+
+    const splitNote = document.createElement('p');
+    splitNote.className = 'price-breakdown__split-note';
+    splitNote.textContent = t('product_detail.price.split_note', {
+      saler_pct: pricing.saler_split_pct,
+      platform_pct: pricing.platform_split_pct,
+    });
+    details.append(splitNote);
+  }
 
   root.append(details);
   return root;

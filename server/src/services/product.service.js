@@ -379,3 +379,73 @@ async function calculateProductPricing(db, product) {
     ruleSource,
   });
 }
+
+/**
+ * Fallback low-stock threshold, used only when a product carries no low_stock_threshold of its own
+ * AND the platform has no `catalog.low_stock_threshold` setting. Ten matches the figure the admin
+ * catalog UI has always shown in its "Low Stock" label and filter.
+ */
+const FALLBACK_LOW_STOCK_THRESHOLD = 10;
+
+/**
+ * Resolves the catalog-wide low-stock threshold: platform_settings wins, the constant above is the
+ * bootstrap default. Same read-with-fallback shape as getSurgeConfig() in surgePricing.service.js.
+ */
+export async function resolveLowStockThreshold(db) {
+  try {
+    const { rows } = await db.query(
+      `SELECT value_json FROM platform_settings WHERE key = 'catalog.low_stock_threshold'`
+    );
+    if (rows.length > 0 && rows[0].value_json !== null && rows[0].value_json !== undefined) {
+      const raw = rows[0].value_json;
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      const value = Number(typeof parsed === 'object' ? parsed.threshold : parsed);
+      if (Number.isFinite(value) && value > 0) return Math.floor(value);
+    }
+  } catch {
+    // Setting unreadable (missing table on a partial dev DB, malformed JSON) — the KPI is still
+    // worth rendering with the default rather than failing the whole dashboard.
+  }
+  return FALLBACK_LOW_STOCK_THRESHOLD;
+}
+
+/**
+ * Assembles the Super Admin catalog KPI payload.
+ *
+ * Every COUNT is cast to int4 in SQL so node-postgres hands back numbers; the money column is
+ * NUMERIC and therefore arrives as a string, so it is the one field that needs coercing here.
+ */
+export async function getCatalogStats(db, { status = 'ACTIVE' } = {}) {
+  const lowStockThreshold = await resolveLowStockThreshold(db);
+
+  const [row, breakdown] = await Promise.all([
+    productRepo.getCatalogStats(db, { status, lowStockThreshold }),
+    productRepo.getCatalogCategoryBreakdown(db, { status }),
+  ]);
+
+  const counts = row || {};
+  const toInt = (value) => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const categoriesBreakdown = {};
+  for (const entry of breakdown || []) {
+    categoriesBreakdown[entry.category_name_en] = toInt(entry.product_count);
+  }
+
+  return {
+    total_products: toInt(counts.total_products),
+    in_stock_count: toInt(counts.in_stock_count),
+    low_stock_count: toInt(counts.low_stock_count),
+    out_of_stock_count: toInt(counts.out_of_stock_count),
+    flash_sale_count: toInt(counts.flash_sale_count),
+    total_suppliers: toInt(counts.total_suppliers),
+    verified_suppliers_count: toInt(counts.verified_suppliers_count),
+    total_categories: toInt(counts.total_categories),
+    total_potential_inventory_value: Math.round(toInt(counts.total_potential_inventory_value)),
+    categories_breakdown: categoriesBreakdown,
+    low_stock_threshold: lowStockThreshold,
+    status_scope: status,
+  };
+}

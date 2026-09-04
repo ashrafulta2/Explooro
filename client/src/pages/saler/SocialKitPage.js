@@ -115,7 +115,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
 
     // Product Selector
     const productSelectWrap = document.createElement('div');
-    productSelectWrap.className = 'space-y-1.5';
+    productSelectWrap.className = 'saler-stack--xs';
     productSelectWrap.innerHTML = `
       <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.select_product')}</label>
       <select id="select-product" class="select select--sm w-full">
@@ -136,10 +136,10 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
 
     // Format Selector
     const formatWrap = document.createElement('div');
-    formatWrap.className = 'space-y-1.5';
+    formatWrap.className = 'saler-stack--xs';
     formatWrap.innerHTML = `
       <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.format_title')}</label>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div class="saler-method-grid">
         <button class="btn btn--xs ${format === 'SQUARE' ? 'btn--primary' : 'btn--neutral'} font-bold btn-format" data-fmt="SQUARE">
           ${t('social_kit.format_square')}
         </button>
@@ -164,10 +164,10 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
 
     // Theme Style Selector
     const themeWrap = document.createElement('div');
-    themeWrap.className = 'space-y-1.5';
+    themeWrap.className = 'saler-stack--xs';
     themeWrap.innerHTML = `
       <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.theme_title')}</label>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div class="saler-method-grid">
         <button class="btn btn--xs ${theme === 'DARK' ? 'btn--primary' : 'btn--neutral'} font-bold btn-theme" data-thm="DARK">
           ${t('social_kit.theme_dark')}
         </button>
@@ -192,10 +192,10 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
 
     // Promo Badge Picker
     const promoWrap = document.createElement('div');
-    promoWrap.className = 'space-y-1.5';
+    promoWrap.className = 'saler-stack--xs';
     promoWrap.innerHTML = `
       <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.badge_picker_title')}</label>
-      <div class="flex flex-wrap gap-2">
+      <div class="saler-row" style="gap: 8px;">
         ${[
           ['FLASH_SALE', t('social_kit.badge_flash_sale')],
           ['FREE_DELIVERY', t('social_kit.badge_free_delivery')],
@@ -219,20 +219,21 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
 
     // Tracked Shortlink Box
     const linkWrap = document.createElement('div');
-    linkWrap.className = 'p-3.5 bg-surface-1 border border-subtle rounded-xl space-y-2';
+    linkWrap.className = 'p-3.5 bg-surface-1 border border-subtle rounded-xl saler-stack--xs';
     linkWrap.innerHTML = `
-      <div class="flex justify-between items-center text-xs">
+      <div class="saler-row--between text-xs">
         <span class="font-bold text-muted uppercase">${t('social_kit.link_box_title')}</span>
-        <span class="badge badge--primary text-[10px] font-mono">${shortLink?.code || 'exp-7'}</span>
+        <span class="badge badge--primary text-[10px] font-mono font-bold">${shortLink?.code || 'exp-7'}</span>
       </div>
-      <div class="flex gap-2">
+      <div class="saler-row" style="gap: 8px;">
         <input
           type="text"
           readonly
           value="${shortLink?.full_url || `${window.location.origin}/s/exp-7`}"
-          class="input input--xs font-mono w-full text-foreground bg-surface-0 select-all"
+          class="input input--xs font-mono w-full select-all"
+          style="flex: 1;"
         />
-        <button id="btn-copy-link" class="btn btn--xs btn--primary shrink-0">
+        <button id="btn-copy-link" class="btn btn--xs btn--primary shrink-0 font-bold">
           📋 ${t('social_kit.btn_copy_link')}
         </button>
       </div>
@@ -245,10 +246,10 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
 
     // Instant Share Buttons
     const shareWrap = document.createElement('div');
-    shareWrap.className = 'space-y-2 pt-2 border-t border-subtle';
+    shareWrap.className = 'saler-stack--xs pt-2 border-t border-subtle';
     shareWrap.innerHTML = `
       <label class="block text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.instant_share_title')}</label>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div class="saler-two-col--equal">
         <a
           href="https://api.whatsapp.com/send?text=${encodeURIComponent((isBn ? 'এক্সপ্লোরোতে এই অফারটি দেখুন: ' : 'Check out this special offer on Explooro: ') + (shortLink?.full_url || ''))}"
           target="_blank"

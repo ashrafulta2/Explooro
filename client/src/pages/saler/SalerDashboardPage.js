@@ -35,7 +35,7 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'saler-dashboard-page container mx-auto p-4 md:p-6 space-y-6 max-w-7xl';
+  container.className = 'saler-page-container';
 
   let currentMode = 'pro';
   try {
@@ -47,36 +47,34 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
 
   // Header & Mode Toggle
   const header = document.createElement('div');
-  header.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-subtle pb-5';
+  header.className = 'saler-dashboard-header';
 
   const titleBox = document.createElement('div');
   titleBox.innerHTML = `
-    <div class="flex items-center gap-2 mb-1">
-      <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">Saler Portal</span>
-      <span class="text-xs text-muted font-mono" id="store-slug-badge">...</span>
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+      <span class="badge badge--primary" style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Saler Portal</span>
+      <span class="font-mono text-muted" style="font-size: 11px;" id="store-slug-badge">...</span>
     </div>
-    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-foreground">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">
       ${t('saler.dashboard.title', 'Saler Commerce Command Center')}
     </h1>
-    <p class="text-xs md:text-sm text-muted mt-1">
+    <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
       ${t('saler.dashboard.subtitle', 'Dropship wholesale sourcing, AI creative tools, viral distribution & multi-channel selling.')}
     </p>
   `;
 
   const toggleBox = document.createElement('div');
-  toggleBox.className = 'flex items-center gap-2 bg-surface p-1 rounded-xl border border-subtle';
+  toggleBox.className = 'saler-mode-toggle';
 
   const simpleBtn = document.createElement('button');
-  simpleBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-    currentMode === 'simple' ? 'bg-primary text-white shadow-xs' : 'text-muted hover:text-foreground'
-  }`;
+  simpleBtn.type = 'button';
+  simpleBtn.className = currentMode === 'simple' ? 'saler-mode-btn active' : 'saler-mode-btn';
   simpleBtn.textContent = `⚡ ${t('saler.dashboard.mode_simple', 'Simple Mode')}`;
   simpleBtn.onclick = () => switchMode('simple');
 
   const proBtn = document.createElement('button');
-  proBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-    currentMode === 'pro' ? 'bg-primary text-white shadow-xs' : 'text-muted hover:text-foreground'
-  }`;
+  proBtn.type = 'button';
+  proBtn.className = currentMode === 'pro' ? 'saler-mode-btn active' : 'saler-mode-btn';
   proBtn.textContent = `🚀 ${t('saler.dashboard.mode_pro', 'Pro Dashboard')}`;
   proBtn.onclick = () => switchMode('pro');
 
@@ -86,7 +84,9 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
 
   // Dynamic Workspace View Slot
   const viewSlot = document.createElement('div');
-  viewSlot.className = 'space-y-6';
+  viewSlot.style.display = 'flex';
+  viewSlot.style.flexDirection = 'column';
+  viewSlot.style.gap = 'var(--space-6, 24px)';
   container.append(viewSlot);
   root.append(container);
 
@@ -96,12 +96,8 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
       localStorage.setItem(SALER_MODE_KEY, newMode);
     } catch {}
 
-    simpleBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-      currentMode === 'simple' ? 'bg-primary text-white shadow-xs' : 'text-muted hover:text-foreground'
-    }`;
-    proBtn.className = `px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-      currentMode === 'pro' ? 'bg-primary text-white shadow-xs' : 'text-muted hover:text-foreground'
-    }`;
+    simpleBtn.className = currentMode === 'simple' ? 'saler-mode-btn active' : 'saler-mode-btn';
+    proBtn.className = currentMode === 'pro' ? 'saler-mode-btn active' : 'saler-mode-btn';
 
     if (dashboardData) {
       renderContent();
@@ -125,7 +121,9 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
     } catch (err) {
       viewSlot.innerHTML = '';
       const errBox = document.createElement('div');
-      errBox.className = 'py-8 text-center text-danger';
+      errBox.style.padding = '32px';
+      errBox.style.textAlign = 'center';
+      errBox.style.color = 'var(--danger-500)';
       errBox.textContent = t('saler.dashboard.load_failed', 'Failed to load saler dashboard data.');
       viewSlot.append(errBox);
     }
@@ -153,29 +151,31 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
  */
 function renderSimpleMode(container, data, nav) {
   const wrap = document.createElement('div');
-  wrap.className = 'space-y-6';
+  wrap.style.display = 'flex';
+  wrap.style.flexDirection = 'column';
+  wrap.style.gap = 'var(--space-5, 20px)';
 
   // Welcome Header
   const welcome = document.createElement('div');
-  welcome.className = 'p-5 rounded-2xl bg-gradient-to-r from-primary/10 via-surface to-surface border border-primary/20 flex flex-col md:flex-row md:items-center justify-between gap-4';
+  welcome.className = 'saler-simple-welcome';
   welcome.innerHTML = `
     <div>
-      <h2 class="text-lg font-bold text-foreground">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: var(--text-primary);">
         ${t('saler.dashboard.simple_welcome', 'Simple Mode Active')}
       </h2>
-      <p class="text-xs text-muted mt-0.5">
+      <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
         ${t('saler.dashboard.simple_desc', 'Your 6 essential daily tasks organized with zero clutter.')}
       </p>
     </div>
-    <div class="flex items-center gap-3">
-      <div class="text-right">
-        <div class="text-[10px] text-muted font-mono uppercase">Today's Profit</div>
-        <div class="text-base font-extrabold text-emerald-600 font-mono">+${formatCurrency(data.metrics?.today_net_profit || 0)}</div>
+    <div class="saler-simple-stats">
+      <div class="saler-simple-stat">
+        <span class="saler-simple-stat-label">Today's Profit</span>
+        <span class="saler-simple-stat-val saler-simple-stat-val--profit">+${formatCurrency(data.metrics?.today_net_profit || 0)}</span>
       </div>
-      <div class="h-8 w-px bg-subtle"></div>
-      <div class="text-right">
-        <div class="text-[10px] text-muted font-mono uppercase">Vault Balance</div>
-        <div class="text-base font-extrabold text-foreground font-mono">${formatCurrency(data.metrics?.available_balance || 0)}</div>
+      <div style="width: 1px; height: 32px; background: var(--border-subtle);"></div>
+      <div class="saler-simple-stat">
+        <span class="saler-simple-stat-label">Vault Balance</span>
+        <span class="saler-simple-stat-val">${formatCurrency(data.metrics?.available_balance || 0)}</span>
       </div>
     </div>
   `;
@@ -183,7 +183,7 @@ function renderSimpleMode(container, data, nav) {
 
   // 6 Primary Simple Mode Cards
   const grid = document.createElement('div');
-  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
+  grid.className = 'saler-simple-grid';
 
   const simpleCards = [
     {
@@ -244,15 +244,15 @@ function renderSimpleMode(container, data, nav) {
 
   simpleCards.forEach((c) => {
     const card = document.createElement('div');
-    card.className = 'p-5 rounded-2xl border border-subtle bg-surface shadow-xs hover:border-primary/40 transition-all flex flex-col justify-between space-y-4';
+    card.className = 'saler-simple-card';
     card.innerHTML = `
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-xl">${c.icon}</div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div class="saler-card-icon-box">${c.icon}</div>
           <span class="badge badge--neutral text-[10px] font-mono">${c.badge}</span>
         </div>
-        <h3 class="text-base font-bold text-foreground">${c.title}</h3>
-        <p class="text-xs text-muted leading-relaxed">${c.desc}</p>
+        <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text-primary);">${c.title}</h3>
+        <p style="margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.45;">${c.desc}</p>
       </div>
     `;
 
@@ -275,7 +275,9 @@ function renderSimpleMode(container, data, nav) {
  */
 function renderProMode(container, data, nav) {
   const wrap = document.createElement('div');
-  wrap.className = 'space-y-6';
+  wrap.style.display = 'flex';
+  wrap.style.flexDirection = 'column';
+  wrap.style.gap = 'var(--space-6, 24px)';
 
   // 1. KPI Telemetry Bar
   renderProKpiBar(wrap, data);
@@ -306,44 +308,48 @@ function renderProKpiBar(container, data) {
       value: `+${formatCurrency(m.today_net_profit || 0)}`,
       sub: `${m.today_orders_count || 0} orders today (${formatCurrency(m.today_gross_sales || 0)} GMV)`,
       icon: '💎',
-      color: 'emerald-600',
+      isProfit: true,
     },
     {
       title: t('saler.dashboard.profit_30d', '30-Day Net Profit'),
       value: formatCurrency(m.profit_30d || 0),
       sub: `${m.total_orders || 0} total converted orders`,
       icon: '📈',
-      color: 'blue-600',
+      isProfit: false,
     },
     {
       title: t('saler.dashboard.vault_available', 'Vault Available Balance'),
       value: formatCurrency(m.available_balance || 0),
       sub: `${formatCurrency(m.escrow_balance || 0)} in active escrow`,
       icon: '💰',
-      color: 'foreground',
+      isProfit: false,
     },
     {
       title: t('saler.dashboard.curated_products', 'Curated Storefront SKUs'),
       value: `${data.store?.curated_products_count || 0} SKUs`,
       sub: `${data.store?.shelves_count || 0} organized shelves · ${m.total_link_clicks || 0} clicks`,
       icon: '🏪',
-      color: 'primary',
+      isProfit: false,
     },
   ];
 
   const grid = document.createElement('div');
-  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4';
+  grid.className = 'saler-kpi-grid';
 
   kpis.forEach((k) => {
     const card = document.createElement('div');
-    card.className = 'p-4 rounded-2xl border border-subtle bg-surface shadow-xs space-y-1.5';
+    card.className = 'saler-kpi-card';
     card.innerHTML = `
-      <div class="flex items-center justify-between text-xs text-muted font-medium">
+      <div class="saler-kpi-card__header">
         <span>${k.title}</span>
         <span>${k.icon}</span>
       </div>
-      <div class="text-xl font-extrabold text-${k.color} tracking-tight font-mono">${k.value}</div>
-      <div class="text-[11px] text-muted leading-tight">${k.sub}</div>
+      <div class="saler-kpi-card__value ${k.isProfit ? 'saler-kpi-card__value--profit' : ''}">
+        ${k.value}
+      </div>
+      <div class="saler-kpi-card__subtext">
+        ${k.sub}
+      </div>
     `;
     grid.append(card);
   });
@@ -356,48 +362,46 @@ function renderProKpiBar(container, data) {
  */
 function renderOnboardingWidget(container, onboarding, nav) {
   const card = document.createElement('div');
-  card.className = 'p-5 rounded-2xl border border-primary/30 bg-primary/5 space-y-4';
+  card.className = 'saler-onboarding-card';
 
   const progressPct = Math.round((onboarding.completed_steps_count / onboarding.total_steps) * 100);
 
   card.innerHTML = `
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="saler-onboarding-header">
       <div>
-        <h3 class="text-sm font-bold text-foreground flex items-center gap-2">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
           🚀 ${t('saler.onboarding.title', 'Quick Start Guide: Road to Your First Sale')}
           <span class="badge badge--primary text-[10px]">${onboarding.completed_steps_count}/${onboarding.total_steps} Completed</span>
         </h3>
-        <p class="text-xs text-muted mt-0.5">
+        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
           ${t('saler.onboarding.desc', 'Follow these 4 simple steps to launch your virtual business and make your first profit deposit.')}
         </p>
       </div>
-      <div class="w-36 bg-subtle/50 h-2 rounded-full overflow-hidden">
-        <div class="bg-primary h-full rounded-full transition-all duration-500" style="width: ${progressPct}%;"></div>
+      <div class="saler-onboarding-progress-track">
+        <div class="saler-onboarding-progress-fill" style="width: ${progressPct}%;"></div>
       </div>
     </div>
   `;
 
   const stepsList = document.createElement('div');
-  stepsList.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3';
+  stepsList.className = 'saler-onboarding-steps';
 
   onboarding.steps.forEach((step, idx) => {
     const item = document.createElement('div');
-    item.className = `p-3.5 rounded-xl border ${
-      step.completed ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-subtle bg-surface'
-    } flex flex-col justify-between space-y-3 transition-all`;
+    item.className = step.completed ? 'saler-onboarding-step saler-onboarding-step--completed' : 'saler-onboarding-step';
 
     item.innerHTML = `
-      <div class="space-y-1.5">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-mono font-bold ${step.completed ? 'text-emerald-600' : 'text-primary'}">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 12px; font-family: var(--font-mono); font-weight: 700; color: ${step.completed ? 'var(--success-600, #16a34a)' : 'var(--brand-600, #d99f00)'};">
             ${step.completed ? '✓ Done' : `Step ${idx + 1}`}
           </span>
-          <button class="video-btn text-[10px] text-primary hover:underline flex items-center gap-1 font-semibold" data-step="${step.id}">
+          <button type="button" class="video-btn" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 11px; font-weight: 600; color: var(--primary-600, #2563eb); display: flex; align-items: center; gap: 4px;" data-step="${step.id}">
             🎬 ${step.video_duration} Video
           </button>
         </div>
-        <div class="text-xs font-bold text-foreground">${step.title_en}</div>
-        <div class="text-[11px] text-muted leading-relaxed">${step.desc_en}</div>
+        <div style="font-size: 12px; font-weight: 700; color: var(--text-primary);">${step.title_en}</div>
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">${step.desc_en}</div>
       </div>
     `;
 
@@ -429,29 +433,34 @@ function renderOnboardingWidget(container, onboarding, nav) {
 function openVideoWalkthroughModal(step, nav) {
   let modal;
   const body = document.createElement('div');
-  body.className = 'space-y-4';
+  body.style.display = 'flex';
+  body.style.flexDirection = 'column';
+  body.style.gap = '16px';
 
   body.innerHTML = `
-    <div class="relative w-full aspect-video rounded-xl bg-slate-900 border border-subtle overflow-hidden flex flex-col items-center justify-center text-white p-6 text-center space-y-3 shadow-inner">
-      <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-xl shadow-lg animate-pulse">
+    <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: var(--radius-xl, 16px); background: #0f172a; border: 1px solid var(--border-subtle); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; padding: 24px; text-align: center; gap: 12px;">
+      <div style="width: 48px; height: 48px; border-radius: 9999px; background: var(--brand-500, #ecae00); color: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;">
         ▶
       </div>
-      <div class="space-y-1">
-        <div class="text-sm font-bold">${step.video_title_en}</div>
-        <div class="text-xs text-slate-400">15-Second Express Masterclass (Zero Fluff)</div>
+      <div>
+        <div style="font-size: 14px; font-weight: 700;">${step.video_title_en}</div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">15-Second Express Masterclass (Zero Fluff)</div>
       </div>
-      <div class="w-full max-w-xs bg-slate-800 h-1.5 rounded-full overflow-hidden">
-        <div class="bg-primary h-full w-2/3 rounded-full"></div>
+      <div style="width: 100%; max-width: 200px; background: #1e293b; height: 6px; border-radius: 9999px; overflow: hidden;">
+        <div style="background: var(--brand-500, #ecae00); height: 100%; width: 75%; border-radius: 9999px;"></div>
       </div>
     </div>
-    <div class="p-3 rounded-xl bg-surface border border-subtle space-y-1">
-      <div class="text-xs font-bold text-foreground">Key Takeaways:</div>
-      <div class="text-xs text-muted">${step.desc_en}</div>
+    <div style="padding: 12px 14px; border-radius: var(--radius-md, 10px); background: var(--surface-1); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 4px;">
+      <div style="font-size: 12px; font-weight: 700; color: var(--text-primary);">Key Takeaways:</div>
+      <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">${step.desc_en}</div>
     </div>
   `;
 
   const footer = document.createElement('div');
-  footer.className = 'flex justify-between items-center w-full';
+  footer.style.display = 'flex';
+  footer.style.justifyContent = 'space-between';
+  footer.style.alignItems = 'center';
+  footer.style.width = '100%';
 
   const closeBtn = Button({
     label: 'Close',
@@ -487,19 +496,19 @@ function openVideoWalkthroughModal(step, nav) {
  */
 function renderToolsGrid(container, data, nav) {
   const section = document.createElement('div');
-  section.className = 'space-y-4';
+  section.className = 'saler-tools-section';
 
   section.innerHTML = `
-    <div class="flex items-center justify-between border-b border-subtle pb-2">
+    <div class="saler-tools-header">
       <div>
-        <h3 class="text-base font-bold text-foreground">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">
           🧰 ${t('saler.dashboard.tools_title', 'Complete Saler Tool Suite')}
         </h3>
-        <p class="text-xs text-muted">
+        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
           ${t('saler.dashboard.tools_desc', 'Every specialized sales, marketing, sourcing, and vault tool reachable within 2 clicks.')}
         </p>
       </div>
-      <a href="/saler/analytics" class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+      <a href="/saler/analytics" style="font-size: 12px; font-weight: 700; color: var(--primary-600, #2563eb); text-decoration: none; display: flex; align-items: center; gap: 4px;">
         📈 View Full Analytics →
       </a>
     </div>
@@ -598,104 +607,104 @@ function renderToolsGrid(container, data, nav) {
     },
     {
       id: 'tool_vault',
-      name: t('saler.tools.vault', 'Digital Vault & Instant Payouts'),
-      desc: t('saler.tools.vault_desc', 'Double-entry ledger wallet with instant bKash, Nagad, and Bank withdrawals.'),
+      name: t('saler.tools.vault', 'Digital Vault & Payouts'),
+      desc: t('saler.tools.vault_desc', 'Instant bKash, Nagad, and bank withdrawal requests with automated escrow releases.'),
       icon: '💰',
-      url: '/saler/vault',
-      module: 'core',
-      perm: 'finance.wallet.view_own',
-      badge: 'Instant Cashout',
+      url: '/saler/vault/payouts',
+      module: 'vault_escrow',
+      perm: 'vault.withdraw.request',
+      badge: `${formatCurrency(data.metrics?.available_balance || 0)} ready`,
     },
     {
       id: 'tool_ads',
-      name: t('saler.tools.ads', 'Sponsored Ads Manager'),
-      desc: t('saler.tools.ads_desc', 'Vickrey second-price auction ad campaigns with viewability impression tracking.'),
+      name: t('saler.tools.ads', 'Sponsored Ad Campaigns'),
+      desc: t('saler.tools.ads_desc', 'Run second-price keyword auction ads on marketplace search & category pages.'),
       icon: '📢',
       url: '/saler/ads',
       module: 'sponsored_ads',
-      perm: 'growth.ad.manage_own',
-      badge: `${data.metrics?.active_ads_count || 0} active`,
+      perm: 'growth.campaign.manage',
+      badge: 'CPC Auction',
     },
     {
       id: 'tool_quests',
-      name: t('saler.tools.quests', 'Daily Quests & Coins'),
-      desc: t('saler.tools.quests_desc', 'Earn loyalty coins for daily logins and completed sales milestones.'),
-      icon: '🎯',
-      url: '/coins',
-      module: 'daily_quests',
-      perm: null,
-      badge: 'Rewards',
-    },
-    {
-      id: 'tool_leaderboard',
-      name: t('saler.tools.leaderboard', 'Seller Leaderboard'),
-      desc: t('saler.tools.leaderboard_desc', 'Compete on monthly sales volume and climb to the top merchant podium.'),
+      name: t('saler.tools.quests', 'Daily Quests & Leaderboard'),
+      desc: t('saler.tools.quests_desc', 'Gamified merchant challenges, daily streak bonuses, and national podium prizes.'),
       icon: '🏆',
-      url: '/leaderboard',
+      url: '/saler/quests',
       module: 'gamification',
       perm: null,
-      badge: 'Podium & Prizes',
+      badge: 'Prizes & Coins',
     },
     {
-      id: 'tool_academy',
-      name: t('saler.tools.academy', 'Seller Academy'),
-      desc: t('saler.tools.academy_desc', 'Micro-courses and verified seller certifications to grow your enterprise.'),
-      icon: '🎓',
-      url: '/academy',
-      module: 'seller_academy',
-      perm: null,
-      badge: 'Micro-Courses',
-    },
-    {
-      id: 'tool_cart_insights',
-      name: t('saler.tools.cart_insights', 'Abandoned Cart Recovery'),
-      desc: t('saler.tools.cart_insights_desc', 'Automated 3-step recovery sequences and 1-click custom incentive offers.'),
+      id: 'tool_cart_recovery',
+      name: t('saler.tools.cart_recovery', 'Abandoned Cart Insights'),
+      desc: t('saler.tools.cart_recovery_desc', 'Automated 3-step recovery funnel and 1-click custom discount offer dispatch.'),
       icon: '🛒',
       url: '/saler/cart-insights',
       module: 'cart_recovery',
+      perm: 'saler.analytics.view',
+      badge: '3-Step Funnel',
+    },
+    {
+      id: 'tool_store_status',
+      name: t('saler.tools.store_status', 'Physical Showroom Status'),
+      desc: t('saler.tools.store_status_desc', 'Weekly hours schedule, customer pickup desk toggle, and concierge phone.'),
+      icon: '🚪',
+      url: '/saler/store-status',
+      module: 'virtual_storefront',
       perm: 'saler.store.manage',
-      badge: 'Recovery Engine',
+      badge: 'Pickup Desk',
+    },
+    {
+      id: 'tool_my_products',
+      name: t('saler.tools.my_products', 'Curated Store Products'),
+      desc: t('saler.tools.my_products_desc', 'Adjust price markups, review supplier stock levels, and set custom retail margins.'),
+      icon: '🏷️',
+      url: '/saler/products',
+      module: 'virtual_storefront',
+      perm: 'saler.store.manage',
+      badge: `${data.store?.curated_products_count || 0} SKUs`,
     },
   ];
 
   const grid = document.createElement('div');
-  grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4';
+  grid.className = 'saler-tools-grid';
 
-  tools.forEach((tItem) => {
-    const isModEnabled = tItem.module === 'core' || isFeatureEnabled(tItem.module);
-    const hasPerm = !tItem.perm || can(tItem.perm);
+  tools.forEach((tool) => {
+    const isModuleOn = tool.module === 'core' || isFeatureEnabled(tool.module);
+    const hasPerm = !tool.perm || can(tool.perm);
+    const isAccessible = isModuleOn && hasPerm;
 
     const card = document.createElement('div');
-    card.className = `p-4 rounded-2xl border ${
-      isModEnabled ? 'border-subtle bg-surface hover:border-primary/40' : 'border-subtle/50 bg-subtle/10 opacity-70'
-    } shadow-xs transition-all flex flex-col justify-between space-y-3`;
+    card.className = 'saler-tool-card';
+
+    if (!isAccessible) {
+      card.style.opacity = '0.5';
+      card.style.cursor = 'not-allowed';
+    }
 
     card.innerHTML = `
-      <div class="space-y-2">
-        <div class="flex items-center justify-between">
-          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-lg">${tItem.icon}</div>
-          <span class="badge badge--${isModEnabled ? 'neutral' : 'warning'} text-[10px]">${isModEnabled ? tItem.badge : 'Disabled'}</span>
-        </div>
-        <h4 class="text-sm font-bold text-foreground">${tItem.name}</h4>
-        <p class="text-xs text-muted leading-relaxed">${tItem.desc}</p>
+      <div class="saler-tool-card__top">
+        <div class="saler-tool-card__icon">${tool.icon}</div>
+        <span class="badge badge--neutral text-[10px] font-mono">${tool.badge}</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <h4 class="saler-tool-card__title">${tool.name}</h4>
+        <p class="saler-tool-card__desc">${tool.desc}</p>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: flex-end; font-size: 11px; font-weight: 700; color: var(--primary-600, #2563eb); padding-top: 4px;">
+        ${isAccessible ? 'Launch →' : '🔒 Locked'}
       </div>
     `;
 
-    const btn = Button({
-      label: isModEnabled ? 'Open Tool →' : 'Module Off',
-      variant: isModEnabled ? 'secondary' : 'neutral',
-      size: 'xs',
-      disabled: !isModEnabled,
-      onClick: () => {
-        if (!hasPerm) {
-          toast.warning('You do not have permission for this tool.');
-          return;
-        }
-        nav(tItem.url);
-      },
-    });
+    if (isAccessible) {
+      card.addEventListener('click', () => nav(tool.url));
+    } else {
+      card.addEventListener('click', () => {
+        toast.info('This specialized tool is restricted by your role tier or platform module configuration.');
+      });
+    }
 
-    card.append(btn);
     grid.append(card);
   });
 

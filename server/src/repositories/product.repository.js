@@ -386,3 +386,82 @@ export async function getCategoryById(db, categoryId) {
   );
   return rows[0] ?? null;
 }
+
+/**
+ * Catalog-wide aggregate counters for the Super Admin catalog dashboard.
+ *
+ * WHY one aggregate query instead of counting in JS: the admin page previously derived its KPIs
+ * from the first page of /products (200 rows), so every number was really "of the 200 loaded",
+ * not "of the catalog". Counting in SQL is the only way the figures mean what their labels say.
+ *
+ * The flash-sale and trust-tier joins are deliberately identical to listProducts() above — if the
+ * two ever disagree, the KPI strip and the table beneath it would contradict each other.
+ */
+export async function getCatalogStats(db, { status = 'ACTIVE', lowStockThreshold = 10 } = {}) {
+  const conditions = ['p.deleted_at IS NULL'];
+  const params = [lowStockThreshold];
+
+  if (status && status !== 'ALL') {
+    params.push(status);
+    conditions.push(`p.status = $${params.length}`);
+  }
+
+  const { rows } = await db.query(
+    `SELECT
+       COUNT(*)::int AS total_products,
+       COUNT(*) FILTER (WHERE COALESCE(p.stock_qty, 0) > 0)::int AS in_stock_count,
+       COUNT(*) FILTER (
+         WHERE COALESCE(p.stock_qty, 0) > 0
+           AND COALESCE(p.stock_qty, 0) <= COALESCE(p.low_stock_threshold, $1)
+       )::int AS low_stock_count,
+       COUNT(*) FILTER (WHERE COALESCE(p.stock_qty, 0) <= 0)::int AS out_of_stock_count,
+       COUNT(*) FILTER (WHERE fs.id IS NOT NULL)::int AS flash_sale_count,
+       COUNT(DISTINCT p.category_id)::int AS total_categories,
+       COUNT(DISTINCT p.supplier_id)::int AS total_suppliers,
+       COUNT(DISTINCT p.supplier_id) FILTER (
+         WHERE ts.tier IN ('VERIFIED_TRADER', 'ELITE_PARTNER')
+       )::int AS verified_suppliers_count,
+       COALESCE(SUM(p.default_retail_price * GREATEST(COALESCE(p.stock_qty, 0), 0)), 0) AS total_potential_inventory_value
+     FROM products p
+     LEFT JOIN trust_scores ts ON ts.user_id = p.supplier_id
+     LEFT JOIN flash_sales fs
+       ON fs.product_id = p.id
+      AND fs.status = 'ACTIVE'
+      AND now() BETWEEN fs.starts_at AND fs.ends_at
+     WHERE ${conditions.join(' AND ')}`,
+    params
+  );
+
+  return rows[0] || null;
+}
+
+/**
+ * Product counts per category, for the breakdown the catalog dashboard renders under the KPIs.
+ *
+ * LEFT JOIN, unlike listProducts()' inner join: a product whose category row was deleted still
+ * exists in the catalog and must not silently vanish from a total.
+ */
+export async function getCatalogCategoryBreakdown(db, { status = 'ACTIVE' } = {}) {
+  const conditions = ['p.deleted_at IS NULL'];
+  const params = [];
+
+  if (status && status !== 'ALL') {
+    params.push(status);
+    conditions.push(`p.status = $${params.length}`);
+  }
+
+  const { rows } = await db.query(
+    `SELECT COALESCE(c.name_en, 'Uncategorized') AS category_name_en,
+            COALESCE(c.name_bn, 'শ্রেণিবিহীন') AS category_name_bn,
+            c.slug AS category_slug,
+            COUNT(*)::int AS product_count
+     FROM products p
+     LEFT JOIN categories c ON c.id = p.category_id
+     WHERE ${conditions.join(' AND ')}
+     GROUP BY c.name_en, c.name_bn, c.slug
+     ORDER BY product_count DESC, category_name_en ASC`,
+    params
+  );
+
+  return rows;
+}
