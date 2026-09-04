@@ -305,7 +305,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
 
     modalContent.innerHTML = `
       <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('developer.label_key_name')}</label>
+        <label for="modal-key-name" class="block text-xs font-semibold text-muted mb-1">${t('developer.label_key_name')}</label>
         <input type="text" id="modal-key-name" class="input w-full" placeholder="e.g. ERP Inventory Sync Client">
       </div>
 
@@ -333,11 +333,11 @@ export default function ApiKeysPage(root, { navigate } = {}) {
 
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="block text-xs font-semibold text-muted mb-1">${t('developer.label_rate_limit')}</label>
+          <label for="modal-rate-limit" class="block text-xs font-semibold text-muted mb-1">${t('developer.label_rate_limit')}</label>
           <input type="number" id="modal-rate-limit" class="input w-full font-mono text-xs" value="60">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-muted mb-1">${t('developer.label_ip_allowlist')}</label>
+          <label for="modal-ip-allowlist" class="block text-xs font-semibold text-muted mb-1">${t('developer.label_ip_allowlist')}</label>
           <input type="text" id="modal-ip-allowlist" class="input w-full font-mono text-xs" placeholder="e.g. 192.168.1.1, 10.0.0.1">
         </div>
       </div>
@@ -397,7 +397,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-muted mb-1">Raw API Token</label>
+        <label for="revealed-token" class="block text-xs font-semibold text-muted mb-1">Raw API Token</label>
         <div class="flex gap-2">
           <input type="text" readonly id="revealed-token" class="input w-full font-mono text-xs bg-surface-subtle" value="${rawToken}">
           <button class="btn btn-primary text-xs shrink-0" id="copy-token-btn">📋 Copy</button>
@@ -584,7 +584,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
 
     modalContent.innerHTML = `
       <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('developer.label_target_url')}</label>
+        <label for="modal-webhook-url" class="block text-xs font-semibold text-muted mb-1">${t('developer.label_target_url')}</label>
         <input type="url" id="modal-webhook-url" class="input w-full font-mono text-xs" placeholder="https://my-backend.com/api/webhooks/explooro">
       </div>
 
@@ -656,12 +656,12 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       <h3 class="text-base font-bold m-0 border-b pb-2">⚙️ ${t('developer.widget_config_title')}</h3>
 
       <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('developer.widget_limit_label')}</label>
+        <label for="widget-limit-input" class="block text-xs font-semibold text-muted mb-1">${t('developer.widget_limit_label')}</label>
         <input type="number" id="widget-limit-input" class="input w-full font-mono text-xs" value="4" min="1" max="12">
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-muted mb-1">${t('developer.widget_lang_label')}</label>
+        <label for="widget-lang-select" class="block text-xs font-semibold text-muted mb-1">${t('developer.widget_lang_label')}</label>
         <select id="widget-lang-select" class="input w-full text-xs">
           <option value="en">English</option>
           <option value="bn">বাংলা (Bengali)</option>
@@ -669,7 +669,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       </div>
 
       <div class="border-t pt-3">
-        <label class="block text-xs font-semibold text-muted mb-1">Embed Code (Copy & Paste)</label>
+        <label for="widget-embed-snippet" class="block text-xs font-semibold text-muted mb-1">Embed Code (Copy & Paste)</label>
         <textarea id="widget-embed-snippet" readonly class="input w-full font-mono text-xs bg-surface-subtle" rows="5"></textarea>
         <button class="btn btn-primary text-xs w-full mt-2" id="copy-snippet-btn">
           📋 ${t('developer.btn_copy_snippet')}

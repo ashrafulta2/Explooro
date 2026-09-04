@@ -51,32 +51,32 @@ export default function StoriesManagerPage(root) {
     content.style.gap = '14px';
     content.innerHTML = `
       <div class="supplier-form-field">
-        <label>Author / Spotlight Merchant *</label>
+        <label for="story-author">Author / Spotlight Merchant *</label>
         <input type="text" id="story-author" class="form-input" placeholder="e.g. Habib Traders (Dhaka) or Bengal Weaves" value="${existingStory?.author_name || 'Explooro Editorial'}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Story Title (English) *</label>
+        <label for="story-title-en">Story Title (English) *</label>
         <input type="text" id="story-title-en" class="form-input" placeholder="e.g. How I Scaled My Jamdani Saree Store to Tk 5 Lakh" value="${existingStory?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Story Title (Bangla) *</label>
+        <label for="story-title-bn">Story Title (Bangla) *</label>
         <input type="text" id="story-title-bn" class="form-input" placeholder="e.g. কীভাবে আমি এক্সপ্লোরোতে জামদানি শাড়ির দোকান সম্প্রসারণ করেছি" value="${existingStory?.title_bn || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Cover Image URL *</label>
+        <label for="story-cover">Cover Image URL *</label>
         <input type="url" id="story-cover" class="form-input" placeholder="https://images.unsplash.com/photo-..." value="${existingStory?.cover_image_url || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Story Article Content (English) *</label>
+        <label for="story-content-en">Story Article Content (English) *</label>
         <textarea id="story-content-en" class="form-textarea" rows="4" placeholder="Write the editorial narrative...">${existingStory?.content_en || ''}</textarea>
       </div>
 
       <div class="supplier-form-field">
-        <label>Story Article Content (Bangla)</label>
+        <label for="story-content-bn">Story Article Content (Bangla)</label>
         <textarea id="story-content-bn" class="form-textarea" rows="4" placeholder="বাংলা বিবরণ লিখুন...">${existingStory?.content_bn || ''}</textarea>
       </div>
     `;
@@ -143,27 +143,27 @@ export default function StoriesManagerPage(root) {
     content.style.gap = '14px';
     content.innerHTML = `
       <div class="supplier-form-field">
-        <label>Creator / Channel Name *</label>
+        <label for="reel-author">Creator / Channel Name *</label>
         <input type="text" id="reel-author" class="form-input" placeholder="e.g. Explooro Live Studio or Habib Traders" value="Explooro Studio" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Video Stream URL (.mp4 / stream) *</label>
+        <label for="reel-video">Video Stream URL (.mp4 / stream) *</label>
         <input type="url" id="reel-video" class="form-input" placeholder="https://commondatastorage.googleapis.com/.../sample.mp4" value="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Thumbnail Poster Image URL *</label>
+        <label for="reel-thumb">Thumbnail Poster Image URL *</label>
         <input type="url" id="reel-thumb" class="form-input" placeholder="https://images.unsplash.com/..." value="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=400&q=80" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Shoppable Reel Caption *</label>
+        <label for="reel-caption-en">Shoppable Reel Caption *</label>
         <input type="text" id="reel-caption-en" class="form-input" placeholder="e.g. Live artisan weaving of pure silk sarees! Tap below to buy." />
       </div>
 
       <div class="supplier-form-field">
-        <label>Pinned Product SKU Name *</label>
+        <label for="reel-product-name">Pinned Product SKU Name *</label>
         <input type="text" id="reel-product-name" class="form-input" placeholder="Heritage Dhakai Jamdani Saree" value="Heritage Dhakai Jamdani Saree (84 Count)" />
       </div>
     `;
@@ -302,7 +302,7 @@ export default function StoriesManagerPage(root) {
             🎬 Shoppable Video Reels (${reels.length})
           </button>
         </div>
-        <input type="text" id="content-search" placeholder="🔍 Search title or author..." value="${searchQuery}" class="form-input" style="width: 240px; font-size: 12px; padding: 6px 12px;" />
+        <input type="text" id="content-search" aria-label="🔍 Search title or author..." placeholder="🔍 Search title or author..." value="${searchQuery}" class="form-input" style="width: 240px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 
@@ -325,7 +325,7 @@ export default function StoriesManagerPage(root) {
       loader.className = 'p-12 text-center text-muted';
       loader.innerHTML = `
         <div class="spinner" style="margin: 0 auto 16px auto;"></div>
-        <p>Loading stories & reels...</p>
+        <p>${t('common.loading')}</p>
       `;
       container.appendChild(loader);
       return;
@@ -390,15 +390,15 @@ export default function StoriesManagerPage(root) {
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
               <span class="text-xs text-muted font-mono">${formatDate(story.published_at)}</span>
               <div style="display: flex; align-items: center; gap: 6px;">
-                <button class="btn btn--xs btn--outline" id="edit-story-btn">✏️ Edit</button>
-                <button class="btn btn--xs btn--outline text-danger" id="delete-story-btn">🗑️</button>
+                <button class="btn btn--xs btn--outline js-edit-story-btn">✏️ Edit</button>
+                <button class="btn btn--xs btn--outline text-danger js-delete-story-btn">🗑️</button>
               </div>
             </div>
           </div>
         `;
 
-        card.querySelector('#edit-story-btn').onclick = () => openStoryModal(story);
-        card.querySelector('#delete-story-btn').onclick = () => handleDeleteStory(story.id);
+        card.querySelector('.js-edit-story-btn').onclick = () => openStoryModal(story);
+        card.querySelector('.js-delete-story-btn').onclick = () => handleDeleteStory(story.id);
 
         grid.appendChild(card);
       });

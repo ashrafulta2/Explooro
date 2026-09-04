@@ -13,8 +13,8 @@ import { toast } from '../../services/toast.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 
 export class CampaignManagerPage {
-  constructor() {
-    this.activeTab = 'flash_sales'; // 'flash_sales' | 'coupons'
+  constructor({ initialTab = 'flash_sales' } = {}) {
+    this.activeTab = initialTab === 'coupons' ? 'coupons' : 'flash_sales'; // 'flash_sales' | 'coupons'
     this.flashSales = [];
     this.coupons = [];
     this.loading = true;
@@ -119,7 +119,7 @@ export class CampaignManagerPage {
               border-radius: var(--radius-md, 8px);
               border: none;
               background: var(--brand, #4f46e5);
-              color: #ffffff;
+              color: var(--brand-contrast, #1f1f1f);
               cursor: pointer;
               display: flex;
               align-items: center;
@@ -449,6 +449,7 @@ export class CampaignManagerPage {
             type="checkbox"
             class="toggle-coupon-active"
             data-id="${c.id}"
+            aria-label="${isBn ? `${c.code} কুপন সক্রিয়/নিষ্ক্রিয় করুন` : `Toggle coupon ${c.code}`}"
             style="width: 16px; height: 16px; cursor: pointer;"
             ${c.is_active ? 'checked' : ''} />
         </td>
@@ -596,18 +597,18 @@ export class CampaignManagerPage {
         <form id="form-create-flash-sale" style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
             <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ক্যাম্পেইনের শিরোনাম' : 'Deal Title'} *</label>
-            <input type="text" name="title" required placeholder="e.g. Eid Mega Flash Sale" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;" />
+            <input type="text" name="title" required aria-label="e.g. Eid Mega Flash Sale" placeholder="e.g. Eid Mega Flash Sale" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;" />
           </div>
 
           <div>
             <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'পণ্য আইডি (Product ID)' : 'Product ID'} *</label>
-            <input type="number" name="product_id" required placeholder="101" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+            <input type="number" name="product_id" required aria-label="101" placeholder="101" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <div>
               <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ফ্ল্যাশ সেল মূল্য (৳)' : 'Flash Sale Price (৳)'} *</label>
-              <input type="number" name="discount_price" min="1" step="0.5" required placeholder="990" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+              <input type="number" name="discount_price" min="1" step="0.5" required aria-label="990" placeholder="990" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
             </div>
             <div>
               <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'বরাদ্দকৃত স্টক পরিমাণ' : 'Allocated Stock Qty'} *</label>
@@ -617,7 +618,7 @@ export class CampaignManagerPage {
 
           <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
             <button type="button" class="btn-cancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${isBn ? 'বাতিল' : 'Cancel'}</button>
-            <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Schedule Deal'}</button>
+            <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Schedule Deal'}</button>
           </div>
         </form>
       </div>
@@ -687,7 +688,7 @@ export class CampaignManagerPage {
         <form id="form-create-coupon" style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
             <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'কুপন কোড' : 'Coupon Code'} *</label>
-            <input type="text" name="code" required placeholder="e.g. MEGA2026" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+            <input type="text" name="code" required aria-label="e.g. MEGA2026" placeholder="e.g. MEGA2026" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -718,7 +719,7 @@ export class CampaignManagerPage {
 
           <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
             <button type="button" class="btn-cancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${isBn ? 'বাতিল' : 'Cancel'}</button>
-            <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Create Coupon'}</button>
+            <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Create Coupon'}</button>
           </div>
         </form>
       </div>
@@ -763,8 +764,13 @@ export class CampaignManagerPage {
   }
 }
 
+// WHY the path check: navigation.js lists "Coupons" and "Campaigns" as two separate sidebar items,
+// but both route here and the page always opened on the Flash Sales tab — so clicking Coupons landed
+// on flash sales and looked like a broken link. The coupon catalogue was one click away the whole
+// time; this just honours which door the admin came through.
 export default function mountCampaignManagerPage(root) {
-  const page = new CampaignManagerPage();
+  const initialTab = window.location.pathname.includes('/coupons') ? 'coupons' : 'flash_sales';
+  const page = new CampaignManagerPage({ initialTab });
   page.mount(root);
   return () => page.unmount();
 }

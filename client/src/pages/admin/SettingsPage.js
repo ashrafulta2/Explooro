@@ -259,30 +259,30 @@ export default function SettingsPage(root, { navigate } = {}) {
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_platform_name', 'Platform Name')}</label>
+          <label class="settings-field__label" for="set-platform-name">${t('platform_settings.field_platform_name', 'Platform Name')}</label>
           <input type="text" class="input input--sm" id="set-platform-name" value="${formState.platform_name || ''}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_support_email', 'Official Support Email')}</label>
+          <label class="settings-field__label" for="set-support-email">${t('platform_settings.field_support_email', 'Official Support Email')}</label>
           <input type="email" class="input input--sm" id="set-support-email" value="${formState.support_email || ''}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_support_phone', 'Support Hotline Number')}</label>
+          <label class="settings-field__label" for="set-support-phone">${t('platform_settings.field_support_phone', 'Support Hotline Number')}</label>
           <input type="text" class="input input--sm" id="set-support-phone" value="${formState.support_phone || ''}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_default_currency', 'Base Platform Currency')}</label>
+          <label class="settings-field__label" for="set-default-currency">${t('platform_settings.field_default_currency', 'Base Platform Currency')}</label>
           <input type="text" class="input input--sm font-mono" id="set-default-currency" value="${formState.default_currency || 'BDT'} (৳)" readonly />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_default_lang', 'Default Portal Language')}</label>
+          <label class="settings-field__label" for="set-default-lang">${t('platform_settings.field_default_lang', 'Default Portal Language')}</label>
           <select class="input input--sm" id="set-default-lang">
             <option value="bn" ${formState.default_language === 'bn' ? 'selected' : ''}>বাংলা (Bengali - Default)</option>
             <option value="en" ${formState.default_language === 'en' ? 'selected' : ''}>English (EN)</option>
           </select>
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_timezone', 'Operational Timezone')}</label>
+          <label class="settings-field__label" for="set-timezone">${t('platform_settings.field_timezone', 'Operational Timezone')}</label>
           <input type="text" class="input input--sm font-mono" id="set-timezone" value="${formState.timezone || 'Asia/Dhaka'}" readonly />
         </div>
       </div>
@@ -301,19 +301,19 @@ export default function SettingsPage(root, { navigate } = {}) {
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_escrow_period_days', 'Customer Escrow Holding Period (Days)')}</label>
+          <label class="settings-field__label" for="set-escrow-days">${t('platform_settings.field_escrow_period_days', 'Customer Escrow Holding Period (Days)')}</label>
           <input type="number" min="1" max="30" class="input input--sm font-mono" id="set-escrow-days" value="${formState.escrow_period_days || 7}" />
           <span class="settings-field__helper">Days after verified courier delivery before earner wallet credit.</span>
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_b2b_escrow_days', 'B2B Milestone Escrow Holding Period (Days)')}</label>
+          <label class="settings-field__label" for="set-b2b-escrow-days">${t('platform_settings.field_b2b_escrow_days', 'B2B Milestone Escrow Holding Period (Days)')}</label>
           <input type="number" min="1" max="60" class="input input--sm font-mono" id="set-b2b-escrow-days" value="${formState.b2b_escrow_days || 14}" />
           <span class="settings-field__helper">Holding window for manufacturer batch procurement contracts.</span>
         </div>
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <span class="settings-toggle-title">${t('platform_settings.field_auto_sweep', 'Automated Daily Escrow Sweep')}</span>
+              <label class="settings-toggle-title" for="set-auto-sweep">${t('platform_settings.field_auto_sweep', 'Automated Daily Escrow Sweep')}</label>
               <span class="settings-toggle-desc">Automatically executes scheduled midnight cron job to mature eligible escrow entries.</span>
             </div>
             <input type="checkbox" id="set-auto-sweep" ${formState.auto_sweep_enabled ? 'checked' : ''} />
@@ -322,7 +322,7 @@ export default function SettingsPage(root, { navigate } = {}) {
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <span class="settings-toggle-title">${t('platform_settings.field_dispute_freeze', 'Auto-Freeze Escrow on Active Buyer Dispute')}</span>
+              <label class="settings-toggle-title" for="set-dispute-freeze">${t('platform_settings.field_dispute_freeze', 'Auto-Freeze Escrow on Active Buyer Dispute')}</label>
               <span class="settings-toggle-desc">Instantly locks payout disbursement if a customer raises a formal return or damage claim.</span>
             </div>
             <input type="checkbox" id="set-dispute-freeze" ${formState.dispute_auto_freeze ? 'checked' : ''} />
@@ -344,25 +344,25 @@ export default function SettingsPage(root, { navigate } = {}) {
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_min_saler_payout', 'Minimum Saler Payout Threshold (৳)')}</label>
+          <label class="settings-field__label" for="set-min-saler-payout">${t('platform_settings.field_min_saler_payout', 'Minimum Saler Payout Threshold (৳)')}</label>
           <input type="number" min="100" step="50" class="input input--sm font-mono" id="set-min-saler-payout" value="${formState.min_saler_payout_bdt || 500}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_min_supplier_payout', 'Minimum Supplier Payout Threshold (৳)')}</label>
+          <label class="settings-field__label" for="set-min-sup-payout">${t('platform_settings.field_min_supplier_payout', 'Minimum Supplier Payout Threshold (৳)')}</label>
           <input type="number" min="500" step="100" class="input input--sm font-mono" id="set-min-sup-payout" value="${formState.min_supplier_payout_bdt || 1000}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_max_payout', 'Maximum Single Payout Cap (৳)')}</label>
+          <label class="settings-field__label" for="set-max-payout">${t('platform_settings.field_max_payout', 'Maximum Single Payout Cap (৳)')}</label>
           <input type="number" min="5000" step="5000" class="input input--sm font-mono" id="set-max-payout" value="${formState.max_single_payout_bdt || 100000}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_cutoff_time', 'Daily Payout Batch Cutoff Time')}</label>
+          <label class="settings-field__label" for="set-cutoff-time">${t('platform_settings.field_cutoff_time', 'Daily Payout Batch Cutoff Time')}</label>
           <input type="time" class="input input--sm font-mono" id="set-cutoff-time" value="${formState.payout_cutoff_time || '17:00'}" />
         </div>
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <span class="settings-toggle-title">${t('platform_settings.field_payout_fee_covered', 'Platform Absorbs Payout Disbursement Fees')}</span>
+              <label class="settings-toggle-title" for="set-payout-fee">${t('platform_settings.field_payout_fee_covered', 'Platform Absorbs Payout Disbursement Fees')}</label>
               <span class="settings-toggle-desc">Platform covers 1.5% bKash/Nagad B2C merchant cash-out fee so earners receive 100% of requested amount.</span>
             </div>
             <input type="checkbox" id="set-payout-fee" ${formState.payout_fee_covered ? 'checked' : ''} />
@@ -384,15 +384,15 @@ export default function SettingsPage(root, { navigate } = {}) {
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_platform_take_pct', 'Baseline Platform Take Rate (%)')}</label>
+          <label class="settings-field__label" for="set-platform-take">${t('platform_settings.field_platform_take_pct', 'Baseline Platform Take Rate (%)')}</label>
           <input type="number" min="0" max="100" step="0.5" class="input input--sm font-mono" id="set-platform-take" value="${formState.platform_take_pct || 10.0}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_min_seller_margin', 'Minimum Seller Margin Floor (%)')}</label>
+          <label class="settings-field__label" for="set-min-seller-margin">${t('platform_settings.field_min_seller_margin', 'Minimum Seller Margin Floor (%)')}</label>
           <input type="number" min="1" max="50" step="0.5" class="input input--sm font-mono" id="set-min-seller-margin" value="${formState.min_seller_margin_pct || 5.0}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_free_quota', 'Merchant Free Product Listing Quota')}</label>
+          <label class="settings-field__label" for="set-free-quota">${t('platform_settings.field_free_quota', 'Merchant Free Product Listing Quota')}</label>
           <input type="number" min="10" max="1000" step="10" class="input input--sm font-mono" id="set-free-quota" value="${formState.merchant_free_quota || 100}" />
         </div>
       </div>
@@ -413,18 +413,18 @@ export default function SettingsPage(root, { navigate } = {}) {
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <span class="settings-toggle-title">${t('platform_settings.field_staff_2fa_enforced', 'Mandatory Staff 2FA (Super Admin & Admin)')}</span>
+              <label class="settings-toggle-title" for="set-staff-2fa">${t('platform_settings.field_staff_2fa_enforced', 'Mandatory Staff 2FA (Super Admin & Admin)')}</label>
               <span class="settings-toggle-desc">Blocks login without TOTP authenticator code verification for all administrative accounts.</span>
             </div>
             <input type="checkbox" id="set-staff-2fa" ${formState.staff_2fa_enforced ? 'checked' : ''} />
           </div>
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_session_timeout', 'Session Inactivity Timeout (Minutes)')}</label>
+          <label class="settings-field__label" for="set-session-timeout">${t('platform_settings.field_session_timeout', 'Session Inactivity Timeout (Minutes)')}</label>
           <input type="number" min="15" max="480" step="15" class="input input--sm font-mono" id="set-session-timeout" value="${formState.session_timeout_minutes || 60}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label">${t('platform_settings.field_max_login_attempts', 'Max Failed Password Attempts Before Lockout')}</label>
+          <label class="settings-field__label" for="set-max-login-attempts">${t('platform_settings.field_max_login_attempts', 'Max Failed Password Attempts Before Lockout')}</label>
           <input type="number" min="3" max="10" class="input input--sm font-mono" id="set-max-login-attempts" value="${formState.max_login_attempts || 5}" />
         </div>
       </div>
@@ -446,7 +446,7 @@ export default function SettingsPage(root, { navigate } = {}) {
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <span class="settings-toggle-title text-danger">${t('platform_settings.field_maintenance_mode', 'Platform Maintenance Mode')}</span>
+              <label class="settings-toggle-title text-danger" for="set-maintenance-mode">${t('platform_settings.field_maintenance_mode', 'Platform Maintenance Mode')}</label>
               <span class="settings-toggle-desc">Pauses customer shopping, cart, and order placement while displaying maintenance announcement banner.</span>
             </div>
             <input type="checkbox" id="set-maintenance-mode" ${formState.maintenance_mode ? 'checked' : ''} />
@@ -455,18 +455,18 @@ export default function SettingsPage(root, { navigate } = {}) {
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <span class="settings-toggle-title text-danger">${t('platform_settings.field_read_only_mode', 'Read-Only Mode (Freeze Mutations)')}</span>
+              <label class="settings-toggle-title text-danger" for="set-read-only-mode">${t('platform_settings.field_read_only_mode', 'Read-Only Mode (Freeze Mutations)')}</label>
               <span class="settings-toggle-desc">Freezes all catalog creation, store edits, and payouts during major system upgrades.</span>
             </div>
             <input type="checkbox" id="set-read-only-mode" ${formState.read_only_mode ? 'checked' : ''} />
           </div>
         </div>
         <div class="settings-field--full">
-          <label class="settings-field__label">${t('platform_settings.field_maintenance_msg_en', 'Maintenance Banner Message (English)')}</label>
+          <label class="settings-field__label" for="set-maint-msg-en">${t('platform_settings.field_maintenance_msg_en', 'Maintenance Banner Message (English)')}</label>
           <input type="text" class="input input--sm w-full" id="set-maint-msg-en" value="${formState.maintenance_message_en || ''}" />
         </div>
         <div class="settings-field--full">
-          <label class="settings-field__label">${t('platform_settings.field_maintenance_msg_bn', 'Maintenance Banner Message (Bengali)')}</label>
+          <label class="settings-field__label" for="set-maint-msg-bn">${t('platform_settings.field_maintenance_msg_bn', 'Maintenance Banner Message (Bengali)')}</label>
           <input type="text" class="input input--sm w-full" id="set-maint-msg-bn" value="${formState.maintenance_message_bn || ''}" />
         </div>
       </div>

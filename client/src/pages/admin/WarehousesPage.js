@@ -91,7 +91,7 @@ export default function WarehousesPage(root, { navigate } = {}) {
       <div class="grid grid-cols-2 gap-3">
         <div class="form-group">
           <label class="form-label">${isBn ? 'নোড কোড' : 'Node Code'} *</label>
-          <input type="text" name="node_code" class="input font-mono" required placeholder="WH-DHK-..." value="${nodeToEdit?.node_code || `WH-NODE-${warehouses.length + 1}`}" />
+          <input type="text" name="node_code" class="input font-mono" required aria-label="WH-DHK-..." placeholder="WH-DHK-..." value="${nodeToEdit?.node_code || `WH-NODE-${warehouses.length + 1}`}" />
         </div>
         <div class="form-group">
           <label class="form-label">${isBn ? 'বিভাগ' : 'Division'} *</label>
@@ -110,12 +110,12 @@ export default function WarehousesPage(root, { navigate } = {}) {
 
       <div class="form-group">
         <label class="form-label">${isBn ? 'ওয়্যারহাউসের নাম' : 'Warehouse Name'} *</label>
-        <input type="text" name="name" class="input" required value="${nodeToEdit?.name || ''}" placeholder="e.g. Dhaka Central Fulfilment Hub" />
+        <input type="text" name="name" class="input" required value="${nodeToEdit?.name || ''}" aria-label="e.g. Dhaka Central Fulfilment Hub" placeholder="e.g. Dhaka Central Fulfilment Hub" />
       </div>
 
       <div class="form-group">
         <label class="form-label">${isBn ? 'ঠিকানা ও জেলা' : 'Address & Location'} *</label>
-        <input type="text" name="address" class="input" required value="${nodeToEdit?.address || ''}" placeholder="e.g. Plot 42, Tejgaon I/A, Dhaka" />
+        <input type="text" name="address" class="input" required value="${nodeToEdit?.address || ''}" aria-label="e.g. Plot 42, Tejgaon I/A, Dhaka" placeholder="e.g. Plot 42, Tejgaon I/A, Dhaka" />
       </div>
 
       <div class="grid grid-cols-2 gap-3">
@@ -132,11 +132,11 @@ export default function WarehousesPage(root, { navigate } = {}) {
       <div class="grid grid-cols-2 gap-3">
         <div class="form-group">
           <label class="form-label">${isBn ? 'ম্যানেজারের নাম' : 'Manager Name'}</label>
-          <input type="text" name="manager_name" class="input" value="${nodeToEdit?.manager_name || ''}" placeholder="e.g. Tanvir Hossain" />
+          <input type="text" name="manager_name" class="input" value="${nodeToEdit?.manager_name || ''}" aria-label="e.g. Tanvir Hossain" placeholder="e.g. Tanvir Hossain" />
         </div>
         <div class="form-group">
           <label class="form-label">${isBn ? 'ম্যানেজারের ফোন' : 'Manager Phone'}</label>
-          <input type="tel" name="manager_phone" class="input" value="${nodeToEdit?.manager_phone || ''}" placeholder="01711..." />
+          <input type="tel" name="manager_phone" class="input" value="${nodeToEdit?.manager_phone || ''}" aria-label="01711..." placeholder="01711..." />
         </div>
       </div>
     `;
@@ -203,7 +203,7 @@ export default function WarehousesPage(root, { navigate } = {}) {
     root.innerHTML = '';
 
     if (isLoading) {
-      container.innerHTML = `<div class="p-8 text-center text-muted">Loading warehouses...</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-muted">${t('common.loading')}</div>`;
       root.appendChild(container);
       return;
     }
@@ -271,11 +271,11 @@ export default function WarehousesPage(root, { navigate } = {}) {
       <!-- Toolbar -->
       <div class="admin-toolbar">
         <div class="admin-toolbar__search">
-          <input type="search" id="wh-search-input" class="input" placeholder="${isBn ? 'ওয়্যারহাউস নাম, কোড বা জেলা দিয়ে খুঁজুন...' : 'Search warehouse code, name, district, manager...'}" value="${searchQuery}" />
+          <input type="search" id="wh-search-input" class="input" aria-label="${isBn ? 'ওয়্যারহাউস নাম, কোড বা জেলা দিয়ে খুঁজুন...' : 'Search warehouse code, name, district, manager...'}" placeholder="${isBn ? 'ওয়্যারহাউস নাম, কোড বা জেলা দিয়ে খুঁজুন...' : 'Search warehouse code, name, district, manager...'}" value="${searchQuery}" />
         </div>
 
         <div class="admin-toolbar__filters">
-          <select id="division-filter-select" class="input select">
+          <select id="division-filter-select" class="input select" aria-label="${isBn ? 'বিভাগ অনুসারে ফিল্টার' : 'Filter by division'}">
             <option value="ALL" ${divisionFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব বিভাগ' : 'All Divisions'}</option>
             <option value="Dhaka" ${divisionFilter === 'Dhaka' ? 'selected' : ''}>Dhaka</option>
             <option value="Chittagong" ${divisionFilter === 'Chittagong' ? 'selected' : ''}>Chittagong</option>

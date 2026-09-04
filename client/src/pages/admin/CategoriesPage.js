@@ -99,12 +99,12 @@ export default function CategoriesPage(root, { navigate } = {}) {
     content.innerHTML = `
       <div class="form-group">
         <label class="form-label">${isBn ? 'ইংরেজি নাম' : 'Category Name (English)'} *</label>
-        <input type="text" name="name_en" class="input" required value="${categoryToEdit?.name_en || ''}" placeholder="e.g., Traditional Handloom & Sarees" />
+        <input type="text" name="name_en" class="input" required value="${categoryToEdit?.name_en || ''}" aria-label="e.g., Traditional Handloom & Sarees" placeholder="e.g., Traditional Handloom & Sarees" />
       </div>
 
       <div class="form-group">
         <label class="form-label">${isBn ? 'বাংলা নাম' : 'Category Name (Bengali)'} *</label>
-        <input type="text" name="name_bn" class="input" required value="${categoryToEdit?.name_bn || ''}" placeholder="যেমন: ঐতিহ্যবাহী তাঁত ও শাড়ি" />
+        <input type="text" name="name_bn" class="input" required value="${categoryToEdit?.name_bn || ''}" aria-label="যেমন: ঐতিহ্যবাহী তাঁত ও শাড়ি" placeholder="যেমন: ঐতিহ্যবাহী তাঁত ও শাড়ি" />
       </div>
 
       <div class="grid grid-cols-2 gap-3">
@@ -132,12 +132,12 @@ export default function CategoriesPage(root, { navigate } = {}) {
 
       <div class="form-group">
         <label class="form-label">${isBn ? 'ইউআরএল স্ল্যাগ' : 'URL Slug'}</label>
-        <input type="text" name="slug" class="input" value="${categoryToEdit?.slug || ''}" placeholder="e.g. traditional-handloom" />
+        <input type="text" name="slug" class="input" value="${categoryToEdit?.slug || ''}" aria-label="e.g. traditional-handloom" placeholder="e.g. traditional-handloom" />
       </div>
 
       <div class="form-group">
-        <label class="form-label">${isBn ? 'ব্যানার ইমেজ ইউআরএল' : 'Banner Image URL'}</label>
-        <input type="url" name="banner_url" class="input" value="${categoryToEdit?.banner_url || ''}" placeholder="https://..." />
+        <label for="cat-active-check" class="form-label">${isBn ? 'ব্যানার ইমেজ ইউআরএল' : 'Banner Image URL'}</label>
+        <input type="url" name="banner_url" class="input" value="${categoryToEdit?.banner_url || ''}" aria-label="https://..." placeholder="https://..." />
       </div>
 
       <div class="form-group flex items-center gap-2 mt-2">
@@ -286,17 +286,17 @@ export default function CategoriesPage(root, { navigate } = {}) {
       <!-- Toolbar: Search & Filters -->
       <div class="admin-toolbar">
         <div class="admin-toolbar__search">
-          <input type="search" id="cat-search-input" class="input" placeholder="${isBn ? 'ক্যাটাগরির নাম বা স্ল্যাগ দিয়ে খুঁজুন...' : 'Search categories by name or slug...'}" value="${searchQuery}" />
+          <input type="search" id="cat-search-input" class="input" aria-label="${isBn ? 'ক্যাটাগরির নাম বা স্ল্যাগ দিয়ে খুঁজুন...' : 'Search categories by name or slug...'}" placeholder="${isBn ? 'ক্যাটাগরির নাম বা স্ল্যাগ দিয়ে খুঁজুন...' : 'Search categories by name or slug...'}" value="${searchQuery}" />
         </div>
 
         <div class="admin-toolbar__filters">
-          <select id="level-filter-select" class="input select">
+          <select id="level-filter-select" class="input select" aria-label="${isBn ? 'লেভেল অনুসারে ফিল্টার' : 'Filter by level'}">
             <option value="ALL" ${levelFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব লেভেল' : 'All Levels'}</option>
             <option value="MAIN" ${levelFilter === 'MAIN' ? 'selected' : ''}>${isBn ? 'শুধু মূল ক্যাটাগরি' : 'Main Categories Only'}</option>
             <option value="SUB" ${levelFilter === 'SUB' ? 'selected' : ''}>${isBn ? 'শুধু সাব-ক্যাটাগরি' : 'Sub-categories Only'}</option>
           </select>
 
-          <select id="status-filter-select" class="input select">
+          <select id="status-filter-select" class="input select" aria-label="${isBn ? 'স্ট্যাটাস অনুসারে ফিল্টার' : 'Filter by status'}">
             <option value="ALL" ${statusFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব স্ট্যাটাস' : 'All Status'}</option>
             <option value="ACTIVE" ${statusFilter === 'ACTIVE' ? 'selected' : ''}>${isBn ? 'সক্রিয়' : 'Active'}</option>
             <option value="INACTIVE" ${statusFilter === 'INACTIVE' ? 'selected' : ''}>${isBn ? 'নিষ্ক্রিয়' : 'Inactive'}</option>

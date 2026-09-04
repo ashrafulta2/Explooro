@@ -317,18 +317,18 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
         <!-- Input Form Controls -->
         <div class="split-simulator-form">
           <div class="form-group">
-            <label class="form-label">${t('admin_splits.sim_retail_price')}</label>
-            <input type="number" class="form-input sim-input-retail" min="10" max="100000" step="10" value="${simRetailPrice}" />
+            <label for="split-sim-retail" class="form-label">${t('admin_splits.sim_retail_price')}</label>
+            <input id="split-sim-retail" type="number" class="form-input sim-input-retail" min="10" max="100000" step="10" value="${simRetailPrice}" />
           </div>
 
           <div class="form-group">
-            <label class="form-label">${t('admin_splits.sim_supplier_price')}</label>
-            <input type="number" class="form-input sim-input-supplier" min="0" max="100000" step="10" value="${simSupplierCost}" />
+            <label for="split-sim-supplier" class="form-label">${t('admin_splits.sim_supplier_price')}</label>
+            <input id="split-sim-supplier" type="number" class="form-input sim-input-supplier" min="0" max="100000" step="10" value="${simSupplierCost}" />
           </div>
 
           <div class="form-group">
-            <label class="form-label">${t('admin_splits.sim_category')}</label>
-            <select class="form-select sim-select-category">
+            <label for="split-sim-category" class="form-label">${t('admin_splits.sim_category')}</label>
+            <select id="split-sim-category" class="form-select sim-select-category">
               ${categories
                 .map(
                   (c) =>
@@ -341,8 +341,8 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
           </div>
 
           <div class="form-group">
-            <label class="form-label">${t('admin_splits.sim_tier')}</label>
-            <select class="form-select sim-select-tier">
+            <label for="split-sim-tier" class="form-label">${t('admin_splits.sim_tier')}</label>
+            <select id="split-sim-tier" class="form-select sim-select-tier">
               <option value="BRONZE" ${simTier === 'BRONZE' ? 'selected' : ''}>Bronze (+0% Bonus)</option>
               <option value="SILVER" ${simTier === 'SILVER' ? 'selected' : ''}>Silver (+1% Bonus)</option>
               <option value="GOLD" ${simTier === 'GOLD' ? 'selected' : ''}>Gold (+2% Bonus)</option>
@@ -446,29 +446,29 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
         <div class="form-grid form-grid--3col">
           <!-- Saler Share -->
           <div class="form-group">
-            <label class="form-label">${t('admin_splits.saler_split_label')}</label>
+            <label for="split-global-saler" class="form-label">${t('admin_splits.saler_split_label')}</label>
             <div class="form-range-wrap">
-              <input type="range" class="form-range global-saler-range" min="10" max="90" step="1" value="${formSalerSplit}" />
+              <input id="split-global-saler" type="range" class="form-range global-saler-range" min="10" max="90" step="1" value="${formSalerSplit}" />
               <span class="font-bold text-lg font-mono text-brand global-saler-display">${formSalerSplit}%</span>
             </div>
           </div>
 
           <!-- Platform Share (Locked complement) -->
           <div class="form-group">
-            <label class="form-label">${t('admin_splits.platform_split_label')}</label>
-            <input type="text" class="form-input font-mono font-bold text-lg global-platform-display" readonly value="${100 - formSalerSplit}%" />
+            <label for="split-global-platform" class="form-label">${t('admin_splits.platform_split_label')}</label>
+            <input id="split-global-platform" type="text" class="form-input font-mono font-bold text-lg global-platform-display" readonly value="${100 - formSalerSplit}%" />
           </div>
 
           <!-- Floor Margin -->
           <div class="form-group">
-            <label class="form-label">${t('admin_splits.min_margin_label')}</label>
-            <input type="number" class="form-input global-min-margin" min="1" max="25" step="1" value="${formMinMargin}" />
+            <label for="split-global-min-margin" class="form-label">${t('admin_splits.min_margin_label')}</label>
+            <input id="split-global-min-margin" type="number" class="form-input global-min-margin" min="1" max="25" step="1" value="${formMinMargin}" />
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">${t('admin_splits.policy_reason_label')} <span class="text-danger">*</span></label>
-          <input
+          <label for="split-global-reason" class="form-label">${t('admin_splits.policy_reason_label')} <span class="text-danger">*</span></label>
+          <input id="split-global-reason"
             type="text"
             class="form-input global-reason-input"
             placeholder="${t('admin_splits.policy_reason_placeholder')}"
@@ -543,11 +543,12 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
           <input
             type="search"
             class="form-input cat-search-input"
+            aria-label="${isBn ? 'ক্যাটাগরি খুঁজুন' : 'Search category'}"
             placeholder="${isBn ? 'ক্যাটাগরি খুঁজুন...' : 'Search category...'}"
             value="${categorySearch}"
             style="width: 190px;"
           />
-          <select class="form-select cat-filter-select" style="width: 160px;">
+          <select class="form-select cat-filter-select" aria-label="${isBn ? 'ক্যাটাগরি ফিল্টার' : 'Filter categories'}" style="width: 160px;">
             <option value="ALL" ${categoryFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সকল ক্যাটাগরি' : 'All Categories'}</option>
             <option value="OVERRIDES" ${categoryFilter === 'OVERRIDES' ? 'selected' : ''}>${isBn ? 'শুধু ওভাররাইড' : 'Overrides Only'}</option>
             <option value="DEFAULTS" ${categoryFilter === 'DEFAULTS' ? 'selected' : ''}>${isBn ? 'শুধু ডিফল্ট' : 'Defaults Only'}</option>
@@ -825,7 +826,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
 
       <div class="form-group">
         <label class="form-label">${t('admin_splits.policy_reason_label')} <span class="text-danger">*</span></label>
-        <input type="text" class="form-input modal-reason-input" placeholder="e.g., Seasonal apparel promotion adjustment" value="${modalReason}" />
+        <input type="text" class="form-input modal-reason-input" aria-label="e.g., Seasonal apparel promotion adjustment" placeholder="e.g., Seasonal apparel promotion adjustment" value="${modalReason}" />
       </div>
     `;
 

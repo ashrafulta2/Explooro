@@ -182,7 +182,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
 
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${t('moderation.reason_presets', 'Preset Reason')}:</label>
+            <label for="sel-preset-reason" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${t('moderation.reason_presets', 'Preset Reason')}:</label>
             <select id="sel-preset-reason" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;">
               <option value="POLICY_VIOLATION">Prohibited item or terms policy breach</option>
               <option value="POOR_IMAGE_QUALITY">Inaccurate, watermarked or low-resolution images</option>
@@ -193,16 +193,16 @@ export default function ModerationQueuePage(root, ctx = {}) {
           </div>
 
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">English Reason (Sent to seller):</label>
+            <label for="txt-reason-en" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">English Reason (Sent to seller):</label>
             <textarea id="txt-reason-en" rows="2" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="Actionable rejection explanation..."></textarea>
           </div>
 
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">বাংলা কারণ (সেলারকে প্রেরিত):</label>
+            <label for="txt-reason-bn" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">বাংলা কারণ (সেলারকে প্রেরিত):</label>
             <textarea id="txt-reason-bn" rows="2" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="বাতিলের সুস্পষ্ট কারণ লিখুন..."></textarea>
           </div>
 
-          <label style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--danger-border, rgba(225, 29, 72, 0.3)); border-radius: 8px; background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">
+          <label for="chk-shadow-restrict" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--danger-border, rgba(225, 29, 72, 0.3)); border-radius: 8px; background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">
             <input type="checkbox" id="chk-shadow-restrict"/>
             <span style="font-weight: 600; font-size: 12px;">🚫 ${t('moderation.shadow_restrict_seller', 'Shadow-Restrict Seller (Flag suspicious behavior)')}</span>
           </label>
@@ -306,18 +306,18 @@ export default function ModerationQueuePage(root, ctx = {}) {
 
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">Requested Changes (English):</label>
+            <label for="txt-changes-en" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">Requested Changes (English):</label>
             <textarea id="txt-changes-en" rows="3" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="Specify required edits (e.g. upload high-res photo, adjust wholesale margin)..."></textarea>
           </div>
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">প্রয়োজনীয় সংশোধন (বাংলা):</label>
+            <label for="txt-changes-bn" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">প্রয়োজনীয় সংশোধন (বাংলা):</label>
             <textarea id="txt-changes-bn" rows="3" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="সেলারকে কী কী সংশোধন করতে হবে লিখুন..."></textarea>
           </div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
           <button id="btn-cancel-modal" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${t('common.cancel', 'Cancel')}</button>
-          <button id="btn-confirm-changes" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">${t('moderation.send_changes_request', 'Send Request')}</button>
+          <button id="btn-confirm-changes" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${t('moderation.send_changes_request', 'Send Request')}</button>
         </div>
       </div>
     `;
@@ -525,7 +525,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 12px; font-weight: 600; color: var(--text-muted, #64748b);">${t('moderation.status_label', 'Status:')}</span>
+          <label for="sel-status-filter" style="font-size: 12px; font-weight: 600; color: var(--text-muted, #64748b);">${t('moderation.status_label', 'Status:')}</label>
           <select id="sel-status-filter" style="
             padding: 6px 12px;
             font-size: 12px;

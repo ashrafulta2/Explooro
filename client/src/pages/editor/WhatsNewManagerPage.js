@@ -46,11 +46,11 @@ export default function WhatsNewManagerPage(root) {
     content.innerHTML = `
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
         <div class="supplier-form-field">
-          <label>Version Tag *</label>
+          <label for="update-ver">Version Tag *</label>
           <input type="text" id="update-ver" class="form-input" placeholder="e.g. v2.4.0" value="${existing?.version || 'v2.4.0'}" />
         </div>
         <div class="supplier-form-field">
-          <label>Category *</label>
+          <label for="update-cat">Category *</label>
           <select class="form-select" id="update-cat">
             <option value="FEATURE" ${existing?.category === 'FEATURE' ? 'selected' : ''}>✨ New Feature</option>
             <option value="IMPROVEMENT" ${existing?.category === 'IMPROVEMENT' ? 'selected' : ''}>⚡ Improvement</option>
@@ -59,7 +59,7 @@ export default function WhatsNewManagerPage(root) {
           </select>
         </div>
         <div class="supplier-form-field">
-          <label>Target Audience *</label>
+          <label for="update-aud">Target Audience *</label>
           <select class="form-select" id="update-aud">
             <option value="ALL" ${existing?.target_audience === 'ALL' ? 'selected' : ''}>🌐 All Users</option>
             <option value="SALERS" ${existing?.target_audience === 'SALERS' ? 'selected' : ''}>🛍️ Salers Only</option>
@@ -69,22 +69,22 @@ export default function WhatsNewManagerPage(root) {
       </div>
 
       <div class="supplier-form-field">
-        <label>Release Title (English) *</label>
+        <label for="update-title-en">Release Title (English) *</label>
         <input type="text" id="update-title-en" class="form-input" placeholder="e.g. 1-Click Physical Factory Showroom Status" value="${existing?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Release Title (Bangla) *</label>
+        <label for="update-title-bn">Release Title (Bangla) *</label>
         <input type="text" id="update-title-bn" class="form-input" placeholder="e.g. ১-ক্লিক ফিজিক্যাল ফ্যাক্টরি শোরুম স্ট্যাটাস" value="${existing?.title_bn || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Summary Narrative (English) *</label>
+        <label for="update-summary-en">Summary Narrative (English) *</label>
         <textarea id="update-summary-en" class="form-textarea" rows="3" placeholder="Explain the key improvements and features in this release...">${existing?.summary_en || ''}</textarea>
       </div>
 
       <div class="supplier-form-field">
-        <label>Summary Narrative (Bangla)</label>
+        <label for="update-summary-bn">Summary Narrative (Bangla)</label>
         <textarea id="update-summary-bn" class="form-textarea" rows="3" placeholder="বাংলা বিবরণ লিখুন...">${existing?.summary_bn || ''}</textarea>
       </div>
     `;
@@ -210,7 +210,7 @@ export default function WhatsNewManagerPage(root) {
             🛡️ Security & Escrow
           </button>
         </div>
-        <input type="text" id="update-search" placeholder="🔍 Search release notes..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="text" id="update-search" aria-label="🔍 Search release notes..." placeholder="🔍 Search release notes..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 
@@ -233,7 +233,7 @@ export default function WhatsNewManagerPage(root) {
       loader.className = 'p-12 text-center text-muted';
       loader.innerHTML = `
         <div class="spinner" style="margin: 0 auto 16px auto;"></div>
-        <p>Loading changelogs...</p>
+        <p>${t('common.loading')}</p>
       `;
       container.appendChild(loader);
       return;
@@ -291,14 +291,14 @@ export default function WhatsNewManagerPage(root) {
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
           <span class="text-xs text-muted font-bold font-mono">Status: 🟢 PUBLISHED</span>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <button class="btn btn--xs btn--outline" id="edit-up-btn">✏️ Edit</button>
-            <button class="btn btn--xs btn--outline text-danger" id="delete-up-btn">🗑️</button>
+            <button class="btn btn--xs btn--outline js-edit-up-btn">✏️ Edit</button>
+            <button class="btn btn--xs btn--outline text-danger js-delete-up-btn">🗑️</button>
           </div>
         </div>
       `;
 
-      row.querySelector('#edit-up-btn').onclick = () => openUpdateModal(item);
-      row.querySelector('#delete-up-btn').onclick = () => handleDeleteUpdate(item.id);
+      row.querySelector('.js-edit-up-btn').onclick = () => openUpdateModal(item);
+      row.querySelector('.js-delete-up-btn').onclick = () => handleDeleteUpdate(item.id);
 
       list.appendChild(row);
     });

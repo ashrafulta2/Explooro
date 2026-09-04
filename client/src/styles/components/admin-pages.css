@@ -751,10 +751,16 @@
   color: var(--text-primary);
 }
 
+/* WHY --text-brand and not --brand: --brand is the FILL token (#ffbc00 on the shipped palette).
+   Painted as text on --surface-2 it measures 1.51:1 — the selected tab in the Finance and Platform
+   sub-navs was the least readable label on the page, which is the exact opposite of what "active"
+   should look like. themes.css defines --text-brand as the shallowest brand step clearing AA on the
+   canvas (5.31:1 light, 6.24:1 dark) for precisely this use. The 2px underline keeps --brand,
+   because a border is a fill and carries no contrast requirement. */
 .finance-subnav__tab--active,
 .platform-subnav__tab--active {
   background: var(--surface-2);
-  color: var(--brand);
+  color: var(--text-brand);
   font-weight: var(--weight-bold);
   border-bottom: 2px solid var(--brand);
 }
@@ -1151,14 +1157,19 @@
   border-radius: var(--radius-sm);
 }
 
+/* WHY tokens and not the literals: #10b981 on its own 12% tint measures 2.27:1, so the latency
+   figure beside every integration on /admin/platform/integrations — the number an operator is there
+   to read — failed AA by half. The status triads in themes.css already publish a text-weight step
+   (--success/--danger resolve to the 700 step) paired with a --*-bg tint, and they follow the master
+   seed and dark mode; the hardcoded pair did neither. */
 .test-latency-pill--success {
-  background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .test-latency-pill--error {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 /* ==========================================================================
@@ -1251,10 +1262,13 @@
   gap: 2px;
 }
 
+/* Rendered as a <label for> so the switch beside it is named for assistive tech and clicking the
+   text toggles it — the cursor advertises that. */
 .settings-toggle-title {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   color: var(--text-primary);
+  cursor: pointer;
 }
 
 .settings-toggle-desc {

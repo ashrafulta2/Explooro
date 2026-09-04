@@ -70,7 +70,7 @@ export default function EditorDashboardPage(root) {
     content.style.gap = '14px';
     content.innerHTML = `
       <div class="supplier-form-field">
-        <label>Placement Slot *</label>
+        <label for="q-banner-slot">Placement Slot *</label>
         <select class="form-select" id="q-banner-slot">
           <option value="HOMEPAGE_HERO" ${existingBanner?.slot === 'HOMEPAGE_HERO' ? 'selected' : ''}>🎯 Homepage Main Hero Slider (1200x400)</option>
           <option value="HOMEPAGE_SECONDARY" ${existingBanner?.slot === 'HOMEPAGE_SECONDARY' ? 'selected' : ''}>📌 Homepage Secondary Showcase (1200x300)</option>
@@ -79,27 +79,27 @@ export default function EditorDashboardPage(root) {
       </div>
 
       <div class="supplier-form-field">
-        <label>Banner Title (English) *</label>
+        <label for="q-banner-title-en">Banner Title (English) *</label>
         <input type="text" id="q-banner-title-en" class="form-input" placeholder="e.g. Grand Handloom Festival 2026" value="${existingBanner?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Banner Title (Bangla) *</label>
+        <label for="q-banner-title-bn">Banner Title (Bangla) *</label>
         <input type="text" id="q-banner-title-bn" class="form-input" placeholder="e.g. ঐতিহ্যবাহী তাঁত মেলা ২০২৬" value="${existingBanner?.title_bn || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Desktop Image URL *</label>
+        <label for="q-banner-img">Desktop Image URL *</label>
         <input type="url" id="q-banner-img" class="form-input" placeholder="https://images.unsplash.com/..." value="${existingBanner?.image_url_desktop || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80'}" />
       </div>
 
       <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
         <div class="supplier-form-field">
-          <label>Target Click URL *</label>
+          <label for="q-banner-link">Target Click URL *</label>
           <input type="text" id="q-banner-link" class="form-input" placeholder="/stories" value="${existingBanner?.target_link || '/stories'}" />
         </div>
         <div class="supplier-form-field">
-          <label>Order</label>
+          <label for="q-banner-order">Order</label>
           <input type="number" id="q-banner-order" class="form-input" min="1" value="${existingBanner?.display_order || banners.length + 1}" />
         </div>
       </div>
@@ -171,22 +171,22 @@ export default function EditorDashboardPage(root) {
     content.style.gap = '14px';
     content.innerHTML = `
       <div class="supplier-form-field">
-        <label>Author / Spotlight Merchant *</label>
+        <label for="q-story-author">Author / Spotlight Merchant *</label>
         <input type="text" id="q-story-author" class="form-input" placeholder="e.g. Habib Traders (Dhaka)" value="${existingStory?.author_name || 'Explooro Editorial'}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Story Title (English) *</label>
+        <label for="q-story-title-en">Story Title (English) *</label>
         <input type="text" id="q-story-title-en" class="form-input" placeholder="e.g. How I Scaled My Jamdani Saree Store" value="${existingStory?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Cover Image URL *</label>
+        <label for="q-story-cover">Cover Image URL *</label>
         <input type="url" id="q-story-cover" class="form-input" placeholder="https://images.unsplash.com/..." value="${existingStory?.cover_image_url || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80'}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Story Content *</label>
+        <label for="q-story-content">Story Content *</label>
         <textarea id="q-story-content" class="form-textarea" rows="3" placeholder="Write story narrative...">${existingStory?.content_en || ''}</textarea>
       </div>
     `;
@@ -256,11 +256,11 @@ export default function EditorDashboardPage(root) {
     content.innerHTML = `
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="supplier-form-field">
-          <label>Version *</label>
+          <label for="q-up-ver">Version *</label>
           <input type="text" id="q-up-ver" class="form-input" placeholder="v2.5.0" value="${existing?.version || 'v2.5.0'}" />
         </div>
         <div class="supplier-form-field">
-          <label>Category *</label>
+          <label for="q-up-cat">Category *</label>
           <select class="form-select" id="q-up-cat">
             <option value="FEATURE" ${existing?.category === 'FEATURE' ? 'selected' : ''}>✨ Feature</option>
             <option value="IMPROVEMENT" ${existing?.category === 'IMPROVEMENT' ? 'selected' : ''}>⚡ Improvement</option>
@@ -270,12 +270,12 @@ export default function EditorDashboardPage(root) {
       </div>
 
       <div class="supplier-form-field">
-        <label>Release Title *</label>
+        <label for="q-up-title">Release Title *</label>
         <input type="text" id="q-up-title" class="form-input" placeholder="e.g. Courier Reverse Logistics Handover" value="${existing?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Summary Narrative *</label>
+        <label for="q-up-summary">Summary Narrative *</label>
         <textarea id="q-up-summary" class="form-textarea" rows="3" placeholder="Explain the key improvements...">${existing?.summary_en || ''}</textarea>
       </div>
     `;
@@ -429,7 +429,7 @@ export default function EditorDashboardPage(root) {
       loader.className = 'p-12 text-center text-muted';
       loader.innerHTML = `
         <div class="spinner" style="margin: 0 auto 16px auto;"></div>
-        <p>Loading editorial metrics & content console...</p>
+        <p>${t('common.loading')}</p>
       `;
       container.appendChild(loader);
       return;

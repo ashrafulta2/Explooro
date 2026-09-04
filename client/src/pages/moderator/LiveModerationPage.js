@@ -248,7 +248,7 @@ export default function LiveModerationPage(root, ctx = {}) {
           </p>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
-          <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary, #475569); cursor: pointer;">
+          <label for="chk-auto-refresh" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary, #475569); cursor: pointer;">
             <input type="checkbox" id="chk-auto-refresh" ${autoRefresh ? 'checked' : ''} />
             ${esc(t('live_mod.auto_refresh'))}
           </label>
@@ -419,7 +419,7 @@ export default function LiveModerationPage(root, ctx = {}) {
         </div>
         ${
           detailTab === 'chat'
-            ? `<label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary, #475569); cursor: pointer;">
+            ? `<label for="chk-flagged-only" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary, #475569); cursor: pointer;">
                  <input type="checkbox" id="chk-flagged-only" ${flaggedOnly ? 'checked' : ''} />
                  ${esc(t('live_mod.only_flagged'))}
                </label>`
@@ -668,7 +668,7 @@ export default function LiveModerationPage(root, ctx = {}) {
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             ${
               isLive
-                ? `<label style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary, #475569); cursor: pointer;">
+                ? `<label for="chk-preview-audio" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary, #475569); cursor: pointer;">
                      <input type="checkbox" id="chk-preview-audio" ${preview.audio_only ? 'checked' : ''} />
                      ${esc(t('live_mod.preview_audio_only'))}
                    </label>`
@@ -769,7 +769,7 @@ export default function LiveModerationPage(root, ctx = {}) {
 
         ${extraField ?? ''}
 
-        <label style="font-size: 12px; font-weight: 700;">
+        <label for="sel-reason-preset" style="font-size: 12px; font-weight: 700;">
           ${esc(t('live_mod.remove_reason'))}
           <select id="sel-reason-preset" style="width: 100%; margin-top: 5px; padding: 8px; font-size: 13px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a);">
             ${REASON_PRESETS.map((key) => `<option value="${esc(t(key))}">${esc(t(key))}</option>`).join('')}
@@ -777,7 +777,7 @@ export default function LiveModerationPage(root, ctx = {}) {
           </select>
         </label>
 
-        <textarea id="txt-reason" rows="3" placeholder="${esc(t('live_mod.remove_reason_placeholder'))}" style="
+        <textarea id="txt-reason" rows="3" aria-label="${esc(t('live_mod.remove_reason_placeholder'))}" placeholder="${esc(t('live_mod.remove_reason_placeholder'))}" style="
           width: 100%; padding: 9px; font-size: 13px; font-family: inherit; resize: vertical;
           border-radius: var(--radius-md, 8px); border: 1px solid var(--border-subtle, #e2e8f0);
           background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a);
@@ -829,7 +829,7 @@ export default function LiveModerationPage(root, ctx = {}) {
         ${esc(t('live_mod.mute_target'))}
         <input type="text" value="${esc(userName || `#${userId}`)}" disabled style="width: 100%; margin-top: 5px; padding: 8px; font-size: 13px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-2, #f8fafc); color: var(--text-muted, #64748b);" />
       </label>
-      <label style="font-size: 12px; font-weight: 700;">
+      <label for="sel-mute-duration" style="font-size: 12px; font-weight: 700;">
         ${esc(t('live_mod.mute_duration'))}
         <select id="sel-mute-duration" style="width: 100%; margin-top: 5px; padding: 8px; font-size: 13px; border-radius: var(--radius-md, 8px); border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a);">
           ${[5, 15, 30, 60].map((n) => `<option value="${n}" ${n === 15 ? 'selected' : ''}>${esc(t('live_mod.mute_minutes', { count: n }))}</option>`).join('')}

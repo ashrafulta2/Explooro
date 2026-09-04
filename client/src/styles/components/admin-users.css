@@ -26,7 +26,9 @@
 .admin-user-details { display: flex; flex-direction: column; gap: var(--space-5); }
 .admin-user-tabs { display: flex; border-bottom: 1px solid var(--border-subtle); gap: var(--space-2); overflow-x: auto; }
 .admin-user-tab { padding: var(--space-2) var(--space-4); border: none; background: transparent; font-size: var(--text-sm); font-weight: 600; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; }
-.admin-user-tab--active { color: var(--brand); border-bottom-color: var(--brand); font-weight: 700; }
+/* --text-brand for the label (AA on the canvas), --brand for the underline fill — see the note
+   on .platform-subnav__tab--active in admin-pages.css. */
+.admin-user-tab--active { color: var(--text-brand); border-bottom-color: var(--brand); font-weight: 700; }
 .admin-perm-matrix { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
 @media (min-width: 768px) { .admin-perm-matrix { grid-template-columns: repeat(2, 1fr); } }
 .admin-perm-group { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }

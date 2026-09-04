@@ -230,7 +230,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
           <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
             ${t('admin_2fa.kpi_breakglass')}
           </div>
-          <div style="font-size: 1.125rem; font-weight: 700; color: var(--brand); display: flex; align-items: center; gap: 0.4rem; margin-top: 0.35rem;">
+          <div style="font-size: 1.125rem; font-weight: 700; color: var(--text-brand); display: flex; align-items: center; gap: 0.4rem; margin-top: 0.35rem;">
             <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></span>
             ${stats.breakglass_status === 'ARMED_MONITORED' ? (isBn ? 'সক্রিয় ও নিরীক্ষিত' : 'Armed & Monitored') : stats.breakglass_status}
           </div>
@@ -251,14 +251,14 @@ export default function Staff2faPage(root, { navigate } = {}) {
               ${t('admin_2fa.policy_subtitle')}
             </p>
           </div>
-          <button type="button" id="save-2fa-policy-btn" class="btn btn--primary btn--sm" style="padding: 0.45rem 1rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; background: var(--brand); color: #fff; border: none; cursor: pointer;">
+          <button type="button" id="save-2fa-policy-btn" class="btn btn--primary btn--sm" style="padding: 0.45rem 1rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; border: none; cursor: pointer;">
             ${isSavingPolicy ? (isBn ? 'সংরক্ষণ হচ্ছে...' : 'Saving...') : t('admin_2fa.btn_update_policy')}
           </button>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
           <div>
-            <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
+            <label for="policy-tier-select" style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
               ${t('admin_2fa.enforcement_tier')}
             </label>
             <select id="policy-tier-select" style="width: 100%; padding: 0.5rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
@@ -269,7 +269,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
           </div>
 
           <div>
-            <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
+            <label for="policy-grace-select" style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
               ${t('admin_2fa.grace_period')}
             </label>
             <select id="policy-grace-select" style="width: 100%; padding: 0.5rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
@@ -280,7 +280,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
           </div>
 
           <div>
-            <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
+            <label for="policy-session-select" style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
               ${t('admin_2fa.session_window')}
             </label>
             <select id="policy-session-select" style="width: 100%; padding: 0.5rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
@@ -308,11 +308,12 @@ export default function Staff2faPage(root, { navigate } = {}) {
             <input
               type="search"
               id="staff-search-input"
+              aria-label="${isBn ? 'স্টাফ খুঁজুন' : 'Search staff'}"
               placeholder="${isBn ? 'নাম, ইমেইল বা বিভাগ দিয়ে খুঁজুন...' : 'Search by name, email or department...'}"
               value="${searchQuery}"
               style="padding: 0.45rem 0.75rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary); min-width: 220px;"
             />
-            <select id="role-filter-select" style="padding: 0.45rem 0.75rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
+            <select id="role-filter-select" aria-label="${t('admin_2fa.filter_all')}" style="padding: 0.45rem 0.75rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
               <option value="ALL" ${roleFilter === 'ALL' ? 'selected' : ''}>${t('admin_2fa.filter_all')}</option>
               <option value="SUPER_ADMIN" ${roleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>${t('admin_2fa.filter_super_admin')}</option>
               <option value="ADMIN" ${roleFilter === 'ADMIN' ? 'selected' : ''}>${t('admin_2fa.filter_admin')}</option>
@@ -360,7 +361,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
                     ` : staff.status === 'GRACE_PERIOD' ? `
                       <span style="color: var(--warning); font-weight: 600;">${t('admin_2fa.status_grace')}</span>
                     ` : `
-                      <span style="color: var(--color-error, #e53e3e); font-weight: 600;">${t('admin_2fa.status_pending')}</span>
+                      <span style="color: var(--danger); font-weight: 600;">${t('admin_2fa.status_pending')}</span>
                     `}
                   </td>
                   <td style="padding: 0.75rem; color: var(--text-secondary);">
@@ -375,11 +376,11 @@ export default function Staff2faPage(root, { navigate } = {}) {
                   <td style="padding: 0.75rem; text-align: right;">
                     <div style="display: inline-flex; gap: 0.4rem;">
                       ${staff.status === 'ENROLLED' ? `
-                        <button type="button" class="btn btn--secondary btn--xs reset-2fa-btn" data-id="${staff.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle); background: var(--surface-0); color: var(--color-error, #e53e3e); cursor: pointer;">
+                        <button type="button" class="btn btn--secondary btn--xs reset-2fa-btn" data-id="${staff.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle); background: var(--surface-0); color: var(--danger); cursor: pointer;">
                           ${t('admin_2fa.btn_reset_2fa')}
                         </button>
                       ` : `
-                        <button type="button" class="btn btn--primary btn--xs remind-2fa-btn" data-id="${staff.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; border: none; background: var(--brand); color: #fff; cursor: pointer;">
+                        <button type="button" class="btn btn--primary btn--xs remind-2fa-btn" data-id="${staff.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; border: none; cursor: pointer;">
                           ${t('admin_2fa.btn_remind')}
                         </button>
                       `}

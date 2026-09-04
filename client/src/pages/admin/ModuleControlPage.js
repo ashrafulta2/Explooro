@@ -111,6 +111,7 @@ export default function ModuleControlPage(root, { navigate } = {}) {
   // State Filter
   const stateSelect = document.createElement('select');
   stateSelect.className = 'module-control__filter-select';
+  stateSelect.setAttribute('aria-label', t('modules.filter_state_all'));
   stateSelect.innerHTML = `
     <option value="ALL">${t('modules.filter_state_all')}</option>
     <option value="ON">${t('modules.filter_state_on')}</option>

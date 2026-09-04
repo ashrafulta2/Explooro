@@ -202,8 +202,8 @@ export default function CodReconciliationPage(root) {
 
         <div class="cod-recon-page__upload-grid">
           <div class="form-group">
-            <label class="form-label">${t('cod.select_courier')}</label>
-            <select class="select cod-recon-page__courier-select">
+            <label for="cod-upload-courier" class="form-label">${t('cod.select_courier')}</label>
+            <select id="cod-upload-courier" class="select cod-recon-page__courier-select">
               <option value="STEADFAST" ${uploadCourier === 'STEADFAST' ? 'selected' : ''}>Steadfast Courier</option>
               <option value="PATHAO" ${uploadCourier === 'PATHAO' ? 'selected' : ''}>Pathao Courier</option>
               <option value="REDX" ${uploadCourier === 'REDX' ? 'selected' : ''}>RedX Delivery</option>
@@ -214,7 +214,7 @@ export default function CodReconciliationPage(root) {
 
           <div class="form-group cod-recon-page__csv-group">
             <label class="form-label">${t('cod.paste_csv_label')}</label>
-            <textarea class="textarea cod-recon-page__csv-input font-mono text-xs" rows="3" placeholder="consignment_id,sub_order_ref,courier_reported,deposit_received&#10;CN-8801,SUB-501,1560.00,1560.00">${csvText}</textarea>
+            <textarea class="textarea cod-recon-page__csv-input font-mono text-xs" rows="3" aria-label="consignment_id,sub_order_ref,courier_reported,deposit_received&#10;CN-8801,SUB-501,1560.00,1560.00" placeholder="consignment_id,sub_order_ref,courier_reported,deposit_received&#10;CN-8801,SUB-501,1560.00,1560.00">${csvText}</textarea>
           </div>
 
           <div class="cod-recon-page__upload-btn-wrap">
@@ -230,7 +230,7 @@ export default function CodReconciliationPage(root) {
         <div class="cod-recon-page__queue-header">
           <h3>📋 ${t('cod.queue_title')}</h3>
           <div class="cod-recon-page__filters">
-            <select class="select select--sm cod-recon-page__filter-status">
+            <select class="select select--sm cod-recon-page__filter-status" aria-label="${t('common.all_statuses')}">
               <option value="" ${statusFilter === '' ? 'selected' : ''}>${t('common.all_statuses')}</option>
               <option value="SHORT_COLLECTION" ${statusFilter === 'SHORT_COLLECTION' ? 'selected' : ''}>${t('cod.status.short_collection')}</option>
               <option value="MISSING_DEPOSIT" ${statusFilter === 'MISSING_DEPOSIT' ? 'selected' : ''}>${t('cod.status.missing_deposit')}</option>
@@ -240,7 +240,7 @@ export default function CodReconciliationPage(root) {
               <option value="RESOLVED" ${statusFilter === 'RESOLVED' ? 'selected' : ''}>${t('cod.status.resolved')}</option>
             </select>
 
-            <select class="select select--sm cod-recon-page__filter-courier">
+            <select class="select select--sm cod-recon-page__filter-courier" aria-label="${t('common.all_couriers')}">
               <option value="" ${courierFilter === '' ? 'selected' : ''}>${t('common.all_couriers')}</option>
               <option value="STEADFAST" ${courierFilter === 'STEADFAST' ? 'selected' : ''}>Steadfast</option>
               <option value="PATHAO" ${courierFilter === 'PATHAO' ? 'selected' : ''}>Pathao</option>

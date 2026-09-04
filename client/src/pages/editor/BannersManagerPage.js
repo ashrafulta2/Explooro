@@ -45,7 +45,7 @@ export default function BannersManagerPage(root) {
     content.style.gap = '14px';
     content.innerHTML = `
       <div class="supplier-form-field">
-        <label>Banner Slot Placement *</label>
+        <label for="banner-slot">Banner Slot Placement *</label>
         <select class="form-select" id="banner-slot">
           <option value="HOMEPAGE_HERO" ${existingBanner?.slot === 'HOMEPAGE_HERO' ? 'selected' : ''}>🎯 Homepage Main Hero Slider (1200x400)</option>
           <option value="HOMEPAGE_SECONDARY" ${existingBanner?.slot === 'HOMEPAGE_SECONDARY' ? 'selected' : ''}>📌 Homepage Secondary Showcase (1200x300)</option>
@@ -54,32 +54,32 @@ export default function BannersManagerPage(root) {
       </div>
 
       <div class="supplier-form-field">
-        <label>Banner Title (English) *</label>
+        <label for="banner-title-en">Banner Title (English) *</label>
         <input type="text" id="banner-title-en" class="form-input" placeholder="e.g. Grand Artisan Festival: 100% Authentic Handloom" value="${existingBanner?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Banner Title (Bangla) *</label>
+        <label for="banner-title-bn">Banner Title (Bangla) *</label>
         <input type="text" id="banner-title-bn" class="form-input" placeholder="e.g. ঐতিহ্যবাহী তাঁত উৎসব: ১০০% খাঁটি দেশীয় পণ্য" value="${existingBanner?.title_bn || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Desktop Image URL *</label>
+        <label for="banner-img-desktop">Desktop Image URL *</label>
         <input type="url" id="banner-img-desktop" class="form-input" placeholder="https://images.unsplash.com/photo-..." value="${existingBanner?.image_url_desktop || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Mobile Image URL (Optional)</label>
+        <label for="banner-img-mobile">Mobile Image URL (Optional)</label>
         <input type="url" id="banner-img-mobile" class="form-input" placeholder="https://images.unsplash.com/photo-... (600x400)" value="${existingBanner?.image_url_mobile || ''}" />
       </div>
 
       <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
         <div class="supplier-form-field">
-          <label>Target Click Link URL *</label>
+          <label for="banner-link">Target Click Link URL *</label>
           <input type="text" id="banner-link" class="form-input" placeholder="/stories or /saler/b2b-escrow" value="${existingBanner?.target_link || '/stories'}" />
         </div>
         <div class="supplier-form-field">
-          <label>Display Order</label>
+          <label for="banner-order">Display Order</label>
           <input type="number" id="banner-order" class="form-input" min="1" value="${existingBanner?.display_order || banners.length + 1}" />
         </div>
       </div>
@@ -220,7 +220,7 @@ export default function BannersManagerPage(root) {
             ⚡ Flash Sale Strip
           </button>
         </div>
-        <input type="text" id="banner-search" placeholder="🔍 Search banner title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="text" id="banner-search" aria-label="🔍 Search banner title..." placeholder="🔍 Search banner title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 
@@ -243,7 +243,7 @@ export default function BannersManagerPage(root) {
       loader.className = 'p-12 text-center text-muted';
       loader.innerHTML = `
         <div class="spinner" style="margin: 0 auto 16px auto;"></div>
-        <p>Loading banners...</p>
+        <p>${t('common.loading')}</p>
       `;
       container.appendChild(loader);
       return;
@@ -301,20 +301,20 @@ export default function BannersManagerPage(root) {
           </div>
 
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; border-top: 1px solid var(--border-subtle); padding-top: 10px;">
-            <button class="btn btn--xs ${banner.is_active ? 'btn--outline' : 'btn--secondary'}" id="toggle-active-btn">
+            <button class="btn btn--xs ${banner.is_active ? 'btn--outline' : 'btn--secondary'} js-toggle-active-btn">
               ${banner.is_active ? 'Set to Draft' : 'Set to Live'}
             </button>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <button class="btn btn--xs btn--outline" id="edit-banner-btn">✏️ Edit</button>
-              <button class="btn btn--xs btn--outline text-danger" id="delete-banner-btn">🗑️</button>
+              <button class="btn btn--xs btn--outline js-edit-banner-btn">✏️ Edit</button>
+              <button class="btn btn--xs btn--outline text-danger js-delete-banner-btn">🗑️</button>
             </div>
           </div>
         </div>
       `;
 
-      card.querySelector('#toggle-active-btn').onclick = () => handleToggleActive(banner);
-      card.querySelector('#edit-banner-btn').onclick = () => openBannerModal(banner);
-      card.querySelector('#delete-banner-btn').onclick = () => handleDeleteBanner(banner.id);
+      card.querySelector('.js-toggle-active-btn').onclick = () => handleToggleActive(banner);
+      card.querySelector('.js-edit-banner-btn').onclick = () => openBannerModal(banner);
+      card.querySelector('.js-delete-banner-btn').onclick = () => handleDeleteBanner(banner.id);
 
       bannerGrid.appendChild(card);
     });

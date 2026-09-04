@@ -109,7 +109,7 @@ export default function LedgerPage(root, { navigate } = {}) {
     root.innerHTML = '';
 
     if (isLoading) {
-      container.innerHTML = `<div class="p-8 text-center text-muted">Loading ledger...</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-muted">${t('common.loading')}</div>`;
       root.appendChild(container);
       return;
     }
@@ -188,11 +188,11 @@ export default function LedgerPage(root, { navigate } = {}) {
       <!-- Toolbar -->
       <div class="admin-toolbar">
         <div class="admin-toolbar__search">
-          <input type="search" id="ledger-search-input" class="input" placeholder="${isBn ? 'ট্রানজ্যাকশন গ্রুপ, সাব-অর্ডার বা হিসাব দিয়ে খুঁজুন...' : 'Search group #, sub-order ref, account...'}" value="${searchQuery}" />
+          <input type="search" id="ledger-search-input" class="input" aria-label="${isBn ? 'ট্রানজ্যাকশন গ্রুপ, সাব-অর্ডার বা হিসাব দিয়ে খুঁজুন...' : 'Search group #, sub-order ref, account...'}" placeholder="${isBn ? 'ট্রানজ্যাকশন গ্রুপ, সাব-অর্ডার বা হিসাব দিয়ে খুঁজুন...' : 'Search group #, sub-order ref, account...'}" value="${searchQuery}" />
         </div>
 
         <div class="admin-toolbar__filters">
-          <select id="tx-type-select" class="input select">
+          <select id="tx-type-select" class="input select" aria-label="${isBn ? 'লেনদেনের ধরন অনুসারে ফিল্টার' : 'Filter by transaction type'}">
             <option value="ALL" ${typeFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব লেনদেন টাইপ' : 'All Transaction Types'}</option>
             <option value="ESCROW_LOCK" ${typeFilter === 'ESCROW_LOCK' ? 'selected' : ''}>ESCROW_LOCK</option>
             <option value="ESCROW_RELEASE" ${typeFilter === 'ESCROW_RELEASE' ? 'selected' : ''}>ESCROW_RELEASE</option>

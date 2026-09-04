@@ -46,7 +46,7 @@ export default function AcademyManagerPage(root) {
     content.innerHTML = `
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="supplier-form-field">
-          <label>Target Audience *</label>
+          <label for="course-role">Target Audience *</label>
           <select class="form-select" id="course-role">
             <option value="saler" ${existingCourse?.target_role === 'saler' ? 'selected' : ''}>🛍️ Resellers & Salers</option>
             <option value="supplier" ${existingCourse?.target_role === 'supplier' ? 'selected' : ''}>🏭 Factory Suppliers</option>
@@ -54,7 +54,7 @@ export default function AcademyManagerPage(root) {
           </select>
         </div>
         <div class="supplier-form-field">
-          <label>Difficulty Level *</label>
+          <label for="course-diff">Difficulty Level *</label>
           <select class="form-select" id="course-diff">
             <option value="BEGINNER" ${existingCourse?.difficulty_level === 'BEGINNER' ? 'selected' : ''}>🟢 Beginner (Fundament)</option>
             <option value="INTERMEDIATE" ${existingCourse?.difficulty_level === 'INTERMEDIATE' ? 'selected' : ''}>🟡 Intermediate (Growth)</option>
@@ -64,28 +64,28 @@ export default function AcademyManagerPage(root) {
       </div>
 
       <div class="supplier-form-field">
-        <label>Course Title (English) *</label>
+        <label for="course-title-en">Course Title (English) *</label>
         <input type="text" id="course-title-en" class="form-input" placeholder="e.g. Sourcing Mastery: Direct Factory Negotiations" value="${existingCourse?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Course Title (Bangla) *</label>
+        <label for="course-title-bn">Course Title (Bangla) *</label>
         <input type="text" id="course-title-bn" class="form-input" placeholder="e.g. সোর্সিং মাস্টারক্লাস: ডিরেক্ট ফ্যাক্টরি নেগোসিয়েশন" value="${existingCourse?.title_bn || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Cover Image URL *</label>
+        <label for="course-cover">Cover Image URL *</label>
         <input type="url" id="course-cover" class="form-input" placeholder="https://images.unsplash.com/..." value="${existingCourse?.cover_image_url || 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=600&q=80'}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Course Description (English) *</label>
+        <label for="course-desc-en">Course Description (English) *</label>
         <textarea id="course-desc-en" class="form-textarea" rows="3" placeholder="What will the learner gain from this course?">${existingCourse?.description_en || ''}</textarea>
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <div class="supplier-form-field">
-          <label>Category *</label>
+          <label for="course-cat">Category *</label>
           <select class="form-select" id="course-cat">
             <option value="sourcing" ${existingCourse?.category === 'sourcing' ? 'selected' : ''}>🏭 Factory Sourcing</option>
             <option value="marketing" ${existingCourse?.category === 'marketing' ? 'selected' : ''}>📱 Social Marketing</option>
@@ -93,7 +93,7 @@ export default function AcademyManagerPage(root) {
           </select>
         </div>
         <div class="supplier-form-field">
-          <label>Estimated Duration (Minutes)</label>
+          <label for="course-minutes">Estimated Duration (Minutes)</label>
           <input type="number" id="course-minutes" class="form-input" min="5" value="${existingCourse?.estimated_minutes || 20}" />
         </div>
       </div>
@@ -222,7 +222,7 @@ export default function AcademyManagerPage(root) {
             💰 Escrow & Finance
           </button>
         </div>
-        <input type="text" id="course-search" placeholder="🔍 Search course title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="text" id="course-search" aria-label="🔍 Search course title..." placeholder="🔍 Search course title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 
@@ -245,7 +245,7 @@ export default function AcademyManagerPage(root) {
       loader.className = 'p-12 text-center text-muted';
       loader.innerHTML = `
         <div class="spinner" style="margin: 0 auto 16px auto;"></div>
-        <p>Loading academy courses...</p>
+        <p>${t('common.loading')}</p>
       `;
       container.appendChild(loader);
       return;
@@ -303,15 +303,15 @@ export default function AcademyManagerPage(root) {
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
             <span class="badge badge--neutral font-mono text-xs font-bold">${course.target_role?.toUpperCase()}</span>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <button class="btn btn--xs btn--outline" id="edit-course-btn">✏️ Edit</button>
-              <button class="btn btn--xs btn--outline text-danger" id="delete-course-btn">🗑️</button>
+              <button class="btn btn--xs btn--outline js-edit-course-btn">✏️ Edit</button>
+              <button class="btn btn--xs btn--outline text-danger js-delete-course-btn">🗑️</button>
             </div>
           </div>
         </div>
       `;
 
-      card.querySelector('#edit-course-btn').onclick = () => openCourseModal(course);
-      card.querySelector('#delete-course-btn').onclick = () => handleDeleteCourse(course.id);
+      card.querySelector('.js-edit-course-btn').onclick = () => openCourseModal(course);
+      card.querySelector('.js-delete-course-btn').onclick = () => handleDeleteCourse(course.id);
 
       grid.appendChild(card);
     });

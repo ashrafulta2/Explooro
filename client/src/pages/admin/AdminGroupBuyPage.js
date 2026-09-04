@@ -59,7 +59,7 @@ export default function AdminGroupBuyPage(root, { navigate } = {}) {
     root.innerHTML = '';
 
     if (isLoading) {
-      container.innerHTML = `<div class="p-8 text-center text-muted">Loading group purchases...</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-muted">${t('common.loading')}</div>`;
       root.appendChild(container);
       return;
     }

@@ -34,7 +34,9 @@ export default function WorkloadSummary({
       title: t('moderator_dashboard.kpi_my_queue', 'My Queue'),
       count: workload.my_queue_count || 0,
       icon: '📥',
-      color: 'var(--brand, #4f46e5)',
+      // --text-brand, not --brand: the sibling cards all use a status TEXT token (--warning,
+      // --danger, --success); this one reached for the fill token and rendered at 1.64:1.
+      color: 'var(--text-brand)',
       bgColor: 'var(--info-bg, rgba(79, 70, 229, 0.08))',
       borderColor: 'var(--info-border, rgba(79, 70, 229, 0.25))',
       subtext: 'Items claimed & in review',

@@ -826,11 +826,11 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_title_en', 'Product Title (English)')} *</label>
-          <input type="text" name="title_en" class="catalog-form-input" placeholder="e.g. Traditional Handloom Jamdani" required />
+          <input type="text" name="title_en" class="catalog-form-input" aria-label="e.g. Traditional Handloom Jamdani" placeholder="e.g. Traditional Handloom Jamdani" required />
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_title_bn', 'Product Title (Bangla)')}</label>
-          <input type="text" name="title_bn" class="catalog-form-input" placeholder="যেমন: ঐতিহ্যবাহী তাঁতের জামদানি" />
+          <input type="text" name="title_bn" class="catalog-form-input" aria-label="যেমন: ঐতিহ্যবাহী তাঁতের জামদানি" placeholder="যেমন: ঐতিহ্যবাহী তাঁতের জামদানি" />
         </div>
       </div>
 
@@ -860,15 +860,15 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_price', 'Retail Price (BDT)')} *</label>
-          <input type="number" step="0.01" name="price" class="catalog-form-input" placeholder="1250.00" required />
+          <input type="number" step="0.01" name="price" class="catalog-form-input" aria-label="1250.00" placeholder="1250.00" required />
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_stock', 'Initial Stock Quantity')} *</label>
-          <input type="number" name="stock" class="catalog-form-input" placeholder="50" value="50" required />
+          <input type="number" name="stock" class="catalog-form-input" aria-label="50" placeholder="50" value="50" required />
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_margin', 'Saler Margin %')} *</label>
-          <input type="number" name="margin_pct" class="catalog-form-input" placeholder="20" value="20" required />
+          <input type="number" name="margin_pct" class="catalog-form-input" aria-label="20" placeholder="20" value="20" required />
         </div>
       </div>
 
@@ -883,12 +883,12 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
             )
             .join('')}
         </div>
-        <input type="url" name="image_url" class="catalog-form-input" style="margin-top: var(--space-2);" value="${sampleImages[0]}" placeholder="https://..." />
+        <input type="url" name="image_url" class="catalog-form-input" style="margin-top: var(--space-2);" value="${sampleImages[0]}" aria-label="https://..." placeholder="https://..." />
       </div>
 
       <div class="catalog-form-group">
-        <label class="catalog-form-label">${t('admin_catalog.field_description_en', 'Description (English)')}</label>
-        <textarea name="description_en" class="catalog-form-textarea" rows="2" placeholder="Describe materials, sizing, and quality guarantee..."></textarea>
+        <label for="add-flash-sale" class="catalog-form-label">${t('admin_catalog.field_description_en', 'Description (English)')}</label>
+        <textarea name="description_en" class="catalog-form-textarea" rows="2" aria-label="Describe materials, sizing, and quality guarantee..." placeholder="Describe materials, sizing, and quality guarantee..."></textarea>
       </div>
 
       <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1);">
@@ -1037,7 +1037,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       </div>
 
       <div class="catalog-form-group">
-        <label class="catalog-form-label">${t('admin_catalog.field_image_url', 'Image URL')}</label>
+        <label for="edit-flash-sale" class="catalog-form-label">${t('admin_catalog.field_image_url', 'Image URL')}</label>
         <input type="url" name="image_url" class="catalog-form-input" value="${product.image_url || ''}" />
       </div>
 

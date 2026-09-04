@@ -94,7 +94,7 @@ export const navItems = [
   { key: 'admin.grants', label_i18n_key: 'nav.admin.grants', icon: null, path: '/admin/grants', group: 'admin.users', permission: 'users.permission.grant', module: 'core', roles: ['super_admin', 'admin'], order: 4 },
   { key: 'admin.approvals', label_i18n_key: 'nav.admin.approvals', icon: null, path: '/admin/approvals', group: 'admin.users', permission: 'admin.approval.decide', module: 'core', roles: ['super_admin', 'admin'], order: 5, badge: 'approvals' },
   { key: 'admin.restrictions', label_i18n_key: 'nav.admin.restrictions', icon: null, path: '/admin/restrictions', group: 'admin.users', permission: 'users.restriction.manage', module: 'core', roles: ['super_admin', 'admin'], order: 6 },
-  { key: 'admin.verification', label_i18n_key: 'nav.admin.verification', icon: null, path: '/admin/verification', group: 'admin.users', permission: 'users.kyc.approve', module: 'core', roles: ['super_admin', 'admin'], order: 7 },
+  { key: 'admin.verification', label_i18n_key: 'nav.admin.verification', icon: null, path: '/admin/verification', group: 'admin.users', permission: 'users.kyc.approve', module: 'supplier_verification', roles: ['super_admin', 'admin'], order: 7 },
 
   { key: 'admin.catalog.products', label_i18n_key: 'nav.shared.products', icon: null, path: '/admin/catalog/products', group: 'admin.catalog', permission: 'catalog.product.view_all', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.catalog.categories', label_i18n_key: 'nav.admin.categories', icon: null, path: '/admin/catalog/categories', group: 'admin.catalog', permission: 'catalog.category.manage', module: 'core', roles: ['super_admin', 'admin'], order: 2 },
@@ -131,11 +131,11 @@ export const navItems = [
   { key: 'admin.content.translations', label_i18n_key: 'nav.shared.translations', icon: null, path: '/admin/content/translations', group: 'admin.content', permission: 'content.i18n.update', module: 'i18n', roles: ['super_admin', 'admin'], order: 5 },
   { key: 'admin.content.live', label_i18n_key: 'nav.admin.live', icon: null, path: '/admin/live', group: 'admin.content', permission: 'live.stream.govern', module: 'live_commerce', roles: ['super_admin', 'admin'], order: 6 },
 
-  { key: 'admin.platform.modules', label_i18n_key: 'nav.admin.modules', icon: null, path: '/admin/platform/modules', group: 'admin.platform', permission: 'platform.module.toggle', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
+  { key: 'admin.platform.modules', label_i18n_key: 'nav.admin.modules', icon: null, path: '/admin/platform/modules', group: 'admin.platform', permission: 'platform.module.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.platform.theme', label_i18n_key: 'nav.admin.theme', icon: null, path: '/admin/platform/theme', group: 'admin.platform', permission: 'platform.theme.view', module: 'theme_studio', roles: ['super_admin', 'admin'], order: 2 },
-  { key: 'admin.platform.integrations', label_i18n_key: 'nav.admin.integrations', icon: null, path: '/admin/platform/integrations', group: 'admin.platform', permission: 'platform.integration.manage', module: 'core', roles: ['super_admin', 'admin'], order: 3 },
-  { key: 'admin.platform.apikeys', label_i18n_key: 'nav.admin.apikeys', icon: null, path: '/admin/platform/api-keys', group: 'admin.platform', permission: 'platform.apikey.manage', module: 'open_api', roles: ['super_admin', 'admin'], order: 4 },
-  { key: 'admin.platform.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/admin/platform/settings', group: 'admin.platform', permission: 'platform.settings.update', module: 'core', roles: ['super_admin', 'admin'], order: 5 },
+  { key: 'admin.platform.integrations', label_i18n_key: 'nav.admin.integrations', icon: null, path: '/admin/platform/integrations', group: 'admin.platform', permission: 'platform.integration.view', module: 'core', roles: ['super_admin', 'admin'], order: 3 },
+  { key: 'admin.platform.apikeys', label_i18n_key: 'nav.admin.apikeys', icon: null, path: '/admin/platform/api-keys', group: 'admin.platform', permission: 'platform.apikey.view', module: 'open_api', roles: ['super_admin', 'admin'], order: 4 },
+  { key: 'admin.platform.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/admin/platform/settings', group: 'admin.platform', permission: 'platform.settings.view', module: 'core', roles: ['super_admin', 'admin'], order: 5 },
 
   { key: 'admin.security.audit', label_i18n_key: 'nav.admin.audit', icon: null, path: '/admin/security/audit', group: 'admin.security', permission: 'security.audit.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.security.sessions', label_i18n_key: 'nav.admin.sessions', icon: null, path: '/admin/security/sessions', group: 'admin.security', permission: 'security.session.revoke', module: 'core', roles: ['super_admin', 'admin'], order: 2 },
@@ -224,6 +224,33 @@ export const navItems = [
 
 /** All 7 roles this file has a tree for, in the same order the role switcher (Prompt 1.7 PREVIEW) lists them. */
 export const NAV_ROLES = ['super_admin', 'admin', 'moderator', 'editor', 'supplier', 'saler', 'customer'];
+
+/**
+ * Where each role lands when it signs in without an explicit `?redirect=`.
+ *
+ * WHY this exists: every auth page defaulted to `/`, so a super admin who signed in was dropped on
+ * the customer marketplace home and had to find their own way to /admin. Staff sign in to work, and
+ * the work is behind their own console. Customers keep the marketplace as their landing page.
+ * Keyed by the role names in NAV_ROLES; anything unknown falls through to '/'.
+ */
+export const ROLE_HOME = {
+  super_admin: '/admin',
+  admin: '/admin',
+  moderator: '/moderator',
+  editor: '/editor',
+  supplier: '/supplier',
+  saler: '/saler',
+  customer: '/',
+};
+
+/** First matching role wins, in NAV_ROLES order (most privileged first). */
+export function homePathForRoles(roles = []) {
+  const held = new Set(roles);
+  for (const role of NAV_ROLES) {
+    if (held.has(role) && ROLE_HOME[role]) return ROLE_HOME[role];
+  }
+  return '/';
+}
 
 /** Roles whose sidebar has a Simple/Advanced mode split (ia-sitemap.md §4). */
 export const PROGRESSIVE_DISCLOSURE_ROLES = ['saler', 'supplier'];

@@ -65,8 +65,12 @@ export function ReviewCard({
           ${flags
             .map(
               (f) => `
+            <!-- WHY the tokens: the chip used a bare rgba(225,29,72,.15) tint under --danger text
+                 (4.16:1, just under AA) and the stars used a literal #f59e0b (2.09:1). --danger-bg
+                 and --warning are the palette's own pairings, and they follow the master seed and
+                 dark mode, which the literals never did. -->
             <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--danger, #e11d48);">
-              <span style="padding: 1px 6px; border-radius: 4px; background: rgba(225, 29, 72, 0.15); font-weight: 700; font-family: monospace; font-size: 10px;">${f.code || 'FLAG'}</span>
+              <span style="padding: 1px 6px; border-radius: 4px; background: var(--danger-bg); font-weight: 700; font-family: monospace; font-size: 10px;">${f.code || 'FLAG'}</span>
               <span>${f.message || f.label_en || 'Prohibited content pattern'}</span>
             </div>
           `
@@ -156,7 +160,7 @@ export function ReviewCard({
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="color: #f59e0b; font-size: 14px;">${'★'.repeat(payload.rating || 5)}${'☆'.repeat(5 - (payload.rating || 5))}</span>
+            <span style="color: var(--warning); font-size: 14px;" aria-label="${payload.rating || 5} / 5">${'★'.repeat(payload.rating || 5)}${'☆'.repeat(5 - (payload.rating || 5))}</span>
             <span style="font-size: 12px; font-weight: 700; color: var(--text-primary, #0f172a);">${payload.product_title || 'Product Review'}</span>
           </div>
           <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; background: var(--success-bg, rgba(5, 150, 105, 0.1)); color: var(--success, #059669); font-weight: 600;">Verified Purchase</span>

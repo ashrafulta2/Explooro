@@ -106,7 +106,7 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
     root.innerHTML = '';
 
     if (isLoading) {
-      container.innerHTML = `<div class="p-8 text-center text-muted">Loading escrow holdings...</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-muted">${t('common.loading')}</div>`;
       root.appendChild(container);
       return;
     }
@@ -177,7 +177,7 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
       <!-- Toolbar -->
       <div class="admin-toolbar">
         <div class="admin-toolbar__search">
-          <input type="search" id="escrow-search-input" class="input" placeholder="${isBn ? 'সাব-অর্ডার, গ্রাহক, সাপ্লায়ার দিয়ে খুঁজুন...' : 'Search sub-order ref, customer, supplier...'}" value="${searchQuery}" />
+          <input type="search" id="escrow-search-input" class="input" aria-label="${isBn ? 'সাব-অর্ডার, গ্রাহক, সাপ্লায়ার দিয়ে খুঁজুন...' : 'Search sub-order ref, customer, supplier...'}" placeholder="${isBn ? 'সাব-অর্ডার, গ্রাহক, সাপ্লায়ার দিয়ে খুঁজুন...' : 'Search sub-order ref, customer, supplier...'}" value="${searchQuery}" />
         </div>
       </div>
 

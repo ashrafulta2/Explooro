@@ -211,7 +211,7 @@ export default function BackupPage(root, { navigate } = {}) {
           <button type="button" id="refresh-btn" class="btn btn--secondary btn--sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.75rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle); background: var(--surface-1); cursor: pointer;">
             🔄 ${isBn ? 'রিফ্রেশ' : 'Refresh'}
           </button>
-          <button type="button" id="trigger-snapshot-btn" class="btn btn--primary btn--sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; background: var(--brand); color: #fff; border: none; cursor: pointer;">
+          <button type="button" id="trigger-snapshot-btn" class="btn btn--primary btn--sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; border: none; cursor: pointer;">
             ⚡ ${isTriggering ? (isBn ? 'স্ন্যাপশট তৈরি হচ্ছে...' : 'Creating...') : t('admin_backups.btn_trigger_snapshot')}
           </button>
         </div>
@@ -250,7 +250,7 @@ export default function BackupPage(root, { navigate } = {}) {
           <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
             ${t('admin_backups.kpi_last_backup')}
           </div>
-          <div style="font-size: 1.25rem; font-weight: 700; color: var(--brand); margin-top: 0.35rem;">
+          <div style="font-size: 1.25rem; font-weight: 700; color: var(--text-brand); margin-top: 0.35rem;">
             ${lastBackup ? new Date(lastBackup.created_at).toLocaleDateString(isBn ? 'bn-BD' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
           </div>
           <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem;">
@@ -298,7 +298,7 @@ export default function BackupPage(root, { navigate } = {}) {
           </div>
 
           <div>
-            <select id="type-filter-select" style="padding: 0.45rem 0.75rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
+            <select id="type-filter-select" aria-label="${t('admin_backups.filter_all')}" style="padding: 0.45rem 0.75rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
               <option value="ALL" ${typeFilter === 'ALL' ? 'selected' : ''}>${t('admin_backups.filter_all')}</option>
               <option value="SCHEDULED_NIGHTLY" ${typeFilter === 'SCHEDULED_NIGHTLY' ? 'selected' : ''}>${t('admin_backups.filter_nightly')}</option>
               <option value="MANUAL_SNAPSHOT" ${typeFilter === 'MANUAL_SNAPSHOT' ? 'selected' : ''}>${t('admin_backups.filter_manual')}</option>
@@ -363,7 +363,7 @@ export default function BackupPage(root, { navigate } = {}) {
                     </td>
                     <td style="padding: 0.75rem;">
                       ${b.status === 'RESTORED' ? `
-                        <span class="badge" style="font-size: 0.75rem; font-weight: 600; color: var(--brand); background: var(--surface-2); padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-subtle);">
+                        <span class="badge" style="font-size: 0.75rem; font-weight: 600; color: var(--text-brand); background: var(--surface-2); padding: 0.2rem 0.5rem; border-radius: 4px; border: 1px solid var(--border-subtle);">
                           🔄 ${t('admin_backups.status_restored')}
                         </span>
                       ` : `

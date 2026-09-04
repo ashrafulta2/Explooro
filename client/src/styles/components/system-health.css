@@ -545,10 +545,13 @@
   border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
+/* The sibling badges all use their status token for the text; this one was left on a literal
+   #0284c7, which lands at 3.99:1 on its own tint — under AA, and the only badge in the set that
+   ignores the palette (so it never follows the master seed or dark mode either). */
 .system-table__badge--info {
-  background: rgba(56, 189, 248, 0.12);
-  color: #0284c7;
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: var(--info-bg);
+  color: var(--info);
+  border: 1px solid var(--info-border);
 }
 
 .system-table__badge--warn {
@@ -601,7 +604,8 @@
   cursor: pointer;
   padding: 0;
   font-size: 11px;
-  color: var(--brand);
+  /* --text-brand, not --brand: this is 11px text, and --brand is a fill token (1.51:1 as text). */
+  color: var(--text-brand);
   display: inline-flex;
   align-items: center;
 }

@@ -107,172 +107,17 @@ async function bootRouterDemo() {
 
   const appShell = createAppShell({ container: routerOutlet, navigate });
 
-  // Prompt 1.7: every navigation.js item gets a real route. All ~115 of them lazy-load the same
-  // generic placeholder (RoleStubPage — Phase 2+ replaces each with its actual page); the point
-  // for THIS prompt is that the sidebar/palette/mobile-nav's permission+module guards are real,
-  // not that every feature page exists yet. `/saler` keeps its richer Prompt-1.5 stub.
-  const stubRoutes = navItems
-    .filter(
-      (item) =>
-        item.path !== '/saler' &&
-        item.path !== '/saler/sourcing' &&
-        item.path !== '/saler/store-builder' &&
-        item.path !== '/saler/creative-studio' &&
-        item.path !== '/admin/platform/modules' &&
-        item.path !== '/admin/users' &&
-        item.path !== '/admin/staff' &&
-        item.path !== '/admin/roles' &&
-        item.path !== '/admin/grants' &&
-        item.path !== '/admin/approvals' &&
-        item.path !== '/admin/security/audit' &&
-        item.path !== '/admin/audit' &&
-        item.path !== '/admin/platform/theme' &&
-        item.path !== '/admin/theme' &&
-        item.path !== '/admin/finance/payouts' &&
-        item.path !== '/admin/cod-reconciliation' &&
-        item.path !== '/admin/finance' &&
-        item.path !== '/vault' &&
-        item.path !== '/saler/vault' &&
-        item.path !== '/supplier/vault' &&
-        item.path !== '/checkout' &&
-        item.path !== '/orders' &&
-        item.path !== '/customer/orders' &&
-        item.path !== '/customer/returns' &&
-        item.path !== '/admin/returns' &&
-        item.path !== '/admin/catalog/categories' &&
-        item.path !== '/admin/categories' &&
-        item.path !== '/admin/catalog/batches' &&
-        item.path !== '/admin/batches' &&
-        item.path !== '/admin/catalog/warehouses' &&
-        item.path !== '/admin/warehouses' &&
-        item.path !== '/admin/orders' &&
-        item.path !== '/admin/courier' &&
-        item.path !== '/admin/finance/ledger' &&
-        item.path !== '/admin/ledger' &&
-        item.path !== '/admin/finance/escrow' &&
-        item.path !== '/admin/escrow' &&
-        item.path !== '/admin/finance/b2b-escrow' &&
-        item.path !== '/admin/finance/splits' &&
-        item.path !== '/admin/splits' &&
-        item.path !== '/admin/finance/subscriptions' &&
-        item.path !== '/admin/subscriptions' &&
-        item.path !== '/admin/growth/ads' &&
-        item.path !== '/admin/ads' &&
-        item.path !== '/admin/growth/quests' &&
-        item.path !== '/admin/quests' &&
-        item.path !== '/admin/growth/coins' &&
-        item.path !== '/admin/growth/group-buy' &&
-        item.path !== '/admin/group-buy' &&
-        item.path !== '/admin/content/banners' &&
-        item.path !== '/admin/content/stories' &&
-        item.path !== '/admin/content/academy' &&
-        item.path !== '/admin/content/whats-new' &&
-        item.path !== '/admin/content/translations' &&
-        item.path !== '/admin/live' &&
-        item.path !== '/admin/security/sessions' &&
-        item.path !== '/admin/sessions' &&
-        item.path !== '/admin/security/2fa' &&
-        item.path !== '/admin/2fa' &&
-        item.path !== '/admin/security/ip-allowlist' &&
-        item.path !== '/admin/ip-allowlist' &&
-        item.path !== '/admin/security/backups' &&
-        item.path !== '/admin/backups' &&
-        item.path !== '/admin/growth/campaigns' &&
-        item.path !== '/admin/growth/coupons' &&
-        item.path !== '/account/coupons' &&
-        item.path !== '/customer/coupons' &&
-        item.path !== '/coupons' &&
-        item.path !== '/saler/referrals' &&
-        item.path !== '/account/referrals' &&
-        item.path !== '/customer/referrals' &&
-        item.path !== '/referrals' &&
-        item.path !== '/admin/growth/referrals' &&
-        item.path !== '/account/coins' &&
-        item.path !== '/saler/quests' &&
-        item.path !== '/saler/leaderboard' &&
-        item.path !== '/account/team-purchases' &&
-        item.path !== '/saler/cart-insights' &&
-        item.path !== '/warranties' &&
-        item.path !== '/account/warranties' &&
-        item.path !== '/supplier/claims' &&
-        item.path !== '/saler/bundles' &&
-        item.path !== '/supplier/b2b-escrow' &&
-        item.path !== '/saler/b2b-escrow' &&
-        item.path !== '/admin/platform/api-keys' &&
-        item.path !== '/admin/api-keys' &&
-        item.path !== '/admin/platform/integrations' &&
-        item.path !== '/admin/integrations' &&
-        item.path !== '/admin/platform/settings' &&
-        item.path !== '/admin/settings' &&
-        item.path !== '/stories' &&
-        item.path !== '/reels' &&
-        item.path !== '/academy' &&
-        item.path !== '/editor' &&
-        item.path !== '/editor/dashboard' &&
-        item.path !== '/editor/banners' &&
-        item.path !== '/editor/stories' &&
-        item.path !== '/editor/academy' &&
-        item.path !== '/editor/whats-new' &&
-        item.path !== '/editor/help-center' &&
-        item.path !== '/editor/help' &&
-        item.path !== '/editor/translations' &&
-        item.path !== '/supplier' &&
-        item.path !== '/supplier/inventory' &&
-        item.path !== '/supplier/orders' &&
-        item.path !== '/supplier/shipments' &&
-        item.path !== '/supplier/inquiries' &&
-        item.path !== '/supplier/store-status' &&
-        item.path !== '/supplier/help' &&
-        item.path !== '/supplier/batches' &&
-        item.path !== '/supplier/warehouses' &&
-        item.path !== '/supplier/fulfilment' &&
-        item.path !== '/supplier/resellers' &&
-        item.path !== '/saler' &&
-        item.path !== '/saler/analytics' &&
-        item.path !== '/account' &&
-        item.path !== '/customer' &&
-        item.path !== '/account/orders' &&
-        item.path !== '/account/wishlist' &&
-        item.path !== '/account/following' &&
-        item.path !== '/account/reviews' &&
-        item.path !== '/customer/reviews' &&
-        item.path !== '/reviews' &&
-        item.path !== '/account/addresses' &&
-        item.path !== '/customer/addresses' &&
-        item.path !== '/account/become-saler' &&
-        item.path !== '/customer/become-saler' &&
-        item.path !== '/become-saler' &&
-        item.path !== '/admin' &&
-        item.path !== '/admin/dashboard' &&
-        item.path !== '/admin/health' &&
-        item.path !== '/admin/system/health' &&
-        item.path !== '/admin/restrictions' &&
-        item.path !== '/admin/users/restrictions' &&
-        item.path !== '/admin/catalog/products' &&
-        item.path !== '/admin/products' &&
-        item.path !== '/supplier/products' &&
-        item.path !== '/saler/products' &&
-        item.path !== '/saler/social-kit' &&
-        item.path !== '/saler/store-status' &&
-        item.path !== '/saler/vault/payouts' &&
-        item.path !== '/saler/academy' &&
-        item.path !== '/saler/inbox' &&
-        item.path !== '/saler/orders' &&
-        item.path !== '/saler/orders/:id'
-    )
-    .map((item) => ({
-      path: item.path,
-      title: () => `${t(item.label_i18n_key)} — Explooro`,
-      requiresAuth: true,
-      permission: item.permission,
-      module: item.module,
-      load: () => import('./pages/dev/RoleStubPage.js'),
-    }));
-
-  router = createRouter({
-    root: appShell.pageOutlet,
-    loginPath: '/login',
-    routes: [
+  // Prompt 1.7: every navigation.js item gets a route, so the sidebar/command-palette/mobile-nav
+  // guards stay real even for features that have no page yet. Anything navigation.js lists that
+  // `featureRoutes` below does not already implement falls back to the generic RoleStubPage.
+  //
+  // WHY derived rather than listed: this used to be a hand-maintained chain of ~150
+  // `item.path !== '/…'` comparisons that every new page had to be added to. Three pages
+  // (/admin/verification, /admin/catalog/moderation, /admin/disputes) shipped without their line,
+  // so each quietly registered a duplicate stub route alongside the real one — harmless only
+  // because the real entry happened to come first in the array. Deriving the set from the routes
+  // that actually exist makes that class of drift impossible.
+  const featureRoutes = [
       // Prompt 4.5: real marketplace home replaces the Prompt 1.5 stub.
       { path: '/', title: 'Explooro — Marketplace', permission: null, module: 'core', load: () => import('./pages/HomePage.js') },
       // Prompt 4.4 (plan A): TopBar search results page.
@@ -408,17 +253,21 @@ async function bootRouterDemo() {
       // Prompt 10.7: Open Marketplace API, Webhooks & Developer SDK
       {
         path: '/admin/platform/api-keys',
-        title: 'Developer Portal & API Keys — Explooro',
+        title: () => `${t('nav.admin.apikeys')} — Explooro`,
         requiresAuth: true,
-        permission: null,
+        // WHY: this route carried `permission: null`, so every authenticated account — a customer
+        // included — could open the developer portal and read the platform's API key roster just by
+        // typing the URL. `.view` is the read-side key from docs/permission-catalog.json; the page's
+        // own create/revoke actions still check `platform.apikey.manage`.
+        permission: 'platform.apikey.view',
         module: 'open_api',
         load: () => import('./pages/admin/ApiKeysPage.js'),
       },
       {
         path: '/admin/api-keys',
-        title: 'Developer Portal & API Keys — Explooro',
+        title: () => `${t('nav.admin.apikeys')} — Explooro`,
         requiresAuth: true,
-        permission: null,
+        permission: 'platform.apikey.view',
         module: 'open_api',
         load: () => import('./pages/admin/ApiKeysPage.js'),
       },
@@ -991,10 +840,10 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/finance/escrow',
-        title: 'Escrow Holdings & Sweeps — Explooro Admin',
+        title: () => `${t('nav.admin.escrow')} — Explooro`,
         requiresAuth: true,
         permission: 'finance.escrow.view',
-        module: 'core',
+        module: 'escrow_engine',
         load: () => import('./pages/admin/EscrowHoldingsPage.js'),
       },
       {
@@ -1049,10 +898,13 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/growth/coins',
-        title: 'Quests & Loyalty Coins — Explooro Admin',
+        title: () => `${t('nav.admin.coins')} — Explooro`,
         requiresAuth: true,
         permission: 'growth.coins.govern',
-        module: 'daily_quests',
+        // WHY: this said `daily_quests`, so switching the quests module off also took the coin
+        // liability screen down, and switching `loyalty_coins` off left it reachable. navigation.js
+        // and server/src/config/modules.seed.json both say loyalty_coins owns this route.
+        module: 'loyalty_coins',
         load: () => import('./pages/admin/AdminQuestsPage.js'),
       },
       {
@@ -1210,10 +1062,10 @@ async function bootRouterDemo() {
       // Super Admin Finance: Merchant Subscriptions & Fees
       {
         path: '/admin/finance/subscriptions',
-        title: 'Merchant Subscriptions & Listing Fees — Explooro Admin',
+        title: () => `${t('nav.admin.subscriptions')} — Explooro`,
         requiresAuth: true,
         permission: 'finance.subscription.manage',
-        module: 'core',
+        module: 'subscription_fees',
         load: () => import('./pages/admin/SubscriptionsPage.js'),
       },
       {
@@ -1332,10 +1184,10 @@ async function bootRouterDemo() {
       // Prompt 3.5: Theme & Color Studio
       {
         path: '/admin/platform/theme',
-        title: 'Theme & Color Studio — Explooro',
+        title: () => `${t('nav.admin.theme')} — Explooro`,
         requiresAuth: true,
         permission: 'platform.theme.view',
-        module: 'core',
+        module: 'theme_studio',
         load: () => import('./pages/admin/ThemeStudioPage.js'),
       },
       {
@@ -1448,9 +1300,9 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/returns',
-        title: 'Returns Moderation Queue — Explooro',
+        title: () => `${t('nav.shared.returns')} — Explooro`,
         requiresAuth: true,
-        permission: 'orders.return.review',
+        permission: 'orders.return.view_all',
         module: 'returns_engine',
         load: () => import('./pages/admin/ReturnsQueuePage.js'),
       },
@@ -1780,7 +1632,11 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.referral.govern',
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.js'),
+        // WHY not ReferralHubPage: this route used to load the SALER's personal referral hub, so
+        // "Referrals" in the admin sidebar opened a page offering the super admin their own referral
+        // link and downline tree — no programme rules, no fraud queue, nothing they govern. Same
+        // class of mistake as /moderator/live loading the customer live-shopping browse page.
+        load: () => import('./pages/admin/AdminReferralsPage.js'),
       },
       // Prompt 9.4: Loyalty Coins, Daily Quests & Leaderboard
       {
@@ -1869,8 +1725,40 @@ async function bootRouterDemo() {
             },
           ]
         : []),
-      ...stubRoutes,
-    ],
+  ];
+
+  // WHY: every route above was authored with a hardcoded English `title` string, so the browser
+  // tab said "Escrow Holdings & Sweeps — Explooro Admin" while the page itself rendered in Bangla,
+  // and switching language left the tab frozen in English forever (router.refresh() re-reads the
+  // title, but only a function can produce a different string on the second read). navigation.js
+  // already holds a translated label for each of these paths — reuse it, so the tab, the sidebar
+  // item and the page heading all say the same thing in the same language. Routes with no nav
+  // entry (product pages, checkout, auth) keep the title their author wrote.
+  const navLabelByPath = new Map(navItems.map((item) => [item.path, item.label_i18n_key]));
+  for (const route of featureRoutes) {
+    const labelKey = navLabelByPath.get(route.path);
+    if (labelKey && typeof route.title === 'string') {
+      route.title = () => `${t(labelKey)} — Explooro`;
+    }
+  }
+
+  const implementedPaths = new Set(featureRoutes.map((r) => r.path));
+
+  const stubRoutes = navItems
+    .filter((item) => !implementedPaths.has(item.path))
+    .map((item) => ({
+      path: item.path,
+      title: () => `${t(item.label_i18n_key)} — Explooro`,
+      requiresAuth: true,
+      permission: item.permission,
+      module: item.module,
+      load: () => import('./pages/dev/RoleStubPage.js'),
+    }));
+
+  router = createRouter({
+    root: appShell.pageOutlet,
+    loginPath: '/login',
+    routes: [...featureRoutes, ...stubRoutes],
     notFound: { load: () => import('./pages/dev/NotFoundStub.js') },
     getAuthContext: () => ({ ...appStore.get().auth, modules: appStore.get().modules }),
     // WHY: a permission/module guard failure used to bounce the user to `/` in total silence —

@@ -15,6 +15,32 @@ import { formatDate } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
+/**
+ * The three attestations a reviewer must make before a KYC submission can be approved.
+ * Keyed so the checkbox state survives a re-render but resets whenever the applicant changes.
+ */
+const COMPLIANCE_CHECKS = [
+  {
+    key: 'nid_match',
+    en: 'National ID front and back match name on account',
+    bn: 'এনআইডির উভয় পাশ অ্যাকাউন্টের নামের সাথে মিলেছে',
+  },
+  {
+    key: 'face_match',
+    en: 'Applicant face matches portrait on government issued NID',
+    bn: 'আবেদনকারীর ছবি সরকারি এনআইডির ছবির সাথে মিলেছে',
+  },
+  {
+    key: 'license_verified',
+    en: 'Trade License and physical warehouse verified',
+    bn: 'ট্রেড লাইসেন্স ও প্রকৃত গুদাম যাচাই করা হয়েছে',
+  },
+];
+
+function emptyComplianceChecks() {
+  return Object.fromEntries(COMPLIANCE_CHECKS.map((c) => [c.key, false]));
+}
+
 export default function VerificationCenterPage(root) {
   const isBn = () => getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -26,6 +52,10 @@ export default function VerificationCenterPage(root) {
   let currentUserRole = 'super_admin';
   let loading = true;
   let inspectingDoc = null;
+  let complianceChecks = emptyComplianceChecks();
+  // The applicant the current tick marks belong to — switching rows must not carry attestations
+  // from the previous merchant across to the next one.
+  let complianceFor = null;
 
   const defaultSampleQueue = [
     {
@@ -194,12 +224,22 @@ export default function VerificationCenterPage(root) {
   async function handleApprove() {
     if (!selectedKyc) return;
     const isLangBn = isBn();
+
+    // Defence in depth: the button is disabled, but a keyboard/devtools path must not slip past the
+    // attestation either — granting a Blue-Tick is the whole point of this screen.
+    if (!COMPLIANCE_CHECKS.every((c) => complianceChecks[c.key])) {
+      toast.error(isLangBn ? 'আগে তিনটি কমপ্লায়েন্স যাচাই সম্পন্ন করুন।' : 'Complete all three compliance checks first.');
+      return;
+    }
+
     try {
       await api.post(`/admin/kyc/${selectedKyc.id}/decide`, {
         decision: 'VERIFIED',
       });
       toast.success(isLangBn ? 'কেওয়াইসি সফলভাবে অনুমোদিত হয়েছে' : 'Merchant KYC approved & Blue-Tick verified');
       selectedKyc.status = 'VERIFIED';
+      complianceChecks = emptyComplianceChecks();
+      complianceFor = null;
       render();
     } catch {
       toast.success(isLangBn ? 'কেওয়াইসি সফলভাবে অনুমোদিত হয়েছে' : 'Merchant KYC approved & Blue-Tick verified');
@@ -222,12 +262,12 @@ export default function VerificationCenterPage(root) {
 
         <div style="display: flex; flex-direction: column; gap: var(--space-3); font-size: 12px;">
           <div>
-            <label style="font-weight: 700; display: block; margin-bottom: 4px;">Rejection Reason (English):</label>
+            <label for="txt-reject-en" style="font-weight: 700; display: block; margin-bottom: 4px;">Rejection Reason (English):</label>
             <textarea id="txt-reject-en" class="form-textarea w-full" rows="2" style="width: 100%; font-size: 12px;" placeholder="e.g. NID image is blurry, trade license number not verifiable..."></textarea>
           </div>
 
           <div>
-            <label style="font-weight: 700; display: block; margin-bottom: 4px;">বাতিলের কারণ (বাংলা):</label>
+            <label for="txt-reject-bn" style="font-weight: 700; display: block; margin-bottom: 4px;">বাতিলের কারণ (বাংলা):</label>
             <textarea id="txt-reject-bn" class="form-textarea w-full font-bengali" rows="2" style="width: 100%; font-size: 12px;" placeholder="এনআইডির ছবি স্পষ্ট নয় অথবা তথ্যে অমিল রয়েছে..."></textarea>
           </div>
         </div>
@@ -314,6 +354,13 @@ export default function VerificationCenterPage(root) {
     }
 
     const isPending = ['PENDING', 'UNDER_REVIEW', 'APPEALED'].includes(selectedKyc.status);
+    const isLangBn = isBn();
+
+    if (complianceFor !== selectedKyc.id) {
+      complianceChecks = emptyComplianceChecks();
+      complianceFor = selectedKyc.id;
+    }
+    const allChecksDone = COMPLIANCE_CHECKS.every((c) => complianceChecks[c.key]);
 
     return `
       <div class="card" style="padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xl); box-shadow: var(--elevation-1);">
@@ -370,23 +417,36 @@ export default function VerificationCenterPage(root) {
           </div>
         </div>
 
-        <!-- Verification Checklist -->
+        <!-- Reviewer Compliance Checklist.
+             WHY it is unticked and load-bearing: these three boxes used to render pre-ticked and
+             carry no handler at all, while "Approve Verification (Blue-Tick)" stayed enabled
+             regardless. A reviewer could grant a merchant a trust badge without opening a single
+             document, and the UI would still show three ticks implying they had attested to the NID
+             match, the face match and the trade licence. A pre-ticked attestation is worse than no
+             attestation — it manufactures a record of a check nobody performed. Now each box starts
+             empty, resets when the reviewer switches applicant, and Approve stays disabled until all
+             three are ticked. Reject is deliberately NOT gated: refusing a submission you have not
+             fully verified is always allowed. -->
         <div style="padding: var(--space-3); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-2); font-size: 12px;">
-          <h4 style="font-weight: 800; margin: 0 0 8px 0; color: var(--text-primary);">✅ Reviewer Compliance Checklist</h4>
+          <h4 style="font-weight: 800; margin: 0 0 8px 0; color: var(--text-primary);">
+            ${isLangBn ? '✅ রিভিউয়ার কমপ্লায়েন্স চেকলিস্ট' : '✅ Reviewer Compliance Checklist'}
+          </h4>
           <div style="display: flex; flex-direction: column; gap: 6px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" checked/>
-              <span>National ID front and back match name on account</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" checked/>
-              <span>Applicant face matches portrait on government issued NID</span>
-            </label>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" checked/>
-              <span>Trade License and physical warehouse verified</span>
-            </label>
+            ${COMPLIANCE_CHECKS.map((check) => `
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" class="kyc-compliance-check" id="kyc-check-${check.key}"
+                  data-check="${check.key}" ${complianceChecks[check.key] ? 'checked' : ''} />
+                <span>${isLangBn ? check.bn : check.en}</span>
+              </label>
+            `).join('')}
           </div>
+          <p id="kyc-compliance-hint" style="margin: 8px 0 0 0; font-size: 11px; color: var(--text-muted);">
+            ${allChecksDone
+              ? (isLangBn ? 'সব যাচাই সম্পন্ন — অনুমোদন সক্রিয়।' : 'All checks confirmed — approval unlocked.')
+              : (isLangBn
+                ? 'অনুমোদনের আগে তিনটি যাচাই নিশ্চিত করুন।'
+                : 'Confirm all three checks before this submission can be approved.')}
+          </p>
         </div>
 
         <!-- Action Toolbar -->
@@ -394,8 +454,14 @@ export default function VerificationCenterPage(root) {
           isPending
             ? `
           <div style="display: flex; justify-content: flex-end; gap: var(--space-3); padding-top: var(--space-4); border-top: var(--border-width) solid var(--border-subtle);">
-            <button class="btn btn--danger btn--sm" id="btn-reject-kyc">❌ Reject Submission</button>
-            <button class="btn btn--primary btn--sm" id="btn-approve-kyc">✅ Approve Verification (Blue-Tick)</button>
+            <button class="btn btn--danger btn--sm" id="btn-reject-kyc">
+              ${isLangBn ? '❌ আবেদন প্রত্যাখ্যান করুন' : '❌ Reject Submission'}
+            </button>
+            <button class="btn btn--primary btn--sm" id="btn-approve-kyc"
+              ${allChecksDone ? '' : 'disabled aria-disabled="true"'}
+              title="${allChecksDone ? '' : (isLangBn ? 'আগে তিনটি কমপ্লায়েন্স যাচাই সম্পন্ন করুন' : 'Complete all three compliance checks first')}">
+              ${isLangBn ? '✅ ভেরিফিকেশন অনুমোদন করুন (ব্লু-টিক)' : '✅ Approve Verification (Blue-Tick)'}
+            </button>
           </div>
         `
             : ''
@@ -422,7 +488,7 @@ export default function VerificationCenterPage(root) {
           </div>
 
           <div style="display: flex; align-items: center; gap: var(--space-2);">
-            <select id="sel-filter-status" class="form-select form-select--sm" style="font-size: 12px; padding: 4px 8px; border-radius: var(--radius-md);">
+            <select id="sel-filter-status" class="form-select form-select--sm" aria-label="${isBn() ? 'জমা অবস্থা অনুসারে ফিল্টার' : 'Filter submissions by status'}" style="font-size: 12px; padding: 4px 8px; border-radius: var(--radius-md);">
               <option value="PENDING" ${currentFilter === 'PENDING' ? 'selected' : ''}>Pending Verification</option>
               <option value="VERIFIED" ${currentFilter === 'VERIFIED' ? 'selected' : ''}>Verified (Blue-Tick)</option>
               <option value="REJECTED" ${currentFilter === 'REJECTED' ? 'selected' : ''}>Rejected</option>
@@ -464,6 +530,27 @@ export default function VerificationCenterPage(root) {
         e.stopPropagation();
         const docId = btn.getAttribute('data-doc-id');
         handleInspectDoc(docId);
+      });
+    });
+
+    container.querySelectorAll('.kyc-compliance-check').forEach((box) => {
+      box.addEventListener('change', () => {
+        complianceChecks[box.dataset.check] = box.checked;
+        const done = COMPLIANCE_CHECKS.every((c) => complianceChecks[c.key]);
+        const approveBtn = container.querySelector('#btn-approve-kyc');
+        const hint = container.querySelector('#kyc-compliance-hint');
+        // Toggle in place rather than re-rendering: a full render would rebuild the checkbox the
+        // reviewer just clicked and steal focus mid-checklist.
+        if (approveBtn) {
+          approveBtn.disabled = !done;
+          approveBtn.setAttribute('aria-disabled', String(!done));
+          approveBtn.title = done ? '' : (isBn() ? 'আগে তিনটি কমপ্লায়েন্স যাচাই সম্পন্ন করুন' : 'Complete all three compliance checks first');
+        }
+        if (hint) {
+          hint.textContent = done
+            ? (isBn() ? 'সব যাচাই সম্পন্ন — অনুমোদন সক্রিয়।' : 'All checks confirmed — approval unlocked.')
+            : (isBn() ? 'অনুমোদনের আগে তিনটি যাচাই নিশ্চিত করুন।' : 'Confirm all three checks before this submission can be approved.');
+        }
       });
     });
 

@@ -87,7 +87,7 @@ export default function CourierHubPage(root, { navigate } = {}) {
       </div>
 
       <div class="form-group">
-        <label class="form-label">Webhook Callback URL</label>
+        <label for="c-active-check" class="form-label">Webhook Callback URL</label>
         <input type="text" class="input font-mono text-xs" disabled value="https://api.explooro.com/webhooks/courier/${carrier.key}" />
       </div>
 
@@ -118,7 +118,7 @@ export default function CourierHubPage(root, { navigate } = {}) {
     root.innerHTML = '';
 
     if (isLoading) {
-      container.innerHTML = `<div class="p-8 text-center text-muted">Loading courier hub...</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-muted">${t('common.loading')}</div>`;
       root.appendChild(container);
       return;
     }

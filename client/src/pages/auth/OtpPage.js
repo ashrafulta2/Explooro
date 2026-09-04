@@ -10,6 +10,7 @@ import { verifyOtp, sendOtp } from '../../services/session.js';
 import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.js';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.js';
 
@@ -20,7 +21,15 @@ export default function OtpPage(container, { query = {}, navigate }) {
   const email = query.email ? decodeURIComponent(query.email) : '';
   const identifier = email || phone || '';
   const purpose = query.purpose ? decodeURIComponent(query.purpose) : 'LOGIN';
-  const redirectPath = query.redirect ? decodeURIComponent(query.redirect) : '/';
+  // WHY: this defaulted to '/', so signing in without an explicit ?redirect dropped staff on
+  // the customer marketplace — a super admin had to navigate to their own console by hand every
+  // session. `landingPath()` is resolved AFTER sign-in, when the roles are actually known.
+  const explicitRedirect = query.redirect ? decodeURIComponent(query.redirect) : null;
+  const landingPath = (session) => explicitRedirect || homePathForRoles(session?.roles || session?.user?.roles || []);
+  /** `&redirect=…` only when the user actually asked for a destination; otherwise the final auth
+   *  step resolves the role's own home. */
+  const redirectQuery = explicitRedirect ? `&redirect=${encodeURIComponent(explicitRedirect)}` : '';
+  const redirectQueryFirst = explicitRedirect ? `?redirect=${encodeURIComponent(explicitRedirect)}` : '';
 
   const wrapper = document.createElement('div');
   wrapper.className = 'auth-container';
@@ -193,20 +202,20 @@ export default function OtpPage(container, { query = {}, navigate }) {
 
       if (res.twoFactorRequired) {
         navigate(
-          `/auth/2fa?challenge_token=${encodeURIComponent(res.challengeToken)}&enrolled=${Boolean(res.enrolled)}&redirect=${encodeURIComponent(redirectPath)}`
+          `/auth/2fa?challenge_token=${encodeURIComponent(res.challengeToken)}&enrolled=${Boolean(res.enrolled)}${redirectQuery}`
         );
         return;
       }
 
       if (res.success) {
         toast.success(t('auth.login.success'));
-        navigate(redirectPath);
+        navigate(landingPath(res.user));
         return;
       }
 
       if (res.verified) {
         toast.success(t('auth.otp.register_verified'));
-        navigate(`/login?redirect=${encodeURIComponent(redirectPath)}`);
+        navigate(`/login${redirectQueryFirst}`);
       }
     } catch (err) {
       errorDiv.textContent = pickMessage(err) || err.message || t('common.error_generic');
@@ -222,7 +231,7 @@ export default function OtpPage(container, { query = {}, navigate }) {
   const footer = document.createElement('div');
   footer.className = 'auth-footer';
   const changePhoneLink = document.createElement('a');
-  changePhoneLink.href = `/login?redirect=${encodeURIComponent(redirectPath)}`;
+  changePhoneLink.href = `/login${redirectQueryFirst}`;
   changePhoneLink.textContent = t('auth.otp.change_phone');
   footer.append(changePhoneLink);
 

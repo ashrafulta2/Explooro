@@ -13,7 +13,19 @@
     "save_changes": "Save Changes",
     "copy": "Copy",
     "retry": "Retry",
-    "click_to_toggle": "Click to toggle"
+    "click_to_toggle": "Click to toggle",
+    "refresh": "Refresh",
+    "processing": "Processing…",
+    "saving": "Saving…",
+    "create": "Create",
+    "done": "Done",
+    "edit": "Edit",
+    "actions": "Actions",
+    "all": "All",
+    "all_statuses": "All statuses",
+    "all_couriers": "All couriers",
+    "all_methods": "All methods",
+    "no_records_found": "No records found."
   },
   "language": {
     "switch_to_bn": "বাংলা",
@@ -599,7 +611,15 @@
     "domain_growth": "Growth & Ads",
     "domain_content": "Content & i18n",
     "domain_ai": "AI & Advanced",
-    "domain_system": "System & Maintenance"
+    "domain_system": "System & Maintenance",
+    "eyebrow": "RBAC Security Matrix",
+    "domain_admin": "Admin & Approvals",
+    "domain_logistics": "Logistics & Couriers",
+    "domain_chat": "Chat & Messaging",
+    "domain_live": "Live Commerce",
+    "domain_support": "Support & Warranty",
+    "domain_saler": "Saler Workspace",
+    "domain_supplier": "Supplier Workspace"
   },
   "grants": {
     "title": "Standing Access Grants",
@@ -622,7 +642,8 @@
     "table_status": "Status",
     "btn_revoke": "Revoke Grant",
     "confirm_revoke_title": "Revoke standing grant?",
-    "confirm_revoke_desc": "Revoking this grant invalidates permission cache immediately and terminates the delegated privilege."
+    "confirm_revoke_desc": "Revoking this grant invalidates permission cache immediately and terminates the delegated privilege.",
+    "eyebrow": "Standing Privilege Delegation (Mode A)"
   },
   "approvals": {
     "title": "Approval Inbox",
@@ -636,7 +657,8 @@
     "btn_reject": "Reject",
     "review_note_label": "Reviewer Note (Mandatory on rejection)",
     "review_note_placeholder": "Document approval context or reason for rejection…",
-    "no_pending": "All clear! No pending approval items in queue."
+    "no_pending": "All clear! No pending approval items in queue.",
+    "eyebrow": "Dual-Control Maker-Checker Gate"
   },
   "restrictions": {
     "title": "Capability Restrictions",
@@ -654,7 +676,11 @@
     "table_mode": "Mode",
     "table_reason": "Reason",
     "table_expires": "Expires",
-    "table_applied_by": "Applied By"
+    "table_applied_by": "Applied By",
+    "eyebrow": "Platform Trust & Sanctions",
+    "btn_apply": "Apply Sanction",
+    "table_user": "Sanctioned account",
+    "table_status": "Status"
   },
   "audit_explorer": {
     "title": "Audit Trail & Compliance Explorer",
@@ -779,7 +805,8 @@
     "save_name_label": "Theme name",
     "save_name_placeholder": "e.g. Eid Campaign Blue",
     "save_name_required": "Please enter a name for this theme.",
-    "save_name_confirm": "Save"
+    "save_name_confirm": "Save",
+    "reset_info": "Reset to the published palette — unsaved changes were discarded."
   },
   "media": {
     "upload_title": "Product Gallery & Media",
@@ -1608,7 +1635,9 @@
     "col_destination": "Method & Account",
     "col_amount": "Amount",
     "col_risk": "Risk Assessment",
-    "col_status": "Status"
+    "col_status": "Status",
+    "select_all_rows": "Select all payout requests on this page",
+    "select_row": "Select payout {{ref}}"
   },
   "cod": {
     "page_title": "COD 3-Way Reconciliation & Settlements",
@@ -1833,7 +1862,11 @@
     },
     "sla_breached": "SLA Breached",
     "sla_left": "left",
-    "no_timeline_events": "No timeline events recorded for this dispute."
+    "no_timeline_events": "No timeline events recorded for this dispute.",
+    "page_title": "Dispute Resolution & Arbitration Panel",
+    "page_subtitle": "Mediate three-way buyer, saler and supplier conflicts, examine audit timelines, and execute binding verdicts.",
+    "outcome_type": "Settlement outcome",
+    "confirm_verdict": "Confirm verdict"
   },
   "moderation": {
     "page_title": "Product Approval & Content Moderation Queue",
@@ -2026,7 +2059,33 @@
     "modal_send_product_title": "Insert WhatsApp Product Card",
     "btn_confirm_send_card": "Send 1-Tap Checkout Card",
     "card_sent_success": "Product card sent to customer via WhatsApp!",
-    "customer_context_title": "Customer Profile"
+    "customer_context_title": "Customer Profile",
+    "filter_all": "All",
+    "filter_whatsapp": "WhatsApp",
+    "filter_messenger": "Messenger",
+    "filter_direct": "Direct",
+    "empty_threads": "No conversations found.",
+    "empty_messages": "No messages yet in this conversation.",
+    "session_window_active": "24h Meta Window Active",
+    "session_window_expired": "Window Expired (Template Mode)",
+    "customer_phone": "Phone / WhatsApp",
+    "channel_source": "Channel Source",
+    "session_status": "Session Window Status",
+    "session_active_desc": "Active 24h Customer Service Window",
+    "session_expired_desc": "Expired (>24h since last inbound message)",
+    "instant_checkout_title": "1-Tap Checkout Generator",
+    "instant_checkout_desc": "Insert shoppable product cards with instant checkout tokens directly into this chat.",
+    "modal_product_desc": "Choose a product from your catalog to generate an instant 1-tap checkout link for this customer.",
+    "select_product_label": "Select Product",
+    "custom_note_label": "Custom Offer / Discount Note (Optional)",
+    "custom_note_placeholder": "e.g. Special 10% discount for you!",
+    "stock_label": "In Stock",
+    "price_label": "Retail Price",
+    "select_product_error": "Please select a product from the list.",
+    "quick_reply_1": "Product is available in stock.",
+    "quick_reply_2": "Delivery takes 2-3 business days.",
+    "quick_reply_3": "Inside Dhaka delivery ৳60, outside Dhaka ৳120.",
+    "quick_reply_4": "Sending your instant 1-tap checkout link now!"
   },
   "chat": {
     "page_title": "Messages & Real-Time Chat",
@@ -3074,7 +3133,13 @@
     "import_modal_title": "Batch Import Translations",
     "string_saved_live": "Translation key saved live without deploy!",
     "export_success": "Translation catalog downloaded as JSON!",
-    "import_success": "Translations imported successfully!"
+    "import_success": "Translations imported successfully!",
+    "banners_title": "Promotional Banners & Hero Sliders",
+    "stories_title": "Shoppable Stories & Product Video Reels",
+    "academy_title": "Explooro Seller & Buyer Academy",
+    "whats_new_title": "What's New & Release Changelogs",
+    "help_title": "Help Centre & Knowledge Base FAQs",
+    "locale_added_live": "New locale created live, without a code deployment."
   },
   "saler": {
     "dashboard": {
@@ -4073,7 +4138,30 @@
     "toast_created": "Verifiable backup snapshot created successfully.",
     "toast_restore_success": "System successfully verified and restored snapshot.",
     "toast_download_started": "Downloading database archive...",
-    "toast_checksum_valid": "SHA-256 checksum matches snapshot signature."
+    "toast_checksum_valid": "SHA-256 checksum matches snapshot signature.",
+    "btn_trigger_snapshot": "+ Create Snapshot Now",
+    "toast_backup_created": "Snapshot created and queued for verification.",
+    "toast_checksum_copied": "SHA-256 checksum copied to clipboard.",
+    "recovery_notice_title": "Disaster recovery is a two-person action",
+    "recovery_notice_desc": "Restoring a snapshot overwrites live data and requires a second super admin to approve. Verify the checksum before you start.",
+    "kpi_last_backup_hint": "SHA-256 checksum validated",
+    "kpi_integrity": "Integrity",
+    "kpi_integrity_hint": "Snapshots passing checksum verification",
+    "kpi_cadence": "Backup cadence",
+    "kpi_cadence_val": "Nightly · 03:00 UTC",
+    "kpi_cadence_hint": "30-day rolling retention",
+    "table_title": "Snapshot archive",
+    "table_subtitle": "Every point-in-time snapshot, its scope and its verification state.",
+    "filter_all": "All types",
+    "filter_nightly": "Nightly",
+    "filter_manual": "Manual",
+    "filter_pre_migration": "Pre-migration",
+    "th_scope": "Scope",
+    "status_verified": "Verified",
+    "retention_title": "Retention policy",
+    "retention_desc": "Nightly snapshots are kept for 30 days, manual snapshots for 90, and pre-migration snapshots indefinitely.",
+    "replication_title": "Off-site replication",
+    "replication_desc": "Every verified snapshot is copied to encrypted object storage in a second region before its checksum is recorded."
   },
   "admin_splits": {
     "page_title": "Profit Split Governance",
@@ -4280,6 +4368,10 @@
     "toast_saved": "Platform settings saved and deployed.",
     "toast_reset": "Platform settings reset to system baseline.",
     "audit_drawer_title": "Platform Settings Modification History"
+  },
+  "supplier": {
+    "back_to_dashboard": "Dashboard",
+    "products_title": "Supplier Products & Catalog",
+    "products_subtitle": "Manage manufacturing SKUs, adjust physical stock counts, set wholesale margins, and publish new products."
   }
 }
-

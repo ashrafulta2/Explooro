@@ -183,8 +183,8 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
       <div class="card payout-queue-page__filter-card">
         <div class="payout-queue-page__filters">
           <div class="form-group">
-            <label class="form-label">${t('payout.filter.status')}</label>
-            <select class="select payout-queue-page__status-select">
+            <label for="payout-filter-status" class="form-label">${t('payout.filter.status')}</label>
+            <select id="payout-filter-status" class="select payout-queue-page__status-select">
               <option value="REQUESTED" ${statusFilter === 'REQUESTED' ? 'selected' : ''}>${t('payout.status.requested')}</option>
               <option value="HELD" ${statusFilter === 'HELD' ? 'selected' : ''}>${t('payout.status.held_maker_checker')}</option>
               <option value="COMPLETED" ${statusFilter === 'COMPLETED' ? 'selected' : ''}>${t('payout.status.completed')}</option>
@@ -195,8 +195,8 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
           </div>
 
           <div class="form-group">
-            <label class="form-label">${t('payout.filter.method')}</label>
-            <select class="select payout-queue-page__method-select">
+            <label for="payout-filter-method" class="form-label">${t('payout.filter.method')}</label>
+            <select id="payout-filter-method" class="select payout-queue-page__method-select">
               <option value="" ${methodFilter === '' ? 'selected' : ''}>${t('common.all_methods')}</option>
               <option value="BKASH" ${methodFilter === 'BKASH' ? 'selected' : ''}>bKash</option>
               <option value="NAGAD" ${methodFilter === 'NAGAD' ? 'selected' : ''}>Nagad</option>
@@ -225,7 +225,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
               <thead>
                 <tr>
                   <th width="40">
-                    <input type="checkbox" class="checkbox payout-queue-page__select-all" ${selectedIds.size === payouts.length && payouts.length > 0 ? 'checked' : ''} />
+                    <input type="checkbox" aria-label="${t('payout.select_all_rows')}" class="checkbox payout-queue-page__select-all" ${selectedIds.size === payouts.length && payouts.length > 0 ? 'checked' : ''} />
                   </th>
                   <th>${t('payout.col_ref')}</th>
                   <th>${t('payout.col_user')}</th>
@@ -245,7 +245,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
                   return `
                     <tr class="${isChecked ? 'is-selected' : ''}">
                       <td>
-                        <input type="checkbox" class="checkbox payout-queue-page__item-check" data-id="${p.id}" ${isChecked ? 'checked' : ''} ${!isActionable ? 'disabled' : ''} />
+                        <input type="checkbox" aria-label="${t('payout.select_row', { ref: p.ref })}" class="checkbox payout-queue-page__item-check" data-id="${p.id}" ${isChecked ? 'checked' : ''} ${!isActionable ? 'disabled' : ''} />
                       </td>
                       <td>
                         <span class="font-mono font-bold">${p.ref}</span>

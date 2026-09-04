@@ -243,6 +243,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
       <input
         type="text"
         class="input input--sm"
+        aria-label="${isBn ? 'গেটওয়ে খুঁজুন' : 'Search gateways'}"
         placeholder="${isBn ? 'গেটওয়ে নাম বা কোড দিয়ে খুঁজুন...' : 'Search by gateway name or identifier...'}"
         value="${searchQuery}"
         id="integration-search"
@@ -395,17 +396,17 @@ export default function IntegrationsPage(root, { navigate } = {}) {
       </div>
 
       <div class="form-group">
-        <label class="form-label">${t('platform_integrations.field_merchant_id', 'Merchant ID / Store Code')}</label>
+        <label for="modal-merchant-id" class="form-label">${t('platform_integrations.field_merchant_id', 'Merchant ID / Store Code')}</label>
         <input type="text" id="modal-merchant-id" class="input input--sm w-full" value="${g.merchant_id || ''}" />
       </div>
 
       <div class="form-group">
-        <label class="form-label">${t('platform_integrations.field_app_key', 'App Key / Public Identifier')}</label>
+        <label for="modal-app-key" class="form-label">${t('platform_integrations.field_app_key', 'App Key / Public Identifier')}</label>
         <input type="text" id="modal-app-key" class="input input--sm w-full" value="${g.app_key || ''}" />
       </div>
 
       <div class="form-group">
-        <label class="form-label">${t('platform_integrations.field_app_secret', 'App Secret / API Key')}</label>
+        <label for="modal-app-secret" class="form-label">${t('platform_integrations.field_app_secret', 'App Secret / API Key')}</label>
         <div class="flex items-center gap-2">
           <input type="password" id="modal-app-secret" class="input input--sm flex-1 font-mono" value="${g.app_secret || ''}" />
           <button type="button" id="toggle-secret-btn" class="btn btn--secondary btn--sm">👁️</button>
@@ -413,12 +414,12 @@ export default function IntegrationsPage(root, { navigate } = {}) {
       </div>
 
       <div class="form-group">
-        <label class="form-label">${t('platform_integrations.field_webhook_secret', 'Webhook Signature Secret')}</label>
+        <label for="modal-webhook-secret" class="form-label">${t('platform_integrations.field_webhook_secret', 'Webhook Signature Secret')}</label>
         <input type="password" id="modal-webhook-secret" class="input input--sm w-full font-mono" value="${g.webhook_secret || ''}" />
       </div>
 
       <div class="form-group">
-        <label class="form-label">${t('platform_integrations.field_callback_url', 'Webhook Callback URL')}</label>
+        <label for="modal-webhook-url" class="form-label">${t('platform_integrations.field_callback_url', 'Webhook Callback URL')}</label>
         <div class="flex items-center gap-2">
           <input type="text" id="modal-webhook-url" class="input input--sm flex-1 font-mono text-muted" value="${g.webhook_url || 'https://api.explooro.com/webhooks'}" readonly />
           <button type="button" id="copy-webhook-btn" class="btn btn--secondary btn--sm">📋</button>
@@ -426,7 +427,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
       </div>
 
       <div class="form-group">
-        <label class="flex items-center gap-2 text-xs font-semibold">
+        <label for="modal-sandbox-mode" class="flex items-center gap-2 text-xs font-semibold">
           <input type="checkbox" id="modal-sandbox-mode" ${g.environment === 'SANDBOX' ? 'checked' : ''} />
           ${t('platform_integrations.field_sandbox_mode', 'Sandbox / Test Environment Mode')}
         </label>
@@ -434,7 +435,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
       </div>
 
       <div class="form-group">
-        <label class="form-label">${t('platform_integrations.field_audit_reason', 'Change Reason / Audit Justification')}</label>
+        <label for="modal-audit-reason" class="form-label">${t('platform_integrations.field_audit_reason', 'Change Reason / Audit Justification')}</label>
         <input type="text" id="modal-audit-reason" class="input input--sm w-full" placeholder="${isBn ? 'ক্রেডেনশিয়াল পরিবর্তনের কারণ লিখুন...' : 'e.g. Scheduled quarterly API key rotation'}" />
       </div>
 

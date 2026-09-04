@@ -1105,6 +1105,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'coupon-card', label: 'CouponCard', group: 'Growth & Monetization', render: renderCouponCardSpecimen },
     // Prompt 9.3 — Multi-Tier Referral & Network Growth
     { id: 'referral-hub', label: 'ReferralHub', group: 'Growth & Monetization', render: renderReferralHubSpecimen },
+    { id: 'admin-referral-governance', label: 'AdminReferralGovernance', group: 'Growth & Monetization', render: renderAdminReferralGovernanceSpecimen },
     // Prompt 9.4 — Loyalty Coins, Quests & Leaderboards
     { id: 'loyalty-coins', label: 'LoyaltyCoins', group: 'Growth & Monetization', render: renderLoyaltyCoinsSpecimen },
     { id: 'quest-panel', label: 'QuestPanel', group: 'Growth & Monetization', render: renderQuestPanelSpecimen },
@@ -1690,6 +1691,74 @@ function renderCouponCardSpecimen() {
   grid.append(card1, card2);
 
   wrap.append(specimen('Ticket Voucher Cards (Percentage & Free Shipping)', grid));
+  return wrap;
+}
+
+/**
+ * /admin/growth/referrals — the governance half of the referral programme, as opposed to
+ * ReferralHub above, which is the saler's own earnings view. The admin route used to load that
+ * saler page; this specimen exists so the two are visibly different in the gallery.
+ */
+function renderAdminReferralGovernanceSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Referral Programme Rules & Fraud Queue (Prompt 9.3 — admin surface)'));
+
+  const box = document.createElement('div');
+  box.className = 'card p-5 space-y-4 border border-subtle bg-surface rounded-2xl shadow-xs';
+  box.innerHTML = `
+    <div class="flex items-center justify-between border-b border-subtle pb-3">
+      <div>
+        <h4 class="font-bold text-base text-foreground">🤝 Referral Programme Rules</h4>
+        <div class="text-xs text-muted">Tier rates, attribution window, payout caps and fraud controls — configuration, not code.</div>
+      </div>
+      <span class="badge badge--success text-xs font-bold">PROGRAMME LIVE</span>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs">
+      <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
+        <div class="text-muted text-[11px] font-bold uppercase">Total referrals</div>
+        <div class="font-bold text-lg font-mono mt-1">1,420</div>
+      </div>
+      <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
+        <div class="text-muted text-[11px] font-bold uppercase">Qualified</div>
+        <div class="font-bold text-lg font-mono mt-1 text-emerald-600">980</div>
+      </div>
+      <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
+        <div class="text-muted text-[11px] font-bold uppercase">Commission paid</div>
+        <div class="font-bold text-lg font-mono mt-1">৳482,500</div>
+      </div>
+      <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
+        <div class="text-muted text-[11px] font-bold uppercase">Flagged</div>
+        <div class="font-bold text-lg font-mono mt-1 text-danger">4</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+      <div><div class="text-muted text-[11px] font-bold uppercase mb-1">Tier depth</div><div class="font-mono font-bold">2 tiers</div></div>
+      <div><div class="text-muted text-[11px] font-bold uppercase mb-1">Tier-1 / Tier-2</div><div class="font-mono font-bold">5% / 2%</div></div>
+      <div><div class="text-muted text-[11px] font-bold uppercase mb-1">Attribution</div><div class="font-mono font-bold">30 days</div></div>
+      <div><div class="text-muted text-[11px] font-bold uppercase mb-1">Qualifies on</div><div class="font-mono font-bold">First delivered order</div></div>
+    </div>
+
+    <div class="border-t border-subtle pt-3">
+      <div class="text-[11px] font-bold uppercase text-muted mb-2">🚩 Flagged referral queue — held commission awaiting a decision</div>
+      <div class="flex items-center justify-between text-xs py-2 border-b border-subtle">
+        <span class="font-mono font-bold">REF-2026-0412</span>
+        <span class="badge badge--warning text-[10px]">SAME DEVICE FINGERPRINT</span>
+        <span class="font-mono font-bold">৳850.00</span>
+        <span class="flex gap-1"><span class="badge badge--neutral text-[10px]">Release</span><span class="badge badge--danger text-[10px]">Void</span></span>
+      </div>
+      <div class="flex items-center justify-between text-xs py-2">
+        <span class="font-mono font-bold">REF-2026-0371</span>
+        <span class="badge badge--warning text-[10px]">CIRCULAR REFERRAL</span>
+        <span class="font-mono font-bold">৳640.00</span>
+        <span class="flex gap-1"><span class="badge badge--neutral text-[10px]">Release</span><span class="badge badge--danger text-[10px]">Void</span></span>
+      </div>
+    </div>
+  `;
+
+  wrap.append(box);
   return wrap;
 }
 

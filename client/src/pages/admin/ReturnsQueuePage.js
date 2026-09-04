@@ -194,7 +194,7 @@ export default function ReturnsQueuePage(root) {
       return `
         <div style="padding: 48px; text-align: center; color: var(--text-muted, #64748b);">
           <div style="display: inline-block; width: 32px; height: 32px; border: 3px solid var(--border-subtle, #e2e8f0); border-top-color: var(--brand, #4f46e5); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 12px;"></div>
-          <div>Loading returns moderation queue...</div>
+          <div>${t('common.loading')}</div>
         </div>
       `;
     }
@@ -321,7 +321,7 @@ export default function ReturnsQueuePage(root) {
                     <button class="btn-reject-return" data-id="${ret.id}" style="padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--danger-border, #e11d48); background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">
                       ${t('returns.btn_reject', 'Reject Claim')}
                     </button>
-                    <button class="btn-approve-return" data-id="${ret.id}" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; cursor: pointer;">
+                    <button class="btn-approve-return" data-id="${ret.id}" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); cursor: pointer;">
                       ✓ ${t('returns.btn_approve', 'Approve & Schedule Courier')}
                     </button>
                   `

@@ -314,11 +314,30 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
       assert.ok(mainJs.includes("path: '/admin/subscriptions'"), 'subscriptions alias registered');
     });
 
-    it('main.js excludes splits and subscriptions from stubRoutes filter', () => {
-      assert.ok(mainJs.includes("item.path !== '/admin/finance/splits'"), 'splits excluded from stubs');
-      assert.ok(mainJs.includes("item.path !== '/admin/splits'"), 'splits alias excluded from stubs');
-      assert.ok(mainJs.includes("item.path !== '/admin/finance/subscriptions'"), 'subscriptions excluded from stubs');
-      assert.ok(mainJs.includes("item.path !== '/admin/subscriptions'"), 'subscriptions alias excluded from stubs');
+    // WHY rewritten: this used to assert on the literal `item.path !== '/admin/finance/splits'`
+    // comparisons in main.js's hand-maintained stub-exclusion chain. That chain is gone — the stub
+    // set is now DERIVED from the routes that actually exist, which is what made the drift it was
+    // guarding against impossible in the first place. The invariant worth protecting is the
+    // outcome: a nav path that a real page implements must never also get a RoleStubPage.
+    it('real pages are never shadowed by a stub route', () => {
+      assert.ok(
+        mainJs.includes('const implementedPaths = new Set(featureRoutes.map((r) => r.path))'),
+        'stub set is derived from the implemented routes'
+      );
+      assert.ok(
+        mainJs.includes('.filter((item) => !implementedPaths.has(item.path))'),
+        'navItems already covered by a real route are filtered out of stubRoutes'
+      );
+      // Comment lines are stripped first: the WHY note above the derivation quotes the old
+      // comparison, and matching that would fail the very refactor it documents.
+      const codeOnly = mainJs
+        .split(/\r?\n/)
+        .filter((line) => !line.trim().startsWith('//') && !line.trim().startsWith('*'))
+        .join('\n');
+      assert.ok(
+        !codeOnly.includes("item.path !== '/"),
+        'no hand-maintained path-exclusion chain remains for a new page to be forgotten from'
+      );
     });
 
     it('ModuleRow deep-links subscription_fees to /admin/finance/subscriptions', () => {

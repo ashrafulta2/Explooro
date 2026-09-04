@@ -26,7 +26,10 @@ each); Phase 12 not started. As of 2026-08-28 that "fully done" label no longer 
 (9.2), Team Purchases (9.5), Wishlist/Returns (5.1/7.2), and Live Stream + Gamification (10.1/9.4,
 currently mid-edit and uncommitted) — some of which outran the traceability matrix (see rows 46/49's
 2026-08-27/28 notes). Verify against the traceability matrix rather than trusting this file, since
-it will drift. Most of what's described below as "architecture" is the target the prompts build
+it will drift. As of 2026-09-04 the whole Super Admin surface (49 sidebar routes across Phases
+3–11) has had a cross-cutting audit and repair pass — see traceability row 72 and
+[`docs/super-admin-audit.md`](docs/super-admin-audit.md), which also lists what was deliberately
+left open. Most of what's described below as "architecture" is the target the prompts build
 toward, not necessarily code that exists yet — check before assuming.
 
 Source documents that `docs/prompt.md` was synthesized from, useful for "why" context:
@@ -143,6 +146,7 @@ The ones that trip people up most:
 | Change the flash-sale / campaign strip colours | Theme Studio → **Flash Sale & Campaign Strip** section, or the `--flash-*` tokens in `client/src/styles/themes.css` for the shipped default. The strip is a themed section (`flash_sale`), not a raw `--danger-300` reference, so it follows the master seed and is contrast-gated on both client and server |
 | Adding a whole feature | Follow [`docs/how-to-add-a-feature.md`](docs/how-to-add-a-feature.md) — 14 steps, worked end to end |
 | Add a dependency | Read [`docs/dependency-ledger.md`](docs/dependency-ledger.md) first. Most proposals have already been rejected there |
+| Add or change an **admin page** | Read [`docs/super-admin-audit.md`](docs/super-admin-audit.md) §5 first — nine invariants, each written after the defect that broke it. In particular: the nav guard must equal the route guard (both permission AND module), module keys come from `server/src/config/modules.seed.json`, `--brand` is a fill token and `--text-brand` is the text one, and a missing i18n key renders a humanized slug instead of failing |
 
 ## Before you finish
 

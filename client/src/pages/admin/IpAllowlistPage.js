@@ -228,7 +228,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
           <button type="button" id="refresh-btn" class="btn btn--secondary btn--sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.75rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle); background: var(--surface-1); cursor: pointer;">
             🔄 ${isBn ? 'রিফ্রেশ' : 'Refresh'}
           </button>
-          <button type="button" id="open-add-modal-btn" class="btn btn--primary btn--sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; background: var(--brand); color: #fff; border: none; cursor: pointer;">
+          <button type="button" id="open-add-modal-btn" class="btn btn--primary btn--sm" style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; border: none; cursor: pointer;">
             ${t('admin_ip_allowlist.btn_add_ip')}
           </button>
         </div>
@@ -288,7 +288,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
           <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
             ${t('admin_ip_allowlist.kpi_coverage')}
           </div>
-          <div style="font-size: 1.75rem; font-weight: 700; color: var(--brand);">
+          <div style="font-size: 1.75rem; font-weight: 700; color: var(--text-brand);">
             ${stats.admin_coverage_pct}%
           </div>
           <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
@@ -300,7 +300,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
           <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
             ${t('admin_ip_allowlist.kpi_blocked_24h')}
           </div>
-          <div style="font-size: 1.75rem; font-weight: 700; color: var(--color-error, #e53e3e);">
+          <div style="font-size: 1.75rem; font-weight: 700; color: var(--danger);">
             ${stats.blocked_24h} <span style="font-size: 0.875rem; font-weight: 400; color: var(--text-secondary);">${isBn ? 'প্রচেষ্টা' : 'attempts'}</span>
           </div>
           <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
@@ -348,7 +348,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
                     <div style="font-weight: 600; color: var(--text-primary);">${entry.label}</div>
                   </td>
                   <td style="padding: 0.75rem;">
-                    <code style="font-size: 0.8125rem; background: var(--surface-2); padding: 0.2rem 0.4rem; border-radius: 3px; border: 1px solid var(--border-subtle); color: var(--brand); font-weight: 600;">
+                    <code style="font-size: 0.8125rem; background: var(--surface-2); padding: 0.2rem 0.4rem; border-radius: 3px; border: 1px solid var(--border-subtle); color: var(--text-brand); font-weight: 600;">
                       ${entry.cidr}
                     </code>
                   </td>
@@ -374,7 +374,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
                       <button type="button" class="btn btn--secondary btn--xs toggle-entry-btn" data-id="${entry.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle); background: var(--surface-0); cursor: pointer;">
                         ${entry.status === 'ACTIVE' ? (isBn ? 'নিষ্ক্রিয়' : 'Disable') : (isBn ? 'সক্রিয়' : 'Enable')}
                       </button>
-                      <button type="button" class="btn btn--secondary btn--xs delete-entry-btn" data-id="${entry.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle); background: var(--surface-0); color: var(--color-error, #e53e3e); cursor: pointer;">
+                      <button type="button" class="btn btn--secondary btn--xs delete-entry-btn" data-id="${entry.id}" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle); background: var(--surface-0); color: var(--danger); cursor: pointer;">
                         ✕
                       </button>
                     </div>
@@ -412,7 +412,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
               ${blockedAttempts.map((b) => `
                 <tr style="border-bottom: 1px solid var(--border-subtle);">
                   <td style="padding: 0.75rem;">
-                    <code style="font-size: 0.8125rem; color: var(--color-error, #e53e3e); font-weight: 600;">${b.ip}</code>
+                    <code style="font-size: 0.8125rem; color: var(--danger); font-weight: 600;">${b.ip}</code>
                   </td>
                   <td style="padding: 0.75rem; color: var(--text-primary);">
                     ${b.target_route}
@@ -421,7 +421,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
                     ${b.location}
                   </td>
                   <td style="padding: 0.75rem;">
-                    <span class="badge" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border-subtle); color: var(--color-error, #e53e3e);">
+                    <span class="badge" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border-subtle); color: var(--danger);">
                       ${b.reason}
                     </span>
                   </td>
@@ -466,7 +466,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
                   <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary);">
                     ${t('admin_ip_allowlist.modal_ip')}
                   </label>
-                  <button type="button" id="form-use-current-ip-btn" style="font-size: 0.75rem; color: var(--brand); background: none; border: none; cursor: pointer; text-decoration: underline;">
+                  <button type="button" id="form-use-current-ip-btn" style="font-size: 0.75rem; color: var(--text-brand); background: none; border: none; cursor: pointer; text-decoration: underline;">
                     ${isBn ? 'আমার বর্তমান IP ব্যবহার করুন' : 'Use Current IP'}
                   </button>
                 </div>
@@ -481,7 +481,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
               </div>
 
               <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
+                <label for="form-scope-select" style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
                   ${t('admin_ip_allowlist.modal_scope')}
                 </label>
                 <select id="form-scope-select" style="width: 100%; padding: 0.5rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
@@ -495,7 +495,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
                 <button type="button" id="cancel-modal-btn" class="btn btn--secondary btn--sm" style="padding: 0.5rem 1rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; border: 1px solid var(--border-subtle); background: var(--surface-0); cursor: pointer;">
                   ${t('admin_ip_allowlist.modal_cancel')}
                 </button>
-                <button type="submit" class="btn btn--primary btn--sm" style="padding: 0.5rem 1.25rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; background: var(--brand); color: #fff; border: none; cursor: pointer;">
+                <button type="submit" class="btn btn--primary btn--sm" style="padding: 0.5rem 1.25rem; font-size: 0.8125rem; font-weight: 600; border-radius: 4px; border: none; cursor: pointer;">
                   ${isSubmitting ? (isBn ? 'যুক্ত হচ্ছে...' : 'Adding...') : t('admin_ip_allowlist.modal_submit')}
                 </button>
               </div>

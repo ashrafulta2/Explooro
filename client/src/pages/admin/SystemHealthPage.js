@@ -461,7 +461,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
             </div>
 
             <div class="system-panel__header-actions">
-              <input type="search" id="job-search-input" class="input input--sm" placeholder="${isBn ? 'জব সার্চ করুন...' : 'Filter jobs by name...'}" value="${jobFilterQuery}" style="width: 200px;" />
+              <input type="search" id="job-search-input" class="input input--sm" aria-label="${isBn ? 'জব সার্চ করুন...' : 'Filter jobs by name...'}" placeholder="${isBn ? 'জব সার্চ করুন...' : 'Filter jobs by name...'}" value="${jobFilterQuery}" style="width: 200px;" />
               <button type="button" class="btn btn--secondary btn--sm run-all-jobs-btn">
                 ▶ ${isBn ? 'সকল জব চালান' : 'Run All Due Jobs'}
               </button>
@@ -555,7 +555,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
             </div>
 
             <div class="system-panel__header-actions">
-              <input type="search" id="backup-search-input" class="input input--sm" placeholder="${isBn ? 'স্ন্যাপশট সার্চ করুন...' : 'Filter snapshots by ref / hash...'}" value="${backupFilterQuery}" style="width: 220px;" />
+              <input type="search" id="backup-search-input" class="input input--sm" aria-label="${isBn ? 'স্ন্যাপশট সার্চ করুন...' : 'Filter snapshots by ref / hash...'}" placeholder="${isBn ? 'স্ন্যাপশট সার্চ করুন...' : 'Filter snapshots by ref / hash...'}" value="${backupFilterQuery}" style="width: 220px;" />
               <div id="create-snapshot-panel-slot"></div>
             </div>
           </div>

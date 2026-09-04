@@ -12,13 +12,22 @@ import { loginWithPassword, sendOtp } from '../../services/session.js';
 import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.js';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.js';
 
 export default function LoginPage(container, { query = {}, navigate }) {
   container.replaceChildren();
 
-  const redirectPath = query.redirect ? decodeURIComponent(query.redirect) : '/';
+  // WHY: this defaulted to '/', so signing in without an explicit ?redirect dropped staff on
+  // the customer marketplace — a super admin had to navigate to their own console by hand every
+  // session. `landingPath()` is resolved AFTER sign-in, when the roles are actually known.
+  const explicitRedirect = query.redirect ? decodeURIComponent(query.redirect) : null;
+  const landingPath = (session) => explicitRedirect || homePathForRoles(session?.roles || session?.user?.roles || []);
+  /** `&redirect=…` only when the user actually asked for a destination; otherwise the final auth
+   *  step resolves the role's own home. */
+  const redirectQuery = explicitRedirect ? `&redirect=${encodeURIComponent(explicitRedirect)}` : '';
+  const redirectQueryFirst = explicitRedirect ? `?redirect=${encodeURIComponent(explicitRedirect)}` : '';
 
   const wrapper = document.createElement('div');
   wrapper.className = 'auth-container';
@@ -192,14 +201,14 @@ export default function LoginPage(container, { query = {}, navigate }) {
 
         if (res.twoFactorRequired) {
           navigate(
-            `/auth/2fa?challenge_token=${encodeURIComponent(res.challengeToken)}&enrolled=${Boolean(res.enrolled)}&redirect=${encodeURIComponent(redirectPath)}`
+            `/auth/2fa?challenge_token=${encodeURIComponent(res.challengeToken)}&enrolled=${Boolean(res.enrolled)}${redirectQuery}`
           );
           return;
         }
 
         if (res.success) {
           toast.success(t('auth.login.success'));
-          navigate(redirectPath);
+          navigate(landingPath(res.user));
         }
       } else {
         await sendOtp({ phone, email, purpose: 'LOGIN' });
@@ -207,7 +216,7 @@ export default function LoginPage(container, { query = {}, navigate }) {
           ? `phone=${encodeURIComponent(phone)}`
           : `email=${encodeURIComponent(email)}`;
         navigate(
-          `/auth/otp?${identifierQuery}&purpose=LOGIN&redirect=${encodeURIComponent(redirectPath)}`
+          `/auth/otp?${identifierQuery}&purpose=LOGIN${redirectQuery}`
         );
       }
     } catch (err) {
@@ -226,7 +235,7 @@ export default function LoginPage(container, { query = {}, navigate }) {
   const noAccountSpan = document.createElement('span');
   noAccountSpan.textContent = `${t('auth.login.no_account')} `;
   const registerLink = document.createElement('a');
-  registerLink.href = `/auth/register?redirect=${encodeURIComponent(redirectPath)}`;
+  registerLink.href = `/auth/register${redirectQueryFirst}`;
   registerLink.textContent = t('auth.login.register_link');
 
   footer.append(noAccountSpan, registerLink);

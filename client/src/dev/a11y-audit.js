@@ -70,20 +70,53 @@ function calculateContrastRatio(fgRgba, bgRgba) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+/** Paints `src` over `dst` the way the browser does (straight-alpha "over" compositing). */
+function compositeOver(src, dst) {
+  const a = src[3];
+  if (a <= 0) return dst;
+  if (a >= 1) return src;
+  return [
+    Math.round(src[0] * a + dst[0] * (1 - a)),
+    Math.round(src[1] * a + dst[1] * (1 - a)),
+    Math.round(src[2] * a + dst[2] * (1 - a)),
+    1,
+  ];
+}
+
+/**
+ * The colour actually painted behind `el`, compositing every translucent layer between it and the
+ * first opaque ancestor.
+ *
+ * WHY not "first ancestor with alpha > 0.8": that was the previous rule, and it DISCARDED a
+ * translucent layer instead of blending through it. A perfectly ordinary 75%-opaque scrim — the
+ * view-count badge sitting on a story thumbnail, every `rgba(…, 0.12)` status tint — was skipped,
+ * and its white text got compared against the near-white page canvas far behind it. That reported
+ * 1.06:1 for text the browser renders at about 13:1, so the auditor manufactured failures on
+ * correct markup and, worse, taught anyone reading its output to distrust it. Blending down the
+ * stack is both what the browser does and what WCAG's contrast definition assumes.
+ */
 function getEffectiveBackgroundColor(el) {
+  const layers = [];
   let current = el;
+
   while (current && current !== document.documentElement) {
-    const style = window.getComputedStyle(current);
-    const rgba = getColorRgba(style.backgroundColor);
-    if (rgba[3] > 0.8) {
-      return rgba;
+    const rgba = getColorRgba(window.getComputedStyle(current).backgroundColor);
+    if (rgba[3] > 0) {
+      layers.push(rgba);
+      if (rgba[3] >= 1) break; // opaque — nothing below it can show through
     }
     current = current.parentElement;
   }
-  // Default fallback to body / root surface background
+
   const rootStyle = window.getComputedStyle(document.body || document.documentElement);
   const rootRgba = getColorRgba(rootStyle.backgroundColor);
-  return rootRgba[3] > 0 ? rootRgba : [255, 255, 255, 1];
+  let result = rootRgba[3] >= 1 ? rootRgba : [255, 255, 255, 1];
+
+  // Bottom-up: the nearest ancestor was pushed first, so paint the list in reverse.
+  for (let i = layers.length - 1; i >= 0; i -= 1) {
+    result = compositeOver(layers[i], result);
+  }
+  return result;
 }
 
 function isElementVisible(el) {

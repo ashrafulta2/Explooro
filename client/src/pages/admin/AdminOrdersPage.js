@@ -313,7 +313,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
     root.innerHTML = '';
 
     if (isLoading) {
-      container.innerHTML = `<div class="p-8 text-center text-muted">Loading orders...</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-muted">${t('common.loading')}</div>`;
       root.appendChild(container);
       return;
     }
@@ -379,11 +379,11 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
       <!-- Toolbar -->
       <div class="admin-toolbar">
         <div class="admin-toolbar__search">
-          <input type="search" id="order-search-input" class="input" placeholder="${isBn ? 'অর্ডার #, ক্রেতার ফোন, কুরিয়ার ট্র্যাকিং...' : 'Search order #, customer phone, tracking ID...'}" value="${searchQuery}" />
+          <input type="search" id="order-search-input" class="input" aria-label="${isBn ? 'অর্ডার #, ক্রেতার ফোন, কুরিয়ার ট্র্যাকিং...' : 'Search order #, customer phone, tracking ID...'}" placeholder="${isBn ? 'অর্ডার #, ক্রেতার ফোন, কুরিয়ার ট্র্যাকিং...' : 'Search order #, customer phone, tracking ID...'}" value="${searchQuery}" />
         </div>
 
         <div class="admin-toolbar__filters">
-          <select id="order-status-select" class="input select">
+          <select id="order-status-select" class="input select" aria-label="${isBn ? 'অর্ডার স্ট্যাটাস অনুসারে ফিল্টার' : 'Filter by order status'}">
             <option value="ALL" ${statusFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব স্ট্যাটাস' : 'All Status'}</option>
             <option value="PLACED" ${statusFilter === 'PLACED' ? 'selected' : ''}>PLACED</option>
             <option value="CONFIRMED" ${statusFilter === 'CONFIRMED' ? 'selected' : ''}>CONFIRMED</option>
@@ -393,7 +393,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
             <option value="CANCELLED" ${statusFilter === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
           </select>
 
-          <select id="payment-method-select" class="input select">
+          <select id="payment-method-select" class="input select" aria-label="${isBn ? 'পেমেন্ট মাধ্যম অনুসারে ফিল্টার' : 'Filter by payment method'}">
             <option value="ALL" ${paymentFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব পেমেন্ট' : 'All Payments'}</option>
             <option value="COD" ${paymentFilter === 'COD' ? 'selected' : ''}>COD (Cash on Delivery)</option>
             <option value="BKASH" ${paymentFilter === 'BKASH' ? 'selected' : ''}>bKash</option>

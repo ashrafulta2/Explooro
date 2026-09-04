@@ -101,17 +101,17 @@ export default function BatchesPage(root, { navigate } = {}) {
       <div class="grid grid-cols-2 gap-3">
         <div class="form-group">
           <label class="form-label">${isBn ? 'ব্যাচ নম্বর' : 'Batch Number'} *</label>
-          <input type="text" name="batch_number" class="input font-mono" required placeholder="BTC-2026-..." value="BTC-2026-${Math.floor(Math.random() * 90 + 10)}" />
+          <input type="text" name="batch_number" class="input font-mono" required aria-label="BTC-2026-..." placeholder="BTC-2026-..." value="BTC-2026-${Math.floor(Math.random() * 90 + 10)}" />
         </div>
         <div class="form-group">
           <label class="form-label">${isBn ? 'পণ্য এসকেইউ (SKU)' : 'Product SKU'} *</label>
-          <input type="text" name="sku" class="input font-mono" required placeholder="HONEY-500-RAW" />
+          <input type="text" name="sku" class="input font-mono" required aria-label="HONEY-500-RAW" placeholder="HONEY-500-RAW" />
         </div>
       </div>
 
       <div class="form-group">
         <label class="form-label">${isBn ? 'পণ্যের নাম' : 'Product Title'} *</label>
-        <input type="text" name="product_title_en" class="input" required placeholder="Sundarban Raw Natural Honey 500g" />
+        <input type="text" name="product_title_en" class="input" required aria-label="Sundarban Raw Natural Honey 500g" placeholder="Sundarban Raw Natural Honey 500g" />
       </div>
 
       <div class="grid grid-cols-2 gap-3">
@@ -143,7 +143,7 @@ export default function BatchesPage(root, { navigate } = {}) {
 
       <div class="form-group">
         <label class="form-label">${isBn ? 'সাপ্লায়ারের নাম' : 'Supplier Name'} *</label>
-        <input type="text" name="supplier_name" class="input" required placeholder="Sundarban Honey House" />
+        <input type="text" name="supplier_name" class="input" required aria-label="Sundarban Honey House" placeholder="Sundarban Honey House" />
       </div>
     `;
 
@@ -201,7 +201,7 @@ export default function BatchesPage(root, { navigate } = {}) {
     root.innerHTML = '';
 
     if (isLoading) {
-      container.innerHTML = `<div class="p-8 text-center text-muted">Loading batches...</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-muted">${t('common.loading')}</div>`;
       root.appendChild(container);
       return;
     }
@@ -288,11 +288,11 @@ export default function BatchesPage(root, { navigate } = {}) {
       <!-- Toolbar -->
       <div class="admin-toolbar">
         <div class="admin-toolbar__search">
-          <input type="search" id="batch-search-input" class="input" placeholder="${isBn ? 'ব্যাচ নম্বর, এসকেইউ বা পণ্যের নাম...' : 'Search batch #, SKU, product, supplier...'}" value="${searchQuery}" />
+          <input type="search" id="batch-search-input" class="input" aria-label="${isBn ? 'ব্যাচ নম্বর, এসকেইউ বা পণ্যের নাম...' : 'Search batch #, SKU, product, supplier...'}" placeholder="${isBn ? 'ব্যাচ নম্বর, এসকেইউ বা পণ্যের নাম...' : 'Search batch #, SKU, product, supplier...'}" value="${searchQuery}" />
         </div>
 
         <div class="admin-toolbar__filters">
-          <select id="batch-status-select" class="input select">
+          <select id="batch-status-select" class="input select" aria-label="${isBn ? 'ব্যাচ অবস্থা অনুসারে ফিল্টার' : 'Filter by batch status'}">
             <option value="ALL" ${statusFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব ব্যাচ' : 'All Batches'}</option>
             <option value="ACTIVE" ${statusFilter === 'ACTIVE' ? 'selected' : ''}>${isBn ? 'ফ্রেশ / সক্রিয়' : 'Fresh (>45d)'}</option>
             <option value="EXPIRING_SOON" ${statusFilter === 'EXPIRING_SOON' ? 'selected' : ''}>${isBn ? 'মেয়াদ শেষের পথে (<৪৫ দিন)' : 'Expiring Soon (<45d)'}</option>

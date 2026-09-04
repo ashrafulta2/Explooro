@@ -180,7 +180,7 @@ export default function DisputePanelPage(root) {
 
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${t('dispute.outcome_type', 'Settlement Outcome')}:</label>
+            <label for="sel-outcome" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${t('dispute.outcome_type', 'Settlement Outcome')}:</label>
             <select id="sel-outcome" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;">
               <option value="FULL_REFUND">Full Refund to Buyer (Supplier Liable)</option>
               <option value="PARTIAL_REFUND">Partial Refund (Mutual Concession)</option>
@@ -191,14 +191,14 @@ export default function DisputePanelPage(root) {
           </div>
 
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${t('dispute.resolution_notes', 'Arbitration Rationale & Directives')}:</label>
+            <label for="txt-resolution-notes" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${t('dispute.resolution_notes', 'Arbitration Rationale & Directives')}:</label>
             <textarea id="txt-resolution-notes" rows="3" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="Document evidence findings, courier reports, and accounting adjustment directives..."></textarea>
           </div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
           <button id="btn-cancel-modal" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${t('common.cancel', 'Cancel')}</button>
-          <button id="btn-confirm-verdict" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">${t('dispute.confirm_verdict', 'Confirm Verdict')}</button>
+          <button id="btn-confirm-verdict" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${t('dispute.confirm_verdict', 'Confirm Verdict')}</button>
         </div>
       </div>
     `;
@@ -319,7 +319,7 @@ export default function DisputePanelPage(root) {
         <div style="display: flex; flex-direction: column; overflow-y: auto; max-height: 600px;">
           ${
             loading
-              ? `<div style="padding: 32px; text-align: center; color: var(--text-muted, #64748b); font-size: 12px;">Loading disputes...</div>`
+              ? `<div style="padding: 32px; text-align: center; color: var(--text-muted, #64748b); font-size: 12px;">${t('common.loading')}</div>`
               : disputes.length === 0
               ? `<div style="padding: 32px; text-align: center; color: var(--text-muted, #64748b); font-size: 12px;">No disputes found.</div>`
               : disputes
@@ -359,7 +359,7 @@ export default function DisputePanelPage(root) {
 
   function renderDisputeDetails() {
     if (detailsLoading) {
-      return `<div style="padding: 48px; text-align: center; color: var(--text-muted, #64748b);">Loading dispute workspace...</div>`;
+      return `<div style="padding: 48px; text-align: center; color: var(--text-muted, #64748b);">${t('common.loading')}</div>`;
     }
 
     if (!selectedDispute) {
@@ -400,7 +400,7 @@ export default function DisputePanelPage(root) {
               !['RESOLVED', 'CLOSED'].includes(selectedDispute.status)
                 ? `
               <button id="btn-escalate-dispute" style="padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--danger-border, #e11d48); background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">🚨 ${t('dispute.btn_escalate', 'Escalate')}</button>
-              <button id="btn-open-arbitrate-modal" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; cursor: pointer;">⚖️ ${t('dispute.btn_arbitrate', 'Execute Verdict')}</button>
+              <button id="btn-open-arbitrate-modal" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); cursor: pointer;">⚖️ ${t('dispute.btn_arbitrate', 'Execute Verdict')}</button>
             `
                 : `<span style="font-size: 12px; font-weight: 700; color: var(--success, #059669);">✓ Case Resolved</span>`
             }
@@ -521,7 +521,7 @@ export default function DisputePanelPage(root) {
                       ? `
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                       <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--danger, #e11d48); cursor: pointer;">
+                        <label for="chk-internal-note" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--danger, #e11d48); cursor: pointer;">
                           <input type="checkbox" id="chk-internal-note" ${isInternalNote ? 'checked' : ''}/>
                           🔒 Staff-Only Internal Note (Invisible to Buyer/Seller)
                         </label>
@@ -543,7 +543,7 @@ export default function DisputePanelPage(root) {
                           border-radius: var(--radius-md, 8px);
                           border: none;
                           background: var(--brand, #4f46e5);
-                          color: #ffffff;
+                          color: var(--brand-contrast, #1f1f1f);
                           font-size: 12px;
                           font-weight: 700;
                           cursor: pointer;

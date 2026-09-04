@@ -2,6 +2,49 @@
  * mocks/handlers/admin.js — Mock API endpoints for Super Admin Executive Analytics, Diagnostics & Backups.
  */
 
+// WHY: the Module Control panel used to be fed a hand-written array of eight modules whose keys
+// (`bkash_direct_checkout`, `live_streaming_studio`, `ai_bengali_copywriter`, …) existed nowhere
+// else in the codebase. The super admin's master feature-flag switchboard therefore showed 8 of the
+// platform's 71 modules, and every toggle wrote a key no route or nav item gates on. This reads the
+// same registry the server seeds from, so the dev panel and the live panel list the same modules
+// under the same keys. Mock-only, so the client's zero-dependency rule is untouched.
+import moduleRegistry from '../../../../server/src/config/modules.seed.json' with { type: 'json' };
+
+/** Mutable per-session module state so a toggle survives until reload, like the real API. */
+const moduleState = new Map(
+  moduleRegistry.modules.map((m) => [
+    m.key,
+    {
+      is_enabled: m.default_enabled !== false,
+      last_reason: null,
+      updated_at: new Date(Date.now() - 3600000 * 72).toISOString(),
+    },
+  ])
+);
+
+function buildAdminModules() {
+  return moduleRegistry.modules.map((m) => {
+    const state = moduleState.get(m.key);
+    return {
+      key: m.key,
+      group_key: m.group,
+      label_en: m.label_en,
+      label_bn: m.label_bn,
+      description_en: m.description_en,
+      description_bn: m.description_bn,
+      is_enabled: state.is_enabled,
+      risk_of_disabling: m.risk_of_disabling,
+      depends_on: m.depends_on || [],
+      affected_routes: m.affected_routes || [],
+      affected_permissions: m.affected_permissions || [],
+      sub_settings_schema: m.sub_settings_schema || null,
+      last_reason: state.last_reason,
+      updated_at: state.updated_at,
+      targeting_rules: [],
+    };
+  });
+}
+
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
@@ -1695,124 +1738,18 @@ export const adminHandlers = [
     },
   },
 
-  // 33. List All Platform Modules
+  // 33. List All Platform Modules — the full registry, not a curated sample.
   {
     method: 'GET',
     path: '/admin/modules',
     handler() {
-      const mockModules = [
-        {
-          key: 'user_registration',
-          group_key: 'trust',
-          label_en: 'User Registration & Dual Authentication',
-          label_bn: 'ইউজার রেজিস্ট্রেশন ও টু-ফ্যাক্টর অথেনটিকেশন',
-          description_en: 'Customer and merchant account sign-up via Phone OTP or Password.',
-          description_bn: 'ফোন ওটিপি বা পাসওয়ার্ডের মাধ্যমে অ্যাকাউন্ট সাইন-আপ।',
-          is_enabled: true,
-          risk_of_disabling: 'CRITICAL',
-          last_reason: 'Core security baseline active',
-          updated_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-          targeting_rules: [],
-        },
-        {
-          key: 'supplier_verification',
-          group_key: 'trust',
-          label_en: 'Supplier KYC & Trust Tiers',
-          label_bn: 'সাপ্লায়ার কেওয়াইসি ও ট্রাস্ট টিয়ার',
-          description_en: 'Government NID and Trade License verification for wholesale suppliers.',
-          description_bn: 'হোলসেল সাপ্লায়ারদের জন্য সরকারি এনআইডি ও ট্রেড লাইসেন্স যাচাই।',
-          is_enabled: true,
-          risk_of_disabling: 'HIGH',
-          last_reason: 'Mandatory seller compliance active',
-          updated_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-          targeting_rules: [{ id: 1, type: 'DISTRICT', value: 'Dhaka, Chittagong' }],
-        },
-        {
-          key: 'bkash_direct_checkout',
-          group_key: 'finance',
-          label_en: 'bKash Direct Merchant Payment',
-          label_bn: 'বিকাশ সরাসরি পেমেন্ট গেটওয়ে',
-          description_en: 'Instant automated checkout tokenization via bKash payment API.',
-          description_bn: 'বিকাশ পেমেন্ট এপিআই-এর মাধ্যমে সরাসরি অটোমেটেড পেমেন্ট।',
-          is_enabled: true,
-          risk_of_disabling: 'HIGH',
-          last_reason: 'Primary MFS gateway active',
-          updated_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-          targeting_rules: [],
-        },
-        {
-          key: 'nagad_direct_checkout',
-          group_key: 'finance',
-          label_en: 'Nagad Direct Payment Gateway',
-          label_bn: 'নগদ সরাসরি পেমেন্ট গেটওয়ে',
-          description_en: 'Automated checkout via Bangladesh Post Office Nagad payment gateway.',
-          description_bn: 'নগদ পেমেন্ট গেটওয়ের মাধ্যমে সরাসরি পেমেন্ট।',
-          is_enabled: true,
-          risk_of_disabling: 'HIGH',
-          last_reason: 'Operational',
-          updated_at: new Date(Date.now() - 3600000 * 72).toISOString(),
-          targeting_rules: [],
-        },
-        {
-          key: 'cod_cash_on_delivery',
-          group_key: 'finance',
-          label_en: 'Cash on Delivery (COD) Checkout',
-          label_bn: 'ক্যাশ অন ডেলিভারি (সিওডি)',
-          description_en: 'Allow buyers to pay cash upon doorstep delivery by courier partners.',
-          description_bn: 'কুরিয়ারের মাধ্যমে হোম ডেলিভারিতে ক্যাশ পেমেন্টের সুযোগ।',
-          is_enabled: true,
-          risk_of_disabling: 'MEDIUM',
-          last_reason: 'Enabled for all 64 districts',
-          updated_at: new Date(Date.now() - 3600000 * 96).toISOString(),
-          targeting_rules: [],
-        },
-        {
-          key: 'live_streaming_studio',
-          group_key: 'commerce',
-          label_en: 'Live Selling & Shoppable Video Stream',
-          label_bn: 'লাইভ স্ট্রিমিং ও শপিং ভিডিও',
-          description_en: 'Interactive live video broadcasting with real-time checkout pinned products.',
-          description_bn: 'রিয়েল-টাইম প্রোডাক্ট পিন করে লাইভ ভিডিও শপিং ব্রডকাস্ট।',
-          is_enabled: true,
-          risk_of_disabling: 'MEDIUM',
-          last_reason: 'Boishakh festival campaigns active',
-          updated_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-          targeting_rules: [],
-        },
-        {
-          key: 'b2b_wholesale_escrow',
-          group_key: 'commerce',
-          label_en: 'B2B Wholesale Escrow Lock',
-          label_bn: 'বিটুবি পাইকারি এসক্রো পেমেন্ট',
-          description_en: 'Milestone escrow fund protection for bulk reseller-supplier trade.',
-          description_bn: 'রিসেলার ও সাপ্লায়ারদের পাইকারি লেনদেনে এসক্রো ফান্ড সুরক্ষা।',
-          is_enabled: true,
-          risk_of_disabling: 'HIGH',
-          last_reason: 'Active with 3% platform commission',
-          updated_at: new Date(Date.now() - 3600000 * 18).toISOString(),
-          targeting_rules: [],
-        },
-        {
-          key: 'ai_bengali_copywriter',
-          group_key: 'advanced',
-          label_en: 'AI Bengali Ad Copywriter & Visual Generator',
-          label_bn: 'এআই বাংলা কপিরাইটিং ও ইমেজ জেনারেটর',
-          description_en: 'Automated high-converting Bengali marketing captions for Facebook and TikTok.',
-          description_bn: 'ফেসবুক ও টিকটকের জন্য আকর্ষক বাংলা বিজ্ঞাপন ক্যাপশন জেনারেটর।',
-          is_enabled: true,
-          risk_of_disabling: 'LOW',
-          last_reason: 'Claude 3.5 Sonnet pipeline enabled',
-          updated_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-          targeting_rules: [],
-        },
-      ];
-
+      const modules = buildAdminModules();
       return {
         status: 200,
         body: {
-          modules: mockModules,
-          data: mockModules,
-          total: mockModules.length,
+          modules,
+          data: modules,
+          total: modules.length,
         },
       };
     },
@@ -1823,23 +1760,60 @@ export const adminHandlers = [
     method: 'PATCH',
     path: '/admin/modules/:key',
     handler({ params, body }) {
+      const key = params?.key;
       const isEnabled = Boolean(body?.enabled ?? body?.is_enabled ?? true);
       const reason = body?.reason || 'Administrative toggle';
+      const state = moduleState.get(key);
+
+      if (!state) {
+        return {
+          status: 404,
+          body: {
+            error: { code: 'MODULE_NOT_FOUND', message_en: `Unknown module "${key}".`, message_bn: 'অজানা মডিউল।' },
+          },
+        };
+      }
+
+      // WHY: the toggle used to echo the request back without recording it, so switching a module
+      // off and re-opening the panel showed it on again — the panel looked broken to anyone who
+      // checked their own work. Persist for the session and cascade to dependants, as the real
+      // service does, so the dependency warning in the UI matches what actually happened.
+      state.is_enabled = isEnabled;
+      state.last_reason = reason;
+      state.updated_at = new Date().toISOString();
+
+      const cascaded = [];
+      if (!isEnabled) {
+        for (const m of moduleRegistry.modules) {
+          if ((m.depends_on || []).includes(key) && moduleState.get(m.key)?.is_enabled) {
+            const dep = moduleState.get(m.key);
+            dep.is_enabled = false;
+            dep.last_reason = `Cascaded off: depends on ${key}`;
+            dep.updated_at = new Date().toISOString();
+            cascaded.push(m.key);
+          }
+        }
+      }
+
       return {
         status: 200,
         body: {
           data: {
-            key: params?.key,
-            is_enabled: isEnabled,
-            last_reason: reason,
-            updated_at: new Date().toISOString(),
+            module: {
+              key,
+              is_enabled: isEnabled,
+              last_reason: reason,
+              updated_at: state.updated_at,
+            },
+            cascaded,
           },
-          message_en: `Module ${params?.key} is now ${isEnabled ? 'ENABLED' : 'DISABLED'}.`,
+          message_en: `Module ${key} is now ${isEnabled ? 'ENABLED' : 'DISABLED'}.`,
           message_bn: `মডিউলটি সফলভাবে ${isEnabled ? 'চালু' : 'বন্ধ'} করা হয়েছে।`,
         },
       };
     },
   },
+
 
   // 35. AI Usage & Monthly Spend Cap
   {
@@ -2488,7 +2462,52 @@ export const adminHandlers = [
               { id: 3, title: 'Photo Review with Verified Badge', description: 'Leave a genuine review with at least 1 clear photo', reward_coins: 100, frequency: 'PER_ORDER', completions_today: 92, is_active: true },
               { id: 4, title: 'Invite 3 Friends to Explooro', description: 'Share your referral code and achieve 3 registrations', reward_coins: 500, frequency: 'WEEKLY', completions_today: 48, is_active: true },
             ],
+            economy: {
+              coins_in_circulation: 1245000,
+              total_liability_bdt: 12450.0,
+              redeemed_coins_30d: 480000,
+              active_daily_streakers: 3420,
+            },
+            // Coin policy is configuration, never code — the admin edits these on
+            // /admin/growth/coins and they settle into platform_settings.
+            coin_policy: {
+              coins_per_bdt: 100,
+              max_redeem_pct_of_order: 20,
+              daily_earn_cap: 500,
+              expiry_days: 365,
+              min_redeem_balance: 200,
+            },
+            streak_curve: [
+              { day: 1, multiplier: 1.0, coins: 50 },
+              { day: 3, multiplier: 1.2, coins: 60 },
+              { day: 7, multiplier: 1.5, coins: 75 },
+              { day: 14, multiplier: 2.0, coins: 100 },
+              { day: 30, multiplier: 3.0, coins: 150 },
+            ],
+            leaderboard: [
+              { rank: 1, name: 'Fatima Sultana', district: 'Dhaka', coins_earned_30d: 18400, streak_days: 41 },
+              { rank: 2, name: 'Rahim Khan', district: 'Chittagong', coins_earned_30d: 15900, streak_days: 33 },
+              { rank: 3, name: 'Nusrat Jahan', district: 'Sylhet', coins_earned_30d: 14250, streak_days: 29 },
+              { rank: 4, name: 'Tanvir Hossain', district: 'Khulna', coins_earned_30d: 12100, streak_days: 22 },
+              { rank: 5, name: 'Ananya Roy', district: 'Rajshahi', coins_earned_30d: 10850, streak_days: 18 },
+            ],
           },
+        },
+      };
+    },
+  },
+
+  // Coin policy update — writes the loyalty economy's configuration numbers.
+  {
+    method: 'PATCH',
+    path: '/admin/growth/coins/policy',
+    handler({ body }) {
+      return {
+        status: 200,
+        body: {
+          data: { coin_policy: { ...body } },
+          message_en: 'Coin policy updated.',
+          message_bn: 'কয়েন নীতিমালা হালনাগাদ হয়েছে।',
         },
       };
     },

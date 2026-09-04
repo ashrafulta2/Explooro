@@ -44,7 +44,7 @@ export default function HelpCenterManagerPage(root) {
     content.style.gap = '14px';
     content.innerHTML = `
       <div class="supplier-form-field">
-        <label>Help Category *</label>
+        <label for="faq-cat">Help Category *</label>
         <select class="form-select" id="faq-cat">
           <option value="orders" ${existing?.category === 'orders' ? 'selected' : ''}>📦 Orders, Courier & Fulfillment</option>
           <option value="finance" ${existing?.category === 'finance' ? 'selected' : ''}>💰 Commissions, Payouts & Wallets</option>
@@ -54,22 +54,22 @@ export default function HelpCenterManagerPage(root) {
       </div>
 
       <div class="supplier-form-field">
-        <label>Question / Article Title (English) *</label>
+        <label for="faq-title-en">Question / Article Title (English) *</label>
         <input type="text" id="faq-title-en" class="form-input" placeholder="e.g. How do I track customer orders with 3PL couriers?" value="${existing?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Question / Article Title (Bangla) *</label>
+        <label for="faq-title-bn">Question / Article Title (Bangla) *</label>
         <input type="text" id="faq-title-bn" class="form-input" placeholder="e.g. কীভাবে কুরিয়ার দিয়ে কাস্টমার অর্ডার ট্র্যাক করবেন?" value="${existing?.title_bn || ''}" />
       </div>
 
       <div class="supplier-form-field">
-        <label>Answer / Resolution Content (English) *</label>
+        <label for="faq-content-en">Answer / Resolution Content (English) *</label>
         <textarea id="faq-content-en" class="form-textarea" rows="4" placeholder="Provide step-by-step guidance for the user...">${existing?.content_en || ''}</textarea>
       </div>
 
       <div class="supplier-form-field">
-        <label>Answer / Resolution Content (Bangla)</label>
+        <label for="faq-content-bn">Answer / Resolution Content (Bangla)</label>
         <textarea id="faq-content-bn" class="form-textarea" rows="4" placeholder="বাংলা সমাধান লিখুন...">${existing?.content_bn || ''}</textarea>
       </div>
     `;
@@ -194,7 +194,7 @@ export default function HelpCenterManagerPage(root) {
             🛡️ Warranties & Returns
           </button>
         </div>
-        <input type="text" id="faq-search" placeholder="🔍 Search question or keyword..." value="${searchQuery}" class="form-input" style="width: 240px; font-size: 12px; padding: 6px 12px;" />
+        <input type="text" id="faq-search" aria-label="🔍 Search question or keyword..." placeholder="🔍 Search question or keyword..." value="${searchQuery}" class="form-input" style="width: 240px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 
@@ -217,7 +217,7 @@ export default function HelpCenterManagerPage(root) {
       loader.className = 'p-12 text-center text-muted';
       loader.innerHTML = `
         <div class="spinner" style="margin: 0 auto 16px auto;"></div>
-        <p>Loading knowledge base articles...</p>
+        <p>${t('common.loading')}</p>
       `;
       container.appendChild(loader);
       return;
@@ -275,14 +275,14 @@ export default function HelpCenterManagerPage(root) {
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
           <span class="badge badge--success text-xs font-mono font-bold">🟢 PUBLISHED</span>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <button class="btn btn--xs btn--outline" id="edit-faq-btn">✏️ Edit</button>
-            <button class="btn btn--xs btn--outline text-danger" id="delete-faq-btn">🗑️</button>
+            <button class="btn btn--xs btn--outline js-edit-faq-btn">✏️ Edit</button>
+            <button class="btn btn--xs btn--outline text-danger js-delete-faq-btn">🗑️</button>
           </div>
         </div>
       `;
 
-      row.querySelector('#edit-faq-btn').onclick = () => openArticleModal(article);
-      row.querySelector('#delete-faq-btn').onclick = () => handleDeleteArticle(article.id);
+      row.querySelector('.js-edit-faq-btn').onclick = () => openArticleModal(article);
+      row.querySelector('.js-delete-faq-btn').onclick = () => handleDeleteArticle(article.id);
 
       list.appendChild(row);
     });

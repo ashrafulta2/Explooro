@@ -381,17 +381,18 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
           <input
             type="search"
             class="form-input roster-search-input"
+            aria-label="${t('admin_subscriptions.search_placeholder')}"
             placeholder="${t('admin_subscriptions.search_placeholder')}"
             value="${searchQuery}"
           />
         </div>
         <div class="admin-toolbar__filters">
-          <select class="form-select roster-role-select">
+          <select class="form-select roster-role-select" aria-label="${t('admin_subscriptions.filter_role_all')}">
             <option value="ALL" ${roleFilter === 'ALL' ? 'selected' : ''}>${t('admin_subscriptions.filter_role_all')}</option>
             <option value="saler" ${roleFilter === 'saler' ? 'selected' : ''}>Saler</option>
             <option value="supplier" ${roleFilter === 'supplier' ? 'selected' : ''}>Supplier</option>
           </select>
-          <select class="form-select roster-status-select">
+          <select class="form-select roster-status-select" aria-label="${t('admin_subscriptions.filter_status_all')}">
             <option value="ALL" ${statusFilter === 'ALL' ? 'selected' : ''}>${t('admin_subscriptions.filter_status_all')}</option>
             <option value="ACTIVE" ${statusFilter === 'ACTIVE' ? 'selected' : ''}>${t('admin_subscriptions.status_active')}</option>
             <option value="PAST_DUE" ${statusFilter === 'PAST_DUE' ? 'selected' : ''}>${t('admin_subscriptions.status_past_due')}</option>
@@ -531,18 +532,18 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
       <form class="fee-settings-form flex flex-col gap-4">
         <div class="form-grid form-grid--3col">
           <div class="form-group">
-            <label class="form-label">${t('admin_subscriptions.default_quota_label')}</label>
-            <input type="number" class="form-input quota-input" min="10" max="500" value="${freeQuota}" />
+            <label for="subs-quota" class="form-label">${t('admin_subscriptions.default_quota_label')}</label>
+            <input id="subs-quota" type="number" class="form-input quota-input" min="10" max="500" value="${freeQuota}" />
           </div>
 
           <div class="form-group">
-            <label class="form-label">${t('admin_subscriptions.default_overage_label')}</label>
-            <input type="number" class="form-input overage-input" min="0" max="50" step="0.5" value="${defaultOverage}" />
+            <label for="subs-overage" class="form-label">${t('admin_subscriptions.default_overage_label')}</label>
+            <input id="subs-overage" type="number" class="form-input overage-input" min="0" max="50" step="0.5" value="${defaultOverage}" />
           </div>
 
           <div class="form-group">
-            <label class="form-label">${t('admin_subscriptions.grace_period_label')}</label>
-            <input type="number" class="form-input grace-input" min="1" max="30" value="${graceDays}" />
+            <label for="subs-grace" class="form-label">${t('admin_subscriptions.grace_period_label')}</label>
+            <input id="subs-grace" type="number" class="form-input grace-input" min="1" max="30" value="${graceDays}" />
           </div>
         </div>
 
@@ -593,7 +594,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
 
       <div class="form-group">
         <label class="form-label">${t('admin_subscriptions.waiver_reason_label')} <span class="text-danger">*</span></label>
-        <input type="text" class="form-input waiver-reason-input" placeholder="e.g., National SME accelerator grant approved by Compliance" value="${waiverReason}" />
+        <input type="text" class="form-input waiver-reason-input" aria-label="e.g., National SME accelerator grant approved by Compliance" placeholder="e.g., National SME accelerator grant approved by Compliance" value="${waiverReason}" />
       </div>
     `;
 
@@ -644,11 +645,11 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
       <div class="form-grid form-grid--2col">
         <div class="form-group">
           <label class="form-label">Plan Title (EN) <span class="text-danger">*</span></label>
-          <input type="text" class="form-input plan-name-en" value="${planNameEn}" placeholder="e.g., Artisan Premium" />
+          <input type="text" class="form-input plan-name-en" value="${planNameEn}" aria-label="e.g., Artisan Premium" placeholder="e.g., Artisan Premium" />
         </div>
         <div class="form-group">
           <label class="form-label">Plan Title (BN)</label>
-          <input type="text" class="form-input plan-name-bn" value="${planNameBn}" placeholder="যেমন: কারুশিল্প প্রিমিয়াম" />
+          <input type="text" class="form-input plan-name-bn" value="${planNameBn}" aria-label="যেমন: কারুশিল্প প্রিমিয়াম" placeholder="যেমন: কারুশিল্প প্রিমিয়াম" />
         </div>
       </div>
 

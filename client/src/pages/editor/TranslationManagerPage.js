@@ -145,7 +145,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
             border-radius: var(--radius-md, 8px);
             border: none;
             background: var(--brand, #4f46e5);
-            color: #ffffff;
+            color: var(--brand-contrast, #1f1f1f);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -230,7 +230,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
       ">
         <div style="flex: 1; min-width: 240px;">
-          <input type="text" id="trans-search-input" value="${searchQuery}" placeholder="🔍 Search translation keys or values..." style="
+          <input type="text" id="trans-search-input" value="${searchQuery}" aria-label="🔍 Search translation keys or values..." placeholder="🔍 Search translation keys or values..." style="
             width: 100%;
             padding: 8px 12px;
             font-size: 12px;
@@ -243,7 +243,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 16px; font-size: 12px;">
-          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary, #475569); font-weight: 600;">
+          <label for="missing-only-checkbox" style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text-secondary, #475569); font-weight: 600;">
             <input type="checkbox" id="missing-only-checkbox" ${showMissingOnly ? 'checked' : ''} style="cursor: pointer;"/>
             <span>${t('editor.filter_missing_only', 'Show Missing Only')}</span>
           </label>
@@ -260,7 +260,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
                 border-radius: 6px;
                 border: 1px solid ${l.locale === activeLocale ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'};
                 background: ${l.locale === activeLocale ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'};
-                color: ${l.locale === activeLocale ? '#ffffff' : 'var(--text-secondary, #475569)'};
+                color: ${l.locale === activeLocale ? 'var(--brand-contrast, #1f1f1f)' : 'var(--text-secondary, #475569)'};
                 cursor: pointer;
               ">
                 ${l.locale.toUpperCase()}
@@ -335,7 +335,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
                     <strong>${item.key}</strong>
                   </td>
                   <td style="padding: 12px 16px;">
-                    <input type="text" class="trans-val-input" value="${item.value || ''}" data-ns="${item.namespace}" data-key="${item.key}" placeholder="Missing translation..." style="
+                    <input type="text" class="trans-val-input" value="${item.value || ''}" data-ns="${item.namespace}" data-key="${item.key}" aria-label="Missing translation..." placeholder="Missing translation..." style="
                       width: 100%;
                       padding: 6px 10px;
                       font-size: 12px;
@@ -353,7 +353,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
                       border-radius: 6px;
                       border: none;
                       background: var(--brand, #4f46e5);
-                      color: #ffffff;
+                      color: var(--brand-contrast, #1f1f1f);
                       cursor: pointer;
                     ">
                       💾 Save Live
@@ -403,18 +403,18 @@ export default function TranslationManagerPage(root, ctx = {}) {
 
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px;">Target Locale Code:</label>
+            <label for="import-locale-code" style="font-weight: 600; display: block; margin-bottom: 4px;">Target Locale Code:</label>
             <input type="text" id="import-locale-code" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 12px;" value="${activeLocale}"/>
           </div>
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px;">Paste JSON Dictionary:</label>
+            <label for="import-json-text" style="font-weight: 600; display: block; margin-bottom: 4px;">Paste JSON Dictionary:</label>
             <textarea id="import-json-text" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 11px;" rows="8" placeholder="{\n  &quot;common&quot;: {\n    &quot;buy_now&quot;: &quot;Buy Now&quot;\n  }\n}"></textarea>
           </div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           <button id="btn-cancel-import" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">Cancel</button>
-          <button id="btn-confirm-import" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">Import Live</button>
+          <button id="btn-confirm-import" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">Import Live</button>
         </div>
       </div>
     `;
@@ -477,18 +477,18 @@ export default function TranslationManagerPage(root, ctx = {}) {
 
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px;">ISO Language Code (2-letter):</label>
+            <label for="add-locale-code" style="font-weight: 600; display: block; margin-bottom: 4px;">ISO Language Code (2-letter):</label>
             <input type="text" id="add-locale-code" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 12px;" placeholder="e.g. ar, es, fr, hi"/>
           </div>
           <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px;">Native Display Name:</label>
+            <label for="add-locale-name" style="font-weight: 600; display: block; margin-bottom: 4px;">Native Display Name:</label>
             <input type="text" id="add-locale-name" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-size: 12px;" placeholder="e.g. العربية, Español, Français"/>
           </div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           <button id="btn-cancel-add-loc" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">Cancel</button>
-          <button id="btn-confirm-add-loc" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">Create Locale</button>
+          <button id="btn-confirm-add-loc" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">Create Locale</button>
         </div>
       </div>
     `;
@@ -526,7 +526,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
   function render() {
     container.innerHTML = `
       ${renderHeader()}
-      ${loading ? `<div style="padding: 60px; text-align: center; color: var(--text-muted, #64748b);">Loading localization data...</div>` : `
+      ${loading ? `<div style="padding: 60px; text-align: center; color: var(--text-muted, #64748b);">${t('common.loading')}</div>` : `
         ${renderGauges()}
         ${renderFilterBar()}
         ${renderTable()}

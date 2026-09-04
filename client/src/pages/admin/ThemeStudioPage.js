@@ -852,7 +852,7 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
             </div>
             <span style="color: var(--text-secondary); font-size: 11px;">Premium 100% combed cotton. Fast delivery across 64 districts.</span>
 
-            <input class="mini-input" placeholder="Quantity — input border uses --border-interactive" />
+            <input class="mini-input" aria-label="Quantity — input border uses --border-interactive" placeholder="Quantity — input border uses --border-interactive" />
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px; gap: 8px;">
               <strong style="font-size: 14px; color: var(--text-primary);">৳1,450</strong>

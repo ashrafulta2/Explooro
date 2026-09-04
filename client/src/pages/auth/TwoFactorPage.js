@@ -10,6 +10,7 @@ import { completeTwoFactor, setupTwoFactor } from '../../services/session.js';
 import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.js';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.js';
 
@@ -18,7 +19,15 @@ export default function TwoFactorPage(container, { query = {}, navigate }) {
 
   const challengeToken = query.challenge_token ? decodeURIComponent(query.challenge_token) : '';
   const isEnrolled = query.enrolled === 'true';
-  const redirectPath = query.redirect ? decodeURIComponent(query.redirect) : '/';
+  // WHY: this defaulted to '/', so signing in without an explicit ?redirect dropped staff on
+  // the customer marketplace — a super admin had to navigate to their own console by hand every
+  // session. `landingPath()` is resolved AFTER sign-in, when the roles are actually known.
+  const explicitRedirect = query.redirect ? decodeURIComponent(query.redirect) : null;
+  const landingPath = (session) => explicitRedirect || homePathForRoles(session?.roles || session?.user?.roles || []);
+  /** `&redirect=…` only when the user actually asked for a destination; otherwise the final auth
+   *  step resolves the role's own home. */
+  const redirectQuery = explicitRedirect ? `&redirect=${encodeURIComponent(explicitRedirect)}` : '';
+  const redirectQueryFirst = explicitRedirect ? `?redirect=${encodeURIComponent(explicitRedirect)}` : '';
 
   const wrapper = document.createElement('div');
   wrapper.className = 'auth-container';
@@ -119,7 +128,7 @@ export default function TwoFactorPage(container, { query = {}, navigate }) {
       const res = await completeTwoFactor({ challengeToken, code });
       if (res.success) {
         toast.success(t('auth.two_factor.success'));
-        navigate(redirectPath);
+        navigate(landingPath(res.user));
       }
     } catch (err) {
       errorDiv.textContent = pickMessage(err) || err.message || t('common.error_generic');
