@@ -90,4 +90,5 @@
 
 /* Saler Portal: Products, Showroom Status, Orders, Flyer Studio, Withdrawals, Quests & Leaderboard */
 @import './components/saler.css';
+@import './components/saler-inbox.css';
 @import './components/referrals.css';

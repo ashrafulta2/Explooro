@@ -886,24 +886,36 @@ export default [
   {
     method: 'POST',
     path: '/saler/inbox/threads/:id/send-product',
-    handler: ({ params, body }) => ({
-      status: 201,
-      body: {
-        data: {
-          message: appendMockMessage({
-            threadId: Number(params.id),
-            senderId: SELF,
-            content: 'Authentic Handloom Dhakai Jamdani Saree',
-            msgType: 'PRODUCT_CARD',
-            payloadJson: {
-              productId: body?.product_id || 1,
-              productTitle: 'Authentic Handloom Dhakai Jamdani Saree',
-              price: '3650.00',
-              checkoutUrl: '/checkout/wa/mock-wa-token-123',
-            },
-          }),
+    handler: ({ params, body }) => {
+      const prodId = Number(body?.product_id) || 1;
+      const prod = mockSalerProducts.find((p) => p.id === prodId || p.product_id === prodId) || mockSalerProducts[0];
+      const title = prod ? prod.title_en : 'Featured Product';
+      const price = prod ? (prod.custom_retail_price || prod.default_retail_price || 3500).toFixed(2) : '3500.00';
+      const imageUrl = prod ? prod.image_url : '/demo-product.jpg';
+      const note = (body?.note || '').trim();
+      const content = note ? `${note} — [Product Card: ${title}]` : title;
+
+      return {
+        status: 201,
+        body: {
+          data: {
+            message: appendMockMessage({
+              threadId: Number(params.id),
+              senderId: SELF,
+              content,
+              msgType: 'PRODUCT_CARD',
+              payloadJson: {
+                productId: prodId,
+                productTitle: title,
+                price,
+                imageUrl,
+                note: note || undefined,
+                checkoutUrl: `/checkout/wa/mock-wa-token-${prodId}`,
+              },
+            }),
+          },
         },
-      },
-    }),
+      };
+    },
   },
 ];
