@@ -16,7 +16,7 @@ import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 
-export default function FinanceDashboardPage(root) {
+export default function FinanceDashboardPage(root, { navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'page finance-dashboard-page';
 
@@ -268,7 +268,7 @@ export default function FinanceDashboardPage(root) {
 
     const subnavMount = container.querySelector('.finance-subnav-mount');
     if (subnavMount) {
-      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'overview' }));
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'overview', navigate }));
     }
 
     container.querySelector('.finance-dashboard-page__refresh-btn')?.addEventListener('click', loadDashboard);

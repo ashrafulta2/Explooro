@@ -191,7 +191,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     container.append(header);
 
     // 2. Shared Finance Subnav
-    container.append(FinanceSubnav({ activeKey: 'subscriptions' }));
+    container.append(FinanceSubnav({ activeKey: 'subscriptions', navigate }));
 
     if (isLoading) {
       const loader = document.createElement('div');

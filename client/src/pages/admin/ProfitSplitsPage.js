@@ -254,7 +254,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     container.append(header);
 
     // 2. Shared Finance Subnav
-    container.append(FinanceSubnav({ activeKey: 'splits' }));
+    container.append(FinanceSubnav({ activeKey: 'splits', navigate }));
 
     if (isLoading) {
       const loader = document.createElement('div');

@@ -262,7 +262,7 @@ export default function LedgerPage(root, { navigate } = {}) {
 
     const subnavMount = container.querySelector('.finance-subnav-mount');
     if (subnavMount) {
-      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'ledger' }));
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'ledger', navigate }));
     }
 
     // Bind Event Listeners

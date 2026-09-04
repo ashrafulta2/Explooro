@@ -247,7 +247,7 @@ export default function AdminB2bEscrowPage(root, { navigate } = {}) {
 
     const subnavMount = container.querySelector('.finance-subnav-mount');
     if (subnavMount) {
-      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'b2b-escrow' }));
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'b2b-escrow', navigate }));
     }
 
     // Bind Event Listeners

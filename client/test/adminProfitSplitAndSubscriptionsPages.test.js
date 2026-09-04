@@ -89,13 +89,13 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
         assert.equal(navEl.className, 'finance-subnav');
 
         const expectedHrefs = [
-          '#/admin/finance',
-          '#/admin/finance/ledger',
-          '#/admin/finance/escrow',
-          '#/admin/finance/payouts',
-          '#/admin/finance/splits',
-          '#/admin/finance/b2b-escrow',
-          '#/admin/finance/subscriptions',
+          '/admin/finance',
+          '/admin/finance/ledger',
+          '/admin/finance/escrow',
+          '/admin/finance/payouts',
+          '/admin/finance/splits',
+          '/admin/finance/b2b-escrow',
+          '/admin/finance/subscriptions',
         ];
 
         for (const href of expectedHrefs) {

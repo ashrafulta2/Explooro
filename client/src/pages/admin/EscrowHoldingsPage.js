@@ -258,7 +258,7 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
 
     const subnavMount = container.querySelector('.finance-subnav-mount');
     if (subnavMount) {
-      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'escrow' }));
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'escrow', navigate }));
     }
 
     // Bind Event Listeners

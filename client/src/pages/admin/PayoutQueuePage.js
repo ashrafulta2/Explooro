@@ -16,7 +16,7 @@ import { t } from '../../services/i18n.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 
-export default function PayoutQueuePage(root) {
+export default function PayoutQueuePage(root, { navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'page payout-queue-page';
 
@@ -296,7 +296,7 @@ export default function PayoutQueuePage(root) {
 
     const subnavMount = container.querySelector('.finance-subnav-mount');
     if (subnavMount) {
-      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'payouts' }));
+      subnavMount.replaceWith(FinanceSubnav({ activeKey: 'payouts', navigate }));
     }
 
     // Event listeners
