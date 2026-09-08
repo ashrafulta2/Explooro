@@ -49,6 +49,25 @@ export const MASTER_PRESETS = {
     },
   },
 
+  explooro_green: {
+    key: 'explooro_green',
+    name_en: 'Explooro Green',
+    name_bn: 'এক্সপ্লোরো গ্রিন',
+    description_en: 'Fresh apple-green accents (#8bc34a) on clean neutral surfaces — reads as growth and everyday value.',
+    description_bn: 'সতেজ অ্যাপল-গ্রিন অ্যাক্সেন্ট (#8bc34a) ও পরিষ্কার নিউট্রাল সারফেস।',
+    group: 'explooro',
+    master: {
+      seed: '#8bc34a',
+      vividness: 1,
+      neutralMode: 'match',
+      neutralTint: 0,
+      accentHarmony: 'complement',
+      statusPull: 0,
+      surfaceWash: false,
+      borderTint: false,
+    },
+  },
+
   midnight_slate: {
     key: 'midnight_slate',
     name_en: 'Midnight Slate',
