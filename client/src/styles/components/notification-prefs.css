@@ -1,78 +1,20 @@
 /**
  * notification-prefs.css — Notification Preference Centre (Prompt 8.2 §6).
  *
+ * The page chrome (header, back link, title, subtitle, error box, loading card) lives in
+ * account-shell.css and is shared with /account/profile — this file carries only what is specific
+ * to the preference grid.
+ *
  * Solid surfaces, 1px borders, zero gradients (design-system §0). The channel row is a
  * four-column grid that collapses to two on narrow screens rather than wrapping raggedly,
  * because a half-filled fourth column reads as a missing toggle.
  */
 
-.notif-prefs-page {
-  max-width: 960px;
-  margin-inline: auto;
-  padding: var(--space-6) var(--space-4) var(--space-10);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
 /* Header */
-.notif-prefs-page__header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding-bottom: var(--space-5);
-  border-bottom: 1px solid var(--border-subtle);
-}
 
-.notif-prefs-page__back {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: var(--space-2);
-  padding: 6px 10px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  background: var(--surface-1);
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  text-decoration: none;
-  transition: color var(--dur-fast) var(--ease-standard),
-    background var(--dur-fast) var(--ease-standard),
-    border-color var(--dur-fast) var(--ease-standard);
-}
-
-.notif-prefs-page__back:hover {
-  color: var(--text-primary);
-  background: var(--surface-2);
-  border-color: var(--border-strong);
-}
-
-.notif-prefs-page__badge {
-  align-self: flex-start;
-  padding: 4px 10px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.notif-prefs-page__title {
-  margin: 0;
-  font-size: var(--text-2xl);
-  line-height: var(--leading-2xl);
-  color: var(--text-primary);
-}
-
-.notif-prefs-page__subtitle {
-  margin: 0;
-  max-width: 62ch;
-  color: var(--text-muted);
-  font-size: var(--text-sm);
+/* Override on account-shell.css: room under the save bar at the end of the list. */
+.notif-prefs-page {
+  padding-bottom: var(--space-10);
 }
 
 /* Card grid */
@@ -80,16 +22,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-}
-
-.notif-prefs-card--loading {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-5);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  background: var(--surface-1);
 }
 
 .notif-prefs-card__body {
@@ -179,22 +111,6 @@
 }
 
 /* Error + actions */
-.notif-prefs-error {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-5);
-  border: 1px solid var(--danger);
-  border-radius: var(--radius-md);
-  background: var(--surface-1);
-  color: var(--text-primary);
-}
-
-.notif-prefs-error p {
-  margin: 0;
-  font-size: var(--text-sm);
-}
 
 .notif-prefs-actions {
   display: flex;

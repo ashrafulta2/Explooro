@@ -122,7 +122,7 @@ export default function CouponsPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'coupons-page';
+  container.className = 'account-page coupons-page';
   container.setAttribute('data-module', 'coupons');
 
   // Check module enabled
@@ -151,19 +151,19 @@ export default function CouponsPage(root, { navigate } = {}) {
 
   // 1. Header
   const header = document.createElement('header');
-  header.className = 'coupons-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="coupons-page__back" data-nav-back>
+    <a href="/account" class="account-page__back" data-nav-back>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       <span>${t('wishlist.back_to_account') || 'Back to Account'}</span>
     </a>
-    <div class="coupons-page__title-wrap">
+    <div class="account-page__title-wrap">
       <div>
-        <h1 class="coupons-page__title">
+        <h1 class="account-page__title">
           <span>🎟️</span>
           <span>${t('customer_coupons.page_title')}</span>
         </h1>
-        <p class="coupons-page__subtitle">${t('customer_coupons.page_subtitle')}</p>
+        <p class="account-page__subtitle">${t('customer_coupons.page_subtitle')}</p>
       </div>
     </div>
   `;
@@ -528,9 +528,9 @@ export default function CouponsPage(root, { navigate } = {}) {
 
   // Subscribe to language changes
   unsubscribeLang = subscribeLang(() => {
-    header.querySelector('.coupons-page__back').textContent = `← ${t('wishlist.back_to_account') || 'Back to Account'}`;
-    header.querySelector('.coupons-page__title span:last-child').textContent = t('customer_coupons.page_title');
-    header.querySelector('.coupons-page__subtitle').textContent = t('customer_coupons.page_subtitle');
+    header.querySelector('.account-page__back').textContent = `← ${t('wishlist.back_to_account') || 'Back to Account'}`;
+    header.querySelector('.account-page__title span:last-child').textContent = t('customer_coupons.page_title');
+    header.querySelector('.account-page__subtitle').textContent = t('customer_coupons.page_subtitle');
     if (claimInput) claimInput.placeholder = t('customer_coupons.claim_input_placeholder');
     if (claimSubmit) claimSubmit.textContent = `✨ ${t('customer_coupons.btn_claim')}`;
     renderKPIs();

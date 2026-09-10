@@ -3,14 +3,6 @@
  * Solid Commerce aesthetic with modern pill buttons and tactile vouchers.
  */
 
-.coupons-page { max-width: 1040px; margin-inline: auto; padding: var(--space-6) var(--space-4); display: flex; flex-direction: column; gap: var(--space-6); }
-.coupons-page__header { border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
-.coupons-page__back { align-self: flex-start; font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: var(--radius-sm); transition: all 0.15s ease; }
-.coupons-page__back:hover { color: var(--text-primary); background: var(--surface-2); text-decoration: none; }
-.coupons-page__title-wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); }
-.coupons-page__title { font-size: var(--text-2xl); font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; display: flex; align-items: center; gap: var(--space-2); margin: 0; }
-.coupons-page__subtitle { font-size: var(--text-sm); color: var(--text-muted); margin: 4px 0 0; }
-
 /* Claim Bar */
 .coupons-claim-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
 .coupons-claim-form { display: flex; align-items: center; gap: var(--space-2); width: 100%; max-width: 480px; }

@@ -298,7 +298,7 @@ export class TeamPurchasePage {
 
     if (this.loading) {
       this.rootEl.innerHTML = `
-        <div class="team-purchases-page">
+        <div class="account-page team-purchases-page">
           <div class="card p-12 text-center text-muted border border-subtle rounded-2xl">
             <div class="text-3xl mb-2 animate-pulse">👥</div>
             <div class="font-bold">${isBn ? 'টিম পারচেজ লোড হচ্ছে…' : 'Loading team purchases…'}</div>
@@ -335,20 +335,20 @@ export class TeamPurchasePage {
     });
 
     this.rootEl.innerHTML = `
-      <div class="team-purchases-page">
+      <div class="account-page team-purchases-page">
         <!-- Header -->
-        <div class="team-page__header">
-          <a href="/account" class="team-page__back">
+        <div class="account-page__header">
+          <a href="/account" class="account-page__back">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             <span>${isBn ? 'ড্যাশবোর্ডে ফিরে যান' : 'Back to Dashboard'}</span>
           </a>
-          <div class="team-page__title-wrap">
+          <div class="account-page__title-wrap">
             <div>
-              <h1 class="team-page__title">
-                <span class="team-page__title-icon">👥</span>
+              <h1 class="account-page__title">
+                <span class="account-page__title-icon">👥</span>
                 <span>${isBn ? 'আমার গ্রুপ বাই ও টিম পারচেজ' : 'My Team Purchases'}</span>
               </h1>
-              <p class="team-page__subtitle">
+              <p class="account-page__subtitle">
                 ${isBn ? 'আপনার শুরু করা বা অংশগ্রহণ করা সকল টিম অর্ডারের তালিকা ও ট্র্যাকিং' : 'Track your active and completed social team purchases'}
               </p>
             </div>
@@ -545,7 +545,7 @@ export class TeamPurchasePage {
   _renderTeamDetail(isBn) {
     if (!this.team) {
       this.rootEl.innerHTML = `
-        <div class="team-purchases-page">
+        <div class="account-page team-purchases-page">
           <div class="card p-12 text-center text-muted border border-subtle rounded-2xl max-w-xl mx-auto my-8">
             <div class="text-4xl mb-2">👥</div>
             <h3 class="font-bold text-lg text-foreground">${isBn ? 'টিম পারচেজ পাওয়া যায়নি।' : 'Team purchase not found.'}</h3>
@@ -570,9 +570,9 @@ export class TeamPurchasePage {
     const teamShareUrl = `${origin}/team/${t.id}`;
 
     this.rootEl.innerHTML = `
-      <div class="team-purchases-page">
+      <div class="account-page team-purchases-page">
         <!-- Back Link -->
-        <a href="/account/team-purchases" class="team-page__back">
+        <a href="/account/team-purchases" class="account-page__back">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
           <span>${isBn ? 'আমার সকল টিম পারচেজ' : 'All My Team Purchases'}</span>
         </a>
@@ -714,7 +714,7 @@ export class TeamPurchasePage {
   }
 
   _attachListEvents(isBn) {
-    bindBackControl(this.rootEl.querySelector('.team-page__back'), (u, o) => this.navTo(u, o), '/account');
+    bindBackControl(this.rootEl.querySelector('.account-page__back'), (u, o) => this.navTo(u, o), '/account');
 
     // Filter tabs
     this.rootEl.querySelectorAll('.team-tab-btn').forEach((btn) => {
@@ -754,7 +754,7 @@ export class TeamPurchasePage {
 
   _attachDetailEvents(teamShareUrl, isBn) {
     bindBackControl(
-      this.rootEl.querySelector('.team-page__back'),
+      this.rootEl.querySelector('.account-page__back'),
       (u, o) => this.navTo(u, o),
       '/account/team-purchases'
     );

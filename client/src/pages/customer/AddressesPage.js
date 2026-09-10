@@ -35,33 +35,33 @@ export default function AddressesPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'addresses-page';
+  container.className = 'account-page addresses-page';
 
   // 1. Header
   const header = document.createElement('div');
-  header.className = 'addresses-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="addresses-page__back">
+    <a href="/account" class="account-page__back account-page__back--boxed">
       ← ${t('common.back', 'Back')} · ${t('nav.customer.addresses', 'Addresses')}
     </a>
-    <div class="addresses-page__title-wrap">
-      <div class="addresses-page__title-info">
+    <div class="account-page__title-wrap">
+      <div class="account-page__title-info">
         <div class="addresses-page__badge">
           📍 ${t('customer_addresses.badge', 'Address Book')}
         </div>
-        <h1 class="addresses-page__title">
+        <h1 class="account-page__title">
           ${t('customer_addresses.page_title', 'Saved Delivery Addresses')}
         </h1>
-        <p class="addresses-page__subtitle">
+        <p class="account-page__subtitle">
           ${t('customer_addresses.page_subtitle', 'Manage your home, office, and preferred delivery addresses for 1-click express checkout.')}
         </p>
       </div>
-      <div class="addresses-page__title-actions" id="header-action-slot"></div>
+      <div class="account-page__title-actions" id="header-action-slot"></div>
     </div>
   `;
   container.append(header);
 
-  bindBackControl(header.querySelector('.addresses-page__back'), nav, '/account');
+  bindBackControl(header.querySelector('.account-page__back account-page__back--boxed'), nav, '/account');
 
   // Add Address CTA Button in Header
   const addBtn = Button({

@@ -2,13 +2,6 @@
  * customer-coins.css — Customer Loyalty Coins, Streak Calendar & Rewards Hub.
  */
 
-.coins-page { max-width: 1040px; margin-inline: auto; padding: var(--space-6) var(--space-4); display: flex; flex-direction: column; gap: var(--space-6); }
-.coins-page__header { border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-5); display: flex; flex-direction: column; gap: var(--space-3); }
-.coins-page__back { align-self: flex-start; font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: var(--radius-sm); }
-.coins-page__back:hover { color: var(--text-primary); background: var(--surface-2); }
-.coins-page__title-wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4); }
-.coins-page__title { font-size: var(--text-2xl); font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; display: flex; align-items: center; gap: var(--space-2); margin: 0; }
-.coins-page__subtitle { font-size: var(--text-sm); color: var(--text-muted); margin: 4px 0 0; }
 .coins-page__header-action { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 18px; border-radius: var(--radius-full); background: var(--brand); border: 1px solid var(--brand); color: var(--brand-contrast, #111827); font-size: var(--text-sm); font-weight: 700; text-decoration: none !important; cursor: pointer; }
 .coins-page__header-action:hover { background: var(--brand-hover); }
 

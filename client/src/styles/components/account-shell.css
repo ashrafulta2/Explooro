@@ -1,0 +1,144 @@
+/**
+ * account-shell.css — the page chrome every /account/* surface shares.
+ *
+ * WHY this file exists: container + header + back link + title + subtitle + error box + loading
+ * card had been re-declared, near-identically, once per page — nine copies of the same twenty
+ * declarations across `notification-prefs.css`, `customer-addresses.css`, `customer-coins.css`,
+ * `customer-coupons.css`, `wishlist.css`, `team-purchases.css`, `customer-following.css`,
+ * `customer-reviews.css` and (briefly) `profile.css`.
+ *
+ * The payoff is maintenance, NOT bytes, and the measurement is worth recording because the
+ * intuition points the other way: collapsing all nine copies removed 5.4KB raw but only ~0.27KB
+ * gzipped (65.63 -> 65.20KB). main.css imports these stylesheets adjacently, so the duplicate
+ * blocks sat well inside deflate's 32KB window and were already compressing against each other.
+ * Do not reach for this kind of consolidation to buy back budget — it does not pay. Reach for it
+ * because a spacing change should not have to be made in nine files.
+ *
+ * Every value below is the one the majority of those pages already used, so adopting it is a
+ * no-op for most and a sub-pixel shift for the rest. Where a page genuinely differs — a wider
+ * container, a bigger title — it keeps a one-line override in its own stylesheet rather than a
+ * second copy of the whole block.
+ *
+ * Adopted by: /account/profile, /account/settings, /account/addresses, /account/coins,
+ * /account/coupons, /account/wishlist, /account/team-purchases, /account/following,
+ * /account/reviews. A new account page should need no shell CSS of its own.
+ */
+
+.account-page {
+  max-width: 1040px;
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.account-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.account-page__back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-standard),
+    background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+
+.account-page__back:hover {
+  color: var(--text-primary);
+  background: var(--surface-2);
+  text-decoration: none;
+}
+
+/* The bordered variant, on pages whose header would otherwise start with naked text. */
+.account-page__back--boxed {
+  padding: 6px 10px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+}
+
+.account-page__back--boxed:hover {
+  border-color: var(--border-strong);
+}
+
+/* Title beside a right-aligned action (Add address, Explore deals, …). */
+.account-page__title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.account-page__title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-2xl);
+  line-height: var(--leading-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.account-page__subtitle {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.account-page__badge {
+  align-self: flex-start;
+  padding: 4px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Skeleton stand-in for a card that has not loaded yet — same box, so nothing shifts on arrival. */
+.account-page__card-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+}
+
+.account-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+.account-page__error p {
+  margin: 0;
+  font-size: var(--text-sm);
+}

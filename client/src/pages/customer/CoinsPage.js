@@ -95,10 +95,10 @@ export class CoinsPage {
     const todayRewardAmount = streakRewards[todayRewardIdx] || 10;
 
     this.rootEl.innerHTML = `
-      <div class="coins-page">
+      <div class="account-page coins-page">
         <!-- Page Header -->
-        <div class="coins-page__header">
-          <a href="/account" class="coins-page__back" data-nav-back>
+        <div class="account-page__header">
+          <a href="/account" class="account-page__back" data-nav-back>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
@@ -106,18 +106,18 @@ export class CoinsPage {
             <span>${t('gamification.back_to_account')}</span>
           </a>
           
-          <div class="coins-page__title-wrap">
+          <div class="account-page__title-wrap">
             <div>
-              <h1 class="coins-page__title">
+              <h1 class="account-page__title">
                 <span>🪙</span>
                 <span>${t('gamification.page_title')}</span>
               </h1>
-              <p class="coins-page__subtitle">
+              <p class="account-page__subtitle">
                 ${t('gamification.page_subtitle')}
               </p>
             </div>
             
-            <a href="/" class="coins-page__header-action" data-nav-link="/">
+            <a href="/" class="account-page__header-action" data-nav-link="/">
               <span>🛍️</span>
               <span>${t('gamification.shop_with_coins')}</span>
             </a>

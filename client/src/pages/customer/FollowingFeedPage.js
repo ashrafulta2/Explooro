@@ -81,7 +81,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'following-page';
+  container.className = 'account-page following-page';
 
   // ---------------------------------------------------------------------------------------------
   // State — seeded from the URL so a filtered view is shareable and survives a reload.
@@ -119,22 +119,22 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
   // Header
   // ---------------------------------------------------------------------------------------------
   const header = document.createElement('header');
-  header.className = 'following-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="following-page__back">
+    <a href="/account" class="account-page__back">
       ← ${esc(t('customer.following.back_to_account', 'Account Dashboard'))}
     </a>
-    <div class="following-page__title-wrap">
+    <div class="account-page__title-wrap">
       <div>
-        <h1 class="following-page__title">
+        <h1 class="account-page__title">
           <span aria-hidden="true">🏪</span>
           ${esc(t('customer.following.title', 'Followed Stores & Activity Feed'))}
         </h1>
-        <p class="following-page__subtitle">
+        <p class="account-page__subtitle">
           ${esc(t('customer.following.subtitle', 'Fresh product drops, live streams, stories & exclusive discounts from your favorite sellers.'))}
         </p>
       </div>
-      <div class="following-page__header-actions">
+      <div class="account-page__header-actions">
         <button type="button" id="hdr-explore-live" class="btn btn--secondary btn--sm">
           <span aria-hidden="true">🔴</span> ${esc(t('customer.following.tab_live', 'Live Streams'))}
         </button>
@@ -146,7 +146,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
   `;
   container.append(header);
 
-  bindBackControl(header.querySelector('.following-page__back'), nav, '/account');
+  bindBackControl(header.querySelector('.account-page__back'), nav, '/account');
 
   const contentSlot = document.createElement('div');
   contentSlot.className = 'following-content-slot';

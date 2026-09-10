@@ -17,6 +17,11 @@
 @import './components/forms.css';
 @import './components/surfaces.css';
 @import './components/feedback.css';
+
+/* Shared /account/* page chrome. MUST precede every page stylesheet: a page's own
+   `.addresses-page { max-width }` and `.account-page { max-width }` have equal specificity, so
+   whichever is imported LAST wins — importing this after them silently ate their overrides. */
+@import './components/account-shell.css';
 @import './components/shell.css';
 @import './components/auth.css';
 @import './components/access.css';

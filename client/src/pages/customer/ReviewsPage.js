@@ -35,7 +35,7 @@ export default function ReviewsPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
 
   const container = document.createElement('div');
-  container.className = 'reviews-page container';
+  container.className = 'account-page reviews-page container';
 
   let activeTab = 'pending'; // 'pending' | 'published' | 'media'
   let searchQuery = '';
@@ -49,22 +49,22 @@ export default function ReviewsPage(root, { navigate } = {}) {
 
   // 1. Header Section
   const header = document.createElement('header');
-  header.className = 'reviews-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="reviews-page__back">
+    <a href="/account" class="account-page__back">
       ← ${t('common.back') || 'Back to Account'}
     </a>
-    <div class="reviews-page__title-wrap">
+    <div class="account-page__title-wrap">
       <div>
         <div class="flex items-center gap-2 mb-1">
           <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">
             ${t('customer_reviews.badge')}
           </span>
         </div>
-        <h1 class="reviews-page__title">
+        <h1 class="account-page__title">
           <span>⭐</span> ${t('customer_reviews.page_title')}
         </h1>
-        <p class="reviews-page__subtitle">
+        <p class="account-page__subtitle">
           ${t('customer_reviews.page_subtitle')}
         </p>
       </div>
@@ -72,7 +72,7 @@ export default function ReviewsPage(root, { navigate } = {}) {
   `;
   container.appendChild(header);
 
-  bindBackControl(header.querySelector('.reviews-page__back'), nav, '/account');
+  bindBackControl(header.querySelector('.account-page__back'), nav, '/account');
 
   // 2. KPI Summary Bar
   const kpiBar = document.createElement('div');

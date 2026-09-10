@@ -89,22 +89,22 @@ export default function NotificationPreferencesPage(root, { navigate } = {}) {
   const prefs = new Map();
 
   const container = document.createElement('div');
-  container.className = 'notif-prefs-page';
+  container.className = 'account-page notif-prefs-page';
 
   const header = document.createElement('div');
-  header.className = 'notif-prefs-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="notif-prefs-page__back">
+    <a href="/account" class="account-page__back account-page__back--boxed">
       ← ${t('common.back', 'Back')} · ${t('nav.shared.settings', 'Settings')}
     </a>
-    <div class="notif-prefs-page__badge">🔔 ${t('notifications.pref_badge', 'Preference Centre')}</div>
-    <h1 class="notif-prefs-page__title">${t('notifications.pref_page_title', 'Notification Preferences')}</h1>
-    <p class="notif-prefs-page__subtitle">
+    <div class="account-page__badge">🔔 ${t('notifications.pref_badge', 'Preference Centre')}</div>
+    <h1 class="account-page__title">${t('notifications.pref_page_title', 'Notification Preferences')}</h1>
+    <p class="account-page__subtitle">
       ${t('notifications.pref_page_subtitle', 'Manage channels and quiet hours across notification categories.')}
     </p>
   `;
   container.append(header);
-  bindBackControl(header.querySelector('.notif-prefs-page__back'), nav, '/account');
+  bindBackControl(header.querySelector('.account-page__back'), nav, '/account');
 
   const grid = document.createElement('div');
   grid.className = 'notif-prefs-grid';
@@ -127,7 +127,7 @@ export default function NotificationPreferencesPage(root, { navigate } = {}) {
     grid.replaceChildren();
     for (let i = 0; i < CATEGORIES.length; i += 1) {
       const shell = document.createElement('div');
-      shell.className = 'notif-prefs-card notif-prefs-card--loading';
+      shell.className = 'notif-prefs-card account-page__card-loading';
       shell.append(Skeleton({ variant: 'text', lines: 2 }), Skeleton({ variant: 'block', height: 72 }));
       grid.append(shell);
     }
@@ -137,7 +137,7 @@ export default function NotificationPreferencesPage(root, { navigate } = {}) {
     grid.replaceChildren();
     actionsBar.hidden = true;
     const box = document.createElement('div');
-    box.className = 'notif-prefs-error';
+    box.className = 'account-page__error';
     box.setAttribute('role', 'alert');
     const text = document.createElement('p');
     text.textContent = message;

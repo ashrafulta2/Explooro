@@ -32,21 +32,21 @@ export default function WishlistPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'wishlist-page';
+  container.className = 'account-page wishlist-page';
 
   // Header
   const header = document.createElement('div');
-  header.className = 'wishlist-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="wishlist-page__back" data-nav-back>
+    <a href="/account" class="account-page__back" data-nav-back>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       <span>${t('wishlist.back_to_account')}</span>
     </a>
-    <h1 class="wishlist-page__title">
+    <h1 class="account-page__title">
       <span>💚</span>
       <span>${t('wishlist.page_title')}</span>
     </h1>
-    <p class="wishlist-page__subtitle">${t('wishlist.page_subtitle')}</p>
+    <p class="account-page__subtitle">${t('wishlist.page_subtitle')}</p>
   `;
   container.append(header);
 
