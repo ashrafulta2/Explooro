@@ -19,7 +19,7 @@ import { bindBackControl } from '../../core/navBack.js';
 
 export default function WarrantyCardsPage(root, { navigate } = {}) {
   const container = document.createElement('div');
-  container.className = 'warranties-page container';
+  container.className = 'account-page warranties-page container';
   container.setAttribute('data-module', 'digital_warranty');
 
   if (!isFeatureEnabled('digital_warranty')) {
@@ -41,17 +41,17 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
 
   // Header Section
   const header = document.createElement('header');
-  header.className = 'warranties-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="warranties-page__back">
+    <a href="/account" class="account-page__back">
       ← ${t('common.back') || 'Back'}
     </a>
-    <div class="warranties-page__title-wrap">
+    <div class="account-page__title-wrap">
       <div>
-        <h1 class="warranties-page__title">
+        <h1 class="account-page__title">
           <span>🛡️</span> ${t('warranty.hub_title')}
         </h1>
-        <p class="warranties-page__subtitle">
+        <p class="account-page__subtitle">
           ${t('warranty.hub_subtitle')}
         </p>
       </div>
@@ -64,7 +64,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
   `;
   container.appendChild(header);
 
-  bindBackControl(header.querySelector('.warranties-page__back'), navigate, '/account');
+  bindBackControl(header.querySelector('.account-page__back'), navigate, '/account');
 
   // KPI Summary Bar
   const kpiBar = document.createElement('div');

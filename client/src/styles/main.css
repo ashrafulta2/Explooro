@@ -42,7 +42,10 @@
 @import './components/cart.css';
 /* Prompt 5.4: checkout, quick buy & order tracking components */
 @import './components/checkout.css';
-@import './components/customer-orders.css';
+/* customer-orders.css is NOT imported here on purpose. Both pages that use it — OrdersPage and
+   OrderDetailPage — import it themselves, so Vite code-splits it into their route chunk. It used
+   to be in both places, shipping 6.1KB raw / 1.37KB gzip of order-card CSS to every visitor who
+   never opens an order. This is the lever vite.config.js's budget note describes. */
 /* Prompt 6.3: vault withdrawals & admin payout queue */
 @import './components/payout.css';
 /* Prompt 6.4: COD reconciliation & courier settlement */

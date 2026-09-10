@@ -34,29 +34,29 @@ export default function OrdersPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'orders-page';
+  container.className = 'account-page orders-page';
 
   let currentTab = 'ALL';
 
   // 1. Header
   const header = document.createElement('div');
-  header.className = 'orders-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
     <div>
-      <a href="/account" class="orders-page__back-link">
+      <a href="/account" class="account-page__back">
         ${t('order_tracking.back_to_account')}
       </a>
-      <h1 class="orders-page__title">
+      <h1 class="account-page__title">
         ${t('order_tracking.my_orders_title')}
       </h1>
-      <p class="orders-page__subtitle">
+      <p class="account-page__subtitle">
         ${t('order_tracking.page_subtitle')}
       </p>
     </div>
   `;
   container.append(header);
 
-  bindBackControl(header.querySelector('.orders-page__back-link'), nav, '/account');
+  bindBackControl(header.querySelector('.account-page__back'), nav, '/account');
 
   // 2. Status Filter Tabs
   const tabFilterSlot = document.createElement('div');

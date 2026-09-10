@@ -13,22 +13,22 @@
  * - Coarse touch targets (44px+) and high contrast solid surfaces
  */
 
+/* Page chrome comes from account-shell.css. These four are the values this page genuinely
+   differs on: a wider container, a looser rhythm between its big marketing sections, a larger
+   hero title, and a measure tuned to the subtitle rather than the shell's 68ch. */
 .become-saler-page {
   max-width: 1080px;
-  margin-inline: auto;
-  padding: var(--space-6) var(--space-4);
-  display: flex;
-  flex-direction: column;
   gap: var(--space-8);
 }
 
-/* Header */
-.become-saler-page__header {
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: var(--space-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+.become-saler-page .account-page__title {
+  font-size: var(--text-3xl);
+  line-height: 1.2;
+}
+
+.become-saler-page .account-page__subtitle {
+  max-width: 760px;
+  line-height: 1.5;
 }
 
 .become-saler-page__breadcrumb {
@@ -49,34 +49,10 @@
   color: var(--primary);
 }
 
-.become-saler-page__header-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
 .become-saler-page__badge-row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.become-saler-page__title {
-  font-size: var(--text-3xl);
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1.2;
-  margin: 0;
-}
-
-.become-saler-page__subtitle {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin: 0;
-  max-width: 760px;
 }
 
 /* Status Banner (for already active Salers) */

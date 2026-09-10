@@ -16,6 +16,7 @@ import { Modal } from '../../components/ui/Modal.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { goBack } from '../../core/navBack.js';
+import '../../styles/components/customer-orders.css';
 
 export default function OrderDetailPage(root, { params = {}, navigate } = {}) {
   const container = document.createElement('div');
@@ -94,14 +95,14 @@ async function renderOrdersList(container, navigate) {
 }
 
 async function renderOrderDetail(container, orderIdOrRef, navigate) {
-  container.className = 'orders-page';
+  container.className = 'account-page orders-page';
   container.innerHTML = `
-    <div class="orders-page__header">
-      <a href="/orders" class="orders-page__back-link" id="back-to-orders">
+    <div class="account-page__header">
+      <a href="/orders" class="account-page__back" id="back-to-orders">
         <span>←</span> ${t('order_tracking.my_orders_title') || 'Back to Orders'}
       </a>
-      <h1 class="orders-page__title">${t('order_tracking.title')}</h1>
-      <p class="orders-page__subtitle">${t('order_tracking.ref_label')}: <code class="font-bold text-primary">${orderIdOrRef}</code></p>
+      <h1 class="account-page__title">${t('order_tracking.title')}</h1>
+      <p class="account-page__subtitle">${t('order_tracking.ref_label')}: <code class="font-bold text-primary">${orderIdOrRef}</code></p>
     </div>
     <div class="order-detail-page__loading text-center p-8">${t('common.loading')}</div>
   `;

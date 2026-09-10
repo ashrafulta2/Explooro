@@ -33,11 +33,11 @@ export default function BecomeSalerPage(root, { navigate } = {}) {
   };
 
   const container = document.createElement('div');
-  container.className = 'become-saler-page';
+  container.className = 'account-page become-saler-page';
 
   // 1. Header with Breadcrumbs & Title
   const header = document.createElement('div');
-  header.className = 'become-saler-page__header';
+  header.className = 'account-page__header';
   header.innerHTML = `
     <nav class="become-saler-page__breadcrumb" aria-label="Breadcrumb">
       <a href="/">${t('nav.home', 'Home')}</a>
@@ -47,7 +47,7 @@ export default function BecomeSalerPage(root, { navigate } = {}) {
       <span class="text-primary font-bold">${t('customer.become_saler.page_title', '1-Click Saler Upgrade')}</span>
     </nav>
 
-    <div class="become-saler-page__header-top">
+    <div class="account-page__title-wrap">
       <div class="become-saler-page__badge-row">
         <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">
           ✨ ${t('customer.become_saler.badge', 'Zero-Capital Reseller Hub')}
@@ -58,10 +58,10 @@ export default function BecomeSalerPage(root, { navigate } = {}) {
       </button>
     </div>
 
-    <h1 class="become-saler-page__title">
+    <h1 class="account-page__title">
       ${t('customer.become_saler.page_title', '1-Click Saler Upgrade')}
     </h1>
-    <p class="become-saler-page__subtitle">
+    <p class="account-page__subtitle">
       ${t('customer.become_saler.page_subtitle', 'Turn wholesale catalog products into your own profitable brand. No inventory holding, no packaging stress, zero upfront cost.')}
     </p>
   `;

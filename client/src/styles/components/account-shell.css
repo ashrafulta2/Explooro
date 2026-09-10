@@ -2,13 +2,14 @@
  * account-shell.css — the page chrome every /account/* surface shares.
  *
  * WHY this file exists: container + header + back link + title + subtitle + error box + loading
- * card had been re-declared, near-identically, once per page — nine copies of the same twenty
+ * card had been re-declared, near-identically, once per page — twelve copies of the same twenty
  * declarations across `notification-prefs.css`, `customer-addresses.css`, `customer-coins.css`,
  * `customer-coupons.css`, `wishlist.css`, `team-purchases.css`, `customer-following.css`,
- * `customer-reviews.css` and (briefly) `profile.css`.
+ * `customer-reviews.css`, `customer-orders.css`, `customer-warranties.css`,
+ * `customer-become-saler.css` and (briefly) `profile.css`.
  *
  * The payoff is maintenance, NOT bytes, and the measurement is worth recording because the
- * intuition points the other way: collapsing all nine copies removed 5.4KB raw but only ~0.27KB
+ * intuition points the other way: collapsing the first nine copies removed 5.4KB raw but only ~0.27KB
  * gzipped (65.63 -> 65.20KB). main.css imports these stylesheets adjacently, so the duplicate
  * blocks sat well inside deflate's 32KB window and were already compressing against each other.
  * Do not reach for this kind of consolidation to buy back budget — it does not pay. Reach for it
@@ -19,9 +20,11 @@
  * container, a bigger title — it keeps a one-line override in its own stylesheet rather than a
  * second copy of the whole block.
  *
- * Adopted by: /account/profile, /account/settings, /account/addresses, /account/coins,
- * /account/coupons, /account/wishlist, /account/team-purchases, /account/following,
- * /account/reviews. A new account page should need no shell CSS of its own.
+ * Adopted by all twelve account surfaces: /account/profile, /account/settings,
+ * /account/addresses, /account/coins, /account/coupons, /account/wishlist,
+ * /account/team-purchases, /account/following, /account/reviews, /account/orders (and the order
+ * tracking detail page), /account/warranties and /account/become-saler. A new account page should
+ * need no shell CSS of its own.
  */
 
 .account-page {
