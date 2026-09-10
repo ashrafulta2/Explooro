@@ -318,3 +318,103 @@ export async function getRolesAndPermissionMatrix(db) {
     rolePermissions: mapRes.rows,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Self-service profile (GET/PUT /api/v1/me/profile)
+// ---------------------------------------------------------------------------
+
+/**
+ * The user's own account + profile row, plus the storage coordinates of their avatar.
+ *
+ * WHY the media join returns the storage key rather than a URL: only the storage driver knows how
+ * to turn a key into a public URL (local dev serves /api/v1/storage/*, R2 serves a CDN origin),
+ * and a repository that hardcoded either one would be wrong in the other environment.
+ */
+export async function getSelfProfile(db, userId) {
+  const { rows } = await db.query(
+    `SELECT u.id, u.ref, u.phone, u.email, u.is_phone_verified, u.is_email_verified,
+            u.status, u.locale, u.ui_mode, u.last_login_at, u.created_at,
+            up.full_name, up.display_name, up.avatar_media_id, up.date_of_birth, up.gender,
+            up.division, up.district, up.upazila, up.address_line, up.postal_code, up.bio,
+            up.timezone, up.use_bengali_numerals, up.updated_at AS profile_updated_at,
+            m.storage_key AS avatar_storage_key
+       FROM users u
+       LEFT JOIN user_profiles up ON up.user_id = u.id
+       LEFT JOIN media_assets m ON m.id = up.avatar_media_id AND m.deleted_at IS NULL
+      WHERE u.id = $1 AND u.deleted_at IS NULL`,
+    [userId]
+  );
+  return rows[0] ?? null;
+}
+
+/** Columns of `user_profiles` a user may write about themselves. */
+export const SELF_PROFILE_COLUMNS = [
+  'full_name',
+  'display_name',
+  'avatar_media_id',
+  'date_of_birth',
+  'gender',
+  'division',
+  'district',
+  'upazila',
+  'address_line',
+  'postal_code',
+  'bio',
+  'timezone',
+  'use_bengali_numerals',
+];
+
+/**
+ * Upserts the caller's own `user_profiles` row. `fields` is already validated and whitelisted by
+ * profile.service.js — this layer only builds SQL.
+ */
+export async function upsertSelfProfile(db, userId, fields) {
+  const entries = Object.entries(fields).filter(([key]) => SELF_PROFILE_COLUMNS.includes(key));
+  if (entries.length === 0) return;
+
+  const columns = entries.map(([key]) => key);
+  const values = entries.map(([, value]) => value);
+  // $1 is user_id, so the field placeholders start at $2.
+  const insertPlaceholders = columns.map((_, i) => `$${i + 2}`);
+  const updateAssignments = columns.map((col, i) => `${col} = $${i + 2}`);
+
+  await db.query(
+    `INSERT INTO user_profiles (user_id, ${columns.join(', ')})
+     VALUES ($1, ${insertPlaceholders.join(', ')})
+     ON CONFLICT (user_id) DO UPDATE SET ${updateAssignments.join(', ')}`,
+    [userId, ...values]
+  );
+}
+
+/** Columns of `users` a user may write about themselves (phone is OTP-gated, never written here). */
+export const SELF_ACCOUNT_COLUMNS = ['email', 'is_email_verified', 'locale', 'ui_mode'];
+
+export async function updateSelfAccount(db, userId, fields) {
+  const entries = Object.entries(fields).filter(([key]) => SELF_ACCOUNT_COLUMNS.includes(key));
+  if (entries.length === 0) return;
+
+  const assignments = entries.map(([key], i) => `${key} = $${i + 2}`);
+  await db.query(
+    `UPDATE users SET ${assignments.join(', ')} WHERE id = $1 AND deleted_at IS NULL`,
+    [userId, ...entries.map(([, value]) => value)]
+  );
+}
+
+/** Guards the unique index on users.email before an UPDATE turns it into a 500. */
+export async function isEmailTakenByAnotherUser(db, email, userId) {
+  const { rows } = await db.query(
+    'SELECT 1 FROM users WHERE LOWER(email) = LOWER($1) AND id <> $2 AND deleted_at IS NULL LIMIT 1',
+    [email, userId]
+  );
+  return rows.length > 0;
+}
+
+/** Confirms an avatar the user is pointing at is really an AVATAR asset they own. */
+export async function findOwnedAvatarAsset(db, mediaId, userId) {
+  const { rows } = await db.query(
+    `SELECT id, storage_key FROM media_assets
+      WHERE id = $1 AND owner_id = $2 AND purpose = 'AVATAR' AND deleted_at IS NULL`,
+    [mediaId, userId]
+  );
+  return rows[0] ?? null;
+}

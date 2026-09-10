@@ -36,6 +36,8 @@ import { referralHandlers } from './handlers/referral.js';
 import { customerHandlers } from './handlers/customer.js';
 import { notificationHandlers } from './handlers/notifications.js';
 import chatHandlers from './handlers/chat.js';
+import meHandlers from './handlers/me.js';
+import mediaHandlers from './handlers/media.js';
 
 const handlers = [
   ...authHandlers,
@@ -67,6 +69,8 @@ const handlers = [
   ...customerHandlers,
   ...notificationHandlers,
   ...chatHandlers,
+  ...meHandlers,
+  ...mediaHandlers,
 ];
 
 function notFoundBody(path) {

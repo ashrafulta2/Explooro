@@ -98,3 +98,6 @@
 @import './components/saler-inbox.css';
 @import './components/chat.css';
 @import './components/referrals.css';
+
+/* My Profile: the account menu's self-service profile page */
+@import './components/profile.css';

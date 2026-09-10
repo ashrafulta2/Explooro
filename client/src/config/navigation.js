@@ -215,6 +215,9 @@ export const navItems = [
   { key: 'customer.coins', label_i18n_key: 'nav.customer.coins', icon: null, path: '/account/coins', group: 'customer.rewards', permission: null, module: 'loyalty_coins', roles: ['customer'], order: 1 },
   { key: 'customer.referrals', label_i18n_key: 'nav.shared.referrals', icon: null, path: '/account/referrals', group: 'customer.rewards', permission: null, module: 'referral_engine', roles: ['customer'], order: 2 },
   { key: 'customer.warranties', label_i18n_key: 'nav.customer.warranties', icon: null, path: '/account/warranties', group: 'customer.protection', permission: null, module: 'digital_warranty', roles: ['customer'], order: 1 },
+  // order 0: the profile is the first thing in the "Me" group, matching the TopBar avatar menu,
+  // where My Profile sits above everything else. The rest of the group keeps its 1-5 numbering.
+  { key: 'customer.profile', label_i18n_key: 'nav.customer.profile', icon: null, path: '/account/profile', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 0 },
   { key: 'customer.following', label_i18n_key: 'nav.customer.following', icon: null, path: '/account/following', group: 'customer.me', permission: null, module: 'follow_feed', roles: ['customer'], order: 1 },
   { key: 'customer.reviews', label_i18n_key: 'nav.customer.reviews', icon: null, path: '/account/reviews', group: 'customer.me', permission: null, module: 'ugc_video_wall', roles: ['customer'], order: 2 },
   { key: 'customer.addresses', label_i18n_key: 'nav.customer.addresses', icon: null, path: '/account/addresses', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 3 },

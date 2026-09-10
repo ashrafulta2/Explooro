@@ -129,6 +129,9 @@ export function createAppShell({ container, navigate }) {
     }
     renderTopBar({
       role: s.auth.role,
+      // Undefined under Prompt 1.7's mock role switcher, which has no real user behind it — the
+      // avatar menu falls back to the role label, so this stays a nicety rather than a dependency.
+      user: s.auth.user,
       elevatedGrant: s.shell.elevatedGrant,
       badges: s.badges,
       navigate,

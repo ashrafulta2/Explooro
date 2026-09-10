@@ -1497,6 +1497,25 @@ async function bootRouterDemo() {
         module: 'core',
         load: () => import('./pages/settings/NotificationPreferencesPage.js'),
       },
+      // My Profile — the TopBar avatar menu's first item, and the only page in the app that shows
+      // a user their own record. Role-agnostic on purpose: staff have profiles too, so this sits
+      // outside every /admin, /saler and /supplier prefix and needs no permission beyond auth.
+      {
+        path: '/account/profile',
+        title: 'My Profile — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/settings/ProfilePage.js'),
+      },
+      {
+        path: '/profile',
+        title: 'My Profile — Explooro',
+        requiresAuth: true,
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/settings/ProfilePage.js'),
+      },
       // Account settings — the customer sidebar item and the TopBar user menu both point at
       // /account/settings; notification preferences is the only settings surface today, so both
       // aliases resolve to it (navigation.js's header note calls /account/settings/notifications

@@ -196,6 +196,8 @@ The 35 most likely change requests, with exact paths.
 | Add a page | `pages/<role>/<Name>Page.js` → register in `core/router.js` → add to `config/navigation.js` with its `permission` + `module` |
 | Add a nav item | `client/src/config/navigation.js` — one object. Never edit `Sidebar.js` |
 | Add a UI component | `components/ui/` + register in `pages/dev/gallery-registry.js` **in the same change** |
+| Add a field a user edits about themselves | `user_profiles` (Prompt 2.2 migration) → the whitelist in `server/src/repositories/user.repository.js` → validation in `profile.service.js` → a control in `client/src/pages/settings/ProfilePage.js` → the same key in `mocks/handlers/me.js`. Never add a writable column without adding it to BOTH whitelists |
+| Add an item to the avatar (account) menu | `AvatarMenu()` in `client/src/components/shell/TopBar.js`. It is the only account entry point every role shares — the sidebar is per-role |
 | Add a dashboard card | The role's page under `pages/<role>/`, gated by `PermissionGate` |
 | Change spacing/radius/motion | `styles/tokens.css`, after updating `design-system.md` |
 

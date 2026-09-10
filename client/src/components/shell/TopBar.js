@@ -117,20 +117,31 @@ function roleLabel(role) {
   return key ? t(key) : role;
 }
 
-function AvatarMenu({ role, onNavigate }) {
+/** Up to two initials from a name, in whatever script it is written in. */
+function initialsFor(name) {
+  const words = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
+function AvatarMenu({ role, user, onNavigate }) {
   const wrap = document.createElement('div');
   wrap.className = 'topbar__avatar-menu';
 
   const label = roleLabel(role);
+  // The person's own name when there is a real session behind the shell; the role otherwise
+  // (Prompt 1.7's mock switcher signs in a role, not a user).
+  const displayName = user?.display_name || user?.name || user?.full_name || '';
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'topbar__avatar-trigger';
-  trigger.textContent = (role ?? '?').slice(0, 1).toUpperCase();
-  trigger.title = label;
+  trigger.textContent = initialsFor(displayName) || (role ?? '?').slice(0, 1).toUpperCase();
+  trigger.title = displayName ? `${displayName} — ${label}` : label;
   trigger.setAttribute('aria-haspopup', 'true');
   trigger.setAttribute('aria-expanded', 'false');
-  trigger.setAttribute('aria-label', `${t('shell.account_menu')} — ${label}`);
+  trigger.setAttribute('aria-label', `${t('shell.account_menu')} — ${displayName || label}`);
 
   const panel = document.createElement('div');
   panel.className = 'topbar__avatar-panel';
@@ -138,7 +149,17 @@ function AvatarMenu({ role, onNavigate }) {
 
   const panelHeader = document.createElement('div');
   panelHeader.className = 'topbar__avatar-panel-header';
-  panelHeader.innerHTML = `<span class="topbar__avatar-panel-role">${label}</span>`;
+  if (displayName) {
+    const nameEl = document.createElement('span');
+    nameEl.className = 'topbar__avatar-panel-name';
+    // textContent, not innerHTML: this is user-supplied and lands in the shell on every page.
+    nameEl.textContent = displayName;
+    panelHeader.append(nameEl);
+  }
+  const roleEl = document.createElement('span');
+  roleEl.className = 'topbar__avatar-panel-role';
+  roleEl.textContent = label;
+  panelHeader.append(roleEl);
   panel.append(panelHeader);
 
   const DASHBOARDS = {
@@ -150,6 +171,19 @@ function AvatarMenu({ role, onNavigate }) {
     saler: '/saler',
     customer: '/account',
   };
+
+  // First item, above the dashboard: a user looking for "where do I change my name" reaches for
+  // their own picture, so My Profile has to be the first thing under it — for every role, not just
+  // customers, since staff accounts carry a profile too.
+  const profileLink = document.createElement('a');
+  profileLink.href = '/account/profile';
+  profileLink.textContent = t('shell.my_profile', 'My Profile');
+  profileLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    close();
+    onNavigate('/account/profile');
+  });
+  panel.append(profileLink);
 
   const dashPath = DASHBOARDS[role];
   if (dashPath) {
@@ -411,7 +445,7 @@ function ThemeMenu() {
   return wrap;
 }
 
-export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette }) {
+export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPalette }) {
   const bar = document.createElement('header');
   bar.className = 'topbar';
 
@@ -566,7 +600,7 @@ export function TopBar({ role, elevatedGrant, badges, navigate, onOpenPalette })
         openNotificationCenter();
       },
     }));
-    bar.append(AvatarMenu({ role, onNavigate: navigate }));
+    bar.append(AvatarMenu({ role, user, onNavigate: navigate }));
   }
 
   return bar;
