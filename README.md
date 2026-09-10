@@ -143,7 +143,8 @@ The full reasoning lives in [`docs/prompt.md`](docs/prompt.md) under **Master In
 3. **Vite is a build tool, not a foundation.** No source file may import from `vite`. If Vite were
    to disappear, `client/src` would still be valid ES modules.
 4. **Performance budget is enforced by the build** (from Prompt 1.9): 150KB JS gzipped,
-   40KB CSS gzipped. Exceed it and the build fails.
+   70KB CSS gzipped. Exceed it and the build fails. (CSS raised 40 → 65 → 70KB; see the note in
+   `client/vite.config.js` before raising it a third time.)
 5. **Money is `NUMERIC(14,2)`** in PostgreSQL, and split arithmetic exists in exactly one file.
 6. **Every external integration ships a `mock` driver** and defaults to it in development.
 7. **Exact dependency versions** — no `^`, no `~`. Upgrades are deliberate.

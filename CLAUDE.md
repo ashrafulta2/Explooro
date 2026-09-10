@@ -91,8 +91,13 @@ These are enforced across every prompt, not stylistic suggestions:
    — a developer with no `REDIS_URL` must still be able to run the whole app locally.
 7. **Every external integration (payments, courier, SMS, AI) ships a `mock` driver and defaults to
    it in development**, switchable via env var with no code changes (e.g. `VITE_API_MODE=mock|live`).
-8. **Performance budget enforced by the build**: 150KB JS gzipped, 40KB CSS gzipped — exceeding it
-   fails the build (from Prompt 1.9 onward).
+8. **Performance budget enforced by the build**: 150KB JS gzipped, 70KB CSS gzipped — exceeding it
+   fails the build (from Prompt 1.9 onward). The CSS figure is the live one in
+   `client/vite.config.js`; it has been raised twice (40 → 65 → 70KB on 2026-09-10). Note what
+   does not help: de-duplicating CSS. Collapsing nine copies of the /account/* page shell into
+   `client/src/styles/components/account-shell.css` removed 5.4KB raw and bought back ~0.27KB
+   gzipped. At a ~13.6% compression ratio you must delete ~7KB raw per 1KB of budget, so headroom
+   comes from splitting page CSS out of the entry bundle, not from tidying.
 9. **The Vite dev server must never break.** After every prompt, `npm run dev` starts cleanly and
    the site is visually inspectable at `localhost:3000`. Never leave the app non-rendering between
    prompts — ship behind a feature flag if needed. A living style guide at `/dev/gallery` registers

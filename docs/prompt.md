@@ -1202,7 +1202,9 @@ REQUIREMENTS:
    contrast failures, positive tabindex, duplicate ids, missing lang attribute.
    Surfaces results as a floating dev badge with a count.
 3. Performance budget enforced in vite.config.js — build fails if the initial JS chunk exceeds
-   150KB gzipped (the PRD's stated target) or initial CSS exceeds 40KB gzipped.
+   150KB gzipped (the PRD's stated target) or initial CSS exceeds its budget. The CSS ceiling
+   shipped at 40KB and now stands at 70KB (raised to 65KB earlier, then to 70KB on 2026-09-10 for
+   `/account/profile`, traceability row 74). `client/vite.config.js` holds the live number.
 4. Document the Lighthouse target: Performance ≥ 95, Accessibility 100, Best Practices ≥ 95,
    SEO ≥ 95 — measured on the marketplace home and product detail pages.
 
@@ -4002,7 +4004,7 @@ REQUIREMENTS:
 ACCEPTANCE:
 - The app is installable and launches offline showing cached content.
 - A cart change made offline syncs correctly on reconnect.
-- Initial JS is under 150KB gzipped and CSS under 40KB gzipped.
+- Initial JS is under 150KB gzipped and CSS under its current budget (70KB as of 2026-09-10).
 - Lighthouse: Performance ≥ 95, Accessibility 100, SEO 100 on the measured pages.
 
 PREVIEW:

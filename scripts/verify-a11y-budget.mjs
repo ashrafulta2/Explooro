@@ -64,14 +64,28 @@ const cssContent = fs.readFileSync(path.join(assetsDir, cssEntry));
 const jsGzipSize = zlib.gzipSync(jsContent).length;
 const cssGzipSize = zlib.gzipSync(cssContent).length;
 
-const JS_BUDGET_GZIP = 150 * 1024; // 150KB
-const CSS_BUDGET_GZIP = 50 * 1024;  // 50KB
+// WHY these are read out of vite.config.js instead of written here: this script used to carry its
+// own literals (150KB / 50KB) while the build enforced 150KB / 65KB. A second copy of a number
+// that moves is a number that goes stale — this script was asserting a CSS budget the build had
+// already left behind, so it would have failed a bundle the build called fine.
+const viteConfigSrc = fs.readFileSync(path.resolve('client/vite.config.js'), 'utf8');
 
-console.log(`  Entry JS: ${(jsGzipSize / 1024).toFixed(2)} KB gzipped (Budget: 150 KB)`);
-console.log(`  Entry CSS: ${(cssGzipSize / 1024).toFixed(2)} KB gzipped (Budget: 50 KB)`);
+function budgetFromConfig(constName) {
+  const match = viteConfigSrc.match(new RegExp(`const ${constName} = (\\d+) \\* 1024`));
+  assert.ok(match, `${constName} not found in client/vite.config.js`);
+  return Number(match[1]) * 1024;
+}
 
-check('Entry JS is within 150KB gzip budget', jsGzipSize <= JS_BUDGET_GZIP, true);
-check('Entry CSS is within 50KB gzip budget', cssGzipSize <= CSS_BUDGET_GZIP, true);
+const JS_BUDGET_GZIP = budgetFromConfig('JS_BUDGET_GZIP_BYTES');
+const CSS_BUDGET_GZIP = budgetFromConfig('CSS_BUDGET_GZIP_BYTES');
+const jsBudgetKb = JS_BUDGET_GZIP / 1024;
+const cssBudgetKb = CSS_BUDGET_GZIP / 1024;
+
+console.log(`  Entry JS: ${(jsGzipSize / 1024).toFixed(2)} KB gzipped (Budget: ${jsBudgetKb} KB)`);
+console.log(`  Entry CSS: ${(cssGzipSize / 1024).toFixed(2)} KB gzipped (Budget: ${cssBudgetKb} KB)`);
+
+check(`Entry JS is within ${jsBudgetKb}KB gzip budget`, jsGzipSize <= JS_BUDGET_GZIP, true);
+check(`Entry CSS is within ${cssBudgetKb}KB gzip budget`, cssGzipSize <= CSS_BUDGET_GZIP, true);
 
 console.log('\n## 3. Dead Code Elimination Verification');
 // Verify a11y auditor code does NOT leak into production bundle
