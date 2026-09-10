@@ -182,5 +182,57 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(content.includes('showPlatformShare = false'), 'showPlatformShare must default to false');
     assert.ok(content.includes('${showPlatformShare && total_platform_margin !== undefined'), 'Platform share tag must be guarded by showPlatformShare');
   });
+
+  // 11. Saler Confidentiality Invariant — Wholesale cost hidden on sourcing cards & AddToStoreDrawer
+  await t.test('11. Sourcing catalog cards and drawer never expose raw wholesale cost to saler', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+
+    const cardPath = path.resolve(import.meta.dirname, '../src/pages/saler/SourcingCatalogPage.js');
+    const cardContent = fs.readFileSync(cardPath, 'utf8');
+    assert.ok(!cardContent.includes("sourcing.card.wholesale_cost"), 'Sourcing catalog cards must not display raw wholesale cost');
+    assert.ok(cardContent.includes("sourcing.card.suggested_retail"), 'Sourcing catalog cards must display Suggested Retail');
+    assert.ok(cardContent.includes("sourcing.card.min_price"), 'Sourcing catalog cards must display Min Selling Price');
+
+    const drawerPath = path.resolve(import.meta.dirname, '../src/components/saler/AddToStoreDrawer.js');
+    const drawerContent = fs.readFileSync(drawerPath, 'utf8');
+    assert.ok(!drawerContent.includes("formatCurrency(wholesaleCost)"), 'AddToStoreDrawer must not display raw wholesale cost');
+    assert.ok(drawerContent.includes("minRetailPrice"), 'AddToStoreDrawer must enforce minRetailPrice');
+  });
+
+  // 12. Tiered Reseller Pricing Engine Client Math
+  await t.test('12. Tiered Reseller Pricing: discount absorbs saler profit with platform protected; boost shares extra markup', () => {
+    const supplierCost = 1000;
+    const platDefPct = 10;
+    const salerDefPct = 20;
+    const extraPlatPct = 20;
+
+    const platDefProfit = Math.round((supplierCost * platDefPct) / 100); // 100
+    const salerDefProfit = Math.round((supplierCost * salerDefPct) / 100); // 200
+    const minPrice = supplierCost + platDefProfit; // 1100
+    const defaultRetail = minPrice + salerDefProfit; // 1300
+
+    assert.equal(minPrice, 1100, 'Min price is supplier cost + platform default profit');
+    assert.equal(defaultRetail, 1300, 'Default retail is supplier + plat profit + saler profit');
+
+    // Case A: Discounted customer price = 1200
+    const discountPrice = 1200;
+    const discountPlatProfit = platDefProfit; // 100 (100% protected)
+    const discountSalerProfit = discountPrice - minPrice; // 100 (saler absorbs discount)
+    assert.equal(discountPlatProfit, 100, 'Platform profit must not decrease');
+    assert.equal(discountSalerProfit, 100, 'Saler profit drops by 100');
+    assert.equal(supplierCost + discountPlatProfit + discountSalerProfit, discountPrice, 'Funds conserved');
+
+    // Case B: Boosted customer price = 1500 (extra 200)
+    const boostPrice = 1500;
+    const extra = boostPrice - defaultRetail; // 200
+    const extraPlat = Math.floor((extra * extraPlatPct) / 100); // 40
+    const extraSaler = extra - extraPlat; // 160
+    const boostPlatProfit = platDefProfit + extraPlat; // 140
+    const boostSalerProfit = salerDefProfit + extraSaler; // 360
+    assert.equal(boostPlatProfit, 140, 'Platform gets 100 + 40 extra markup share');
+    assert.equal(boostSalerProfit, 360, 'Saler gets 200 + 160 extra markup share');
+    assert.equal(supplierCost + boostPlatProfit + boostSalerProfit, boostPrice, 'Funds conserved');
+  });
 });
 

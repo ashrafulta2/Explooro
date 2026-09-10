@@ -566,12 +566,22 @@ export default [
       if (query?.in_stock === 'true' || query?.in_stock === true) {
         filtered = filtered.filter((p) => p.stock_qty > 0);
       }
+      const sanitized = filtered.map((p) => {
+        const wholesale = Number(p.base_wholesale_price || 0);
+        const minRetail = p.min_retail_price || Math.round(wholesale * 1.1);
+        const defRetail = p.default_retail_price || Math.round(wholesale * 1.3);
+        return {
+          ...p,
+          min_retail_price: minRetail,
+          default_retail_price: defRetail,
+        };
+      });
       return {
         status: 200,
         body: {
           data: {
-            products: filtered,
-            total_count: filtered.length,
+            products: sanitized,
+            total_count: sanitized.length,
             summary: {
               total_curated: mockSalerProducts.length,
               in_stock_count: mockSalerProducts.filter((p) => p.stock_qty > 0).length,

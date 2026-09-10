@@ -346,7 +346,8 @@ export default function SourcingCatalogPage(root) {
             const initialBase = p.pricing?.base_cost ?? p.base_cost ?? 500;
             const initialWholesale = p.pricing?.wholesale_margin ?? p.wholesale_margin ?? 0;
             const initialRetail = parseFloat(p.price || 700);
-            modalCalc.setValues(initialBase, initialWholesale, initialRetail);
+            const defaultRetail = p.pricing?.default_retail_price ?? initialRetail;
+            modalCalc.setValues(initialBase, initialWholesale, initialRetail, defaultRetail);
             calcModal.openModal(btn);
           },
           onAddToStore: (p, btn) => {
@@ -415,7 +416,7 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
   const isBn = getLanguage() === 'bn';
   const title = (isBn && product.title_bn) ? product.title_bn : (product.title_en || product.title);
   const price = parseFloat(product.price || 0);
-  const wholesaleCost = product.pricing?.wholesale_cost ?? product.sourcing_opportunity?.wholesale_cost ?? (price * 0.7);
+  const minPrice = product.pricing?.min_retail_price ?? product.sourcing_opportunity?.min_retail_price ?? Math.round(price * 0.85);
   const salerProfit = product.pricing?.saler_earning ?? product.sourcing_opportunity?.potential_profit ?? (price * 0.15);
   const marginPct = product.margin_pct ?? product.pricing?.saler_margin_pct ?? 18;
   const tier = product.supplier_tier || 'standard';
@@ -494,18 +495,18 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
 
   header.append(cat, hTitle);
 
-  // Pricing Matrix
+  // Pricing Matrix (Confidential wholesale: shows Suggested Retail, Min Selling Price Floor, and Reseller Profit)
   const matrix = document.createElement('div');
   matrix.className = 'sourcing-card__pricing-matrix';
 
   matrix.innerHTML = `
     <div class="sourcing-card__pricing-row">
-      <span class="sourcing-card__pricing-label">${t('sourcing.calc.wholesale_cost', 'Wholesale Cost')}</span>
-      <span class="sourcing-card__pricing-val">${formatCurrency(wholesaleCost)}</span>
-    </div>
-    <div class="sourcing-card__pricing-row">
       <span class="sourcing-card__pricing-label">${t('sourcing.card.suggested_retail', 'Suggested Retail')}</span>
       <span class="sourcing-card__pricing-val">${formatCurrency(price)}</span>
+    </div>
+    <div class="sourcing-card__pricing-row">
+      <span class="sourcing-card__pricing-label">${t('sourcing.card.min_price', 'Min Selling Price')}</span>
+      <span class="sourcing-card__pricing-val">${formatCurrency(minPrice)}</span>
     </div>
     <div class="sourcing-card__pricing-row sourcing-card__pricing-row--profit">
       <span class="sourcing-card__pricing-label sourcing-card__pricing-label--profit">💰 ${t('sourcing.card.profit_per_sale', 'Your Profit / Sale')}</span>

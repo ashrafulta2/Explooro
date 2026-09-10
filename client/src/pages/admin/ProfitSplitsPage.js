@@ -38,6 +38,9 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
   // Global Split Form State
   let formSalerSplit = 40;
   let formMinMargin = 5;
+  let formPlatformDefaultProfit = 10;
+  let formSalerDefaultProfit = 20;
+  let formExtraMarkupPlatform = 20;
   let formReason = '';
 
   // Modal State for Category Override Edit
@@ -72,11 +75,21 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
       if (splitsData.global) {
         formSalerSplit = splitsData.global.saler_split_pct ?? 40;
         formMinMargin = splitsData.global.min_margin_pct ?? 5;
+        formPlatformDefaultProfit = splitsData.global.platform_default_profit_pct ?? 10;
+        formSalerDefaultProfit = splitsData.global.saler_default_profit_pct ?? 20;
+        formExtraMarkupPlatform = splitsData.global.extra_markup_platform_pct ?? 20;
       }
     } catch (err) {
       toast.error(err.message || 'Failed to load profit split policies.');
       splitsData = {
-        global: { saler_split_pct: 40, platform_split_pct: 60, min_margin_pct: 5 },
+        global: {
+          saler_split_pct: 40,
+          platform_split_pct: 60,
+          min_margin_pct: 5,
+          platform_default_profit_pct: 10,
+          saler_default_profit_pct: 20,
+          extra_markup_platform_pct: 20,
+        },
         categories: [],
         tiers: [],
         audit_log: [],
@@ -89,45 +102,68 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
   }
 
   function calculateSimulation() {
-    const globalSalerPct = splitsData?.global?.saler_split_pct ?? 40;
-    let baseSalerPct = globalSalerPct;
-    let ruleSource = isBn ? 'গ্লোবাল ডিফল্ট' : 'Global Default';
-
-    if (simCategoryId && splitsData?.categories) {
-      const cat = splitsData.categories.find((c) => String(c.id) === String(simCategoryId));
-      if (cat && cat.is_override) {
-        baseSalerPct = cat.saler_split_pct;
-        ruleSource = `${cat.name_en} (${isBn ? 'ক্যাটাগরি ওভাররাইড' : 'Category Override'})`;
-      }
-    }
+    const costPaisa = Math.round(simSupplierCost * 100);
+    const platDefPct = formPlatformDefaultProfit || 10;
+    const salerDefPct = formSalerDefaultProfit || 20;
+    const extraPlatPct = formExtraMarkupPlatform || 20;
 
     let tierBonus = 0;
     if (simTier === 'SILVER') tierBonus = 1.0;
     else if (simTier === 'GOLD') tierBonus = 2.0;
     else if (simTier === 'PLATINUM') tierBonus = 5.0;
 
-    const effectiveSalerPct = Math.min(100, baseSalerPct + tierBonus);
-    const effectivePlatformPct = Math.max(0, 100 - effectiveSalerPct);
+    const platformDefProfitPaisa = Math.round((costPaisa * platDefPct) / 100);
+    const salerDefProfitPaisa = Math.round((costPaisa * (salerDefPct + tierBonus)) / 100);
+
+    const minRetailPaisa = costPaisa + platformDefProfitPaisa;
+    const defaultRetailPaisa = minRetailPaisa + salerDefProfitPaisa;
+    const retailPaisa = Math.round(simRetailPrice * 100);
+
+    let salerCommissionPaisa = 0;
+    let platformTakePaisa = 0;
+    let pricingState = 'standard'; // 'standard' | 'discount' | 'boost' | 'below_min'
+
+    if (retailPaisa < minRetailPaisa) {
+      pricingState = 'below_min';
+      salerCommissionPaisa = 0;
+      platformTakePaisa = Math.max(0, retailPaisa - costPaisa);
+    } else if (retailPaisa < defaultRetailPaisa) {
+      pricingState = 'discount';
+      platformTakePaisa = platformDefProfitPaisa;
+      salerCommissionPaisa = retailPaisa - minRetailPaisa;
+    } else {
+      const extraPaisa = retailPaisa - defaultRetailPaisa;
+      if (extraPaisa > 0) {
+        pricingState = 'boost';
+        const extraPlatPaisa = Math.floor((extraPaisa * extraPlatPct) / 100);
+        const extraSalerPaisa = extraPaisa - extraPlatPaisa;
+        platformTakePaisa = platformDefProfitPaisa + extraPlatPaisa;
+        salerCommissionPaisa = salerDefProfitPaisa + extraSalerPaisa;
+      } else {
+        pricingState = 'standard';
+        platformTakePaisa = platformDefProfitPaisa;
+        salerCommissionPaisa = salerDefProfitPaisa;
+      }
+    }
 
     const grossMargin = Math.max(0, simRetailPrice - simSupplierCost);
-    const grossMarginPaisa = Math.round(grossMargin * 100);
-    const salerCommissionPaisa = Math.floor((grossMarginPaisa * effectiveSalerPct) / 100);
-    const platformTakePaisa = grossMarginPaisa - salerCommissionPaisa;
-
-    // Percentages of total retail price for the visual 3-segment bar
-    const total = simRetailPrice || 1;
-    const supplierPct = Math.min(100, Math.round((simSupplierCost / total) * 100));
-    const salerTotalPct = Math.min(100 - supplierPct, Math.round(((salerCommissionPaisa / 100) / total) * 100));
+    const total = retailPaisa || 1;
+    const supplierPct = Math.min(100, Math.round((costPaisa / total) * 100));
+    const salerTotalPct = Math.min(100 - supplierPct, Math.round((salerCommissionPaisa / total) * 100));
     const platformTotalPct = Math.max(0, 100 - supplierPct - salerTotalPct);
+    const ruleSource = isBn ? 'টায়ার্ড রিসেলার প্রাইসিং' : 'Tiered Reseller Pricing';
 
     return {
       grossMargin,
       supplierPayout: simSupplierCost,
+      minRetail: minRetailPaisa / 100,
+      defaultRetail: defaultRetailPaisa / 100,
       salerCommission: salerCommissionPaisa / 100,
       platformTake: platformTakePaisa / 100,
-      effectiveSalerPct,
-      effectivePlatformPct,
-      baseSalerPct,
+      pricingState,
+      platDefPct,
+      salerDefPct,
+      extraPlatPct,
       tierBonus,
       ruleSource,
       supplierPct,
@@ -163,6 +199,9 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
         saler_split_pct: formSalerSplit,
         platform_split_pct: platformPct,
         min_margin_pct: formMinMargin,
+        platform_default_profit_pct: formPlatformDefaultProfit,
+        saler_default_profit_pct: formSalerDefaultProfit,
+        extra_markup_platform_pct: formExtraMarkupPlatform,
         reason: formReason.trim(),
       });
       toast.success(t('admin_splits.toast_global_saved'));
@@ -376,28 +415,49 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
           <!-- Breakdown Chips -->
           <div class="split-breakdown-chips">
             <div class="split-breakdown-chip">
-              <span class="split-breakdown-chip__title">${t('admin_splits.sim_gross_margin')}</span>
-              <span class="split-breakdown-chip__amount text-brand">${formatCurrency(simCalc.grossMargin)}</span>
-              <span class="split-breakdown-chip__pct">Retail - Supplier Cost</span>
+              <span class="split-breakdown-chip__title">${t('admin_splits.sim_default_retail')}</span>
+              <span class="split-breakdown-chip__amount text-brand">${formatCurrency(simCalc.defaultRetail)}</span>
+              <span class="split-breakdown-chip__pct">${isBn ? 'সাপ্লায়ার + প্ল্যাটফর্ম + সেলার' : 'Supplier + Plat + Saler'}</span>
             </div>
 
             <div class="split-breakdown-chip">
-              <span class="split-breakdown-chip__title">${t('admin_splits.sim_supplier_payout')}</span>
-              <span class="split-breakdown-chip__amount">${formatCurrency(simCalc.supplierPayout)}</span>
-              <span class="split-breakdown-chip__pct">100% Wholesale Base</span>
+              <span class="split-breakdown-chip__title">${t('admin_splits.sim_min_retail')}</span>
+              <span class="split-breakdown-chip__amount text-secondary">${formatCurrency(simCalc.minRetail)}</span>
+              <span class="split-breakdown-chip__pct">${isBn ? 'সাপ্লায়ার + প্ল্যাটফর্ম ডিফল্ট' : 'Supplier + Plat Default'}</span>
             </div>
 
             <div class="split-breakdown-chip">
               <span class="split-breakdown-chip__title">${t('admin_splits.sim_saler_commission')}</span>
               <span class="split-breakdown-chip__amount text-success">${formatCurrency(simCalc.salerCommission)}</span>
-              <span class="split-breakdown-chip__pct">${simCalc.effectiveSalerPct}% (${simCalc.baseSalerPct}% + ${simCalc.tierBonus}% bonus)</span>
+              <span class="split-breakdown-chip__pct">${simCalc.salerDefPct}% ${isBn ? 'ডিফল্ট' : 'base'}${simCalc.tierBonus ? ` + ${simCalc.tierBonus}% bonus` : ''}</span>
             </div>
 
             <div class="split-breakdown-chip">
               <span class="split-breakdown-chip__title">${t('admin_splits.sim_platform_take')}</span>
               <span class="split-breakdown-chip__amount text-primary">${formatCurrency(simCalc.platformTake)}</span>
-              <span class="split-breakdown-chip__pct">${simCalc.effectivePlatformPct}% platform fee</span>
+              <span class="split-breakdown-chip__pct">${simCalc.platDefPct}% ${isBn ? 'ডিফল্ট + এক্সট্রা' : 'base + extra split'}</span>
             </div>
+          </div>
+
+          <!-- Pricing State Banner -->
+          <div class="mt-3 p-3 rounded-md text-xs font-semibold ${
+            simCalc.pricingState === 'below_min'
+              ? 'bg-red-50 text-red-600 border border-red-200'
+              : simCalc.pricingState === 'discount'
+              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+              : simCalc.pricingState === 'boost'
+              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+              : 'bg-blue-50 text-blue-700 border border-blue-200'
+          }">
+            ${
+              simCalc.pricingState === 'below_min'
+                ? `⚠️ ${isBn ? 'সর্বনিম্ন বিক্রয় মূল্যের নিচে! সেলার এই মূল্যের নিচে বিক্রি করতে পারবেন না।' : 'Below Minimum Floor! Selling below this price is blocked to protect supplier and platform margin.'}`
+                : simCalc.pricingState === 'discount'
+                ? `🏷️ ${isBn ? 'ডিসকাউন্ট মূল্য: সেলারের প্রফিট কমেছে, প্ল্যাটফর্মের ডিফল্ট প্রফিট ১০০% অক্ষত।' : 'Discount Tier: Saler profit reduced; Platform default profit is 100% protected.'}`
+                : simCalc.pricingState === 'boost'
+                ? `🚀 ${isBn ? `অতিরিক্ত মূল্য: ডিফল্ট মূল্যের অতিরিক্ত অংশ প্ল্যাটফর্ম (${simCalc.extraPlatPct}%) ও সেলারের (${100 - simCalc.extraPlatPct}%) মধ্যে বণ্টন হবে।` : `Extra Markup Tier: Surplus markup shared between platform (${simCalc.extraPlatPct}%) and saler (${100 - simCalc.extraPlatPct}%).`}`
+                : `✨ ${isBn ? 'স্ট্যান্ডার্ড ডিফল্ট মূল্য: প্ল্যাটফর্ম ও সেলার উভয়েই পূর্ণ ডিফল্ট প্রফিট পাচ্ছেন।' : 'Standard Suggested Retail: Both platform and saler receive full default markup.'}`
+            }
           </div>
         </div>
       </div>
@@ -443,6 +503,41 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
       </div>
 
       <form class="global-split-form flex flex-col gap-4">
+        <div class="mb-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-secondary">
+            ${isBn ? 'রিসেলার টায়ার প্রাইসিং পলিসি (গোপন পাইকারি মূল্য ও প্রফিট বণ্টন)' : 'Tiered Reseller Pricing Policy (Hidden Wholesale & Markup Split)'}
+          </span>
+        </div>
+
+        <div class="form-grid form-grid--3col">
+          <!-- Platform Default Profit Markup % -->
+          <div class="form-group">
+            <label for="split-global-plat-profit" class="form-label">${t('admin_splits.platform_default_profit_label')}</label>
+            <input id="split-global-plat-profit" type="number" class="form-input global-plat-profit-input" min="1" max="50" step="0.5" value="${formPlatformDefaultProfit}" />
+            <span class="text-2xs text-secondary mt-1 block">${isBn ? 'সাপ্লায়ার মূল্যের ওপর প্ল্যাটফর্মের নির্ধারিত ডিফল্ট প্রফিট' : 'Platform base markup added to supplier cost'}</span>
+          </div>
+
+          <!-- Saler Default Profit Markup % -->
+          <div class="form-group">
+            <label for="split-global-saler-profit" class="form-label">${t('admin_splits.saler_default_profit_label')}</label>
+            <input id="split-global-saler-profit" type="number" class="form-input global-saler-profit-input" min="1" max="50" step="0.5" value="${formSalerDefaultProfit}" />
+            <span class="text-2xs text-secondary mt-1 block">${isBn ? 'সাপ্লায়ার মূল্যের ওপর সেলারের নির্ধারিত ডিফল্ট প্রফিট' : 'Saler base profit added to suggested retail'}</span>
+          </div>
+
+          <!-- Extra Markup Platform Share % -->
+          <div class="form-group">
+            <label for="split-global-extra-platform" class="form-label">${t('admin_splits.extra_markup_platform_label')}</label>
+            <input id="split-global-extra-platform" type="number" class="form-input global-extra-platform-input" min="0" max="100" step="1" value="${formExtraMarkupPlatform}" />
+            <span class="text-2xs text-secondary mt-1 block">${isBn ? 'ডিফল্ট মূল্যের অতিরিক্ত অংশে প্ল্যাটফর্মের ভাগ (বাকি সেলার পাবে)' : 'Surplus above default shared with platform (remainder to saler)'}</span>
+          </div>
+        </div>
+
+        <div class="mb-2 mt-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-secondary">
+            ${isBn ? 'মার্জিন শেয়ারিং বেসলাইন' : 'Margin Baseline Policy'}
+          </span>
+        </div>
+
         <div class="form-grid form-grid--3col">
           <!-- Saler Share -->
           <div class="form-group">
@@ -489,6 +584,9 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     const salerDisplay = globalPanel.querySelector('.global-saler-display');
     const platformDisplay = globalPanel.querySelector('.global-platform-display');
     const minMarginInput = globalPanel.querySelector('.global-min-margin');
+    const platProfitInput = globalPanel.querySelector('.global-plat-profit-input');
+    const salerProfitInput = globalPanel.querySelector('.global-saler-profit-input');
+    const extraPlatformInput = globalPanel.querySelector('.global-extra-platform-input');
     const reasonInput = globalPanel.querySelector('.global-reason-input');
 
     rangeInput?.addEventListener('input', (e) => {
@@ -499,6 +597,18 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
 
     minMarginInput?.addEventListener('input', (e) => {
       formMinMargin = parseFloat(e.target.value) || 5;
+    });
+
+    platProfitInput?.addEventListener('input', (e) => {
+      formPlatformDefaultProfit = parseFloat(e.target.value) || 10;
+    });
+
+    salerProfitInput?.addEventListener('input', (e) => {
+      formSalerDefaultProfit = parseFloat(e.target.value) || 20;
+    });
+
+    extraPlatformInput?.addEventListener('input', (e) => {
+      formExtraMarkupPlatform = parseFloat(e.target.value) || 20;
     });
 
     reasonInput?.addEventListener('input', (e) => {

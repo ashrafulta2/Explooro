@@ -268,9 +268,23 @@ export default function MyProductsPage(root, { navigate } = {}) {
 
     filtered.forEach((p) => {
       const wholesale = Number(p.base_wholesale_price || 0);
-      const retail = Number(p.custom_retail_price || p.default_retail_price || wholesale);
-      const margin = retail - wholesale;
-      const marginPct = retail > 0 ? ((margin / retail) * 100).toFixed(1) : 0;
+      const minPrice = Number(p.min_retail_price || (wholesale > 0 ? Math.round(wholesale * 1.1) : 0));
+      const defaultPrice = Number(p.default_retail_price || (wholesale > 0 ? Math.round(wholesale * 1.3) : minPrice));
+      const retail = Number(p.custom_retail_price || defaultPrice || minPrice);
+
+      let salerProfit = 0;
+      if (wholesale > 0) {
+        const salerDefProfit = wholesale * 0.2;
+        if (retail < defaultPrice) {
+          salerProfit = Math.max(0, retail - minPrice);
+        } else {
+          const extra = retail - defaultPrice;
+          salerProfit = salerDefProfit + (extra * 0.8);
+        }
+      } else {
+        salerProfit = Math.max(0, retail - minPrice);
+      }
+      const marginPct = retail > 0 ? ((salerProfit / retail) * 100).toFixed(1) : 0;
       const title = isBn ? (p.title_bn || p.title_en) : p.title_en;
 
       const tr = document.createElement('tr');
@@ -287,8 +301,8 @@ export default function MyProductsPage(root, { navigate } = {}) {
         <td>
           <span class="badge badge--neutral text-xs">${p.category}</span>
         </td>
-        <td class="font-mono text-sm font-semibold text-muted">
-          ${formatCurrency(wholesale)}
+        <td class="font-mono text-sm font-semibold text-muted" title="${isBn ? 'সর্বনিম্ন বিক্রয় ফ্লোর' : 'Minimum Selling Floor'}">
+          ${formatCurrency(minPrice)}
         </td>
         <td>
           <div class="saler-price-edit-box">
@@ -297,7 +311,7 @@ export default function MyProductsPage(root, { navigate } = {}) {
               type="number"
               class="saler-price-edit-input"
               value="${retail}"
-              min="${wholesale}"
+              min="${minPrice}"
               data-id="${p.id}"
             />
             <button class="btn-save-price text-xs text-primary hover:underline font-bold" data-id="${p.id}">
@@ -307,9 +321,9 @@ export default function MyProductsPage(root, { navigate } = {}) {
         </td>
         <td>
           <div class="font-mono text-sm font-bold text-emerald-600">
-            +${formatCurrency(margin)}
+            +${formatCurrency(salerProfit)}
           </div>
-          <div class="text-[10px] text-muted font-mono">${marginPct}% margin</div>
+          <div class="text-[10px] text-muted font-mono">${marginPct}% profit</div>
         </td>
         <td>
           ${

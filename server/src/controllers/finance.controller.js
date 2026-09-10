@@ -330,6 +330,9 @@ export async function getProfitSplits(req, reply) {
     saler_split_pct: 40.0,
     platform_split_pct: 60.0,
     min_margin_pct: 5.0,
+    platform_default_profit_pct: 10.0,
+    saler_default_profit_pct: 20.0,
+    extra_markup_platform_pct: 20.0,
     updated_at: new Date().toISOString(),
     updated_by: 'Platform Default',
   };
@@ -343,6 +346,9 @@ export async function getProfitSplits(req, reply) {
         globalSplit.saler_split_pct = parseFloat(r.value_json.saler_split_pct ?? 40);
         globalSplit.platform_split_pct = parseFloat(r.value_json.platform_split_pct ?? 60);
         globalSplit.min_margin_pct = parseFloat(r.value_json.min_margin_pct ?? 5);
+        globalSplit.platform_default_profit_pct = parseFloat(r.value_json.platform_default_profit_pct ?? 10);
+        globalSplit.saler_default_profit_pct = parseFloat(r.value_json.saler_default_profit_pct ?? 20);
+        globalSplit.extra_markup_platform_pct = parseFloat(r.value_json.extra_markup_platform_pct ?? 20);
         if (r.updated_at) globalSplit.updated_at = r.updated_at;
       } else if (r.key === 'default_saler_split_pct' && r.value_json) {
         globalSplit.saler_split_pct = parseFloat(r.value_json);
@@ -445,6 +451,9 @@ export async function updateGlobalSplit(req, reply) {
   const saler = parseFloat(req.body?.saler_split_pct ?? 40);
   const platform = parseFloat(req.body?.platform_split_pct ?? (100 - saler));
   const minMargin = parseFloat(req.body?.min_margin_pct ?? 5);
+  const platformDefaultProfit = parseFloat(req.body?.platform_default_profit_pct ?? 10);
+  const salerDefaultProfit = parseFloat(req.body?.saler_default_profit_pct ?? 20);
+  const extraMarkupPlatform = parseFloat(req.body?.extra_markup_platform_pct ?? 20);
   const reason = req.body?.reason || 'Platform default commission split adjustment';
 
   if (saler < 5 || saler > 95) {
@@ -467,13 +476,22 @@ export async function updateGlobalSplit(req, reply) {
     });
   }
 
+  const globalPayload = {
+    saler_split_pct: saler,
+    platform_split_pct: platform,
+    min_margin_pct: minMargin,
+    platform_default_profit_pct: platformDefaultProfit,
+    saler_default_profit_pct: salerDefaultProfit,
+    extra_markup_platform_pct: extraMarkupPlatform,
+  };
+
   // Update in platform_settings
   try {
     await db.query(
       `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
        VALUES ('commission.default_splits', $1::jsonb, 'OBJECT', 'Default Commission Splits', 'ডিফল্ট কমিশন বণ্টন', 'finance', now())
        ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
-      [JSON.stringify({ saler_split_pct: saler, platform_split_pct: platform, min_margin_pct: minMargin })]
+      [JSON.stringify(globalPayload)]
     );
 
     await db.query(
@@ -492,14 +510,14 @@ export async function updateGlobalSplit(req, reply) {
     target_type: 'COMMISSION_SPLIT',
     target_ref: 'GLOBAL',
     before_json: { note: 'Previous default' },
-    after_json: { saler_split_pct: saler, platform_split_pct: platform, min_margin_pct: minMargin },
+    after_json: globalPayload,
     metadata_json: { reason, ip: req.ip },
   });
 
   return reply.send({
     data: {
       success: true,
-      global: { saler_split_pct: saler, platform_split_pct: platform, min_margin_pct: minMargin },
+      global: globalPayload,
       message_en: 'Global profit split policy successfully updated.',
       message_bn: 'সার্বজনীন প্রফিট স্প্লিট নীতি সফলভাবে সংরক্ষিত হয়েছে।',
     },

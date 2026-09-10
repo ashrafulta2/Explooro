@@ -26,6 +26,7 @@ export function ProfitCalculator({
   initialBaseCost = 500,
   initialWholesaleMargin = 0,
   initialRetailPrice = 700,
+  initialDefaultRetailPrice = 700,
   productId = null,
   categoryId = null,
   onChange = null,
@@ -36,6 +37,9 @@ export function ProfitCalculator({
   let baseCost = Number(initialBaseCost) || 500;
   let wholesaleMargin = Number(initialWholesaleMargin) || 0;
   let retailPrice = Number(initialRetailPrice) || 700;
+  let defaultRetailPrice = Number(initialDefaultRetailPrice) || retailPrice;
+  let minRetailPrice = Math.round((baseCost + wholesaleMargin) * 1.1);
+
   let currentBreakdown = null;
   let debounceTimer = null;
   let pendingAbort = null;
@@ -54,41 +58,20 @@ export function ProfitCalculator({
 
   header.append(title, subtitle);
 
+  // Status Banner for Dynamic Pricing Feedback
+  const statusBanner = document.createElement('div');
+  statusBanner.className = 'profit-calc__status profit-calc__status--standard';
+  statusBanner.textContent = `✨ ${t('sourcing.calc.standard_hint', 'Standard Suggested Price: You earn the full default profit.')}`;
+
   // Sliders Section
   const slidersSec = document.createElement('div');
   slidersSec.className = 'profit-calc__sliders';
 
-  // Base Cost Field
-  const baseCostField = createSliderField({
-    label: t('sourcing.calc.base_cost'),
-    min: 50,
-    max: 10000,
-    step: 10,
-    value: baseCost,
-    onInput: (val) => {
-      baseCost = val;
-      triggerCalculation();
-    },
-  });
-
-  // Wholesale Margin Field
-  const wholesaleMarginField = createSliderField({
-    label: t('sourcing.calc.wholesale_margin'),
-    min: 0,
-    max: 5000,
-    step: 5,
-    value: wholesaleMargin,
-    onInput: (val) => {
-      wholesaleMargin = val;
-      triggerCalculation();
-    },
-  });
-
   // Desired Retail Price Field
   const retailPriceField = createSliderField({
     label: t('sourcing.calc.retail_price'),
-    min: 50,
-    max: 15000,
+    min: minRetailPrice || 100,
+    max: Math.max(15000, retailPrice * 2),
     step: 10,
     value: retailPrice,
     onInput: (val) => {
@@ -97,22 +80,35 @@ export function ProfitCalculator({
     },
   });
 
-  slidersSec.append(baseCostField.element, wholesaleMarginField.element, retailPriceField.element);
+  slidersSec.append(retailPriceField.element);
 
   // Error Banner
   const errorBanner = document.createElement('div');
   errorBanner.className = 'profit-calc__error';
   errorBanner.style.display = 'none';
 
-  // Breakdown Cards
+  // Breakdown Cards (Confidential wholesale: shows Min Floor, Customer Price, and Your Profit)
   const breakdownGrid = document.createElement('div');
   breakdownGrid.className = 'profit-calc__breakdown';
 
-  const wholesaleCostCard = createCard(t('sourcing.calc.wholesale_cost'), '৳ 0.00', t('sourcing.calc.base_plus_wholesale'));
-  const retailPriceCard = createCard(t('sourcing.calc.customer_retail_price', 'Customer Retail Price'), '৳ 0.00', t('sourcing.calc.total_retail', 'Total Retail Price'));
-  const salerEarningCard = createCard(t('sourcing.calc.your_profit'), '৳ 0.00', '', true);
+  const minPriceCard = createCard(
+    t('sourcing.calc.min_selling_price', 'Minimum Selling Price'),
+    '৳ 0.00',
+    t('sourcing.drawer.min_price_hint', 'Must be at least minimum selling price')
+  );
+  const retailPriceCard = createCard(
+    t('sourcing.calc.customer_retail_price', 'Customer Retail Price'),
+    '৳ 0.00',
+    t('sourcing.calc.your_selling_price', 'Your Selling Price')
+  );
+  const salerEarningCard = createCard(
+    t('sourcing.calc.your_profit'),
+    '৳ 0.00',
+    '',
+    true
+  );
 
-  breakdownGrid.append(wholesaleCostCard.element, retailPriceCard.element, salerEarningCard.element);
+  breakdownGrid.append(minPriceCard.element, retailPriceCard.element, salerEarningCard.element);
 
   // Split Visual Bar
   const barWrap = document.createElement('div');
@@ -145,7 +141,7 @@ export function ProfitCalculator({
 
   barWrap.append(barLabel, bar, legend);
 
-  container.append(header, slidersSec, errorBanner, breakdownGrid, barWrap);
+  container.append(header, statusBanner, slidersSec, errorBanner, breakdownGrid, barWrap);
 
   async function fetchPreview() {
     if (pendingAbort) {
@@ -159,8 +155,10 @@ export function ProfitCalculator({
         baseCost,
         wholesaleMargin,
         retailPrice,
+        defaultRetailPrice,
         categoryId,
         productId,
+        mode: 'tiered',
       });
 
       if (ac.signal.aborted) return;
@@ -168,14 +166,33 @@ export function ProfitCalculator({
       currentBreakdown = breakdown;
       errorBanner.style.display = 'none';
 
+      // Update minimum floor if returned
+      if (breakdown.min_retail_price) {
+        minRetailPrice = breakdown.min_retail_price;
+        retailPriceField.setMin?.(minRetailPrice);
+      }
+
       // Update Breakdown cards with server-authoritative numbers
-      wholesaleCostCard.setValue(formatCurrency(breakdown.wholesale_cost));
+      minPriceCard.setValue(formatCurrency(breakdown.min_retail_price));
       retailPriceCard.setValue(formatCurrency(breakdown.retail_price));
-      retailPriceCard.setSub(t('sourcing.calc.total_retail', 'Total Retail Price'));
+      retailPriceCard.setSub(t('sourcing.calc.your_selling_price', 'Your Selling Price'));
       salerEarningCard.setValue(formatCurrency(breakdown.saler_earning));
       salerEarningCard.setSub(
         `${t('sourcing.calc.saler_margin')}: ${breakdown.saler_margin_pct}%`
       );
+
+      // Update Dynamic Status Feedback
+      if (breakdown.price_status === 'DISCOUNTED') {
+        statusBanner.className = 'profit-calc__status profit-calc__status--discount';
+        statusBanner.textContent = `🏷️ ${t('sourcing.calc.discount_hint', 'Discounted Price: Platform cost is protected. Only your profit is adjusted.')}`;
+      } else if (breakdown.price_status === 'BOOSTED') {
+        statusBanner.className = 'profit-calc__status profit-calc__status--boost';
+        const extraProfit = Math.max(0, breakdown.saler_earning - breakdown.saler_default_earning);
+        statusBanner.textContent = `🚀 ${t('sourcing.calc.boost_hint', 'Extra Markup Bonus: Extra profit added to your earnings!')} (+${formatCurrency(extraProfit)})`;
+      } else {
+        statusBanner.className = 'profit-calc__status profit-calc__status--standard';
+        statusBanner.textContent = `✨ ${t('sourcing.calc.standard_hint', 'Standard Suggested Price: You earn the full default profit.')}`;
+      }
 
       // Update Visual Margin Bar
       const marginPct = Math.min(100, Math.max(0, parseFloat(breakdown.saler_margin_pct) || 0));
@@ -190,11 +207,11 @@ export function ProfitCalculator({
     } catch (err) {
       if (ac.signal.aborted) return;
       const isBn = getLanguage() === 'bn';
-      const msg = (isBn && err?.message_bn) ? err.message_bn : (err?.message || err?.message_en || t('sourcing.calc.error_invalid_price'));
+      const msg = (isBn && err?.message_bn) ? err.message_bn : (err?.message || err?.message_en || t('sourcing.calc.error_below_min'));
       errorBanner.textContent = `⚠️ ${msg}`;
       errorBanner.style.display = 'flex';
 
-      wholesaleCostCard.setValue('—');
+      minPriceCard.setValue('—');
       retailPriceCard.setValue('—');
       salerEarningCard.setValue('—');
       segSaler.style.width = '0%';
@@ -211,18 +228,21 @@ export function ProfitCalculator({
   fetchPreview();
 
   // Public control API for external callers (e.g. AddToStoreDrawer)
-  container.setValues = (newBase, newWholesale, newRetail) => {
+  container.setValues = (newBase, newWholesale, newRetail, newDefaultRetail) => {
     if (newBase !== undefined) {
       baseCost = Number(newBase);
-      baseCostField.setValue(baseCost);
     }
     if (newWholesale !== undefined) {
       wholesaleMargin = Number(newWholesale);
-      wholesaleMarginField.setValue(wholesaleMargin);
     }
     if (newRetail !== undefined) {
       retailPrice = Number(newRetail);
       retailPriceField.setValue(retailPrice);
+    }
+    if (newDefaultRetail !== undefined) {
+      defaultRetailPrice = Number(newDefaultRetail);
+    } else if (newRetail !== undefined) {
+      defaultRetailPrice = Number(newRetail);
     }
     triggerCalculation();
   };
@@ -290,6 +310,10 @@ function createSliderField({ label, min, max, step, value, onInput }) {
       range.value = Math.min(val, max);
       numInput.value = val;
       displayVal.textContent = formatCurrency(val);
+    },
+    setMin: (minVal) => {
+      range.min = minVal;
+      numInput.min = minVal;
     },
   };
 }

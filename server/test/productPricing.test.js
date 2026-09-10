@@ -439,4 +439,82 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
 
     await salerApp.close();
   });
+
+  test('Tiered Mode: Base 1000, 10% platform, 20% saler, 20% extra markup split', () => {
+    // 1. Standard Default Retail (1000 + 100 + 200 = 1300)
+    const def = calculatePricingBreakdown({
+      baseCost: 1000,
+      wholesaleMargin: 0,
+      retailPrice: 1300,
+      mode: 'tiered',
+      platformDefaultProfitPct: 10,
+      salerDefaultProfitPct: 20,
+      extraMarkupPlatformPct: 20,
+    });
+    assert.equal(def.min_retail_price, 1100.0);
+    assert.equal(def.default_retail_price, 1300.0);
+    assert.equal(def.platform_earning, 100.0);
+    assert.equal(def.saler_earning, 200.0);
+    assert.equal(def.pricing_state, 'standard');
+    assert.equal(def.wholesale_cost + def.platform_earning + def.saler_earning, 1300.0);
+
+    // 2. Discounted Retail (1200) -> Only saler profit decreases, platform profit 100% protected!
+    const disc = calculatePricingBreakdown({
+      baseCost: 1000,
+      wholesaleMargin: 0,
+      retailPrice: 1200,
+      mode: 'tiered',
+      platformDefaultProfitPct: 10,
+      salerDefaultProfitPct: 20,
+      extraMarkupPlatformPct: 20,
+    });
+    assert.equal(disc.platform_earning, 100.0, 'Platform profit must not decrease');
+    assert.equal(disc.saler_earning, 100.0, 'Saler absorbs entire 100 discount (200 - 100)');
+    assert.equal(disc.pricing_state, 'discount');
+    assert.equal(disc.wholesale_cost + disc.platform_earning + disc.saler_earning, 1200.0);
+
+    // 3. Min Retail Floor (1100) -> Saler profit drops to 0, platform profit still protected at 100
+    const minFloor = calculatePricingBreakdown({
+      baseCost: 1000,
+      wholesaleMargin: 0,
+      retailPrice: 1100,
+      mode: 'tiered',
+      platformDefaultProfitPct: 10,
+      salerDefaultProfitPct: 20,
+      extraMarkupPlatformPct: 20,
+    });
+    assert.equal(minFloor.platform_earning, 100.0);
+    assert.equal(minFloor.saler_earning, 0.0);
+    assert.equal(minFloor.pricing_state, 'discount');
+
+    // 4. Boost / Extra Markup Retail (1500) -> Extra 200 split 20% platform (40) / 80% saler (160)
+    const boost = calculatePricingBreakdown({
+      baseCost: 1000,
+      wholesaleMargin: 0,
+      retailPrice: 1500,
+      mode: 'tiered',
+      platformDefaultProfitPct: 10,
+      salerDefaultProfitPct: 20,
+      extraMarkupPlatformPct: 20,
+    });
+    assert.equal(boost.platform_earning, 140.0, 'Platform gets 100 default + 40 extra split');
+    assert.equal(boost.saler_earning, 360.0, 'Saler gets 200 default + 160 extra split');
+    assert.equal(boost.pricing_state, 'boost');
+    assert.equal(boost.wholesale_cost + boost.platform_earning + boost.saler_earning, 1500.0);
+
+    // 5. Below Floor (1050) throws AppError or rejects
+    assert.throws(
+      () =>
+        calculatePricingBreakdown({
+          baseCost: 1000,
+          wholesaleMargin: 0,
+          retailPrice: 1050,
+          mode: 'tiered',
+          platformDefaultProfitPct: 10,
+          salerDefaultProfitPct: 20,
+          extraMarkupPlatformPct: 20,
+        }),
+      (err) => err.code === 'VALIDATION_FAILED'
+    );
+  });
 });

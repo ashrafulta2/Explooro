@@ -2787,12 +2787,18 @@ export const adminHandlers = [
       const saler = parseFloat(body?.saler_split_pct ?? 40);
       const platform = parseFloat(body?.platform_split_pct ?? (100 - saler));
       const minMargin = parseFloat(body?.min_margin_pct ?? 5);
+      const platformDefaultProfit = parseFloat(body?.platform_default_profit_pct ?? 10);
+      const salerDefaultProfit = parseFloat(body?.saler_default_profit_pct ?? 20);
+      const extraMarkupPlatform = parseFloat(body?.extra_markup_platform_pct ?? 20);
       const reason = body?.reason || 'Administrative split ratio update';
 
       const before = `${mockGlobalSplit.saler_split_pct}% Saler / ${mockGlobalSplit.platform_split_pct}% Platform`;
       mockGlobalSplit.saler_split_pct = saler;
       mockGlobalSplit.platform_split_pct = platform;
       mockGlobalSplit.min_margin_pct = minMargin;
+      mockGlobalSplit.platform_default_profit_pct = platformDefaultProfit;
+      mockGlobalSplit.saler_default_profit_pct = salerDefaultProfit;
+      mockGlobalSplit.extra_markup_platform_pct = extraMarkupPlatform;
       mockGlobalSplit.updated_at = new Date().toISOString();
 
       mockSplitAuditLog.unshift({
@@ -2800,7 +2806,7 @@ export const adminHandlers = [
         actor: 'Super Admin #1',
         scope: 'GLOBAL',
         before,
-        after: `${saler}% Saler / ${platform}% Platform`,
+        after: `${saler}% Saler / ${platform}% Platform (Platform profit: ${platformDefaultProfit}%, Saler profit: ${salerDefaultProfit}%, Extra share: ${extraMarkupPlatform}%)`,
         reason,
         created_at: new Date().toISOString(),
       });
@@ -3394,6 +3400,9 @@ let mockGlobalSplit = {
   saler_split_pct: 40.0,
   platform_split_pct: 60.0,
   min_margin_pct: 5.0,
+  platform_default_profit_pct: 10.0,
+  saler_default_profit_pct: 20.0,
+  extra_markup_platform_pct: 20.0,
   updated_at: '2026-08-25T11:20:00Z',
   updated_by: 'Super Admin #1 (Chief Finance Officer)',
 };

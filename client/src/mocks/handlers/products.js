@@ -130,25 +130,39 @@ function synthesizeDescription(product) {
  * order behind it in mock mode. */
 function synthesizePricing(product) {
   const retail = Number(product.price);
-  const salerSplitPct = 40;
-  const platformSplitPct = 60;
-  const netRetailMargin = retail * ((product.margin_pct ?? 15) / 100) * (100 / salerSplitPct);
-  const wholesaleCost = Math.max(0, retail - netRetailMargin);
-  const wholesaleMargin = wholesaleCost * 0.12;
-  const baseCost = wholesaleCost - wholesaleMargin;
-  const salerEarning = netRetailMargin * (salerSplitPct / 100);
-  const platformEarning = netRetailMargin - salerEarning;
+  const platformProfitPct = 10;
+  const salerProfitPct = 20;
+  const extraMarkupPlatformPct = 20;
+
+  // Wholesale cost derived so retail = wholesale + 10% platform profit + 20% saler profit
+  const wholesaleCost = Number((retail / (1 + (platformProfitPct + salerProfitPct) / 100)).toFixed(2));
+  const wholesaleMargin = Number((wholesaleCost * 0.1).toFixed(2));
+  const baseCost = Number((wholesaleCost - wholesaleMargin).toFixed(2));
+
+  const platformDefaultProfit = Number((wholesaleCost * (platformProfitPct / 100)).toFixed(2));
+  const salerDefaultProfit = Number((wholesaleCost * (salerProfitPct / 100)).toFixed(2));
+  const minRetailPrice = Number((wholesaleCost + platformDefaultProfit).toFixed(2));
 
   return {
-    base_cost: Number(baseCost.toFixed(2)),
-    wholesale_margin: Number(wholesaleMargin.toFixed(2)),
-    wholesale_cost: Number(wholesaleCost.toFixed(2)),
+    base_cost: baseCost,
+    wholesale_margin: wholesaleMargin,
+    wholesale_cost: wholesaleCost,
     retail_price: retail,
-    net_retail_margin: Number(netRetailMargin.toFixed(2)),
-    saler_earning: Number(salerEarning.toFixed(2)),
-    platform_earning: Number(platformEarning.toFixed(2)),
-    saler_split_pct: salerSplitPct,
-    platform_split_pct: platformSplitPct,
+    default_retail_price: retail,
+    min_retail_price: minRetailPrice,
+    net_retail_margin: Number((platformDefaultProfit + salerDefaultProfit).toFixed(2)),
+    saler_earning: salerDefaultProfit,
+    saler_default_earning: salerDefaultProfit,
+    platform_earning: platformDefaultProfit,
+    platform_default_earning: platformDefaultProfit,
+    platform_default_profit_pct: platformProfitPct,
+    saler_default_profit_pct: salerProfitPct,
+    extra_markup_platform_pct: extraMarkupPlatformPct,
+    price_status: 'DEFAULT',
+    saler_split_pct: 40,
+    platform_split_pct: 60,
+    saler_margin_pct: Number(((salerDefaultProfit / retail) * 100).toFixed(1)),
+    total_margin_pct: Number((((platformDefaultProfit + salerDefaultProfit) / retail) * 100).toFixed(1)),
   };
 }
 
@@ -453,33 +467,65 @@ export default [
     handler({ body }) {
       const baseCost = body?.base_cost ?? body?.baseCost ?? 0;
       const wholesaleMargin = body?.wholesale_margin ?? body?.wholesaleMargin ?? 0;
-      const retailPrice = body?.retail_price ?? body?.retailPrice ?? 0;
+      const retailPrice = body?.retail_price ?? body?.retailPrice;
+      const defaultRetailPrice = body?.default_retail_price ?? body?.defaultRetailPrice;
+      const platformProfitPct = body?.platform_default_profit_pct ?? 10;
+      const salerProfitPct = body?.saler_default_profit_pct ?? 20;
+      const extraMarkupPlatformPct = body?.extra_markup_platform_pct ?? 20;
 
       const baseCostPaisa = toPaisa(baseCost);
       const wholesaleMarginPaisa = toPaisa(wholesaleMargin);
-      const retailPricePaisa = toPaisa(retailPrice);
       const wholesaleCostPaisa = baseCostPaisa + wholesaleMarginPaisa;
 
-      if (retailPricePaisa < wholesaleCostPaisa) {
+      const platformDefaultProfitPaisa = Math.round((wholesaleCostPaisa * platformProfitPct) / 100);
+      const salerDefaultProfitPaisa = Math.round((wholesaleCostPaisa * salerProfitPct) / 100);
+      const calculatedDefaultRetailPaisa = wholesaleCostPaisa + platformDefaultProfitPaisa + salerDefaultProfitPaisa;
+      const defaultRetailPricePaisa = defaultRetailPrice ? toPaisa(defaultRetailPrice) : calculatedDefaultRetailPaisa;
+      const minRetailPricePaisa = wholesaleCostPaisa + platformDefaultProfitPaisa;
+
+      const retailPricePaisa = (retailPrice !== undefined && retailPrice !== null && retailPrice !== '')
+        ? toPaisa(retailPrice)
+        : defaultRetailPricePaisa;
+
+      if (retailPricePaisa < minRetailPricePaisa) {
         return {
           status: 400,
           body: {
             error: {
               code: 'VALIDATION_FAILED',
-              message_en: `Retail price (BDT ${(retailPricePaisa / 100).toFixed(2)}) cannot be lower than total wholesale cost (BDT ${(wholesaleCostPaisa / 100).toFixed(2)}).`,
-              message_bn: `খুচরা মূল্য (৳${(retailPricePaisa / 100).toFixed(2)}) পাইকারি খরচের (৳${(wholesaleCostPaisa / 100).toFixed(2)}) চেয়ে কম হতে পারে না।`,
+              message_en: `Retail price (BDT ${(retailPricePaisa / 100).toFixed(2)}) cannot be lower than minimum selling price (BDT ${(minRetailPricePaisa / 100).toFixed(2)}).`,
+              message_bn: `খুচরা মূল্য (৳${(retailPricePaisa / 100).toFixed(2)}) সর্বনিম্ন বিক্রয় মূল্যের (৳${(minRetailPricePaisa / 100).toFixed(2)}) চেয়ে কম হতে পারে না।`,
               trace_id: traceId(),
             },
           },
         };
       }
 
-      const netRetailMarginPaisa = retailPricePaisa - wholesaleCostPaisa;
-      const salerSplitPct = 40;
-      const platformSplitPct = 60;
-      const salerEarningPaisa = Math.floor((netRetailMarginPaisa * salerSplitPct) / 100);
-      const platformEarningPaisa = netRetailMarginPaisa - salerEarningPaisa;
+      let salerEarningPaisa = 0;
+      let platformEarningPaisa = 0;
+      let priceStatus = 'DEFAULT';
 
+      if (retailPricePaisa < defaultRetailPricePaisa) {
+        // Price dropped below default: Platform profit is fixed; only saler profit drops
+        priceStatus = 'DISCOUNTED';
+        const dropPaisa = defaultRetailPricePaisa - retailPricePaisa;
+        platformEarningPaisa = platformDefaultProfitPaisa;
+        salerEarningPaisa = salerDefaultProfitPaisa - dropPaisa;
+      } else if (retailPricePaisa === defaultRetailPricePaisa) {
+        priceStatus = 'DEFAULT';
+        platformEarningPaisa = platformDefaultProfitPaisa;
+        salerEarningPaisa = salerDefaultProfitPaisa;
+      } else {
+        // Price marked up above default: Extra markup shared between platform and saler
+        priceStatus = 'BOOSTED';
+        const extraPaisa = retailPricePaisa - defaultRetailPricePaisa;
+        const extraPlatformPaisa = Math.floor((extraPaisa * extraMarkupPlatformPct) / 100);
+        const extraSalerPaisa = extraPaisa - extraPlatformPaisa;
+        platformEarningPaisa = platformDefaultProfitPaisa + extraPlatformPaisa;
+        salerEarningPaisa = salerDefaultProfitPaisa + extraSalerPaisa;
+      }
+
+      const netRetailMarginPaisa = retailPricePaisa - wholesaleCostPaisa;
       const totalMarginPct = retailPricePaisa > 0
         ? parseFloat(((netRetailMarginPaisa / retailPricePaisa) * 100).toFixed(2))
         : 0;
@@ -493,11 +539,19 @@ export default [
         wholesale_margin: parseFloat((wholesaleMarginPaisa / 100).toFixed(2)),
         wholesale_cost: parseFloat((wholesaleCostPaisa / 100).toFixed(2)),
         retail_price: parseFloat((retailPricePaisa / 100).toFixed(2)),
+        default_retail_price: parseFloat((defaultRetailPricePaisa / 100).toFixed(2)),
+        min_retail_price: parseFloat((minRetailPricePaisa / 100).toFixed(2)),
         net_retail_margin: parseFloat((netRetailMarginPaisa / 100).toFixed(2)),
         saler_earning: parseFloat((salerEarningPaisa / 100).toFixed(2)),
+        saler_default_earning: parseFloat((salerDefaultProfitPaisa / 100).toFixed(2)),
         platform_earning: parseFloat((platformEarningPaisa / 100).toFixed(2)),
-        saler_split_pct: salerSplitPct,
-        platform_split_pct: platformSplitPct,
+        platform_default_earning: parseFloat((platformDefaultProfitPaisa / 100).toFixed(2)),
+        platform_default_profit_pct: platformProfitPct,
+        saler_default_profit_pct: salerProfitPct,
+        extra_markup_platform_pct: extraMarkupPlatformPct,
+        price_status: priceStatus,
+        saler_split_pct: 40,
+        platform_split_pct: 60,
         total_margin_pct: totalMarginPct,
         saler_margin_pct: salerMarginPct,
         rule_source: 'GLOBAL_COMMISSION_RULE',
@@ -506,6 +560,8 @@ export default [
           wholesale_margin: wholesaleMarginPaisa,
           wholesale_cost: wholesaleCostPaisa,
           retail_price: retailPricePaisa,
+          default_retail_price: defaultRetailPricePaisa,
+          min_retail_price: minRetailPricePaisa,
           net_retail_margin: netRetailMarginPaisa,
           saler_earning: salerEarningPaisa,
           platform_earning: platformEarningPaisa,
@@ -540,6 +596,8 @@ export default [
             saler_margin_pct: pricing.saler_margin_pct,
             stock_available: p.stock ?? 25,
             suggested_retail: pricing.retail_price,
+            min_retail_price: pricing.min_retail_price,
+            default_retail_price: pricing.default_retail_price,
             base_cost: pricing.base_cost,
             wholesale_cost: pricing.wholesale_cost,
           },
