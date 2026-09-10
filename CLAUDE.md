@@ -97,7 +97,10 @@ These are enforced across every prompt, not stylistic suggestions:
    does not help: de-duplicating CSS. Collapsing nine copies of the /account/* page shell into
    `client/src/styles/components/account-shell.css` removed 5.4KB raw and bought back ~0.27KB
    gzipped. At a ~13.6% compression ratio you must delete ~7KB raw per 1KB of budget, so headroom
-   comes from splitting page CSS out of the entry bundle, not from tidying.
+   comes from splitting page CSS out of the entry bundle, not from tidying. First check whether a
+   stylesheet is shipping **twice** — one imported by both `main.css` and its own page module lands
+   in the entry bundle *and* a route chunk with no warning. `customer-orders.css` did, and removing
+   the `main.css` import bought back 1.37KB gzip, over triple what the nine-copy de-duplication did.
 9. **The Vite dev server must never break.** After every prompt, `npm run dev` starts cleanly and
    the site is visually inspectable at `localhost:3000`. Never leave the app non-rendering between
    prompts — ship behind a feature flag if needed. A living style guide at `/dev/gallery` registers

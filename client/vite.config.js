@@ -19,6 +19,16 @@ import zlib from 'node:zlib';
  * 7 KB of raw CSS per 1 KB of budget. Real headroom comes from splitting page CSS out of the
  * entry bundle (dynamic `import` alongside the route's `load()`, the way /dev/gallery already
  * does it), not from tidying. The JS budget has never moved; prefer that route over a third raise.
+ *
+ * FIRST THING TO CHECK when this gate fails: is a stylesheet shipping TWICE? A sheet imported by
+ * BOTH main.css and its own page module lands in the entry bundle AND a route chunk, and nothing
+ * warns you. `customer-orders.css` did exactly that and cost every visitor 6.1 KB raw / 1.37 KB
+ * gzip of order-card CSS they never rendered; dropping the main.css import bought back more than
+ * three times what collapsing nine duplicated shell blocks did. To audit, cross-reference the
+ * `@import`s in main.css against `grep -rn "styles/components/.*\.css" client/src/pages`. Before
+ * removing an import, confirm every consumer of those classes imports the sheet itself —
+ * OrderDetailPage.js used the order-card classes without importing anything, which is what made
+ * the duplicate look load-bearing.
  */
 function performanceBudgetPlugin() {
   const JS_BUDGET_GZIP_BYTES = 150 * 1024; // 150 KB = 153,600 bytes
