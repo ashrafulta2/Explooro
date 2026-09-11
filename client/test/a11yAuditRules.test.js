@@ -156,6 +156,27 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'coupon-badge--neutral must use var(--text-secondary) for compliant contrast'
     );
   });
+
+  await t.test('9. WhatsApp share buttons maintain WCAG AA contrast with dark accessible text', () => {
+    const teamCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'team-purchases.css');
+    const teamCss = fs.readFileSync(teamCssPath, 'utf8');
+
+    // .team-btn-share-wa must use #052e16 (> 7.4:1 contrast on #25d366) instead of #ffffff (1.98:1 contrast fail)
+    assert.match(
+      teamCss,
+      /\.team-btn-share-wa\s*\{[^}]*color:\s*#052e16/,
+      'team-btn-share-wa must use #052e16 for WCAG AA/AAA compliant contrast on #25d366'
+    );
+
+    const teamPagePath = path.join(clientRoot, 'src', 'pages', 'TeamPurchasePage.js');
+    const teamPage = fs.readFileSync(teamPagePath, 'utf8');
+
+    assert.match(
+      teamPage,
+      /<svg[^>]*aria-hidden="true"[^>]*>[\s\S]*<\/svg>\s*<span>\$\{isBn \? 'হোয়াটসঅ্যাপ শেয়ার' : 'WhatsApp Share'\}<\/span>/,
+      'TeamPurchasePage must render WhatsApp SVG with aria-hidden="true" and accessible text label'
+    );
+  });
 });
 
 
