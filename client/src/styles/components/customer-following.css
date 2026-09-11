@@ -152,7 +152,9 @@
   .following-controls-row {
     flex-direction: row;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: var(--space-4);
   }
 }
 
@@ -360,7 +362,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--danger-500);
+  background: var(--danger-700);
   color: var(--text-inverse);
   font-size: 10px;
   font-weight: 900;

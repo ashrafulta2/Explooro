@@ -293,7 +293,7 @@ export class AdCampaignPage {
     }
 
     // Filter tabs
-    this.rootEl.querySelectorAll('.filter-tabs button').forEach(btn => {
+    this.rootEl.querySelectorAll('.saler-toolbar__filters button[data-filter]').forEach(btn => {
       btn.addEventListener('click', () => {
         this.activeFilter = btn.dataset.filter;
         this.render();
@@ -348,92 +348,125 @@ export class AdCampaignPage {
     modalBackdrop.style.cssText = 'position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto;';
 
     modalBackdrop.innerHTML = `
-      <div class="saler-card saler-stack" style="max-width: 680px; width: 100%; margin: auto; padding: 1.5rem; max-height: 90vh; overflow-y: auto;">
-        <div class="saler-row saler-row--between" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem; margin-bottom: 0.5rem;">
-          <h2 class="saler-card__title" style="font-size: 1.25rem;">${isBn ? 'নতুন বিজ্ঞাপন ক্যাম্পেইন তৈরি করুন' : 'Create New Ad Campaign'}</h2>
-          <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; line-height: 1;">×</button>
+      <div style="display:flex; flex-direction:column; max-width:680px; width:100%; margin:auto; max-height:90vh; border-radius:12px; background:var(--surface-0); box-shadow:var(--elevation-3,0 20px 60px rgba(0,0,0,0.3)); overflow:hidden;">
+
+        <!-- Sticky Header -->
+        <div style="flex:none; display:flex; align-items:center; justify-content:space-between; padding:1.25rem 1.5rem; border-bottom:1px solid var(--border-subtle); background:var(--surface-0);">
+          <h2 style="margin:0; font-size:1.25rem; font-weight:700; color:var(--text-primary);">${isBn ? 'নতুন বিজ্ঞাপন ক্যাম্পেইন তৈরি করুন' : 'Create New Ad Campaign'}</h2>
+          <button type="button" class="btn-close" style="background:none; border:none; font-size:1.5rem; color:var(--text-muted); cursor:pointer; line-height:1; padding:0.25rem;">×</button>
         </div>
 
-        <form id="form-create-ad" class="saler-stack">
-          <div class="saler-stack--xs">
-            <label class="saler-stat-card__label">${isBn ? 'ক্যাম্পেইনের নাম' : 'Campaign Title'} *</label>
-            <input type="text" name="title" required placeholder="${isBn ? 'যেমন: ঈদ স্পেশাল জামদানি অফার' : 'e.g. Eid Handloom Jamdani Promotion'}" class="input w-full" />
-          </div>
+        <form id="form-create-ad" style="display:flex; flex-direction:column; flex:1; min-height:0;">
+          <!-- Scrollable Body -->
+          <div style="flex:1; overflow-y:auto; min-height:0; padding:1.5rem; display:flex; flex-direction:column; gap:1rem;">
 
-          <div class="saler-two-col--equal">
-            <div class="saler-stack--xs">
-              <label class="saler-stat-card__label">${isBn ? 'উদ্দেশ্য' : 'Objective'}</label>
-              <select name="objective" class="select w-full">
-                <option value="TRAFFIC">${isBn ? 'ট্রাফিক বৃদ্ধি (Traffic)' : 'Drive Traffic'}</option>
-                <option value="SALES">${isBn ? 'বিক্রি বৃদ্ধি (Sales)' : 'Increase Sales'}</option>
-                <option value="AWARENESS">${isBn ? 'ব্র্যান্ড পরিচিতি (Awareness)' : 'Brand Awareness'}</option>
-              </select>
-            </div>
-            <div class="saler-stack--xs">
-              <label class="saler-stat-card__label">${isBn ? 'প্লেসমেন্ট' : 'Placement'}</label>
-              <select name="placement" class="select w-full">
-                <option value="SEARCH_RESULTS">${isBn ? 'সার্চ ফলাফল (Search Results)' : 'Search Results'}</option>
-                <option value="CATEGORY_BANNER">${isBn ? 'ক্যাটেগরি ব্যানার (Category Banner)' : 'Category Banner'}</option>
-                <option value="FEED">${isBn ? 'হোম ফিড (Home Feed)' : 'Home Feed'}</option>
-                <option value="PRODUCT_PAGE">${isBn ? 'পণ্য পেজ (Product Page)' : 'Product Page'}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="saler-three-col">
-            <div class="saler-stack--xs">
-              <label class="saler-stat-card__label">${isBn ? 'দৈনিক বাজেট (৳)' : 'Daily Budget (৳)'} *</label>
-              <input type="number" name="daily_budget" min="10" step="10" value="50" required class="input w-full font-mono" />
-            </div>
-            <div class="saler-stack--xs">
-              <label class="saler-stat-card__label">${isBn ? 'মোট বাজেট (৳)' : 'Total Budget (৳)'} *</label>
-              <input type="number" name="total_budget" min="50" step="50" value="500" required class="input w-full font-mono" />
-            </div>
-            <div class="saler-stack--xs">
-              <label class="saler-stat-card__label">${isBn ? 'সর্বোচ্চ সিপিসি বিড (৳)' : 'Max CPC Bid (৳)'} *</label>
-              <input type="number" name="bid_amount" min="1" step="0.5" value="2.50" required class="input w-full font-mono" />
-            </div>
-          </div>
-
-          <!-- Targeting -->
-          <div class="saler-card saler-stack--xs" style="background: var(--surface-2); padding: 1rem; border: 1px solid var(--border-subtle);">
-            <h4 class="saler-stat-card__label" style="color: var(--brand); font-weight: 700;">${isBn ? 'টার্গেটিং (Targeting)' : 'Targeting'}</h4>
-            <div class="saler-stack--xs">
-              <label class="saler-card__subtitle">${isBn ? 'টার্গেটেড কিওয়ার্ডসমূহ (কমা দিয়ে আলাদা করুন)' : 'Target Keywords (comma-separated)'}</label>
-              <input type="text" name="keywords" placeholder="${isBn ? 'শাড়ি, জামদানি, পোশাক, লাল' : 'saree, jamdani, clothing, red'}" class="input w-full" />
-            </div>
-          </div>
-
-          <!-- Creative Builder -->
-          <div class="saler-card saler-stack" style="background: var(--surface-2); padding: 1rem; border: 1px solid var(--border-subtle);">
-            <h4 class="saler-stat-card__label" style="color: var(--brand); font-weight: 700;">${isBn ? 'ক্রিয়েটিভ ও ব্যানার' : 'Creative & Content'}</h4>
-            <div class="saler-stack--xs">
-              <label class="saler-card__subtitle">${isBn ? 'বিজ্ঞাপনের হেডলাইন' : 'Ad Headline'} *</label>
-              <input type="text" name="headline" required placeholder="${isBn ? 'খাঁটি তাঁতের ঢাকাই জামদানি — বিশেষ ২০% ছাড়' : 'Authentic Handloom Jamdani — 20% Off'}" class="input w-full" />
-            </div>
-            <div class="saler-stack--xs">
-              <label class="saler-card__subtitle">${isBn ? 'বিবরণ' : 'Description'}</label>
-              <textarea name="description" rows="2" placeholder="${isBn ? 'সীমিত সময়ের সেরা ঐতিহ্যবাহী পোশাক কালেকশন' : 'Premium hand-woven collection ready for fast delivery'}" class="input w-full" style="height: auto; resize: vertical;"></textarea>
-            </div>
-            <div class="saler-two-col--equal">
-              <div class="saler-stack--xs">
-                <label class="saler-card__subtitle">${isBn ? 'ব্যানার ছবির লিংক (ঐচ্ছিক)' : 'Banner Image URL'}</label>
-                <input type="url" name="banner_image_url" placeholder="https://..." class="input w-full" />
-              </div>
-              <div class="saler-stack--xs">
-                <label class="saler-card__subtitle">${isBn ? 'কল-টু-অ্যাকশন (CTA)' : 'Call To Action'}</label>
-                <select name="call_to_action" class="select w-full">
-                  <option value="SHOP_NOW">${isBn ? 'এখনই কিনুন (Shop Now)' : 'Shop Now'}</option>
-                  <option value="LEARN_MORE">${isBn ? 'বিস্তারিত দেখুন (Learn More)' : 'Learn More'}</option>
-                  <option value="GET_OFFER">${isBn ? 'অফার নিন (Get Offer)' : 'Get Offer'}</option>
-                </select>
+            <!-- Campaign Title -->
+            <div class="field" style="margin-top:0;">
+              <label class="field__label">${isBn ? 'ক্যাম্পেইনের নাম' : 'Campaign Title'} <span class="field__required">*</span></label>
+              <div class="field__control">
+                <input type="text" name="title" required placeholder="${isBn ? 'যেমন: ঈদ স্পেশাল জামদানি অফার' : 'e.g. Eid Handloom Jamdani Promotion'}" class="input" />
               </div>
             </div>
+
+            <!-- Objective + Placement -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; align-items:start;">
+              <div class="field" style="margin-top:0;">
+                <label class="field__label">${isBn ? 'উদ্দেশ্য' : 'Objective'}</label>
+                <div class="field__control field__control--select">
+                  <select name="objective" class="select">
+                    <option value="TRAFFIC">${isBn ? 'ট্রাফিক বৃদ্ধি' : 'Drive Traffic'}</option>
+                    <option value="SALES">${isBn ? 'বিক্রি বৃদ্ধি' : 'Increase Sales'}</option>
+                    <option value="AWARENESS">${isBn ? 'ব্র্যান্ড পরিচিতি' : 'Brand Awareness'}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field" style="margin-top:0;">
+                <label class="field__label">${isBn ? 'প্লেসমেন্ট' : 'Placement'}</label>
+                <div class="field__control field__control--select">
+                  <select name="placement" class="select">
+                    <option value="SEARCH_RESULTS">${isBn ? 'সার্চ ফলাফল' : 'Search Results'}</option>
+                    <option value="CATEGORY_BANNER">${isBn ? 'ক্যাটেগরি ব্যানার' : 'Category Banner'}</option>
+                    <option value="FEED">${isBn ? 'হোম ফিড' : 'Home Feed'}</option>
+                    <option value="PRODUCT_PAGE">${isBn ? 'পণ্য পেজ' : 'Product Page'}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Budget 3-columns -->
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem; align-items:start;">
+              <div class="field" style="margin-top:0;">
+                <label class="field__label">${isBn ? 'দৈনিক বাজেট (৳)' : 'Daily Budget (৳)'} <span class="field__required">*</span></label>
+                <div class="field__control">
+                  <input type="number" name="daily_budget" min="10" step="10" value="50" required class="input" style="font-family:monospace;" />
+                </div>
+              </div>
+              <div class="field" style="margin-top:0;">
+                <label class="field__label">${isBn ? 'মোট বাজেট (৳)' : 'Total Budget (৳)'} <span class="field__required">*</span></label>
+                <div class="field__control">
+                  <input type="number" name="total_budget" min="50" step="50" value="500" required class="input" style="font-family:monospace;" />
+                </div>
+              </div>
+              <div class="field" style="margin-top:0;">
+                <label class="field__label">${isBn ? 'সর্বোচ্চ বিড (৳)' : 'Max CPC Bid (৳)'} <span class="field__required">*</span></label>
+                <div class="field__control">
+                  <input type="number" name="bid_amount" min="1" step="0.5" value="2.50" required class="input" style="font-family:monospace;" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Targeting -->
+            <div style="background:var(--surface-2); border:1px solid var(--border-subtle); border-radius:var(--radius-sm,8px); padding:1rem; display:flex; flex-direction:column; gap:0.5rem;">
+              <h4 style="margin:0; font-size:0.875rem; font-weight:700; color:var(--brand);">${isBn ? 'টার্গেটিং' : 'Targeting'}</h4>
+              <div class="field" style="margin-top:0;">
+                <label class="field__label" style="font-weight:400;">${isBn ? 'কিওয়ার্ডসমূহ (কমা দিয়ে আলাদা)' : 'Target Keywords (comma-separated)'}</label>
+                <div class="field__control">
+                  <input type="text" name="keywords" placeholder="${isBn ? 'শাড়ি, জামদানি, পোশাক, লাল' : 'saree, jamdani, clothing, red'}" class="input" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Creative & Content -->
+            <div style="background:var(--surface-2); border:1px solid var(--border-subtle); border-radius:var(--radius-sm,8px); padding:1rem; display:flex; flex-direction:column; gap:1rem;">
+              <h4 style="margin:0; font-size:0.875rem; font-weight:700; color:var(--brand);">${isBn ? 'ক্রিয়েটিভ ও ব্যানার' : 'Creative & Content'}</h4>
+              <div class="field" style="margin-top:0;">
+                <label class="field__label" style="font-weight:400;">${isBn ? 'বিজ্ঞাপনের হেডলাইন' : 'Ad Headline'} <span class="field__required">*</span></label>
+                <div class="field__control">
+                  <input type="text" name="headline" required placeholder="${isBn ? 'খাঁটি তাঁতের ঢাকাই জামদানি — বিশেষ ২০% ছাড়' : 'Authentic Handloom Jamdani — 20% Off'}" class="input" />
+                </div>
+              </div>
+              <div class="field" style="margin-top:0;">
+                <label class="field__label" style="font-weight:400;">${isBn ? 'বিবরণ' : 'Description'}</label>
+                <div class="field__control field__control--textarea">
+                  <textarea name="description" rows="2" placeholder="${isBn ? 'সীমিত সময়ের সেরা ঐতিহ্যবাহী পোশাক কালেকশন' : 'Premium hand-woven collection ready for fast delivery'}" class="textarea"></textarea>
+                </div>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; align-items:start;">
+                <div class="field" style="margin-top:0;">
+                  <label class="field__label" style="font-weight:400;">${isBn ? 'ব্যানার ছবির লিংক (ঐচ্ছিক)' : 'Banner Image URL'}</label>
+                  <div class="field__control">
+                    <input type="url" name="banner_image_url" placeholder="https://..." class="input" />
+                  </div>
+                </div>
+                <div class="field" style="margin-top:0;">
+                  <label class="field__label" style="font-weight:400;">${isBn ? 'কল-টু-অ্যাকশন (CTA)' : 'Call To Action'}</label>
+                  <div class="field__control field__control--select">
+                    <select name="call_to_action" class="select">
+                      <option value="SHOP_NOW">${isBn ? 'এখনই কিনুন' : 'Shop Now'}</option>
+                      <option value="LEARN_MORE">${isBn ? 'বিস্তারিত দেখুন' : 'Learn More'}</option>
+                      <option value="GET_OFFER">${isBn ? 'অফার নিন' : 'Get Offer'}</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <div class="saler-row saler-row--between" style="justify-content: flex-end; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
-            <button type="button" class="btn btn-outline btn-cancel">${isBn ? 'বাতিল' : 'Cancel'}</button>
-            <button type="submit" class="btn btn-primary font-bold">${isBn ? 'ক্যাম্পেইন প্রকাশ করুন' : 'Publish Campaign'}</button>
+          <!-- Sticky Footer -->
+          <div style="flex:none; display:flex; align-items:center; justify-content:flex-end; gap:0.75rem; padding:1rem 1.5rem; border-top:1px solid var(--border-subtle); background:var(--surface-0);">
+            <button type="button" class="btn btn--neutral btn-cancel">${isBn ? 'বাতিল' : 'Cancel'}</button>
+            <button type="submit" class="btn btn--primary" style="font-weight:700;">${isBn ? 'ক্যাম্পেইন প্রকাশ করুন' : 'Publish Campaign'}</button>
           </div>
         </form>
       </div>
@@ -449,6 +482,11 @@ export class AdCampaignPage {
 
     modalBackdrop.querySelector('.btn-close').addEventListener('click', closeModal);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
+
+    // Close on backdrop click (outside the card)
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) closeModal();
+    });
 
     const form = modalBackdrop.querySelector('#form-create-ad');
     form.addEventListener('submit', async (e) => {

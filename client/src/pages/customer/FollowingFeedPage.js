@@ -134,14 +134,6 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
           ${esc(t('customer.following.subtitle', 'Fresh product drops, live streams, stories & exclusive discounts from your favorite sellers.'))}
         </p>
       </div>
-      <div class="account-page__header-actions">
-        <button type="button" id="hdr-explore-live" class="btn btn--secondary btn--sm">
-          <span aria-hidden="true">🔴</span> ${esc(t('customer.following.tab_live', 'Live Streams'))}
-        </button>
-        <button type="button" id="hdr-discover-stores" class="btn btn--primary btn--sm">
-          <span aria-hidden="true">🌟</span> ${esc(t('customer.following.tab_discover', 'Discover Sellers'))}
-        </button>
-      </div>
     </div>
   `;
   container.append(header);
@@ -164,9 +156,6 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
   container.append(liveRegion);
 
   root.append(container);
-
-  header.querySelector('#hdr-explore-live')?.addEventListener('click', () => switchTab('live'));
-  header.querySelector('#hdr-discover-stores')?.addEventListener('click', () => switchTab('discover'));
 
   // ---------------------------------------------------------------------------------------------
   // Data
