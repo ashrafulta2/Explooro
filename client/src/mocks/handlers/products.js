@@ -253,7 +253,18 @@ export default [
         filtered = filtered.filter((p) => tiers.includes(p.supplier_tier));
       }
       if (query.district) {
-        filtered = filtered.filter((p) => p.district === query.district);
+        const normalizeDist = (d) => {
+          if (!d) return '';
+          const s = String(d).toLowerCase().trim();
+          if (s === 'chittagong') return 'chattogram';
+          if (s === 'comilla') return 'cumilla';
+          if (s === 'barisal') return 'barishal';
+          if (s === 'bogra') return 'bogura';
+          if (s === 'jessore') return 'jashore';
+          return s;
+        };
+        const target = normalizeDist(query.district);
+        filtered = filtered.filter((p) => normalizeDist(p.district) === target);
       }
       if (query.min_rating) {
         filtered = filtered.filter((p) => (p.rating ?? 0) >= Number(query.min_rating));

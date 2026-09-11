@@ -155,12 +155,21 @@
 .filter-panel__select-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: var(--space-2) var(--space-3); padding-inline-end: var(--space-8); border: var(--border-width) solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-1); color: var(--text-primary); font-size: var(--text-sm); text-align: start; outline: none; cursor: pointer; position: relative; }
 .filter-panel__select-trigger:hover, .filter-panel__select-trigger:focus, .filter-panel__select-trigger[aria-expanded='true'] { border-color: var(--brand); }
 .filter-panel__select-trigger-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.filter-panel__select-menu { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 240px; overflow-y: auto; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--elevation-3); padding: var(--space-1); margin: 0; list-style: none; z-index: 50; }
+.filter-panel__select-menu { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; max-height: 300px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--elevation-3); padding: 0; margin: 0; z-index: 50; overflow: hidden; flex-direction: column; }
 .filter-panel__custom-select--placement-top .filter-panel__select-menu { top: auto; bottom: calc(100% + 4px); }
-.filter-panel__select-menu--open { display: block; }
-.filter-panel__select-option { padding: var(--space-2) var(--space-3); font-size: var(--text-sm); color: var(--text-primary); border-radius: var(--radius-sm); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; }
+.filter-panel__select-menu--open { display: flex; }
+.filter-panel__select-search { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: var(--surface-1); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; }
+.filter-panel__select-search-icon { display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); flex-shrink: 0; width: 14px; height: 14px; }
+.filter-panel__select-search-icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; }
+.filter-panel__select-search-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; font-size: var(--text-xs); color: var(--text-primary); font-family: inherit; padding: 2px 0; }
+.filter-panel__select-search-input::placeholder { color: var(--text-muted); }
+.filter-panel__select-search-clear { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 0 4px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-xs); }
+.filter-panel__select-search-clear:hover { color: var(--text-primary); background: var(--surface-2); }
+.filter-panel__select-options { list-style: none; padding: var(--space-1); margin: 0; overflow-y: auto; max-height: 240px; flex: 1; scrollbar-width: thin; }
+.filter-panel__select-option { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); color: var(--text-primary); border-radius: var(--radius-sm); cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: space-between; transition: background-color var(--dur-fast), color var(--dur-fast); }
 .filter-panel__select-option:hover, .filter-panel__select-option:focus { background-color: var(--surface-2); color: var(--text-primary); outline: none; }
 .filter-panel__select-option--selected { background-color: var(--surface-2); color: var(--text-brand); font-weight: var(--weight-semibold); }
+.filter-panel__select-empty { padding: var(--space-4) var(--space-3); text-align: center; font-size: var(--text-xs); color: var(--text-muted); user-select: none; }
 .filter-panel__select-chevron { position: absolute; inset-inline-end: var(--space-3); top: 50%; transform: translateY(-50%); width: 18px; height: 18px; pointer-events: none; }
 .filter-panel__select-chevron svg { width: 100%; height: 100%; fill: none; stroke: var(--brand); stroke-width: 1.5; }
 .filter-panel__instock { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-secondary); cursor: pointer; }

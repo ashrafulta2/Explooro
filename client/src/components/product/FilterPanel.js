@@ -19,12 +19,7 @@
 
 import { Drawer } from '../ui/Drawer.js';
 import { t } from '../../services/i18n.js';
-
-const BD_DISTRICTS = [
-  'Dhaka', 'Chattogram', 'Sylhet', 'Khulna', 'Rajshahi',
-  'Rangpur', 'Mymensingh', 'Barisal', 'Gazipur', 'Narayanganj',
-  'Comilla', 'Bogura', 'Narsingdi', 'Chapainawabganj', 'Tangail',
-];
+import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.js';
 
 const SUPPLIER_TIERS = ['standard', 'verified', 'elite'];
 
@@ -213,7 +208,7 @@ export function FilterPanel({
   }
   body.append(tierGroup);
 
-  // ── District ─────────────────────────────────────────────────────────────
+  // ── District (All 64 Bangladesh Districts with Search) ─────────────────────
   const districtGroup = group('marketplace.filter.district');
   const districtWrap = document.createElement('div');
   districtWrap.className = 'filter-panel__custom-select';
@@ -223,11 +218,11 @@ export function FilterPanel({
   districtTrigger.className = 'filter-panel__select-trigger';
   districtTrigger.setAttribute('aria-haspopup', 'listbox');
   districtTrigger.setAttribute('aria-expanded', 'false');
-  districtTrigger.setAttribute('aria-label', t('marketplace.filter.district'));
+  districtTrigger.setAttribute('aria-label', t('marketplace.filter.district', 'District'));
 
   const districtTriggerText = document.createElement('span');
   districtTriggerText.className = 'filter-panel__select-trigger-text';
-  districtTriggerText.textContent = state.district || t('marketplace.filter.any_district');
+  districtTriggerText.textContent = t('marketplace.filter.any_district', 'Any district');
 
   const districtChevron = document.createElement('span');
   districtChevron.className = 'filter-panel__select-chevron';
@@ -237,67 +232,45 @@ export function FilterPanel({
 
   districtTrigger.append(districtTriggerText, districtChevron);
 
-  const districtMenu = document.createElement('ul');
+  const districtMenu = document.createElement('div');
   districtMenu.className = 'filter-panel__select-menu';
-  districtMenu.setAttribute('role', 'listbox');
 
-  function updateDistrictDisplay() {
-    districtTriggerText.textContent = state.district || t('marketplace.filter.any_district');
-    const options = districtMenu.querySelectorAll('.filter-panel__select-option');
-    options.forEach((opt) => {
-      const isSel = opt.dataset.value === state.district;
-      opt.setAttribute('aria-selected', isSel ? 'true' : 'false');
-      opt.classList.toggle('filter-panel__select-option--selected', isSel);
-    });
+  // Search box inside dropdown
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'filter-panel__select-search';
+
+  const searchIcon = document.createElement('span');
+  searchIcon.className = 'filter-panel__select-search-icon';
+  searchIcon.setAttribute('aria-hidden', 'true');
+  searchIcon.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+
+  const searchInput = document.createElement('input');
+  searchInput.type = 'text';
+  searchInput.className = 'filter-panel__select-search-input';
+  searchInput.placeholder = t('marketplace.filter.search_district', 'Search district...');
+  searchInput.setAttribute('aria-label', t('marketplace.filter.search_district', 'Search district'));
+
+  const searchClearBtn = document.createElement('button');
+  searchClearBtn.type = 'button';
+  searchClearBtn.className = 'filter-panel__select-search-clear';
+  searchClearBtn.innerHTML = '&times;';
+  searchClearBtn.setAttribute('aria-label', 'Clear search');
+  searchClearBtn.style.display = 'none';
+
+  searchWrap.append(searchIcon, searchInput, searchClearBtn);
+
+  // Options list
+  const optionsList = document.createElement('ul');
+  optionsList.className = 'filter-panel__select-options';
+  optionsList.setAttribute('role', 'listbox');
+
+  districtMenu.append(searchWrap, optionsList);
+
+  function getDistrictDisplayLabel(d) {
+    const isBn = lang === 'bn' || document.documentElement.lang === 'bn';
+    return isBn ? `${d.name_bn} (${d.name_en})` : `${d.name_en} (${d.name_bn})`;
   }
-
-  let isDistrictOpen = false;
-  function updateDistrictMenuPosition() {
-    const rect = districtTrigger.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-    const menuDesiredHeight = 240;
-
-    // If space below is constrained and space above is greater, flip upwards
-    if (spaceBelow < menuDesiredHeight && spaceAbove > spaceBelow) {
-      districtWrap.classList.add('filter-panel__custom-select--placement-top');
-      const maxH = Math.min(260, Math.max(120, spaceAbove - 16));
-      districtMenu.style.maxHeight = `${maxH}px`;
-    } else {
-      districtWrap.classList.remove('filter-panel__custom-select--placement-top');
-      const maxH = Math.min(260, Math.max(120, spaceBelow - 16));
-      districtMenu.style.maxHeight = `${maxH}px`;
-    }
-  }
-
-  function openDistrictMenu() {
-    isDistrictOpen = true;
-    districtTrigger.setAttribute('aria-expanded', 'true');
-    updateDistrictMenuPosition();
-    districtMenu.classList.add('filter-panel__select-menu--open');
-    const sel = districtMenu.querySelector('.filter-panel__select-option--selected');
-    if (sel) sel.scrollIntoView({ block: 'nearest' });
-  }
-
-  function closeDistrictMenu() {
-    isDistrictOpen = false;
-    districtTrigger.setAttribute('aria-expanded', 'false');
-    districtMenu.classList.remove('filter-panel__select-menu--open');
-    districtWrap.classList.remove('filter-panel__custom-select--placement-top');
-  }
-
-  districtTrigger.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (isDistrictOpen) closeDistrictMenu();
-    else openDistrictMenu();
-  });
-
-  const onDocClick = (e) => {
-    if (isDistrictOpen && !districtWrap.contains(e.target)) {
-      closeDistrictMenu();
-    }
-  };
-  document.addEventListener('click', onDocClick);
 
   function createDistrictOption(value, label) {
     const li = document.createElement('li');
@@ -327,29 +300,167 @@ export function FilterPanel({
     return li;
   }
 
-  districtMenu.append(createDistrictOption('', t('marketplace.filter.any_district')));
-  for (const d of BD_DISTRICTS) {
-    districtMenu.append(createDistrictOption(d, d));
+  function renderDistrictOptions(query = '') {
+    optionsList.innerHTML = '';
+    const q = (query || '').trim().toLowerCase();
+
+    if (!q) {
+      optionsList.append(createDistrictOption('', t('marketplace.filter.any_district', 'Any district')));
+    }
+
+    const filtered = q
+      ? ALL_BD_DISTRICTS.filter((d) => {
+          const en = d.name_en.toLowerCase();
+          const bn = d.name_bn;
+          const alias = d.aliases && d.aliases.some((a) => a.toLowerCase().includes(q));
+          return en.includes(q) || bn.includes(q) || alias;
+        })
+      : ALL_BD_DISTRICTS;
+
+    if (filtered.length === 0) {
+      const empty = document.createElement('li');
+      empty.className = 'filter-panel__select-empty';
+      empty.textContent = t('marketplace.filter.no_districts_found', 'No districts found');
+      optionsList.append(empty);
+      return;
+    }
+
+    for (const d of filtered) {
+      optionsList.append(createDistrictOption(d.name_en, getDistrictDisplayLabel(d)));
+    }
   }
 
-  districtWrap.addEventListener('keydown', (e) => {
+  function updateDistrictDisplay() {
+    if (state.district) {
+      const found = ALL_BD_DISTRICTS.find(
+        (d) => d.name_en.toLowerCase() === state.district.toLowerCase() || (d.aliases && d.aliases.some((a) => a.toLowerCase() === state.district.toLowerCase()))
+      );
+      if (found) {
+        const isBn = lang === 'bn' || document.documentElement.lang === 'bn';
+        districtTriggerText.textContent = isBn ? found.name_bn : found.name_en;
+      } else {
+        districtTriggerText.textContent = state.district;
+      }
+    } else {
+      districtTriggerText.textContent = t('marketplace.filter.any_district', 'Any district');
+    }
+
+    const options = optionsList.querySelectorAll('.filter-panel__select-option');
+    options.forEach((opt) => {
+      const isSel = opt.dataset.value === state.district;
+      opt.setAttribute('aria-selected', isSel ? 'true' : 'false');
+      opt.classList.toggle('filter-panel__select-option--selected', isSel);
+    });
+  }
+
+  let isDistrictOpen = false;
+  function updateDistrictMenuPosition() {
+    const rect = districtTrigger.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const menuDesiredHeight = 300;
+
+    if (spaceBelow < menuDesiredHeight && spaceAbove > spaceBelow) {
+      districtWrap.classList.add('filter-panel__custom-select--placement-top');
+      const maxH = Math.min(320, Math.max(160, spaceAbove - 16));
+      districtMenu.style.maxHeight = `${maxH}px`;
+    } else {
+      districtWrap.classList.remove('filter-panel__custom-select--placement-top');
+      const maxH = Math.min(320, Math.max(160, spaceBelow - 16));
+      districtMenu.style.maxHeight = `${maxH}px`;
+    }
+  }
+
+  function openDistrictMenu() {
+    isDistrictOpen = true;
+    districtTrigger.setAttribute('aria-expanded', 'true');
+    updateDistrictMenuPosition();
+    districtMenu.classList.add('filter-panel__select-menu--open');
+    searchInput.value = '';
+    searchClearBtn.style.display = 'none';
+    renderDistrictOptions('');
+    const sel = optionsList.querySelector('.filter-panel__select-option--selected');
+    if (sel) sel.scrollIntoView({ block: 'nearest' });
+    setTimeout(() => searchInput.focus(), 50);
+  }
+
+  function closeDistrictMenu() {
+    isDistrictOpen = false;
+    districtTrigger.setAttribute('aria-expanded', 'false');
+    districtMenu.classList.remove('filter-panel__select-menu--open');
+    districtWrap.classList.remove('filter-panel__custom-select--placement-top');
+    searchInput.value = '';
+    searchClearBtn.style.display = 'none';
+  }
+
+  districtTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (isDistrictOpen) closeDistrictMenu();
+    else openDistrictMenu();
+  });
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value;
+    searchClearBtn.style.display = q ? 'inline-flex' : 'none';
+    renderDistrictOptions(q);
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const firstOpt = optionsList.querySelector('.filter-panel__select-option');
+      if (firstOpt) firstOpt.focus();
+    } else if (e.key === 'Escape') {
+      closeDistrictMenu();
+      districtTrigger.focus();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const options = optionsList.querySelectorAll('.filter-panel__select-option');
+      if (options.length === 1) {
+        options[0].click();
+      }
+    }
+  });
+
+  searchClearBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    searchInput.value = '';
+    searchClearBtn.style.display = 'none';
+    renderDistrictOptions('');
+    searchInput.focus();
+  });
+
+  optionsList.addEventListener('keydown', (e) => {
+    const options = Array.from(optionsList.querySelectorAll('.filter-panel__select-option'));
+    const activeIdx = options.indexOf(document.activeElement);
+
     if (e.key === 'Escape') {
       closeDistrictMenu();
       districtTrigger.focus();
-    } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    } else if (e.key === 'ArrowDown') {
       e.preventDefault();
-      if (!isDistrictOpen) openDistrictMenu();
-      const options = Array.from(districtMenu.querySelectorAll('.filter-panel__select-option'));
-      const activeIdx = options.indexOf(document.activeElement);
-      let nextIdx = 0;
-      if (e.key === 'ArrowDown') {
-        nextIdx = activeIdx < options.length - 1 ? activeIdx + 1 : 0;
-      } else {
-        nextIdx = activeIdx > 0 ? activeIdx - 1 : options.length - 1;
-      }
+      const nextIdx = activeIdx < options.length - 1 ? activeIdx + 1 : 0;
       options[nextIdx]?.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (activeIdx <= 0) {
+        searchInput.focus();
+      } else {
+        options[activeIdx - 1]?.focus();
+      }
     }
   });
+
+  const onDocClick = (e) => {
+    if (isDistrictOpen && !districtWrap.contains(e.target)) {
+      closeDistrictMenu();
+    }
+  };
+  document.addEventListener('click', onDocClick);
+
+  // Initial render of options and trigger text
+  renderDistrictOptions('');
+  updateDistrictDisplay();
 
   districtWrap.append(districtTrigger, districtMenu);
   districtGroup.append(districtWrap);
