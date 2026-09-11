@@ -179,11 +179,15 @@ export default function CouponsPage(root, { navigate } = {}) {
   claimCard.className = 'coupons-claim-card';
   claimCard.innerHTML = `
     <form class="coupons-claim-form" id="coupon-claim-form">
+      <label for="coupon-claim-input" class="sr-only">
+        ${t('customer_coupons.claim_input_label')}
+      </label>
       <input
         type="text"
         id="coupon-claim-input"
         class="coupons-claim-input"
         placeholder="${t('customer_coupons.claim_input_placeholder')}"
+        aria-label="${t('customer_coupons.claim_input_label')}"
         maxlength="30"
         autocomplete="off"
         spellcheck="false"

@@ -116,6 +116,26 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'filter-panel__collapse-toggle must have gold var(--brand) color'
     );
   });
+
+  await t.test('7. CouponsPage coupon claim input has accessible label and aria-label', () => {
+    assert.ok(enDict.customer_coupons.claim_input_label, 'en.json must contain customer_coupons.claim_input_label');
+    assert.ok(bnDict.customer_coupons.claim_input_label, 'bn.json must contain customer_coupons.claim_input_label');
+
+    const couponsPagePath = path.join(clientRoot, 'src', 'pages', 'customer', 'CouponsPage.js');
+    const content = fs.readFileSync(couponsPagePath, 'utf8');
+
+    assert.match(
+      content,
+      /<label[^>]*for="coupon-claim-input"[^>]*class="sr-only"/,
+      'CouponsPage must include a label for coupon-claim-input'
+    );
+    assert.match(
+      content,
+      /<input[^>]*id="coupon-claim-input"[^>]*aria-label="/,
+      'coupon-claim-input must have aria-label attribute'
+    );
+  });
 });
+
 
 

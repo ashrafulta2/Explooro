@@ -2219,6 +2219,7 @@
   "customer_coupons": {
     "page_title": "My Coupons & Vouchers",
     "page_subtitle": "Collect and redeem discount vouchers, free delivery codes, and exclusive store coupons",
+    "claim_input_label": "Promo or voucher code",
     "claim_input_placeholder": "Enter promo or voucher code...",
     "btn_claim": "Claim Code",
     "claiming": "Claiming...",
