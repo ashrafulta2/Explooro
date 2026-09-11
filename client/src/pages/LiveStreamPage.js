@@ -211,7 +211,7 @@ async function renderStreamDiscoveryList(container, navigate) {
           <div class="live-hero-banner__titles">
             <div class="live-badge-row">
               <span class="live-indicator-chip">
-                <span class="pulse-dot"></span>
+                <span class="pulse-dot" aria-hidden="true"></span>
                 ⚡ Real-Time Commerce
               </span>
             </div>

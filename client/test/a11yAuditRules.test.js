@@ -201,6 +201,27 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     assert.match(orderTracker, /order-tracker__map-badge/);
     assert.match(orderTracker, /order-tracker__map-desc/);
   });
+
+  await t.test('11. Live indicator chip maintains WCAG AA contrast with design tokens', () => {
+    const liveCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'live.css');
+    const liveCss = fs.readFileSync(liveCssPath, 'utf8');
+
+    // .live-indicator-chip must use var(--danger-800) (> 8.5:1 contrast on var(--danger-bg)) instead of raw #dc2626 (4.41:1 fail)
+    assert.match(
+      liveCss,
+      /\.live-indicator-chip\{[^}]*background:var\(--danger-bg\);color:var\(--danger-800\)/,
+      'live-indicator-chip must use tokenized var(--danger-800) on var(--danger-bg)'
+    );
+
+    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.js');
+    const livePage = fs.readFileSync(livePagePath, 'utf8');
+
+    assert.match(
+      livePage,
+      /<span class="pulse-dot" aria-hidden="true"><\/span>/,
+      'LiveStreamPage must mark decorative pulse-dot with aria-hidden="true"'
+    );
+  });
 });
 
 
