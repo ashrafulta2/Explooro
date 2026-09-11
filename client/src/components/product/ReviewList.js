@@ -339,10 +339,10 @@ export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = '
     }
     form.append(starsInput);
 
-    const titleField = Input({ placeholder: t('product_detail.review.title_placeholder') });
+    const titleField = Input({ placeholder: t('product_detail.review.title_placeholder'), ariaLabel: t('product_detail.review.title_placeholder') });
     form.append(titleField);
 
-    const bodyField = Textarea({ placeholder: t('product_detail.review.body_placeholder'), rows: 3 });
+    const bodyField = Textarea({ placeholder: t('product_detail.review.body_placeholder'), ariaLabel: t('product_detail.review.body_placeholder'), rows: 3 });
     form.append(bodyField);
 
     const submitBtn = Button({ label: t('product_detail.review.submit'), type: 'submit' });

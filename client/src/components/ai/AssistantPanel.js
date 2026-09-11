@@ -149,6 +149,7 @@ export function AssistantPanel({ agentType = 'concierge' } = {}) {
   input.type = 'text';
   input.className = 'assistant-panel__input';
   input.placeholder = t('ai.composer_placeholder');
+  input.setAttribute('aria-label', t('ai.composer_placeholder'));
   const sendBtn = Button({ label: t('ai.send'), variant: 'primary', size: 'sm', type: 'submit' });
   composerForm.append(input, sendBtn);
 

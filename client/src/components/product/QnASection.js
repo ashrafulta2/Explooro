@@ -71,7 +71,7 @@ function questionCard(question, lang, { onUpvote, canAnswer, onAnswer }) {
     const answerForm = document.createElement('form');
     answerForm.className = 'qna-answer-form';
     answerForm.hidden = true;
-    const textField = Textarea({ placeholder: t('product_detail.qna.answer_placeholder'), rows: 2 });
+    const textField = Textarea({ placeholder: t('product_detail.qna.answer_placeholder'), ariaLabel: t('product_detail.qna.answer_placeholder'), rows: 2 });
     const submitBtn = Button({ label: t('product_detail.qna.answer_submit'), type: 'submit', size: 'sm' });
     answerForm.append(textField, submitBtn);
 
@@ -139,7 +139,7 @@ export function QnASection({ productId, lang = 'en' } = {}) {
 
     const form = document.createElement('form');
     form.className = 'qna-ask-form';
-    const field = Textarea({ placeholder: t('product_detail.qna.ask_placeholder'), rows: 2 });
+    const field = Textarea({ placeholder: t('product_detail.qna.ask_placeholder'), ariaLabel: t('product_detail.qna.ask_placeholder'), rows: 2 });
     const submitBtn = Button({ label: t('product_detail.qna.ask_submit'), type: 'submit' });
     form.append(field, submitBtn);
 

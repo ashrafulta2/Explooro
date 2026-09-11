@@ -29,6 +29,7 @@ export function Textarea({
   maxLength = null,
   showCounter = false,
   autoResize = false,
+  ariaLabel = '',
   onInput = null,
   onChange = null,
 } = {}) {
@@ -45,6 +46,7 @@ export function Textarea({
   if (readonly) textarea.readOnly = true;
   if (required) textarea.required = true;
   if (maxLength) textarea.maxLength = maxLength;
+  if (ariaLabel) textarea.setAttribute('aria-label', ariaLabel);
 
   const control = document.createElement('div');
   control.className = 'field__control field__control--textarea';

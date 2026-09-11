@@ -33,6 +33,7 @@ export function Input({
   showCounter = false,
   autocomplete = '',
   inputmode = '',
+  ariaLabel = '',
   onInput = null,
   onChange = null,
 } = {}) {
@@ -51,6 +52,7 @@ export function Input({
   if (maxLength) input.maxLength = maxLength;
   if (autocomplete) input.autocomplete = autocomplete;
   if (inputmode) input.inputMode = inputmode;
+  if (ariaLabel) input.setAttribute('aria-label', ariaLabel);
 
   const control = document.createElement('div');
   control.className = 'field__control';
