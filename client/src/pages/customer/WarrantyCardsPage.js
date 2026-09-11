@@ -81,11 +81,12 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
         type="text"
         class="warranties-search-input"
         placeholder="${t('warranty.search_placeholder') || 'Search by product name, serial number, or ID...'}"
+        aria-label="${t('warranty.search_placeholder') || 'Search warranties'}"
         value=""
       />
     </div>
     <div class="flex items-center gap-2">
-      <select class="warranties-sort-select">
+      <select class="warranties-sort-select" aria-label="${t('warranty.sort_label') || 'Sort warranties'}">
         <option value="expiring_soon">${t('warranty.sort_expiring_soon') || 'Expiring Soonest'}</option>
         <option value="newest">${t('warranty.sort_newest') || 'Recently Added'}</option>
         <option value="title">${t('warranty.sort_title') || 'Product Name (A-Z)'}</option>

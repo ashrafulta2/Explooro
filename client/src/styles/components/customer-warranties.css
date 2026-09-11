@@ -57,9 +57,9 @@
 .warranty-countdown--expired{background:var(--surface-2)}
 .warranty-countdown__header{display:flex;align-items:center;justify-content:space-between;font-size:11px}
 .warranty-countdown__status{font-weight:800;font-family:var(--font-mono,monospace)}
-.warranty-countdown__status--active{color:#16a34a}
-.warranty-countdown__status--urgent{color:#d97706}
-.warranty-countdown__status--expired{color:#dc2626}
+.warranty-countdown__status--active{color:#15803d}
+.warranty-countdown__status--urgent{color:#b45309}
+.warranty-countdown__status--expired{color:#b91c1c}
 .warranty-countdown__digits{display:flex;align-items:center;justify-content:center;gap:8px;padding:4px 0}
 .countdown-slot{display:flex;flex-direction:column;align-items:center;min-width:44px}
 .countdown-val{font-size:1.25rem;font-weight:900;font-family:var(--font-mono,monospace);color:var(--text-primary);line-height:1.1}
