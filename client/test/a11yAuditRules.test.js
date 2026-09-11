@@ -66,6 +66,11 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       /\.topbar__brand/,
       'a11y-audit.js must exempt .topbar__brand from text contrast check'
     );
+    assert.match(
+      content,
+      /extractGradientColors/,
+      'a11y-audit.js must inspect gradient background colors'
+    );
   });
 
   await t.test('5. product.css discount badge and feed switcher maintain WCAG AA contrast', () => {
@@ -377,6 +382,18 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       cssContent,
       /\.coins-day-node--today\s+\.coins-day-node__day[^}]*color:\s*#92400e/,
       'today day node text must use #92400e'
+    );
+
+    // Daily checkin and quest claim action buttons must use brand tokens with dark high-contrast text
+    assert.match(
+      cssContent,
+      /\.coins-checkin-btn\s*\{[^}]*background:\s*var\(--brand\);[^}]*color:\s*var\(--brand-contrast/,
+      'coins-checkin-btn must use var(--brand) background with var(--brand-contrast) text'
+    );
+    assert.match(
+      cssContent,
+      /\.quest-btn-claim\s*\{[^}]*background:\s*var\(--brand\);[^}]*color:\s*var\(--brand-contrast/,
+      'quest-btn-claim must use var(--brand) background with var(--brand-contrast) text'
     );
   });
 

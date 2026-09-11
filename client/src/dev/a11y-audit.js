@@ -83,6 +83,13 @@ function compositeOver(src, dst) {
   ];
 }
 
+function extractGradientColors(bgImg) {
+  if (!bgImg || typeof bgImg !== 'string' || !bgImg.includes('gradient')) return [];
+  const colorMatches = bgImg.match(/(?:rgba?\(.+?\)|#[0-9a-fA-F]{3,8})/g);
+  if (!colorMatches) return [];
+  return colorMatches.map((c) => getColorRgba(c)).filter((rgba) => rgba[3] > 0);
+}
+
 /**
  * The colour actually painted behind `el`, compositing every translucent layer between it and the
  * first opaque ancestor.
@@ -100,7 +107,14 @@ function getEffectiveBackgroundColor(el) {
   let current = el;
 
   while (current && current !== document.documentElement) {
-    const rgba = getColorRgba(window.getComputedStyle(current).backgroundColor);
+    const computed = window.getComputedStyle(current);
+    let rgba = getColorRgba(computed.backgroundColor);
+    if (rgba[3] === 0 && computed.backgroundImage && computed.backgroundImage.includes('gradient')) {
+      const gradientColors = extractGradientColors(computed.backgroundImage);
+      if (gradientColors.length > 0) {
+        rgba = gradientColors[0];
+      }
+    }
     if (rgba[3] > 0) {
       layers.push(rgba);
       if (rgba[3] >= 1) break; // opaque — nothing below it can show through
