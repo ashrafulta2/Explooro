@@ -130,13 +130,13 @@ export function OrderTracker({
     <div class="order-tracker__map-canvas">
       <div class="order-tracker__map-grid"></div>
       <div class="order-tracker__map-route">
-        <div class="order-tracker__map-pin order-tracker__map-pin--origin" title="Warehouse Origin">🏭</div>
+        <div class="order-tracker__map-pin order-tracker__map-pin--origin" title="Warehouse Origin" aria-hidden="true">🏭</div>
         <div class="order-tracker__map-pulse"></div>
-        <div class="order-tracker__map-pin order-tracker__map-pin--dest" title="Delivery Destination">📍</div>
+        <div class="order-tracker__map-pin order-tracker__map-pin--dest" title="Delivery Destination" aria-hidden="true">📍</div>
       </div>
       <div class="order-tracker__map-overlay">
-        <span class="badge badge--primary">📡 ${t('order_tracking.live_map_title')}</span>
-        <p class="text-xs text-secondary mt-1">${t('order_tracking.live_map_desc')}</p>
+        <span class="badge badge--primary order-tracker__map-badge">📡 ${t('order_tracking.live_map_title')}</span>
+        <p class="text-xs order-tracker__map-desc">${t('order_tracking.live_map_desc')}</p>
       </div>
     </div>
   `;

@@ -65,3 +65,10 @@
 :root[data-theme='dark'] .badge--tier { background: var(--surface-2); color: var(--text-brand); border-color: var(--border-interactive); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .badge--tier { background: var(--surface-2); color: var(--text-brand); border-color: var(--border-interactive); } }
 .badge--tier:lang(bn) { text-transform: none; }
+
+.badge--primary, .badge--brand { background: var(--brand-100); color: var(--brand-950); border-color: var(--brand-200); }
+:root[data-theme='dark'] .badge--primary, :root[data-theme='dark'] .badge--brand { background: var(--surface-2); color: var(--text-brand); border-color: var(--border-interactive); }
+.badge--success { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+.badge--warning { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+.badge--danger { background: var(--danger-bg); color: var(--danger); border-color: var(--danger-border); }
+.badge--info { background: var(--info-bg); color: var(--info); border-color: var(--info-border); }

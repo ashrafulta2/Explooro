@@ -177,6 +177,30 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'TeamPurchasePage must render WhatsApp SVG with aria-hidden="true" and accessible text label'
     );
   });
+
+  await t.test('10. Order tracker live map and standard badge variants maintain WCAG AA contrast', () => {
+    const actionsCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'actions.css');
+    const actionsCss = fs.readFileSync(actionsCssPath, 'utf8');
+
+    // actions.css must declare standard badge color variants for universal token-based styling
+    assert.match(actionsCss, /\.badge--primary,\s*\.badge--brand\s*\{[^}]*background:\s*var\(--brand-100\)/);
+    assert.match(actionsCss, /\.badge--warning\s*\{[^}]*color:\s*var\(--warning\)/);
+    assert.match(actionsCss, /\.badge--success\s*\{[^}]*color:\s*var\(--success\)/);
+
+    const checkoutCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'checkout.css');
+    const checkoutCss = fs.readFileSync(checkoutCssPath, 'utf8');
+
+    // .order-tracker__map must declare light container text color on dark canvas
+    assert.match(checkoutCss, /\.order-tracker__map\s*\{[^}]*background:\s*#1e293b[^}]*color:\s*#f1f5f9/);
+    assert.match(checkoutCss, /\.order-tracker__map-overlay\s*\{[^}]*background:\s*rgba\(15,\s*23,\s*42/);
+    assert.match(checkoutCss, /\.order-tracker__map-desc\s*\{[^}]*color:\s*#e2e8f0/);
+
+    const orderTrackerPath = path.join(clientRoot, 'src', 'components', 'order', 'OrderTracker.js');
+    const orderTracker = fs.readFileSync(orderTrackerPath, 'utf8');
+
+    assert.match(orderTracker, /order-tracker__map-badge/);
+    assert.match(orderTracker, /order-tracker__map-desc/);
+  });
 });
 
 
