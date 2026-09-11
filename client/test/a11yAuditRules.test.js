@@ -468,4 +468,21 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'referral-calc-result__amount must use #166534'
     );
   });
+
+  await t.test('19. team-purchases.css explore section badge satisfies WCAG AA contrast using --text-brand', () => {
+    const teamCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'team-purchases.css');
+    const cssContent = fs.readFileSync(teamCssPath, 'utf8');
+
+    assert.match(
+      cssContent,
+      /\.team-explore-section__badge\s*\{[^}]*color:\s*var\(--text-brand\)/,
+      'team-explore-section__badge must use var(--text-brand) for WCAG AA compliance (>= 4.5:1 ratio)'
+    );
+    assert.doesNotMatch(
+      cssContent,
+      /\.team-explore-section__badge\s*\{[^}]*color:\s*var\(--brand\);/,
+      'team-explore-section__badge must not use raw var(--brand) which fails contrast at 1.51:1'
+    );
+  });
 });
+

@@ -1692,6 +1692,14 @@ async function bootRouterDemo() {
       },
       // Prompt 9.5: Social Group Buying (Team Purchase)
       {
+        path: '/team',
+        title: 'Explore Team Deals — Explooro',
+        requiresAuth: false,
+        permission: null,
+        module: 'group_buying',
+        load: () => import('./pages/TeamPurchasePage.js'),
+      },
+      {
         path: '/team/:id',
         title: 'Join Team Purchase — Explooro',
         requiresAuth: false,

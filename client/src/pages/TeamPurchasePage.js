@@ -156,23 +156,78 @@ const DEFAULT_FALLBACK_TEAMS = [
   },
 ];
 
+const CURATED_TEAM_DEAL_PRODUCTS = [
+  {
+    id: 11,
+    slug: 'smartwatch-amoled-bluetooth-calling',
+    name_en: 'Ultra 2 Smartwatch with 1.96" AMOLED & BT Calling',
+    name_bn: '১.৯৬" অ্যামোলেড ডিসপ্লে ও কলিং স্মার্টওয়াচ',
+    image_url: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=600',
+    original_price: 3200.0,
+    group_price: 2450.0,
+    discount_pct: 23,
+    required_members: 3,
+  },
+  {
+    id: 5,
+    slug: 'traditional-dhakai-jamdani-saree-red',
+    name_en: 'Authentic Handloom Dhakai Jamdani Saree - Crimson Red',
+    name_bn: 'ঐতিহ্যবাহী তাঁতের খাঁটি ঢাকাই জামদানি শাড়ি - গাঢ় লাল',
+    image_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600',
+    original_price: 6500.0,
+    group_price: 4850.0,
+    discount_pct: 25,
+    required_members: 2,
+  },
+  {
+    id: 1,
+    slug: 'mens-cotton-punjabi-maroon',
+    name_en: 'Premium Combed Cotton Semi-Long Panjabi - Maroon',
+    name_bn: 'প্রিমিয়াম মার্জিত সুতি সেমি-লং পাঞ্জাবি - মেরুন',
+    image_url: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=600',
+    original_price: 1650.0,
+    group_price: 1250.0,
+    discount_pct: 24,
+    required_members: 3,
+  },
+  {
+    id: 8,
+    slug: 'genuine-leather-bifold-wallet-tan',
+    name_en: 'Full-Grain Genuine Leather Bifold Wallet - Tan Brown',
+    name_bn: 'খাঁটি লেদার বাইফোল্ড ওয়ালেট - ট্যান ব্রাউন',
+    image_url: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600',
+    original_price: 1150.0,
+    group_price: 850.0,
+    discount_pct: 26,
+    required_members: 3,
+  },
+];
+
 export class TeamPurchasePage {
-  constructor(params = {}, navigate = null) {
+  constructor(params = {}, navigate = null, query = {}) {
     this.teamId = params?.id || null;
     this.navigate = navigate;
+    this.query = query || {};
     this.team = null;
     this.myTeams = [];
-    this.activeFilter = 'all'; // 'all' | 'active' | 'completed' | 'expired'
+    this.exploreTeams = [];
+    const isExplorePath = typeof window !== 'undefined' && window.location.pathname === '/team';
+    this.activeFilter = (this.query?.view === 'explore' || isExplorePath) ? 'explore' : 'all';
     this.loading = true;
     this.rootEl = null;
     this.timerInterval = null;
     this.unsubscribeLang = null;
   }
 
-  async mount(outlet, routerParams, navigate) {
+  async mount(outlet, routerParams, navigate, query) {
     this.rootEl = outlet;
     this.teamId = routerParams?.id || null;
     if (navigate) this.navigate = navigate;
+    if (query) this.query = query;
+    const isExplorePath = typeof window !== 'undefined' && window.location.pathname === '/team';
+    if (this.query?.view === 'explore' || isExplorePath) {
+      this.activeFilter = 'explore';
+    }
     this.unsubscribeLang = subscribeLang(() => this.render());
     await this.fetchData();
     this.render();
@@ -227,13 +282,25 @@ export class TeamPurchasePage {
           this.team.remaining_seconds = this._computeRemaining(this.team);
         }
       } else {
-        const res = await api.get('/account/team-purchases').catch(() => ({ team_purchases: [] }));
-        const list = res.team_purchases || res.data?.team_purchases || res.data || [];
+        const [myRes, publicRes] = await Promise.all([
+          api.get('/account/team-purchases').catch(() => ({ team_purchases: [] })),
+          api.get('/team-purchases').catch(() => ({ team_purchases: [] })),
+        ]);
+        const list = myRes.team_purchases || myRes.data?.team_purchases || myRes.data || [];
         const rawTeams = Array.isArray(list) && list.length > 0 ? list : DEFAULT_FALLBACK_TEAMS;
         this.myTeams = rawTeams.map((t) => ({
           ...t,
           remaining_seconds: this._computeRemaining(t),
         }));
+
+        const publicList = publicRes.team_purchases || publicRes.data?.team_purchases || publicRes.data || [];
+        const rawPublic = Array.isArray(publicList) && publicList.length > 0 ? publicList : DEFAULT_FALLBACK_TEAMS;
+        this.exploreTeams = rawPublic
+          .filter((t) => t.status === 'ACTIVE' && (t.current_members_count < t.required_members))
+          .map((t) => ({
+            ...t,
+            remaining_seconds: this._computeRemaining(t),
+          }));
       }
     } catch {
       if (this.teamId) {
@@ -248,6 +315,12 @@ export class TeamPurchasePage {
           ...t,
           remaining_seconds: this._computeRemaining(t),
         }));
+        this.exploreTeams = DEFAULT_FALLBACK_TEAMS
+          .filter((t) => t.status === 'ACTIVE' && (t.current_members_count < t.required_members))
+          .map((t) => ({
+            ...t,
+            remaining_seconds: this._computeRemaining(t),
+          }));
       }
     } finally {
       this.loading = false;
@@ -276,6 +349,19 @@ export class TeamPurchasePage {
             const cardTimer = this.rootEl?.querySelector(`#timer-${t.id}`);
             if (cardTimer) {
               cardTimer.textContent = `⏱️ ${this._formatRemaining(t.remaining_seconds)}`;
+            }
+          }
+        });
+      }
+
+      // 3. If in explore view
+      if (!this.teamId && Array.isArray(this.exploreTeams)) {
+        this.exploreTeams.forEach((t) => {
+          if (t.status === 'ACTIVE' && t.remaining_seconds > 0) {
+            t.remaining_seconds -= 1;
+            const exploreTimer = this.rootEl?.querySelector(`#explore-timer-${t.id}`);
+            if (exploreTimer) {
+              exploreTimer.textContent = `⏱️ ${this._formatRemaining(t.remaining_seconds)}`;
             }
           }
         });
@@ -317,6 +403,11 @@ export class TeamPurchasePage {
   }
 
   _renderMyTeamsList(isBn) {
+    if (this.activeFilter === 'explore') {
+      this._renderExploreView(isBn);
+      return;
+    }
+
     const teams = this.myTeams || [];
     const activeCount = teams.filter((t) => t.status === 'ACTIVE').length;
     const completedCount = teams.filter((t) => t.status === 'COMPLETED').length;
@@ -352,10 +443,10 @@ export class TeamPurchasePage {
                 ${isBn ? 'আপনার শুরু করা বা অংশগ্রহণ করা সকল টিম অর্ডারের তালিকা ও ট্র্যাকিং' : 'Track your active and completed social team purchases'}
               </p>
             </div>
-            <a href="/" class="team-page__explore-btn">
+            <button type="button" class="team-page__explore-btn" id="btn-toggle-explore">
               <span>⚡</span>
               <span>${isBn ? 'নতুন টিম ডিল খুঁজুন' : 'Explore Team Deals'}</span>
-            </a>
+            </button>
           </div>
         </div>
 
@@ -416,6 +507,10 @@ export class TeamPurchasePage {
             <span>⏰ ${isBn ? 'মেয়াদোত্তীর্ণ' : 'Expired'}</span>
             <span class="team-tab-count">${expiredCount}</span>
           </button>
+          <button class="team-tab-btn ${this.activeFilter === 'explore' ? 'team-tab-btn--active' : ''}" data-filter="explore">
+            <span>⚡ ${isBn ? 'টিম ডিল খুঁজুন' : 'Explore Deals'}</span>
+            <span class="team-tab-count">${this.exploreTeams.length}</span>
+          </button>
         </div>
 
         <!-- Team Cards Grid -->
@@ -423,9 +518,12 @@ export class TeamPurchasePage {
           <div class="card p-12 text-center text-muted border border-subtle rounded-2xl space-y-3">
             <div class="text-4xl">🛍️</div>
             <h3 class="font-bold text-base text-foreground">${isBn ? 'কোনো টিম পারচেজ পাওয়া যায়নি' : 'No team purchases found in this filter'}</h3>
-            <p class="text-xs text-muted">${isBn ? 'নতুন টিম শুরু করে বন্ধুদের সাথে সাশ্রয়ী মূল্যে কেনাকাটা করুন।' : 'Start a team purchase and invite friends to unlock group discounts.'}</p>
+            <p class="text-xs text-muted">${isBn ? 'নতুন টিম শুরু করে বন্ধুদের সাথে সাশ্রয়ী মূল্যে কেনাকাটা করুন অথবা চলতি পুলে যোগ দিন।' : 'Start a team purchase and invite friends or join live open pools to unlock group discounts.'}</p>
             <div class="pt-2">
-              <a href="/" class="team-page__explore-btn">${isBn ? 'কেনাকাটা করুন' : 'Browse Products'}</a>
+              <button type="button" class="team-page__explore-btn btn-go-explore">
+                <span>⚡</span>
+                <span>${isBn ? 'টিম ডিল খুঁজুন' : 'Explore Team Deals'}</span>
+              </button>
             </div>
           </div>
         ` : `
@@ -437,6 +535,265 @@ export class TeamPurchasePage {
     `;
 
     this._attachListEvents(isBn);
+  }
+
+  _renderExploreView(isBn) {
+    const teams = this.myTeams || [];
+    const activeCount = teams.filter((t) => t.status === 'ACTIVE').length;
+    const completedCount = teams.filter((t) => t.status === 'COMPLETED').length;
+    const expiredCount = teams.filter((t) => t.status === 'EXPIRED').length;
+    const explorePools = this.exploreTeams || [];
+
+    this.rootEl.innerHTML = `
+      <div class="account-page team-purchases-page">
+        <!-- Header -->
+        <div class="account-page__header">
+          <a href="/account" class="account-page__back">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <span>${isBn ? 'ড্যাশবোর্ডে ফিরে যান' : 'Back to Dashboard'}</span>
+          </a>
+          <div class="account-page__title-wrap">
+            <div>
+              <h1 class="account-page__title">
+                <span class="account-page__title-icon">⚡</span>
+                <span>${isBn ? 'সক্রিয় টিম ডিল ও গ্রুপ বাই' : 'Explore Team Deals & Group Buying'}</span>
+              </h1>
+              <p class="account-page__subtitle">
+                ${isBn ? 'সরাসরি সক্রিয় পুলে যুক্ত হোন অথবা বন্ধুদের সাথে দল গড়ে সর্বোচ্চ ২৫% সাশ্রয় করুন' : 'Join open social team pools or start a new group purchase to unlock up to 25% instant discounts'}
+              </p>
+            </div>
+            <button type="button" class="team-page__explore-btn team-page__explore-btn--secondary" id="btn-toggle-explore">
+              <span>👥</span>
+              <span>${isBn ? 'আমার টিম তালিকা' : 'My Team Purchases'}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Tabs Bar -->
+        <div class="team-tabs">
+          <button class="team-tab-btn" data-filter="all">
+            <span>${isBn ? 'সকল টিম' : 'All Teams'}</span>
+            <span class="team-tab-count">${teams.length}</span>
+          </button>
+          <button class="team-tab-btn" data-filter="active">
+            <span>🔥 ${isBn ? 'চলতি' : 'Active'}</span>
+            <span class="team-tab-count">${activeCount}</span>
+          </button>
+          <button class="team-tab-btn" data-filter="completed">
+            <span>✓ ${isBn ? 'সফল' : 'Completed'}</span>
+            <span class="team-tab-count">${completedCount}</span>
+          </button>
+          <button class="team-tab-btn" data-filter="expired">
+            <span>⏰ ${isBn ? 'মেয়াদোত্তীর্ণ' : 'Expired'}</span>
+            <span class="team-tab-count">${expiredCount}</span>
+          </button>
+          <button class="team-tab-btn team-tab-btn--active" data-filter="explore">
+            <span>⚡ ${isBn ? 'টিম ডিল খুঁজুন' : 'Explore Deals'}</span>
+            <span class="team-tab-count">${explorePools.length}</span>
+          </button>
+        </div>
+
+        <!-- How it works guide banner -->
+        <div class="team-explore-banner">
+          <div class="team-explore-banner__head">
+            <h2 class="team-explore-banner__title">
+              <span>💡</span>
+              <span>${isBn ? 'সোশ্যাল গ্রুপ বাই কীভাবে কাজ করে?' : 'How Social Team Buying Works'}</span>
+            </h2>
+            <span class="badge badge--success badge--sm">${isBn ? '১০০% রিফান্ড গ্যারান্টি' : '100% Escrow Guarantee'}</span>
+          </div>
+          <div class="team-explore-steps">
+            <div class="team-explore-step">
+              <div class="team-explore-step__icon">🛍️</div>
+              <div class="team-explore-step__text">
+                <div class="team-explore-step__title">${isBn ? '১. ডিল বা পুল বেছে নিন' : '1. Choose Pool or Deal'}</div>
+                <div class="team-explore-step__desc">${isBn ? 'চলতি পুলে যোগ দিন অথবা নিজের পছন্দের পণ্যে নতুন টিম খুলুন।' : 'Join an active open pool or initiate a new group order.'}</div>
+              </div>
+            </div>
+            <div class="team-explore-step">
+              <div class="team-explore-step__icon">👥</div>
+              <div class="team-explore-step__text">
+                <div class="team-explore-step__title">${isBn ? '২. দল গঠন করুন' : '2. Complete the Team'}</div>
+                <div class="team-explore-step__desc">${isBn ? '২৪ ঘণ্টার মধ্যে প্রয়োজনীয় সদস্য সংখ্যা পূর্ণ হলেই ডিল কার্যকর হবে।' : 'Fill the 2-3 member slots within the 24-hour countdown window.'}</div>
+              </div>
+            </div>
+            <div class="team-explore-step">
+              <div class="team-explore-step__icon">🎉</div>
+              <div class="team-explore-step__text">
+                <div class="team-explore-step__title">${isBn ? '৩. সাশ্রয়ী ডেলিভারি পান' : '3. Enjoy Group Discount'}</div>
+                <div class="team-explore-step__desc">${isBn ? 'সফলভাবে টিম পূর্ণ হলে সবার ঠিকানা অনুযায়ী পণ্য পৌঁছে যাবে।' : 'Orders convert atomically at wholesale discount price.'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 1: Live Open Pools to Join -->
+        <div class="team-explore-section">
+          <div class="team-explore-section__title">
+            <h3 class="team-explore-section__heading">
+              <span>🔥</span>
+              <span>${isBn ? 'চলতি টিম পুল — এখনই যোগ দিন' : 'Live Open Pools — Join Now'}</span>
+            </h3>
+            <span class="team-explore-section__badge">${isBn ? `${explorePools.length}টি পুলে আসন বাকি` : `${explorePools.length} Pools Filling Spots`}</span>
+          </div>
+
+          ${explorePools.length === 0 ? `
+            <div class="card p-8 text-center text-muted border border-subtle rounded-2xl">
+              <div class="text-3xl mb-1">👥</div>
+              <div class="font-bold">${isBn ? 'বর্তমানে কোনো চলতি পুল নেই। নিজেই নতুন টিম শুরু করুন!' : 'No open pools filling right now. Start your own team below!'}</div>
+            </div>
+          ` : `
+            <div class="team-cards-grid">
+              ${explorePools.map((t) => this._renderExplorePoolCard(t, isBn)).join('')}
+            </div>
+          `}
+        </div>
+
+        <!-- Section 2: Products available for new group buying -->
+        <div class="team-explore-section" style="margin-top: var(--space-6);">
+          <div class="team-explore-section__title">
+            <h3 class="team-explore-section__heading">
+              <span>🛍️</span>
+              <span>${isBn ? 'নতুন টিম শুরু করার জন্য জনপ্রিয় পণ্য' : 'Top Products to Start a Team'}</span>
+            </h3>
+            <span class="team-explore-section__badge">${isBn ? 'সর্বোচ্চ ২৫% পর্যন্ত সাশ্রয়' : 'Up to 25% OFF'}</span>
+          </div>
+
+          <div class="team-cards-grid">
+            ${CURATED_TEAM_DEAL_PRODUCTS.map((p) => this._renderCuratedProductCard(p, isBn)).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    this._attachListEvents(isBn);
+  }
+
+  _renderExplorePoolCard(t, isBn) {
+    const required = t.required_members || 3;
+    const current = t.current_members_count || 1;
+    const members = t.members || [];
+    const origPrice = Number(t.original_price || 0);
+    const grpPrice = Number(t.group_price || 0);
+    const discountPct = origPrice > 0 ? Math.round(((origPrice - grpPrice) / origPrice) * 100) : 0;
+    const title = isBn && t.product_name_bn ? t.product_name_bn : (t.product_name_en || 'Product');
+    const spotsLeft = Math.max(1, required - current);
+
+    return `
+      <div class="team-card" id="explore-card-${t.id}">
+        <div class="team-card__top">
+          <div class="team-card__img-wrap">
+            ${t.product_image_url
+              ? `<img src="${t.product_image_url}" alt="${title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'team-card__img-fallback\\'>🛍️</div>'" />`
+              : `<div class="team-card__img-fallback">🛍️</div>`}
+          </div>
+
+          <div class="team-card__info">
+            <div class="team-card__badges">
+              <span class="badge badge--sm badge--warning">🔥 ${isBn ? 'চলতি পুল' : 'ACTIVE POOL'}</span>
+              <span class="badge badge--sm badge--subtle font-mono">${t.ref}</span>
+              ${discountPct > 0 ? `<span class="team-card__save-badge">-${discountPct}%</span>` : ''}
+            </div>
+
+            <h3 class="team-card__title" title="${title}">${title}</h3>
+
+            <div class="team-card__price-row">
+              <span class="team-card__group-price">${formatCurrency(grpPrice)}</span>
+              ${origPrice > 0 ? `<span class="team-card__orig-price">${formatCurrency(origPrice)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="team-card__progress-box">
+          <div class="team-card__progress-head">
+            <div class="team-card__progress-count">
+              <span>👥</span>
+              <span>${current} / ${required} ${isBn ? 'সদস্য যুক্ত' : 'Members Joined'}</span>
+            </div>
+            <span class="team-card__progress-timer" id="explore-timer-${t.id}">⏱️ ${this._formatRemaining(t.remaining_seconds)}</span>
+          </div>
+
+          <div class="team-slots-strip">
+            ${Array.from({ length: required }, (_, idx) => {
+              const mem = members[idx];
+              const isFilled = idx < current;
+              const isHost = idx === 0;
+              return `
+                <div class="team-slot-dot ${isFilled ? 'team-slot-dot--filled' : 'team-slot-dot--empty'} ${isHost ? 'team-slot-dot--host' : ''}" title="${isFilled ? (mem?.user_name || `Member ${idx + 1}`) : (isBn ? 'খালি আসন' : 'Open Spot')}">
+                  ${isFilled ? (isHost ? '👑' : '👤') : '+'}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="team-card__foot">
+          <div class="team-card__status-text">
+            <span class="team-card__status-dot"></span>
+            <span>${isBn ? `আর মাত্র ${spotsLeft} জন বাকি` : `Need ${spotsLeft} more to complete`}</span>
+          </div>
+
+          <div class="team-card__actions">
+            <button type="button" class="team-card__btn-view btn-join-explore-deal" data-id="${t.id}">
+              <span>⚡</span>
+              <span>${isBn ? `যুক্ত হন (${formatCurrency(grpPrice)})` : `Join Team (${formatCurrency(grpPrice)})`}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  _renderCuratedProductCard(p, isBn) {
+    const title = isBn && p.name_bn ? p.name_bn : p.name_en;
+    return `
+      <div class="team-card">
+        <div class="team-card__top">
+          <div class="team-card__img-wrap">
+            ${p.image_url
+              ? `<img src="${p.image_url}" alt="${title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'team-card__img-fallback\\'>🛍️</div>'" />`
+              : `<div class="team-card__img-fallback">🛍️</div>`}
+          </div>
+
+          <div class="team-card__info">
+            <div class="team-card__badges">
+              <span class="badge badge--sm badge--success">${isBn ? 'গ্রুপ বাই ডিল' : 'GROUP BUY'}</span>
+              <span class="team-card__save-badge">-${p.discount_pct}%</span>
+            </div>
+
+            <h3 class="team-card__title" title="${title}">${title}</h3>
+
+            <div class="team-card__price-row">
+              <span class="team-card__group-price">${formatCurrency(p.group_price)}</span>
+              <span class="team-card__orig-price">${formatCurrency(p.original_price)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="team-card__progress-box">
+          <div class="team-card__progress-head">
+            <span class="font-bold text-xs text-primary">👥 ${p.required_members} ${isBn ? 'জনের টিম দরকার' : 'Person Team Pool'}</span>
+            <span class="badge badge--subtle badge--sm font-bold">${isBn ? `${p.discount_pct}% সাশ্রয়` : `Save ${p.discount_pct}%`}</span>
+          </div>
+          <p class="text-xs text-muted" style="margin: 0;">${isBn ? 'নতুন দল শুরু করে বন্ধুদের আমন্ত্রণ জানিয়ে কম মূল্যে অর্ডার করুন।' : 'Start a new viral team and invite your friends to save together.'}</p>
+        </div>
+
+        <div class="team-card__foot">
+          <div class="team-card__status-text">
+            <span>✨</span>
+            <span>${isBn ? '২৪ ঘণ্টার উইন্ডো' : '24h SLA Escrow'}</span>
+          </div>
+
+          <div class="team-card__actions">
+            <button type="button" class="team-card__btn-view btn-start-team-product" data-slug="${p.slug || p.id}">
+              <span>🛍️</span>
+              <span>${isBn ? 'নতুন টিম শুরু করুন' : 'Start Team Deal'}</span>
+              <span class="team-btn-arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   _renderTeamCard(t, isBn) {
@@ -715,7 +1072,7 @@ export class TeamPurchasePage {
                   <span>👥</span>
                   <span>${isBn ? 'আমার সকল টিম' : 'View All My Teams'}</span>
                 </a>
-                <a href="/" class="team-card__btn-copy">
+                <a href="/account/team-purchases?view=explore" class="team-card__btn-copy btn-explore-deals">
                   <span>🛍️</span>
                   <span>${isBn ? 'আরও পণ্য দেখুন' : 'Explore More Deals'}</span>
                 </a>
@@ -728,7 +1085,7 @@ export class TeamPurchasePage {
                   <span>👥</span>
                   <span>${isBn ? 'আমার সকল টিম' : 'View All My Teams'}</span>
                 </a>
-                <a href="/" class="team-card__btn-copy">
+                <a href="/account/team-purchases?view=explore" class="team-card__btn-copy btn-explore-deals">
                   <span>🔥</span>
                   <span>${isBn ? 'অন্যান্য টিম ডিল' : 'Explore Other Deals'}</span>
                 </a>
@@ -745,12 +1102,43 @@ export class TeamPurchasePage {
   _attachListEvents(isBn) {
     bindBackControl(this.rootEl.querySelector('.account-page__back'), (u, o) => this.navTo(u, o), '/account');
 
+    // Toggle Explore <-> My Teams button
+    const btnToggleExplore = this.rootEl.querySelector('#btn-toggle-explore');
+    if (btnToggleExplore) {
+      btnToggleExplore.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.activeFilter = this.activeFilter === 'explore' ? 'all' : 'explore';
+        if (this.activeFilter === 'explore') {
+          history.replaceState({}, '', '/account/team-purchases?view=explore');
+        } else {
+          history.replaceState({}, '', '/account/team-purchases');
+        }
+        this.render();
+      });
+    }
+
+    // Go explore button in empty state
+    const btnGoExplore = this.rootEl.querySelector('.btn-go-explore');
+    if (btnGoExplore) {
+      btnGoExplore.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.activeFilter = 'explore';
+        history.replaceState({}, '', '/account/team-purchases?view=explore');
+        this.render();
+      });
+    }
+
     // Filter tabs
     this.rootEl.querySelectorAll('.team-tab-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const filter = e.currentTarget.dataset.filter;
         if (filter && filter !== this.activeFilter) {
           this.activeFilter = filter;
+          if (filter === 'explore') {
+            history.replaceState({}, '', '/account/team-purchases?view=explore');
+          } else {
+            history.replaceState({}, '', '/account/team-purchases');
+          }
           this.render();
         }
       });
@@ -779,6 +1167,30 @@ export class TeamPurchasePage {
         }
       });
     });
+
+    // Join explore deal buttons
+    this.rootEl.querySelectorAll('.btn-join-explore-deal').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const id = e.currentTarget.dataset.id;
+        if (id) {
+          this.teamId = id;
+          this.navTo(`/team/${id}`);
+          this.fetchData().then(() => this.render());
+        }
+      });
+    });
+
+    // Start team product buttons
+    this.rootEl.querySelectorAll('.btn-start-team-product').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const slug = e.currentTarget.dataset.slug;
+        if (slug) {
+          this.navTo(`/product/${slug}`);
+        }
+      });
+    });
   }
 
   _attachDetailEvents(teamShareUrl, isBn) {
@@ -802,6 +1214,16 @@ export class TeamPurchasePage {
         this._openJoinModal(isBn);
       });
     }
+
+    this.rootEl.querySelectorAll('.btn-explore-deals').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.teamId = null;
+        this.activeFilter = 'explore';
+        this.navTo('/account/team-purchases?view=explore');
+        this.fetchData().then(() => this.render());
+      });
+    });
   }
 
   _openJoinModal(isBn) {
@@ -890,7 +1312,7 @@ export class TeamPurchasePage {
 }
 
 export default function mountTeamPurchasePage(root, ctx = {}) {
-  const page = new TeamPurchasePage(ctx.params, ctx.navigate);
-  page.mount(root, ctx.params, ctx.navigate);
+  const page = new TeamPurchasePage(ctx.params, ctx.navigate, ctx.query);
+  page.mount(root, ctx.params, ctx.navigate, ctx.query);
   return () => page.unmount();
 }
