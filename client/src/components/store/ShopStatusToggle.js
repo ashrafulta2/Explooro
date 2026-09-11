@@ -159,6 +159,7 @@ function openHoursModal(currentHours, onSave) {
     openInput.type = 'time';
     openInput.value = tempHours[day]?.open || '09:00';
     openInput.disabled = !!tempHours[day]?.is_closed;
+    openInput.setAttribute('aria-label', `${t(`days.${day}`) || day} ${t('common.open', 'Open')}`);
     openInput.style.padding = 'var(--space-1) var(--space-2)';
     openInput.style.border = '1px solid var(--border-default)';
     openInput.style.borderRadius = 'var(--radius-sm)';
@@ -171,6 +172,7 @@ function openHoursModal(currentHours, onSave) {
     closeInput.type = 'time';
     closeInput.value = tempHours[day]?.close || '21:00';
     closeInput.disabled = !!tempHours[day]?.is_closed;
+    closeInput.setAttribute('aria-label', `${t(`days.${day}`) || day} ${t('common.close', 'Close')}`);
     closeInput.style.padding = 'var(--space-1) var(--space-2)';
     closeInput.style.border = '1px solid var(--border-default)';
     closeInput.style.borderRadius = 'var(--radius-sm)';

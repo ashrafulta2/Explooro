@@ -350,8 +350,11 @@ export default function StoreBuilderPage(root, { navigate }) {
     const slugWrap = document.createElement('div');
     slugWrap.className = 'store-builder__slug-field';
 
+    const slugControlId = 'store-builder-slug-input';
+
     const slugLabel = document.createElement('label');
     slugLabel.className = 'form-label';
+    slugLabel.htmlFor = slugControlId;
     slugLabel.textContent = t('store_builder.slug_label', 'Store URL Slug');
 
     const inputRow = document.createElement('div');
@@ -359,12 +362,16 @@ export default function StoreBuilderPage(root, { navigate }) {
 
     const prefix = document.createElement('span');
     prefix.className = 'store-builder__slug-prefix';
+    prefix.setAttribute('aria-hidden', 'true');
     prefix.textContent = 'explooro.com/store/';
 
     const slugInput = document.createElement('input');
+    slugInput.id = slugControlId;
+    slugInput.name = 'store_slug';
     slugInput.className = 'store-builder__slug-input';
     slugInput.value = storeState.slug;
     slugInput.placeholder = 'your-brand-name';
+    slugInput.setAttribute('aria-label', t('store_builder.slug_label', 'Store URL Slug'));
 
     inputRow.append(prefix, slugInput);
 

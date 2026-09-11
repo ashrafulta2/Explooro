@@ -267,6 +267,43 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'LiveStreamPage must use become_seller_to_host label for customer role'
     );
   });
+
+  await t.test('14. StoreBuilderPage slug input has associated label and aria-label', () => {
+    const storeBuilderPath = path.join(clientRoot, 'src', 'pages', 'saler', 'StoreBuilderPage.js');
+    const content = fs.readFileSync(storeBuilderPath, 'utf8');
+
+    assert.match(
+      content,
+      /slugLabel\.htmlFor\s*=\s*slugControlId/,
+      'slugLabel must associate with slugControlId via htmlFor'
+    );
+    assert.match(
+      content,
+      /slugInput\.id\s*=\s*slugControlId/,
+      'slugInput must define id matching slugControlId'
+    );
+    assert.match(
+      content,
+      /slugInput\.setAttribute\('aria-label'/,
+      'slugInput must specify aria-label attribute'
+    );
+  });
+
+  await t.test('15. ShopStatusToggle schedule link satisfies WCAG contrast using --text-brand', () => {
+    const storeCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'store.css');
+    const cssContent = fs.readFileSync(storeCssPath, 'utf8');
+
+    assert.match(
+      cssContent,
+      /\.shop-status-toggle__schedule-link\s*\{[^}]*color:\s*var\(--text-brand\)/,
+      'shop-status-toggle__schedule-link must use var(--text-brand) instead of low-contrast var(--brand-600)'
+    );
+    assert.doesNotMatch(
+      cssContent,
+      /\.shop-status-toggle__schedule-link\s*\{[^}]*color:\s*var\(--brand-600\)/,
+      'shop-status-toggle__schedule-link must not use low-contrast var(--brand-600)'
+    );
+  });
 });
 
 
