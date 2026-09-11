@@ -546,12 +546,12 @@ export class TeamPurchasePage {
     if (!this.team) {
       this.rootEl.innerHTML = `
         <div class="account-page team-purchases-page">
-          <div class="card p-12 text-center text-muted border border-subtle rounded-2xl max-w-xl mx-auto my-8">
-            <div class="text-4xl mb-2">👥</div>
-            <h3 class="font-bold text-lg text-foreground">${isBn ? 'টিম পারচেজ পাওয়া যায়নি।' : 'Team purchase not found.'}</h3>
-            <p class="text-xs text-muted mt-1">${isBn ? 'লিংকটি সঠিক নয় অথবা টিমটি মুছে ফেলা হয়েছে।' : 'The link might be invalid or the team has expired.'}</p>
-            <div class="pt-4">
-              <a href="/account/team-purchases" class="team-card__btn-view font-bold">${isBn ? 'আমার টিম তালিকায় ফিরুন' : 'Back to My Teams'}</a>
+          <div class="team-detail-slots-card" style="max-width: 540px; margin: var(--space-8) auto;">
+            <div style="font-size: 2.5rem; margin-bottom: var(--space-2);">👥</div>
+            <h3 class="team-detail-slots-card__title">${isBn ? 'টিম পারচেজ পাওয়া যায়নি।' : 'Team purchase not found.'}</h3>
+            <p class="team-detail-slots-card__subtitle">${isBn ? 'লিংকটি সঠিক নয় অথবা টিমটি মুছে ফেলা হয়েছে।' : 'The link might be invalid or the team has expired.'}</p>
+            <div style="padding-top: var(--space-4);">
+              <a href="/account/team-purchases" class="team-page__explore-btn">${isBn ? 'আমার টিম তালিকায় ফিরুন' : 'Back to My Teams'}</a>
             </div>
           </div>
         </div>
@@ -568,6 +568,7 @@ export class TeamPurchasePage {
     const discountPct = origPrice > 0 ? Math.round(((origPrice - grpPrice) / origPrice) * 100) : 0;
     const origin = window.location.origin || 'https://explooro.com';
     const teamShareUrl = `${origin}/team/${t.id}`;
+    const percentFilled = Math.min(100, Math.round((current / required) * 100));
 
     this.rootEl.innerHTML = `
       <div class="account-page team-purchases-page">
@@ -577,35 +578,35 @@ export class TeamPurchasePage {
           <span>${isBn ? 'আমার সকল টিম পারচেজ' : 'All My Team Purchases'}</span>
         </a>
 
-        <div class="team-detail-view space-y-6">
+        <div class="team-detail-view">
           <!-- Status Banner -->
           ${t.status === 'COMPLETED' ? `
-            <div class="p-5 bg-emerald-500/10 border-2 border-emerald-500/30 rounded-2xl flex items-center gap-4 text-emerald-700">
-              <span class="text-3xl">🎉</span>
-              <div>
-                <strong class="font-extrabold text-base">${isBn ? 'টিম সফলভাবে পূর্ণ হয়েছে!' : 'Team Goal Achieved!'}</strong>
-                <p class="text-xs text-foreground/80 mt-0.5">${isBn ? 'সকল সদস্যের জন্য গ্রুপ মূল্যে অর্ডার তৈরি সম্পন্ন হয়েছে।' : 'Real orders have been created for all team members at the discounted group price.'}</p>
+            <div class="team-status-banner team-status-banner--completed">
+              <div class="team-status-banner__icon">🎉</div>
+              <div class="team-status-banner__body">
+                <strong class="team-status-banner__title">${isBn ? 'টিম সফলভাবে পূর্ণ হয়েছে!' : 'Team Goal Achieved!'}</strong>
+                <p class="team-status-banner__desc">${isBn ? 'সকল সদস্যের জন্য গ্রুপ মূল্যে অর্ডার তৈরি সম্পন্ন হয়েছে।' : 'Real orders have been created for all team members at the discounted group price.'}</p>
               </div>
             </div>
           ` : t.status === 'EXPIRED' ? `
-            <div class="p-5 bg-rose-500/10 border-2 border-rose-500/30 rounded-2xl flex items-center gap-4 text-rose-700">
-              <span class="text-3xl">⏰</span>
-              <div>
-                <strong class="font-extrabold text-base">${isBn ? 'টিমের সময়সীমা শেষ হয়েছে।' : 'Team Purchase Expired'}</strong>
-                <p class="text-xs text-foreground/80 mt-0.5">${isBn ? 'সময় শেষ হওয়ায় সকল সদস্যের অর্থ ১০০% রিফান্ড করা হয়েছে।' : 'The 24-hour window closed before filling. All member payment holds have been 100% refunded.'}</p>
+            <div class="team-status-banner team-status-banner--expired">
+              <div class="team-status-banner__icon">⏰</div>
+              <div class="team-status-banner__body">
+                <strong class="team-status-banner__title">${isBn ? 'টিমের সময়সীমা শেষ হয়েছে' : 'Team Purchase Expired'}</strong>
+                <p class="team-status-banner__desc">${isBn ? 'সময় শেষ হওয়ায় সকল সদস্যের অর্থ ১০০% রিফান্ড করা হয়েছে।' : 'The 24-hour window closed before filling. All member payment holds have been 100% refunded.'}</p>
               </div>
             </div>
           ` : `
             <div class="team-urgency-banner">
-              <div class="flex items-center gap-3">
-                <span class="text-3xl animate-pulse">🔥</span>
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <span style="font-size: 2rem;">🔥</span>
                 <div>
-                  <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">${isBn ? 'সোশ্যাল গ্রুপ বাই ডিল' : 'Social Team Purchase'}</span>
-                  <h2 class="font-extrabold text-base text-foreground mt-0.5">${isBn ? `${required} জনের টিম পূর্ণ করে ডিসকাউন্ট উপভোগ করুন` : `Assemble a team of ${required} to unlock group price`}</h2>
+                  <span class="badge badge--brand" style="font-size: 11px; font-weight: 700; text-transform: uppercase;">${isBn ? 'সোশ্যাল গ্রুপ বাই ডিল' : 'Social Team Purchase'}</span>
+                  <h2 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 4px 0 0 0;">${isBn ? `${required} জনের টিম পূর্ণ করে ডিসকাউন্ট উপভোগ করুন` : `Assemble a team of ${required} to unlock group price`}</h2>
                 </div>
               </div>
-              <div class="text-center sm:text-right">
-                <div class="text-[11px] text-muted uppercase font-bold tracking-wider">${isBn ? 'বাকি সময়' : 'Time Remaining'}</div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em;">${isBn ? 'বাকি সময়' : 'Time Remaining'}</div>
                 <div id="live-countdown" class="team-timer-display">
                   ${this._formatRemaining(t.remaining_seconds)}
                 </div>
@@ -615,41 +616,49 @@ export class TeamPurchasePage {
 
           <!-- Product Card -->
           <div class="team-detail-product-card">
-            <div class="w-28 h-28 rounded-xl overflow-hidden bg-surface-2 border border-subtle shrink-0 flex items-center justify-center">
+            <div class="team-detail-product-card__media">
               ${t.product_image_url ? `
-                <img src="${t.product_image_url}" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                <img src="${t.product_image_url}" alt="${t.product_name_en || 'Product'}" class="team-detail-product-card__img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                 <div style="display:none; width:100%; height:100%; align-items:center; justify-content:center; font-size:2.5rem;">🛍️</div>
               ` : `
-                <span class="text-4xl">🛍️</span>
+                <span style="font-size: 2.5rem;">🛍️</span>
               `}
             </div>
 
-            <div class="space-y-2 flex-1 text-center sm:text-left">
-              <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <span class="badge badge--success text-xs font-bold">Save ${discountPct}%</span>
-                <span class="badge badge--neutral text-xs font-mono font-bold">${t.ref}</span>
+            <div class="team-detail-product-card__content">
+              <div class="team-detail-product-card__badges">
+                ${discountPct > 0 ? `<span class="badge badge--success" style="font-weight: 700;">Save ${discountPct}%</span>` : ''}
+                <span class="badge badge--neutral" style="font-family: var(--font-mono, monospace); font-weight: 700;">${t.ref}</span>
+                <span class="badge badge--neutral" style="font-weight: 700; text-transform: uppercase;">${t.status === 'ACTIVE' ? (isBn ? 'চলতি' : 'ACTIVE') : t.status === 'COMPLETED' ? (isBn ? 'সফল' : 'COMPLETED') : (isBn ? 'মেয়াদোত্তীর্ণ' : 'EXPIRED')}</span>
               </div>
-              <h3 class="font-bold text-lg text-foreground leading-snug">${isBn ? (t.product_name_bn || t.product_name_en) : t.product_name_en}</h3>
 
-              <div class="flex items-baseline justify-center sm:justify-start gap-3 pt-1 font-mono">
-                <span class="text-2xl font-black text-primary">৳${grpPrice.toFixed(2)}</span>
-                <span class="text-sm line-through text-muted">৳${origPrice.toFixed(2)}</span>
+              <a href="/products/${t.product_slug || t.product_id}" class="team-detail-product-card__title" title="${isBn ? 'পণ্য বিস্তারিত দেখুন' : 'View product details'}">
+                ${isBn ? (t.product_name_bn || t.product_name_en) : t.product_name_en}
+              </a>
+
+              <div class="team-detail-product-card__prices">
+                <span class="team-detail-product-card__group-price">৳${grpPrice.toFixed(2)}</span>
+                <span class="team-detail-product-card__orig-price">৳${origPrice.toFixed(2)}</span>
+                ${discountPct > 0 ? `<span class="team-detail-product-card__save-tag">৳${(origPrice - grpPrice).toFixed(0)} ${isBn ? 'সাশ্রয়' : 'Saved'}</span>` : ''}
               </div>
             </div>
           </div>
 
-          <!-- Team Progress Slots -->
-          <div class="card p-6 bg-surface border border-subtle rounded-2xl space-y-6 text-center shadow-xs">
-            <div class="space-y-1">
-              <h4 class="font-extrabold text-base text-foreground">
-                ${isBn ? `টিম সদস্য (${current} / ${required} জন যুক্ত)` : `Team Members (${current} / ${required} Joined)`}
+          <!-- Team Progress Slots Card -->
+          <div class="team-detail-slots-card">
+            <div class="team-detail-slots-card__header">
+              <h4 class="team-detail-slots-card__title">
+                👥 ${isBn ? `টিম সদস্য (${current} / ${required} জন যুক্ত)` : `Team Members (${current} / ${required} Joined)`}
               </h4>
-              <p class="text-xs text-muted">
+              <div class="team-detail-slots-card__progress-wrap">
+                <div class="team-detail-slots-card__progress-bar" style="width: ${percentFilled}%;"></div>
+              </div>
+              <p class="team-detail-slots-card__subtitle">
                 ${t.status === 'ACTIVE'
                   ? (isBn ? `আর মাত্র ${required - current} জন যুক্ত হলেই সবার অর্ডার নিশ্চিত হবে!` : `Only ${required - current} more spot left to lock in group discount!`)
                   : t.status === 'COMPLETED'
-                  ? (isBn ? 'টিম পূর্ণ হয়েছে এবং অর্ডার প্রস্তুত।' : 'All spots filled! Orders confirmed.')
-                  : ''}
+                  ? (isBn ? 'টিম পূর্ণ হয়েছে এবং গ্রুপ মূল্যে অর্ডার প্রস্তুত।' : 'All spots filled! Orders confirmed at group discount price.')
+                  : (isBn ? '২৪ ঘণ্টার সময়সীমা শেষ হওয়ায় সকল সদস্যের অর্থ ১০০% রিফান্ড করা হয়েছে।' : 'The 24-hour group buying window closed before filling. All member payment holds have been 100% refunded.')}
               </p>
             </div>
 
@@ -675,9 +684,9 @@ export class TeamPurchasePage {
               }).join('')}
             </div>
 
-            <!-- Actions -->
-            ${t.status === 'ACTIVE' ? `
-              <div class="team-share-actions">
+            <!-- Contextual Actions -->
+            <div class="team-detail-actions">
+              ${t.status === 'ACTIVE' ? `
                 <button id="btn-join-team" class="team-btn-join">
                   <span>⚡</span>
                   <span>${isBn ? `৳${grpPrice.toFixed(2)} মূল্যে টিমে যুক্ত হন` : `Join Team for ৳${grpPrice.toFixed(2)}`}</span>
@@ -694,17 +703,34 @@ export class TeamPurchasePage {
                   <span>💬</span>
                   <span>WhatsApp Share</span>
                 </a>
-              </div>
-            ` : `
-              <div class="pt-4 border-t border-subtle flex justify-center gap-3">
-                <a href="/" class="team-page__explore-btn">
-                  🛍️ ${isBn ? 'অন্যান্য পণ্য দেখুন' : 'Browse Other Deals'}
+              ` : t.status === 'COMPLETED' ? `
+                <a href="/account/orders" class="team-page__explore-btn">
+                  <span>📦</span>
+                  <span>${isBn ? 'অর্ডার ট্র্যাক করুন' : 'Track Order Status'}</span>
                 </a>
-                <a href="/account/team-purchases" class="team-card__btn-copy font-bold">
-                  👥 ${isBn ? 'আমার সকল টিম' : 'View All My Teams'}
+                <a href="/account/team-purchases" class="team-btn-share-copy">
+                  <span>👥</span>
+                  <span>${isBn ? 'আমার সকল টিম' : 'View All My Teams'}</span>
                 </a>
-              </div>
-            `}
+                <a href="/" class="team-card__btn-copy">
+                  <span>🛍️</span>
+                  <span>${isBn ? 'আরও পণ্য দেখুন' : 'Explore More Deals'}</span>
+                </a>
+              ` : `
+                <a href="/products/${t.product_slug || t.product_id}" class="team-page__explore-btn">
+                  <span>🛍️</span>
+                  <span>${isBn ? 'নতুন টিম খুলুন / একক কিনুন' : 'Buy Solo or Start New Team'}</span>
+                </a>
+                <a href="/account/team-purchases" class="team-btn-share-copy">
+                  <span>👥</span>
+                  <span>${isBn ? 'আমার সকল টিম' : 'View All My Teams'}</span>
+                </a>
+                <a href="/" class="team-card__btn-copy">
+                  <span>🔥</span>
+                  <span>${isBn ? 'অন্যান্য টিম ডিল' : 'Explore Other Deals'}</span>
+                </a>
+              `}
+            </div>
           </div>
         </div>
       </div>

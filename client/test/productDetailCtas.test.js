@@ -128,4 +128,19 @@ describe('Product Detail CTAs — Chat with Seller & Team Purchase Invariants', 
     assert.equal(createRes.body.team.original_price, 3200);
     assert.equal(createRes.body.team.status, 'ACTIVE');
   });
+
+  it('8. TeamPurchasePage detail view has structured status banner, constrained product media, and slots card', () => {
+    const pageSrc = readFileSync(join(root, 'src/pages/TeamPurchasePage.js'), 'utf8');
+    const cssSrc = readFileSync(join(root, 'src/styles/components/team-purchases.css'), 'utf8');
+
+    assert.ok(cssSrc.includes('.team-status-banner'), 'team-purchases.css must define .team-status-banner');
+    assert.ok(cssSrc.includes('.team-detail-product-card__media'), 'team-purchases.css must define .team-detail-product-card__media');
+    assert.ok(cssSrc.includes('.team-detail-slots-card'), 'team-purchases.css must define .team-detail-slots-card');
+
+    assert.ok(pageSrc.includes('team-status-banner'), 'TeamPurchasePage must render team-status-banner');
+    assert.ok(pageSrc.includes('team-detail-product-card__media'), 'TeamPurchasePage must render constrained media');
+    assert.ok(pageSrc.includes('team-detail-slots-card'), 'TeamPurchasePage must render team-detail-slots-card');
+    assert.ok(!pageSrc.includes('w-28 h-28'), 'TeamPurchasePage must not use Tailwind w-28 h-28');
+  });
 });
+
