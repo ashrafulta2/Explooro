@@ -1830,6 +1830,10 @@ registerServiceWorker();
 initOfflineBanner();
 initPwaInstallPrompt();
 
+// Universal Floating Horizontal Scrollbar
+import { initFloatingScroll } from './services/floatingScroll.js';
+initFloatingScroll();
+
 // Re-check on HMR so the panel stays truthful while the server restarts under --watch.
 if (import.meta.hot) {
   import.meta.hot.accept();

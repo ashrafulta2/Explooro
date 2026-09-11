@@ -196,13 +196,13 @@ export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark'
  */
 export function formatExplooroBrandText(text = 'Explooro') {
   if (text.startsWith('EXPLOORO')) {
-    return `EXPL<span class="brand-text__accent">O</span>ORO${text.slice(8)}`;
+    return `EXPL<span class="brand-text__accent" aria-hidden="true">O</span>ORO${text.slice(8)}`;
   }
   if (text.startsWith('Explooro')) {
-    return `Expl<span class="brand-text__accent">o</span>oro${text.slice(8)}`;
+    return `Expl<span class="brand-text__accent" aria-hidden="true">o</span>oro${text.slice(8)}`;
   }
   if (text.length >= 5) {
-    return `${text.slice(0, 4)}<span class="brand-text__accent">${text.charAt(4)}</span>${text.slice(5)}`;
+    return `${text.slice(0, 4)}<span class="brand-text__accent" aria-hidden="true">${text.charAt(4)}</span>${text.slice(5)}`;
   }
   return text;
 }

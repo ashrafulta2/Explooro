@@ -339,6 +339,8 @@ export default function ProfilePage(root, { navigate } = {}) {
   function markDirty() {
     if (!actionsBar) return;
     actionsBar.dataset.dirty = 'true';
+    const msg = actionsBar.querySelector('.profile-actions__msg');
+    if (msg) msg.textContent = t('profile.unsaved_changes', 'You have unsaved changes');
     if (resetBtn) resetBtn.setDisabled(false);
   }
 
@@ -436,7 +438,13 @@ export default function ProfilePage(root, { navigate } = {}) {
       readonly: true,
       disabled: true,
     });
-    fields.phone.append(verificationBadge(saved.is_phone_verified));
+    fields.phone.classList.add('profile-card__field--wide', 'profile-field--with-badge');
+    const phoneLabel = fields.phone.querySelector('.field__label');
+    if (phoneLabel) {
+      phoneLabel.append(verificationBadge(saved.is_phone_verified));
+    } else {
+      fields.phone.append(verificationBadge(saved.is_phone_verified));
+    }
 
     fields.email = Input({
       label: t('profile.field_email', 'Email address'),
@@ -447,7 +455,13 @@ export default function ProfilePage(root, { navigate } = {}) {
       autocomplete: 'email',
       onInput: markDirty,
     });
-    fields.email.append(verificationBadge(saved.is_email_verified));
+    fields.email.classList.add('profile-card__field--wide', 'profile-field--with-badge');
+    const emailLabel = fields.email.querySelector('.field__label');
+    if (emailLabel) {
+      emailLabel.append(verificationBadge(saved.is_email_verified));
+    } else {
+      fields.email.append(verificationBadge(saved.is_email_verified));
+    }
 
     return labelledSection(
       'profile.section_contact',
@@ -496,6 +510,15 @@ export default function ProfilePage(root, { navigate } = {}) {
       onChange: markDirty,
     });
 
+    fields.postal_code = Input({
+      label: t('profile.field_postal', 'Postal code'),
+      value: saved.postal_code || '',
+      maxLength: 4,
+      inputmode: 'numeric',
+      autocomplete: 'postal-code',
+      onInput: markDirty,
+    });
+
     fields.address_line = Input({
       label: t('profile.field_address', 'Address'),
       hint: t('profile.hint_address', 'House and road. Delivery addresses live in your address book.'),
@@ -506,15 +529,6 @@ export default function ProfilePage(root, { navigate } = {}) {
     });
     fields.address_line.classList.add('profile-card__field--wide');
 
-    fields.postal_code = Input({
-      label: t('profile.field_postal', 'Postal code'),
-      value: saved.postal_code || '',
-      maxLength: 4,
-      inputmode: 'numeric',
-      autocomplete: 'postal-code',
-      onInput: markDirty,
-    });
-
     const addressBookLink = document.createElement('button');
     addressBookLink.type = 'button';
     addressBookLink.className = 'profile-inline-link';
@@ -522,7 +536,7 @@ export default function ProfilePage(root, { navigate } = {}) {
     addressBookLink.addEventListener('click', () => nav('/account/addresses'));
 
     const linkRow = document.createElement('div');
-    linkRow.className = 'profile-card__field--wide';
+    linkRow.className = 'profile-card__field--wide profile-location-link-row';
     linkRow.append(addressBookLink);
 
     const card = labelledSection(
@@ -530,7 +544,7 @@ export default function ProfilePage(root, { navigate } = {}) {
       'Location',
       'profile.section_location_desc',
       'Where you are, so Explooro can show relevant sellers and delivery estimates.',
-      [fields.division, fields.district, fields.upazila, fields.address_line, fields.postal_code, linkRow]
+      [fields.division, fields.district, fields.upazila, fields.postal_code, fields.address_line, linkRow]
     );
 
     // Populated after the selects exist, so the saved division/district resolve their children.
@@ -620,6 +634,7 @@ export default function ProfilePage(root, { navigate } = {}) {
       options: TIMEZONES.map((tz) => ({ value: tz, label: tz.replace(/_/g, ' ') })),
       onChange: markDirty,
     });
+    fields.timezone.classList.add('profile-card__field--wide');
 
     fields.use_bengali_numerals = Switch({
       label: t('profile.field_bengali_numerals', 'Use Bengali numerals'),
@@ -655,8 +670,11 @@ export default function ProfilePage(root, { navigate } = {}) {
       item.type = 'button';
       item.className = 'profile-links__item';
       item.innerHTML = `
-        <span class="profile-links__label"></span>
-        <span class="profile-links__desc"></span>
+        <div class="profile-links__content">
+          <span class="profile-links__label"></span>
+          <span class="profile-links__desc"></span>
+        </div>
+        <span class="profile-links__arrow" aria-hidden="true">→</span>
       `;
       item.querySelector('.profile-links__label').textContent = link.label;
       item.querySelector('.profile-links__desc').textContent = link.desc;
@@ -774,10 +792,22 @@ export default function ProfilePage(root, { navigate } = {}) {
     bar.className = 'profile-actions';
     bar.dataset.dirty = 'false';
 
+    const statusNote = document.createElement('div');
+    statusNote.className = 'profile-actions__status';
+    statusNote.innerHTML = `
+      <span class="profile-actions__dot" aria-hidden="true"></span>
+      <span class="profile-actions__msg"></span>
+    `;
+    const msg = statusNote.querySelector('.profile-actions__msg');
+    if (msg) msg.textContent = t('profile.all_saved', 'All changes saved');
+
+    const buttonGroup = document.createElement('div');
+    buttonGroup.className = 'profile-actions__buttons';
+
     saveBtn = Button({ label: t('profile.save', 'Save changes'), variant: 'primary', size: 'md', onClick: save });
     resetBtn = Button({
       label: t('common.cancel', 'Cancel'),
-      variant: 'ghost',
+      variant: 'secondary',
       size: 'md',
       onClick: () => {
         pendingAvatar = undefined;
@@ -786,7 +816,8 @@ export default function ProfilePage(root, { navigate } = {}) {
     });
     resetBtn.setDisabled(true);
 
-    bar.append(resetBtn, saveBtn);
+    buttonGroup.append(resetBtn, saveBtn);
+    bar.append(statusNote, buttonGroup);
     return bar;
   }
 
@@ -801,7 +832,16 @@ export default function ProfilePage(root, { navigate } = {}) {
 
     const grid = document.createElement('div');
     grid.className = 'profile-grid';
-    grid.append(buildPersonalCard(), buildContactCard(), buildLocationCard(), buildPreferencesCard(), buildRelatedCard());
+
+    const col1 = document.createElement('div');
+    col1.className = 'profile-grid__col';
+    col1.append(buildPersonalCard(), buildLocationCard());
+
+    const col2 = document.createElement('div');
+    col2.className = 'profile-grid__col';
+    col2.append(buildContactCard(), buildPreferencesCard(), buildRelatedCard());
+
+    grid.append(col1, col2);
     body.append(grid);
 
     actionsBar = buildActions();

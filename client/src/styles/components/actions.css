@@ -61,7 +61,7 @@
 .badge--status[data-status='closed'] { background: var(--surface-2); color: var(--text-muted); border-color: var(--border-subtle); }
 .badge--status[data-status='closed'] .badge__dot { background: var(--text-muted); }
 .badge--count, .badge--numeric { background: var(--danger); color: var(--text-inverse); font-variant-numeric: tabular-nums; min-width: 20px; justify-content: center; padding-inline: var(--space-2); }
-.badge--tier { background: var(--brand-100); color: var(--brand-800); border-color: var(--brand-200); text-transform: uppercase; font-size: var(--text-2xs); letter-spacing: var(--tracking-2xs); }
+.badge--tier { background: var(--brand-100); color: var(--brand-950); border-color: var(--brand-200); text-transform: uppercase; font-size: var(--text-2xs); letter-spacing: var(--tracking-2xs); }
 :root[data-theme='dark'] .badge--tier { background: var(--surface-2); color: var(--text-brand); border-color: var(--border-interactive); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .badge--tier { background: var(--surface-2); color: var(--text-brand); border-color: var(--border-interactive); } }
 .badge--tier:lang(bn) { text-transform: none; }

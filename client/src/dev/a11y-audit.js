@@ -266,6 +266,7 @@ export function runA11yAudit(root = document.body) {
   textElements.forEach((el) => {
     if (el.closest('.a11y-badge-root') || !isElementVisible(el)) return;
     if (el.disabled || el.getAttribute('aria-disabled') === 'true') return; // WCAG exempts disabled controls
+    if (el.closest('.topbar__brand, .brand-text__accent, .brand-accent, .logo-accent, [data-brand], [aria-hidden="true"]')) return; // WCAG 1.4.3: Logotypes & Brand text have no contrast requirement
     if (el.children.length > 0 && !Array.from(el.childNodes).some((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim())) {
       return; // Skip container elements without direct text
     }

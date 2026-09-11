@@ -22,7 +22,7 @@
 .feed-switcher::-webkit-scrollbar { display: none; }
 .feed-switcher__tab { flex-shrink: 0; padding: var(--space-2) var(--space-4); background: none; border: var(--border-width) solid transparent; border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: color 120ms, background 120ms, border-color 120ms; }
 .feed-switcher__tab:hover { background: var(--surface-2); color: var(--text-primary); }
-.feed-switcher__tab[aria-selected='true'] { background: var(--brand-100); border-color: var(--brand-300); color: var(--brand-800); font-weight: 600; }
+.feed-switcher__tab[aria-selected='true'] { background: var(--brand-100); border-color: var(--brand-300); color: var(--brand-950); font-weight: 600; }
 [data-theme='dark'] .feed-switcher__tab[aria-selected='true'] { background: var(--brand-950); border-color: var(--brand-700); color: var(--brand-300); }
 
 /* Category Pills */
@@ -83,7 +83,8 @@
 .product-card__price-row { display: flex; align-items: baseline; gap: var(--space-2); margin-top: var(--space-1); flex-wrap: wrap; }
 .product-card__price { font-size: var(--text-base); font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-primary); letter-spacing: -0.01em; }
 .product-card__original-price { font-size: var(--text-xs); color: var(--text-muted); text-decoration: line-through; font-variant-numeric: tabular-nums; margin-left: 2px; }
-.product-card__discount-badge { display: inline-flex; align-items: center; padding: 1px 4px; background: var(--danger-500); color: #ffffff; font-size: 10px; font-weight: 700; border-radius: var(--radius-xs); margin-left: auto; line-height: 1.2; }
+.product-card__discount-badge { display: inline-flex; align-items: center; padding: 1px 4px; background: var(--danger-700); color: #ffffff; font-size: 10px; font-weight: 700; border-radius: var(--radius-xs); margin-left: auto; line-height: 1.2; }
+[data-theme='dark'] .product-card__discount-badge { background: var(--danger-800); color: var(--neutral-100); }
 .product-card__margin { display: inline-flex; align-items: center; padding: 1px var(--space-2); background: var(--success-50); border: var(--border-width) solid var(--success-300); border-radius: var(--radius-xs); font-size: 11px; font-weight: 600; color: var(--success-700); font-variant-numeric: tabular-nums; white-space: nowrap; }
 [data-theme='dark'] .product-card__margin { background: oklch(from var(--success-800) l c h / 0.2); border-color: var(--success-700); color: var(--success-300); }
 .product-card__rating { display: flex; align-items: center; gap: var(--space-1); margin-top: 2px; }
@@ -131,8 +132,9 @@
 @media (max-width: 900px) { .filter-panel { display: none; } }
 .filter-panel__header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-4); }
 .filter-panel[data-collapsed='true'] .filter-panel__title, .filter-panel[data-collapsed='true'] .filter-panel__clear, .filter-panel[data-collapsed='true'] .filter-panel__body { display: none; }
-.filter-panel__collapse-toggle { position: absolute; top: 50%; right: var(--space-2); transform: translateY(-50%); z-index: 1; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: var(--border-width) solid var(--brand); border-radius: var(--radius-full); background: transparent; color: var(--brand); box-shadow: var(--elevation-2); font-size: var(--text-sm); cursor: pointer; transition: background 120ms, color 120ms; }
-.filter-panel__collapse-toggle:hover { background: var(--brand); color: var(--brand-contrast); box-shadow: var(--elevation-3); }
+.filter-panel__collapse-toggle { position: absolute; top: 50%; right: var(--space-2); transform: translateY(-50%); z-index: 1; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: var(--border-width) solid var(--brand); border-radius: var(--radius-full); background: var(--surface-1); color: var(--brand); box-shadow: var(--elevation-2); font-size: var(--text-sm); cursor: pointer; transition: background 120ms, color 120ms, box-shadow 120ms, border-color 120ms; }
+.filter-panel__collapse-toggle svg { display: block; stroke: currentColor; transition: transform var(--dur-fast) var(--ease-standard); }
+.filter-panel__collapse-toggle:hover { background: var(--brand); color: var(--brand-contrast); border-color: var(--brand); box-shadow: var(--elevation-3); }
 .filter-panel__title { font-size: var(--text-sm); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); margin: 0; }
 .filter-panel__clear { background: none; border: none; font-size: var(--text-xs); color: var(--text-brand); cursor: pointer; padding: 0; font-weight: 500; }
 .filter-panel__clear:hover { text-decoration: underline; }

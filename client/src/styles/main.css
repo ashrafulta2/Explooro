@@ -104,3 +104,6 @@
 
 /* My Profile: the account menu's self-service profile page */
 @import './components/profile.css';
+
+/* Universal Floating Bottom Horizontal Scrollbar */
+@import './components/floating-scroll.css';

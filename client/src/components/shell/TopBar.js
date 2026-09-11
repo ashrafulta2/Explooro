@@ -454,6 +454,7 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
   const brand = document.createElement('a');
   brand.className = 'topbar__brand';
   brand.href = '/';
+  brand.setAttribute('aria-label', 'Explooro');
   brand.innerHTML = `${getExplooroLogoSvg({ size: 28 })} <span class="topbar__brand-text">${formatExplooroBrandText('EXPLOORO')}</span>`;
   brand.addEventListener('click', (e) => {
     e.preventDefault();

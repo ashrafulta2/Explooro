@@ -121,12 +121,15 @@ export function FilterPanel({
   const collapseBtn = document.createElement('button');
   collapseBtn.type = 'button';
   collapseBtn.className = 'filter-panel__collapse-toggle';
-  collapseBtn.textContent = '‹';
+  const renderFilterChevron = (isCollapsed) => isCollapsed
+    ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
+    : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+  collapseBtn.innerHTML = renderFilterChevron(collapsed);
   collapseBtn.setAttribute('aria-label', t('marketplace.filter.collapse'));
   collapseBtn.addEventListener('click', () => {
     collapsed = !collapsed;
     content.dataset.collapsed = String(collapsed);
-    collapseBtn.textContent = collapsed ? '›' : '‹';
+    collapseBtn.innerHTML = renderFilterChevron(collapsed);
     collapseBtn.setAttribute('aria-label', t(collapsed ? 'marketplace.filter.expand' : 'marketplace.filter.collapse'));
   });
   header.append(titleEl, clearBtn, collapseBtn);

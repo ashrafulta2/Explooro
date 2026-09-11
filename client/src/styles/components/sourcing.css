@@ -372,7 +372,7 @@
 .margin-projection__milestones { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: center; }
 .margin-milestone-pill { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-full); padding: var(--space-1) var(--space-3); font-size: 11px; color: var(--text-secondary); cursor: pointer; }
 .margin-milestone-pill:hover { background: var(--surface-2); color: var(--text-primary); }
-.margin-milestone-pill.active { background: var(--brand-100); color: var(--brand-800); border-color: var(--brand-500); font-weight: 600; }
+.margin-milestone-pill.active { background: var(--brand-100); color: var(--brand-950); border-color: var(--brand-500); font-weight: 600; }
 
 /* Add Store Drawer */
 .add-store-form { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-2) 0; }
