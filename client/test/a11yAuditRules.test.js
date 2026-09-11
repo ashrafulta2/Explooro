@@ -222,6 +222,51 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'LiveStreamPage must mark decorative pulse-dot with aria-hidden="true"'
     );
   });
+
+  await t.test('12. LiveStreamPage stream chat input has accessible label and aria-label', () => {
+    assert.ok(enDict.live.chat_input_label, 'en.json must contain live.chat_input_label');
+    assert.ok(bnDict.live.chat_input_label, 'bn.json must contain live.chat_input_label');
+    assert.ok(enDict.live.send_message, 'en.json must contain live.send_message');
+    assert.ok(bnDict.live.send_message, 'bn.json must contain live.send_message');
+
+    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.js');
+    const content = fs.readFileSync(livePagePath, 'utf8');
+
+    assert.match(
+      content,
+      /<label[^>]*for="stream-chat-input"[^>]*class="sr-only"/,
+      'LiveStreamPage must include a label for stream-chat-input'
+    );
+    assert.match(
+      content,
+      /<input[^>]*id="stream-chat-input"[^>]*aria-label="/,
+      'stream-chat-input must have aria-label attribute'
+    );
+    assert.match(
+      content,
+      /<button[^>]*id="send-chat-btn"[^>]*aria-label="/,
+      'send-chat-btn must have aria-label attribute'
+    );
+  });
+
+  await t.test('13. LiveStreamPage provides role-aware host CTA without unauthorized navigation', () => {
+    assert.ok(enDict.live.become_seller_to_host, 'en.json must contain live.become_seller_to_host');
+    assert.ok(bnDict.live.become_seller_to_host, 'bn.json must contain live.become_seller_to_host');
+
+    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.js');
+    const content = fs.readFileSync(livePagePath, 'utf8');
+
+    assert.match(
+      content,
+      /navigate\('\/become-saler'\)/,
+      'LiveStreamPage must route non-sellers to /become-saler instead of restricted studio'
+    );
+    assert.match(
+      content,
+      /t\('live\.become_seller_to_host'\)/,
+      'LiveStreamPage must use become_seller_to_host label for customer role'
+    );
+  });
 });
 
 

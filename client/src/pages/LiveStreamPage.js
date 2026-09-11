@@ -345,14 +345,20 @@ async function renderStreamDiscoveryList(container, navigate) {
   heroActionsSlot.append(guideBtn);
 
   const hostStudioBtn = Button({
-    label: isSellerRole ? (t('live.host_studio') || 'Host a Live Stream') : (t('live.host_studio') || 'Host a Live Stream'),
+    label: isSellerRole
+      ? (t('live.host_studio') || 'Host a Live Stream')
+      : (t('live.become_seller_to_host') || 'Become a Seller to Host'),
     variant: 'primary',
     size: 'sm',
     onClick: () => {
-      if (user?.role === 'supplier') {
-        navigate('/supplier/live-studio');
+      if (isSellerRole) {
+        if (user?.role === 'supplier') {
+          navigate('/supplier/live-studio');
+        } else {
+          navigate('/saler/live-studio');
+        }
       } else {
-        navigate('/saler/live-studio');
+        navigate('/become-saler');
       }
     },
   });
@@ -624,8 +630,14 @@ async function renderStreamViewer(container, streamId, navigate) {
           <!-- Bottom Control Bar -->
           <div class="stream-overlay-bottom" id="viewer-bottom-bar">
             <div class="stream-chat-input-wrapper">
-              <input type="text" id="stream-chat-input" placeholder="${t('live.type_comment') || 'Say something nice…'}" />
-              <button class="btn-send-chat" id="send-chat-btn" aria-label="Send message">💬</button>
+              <label for="stream-chat-input" class="sr-only">${t('live.chat_input_label') || 'Live stream comment'}</label>
+              <input 
+                type="text" 
+                id="stream-chat-input" 
+                aria-label="${t('live.chat_input_label') || 'Live stream comment'}"
+                placeholder="${t('live.type_comment') || 'Say something nice…'}" 
+              />
+              <button class="btn-send-chat" id="send-chat-btn" aria-label="${t('live.send_message') || 'Send message'}">💬</button>
             </div>
             <div class="stream-actions">
               <button class="btn-action-reaction" id="btn-react-heart" title="Send Love" aria-label="Heart reaction">❤️</button>
