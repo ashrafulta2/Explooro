@@ -304,8 +304,151 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'shop-status-toggle__schedule-link must not use low-contrast var(--brand-600)'
     );
   });
+
+  await t.test('16. BecomeSalerPage profit calculator sliders have associated labels and aria-labels', () => {
+    const becomeSalerPath = path.join(clientRoot, 'src', 'pages', 'customer', 'BecomeSalerPage.js');
+    const content = fs.readFileSync(becomeSalerPath, 'utf8');
+
+    // Labels with htmlFor
+    assert.match(
+      content,
+      /<label[^>]*for="calc-orders-slider"/,
+      'calc-orders-slider must have an associated label'
+    );
+    assert.match(
+      content,
+      /<label[^>]*for="calc-price-slider"/,
+      'calc-price-slider must have an associated label'
+    );
+    assert.match(
+      content,
+      /<label[^>]*for="calc-margin-slider"/,
+      'calc-margin-slider must have an associated label'
+    );
+
+    // Inputs with aria-label
+    assert.match(
+      content,
+      /<input[^>]*id="calc-orders-slider"[^>]*aria-label="/,
+      'calc-orders-slider must have aria-label attribute'
+    );
+    assert.match(
+      content,
+      /<input[^>]*id="calc-price-slider"[^>]*aria-label="/,
+      'calc-price-slider must have aria-label attribute'
+    );
+    assert.match(
+      content,
+      /<input[^>]*id="calc-margin-slider"[^>]*aria-label="/,
+      'calc-margin-slider must have aria-label attribute'
+    );
+  });
+
+  await t.test('17. customer-coins.css satisfies WCAG AA contrast across stats, badges, and streak nodes', () => {
+    const coinsCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'customer-coins.css');
+    const cssContent = fs.readFileSync(coinsCssPath, 'utf8');
+
+    // Values in stat pills must use high-contrast greens and ambers
+    assert.match(
+      cssContent,
+      /\.coins-stat-pill__value--green\s*\{[^}]*color:\s*#166534/,
+      'coins-stat-pill__value--green must use high-contrast #166534 (not #16a34a)'
+    );
+    assert.match(
+      cssContent,
+      /\.coins-stat-pill__value--amber\s*\{[^}]*color:\s*#92400e/,
+      'coins-stat-pill__value--amber must use high-contrast #92400e (not #d97706)'
+    );
+
+    // Streak badge must use #92400e
+    assert.match(
+      cssContent,
+      /\.coins-streak-badge\s*\{[^}]*color:\s*#92400e/,
+      'coins-streak-badge must use #92400e'
+    );
+
+    // Claimed and today streak calendar nodes must satisfy contrast
+    assert.match(
+      cssContent,
+      /\.coins-day-node--claimed\s+\.coins-day-node__day[^}]*color:\s*#166534/,
+      'claimed day node text must use #166534'
+    );
+    assert.match(
+      cssContent,
+      /\.coins-day-node--today\s+\.coins-day-node__day[^}]*color:\s*#92400e/,
+      'today day node text must use #92400e'
+    );
+  });
+
+  await t.test('18. ReferralHubPage and referrals.css satisfy form label and WCAG AA contrast rules', () => {
+    const referralPagePath = path.join(clientRoot, 'src', 'pages', 'saler', 'ReferralHubPage.js');
+    const referralPageContent = fs.readFileSync(referralPagePath, 'utf8');
+
+    // Input fields must have proper for-label or aria-label associations
+    assert.match(
+      referralPageContent,
+      /<label[^>]*for="input-referral-link"[^>]*>/,
+      'input-referral-link must have associated <label for="input-referral-link">'
+    );
+    assert.match(
+      referralPageContent,
+      /<input[^>]*id="input-referral-link"[^>]*aria-label="/,
+      'input-referral-link must have aria-label attribute'
+    );
+    assert.match(
+      referralPageContent,
+      /<label[^>]*for="input-tree-search"[^>]*>/,
+      'input-tree-search must have associated <label for="input-tree-search">'
+    );
+    assert.match(
+      referralPageContent,
+      /<input[^>]*id="input-tree-search"[^>]*aria-label="/,
+      'input-tree-search must have aria-label attribute'
+    );
+
+    // Sliders must have labels
+    assert.match(
+      referralPageContent,
+      /<label[^>]*for="slider-friends"[^>]*>/,
+      'slider-friends must have associated <label for="slider-friends">'
+    );
+    assert.match(
+      referralPageContent,
+      /<label[^>]*for="slider-spend"[^>]*>/,
+      'slider-spend must have associated <label for="slider-spend">'
+    );
+
+    // referrals.css contrast rules
+    const referralsCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'referrals.css');
+    const cssContent = fs.readFileSync(referralsCssPath, 'utf8');
+
+    // Facebook social button must use high-contrast #1558b0 (minimum 4.5:1, achieves 7.1:1 with white)
+    assert.match(
+      cssContent,
+      /\.btn-social--facebook\s*\{[^}]*background:\s*#1558b0/,
+      'btn-social--facebook must use #1558b0 to satisfy WCAG AA contrast'
+    );
+
+    // KPI cards and tier badge contrast
+    assert.match(
+      cssContent,
+      /\.referral-kpi-card--green\s+\.referral-kpi-card__val\s*\{[^}]*color:\s*#166534/,
+      'referral-kpi-card--green must use #166534'
+    );
+    assert.match(
+      cssContent,
+      /\.referral-kpi-card--amber\s+\.referral-kpi-card__val\s*\{[^}]*color:\s*#92400e/,
+      'referral-kpi-card--amber must use #92400e'
+    );
+    assert.match(
+      cssContent,
+      /\.referral-tier-badge\s*\{[^}]*color:\s*#92400e/,
+      'referral-tier-badge must use #92400e'
+    );
+    assert.match(
+      cssContent,
+      /\.referral-calc-result__amount\s*\{[^}]*color:\s*#166534/,
+      'referral-calc-result__amount must use #166534'
+    );
+  });
 });
-
-
-
-

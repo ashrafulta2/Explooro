@@ -333,26 +333,52 @@ function renderProfitCalculator(container) {
       <div class="become-saler-calculator__controls">
         <div class="become-saler-calculator__control-group">
           <div class="become-saler-calculator__label-row">
-            <span>${t('customer.become_saler.calculator_orders_label', 'Expected Daily Orders')}:</span>
+            <label for="calc-orders-slider">${t('customer.become_saler.calculator_orders_label', 'Expected Daily Orders')}:</label>
             <span id="calc-orders-readout" class="become-saler-calculator__slider-val">5 ${t('customer.become_saler.calculator_orders_unit', 'orders/day')}</span>
           </div>
-          <input id="calc-orders-slider" type="range" min="1" max="50" value="5" class="become-saler-calculator__range" />
+          <input 
+            id="calc-orders-slider" 
+            type="range" 
+            min="1" 
+            max="50" 
+            value="5" 
+            aria-label="${t('customer.become_saler.calculator_orders_label', 'Expected Daily Orders')}" 
+            class="become-saler-calculator__range" 
+          />
         </div>
 
         <div class="become-saler-calculator__control-group">
           <div class="become-saler-calculator__label-row">
-            <span>${t('customer.become_saler.calculator_avg_price_label', 'Average Retail Order Value')}:</span>
+            <label for="calc-price-slider">${t('customer.become_saler.calculator_avg_price_label', 'Average Retail Order Value')}:</label>
             <span id="calc-price-readout" class="become-saler-calculator__slider-val font-mono">${formatCurrency(1500)}</span>
           </div>
-          <input id="calc-price-slider" type="range" min="500" max="10000" step="250" value="1500" class="become-saler-calculator__range" />
+          <input 
+            id="calc-price-slider" 
+            type="range" 
+            min="500" 
+            max="10000" 
+            step="250" 
+            value="1500" 
+            aria-label="${t('customer.become_saler.calculator_avg_price_label', 'Average Retail Order Value')}" 
+            class="become-saler-calculator__range" 
+          />
         </div>
 
         <div class="become-saler-calculator__control-group">
           <div class="become-saler-calculator__label-row">
-            <span>${t('customer.become_saler.calculator_margin_label', 'Average Reseller Profit Margin')}:</span>
+            <label for="calc-margin-slider">${t('customer.become_saler.calculator_margin_label', 'Average Reseller Profit Margin')}:</label>
             <span id="calc-margin-readout" class="become-saler-calculator__slider-val font-mono">25% (${formatCurrency(375)}${t('customer.become_saler.per_order_unit', '/order')})</span>
           </div>
-          <input id="calc-margin-slider" type="range" min="10" max="40" step="5" value="25" class="become-saler-calculator__range" />
+          <input 
+            id="calc-margin-slider" 
+            type="range" 
+            min="10" 
+            max="40" 
+            step="5" 
+            value="25" 
+            aria-label="${t('customer.become_saler.calculator_margin_label', 'Average Reseller Profit Margin')}" 
+            class="become-saler-calculator__range" 
+          />
         </div>
       </div>
 
@@ -388,9 +414,22 @@ function renderProfitCalculator(container) {
     const daily = orders * profitPerOrder;
     const monthly = daily * 30;
 
-    ordersReadout.textContent = `${orders} ${t('customer.become_saler.calculator_orders_unit', 'orders/day')}`;
-    priceReadout.textContent = formatCurrency(avgPrice);
-    marginReadout.textContent = `${marginPct}% (${formatCurrency(profitPerOrder)}${t('customer.become_saler.per_order_unit', '/order')})`;
+    const ordersText = `${orders} ${t('customer.become_saler.calculator_orders_unit', 'orders/day')}`;
+    const priceText = formatCurrency(avgPrice);
+    const marginText = `${marginPct}% (${formatCurrency(profitPerOrder)}${t('customer.become_saler.per_order_unit', '/order')})`;
+
+    ordersSlider.setAttribute('aria-valuenow', orders);
+    ordersSlider.setAttribute('aria-valuetext', ordersText);
+    ordersReadout.textContent = ordersText;
+
+    priceSlider.setAttribute('aria-valuenow', avgPrice);
+    priceSlider.setAttribute('aria-valuetext', priceText);
+    priceReadout.textContent = priceText;
+
+    marginSlider.setAttribute('aria-valuenow', marginPct);
+    marginSlider.setAttribute('aria-valuetext', marginText);
+    marginReadout.textContent = marginText;
+
     dailyTotal.textContent = formatCurrency(daily);
     monthlyTotal.textContent = formatCurrency(monthly);
   }

@@ -194,10 +194,12 @@ export class ReferralHubPage {
                 </button>
               </div>
 
+              <label for="input-referral-link" class="sr-only">${t('referrals.referral_link_label', 'Your personal referral link')}</label>
               <input
                 type="text"
                 readonly
                 id="input-referral-link"
+                aria-label="${t('referrals.referral_link_label', 'Your personal referral link')}"
                 value="${refLink}"
                 class="referral-link-input" />
 
@@ -383,9 +385,11 @@ export class ReferralHubPage {
             </button>
           </div>
 
+          <label for="input-tree-search" class="sr-only">${t('referrals.search_placeholder', 'রেফারি নাম অনুসন্ধান...')}</label>
           <input
             type="search"
             id="input-tree-search"
+            aria-label="${t('referrals.search_placeholder', 'রেফারি নাম অনুসন্ধান...')}"
             value="${this._escapeHtml(this.searchQuery)}"
             placeholder="${t('referrals.search_placeholder', 'রেফারি নাম অনুসন্ধান...')}"
             class="referral-search-input" />
@@ -435,7 +439,7 @@ export class ReferralHubPage {
                         ? `<span class="badge badge--danger" style="font-size: 10px; font-weight: 800;">⚠️ ${isBn ? 'বাতিল' : 'Fraud Flagged'}</span>`
                         : `<span class="badge badge--neutral" style="font-size: 10px; font-weight: 800;">⏳ ${isBn ? 'অপেক্ষমাণ' : 'Pending'}</span>`}
                     </td>
-                    <td style="text-align: right; font-family: var(--font-mono, monospace); font-weight: 800; color: #16a34a;">
+                    <td style="text-align: right; font-family: var(--font-mono, monospace); font-weight: 800; color: #166534;">
                       ৳${Number(node.earned_from_referee || 0).toFixed(2)}
                     </td>
                   </tr>
@@ -508,7 +512,7 @@ export class ReferralHubPage {
                       <div>৳${Number(item.order_amount || 0).toFixed(2)}</div>
                       <span style="color: var(--text-muted); font-size: 10px;">@ ${Number(item.commission_rate_pct || 5).toFixed(1)}%</span>
                     </td>
-                    <td style="font-family: var(--font-mono, monospace); font-weight: 800; color: #16a34a; font-size: 12px;">
+                    <td style="font-family: var(--font-mono, monospace); font-weight: 800; color: #166534; font-size: 12px;">
                       +৳${Number(item.commission_amount).toFixed(2)}
                     </td>
                     <td style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">
@@ -547,7 +551,7 @@ export class ReferralHubPage {
 
               <div class="referral-slider-group">
                 <div class="referral-slider-label-row">
-                  <span>${t('referrals.calc_friends_label', 'আমন্ত্রিত বন্ধুর সংখ্যা:')}</span>
+                  <label for="slider-friends">${t('referrals.calc_friends_label', 'আমন্ত্রিত বন্ধুর সংখ্যা:')}</label>
                   <span class="referral-slider-val" id="val-friends-count">${this.calcFriends} ${isBn ? 'জন' : 'friends'}</span>
                 </div>
                 <input
@@ -556,12 +560,13 @@ export class ReferralHubPage {
                   max="100"
                   value="${this.calcFriends}"
                   id="slider-friends"
+                  aria-label="${t('referrals.calc_friends_label', 'আমন্ত্রিত বন্ধুর সংখ্যা:')}"
                   style="width: 100%; accent-color: var(--brand);" />
               </div>
 
               <div class="referral-slider-group">
                 <div class="referral-slider-label-row">
-                  <span>${t('referrals.calc_spend_label', 'প্রতি বন্ধুর গড় মাসিক খরচ:')}</span>
+                  <label for="slider-spend">${t('referrals.calc_spend_label', 'প্রতি বন্ধুর গড় মাসিক খরচ:')}</label>
                   <span class="referral-slider-val" id="val-spend-amount">৳${this.calcSpend.toLocaleString()}</span>
                 </div>
                 <input
@@ -571,6 +576,7 @@ export class ReferralHubPage {
                   step="500"
                   value="${this.calcSpend}"
                   id="slider-spend"
+                  aria-label="${t('referrals.calc_spend_label', 'প্রতি বন্ধুর গড় মাসিক খরচ:')}"
                   style="width: 100%; accent-color: var(--brand);" />
               </div>
             </div>
@@ -582,7 +588,7 @@ export class ReferralHubPage {
               <div class="referral-calc-result__amount" id="result-cash-est">
                 ৳${totalEstCash.toLocaleString()}
               </div>
-              <div style="font-size: var(--text-xs); color: #d97706; font-weight: 800;">
+              <div style="font-size: var(--text-xs); color: #92400e; font-weight: 800;">
                 + ${totalCoins.toLocaleString()} 🪙 ${t('referrals.calc_result_coins', 'বোনাস লয়্যালটি কয়েন')}
               </div>
               <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 0;">
