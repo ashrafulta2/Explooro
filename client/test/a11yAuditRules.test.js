@@ -135,7 +135,29 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'coupon-claim-input must have aria-label attribute'
     );
   });
+
+  await t.test('8. customer-coupons.css badges maintain WCAG AA contrast with text-secondary', () => {
+    const couponsCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'customer-coupons.css');
+    const content = fs.readFileSync(couponsCssPath, 'utf8');
+
+    assert.match(
+      content,
+      /\.coupon-badge--used\s*\{[^}]*color:\s*var\(--text-secondary\)/,
+      'coupon-badge--used must use var(--text-secondary) for compliant contrast'
+    );
+    assert.match(
+      content,
+      /\.coupon-badge--expired\s*\{[^}]*color:\s*var\(--text-secondary\)/,
+      'coupon-badge--expired must use var(--text-secondary) for compliant contrast'
+    );
+    assert.match(
+      content,
+      /\.coupon-badge--neutral\s*\{[^}]*color:\s*var\(--text-secondary\)/,
+      'coupon-badge--neutral must use var(--text-secondary) for compliant contrast'
+    );
+  });
 });
+
 
 
 

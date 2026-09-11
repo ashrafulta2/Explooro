@@ -50,11 +50,11 @@
 .coupon-card__scope-wrap { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); flex-wrap: wrap; }
 .coupon-scope-badge, .coupon-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); display: inline-flex; align-items: center; gap: 4px; }
 .coupon-scope-badge { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
-.coupon-badge--neutral { background: var(--surface-2); color: var(--text-muted); }
+.coupon-badge--neutral { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
 .coupon-badge--warning { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
 .coupon-badge--urgent { background: var(--danger-bg); color: var(--danger); font-weight: 800; border: 1px solid var(--danger-border); }
-.coupon-badge--used { background: var(--surface-3); color: var(--text-muted); }
-.coupon-badge--expired { background: var(--surface-2); color: var(--text-muted); }
+.coupon-badge--used { background: var(--surface-3); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+.coupon-badge--expired { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
 
 .coupon-card__code-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: 2px; }
 .coupon-card__code-pill { background: var(--surface-1); border: 1.5px dashed var(--brand); color: var(--text-brand); font-weight: 800; font-size: var(--text-sm); padding: 4px 10px; border-radius: var(--radius-md); font-family: var(--font-mono, monospace); letter-spacing: 0.03em; }
