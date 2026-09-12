@@ -54,7 +54,7 @@ export default function FulfilmentPage(root) {
           <span class="text-xs text-muted font-mono">Print Labels & 3PL</span>
         </div>
         <h1 class="supplier-header__title">
-          <span>🖨️</span> ${t('supplier.fulfilment_title', 'Fulfilment & Packing Queue')}
+          <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></span> ${t('supplier.fulfilment_title', 'Fulfilment & Packing Queue')}
         </h1>
         <p class="supplier-header__subtitle">
           ${t('supplier.fulfilment_subtitle', '1-Click courier consignments, FEFO batch-directed packing slips, and shipping label generation.')}
@@ -302,7 +302,7 @@ export default function FulfilmentPage(root) {
         <div class="supplier-modal__footer">
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.close', 'Close')}</button>
           <button class="btn btn--sm btn--primary" onclick="window.print()">
-            🖨️ ${t('supplier.print_packing_slip', 'Print Slip')}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('supplier.print_packing_slip', 'Print Slip')}
           </button>
         </div>
       </div>
@@ -355,7 +355,7 @@ export default function FulfilmentPage(root) {
         <div class="supplier-modal__footer">
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.close', 'Close')}</button>
           <button class="btn btn--sm btn--primary" onclick="window.print()">
-            🖨️ ${t('supplier.print_shipping_label', 'Print Label')}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('supplier.print_shipping_label', 'Print Label')}
           </button>
         </div>
       </div>

@@ -22,7 +22,7 @@ const GROUP_ORDER = [
   { key: 'commerce', icon: '🛍️', label_en: 'Commerce', label_bn: 'বাণিজ্য' },
   { key: 'finance', icon: '💳', label_en: 'Payments & Money', label_bn: 'পেমেন্ট ও অর্থ' },
   { key: 'logistics', icon: '🚚', label_en: 'Delivery & After-sales', label_bn: 'ডেলিভারি ও বিক্রয়োত্তর' },
-  { key: 'communication', icon: '💬', label_en: 'Communication', label_bn: 'যোগাযোগ' },
+  { key: 'communication', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>', label_en: 'Communication', label_bn: 'যোগাযোগ' },
   { key: 'growth', icon: '📈', label_en: 'Growth & Rewards', label_bn: 'প্রবৃদ্ধি ও পুরস্কার' },
   { key: 'content', icon: '🎨', label_en: 'Content & Presentation', label_bn: 'কনটেন্ট ও উপস্থাপনা' },
   { key: 'advanced', icon: '✨', label_en: 'AI & Advanced', label_bn: 'এআই ও অ্যাডভান্সড' },

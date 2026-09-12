@@ -22,7 +22,7 @@
 import { api } from '../../core/api.js';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import '../../styles/components/ad-store.css';
+import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.js';
 
 /** Budget presets, so most sellers never type a number at all. */
 const BUDGET_PRESETS = [500, 1000, 2500, 5000];
@@ -83,6 +83,7 @@ export class AdCampaignPage {
   }
 
   async mount(outlet) {
+    loadAdStoreStyles();
     this.rootEl = outlet;
     this.unsubscribeLang = subscribeLang(() => this.render());
     await this.loadAll();
@@ -253,6 +254,9 @@ export class AdCampaignPage {
     const badge = p.badge_key ? BADGE_LABELS[p.badge_key] : null;
     const model = PRICING_MODEL_LABELS[p.pricing_model] || { en: p.pricing_model, bn: p.pricing_model };
     const prepaid = p.billing_mode === 'PREPAID';
+    // A prepaid format that rents a position also holds inventory; a one-off send does not, and
+    // promising a seller a "reserved slot" for a push blast would be a lie.
+    const reservesSlot = p.pricing_model === 'FLAT_DAILY' || p.pricing_model === 'FLAT_SLOT';
 
     return `
       <article class="ad-format-card ${badge ? 'ad-format-card--badged' : ''}">
@@ -269,9 +273,11 @@ export class AdCampaignPage {
 
         <div class="ad-format-card__meta">
           <span class="ad-chip ${prepaid ? 'ad-chip--prepaid' : 'ad-chip--metered'}">
-            ${prepaid
-              ? (isBn ? '💳 আগে পরিশোধ, জায়গা সংরক্ষিত' : '💳 Paid upfront, slot reserved')
-              : (isBn ? '📈 ফল অনুযায়ী খরচ' : '📈 Charged as results come in')}
+            ${!prepaid
+              ? (isBn ? '📈 ফল অনুযায়ী খরচ' : '📈 Charged as results come in')
+              : reservesSlot
+                ? (isBn ? '💳 আগে পরিশোধ, জায়গা সংরক্ষিত' : '💳 Paid upfront, slot reserved')
+                : (isBn ? '💳 একবারে আগে পরিশোধ' : '💳 Paid upfront, one send')}
           </span>
           ${p.requires_product ? `<span class="ad-chip">${isBn ? '📦 একটি পণ্য লাগবে' : '📦 Needs a product'}</span>` : ''}
         </div>

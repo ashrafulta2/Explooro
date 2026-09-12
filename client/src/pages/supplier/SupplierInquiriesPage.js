@@ -62,7 +62,7 @@ export default function SupplierInquiriesPage(root) {
           <span class="text-xs text-muted font-mono">Wholesale Inquiries</span>
         </div>
         <h1 class="supplier-header__title">
-          <span>💬</span> ${t('supplier.inquiries_title', 'Wholesale Quotation Requests & Inquiries')}
+          <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></span> ${t('supplier.inquiries_title', 'Wholesale Quotation Requests & Inquiries')}
         </h1>
         <p class="supplier-header__subtitle">
           ${t('supplier.inquiries_subtitle', 'Negotiate custom bulk pricing, minimum order quantities (MOQ), and chat with Salers.')}
@@ -147,7 +147,7 @@ export default function SupplierInquiriesPage(root) {
     if (filtered.length === 0) {
       container.appendChild(
         EmptyState({
-          icon: '💬',
+          icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>',
           title: 'No inquiries found',
           description: 'New bulk quotation requests from verified Salers will appear here automatically.',
         })
@@ -198,7 +198,7 @@ export default function SupplierInquiriesPage(root) {
 
         <div style="display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2, 8px); border-top: 1px solid var(--border-subtle); padding-top: 10px;">
           <a href="https://wa.me/88${inq.buyer_phone}?text=Hello%20${encodeURIComponent(inq.saler_name)},%20regarding%20your%20inquiry%20for%20${encodeURIComponent(inq.product_title)}" target="_blank" rel="noopener noreferrer" class="btn btn--xs btn--secondary">
-            💬 WhatsApp Buyer
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp Buyer
           </a>
           ${isAwaiting ? `
             <button class="btn btn--xs btn--primary quote-btn" data-id="${inq.id}">

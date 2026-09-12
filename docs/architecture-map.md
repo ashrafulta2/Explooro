@@ -154,6 +154,7 @@ The 35 most likely change requests, with exact paths.
 | I want to… | Change |
 | :--- | :--- |
 | Add a permission | `docs/permission-catalog.json` → re-run seed. **Never invent a key in code** |
+| Change the default language | `/admin/platform/language` → the `localization` group in `platform_settings`. Code path: `routes/localization.routes.js` → `controllers/localization.controller.js` → `services/localization.service.js` → `repositories/setting.repository.js`; the client reads it in `client/src/services/i18n.js` (`resolveInitialLocale`). `VITE_DEFAULT_LOCALE` is the pre-policy fallback only |
 | Make an action require Admin approval | Change its `risk_tier` to `HIGH` in the catalog. Everything else is automatic |
 | Make an action Super-Admin-only | `risk_tier: "CRITICAL"`, `delegable: false`, `default_roles: ["super_admin"]` |
 | Give a moderator a capability | `/admin/grants` (Mode A). No code change |
@@ -194,6 +195,9 @@ The 35 most likely change requests, with exact paths.
 | I want to… | Change |
 | :--- | :--- |
 | Add a page | `pages/<role>/<Name>Page.js` → register in `core/router.js` → add to `config/navigation.js` with its `permission` + `module` |
+| Change what an ad format costs | **Configuration, not code** — `/admin/growth/ad-pricing` edits the `ad_products.rate_card` JSONB behind `growth.ad.govern` (HIGH risk, delegable, so it can be handed to one staff member). Never a constant: `services/adPricing.js` only ever reads a stored rate card |
+| Add a new kind of ad the platform sells | One `ad_products` row (see the seed block in `server/src/db/migrations/041_ad_marketplace.sql`). If it prices like one of the five existing models (CPC, CPM, FLAT_DAILY, FLAT_SLOT, CPS) that is the whole change — the seller's Ad Store, the wizard's fields and the quote engine all branch on `pricing_model`. A genuinely new *model* is the only case that touches `services/adPricing.js` |
+| Fix an ad price that looks wrong | `server/src/services/adPricing.js` — every ad price the platform quotes, charges or displays is computed there and nowhere else. `server/test/adPricing.test.js` states the invariants |
 | Add a nav item | `client/src/config/navigation.js` — one object. Never edit `Sidebar.js` |
 | Add a UI component | `components/ui/` + register in `pages/dev/gallery-registry.js` **in the same change** |
 | Add a field a user edits about themselves | `user_profiles` (Prompt 2.2 migration) → the whitelist in `server/src/repositories/user.repository.js` → validation in `profile.service.js` → a control in `client/src/pages/settings/ProfilePage.js` → the same key in `mocks/handlers/me.js`. Never add a writable column without adding it to BOTH whitelists |

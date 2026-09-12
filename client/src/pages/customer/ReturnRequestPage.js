@@ -155,7 +155,7 @@ export default function ReturnRequestPage(root, { params = {}, navigate } = {}) 
             <div class="evidence-list flex flex-wrap gap-2" id="evidence-preview-list">
               ${evidenceUrls.map((url, idx) => `
                 <div class="evidence-chip badge badge--neutral flex items-center gap-1">
-                  <span>📷 Photo ${idx + 1}</span>
+                  <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg> Photo ${idx + 1}</span>
                   <button type="button" class="btn-remove-evidence text-danger font-bold ml-1" data-index="${idx}">×</button>
                 </div>
               `).join('')}

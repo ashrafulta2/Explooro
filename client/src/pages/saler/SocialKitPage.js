@@ -234,7 +234,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
           style="flex: 1;"
         />
         <button id="btn-copy-link" class="btn btn--xs btn--primary shrink-0 font-bold">
-          📋 ${t('social_kit.btn_copy_link')}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('social_kit.btn_copy_link')}
         </button>
       </div>
     `;
@@ -422,7 +422,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
         <g transform="translate(60, ${height - 180})">
           <rect width="${width - 120}" height="140" rx="20" fill="${cardBg}" opacity="0.95" />
           <rect x="20" y="20" width="100" height="100" rx="10" fill="#ffffff" />
-          <text x="70" y="75" font-size="36" text-anchor="middle">📱</text>
+          <text x="70" y="75" font-size="36" text-anchor="middle"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></text>
           <text x="140" y="60" font-size="24" font-weight="bold" fill="${text}">${t('social_kit.scan_qr_text')}</text>
           <text x="140" y="90" font-size="16" font-weight="bold" fill="${accent}">${t('social_kit.scan_qr_subtext')}</text>
         </g>

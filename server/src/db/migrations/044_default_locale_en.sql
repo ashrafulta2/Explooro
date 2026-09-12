@@ -1,4 +1,4 @@
--- 041_default_locale_en.sql (default UI language switched from Bangla to English)
+-- 044_default_locale_en.sql (default UI language switched from Bangla to English)
 --
 -- The product now ships English-first: VITE_DEFAULT_LOCALE is `en`, and the i18n engine's
 -- FALLBACK_LANG has always been `en`. `users.locale` was the one place still defaulting to 'bn'

@@ -12,6 +12,7 @@
  */
 
 import { customerApi } from '../../services/customer.api.js';
+import { adsApi } from '../../services/ads.api.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatBdt, formatNumber, formatRelativeTime, formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
@@ -170,8 +171,26 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
     }
 
     try {
-      const res = await customerApi.getFollowingFeed();
+      const [res, adsRes] = await Promise.all([
+        customerApi.getFollowingFeed(),
+        adsApi.listReservedPlacements('STORE_DIRECTORY').catch(() => ({ data: [] })),
+      ]);
       feedData = res.data || {};
+      
+      const reservedAds = adsRes?.data || [];
+      if (reservedAds.length > 0) {
+        if (!feedData.suggested_stores) feedData.suggested_stores = [];
+        const adStores = reservedAds.map(ad => ({
+          id: `ad_${ad.campaign_id}`,
+          slug: ad.creative?.target_url?.split('/').pop() || '',
+          shop_name: ad.campaign_name || 'Sponsored Store',
+          bio: ad.creative?.description || '',
+          logo_url: ad.creative?.image_url || 'https://placehold.co/80x80?text=AD',
+          is_sponsored: true
+        }));
+        feedData.suggested_stores = [...adStores, ...feedData.suggested_stores];
+      }
+
       renderFeed();
     } catch {
       renderLoadError();
@@ -1170,7 +1189,21 @@ function createDiscoverStoresSection(stores, nav, onToggleFollow) {
   stores.forEach((st) => {
     const card = document.createElement('article');
     card.className = 'store-card';
-    card.innerHTML = storeCardMarkup(st, { fallbackIcon: '✨' });
+    if (st.is_sponsored) {
+      card.style.border = '1px solid var(--brand)';
+      card.style.backgroundColor = 'var(--surface-subtle)';
+    }
+    card.innerHTML = storeCardMarkup(st, { fallbackIcon: st.is_sponsored ? '📢' : '✨' });
+    if (st.is_sponsored) {
+      const badge = document.createElement('span');
+      badge.className = 'badge badge--primary';
+      badge.style.position = 'absolute';
+      badge.style.top = '12px';
+      badge.style.right = '12px';
+      badge.textContent = 'Sponsored';
+      card.style.position = 'relative';
+      card.append(badge);
+    }
 
     const actions = document.createElement('div');
     actions.className = 'store-card__actions';

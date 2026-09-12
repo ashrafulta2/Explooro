@@ -228,7 +228,7 @@ export default function CodReconciliationPage(root) {
       <!-- Discrepancy Queue -->
       <div class="card cod-recon-page__queue-card">
         <div class="cod-recon-page__queue-header">
-          <h3>📋 ${t('cod.queue_title')}</h3>
+          <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('cod.queue_title')}</h3>
           <div class="cod-recon-page__filters">
             <select class="select select--sm cod-recon-page__filter-status" aria-label="${t('common.all_statuses')}">
               <option value="" ${statusFilter === '' ? 'selected' : ''}>${t('common.all_statuses')}</option>

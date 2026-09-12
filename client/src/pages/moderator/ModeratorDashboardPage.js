@@ -452,7 +452,7 @@ export default function ModeratorDashboardPage(root) {
       ">
         <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle, #e2e8f0);">
           <h3 style="margin: 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-primary, #0f172a);">
-            📋 ${t('moderator_dashboard.maker_checker_title', 'Awaiting Admin Approval (Maker-Checker)')}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('moderator_dashboard.maker_checker_title', 'Awaiting Admin Approval (Maker-Checker)')}
           </h3>
           <span style="font-size: 11px; color: var(--text-muted, #64748b);">4-Eyes Principle</span>
         </div>

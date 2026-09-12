@@ -7,6 +7,7 @@
  * 3. Integrations (/admin/platform/integrations)
  * 4. API Keys & Developer Portal (/admin/platform/api-keys)
  * 5. Platform Settings (/admin/platform/settings)
+ * 6. Language & Default Locale (/admin/platform/language)
  */
 
 import { getLanguage } from '../../services/i18n.js';
@@ -21,6 +22,7 @@ export function PlatformSubnav({ activeKey = 'integrations', navigate = null } =
     { key: 'integrations', label: isBn ? 'ইন্টিগ্রেশন' : 'Integrations', href: '/admin/platform/integrations', icon: '🔌' },
     { key: 'apikeys', label: isBn ? 'এপিআই কী' : 'API Keys', href: '/admin/platform/api-keys', icon: '⚡' },
     { key: 'settings', label: isBn ? 'প্ল্যাটফর্ম সেটিংস' : 'Settings', href: '/admin/platform/settings', icon: '⚙️' },
+    { key: 'language', label: isBn ? 'ভাষা' : 'Language', href: '/admin/platform/language', icon: '🌐' },
   ];
 
   const nav = document.createElement('nav');

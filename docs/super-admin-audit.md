@@ -147,6 +147,12 @@ These are real and were left open on purpose. Do not assume they were missed.
 
 ---
 
+> **Addendum, 2026-09-12.** The "49 nav paths" figures throughout this document are the surface as it
+> stood on 2026-09-04 and are left as the record of that audit. Two routes have joined the Super Admin
+> sidebar since: `/admin/growth/ad-pricing` (matrix row 77) and `/admin/platform/language` (row 78).
+> Both were built against the nine invariants below rather than retro-fitted to them; the count in
+> `client/test/adminNavigation.test.js` is the live one.
+
 ## 5. Invariants that now protect this — read before adding an admin page
 
 1. **Never hand-maintain a list of route paths.** The stub-route set is derived from

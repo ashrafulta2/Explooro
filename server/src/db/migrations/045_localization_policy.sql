@@ -1,4 +1,4 @@
--- 042_localization_policy.sql (Language & Localization governance)
+-- 045_localization_policy.sql (Language & Localization governance)
 --
 -- Gives the platform's default language a real, auditable home. Before this, the default lived
 -- ONLY in `VITE_DEFAULT_LOCALE` — a build-time client env var, which means changing the language
@@ -17,7 +17,7 @@
 -- so the service can validate membership without parsing.
 --
 -- The seeded default is 'en', matching FALLBACK_LANG in client/src/services/i18n.js and the
--- users.locale column default set in 041_default_locale_en.sql. ON CONFLICT DO NOTHING keeps this
+-- users.locale column default set in 044_default_locale_en.sql. ON CONFLICT DO NOTHING keeps this
 -- migration safe to re-run and — more importantly — stops a re-run from stamping a live
 -- platform's chosen language back to 'en'.
 

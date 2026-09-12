@@ -203,7 +203,7 @@ export default function SupplierDashboardPage(root) {
         <a href="/supplier/fulfilment" class="supplier-kpi-card">
           <div class="supplier-kpi-card__top">
             <span class="supplier-kpi-card__label">${t('supplier.print_labels', 'Print Labels')}</span>
-            <span class="supplier-kpi-card__icon-box supplier-kpi-card__icon-box--info">🖨️</span>
+            <span class="supplier-kpi-card__icon-box supplier-kpi-card__icon-box--info"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></span>
           </div>
           <div class="supplier-kpi-card__main">
             <div class="supplier-kpi-card__value">${metrics.pending_orders_count || 0}</div>
@@ -230,7 +230,7 @@ export default function SupplierDashboardPage(root) {
             <span class="supplier-action-tile__label">${t('supplier.orders_to_pack', 'Orders to Pack')}</span>
           </a>
           <a href="/supplier/fulfilment" class="supplier-action-tile">
-            <span class="supplier-action-tile__icon">🖨️</span>
+            <span class="supplier-action-tile__icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></span>
             <span class="supplier-action-tile__label">${t('supplier.print_labels', 'Print Labels')}</span>
           </a>
           <a href="/supplier/inventory" class="supplier-action-tile">

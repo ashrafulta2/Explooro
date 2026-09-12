@@ -4,6 +4,7 @@
 
 import { t, getLanguage } from '../../services/i18n.js';
 import { Badge } from '../ui/Badge.js';
+import { ICONS } from '../ui/icons.js';
 
 export function StoreHeader({ store = {}, isPreview = false } = {}) {
   const container = document.createElement('div');
@@ -101,19 +102,19 @@ export function StoreHeader({ store = {}, isPreview = false } = {}) {
   socialRow.className = 'store-header__social';
 
   if (socialLinks.whatsapp) {
-    const wa = createSocialLink('WhatsApp', `https://wa.me/${socialLinks.whatsapp.replace(/\D/g, '')}`, '💬');
+    const wa = createSocialLink('WhatsApp', `https://wa.me/${socialLinks.whatsapp.replace(/\D/g, '')}`, ICONS.whatsapp);
     socialRow.append(wa);
   }
   if (socialLinks.facebook) {
-    const fb = createSocialLink('Facebook', socialLinks.facebook.startsWith('http') ? socialLinks.facebook : `https://facebook.com/${socialLinks.facebook}`, '📘');
+    const fb = createSocialLink('Facebook', socialLinks.facebook.startsWith('http') ? socialLinks.facebook : `https://facebook.com/${socialLinks.facebook}`, ICONS.facebook);
     socialRow.append(fb);
   }
   if (socialLinks.instagram) {
-    const ig = createSocialLink('Instagram', socialLinks.instagram.startsWith('http') ? socialLinks.instagram : `https://instagram.com/${socialLinks.instagram}`, '📷');
+    const ig = createSocialLink('Instagram', socialLinks.instagram.startsWith('http') ? socialLinks.instagram : `https://instagram.com/${socialLinks.instagram}`, ICONS.instagram);
     socialRow.append(ig);
   }
   if (socialLinks.phone) {
-    const ph = createSocialLink('Call', `tel:${socialLinks.phone}`, '📞');
+    const ph = createSocialLink('Call', `tel:${socialLinks.phone}`, ICONS.phone);
     socialRow.append(ph);
   }
 

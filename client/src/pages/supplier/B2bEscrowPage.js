@@ -159,7 +159,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
     tabNav.innerHTML = `
       <div class="supplier-toolbar__filters">
         <button class="supplier-chip ${activeTab === 'deals' ? 'supplier-chip--active' : ''}" data-tab="deals">
-          📋 ${t('b2b_escrow.tab_deals', 'B2B Deals')} (${deals.length})
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('b2b_escrow.tab_deals', 'B2B Deals')} (${deals.length})
         </button>
         <button class="supplier-chip ${activeTab === 'new_proposal' ? 'supplier-chip--active' : ''}" data-tab="new_proposal">
           📝 ${t('b2b_escrow.tab_new_proposal', 'Draft New Proposal')}
@@ -367,7 +367,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
 
         <div style="display: flex; justify-content: flex-end; gap: var(--space-2, 8px); margin-top: 8px;">
           <button type="button" class="btn btn--sm btn--secondary" id="cancel-proposal-btn">${t('common.cancel', 'Cancel')}</button>
-          <button type="submit" class="btn btn--sm btn--primary">🚀 Submit Wholesale Proposal</button>
+          <button type="submit" class="btn btn--sm btn--primary"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> Submit Wholesale Proposal</button>
         </div>
       </form>
     `;

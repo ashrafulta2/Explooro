@@ -88,7 +88,7 @@ export default function AcademyManagerPage(root) {
           <label for="course-cat">Category *</label>
           <select class="form-select" id="course-cat">
             <option value="sourcing" ${existingCourse?.category === 'sourcing' ? 'selected' : ''}>🏭 Factory Sourcing</option>
-            <option value="marketing" ${existingCourse?.category === 'marketing' ? 'selected' : ''}>📱 Social Marketing</option>
+            <option value="marketing" ${existingCourse?.category === 'marketing' ? 'selected' : ''}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> Social Marketing</option>
             <option value="finance" ${existingCourse?.category === 'finance' ? 'selected' : ''}>💰 Vault & Escrow</option>
           </select>
         </div>
@@ -216,7 +216,7 @@ export default function AcademyManagerPage(root) {
             🏭 Factory Sourcing
           </button>
           <button class="editor-chip ${activeCategory === 'marketing' ? 'editor-chip--active' : ''}" data-cat="marketing">
-            📱 Social Commerce
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> Social Commerce
           </button>
           <button class="editor-chip ${activeCategory === 'finance' ? 'editor-chip--active' : ''}" data-cat="finance">
             💰 Escrow & Finance

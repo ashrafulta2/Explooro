@@ -272,6 +272,26 @@ export const adminApi = {
   async resetPlatformSettings(reason = '') {
     return api.post('/admin/platform/settings/reset', { reason });
   },
+
+  /**
+   * Reads the language policy plus who may change it and the recent change history.
+   */
+  async getLocalizationPolicy() {
+    return api.get('/admin/platform/localization');
+  },
+
+  /**
+   * Writes the language policy. `reason` is mandatory (min 10 chars) and lands in audit_logs
+   * alongside the before/after values — the API rejects the call without it.
+   */
+  async updateLocalizationPolicy({ default_locale, enabled_locales, allow_user_override, reason }) {
+    return api.put('/admin/platform/localization', {
+      default_locale,
+      enabled_locales,
+      allow_user_override,
+      reason,
+    });
+  },
 };
 
 

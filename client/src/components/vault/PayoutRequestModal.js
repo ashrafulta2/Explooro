@@ -50,15 +50,15 @@ export function openPayoutRequestModal({
         <label class="form-label">${t('payout.select_method')}</label>
         <div class="payout-modal__method-grid">
           <button type="button" class="payout-modal__method-btn ${selectedMethod === 'BKASH' ? 'is-active' : ''}" data-method="BKASH">
-            <span class="payout-modal__method-icon">📱</span>
+            <span class="payout-modal__method-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></span>
             <span>bKash</span>
           </button>
           <button type="button" class="payout-modal__method-btn ${selectedMethod === 'NAGAD' ? 'is-active' : ''}" data-method="NAGAD">
-            <span class="payout-modal__method-icon">📱</span>
+            <span class="payout-modal__method-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></span>
             <span>Nagad</span>
           </button>
           <button type="button" class="payout-modal__method-btn ${selectedMethod === 'ROCKET' ? 'is-active' : ''}" data-method="ROCKET">
-            <span class="payout-modal__method-icon">📱</span>
+            <span class="payout-modal__method-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></span>
             <span>Rocket</span>
           </button>
           <button type="button" class="payout-modal__method-btn ${selectedMethod === 'BANK' ? 'is-active' : ''}" data-method="BANK">

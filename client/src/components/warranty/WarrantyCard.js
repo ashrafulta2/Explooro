@@ -61,7 +61,7 @@ export function WarrantyCard({
           <div class="warranty-card__cert-title">${t('warranty.official_certificate')}</div>
           <button class="warranty-card__ref-chip copy-ref-btn" type="button" title="${t('common.copy') || 'Copy ID'}">
             <span>${certRef}</span>
-            <span style="font-size: 9px; opacity: 0.7;">📋</span>
+            <span style="font-size: 9px; opacity: 0.7;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></span>
           </button>
         </div>
       </div>
@@ -99,7 +99,7 @@ export function WarrantyCard({
           <span class="warranty-meta-item__label">${t('warranty.serial_number')}</span>
           <div class="warranty-meta-item__val">
             <span class="serial-text select-all">${card.serial_number || 'N/A'}</span>
-            ${card.serial_number ? `<button class="warranty-meta-item__btn-copy copy-sn-btn" type="button" title="Copy Serial">📋</button>` : ''}
+            ${card.serial_number ? `<button class="warranty-meta-item__btn-copy copy-sn-btn" type="button" title="Copy Serial"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></button>` : ''}
           </div>
         </div>
         <div class="warranty-meta-item">
@@ -178,7 +178,7 @@ export function WarrantyCard({
         ` : ''}
         ${claims.length > 0 && !activeClaim ? `
           <button class="warranty-btn warranty-btn--ghost history-btn" type="button">
-            📋 (${claims.length})
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> (${claims.length})
           </button>
         ` : ''}
       </div>

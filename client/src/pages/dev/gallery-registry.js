@@ -41,6 +41,7 @@ import { ProductCard, ProductCardSkeleton } from '../../components/product/Produ
 import { MASTER_PRESETS } from '../../config/master-themes.js';
 import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.js';
 import { CategoryPills } from '../../components/product/CategoryPills.js';
+import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.js';
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.js';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.js';
 import { ImageGallery } from '../../components/product/ImageGallery.js';
@@ -1153,6 +1154,8 @@ export function buildGalleryEntries(detachedNodes) {
     // Customer Saved Delivery Addresses Book
     { id: 'customer-address-card', label: 'CustomerAddressCard', group: 'Commerce & Catalog', render: renderCustomerAddressCardSpecimen },
     // Master Colour engine (services/colorRamp.js) — the generated ramps behind Theme Studio
+    // Language & Default Locale governance (/admin/platform/language)
+    { id: 'locale-choice-card', label: 'LocaleChoiceCard', group: 'Foundations', render: renderLocaleChoiceCardSpecimen },
     { id: 'master-palette', label: 'MasterPalette', group: 'Foundations', render: renderMasterPaletteSpecimen },
   ];
 }
@@ -1809,8 +1812,8 @@ function renderReferralHubSpecimen() {
         https://explooro.com/join/tanvir-deals
       </div>
       <div class="flex gap-2">
-        <button class="btn btn--sm btn--primary">📋 Copy Link</button>
-        <button class="btn btn--sm btn--outline">📱 QR Code</button>
+        <button class="btn btn--sm btn--primary"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> Copy Link</button>
+        <button class="btn btn--sm btn--outline"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> QR Code</button>
       </div>
     </div>
   `;
@@ -2043,7 +2046,7 @@ function renderTeamPurchaseSpecimen() {
     </div>
     <div class="flex gap-2">
       <button class="btn btn-sm btn-primary w-full text-xs font-bold">Join Team (৳1,850)</button>
-      <button class="btn btn-sm btn-success text-xs">💬 Share</button>
+      <button class="btn btn-sm btn-success text-xs"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> Share</button>
     </div>
   `;
 
@@ -2128,8 +2131,8 @@ function renderSocialSellerKitSpecimen() {
         <div class="text-[11px] text-success font-semibold">142 Clicks · 18 Orders · ৳38,500 Revenue</div>
       </div>
       <div class="flex gap-1.5">
-        <button class="btn btn-xs btn-primary">📋 Copy</button>
-        <button class="btn btn-xs btn-success">⬇️ Flyer</button>
+        <button class="btn btn-xs btn-primary"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> Copy</button>
+        <button class="btn btn-xs btn-success"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> Flyer</button>
       </div>
     </div>
   `;
@@ -2569,7 +2572,7 @@ function renderSupplierHelpSpecimen() {
   helpBox.className = 'supplier-checklist-card';
   helpBox.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h4 style="font-weight: 800; margin: 0;">🚀 Daily Operational Routine Checklist</h4>
+      <h4 style="font-weight: 800; margin: 0;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> Daily Operational Routine Checklist</h4>
       <span class="badge badge--success text-xs font-mono">4/5 Completed (80%)</span>
     </div>
     <div class="supplier-checklist-item supplier-checklist-item--done" style="margin-top: 8px;">
@@ -3106,6 +3109,47 @@ function renderMasterPaletteSpecimen() {
 
     wrap.append(specimen(preset.name_en, block));
   }
+
+  return wrap;
+}
+
+/**
+ * LocaleChoiceCard — the locale picker on /admin/platform/language. Every state side by side,
+ * because the interesting ones are the constrained combinations: the default cannot be disabled,
+ * and a disabled locale cannot be made the default.
+ */
+function renderLocaleChoiceCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Locale choice card (Language & Default Locale)'));
+
+  const grid = (...cards) => {
+    const g = document.createElement('div');
+    g.className = 'locale-card-grid';
+    g.append(...cards);
+    return g;
+  };
+
+  wrap.append(
+    specimen(
+      'default + enabled / enabled',
+      grid(
+        LocaleChoiceCard({ locale: 'en', isDefault: true, isEnabled: true, isCurrent: true, idPrefix: 'gal-a' }),
+        LocaleChoiceCard({ locale: 'bn', isDefault: false, isEnabled: true, idPrefix: 'gal-a' })
+      )
+    ),
+    specimen(
+      'disabled locale (cannot become the default until re-enabled)',
+      grid(LocaleChoiceCard({ locale: 'bn', isDefault: false, isEnabled: false, idPrefix: 'gal-b' }))
+    ),
+    specimen(
+      'read-only (holds the .view key but not .update)',
+      grid(
+        LocaleChoiceCard({ locale: 'bn', isDefault: true, isEnabled: true, idPrefix: 'gal-c', readOnly: true }),
+        LocaleChoiceCard({ locale: 'en', isDefault: false, isEnabled: true, idPrefix: 'gal-c', readOnly: true })
+      )
+    )
+  );
 
   return wrap;
 }

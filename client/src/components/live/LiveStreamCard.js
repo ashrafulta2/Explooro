@@ -10,6 +10,10 @@ import { Button } from '../ui/Button.js';
 export function LiveStreamCard({ stream, onWatchClick }) {
   const card = document.createElement('div');
   card.className = 'live-stream-card';
+  if (stream.isSponsored) {
+    card.style.border = '2px solid var(--brand)';
+    card.style.position = 'relative';
+  }
 
   const isLive = stream.status === 'LIVE';
   const isScheduled = stream.status === 'SCHEDULED';
@@ -76,6 +80,7 @@ export function LiveStreamCard({ stream, onWatchClick }) {
       <div class="live-stream-card__scrim"></div>
       <div class="live-stream-card__badge-top">
         ${statusBadgeHtml}
+        ${stream.isSponsored ? '<span class="badge badge--primary" style="margin-left: 8px;">Sponsored</span>' : ''}
       </div>
       ${categoryBadgeHtml ? `<div class="live-stream-card__category-top">${categoryBadgeHtml}</div>` : ''}
       <div class="live-stream-card__products-badge">

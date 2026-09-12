@@ -112,7 +112,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
       <span class="warranties-tab-badge" id="count-all">0</span>
     </button>
     <button class="warranties-tab-btn" data-tab="claims">
-      <span>📋 ${t('warranty.tab_my_claims')}</span>
+      <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('warranty.tab_my_claims')}</span>
       <span class="warranties-tab-badge" id="count-claims">0</span>
     </button>
   `;

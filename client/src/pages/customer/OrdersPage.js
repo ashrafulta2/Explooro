@@ -317,7 +317,7 @@ function renderSingleOrderCard(order, nav) {
   const invoiceBtn = document.createElement('button');
   invoiceBtn.type = 'button';
   invoiceBtn.className = 'order-action-btn order-action-btn--ghost';
-  invoiceBtn.innerHTML = `<span class="order-action-btn__icon">🖨️</span><span>${t('order_tracking.invoice_btn')}</span>`;
+  invoiceBtn.innerHTML = `<span class="order-action-btn__icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></span><span>${t('order_tracking.invoice_btn')}</span>`;
   invoiceBtn.addEventListener('click', () => {
     toast.success(t('order_tracking.invoice_btn'));
     window.print();

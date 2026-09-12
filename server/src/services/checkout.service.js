@@ -21,6 +21,7 @@ import * as cartRepo from '../repositories/cart.repository.js';
 import * as orderRepo from '../repositories/order.repository.js';
 import * as couponRepo from '../repositories/coupon.repository.js';
 import * as trustScoreService from './trustScore.service.js';
+import * as adsService from './ads.service.js';
 import * as otpService from './otp.service.js';
 import { calculatePricingBreakdown, toPaisa, toBdtNumber } from './pricing.service.js';
 
@@ -41,6 +42,7 @@ export async function executeCheckout(pool, cache, {
   couponCode = null,
   otpCode = null,
   guestToken = null,
+  adCampaignId = null,
 }) {
   // 1. Validate Idempotency-Key requirement
   if (!idempotencyKey || typeof idempotencyKey !== 'string') {
@@ -475,6 +477,20 @@ export async function executeCheckout(pool, cache, {
 
     // Background trust score re-calculation
     trustScoreService.calculateAndPersistTrustScore(pool, userId).catch(() => {});
+
+    // 12. Process CPA Attribution if an ad was clicked
+    if (adCampaignId) {
+      try {
+        await adsService.processCpaAttribution(
+          client,
+          adCampaignId,
+          rootOrder.ref,
+          toBdtNumber(totalAmountPaisa)
+        );
+      } catch (err) {
+        // Silent catch: we don't want to fail checkout just because attribution or billing failed
+      }
+    }
 
     return {
       order: fullOrder,

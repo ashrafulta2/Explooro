@@ -13,6 +13,7 @@
  */
 
 import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, terminateLiveStream } from '../services/live.api.js';
+import { adsApi } from '../services/ads.api.js';
 import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.js';
 import { LiveStreamCard } from '../components/live/LiveStreamCard.js';
 import { wsManager, WS_STATUS } from '../services/websocket.js';
@@ -238,7 +239,7 @@ async function renderStreamDiscoveryList(container, navigate) {
             </div>
           </div>
           <div class="live-highlight-card">
-            <div class="live-highlight-icon">💬</div>
+            <div class="live-highlight-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></div>
             <div class="live-highlight-info">
               <span class="live-highlight-title">${t('live.feature_chat') || 'Direct Live Chat'}</span>
               <span class="live-highlight-desc">${t('live.feature_chat_sub') || 'Ask questions and negotiate in real time'}</span>
@@ -471,9 +472,29 @@ async function renderStreamDiscoveryList(container, navigate) {
   // Load Data
   async function loadData() {
     try {
-      const res = await listLiveStreams();
+      const [res, adsRes] = await Promise.all([
+        listLiveStreams(),
+        adsApi.listReservedPlacements('LIVE_LOBBY').catch(() => ({ data: [] })),
+      ]);
       const serverStreams = res?.data?.streams || [];
       allStreams = serverStreams.length > 0 ? serverStreams : FALLBACK_DEMO_STREAMS;
+
+      const reservedAds = adsRes?.data || [];
+      if (reservedAds.length > 0) {
+        const adStreams = reservedAds.map(ad => ({
+          id: `ad_${ad.campaign_id}`,
+          title: ad.campaign_name || 'Sponsored Live',
+          description: ad.creative?.description || '',
+          cover_image: ad.creative?.image_url || 'https://placehold.co/800x400?text=Live+AD',
+          status: 'LIVE', // Can also be SCHEDULED if needed
+          host_name: 'Sponsored Store',
+          store_name: 'Sponsored Store',
+          viewer_count: Math.floor(Math.random() * 500) + 100,
+          category: 'traditional_fashion',
+          isSponsored: true
+        }));
+        allStreams = [...adStreams, ...allStreams];
+      }
     } catch (err) {
       allStreams = FALLBACK_DEMO_STREAMS;
     }
@@ -534,7 +555,7 @@ function openLiveShoppingGuideModal() {
       </div>
 
       <div style="display: flex; gap: 14px; align-items: flex-start;">
-        <div style="font-size: 24px; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border-subtle);">💬</div>
+        <div style="font-size: 24px; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border-subtle);"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></div>
         <div>
           <h4 style="margin: 0 0 4px; font-size: var(--text-sm); font-weight: var(--weight-bold);">${t('live.guide_step2_title') || '2. Chat & Ask Questions'}</h4>
           <p style="margin: 0; font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.4;">${t('live.guide_step2_desc') || 'Type in the live chat to ask about sizes, colors, warranties, and stock availability in real time.'}</p>
@@ -637,7 +658,7 @@ async function renderStreamViewer(container, streamId, navigate) {
                 aria-label="${t('live.chat_input_label') || 'Live stream comment'}"
                 placeholder="${t('live.type_comment') || 'Say something nice…'}" 
               />
-              <button class="btn-send-chat" id="send-chat-btn" aria-label="${t('live.send_message') || 'Send message'}">💬</button>
+              <button class="btn-send-chat" id="send-chat-btn" aria-label="${t('live.send_message') || 'Send message'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></button>
             </div>
             <div class="stream-actions">
               <button class="btn-action-reaction" id="btn-react-heart" title="Send Love" aria-label="Heart reaction">❤️</button>
@@ -653,7 +674,7 @@ async function renderStreamViewer(container, streamId, navigate) {
         <!-- Chat Stream Panel -->
         <div class="stream-chat-panel" id="stream-chat-panel">
           <div class="stream-chat-panel__header">
-            <h3>💬 ${t('live.live_chat') || 'Live Stream Chat'}</h3>
+            <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> ${t('live.live_chat') || 'Live Stream Chat'}</h3>
             <span class="chat-count" id="chat-count">Live</span>
           </div>
           <div class="stream-chat-panel__messages" id="chat-messages-container" aria-live="polite">

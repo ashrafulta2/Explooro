@@ -1,0 +1,487 @@
+/**
+ * ad-store.css — Ad marketplace surfaces: the seller's format gallery and purchase wizard, and
+ * the admin's rate-card editor.
+ *
+ * WHY this file is imported by the page modules and NOT by main.css: entry CSS is on a 70KB
+ * gzipped budget (client/vite.config.js). A stylesheet imported from main.css ships to every
+ * visitor, including shoppers who will never open an ad page; imported from the page module it
+ * rides in that route's own chunk instead. Importing it in BOTH places is the trap documented in
+ * CLAUDE.md — it silently ships twice.
+ *
+ * Design rules followed: solid surfaces only, no gradients, tokens not raw hex. The wizard scrim
+ * is the one permitted translucent surface (a transient overlay).
+ */
+
+/* ------------------------------------------------------------------------------------------ *
+ * Tabs
+ * ------------------------------------------------------------------------------------------ */
+.ad-tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  margin: var(--space-5) 0 var(--space-4);
+}
+
+.ad-tabs__tab {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ad-tabs__tab:hover { color: var(--text-primary); }
+
+.ad-tabs__tab--active {
+  color: var(--text-brand);
+  border-bottom-color: var(--brand);
+}
+
+.ad-tabs__count {
+  background: var(--surface-2);
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------------------------------------ *
+ * Tier note
+ * ------------------------------------------------------------------------------------------ */
+.ad-tier-note {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--brand-50);
+  border: 1px solid var(--brand-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+}
+
+/* ------------------------------------------------------------------------------------------ *
+ * Format gallery
+ * ------------------------------------------------------------------------------------------ */
+.ad-format-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: var(--space-4);
+}
+
+.ad-format-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-0);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.ad-format-card:hover {
+  border-color: var(--brand-400);
+}
+
+.ad-format-card--badged { border-color: var(--brand-300); }
+
+.ad-format-card__badge {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  /* WHY tinted-background badges rather than filled ones: at this 11px uppercase size the filled
+     brand-500 / success-500 pairings measured 2.85:1 and 3.19:1 in the in-app a11y auditor, under
+     the 4.5:1 floor. A pale background with the dark end of the same ramp keeps the colour coding
+     and clears the threshold. */
+  background: var(--brand-50);
+  color: var(--text-brand);
+  border: 1px solid var(--brand-300);
+}
+
+.ad-format-card__badge--premium { background: var(--surface-2); color: var(--text-brand); border-color: var(--brand-400); }
+.ad-format-card__badge--best_value { background: var(--success-bg); color: var(--success); border-color: var(--success-border); }
+
+.ad-format-card__icon { font-size: 2rem; line-height: 1; margin-bottom: var(--space-3); }
+
+.ad-format-card__name {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.ad-format-card__tagline {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-brand);
+}
+
+.ad-format-card__desc {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.ad-format-card__price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+}
+
+.ad-format-card__price-amount {
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.ad-format-card__price-model { font-size: var(--text-xs); color: var(--text-muted); }
+
+.ad-format-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.ad-chip {
+  font-size: var(--text-xs);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
+.ad-chip--prepaid { color: var(--text-brand); border-color: var(--brand-300); }
+.ad-chip--metered { color: var(--success); border-color: var(--success-border); }
+
+.ad-format-card__cta { margin-top: auto; width: 100%; }
+
+/* ------------------------------------------------------------------------------------------ *
+ * Campaign table extras
+ * ------------------------------------------------------------------------------------------ */
+.ad-cell-format { display: flex; align-items: center; gap: var(--space-2); font-weight: var(--weight-bold); }
+
+.ad-progress {
+  width: 100%;
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: var(--space-1);
+}
+
+.ad-progress__fill { height: 100%; background: var(--brand); }
+
+.ad-row-actions { display: inline-flex; gap: var(--space-2); justify-content: flex-end; flex-wrap: wrap; }
+
+/* ------------------------------------------------------------------------------------------ *
+ * Purchase wizard
+ * ------------------------------------------------------------------------------------------ */
+.ad-wizard-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  /* Transient overlay — the one place the design system allows a translucent surface. */
+  background: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(2px);
+  overflow-y: auto;
+}
+
+.ad-wizard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 880px;
+  max-height: 92vh;
+  background: var(--surface-0);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ad-wizard__head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.ad-wizard__head-main { display: flex; align-items: center; gap: var(--space-3); }
+.ad-wizard__icon { font-size: 2rem; line-height: 1; }
+.ad-wizard__title { margin: 0; font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--text-primary); }
+.ad-wizard__subtitle { margin: 2px 0 0; font-size: var(--text-sm); color: var(--text-brand); font-family: var(--font-mono); }
+
+.ad-wizard__close {
+  appearance: none;
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 var(--space-1);
+}
+
+.ad-wizard__close:hover { color: var(--text-primary); }
+
+.ad-wizard__steps {
+  flex: none;
+  display: flex;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-1);
+  overflow-x: auto;
+}
+
+.ad-wizard__step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  padding-right: var(--space-4);
+}
+
+.ad-wizard__step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  font-weight: var(--weight-bold);
+}
+
+.ad-wizard__step--active { color: var(--text-primary); font-weight: var(--weight-bold); }
+.ad-wizard__step--active .ad-wizard__step-num { background: var(--brand); border-color: var(--brand); color: var(--brand-contrast); }
+.ad-wizard__step--done .ad-wizard__step-num { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+
+.ad-wizard__body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 0;
+  overflow: hidden;
+}
+
+.ad-wizard__form { padding: var(--space-5); overflow-y: auto; }
+.ad-wizard__hint { margin: 0 0 var(--space-4); font-size: var(--text-sm); color: var(--text-muted); line-height: 1.5; }
+
+.ad-wizard__side {
+  padding: var(--space-5);
+  background: var(--surface-1);
+  border-left: 1px solid var(--border-subtle);
+  overflow-y: auto;
+}
+
+.ad-wizard__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Presets, sliders, callouts */
+.ad-presets { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+
+.ad-preset {
+  appearance: none;
+  cursor: pointer;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  font-family: var(--font-mono);
+}
+
+.ad-preset:hover { border-color: var(--brand-400); }
+
+.ad-preset--active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-contrast);
+}
+
+.ad-bid-row { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+.ad-bid-slider { flex: 1; accent-color: var(--brand); }
+
+.ad-bid-value {
+  min-width: 5.5rem;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.ad-callout {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.ad-callout--info { border-color: var(--brand-300); color: var(--text-primary); margin-top: var(--space-4); }
+
+.ad-review-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+
+.ad-review-table th,
+.ad-review-table td {
+  text-align: left;
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: top;
+}
+
+.ad-review-table th { color: var(--text-muted); font-weight: 400; width: 40%; }
+.ad-review-table td { color: var(--text-primary); font-weight: var(--weight-bold); }
+
+/* Quote panel */
+.ad-quote__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.ad-quote--stale { opacity: 0.55; }
+.ad-quote__lines { margin: 0 0 var(--space-3); }
+
+.ad-quote__line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.ad-quote__line dt { color: var(--text-muted); margin: 0; }
+.ad-quote__line dd { margin: 0; font-family: var(--font-mono); color: var(--text-primary); white-space: nowrap; }
+.ad-quote__line--credit dd { color: var(--success); }
+.ad-quote__qty { font-family: var(--font-mono); }
+
+.ad-quote__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.ad-quote__total strong {
+  font-size: var(--text-2xl);
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.ad-quote__note { margin: 0 0 var(--space-3); font-size: var(--text-xs); color: var(--text-muted); line-height: 1.5; }
+.ad-quote__est { margin: 0 0 var(--space-1); font-size: var(--text-xs); color: var(--text-brand); font-weight: var(--weight-bold); }
+.ad-quote__muted { font-size: var(--text-sm); color: var(--text-muted); }
+.ad-quote__error { font-size: var(--text-sm); color: var(--danger); font-weight: var(--weight-bold); }
+
+/* ------------------------------------------------------------------------------------------ *
+ * Admin rate-card editor
+ * ------------------------------------------------------------------------------------------ */
+.ad-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-4);
+}
+
+.ad-rate-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-0);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.ad-rate-card--off { opacity: 0.6; }
+
+.ad-rate-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.ad-rate-card__icon { font-size: 1.5rem; line-height: 1; }
+.ad-rate-card__name { margin: 0; font-size: var(--text-base); font-weight: var(--weight-bold); color: var(--text-primary); }
+.ad-rate-card__model { font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono); }
+
+.ad-rate-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+
+.ad-rate-stat__label { font-size: var(--text-xs); color: var(--text-muted); display: block; }
+.ad-rate-stat__value { font-size: var(--text-sm); font-weight: var(--weight-bold); font-family: var(--font-mono); color: var(--text-primary); }
+
+.ad-rate-card__fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
+.ad-rate-card__fields .field { margin-top: 0; }
+.ad-rate-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: auto; }
+
+.ad-toggle { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-muted); cursor: pointer; }
+
+/* ------------------------------------------------------------------------------------------ *
+ * Responsive
+ * ------------------------------------------------------------------------------------------ */
+@media (max-width: 820px) {
+  .ad-wizard__body { grid-template-columns: 1fr; overflow-y: auto; }
+  .ad-wizard__side { border-left: none; border-top: 1px solid var(--border-subtle); }
+  .ad-wizard__form { overflow: visible; }
+  .ad-rate-card__fields { grid-template-columns: 1fr; }
+}

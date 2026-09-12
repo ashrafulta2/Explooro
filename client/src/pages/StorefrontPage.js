@@ -14,7 +14,7 @@ import { toast } from '../services/toast.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { appStore } from '../state/appStore.js';
 import { updateHead, buildStoreJsonLd } from '../services/seo.js';
-import { formatExplooroBrandText } from '../components/ui/icons.js';
+import { formatExplooroBrandText, ICONS } from '../components/ui/icons.js';
 
 export default function StorefrontPage(root, { params, navigate }) {
   const container = document.createElement('div');
@@ -210,7 +210,7 @@ function buildSocialSellerKitBar(store) {
 
   const titleWrap = document.createElement('div');
   titleWrap.className = 'social-kit-bar__title';
-  titleWrap.innerHTML = `<span>🚀</span> <span>${t('social_kit.bar_title')}</span>`;
+  titleWrap.innerHTML = `<span>${ICONS.rocket}</span> <span>${t('social_kit.bar_title')}</span>`;
 
   const buttonsWrap = document.createElement('div');
   buttonsWrap.className = 'social-kit-bar__buttons';
@@ -220,7 +220,7 @@ function buildSocialSellerKitBar(store) {
   // 1. Share to WhatsApp
   const waBtn = document.createElement('button');
   waBtn.className = 'social-kit-btn social-kit-btn--whatsapp';
-  waBtn.innerHTML = `<span>💬</span> <span>${t('social_kit.share_whatsapp')}</span>`;
+  waBtn.innerHTML = `<span>${ICONS.whatsapp}</span> <span>${t('social_kit.share_whatsapp')}</span>`;
   waBtn.addEventListener('click', () => {
     const text = encodeURIComponent(
       `🛍️ Check out "${store.shop_name}" on Explooro Bangladesh!\n\n${store.bio ? store.bio + '\n\n' : ''}Browse products & buy with 100% Escrow Protection:\n👉 ${storeUrl}`
@@ -231,7 +231,7 @@ function buildSocialSellerKitBar(store) {
   // 2. Download QR Flyer
   const qrBtn = document.createElement('button');
   qrBtn.className = 'social-kit-btn';
-  qrBtn.innerHTML = `<span>📱</span> <span>${t('social_kit.download_qr_flyer')}</span>`;
+  qrBtn.innerHTML = `<span>${ICONS.smartphone}</span> <span>${t('social_kit.download_qr_flyer')}</span>`;
   qrBtn.addEventListener('click', () => {
     openQrFlyerModal(store, storeUrl);
   });
@@ -239,7 +239,7 @@ function buildSocialSellerKitBar(store) {
   // 3. Copy Link
   const copyBtn = document.createElement('button');
   copyBtn.className = 'social-kit-btn';
-  copyBtn.innerHTML = `<span>🔗</span> <span>${t('social_kit.copy_store_link')}</span>`;
+  copyBtn.innerHTML = `<span>${ICONS.link}</span> <span>${t('social_kit.copy_store_link')}</span>`;
   copyBtn.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(storeUrl);
@@ -296,7 +296,7 @@ function openQrFlyerModal(store, storeUrl) {
     title: t('social_kit.qr_flyer_title'),
     content,
     primaryAction: {
-      label: `🖨️ ${t('social_kit.print_or_save')}`,
+      label: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('social_kit.print_or_save')}`,
       onClick: () => {
         window.print();
       },

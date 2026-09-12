@@ -64,7 +64,7 @@ export const navGroups = [
   { key: 'supplier.orders', role: 'supplier', icon: '🛒', label_i18n_key: 'nav.shared.orders', order: 3 },
   { key: 'supplier.aftercare', role: 'supplier', icon: '🛡️', label_i18n_key: 'nav.group.supplier.aftercare', order: 4 },
   { key: 'supplier.finance', role: 'supplier', icon: '💰', label_i18n_key: 'nav.group.finance', order: 5 },
-  { key: 'supplier.engage', role: 'supplier', icon: '💬', label_i18n_key: 'nav.group.supplier.engage', order: 6 },
+  { key: 'supplier.engage', role: 'supplier', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>', label_i18n_key: 'nav.group.supplier.engage', order: 6 },
   { key: 'supplier.my_shop', role: 'supplier', icon: '🏪', label_i18n_key: 'nav.group.supplier.my_shop', order: 7 },
 
   // ---- Saler (7 groups, ia-sitemap.md §2.5) ----
@@ -74,7 +74,7 @@ export const navGroups = [
   { key: 'saler.marketing', role: 'saler', icon: '📣', label_i18n_key: 'nav.group.saler.marketing', order: 4 },
   { key: 'saler.orders', role: 'saler', icon: '🛒', label_i18n_key: 'nav.shared.orders', order: 5 },
   { key: 'saler.vault', role: 'saler', icon: '💰', label_i18n_key: 'nav.group.saler.vault', order: 6 },
-  { key: 'saler.growth', role: 'saler', icon: '🚀', label_i18n_key: 'nav.group.growth', order: 7 },
+  { key: 'saler.growth', role: 'saler', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg>', label_i18n_key: 'nav.group.growth', order: 7 },
 
   // ---- Customer (4 groups, ia-sitemap.md §2.6 — flat and icon-led by design) ----
   { key: 'customer.shopping', role: 'customer', icon: '🛒', label_i18n_key: 'nav.group.customer.shopping', order: 1 },
@@ -117,12 +117,13 @@ export const navItems = [
   { key: 'admin.finance.subscriptions', label_i18n_key: 'nav.admin.subscriptions', icon: null, path: '/admin/finance/subscriptions', group: 'admin.finance', permission: 'finance.subscription.manage', module: 'subscription_fees', roles: ['super_admin', 'admin'], order: 7 },
 
   { key: 'admin.growth.ads', label_i18n_key: 'nav.admin.ads', icon: null, path: '/admin/growth/ads', group: 'admin.growth', permission: 'growth.ad.govern', module: 'sponsored_ads', roles: ['super_admin', 'admin'], order: 1 },
-  { key: 'admin.growth.coupons', label_i18n_key: 'nav.shared.coupons', icon: null, path: '/admin/growth/coupons', group: 'admin.growth', permission: 'growth.coupon.manage', module: 'coupons', roles: ['super_admin', 'admin'], order: 2 },
-  { key: 'admin.growth.campaigns', label_i18n_key: 'nav.admin.campaigns', icon: null, path: '/admin/growth/campaigns', group: 'admin.growth', permission: 'growth.campaign.manage', module: 'flash_sale', roles: ['super_admin', 'admin'], order: 3 },
-  { key: 'admin.growth.referrals', label_i18n_key: 'nav.shared.referrals', icon: null, path: '/admin/growth/referrals', group: 'admin.growth', permission: 'growth.referral.govern', module: 'referral_engine', roles: ['super_admin', 'admin'], order: 4 },
-  { key: 'admin.growth.coins', label_i18n_key: 'nav.admin.coins', icon: null, path: '/admin/growth/coins', group: 'admin.growth', permission: 'growth.coins.govern', module: 'loyalty_coins', roles: ['super_admin', 'admin'], order: 5 },
-  { key: 'admin.growth.quests', label_i18n_key: 'nav.shared.quests', icon: null, path: '/admin/growth/quests', group: 'admin.growth', permission: 'growth.quest.govern', module: 'daily_quests', roles: ['super_admin', 'admin'], order: 6 },
-  { key: 'admin.growth.groupbuy', label_i18n_key: 'nav.admin.groupbuy', icon: null, path: '/admin/growth/group-buy', group: 'admin.growth', permission: 'growth.groupbuy.govern', module: 'group_buying', roles: ['super_admin', 'admin'], order: 7 },
+  { key: 'admin.growth.ad_pricing', label_i18n_key: 'nav.admin.ad_pricing', icon: null, path: '/admin/growth/ad-pricing', group: 'admin.growth', permission: 'growth.ad.govern', module: 'sponsored_ads', roles: ['super_admin', 'admin'], order: 2 },
+  { key: 'admin.growth.coupons', label_i18n_key: 'nav.shared.coupons', icon: null, path: '/admin/growth/coupons', group: 'admin.growth', permission: 'growth.coupon.manage', module: 'coupons', roles: ['super_admin', 'admin'], order: 3 },
+  { key: 'admin.growth.campaigns', label_i18n_key: 'nav.admin.campaigns', icon: null, path: '/admin/growth/campaigns', group: 'admin.growth', permission: 'growth.campaign.manage', module: 'flash_sale', roles: ['super_admin', 'admin'], order: 4 },
+  { key: 'admin.growth.referrals', label_i18n_key: 'nav.shared.referrals', icon: null, path: '/admin/growth/referrals', group: 'admin.growth', permission: 'growth.referral.govern', module: 'referral_engine', roles: ['super_admin', 'admin'], order: 5 },
+  { key: 'admin.growth.coins', label_i18n_key: 'nav.admin.coins', icon: null, path: '/admin/growth/coins', group: 'admin.growth', permission: 'growth.coins.govern', module: 'loyalty_coins', roles: ['super_admin', 'admin'], order: 6 },
+  { key: 'admin.growth.quests', label_i18n_key: 'nav.shared.quests', icon: null, path: '/admin/growth/quests', group: 'admin.growth', permission: 'growth.quest.govern', module: 'daily_quests', roles: ['super_admin', 'admin'], order: 7 },
+  { key: 'admin.growth.groupbuy', label_i18n_key: 'nav.admin.groupbuy', icon: null, path: '/admin/growth/group-buy', group: 'admin.growth', permission: 'growth.groupbuy.govern', module: 'group_buying', roles: ['super_admin', 'admin'], order: 8 },
 
   { key: 'admin.content.banners', label_i18n_key: 'nav.shared.banners', icon: null, path: '/admin/content/banners', group: 'admin.content', permission: 'content.banner.publish', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.content.stories', label_i18n_key: 'nav.shared.stories', icon: null, path: '/admin/content/stories', group: 'admin.content', permission: 'content.story.curate', module: 'content_commerce', roles: ['super_admin', 'admin'], order: 2 },
@@ -136,6 +137,7 @@ export const navItems = [
   { key: 'admin.platform.integrations', label_i18n_key: 'nav.admin.integrations', icon: null, path: '/admin/platform/integrations', group: 'admin.platform', permission: 'platform.integration.view', module: 'core', roles: ['super_admin', 'admin'], order: 3 },
   { key: 'admin.platform.apikeys', label_i18n_key: 'nav.admin.apikeys', icon: null, path: '/admin/platform/api-keys', group: 'admin.platform', permission: 'platform.apikey.view', module: 'open_api', roles: ['super_admin', 'admin'], order: 4 },
   { key: 'admin.platform.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/admin/platform/settings', group: 'admin.platform', permission: 'platform.settings.view', module: 'core', roles: ['super_admin', 'admin'], order: 5 },
+  { key: 'admin.platform.language', label_i18n_key: 'nav.admin.language', icon: null, path: '/admin/platform/language', group: 'admin.platform', permission: 'platform.localization.view', module: 'core', roles: ['super_admin', 'admin'], order: 6 },
 
   { key: 'admin.security.audit', label_i18n_key: 'nav.admin.audit', icon: null, path: '/admin/security/audit', group: 'admin.security', permission: 'security.audit.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.security.sessions', label_i18n_key: 'nav.admin.sessions', icon: null, path: '/admin/security/sessions', group: 'admin.security', permission: 'security.session.revoke', module: 'core', roles: ['super_admin', 'admin'], order: 2 },

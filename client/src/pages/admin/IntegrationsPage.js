@@ -422,7 +422,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
         <label for="modal-webhook-url" class="form-label">${t('platform_integrations.field_callback_url', 'Webhook Callback URL')}</label>
         <div class="flex items-center gap-2">
           <input type="text" id="modal-webhook-url" class="input input--sm flex-1 font-mono text-muted" value="${g.webhook_url || 'https://api.explooro.com/webhooks'}" readonly />
-          <button type="button" id="copy-webhook-btn" class="btn btn--secondary btn--sm">📋</button>
+          <button type="button" id="copy-webhook-btn" class="btn btn--secondary btn--sm"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></button>
         </div>
       </div>
 

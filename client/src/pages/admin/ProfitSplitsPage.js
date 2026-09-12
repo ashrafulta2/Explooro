@@ -56,7 +56,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
   function getCategoryIcon(slug) {
     const map = {
       fashion: '👗',
-      electronics: '📱',
+      electronics: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>',
       beauty: '💄',
       home: '🏠',
       grocery: '🥦',
@@ -455,7 +455,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
                 : simCalc.pricingState === 'discount'
                 ? `🏷️ ${isBn ? 'ডিসকাউন্ট মূল্য: সেলারের প্রফিট কমেছে, প্ল্যাটফর্মের ডিফল্ট প্রফিট ১০০% অক্ষত।' : 'Discount Tier: Saler profit reduced; Platform default profit is 100% protected.'}`
                 : simCalc.pricingState === 'boost'
-                ? `🚀 ${isBn ? `অতিরিক্ত মূল্য: ডিফল্ট মূল্যের অতিরিক্ত অংশ প্ল্যাটফর্ম (${simCalc.extraPlatPct}%) ও সেলারের (${100 - simCalc.extraPlatPct}%) মধ্যে বণ্টন হবে।` : `Extra Markup Tier: Surplus markup shared between platform (${simCalc.extraPlatPct}%) and saler (${100 - simCalc.extraPlatPct}%).`}`
+                ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${isBn ? `অতিরিক্ত মূল্য: ডিফল্ট মূল্যের অতিরিক্ত অংশ প্ল্যাটফর্ম (${simCalc.extraPlatPct}%) ও সেলারের (${100 - simCalc.extraPlatPct}%) মধ্যে বণ্টন হবে।` : `Extra Markup Tier: Surplus markup shared between platform (${simCalc.extraPlatPct}%) and saler (${100 - simCalc.extraPlatPct}%).`}`
                 : `✨ ${isBn ? 'স্ট্যান্ডার্ড ডিফল্ট মূল্য: প্ল্যাটফর্ম ও সেলার উভয়েই পূর্ণ ডিফল্ট প্রফিট পাচ্ছেন।' : 'Standard Suggested Retail: Both platform and saler receive full default markup.'}`
             }
           </div>

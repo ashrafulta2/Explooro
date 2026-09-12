@@ -970,7 +970,10 @@ export async function recordClickAndBill(db, cache, {
  */
 export async function cancelCampaign(db, userId, campaignId, reqMeta = {}) {
   const { rows } = await db.query(
-    `SELECT * FROM ad_campaigns WHERE id = $1 AND user_id = $2`,
+    `SELECT c.*, p.pricing_model, p.rate_card 
+     FROM ad_campaigns c
+     JOIN ad_products p ON p.id = c.ad_product_id
+     WHERE c.id = $1 AND c.user_id = $2`,
     [campaignId, userId]
   );
   if (rows.length === 0) {
@@ -984,6 +987,39 @@ export async function cancelCampaign(db, userId, campaignId, reqMeta = {}) {
 
   return await withTransaction(db, async (client) => {
     const releasedDays = await adProductRepo.releaseBookingsForCampaign(client, campaignId);
+    let refundAmount = 0;
+
+    // Prorated Refund for FLAT_DAILY prepaid campaigns
+    if (campaign.pricing_model === 'FLAT_DAILY' && releasedDays > 0) {
+      const dailyRate = rate(campaign.rate_card || {}, 'daily_rate');
+      refundAmount = dailyRate * releasedDays;
+
+      if (refundAmount > 0) {
+        const buyerWallet = await walletRepo.getOrCreateWallet(client, userId, { client });
+        
+        const { rows: adminRows } = await client.query(
+          `SELECT u.id FROM users u
+           JOIN user_roles ur ON ur.user_id = u.id
+           JOIN roles r ON r.id = ur.role_id
+           WHERE r.key = 'super_admin'
+           ORDER BY u.id ASC LIMIT 1`
+        );
+        const platformUserId = adminRows[0]?.id ?? 1;
+        const platformWallet = await walletRepo.getOrCreateWallet(client, platformUserId, { client });
+
+        await ledgerService.recordTransactionGroup(client, {
+          txnGroupId: randomUUID(),
+          defaultCategory: 'AD_SPEND', // or 'AD_REFUND'
+          defaultReferenceType: 'ad_campaigns',
+          defaultReferenceId: campaign.id,
+          memo: `Prorated refund for cancelled prepaid campaign (Released ${releasedDays} days)`,
+          entries: [
+            { walletId: buyerWallet.id, entryType: 'CREDIT', amount: refundAmount.toFixed(2), balanceBucket: 'AVAILABLE' },
+            { walletId: platformWallet.id, entryType: 'DEBIT', amount: refundAmount.toFixed(2), balanceBucket: 'AVAILABLE' },
+          ],
+        });
+      }
+    }
 
     const { rows: updated } = await client.query(
       `UPDATE ad_campaigns SET status = 'COMPLETED', end_date = now(), updated_at = now()
@@ -997,12 +1033,12 @@ export async function cancelCampaign(db, userId, campaignId, reqMeta = {}) {
       resourceType: 'ad_campaigns',
       resourceId: campaignId,
       before: { status: campaign.status, end_date: campaign.end_date },
-      after: { status: 'COMPLETED', released_slot_days: releasedDays },
+      after: { status: 'COMPLETED', released_slot_days: releasedDays, refunded_amount: refundAmount },
       ipAddress: reqMeta.ip || null,
       userAgent: reqMeta.userAgent || null,
     });
 
-    return { ...updated[0], released_slot_days: releasedDays };
+    return { ...updated[0], released_slot_days: releasedDays, refunded_amount: refundAmount };
   });
 }
 
@@ -1105,3 +1141,52 @@ export async function reviewCampaign(db, adminId, campaignId, { decision, reason
 
   return rows[0];
 }
+
+/**
+ * Processes CPA (Cost Per Acquisition) attribution for an order.
+ * Calculates commission based on the campaign's rate card and charges the advertiser.
+ */
+export async function processCpaAttribution(client, campaignId, orderRef, orderAmountBdt) {
+  const { rows } = await client.query(
+    `SELECT c.*, p.rate_card, p.pricing_model
+     FROM ad_campaigns c
+     JOIN ad_products p ON p.id = c.ad_product_id
+     WHERE c.id = $1`,
+    [campaignId]
+  );
+  
+  const campaign = rows[0];
+  if (!campaign || campaign.pricing_model !== 'CPA' || campaign.status !== 'ACTIVE') {
+    return null;
+  }
+
+  const cpaPercent = rate(campaign.rate_card || {}, 'cpa_percent');
+  const chargeAmount = (Number(orderAmountBdt) * cpaPercent) / 100;
+  
+  if (chargeAmount <= 0) return null;
+  
+  try {
+    const payment = await chargeAdvertiser(client, {
+      buyerUserId: campaign.user_id,
+      campaign,
+      amount: chargeAmount.toFixed(2),
+      memo: `CPA commission for attributed order ${orderRef}`,
+    });
+    
+    // Log the attribution as a pseudo-click for analytics
+    await client.query(
+      `INSERT INTO ad_clicks (campaign_id, creative_id, user_id, session_id, ip_address, cpc_charged, is_valid)
+       VALUES ($1, NULL, NULL, 'CPA_ATTRIBUTION', '0.0.0.0', $2, true)`,
+      [campaign.id, chargeAmount.toFixed(2)]
+    );
+    
+    return payment;
+  } catch (err) {
+    // If the advertiser doesn't have enough balance, we can't charge them now.
+    // In a real system we might record this debt or pause the campaign.
+    // For now, pause the campaign.
+    await client.query(`UPDATE ad_campaigns SET status = 'PAUSED' WHERE id = $1`, [campaign.id]);
+    return null;
+  }
+}
+

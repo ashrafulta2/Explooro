@@ -126,21 +126,50 @@ function envDefaultLang() {
 }
 
 /**
- * Resolves the language to show, given the current policy and the visitor's saved pick.
- * Pure apart from reading storage, so the precedence order is testable in one place.
+ * The precedence rule, as a pure function — no storage, no DOM, no network.
+ *
+ * Exported because this is the one piece of the engine with a behaviour worth asserting
+ * directly: which of the three layers wins, and when. Everything around it is plumbing.
+ *
+ * @param {object} opts
+ * @param {object} opts.policy        the platform policy
+ * @param {string|null} opts.savedLocale  the visitor's own saved pick, if any
+ * @param {string} opts.envDefault    the build-time VITE_DEFAULT_LOCALE fallback
+ * @param {string[]} [opts.supported] locales this build ships a dictionary for
  */
-function resolveLang() {
-  const enabled = policy.enabled_locales?.length ? policy.enabled_locales : SUPPORTED;
-  const systemDefault = policy.default_locale && enabled.includes(policy.default_locale)
-    ? policy.default_locale
-    : (enabled.includes(envDefaultLang()) ? envDefaultLang() : enabled[0]);
+export function resolveInitialLocale({ policy: p = {}, savedLocale = null, envDefault = FALLBACK_LANG, supported = SUPPORTED } = {}) {
+  const enabled = p.enabled_locales?.length
+    ? p.enabled_locales.filter((l) => supported.includes(l))
+    : [...supported];
+  const pool = enabled.length ? enabled : [...supported];
 
-  if (!policy.allow_user_override) return systemDefault;
+  let systemDefault;
+  if (p.default_locale && pool.includes(p.default_locale)) {
+    systemDefault = p.default_locale;
+  } else if (pool.includes(envDefault)) {
+    systemDefault = envDefault;
+  } else {
+    systemDefault = pool[0];
+  }
 
-  const saved = readStorage(STORAGE_KEY);
-  if (saved && SUPPORTED.includes(saved) && enabled.includes(saved)) return saved;
+  // A policy that forbids visitor choice overrides a pick the visitor made earlier — otherwise
+  // turning the setting off would leave existing sessions on their old language forever.
+  if (p.allow_user_override === false) return systemDefault;
+
+  if (savedLocale && supported.includes(savedLocale) && pool.includes(savedLocale)) {
+    return savedLocale;
+  }
 
   return systemDefault;
+}
+
+/** resolveInitialLocale() bound to this module's live policy and the visitor's storage. */
+function resolveLang() {
+  return resolveInitialLocale({
+    policy,
+    savedLocale: readStorage(STORAGE_KEY),
+    envDefault: envDefaultLang(),
+  });
 }
 
 /** Turns a missing key into a readable label instead of a blank string or the raw dot-path. */

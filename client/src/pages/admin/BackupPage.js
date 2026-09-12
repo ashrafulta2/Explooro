@@ -357,7 +357,7 @@ export default function BackupPage(root, { navigate } = {}) {
                           ${shortChecksum}
                         </code>
                         <button type="button" class="copy-checksum-btn" data-checksum="${checksum}" title="${isBn ? 'চেকসাম কপি করুন' : 'Copy SHA-256'}" style="background: none; border: none; cursor: pointer; font-size: 0.8125rem; color: var(--text-secondary); padding: 0.1rem 0.25rem;">
-                          📋
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg>
                         </button>
                       </div>
                     </td>

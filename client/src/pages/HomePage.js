@@ -21,6 +21,7 @@
 
 import { appStore } from '../state/appStore.js';
 import { listProducts } from '../services/catalog.api.js';
+import { adsApi } from '../services/ads.api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { Button } from '../components/ui/Button.js';
@@ -168,16 +169,36 @@ export default function HomePage(root, { navigate }) {
     if (flashSection) return; // already mounted
 
     let flashList = allProducts?.filter((p) => p.is_flash_sale) || [];
-    if (flashList.length === 0) {
-      try {
-        const flashRes = await listProducts({ flash_sale: '1', limit: 12 });
-        if (flashRes?.products?.length > 0) {
-          flashList = flashRes.products;
-        }
-      } catch {
-        // Fallback to allProducts
+    try {
+      const [flashRes, adsRes] = await Promise.all([
+        flashList.length === 0 ? listProducts({ flash_sale: '1', limit: 12 }).catch(() => null) : Promise.resolve(null),
+        adsApi.listReservedPlacements('FLASH_STRIP').catch(() => ({ data: [] }))
+      ]);
+
+      if (flashRes?.products?.length > 0) {
+        flashList = flashRes.products;
       }
+      
+      const reservedAds = adsRes?.data || [];
+      if (reservedAds.length > 0) {
+        const adProducts = reservedAds.map(ad => ({
+          id: `ad_${ad.campaign_id}`,
+          ref: ad.creative?.target_url?.split('/').pop() || '',
+          title_en: ad.campaign_name || 'Sponsored Deal',
+          title_bn: ad.campaign_name || 'Sponsored Deal',
+          price: 999.00,
+          special_price: 799.00,
+          main_image: ad.creative?.image_url || 'https://placehold.co/400x400?text=AD',
+          isSponsored: true,
+          is_flash_sale: true,
+          store: { shop_name: 'Sponsored Store' }
+        }));
+        flashList = [...adProducts, ...flashList];
+      }
+    } catch {
+      // Fallback
     }
+
     if (flashList.length === 0) {
       flashList = allProducts || [];
     }
@@ -329,6 +350,31 @@ export default function HomePage(root, { navigate }) {
 
     return async (cursor) => {
       const result = await listProducts(buildQuery(cursor));
+      
+      // Inject CATEGORY_BANNER ads on the first page if a category is selected
+      if (!cursor && activeCategory && activeCategory !== 'all') {
+        try {
+          const adsRes = await adsApi.listReservedPlacements('CATEGORY_BANNER', activeCategory);
+          const reservedAds = adsRes?.data || [];
+          if (reservedAds.length > 0 && result?.products) {
+            const adProducts = reservedAds.map(ad => ({
+              id: `ad_${ad.campaign_id}`,
+              ref: ad.creative?.target_url?.split('/').pop() || '',
+              title_en: ad.campaign_name || 'Sponsored Category Ad',
+              title_bn: ad.campaign_name || 'Sponsored Category Ad',
+              price: 999.00,
+              special_price: 799.00,
+              main_image: ad.creative?.image_url || 'https://placehold.co/400x400?text=Category+AD',
+              isSponsored: true,
+              store: { shop_name: 'Sponsored Store' }
+            }));
+            result.products = [...adProducts, ...result.products];
+          }
+        } catch (err) {
+          // Fallback
+        }
+      }
+
       // Collect products for flash widget on first page
       if (!cursor && result?.products) {
         allLoadedProducts = result.products;

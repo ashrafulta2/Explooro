@@ -1,11 +1,11 @@
--- 043_retire_i18n_module_default_locale.sql (one writer for the default language)
+-- 046_retire_i18n_module_default_locale.sql (one writer for the default language)
 --
 -- The `i18n` platform module shipped with a `default_locale` key inside its settings_json and
 -- settings_schema (003_modules.sql, from modules.seed.json). Nothing ever read it — the real
 -- default came from the client's VITE_DEFAULT_LOCALE env var — so it was dead config that
 -- nonetheless *looked* authoritative in the Module Settings drawer.
 --
--- 042 gave the default language a real home in platform_settings. Leaving the module key in place
+-- 045 gave the default language a real home in platform_settings. Leaving the module key in place
 -- would create two editable surfaces for one value, with two different guards:
 --   - the Module Settings drawer, gated by `platform.module.settings` (CRITICAL, delegable:false)
 --   - the Language Settings page, gated by `platform.localization.update` (MEDIUM, delegable)

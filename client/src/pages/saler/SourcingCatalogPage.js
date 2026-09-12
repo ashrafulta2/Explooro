@@ -399,7 +399,7 @@ const CATEGORY_META = {
   'Clothing': { icon: '🥻', bg: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', color: '#9d174d' },
   'Jewellery': { icon: '💍', bg: 'linear-gradient(135deg, #fae8ff 0%, #f5d0fe 100%)', color: '#86198f' },
   'Crafts': { icon: '🏺', bg: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534' },
-  'Electronics': { icon: '📱', bg: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', color: '#1e40af' },
+  'Electronics': { icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>', bg: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', color: '#1e40af' },
   'Home & Kitchen': { icon: '🍳', bg: 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)', color: '#9a3412' },
   'Food & Grocery': { icon: '🍯', bg: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', color: '#92400e' },
   'Footwear': { icon: '👟', bg: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', color: '#334155' },

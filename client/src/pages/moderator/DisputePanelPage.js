@@ -430,7 +430,7 @@ export default function DisputePanelPage(root) {
         <!-- Workspace Tabs -->
         <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-subtle, #e2e8f0); padding-bottom: 8px;">
           <button class="btn-subview-tab" data-view="CHAT" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: var(--radius-sm, 6px); border: 1px solid ${activeView === 'CHAT' ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'}; background: ${activeView === 'CHAT' ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'}; color: ${activeView === 'CHAT' ? 'var(--brand-contrast, #ffffff)' : 'var(--text-secondary, #475569)'}; cursor: pointer;">
-            💬 3-Way Chat (${selectedDispute.messages?.length || 0})
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> 3-Way Chat (${selectedDispute.messages?.length || 0})
           </button>
           <button class="btn-subview-tab" data-view="TIMELINE" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: var(--radius-sm, 6px); border: 1px solid ${activeView === 'TIMELINE' ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'}; background: ${activeView === 'TIMELINE' ? 'var(--brand, #4f46e5)' : 'var(--surface-1, #ffffff)'}; color: ${activeView === 'TIMELINE' ? 'var(--brand-contrast, #ffffff)' : 'var(--text-secondary, #475569)'}; cursor: pointer;">
             📜 Evidence Timeline

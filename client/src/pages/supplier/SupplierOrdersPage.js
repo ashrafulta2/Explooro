@@ -86,7 +86,7 @@ export default function SupplierOrdersPage(root) {
       </div>
       <div class="supplier-header__actions">
         <a href="/supplier/fulfilment" class="btn btn--sm btn--primary">
-          🖨️ ${t('supplier.print_labels', 'Fulfilment Hub')}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('supplier.print_labels', 'Fulfilment Hub')}
         </a>
         <button class="btn btn--sm btn--secondary" id="refresh-orders-btn">
           🔄 ${t('common.refresh', 'Refresh')}
@@ -239,7 +239,7 @@ export default function SupplierOrdersPage(root) {
           </div>
           <div class="supplier-order-card__meta">
             <span>Customer: <strong>${order.recipient_name}</strong></span> ·
-            <span>📞 ${order.recipient_phone}</span> ·
+            <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> ${order.recipient_phone}</span> ·
             <span>📍 ${order.district}</span>
           </div>
         </div>
@@ -383,7 +383,7 @@ export default function SupplierOrdersPage(root) {
         <div class="supplier-modal__footer">
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.close', 'Close')}</button>
           <button class="btn btn--sm btn--primary" id="print-slip-action-btn">
-            🖨️ ${t('supplier.print_packing_slip', 'Print Packing Slip')}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('supplier.print_packing_slip', 'Print Packing Slip')}
           </button>
         </div>
       </div>
@@ -439,7 +439,7 @@ export default function SupplierOrdersPage(root) {
         <div class="supplier-modal__footer">
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.close', 'Close')}</button>
           <button class="btn btn--sm btn--primary" id="print-label-action-btn">
-            🖨️ ${t('supplier.print_shipping_label', 'Print Label')}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('supplier.print_shipping_label', 'Print Label')}
           </button>
         </div>
       </div>

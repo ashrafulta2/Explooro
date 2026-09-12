@@ -198,7 +198,7 @@ export default function EditorDashboardPage(root) {
     footer.innerHTML = `
       <button class="btn btn--secondary btn--sm" id="cancel-q-story-btn">Cancel</button>
       <button class="btn btn--primary btn--sm" id="save-q-story-btn">
-        ${isEdit ? '💾 Update Story' : '🚀 Publish Story'}
+        ${isEdit ? '💾 Update Story' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> Publish Story'}
       </button>
     `;
 
@@ -476,7 +476,7 @@ export default function EditorDashboardPage(root) {
     const launchpadSection = document.createElement('div');
     launchpadSection.innerHTML = `
       <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0 0 12px 0;">
-        🚀 Content Management Workspaces
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> Content Management Workspaces
       </h3>
     `;
 

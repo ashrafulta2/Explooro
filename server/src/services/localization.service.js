@@ -6,10 +6,10 @@
  * something other than the default at all.
  *
  * The policy lives in platform_settings (group `localization`, seeded by
- * 042_localization_policy.sql) — NOT in the `i18n` module's sub_settings_schema. That schema used
+ * 045_localization_policy.sql) — NOT in the `i18n` module's sub_settings_schema. That schema used
  * to declare a `default_locale` key, but nothing ever read it, and it was reachable only through
  * `platform.module.settings`, which is CRITICAL and therefore non-delegable: a Super Admin could
- * never hand the language over to anyone else. 043 drops that dead key so this table is the only
+ * never hand the language over to anyone else. 046 drops that dead key so this table is the only
  * writer for the value.
  *
  * Every mutation is validated here (not in the controller, not in the page), written in one

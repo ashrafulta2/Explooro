@@ -58,7 +58,7 @@ export default function LiveStudioPage(root, { navigate }) {
           <h2>${t('live.ready_to_broadcast') || 'Ready to Host Your Next Live Show?'}</h2>
           <p>${t('live.ready_desc') || 'Select your showcase products, enter your show title, and go live to thousands of buyers across Bangladesh.'}</p>
           <button class="btn btn--primary btn--lg" id="start-quick-stream-btn">
-            🚀 ${t('live.start_live_session') || 'Start Live Session'}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${t('live.start_live_session') || 'Start Live Session'}
           </button>
         </div>
       </div>
@@ -190,7 +190,7 @@ export default function LiveStudioPage(root, { navigate }) {
                 </button>
               `}
               <button class="btn btn--secondary" id="btn-share-link">
-                🔗 Copy Viewer Link
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M9 17H7A5 5 0 0 1 7 7h2"></path><path d="M15 7h2a5 5 0 1 1 0 10h-2"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg> Copy Viewer Link
               </button>
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function LiveStudioPage(root, { navigate }) {
         <div class="studio-right-col">
           <div class="studio-chat-box">
             <div class="studio-chat-header">
-              <h3>💬 Live Viewer Chat</h3>
+              <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> Live Viewer Chat</h3>
               <span class="badge badge--success">Connected</span>
             </div>
             <div class="studio-chat-messages" id="studio-chat-messages">

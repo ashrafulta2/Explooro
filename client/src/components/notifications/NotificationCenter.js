@@ -13,6 +13,7 @@ import { Drawer } from '../ui/Drawer.js';
 import { Button } from '../ui/Button.js';
 import { Tabs } from '../ui/Tabs.js';
 import { api } from '../../core/api.js';
+import { adsApi } from '../../services/ads.api.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
@@ -166,6 +167,9 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
         }
 
         if (notif.data_json?.linkUrl) {
+          if (String(notif.id).startsWith('ad_')) {
+            adsApi.trackClick(String(notif.id).replace('ad_', ''));
+          }
           // WHY pushState and not location.hash: the app is on the History API router
           // (core/router.js matches pathname), so a hash write changed the URL fragment and
           // navigated nowhere.
@@ -182,8 +186,28 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
   async function fetchNotifications() {
     listContainer.innerHTML = `<div class="notification-loading">Loading notifications...</div>`;
     try {
-      const res = await api.get('/notifications?limit=50');
+      const [res, adsRes] = await Promise.all([
+        api.get('/notifications?limit=50').catch(() => ({ data: { items: [] } })),
+        adsApi.listReservedPlacements('PUSH_SENDER').catch(() => ({ data: [] }))
+      ]);
       notifications = res?.data?.items || [];
+      
+      const reservedAds = adsRes?.data || [];
+      if (reservedAds.length > 0) {
+        const adNotifications = reservedAds.map(ad => ({
+          id: `ad_${ad.campaign_id}`,
+          title_en: ad.campaign_name || 'Sponsored Promotion',
+          title_bn: ad.campaign_name || 'Sponsored Promotion',
+          body_en: ad.creative?.description || 'Check out our latest sponsored offers!',
+          body_bn: ad.creative?.description || 'Check out our latest sponsored offers!',
+          category: 'MARKETING',
+          created_at: new Date().toISOString(),
+          is_read: false,
+          data_json: { linkUrl: ad.creative?.target_url || '/' }
+        }));
+        notifications = [...adNotifications, ...notifications];
+      }
+      
       unreadCount = notifications.filter((n) => !n.is_read).length;
       updateBadge();
       renderList();

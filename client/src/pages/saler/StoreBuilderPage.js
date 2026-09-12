@@ -13,7 +13,7 @@ import { Textarea } from '../../components/ui/Textarea.js';
 import { Switch } from '../../components/ui/Switch.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
-import { formatExplooroBrandText } from '../../components/ui/icons.js';
+import { formatExplooroBrandText, ICONS } from '../../components/ui/icons.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 
@@ -248,14 +248,14 @@ export default function StoreBuilderPage(root, { navigate }) {
 
     const copyBtn = document.createElement('button');
     copyBtn.className = 'social-kit-btn';
-    copyBtn.innerHTML = `<span>📋</span> <span>${t('social_kit.copy_store_link', 'Copy Store Link')}</span>`;
+    copyBtn.innerHTML = `<span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></span> <span>${t('social_kit.copy_store_link', 'Copy Store Link')}</span>`;
     copyBtn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(getStoreUrl());
         copyBtn.innerHTML = `<span>✓</span> <span>${t('common.copied', 'Copied!')}</span>`;
         toast.success(t('social_kit.link_copied', 'Store link copied to clipboard!'));
         setTimeout(() => {
-          copyBtn.innerHTML = `<span>📋</span> <span>${t('social_kit.copy_store_link', 'Copy Store Link')}</span>`;
+          copyBtn.innerHTML = `<span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></span> <span>${t('social_kit.copy_store_link', 'Copy Store Link')}</span>`;
         }, 2000);
       } catch {
         toast.info(getStoreUrl());
@@ -269,10 +269,10 @@ export default function StoreBuilderPage(root, { navigate }) {
     const shareActions = document.createElement('div');
     shareActions.className = 'store-builder__share-actions';
 
-    // 1. WhatsApp Share
+    // 1. WhatsApp Broadcaster
     const waShareBtn = document.createElement('button');
-    waShareBtn.className = 'social-kit-btn social-kit-btn--whatsapp';
-    waShareBtn.innerHTML = `<span>💬</span> <span>${t('social_kit.share_whatsapp', 'Share to WhatsApp')}</span>`;
+    waShareBtn.className = 'social-kit-btn';
+    waShareBtn.innerHTML = `<span>${ICONS.whatsapp}</span> <span>${t('social_kit.btn_share_whatsapp', 'WhatsApp Broadcast')}</span>`;
     waShareBtn.addEventListener('click', () => {
       const isBn = getLanguage() === 'bn';
       const greeting = isBn
@@ -289,7 +289,7 @@ export default function StoreBuilderPage(root, { navigate }) {
     // 2. Facebook Share
     const fbShareBtn = document.createElement('button');
     fbShareBtn.className = 'social-kit-btn';
-    fbShareBtn.innerHTML = `<span>📘</span> <span>${t('social_kit.btn_share_facebook', 'Share on Facebook')}</span>`;
+    fbShareBtn.innerHTML = `<span>${ICONS.facebook}</span> <span>${t('social_kit.btn_share_facebook', 'Share on Facebook')}</span>`;
     fbShareBtn.addEventListener('click', () => {
       const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getStoreUrl())}`;
       window.open(fbUrl, '_blank', 'width=600,height=400');
@@ -298,7 +298,7 @@ export default function StoreBuilderPage(root, { navigate }) {
     // 3. Printable QR Flyer Modal
     const qrModalBtn = document.createElement('button');
     qrModalBtn.className = 'social-kit-btn';
-    qrModalBtn.innerHTML = `<span>📱</span> <span>${t('social_kit.download_qr_flyer', 'Printable QR Flyer')}</span>`;
+    qrModalBtn.innerHTML = `<span>${ICONS.smartphone}</span> <span>${t('social_kit.btn_print_qr', 'Print QR Flyer')}</span>`;
     qrModalBtn.addEventListener('click', () => {
       openFlyerModal(storeState, getStoreUrl());
     });
@@ -492,7 +492,7 @@ export default function StoreBuilderPage(root, { navigate }) {
 
     const socialTitle = document.createElement('h3');
     socialTitle.className = 'store-builder__section-title';
-    socialTitle.textContent = `💬 ${t('store_builder.social_links_section', 'Social Seller Links')}`;
+    socialTitle.textContent = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> ${t('store_builder.social_links_section', 'Social Seller Links')}`;
     socialSec.append(socialTitle);
 
     const waInput = Input({
@@ -637,7 +637,7 @@ export default function StoreBuilderPage(root, { navigate }) {
     });
 
     const mobileBtn = Button({
-      label: '📱 Mobile',
+      label: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> Mobile',
       size: 'xs',
       variant: 'secondary',
       onClick: () => {
@@ -831,7 +831,7 @@ export default function StoreBuilderPage(root, { navigate }) {
       title: t('social_kit.qr_flyer_title', 'Printable Branded QR Flyer'),
       content,
       primaryAction: {
-        label: `🖨️ ${t('social_kit.print_or_save', 'Print / Save Flyer')}`,
+        label: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('social_kit.print_or_save', 'Print / Save Flyer')}`,
         onClick: () => {
           window.print();
         },

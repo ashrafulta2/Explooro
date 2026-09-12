@@ -75,7 +75,7 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
   const proBtn = document.createElement('button');
   proBtn.type = 'button';
   proBtn.className = currentMode === 'pro' ? 'saler-mode-btn active' : 'saler-mode-btn';
-  proBtn.textContent = `🚀 ${t('saler.dashboard.mode_pro', 'Pro Dashboard')}`;
+  proBtn.textContent = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${t('saler.dashboard.mode_pro', 'Pro Dashboard')}`;
   proBtn.onclick = () => switchMode('pro');
 
   toggleBox.append(simpleBtn, proBtn);
@@ -226,7 +226,7 @@ function renderSimpleMode(container, data, nav) {
       id: 'simple_messages',
       title: t('saler.dashboard.action_messages', '5. Customer Messages'),
       desc: t('saler.dashboard.action_messages_desc', 'Chat with buyers across WhatsApp, Messenger, and live store chat.'),
-      icon: '💬',
+      icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>',
       url: '/saler/inbox',
       btnText: 'Open Unified Inbox →',
       badge: data.metrics?.unread_messages_count > 0 ? `${data.metrics.unread_messages_count} new` : 'All read',
@@ -370,7 +370,7 @@ function renderOnboardingWidget(container, onboarding, nav) {
     <div class="saler-onboarding-header">
       <div>
         <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-          🚀 ${t('saler.onboarding.title', 'Quick Start Guide: Road to Your First Sale')}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${t('saler.onboarding.title', 'Quick Start Guide: Road to Your First Sale')}
           <span class="badge badge--primary text-[10px]">${onboarding.completed_steps_count}/${onboarding.total_steps} Completed</span>
         </h3>
         <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
@@ -559,7 +559,7 @@ function renderToolsGrid(container, data, nav) {
       id: 'tool_inbox',
       name: t('saler.tools.inbox', 'Unified Multi-Channel Inbox'),
       desc: t('saler.tools.inbox_desc', 'Centralized WhatsApp, Messenger, and live web conversational commerce.'),
-      icon: '💬',
+      icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>',
       url: '/saler/inbox',
       module: 'whatsapp_bridge',
       perm: 'chat.thread.view_own',

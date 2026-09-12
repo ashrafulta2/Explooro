@@ -305,6 +305,25 @@ async function bootRouterDemo() {
         module: 'core',
         load: () => import('./pages/admin/SettingsPage.js'),
       },
+      // Language & Default Locale governance. `platform.localization.view` is the read key, the
+      // same one navigation.js gates the sidebar entry with — a route guard looser or stricter
+      // than its nav guard is the defect docs/super-admin-audit.md §5 invariant 2 exists to stop.
+      {
+        path: '/admin/platform/language',
+        title: 'Language & Default Locale — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.localization.view',
+        module: 'core',
+        load: () => import('./pages/admin/LanguageSettingsPage.js'),
+      },
+      {
+        path: '/admin/language',
+        title: 'Language & Default Locale — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.localization.view',
+        module: 'core',
+        load: () => import('./pages/admin/LanguageSettingsPage.js'),
+      },
       // Prompt 10.8: Content Commerce, Reels, Academy & Editor Dashboard
       {
         path: '/stories',
@@ -879,6 +898,14 @@ async function bootRouterDemo() {
         permission: 'growth.ad.govern',
         module: 'sponsored_ads',
         load: () => import('./pages/admin/AdminAdsPage.js'),
+      },
+      {
+        path: '/admin/growth/ad-pricing',
+        title: 'Ad Pricing & Rate Cards — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.ad.govern',
+        module: 'sponsored_ads',
+        load: () => import('./pages/admin/AdminAdPricingPage.js'),
       },
       {
         path: '/admin/growth/quests',

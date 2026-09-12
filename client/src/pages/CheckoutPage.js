@@ -13,6 +13,7 @@ import { AddressForm } from '../components/checkout/AddressForm.js';
 import { PaymentSelector } from '../components/checkout/PaymentSelector.js';
 import { getCart, fetchCart, clearCart } from '../services/cart.js';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.js';
+import { adsApi } from '../services/ads.api.js';
 import { customerApi } from '../services/customer.api.js';
 import { getCurrentUser } from '../services/session.js';
 import { appStore } from '../state/appStore.js';
@@ -333,12 +334,14 @@ export default function CheckoutPage(root, { navigate } = {}) {
             address_line: validatedAddress.address_line,
             payment_method: paymentSelector?.getPaymentMethod() || paymentMethod,
             otp_code: paymentSelector?.getOtpCode() || undefined,
+            ad_campaign_id: adsApi.getAttribution() || undefined,
           };
 
           const result = await placeCheckout(payload);
           toast.success(t('checkout.order_success') || 'Order placed successfully!');
           clearCheckoutDraft();
           clearCart();
+          adsApi.clearAttribution();
 
           if (navigate && result.order?.ref) {
             navigate(`/orders/${result.order.ref}`);

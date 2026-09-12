@@ -116,7 +116,7 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
             </div>
             <div style="font-family: var(--font-mono, monospace); margin-top: 4px; display: flex; align-items: center; gap: 6px;">
               <span>${t('warranty.tracking_number')}: <strong>${claim.reverse_tracking_number}</strong></span>
-              <button class="copy-tracking-btn" type="button" style="background:none; border:none; cursor:pointer; font-size:12px;" title="Copy">📋</button>
+              <button class="copy-tracking-btn" type="button" style="background:none; border:none; cursor:pointer; font-size:12px;" title="Copy"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></button>
             </div>
             <div style="font-size: 11px; opacity: 0.85; margin-top: 2px;">
               ${t('warranty.reverse_pickup_instructions')}

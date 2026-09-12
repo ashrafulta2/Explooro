@@ -1,0 +1,331 @@
+/**
+ * language-settings.css — /admin/platform/language and its LocaleChoiceCard.
+ *
+ * Imported by pages/admin/LanguageSettingsPage.js ONLY, never by main.css. That keeps it in the
+ * route's own chunk instead of the entry bundle, which is where the CSS budget is measured
+ * (CLAUDE.md constraint 8). Importing it in both places would ship it twice with no warning —
+ * the exact mistake customer-orders.css made.
+ *
+ * Every colour is a semantic role token: `--brand` is a fill and `--text-brand` is text
+ * (docs/super-admin-audit.md §5 invariant 5). No literal hex, so the page follows the master seed
+ * and dark mode without a second definition.
+ */
+
+.language-settings-grid {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas:
+    'policy authority'
+    'policy history';
+  align-items: start;
+  margin-top: var(--space-5);
+}
+
+.language-policy-card {
+  grid-area: policy;
+}
+
+.language-authority-card {
+  grid-area: authority;
+}
+
+.language-history-card {
+  grid-area: history;
+}
+
+/* Stacks early on purpose: the admin shell's sidebar eats ~240px, so a 1024px window leaves
+   the side column too narrow to read a name and its grant window on one line. */
+@media (max-width: 1280px) {
+  .language-settings-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'policy'
+      'authority'
+      'history';
+  }
+}
+
+/* ── Policy card ─────────────────────────────────────────────────────────── */
+
+.language-policy-card__fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.language-policy-card__legend {
+  padding: 0;
+  font-size: var(--text-base, 1rem);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.language-policy-card__hint {
+  margin: var(--space-1) 0 var(--space-4);
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--text-secondary);
+  max-width: 62ch;
+}
+
+.language-policy-card__override {
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.language-policy-card__meta {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-muted);
+}
+
+/* ── Locale cards ────────────────────────────────────────────────────────── */
+
+.locale-card-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.locale-card {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* The default locale is the one fact this card exists to communicate, so it carries the brand
+   edge rather than a background wash — a filled card would compete with the radio it contains. */
+.locale-card--default {
+  border-color: var(--brand);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+
+.locale-card--off {
+  background: var(--surface-2);
+}
+
+.locale-card--off .locale-card__native,
+.locale-card--off .locale-card__meta {
+  color: var(--text-muted);
+}
+
+.locale-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.locale-card__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.locale-card__native {
+  font-size: var(--text-lg, 1.125rem);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.locale-card__meta {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-secondary);
+}
+
+.locale-card__current {
+  flex: 0 0 auto;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--success);
+  background: var(--success-bg);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-full);
+  padding: 2px var(--space-2);
+  white-space: nowrap;
+}
+
+.locale-card__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.locale-card__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.locale-card__radio,
+.locale-card__checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand);
+  /* WCAG 1.4.11 wants 3:1 for a control boundary; the token is the audited value. */
+  outline-offset: 2px;
+  flex: 0 0 auto;
+}
+
+.locale-card__radio:disabled,
+.locale-card__checkbox:disabled {
+  cursor: not-allowed;
+}
+
+.locale-card__control-label {
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.locale-card__radio:disabled + .locale-card__control-label,
+.locale-card__checkbox:disabled + .locale-card__control-label {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.locale-card__note {
+  margin: 0;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-muted);
+}
+
+/* ── Authority & history ─────────────────────────────────────────────────── */
+
+.language-authority-card__head {
+  margin-bottom: var(--space-3);
+}
+
+.language-authority-card__actions {
+  margin-top: var(--space-4);
+}
+
+.language-authority-list,
+.language-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.language-authority-list__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.language-authority-list__name {
+  font-size: var(--text-sm, 0.875rem);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.language-authority-list__kind {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.language-history-list__item {
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.language-history-list__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-secondary);
+}
+
+.language-history-list__change {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm, 0.875rem);
+  color: var(--text-primary);
+}
+
+.language-history-list__reason {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-secondary);
+}
+
+/* ── Save confirmation diff ──────────────────────────────────────────────── */
+
+.language-save-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.language-diff {
+  margin: var(--space-3) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.language-diff__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.language-diff__row--changed {
+  background: var(--brand-50, var(--surface-2));
+  border: 1px solid var(--brand);
+}
+
+.language-diff__label,
+.language-diff__value {
+  margin: 0;
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.language-diff__label {
+  color: var(--text-secondary);
+}
+
+.language-diff__value {
+  color: var(--text-primary);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  text-align: end;
+}
+
+.language-diff__row--changed .language-diff__from {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.language-diff__to {
+  font-weight: 600;
+  color: var(--text-brand);
+}
+
+.admin-page-actions__note {
+  margin: 0;
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--text-secondary);
+  max-width: 24ch;
+}

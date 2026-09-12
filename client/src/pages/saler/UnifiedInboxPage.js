@@ -35,7 +35,7 @@ export default function UnifiedInboxPage(root) {
   container.innerHTML = `
     <div class="inbox-header-row">
       <div>
-        <h2>💬 ${t('saler_inbox.page_title') || 'Unified Commerce Inbox'}</h2>
+        <h2><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> ${t('saler_inbox.page_title') || 'Unified Commerce Inbox'}</h2>
         <p class="page-subtitle">${t('saler_inbox.page_subtitle') || 'Manage WhatsApp, Messenger, and in-platform customer chats in one place.'}</p>
       </div>
       <div class="inbox-channel-filters" id="channel-filters-bar">
@@ -77,7 +77,7 @@ export default function UnifiedInboxPage(root) {
       <!-- Center: Active Chat Pane -->
       <div class="inbox-chat-pane" id="chat-pane">
         <div class="chat-placeholder">
-          <span class="placeholder-icon">💬</span>
+          <span class="placeholder-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></span>
           <h4>${t('saler_inbox.page_title') || 'Unified Commerce Inbox'}</h4>
           <p>${t('saler_inbox.select_conversation') || 'Select a conversation to start chatting.'}</p>
         </div>

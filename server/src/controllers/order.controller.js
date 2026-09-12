@@ -24,6 +24,7 @@ export async function checkout(req, reply) {
     paymentMethod: req.body?.payment_method || 'COD',
     couponCode: req.body?.coupon_code,
     otpCode: req.body?.otp_code,
+    adCampaignId: req.body?.ad_campaign_id,
   });
 
   if (result.isReplay) {

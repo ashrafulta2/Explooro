@@ -20,8 +20,9 @@
  *  - Press feedback via scale(0.98) matches craft.css §press — defined in product.css.
  */
 
-import { formatCurrency } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency, formatBdt } from '../../services/format.js';
+import { adsApi } from '../../services/ads.api.js';
+import { t, getLanguage } from '../../services/i18n.js';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
 
 // Ten HSL-defined, accessible background colours for the SVG image placeholder.
@@ -359,6 +360,10 @@ export function ProductCard({
 } = {}) {
   const card = document.createElement('article');
   card.className = size === 'compact' ? 'product-card product-card--compact' : 'product-card';
+  if (product.isSponsored) {
+    card.style.border = '1px solid var(--brand)';
+    card.style.backgroundColor = 'var(--surface-subtle)';
+  }
   card.setAttribute('tabindex', '0');
   card.setAttribute('role', 'button');
   
@@ -376,6 +381,11 @@ export function ProductCard({
     if (e && (e.target.closest('button') || (e.target.closest('a') && e.target.closest('a') !== e.currentTarget))) {
       return;
     }
+    
+    if (product.isSponsored && product.id?.startsWith('ad_')) {
+      adsApi.trackClick(product.id.replace('ad_', ''));
+    }
+
     if (typeof onNavigate === 'function') {
       onNavigate(productUrl);
     } else if (typeof window.__explooroRouter?.navigate === 'function') {
@@ -428,6 +438,17 @@ export function ProductCard({
     flashTag.append(boltSvg());
     flashTag.append(document.createTextNode(t('marketplace.flash_sale.tag')));
     imgWrap.append(flashTag);
+  }
+
+  if (product.isSponsored) {
+    const spBadge = document.createElement('div');
+    spBadge.className = 'badge badge--primary';
+    spBadge.style.position = 'absolute';
+    spBadge.style.top = '8px';
+    spBadge.style.right = '8px';
+    spBadge.style.zIndex = '2';
+    spBadge.textContent = 'Sponsored';
+    imgWrap.append(spBadge);
   }
 
   card.append(imgWrap);

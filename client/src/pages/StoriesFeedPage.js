@@ -8,6 +8,7 @@
  */
 
 import { listStories, listBanners, createStory } from '../services/content.api.js';
+import { adsApi } from '../services/ads.api.js';
 import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
@@ -67,13 +68,27 @@ export default function StoriesFeedPage(root, ctx = {}) {
 
   async function loadData() {
     try {
-      const [sRes, bRes] = await Promise.all([
+      const [sRes, bRes, adsRes] = await Promise.all([
         listStories().catch(() => ({ data: [] })),
         listBanners('HOMEPAGE_HERO').catch(() => ({ data: [] })),
+        adsApi.listReservedPlacements('HOMEPAGE_HERO').catch(() => ({ data: [] })),
       ]);
 
       stories = sRes?.data || [];
       banners = bRes?.data || [];
+      
+      // Inject reserved ad placements into banners if present
+      const reservedAds = adsRes?.data || [];
+      reservedAds.forEach(ad => {
+        banners.push({
+          campaign_id: ad.campaign_id,
+          title_en: ad.campaign_name || 'Sponsored Spotlight',
+          title_bn: ad.campaign_name || 'স্পন্সরড স্পটলাইট',
+          image_url_desktop: ad.creative?.image_url || 'https://placehold.co/1200x400?text=Sponsored',
+          target_link: ad.creative?.target_url || '#',
+          isSponsored: true
+        });
+      });
 
       renderBanners();
       renderStories();
@@ -93,16 +108,25 @@ export default function StoriesFeedPage(root, ctx = {}) {
     const title = lang === 'bn' ? (b.title_bn || b.title_en) : (b.title_en || b.title_bn);
 
     bannersContainer.innerHTML = `
-      <div class="relative h-48 md:h-64 bg-slate-900 flex items-end p-6 bg-cover bg-center text-white" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${b.image_url_desktop}')">
+      <div class="relative h-48 md:h-64 flex items-end p-6 bg-cover bg-center text-white" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${b.image_url_desktop || b.image_url_mobile}')">
         <div class="space-y-2 max-w-xl">
-          <span class="badge badge-warning text-xs font-mono font-bold uppercase">Featured Story</span>
+          <span class="badge ${b.isSponsored ? 'badge-primary' : 'badge-warning'} text-xs font-mono font-bold uppercase">${b.isSponsored ? 'Ad' : 'Featured Story'}</span>
           <h3 class="text-xl md:text-2xl font-bold m-0">${title}</h3>
-          <a href="${b.target_link}" class="btn btn-sm btn-primary inline-flex items-center gap-1 text-xs">
+          <a href="${b.target_link}" class="btn btn-sm btn-primary inline-flex items-center gap-1 text-xs banner-link">
             ${t('content.explore_story')} ➔
           </a>
         </div>
       </div>
     `;
+
+    const bannerLink = bannersContainer.querySelector('.banner-link');
+    if (bannerLink) {
+      bannerLink.addEventListener('click', (e) => {
+        if (b.isSponsored && b.campaign_id) {
+          adsApi.trackClick(b.campaign_id);
+        }
+      });
+    }
   }
 
   function renderStories() {

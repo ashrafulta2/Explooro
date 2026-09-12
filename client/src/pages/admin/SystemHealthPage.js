@@ -239,7 +239,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               <span class="system-vital-card__title">
                 <span>API Latency (p95)</span>
               </span>
-              <span class="system-vital-card__icon" title="95% of traffic responds faster than this">🚀</span>
+              <span class="system-vital-card__icon" title="95% of traffic responds faster than this"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg></span>
             </div>
             <div class="system-vital-card__val">${p95Val.toFixed(1)} ms</div>
             <div class="system-vital-card__meter-wrap">
@@ -602,7 +602,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                         <div class="system-table__checksum-box" title="${checksum}">
                           <span>${checksum.substring(0, 16)}…${checksum.substring(checksum.length - 8)}</span>
                           <button type="button" class="system-table__checksum-copy copy-checksum-btn" data-checksum="${checksum}" title="${isBn ? 'কপি করুন' : 'Copy Checksum'}">
-                            📋
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg>
                           </button>
                         </div>
                       </td>
@@ -827,7 +827,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
           btn.textContent = '✓';
           toast.success(isBn ? 'SHA-256 চেকসাম ক্লিপবোর্ডে কপি করা হয়েছে!' : 'Copied SHA-256 checksum to clipboard!');
           setTimeout(() => {
-            btn.textContent = '📋';
+            btn.textContent = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg>';
           }, 1500);
         }
       });

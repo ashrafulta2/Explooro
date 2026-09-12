@@ -122,7 +122,7 @@ export class SocialKitModal {
                   value="${this.shortLink?.full_url || 'https://explooro.com/s/demo'}"
                   class="input input-xs font-mono w-full text-foreground bg-surface select-all" />
                 <button id="btn-copy-shortlink" class="btn btn-xs btn-primary shrink-0">
-                  📋 ${isBn ? 'কপি' : 'Copy'}
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${isBn ? 'কপি' : 'Copy'}
                 </button>
               </div>
             </div>
@@ -136,14 +136,14 @@ export class SocialKitModal {
                   target="_blank"
                   rel="noopener noreferrer"
                   class="btn btn-sm btn-success text-xs font-bold w-full">
-                  💬 WhatsApp
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp
                 </a>
                 <a
                   href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(this.shortLink?.full_url || '')}"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="btn btn-sm btn-primary text-xs font-bold w-full">
-                  📘 Facebook
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg> Facebook
                 </a>
               </div>
             </div>
@@ -151,10 +151,10 @@ export class SocialKitModal {
             <!-- Download Actions -->
             <div class="flex flex-col gap-2 pt-2">
               <button id="btn-download-flyer" class="btn btn-primary font-bold btn-sm w-full shadow-md">
-                ⬇️ ${isBn ? 'পোস্টার ডাউনলোড করুন (SVG / PNG)' : 'Download Print Poster (SVG / PNG)'}
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> ${isBn ? 'পোস্টার ডাউনলোড করুন (SVG / PNG)' : 'Download Print Poster (SVG / PNG)'}
               </button>
               <button id="btn-print-flyer" class="btn btn-outline btn-sm w-full text-xs">
-                🖨️ ${isBn ? 'সরাসরি প্রিন্ট করুন' : 'Print A4 Flyer'}
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${isBn ? 'সরাসরি প্রিন্ট করুন' : 'Print A4 Flyer'}
               </button>
             </div>
           </div>
@@ -323,7 +323,7 @@ export class SocialKitModal {
         <g transform="translate(60, ${height - 180})">
           <rect width="${width - 120}" height="140" rx="20" fill="${cardBg}" opacity="0.95" />
           <rect x="20" y="20" width="100" height="100" rx="10" fill="#ffffff" />
-          <text x="70" y="75" font-size="36" text-anchor="middle">📱</text>
+          <text x="70" y="75" font-size="36" text-anchor="middle"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></text>
           <text x="140" y="60" font-size="24" font-weight="bold" fill="${text}">Scan QR to Order on WhatsApp</text>
           <text x="140" y="90" font-size="16" font-weight="bold" fill="${accent}">ক্যামেরা দিয়ে স্ক্যান করে অর্ডার করুন</text>
         </g>

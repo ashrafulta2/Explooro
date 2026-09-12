@@ -400,7 +400,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
         <label for="revealed-token" class="block text-xs font-semibold text-muted mb-1">Raw API Token</label>
         <div class="flex gap-2">
           <input type="text" readonly id="revealed-token" class="input w-full font-mono text-xs bg-surface-subtle" value="${rawToken}">
-          <button class="btn btn-primary text-xs shrink-0" id="copy-token-btn">📋 Copy</button>
+          <button class="btn btn-primary text-xs shrink-0" id="copy-token-btn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> Copy</button>
         </div>
       </div>
     `;
@@ -672,7 +672,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
         <label for="widget-embed-snippet" class="block text-xs font-semibold text-muted mb-1">Embed Code (Copy & Paste)</label>
         <textarea id="widget-embed-snippet" readonly class="input w-full font-mono text-xs bg-surface-subtle" rows="5"></textarea>
         <button class="btn btn-primary text-xs w-full mt-2" id="copy-snippet-btn">
-          📋 ${t('developer.btn_copy_snippet')}
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('developer.btn_copy_snippet')}
         </button>
       </div>
     `;
