@@ -11,7 +11,12 @@
  * ia-sitemap.md §6) — both are always rendered; only one is ever visible at a time.
  */
 import { appStore, releaseElevatedAccess } from '../../state/appStore.js';
-import { subscribe as subscribeLang, getLanguage, t } from '../../services/i18n.js';
+import {
+  subscribe as subscribeLang,
+  subscribeLocalePolicy,
+  getLanguage,
+  t,
+} from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Sidebar } from './Sidebar.js';
 import { TopBar, formatRemaining } from './TopBar.js';
@@ -144,6 +149,9 @@ export function createAppShell({ container, navigate }) {
 
   appStore.subscribe(render);
   subscribeLang(render);
+  // The platform locale policy decides whether the TopBar shows a language switcher at all,
+  // so a policy change has to rebuild the shell even when the active language is unchanged.
+  subscribeLocalePolicy(render);
   render();
 
   // Scroll-shrink topbar: more content visibility while scrolling, full height restored at the

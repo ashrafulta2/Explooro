@@ -189,13 +189,13 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
       </div>
       <div class="saler-two-col--equal">
         <div class="saler-stack--xs">
-          <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_open_time')}</label>
+          <label class="text-xs font-semibold text-muted" for="master-open-time">${t('saler_store_status.field_open_time')}</label>
           <select id="master-open-time" class="select select--sm w-full font-mono">
             ${TIME_OPTIONS.map((tOpt) => `<option value="${tOpt}" ${tOpt === store.open_time ? 'selected' : ''}>${tOpt}</option>`).join('')}
           </select>
         </div>
         <div class="saler-stack--xs">
-          <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_close_time')}</label>
+          <label class="text-xs font-semibold text-muted" for="master-close-time">${t('saler_store_status.field_close_time')}</label>
           <select id="master-close-time" class="select select--sm w-full font-mono">
             ${TIME_OPTIONS.map((tOpt) => `<option value="${tOpt}" ${tOpt === store.close_time ? 'selected' : ''}>${tOpt}</option>`).join('')}
           </select>
@@ -254,11 +254,11 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
           </label>
         </div>
         <div class="saler-row ${dayConfig.is_open ? '' : 'opacity-40 pointer-events-none'}" style="gap: 8px;">
-          <select class="select select--xs font-mono day-open" data-day="${day}">
+          <select class="select select--xs font-mono day-open" data-day="${day}" aria-label="Open time for ${day}">
             ${TIME_OPTIONS.map((tOpt) => `<option value="${tOpt}" ${tOpt === dayConfig.open_time ? 'selected' : ''}>${tOpt}</option>`).join('')}
           </select>
           <span class="text-xs text-muted">–</span>
-          <select class="select select--xs font-mono day-close" data-day="${day}">
+          <select class="select select--xs font-mono day-close" data-day="${day}" aria-label="Close time for ${day}">
             ${TIME_OPTIONS.map((tOpt) => `<option value="${tOpt}" ${tOpt === dayConfig.close_time ? 'selected' : ''}>${tOpt}</option>`).join('')}
           </select>
         </div>
@@ -299,21 +299,21 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
       </div>
       <div class="saler-stack--sm">
         <div class="saler-stack--xs">
-          <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_shop_name')}</label>
+          <label class="text-xs font-semibold text-muted" for="loc-shop-name">${t('saler_store_status.field_shop_name')}</label>
           <input type="text" id="loc-shop-name" class="input input--sm w-full" value="${store.shop_name || ''}" />
         </div>
         <div class="saler-stack--xs">
-          <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_district')}</label>
+          <label class="text-xs font-semibold text-muted" for="loc-district">${t('saler_store_status.field_district')}</label>
           <select id="loc-district" class="select select--sm w-full">
             ${DISTRICT_OPTIONS.map((d) => `<option value="${d}" ${d === store.district ? 'selected' : ''}>${d}</option>`).join('')}
           </select>
         </div>
         <div class="saler-stack--xs">
-          <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_address')}</label>
+          <label class="text-xs font-semibold text-muted" for="loc-address">${t('saler_store_status.field_address')}</label>
           <textarea id="loc-address" class="textarea textarea--sm w-full" rows="3">${store.address || ''}</textarea>
         </div>
         <div class="saler-stack--xs">
-          <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_phone')}</label>
+          <label class="text-xs font-semibold text-muted" for="loc-phone">${t('saler_store_status.field_phone')}</label>
           <input type="tel" id="loc-phone" class="input input--sm w-full" value="${store.phone || ''}" />
         </div>
         <div class="pt-3 border-t border-subtle saler-stack--sm">
@@ -322,7 +322,7 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
             <span class="text-xs font-bold text-foreground">${t('saler_store_status.field_pickup_enabled')}</span>
           </label>
           <div class="saler-stack--xs ${store.pickup_enabled ? '' : 'opacity-40 pointer-events-none'}">
-            <label class="text-xs font-semibold text-muted">${t('saler_store_status.field_pickup_notes')}</label>
+            <label class="text-xs font-semibold text-muted" for="loc-pickup-notes">${t('saler_store_status.field_pickup_notes')}</label>
             <textarea id="loc-pickup-notes" class="textarea textarea--sm w-full" rows="2" placeholder="e.g. Present order confirmation SMS at counter">${store.pickup_notes || ''}</textarea>
           </div>
         </div>

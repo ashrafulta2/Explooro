@@ -24,7 +24,13 @@ import { Switch } from '../../components/ui/Switch.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { api, pickMessage } from '../../core/api.js';
-import { t, getLanguage, setLanguage } from '../../services/i18n.js';
+import {
+  t,
+  getLanguage,
+  setLanguage,
+  getEnabledLanguages,
+  isLanguageSwitchAllowed,
+} from '../../services/i18n.js';
 import { formatDate, formatPhone, setNumeralPreference } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { bindBackControl } from '../../core/navBack.js';
@@ -606,14 +612,19 @@ export default function ProfilePage(root, { navigate } = {}) {
   }
 
   function buildPreferencesCard() {
+    // Only the locales the platform currently enables, and only while it lets visitors choose:
+    // an option the policy would refuse is worse than no option, because saving it looks like it
+    // worked (see isLanguageSwitchAllowed in services/i18n.js).
+    const localeChoiceAllowed = isLanguageSwitchAllowed();
+    const localeLabels = { en: t('language.name_en', 'English'), bn: t('language.name_bn', 'বাংলা') };
     fields.locale = Select({
       label: t('profile.field_language', 'Language'),
-      hint: t('profile.hint_language', 'Applies everywhere, on every device you sign in from.'),
+      hint: localeChoiceAllowed
+        ? t('profile.hint_language', 'Applies everywhere, on every device you sign in from.')
+        : t('profile.hint_language_locked', 'Your administrator has fixed the language for everyone on this platform.'),
       value: saved.locale || getLanguage(),
-      options: [
-        { value: 'en', label: t('language.name_en', 'English') },
-        { value: 'bn', label: t('language.name_bn', 'বাংলা') },
-      ],
+      options: getEnabledLanguages().map((code) => ({ value: code, label: localeLabels[code] || code })),
+      disabled: !localeChoiceAllowed,
       onChange: markDirty,
     });
 

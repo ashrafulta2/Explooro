@@ -398,8 +398,8 @@ VALUES
   ('i18n', 'content', 'Multi-language engine', 'বহু-ভাষা ইঞ্জিন',
    'English and Bengali interface with live translation management.',
    'ইংরেজি ও বাংলা ইন্টারফেস, সরাসরি অনুবাদ ব্যবস্থাপনাসহ।',
-   true, true, '{"default_locale": "bn", "allow_bengali_numerals": true}'::jsonb,
-   '{"type": "object", "properties": { "default_locale": { "type": "string", "enum": ["bn", "en"], "default": "bn" }, "allow_bengali_numerals": { "type": "boolean", "default": true } } }'::jsonb,
+   true, true, '{"allow_bengali_numerals": true}'::jsonb,
+   '{"type": "object", "properties": { "allow_bengali_numerals": { "type": "boolean", "default": true } } }'::jsonb,
    ARRAY[]::text[]),
 
   ('theme_studio', 'content', 'Theme & colour studio', 'থিম ও রঙ স্টুডিও',
@@ -500,7 +500,10 @@ VALUES
   ('jit_window_minutes', '120'::jsonb, 'NUMBER', 'Default JIT Window (Minutes)', 'ডিফল্ট জেআইটি সময় (মিনিট)', 'security', false),
   ('max_grant_days', '90'::jsonb, 'NUMBER', 'Maximum Standing Grant Duration (Days)', 'সর্বোচ্চ স্থায়ী অনুদানের মেয়াদ (দিন)', 'security', false),
   ('return_window_days', '7'::jsonb, 'NUMBER', 'Customer Return Window (Days)', 'ক্রেতা রিটার্ন সময়সীমা (দিন)', 'logistics', false),
-  ('ai.monthly_spend_cap_usd', '100'::jsonb, 'NUMBER', 'AI Monthly Spend Cap (USD)', 'এআই মাসিক খরচ সীমা (ডলার)', 'ai', false)
+  ('ai.monthly_spend_cap_usd', '100'::jsonb, 'NUMBER', 'AI Monthly Spend Cap (USD)', 'এআই মাসিক খরচ সীমা (ডলার)', 'ai', false),
+  ('localization.default_locale', '"en"'::jsonb, 'STRING', 'Default language', 'ডিফল্ট ভাষা', 'localization', false),
+  ('localization.enabled_locales', '["en","bn"]'::jsonb, 'OBJECT', 'Enabled languages', 'সক্রিয় ভাষাসমূহ', 'localization', false),
+  ('localization.allow_user_override', 'true'::jsonb, 'BOOLEAN', 'Let visitors choose their own language', 'দর্শনার্থীদের নিজের ভাষা বেছে নিতে দিন', 'localization', false)
 ON CONFLICT (key) DO NOTHING;
 
 -- Initial Global Commission Split Rule (40% saler, 60% platform)

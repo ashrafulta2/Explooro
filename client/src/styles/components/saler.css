@@ -569,6 +569,33 @@
   background: rgba(34, 197, 94, 0.02);
 }
 
+/* WHY: --success-600 (#16a34a) is ~3.06:1 and --brand-600 gold is ~2.30:1 on the step
+   surface — both fail WCAG 1.4.3 AA. --success-700 and --text-brand are the contrast
+   contracts already gated by colorRamp.js. */
+.saler-onboarding-step__label {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-brand);
+}
+
+.saler-onboarding-step--completed .saler-onboarding-step__label {
+  color: var(--success-700, #007f39);
+}
+
+.saler-onboarding-step__video {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-brand);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* ── Growth Assistant ── */
 .growth-assistant {
   background: var(--surface-0, #ffffff);

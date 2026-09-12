@@ -128,24 +128,6 @@ let mockCoupons = [
   },
 ];
 
-let mockAdCampaigns = [
-  {
-    id: 1,
-    title: 'Eid Special Jamdani Offer',
-    ref: 'ADC-EID-2026',
-    placement: 'SEARCH_RESULTS',
-    status: 'ACTIVE',
-    total_budget: 500,
-    spent_amount: 120.5,
-    today_spent_amount: 45,
-    daily_budget: 50,
-    bid_amount: 2.5,
-    impressions_count: 1540,
-    clicks_count: 85,
-    ctr_percentage: 5.52
-  }
-];
-
 export const campaignHandlers = [
   {
     method: 'GET',
@@ -344,73 +326,6 @@ export const campaignHandlers = [
         body: {
           data: coupon,
         },
-      };
-    },
-  },
-  {
-    method: 'GET',
-    path: '/ads/campaigns',
-    handler() {
-      return {
-        status: 200,
-        body: {
-          campaigns: mockAdCampaigns,
-        },
-      };
-    },
-  },
-  {
-    method: 'POST',
-    path: '/ads/campaigns',
-    handler({ body }) {
-      const newCampaign = {
-        id: Date.now(),
-        title: body?.title || 'New Ad Campaign',
-        ref: `ADC-${Date.now().toString(36).toUpperCase()}`,
-        placement: body?.placement || 'SEARCH_RESULTS',
-        status: 'PENDING_REVIEW',
-        total_budget: body?.total_budget || 500,
-        spent_amount: 0,
-        today_spent_amount: 0,
-        daily_budget: body?.daily_budget || 50,
-        bid_amount: body?.bid_amount || 2.5,
-        impressions_count: 0,
-        clicks_count: 0,
-        ctr_percentage: 0
-      };
-      mockAdCampaigns.unshift(newCampaign);
-      return {
-        status: 200,
-        body: {
-          success: true,
-          campaign: newCampaign,
-        },
-      };
-    },
-  },
-  {
-    method: 'POST',
-    path: '/ads/campaigns/:id/pause',
-    handler({ params }) {
-      const id = Number(params.id);
-      const camp = mockAdCampaigns.find(c => c.id === id);
-      if (camp) camp.status = 'PAUSED';
-      return {
-        status: 200,
-        body: { success: true },
-      };
-    },
-  },
-  {
-    method: 'POST',
-    path: '/ads/campaigns/:id/resume',
-    handler({ params }) {
-      const id = Number(params.id);
-      const camp = mockAdCampaigns.find(c => c.id === id);
-      if (camp) camp.status = 'ACTIVE';
-      return {
-        status: 200,
-        body: { success: true },
       };
     },
   },

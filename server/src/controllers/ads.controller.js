@@ -3,6 +3,7 @@
  */
 
 import * as adsService from '../services/ads.service.js';
+import * as adProductsService from '../services/adProducts.service.js';
 
 export async function createCampaign(req, reply) {
   const db = req.db || req.server?.db;
@@ -167,4 +168,108 @@ export async function reviewCampaign(req, reply) {
   return reply.send({
     campaign: result,
   });
+}
+
+/* ------------------------------------------------------------------------------------------- *
+ * Ad marketplace — catalogue, quoting, inventory and admin rate cards.
+ * ------------------------------------------------------------------------------------------- */
+
+export async function listAdProducts(req, reply) {
+  const db = req.db || req.server?.db;
+  const role = req.user?.roles?.[0] || req.user?.role || null;
+
+  const result = await adProductsService.listForSeller(db, req.user.id, { role });
+  return reply.send(result);
+}
+
+export async function quoteCampaign(req, reply) {
+  const db = req.db || req.server?.db;
+  const body = req.body || {};
+
+  const result = await adProductsService.quoteCampaign(db, req.user.id, {
+    ad_product_key: body.ad_product_key,
+    total_budget: body.total_budget,
+    daily_budget: body.daily_budget,
+    bid_amount: body.bid_amount,
+    duration_days: body.duration_days,
+    quantity: body.quantity,
+    category_id: body.category_id,
+    start_date: body.start_date,
+  });
+
+  return reply.send({ quote: result });
+}
+
+export async function getAvailability(req, reply) {
+  const db = req.db || req.server?.db;
+  const { product_key, category_id, days } = req.query || {};
+
+  const result = await adProductsService.getAvailabilityCalendar(db, product_key, {
+    categoryId: category_id ? Number(category_id) : null,
+    days: days ? parseInt(days, 10) : 30,
+  });
+
+  return reply.send(result);
+}
+
+export async function cancelCampaign(req, reply) {
+  const db = req.db || req.server?.db;
+  const campaignId = parseInt(req.params.id, 10);
+
+  const result = await adsService.cancelCampaign(db, req.user.id, campaignId, {
+    ip: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  return reply.send({ campaign: result });
+}
+
+export async function listReservedPlacements(req, reply) {
+  const db = req.db || req.server?.db;
+  const cache = req.cache || req.server?.cache;
+  const { placement = 'HOME_HERO', category_id, date } = req.query || {};
+
+  const placements = await adsService.listReservedPlacements(db, cache, {
+    placement,
+    categoryId: category_id ? Number(category_id) : null,
+    date: date || null,
+    viewerId: req.user?.id || null,
+  });
+
+  return reply.send({ placements });
+}
+
+export async function listAdProductsForAdmin(req, reply) {
+  const db = req.db || req.server?.db;
+  const { days } = req.query || {};
+
+  const result = await adProductsService.listForAdmin(db, {
+    days: days ? parseInt(days, 10) : 30,
+  });
+
+  return reply.send(result);
+}
+
+export async function updateAdProductPricing(req, reply) {
+  const db = req.db || req.server?.db;
+  const productId = parseInt(req.params.id, 10);
+
+  const result = await adProductsService.updateProductPricing(db, req.user.id, productId, req.body || {}, {
+    ip: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+  return reply.send({ product: result });
+}
+
+export async function listTargetCategories(req, reply) {
+  const db = req.db || req.server?.db;
+  const { rows } = await db.query(
+    `SELECT id, name_en, name_bn, slug
+     FROM categories
+     WHERE is_active = true AND parent_id IS NULL
+     ORDER BY display_order ASC, name_en ASC
+     LIMIT 100`
+  );
+  return reply.send({ categories: rows });
 }

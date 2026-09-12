@@ -14,9 +14,27 @@
  *
  * Static HTML is translated via `data-i18n="key"` — scanned automatically on init and on every
  * language change, so a page built with plain markup never has to call `t()` by hand.
+ *
+ * ── Where the default language comes from ──────────────────────────────────────────────────────
+ * Three layers, most specific first:
+ *
+ *   1. The visitor's own saved pick (localStorage), honoured only while the platform policy
+ *      allows visitors to choose and the locale is still enabled.
+ *   2. The platform policy from `GET /localization/policy` — set by a Super Admin (or a user they
+ *      granted `platform.localization.update`) on /admin/platform/language, stored in
+ *      platform_settings. This is the system default.
+ *   3. `VITE_DEFAULT_LOCALE`, then FALLBACK_LANG. A build-time value is the floor, not the
+ *      authority: it is what a developer with no API and no cached policy gets.
+ *
+ * WHY the policy is cached in localStorage: the boot sequence mounts a language synchronously and
+ * reconciles against the server afterwards, the same shape services/themePalette.js uses. Awaiting
+ * the network before the first paint would trade a round trip for nothing, and NOT reconciling
+ * would mean an admin's change reached nobody who already had the site open.
  */
 
 const STORAGE_KEY = 'explooro:lang';
+const POLICY_STORAGE_KEY = 'explooro:lang:policy';
+const POLICY_ENDPOINT = '/localization/policy';
 const SUPPORTED = ['en', 'bn'];
 const FALLBACK_LANG = 'en';
 
@@ -27,7 +45,15 @@ const loaders = {
 
 const dictionaries = {};
 const listeners = new Set();
+const policyListeners = new Set();
 let currentLang = FALLBACK_LANG;
+
+/** The shipped policy, replaced by the cached one on boot and the server's one shortly after. */
+let policy = {
+  default_locale: null,
+  enabled_locales: [...SUPPORTED],
+  allow_user_override: true,
+};
 
 /** Flattens `{ nav: { marketplace: '...' } }` into `{ 'nav.marketplace': '...' }`. */
 function flatten(obj, prefix = '', out = {}) {
@@ -47,15 +73,74 @@ async function loadDictionary(lang) {
   return dictionaries[lang];
 }
 
-function detectInitialLang() {
+function readStorage(key) {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && SUPPORTED.includes(saved)) return saved;
+    return localStorage.getItem(key);
   } catch {
-    // Storage unavailable (private browsing) — fall through to the env default.
+    // Storage unavailable (private browsing) — callers fall back to the next layer.
+    return null;
   }
-  const envDefault = import.meta.env.VITE_DEFAULT_LOCALE;
+}
+
+function writeStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Persistence is a convenience — a private-browsing tab still works for the session.
+  }
+}
+
+/** Keeps only locales this build actually ships a dictionary for. */
+function sanitisePolicy(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const enabled = Array.isArray(raw.enabled_locales)
+    ? raw.enabled_locales.filter((l) => SUPPORTED.includes(l))
+    : [];
+  const defaultLocale = SUPPORTED.includes(raw.default_locale) ? raw.default_locale : null;
+  if (!defaultLocale && enabled.length === 0) return null;
+  return {
+    default_locale: defaultLocale,
+    enabled_locales: enabled.length ? enabled : [...SUPPORTED],
+    allow_user_override: typeof raw.allow_user_override === 'boolean' ? raw.allow_user_override : true,
+  };
+}
+
+function loadCachedPolicy() {
+  const raw = readStorage(POLICY_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    return sanitisePolicy(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+function cachePolicy(next) {
+  writeStorage(POLICY_STORAGE_KEY, JSON.stringify(next));
+}
+
+/** The build-time floor: what a developer with no API and no cached policy gets. */
+function envDefaultLang() {
+  const envDefault = import.meta.env?.VITE_DEFAULT_LOCALE;
   return SUPPORTED.includes(envDefault) ? envDefault : FALLBACK_LANG;
+}
+
+/**
+ * Resolves the language to show, given the current policy and the visitor's saved pick.
+ * Pure apart from reading storage, so the precedence order is testable in one place.
+ */
+function resolveLang() {
+  const enabled = policy.enabled_locales?.length ? policy.enabled_locales : SUPPORTED;
+  const systemDefault = policy.default_locale && enabled.includes(policy.default_locale)
+    ? policy.default_locale
+    : (enabled.includes(envDefaultLang()) ? envDefaultLang() : enabled[0]);
+
+  if (!policy.allow_user_override) return systemDefault;
+
+  const saved = readStorage(STORAGE_KEY);
+  if (saved && SUPPORTED.includes(saved) && enabled.includes(saved)) return saved;
+
+  return systemDefault;
 }
 
 /** Turns a missing key into a readable label instead of a blank string or the raw dot-path. */
@@ -135,31 +220,126 @@ export function getLanguage() {
   return currentLang;
 }
 
+/** Every locale this build ships a dictionary for, whether or not the platform enables it. */
+export function getSupportedLanguages() {
+  return [...SUPPORTED];
+}
+
+/** The live platform policy. A copy, so a caller cannot mutate the engine's state. */
+export function getLocalePolicy() {
+  return {
+    default_locale: policy.default_locale ?? envDefaultLang(),
+    enabled_locales: [...(policy.enabled_locales?.length ? policy.enabled_locales : SUPPORTED)],
+    allow_user_override: policy.allow_user_override !== false,
+  };
+}
+
+/** The locales the switcher may offer right now. */
+export function getEnabledLanguages() {
+  return getLocalePolicy().enabled_locales;
+}
+
+/**
+ * Whether a visitor is allowed to change language at all. Controls whose job it is to *hide* the
+ * switcher — `setLanguage()` enforces the same rule, so a stale control cannot defeat the policy.
+ */
+export function isLanguageSwitchAllowed() {
+  return getLocalePolicy().allow_user_override && getEnabledLanguages().length > 1;
+}
+
 export function subscribe(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
-export async function setLanguage(lang) {
-  if (!SUPPORTED.includes(lang)) return;
+/** Fires when the platform policy changes, so the shell can add or drop the language switcher. */
+export function subscribeLocalePolicy(listener) {
+  policyListeners.add(listener);
+  return () => policyListeners.delete(listener);
+}
+
+/** Swaps the dictionary and notifies subscribers. Does NOT persist — see setLanguage(). */
+async function applyLanguage(lang) {
   await loadDictionary(lang);
   currentLang = lang;
-  try {
-    localStorage.setItem(STORAGE_KEY, lang);
-  } catch {
-    // Persistence is a convenience — a private-browsing tab still works for the session.
-  }
   document.documentElement.lang = lang;
   scanStaticNodes();
   for (const listener of listeners) listener(lang);
 }
 
-/** Loads the initial (persisted or env-default) language and scans the static shell once. */
+/**
+ * A visitor's own language choice. Persisted, and refused when the platform policy does not allow
+ * visitors to choose or does not enable the requested locale.
+ *
+ * Returns true when the language actually changed, so a caller can report a refusal rather than
+ * silently appearing to succeed.
+ */
+export async function setLanguage(lang) {
+  if (!SUPPORTED.includes(lang)) return false;
+  if (!policy.allow_user_override) return false;
+  if (!getEnabledLanguages().includes(lang)) return false;
+
+  await applyLanguage(lang);
+  writeStorage(STORAGE_KEY, lang);
+  return true;
+}
+
+/**
+ * Adopts a policy and re-applies the resolved language if it changed.
+ *
+ * Exported for the admin page: after a successful save, the operator should see the effect of
+ * their own change immediately instead of on their next cold load.
+ */
+export async function applyLocalePolicy(raw, { cache = true } = {}) {
+  const next = sanitisePolicy(raw);
+  if (!next) return currentLang;
+
+  policy = next;
+  if (cache) cachePolicy(next);
+
+  // A visitor whose saved pick the policy no longer permits must not keep it, or disabling a
+  // locale would leave existing sessions on it forever.
+  if (!next.allow_user_override || !next.enabled_locales.includes(readStorage(STORAGE_KEY))) {
+    const resolved = resolveLang();
+    if (resolved !== currentLang) await applyLanguage(resolved);
+  }
+
+  for (const listener of policyListeners) listener(getLocalePolicy());
+  return currentLang;
+}
+
+/**
+ * Loads the initial language and scans the static shell once.
+ *
+ * Mounts synchronously from the cached policy (or the build-time default), then reconciles against
+ * the server without blocking the first paint.
+ */
 export async function initI18n() {
-  const initial = detectInitialLang();
+  const cached = loadCachedPolicy();
+  if (cached) policy = cached;
+
+  const initial = resolveLang();
   await loadDictionary(initial);
   currentLang = initial;
   document.documentElement.lang = initial;
   scanStaticNodes();
+
+  // Fire-and-forget: a slow or missing API must not delay the first route mount. The dynamic
+  // import also keeps core/api.js (which pulls in the mock router and the toast service) out of
+  // this module's static import graph.
+  refreshLocalePolicy();
+
   return initial;
+}
+
+/** Re-reads the platform policy from the API and applies it. Never throws. */
+export async function refreshLocalePolicy() {
+  try {
+    const { api } = await import('../core/api.js');
+    const res = await api.get(POLICY_ENDPOINT);
+    if (res?.policy) await applyLocalePolicy(res.policy);
+  } catch {
+    // No API, offline, or the endpoint is not deployed yet — the mounted language stands.
+  }
+  return getLocalePolicy();
 }

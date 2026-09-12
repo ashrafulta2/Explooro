@@ -8,7 +8,13 @@
  * than every TopBar rebuild starting its own timer (which would need a cleanup contract this
  * render-and-replace pattern doesn't otherwise have — see AppShell.js).
  */
-import { t, getLanguage, setLanguage } from '../../services/i18n.js';
+import {
+  t,
+  getLanguage,
+  setLanguage,
+  getEnabledLanguages,
+  isLanguageSwitchAllowed,
+} from '../../services/i18n.js';
 import { formatNumber } from '../../services/format.js';
 import { logOutMock, releaseElevatedAccess } from '../../state/appStore.js';
 import { logout } from '../../services/session.js';
@@ -548,12 +554,22 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
   paletteBtn.classList.add('topbar__palette-btn');
   bar.append(paletteBtn);
 
-  const langBtn = document.createElement('button');
-  langBtn.type = 'button';
-  langBtn.className = 'topbar__icon-btn topbar__lang-btn';
-  langBtn.textContent = getLanguage() === 'bn' ? t('language.switch_to_en') : t('language.switch_to_bn');
-  langBtn.addEventListener('click', () => setLanguage(getLanguage() === 'bn' ? 'en' : 'bn'));
-  bar.append(langBtn);
+  // The switcher exists only while the platform policy lets visitors choose their own language
+  // and there is more than one enabled locale to choose between (/admin/platform/language).
+  if (isLanguageSwitchAllowed()) {
+    const enabled = getEnabledLanguages();
+    const nextLang = enabled.find((l) => l !== getLanguage()) || getLanguage();
+    const langBtn = document.createElement('button');
+    langBtn.type = 'button';
+    langBtn.className = 'topbar__icon-btn topbar__lang-btn';
+    langBtn.textContent = nextLang === 'bn' ? t('language.switch_to_bn') : t('language.switch_to_en');
+    langBtn.setAttribute(
+      'aria-label',
+      nextLang === 'bn' ? t('language.aria_switch_to_bn') : t('language.aria_switch_to_en')
+    );
+    langBtn.addEventListener('click', () => setLanguage(nextLang));
+    bar.append(langBtn);
+  }
 
   // Theme & Marketplace Preset Switcher Menu
   bar.append(ThemeMenu());

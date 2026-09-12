@@ -30,6 +30,7 @@ import auditRoutes from './routes/audit.routes.js';
 import moduleRoutes from './routes/module.routes.js';
 import userRoutes from './routes/user.routes.js';
 import themeRoutes from './routes/theme.routes.js';
+import localizationRoutes from './routes/localization.routes.js';
 import mediaRoutes from './routes/media.routes.js';
 import productRoutes from './routes/product.routes.js';
 import searchRoutes from './routes/search.routes.js';
@@ -172,6 +173,7 @@ export async function buildApp(overrides = {}) {
   await app.register(moduleRoutes, { prefix: '/api/v1' });
   await app.register(userRoutes, { prefix: '/api/v1' });
   await app.register(themeRoutes, { prefix: '/api/v1' });
+  await app.register(localizationRoutes, { prefix: '/api/v1' });
   await app.register(mediaRoutes, { prefix: '/api/v1' });
   await app.register(productRoutes, { prefix: '/api/v1' });
   await app.register(searchRoutes, { prefix: '/api/v1' });

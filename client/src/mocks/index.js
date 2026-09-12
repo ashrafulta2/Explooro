@@ -29,7 +29,9 @@ import moderatorHandlers from './handlers/moderator.js';
 import disputeHandlers from './handlers/disputes.js';
 import returnHandlers from './handlers/returns.js';
 import campaignHandlers from './handlers/campaigns.js';
+import adsHandlers from './handlers/ads.js';
 import themeHandlers from './handlers/theme.js';
+import { localizationHandlers } from './handlers/localization.js';
 import { teamPurchaseHandlers } from './handlers/teamPurchase.js';
 import { gamificationHandlers } from './handlers/gamification.js';
 import { referralHandlers } from './handlers/referral.js';
@@ -62,7 +64,9 @@ const handlers = [
   ...disputeHandlers,
   ...returnHandlers,
   ...campaignHandlers,
+  ...adsHandlers,
   ...themeHandlers,
+  ...localizationHandlers,
   ...teamPurchaseHandlers,
   ...gamificationHandlers,
   ...referralHandlers,

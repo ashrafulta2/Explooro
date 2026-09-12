@@ -393,10 +393,10 @@ function renderOnboardingWidget(container, onboarding, nav) {
     item.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 6px;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
-          <span style="font-size: 12px; font-family: var(--font-mono); font-weight: 700; color: ${step.completed ? 'var(--success-600, #16a34a)' : 'var(--brand-600, #d99f00)'};">
+          <span class="saler-onboarding-step__label">
             ${step.completed ? '✓ Done' : `Step ${idx + 1}`}
           </span>
-          <button type="button" class="video-btn" style="background: none; border: none; padding: 0; cursor: pointer; font-size: 11px; font-weight: 600; color: var(--primary-600, #2563eb); display: flex; align-items: center; gap: 4px;" data-step="${step.id}">
+          <button type="button" class="video-btn saler-onboarding-step__video" data-step="${step.id}">
             🎬 ${step.video_duration} Video
           </button>
         </div>

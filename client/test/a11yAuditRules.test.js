@@ -484,5 +484,28 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'team-explore-section__badge must not use raw var(--brand) which fails contrast at 1.51:1'
     );
   });
+
+  await t.test('20. saler onboarding step labels satisfy WCAG AA contrast', () => {
+    const pagePath = path.join(clientRoot, 'src', 'pages', 'saler', 'SalerDashboardPage.js');
+    const cssPath = path.join(clientRoot, 'src', 'styles', 'components', 'saler.css');
+    const pageContent = fs.readFileSync(pagePath, 'utf8');
+    const cssContent = fs.readFileSync(cssPath, 'utf8');
+
+    assert.doesNotMatch(
+      pageContent,
+      /success-600|#16a34a|brand-600|#d99f00/,
+      'SalerDashboardPage must not inline low-contrast success-600 / brand-600 on onboarding labels'
+    );
+    assert.match(
+      cssContent,
+      /\.saler-onboarding-step__label\s*\{[^}]*color:\s*var\(--text-brand\)/,
+      'incomplete step labels must use var(--text-brand) (>= 4.5:1)'
+    );
+    assert.match(
+      cssContent,
+      /\.saler-onboarding-step--completed\s+\.saler-onboarding-step__label\s*\{[^}]*color:\s*var\(--success-700/,
+      'completed step labels must use var(--success-700) instead of success-600 (~3.06:1)'
+    );
+  });
 });
 
