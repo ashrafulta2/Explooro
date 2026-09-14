@@ -148,6 +148,8 @@
 .drawer--right[open], .drawer--left[open] { transform: none; }
 .drawer--right .drawer__panel { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
 .drawer--left .drawer__panel { border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+/* Spring-back easing for swipe-to-dismiss (JS sets transition:none while dragging). */
+.drawer--right .drawer__panel, .drawer--left .drawer__panel { transition: transform var(--dur-base) var(--ease-spring); }
 .drawer--sm { max-width: 320px; }
 .drawer--md { max-width: 420px; }
 .drawer--lg { max-width: 560px; }
@@ -159,7 +161,7 @@
   .drawer--left[open] { transform: translateX(-100%); }
   .drawer--bottom[open] { transform: translateY(100%); }
 }
-.drawer--bottom::backdrop { opacity: calc(1 - var(--drag-progress, 0)); }
+.drawer--bottom::backdrop, .drawer--right::backdrop, .drawer--left::backdrop { opacity: calc(1 - var(--drag-progress, 0)); }
 .drawer__grip { width: 36px; height: 4px; flex: none; margin: var(--space-3) auto var(--space-1); border-radius: var(--radius-full); background: var(--border-strong); }
 .drawer__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5) var(--space-5) 0; }
 .drawer__heading { min-width: 0; }
