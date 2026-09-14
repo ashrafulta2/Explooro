@@ -132,9 +132,19 @@
 @media (max-width: 900px) { .filter-panel { display: none; } }
 .filter-panel__header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-bottom: var(--space-4); }
 .filter-panel[data-collapsed='true'] .filter-panel__title, .filter-panel[data-collapsed='true'] .filter-panel__clear, .filter-panel[data-collapsed='true'] .filter-panel__body { display: none; }
-.filter-panel__collapse-toggle { position: absolute; top: 50%; right: var(--space-2); transform: translateY(-50%); z-index: 1; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: var(--border-width) solid var(--brand); border-radius: var(--radius-full); background: var(--surface-1); color: var(--brand); box-shadow: var(--elevation-2); font-size: var(--text-sm); cursor: pointer; transition: background 120ms, color 120ms, box-shadow 120ms, border-color 120ms; }
+.filter-panel__collapse-toggle { position: absolute; top: 50%; right: var(--space-2); transform: translateY(-50%); z-index: 1; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: var(--border-width) solid var(--brand); border-radius: var(--radius-full); background: var(--surface-1); color: var(--brand); box-shadow: var(--elevation-2); font-size: var(--text-sm); cursor: pointer; transition: background 120ms, color 120ms, box-shadow 120ms, border-color 120ms, opacity var(--dur-base) var(--ease-standard); }
 .filter-panel__collapse-toggle svg { display: block; stroke: currentColor; transition: transform var(--dur-fast) var(--ease-standard); }
 .filter-panel__collapse-toggle:hover { background: var(--brand); color: var(--brand-contrast); border-color: var(--brand); box-shadow: var(--elevation-3); }
+
+/* WHY: same hover-reveal as the nav sidebar toggle (shell.css) — keep the filter panel edge
+   uncluttered; the collapse control appears only when the user hovers the panel or tabs to it.
+   Guarded to hover-capable pointers so touch devices, which cannot hover, always show it. */
+@media (hover: hover) and (pointer: fine) {
+  .filter-panel__collapse-toggle { opacity: 0; pointer-events: none; }
+  .filter-panel:hover .filter-panel__collapse-toggle,
+  .filter-panel__collapse-toggle:hover,
+  .filter-panel__collapse-toggle:focus-visible { opacity: 1; pointer-events: auto; }
+}
 .filter-panel__title { font-size: var(--text-sm); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); margin: 0; }
 .filter-panel__clear { background: none; border: none; font-size: var(--text-xs); color: var(--text-brand); cursor: pointer; padding: 0; font-weight: 500; }
 .filter-panel__clear:hover { text-decoration: underline; }
