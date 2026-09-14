@@ -424,6 +424,8 @@
       "price_max_placeholder": "Max",
       "price_min_label": "Minimum price",
       "price_max_label": "Maximum price",
+      "price_slider_min": "Minimum price slider",
+      "price_slider_max": "Maximum price slider",
       "availability": "Availability",
       "in_stock": "In stock only",
       "supplier_tier": "Supplier Tier",

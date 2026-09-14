@@ -424,6 +424,8 @@
       "price_max_placeholder": "সর্বোচ্চ",
       "price_min_label": "সর্বনিম্ন মূল্য",
       "price_max_label": "সর্বোচ্চ মূল্য",
+      "price_slider_min": "সর্বনিম্ন মূল্য স্লাইডার",
+      "price_slider_max": "সর্বোচ্চ মূল্য স্লাইডার",
       "availability": "প্রাপ্যতা",
       "in_stock": "স্টকে আছে শুধু",
       "supplier_tier": "সরবরাহকারীর স্তর",

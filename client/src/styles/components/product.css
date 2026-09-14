@@ -154,6 +154,79 @@
 .filter-panel__range-sep { color: var(--text-muted); font-size: var(--text-xs); text-align: center; }
 .filter-panel__price-input { width: 100%; padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-1); color: var(--text-primary); font-size: var(--text-sm); font-variant-numeric: tabular-nums; outline: none; }
 .filter-panel__price-input:focus { border-color: var(--brand-500); box-shadow: 0 0 0 3px oklch(from var(--brand-500) l c h / 0.15); }
+
+/* Hover-revealed dual-handle price slider — hidden until the pointer enters the price group (or a
+   box is focused, or a drag is in progress), then slides open as a very thin track. */
+.filter-panel__price-slider {
+  position: relative;
+  height: 0;
+  margin-top: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: height 0.18s ease, opacity 0.18s ease, margin-top 0.18s ease;
+}
+.filter-panel__group--price:hover .filter-panel__price-slider,
+.filter-panel__group--price:focus-within .filter-panel__price-slider,
+.filter-panel__group--price.is-sliding .filter-panel__price-slider {
+  height: 16px;
+  margin-top: var(--space-4);
+  opacity: 1;
+  visibility: visible;
+}
+.filter-panel__slider-track {
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
+  height: 3px;
+  border-radius: 999px;
+  background: var(--border-default);
+  pointer-events: none;
+}
+.filter-panel__slider-fill {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: var(--brand);
+  border-radius: 999px;
+}
+/* Both range inputs overlap; only their thumbs catch pointer events so each handle stays grabbable. */
+.filter-panel__slider-range {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none;
+  outline: none;
+}
+.filter-panel__slider-range::-webkit-slider-runnable-track { background: transparent; border: none; }
+.filter-panel__slider-range::-moz-range-track { background: transparent; border: none; }
+.filter-panel__slider-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  border: 2px solid var(--brand);
+  box-shadow: var(--elevation-1);
+  cursor: grab;
+  pointer-events: auto;
+}
+.filter-panel__slider-range::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  border: 2px solid var(--brand);
+  box-shadow: var(--elevation-1);
+  cursor: grab;
+  pointer-events: auto;
+}
+.filter-panel__slider-range:active::-webkit-slider-thumb { cursor: grabbing; }
+.filter-panel__slider-range:active::-moz-range-thumb { cursor: grabbing; }
+.filter-panel__slider-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px oklch(from var(--brand-500) l c h / 0.25); }
+.filter-panel__slider-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px oklch(from var(--brand-500) l c h / 0.25); }
 .filter-panel__star-row { display: flex; gap: var(--space-1); }
 .filter-panel__star-btn { display: flex; align-items: center; gap: 3px; padding: var(--space-1) var(--space-2); border: var(--border-width) solid var(--border-default); border-radius: var(--radius-xs); background: var(--surface-1); color: var(--text-secondary); font-size: var(--text-xs); cursor: pointer; }
 .filter-panel__star-btn svg { width: 12px; height: 12px; color: var(--star-color, #ffb800); }

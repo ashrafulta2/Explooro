@@ -378,6 +378,15 @@ export default function HomePage(root, { navigate }) {
       // Collect products for flash widget on first page
       if (!cursor && result?.products) {
         allLoadedProducts = result.products;
+        // Derive the price-slider bounds from the catalog. setPriceBounds only ever widens, so
+        // successive (price-filtered) loads can't collapse the slider's range.
+        const prices = allLoadedProducts
+          .flatMap((p) => [p.price, p.special_price])
+          .map(Number)
+          .filter((n) => Number.isFinite(n) && n > 0);
+        if (prices.length) {
+          filterResult.setPriceBounds(Math.min(...prices), Math.max(...prices));
+        }
         mountFlashWidget(allLoadedProducts);
         const total = result.meta?.total ?? allLoadedProducts.length;
         countLabel.textContent = t('marketplace.product_count', { count: total });
