@@ -26,22 +26,24 @@
 .card--interactive:active { transform: scale(0.99); }
 
 /* Overlays */
-.overlay { padding: 0; border: none; background: transparent; max-width: none; max-height: none; color: var(--text-primary); overflow: visible; }
-.overlay::backdrop { background: var(--scrim); backdrop-filter: blur(4px); }
-@media (prefers-reduced-motion: reduce), (max-width: 480px) { .overlay::backdrop { backdrop-filter: none; } }
+.overlay { padding: 0; border: none; background: transparent; max-width: none; max-height: none; color: var(--text-primary); overflow: visible; opacity: 0; transition: opacity 220ms var(--ease-in-quad), transform 220ms var(--ease-in-quad), overlay 220ms allow-discrete, display 220ms allow-discrete; }
+.overlay::backdrop { background: var(--scrim); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; transition: opacity 300ms var(--ease-macbook), backdrop-filter 300ms var(--ease-macbook); }
+.overlay[open]::backdrop { opacity: 1; }
+.overlay.modal--closing::backdrop, .overlay.modal--minimizing::backdrop { opacity: 0; transition: opacity 240ms var(--ease-in-quad); }
+@media (prefers-reduced-motion: reduce), (max-width: 480px) { .overlay::backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; } }
 .overlay__close { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: var(--radius-sm); color: var(--text-muted); background: transparent; cursor: pointer; transition: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); }
 .overlay__close:hover { background: var(--surface-2); color: var(--text-primary); }
 .overlay__close::before { content: ''; position: absolute; width: 44px; height: 44px; }
 .overlay__close-icon { display: inline-flex; width: 20px; height: 20px; }
 .overlay__close-icon svg { width: 100%; height: 100%; }
 
-/* Modal */
-.modal { margin: auto; width: calc(100vw - var(--space-8)); transform-origin: var(--origin-x, 50%) var(--origin-y, 50%); }
+/* Modal — MacBook Smooth Window presentation */
+.modal { margin: auto; width: calc(100vw - var(--space-8)); transform-origin: var(--origin-x, 50%) var(--origin-y, 50%); opacity: 0; transform: translateY(-8px) scale(0.93); transition: opacity 300ms var(--ease-macbook), transform 320ms var(--ease-macbook), overlay 320ms allow-discrete, display 320ms allow-discrete; }
 .modal--sm { max-width: 420px; }
 .modal--md { max-width: 560px; }
 .modal--lg { max-width: 760px; }
 .modal--xl { max-width: 1040px; }
-.modal__panel { display: flex; flex-direction: column; background: var(--surface-1); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: var(--elevation-4); max-height: calc(100dvh - var(--space-8)); overflow: hidden; }
+.modal__panel { display: flex; flex-direction: column; background: var(--surface-1); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-lg); box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.08); max-height: calc(100dvh - var(--space-8)); overflow: hidden; transition: transform 300ms var(--ease-macbook); }
 .modal__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5) var(--space-5) 0; }
 .modal__heading { min-width: 0; }
 .modal__title { font-size: var(--text-xl); line-height: var(--leading-xl); letter-spacing: var(--tracking-xl); font-weight: var(--weight-xl); }
@@ -51,13 +53,90 @@
 .modal__footer { display: flex; justify-content: flex-end; gap: var(--space-3); padding: var(--space-4) var(--space-5) var(--space-5); border-top: var(--border-width) solid var(--border-subtle); }
 .modal__footer:empty { display: none; }
 
-.overlay { opacity: 0; transition: opacity 220ms var(--ease-in-quad), transform 220ms var(--ease-in-quad), overlay 220ms allow-discrete, display 220ms allow-discrete; }
-.modal { transform: translateY(8px) scale(0.97); }
-.overlay[open] { opacity: 1; transition-duration: var(--dur-slow); transition-timing-function: var(--ease-out-quart); }
-.modal[open] { transform: none; }
+.overlay[open] { opacity: 1; transition-duration: var(--dur-slow); transition-timing-function: var(--ease-macbook); }
+.modal[open] { opacity: 1; transform: none; }
 @starting-style {
   .overlay[open] { opacity: 0; }
-  .modal[open] { transform: translateY(8px) scale(0.97); }
+  .modal[open] { opacity: 0; transform: translateY(-8px) scale(0.93); }
+}
+
+/* MacBook Graceful Dismissal */
+.modal.modal--closing {
+  opacity: 0;
+  transform: translateY(8px) scale(0.94);
+  transition: opacity 220ms var(--ease-in-quad), transform 220ms var(--ease-in-quad);
+  pointer-events: none;
+}
+
+/* MacBook Genie Minimize Effect — Sucks fluidly into trigger/dock point */
+.modal.modal--minimizing {
+  animation: macbook-genie-minimize 340ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes macbook-genie-minimize {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1, 1);
+    border-radius: var(--radius-lg);
+    filter: none;
+  }
+  25% {
+    opacity: 0.95;
+    transform: translate(calc(var(--genie-x, 0px) * 0.12), calc(var(--genie-y, 60px) * 0.15)) scale(0.9, 0.95);
+  }
+  60% {
+    opacity: 0.75;
+    transform: translate(calc(var(--genie-x, 0px) * 0.6), calc(var(--genie-y, 60px) * 0.65)) scale(0.48, 0.28);
+    border-radius: var(--radius-xl);
+  }
+  85% {
+    opacity: 0.3;
+    transform: translate(calc(var(--genie-x, 0px) * 0.92), calc(var(--genie-y, 60px) * 0.92)) scale(0.15, 0.06);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--genie-x, 0px), var(--genie-y, 60px)) scale(0.04, 0.01);
+    border-radius: var(--radius-full);
+    filter: blur(2px);
+  }
+}
+
+/* MacBook Genie Expand Effect */
+.modal--genie-in {
+  animation: macbook-genie-expand 360ms var(--ease-macbook) forwards;
+}
+
+@keyframes macbook-genie-expand {
+  0% {
+    opacity: 0;
+    transform: translate(var(--genie-x, 0px), var(--genie-y, 60px)) scale(0.05, 0.02);
+    border-radius: var(--radius-full);
+    filter: blur(2px);
+  }
+  40% {
+    opacity: 0.85;
+    transform: translate(calc(var(--genie-x, 0px) * 0.3), calc(var(--genie-y, 60px) * 0.3)) scale(0.65, 0.55);
+    border-radius: var(--radius-xl);
+  }
+  80% {
+    opacity: 0.98;
+    transform: translate(0, 0) scale(1.02, 1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1, 1);
+    border-radius: var(--radius-lg);
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal, .modal[open], .modal.modal--closing, .modal.modal--minimizing, .modal--genie-in {
+    animation: none !important;
+    transform: none !important;
+    transition: opacity var(--dur-instant) linear !important;
+  }
 }
 
 /* Drawer */

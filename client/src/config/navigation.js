@@ -66,6 +66,7 @@ export const navGroups = [
   { key: 'supplier.finance', role: 'supplier', icon: '💰', label_i18n_key: 'nav.group.finance', order: 5 },
   { key: 'supplier.engage', role: 'supplier', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>', label_i18n_key: 'nav.group.supplier.engage', order: 6 },
   { key: 'supplier.my_shop', role: 'supplier', icon: '🏪', label_i18n_key: 'nav.group.supplier.my_shop', order: 7 },
+  { key: 'supplier.me', role: 'supplier', icon: '👤', label_i18n_key: 'nav.group.me', order: 8 },
 
   // ---- Saler (7 groups, ia-sitemap.md §2.5) ----
   { key: 'saler.overview', role: 'saler', icon: '📊', label_i18n_key: 'nav.group.overview', order: 1 },
@@ -75,6 +76,7 @@ export const navGroups = [
   { key: 'saler.orders', role: 'saler', icon: '🛒', label_i18n_key: 'nav.shared.orders', order: 5 },
   { key: 'saler.vault', role: 'saler', icon: '💰', label_i18n_key: 'nav.group.saler.vault', order: 6 },
   { key: 'saler.growth', role: 'saler', icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg>', label_i18n_key: 'nav.group.growth', order: 7 },
+  { key: 'saler.me', role: 'saler', icon: '👤', label_i18n_key: 'nav.group.me', order: 8 },
 
   // ---- Customer (4 groups, ia-sitemap.md §2.6 — flat and icon-led by design) ----
   { key: 'customer.shopping', role: 'customer', icon: '🛒', label_i18n_key: 'nav.group.customer.shopping', order: 1 },
@@ -183,6 +185,10 @@ export const navItems = [
   { key: 'supplier.inquiries', label_i18n_key: 'nav.supplier.inquiries', icon: null, path: '/supplier/inquiries', group: 'supplier.engage', permission: 'chat.thread.view_own', module: 'chat', roles: ['supplier'], order: 1 },
   { key: 'supplier.live_studio', label_i18n_key: 'nav.supplier.live_studio', icon: null, path: '/supplier/live-studio', group: 'supplier.engage', permission: 'live.stream.host', module: 'live_commerce', roles: ['supplier'], order: 2 },
   { key: 'supplier.store_status', label_i18n_key: 'nav.shared.store_status', icon: null, path: '/supplier/store-status', group: 'supplier.my_shop', permission: 'supplier.store.manage', module: 'physical_shop_status', roles: ['supplier'], order: 1 },
+  // The personal-account surfaces also reachable from the TopBar avatar menu — mirrored into the
+  // sidebar's "Me" group for discoverability. Role-agnostic /account/* routes (auth-only, no perm).
+  { key: 'supplier.profile', label_i18n_key: 'nav.customer.profile', icon: null, path: '/account/profile', group: 'supplier.me', permission: null, module: 'core', roles: ['supplier'], order: 0 },
+  { key: 'supplier.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/account/settings', group: 'supplier.me', permission: null, module: 'core', roles: ['supplier'], order: 1 },
 
   // ================= SALER — 20 items =================
   { key: 'saler.dashboard', label_i18n_key: 'nav.shared.dashboard', icon: null, path: '/saler', group: 'saler.overview', permission: 'saler.dashboard.view', module: 'core', roles: ['saler'], order: 1 },
@@ -206,6 +212,10 @@ export const navItems = [
   { key: 'saler.leaderboard', label_i18n_key: 'nav.saler.leaderboard', icon: null, path: '/saler/leaderboard', group: 'saler.growth', permission: null, module: 'gamification', roles: ['saler'], order: 3, simpleMode: false },
   { key: 'saler.academy', label_i18n_key: 'nav.shared.academy', icon: null, path: '/saler/academy', group: 'saler.growth', permission: null, module: 'seller_academy', roles: ['saler'], order: 4 },
   { key: 'saler.inbox', label_i18n_key: 'nav.saler.inbox', icon: null, path: '/saler/inbox', group: 'saler.growth', permission: 'chat.thread.view_own', module: 'whatsapp_bridge', roles: ['saler'], order: 5 },
+  // The personal-account surfaces also reachable from the TopBar avatar menu — mirrored into the
+  // sidebar's "Me" group for discoverability. Role-agnostic /account/* routes (auth-only, no perm).
+  { key: 'saler.profile', label_i18n_key: 'nav.customer.profile', icon: null, path: '/account/profile', group: 'saler.me', permission: null, module: 'core', roles: ['saler'], order: 0 },
+  { key: 'saler.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/account/settings', group: 'saler.me', permission: null, module: 'core', roles: ['saler'], order: 1 },
 
   // ================= CUSTOMER — 13 items =================
   { key: 'customer.orders', label_i18n_key: 'nav.shared.orders', icon: null, path: '/account/orders', group: 'customer.shopping', permission: null, module: 'core', roles: ['customer'], order: 1 },
