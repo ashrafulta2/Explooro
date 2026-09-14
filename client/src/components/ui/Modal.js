@@ -66,6 +66,8 @@ export function Modal({
   showClose = true,
   closeOnScrim = true,
   closeLabel = 'Close',
+  important = false,
+  minimizeOnClose = false,
   onClose = null,
   onOpen = null,
 } = {}) {
@@ -74,7 +76,7 @@ export function Modal({
   const descId = `modal-desc-${modalSeq}`;
 
   const dialog = document.createElement('dialog');
-  dialog.className = `overlay modal modal--${size}`;
+  dialog.className = `overlay modal modal--${size}${important ? ' modal--important' : ''}`;
   // showModal() implies aria-modal, but stating it keeps the contract explicit for anyone
   // reading the DOM and for older assistive tech.
   dialog.setAttribute('aria-modal', 'true');
@@ -134,10 +136,39 @@ export function Modal({
 
   let previouslyFocused = null;
   let result;
+  let isClosing = false;
   const nativeClose = dialog.close.bind(dialog);
 
+  function computeGenieCoordinates() {
+    let targetX = typeof window !== 'undefined' ? window.innerWidth / 2 : 0;
+    let targetY = typeof window !== 'undefined' ? window.innerHeight - 30 : 0;
+
+    if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
+      const tr = previouslyFocused.getBoundingClientRect();
+      if (tr.width || tr.height) {
+        targetX = tr.left + tr.width / 2;
+        targetY = tr.top + tr.height / 2;
+      }
+    }
+
+    const mr = panel.getBoundingClientRect();
+    const modalCenterX = mr.left + mr.width / 2;
+    const modalCenterY = mr.top + mr.height / 2;
+
+    const deltaX = targetX - modalCenterX;
+    const deltaY = targetY - modalCenterY;
+
+    dialog.style.setProperty('--genie-x', `${deltaX.toFixed(1)}px`);
+    dialog.style.setProperty('--genie-y', `${deltaY.toFixed(1)}px`);
+  }
+
   function open(trigger = null) {
-    if (dialog.hasAttribute('open')) return;
+    if (dialog.hasAttribute('open') && !isClosing) return;
+    if (isClosing) {
+      isClosing = false;
+      dialog.classList.remove('modal--closing', 'modal--minimizing');
+    }
+
     previouslyFocused = trigger ?? document.activeElement;
 
     if (!dialog.isConnected) document.body.append(dialog);
@@ -157,15 +188,52 @@ export function Modal({
     if (onOpen) onOpen();
   }
 
-  function close(value = false) {
-    if (!dialog.hasAttribute('open')) return;
+  function close(value = false, { force = false, minimize = false } = {}) {
+    if (!dialog.hasAttribute('open') || isClosing) return;
     result = value;
-    nativeClose();
+
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+
+    if (force || prefersReduced) {
+      nativeClose();
+      return;
+    }
+
+    isClosing = true;
+    const isGenie = minimize || minimizeOnClose || important;
+
+    if (isGenie) {
+      computeGenieCoordinates();
+      dialog.classList.remove('modal--closing');
+      dialog.classList.add('modal--minimizing');
+    } else {
+      dialog.classList.remove('modal--minimizing');
+      dialog.classList.add('modal--closing');
+    }
+
+    const duration = isGenie ? 340 : 220;
+
+    setTimeout(() => {
+      if (!isClosing) return;
+      dialog.classList.remove('modal--closing', 'modal--minimizing');
+      isClosing = false;
+      nativeClose();
+    }, duration);
   }
+
+  // Intercept Escape key to play graceful MacBook exit instead of abrupt instant vanishing
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    close(false);
+  });
 
   // `close` fires for Escape too, so cleanup lives here and nowhere else — that is what keeps
   // the Escape path and the button path from drifting apart.
   dialog.addEventListener('close', () => {
+    isClosing = false;
+    dialog.classList.remove('modal--closing', 'modal--minimizing');
     unlockScroll();
     if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
       previouslyFocused.focus();
@@ -184,6 +252,7 @@ export function Modal({
   dialog.open_ = open;
   dialog.openModal = open;
   dialog.closeModal = close;
+  dialog.minimize = () => close(false, { minimize: true });
   dialog.isOpen = () => Boolean(dialog.hasAttribute('open'));
 
   Object.defineProperty(dialog, 'open', {

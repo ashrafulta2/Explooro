@@ -342,14 +342,24 @@ export function createCommandPalette({ getState }) {
     }
   }
 
+  let isClosing = false;
+
   input.addEventListener('input', () => render(input.value));
   input.addEventListener('keydown', onKeydown);
   dialog.addEventListener('click', (event) => {
     if (event.target === dialog) close();
   });
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    close();
+  });
 
   function open() {
-    if (dialog.open) return;
+    if (dialog.open && !isClosing) return;
+    if (isClosing) {
+      isClosing = false;
+      dialog.classList.remove('is-closing');
+    }
     previouslyFocused = document.activeElement;
     if (!dialog.isConnected) document.body.append(dialog);
     input.value = '';
@@ -360,11 +370,24 @@ export function createCommandPalette({ getState }) {
   }
 
   function close() {
-    if (!dialog.open) return;
-    dialog.close();
+    if (!dialog.open || isClosing) return;
+    const reduced = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    if (reduced) {
+      dialog.close();
+      return;
+    }
+    isClosing = true;
+    dialog.classList.add('is-closing');
+    setTimeout(() => {
+      dialog.classList.remove('is-closing');
+      isClosing = false;
+      if (dialog.open) dialog.close();
+    }, 200);
   }
 
   dialog.addEventListener('close', () => {
+    isClosing = false;
+    dialog.classList.remove('is-closing');
     unlockScroll();
     if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) previouslyFocused.focus();
   });

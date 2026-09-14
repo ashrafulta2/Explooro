@@ -179,3 +179,103 @@ export function countUp(el, from = 0, to = 0, { durationMs = 400, formatter = (n
 
   requestAnimationFrame(step);
 }
+
+/**
+ * MacBook Genie minimize animation for arbitrary modal/scrim elements.
+ * Sucks and morphs the window element towards the trigger control or dock.
+ */
+export function animateGenieMinimize(modalEl, targetEl = null, { durationMs = 340 } = {}) {
+  return new Promise((resolve) => {
+    if (!modalEl) {
+      resolve();
+      return;
+    }
+
+    if (prefersReducedMotion()) {
+      modalEl.style.opacity = '0';
+      resolve();
+      return;
+    }
+
+    let targetX = typeof window !== 'undefined' ? window.innerWidth / 2 : 0;
+    let targetY = typeof window !== 'undefined' ? window.innerHeight - 30 : 0;
+
+    if (targetEl instanceof HTMLElement && targetEl.isConnected) {
+      const tr = targetEl.getBoundingClientRect();
+      if (tr.width || tr.height) {
+        targetX = tr.left + tr.width / 2;
+        targetY = tr.top + tr.height / 2;
+      }
+    }
+
+    const mr = modalEl.getBoundingClientRect();
+    const modalCenterX = mr.left + mr.width / 2;
+    const modalCenterY = mr.top + mr.height / 2;
+    const deltaX = targetX - modalCenterX;
+    const deltaY = targetY - modalCenterY;
+
+    modalEl.style.setProperty('--genie-x', `${deltaX.toFixed(1)}px`);
+    modalEl.style.setProperty('--genie-y', `${deltaY.toFixed(1)}px`);
+
+    const anim = modalEl.animate(
+      [
+        { opacity: 1, transform: 'translate(0, 0) scale(1, 1)', filter: 'none' },
+        { opacity: 0.95, transform: `translate(${deltaX * 0.15}px, ${deltaY * 0.18}px) scale(0.9, 0.95)` },
+        { opacity: 0.75, transform: `translate(${deltaX * 0.65}px, ${deltaY * 0.68}px) scale(0.48, 0.28)` },
+        { opacity: 0, transform: `translate(${deltaX}px, ${deltaY}px) scale(0.04, 0.01)`, filter: 'blur(2px)' },
+      ],
+      {
+        duration: durationMs,
+        easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+        fill: 'forwards',
+      }
+    );
+
+    anim.onfinish = () => {
+      // Tactile bloom on target trigger if connected
+      if (targetEl instanceof HTMLElement && targetEl.isConnected && typeof targetEl.animate === 'function') {
+        targetEl.animate(
+          [
+            { transform: 'scale(1)' },
+            { transform: 'scale(0.94)' },
+            { transform: 'scale(1.04)' },
+            { transform: 'scale(1)' },
+          ],
+          { duration: 220, easing: 'ease-out' }
+        );
+      }
+      resolve();
+    };
+    anim.oncancel = resolve;
+  });
+}
+
+/**
+ * MacBook-style smooth dismiss (fade and gentle scale drop).
+ */
+export function animateMacBookDismiss(modalEl, { durationMs = 220 } = {}) {
+  return new Promise((resolve) => {
+    if (!modalEl) {
+      resolve();
+      return;
+    }
+    if (prefersReducedMotion()) {
+      modalEl.style.opacity = '0';
+      resolve();
+      return;
+    }
+    const anim = modalEl.animate(
+      [
+        { opacity: 1, transform: 'translateY(0) scale(1)' },
+        { opacity: 0, transform: 'translateY(10px) scale(0.94)' },
+      ],
+      {
+        duration: durationMs,
+        easing: 'cubic-bezier(0.55, 0, 1, 0.45)',
+        fill: 'forwards',
+      }
+    );
+    anim.onfinish = resolve;
+    anim.oncancel = resolve;
+  });
+}

@@ -147,9 +147,12 @@
 .mobile-nav__item--active { color: var(--text-brand); font-weight: var(--weight-lg); }
 
 /* CommandPalette */
-.command-palette { position: fixed; top: 10vh; left: 50%; transform: translateX(-50%) translateY(-10px) scale(0.98); width: min(620px, calc(100vw - var(--space-6))); max-height: 70vh; display: flex; flex-direction: column; border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle); background: var(--surface-1); box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05); padding: 0; overflow: hidden; opacity: 0; transition: opacity var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard); z-index: var(--z-palette, 700); }
-.command-palette::backdrop { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.command-palette { position: fixed; top: 10vh; left: 50%; transform: translateX(-50%) translateY(-14px) scale(0.95); width: min(620px, calc(100vw - var(--space-6))); max-height: 70vh; display: flex; flex-direction: column; border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle); background: var(--surface-1); box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.08); padding: 0; overflow: hidden; opacity: 0; transition: opacity 280ms var(--ease-macbook), transform 300ms var(--ease-macbook); z-index: var(--z-palette, 700); }
+.command-palette::backdrop { background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; transition: opacity 280ms var(--ease-macbook); }
 .command-palette[open] { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+.command-palette[open]::backdrop { opacity: 1; }
+.command-palette.is-closing { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.96); transition: opacity 200ms var(--ease-in-quad), transform 200ms var(--ease-in-quad); pointer-events: none; }
+.command-palette.is-closing::backdrop { opacity: 0; transition: opacity 200ms var(--ease-in-quad); }
 .command-palette__header { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: var(--border-width) solid var(--border-subtle); background: var(--surface-0); }
 .command-palette__search-icon { display: flex; align-items: center; justify-content: center; color: var(--brand); flex: none; }
 .command-palette__input { flex: 1; min-width: 0; height: 40px; padding: 0; border: none; background: transparent; color: var(--text-primary); font-size: var(--text-base); font-weight: var(--weight-medium); outline: none; }

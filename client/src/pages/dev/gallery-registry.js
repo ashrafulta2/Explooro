@@ -466,6 +466,42 @@ function renderModalDrawer(detached) {
   const openModalBtn = Button({ label: 'Open modal', variant: 'secondary' });
   openModalBtn.addEventListener('click', () => demoModal.openModal(openModalBtn));
 
+  const genieModalContent = document.createElement('div');
+  genieModalContent.className = 'text-sm';
+  genieModalContent.textContent =
+    'Important popup window featuring the Apple macOS Genie Minimize Effect. When closed or minimized, this window fluidly morphs and sucks back into the button that triggered it!';
+
+  const genieModal = Modal({
+    title: 'MacBook Window & Genie Effect',
+    description: 'Important Transactional Popup with fluid minimize physics',
+    content: genieModalContent,
+    important: true,
+    minimizeOnClose: true,
+    footer: (() => {
+      const f = document.createDocumentFragment();
+      f.append(
+        Button({
+          label: 'Minimize Window ▾',
+          variant: 'secondary',
+          onClick: () => genieModal.minimize(),
+        }),
+        Button({
+          label: 'Complete Action',
+          onClick: () => {
+            genieModal.closeModal(true);
+            toast.success('Action confirmed with Genie effect');
+          },
+        })
+      );
+      return f;
+    })(),
+  });
+  document.body.append(genieModal);
+  detached.push(genieModal);
+
+  const openGenieBtn = Button({ label: 'MacBook Genie Window', variant: 'primary' });
+  openGenieBtn.addEventListener('click', () => genieModal.openModal(openGenieBtn));
+
   function drawerBody(text) {
     const p = document.createElement('p');
     p.className = 'text-sm';
@@ -491,7 +527,7 @@ function renderModalDrawer(detached) {
   const openSheet = Button({ label: 'Open bottom sheet', variant: 'secondary' });
   openSheet.addEventListener('click', () => bottomSheet.openDrawer(openSheet));
 
-  wrap.append(specimen('overlays', openModalBtn, openRight, openSheet));
+  wrap.append(specimen('overlays', openModalBtn, openGenieBtn, openRight, openSheet));
   return wrap;
 }
 
