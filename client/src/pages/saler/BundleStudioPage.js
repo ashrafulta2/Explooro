@@ -63,7 +63,7 @@ export default function BundleStudioPage(root, ctx) {
     <div class="saler-header-row__titles">
       <div class="saler-header-row__breadcrumb">
         <a href="/saler" class="hover:text-primary transition-colors">
-          ← ${t('saler.dashboard.title', 'Dashboard')}
+          &lt; ${t('saler.dashboard.title', 'Dashboard')}
         </a>
         <span>/</span>
         <span class="font-bold text-primary">${t('bundle.studio_title')}</span>

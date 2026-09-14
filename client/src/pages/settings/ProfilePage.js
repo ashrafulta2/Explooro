@@ -33,7 +33,7 @@ import {
 } from '../../services/i18n.js';
 import { formatDate, formatPhone, setNumeralPreference } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
-import { bindBackControl } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 import {
   BANGLADESH_DIVISIONS,
   getDistrictsByDivision,
@@ -108,9 +108,7 @@ export default function ProfilePage(root, { navigate } = {}) {
   const header = document.createElement('div');
   header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="account-page__back account-page__back--boxed">
-      ← ${t('common.back', 'Back')} · ${t('profile.breadcrumb', 'My Account')}
-    </a>
+    ${renderBackLink({ href: '/account', label: t('common.account') || 'Account', className: 'account-page__back account-page__back--boxed' })}
     <h1 class="account-page__title">${t('profile.page_title', 'My Profile')}</h1>
     <p class="account-page__subtitle">
       ${t('profile.page_subtitle', 'Your name, contact details, location and language preferences — everything Explooro knows about you.')}

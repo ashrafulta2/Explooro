@@ -18,7 +18,7 @@ import { Skeleton } from '../../components/ui/Skeleton.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { Tabs } from '../../components/ui/Tabs.js';
 import { Modal } from '../../components/ui/Modal.js';
-import { bindBackControl } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 export default function ReturnsPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {
@@ -40,9 +40,7 @@ export default function ReturnsPage(root, { navigate } = {}) {
   header.className = 'account-page__header';
   header.innerHTML = `
     <div>
-      <a href="/account" class="account-page__back">
-        ${t('customer_returns.back_to_account')}
-      </a>
+      ${renderBackLink({ href: '/account', label: t('customer_returns.back_to_account') || t('common.account') || 'Account' })}
       <div class="account-page__title-wrap">
         <h1 class="account-page__title">
           ${t('customer_returns.page_title')}

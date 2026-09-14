@@ -32,6 +32,7 @@ import * as catalogApi from '../services/catalog.api.js';
 import { updateHead, buildProductJsonLd } from '../services/seo.js';
 import { api } from '../core/api.js';
 import { openTeamPurchaseModal } from '../components/product/TeamPurchaseModal.js';
+import { createBackButton, getBackDestination } from '../core/navBack.js';
 
 function applySeo(product, lang) {
   const title = lang === 'bn' ? (product.title_bn || product.title_en) : product.title_en;
@@ -470,8 +471,21 @@ export default function ProductDetailPage(root, { params, navigate }) {
         infoCol.append(descHeading, descBody);
       }
 
+      // ── Back Navigation ────────────────────────────────────────────────
+      const fromPath = window.history.state?.fromPath;
+      const destination = getBackDestination(fromPath, lang);
+      const topBar = document.createElement('div');
+      topBar.className = 'product-detail-page__top-bar';
+      const backBtn = createBackButton({
+        href: destination.path,
+        label: destination.name,
+        className: 'product-detail-page__back',
+        navigate,
+      });
+      topBar.append(backBtn);
+
       layout.append(infoCol);
-      page.replaceChildren(layout);
+      page.replaceChildren(topBar, layout);
 
       // ── Reviews + Q&A (below the fold) ──────────────────────────────────
       const belowFold = document.createElement('div');

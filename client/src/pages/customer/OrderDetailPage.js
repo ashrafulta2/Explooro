@@ -15,7 +15,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
-import { goBack } from '../../core/navBack.js';
+import { goBack, renderBackLink } from '../../core/navBack.js';
 import '../../styles/components/customer-orders.css';
 
 export default function OrderDetailPage(root, { params = {}, navigate } = {}) {
@@ -31,6 +31,10 @@ export default function OrderDetailPage(root, { params = {}, navigate } = {}) {
   }
 
   root.append(container);
+
+  return () => {
+    container.innerHTML = '';
+  };
 }
 
 async function renderOrdersList(container, navigate) {
@@ -98,9 +102,7 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
   container.className = 'account-page orders-page';
   container.innerHTML = `
     <div class="account-page__header">
-      <a href="/orders" class="account-page__back" id="back-to-orders">
-        <span>←</span> ${t('order_tracking.my_orders_title') || 'Back to Orders'}
-      </a>
+      ${renderBackLink({ href: '/orders', label: t('common.orders') || 'Orders', id: 'back-to-orders' })}
       <h1 class="account-page__title">${t('order_tracking.title')}</h1>
       <p class="account-page__subtitle">${t('order_tracking.ref_label')}: <code class="font-bold text-primary">${orderIdOrRef}</code></p>
     </div>

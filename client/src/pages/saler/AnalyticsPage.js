@@ -35,7 +35,7 @@ export default function AnalyticsPage(root) {
   titleBox.innerHTML = `
     <div class="saler-header-row__breadcrumb">
       <a href="/saler" class="hover:text-primary transition-colors">
-        ← ${t('saler.analytics.back_to_dashboard', 'Dashboard')}
+        &lt; ${t('saler.analytics.back_to_dashboard', 'Dashboard')}
       </a>
       <span>/</span>
       <span class="font-bold text-primary">${t('saler.analytics.title', 'Sales & Profit Analytics')}</span>

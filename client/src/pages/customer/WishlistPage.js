@@ -20,7 +20,7 @@ import { EmptyState } from '../../components/ui/EmptyState.js';
 import { Switch } from '../../components/ui/Switch.js';
 import { addToCart, toggleWishlist, openCartDrawer, setWishlistNotify } from '../../services/cart.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
-import { goBack } from '../../core/navBack.js';
+import { goBack, renderBackLink } from '../../core/navBack.js';
 
 export default function WishlistPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {
@@ -38,10 +38,7 @@ export default function WishlistPage(root, { navigate } = {}) {
   const header = document.createElement('div');
   header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="account-page__back" data-nav-back>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-      <span>${t('wishlist.back_to_account')}</span>
-    </a>
+    ${renderBackLink({ href: '/account', label: t('common.account') || 'Account' })}
     <h1 class="account-page__title">
       <span>💚</span>
       <span>${t('wishlist.page_title')}</span>

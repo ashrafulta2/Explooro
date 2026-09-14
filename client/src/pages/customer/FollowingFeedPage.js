@@ -20,7 +20,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
-import { bindBackControl } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 const TAB_KEYS = ['all', 'drops', 'live', 'stores', 'discover'];
 const SEARCH_DEBOUNCE_MS = 200;
@@ -122,9 +122,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
   const header = document.createElement('header');
   header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="account-page__back">
-      ← ${esc(t('customer.following.back_to_account', 'Account Dashboard'))}
-    </a>
+    ${renderBackLink({ href: '/account', label: t('customer.following.back_to_account', 'Account Dashboard') })}
     <div class="account-page__title-wrap">
       <div>
         <h1 class="account-page__title">
@@ -1191,7 +1189,7 @@ function createDiscoverStoresSection(stores, nav, onToggleFollow) {
     card.className = 'store-card';
     if (st.is_sponsored) {
       card.style.border = '1px solid var(--brand)';
-      card.style.backgroundColor = 'var(--surface-subtle)';
+      card.style.backgroundColor = 'var(--surface-subtle, var(--surface-1))';
     }
     card.innerHTML = storeCardMarkup(st, { fallbackIcon: st.is_sponsored ? '📢' : '✨' });
     if (st.is_sponsored) {

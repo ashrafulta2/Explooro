@@ -62,7 +62,7 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
     header.innerHTML = `
       <div class="saler-header-row__titles">
         <div class="saler-header-row__breadcrumb">
-          <a href="/saler" class="hover:text-primary">← ${t('saler.dashboard.title', 'Dashboard')}</a>
+          <a href="/saler" class="hover:text-primary">&lt; ${t('saler.dashboard.title', 'Dashboard')}</a>
           <span>/</span>
           <a href="/saler/vault" class="hover:text-primary">${t('saler.tools.vault', 'Vault')}</a>
           <span>/</span>

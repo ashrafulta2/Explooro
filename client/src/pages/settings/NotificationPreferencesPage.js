@@ -13,7 +13,7 @@ import { Skeleton } from '../../components/ui/Skeleton.js';
 import { api } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { bindBackControl } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 // WHY the channel list is data, not markup: every category renders the same four toggles, and a
 // fifth channel (WhatsApp, Prompt 8.3) should be one row here rather than four edits per card.
@@ -94,9 +94,7 @@ export default function NotificationPreferencesPage(root, { navigate } = {}) {
   const header = document.createElement('div');
   header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="account-page__back account-page__back--boxed">
-      ← ${t('common.back', 'Back')} · ${t('nav.shared.settings', 'Settings')}
-    </a>
+    ${renderBackLink({ href: '/account', label: t('common.account') || 'Account', className: 'account-page__back account-page__back--boxed' })}
     <div class="account-page__badge">🔔 ${t('notifications.pref_badge', 'Preference Centre')}</div>
     <h1 class="account-page__title">${t('notifications.pref_page_title', 'Notification Preferences')}</h1>
     <p class="account-page__subtitle">

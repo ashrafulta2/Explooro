@@ -122,7 +122,7 @@ export class ReferralHubPage {
         <!-- Header -->
         <header class="referral-hub__header">
           <a href="/account" class="referral-hub__back" id="btn-back-account">
-            ← ${t('referrals.back_to_account', 'অ্যাকাউন্টে ফিরে যান')}
+            &lt; ${t('common.account') || 'Account'}
           </a>
           <div class="referral-hub__title-wrap">
             <div>

@@ -87,7 +87,7 @@ export class CartInsightsPage {
         <div class="saler-header-row">
           <div class="saler-header-row__titles">
             <div class="saler-header-row__breadcrumb">
-              <a href="/saler" class="hover:text-primary transition-colors">← ${isBn ? 'ড্যাশবোর্ড' : 'Dashboard'}</a>
+              <a href="/saler" class="hover:text-primary transition-colors">&lt; ${isBn ? 'ড্যাশবোর্ড' : 'Dashboard'}</a>
               <span>/</span>
               <span class="font-bold text-primary">${isBn ? 'পরিত্যক্ত কার্ট' : 'Abandoned Carts'}</span>
             </div>

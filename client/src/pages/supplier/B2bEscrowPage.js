@@ -63,7 +63,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
   header.innerHTML = `
     <div class="supplier-header__titles">
       <div class="supplier-header__badge-row">
-        <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
+        <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">&lt; ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
         <span class="text-muted">/</span>
         <span class="text-xs text-muted font-mono">B2B Wholesale Escrow</span>
       </div>

@@ -199,7 +199,7 @@ export default function StoreStatusPage(root) {
     titles.className = 'supplier-header__titles';
     titles.innerHTML = `
       <div class="supplier-header__badge-row">
-        <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">← ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
+        <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">&lt; ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
         <span class="text-muted">/</span>
         <span class="text-xs text-muted font-mono">${t('supplier.physical_store_status', 'Physical Store Status')}</span>
       </div>

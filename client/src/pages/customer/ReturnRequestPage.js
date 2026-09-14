@@ -13,7 +13,7 @@ import { api } from '../../core/api.js';
 import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { goBack } from '../../core/navBack.js';
+import { goBack, CHEVRON_LEFT_SVG } from '../../core/navBack.js';
 
 export default function ReturnRequestPage(root, { params = {}, navigate } = {}) {
   const container = document.createElement('div');
@@ -120,8 +120,9 @@ export default function ReturnRequestPage(root, { params = {}, navigate } = {}) 
           <h1 class="text-2xl font-bold">${t('returns.page_title')}</h1>
           <p class="text-sm text-secondary">${t('returns.page_subtitle')} (Order #${subOrder?.ref || subOrderId})</p>
         </div>
-        <button class="btn btn--outline btn--sm" id="btn-back-order">
-          ← ${t('returns.btn_back_order')}
+        <button class="btn btn--outline btn--sm flex items-center gap-1.5" id="btn-back-order">
+          ${CHEVRON_LEFT_SVG}
+          <span>${t('returns.btn_back_order')}</span>
         </button>
       </div>
 

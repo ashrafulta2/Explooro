@@ -16,7 +16,7 @@ import { api } from '../../core/api.js';
 import { getLanguage, t, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';
-import { goBack } from '../../core/navBack.js';
+import { goBack, renderBackLink } from '../../core/navBack.js';
 import '../../styles/components/customer-coins.css';
 
 export class CoinsPage {
@@ -98,13 +98,7 @@ export class CoinsPage {
       <div class="account-page coins-page">
         <!-- Page Header -->
         <div class="account-page__header">
-          <a href="/account" class="account-page__back" data-nav-back>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12"></line>
-              <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            <span>${t('gamification.back_to_account')}</span>
-          </a>
+          ${renderBackLink({ href: '/account', label: t('gamification.back_to_account') || t('common.account') || 'Account' })}
           
           <div class="account-page__title-wrap">
             <div>

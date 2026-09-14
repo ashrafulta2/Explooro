@@ -21,7 +21,7 @@ import { Modal } from '../../components/ui/Modal.js';
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.js';
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.js';
 import { openWriteReviewModal } from '../../components/customer/WriteReviewModal.js';
-import { bindBackControl } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 export default function ReviewsPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {
@@ -51,9 +51,7 @@ export default function ReviewsPage(root, { navigate } = {}) {
   const header = document.createElement('header');
   header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="account-page__back">
-      ← ${t('common.back') || 'Back to Account'}
-    </a>
+    ${renderBackLink({ href: '/account', label: t('common.account') || 'Account' })}
     <div class="account-page__title-wrap">
       <div>
         <div class="flex items-center gap-2 mb-1">

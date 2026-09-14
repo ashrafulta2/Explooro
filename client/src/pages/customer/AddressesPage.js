@@ -21,7 +21,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
-import { bindBackControl } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 export default function AddressesPage(root, { navigate } = {}) {
   const isBn = () => document.documentElement.lang === 'bn';
@@ -41,9 +41,7 @@ export default function AddressesPage(root, { navigate } = {}) {
   const header = document.createElement('div');
   header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="account-page__back account-page__back--boxed">
-      ← ${t('common.back', 'Back')} · ${t('nav.customer.addresses', 'Addresses')}
-    </a>
+    ${renderBackLink({ href: '/account', label: t('common.account') || 'Account', className: 'account-page__back account-page__back--boxed' })}
     <div class="account-page__title-wrap">
       <div class="account-page__title-info">
         <div class="addresses-page__badge">
@@ -61,7 +59,7 @@ export default function AddressesPage(root, { navigate } = {}) {
   `;
   container.append(header);
 
-  bindBackControl(header.querySelector('.account-page__back account-page__back--boxed'), nav, '/account');
+  bindBackControl(header.querySelector('.account-page__back'), nav, '/account');
 
   // Add Address CTA Button in Header
   const addBtn = Button({

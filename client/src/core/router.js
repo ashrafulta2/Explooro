@@ -171,7 +171,13 @@ export function createRouter({
     // replace keeps it. core/navBack.js reads it to decide between history.back() and a fallback
     // route. The browser persists history.state across reloads, so it survives a refresh.
     const currentIdx = history.state?.idx ?? 0;
-    const state = { __routerKey: key, idx: replace ? currentIdx : currentIdx + 1 };
+    const previousPath = window.location.pathname + window.location.search;
+    const state = {
+      __routerKey: key,
+      idx: replace ? currentIdx : currentIdx + 1,
+      fromPath: replace ? (history.state?.fromPath ?? null) : previousPath,
+      fromTitle: replace ? (history.state?.fromTitle ?? null) : document.title,
+    };
     if (replace) history.replaceState(state, '', url);
     else history.pushState(state, '', url);
     return render(url.pathname, url.search, { key });

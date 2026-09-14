@@ -362,7 +362,7 @@ export function ProductCard({
   card.className = size === 'compact' ? 'product-card product-card--compact' : 'product-card';
   if (product.isSponsored) {
     card.style.border = '1px solid var(--brand)';
-    card.style.backgroundColor = 'var(--surface-subtle)';
+    card.style.backgroundColor = 'var(--surface-subtle, var(--surface-1))';
   }
   card.setAttribute('tabindex', '0');
   card.setAttribute('role', 'button');

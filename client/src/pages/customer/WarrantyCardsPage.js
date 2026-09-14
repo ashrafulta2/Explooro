@@ -15,7 +15,7 @@ import { openClaimModal } from '../../components/warranty/ClaimModal.js';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.js';
 import { openCertificateModal } from '../../components/warranty/CertificateModal.js';
 import { openRegisterWarrantyModal } from '../../components/warranty/RegisterWarrantyModal.js';
-import { bindBackControl } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 export default function WarrantyCardsPage(root, { navigate } = {}) {
   const container = document.createElement('div');
@@ -43,9 +43,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
   const header = document.createElement('header');
   header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="account-page__back">
-      ← ${t('common.back') || 'Back'}
-    </a>
+    ${renderBackLink({ href: '/account', label: t('common.account') || 'Account' })}
     <div class="account-page__title-wrap">
       <div>
         <h1 class="account-page__title">

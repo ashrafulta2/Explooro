@@ -78,7 +78,7 @@ export default function SalerOrderDetailPage(root, { params, navigate } = {}) {
     header.innerHTML = `
       <div class="saler-header-row__titles">
         <div class="saler-header-row__breadcrumb">
-          <a href="/saler/orders" class="hover:text-primary font-bold">← ${t('saler_orders.detail_back')}</a>
+          <a href="/saler/orders" class="hover:text-primary font-bold">&lt; ${t('saler_orders.detail_back')}</a>
           <span>/</span>
           <span class="text-primary font-mono">${order.order_ref}</span>
         </div>

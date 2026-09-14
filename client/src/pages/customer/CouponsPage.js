@@ -23,7 +23,7 @@ import { Skeleton } from '../../components/ui/Skeleton.js';
 import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
-import { goBack } from '../../core/navBack.js';
+import { goBack, renderBackLink } from '../../core/navBack.js';
 
 const DEFAULT_FALLBACK_COUPONS = [
   {
@@ -153,10 +153,7 @@ export default function CouponsPage(root, { navigate } = {}) {
   const header = document.createElement('header');
   header.className = 'account-page__header';
   header.innerHTML = `
-    <a href="/account" class="account-page__back" data-nav-back>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-      <span>${t('wishlist.back_to_account') || 'Back to Account'}</span>
-    </a>
+    ${renderBackLink({ href: '/account', label: t('common.account') || 'Account' })}
     <div class="account-page__title-wrap">
       <div>
         <h1 class="account-page__title">
@@ -532,7 +529,8 @@ export default function CouponsPage(root, { navigate } = {}) {
 
   // Subscribe to language changes
   unsubscribeLang = subscribeLang(() => {
-    header.querySelector('.account-page__back').textContent = `← ${t('wishlist.back_to_account') || 'Back to Account'}`;
+    const backSpan = header.querySelector('.account-page__back span');
+    if (backSpan) backSpan.textContent = t('common.account') || 'Account';
     header.querySelector('.account-page__title span:last-child').textContent = t('customer_coupons.page_title');
     header.querySelector('.account-page__subtitle').textContent = t('customer_coupons.page_subtitle');
     if (claimInput) claimInput.placeholder = t('customer_coupons.claim_input_placeholder');

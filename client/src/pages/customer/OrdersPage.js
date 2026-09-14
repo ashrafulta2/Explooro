@@ -22,7 +22,7 @@ import {
   ORDER_STAGES,
 } from '../../components/order/OrderTracker.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
-import { bindBackControl } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 export default function OrdersPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {
@@ -43,9 +43,7 @@ export default function OrdersPage(root, { navigate } = {}) {
   header.className = 'account-page__header';
   header.innerHTML = `
     <div>
-      <a href="/account" class="account-page__back">
-        ${t('order_tracking.back_to_account')}
-      </a>
+      ${renderBackLink({ href: '/account', label: t('order_tracking.back_to_account') || t('common.account') || 'Account' })}
       <h1 class="account-page__title">
         ${t('order_tracking.my_orders_title')}
       </h1>

@@ -16,7 +16,7 @@ import { api } from '../core/api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { formatCurrency } from '../services/format.js';
 import { toast } from '../services/toast.js';
-import { bindBackControl } from '../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../core/navBack.js';
 
 const DEFAULT_FALLBACK_TEAMS = [
   {
@@ -429,10 +429,7 @@ export class TeamPurchasePage {
       <div class="account-page team-purchases-page">
         <!-- Header -->
         <div class="account-page__header">
-          <a href="/account" class="account-page__back">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span>${isBn ? 'ড্যাশবোর্ডে ফিরে যান' : 'Back to Dashboard'}</span>
-          </a>
+          ${renderBackLink({ href: '/account', label: isBn ? 'অ্যাকাউন্ট' : 'Account' })}
           <div class="account-page__title-wrap">
             <div>
               <h1 class="account-page__title">
@@ -548,10 +545,7 @@ export class TeamPurchasePage {
       <div class="account-page team-purchases-page">
         <!-- Header -->
         <div class="account-page__header">
-          <a href="/account" class="account-page__back">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-            <span>${isBn ? 'ড্যাশবোর্ডে ফিরে যান' : 'Back to Dashboard'}</span>
-          </a>
+          ${renderBackLink({ href: '/account', label: isBn ? 'অ্যাকাউন্ট' : 'Account' })}
           <div class="account-page__title-wrap">
             <div>
               <h1 class="account-page__title">
@@ -930,10 +924,7 @@ export class TeamPurchasePage {
     this.rootEl.innerHTML = `
       <div class="account-page team-purchases-page">
         <!-- Back Link -->
-        <a href="/account/team-purchases" class="account-page__back">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-          <span>${isBn ? 'আমার সকল টিম পারচেজ' : 'All My Team Purchases'}</span>
-        </a>
+        ${renderBackLink({ href: '/account/team-purchases', label: isBn ? 'টিম পারচেজ' : 'Team Purchases' })}
 
         <div class="team-detail-view">
           <!-- Status Banner -->
