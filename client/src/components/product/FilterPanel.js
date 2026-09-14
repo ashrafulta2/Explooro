@@ -147,7 +147,12 @@ export function FilterPanel({
   }
 
   // ── Price range ──────────────────────────────────────────────────────────
+  // A hover-revealed dual-handle slider sits under the Min/Max boxes. The slider bounds are derived
+  // from the loaded catalog via setPriceBounds() (see the returned API); until that runs they fall
+  // back to a sane default so the control is usable on first paint. Boxes ↔ slider ↔ state stay in
+  // sync: dragging updates the boxes live and commits (emit) on release; typing repositions handles.
   const priceGroup = group('marketplace.filter.price_range');
+  priceGroup.classList.add('filter-panel__group--price');
   const priceRow = document.createElement('div');
   priceRow.className = 'filter-panel__range-row';
   const minInput = document.createElement('input');
@@ -156,7 +161,6 @@ export function FilterPanel({
   minInput.placeholder = t('marketplace.filter.price_min_placeholder');
   minInput.value = state.min_price;
   minInput.setAttribute('aria-label', t('marketplace.filter.price_min_label'));
-  minInput.addEventListener('change', () => { state.min_price = minInput.value; emit(); });
   const sep = document.createElement('span');
   sep.className = 'filter-panel__range-sep';
   sep.textContent = '–';
@@ -166,10 +170,122 @@ export function FilterPanel({
   maxInput.placeholder = t('marketplace.filter.price_max_placeholder');
   maxInput.value = state.max_price;
   maxInput.setAttribute('aria-label', t('marketplace.filter.price_max_label'));
-  maxInput.addEventListener('change', () => { state.max_price = maxInput.value; emit(); });
   priceRow.append(minInput, sep, maxInput);
   priceGroup.append(priceRow);
+
+  // Thin, hover-revealed dual-handle slider.
+  let boundMin = 0;
+  let boundMax = 5000; // default until setPriceBounds() derives real bounds from the catalog
+  const sliderWrap = document.createElement('div');
+  sliderWrap.className = 'filter-panel__price-slider';
+  const sliderTrack = document.createElement('div');
+  sliderTrack.className = 'filter-panel__slider-track';
+  const sliderFill = document.createElement('div');
+  sliderFill.className = 'filter-panel__slider-fill';
+  sliderTrack.append(sliderFill);
+  const minRange = document.createElement('input');
+  minRange.type = 'range';
+  minRange.className = 'filter-panel__slider-range filter-panel__slider-range--min';
+  minRange.setAttribute('aria-label', t('marketplace.filter.price_slider_min'));
+  const maxRange = document.createElement('input');
+  maxRange.type = 'range';
+  maxRange.className = 'filter-panel__slider-range filter-panel__slider-range--max';
+  maxRange.setAttribute('aria-label', t('marketplace.filter.price_slider_max'));
+  sliderWrap.append(sliderTrack, minRange, maxRange);
+  priceGroup.append(sliderWrap);
   body.append(priceGroup);
+
+  function sliderStep() {
+    return Math.max(1, Math.round((boundMax - boundMin) / 200));
+  }
+
+  // Reflect the current handle positions into the fill bar.
+  function paintSliderFill() {
+    const span = boundMax - boundMin || 1;
+    const lo = (Number(minRange.value) - boundMin) / span * 100;
+    const hi = (Number(maxRange.value) - boundMin) / span * 100;
+    sliderFill.style.left = `${lo}%`;
+    sliderFill.style.width = `${Math.max(0, hi - lo)}%`;
+  }
+
+  // Push slider handle positions from state (empty box ⇒ handle rests at the bound).
+  function syncSliderFromState() {
+    const step = sliderStep();
+    minRange.min = maxRange.min = String(boundMin);
+    minRange.max = maxRange.max = String(boundMax);
+    minRange.step = maxRange.step = String(step);
+    const lo = state.min_price === '' ? boundMin : Math.min(Math.max(Number(state.min_price), boundMin), boundMax);
+    const hi = state.max_price === '' ? boundMax : Math.min(Math.max(Number(state.max_price), boundMin), boundMax);
+    minRange.value = String(Math.min(lo, hi));
+    maxRange.value = String(Math.max(lo, hi));
+    paintSliderFill();
+  }
+
+  // Live drag → update boxes + fill without committing; emit() only on release ('change').
+  minRange.addEventListener('input', () => {
+    const step = sliderStep();
+    if (Number(minRange.value) > Number(maxRange.value) - step) {
+      minRange.value = String(Math.max(boundMin, Number(maxRange.value) - step));
+    }
+    const val = Number(minRange.value);
+    state.min_price = val > boundMin ? String(val) : '';
+    minInput.value = state.min_price;
+    paintSliderFill();
+  });
+  maxRange.addEventListener('input', () => {
+    const step = sliderStep();
+    if (Number(maxRange.value) < Number(minRange.value) + step) {
+      maxRange.value = String(Math.min(boundMax, Number(minRange.value) + step));
+    }
+    const val = Number(maxRange.value);
+    state.max_price = val < boundMax ? String(val) : '';
+    maxInput.value = state.max_price;
+    paintSliderFill();
+  });
+  minRange.addEventListener('change', emit);
+  maxRange.addEventListener('change', emit);
+
+  // Keep the slider visible while a drag is in progress even if the pointer leaves the group.
+  const startSliding = () => priceGroup.classList.add('is-sliding');
+  const stopSliding = () => priceGroup.classList.remove('is-sliding');
+  minRange.addEventListener('pointerdown', startSliding);
+  maxRange.addEventListener('pointerdown', startSliding);
+  window.addEventListener('pointerup', stopSliding);
+
+  // Typing in a box repositions the matching handle (clamped to bounds) and commits.
+  minInput.addEventListener('change', () => {
+    let v = minInput.value === '' ? '' : String(Math.min(Math.max(Number(minInput.value), boundMin), boundMax));
+    minInput.value = v;
+    state.min_price = v;
+    syncSliderFromState();
+    emit();
+  });
+  maxInput.addEventListener('change', () => {
+    let v = maxInput.value === '' ? '' : String(Math.min(Math.max(Number(maxInput.value), boundMin), boundMax));
+    maxInput.value = v;
+    state.max_price = v;
+    syncSliderFromState();
+    emit();
+  });
+
+  /**
+   * Widen the slider bounds to fit the catalog. Called by HomePage once products load. We only ever
+   * widen (never narrow) so the range doesn't collapse as the user's own price filter shrinks the
+   * result set. Bounds are rounded to tidy hundreds.
+   */
+  function setPriceBounds(lo, hi) {
+    if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) return;
+    const roundedLo = Math.floor(lo / 100) * 100;
+    const roundedHi = Math.ceil(hi / 100) * 100;
+    const nextMin = Math.min(boundMin, roundedLo);
+    const nextMax = Math.max(boundMax, roundedHi);
+    if (nextMin === boundMin && nextMax === boundMax) return;
+    boundMin = nextMin;
+    boundMax = nextMax;
+    syncSliderFromState();
+  }
+
+  syncSliderFromState();
 
   // ── In stock toggle ──────────────────────────────────────────────────────
   const stockGroup = group('marketplace.filter.availability');
@@ -518,6 +634,7 @@ export function FilterPanel({
   function rebuildInputs() {
     minInput.value = state.min_price;
     maxInput.value = state.max_price;
+    syncSliderFromState();
     stockCb.checked = state.in_stock;
     for (const { cb, tier } of tierCheckboxes) cb.checked = state.tiers.includes(tier);
     updateDistrictDisplay();
@@ -557,8 +674,9 @@ export function FilterPanel({
 
   function cleanup() {
     document.removeEventListener('click', onDocClick);
+    window.removeEventListener('pointerup', stopSliding);
     drawerCleanup && drawerCleanup();
   }
 
-  return { el: content, openDrawer, cleanup };
+  return { el: content, openDrawer, cleanup, setPriceBounds };
 }
