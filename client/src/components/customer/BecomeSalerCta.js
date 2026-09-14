@@ -22,7 +22,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null } = 
     <div class="become-saler-cta__body">
       <div class="become-saler-cta__info">
         <div class="inline-flex items-center gap-2">
-          <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">
+          <span class="badge badge--brand text-[10px] font-bold uppercase tracking-wider">
             ✨ ${t('customer.become_saler.badge', 'Zero-Capital Reseller Hub')}
           </span>
         </div>
@@ -35,15 +35,15 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null } = 
 
         <div class="become-saler-cta__benefits">
           <div class="become-saler-cta__benefit-item">
-            <span class="text-primary font-bold">✓</span>
+            <span class="text-success font-bold">✓</span>
             <span>${t('customer.become_saler.benefit_1', 'Zero upfront capital required')}</span>
           </div>
           <div class="become-saler-cta__benefit-item">
-            <span class="text-primary font-bold">✓</span>
+            <span class="text-success font-bold">✓</span>
             <span>${t('customer.become_saler.benefit_2', 'Suppliers pack & ship directly')}</span>
           </div>
           <div class="become-saler-cta__benefit-item">
-            <span class="text-primary font-bold">✓</span>
+            <span class="text-success font-bold">✓</span>
             <span>${t('customer.become_saler.benefit_3', 'Instant bKash & Bank cashouts')}</span>
           </div>
         </div>

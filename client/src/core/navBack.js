@@ -10,87 +10,246 @@
  * Depth is read from `history.state.idx`, which core/router.js stamps on every pushState and the
  * browser preserves across a reload — so refreshing a deep page keeps Back working.
  */
-import { t } from '../services/i18n.js';
+import { t, getLanguage } from '../services/i18n.js';
 
 export const CHEVRON_LEFT_SVG = `<svg class="back-btn__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
+
+/**
+ * Safely resolves a localized label ensuring the result matches the intended language script.
+ */
+function resolveLabel(key, bnDefault, enDefault, activeLang) {
+  if (activeLang === 'bn') {
+    const translated = t(key);
+    return (translated && /[\u0980-\u09FF]/.test(translated)) ? translated : bnDefault;
+  }
+  return enDefault;
+}
 
 /**
  * Resolves the destination page title and fallback path based on the origin URL `fromPath`.
  */
 export function getBackDestination(fromPath, lang = 'en') {
-  if (!fromPath || fromPath === '/' || fromPath.startsWith('/marketplace')) {
+  const activeLang = lang || getLanguage() || 'en';
+
+  if (!fromPath) {
     return {
-      name: t('common.marketplace') || (lang === 'bn' ? 'মার্কেটপ্লেস' : 'Marketplace'),
+      name: resolveLabel('common.marketplace', 'মার্কেটপ্লেস', 'Marketplace', activeLang),
       path: '/',
     };
   }
-  if (fromPath.startsWith('/wishlist') || fromPath.startsWith('/account/wishlist')) {
+
+  // Strip query string and hash for path matching
+  const pathname = fromPath.split('?')[0].split('#')[0] || '/';
+
+  // 1. Marketplace root
+  if (pathname === '/' || pathname === '/marketplace' || pathname.startsWith('/marketplace/')) {
     return {
-      name: t('common.wishlist') || (lang === 'bn' ? 'উইশলিস্ট' : 'Wishlist'),
-      path: '/account/wishlist',
+      name: resolveLabel('common.marketplace', 'মার্কেটপ্লেস', 'Marketplace', activeLang),
+      path: '/',
     };
   }
-  if (fromPath.startsWith('/orders') || fromPath.startsWith('/account/orders')) {
+
+  // 2. Shopping & Commerce flows
+  if (pathname === '/cart' || pathname.startsWith('/cart/')) {
     return {
-      name: t('common.orders') || (lang === 'bn' ? 'অর্ডারসমূহ' : 'Orders'),
-      path: '/account/orders',
-    };
-  }
-  if (fromPath.startsWith('/cart')) {
-    return {
-      name: t('nav.cart') || (lang === 'bn' ? 'কার্ট' : 'Cart'),
+      name: resolveLabel('common.cart', 'কার্ট', 'Cart', activeLang),
       path: '/cart',
     };
   }
-  if (fromPath.startsWith('/search')) {
+  if (pathname === '/checkout' || pathname.startsWith('/checkout/')) {
     return {
-      name: t('common.search') || (lang === 'bn' ? 'অনুসন্ধান' : 'Search'),
+      name: resolveLabel('common.checkout', 'চেকআউট', 'Checkout', activeLang),
+      path: '/checkout',
+    };
+  }
+  if (pathname === '/search' || pathname.startsWith('/search/')) {
+    return {
+      name: resolveLabel('common.search', 'অনুসন্ধান', 'Search', activeLang),
       path: fromPath,
     };
   }
-  if (fromPath.startsWith('/category')) {
+  if (pathname.startsWith('/category')) {
     return {
-      name: t('common.category') || (lang === 'bn' ? 'ক্যাটাগরি' : 'Category'),
+      name: resolveLabel('common.category', 'ক্যাটাগরি', 'Category', activeLang),
       path: fromPath,
     };
   }
-  if (fromPath.startsWith('/account/team-purchases') || fromPath.startsWith('/team')) {
+  if (pathname.startsWith('/product/')) {
     return {
-      name: t('common.team_purchases') || (lang === 'bn' ? 'টিম পারচেজ' : 'Team Purchases'),
+      name: resolveLabel('common.product', 'পণ্য', 'Product', activeLang),
+      path: fromPath,
+    };
+  }
+  if (pathname === '/live' || pathname.startsWith('/live/')) {
+    return {
+      name: resolveLabel('common.live', 'লাইভ শপিং', 'Live Shopping', activeLang),
+      path: '/live',
+    };
+  }
+  if (pathname === '/stories' || pathname.startsWith('/stories/')) {
+    return {
+      name: resolveLabel('common.stories', 'স্টোরিজ', 'Stories', activeLang),
+      path: '/stories',
+    };
+  }
+
+  // 3. Customer Account sub-surfaces (Specific pages matched BEFORE generic /account)
+  if (pathname === '/account/orders' || pathname.startsWith('/account/orders/') || pathname === '/orders' || pathname.startsWith('/orders/')) {
+    return {
+      name: resolveLabel('common.orders', 'অর্ডারসমূহ', 'Orders', activeLang),
+      path: '/account/orders',
+    };
+  }
+  if (pathname === '/account/wishlist' || pathname.startsWith('/account/wishlist/') || pathname === '/wishlist' || pathname.startsWith('/wishlist/')) {
+    return {
+      name: resolveLabel('common.wishlist', 'উইশলিস্ট', 'Wishlist', activeLang),
+      path: '/account/wishlist',
+    };
+  }
+  if (pathname === '/account/coupons' || pathname.startsWith('/account/coupons/') || pathname === '/coupons' || pathname.startsWith('/coupons/')) {
+    return {
+      name: resolveLabel('common.coupons', 'কুপন ও ভাউচার', 'Coupons', activeLang),
+      path: '/account/coupons',
+    };
+  }
+  if (pathname === '/account/coins' || pathname.startsWith('/account/coins/')) {
+    return {
+      name: resolveLabel('common.coins', 'কয়েন ও স্ট্রিক', 'Coins & Streak', activeLang),
+      path: '/account/coins',
+    };
+  }
+  if (pathname === '/account/team-purchases' || pathname.startsWith('/account/team-purchases/') || pathname.startsWith('/team')) {
+    return {
+      name: resolveLabel('common.team_purchases', 'টিম পারচেজ', 'Team Purchases', activeLang),
       path: '/account/team-purchases',
     };
   }
-  if (fromPath.startsWith('/account')) {
+  if (pathname === '/account/warranties' || pathname.startsWith('/account/warranties/')) {
     return {
-      name: t('common.account') || (lang === 'bn' ? 'অ্যাকাউন্ট' : 'Account'),
+      name: resolveLabel('common.warranties', 'ওয়ারেন্টি', 'Warranties', activeLang),
+      path: '/account/warranties',
+    };
+  }
+  if (pathname === '/account/returns' || pathname.startsWith('/account/returns/')) {
+    return {
+      name: resolveLabel('common.returns', 'রিটার্ন', 'Returns', activeLang),
+      path: '/account/returns',
+    };
+  }
+  if (pathname === '/account/reviews' || pathname.startsWith('/account/reviews/')) {
+    return {
+      name: resolveLabel('common.reviews', 'রিভিউ', 'Reviews', activeLang),
+      path: '/account/reviews',
+    };
+  }
+  if (pathname === '/account/following' || pathname.startsWith('/account/following/')) {
+    return {
+      name: resolveLabel('common.following', 'পছন্দের দোকান', 'Following', activeLang),
+      path: '/account/following',
+    };
+  }
+  if (pathname === '/account/addresses' || pathname.startsWith('/account/addresses/')) {
+    return {
+      name: resolveLabel('common.addresses', 'ডেলিভারি ঠিকানা', 'Addresses', activeLang),
+      path: '/account/addresses',
+    };
+  }
+  if (pathname === '/account/profile' || pathname.startsWith('/account/profile/') || pathname === '/profile' || pathname.startsWith('/profile/')) {
+    return {
+      name: resolveLabel('common.profile', 'প্রোফাইল', 'Profile', activeLang),
+      path: '/account/profile',
+    };
+  }
+  if (pathname === '/account/settings' || pathname.startsWith('/account/settings/') || pathname === '/settings' || pathname.startsWith('/settings/')) {
+    return {
+      name: resolveLabel('common.settings', 'সেটিংস', 'Settings', activeLang),
+      path: '/account/settings',
+    };
+  }
+  if (pathname === '/account/become-saler' || pathname.startsWith('/account/become-saler/')) {
+    return {
+      name: resolveLabel('nav.customer.become_saler', 'সেলার একাউন্ট', 'Become a Saler', activeLang),
+      path: '/account/become-saler',
+    };
+  }
+
+  // 4. Customer Account Dashboard hub
+  if (pathname === '/account' || pathname === '/customer') {
+    return {
+      name: resolveLabel('common.account', 'অ্যাকাউন্ট', 'Account', activeLang),
       path: '/account',
     };
   }
-  if (fromPath.startsWith('/supplier')) {
+
+  // 5. Saler & Supplier Portals
+  if (pathname.startsWith('/supplier')) {
     return {
-      name: t('common.dashboard') || (lang === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'),
+      name: resolveLabel('common.dashboard', 'ড্যাশবোর্ড', 'Dashboard', activeLang),
       path: '/supplier',
     };
   }
-  if (fromPath.startsWith('/saler')) {
+  if (pathname.startsWith('/saler')) {
     return {
-      name: t('common.dashboard') || (lang === 'bn' ? 'ড্যাশবোর্ড' : 'Dashboard'),
+      name: resolveLabel('common.dashboard', 'ড্যাশবোর্ড', 'Dashboard', activeLang),
       path: '/saler',
     };
   }
+  if (pathname.startsWith('/admin')) {
+    return {
+      name: resolveLabel('common.admin', 'অ্যাডমিন', 'Admin', activeLang),
+      path: '/admin',
+    };
+  }
+
   return {
-    name: t('common.marketplace') || (lang === 'bn' ? 'মার্কেটপ্লেস' : 'Marketplace'),
+    name: resolveLabel('common.marketplace', 'মার্কেটপ্লেস', 'Marketplace', activeLang),
     path: '/',
   };
 }
 
 /**
+ * Checks whether a label passed to renderBackLink is a generic fallback ("Account", "Back", etc.)
+ * that should be replaced with the dynamically detected origin destination name.
+ */
+function isGenericFallbackLabel(label) {
+  if (!label) return true;
+  const trimmed = label.trim();
+  const genericStrings = [
+    'Account',
+    'অ্যাকাউন্ট',
+    'Back',
+    'ফিরে যান',
+    'Account Dashboard',
+    'ড্যাশবোর্ড',
+    'Back to Account',
+    t('common.account'),
+    t('common.back'),
+    t('wishlist.back_to_account'),
+    t('gamification.back_to_account'),
+    t('customer_returns.back_to_account'),
+    t('order_tracking.back_to_account'),
+    t('customer.orders.back_to_account'),
+    t('customer.following.back_to_account', 'Account Dashboard'),
+  ];
+  return genericStrings.includes(trimmed);
+}
+
+/**
  * Renders HTML string for a back link with the '<' chevron icon and label.
+ * Dynamically resolves the origin page name when navigating inside the app.
  */
 export function renderBackLink({ href = '/account', label = '', className = 'account-page__back', id = '' } = {}) {
-  return `<a href="${href}" class="${className}"${id ? ` id="${id}"` : ''} data-nav-back>
+  const lang = getLanguage();
+  const fromPath = typeof window !== 'undefined' ? window.history?.state?.fromPath : null;
+
+  // Resolve destination based on real navigation history, falling back to href
+  const dest = getBackDestination(fromPath || href, lang);
+  const effectiveLabel = isGenericFallbackLabel(label) ? dest.name : label;
+  const effectiveHref = fromPath || href || dest.path;
+
+  return `<a href="${effectiveHref}" class="${className}"${id ? ` id="${id}"` : ''} data-nav-back>
     ${CHEVRON_LEFT_SVG}
-    <span>${label}</span>
+    <span>${effectiveLabel}</span>
   </a>`;
 }
 
@@ -98,29 +257,36 @@ export function renderBackLink({ href = '/account', label = '', className = 'acc
  * Creates a DOM element for a back link with the '<' chevron icon, label, and wired click handler.
  */
 export function createBackButton({ href = '/account', label = '', className = 'account-page__back', id = '', navigate } = {}) {
+  const lang = getLanguage();
+  const fromPath = typeof window !== 'undefined' ? window.history?.state?.fromPath : null;
+  const dest = getBackDestination(fromPath || href, lang);
+  const effectiveLabel = isGenericFallbackLabel(label) ? dest.name : label;
+  const effectiveHref = fromPath || href || dest.path;
+
   const a = document.createElement('a');
-  a.href = href;
+  a.href = effectiveHref;
   a.className = className;
   if (id) a.id = id;
   a.setAttribute('data-nav-back', '');
-  a.innerHTML = `${CHEVRON_LEFT_SVG}<span>${label}</span>`;
-  bindBackControl(a, navigate, href);
+  a.innerHTML = `${CHEVRON_LEFT_SVG}<span>${effectiveLabel}</span>`;
+  bindBackControl(a, navigate, effectiveHref);
   return a;
 }
 
 export function goBack(navigate, fallback = '/account') {
   const depth = window.history.state?.idx ?? 0;
+  const fromPath = window.history.state?.fromPath;
 
   if (depth > 0) {
     window.history.back();
     return;
   }
 
+  const target = fromPath || fallback;
   if (typeof navigate === 'function') {
-    navigate(fallback, { replace: true });
+    navigate(target, { replace: true });
   } else {
-    // No SPA navigate in scope (called from a bare handler) — fall back to a full load.
-    window.location.assign(fallback);
+    window.location.assign(target);
   }
 }
 
