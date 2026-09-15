@@ -16,6 +16,7 @@ import {
   isLanguageSwitchAllowed,
 } from '../../services/i18n.js';
 import { formatNumber } from '../../services/format.js';
+import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { logOutMock, releaseElevatedAccess } from '../../state/appStore.js';
 import { logout } from '../../services/session.js';
 import { getTheme, applyTheme } from '../../services/theme.js';
@@ -58,6 +59,21 @@ const CART_ICON_SVG =
 const AI_SPARKLE_ICON_SVG =
   '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
   '<path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>' +
+  '</svg>';
+
+const DISCOVER_ICON_SVG =
+  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+  '<circle cx="12" cy="12" r="10"></circle>' +
+  '<polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>' +
+  '</svg>';
+
+// Storefront — the "back to the marketplace grid" face of the discover/market context toggle.
+const MARKET_ICON_SVG =
+  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M3 9.5 4.5 4h15L21 9.5"></path>' +
+  '<path d="M4.5 9.5V19a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1V9.5"></path>' +
+  '<path d="M9 20v-5h6v5"></path>' +
+  '<path d="M3 9.5h18"></path>' +
   '</svg>';
 
 const BELL_ICON_SVG =
@@ -542,6 +558,22 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
   const spacer = document.createElement('div');
   spacer.className = 'topbar__spacer';
   bar.append(spacer);
+
+  // Discovery ⇄ Marketplace — a single context-aware toggle. On the discovery feed it offers a way
+  // back to the marketplace grid; everywhere else it points into the feed. The label/icon/target all
+  // flip on the current route, and the shell rebuilds the TopBar on every navigation (AppShell's
+  // router beforeEach), so this re-reads location.pathname and stays in sync without its own listener.
+  // Available to everyone (guests included); gated by the `discovery_feed` module on its route.
+  if (isFeatureEnabled('discovery_feed')) {
+    const onDiscover = window.location.pathname.startsWith('/discover');
+    const switchBtn = IconButton({
+      icon: onDiscover ? MARKET_ICON_SVG : DISCOVER_ICON_SVG,
+      label: onDiscover ? t('nav.marketplace') : t('nav.discover'),
+      onClick: () => navigate(onDiscover ? '/' : '/discover'),
+    });
+    switchBtn.classList.add('topbar__discover-btn');
+    bar.append(switchBtn);
+  }
 
   if (elevatedGrant) bar.append(ElevatedChip({ grant: elevatedGrant }));
 

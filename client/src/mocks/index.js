@@ -8,6 +8,7 @@
  */
 import { matchPath, parseQuery } from '../core/router.js';
 import productHandlers from './handlers/products.js';
+import discoveryHandlers from './handlers/discovery.js';
 import storeHandlers from './handlers/stores.js';
 import accessHandlers from './handlers/access.js';
 import reviewHandlers from './handlers/reviews.js';
@@ -44,6 +45,7 @@ import mediaHandlers from './handlers/media.js';
 const handlers = [
   ...authHandlers,
   ...productHandlers,
+  ...discoveryHandlers,
   ...storeHandlers,
   ...accessHandlers,
   ...reviewHandlers,

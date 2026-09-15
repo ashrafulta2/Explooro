@@ -80,7 +80,7 @@ export async function getProduct(idOrRef) {
  * backfills only when the flat field is missing, so mock-mode products (which already carry it)
  * pass through unchanged.
  */
-function normalizeProductListItem(product) {
+export function normalizeProductListItem(product) {
   return {
     ...product,
     price: product.price ?? product.pricing?.retail_price ?? product.default_retail_price,

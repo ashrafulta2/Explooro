@@ -362,6 +362,13 @@ VALUES
    true, true, '{}'::jsonb, NULL,
    ARRAY[]::text[]),
 
+  ('discovery_feed', 'growth', 'Discovery feed', 'ডিসকভারি ফিড',
+   'Full-screen, one-product-at-a-time swipe feed personalized to each shopper''s interests.',
+   'প্রতিটি ক্রেতার আগ্রহ অনুযায়ী সাজানো, এক-এক করে পণ্য দেখানো ফুল-স্ক্রিন সোয়াইপ ফিড।',
+   true, true, '{"affinity_window_days": 30, "page_size": 10}'::jsonb,
+   '{"type": "object", "properties": { "affinity_window_days": { "type": "integer", "default": 30 }, "page_size": { "type": "integer", "default": 10 } } }'::jsonb,
+   ARRAY[]::text[]),
+
   ('content_commerce', 'content', 'Storytelling posts', 'স্টোরিটেলিং পোস্ট',
    'Blog-style seller stories with buyable product cards embedded.',
    'ব্লগ-ধাঁচের বিক্রেতা গল্প, ভেতরে কেনার মতো পণ্য কার্ডসহ।',

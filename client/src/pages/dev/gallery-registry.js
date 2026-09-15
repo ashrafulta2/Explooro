@@ -38,6 +38,7 @@ import { toast } from '../../services/toast.js';
 import { ImageUploader } from '../../components/media/ImageUploader.js';
 import { openMediaLibrary } from '../../components/media/MediaLibrary.js';
 import { ProductCard, ProductCardSkeleton } from '../../components/product/ProductCard.js';
+import { ProductFeed } from '../../components/product/ProductFeed.js';
 import { MASTER_PRESETS } from '../../config/master-themes.js';
 import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.js';
 import { CategoryPills } from '../../components/product/CategoryPills.js';
@@ -694,6 +695,17 @@ function renderProductCard() {
   return wrap;
 }
 
+function renderProductFeed() {
+  const wrap = document.createDocumentFragment();
+  wrap.append(subgroup('ProductFeed — /discover interest-based feed (live mock data)'));
+  const box = document.createElement('div');
+  box.style.height = '520px';
+  const feed = ProductFeed({ audience: 'customer', navigate: () => {} });
+  box.append(feed.el);
+  wrap.append(box);
+  return wrap;
+}
+
 function renderCategoryPills() {
   const wrap = document.createDocumentFragment();
   const cats = [
@@ -1088,6 +1100,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'tooltip', label: 'Tooltip', group: 'Overlays', render: renderTooltip },
     // Prompt 4.5 — Product Discovery
     { id: 'product-card', label: 'ProductCard', group: 'Product Discovery', render: renderProductCard },
+    { id: 'product-feed', label: 'ProductFeed (/discover)', group: 'Product Discovery', render: renderProductFeed },
     { id: 'category-pills', label: 'CategoryPills', group: 'Product Discovery', render: renderCategoryPills },
     { id: 'search-suggest', label: 'SearchSuggest (typeahead)', group: 'Product Discovery', render: renderSearchSuggest },
     { id: 'flash-sale-widget', label: 'FlashSaleWidget', group: 'Product Discovery', render: renderFlashSaleWidget },

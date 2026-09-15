@@ -208,6 +208,15 @@ export async function listProducts(
     supplierTier,
     district,
     q,
+    // Personalized ranking inputs, only consulted when sortBy === 'recommended'. Each is the set of
+    // categories / brands / suppliers the caller has shown affinity for (see
+    // discoveryFeed.service.js), with the weight each match contributes to a row's score. The score
+    // is computed across the whole filtered set BEFORE the LIMIT, so it genuinely reorders the
+    // catalog rather than just the current page.
+    boostCategoryIds = [],
+    boostBrands = [],
+    boostSupplierIds = [],
+    affinityWeights = { category: 3, brand: 2, supplier: 2 },
   } = {}
 ) {
   const conditions = ['p.deleted_at IS NULL'];
@@ -282,6 +291,27 @@ export async function listProducts(
   else if (sortBy === 'price_desc') orderClause = 'p.default_retail_price DESC';
   else if (sortBy === 'popular') orderClause = 'p.sold_count DESC, p.rating_avg DESC';
   else if (sortBy === 'rating') orderClause = 'p.rating_avg DESC';
+  else if (sortBy === 'recommended') {
+    // Affinity score (0 when the caller has no history yet, so this degrades cleanly to the
+    // popularity/recency tiebreak below — i.e. a brand-new or signed-out shopper still gets a
+    // sensible feed). Weights are integers from our own constant, never user input, so inlining
+    // them is injection-safe; the id/brand SETS are bound parameters.
+    const scoreParts = [];
+    if (boostCategoryIds.length) {
+      params.push(boostCategoryIds);
+      scoreParts.push(`(CASE WHEN p.category_id = ANY($${params.length}) THEN ${Number(affinityWeights.category) || 0} ELSE 0 END)`);
+    }
+    if (boostBrands.length) {
+      params.push(boostBrands.map((b) => String(b).toLowerCase()));
+      scoreParts.push(`(CASE WHEN lower(p.brand) = ANY($${params.length}) THEN ${Number(affinityWeights.brand) || 0} ELSE 0 END)`);
+    }
+    if (boostSupplierIds.length) {
+      params.push(boostSupplierIds);
+      scoreParts.push(`(CASE WHEN p.supplier_id = ANY($${params.length}) THEN ${Number(affinityWeights.supplier) || 0} ELSE 0 END)`);
+    }
+    const scoreExpr = scoreParts.length ? scoreParts.join(' + ') : '0';
+    orderClause = `(${scoreExpr}) DESC, p.sold_count DESC, p.rating_avg DESC NULLS LAST, p.created_at DESC`;
+  }
 
   params.push(limit);
   const limitIdx = params.length;

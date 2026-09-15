@@ -340,6 +340,13 @@ async function bootRouterDemo() {
         load: () => import('./pages/ReelsPage.js'),
       },
       {
+        path: '/discover',
+        title: 'Discover — Explooro',
+        permission: null,
+        module: 'discovery_feed',
+        load: () => import('./pages/DiscoverFeedPage.js'),
+      },
+      {
         path: '/academy',
         title: 'Seller Academy — Explooro',
         permission: null,

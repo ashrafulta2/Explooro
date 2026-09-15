@@ -33,6 +33,7 @@ import themeRoutes from './routes/theme.routes.js';
 import localizationRoutes from './routes/localization.routes.js';
 import mediaRoutes from './routes/media.routes.js';
 import productRoutes from './routes/product.routes.js';
+import discoveryRoutes from './routes/discovery.routes.js';
 import searchRoutes from './routes/search.routes.js';
 import reviewRoutes from './routes/review.routes.js';
 import qnaRoutes from './routes/qna.routes.js';
@@ -176,6 +177,7 @@ export async function buildApp(overrides = {}) {
   await app.register(localizationRoutes, { prefix: '/api/v1' });
   await app.register(mediaRoutes, { prefix: '/api/v1' });
   await app.register(productRoutes, { prefix: '/api/v1' });
+  await app.register(discoveryRoutes, { prefix: '/api/v1' });
   await app.register(searchRoutes, { prefix: '/api/v1' });
   await app.register(reviewRoutes, { prefix: '/api/v1' });
   await app.register(qnaRoutes, { prefix: '/api/v1' });

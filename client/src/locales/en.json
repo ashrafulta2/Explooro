@@ -1,4 +1,39 @@
 {
+  "discover": {
+    "page": {
+      "title": "Discover",
+      "desc": "A personalized feed of products picked for you — swipe through one at a time.",
+      "subtitle": "Swipe through products picked for you.",
+      "personalized": "Tuned to what you’ve been browsing."
+    },
+    "aria": { "feed": "Product discovery feed" },
+    "search": { "placeholder": "Search this feed" },
+    "filters": { "title": "Filters" },
+    "nav": { "previous": "Previous product", "next": "Next product" },
+    "badge": { "flash_sale": "Flash sale" },
+    "reviews": "{{count}} reviews",
+    "stock": { "in": "In stock", "out": "Out of stock" },
+    "cta": {
+      "view_details": "View details",
+      "choose_options": "Choose options",
+      "add_to_cart": "Add to Cart",
+      "select_variant": "Select an option first"
+    },
+    "qty": {
+      "label": "Quantity",
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity"
+    },
+    "saler": {
+      "margin": "{{pct}}% margin",
+      "add_to_store": "Add to store",
+      "added": "Added to your store.",
+      "add_failed": "Could not add to your store."
+    },
+    "supplier": { "ships_from": "{{name}} · Ships from {{district}}" },
+    "empty": { "title": "Nothing to discover yet", "desc": "Try adjusting your filters or check back soon." },
+    "error": { "title": "Couldn’t load the feed", "desc": "Please try again in a moment." }
+  },
   "common": {
     "back_to_marketplace": "Back to marketplace",
     "marketplace": "Marketplace",
@@ -71,6 +106,8 @@
     }
   },
   "nav": {
+    "discover": "Discover",
+    "marketplace": "Marketplace",
     "group": {
       "overview": "Overview",
       "catalog": "Catalog",
