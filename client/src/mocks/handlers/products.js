@@ -67,7 +67,7 @@ const VARIANT_ATTRS_BY_CATEGORY = {
 
 /** Deterministic (no Math.random) so the same product always shows the same demo variants —
  * a random reshuffle on every render would make "select a variant" look broken. */
-function synthesizeVariants(product) {
+export function synthesizeVariants(product) {
   const attrsList = VARIANT_ATTRS_BY_CATEGORY[product.category];
   if (!attrsList) return [];
 
@@ -98,7 +98,7 @@ function synthesizeImages(product) {
   }));
 }
 
-function synthesizeSupplier(product) {
+export function synthesizeSupplier(product) {
   const store = stores.find((s) => s.ref === product.store_ref);
   const tier = product.supplier_tier || 'standard';
   return {
@@ -112,7 +112,7 @@ function synthesizeSupplier(product) {
   };
 }
 
-function synthesizeDescription(product) {
+export function synthesizeDescription(product) {
   return {
     description_en:
       product.description_en ||

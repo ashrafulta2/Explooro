@@ -515,6 +515,23 @@
 }
 .discover-slide__options .variant-selector { margin: 0; }
 
+/* WHY: the supplier line, description and variant selector are injected asynchronously once a slide
+   becomes active. With the buy box now bottom-anchored they no longer shift anything, but a hard
+   pop-in still reads as a flicker. A pure opacity fade (no transform, so zero layout impact) lets
+   them dissolve into the reserved space above the buttons — the macOS-style calm the feed wants. */
+.discover-slide__detail > *,
+.discover-slide__options .variant-selector {
+  animation: discover-enrich-fade var(--dur-normal, 250ms) var(--ease-standard) both;
+}
+@keyframes discover-enrich-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .discover-slide__detail > *,
+  .discover-slide__options .variant-selector { animation: none; }
+}
+
 .discover-slide__qty {
   display: flex;
   flex-direction: column;
@@ -567,13 +584,19 @@
 .discover-slide__qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 /* Actions container & multi-action rows in Discover feed */
+/* WHY: `margin-top: auto` (not a fixed margin) pins the buy box to the panel's bottom edge from the
+   very first paint, before the async detail/variant enrichment lands. Without it the un-enriched
+   panel is short, the buttons sit mid-panel, and when enrichment injects the supplier line,
+   description and variant selector ABOVE them the whole block visibly slid downward (a layout
+   shift). Now the buttons are bottom-anchored immediately and enrichment simply fills the reserved
+   space above them — no movement. `sticky` still pins the box while a tall panel scrolls. */
 .discover-slide__actions-container {
   position: sticky;
   bottom: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin-top: var(--space-3);
+  margin-top: auto;
   padding-top: var(--space-3);
   padding-bottom: var(--space-2);
   background: var(--surface-1);
@@ -712,7 +735,7 @@
   align-items: center;
   gap: var(--space-2);
   flex-wrap: wrap;
-  margin-top: var(--space-3);
+  margin-top: auto;
   padding-top: var(--space-3);
   background: var(--surface-1);
 }

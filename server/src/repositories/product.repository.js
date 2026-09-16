@@ -217,6 +217,10 @@ export async function listProducts(
     boostBrands = [],
     boostSupplierIds = [],
     affinityWeights = { category: 3, brand: 2, supplier: 2 },
+    // Opt-in: aggregate each row's active variants inline so the discovery feed can paint its Size
+    // selector in the first frame without a per-slide detail fetch. Off by default — the plain
+    // catalog grid must not pay for a variant array it never renders.
+    withVariants = false,
   } = {}
 ) {
   const conditions = ['p.deleted_at IS NULL'];
@@ -318,6 +322,30 @@ export async function listProducts(
   params.push(offset);
   const offsetIdx = params.length;
 
+  // Inline variant aggregation for the discovery feed (withVariants). Shape mirrors what the client
+  // normalizes for VariantSelector: attributes (from attributes_json), price_delta, stock_qty. The
+  // NUMERIC price_delta serializes as a JSON number inside json_build_object, so the driver hands
+  // back a real number, not a string. `withVariants` is our own boolean, never user input.
+  const variantsSelect = withVariants
+    ? `,
+            COALESCE((
+              SELECT json_agg(json_build_object(
+                       'id', v.id,
+                       'sku', v.sku,
+                       'attributes', v.attributes_json,
+                       'price_delta', v.price_delta,
+                       'stock_qty', v.stock_qty,
+                       'is_active', v.is_active
+                     ) ORDER BY v.id)
+              FROM product_variants v
+              WHERE v.product_id = p.id AND v.is_active = true
+            ), '[]'::json) AS variants,
+            EXISTS(
+              SELECT 1 FROM product_variants v2
+              WHERE v2.product_id = p.id AND v2.is_active = true
+            ) AS has_variants`
+    : '';
+
   const { rows } = await db.query(
     `SELECT p.*,
             p.default_retail_price as price,
@@ -331,11 +359,15 @@ export async function listProducts(
               'standard'
             ) as supplier_tier,
             CASE WHEN ts.tier IN ('VERIFIED_TRADER', 'ELITE_PARTNER') THEN true ELSE false END as is_verified_supplier,
+            -- Supplier display name on the list row so the discovery feed can paint the supplier
+            -- line ("<store> · Ships from <district>") in its first frame, without a per-slide
+            -- detail fetch. Store name wins, then the profile's display/full name.
+            COALESCE(vs.shop_name, up.display_name, up.full_name) as supplier_name,
             COALESCE(up.district, 'Dhaka') as district,
             COALESCE(vs.physical_open_status = 'OPEN', true) as store_open,
             CASE WHEN fs.id IS NOT NULL THEN true ELSE false END as is_flash_sale,
             fs.discount_price as flash_discount_price,
-            fs.ends_at as flash_ends_at
+            fs.ends_at as flash_ends_at${variantsSelect}
      FROM products p
      JOIN categories c ON c.id = p.category_id
      LEFT JOIN trust_scores ts ON ts.user_id = p.supplier_id

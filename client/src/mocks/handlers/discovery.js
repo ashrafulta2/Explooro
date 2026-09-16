@@ -10,6 +10,7 @@
  * shopper has been engaging with. It resets on reload — real history lives server-side.
  */
 import products from '../fixtures/products.json' with { type: 'json' };
+import { synthesizeSupplier, synthesizeDescription, synthesizeVariants } from './products.js';
 
 const EVENT_WEIGHTS = { VIEW: 1, DWELL: 1.5, CLICK: 2, ADD_CART: 4, WISHLIST: 3, PURCHASE: 6 };
 const categoryAffinity = new Map();
@@ -78,10 +79,28 @@ export default [
 
       const limit = Math.min(num(query.limit) || 10, 30);
       const offset = Math.max(0, num(query.offset));
-      const page = ordered.slice(offset, offset + limit).map((p, idx) => ({
-        ...p,
-        recommendation_reason: determineRecommendationReason(p, offset + idx),
-      }));
+      // Carry the whole above-the-fold buy box (supplier line + short description + the variant
+      // set that drives the Size selector) on the list item itself, synthesized the same way the
+      // product-detail handler does. WHY: the feed slide must paint complete in one frame — if any
+      // of this only arrived via the later per-slide getProduct() fetch, it would pop in after the
+      // rest of the card (a visible late load). This mirrors the live contract, where the discovery
+      // feed asks listCatalog for description_en/bn, a supplier_name column, and (withVariants) the
+      // product's variants.
+      const page = ordered.slice(offset, offset + limit).map((p, idx) => {
+        const supplier = synthesizeSupplier(p);
+        const desc = synthesizeDescription(p);
+        const variants = synthesizeVariants(p);
+        return {
+          ...p,
+          supplier,
+          supplier_name: supplier.name,
+          description_en: p.description_en || desc.description_en,
+          description_bn: p.description_bn || desc.description_bn,
+          variants,
+          has_variants: variants.length > 0,
+          recommendation_reason: determineRecommendationReason(p, offset + idx),
+        };
+      });
       const hasMore = offset + limit < ordered.length;
 
       return {

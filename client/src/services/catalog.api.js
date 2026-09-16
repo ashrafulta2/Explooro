@@ -81,12 +81,39 @@ export async function getProduct(idOrRef) {
  * pass through unchanged.
  */
 export function normalizeProductListItem(product) {
+  // Present a consistent `supplier` shape whether the row carried a nested object (mock feed /
+  // product detail) or the flat supplier_name + district columns the live listing selects, so a
+  // list-item consumer can render the supplier line without a second detail fetch.
+  const supplier =
+    product.supplier ||
+    (product.supplier_name
+      ? { name: product.supplier_name, district: product.district ?? null }
+      : null);
+  // Present the same variant shape as normalizeProduct() so a list-item consumer (the discovery
+  // feed's inline buy box) can mount VariantSelector straight from the list row — the live feed
+  // returns attributes under `attributes_json` and price_delta as a NUMERIC string, the mock returns
+  // `attributes` and a number; both settle to one shape here.
+  const variants = Array.isArray(product.variants)
+    ? product.variants.map((v) => ({
+        id: v.id,
+        sku: v.sku,
+        attributes: v.attributes || v.attributes_json || {},
+        price_delta: Number(v.price_delta) || 0,
+        stock_qty: v.stock_qty ?? 0,
+        is_active: v.is_active !== false,
+        image_url: v.image_url ?? null,
+        image_index: v.image_index ?? null,
+      }))
+    : null;
   return {
     ...product,
     price: product.price ?? product.pricing?.retail_price ?? product.default_retail_price,
     stock: product.stock ?? product.stock_qty,
     rating: product.rating ?? product.rating_avg,
     margin_pct: product.margin_pct ?? product.pricing?.saler_margin_pct,
+    supplier,
+    ...(variants ? { variants } : {}),
+    has_variants: product.has_variants ?? (variants ? variants.length > 0 : undefined),
     image_url: product.image_url ?? product.primary_image_url ?? product.primary_image ?? product.images?.[0]?.url ?? null,
   };
 }

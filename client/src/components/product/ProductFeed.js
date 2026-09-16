@@ -181,6 +181,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     const img = document.createElement('img');
     img.className = 'discover-slide__img';
     img.loading = 'lazy';
+    img.decoding = 'async'; // paint the slide without blocking on image decode — avoids a visible stall
     img.alt = titleOf(p, lang);
     img.src = p.image_url || resolveProductImage(p);
     // Fall back to a neutral placeholder if the source 404s, so the media never shows a blank box.
@@ -296,11 +297,16 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     price.textContent = formatCurrency(priceOf(p), { lang });
     panel.append(price);
 
-    // Lazily-filled detail region (supplier, description; read-only variant chips for salers)
+    // Detail region (supplier, description; read-only variant chips for salers). Painted NOW from
+    // the list item — the feed carries the supplier line + description, so this text lands in the
+    // same frame as the title/price instead of popping in after the per-slide detail fetch.
+    // enrichSlide() re-runs renderDetail with the full product, but the signature guard there makes
+    // it a no-op when the text is unchanged, so there is no second flash.
     const detail = document.createElement('div');
     detail.className = 'discover-slide__detail';
     detail.dataset.detailFor = key;
     panel.append(detail);
+    renderDetail(detail, p);
 
     // Live buy-box state for this slide. The variant selector (mounted on enrichment) and the CTA
     // both read/write it, so the whole purchase — choose options, set quantity, add to cart —
@@ -334,6 +340,14 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       st.qtyEl = qty;
       panel.append(options);
       panel.append(buildCustomerCtas(p, st));
+      // Mount the Size selector NOW when the feed carried the variant set, so it paints in the same
+      // frame as the price/quantity instead of popping in after the per-slide getProduct() fetch.
+      // Called after buildCustomerCtas so st.addBtn exists when the selector's initial onChange
+      // fires. enrichSlide() calls mountInlineOptions again with the full product, but its
+      // optionsMounted guard makes that a no-op — no duplicate selector, no second appearance.
+      if (p.has_variants && Array.isArray(p.variants) && p.variants.length) {
+        mountInlineOptions(key, p);
+      }
     }
 
     slide.append(media, panel);
@@ -628,7 +642,11 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   function mountInlineOptions(key, full) {
     if (audience === 'saler') return;
     const st = slideState.get(key);
-    if (!st || !st.optionsEl) return;
+    if (!st || !st.optionsEl || st.optionsMounted) return;
+    // Guard against a second mount: buildSlide mounts this from the list item when the feed carried
+    // variants, and enrichSlide re-calls with the full product. Whichever runs first owns the buy
+    // box; the other is a no-op, so the selector never appears twice or flips.
+    st.optionsMounted = true;
 
     if (full.has_variants && full.variants?.length) {
       st.mode = 'variant';
@@ -668,6 +686,20 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   }
 
   function renderDetail(detail, full) {
+    // Idempotency guard: buildSlide paints this from the list item and enrichSlide re-runs it with
+    // the full product. Rebuilding identical nodes would replay the fade-in animation as a flicker,
+    // so skip when the resulting content signature is unchanged.
+    const sig = [
+      full.supplier?.name || '',
+      full.supplier?.district || '',
+      (lang === 'bn' ? full.description_bn : full.description_en) || '',
+      audience === 'saler' && full.has_variants && full.variants?.length
+        ? full.variants.map((v) => Object.values(v.attributes || {})[0] || '').join('|')
+        : '',
+    ].join('');
+    if (detail.dataset.sig === sig) return;
+    detail.dataset.sig = sig;
+
     detail.replaceChildren();
     const sup = full.supplier;
     if (sup?.name) {

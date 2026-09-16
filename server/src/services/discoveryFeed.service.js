@@ -99,6 +99,10 @@ export async function getFeed(db, { filters = {}, userId, sessionId, audience = 
     boostBrands: affinity.brands,
     boostSupplierIds: affinity.supplierIds,
     affinityWeights: AFFINITY_WEIGHTS,
+    // The feed slide renders an inline buy box with a Size selector, so it needs each row's variants
+    // up front — otherwise they'd pop in after a per-slide detail fetch. Only the discovery feed
+    // asks for this; the plain catalog grid leaves it off.
+    withVariants: true,
     limit: effectiveLimit + 1,
     offset: safeOffset,
   });
