@@ -33,12 +33,31 @@
   overflow: hidden;
 }
 
-/* ── Compact control bar: a single toggle above the feed ───────────────────── */
+/* ── Compact control bar: a single toggle floating over the feed ────────────── */
+/* WHY: the toggle used to sit in its own flow row below the topbar — a lonely corner button that ate
+   a full band of the viewport-locked feed's vertical space. It now floats, centered, over the top of
+   the feed card, so the feed reclaims the whole height and the control reads as a deliberate,
+   uncommon pill rather than stranded chrome. */
 .discover-page__bar {
+  position: absolute;
+  z-index: 30;
+  top: var(--space-2);
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  flex: none;
-  padding: 0 var(--space-1);
+  padding: 0;
+  /* The pill is draggable (JS handles pointer moves); own the gesture so touch drags don't scroll. */
+  touch-action: none;
+}
+/* While being dragged: lift it above the dropdown and cue the grab with a stronger shadow. */
+.discover-page__bar.is-dragging {
+  z-index: 40;
+  cursor: grabbing;
+}
+.discover-page__bar.is-dragging .discover-page__toggle {
+  cursor: grabbing;
+  box-shadow: var(--elevation-3, 0 10px 30px -8px hsl(var(--shadow-color) / 0.24));
 }
 .discover-page__toggle {
   display: inline-flex;
@@ -53,8 +72,10 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   cursor: pointer;
+  box-shadow: var(--elevation-2, 0 2px 8px hsl(var(--shadow-color) / 0.12));
   transition: background var(--dur-fast) var(--ease-standard),
-    border-color var(--dur-fast) var(--ease-standard);
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard);
 }
 .discover-page__toggle:hover {
   background: var(--surface-2);
@@ -103,10 +124,11 @@
 /* ── Toolbar dropdown (category pills + search + filter trigger) ────────────── */
 .discover-page__toolbar {
   position: absolute;
-  z-index: 20;
-  top: 44px;
-  left: var(--space-1);
-  right: var(--space-1);
+  z-index: 25;
+  top: calc(var(--space-2) + 38px + var(--space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, calc(100% - var(--space-4)));
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -251,14 +273,12 @@
   position: relative;
   border-radius: var(--radius-md);
   overflow: hidden;
+  /* Neutral fill shown only until the image paints — the image itself covers the frame edge-to-edge
+     (object-fit: cover) so no surrounding gutter is ever visible once loaded. */
   background: var(--surface-2);
   min-height: 0;
   height: 100%;
   width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-3);
   box-sizing: border-box;
 }
 .discover-slide__media.is-clickable { cursor: pointer; }
@@ -269,9 +289,10 @@
 .discover-slide__img {
   width: 100%;
   height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  /* WHY: cover (not contain) so the photo fills the whole frame — no gray gutter around images whose
+     aspect ratio differs from the media box. Matches the solid, edge-to-edge commerce card look. */
+  object-fit: cover;
+  object-position: center;
   display: block;
   transition: transform var(--dur-normal, 250ms) var(--ease-standard);
 }
@@ -312,20 +333,25 @@
 .discover-slide__chip,
 .discover-slide__flash {
   position: absolute;
-  top: var(--space-3);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   padding: 2px var(--space-2);
   border-radius: var(--radius-full);
 }
 .discover-slide__chip {
+  top: var(--space-3);
   left: var(--space-3);
   background: var(--surface-1);
   color: var(--text-secondary);
   border: var(--border-width) solid var(--border-subtle);
 }
+/* WHY: pinned to the image's BOTTOM-left (not top-right). The Browse & filter pill floats over the
+   card's top-centre, and the image's top-right corner sits right under it — a top-right flash badge
+   was half-hidden behind the pill. The bottom-left corner is always clear of both the pill and the
+   centred hover hint. */
 .discover-slide__flash {
-  right: var(--space-3);
+  bottom: var(--space-3);
+  left: var(--space-3);
   /* --danger-700 (not -500) so white text clears the 4.5:1 WCAG AA threshold. */
   background: var(--danger-700);
   color: var(--text-inverse);
@@ -339,6 +365,10 @@
   height: 100%;
   overflow-y: auto;
   padding-right: var(--space-1);
+  /* WHY: the floating Browse & filter pill is centered over the top of the card, so its right half
+     sits over this panel's top-left. Drop the first panel element below it so the recommendation
+     badge is never covered. Reset on mobile, where the panel is stacked below the image (no overlap). */
+  padding-top: calc(var(--space-6) + var(--space-2));
   /* Content is sized to fit within the card; if a very long description pushes past the edge it can
      still scroll (buy bar stays pinned), but the scrollbar itself is hidden for a clean surface. */
   scrollbar-width: none;
@@ -547,8 +577,21 @@
   padding-top: var(--space-3);
   padding-bottom: var(--space-2);
   background: var(--surface-1);
-  border-top: var(--border-width) solid var(--border-subtle);
   z-index: 5;
+}
+/* WHY: a hard border-top made it obvious the panel scrolls under a pinned bar. A soft gradient fade
+   above the bar dissolves the scrolling content instead, so the pinned buy box reads as part of one
+   continuous, smooth surface rather than a separate fixed strip. */
+.discover-slide__actions-container::before,
+.discover-slide__ctas::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(-1 * var(--space-5));
+  height: var(--space-5);
+  background: linear-gradient(to bottom, transparent, var(--surface-1));
+  pointer-events: none;
 }
 
 .discover-slide__action-row {
@@ -672,7 +715,6 @@
   margin-top: var(--space-3);
   padding-top: var(--space-3);
   background: var(--surface-1);
-  border-top: var(--border-width) solid var(--border-subtle);
 }
 .discover-slide__primary { flex: 1 1 auto; min-width: 140px; }
 .discover-slide__margin {
@@ -680,35 +722,6 @@
   font-weight: var(--weight-semibold);
   color: var(--success-700, var(--text-primary));
 }
-
-/* ── Pinned prev/next controls ─────────────────────────────────────────────── */
-.discover-feed__nav {
-  position: absolute;
-  right: var(--space-4);
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  z-index: 2;
-}
-.discover-feed__nav-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--surface-1);
-  border: var(--border-width) solid var(--border-subtle);
-  color: var(--text-primary);
-  cursor: pointer;
-  box-shadow: var(--elevation-2, 0 2px 8px hsl(var(--shadow-color) / 0.1));
-  transition: background var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
-}
-.discover-feed__nav-btn:hover { background: var(--surface-2); }
-.discover-feed__nav-btn:active { transform: scale(0.94); }
-
 
 @media (max-width: 767px) {
   .discover-page {
@@ -725,6 +738,17 @@
     gap: var(--space-3);
     padding: var(--space-3);
   }
-  .discover-feed__nav { right: var(--space-2); }
+  /* Panel is stacked below the image on mobile, so the floating pill never overlaps it — drop the
+     desktop top clearance and reclaim that vertical space. */
+  .discover-slide__panel { padding-top: 0; }
   .discover-slide__price { font-size: var(--text-xl); }
+
+  /* WHY: the primary buy row is `nowrap` (cart + quick buy + wishlist), which can't fit a phone
+     width and forced the whole card to overflow horizontally — that horizontal scroll also pushed
+     the centre-anchored floating pill off the right edge. Stack the actions so the card fits the
+     viewport: cart takes a full row, quick buy + wishlist share the next. */
+  .discover-slide__action-row--primary { flex-wrap: wrap; }
+  .discover-slide__btn { min-width: 0; }
+  .discover-slide__btn--cart { flex: 1 1 100%; }
+  .discover-slide__btn--quick { flex: 1 1 auto; }
 }

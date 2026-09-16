@@ -224,9 +224,91 @@ export default function DiscoverFeedPage(root, { navigate }) {
     toolbar.hidden = !open;
     toggle.classList.toggle('is-open', open);
     toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-    if (open) searchInput.focus();
+    if (open) {
+      positionToolbar(); // keep the dropdown under the pill wherever the shopper dragged it
+      searchInput.focus();
+    }
   }
-  toggle.addEventListener('click', () => setControlsOpen(!controlsOpen));
+  toggle.addEventListener('click', () => {
+    // A press that turned into a drag must not also toggle the dropdown.
+    if (suppressClick) { suppressClick = false; return; }
+    setControlsOpen(!controlsOpen);
+  });
+
+  // ── Draggable filter pill ────────────────────────────────────────────────
+  // WHY: pinned to the top-centre, the pill covered part of the product card. Let the shopper drag it
+  // anywhere inside the feed area so they can uncover whatever sits beneath it. It still defaults to
+  // top-centre (pure CSS); it only switches to explicit coordinates once actually moved, and a plain
+  // tap still opens the dropdown (a small threshold separates a tap from a drag).
+  bar.title = t('discover.controls.drag_hint');
+  const DRAG_THRESHOLD = 4; // px of travel before a press counts as a drag rather than a tap
+  const DROPDOWN_GUTTER = 8; // keep the dropdown this far from the feed edges when it follows the pill
+  let userMoved = false; // once dragged, the pill keeps explicit coordinates (re-clamped on resize)
+  let suppressClick = false;
+  let press = null; // active pointer press: { startX, startY, baseLeft, baseTop, dragging }
+
+  function positionToolbar() {
+    // Only when the pill has been dragged; otherwise the CSS default (centred under the pill) applies.
+    if (toolbar.hidden || !userMoved) return;
+    const pw = page.clientWidth;
+    const left = bar.offsetLeft + bar.offsetWidth / 2 - toolbar.offsetWidth / 2;
+    const clamped = Math.max(DROPDOWN_GUTTER, Math.min(left, pw - toolbar.offsetWidth - DROPDOWN_GUTTER));
+    toolbar.style.left = `${clamped}px`;
+    toolbar.style.top = `${bar.offsetTop + bar.offsetHeight + DROPDOWN_GUTTER}px`;
+    toolbar.style.transform = 'none';
+  }
+
+  function setBarPos(left, top) {
+    const maxLeft = page.clientWidth - bar.offsetWidth;
+    const maxTop = page.clientHeight - bar.offsetHeight;
+    const l = Math.max(0, Math.min(left, maxLeft));
+    const tp = Math.max(0, Math.min(top, maxTop));
+    bar.style.left = `${l}px`;
+    bar.style.top = `${tp}px`;
+    bar.style.transform = 'none';
+    positionToolbar();
+  }
+
+  function onBarPointerDown(e) {
+    if (e.button != null && e.button !== 0) return; // primary button / touch / pen only
+    press = { startX: e.clientX, startY: e.clientY, baseLeft: 0, baseTop: 0, dragging: false };
+  }
+  function onBarPointerMove(e) {
+    if (!press) return;
+    const dx = e.clientX - press.startX;
+    const dy = e.clientY - press.startY;
+    if (!press.dragging) {
+      if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+      // Cross the threshold → convert the pill's current visual position to explicit page coordinates
+      // so the drag starts exactly where it sits, with no jump from the CSS-centred default.
+      press.dragging = true;
+      userMoved = true;
+      bar.classList.add('is-dragging');
+      const pageRect = page.getBoundingClientRect();
+      const barRect = bar.getBoundingClientRect();
+      press.baseLeft = barRect.left - pageRect.left;
+      press.baseTop = barRect.top - pageRect.top;
+      try { toggle.setPointerCapture(e.pointerId); } catch { /* capture is best-effort */ }
+    }
+    e.preventDefault();
+    setBarPos(press.baseLeft + dx, press.baseTop + dy);
+  }
+  function onBarPointerUp() {
+    if (!press) return;
+    if (press.dragging) suppressClick = true; // swallow the click that fires after a drag
+    bar.classList.remove('is-dragging');
+    press = null;
+  }
+  toggle.addEventListener('pointerdown', onBarPointerDown);
+  window.addEventListener('pointermove', onBarPointerMove);
+  window.addEventListener('pointerup', onBarPointerUp);
+
+  // Keep a dragged pill (and its open dropdown) inside the feed when the viewport resizes.
+  const onWindowResize = () => {
+    if (!userMoved) return;
+    setBarPos(bar.offsetLeft, bar.offsetTop);
+  };
+  window.addEventListener('resize', onWindowResize);
 
   const onDocPointerDown = (e) => {
     if (!controlsOpen) return;
@@ -290,6 +372,9 @@ export default function DiscoverFeedPage(root, { navigate }) {
     page.removeEventListener('wheel', onPageWheel);
     document.removeEventListener('pointerdown', onDocPointerDown);
     document.removeEventListener('keydown', onDocKeydown);
+    window.removeEventListener('pointermove', onBarPointerMove);
+    window.removeEventListener('pointerup', onBarPointerUp);
+    window.removeEventListener('resize', onWindowResize);
     root.classList.remove('app-shell__page--discover');
     filterResult.cleanup();
     feed.cleanup();

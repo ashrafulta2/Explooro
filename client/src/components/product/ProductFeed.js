@@ -1,7 +1,7 @@
 /**
  * ProductFeed.js — Full-viewport, one-product-at-a-time vertical discovery feed (the /discover
  * surface). Each slide shows a product large, like a condensed product-detail page, and the shopper
- * moves through them one by one (scroll-snap, wheel, ArrowUp/Down, touch-swipe, on-screen buttons).
+ * moves through them one by one (scroll-snap, wheel, ArrowUp/Down/PageUp/PageDown, touch-swipe).
  *
  * Ranking is server-side and interest-based (services/discovery.api.js → GET /discovery/feed); this
  * component only records the signals that drive it: a VIEW the first time a slide is seen, and a
@@ -91,24 +91,10 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     el.textContent = qty > 0 ? t('discover.stock.in') : t('discover.stock.out');
   }
 
-  // ── Navigation controls (up / down) ───────────────────────────────────────
-  const nav = document.createElement('div');
-  nav.className = 'discover-feed__nav';
-  const upBtn = document.createElement('button');
-  upBtn.type = 'button';
-  upBtn.className = 'discover-feed__nav-btn';
-  upBtn.setAttribute('aria-label', t('discover.nav.previous'));
-  upBtn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>';
-  const downBtn = document.createElement('button');
-  downBtn.type = 'button';
-  downBtn.className = 'discover-feed__nav-btn';
-  downBtn.setAttribute('aria-label', t('discover.nav.next'));
-  downBtn.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
-  nav.append(upBtn, downBtn);
-
-  upBtn.addEventListener('click', () => step(-1));
-  downBtn.addEventListener('click', () => step(1));
-
+  // ── Slide stepping ─────────────────────────────────────────────────────────
+  // WHY: the on-screen up/down arrow buttons were removed — they floated over the card's right side
+  // and hid part of the buy box. Stepping now happens purely through wheel, touch-swipe, scroll-snap
+  // and the keyboard (ArrowUp/ArrowDown/PageUp/PageDown), which is enough to move between products.
   function slideEls() {
     return [...scroller.querySelectorAll('.discover-slide')];
   }
@@ -779,8 +765,15 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     loadMore();
   }
 
-  // Keyboard navigation.
+  // Keyboard navigation. Bound at the window level (not on `el`) so the arrow keys move the feed even
+  // when nothing inside it is focused — the feed owns the whole viewport on this route. Ignored while
+  // the shopper is typing in a field (search box, quantity input) so those keep their native caret
+  // behaviour.
   function onKeydown(e) {
+    const tgt = e.target;
+    if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) {
+      return;
+    }
     if (e.key === 'ArrowDown' || e.key === 'PageDown') {
       e.preventDefault();
       step(1);
@@ -789,7 +782,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       step(-1);
     }
   }
-  el.addEventListener('keydown', onKeydown);
+  window.addEventListener('keydown', onKeydown);
 
   // Discrete wheel navigation: one scroll moves exactly one post smoothly.
   let isWheelStepping = false;
@@ -825,9 +818,8 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   const onPageHide = () => fireDwell();
   window.addEventListener('pagehide', onPageHide);
 
-  // Initial load. Nav is appended once to `el` (pinned over the scroller); slides go in `scroller`.
+  // Initial load. Slides go in `scroller`.
   scroller.append(Skeleton({ variant: 'card' }));
-  el.append(nav);
   loadMore();
 
   return {
@@ -838,7 +830,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       destroyed = true;
       fireDwell();
       observer.disconnect();
-      el.removeEventListener('keydown', onKeydown);
+      window.removeEventListener('keydown', onKeydown);
       scroller.removeEventListener('wheel', onWheel);
       clearTimeout(wheelTimeout);
       window.removeEventListener('pagehide', onPageHide);

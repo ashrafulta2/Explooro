@@ -17,7 +17,7 @@
     "aria": { "feed": "Product discovery feed" },
     "search": { "placeholder": "Search this feed" },
     "filters": { "title": "Filters" },
-    "controls": { "toggle": "Browse & filter" },
+    "controls": { "toggle": "Browse & filter", "drag_hint": "Drag to move" },
     "nav": { "previous": "Previous product", "next": "Next product" },
     "badge": { "flash_sale": "Flash sale" },
     "reviews": "{{count}} reviews",

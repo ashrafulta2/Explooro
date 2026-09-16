@@ -17,7 +17,7 @@
     "aria": { "feed": "পণ্য আবিষ্কার ফিড" },
     "search": { "placeholder": "এই ফিডে খুঁজুন" },
     "filters": { "title": "ফিল্টার" },
-    "controls": { "toggle": "ব্রাউজ ও ফিল্টার" },
+    "controls": { "toggle": "ব্রাউজ ও ফিল্টার", "drag_hint": "সরাতে টেনে আনুন" },
     "nav": { "previous": "আগের পণ্য", "next": "পরের পণ্য" },
     "badge": { "flash_sale": "ফ্ল্যাশ সেল" },
     "reviews": "{{count}}টি রিভিউ",
