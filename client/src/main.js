@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Explooro web client — entrypoint.
  *
  * index.html now contains ONLY the #router-outlet div. The AppShell (sidebar + topbar +
@@ -1513,6 +1513,61 @@ async function bootRouterDemo() {
         module: 'product_moderation',
         load: () => import('./pages/moderator/ModeratorDashboardPage.js'),
       },
+      // Prompt 7.7: Moderator My Access — personal permission & grant dashboard
+      {
+        path: '/moderator/my-access',
+        title: 'My Access — Explooro',
+        requiresAuth: true,
+        roles: ['admin', 'moderator', 'editor', 'super_admin'],
+        permission: null,
+        module: 'core',
+        load: () => import('./pages/moderator/MyAccessPage.js'),
+      },
+      // Prompt 7.7-A: Moderator Penalties & Suspensions
+      {
+        path: '/moderator/penalties',
+        title: 'Penalties & Suspensions — Explooro',
+        requiresAuth: true,
+        permission: 'users.account.penalise',
+        module: 'core',
+        load: () => import('./pages/moderator/PenaltiesPage.js'),
+      },
+      // Prompt 7.7-B: User Reports Queue
+      {
+        path: '/moderator/reports',
+        title: 'User Reports — Explooro',
+        requiresAuth: true,
+        permission: 'moderation.report.handle',
+        module: 'core',
+        load: () => import('./pages/moderator/ReportsPage.js'),
+      },
+      // Prompt 7.7-C: Review Integrity Moderation
+      {
+        path: '/moderator/reviews',
+        title: 'Review Moderation — Explooro',
+        requiresAuth: true,
+        permission: 'moderation.review.handle',
+        module: 'review_integrity',
+        load: () => import('./pages/moderator/ReviewsModerationPage.js'),
+      },
+      // Prompt 7.7-D: UGC Video & Content Approval
+      {
+        path: '/moderator/ugc',
+        title: 'UGC Moderation — Explooro',
+        requiresAuth: true,
+        permission: 'moderation.ugc.approve',
+        module: 'ugc_video_wall',
+        load: () => import('./pages/moderator/UgcModerationPage.js'),
+      },
+      // Prompt 7.7-E: Supplier AI Demand Forecasting
+      {
+        path: '/supplier/forecasting',
+        title: 'AI Demand Forecasting — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.analytics.view',
+        module: 'ai_forecasting',
+        load: () => import('./pages/supplier/ForecastingPage.js'),
+      },
       // Prompt 8.3: Unified Multi-Channel Inbox
       {
         path: '/saler/inbox',
@@ -1826,7 +1881,7 @@ async function bootRouterDemo() {
     // a moderator clicking a queue they lack the grant for just found themselves on the
     // marketplace home with no idea why. Returning nothing keeps the router's own fallback.
     onGuardFail: (reason) => {
-      if (reason === 'permission') toast.error(t('access.route_denied'));
+      if (reason === 'permission' || reason === 'role') toast.error(t('access.route_denied'));
       else if (reason === 'module') toast.warning(t('access.route_module_off'));
       return undefined;
     },

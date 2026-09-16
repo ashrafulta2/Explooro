@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AppShell — composes Sidebar + TopBar + MobileNav + CommandPalette around the routed page.
  *
  * Owns the one long-lived DOM structure (sidebar/topbar/mobilenav "slots" around a stable
@@ -53,7 +53,7 @@ export function createAppShell({ container, navigate }) {
 
   function currentCtx() {
     const s = appStore.get();
-    return { permissions: s.auth.permissions, modules: s.modules, badges: s.badges };
+    return { role: s.auth?.role, permissions: s.auth?.permissions || [], modules: s.modules, badges: s.badges };
   }
 
   const palette = createCommandPalette({ getState: () => ({ ctx: currentCtx(), navigate }) });

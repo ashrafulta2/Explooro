@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CommandPalette — Ctrl/Cmd+K, ia-sitemap.md §3. "Mandatory": with ~115 nav items across 6 roles,
  * tree navigation alone is not discoverable.
  *
@@ -46,7 +46,21 @@ function hasModule(modules, key) {
   return !key || key === 'core' || modules[key] === true;
 }
 function hasPermission(permissions, key) {
-  return !key || permissions.includes(key);
+  return !key || (permissions && permissions.includes(key));
+}
+function hasRole(userRole, item) {
+  const r = userRole || 'customer';
+  if (!item.roles && !item.role) return true;
+  if (Array.isArray(item.roles)) {
+    if (item.roles.includes(r)) return true;
+    if (r === 'admin' && item.roles.includes('super_admin')) return true;
+    if (r === 'super_admin' && item.roles.includes('admin')) return true;
+    return false;
+  }
+  if (item.role === r) return true;
+  if (r === 'admin' && item.role === 'super_admin') return true;
+  if (r === 'super_admin' && item.role === 'admin') return true;
+  return false;
 }
 
 /**
@@ -124,7 +138,12 @@ export function createCommandPalette({ getState }) {
     const { ctx } = getState();
     const q = query.trim();
 
-    const visible = navItems.filter((item) => hasModule(ctx.modules, item.module) && hasPermission(ctx.permissions, item.permission));
+    const visible = navItems.filter(
+      (item) =>
+        hasRole(ctx.role, item) &&
+        hasModule(ctx.modules, item.module) &&
+        hasPermission(ctx.permissions, item.permission)
+    );
 
     const isBn = getLanguage() === 'bn';
     const groups = [];

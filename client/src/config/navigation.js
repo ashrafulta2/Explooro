@@ -1,4 +1,4 @@
-/**
+﻿/**
  * navigation.js — the nav tree as DATA, per docs/ia-sitemap.md §2 and docs/prompt.md Prompt 1.7
  * REQUIREMENT 1. Sidebar/MobileNav/CommandPalette all render from this file; adding a feature
  * later means adding one object here, never editing a component.
@@ -157,7 +157,7 @@ export const navItems = [
   { key: 'moderator.returns', label_i18n_key: 'nav.shared.returns', icon: null, path: '/moderator/returns', group: 'moderator.cases', permission: 'orders.return.review', module: 'returns_engine', roles: ['moderator'], order: 2 },
   { key: 'moderator.reports', label_i18n_key: 'nav.moderator.reports', icon: null, path: '/moderator/reports', group: 'moderator.cases', permission: 'moderation.report.handle', module: 'user_reports', roles: ['moderator'], order: 3, badge: 'reports' },
   { key: 'moderator.penalties', label_i18n_key: 'nav.moderator.penalties', icon: null, path: '/moderator/penalties', group: 'moderator.enforcement', permission: 'users.account.penalise', module: 'core', roles: ['moderator'], order: 1 },
-  { key: 'moderator.my_access', label_i18n_key: 'nav.group.my_access', icon: null, path: '/moderator/my-access', group: 'moderator.my_access', permission: null, module: 'core', roles: ['moderator'], order: 1 },
+  { key: 'moderator.my_access', label_i18n_key: 'nav.group.my_access', icon: null, path: '/moderator/my-access', group: 'moderator.my_access', permission: null, module: 'core', roles: ['moderator', 'editor', 'admin', 'super_admin'], order: 1 },
 
   // ================= EDITOR — 7 items =================
   { key: 'editor.dashboard', label_i18n_key: 'nav.shared.dashboard', icon: null, path: '/editor', group: 'editor.content', permission: 'content.dashboard.view', module: 'core', roles: ['editor'], order: 1 },

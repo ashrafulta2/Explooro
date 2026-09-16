@@ -41,6 +41,7 @@ import { notificationHandlers } from './handlers/notifications.js';
 import chatHandlers from './handlers/chat.js';
 import meHandlers from './handlers/me.js';
 import mediaHandlers from './handlers/media.js';
+import moderatorToolsHandlers from './handlers/moderatorTools.js';
 
 const handlers = [
   ...authHandlers,
@@ -77,6 +78,7 @@ const handlers = [
   ...chatHandlers,
   ...meHandlers,
   ...mediaHandlers,
+  ...moderatorToolsHandlers,
 ];
 
 function notFoundBody(path) {

@@ -577,14 +577,16 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
 
   if (elevatedGrant) bar.append(ElevatedChip({ grant: elevatedGrant }));
 
-  // Quick Actions / Command Palette button on right utility bar
-  const paletteBtn = IconButton({
-    icon: ICONS.bolt,
-    label: `${t('palette.trigger_btn') || 'Quick Actions'} (Ctrl+K)`,
-    onClick: () => onOpenPalette(),
-  });
-  paletteBtn.classList.add('topbar__palette-btn');
-  bar.append(paletteBtn);
+  // Quick Actions / Command Palette button — only shown to authenticated users
+  if (!isGuest) {
+    const paletteBtn = IconButton({
+      icon: ICONS.bolt,
+      label: `${t('palette.trigger_btn') || 'Quick Actions'} (Ctrl+K)`,
+      onClick: () => onOpenPalette(),
+    });
+    paletteBtn.classList.add('topbar__palette-btn');
+    bar.append(paletteBtn);
+  }
 
   // The switcher exists only while the platform policy lets visitors choose their own language
   // and there is more than one enabled locale to choose between (/admin/platform/language).

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * router.js — hash-free History API router.
  *
  * Responsibility: URL <-> page with zero full-page reloads (Prompt 1.5 ACCEPTANCE). Route
@@ -106,6 +106,7 @@ export function createRouter({
 
   function guardFailure(route, ctx) {
     if (route.requiresAuth && !ctx.isAuthenticated) return 'auth';
+    if (route.roles && (!ctx.role || (!route.roles.includes(ctx.role) && !(ctx.role === 'super_admin' && route.roles.includes('admin')) && !(ctx.role === 'admin' && route.roles.includes('super_admin'))))) return 'role';
     if (route.permission && !hasPermission(ctx, route.permission)) return 'permission';
     if (route.module && !hasModule(ctx, route.module)) return 'module';
     return null;
