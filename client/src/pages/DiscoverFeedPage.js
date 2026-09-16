@@ -188,6 +188,28 @@ export default function DiscoverFeedPage(root, { navigate }) {
   filterBtn.append(filterBadge);
   controls.append(filterBtn);
 
+  // Clear all button — quickly clears category, search, and active filters
+  const clearBtn = document.createElement('button');
+  clearBtn.type = 'button';
+  clearBtn.className = 'discover-page__clear-btn';
+  clearBtn.innerHTML = '<span>&#10005;</span> <span>' + t('marketplace.clear_all', 'Clear all') + '</span>';
+  clearBtn.addEventListener('click', () => {
+    const sp = new URLSearchParams(window.location.search);
+    for (const key of ['category', 'q', 'min_price', 'max_price', 'in_stock', 'tier', 'district', 'min_rating', 'min_margin']) {
+      sp.delete(key);
+    }
+    const newUrl = window.location.pathname + (sp.toString() ? '?' + sp.toString() : '');
+    window.history.replaceState(null, '', newUrl);
+    searchInput.value = '';
+    const allPillNodes = pills.querySelectorAll('.category-pills__pill');
+    for (const p of allPillNodes) {
+      p.setAttribute('aria-selected', p.dataset.id === 'all' ? 'true' : 'false');
+    }
+    reload();
+    setControlsOpen(false);
+  });
+  controls.append(clearBtn);
+
   toolbar.append(controls);
   page.append(toolbar);
 
@@ -346,6 +368,7 @@ export default function DiscoverFeedPage(root, { navigate }) {
     toggleBadge.textContent = activeCount > 0 ? String(activeCount) : '';
     toggleBadge.hidden = activeCount === 0;
     toggle.classList.toggle('has-active', activeCount > 0);
+    clearBtn.style.display = activeCount > 0 ? 'inline-flex' : 'none';
   }
 
   function reload() {

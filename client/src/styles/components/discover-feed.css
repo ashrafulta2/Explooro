@@ -775,3 +775,25 @@
   .discover-slide__btn--cart { flex: 1 1 100%; }
   .discover-slide__btn--quick { flex: 1 1 auto; }
 }
+
+
+.discover-page__clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+.discover-page__clear-btn:hover {
+  background: var(--surface-2);
+  color: var(--text-danger, #ef4444);
+  border-color: var(--border-strong);
+}
