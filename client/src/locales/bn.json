@@ -468,6 +468,12 @@
       "out_of_stock": "স্টকে নেই"
     },
     "product_count": "{{count}}টি পণ্য",
+    "sort_featured": "জনপ্রিয়",
+    "sort_price_asc": "মূল্য: কম থেকে বেশি",
+    "sort_price_desc": "মূল্য: বেশি থেকে কম",
+    "sort_rating": "সর্বোচ্চ রেটিং",
+    "sort_newest": "নতুন পণ্য",
+    "clear_all": "সব মুছুন",
     "flash_sale": {
       "title": "ফ্ল্যাশ সেল",
       "ends_in": "শেষ হচ্ছে",

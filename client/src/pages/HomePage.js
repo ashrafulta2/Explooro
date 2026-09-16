@@ -123,6 +123,16 @@ export default function HomePage(root, { navigate }) {
   feedBar.setAttribute('role', 'tablist');
   feedBar.setAttribute('aria-label', t('marketplace.feed.label'));
 
+  function syncFeed(feedId) {
+    if (activeFeed === feedId) return;
+    activeFeed = feedId;
+    setURLParam('feed', activeFeed);
+    for (const t of page.querySelectorAll('.feed-switcher__tab, .home-floating-toolbar__feed-tab')) {
+      t.setAttribute('aria-selected', t.dataset.id === activeFeed ? 'true' : 'false');
+    }
+    rebuildGrid();
+  }
+
   const feedTabs = [];
   for (const feedDef of FEEDS) {
     const tab = document.createElement('button');
@@ -132,15 +142,7 @@ export default function HomePage(root, { navigate }) {
     tab.dataset.id = feedDef.id;
     tab.textContent = t(feedDef.i18n);
     tab.setAttribute('aria-selected', feedDef.id === activeFeed ? 'true' : 'false');
-    tab.addEventListener('click', () => {
-      if (activeFeed === feedDef.id) return;
-      activeFeed = feedDef.id;
-      setURLParam('feed', activeFeed);
-      for (const t2 of feedTabs) {
-        t2.setAttribute('aria-selected', t2.dataset.id === activeFeed ? 'true' : 'false');
-      }
-      rebuildGrid();
-    });
+    tab.addEventListener('click', () => syncFeed(feedDef.id));
     feedTabs.push(tab);
     feedBar.append(tab);
   }
@@ -148,15 +150,20 @@ export default function HomePage(root, { navigate }) {
 
   // ── Category pills ──────────────────────────────────────────────────────
   const catLang = getLanguage();
+  function syncCategory(catId) {
+    activeCategory = catId;
+    setURLParam('category', catId);
+    for (const p of page.querySelectorAll('.category-pills__pill')) {
+      p.setAttribute('aria-selected', p.dataset.id === catId ? 'true' : 'false');
+    }
+    rebuildGrid();
+  }
+
   let pillsEl = CategoryPills({
     categories: KNOWN_CATEGORIES,
     selected: activeCategory,
     lang: catLang,
-    onChange: (catId) => {
-      activeCategory = catId;
-      setURLParam('category', catId);
-      rebuildGrid();
-    },
+    onChange: (catId) => syncCategory(catId),
   });
   page.append(pillsEl);
 
@@ -351,6 +358,7 @@ export default function HomePage(root, { navigate }) {
       if (sp.get('district')) q.district = sp.get('district');
       if (sp.get('min_rating')) q.min_rating = sp.get('min_rating');
       if (sp.get('min_margin')) q.min_margin = sp.get('min_margin');
+      if (sp.get('sort')) q.sort = sp.get('sort');
       return q;
     }
 
@@ -404,6 +412,7 @@ export default function HomePage(root, { navigate }) {
   function rebuildGrid() {
     updateSearchPill();
     updateFilterBadge();
+    updateFloatingBarState && updateFloatingBarState();
 
     // Tear down old grid
     if (currentGridCleanup) { currentGridCleanup(); currentGridCleanup = null; }
@@ -438,8 +447,327 @@ export default function HomePage(root, { navigate }) {
     }
   }
 
+  // ── Floating Draggable "Browse & filter" Bar & Dropdown ────────────────────
+  const floatingBar = document.createElement('div');
+  floatingBar.className = 'home-floating-bar';
+  floatingBar.title = t('discover.controls.drag_hint', 'Drag to move');
+
+  const floatingToggle = document.createElement('button');
+  floatingToggle.type = 'button';
+  floatingToggle.className = 'home-floating-bar__toggle';
+  floatingToggle.setAttribute('aria-expanded', 'false');
+
+  const floatingIcon = document.createElement('span');
+  floatingIcon.className = 'home-floating-bar__toggle-icon';
+  floatingIcon.setAttribute('aria-hidden', 'true');
+  floatingIcon.innerHTML =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M7 12h10M11 18h2"/></svg>';
+
+  const floatingText = document.createElement('span');
+  floatingText.className = 'home-floating-bar__toggle-text';
+  floatingText.textContent = t('discover.controls.toggle', 'Browse & filter');
+
+  const floatingActive = document.createElement('span');
+  floatingActive.className = 'home-floating-bar__toggle-active';
+  floatingActive.hidden = true;
+
+  const floatingBadge = document.createElement('span');
+  floatingBadge.className = 'home-floating-bar__toggle-badge';
+  floatingBadge.hidden = true;
+
+  const floatingChevron = document.createElement('span');
+  floatingChevron.className = 'home-floating-bar__toggle-chevron';
+  floatingChevron.setAttribute('aria-hidden', 'true');
+  floatingChevron.innerHTML =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+
+  floatingToggle.append(floatingIcon, floatingText, floatingActive, floatingBadge, floatingChevron);
+  floatingBar.append(floatingToggle);
+  page.append(floatingBar);
+
+  // ── Floating Toolbar (Dropdown Panel) ──────────────────────────────────────
+  const floatingToolbar = document.createElement('div');
+  floatingToolbar.className = 'home-floating-toolbar';
+  floatingToolbar.hidden = true;
+
+  // 1. Feeds switcher row
+  const feedsRow = document.createElement('div');
+  feedsRow.className = 'home-floating-toolbar__feeds';
+  for (const feedDef of FEEDS) {
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = 'home-floating-toolbar__feed-tab';
+    tab.dataset.id = feedDef.id;
+    tab.textContent = t(feedDef.i18n);
+    tab.setAttribute('aria-selected', feedDef.id === activeFeed ? 'true' : 'false');
+    tab.addEventListener('click', () => syncFeed(feedDef.id));
+    feedsRow.append(tab);
+  }
+  floatingToolbar.append(feedsRow);
+
+  // 2. Category pills scroller
+  const floatingPills = CategoryPills({
+    categories: KNOWN_CATEGORIES,
+    selected: activeCategory,
+    lang: catLang,
+    onChange: (catId) => {
+      syncCategory(catId);
+      setControlsOpen(false);
+    },
+  });
+  floatingToolbar.append(floatingPills);
+
+  // 3. Controls row (Search, Sort, Filters, Clear)
+  const controlsRow = document.createElement('div');
+  controlsRow.className = 'home-floating-toolbar__controls';
+
+  // In-page quick search
+  const searchForm = document.createElement('form');
+  searchForm.className = 'home-floating-toolbar__search';
+  searchForm.setAttribute('role', 'search');
+  const searchIcon = document.createElement('span');
+  searchIcon.className = 'home-floating-toolbar__search-icon';
+  searchIcon.setAttribute('aria-hidden', 'true');
+  searchIcon.innerHTML =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'home-floating-toolbar__search-input';
+  searchInput.placeholder = t('marketplace.search_placeholder', 'Filter products...');
+  searchInput.setAttribute('aria-label', t('marketplace.search_placeholder', 'Filter products...'));
+  searchInput.autocomplete = 'off';
+  searchInput.value = new URLSearchParams(window.location.search).get('q') || '';
+  searchForm.append(searchIcon, searchInput);
+
+  let searchTimer = null;
+  function applyFloatingSearch() {
+    setURLParam('q', searchInput.value.trim());
+    rebuildGrid();
+  }
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyFloatingSearch, 300);
+  });
+  searchInput.addEventListener('search', applyFloatingSearch);
+  searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    clearTimeout(searchTimer);
+    applyFloatingSearch();
+  });
+  controlsRow.append(searchForm);
+
+  // Sort dropdown
+  const sortWrap = document.createElement('div');
+  sortWrap.className = 'home-floating-toolbar__sort';
+  const sortIcon = document.createElement('span');
+  sortIcon.setAttribute('aria-hidden', 'true');
+  sortIcon.innerHTML =
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>';
+  const sortSelect = document.createElement('select');
+  sortSelect.setAttribute('aria-label', t('product_detail.review.sort_label', 'Sort by'));
+  const currentSort = new URLSearchParams(window.location.search).get('sort') || '';
+  const sortOptions = [
+    { value: '', label: t('marketplace.sort_featured', 'Featured') },
+    { value: 'price_asc', label: t('marketplace.sort_price_asc', 'Price: Low to High') },
+    { value: 'price_desc', label: t('marketplace.sort_price_desc', 'Price: High to Low') },
+    { value: 'rating', label: t('marketplace.sort_rating', 'Highest Rated') },
+    { value: 'newest', label: t('marketplace.sort_newest', 'Newest') },
+  ];
+  for (const opt of sortOptions) {
+    const o = document.createElement('option');
+    o.value = opt.value;
+    o.textContent = opt.label;
+    if (opt.value === currentSort) o.selected = true;
+    sortSelect.append(o);
+  }
+  sortSelect.addEventListener('change', () => {
+    setURLParam('sort', sortSelect.value);
+    rebuildGrid();
+  });
+  sortWrap.append(sortIcon, sortSelect);
+  controlsRow.append(sortWrap);
+
+  // Filter drawer button
+  const filterBtn = document.createElement('button');
+  filterBtn.type = 'button';
+  filterBtn.className = 'home-floating-toolbar__filter-btn';
+  const filterBtnIcon = document.createElement('span');
+  filterBtnIcon.setAttribute('aria-hidden', 'true');
+  filterBtnIcon.innerHTML =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M7 12h10M11 18h2"/></svg>';
+  const filterBtnText = document.createElement('span');
+  filterBtnText.textContent = t('discover.filters.title', 'Filters');
+  filterBtn.append(filterBtnIcon, filterBtnText);
+  const filterBtnBadge = document.createElement('span');
+  filterBtnBadge.className = 'home-floating-toolbar__filter-badge';
+  filterBtn.append(filterBtnBadge);
+  filterBtn.addEventListener('click', () => {
+    filterResult.openDrawer(filterBtn);
+  });
+  controlsRow.append(filterBtn);
+
+  // Clear all button
+  const clearBtn = document.createElement('button');
+  clearBtn.type = 'button';
+  clearBtn.className = 'home-floating-toolbar__clear-btn';
+  clearBtn.innerHTML = '<span>&#10005;</span> <span>' + t('marketplace.clear_all', 'Clear all') + '</span>';
+  clearBtn.addEventListener('click', () => {
+    const sp = new URLSearchParams(window.location.search);
+    for (const key of ['category', 'q', 'sort', 'min_price', 'max_price', 'in_stock', 'tier', 'district', 'min_rating', 'min_margin']) {
+      sp.delete(key);
+    }
+    const newUrl = window.location.pathname + (sp.toString() ? '?' + sp.toString() : '');
+    window.history.replaceState(null, '', newUrl);
+    activeCategory = 'all';
+    searchInput.value = '';
+    sortSelect.value = '';
+    syncCategory('all');
+    setControlsOpen(false);
+  });
+  controlsRow.append(clearBtn);
+
+  floatingToolbar.append(controlsRow);
+  page.append(floatingToolbar);
+
+  // ── Toggle, Positioning & Dragging ─────────────────────────────────────────
+  let controlsOpen = false;
+  function setControlsOpen(open) {
+    controlsOpen = open;
+    floatingToolbar.hidden = !open;
+    floatingToggle.classList.toggle('is-open', open);
+    floatingToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      positionFloatingToolbar();
+      searchInput.focus();
+    }
+  }
+
+  floatingToggle.addEventListener('click', () => {
+    if (suppressClick) { suppressClick = false; return; }
+    setControlsOpen(!controlsOpen);
+  });
+
+  const DRAG_THRESHOLD = 4;
+  const DROPDOWN_GUTTER = 10;
+  let userMoved = false;
+  let suppressClick = false;
+  let press = null;
+
+  function positionFloatingToolbar() {
+    if (floatingToolbar.hidden || !userMoved) return;
+    const vw = window.innerWidth;
+    const left = floatingBar.offsetLeft + floatingBar.offsetWidth / 2 - floatingToolbar.offsetWidth / 2;
+    const clamped = Math.max(DROPDOWN_GUTTER, Math.min(left, vw - floatingToolbar.offsetWidth - DROPDOWN_GUTTER));
+    floatingToolbar.style.left = clamped + 'px';
+    floatingToolbar.style.top = (floatingBar.offsetTop + floatingBar.offsetHeight + DROPDOWN_GUTTER) + 'px';
+    floatingToolbar.style.transform = 'none';
+  }
+
+  function setBarPos(left, top) {
+    const maxLeft = window.innerWidth - floatingBar.offsetWidth;
+    const maxTop = window.innerHeight - floatingBar.offsetHeight;
+    const l = Math.max(0, Math.min(left, maxLeft));
+    const tp = Math.max(56, Math.min(top, maxTop));
+    floatingBar.style.left = l + 'px';
+    floatingBar.style.top = tp + 'px';
+    floatingBar.style.transform = 'none';
+    positionFloatingToolbar();
+  }
+
+  function onBarPointerDown(e) {
+    if (e.button != null && e.button !== 0) return;
+    press = { startX: e.clientX, startY: e.clientY, baseLeft: 0, baseTop: 0, dragging: false };
+  }
+  function onBarPointerMove(e) {
+    if (!press) return;
+    const dx = e.clientX - press.startX;
+    const dy = e.clientY - press.startY;
+    if (!press.dragging) {
+      if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+      press.dragging = true;
+      userMoved = true;
+      floatingBar.classList.add('is-dragging');
+      const barRect = floatingBar.getBoundingClientRect();
+      press.baseLeft = barRect.left;
+      press.baseTop = barRect.top;
+      try { floatingToggle.setPointerCapture(e.pointerId); } catch {}
+    }
+    e.preventDefault();
+    setBarPos(press.baseLeft + dx, press.baseTop + dy);
+  }
+  function onBarPointerUp() {
+    if (!press) return;
+    if (press.dragging) suppressClick = true;
+    floatingBar.classList.remove('is-dragging');
+    press = null;
+  }
+
+  floatingToggle.addEventListener('pointerdown', onBarPointerDown);
+  window.addEventListener('pointermove', onBarPointerMove);
+  window.addEventListener('pointerup', onBarPointerUp);
+  cleanups.push(() => {
+    window.removeEventListener('pointermove', onBarPointerMove);
+    window.removeEventListener('pointerup', onBarPointerUp);
+  });
+
+  const onWindowResize = () => {
+    if (!userMoved) return;
+    setBarPos(floatingBar.offsetLeft, floatingBar.offsetTop);
+  };
+  window.addEventListener('resize', onWindowResize);
+  cleanups.push(() => window.removeEventListener('resize', onWindowResize));
+
+  const onDocPointerDown = (e) => {
+    if (!controlsOpen) return;
+    if (floatingToolbar.contains(e.target) || floatingToggle.contains(e.target)) return;
+    if (e.target.closest && (e.target.closest('.drawer') || e.target.closest('.modal'))) return;
+    setControlsOpen(false);
+  };
+  const onDocKeydown = (e) => {
+    if (e.key === 'Escape' && controlsOpen) {
+      setControlsOpen(false);
+      floatingToggle.focus();
+    }
+  };
+  document.addEventListener('pointerdown', onDocPointerDown);
+  document.addEventListener('keydown', onDocKeydown);
+  cleanups.push(() => {
+    document.removeEventListener('pointerdown', onDocPointerDown);
+    document.removeEventListener('keydown', onDocKeydown);
+  });
+
+  function updateFloatingBarState() {
+    const sp = new URLSearchParams(window.location.search);
+    const activeFiltersCount = countActiveFilters();
+    const hasCategory = activeCategory && activeCategory !== 'all';
+    const hasSearch = Boolean(sp.get('q'));
+    const hasSort = Boolean(sp.get('sort'));
+
+    if (hasCategory) {
+      const catObj = KNOWN_CATEGORIES.find((c) => c.id === activeCategory);
+      const label = catObj ? (getLanguage() === 'bn' ? (catObj.label_bn || catObj.id) : (catObj.label_en || catObj.id)) : activeCategory;
+      floatingActive.textContent = label;
+      floatingActive.hidden = false;
+    } else {
+      floatingActive.hidden = true;
+    }
+
+    floatingBadge.textContent = activeFiltersCount > 0 ? String(activeFiltersCount) : '';
+    floatingBadge.hidden = activeFiltersCount === 0;
+    filterBtnBadge.textContent = activeFiltersCount > 0 ? String(activeFiltersCount) : '';
+    filterBtnBadge.hidden = activeFiltersCount === 0;
+
+    const hasAnyActive = hasCategory || hasSearch || hasSort || activeFiltersCount > 0;
+    floatingToggle.classList.toggle('has-active', hasAnyActive);
+    clearBtn.style.display = hasAnyActive ? 'inline-flex' : 'none';
+
+    searchInput.value = sp.get('q') || '';
+    sortSelect.value = sp.get('sort') || '';
+  }
+
   // Initial grid render
   rebuildGrid();
+
 
   // Listen to custom search events dispatched by TopBar
   const onSearchEvent = () => rebuildGrid();

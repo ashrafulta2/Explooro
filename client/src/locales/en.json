@@ -468,6 +468,12 @@
       "out_of_stock": "Out of Stock"
     },
     "product_count": "{{count}} products",
+    "sort_featured": "Featured",
+    "sort_price_asc": "Price: Low to High",
+    "sort_price_desc": "Price: High to Low",
+    "sort_rating": "Highest Rated",
+    "sort_newest": "Newest",
+    "clear_all": "Clear all",
     "flash_sale": {
       "title": "Flash Sale",
       "ends_in": "Ends in",

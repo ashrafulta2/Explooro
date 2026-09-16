@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Mock handlers for the product catalog — cursor-paginated per docs/api-contract.md §4.1.
  */
 import products from '../fixtures/products.json' with { type: 'json' };
@@ -271,6 +271,17 @@ export default [
       }
       if (query.min_margin) {
         filtered = filtered.filter((p) => (p.margin_pct ?? 0) >= Number(query.min_margin));
+      }
+      if (query.sort) {
+        if (query.sort === 'price_asc') {
+          filtered.sort((a, b) => Number(a.price) - Number(b.price));
+        } else if (query.sort === 'price_desc') {
+          filtered.sort((a, b) => Number(b.price) - Number(a.price));
+        } else if (query.sort === 'rating') {
+          filtered.sort((a, b) => Number(b.rating ?? 0) - Number(a.rating ?? 0));
+        } else if (query.sort === 'newest') {
+          filtered.sort((a, b) => String(b.id || '').localeCompare(String(a.id || '')));
+        }
       }
 
       const limit = Math.min(Number(query.limit) || 100, 200);
