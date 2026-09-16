@@ -4,11 +4,20 @@
       "title": "Discover",
       "desc": "A personalized feed of products picked for you — swipe through one at a time.",
       "subtitle": "Swipe through products picked for you.",
-      "personalized": "Tuned to what you’ve been browsing."
+      "personalized": "Tuned to what you’ve been browsing.",
+      "multi_subtitle": "Curated for you: trending, popular, and personalized picks."
+    },
+    "reason": {
+      "browsed": "Recently viewed",
+      "interest": "Based on your interests",
+      "trending": "Trending in Bangladesh",
+      "bestseller": "Top buying & bestseller",
+      "crowd": "What others are looking for"
     },
     "aria": { "feed": "Product discovery feed" },
     "search": { "placeholder": "Search this feed" },
     "filters": { "title": "Filters" },
+    "controls": { "toggle": "Browse & filter" },
     "nav": { "previous": "Previous product", "next": "Next product" },
     "badge": { "flash_sale": "Flash sale" },
     "reviews": "{{count}} reviews",

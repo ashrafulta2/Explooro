@@ -237,21 +237,21 @@ export default function HomePage(root, { navigate }) {
     flashSection = null;
   }
 
-  // ── Filter panel + product grid layout ──────────────────────────────────
+  // ── Product catalog section ──────────────────────────────────────────────
   const catalogSection = document.createElement('div');
   catalogSection.className = 'home-catalog';
   page.append(catalogSection);
 
-  // Filter panel
+  // Filter panel (opened on-demand via the expandable drawer)
   const filterResult = FilterPanel({ role, lang: getLanguage(), onChange: () => rebuildGrid() });
-  catalogSection.append(filterResult.el);
   cleanups.push(filterResult.cleanup);
 
-  // Grid column
+  // Grid column (full width uncluttered)
   const gridColumn = document.createElement('div');
+  gridColumn.className = 'home-catalog__grid-col';
   catalogSection.append(gridColumn);
 
-  // Toolbar (sort + mobile filter trigger)
+  // Toolbar (count + filter trigger button)
   const toolbar = document.createElement('div');
   toolbar.className = 'product-grid-toolbar';
 
@@ -272,24 +272,30 @@ export default function HomePage(root, { navigate }) {
   const toolbarRight = document.createElement('div');
   toolbarRight.className = 'product-grid-toolbar__right';
 
-  // Mobile filter trigger
+  // Filter trigger button (convenient, uncluttered, expands drawer on demand)
   const filterTriggerBtn = document.createElement('button');
   filterTriggerBtn.type = 'button';
   filterTriggerBtn.className = 'filter-trigger';
   const filterIcon = document.createElement('span');
   filterIcon.setAttribute('aria-hidden', 'true');
   filterIcon.innerHTML =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h18M7 12h10M11 18h2"/></svg>';
-  filterTriggerBtn.append(filterIcon);
-  filterTriggerBtn.append(document.createTextNode(t('marketplace.filter.title')));
-  const activeCount = countActiveFilters();
-  if (activeCount > 0) {
-    const badge = document.createElement('span');
-    badge.className = 'filter-trigger__badge';
-    badge.textContent = String(activeCount);
-    filterTriggerBtn.append(badge);
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M7 12h10M11 18h2"/></svg>';
+  const filterText = document.createElement('span');
+  filterText.textContent = t('marketplace.filter.title');
+  filterTriggerBtn.append(filterIcon, filterText);
+
+  const filterBadge = document.createElement('span');
+  filterBadge.className = 'filter-trigger__badge';
+  filterTriggerBtn.append(filterBadge);
+
+  function updateFilterBadge() {
+    const activeCount = countActiveFilters();
+    filterBadge.textContent = activeCount > 0 ? String(activeCount) : '';
+    filterBadge.hidden = activeCount === 0;
   }
-  filterTriggerBtn.addEventListener('click', () => filterResult.openDrawer());
+  updateFilterBadge();
+
+  filterTriggerBtn.addEventListener('click', () => filterResult.openDrawer(filterTriggerBtn));
   toolbarRight.append(filterTriggerBtn);
   toolbar.append(toolbarRight);
   gridColumn.append(toolbar);
@@ -397,6 +403,7 @@ export default function HomePage(root, { navigate }) {
 
   function rebuildGrid() {
     updateSearchPill();
+    updateFilterBadge();
 
     // Tear down old grid
     if (currentGridCleanup) { currentGridCleanup(); currentGridCleanup = null; }

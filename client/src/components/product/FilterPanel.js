@@ -647,35 +647,40 @@ export function FilterPanel({
     }
   }
 
-  // ── Mobile Drawer ────────────────────────────────────────────────────────
-  let drawerCleanup = null;
-  function openDrawer() {
-    const drawerContentWrap = document.createElement('div');
-    drawerContentWrap.className = 'filter-drawer-content';
-    // Clone the panel content into the drawer — always expanded; the collapse toggle is a
-    // desktop-only affordance and the clone has no live listeners to make it do anything.
-    const clone = content.cloneNode(true);
-    clone.dataset.collapsed = 'false';
-    clone.querySelector('.filter-panel__collapse-toggle')?.remove();
-    drawerContentWrap.append(clone);
+  // ── Expandable Filter Drawer (Desktop & Mobile) ───────────────────────────
+  let activeDrawer = null;
+  function openDrawer(trigger = null) {
+    if (activeDrawer && activeDrawer.isOpen && activeDrawer.isOpen()) return;
+    content.dataset.collapsed = 'false';
+    const collapseToggle = content.querySelector('.filter-panel__collapse-toggle');
+    if (collapseToggle) collapseToggle.style.display = 'none';
 
-    // WHY: We open a fresh Drawer each time; the cloned content does not have live event
-    // listeners, so we re-wire events on the cloned content below — a pragmatic approach
-    // until a proper state-driven rendering pass exists in Phase 4+.
-    // For now, the mobile Drawer shows the current filter state read-only (URL-based) and
-    // the desktop sidebar handles changes. Full drawer interactivity is done via a simpler
-    // approach: clicking "Apply" in the drawer re-reads the URL form.
-    Drawer({
+    // Ensure clearBtn is available for drawer header
+    clearBtn.style.display = '';
+
+    activeDrawer = Drawer({
       title: t('marketplace.filter.title'),
-      content: drawerContentWrap,
+      headerAction: clearBtn,
+      content: content,
       side: 'left',
+      className: 'drawer--filter',
+      lockBodyScroll: false,
+      onClose: () => {
+        if (header && !header.contains(clearBtn)) {
+          header.insertBefore(clearBtn, collapseBtn);
+        }
+        activeDrawer = null;
+      },
     });
+    activeDrawer.openDrawer(trigger);
   }
 
   function cleanup() {
     document.removeEventListener('click', onDocClick);
     window.removeEventListener('pointerup', stopSliding);
-    drawerCleanup && drawerCleanup();
+    // Close any open filter drawer so it doesn't linger after the page unmounts.
+    if (activeDrawer && activeDrawer.isOpen?.()) activeDrawer.closeDrawer?.();
+    activeDrawer = null;
   }
 
   return { el: content, openDrawer, cleanup, setPriceBounds };

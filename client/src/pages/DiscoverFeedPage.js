@@ -84,21 +84,44 @@ export default function DiscoverFeedPage(root, { navigate }) {
   page.className = 'discover-page';
   page.dataset.audience = audience;
 
-  // ── Header ──────────────────────────────────────────────────────────────
-  const header = document.createElement('div');
-  header.className = 'discover-page__header';
-  const heading = document.createElement('h1');
-  heading.className = 'discover-page__heading';
-  heading.textContent = t('discover.page.title');
-  const hint = document.createElement('span');
-  hint.className = 'discover-page__hint';
-  hint.textContent = t('discover.page.subtitle');
-  header.append(heading, hint);
-  page.append(header);
+  // ── Compact control bar: a single toggle that reveals the refinements ────
+  // WHY: the category pills + search + filters used to occupy a permanent two-row band above the
+  // feed, eating vertical space the product card needs. They now live in a dropdown revealed only
+  // on demand, so the feed owns the full viewport by default and the controls never clutter it.
+  const bar = document.createElement('div');
+  bar.className = 'discover-page__bar';
 
-  // ── Toolbar: category pills + search + filter trigger ───────────────────
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'discover-page__toggle';
+  toggle.setAttribute('aria-expanded', 'false');
+  const toggleIcon = document.createElement('span');
+  toggleIcon.className = 'discover-page__toggle-icon';
+  toggleIcon.setAttribute('aria-hidden', 'true');
+  toggleIcon.innerHTML =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M7 12h10M11 18h2"></path></svg>';
+  const toggleText = document.createElement('span');
+  toggleText.className = 'discover-page__toggle-text';
+  toggleText.textContent = t('discover.controls.toggle');
+  const toggleActive = document.createElement('span');
+  toggleActive.className = 'discover-page__toggle-active';
+  toggleActive.hidden = true;
+  const toggleBadge = document.createElement('span');
+  toggleBadge.className = 'discover-page__toggle-badge';
+  toggleBadge.hidden = true;
+  const toggleChevron = document.createElement('span');
+  toggleChevron.className = 'discover-page__toggle-chevron';
+  toggleChevron.setAttribute('aria-hidden', 'true');
+  toggleChevron.innerHTML =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>';
+  toggle.append(toggleIcon, toggleText, toggleActive, toggleBadge, toggleChevron);
+  bar.append(toggle);
+  page.append(bar);
+
+  // ── Toolbar (dropdown): category pills + search + filter trigger ────────
   const toolbar = document.createElement('div');
   toolbar.className = 'discover-page__toolbar';
+  toolbar.hidden = true;
 
   const pills = CategoryPills({
     categories: KNOWN_CATEGORIES,
@@ -107,6 +130,7 @@ export default function DiscoverFeedPage(root, { navigate }) {
     onChange: (catId) => {
       setUrlParam('category', catId);
       reload();
+      setControlsOpen(false); // picking a category reveals the filtered feed immediately
     },
   });
   toolbar.append(pills);
@@ -149,8 +173,7 @@ export default function DiscoverFeedPage(root, { navigate }) {
   });
   controls.append(searchForm);
 
-  // Filter trigger — opens the FilterPanel drawer on mobile (the sidebar is always visible on
-  // desktop). Carries a badge with the active-filter count.
+  // Filter trigger button — opens the FilterPanel drawer on all devices. Carries active count badge.
   const filterBtn = document.createElement('button');
   filterBtn.type = 'button';
   filterBtn.className = 'discover-page__filter-btn';
@@ -168,7 +191,7 @@ export default function DiscoverFeedPage(root, { navigate }) {
   toolbar.append(controls);
   page.append(toolbar);
 
-  // ── Body: filter sidebar + feed ─────────────────────────────────────────
+  // ── Body: full-width centered feed ───────────────────────────────────────
   const body = document.createElement('div');
   body.className = 'discover-page__body';
 
@@ -177,32 +200,15 @@ export default function DiscoverFeedPage(root, { navigate }) {
     lang,
     onChange: () => reload(),
   });
-  body.append(filterResult.el);
-  // Mobile: hand the drawer the LIVE panel (not FilterPanel.openDrawer's read-only clone), so
-  // filters stay interactive on phones — then return it to the sidebar slot on close so a resize
-  // to desktop still finds it. onClose fires on every dismiss path (button, scrim, Esc, drag).
-  let filterInDrawer = false;
+
   filterBtn.addEventListener('click', () => {
-    if (filterInDrawer) return;
-    filterInDrawer = true;
-    Drawer({
-      title: t('discover.filters.title'),
-      content: filterResult.el,
-      side: 'left',
-      onClose: () => {
-        body.insertBefore(filterResult.el, feed.el);
-        filterInDrawer = false;
-      },
-    });
+    filterResult.openDrawer(filterBtn);
   });
 
   const feed = ProductFeed({
     audience,
     navigate,
     filters: filtersFromUrl(),
-    onFilterHint: (meta) => {
-      hint.textContent = meta?.personalized ? t('discover.page.personalized') : t('discover.page.subtitle');
-    },
     onFirstPage: (products) => {
       const prices = products.map((p) => Number(p.price)).filter((n) => Number.isFinite(n) && n > 0);
       if (prices.length) filterResult.setPriceBounds?.(Math.min(...prices), Math.max(...prices));
@@ -211,22 +217,80 @@ export default function DiscoverFeedPage(root, { navigate }) {
   body.append(feed.el);
   page.append(body);
 
-  function updateFilterBadge() {
-    const count = countActiveFilters();
-    filterBadge.textContent = count > 0 ? String(count) : '';
-    filterBadge.hidden = count === 0;
+  // ── Toggle (show/hide the refinements dropdown) ──────────────────────────
+  let controlsOpen = false;
+  function setControlsOpen(open) {
+    controlsOpen = open;
+    toolbar.hidden = !open;
+    toggle.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) searchInput.focus();
+  }
+  toggle.addEventListener('click', () => setControlsOpen(!controlsOpen));
+
+  const onDocPointerDown = (e) => {
+    if (!controlsOpen) return;
+    if (toolbar.contains(e.target) || toggle.contains(e.target)) return;
+    setControlsOpen(false);
+  };
+  const onDocKeydown = (e) => {
+    if (e.key === 'Escape' && controlsOpen) {
+      setControlsOpen(false);
+      toggle.focus();
+    }
+  };
+  document.addEventListener('pointerdown', onDocPointerDown);
+  document.addEventListener('keydown', onDocKeydown);
+
+  function activeCategoryLabel() {
+    const cat = new URLSearchParams(window.location.search).get('category');
+    if (!cat || cat === 'all') return '';
+    const found = KNOWN_CATEGORIES.find((c) => c.id === cat);
+    if (!found) return cat;
+    return lang === 'bn' ? found.label_bn || found.label_en : found.label_en;
+  }
+
+  function updateControlsState() {
+    const filterCount = countActiveFilters();
+    filterBadge.textContent = filterCount > 0 ? String(filterCount) : '';
+    filterBadge.hidden = filterCount === 0;
+
+    // The toggle summarizes every active refinement so the collapsed bar still shows what's applied.
+    const sp = new URLSearchParams(window.location.search);
+    const activeCount = filterCount + (activeCategoryLabel() ? 1 : 0) + (sp.get('q') ? 1 : 0);
+    const catLabel = activeCategoryLabel();
+    toggleActive.textContent = catLabel;
+    toggleActive.hidden = !catLabel;
+    toggleBadge.textContent = activeCount > 0 ? String(activeCount) : '';
+    toggleBadge.hidden = activeCount === 0;
+    toggle.classList.toggle('has-active', activeCount > 0);
   }
 
   function reload() {
-    updateFilterBadge();
+    updateControlsState();
     feed.reload(filtersFromUrl());
   }
 
-  updateFilterBadge();
+  updateControlsState();
+
+  // Lock the outer shell to the viewport so the window never scrolls under the topbar.
+  root.classList.add('app-shell__page--discover');
+
+  // Forward wheel gestures on page margins/header to advance the feed.
+  const onPageWheel = (e) => {
+    if (e.target.closest('.category-pills') || e.target.closest('input') || e.target.closest('.discover-feed')) return;
+    e.preventDefault();
+    feed.step(e.deltaY > 0 ? 1 : -1);
+  };
+  page.addEventListener('wheel', onPageWheel, { passive: false });
 
   root.append(page);
   return () => {
     clearTimeout(searchTimer);
+    page.removeEventListener('wheel', onPageWheel);
+    document.removeEventListener('pointerdown', onDocPointerDown);
+    document.removeEventListener('keydown', onDocKeydown);
+    root.classList.remove('app-shell__page--discover');
     filterResult.cleanup();
     feed.cleanup();
   };

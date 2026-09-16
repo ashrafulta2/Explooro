@@ -5,44 +5,131 @@
  * route chunk — it never weighs on the entry bundle. All colours come from design tokens; no raw hex.
  */
 
+/* ── Shell lock & container: strictly fits viewport below topbar without window scrolling ── */
+.app-shell__page:has(.discover-page),
+.app-shell__page.app-shell__page--discover {
+  padding: var(--space-2) var(--space-4) var(--space-2);
+  height: calc(100dvh - var(--topbar-h, 56px));
+  max-height: calc(100dvh - var(--topbar-h, 56px));
+  overflow: hidden;
+  box-sizing: border-box;
+}
+@media (max-width: 767px) {
+  .app-shell__page:has(.discover-page),
+  .app-shell__page.app-shell__page--discover {
+    padding: var(--space-1) var(--space-2) calc(var(--space-1) + 64px);
+  }
+}
+
 .discover-page {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  /* Fixed to the viewport so the feed underneath can own a scroll-snap region of its own. */
-  height: calc(100dvh - var(--topbar-h, 56px) - 2 * var(--space-6));
-  min-height: 520px;
+  gap: var(--space-2);
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.discover-page__header {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  flex: none;
-}
-.discover-page__heading {
-  font-size: var(--text-2xl);
-  font-weight: var(--weight-bold);
-  color: var(--text-primary);
-  margin: 0;
-}
-.discover-page__hint {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-}
-
-/* ── Toolbar (category pills + search + filter trigger) ─────────────────────── */
-.discover-page__toolbar {
+/* ── Compact control bar: a single toggle above the feed ───────────────────── */
+.discover-page__bar {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
   flex: none;
+  padding: 0 var(--space-1);
 }
+.discover-page__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 38px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-default);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard),
+    border-color var(--dur-fast) var(--ease-standard);
+}
+.discover-page__toggle:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+.discover-page__toggle.is-open {
+  background: var(--surface-2);
+  border-color: var(--brand);
+}
+.discover-page__toggle.has-active {
+  border-color: var(--brand);
+}
+.discover-page__toggle-icon { display: inline-flex; color: var(--text-secondary); }
+.discover-page__toggle-active {
+  max-width: 160px;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--brand-alt);
+  color: var(--brand-alt-contrast);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.discover-page__toggle-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--brand);
+  color: var(--brand-contrast);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+.discover-page__toggle-chevron {
+  display: inline-flex;
+  color: var(--text-secondary);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+.discover-page__toggle.is-open .discover-page__toggle-chevron { transform: rotate(180deg); }
+
+/* ── Toolbar dropdown (category pills + search + filter trigger) ────────────── */
+.discover-page__toolbar {
+  position: absolute;
+  z-index: 20;
+  top: 44px;
+  left: var(--space-1);
+  right: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-3);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--elevation-3, 0 10px 30px -8px hsl(var(--shadow-color) / 0.18));
+}
+.discover-page__toolbar[hidden] { display: none; }
 .discover-page__toolbar .category-pills {
-  flex: 1 1 260px;
+  flex: 1 1 auto;
   min-width: 0;
+  height: auto;
+  border-bottom: none;
+  padding: 0;
+}
+/* WHY: category text read as too small; bump it up (from --text-xs) and give pills more padding
+   so the labels are comfortably legible in the dropdown. */
+.discover-page__toolbar .category-pills__pill {
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-4);
 }
 .discover-page__controls {
   display: flex;
@@ -54,7 +141,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: 40px;
+  height: 36px;
   padding: 0 var(--space-3);
   background: var(--surface-2);
   border: var(--border-width) solid var(--border-subtle);
@@ -70,21 +157,26 @@
   outline: none;
   font-size: var(--text-sm);
   color: var(--text-primary);
-  width: 180px;
-  max-width: 46vw;
+  width: 170px;
+  max-width: 35vw;
 }
 .discover-page__filter-btn {
-  display: none; /* desktop uses the always-visible sidebar; this is the mobile drawer trigger */
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  height: 40px;
+  height: 36px;
   padding: 0 var(--space-3);
   border-radius: var(--radius-full);
   background: var(--surface-1);
   border: var(--border-width) solid var(--border-subtle);
   color: var(--text-primary);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+.discover-page__filter-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
 }
 .discover-page__filter-badge {
   display: inline-flex;
@@ -100,34 +192,30 @@
   font-weight: var(--weight-semibold);
 }
 
-/* ── Body: filter sidebar + feed ───────────────────────────────────────────── */
+/* ── Body: full-width centered feed ───────────────────────────────────────── */
 .discover-page__body {
   flex: 1 1 auto;
   min-height: 0;
-  display: grid;
-  /* `auto` (not a fixed 260px) so the first track always tracks the filter panel's own width — full
-     when expanded, a thin rail when collapsed (product.css shrinks it to 44px). The feed's 1fr then
-     reflows to fill the freed space, with no dead gutter. Mirrors HomePage's .home-catalog, and
-     keeps the width transition smooth (a :has() track swap would fight the panel's own animation). */
-  grid-template-columns: auto 1fr;
-  gap: var(--space-4);
-}
-.discover-page__body .filter-panel {
-  align-self: start;
-  max-height: 100%;
-  overflow-y: auto;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* ── Feed viewport ─────────────────────────────────────────────────────────── */
 .discover-feed {
   position: relative;
-  /* Fills its grid cell, which stretches to the fixed-height page body. */
+  flex: 1 1 auto;
   height: 100%;
   min-height: 0;
+  width: 100%;
+  max-width: 1020px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--surface-1);
   border: var(--border-width) solid var(--border-subtle);
+  box-shadow: 0 4px 20px -4px hsl(var(--shadow-color) / 0.08);
 }
 .discover-feed:focus-visible {
   outline: 2px solid var(--brand);
@@ -140,6 +228,7 @@
   scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   scrollbar-width: none;
+  overscroll-behavior-y: contain;
 }
 .discover-feed__scroller::-webkit-scrollbar { display: none; }
 
@@ -148,12 +237,14 @@
   scroll-snap-align: start;
   scroll-snap-stop: always;
   height: 100%;
+  max-height: 100%;
   min-height: 100%;
   display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  gap: var(--space-5);
-  padding: var(--space-5);
+  grid-template-columns: 1.1fr 1fr;
+  gap: var(--space-4);
+  padding: var(--space-4);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .discover-slide__media {
@@ -162,12 +253,61 @@
   overflow: hidden;
   background: var(--surface-2);
   min-height: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  box-sizing: border-box;
+}
+.discover-slide__media.is-clickable { cursor: pointer; }
+.discover-slide__media.is-clickable:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
 }
 .discover-slide__img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
   display: block;
+  transition: transform var(--dur-normal, 250ms) var(--ease-standard);
+}
+.discover-slide__media.is-clickable:hover .discover-slide__img,
+.discover-slide__media.is-clickable:focus-visible .discover-slide__img {
+  transform: scale(1.04);
+}
+
+/* Hover affordance revealing the card is a link to the product page. */
+.discover-slide__view-hint {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-3);
+  transform: translate(-50%, 8px);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  box-shadow: var(--elevation-2, 0 2px 8px hsl(var(--shadow-color) / 0.12));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-standard), transform var(--dur-fast) var(--ease-standard);
+}
+.discover-slide__media.is-clickable:hover .discover-slide__view-hint,
+.discover-slide__media.is-clickable:focus-visible .discover-slide__view-hint {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+@media (hover: none) {
+  .discover-slide__view-hint { display: none; }
 }
 .discover-slide__chip,
 .discover-slide__flash {
@@ -194,10 +334,80 @@
 .discover-slide__panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   min-height: 0;
+  height: 100%;
   overflow-y: auto;
-  padding-right: var(--space-2);
+  padding-right: var(--space-1);
+  /* Content is sized to fit within the card; if a very long description pushes past the edge it can
+     still scroll (buy bar stays pinned), but the scrollbar itself is hidden for a clean surface. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.discover-slide__panel::-webkit-scrollbar { display: none; }
+.discover-slide__reason {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+  padding: 3px var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+}
+.discover-slide__reason-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.discover-slide__reason-icon svg {
+  display: block;
+}
+.discover-slide__reason--trending {
+  background: oklch(from var(--danger-500) l c h / 0.12);
+  color: var(--danger-700);
+  border: 1px solid oklch(from var(--danger-500) l c h / 0.25);
+}
+.discover-slide__reason--bestseller {
+  background: oklch(from var(--warning-500) l c h / 0.14);
+  color: var(--warning-700);
+  border: 1px solid oklch(from var(--warning-500) l c h / 0.3);
+}
+.discover-slide__reason--interest {
+  background: oklch(from var(--brand-500) l c h / 0.12);
+  color: var(--brand-700);
+  border: 1px solid oklch(from var(--brand-500) l c h / 0.25);
+}
+.discover-slide__reason--browsed {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+.discover-slide__reason--crowd {
+  background: oklch(from var(--brand-alt) l c h / 0.12);
+  color: var(--brand-alt);
+  border: 1px solid oklch(from var(--brand-alt) l c h / 0.25);
+}
+[data-theme='dark'] .discover-slide__reason--trending {
+  background: oklch(from var(--danger-500) l c h / 0.2);
+  color: var(--danger-300);
+}
+[data-theme='dark'] .discover-slide__reason--bestseller {
+  background: oklch(from var(--warning-500) l c h / 0.2);
+  color: var(--warning-300);
+}
+[data-theme='dark'] .discover-slide__reason--interest {
+  background: oklch(from var(--brand-500) l c h / 0.2);
+  color: var(--brand-300);
+}
+[data-theme='dark'] .discover-slide__reason--browsed {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+[data-theme='dark'] .discover-slide__reason--crowd {
+  background: oklch(from var(--brand-alt) l c h / 0.2);
+  color: var(--brand-alt-contrast);
 }
 .discover-slide__title {
   font-size: var(--text-xl);
@@ -205,6 +415,17 @@
   color: var(--text-primary);
   margin: 0;
   line-height: 1.25;
+  /* No overflow clamp here on purpose: this h2 is a direct flex child of the scrolling panel, and any
+     `overflow` value other than `visible` drops its automatic min-size to 0, letting flexbox shrink
+     the title to zero height when the panel overflows. Long titles simply wrap; the panel scrolls. */
+  flex-shrink: 0;
+}
+.discover-slide__title.is-clickable { cursor: pointer; transition: color var(--dur-fast) var(--ease-standard); }
+.discover-slide__title.is-clickable:hover { color: var(--brand); }
+.discover-slide__title.is-clickable:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 .discover-slide__meta {
   display: flex;
@@ -241,7 +462,7 @@
   color: var(--text-secondary);
   margin: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -315,6 +536,129 @@
 .discover-slide__qty-input::-webkit-outer-spin-button,
 .discover-slide__qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
+/* Actions container & multi-action rows in Discover feed */
+.discover-slide__actions-container {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-2);
+  background: var(--surface-1);
+  border-top: var(--border-width) solid var(--border-subtle);
+  z-index: 5;
+}
+
+.discover-slide__action-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.discover-slide__action-row--primary {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.discover-slide__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 42px;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+
+.discover-slide__btn .btn-icon-svg {
+  display: inline-flex;
+  align-items: center;
+}
+
+.discover-slide__btn--cart {
+  flex: 1 1 55%;
+  background: var(--brand);
+  color: var(--brand-contrast);
+  font-weight: 700;
+  box-shadow: var(--elevation-1);
+}
+
+.discover-slide__btn--cart:hover:not(:disabled) {
+  background: var(--brand-hover);
+  transform: translateY(-1px);
+}
+
+.discover-slide__btn--quick {
+  flex: 1 1 45%;
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-strong);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.discover-slide__btn--quick:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.discover-slide__wishlist-wrap {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.discover-slide__action-row--secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.discover-slide__social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 38px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-default);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+
+.discover-slide__social-btn:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.discover-slide__discount-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 5px;
+  background: var(--success-100);
+  color: var(--success-800);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: auto;
+}
+[data-theme='dark'] .discover-slide__discount-badge {
+  background: oklch(from var(--success-800) l c h / 0.25);
+  color: var(--success-300);
+}
+
 /* Pinned to the bottom of the (scrolling) panel so a short product no longer leaves a gap above the
    buttons: content flows from the top, the buy bar sticks to the bottom edge and content scrolls
    under it. */
@@ -365,13 +709,6 @@
 .discover-feed__nav-btn:hover { background: var(--surface-2); }
 .discover-feed__nav-btn:active { transform: scale(0.94); }
 
-/* ── Mobile: filters move to the drawer; media stacks over the panel ────────── */
-@media (max-width: 899px) {
-  /* The filter sidebar becomes the drawer opened by the trigger button. */
-  .discover-page__body { grid-template-columns: 1fr; }
-  .discover-page__body > .filter-panel { display: none; }
-  .discover-page__filter-btn { display: inline-flex; }
-}
 
 @media (max-width: 767px) {
   .discover-page {

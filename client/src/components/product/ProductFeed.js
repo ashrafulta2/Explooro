@@ -34,6 +34,10 @@ import { getProduct, addToSalerStore } from '../../services/catalog.api.js';
 import { resolveProductImage } from './ProductCard.js';
 import { VariantSelector } from './VariantSelector.js';
 import { WishlistButton } from '../cart/WishlistButton.js';
+import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
+import { openTeamPurchaseModal } from './TeamPurchaseModal.js';
+import { api } from '../../core/api.js';
+import { appStore } from '../../state/appStore.js';
 import { EmptyState } from '../ui/EmptyState.js';
 import { Skeleton } from '../ui/Skeleton.js';
 
@@ -173,15 +177,48 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     slide.dataset.key = key;
     slide.setAttribute('aria-label', titleOf(p, lang));
 
-    // Media
+    // Navigate to the full product page. Wired to the (clickable) media and title below, so the
+    // whole visual card acts as the link — no separate "View details" button needed.
+    const goToDetail = () => {
+      const targetId = p.ref || p.id || p.slug;
+      recordEvent({ event_type: 'CLICK', ...eventContext(p) }, { audience });
+      if (navigate) navigate(`/product/${targetId}`);
+      else window.location.href = `/product/${targetId}`;
+    };
+
+    // Media (clickable → product detail)
     const media = document.createElement('div');
-    media.className = 'discover-slide__media';
+    media.className = 'discover-slide__media is-clickable';
+    media.setAttribute('role', 'link');
+    media.tabIndex = 0;
+    media.setAttribute('aria-label', t('discover.cta.view_details'));
     const img = document.createElement('img');
     img.className = 'discover-slide__img';
     img.loading = 'lazy';
     img.alt = titleOf(p, lang);
     img.src = p.image_url || resolveProductImage(p);
+    // Fall back to a neutral placeholder if the source 404s, so the media never shows a blank box.
+    img.addEventListener('error', () => {
+      if (img.dataset.fallbackApplied) return;
+      img.dataset.fallbackApplied = '1';
+      img.src = resolveProductImage(p);
+    }, { once: true });
     media.append(img);
+
+    // Hover affordance so it reads as tappable ("View details →").
+    const viewHint = document.createElement('span');
+    viewHint.className = 'discover-slide__view-hint';
+    viewHint.innerHTML =
+      `<span>${t('discover.cta.view_details')}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+    media.append(viewHint);
+
+    media.addEventListener('click', goToDetail);
+    media.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        goToDetail();
+      }
+    });
 
     const category = categoryOf(p, lang);
     if (category) {
@@ -201,9 +238,55 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     const panel = document.createElement('div');
     panel.className = 'discover-slide__panel';
 
+    // Multi-parameter recommendation badge (why this product is shown)
+    const REASON_I18N = {
+      trending: 'discover.reason.trending',
+      bestseller: 'discover.reason.bestseller',
+      interest: 'discover.reason.interest',
+      browsed: 'discover.reason.browsed',
+      crowd: 'discover.reason.crowd',
+    };
+    const reasonType = p.recommendation_reason || 'trending';
+    const reasonWrap = document.createElement('div');
+    reasonWrap.className = `discover-slide__reason discover-slide__reason--${reasonType}`;
+
+    let reasonSvg = '';
+    if (reasonType === 'trending') {
+      reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 3.5z"/></svg>';
+    } else if (reasonType === 'bestseller') {
+      reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>';
+    } else if (reasonType === 'interest') {
+      reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    } else if (reasonType === 'browsed') {
+      reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    } else {
+      reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+    }
+
+    const reasonIconSpan = document.createElement('span');
+    reasonIconSpan.className = 'discover-slide__reason-icon';
+    reasonIconSpan.setAttribute('aria-hidden', 'true');
+    reasonIconSpan.innerHTML = reasonSvg;
+
+    const reasonTextSpan = document.createElement('span');
+    reasonTextSpan.className = 'discover-slide__reason-text';
+    reasonTextSpan.textContent = t(REASON_I18N[reasonType] || 'discover.reason.trending');
+
+    reasonWrap.append(reasonIconSpan, reasonTextSpan);
+    panel.append(reasonWrap);
+
     const title = document.createElement('h2');
-    title.className = 'discover-slide__title';
+    title.className = 'discover-slide__title is-clickable';
     title.textContent = titleOf(p, lang);
+    title.setAttribute('role', 'link');
+    title.tabIndex = 0;
+    title.addEventListener('click', goToDetail);
+    title.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        goToDetail();
+      }
+    });
     panel.append(title);
 
     const meta = document.createElement('div');
@@ -322,16 +405,24 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   }
 
   function buildCustomerCtas(p, st) {
-    const row = document.createElement('div');
-    row.className = 'discover-slide__ctas';
+    const container = document.createElement('div');
+    container.className = 'discover-slide__actions-container';
+
+    // ── Row 1: Primary Purchase Actions (Add to Cart + Quick Buy + Wishlist) ──
+    const primaryRow = document.createElement('div');
+    primaryRow.className = 'discover-slide__action-row discover-slide__action-row--primary';
+
+    const cartIcon = document.createElement('span');
+    cartIcon.className = 'btn-icon-svg';
+    cartIcon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`;
 
     const primary = document.createElement('button');
     primary.type = 'button';
-    primary.className = 'btn btn--primary btn--sm discover-slide__primary';
-    primary.textContent = t('discover.cta.add_to_cart');
+    primary.className = 'btn btn--primary btn--md discover-slide__btn discover-slide__btn--cart';
+    const cartText = document.createElement('span');
+    cartText.textContent = t('discover.cta.add_to_cart');
+    primary.append(cartIcon, cartText);
     st.addBtn = primary;
-    // Variant products stay disabled until enrichment mounts the selector and a valid combination is
-    // chosen; simple products key off stock straight away.
     primary.disabled = st.mode === 'variant' ? true : st.availStock <= 0;
 
     primary.addEventListener('click', () => {
@@ -359,15 +450,131 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       });
       recordEvent({ event_type: 'ADD_CART', ...eventContext(p) }, { audience });
     });
-    row.append(primary);
+    primaryRow.append(primary);
 
-    if (isFeatureEnabled('wishlist') && p.id != null) {
-      const wrap = document.createElement('div');
-      wrap.dataset.module = 'wishlist';
-      wrap.append(WishlistButton({ productId: p.id, size: 'sm' }));
-      row.append(wrap);
+    // Quick Buy Button
+    if (isFeatureEnabled('quick_buy')) {
+      const quickBuyBtn = document.createElement('button');
+      quickBuyBtn.type = 'button';
+      quickBuyBtn.className = 'btn btn--secondary btn--md discover-slide__btn discover-slide__btn--quick';
+      const lightningIcon = document.createElement('span');
+      lightningIcon.className = 'btn-icon-svg';
+      lightningIcon.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
+      const quickBuyText = document.createElement('span');
+      quickBuyText.textContent = t('marketplace.product.quick_buy') || 'Quick Buy';
+      quickBuyBtn.append(lightningIcon, quickBuyText);
+      st.quickBuyBtn = quickBuyBtn;
+      quickBuyBtn.disabled = st.mode === 'variant' ? true : st.availStock <= 0;
+
+      quickBuyBtn.addEventListener('click', () => {
+        openQuickBuyModal({
+          product: st.fullProduct || p,
+          selectedVariant: st.selection?.variant || null,
+          initialQty: Math.max(1, Math.floor(Number(st.qtyInput?.value) || 1)),
+          navigate,
+        });
+      });
+      primaryRow.append(quickBuyBtn);
     }
-    return row;
+
+    // Wishlist Button
+    if (isFeatureEnabled('wishlist') && p.id != null) {
+      const wishlistWrap = document.createElement('div');
+      wishlistWrap.dataset.module = 'wishlist';
+      wishlistWrap.className = 'discover-slide__wishlist-wrap';
+      wishlistWrap.append(WishlistButton({ productId: p.id, size: 'md' }));
+      primaryRow.append(wishlistWrap);
+    }
+    container.append(primaryRow);
+
+    // ── Row 2: Secondary Social & Group Commerce (Chat + Team Purchase) ──
+    const secondaryRow = document.createElement('div');
+    secondaryRow.className = 'discover-slide__action-row discover-slide__action-row--secondary';
+
+    // Chat with Seller
+    if (isFeatureEnabled('chat')) {
+      const chatBtn = document.createElement('button');
+      chatBtn.type = 'button';
+      chatBtn.className = 'btn btn--secondary btn--sm discover-slide__social-btn';
+      const chatIcon = document.createElement('span');
+      chatIcon.className = 'btn-icon-svg';
+      chatIcon.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
+      const chatText = document.createElement('span');
+      chatText.textContent = t('product_detail.cta.chat_with_seller') || 'Chat with Seller';
+      chatBtn.append(chatIcon, chatText);
+
+      chatBtn.addEventListener('click', async () => {
+        const { auth } = appStore.get();
+        if (!auth?.isAuthenticated) {
+          toast.info(lang === 'bn' ? 'বিক্রেতার সাথে চ্যাট করতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to chat with the seller.');
+          const redirectUrl = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+          if (navigate) navigate(redirectUrl);
+          else window.location.href = redirectUrl;
+          return;
+        }
+        chatBtn.disabled = true;
+        try {
+          const supplierId = p.supplier_id || p.supplier?.id || 1;
+          const supplierName = p.supplier?.name || p.supplier_name || 'Verified Supplier';
+          const productTitle = titleOf(p, lang) || 'Product';
+          const productRef = p.ref || `PRD-${p.id}`;
+
+          const res = await api.post('/chat/threads', {
+            target_user_id: supplierId,
+            thread_type: 'CUSTOMER_SALER',
+            metadata: {
+              product_id: p.id,
+              product_name: productTitle,
+              product_ref: productRef,
+              supplier_name: supplierName,
+            },
+          });
+          const createdThread = res?.data?.thread || res?.thread || res?.data;
+          const threadId = createdThread?.id || 10;
+          const chatUrl = `/chat?threadId=${threadId}&productRef=${encodeURIComponent(productRef)}&productTitle=${encodeURIComponent(productTitle)}`;
+          if (navigate) navigate(chatUrl);
+          else window.location.href = chatUrl;
+        } catch (err) {
+          toast.error(err?.message || (lang === 'bn' ? 'চ্যাট শুরু করতে ব্যর্থ হয়েছে।' : 'Failed to start chat with seller.'));
+        } finally {
+          chatBtn.disabled = false;
+        }
+      });
+      secondaryRow.append(chatBtn);
+    }
+
+    // Team Purchase
+    if (isFeatureEnabled('group_buying')) {
+      const teamBtn = document.createElement('button');
+      teamBtn.type = 'button';
+      teamBtn.className = 'btn btn--secondary btn--sm discover-slide__social-btn discover-slide__team-btn';
+      const teamIcon = document.createElement('span');
+      teamIcon.className = 'btn-icon-svg';
+      teamIcon.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+      const teamText = document.createElement('span');
+      teamText.textContent = t('product_detail.cta.team_purchase') || 'Team Purchase';
+      const saveBadge = document.createElement('span');
+      saveBadge.className = 'discover-slide__discount-badge';
+      saveBadge.textContent = lang === 'bn' ? '২০% ছাড়' : 'Save 20%';
+      teamBtn.append(teamIcon, teamText, saveBadge);
+
+      teamBtn.addEventListener('click', () => {
+        openTeamPurchaseModal({
+          product: st.fullProduct || p,
+          selectedVariant: st.selection?.variant || null,
+          navigate,
+        });
+      });
+      secondaryRow.append(teamBtn);
+    }
+
+    if (secondaryRow.children.length > 0) {
+      container.append(secondaryRow);
+    }
+
+    // No "View details" button — the media image and title are the link to the full product page.
+
+    return container;
   }
 
   function buildSalerCtas(p) {
@@ -398,6 +605,8 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       }
     });
     row.append(addStoreBtn);
+    // The clickable media/title is the link to the full product page — no separate button here.
+
     return row;
   }
 
@@ -411,6 +620,8 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     try {
       const full = await getProduct(p.ref || p.slug || p.id);
       if (destroyed || !full) return;
+      const st = slideState.get(key);
+      if (st) st.fullProduct = full;
       // Backfill fields the list item lacked so CTAs/events have real ids.
       Object.assign(p, {
         id: p.id ?? full.id,
@@ -446,9 +657,11 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
             setStockBadge(st.stockEl, selection.stockQty);
             if (selection.imageUrl) st.img.src = selection.imageUrl;
             if (st.addBtn) st.addBtn.disabled = selection.stockQty <= 0;
+            if (st.quickBuyBtn) st.quickBuyBtn.disabled = selection.stockQty <= 0;
           } else {
             st.availStock = 0;
             if (st.addBtn) st.addBtn.disabled = true;
+            if (st.quickBuyBtn) st.quickBuyBtn.disabled = true;
             setStockBadge(st.stockEl, 0);
           }
           st.qtyClamp && st.qtyClamp();
@@ -463,6 +676,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       st.availStock = qty;
       setStockBadge(st.stockEl, qty);
       if (st.addBtn) st.addBtn.disabled = qty <= 0;
+      if (st.quickBuyBtn) st.quickBuyBtn.disabled = qty <= 0;
       st.qtyClamp && st.qtyClamp();
     }
   }
@@ -576,6 +790,37 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     }
   }
   el.addEventListener('keydown', onKeydown);
+
+  // Discrete wheel navigation: one scroll moves exactly one post smoothly.
+  let isWheelStepping = false;
+  let wheelTimeout = null;
+
+  function onWheel(e) {
+    const panel = e.target.closest('.discover-slide__panel');
+    if (panel && panel.scrollHeight > panel.clientHeight) {
+      const isUp = e.deltaY < 0;
+      const isDown = e.deltaY > 0;
+      const atTop = panel.scrollTop <= 2;
+      const atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 2;
+      if ((isUp && !atTop) || (isDown && !atBottom)) {
+        return; // Allow natural scroll within the text panel
+      }
+    }
+
+    e.preventDefault();
+    if (isWheelStepping) return;
+
+    if (Math.abs(e.deltaY) >= 15) {
+      isWheelStepping = true;
+      step(e.deltaY > 0 ? 1 : -1);
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => {
+        isWheelStepping = false;
+      }, 420);
+    }
+  }
+  scroller.addEventListener('wheel', onWheel, { passive: false });
+
   // Record a final dwell if the shopper navigates away mid-slide.
   const onPageHide = () => fireDwell();
   window.addEventListener('pagehide', onPageHide);
@@ -588,11 +833,14 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   return {
     el,
     reload,
+    step,
     cleanup() {
       destroyed = true;
       fireDwell();
       observer.disconnect();
       el.removeEventListener('keydown', onKeydown);
+      scroller.removeEventListener('wheel', onWheel);
+      clearTimeout(wheelTimeout);
       window.removeEventListener('pagehide', onPageHide);
     },
   };

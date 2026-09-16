@@ -13,6 +13,7 @@ import products from '../fixtures/products.json' with { type: 'json' };
 
 const EVENT_WEIGHTS = { VIEW: 1, DWELL: 1.5, CLICK: 2, ADD_CART: 4, WISHLIST: 3, PURCHASE: 6 };
 const categoryAffinity = new Map();
+const viewedProductRefs = new Set();
 
 function num(v) {
   const n = Number(v);
@@ -32,6 +33,19 @@ function matchesQuery(p, raw) {
 function popularityScore(p) {
   // Rough proxy for the server's sold_count/rating ordering, using the fields the fixture has.
   return num(p.rating) * Math.log(1 + num(p.rating_count)) + (p.is_flash_sale ? 2 : 0);
+}
+
+function determineRecommendationReason(p, idx) {
+  const isViewed = viewedProductRefs.has(String(p.ref)) || viewedProductRefs.has(String(p.id));
+  if (isViewed) return 'browsed';
+  const affinity = categoryAffinity.get(p.category) || 0;
+  if (affinity >= 3) return 'interest';
+  if (p.is_flash_sale || num(p.rating) >= 4.7) return 'trending';
+  if (num(p.rating_count) >= 140) return 'bestseller';
+
+  // Multi-parameter interleaved sequence for balanced variety
+  const reasons = ['trending', 'bestseller', 'crowd', 'interest'];
+  return reasons[idx % reasons.length];
 }
 
 export default [
@@ -64,7 +78,10 @@ export default [
 
       const limit = Math.min(num(query.limit) || 10, 30);
       const offset = Math.max(0, num(query.offset));
-      const page = ordered.slice(offset, offset + limit);
+      const page = ordered.slice(offset, offset + limit).map((p, idx) => ({
+        ...p,
+        recommendation_reason: determineRecommendationReason(p, offset + idx),
+      }));
       const hasMore = offset + limit < ordered.length;
 
       return {
@@ -76,7 +93,7 @@ export default [
             total: ordered.length,
             has_more: hasMore,
             next_offset: hasMore ? offset + limit : null,
-            personalized: categoryAffinity.size > 0,
+            personalized: categoryAffinity.size > 0 || viewedProductRefs.size > 0,
           },
         },
       };
@@ -88,6 +105,9 @@ export default [
     handler({ body }) {
       const events = Array.isArray(body?.events) ? body.events : body?.event ? [body.event] : [];
       for (const e of events) {
+        if (e.ref || e.product_id) {
+          viewedProductRefs.add(String(e.ref || e.product_id));
+        }
         const category = e.category || e.category_name;
         if (category) {
           const weight = EVENT_WEIGHTS[String(e.event_type || '').toUpperCase()] || 1;

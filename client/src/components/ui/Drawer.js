@@ -38,6 +38,7 @@ export function Drawer({
   description = '',
   content = null,
   footer = null,
+  headerAction = null,
   side = 'right',
   size = 'md',
   showClose = true,
@@ -45,6 +46,7 @@ export function Drawer({
   closeLabel = 'Close',
   dragToDismiss = true,
   bodyPadding = true,
+  lockBodyScroll = true,
   className = '',
   onClose = null,
   onOpen = null,
@@ -91,6 +93,12 @@ export function Drawer({
   }
   header.append(heading);
 
+  const actions = document.createElement('div');
+  actions.className = 'drawer__actions';
+  if (headerAction) {
+    actions.append(headerAction);
+  }
+
   if (showClose) {
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
@@ -98,10 +106,13 @@ export function Drawer({
     closeBtn.setAttribute('aria-label', closeLabel);
     closeBtn.append(createCloseIcon());
     closeBtn.addEventListener('click', () => close(false));
-    header.append(closeBtn);
+    actions.append(closeBtn);
   }
 
-  if (title || description || showClose) panel.append(header);
+  if (title || description || actions.children.length) {
+    header.append(actions);
+    panel.append(header);
+  }
 
   const bodyEl = document.createElement('div');
   bodyEl.className = `drawer__body${!bodyPadding ? ' drawer__body--flush' : ''}`;
@@ -125,7 +136,7 @@ export function Drawer({
     previouslyFocused = trigger ?? document.activeElement;
     if (!dialog.isConnected) document.body.append(dialog);
     dialog.showModal();
-    lockScroll();
+    if (lockBodyScroll) lockScroll();
     if (onOpen) onOpen();
   }
 
@@ -138,7 +149,7 @@ export function Drawer({
   }
 
   dialog.addEventListener('close', () => {
-    unlockScroll();
+    if (lockBodyScroll) unlockScroll();
     // Clear any transform left behind by an interrupted drag, so the next open starts clean.
     panel.style.transform = '';
     panel.style.transition = '';
