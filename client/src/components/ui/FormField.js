@@ -37,8 +37,8 @@ export function FormField({
   root.className = 'field';
 
   // The focusable element aria attributes are applied to. For a plain input this IS the control;
-  // for a control wrapped in prefix/suffix affixes it is the inner <input>.
-  const target = input ?? control;
+  // for a control wrapped in prefix/suffix affixes or custom component it is the inner <input>.
+  const target = input ?? control?.input ?? control?.control ?? control;
 
   if (label) {
     const labelEl = document.createElement(labelTag);
@@ -90,7 +90,10 @@ export function FormField({
     const ids = [];
     if (hintEl.textContent) ids.push(hintId);
     if (errorEl.textContent) ids.push(errorId);
-    if (counter?.id) ids.push(counter.id);
+    if (counter) {
+      if (!counter.id) counter.id = uid('counter');
+      ids.push(counter.id);
+    }
     if (ids.length) target.setAttribute('aria-describedby', ids.join(' '));
     else target.removeAttribute('aria-describedby');
   }

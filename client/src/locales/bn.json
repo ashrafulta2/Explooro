@@ -115,6 +115,7 @@
     }
   },
   "nav": {
+    "home": "হোম",
     "discover": "আবিষ্কার",
     "marketplace": "মার্কেটপ্লেস",
     "group": {
@@ -262,6 +263,7 @@
       "following": "ফলো করা দোকান",
       "reviews": "আমার রিভিউ",
       "addresses": "ঠিকানা",
+      "dashboard": "গ্রাহক অ্যাকাউন্ট",
       "become_saler": "সেলার হন"
     },
     "mobile": {

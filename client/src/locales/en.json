@@ -115,6 +115,7 @@
     }
   },
   "nav": {
+    "home": "Home",
     "discover": "Discover",
     "marketplace": "Marketplace",
     "group": {
@@ -262,6 +263,7 @@
       "following": "Following",
       "reviews": "My Reviews",
       "addresses": "Addresses",
+      "dashboard": "Customer Account",
       "become_saler": "Become a Saler"
     },
     "mobile": {

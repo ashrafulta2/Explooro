@@ -1,12 +1,12 @@
 /**
- * TopBar — search (opens CommandPalette), language toggle, theme toggle, notification bell, cart,
- * avatar menu, and — while a JIT grant is active — the persistent elevated-access chip (ia-sitemap
- * §5.4: "not dismissible", live countdown, one-click release).
+ * TopBar â search (opens CommandPalette), language toggle, theme toggle, notification bell, cart,
+ * avatar menu, and â while a JIT grant is active â the persistent elevated-access chip (ia-sitemap
+ * Â§5.4: "not dismissible", live countdown, one-click release).
  *
  * A pure render function like Sidebar. The one exception is the countdown itself: AppShell owns a
  * single long-lived interval that pokes `.elevated-chip__remaining`'s textContent directly, rather
  * than every TopBar rebuild starting its own timer (which would need a cleanup contract this
- * render-and-replace pattern doesn't otherwise have — see AppShell.js).
+ * render-and-replace pattern doesn't otherwise have â see AppShell.js).
  */
 import {
   t,
@@ -37,8 +37,8 @@ export function formatRemaining(ms, lang = 'en') {
   const totalMinutes = Math.max(0, Math.round(ms / 60_000));
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
-  const hUnit = lang === 'bn' ? 'ঘ' : 'h';
-  const mUnit = lang === 'bn' ? 'মি' : 'm';
+  const hUnit = lang === 'bn' ? 'à¦' : 'h';
+  const mUnit = lang === 'bn' ? 'à¦®à¦¿' : 'm';
   const parts = [];
   if (h > 0) parts.push(`${formatNumber(h, { lang })}${hUnit}`);
   parts.push(`${formatNumber(m, { lang })}${mUnit}`);
@@ -67,7 +67,7 @@ const DISCOVER_ICON_SVG =
   '<polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>' +
   '</svg>';
 
-// Storefront — the "back to the marketplace grid" face of the discover/market context toggle.
+// Storefront â the "back to the marketplace grid" face of the discover/market context toggle.
 const MARKET_ICON_SVG =
   '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
   '<path d="M3 9.5 4.5 4h15L21 9.5"></path>' +
@@ -122,7 +122,7 @@ function IconButton({ icon, label, badgeCount, onClick }) {
   return btn;
 }
 
-// ia-sitemap.md role set — labels sourced from server/src/db/seeds/001_roles_permissions.sql so
+// ia-sitemap.md role set â labels sourced from server/src/db/seeds/001_roles_permissions.sql so
 // they stay in sync with the RBAC `roles` table's label_en/label_bn.
 const ROLE_LABEL_KEYS = {
   super_admin: 'shell.role_names.super_admin',
@@ -160,10 +160,10 @@ function AvatarMenu({ role, user, onNavigate }) {
   trigger.type = 'button';
   trigger.className = 'topbar__avatar-trigger';
   trigger.textContent = initialsFor(displayName) || (role ?? '?').slice(0, 1).toUpperCase();
-  trigger.title = displayName ? `${displayName} — ${label}` : label;
+  trigger.title = displayName ? `${displayName} â ${label}` : label;
   trigger.setAttribute('aria-haspopup', 'true');
   trigger.setAttribute('aria-expanded', 'false');
-  trigger.setAttribute('aria-label', `${t('shell.account_menu')} — ${displayName || label}`);
+  trigger.setAttribute('aria-label', `${t('shell.account_menu')} â ${displayName || label}`);
 
   const panel = document.createElement('div');
   panel.className = 'topbar__avatar-panel';
@@ -195,7 +195,7 @@ function AvatarMenu({ role, user, onNavigate }) {
   };
 
   // First item, above the dashboard: a user looking for "where do I change my name" reaches for
-  // their own picture, so My Profile has to be the first thing under it — for every role, not just
+  // their own picture, so My Profile has to be the first thing under it â for every role, not just
   // customers, since staff accounts carry a profile too.
   const profileLink = document.createElement('a');
   profileLink.href = '/account/profile';
@@ -389,7 +389,7 @@ function ThemeMenu() {
       check.style.fontSize = '12px';
       check.style.fontWeight = '700';
       check.style.color = 'var(--brand)';
-      check.textContent = activePreset === key ? '✓' : '';
+      check.textContent = activePreset === key ? 'â' : '';
 
       pBtn.append(dot, name, check);
 
@@ -497,7 +497,7 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
   const searchInput = document.createElement('input');
   searchInput.type = 'search';
   searchInput.className = 'topbar__product-search-input';
-  searchInput.placeholder = t('marketplace.search_placeholder') || 'Search products, brands, categories…';
+  searchInput.placeholder = t('marketplace.search_placeholder') || 'Search products, brands, categoriesâ¦';
   searchInput.setAttribute('aria-label', t('marketplace.search_placeholder') || 'Search products');
   searchInput.autocomplete = 'off';
 
@@ -509,13 +509,13 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
 
   searchForm.append(searchSubmitBtn, searchInput);
 
-  // Typeahead dropdown (Prompt 4.4, plan A). Self-contained inside the form — no cleanup contract
+  // Typeahead dropdown (Prompt 4.4, plan A). Self-contained inside the form â no cleanup contract
   // needed because AppShell rebuilds the whole TopBar on every store/lang change.
   attachSearchSuggest({ form: searchForm, input: searchInput, navigate });
 
   // WHY: emptying the box has to undo the search, not just blank the input. Without this, the
   // results page keeps rendering the old term's grid under an empty search box, which reads as
-  // "clearing did nothing" — the box and the page disagree about what is being searched.
+  // "clearing did nothing" â the box and the page disagree about what is being searched.
   // Covers every way to empty it: backspacing, Ctrl+A + Delete, the native type=search "x", and
   // Escape (the last two fire `search`, not just `input`, in Chromium).
   let clearResetTimer = null;
@@ -538,7 +538,7 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
     if (searchInput.value.trim()) return;
     clearResetTimer = setTimeout(resetToUnsearchedState, SEARCH_CLEAR_RESET_MS);
   });
-  // The "x" button and Escape are unambiguous — reset without waiting out the grace period.
+  // The "x" button and Escape are unambiguous â reset without waiting out the grace period.
   searchInput.addEventListener('search', resetToUnsearchedState);
 
   searchForm.addEventListener('submit', (e) => {
@@ -559,7 +559,7 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
   spacer.className = 'topbar__spacer';
   bar.append(spacer);
 
-  // Discovery ⇄ Marketplace — a single context-aware toggle. On the discovery feed it offers a way
+  // Discovery â Marketplace â a single context-aware toggle. On the discovery feed it offers a way
   // back to the marketplace grid; everywhere else it points into the feed. The label/icon/target all
   // flip on the current route, and the shell rebuilds the TopBar on every navigation (AppShell's
   // router beforeEach), so this re-reads location.pathname and stays in sync without its own listener.
@@ -577,12 +577,12 @@ export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPale
 
   if (elevatedGrant) bar.append(ElevatedChip({ grant: elevatedGrant }));
 
-  // Quick Actions / Command Palette button � only shown to authenticated users
+  // Quick Actions / Command Palette button — only shown to authenticated users
   if (!isGuest) {
     const paletteBtn = IconButton({
       icon: ICONS.bolt,
       label: `${t('palette.trigger_btn') || 'Quick Actions'} (Ctrl+K)`,
-      onClick: () => onOpenPalette(),
+      onClick: () => onOpenPalette?.(),
     });
     paletteBtn.classList.add('topbar__palette-btn');
     bar.append(paletteBtn);

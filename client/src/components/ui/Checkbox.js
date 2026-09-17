@@ -90,11 +90,23 @@ export function Checkbox({
       input.indeterminate = false;
     },
   });
+  Object.defineProperty(root, 'indeterminate', {
+    get: () => input.indeterminate,
+    set: (next) => {
+      input.indeterminate = Boolean(next);
+    },
+  });
+  Object.defineProperty(root, 'disabled', {
+    get: () => input.disabled,
+    set: (next) => {
+      input.disabled = Boolean(next);
+    },
+  });
   root.setIndeterminate = (on) => {
-    input.indeterminate = on;
+    input.indeterminate = Boolean(on);
   };
   root.setDisabled = (on) => {
-    input.disabled = on;
+    input.disabled = Boolean(on);
   };
 
   return root;

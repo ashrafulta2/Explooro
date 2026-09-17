@@ -151,7 +151,7 @@ export function runCraftAudit(root = document.body) {
   return findings;
 }
 
-export function CraftAuditPage() {
+export default function CraftAuditPage(container, { navigate } = {}) {
   const root = document.createElement('div');
   root.className = 'craft-audit-page';
   root.style.cssText = `
@@ -292,5 +292,13 @@ export function CraftAuditPage() {
   }
 
   render();
+  if (container) {
+    container.replaceChildren(root);
+    return () => {
+      root.replaceChildren();
+    };
+  }
   return root;
 }
+
+export { CraftAuditPage };
