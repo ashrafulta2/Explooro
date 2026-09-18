@@ -170,10 +170,12 @@ export default function HomePage(root, { navigate }) {
   // ── Flash sale widget (module-gated) ────────────────────────────────────
   let flashWidgetCleanup = null;
   let flashSection = null;
+  let flashMounting = false; // synchronous guard: set before the first await, closes the race gap
 
   async function mountFlashWidget(allProducts) {
     if (!isFeatureEnabled('flash_sale')) return;
-    if (flashSection) return; // already mounted
+    if (flashSection || flashMounting) return; // already mounted or mid-mount
+    flashMounting = true;
 
     let flashList = allProducts?.filter((p) => p.is_flash_sale) || [];
     try {
@@ -242,6 +244,7 @@ export default function HomePage(root, { navigate }) {
     flashWidgetCleanup = null;
     flashSection && flashSection.remove();
     flashSection = null;
+    flashMounting = false;
   }
 
   // ── Product catalog section ──────────────────────────────────────────────
@@ -311,6 +314,14 @@ export default function HomePage(root, { navigate }) {
   let currentGridCleanup = null;
   let currentGridEl = null;
   let allLoadedProducts = []; // collect for flash widget
+  // WHY: rebuildGrid() can fire twice in quick succession (initial mount + the appStore
+  // subscription firing once /modules resolves). Each builds a ProductGrid whose async first-page
+  // fetch is still in flight when the next rebuild tears the grid down — but cleanup() only
+  // disconnects the observer, it can't cancel that fetch. Both fetches then resolve and each calls
+  // mountFlashWidget(), whose `if (flashSection) return` guard sits *before* an await, so both slip
+  // through and two flash strips render. A monotonic generation stamps each rebuild; only the
+  // latest generation's fetch runs the first-page side effects (flash mount, count, price bounds).
+  let gridGeneration = 0;
 
   function updateSearchPill() {
     searchPillWrap.replaceChildren();
@@ -335,7 +346,7 @@ export default function HomePage(root, { navigate }) {
     }
   }
 
-  function buildFetchPage() {
+  function buildFetchPage(generation) {
     const sp = new URLSearchParams(window.location.search);
 
     /** Returns the mock-compatible query object from current URL state. */
@@ -389,8 +400,10 @@ export default function HomePage(root, { navigate }) {
         }
       }
 
-      // Collect products for flash widget on first page
-      if (!cursor && result?.products) {
+      // Collect products for flash widget on first page — but only for the newest grid. A stale
+      // grid's in-flight fetch (see gridGeneration note above) must not mount a second flash strip
+      // or clobber the count/price bounds the current grid already set.
+      if (!cursor && result?.products && generation === gridGeneration) {
         allLoadedProducts = result.products;
         // Derive the price-slider bounds from the catalog. setPriceBounds only ever widens, so
         // successive (price-filtered) loads can't collapse the slider's range.
@@ -421,8 +434,9 @@ export default function HomePage(root, { navigate }) {
     // Unmount flash widget (will re-mount after first fetch)
     unmountFlashWidget();
 
+    const generation = ++gridGeneration;
     const { el, cleanup } = ProductGrid({
-      fetchPage: buildFetchPage(),
+      fetchPage: buildFetchPage(generation),
       role,
       modules,
       lang: getLanguage(),
