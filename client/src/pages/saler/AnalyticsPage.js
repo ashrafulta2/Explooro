@@ -432,7 +432,7 @@ function renderTopProductsTable(container, products = []) {
             <td style="text-align: right; font-family: var(--font-mono); color: var(--text-muted);">
               ${formatCurrency(p.custom_retail_price || p.default_retail_price)}
             </td>
-            <td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: var(--success-600, #16a34a);">
+            <td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: var(--success-700, #007f39);">
               +${formatCurrency(p.total_margin_earned)}
             </td>
             <td style="text-align: right;">

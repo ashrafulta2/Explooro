@@ -14,14 +14,31 @@
       "bestseller": "Top buying & bestseller",
       "crowd": "What others are looking for"
     },
-    "aria": { "feed": "Product discovery feed" },
-    "search": { "placeholder": "Search this feed" },
-    "filters": { "title": "Filters" },
-    "controls": { "toggle": "Browse & filter", "drag_hint": "Drag to move" },
-    "nav": { "previous": "Previous product", "next": "Next product" },
-    "badge": { "flash_sale": "Flash sale" },
+    "aria": {
+      "feed": "Product discovery feed"
+    },
+    "search": {
+      "placeholder": "Search this feed"
+    },
+    "filters": {
+      "title": "Filters"
+    },
+    "controls": {
+      "toggle": "Browse & filter",
+      "drag_hint": "Drag to move"
+    },
+    "nav": {
+      "previous": "Previous product",
+      "next": "Next product"
+    },
+    "badge": {
+      "flash_sale": "Flash sale"
+    },
     "reviews": "{{count}} reviews",
-    "stock": { "in": "In stock", "out": "Out of stock" },
+    "stock": {
+      "in": "In stock",
+      "out": "Out of stock"
+    },
     "cta": {
       "view_details": "View details",
       "choose_options": "Choose options",
@@ -39,9 +56,17 @@
       "added": "Added to your store.",
       "add_failed": "Could not add to your store."
     },
-    "supplier": { "ships_from": "{{name}} · Ships from {{district}}" },
-    "empty": { "title": "Nothing to discover yet", "desc": "Try adjusting your filters or check back soon." },
-    "error": { "title": "Couldn’t load the feed", "desc": "Please try again in a moment." }
+    "supplier": {
+      "ships_from": "{{name}} · Ships from {{district}}"
+    },
+    "empty": {
+      "title": "Nothing to discover yet",
+      "desc": "Try adjusting your filters or check back soon."
+    },
+    "error": {
+      "title": "Couldn’t load the feed",
+      "desc": "Please try again in a moment."
+    }
   },
   "common": {
     "back_to_marketplace": "Back to marketplace",
@@ -4065,7 +4090,9 @@
     "toast_price_updated": "Retail price updated successfully!",
     "toast_status_updated": "Product visibility updated.",
     "toast_removed": "Product removed from your store.",
-    "toast_price_invalid": "Retail price cannot be lower than supplier wholesale cost (৳{{min}})."
+    "toast_price_invalid": "Retail price cannot be lower than supplier wholesale cost (৳{{min}}).",
+    "sort_label": "Sort products",
+    "retail_price_label": "Retail price"
   },
   "saler_store_status": {
     "title": "Physical Shop & Showroom Status",
@@ -4717,7 +4744,9 @@
   "supplier": {
     "back_to_dashboard": "Dashboard",
     "products_title": "Supplier Products & Catalog",
-    "products_subtitle": "Manage manufacturing SKUs, adjust physical stock counts, set wholesale margins, and publish new products."
+    "products_subtitle": "Manage manufacturing SKUs, adjust physical stock counts, set wholesale margins, and publish new products.",
+    "day_open_time": "opening time",
+    "day_close_time": "closing time"
   },
   "mod_access": {
     "title": "My Access",
@@ -4839,7 +4868,9 @@
     "bulk_confirm": "Dismiss {{count}} selected reports?",
     "bulk_success": "{{count}} reports dismissed.",
     "anonymous": "Anonymous",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "status_filter_label": "Filter reports by status",
+    "select_report": "Select report"
   },
   "mod_reviews": {
     "title": "Review Moderation",
@@ -4872,7 +4903,8 @@
     "empty": "No flagged reviews. All clear!",
     "approved_toast": "Review approved.",
     "rejected_toast": "Review rejected.",
-    "action_failed": "Action failed."
+    "action_failed": "Action failed.",
+    "stars_label": "{{rating}} out of 5 stars"
   },
   "mod_ugc": {
     "title": "UGC Content Moderation",
@@ -4911,7 +4943,8 @@
     "bulk_confirm": "Bulk approve {{count}} AI-safe items?",
     "bulk_success": "{{count}} items approved.",
     "untitled": "Untitled",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "select_item": "Select item"
   },
   "sup_forecast": {
     "title": "AI Demand Forecasting",

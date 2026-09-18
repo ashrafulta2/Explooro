@@ -140,6 +140,7 @@ export default function SupplierOrdersPage(root) {
           id="orders-search-input"
           class="input input--sm"
           style="width: 100%;"
+          aria-label="Search by Order Ref, recipient, or phone"
           placeholder="Search by Order Ref (e.g. ORD-9K2P4L), recipient, or phone..."
           value="${searchQuery}"
         />

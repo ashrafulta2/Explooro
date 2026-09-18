@@ -404,6 +404,7 @@ export default function GalleryPage(root) {
 
   // Role impersonation — drives the REAL surrounding AppShell (see file header).
   const roleSelect = document.createElement('select');
+  roleSelect.setAttribute('aria-label', 'Preview as role');
   const noneOpt = document.createElement('option');
   noneOpt.value = '';
   noneOpt.textContent = 'Logged out';

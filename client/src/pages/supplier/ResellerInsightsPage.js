@@ -306,7 +306,7 @@ export default function ResellerInsightsPage(root) {
         </p>
       </div>
       <div style="display: flex; align-items: center; gap: 10px;">
-        <input type="text" id="reseller-search-input" placeholder="🔍 Search Saler store..." value="${searchQuery}" class="form-input" style="padding: 6px 12px; font-size: 12px; width: 220px; border-radius: 8px;" />
+        <input type="text" id="reseller-search-input" aria-label="Search Saler store" placeholder="🔍 Search Saler store..." value="${searchQuery}" class="form-input" style="padding: 6px 12px; font-size: 12px; width: 220px; border-radius: 8px;" />
         <span class="badge badge--neutral text-xs font-mono font-bold">${topSalers.length} Curators Active</span>
       </div>
     `;

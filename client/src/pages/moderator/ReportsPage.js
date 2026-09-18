@@ -31,9 +31,9 @@ const STATUS_LABEL_KEYS = {
 
 // Semantic tokens so type badges follow the theme (no purple token exists → counterfeit maps to info).
 const TYPE_COLORS = {
-  SPAM:          { bg: 'var(--warning-100,#fef9c3)', text: 'var(--warning-700,#854d0e)', border: 'var(--warning-300,#fde047)' },
-  HARASSMENT:    { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-700,#b91c1c)',  border: 'var(--danger-300,#fca5a5)' },
-  COUNTERFEIT:   { bg: 'var(--info-100,#fae8ff)',    text: 'var(--info-700,#7e22ce)',    border: 'var(--info-300,#e879f9)' },
+  SPAM:          { bg: 'var(--warning-100,#fef9c3)', text: 'var(--warning-800,#854d0e)', border: 'var(--warning-300,#fde047)' },
+  HARASSMENT:    { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-800,#7f1d1d)',  border: 'var(--danger-300,#fca5a5)' },
+  COUNTERFEIT:   { bg: 'var(--info-100,#fae8ff)',    text: 'var(--info-800,#6b21a8)',    border: 'var(--info-300,#e879f9)' },
   INAPPROPRIATE: { bg: 'var(--warning-100,#ffedd5)', text: 'var(--warning-800,#9a3412)', border: 'var(--warning-300,#fdba74)' },
   FRAUD:         { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-800,#7f1d1d)',  border: 'var(--danger-500,#ef4444)' },
   OTHER:         { bg: 'var(--surface-2,#f1f5f9)',   text: 'var(--text-secondary,#475569)', border: 'var(--border-default,#cbd5e1)' },
@@ -139,7 +139,7 @@ export default function ReportsPage(root) {
             </button>
           `).join('')}
         </div>
-        <select id="sel-status" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border-default,#e2e8f0);
+        <select id="sel-status" aria-label="${t('mod_reports.status_filter_label', 'Filter reports by status')}" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border-default,#e2e8f0);
           font-size:0.82rem;background:var(--surface-0,#f8fafc);cursor:pointer;color:var(--text-primary,#0f172a);">
           ${STATUS_FILTERS.map(s=>`<option value="${s}" ${statusFilter===s?'selected':''}>${statusLabel(s)}</option>`).join('')}
         </select>
@@ -161,7 +161,7 @@ export default function ReportsPage(root) {
       <div style="background:var(--surface-1,#fff);border:1px solid ${sel?'var(--brand,#f59e0b)':'var(--border-default,#e2e8f0)'};
         border-radius:12px;overflow:hidden;transition:border-color 0.1s;">
         <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;cursor:pointer;" class="report-row" data-id="${r.id}">
-          <input type="checkbox" class="chk-report" data-id="${r.id}" ${sel?'checked':''} style="margin-top:3px;flex-shrink:0;">
+          <input type="checkbox" class="chk-report" data-id="${r.id}" ${sel?'checked':''} aria-label="${t('mod_reports.select_report', 'Select report')} ${r.id}" style="margin-top:3px;flex-shrink:0;">
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
               <span style="font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:999px;

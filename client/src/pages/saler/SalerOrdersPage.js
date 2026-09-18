@@ -142,6 +142,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
           type="text"
           id="order-search"
           class="input input--sm w-full"
+          aria-label="${t('saler_orders.search_placeholder')}"
           placeholder="${t('saler_orders.search_placeholder')}"
           value="${searchQuery}"
         />

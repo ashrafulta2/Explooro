@@ -66,6 +66,7 @@ export default function UnifiedInboxPage(root) {
             type="text"
             class="input input--sm"
             id="inbox-search"
+            aria-label="${t('saler_inbox.search_placeholder') || 'Search conversations...'}"
             placeholder="${t('saler_inbox.search_placeholder') || 'Search conversations...'}"
           />
         </div>
@@ -307,6 +308,7 @@ export default function UnifiedInboxPage(root) {
           type="text"
           class="input input--sm flex-1"
           id="chat-input"
+          aria-label="${t('saler_inbox.type_reply_placeholder') || 'Type a reply to customer...'}"
           placeholder="${t('saler_inbox.type_reply_placeholder') || 'Type a reply to customer...'}"
         />
         <button type="button" class="btn btn--primary btn--sm" id="btn-send-reply">

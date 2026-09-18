@@ -122,6 +122,7 @@ export default function InventoryPage(root) {
           id="search-input"
           class="input input--sm"
           style="width: 100%;"
+          aria-label="${t('supplier.search_sku_placeholder', 'Search SKU by title, reference, or brand...')}"
           placeholder="${t('supplier.search_sku_placeholder', 'Search SKU by title, reference, or brand...')}"
           value="${searchQuery}"
         />

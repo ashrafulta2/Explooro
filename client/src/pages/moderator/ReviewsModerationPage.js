@@ -25,11 +25,11 @@ const FLAG_LABEL_KEYS = {
 };
 
 const FLAG_COLORS = {
-  FAKE_REVIEW:          { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-700,#b91c1c)',  border: 'var(--danger-300,#fca5a5)' },
-  SPAM:                 { bg: 'var(--warning-100,#fef9c3)', text: 'var(--warning-700,#854d0e)', border: 'var(--warning-300,#fde047)' },
+  FAKE_REVIEW:          { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-800,#7f1d1d)',  border: 'var(--danger-300,#fca5a5)' },
+  SPAM:                 { bg: 'var(--warning-100,#fef9c3)', text: 'var(--warning-800,#854d0e)', border: 'var(--warning-300,#fde047)' },
   OFFENSIVE:            { bg: 'var(--warning-100,#ffedd5)', text: 'var(--warning-800,#9a3412)', border: 'var(--warning-300,#fdba74)' },
-  COMPETITOR_ATTACK:    { bg: 'var(--info-100,#fae8ff)',    text: 'var(--info-700,#7e22ce)',    border: 'var(--info-300,#e879f9)' },
-  UNVERIFIED_PURCHASE:  { bg: 'var(--info-100,#dbeafe)',    text: 'var(--info-700,#1e40af)',    border: 'var(--info-300,#93c5fd)' },
+  COMPETITOR_ATTACK:    { bg: 'var(--info-100,#fae8ff)',    text: 'var(--info-800,#6b21a8)',    border: 'var(--info-300,#e879f9)' },
+  UNVERIFIED_PURCHASE:  { bg: 'var(--info-100,#dbeafe)',    text: 'var(--info-800,#005593)',    border: 'var(--info-300,#93c5fd)' },
 };
 
 const SEED_REVIEWS = [
@@ -95,7 +95,11 @@ export default function ReviewsModerationPage(root) {
   }
 
   function renderStars(rating) {
-    return Array.from({length:5},(_,i)=>`<span style="color:${i<rating?'var(--warning-500,#f59e0b)':'var(--border-default,#e2e8f0)'};font-size:0.9rem;">★</span>`).join('');
+    // WHY: stars are a decorative icon rendering of the rating. The gold/grey fill is a design
+    // choice that can't meet 4.5:1 as small text, so the row is exposed as a single labelled image
+    // (role="img" + aria-label) and each glyph is aria-hidden — the WCAG pattern for icon ratings.
+    const stars = Array.from({length:5},(_,i)=>`<span aria-hidden="true" style="color:${i<rating?'var(--warning-500,#f59e0b)':'var(--border-default,#e2e8f0)'};font-size:0.9rem;">★</span>`).join('');
+    return `<span role="img" aria-label="${t('mod_reviews.stars_label', '{{rating}} out of 5 stars', { rating })}">${stars}</span>`;
   }
 
   function renderReviewCard(r) {
