@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Explooro web client — entrypoint.
  *
  * index.html now contains ONLY the #router-outlet div. The AppShell (sidebar + topbar +
@@ -33,12 +33,13 @@ import { navItems } from './config/navigation.js';
 import { toast } from './services/toast.js';
 import { createAppShell } from './components/shell/AppShell.js';
 
-// ── Dev-only status bar (shown only if there is an error / connection issue) ──
+// ── Dev-only status bar (shown only if there is an error / connection issue in live mode) ──
 if (import.meta.env.DEV) {
   const bar = document.getElementById('dev-status-bar');
   const apiEl = document.getElementById('api-status');
   const proxyEl = document.getElementById('proxy-status');
   const modeEl = document.getElementById('api-mode');
+  const closeBtn = document.getElementById('dev-status-bar-close');
   const outlet = document.getElementById('router-outlet');
 
   const showBar = (apiMsg, proxyMsg) => {
@@ -58,22 +59,30 @@ if (import.meta.env.DEV) {
     }
   };
 
-  fetch('/api/v1/health', { headers: { Accept: 'application/json' } })
-    .then(async (res) => {
-      if (!res.ok) {
-        showBar(`HTTP ${res.status}`, 'error');
-      } else {
-        const body = await res.json().catch(() => ({}));
-        if (body.status && body.status !== 'ok') {
-          showBar(body.status, 'reachable');
+  closeBtn?.addEventListener('click', hideBar);
+
+  const isLive = import.meta.env.VITE_API_MODE === 'live';
+
+  if (!isLive) {
+    hideBar();
+  } else {
+    fetch('/api/v1/health', { headers: { Accept: 'application/json' } })
+      .then(async (res) => {
+        if (!res.ok) {
+          showBar(`HTTP ${res.status}`, 'error');
         } else {
-          hideBar();
+          const body = await res.json().catch(() => ({}));
+          if (body.status && body.status !== 'ok') {
+            showBar(body.status, 'reachable');
+          } else {
+            hideBar();
+          }
         }
-      }
-    })
-    .catch(() => {
-      showBar('unreachable', 'no response');
-    });
+      })
+      .catch(() => {
+        showBar('unreachable', 'no response');
+      });
+  }
 }
 
 /* -------------------------------------------------------------------------
