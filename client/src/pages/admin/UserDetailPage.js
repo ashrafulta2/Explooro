@@ -21,6 +21,7 @@ import { formatDate, formatRelativeTime } from '../../services/format.js';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
 import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.js';
 import { UserTimeline } from '../../components/admin/UserTimeline.js';
+import '../../styles/components/admin-users.css';
 
 export default function UserDetailPage(root, { params = {}, navigate } = {}) {
   const isBn = getLanguage() === 'bn';
