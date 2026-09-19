@@ -15,6 +15,13 @@
       "url": "http://localhost:3000"
     },
     {
+      "name": "explooro-client-live",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set VITE_API_MODE=live&& npm run dev:client"],
+      "port": 3000,
+      "url": "http://localhost:3000"
+    },
+    {
       "name": "explooro-preview",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview"],
