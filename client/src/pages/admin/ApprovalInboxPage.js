@@ -119,6 +119,8 @@ export default function ApprovalInboxPage(root) {
   // Tabs
   const tabsWrap = document.createElement('div');
   const queueWrap = document.createElement('div');
+  queueWrap.id = 'approvals-queue';
+  queueWrap.setAttribute('role', 'tabpanel');
   queueWrap.style.display = 'flex';
   queueWrap.style.flexDirection = 'column';
   queueWrap.style.gap = 'var(--space-4)';
@@ -287,18 +289,36 @@ export default function ApprovalInboxPage(root) {
 
   function renderTabs() {
     tabsWrap.innerHTML = '';
+    // WHY `tabs`/`active`, not `items`/`activeId`: those are not Tabs() options, so the tab bar
+    // rendered empty and the queue could not be switched between JIT and Maker-Checker.
     const tabs = Tabs({
-      items: [
+      tabs: [
         { id: 'jit', label: `${t('approvals.tab_jit', 'Just-In-Time Elevation')} (${jitRequests.length})` },
         { id: 'actions', label: `${t('approvals.tab_actions', 'Maker-Checker Actions')} (${pendingActions.length})` },
       ],
-      activeId: activeTab,
+      active: activeTab,
       onChange: (newTab) => {
+        // Tabs() reports its initial selection too; that is not a switch, and this function is
+        // re-run after every decision just to refresh the counts.
+        if (newTab === activeTab) return;
         activeTab = newTab;
         focusedIndex = 0;
         renderQueue();
+        syncQueuePanel();
       },
     });
+
+    // The queue below is the tab panel — Tabs()' own panels would be empty, focusable and add a
+    // gap, so drop them and wire the ARIA relationship to `queueWrap` instead.
+    tabs.querySelector('.tabs__panels')?.remove();
+    for (const tabBtn of tabs.querySelectorAll('[role="tab"]')) {
+      tabBtn.setAttribute('aria-controls', 'approvals-queue');
+    }
+    function syncQueuePanel() {
+      const selected = tabs.querySelector('[role="tab"][aria-selected="true"]');
+      if (selected) queueWrap.setAttribute('aria-labelledby', selected.id);
+    }
+    syncQueuePanel();
     tabsWrap.append(tabs);
   }
 
