@@ -117,7 +117,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
     const productSelectWrap = document.createElement('div');
     productSelectWrap.className = 'saler-stack--xs';
     productSelectWrap.innerHTML = `
-      <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.select_product')}</label>
+      <label for="select-product" class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.select_product')}</label>
       <select id="select-product" class="select select--sm w-full">
         <option value="ALL">${t('social_kit.entire_store_opt')}</option>
         ${products.map((p) => `
@@ -229,6 +229,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
         <input
           type="text"
           readonly
+          aria-label="${t('social_kit.link_input_label')}"
           value="${shortLink?.full_url || `${window.location.origin}/s/exp-7`}"
           class="input input--xs font-mono w-full select-all"
           style="flex: 1;"

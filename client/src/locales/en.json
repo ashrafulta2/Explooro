@@ -1460,6 +1460,7 @@
     "remove_item": "Remove product from shelf"
   },
   "social_kit": {
+    "link_input_label": "Short link",
     "bar_title": "Social Seller Kit",
     "share_whatsapp": "Share to WhatsApp",
     "download_qr_flyer": "Download QR Flyer",
@@ -1978,6 +1979,7 @@
     }
   },
   "dispute": {
+    "reply_label": "Reply or staff note",
     "panel_title": "Dispute Arbitration Workspace",
     "panel_subtitle": "Three-way mediation connecting Buyer, Saler, and Supplier with platform moderators and SLA enforcement.",
     "tab_all": "All Disputes",

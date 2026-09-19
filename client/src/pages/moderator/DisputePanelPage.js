@@ -418,7 +418,7 @@ export default function DisputePanelPage(root) {
             <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.customer_name}</strong>
           </div>
           <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
-            <span style="font-size: 11px; font-weight: 600; color: #8b5cf6; display: block;">🏪 Reseller (Saler)</span>
+            <span style="font-size: 11px; font-weight: 600; color: var(--info); display: block;">🏪 Reseller (Saler)</span>
             <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.saler_name || 'Direct Sale'}</strong>
           </div>
           <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
@@ -528,7 +528,7 @@ export default function DisputePanelPage(root) {
                       </div>
 
                       <div style="display: flex; gap: 8px;">
-                        <textarea id="txt-dispute-message" rows="2" style="
+                        <textarea id="txt-dispute-message" rows="2" aria-label="${t('dispute.reply_label')}" style="
                           flex: 1;
                           padding: 8px 12px;
                           border-radius: var(--radius-md, 8px);
