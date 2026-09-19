@@ -12,6 +12,176 @@
 import { createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.js';
 
+// ---------------------------------------------------------------------------
+// Sales breakdowns (categories + channels) — derived from real orders
+// ---------------------------------------------------------------------------
+
+/** Shape marker inside `breakdown_json`. Rows written before v2 held invented percentages. */
+export const BREAKDOWN_VERSION = 2;
+
+/**
+ * The channels an order can be attributed to, in display order. Only channels the schema can
+ * actually distinguish are listed: there is no affiliate/referral attribution on `orders`, so an
+ * "Affiliate Links" bar would be invented — it stays out until an order-level source exists.
+ */
+export const SALES_CHANNELS = [
+  { key: 'LIVE', name: 'Live Stream' },
+  { key: 'TEAM', name: 'Team Social Buying' },
+  { key: 'SALER_STORE', name: 'Saler Storefronts' },
+  { key: 'DIRECT', name: 'Direct (Supplier Listing)' },
+];
+
+/**
+ * One row per channel for the day. An order lands in exactly ONE channel, first match wins:
+ * a live-stream purchase made through a saler's store is a LIVE sale, so the shares add up to
+ * 100% of orders instead of double-counting. Sales = orders.total_amount, the same basis the
+ * rollup's GMV uses, so the bars reconcile with the GMV KPI.
+ */
+export const CHANNEL_BREAKDOWN_SQL = `
+  SELECT
+    CASE
+      WHEN o.live_stream_id IS NOT NULL THEN 'LIVE'
+      WHEN o.team_purchase_id IS NOT NULL THEN 'TEAM'
+      WHEN EXISTS (SELECT 1 FROM sub_orders so WHERE so.order_id = o.id AND so.saler_id IS NOT NULL) THEN 'SALER_STORE'
+      ELSE 'DIRECT'
+    END AS channel,
+    COUNT(*)::int AS orders,
+    COALESCE(SUM(o.total_amount), 0) AS sales
+  FROM orders o
+  WHERE DATE(o.created_at) = $1
+  GROUP BY 1`;
+
+/**
+ * Sales per TOP-LEVEL category for the day. Leaf categories ("Men's Clothing") roll up to their
+ * root ("Fashion & Apparel") through the materialised `path`, so the chart shows a handful of
+ * meaningful buckets instead of dozens of sub-categories. Sales = order_items.line_total.
+ */
+export const CATEGORY_BREAKDOWN_SQL = `
+  SELECT
+    rc.id, rc.slug, rc.name_en, rc.name_bn,
+    COALESCE(SUM(oi.line_total), 0) AS sales,
+    COALESCE(SUM(oi.qty), 0)::int AS units
+  FROM order_items oi
+  JOIN sub_orders so ON so.id = oi.sub_order_id
+  JOIN orders o ON o.id = so.order_id
+  JOIN products p ON p.id = oi.product_id
+  JOIN categories c ON c.id = p.category_id
+  JOIN categories rc ON rc.path = split_part(c.path, '.', 1) AND rc.parent_id IS NULL
+  WHERE DATE(o.created_at) = $1
+  GROUP BY rc.id, rc.slug, rc.name_en, rc.name_bn
+  ORDER BY sales DESC`;
+
+const money = (v) => Number(parseFloat(v || 0).toFixed(2));
+
+/**
+ * The stored per-day breakdown that the overview later sums.
+ *
+ * WHY these queries are NOT wrapped in `.catch(() => fallback)` like the KPI queries above: that
+ * pattern is how `platform_fee` (a column that was never created) silently turned Net Revenue into
+ * `gmv * 0.08` forever. A broken breakdown query should fail the rollup loudly, not paint
+ * plausible-looking made-up bars.
+ */
+export async function computeDailyBreakdown(db, day) {
+  const { rows: channelRows } = await db.query(CHANNEL_BREAKDOWN_SQL, [day]);
+  const { rows: categoryRows } = await db.query(CATEGORY_BREAKDOWN_SQL, [day]);
+  return {
+    version: BREAKDOWN_VERSION,
+    channels: channelRows.map((r) => ({ key: r.channel, orders: Number(r.orders) || 0, sales: money(r.sales) })),
+    categories: categoryRows.map((r) => ({
+      id: Number(r.id),
+      slug: r.slug,
+      name_en: r.name_en,
+      name_bn: r.name_bn,
+      sales: money(r.sales),
+      units: Number(r.units) || 0,
+    })),
+  };
+}
+
+function parseBreakdown(raw) {
+  if (!raw) return null;
+  let value = raw;
+  if (typeof raw === 'string') {
+    try {
+      value = JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  return value && value.version === BREAKDOWN_VERSION ? value : null;
+}
+
+const pctOf = (part, total) => (total > 0 ? Math.round((part / total) * 1000) / 10 : 0);
+
+/**
+ * Sums the stored daily breakdowns across the requested window into ranked shares.
+ *
+ * Days whose row predates v2 (or has no breakdown) contribute nothing rather than fake numbers —
+ * re-running the rollup for a date backfills it. With no real data at all both lists are empty and
+ * the UI says so. Categories beyond the top N fold into "Other" so the shares still total 100%.
+ */
+export function aggregateBreakdown(rollupRows = [], { topCategories = 5 } = {}) {
+  const categories = new Map();
+  const channels = new Map();
+
+  for (const row of rollupRows) {
+    const b = parseBreakdown(row.breakdown_json);
+    if (!b) continue;
+    for (const c of b.categories || []) {
+      const acc = categories.get(c.id) || { id: c.id, slug: c.slug, name_en: c.name_en, name_bn: c.name_bn, sales: 0, units: 0 };
+      acc.sales += Number(c.sales) || 0;
+      acc.units += Number(c.units) || 0;
+      categories.set(c.id, acc);
+    }
+    for (const c of b.channels || []) {
+      const acc = channels.get(c.key) || { sales: 0, orders: 0 };
+      acc.sales += Number(c.sales) || 0;
+      acc.orders += Number(c.orders) || 0;
+      channels.set(c.key, acc);
+    }
+  }
+
+  const ranked = [...categories.values()].sort((a, b) => b.sales - a.sales);
+  const categoryTotal = ranked.reduce((a, c) => a + c.sales, 0);
+  const head = ranked.slice(0, topCategories);
+  const tail = ranked.slice(topCategories);
+  const categoryOut = categoryTotal > 0
+    ? head.map((c) => ({
+        id: c.id,
+        key: c.slug,
+        name: c.name_en,
+        name_en: c.name_en,
+        name_bn: c.name_bn,
+        share_pct: pctOf(c.sales, categoryTotal),
+        revenue: money(c.sales),
+        units: c.units,
+      }))
+    : [];
+  if (categoryTotal > 0 && tail.length > 0) {
+    const otherSales = tail.reduce((a, c) => a + c.sales, 0);
+    categoryOut.push({
+      id: null,
+      key: 'other',
+      name: 'Other',
+      name_en: 'Other',
+      name_bn: 'অন্যান্য',
+      share_pct: pctOf(otherSales, categoryTotal),
+      revenue: money(otherSales),
+      units: tail.reduce((a, c) => a + c.units, 0),
+    });
+  }
+
+  const channelTotal = [...channels.values()].reduce((a, c) => a + c.sales, 0);
+  const channelOut = channelTotal > 0
+    ? SALES_CHANNELS.map(({ key, name }) => {
+        const c = channels.get(key) || { sales: 0, orders: 0 };
+        return { key, name, share_pct: pctOf(c.sales, channelTotal), volume: money(c.sales), orders: c.orders };
+      })
+    : [];
+
+  return { categories: categoryOut, channels: channelOut };
+}
+
 /**
  * Executes or re-calculates the daily analytics summary for a specific date (defaults to yesterday or given date).
  */
@@ -109,20 +279,7 @@ export async function runDailyRollup(db, targetDate = null) {
   // 8. Conversion Rate estimate
   const conversionRatePct = 3.42; // baseline benchmark
 
-  const breakdown = {
-    top_categories: [
-      { name: 'Fashion & Apparel', percentage: 38 },
-      { name: 'Electronics & Gadgets', percentage: 24 },
-      { name: 'Beauty & Care', percentage: 20 },
-      { name: 'Home & Kitchen', percentage: 18 },
-    ],
-    sales_channels: [
-      { channel: 'Storefront Direct', percentage: 46 },
-      { channel: 'Social Group Buying', percentage: 28 },
-      { channel: 'Shoppable Reels & Live', percentage: 16 },
-      { channel: 'Affiliate Referrals', percentage: 10 },
-    ],
-  };
+  const breakdown = await computeDailyBreakdown(db, dateStr);
 
   // 9. Persist into daily_analytics_rollups
   const { rows: inserted } = await db.query(
@@ -389,20 +546,8 @@ export async function getExecutiveOverview(db, { timeframe = '30d', from = null,
       dispute_rate: { value: parseFloat(curDisputeRate.toFixed(2)), ...calcDelta(curDisputeRate, prevDisputeRate), format: 'percent' },
     },
     chart_data: timeSeries,
-    breakdown: {
-      categories: [
-        { name: 'Traditional Handloom & Sarees', share_pct: 35, revenue: curRev * 0.35 },
-        { name: 'Electronics & Audio Gadgets', share_pct: 28, revenue: curRev * 0.28 },
-        { name: 'Organic Honey & Foods', share_pct: 22, revenue: curRev * 0.22 },
-        { name: 'Home Living & Brasscrafts', share_pct: 15, revenue: curRev * 0.15 },
-      ],
-      channels: [
-        { name: 'Direct Storefronts', share_pct: 44, volume: curGmv * 0.44 },
-        { name: 'Team Social Buying', share_pct: 26, volume: curGmv * 0.26 },
-        { name: 'Live Stream & Video Reels', share_pct: 18, volume: curGmv * 0.18 },
-        { name: 'Affiliate Links', share_pct: 12, volume: curGmv * 0.12 },
-      ],
-    },
+    // Summed from the stored per-day breakdowns. Empty (not invented) when there is no rollup data.
+    breakdown: aggregateBreakdown(currentRows),
     last_rollup_at: lastRollupAt,
   };
 }
