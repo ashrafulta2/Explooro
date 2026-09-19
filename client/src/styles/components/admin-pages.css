@@ -757,9 +757,11 @@
    should look like. themes.css defines --text-brand as the shallowest brand step clearing AA on the
    canvas (5.31:1 light, 6.24:1 dark) for precisely this use. The 2px underline keeps --brand,
    because a border is a fill and carries no contrast requirement. */
+/* WHY --surface-0 for the fill: the engine measures --text-brand against the canvas (surface-0), so
+   that is the one surface the pairing is guaranteed on. On --surface-2 it fell to 4.21:1 in dark. */
 .finance-subnav__tab--active,
 .platform-subnav__tab--active {
-  background: var(--surface-2);
+  background: var(--surface-0);
   color: var(--text-brand);
   font-weight: var(--weight-bold);
   border-bottom: 2px solid var(--brand);
