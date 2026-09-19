@@ -391,6 +391,114 @@ const mockUserRestrictions = {
   ],
 };
 
+const mockPayoutsStore = [
+  {
+    id: 1,
+    ref: 'PO-20260902-0001',
+    wallet_id: 12,
+    user_id: 2,
+    user_full_name: 'Fatima Sultana',
+    user_ref: 'USR-3M7V2WQ1',
+    user_phone: '01711000002',
+    method: 'BKASH',
+    account_number: '01711000002',
+    account_name: 'Jamdani Heritage Weavers',
+    bank_name: null,
+    amount: '85000.00',
+    fee_amount: '850.00',
+    net_amount: '84150.00',
+    status: 'REQUESTED',
+    risk_flags_json: [{ code: 'HIGH_VALUE_DISBURSEMENT', message: 'Amount exceeds ৳50,000 threshold' }],
+    gateway_ref: null,
+    failure_reason: null,
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+  {
+    id: 2,
+    ref: 'PO-20260902-0002',
+    wallet_id: 15,
+    user_id: 3,
+    user_full_name: 'Karim Textile Mills',
+    user_ref: 'USR-9K4P8ZN2',
+    user_phone: '01711000003',
+    method: 'NAGAD',
+    account_number: '01711000003',
+    account_name: 'Saffron Glam Cosmetics',
+    bank_name: null,
+    amount: '14500.00',
+    fee_amount: '145.00',
+    net_amount: '14355.00',
+    status: 'REQUESTED',
+    risk_flags_json: [],
+    gateway_ref: null,
+    failure_reason: null,
+    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
+  },
+  {
+    id: 3,
+    ref: 'PO-20260831-0003',
+    wallet_id: 21,
+    user_id: 6,
+    user_full_name: 'Anwar Hossain',
+    user_ref: 'USR-7N1D5KL8',
+    user_phone: '01711000006',
+    method: 'BANK',
+    account_number: 'BRAC-102938481',
+    account_name: 'Bengal Leather Crafts',
+    bank_name: 'BRAC Bank',
+    amount: '42000.00',
+    fee_amount: '420.00',
+    net_amount: '41580.00',
+    status: 'COMPLETED',
+    risk_flags_json: [],
+    gateway_ref: 'NGD-TRX-99283746',
+    failure_reason: null,
+    created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+  },
+  {
+    id: 4,
+    ref: 'PO-20260902-0004',
+    wallet_id: 28,
+    user_id: 8,
+    user_full_name: 'Tanvir Rahman',
+    user_ref: 'USR-8H2K9PQ4',
+    user_phone: '01819000008',
+    method: 'ROCKET',
+    account_number: '018190000084',
+    account_name: 'Chittagong Organic Tea',
+    bank_name: null,
+    amount: '28000.00',
+    fee_amount: '280.00',
+    net_amount: '27720.00',
+    status: 'HELD',
+    risk_flags_json: [{ code: 'FIRST_WITHDRAWAL', message: 'First withdrawal by this saler' }],
+    gateway_ref: null,
+    failure_reason: null,
+    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+  },
+  {
+    id: 5,
+    ref: 'PO-20260901-0005',
+    wallet_id: 33,
+    user_id: 11,
+    user_full_name: 'Farhana Akhter',
+    user_ref: 'USR-4T6M1XY7',
+    user_phone: '01912000011',
+    method: 'BKASH',
+    account_number: '01912000011',
+    account_name: 'Dhaka Silk & Craft',
+    bank_name: null,
+    amount: '6200.00',
+    fee_amount: '62.00',
+    net_amount: '6138.00',
+    status: 'REQUESTED',
+    risk_flags_json: [{ code: 'NEW_ACCOUNT', message: 'Store created less than 7 days ago' }],
+    gateway_ref: null,
+    failure_reason: null,
+    created_at: new Date(Date.now() - 3600000 * 20).toISOString(),
+  },
+];
+
 export const adminHandlers = [
   // 1. Executive Analytics Overview
   {
@@ -1911,92 +2019,24 @@ export const adminHandlers = [
       };
     },
   },
-
   // 42. Payouts Queue
   {
     method: 'GET',
     path: '/admin/finance/payouts',
     handler({ query }) {
-      const status = query?.status || 'REQUESTED';
-      // Field names follow migrations/012_finance.sql's `payout_requests` columns plus the joins
-      // payout.service.js's queue query adds (`user_full_name`, `user_ref`, `user_phone`) — which
-      // is what pages/admin/PayoutQueuePage.js reads.
-      //
-      // WHY: this fixture previously used `merchant_name` / `risk_flags` / `account_type` and no
-      // `ref` at all, so every row's reference column rendered "undefined" and the recipient fell
-      // back to the "User #<id>" placeholder. `PROCESSED` and `BANK_TRANSFER` were also outside
-      // the table's CHECK vocabularies (`COMPLETED` and `BANK`), so the status filter could never
-      // match that row. Names track mockUserRoster so the payout queue, the users list and the
-      // user detail page agree on who user #2, #3 and #6 are.
-      const mockPayouts = [
-        {
-          id: 1,
-          ref: 'PO-20260902-0001',
-          wallet_id: 12,
-          user_id: 2,
-          user_full_name: 'Fatima Sultana',
-          user_ref: 'USR-3M7V2WQ1',
-          user_phone: '01711000002',
-          method: 'BKASH',
-          account_number: '01711000002',
-          account_name: 'Jamdani Heritage Weavers',
-          bank_name: null,
-          amount: '85000.00',
-          fee_amount: '850.00',
-          net_amount: '84150.00',
-          status: 'REQUESTED',
-          risk_flags_json: [{ code: 'HIGH_VALUE_DISBURSEMENT', message: 'Amount exceeds ৳50,000 threshold' }],
-          gateway_ref: null,
-          failure_reason: null,
-          created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-        },
-        {
-          id: 2,
-          ref: 'PO-20260902-0002',
-          wallet_id: 15,
-          user_id: 3,
-          user_full_name: 'Karim Textile Mills',
-          user_ref: 'USR-9K4P8ZN2',
-          user_phone: '01711000003',
-          method: 'NAGAD',
-          account_number: '01711000003',
-          account_name: 'Saffron Glam Cosmetics',
-          bank_name: null,
-          amount: '14500.00',
-          fee_amount: '145.00',
-          net_amount: '14355.00',
-          status: 'REQUESTED',
-          risk_flags_json: [],
-          gateway_ref: null,
-          failure_reason: null,
-          created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-        },
-        {
-          id: 3,
-          ref: 'PO-20260831-0003',
-          wallet_id: 21,
-          user_id: 6,
-          user_full_name: 'Anwar Hossain',
-          user_ref: 'USR-7N1D5KL8',
-          user_phone: '01711000006',
-          method: 'BANK',
-          account_number: 'BRAC-102938481',
-          account_name: 'Bengal Leather Crafts',
-          bank_name: 'BRAC Bank',
-          amount: '42000.00',
-          fee_amount: '420.00',
-          net_amount: '41580.00',
-          status: 'COMPLETED',
-          risk_flags_json: [],
-          gateway_ref: 'NGD-TRX-99283746',
-          failure_reason: null,
-          created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-        },
-      ];
+      const status = query?.status;
+      const method = query?.method;
 
-      const filtered = status === 'ALL'
-        ? mockPayouts
-        : mockPayouts.filter((p) => p.status === status);
+      let filtered = mockPayoutsStore;
+      if (status && status !== 'ALL') {
+        filtered = filtered.filter((p) => p.status === status);
+      } else if (!status) {
+        filtered = filtered.filter((p) => p.status === 'REQUESTED');
+      }
+
+      if (method) {
+        filtered = filtered.filter((p) => p.method === method);
+      }
 
       return {
         status: 200,
@@ -2009,16 +2049,56 @@ export const adminHandlers = [
     },
   },
 
-  // 43. Batch Disburse Payouts
+  // 43. Approve Payout
+  {
+    method: 'POST',
+    path: '/admin/finance/payouts/:id/approve',
+    handler({ params }) {
+      const id = parseInt(params?.id, 10);
+      const item = mockPayoutsStore.find((p) => p.id === id);
+      const flags = typeof item?.risk_flags_json === 'string' ? JSON.parse(item.risk_flags_json) : (item?.risk_flags_json || []);
+      const requiresSuperAdmin = item?.status !== 'HELD' && flags.some((f) => (f.code || f) === 'HIGH_VALUE_DISBURSEMENT');
+
+      if (item) {
+        item.status = requiresSuperAdmin ? 'HELD' : 'COMPLETED';
+        item.gateway_ref = requiresSuperAdmin ? null : `MFS-${Date.now().toString(36).toUpperCase()}`;
+      }
+
+      return {
+        status: 200,
+        body: {
+          data: { payout_id: id, status: item?.status || 'COMPLETED' },
+          meta: {
+            maker_checker: {
+              requires_super_admin: requiresSuperAdmin,
+            },
+          },
+          message_en: requiresSuperAdmin ? 'Approval logged: awaiting Super Admin sign-off' : 'Payout approved and disbursed successfully.',
+          message_bn: requiresSuperAdmin ? 'অনুমোদন নথিভুক্ত হয়েছে: চূড়ান্ত অনুমোদনের জন্য সুপার অ্যাডমিনের স্বাক্ষর প্রয়োজন।' : 'পেআউট সফলভাবে সম্পন্ন হয়েছে।',
+        },
+      };
+    },
+  },
+
+  // 44. Batch Disburse Payouts
   {
     method: 'POST',
     path: '/admin/finance/payouts/batch-disburse',
     handler({ body }) {
       const ids = body?.payout_ids || [];
+      ids.forEach((rawId) => {
+        const item = mockPayoutsStore.find((p) => p.id === parseInt(rawId, 10));
+        if (item) {
+          item.status = 'COMPLETED';
+          item.gateway_ref = `MFS-BATCH-${Date.now().toString(36).toUpperCase()}`;
+        }
+      });
       return {
         status: 200,
         body: {
           data: {
+            successCount: ids.length,
+            failureCount: 0,
             disbursed_count: ids.length,
             success: true,
           },
@@ -2029,15 +2109,21 @@ export const adminHandlers = [
     },
   },
 
-  // 44. Single Disburse Payout
+  // 45. Single Disburse Payout
   {
     method: 'POST',
     path: '/admin/finance/payouts/:id/disburse',
     handler({ params }) {
+      const id = parseInt(params?.id, 10);
+      const item = mockPayoutsStore.find((p) => p.id === id);
+      if (item) {
+        item.status = 'COMPLETED';
+        item.gateway_ref = `MFS-${Date.now().toString(36).toUpperCase()}`;
+      }
       return {
         status: 200,
         body: {
-          data: { payout_id: params?.id, status: 'PROCESSED' },
+          data: { payout_id: id, status: 'COMPLETED' },
           message_en: 'Payout disbursed successfully via automated MFS API.',
           message_bn: 'এমএফএস পেমেন্ট সফলভাবে সম্পন্ন হয়েছে।',
         },
@@ -2045,15 +2131,21 @@ export const adminHandlers = [
     },
   },
 
-  // 45. Reject Payout
+  // 46. Reject Payout
   {
     method: 'POST',
     path: '/admin/finance/payouts/:id/reject',
     handler({ params, body }) {
+      const id = parseInt(params?.id, 10);
+      const item = mockPayoutsStore.find((p) => p.id === id);
+      if (item) {
+        item.status = 'REJECTED';
+        item.failure_reason = body?.reason || 'Account verification failure';
+      }
       return {
         status: 200,
         body: {
-          data: { payout_id: params?.id, status: 'REJECTED', reason: body?.reason },
+          data: { payout_id: id, status: 'REJECTED', reason: body?.reason },
           message_en: 'Payout rejected and held funds unlocked.',
           message_bn: 'পেআউট অনুরোধ বাতিল করা হয়েছে।',
         },
