@@ -22,6 +22,7 @@ import { Sidebar } from './Sidebar.js';
 import { TopBar, formatRemaining } from './TopBar.js';
 import { MobileNav } from './MobileNav.js';
 import { createCommandPalette } from './CommandPalette.js';
+import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.js';
 import { CartDrawer } from '../cart/CartDrawer.js';
 import { initCart } from '../../services/cart.js';
 
@@ -95,9 +96,81 @@ export function createAppShell({ container, navigate }) {
     next.setSelectionRange(next.value.length, next.value.length);
   }
 
+  // Back control for /admin/* sub-pages: a bare "‹" injected at the start of the page's own heading,
+  // with the destination named in its tooltip. The /admin dashboard is the root, so it has none.
+  //
+  // WHY it is injected rather than rendered by each page: ~59 admin pages own their headers, and a
+  // control every one of them had to remember to render is one half of them would forget (System
+  // Health did). core/router.js empties `pageOutlet` on every navigation and pages re-render their
+  // headers on tab switches and polling, so a MutationObserver re-attaches it; sync is idempotent so
+  // its own insertion doesn't loop.
+  let backEnabled = false;
+
+  function backTarget() {
+    const fromPath = window.history.state?.fromPath || null;
+    // fromTitle is the previous page's document.title, e.g. "Users — Explooro".
+    const fromTitle = (window.history.state?.fromTitle || '').replace(/\s+[—–-]\s+Explooro$/, '').trim();
+    return {
+      href: fromPath || '/admin',
+      name: (fromPath && fromTitle) || t('common.dashboard'),
+    };
+  }
+
+  function syncBackButton() {
+    const existing = pageOutlet.querySelectorAll('.shell-back');
+    if (!backEnabled) {
+      existing.forEach((el) => el.remove());
+      return;
+    }
+    const heading = pageOutlet.querySelector('h1') || pageOutlet.querySelector('h2');
+    // Between navigations the outlet is empty while the page module loads; a lone icon there would
+    // flash on an otherwise blank screen before the heading arrives.
+    if (!heading && !pageOutlet.firstElementChild) return;
+    const { href, name } = backTarget();
+    const label = t('common.back_to', { name });
+
+    let link = existing[0];
+    // A page that re-rendered its header leaves the old button behind in a detached node, and a
+    // page with no heading gets the standalone fallback — either way, keep exactly one.
+    existing.forEach((el, i) => { if (i > 0) el.remove(); });
+    const wantedParent = heading || pageOutlet;
+    if (link && link.parentElement !== wantedParent) {
+      link.remove();
+      link = null;
+    }
+    if (!link) {
+      link = document.createElement('a');
+      link.className = heading ? 'shell-back' : 'shell-back shell-back--standalone';
+      link.innerHTML = CHEVRON_LEFT_SVG.replace('back-btn__chevron', 'shell-back__chevron');
+      bindBackControl(link, navigate, '/admin');
+      wantedParent.prepend(link);
+    }
+    if (link.getAttribute('href') !== href) link.setAttribute('href', href);
+    if (link.getAttribute('aria-label') !== label) {
+      link.setAttribute('aria-label', label);
+      link.setAttribute('title', label);
+    }
+  }
+
+  let backSyncQueued = false;
+  new MutationObserver(() => {
+    if (!backEnabled || backSyncQueued) return;
+    backSyncQueued = true;
+    requestAnimationFrame(() => {
+      backSyncQueued = false;
+      syncBackButton();
+    });
+  }).observe(pageOutlet, { childList: true, subtree: true });
+
+  function renderBackBar(show) {
+    backEnabled = show;
+    syncBackButton();
+  }
+
   function render() {
     const s = appStore.get();
     if (!s.auth.isAuthenticated || !s.auth.role) {
+      renderBackBar(false);
       sidebarSlot.replaceChildren();
       mobileNavSlot.replaceChildren();
       shellEl.dataset.hasChrome = 'guest';
@@ -113,6 +186,7 @@ export function createAppShell({ container, navigate }) {
     shellEl.dataset.hasChrome = 'true';
     const ctx = currentCtx();
     const currentPath = window.location.pathname;
+    renderBackBar(currentPath.replace(/\/+$/, '').startsWith('/admin/'));
     const oldSidebar = sidebarSlot.querySelector('.sidebar');
     const sidebarScrollTop = oldSidebar ? oldSidebar.scrollTop : 0;
 

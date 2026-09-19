@@ -5,7 +5,7 @@
 /* Layout */
 .app-shell { --topbar-h: 56px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; grid-template-areas: 'topbar topbar' 'sidebar content'; min-height: 100vh; background: var(--surface-0); }
 .app-shell.is-scrolled { --topbar-h: 48px; }
-.app-shell[data-has-chrome='false'], .app-shell[data-has-chrome='guest'] { grid-template-columns: 1fr; grid-template-areas: 'topbar' 'content'; }
+.app-shell[data-has-chrome='false'], .app-shell[data-has-chrome='guest'] { grid-template-columns: 1fr; grid-template-rows: auto 1fr; grid-template-areas: 'topbar' 'content'; }
 .app-shell[data-has-chrome='false'] .app-shell__sidebar-slot, .app-shell[data-has-chrome='false'] .app-shell__mobilenav-slot, .app-shell[data-has-chrome='guest'] .app-shell__sidebar-slot, .app-shell[data-has-chrome='guest'] .app-shell__mobilenav-slot { display: none; }
 .app-shell__topbar-slot { grid-area: topbar; position: sticky; top: 0; z-index: var(--z-header); }
 .topbar__brand { display: flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--tb-brand-font, var(--text-lg)); letter-spacing: -0.02em; color: var(--navbar-text, var(--text-primary)); text-decoration: none; margin-right: var(--space-2); cursor: pointer; user-select: none; transition: color var(--dur-fast) var(--ease-standard), font-size var(--dur-base) var(--ease-standard); }
@@ -15,6 +15,14 @@
 .app-shell__content { grid-area: content; min-width: 0; }
 .app-shell__page { padding: var(--space-6); padding-bottom: calc(var(--space-6) + 64px); min-width: 0; }
 @media (min-width: 768px) { .app-shell__page { padding-bottom: var(--space-6); } }
+
+/* Back control — a bare "‹" injected at the start of an admin page's heading by AppShell. Sized in
+   em so it tracks whatever heading size the page uses; the destination lives in its tooltip. */
+.shell-back { display: inline-flex; align-items: center; justify-content: center; flex: none; vertical-align: middle; width: 1.1em; height: 1.1em; min-width: 28px; min-height: 28px; margin-right: var(--space-2); border-radius: var(--radius-sm); color: var(--text-muted); text-decoration: none; transition: color var(--dur-fast) var(--ease-standard), background var(--dur-fast) var(--ease-standard); }
+.shell-back:hover { color: var(--text-primary); background: var(--surface-2); text-decoration: none; }
+.shell-back:focus-visible { outline: 2px solid var(--focus-ring, var(--border-strong)); outline-offset: 2px; }
+.shell-back__chevron { width: 20px; height: 20px; }
+.shell-back--standalone { display: flex; margin-bottom: var(--space-3); }
 
 /* Sidebar */
 .app-shell__sidebar-slot { grid-area: sidebar; display: none; }
