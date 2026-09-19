@@ -759,12 +759,12 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
     badgeEl.style.fontWeight = '600';
 
     if (passes) {
-      badgeEl.style.background = 'rgba(16, 185, 129, 0.15)';
-      badgeEl.style.color = '#047857';
+      badgeEl.style.background = 'var(--success-bg)';
+      badgeEl.style.color = 'var(--success)';
       badgeEl.textContent = `${ratio}:1 ✓`;
     } else {
-      badgeEl.style.background = 'rgba(239, 68, 68, 0.15)';
-      badgeEl.style.color = '#b91c1c';
+      badgeEl.style.background = 'var(--danger-bg)';
+      badgeEl.style.color = 'var(--danger)';
       badgeEl.textContent = `${ratio}:1 ✗`;
     }
   }
@@ -780,16 +780,16 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
 
     if (val.isValid) {
       bannerEl.className = 'grant-preview-box';
-      bannerEl.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-      bannerEl.style.background = 'rgba(16, 185, 129, 0.08)';
-      bannerEl.style.color = '#065f46';
+      bannerEl.style.borderColor = 'var(--success-border)';
+      bannerEl.style.background = 'var(--success-bg)';
+      bannerEl.style.color = 'var(--success)';
       bannerEl.textContent = `🛡️ All UI section pairings satisfy WCAG AA standards.`;
       publishBtn.disabled = false;
     } else {
       bannerEl.className = 'grant-preview-box';
-      bannerEl.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-      bannerEl.style.background = 'rgba(239, 68, 68, 0.08)';
-      bannerEl.style.color = '#991b1b';
+      bannerEl.style.borderColor = 'var(--danger-border)';
+      bannerEl.style.background = 'var(--danger-bg)';
+      bannerEl.style.color = 'var(--danger)';
       const first = val.failures[0];
       bannerEl.textContent = `⚠️ WCAG AA Failure: ${first.pairing} ratio is ${first.ratio}:1 (required ${first.required}:1). Publishing blocked.`;
       publishBtn.disabled = true;
