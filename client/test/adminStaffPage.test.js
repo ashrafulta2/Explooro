@@ -4,12 +4,19 @@
  * The mock roster is stateful and enforces the rules the real endpoint must, so the invariants
  * are asserted against it: the last Super Admin cannot be demoted or suspended, every write
  * needs a reason for the audit log, and contact details are unique.
+ *
+ * The mock is also held to the REAL API's contract (server/src/services/staff.service.js, asserted
+ * against PostgreSQL in server/test/staffManagement.test.js): validation is HTTP 400, refusals use
+ * the closed code enum with the reason in `details.reason`, phones are E.164. A mock that answers
+ * differently from the live endpoint lets a page pass in development and break in production.
  */
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { handleMockRequest } from '../src/mocks/index.js';
+import { describeWriteOutcome } from '../src/services/writeOutcome.js';
+import { normaliseBdPhone } from '../src/services/format.js';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 
@@ -48,7 +55,8 @@ describe('Staff Management — mock API invariants', () => {
     ];
     for (const [over, field] of cases) {
       const res = call('POST', '/admin/staff', valid(over));
-      assert.equal(res.status, 422, field);
+      assert.equal(res.status, 400, field);
+      assert.equal(res.body.error.code, 'VALIDATION_FAILED');
       assert.equal(res.body.error.details.field, field);
       assert.ok(res.body.error.message_en && res.body.error.message_bn, 'both languages');
     }
@@ -81,11 +89,13 @@ describe('Staff Management — mock API invariants', () => {
     const owner = find('STF-001');
     const demote = call('PATCH', `/admin/staff/${owner.id}/role`, { role_key: 'admin', reason: 'test' });
     assert.equal(demote.status, 409);
-    assert.equal(demote.body.error.code, 'LAST_SUPER_ADMIN');
+    assert.equal(demote.body.error.code, 'CONFLICT');
+    assert.equal(demote.body.error.details.reason, 'LAST_SUPER_ADMIN');
 
     const suspend = call('PATCH', `/admin/staff/${owner.id}/status`, { status: 'SUSPENDED', reason: 'test' });
     assert.equal(suspend.status, 409);
-    assert.equal(suspend.body.error.code, 'LAST_SUPER_ADMIN');
+    assert.equal(suspend.body.error.code, 'CONFLICT');
+    assert.equal(suspend.body.error.details.reason, 'LAST_SUPER_ADMIN');
     assert.equal(find('STF-001').role_key, 'super_admin', 'nothing changed');
   });
 
@@ -109,7 +119,7 @@ describe('Staff Management — mock API invariants', () => {
       ['POST', `/admin/staff/${tariq.id}/reset-2fa`, {}],
     ]) {
       const res = call(method, path, body);
-      assert.equal(res.status, 422, `${method} ${path}`);
+      assert.equal(res.status, 400, `${method} ${path}`);
       assert.equal(res.body.error.details.field, 'reason');
     }
     assert.equal(find('STF-002').role_key, 'moderator');
@@ -117,7 +127,7 @@ describe('Staff Management — mock API invariants', () => {
 
   it('8. role change: rejects no-ops, applies otherwise, and records before/after in the timeline', () => {
     const nusrat = find('STF-003');
-    assert.equal(call('PATCH', `/admin/staff/${nusrat.id}/role`, { role_key: 'editor', reason: 'same' }).status, 422);
+    assert.equal(call('PATCH', `/admin/staff/${nusrat.id}/role`, { role_key: 'editor', reason: 'same' }).status, 400);
 
     const ok = call('PATCH', `/admin/staff/${nusrat.id}/role`, { role_key: 'moderator', reason: 'Moved to trust & safety' });
     assert.equal(ok.status, 200);
@@ -136,7 +146,8 @@ describe('Staff Management — mock API invariants', () => {
     const before = list().vitals.two_factor_rate_pct;
     assert.equal(call('POST', `/admin/staff/${kamal.id}/reset-2fa`, { reason: 'Lost phone' }).status, 200);
     assert.ok(list().vitals.two_factor_rate_pct < before);
-    assert.equal(call('POST', `/admin/staff/${kamal.id}/reset-2fa`, { reason: 'Again' }).status, 409);
+    const again = call('POST', `/admin/staff/${kamal.id}/reset-2fa`, { reason: 'Again' });
+    assert.deepEqual([again.status, again.body.error.code, again.body.error.details.reason], [409, 'CONFLICT', 'NOTHING_TO_RESET']);
     assert.equal(list({ two_factor: 'PENDING' }).staff.some((s) => s.ref === 'STF-004'), true);
   });
 
@@ -155,7 +166,8 @@ describe('Staff Management — mock API invariants', () => {
   it('11. resend-invite only applies to members who have not signed in', () => {
     const invited = list({ status: 'INVITED' }).staff[0];
     assert.equal(call('POST', `/admin/staff/${invited.id}/resend-invite`, {}).status, 200);
-    assert.equal(call('POST', `/admin/staff/${find('STF-001').id}/resend-invite`, {}).status, 409);
+    const notInvited = call('POST', `/admin/staff/${find('STF-001').id}/resend-invite`, {});
+    assert.deepEqual([notInvited.status, notInvited.body.error.details.reason], [409, 'NOT_INVITED']);
   });
 
   it('12. unknown ids answer 404 with both languages', () => {
@@ -167,6 +179,107 @@ describe('Staff Management — mock API invariants', () => {
       const res = call(method, path, body);
       assert.equal(res.status, 404);
       assert.ok(res.body.error.message_bn);
+    }
+  });
+});
+
+describe('Staff Management — mock matches the live API contract', () => {
+  // The same lists the server integration test asserts.
+  const STAFF_KEYS = ['created_at', 'department', 'email', 'full_name', 'id', 'last_active_at', 'permissions_count', 'phone', 'ref', 'role_key', 'role_label_bn', 'role_label_en', 'status', 'two_factor_enabled'];
+  const VITAL_KEYS = ['active_staff', 'invited_staff', 'privileged_roles_count', 'total_staff', 'two_factor_pending', 'two_factor_rate_pct'];
+  const ROLE_KEYS = ['description_bn', 'description_en', 'key', 'label_bn', 'label_en', 'permissions_count', 'privileged'];
+
+  const provision = (over = {}) =>
+    call('POST', '/admin/staff', valid({ email: `p${Math.random().toString(36).slice(2, 8)}@explooro.com`, phone: `018${Math.floor(1e7 + Math.random() * 9e7)}`, ...over }));
+
+  it('17. rows, roles and vitals carry exactly the fields the server sends', () => {
+    const body = list();
+    assert.deepEqual(Object.keys(body.staff[0]).sort(), STAFF_KEYS);
+    assert.deepEqual(Object.keys(body.vitals).sort(), VITAL_KEYS);
+    assert.deepEqual(Object.keys(body.roles[0]).sort(), ROLE_KEYS);
+    assert.deepEqual(Object.keys(body).sort(), ['limit', 'page', 'roles', 'staff', 'total', 'total_pages', 'vitals']);
+  });
+
+  it('18. phones are E.164 like the server stores them, and every spelling finds — and collides with — the same person', () => {
+    const created = provision({ phone: '01799765432' }).body.staff;
+    assert.equal(created.phone, '+8801799765432');
+    for (const q of ['01799765432', '+8801799765432', '8801799765432', '1799765432', '9976543']) {
+      assert.ok(call('GET', '/admin/staff', undefined, { q }).body.staff.some((s) => s.id === created.id), q);
+    }
+    for (const phone of ['01799765432', '+8801799765432', '8801799765432']) {
+      const dup = provision({ phone });
+      assert.deepEqual([dup.status, dup.body.error.code, dup.body.error.details.field], [409, 'CONFLICT', 'phone'], phone);
+    }
+  });
+
+  it('19. a blank department is null (the page shows a dash), not an invented "Operations"', () => {
+    assert.equal(provision({ department: '   ' }).body.staff.department, null);
+  });
+
+  it('20. the invitation copy tells the truth: an email, then an OTP to the mobile — no sign-in link', () => {
+    const out = provision().body;
+    assert.equal(out.invite_sent, true);
+    assert.match(out.message_en, /invitation was emailed/i);
+    assert.match(out.message_en, /one-time code/i);
+    assert.doesNotMatch(`${out.message_en} ${out.message_bn}`, /link|লিংক/i);
+    const invited = list({ status: 'INVITED' }).staff[0];
+    const resent = call('POST', `/admin/staff/${invited.id}/resend-invite`, {}).body;
+    assert.doesNotMatch(`${resent.message_en} ${resent.message_bn}`, /link|লিংক/i);
+    for (const dictionary of [enDict, bnDict]) {
+      assert.doesNotMatch(dictionary.admin.staff.modal_desc, /link|লিংক/i, 'the modal must not promise a link either');
+    }
+  });
+
+  it('21. every refusal uses a code from the closed enum, with the business reason in details.reason', () => {
+    const CLOSED = new Set(['VALIDATION_FAILED', 'NOT_FOUND', 'CONFLICT', 'FORBIDDEN']);
+    const member = provision().body.staff;
+    call('PATCH', `/admin/staff/${member.id}/status`, { status: 'SUSPENDED', reason: 'testing' });
+    const refusals = [
+      [call('PATCH', `/admin/staff/${member.id}/status`, { status: 'SUSPENDED', reason: 'again' }), 'ALREADY_SUSPENDED'],
+      [call('PATCH', `/admin/staff/${find('STF-003').id}/status`, { status: 'ACTIVE', reason: 'not suspended' }), 'NOT_SUSPENDED'],
+    ];
+    for (const [res, reason] of refusals) {
+      assert.equal(res.status, 409);
+      assert.ok(CLOSED.has(res.body.error.code), res.body.error.code);
+      assert.equal(res.body.error.details.reason, reason);
+      assert.ok(res.body.error.message_en && res.body.error.message_bn);
+    }
+  });
+});
+
+describe('describeWriteOutcome — a 202 deferral is not a success', () => {
+  const deferred = { deferred: { code: 'PERMISSION_PENDING_APPROVAL', message_en: 'Sent for approval.', message_bn: 'অনুমোদনের জন্য পাঠানো হয়েছে।' } };
+
+  it('22. a deferred reply is flagged so the page does not toast success or reload', () => {
+    assert.deepEqual(describeWriteOutcome(deferred, { fallback: 'done' }), { deferred: true, message: 'Sent for approval.' });
+    assert.equal(describeWriteOutcome(deferred, { bn: true }).message, 'অনুমোদনের জন্য পাঠানো হয়েছে।');
+    assert.equal(describeWriteOutcome({ deferred: {} }, { deferredFallback: 'Waiting.' }).message, 'Waiting.', 'falls back when the server sent no text');
+  });
+
+  it('23. a completed write reads the server message in the active language, else the fallback', () => {
+    const res = { message_en: 'Role updated.', message_bn: 'রোল আপডেট হয়েছে।' };
+    assert.deepEqual(describeWriteOutcome(res, { fallback: 'x' }), { deferred: false, message: 'Role updated.' });
+    assert.equal(describeWriteOutcome(res, { bn: true }).message, 'রোল আপডেট হয়েছে।');
+    assert.equal(describeWriteOutcome({}, { fallback: 'Saved.' }).message, 'Saved.');
+    assert.equal(describeWriteOutcome(undefined, { fallback: 'Saved.' }).deferred, false);
+  });
+
+  it('24. the page reads every write through it and warns when the invitation email failed', () => {
+    const page = readFileSync(new URL('../src/pages/admin/StaffPage.js', import.meta.url), 'utf8');
+    assert.match(page, /describeWriteOutcome\(res/);
+    assert.match(page, /outcome\.deferred/);
+    assert.match(page, /invite_sent === false\) toast\.warning/);
+    assert.ok(enDict.admin.staff.toast_deferred && bnDict.admin.staff.toast_deferred);
+  });
+});
+
+describe('normaliseBdPhone — the form accepts what the API accepts', () => {
+  it('25. every common spelling of one mobile becomes the same E.164 number; non-mobiles are refused', () => {
+    for (const ok of ['01811000003', '8801811000003', '+8801811000003', '+880 1811-000003', '(0181) 1000003', ' 01811000003 ']) {
+      assert.equal(normaliseBdPhone(ok), '+8801811000003', ok);
+    }
+    for (const bad of ['', null, undefined, '0181100000', '018110000033', '01211000003', '+911811000003', 'abcdefghijk']) {
+      assert.equal(normaliseBdPhone(bad), null, String(bad));
     }
   });
 });

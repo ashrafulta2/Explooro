@@ -323,7 +323,7 @@ function buildCodAgingReport(alertThresholdDays = 7) {
  */
 const mockUserRoster = [
   {
-    id: 1, ref: 'USR-8F2K9QX7', phone: '01711000001', email: 'rahim.khan@explooro.com',
+    id: 1, ref: 'USR-8F2K9QX7', phone: '+8801711000001', email: 'rahim.khan@explooro.com',
     full_name: 'Rahim Khan', role_key: 'super_admin', role_label_en: 'Super Admin', role_label_bn: 'সুপার অ্যাডমিন',
     tier: 'ELITE_PARTNER', district: 'Dhaka', division: 'Dhaka', address_line: 'House 42, Road 7, Dhanmondi',
     status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
@@ -331,7 +331,7 @@ const mockUserRoster = [
     wallet_balance_bdt: 45800.50, escrow_held_bdt: 12400.00,
   },
   {
-    id: 2, ref: 'USR-3M7V2WQ1', phone: '01711000002', email: 'fatima.fashion@gmail.com',
+    id: 2, ref: 'USR-3M7V2WQ1', phone: '+8801711000002', email: 'fatima.fashion@gmail.com',
     full_name: 'Fatima Sultana', role_key: 'saler', role_label_en: 'Saler', role_label_bn: 'সেলার',
     tier: 'PRO_SELLER', district: 'Sylhet', division: 'Sylhet', address_line: 'Flat 3B, Zindabazar',
     status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 1,
@@ -339,7 +339,7 @@ const mockUserRoster = [
     wallet_balance_bdt: 18250.75, escrow_held_bdt: 6400.00,
   },
   {
-    id: 3, ref: 'USR-9K4P8ZN2', phone: '01711000003', email: 'karim.textiles@ctg.bd',
+    id: 3, ref: 'USR-9K4P8ZN2', phone: '+8801711000003', email: 'karim.textiles@ctg.bd',
     full_name: 'Karim Textile Mills', role_key: 'supplier', role_label_en: 'Supplier', role_label_bn: 'সাপ্লায়ার',
     tier: 'VERIFIED_SUPPLIER', district: 'Chittagong', division: 'Chattogram', address_line: 'Plot 19, Nasirabad I/A',
     status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
@@ -347,7 +347,7 @@ const mockUserRoster = [
     wallet_balance_bdt: 214300.00, escrow_held_bdt: 58200.00,
   },
   {
-    id: 4, ref: 'USR-5X8L3MB9', phone: '01711000004', email: 'tariq.moderation@explooro.com',
+    id: 4, ref: 'USR-5X8L3MB9', phone: '+8801711000004', email: 'tariq.moderation@explooro.com',
     full_name: 'Tariq Ahmed', role_key: 'moderator', role_label_en: 'Moderator', role_label_bn: 'মডারেটর',
     tier: 'STAFF', district: 'Rajshahi', division: 'Rajshahi', address_line: 'Staff Quarters, Shaheb Bazar',
     status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
@@ -355,7 +355,7 @@ const mockUserRoster = [
     wallet_balance_bdt: 0, escrow_held_bdt: 0,
   },
   {
-    id: 5, ref: 'USR-2P9C7RT4', phone: '01711000005', email: 'nusrat.editor@explooro.com',
+    id: 5, ref: 'USR-2P9C7RT4', phone: '+8801711000005', email: 'nusrat.editor@explooro.com',
     full_name: 'Nusrat Jahan', role_key: 'editor', role_label_en: 'Editor', role_label_bn: 'এডিটর',
     tier: 'STAFF', district: 'Dhaka', division: 'Dhaka', address_line: 'House 8, Road 11, Banani',
     status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
@@ -363,7 +363,7 @@ const mockUserRoster = [
     wallet_balance_bdt: 0, escrow_held_bdt: 0,
   },
   {
-    id: 6, ref: 'USR-7N1D5KL8', phone: '01711000006', email: 'anwar.customer@yahoo.com',
+    id: 6, ref: 'USR-7N1D5KL8', phone: '+8801711000006', email: 'anwar.customer@yahoo.com',
     full_name: 'Anwar Hossain', role_key: 'customer', role_label_en: 'Customer', role_label_bn: 'ক্রেতা',
     tier: 'STARTER', district: 'Khulna', division: 'Khulna', address_line: 'Holding 210, Sonadanga',
     status: 'ACTIVE', kyc_status: 'UNVERIFIED', active_restrictions_count: 0,
@@ -371,7 +371,7 @@ const mockUserRoster = [
     wallet_balance_bdt: 1240.00, escrow_held_bdt: 0,
   },
   {
-    id: 7, ref: 'USR-4H6J9PV3', phone: '01711000007', email: 'tanvir.crafts@gmail.com',
+    id: 7, ref: 'USR-4H6J9PV3', phone: '+8801711000007', email: 'tanvir.crafts@gmail.com',
     full_name: 'Tanvir Crafts', role_key: 'saler', role_label_en: 'Saler', role_label_bn: 'সেলার',
     tier: 'STARTER', district: 'Bogura', division: 'Rajshahi', address_line: 'Ward 4, Sherpur Road',
     status: 'RESTRICTED', kyc_status: 'PENDING', active_restrictions_count: 2,
@@ -419,7 +419,7 @@ const mockPayoutsStore = [
     user_id: 2,
     user_full_name: 'Fatima Sultana',
     user_ref: 'USR-3M7V2WQ1',
-    user_phone: '01711000002',
+    user_phone: '+8801711000002',
     method: 'BKASH',
     account_number: '01711000002',
     account_name: 'Jamdani Heritage Weavers',
@@ -440,7 +440,7 @@ const mockPayoutsStore = [
     user_id: 3,
     user_full_name: 'Karim Textile Mills',
     user_ref: 'USR-9K4P8ZN2',
-    user_phone: '01711000003',
+    user_phone: '+8801711000003',
     method: 'NAGAD',
     account_number: '01711000003',
     account_name: 'Saffron Glam Cosmetics',
@@ -461,7 +461,7 @@ const mockPayoutsStore = [
     user_id: 6,
     user_full_name: 'Anwar Hossain',
     user_ref: 'USR-7N1D5KL8',
-    user_phone: '01711000006',
+    user_phone: '+8801711000006',
     method: 'BANK',
     account_number: 'BRAC-102938481',
     account_name: 'Bengal Leather Crafts',
@@ -1063,6 +1063,12 @@ export const adminHandlers = [
 
   // 12–16b. Staff roster & governance.
   //
+  // Mirrors server/src/services/staff.service.js: the same status codes (validation is 400, not 422),
+  // the closed error-code enum with the business reason in `details.reason`, E.164 phones, a null
+  // department when blank, and the same message wording — so what the page does here is what it does
+  // live. (The real endpoint also refuses changes to your own account; the mock has no notion of who
+  // is signed in, so the page hides those buttons and the server is the backstop.)
+  //
   // WHY stateful: these five handlers used to return a hard-coded array and a canned success for
   // every write, so provisioning a member, suspending one or changing a role "worked" (a toast)
   // and then the table reloaded to the same four rows. The page could not be demonstrated, and —
@@ -1080,16 +1086,20 @@ export const adminHandlers = [
     const hoursAgo = (h) => new Date(Date.now() - 3600000 * h).toISOString();
 
     const staffRoster = [
-      { id: 1, ref: 'STF-001', full_name: 'Rahim Khan', email: 'rahim.khan@explooro.com', phone: '01711000001', role_key: 'super_admin', department: 'Executive Operations', two_factor_enabled: true, status: 'ACTIVE', last_active_at: new Date().toISOString(), created_at: hoursAgo(24 * 240) },
-      { id: 4, ref: 'STF-002', full_name: 'Tariq Ahmed', email: 'tariq.moderation@explooro.com', phone: '01711000004', role_key: 'moderator', department: 'Trust & Safety', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(3), created_at: hoursAgo(24 * 190) },
-      { id: 5, ref: 'STF-003', full_name: 'Nusrat Jahan', email: 'nusrat.editor@explooro.com', phone: '01711000005', role_key: 'editor', department: 'Content Commerce', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(12), created_at: hoursAgo(24 * 150) },
-      { id: 8, ref: 'STF-004', full_name: 'Kamal Uddin', email: 'kamal.finance@explooro.com', phone: '01711000008', role_key: 'moderator', department: 'Finance & Escrow', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(24), created_at: hoursAgo(24 * 120) },
+      { id: 1, ref: 'STF-001', full_name: 'Rahim Khan', email: 'rahim.khan@explooro.com', phone: '+8801711000001', role_key: 'super_admin', department: 'Executive Operations', two_factor_enabled: true, status: 'ACTIVE', last_active_at: new Date().toISOString(), created_at: hoursAgo(24 * 240) },
+      { id: 4, ref: 'STF-002', full_name: 'Tariq Ahmed', email: 'tariq.moderation@explooro.com', phone: '+8801711000004', role_key: 'moderator', department: 'Trust & Safety', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(3), created_at: hoursAgo(24 * 190) },
+      { id: 5, ref: 'STF-003', full_name: 'Nusrat Jahan', email: 'nusrat.editor@explooro.com', phone: '+8801711000005', role_key: 'editor', department: 'Content Commerce', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(12), created_at: hoursAgo(24 * 150) },
+      { id: 8, ref: 'STF-004', full_name: 'Kamal Uddin', email: 'kamal.finance@explooro.com', phone: '+8801711000008', role_key: 'moderator', department: 'Finance & Escrow', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(24), created_at: hoursAgo(24 * 120) },
     ];
     // Timeline entries per staff id: { id, action, actor_name, before, after, reason, created_at }.
     const staffTimeline = new Map();
     let timelineSeq = 1;
 
-    const STAFF_PHONE = /^01[3-9]\d{8}$/;
+    // "01711000001", "8801711000001" and "+8801711000001" all become "+8801711000001" (server: normalisePhone).
+    const normaliseMockPhone = (raw) => {
+      const m = String(raw ?? '').replace(/[\s()-]/g, '').match(/^(?:\+?880|0)(1[3-9]\d{8})$/);
+      return m ? `+880${m[1]}` : null;
+    };
     const STAFF_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
     function fail(status, code, message_en, message_bn, details) {
@@ -1099,7 +1109,7 @@ export const adminHandlers = [
     const activeSuperAdmins = () => staffRoster.filter((s) => s.role_key === 'super_admin' && s.status === 'ACTIVE');
     const isLastSuperAdmin = (s) => s.role_key === 'super_admin' && s.status === 'ACTIVE' && activeSuperAdmins().length <= 1;
     const lastSuperAdminError = () =>
-      fail(409, 'LAST_SUPER_ADMIN', 'This is the only active Super Admin. Promote another Super Admin first, otherwise nobody could recover the platform.', 'এটিই একমাত্র সক্রিয় সুপার অ্যাডমিন। আগে আরেকজনকে সুপার অ্যাডমিন করুন, নইলে প্ল্যাটফর্ম পুনরুদ্ধারের কেউ থাকবে না।');
+      fail(409, 'CONFLICT', 'This is the only active Super Admin. Promote another Super Admin first, otherwise nobody could recover the platform.', 'এটিই একমাত্র সক্রিয় সুপার অ্যাডমিন। আগে আরেকজনকে সুপার অ্যাডমিন করুন, নইলে প্ল্যাটফর্ম পুনরুদ্ধারের কেউ থাকবে না।', { reason: 'LAST_SUPER_ADMIN' });
 
     function shape(s) {
       const role = roleOf(s.role_key);
@@ -1113,7 +1123,7 @@ export const adminHandlers = [
     const reasonOf = (body) => String(body?.reason ?? '').trim();
     const needReason = (body) =>
       reasonOf(body).length < 3
-        ? fail(422, 'VALIDATION_FAILED', 'A reason of at least 3 characters is required for the audit log.', 'অডিট লগের জন্য কমপক্ষে ৩ অক্ষরের কারণ দিতে হবে।', { field: 'reason' })
+        ? fail(400, 'VALIDATION_FAILED', 'A reason of at least 3 characters is required for the audit log.', 'অডিট লগের জন্য কমপক্ষে ৩ অক্ষরের কারণ দিতে হবে।', { field: 'reason' })
         : null;
 
     return [
@@ -1130,7 +1140,10 @@ export const adminHandlers = [
           const page = Math.max(1, parseInt(query?.page, 10) || 1);
 
           const filtered = staffRoster.filter((s) => {
-            if (q && !`${s.full_name} ${s.email} ${s.ref} ${s.phone} ${s.department}`.toLowerCase().includes(q)) return false;
+            // Text fields, or the phone by its national digits (server: nationalDigits) so 017…, 8801… and +8801… all find it.
+            const digits = q.replace(/\D/g, '').replace(/^(?:880|0)/, '');
+            const phoneHit = digits.length >= 3 && s.phone.includes(digits);
+            if (q && !phoneHit && !`${s.full_name} ${s.email} ${s.ref} ${s.department ?? ''}`.toLowerCase().includes(q)) return false;
             if (role !== 'ALL' && s.role_key !== role) return false;
             if (status !== 'ALL' && s.status !== status) return false;
             if (twoFactor === 'ENABLED' && !s.two_factor_enabled) return false;
@@ -1185,14 +1198,14 @@ export const adminHandlers = [
         handler({ body }) {
           const full_name = String(body?.full_name ?? '').trim().replace(/\s+/g, ' ');
           const email = String(body?.email ?? '').trim().toLowerCase();
-          const phone = String(body?.phone ?? '').replace(/[\s-]/g, '');
+          const phone = normaliseMockPhone(body?.phone);
           const department = String(body?.department ?? '').trim();
           const role_key = body?.role_key;
 
-          if (full_name.length < 2) return fail(422, 'VALIDATION_FAILED', 'Enter the full name.', 'পূর্ণ নাম লিখুন।', { field: 'full_name' });
-          if (!STAFF_EMAIL.test(email)) return fail(422, 'VALIDATION_FAILED', 'Enter a valid work email.', 'সঠিক অফিস ইমেইল দিন।', { field: 'email' });
-          if (!STAFF_PHONE.test(phone)) return fail(422, 'VALIDATION_FAILED', 'Enter a valid Bangladeshi mobile number (01XXXXXXXXX).', 'সঠিক বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)।', { field: 'phone' });
-          if (!roleOf(role_key)) return fail(422, 'VALIDATION_FAILED', 'Choose a role.', 'একটি রোল নির্বাচন করুন।', { field: 'role_key' });
+          if (full_name.length < 2) return fail(400, 'VALIDATION_FAILED', 'Enter the full name.', 'পূর্ণ নাম লিখুন।', { field: 'full_name' });
+          if (!STAFF_EMAIL.test(email)) return fail(400, 'VALIDATION_FAILED', 'Enter a valid work email.', 'সঠিক অফিস ইমেইল দিন।', { field: 'email' });
+          if (!phone) return fail(400, 'VALIDATION_FAILED', 'Enter a valid Bangladeshi mobile number (01XXXXXXXXX).', 'সঠিক বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)।', { field: 'phone' });
+          if (!roleOf(role_key)) return fail(400, 'VALIDATION_FAILED', 'Choose a role.', 'একটি রোল নির্বাচন করুন।', { field: 'role_key' });
           if (staffRoster.some((s) => s.email.toLowerCase() === email)) return fail(409, 'CONFLICT', 'A staff member with this email already exists.', 'এই ইমেইলে আগে থেকেই একজন স্টাফ আছেন।', { field: 'email' });
           if (staffRoster.some((s) => s.phone === phone)) return fail(409, 'CONFLICT', 'A staff member with this mobile number already exists.', 'এই মোবাইল নম্বরে আগে থেকেই একজন স্টাফ আছেন।', { field: 'phone' });
 
@@ -1201,7 +1214,7 @@ export const adminHandlers = [
             id: staffRoster.reduce((max, s) => Math.max(max, s.id), 0) + 1,
             ref: `STF-${String(nextNo).padStart(3, '0')}`,
             full_name, email, phone, role_key,
-            department: department || 'Operations',
+            department: department || null,
             two_factor_enabled: false,
             status: 'INVITED',
             last_active_at: null,
@@ -1215,8 +1228,9 @@ export const adminHandlers = [
             body: {
               success: true,
               staff: shape(created),
-              message_en: `${full_name} was added as ${roleOf(role_key).label_en}. A one-time sign-in link was sent to ${email}.`,
-              message_bn: `${full_name}-কে ${roleOf(role_key).label_bn} হিসেবে যোগ করা হয়েছে। ${email}-এ একবার ব্যবহারযোগ্য সাইন-ইন লিংক পাঠানো হয়েছে।`,
+              invite_sent: true,
+              message_en: `${full_name} was added as ${roleOf(role_key).label_en}. An invitation was emailed to ${email}; they sign in with a one-time code sent to their mobile.`,
+              message_bn: `${full_name}-কে ${roleOf(role_key).label_bn} হিসেবে যোগ করা হয়েছে। ${email}-এ আমন্ত্রণ পাঠানো হয়েছে; তিনি মোবাইলে পাওয়া ওয়ান-টাইম কোড দিয়ে সাইন-ইন করবেন।`,
             },
           };
         },
@@ -1229,7 +1243,7 @@ export const adminHandlers = [
         handler({ params, body }) {
           const s = staffRoster.find((x) => String(x.id) === String(params?.id));
           if (!s) return notFound();
-          if (!s.two_factor_enabled) return fail(409, 'NOTHING_TO_RESET', 'This member has not enrolled in 2FA yet, so there is nothing to reset.', 'এই সদস্য এখনো ২এফএ চালু করেননি, তাই রিসেট করার কিছু নেই।');
+          if (!s.two_factor_enabled) return fail(409, 'CONFLICT', 'This member has not enrolled in 2FA yet, so there is nothing to reset.', 'এই সদস্য এখনো ২এফএ চালু করেননি, তাই রিসেট করার কিছু নেই।', { reason: 'NOTHING_TO_RESET' });
           const bad = needReason(body);
           if (bad) return bad;
           s.two_factor_enabled = false;
@@ -1254,8 +1268,8 @@ export const adminHandlers = [
           const s = staffRoster.find((x) => String(x.id) === String(params?.id));
           if (!s) return notFound();
           const next = body?.role_key;
-          if (!roleOf(next)) return fail(422, 'VALIDATION_FAILED', 'Choose a valid role.', 'সঠিক রোল নির্বাচন করুন।', { field: 'role_key' });
-          if (next === s.role_key) return fail(422, 'VALIDATION_FAILED', 'That is already this member\'s role.', 'এটিই ইতিমধ্যে এই সদস্যের রোল।', { field: 'role_key' });
+          if (!roleOf(next)) return fail(400, 'VALIDATION_FAILED', 'Choose a valid role.', 'সঠিক রোল নির্বাচন করুন।', { field: 'role_key' });
+          if (next === s.role_key) return fail(400, 'VALIDATION_FAILED', 'That is already this member\'s role.', 'এটিই ইতিমধ্যে এই সদস্যের রোল।', { field: 'role_key' });
           if (isLastSuperAdmin(s)) return lastSuperAdminError();
           const bad = needReason(body);
           if (bad) return bad;
@@ -1282,9 +1296,9 @@ export const adminHandlers = [
           const s = staffRoster.find((x) => String(x.id) === String(params?.id));
           if (!s) return notFound();
           const next = body?.status;
-          if (!['ACTIVE', 'SUSPENDED'].includes(next)) return fail(422, 'VALIDATION_FAILED', 'Status must be ACTIVE or SUSPENDED.', 'স্ট্যাটাস ACTIVE বা SUSPENDED হতে হবে।', { field: 'status' });
-          if (next === 'SUSPENDED' && s.status === 'SUSPENDED') return fail(409, 'CONFLICT', 'This account is already suspended.', 'এই অ্যাকাউন্ট আগেই স্থগিত করা হয়েছে।');
-          if (next === 'ACTIVE' && s.status !== 'SUSPENDED') return fail(409, 'CONFLICT', 'Only a suspended account can be reactivated.', 'শুধু স্থগিত অ্যাকাউন্টই পুনরায় সক্রিয় করা যায়।');
+          if (!['ACTIVE', 'SUSPENDED'].includes(next)) return fail(400, 'VALIDATION_FAILED', 'Status must be ACTIVE or SUSPENDED.', 'স্ট্যাটাস ACTIVE বা SUSPENDED হতে হবে।', { field: 'status' });
+          if (next === 'SUSPENDED' && s.status === 'SUSPENDED') return fail(409, 'CONFLICT', 'This account is already suspended.', 'এই অ্যাকাউন্ট আগেই স্থগিত করা হয়েছে।', { reason: 'ALREADY_SUSPENDED' });
+          if (next === 'ACTIVE' && s.status !== 'SUSPENDED') return fail(409, 'CONFLICT', 'Only a suspended account can be reactivated.', 'শুধু স্থগিত অ্যাকাউন্টই পুনরায় সক্রিয় করা যায়।', { reason: 'NOT_SUSPENDED' });
           if (next === 'SUSPENDED' && isLastSuperAdmin(s)) return lastSuperAdminError();
           const bad = needReason(body);
           if (bad) return bad;
@@ -1311,14 +1325,14 @@ export const adminHandlers = [
         handler({ params }) {
           const s = staffRoster.find((x) => String(x.id) === String(params?.id));
           if (!s) return notFound();
-          if (s.status !== 'INVITED') return fail(409, 'CONFLICT', 'Only members who have not signed in yet can be re-invited.', 'যারা এখনো সাইন-ইন করেননি শুধু তাদেরই আবার আমন্ত্রণ পাঠানো যায়।');
+          if (s.status !== 'INVITED') return fail(409, 'CONFLICT', 'Only members who have not signed in yet can be re-invited.', 'যারা এখনো সাইন-ইন করেননি শুধু তাদেরই আবার আমন্ত্রণ পাঠানো যায়।', { reason: 'NOT_INVITED' });
           record(s, 'staff.account.reinvite', {}, {});
           return {
             status: 200,
             body: {
               success: true,
-              message_en: `A fresh sign-in link was sent to ${s.email}. The previous link no longer works.`,
-              message_bn: `${s.email}-এ নতুন সাইন-ইন লিংক পাঠানো হয়েছে। আগের লিংক আর কাজ করবে না।`,
+              message_en: `The invitation was re-sent to ${s.email}. They sign in with a one-time code sent to their mobile.`,
+              message_bn: `${s.email}-এ আমন্ত্রণ আবার পাঠানো হয়েছে। তিনি মোবাইলে পাওয়া ওয়ান-টাইম কোড দিয়ে সাইন-ইন করবেন।`,
             },
           };
         },
@@ -1336,7 +1350,7 @@ export const adminHandlers = [
         {
           id: 1,
           user_id: 4,
-          grantee_phone: '01711000004',
+          grantee_phone: '+8801711000004',
           grantee_name: 'Tariq Ahmed',
           grantee_ref: 'STF-002',
           permission_key: 'finance.payout.approve',
@@ -1352,7 +1366,7 @@ export const adminHandlers = [
         {
           id: 2,
           user_id: 5,
-          grantee_phone: '01711000005',
+          grantee_phone: '+8801711000005',
           grantee_name: 'Nusrat Jahan',
           grantee_ref: 'STF-003',
           permission_key: 'catalog.product.delete',
@@ -1368,7 +1382,7 @@ export const adminHandlers = [
         {
           id: 3,
           user_id: 8,
-          grantee_phone: '01711000008',
+          grantee_phone: '+8801711000008',
           grantee_name: 'Kamal Uddin',
           grantee_ref: 'STF-004',
           permission_key: 'finance.cod.reconcile',
@@ -1468,7 +1482,7 @@ export const adminHandlers = [
           id: 1,
           ref: 'JIT-84920',
           requester_id: 4,
-          requester_phone: '01711000004',
+          requester_phone: '+8801711000004',
           requester_name: 'Tariq Ahmed (Trust & Safety)',
           permission_key: 'users.restriction.manage',
           risk_tier: 'HIGH',
@@ -1481,7 +1495,7 @@ export const adminHandlers = [
           id: 2,
           ref: 'JIT-84921',
           requester_id: 5,
-          requester_phone: '01711000005',
+          requester_phone: '+8801711000005',
           requester_name: 'Nusrat Jahan (Content Commerce)',
           permission_key: 'catalog.product.delete',
           risk_tier: 'HIGH',
@@ -1625,7 +1639,7 @@ export const adminHandlers = [
           ref: 'KYC-98210',
           user_id: 2,
           applicant_name: 'Anisur Rahman',
-          applicant_phone: '01711000002',
+          applicant_phone: '+8801711000002',
           applicant_email: 'anisur@jamdani-crafts.bd',
           business_name: 'Jamdani Heritage Weavers Ltd.',
           business_address: 'Rupganj, Narayanganj, Dhaka',
@@ -1646,7 +1660,7 @@ export const adminHandlers = [
           ref: 'KYC-98211',
           user_id: 3,
           applicant_name: 'Farzana Akter',
-          applicant_phone: '01711000003',
+          applicant_phone: '+8801711000003',
           applicant_email: 'farzana@saffron-glam.com',
           business_name: 'Saffron Glam Cosmetics',
           business_address: 'House 42, Road 11, Banani, Dhaka',
@@ -1666,7 +1680,7 @@ export const adminHandlers = [
           ref: 'KYC-98212',
           user_id: 6,
           applicant_name: 'Mahmudul Hasan',
-          applicant_phone: '01711000006',
+          applicant_phone: '+8801711000006',
           applicant_email: 'mahmud@bengal-leather.com',
           business_name: 'Bengal Leather Crafts',
           business_address: 'Hazaribagh, Dhaka',
@@ -1976,7 +1990,7 @@ export const adminHandlers = [
           actor_id: 1,
           actor_ref: 'STF-001',
           actor_name: 'Rahim Khan',
-          actor_phone: '01711000001',
+          actor_phone: '+8801711000001',
           ip: '103.205.71.12',
           trace_id: 'TRC-98A72B81',
           risk_tier: 'CRITICAL',
@@ -1994,7 +2008,7 @@ export const adminHandlers = [
           actor_id: 1,
           actor_ref: 'STF-001',
           actor_name: 'Rahim Khan',
-          actor_phone: '01711000001',
+          actor_phone: '+8801711000001',
           ip: '103.205.71.12',
           trace_id: 'TRC-98A72B82',
           risk_tier: 'HIGH',
@@ -2011,7 +2025,7 @@ export const adminHandlers = [
           actor_id: 1,
           actor_ref: 'STF-001',
           actor_name: 'Rahim Khan',
-          actor_phone: '01711000001',
+          actor_phone: '+8801711000001',
           ip: '103.205.71.12',
           trace_id: 'TRC-98A72B83',
           risk_tier: 'HIGH',
@@ -2028,7 +2042,7 @@ export const adminHandlers = [
           actor_id: 1,
           actor_ref: 'STF-001',
           actor_name: 'Rahim Khan',
-          actor_phone: '01711000001',
+          actor_phone: '+8801711000001',
           ip: '103.205.71.12',
           trace_id: 'TRC-98A72B84',
           risk_tier: 'MEDIUM',
@@ -2045,7 +2059,7 @@ export const adminHandlers = [
           actor_id: 1,
           actor_ref: 'STF-001',
           actor_name: 'Rahim Khan',
-          actor_phone: '01711000001',
+          actor_phone: '+8801711000001',
           ip: '103.205.71.12',
           trace_id: 'TRC-98A72B85',
           risk_tier: 'LOW',
@@ -2616,11 +2630,11 @@ export const adminHandlers = [
         body: {
           data: {
             warehouses: [
-              { id: 1, node_code: 'WH-DHK-01', name: 'Dhaka Central Fulfilment Hub', division: 'Dhaka', district: 'Dhaka (Tejgaon)', address: 'Plot 42, Tejgaon I/A, Dhaka', latitude: 23.7644, longitude: 90.3927, capacity_units: 100000, current_units: 74200, manager_name: 'Tanvir Hossain', manager_phone: '01711998801', status: 'OPERATIONAL', priority_rank: 1 },
-              { id: 2, node_code: 'WH-CTG-02', name: 'Chittagong Port Terminal Node', division: 'Chittagong', district: 'Chittagong (Agrabad)', address: 'Agrabad Commercial Area, Chittagong', latitude: 22.3304, longitude: 91.8155, capacity_units: 60000, current_units: 41500, manager_name: 'Mahmudul Hasan', manager_phone: '01711998802', status: 'OPERATIONAL', priority_rank: 2 },
-              { id: 3, node_code: 'WH-SYL-03', name: 'Sylhet Eastern Distribution Facility', division: 'Sylhet', district: 'Sylhet (Subidbazar)', address: 'Airport Road, Subidbazar, Sylhet', latitude: 24.8949, longitude: 91.8687, capacity_units: 35000, current_units: 18200, manager_name: 'Kawsar Ahmed', manager_phone: '01711998803', status: 'OPERATIONAL', priority_rank: 3 },
-              { id: 4, node_code: 'WH-RAJ-04', name: 'Rajshahi Regional Depot', division: 'Rajshahi', district: 'Rajshahi (Sopura)', address: 'Sopura BSCIC Industrial Estate, Rajshahi', latitude: 24.3745, longitude: 88.6042, capacity_units: 25000, current_units: 14800, manager_name: 'Nazmul Islam', manager_phone: '01711998804', status: 'OPERATIONAL', priority_rank: 4 },
-              { id: 5, node_code: 'WH-KHU-05', name: 'Khulna Southern Gateway Hub', division: 'Khulna', district: 'Khulna (Khalishpur)', address: 'Khalishpur Industrial Belt, Khulna', latitude: 22.8456, longitude: 89.5403, capacity_units: 30000, current_units: 26100, manager_name: 'Rashedul Karim', manager_phone: '01711998805', status: 'OPERATIONAL', priority_rank: 5 },
+              { id: 1, node_code: 'WH-DHK-01', name: 'Dhaka Central Fulfilment Hub', division: 'Dhaka', district: 'Dhaka (Tejgaon)', address: 'Plot 42, Tejgaon I/A, Dhaka', latitude: 23.7644, longitude: 90.3927, capacity_units: 100000, current_units: 74200, manager_name: 'Tanvir Hossain', manager_phone: '+8801711998801', status: 'OPERATIONAL', priority_rank: 1 },
+              { id: 2, node_code: 'WH-CTG-02', name: 'Chittagong Port Terminal Node', division: 'Chittagong', district: 'Chittagong (Agrabad)', address: 'Agrabad Commercial Area, Chittagong', latitude: 22.3304, longitude: 91.8155, capacity_units: 60000, current_units: 41500, manager_name: 'Mahmudul Hasan', manager_phone: '+8801711998802', status: 'OPERATIONAL', priority_rank: 2 },
+              { id: 3, node_code: 'WH-SYL-03', name: 'Sylhet Eastern Distribution Facility', division: 'Sylhet', district: 'Sylhet (Subidbazar)', address: 'Airport Road, Subidbazar, Sylhet', latitude: 24.8949, longitude: 91.8687, capacity_units: 35000, current_units: 18200, manager_name: 'Kawsar Ahmed', manager_phone: '+8801711998803', status: 'OPERATIONAL', priority_rank: 3 },
+              { id: 4, node_code: 'WH-RAJ-04', name: 'Rajshahi Regional Depot', division: 'Rajshahi', district: 'Rajshahi (Sopura)', address: 'Sopura BSCIC Industrial Estate, Rajshahi', latitude: 24.3745, longitude: 88.6042, capacity_units: 25000, current_units: 14800, manager_name: 'Nazmul Islam', manager_phone: '+8801711998804', status: 'OPERATIONAL', priority_rank: 4 },
+              { id: 5, node_code: 'WH-KHU-05', name: 'Khulna Southern Gateway Hub', division: 'Khulna', district: 'Khulna (Khalishpur)', address: 'Khalishpur Industrial Belt, Khulna', latitude: 22.8456, longitude: 89.5403, capacity_units: 30000, current_units: 26100, manager_name: 'Rashedul Karim', manager_phone: '+8801711998805', status: 'OPERATIONAL', priority_rank: 5 },
             ],
           },
         },
@@ -3827,7 +3841,7 @@ let mockSubscriptionPlans = [
 ];
 
 let mockSubscribers = [
-  { id: 1, merchant_name: 'Tanvir Hossain', store_name: 'Dhaka Style Trends', phone: '01711223344', ref: 'SLR-88102', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 420, quota_total: 1000, next_renewal: '2026-09-28', status: 'ACTIVE', waived: false },
+  { id: 1, merchant_name: 'Tanvir Hossain', store_name: 'Dhaka Style Trends', phone: '+8801711223344', ref: 'SLR-88102', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 420, quota_total: 1000, next_renewal: '2026-09-28', status: 'ACTIVE', waived: false },
   { id: 2, merchant_name: 'Nasrin Akter', store_name: 'Boutique Shomahar', phone: '01822334455', ref: 'SLR-88103', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 980, quota_total: 1000, next_renewal: '2026-09-15', status: 'ACTIVE', waived: false },
   { id: 3, merchant_name: 'Rahim Textiles Ltd', store_name: 'Rahim Fabrics Depot', phone: '01933445566', ref: 'SUP-44120', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 2850, quota_total: 5000, next_renewal: '2026-09-20', status: 'ACTIVE', waived: false },
   { id: 4, merchant_name: 'Bengal Agro Foods', store_name: 'Organic Harvest BD', phone: '01644556677', ref: 'SUP-44125', role: 'supplier', plan_id: 'plan_enterprise', plan_name: 'Enterprise Wholesale', monthly_fee: 5999, quota_used: 6400, quota_total: 999999, next_renewal: '2026-10-01', status: 'ACTIVE', waived: false },

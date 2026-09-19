@@ -26,15 +26,15 @@ import { api, pickMessage } from '../../core/api.js';
 import { can } from '../../services/permissions.js';
 import { getCurrentUser } from '../../services/session.js';
 import { toast } from '../../services/toast.js';
+import { describeWriteOutcome } from '../../services/writeOutcome.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatDate, formatNumber, formatPhone, formatRelativeTime } from '../../services/format.js';
+import { formatDate, formatNumber, formatPhone, formatRelativeTime, normaliseBdPhone } from '../../services/format.js';
 import '../../styles/components/admin-staff.css';
 
 const PAGE_SIZE = 8;
 const EXPORT_PAGE_SIZE = 50;
 const EXPORT_MAX_PAGES = 20;
 const SEARCH_DEBOUNCE_MS = 250;
-const PHONE_PATTERN = /^01[3-9]\d{8}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PRIVILEGED_ROLES = new Set(['super_admin', 'admin']);
 
@@ -85,6 +85,8 @@ function initials(name) {
 export default function StaffPage(root, { navigate } = {}) {
   const isBn = () => getLanguage() === 'bn';
   const num = (n) => formatNumber(n);
+  // formatNumber() is money-shaped and pads to two decimals (36.4 -> "36.40"); a rate wants one at most.
+  const pct = (n) => new Intl.NumberFormat(isBn() ? 'bn-BD' : 'en-US', { maximumFractionDigits: 1 }).format(n);
 
   const state = {
     rows: [],
@@ -395,7 +397,7 @@ export default function StaffPage(root, { navigate } = {}) {
       card(t('admin.staff.active_staff', 'Active Staff'), num(v.active_staff), t('admin.staff.hint_active', 'Current enabled operators'), 'success'),
       card(
         t('admin.staff.two_factor_rate', '2FA Enforcement'),
-        `${formatNumber(v.two_factor_rate_pct)}%`,
+        `${pct(v.two_factor_rate_pct)}%`,
         v.two_factor_pending
           ? t('admin.staff.hint_2fa_pending', '{{count}} member(s) have not enrolled', { count: num(v.two_factor_pending) })
           : t('admin.staff.hint_2fa', 'Mandatory hardware / TOTP 2FA'),
@@ -573,7 +575,17 @@ export default function StaffPage(root, { navigate } = {}) {
   async function mutate(request, fallbackMessage) {
     try {
       const res = await request();
-      toast.success(successMessage(res, fallbackMessage));
+      const outcome = describeWriteOutcome(res, {
+        bn: isBn(),
+        fallback: fallbackMessage,
+        deferredFallback: t('admin.staff.toast_deferred', 'Sent for approval. A Super Admin must approve this before it takes effect.'),
+      });
+      if (outcome.deferred) {
+        // Nothing changed, so there is nothing to reload; the row keeps showing what is still true.
+        toast.info(outcome.message);
+        return true;
+      }
+      toast.success(outcome.message);
       await load();
       if (drawerStaffId != null) refreshDrawer();
       return true;
@@ -708,10 +720,9 @@ export default function StaffPage(root, { navigate } = {}) {
       };
       const name = nameField.value.trim();
       const email = emailField.value.trim();
-      const phone = phoneField.value.replace(/[\s-]/g, '');
       flag(nameField, name.length < 2 ? t('admin.staff.err_name', 'Enter the full name.') : '');
       flag(emailField, EMAIL_PATTERN.test(email) ? '' : t('admin.staff.err_email', 'Enter a valid work email.'));
-      flag(phoneField, PHONE_PATTERN.test(phone) ? '' : t('admin.staff.err_phone', 'Enter a valid mobile number (01XXXXXXXXX).'));
+      flag(phoneField, normaliseBdPhone(phoneField.value) ? '' : t('admin.staff.err_phone', 'Enter a valid mobile number (01XXXXXXXXX).'));
       flag(roleField, roleField.value ? '' : t('admin.staff.err_role', 'Choose a role.'));
       firstBad?.focus();
       return !firstBad;
@@ -725,11 +736,15 @@ export default function StaffPage(root, { navigate } = {}) {
         const res = await api.post('/admin/staff', {
           full_name: nameField.value.trim(),
           email: emailField.value.trim(),
-          phone: phoneField.value.replace(/[\s-]/g, ''),
+          phone: phoneField.value.trim(),
           role_key: roleField.value,
           department: deptField.value.trim(),
         });
-        toast.success(successMessage(res, t('admin.staff.toast_created', 'Staff member added.')));
+        const message = successMessage(res, t('admin.staff.toast_created', 'Staff member added.'));
+        // The account is created and audited either way; a failed invitation email is the admin's to
+        // act on ("Resend invite"), so it is a warning, not a success.
+        if (res.invite_sent === false) toast.warning(message);
+        else toast.success(message);
         modal.closeModal(true);
         // A brand-new member sorts last; clear filters so the admin actually sees the result.
         state.query = '';
@@ -834,13 +849,36 @@ export default function StaffPage(root, { navigate } = {}) {
     'security.2fa.reset': ['admin.staff.evt_2fa', '2FA reset'],
   };
 
+  // The audit row stores machine names (`role_key: moderator`, `status: SUSPENDED`, `two_factor_enabled: true`).
+  // Show what the roster shows — the same labels and role names — and fall back to the raw value for
+  // any field this page does not know, rather than hiding it.
+  function historyLabel(field) {
+    if (field === 'status') return t('admin.staff.table_status', 'Status');
+    if (field === 'role_key') return t('admin.staff.btn_change_role', 'Role');
+    if (field === 'two_factor_enabled') return t('admin.staff.table_2fa', '2FA Status');
+    return field;
+  }
+
+  function historyValue(field, value) {
+    if (value === undefined || value === null) return '—';
+    if (field === 'status') return statusLabel(value);
+    if (field === 'role_key') {
+      const known = roleByKey(value);
+      return known ? roleName(known) : value;
+    }
+    if (field === 'two_factor_enabled') {
+      return value ? t('admin.staff.2fa_active', '2FA Active') : t('admin.staff.2fa_pending', 'Setup pending');
+    }
+    return value;
+  }
+
   function timelineHtml(activity) {
     if (!activity.length) return `<p class="admin-staff-muted">${escapeHtml(t('admin.staff.timeline_empty', 'No changes recorded on this account yet.'))}</p>`;
     return `<ol class="admin-staff-timeline">${activity
       .map((a) => {
         const [key, fallback] = TIMELINE_LABELS[a.action] || ['', a.action];
         const detail = a.before && a.after && Object.keys(a.after).length
-          ? Object.keys(a.after).map((k) => `${escapeHtml(k)}: ${escapeHtml(a.before[k] ?? '—')} → ${escapeHtml(a.after[k])}`).join(', ')
+          ? Object.keys(a.after).map((k) => `${escapeHtml(historyLabel(k))}: ${escapeHtml(historyValue(k, a.before[k]))} → ${escapeHtml(historyValue(k, a.after[k]))}`).join(', ')
           : '';
         return `
           <li>
