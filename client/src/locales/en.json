@@ -83,6 +83,7 @@
     "close": "Close",
     "error_generic": "Something went wrong. Please try again.",
     "back": "Back",
+    "back_to": "Back to {{name}}",
     "quantity": "Quantity",
     "add": "Add",
     "delete": "Delete",
