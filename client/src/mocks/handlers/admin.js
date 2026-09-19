@@ -382,14 +382,34 @@ const mockUserRoster = [
 
 /** Detail-only extras, keyed by user id — the deep-dive tabs the list has no columns for. */
 const mockUserRestrictions = {
+  // Same columns the real endpoint selects (user.repository.js → getActiveRestrictionsForUser):
+  // `id` is what "Lift Restriction" DELETEs, so a row without one lifted `/restrictions/undefined`.
+  // ids start at 9001 to stay clear of the /admin/restrictions list fixture's own 1..n.
   2: [
-    { key: 'can_withdraw', status: 'BLOCKED', reason: 'Suspected high-velocity withdrawal spike under manual verification review.', enforced_by: 'Super Admin', created_at: '2026-08-20T10:00:00Z' },
+    { id: 9001, capability_key: 'can_withdraw', mode: 'HARD_BLOCK', limit_value: null, reason: 'Suspected high-velocity withdrawal spike under manual verification review.', expires_at: null, enforced_by: 'Super Admin', created_at: '2026-08-20T10:00:00Z' },
   ],
   7: [
-    { key: 'can_withdraw', status: 'BLOCKED', reason: 'KYC still pending — payouts held until identity is verified.', enforced_by: 'Compliance Officer', created_at: '2026-08-22T09:30:00Z' },
-    { key: 'can_list_product', status: 'BLOCKED', reason: 'Three upheld counterfeit reports within 30 days.', enforced_by: 'Moderator', created_at: '2026-08-25T15:05:00Z' },
+    { id: 9002, capability_key: 'can_withdraw', mode: 'HARD_BLOCK', limit_value: null, reason: 'KYC still pending — payouts held until identity is verified.', expires_at: null, enforced_by: 'Compliance Officer', created_at: '2026-08-22T09:30:00Z' },
+    { id: 9003, capability_key: 'can_list_product', mode: 'HARD_BLOCK', limit_value: null, reason: 'Three upheld counterfeit reports within 30 days.', expires_at: null, enforced_by: 'Moderator', created_at: '2026-08-25T15:05:00Z' },
   ],
 };
+
+/**
+ * `GET /admin/users/:id/permissions` — the shape rbac.service.js#getPermissionsPayload returns:
+ * `{ permissions: string[], sources: { [key]: Source[] } }`, with snake_case source fields.
+ */
+function mockUserPermissionPayload(base) {
+  const roleSource = { type: 'ROLE', role: base.role_key };
+  return {
+    permissions: ['admin.dashboard.view', 'users.account.view', 'finance.payout.approve'],
+    sources: {
+      'admin.dashboard.view': [roleSource],
+      'users.account.view': [roleSource],
+      'finance.payout.approve': [{ type: 'GRANT', granted_by: 'Super Admin', expires_at: '2026-09-30T23:59:59Z' }],
+    },
+    roles: [base.role_key],
+  };
+}
 
 const mockPayoutsStore = [
   {
@@ -921,6 +941,22 @@ export const adminHandlers = [
           },
         },
       };
+    },
+  },
+
+  // 9b. User permission introspection (resolved permissions + where each one came from)
+  {
+    method: 'GET',
+    path: '/admin/users/:id/permissions',
+    handler({ params }) {
+      const base = mockUserRoster.find((u) => String(u.id) === String(params?.id));
+      if (!base) {
+        return {
+          status: 404,
+          body: { error: { code: 'NOT_FOUND', message_en: 'User not found.', message_bn: 'ব্যবহারকারী পাওয়া যায়নি।', trace_id: traceId() } },
+        };
+      }
+      return { status: 200, body: { data: mockUserPermissionPayload(base) } };
     },
   },
 
@@ -1740,6 +1776,11 @@ export const adminHandlers = [
     method: 'DELETE',
     path: '/admin/restrictions/:id',
     handler({ params, body }) {
+      // Persist the lift for per-user restrictions so the detail page's refetch reflects it.
+      for (const list of Object.values(mockUserRestrictions)) {
+        const at = list.findIndex((r) => String(r.id) === String(params?.id));
+        if (at !== -1) list.splice(at, 1);
+      }
       return {
         status: 200,
         body: {

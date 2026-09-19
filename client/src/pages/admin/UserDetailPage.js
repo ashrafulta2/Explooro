@@ -7,7 +7,12 @@
  * 3. 7 Deep-Dive Tabs: Profile, Roles & Permissions, Restrictions, Activity Timeline, Orders & GMV, Vault & Balance, KYC.
  * 4. Permission Introspection with clear "Why" reasoning (Role / Standing Grant / JIT / Explicit Deny).
  * 5. One-click Restriction lifting with mandatory audit justification dialog.
- * 6. Zero-CLS layout-mirroring skeleton loader and bilingual i18n support.
+ * 6. Layout-mirroring skeleton loader, explicit not-found / error states and bilingual i18n support.
+ *
+ * WHY there is no invented fallback user: an earlier revision answered any failed request with a
+ * hardcoded "Rahim Khan, Super Admin", so a mistyped id or a 500 rendered a convincing but false
+ * account — on a page whose whole job is to be the source of truth before a grant or a sanction.
+ * A failed load now says so, and offers a retry.
  */
 
 import { Tabs } from '../../components/ui/Tabs.js';
@@ -15,81 +20,85 @@ import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
+import { createBackButton } from '../../core/navBack.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatDate, formatRelativeTime } from '../../services/format.js';
+import { formatDate, formatCurrency, formatNumber } from '../../services/format.js';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
 import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.js';
 import { UserTimeline } from '../../components/admin/UserTimeline.js';
 import '../../styles/components/admin-users.css';
 
+/** Builds `<tag class="…">text</tag>`. Text always goes through textContent — never innerHTML. */
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined && text !== null) node.textContent = text;
+  return node;
+}
+
+/**
+ * The timeline endpoint has answered in two shapes (`action/category/description` and
+ * `event_type/details_en`); UserTimeline only understands the first, so normalise here.
+ */
+function normaliseTimelineEvent(ev) {
+  const action = ev.action || ev.event_type || 'activity.event';
+  let category = ev.category;
+  if (!category) {
+    if (/LOGIN|AUTH|2FA|PASSWORD/i.test(action)) category = 'AUTH';
+    else if (/GRANT|PERMISSION/i.test(action)) category = 'PERMISSIONS';
+    else if (/RESTRICT/i.test(action)) category = 'RESTRICTIONS';
+    else if (/ORDER/i.test(action)) category = 'ORDERS';
+    else category = 'SYSTEM';
+  }
+  return { ...ev, action, category, description: ev.description || ev.details_en || ev.details || action };
+}
+
 export default function UserDetailPage(root, { params = {}, navigate } = {}) {
   const isBn = getLanguage() === 'bn';
-  const userId = params.id || '1';
+  const lang = isBn ? 'bn' : 'en';
+  const userId = params.id;
 
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
+  const nav = (url, opts) => {
+    if (typeof navigate === 'function') navigate(url, opts);
     else {
       history.pushState({}, '', url);
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
 
-  const container = document.createElement('div');
-  container.className = 'user-detail';
+  const container = el('div', 'user-detail');
 
   let userData = null;
-  let permissionResolution = null;
+  let permissionEntries = [];
   let timelineEvents = [];
   let permissionsList = [];
-  let isLoading = true;
+  let activeTab = 'profile';
 
-  // Back Navigation Bar
-  const backBar = document.createElement('div');
-  backBar.style.display = 'flex';
-  backBar.style.alignItems = 'center';
-  backBar.style.gap = 'var(--space-3)';
-
-  const backBtn = Button({
-    label: isBn ? '← ব্যবহারকারী তালিকায় ফেরত' : '← Back to Users List',
-    variant: 'ghost',
-    size: 'sm',
-    onClick: () => nav('/admin/users'),
+  // The shell only injects its own "‹" into the heading when the page has no back control of its
+  // own (data-nav-back). This one carries an explicit fallback so a deep link still lands on the
+  // Users list rather than the dashboard.
+  const backLink = createBackButton({
+    href: '/admin/users',
+    label: t('user_detail.back_to_users', 'Back to Users'),
+    className: 'user-detail__back',
+    navigate: nav,
   });
-  backBar.append(backBtn);
 
-  // Header Card
-  const headerCard = document.createElement('div');
-  headerCard.className = 'user-detail__header-card';
+  const headerCard = el('div', 'user-detail__header-card');
+  headerCard.hidden = true;
 
-  const identityWrap = document.createElement('div');
-  identityWrap.className = 'user-detail__identity';
-
-  const avatar = document.createElement('div');
-  avatar.className = 'user-detail__avatar';
-  avatar.textContent = 'U';
-
-  const metaWrap = document.createElement('div');
-  metaWrap.className = 'user-detail__meta';
-
-  const nameEl = document.createElement('h2');
-  nameEl.className = 'user-detail__name';
-  nameEl.textContent = 'Loading user…';
-
-  const subMeta = document.createElement('div');
-  subMeta.style.fontSize = '12px';
-  subMeta.style.color = 'var(--text-muted)';
-  subMeta.textContent = `User ID: ${userId}`;
-
-  const badgesRow = document.createElement('div');
-  badgesRow.className = 'user-detail__badges';
-
+  const identityWrap = el('div', 'user-detail__identity');
+  const avatar = el('div', 'user-detail__avatar');
+  avatar.setAttribute('aria-hidden', 'true');
+  const metaWrap = el('div', 'user-detail__meta');
+  const nameEl = el('h2', 'user-detail__name');
+  const subMeta = el('div', 'user-detail__sub');
+  const badgesRow = el('div', 'user-detail__badges');
   metaWrap.append(nameEl, subMeta, badgesRow);
   identityWrap.append(avatar, metaWrap);
 
-  // Quick Action Buttons
-  const actionsWrap = document.createElement('div');
-  actionsWrap.className = 'user-detail__actions';
+  const actionsWrap = el('div', 'user-detail__actions');
 
   const grantBtn = Button({
     label: t('user_detail.btn_grant', 'Grant Permission'),
@@ -99,6 +108,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
       openGrantDrawer({
         user: userData,
         permissions: permissionsList,
+        trigger: grantBtn,
         onSuccess: refreshData,
       });
     },
@@ -111,6 +121,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
     onClick: () => {
       openRestrictionEditor({
         user: userData,
+        trigger: restrictBtn,
         onSuccess: refreshData,
       });
     },
@@ -119,59 +130,47 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
   actionsWrap.append(grantBtn, restrictBtn);
   headerCard.append(identityWrap, actionsWrap);
 
-  // Tabs Container
-  const tabsContainer = document.createElement('div');
+  const stateWrap = el('div');
+  const tabsContainer = el('div');
+  container.append(backLink, headerCard, stateWrap, tabsContainer);
 
-  container.append(backBar, headerCard, tabsContainer);
+  /* ---------------------------------------------------------------- data */
 
   async function loadUser() {
-    try {
-      const res = await api.get(`/admin/users/${userId}`);
-      userData = res.user;
-    } catch {
-      userData = {
-        id: userId,
-        ref: `USR-8F2K9QX${userId}`,
-        phone: '01711000001',
-        email: 'user@explooro.com',
-        full_name: 'Rahim Khan',
-        district: 'Dhaka',
-        division: 'Dhaka',
-        address_line: 'House 42, Road 7, Dhanmondi',
-        status: 'ACTIVE',
-        kyc_status: 'VERIFIED',
-        created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
-        roles: [{ key: 'super_admin', label_en: 'Super Admin', label_bn: 'সুপার অ্যাডমিন' }],
-        restrictions: [],
-      };
+    const res = await api.get(`/admin/users/${encodeURIComponent(userId)}`);
+    userData = res.user;
+    if (!userData) {
+      const err = new Error('User payload missing');
+      err.status = 404;
+      throw err;
     }
   }
 
+  // The endpoint replies `{ permissions, sources }`; an older client read `effectivePermissions`
+  // and camelCase source fields, which silently rendered "no permissions" against the real API.
   async function loadPermissionsIntrospection() {
     try {
-      const res = await api.get(`/admin/users/${userId}/permissions`);
-      permissionResolution = res.data || {};
+      const res = await api.get(`/admin/users/${encodeURIComponent(userId)}/permissions`);
+      const payload = res.data || {};
+      const keys = payload.permissions || payload.effectivePermissions || [];
+      const sources = payload.sources || {};
+      permissionEntries = keys.map((key) => ({ key, sources: sources[key] || [], why: '' }));
     } catch {
-      permissionResolution = {
-        effectivePermissions: ['admin.dashboard.view', 'users.account.view', 'finance.payout.approve'],
-        sources: {
-          'admin.dashboard.view': [{ type: 'ROLE', role: 'super_admin' }],
-          'users.account.view': [{ type: 'ROLE', role: 'super_admin' }],
-          'finance.payout.approve': [{ type: 'GRANT', grantedBy: 'Super Admin', expiresAt: '2026-09-30' }],
-        },
-      };
+      // Introspection is enrichment: fall back to the flat list the detail endpoint carries.
+      permissionEntries = (userData?.permissions || []).map((p) => ({
+        key: p.key,
+        sources: [],
+        why: p.why || '',
+      }));
     }
   }
 
   async function loadTimeline() {
     try {
-      const res = await api.get(`/admin/users/${userId}/timeline`);
-      timelineEvents = res.timeline || res.events || [];
+      const res = await api.get(`/admin/users/${encodeURIComponent(userId)}/timeline`);
+      timelineEvents = (res.timeline || res.events || []).map(normaliseTimelineEvent);
     } catch {
-      timelineEvents = [
-        { action: 'auth.login_password', category: 'AUTH', description: 'User signed in via password', created_at: new Date().toISOString() },
-        { action: 'users.grant.create', category: 'PERMISSIONS', description: 'Standing grant finance.payout.view issued', created_at: new Date(Date.now() - 3600000).toISOString() },
-      ];
+      timelineEvents = [];
     }
   }
 
@@ -184,37 +183,96 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
     }
   }
 
+  /* -------------------------------------------------------------- states */
+
+  function showSkeleton() {
+    headerCard.hidden = true;
+    tabsContainer.replaceChildren();
+    stateWrap.replaceChildren(
+      el('div', 'user-detail__skeleton'),
+      el('div', 'user-detail__skeleton'),
+    );
+    stateWrap.style.display = 'flex';
+    stateWrap.style.flexDirection = 'column';
+    stateWrap.style.gap = 'var(--space-4)';
+    stateWrap.setAttribute('aria-busy', 'true');
+    nameEl.textContent = t('user_detail.loading', 'Loading user…');
+  }
+
+  function showFailure(kind) {
+    headerCard.hidden = true;
+    tabsContainer.replaceChildren();
+    stateWrap.removeAttribute('aria-busy');
+    stateWrap.style.display = '';
+
+    const box = el('div', 'user-detail__state');
+    box.setAttribute('role', 'alert');
+    const notFound = kind === 'notfound';
+    box.append(
+      el('h2', 'user-detail__state-title', notFound
+        ? t('user_detail.not_found_title', 'User not found')
+        : t('user_detail.load_failed_title', 'Could not load this user')),
+      el('p', 'user-detail__state-text', notFound
+        ? t('user_detail.not_found_text', 'No account matches this ID. It may have been deleted or the link is wrong.')
+        : t('user_detail.load_failed_text', 'Something went wrong while loading the account. Please try again.')),
+    );
+    if (notFound) {
+      box.append(Button({
+        label: t('user_detail.back_to_users', 'Back to Users'),
+        variant: 'secondary',
+        size: 'sm',
+        onClick: () => nav('/admin/users'),
+      }));
+    } else {
+      box.append(Button({
+        label: t('user_detail.retry', 'Try again'),
+        variant: 'secondary',
+        size: 'sm',
+        onClick: () => refreshData({ initial: true }),
+      }));
+    }
+    stateWrap.replaceChildren(box);
+  }
+
+  /* -------------------------------------------------------------- render */
+
   function renderHeader() {
-    if (!userData) return;
-    const initial = (userData.full_name || userData.phone || 'U').charAt(0).toUpperCase();
+    const initial = (userData.full_name || userData.phone || 'U').trim().charAt(0).toUpperCase();
     avatar.textContent = initial;
     nameEl.textContent = userData.full_name || userData.phone;
-    subMeta.textContent = `${userData.ref} · ${userData.phone} · ${userData.email || 'No email'}`;
+    subMeta.textContent = [
+      userData.ref,
+      userData.phone,
+      userData.email || t('user_detail.no_email', 'No email'),
+    ].filter(Boolean).join(' · ');
 
-    badgesRow.innerHTML = '';
+    badgesRow.replaceChildren();
     for (const r of userData.roles || []) {
-      const roleBadge = Badge({
+      badgesRow.append(Badge({
         label: isBn ? (r.label_bn || r.label_en || r.key) : (r.label_en || r.key),
         variant: r.key === 'super_admin' ? 'danger' : 'neutral',
-      });
-      badgesRow.append(roleBadge);
+      }));
     }
 
-    const statusBadge = Badge({ label: userData.status, variant: userData.status === 'ACTIVE' ? 'success' : 'warning' });
-    badgesRow.append(statusBadge);
+    badgesRow.append(Badge({
+      label: userData.status,
+      variant: userData.status === 'ACTIVE' ? 'success' : 'warning',
+    }));
 
     if (userData.kyc_status) {
-      const kycBadge = Badge({
-        label: userData.kyc_status === 'VERIFIED' ? '✓ KYC Verified' : 'KYC Pending',
-        variant: userData.kyc_status === 'VERIFIED' ? 'success' : 'warning',
-      });
-      badgesRow.append(kycBadge);
+      const verified = userData.kyc_status === 'VERIFIED';
+      badgesRow.append(Badge({
+        label: verified
+          ? `✓ ${t('user_detail.kyc_approved', 'KYC Verified')}`
+          : t('user_detail.kyc_pending', 'Verification Pending'),
+        variant: verified ? 'success' : 'warning',
+      }));
     }
+
+    headerCard.hidden = false;
   }
 
   function renderTabs() {
-    tabsContainer.innerHTML = '';
-
     const tabItems = [
       { id: 'profile', label: t('user_detail.tab_profile', 'Profile'), render: renderProfileTab },
       { id: 'permissions', label: t('user_detail.tab_permissions', 'Roles & Permissions'), render: renderPermissionsTab },
@@ -225,144 +283,110 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
       { id: 'kyc', label: t('user_detail.tab_kyc', 'KYC & Verification'), render: renderKycTab },
     ];
 
-    const tabPanes = new Map();
-    for (const item of tabItems) {
-      const pane = document.createElement('div');
-      pane.className = 'user-tab-pane';
-      item.render(pane);
-      tabPanes.set(item.id, pane);
-    }
-
+    // WHY `tabs`/`panel` and not `items`/`activeId`: Tabs() takes `{ tabs, active }` and owns the
+    // panel show/hide itself. The previous call used the wrong option names, so the tab list was
+    // empty and the page showed only the Profile pane with no way to reach the other six.
     const tabsComponent = Tabs({
-      items: tabItems.map((tb) => ({ id: tb.id, label: tb.label })),
-      activeId: 'profile',
-      onChange: (newTabId) => {
-        for (const [id, pane] of tabPanes.entries()) {
-          pane.style.display = id === newTabId ? 'flex' : 'none';
-        }
-      },
+      tabs: tabItems.map((item) => {
+        const panel = el('div', 'user-tab-pane');
+        item.render(panel);
+        return { id: item.id, label: item.label, panel };
+      }),
+      active: activeTab,
+      onChange: (id) => { activeTab = id; },
     });
 
-    const bodyWrap = document.createElement('div');
-    bodyWrap.style.marginTop = 'var(--space-4)';
-    for (const [id, pane] of tabPanes.entries()) {
-      pane.style.display = id === 'profile' ? 'flex' : 'none';
-      bodyWrap.append(pane);
-    }
+    tabsContainer.replaceChildren(tabsComponent);
+  }
 
-    tabsContainer.append(tabsComponent, bodyWrap);
+  function field(label, value) {
+    const wrap = el('div', 'user-detail__field');
+    wrap.append(el('span', 'user-detail__field-label', label), el('p', 'user-detail__field-value', value));
+    return wrap;
+  }
+
+  function fmtDate(value) {
+    const ts = value ? new Date(value).getTime() : NaN;
+    return Number.isNaN(ts) ? '—' : formatDate(ts, { lang });
   }
 
   function renderProfileTab(pane) {
-    pane.innerHTML = `
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4);">
-        <div>
-          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">${isBn ? 'পূর্ণ নাম' : 'Full Name'}</label>
-          <p style="margin: 4px 0; font-weight: 700; color: var(--text-primary);">${userData.full_name || 'N/A'}</p>
-        </div>
-        <div>
-          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">${isBn ? 'মোবাইল নম্বর' : 'Phone'}</label>
-          <p style="margin: 4px 0; font-weight: 700; color: var(--text-primary);">${userData.phone}</p>
-        </div>
-        <div>
-          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">${isBn ? 'ইমেইল' : 'Email'}</label>
-          <p style="margin: 4px 0; font-weight: 700; color: var(--text-primary);">${userData.email || 'N/A'}</p>
-        </div>
-        <div>
-          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">${isBn ? 'জেলা ও বিভাগ' : 'District & Division'}</label>
-          <p style="margin: 4px 0; font-weight: 700; color: var(--text-primary);">${userData.district || 'Dhaka'}, ${userData.division || 'Dhaka'}</p>
-        </div>
-        <div>
-          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">${isBn ? 'ঠিকানা' : 'Address'}</label>
-          <p style="margin: 4px 0; font-weight: 700; color: var(--text-primary);">${userData.address_line || 'Dhaka, Bangladesh'}</p>
-        </div>
-        <div>
-          <label style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">${isBn ? 'রেজিস্ট্রেশন তারিখ' : 'Registered On'}</label>
-          <p style="margin: 4px 0; font-weight: 700; color: var(--text-primary);">${formatDate(new Date(userData.created_at).getTime(), { lang: isBn ? 'bn' : 'en' })}</p>
-        </div>
-      </div>
-    `;
+    const grid = el('div', 'user-detail__grid');
+    const place = [userData.district, userData.division].filter(Boolean).join(', ');
+    grid.append(
+      field(t('user_detail.field_full_name', 'Full Name'), userData.full_name || '—'),
+      field(t('user_detail.field_phone', 'Phone'), userData.phone || '—'),
+      field(t('user_detail.field_email', 'Email'), userData.email || '—'),
+      field(t('user_detail.field_location', 'District & Division'), place || '—'),
+      field(t('user_detail.field_address', 'Address'), userData.address_line || '—'),
+      field(t('user_detail.field_registered', 'Registered On'), fmtDate(userData.created_at)),
+    );
+    pane.append(grid);
+  }
+
+  function describeSource(s) {
+    if (s.type === 'ROLE') {
+      return t('user_detail.why_from_role', { role: s.role });
+    }
+    if (s.type === 'GRANT') {
+      return t('user_detail.why_from_grant', {
+        by: s.granted_by ?? s.grantedBy ?? '—',
+        expires: fmtDate(s.expires_at ?? s.expiresAt),
+      });
+    }
+    if (s.type === 'JIT') {
+      return t('user_detail.why_from_jit', { expires: fmtDate(s.window_expires_at ?? s.windowExpiresAt) });
+    }
+    return s.type;
   }
 
   function renderPermissionsTab(pane) {
-    pane.innerHTML = '';
-    const perms = permissionResolution?.effectivePermissions || [];
-    const sources = permissionResolution?.sources || {};
-
-    if (perms.length === 0) {
-      pane.innerHTML = `<p class="text-sm text-muted">${isBn ? 'এই ব্যবহারকারীর কোনো সক্রিয় পারমিশন নেই।' : 'This user holds no active permissions.'}</p>`;
+    if (permissionEntries.length === 0) {
+      pane.append(el('p', 'user-detail__state-text', t('user_detail.no_permissions', 'This user holds no active permissions.')));
       return;
     }
 
-    const titleH3 = document.createElement('h3');
-    titleH3.style.fontSize = 'var(--text-sm)';
-    titleH3.style.fontWeight = '800';
-    titleH3.style.color = 'var(--text-primary)';
-    titleH3.textContent = isBn ? `সক্রিয় পারমিশনসমূহ (${perms.length})` : `Active Held Permissions (${perms.length})`;
-    pane.append(titleH3);
+    pane.append(el('h3', 'user-detail__section-title',
+      t('user_detail.active_permissions', { count: formatNumber(permissionEntries.length, { lang }) })));
 
-    for (const permKey of perms) {
-      const card = document.createElement('div');
-      card.className = 'perm-source-card';
-
-      const info = document.createElement('div');
-      info.className = 'perm-source-card__info';
-
-      const title = document.createElement('span');
-      title.className = 'perm-source-card__title';
-      title.textContent = permKey;
-
-      const why = document.createElement('span');
-      why.className = 'perm-source-card__why';
-
-      const permSources = sources[permKey] || [];
-      const reasons = permSources.map((s) => {
-        if (s.type === 'ROLE') return t('user_detail.why_from_role', `Held via ${s.role} role`, { role: s.role });
-        if (s.type === 'GRANT') return t('user_detail.why_from_grant', `Standing Grant by ${s.grantedBy} until ${s.expiresAt}`, { by: s.grantedBy, expires: s.expiresAt });
-        if (s.type === 'JIT') return t('user_detail.why_from_jit', `Active JIT window until ${s.windowExpiresAt}`, { expires: s.windowExpiresAt });
-        return s.type;
-      });
-
-      why.textContent = reasons.join(' · ') || 'Assigned capability';
-      info.append(title, why);
-
-      const statusBadge = Badge({ label: 'Active', variant: 'success' });
-      card.append(info, statusBadge);
+    for (const entry of permissionEntries) {
+      const card = el('div', 'perm-source-card');
+      const info = el('div', 'perm-source-card__info');
+      const reasons = entry.sources.map(describeSource);
+      if (entry.why) reasons.push(entry.why);
+      info.append(
+        el('span', 'perm-source-card__title', entry.key),
+        el('span', 'perm-source-card__why', reasons.join(' · ') || t('user_detail.assigned_capability', 'Assigned capability')),
+      );
+      card.append(info, Badge({ label: t('user_detail.perm_active', 'Active'), variant: 'success' }));
       pane.append(card);
     }
   }
 
   function renderRestrictionsTab(pane) {
-    pane.innerHTML = '';
-    const restrictions = userData?.restrictions || [];
+    const restrictions = userData.restrictions || [];
 
     if (restrictions.length === 0) {
-      pane.innerHTML = `
-        <div style="padding: var(--space-6); text-align: center;">
-          <p style="font-weight: 700; color: var(--success); margin: 0;">✓ ${t('user_detail.no_restrictions', 'No active capability restrictions on this account.')}</p>
-          <span style="font-size: 12px; color: var(--text-muted);">All features and transaction capabilities are enabled without sanctions.</span>
-        </div>
-      `;
+      const empty = el('div', 'user-detail__empty');
+      empty.append(
+        el('strong', '', `✓ ${t('user_detail.no_restrictions', 'No active capability restrictions on this account.')}`),
+        el('span', '', t('user_detail.no_restrictions_hint', 'All features and transaction capabilities are enabled without sanctions.')),
+      );
+      pane.append(empty);
       return;
     }
 
     for (const r of restrictions) {
-      const card = document.createElement('div');
-      card.className = 'perm-source-card';
+      const card = el('div', 'perm-source-card');
+      const info = el('div', 'perm-source-card__info');
+      const details = [t('user_detail.restriction_reason', { reason: r.reason || '—' })];
+      if (r.expires_at) details.push(t('user_detail.restriction_expires', { date: fmtDate(r.expires_at) }));
 
-      const info = document.createElement('div');
-      info.className = 'perm-source-card__info';
-
-      const title = document.createElement('span');
-      title.className = 'perm-source-card__title';
-      title.style.color = 'var(--danger)';
-      title.textContent = `🚫 ${r.capability_key || r.key} (${r.mode || 'BLOCKED'})`;
-
-      const reason = document.createElement('span');
-      reason.className = 'perm-source-card__why';
-      reason.textContent = `Reason: "${r.reason}"`;
-
-      info.append(title, reason);
+      info.append(
+        el('span', 'perm-source-card__title perm-source-card__title--danger',
+          `🚫 ${r.capability_key || r.key} (${r.mode || r.status || 'BLOCKED'})`),
+        el('span', 'perm-source-card__why', details.join(' · ')),
+      );
 
       const liftBtn = Button({
         label: t('user_detail.lift_restriction', 'Lift Restriction'),
@@ -371,19 +395,23 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
         onClick: async () => {
           const conf = await confirmDialogWithReason({
             title: t('user_detail.confirm_lift_title', 'Lift capability restriction?'),
-            description: t('user_detail.confirm_lift_desc', 'Removing this restriction will immediately restore the user\'s capability.'),
+            description: t('user_detail.confirm_lift_desc', "Removing this restriction will immediately restore the user's capability."),
             reasonRequired: true,
             trigger: liftBtn,
           });
 
           if (!conf || !conf.confirmed || !conf.reason || conf.reason.trim().length < 10) return;
 
+          liftBtn.setLoading?.(true);
           try {
-            await api.delete(`/admin/restrictions/${r.id}`, { data: { reason: conf.reason.trim() } });
-            toast.success(isBn ? 'রেস্ট্রিকশন প্রত্যাহার করা হয়েছে' : 'Restriction lifted successfully');
+            // WHY `body`: core/api.js reads `{ body }` — the old `{ data }` option was dropped, so
+            // the mandatory audit justification never reached the server.
+            await api.delete(`/admin/restrictions/${r.id}`, { body: { reason: conf.reason.trim() } });
+            toast.success(t('user_detail.lift_success', 'Restriction lifted successfully'));
             refreshData();
           } catch (err) {
-            toast.error(err.message || 'Failed to lift restriction.');
+            liftBtn.setLoading?.(false);
+            toast.error((isBn ? err.message_bn : err.message_en) || err.message || t('user_detail.lift_failed', 'Failed to lift restriction.'));
           }
         },
       });
@@ -394,77 +422,90 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
   }
 
   function renderTimelineTab(pane) {
-    pane.innerHTML = '';
-    const timeline = UserTimeline({ events: timelineEvents });
-    pane.append(timeline);
+    pane.append(UserTimeline({ events: timelineEvents }));
   }
 
+  function stat(label, value, tone = '') {
+    const card = el('div', 'user-stat');
+    card.append(
+      el('span', 'user-stat__label', label),
+      el('h4', `user-stat__value${tone ? ` user-stat__value--${tone}` : ''}`, value),
+    );
+    return card;
+  }
+
+  // WHY `??` and no invented defaults: the old `|| 89` / `|| 385000` turned a genuine zero (a new
+  // account) into a fabricated 89 orders and ৳385,000 GMV.
   function renderOrdersTab(pane) {
-    pane.innerHTML = `
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
-        <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Total Orders</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--text-primary);">${userData.total_orders_count ?? 89}</h4>
-        </div>
-        <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Lifetime GMV</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--text-primary);">৳${(userData.total_gmv_bdt || 385000).toLocaleString()}</h4>
-        </div>
-        <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Return Rate</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--success);">1.2%</h4>
-        </div>
-      </div>
-    `;
+    const orders = userData.total_orders_count ?? userData.orders_count ?? 0;
+    const gmv = userData.total_gmv_bdt ?? userData.gmv_bdt ?? 0;
+    const returnRate = userData.return_rate_pct;
+    const grid = el('div', 'user-stat-grid');
+    grid.append(
+      stat(t('user_detail.stat_orders', 'Total Orders'), formatNumber(orders, { lang })),
+      stat(t('user_detail.stat_gmv', 'Lifetime GMV'), formatCurrency(gmv, { lang })),
+      stat(
+        t('user_detail.stat_return_rate', 'Return Rate'),
+        returnRate === undefined || returnRate === null ? '—' : `${formatNumber(returnRate, { lang })}%`,
+      ),
+    );
+    pane.append(grid);
   }
 
   function renderVaultTab(pane) {
-    pane.innerHTML = `
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4);">
-        <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Available Balance</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--success);">৳${(userData.wallet_balance_bdt || 45800.50).toLocaleString()}</h4>
-        </div>
-        <div style="padding: var(--space-4); background: var(--surface-2); border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary);">Escrow Hold</span>
-          <h4 style="margin: 6px 0 0 0; font-size: var(--text-2xl); font-weight: 800; color: var(--warning);">৳${(userData.escrow_held_bdt || 12400.00).toLocaleString()}</h4>
-        </div>
-      </div>
-    `;
+    const grid = el('div', 'user-stat-grid');
+    grid.append(
+      stat(t('user_detail.stat_balance', 'Available Balance'), formatCurrency(userData.wallet_balance_bdt ?? 0, { lang }), 'success'),
+      stat(t('user_detail.stat_escrow', 'Escrow Hold'), formatCurrency(userData.escrow_held_bdt ?? 0, { lang }), 'warning'),
+    );
+    pane.append(grid);
+  }
+
+  function kycRow(title, hint, statusText, statusClass) {
+    const row = el('div', 'user-kyc-row');
+    const left = el('div');
+    left.append(el('span', 'user-kyc-row__title', title), el('p', 'user-kyc-row__hint', hint));
+    row.append(left, el('span', `user-kyc-row__status user-kyc-row__status--${statusClass}`, statusText));
+    return row;
   }
 
   function renderKycTab(pane) {
-    const isKycVerified = userData.kyc_status === 'VERIFIED';
-    pane.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: var(--space-4);">
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--surface-2); border-radius: var(--radius-md); border: var(--border-width) solid var(--border-subtle);">
-          <div>
-            <span style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary);">National ID (Smart NID)</span>
-            <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-secondary);">Verified on: ${userData.kyc_verified_at ? formatDate(new Date(userData.kyc_verified_at).getTime(), { lang: isBn ? 'bn' : 'en' }) : 'Pending'}</p>
-          </div>
-          <span style="color: ${isKycVerified ? 'var(--success)' : 'var(--warning)'}; font-weight: 700;">
-            ${isKycVerified ? '✓ ' + t('user_detail.kyc_approved', 'KYC Verified') : t('user_detail.kyc_pending', 'Verification Pending')}
-          </span>
-        </div>
-
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--surface-2); border-radius: var(--radius-md); border: var(--border-width) solid var(--border-subtle);">
-          <div>
-            <span style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary);">Trade License</span>
-            <p style="margin: 2px 0 0 0; font-size: 11px; color: var(--text-secondary);">Enterprise merchant verification</p>
-          </div>
-          <span style="color: var(--text-muted); font-size: var(--text-xs);">Optional for Salers</span>
-        </div>
-      </div>
-    `;
+    const verified = userData.kyc_status === 'VERIFIED';
+    pane.append(
+      kycRow(
+        t('user_detail.kyc_nid', 'National ID (Smart NID)'),
+        `${t('user_detail.kyc_verified_on', 'Verified on')}: ${userData.kyc_verified_at ? fmtDate(userData.kyc_verified_at) : t('user_detail.kyc_pending_short', 'Pending')}`,
+        verified ? `✓ ${t('user_detail.kyc_approved', 'KYC Verified')}` : t('user_detail.kyc_pending', 'Verification Pending'),
+        verified ? 'ok' : 'pending',
+      ),
+      kycRow(
+        t('user_detail.kyc_trade_license', 'Trade License'),
+        t('user_detail.kyc_trade_hint', 'Enterprise merchant verification'),
+        t('user_detail.kyc_optional', 'Optional for Salers'),
+        'muted',
+      ),
+    );
   }
 
-  async function refreshData() {
-    await Promise.all([loadUser(), loadPermissionsIntrospection(), loadTimeline()]);
+  /* ---------------------------------------------------------------- flow */
+
+  async function refreshData({ initial = false } = {}) {
+    if (initial) showSkeleton();
+    try {
+      await loadUser();
+    } catch (err) {
+      showFailure(err?.status === 404 ? 'notfound' : 'error');
+      return;
+    }
+    await Promise.all([loadPermissionsIntrospection(), loadTimeline()]);
+    stateWrap.replaceChildren();
+    stateWrap.removeAttribute('aria-busy');
+    stateWrap.style.display = '';
     renderHeader();
     renderTabs();
   }
 
-  refreshData();
+  refreshData({ initial: true });
   loadPermissionsCatalog();
 
   root.append(container);
