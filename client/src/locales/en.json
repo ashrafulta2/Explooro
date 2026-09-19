@@ -1707,11 +1707,23 @@
     "metric": {
       "pending_queue": "Pending Requests",
       "total_pending_amount": "Total In Queue",
-      "risk_flagged": "High-Risk Flags"
+      "risk_flagged": "High-Risk Flags",
+      "completed_today": "Disbursed / Settled",
+      "pending_hint": "Awaiting admin sign-off",
+      "total_hint": "Pending queue liability",
+      "risk_hint": "Flagged for manual inspection",
+      "completed_hint": "Automated B2C settlement"
     },
     "filter": {
       "status": "Filter by Status",
-      "method": "Filter by Method"
+      "method": "Filter by Method",
+      "risk": "Filter by Risk",
+      "search_placeholder": "Search ref, recipient, phone, account, or business...",
+      "all_statuses": "All Statuses",
+      "all_risks": "All Risk Levels",
+      "high_risk_only": "High Risk Only",
+      "low_risk_only": "Low Risk Only",
+      "clear": "Clear"
     },
     "status": {
       "requested": "Pending Review",
@@ -1727,6 +1739,9 @@
       "new_account": "New Account (<7d)"
     },
     "btn_approve": "Approve / Disburse",
+    "btn_export_csv": "Export CSV",
+    "btn_details": "Details",
+    "btn_reject": "Reject",
     "maker_checker_pending_notice": "Approval logged: Awaiting Super Admin sign-off (Maker-Checker HIGH tier).",
     "disburse_success_notice": "Disbursement completed successfully via B2C gateway!",
     "reject_success_notice": "Payout rejected and held funds restored to seller available balance.",
@@ -1738,13 +1753,28 @@
     "no_requests_found": "No payout requests found",
     "no_requests_desc": "All seller withdrawal requests have been processed.",
     "col_ref": "Reference & Date",
-    "col_user": "Recipient",
+    "col_user": "Recipient & Store",
     "col_destination": "Method & Account",
-    "col_amount": "Amount",
+    "col_amount": "Amount & Fee",
     "col_risk": "Risk Assessment",
     "col_status": "Status",
     "select_all_rows": "Select all payout requests on this page",
-    "select_row": "Select payout {{ref}}"
+    "select_row": "Select payout {{ref}}",
+    "selected_bar": {
+      "text": "{{count}} payout request(s) selected (Total: {{total}})",
+      "deselect": "Deselect All"
+    },
+    "modal_details_title": "Payout Request Details",
+    "modal_sec_overview": "Financial Breakdown",
+    "modal_sec_recipient": "Recipient Information",
+    "modal_sec_destination": "Disbursement Destination",
+    "modal_sec_risk": "Risk Assessment & Fraud Signals",
+    "col_gross_amount": "Gross Requested",
+    "col_net_amount": "Net Payable",
+    "col_fee": "Disbursement Fee",
+    "risk_level_low": "Low Risk (Verified)",
+    "copied_ref_toast": "Reference copied to clipboard!",
+    "export_success": "Exported {{count}} payouts to CSV."
   },
   "cod": {
     "page_title": "COD 3-Way Reconciliation & Settlements",
