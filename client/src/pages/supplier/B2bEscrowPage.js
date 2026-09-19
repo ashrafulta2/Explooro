@@ -439,7 +439,12 @@ export default function B2bEscrowPage(root, ctx = {}) {
       const text = modal.querySelector('#evidence-text-input').value.trim();
       if (!text) return toast.error('Please enter proof reference.');
       try {
-        await submitMilestoneEvidence(deal.id, milestone.id, { proof: text });
+        // WHY: the API takes (milestoneId, payload) — passing deal.id first targeted the wrong
+        // milestone, and the milestone id landed in the payload slot.
+        await submitMilestoneEvidence(milestone.id, {
+          evidence_type: milestone.evidence_required,
+          notes: text,
+        });
         toast.success('Milestone evidence submitted.');
         close();
         await loadDeals();
@@ -453,8 +458,14 @@ export default function B2bEscrowPage(root, ctx = {}) {
   async function handleReleaseMilestone(deal, milestone) {
     if (!confirm(`Release ${formatCurrency(milestone.amount)} for milestone "${milestone.title_en}"?`)) return;
     try {
-      await releaseMilestone(deal.id, milestone.id);
-      toast.success('Milestone funds released successfully.');
+      // WHY: (milestoneId, payload) — the old (deal.id, milestone.id) released whichever
+      // milestone happened to share the deal's numeric id, i.e. moved the wrong escrow funds.
+      const res = await releaseMilestone(milestone.id);
+      if ((res?.data ?? res)?.is_pending_maker_checker) {
+        toast.info('Release queued for Super Admin confirmation.');
+      } else {
+        toast.success('Milestone funds released successfully.');
+      }
       await loadDeals();
     } catch (err) {
       toast.error(err?.message || 'Failed to release milestone.');
@@ -464,7 +475,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
   async function handleRefundMilestone(deal, milestone) {
     if (!confirm(`Refund ${formatCurrency(milestone.amount)} to buyer?`)) return;
     try {
-      await refundMilestone(deal.id, milestone.id);
+      await refundMilestone(milestone.id);
       toast.success('Milestone refunded.');
       await loadDeals();
     } catch (err) {
@@ -534,7 +545,9 @@ export default function B2bEscrowPage(root, ctx = {}) {
       const reason = modal.querySelector('#dispute-reason-text').value.trim();
       if (!reason) return toast.error('Please enter a reason for the dispute.');
       try {
-        await raiseB2bDispute(deal.id, { reason });
+        // WHY reason_en: that is the field the controller reads; a bare `reason` reached the
+        // service as undefined.
+        await raiseB2bDispute(deal.id, { reason_en: reason });
         toast.success('Dispute raised. Funds locked for arbitration.');
         close();
         await loadDeals();
