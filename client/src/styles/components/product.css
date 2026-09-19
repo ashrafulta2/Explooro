@@ -1,10 +1,10 @@
-﻿/**
+/**
  * product.css — Styles for all product discovery & detail components (Prompt 4.5, 4.6).
  */
 
 /* Home Page */
-.home-page { display: flex; flex-direction: column; gap: 0; min-height: 0; }
-.home-hero { background: var(--surface-1); color: var(--text-primary); padding: var(--space-8) var(--space-6); display: flex; align-items: center; gap: var(--space-6); position: relative; overflow: hidden; min-height: 140px; border-bottom: 1px solid var(--border-subtle); }
+.home-page { display: flex; flex-direction: column; gap: 0; min-height: 0; min-width: 0; width: 100%; max-width: 100%; overflow-x: clip; }
+.home-hero { background: var(--surface-1); color: var(--text-primary); padding: var(--space-8) var(--space-6); display: flex; align-items: center; gap: var(--space-6); position: relative; overflow: hidden; min-height: 140px; border-bottom: 1px solid var(--border-subtle); max-width: 100%; box-sizing: border-box; }
 .home-hero::before { content: ''; position: absolute; inset: 0; background-image: repeating-linear-gradient(45deg, transparent, transparent 40px, oklch(0 0 0 / 0.02) 40px, oklch(0 0 0 / 0.02) 41px); pointer-events: none; }
 .home-hero__text { flex: 1; position: relative; z-index: 1; }
 .home-hero__tagline { font-size: var(--text-2xl); font-weight: 700; line-height: var(--leading-2xl); letter-spacing: var(--tracking-2xl); margin: 0 0 var(--space-2); color: var(--text-primary); }
@@ -12,13 +12,13 @@
 .home-hero .btn { background: var(--brand); color: var(--brand-contrast); border: 1px solid var(--brand); font-weight: 600; box-shadow: var(--elevation-1); transition: all var(--dur-fast) var(--ease-standard); }
 .home-hero .btn:hover { background: var(--brand-hover); color: var(--brand-alt-contrast); transform: translateY(-1px); box-shadow: var(--elevation-2); }
 
-.home-section { padding: var(--space-5) var(--space-6); }
+.home-section { padding: var(--space-5) var(--space-6); max-width: 100%; box-sizing: border-box; }
 .home-section + .home-section { padding-top: 0; }
 .home-section__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); }
 .home-section__title { font-size: var(--text-lg); font-weight: 600; line-height: var(--leading-lg); margin: 0; color: var(--text-primary); }
 
 /* Feed Switcher */
-.feed-switcher { display: flex; gap: var(--space-1); padding: var(--space-2) var(--space-6); background: var(--surface-0); border-bottom: var(--border-width) solid var(--border-subtle); overflow-x: auto; scrollbar-width: none; }
+.feed-switcher { display: flex; gap: var(--space-1); padding: var(--space-2) var(--space-6); background: var(--surface-0); border-bottom: var(--border-width) solid var(--border-subtle); overflow-x: auto; scrollbar-width: none; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
 .feed-switcher::-webkit-scrollbar { display: none; }
 .feed-switcher__tab { flex-shrink: 0; padding: var(--space-2) var(--space-4); background: none; border: var(--border-width) solid transparent; border-radius: var(--radius-full); font-size: var(--text-sm); font-weight: 500; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: color 120ms, background 120ms, border-color 120ms; }
 .feed-switcher__tab:hover { background: var(--surface-2); color: var(--text-primary); }
@@ -26,14 +26,14 @@
 [data-theme='dark'] .feed-switcher__tab[aria-selected='true'] { background: var(--brand-950); border-color: var(--brand-700); color: var(--brand-300); }
 
 /* Category Pills */
-.category-pills { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-6); overflow-x: auto; scrollbar-width: none; border-bottom: var(--border-width) solid var(--border-subtle); }
+.category-pills { display: flex; gap: var(--space-2); padding: var(--space-3) var(--space-6); overflow-x: auto; scrollbar-width: none; border-bottom: var(--border-width) solid var(--border-subtle); width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
 .category-pills::-webkit-scrollbar { display: none; }
 .category-pills__pill { flex-shrink: 0; display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-1) var(--space-3); background: var(--surface-1); border: var(--border-width) solid var(--border-default); border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 500; color: var(--text-secondary); cursor: pointer; white-space: nowrap; transition: color 100ms, background 100ms, border-color 100ms; }
 .category-pills__pill:hover { background: var(--surface-2); color: var(--text-primary); border-color: var(--border-strong); }
 .category-pills__pill[aria-selected='true'] { background: var(--brand-alt); border-color: var(--brand-alt); color: var(--brand-alt-contrast); font-weight: 600; }
 
 /* Flash Sale Widget */
-.flash-sale-widget { background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg, var(--radius-md)); overflow: hidden; margin: 0 var(--space-6); box-shadow: var(--elevation-1, 0 1px 3px rgba(0, 0, 0, 0.05)); position: relative; }
+.flash-sale-widget { background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg, var(--radius-md)); overflow: hidden; margin: 0; box-shadow: var(--elevation-1, 0 1px 3px rgba(0, 0, 0, 0.05)); position: relative; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
 .flash-sale-widget__header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-5); background: var(--flash-bg); color: var(--flash-text); gap: var(--space-3); flex-wrap: wrap; }
 .flash-sale-widget__header-left { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
 .flash-sale-widget__title { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-base); font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
@@ -49,8 +49,8 @@
 .flash-sale-widget__view-all { display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.15); color: var(--flash-text); border: 1px solid rgba(255, 255, 255, 0.3); padding: var(--space-1) var(--space-3); border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 600; cursor: pointer; transition: all var(--dur-fast) var(--ease-standard); white-space: nowrap; }
 .flash-sale-widget__view-all:hover { background: rgba(255, 255, 255, 0.28); transform: translateX(2px); }
 
-.flash-sale-widget__scroll-wrapper { position: relative; display: flex; align-items: center; }
-.flash-sale-widget__scroll { display: flex; gap: var(--space-3); padding: var(--space-4) var(--space-5); overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--border-default) transparent; width: 100%; }
+.flash-sale-widget__scroll-wrapper { position: relative; display: flex; align-items: center; width: 100%; max-width: 100%; min-width: 0; overflow: hidden; }
+.flash-sale-widget__scroll { display: flex; gap: var(--space-3); padding: var(--space-4) var(--space-5); overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--border-default) transparent; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
 .flash-sale-widget__scroll::-webkit-scrollbar { height: 5px; }
 .flash-sale-widget__scroll::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
 .flash-sale-widget__scroll::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
@@ -125,7 +125,7 @@
 .product-grid__empty { grid-column: 1 / -1; padding: var(--space-10) var(--space-6); }
 
 /* Filter Panel */
-.home-catalog { display: block; width: 100%; }
+.home-catalog { display: block; width: 100%; scroll-margin-top: calc(var(--topbar-h, 56px) + var(--space-4)); }
 .filter-panel { width: 100%; max-width: 320px; padding: var(--space-4) var(--space-5); overflow-y: auto; overflow-x: hidden; background: var(--surface-0); }
 .drawer .filter-panel { width: 100%; max-width: none; height: auto; position: static; padding: var(--space-2) var(--space-4) var(--space-8); }
 .drawer .filter-panel__header { display: none; }

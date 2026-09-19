@@ -3,7 +3,7 @@
  */
 
 /* Layout */
-.app-shell { --topbar-h: 56px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; grid-template-areas: 'topbar topbar' 'sidebar content'; min-height: 100vh; background: var(--surface-0); }
+.app-shell { --topbar-h: 56px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; grid-template-areas: 'topbar topbar' 'sidebar content'; min-height: 100vh; background: var(--surface-0); max-width: 100vw; overflow-x: clip; }
 .app-shell.is-scrolled { --topbar-h: 48px; }
 .app-shell[data-has-chrome='false'], .app-shell[data-has-chrome='guest'] { grid-template-columns: 1fr; grid-template-rows: auto 1fr; grid-template-areas: 'topbar' 'content'; }
 .app-shell[data-has-chrome='false'] .app-shell__sidebar-slot, .app-shell[data-has-chrome='false'] .app-shell__mobilenav-slot, .app-shell[data-has-chrome='guest'] .app-shell__sidebar-slot, .app-shell[data-has-chrome='guest'] .app-shell__mobilenav-slot { display: none; }
@@ -12,7 +12,7 @@
 .topbar__brand:hover { color: var(--brand); }
 .topbar__brand svg { flex: none; width: var(--tb-brand-icon, 28px); height: var(--tb-brand-icon, 28px); --logo-star: var(--brand, #ffbc00); transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard); }
 .topbar__auth-buttons { display: flex; align-items: center; gap: var(--space-2); }
-.app-shell__content { grid-area: content; min-width: 0; }
+.app-shell__content { grid-area: content; min-width: 0; max-width: 100%; overflow-x: clip; }
 .app-shell__page { padding: var(--space-6); padding-bottom: calc(var(--space-6) + 64px); min-width: 0; }
 @media (min-width: 768px) { .app-shell__page { padding-bottom: var(--space-6); } }
 

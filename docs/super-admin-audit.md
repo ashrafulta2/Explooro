@@ -179,6 +179,17 @@ These are real and were left open on purpose. Do not assume they were missed.
    crawler pattern in §6.
 9. **A checklist the user must satisfy has to actually gate the action.** Pre-ticked attestations
    are worse than none.
+10. **Never put `overflow: hidden|auto|scroll` (or `overflow-x`/`-y`) on an ancestor of the topbar,
+    sidebar or any sticky element — use `overflow-x: clip`.** The ancestors are `html`, `body`,
+    `.app-shell`, `.app-shell__content`, `.app-shell__page` and page roots such as `.home-page`.
+    `hidden` makes the element a scroll container (the browser also computes `overflow-y: auto`), and
+    `position: sticky` binds to its nearest scroll container. That container grows with its content
+    and never scrolls, so the topbar silently scrolls away with the page — no console error, and it
+    only shows on a page tall enough to scroll. Broke on 2026-09-19 when a horizontal-overflow fix on
+    the Home page added `overflow-x: hidden` to those four ancestors. `clip` stops horizontal spill
+    the same way without creating a scroll container. Guarded by `client/test/homeOverflow.test.js`
+    (tests 4–5); to check by hand, list every ancestor's computed overflow from
+    `.app-shell__topbar-slot` up — all must read `visible` or `clip`.
 
 ---
 
