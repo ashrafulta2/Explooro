@@ -27,6 +27,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Tabs } from '../../components/ui/Tabs.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { Modal } from '../../components/ui/Modal.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatCurrency } from '../../services/format.js';
@@ -439,7 +440,12 @@ export default function B2bEscrowPage(root, ctx = {}) {
       const text = modal.querySelector('#evidence-text-input').value.trim();
       if (!text) return toast.error('Please enter proof reference.');
       try {
-        await submitMilestoneEvidence(deal.id, milestone.id, { proof: text });
+        // WHY: the API takes (milestoneId, payload) — passing deal.id first targeted the wrong
+        // milestone, and the milestone id landed in the payload slot.
+        await submitMilestoneEvidence(milestone.id, {
+          evidence_type: milestone.evidence_required,
+          notes: text,
+        });
         toast.success('Milestone evidence submitted.');
         close();
         await loadDeals();
@@ -451,10 +457,24 @@ export default function B2bEscrowPage(root, ctx = {}) {
   }
 
   async function handleReleaseMilestone(deal, milestone) {
-    if (!confirm(`Release ${formatCurrency(milestone.amount)} for milestone "${milestone.title_en}"?`)) return;
+    // WHY: confirmDialog, not native confirm() — it is themed, keyboard/focus-trapped, and its copy
+    // goes through i18n; the native box was hardcoded English and blocks the main thread.
+    const ok = await confirmDialog({
+      title: t('b2b_escrow.confirm_release_title', 'Release milestone funds?'),
+      description: t('b2b_escrow.confirm_release', { amount: formatCurrency(milestone.amount) }),
+      confirmLabel: t('b2b_escrow.confirm_release_btn', 'Release Funds'),
+      cancelLabel: t('common.cancel', 'Cancel'),
+    });
+    if (!ok) return;
     try {
-      await releaseMilestone(deal.id, milestone.id);
-      toast.success('Milestone funds released successfully.');
+      // WHY: (milestoneId, payload) — the old (deal.id, milestone.id) released whichever
+      // milestone happened to share the deal's numeric id, i.e. moved the wrong escrow funds.
+      const res = await releaseMilestone(milestone.id);
+      if ((res?.data ?? res)?.is_pending_maker_checker) {
+        toast.info('Release queued for Super Admin confirmation.');
+      } else {
+        toast.success('Milestone funds released successfully.');
+      }
       await loadDeals();
     } catch (err) {
       toast.error(err?.message || 'Failed to release milestone.');
@@ -462,9 +482,16 @@ export default function B2bEscrowPage(root, ctx = {}) {
   }
 
   async function handleRefundMilestone(deal, milestone) {
-    if (!confirm(`Refund ${formatCurrency(milestone.amount)} to buyer?`)) return;
+    const ok = await confirmDialog({
+      title: t('b2b_escrow.confirm_refund_title', 'Refund milestone to buyer?'),
+      description: t('b2b_escrow.confirm_refund', { amount: formatCurrency(milestone.amount) }),
+      confirmLabel: t('b2b_escrow.confirm_refund_btn', 'Refund to Buyer'),
+      cancelLabel: t('common.cancel', 'Cancel'),
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
-      await refundMilestone(deal.id, milestone.id);
+      await refundMilestone(milestone.id);
       toast.success('Milestone refunded.');
       await loadDeals();
     } catch (err) {
@@ -534,7 +561,9 @@ export default function B2bEscrowPage(root, ctx = {}) {
       const reason = modal.querySelector('#dispute-reason-text').value.trim();
       if (!reason) return toast.error('Please enter a reason for the dispute.');
       try {
-        await raiseB2bDispute(deal.id, { reason });
+        // WHY reason_en: that is the field the controller reads; a bare `reason` reached the
+        // service as undefined.
+        await raiseB2bDispute(deal.id, { reason_en: reason });
         toast.success('Dispute raised. Funds locked for arbitration.');
         close();
         await loadDeals();

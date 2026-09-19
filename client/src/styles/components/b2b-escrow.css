@@ -1,0 +1,316 @@
+/**
+ * b2b-escrow.css — Admin B2B Wholesale Escrow page (Prompt 10.6).
+ *
+ * WHY this file exists: the page was first written with Tailwind-style utility classes
+ * (`grid md:grid-cols-3`, `space-y-6`, `p-5`, `bg-surface-0`, `text-emerald-600` ...). This project
+ * ships no CSS framework, so none of them resolved and the deal cards collapsed into an unpadded,
+ * clipped single column. Every rule here is a real token-driven class instead.
+ *
+ * Imported by the page module (not main.css) so it lands in the route chunk, not the entry bundle.
+ */
+
+.b2b-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.b2b-toolbar__count {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.b2b-deals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ---------- Deal card ---------- */
+.b2b-deal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elevation-1);
+  min-width: 0;
+}
+
+.b2b-deal__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+@media (min-width: 768px) {
+  .b2b-deal__head {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+
+.b2b-deal__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.b2b-deal__ref-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.b2b-deal__ref {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.b2b-deal__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.b2b-deal__parties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.b2b-deal__parties strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.b2b-deal__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .b2b-deal__summary {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+
+.b2b-deal__total-label {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.b2b-deal__total {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.b2b-deal__created {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ---------- Disbursement progress ---------- */
+.b2b-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.b2b-progress__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.b2b-progress__track {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.b2b-progress__fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--success);
+  transition: width 0.3s ease;
+}
+
+/* ---------- Milestones ---------- */
+.b2b-milestones__heading {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.b2b-milestones__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 720px) {
+  .b2b-milestones__grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+.b2b-milestone {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-0);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  min-width: 0;
+}
+
+.b2b-milestone--released { border-color: var(--success-border); }
+.b2b-milestone--ready { border-color: var(--warning-border); background: var(--warning-bg); }
+.b2b-milestone--frozen { border-color: var(--danger-border); }
+
+.b2b-milestone__top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.b2b-milestone__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.b2b-milestone__title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.b2b-milestone__pct {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.b2b-milestone__amount {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.b2b-milestone--released .b2b-milestone__amount { color: var(--success); }
+
+.b2b-milestone__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--border-default);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  min-height: 44px;
+  align-items: center;
+}
+
+.b2b-milestone__foot .btn { width: 100%; }
+
+/* Status pill — one class, colour by modifier, so a status never renders as a raw enum on a
+   default-grey chip (the old markup fell back to `badge--neutral` for anything not RELEASED). */
+.b2b-pill {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.b2b-pill--success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.b2b-pill--warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.b2b-pill--danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+.b2b-pill--info { background: var(--info-bg); border-color: var(--info-border); color: var(--info); }
+
+/* ---------- Loading / empty / error ---------- */
+.b2b-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.b2b-skeleton__block {
+  border-radius: var(--radius-xl);
+  background: var(--surface-2);
+  animation: b2b-pulse 1.4s ease-in-out infinite;
+}
+
+.b2b-skeleton__block--kpi { height: 96px; }
+.b2b-skeleton__block--deal { height: 280px; }
+
+@keyframes b2b-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .b2b-skeleton__block { animation: none; }
+  .b2b-progress__fill { transition: none; }
+}
+
+.b2b-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-5);
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-xl);
+}
+
+.b2b-state__title { margin: 0; font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); }
+.b2b-state__desc { margin: 0; max-width: 480px; font-size: var(--text-sm); color: var(--text-secondary); }
