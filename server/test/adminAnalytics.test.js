@@ -558,4 +558,149 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
     });
   });
 
+
+  // ---------------------------------------------------------------------------
+  // 8. Real sales breakdowns (categories + channels) replace the hardcoded placeholders
+  // ---------------------------------------------------------------------------
+  describe('Sales breakdowns from real orders', () => {
+    const v2 = (channels, categories) => JSON.stringify({ version: 2, channels, categories });
+    const cat = (id, slug, sales, units = 1) => ({ id, slug, name_en: slug.toUpperCase(), name_bn: `bn-${slug}`, sales, units });
+
+    test('aggregateBreakdown sums days, ranks categories, folds the tail into Other, and shares total 100%', () => {
+      const rows = [
+        { breakdown_json: v2([{ key: 'DIRECT', orders: 2, sales: 100 }], [cat(1, 'a', 500), cat(2, 'b', 300), cat(3, 'c', 100)]) },
+        { breakdown_json: v2([{ key: 'DIRECT', orders: 1, sales: 50 }, { key: 'LIVE', orders: 1, sales: 50 }], [cat(1, 'a', 100), cat(4, 'd', 60), cat(5, 'e', 40)]) },
+      ];
+      const out = analyticsService.aggregateBreakdown(rows, { topCategories: 2 });
+
+      assert.deepEqual(out.categories.map((c) => c.key), ['a', 'b', 'other'], 'top 2 by summed sales, then Other');
+      assert.equal(out.categories[0].revenue, 600, 'category sales are summed across days');
+      assert.equal(out.categories[2].revenue, 200, 'Other = c(100) + d(60) + e(40)');
+      assert.equal(out.categories[2].name_bn, 'অন্যান্য');
+      assert.equal(out.categories[0].name_bn, 'bn-a', 'bilingual names are passed through');
+      const catShare = out.categories.reduce((a, c) => a + c.share_pct, 0);
+      assert.ok(Math.abs(catShare - 100) <= 0.2, `category shares total 100% (got ${catShare})`);
+
+      assert.deepEqual(out.channels.map((c) => c.key), ['LIVE', 'TEAM', 'SALER_STORE', 'DIRECT'], 'fixed channel order');
+      const direct = out.channels.find((c) => c.key === 'DIRECT');
+      assert.equal(direct.volume, 150);
+      assert.equal(direct.orders, 3);
+      assert.equal(out.channels.find((c) => c.key === 'TEAM').share_pct, 0, 'a channel with no sales is listed at 0%, not invented');
+      assert.equal(out.channels.reduce((a, c) => a + c.share_pct, 0), 100);
+    });
+
+    test('no "Other" row when every category fits in the top N', () => {
+      const out = analyticsService.aggregateBreakdown([{ breakdown_json: v2([], [cat(1, 'a', 10), cat(2, 'b', 10)]) }], { topCategories: 5 });
+      assert.deepEqual(out.categories.map((c) => c.key), ['a', 'b']);
+    });
+
+    test('no data => empty lists, never made-up bars (baseline, v1 placeholder rows, corrupt JSON, zero sales)', () => {
+      const empty = { categories: [], channels: [] };
+      assert.deepEqual(analyticsService.aggregateBreakdown([]), empty);
+      assert.deepEqual(analyticsService.aggregateBreakdown(undefined), empty);
+      // Rows written before this change stored invented percentages under different keys and no version.
+      const legacy = { breakdown_json: JSON.stringify({ top_categories: [{ name: 'Fashion & Apparel', percentage: 38 }], sales_channels: [{ channel: 'Storefront Direct', percentage: 46 }] }) };
+      assert.deepEqual(analyticsService.aggregateBreakdown([legacy, { breakdown_json: '{}' }, { breakdown_json: null }, { breakdown_json: 'not json' }, {}]), empty);
+      assert.deepEqual(analyticsService.aggregateBreakdown([{ breakdown_json: v2([{ key: 'DIRECT', orders: 0, sales: 0 }], [cat(1, 'a', 0)]) }]), empty, 'a day with zero sales has no shares to show');
+      // A JSONB column arrives already parsed; both forms must work.
+      const parsed = analyticsService.aggregateBreakdown([{ breakdown_json: { version: 2, channels: [{ key: 'LIVE', orders: 1, sales: 10 }], categories: [cat(1, 'a', 10)] } }]);
+      assert.equal(parsed.categories.length, 1);
+      assert.equal(parsed.channels.find((c) => c.key === 'LIVE').share_pct, 100);
+    });
+
+    test('mixed window: legacy days are skipped and only real days contribute', () => {
+      const legacy = { breakdown_json: JSON.stringify({ top_categories: [{ name: 'Fashion', percentage: 99 }] }) };
+      const real = { breakdown_json: v2([{ key: 'SALER_STORE', orders: 1, sales: 70 }, { key: 'DIRECT', orders: 1, sales: 30 }], [cat(1, 'a', 100)]) };
+      const out = analyticsService.aggregateBreakdown([legacy, real]);
+      assert.equal(out.channels.find((c) => c.key === 'SALER_STORE').share_pct, 70);
+      assert.equal(out.categories[0].share_pct, 100);
+    });
+
+    test('the SQL attributes each order to ONE channel with LIVE > TEAM > SALER_STORE > DIRECT precedence', () => {
+      const sql = analyticsService.CHANNEL_BREAKDOWN_SQL;
+      const order = ["'LIVE'", "'TEAM'", "'SALER_STORE'", "'DIRECT'"].map((k) => sql.indexOf(k));
+      assert.ok(order.every((i) => i > -1), 'all four channels appear');
+      assert.deepEqual([...order].sort((a, b) => a - b), order, 'CASE branches are in precedence order');
+      assert.ok(/EXISTS \(SELECT 1 FROM sub_orders/i.test(sql), 'saler test is EXISTS, so a multi-sub-order order is not counted twice');
+      assert.ok(!/JOIN\s+sub_orders/i.test(sql), 'no join that could fan out order rows');
+      assert.ok(/SUM\(o\.total_amount\)/.test(sql), 'sales use orders.total_amount, the GMV basis');
+      assert.ok(!/affiliate/i.test(sql), 'no invented affiliate channel — the schema has no order-level source');
+      assert.ok(!analyticsService.SALES_CHANNELS.some((c) => /affiliate/i.test(c.key + c.name)));
+      const cSql = analyticsService.CATEGORY_BREAKDOWN_SQL;
+      assert.ok(/split_part\(c\.path, '\.', 1\)/.test(cSql) && /rc\.parent_id IS NULL/.test(cSql), 'leaf categories roll up to the root');
+      assert.ok(/SUM\(oi\.line_total\)/.test(cSql));
+    });
+
+    test('computeDailyBreakdown queries the given day and maps rows (and does not swallow query errors)', async () => {
+      const seen = [];
+      const db = createMockDb({
+        queryHandler: async (sql, params) => {
+          seen.push({ sql, params });
+          if (sql.includes('AS channel')) return { rows: [{ channel: 'LIVE', orders: '2', sales: '1500.50' }] };
+          if (sql.includes('FROM order_items')) return { rows: [{ id: '5', slug: 'electronics', name_en: 'Electronics', name_bn: 'ই', sales: '900.00', units: '3' }] };
+          return { rows: [] };
+        },
+      });
+      const b = await analyticsService.computeDailyBreakdown(db, '2026-09-01');
+      assert.ok(seen.length === 2 && seen.every((q) => q.params[0] === '2026-09-01'));
+      assert.deepEqual(b, {
+        version: 2,
+        channels: [{ key: 'LIVE', orders: 2, sales: 1500.5 }],
+        categories: [{ id: 5, slug: 'electronics', name_en: 'Electronics', name_bn: 'ই', sales: 900, units: 3 }],
+      });
+
+      const broken = createMockDb({ queryHandler: async () => { throw new Error('relation "orders" does not exist'); } });
+      await assert.rejects(() => analyticsService.computeDailyBreakdown(broken, '2026-09-01'), /does not exist/, 'a broken query must fail loudly, not become fake data');
+    });
+
+    test('runDailyRollup stores the REAL breakdown (version 2), not placeholder percentages', async () => {
+      let stored = null;
+      const db = createMockDb({
+        queryHandler: async (sql, params) => {
+          if (sql.includes('AS channel')) return { rows: [{ channel: 'DIRECT', orders: 3, sales: '7260.00' }] };
+          if (sql.includes('FROM order_items')) return { rows: [{ id: 1, slug: 'fashion', name_en: 'Fashion & Apparel', name_bn: 'ফ্যাশন', sales: '7000.00', units: 4 }] };
+          if (sql.includes('INSERT INTO daily_analytics_rollups')) {
+            stored = params[params.length - 1];
+            return { rows: [{ rollup_date: params[0] }] };
+          }
+          return { rows: [] };
+        },
+      });
+      await analyticsService.runDailyRollup(db, '2026-09-01');
+      const parsed = JSON.parse(stored);
+      assert.equal(parsed.version, 2);
+      assert.deepEqual(parsed.channels, [{ key: 'DIRECT', orders: 3, sales: 7260 }]);
+      assert.equal(parsed.categories[0].slug, 'fashion');
+      assert.equal(parsed.top_categories, undefined, 'the invented v1 keys are gone');
+      assert.equal(parsed.sales_channels, undefined);
+      assert.ok(!stored.includes('Affiliate'), 'no placeholder text survives');
+    });
+
+    test('overview breakdown comes from the stored rollups and is empty in baseline mode', async () => {
+      const baseline = await analyticsService.getExecutiveOverview(createMockDb(), { timeframe: '30d' });
+      assert.equal(baseline.data_source, 'baseline');
+      assert.deepEqual(baseline.breakdown, { categories: [], channels: [] }, 'baseline must not show invented category/channel shares');
+
+      const rows = [1, 2].map((d) => ({
+        rollup_date: `2026-09-0${d}`, gmv: '1000', platform_net_revenue: '80', total_orders: 2,
+        active_sellers_count: 1, new_customers_count: 0, new_salers_count: 0, new_suppliers_count: 0,
+        escrow_liability: '0', pending_payout_liability: '0', cod_exposure: '0', dispute_rate_pct: '0',
+        conversion_rate_pct: '3', created_at: new Date(),
+        breakdown_json: JSON.stringify({ version: 2, channels: [{ key: 'LIVE', orders: 1, sales: 400 }, { key: 'DIRECT', orders: 1, sales: 600 }], categories: [cat(1, 'fashion', 800), cat(2, 'tech', 200)] }),
+      }));
+      const db = createMockDb({
+        queryHandler: async (sql) => (sql.includes('FROM daily_analytics_rollups') && !sql.includes('MAX(') ? { rows } : { rows: [] }),
+      });
+      const ov = await analyticsService.getExecutiveOverview(db, { timeframe: '7d' });
+      assert.equal(ov.data_source, 'rollup');
+      assert.equal(ov.breakdown.channels.find((c) => c.key === 'LIVE').volume, 800);
+      assert.equal(ov.breakdown.channels.find((c) => c.key === 'DIRECT').share_pct, 60);
+      assert.equal(ov.breakdown.categories[0].key, 'fashion');
+      assert.equal(ov.breakdown.categories[0].share_pct, 80);
+      // The old placeholder strings must be gone from the payload entirely.
+      const flat = JSON.stringify(ov.breakdown);
+      for (const fake of ['Handloom', 'Brasscrafts', 'Affiliate', 'Storefront Direct']) assert.ok(!flat.includes(fake), `placeholder "${fake}" is gone`);
+    });
+  });
+
 });

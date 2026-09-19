@@ -926,7 +926,11 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
     }
     const lang = getLanguage();
     const units = { crore: tr('unit_crore'), lakh: tr('unit_lakh') };
-    const card = (title, sub, items, amountKey, barClass) => `
+    // Categories carry name_en/name_bn from the catalog; channels carry a stable key that maps to an
+    // i18n string (the server's English `name` is the default when that key has no translation yet).
+    const nameOf = (it, isChannel) =>
+      isChannel && it.key ? tr(`channel_${String(it.key).toLowerCase()}`, it.name) : loc(it, 'name') || it.name || '';
+    const card = (title, sub, items, amountKey, barClass, isChannel = false) => `
       <section class="admin-breakdown-card">
         <div class="admin-breakdown-card__header">
           <h3 class="admin-breakdown-card__title">${esc(title)}</h3>
@@ -940,7 +944,7 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
                   const pct = Math.min(Math.max(Number(it.share_pct) || 0, 0), 100);
                   return `<li class="admin-breakdown-item">
                     <div class="admin-breakdown-item__row">
-                      <span class="admin-breakdown-item__name">${esc(it.name)}</span>
+                      <span class="admin-breakdown-item__name">${esc(nameOf(it, isChannel))}</span>
                       <span class="admin-breakdown-item__amount" title="${esc(formatFullBdt(it[amountKey], { lang }))}">${esc(formatCompactBdt(it[amountKey], { lang, units }))}</span>
                       <span class="admin-breakdown-item__share">${esc(formatDecimal(pct, 1))}%</span>
                     </div>
@@ -952,7 +956,7 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
       </section>`;
     const bd = state.overview?.breakdown || {};
     els.breakdowns.innerHTML =
-      card(tr('channels_title'), tr('by_volume'), bd.channels || [], 'volume', '') +
+      card(tr('channels_title'), tr('by_volume'), bd.channels || [], 'volume', '', true) +
       card(tr('categories_title'), tr('by_revenue'), bd.categories || [], 'revenue', 'admin-breakdown-item__bar--emerald');
   }
 

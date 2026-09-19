@@ -563,18 +563,21 @@ function buildOverviewResponse(query) {
           dispute_rate: { value: 0.85, delta_pct: 22.7, trend: 'down', is_positive: true, format: 'percent' },
         },
         chart_data: chartData,
+        // Same shape the live service now derives from real orders (aggregateBreakdown): categories
+        // are top-level catalog buckets by item sales, channels are the four the schema can tell apart.
         breakdown: {
           categories: [
-            { name: 'Traditional Handloom & Sarees', share_pct: 35, revenue: curRev * 0.35 },
-            { name: 'Electronics & Audio Gadgets', share_pct: 28, revenue: curRev * 0.28 },
-            { name: 'Organic Honey & Foods', share_pct: 22, revenue: curRev * 0.22 },
-            { name: 'Home Living & Brasscrafts', share_pct: 15, revenue: curRev * 0.15 },
+            { id: 1, key: 'fashion', name: 'Fashion & Apparel', name_en: 'Fashion & Apparel', name_bn: 'ফ্যাশন ও পোশাক', share_pct: 38.4, revenue: Math.round(curGmv * 0.384), units: 0 },
+            { id: 5, key: 'electronics', name: 'Electronics & Gadgets', name_en: 'Electronics & Gadgets', name_bn: 'ইলেকট্রনিক্স ও গ্যাজেট', share_pct: 24.1, revenue: Math.round(curGmv * 0.241), units: 0 },
+            { id: 12, key: 'groceries', name: 'Groceries & Organic Foods', name_en: 'Groceries & Organic Foods', name_bn: 'মুদি ও অর্গানিক খাবার', share_pct: 17.8, revenue: Math.round(curGmv * 0.178), units: 0 },
+            { id: 8, key: 'home-living', name: 'Home & Living', name_en: 'Home & Living', name_bn: 'ঘরবাড়ি ও জীবনযাত্রা', share_pct: 12.2, revenue: Math.round(curGmv * 0.122), units: 0 },
+            { id: null, key: 'other', name: 'Other', name_en: 'Other', name_bn: 'অন্যান্য', share_pct: 7.5, revenue: Math.round(curGmv * 0.075), units: 0 },
           ],
           channels: [
-            { name: 'Direct Storefronts', share_pct: 44, volume: curGmv * 0.44 },
-            { name: 'Team Social Buying', share_pct: 26, volume: curGmv * 0.26 },
-            { name: 'Live Stream & Video Reels', share_pct: 18, volume: curGmv * 0.18 },
-            { name: 'Affiliate Links', share_pct: 12, volume: curGmv * 0.12 },
+            { key: 'LIVE', name: 'Live Stream', share_pct: 12.5, volume: Math.round(curGmv * 0.125), orders: 0 },
+            { key: 'TEAM', name: 'Team Social Buying', share_pct: 22.3, volume: Math.round(curGmv * 0.223), orders: 0 },
+            { key: 'SALER_STORE', name: 'Saler Storefronts', share_pct: 46.9, volume: Math.round(curGmv * 0.469), orders: 0 },
+            { key: 'DIRECT', name: 'Direct (Supplier Listing)', share_pct: 18.3, volume: Math.round(curGmv * 0.183), orders: 0 },
           ],
         },
         last_rollup_at: new Date(Date.now() - 3600000 * 6).toISOString(),
