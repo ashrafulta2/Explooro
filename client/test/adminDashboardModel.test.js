@@ -286,6 +286,21 @@ test('mock export mirrors overview; mock rollup rejects malformed and future dat
   assert.equal(roll.handler({ body: { date: '2026-02-30' } }).status, 400, 'impossible day is not rolled into March');
 });
 
+test('mock breakdown mirrors the real service shape: keyed channels, bilingual categories, shares total 100', () => {
+  const ov = handler('GET', '/admin/analytics/overview').handler({ query: { timeframe: '30d' } }).body.data;
+  const { channels, categories } = ov.breakdown;
+  assert.deepEqual(channels.map((c) => c.key), ['LIVE', 'TEAM', 'SALER_STORE', 'DIRECT']);
+  assert.ok(!channels.some((c) => /affiliate/i.test(c.name)), 'no affiliate channel — orders have no such source');
+  assert.ok(Math.abs(channels.reduce((a, c) => a + c.share_pct, 0) - 100) <= 0.2);
+  assert.ok(Math.abs(categories.reduce((a, c) => a + c.share_pct, 0) - 100) <= 0.2);
+  for (const c of categories) {
+    assert.ok(c.name_en && c.name_bn, `category ${c.key} has both languages`);
+    assert.equal(typeof c.revenue, 'number');
+  }
+  assert.equal(categories[categories.length - 1].key, 'other');
+  assert.ok(channels.every((c) => typeof c.volume === 'number'));
+});
+
 // ── i18n parity ──────────────────────────────────────────────────────────────
 
 test('every string the page renders exists in BOTH en.json and bn.json', () => {
@@ -301,6 +316,7 @@ test('every string the page renders exists in BOTH en.json and bn.json', () => {
     for (const k of g.kpis) { used.add(`kpi_${k.key}_label`); used.add(`kpi_${k.key}_hint`); }
   }
   for (const sev of ['all', 'critical', 'high', 'medium', 'low']) used.add(`sev_${sev}`);
+  for (const ch of ['live', 'team', 'saler_store', 'direct']) used.add(`channel_${ch}`);
   for (const e of ['required', 'order', 'future', 'too_long']) used.add(`range_error_${e}`);
 
   const missing = [...used].filter((k) => !(k in en) || !(k in bn));
