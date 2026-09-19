@@ -121,7 +121,7 @@ export class ReferralHubPage {
       <div class="referral-hub">
         <!-- Header -->
         <header class="referral-hub__header">
-          <a href="/account" class="referral-hub__back" id="btn-back-account">
+          <a href="/account" class="referral-hub__back" id="btn-back-account" data-nav-back>
             &lt; ${t('common.account') || 'Account'}
           </a>
           <div class="referral-hub__title-wrap">
