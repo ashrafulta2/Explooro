@@ -122,6 +122,9 @@
 .topbar__product-search-input { flex: 1; min-width: 0; height: 100%; border: none; background: transparent; padding: 0 var(--space-2); font-size: var(--tb-search-font, var(--text-sm)); color: var(--text-primary); outline: none; transition: font-size var(--dur-base) var(--ease-standard); }
 .topbar__product-search-input::placeholder { color: var(--text-muted); font-size: var(--tb-search-font, var(--text-sm)); }
 
+.topbar__sidebar-toggle { flex: none; color: var(--navbar-text, var(--text-primary)); }
+.topbar__sidebar-toggle:hover { background: var(--surface-2); color: var(--text-brand); }
+
 .topbar__palette-btn { color: var(--navbar-text, var(--text-primary)); }
 .topbar__palette-btn:hover { background: var(--surface-2); color: var(--text-brand); }
 

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AppShell — composes Sidebar + TopBar + MobileNav + CommandPalette around the routed page.
  *
  * Owns the one long-lived DOM structure (sidebar/topbar/mobilenav "slots" around a stable
@@ -10,7 +10,7 @@
  * The Sidebar/MobileNav split is pure CSS (shell.css media queries against the 768px breakpoint,
  * ia-sitemap.md §6) — both are always rendered; only one is ever visible at a time.
  */
-import { appStore, releaseElevatedAccess } from '../../state/appStore.js';
+import { appStore, releaseElevatedAccess, toggleSidebarCollapsed } from '../../state/appStore.js';
 import {
   subscribe as subscribeLang,
   subscribeLocalePolicy,
@@ -230,6 +230,17 @@ export function createAppShell({ container, navigate }) {
       badges: s.badges,
       navigate,
       onOpenPalette: () => palette.open(),
+      sidebarCollapsed: s.shell.sidebarCollapsed,
+      onToggleSidebar: (trigger) => {
+        if (window.innerWidth < 768) {
+          const moreBtn = mobileNavSlot.querySelector('.mobile-nav__item:last-child');
+          if (moreBtn) {
+            moreBtn.click();
+            return;
+          }
+        }
+        toggleSidebarCollapsed();
+      },
     });
     mobileNavSlot.replaceChildren(
       MobileNav({ role: s.auth.role, ctx, currentPath, navigate, collapsedGroups: s.shell.collapsedGroups })
