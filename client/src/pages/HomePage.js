@@ -225,6 +225,12 @@ export default function HomePage(root, { navigate }) {
       lang: getLanguage(),
       onNavigate: navigate,
       onAction: handleAction,
+      onViewAll: () => {
+        if (activeFeed !== 'flash') {
+          syncFeed('flash');
+        }
+        catalogSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
     });
     sec.append(el);
 
@@ -430,9 +436,6 @@ export default function HomePage(root, { navigate }) {
     // Tear down old grid
     if (currentGridCleanup) { currentGridCleanup(); currentGridCleanup = null; }
     currentGridEl && currentGridEl.remove();
-
-    // Unmount flash widget (will re-mount after first fetch)
-    unmountFlashWidget();
 
     const generation = ++gridGeneration;
     const { el, cleanup } = ProductGrid({
