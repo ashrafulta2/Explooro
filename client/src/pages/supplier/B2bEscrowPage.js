@@ -27,6 +27,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Tabs } from '../../components/ui/Tabs.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { Modal } from '../../components/ui/Modal.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatCurrency } from '../../services/format.js';
@@ -456,7 +457,15 @@ export default function B2bEscrowPage(root, ctx = {}) {
   }
 
   async function handleReleaseMilestone(deal, milestone) {
-    if (!confirm(`Release ${formatCurrency(milestone.amount)} for milestone "${milestone.title_en}"?`)) return;
+    // WHY: confirmDialog, not native confirm() — it is themed, keyboard/focus-trapped, and its copy
+    // goes through i18n; the native box was hardcoded English and blocks the main thread.
+    const ok = await confirmDialog({
+      title: t('b2b_escrow.confirm_release_title', 'Release milestone funds?'),
+      description: t('b2b_escrow.confirm_release', { amount: formatCurrency(milestone.amount) }),
+      confirmLabel: t('b2b_escrow.confirm_release_btn', 'Release Funds'),
+      cancelLabel: t('common.cancel', 'Cancel'),
+    });
+    if (!ok) return;
     try {
       // WHY: (milestoneId, payload) — the old (deal.id, milestone.id) released whichever
       // milestone happened to share the deal's numeric id, i.e. moved the wrong escrow funds.
@@ -473,7 +482,14 @@ export default function B2bEscrowPage(root, ctx = {}) {
   }
 
   async function handleRefundMilestone(deal, milestone) {
-    if (!confirm(`Refund ${formatCurrency(milestone.amount)} to buyer?`)) return;
+    const ok = await confirmDialog({
+      title: t('b2b_escrow.confirm_refund_title', 'Refund milestone to buyer?'),
+      description: t('b2b_escrow.confirm_refund', { amount: formatCurrency(milestone.amount) }),
+      confirmLabel: t('b2b_escrow.confirm_refund_btn', 'Refund to Buyer'),
+      cancelLabel: t('common.cancel', 'Cancel'),
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await refundMilestone(milestone.id);
       toast.success('Milestone refunded.');
