@@ -499,81 +499,106 @@ const mockPayoutsStore = [
   },
 ];
 
+/** Shared by GET /overview and POST /export so the two can never disagree about the figures. */
+function buildOverviewResponse(query) {
+  // A custom `from`/`to` range wins over the preset, exactly like the live service.
+  const dayMs = 86_400_000;
+  const isoDay = (d) => d.toISOString().slice(0, 10);
+  // Round-trip: Date.parse('2026-02-30') is accepted by V8 and quietly means 2 March.
+  const realDayOf = (v) => {
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')) ? new Date(`${v}T00:00:00Z`) : null;
+    return d && !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === v;
+  };
+  const validDay = realDayOf;
+  const custom = validDay(query?.from) && validDay(query?.to) && query.from <= query.to;
+  const presetDays = { '7d': 7, '30d': 30, '90d': 90, '1y': 365 };
+  const timeframe = custom ? 'custom' : (presetDays[query?.timeframe] ? query.timeframe : '30d');
+  const days = custom
+    ? Math.round((Date.parse(query.to) - Date.parse(query.from)) / dayMs) + 1
+    : presetDays[timeframe];
+  const endDay = custom ? new Date(`${query.to}T00:00:00Z`) : new Date(Date.now() - dayMs);
+  const mult = days / 30;
+  const points = days;
+
+  const curGmv = Math.round(1485000 * mult);
+  const curRev = Math.round(118800 * mult);
+  const prevGmv = Math.round(curGmv * 0.88);
+  const prevRev = Math.round(curRev * 0.86);
+
+  // One point per day, like the real rollup table, so the client's bucketing gets exercised.
+  const chartData = Array.from({ length: points }, (_, i) => {
+    const factor = 0.85 + Math.sin(i / 2) * 0.2 + (i / points) * 0.3;
+    const gmv = Math.round((curGmv / points) * factor);
+    const revenue = Math.round(gmv * 0.08);
+    return {
+      date: isoDay(new Date(endDay.getTime() - (points - 1 - i) * dayMs)),
+      gmv,
+      revenue,
+      orders: Math.round(gmv / 1800),
+    };
+  });
+
+  return {
+    status: 200,
+    body: {
+      data: {
+        timeframe,
+        period: {
+          from: isoDay(new Date(endDay.getTime() - (points - 1) * dayMs)),
+          to: isoDay(endDay),
+          days,
+        },
+        data_source: 'rollup',
+        kpis: {
+          gmv: { value: curGmv, delta_pct: 13.6, trend: 'up', is_positive: true, format: 'currency' },
+          net_platform_revenue: { value: curRev, delta_pct: 16.2, trend: 'up', is_positive: true, format: 'currency' },
+          take_rate: { value: 8.00, delta_pct: 0.2, trend: 'up', is_positive: true, format: 'percent' },
+          active_sellers: { value: 142, delta_pct: 8.7, trend: 'up', is_positive: true, format: 'number' },
+          new_signups: { value: Math.round(310 * mult), delta_pct: 17.6, trend: 'up', is_positive: true, format: 'number' },
+          conversion_rate: { value: 3.65, delta_pct: 17.7, trend: 'up', is_positive: true, format: 'percent' },
+          aov: { value: 1810.00, delta_pct: 2.0, trend: 'up', is_positive: true, format: 'currency' },
+          escrow_liability: { value: 184500.00, delta_pct: 5.3, trend: 'up', is_positive: true, format: 'currency' },
+          pending_payout_liability: { value: 42000.00, delta_pct: 10.0, trend: 'down', is_positive: false, format: 'currency' },
+          cod_exposure: { value: 96000.00, delta_pct: 6.4, trend: 'up', is_positive: true, format: 'currency' },
+          dispute_rate: { value: 0.85, delta_pct: 22.7, trend: 'down', is_positive: true, format: 'percent' },
+        },
+        chart_data: chartData,
+        breakdown: {
+          categories: [
+            { name: 'Traditional Handloom & Sarees', share_pct: 35, revenue: curRev * 0.35 },
+            { name: 'Electronics & Audio Gadgets', share_pct: 28, revenue: curRev * 0.28 },
+            { name: 'Organic Honey & Foods', share_pct: 22, revenue: curRev * 0.22 },
+            { name: 'Home Living & Brasscrafts', share_pct: 15, revenue: curRev * 0.15 },
+          ],
+          channels: [
+            { name: 'Direct Storefronts', share_pct: 44, volume: curGmv * 0.44 },
+            { name: 'Team Social Buying', share_pct: 26, volume: curGmv * 0.26 },
+            { name: 'Live Stream & Video Reels', share_pct: 18, volume: curGmv * 0.18 },
+            { name: 'Affiliate Links', share_pct: 12, volume: curGmv * 0.12 },
+          ],
+        },
+        last_rollup_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+      },
+    },
+  };
+}
+
 export const adminHandlers = [
   // 1. Executive Analytics Overview
   {
     method: 'GET',
     path: '/admin/analytics/overview',
     handler({ query }) {
-      const timeframe = query?.timeframe || '30d';
+      return buildOverviewResponse(query);
+    },
+  },
 
-      let mult = 1;
-      let points = 30;
-      if (timeframe === '7d') {
-        mult = 0.25;
-        points = 7;
-      } else if (timeframe === '90d') {
-        mult = 2.8;
-        points = 12;
-      } else if (timeframe === '1y') {
-        mult = 11.5;
-        points = 12;
-      }
-
-      const curGmv = Math.round(1485000 * mult);
-      const curRev = Math.round(118800 * mult);
-      const prevGmv = Math.round(curGmv * 0.88);
-      const prevRev = Math.round(curRev * 0.86);
-
-      const chartData = Array.from({ length: points }, (_, i) => {
-        const factor = 0.85 + Math.sin(i / 2) * 0.2 + (i / points) * 0.3;
-        const gmv = Math.round((curGmv / points) * factor);
-        const revenue = Math.round(gmv * 0.08);
-        return {
-          date: timeframe === '7d' ? `Day ${i + 1}` : (timeframe === '30d' ? `Aug ${i + 1}` : `M${i + 1}`),
-          gmv,
-          revenue,
-          orders: Math.round(gmv / 1800),
-        };
-      });
-
-      return {
-        status: 200,
-        body: {
-          data: {
-            timeframe,
-            kpis: {
-              gmv: { value: curGmv, delta_pct: 13.6, trend: 'up', is_positive: true, format: 'currency' },
-              net_platform_revenue: { value: curRev, delta_pct: 16.2, trend: 'up', is_positive: true, format: 'currency' },
-              take_rate: { value: 8.00, delta_pct: 0.2, trend: 'up', is_positive: true, format: 'percent' },
-              active_sellers: { value: 142, delta_pct: 8.7, trend: 'up', is_positive: true, format: 'number' },
-              new_signups: { value: Math.round(310 * mult), delta_pct: 17.6, trend: 'up', is_positive: true, format: 'number' },
-              conversion_rate: { value: 3.65, delta_pct: 17.7, trend: 'up', is_positive: true, format: 'percent' },
-              aov: { value: 1810.00, delta_pct: 2.0, trend: 'up', is_positive: true, format: 'currency' },
-              escrow_liability: { value: 184500.00, delta_pct: 5.3, trend: 'up', is_positive: true, format: 'currency' },
-              pending_payout_liability: { value: 42000.00, delta_pct: 10.0, trend: 'down', is_positive: false, format: 'currency' },
-              cod_exposure: { value: 96000.00, delta_pct: 6.4, trend: 'up', is_positive: true, format: 'currency' },
-              dispute_rate: { value: 0.85, delta_pct: 22.7, trend: 'down', is_positive: true, format: 'percent' },
-            },
-            chart_data: chartData,
-            breakdown: {
-              categories: [
-                { name: 'Traditional Handloom & Sarees', share_pct: 35, revenue: curRev * 0.35 },
-                { name: 'Electronics & Audio Gadgets', share_pct: 28, revenue: curRev * 0.28 },
-                { name: 'Organic Honey & Foods', share_pct: 22, revenue: curRev * 0.22 },
-                { name: 'Home Living & Brasscrafts', share_pct: 15, revenue: curRev * 0.15 },
-              ],
-              channels: [
-                { name: 'Direct Storefronts', share_pct: 44, volume: curGmv * 0.44 },
-                { name: 'Team Social Buying', share_pct: 26, volume: curGmv * 0.26 },
-                { name: 'Live Stream & Video Reels', share_pct: 18, volume: curGmv * 0.18 },
-                { name: 'Affiliate Links', share_pct: 12, volume: curGmv * 0.12 },
-              ],
-            },
-            last_rollup_at: new Date().toISOString(),
-          },
-        },
-      };
+  // 1b. Export data (the live endpoint also writes an ANALYTICS_EXPORT audit row)
+  {
+    method: 'POST',
+    path: '/admin/analytics/export',
+    handler({ body }) {
+      return buildOverviewResponse(body || {});
     },
   },
 
@@ -663,15 +688,33 @@ export const adminHandlers = [
   {
     method: 'POST',
     path: '/admin/analytics/rollup-now',
-    handler() {
+    handler({ body }) {
+      const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86_400_000).toISOString().split('T')[0];
+      const requested = body?.date || yesterday;
+      // Mirrors the live controller: a malformed or future date is a 400, not a silent no-op.
+      const parsedDay = /^\d{4}-\d{2}-\d{2}$/.test(requested) ? new Date(`${requested}T00:00:00Z`) : null;
+      const realDay = parsedDay && !Number.isNaN(parsedDay.getTime()) && parsedDay.toISOString().slice(0, 10) === requested;
+      if (!realDay || requested > today) {
+        return {
+          status: 400,
+          body: {
+            error: {
+              code: 'INVALID_ROLLUP_DATE',
+              message_en: 'Rollup date must be a valid YYYY-MM-DD date that is not in the future.',
+              message_bn: 'রোলআপের তারিখ অবশ্যই বৈধ হতে হবে এবং ভবিষ্যতের হতে পারবে না।',
+            },
+          },
+        };
+      }
       return {
         status: 200,
         body: {
           data: {
             success: true,
-            rollup_date: new Date().toISOString().split('T')[0],
-            message_en: 'Calculated daily analytics summary successfully.',
-            message_bn: 'দৈনিক অ্যানালিটিক্স সারাংশ সফলভাবে হিসাব করা হয়েছে।',
+            rollup_date: requested,
+            message_en: `Calculated daily analytics summary for ${requested}.`,
+            message_bn: `${requested} তারিখের দৈনিক অ্যানালিটিক্স সারাংশ হিসাব করা হয়েছে।`,
           },
         },
       };

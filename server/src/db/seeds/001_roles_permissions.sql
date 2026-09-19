@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (184 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (185 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -43,6 +43,7 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('admin.approval.decide', 'admin', 'Approve or reject pending actions', 'অপেক্ষমাণ কাজ অনুমোদন বা বাতিল', 'approve or reject actions and access requests submitted by staff', 'স্টাফদের জমা দেওয়া কাজ ও অ্যাক্সেস আবেদন অনুমোদন বা বাতিল করতে', 'HIGH', true, 'approve_before'),
   ('admin.analytics.view', 'admin', 'View platform analytics', 'প্ল্যাটফর্ম অ্যানালিটিক্স দেখা', 'see GMV, revenue and growth reports', 'জিএমভি, রাজস্ব ও প্রবৃদ্ধির রিপোর্ট দেখতে', 'MEDIUM', true, 'approve_before'),
   ('admin.analytics.export', 'admin', 'Export analytics data', 'অ্যানালিটিক্স ডেটা এক্সপোর্ট', 'download platform data as CSV', 'প্ল্যাটফর্মের ডেটা সিএসভি হিসেবে ডাউনলোড করতে', 'HIGH', true, 'approve_before'),
+  ('admin.analytics.rollup', 'admin', 'Recompute analytics rollups', 'অ্যানালিটিক্স রোলআপ পুনরায় হিসাব', 're-run the daily analytics summary for a chosen date, overwriting the stored figures', 'নির্বাচিত তারিখের দৈনিক অ্যানালিটিক্স সারাংশ আবার হিসাব করতে — সংরক্ষিত সংখ্যা বদলে যাবে', 'MEDIUM', true, 'approve_before'),
   ('security.audit.view', 'security', 'View audit log', 'অডিট লগ দেখা', 'see the full record of who did what on the platform', 'প্ল্যাটফর্মে কে কী করেছে তার সম্পূর্ণ রেকর্ড দেখতে', 'MEDIUM', true, 'approve_before'),
   ('security.audit.verify', 'security', 'Verify audit chain', 'অডিট চেইন যাচাই', 'run the tamper-evidence check on the audit log', 'অডিট লগে কারচুপি হয়েছে কিনা তা যাচাই করতে', 'MEDIUM', true, 'approve_before'),
   ('security.audit.export', 'security', 'Export audit log', 'অডিট লগ এক্সপোর্ট', 'download the audit log as a file', 'অডিট লগ ফাইল হিসেবে ডাউনলোড করতে', 'HIGH', true, 'approve_before'),
@@ -255,6 +256,8 @@ FROM (VALUES
   ('super_admin', 'admin.analytics.view'),
   ('admin', 'admin.analytics.export'),
   ('super_admin', 'admin.analytics.export'),
+  ('admin', 'admin.analytics.rollup'),
+  ('super_admin', 'admin.analytics.rollup'),
   ('admin', 'security.audit.view'),
   ('super_admin', 'security.audit.view'),
   ('admin', 'security.audit.verify'),

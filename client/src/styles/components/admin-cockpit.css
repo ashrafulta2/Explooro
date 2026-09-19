@@ -1,0 +1,152 @@
+/**
+ * admin-cockpit.css — Super Admin Executive Cockpit page styles (Prompt 11.4).
+ *
+ * Loaded lazily by AdminDashboardPage (see styles/loadAdminCockpitStyles.js), so none of this ships
+ * in the entry bundle. Everything is scoped under `.admin-cockpit` because admin-dashboard.css —
+ * which stays in main.css — is shared by a dozen other admin pages that reuse `.admin-kpi-card`,
+ * `.admin-alert-card` and friends; these rules refine them for this page without touching theirs.
+ *
+ * Flat surfaces only: no gradients (design-system §0), tokens for every colour.
+ */
+
+.admin-cockpit { min-width: 0; }
+.admin-cockpit .admin-dashboard__intro { min-width: 0; }
+.admin-cockpit .admin-dashboard__note { font-size: var(--text-xs); color: var(--text-secondary); }
+.admin-cockpit .admin-dashboard__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: var(--space-2) 0 0; font-size: var(--text-xs); color: var(--text-secondary); }
+.admin-cockpit .admin-dashboard__meta:empty { display: none; }
+
+/* Controls: two rows, right-aligned on desktop, stacked on phones */
+.admin-cockpit .admin-dashboard__controls { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+@media (min-width: 768px) { .admin-cockpit .admin-dashboard__controls { align-items: flex-end; } }
+.admin-cockpit .admin-dashboard__controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+@media (min-width: 768px) { .admin-cockpit .admin-dashboard__controls-row { justify-content: flex-end; } }
+.admin-cockpit .admin-dashboard__timeframe-selector { flex-wrap: wrap; }
+.admin-cockpit .admin-dashboard__tf-btn { min-height: 28px; }
+.admin-cockpit .admin-dashboard__tf-btn:focus-visible,
+.admin-cockpit .admin-chip:focus-visible,
+.admin-cockpit .admin-legend-btn:focus-visible,
+.admin-cockpit .admin-kpi-card--link:focus-visible,
+.admin-cockpit .admin-chart-panel__svg:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+@media (pointer: coarse) { .admin-cockpit .admin-dashboard__tf-btn { min-height: 44px; padding-inline: var(--space-4); } }
+
+/* Custom range */
+.admin-cockpit .admin-range { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-3); padding: var(--space-4); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg); }
+.admin-cockpit .admin-range__fields { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+.admin-cockpit .admin-range__error { flex-basis: 100%; margin: 0; font-size: var(--text-sm); color: var(--danger); }
+
+/* Baseline-data banner + pills */
+.admin-cockpit .admin-banner { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--warning-bg); border: var(--border-width) solid var(--warning-border); border-radius: var(--radius-lg); color: var(--text-primary); }
+.admin-cockpit .admin-banner__icon { display: inline-flex; color: var(--warning); flex: none; }
+.admin-cockpit .admin-banner__text { flex: 1; margin: 0; font-size: var(--text-sm); }
+.admin-cockpit .admin-pill { display: inline-flex; align-items: center; padding: 1px var(--space-2); font-size: var(--text-xs); font-weight: 700; border-radius: var(--radius-full); border: var(--border-width) solid var(--border-subtle); }
+.admin-cockpit .admin-pill--warn { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+
+/* Alerts */
+.admin-cockpit .admin-alerts__header { flex-wrap: wrap; }
+.admin-cockpit .admin-alerts__icon { display: inline-flex; color: var(--warning); }
+.admin-cockpit .admin-alerts__tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.admin-cockpit .admin-alerts__search { flex: 1 1 220px; max-width: 340px; }
+.admin-cockpit .admin-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.admin-cockpit .admin-chip { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 32px; padding: 0 var(--space-3); font: inherit; font-size: var(--text-xs); font-weight: 700; color: var(--text-secondary); background: var(--surface-1); border: var(--border-width) solid var(--border-default); border-radius: var(--radius-full); cursor: pointer; }
+.admin-cockpit .admin-chip:hover { color: var(--text-primary); border-color: var(--border-strong); }
+.admin-cockpit .admin-chip--active { color: var(--text-brand); background: var(--surface-2); border-color: var(--brand); }
+.admin-cockpit .admin-chip__count { min-width: 20px; padding: 0 6px; font-size: 11px; line-height: 18px; text-align: center; color: var(--text-secondary); background: var(--surface-2); border-radius: var(--radius-full); }
+@media (pointer: coarse) { .admin-cockpit .admin-chip { min-height: 44px; } }
+.admin-cockpit .admin-alerts__hidden-note { margin: var(--space-2) 0 0; font-size: var(--text-xs); color: var(--text-muted); }
+.admin-cockpit .admin-alert-card__footer { justify-content: flex-start; }
+.admin-cockpit .admin-alert-card__cta { display: inline-flex; align-items: center; gap: var(--space-2); text-decoration: none; }
+.admin-cockpit .admin-alert-card__cta-icon { display: inline-flex; }
+.admin-cockpit .admin-alert-card__cta-icon svg { width: 14px; height: 14px; }
+.admin-cockpit .admin-alert-card--cleared { opacity: 0.72; }
+.admin-cockpit .admin-alert-card--cleared .admin-alert-card__count { color: var(--success); }
+
+/* KPI groups */
+.admin-cockpit .admin-kpis { gap: var(--space-4); }
+.admin-cockpit .admin-kpi-group { display: flex; flex-direction: column; gap: var(--space-3); }
+.admin-cockpit .admin-kpi-group + .admin-kpi-group { margin-top: var(--space-2); }
+.admin-cockpit .admin-kpi-group__title { margin: 0; font-size: var(--text-xs); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); }
+/* auto-fill (not auto-fit): a 3-card group keeps the same card width as the 5-card group above it */
+.admin-cockpit .admin-kpis__grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-3); }
+@media (max-width: 439px) { .admin-cockpit .admin-kpis__grid { grid-template-columns: 1fr; } }
+/* admin-pages.css also styles .admin-kpi-card (uppercase label, roomier padding, hover lift) for the
+   list pages; the cockpit wants sentence-case labels that wrap instead of truncating, and no lift. */
+.admin-cockpit .admin-kpi-card { min-width: 0; padding: var(--space-4); gap: var(--space-2); border-radius: var(--radius-lg); text-decoration: none; color: inherit; }
+.admin-cockpit .admin-kpi-card:hover { transform: none; }
+.admin-cockpit .admin-kpi-card__top { align-items: flex-start; }
+.admin-cockpit .admin-kpi-card__label { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin: 0; white-space: normal; overflow: hidden; text-transform: none; letter-spacing: 0; font-size: var(--text-sm); }
+.admin-cockpit .admin-kpi-card--link { cursor: pointer; }
+.admin-cockpit .admin-kpi-card__icon { display: inline-flex; color: var(--text-muted); }
+.admin-cockpit .admin-kpi-card__icon svg { width: 18px; height: 18px; }
+.admin-cockpit .admin-kpi-card__badge--good { color: var(--success); background: var(--success-bg); }
+.admin-cockpit .admin-kpi-card__badge--bad { color: var(--danger); background: var(--danger-bg); }
+.admin-cockpit .admin-kpi-card__badge--neutral { color: var(--text-secondary); background: var(--surface-2); }
+.admin-cockpit .admin-kpi-card__vs { color: var(--text-muted); font-weight: 400; }
+.admin-cockpit .admin-region--stale { opacity: 0.55; transition: opacity 0.15s var(--ease-standard); pointer-events: none; }
+
+/* Chart */
+.admin-cockpit .admin-chart-panel { min-width: 0; }
+.admin-cockpit .admin-chart-panel__header { flex-wrap: wrap; }
+.admin-cockpit .admin-chart-panel__legend { margin: 0; gap: var(--space-3); flex-wrap: wrap; justify-content: flex-start; }
+.admin-cockpit .admin-legend-btn { display: inline-flex; align-items: center; gap: var(--space-2); min-height: 28px; padding: 0 var(--space-2); font: inherit; font-size: var(--text-xs); font-weight: 700; color: var(--text-secondary); background: transparent; border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-sm); cursor: pointer; }
+.admin-cockpit .admin-legend-btn[aria-pressed="false"] { opacity: 0.5; text-decoration: line-through; }
+.admin-cockpit .admin-chart__stage { position: relative; width: 100%; }
+.admin-cockpit .admin-chart-panel__svg { width: 100%; height: auto; display: block; overflow: visible; touch-action: pan-y; }
+.admin-cockpit .admin-chart__grid { stroke: var(--border-subtle); stroke-dasharray: 3 3; }
+.admin-cockpit .admin-chart__grid--base { stroke: var(--border-default); stroke-dasharray: none; }
+.admin-cockpit .admin-chart__tick { font-size: 10px; fill: var(--text-muted); }
+.admin-cockpit .admin-chart__tick--gmv { fill: var(--text-brand); }
+.admin-cockpit .admin-chart__tick--rev { fill: var(--success); }
+.admin-cockpit .admin-chart__area { fill: var(--brand); fill-opacity: 0.08; }
+.admin-cockpit .admin-chart__line { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.admin-cockpit .admin-chart__line--gmv { stroke: var(--text-brand); }
+.admin-cockpit .admin-chart__line--rev { stroke: var(--success); stroke-dasharray: 5 3; }
+.admin-cockpit .admin-chart__dot { fill: var(--surface-0); stroke: var(--text-brand); stroke-width: 1.5; }
+.admin-cockpit .admin-chart__cursor { stroke: var(--border-strong); stroke-dasharray: 3 3; }
+.admin-cockpit .admin-chart__focus { fill: var(--surface-0); stroke-width: 2.5; }
+.admin-cockpit .admin-chart__focus--gmv { stroke: var(--text-brand); }
+.admin-cockpit .admin-chart__focus--rev { stroke: var(--success); }
+.admin-cockpit .admin-chart__tip { position: absolute; top: 0; z-index: 2; min-width: 180px; display: flex; flex-direction: column; gap: 4px; padding: var(--space-2) var(--space-3); font-size: var(--text-xs); color: var(--text-primary); background: var(--surface-0); border: var(--border-width) solid var(--border-strong); border-radius: var(--radius-md); box-shadow: var(--elevation-2); transform: translateX(12px); pointer-events: none; }
+.admin-cockpit .admin-chart__tip--left { transform: translateX(calc(-100% - 12px)); }
+.admin-cockpit .admin-chart__tip-date { font-size: var(--text-xs); }
+.admin-cockpit .admin-chart__tip-row { display: flex; align-items: center; gap: var(--space-2); color: var(--text-secondary); }
+.admin-cockpit .admin-chart__tip-row b { margin-inline-start: auto; padding-inline-start: var(--space-3); color: var(--text-primary); }
+.admin-cockpit .admin-chart__tip-swatch { width: 10px; height: 3px; border-radius: 2px; }
+.admin-cockpit .admin-chart__tip-swatch--gmv { background: var(--text-brand); }
+.admin-cockpit .admin-chart__tip-swatch--rev { background: var(--success); }
+/* --brand is a FILL token (yellow in the default theme, ~1.6:1 on white); strokes use --text-brand. */
+.admin-cockpit .admin-chart-panel__dot-primary { background: var(--text-brand); }
+.admin-cockpit .admin-chart-panel__hint { margin: 0; font-size: var(--text-xs); color: var(--text-muted); }
+.admin-cockpit .admin-chart-panel__empty { display: flex; align-items: center; justify-content: center; min-height: 180px; margin: 0; font-size: var(--text-sm); color: var(--text-muted); }
+.admin-cockpit .admin-chart-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-3); margin: 0; padding-top: var(--space-3); border-top: var(--border-width) solid var(--border-subtle); }
+@media (min-width: 640px) { .admin-cockpit .admin-chart-summary { grid-template-columns: repeat(4, 1fr); } }
+.admin-cockpit .admin-chart-summary dt { font-size: var(--text-xs); color: var(--text-secondary); }
+.admin-cockpit .admin-chart-summary dd { margin: 2px 0 0; font-size: var(--text-base); font-weight: 800; color: var(--text-primary); }
+
+/* Breakdown lists */
+.admin-cockpit .admin-breakdown-card__list { list-style: none; margin: 0; padding: 0; }
+.admin-cockpit .admin-breakdown-card__empty { margin: 0; font-size: var(--text-sm); color: var(--text-muted); }
+.admin-cockpit .admin-breakdown-item__row { display: flex; align-items: baseline; gap: var(--space-2); }
+.admin-cockpit .admin-breakdown-item__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-cockpit .admin-breakdown-item__amount { font-size: var(--text-xs); color: var(--text-secondary); }
+.admin-cockpit .admin-breakdown-item__share { min-width: 44px; text-align: end; }
+
+/* Skeletons — a slow opacity pulse, not a gradient shimmer */
+.admin-cockpit .admin-skel-card { display: flex; flex-direction: column; gap: var(--space-2); min-height: 105px; }
+.admin-cockpit .admin-skel { display: block; height: 14px; width: 70%; background: var(--surface-3); border-radius: var(--radius-sm); animation: admin-skel-pulse 1.4s ease-in-out infinite; }
+.admin-cockpit .admin-skel--xs { width: 40%; height: 10px; }
+.admin-cockpit .admin-skel--sm { width: 45%; height: 12px; }
+.admin-cockpit .admin-skel--lg { width: 65%; height: 24px; }
+.admin-cockpit .admin-skel--btn { width: 110px; height: 32px; margin-top: auto; }
+.admin-cockpit .admin-skel--title { width: 220px; height: 20px; }
+.admin-cockpit .admin-skel--chart { width: 100%; height: 240px; border-radius: var(--radius-lg); }
+@keyframes admin-skel-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .admin-cockpit .admin-skel { animation: none; }
+  .admin-cockpit .admin-region--stale { transition: none; }
+}
+
+/* Rollup dialog (rendered in <dialog>, outside .admin-cockpit) */
+.admin-rollup-dialog { display: flex; flex-direction: column; gap: var(--space-4); }
+.admin-rollup-dialog__desc { margin: 0; font-size: var(--text-sm); color: var(--text-secondary); }
+.admin-rollup-dialog__footer { display: flex; justify-content: flex-end; gap: var(--space-2); }
+.admin-rollup-dialog .admin-range__error { margin: 0; font-size: var(--text-sm); color: var(--danger); }

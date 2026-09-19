@@ -167,26 +167,134 @@ export async function runDailyRollup(db, targetDate = null) {
   return inserted[0];
 }
 
+const DAY_MS = 86_400_000;
+export const MAX_OVERVIEW_RANGE_DAYS = 366;
+const PRESET_DAYS = { '7d': 7, '30d': 30, '90d': 90, '1y': 365 };
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Formats a Date in UTC as YYYY-MM-DD. */
+function utcDay(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+/**
+ * Normalises a DATE column to `YYYY-MM-DD`. node-postgres hands DATE back as a JS Date at *local*
+ * midnight, so `toISOString()` would shift it a day back east of UTC (Bangladesh is UTC+6) and
+ * `String(date).slice(5, 10)` — what this used to do — yields "ep 01" from "Tue Sep 01 2026".
+ */
+export function toDayString(value) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value.slice(0, 10);
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const m = String(value.getMonth() + 1).padStart(2, '0');
+    const d = String(value.getDate()).padStart(2, '0');
+    return `${value.getFullYear()}-${m}-${d}`;
+  }
+  return '';
+}
+
+function assertIsoDay(value, field) {
+  // Round-trip, because Date.parse('2026-02-30') is accepted by V8 and quietly means 2 March.
+  // (toISOString() throws on an Invalid Date, so check the timestamp before formatting it.)
+  const parsed = typeof value === 'string' && ISO_DAY.test(value) ? new Date(`${value}T00:00:00Z`) : null;
+  const isRealDay = parsed !== null && !Number.isNaN(parsed.getTime()) && utcDay(parsed) === value;
+  if (!isRealDay) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      `${field} must be a valid YYYY-MM-DD date.`,
+      `${field} অবশ্যই বৈধ YYYY-MM-DD তারিখ হতে হবে।`,
+      { field }
+    );
+  }
+  return value;
+}
+
+/**
+ * Resolves the requested window into concrete dates.
+ *
+ * A custom `from`/`to` pair wins over the preset. Both bounds are bound as query parameters — the
+ * old code interpolated a computed `days` into the SQL string, which was safe only because it was
+ * a number; parameters keep it safe by construction.
+ *
+ * The comparison window is the same length immediately before `from`, so every delta compares
+ * like with like.
+ */
+export function resolveOverviewRange({ timeframe = '30d', from = null, to = null } = {}, today = new Date()) {
+  const todayStr = utcDay(today);
+
+  if (from || to) {
+    if (!from || !to) {
+      throw new AppError('VALIDATION_FAILED', 'Both from and to are required for a custom range.', 'কাস্টম রেঞ্জের জন্য from ও to উভয়ই প্রয়োজন।', { field: from ? 'to' : 'from' });
+    }
+    assertIsoDay(from, 'from');
+    assertIsoDay(to, 'to');
+    if (from > to) {
+      throw new AppError('VALIDATION_FAILED', 'from must not be after to.', 'from তারিখ to তারিখের পরে হতে পারবে না।', { field: 'from' });
+    }
+    if (to > todayStr) {
+      throw new AppError('VALIDATION_FAILED', 'to must not be in the future.', 'to তারিখ ভবিষ্যতের হতে পারবে না।', { field: 'to' });
+    }
+    const days = Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS) + 1;
+    if (days > MAX_OVERVIEW_RANGE_DAYS) {
+      throw new AppError('VALIDATION_FAILED', `A custom range may span at most ${MAX_OVERVIEW_RANGE_DAYS} days.`, `কাস্টম রেঞ্জ সর্বোচ্চ ${MAX_OVERVIEW_RANGE_DAYS} দিনের হতে পারবে।`, { field: 'to' });
+    }
+    return { timeframe: 'custom', days, from, to, prevFrom: utcDay(new Date(Date.parse(from) - days * DAY_MS)) };
+  }
+
+  const key = PRESET_DAYS[timeframe] ? timeframe : '30d';
+  const days = PRESET_DAYS[key];
+  // Same window the SQL used before (CURRENT_DATE - N days .. today), so preset numbers are unchanged.
+  const start = utcDay(new Date(today.getTime() - days * DAY_MS));
+  return { timeframe: key, days, from: start, to: todayStr, prevFrom: utcDay(new Date(today.getTime() - days * 2 * DAY_MS)) };
+}
+
+/** A rollup may only be (re)computed for a real day that has started. Defaults to yesterday. */
+export function assertRollupDate(date, today = new Date()) {
+  if (date == null || date === '') return utcDay(new Date(today.getTime() - DAY_MS));
+  assertIsoDay(date, 'date');
+  if (date > utcDay(today)) {
+    throw new AppError('VALIDATION_FAILED', 'Rollup date must not be in the future.', 'রোলআপের তারিখ ভবিষ্যতের হতে পারবে না।', { field: 'date' });
+  }
+  return date;
+}
+
+/** The stored rollup for one day, or null — used as the audit row's `before` snapshot. */
+export async function getRollupForDate(db, day) {
+  const { rows } = await db
+    .query(`SELECT * FROM daily_analytics_rollups WHERE rollup_date = $1`, [day])
+    .catch(() => ({ rows: [] }));
+  return rows[0] || null;
+}
+
 /**
  * Returns Executive Overview with 11 KPIs and Period-over-Period comparisons.
  */
-export async function getExecutiveOverview(db, { timeframe = '30d' } = {}) {
-  const days = timeframe === '7d' ? 7 : (timeframe === '90d' ? 90 : (timeframe === '1y' ? 365 : 30));
+export async function getExecutiveOverview(db, { timeframe = '30d', from = null, to = null } = {}) {
+  const range = resolveOverviewRange({ timeframe, from, to });
 
   // Current period rollups
   const { rows: currentRows } = await db.query(
     `SELECT * FROM daily_analytics_rollups
-     WHERE rollup_date >= CURRENT_DATE - INTERVAL '${days} days'
-     ORDER BY rollup_date ASC`
+     WHERE rollup_date >= $1 AND rollup_date <= $2
+     ORDER BY rollup_date ASC`,
+    [range.from, range.to]
   ).catch(() => ({ rows: [] }));
 
-  // Previous comparison period rollups
+  // Previous comparison period rollups (same length, immediately before `from`)
   const { rows: prevRows } = await db.query(
     `SELECT * FROM daily_analytics_rollups
-     WHERE rollup_date >= CURRENT_DATE - INTERVAL '${days * 2} days'
-       AND rollup_date < CURRENT_DATE - INTERVAL '${days} days'
-     ORDER BY rollup_date ASC`
+     WHERE rollup_date >= $1 AND rollup_date < $2
+     ORDER BY rollup_date ASC`,
+    [range.prevFrom, range.from]
   ).catch(() => ({ rows: [] }));
+
+  // When the rollups were last actually computed — the UI shows this so an admin can tell a stale
+  // dashboard from a live one. (This used to report `new Date()`, i.e. always "just now".)
+  const { rows: lastRows } = await db
+    .query(`SELECT MAX(created_at) AS last_rollup_at FROM daily_analytics_rollups`)
+    .catch(() => ({ rows: [] }));
+  const lastRollupRaw = lastRows[0]?.last_rollup_at ?? null;
+  const lastRollupAt = lastRollupRaw ? new Date(lastRollupRaw).toISOString() : null;
 
   // Helper to aggregate rows
   const sumField = (arr, field) => arr.reduce((acc, r) => acc + parseFloat(r[field] || 0), 0);
@@ -250,7 +358,7 @@ export async function getExecutiveOverview(db, { timeframe = '30d' } = {}) {
 
   // Build Time-Series Chart Data for SVG Rendering
   const timeSeries = currentRows.length > 0 ? currentRows.map(r => ({
-    date: r.rollup_date ? String(r.rollup_date).slice(5, 10) : '',
+    date: toDayString(r.rollup_date),
     gmv: parseFloat(r.gmv || 0),
     revenue: parseFloat(r.platform_net_revenue || 0),
     orders: parseInt(r.total_orders || 0, 10),
@@ -262,7 +370,11 @@ export async function getExecutiveOverview(db, { timeframe = '30d' } = {}) {
   ];
 
   return {
-    timeframe,
+    timeframe: range.timeframe,
+    period: { from: range.from, to: range.to, days: range.days },
+    // 'baseline' = no rollup exists yet, so every figure below is an illustrative placeholder. The
+    // UI must say so rather than present invented numbers as telemetry.
+    data_source: currentRows.length > 0 ? 'rollup' : 'baseline',
     kpis: {
       gmv: { value: curGmv, ...calcDelta(curGmv, prevGmv), format: 'currency' },
       net_platform_revenue: { value: curRev, ...calcDelta(curRev, prevRev), format: 'currency' },
@@ -291,7 +403,7 @@ export async function getExecutiveOverview(db, { timeframe = '30d' } = {}) {
         { name: 'Affiliate Links', share_pct: 12, volume: curGmv * 0.12 },
       ],
     },
-    last_rollup_at: new Date().toISOString(),
+    last_rollup_at: lastRollupAt,
   };
 }
 
