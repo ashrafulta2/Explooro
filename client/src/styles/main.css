@@ -68,7 +68,7 @@
 /* Prompt 11.4: Super Admin Executive Dashboard & System Health */
 @import './components/admin-dashboard.css';
 @import './components/system-health.css';
-@import './components/admin-staff.css';
+/* admin-staff.css is imported by StaffPage.js directly to code-split into the route chunk */
 /* Prompt 10.4: Digital Warranties & Protection Cards Hub */
 @import './components/customer-warranties.css';
 /* Catalog & Product Governance */
