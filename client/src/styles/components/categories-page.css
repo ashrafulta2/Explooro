@@ -1,0 +1,125 @@
+/**
+ * categories-page.css — Category Management & Modal Enhancements (/admin/catalog/categories).
+ *
+ * Imported by pages/admin/CategoriesPage.js ONLY, never by main.css. That keeps it in the
+ * route's own chunk instead of the entry bundle, preserving the CSS performance budget.
+ */
+
+.cat-icon-input-wrap,
+.cat-rate-input-wrap,
+.cat-slug-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.cat-icon-preview {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  font-size: 20px;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.cat-icon-input-wrap .form-input {
+  padding-inline-start: calc(var(--space-8) + 4px);
+}
+
+.cat-emoji-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.cat-emoji-chip {
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--dur-fast);
+  user-select: none;
+}
+
+.cat-emoji-chip:hover {
+  background: var(--surface-3);
+  border-color: var(--brand);
+  color: var(--text-primary);
+}
+
+.cat-rate-suffix {
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  color: var(--text-muted);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-sm);
+  pointer-events: none;
+}
+
+.cat-rate-input-wrap .form-input {
+  padding-inline-end: var(--space-7);
+}
+
+.cat-slug-prefix {
+  position: absolute;
+  inset-inline-start: var(--space-3);
+  color: var(--text-muted);
+  font-family: ui-monospace, monospace;
+  font-size: var(--text-xs);
+  pointer-events: none;
+}
+
+.cat-slug-input-wrap .form-input {
+  padding-inline-start: 78px;
+  font-family: ui-monospace, monospace;
+  font-size: var(--text-xs);
+}
+
+.cat-banner-preview {
+  position: relative;
+  width: 100%;
+  height: 90px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  margin-top: var(--space-2);
+  background: var(--surface-2);
+  display: none;
+}
+
+.cat-banner-preview.is-visible {
+  display: block;
+}
+
+.cat-banner-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cat-avatar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: var(--elevation-1);
+}
+
+.cat-banner-thumb {
+  width: 36px;
+  height: 26px;
+  border-radius: var(--radius-xs);
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+  display: inline-block;
+  vertical-align: middle;
+}
