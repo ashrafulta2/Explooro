@@ -4158,7 +4158,7 @@
       "btn_deactivate": "Suspend",
       "btn_activate": "Activate",
       "modal_title": "Provision New Staff Member",
-      "modal_desc": "Create a new internal operator with role assignment. A one-time sign-in link is sent to their work email.",
+      "modal_desc": "Create a new internal operator with a role. An invitation is emailed; they sign in with a one-time code sent to their mobile.",
       "label_name": "Full Name",
       "label_email": "Work Email",
       "label_phone": "Mobile Number",
@@ -4183,7 +4183,7 @@
       "hint_total": "Internal operational personnel",
       "hint_active": "Current enabled operators",
       "hint_2fa_pending": "{{count}} member(s) have not enrolled",
-      "hint_2fa": "Mandatory hardware / TOTP 2FA",
+      "hint_2fa": "Required for roles with sensitive access",
       "hint_privileged_single": "Only one — add a backup owner",
       "hint_privileged": "Unrestricted platform controllers",
       "self_hint": "You cannot change your own access here.",
@@ -4236,7 +4236,8 @@
       "evt_enabled": "Account reactivated",
       "evt_reinvite": "Invitation re-sent",
       "evt_role": "Role changed",
-      "evt_2fa": "2FA reset"
+      "evt_2fa": "2FA reset",
+      "toast_deferred": "Sent for approval. A Super Admin must approve this before it takes effect."
     }
   },
   "admin_catalog": {

@@ -120,6 +120,17 @@ export function formatPhone(raw) {
 }
 
 /**
+ * `"01711000001"`, `"8801711000001"`, `"+880 1711-000001"` → `"+8801711000001"`; anything that is not a
+ * Bangladeshi mobile (01[3-9] + 8 digits) → `null`. Mirrors server/src/services/staff.service.js
+ * normalisePhone(): a form that is stricter than the API rejects input the API would accept, and one
+ * that is looser sends the API something it will refuse.
+ */
+export function normaliseBdPhone(raw) {
+  const match = String(raw ?? '').replace(/[\s()-]/g, '').match(/^(?:\+?880|0)(1[3-9]\d{8})$/);
+  return match ? `+880${match[1]}` : null;
+}
+
+/**
  * `timeStyle` is opt-in: most surfaces want a date alone, but anything with an expiry (an
  * observation token, an OTP, a timed mute) is meaningless without a clock time.
  */
