@@ -38,10 +38,10 @@ const SEED_FORECASTS = [
 ];
 
 const RISK_CONFIG = {
-  CRITICAL: { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-700,#b91c1c)',  border: 'var(--danger-300,#fca5a5)',  icon: '🔴' },
+  CRITICAL: { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-800,#991b1b)',  border: 'var(--danger-300,#fca5a5)',  icon: '🔴' },
   HIGH:     { bg: 'var(--warning-100,#ffedd5)', text: 'var(--warning-800,#9a3412)', border: 'var(--warning-300,#fdba74)', icon: '🟠' },
-  MEDIUM:   { bg: 'var(--warning-100,#fef9c3)', text: 'var(--warning-700,#854d0e)', border: 'var(--warning-300,#fde047)', icon: '🟡' },
-  LOW:      { bg: 'var(--success-100,#dcfce7)', text: 'var(--success-700,#15803d)', border: 'var(--success-300,#86efac)', icon: '🟢' },
+  MEDIUM:   { bg: 'var(--warning-100,#fef9c3)', text: 'var(--warning-800,#854d0e)', border: 'var(--warning-300,#fde047)', icon: '🟡' },
+  LOW:      { bg: 'var(--success-100,#dcfce7)', text: 'var(--success-800,#166534)', border: 'var(--success-300,#86efac)', icon: '🟢' },
 };
 
 const TREND_ICONS = { UP: '📈', DOWN: '📉', STABLE: '➡️' };
@@ -134,7 +134,7 @@ export default function SupplierForecastingPage(root) {
           <div style="position:absolute;top:-2px;height:12px;width:2px;background:var(--warning-500,#f59e0b);left:${roPct}%;"></div>
         </div>
         <div style="font-size:0.68rem;color:var(--text-secondary,#94a3b8);margin-top:2px;">
-          <span style="color:var(--warning-500,#f59e0b);">▲ ${t('sup_forecast.reorder_threshold', 'reorder threshold')}</span>
+          <span style="color:var(--warning-800,#854d0e);">▲ ${t('sup_forecast.reorder_threshold', 'reorder threshold')}</span>
         </div>
       </div>
     `;
@@ -234,7 +234,7 @@ export default function SupplierForecastingPage(root) {
             color:${riskFilter===r?'var(--brand-contrast,#fff)':'var(--text-secondary,#64748b)'};">${t(RISK_LABEL_KEYS[r] || 'sup_forecast.risk_all', r)}</button>
         `).join('')}
         <!-- Search -->
-        <input id="inp-sku-search" type="text" placeholder="${t('sup_forecast.search_placeholder', 'Search SKU or product…')}" value="${searchQuery}"
+        <input id="inp-sku-search" type="text" aria-label="${t('sup_forecast.search_placeholder', 'Search SKU or product…')}" placeholder="${t('sup_forecast.search_placeholder', 'Search SKU or product…')}" value="${searchQuery}"
           style="margin-left:auto;padding:7px 12px;border-radius:8px;border:1px solid var(--border-default,#e2e8f0);
           font-size:0.82rem;background:var(--surface-0,#f8fafc);min-width:200px;color:var(--text-primary,#0f172a);">
       </div>
