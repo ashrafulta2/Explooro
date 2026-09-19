@@ -3151,6 +3151,16 @@
     "release_funds": "Release Funds",
     "refund_to_buyer": "Refund to Buyer"
   },
+  "finance_subnav": {
+    "aria_label": "Finance Navigation",
+    "overview": "Overview",
+    "ledger": "Ledger",
+    "escrow": "Escrow",
+    "payouts": "Payouts",
+    "splits": "Profit Splits",
+    "b2b_escrow": "B2B Escrow",
+    "subscriptions": "Subscriptions"
+  },
   "admin_b2b_escrow": {
     "eyebrow": "B2B Wholesale Escrow",
     "title": "B2B Wholesale Escrow Deals & Milestones",

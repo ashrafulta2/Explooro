@@ -3151,6 +3151,16 @@
     "release_funds": "অর্থ রিলিজ করুন",
     "refund_to_buyer": "ক্রেতাকে ফেরত দিন"
   },
+  "finance_subnav": {
+    "aria_label": "ফাইন্যান্স নেভিগেশন",
+    "overview": "ওভারভিউ",
+    "ledger": "লেজার",
+    "escrow": "এসক্রো",
+    "payouts": "পেআউট",
+    "splits": "প্রফিট স্প্লিট",
+    "b2b_escrow": "বি২বি এসক্রো",
+    "subscriptions": "সাবস্ক্রিপশন"
+  },
   "admin_b2b_escrow": {
     "eyebrow": "বি২বি হোলসেল এসক্রো",
     "title": "বি২বি হোলসেল এসক্রো ডিল ও মাইলস্টোন",
