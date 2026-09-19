@@ -158,6 +158,7 @@ CREATE TABLE user_profiles (
   bio                 TEXT,
   timezone            TEXT NOT NULL DEFAULT 'Asia/Dhaka',
   use_bengali_numerals BOOLEAN NOT NULL DEFAULT false,
+  department          TEXT CHECK (department IS NULL OR char_length(department) <= 120), -- staff only; migration 048
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at          TIMESTAMPTZ
 );

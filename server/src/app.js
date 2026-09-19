@@ -29,6 +29,7 @@ import restrictionRoutes from './routes/restriction.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import moduleRoutes from './routes/module.routes.js';
 import userRoutes from './routes/user.routes.js';
+import staffRoutes from './routes/staff.routes.js';
 import themeRoutes from './routes/theme.routes.js';
 import localizationRoutes from './routes/localization.routes.js';
 import mediaRoutes from './routes/media.routes.js';
@@ -173,6 +174,7 @@ export async function buildApp(overrides = {}) {
   await app.register(auditRoutes, { prefix: '/api/v1' });
   await app.register(moduleRoutes, { prefix: '/api/v1' });
   await app.register(userRoutes, { prefix: '/api/v1' });
+  await app.register(staffRoutes, { prefix: '/api/v1' });
   await app.register(themeRoutes, { prefix: '/api/v1' });
   await app.register(localizationRoutes, { prefix: '/api/v1' });
   await app.register(mediaRoutes, { prefix: '/api/v1' });
