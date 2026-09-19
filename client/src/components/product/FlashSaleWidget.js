@@ -88,6 +88,7 @@ export function FlashSaleWidget({
   lang = 'en',
   onNavigate = null,
   onAction = null,
+  onViewAll = null,
 } = {}) {
   const root = document.createElement('section');
   root.className = 'flash-sale-widget';
@@ -135,7 +136,9 @@ export function FlashSaleWidget({
   viewAllBtn.className = 'flash-sale-widget__view-all';
   viewAllBtn.innerHTML = `<span>${t('marketplace.flash_sale.view_all_deals') || 'View All Deals'}</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
   viewAllBtn.addEventListener('click', () => {
-    if (typeof onNavigate === 'function') {
+    if (typeof onViewAll === 'function') {
+      onViewAll();
+    } else if (typeof onNavigate === 'function') {
       onNavigate('/?feed=flash');
     } else {
       window.location.search = '?feed=flash';

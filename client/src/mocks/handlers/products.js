@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Mock handlers for the product catalog — cursor-paginated per docs/api-contract.md §4.1.
  */
 import products from '../fixtures/products.json' with { type: 'json' };
@@ -247,6 +247,13 @@ export default [
       }
       if (query.in_stock === '1') {
         filtered = filtered.filter((p) => (p.stock ?? 0) > 0);
+      }
+      if (query.flash_sale === '1' || query.flash_sale === 'true' || query.flash_sale === true) {
+        filtered = filtered.filter((p) => Boolean(p.is_flash_sale));
+      }
+      if (query.supplier_tier) {
+        const tiers = query.supplier_tier.split(',');
+        filtered = filtered.filter((p) => tiers.includes(p.supplier_tier));
       }
       if (query.tier) {
         const tiers = query.tier.split(',');
