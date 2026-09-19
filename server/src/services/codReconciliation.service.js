@@ -507,6 +507,7 @@ export async function listReconciliations(db, {
   status = null,
   courier = null,
   hasVariance = null,
+  search = null,
   limit = 50,
   cursor = null,
   client = null,
@@ -538,6 +539,11 @@ export async function listReconciliations(db, {
   }
   if (hasVariance === true) {
     query += ` AND c.variance <> 0.00`;
+  }
+  if (search && search.trim()) {
+    query += ` AND (c.consignment_id ILIKE $${paramIdx} OR s.ref ILIKE $${paramIdx})`;
+    params.push(`%${search.trim()}%`);
+    paramIdx++;
   }
   if (cursor) {
     query += ` AND c.id < $${paramIdx++}`;
