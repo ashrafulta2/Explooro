@@ -97,7 +97,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
       <div class="form-grid--2col">
         <div class="form-group">
           <label class="form-label" for="cat-name-en">
-            <span>${isBn ? 'ইংরেজি নাম' : 'Category Name (English)'}</span>
+            <span>${t('admin_categories.category_name_english')}</span>
             <span class="field__required">*</span>
           </label>
           <input
@@ -113,7 +113,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
 
         <div class="form-group">
           <label class="form-label" for="cat-name-bn">
-            <span>${isBn ? 'বাংলা নাম' : 'Category Name (Bengali)'}</span>
+            <span>${t('admin_categories.category_name_bengali')}</span>
             <span class="field__required">*</span>
           </label>
           <input
@@ -132,7 +132,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
       <div class="form-grid--2col">
         <div class="form-group">
           <label class="form-label" for="cat-icon">
-            <span>${isBn ? 'আইকন / ইমোজি' : 'Icon / Emoji'}</span>
+            <span>${t('admin_categories.icon_emoji')}</span>
           </label>
           <div class="cat-icon-input-wrap">
             <span class="cat-icon-preview" id="cat-icon-preview">${categoryToEdit?.icon || '📦'}</span>
@@ -159,7 +159,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
 
         <div class="form-group">
           <label class="form-label" for="cat-comm">
-            <span>${isBn ? 'প্ল্যাটফর্ম কমিশন টেক রেট (%)' : 'Platform Take Rate (%)'}</span>
+            <span>${t('admin_categories.platform_take_rate')}</span>
             <span class="field__required">*</span>
           </label>
           <div class="cat-rate-input-wrap">
@@ -177,7 +177,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
             <span class="cat-rate-suffix">%</span>
           </div>
           <span class="form-label__hint" style="margin-top: 4px;">
-            ${isBn ? 'প্রতি সফল অর্ডারে প্ল্যাটফর্ম কমিশন কাটা হবে' : 'Marketplace commission deducted on seller payout'}
+            ${t('admin_categories.marketplace_commission_deducted_on_seller')}
           </span>
         </div>
       </div>
@@ -186,10 +186,10 @@ export default function CategoriesPage(root, { navigate } = {}) {
       <div class="form-grid--2col">
         <div class="form-group">
           <label class="form-label" for="cat-parent">
-            <span>${isBn ? 'প্যারেন্ট ক্যাটাগরি' : 'Parent Category'}</span>
+            <span>${t('admin_categories.parent_category')}</span>
           </label>
           <select id="cat-parent" name="parent_id" class="form-select">
-            <option value="">-- ${isBn ? 'মূল ক্যাটাগরি (Top Level)' : 'Top Level Main Category'} --</option>
+            <option value="">-- ${t('admin_categories.top_level_main_category')} --</option>
             ${mainCategories.map((m) => `
               <option value="${m.id}" ${(categoryToEdit?.parent_id === m.id || defaultParentId === m.id) ? 'selected' : ''}>
                 ${m.icon} ${isBn ? m.name_bn : m.name_en}
@@ -197,13 +197,13 @@ export default function CategoriesPage(root, { navigate } = {}) {
             `).join('')}
           </select>
           <span class="form-label__hint" style="margin-top: 4px;">
-            ${isBn ? 'সাব-ক্যাটাগরি হিসেবে জুড়তে প্যারেন্ট নির্বাচন করুন' : 'Select a parent to nest as a sub-category'}
+            ${t('admin_categories.select_a_parent_to_nest')}
           </span>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="cat-slug">
-            <span>${isBn ? 'ইউআরএল স্ল্যাগ' : 'URL Slug'}</span>
+            <span>${t('admin_categories.url_slug')}</span>
           </label>
           <div class="cat-slug-input-wrap">
             <span class="cat-slug-prefix">/category/</span>
@@ -217,7 +217,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
             />
           </div>
           <span class="form-label__hint" style="margin-top: 4px;">
-            ${isBn ? 'ক্যাটাগরি পেজের পারমালিঙ্ক' : 'Permanent SEO routing slug for this category'}
+            ${t('admin_categories.permanent_seo_routing_slug_for')}
           </span>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
       <!-- Banner Image URL -->
       <div class="form-group">
         <label class="form-label" for="cat-banner">
-          <span>${isBn ? 'ব্যানার ইমেজ ইউআরএল' : 'Banner Image URL'}</span>
+          <span>${t('admin_categories.banner_image_url')}</span>
         </label>
         <input
           type="url"
@@ -252,8 +252,8 @@ export default function CategoriesPage(root, { navigate } = {}) {
           />
           <span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span>
           <span class="toggle__text">
-            <span class="toggle__label font-bold">${isBn ? 'ক্যাটাগরি সক্রিয় ও দৃশ্যমান রাখুন' : 'Category is active & published'}</span>
-            <span class="toggle__hint">${isBn ? 'গ্রাহকদের মার্কেটপ্লেসে ও সেলারদের সোর্সিং ক্যাটালগে প্রদর্শিত হবে' : 'Visible to buyers on marketplace navigation and salers in sourcing catalog.'}</span>
+            <span class="toggle__label font-bold">${t('admin_categories.category_is_active_published')}</span>
+            <span class="toggle__hint">${t('admin_categories.visible_to_buyers_on_marketplace')}</span>
           </span>
         </label>
       </div>
@@ -324,7 +324,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
       const is_active = formData.get('is_active') === 'on';
 
       if (!name_en || !name_bn) {
-        toast.error(isBn ? 'অনুগ্রহ করে ইংরেজি ও বাংলা উভয় নাম পূরণ করুন।' : 'Please enter both English and Bengali names.');
+        toast.error(t('admin_categories.please_enter_both_english_and'));
         if (!name_en) nameEnInput?.focus();
         else content.querySelector('#cat-name-bn')?.focus();
         return;
@@ -345,7 +345,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
             is_active,
           };
         }
-        toast.success(isBn ? 'ক্যাটাগরি সফলভাবে আপডেট করা হয়েছে!' : 'Category updated successfully!');
+        toast.success(t('admin_categories.category_updated_successfully'));
       } else {
         const newCat = {
           id: Date.now(),
@@ -362,7 +362,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
           display_order: categories.length + 1,
         };
         categories.push(newCat);
-        toast.success(isBn ? 'নতুন ক্যাটাগরি সফলভাবে যোগ করা হয়েছে!' : 'New category created successfully!');
+        toast.success(t('admin_categories.new_category_created_successfully'));
       }
 
       modal.closeModal();
@@ -379,13 +379,13 @@ export default function CategoriesPage(root, { navigate } = {}) {
     const footer = document.createDocumentFragment();
 
     const cancelBtn = Button({
-      label: isBn ? 'বাতিল' : 'Cancel',
+      label: t('common.cancel'),
       variant: 'secondary',
       onClick: () => modal.closeModal(),
     });
 
     const saveBtn = Button({
-      label: isEdit ? (isBn ? 'পরিবর্তন সংরক্ষণ' : 'Save Changes') : (isBn ? 'ক্যাটাগরি তৈরি করুন' : 'Create Category'),
+      label: isEdit ? (t('admin_categories.save_changes')) : (t('admin_categories.create_category')),
       variant: 'primary',
       onClick: () => submitForm(),
     });
@@ -393,8 +393,8 @@ export default function CategoriesPage(root, { navigate } = {}) {
     footer.append(cancelBtn, saveBtn);
 
     const modal = Modal({
-      title: isEdit ? (isBn ? '✏️ ক্যাটাগরি সম্পাদনা' : '✏️ Edit Category') : (isBn ? '➕ নতুন ক্যাটাগরি তৈরি' : '➕ Add New Category'),
-      description: isBn ? 'ক্যাটালগ হায়ারার্কি, প্ল্যাটফর্ম কমিশন এবং ডিসপ্লে ব্যানার নির্ধারণ করুন।' : 'Configure catalog taxonomy, commission take rates, and display banners.',
+      title: isEdit ? (t('admin_categories.modal_edit_title')) : (t('admin_categories.modal_create_title')),
+      description: t('admin_categories.configure_catalog_taxonomy_commission_take'),
       content,
       footer,
       size: 'md',
@@ -446,20 +446,20 @@ export default function CategoriesPage(root, { navigate } = {}) {
       <div class="admin-page-header">
         <div>
           <div class="admin-page-eyebrow">
-            <span class="badge badge--neutral">📦 ${isBn ? 'ক্যাটালগ গভর্নেন্স' : 'Catalog Governance'}</span>
+            <span class="badge badge--neutral">📦 ${t('admin_categories.catalog_governance')}</span>
           </div>
-          <h1 class="admin-page-title">${isBn ? 'ক্যাটাগরি ও কমিশন পরিচালনা' : 'Categories & Commission Governance'}</h1>
+          <h1 class="admin-page-title">${t('admin_categories.categories_commission_governance')}</h1>
           <p class="admin-page-subtitle">
-            ${isBn ? 'প্ল্যাটফর্মের ক্যাটাগরি হায়ারার্কি, ব্যানার, আইকন ও ক্যাটাগরি-ভিত্তিক প্ল্যাটফর্ম টেক রেট (%) নির্ধারণ করুন।' : 'Manage multi-level category taxonomy, commission take rates, banners, icons, and product volume.'}
+            ${t('admin_categories.manage_multi_level_category_taxonomy')}
           </p>
         </div>
 
         <div class="admin-page-actions">
           <button type="button" class="btn btn--secondary btn--sm refresh-btn">
-            🔄 ${isBn ? 'রিফ্রেশ' : 'Refresh'}
+            🔄 ${t('admin_categories.refresh')}
           </button>
           <button type="button" class="btn btn--primary btn--sm add-cat-btn">
-            ➕ ${isBn ? 'নতুন ক্যাটাগরি যোগ' : 'Add New Category'}
+            ➕ ${t('admin_categories.add_btn')}
           </button>
         </div>
       </div>
@@ -467,27 +467,27 @@ export default function CategoriesPage(root, { navigate } = {}) {
       <!-- KPI Metrics Strip -->
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'মোট ক্যাটাগরি' : 'Total Categories'}</div>
+          <div class="admin-kpi-card__label">${t('admin_categories.total_categories')}</div>
           <div class="admin-kpi-card__val font-mono">${stats.total}</div>
-          <div class="admin-kpi-card__hint">${stats.main_count} ${isBn ? 'মূল' : 'Main'} • ${stats.sub_count} ${isBn ? 'সাব-ক্যাটাগরি' : 'Sub'}</div>
+          <div class="admin-kpi-card__hint">${stats.main_count} ${t('admin_categories.kpi_main_count')} • ${stats.sub_count} ${t('admin_categories.kpi_sub_count')}</div>
         </div>
 
         <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'সক্রিয় ক্যাটাগরি' : 'Active & Published'}</div>
+          <div class="admin-kpi-card__label">${t('admin_categories.active_published')}</div>
           <div class="admin-kpi-card__val font-mono text-emerald-600">${stats.active_count}</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'মার্কেটপ্লেসে দৃশ্যমান' : 'Live on Marketplace'}</div>
+          <div class="admin-kpi-card__hint">${t('admin_categories.live_on_marketplace')}</div>
         </div>
 
         <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'গড় প্ল্যাটফর্ম কমিশন' : 'Avg Commission Rate'}</div>
+          <div class="admin-kpi-card__label">${t('admin_categories.avg_commission_rate')}</div>
           <div class="admin-kpi-card__val font-mono text-brand">${stats.avg_commission_pct}%</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'প্রতি বিক্রয়ে আয়' : 'Take Rate Across Catalog'}</div>
+          <div class="admin-kpi-card__hint">${t('admin_categories.take_rate_across_catalog')}</div>
         </div>
 
         <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'পণ্য কভারেজ' : 'Products Mapped'}</div>
+          <div class="admin-kpi-card__label">${t('admin_categories.products_mapped')}</div>
           <div class="admin-kpi-card__val font-mono">${totalCatalogProducts}</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'মোট সক্রিয় পণ্য' : 'Active Catalog SKUs'}</div>
+          <div class="admin-kpi-card__hint">${t('admin_categories.active_catalog_skus')}</div>
         </div>
       </div>
 
@@ -500,29 +500,29 @@ export default function CategoriesPage(root, { navigate } = {}) {
               type="search"
               id="cat-search-input"
               class="form-input"
-              aria-label="${isBn ? 'ক্যাটাগরির নাম বা স্ল্যাগ দিয়ে খুঁজুন...' : 'Search categories by name or slug...'}"
-              placeholder="${isBn ? 'ক্যাটাগরির নাম বা স্ল্যাগ দিয়ে খুঁজুন...' : 'Search categories by name or slug...'}"
+              aria-label="${t('admin_categories.search_categories_by_name_or')}"
+              placeholder="${t('admin_categories.search_categories_by_name_or')}"
               value="${searchQuery}"
             />
           </div>
         </div>
 
         <div class="admin-toolbar__filters">
-          <select id="level-filter-select" class="form-select" aria-label="${isBn ? 'লেভেল অনুসারে ফিল্টার' : 'Filter by level'}">
-            <option value="ALL" ${levelFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব লেভেল' : 'All Levels'}</option>
-            <option value="MAIN" ${levelFilter === 'MAIN' ? 'selected' : ''}>${isBn ? 'শুধু মূল ক্যাটাগরি' : 'Main Categories Only'}</option>
-            <option value="SUB" ${levelFilter === 'SUB' ? 'selected' : ''}>${isBn ? 'শুধু সাব-ক্যাটাগরি' : 'Sub-categories Only'}</option>
+          <select id="level-filter-select" class="form-select" aria-label="${t('admin_categories.filter_by_level')}">
+            <option value="ALL" ${levelFilter === 'ALL' ? 'selected' : ''}>${t('admin_categories.all_levels')}</option>
+            <option value="MAIN" ${levelFilter === 'MAIN' ? 'selected' : ''}>${t('admin_categories.main_categories_only')}</option>
+            <option value="SUB" ${levelFilter === 'SUB' ? 'selected' : ''}>${t('admin_categories.sub_categories_only')}</option>
           </select>
 
-          <select id="status-filter-select" class="form-select" aria-label="${isBn ? 'স্ট্যাটাস অনুসারে ফিল্টার' : 'Filter by status'}">
-            <option value="ALL" ${statusFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব স্ট্যাটাস' : 'All Status'}</option>
-            <option value="ACTIVE" ${statusFilter === 'ACTIVE' ? 'selected' : ''}>${isBn ? 'সক্রিয়' : 'Active'}</option>
-            <option value="INACTIVE" ${statusFilter === 'INACTIVE' ? 'selected' : ''}>${isBn ? 'নিষ্ক্রিয়' : 'Disabled'}</option>
+          <select id="status-filter-select" class="form-select" aria-label="${t('admin_categories.filter_by_status')}">
+            <option value="ALL" ${statusFilter === 'ALL' ? 'selected' : ''}>${t('admin_categories.all_status')}</option>
+            <option value="ACTIVE" ${statusFilter === 'ACTIVE' ? 'selected' : ''}>${t('admin_categories.filter_active')}</option>
+            <option value="INACTIVE" ${statusFilter === 'INACTIVE' ? 'selected' : ''}>${t('admin_categories.filter_disabled')}</option>
           </select>
 
           ${hasActiveFilters ? `
             <button type="button" class="btn btn--ghost btn--sm clear-filters-btn">
-              ✕ ${isBn ? 'মুছুন' : 'Clear'}
+              ✕ ${t('admin_categories.clear')}
             </button>
           ` : ''}
         </div>
@@ -533,13 +533,13 @@ export default function CategoriesPage(root, { navigate } = {}) {
         <table class="admin-table">
           <thead>
             <tr>
-              <th>${isBn ? 'ক্যাটাগরি' : 'Category'}</th>
-              <th>${isBn ? 'হায়ারার্কি' : 'Hierarchy'}</th>
-              <th>${isBn ? 'স্ল্যাগ' : 'Slug'}</th>
-              <th>${isBn ? 'কমিশন' : 'Take Rate'}</th>
-              <th>${isBn ? 'পণ্য' : 'Products'}</th>
-              <th>${isBn ? 'স্ট্যাটাস' : 'Status'}</th>
-              <th class="text-right">${isBn ? 'অ্যাকশন' : 'Actions'}</th>
+              <th>${t('admin_categories.category')}</th>
+              <th>${t('admin_categories.hierarchy')}</th>
+              <th>${t('admin_categories.slug')}</th>
+              <th>${t('admin_categories.take_rate')}</th>
+              <th>${t('admin_categories.products')}</th>
+              <th>${t('admin_categories.status')}</th>
+              <th class="text-right">${t('admin_categories.actions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -566,11 +566,11 @@ export default function CategoriesPage(root, { navigate } = {}) {
                   <td>
                     ${isSub ? `
                       <span class="badge badge--neutral text-xs">
-                        ↳ ${isBn ? (parent?.name_bn || 'মূল') : (parent?.name_en || 'Parent')}
+                        ↳ ${(isBn ? parent?.name_bn : parent?.name_en) || t('admin_categories.parent_fallback')}
                       </span>
                     ` : `
                       <span class="badge badge--info text-xs font-bold">
-                        ★ ${isBn ? 'মূল ক্যাটাগরি' : 'Main Category'}
+                        ★ ${t('admin_categories.main_category')}
                       </span>
                     `}
                   </td>
@@ -593,21 +593,21 @@ export default function CategoriesPage(root, { navigate } = {}) {
                       title="${c.is_active ? 'Click to disable category' : 'Click to activate category'}"
                     >
                       <span class="badge ${c.is_active ? 'badge--success' : 'badge--neutral'}">
-                        ${c.is_active ? (isBn ? '✓ সক্রিয়' : '✓ Active') : (isBn ? '⊘ নিষ্ক্রিয়' : '⊘ Disabled')}
+                        ${c.is_active ? (t('admin_categories.status_active_badge')) : (t('admin_categories.status_disabled_badge'))}
                       </span>
                     </button>
                   </td>
                   <td class="text-right">
                     <div class="flex items-center justify-end gap-1">
                       ${!isSub ? `
-                        <button type="button" class="btn btn--ghost btn--sm add-sub-btn" data-id="${c.id}" title="${isBn ? 'সাব-ক্যাটাগরি যোগ করুন' : 'Add Subcategory'}">
-                          ➕ ${isBn ? 'সাব' : 'Sub'}
+                        <button type="button" class="btn btn--ghost btn--sm add-sub-btn" data-id="${c.id}" title="${t('admin_categories.add_subcategory')}">
+                          ➕ ${t('admin_categories.add_sub_short')}
                         </button>
                       ` : ''}
                       <button type="button" class="btn btn--secondary btn--sm edit-cat-btn" data-id="${c.id}">
-                        ✏️ ${isBn ? 'এডিট' : 'Edit'}
+                        ✏️ ${t('admin_categories.edit')}
                       </button>
-                      <button type="button" class="btn btn--ghost btn--sm delete-cat-btn text-danger" data-id="${c.id}" title="${isBn ? 'মুছে ফেলুন' : 'Delete'}">
+                      <button type="button" class="btn btn--ghost btn--sm delete-cat-btn text-danger" data-id="${c.id}" title="${t('admin_categories.delete')}">
                         🗑️
                       </button>
                     </div>
@@ -619,8 +619,8 @@ export default function CategoriesPage(root, { navigate } = {}) {
                 <td colspan="7" class="text-center p-8 text-muted">
                   <div class="empty-state" style="padding: var(--space-6) 0;">
                     <div style="font-size: 2rem; margin-bottom: var(--space-2);">📦</div>
-                    <div class="font-bold">${isBn ? 'কোনো ক্যাটাগরি খুঁজে পাওয়া যায়নি' : 'No categories found'}</div>
-                    <div class="text-xs text-secondary" style="margin-top: 4px;">${isBn ? 'আপনার সার্চ বা ফিল্টার শর্ত পরিবর্তন করে আবার চেষ্টা করুন।' : 'Try adjusting your search keywords or level filter.'}</div>
+                    <div class="font-bold">${t('admin_categories.no_categories_found')}</div>
+                    <div class="text-xs text-secondary" style="margin-top: 4px;">${t('admin_categories.try_adjusting_your_search_keywords')}</div>
                   </div>
                 </td>
               </tr>
@@ -628,8 +628,8 @@ export default function CategoriesPage(root, { navigate } = {}) {
           </tbody>
         </table>
         <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) var(--space-4); background: var(--surface-2); border-top: 1px solid var(--border-subtle); font-size: var(--text-xs); color: var(--text-secondary);">
-          <span>${isBn ? `মোট ${filtered.length}টি ক্যাটাগরি প্রদর্শিত হচ্ছে` : `Showing ${filtered.length} of ${categories.length} categories`}</span>
-          <span class="font-mono">${stats.active_count} ${isBn ? 'টি সক্রিয়' : 'active'} • ${totalCatalogProducts} ${isBn ? 'টি পণ্য সংযুক্ত' : 'products mapped'}</span>
+          <span>${t('admin_categories.showing_count', { shown: filtered.length, total: categories.length })}</span>
+          <span class="font-mono">${stats.active_count} ${t('admin_categories.footer_active')} • ${totalCatalogProducts} ${t('admin_categories.footer_products_linked')}</span>
         </div>
       </div>
     `;
@@ -707,16 +707,16 @@ export default function CategoriesPage(root, { navigate } = {}) {
         if (!cat) return;
 
         const confirmed = await confirmDialog({
-          title: isBn ? 'ক্যাটাগরি মুছে ফেলা' : 'Delete Category',
-          description: isBn ? `আপনি কি নিশ্চিত যে "${cat.name_bn}" ক্যাটাগরি মুছে ফেলতে চান? এটি মুছে ফেললে সংযুক্ত সাব-ক্যাটাগরিগুলোও মুছে যাবে।` : `Are you sure you want to delete category "${cat.name_en}"? Any nested subcategories will also be removed.`,
-          confirmLabel: isBn ? 'মুছে ফেলুন' : 'Delete Category',
-          cancelLabel: isBn ? 'বাতিল' : 'Cancel',
+          title: t('admin_categories.delete_title'),
+          description: t('admin_categories.delete_confirm_desc', { name: isBn ? cat.name_bn : cat.name_en }),
+          confirmLabel: t('admin_categories.delete_confirm_btn'),
+          cancelLabel: t('common.cancel'),
           variant: 'danger',
         });
 
         if (confirmed) {
           categories = categories.filter((c) => c.id !== id && c.parent_id !== id);
-          toast.success(isBn ? 'ক্যাটাগরি মুছে ফেলা হয়েছে!' : 'Category deleted successfully!');
+          toast.success(t('admin_categories.category_deleted_successfully'));
           computeStats();
           render();
         }
