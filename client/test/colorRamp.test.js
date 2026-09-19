@@ -271,6 +271,21 @@ test('the dark theme stays a working theme, not a light one on a dark page', () 
   }
 });
 
+test('dark --text-brand stays readable on the surface chips and cards sit on', () => {
+  // WHY: the fill only has to clear the canvas, but brand text is set on --surface-2. The shipped
+  // seed's brand-700 was 6.24:1 on the canvas and 4.21:1 there — a pass on the pairing the engine
+  // measured, a fail on the one the product renders.
+  for (const cfg of configs) {
+    const p = generatePalette(cfg);
+    const dark = p.roles.dark.__resolved;
+    const ratio = contrastRatio(dark.textBrand, dark.surface2);
+    assert.ok(
+      ratio >= 4.5,
+      `${JSON.stringify(cfg)}: dark text-brand ${dark.textBrand} is ${ratio.toFixed(2)}:1 on ${dark.surface2}`,
+    );
+  }
+});
+
 test('hover is a visible change, never a rounding difference', () => {
   for (const cfg of configs) {
     const { roles } = generatePalette(cfg);
