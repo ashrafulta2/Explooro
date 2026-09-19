@@ -279,7 +279,7 @@
     --brand-hover: var(--brand-800);
     --brand-active: var(--brand-900);
     --brand-contrast: var(--neutral-950);
-    --text-brand: var(--brand-700);
+    --text-brand: var(--brand-600);
     --brand-alt: var(--brand-700);
     --brand-alt-contrast: var(--neutral-950);
 
@@ -346,7 +346,7 @@
   --brand-hover: var(--brand-800);
   --brand-active: var(--brand-900);
   --brand-contrast: var(--neutral-950);
-  --text-brand: var(--brand-700);
+  --text-brand: var(--brand-600);
   --brand-alt: var(--brand-700);
   --brand-alt-contrast: var(--neutral-950);
 

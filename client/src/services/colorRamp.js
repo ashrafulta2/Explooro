@@ -554,6 +554,19 @@ function buildDarkRoles({ brand, neutral, danger }) {
     }
   }
   const idx = BRAND_STEPS.indexOf(dStep);
+
+  // WHY --text-brand is no longer the same step as --brand: the fill only has to clear the canvas
+  // (surface-0), but brand-coloured TEXT is set on cards, chips and table rows — --surface-2 in dark
+  // — which is 15% lighter than the canvas. The shipped palette's brand-700 is 6.24:1 on the
+  // canvas and 4.21:1 there, so every chip and active tab painted with it failed AA. Walk lighter
+  // from the fill's own step until the text clears the lightest surface it is routinely set on,
+  // with the same 0.1 margin the status badges use so 1-decimal rounding cannot report a 4.4.
+  const textSurface = neutral[800];
+  let textStep = dStep;
+  for (let i = idx; i >= 0; i -= 1) {
+    textStep = BRAND_STEPS[i];
+    if (contrastRatio(brand[textStep], textSurface) >= 4.6) break;
+  }
   // Dark mode DEEPENS on press (themes.css §1.6 rule 1): surfaces rise toward the light, but a
   // control being pressed should read as recessed.
   const hoverStep = BRAND_STEPS[clamp(idx + 1, 0, BRAND_STEPS.length - 1)];
@@ -585,7 +598,7 @@ function buildDarkRoles({ brand, neutral, danger }) {
     '--brand-hover': `var(--brand-${hoverStep})`,
     '--brand-active': `var(--brand-${activeStep})`,
     '--brand-contrast': 'var(--neutral-950)',
-    '--text-brand': `var(--brand-${dStep})`,
+    '--text-brand': `var(--brand-${textStep})`,
     '--brand-alt': `var(--brand-${dStep})`,
     '--brand-alt-contrast': 'var(--neutral-950)',
 
@@ -623,7 +636,9 @@ function buildDarkRoles({ brand, neutral, danger }) {
 
     __resolved: {
       surface0: page,
+      surface2: textSurface,
       brand: brand[dStep],
+      textBrand: brand[textStep],
       brandContrast: neutral[950],
       flash: {
         bg: flash.fill,

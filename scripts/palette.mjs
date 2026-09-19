@@ -119,6 +119,7 @@ const TEXT_PAIRS = [
   ['text-secondary on surface-0', '--text-secondary', '--surface-0', 4.5],
   ['text-muted on surface-0', '--text-muted', '--surface-0', 4.5],
   ['text-brand on surface-0', '--text-brand', '--surface-0', 4.5],
+  ['text-brand on surface-2', '--text-brand', '--surface-2', 4.5],
   ['brand-contrast on brand (button)', '--brand-contrast', '--brand', 4.5],
   ['brand-contrast on brand-hover', '--brand-contrast', '--brand-hover', 4.5],
   ['brand-alt-contrast on brand-alt', '--brand-alt-contrast', '--brand-alt', 4.5],
