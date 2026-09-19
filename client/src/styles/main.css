@@ -48,8 +48,7 @@
    never opens an order. This is the lever vite.config.js's budget note describes. */
 /* Prompt 6.3: vault withdrawals & admin payout queue */
 @import './components/payout.css';
-/* Prompt 6.4: COD reconciliation & courier settlement */
-@import './components/cod-recon.css';
+/* Prompt 6.4: cod-recon.css is imported by CodReconciliationPage.js directly to code-split into route chunk */
 /* Prompt 6.5: earner vault & admin finance dashboard */
 @import './components/vault.css';
 /* Prompt 7.1: 3PL courier logistics & live tracking map */

@@ -2204,15 +2204,24 @@ export const adminHandlers = [
     method: 'GET',
     path: '/admin/finance/cod',
     handler({ query }) {
-      // Honours the same `status` / `courier` filters the page's two <select>s send, so filtering
-      // is exercised in mock mode instead of silently returning the whole list every time.
+      // Honours status, courier, has_variance, and search filters sent by the page.
       const status = query?.status || null;
       const courier = query?.courier || null;
+      const hasVariance = query?.has_variance === 'true' || query?.has_variance === true;
+      const search = (query?.q || query?.search || '').toLowerCase().trim();
       const limit = query?.limit ? parseInt(query.limit, 10) : 50;
 
-      const filtered = mockCodReconciliations.filter(
-        (r) => (!status || r.status === status) && (!courier || r.courier === courier)
-      );
+      const filtered = mockCodReconciliations.filter((r) => {
+        if (status && r.status !== status) return false;
+        if (courier && r.courier !== courier) return false;
+        if (hasVariance && Math.abs(parseFloat(r.variance || 0)) < 0.005) return false;
+        if (search) {
+          const matchConsignment = (r.consignment_id || '').toLowerCase().includes(search);
+          const matchSubOrder = (r.sub_order_ref || '').toLowerCase().includes(search);
+          if (!matchConsignment && !matchSubOrder) return false;
+        }
+        return true;
+      });
       const page = filtered.slice(0, limit);
 
       return {
@@ -2300,7 +2309,7 @@ export const adminHandlers = [
       }
 
       const courier = body?.courier || 'STEADFAST';
-      const batchRef = `BATCH-${courier}-${Date.now().toString(36).toUpperCase()}`;
+      const batchRef = (body?.batch_ref || '').trim() || `BATCH-${courier}-${Date.now().toString(36).toUpperCase()}`;
       let matchedCount = 0;
       let shortCount = 0;
       let missingDepositCount = 0;

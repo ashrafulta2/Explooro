@@ -1,70 +1,383 @@
 /**
- * cod-recon.css — Styling for COD Settlement Ingest, Aging Matrix & Reconciliation Dashboard (Prompt 6.4).
+ * cod-recon.css — Executive Styling for COD Settlement Ingest, Aging Matrix & Reconciliation Dashboard (Prompt 6.4).
+ * Enforces Explooro Design System tokens, WCAG AA contrast, and zero-gradient aesthetics.
  */
 
 .cod-recon-page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .cod-recon-page__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .cod-recon-page__header-actions {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
 }
 
+/* ==========================================================================
+   1. KPI Summary Cards Grid
+   ========================================================================== */
+.cod-recon-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+}
+
+.cod-recon-kpi-card {
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  box-shadow: var(--elevation-1);
+  transition: transform var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.cod-recon-kpi-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--elevation-2);
+}
+
+.cod-recon-kpi-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cod-recon-kpi-card__title {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.cod-recon-kpi-card__value {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-xs);
+}
+
+.cod-recon-kpi-card__value--danger {
+  color: var(--danger);
+}
+
+.cod-recon-kpi-card__value--warning {
+  color: var(--warning);
+}
+
+.cod-recon-kpi-card__value--success {
+  color: var(--success);
+}
+
+.cod-recon-kpi-card__hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   2. Aging Report Matrix Card
+   ========================================================================== */
 .cod-recon-page__aging-card {
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  box-shadow: var(--elevation-1);
 }
 
 .cod-recon-page__aging-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cod-recon-page__aging-table {
+  width: 100%;
+  margin-bottom: 0;
 }
 
 .cod-recon-page__aging-table th {
   white-space: nowrap;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  background: var(--surface-1);
 }
 
+.cod-recon-page__aging-table td {
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+
+.cod-recon-page__courier-link {
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  text-decoration: none;
+}
+
+.cod-recon-page__courier-link:hover {
+  color: var(--brand);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   3. Ingestion & Upload Section
+   ========================================================================== */
 .cod-recon-page__upload-card {
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.cod-recon-page__upload-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  max-width: 800px;
-}
-
-.cod-recon-page__csv-input {
-  width: 100%;
-  resize: vertical;
-}
-
-.cod-recon-page__upload-btn-wrap {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.cod-recon-page__queue-card {
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   padding: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  box-shadow: var(--elevation-1);
+}
+
+.cod-recon-upload__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.cod-recon-tabs {
+  display: inline-flex;
+  background: var(--surface-1);
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
+  gap: var(--space-1);
+  border: var(--border-width) solid var(--border-subtle);
+}
+
+.cod-recon-tab {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-standard);
+}
+
+.cod-recon-tab:hover {
+  color: var(--text-primary);
+}
+
+.cod-recon-tab--active {
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+  box-shadow: var(--elevation-1);
+}
+
+.cod-recon-upload__config-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: var(--space-4);
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .cod-recon-upload__config-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Force zero top-margin for fields in grid to ensure perfect vertical baseline alignment */
+.cod-recon-upload__config-grid .field {
+  margin-top: 0 !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cod-recon-upload__config-grid .field__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: var(--leading-xs);
+}
+
+/* Unified Control Wrapper (Select, Input, Affix) */
+.cod-recon-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-md);
+  height: 40px;
+  min-height: 40px;
+  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  box-sizing: border-box;
+}
+
+.cod-recon-control:hover:not(:has(:disabled)) {
+  border-color: var(--border-strong);
+}
+
+.cod-recon-control:focus-within {
+  border-color: var(--brand);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.cod-recon-control .input,
+.cod-recon-control .select {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  padding: 0 var(--space-3);
+  outline: none;
+}
+
+.cod-recon-control .select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: var(--space-8);
+}
+
+.cod-recon-control__chevron {
+  position: absolute;
+  right: var(--space-3);
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.cod-recon-control__chevron svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+}
+
+.cod-recon-control__affix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  user-select: none;
+}
+
+/* CSV Data Editor Frame */
+.cod-recon-csv-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: 0;
+}
+
+.cod-recon-csv-box__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.cod-recon-csv-box__label {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.cod-recon-csv-box__format-hint {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono, monospace);
+  color: var(--text-muted);
+  background: var(--surface-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-xs);
+}
+
+.cod-recon-csv-textarea-wrap {
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-md);
+  background: var(--surface-0);
+  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  overflow: hidden;
+}
+
+.cod-recon-csv-textarea-wrap:focus-within {
+  border-color: var(--brand);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.cod-recon-csv-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-xs);
+  line-height: var(--leading-base);
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+
+
+/* ==========================================================================
+   4. Discrepancy Queue & Filters Toolbar
+   ========================================================================== */
+.cod-recon-page__queue-card {
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: var(--elevation-1);
 }
 
 .cod-recon-page__queue-header {
@@ -75,11 +388,238 @@
   gap: var(--space-3);
 }
 
-.cod-recon-page__filters {
+.cod-recon-toolbar {
   display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.cod-recon-toolbar__search-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-md);
+  height: 38px;
+  min-width: 260px;
+  flex: 1;
+  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+  box-sizing: border-box;
+}
+
+.cod-recon-toolbar__search-control:focus-within {
+  border-color: var(--brand);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.cod-recon-toolbar__search-icon {
+  position: absolute;
+  left: var(--space-3);
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cod-recon-toolbar__search-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+}
+
+.cod-recon-toolbar__search-input {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  padding-left: calc(var(--space-3) + 22px);
+  padding-right: var(--space-3);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.cod-recon-toolbar__select-control {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface-0);
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-md);
+  height: 38px;
+  min-width: 160px;
+  box-sizing: border-box;
+  transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+
+.cod-recon-toolbar__select-control:focus-within {
+  border-color: var(--brand);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.cod-recon-toolbar__select-control .select {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  appearance: none;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  padding-left: var(--space-3);
+  padding-right: var(--space-8);
+  outline: none;
+  cursor: pointer;
+}
+
+.cod-recon-toolbar__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  padding: 0 var(--space-1);
+}
+
+.cod-recon-toolbar__toggle input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand);
+}
+
+/* Action Links in Queue Table */
+.cod-recon__order-link {
+  font-family: var(--font-mono, monospace);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cod-recon__order-link:hover {
+  color: var(--brand);
+  text-decoration: underline;
+}
+
+.cod-recon__copy-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+  transition: color var(--dur-fast);
+}
+
+.cod-recon__copy-btn:hover {
+  color: var(--text-primary);
+}
+
+/* ==========================================================================
+   5. Discrepancy Resolution Modal
+   ========================================================================== */
+.cod-recon-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+}
+
+.cod-recon-summary-card {
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: var(--space-2);
 }
 
+.cod-recon-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cod-recon-summary-item__label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cod-recon-summary-item__value {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.cod-recon-templates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.cod-recon-templates__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.cod-recon-template-chip {
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-full);
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-standard);
+  text-align: left;
+}
+
+.cod-recon-template-chip:hover {
+  border-color: var(--brand);
+  color: var(--text-primary);
+  background: var(--surface-0);
+}
+
+.cod-recon-template-chip--active {
+  border-color: var(--brand);
+  color: var(--text-primary);
+  background: var(--surface-2);
+  font-weight: var(--weight-medium);
+}
+
+.cod-recon-notice {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-3);
+  background: var(--warning-bg);
+  border: var(--border-width) solid var(--warning-border);
+  border-radius: var(--radius-md);
+  color: var(--warning);
+  font-size: var(--text-xs);
+  line-height: var(--leading-sm);
+}
+
+/* ==========================================================================
+   Loading & Empty States
+   ========================================================================== */
 .cod-recon-page__loading {
   display: flex;
   flex-direction: column;
@@ -89,3 +629,31 @@
   gap: var(--space-3);
   color: var(--text-secondary);
 }
+
+@media (max-width: 768px) {
+  .cod-recon-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cod-recon-toolbar .form-select,
+  .cod-recon-toolbar__search-wrap {
+    width: 100%;
+  }
+
+  .cod-recon-upload__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cod-recon-upload__actions-left,
+  .cod-recon-upload__actions-right {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .cod-recon-upload__actions-right .btn {
+    flex: 1;
+  }
+}
+

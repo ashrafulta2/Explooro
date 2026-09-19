@@ -72,6 +72,7 @@ export async function listReconciliations(req, reply) {
   const status = req.query.status || null;
   const courier = req.query.courier || null;
   const hasVariance = req.query.has_variance === 'true' || req.query.has_variance === true;
+  const search = req.query.search || req.query.q || null;
   const limit = req.query.limit ? parseInt(req.query.limit, 10) : 50;
   const cursor = req.query.cursor ? parseInt(req.query.cursor, 10) : null;
 
@@ -79,6 +80,7 @@ export async function listReconciliations(req, reply) {
     status,
     courier,
     hasVariance,
+    search,
     limit,
     cursor,
   });
