@@ -8,8 +8,25 @@ export const adminApi = {
   /**
    * Retrieves Executive Overview with 11 KPIs and timeframe comparison.
    */
-  async getOverview(timeframe = '30d') {
-    return api.get(`/admin/analytics/overview?timeframe=${timeframe}`);
+  async getOverview(range = '30d') {
+    // A preset ('7d' | '30d' | '90d' | '1y') or a custom `{ from, to }` ISO-date pair.
+    const qs =
+      typeof range === 'object' && range?.from && range?.to
+        ? `from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`
+        : `timeframe=${encodeURIComponent(typeof range === 'string' ? range : '30d')}`;
+    return api.get(`/admin/analytics/overview?${qs}`);
+  },
+
+  /**
+   * Fetches the data for a CSV export (same figures as getOverview). Kept separate from the read
+   * because the server gates it on `admin.analytics.export` and writes an audit row.
+   */
+  async exportOverview(range = '30d') {
+    const body =
+      typeof range === 'object' && range?.from && range?.to
+        ? { from: range.from, to: range.to }
+        : { timeframe: typeof range === 'string' ? range : '30d' };
+    return api.post('/admin/analytics/export', body);
   },
 
   /**

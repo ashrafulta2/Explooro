@@ -61,12 +61,22 @@ export default async function adminAnalyticsRoutes(fastify) {
     controller.restoreBackupHandler
   );
 
-  // 7. Manual Rollup Trigger
+  // 7. Manual Rollup Trigger — recomputes stored figures, so it has its own permission instead of
+  // riding on the read-only dashboard view.
   fastify.post(
     '/admin/analytics/rollup-now',
     {
-      preHandler: [fastify.authenticate, reqPerm('admin.dashboard.view')],
+      preHandler: [fastify.authenticate, reqPerm('admin.analytics.rollup')],
     },
     controller.triggerRollupHandler
+  );
+
+  // 8. CSV export data (audit-logged, HIGH-tier permission)
+  fastify.post(
+    '/admin/analytics/export',
+    {
+      preHandler: [fastify.authenticate, reqPerm('admin.analytics.export')],
+    },
+    controller.exportOverviewHandler
   );
 }

@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Exact versions from package-lock.json; fails if the lockfile is out of sync.
+      - run: npm ci
+
+      # .env is gitignored. The example documents every variable and defaults to mock drivers,
+      # so tests and the build run with no database, Redis or external service.
+      - name: Create .env from the committed example
+        run: cp .env.example .env
+
+      - name: Test (client + server)
+        run: npm test
+
+      # Includes the performance budget gate (150KB JS / 70KB CSS gzipped) and the prerender step.
+      - name: Build
+        run: npm run build
