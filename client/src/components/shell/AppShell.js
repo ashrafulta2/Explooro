@@ -26,6 +26,14 @@ import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.js';
 import { CartDrawer } from '../cart/CartDrawer.js';
 import { initCart } from '../../services/cart.js';
 
+const BACK_PORTAL_ROOTS = ['/admin', '/moderator', '/saler', '/supplier'];
+
+/** The dashboard root of the portal `pathname` belongs to, or null on a root page or elsewhere. */
+function portalRoot(pathname) {
+  const path = pathname.replace(/\/+$/, '');
+  return BACK_PORTAL_ROOTS.find((root) => path.startsWith(`${root}/`)) ?? null;
+}
+
 function isTextInput(el) {
   return Boolean(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 }
@@ -96,29 +104,36 @@ export function createAppShell({ container, navigate }) {
     next.setSelectionRange(next.value.length, next.value.length);
   }
 
-  // Back control for /admin/* sub-pages: a bare "‹" injected at the start of the page's own heading,
-  // with the destination named in its tooltip. The /admin dashboard is the root, so it has none.
+  // Back control for the sub-pages of the staff/seller portals: a bare "‹" injected at the start of
+  // the page's own heading, with the destination named in its tooltip. Each portal's dashboard is
+  // its root, so it has none. The customer /account pages render their own back links.
   //
-  // WHY it is injected rather than rendered by each page: ~59 admin pages own their headers, and a
+  // WHY it is injected rather than rendered by each page: ~100 portal pages own their headers, and a
   // control every one of them had to remember to render is one half of them would forget (System
   // Health did). core/router.js empties `pageOutlet` on every navigation and pages re-render their
   // headers on tab switches and polling, so a MutationObserver re-attaches it; sync is idempotent so
   // its own insertion doesn't loop.
-  let backEnabled = false;
+  let backRoot = null;
 
   function backTarget() {
     const fromPath = window.history.state?.fromPath || null;
     // fromTitle is the previous page's document.title, e.g. "Users — Explooro".
     const fromTitle = (window.history.state?.fromTitle || '').replace(/\s+[—–-]\s+Explooro$/, '').trim();
     return {
-      href: fromPath || '/admin',
+      href: fromPath || backRoot,
       name: (fromPath && fromTitle) || t('common.dashboard'),
     };
   }
 
   function syncBackButton() {
     const existing = pageOutlet.querySelectorAll('.shell-back');
-    if (!backEnabled) {
+    if (!backRoot) {
+      existing.forEach((el) => el.remove());
+      return;
+    }
+    // A page that ships its own back control (marked data-nav-back, as navBack.js's are) keeps it —
+    // two competing "back" affordances on one page is worse than none.
+    if (pageOutlet.querySelector('[data-nav-back]:not(.shell-back)')) {
       existing.forEach((el) => el.remove());
       return;
     }
@@ -142,7 +157,7 @@ export function createAppShell({ container, navigate }) {
       link = document.createElement('a');
       link.className = heading ? 'shell-back' : 'shell-back shell-back--standalone';
       link.innerHTML = CHEVRON_LEFT_SVG.replace('back-btn__chevron', 'shell-back__chevron');
-      bindBackControl(link, navigate, '/admin');
+      bindBackControl(link, navigate, backRoot);
       wantedParent.prepend(link);
     }
     if (link.getAttribute('href') !== href) link.setAttribute('href', href);
@@ -154,7 +169,7 @@ export function createAppShell({ container, navigate }) {
 
   let backSyncQueued = false;
   new MutationObserver(() => {
-    if (!backEnabled || backSyncQueued) return;
+    if (!backRoot || backSyncQueued) return;
     backSyncQueued = true;
     requestAnimationFrame(() => {
       backSyncQueued = false;
@@ -162,15 +177,15 @@ export function createAppShell({ container, navigate }) {
     });
   }).observe(pageOutlet, { childList: true, subtree: true });
 
-  function renderBackBar(show) {
-    backEnabled = show;
+  function renderBackBar(root) {
+    backRoot = root;
     syncBackButton();
   }
 
   function render() {
     const s = appStore.get();
     if (!s.auth.isAuthenticated || !s.auth.role) {
-      renderBackBar(false);
+      renderBackBar(null);
       sidebarSlot.replaceChildren();
       mobileNavSlot.replaceChildren();
       shellEl.dataset.hasChrome = 'guest';
@@ -186,7 +201,7 @@ export function createAppShell({ container, navigate }) {
     shellEl.dataset.hasChrome = 'true';
     const ctx = currentCtx();
     const currentPath = window.location.pathname;
-    renderBackBar(currentPath.replace(/\/+$/, '').startsWith('/admin/'));
+    renderBackBar(portalRoot(currentPath));
     const oldSidebar = sidebarSlot.querySelector('.sidebar');
     const sidebarScrollTop = oldSidebar ? oldSidebar.scrollTop : 0;
 
