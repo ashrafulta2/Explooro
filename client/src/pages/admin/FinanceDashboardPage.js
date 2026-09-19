@@ -252,13 +252,13 @@ export default function FinanceDashboardPage(root, { navigate } = {}) {
             <a href="#/admin/finance/subscriptions" class="btn btn--secondary">
               🔁 ${t('admin_subscriptions.page_title', 'Subscriptions')}
             </a>
-            <a href="#/admin/finance/b2b-escrow" class="btn btn--secondary">
+            <a href="/admin/finance/b2b-escrow" class="btn btn--secondary">
               🤝 B2B Escrow
             </a>
-            <a href="#/admin/finance/escrow" class="btn btn--secondary">
+            <a href="/admin/finance/escrow" class="btn btn--secondary">
               ⏳ ${t('finance_admin.goto_escrow')}
             </a>
-            <a href="#/admin/cod-reconciliation" class="btn btn--secondary">
+            <a href="/admin/cod-reconciliation" class="btn btn--secondary">
               📦 ${t('finance_admin.goto_cod')}
             </a>
           </div>
