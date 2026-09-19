@@ -137,18 +137,18 @@ export default function BundleStudioPage(root, ctx) {
       <h3 class="saler-card__title">${t('bundle.config_heading')}</h3>
       <div class="saler-two-col--equal">
         <div class="saler-stack--xs">
-          <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('bundle.title_en_label')}</label>
+          <label for="bundle-title-en" class="text-xs font-bold text-muted uppercase tracking-wider">${t('bundle.title_en_label')}</label>
           <input type="text" id="bundle-title-en" class="input input--sm w-full" placeholder="e.g. Executive Office Combo" value="Executive Office Outfit Combo" />
         </div>
         <div class="saler-stack--xs">
-          <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('bundle.title_bn_label')}</label>
+          <label for="bundle-title-bn" class="text-xs font-bold text-muted uppercase tracking-wider">${t('bundle.title_bn_label')}</label>
           <input type="text" id="bundle-title-bn" class="input input--sm w-full" placeholder="যেমন: এক্সিকিউটিভ অফিস কম্বো" value="এক্সিকিউটিভ অফিস কম্বো বান্ডেল" />
         </div>
       </div>
       <div class="saler-stack--xs">
         <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('bundle.bundle_price_label')} (৳)</label>
         <div class="saler-row">
-          <input type="number" id="bundle-price-input" class="input input--sm font-mono font-bold text-lg" style="width: 180px;" placeholder="0.00" step="10" />
+          <input type="number" id="bundle-price-input" aria-label="${t('bundle.bundle_price_label')}" class="input input--sm font-mono font-bold text-lg" style="width: 180px;" placeholder="0.00" step="10" />
           <span class="text-xs text-muted">${t('bundle.price_hint')}</span>
         </div>
       </div>
@@ -173,7 +173,7 @@ export default function BundleStudioPage(root, ctx) {
     catalogCard.innerHTML = `
       <div class="saler-row--between">
         <h3 class="saler-card__title m-0">${t('bundle.catalog_picker_heading')}</h3>
-        <input type="text" id="catalog-search-input" class="input input--sm text-sm" style="width: 240px;" placeholder="${t('bundle.search_products_placeholder')}" />
+        <input type="text" id="catalog-search-input" aria-label="${t('bundle.search_products_placeholder')}" class="input input--sm text-sm" style="width: 240px;" placeholder="${t('bundle.search_products_placeholder')}" />
       </div>
       <div id="catalog-picker-grid" class="saler-bundle-picker-grid">
         <p class="text-sm text-muted py-4 text-center" style="grid-column: 1 / -1;">${t('common.loading')}</p>

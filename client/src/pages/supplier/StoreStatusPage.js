@@ -491,6 +491,7 @@ export default function StoreStatusPage(root) {
       if (dayData.is_open) {
         const openSelect = document.createElement('select');
         openSelect.className = 'supplier-day-card__time-select';
+        openSelect.setAttribute('aria-label', `${dayName} ${t('supplier.day_open_time', 'opening time')}`);
         openSelect.innerHTML = TIME_OPTIONS.map((time) => `
           <option value="${time}" ${time === dayData.open_time ? 'selected' : ''}>${time}</option>
         `).join('');
@@ -501,6 +502,7 @@ export default function StoreStatusPage(root) {
 
         const closeSelect = document.createElement('select');
         closeSelect.className = 'supplier-day-card__time-select';
+        closeSelect.setAttribute('aria-label', `${dayName} ${t('supplier.day_close_time', 'closing time')}`);
         closeSelect.innerHTML = TIME_OPTIONS.map((time) => `
           <option value="${time}" ${time === dayData.close_time ? 'selected' : ''}>${time}</option>
         `).join('');

@@ -12,7 +12,10 @@
 .sourcing-hero__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--space-3); }
 .sourcing-stat-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
 .sourcing-stat-card__label { font-size: var(--text-xs); color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
-.sourcing-stat-card__value { font-size: var(--text-lg); font-weight: 700; color: var(--brand-700); font-variant-numeric: tabular-nums; }
+/* WHY: --brand-700 is a fill shade (3.0:1 on the white stat card — fails WCAG AA). --text-brand is
+   the accessibility-checked brand text token (5.6:1). See CLAUDE.md "--brand is a fill token and
+   --text-brand is the text one". */
+.sourcing-stat-card__value { font-size: var(--text-lg); font-weight: 700; color: var(--text-brand); font-variant-numeric: tabular-nums; }
 
 /* Filter Bar */
 .sourcing-filter-bar { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
@@ -122,7 +125,9 @@
 }
 
 .sourcing-card__margin-badge {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  /* WHY: white on the #059669→#10b981 gradient dips to 3.8:1 (fails AA), and a gradient on a card
+     surface breaks the zero-gradient design rule. Solid --success-700 gives white text 5.1:1. */
+  background: var(--success-700);
   color: #ffffff;
   font-size: 11px;
   font-weight: 800;
@@ -199,7 +204,7 @@
 .sourcing-card__category {
   font-size: 11px;
   font-weight: 700;
-  color: var(--brand-600);
+  color: var(--text-brand); /* WHY: --brand-600 is 2.4:1 on white — fails WCAG AA. Text token is 5.6:1. */
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -261,7 +266,7 @@
 .sourcing-card__profit-val {
   font-size: var(--text-sm);
   font-weight: 800;
-  color: #059669;
+  color: var(--success-700); /* WHY: #059669 is 3.6:1 on white — fails WCAG AA. --success-700 (#007f39) is 5.1:1. */
   font-variant-numeric: tabular-nums;
 }
 
@@ -338,7 +343,7 @@
 .profit-calc__card--highlight { background: var(--surface-0); border: 2px solid var(--brand-600); }
 .profit-calc__card-label { font-size: var(--text-xs); color: var(--text-muted); font-weight: 500; }
 .profit-calc__card-val { font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-.profit-calc__card--highlight .profit-calc__card-val { color: var(--brand-700); font-size: var(--text-xl); }
+.profit-calc__card--highlight .profit-calc__card-val { color: var(--text-brand); font-size: var(--text-xl); } /* WHY: --brand-700 is 2.8:1 on white — fails AA. --text-brand is the accessible token. */
 .profit-calc__card-sub { font-size: 11px; color: var(--text-secondary); }
 .profit-calc__bar-wrap { display: flex; flex-direction: column; gap: var(--space-2); }
 .profit-calc__bar-label { font-size: var(--text-xs); color: var(--text-secondary); display: flex; justify-content: space-between; }
@@ -360,7 +365,7 @@
 /* Margin Projection */
 .margin-projection { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
 .margin-projection__title { font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin: 0; }
-.margin-projection__summary-val { font-size: var(--text-lg); font-weight: 700; color: var(--brand-700); font-variant-numeric: tabular-nums; }
+.margin-projection__summary-val { font-size: var(--text-lg); font-weight: 700; color: var(--text-brand); font-variant-numeric: tabular-nums; } /* WHY: --brand-700 is 2.9:1 on white — fails AA. --text-brand is accessible. */
 .margin-projection__svg-container { width: 100%; overflow-x: auto; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-0); padding: var(--space-3) var(--space-2); }
 .margin-projection__svg { width: 100%; min-width: 400px; height: 180px; display: block; }
 .margin-chart-grid { stroke: var(--border-subtle); stroke-dasharray: 4 4; }

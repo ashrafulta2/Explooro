@@ -144,7 +144,9 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: rgba(239, 68, 68, 0.9);
+  /* WHY: white ✕ on rgba(239,68,68,.9) composites to ~3.4:1 (fails AA). Solid --danger (#cc0002)
+     gives white 5.9:1. */
+  background: var(--danger, #cc0002);
   color: #ffffff;
   border: none;
   cursor: pointer;

@@ -147,6 +147,7 @@ export default function SupplierShipmentsPage(root) {
           id="shipment-search-input"
           class="input input--sm"
           style="width: 100%;"
+          aria-label="Search by tracking number, Order Ref, or recipient name"
           placeholder="Search by Tracking # (e.g. STF-88), Order Ref, or recipient name..."
           value="${searchQuery}"
         />

@@ -110,9 +110,9 @@ export default function StoriesFeedPage(root, ctx = {}) {
     bannersContainer.innerHTML = `
       <div class="relative h-48 md:h-64 flex items-end p-6 bg-cover bg-center text-white" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${b.image_url_desktop || b.image_url_mobile}')">
         <div class="space-y-2 max-w-xl">
-          <span class="badge ${b.isSponsored ? 'badge-primary' : 'badge-warning'} text-xs font-mono font-bold uppercase">${b.isSponsored ? 'Ad' : 'Featured Story'}</span>
-          <h3 class="text-xl md:text-2xl font-bold m-0">${title}</h3>
-          <a href="${b.target_link}" class="btn btn-sm btn-primary inline-flex items-center gap-1 text-xs banner-link">
+          <span class="badge ${b.isSponsored ? 'badge--primary' : 'badge--warning'} text-xs font-mono font-bold uppercase">${b.isSponsored ? 'Ad' : 'Featured Story'}</span>
+          <h3 class="text-xl md:text-2xl font-bold m-0" style="color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.6);">${title}</h3>
+          <a href="${b.target_link}" class="btn btn--sm btn--primary inline-flex items-center gap-1 text-xs banner-link">
             ${t('content.explore_story')} ➔
           </a>
         </div>

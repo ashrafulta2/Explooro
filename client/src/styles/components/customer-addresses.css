@@ -258,19 +258,21 @@
   color: var(--text-secondary);
 }
 
+/* WHY: the -600/-500 hues (#2563eb/#7c3aed/#10b981) fall to 4.4:1 or below on their 10% tints —
+   below WCAG AA 4.5:1 for this small text. Darkened one step to the -700 hue, hue preserved. */
 .address-card__type-tag--home {
   background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
+  color: #1d4ed8;
 }
 
 .address-card__type-tag--office {
   background: rgba(124, 58, 237, 0.1);
-  color: #7c3aed;
+  color: #6b21a8;
 }
 
 .address-card__type-tag--other {
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: #047857;
 }
 
 .address-card__default-badge {

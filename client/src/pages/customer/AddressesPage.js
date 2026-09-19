@@ -243,7 +243,7 @@ function renderAddressCard(addr, onRefresh, isBn) {
   card.innerHTML = `
     <div class="address-card__header">
       <div class="address-card__type-tag address-card__type-tag--${labelType}">
-        <span>${icon}</span>
+        <span aria-hidden="true">${icon}</span>
         <span>${labelText}</span>
       </div>
       ${addr.is_default ? `<div class="address-card__default-badge">⭐ ${t('customer_addresses.badge_primary', 'Default')}</div>` : ''}

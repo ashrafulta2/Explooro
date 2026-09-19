@@ -17,7 +17,7 @@ export function ThreadList({ threads = [], selectedThreadId = null, onSelectThre
     <div class="thread-list-search">
       <div class="thread-search-input-wrap">
         <span class="thread-search-icon">🔍</span>
-        <input type="text" class="input input--sm" id="thread-search-input" placeholder="${t('chat.search_threads') || 'Search conversations...'}" />
+        <input type="text" class="input input--sm" id="thread-search-input" aria-label="${t('chat.search_threads') || 'Search conversations...'}" placeholder="${t('chat.search_threads') || 'Search conversations...'}" />
       </div>
     </div>
     <div class="thread-items-container" id="thread-items-box"></div>

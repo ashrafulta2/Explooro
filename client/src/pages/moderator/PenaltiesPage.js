@@ -17,15 +17,15 @@ import { toast } from '../../services/toast.js';
 import { formatDate } from '../../services/format.js';
 
 const PENALTY_TYPES = [
-  { key: 'WARNING',      icon: '⚠️', labelKey: 'mod_penalties.ptype_warning',      color: 'var(--warning-700,#854d0e)', bg: 'var(--warning-100,#fef9c3)', border: 'var(--warning-300,#fde047)', requiresDuration: false },
-  { key: 'TEMP_BAN',     icon: '🚫', labelKey: 'mod_penalties.ptype_temp_ban',     color: 'var(--danger-700,#b91c1c)',  bg: 'var(--danger-100,#fee2e2)',  border: 'var(--danger-300,#fca5a5)',  requiresDuration: true  },
+  { key: 'WARNING',      icon: '⚠️', labelKey: 'mod_penalties.ptype_warning',      color: 'var(--warning-800,#854d0e)', bg: 'var(--warning-100,#fef9c3)', border: 'var(--warning-300,#fde047)', requiresDuration: false },
+  { key: 'TEMP_BAN',     icon: '🚫', labelKey: 'mod_penalties.ptype_temp_ban',     color: 'var(--danger-800,#7f1d1d)',  bg: 'var(--danger-100,#fee2e2)',  border: 'var(--danger-300,#fca5a5)',  requiresDuration: true  },
   { key: 'PERM_BAN',     icon: '🔴', labelKey: 'mod_penalties.ptype_perm_ban',     color: 'var(--danger-800,#7f1d1d)',  bg: 'var(--danger-100,#fee2e2)',  border: 'var(--danger-500,#ef4444)',  requiresDuration: false },
-  { key: 'SCORE_DEDUCT', icon: '📉', labelKey: 'mod_penalties.ptype_score_deduct', color: 'var(--info-700,#1e3a5f)',    bg: 'var(--info-100,#dbeafe)',    border: 'var(--info-300,#93c5fd)',    requiresDuration: false },
+  { key: 'SCORE_DEDUCT', icon: '📉', labelKey: 'mod_penalties.ptype_score_deduct', color: 'var(--info-800,#005593)',    bg: 'var(--info-100,#dbeafe)',    border: 'var(--info-300,#93c5fd)',    requiresDuration: false },
 ];
 
 const STATUS_COLORS = {
-  ACTIVE:   { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-700,#b91c1c)',    border: 'var(--danger-300,#fca5a5)',  labelKey: 'mod_penalties.status_active' },
-  LIFTED:   { bg: 'var(--success-100,#dcfce7)', text: 'var(--success-700,#15803d)',   border: 'var(--success-300,#86efac)', labelKey: 'mod_penalties.status_lifted' },
+  ACTIVE:   { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-800,#7f1d1d)',    border: 'var(--danger-300,#fca5a5)',  labelKey: 'mod_penalties.status_active' },
+  LIFTED:   { bg: 'var(--success-100,#dcfce7)', text: 'var(--success-800,#166534)',   border: 'var(--success-300,#86efac)', labelKey: 'mod_penalties.status_lifted' },
   EXPIRED:  { bg: 'var(--surface-2,#f1f5f9)',   text: 'var(--text-secondary,#64748b)',border: 'var(--border-default,#cbd5e1)', labelKey: 'mod_penalties.status_expired' },
 };
 
@@ -158,6 +158,7 @@ export default function PenaltiesPage(root) {
           ` : `
             <div style="position:relative;">
               <input id="inp-user-search" type="text" value="${searchQuery}"
+                aria-label="${t('mod_penalties.search_label', 'Search for a user')}"
                 placeholder="${t('mod_penalties.search_placeholder', 'Name, phone, email or user ID…')}"
                 style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border-default,#e2e8f0);
                 font-size:0.875rem;background:var(--surface-0,#f8fafc);box-sizing:border-box;">
@@ -192,7 +193,7 @@ export default function PenaltiesPage(root) {
         <!-- Duration (if applicable) -->
         ${pt.requiresDuration ? `
           <div style="margin-bottom:16px;">
-            <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--text-secondary,#64748b);margin-bottom:6px;text-transform:uppercase;">
+            <label for="inp-duration" style="display:block;font-size:0.8rem;font-weight:600;color:var(--text-secondary,#64748b);margin-bottom:6px;text-transform:uppercase;">
               ${t('mod_penalties.duration_label', 'Duration (days)')}
             </label>
             <input id="inp-duration" type="number" min="1" max="365" value="${durationDays}"
@@ -203,7 +204,7 @@ export default function PenaltiesPage(root) {
 
         <!-- Reason -->
         <div style="margin-bottom:20px;">
-          <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--text-secondary,#64748b);margin-bottom:6px;text-transform:uppercase;">
+          <label for="inp-reason" style="display:block;font-size:0.8rem;font-weight:600;color:var(--text-secondary,#64748b);margin-bottom:6px;text-transform:uppercase;">
             ${t('mod_penalties.reason_label', 'Reason')} <span style="color:var(--danger-700,#b91c1c);">*</span>
           </label>
           <textarea id="inp-reason" rows="3"
@@ -236,7 +237,7 @@ export default function PenaltiesPage(root) {
         <h2 style="margin:0 0 16px;font-size:1rem;font-weight:700;color:var(--text-primary,#0f172a);
           display:flex;align-items:center;gap:8px;">
           🔴 ${t('mod_penalties.active_title', 'Active Penalties')}
-          ${activePenalties.length>0?`<span style="font-size:0.75rem;padding:2px 10px;border-radius:999px;background:var(--danger-100,#fee2e2);color:var(--danger-700,#b91c1c);border:1px solid var(--danger-300,#fca5a5);">${activePenalties.length}</span>`:''}
+          ${activePenalties.length>0?`<span style="font-size:0.75rem;padding:2px 10px;border-radius:999px;background:var(--danger-100,#fee2e2);color:var(--danger-800,#7f1d1d);border:1px solid var(--danger-300,#fca5a5);">${activePenalties.length}</span>`:''}
         </h2>
         ${loadingHistory ? pulse : activePenalties.length===0 ? `
           <p style="margin:0;padding:20px 0;text-align:center;font-size:0.875rem;color:var(--text-secondary,#64748b);">

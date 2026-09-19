@@ -18,9 +18,9 @@ import { toast } from '../../services/toast.js';
 import { formatDate } from '../../services/format.js';
 
 const AI_SCORE_CONFIG = {
-  SAFE:     { bg: 'var(--success-100,#dcfce7)', text: 'var(--success-700,#15803d)', border: 'var(--success-300,#86efac)', icon: '🟢', labelKey: 'mod_ugc.ai_safe' },
-  FLAGGED:  { bg: 'var(--warning-100,#fef9c3)', text: 'var(--warning-700,#854d0e)', border: 'var(--warning-300,#fde047)', icon: '🟡', labelKey: 'mod_ugc.ai_flagged' },
-  EXPLICIT: { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-700,#b91c1c)',  border: 'var(--danger-300,#fca5a5)',  icon: '🔴', labelKey: 'mod_ugc.ai_explicit' },
+  SAFE:     { bg: 'var(--success-100,#dcfce7)', text: 'var(--success-800,#166534)', border: 'var(--success-300,#86efac)', icon: '🟢', labelKey: 'mod_ugc.ai_safe' },
+  FLAGGED:  { bg: 'var(--warning-100,#fef9c3)', text: 'var(--warning-800,#854d0e)', border: 'var(--warning-300,#fde047)', icon: '🟡', labelKey: 'mod_ugc.ai_flagged' },
+  EXPLICIT: { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-800,#7f1d1d)',  border: 'var(--danger-300,#fca5a5)',  icon: '🔴', labelKey: 'mod_ugc.ai_explicit' },
 };
 
 const CONTENT_TYPES = ['ALL', 'PRODUCT_REVIEW', 'UNBOXING', 'TUTORIAL', 'LIFESTYLE', 'LIVE_REPLAY'];
@@ -133,7 +133,7 @@ export default function UgcModerationPage(root) {
           <div style="position:relative;flex-shrink:0;width:120px;height:68px;border-radius:8px;overflow:hidden;
             background:linear-gradient(135deg,hsl(${hue},60%,40%),hsl(${hue+60},60%,60%));">
             <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-              <span style="font-size:1.5rem;">▶</span>
+              <span aria-hidden="true" style="font-size:1.5rem;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.6);">▶</span>
             </div>
             <div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.75);color:#fff;
               font-size:0.65rem;font-weight:600;padding:1px 5px;border-radius:3px;">
@@ -162,7 +162,7 @@ export default function UgcModerationPage(root) {
             </p>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-            <input type="checkbox" class="chk-ugc" data-id="${item.id}" ${sel?'checked':''}>
+            <input type="checkbox" class="chk-ugc" data-id="${item.id}" ${sel?'checked':''} aria-label="${t('mod_ugc.select_item', 'Select item')} ${item.id}">
             <span style="font-size:0.9rem;transform:rotate(${exp?180:0}deg);transition:transform 0.2s;">▼</span>
           </div>
         </div>

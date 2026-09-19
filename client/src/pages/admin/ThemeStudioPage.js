@@ -812,12 +812,12 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
               <circle cx="50" cy="50" r="9" fill="var(--logo-hole, var(--neutral-900))" />
             </svg>
           </div>
-          <span style="font-weight: 700; color: var(--logo-text, var(--navbar-text)); font-size: 13px;">EXPL<span style="color: var(--brand, #ffbc00);">O</span>ORO</span>
+          <span style="font-weight: 700; color: var(--logo-text, var(--navbar-text)); font-size: 13px;">EXPL<span data-brand style="color: var(--brand, #ffbc00);">O</span>ORO</span>
         </div>
         <div style="padding: 3px 10px; background: var(--navbar-search-bg); border: 1px solid var(--navbar-border); border-radius: 4px; font-size: 10px; color: var(--navbar-text);">
           Search products, brands…
         </div>
-        <div style="display: flex; gap: 8px; align-items: center; color: var(--navbar-icon-color, var(--brand-800)); font-size: 12px;">
+        <div aria-hidden="true" style="display: flex; gap: 8px; align-items: center; color: var(--navbar-icon-color, var(--brand-800)); font-size: 12px;">
           <span>🛒</span>
           <span>🔔</span>
           <span>👤</span>

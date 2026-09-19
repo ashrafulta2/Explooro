@@ -744,6 +744,7 @@ function renderSearchSuggest() {
   input.type = 'search';
   input.className = 'topbar__product-search-input';
   input.placeholder = 'Search products, brands, categories…';
+  input.setAttribute('aria-label', 'Search products, brands, categories');
   input.autocomplete = 'off';
 
   form.append(btn, input);
@@ -2625,7 +2626,7 @@ function renderSupplierHelpSpecimen() {
       <span class="badge badge--success text-xs font-mono">4/5 Completed (80%)</span>
     </div>
     <div class="supplier-checklist-item supplier-checklist-item--done" style="margin-top: 8px;">
-      <input type="checkbox" checked />
+      <input type="checkbox" checked aria-label="Register & Price Your Products" />
       <div>
         <div style="font-weight: 700; font-size: 13px;">1. Register & Price Your Products</div>
         <div style="font-size: 11px; color: var(--text-secondary);">Set competitive wholesale margins for Saler storefronts.</div>

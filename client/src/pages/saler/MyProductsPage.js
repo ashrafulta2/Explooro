@@ -120,22 +120,23 @@ export default function MyProductsPage(root, { navigate } = {}) {
           type="text"
           id="product-search"
           class="input input--sm w-full"
+          aria-label="${t('saler_products.search_placeholder')}"
           placeholder="${t('saler_products.search_placeholder')}"
           value="${searchQuery}"
         />
       </div>
       <div class="saler-toolbar__filters">
-        <select id="category-filter" class="select select--sm">
+        <select id="category-filter" class="select select--sm" aria-label="${t('saler_products.filter_all_categories')}">
           <option value="all">${t('saler_products.filter_all_categories')}</option>
           <option value="Clothing">Clothing</option>
           <option value="Electronics">Electronics</option>
           <option value="Home & Kitchen">Home & Kitchen</option>
         </select>
-        <select id="stock-filter" class="select select--sm">
+        <select id="stock-filter" class="select select--sm" aria-label="${t('saler_products.filter_all_stock')}">
           <option value="all">${t('saler_products.filter_all_stock')}</option>
           <option value="in_stock">${t('saler_products.filter_in_stock_only')}</option>
         </select>
-        <select id="sort-filter" class="select select--sm">
+        <select id="sort-filter" class="select select--sm" aria-label="${t('saler_products.sort_label', 'Sort products')}">
           <option value="margin_desc">${t('saler_products.sort_margin_desc')}</option>
           <option value="price_asc">${t('saler_products.sort_price_asc')}</option>
           <option value="price_desc">${t('saler_products.sort_price_desc')}</option>
@@ -310,6 +311,7 @@ export default function MyProductsPage(root, { navigate } = {}) {
             <input
               type="number"
               class="saler-price-edit-input"
+              aria-label="${t('saler_products.retail_price_label', 'Retail price')}: ${title}"
               value="${retail}"
               min="${minPrice}"
               data-id="${p.id}"
