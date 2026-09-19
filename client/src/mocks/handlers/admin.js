@@ -1061,130 +1061,270 @@ export const adminHandlers = [
     },
   },
 
-  // 12. Staff Roster & Management
-  {
-    method: 'GET',
-    path: '/admin/staff',
-    handler({ query }) {
-      const q = (query?.q || '').toLowerCase();
-      const role = query?.role || 'ALL';
+  // 12–16b. Staff roster & governance.
+  //
+  // WHY stateful: these five handlers used to return a hard-coded array and a canned success for
+  // every write, so provisioning a member, suspending one or changing a role "worked" (a toast)
+  // and then the table reloaded to the same four rows. The page could not be demonstrated, and —
+  // worse — none of the guard rails the real endpoint must enforce (duplicate contact, last
+  // super admin, nothing-to-reset) could be exercised. The roster below is mutated in place, like
+  // the real table, and rules are enforced here so the page's error paths run for real.
+  ...(() => {
+    const STAFF_ROLES = [
+      { key: 'super_admin', label_en: 'Super Admin', label_bn: 'সুপার অ্যাডমিন', permissions_count: 86, privileged: true, description_en: 'Unrestricted control of every module, permission and setting.', description_bn: 'সব মডিউল, পারমিশন ও সেটিংসের ওপর পূর্ণ নিয়ন্ত্রণ।' },
+      { key: 'admin', label_en: 'Admin', label_bn: 'অ্যাডমিন', permissions_count: 52, privileged: true, description_en: 'Runs day-to-day operations; cannot change roles or platform policy.', description_bn: 'দৈনন্দিন পরিচালনা করেন; রোল বা প্ল্যাটফর্ম নীতি বদলাতে পারেন না।' },
+      { key: 'moderator', label_en: 'Moderator', label_bn: 'মডারেটর', permissions_count: 24, privileged: false, description_en: 'Trust & safety: reviews, disputes, restrictions and approvals.', description_bn: 'ট্রাস্ট ও সেফটি: রিভিউ, বিরোধ, বিধিনিষেধ ও অনুমোদন।' },
+      { key: 'editor', label_en: 'Editor', label_bn: 'এডিটর', permissions_count: 16, privileged: false, description_en: 'Catalog and campaign content; no access to money or people.', description_bn: 'ক্যাটালগ ও ক্যাম্পেইন কনটেন্ট; অর্থ বা ব্যবহারকারীর ওপর কোনো অ্যাক্সেস নেই।' },
+    ];
+    const roleOf = (key) => STAFF_ROLES.find((r) => r.key === key);
+    const hoursAgo = (h) => new Date(Date.now() - 3600000 * h).toISOString();
 
-      const staffList = [
-        { id: 1, ref: 'STF-001', full_name: 'Rahim Khan', email: 'rahim.khan@explooro.com', phone: '01711000001', role_key: 'super_admin', role_label_en: 'Super Admin', role_label_bn: 'সুপার অ্যাডমিন', department: 'Executive Operations', two_factor_enabled: true, status: 'ACTIVE', last_active_at: new Date().toISOString(), permissions_count: 86 },
-        { id: 4, ref: 'STF-002', full_name: 'Tariq Ahmed', email: 'tariq.moderation@explooro.com', phone: '01711000004', role_key: 'moderator', role_label_en: 'Moderator', role_label_bn: 'মডারেটর', department: 'Trust & Safety', two_factor_enabled: true, status: 'ACTIVE', last_active_at: new Date(Date.now() - 3600000 * 3).toISOString(), permissions_count: 24 },
-        { id: 5, ref: 'STF-003', full_name: 'Nusrat Jahan', email: 'nusrat.editor@explooro.com', phone: '01711000005', role_key: 'editor', role_label_en: 'Editor', role_label_bn: 'এডিটর', department: 'Content Commerce', two_factor_enabled: true, status: 'ACTIVE', last_active_at: new Date(Date.now() - 3600000 * 12).toISOString(), permissions_count: 16 },
-        { id: 8, ref: 'STF-004', full_name: 'Kamal Uddin', email: 'kamal.finance@explooro.com', phone: '01711000008', role_key: 'moderator', role_label_en: 'Finance Compliance', role_label_bn: 'ফাইন্যান্স কমপ্লায়েন্স', department: 'Finance & Escrow', two_factor_enabled: true, status: 'ACTIVE', last_active_at: new Date(Date.now() - 3600000 * 24).toISOString(), permissions_count: 28 },
-      ];
+    const staffRoster = [
+      { id: 1, ref: 'STF-001', full_name: 'Rahim Khan', email: 'rahim.khan@explooro.com', phone: '01711000001', role_key: 'super_admin', department: 'Executive Operations', two_factor_enabled: true, status: 'ACTIVE', last_active_at: new Date().toISOString(), created_at: hoursAgo(24 * 240) },
+      { id: 4, ref: 'STF-002', full_name: 'Tariq Ahmed', email: 'tariq.moderation@explooro.com', phone: '01711000004', role_key: 'moderator', department: 'Trust & Safety', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(3), created_at: hoursAgo(24 * 190) },
+      { id: 5, ref: 'STF-003', full_name: 'Nusrat Jahan', email: 'nusrat.editor@explooro.com', phone: '01711000005', role_key: 'editor', department: 'Content Commerce', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(12), created_at: hoursAgo(24 * 150) },
+      { id: 8, ref: 'STF-004', full_name: 'Kamal Uddin', email: 'kamal.finance@explooro.com', phone: '01711000008', role_key: 'moderator', department: 'Finance & Escrow', two_factor_enabled: true, status: 'ACTIVE', last_active_at: hoursAgo(24), created_at: hoursAgo(24 * 120) },
+    ];
+    // Timeline entries per staff id: { id, action, actor_name, before, after, reason, created_at }.
+    const staffTimeline = new Map();
+    let timelineSeq = 1;
 
-      let filtered = staffList.filter((s) => {
-        if (q && !s.full_name.toLowerCase().includes(q) && !s.email.toLowerCase().includes(q) && !s.ref.toLowerCase().includes(q) && !s.phone.includes(q)) {
-          return false;
-        }
-        if (role !== 'ALL' && s.role_key !== role) return false;
-        return true;
-      });
+    const STAFF_PHONE = /^01[3-9]\d{8}$/;
+    const STAFF_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-      return {
-        status: 200,
-        body: {
-          staff: filtered,
-          total: filtered.length,
-          vitals: {
-            total_staff: staffList.length,
-            active_staff: staffList.filter(s => s.status === 'ACTIVE').length,
-            two_factor_rate_pct: 100.0,
-            privileged_roles_count: staffList.filter(s => s.role_key === 'super_admin').length,
-          },
+    function fail(status, code, message_en, message_bn, details) {
+      return { status, body: { error: { code, message_en, message_bn, ...(details ? { details } : {}), trace_id: traceId() } } };
+    }
+    const notFound = () => fail(404, 'NOT_FOUND', 'Staff member not found.', 'স্টাফ সদস্য পাওয়া যায়নি।');
+    const activeSuperAdmins = () => staffRoster.filter((s) => s.role_key === 'super_admin' && s.status === 'ACTIVE');
+    const isLastSuperAdmin = (s) => s.role_key === 'super_admin' && s.status === 'ACTIVE' && activeSuperAdmins().length <= 1;
+    const lastSuperAdminError = () =>
+      fail(409, 'LAST_SUPER_ADMIN', 'This is the only active Super Admin. Promote another Super Admin first, otherwise nobody could recover the platform.', 'এটিই একমাত্র সক্রিয় সুপার অ্যাডমিন। আগে আরেকজনকে সুপার অ্যাডমিন করুন, নইলে প্ল্যাটফর্ম পুনরুদ্ধারের কেউ থাকবে না।');
+
+    function shape(s) {
+      const role = roleOf(s.role_key);
+      return { ...s, role_label_en: role?.label_en ?? s.role_key, role_label_bn: role?.label_bn ?? s.role_key, permissions_count: role?.permissions_count ?? 0 };
+    }
+    function record(staff, action, before, after, reason = null) {
+      const list = staffTimeline.get(staff.id) ?? [];
+      list.unshift({ id: timelineSeq++, action, actor_name: 'Rahim Khan', before, after, reason, created_at: new Date().toISOString() });
+      staffTimeline.set(staff.id, list);
+    }
+    const reasonOf = (body) => String(body?.reason ?? '').trim();
+    const needReason = (body) =>
+      reasonOf(body).length < 3
+        ? fail(422, 'VALIDATION_FAILED', 'A reason of at least 3 characters is required for the audit log.', 'অডিট লগের জন্য কমপক্ষে ৩ অক্ষরের কারণ দিতে হবে।', { field: 'reason' })
+        : null;
+
+    return [
+      // 12. List
+      {
+        method: 'GET',
+        path: '/admin/staff',
+        handler({ query }) {
+          const q = String(query?.q || '').trim().toLowerCase();
+          const role = query?.role || 'ALL';
+          const status = query?.status || 'ALL';
+          const twoFactor = query?.two_factor || 'ALL';
+          const limit = Math.min(50, Math.max(1, parseInt(query?.limit, 10) || 8));
+          const page = Math.max(1, parseInt(query?.page, 10) || 1);
+
+          const filtered = staffRoster.filter((s) => {
+            if (q && !`${s.full_name} ${s.email} ${s.ref} ${s.phone} ${s.department}`.toLowerCase().includes(q)) return false;
+            if (role !== 'ALL' && s.role_key !== role) return false;
+            if (status !== 'ALL' && s.status !== status) return false;
+            if (twoFactor === 'ENABLED' && !s.two_factor_enabled) return false;
+            if (twoFactor === 'PENDING' && s.two_factor_enabled) return false;
+            return true;
+          });
+          const totalPages = Math.max(1, Math.ceil(filtered.length / limit));
+          const safePage = Math.min(page, totalPages);
+          const rows = filtered.slice((safePage - 1) * limit, safePage * limit);
+
+          // Vitals describe the whole roster, never the filtered slice — a search must not make
+          // the security posture look different.
+          const usable = staffRoster.filter((s) => s.status !== 'SUSPENDED');
+          const withTwoFactor = usable.filter((s) => s.two_factor_enabled).length;
+          return {
+            status: 200,
+            body: {
+              staff: rows.map(shape),
+              total: filtered.length,
+              page: safePage,
+              limit,
+              total_pages: totalPages,
+              roles: STAFF_ROLES,
+              vitals: {
+                total_staff: staffRoster.length,
+                active_staff: staffRoster.filter((s) => s.status === 'ACTIVE').length,
+                invited_staff: staffRoster.filter((s) => s.status === 'INVITED').length,
+                two_factor_rate_pct: usable.length ? Math.round((withTwoFactor / usable.length) * 1000) / 10 : 0,
+                two_factor_pending: usable.length - withTwoFactor,
+                privileged_roles_count: activeSuperAdmins().length,
+              },
+            },
+          };
         },
-      };
-    },
-  },
+      },
 
-  // 13. Add / Provision Staff Member
-  {
-    method: 'POST',
-    path: '/admin/staff',
-    handler({ body }) {
-      const newStaff = {
-        id: Math.floor(100 + Math.random() * 900),
-        ref: `STF-00${Math.floor(5 + Math.random() * 20)}`,
-        full_name: body?.full_name || 'New Staff Member',
-        email: body?.email || 'staff@explooro.com',
-        phone: body?.phone || '01700000000',
-        role_key: body?.role_key || 'moderator',
-        role_label_en: body?.role_key === 'super_admin' ? 'Super Admin' : (body?.role_key === 'editor' ? 'Editor' : 'Moderator'),
-        role_label_bn: body?.role_key === 'super_admin' ? 'সুপার অ্যাডমিন' : (body?.role_key === 'editor' ? 'এডিটর' : 'মডারেটর'),
-        department: body?.department || 'Operations',
-        two_factor_enabled: false,
-        status: 'INVITED',
-        last_active_at: null,
-        permissions_count: 20,
-      };
-
-      return {
-        status: 201,
-        body: {
-          success: true,
-          staff: newStaff,
-          message_en: `Provisioned staff member ${newStaff.full_name} with role ${newStaff.role_label_en}. Temporary invitation credentials dispatched.`,
-          message_bn: `${newStaff.full_name}-কে সফলভাবে যোগ করা হয়েছে। সাময়িক ইনভিটেশন পাঠানো হয়েছে।`,
+      // 12b. Detail + timeline
+      {
+        method: 'GET',
+        path: '/admin/staff/:id',
+        handler({ params }) {
+          const s = staffRoster.find((x) => String(x.id) === String(params?.id));
+          if (!s) return notFound();
+          return { status: 200, body: { staff: shape(s), activity: staffTimeline.get(s.id) ?? [] } };
         },
-      };
-    },
-  },
+      },
 
-  // 14. Reset Staff 2FA
-  {
-    method: 'POST',
-    path: '/admin/staff/:id/reset-2fa',
-    handler({ params }) {
-      return {
-        status: 200,
-        body: {
-          success: true,
-          staff_id: params?.id,
-          message_en: 'Staff 2FA has been reset. The user will be required to configure TOTP on next login.',
-          message_bn: 'স্টাফের ২এফএ রিসেট করা হয়েছে। পরবর্তী লগইনে নতুন করে ২এফএ সেট করতে হবে।',
-        },
-      };
-    },
-  },
+      // 13. Provision
+      {
+        method: 'POST',
+        path: '/admin/staff',
+        handler({ body }) {
+          const full_name = String(body?.full_name ?? '').trim().replace(/\s+/g, ' ');
+          const email = String(body?.email ?? '').trim().toLowerCase();
+          const phone = String(body?.phone ?? '').replace(/[\s-]/g, '');
+          const department = String(body?.department ?? '').trim();
+          const role_key = body?.role_key;
 
-  // 15. Update Staff Role
-  {
-    method: 'PATCH',
-    path: '/admin/staff/:id/role',
-    handler({ params, body }) {
-      return {
-        status: 200,
-        body: {
-          success: true,
-          staff_id: params?.id,
-          new_role: body?.role_key,
-          message_en: 'Staff role updated successfully with audit trail recording.',
-          message_bn: 'স্টাফ রোল সফলভাবে আপডেট করা হয়েছে।',
-        },
-      };
-    },
-  },
+          if (full_name.length < 2) return fail(422, 'VALIDATION_FAILED', 'Enter the full name.', 'পূর্ণ নাম লিখুন।', { field: 'full_name' });
+          if (!STAFF_EMAIL.test(email)) return fail(422, 'VALIDATION_FAILED', 'Enter a valid work email.', 'সঠিক অফিস ইমেইল দিন।', { field: 'email' });
+          if (!STAFF_PHONE.test(phone)) return fail(422, 'VALIDATION_FAILED', 'Enter a valid Bangladeshi mobile number (01XXXXXXXXX).', 'সঠিক বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)।', { field: 'phone' });
+          if (!roleOf(role_key)) return fail(422, 'VALIDATION_FAILED', 'Choose a role.', 'একটি রোল নির্বাচন করুন।', { field: 'role_key' });
+          if (staffRoster.some((s) => s.email.toLowerCase() === email)) return fail(409, 'CONFLICT', 'A staff member with this email already exists.', 'এই ইমেইলে আগে থেকেই একজন স্টাফ আছেন।', { field: 'email' });
+          if (staffRoster.some((s) => s.phone === phone)) return fail(409, 'CONFLICT', 'A staff member with this mobile number already exists.', 'এই মোবাইল নম্বরে আগে থেকেই একজন স্টাফ আছেন।', { field: 'phone' });
 
-  // 16. Update Staff Status (Activate / Suspend)
-  {
-    method: 'PATCH',
-    path: '/admin/staff/:id/status',
-    handler({ params, body }) {
-      return {
-        status: 200,
-        body: {
-          success: true,
-          staff_id: params?.id,
-          status: body?.status,
-          message_en: `Staff account status updated to ${body?.status}.`,
-          message_bn: `স্টাফ অ্যাকাউন্টের অবস্থা ${body?.status} করা হয়েছে।`,
+          const nextNo = staffRoster.reduce((max, s) => Math.max(max, parseInt(s.ref.slice(4), 10) || 0), 0) + 1;
+          const created = {
+            id: staffRoster.reduce((max, s) => Math.max(max, s.id), 0) + 1,
+            ref: `STF-${String(nextNo).padStart(3, '0')}`,
+            full_name, email, phone, role_key,
+            department: department || 'Operations',
+            two_factor_enabled: false,
+            status: 'INVITED',
+            last_active_at: null,
+            created_at: new Date().toISOString(),
+          };
+          staffRoster.push(created);
+          record(created, 'staff.account.create', {}, { role_key, status: 'INVITED' });
+
+          return {
+            status: 201,
+            body: {
+              success: true,
+              staff: shape(created),
+              message_en: `${full_name} was added as ${roleOf(role_key).label_en}. A one-time sign-in link was sent to ${email}.`,
+              message_bn: `${full_name}-কে ${roleOf(role_key).label_bn} হিসেবে যোগ করা হয়েছে। ${email}-এ একবার ব্যবহারযোগ্য সাইন-ইন লিংক পাঠানো হয়েছে।`,
+            },
+          };
         },
-      };
-    },
-  },
+      },
+
+      // 14. Reset 2FA
+      {
+        method: 'POST',
+        path: '/admin/staff/:id/reset-2fa',
+        handler({ params, body }) {
+          const s = staffRoster.find((x) => String(x.id) === String(params?.id));
+          if (!s) return notFound();
+          if (!s.two_factor_enabled) return fail(409, 'NOTHING_TO_RESET', 'This member has not enrolled in 2FA yet, so there is nothing to reset.', 'এই সদস্য এখনো ২এফএ চালু করেননি, তাই রিসেট করার কিছু নেই।');
+          const bad = needReason(body);
+          if (bad) return bad;
+          s.two_factor_enabled = false;
+          record(s, 'security.2fa.reset', { two_factor_enabled: true }, { two_factor_enabled: false }, reasonOf(body));
+          return {
+            status: 200,
+            body: {
+              success: true,
+              staff: shape(s),
+              message_en: `2FA reset for ${s.full_name}. They must enrol a new authenticator at next sign-in.`,
+              message_bn: `${s.full_name}-এর ২এফএ রিসেট হয়েছে। পরবর্তী সাইন-ইনে নতুন অথেনটিকেটর সেট করতে হবে।`,
+            },
+          };
+        },
+      },
+
+      // 15. Change role
+      {
+        method: 'PATCH',
+        path: '/admin/staff/:id/role',
+        handler({ params, body }) {
+          const s = staffRoster.find((x) => String(x.id) === String(params?.id));
+          if (!s) return notFound();
+          const next = body?.role_key;
+          if (!roleOf(next)) return fail(422, 'VALIDATION_FAILED', 'Choose a valid role.', 'সঠিক রোল নির্বাচন করুন।', { field: 'role_key' });
+          if (next === s.role_key) return fail(422, 'VALIDATION_FAILED', 'That is already this member\'s role.', 'এটিই ইতিমধ্যে এই সদস্যের রোল।', { field: 'role_key' });
+          if (isLastSuperAdmin(s)) return lastSuperAdminError();
+          const bad = needReason(body);
+          if (bad) return bad;
+          const before = s.role_key;
+          s.role_key = next;
+          record(s, 'staff.role.assign', { role_key: before }, { role_key: next }, reasonOf(body));
+          return {
+            status: 200,
+            body: {
+              success: true,
+              staff: shape(s),
+              message_en: `${s.full_name} is now ${roleOf(next).label_en}.`,
+              message_bn: `${s.full_name} এখন ${roleOf(next).label_bn}।`,
+            },
+          };
+        },
+      },
+
+      // 16. Suspend / reactivate
+      {
+        method: 'PATCH',
+        path: '/admin/staff/:id/status',
+        handler({ params, body }) {
+          const s = staffRoster.find((x) => String(x.id) === String(params?.id));
+          if (!s) return notFound();
+          const next = body?.status;
+          if (!['ACTIVE', 'SUSPENDED'].includes(next)) return fail(422, 'VALIDATION_FAILED', 'Status must be ACTIVE or SUSPENDED.', 'স্ট্যাটাস ACTIVE বা SUSPENDED হতে হবে।', { field: 'status' });
+          if (next === 'SUSPENDED' && s.status === 'SUSPENDED') return fail(409, 'CONFLICT', 'This account is already suspended.', 'এই অ্যাকাউন্ট আগেই স্থগিত করা হয়েছে।');
+          if (next === 'ACTIVE' && s.status !== 'SUSPENDED') return fail(409, 'CONFLICT', 'Only a suspended account can be reactivated.', 'শুধু স্থগিত অ্যাকাউন্টই পুনরায় সক্রিয় করা যায়।');
+          if (next === 'SUSPENDED' && isLastSuperAdmin(s)) return lastSuperAdminError();
+          const bad = needReason(body);
+          if (bad) return bad;
+          const before = s.status;
+          // A member who never signed in goes back to "invited", not "active" — they have no session to resume.
+          s.status = next === 'ACTIVE' && !s.last_active_at ? 'INVITED' : next;
+          record(s, next === 'SUSPENDED' ? 'staff.account.disable' : 'staff.account.enable', { status: before }, { status: s.status }, reasonOf(body));
+          return {
+            status: 200,
+            body: {
+              success: true,
+              staff: shape(s),
+              message_en: next === 'SUSPENDED' ? `${s.full_name} was suspended and signed out everywhere.` : `${s.full_name} can sign in again.`,
+              message_bn: next === 'SUSPENDED' ? `${s.full_name}-কে স্থগিত করে সব ডিভাইস থেকে সাইন-আউট করা হয়েছে।` : `${s.full_name} আবার সাইন-ইন করতে পারবেন।`,
+            },
+          };
+        },
+      },
+
+      // 16b. Resend the invitation
+      {
+        method: 'POST',
+        path: '/admin/staff/:id/resend-invite',
+        handler({ params }) {
+          const s = staffRoster.find((x) => String(x.id) === String(params?.id));
+          if (!s) return notFound();
+          if (s.status !== 'INVITED') return fail(409, 'CONFLICT', 'Only members who have not signed in yet can be re-invited.', 'যারা এখনো সাইন-ইন করেননি শুধু তাদেরই আবার আমন্ত্রণ পাঠানো যায়।');
+          record(s, 'staff.account.reinvite', {}, {});
+          return {
+            status: 200,
+            body: {
+              success: true,
+              message_en: `A fresh sign-in link was sent to ${s.email}. The previous link no longer works.`,
+              message_bn: `${s.email}-এ নতুন সাইন-ইন লিংক পাঠানো হয়েছে। আগের লিংক আর কাজ করবে না।`,
+            },
+          };
+        },
+      },
+    ];
+  })(),
 
   // 17. Standing Access Grants (Mode A)
   {
