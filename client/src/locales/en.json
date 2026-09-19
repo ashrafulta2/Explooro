@@ -3125,7 +3125,7 @@
     "submit_evidence_modal_title": "Submit Milestone Fulfillment Proof",
     "evidence_submitted_success": "Milestone fulfillment proof submitted successfully!",
     "evidence_submit_failed": "Failed to submit milestone proof.",
-    "confirm_release": "Are you sure you want to release {amount} from escrow to the supplier?",
+    "confirm_release": "Are you sure you want to release {{amount}} from escrow to the supplier?",
     "maker_checker_queued": "Admin release queued for Super Admin confirmation (Maker-Checker HIGH tier).",
     "released_success": "Milestone funds released successfully! Settled to supplier available wallet.",
     "release_failed": "Failed to release milestone funds.",
