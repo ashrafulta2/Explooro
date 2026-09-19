@@ -467,11 +467,32 @@ function ThemeMenu() {
   return wrap;
 }
 
-export function TopBar({ role, user, elevatedGrant, badges, navigate, onOpenPalette }) {
+export function TopBar({
+  role,
+  user,
+  elevatedGrant,
+  badges,
+  navigate,
+  onOpenPalette,
+  sidebarCollapsed = false,
+  onToggleSidebar = null,
+}) {
   const bar = document.createElement('header');
   bar.className = 'topbar';
 
   const isGuest = !role;
+
+  if (onToggleSidebar) {
+    const sidebarToggleBtn = IconButton({
+      icon: ICONS.menu,
+      label: t(sidebarCollapsed ? 'shell.expand_sidebar' : 'shell.collapse_sidebar'),
+      onClick: (e) => onToggleSidebar(e.currentTarget),
+    });
+    sidebarToggleBtn.classList.add('topbar__sidebar-toggle');
+    sidebarToggleBtn.setAttribute('aria-expanded', String(!sidebarCollapsed));
+    sidebarToggleBtn.setAttribute('aria-controls', 'sidebar-nav');
+    bar.append(sidebarToggleBtn);
+  }
 
   const brand = document.createElement('a');
   brand.className = 'topbar__brand';

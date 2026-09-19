@@ -577,6 +577,36 @@ Attempted by an Admin rather than a Super Admin:
 }
 ```
 
+### Phase 3 — Staff management (`/admin/staff`)
+
+| Verb | Path | Permission (tier) | Notes |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/admin/staff` | `staff.account.view` (MEDIUM) | `q`, `role`, `status` (`ACTIVE`\|`INVITED`\|`SUSPENDED`), `two_factor` (`ENABLED`\|`PENDING`), `page`, `limit` (≤ 50). Returns `{ staff, total, page, limit, total_pages, roles, vitals }`. Vitals ignore the filters. |
+| `GET` | `/admin/staff/:id` | `staff.account.view` | `{ staff, activity[] }` — newest-first change history with actor, reason and before/after. |
+| `POST` | `/admin/staff` | `staff.account.create` (CRITICAL) | Creates an `INVITED` member (no password; signs in by OTP, then enrols 2FA) and emails the invitation. |
+| `PATCH` | `/admin/staff/:id/role` | `staff.role.assign` (CRITICAL) | `{ role_key, reason }` — swaps the staff role, ends the member's sessions. |
+| `PATCH` | `/admin/staff/:id/status` | `staff.account.disable` (CRITICAL) | `{ status: ACTIVE\|SUSPENDED, reason }` — suspending ends their sessions. |
+| `POST` | `/admin/staff/:id/reset-2fa` | `security.2fa.reset` (HIGH) | `{ reason }`. A delegated Admin gets `202 PERMISSION_PENDING_APPROVAL`; a Super Admin's approval runs it. |
+| `POST` | `/admin/staff/:id/resend-invite` | `staff.account.create` | Only for members who have never signed in; 3 per member per hour. |
+
+Replies are bare payloads (not `{ data }`-wrapped), like the other admin identity endpoints. Every
+write takes an optional `Idempotency-Key` (§5) and requires a `reason` of 3–300 characters, which
+is stored in the audit row. `status` is derived: `SUSPENDED` (suspended or banned), `INVITED`
+(active account that has never signed in), otherwise `ACTIVE` — see `staff.repository.js` for why
+there is no stored `INVITED` status. Specific refusals reuse the closed code enum and put the
+business reason in `details.reason`:
+
+```json
+{ "error": { "code": "CONFLICT",
+             "message_en": "This is the only active Super Admin. Promote another Super Admin first, otherwise nobody could recover the platform.",
+             "details": { "reason": "LAST_SUPER_ADMIN" }, "trace_id": "01J8XQ2K4M7N" } }
+```
+
+`details.reason` values: `LAST_SUPER_ADMIN`, `SELF_ACTION` (403), `ALREADY_SUSPENDED`, `NOT_SUSPENDED`,
+`ACCOUNT_BANNED`, `NOTHING_TO_RESET`, `NOT_INVITED`. Field-level input errors carry `details.field`
+(`full_name`, `email`, `phone`, `role_key`, `department`, `reason`); a duplicate email or mobile is
+`409 CONFLICT` with the same `details.field`.
+
 ### Phase 5 — Checkout, and the same request retried
 
 ```http

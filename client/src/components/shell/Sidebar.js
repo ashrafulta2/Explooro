@@ -13,7 +13,7 @@ import { navGroups, navItems, SIMPLE_MODE_ITEMS, PROGRESSIVE_DISCLOSURE_ROLES } 
 import { t } from '../../services/i18n.js';
 import { LockedNavItem } from './LockedNavItem.js';
 import { Badge } from '../ui/Badge.js';
-import { toggleGroupCollapsed, toggleSidebarCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.js';
+import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.js';
 import { getGroupIcon, getItemIcon } from '../ui/icons.js';
 
 function hasModule(modules, key) {
@@ -144,6 +144,7 @@ function renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups,
 export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarCollapsed, collapsedGroups }) {
   const nav = document.createElement('nav');
   nav.className = 'sidebar';
+  nav.id = 'sidebar-nav';
   nav.dataset.collapsed = sidebarCollapsed ? 'true' : 'false';
   nav.setAttribute('aria-label', 'Primary');
 
@@ -190,19 +191,5 @@ export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarColla
       : renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups, sidebarCollapsed })
   );
 
-  const collapseBtn = document.createElement('button');
-  collapseBtn.type = 'button';
-  collapseBtn.className = 'sidebar__collapse-toggle';
-  const chevronSvg = sidebarCollapsed
-    ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>'
-    : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
-  collapseBtn.innerHTML = chevronSvg;
-  collapseBtn.setAttribute('aria-label', t(sidebarCollapsed ? 'shell.expand_sidebar' : 'shell.collapse_sidebar'));
-  collapseBtn.addEventListener('click', () => toggleSidebarCollapsed());
-
-  // collapseBtn is a sibling of nav, not a child — it must sit outside nav's own overflow-y:auto
-  // box so it isn't clipped where it straddles the sidebar/content border (shell.css).
-  const fragment = document.createDocumentFragment();
-  fragment.append(nav, collapseBtn);
-  return fragment;
+  return nav;
 }
