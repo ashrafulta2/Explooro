@@ -163,10 +163,12 @@
 }
 
 .sourcing-card__tier-badge--standard {
-  background: rgba(255, 255, 255, 0.94);
+  /* WHY: the chip sits on a product photo, so it needs an opaque surface — but a hardcoded white
+     one paired with --text-secondary (light in dark mode) measured 1.38:1. A surface token flips
+     with the text. */
+  background: var(--surface-1);
   color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
-  backdrop-filter: blur(4px);
 }
 
 .sourcing-card__dispatch {
@@ -174,14 +176,13 @@
   bottom: 12px;
   right: 12px;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface-1); /* WHY: see tier-badge--standard — text and surface must flip together. */
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm, 6px);
   font-size: 11px;
   font-weight: 700;
   color: var(--text-secondary);
   padding: 3px 8px;
-  backdrop-filter: blur(6px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   pointer-events: none;
 }
@@ -259,14 +260,14 @@
 
 .sourcing-card__pricing-label--profit {
   font-weight: 700;
-  color: #047857;
+  color: var(--success);
   font-size: var(--text-xs);
 }
 
 .sourcing-card__profit-val {
   font-size: var(--text-sm);
   font-weight: 800;
-  color: var(--success-700); /* WHY: #059669 is 3.6:1 on white — fails WCAG AA. --success-700 (#007f39) is 5.1:1. */
+  color: var(--success); /* WHY: role token, not --success-700 — it is 700 in light (5.1:1 on white) and 300 in dark. */
   font-variant-numeric: tabular-nums;
 }
 
@@ -356,10 +357,10 @@
 .profit-calc__legend { display: flex; flex-wrap: wrap; gap: var(--space-3); font-size: 11px; color: var(--text-secondary); }
 .profit-calc__legend-item { display: flex; align-items: center; gap: var(--space-1); }
 .profit-calc__legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-.profit-calc__error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: var(--radius-md); padding: var(--space-3); font-size: var(--text-xs); display: flex; align-items: center; gap: var(--space-2); }
+.profit-calc__error { background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger); border-radius: var(--radius-md); padding: var(--space-3); font-size: var(--text-xs); display: flex; align-items: center; gap: var(--space-2); }
 .profit-calc__status { padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: 600; display: flex; align-items: center; gap: var(--space-2); }
-.profit-calc__status--standard { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
-.profit-calc__status--discount { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+.profit-calc__status--standard { background: var(--success-bg); border: 1px solid var(--success-border); color: var(--success); }
+.profit-calc__status--discount { background: var(--info-bg); border: 1px solid var(--info-border); color: var(--info); }
 .profit-calc__status--boost { background: #f5f3ff; border: 1px solid #ddd6fe; color: #5b21b6; }
 
 /* Margin Projection */
@@ -371,7 +372,7 @@
 .margin-chart-grid { stroke: var(--border-subtle); stroke-dasharray: 4 4; }
 .margin-chart-area { fill: var(--brand-50, #f5f3ff); opacity: 0.8; }
 .margin-chart-line { fill: none; stroke: var(--brand-600); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-.margin-chart-point { fill: #ffffff; stroke: var(--brand-600); stroke-width: 2.5; cursor: pointer; }
+.margin-chart-point { fill: var(--surface-1); stroke: var(--brand-600); stroke-width: 2.5; cursor: pointer; }
 .margin-chart-point:hover, .margin-chart-point.active { r: 6; fill: var(--brand-600); }
 .margin-chart-text { font-family: inherit; font-size: 10px; fill: var(--text-muted); font-variant-numeric: tabular-nums; }
 .margin-projection__milestones { display: flex; flex-wrap: wrap; gap: var(--space-2); justify-content: center; }
@@ -382,10 +383,10 @@
 /* Add Store Drawer */
 .add-store-form { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-2) 0; }
 .add-store-product-preview { display: flex; gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border-radius: var(--radius-md); align-items: center; }
-.add-store-product-preview__img { width: 56px; height: 56px; border-radius: var(--radius-sm); background: var(--surface-3); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand-700); overflow: hidden; flex-shrink: 0; }
+.add-store-product-preview__img { width: 56px; height: 56px; border-radius: var(--radius-sm); background: var(--surface-3); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-brand); overflow: hidden; flex-shrink: 0; }
 .add-store-product-preview__img img { width: 100%; height: 100%; object-fit: cover; }
 .add-store-product-preview__title { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); margin: 0; }
 .add-store-calc-preview { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
 .add-store-calc-row { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-secondary); }
-.add-store-calc-row--highlight { border-top: 1px solid var(--border-subtle); padding-top: var(--space-2); font-weight: 700; color: var(--brand-700); font-size: var(--text-sm); }
+.add-store-calc-row--highlight { border-top: 1px solid var(--border-subtle); padding-top: var(--space-2); font-weight: 700; color: var(--text-brand); font-size: var(--text-sm); }
 .add-store-actions { display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-2); }
