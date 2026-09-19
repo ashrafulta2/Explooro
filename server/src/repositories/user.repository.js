@@ -261,6 +261,18 @@ export async function listUsersForAdmin(
     where += ` AND up.district = $${params.length}`;
   }
 
+  if (restriction === 'RESTRICTED') {
+    where += ` AND EXISTS (SELECT 1 FROM user_restrictions ur WHERE ur.subject_type = 'USER' AND ur.subject_ref = u.ref AND ur.lifted_at IS NULL AND (ur.expires_at IS NULL OR ur.expires_at > now()))`;
+  } else if (restriction === 'CLEAN') {
+    where += ` AND NOT EXISTS (SELECT 1 FROM user_restrictions ur WHERE ur.subject_type = 'USER' AND ur.subject_ref = u.ref AND ur.lifted_at IS NULL AND (ur.expires_at IS NULL OR ur.expires_at > now()))`;
+  }
+
+  if (verification === 'VERIFIED') {
+    where += ` AND (u.is_phone_verified = true OR u.is_email_verified = true)`;
+  } else if (verification === 'UNVERIFIED') {
+    where += ` AND (u.is_phone_verified = false AND u.is_email_verified = false)`;
+  }
+
   params.push(limit, offset);
 
   const { rows } = await db.query(

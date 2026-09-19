@@ -26,7 +26,7 @@
 @import './components/auth.css';
 @import './components/access.css';
 @import './components/module-control.css';
-@import './components/admin-users.css';
+/* Prompt 3.3: admin-users.css is imported by UsersPage.js and UserDetailPage.js directly to code-split into route chunk */
 @import './components/audit-explorer.css';
 @import './components/theme-studio.css';
 @import './components/media.css';
