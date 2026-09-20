@@ -16,7 +16,10 @@ import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
+import { escapeHtml as esc } from '../../services/html.js';
+import { ICONS } from '../../components/ui/icons.js';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
+import '../../styles/components/admin-access.css';
 
 export default function AccessGrantsPage(root) {
   const isBn = () => getLanguage() === 'bn';
@@ -27,6 +30,7 @@ export default function AccessGrantsPage(root) {
   let permissionsList = [];
   let statusFilter = 'ALL';
   let isLoading = true;
+  let loadError = false;
 
   // Header
   const header = document.createElement('div');
@@ -43,7 +47,7 @@ export default function AccessGrantsPage(root) {
   titleWrap.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
       <span class="badge badge--neutral" style="font-weight: 700; text-transform: uppercase; font-size: 11px;">
-        🔑 ${t('grants.eyebrow', 'Standing Privilege Delegation (Mode A)')}
+        ${ICONS.key} ${t('grants.eyebrow', 'Standing Privilege Delegation (Mode A)')}
       </span>
     </div>
     <h1 class="admin-users__title">${t('grants.title', 'Standing Access Grants')}</h1>
@@ -51,7 +55,7 @@ export default function AccessGrantsPage(root) {
   `;
 
   const newGrantBtn = Button({
-    label: `➕ ${t('grants.btn_new_grant', 'Issue Access Grant')}`,
+    label: t('grants.btn_new_grant', 'Issue Access Grant'),
     variant: 'primary',
     size: 'sm',
     onClick: () => {
@@ -68,6 +72,8 @@ export default function AccessGrantsPage(root) {
 
   // Status Filter Bar
   const filterBar = document.createElement('div');
+  filterBar.setAttribute('role', 'group');
+  filterBar.setAttribute('aria-label', t('grants.filter_aria', 'Filter grants by status'));
   filterBar.style.display = 'flex';
   filterBar.style.flexWrap = 'wrap';
   filterBar.style.gap = 'var(--space-2)';
@@ -78,22 +84,25 @@ export default function AccessGrantsPage(root) {
   filterBar.style.boxShadow = 'var(--elevation-1)';
 
   const filterOptions = [
-    { key: 'ALL', label: 'All Grants' },
-    { key: 'ACTIVE', label: '🟢 Active' },
-    { key: 'EXPIRED', label: '⏳ Expired' },
-    { key: 'REVOKED', label: '🚫 Revoked' },
+    { key: 'ALL', label: t('grants.status_all', 'All grants') },
+    { key: 'ACTIVE', label: t('grants.status_active', 'Active') },
+    { key: 'EXPIRED', label: t('grants.status_expired', 'Expired') },
+    { key: 'REVOKED', label: t('grants.status_revoked', 'Revoked') },
   ];
 
   for (const opt of filterOptions) {
     const btn = document.createElement('button');
     btn.className = `btn btn--sm ${statusFilter === opt.key ? 'btn--primary' : 'btn--secondary'}`;
     btn.textContent = opt.label;
+    btn.setAttribute('aria-pressed', String(statusFilter === opt.key));
     btn.addEventListener('click', () => {
       statusFilter = opt.key;
       filterBar.querySelectorAll('button').forEach((b) => {
         b.className = 'btn btn--secondary btn--sm';
+        b.setAttribute('aria-pressed', 'false');
       });
       btn.className = 'btn btn--primary btn--sm';
+      btn.setAttribute('aria-pressed', 'true');
       loadGrants();
     });
     filterBar.append(btn);
@@ -156,8 +165,12 @@ export default function AccessGrantsPage(root) {
         },
       });
       grants = res.data?.grants || res.grants || [];
+      loadError = false;
     } catch {
+      // WHY a flag rather than an empty list: a failed request used to render "No standing access
+      // grants found", which tells an admin no one holds elevated access when in truth we don't know.
       grants = [];
+      loadError = true;
     } finally {
       isLoading = false;
       renderTable();
@@ -171,13 +184,17 @@ export default function AccessGrantsPage(root) {
     } catch {
       permissionsList = [];
     }
+    // WHY re-render: this request runs alongside loadGrants(), and whichever finishes second used to
+    // lose — when the grants arrived first, every row was drawn with the humanised English fallback
+    // ("Finance › Payout › Approve") and never picked up its Bangla label.
+    if (!isLoading) renderTable();
   }
 
   function renderTable() {
     tbody.innerHTML = '';
     const isLangBn = isBn();
 
-    if (grants.length === 0) {
+    if (loadError || grants.length === 0) {
       const emptyTr = document.createElement('tr');
       const emptyTd = document.createElement('td');
       emptyTd.colSpan = 6;
@@ -185,11 +202,14 @@ export default function AccessGrantsPage(root) {
       emptyTd.style.padding = 'var(--space-8)';
       emptyTd.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <span style="font-size: 28px;">🔑</span>
-          <span style="font-weight: 700; color: var(--text-primary);">${isLangBn ? 'কোনো সক্রিয় স্ট্যান্ডিং গ্রান্ট নেই।' : 'No standing access grants found.'}</span>
-          <span style="font-size: 12px; color: var(--text-muted);">Privileges granted here will elevate staff capabilities with automatic time expiration.</span>
+          <span style="color: var(--text-muted);">${loadError ? ICONS.enforcement : ICONS.key}</span>
+          <span style="font-weight: 700; color: var(--text-primary);">${loadError ? t('grants.error_title', "Couldn't load access grants") : t('grants.empty_title', 'No standing access grants found.')}</span>
+          <span style="font-size: 12px; color: var(--text-muted);">${loadError ? t('grants.error_body', 'Check your connection and try again.') : t('grants.empty_body', 'Privileges granted here elevate staff capabilities and expire automatically.')}</span>
         </div>
       `;
+      if (loadError) {
+        emptyTd.firstElementChild.append(Button({ label: t('common.retry', 'Retry'), variant: 'secondary', size: 'sm', onClick: loadGrants }));
+      }
       emptyTr.append(emptyTd);
       tbody.append(emptyTr);
       return;
@@ -203,8 +223,8 @@ export default function AccessGrantsPage(root) {
       tdUser.style.textAlign = 'left';
       tdUser.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <span style="font-weight: 700; color: var(--text-primary);">${g.grantee_name || g.grantee_phone || `User #${g.user_id}`}</span>
-          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${g.grantee_ref || ''} · ${g.grantee_phone || ''}</span>
+          <span style="font-weight: 700; color: var(--text-primary);">${esc(g.grantee_name || g.grantee_phone || t('grants.user_fallback', 'User #{{id}}', { id: g.user_id }))}</span>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${esc(g.grantee_ref || '')} · ${esc(g.grantee_phone || '')}</span>
         </div>
       `;
 
@@ -217,12 +237,12 @@ export default function AccessGrantsPage(root) {
         : g.permission_key.split('.').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' › ');
 
       const scopeBadge = g.scope_json
-        ? `<br><span style="font-size: 10px; color: var(--text-secondary); background: var(--surface-2); padding: 1px 4px; border-radius: 3px;">Scope: ${JSON.stringify(g.scope_json)}</span>`
+        ? `<br><span style="font-size: 10px; color: var(--text-secondary); background: var(--surface-2); padding: 1px 4px; border-radius: 3px;">${esc(t('grants.scope', 'Scope: {{scope}}', { scope: JSON.stringify(g.scope_json) }))}</span>`
         : '';
       tdPerm.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <strong style="font-size: 13px; color: var(--text-primary);">${permLabel}</strong>
-          <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${g.permission_key}</span>
+          <strong style="font-size: 13px; color: var(--text-primary);">${esc(permLabel)}</strong>
+          <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${esc(g.permission_key)}</span>
         </div>
         ${scopeBadge}
       `;
@@ -238,8 +258,8 @@ export default function AccessGrantsPage(root) {
       tdReason.style.textAlign = 'left';
       tdReason.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <span style="font-size: 12px; color: var(--text-primary); font-weight: 500;">"${g.reason}"</span>
-          <span style="font-size: 10px; color: var(--text-muted);">Issued by: ${g.granted_by || 'Super Admin'}</span>
+          <span style="font-size: 12px; color: var(--text-primary); font-weight: 500;">“${esc(g.reason)}”</span>
+          <span style="font-size: 10px; color: var(--text-muted);">${esc(t('grants.issued_by', 'Issued by {{name}}', { name: g.granted_by || t('grants.default_issuer', 'Super Admin') }))}</span>
         </div>
       `;
 
@@ -248,7 +268,7 @@ export default function AccessGrantsPage(root) {
       const isExpired = new Date(g.expires_at).getTime() <= Date.now();
       const tdStatus = document.createElement('td');
       const statusBadge = Badge({
-        label: isRevoked ? 'REVOKED' : isExpired ? 'EXPIRED' : 'ACTIVE',
+        label: isRevoked ? t('grants.status_revoked', 'Revoked') : isExpired ? t('grants.status_expired', 'Expired') : t('grants.status_active', 'Active'),
         variant: isRevoked ? 'danger' : isExpired ? 'neutral' : 'success',
       });
       tdStatus.append(statusBadge);
@@ -273,10 +293,10 @@ export default function AccessGrantsPage(root) {
 
             try {
               await api.delete(`/admin/grants/${g.id}`, { body: { reason: conf.reason.trim() } });
-              toast.success(isLangBn ? 'গ্রান্ট সফলভাবে প্রত্যাহার করা হয়েছে' : 'Standing grant revoked successfully');
+              toast.success(t('grants.revoked_ok', 'Standing grant revoked successfully'));
               loadGrants();
             } catch (err) {
-              toast.error(err.message || 'Failed to revoke grant.');
+              toast.error(err.message || t('grants.revoke_failed', 'Could not revoke the grant.'));
             }
           },
         });

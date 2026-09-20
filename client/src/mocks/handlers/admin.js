@@ -9,6 +9,7 @@
 // same registry the server seeds from, so the dev panel and the live panel list the same modules
 // under the same keys. Mock-only, so the client's zero-dependency rule is untouched.
 import moduleRegistry from '../../../../server/src/config/modules.seed.json' with { type: 'json' };
+import permissionCatalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
 
 /** Mutable per-session module state so a toggle survives until reload, like the real API. */
 const moduleState = new Map(
@@ -979,87 +980,37 @@ export const adminHandlers = [
   },
 
   // 11. Roles & Permissions Baseline Matrix
+  //
+  // WHY built from the catalog instead of a hand-typed list: the old fixture had 18 invented
+  // permissions in 5 domains and six roles (no Admin), so the page's domain filter looked complete
+  // in dev while the live endpoint returns 187 permissions in 19 domains. The catalog is what
+  // 001_roles_permissions.sql seeds from, so this returns the same rows the live endpoint would.
   {
     method: 'GET',
     path: '/admin/roles-permissions',
     handler() {
-      const roles = [
-        { id: 1, key: 'customer', label_en: 'Customer', label_bn: 'ক্রেতা', level: 10, is_system: true },
-        { id: 2, key: 'saler', label_en: 'Saler', label_bn: 'সেলার', level: 20, is_system: true },
-        { id: 3, key: 'supplier', label_en: 'Supplier', label_bn: 'সাপ্লায়ার', level: 20, is_system: true },
-        { id: 4, key: 'moderator', label_en: 'Moderator', label_bn: 'মডারেটর', level: 50, is_system: true },
-        { id: 5, key: 'editor', label_en: 'Editor', label_bn: 'এডিটর', level: 60, is_system: true },
-        { id: 6, key: 'super_admin', label_en: 'Super Admin', label_bn: 'সুপার অ্যাডমিন', level: 100, is_system: true },
-      ];
+      const roles = permissionCatalog.roles.map((r, i) => ({ id: i + 1, ...r }));
+      const roleId = new Map(roles.map((r) => [r.key, r.id]));
 
-      const permissions = [
-        // Admin
-        { key: 'admin.dashboard.view', domain: 'admin', label_en: 'Executive Dashboard View', label_bn: 'ড্যাশবোর্ড দর্শন', plain_en: 'Access live revenue, KPIs and operational alert cards', plain_bn: 'লাইভ রাজস্ব, কেপিআই ও অ্যালার্ট কার্ড দেখুন', risk_tier: 'LOW' },
-        { key: 'admin.system.diagnostics', domain: 'admin', label_en: 'System Diagnostics & Health', label_bn: 'সিস্টেম স্বাস্থ্য ও ডায়াগনস্টিকস', plain_en: 'Inspect database pool, cache layer and scheduler', plain_bn: 'ডাটাবেস পুল ও ক্যাশ মনিটর করুন', risk_tier: 'HIGH' },
-        { key: 'admin.backup.restore', domain: 'admin', label_en: 'Disaster Recovery Snapshot Restore', label_bn: 'সিস্টেম স্ন্যাপশট রিস্টোর', plain_en: 'Revert state to SHA-256 verified snapshot', plain_bn: 'সিস্টেম স্ন্যাপশটে ডেটা রিস্টোর করুন', risk_tier: 'CRITICAL' },
+      const permissions = permissionCatalog.permissions.map((p) => ({
+        key: p.key,
+        domain: p.domain,
+        label_en: p.label_en,
+        label_bn: p.label_bn,
+        plain_en: p.plain_en ?? null,
+        plain_bn: p.plain_bn ?? null,
+        risk_tier: p.risk_tier,
+        delegable: p.delegable,
+      }));
 
-        // Users
-        { key: 'users.account.view', domain: 'users', label_en: 'Inspect User Accounts', label_bn: 'ব্যবহারকারী অ্যাকাউন্ট পরিদর্শন', plain_en: 'View customer, saler and supplier profiles', plain_bn: 'ব্যবহারকারীর বিস্তারিত প্রোফাইল দেখুন', risk_tier: 'LOW' },
-        { key: 'users.kyc.approve', domain: 'users', label_en: 'KYC & NID Verification', label_bn: 'কেওয়াইসি ও এনআইডি অনুমোদন', plain_en: 'Approve or reject trade license and NID submissions', plain_bn: 'এনআইডি ও ট্রেড লাইসেন্স যাচাই করুন', risk_tier: 'MEDIUM' },
-        { key: 'users.permission.grant', domain: 'users', label_en: 'Issue Standing Access Grant', label_bn: 'স্ট্যান্ডিং অ্যাক্সেস অনুদান', plain_en: 'Temporarily elevate staff permissions', plain_bn: 'স্টাফের পারমিশন সাময়িকভাবে বৃদ্ধি করুন', risk_tier: 'HIGH' },
-        { key: 'users.restriction.manage', domain: 'users', label_en: 'Apply User Restrictions & Sanctions', label_bn: 'ব্যবহারকারী নিষেধাজ্ঞা প্রয়োগ', plain_en: 'Block capability such as selling, buying or withdrawing', plain_bn: 'অ্যাকাউন্টে বিভিন্ন নিষেধাজ্ঞা আরোপ করুন', risk_tier: 'HIGH' },
+      const rolePermissions = permissionCatalog.permissions.flatMap((p) =>
+        (p.default_roles ?? []).map((roleKey) => ({ role_id: roleId.get(roleKey), permission_key: p.key }))
+      );
 
-        // Catalog
-        { key: 'catalog.product.view', domain: 'catalog', label_en: 'View Product Catalog', label_bn: 'পণ্য ক্যাটালগ দেখুন', plain_en: 'Browse wholesale and reseller products', plain_bn: 'পণ্য তালিকা দেখুন', risk_tier: 'LOW' },
-        { key: 'catalog.product.approve', domain: 'catalog', label_en: 'Approve Supplier Products', label_bn: 'সাপ্লায়ার পণ্য অনুমোদন', plain_en: 'Review and publish supplier listings', plain_bn: 'সাপ্লায়ারের পণ্য অনুমোদন করুন', risk_tier: 'MEDIUM' },
-        { key: 'catalog.product.delete', domain: 'catalog', label_en: 'Permanent Catalog Deletion', label_bn: 'স্থায়ী পণ্য মুছে ফেলা', plain_en: 'Irreversibly delete products and variants', plain_bn: 'পণ্য স্থায়ীভাবে মুছে ফেলুন', risk_tier: 'CRITICAL' },
-
-        // Finance
-        { key: 'finance.vault.view', domain: 'finance', label_en: 'View Vault Balances', label_bn: 'ভল্ট ব্যালেন্স দেখুন', plain_en: 'Inspect earnings and ledger movements', plain_bn: 'আয় ও ব্যালেন্স দেখুন', risk_tier: 'LOW' },
-        { key: 'finance.cod.reconcile', domain: 'finance', label_en: 'COD Courier Reconciliation', label_bn: 'সিওডি কুরিয়ার সমন্বয়', plain_en: 'Reconcile remittance spreadsheets and mark settled', plain_bn: 'কুরিয়ার রেমিট্যান্স শিট যাচাই করুন', risk_tier: 'HIGH' },
-        { key: 'finance.payout.approve', domain: 'finance', label_en: 'Approve Payout Cashouts', label_bn: 'পেআউট উইথড্রয়াল অনুমোদন', plain_en: 'Disburse funds to bKash/Nagad/Bank', plain_bn: 'সেলারদের টাকা তোলার আবেদন অনুমোদন করুন', risk_tier: 'CRITICAL' },
-
-        // Platform
-        { key: 'platform.apikey.issue', domain: 'platform', label_en: 'Manage API Keys & Webhooks', label_bn: 'এপিআই কী ও ওয়েবহুক পরিচালনা', plain_en: 'Issue developer access credentials', plain_bn: 'ডেভেলপার এপিআই কী ইস্যু করুন', risk_tier: 'HIGH' },
-        { key: 'platform.theme.publish', domain: 'platform', label_en: 'Publish Theme & Palettes', label_bn: 'থিম ও প্যালেট প্রকাশ', plain_en: 'Activate system-wide color palette', plain_bn: 'নতুন কালার থিম সক্রিয় করুন', risk_tier: 'CRITICAL' },
-        { key: 'platform.module.toggle', domain: 'platform', label_en: 'Toggle Platform Modules (Feature Flags)', label_bn: 'মডিউল অন/অফ নিয়ন্ত্রণ', plain_en: 'Enable or disable commerce core modules', plain_bn: 'কোর মডিউল চালু বা বন্ধ করুন', risk_tier: 'CRITICAL' },
-      ];
-
-      const rolePermissions = [
-        // Customer
-        { role_id: 1, permission_key: 'catalog.product.view' },
-        { role_id: 1, permission_key: 'finance.vault.view' },
-
-        // Saler
-        { role_id: 2, permission_key: 'catalog.product.view' },
-        { role_id: 2, permission_key: 'finance.vault.view' },
-
-        // Supplier
-        { role_id: 3, permission_key: 'catalog.product.view' },
-        { role_id: 3, permission_key: 'finance.vault.view' },
-
-        // Moderator
-        { role_id: 4, permission_key: 'admin.dashboard.view' },
-        { role_id: 4, permission_key: 'users.account.view' },
-        { role_id: 4, permission_key: 'users.kyc.approve' },
-        { role_id: 4, permission_key: 'users.restriction.manage' },
-        { role_id: 4, permission_key: 'catalog.product.view' },
-        { role_id: 4, permission_key: 'catalog.product.approve' },
-        { role_id: 4, permission_key: 'finance.vault.view' },
-
-        // Editor
-        { role_id: 5, permission_key: 'admin.dashboard.view' },
-        { role_id: 5, permission_key: 'catalog.product.view' },
-        { role_id: 5, permission_key: 'catalog.product.approve' },
-
-        // Super admin inherits all via isSuperAdmin
-      ];
-
-      return {
-        status: 200,
-        body: {
-          roles,
-          permissions,
-          rolePermissions,
-        },
-      };
+      return { status: 200, body: { roles, permissions, rolePermissions } };
     },
   },
+
 
   // 12–16b. Staff roster & governance.
   //
@@ -1385,7 +1336,7 @@ export const adminHandlers = [
           grantee_phone: '+8801711000008',
           grantee_name: 'Kamal Uddin',
           grantee_ref: 'STF-004',
-          permission_key: 'finance.cod.reconcile',
+          permission_key: 'orders.cod.reconcile',
           effect: 'GRANT',
           scope_json: null,
           reason: 'Month-end courier settlement reconciliation support.',
@@ -1570,7 +1521,7 @@ export const adminHandlers = [
         },
         {
           id: 2,
-          action_key: 'finance.payout.batch_disburse',
+          action_key: 'finance.payout.batch',
           action_ref: 'ACT-9022',
           submitter_id: 8,
           submitter_name: 'Kamal Uddin',

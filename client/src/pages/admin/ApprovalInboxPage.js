@@ -17,56 +17,25 @@ import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatRelativeTime } from '../../services/format.js';
+import { formatNumber, formatRelativeTime } from '../../services/format.js';
+import { escapeHtml as esc } from '../../services/html.js';
+import { ICONS } from '../../components/ui/icons.js';
+import '../../styles/components/admin-access.css';
 
-const HUMAN_TITLES = {
-  'users.restriction.manage': {
-    en: 'Manage User Sanctions & Capabilities',
-    bn: 'ব্যবহারকারীর নিষেধাজ্ঞা ও সক্ষমতা পরিচালনা',
-  },
-  'catalog.product.delete': {
-    en: 'Permanently Delete Product Listings',
-    bn: 'স্থায়ীভাবে পণ্য তালিকা মুছে ফেলা',
-  },
-  'finance.payout.approve': {
-    en: 'Approve Merchant Cashout Withdrawals',
-    bn: 'সেলার টাকা তোলার আবেদন অনুমোদন',
-  },
-  'platform.module.toggle': {
-    en: 'Toggle Platform Core Module (Feature Flag)',
-    bn: 'প্ল্যাটফর্ম কোর মডিউল অন/অফ নিয়ন্ত্রণ',
-  },
-  'finance.payout.batch_disburse': {
-    en: 'Execute Multi-Merchant Payout Batch',
-    bn: 'একাধিক মার্চেন্টের পেআউট ব্যাচ সম্পাদন',
-  },
-  'platform.theme.publish': {
-    en: 'Publish Global Theme & Color Palette',
-    bn: 'গ্লোবাল থিম ও কালার প্যালেট প্রকাশ',
-  },
-  'admin.backup.restore': {
-    en: 'Restore System State Snapshot',
-    bn: 'সিস্টেম ব্যাকআপ স্ন্যাপশট রিস্টোর',
-  },
-  'users.kyc.approve': {
-    en: 'Approve National ID / Trade License',
-    bn: 'এনআইডি ও ট্রেড লাইসেন্স অনুমোদন',
-  },
-  'finance.cod.reconcile': {
-    en: 'Reconcile Courier COD Remittances',
-    bn: 'কুরিয়ার সিওডি রেমিট্যান্স সমন্বয়',
-  },
-};
+// The length of a JIT grant. One constant so the button label and the request payload cannot disagree.
+const JIT_WINDOW_MINUTES = 60;
 
-function getFriendlyTitle(key, isBangla = false) {
-  const item = HUMAN_TITLES[key];
-  if (item) return isBangla ? item.bn : item.en;
-  // Format dot-separated key: "users.account.view" -> "Users: Account View"
-  return key
+// WHY the humanised fallback: a permission that reaches the queue before it has an `approvals.human.*`
+// entry should still read as a phrase ("Users › Account › View"), not as an empty heading.
+function getFriendlyTitle(key) {
+  const fallback = key
     .split('.')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' › ');
+  return t(`approvals.human.${key.replace(/\./g, '_')}`, fallback);
 }
+
+const riskLabel = (tier) => t(`approvals.risk.${tier}`, tier);
 
 export default function ApprovalInboxPage(root) {
   const isBn = () => getLanguage() === 'bn';
@@ -94,7 +63,7 @@ export default function ApprovalInboxPage(root) {
   titleWrap.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
       <span class="badge badge--danger" style="font-weight: 700; text-transform: uppercase; font-size: 11px;">
-        ⚖️ ${t('approvals.eyebrow', 'Dual-Control Maker-Checker Gate')}
+        ${ICONS.protection} ${t('approvals.eyebrow', 'Dual-Control Maker-Checker Gate')}
       </span>
     </div>
     <h1 class="admin-users__title">${t('approvals.title', 'Approval Inbox')}</h1>
@@ -111,7 +80,7 @@ export default function ApprovalInboxPage(root) {
   shortcutBadge.style.borderRadius = 'var(--radius-md)';
   shortcutBadge.style.fontSize = '11px';
   shortcutBadge.style.color = 'var(--text-secondary)';
-  shortcutBadge.innerHTML = `<span>⌨️ Shortcuts:</span> <strong>J/K</strong> navigate · <strong>A</strong> approve · <strong>R</strong> reject`;
+  shortcutBadge.textContent = t('approvals.keyboard_hint', 'Shortcuts: J/K Navigate · A Approve · R Reject');
 
   titleRow.append(titleWrap, shortcutBadge);
   header.append(titleRow);
@@ -212,7 +181,7 @@ export default function ApprovalInboxPage(root) {
     },
     {
       id: 2,
-      action_key: 'finance.payout.batch_disburse',
+      action_key: 'finance.payout.batch',
       action_ref: 'ACT-9022',
       submitter_id: 8,
       submitter_name: 'Kamal Uddin',
@@ -293,8 +262,8 @@ export default function ApprovalInboxPage(root) {
     // rendered empty and the queue could not be switched between JIT and Maker-Checker.
     const tabs = Tabs({
       tabs: [
-        { id: 'jit', label: `${t('approvals.tab_jit', 'Just-In-Time Elevation')} (${jitRequests.length})` },
-        { id: 'actions', label: `${t('approvals.tab_actions', 'Maker-Checker Actions')} (${pendingActions.length})` },
+        { id: 'jit', label: `${t('approvals.tab_jit', 'Just-In-Time Elevation')} (${formatNumber(jitRequests.length)})` },
+        { id: 'actions', label: `${t('approvals.tab_actions', 'Maker-Checker Actions')} (${formatNumber(pendingActions.length)})` },
       ],
       active: activeTab,
       onChange: (newTab) => {
@@ -333,9 +302,9 @@ export default function ApprovalInboxPage(root) {
       emptyCard.style.textAlign = 'center';
       emptyCard.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <span style="font-size: 28px;">✨</span>
+          <span style="color: var(--text-muted);">${ICONS.sparkles}</span>
           <p style="font-weight: 700; color: var(--text-primary); margin: 0;">${t('approvals.no_pending', 'All approval queues are completely clear.')}</p>
-          <span style="font-size: 12px; color: var(--text-muted);">No pending escalation requests or maker-checker actions requiring executive authorization.</span>
+          <span style="font-size: 12px; color: var(--text-muted);">${t('approvals.empty_body', 'No pending access requests or maker-checker actions need a decision.')}</span>
         </div>
       `;
       queueWrap.append(emptyCard);
@@ -359,7 +328,7 @@ export default function ApprovalInboxPage(root) {
 
   function renderJitCard(card, item, idx) {
     const isLangBn = isBn();
-    const friendlyTitle = getFriendlyTitle(item.permission_key, isLangBn);
+    const friendlyTitle = getFriendlyTitle(item.permission_key);
 
     const topRow = document.createElement('div');
     topRow.style.display = 'flex';
@@ -372,15 +341,15 @@ export default function ApprovalInboxPage(root) {
     reqInfo.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 4px;">
         <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
-          ${friendlyTitle}
+          ${esc(friendlyTitle)}
         </h3>
         <div style="font-size: 12px; color: var(--text-secondary);">
-          <span>${isLangBn ? 'অনুরোধকারী:' : 'Requested by:'}</span> <strong style="color: var(--text-primary);">${item.requester_name || item.requester_phone || `Staff #${item.requester_id}`}</strong>
+          <span>${t('approvals.requested_by', 'Requested by:')}</span> <strong style="color: var(--text-primary);">${esc(item.requester_name || item.requester_phone || t('approvals.staff_fallback', 'Staff #{{id}}', { id: item.requester_id }))}</strong>
         </div>
       </div>
     `;
 
-    const riskBadge = Badge({ label: item.risk_tier || 'HIGH', variant: 'warning' });
+    const riskBadge = Badge({ label: riskLabel(item.risk_tier || 'HIGH'), variant: 'warning' });
     topRow.append(reqInfo, riskBadge);
 
     const reasonP = document.createElement('p');
@@ -390,7 +359,7 @@ export default function ApprovalInboxPage(root) {
     reasonP.style.background = 'var(--surface-2)';
     reasonP.style.borderRadius = 'var(--radius-md)';
     reasonP.style.border = 'var(--border-width) solid var(--border-subtle)';
-    reasonP.innerHTML = `<span style="font-weight: 700; color: var(--text-primary);">${isLangBn ? 'ব্যবসায়িক যুক্তি:' : 'Business Justification:'}</span> "${item.reason}" · <span style="color: var(--text-muted);">${formatRelativeTime(new Date(item.created_at).getTime(), { lang: isLangBn ? 'bn' : 'en' })}</span>`;
+    reasonP.innerHTML = `<span style="font-weight: 700; color: var(--text-primary);">${t('approvals.justification', 'Business justification:')}</span> “${esc(item.reason)}” · <span style="color: var(--text-muted);">${formatRelativeTime(new Date(item.created_at).getTime(), { lang: isLangBn ? 'bn' : 'en' })}</span>`;
 
     const actionsRow = document.createElement('div');
     actionsRow.style.display = 'flex';
@@ -398,14 +367,14 @@ export default function ApprovalInboxPage(root) {
     actionsRow.style.justifyContent = 'flex-end';
 
     const rejectBtn = Button({
-      label: `❌ ${t('approvals.btn_reject', 'Reject')} (R)`,
+      label: `${t('approvals.btn_reject', 'Reject')} (R)`,
       variant: 'danger',
       size: 'sm',
       onClick: () => handleDecideJit(item, 'REJECTED'),
     });
 
     const approveBtn = Button({
-      label: `✅ ${t('approvals.btn_approve', 'Authorize 60m JIT')} (A)`,
+      label: `${t('approvals.btn_approve_jit', 'Authorize {{minutes}}-minute access', { minutes: formatNumber(JIT_WINDOW_MINUTES) })} (A)`,
       variant: 'primary',
       size: 'sm',
       onClick: () => handleDecideJit(item, 'APPROVED'),
@@ -417,7 +386,7 @@ export default function ApprovalInboxPage(root) {
 
   function renderActionCard(card, item, idx) {
     const isLangBn = isBn();
-    const friendlyTitle = getFriendlyTitle(item.action_key, isLangBn);
+    const friendlyTitle = getFriendlyTitle(item.action_key);
 
     const topRow = document.createElement('div');
     topRow.style.display = 'flex';
@@ -430,15 +399,15 @@ export default function ApprovalInboxPage(root) {
     actionInfo.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 4px;">
         <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
-          ${friendlyTitle}
+          ${esc(friendlyTitle)}
         </h3>
         <div style="font-size: 12px; color: var(--text-secondary);">
-          <span>${isLangBn ? 'লক্ষ্য সত্তা:' : 'Target Entity:'}</span> <strong style="color: var(--text-primary);">${item.target_entity_type} #${item.target_entity_id}</strong>
+          <span>${t('approvals.target_entity', 'Target entity:')}</span> <strong style="color: var(--text-primary);">${esc(item.target_entity_type)} #${esc(item.target_entity_id)}</strong>
         </div>
       </div>
     `;
 
-    const riskBadge = Badge({ label: item.risk_tier || 'CRITICAL', variant: 'danger' });
+    const riskBadge = Badge({ label: riskLabel(item.risk_tier || 'CRITICAL'), variant: 'danger' });
     topRow.append(actionInfo, riskBadge);
 
     const descP = document.createElement('p');
@@ -448,7 +417,8 @@ export default function ApprovalInboxPage(root) {
     descP.style.background = 'var(--surface-2)';
     descP.style.borderRadius = 'var(--radius-md)';
     descP.style.border = 'var(--border-width) solid var(--border-subtle)';
-    descP.innerHTML = `<span style="font-weight: 700; color: var(--text-primary);">${isLangBn ? 'উদ্যোক্তার কারণ:' : 'Initiator Reason:'}</span> "${item.reason || 'Operational mutation'}" · <span style="color: var(--text-muted);">Submitted by ${item.submitter_name || `Staff #${item.submitter_id}`} ${formatRelativeTime(new Date(item.created_at).getTime(), { lang: isLangBn ? 'bn' : 'en' })}</span>`;
+    const submitter = item.submitter_name || t('approvals.staff_fallback', 'Staff #{{id}}', { id: item.submitter_id });
+    descP.innerHTML = `<span style="font-weight: 700; color: var(--text-primary);">${t('approvals.initiator_reason', 'Initiator reason:')}</span> “${esc(item.reason || t('approvals.operational_default', 'Operational mutation'))}” · <span style="color: var(--text-muted);">${esc(t('approvals.submitted_by', 'Submitted by {{name}}', { name: submitter }))} ${formatRelativeTime(new Date(item.created_at).getTime(), { lang: isLangBn ? 'bn' : 'en' })}</span>`;
 
     // Visual Diff Viewer
     const diffWrap = document.createElement('div');
@@ -477,14 +447,14 @@ export default function ApprovalInboxPage(root) {
     actionsRow.style.marginTop = 'var(--space-3)';
 
     const rejectBtn = Button({
-      label: `❌ ${t('approvals.btn_reject', 'Reject')} (R)`,
+      label: `${t('approvals.btn_reject', 'Reject')} (R)`,
       variant: 'danger',
       size: 'sm',
       onClick: () => handleDecideAction(item, 'REJECTED'),
     });
 
     const approveBtn = Button({
-      label: `✅ ${t('approvals.btn_approve', 'Execute Mutation')} (A)`,
+      label: `${t('approvals.btn_approve_action', 'Execute mutation')} (A)`,
       variant: 'primary',
       size: 'sm',
       onClick: () => handleDecideAction(item, 'APPROVED'),
@@ -496,11 +466,10 @@ export default function ApprovalInboxPage(root) {
 
   async function handleDecideJit(item, status) {
     let note = '';
-    const isLangBn = isBn();
     if (status === 'REJECTED') {
       const conf = await confirmDialogWithReason({
-        title: isLangBn ? 'জেআইটি অনুরোধ প্রত্যাখ্যান করবেন?' : 'Reject JIT Access Request?',
-        description: isLangBn ? 'প্রত্যাখ্যানের সুনির্দিষ্ট কারণ উল্লেখ করুন।' : 'Provide a business justification for rejecting this access request.',
+        title: t('approvals.reject_jit_title', 'Reject JIT access request?'),
+        description: t('approvals.reject_jit_desc', 'Provide a business justification for rejecting this access request.'),
         reasonRequired: true,
       });
       if (!conf || !conf.confirmed || !conf.reason || conf.reason.trim().length < 10) return;
@@ -511,16 +480,16 @@ export default function ApprovalInboxPage(root) {
       await api.patch(`/access-requests/${item.id}`, {
         decision: status === 'APPROVED' ? 'APPROVE' : 'REJECT',
         note: note || 'Approved by Executive Admin',
-        window_minutes: 60,
+        window_minutes: JIT_WINDOW_MINUTES,
       });
-      toast.success(isLangBn ? `অনুরোধ ${status === 'APPROVED' ? 'অনুমোদিত' : 'প্রত্যাখ্যাত'}` : `Request ${status.toLowerCase()} successfully`);
+      toast.success(status === 'APPROVED' ? t('approvals.jit_approved', 'Access request approved') : t('approvals.jit_rejected', 'Access request rejected'));
       jitRequests = jitRequests.filter((r) => r.id !== item.id);
       renderTabs();
       renderQueue();
     } catch {
       // Graceful fallback for demonstration / sample items
       jitRequests = jitRequests.filter((r) => r.id !== item.id);
-      toast.success(isLangBn ? `অনুরোধ ${status === 'APPROVED' ? 'অনুমোদিত' : 'প্রত্যাখ্যাত'}` : `Request ${status.toLowerCase()} successfully`);
+      toast.success(status === 'APPROVED' ? t('approvals.jit_approved', 'Access request approved') : t('approvals.jit_rejected', 'Access request rejected'));
       renderTabs();
       renderQueue();
     }
@@ -528,11 +497,10 @@ export default function ApprovalInboxPage(root) {
 
   async function handleDecideAction(item, status) {
     let note = '';
-    const isLangBn = isBn();
     if (status === 'REJECTED') {
       const conf = await confirmDialogWithReason({
-        title: isLangBn ? 'অ্যাকশন প্রত্যাখ্যান করবেন?' : 'Reject Maker-Checker Action?',
-        description: isLangBn ? 'প্রত্যাখ্যানের সুনির্দিষ্ট কারণ উল্লেখ করুন।' : 'Provide a justification for rejecting this pending action.',
+        title: t('approvals.reject_action_title', 'Reject maker-checker action?'),
+        description: t('approvals.reject_action_desc', 'Provide a justification for rejecting this pending action.'),
         reasonRequired: true,
       });
       if (!conf || !conf.confirmed || !conf.reason || conf.reason.trim().length < 10) return;
@@ -544,14 +512,14 @@ export default function ApprovalInboxPage(root) {
         decision: status === 'APPROVED' ? 'APPROVE' : 'REJECT',
         note: note || 'Approved by Executive Admin',
       });
-      toast.success(isLangBn ? `অ্যাকশন ${status === 'APPROVED' ? 'অনুমোদিত ও সম্পাদিত' : 'প্রত্যাখ্যাত'}` : `Action ${status.toLowerCase()} successfully`);
+      toast.success(status === 'APPROVED' ? t('approvals.action_executed', 'Action approved and executed') : t('approvals.action_rejected', 'Action rejected'));
       pendingActions = pendingActions.filter((a) => a.id !== item.id);
       renderTabs();
       renderQueue();
     } catch {
       // Graceful fallback for demonstration / sample items
       pendingActions = pendingActions.filter((a) => a.id !== item.id);
-      toast.success(isLangBn ? `অ্যাকশন ${status === 'APPROVED' ? 'অনুমোদিত ও সম্পাদিত' : 'প্রত্যাখ্যাত'}` : `Action ${status.toLowerCase()} successfully`);
+      toast.success(status === 'APPROVED' ? t('approvals.action_executed', 'Action approved and executed') : t('approvals.action_rejected', 'Action rejected'));
       renderTabs();
       renderQueue();
     }

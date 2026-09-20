@@ -12,6 +12,7 @@
 .audit-integrity-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 500; }
 .audit-integrity-banner--intact { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #065f46; }
 .audit-integrity-banner--broken { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #991b1b; font-weight: 700; }
+.audit-integrity-banner--unknown { background: var(--surface-2); border: 1px solid var(--border-subtle); color: var(--text-secondary); }
 
 /* Toolbar & Filters */
 .audit-toolbar { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }

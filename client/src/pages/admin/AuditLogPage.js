@@ -18,6 +18,7 @@ import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatRelativeTime } from '../../services/format.js';
+import '../../styles/components/admin-access.css';
 
 const ACTION_HUMAN_LABELS = {
   'platform.module.toggle': {
@@ -80,7 +81,10 @@ export default function AuditLogPage(root) {
   let nextCursor = null;
   let hasMore = false;
   let isVerifying = false;
-  let chainState = { valid: true, verifiedCount: 248 };
+  // WHY null, not true: until /admin/audit/verify has answered nobody knows the chain is intact, and this
+  // banner is the one place on the page that claims it. A hard-coded "248 records verified" (also used
+  // when the request failed) was an assurance nothing had checked.
+  let chainState = { valid: null, verifiedCount: 0, brokenIndex: null };
   let isLoading = true;
 
   // Filter state
@@ -268,11 +272,11 @@ export default function AuditLogPage(root) {
       const res = await api.get('/admin/audit/verify');
       chainState = {
         valid: res.valid ?? true,
-        verifiedCount: res.verifiedCount ?? res.verified_count ?? 248,
+        verifiedCount: res.verifiedCount ?? res.verified_count ?? 0,
         brokenIndex: res.brokenIndex ?? res.broken_index ?? null,
       };
     } catch {
-      chainState = { valid: true, verifiedCount: 248, brokenIndex: null };
+      chainState = { valid: null, verifiedCount: 0, brokenIndex: null };
     } finally {
       isVerifying = false;
       renderIntegrityBanner(bannerWrap);
@@ -282,17 +286,20 @@ export default function AuditLogPage(root) {
   function renderIntegrityBanner(wrap) {
     wrap.innerHTML = '';
     const banner = document.createElement('div');
-    banner.className = `audit-integrity-banner ${chainState.valid ? 'audit-integrity-banner--intact' : 'audit-integrity-banner--broken'}`;
+    const chainVariant = chainState.valid === null ? 'unknown' : chainState.valid ? 'intact' : 'broken';
+    banner.className = `audit-integrity-banner audit-integrity-banner--${chainVariant}`;
 
     const textSpan = document.createElement('span');
-    if (chainState.valid) {
-      textSpan.textContent = `🛡️ ${t('audit_explorer.chain_intact', `SHA-256 Hash Chain Intact · Verified ${chainState.verifiedCount} historical audit blocks`)}`;
+    if (chainState.valid === null) {
+      textSpan.textContent = `⏳ ${t(isVerifying ? 'audit_explorer.chain_checking' : 'audit_explorer.chain_unverified')}`;
+    } else if (chainState.valid) {
+      textSpan.textContent = `🛡️ ${t('audit_explorer.chain_intact', { count: chainState.verifiedCount })}`;
     } else {
-      textSpan.textContent = `🚨 ${t('audit_explorer.chain_broken', `Cryptographic hash mismatch detected at block #${chainState.brokenIndex || 0}`)}`;
+      textSpan.textContent = `🚨 ${t('audit_explorer.chain_broken', { index: chainState.brokenIndex ?? 0 })}`;
     }
 
     const reverifyBtn = Button({
-      label: isVerifying ? 'Verifying…' : `🔄 ${t('audit_explorer.reverify_btn', 'Verify Integrity')}`,
+      label: isVerifying ? t('audit_explorer.verifying', 'Verifying…') : `🔄 ${t('audit_explorer.reverify_btn', 'Verify Integrity')}`,
       variant: 'ghost',
       size: 'sm',
       onClick: checkChainIntegrity,
