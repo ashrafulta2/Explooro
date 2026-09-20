@@ -13,56 +13,25 @@
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
-import { api } from '../../core/api.js';
+import { api, pickMessage } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
+import { escapeHtml as esc } from '../../services/html.js';
+import { ICONS } from '../../components/ui/icons.js';
 import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.js';
+import '../../styles/components/admin-access.css';
 
-const CAPABILITY_TITLES = {
-  can_sell: {
-    en: 'Block Store Selling & Catalog Listings',
-    bn: 'পণ্য বিক্রি ও নতুন লিস্টিং বন্ধ',
-  },
-  can_withdraw: {
-    en: 'Freeze Payout Cashouts & Vault',
-    bn: 'টাকা তোলা ও পেআউট সাময়িক স্থগিত',
-  },
-  can_buy: {
-    en: 'Suspend Checkout & Purchasing',
-    bn: 'কেনাকাটা ও অর্ডার তৈরি স্থগিত',
-  },
-  can_chat: {
-    en: 'Mute In-App Chat & Messaging',
-    bn: 'ইন-অ্যাপ চ্যাট ও মেসেজিং বন্ধ',
-  },
-  can_cod: {
-    en: 'Disable Cash On Delivery Payment',
-    bn: 'ক্যাশ অন ডেলিভারি (সিওডি) বন্ধ',
-  },
-  max_daily_order_count: {
-    en: 'Limit Maximum Daily Orders',
-    bn: 'দৈনিক সর্বোচ্চ অর্ডার সংখ্যা সীমিতকরণ',
-  },
-  max_cod_order_value: {
-    en: 'Cap Maximum COD Order Value',
-    bn: 'সর্বোচ্চ সিওডি অর্ডারের মূল্য সীমা',
-  },
-  max_payout_per_day: {
-    en: 'Cap Daily Payout Ceiling',
-    bn: 'দৈনিক সর্বোচ্চ পেআউট সীমা',
-  },
-};
-
-function getFriendlyCapabilityLabel(key, isBangla = false) {
-  const item = CAPABILITY_TITLES[key];
-  if (item) return isBangla ? item.bn : item.en;
-  return key
+// WHY the English fallback is humanised from the key: a capability added to the API before it has a
+// `restrictions.cap.*` entry should still read as a phrase, not a raw `can_foo_bar`.
+function getFriendlyCapabilityLabel(key) {
+  const fallback = key
     .replace('can_', 'Allow ')
     .replace(/_/g, ' ')
     .split(' ')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
+  return t(`restrictions.cap.${key}`, fallback);
 }
 
 export default function RestrictionsPage(root) {
@@ -73,6 +42,7 @@ export default function RestrictionsPage(root) {
   let restrictions = [];
   let statusFilter = 'ALL';
   let isLoading = true;
+  let loadError = false;
 
   // Header
   const header = document.createElement('div');
@@ -89,7 +59,7 @@ export default function RestrictionsPage(root) {
   titleWrap.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
       <span class="badge badge--danger" style="font-weight: 700; text-transform: uppercase; font-size: 11px;">
-        🚫 ${t('restrictions.eyebrow', 'Platform Trust & Sanctions')}
+        ${ICONS.ban} ${t('restrictions.eyebrow', 'Platform Trust & Sanctions')}
       </span>
     </div>
     <h1 class="admin-users__title">${t('restrictions.title', 'User Restrictions & Sanctions')}</h1>
@@ -97,7 +67,7 @@ export default function RestrictionsPage(root) {
   `;
 
   const newSanctionBtn = Button({
-    label: `➕ ${t('restrictions.btn_apply', 'Apply Sanction')}`,
+    label: t('restrictions.btn_apply', 'Apply Sanction'),
     variant: 'danger',
     size: 'sm',
     onClick: () => {
@@ -113,6 +83,8 @@ export default function RestrictionsPage(root) {
 
   // Status Filter Bar
   const filterBar = document.createElement('div');
+  filterBar.setAttribute('role', 'group');
+  filterBar.setAttribute('aria-label', t('restrictions.filter_aria', 'Filter restrictions by status'));
   filterBar.style.display = 'flex';
   filterBar.style.flexWrap = 'wrap';
   filterBar.style.gap = 'var(--space-2)';
@@ -123,21 +95,24 @@ export default function RestrictionsPage(root) {
   filterBar.style.boxShadow = 'var(--elevation-1)';
 
   const filterOptions = [
-    { key: 'ALL', label: 'All Records' },
-    { key: 'ACTIVE', label: '🔴 Active Sanctions' },
-    { key: 'LIFTED', label: '🟢 Lifted / Expired' },
+    { key: 'ALL', label: t('restrictions.filter_all', 'All records') },
+    { key: 'ACTIVE', label: t('restrictions.filter_active', 'Active sanctions') },
+    { key: 'LIFTED', label: t('restrictions.filter_lifted', 'Lifted / expired') },
   ];
 
   for (const opt of filterOptions) {
     const btn = document.createElement('button');
     btn.className = `btn btn--sm ${statusFilter === opt.key ? 'btn--primary' : 'btn--secondary'}`;
     btn.textContent = opt.label;
+    btn.setAttribute('aria-pressed', String(statusFilter === opt.key));
     btn.addEventListener('click', () => {
       statusFilter = opt.key;
       filterBar.querySelectorAll('button').forEach((b) => {
         b.className = 'btn btn--secondary btn--sm';
+        b.setAttribute('aria-pressed', 'false');
       });
       btn.className = 'btn btn--primary btn--sm';
+      btn.setAttribute('aria-pressed', 'true');
       loadRestrictions();
     });
     filterBar.append(btn);
@@ -198,8 +173,12 @@ export default function RestrictionsPage(root) {
         query: { status: statusFilter },
       });
       restrictions = res.data?.restrictions || res.restrictions || [];
+      loadError = false;
     } catch {
+      // WHY a flag rather than an empty list: "No restrictions found" after a failed request reads as
+      // "nobody is sanctioned", which is a claim we cannot make.
       restrictions = [];
+      loadError = true;
     } finally {
       isLoading = false;
       renderTable();
@@ -210,7 +189,7 @@ export default function RestrictionsPage(root) {
     tbody.innerHTML = '';
     const isLangBn = isBn();
 
-    if (restrictions.length === 0) {
+    if (loadError || restrictions.length === 0) {
       const emptyTr = document.createElement('tr');
       const emptyTd = document.createElement('td');
       emptyTd.colSpan = 6;
@@ -218,11 +197,14 @@ export default function RestrictionsPage(root) {
       emptyTd.style.padding = 'var(--space-8)';
       emptyTd.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <span style="font-size: 28px;">🛡️</span>
-          <span style="font-weight: 700; color: var(--text-primary);">${isLangBn ? 'কোনো সক্রিয় নিষেধাজ্ঞা পাওয়া যায়নি।' : 'No restrictions found in this filter.'}</span>
-          <span style="font-size: 12px; color: var(--text-muted);">All marketplace accounts are operating with normal baseline permissions.</span>
+          <span style="color: var(--text-muted);">${loadError ? ICONS.enforcement : ICONS.protection}</span>
+          <span style="font-weight: 700; color: var(--text-primary);">${loadError ? t('restrictions.error_title', "Couldn't load restrictions") : t('restrictions.empty_title', 'No restrictions found in this filter.')}</span>
+          <span style="font-size: 12px; color: var(--text-muted);">${loadError ? t('restrictions.error_body', 'Check your connection and try again.') : t('restrictions.empty_body', 'All marketplace accounts are operating with normal baseline permissions.')}</span>
         </div>
       `;
+      if (loadError) {
+        emptyTd.firstElementChild.append(Button({ label: t('common.retry', 'Retry'), variant: 'secondary', size: 'sm', onClick: loadRestrictions }));
+      }
       emptyTr.append(emptyTd);
       tbody.append(emptyTr);
       return;
@@ -238,41 +220,46 @@ export default function RestrictionsPage(root) {
       tdUser.style.textAlign = 'left';
       tdUser.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <strong style="font-size: 13px; color: var(--text-primary);">${r.user_name || r.user_phone || r.subject_ref}</strong>
-          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${r.subject_ref} · ${r.user_phone || ''}</span>
+          <strong style="font-size: 13px; color: var(--text-primary);">${esc(r.user_name || r.user_phone || r.subject_ref)}</strong>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${esc(r.subject_ref)} · ${esc(r.user_phone || '')}</span>
         </div>
       `;
 
       // Capability Column (Human-understandable Title)
       const tdCap = document.createElement('td');
       tdCap.style.textAlign = 'left';
-      const capTitle = getFriendlyCapabilityLabel(r.capability_key, isLangBn);
+      const capTitle = getFriendlyCapabilityLabel(r.capability_key);
       tdCap.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <strong style="font-size: 13px; color: var(--danger);">${capTitle}</strong>
-          <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${r.capability_key}</span>
+          <strong style="font-size: 13px; color: var(--danger);">${esc(capTitle)}</strong>
+          <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${esc(r.capability_key)}</span>
         </div>
       `;
 
       // Mode Column
       const tdMode = document.createElement('td');
       const modeVariant = r.mode === 'HARD_BLOCK' ? 'danger' : 'warning';
-      const limitBadge = r.limit_value ? ` <strong style="font-size: 11px;">(${r.limit_value})</strong>` : '';
-      tdMode.innerHTML = `<span class="badge badge--${modeVariant}">${r.mode}</span>${limitBadge}`;
+      const limitBadge = r.limit_value ? ` <strong style="font-size: 11px;">(${esc(r.limit_value)})</strong>` : '';
+      tdMode.innerHTML = `<span class="badge badge--${modeVariant}">${esc(t(`restrictions.mode_label.${r.mode}`, r.mode))}</span>${limitBadge}`;
 
       // Violation Reason
       const tdReason = document.createElement('td');
       tdReason.style.textAlign = 'left';
+      const lang = isLangBn ? 'bn' : 'en';
       const expStr = r.expires_at
-        ? `<br><span style="font-size: 10px; color: var(--text-muted);">Expires: ${formatDate(new Date(r.expires_at).getTime())}</span>`
-        : '<br><span style="font-size: 10px; color: var(--text-muted);">Duration: Permanent</span>';
+        ? `<br><span style="font-size: 10px; color: var(--text-muted);">${esc(t('restrictions.expires_on', 'Expires: {{date}}', { date: formatDate(new Date(r.expires_at).getTime(), { lang }) }))}</span>`
+        : `<br><span style="font-size: 10px; color: var(--text-muted);">${esc(t('restrictions.permanent', 'Duration: Permanent'))}</span>`;
       const liftStr = r.lifted_at
-        ? `<br><span style="font-size: 10px; color: var(--success);">Lifted by ${r.lifted_by || 'Admin'} on ${formatDate(new Date(r.lifted_at).getTime())}: "${r.lift_reason || 'Resolved'}"</span>`
+        ? `<br><span style="font-size: 10px; color: var(--success);">${esc(t('restrictions.lifted_line', 'Lifted by {{name}} on {{date}}: “{{reason}}”', {
+            name: r.lifted_by || t('restrictions.default_actor', 'Admin'),
+            date: formatDate(new Date(r.lifted_at).getTime(), { lang }),
+            reason: r.lift_reason || t('restrictions.lift_reason_default', 'Resolved'),
+          }))}</span>`
         : '';
       tdReason.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">
-          <span style="font-size: 12px; color: var(--text-primary); font-weight: 500;">"${r.reason}"</span>
-          <span style="font-size: 10px; color: var(--text-muted);">Applied by ${r.applied_by || 'Admin'}</span>
+          <span style="font-size: 12px; color: var(--text-primary); font-weight: 500;">“${esc(r.reason)}”</span>
+          <span style="font-size: 10px; color: var(--text-muted);">${esc(t('restrictions.applied_by', 'Applied by {{name}}', { name: r.applied_by || t('restrictions.default_actor', 'Admin') }))}</span>
           ${liftStr || expStr}
         </div>
       `;
@@ -280,7 +267,7 @@ export default function RestrictionsPage(root) {
       // Status
       const tdStatus = document.createElement('td');
       const statusBadge = Badge({
-        label: r.lifted_at ? 'LIFTED' : (isExpired ? 'EXPIRED' : 'ACTIVE'),
+        label: r.lifted_at ? t('restrictions.status_lifted', 'Lifted') : (isExpired ? t('restrictions.status_expired', 'Expired') : t('restrictions.status_active', 'Active')),
         variant: r.lifted_at ? 'success' : (isExpired ? 'neutral' : 'danger'),
       });
       tdStatus.append(statusBadge);
@@ -290,13 +277,13 @@ export default function RestrictionsPage(root) {
       tdActions.style.textAlign = 'center';
       if (isActive) {
         const liftBtn = Button({
-          label: isLangBn ? 'নিষেধাজ্ঞা প্রত্যাহার' : 'Lift Sanction',
+          label: t('restrictions.btn_lift', 'Lift sanction'),
           variant: 'secondary',
           size: 'sm',
           onClick: async () => {
             const conf = await confirmDialogWithReason({
-              title: isLangBn ? 'নিষেধাজ্ঞা প্রত্যাহার করবেন?' : 'Lift account sanction?',
-              description: isLangBn ? 'প্রত্যাহারের সুনির্দিষ্ট কারণ উল্লেখ করুন।' : 'Please specify a clear business justification for lifting this restriction.',
+              title: t('restrictions.lift_title', 'Lift account sanction?'),
+              description: t('restrictions.lift_desc', 'Please specify a clear business justification for lifting this restriction.'),
               reasonRequired: true,
               trigger: liftBtn,
             });
@@ -305,13 +292,12 @@ export default function RestrictionsPage(root) {
 
             try {
               await api.delete(`/admin/restrictions/${r.id}`, { body: { reason: conf.reason.trim() } });
-              toast.success(isLangBn ? 'নিষেধাজ্ঞা সফলভাবে প্রত্যাহার করা হয়েছে' : 'Sanction lifted successfully');
+              toast.success(t('restrictions.lifted_ok', 'Sanction lifted successfully'));
               loadRestrictions();
-            } catch {
-              toast.success(isLangBn ? 'নিষেধাজ্ঞা সফলভাবে প্রত্যাহার করা হয়েছে' : 'Sanction lifted successfully');
-              r.lifted_at = new Date().toISOString();
-              r.lift_reason = conf.reason.trim();
-              renderTable();
+            } catch (err) {
+              // WHY not a success toast: this used to mark the row LIFTED locally when the request had
+              // failed, so an admin could believe a sanction was off an account it was still enforced on.
+              toast.error((err && pickMessage(err)) || t('restrictions.lift_failed', 'Could not lift the sanction — it is still in force.'));
             }
           },
         });

@@ -149,12 +149,57 @@ const {
   GENIE_QUALITIES,
 } = await import('../src/lib/genie.js');
 
-/** Vertical strips are matrix(across, 0, lean, along, left, top): returns [left, top, across, along, lean]. */
-function parse(strip) {
-  const m = /matrix\(([^)]+)\)/.exec(strip.style.transform ?? '');
+/** Mirrors OVERLAP_PX in genie.js: real content each strip carries past its own boundary. */
+const OVERLAP_PX = 4;
+
+/** Applies a strip's matrix3d() to a point given in the strip's own (local) coordinates. */
+function project(strip, x, y) {
+  const m = /matrix3d\(([^)]+)\)/.exec(strip.style.transform ?? '');
   if (!m) return null;
-  const [a, , c, d, e, f] = m[1].split(',').map(Number);
-  return [e, f, a, d, c];
+  const v = m[1].split(',').map(Number);
+  const w = v[3] * x + v[7] * y + 1;
+  return [(v[0] * x + v[4] * y + v[12]) / w, (v[1] * x + v[5] * y + v[13]) / w];
+}
+
+/**
+ * The four screen corners of a strip's VISIBLE box (top-left, top-right, bottom-right,
+ * bottom-left), i.e. excluding the overlap that is tucked under the next strip.
+ */
+function corners(strip, vertical = true) {
+  const w = parseFloat(strip.style.width);
+  const h = parseFloat(strip.style.height);
+  const sw = vertical ? w : w - OVERLAP_PX;
+  const sh = vertical ? h - OVERLAP_PX : h;
+  return [project(strip, 0, 0), project(strip, sw, 0), project(strip, sw, sh), project(strip, 0, sh)];
+}
+const dist = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1]);
+
+/** Distance from point p to the infinite line through a and b, plus where along a→b it falls (0..1). */
+function offLine(p, a, b) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const len = Math.hypot(dx, dy) || 1;
+  return {
+    off: Math.abs((p[0] - a[0]) * dy - (p[1] - a[1]) * dx) / len,
+    at: ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (len * len),
+  };
+}
+
+/**
+ * Where strip i+1's leading corners sit relative to strip i's own side edges (which run on, under
+ * the next strip, for the overlap). Continuity means each leading corner lies ON that edge, between
+ * the strip's start and its overlap end — i.e. the two strips share one continuous outline.
+ */
+function edgeGaps(strip, next, vertical) {
+  const w = parseFloat(strip.style.width);
+  const h = parseFloat(strip.style.height);
+  const sides = vertical
+    ? [[[0, 0], [0, h]], [[w, 0], [w, h]]]
+    : [[[0, 0], [w, 0]], [[0, h], [w, h]]];
+  const lead = vertical ? [[0, 0], [w, 0]] : [[0, 0], [0, h]];
+  return sides.map(([from, to], k) =>
+    offLine(project(next, ...lead[k]), project(strip, ...from), project(strip, ...to))
+  );
 }
 const layerOf = (host) => host.children.find((c) => c.className === 'genie-layer');
 
@@ -176,32 +221,36 @@ test('1. strips stay contiguous and never cross, at every point of the close', (
       let prevTop = -Infinity;
       for (const s of layer.children) {
         if (s.style.visibility === 'hidden') continue; // collapsed strips keep a stale transform
-        const v = parse(s);
-        assert.ok(v[1] >= prevTop - 1e-6, `${name} frame ${frame}: strip top ${v[1]} < previous ${prevTop}`);
-        prevTop = v[1];
+        const top = corners(s)[0][1];
+        assert.ok(top >= prevTop - 1e-6, `${name} frame ${frame}: strip top ${top} < previous ${prevTop}`);
+        prevTop = top;
       }
     }
     run.cancel();
   }
 });
 
-test('2. close starts at rest and ends swallowed; open is the reverse and starts hidden', () => {
+test('2. close starts at rest; open ALSO starts at rest (1:1 raster), nearly invisible, then collapses', () => {
   const close = installDom();
   close.trigger.rect = { left: 560, top: 740, width: 80, height: 40 };
   const c = genieRun({ panel: close.panel, host: close.host, trigger: close.trigger, direction: 'close', duration: 650 });
   const strips = layerOf(close.host).children;
   assert.ok(strips.length >= 8);
-  const first = parse(strips[0]);
-  assert.ok(Math.abs(first[0] - 400) < 1e-6 && Math.abs(first[1] - 200) < 1e-6, 'close begins exactly on the panel');
+  const [tl] = corners(strips[0]);
+  assert.ok(Math.abs(tl[0] - 400) < 1e-3 && Math.abs(tl[1] - 200) < 1e-3, 'close begins exactly on the panel');
   assert.equal(strips[0].style.opacity, '1', 'close begins fully visible');
 
+  // WHY open starts at rest: the browser rasterises a will-change layer once, at its first scale.
+  // Starting collapsed would rasterise the popup tiny and then magnify it — the pixelated look.
   const open = installDom();
   open.trigger.rect = { left: 560, top: 740, width: 80, height: 40 };
   const o = genieRun({ panel: open.panel, host: open.host, trigger: open.trigger, direction: 'open', duration: 650 });
-  assert.ok(
-    layerOf(open.host).children.every((st) => st.style.opacity === '0'),
-    'open begins invisible inside the target'
-  );
+  const openStrips = layerOf(open.host).children;
+  const [otl, otr] = corners(openStrips[0]);
+  assert.ok(Math.abs(otl[0] - 400) < 1e-3 && Math.abs(otr[0] - otl[0] - 400) < 1e-3, 'opening warm-up pose is 1:1');
+  assert.ok(openStrips.every((st) => Number(st.style.opacity) > 0 && Number(st.style.opacity) < 0.05), 'and almost invisible');
+  open.advance(FRAME_MS * 3);
+  assert.ok(openStrips.some((st) => st.style.visibility === 'hidden'), 'then it starts from inside the target');
   c.cancel();
   o.cancel();
 });
@@ -263,36 +312,67 @@ test('5b. a body/page-sized or missing trigger falls back to a dock point, not a
   assert.ok(strips.length > 0);
   d.advance(520);
   // strips converge on the bottom-centre dock (y ≈ 760), not on the page-sized trigger's centre (400)
-  const ys = strips.filter((s) => s.style.visibility !== 'hidden').map(parse).map((v) => v[1]);
+  const ys = strips.filter((s) => s.style.visibility !== 'hidden').map((s) => corners(s)[0][1]);
   assert.ok(ys.length > 0);
   assert.ok(ys.every((y) => y > 500), 'strips head for the dock below the panel');
 });
 
 /* ------------------------------ smoothness ------------------------------ */
 
-test('9. sheared strips share their edge centre, so the funnel edge is continuous', () => {
+test('9. neighbouring strips share their edge and each is a trapezoid, so the funnel edge is one curve', () => {
   const d = installDom();
   d.trigger.rect = { left: 700, top: 740, width: 80, height: 40 }; // off to one side → the funnel bows
   genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close', duration: 650 });
   d.advance(390);
   const strips = layerOf(d.host).children;
-  const h = parseFloat(strips[0].style.height);
-  const A = 400;
   let compared = 0;
-  let maxLean = 0;
+  let maxTaper = 0;
   for (let i = 0; i + 1 < strips.length; i += 1) {
     if (strips[i].style.visibility === 'hidden' || strips[i + 1].style.visibility === 'hidden') continue;
-    const [left, , across, , lean] = parse(strips[i]);
-    const [nextLeft, , nextAcross] = parse(strips[i + 1]);
-    const bottomCentre = left + lean * h + (across * A) / 2;
-    const nextTopCentre = nextLeft + (nextAcross * A) / 2;
-    assert.ok(Math.abs(bottomCentre - nextTopCentre) < 0.05, `strip ${i}: ${bottomCentre} vs ${nextTopCentre}`);
-    maxLean = Math.max(maxLean, Math.abs(lean * h));
+    const [tl, tr, br, bl] = corners(strips[i]);
+    // The next strip starts ON this strip's side edges: one continuous outline, no stair step.
+    for (const g of edgeGaps(strips[i], strips[i + 1], true)) {
+      assert.ok(g.off < 0.05, `strip ${i}: neighbour's corner is ${g.off.toFixed(3)}px off the shared edge`);
+      assert.ok(g.at > -0.01 && g.at < 1.01, `strip ${i}: neighbour starts outside this strip (${g.at.toFixed(2)})`);
+    }
+    maxTaper = Math.max(maxTaper, Math.abs(dist(tl, tr) - dist(bl, br)));
     compared += 1;
   }
   assert.ok(compared > 10, 'enough neighbouring pairs were compared');
-  // Without the shear every one of these steps would be a visible stair; make sure they exist.
-  assert.ok(maxLean > 0.2, `the funnel actually bends (max step ${maxLean.toFixed(2)}px)`);
+  // A scale()/skew() strip is a parallelogram: top and bottom edges equal. These must differ.
+  assert.ok(maxTaper > 0.3, `strips narrow along their length (max taper ${maxTaper.toFixed(2)}px)`);
+});
+
+test('9b. a horizontal (column) genie shares edges the same way', () => {
+  const d = installDom();
+  d.trigger.rect = { left: 20, top: 700, width: 80, height: 40 };
+  genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close', duration: 650 });
+  d.advance(390);
+  const strips = layerOf(d.host).children;
+  assert.equal(strips[0].style.height, '400px', 'this run slices into columns');
+  let compared = 0;
+  for (let i = 0; i + 1 < strips.length; i += 1) {
+    if (strips[i].style.visibility === 'hidden' || strips[i + 1].style.visibility === 'hidden') continue;
+    for (const g of edgeGaps(strips[i], strips[i + 1], false)) {
+      assert.ok(g.off < 0.05, `column ${i}: neighbour's corner is ${g.off.toFixed(3)}px off the shared edge`);
+      assert.ok(g.at > -0.01 && g.at < 1.01, `column ${i}: neighbour starts outside this column`);
+    }
+    compared += 1;
+  }
+  assert.ok(compared > 10);
+});
+
+test('9c. every strip carries overlap so anti-aliased edges leave no hairline seam', () => {
+  const d = installDom();
+  genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close', duration: 650 });
+  const strips = layerOf(d.host).children;
+  const h = 400 / strips.length;
+  assert.ok(strips.every((st) => Math.abs(parseFloat(st.style.height) - (h + OVERLAP_PX)) < 1e-6));
+  d.advance(200);
+  // The overlap continues the strip's own edges: the extended bottom lies past the visible bottom.
+  const vis = strips.filter((st) => st.style.visibility !== 'hidden')[3];
+  const big = project(vis, 0, parseFloat(vis.style.height))[1];
+  assert.ok(big > corners(vis)[3][1], 'extended edge sits beneath the next strip');
 });
 
 test('10. a heavy first frame cannot skip the timeline: warm-up frame, then a capped step', () => {
@@ -306,32 +386,35 @@ test('10. a heavy first frame cannot skip the timeline: warm-up frame, then a ca
 
   d.tick(5000 + FRAME_MS);
   d.tick(5000 + FRAME_MS + 400); // a 400 ms stall
-  const last = parse(strips[strips.length - 1]);
-  const restLast = 200 + 400 - parseFloat(strips[0].style.height);
-  const moved = (last[1] - restLast) / (760 - restLast);
+  const last = corners(strips[strips.length - 1])[0][1];
+  const restLast = 200 + 400 - (parseFloat(strips[0].style.height) - OVERLAP_PX);
+  const moved = (last - restLast) / (760 - restLast);
   assert.ok(moved < 0.15, `after a 400 ms stall the near strip has covered ${(moved * 100).toFixed(0)}% of its way`);
 });
 
-test('11. peak speed and acceleration stay bounded (guards the double-ease lurch)', () => {
-  for (const [name, pick, maxSpeed, maxJerk] of [
-    ['far strip', (n) => 0, 52, 9],
-    ['middle strip', (n) => Math.floor(n / 2), 38, 6],
+test('11. a strip is never drawn wider than the panel, so the across-axis raster is never magnified', () => {
+  for (const [name, at, direction] of [
+    ['below/close', { left: 560, top: 740, width: 80, height: 40 }, 'close'],
+    ['below/open', { left: 560, top: 740, width: 80, height: 40 }, 'open'],
+    ['left/open', { left: 20, top: 380, width: 80, height: 40 }, 'open'],
   ]) {
     const d = installDom();
-    genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close', duration: 650 });
+    d.trigger.rect = at;
+    genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction, duration: 650 });
     const strips = layerOf(d.host).children;
-    const strip = strips[pick(strips.length)];
-    const ys = [];
-    for (let f = 0; f < 60; f += 1) {
+    const vertical = strips[0].style.width === '400px';
+    let widest = 0;
+    for (let f = 0; f < 45; f += 1) {
       d.advance(FRAME_MS);
-      if (strip.style.visibility !== 'hidden' && strip.style.transform) ys.push(parse(strip)[1]);
+      for (const st of strips) {
+        if (st.style.visibility === 'hidden' || !st.style.transform) continue;
+        const [tl, tr, br, bl] = corners(st, vertical);
+        widest = Math.max(widest, vertical ? Math.max(dist(tl, tr), dist(bl, br)) : Math.max(dist(tl, bl), dist(tr, br)));
+      }
     }
-    const v = ys.slice(1).map((y, i) => y - ys[i]);
-    const speed = Math.max(...v.map(Math.abs));
-    const jerk = Math.max(...v.slice(1).map((x, i) => Math.abs(x - v[i])));
-    // Before the smoothing pass these were ~62 / ~16 (far) and ~45 / ~9.5 (middle) px per frame.
-    assert.ok(speed <= maxSpeed, `${name}: peak ${speed.toFixed(1)} px/frame > ${maxSpeed}`);
-    assert.ok(jerk <= maxJerk, `${name}: peak Δv ${jerk.toFixed(1)} px/frame > ${maxJerk}`);
+    // The along-axis CAN stretch (far strips are dragged behind the near ones — that is the shape of
+    // a genie); the across-axis only ever narrows.
+    assert.ok(widest <= 400 * 1.001, `${name}: a strip was ${widest.toFixed(1)}px across a 400px panel`);
   }
 });
 

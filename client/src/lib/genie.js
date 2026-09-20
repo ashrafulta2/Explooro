@@ -63,13 +63,20 @@ const FADE_START = 0.88;
  * length in one step instead of carrying on from where it was.
  */
 const MAX_FRAME_DT_MS = 40;
+/** Barely-there opacity for the opening warm-up frame; fully transparent layers may not be rastered at all. */
+const WARM_UP_OPACITY = 0.02;
 /**
  * rAF is paused in background tabs and hidden windows; a timer (throttled but never stopped)
  * guarantees the animation settles, so a modal can never be stranded half-closed.
  */
 const SETTLE_GRACE_MS = 250;
-/** Strips overlap by this much so sub-pixel rounding never opens a hairline seam between them. */
-const SEAM_PX = 0.6;
+/**
+ * Each strip carries this many extra px of the panel's REAL content past its own boundary, and
+ * those px are drawn underneath the next strip. Strips are anti-aliased quads, so two that merely
+ * touch leave a translucent hairline where their edges blend; overlapping them with true content
+ * (rather than stretching a strip to cover the gap) closes the seam without shifting any pixel.
+ */
+const OVERLAP_PX = 4;
 /** Target used when nothing sensible triggered the overlay (programmatic open): a dock point. */
 const DOCK_WIDTH_PX = 48;
 const DOCK_HEIGHT_PX = 24;
@@ -81,6 +88,40 @@ const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const lerp = (a, b, t) => a + (b - a) * t;
 const easeSine = (t) => 0.5 - 0.5 * Math.cos(Math.PI * t);
 const fmt = (n) => n.toFixed(4);
+const fmtSmall = (n) => n.toFixed(9);
+
+/**
+ * CSS matrix3d() that maps an sw × sh rectangle (origin top-left) onto the quad q = [x0,y0, x1,y1,
+ * x2,y2, x3,y3], corners taken clockwise from the rectangle's top-left. This is the standard
+ * unit-square-to-quad projective mapping (Heckbert), so the four corners land exactly on the four
+ * points — including the case where the far edge is narrower than the near one, which no affine
+ * matrix (scale/skew) can express. Exported for the tests.
+ */
+export function quadToMatrix3d(sw, sh, q) {
+  const [x0, y0, x1, y1, x2, y2, x3, y3] = q;
+  const dx1 = x1 - x2;
+  const dx2 = x3 - x2;
+  const dx3 = x0 - x1 + x2 - x3;
+  const dy1 = y1 - y2;
+  const dy2 = y3 - y2;
+  const dy3 = y0 - y1 + y2 - y3;
+  let g = 0;
+  let hh = 0;
+  const det = dx1 * dy2 - dy1 * dx2;
+  if ((Math.abs(dx3) > 1e-9 || Math.abs(dy3) > 1e-9) && Math.abs(det) > 1e-12) {
+    g = (dx3 * dy2 - dy3 * dx2) / det;
+    hh = (dx1 * dy3 - dy1 * dx3) / det;
+  }
+  const a = x1 - x0 + g * x1;
+  const b = x3 - x0 + hh * x3;
+  const d = y1 - y0 + g * y1;
+  const e = y3 - y0 + hh * y3;
+  // Unit-square coordinates → source pixels: u = x / sw, v = y / sh.
+  return (
+    `matrix3d(${fmt(a / sw)}, ${fmt(d / sw)}, 0, ${fmtSmall(g / sw)}, ` +
+    `${fmt(b / sh)}, ${fmt(e / sh)}, 0, ${fmtSmall(hh / sh)}, 0, 0, 1, 0, ${fmt(x0)}, ${fmt(y0)}, 0, 1)`
+  );
+}
 
 /** Live settings. `duration_ms: null` = nobody has configured it, so the CSS token decides. */
 let config = { enabled: GENIE_DEFAULTS.enabled, duration_ms: null, quality: GENIE_DEFAULTS.quality };
@@ -281,11 +322,11 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
     copy.style.height = `${H}px`;
     if (vertical) {
       strip.style.width = `${W}px`;
-      strip.style.height = `${h}px`;
+      strip.style.height = `${h + OVERLAP_PX}px`;
       copy.style.left = '0';
       copy.style.top = `${-i * h}px`;
     } else {
-      strip.style.width = `${h}px`;
+      strip.style.width = `${h + OVERLAP_PX}px`;
       strip.style.height = `${H}px`;
       copy.style.top = '0';
       copy.style.left = `${-i * h}px`;
@@ -331,17 +372,24 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
         continue;
       }
       el.style.visibility = 'visible';
-      const along = (thick + SEAM_PX) / h;
-      const across = (wd[i] + wd[i + 1]) / 2 / A;
-      const left = cx[i] - (across * A) / 2;
-      // WHY a shear, not just a scale: a plain scale leaves every strip an axis-aligned rectangle,
-      // so the funnel's edge is a staircase whose steps grow as the neck tightens — the "stepped"
-      // look. Shearing each strip by the drift of its centre between its two edges turns the edge
-      // into a continuous polyline at the same strip count.
-      const lean = (cx[i + 1] - cx[i]) / h;
+      // WHY a projective quad, not scale()/skew(): with a rectangle per strip the funnel's edge is a
+      // staircase (every strip a slab of constant width), and that staircase is what reads as
+      // "pixelated" edges. Each strip is instead mapped onto the exact trapezoid between its two
+      // boundaries — top edge as wide as the boundary above it, bottom edge as wide as the one below
+      // — so neighbouring strips share every corner and the edge is one continuous curve.
+      // Extend both side edges past the boundary by the overlap, in proportion to how far this
+      // strip has been squeezed, so the extra content lands where the next strip's content will.
+      const grow = OVERLAP_PX / h;
+      const a2 = vb[i + 1] + thick * grow;
+      const l0 = cx[i] - wd[i] / 2;
+      const r0 = cx[i] + wd[i] / 2;
+      const l1 = cx[i + 1] - wd[i + 1] / 2;
+      const r1 = cx[i + 1] + wd[i + 1] / 2;
+      const l2 = l1 + (l1 - l0) * grow;
+      const r2 = r1 + (r1 - r0) * grow;
       el.style.transform = vertical
-        ? `matrix(${fmt(across)}, 0, ${fmt(lean)}, ${fmt(along)}, ${fmt(left)}, ${fmt(a)})`
-        : `matrix(${fmt(along)}, ${fmt(lean)}, 0, ${fmt(across)}, ${fmt(a)}, ${fmt(left)})`;
+        ? quadToMatrix3d(A, h + OVERLAP_PX, [l0, a, r0, a, r2, a2, l2, a2])
+        : quadToMatrix3d(h + OVERLAP_PX, A, [a, l0, a2, l2, a2, r2, a, r0]);
     }
     // Fade the strips themselves, not their container: an opacity on the container makes the
     // browser flatten all of them into one offscreen surface for exactly the frames the eye is on.
@@ -373,8 +421,18 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   }
 
   const opening = direction === 'open';
-  place(opening ? 1 : 0);
-  if (opening) pulseTarget(targetEl);
+  // WHY the first pose is always the panel at REST, even when opening: strips are compositor layers
+  // (will-change: transform) and the browser rasterises each one once, at the scale it has when it
+  // first appears, then only stretches that bitmap. Opening from the collapsed pose would rasterise
+  // the popup at a few percent of its size and blow it up as it grows — blurry, blocky text and
+  // borders. At rest the scale is 1:1, and every later pose only shrinks it (never magnifies).
+  // For an opening genie that rest pose is held nearly invisible for the one warm-up frame.
+  place(0);
+  if (opening) {
+    shownFade = WARM_UP_OPACITY;
+    for (let i = 0; i < N; i += 1) strips[i].style.opacity = String(WARM_UP_OPACITY);
+    pulseTarget(targetEl);
+  }
 
   // The clock is advanced by the (capped) time between frames, not read off the wall clock.
   let last = null;
@@ -387,7 +445,7 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
     }
     if (last === null) {
       // WHY a warm-up frame: this is the frame that rasterises every strip for the first time and
-      // is by far the most expensive of the run. Holding the opening pose through it means the
+      // is by far the most expensive of the run. Holding the rest pose through it means the
       // animation starts on the next frame instead of arriving already a fifth of the way in.
       last = now;
       raf = requestAnimationFrame(frame);
@@ -396,10 +454,11 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
     elapsed += Math.min(now - last, MAX_FRAME_DT_MS);
     last = now;
     const t = clamp(elapsed / duration, 0, 1);
-    // WHY the timeline is linear: every strip already eases itself in and out (easeSine over its own
-    // NECK-delayed window in place()). Easing the whole timeline on top makes that a SECOND ease,
-    // which stalls the start and end and lurches through the middle — the jerky feel this replaced.
-    place(opening ? 1 - t : t);
+    // WHY the timeline is eased here as well as per strip: this is the pacing the owner approved in
+    // the preview ("the speed you first set was right"). A linear timeline measured smoother on
+    // paper but read as rushed, so the speed is deliberately left as it was.
+    const s = easeSine(t);
+    place(opening ? 1 - s : s);
     if (t < 1) raf = requestAnimationFrame(frame);
     else {
       if (!opening) pulseTarget(targetEl);

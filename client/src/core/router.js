@@ -54,6 +54,32 @@ export function matchPath(pattern, pathname) {
   return params;
 }
 
+/**
+ * The route that answers `pathname`: the matching one with the FEWEST `:param` segments, and among
+ * equals the first registered.
+ *
+ * WHY specificity instead of registration order: `/admin/users/:id` was registered before
+ * `/admin/users/verification`, so the sidebar's KYC Verification link matched it with
+ * `id = "verification"` and rendered "User not found". Two admin pages were unreachable that way,
+ * and nothing failed loudly — the wrong page just rendered. Requiring authors to remember to put
+ * every static sibling above its `:id` route is a rule that gets broken silently.
+ */
+export function pickRoute(routes, pathname) {
+  let best = null;
+  let bestDynamic = Infinity;
+  for (const route of routes) {
+    const params = matchPath(route.path, pathname);
+    if (!params) continue;
+    const dynamic = route.path.split('/').filter((seg) => seg.startsWith(':')).length;
+    if (dynamic < bestDynamic) {
+      best = { route, params };
+      bestDynamic = dynamic;
+      if (dynamic === 0) break;
+    }
+  }
+  return best;
+}
+
 export function parseQuery(search) {
   return Object.fromEntries(new URLSearchParams(search));
 }
@@ -97,11 +123,7 @@ export function createRouter({
   const scrollPositions = new Map();
 
   function findRoute(pathname) {
-    for (const route of routes) {
-      const params = matchPath(route.path, pathname);
-      if (params) return { route, params };
-    }
-    return null;
+    return pickRoute(routes, pathname);
   }
 
   function guardFailure(route, ctx) {

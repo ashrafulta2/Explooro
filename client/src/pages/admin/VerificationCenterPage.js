@@ -10,39 +10,26 @@
  * 6. Zero-CLS skeleton state and full bilingual i18n support.
  */
 
-import { api } from '../../core/api.js';
-import { formatDate } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { api, pickMessage } from '../../core/api.js';
+import { formatDate, formatNumber } from '../../services/format.js';
+import { t } from '../../services/i18n.js';
+import { escapeHtml as esc } from '../../services/html.js';
+import { ICONS } from '../../components/ui/icons.js';
 import { toast } from '../../services/toast.js';
+import '../../styles/components/admin-access.css';
 
 /**
  * The three attestations a reviewer must make before a KYC submission can be approved.
- * Keyed so the checkbox state survives a re-render but resets whenever the applicant changes.
+ * Keyed so the checkbox state survives a re-render but resets whenever the applicant changes; the
+ * wording is `kyc.check_<key>` in the locale files.
  */
-const COMPLIANCE_CHECKS = [
-  {
-    key: 'nid_match',
-    en: 'National ID front and back match name on account',
-    bn: 'এনআইডির উভয় পাশ অ্যাকাউন্টের নামের সাথে মিলেছে',
-  },
-  {
-    key: 'face_match',
-    en: 'Applicant face matches portrait on government issued NID',
-    bn: 'আবেদনকারীর ছবি সরকারি এনআইডির ছবির সাথে মিলেছে',
-  },
-  {
-    key: 'license_verified',
-    en: 'Trade License and physical warehouse verified',
-    bn: 'ট্রেড লাইসেন্স ও প্রকৃত গুদাম যাচাই করা হয়েছে',
-  },
-];
+const COMPLIANCE_CHECKS = [{ key: 'nid_match' }, { key: 'face_match' }, { key: 'license_verified' }];
 
 function emptyComplianceChecks() {
   return Object.fromEntries(COMPLIANCE_CHECKS.map((c) => [c.key, false]));
 }
 
 export default function VerificationCenterPage(root) {
-  const isBn = () => getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'page-container verification-center-page';
 
@@ -180,33 +167,59 @@ export default function VerificationCenterPage(root) {
     openDocViewerModal();
   }
 
+  const failMessage = (err, key, fallback) => (err && typeof err === 'object' && pickMessage(err)) || t(key, fallback);
+
+  // The open modal's closer, so leaving the page (router, back button) cannot strand a modal on <body>.
+  let closeOpenModal = null;
+
+  /** Mounts a modal backdrop; Escape and a click on the scrim close it, like every other overlay. */
+  function mountKycModal(backdrop) {
+    const close = () => {
+      document.removeEventListener('keydown', onKey);
+      backdrop.remove();
+      if (closeOpenModal === close) closeOpenModal = null;
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') close();
+    };
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) close();
+    });
+    document.addEventListener('keydown', onKey);
+    closeOpenModal?.();
+    closeOpenModal = close;
+    document.body.appendChild(backdrop);
+    backdrop.querySelector('textarea, button')?.focus();
+    return close;
+  }
+
   function openDocViewerModal() {
     if (!inspectingDoc) return;
 
     const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop';
+    modalBackdrop.className = 'kyc-modal-backdrop';
 
     modalBackdrop.innerHTML = `
-      <div class="modal-dialog card max-w-2xl p-6 animate-scale-in" style="background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xl); box-shadow: var(--elevation-3);">
+      <div class="kyc-modal kyc-modal--wide" role="dialog" aria-modal="true" aria-label="${esc(inspectingDoc.doc_type)}">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4); padding-bottom: var(--space-3); border-bottom: var(--border-width) solid var(--border-subtle);">
           <div>
             <h3 style="font-size: 16px; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
-              🔒 <span>${inspectingDoc.doc_type}</span>
+              ${ICONS.lock} <span>${esc(inspectingDoc.doc_type)}</span>
             </h3>
-            <span style="font-size: 11px; color: var(--text-muted);">View Count: ${inspectingDoc.view_count || 1} · Access audited with cryptographic trace</span>
+            <span style="font-size: 11px; color: var(--text-muted);">${esc(t('kyc.viewer_meta', 'Views: {{count}} · Access audited with cryptographic trace', { count: formatNumber(inspectingDoc.view_count ?? 0) }))}</span>
           </div>
-          <button class="btn btn--ghost btn--xs" id="btn-close-viewer" style="font-size: 16px;">✕</button>
+          <button class="btn btn--ghost btn--xs" id="btn-close-viewer" aria-label="${esc(t('common.close', 'Close'))}" style="font-size: 16px;">✕</button>
         </div>
 
         <div style="padding: var(--space-6); background: var(--surface-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg); text-align: center; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
           <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0.08; transform: rotate(-25deg); font-size: 24px; font-weight: 900; color: var(--text-primary);">
-            CONFIDENTIAL · EXPLOORO AUDIT PREVIEW
+            ${esc(t('kyc.viewer_watermark', 'CONFIDENTIAL · EXPLOORO AUDIT PREVIEW'))}
           </div>
           <div style="width: 100px; height: 120px; background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 8px; box-shadow: var(--elevation-1);">
-            🪪
+            <span style="display: inline-flex; color: var(--text-muted); transform: scale(2.5);">${ICONS.image}</span>
           </div>
-          <span style="font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 700; color: var(--text-brand);">[WATERMARKED SECURE VAULT PREVIEW]</span>
-          <span style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Storage Key: <code>${inspectingDoc.storage_key}</code></span>
+          <span style="font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 700; color: var(--text-brand);">${esc(t('kyc.viewer_label', '[WATERMARKED SECURE VAULT PREVIEW]'))}</span>
+          <span style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${esc(t('kyc.viewer_storage_key', 'Storage key:'))} <code>${esc(inspectingDoc.storage_key)}</code></span>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4);">
@@ -215,20 +228,18 @@ export default function VerificationCenterPage(root) {
       </div>
     `;
 
-    document.body.appendChild(modalBackdrop);
-
-    modalBackdrop.querySelector('#btn-close-viewer')?.addEventListener('click', () => modalBackdrop.remove());
-    modalBackdrop.querySelector('#btn-close-viewer-footer')?.addEventListener('click', () => modalBackdrop.remove());
+    const close = mountKycModal(modalBackdrop);
+    modalBackdrop.querySelector('#btn-close-viewer')?.addEventListener('click', close);
+    modalBackdrop.querySelector('#btn-close-viewer-footer')?.addEventListener('click', close);
   }
 
   async function handleApprove() {
     if (!selectedKyc) return;
-    const isLangBn = isBn();
 
     // Defence in depth: the button is disabled, but a keyboard/devtools path must not slip past the
     // attestation either — granting a Blue-Tick is the whole point of this screen.
     if (!COMPLIANCE_CHECKS.every((c) => complianceChecks[c.key])) {
-      toast.error(isLangBn ? 'আগে তিনটি কমপ্লায়েন্স যাচাই সম্পন্ন করুন।' : 'Complete all three compliance checks first.');
+      toast.error(t('kyc.checks_required', 'Complete all three compliance checks first.'));
       return;
     }
 
@@ -236,39 +247,39 @@ export default function VerificationCenterPage(root) {
       await api.post(`/admin/kyc/${selectedKyc.id}/decide`, {
         decision: 'VERIFIED',
       });
-      toast.success(isLangBn ? 'কেওয়াইসি সফলভাবে অনুমোদিত হয়েছে' : 'Merchant KYC approved & Blue-Tick verified');
+      toast.success(t('kyc.approve_success', 'KYC verification approved and Blue-Tick badge issued!'));
       selectedKyc.status = 'VERIFIED';
       complianceChecks = emptyComplianceChecks();
       complianceFor = null;
       render();
-    } catch {
-      toast.success(isLangBn ? 'কেওয়াইসি সফলভাবে অনুমোদিত হয়েছে' : 'Merchant KYC approved & Blue-Tick verified');
-      selectedKyc.status = 'VERIFIED';
-      render();
+    } catch (err) {
+      // WHY not a success toast: this used to mark the submission VERIFIED (and award the Blue-Tick in the
+      // UI) when the request had failed, so a reviewer could believe a merchant was approved that the
+      // server never approved.
+      toast.error(failMessage(err, 'kyc.approve_failed', 'Approval failed — the submission is still pending.'));
     }
   }
 
   function openRejectModal() {
     if (!selectedKyc) return;
-    const isLangBn = isBn();
 
     const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop';
+    modalBackdrop.className = 'kyc-modal-backdrop';
 
     modalBackdrop.innerHTML = `
-      <div class="modal-dialog card max-w-md p-6 animate-scale-in" style="background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xl); box-shadow: var(--elevation-3);">
-        <h3 style="font-size: 18px; font-weight: 800; color: var(--danger); margin: 0 0 4px 0;">❌ ${t('kyc.reject_modal_title', 'Reject KYC Submission')}</h3>
+      <div class="kyc-modal kyc-modal--narrow" role="dialog" aria-modal="true" aria-label="${t('kyc.reject_modal_title', 'Reject KYC Submission')}">
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--danger); margin: 0 0 4px 0;">${esc(t('kyc.reject_modal_title', 'Reject KYC Submission'))}</h3>
         <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: var(--space-4);">${t('kyc.reject_modal_desc', 'Please provide clear feedback so the applicant can correct their documents.')}</p>
 
         <div style="display: flex; flex-direction: column; gap: var(--space-3); font-size: 12px;">
           <div>
-            <label for="txt-reject-en" style="font-weight: 700; display: block; margin-bottom: 4px;">Rejection Reason (English):</label>
-            <textarea id="txt-reject-en" class="form-textarea w-full" rows="2" style="width: 100%; font-size: 12px;" placeholder="e.g. NID image is blurry, trade license number not verifiable..."></textarea>
+            <label for="txt-reject-en" style="font-weight: 700; display: block; margin-bottom: 4px;">${esc(t('kyc.reject_label_en', 'Rejection reason (English)'))}:</label>
+            <textarea id="txt-reject-en" class="form-textarea w-full" rows="2" style="width: 100%; font-size: 12px;" placeholder="${esc(t('kyc.reject_placeholder_en', 'e.g. NID image is blurry, trade license number not verifiable...'))}"></textarea>
           </div>
 
           <div>
-            <label for="txt-reject-bn" style="font-weight: 700; display: block; margin-bottom: 4px;">বাতিলের কারণ (বাংলা):</label>
-            <textarea id="txt-reject-bn" class="form-textarea w-full font-bengali" rows="2" style="width: 100%; font-size: 12px;" placeholder="এনআইডির ছবি স্পষ্ট নয় অথবা তথ্যে অমিল রয়েছে..."></textarea>
+            <label for="txt-reject-bn" style="font-weight: 700; display: block; margin-bottom: 4px;">${esc(t('kyc.reject_label_bn', 'Rejection reason (Bangla)'))}:</label>
+            <textarea id="txt-reject-bn" class="form-textarea w-full font-bengali" rows="2" style="width: 100%; font-size: 12px;" placeholder="${esc(t('kyc.reject_placeholder_bn', 'e.g. এনআইডির ছবি স্পষ্ট নয় অথবা তথ্যে অমিল রয়েছে...'))}"></textarea>
           </div>
         </div>
 
@@ -279,14 +290,14 @@ export default function VerificationCenterPage(root) {
       </div>
     `;
 
-    document.body.appendChild(modalBackdrop);
-
-    modalBackdrop.querySelector('#btn-cancel-reject').addEventListener('click', () => modalBackdrop.remove());
+    const close = mountKycModal(modalBackdrop);
+    modalBackdrop.querySelector('#btn-cancel-reject').addEventListener('click', close);
 
     modalBackdrop.querySelector('#btn-confirm-reject').addEventListener('click', async () => {
       const reasonEn = modalBackdrop.querySelector('#txt-reject-en').value.trim();
       const reasonBn = modalBackdrop.querySelector('#txt-reject-bn').value.trim();
-      modalBackdrop.remove();
+      const confirmBtn = modalBackdrop.querySelector('#btn-confirm-reject');
+      confirmBtn.disabled = true;
 
       try {
         await api.post(`/admin/kyc/${selectedKyc.id}/decide`, {
@@ -294,13 +305,14 @@ export default function VerificationCenterPage(root) {
           reason_en: reasonEn || 'Document mismatch',
           reason_bn: reasonBn || 'তথ্যে অমিল রয়েছে',
         });
-        toast.success(isLangBn ? 'আবেদন প্রত্যাখ্যান করা হয়েছে' : 'Submission marked as rejected');
+        close();
+        toast.success(t('kyc.reject_success', 'KYC submission rejected.'));
         selectedKyc.status = 'REJECTED';
         render();
-      } catch {
-        toast.success(isLangBn ? 'আবেদন প্রত্যাখ্যান করা হয়েছে' : 'Submission marked as rejected');
-        selectedKyc.status = 'REJECTED';
-        render();
+      } catch (err) {
+        // Stay open on failure so the reasons typed here are not lost, and never claim it was rejected.
+        confirmBtn.disabled = false;
+        toast.error(failMessage(err, 'kyc.reject_failed', 'Rejection failed — the submission is unchanged.'));
       }
     });
   }
@@ -330,15 +342,15 @@ export default function VerificationCenterPage(root) {
             (item) => `
           <div style="padding: var(--space-3); cursor: pointer; border-bottom: var(--border-width) solid var(--border-subtle); transition: background var(--dur-fast); ${selectedKyc?.id === item.id ? 'background: var(--surface-2); border-left: 3px solid var(--brand);' : ''}" data-kyc-id="${item.id}">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
-              <span style="font-family: var(--font-mono, monospace); font-weight: 700; font-size: 11px; color: var(--text-brand);">${item.ref}</span>
+              <span style="font-family: var(--font-mono, monospace); font-weight: 700; font-size: 11px; color: var(--text-brand);">${esc(item.ref)}</span>
               <span class="badge ${item.status === 'VERIFIED' ? 'badge--success' : item.status === 'REJECTED' ? 'badge--danger' : 'badge--warning'}" style="font-size: 10px;">
-                ${item.status}
+                ${esc(t(`kyc.status.${item.status}`, item.status))}
               </span>
             </div>
-            <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${item.applicant_name || 'Applicant'}</div>
+            <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${esc(item.applicant_name || t('kyc.applicant_fallback', 'Applicant'))}</div>
             <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: var(--text-muted);">
-              <span>👤 ${item.kyc_type} (${item.current_tier})</span>
-              <span>📄 ${item.doc_count || 3} docs</span>
+              <span>${esc(t(`kyc.type.${item.kyc_type}`, item.kyc_type))} (${esc(item.current_tier)})</span>
+              <span>${esc(t('kyc.docs_count', '{{count}} docs', { count: formatNumber(item.doc_count ?? item.documents?.length ?? 0) }))}</span>
             </div>
           </div>
         `
@@ -354,7 +366,6 @@ export default function VerificationCenterPage(root) {
     }
 
     const isPending = ['PENDING', 'UNDER_REVIEW', 'APPEALED'].includes(selectedKyc.status);
-    const isLangBn = isBn();
 
     if (complianceFor !== selectedKyc.id) {
       complianceChecks = emptyComplianceChecks();
@@ -368,47 +379,47 @@ export default function VerificationCenterPage(root) {
         <div style="display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: var(--space-4); border-bottom: var(--border-width) solid var(--border-subtle); flex-wrap: wrap; gap: var(--space-2);">
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-family: var(--font-mono, monospace); font-size: 16px; font-weight: 800; color: var(--text-brand);">${selectedKyc.ref}</span>
+              <span style="font-family: var(--font-mono, monospace); font-size: 16px; font-weight: 800; color: var(--text-brand);">${esc(selectedKyc.ref)}</span>
               <span class="badge ${selectedKyc.status === 'VERIFIED' ? 'badge--success' : selectedKyc.status === 'REJECTED' ? 'badge--danger' : 'badge--warning'}">
-                ${selectedKyc.status}
+                ${esc(t(`kyc.status.${selectedKyc.status}`, selectedKyc.status))}
               </span>
             </div>
-            <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 4px 0 2px 0;">${selectedKyc.applicant_name} (${selectedKyc.kyc_type})</h2>
-            <div style="font-size: 11px; color: var(--text-muted);">Submitted: ${formatDate(new Date(selectedKyc.created_at).getTime())} • Email: ${selectedKyc.applicant_email} • Phone: ${selectedKyc.applicant_phone}</div>
+            <h2 style="font-size: 18px; font-weight: 800; color: var(--text-primary); margin: 4px 0 2px 0;">${esc(selectedKyc.applicant_name)} (${esc(t(`kyc.type.${selectedKyc.kyc_type}`, selectedKyc.kyc_type))})</h2>
+            <div style="font-size: 11px; color: var(--text-muted);">${esc(t('kyc.submitted_line', 'Submitted: {{date}} • Email: {{email}} • Phone: {{phone}}', { date: formatDate(new Date(selectedKyc.created_at).getTime()), email: selectedKyc.applicant_email ?? '—', phone: selectedKyc.applicant_phone ?? '—' }))}</div>
           </div>
 
           <div style="text-align: right;">
-            <span style="font-size: 11px; color: var(--text-secondary); display: block;">Trust Tier & Score:</span>
-            <span class="badge badge--neutral font-bold" style="font-weight: 800; font-size: 12px; margin-top: 2px;">${selectedKyc.current_tier} (${selectedKyc.trust_score} pts)</span>
+            <span style="font-size: 11px; color: var(--text-secondary); display: block;">${t('kyc.trust_label', 'Trust tier & score:')}</span>
+            <span class="badge badge--neutral font-bold" style="font-weight: 800; font-size: 12px; margin-top: 2px;">${esc(t('kyc.trust_value', '{{tier}} ({{score}} pts)', { tier: selectedKyc.current_tier, score: formatNumber(selectedKyc.trust_score ?? 0) }))}</span>
           </div>
         </div>
 
         <!-- Business Details Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg); font-size: 12px;">
           <div>
-            <span style="font-size: 11px; color: var(--text-muted); display: block;">Business / Store Name:</span>
-            <strong style="color: var(--text-primary);">${selectedKyc.business_name || 'N/A'}</strong>
+            <span style="font-size: 11px; color: var(--text-muted); display: block;">${t('kyc.field_business_name', 'Business / store name:')}</span>
+            <strong style="color: var(--text-primary);">${esc(selectedKyc.business_name || t('kyc.not_available', 'N/A'))}</strong>
           </div>
           <div>
-            <span style="font-size: 11px; color: var(--text-muted); display: block;">Registered Address:</span>
-            <strong style="color: var(--text-primary);">${selectedKyc.business_address || 'N/A'}</strong>
+            <span style="font-size: 11px; color: var(--text-muted); display: block;">${t('kyc.field_business_address', 'Registered address:')}</span>
+            <strong style="color: var(--text-primary);">${esc(selectedKyc.business_address || t('kyc.not_available', 'N/A'))}</strong>
           </div>
         </div>
 
         <!-- Documents Checklist & Inspection -->
         <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-          <h3 style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin: 0;">🗂️ Uploaded Verification Documents (${selectedKyc.documents?.length || 3})</h3>
+          <h3 style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin: 0;">${esc(t('kyc.docs_heading', 'Uploaded verification documents ({{count}})', { count: formatNumber(selectedKyc.documents?.length ?? 0) }))}</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3);">
             ${(selectedKyc.documents || [])
               .map(
                 (doc) => `
               <div style="padding: var(--space-3); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-1); display: flex; align-items: center; justify-content: space-between;">
                 <div>
-                  <strong style="font-size: 12px; color: var(--text-primary); display: block;">${doc.doc_type}</strong>
-                  <span style="font-size: 10px; color: var(--text-muted);">Views: ${doc.view_count || 1} • Audited</span>
+                  <strong style="font-size: 12px; color: var(--text-primary); display: block;">${esc(doc.doc_type)}</strong>
+                  <span style="font-size: 10px; color: var(--text-muted);">${esc(t('kyc.doc_views', 'Views: {{count}} • Audited', { count: formatNumber(doc.view_count ?? 0) }))}</span>
                 </div>
                 <button class="btn btn--secondary btn--xs btn-inspect-doc" data-doc-id="${doc.id}">
-                  👁️ Inspect
+                  ${esc(t('kyc.btn_inspect', 'Inspect'))}
                 </button>
               </div>
             `
@@ -429,23 +440,19 @@ export default function VerificationCenterPage(root) {
              fully verified is always allowed. -->
         <div style="padding: var(--space-3); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-2); font-size: 12px;">
           <h4 style="font-weight: 800; margin: 0 0 8px 0; color: var(--text-primary);">
-            ${isLangBn ? '✅ রিভিউয়ার কমপ্লায়েন্স চেকলিস্ট' : '✅ Reviewer Compliance Checklist'}
+            ${t('kyc.checklist_heading', 'Reviewer compliance checklist')}
           </h4>
           <div style="display: flex; flex-direction: column; gap: 6px;">
             ${COMPLIANCE_CHECKS.map((check) => `
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                 <input type="checkbox" class="kyc-compliance-check" id="kyc-check-${check.key}"
                   data-check="${check.key}" ${complianceChecks[check.key] ? 'checked' : ''} />
-                <span>${isLangBn ? check.bn : check.en}</span>
+                <span>${t(`kyc.check_${check.key}`, check.key)}</span>
               </label>
             `).join('')}
           </div>
           <p id="kyc-compliance-hint" style="margin: 8px 0 0 0; font-size: 11px; color: var(--text-muted);">
-            ${allChecksDone
-              ? (isLangBn ? 'সব যাচাই সম্পন্ন — অনুমোদন সক্রিয়।' : 'All checks confirmed — approval unlocked.')
-              : (isLangBn
-                ? 'অনুমোদনের আগে তিনটি যাচাই নিশ্চিত করুন।'
-                : 'Confirm all three checks before this submission can be approved.')}
+            ${allChecksDone ? t('kyc.checks_done_hint', 'All checks confirmed — approval unlocked.') : t('kyc.checks_pending_hint', 'Confirm all three checks before this submission can be approved.')}
           </p>
         </div>
 
@@ -455,12 +462,12 @@ export default function VerificationCenterPage(root) {
             ? `
           <div style="display: flex; justify-content: flex-end; gap: var(--space-3); padding-top: var(--space-4); border-top: var(--border-width) solid var(--border-subtle);">
             <button class="btn btn--danger btn--sm" id="btn-reject-kyc">
-              ${isLangBn ? '❌ আবেদন প্রত্যাখ্যান করুন' : '❌ Reject Submission'}
+              ${t('kyc.btn_reject_submission', 'Reject submission')}
             </button>
             <button class="btn btn--primary btn--sm" id="btn-approve-kyc"
               ${allChecksDone ? '' : 'disabled aria-disabled="true"'}
-              title="${allChecksDone ? '' : (isLangBn ? 'আগে তিনটি কমপ্লায়েন্স যাচাই সম্পন্ন করুন' : 'Complete all three compliance checks first')}">
-              ${isLangBn ? '✅ ভেরিফিকেশন অনুমোদন করুন (ব্লু-টিক)' : '✅ Approve Verification (Blue-Tick)'}
+              title="${allChecksDone ? '' : esc(t('kyc.checks_required', 'Complete all three compliance checks first.'))}">
+              ${t('kyc.btn_approve_verification', 'Approve verification (Blue-Tick)')}
             </button>
           </div>
         `
@@ -478,7 +485,7 @@ export default function VerificationCenterPage(root) {
           <div>
             <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
               <span class="badge badge--neutral" style="font-weight: 700; text-transform: uppercase; font-size: 11px;">
-                🛡️ Trust & Safety
+                ${ICONS.aftercare} ${t('kyc.eyebrow', 'Trust & Safety')}
               </span>
             </div>
             <h1 class="admin-users__title" style="margin: 0;">
@@ -488,11 +495,11 @@ export default function VerificationCenterPage(root) {
           </div>
 
           <div style="display: flex; align-items: center; gap: var(--space-2);">
-            <select id="sel-filter-status" class="form-select form-select--sm" aria-label="${isBn() ? 'জমা অবস্থা অনুসারে ফিল্টার' : 'Filter submissions by status'}" style="font-size: 12px; padding: 4px 8px; border-radius: var(--radius-md);">
-              <option value="PENDING" ${currentFilter === 'PENDING' ? 'selected' : ''}>Pending Verification</option>
-              <option value="VERIFIED" ${currentFilter === 'VERIFIED' ? 'selected' : ''}>Verified (Blue-Tick)</option>
-              <option value="REJECTED" ${currentFilter === 'REJECTED' ? 'selected' : ''}>Rejected</option>
-              <option value="ALL" ${currentFilter === 'ALL' ? 'selected' : ''}>All Submissions</option>
+            <select id="sel-filter-status" class="form-select form-select--sm" aria-label="${esc(t('kyc.filter_aria', 'Filter submissions by status'))}" style="font-size: 12px; padding: 4px 8px; border-radius: var(--radius-md);">
+              <option value="PENDING" ${currentFilter === 'PENDING' ? 'selected' : ''}>${esc(t('kyc.filter_pending', 'Pending verification'))}</option>
+              <option value="VERIFIED" ${currentFilter === 'VERIFIED' ? 'selected' : ''}>${esc(t('kyc.filter_verified', 'Verified (Blue-Tick)'))}</option>
+              <option value="REJECTED" ${currentFilter === 'REJECTED' ? 'selected' : ''}>${esc(t('kyc.filter_rejected', 'Rejected'))}</option>
+              <option value="ALL" ${currentFilter === 'ALL' ? 'selected' : ''}>${esc(t('kyc.filter_all', 'All submissions'))}</option>
             </select>
           </div>
         </div>
@@ -544,12 +551,12 @@ export default function VerificationCenterPage(root) {
         if (approveBtn) {
           approveBtn.disabled = !done;
           approveBtn.setAttribute('aria-disabled', String(!done));
-          approveBtn.title = done ? '' : (isBn() ? 'আগে তিনটি কমপ্লায়েন্স যাচাই সম্পন্ন করুন' : 'Complete all three compliance checks first');
+          approveBtn.title = done ? '' : t('kyc.checks_required', 'Complete all three compliance checks first.');
         }
         if (hint) {
           hint.textContent = done
-            ? (isBn() ? 'সব যাচাই সম্পন্ন — অনুমোদন সক্রিয়।' : 'All checks confirmed — approval unlocked.')
-            : (isBn() ? 'অনুমোদনের আগে তিনটি যাচাই নিশ্চিত করুন।' : 'Confirm all three checks before this submission can be approved.');
+            ? t('kyc.checks_done_hint', 'All checks confirmed — approval unlocked.')
+            : t('kyc.checks_pending_hint', 'Confirm all three checks before this submission can be approved.');
         }
       });
     });
@@ -560,4 +567,6 @@ export default function VerificationCenterPage(root) {
 
   init();
   root.append(container);
+
+  return () => closeOpenModal?.();
 }
