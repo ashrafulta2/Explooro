@@ -1,13 +1,14 @@
 /**
  * PlatformSubnav.js — Reusable Navigation Tab Strip for the Super Admin Platform suite.
  *
- * Connects all 5 core platform governance surfaces:
+ * Connects the core platform governance surfaces:
  * 1. Module Toggles (/admin/platform/modules)
  * 2. Theme Studio (/admin/platform/theme)
  * 3. Integrations (/admin/platform/integrations)
  * 4. API Keys & Developer Portal (/admin/platform/api-keys)
  * 5. Platform Settings (/admin/platform/settings)
  * 6. Language & Default Locale (/admin/platform/language)
+ * 7. Popup Genie Effect (/admin/platform/genie)
  */
 
 import { getLanguage } from '../../services/i18n.js';
@@ -23,6 +24,7 @@ export function PlatformSubnav({ activeKey = 'integrations', navigate = null } =
     { key: 'apikeys', label: isBn ? 'এপিআই কী' : 'API Keys', href: '/admin/platform/api-keys', icon: '⚡' },
     { key: 'settings', label: isBn ? 'প্ল্যাটফর্ম সেটিংস' : 'Settings', href: '/admin/platform/settings', icon: '⚙️' },
     { key: 'language', label: isBn ? 'ভাষা' : 'Language', href: '/admin/platform/language', icon: '🌐' },
+    { key: 'genie', label: isBn ? 'পপআপ ইফেক্ট' : 'Popup Effect', href: '/admin/platform/genie', icon: '✨' },
   ];
 
   const nav = document.createElement('nav');

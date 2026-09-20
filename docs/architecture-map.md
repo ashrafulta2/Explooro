@@ -155,6 +155,7 @@ The 35 most likely change requests, with exact paths.
 | :--- | :--- |
 | Add a permission | `docs/permission-catalog.json` → re-run seed. **Never invent a key in code** |
 | Change the default language | `/admin/platform/language` → the `localization` group in `platform_settings`. Code path: `routes/localization.routes.js` → `controllers/localization.controller.js` → `services/localization.service.js` → `repositories/setting.repository.js`; the client reads it in `client/src/services/i18n.js` (`resolveInitialLocale`). `VITE_DEFAULT_LOCALE` is the pre-policy fallback only |
+| Change the popup genie effect (on/off, duration, smoothness) | `/admin/platform/genie` → the `genie` group in `platform_settings`. Code path: `routes/genie.routes.js` → `controllers/genie.controller.js` → `services/genie.service.js` → `repositories/setting.repository.js`; the client applies it in `client/src/services/genieSettings.js` → `configureGenie()` in `client/src/lib/genie.js` (the engine). The slicing/easing constants (`NECK`, `SWAY`, `MAX_FRAME_DT_MS`) are still named constants in `genie.js`, not settings |
 | Make an action require Admin approval | Change its `risk_tier` to `HIGH` in the catalog. Everything else is automatic |
 | Make an action Super-Admin-only | `risk_tier: "CRITICAL"`, `delegable: false`, `default_roles: ["super_admin"]` |
 | Give a moderator a capability | `/admin/grants` (Mode A). No code change |

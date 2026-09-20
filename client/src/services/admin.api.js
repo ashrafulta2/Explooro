@@ -309,6 +309,21 @@ export const adminApi = {
       reason,
     });
   },
+
+  /**
+   * Reads the popup genie-effect policy plus who may change it and the recent change history.
+   */
+  async getGeniePolicy() {
+    return api.get('/admin/platform/genie');
+  },
+
+  /**
+   * Writes the popup genie-effect policy. `reason` is mandatory (min 10 chars) and lands in
+   * audit_logs alongside the before/after values — the API rejects the call without it.
+   */
+  async updateGeniePolicy({ enabled, duration_ms, quality, reason }) {
+    return api.put('/admin/platform/genie', { enabled, duration_ms, quality, reason });
+  },
 };
 
 

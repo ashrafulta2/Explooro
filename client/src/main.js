@@ -18,6 +18,7 @@ import { appStore } from './state/appStore.js';
 
 // Prompt 1.6 — i18n.
 import { initI18n, t, subscribe as subscribeLang } from './services/i18n.js';
+import { initGenieSettings } from './services/genieSettings.js';
 
 // Prompt 2.8 — real session and permission service.
 import { initSession } from './services/session.js';
@@ -101,6 +102,10 @@ async function bootRouterDemo() {
   // services/i18n.js. The static shell (data-i18n attributes in index.html) is scanned as part of
   // this same call.
   await initI18n();
+
+  // Popup genie policy (on/off, duration, quality). Applied from the cache immediately and
+  // reconciled with the server in the background — never awaited, so it cannot delay the first route.
+  initGenieSettings();
 
   // Prompt 2.8: Proactive session bootstrap from HttpOnly refresh cookie.
   await initSession();
@@ -332,6 +337,17 @@ async function bootRouterDemo() {
         permission: 'platform.localization.view',
         module: 'core',
         load: () => import('./pages/admin/LanguageSettingsPage.js'),
+      },
+      // Popup genie effect governance. Same key pair pattern as Language: `.view` gates the page and
+      // the sidebar entry, `.update` gates Save. No `module` beyond `core` — a governance surface a
+      // Super Admin must always reach (see server/src/routes/genie.routes.js).
+      {
+        path: '/admin/platform/genie',
+        title: 'Popup Genie Effect — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.genie.view',
+        module: 'core',
+        load: () => import('./pages/admin/GenieSettingsPage.js'),
       },
       // Prompt 10.8: Content Commerce, Reels, Academy & Editor Dashboard
       {

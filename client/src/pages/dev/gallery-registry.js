@@ -1072,13 +1072,60 @@ function renderSubscriptionsSpecimen() {
 }
 
 /**
+ * The gallery's table of contents, in display order. GalleryPage walks THIS list — not the order
+ * entries happen to be declared in — so the nav and the main pane always agree, and a new group
+ * only shows up where it is deliberately placed here. An entry whose `group` is missing from this
+ * list is not dropped: GalleryPage files it under a trailing "Uncategorised" group and warns in
+ * the console, so a typo is loud instead of silently reordering the page.
+ *
+ * Grouping rule: a group is one *kind of UI* a developer would look for together (primitives,
+ * product browsing, a role's workspace, a business engine) — never "whatever prompt built it".
+ * Prompt numbers stay in the per-entry comments below purely as provenance.
+ */
+export const GALLERY_GROUPS = [
+  { name: 'Foundations', blurb: 'Design tokens, WCAG contrast, and the locale + master-colour engines everything else inherits.' },
+  { name: 'Actions & Forms', blurb: 'Buttons and every form control.' },
+  { name: 'Surfaces & Feedback', blurb: 'Badges, cards, and loading / empty placeholders.' },
+  { name: 'Data & Navigation', blurb: 'Tables, tabs and pagination.' },
+  { name: 'Overlays', blurb: 'Modals, drawers, dialogs, toasts and tooltips.' },
+  { name: 'Product Discovery', blurb: 'How a customer finds products: cards, feeds, search, flash sales, followed stores.' },
+  { name: 'Product Detail', blurb: 'The product page: gallery, variants, pricing, reviews and Q&A.' },
+  { name: 'Cart & Customer Account', blurb: 'Wishlist, cart, and the customer’s saved addresses.' },
+  { name: 'Virtual Storefront', blurb: 'The Saler’s branded storefront and its builder.' },
+  { name: 'Saler Sourcing & Profit', blurb: 'Margin maths and the tools a Saler uses to pick and price stock.' },
+  { name: 'Supplier Workspace', blurb: 'Supplier / manufacturer dashboard widgets and catalog governance.' },
+  { name: 'Vault & Payouts', blurb: 'Escrow-backed balances, payouts, COD reconciliation, splits and subscriptions.' },
+  { name: 'Order & Logistics', blurb: 'Courier tracking, returns and dispute evidence.' },
+  { name: 'Warranty & Reviews', blurb: 'Post-purchase trust: warranty claims and customer reviews.' },
+  { name: 'Trust & Moderation', blurb: 'Staff-side review, KYC and moderation consoles.' },
+  { name: 'Communication', blurb: 'Notifications, release notes, inbox and real-time chat.' },
+  { name: 'Live & Content Commerce', blurb: 'Live streams and shoppable video.' },
+  { name: 'Ads & Promotions', blurb: 'Sponsored slots, campaigns and coupons.' },
+  { name: 'Referral & Loyalty', blurb: 'Referral network, coins, quests and leaderboards.' },
+  { name: 'Conversion & Social Selling', blurb: 'Group buying, abandoned-cart recovery and the social seller kit.' },
+  { name: 'AI & Intelligence', blurb: 'Conversational and prescriptive assistants.' },
+];
+
+/**
  * Builds the registry. Overlay-based entries (Modal/Drawer) attach nodes to `document.body`
  * rather than the returned section — `detachedNodes` collects every one of them so GalleryPage
  * can remove them on navigation away, the same lifecycle contract core/router.js's `cleanup`
  * expects of every page module.
+ *
+ * Entries are declared grouped, in the same order as GALLERY_GROUPS above — keep it that way so
+ * reading this array top to bottom reads like the gallery does.
  */
 export function buildGalleryEntries(detachedNodes) {
   return [
+    // ── Foundations ──────────────────────────────────────────────────────────
+    // Design Tokens + Contrast Checker are owned by GalleryPage itself (live computed-style
+    // panels) and join this group there.
+    // Language & Default Locale governance (/admin/platform/language)
+    { id: 'locale-choice-card', label: 'LocaleChoiceCard', group: 'Foundations', render: renderLocaleChoiceCardSpecimen },
+    // Master Colour engine (services/colorRamp.js) — the generated ramps behind Theme Studio
+    { id: 'master-palette', label: 'MasterPalette', group: 'Foundations', render: renderMasterPaletteSpecimen },
+
+    // ── Actions & Forms ──────────────────────────────────────────────────────
     { id: 'button', label: 'Button', group: 'Actions & Forms', render: renderButton },
     { id: 'input', label: 'Input', group: 'Actions & Forms', render: renderInput },
     { id: 'select', label: 'Select', group: 'Actions & Forms', render: renderSelect },
@@ -1087,125 +1134,159 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'radio', label: 'Radio', group: 'Actions & Forms', render: renderRadio },
     { id: 'switch', label: 'Switch', group: 'Actions & Forms', render: renderSwitch },
     { id: 'image-uploader', label: 'Image Uploader & Library', group: 'Actions & Forms', render: renderImageUploader },
-    { id: 'badge', label: 'Badge', group: 'Actions & Forms', render: renderBadge },
+
+    // ── Surfaces & Feedback ──────────────────────────────────────────────────
+    { id: 'badge', label: 'Badge', group: 'Surfaces & Feedback', render: renderBadge },
     { id: 'card', label: 'Card', group: 'Surfaces & Feedback', render: renderCard },
     { id: 'skeleton', label: 'Skeleton', group: 'Surfaces & Feedback', render: renderSkeleton },
     { id: 'empty-state', label: 'EmptyState', group: 'Surfaces & Feedback', render: renderEmptyState },
-    { id: 'table', label: 'Table', group: 'Surfaces & Feedback', render: renderTable },
-    { id: 'tabs', label: 'Tabs', group: 'Surfaces & Feedback', render: renderTabs },
-    { id: 'pagination', label: 'Pagination', group: 'Surfaces & Feedback', render: renderPagination },
+
+    // ── Data & Navigation ────────────────────────────────────────────────────
+    { id: 'table', label: 'Table', group: 'Data & Navigation', render: renderTable },
+    { id: 'tabs', label: 'Tabs', group: 'Data & Navigation', render: renderTabs },
+    { id: 'pagination', label: 'Pagination', group: 'Data & Navigation', render: renderPagination },
+
+    // ── Overlays ─────────────────────────────────────────────────────────────
     { id: 'modal-drawer', label: 'Modal / Drawer', group: 'Overlays', render: () => renderModalDrawer(detachedNodes) },
     { id: 'confirm-dialog', label: 'ConfirmDialog', group: 'Overlays', render: renderConfirmDialog },
     { id: 'toast', label: 'Toast', group: 'Overlays', render: renderToast },
     { id: 'tooltip', label: 'Tooltip', group: 'Overlays', render: renderTooltip },
-    // Prompt 4.5 — Product Discovery
+
+    // ── Product Discovery ────────────────────────────────────────────────────
+    // Prompt 4.5
     { id: 'product-card', label: 'ProductCard', group: 'Product Discovery', render: renderProductCard },
     { id: 'product-feed', label: 'ProductFeed (/discover)', group: 'Product Discovery', render: renderProductFeed },
     { id: 'category-pills', label: 'CategoryPills', group: 'Product Discovery', render: renderCategoryPills },
     { id: 'search-suggest', label: 'SearchSuggest (typeahead)', group: 'Product Discovery', render: renderSearchSuggest },
     { id: 'flash-sale-widget', label: 'FlashSaleWidget', group: 'Product Discovery', render: renderFlashSaleWidget },
-    // Prompt 4.6 — Product Detail
+    // Prompt 11.3 — Followed Stores & Product Drops Feed
+    { id: 'following-feed', label: 'FollowingFeed', group: 'Product Discovery', render: renderFollowingFeedSpecimen },
+
+    // ── Product Detail ───────────────────────────────────────────────────────
+    // Prompt 4.6
     { id: 'image-gallery', label: 'ImageGallery', group: 'Product Detail', render: renderImageGallery },
     { id: 'variant-selector', label: 'VariantSelector', group: 'Product Detail', render: renderVariantSelector },
     { id: 'price-breakdown', label: 'PriceBreakdown', group: 'Product Detail', render: renderPriceBreakdown },
     { id: 'review-list', label: 'ReviewList', group: 'Product Detail', render: renderReviewList },
     { id: 'qna-section', label: 'QnASection', group: 'Product Detail', render: renderQnASection },
+
+    // ── Cart & Customer Account ──────────────────────────────────────────────
+    // Prompt 5.1 — Cart & Wishlist
+    { id: 'wishlist-button', label: 'WishlistButton', group: 'Cart & Customer Account', render: renderWishlistButton },
+    { id: 'cart-drawer', label: 'CartDrawer', group: 'Cart & Customer Account', render: () => renderCartDrawer(detachedNodes) },
+    // Customer Saved Delivery Addresses Book
+    { id: 'customer-address-card', label: 'CustomerAddressCard', group: 'Cart & Customer Account', render: renderCustomerAddressCardSpecimen },
+
+    // ── Virtual Storefront ───────────────────────────────────────────────────
+    // Prompt 4.8
+    { id: 'store-header', label: 'StoreHeader', group: 'Virtual Storefront', render: renderStoreHeader },
+    { id: 'shelf-editor', label: 'ShelfEditor', group: 'Virtual Storefront', render: renderShelfEditor },
+    { id: 'shop-status-toggle', label: 'ShopStatusToggle', group: 'Virtual Storefront', render: renderShopStatusToggle },
+
+    // ── Saler Sourcing & Profit ──────────────────────────────────────────────
     // Prompt 4.7 — Sourcing & Profit Calculator
     { id: 'profit-calculator', label: 'ProfitCalculator', group: 'Saler Sourcing & Profit', render: renderProfitCalculator },
     { id: 'margin-projection', label: 'MarginProjection', group: 'Saler Sourcing & Profit', render: renderMarginProjection },
     { id: 'add-to-store-drawer', label: 'AddToStoreDrawer', group: 'Saler Sourcing & Profit', render: () => renderAddToStoreDrawer(detachedNodes) },
-    // Prompt 4.8 — Virtual Storefront & Builder
-    { id: 'store-header', label: 'StoreHeader', group: 'Virtual Storefront', render: renderStoreHeader },
-    { id: 'shelf-editor', label: 'ShelfEditor', group: 'Virtual Storefront', render: renderShelfEditor },
-    { id: 'shop-status-toggle', label: 'ShopStatusToggle', group: 'Virtual Storefront', render: renderShopStatusToggle },
-    // Prompt 5.1 — Cart & Wishlist
-    { id: 'wishlist-button', label: 'WishlistButton', group: 'Cart & Wishlist', render: renderWishlistButton },
-    { id: 'cart-drawer', label: 'CartDrawer', group: 'Cart & Wishlist', render: () => renderCartDrawer(detachedNodes) },
+    // Prompt 10.5 — Cross-Seller Bundling & Surge Pricing
+    { id: 'bundle-profit-breakdown', label: 'BundleProfitBreakdown', group: 'Saler Sourcing & Profit', render: renderBundleBreakdownSpecimen },
+
+    // ── Supplier Workspace ───────────────────────────────────────────────────
+    // Prompt 11.1 — Supplier / Manufacturer Dashboard & Operational Widgets
+    { id: 'supplier-dashboard-widgets', label: 'SupplierDashboardWidgets', group: 'Supplier Workspace', render: renderSupplierDashboardWidgetsSpecimen },
+    { id: 'supplier-orders-to-pack', label: 'SupplierOrdersToPack', group: 'Supplier Workspace', render: renderSupplierOrdersSpecimen },
+    { id: 'supplier-shipments-tracking', label: 'SupplierShipmentsTracking', group: 'Supplier Workspace', render: renderSupplierShipmentsSpecimen },
+    { id: 'supplier-wholesale-inquiries', label: 'SupplierWholesaleInquiries', group: 'Supplier Workspace', render: renderSupplierInquiriesSpecimen },
+    { id: 'supplier-store-status', label: 'SupplierStoreStatus', group: 'Supplier Workspace', render: renderSupplierStoreStatusSpecimen },
+    { id: 'supplier-help-center', label: 'SupplierHelpCenter', group: 'Supplier Workspace', render: renderSupplierHelpSpecimen },
+    // Catalog & Products Governance
+    { id: 'catalog-products-governance', label: 'CatalogProductsGovernance', group: 'Supplier Workspace', render: renderCatalogProductsSpecimen },
+
+    // ── Vault & Payouts ──────────────────────────────────────────────────────
     // Prompt 6.3 — Vault & Payouts
     { id: 'payout-modal', label: 'PayoutRequestModal', group: 'Vault & Payouts', render: renderPayoutModal },
     // Prompt 6.4 — COD Reconciliation
     { id: 'cod-recon', label: 'CodReconciliation', group: 'Vault & Payouts', render: renderCodRecon },
     // Prompt 6.5 — Earner Vault & Finance
     { id: 'vault-overview', label: 'VaultOverview', group: 'Vault & Payouts', render: renderVaultOverview },
+    // Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement
+    { id: 'b2b-milestone-stepper', label: 'MilestoneProgressStepper', group: 'Vault & Payouts', render: renderB2bMilestoneStepperSpecimen },
     // Super Admin Profit Splits & Merchant Subscriptions
     { id: 'profit-splits-page', label: 'ProfitSplitsPage', group: 'Vault & Payouts', render: renderProfitSplitsSpecimen },
     { id: 'subscriptions-page', label: 'SubscriptionsPage', group: 'Vault & Payouts', render: renderSubscriptionsSpecimen },
+
+    // ── Order & Logistics ────────────────────────────────────────────────────
     // Prompt 7.1 — 3PL Logistics & Live Map
     { id: 'live-tracking-map', label: 'LiveTrackingMap', group: 'Order & Logistics', render: renderLiveTrackingMapSpecimen },
     // Prompt 7.2 — Return & Refund Engine
     { id: 'returns-queue', label: 'ReturnsQueue', group: 'Order & Logistics', render: renderReturnsSpecimen },
     // Prompt 7.3 — Dispute Arbitration & Evidence Timeline
     { id: 'evidence-timeline', label: 'EvidenceTimeline', group: 'Order & Logistics', render: renderEvidenceTimelineSpecimen },
+
+    // ── Warranty & Reviews ───────────────────────────────────────────────────
+    // Prompt 10.4 — Digital Warranty & Claims Engine
+    { id: 'warranty-card', label: 'WarrantyCard', group: 'Warranty & Reviews', render: renderWarrantyCardSpecimen },
+    { id: 'claim-timeline', label: 'ClaimTimeline', group: 'Warranty & Reviews', render: renderClaimTimelineSpecimen },
+    // Customer Reviews & UGC Hub
+    { id: 'customer-review-card', label: 'CustomerReviewCard', group: 'Warranty & Reviews', render: renderCustomerReviewCardSpecimen },
+    { id: 'pending-review-card', label: 'PendingReviewCard', group: 'Warranty & Reviews', render: renderPendingReviewCardSpecimen },
+
+    // ── Trust & Moderation ───────────────────────────────────────────────────
     // Prompt 7.4 — Product Approval & Content Moderation Pipeline
     { id: 'review-card', label: 'ReviewCard', group: 'Trust & Moderation', render: renderReviewCardSpecimen },
     // Prompt 7.5 — KYC Verification & Trust Tiers
     { id: 'kyc-verification', label: 'KycVerification', group: 'Trust & Moderation', render: renderKycSpecimen },
     // Prompt 7.6 — Moderator Dashboard
     { id: 'moderator-dashboard', label: 'ModeratorDashboard', group: 'Trust & Moderation', render: renderModeratorDashboardSpecimen },
-    // Prompt 8.2 — Unified Notification Center & What's New
-    { id: 'notification-center', label: 'NotificationCenter', group: 'Communication & Live', render: renderNotificationCenterSpecimen },
-    { id: 'whats-new-modal', label: 'WhatsNewModal', group: 'Communication & Live', render: renderWhatsNewSpecimen },
-    // Prompt 8.3 — WhatsApp & Messenger Unified Inbox
-    { id: 'unified-inbox', label: 'UnifiedInbox', group: 'Communication & Live', render: renderUnifiedInboxSpecimen },
-    // Prompt 8.4 — Real-Time Chat Interface
-    { id: 'chat-interface', label: 'ChatInterface', group: 'Communication & Live', render: renderChatInterfaceSpecimen },
-    // Prompt 9.1 — Sponsored Ads Engine
-    { id: 'sponsored-slot', label: 'SponsoredSlot', group: 'Growth & Monetization', render: renderSponsoredSlotSpecimen },
-    // Prompt 9.2 — Coupons, Vouchers & Flash Sales
-    { id: 'campaign-manager', label: 'CampaignManager', group: 'Growth & Monetization', render: renderCampaignManagerSpecimen },
-    { id: 'coupon-card', label: 'CouponCard', group: 'Growth & Monetization', render: renderCouponCardSpecimen },
-    // Prompt 9.3 — Multi-Tier Referral & Network Growth
-    { id: 'referral-hub', label: 'ReferralHub', group: 'Growth & Monetization', render: renderReferralHubSpecimen },
-    { id: 'admin-referral-governance', label: 'AdminReferralGovernance', group: 'Growth & Monetization', render: renderAdminReferralGovernanceSpecimen },
-    // Prompt 9.4 — Loyalty Coins, Quests & Leaderboards
-    { id: 'loyalty-coins', label: 'LoyaltyCoins', group: 'Growth & Monetization', render: renderLoyaltyCoinsSpecimen },
-    { id: 'quest-panel', label: 'QuestPanel', group: 'Growth & Monetization', render: renderQuestPanelSpecimen },
-    { id: 'leaderboard-widget', label: 'LeaderboardWidget', group: 'Growth & Monetization', render: renderLeaderboardWidgetSpecimen },
-    // Prompt 9.5 — Social Group Buying
-    { id: 'team-purchase', label: 'TeamPurchase', group: 'Growth & Monetization', render: renderTeamPurchaseSpecimen },
-    // Prompt 9.6 — Abandoned Cart Recovery
-    { id: 'cart-insights', label: 'CartInsights', group: 'Growth & Monetization', render: renderCartInsightsSpecimen },
-    // Prompt 9.7 — Social Seller Kit
-    { id: 'social-seller-kit', label: 'SocialSellerKit', group: 'Growth & Monetization', render: renderSocialSellerKitSpecimen },
-    // Prompt 10.1 — Live Stream Commerce
-    { id: 'live-stream-card', label: 'LiveStreamCard', group: 'Communication & Live', render: renderLiveStreamCardSpecimen },
-    { id: 'pinned-product-overlay', label: 'PinnedProductOverlay', group: 'Communication & Live', render: renderPinnedProductOverlaySpecimen },
     // Live Moderation Console (/moderator/live)
     { id: 'live-moderation-console', label: 'LiveModerationConsole', group: 'Trust & Moderation', render: renderLiveModerationSpecimen },
+
+    // ── Communication ────────────────────────────────────────────────────────
+    // Prompt 8.2 — Unified Notification Center & What's New
+    { id: 'notification-center', label: 'NotificationCenter', group: 'Communication', render: renderNotificationCenterSpecimen },
+    { id: 'whats-new-modal', label: 'WhatsNewModal', group: 'Communication', render: renderWhatsNewSpecimen },
+    // Prompt 8.3 — WhatsApp & Messenger Unified Inbox
+    { id: 'unified-inbox', label: 'UnifiedInbox', group: 'Communication', render: renderUnifiedInboxSpecimen },
+    // Prompt 8.4 — Real-Time Chat Interface
+    { id: 'chat-interface', label: 'ChatInterface', group: 'Communication', render: renderChatInterfaceSpecimen },
+
+    // ── Live & Content Commerce ──────────────────────────────────────────────
+    // Prompt 10.1 — Live Stream Commerce
+    { id: 'live-stream-card', label: 'LiveStreamCard', group: 'Live & Content Commerce', render: renderLiveStreamCardSpecimen },
+    { id: 'pinned-product-overlay', label: 'PinnedProductOverlay', group: 'Live & Content Commerce', render: renderPinnedProductOverlaySpecimen },
+    // Prompt 10.8 — Content Commerce & Shoppable Reels
+    { id: 'shoppable-reels', label: 'ShoppableReels', group: 'Live & Content Commerce', render: renderShoppableReelsSpecimen },
+
+    // ── Ads & Promotions ─────────────────────────────────────────────────────
+    // Prompt 9.1 — Sponsored Ads Engine
+    { id: 'sponsored-slot', label: 'SponsoredSlot', group: 'Ads & Promotions', render: renderSponsoredSlotSpecimen },
+    // Prompt 9.2 — Coupons, Vouchers & Flash Sales
+    { id: 'campaign-manager', label: 'CampaignManager', group: 'Ads & Promotions', render: renderCampaignManagerSpecimen },
+    { id: 'coupon-card', label: 'CouponCard', group: 'Ads & Promotions', render: renderCouponCardSpecimen },
+
+    // ── Referral & Loyalty ───────────────────────────────────────────────────
+    // Prompt 9.3 — Multi-Tier Referral & Network Growth
+    { id: 'referral-hub', label: 'ReferralHub', group: 'Referral & Loyalty', render: renderReferralHubSpecimen },
+    { id: 'admin-referral-governance', label: 'AdminReferralGovernance', group: 'Referral & Loyalty', render: renderAdminReferralGovernanceSpecimen },
+    // Prompt 9.4 — Loyalty Coins, Quests & Leaderboards
+    { id: 'loyalty-coins', label: 'LoyaltyCoins', group: 'Referral & Loyalty', render: renderLoyaltyCoinsSpecimen },
+    { id: 'quest-panel', label: 'QuestPanel', group: 'Referral & Loyalty', render: renderQuestPanelSpecimen },
+    { id: 'leaderboard-widget', label: 'LeaderboardWidget', group: 'Referral & Loyalty', render: renderLeaderboardWidgetSpecimen },
+
+    // ── Conversion & Social Selling ──────────────────────────────────────────
+    // Prompt 9.5 — Social Group Buying
+    { id: 'team-purchase', label: 'TeamPurchase', group: 'Conversion & Social Selling', render: renderTeamPurchaseSpecimen },
+    // Prompt 9.6 — Abandoned Cart Recovery
+    { id: 'cart-insights', label: 'CartInsights', group: 'Conversion & Social Selling', render: renderCartInsightsSpecimen },
+    // Prompt 9.7 — Social Seller Kit
+    { id: 'social-seller-kit', label: 'SocialSellerKit', group: 'Conversion & Social Selling', render: renderSocialSellerKitSpecimen },
+
+    // ── AI & Intelligence ────────────────────────────────────────────────────
     // Prompt 10.2 — AI Service Layer & Conversational Assistants
     { id: 'assistant-panel-concierge', label: 'AssistantPanel (Concierge)', group: 'AI & Intelligence', render: renderAssistantPanelConciergeSpecimen },
     { id: 'assistant-panel-sourcing', label: 'AssistantPanel (Sourcing)', group: 'AI & Intelligence', render: renderAssistantPanelSourcingSpecimen },
-    // Prompt 10.4 — Digital Warranty & Claims Engine
-    { id: 'warranty-card', label: 'WarrantyCard', group: 'Trust & Protection', render: renderWarrantyCardSpecimen },
-    { id: 'claim-timeline', label: 'ClaimTimeline', group: 'Trust & Protection', render: renderClaimTimelineSpecimen },
-    // Prompt 10.5 — Cross-Seller Bundling & Surge Pricing
-    { id: 'bundle-profit-breakdown', label: 'BundleProfitBreakdown', group: 'Saler Sourcing & Profit', render: renderBundleBreakdownSpecimen },
-    // Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement
-    { id: 'b2b-milestone-stepper', label: 'MilestoneProgressStepper', group: 'Vault & Payouts', render: renderB2bMilestoneStepperSpecimen },
-    // Prompt 10.8 — Content Commerce & Shoppable Reels
-    { id: 'shoppable-reels', label: 'ShoppableReels', group: 'Communication & Live', render: renderShoppableReelsSpecimen },
-    // Prompt 11.1 — Supplier / Manufacturer Dashboard & Operational Widgets
-    { id: 'supplier-dashboard-widgets', label: 'SupplierDashboardWidgets', group: 'Commerce & Catalog', render: renderSupplierDashboardWidgetsSpecimen },
-    { id: 'supplier-orders-to-pack', label: 'SupplierOrdersToPack', group: 'Commerce & Catalog', render: renderSupplierOrdersSpecimen },
-    { id: 'supplier-help-center', label: 'SupplierHelpCenter', group: 'Commerce & Catalog', render: renderSupplierHelpSpecimen },
-    { id: 'supplier-shipments-tracking', label: 'SupplierShipmentsTracking', group: 'Commerce & Catalog', render: renderSupplierShipmentsSpecimen },
-    { id: 'supplier-wholesale-inquiries', label: 'SupplierWholesaleInquiries', group: 'Commerce & Catalog', render: renderSupplierInquiriesSpecimen },
-    { id: 'supplier-store-status', label: 'SupplierStoreStatus', group: 'Commerce & Catalog', render: renderSupplierStoreStatusSpecimen },
     // Prompt 11.2 — Saler Prescriptive AI Growth Assistant
-    { id: 'growth-assistant', label: 'GrowthAssistant', group: 'Saler Sourcing & Profit', render: renderGrowthAssistantSpecimen },
-    // Catalog & Products Governance
-    { id: 'catalog-products-governance', label: 'CatalogProductsGovernance', group: 'Commerce & Catalog', render: renderCatalogProductsSpecimen },
-    // Prompt 11.3 — Followed Stores & Product Drops Feed
-    { id: 'following-feed', label: 'FollowingFeed', group: 'Commerce & Catalog', render: renderFollowingFeedSpecimen },
-    // Customer Reviews & UGC Hub
-    { id: 'customer-review-card', label: 'CustomerReviewCard', group: 'Trust & Protection', render: renderCustomerReviewCardSpecimen },
-    { id: 'pending-review-card', label: 'PendingReviewCard', group: 'Trust & Protection', render: renderPendingReviewCardSpecimen },
-    // Customer Saved Delivery Addresses Book
-    { id: 'customer-address-card', label: 'CustomerAddressCard', group: 'Commerce & Catalog', render: renderCustomerAddressCardSpecimen },
-    // Master Colour engine (services/colorRamp.js) — the generated ramps behind Theme Studio
-    // Language & Default Locale governance (/admin/platform/language)
-    { id: 'locale-choice-card', label: 'LocaleChoiceCard', group: 'Foundations', render: renderLocaleChoiceCardSpecimen },
-    { id: 'master-palette', label: 'MasterPalette', group: 'Foundations', render: renderMasterPaletteSpecimen },
+    { id: 'growth-assistant', label: 'GrowthAssistant', group: 'AI & Intelligence', render: renderGrowthAssistantSpecimen },
   ];
 }
 

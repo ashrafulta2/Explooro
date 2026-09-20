@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (185 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (187 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -70,6 +70,8 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('platform.settings.update', 'platform', 'Change platform settings', 'প্ল্যাটফর্ম সেটিংস পরিবর্তন', 'change global configuration such as minimum payout or escrow period', 'সর্বনিম্ন পেআউট বা এসক্রো সময়ের মতো গ্লোবাল কনফিগারেশন পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
   ('platform.localization.view', 'platform', 'View language settings', 'ভাষা সেটিংস দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.localization.update', 'platform', 'Set the default language', 'ডিফল্ট ভাষা নির্ধারণ', 'change the language the site opens in for every new visitor', 'প্রতিটি নতুন দর্শনার্থীর জন্য সাইট যে ভাষায় খোলে তা পরিবর্তন করতে', 'MEDIUM', true, 'approve_before'),
+  ('platform.genie.view', 'platform', 'View popup effect settings', 'পপআপ ইফেক্ট সেটিংস দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
+  ('platform.genie.update', 'platform', 'Change the popup genie effect', 'পপআপ জিনি ইফেক্ট পরিবর্তন', 'turn the popup open/close animation on or off and change how long and how smooth it is for every visitor', 'সব দর্শনার্থীর জন্য পপআপ খোলা/বন্ধ হওয়ার অ্যানিমেশন চালু-বন্ধ করতে এবং তার সময় ও মসৃণতা বদলাতে', 'MEDIUM', true, 'approve_before'),
   ('platform.integration.view', 'platform', 'View integrations', 'ইন্টিগ্রেশন দেখা', 'see which payment and courier integrations are connected', 'কোন পেমেন্ট ও কুরিয়ার ইন্টিগ্রেশন যুক্ত আছে তা দেখতে', 'MEDIUM', true, 'approve_before'),
   ('platform.integration.manage', 'platform', 'Manage integration credentials', 'ইন্টিগ্রেশন ক্রেডেনশিয়াল ব্যবস্থাপনা', 'change bKash, Nagad, courier and SMS gateway credentials', 'বিকাশ, নগদ, কুরিয়ার ও এসএমএস গেটওয়ের ক্রেডেনশিয়াল পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
   ('platform.apikey.view', 'platform', 'View API keys', 'এপিআই কী দেখা', 'see which third-party developers have API access', 'কোন থার্ড-পার্টি ডেভেলপারের এপিআই অ্যাক্সেস আছে তা দেখতে', 'MEDIUM', true, 'approve_before'),
@@ -303,6 +305,9 @@ FROM (VALUES
   ('admin', 'platform.localization.view'),
   ('super_admin', 'platform.localization.view'),
   ('super_admin', 'platform.localization.update'),
+  ('admin', 'platform.genie.view'),
+  ('super_admin', 'platform.genie.view'),
+  ('super_admin', 'platform.genie.update'),
   ('admin', 'platform.integration.view'),
   ('super_admin', 'platform.integration.view'),
   ('super_admin', 'platform.integration.manage'),

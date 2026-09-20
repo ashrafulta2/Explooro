@@ -129,7 +129,7 @@ const ITEM_ICON_NAMES = {
   'admin.content.banners': 'image', 'admin.content.stories': 'circle_play', 'admin.content.academy': 'graduation_cap',
   'admin.content.whats_new': 'sparkles', 'admin.content.translations': 'localization', 'admin.content.live': 'video',
   'admin.platform.modules': 'grid', 'admin.platform.theme': 'palette', 'admin.platform.integrations': 'plug',
-  'admin.platform.apikeys': 'key', 'admin.platform.settings': 'platform',
+  'admin.platform.apikeys': 'key', 'admin.platform.settings': 'platform', 'admin.platform.genie': 'sparkles',
   'admin.security.audit': 'clipboard_check', 'admin.security.sessions': 'monitor', 'admin.security.2fa': 'aftercare',
   'admin.security.ip_allowlist': 'localization', 'admin.security.backups': 'database',
 

@@ -8,6 +8,9 @@
  *  4. Slicing axis follows the target (rows for above/below, columns for left/right).
  *  5. Unsupported cases return null so Modal falls back instead of throwing.
  *  6. The duration lives in a CSS token; the old scale-only genie is gone.
+ *  7. Smoothness: strips are sheared so the funnel edge is continuous, the clock survives a heavy
+ *     first frame, and peak speed/acceleration stay bounded.
+ *  8. Admin settings: on/off, duration and quality change what the engine does, and are clamped.
  */
 
 import test from 'node:test';
@@ -78,9 +81,14 @@ class FakeElement {
   }
 }
 
+const FRAME_MS = 1000 / 60;
+
 function installDom({ reduced = false } = {}) {
   const root = new FakeElement('HTML');
   root.isRoot = true;
+  root.style.setProperty = (k, v) => {
+    root.style[k] = v;
+  };
   const body = new FakeElement('BODY');
   root.append(body);
   const rafQueue = [];
@@ -111,19 +119,42 @@ function installDom({ reduced = false } = {}) {
   const trigger = new FakeElement('BUTTON');
   body.append(trigger);
 
-  /** Runs the queued frame at time t (ms since start). */
+  /** Runs the queued frame at time t (ms on the frame clock). */
   const tick = (t) => {
     const fn = rafQueue.shift();
     fn?.(t);
   };
-  return { panel, host, trigger, body, tick };
+  /** Plays 60 fps frames until `ms` of frame-clock time has passed since the last call. */
+  let clock = 0;
+  const advance = (ms) => {
+    const end = clock + ms;
+    while (clock < end) {
+      clock += FRAME_MS;
+      tick(clock);
+    }
+  };
+  return { panel, host, trigger, body, tick, advance };
 }
 
-const { genieRun } = await import('../src/lib/genie.js');
+const {
+  genieRun,
+  canGenie,
+  canAnimate,
+  configureGenie,
+  getGenieConfig,
+  genieDuration,
+  sanitiseGenieConfig,
+  GENIE_DEFAULTS,
+  GENIE_LIMITS,
+  GENIE_QUALITIES,
+} = await import('../src/lib/genie.js');
 
+/** Vertical strips are matrix(across, 0, lean, along, left, top): returns [left, top, across, along, lean]. */
 function parse(strip) {
-  const m = /translate\(([-\d.e]+)px, ([-\d.e]+)px\) scale\(([-\d.e]+), ([-\d.e]+)\)/.exec(strip.style.transform ?? '');
-  return m ? m.slice(1).map(Number) : null;
+  const m = /matrix\(([^)]+)\)/.exec(strip.style.transform ?? '');
+  if (!m) return null;
+  const [a, , c, d, e, f] = m[1].split(',').map(Number);
+  return [e, f, a, d, c];
 }
 const layerOf = (host) => host.children.find((c) => c.className === 'genie-layer');
 
@@ -134,18 +165,19 @@ test('1. strips stay contiguous and never cross, at every point of the close', (
     ['below', { left: 560, top: 740, width: 80, height: 40 }],
     ['above', { left: 560, top: 10, width: 80, height: 40 }],
   ]) {
-    const { panel, host, trigger, tick } = installDom();
+    const { panel, host, trigger, advance } = installDom();
     trigger.rect = at;
     const run = genieRun({ panel, host, trigger, direction: 'close', duration: 650 });
     assert.ok(run, `${name}: genie should run`);
-    for (const t of [0, 100, 260, 390, 520, 640]) {
-      tick(t);
-      const strips = layerOf(host).children;
+    for (let frame = 0; frame < 40; frame += 1) {
+      advance(FRAME_MS);
+      const layer = layerOf(host);
+      if (!layer) break;
       let prevTop = -Infinity;
-      for (const s of strips) {
+      for (const s of layer.children) {
         if (s.style.visibility === 'hidden') continue; // collapsed strips keep a stale transform
         const v = parse(s);
-        assert.ok(v[1] >= prevTop - 1e-6, `${name} t=${t}: strip top ${v[1]} < previous ${prevTop}`);
+        assert.ok(v[1] >= prevTop - 1e-6, `${name} frame ${frame}: strip top ${v[1]} < previous ${prevTop}`);
         prevTop = v[1];
       }
     }
@@ -161,12 +193,15 @@ test('2. close starts at rest and ends swallowed; open is the reverse and starts
   assert.ok(strips.length >= 8);
   const first = parse(strips[0]);
   assert.ok(Math.abs(first[0] - 400) < 1e-6 && Math.abs(first[1] - 200) < 1e-6, 'close begins exactly on the panel');
-  assert.equal(layerOf(close.host).style.opacity, '1');
+  assert.equal(strips[0].style.opacity, '1', 'close begins fully visible');
 
   const open = installDom();
   open.trigger.rect = { left: 560, top: 740, width: 80, height: 40 };
   const o = genieRun({ panel: open.panel, host: open.host, trigger: open.trigger, direction: 'open', duration: 650 });
-  assert.equal(layerOf(open.host).style.opacity, '0', 'open begins invisible inside the target');
+  assert.ok(
+    layerOf(open.host).children.every((st) => st.style.opacity === '0'),
+    'open begins invisible inside the target'
+  );
   c.cancel();
   o.cancel();
 });
@@ -177,7 +212,7 @@ test('3. the real panel is hidden while playing and restored on finish AND on ca
   const run = genieRun({ panel: a.panel, host: a.host, trigger: a.trigger, direction: 'close', duration: 650 });
   assert.equal(a.panel.style.opacity, '0');
   assert.equal(a.panel.style.pointerEvents, 'none');
-  a.tick(650);
+  a.advance(650 + 200);
   assert.equal(await run.finished, true);
   assert.equal(a.panel.style.opacity, '0.9', 'previous inline opacity restored');
   assert.equal(layerOf(a.host), undefined, 'layer removed');
@@ -226,11 +261,156 @@ test('5b. a body/page-sized or missing trigger falls back to a dock point, not a
   genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close' });
   const strips = layerOf(d.host).children;
   assert.ok(strips.length > 0);
-  d.tick(520);
+  d.advance(520);
   // strips converge on the bottom-centre dock (y ≈ 760), not on the page-sized trigger's centre (400)
   const ys = strips.filter((s) => s.style.visibility !== 'hidden').map(parse).map((v) => v[1]);
   assert.ok(ys.length > 0);
   assert.ok(ys.every((y) => y > 500), 'strips head for the dock below the panel');
+});
+
+/* ------------------------------ smoothness ------------------------------ */
+
+test('9. sheared strips share their edge centre, so the funnel edge is continuous', () => {
+  const d = installDom();
+  d.trigger.rect = { left: 700, top: 740, width: 80, height: 40 }; // off to one side → the funnel bows
+  genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close', duration: 650 });
+  d.advance(390);
+  const strips = layerOf(d.host).children;
+  const h = parseFloat(strips[0].style.height);
+  const A = 400;
+  let compared = 0;
+  let maxLean = 0;
+  for (let i = 0; i + 1 < strips.length; i += 1) {
+    if (strips[i].style.visibility === 'hidden' || strips[i + 1].style.visibility === 'hidden') continue;
+    const [left, , across, , lean] = parse(strips[i]);
+    const [nextLeft, , nextAcross] = parse(strips[i + 1]);
+    const bottomCentre = left + lean * h + (across * A) / 2;
+    const nextTopCentre = nextLeft + (nextAcross * A) / 2;
+    assert.ok(Math.abs(bottomCentre - nextTopCentre) < 0.05, `strip ${i}: ${bottomCentre} vs ${nextTopCentre}`);
+    maxLean = Math.max(maxLean, Math.abs(lean * h));
+    compared += 1;
+  }
+  assert.ok(compared > 10, 'enough neighbouring pairs were compared');
+  // Without the shear every one of these steps would be a visible stair; make sure they exist.
+  assert.ok(maxLean > 0.2, `the funnel actually bends (max step ${maxLean.toFixed(2)}px)`);
+});
+
+test('10. a heavy first frame cannot skip the timeline: warm-up frame, then a capped step', () => {
+  const d = installDom();
+  genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close', duration: 650 });
+  const strips = layerOf(d.host).children;
+  const rest = strips.map((s) => s.style.transform);
+
+  d.tick(5000); // the frame that rasterises every strip: the opening pose must be held
+  assert.deepEqual(strips.map((s) => s.style.transform), rest, 'warm-up frame does not move anything');
+
+  d.tick(5000 + FRAME_MS);
+  d.tick(5000 + FRAME_MS + 400); // a 400 ms stall
+  const last = parse(strips[strips.length - 1]);
+  const restLast = 200 + 400 - parseFloat(strips[0].style.height);
+  const moved = (last[1] - restLast) / (760 - restLast);
+  assert.ok(moved < 0.15, `after a 400 ms stall the near strip has covered ${(moved * 100).toFixed(0)}% of its way`);
+});
+
+test('11. peak speed and acceleration stay bounded (guards the double-ease lurch)', () => {
+  for (const [name, pick, maxSpeed, maxJerk] of [
+    ['far strip', (n) => 0, 52, 9],
+    ['middle strip', (n) => Math.floor(n / 2), 38, 6],
+  ]) {
+    const d = installDom();
+    genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close', duration: 650 });
+    const strips = layerOf(d.host).children;
+    const strip = strips[pick(strips.length)];
+    const ys = [];
+    for (let f = 0; f < 60; f += 1) {
+      d.advance(FRAME_MS);
+      if (strip.style.visibility !== 'hidden' && strip.style.transform) ys.push(parse(strip)[1]);
+    }
+    const v = ys.slice(1).map((y, i) => y - ys[i]);
+    const speed = Math.max(...v.map(Math.abs));
+    const jerk = Math.max(...v.slice(1).map((x, i) => Math.abs(x - v[i])));
+    // Before the smoothing pass these were ~62 / ~16 (far) and ~45 / ~9.5 (middle) px per frame.
+    assert.ok(speed <= maxSpeed, `${name}: peak ${speed.toFixed(1)} px/frame > ${maxSpeed}`);
+    assert.ok(jerk <= maxJerk, `${name}: peak Δv ${jerk.toFixed(1)} px/frame > ${maxJerk}`);
+  }
+});
+
+test('12. the fade is applied per strip, never as one opacity on the container', () => {
+  const d = installDom();
+  genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close', duration: 650 });
+  d.advance(620);
+  const layer = layerOf(d.host);
+  assert.equal(layer.style.opacity, undefined, 'a container opacity flattens every strip offscreen');
+  assert.ok(layer.children.every((s) => Number(s.style.opacity) < 1), 'the strips themselves are fading');
+});
+
+/* ------------------------------ admin settings ------------------------------ */
+
+test('13. on/off: a switched-off genie yields no run but the environment can still animate', () => {
+  const d = installDom();
+  try {
+    assert.equal(canGenie(), true);
+    configureGenie({ ...GENIE_DEFAULTS, enabled: false });
+    assert.equal(canGenie(), false);
+    assert.equal(canAnimate(), true, 'Modal still fades instead of snapping shut');
+    assert.equal(genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'open' }), null);
+  } finally {
+    configureGenie(GENIE_DEFAULTS);
+  }
+});
+
+test('14. duration is applied, mirrored into --dur-genie for the scrim, and clamped', () => {
+  installDom();
+  try {
+    configureGenie({ ...GENIE_DEFAULTS, duration_ms: 900 });
+    assert.equal(genieDuration(), 900);
+    assert.equal(document.documentElement.style['--dur-genie'], '900ms', 'the scrim fade follows the panel');
+
+    assert.equal(configureGenie({ ...GENIE_DEFAULTS, duration_ms: 5 }).duration_ms, GENIE_LIMITS.minDurationMs);
+    assert.equal(configureGenie({ ...GENIE_DEFAULTS, duration_ms: 99999 }).duration_ms, GENIE_LIMITS.maxDurationMs);
+    assert.equal(configureGenie({ ...GENIE_DEFAULTS, duration_ms: 'fast' }).duration_ms, GENIE_DEFAULTS.duration_ms);
+    assert.equal(configureGenie(null).duration_ms, GENIE_DEFAULTS.duration_ms, 'a non-object leaves the config alone');
+  } finally {
+    configureGenie(GENIE_DEFAULTS);
+  }
+});
+
+test('14b. under reduced motion the token is left alone so its 0ms media query keeps winning', () => {
+  installDom({ reduced: true });
+  try {
+    configureGenie({ ...GENIE_DEFAULTS, duration_ms: 900 });
+    assert.equal(document.documentElement.style['--dur-genie'], undefined);
+    assert.equal(canAnimate(), false);
+  } finally {
+    configureGenie(GENIE_DEFAULTS);
+  }
+});
+
+test('15. quality presets change how many strips are drawn; heavy panels get fewer', () => {
+  const count = (quality, heavy = false) => {
+    const d = installDom();
+    if (heavy) for (let i = 0; i < 700; i += 1) d.panel.append(new FakeElement('SPAN'));
+    configureGenie({ ...GENIE_DEFAULTS, quality });
+    genieRun({ panel: d.panel, host: d.host, trigger: d.trigger, direction: 'close' });
+    return layerOf(d.host).children.length;
+  };
+  try {
+    const [light, balanced, smooth] = GENIE_QUALITIES.map((q) => count(q));
+    assert.ok(light < balanced && balanced < smooth, `${light} < ${balanced} < ${smooth}`);
+    assert.ok(count('smooth', true) < smooth, 'a heavy panel is sliced more coarsely');
+  } finally {
+    configureGenie(GENIE_DEFAULTS);
+  }
+});
+
+test('16. sanitiseGenieConfig fills defaults and rejects non-objects', () => {
+  assert.equal(sanitiseGenieConfig('nope'), null);
+  assert.equal(sanitiseGenieConfig(null), null);
+  assert.deepEqual(sanitiseGenieConfig({}), { ...GENIE_DEFAULTS });
+  assert.equal(sanitiseGenieConfig({ enabled: 'yes' }).enabled, true, 'a truthy string is not a boolean');
+  assert.equal(sanitiseGenieConfig({ quality: 'ultra' }).quality, GENIE_DEFAULTS.quality);
+  assert.deepEqual([...GENIE_QUALITIES], ['light', 'balanced', 'smooth']);
+  assert.ok(getGenieConfig().duration_ms === null || Number.isFinite(getGenieConfig().duration_ms));
 });
 
 /* ------------------------------ wiring & hygiene ------------------------------ */
@@ -248,6 +428,8 @@ test('7. Modal routes open and close through genieRun; the old scale genie is re
   assert.match(modal, /playGenie\('open'\)/);
   assert.match(modal, /playGenie\('close'\)/);
   assert.doesNotMatch(modal, /minimizeOnClose|computeGenieCoordinates|modal--minimizing/);
+  assert.match(modal, /!canAnimate\(\)/, 'only "motion unavailable" closes instantly');
+  assert.match(modal, /if \(canGenie\(\)\)/, 'a switched-off genie skips the strips and fades instead');
 
   const css = read('src', 'styles', 'components', 'surfaces.css');
   assert.doesNotMatch(css, /macbook-genie-|modal--minimizing|modal--genie-in/);

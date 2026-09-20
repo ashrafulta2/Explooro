@@ -409,16 +409,29 @@ Bangladeshi shopkeeper — not a word-for-word translation of the English.
 // client/src/pages/dev/gallery-registry.js
 import { TagEditor } from '../../components/product/TagEditor.js';
 
-export const registry = [
-  // …
-  { group: 'Product', name: 'TagEditor', states: {
-      default:   () => TagEditor({ productId: 1, initialTags: [{ slug: 'cotton', label_bn: 'সুতি' }] }),
-      empty:     () => TagEditor({ productId: 1, initialTags: [] }),
-      readonly:  () => TagEditor({ productId: 1, initialTags: [], readonly: true }),
-      atLimit:   () => TagEditor({ productId: 1, initialTags: tenTags }),
-  } },
-];
+// One render function per specimen: it returns a node showing every state of the component.
+function renderTagEditorSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.append(
+    subgroup('TagEditor — default / empty / read-only / at limit'),
+    specimen('default',  TagEditor({ productId: 1, initialTags: [{ slug: 'cotton', label_bn: 'সুতি' }] })),
+    specimen('empty',    TagEditor({ productId: 1, initialTags: [] })),
+    specimen('readonly', TagEditor({ productId: 1, initialTags: [], readonly: true })),
+    specimen('atLimit',  TagEditor({ productId: 1, initialTags: tenTags })),
+  );
+  return wrap;
+}
+
+// …then one line in buildGalleryEntries(), placed inside its group's block:
+{ id: 'tag-editor', label: 'TagEditor', group: 'Product Detail', render: renderTagEditorSpecimen },
 ```
+
+**Pick the group deliberately.** `GALLERY_GROUPS` (top of the same file) is the gallery's table of
+contents and fixes the order of the nav and the main pane. A group is one *kind of UI* someone would
+look for together — not "the prompt that built it". Add the entry inside the matching group's block
+in `buildGalleryEntries()` (the array is declared in the same order as `GALLERY_GROUPS`), and only add
+a new `GALLERY_GROUPS` row when nothing fits. An entry naming a group missing from that list still
+renders, under a trailing group, with a console warning.
 
 **Same commit as the component.** `/dev/gallery` is how anyone reviews states — light/dark,
 en/bn, comfortable/compact, 360px — without hunting for a product that happens to be in the right

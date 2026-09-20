@@ -21,10 +21,27 @@ import { prefersReducedMotion } from './motion.js';
 
 /** Used only when the `--dur-genie` token cannot be read (SSR, detached document). */
 const FALLBACK_DURATION_MS = 650;
-/** Slices per panel. More = smoother curve, more DOM copies painted while animating. */
-const STRIPS_DEFAULT = 40;
-/** Fewer slices for heavy panels, so a table-filled modal does not clone 40 × its DOM. */
-const STRIPS_HEAVY = 20;
+
+/**
+ * The knobs a Super Admin may turn (/admin/platform/genie → platform_settings, group `genie`).
+ * `server/src/services/genie.service.js` declares the same bounds; `server/test/genieEffect.test.js`
+ * fails if the two drift, because a value the API accepts but the engine clamps is a setting that
+ * silently does not do what its page says.
+ */
+export const GENIE_LIMITS = Object.freeze({ minDurationMs: 250, maxDurationMs: 1500 });
+export const GENIE_DEFAULTS = Object.freeze({ enabled: true, duration_ms: 650, quality: 'balanced' });
+
+/**
+ * Slices per panel, by quality preset. More = a finer curve (and a costlier first frame: every
+ * slice is a full copy of the panel's DOM). `heavy` applies to panels above HEAVY_NODE_COUNT so a
+ * table-filled modal does not clone 40 × its DOM.
+ */
+const QUALITY_STRIPS = Object.freeze({
+  light: { full: 24, heavy: 14 },
+  balanced: { full: 40, heavy: 20 },
+  smooth: { full: 64, heavy: 32 },
+});
+export const GENIE_QUALITIES = Object.freeze(Object.keys(QUALITY_STRIPS));
 const HEAVY_NODE_COUNT = 600;
 /** Above this, cloning even 20 copies costs more than the effect is worth — caller fades instead. */
 const MAX_NODE_COUNT = 3000;
@@ -38,8 +55,14 @@ const SWAY_SCALE = 0.14;
 /** Width of the opening the panel narrows into, as a share of the target's across-size. */
 const MOUTH_RATIO = 0.7;
 const MOUTH_MIN_PX = 8;
-/** Fraction of the timeline (from the target end) over which the whole layer fades out/in. */
+/** Fraction of the timeline (from the target end) over which the strips fade out/in. */
 const FADE_START = 0.88;
+/**
+ * One frame never advances the clock by more than this. The first painted frame (all the strips
+ * rasterising at once) can take 100 ms+; without a cap the animation would jump a fifth of its
+ * length in one step instead of carrying on from where it was.
+ */
+const MAX_FRAME_DT_MS = 40;
 /**
  * rAF is paused in background tabs and hidden windows; a timer (throttled but never stopped)
  * guarantees the animation settles, so a modal can never be stranded half-closed.
@@ -57,9 +80,51 @@ const MAX_TARGET_VIEWPORT_SHARE = 0.5;
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const lerp = (a, b, t) => a + (b - a) * t;
 const easeSine = (t) => 0.5 - 0.5 * Math.cos(Math.PI * t);
+const fmt = (n) => n.toFixed(4);
 
-/** Duration comes from the `--dur-genie` token so it is tuned in CSS, not code. */
+/** Live settings. `duration_ms: null` = nobody has configured it, so the CSS token decides. */
+let config = { enabled: GENIE_DEFAULTS.enabled, duration_ms: null, quality: GENIE_DEFAULTS.quality };
+
+/**
+ * Turns whatever the API / cache handed over into a complete, in-range config, or `null` when it
+ * is not an object at all (caller keeps what it has). Exported so the admin page and the tests use
+ * the same clamp the engine does.
+ */
+export function sanitiseGenieConfig(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const ms = Number(raw.duration_ms);
+  return {
+    enabled: typeof raw.enabled === 'boolean' ? raw.enabled : GENIE_DEFAULTS.enabled,
+    duration_ms: Number.isFinite(ms)
+      ? clamp(Math.round(ms), GENIE_LIMITS.minDurationMs, GENIE_LIMITS.maxDurationMs)
+      : GENIE_DEFAULTS.duration_ms,
+    quality: GENIE_QUALITIES.includes(raw.quality) ? raw.quality : GENIE_DEFAULTS.quality,
+  };
+}
+
+export function getGenieConfig() {
+  return { ...config };
+}
+
+/**
+ * Adopts the platform's genie settings. The duration is mirrored into `--dur-genie` because the
+ * scrim's fade (surfaces.css) is timed by that token — left alone it would keep the shipped 650 ms
+ * while the panel ran at the admin's value. Skipped under reduced motion, where the token's own
+ * media query (0ms) must keep winning over an inline value.
+ */
+export function configureGenie(raw) {
+  const next = sanitiseGenieConfig(raw);
+  if (!next) return getGenieConfig();
+  config = next;
+  if (typeof document !== 'undefined' && !prefersReducedMotion()) {
+    document.documentElement?.style?.setProperty?.('--dur-genie', `${next.duration_ms}ms`);
+  }
+  return getGenieConfig();
+}
+
+/** Duration comes from the platform setting, else the `--dur-genie` token, so it is never a code edit. */
 export function genieDuration() {
+  if (config.duration_ms !== null) return config.duration_ms;
   if (typeof document === 'undefined') return FALLBACK_DURATION_MS;
   const raw = getComputedStyle(document.documentElement).getPropertyValue('--dur-genie').trim();
   const n = parseFloat(raw);
@@ -67,13 +132,24 @@ export function genieDuration() {
   return raw.endsWith('ms') ? n : raw.endsWith('s') ? n * 1000 : n;
 }
 
-/** Cheap pre-check the caller runs before deciding to suppress its own CSS transition. */
-export function canGenie() {
+/**
+ * Can this environment animate overlays at all? False under reduced motion or without rAF — the
+ * caller then shows/hides instantly rather than fading.
+ */
+export function canAnimate() {
   return (
     typeof window !== 'undefined' &&
     typeof requestAnimationFrame === 'function' &&
     !prefersReducedMotion()
   );
+}
+
+/**
+ * Cheap pre-check the caller runs before deciding to suppress its own CSS transition. Also false
+ * when a Super Admin has switched the genie off, in which case overlays keep their plain fade.
+ */
+export function canGenie() {
+  return config.enabled && canAnimate();
 }
 
 /** The control the popup should fly to/from; falls back to a dock point at bottom-centre. */
@@ -180,7 +256,8 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   const toward = tv > v0 + L / 2 ? 1 : -1;
   const swayDir = tu >= uC ? 1 : -1;
 
-  const maxStrips = nodeCount > HEAVY_NODE_COUNT ? STRIPS_HEAVY : STRIPS_DEFAULT;
+  const preset = QUALITY_STRIPS[config.quality] ?? QUALITY_STRIPS[GENIE_DEFAULTS.quality];
+  const maxStrips = nodeCount > HEAVY_NODE_COUNT ? preset.heavy : preset.full;
   const N = Math.max(8, Math.min(maxStrips, Math.floor(L / MIN_STRIP_PX)));
   const h = L / N;
 
@@ -230,8 +307,9 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   panel.style.pointerEvents = 'none';
 
   const vb = new Array(N + 1);
-  const lb = new Array(N + 1);
-  const rb = new Array(N + 1);
+  const cx = new Array(N + 1);
+  const wd = new Array(N + 1);
+  let shownFade = -1;
 
   /** p = 0: panel at rest. p = 1: fully swallowed by the target. */
   function place(p) {
@@ -239,12 +317,10 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
       const near = toward > 0 ? k / N : 1 - k / N; // 1 = the end closest to the target
       const q = clamp((p - (1 - near) * NECK) / (1 - NECK), 0, 1);
       const e = easeSine(q);
-      const centre = lerp(uC, tu, e) + swayDir * SWAY * A * SWAY_SCALE * Math.sin(Math.PI * q);
-      const width = lerp(A, mouth, e);
+      cx[k] = lerp(uC, tu, e) + swayDir * SWAY * A * SWAY_SCALE * Math.sin(Math.PI * q);
+      wd[k] = lerp(A, mouth, e);
       vb[k] = lerp(v0 + k * h, tv, e);
       if (k && vb[k] < vb[k - 1]) vb[k] = vb[k - 1]; // slices must never cross
-      lb[k] = centre - width / 2;
-      rb[k] = centre + width / 2;
     }
     for (let i = 0; i < N; i += 1) {
       const a = vb[i];
@@ -255,16 +331,26 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
         continue;
       }
       el.style.visibility = 'visible';
-      const ul = (lb[i] + lb[i + 1]) / 2;
-      const ur = (rb[i] + rb[i + 1]) / 2;
       const along = (thick + SEAM_PX) / h;
-      const across = (ur - ul) / A;
+      const across = (wd[i] + wd[i + 1]) / 2 / A;
+      const left = cx[i] - (across * A) / 2;
+      // WHY a shear, not just a scale: a plain scale leaves every strip an axis-aligned rectangle,
+      // so the funnel's edge is a staircase whose steps grow as the neck tightens — the "stepped"
+      // look. Shearing each strip by the drift of its centre between its two edges turns the edge
+      // into a continuous polyline at the same strip count.
+      const lean = (cx[i + 1] - cx[i]) / h;
       el.style.transform = vertical
-        ? `translate(${ul}px, ${a}px) scale(${across}, ${along})`
-        : `translate(${a}px, ${ul}px) scale(${along}, ${across})`;
+        ? `matrix(${fmt(across)}, 0, ${fmt(lean)}, ${fmt(along)}, ${fmt(left)}, ${fmt(a)})`
+        : `matrix(${fmt(along)}, ${fmt(lean)}, 0, ${fmt(across)}, ${fmt(a)}, ${fmt(left)})`;
     }
-    layer.style.opacity =
-      p > FADE_START ? String(clamp(1 - (p - FADE_START) / (1 - FADE_START), 0, 1)) : '1';
+    // Fade the strips themselves, not their container: an opacity on the container makes the
+    // browser flatten all of them into one offscreen surface for exactly the frames the eye is on.
+    const fade = p > FADE_START ? clamp(1 - (p - FADE_START) / (1 - FADE_START), 0, 1) : 1;
+    if (fade !== shownFade) {
+      shownFade = fade;
+      const value = String(fade);
+      for (let i = 0; i < N; i += 1) strips[i].style.opacity = value;
+    }
   }
 
   let raf = 0;
@@ -287,18 +373,33 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   }
 
   const opening = direction === 'open';
-  const start = performance.now();
   place(opening ? 1 : 0);
   if (opening) pulseTarget(targetEl);
+
+  // The clock is advanced by the (capped) time between frames, not read off the wall clock.
+  let last = null;
+  let elapsed = 0;
 
   function frame(now) {
     if (!host.isConnected) {
       settle(false);
       return;
     }
-    const t = clamp((now - start) / duration, 0, 1);
-    const s = easeSine(t);
-    place(opening ? 1 - s : s);
+    if (last === null) {
+      // WHY a warm-up frame: this is the frame that rasterises every strip for the first time and
+      // is by far the most expensive of the run. Holding the opening pose through it means the
+      // animation starts on the next frame instead of arriving already a fifth of the way in.
+      last = now;
+      raf = requestAnimationFrame(frame);
+      return;
+    }
+    elapsed += Math.min(now - last, MAX_FRAME_DT_MS);
+    last = now;
+    const t = clamp(elapsed / duration, 0, 1);
+    // WHY the timeline is linear: every strip already eases itself in and out (easeSine over its own
+    // NECK-delayed window in place()). Easing the whole timeline on top makes that a SECOND ease,
+    // which stalls the start and end and lurches through the middle — the jerky feel this replaced.
+    place(opening ? 1 - t : t);
     if (t < 1) raf = requestAnimationFrame(frame);
     else {
       if (!opening) pulseTarget(targetEl);

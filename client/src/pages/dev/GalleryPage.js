@@ -16,7 +16,10 @@
  *     what fulfils 1.7's PREVIEW note ("a role switcher in /dev/gallery lets the developer preview
  *     all six role shells live") without building a second, throwaway shell renderer.
  *  2. A left nav + main content area walking `gallery-registry.js`'s explicit list — every
- *     component from 1.3/1.4 renders every state, always, no per-item toggle needed.
+ *     component from 1.3/1.4 renders every state, always, no per-item toggle needed. Entries are
+ *     laid out by `GALLERY_GROUPS` order (not declaration order): each group gets a heading in the
+ *     main pane and a collapsible, filterable block in the nav, and the section currently in view
+ *     is highlighted in the nav.
  *  3. Two live panels — a design-token inspector and a WCAG AA contrast checker — that read
  *     resolved values via `getComputedStyle` rather than a hardcoded snapshot, and re-render
  *     whenever theme/density changes (color/spacing values are otherwise just cached strings).
@@ -28,7 +31,7 @@
  * page's own subtree), so they have to be removed explicitly or they'd pile up across remounts.
  */
 import '../../styles/components/gallery.css';
-import { buildGalleryEntries } from './gallery-registry.js';
+import { buildGalleryEntries, GALLERY_GROUPS } from './gallery-registry.js';
 import { appStore, setMockRole, logOutMock } from '../../state/appStore.js';
 import { NAV_ROLES } from '../../config/navigation.js';
 import { getRoleMeta } from '../../config/permissions.mock.js';
@@ -435,6 +438,7 @@ export default function GalleryPage(root) {
     const a = document.createElement('a');
     a.href = `#${id}`;
     a.textContent = label;
+    a.dataset.target = id;
     a.addEventListener('click', (e) => {
       e.preventDefault();
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -442,50 +446,133 @@ export default function GalleryPage(root) {
     return a;
   }
 
-  function navGroupHeading(text) {
-    const h = document.createElement('p');
-    h.className = 'gallery-page__nav-heading';
-    h.textContent = text;
-    return h;
-  }
-
   function section(id, title, node) {
     const el = document.createElement('section');
     el.id = id;
     el.className = 'gallery-page__section';
-    const h2 = document.createElement('h2');
-    h2.textContent = title;
-    el.append(h2, node);
+    const h3 = document.createElement('h3');
+    h3.className = 'gallery-page__section-title';
+    h3.textContent = title;
+    el.append(h3, node);
     return el;
   }
 
-  // Tools panels first.
-  nav.append(navGroupHeading('Design QA'));
-  nav.append(navLink('design-tokens', 'Design Tokens'));
-  nav.append(navLink('contrast-checker', 'Contrast Checker'));
-  const craftLink = document.createElement('a');
-  craftLink.href = '/dev/craft';
-  craftLink.textContent = 'Craft Audit ↗';
-  nav.append(craftLink);
-  main.append(
-    section('design-tokens', 'Design Tokens', renderTokenInspector()),
-    section('contrast-checker', 'Contrast Checker', renderContrastChecker())
-  );
+  // The two live-computed panels are entries like any other, so they sort into Foundations with
+  // the rest of the design-system groundwork instead of floating in a one-off "Design QA" block.
+  // They stay first in the group: everything after them is built from the tokens they show.
+  const entries = [
+    { id: 'design-tokens', label: 'Design Tokens', group: 'Foundations', render: renderTokenInspector },
+    { id: 'contrast-checker', label: 'Contrast Checker', group: 'Foundations', render: renderContrastChecker },
+    ...buildGalleryEntries(detachedNodes),
+  ];
 
-  // Component categories, grouped exactly as gallery-registry.js declares.
-  const entries = buildGalleryEntries(detachedNodes);
-  const groups = new Map();
+  // Group order comes from GALLERY_GROUPS, never from entry declaration order. An entry naming a
+  // group that isn't listed there still renders (under a trailing group) so it can't vanish.
+  const groupsByName = new Map(GALLERY_GROUPS.map((g) => [g.name, { ...g, entries: [] }]));
   for (const entry of entries) {
-    if (!groups.has(entry.group)) groups.set(entry.group, []);
-    groups.get(entry.group).push(entry);
-  }
-  for (const [groupName, groupEntries] of groups) {
-    nav.append(navGroupHeading(groupName));
-    for (const entry of groupEntries) {
-      nav.append(navLink(entry.id, entry.label));
-      main.append(section(entry.id, entry.label, entry.render()));
+    if (!groupsByName.has(entry.group)) {
+      console.warn(`[gallery] "${entry.id}" uses group "${entry.group}", which is missing from GALLERY_GROUPS.`);
+      groupsByName.set(entry.group, { name: entry.group, blurb: '', entries: [] });
     }
+    groupsByName.get(entry.group).entries.push(entry);
   }
+  const groups = [...groupsByName.values()].filter((g) => g.entries.length);
+  const slug = (name) => `group-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+
+  /* ---- Nav: filter box, expand/collapse, one collapsible block per group ---- */
+  const filterInput = document.createElement('input');
+  filterInput.type = 'search';
+  filterInput.className = 'gallery-page__nav-filter';
+  filterInput.placeholder = `Filter ${entries.length} components…`;
+  filterInput.setAttribute('aria-label', 'Filter gallery components');
+
+  const navToggleRow = document.createElement('div');
+  navToggleRow.className = 'gallery-page__nav-toggles';
+  const navGroups = [];
+  function setAllOpen(open) {
+    navGroups.forEach(({ details }) => {
+      details.open = open;
+    });
+  }
+  for (const [text, open] of [['Expand all', true], ['Collapse all', false]]) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = text;
+    btn.addEventListener('click', () => setAllOpen(open));
+    navToggleRow.append(btn);
+  }
+  nav.append(filterInput, navToggleRow);
+
+  for (const group of groups) {
+    const details = document.createElement('details');
+    details.className = 'gallery-page__nav-group';
+    details.open = true;
+    const summary = document.createElement('summary');
+    summary.innerHTML = '<span></span><span class="gallery-page__nav-count"></span>';
+    summary.firstChild.textContent = group.name;
+    summary.lastChild.textContent = String(group.entries.length);
+    // A wrapper, not the <details> itself:  on <details> doesn't reliably lay out
+    // its children, and bare <a>s would flow inline into a wrapped row.
+    const linkList = document.createElement('div');
+    linkList.className = 'gallery-page__nav-links';
+    details.append(summary, linkList);
+    const links = group.entries.map((entry) => {
+      const link = navLink(entry.id, entry.label);
+      linkList.append(link);
+      return link;
+    });
+    if (group.name === 'Foundations') {
+      const craftLink = document.createElement('a');
+      craftLink.href = '/dev/craft';
+      craftLink.textContent = 'Craft Audit ↗';
+      linkList.append(craftLink);
+    }
+    nav.append(details);
+    navGroups.push({ details, links });
+
+    const groupEl = document.createElement('div');
+    groupEl.className = 'gallery-page__group';
+    groupEl.id = slug(group.name);
+    const groupHead = document.createElement('header');
+    groupHead.className = 'gallery-page__group-head';
+    const groupTitle = document.createElement('h2');
+    groupTitle.textContent = group.name;
+    groupHead.append(groupTitle);
+    if (group.blurb) {
+      const blurb = document.createElement('p');
+      blurb.className = 'text-sm text-muted';
+      blurb.textContent = group.blurb;
+      groupHead.append(blurb);
+    }
+    groupEl.append(groupHead, ...group.entries.map((entry) => section(entry.id, entry.label, entry.render())));
+    main.append(groupEl);
+  }
+
+  const noMatch = document.createElement('p');
+  noMatch.className = 'gallery-page__nav-empty text-sm text-muted';
+  noMatch.textContent = 'No components match.';
+  noMatch.hidden = true;
+  nav.append(noMatch);
+
+  // Filtering opens every group that still has a hit (a collapsed group would hide the match) and
+  // hides the rest; clearing the box restores everything but leaves the user's own open/closed
+  // choices to the group-level toggles.
+  filterInput.addEventListener('input', () => {
+    const q = filterInput.value.trim().toLowerCase();
+    let any = false;
+    for (const { details, links } of navGroups) {
+      let hits = 0;
+      for (const link of links) {
+        const match = !q || link.textContent.toLowerCase().includes(q);
+        link.hidden = !match;
+        if (match) hits += 1;
+      }
+      details.hidden = q !== '' && hits === 0;
+      if (q && hits) details.open = true;
+      if (hits) any = true;
+    }
+    noMatch.hidden = any || !q;
+  });
 
   layout.append(nav, main);
   page.append(layout);
@@ -502,6 +589,35 @@ export default function GalleryPage(root) {
     page.style.setProperty('--gallery-sticky-offset', `calc(${height}px + var(--space-3))`);
   }
   syncStickyOffset();
+
+  /** Marks the nav link of whichever section is crossing the upper third of the viewport, and
+   * scrolls the nav (not the page) to keep it visible — with ~90 links the active one is usually
+   * off-screen in the sticky nav otherwise. */
+  const linkById = new Map(navGroups.flatMap(({ links }) => links.map((l) => [l.dataset.target, l])));
+  let activeLink = null;
+  const spy = new IntersectionObserver(
+    (records) => {
+      for (const record of records) {
+        if (!record.isIntersecting) continue;
+        const link = linkById.get(record.target.id);
+        if (!link || link === activeLink) continue;
+        activeLink?.classList.remove('is-active');
+        link.classList.add('is-active');
+        activeLink = link;
+        if (!link.hidden && link.closest('details')?.open) {
+          const navBox = nav.getBoundingClientRect();
+          const linkBox = link.getBoundingClientRect();
+          if (linkBox.top < navBox.top || linkBox.bottom > navBox.bottom) {
+            nav.scrollTop += linkBox.top - navBox.top - navBox.height / 3;
+          }
+        }
+      }
+    },
+    { rootMargin: '-15% 0px -75% 0px' }
+  );
+  main.querySelectorAll('.gallery-page__section').forEach((el) => spy.observe(el));
+  unsubscribers.push(() => spy.disconnect());
+
   const offStoreForOffset = appStore.subscribe(syncStickyOffset);
   window.addEventListener('resize', syncStickyOffset);
   unsubscribers.push(offStoreForOffset, () => window.removeEventListener('resize', syncStickyOffset));
@@ -510,8 +626,17 @@ export default function GalleryPage(root) {
    * and density changes don't otherwise touch them (unlike the rest of the gallery, which is pure
    * CSS and updates for free). */
   function refreshLivePanels() {
-    document.getElementById('design-tokens')?.replaceWith(section('design-tokens', 'Design Tokens', renderTokenInspector()));
-    document.getElementById('contrast-checker')?.replaceWith(section('contrast-checker', 'Contrast Checker', renderContrastChecker()));
+    for (const [id, title, render] of [
+      ['design-tokens', 'Design Tokens', renderTokenInspector],
+      ['contrast-checker', 'Contrast Checker', renderContrastChecker],
+    ]) {
+      const old = document.getElementById(id);
+      if (!old) continue;
+      spy.unobserve(old);
+      const fresh = section(id, title, render());
+      old.replaceWith(fresh);
+      spy.observe(fresh);
+    }
   }
 
   // A "system" theme selection tracks the OS live — refresh the panels when it flips so their

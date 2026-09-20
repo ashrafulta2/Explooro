@@ -12,8 +12,9 @@
  * implemented below.
  *
  * Open/close motion is the "genie" (lib/genie.js): the panel pours out of the control that opened
- * it and is sucked back into it on close, for EVERY modal. Reduced-motion users get an instant
- * show/hide. Escape, scrim click and the close button all funnel through close(), so they play
+ * it and is sucked back into it on close, for EVERY modal. Whether it plays, how long it takes and
+ * how finely it is drawn are platform settings (/admin/platform/genie); with the genie off the
+ * modal uses its plain CSS fade. Reduced-motion users always get an instant show/hide. Escape, scrim click and the close button all funnel through close(), so they play
  * the same animation.
  *
  * Invariants:
@@ -27,7 +28,7 @@
  *    keyboard user at the top of the document.
  */
 
-import { canGenie, genieRun } from '../../lib/genie.js';
+import { canAnimate, canGenie, genieRun } from '../../lib/genie.js';
 
 /** Reference-counted scroll lock, shared with Drawer and ConfirmDialog. */
 let lockCount = 0;
@@ -64,7 +65,10 @@ function createCloseIcon() {
 
 let modalSeq = 0;
 
-/** Plain fade-and-drop, only used when a panel is too heavy to slice into genie strips. */
+/**
+ * Plain fade-and-drop. Used when a panel is too heavy to slice into genie strips, and for every
+ * modal while a Super Admin has the genie switched off (/admin/platform/genie).
+ */
 const FALLBACK_CLOSE_MS = 220;
 
 export function Modal({
@@ -210,18 +214,22 @@ export function Modal({
     }
     result = value;
 
-    if (force || !canGenie()) {
+    // Instant only when motion is unavailable/unwanted. A switched-off genie still fades out.
+    if (force || !canAnimate()) {
       nativeClose();
       return;
     }
 
     isClosing = true;
-    dialog.classList.add('modal--genie-closing');
-    const run = playGenie('close');
+    let run = null;
+    if (canGenie()) {
+      dialog.classList.add('modal--genie-closing');
+      run = playGenie('close');
+    }
 
     if (!run) {
-      // Panel too heavy (or no size) to slice — fall back to the plain fade-and-drop.
-      dialog.classList.remove('modal--genie');
+      // Genie off, or the panel is too heavy (or has no size) to slice — plain fade-and-drop.
+      dialog.classList.remove('modal--genie', 'modal--genie-closing');
       dialog.classList.add('modal--closing');
       setTimeout(() => {
         if (!isClosing) return;

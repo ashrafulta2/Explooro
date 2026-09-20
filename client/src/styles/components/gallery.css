@@ -111,17 +111,78 @@
   padding-right: var(--space-2);
 }
 
-.gallery-page__nav-heading {
-  margin: var(--space-4) 0 var(--space-1);
+.gallery-page__nav-filter {
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  border: var(--border-width) solid var(--border-subtle);
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.gallery-page__nav-toggles {
+  display: flex;
+  gap: var(--space-3);
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+.gallery-page__nav-toggles button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: var(--text-2xs);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.gallery-page__nav-toggles button:hover {
+  color: var(--text-primary);
+}
+
+.gallery-page__nav-empty {
+  margin: var(--space-3) 0;
+}
+
+.gallery-page__nav-group {
+  padding-bottom: var(--space-2);
+}
+
+.gallery-page__nav-group[hidden] {
+  display: none;
+}
+
+.gallery-page__nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.gallery-page__nav-group > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 var(--space-1);
   font-size: var(--text-2xs);
   font-weight: var(--weight-2xs);
   letter-spacing: var(--tracking-2xs);
   text-transform: uppercase;
   color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
 }
 
-.gallery-page__nav-heading:first-child {
-  margin-top: 0;
+.gallery-page__nav-group > summary:hover {
+  color: var(--text-primary);
+}
+
+.gallery-page__nav-count {
+  font-family: var(--font-mono);
+  font-weight: normal;
+  letter-spacing: 0;
 }
 
 .gallery-page__nav a {
@@ -137,6 +198,13 @@
   color: var(--text-primary);
 }
 
+.gallery-page__nav a.is-active {
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-weight: var(--weight-xl);
+  box-shadow: inset 2px 0 0 var(--brand);
+}
+
 .gallery-page__main {
   min-width: 0;
   transition: max-width var(--dur-base) var(--ease-standard);
@@ -149,13 +217,51 @@
   border-radius: var(--radius-md);
 }
 
+/* Group = one kind of UI (see GALLERY_GROUPS). Its heading is the visual break between groups;
+   the sections inside keep their own rules so a group reads as a labelled run of specimens. */
+.gallery-page__group {
+  scroll-margin-top: var(--gallery-sticky-offset);
+}
+
+.gallery-page__group + .gallery-page__group {
+  margin-top: var(--space-8);
+}
+
+.gallery-page__group-head {
+  position: relative;
+  margin: 0;
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-5);
+  background: var(--surface-1);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  scroll-margin-top: var(--gallery-sticky-offset);
+}
+
+.gallery-page__group-head::before {
+  content: '';
+  position: absolute;
+  inset: var(--space-3) auto var(--space-3) 0;
+  width: 4px;
+  border-radius: var(--radius-full);
+  background: var(--brand);
+}
+
+.gallery-page__group-head h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-xl);
+}
+
+.gallery-page__group-head p {
+  margin: 0;
+}
+
 .gallery-page__section {
   padding: var(--space-6) 0;
   border-bottom: var(--border-width) solid var(--border-subtle);
   scroll-margin-top: var(--gallery-sticky-offset);
 }
 
-.gallery-page__section h2 {
+.gallery-page__section-title {
   margin: 0 0 var(--space-4);
   font-size: var(--text-lg);
 }
@@ -291,13 +397,10 @@
   .gallery-page__layout {
     grid-template-columns: 1fr;
   }
+  /* Stacked, not a wrapped row: the groups are collapsible blocks now. Capped so ~90 links don't
+     push the specimens a screen and a half down on a phone. */
   .gallery-page__nav {
     position: static;
-    max-height: none;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-  .gallery-page__nav-heading {
-    width: 100%;
+    max-height: 320px;
   }
 }
