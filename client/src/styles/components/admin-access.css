@@ -24,6 +24,11 @@
   overflow: auto;
   /* Bounded so the header row and permission column can stick while the body scrolls. */
   max-height: min(68vh, 760px);
+  /* WHY: every cell holds an absolutely positioned `.sr-only` span. Without a positioned ancestor its
+     containing block is the page, so the scroller does not clip it and its static position (down the
+     whole 187-row table) stretched the document to ~25,000px — a tiny scrollbar thumb and a huge blank
+     gap under the panel. A positioned wrapper keeps those spans inside the scroller. */
+  position: relative;
   background: var(--surface-0);
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-lg);
@@ -62,7 +67,8 @@
 .perm-matrix__perm-key { display: block; margin-top: 2px; font-family: var(--font-mono, monospace); font-size: var(--text-2xs); color: var(--text-muted); overflow-wrap: anywhere; }
 .perm-matrix__perm-desc { display: block; margin-top: 2px; font-size: var(--text-xs); font-weight: var(--weight-regular); color: var(--text-secondary); }
 
-.perm-matrix__mark { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-full); }
+/* `position: relative` is the anchor for the cell's `.sr-only` text (see the wrap above). */
+.perm-matrix__mark { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: var(--radius-full); }
 .perm-matrix__mark--granted { color: var(--success); }
 .perm-matrix__mark--locked { color: var(--text-muted); }
 .perm-matrix__mark--none { color: var(--text-muted); opacity: 0.55; }
