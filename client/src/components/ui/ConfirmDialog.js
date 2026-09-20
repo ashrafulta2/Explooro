@@ -100,7 +100,6 @@ function baseConfirm({
       footer,
       size: 'sm',
       important: true,
-      minimizeOnClose: true,
       onClose: () => finish(false),
     });
     modal.classList.add('confirm');

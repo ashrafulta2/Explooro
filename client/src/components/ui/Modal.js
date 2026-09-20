@@ -11,6 +11,11 @@
  * this prompt. What the platform does not give us — scroll lock and explicit focus restore — is
  * implemented below.
  *
+ * Open/close motion is the "genie" (lib/genie.js): the panel pours out of the control that opened
+ * it and is sucked back into it on close, for EVERY modal. Reduced-motion users get an instant
+ * show/hide. Escape, scrim click and the close button all funnel through close(), so they play
+ * the same animation.
+ *
  * Invariants:
  *  - The PANEL is solid. Only the scrim (::backdrop) may carry a backdrop-filter — this is the
  *    one place in the entire product where glass is permitted (design-system §0), and it is
@@ -21,6 +26,8 @@
  *    explicitly because "mostly" is not a guarantee and a lost focus position strands a
  *    keyboard user at the top of the document.
  */
+
+import { canGenie, genieRun } from '../../lib/genie.js';
 
 /** Reference-counted scroll lock, shared with Drawer and ConfirmDialog. */
 let lockCount = 0;
@@ -57,6 +64,9 @@ function createCloseIcon() {
 
 let modalSeq = 0;
 
+/** Plain fade-and-drop, only used when a panel is too heavy to slice into genie strips. */
+const FALLBACK_CLOSE_MS = 220;
+
 export function Modal({
   title = '',
   description = '',
@@ -67,7 +77,6 @@ export function Modal({
   closeOnScrim = true,
   closeLabel = 'Close',
   important = false,
-  minimizeOnClose = false,
   onClose = null,
   onOpen = null,
 } = {}) {
@@ -137,90 +146,97 @@ export function Modal({
   let previouslyFocused = null;
   let result;
   let isClosing = false;
+  // True from open() until the open animation ends; a close requested meanwhile is deferred.
+  let isOpening = false;
+  let pendingClose = null;
+  let activeGenie = null;
   const nativeClose = dialog.close.bind(dialog);
 
-  function computeGenieCoordinates() {
-    let targetX = typeof window !== 'undefined' ? window.innerWidth / 2 : 0;
-    let targetY = typeof window !== 'undefined' ? window.innerHeight - 30 : 0;
+  // WHY the panel, not the <dialog>, is what gets sliced: the dialog is the top-layer box the
+  // strips are drawn into, and it must stay untransformed for `position: fixed` to mean "viewport".
+  function playGenie(direction) {
+    const run = genieRun({ panel, host: dialog, trigger: previouslyFocused, direction });
+    activeGenie = run;
+    return run;
+  }
 
-    if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
-      const tr = previouslyFocused.getBoundingClientRect();
-      if (tr.width || tr.height) {
-        targetX = tr.left + tr.width / 2;
-        targetY = tr.top + tr.height / 2;
-      }
-    }
-
-    const mr = panel.getBoundingClientRect();
-    const modalCenterX = mr.left + mr.width / 2;
-    const modalCenterY = mr.top + mr.height / 2;
-
-    const deltaX = targetX - modalCenterX;
-    const deltaY = targetY - modalCenterY;
-
-    dialog.style.setProperty('--genie-x', `${deltaX.toFixed(1)}px`);
-    dialog.style.setProperty('--genie-y', `${deltaY.toFixed(1)}px`);
+  function stopGenie() {
+    activeGenie?.cancel();
+    activeGenie = null;
   }
 
   function open(trigger = null) {
     if (dialog.hasAttribute('open') && !isClosing) return;
     if (isClosing) {
+      // Re-opened while still swallowing itself: abort the close and stay open.
       isClosing = false;
-      dialog.classList.remove('modal--closing', 'modal--minimizing');
+      stopGenie();
+      dialog.classList.remove('modal--closing', 'modal--genie-closing');
+      return;
     }
 
     previouslyFocused = trigger ?? document.activeElement;
 
     if (!dialog.isConnected) document.body.append(dialog);
 
-    // §6.2 Origin Rule — the panel grows out of the control that opened it, so the user keeps
-    // the causal link between what they clicked and what appeared.
-    if (previouslyFocused instanceof HTMLElement) {
-      const r = previouslyFocused.getBoundingClientRect();
-      if (r.width || r.height) {
-        dialog.style.setProperty('--origin-x', `${r.left + r.width / 2}px`);
-        dialog.style.setProperty('--origin-y', `${r.top + r.height / 2}px`);
-      }
-    }
+    // Opts the dialog out of the plain CSS fade so it cannot fight the genie for opacity/transform.
+    const useGenie = canGenie();
+    dialog.classList.toggle('modal--genie', useGenie);
 
     dialog.showModal();
     lockScroll();
+    // onOpen may change the panel's size, so it runs before the strips are measured.
     if (onOpen) onOpen();
+
+    if (!useGenie) return;
+    const run = playGenie('open');
+    if (!run) return;
+    isOpening = true;
+    run.finished.then((completed) => {
+      if (activeGenie === run) activeGenie = null;
+      isOpening = false;
+      if (!completed || !pendingClose) return;
+      const { value, opts } = pendingClose;
+      pendingClose = null;
+      close(value, opts);
+    });
   }
 
-  function close(value = false, { force = false, minimize = false } = {}) {
+  function close(value = false, { force = false } = {}) {
     if (!dialog.hasAttribute('open') || isClosing) return;
+    if (isOpening) {
+      pendingClose = { value, opts: { force } };
+      return;
+    }
     result = value;
 
-    const prefersReduced =
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-
-    if (force || prefersReduced) {
+    if (force || !canGenie()) {
       nativeClose();
       return;
     }
 
     isClosing = true;
-    const isGenie = minimize || minimizeOnClose || important;
+    dialog.classList.add('modal--genie-closing');
+    const run = playGenie('close');
 
-    if (isGenie) {
-      computeGenieCoordinates();
-      dialog.classList.remove('modal--closing');
-      dialog.classList.add('modal--minimizing');
-    } else {
-      dialog.classList.remove('modal--minimizing');
+    if (!run) {
+      // Panel too heavy (or no size) to slice — fall back to the plain fade-and-drop.
+      dialog.classList.remove('modal--genie');
       dialog.classList.add('modal--closing');
+      setTimeout(() => {
+        if (!isClosing) return;
+        isClosing = false;
+        nativeClose();
+      }, FALLBACK_CLOSE_MS);
+      return;
     }
 
-    const duration = isGenie ? 340 : 220;
-
-    setTimeout(() => {
-      if (!isClosing) return;
-      dialog.classList.remove('modal--closing', 'modal--minimizing');
+    run.finished.then((completed) => {
+      if (activeGenie === run) activeGenie = null;
+      if (!completed || !isClosing) return;
       isClosing = false;
       nativeClose();
-    }, duration);
+    });
   }
 
   // Intercept Escape key to play graceful MacBook exit instead of abrupt instant vanishing
@@ -233,7 +249,10 @@ export function Modal({
   // the Escape path and the button path from drifting apart.
   dialog.addEventListener('close', () => {
     isClosing = false;
-    dialog.classList.remove('modal--closing', 'modal--minimizing');
+    isOpening = false;
+    pendingClose = null;
+    stopGenie();
+    dialog.classList.remove('modal--closing', 'modal--genie', 'modal--genie-closing');
     unlockScroll();
     if (previouslyFocused instanceof HTMLElement && previouslyFocused.isConnected) {
       previouslyFocused.focus();
@@ -252,7 +271,8 @@ export function Modal({
   dialog.open_ = open;
   dialog.openModal = open;
   dialog.closeModal = close;
-  dialog.minimize = () => close(false, { minimize: true });
+  // Kept for callers written before every close became a genie.
+  dialog.minimize = () => close(false);
   dialog.isOpen = () => Boolean(dialog.hasAttribute('open'));
 
   Object.defineProperty(dialog, 'open', {

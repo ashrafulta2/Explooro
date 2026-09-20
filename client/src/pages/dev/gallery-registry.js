@@ -470,14 +470,13 @@ function renderModalDrawer(detached) {
   const genieModalContent = document.createElement('div');
   genieModalContent.className = 'text-sm';
   genieModalContent.textContent =
-    'Important popup window featuring the Apple macOS Genie Minimize Effect. When closed or minimized, this window fluidly morphs and sucks back into the button that triggered it!';
+    'Every modal uses the genie: it pours out of the button that opened it and is sucked back into it on close (Escape, the ✕ and the scrim all play it). Prefers-reduced-motion users get an instant show/hide.';
 
   const genieModal = Modal({
-    title: 'MacBook Window & Genie Effect',
-    description: 'Important Transactional Popup with fluid minimize physics',
+    title: 'Genie open & close',
+    description: 'Same motion on every Modal — no option needed.',
     content: genieModalContent,
     important: true,
-    minimizeOnClose: true,
     footer: (() => {
       const f = document.createDocumentFragment();
       f.append(
