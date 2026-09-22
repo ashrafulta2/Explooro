@@ -906,6 +906,8 @@
     "jit_rejected": "Access request rejected",
     "action_executed": "Action approved and executed",
     "action_rejected": "Action rejected",
+    "reason_min_length": "A rejection reason of at least 10 characters is mandatory.",
+    "card_label": "Approval item {{index}} of {{total}}: {{title}}",
     "risk": {
       "LOW": "Low",
       "MEDIUM": "Medium",

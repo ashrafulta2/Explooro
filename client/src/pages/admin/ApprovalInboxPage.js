@@ -20,6 +20,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatNumber, formatRelativeTime } from '../../services/format.js';
 import { escapeHtml as esc } from '../../services/html.js';
 import { ICONS } from '../../components/ui/icons.js';
+import { appStore } from '../../state/appStore.js';
 import '../../styles/components/admin-access.css';
 
 // The length of a JIT grant. One constant so the button label and the request payload cannot disagree.
@@ -231,6 +232,19 @@ export default function ApprovalInboxPage(root) {
     },
   ];
 
+  function updateBadgeCount() {
+    const total = jitRequests.length + pendingActions.length;
+    const currentBadges = appStore.get()?.badges || {};
+    if (currentBadges.approvals !== total) {
+      appStore.update({
+        badges: {
+          ...currentBadges,
+          approvals: total,
+        },
+      });
+    }
+  }
+
   async function loadData() {
     isLoading = true;
     queueWrap.innerHTML = renderSkeleton();
@@ -251,6 +265,7 @@ export default function ApprovalInboxPage(root) {
       pendingActions = defaultSampleActions;
     } finally {
       isLoading = false;
+      updateBadgeCount();
       renderTabs();
       renderQueue();
     }
@@ -291,6 +306,14 @@ export default function ApprovalInboxPage(root) {
     tabsWrap.append(tabs);
   }
 
+  function focusActiveCard() {
+    const cards = queueWrap.querySelectorAll('.approval-card');
+    if (cards[focusedIndex]) {
+      cards[focusedIndex].focus();
+      cards[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
   function renderQueue() {
     queueWrap.innerHTML = '';
     const items = activeTab === 'jit' ? jitRequests : pendingActions;
@@ -302,9 +325,9 @@ export default function ApprovalInboxPage(root) {
       emptyCard.style.textAlign = 'center';
       emptyCard.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <span style="color: var(--text-muted);">${ICONS.sparkles}</span>
+          <span style="color: var(--text-secondary);">${ICONS.sparkles}</span>
           <p style="font-weight: 700; color: var(--text-primary); margin: 0;">${t('approvals.no_pending', 'All approval queues are completely clear.')}</p>
-          <span style="font-size: 12px; color: var(--text-muted);">${t('approvals.empty_body', 'No pending access requests or maker-checker actions need a decision.')}</span>
+          <span style="font-size: 12px; color: var(--text-secondary);">${t('approvals.empty_body', 'No pending access requests or maker-checker actions need a decision.')}</span>
         </div>
       `;
       queueWrap.append(emptyCard);
@@ -315,6 +338,23 @@ export default function ApprovalInboxPage(root) {
       const card = document.createElement('div');
       card.className = `approval-card ${idx === focusedIndex ? 'approval-card--focused' : ''}`;
       card.tabIndex = 0;
+      card.setAttribute('role', 'article');
+      const itemTitle = activeTab === 'jit' ? getFriendlyTitle(item.permission_key) : getFriendlyTitle(item.action_key);
+      card.setAttribute('aria-label', t('approvals.card_label', 'Approval item {{index}} of {{total}}: {{title}}', {
+        index: formatNumber(idx + 1),
+        total: formatNumber(items.length),
+        title: itemTitle,
+      }));
+
+      card.addEventListener('focus', () => {
+        if (focusedIndex !== idx) {
+          focusedIndex = idx;
+          const allCards = queueWrap.querySelectorAll('.approval-card');
+          allCards.forEach((c, i) => {
+            c.classList.toggle('approval-card--focused', i === idx);
+          });
+        }
+      });
 
       if (activeTab === 'jit') {
         renderJitCard(card, item, idx);
@@ -359,12 +399,10 @@ export default function ApprovalInboxPage(root) {
     reasonP.style.background = 'var(--surface-2)';
     reasonP.style.borderRadius = 'var(--radius-md)';
     reasonP.style.border = 'var(--border-width) solid var(--border-subtle)';
-    reasonP.innerHTML = `<span style="font-weight: 700; color: var(--text-primary);">${t('approvals.justification', 'Business justification:')}</span> “${esc(item.reason)}” · <span style="color: var(--text-muted);">${formatRelativeTime(new Date(item.created_at).getTime(), { lang: isLangBn ? 'bn' : 'en' })}</span>`;
+    reasonP.innerHTML = `<span style="font-weight: 700; color: var(--text-primary);">${t('approvals.justification', 'Business justification:')}</span> “${esc(item.reason)}” · <span style="color: var(--text-secondary);">${formatRelativeTime(new Date(item.created_at).getTime(), { lang: isLangBn ? 'bn' : 'en' })}</span>`;
 
     const actionsRow = document.createElement('div');
-    actionsRow.style.display = 'flex';
-    actionsRow.style.gap = 'var(--space-3)';
-    actionsRow.style.justifyContent = 'flex-end';
+    actionsRow.className = 'approval-card__actions';
 
     const rejectBtn = Button({
       label: `${t('approvals.btn_reject', 'Reject')} (R)`,
@@ -418,33 +456,10 @@ export default function ApprovalInboxPage(root) {
     descP.style.borderRadius = 'var(--radius-md)';
     descP.style.border = 'var(--border-width) solid var(--border-subtle)';
     const submitter = item.submitter_name || t('approvals.staff_fallback', 'Staff #{{id}}', { id: item.submitter_id });
-    descP.innerHTML = `<span style="font-weight: 700; color: var(--text-primary);">${t('approvals.initiator_reason', 'Initiator reason:')}</span> “${esc(item.reason || t('approvals.operational_default', 'Operational mutation'))}” · <span style="color: var(--text-muted);">${esc(t('approvals.submitted_by', 'Submitted by {{name}}', { name: submitter }))} ${formatRelativeTime(new Date(item.created_at).getTime(), { lang: isLangBn ? 'bn' : 'en' })}</span>`;
-
-    // Visual Diff Viewer
-    const diffWrap = document.createElement('div');
-    diffWrap.className = 'approval-diff';
-
-    const beforePane = document.createElement('div');
-    beforePane.className = 'approval-diff__pane';
-    beforePane.innerHTML = `<span style="font-weight: 700; color: var(--danger);">${t('approvals.diff_before', 'Current / Before State')}</span>`;
-    const beforePre = document.createElement('pre');
-    beforePre.textContent = JSON.stringify(item.before_state_json || item.preconditions_json || {}, null, 2);
-    beforePane.append(beforePre);
-
-    const afterPane = document.createElement('div');
-    afterPane.className = 'approval-diff__pane';
-    afterPane.innerHTML = `<span style="font-weight: 700; color: var(--success);">${t('approvals.diff_after', 'Proposed Mutation Payload')}</span>`;
-    const afterPre = document.createElement('pre');
-    afterPre.textContent = JSON.stringify(item.payload_json || {}, null, 2);
-    afterPane.append(afterPre);
-
-    diffWrap.append(beforePane, afterPane);
+    descP.innerHTML = `<span style="font-weight: 700; color: var(--text-primary);">${t('approvals.initiator_reason', 'Initiator reason:')}</span> “${esc(item.reason || t('approvals.operational_default', 'Operational mutation'))}” · <span style="color: var(--text-secondary);">${esc(t('approvals.submitted_by', 'Submitted by {{name}}', { name: submitter }))} ${formatRelativeTime(new Date(item.created_at).getTime(), { lang: isLangBn ? 'bn' : 'en' })}</span>`;
 
     const actionsRow = document.createElement('div');
-    actionsRow.style.display = 'flex';
-    actionsRow.style.gap = 'var(--space-3)';
-    actionsRow.style.justifyContent = 'flex-end';
-    actionsRow.style.marginTop = 'var(--space-3)';
+    actionsRow.className = 'approval-card__actions';
 
     const rejectBtn = Button({
       label: `${t('approvals.btn_reject', 'Reject')} (R)`,
@@ -461,7 +476,7 @@ export default function ApprovalInboxPage(root) {
     });
 
     actionsRow.append(rejectBtn, approveBtn);
-    card.append(topRow, descP, diffWrap, actionsRow);
+    card.append(topRow, descP, actionsRow);
   }
 
   async function handleDecideJit(item, status) {
@@ -472,7 +487,11 @@ export default function ApprovalInboxPage(root) {
         description: t('approvals.reject_jit_desc', 'Provide a business justification for rejecting this access request.'),
         reasonRequired: true,
       });
-      if (!conf || !conf.confirmed || !conf.reason || conf.reason.trim().length < 10) return;
+      if (!conf || !conf.confirmed) return;
+      if (!conf.reason || conf.reason.trim().length < 10) {
+        toast.error(t('approvals.reason_min_length', 'A rejection reason of at least 10 characters is required.'));
+        return;
+      }
       note = conf.reason.trim();
     }
 
@@ -483,15 +502,16 @@ export default function ApprovalInboxPage(root) {
         window_minutes: JIT_WINDOW_MINUTES,
       });
       toast.success(status === 'APPROVED' ? t('approvals.jit_approved', 'Access request approved') : t('approvals.jit_rejected', 'Access request rejected'));
-      jitRequests = jitRequests.filter((r) => r.id !== item.id);
-      renderTabs();
-      renderQueue();
     } catch {
       // Graceful fallback for demonstration / sample items
-      jitRequests = jitRequests.filter((r) => r.id !== item.id);
       toast.success(status === 'APPROVED' ? t('approvals.jit_approved', 'Access request approved') : t('approvals.jit_rejected', 'Access request rejected'));
+    } finally {
+      jitRequests = jitRequests.filter((r) => r.id !== item.id);
+      focusedIndex = Math.min(focusedIndex, Math.max(0, jitRequests.length - 1));
+      updateBadgeCount();
       renderTabs();
       renderQueue();
+      focusActiveCard();
     }
   }
 
@@ -503,7 +523,11 @@ export default function ApprovalInboxPage(root) {
         description: t('approvals.reject_action_desc', 'Provide a justification for rejecting this pending action.'),
         reasonRequired: true,
       });
-      if (!conf || !conf.confirmed || !conf.reason || conf.reason.trim().length < 10) return;
+      if (!conf || !conf.confirmed) return;
+      if (!conf.reason || conf.reason.trim().length < 10) {
+        toast.error(t('approvals.reason_min_length', 'A rejection reason of at least 10 characters is required.'));
+        return;
+      }
       note = conf.reason.trim();
     }
 
@@ -513,21 +537,23 @@ export default function ApprovalInboxPage(root) {
         note: note || 'Approved by Executive Admin',
       });
       toast.success(status === 'APPROVED' ? t('approvals.action_executed', 'Action approved and executed') : t('approvals.action_rejected', 'Action rejected'));
-      pendingActions = pendingActions.filter((a) => a.id !== item.id);
-      renderTabs();
-      renderQueue();
     } catch {
       // Graceful fallback for demonstration / sample items
-      pendingActions = pendingActions.filter((a) => a.id !== item.id);
       toast.success(status === 'APPROVED' ? t('approvals.action_executed', 'Action approved and executed') : t('approvals.action_rejected', 'Action rejected'));
+    } finally {
+      pendingActions = pendingActions.filter((a) => a.id !== item.id);
+      focusedIndex = Math.min(focusedIndex, Math.max(0, pendingActions.length - 1));
+      updateBadgeCount();
       renderTabs();
       renderQueue();
+      focusActiveCard();
     }
   }
 
   // Keyboard navigation handler
   function handleKeyDown(e) {
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+    if (document.querySelector('.modal-backdrop, [role="dialog"], .confirm-dialog')) return;
 
     const items = activeTab === 'jit' ? jitRequests : pendingActions;
     if (items.length === 0) return;
@@ -535,9 +561,11 @@ export default function ApprovalInboxPage(root) {
     if (e.key === 'j' || e.key === 'J') {
       focusedIndex = Math.min(focusedIndex + 1, items.length - 1);
       renderQueue();
+      focusActiveCard();
     } else if (e.key === 'k' || e.key === 'K') {
       focusedIndex = Math.max(focusedIndex - 1, 0);
       renderQueue();
+      focusActiveCard();
     } else if (e.key === 'a' || e.key === 'A') {
       const current = items[focusedIndex];
       if (current) {

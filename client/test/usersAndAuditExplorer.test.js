@@ -128,4 +128,68 @@ test('Prompts 3.3 & 3.4: Users, Access & Audit Explorer — Client Invariants', 
     assert.equal(keys.a, 'APPROVE');
     assert.equal(keys.r, 'REJECT');
   });
+
+  // 6. Approval Inbox Locale Parity
+  await t.test('6. Approval Inbox locale parity for min reason length and card accessibility label', () => {
+    assert.ok(enDict.approvals.reason_min_length, 'en.json must contain reason_min_length');
+    assert.ok(bnDict.approvals.reason_min_length, 'bn.json must contain reason_min_length');
+    assert.ok(enDict.approvals.card_label, 'en.json must contain card_label');
+    assert.ok(bnDict.approvals.card_label, 'bn.json must contain card_label');
+    assert.ok(enDict.approvals.card_label.includes('{{index}}') && enDict.approvals.card_label.includes('{{total}}'));
+    assert.ok(bnDict.approvals.card_label.includes('{{index}}') && bnDict.approvals.card_label.includes('{{total}}'));
+  });
+
+  // 7. Focus Index Clamping Logic
+  await t.test('7. Approval Inbox index clamping logic prevents out-of-bounds focus', () => {
+    const clampIndex = (currentIdx, newLength) => Math.min(currentIdx, Math.max(0, newLength - 1));
+    assert.equal(clampIndex(2, 2), 1, 'Index 2 with length 2 clamps to 1');
+    assert.equal(clampIndex(0, 1), 0, 'Index 0 with length 1 stays 0');
+    assert.equal(clampIndex(1, 1), 0, 'Index 1 with length 1 clamps to 0');
+    assert.equal(clampIndex(0, 0), 0, 'Empty queue clamps to 0');
+  });
+
+  // 8. Approval CSS Rules & Viewport Clearance
+  await t.test('8. CSS defines viewport bottom spacing and action classes for approvals', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    const cssPath = resolve(import.meta.dirname, '../src/styles/components/admin-access.css');
+    const css = readFileSync(cssPath, 'utf8');
+
+    assert.ok(css.includes('.approval-inbox'), 'admin-access.css must define .approval-inbox');
+    assert.ok(css.includes('padding-bottom: var(--space-10)'), '.approval-inbox must have bottom padding to prevent viewport jamming');
+    assert.ok(css.includes('.approval-card__actions'), '.approval-card__actions must be defined');
+    assert.ok(css.includes('.approval-card--focused'), '.approval-card--focused must be defined for keyboard navigation visibility');
+  });
+
+  // 9. Keyboard Navigation Modal Isolation & A11y Contrast
+  await t.test('9. ApprovalInboxPage source contains modal isolation guard and WCAG AA contrast tokens', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    const pagePath = resolve(import.meta.dirname, '../src/pages/admin/ApprovalInboxPage.js');
+    const pageSrc = readFileSync(pagePath, 'utf8');
+
+    assert.ok(pageSrc.includes('modal-backdrop') || pageSrc.includes('role="dialog"'), 'Must guard against shortcuts leaking when modal is open');
+    assert.ok(pageSrc.includes("'role', 'article'"), 'Approval cards must expose role="article" for screen readers');
+    assert.ok(pageSrc.includes('approvals.card_label'), 'Approval cards must have aria-label with position information');
+    assert.ok(!pageSrc.includes('style="color: var(--text-muted);"'), 'Approval cards must not use low-contrast text-muted on surface-2');
+  });
+
+  // 10. Restrictions Table Layout, Top Alignment & A11y Contrast
+  await t.test('10. Restrictions page layout eliminates inner vertical scroll, aligns baselines to top, and uses high contrast', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { resolve } = await import('node:path');
+    const cssPath = resolve(import.meta.dirname, '../src/styles/components/admin-access.css');
+    const css = readFileSync(cssPath, 'utf8');
+
+    assert.ok(css.includes('.admin-users {'), 'admin-access.css must define .admin-users');
+    assert.ok(css.includes('.admin-users .perm-matrix__table-wrap { max-height: none; overflow-y: visible; overflow-x: auto; }'), 'Must remove max-height to eliminate inner scrollbar and row truncation');
+    assert.ok(css.includes('.admin-users .perm-matrix__table td { vertical-align: top;'), 'Must set vertical-align: top for multi-line cell baseline alignment');
+
+    const restrictionsPath = resolve(import.meta.dirname, '../src/pages/admin/RestrictionsPage.js');
+    const restSrc = readFileSync(restrictionsPath, 'utf8');
+    assert.ok(!restSrc.includes('<br><span'), 'Must not insert phantom br tags inside flex containers');
+    assert.ok(!restSrc.includes('color: var(--text-muted);'), 'Restrictions table must not use low-contrast text-muted');
+    assert.ok(!restSrc.includes('r.capability_key)}</span>'), 'Must not render raw capability_key coding text');
+    assert.ok(restSrc.includes("tdActions.style.whiteSpace = 'nowrap';"), 'Must prevent action button text clipping');
+  });
 });

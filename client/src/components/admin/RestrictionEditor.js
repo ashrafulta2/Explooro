@@ -123,10 +123,21 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     ],
   });
 
+  function getFriendlyTargetLabel(key) {
+    const fallback = key
+      .replace('can_', 'Allow ')
+      .replace('max_', 'Max ')
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+    return t(`restrictions.cap.${key}`, fallback);
+  }
+
   // Target Capability or Numeric Limit selector
   const allTargets = [
-    ...CAPABILITIES.map((c) => ({ value: c, label: `Capability: ${c}` })),
-    ...NUMERIC_LIMITS.map((n) => ({ value: n, label: `Numeric Limit: ${n}` })),
+    ...CAPABILITIES.map((c) => ({ value: c, label: getFriendlyTargetLabel(c) })),
+    ...NUMERIC_LIMITS.map((n) => ({ value: n, label: getFriendlyTargetLabel(n) })),
   ];
 
   let selectedCap = allTargets[0].value;

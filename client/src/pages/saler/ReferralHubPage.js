@@ -15,6 +15,8 @@
  */
 
 import { api } from '../../core/api.js';
+import { Modal } from '../../components/ui/Modal.js';
+import { Button } from '../../components/ui/Button.js';
 import { getExplooroLogoSvg, ICONS } from '../../components/ui/icons.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
@@ -848,156 +850,111 @@ export class ReferralHubPage {
   }
 
   _openQrModal(refLink, refCode, isBn) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop';
-    modalBackdrop.style.cssText = 'position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem;';
-    modalBackdrop.setAttribute('role', 'dialog');
-    modalBackdrop.setAttribute('aria-modal', 'true');
-    modalBackdrop.setAttribute('aria-label', isBn ? 'রেফারেল কিউআর ও সোশ্যাল কার্ড' : 'Referral QR and Story Card');
+    const contentEl = document.createElement('div');
+    contentEl.className = 'saler-card saler-stack text-center';
+    contentEl.style.cssText = 'padding: 1rem; border: none; box-shadow: none;';
 
-    modalBackdrop.innerHTML = `
-      <div class="saler-card saler-stack text-center" style="max-width: 400px; width: 100%; margin: auto; padding: 1.5rem;">
-        <div class="saler-row saler-row--between" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
-          <h3 class="saler-card__title" style="font-size: 1rem;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> ${isBn ? 'আপনার রেফারেল QR ও সোশ্যাল কার্ড' : 'Your Referral QR & Story Card'}
-          </h3>
-          <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; line-height: 1;" aria-label="Close modal">×</button>
-        </div>
+    contentEl.innerHTML = `
+      <div style="background: #ffffff; padding: 1rem; border-radius: var(--radius-lg); margin: 0 auto; width: 210px; height: 210px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle); box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">
+        <img
+          src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(refLink)}"
+          alt="Referral QR Code"
+          style="width: 100%; height: 100%; object-fit: contain;" />
+      </div>
 
-        <div style="background: #ffffff; padding: 1rem; border-radius: var(--radius-lg); margin: 0 auto; width: 210px; height: 210px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle); box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">
-          <img
-            src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(refLink)}"
-            alt="Referral QR Code"
-            style="width: 100%; height: 100%; object-fit: contain;" />
-        </div>
-
-        <div class="saler-stack--xs">
-          <div class="text-xs font-mono font-bold text-foreground">Code: ${refCode}</div>
-          <p class="text-xs text-muted font-mono" style="word-break: break-all;">${refLink}</p>
-        </div>
-
-        <div class="saler-row" style="gap: 0.5rem; padding-top: 0.5rem;">
-          <button type="button" class="btn btn--outline btn--sm flex-1 btn-copy-modal">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${isBn ? 'লিংক কপি' : 'Copy Link'}
-          </button>
-          <button type="button" class="btn btn--primary btn--sm flex-1 btn-close">
-            ${isBn ? 'সম্পন্ন' : 'Done'}
-          </button>
-        </div>
+      <div class="saler-stack--xs" style="margin-top: 1rem;">
+        <div class="text-xs font-mono font-bold text-foreground">Code: ${refCode}</div>
+        <p class="text-xs text-muted font-mono" style="word-break: break-all;">${refLink}</p>
       </div>
     `;
 
-    document.body.appendChild(modalBackdrop);
-    this._activeModals.push(modalBackdrop);
+    const footerEl = document.createElement('div');
+    footerEl.className = 'saler-row';
+    footerEl.style.cssText = 'gap: 0.5rem; justify-content: flex-end;';
 
-    const closeModal = () => {
-      window.removeEventListener('keydown', onKeyDown);
-      if (document.body.contains(modalBackdrop)) {
-        document.body.removeChild(modalBackdrop);
-      }
-      const idx = this._activeModals.indexOf(modalBackdrop);
-      if (idx !== -1) this._activeModals.splice(idx, 1);
-    };
-
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') closeModal();
-    };
-    window.addEventListener('keydown', onKeyDown);
-
-    modalBackdrop.addEventListener('click', (e) => {
-      if (e.target === modalBackdrop) closeModal();
-    });
-
-    modalBackdrop.querySelectorAll('.btn-close').forEach((b) => b.addEventListener('click', closeModal));
-    const btnCopy = modalBackdrop.querySelector('.btn-copy-modal');
-    if (btnCopy) {
-      btnCopy.addEventListener('click', async () => {
+    const copyBtn = Button({
+      label: isBn ? 'লিংক কপি' : 'Copy Link',
+      variant: 'secondary',
+      size: 'sm',
+      onClick: async () => {
         await this._copyText(refLink);
         toast.success(isBn ? 'রেফারেল লিংক কপি করা হয়েছে!' : 'Referral link copied!');
-      });
-    }
+      },
+    });
+
+    const doneBtn = Button({
+      label: isBn ? 'সম্পন্ন' : 'Done',
+      variant: 'primary',
+      size: 'sm',
+      onClick: () => modal.closeModal(),
+    });
+
+    footerEl.append(copyBtn, doneBtn);
+
+    const modal = Modal({
+      title: `📱 ${isBn ? 'আপনার রেফারেল QR ও সোশ্যাল কার্ড' : 'Your Referral QR & Story Card'}`,
+      content: contentEl,
+      footer: footerEl,
+      size: 'sm',
+    });
+
+    modal.openModal();
   }
 
   _openSlugModal(isBn) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'modal-backdrop';
-    modalBackdrop.style.cssText = 'position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.7); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 1rem;';
-    modalBackdrop.setAttribute('role', 'dialog');
-    modalBackdrop.setAttribute('aria-modal', 'true');
-    modalBackdrop.setAttribute('aria-label', isBn ? 'কাস্টম রেফারেল লিংক' : 'Custom Vanity Slug');
+    const contentEl = document.createElement('div');
+    contentEl.style.cssText = 'padding: 0;';
 
-    modalBackdrop.innerHTML = `
-      <div class="saler-card saler-stack" style="max-width: 480px; width: 100%; margin: auto; padding: 1.5rem;">
-        <div class="saler-row saler-row--between" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.75rem;">
-          <h3 class="saler-card__title" style="font-size: 1rem;">
-            ✏️ ${isBn ? 'কাস্টম রেফারেল লিংক তৈরি' : 'Custom Vanity Slug'}
-          </h3>
-          <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; line-height: 1;" aria-label="Close modal">×</button>
+    contentEl.innerHTML = `
+      <form id="form-custom-slug" class="saler-stack" style="padding: 0;">
+        <div class="saler-stack--xs">
+          <label class="saler-stat-card__label">
+            ${isBn ? 'আপনার পছন্দের লিংক নাম' : 'Vanity Slug'}
+          </label>
+          <div class="saler-row" style="gap: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">
+            <span class="text-muted">explooro.com/join/</span>
+            <input
+              type="text"
+              name="custom_slug"
+              required
+              minlength="3"
+              maxlength="40"
+              pattern="^[a-z0-9-]+$"
+              placeholder="tanvir-deals"
+              value="${this.overview?.custom_slug || ''}"
+              class="input input--sm flex-1 font-mono" />
+          </div>
+          <p class="saler-card__subtitle" style="margin-top: 0.25rem;">
+            ${isBn ? 'ছোট হাতের অক্ষর (a-z), সংখ্যা (0-9) ও হাইফেন (-) ব্যবহার করুন (৩-৪০ অক্ষর)' : 'Letters, numbers, and hyphens only, 3-40 chars (e.g. fahim-deals)'}
+          </p>
         </div>
 
-        <form id="form-custom-slug" class="saler-stack">
-          <div class="saler-stack--xs">
-            <label class="saler-stat-card__label">
-              ${isBn ? 'আপনার পছন্দের লিংক নাম' : 'Vanity Slug'}
-            </label>
-            <div class="saler-row" style="gap: 0.25rem; font-family: var(--font-mono); font-size: 0.75rem;">
-              <span class="text-muted">explooro.com/join/</span>
-              <input
-                type="text"
-                name="custom_slug"
-                required
-                minlength="3"
-                maxlength="40"
-                pattern="^[a-z0-9-]+$"
-                placeholder="tanvir-deals"
-                value="${this.overview?.custom_slug || ''}"
-                class="input input--sm flex-1 font-mono" />
-            </div>
-            <p class="saler-card__subtitle" style="margin-top: 0.25rem;">
-              ${isBn ? 'ছোট হাতের অক্ষর (a-z), সংখ্যা (0-9) ও হাইফেন (-) ব্যবহার করুন (৩-৪০ অক্ষর)' : 'Letters, numbers, and hyphens only, 3-40 chars (e.g. fahim-deals)'}
-            </p>
-          </div>
-
-          <div class="saler-row" style="justify-content: flex-end; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
-            <button type="button" class="btn btn--outline btn--sm btn-cancel">
-              ${isBn ? 'বাতিল' : 'Cancel'}
-            </button>
-            <button type="submit" class="btn btn--primary btn--sm font-bold">
-              ${isBn ? 'সংরক্ষণ করুন' : 'Save Slug'}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div class="saler-row" style="justify-content: flex-end; gap: 0.5rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); margin-top: 1rem;">
+          <button type="button" class="btn btn--outline btn--sm btn-cancel">
+            ${isBn ? 'বাতিল' : 'Cancel'}
+          </button>
+          <button type="submit" class="btn btn--primary btn--sm font-bold">
+            ${isBn ? 'সংরক্ষণ করুন' : 'Save Slug'}
+          </button>
+        </div>
+      </form>
     `;
 
-    document.body.appendChild(modalBackdrop);
-    this._activeModals.push(modalBackdrop);
-
-    const closeModal = () => {
-      window.removeEventListener('keydown', onKeyDown);
-      if (document.body.contains(modalBackdrop)) {
-        document.body.removeChild(modalBackdrop);
-      }
-      const idx = this._activeModals.indexOf(modalBackdrop);
-      if (idx !== -1) this._activeModals.splice(idx, 1);
-    };
-
-    const onKeyDown = (e) => {
-      if (e.key === 'Escape') closeModal();
-    };
-    window.addEventListener('keydown', onKeyDown);
-
-    modalBackdrop.addEventListener('click', (e) => {
-      if (e.target === modalBackdrop) closeModal();
+    const modal = Modal({
+      title: `✏️ ${isBn ? 'কাস্টম রেফারেল লিংক তৈরি' : 'Custom Vanity Slug'}`,
+      content: contentEl,
+      size: 'sm',
     });
 
-    modalBackdrop.querySelector('.btn-close').addEventListener('click', closeModal);
-    modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
+    modal.openModal();
 
-    const form = modalBackdrop.querySelector('#form-custom-slug');
+    const form = contentEl.querySelector('#form-custom-slug');
+    const cancelBtn = contentEl.querySelector('.btn-cancel');
+    cancelBtn.addEventListener('click', () => modal.closeModal());
+
     const inputSlug = form.querySelector('input[name="custom_slug"]');
     if (inputSlug) {
-      inputSlug.focus();
+      setTimeout(() => inputSlug.focus(), 50);
     }
 
     form.addEventListener('submit', async (e) => {
@@ -1015,7 +972,7 @@ export class ReferralHubPage {
           api.post('/referrals/custom-code', { custom_slug: slug })
         );
         toast.success(isBn ? 'কাস্টম লিংক সফলভাবে সংরক্ষিত হয়েছে!' : 'Custom slug saved successfully!');
-        closeModal();
+        modal.closeModal();
         await this.fetchData();
         this.render();
       } catch (err) {

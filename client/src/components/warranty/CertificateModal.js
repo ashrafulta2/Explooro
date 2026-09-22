@@ -10,6 +10,9 @@
 
 import { t, getLanguage } from '../../services/i18n.js';
 
+import { Modal } from '../ui/Modal.js';
+import { Button } from '../ui/Button.js';
+
 export function openCertificateModal({ card } = {}) {
   if (!card) return;
 
@@ -32,113 +35,103 @@ export function openCertificateModal({ card } = {}) {
   // Generate lightweight deterministic SVG QR Code pattern
   const qrSvg = generateMiniQrSvg(certRef);
 
-  const backdrop = document.createElement('div');
-  backdrop.className = 'cert-modal-backdrop';
+  const contentEl = document.createElement('div');
+  contentEl.className = 'cert-modal__sheet';
+  contentEl.innerHTML = `
+    <div class="cert-sheet-border">
+      <div class="cert-watermark">🛡️</div>
 
-  const modal = document.createElement('div');
-  modal.className = 'cert-modal';
-  modal.setAttribute('role', 'dialog');
-  modal.setAttribute('aria-modal', 'true');
-
-  modal.innerHTML = `
-    <div class="cert-modal__header">
-      <h3 class="cert-modal__title">
-        <span>🛡️</span> ${t('warranty.official_certificate')}
-      </h3>
-      <button class="btn-close" type="button" aria-label="${t('common.close')}" style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-muted);">✕</button>
-    </div>
-
-    <div class="cert-modal__sheet">
-      <div class="cert-sheet-border">
-        <div class="cert-watermark">🛡️</div>
-
-        <div class="cert-sheet-top">
-          <div class="cert-brand-badge">
-            <div class="cert-brand-logo">🛡️</div>
-            <div>
-              <div class="cert-brand-title">EXPLOORO DIGITAL PROTECTION</div>
-              <div class="cert-brand-sub">${t('warranty.official_certificate')}</div>
-            </div>
-          </div>
-          <div class="cert-qr-wrap" title="Scan to verify online">
-            ${qrSvg}
+      <div class="cert-sheet-top">
+        <div class="cert-brand-badge">
+          <div class="cert-brand-logo">🛡️</div>
+          <div>
+            <div class="cert-brand-title">EXPLOORO DIGITAL PROTECTION</div>
+            <div class="cert-brand-sub">${t('warranty.official_certificate')}</div>
           </div>
         </div>
-
-        <table class="cert-meta-table">
-          <tbody>
-            <tr>
-              <td>${t('warranty.claim_ref')} / ID:</td>
-              <td>${certRef}</td>
-            </tr>
-            <tr>
-              <td>${t('warranty.product')}:</td>
-              <td style="font-family: inherit; font-size: 13px;">${title}</td>
-            </tr>
-            <tr>
-              <td>${t('warranty.serial_number')}:</td>
-              <td>${serialNumber}</td>
-            </tr>
-            <tr>
-              <td>${t('warranty.supplier')}:</td>
-              <td style="font-family: inherit;">${supplier}</td>
-            </tr>
-            <tr>
-              <td>${t('warranty.coverage_time_remaining')}:</td>
-              <td>${startsAt} — ${expiresAt}</td>
-            </tr>
-            <tr>
-              <td>${t('warranty.status')}:</td>
-              <td>
-                <span class="${isActive ? 'text-success font-bold' : 'text-danger font-bold'}">
-                  ${isActive ? `✓ ${t('warranty.active_coverage')}` : `✕ ${t('warranty.coverage_expired')}`}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="warranty-terms-box" style="margin-top: 10px; border-radius: 8px;">
-          <strong style="display:block; margin-bottom:4px; color:var(--text-primary);">📜 ${t('warranty.view_coverage_terms')}:</strong>
-          ${terms}
+        <div class="cert-qr-wrap" title="Scan to verify online">
+          ${qrSvg}
         </div>
+      </div>
 
-        <div class="cert-stamp-box">
-          <div class="text-xs text-muted" style="font-size: 10px; max-width: 320px;">
-            Present this verifiable digital certificate at any authorized service center or file 1-click doorstep claims on Explooro.
-          </div>
-          <div class="cert-stamp">
-            VERIFIED GUARANTEE<br>
-            <span style="font-size: 8px; font-weight: normal; opacity: 0.9;">EXPLOORO SECURE</span>
-          </div>
+      <table class="cert-meta-table">
+        <tbody>
+          <tr>
+            <td>${t('warranty.claim_ref')} / ID:</td>
+            <td>${certRef}</td>
+          </tr>
+          <tr>
+            <td>${t('warranty.product')}:</td>
+            <td style="font-family: inherit; font-size: 13px;">${title}</td>
+          </tr>
+          <tr>
+            <td>${t('warranty.serial_number')}:</td>
+            <td>${serialNumber}</td>
+          </tr>
+          <tr>
+            <td>${t('warranty.supplier')}:</td>
+            <td style="font-family: inherit;">${supplier}</td>
+          </tr>
+          <tr>
+            <td>${t('warranty.coverage_time_remaining')}:</td>
+            <td>${startsAt} — ${expiresAt}</td>
+          </tr>
+          <tr>
+            <td>${t('warranty.status')}:</td>
+            <td>
+              <span class="${isActive ? 'text-success font-bold' : 'text-danger font-bold'}">
+                ${isActive ? `✓ ${t('warranty.active_coverage')}` : `✕ ${t('warranty.coverage_expired')}`}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="warranty-terms-box" style="margin-top: 10px; border-radius: 8px;">
+        <strong style="display:block; margin-bottom:4px; color:var(--text-primary);">📜 ${t('warranty.view_coverage_terms')}:</strong>
+        ${terms}
+      </div>
+
+      <div class="cert-stamp-box">
+        <div class="text-xs text-muted" style="font-size: 10px; max-width: 320px;">
+          Present this verifiable digital certificate at any authorized service center or file 1-click doorstep claims on Explooro.
+        </div>
+        <div class="cert-stamp">
+          VERIFIED GUARANTEE<br>
+          <span style="font-size: 8px; font-weight: normal; opacity: 0.9;">EXPLOORO SECURE</span>
         </div>
       </div>
     </div>
-
-    <div class="cert-modal__footer">
-      <button type="button" class="btn btn--secondary btn-close-footer" style="padding: 8px 16px; border-radius: var(--radius-full); font-size: 12px; font-weight: 700; cursor: pointer;">
-        ${t('common.close')}
-      </button>
-      <button type="button" class="btn btn--primary btn-print" style="padding: 8px 18px; border-radius: var(--radius-full); font-size: 12px; font-weight: 800; background: var(--brand); border: 1px solid var(--brand); color: var(--brand-contrast); cursor: pointer;">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('warranty.print_certificate') || 'Print / Save PDF'}
-      </button>
-    </div>
   `;
 
-  backdrop.appendChild(modal);
-  document.body.appendChild(backdrop);
+  const footerEl = document.createElement('div');
+  footerEl.className = 'cert-modal__footer';
+  footerEl.style.cssText = 'display: flex; justify-content: flex-end; gap: var(--space-3);';
 
-  const close = () => backdrop.remove();
-
-  modal.querySelector('.btn-close').addEventListener('click', close);
-  modal.querySelector('.btn-close-footer').addEventListener('click', close);
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) close();
+  const closeBtn = Button({
+    label: t('common.close'),
+    variant: 'secondary',
+    size: 'sm',
+    onClick: () => modal.closeModal(),
   });
 
-  modal.querySelector('.btn-print').addEventListener('click', () => {
-    window.print();
+  const printBtn = Button({
+    label: t('warranty.print_certificate') || 'Print / Save PDF',
+    variant: 'primary',
+    size: 'sm',
+    onClick: () => window.print(),
   });
+
+  footerEl.append(closeBtn, printBtn);
+
+  const modal = Modal({
+    title: `🛡️ ${t('warranty.official_certificate')}`,
+    content: contentEl,
+    footer: footerEl,
+    size: 'lg',
+  });
+
+  modal.openModal();
 }
 
 /**

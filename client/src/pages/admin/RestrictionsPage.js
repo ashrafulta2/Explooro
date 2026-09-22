@@ -128,12 +128,12 @@ export default function RestrictionsPage(root) {
   const thead = document.createElement('thead');
   thead.innerHTML = `
     <tr>
-      <th style="text-align: left;">${t('restrictions.table_user', 'Sanctioned Account')}</th>
-      <th style="text-align: left;">${t('restrictions.table_capability', 'Restricted Capability')}</th>
-      <th>${t('restrictions.table_mode', 'Mode & Limit')}</th>
-      <th style="text-align: left;">${t('restrictions.table_reason', 'Violation & Justification')}</th>
-      <th>${t('restrictions.table_status', 'Status')}</th>
-      <th style="text-align: center;">${t('admin_users.table_actions', 'Actions')}</th>
+      <th style="text-align: left; min-width: 150px;">${t('restrictions.table_user', 'Sanctioned Account')}</th>
+      <th style="text-align: left; min-width: 180px;">${t('restrictions.table_capability', 'Restricted Capability')}</th>
+      <th style="min-width: 100px;">${t('restrictions.table_mode', 'Mode & Limit')}</th>
+      <th style="text-align: left; min-width: 240px;">${t('restrictions.table_reason', 'Violation & Justification')}</th>
+      <th style="min-width: 80px;">${t('restrictions.table_status', 'Status')}</th>
+      <th style="text-align: center; min-width: 120px; white-space: nowrap;">${t('admin_users.table_actions', 'Actions')}</th>
     </tr>
   `;
   table.append(thead);
@@ -197,9 +197,9 @@ export default function RestrictionsPage(root) {
       emptyTd.style.padding = 'var(--space-8)';
       emptyTd.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <span style="color: var(--text-muted);">${loadError ? ICONS.enforcement : ICONS.protection}</span>
+          <span style="color: var(--text-secondary);">${loadError ? ICONS.enforcement : ICONS.protection}</span>
           <span style="font-weight: 700; color: var(--text-primary);">${loadError ? t('restrictions.error_title', "Couldn't load restrictions") : t('restrictions.empty_title', 'No restrictions found in this filter.')}</span>
-          <span style="font-size: 12px; color: var(--text-muted);">${loadError ? t('restrictions.error_body', 'Check your connection and try again.') : t('restrictions.empty_body', 'All marketplace accounts are operating with normal baseline permissions.')}</span>
+          <span style="font-size: 12px; color: var(--text-secondary);">${loadError ? t('restrictions.error_body', 'Check your connection and try again.') : t('restrictions.empty_body', 'All marketplace accounts are operating with normal baseline permissions.')}</span>
         </div>
       `;
       if (loadError) {
@@ -218,54 +218,56 @@ export default function RestrictionsPage(root) {
       // Account Column
       const tdUser = document.createElement('td');
       tdUser.style.textAlign = 'left';
+      tdUser.style.minWidth = '150px';
       tdUser.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 2px;">
           <strong style="font-size: 13px; color: var(--text-primary);">${esc(r.user_name || r.user_phone || r.subject_ref)}</strong>
-          <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${esc(r.subject_ref)} · ${esc(r.user_phone || '')}</span>
+          <span style="font-size: 11px; color: var(--text-secondary);">${esc(r.subject_ref)} · ${esc(r.user_phone || '')}</span>
         </div>
       `;
 
       // Capability Column (Human-understandable Title)
       const tdCap = document.createElement('td');
       tdCap.style.textAlign = 'left';
+      tdCap.style.minWidth = '180px';
       const capTitle = getFriendlyCapabilityLabel(r.capability_key);
       tdCap.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 2px;">
-          <strong style="font-size: 13px; color: var(--danger);">${esc(capTitle)}</strong>
-          <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${esc(r.capability_key)}</span>
-        </div>
+        <strong style="font-size: 13px; color: var(--danger); line-height: 1.4; display: block;">${esc(capTitle)}</strong>
       `;
 
       // Mode Column
       const tdMode = document.createElement('td');
+      tdMode.style.minWidth = '100px';
       const modeVariant = r.mode === 'HARD_BLOCK' ? 'danger' : 'warning';
-      const limitBadge = r.limit_value ? ` <strong style="font-size: 11px;">(${esc(r.limit_value)})</strong>` : '';
+      const limitBadge = r.limit_value ? ` <strong style="font-size: 11px; display: inline-block; margin-top: 4px;">(${esc(r.limit_value)})</strong>` : '';
       tdMode.innerHTML = `<span class="badge badge--${modeVariant}">${esc(t(`restrictions.mode_label.${r.mode}`, r.mode))}</span>${limitBadge}`;
 
       // Violation Reason
       const tdReason = document.createElement('td');
       tdReason.style.textAlign = 'left';
+      tdReason.style.minWidth = '240px';
       const lang = isLangBn ? 'bn' : 'en';
       const expStr = r.expires_at
-        ? `<br><span style="font-size: 10px; color: var(--text-muted);">${esc(t('restrictions.expires_on', 'Expires: {{date}}', { date: formatDate(new Date(r.expires_at).getTime(), { lang }) }))}</span>`
-        : `<br><span style="font-size: 10px; color: var(--text-muted);">${esc(t('restrictions.permanent', 'Duration: Permanent'))}</span>`;
+        ? `<span style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${esc(t('restrictions.expires_on', 'Expires: {{date}}', { date: formatDate(new Date(r.expires_at).getTime(), { lang }) }))}</span>`
+        : `<span style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">${esc(t('restrictions.permanent', 'Duration: Permanent'))}</span>`;
       const liftStr = r.lifted_at
-        ? `<br><span style="font-size: 10px; color: var(--success);">${esc(t('restrictions.lifted_line', 'Lifted by {{name}} on {{date}}: “{{reason}}”', {
+        ? `<span style="font-size: 11px; color: var(--success); margin-top: 2px;">${esc(t('restrictions.lifted_line', 'Lifted by {{name}} on {{date}}: “{{reason}}”', {
             name: r.lifted_by || t('restrictions.default_actor', 'Admin'),
             date: formatDate(new Date(r.lifted_at).getTime(), { lang }),
             reason: r.lift_reason || t('restrictions.lift_reason_default', 'Resolved'),
           }))}</span>`
         : '';
       tdReason.innerHTML = `
-        <div style="display: flex; flex-direction: column; gap: 2px;">
-          <span style="font-size: 12px; color: var(--text-primary); font-weight: 500;">“${esc(r.reason)}”</span>
-          <span style="font-size: 10px; color: var(--text-muted);">${esc(t('restrictions.applied_by', 'Applied by {{name}}', { name: r.applied_by || t('restrictions.default_actor', 'Admin') }))}</span>
+        <div style="display: flex; flex-direction: column; gap: 3px;">
+          <span style="font-size: 13px; color: var(--text-primary); font-weight: 500; line-height: 1.4;">“${esc(r.reason)}”</span>
+          <span style="font-size: 11px; color: var(--text-secondary);">${esc(t('restrictions.applied_by', 'Applied by {{name}}', { name: r.applied_by || t('restrictions.default_actor', 'Admin') }))}</span>
           ${liftStr || expStr}
         </div>
       `;
 
       // Status
       const tdStatus = document.createElement('td');
+      tdStatus.style.minWidth = '80px';
       const statusBadge = Badge({
         label: r.lifted_at ? t('restrictions.status_lifted', 'Lifted') : (isExpired ? t('restrictions.status_expired', 'Expired') : t('restrictions.status_active', 'Active')),
         variant: r.lifted_at ? 'success' : (isExpired ? 'neutral' : 'danger'),
@@ -275,6 +277,8 @@ export default function RestrictionsPage(root) {
       // Actions
       const tdActions = document.createElement('td');
       tdActions.style.textAlign = 'center';
+      tdActions.style.minWidth = '120px';
+      tdActions.style.whiteSpace = 'nowrap';
       if (isActive) {
         const liftBtn = Button({
           label: t('restrictions.btn_lift', 'Lift sanction'),
@@ -303,7 +307,7 @@ export default function RestrictionsPage(root) {
         });
         tdActions.append(liftBtn);
       } else {
-        tdActions.innerHTML = '<span style="color: var(--text-muted); font-size: 12px;">—</span>';
+        tdActions.innerHTML = '<span style="color: var(--text-secondary); font-size: 12px;">—</span>';
       }
 
       tr.append(tdUser, tdCap, tdMode, tdReason, tdStatus, tdActions);

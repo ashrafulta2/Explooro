@@ -13,6 +13,7 @@
  */
 
 import { api } from '../core/api.js';
+import { Modal } from '../components/ui/Modal.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { formatCurrency } from '../services/format.js';
 import { toast } from '../services/toast.js';
@@ -1218,63 +1219,56 @@ export class TeamPurchasePage {
   }
 
   _openJoinModal(isBn) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'team-modal-scrim';
+    const contentEl = document.createElement('div');
+    contentEl.style.cssText = 'padding: 0;';
 
-    modalBackdrop.innerHTML = `
-      <div class="team-modal-content">
-        <div class="flex justify-between items-center border-b border-subtle pb-3">
-          <h3 class="font-extrabold text-lg text-foreground">${isBn ? 'টিমে যুক্ত হন' : 'Join Team Purchase'}</h3>
-          <button type="button" class="btn-close text-muted hover:text-foreground font-bold text-xl cursor-pointer">✕</button>
+    contentEl.innerHTML = `
+      <form id="form-join-team" class="space-y-4" style="padding: 0;">
+        <div>
+          <label class="block text-xs font-bold text-muted uppercase mb-1">
+            ${isBn ? 'ডেলিভারি ঠিকানা' : 'Shipping Address'}
+          </label>
+          <input
+            type="text"
+            name="address"
+            required
+            value="House 45, Road 7, Dhanmondi, Dhaka"
+            placeholder="House 12, Road 4, Dhanmondi, Dhaka"
+            class="form-control text-sm w-full p-2.5 border border-subtle rounded-lg bg-surface" />
         </div>
 
-        <form id="form-join-team" class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-muted uppercase mb-1">
-              ${isBn ? 'ডেলিভারি ঠিকানা' : 'Shipping Address'}
-            </label>
-            <input
-              type="text"
-              name="address"
-              required
-              value="House 45, Road 7, Dhanmondi, Dhaka"
-              placeholder="House 12, Road 4, Dhanmondi, Dhaka"
-              class="form-control text-sm w-full p-2.5 border border-subtle rounded-lg bg-surface" />
-          </div>
+        <div>
+          <label class="block text-xs font-bold text-muted uppercase mb-1">
+            ${isBn ? 'পেমেন্ট পদ্ধতি' : 'Payment Method'}
+          </label>
+          <select name="payment_method" class="form-control text-sm w-full p-2.5 border border-subtle rounded-lg bg-surface font-medium">
+            <option value="COD">Cash on Delivery (Hold on Complete)</option>
+            <option value="BKASH">bKash Authorization Hold</option>
+            <option value="NAGAD">Nagad Authorization Hold</option>
+            <option value="WALLET">Explooro Earner Vault</option>
+          </select>
+          <p class="text-[11px] text-muted mt-1.5">${isBn ? 'টিম পূর্ণ না হওয়া পর্যন্ত কোনো অর্থ কাটা হবে না।' : 'Funds are held only; auto-refunded 100% if team window closes.'}</p>
+        </div>
 
-          <div>
-            <label class="block text-xs font-bold text-muted uppercase mb-1">
-              ${isBn ? 'পেমেন্ট পদ্ধতি' : 'Payment Method'}
-            </label>
-            <select name="payment_method" class="form-control text-sm w-full p-2.5 border border-subtle rounded-lg bg-surface font-medium">
-              <option value="COD">Cash on Delivery (Hold on Complete)</option>
-              <option value="BKASH">bKash Authorization Hold</option>
-              <option value="NAGAD">Nagad Authorization Hold</option>
-              <option value="WALLET">Explooro Earner Vault</option>
-            </select>
-            <p class="text-[11px] text-muted mt-1.5">${isBn ? 'টিম পূর্ণ না হওয়া পর্যন্ত কোনো অর্থ কাটা হবে না।' : 'Funds are held only; auto-refunded 100% if team window closes.'}</p>
-          </div>
-
-          <div class="flex justify-end gap-2 pt-3 border-t border-subtle">
-            <button type="button" class="btn btn--secondary btn--sm font-bold btn-cancel">${isBn ? 'বাতিল' : 'Cancel'}</button>
-            <button type="submit" class="btn btn--primary btn--sm font-bold">${isBn ? 'নিশ্চিত করুন' : 'Confirm Join'}</button>
-          </div>
-        </form>
-      </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-subtle" style="margin-top: 1rem;">
+          <button type="button" class="btn btn--secondary btn--sm font-bold btn-cancel">${isBn ? 'বাতিল' : 'Cancel'}</button>
+          <button type="submit" class="btn btn--primary btn--sm font-bold">${isBn ? 'নিশ্চিত করুন' : 'Confirm Join'}</button>
+        </div>
+      </form>
     `;
 
-    document.body.appendChild(modalBackdrop);
+    const modal = Modal({
+      title: isBn ? 'টিমে যুক্ত হন' : 'Join Team Purchase',
+      content: contentEl,
+      size: 'md',
+    });
 
-    const closeModal = () => {
-      if (document.body.contains(modalBackdrop)) {
-        document.body.removeChild(modalBackdrop);
-      }
-    };
+    modal.openModal();
 
-    modalBackdrop.querySelector('.btn-close').addEventListener('click', closeModal);
-    modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
+    const form = contentEl.querySelector('#form-join-team');
+    const cancelBtn = contentEl.querySelector('.btn-cancel');
+    cancelBtn.addEventListener('click', () => modal.closeModal());
 
-    const form = modalBackdrop.querySelector('#form-join-team');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(form);
@@ -1292,7 +1286,7 @@ export class TeamPurchasePage {
             ? (isBn ? 'অভিনন্দন! টিম পূর্ণ হয়েছে এবং অর্ডার সফল হয়েছে!' : 'Team goal reached! Order created!')
             : (isBn ? 'সফলভাবে টিমে যুক্ত হয়েছেন!' : 'Joined team successfully!')
         );
-        closeModal();
+        modal.closeModal();
         await this.fetchData();
         this.render();
       } catch (err) {

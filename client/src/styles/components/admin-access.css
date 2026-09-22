@@ -10,10 +10,12 @@
  */
 
 /* 1. Page shell used by the legacy-class pages ------------------------------------------------- */
-.admin-users { display: flex; flex-direction: column; gap: var(--space-5); max-width: 1400px; margin: 0 auto; width: 100%; }
+.admin-users { display: flex; flex-direction: column; gap: var(--space-5); max-width: 1400px; margin: 0 auto; width: 100%; padding-bottom: var(--space-10); }
 .admin-users__header { display: flex; flex-direction: column; gap: var(--space-1); }
 .admin-users__title { margin: 0; font-size: var(--text-2xl); font-weight: var(--weight-bold); line-height: 1.2; color: var(--text-primary); }
 .admin-users__subtitle { margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--text-secondary); max-width: 72ch; }
+.admin-users .perm-matrix__table-wrap { max-height: none; overflow-y: visible; overflow-x: auto; }
+.admin-users .perm-matrix__table td { vertical-align: top; padding: var(--space-4) var(--space-3); }
 
 /* 2. Tables ----------------------------------------------------------------------------------- */
 .perm-matrix { min-width: 0; }
@@ -123,13 +125,19 @@
 }
 
 /* 7. Approval Inbox — .approval-* classes existed in the markup but never in a stylesheet ------- */
-.approval-inbox { display: flex; flex-direction: column; gap: var(--space-2); max-width: 1400px; margin: 0 auto; width: 100%; }
-.approval-card { padding: var(--space-4) var(--space-5); background: var(--surface-0); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--elevation-1); }
+.approval-inbox { display: flex; flex-direction: column; gap: var(--space-4); max-width: 1400px; margin: 0 auto; width: 100%; padding-bottom: var(--space-10); }
+.approval-card { padding: var(--space-5); background: var(--surface-0); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--elevation-1); transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
+.approval-card:focus, .approval-card:focus-visible { outline: none; }
 /* J/K moves this; without a visible marker the keyboard shortcuts act on a card you cannot see. */
 .approval-card--focused { border-color: var(--brand); box-shadow: 0 0 0 2px var(--focus-ring); }
 .approval-card.text-center { text-align: center; padding-block: var(--space-8); }
-.approval-diff { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-3); }
-.approval-diff__pane { min-width: 0; padding: var(--space-3); background: var(--surface-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); font-size: var(--text-xs); overflow: auto; }
+.approval-card__actions { display: flex; gap: var(--space-3); justify-content: flex-end; align-items: center; margin-top: var(--space-4); flex-wrap: wrap; }
+.approval-diff { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); margin-top: var(--space-3); }
+.approval-diff__pane { min-width: 0; padding: var(--space-3) var(--space-4); background: var(--surface-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); font-size: var(--text-xs); overflow: hidden; display: flex; flex-direction: column; }
+.approval-diff__tag { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-2xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-2); }
+.approval-diff__tag--before { color: var(--danger); }
+.approval-diff__tag--after { color: var(--success); }
+.approval-diff__pane pre { margin: 0; padding: var(--space-3); font-family: var(--font-mono, monospace); font-size: 12px; line-height: 1.5; color: var(--text-primary); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-sm); white-space: pre-wrap; word-break: break-all; max-height: 240px; overflow-y: auto; }
 
 /* 8. KYC Verification Center modals — were `.modal-backdrop`/`.modal-dialog` + Tailwind-style utilities
    (`max-w-2xl p-6`), none of which exist here, so "Inspect" and "Reject" rendered inline in the page

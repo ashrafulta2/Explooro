@@ -78,8 +78,8 @@
 @starting-style {
   .modal.modal--genie[open] { opacity: 1; transform: none; }
 }
-.genie-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
-.genie-strip { position: absolute; left: 0; top: 0; overflow: hidden; transform-origin: 0 0; will-change: transform; contain: layout paint; }
+.genie-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; transform: translateZ(0); }
+.genie-strip { position: absolute; left: 0; top: 0; overflow: hidden; transform-origin: 0 0; will-change: transform, opacity; contain: layout paint; backface-visibility: hidden; }
 .genie-strip > * { position: absolute; margin: 0; max-height: none; }
 
 @media (prefers-reduced-motion: reduce) {

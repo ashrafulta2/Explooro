@@ -48,12 +48,9 @@ const MAX_NODE_COUNT = 3000;
 /** Never slice thinner than this many px: sub-4px strips add cost without adding smoothness. */
 const MIN_STRIP_PX = 4;
 /** Share of the timeline over which the far end of the panel lags the near end. Higher = longer tail. */
-const NECK = 0.5;
-/** Side-to-side bow of the funnel, as a fraction of the panel's across-size. */
-const SWAY = 0.35;
-const SWAY_SCALE = 0.14;
-/** Width of the opening the panel narrows into, as a share of the target's across-size. */
-const MOUTH_RATIO = 0.7;
+const NECK = 0.50;
+/** Width of the opening the panel narrows into, as a share of the target's across-size (slender magic lamp spout). */
+const MOUTH_RATIO = 0.35;
 const MOUTH_MIN_PX = 8;
 /** Fraction of the timeline (from the target end) over which the strips fade out/in. */
 const FADE_START = 0.88;
@@ -195,17 +192,35 @@ export function canGenie() {
 
 /** The control the popup should fly to/from; falls back to a dock point at bottom-centre. */
 export function resolveTarget(el) {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+
+  // Unwrap Event objects if passed directly
+  let targetNode = el;
+  if (targetNode && typeof targetNode === 'object' && ('target' in targetNode || 'currentTarget' in targetNode)) {
+    targetNode = targetNode.currentTarget || targetNode.target;
+  }
+
+  // Fallback to activeElement if element is missing or is the body
   if (
-    el instanceof HTMLElement &&
-    el.isConnected &&
-    el !== document.body &&
-    el !== document.documentElement
+    (!targetNode || targetNode === document.body || targetNode === document.documentElement) &&
+    typeof document !== 'undefined' &&
+    document.activeElement &&
+    document.activeElement !== document.body &&
+    document.activeElement !== document.documentElement
   ) {
-    const r = el.getBoundingClientRect();
+    targetNode = document.activeElement;
+  }
+
+  if (
+    targetNode instanceof HTMLElement &&
+    targetNode.isConnected &&
+    targetNode !== document.body &&
+    targetNode !== document.documentElement
+  ) {
+    const r = targetNode.getBoundingClientRect();
     if ((r.width || r.height) && r.width * r.height < vw * vh * MAX_TARGET_VIEWPORT_SHARE) {
-      return { rect: r, element: el };
+      return { rect: r, element: targetNode };
     }
   }
   return {
@@ -295,7 +310,7 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   const tu = vertical ? tcx : tcy;
   const mouth = Math.max(MOUTH_MIN_PX, (vertical ? tr.width : tr.height) * MOUTH_RATIO);
   const toward = tv > v0 + L / 2 ? 1 : -1;
-  const swayDir = tu >= uC ? 1 : -1;
+  const deltaU = tu - uC;
 
   const preset = QUALITY_STRIPS[config.quality] ?? QUALITY_STRIPS[GENIE_DEFAULTS.quality];
   const maxStrips = nodeCount > HEAVY_NODE_COUNT ? preset.heavy : preset.full;
@@ -352,14 +367,29 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   const wd = new Array(N + 1);
   let shownFade = -1;
 
-  /** p = 0: panel at rest. p = 1: fully swallowed by the target. */
+  /** p = 0: panel at rest. p = 1: fully swallowed by the target (inside the magic lamp). */
   function place(p) {
     for (let k = 0; k <= N; k += 1) {
-      const near = toward > 0 ? k / N : 1 - k / N; // 1 = the end closest to the target
+      const near = toward > 0 ? k / N : 1 - k / N; // 1 = the end closest to the target (the lamp spout)
       const q = clamp((p - (1 - near) * NECK) / (1 - NECK), 0, 1);
       const e = easeSine(q);
-      cx[k] = lerp(uC, tu, e) + swayDir * SWAY * A * SWAY_SCALE * Math.sin(Math.PI * q);
-      wd[k] = lerp(A, mouth, e);
+
+      // Smooth Hermite trajectory towards the lamp target
+      const baseCenter = lerp(uC, tu, e);
+
+      // Aladdin's magic lamp smoke plume dynamics:
+      // 1. Natural directional arc curving smoothly toward the target control
+      const arch = deltaU !== 0 ? deltaU * 0.20 * Math.sin(Math.PI * e) * (1 - 0.5 * e) : 0;
+      // 2. Harmonic swirling plume wave: undulates like silky genie smoke ribbon escaping the lamp spout
+      const swirlSign = deltaU >= 0 ? -1 : 1;
+      const swirlWave = Math.sin(Math.PI * e) * Math.sin(Math.PI * 1.2 * near) * (A * 0.065) * swirlSign;
+
+      cx[k] = baseCenter + arch + swirlWave;
+
+      // Aladdin's magic lamp flare profile: slender plume at spout (e -> 1), billowing cloud higher up (e -> 0)
+      const flute = Math.pow(e, 1.4) * (1.5 - 0.5 * e);
+      wd[k] = lerp(A, mouth, clamp(flute, 0, 1));
+
       vb[k] = lerp(v0 + k * h, tv, e);
       if (k && vb[k] < vb[k - 1]) vb[k] = vb[k - 1]; // slices must never cross
     }
