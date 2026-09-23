@@ -22,6 +22,13 @@ export default function CourierHubPage(root, { navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'admin-page courier-page';
 
+  const courierEventLabels = {
+    DELIVERED: isBn ? 'ডেলিভারড' : 'Delivered',
+    IN_TRANSIT: isBn ? 'ট্রানজিটে' : 'In transit',
+    RETURNED: isBn ? 'ফেরত' : 'Returned',
+    PICKED_UP: isBn ? 'পিকআপ সম্পন্ন' : 'Picked up',
+  };
+
   let carriers = [];
   let webhooks = [];
   let stats = {
@@ -251,9 +258,9 @@ export default function CourierHubPage(root, { navigate } = {}) {
               ${webhooks.map((w) => `
                 <tr>
                   <td><span class="font-bold text-primary">${w.courier}</span></td>
-                  <td><span class="badge badge--info text-xs">${w.event}</span></td>
+                  <td><span class="badge badge--info text-xs">${courierEventLabels[w.event] || w.event}</span></td>
                   <td><code class="font-mono text-xs">${w.tracking_id}</code></td>
-                  <td><span class="system-table__badge system-table__badge--success">✓ ${w.status}</span></td>
+                  <td><span class="system-table__badge system-table__badge--success">✓ ${isBn ? 'যাচাইকৃত' : 'Verified'}</span></td>
                   <td class="font-mono">${w.latency_ms} ms</td>
                   <td class="text-xs text-muted">${new Date(w.timestamp).toLocaleTimeString()}</td>
                 </tr>

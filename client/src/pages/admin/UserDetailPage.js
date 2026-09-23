@@ -384,7 +384,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
 
       info.append(
         el('span', 'perm-source-card__title perm-source-card__title--danger',
-          `🚫 ${r.capability_key || r.key} (${r.mode || r.status || 'BLOCKED'})`),
+          `🚫 ${r.capability_key || r.key} (${t(`restrictions.mode_label.${r.mode || r.status}`, r.mode || r.status || 'BLOCKED')})`),
         el('span', 'perm-source-card__why', details.join(' · ')),
       );
 

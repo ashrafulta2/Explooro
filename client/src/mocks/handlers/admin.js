@@ -607,6 +607,80 @@ function buildOverviewResponse(query) {
   };
 }
 
+// WHY a function, not a static array: /admin/kyc/queue and /admin/kyc/:id used to each hand-write
+// their own copy of these three applicants. The details endpoint's copy never got the second and
+// third applicant's real `documents`, so selecting Farzana Akter (id 2, 2 real documents) or
+// Mahmudul Hasan (id 3, 4 real documents) in the Verification Center still rendered Anisur Rahman's
+// 3 documents — the reviewer could "inspect" a document that was never actually uploaded by the
+// applicant on screen. One shared source keeps both endpoints' documents in sync with doc_count.
+function buildMockKycRecords() {
+  return [
+    {
+      id: 1,
+      ref: 'KYC-98210',
+      user_id: 2,
+      applicant_name: 'Anisur Rahman',
+      applicant_phone: '+8801711000002',
+      applicant_email: 'anisur@jamdani-crafts.bd',
+      business_name: 'Jamdani Heritage Weavers Ltd.',
+      business_address: 'Rupganj, Narayanganj, Dhaka',
+      kyc_type: 'SUPPLIER',
+      current_tier: 'TIER_1',
+      trust_score: 42,
+      doc_count: 3,
+      status: 'PENDING',
+      created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
+      documents: [
+        { id: 101, doc_type: 'National ID (NID Front)', mime_type: 'image/jpeg', view_count: 1, storage_key: 'kyc/nid_front_98210.jpg' },
+        { id: 102, doc_type: 'National ID (NID Back)', mime_type: 'image/jpeg', view_count: 1, storage_key: 'kyc/nid_back_98210.jpg' },
+        { id: 103, doc_type: 'Trade License 2025-2026', mime_type: 'application/pdf', view_count: 2, storage_key: 'kyc/trade_lic_98210.pdf' },
+      ],
+    },
+    {
+      id: 2,
+      ref: 'KYC-98211',
+      user_id: 3,
+      applicant_name: 'Farzana Akter',
+      applicant_phone: '+8801711000003',
+      applicant_email: 'farzana@saffron-glam.com',
+      business_name: 'Saffron Glam Cosmetics',
+      business_address: 'House 42, Road 11, Banani, Dhaka',
+      kyc_type: 'SALER',
+      current_tier: 'TIER_2',
+      trust_score: 68,
+      doc_count: 2,
+      status: 'PENDING',
+      created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
+      documents: [
+        { id: 104, doc_type: 'Smart National ID', mime_type: 'image/jpeg', view_count: 0, storage_key: 'kyc/smart_nid_98211.jpg' },
+        { id: 105, doc_type: 'Selfie with NID', mime_type: 'image/jpeg', view_count: 0, storage_key: 'kyc/selfie_nid_98211.jpg' },
+      ],
+    },
+    {
+      id: 3,
+      ref: 'KYC-98212',
+      user_id: 6,
+      applicant_name: 'Mahmudul Hasan',
+      applicant_phone: '+8801711000006',
+      applicant_email: 'mahmud@bengal-leather.com',
+      business_name: 'Bengal Leather Crafts',
+      business_address: 'Hazaribagh, Dhaka',
+      kyc_type: 'SUPPLIER',
+      current_tier: 'TIER_3',
+      trust_score: 88,
+      doc_count: 4,
+      status: 'VERIFIED',
+      created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
+      documents: [
+        { id: 106, doc_type: 'National ID', mime_type: 'image/jpeg', view_count: 3, storage_key: 'kyc/nid_98212.jpg' },
+        { id: 107, doc_type: 'Trade License', mime_type: 'application/pdf', view_count: 4, storage_key: 'kyc/trade_98212.pdf' },
+        { id: 108, doc_type: 'TIN Certificate', mime_type: 'application/pdf', view_count: 2, storage_key: 'kyc/tin_98212.pdf' },
+        { id: 109, doc_type: 'Warehouse Utility Bill', mime_type: 'image/png', view_count: 2, storage_key: 'kyc/bill_98212.png' },
+      ],
+    },
+  ];
+}
+
 export const adminHandlers = [
   // 1. Executive Analytics Overview
   {
@@ -1584,71 +1658,7 @@ export const adminHandlers = [
     path: '/admin/kyc/queue',
     handler({ query }) {
       const statusFilter = query?.status || 'PENDING';
-      const mockKyc = [
-        {
-          id: 1,
-          ref: 'KYC-98210',
-          user_id: 2,
-          applicant_name: 'Anisur Rahman',
-          applicant_phone: '+8801711000002',
-          applicant_email: 'anisur@jamdani-crafts.bd',
-          business_name: 'Jamdani Heritage Weavers Ltd.',
-          business_address: 'Rupganj, Narayanganj, Dhaka',
-          kyc_type: 'SUPPLIER',
-          current_tier: 'TIER_1',
-          trust_score: 42,
-          doc_count: 3,
-          status: 'PENDING',
-          created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
-          documents: [
-            { id: 101, doc_type: 'National ID (NID Front)', mime_type: 'image/jpeg', view_count: 1, storage_key: 'kyc/nid_front_98210.jpg' },
-            { id: 102, doc_type: 'National ID (NID Back)', mime_type: 'image/jpeg', view_count: 1, storage_key: 'kyc/nid_back_98210.jpg' },
-            { id: 103, doc_type: 'Trade License 2025-2026', mime_type: 'application/pdf', view_count: 2, storage_key: 'kyc/trade_lic_98210.pdf' },
-          ],
-        },
-        {
-          id: 2,
-          ref: 'KYC-98211',
-          user_id: 3,
-          applicant_name: 'Farzana Akter',
-          applicant_phone: '+8801711000003',
-          applicant_email: 'farzana@saffron-glam.com',
-          business_name: 'Saffron Glam Cosmetics',
-          business_address: 'House 42, Road 11, Banani, Dhaka',
-          kyc_type: 'SALER',
-          current_tier: 'TIER_2',
-          trust_score: 68,
-          doc_count: 2,
-          status: 'PENDING',
-          created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
-          documents: [
-            { id: 104, doc_type: 'Smart National ID', mime_type: 'image/jpeg', view_count: 0, storage_key: 'kyc/smart_nid_98211.jpg' },
-            { id: 105, doc_type: 'Selfie with NID', mime_type: 'image/jpeg', view_count: 0, storage_key: 'kyc/selfie_nid_98211.jpg' },
-          ],
-        },
-        {
-          id: 3,
-          ref: 'KYC-98212',
-          user_id: 6,
-          applicant_name: 'Mahmudul Hasan',
-          applicant_phone: '+8801711000006',
-          applicant_email: 'mahmud@bengal-leather.com',
-          business_name: 'Bengal Leather Crafts',
-          business_address: 'Hazaribagh, Dhaka',
-          kyc_type: 'SUPPLIER',
-          current_tier: 'TIER_3',
-          trust_score: 88,
-          doc_count: 4,
-          status: 'VERIFIED',
-          created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-          documents: [
-            { id: 106, doc_type: 'National ID', mime_type: 'image/jpeg', view_count: 3, storage_key: 'kyc/nid_98212.jpg' },
-            { id: 107, doc_type: 'Trade License', mime_type: 'application/pdf', view_count: 4, storage_key: 'kyc/trade_98212.pdf' },
-            { id: 108, doc_type: 'TIN Certificate', mime_type: 'application/pdf', view_count: 2, storage_key: 'kyc/tin_98212.pdf' },
-            { id: 109, doc_type: 'Warehouse Utility Bill', mime_type: 'image/png', view_count: 2, storage_key: 'kyc/bill_98212.png' },
-          ],
-        },
-      ];
+      const mockKyc = buildMockKycRecords();
 
       const filtered = statusFilter === 'ALL'
         ? mockKyc
@@ -1671,27 +1681,8 @@ export const adminHandlers = [
     path: '/admin/kyc/:id',
     handler({ params }) {
       const id = Number(params?.id) || 1;
-      const kycDetail = {
-        id,
-        ref: `KYC-982${id + 9}`,
-        user_id: id + 1,
-        applicant_name: id === 1 ? 'Anisur Rahman' : (id === 2 ? 'Farzana Akter' : 'Mahmudul Hasan'),
-        applicant_phone: id === 1 ? '01711000002' : (id === 2 ? '01711000003' : '01711000006'),
-        applicant_email: id === 1 ? 'anisur@jamdani-crafts.bd' : (id === 2 ? 'farzana@saffron-glam.com' : 'mahmud@bengal-leather.com'),
-        business_name: id === 1 ? 'Jamdani Heritage Weavers Ltd.' : (id === 2 ? 'Saffron Glam Cosmetics' : 'Bengal Leather Crafts'),
-        business_address: id === 1 ? 'Rupganj, Narayanganj, Dhaka' : (id === 2 ? 'House 42, Road 11, Banani, Dhaka' : 'Hazaribagh, Dhaka'),
-        kyc_type: id === 2 ? 'SALER' : 'SUPPLIER',
-        current_tier: id === 3 ? 'TIER_3' : (id === 2 ? 'TIER_2' : 'TIER_1'),
-        trust_score: id === 3 ? 88 : (id === 2 ? 68 : 42),
-        doc_count: id === 3 ? 4 : (id === 2 ? 2 : 3),
-        status: id === 3 ? 'VERIFIED' : 'PENDING',
-        created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-        documents: [
-          { id: 101, doc_type: 'National ID (NID Front)', mime_type: 'image/jpeg', view_count: 1, storage_key: 'kyc/nid_front_98210.jpg' },
-          { id: 102, doc_type: 'National ID (NID Back)', mime_type: 'image/jpeg', view_count: 1, storage_key: 'kyc/nid_back_98210.jpg' },
-          { id: 103, doc_type: 'Trade License 2025-2026', mime_type: 'application/pdf', view_count: 2, storage_key: 'kyc/trade_lic_98210.pdf' },
-        ],
-      };
+      const records = buildMockKycRecords();
+      const kycDetail = records.find((k) => k.id === id) || records[0];
 
       return {
         status: 200,

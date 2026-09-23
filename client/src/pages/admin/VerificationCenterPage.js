@@ -349,7 +349,7 @@ export default function VerificationCenterPage(root) {
             </div>
             <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${esc(item.applicant_name || t('kyc.applicant_fallback', 'Applicant'))}</div>
             <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: var(--text-muted);">
-              <span>${esc(t(`kyc.type.${item.kyc_type}`, item.kyc_type))} (${esc(item.current_tier)})</span>
+              <span>${esc(t(`kyc.type.${item.kyc_type}`, item.kyc_type))} (${esc(t(`kyc.tier.${item.current_tier}`, item.current_tier))})</span>
               <span>${esc(t('kyc.docs_count', '{{count}} docs', { count: formatNumber(item.doc_count ?? item.documents?.length ?? 0) }))}</span>
             </div>
           </div>
@@ -390,7 +390,7 @@ export default function VerificationCenterPage(root) {
 
           <div style="text-align: right;">
             <span style="font-size: 11px; color: var(--text-secondary); display: block;">${t('kyc.trust_label', 'Trust tier & score:')}</span>
-            <span class="badge badge--neutral font-bold" style="font-weight: 800; font-size: 12px; margin-top: 2px;">${esc(t('kyc.trust_value', '{{tier}} ({{score}} pts)', { tier: selectedKyc.current_tier, score: formatNumber(selectedKyc.trust_score ?? 0) }))}</span>
+            <span class="badge badge--neutral font-bold" style="font-weight: 800; font-size: 12px; margin-top: 2px;">${esc(t('kyc.trust_value', '{{tier}} ({{score}} pts)', { tier: t(`kyc.tier.${selectedKyc.current_tier}`, selectedKyc.current_tier), score: formatNumber(selectedKyc.trust_score ?? 0) }))}</span>
           </div>
         </div>
 
@@ -460,7 +460,7 @@ export default function VerificationCenterPage(root) {
         ${
           isPending
             ? `
-          <div style="display: flex; justify-content: flex-end; gap: var(--space-3); padding-top: var(--space-4); border-top: var(--border-width) solid var(--border-subtle);">
+          <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-3); padding-top: var(--space-4); border-top: var(--border-width) solid var(--border-subtle);">
             <button class="btn btn--danger btn--sm" id="btn-reject-kyc">
               ${t('kyc.btn_reject_submission', 'Reject submission')}
             </button>
@@ -505,11 +505,11 @@ export default function VerificationCenterPage(root) {
         </div>
 
         <!-- Two Column Workspace -->
-        <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--space-6);">
-          <div class="card" style="grid-column: span 4; overflow: hidden; max-height: 80vh; overflow-y: auto; background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xl);">
+        <div class="kyc-workspace">
+          <div class="card kyc-workspace__queue" style="background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xl);">
             ${renderQueueList()}
           </div>
-          <div style="grid-column: span 8;">
+          <div class="kyc-workspace__details">
             ${renderDetailsPane()}
           </div>
         </div>

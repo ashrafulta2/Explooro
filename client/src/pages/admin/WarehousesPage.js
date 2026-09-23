@@ -300,7 +300,7 @@ export default function WarehousesPage(root, { navigate } = {}) {
                   <h3 class="system-infra-card__title" style="font-size: 15px; margin-top: 2px;">${w.name}</h3>
                 </div>
                 <span class="system-infra-card__badge ${w.status === 'OPERATIONAL' ? '' : 'system-infra-card__badge--warn'}">
-                  ${w.status}
+                  ${w.status === 'OPERATIONAL' ? (isBn ? 'সচল' : 'Operational') : w.status === 'MAINTENANCE' ? (isBn ? 'রক্ষণাবেক্ষণ' : 'Maintenance') : (isBn ? 'পূর্ণ' : 'Full')}
                 </span>
               </div>
 

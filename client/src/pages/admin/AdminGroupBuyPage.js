@@ -162,7 +162,7 @@ export default function AdminGroupBuyPage(root, { navigate } = {}) {
                     </td>
                     <td>
                       <span class="system-table__badge ${isCompleted ? 'system-table__badge--success' : (isExpired ? 'system-table__badge--danger' : 'system-table__badge--info')}">
-                        ${t.status}
+                        ${isCompleted ? (isBn ? 'সম্পন্ন' : 'Completed') : (isExpired ? (isBn ? 'মেয়াদোত্তীর্ণ' : 'Expired') : (isBn ? 'চলমান' : 'Active'))}
                       </span>
                     </td>
                   </tr>

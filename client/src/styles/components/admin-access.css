@@ -147,3 +147,19 @@
 .kyc-modal--wide { max-width: 42rem; }
 .kyc-modal--narrow { max-width: 28rem; }
 .admin-access .btn--xs, .kyc-modal .btn--xs { height: 26px; padding-inline: var(--space-2); font-size: var(--text-xs); }
+
+/* 9. KYC Verification Center — two-column review workspace.
+   WHY: this was a bare inline `grid-template-columns: repeat(12, 1fr)` with fixed `span 4`/`span 8`
+   columns and no breakpoint, so under ~900px (any phone, and plenty of split-screen desktop windows)
+   the queue list and the document/checklist pane were squeezed into ~30%/~60% slivers of the
+   viewport instead of stacking — wrapped, run-together text ("Supplier3(TIER_1)docs") and
+   business name/address truncated at the card edge. */
+.kyc-workspace { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--space-6); }
+.kyc-workspace__queue { grid-column: span 4; overflow: hidden; max-height: 80vh; overflow-y: auto; }
+.kyc-workspace__details { grid-column: span 8; min-width: 0; }
+
+@media (max-width: 900px) {
+  .kyc-workspace { grid-template-columns: minmax(0, 1fr); }
+  .kyc-workspace__queue { grid-column: 1; max-height: 360px; }
+  .kyc-workspace__details { grid-column: 1; }
+}

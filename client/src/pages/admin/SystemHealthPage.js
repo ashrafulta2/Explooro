@@ -20,6 +20,9 @@ import { confirmDialog, confirmDialogWithReason } from '../../components/ui/Conf
 
 export default function SystemHealthPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
+  // Infra status comes back as a raw backend enum (CONNECTED, DEGRADED, CONNECTION_ERROR, …) — shown
+  // verbatim it reads as leftover code rather than a status label.
+  const infraStatusLabel = (s) => String(s || '').toLowerCase().split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   let healthData = null;
   let backupData = null;
   let isLoading = true;
@@ -299,7 +302,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                 <span>🐘 ${isBn ? 'পোস্টগ্রেসকিউএল পুল' : 'PostgreSQL Pool'}</span>
               </h3>
               <span class="system-infra-card__badge">
-                ${db.status || 'CONNECTED'}
+                ${infraStatusLabel(db.status || 'CONNECTED')}
               </span>
             </div>
 
@@ -350,7 +353,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                 <span>⚡ ${isBn ? 'ক্যাশিং লেয়ার' : 'Cache Layer'}</span>
               </h3>
               <span class="system-infra-card__badge">
-                ${cache.status || 'HEALTHY'}
+                ${infraStatusLabel(cache.status || 'HEALTHY')}
               </span>
             </div>
 

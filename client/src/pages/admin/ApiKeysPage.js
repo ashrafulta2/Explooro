@@ -231,7 +231,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
               <td class="p-3 font-mono">${k.rate_limit_rpm || 60} RPM</td>
               <td class="p-3">
                 <span class="badge ${k.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'} text-xs font-mono">
-                  ${k.status}
+                  ${k.status === 'ACTIVE' ? t('developer.status_active') : t('developer.status_revoked')}
                 </span>
               </td>
               <td class="p-3 text-muted">
@@ -463,7 +463,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
         card.innerHTML = `
           <div class="flex-between">
             <span class="badge badge-primary text-xs font-mono">${sub.ref}</span>
-            <span class="badge ${sub.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'} text-xs font-mono">${sub.status}</span>
+            <span class="badge ${sub.status === 'ACTIVE' ? 'badge-success' : 'badge-neutral'} text-xs font-mono">${sub.status === 'ACTIVE' ? t('developer.status_active') : t('developer.status_revoked')}</span>
           </div>
           <div>
             <div class="font-mono text-sm font-bold truncate">${sub.target_url}</div>
@@ -541,7 +541,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
                 <td class="p-3 font-mono">${d.attempt_number} / ${d.max_attempts}</td>
                 <td class="p-3">
                   <span class="badge ${isDelivered ? 'badge-success' : isDlq ? 'badge-danger' : 'badge-warning'} text-xs font-mono">
-                    ${d.status}
+                    ${isDelivered ? t('developer.delivery_status_delivered') : isDlq ? t('developer.delivery_status_dead_letter') : t('developer.delivery_status_failed')}
                   </span>
                 </td>
                 <td class="p-3 font-mono text-xs">

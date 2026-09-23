@@ -25,6 +25,24 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'admin-page orders-page';
 
+  // Human-readable labels for the raw backend enums — `fulfillment_status`/sub-order `status` and
+  // `payment_status` were previously rendered verbatim (e.g. "PENDING_DELIVERY"), which reads as
+  // leftover debug/code text rather than product copy.
+  const fulfillmentStageLabels = {
+    PLACED: isBn ? 'অর্ডার প্লেসড' : 'Placed',
+    CONFIRMED: isBn ? 'নিশ্চিত' : 'Confirmed',
+    PACKED: isBn ? 'প্যাকড' : 'Packed',
+    SHIPPED: isBn ? 'শিপড' : 'Shipped',
+    DELIVERED: isBn ? 'ডেলিভারড' : 'Delivered',
+    CANCELLED: isBn ? 'বাতিল' : 'Cancelled',
+  };
+  const paymentStatusLabels = {
+    PENDING_DELIVERY: isBn ? 'ডেলিভারি সাপেক্ষে বকেয়া' : 'Pending delivery',
+    ESCROW_HELD: isBn ? 'এসক্রোতে জমা' : 'Escrow held',
+    ESCROW_RELEASED: isBn ? 'এসক্রো থেকে ছাড় হয়েছে' : 'Escrow released',
+    CANCELLED: isBn ? 'বাতিল' : 'Cancelled',
+  };
+
   let orders = [];
   let stats = {
     total_orders: 0,
@@ -217,7 +235,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
           <div class="font-bold text-primary">${order.courier_name}</div>
           <div class="font-mono text-xs text-muted">${isBn ? 'ট্র্যাকিং আইডি' : 'Tracking'}: ${order.courier_tracking_id}</div>
           <div class="mt-2">
-            <span class="badge badge--info text-xs">${order.payment_method} (${order.payment_status})</span>
+            <span class="badge badge--info text-xs">${order.payment_method} (${paymentStatusLabels[order.payment_status] || order.payment_status})</span>
           </div>
         </div>
       </div>
@@ -234,7 +252,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
                   <div class="font-bold text-primary text-sm">${so.product_title}</div>
                   <div class="text-xs text-muted">Supplier: ${so.supplier_name} • Qty: ${so.quantity}</div>
                 </div>
-                <span class="badge badge--neutral text-xs">${so.status}</span>
+                <span class="badge badge--neutral text-xs">${fulfillmentStageLabels[so.status] || so.status}</span>
               </div>
               <div class="grid grid-cols-4 gap-2 pt-2 border-t border-dashed border-border-subtle text-xs">
                 <div><span class="text-muted">Retail:</span> <strong class="font-mono">${formatCurrency(so.unit_price)}</strong></div>
@@ -252,7 +270,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
         <div class="flex gap-2 pt-2">
           <select id="stage-override-select" class="input select text-xs" style="flex: 1;">
             <option value="">-- ${isBn ? 'স্টেজ পরিবর্তন করুন' : 'Advance Fulfillment Stage'} --</option>
-            ${stages.map((s) => `<option value="${s}">${s}</option>`).join('')}
+            ${stages.map((s) => `<option value="${s}">${fulfillmentStageLabels[s] || s}</option>`).join('')}
           </select>
           <button type="button" class="btn btn--secondary btn--sm update-stage-btn">
             ✓ ${isBn ? 'আপডেট' : 'Update Stage'}
@@ -385,12 +403,12 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
         <div class="admin-toolbar__filters">
           <select id="order-status-select" class="input select" aria-label="${isBn ? 'অর্ডার স্ট্যাটাস অনুসারে ফিল্টার' : 'Filter by order status'}">
             <option value="ALL" ${statusFilter === 'ALL' ? 'selected' : ''}>${isBn ? 'সব স্ট্যাটাস' : 'All Status'}</option>
-            <option value="PLACED" ${statusFilter === 'PLACED' ? 'selected' : ''}>PLACED</option>
-            <option value="CONFIRMED" ${statusFilter === 'CONFIRMED' ? 'selected' : ''}>CONFIRMED</option>
-            <option value="PACKED" ${statusFilter === 'PACKED' ? 'selected' : ''}>PACKED</option>
-            <option value="SHIPPED" ${statusFilter === 'SHIPPED' ? 'selected' : ''}>SHIPPED</option>
-            <option value="DELIVERED" ${statusFilter === 'DELIVERED' ? 'selected' : ''}>DELIVERED</option>
-            <option value="CANCELLED" ${statusFilter === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+            <option value="PLACED" ${statusFilter === 'PLACED' ? 'selected' : ''}>${fulfillmentStageLabels.PLACED}</option>
+            <option value="CONFIRMED" ${statusFilter === 'CONFIRMED' ? 'selected' : ''}>${fulfillmentStageLabels.CONFIRMED}</option>
+            <option value="PACKED" ${statusFilter === 'PACKED' ? 'selected' : ''}>${fulfillmentStageLabels.PACKED}</option>
+            <option value="SHIPPED" ${statusFilter === 'SHIPPED' ? 'selected' : ''}>${fulfillmentStageLabels.SHIPPED}</option>
+            <option value="DELIVERED" ${statusFilter === 'DELIVERED' ? 'selected' : ''}>${fulfillmentStageLabels.DELIVERED}</option>
+            <option value="CANCELLED" ${statusFilter === 'CANCELLED' ? 'selected' : ''}>${fulfillmentStageLabels.CANCELLED}</option>
           </select>
 
           <select id="payment-method-select" class="input select" aria-label="${isBn ? 'পেমেন্ট মাধ্যম অনুসারে ফিল্টার' : 'Filter by payment method'}">
@@ -444,11 +462,11 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
                     </td>
                     <td>
                       <span class="badge badge--info text-xs font-bold">${o.payment_method}</span>
-                      <div class="text-xs text-muted mt-1">${o.payment_status}</div>
+                      <div class="text-xs text-muted mt-1">${paymentStatusLabels[o.payment_status] || o.payment_status}</div>
                     </td>
                     <td>
                       <span class="system-table__badge ${isDelivered ? 'system-table__badge--success' : (isCancelled ? 'system-table__badge--danger' : (isShipped ? 'system-table__badge--info' : 'system-table__badge--warn'))}">
-                        ${o.fulfillment_status}
+                        ${fulfillmentStageLabels[o.fulfillment_status] || o.fulfillment_status}
                       </span>
                     </td>
                     <td style="text-align: right;">

@@ -24,6 +24,12 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
   const container = document.createElement('div');
   container.className = 'admin-page quests-page';
 
+  const questFrequencyLabels = {
+    DAILY: isBn ? 'দৈনিক' : 'Daily',
+    WEEKLY: isBn ? 'সাপ্তাহিক' : 'Weekly',
+    PER_ORDER: isBn ? 'প্রতি অর্ডারে' : 'Per order',
+  };
+
   let quests = [];
   let stats = {
     coins_in_circulation: 1245000,
@@ -321,9 +327,9 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
                   <td><span class="font-bold text-primary">${q.title}</span></td>
                   <td><span class="text-xs text-secondary">${q.description}</span></td>
                   <td><strong class="font-mono text-amber-600">🪙 +${q.reward_coins}</strong></td>
-                  <td><span class="badge badge--neutral text-xs">${q.frequency}</span></td>
+                  <td><span class="badge badge--neutral text-xs">${questFrequencyLabels[q.frequency] || q.frequency}</span></td>
                   <td><span class="font-mono font-bold">${q.completions_today.toLocaleString()}</span></td>
-                  <td><span class="system-table__badge system-table__badge--success">${q.is_active ? (isBn ? 'সক্রিয়' : 'ACTIVE') : (isBn ? 'নিষ্ক্রিয়' : 'PAUSED')}</span></td>
+                  <td><span class="system-table__badge system-table__badge--success">${q.is_active ? (isBn ? 'সক্রিয়' : 'Active') : (isBn ? 'নিষ্ক্রিয়' : 'Paused')}</span></td>
                   <td style="text-align: right;">
                     <button type="button" class="btn btn--secondary btn--sm toggle-quest-btn" data-id="${q.id}">
                       ⚙️ ${isBn ? 'এডিট' : 'Edit'}

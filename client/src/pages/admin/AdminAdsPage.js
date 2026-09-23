@@ -150,7 +150,7 @@ export default function AdminAdsPage(root, { navigate } = {}) {
                     </td>
                     <td>
                       <div class="font-semibold text-primary">${c.merchant_name}</div>
-                      <span class="badge badge--neutral text-xs">${c.merchant_role}</span>
+                      <span class="badge badge--neutral text-xs">${c.merchant_role === 'SUPPLIER' ? (isBn ? 'সরবরাহকারী' : 'Supplier') : (isBn ? 'সেলার' : 'Saler')}</span>
                     </td>
                     <td>
                       <div class="font-mono font-bold">${formatCurrency(c.daily_budget)}/day</div>
@@ -165,7 +165,7 @@ export default function AdminAdsPage(root, { navigate } = {}) {
                     </td>
                     <td>
                       <span class="system-table__badge ${isActive ? 'system-table__badge--success' : 'system-table__badge--warn'}">
-                        ${c.status}
+                        ${isActive ? (isBn ? 'চালু' : 'Active') : (isBn ? 'বিরতিপ্রাপ্ত' : 'Paused')}
                       </span>
                     </td>
                     <td style="text-align: right;">

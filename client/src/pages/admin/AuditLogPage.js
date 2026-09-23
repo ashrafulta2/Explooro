@@ -77,6 +77,15 @@ export default function AuditLogPage(root) {
   const container = document.createElement('div');
   container.className = 'audit-explorer';
 
+  // Same mapping the "Target Type" filter dropdown uses — the table cell rendered the raw
+  // MODULE/USER/STAFF/SESSION enum instead of reusing it.
+  const targetTypeLabels = () => ({
+    MODULE: isBn() ? 'প্ল্যাটফর্ম মডিউল' : 'Platform Module',
+    USER: isBn() ? 'ইউজার অ্যাকাউন্ট' : 'User Account',
+    STAFF: isBn() ? 'স্টাফ অ্যাকাউন্ট' : 'Staff Account',
+    SESSION: isBn() ? 'অথ সেশন' : 'Auth Session',
+  });
+
   let records = [];
   let nextCursor = null;
   let hasMore = false;
@@ -441,7 +450,7 @@ export default function AuditLogPage(root) {
       // Target
       const tdTarget = document.createElement('td');
       tdTarget.innerHTML = `
-        <span style="font-size: 11px; font-weight: 700; color: var(--text-primary);">${r.target_type || '—'}</span><br>
+        <span style="font-size: 11px; font-weight: 700; color: var(--text-primary);">${targetTypeLabels()[r.target_type] || r.target_type || '—'}</span><br>
         <code style="font-size: 10px; color: var(--text-muted);">${r.target_ref || '—'}</code>
       `;
 

@@ -249,7 +249,7 @@ export default function ReturnsQueuePage(root) {
                   <div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                       <strong style="font-family: monospace; font-size: 14px; color: var(--text-brand, #4f46e5);">${ret.ref}</strong>
-                      <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: var(--info-bg, rgba(79, 70, 229, 0.1)); color: var(--text-brand, #4f46e5); border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));">${ret.status}</span>
+                      <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: var(--info-bg, rgba(79, 70, 229, 0.1)); color: var(--text-brand, #4f46e5); border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));">${t(`returns.status_${ret.status.toLowerCase()}`, ret.status)}</span>
                       <span style="font-size: 11px; font-family: monospace; padding: 2px 6px; border-radius: 4px; background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0); color: var(--text-muted, #64748b);">Order #${ret.sub_order_ref || ret.sub_order_id}</span>
                     </div>
 

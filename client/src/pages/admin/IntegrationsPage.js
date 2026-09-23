@@ -344,7 +344,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
           </div>
           <div class="integration-card__meta-item">
             <span class="integration-card__meta-label">${isBn ? 'এনভায়রনমেন্ট' : 'Environment'}:</span>
-            <span class="integration-card__meta-value">${gateway.environment || 'LIVE'}</span>
+            <span class="integration-card__meta-value">${gateway.environment === 'SANDBOX' ? (isBn ? 'স্যান্ডবক্স' : 'Sandbox') : (isBn ? 'লাইভ' : 'Live')}</span>
           </div>
           <div class="integration-card__meta-item">
             <span class="integration-card__meta-label">${isBn ? 'পিং রেসপন্স' : 'Latency'}:</span>
@@ -392,7 +392,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
           <span class="font-bold block text-sm">${g.name}</span>
           <span class="text-secondary">${g.category_label || g.type}</span>
         </div>
-        ${Badge({ label: g.environment || 'LIVE', variant: g.environment === 'LIVE' ? 'success' : 'warning' })}
+        ${Badge({ label: g.environment === 'SANDBOX' ? (isBn ? 'স্যান্ডবক্স' : 'Sandbox') : (isBn ? 'লাইভ' : 'Live'), variant: g.environment === 'SANDBOX' ? 'warning' : 'success' })}
       </div>
 
       <div class="form-group">

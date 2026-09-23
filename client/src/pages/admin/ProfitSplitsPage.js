@@ -826,7 +826,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
                   <td>
                     <div class="flex items-center gap-2">
                       <span class="font-bold text-primary">${isBn ? tier.name_bn : tier.name_en}</span>
-                      <span class="badge ${tierBadgeClass} badge--sm font-mono">${tier.tier}</span>
+                      <span class="badge ${tierBadgeClass} badge--sm font-mono">${tier.tier.charAt(0)}${tier.tier.slice(1).toLowerCase()}</span>
                     </div>
                   </td>
                   <td class="text-xs text-secondary max-w-md">${isBn ? tier.criteria_bn : tier.criteria_en}</td>

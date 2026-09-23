@@ -351,7 +351,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
                   </td>
                   <td style="padding: 0.75rem;">
                     <span class="badge" style="display: inline-block; padding: 0.2rem 0.45rem; font-size: 0.75rem; font-weight: 600; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border-subtle); color: var(--text-primary);">
-                      ${staff.role}
+                      ${t(`admin_2fa.filter_${staff.role.toLowerCase()}`, staff.role)}
                     </span>
                     <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.15rem;">${staff.department || ''}</div>
                   </td>
@@ -365,7 +365,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
                     `}
                   </td>
                   <td style="padding: 0.75rem; color: var(--text-secondary);">
-                    ${staff.method}
+                    ${staff.method === 'TOTP' ? t('admin_2fa.staff_method_totp') : t('admin_2fa.staff_method_none')}
                   </td>
                   <td style="padding: 0.75rem; color: var(--text-secondary);">
                     ${staff.enrolled_at ? new Date(staff.enrolled_at).toLocaleDateString(isBn ? 'bn-BD' : 'en-US') : '—'}
@@ -422,7 +422,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
                   <div style="color: var(--text-secondary);">${evt.user} (${evt.ip})</div>
                 </div>
                 <div style="text-align: right;">
-                  <span class="badge badge--success" style="font-size: 0.7rem; font-weight: 600; color: var(--success);">${evt.status}</span>
+                  <span class="badge badge--success" style="font-size: 0.7rem; font-weight: 600; color: var(--success);">${evt.status === 'SUCCESS' ? t('admin_2fa.event_status_success') : t('admin_2fa.event_status_grace_active')}</span>
                   <div style="color: var(--text-muted); margin-top: 0.15rem;">
                     ${new Date(evt.timestamp).toLocaleTimeString(isBn ? 'bn-BD' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                   </div>

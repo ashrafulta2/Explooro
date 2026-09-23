@@ -240,7 +240,7 @@ export default function LedgerPage(root, { navigate } = {}) {
                   </td>
                   <td>
                     <span class="system-table__badge system-table__badge--success">
-                      ✓ ${tx.status}
+                      ✓ ${isBn ? 'ব্যালান্সড' : 'Balanced'}
                     </span>
                   </td>
                   <td class="text-xs text-muted">
