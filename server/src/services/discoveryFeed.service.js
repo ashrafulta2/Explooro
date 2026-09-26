@@ -110,6 +110,27 @@ export async function getFeed(db, { filters = {}, userId, sessionId, audience = 
   const hasMore = products.length > effectiveLimit;
   const page = hasMore ? products.slice(0, effectiveLimit) : products;
 
+  // Enrich recommendation reason for the discovery feed slide badge
+  for (const p of page) {
+    if (!p.recommendation_reason) {
+      if (p.is_flash_sale || (Number(p.rating_avg) >= 4.7 && Number(p.sold_count) >= 15)) {
+        p.recommendation_reason = 'trending';
+      } else if (Number(p.sold_count) >= 25) {
+        p.recommendation_reason = 'bestseller';
+      } else if (
+        (affinity.categoryIds && affinity.categoryIds.includes(p.category_id)) ||
+        (p.brand && affinity.brands && affinity.brands.includes(String(p.brand).toLowerCase())) ||
+        (affinity.supplierIds && affinity.supplierIds.includes(p.supplier_id))
+      ) {
+        p.recommendation_reason = 'interest';
+      } else if (Number(p.sold_count) > 0 || Number(p.rating_avg) >= 4.0) {
+        p.recommendation_reason = 'explore';
+      } else {
+        p.recommendation_reason = 'catalog';
+      }
+    }
+  }
+
   return {
     products: page,
     meta: {

@@ -404,3 +404,58 @@ test('Discover — Keyboard Navigation', async (t) => {
     assert.doesNotMatch(feedSrc, /\bupBtn\b|\bdownBtn\b/);
   });
 });
+
+test('Discover — All Products & Multi-Tier Hierarchy Contract', async (t) => {
+  const feed = discoveryHandlers.find((h) => h.method === 'GET' && h.path === '/discovery/feed');
+  const call = (query = {}) => feed.handler({ query });
+
+  await t.test('1. Every active product in the catalog is present in the feed (100% catalog coverage)', () => {
+    const allRefs = new Set();
+    let offset = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const res = call({ limit: 20, offset });
+      const products = res.body.data.products;
+      for (const p of products) allRefs.add(p.ref);
+      hasMore = res.body.meta.has_more;
+      offset = res.body.meta.next_offset || (offset + products.length);
+    }
+    assert.equal(allRefs.size, 60, 'all 60 fixture products are present across the feed without truncation');
+  });
+
+  await t.test('2. Top tier contains trending and bestseller products', () => {
+    const res = call({ limit: 10, offset: 0 });
+    const topItems = res.body.data.products;
+    const topReasons = topItems.map((p) => p.recommendation_reason);
+    assert.ok(
+      topReasons.includes('trending') || topReasons.includes('bestseller'),
+      'top feed slots prioritize trending in BD and bestsellers'
+    );
+  });
+
+  await t.test('3. Middle tier displays a diverse category-wise rotation', () => {
+    const res = call({ limit: 30, offset: 0 });
+    const categories = res.body.data.products.map((p) => p.category);
+    const uniqueCategories = new Set(categories);
+    assert.ok(uniqueCategories.size >= 6, 'feed rotates across at least 6 diverse categories');
+  });
+
+  await t.test('4. Low-interest / low importance items appear at the bottom', () => {
+    const res = call({ limit: 10, offset: 40 });
+    const bottomItems = res.body.data.products;
+    const reasons = bottomItems.map((p) => p.recommendation_reason);
+    assert.ok(
+      reasons.includes('catalog') || reasons.includes('crowd'),
+      'bottom of feed houses catalog / low-interest items'
+    );
+  });
+
+  await t.test('5. ProductFeed implements infinite looping so users can scroll downwards endlessly without jumping to top', () => {
+    const feedSrc = fs.readFileSync(path.resolve(import.meta.dirname, '../src/components/product/ProductFeed.js'), 'utf8');
+    assert.match(feedSrc, /_feedKey:\s*`f_\$\{items\.length\}_/);
+    assert.match(feedSrc, /offset\s*=\s*0;[\s\S]*?hasMore\s*=\s*true/);
+    assert.match(feedSrc, /scroller\.addEventListener\('scroll', onScroll/);
+  });
+});
+
+

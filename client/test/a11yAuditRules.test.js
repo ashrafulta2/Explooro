@@ -507,5 +507,34 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'completed step labels must use var(--success-700) instead of success-600 (~3.06:1)'
     );
   });
+
+  await t.test('21. discover-feed.css recommendation reason badges satisfy WCAG AA contrast', () => {
+    const discoverCssPath = path.join(clientRoot, 'src', 'styles', 'components', 'discover-feed.css');
+    const cssContent = fs.readFileSync(discoverCssPath, 'utf8');
+
+    // .discover-slide__reason--interest must use var(--text-brand) instead of low-contrast var(--brand-700)
+    assert.match(
+      cssContent,
+      /\.discover-slide__reason--interest\s*\{[^}]*color:\s*var\(--text-brand\)/,
+      'discover-slide__reason--interest must use var(--text-brand) for WCAG AA compliance (>= 4.5:1 ratio)'
+    );
+    assert.doesNotMatch(
+      cssContent,
+      /\.discover-slide__reason--interest\s*\{[^}]*color:\s*var\(--brand-700\)/,
+      'discover-slide__reason--interest must not use low-contrast var(--brand-700) (fails at 2.68:1)'
+    );
+
+    // .discover-slide__reason--crowd must use accessible info tokens instead of low-contrast brand-alt
+    assert.match(
+      cssContent,
+      /\.discover-slide__reason--crowd\s*\{[^}]*color:\s*var\(--info-700\)/,
+      'discover-slide__reason--crowd must use var(--info-700) for compliant contrast'
+    );
+    assert.doesNotMatch(
+      cssContent,
+      /\.discover-slide__reason--crowd\s*\{[^}]*color:\s*var\(--brand-alt\)/,
+      'discover-slide__reason--crowd must not use low-contrast var(--brand-alt)'
+    );
+  });
 });
 

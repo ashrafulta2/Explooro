@@ -42,7 +42,7 @@ import { EmptyState } from '../ui/EmptyState.js';
 import { Skeleton } from '../ui/Skeleton.js';
 
 // Fetch the next page once the active slide is within this many of the end.
-const PREFETCH_LOOKAHEAD = 3;
+const PREFETCH_LOOKAHEAD = 5;
 // Ignore accidental micro-dwells as an engagement signal.
 const MIN_DWELL_MS = 800;
 
@@ -84,7 +84,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   let activeKey = null;
   let activeSince = 0;
 
-  const keyOf = (p) => String(p.ref || p.id || p.slug);
+  const keyOf = (p) => String(p._feedKey || p.ref || p.id || p.slug);
 
   function setStockBadge(el, qty) {
     el.className = `discover-slide__stock discover-slide__stock--${qty > 0 ? 'in' : 'out'}`;
@@ -100,13 +100,39 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   }
   function activeIndex() {
     const all = slideEls();
-    return all.findIndex((s) => s.dataset.key === activeKey);
+    if (!all.length) return 0;
+    const scrollerRect = scroller.getBoundingClientRect();
+    let bestIdx = 0;
+    let minDiff = Infinity;
+    for (let i = 0; i < all.length; i++) {
+      const diff = Math.abs(all[i].getBoundingClientRect().top - scrollerRect.top);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestIdx = i;
+      }
+    }
+    return bestIdx;
   }
   function step(delta) {
     const all = slideEls();
-    const idx = Math.max(0, activeIndex());
-    const next = all[idx + delta];
-    if (next) next.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!all.length) return;
+    const idx = activeIndex();
+    const nextIdx = idx + delta;
+
+    if (delta > 0 && nextIdx >= all.length - PREFETCH_LOOKAHEAD && hasMore && !loading) {
+      loadMore();
+    }
+
+    if (nextIdx >= 0 && nextIdx < all.length) {
+      all[nextIdx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (nextIdx >= all.length && hasMore) {
+      loadMore().then(() => {
+        const updated = slideEls();
+        if (updated[nextIdx]) {
+          updated[nextIdx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
   }
 
   // ── Interaction signals ────────────────────────────────────────────────────
@@ -152,7 +178,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
         }
       }
     },
-    { root: scroller, threshold: 0.6 }
+    { root: scroller, threshold: 0.3 }
   );
 
   // ── Slide rendering ─────────────────────────────────────────────────────────
@@ -232,8 +258,10 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       interest: 'discover.reason.interest',
       browsed: 'discover.reason.browsed',
       crowd: 'discover.reason.crowd',
+      explore: 'discover.reason.explore',
+      catalog: 'discover.reason.catalog',
     };
-    const reasonType = p.recommendation_reason || 'trending';
+    const reasonType = p.recommendation_reason || 'explore';
     const reasonWrap = document.createElement('div');
     reasonWrap.className = `discover-slide__reason discover-slide__reason--${reasonType}`;
 
@@ -246,6 +274,10 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
     } else if (reasonType === 'browsed') {
       reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    } else if (reasonType === 'explore') {
+      reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>';
+    } else if (reasonType === 'catalog') {
+      reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>';
     } else {
       reasonSvg = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
     }
@@ -257,7 +289,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
 
     const reasonTextSpan = document.createElement('span');
     reasonTextSpan.className = 'discover-slide__reason-text';
-    reasonTextSpan.textContent = t(REASON_I18N[reasonType] || 'discover.reason.trending');
+    reasonTextSpan.textContent = t(REASON_I18N[reasonType] || 'discover.reason.explore');
 
     reasonWrap.append(reasonIconSpan, reasonTextSpan);
     panel.append(reasonWrap);
@@ -736,54 +768,83 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     }
   }
 
+  let activeLoadPromise = null;
+  let fetchEpoch = 0;
+
   // ── Data loading ────────────────────────────────────────────────────────────
   async function loadMore() {
-    if (loading || !hasMore || destroyed) return;
+    if (activeLoadPromise) return activeLoadPromise;
+    if (!hasMore || destroyed) return Promise.resolve();
     loading = true;
-    try {
-      const { products, meta } = await getFeed({ audience, offset, filters: currentFilters });
-      if (destroyed) return;
-      onFilterHint?.(meta);
-      if (products.length === 0 && items.length === 0) {
-        scroller.replaceChildren(
-          EmptyState({
-            variant: 'empty',
-            title: t('discover.empty.title'),
-            description: t('discover.empty.desc'),
-          })
-        );
-        hasMore = false;
-        return;
+    const thisEpoch = fetchEpoch;
+    activeLoadPromise = (async () => {
+      try {
+        const { products, meta } = await getFeed({ audience, offset, filters: currentFilters });
+        if (destroyed || thisEpoch !== fetchEpoch) return;
+        onFilterHint?.(meta);
+        if (products.length === 0 && items.length === 0) {
+          scroller.replaceChildren(
+            EmptyState({
+              variant: 'empty',
+              title: t('discover.empty.title'),
+              description: t('discover.empty.desc'),
+            })
+          );
+          hasMore = false;
+          return;
+        }
+        if (products.length === 0) {
+          if (items.length > 0) {
+            offset = 0;
+            hasMore = true;
+          }
+          return;
+        }
+        const isFirstPage = items.length === 0;
+        const frag = document.createDocumentFragment();
+        for (const p of products) {
+          const feedItem = {
+            ...p,
+            _feedKey: `f_${items.length}_${p.ref || p.id || p.slug || Math.random().toString(36).slice(2)}`,
+          };
+          items.push(feedItem);
+          frag.append(buildSlide(feedItem));
+        }
+        if (isFirstPage) {
+          scroller.replaceChildren(); // drop the loading skeleton
+          onFirstPage?.(products);
+        }
+        scroller.append(frag);
+
+        // Infinite loop: if there are more pages in catalog, continue; otherwise loop back to offset 0
+        if (meta.has_more && meta.next_offset != null) {
+          offset = meta.next_offset;
+        } else {
+          offset = 0;
+        }
+        hasMore = true;
+      } catch {
+        if (!destroyed && thisEpoch === fetchEpoch && items.length === 0) {
+          scroller.replaceChildren(
+            EmptyState({
+              variant: 'error',
+              title: t('discover.error.title'),
+              description: t('discover.error.desc'),
+            })
+          );
+        }
+      } finally {
+        loading = false;
+        activeLoadPromise = null;
       }
-      const isFirstPage = items.length === 0;
-      const frag = document.createDocumentFragment();
-      for (const p of products) {
-        items.push(p);
-        frag.append(buildSlide(p));
-      }
-      if (isFirstPage) {
-        scroller.replaceChildren(); // drop the loading skeleton
-        onFirstPage?.(products);
-      }
-      scroller.append(frag);
-      hasMore = Boolean(meta.has_more);
-      offset = meta.next_offset != null ? meta.next_offset : offset + products.length;
-    } catch {
-      if (!destroyed && items.length === 0) {
-        scroller.replaceChildren(
-          EmptyState({
-            variant: 'error',
-            title: t('discover.error.title'),
-            description: t('discover.error.desc'),
-          })
-        );
-      }
-    } finally {
-      loading = false;
-    }
+    })();
+    return activeLoadPromise;
   }
 
   function reload(nextFilters) {
+    fetchEpoch++;
+    activeLoadPromise = null;
+    loading = false;
     if (nextFilters) currentFilters = { ...nextFilters };
     for (const slide of slideEls()) observer.unobserve(slide);
     items = [];
@@ -822,11 +883,11 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
 
   function onWheel(e) {
     const panel = e.target.closest('.discover-slide__panel');
-    if (panel && panel.scrollHeight > panel.clientHeight) {
+    if (panel && panel.scrollHeight > panel.clientHeight + 10) {
       const isUp = e.deltaY < 0;
       const isDown = e.deltaY > 0;
-      const atTop = panel.scrollTop <= 2;
-      const atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 2;
+      const atTop = panel.scrollTop <= 4;
+      const atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 10;
       if ((isUp && !atTop) || (isDown && !atBottom)) {
         return; // Allow natural scroll within the text panel
       }
@@ -841,10 +902,20 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       clearTimeout(wheelTimeout);
       wheelTimeout = setTimeout(() => {
         isWheelStepping = false;
-      }, 420);
+      }, 240);
     }
   }
   scroller.addEventListener('wheel', onWheel, { passive: false });
+
+  // Continuous prefetch on any scroll (touch-swipe, mouse scroll, scrollbar drag)
+  function onScroll() {
+    if (!hasMore || loading) return;
+    const distanceToBottom = scroller.scrollHeight - (scroller.scrollTop + scroller.clientHeight);
+    if (distanceToBottom < scroller.clientHeight * 2.5) {
+      loadMore();
+    }
+  }
+  scroller.addEventListener('scroll', onScroll, { passive: true });
 
   // Record a final dwell if the shopper navigates away mid-slide.
   const onPageHide = () => fireDwell();
@@ -864,6 +935,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       observer.disconnect();
       window.removeEventListener('keydown', onKeydown);
       scroller.removeEventListener('wheel', onWheel);
+      scroller.removeEventListener('scroll', onScroll);
       clearTimeout(wheelTimeout);
       window.removeEventListener('pagehide', onPageHide);
     },

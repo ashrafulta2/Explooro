@@ -12,7 +12,9 @@
       "interest": "Based on your interests",
       "trending": "Trending in Bangladesh",
       "bestseller": "Top buying & bestseller",
-      "crowd": "What others are looking for"
+      "crowd": "What others are looking for",
+      "explore": "Category showcase",
+      "catalog": "Catalog collection"
     },
     "aria": {
       "feed": "Product discovery feed"
