@@ -337,7 +337,7 @@ export default function DisputePanelPage(root) {
                   transition: all 0.15s ease;
                 ">
                   <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${d.ref}</span>
+                    <span style="font-family: inherit; font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${d.ref}</span>
                     ${renderStatusBadge(d.status)}
                   </div>
                   <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px;">
@@ -387,7 +387,7 @@ export default function DisputePanelPage(root) {
         <div style="display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle, #e2e8f0); flex-wrap: wrap; gap: 12px;">
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary, #0f172a); font-family: monospace;">${selectedDispute.ref}</h2>
+              <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--text-primary, #0f172a); font-family: inherit; font-variant-numeric: tabular-nums;">${selectedDispute.ref}</h2>
               ${renderStatusBadge(selectedDispute.status)}
             </div>
             <div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 4px;">
@@ -457,7 +457,7 @@ export default function DisputePanelPage(root) {
                             (p) => `
                         <div style="padding: 12px 14px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0); font-size: 12px;">
                           <div style="display: flex; justify-content: space-between; font-weight: 700;">
-                            <span style="font-family: monospace; color: var(--text-brand, #4f46e5);">${p.ref}</span>
+                            <span style="font-family: inherit; font-variant-numeric: tabular-nums; color: var(--text-brand, #4f46e5);">${p.ref}</span>
                             <span style="color: var(--success, #059669);">${p.outcome}</span>
                           </div>
                           <div style="color: var(--text-muted, #64748b); margin-top: 4px;">Amount: ${formatCurrency(p.disputed_amount)} • Resolved: ${formatDate(p.resolved_at)}</div>

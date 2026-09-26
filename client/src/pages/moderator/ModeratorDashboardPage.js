@@ -185,7 +185,8 @@ export default function ModeratorDashboardPage(root) {
             </h1>
             <span style="
               font-size: 11px;
-              font-family: monospace;
+              font-family: inherit;
+              font-variant-numeric: tabular-nums;
               font-weight: 700;
               padding: 2px 8px;
               border-radius: var(--radius-sm, 6px);
@@ -338,7 +339,7 @@ export default function ModeratorDashboardPage(root) {
                   align-items: center;
                   justify-content: space-between;
                 ">
-                  <span style="font-family: monospace; font-size: 10px; color: var(--text-muted, #64748b); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                  <span style="font-family: inherit; font-variant-numeric: tabular-nums; font-size: 10px; color: var(--text-muted, #64748b); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                     ${ws.permissionKey}
                   </span>
                   ${
@@ -418,7 +419,7 @@ export default function ModeratorDashboardPage(root) {
                 justify-content: space-between;
               ">
                 <div>
-                  <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${g.permission_key}</span>
+                  <span style="font-family: inherit; font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${g.permission_key}</span>
                   <div style="font-size: 11px; color: var(--text-muted, #64748b); margin-top: 2px;">${g.grant_reason || 'Standard review shift'}</div>
                 </div>
                 <div>
@@ -476,7 +477,7 @@ export default function ModeratorDashboardPage(root) {
               ">
                 <div>
                   <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${a.ref}</span>
+                    <span style="font-family: inherit; font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${a.ref}</span>
                     <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--surface-3, rgba(100, 116, 139, 0.1)); color: var(--text-secondary, #475569); font-weight: 600;">${a.action_key}</span>
                   </div>
                   <div style="font-size: 11px; color: var(--text-muted, #64748b); margin-top: 2px;">

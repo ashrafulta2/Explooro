@@ -244,7 +244,7 @@ export default function LedgerPage(root, { navigate } = {}) {
                     </span>
                   </td>
                   <td class="text-xs text-muted">
-                    ${new Date(tx.created_at).toLocaleString()}
+                    ${formatDate(tx.created_at, { timeStyle: 'short' })}
                   </td>
                 </tr>
               `).join('') : `

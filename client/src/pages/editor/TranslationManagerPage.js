@@ -189,7 +189,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
                 gap: 8px;
               ">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <strong style="font-family: monospace; font-size: 15px; color: var(--text-primary, #0f172a); text-transform: uppercase;">
+                  <strong style="font-family: inherit; font-size: 15px; color: var(--text-primary, #0f172a); text-transform: uppercase;">
                     ${loc.locale} ${isAct ? '📍' : ''}
                   </strong>
                   <span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; background: ${isHigh ? 'var(--success-bg, rgba(5, 150, 105, 0.1))' : 'var(--warning-bg, rgba(217, 119, 6, 0.1))'}; color: ${isHigh ? 'var(--success, #059669)' : 'var(--warning, #d97706)'};">
@@ -198,7 +198,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
                 </div>
 
                 <div>
-                  <div style="font-size: 11px; color: var(--text-muted, #64748b); font-family: monospace; margin-bottom: 4px;">
+                  <div style="font-size: 11px; color: var(--text-muted, #64748b); font-family: inherit; font-variant-numeric: tabular-nums; margin-bottom: 4px;">
                     ${loc.total_keys} keys translated
                   </div>
                   <div style="width: 100%; height: 6px; background: var(--surface-2, #e2e8f0); border-radius: 99px; overflow: hidden;">
@@ -234,7 +234,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
             width: 100%;
             padding: 8px 12px;
             font-size: 12px;
-            font-family: monospace;
+            font-family: inherit;
             border-radius: 6px;
             border: 1px solid var(--border-subtle, #e2e8f0);
             background: var(--surface-1, #ffffff);
@@ -255,7 +255,8 @@ export default function TranslationManagerPage(root, ctx = {}) {
               <button class="loc-pill-btn" data-loc="${l.locale}" style="
                 padding: 4px 10px;
                 font-size: 11px;
-                font-family: monospace;
+                font-family: inherit;
+                font-variant-numeric: tabular-nums;
                 font-weight: 700;
                 border-radius: 6px;
                 border: 1px solid ${l.locale === activeLocale ? 'var(--brand, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'};
@@ -327,11 +328,11 @@ export default function TranslationManagerPage(root, ctx = {}) {
                   (item, idx) => `
                 <tr style="border-bottom: 1px solid var(--border-subtle, #e2e8f0); transition: background 0.15s ease;" data-idx="${idx}">
                   <td style="padding: 12px 16px;">
-                    <span style="font-family: monospace; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--surface-2, #e2e8f0); color: var(--text-muted, #64748b); font-weight: 700;">
+                    <span style="font-family: inherit; font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--surface-2, #e2e8f0); color: var(--text-muted, #64748b); font-weight: 700;">
                       ${item.namespace}
                     </span>
                   </td>
-                  <td style="padding: 12px 16px; font-family: monospace; font-size: 12px; color: var(--text-primary, #0f172a);">
+                  <td style="padding: 12px 16px; font-family: inherit; font-size: 12px; color: var(--text-primary, #0f172a);">
                     <strong>${item.key}</strong>
                   </td>
                   <td style="padding: 12px 16px;">
@@ -404,11 +405,11 @@ export default function TranslationManagerPage(root, ctx = {}) {
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
             <label for="import-locale-code" style="font-weight: 600; display: block; margin-bottom: 4px;">Target Locale Code:</label>
-            <input type="text" id="import-locale-code" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 12px;" value="${activeLocale}"/>
+            <input type="text" id="import-locale-code" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: inherit; font-variant-numeric: tabular-nums; font-size: 12px;" value="${activeLocale}"/>
           </div>
           <div>
             <label for="import-json-text" style="font-weight: 600; display: block; margin-bottom: 4px;">Paste JSON Dictionary:</label>
-            <textarea id="import-json-text" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 11px;" rows="8" placeholder="{\n  &quot;common&quot;: {\n    &quot;buy_now&quot;: &quot;Buy Now&quot;\n  }\n}"></textarea>
+            <textarea id="import-json-text" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: var(--font-code, monospace); font-size: 11px;" rows="8" placeholder="{\n  &quot;common&quot;: {\n    &quot;buy_now&quot;: &quot;Buy Now&quot;\n  }\n}"></textarea>
           </div>
         </div>
 
@@ -478,7 +479,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
           <div>
             <label for="add-locale-code" style="font-weight: 600; display: block; margin-bottom: 4px;">ISO Language Code (2-letter):</label>
-            <input type="text" id="add-locale-code" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-size: 12px;" placeholder="e.g. ar, es, fr, hi"/>
+            <input type="text" id="add-locale-code" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: inherit; font-variant-numeric: tabular-nums; font-size: 12px;" placeholder="e.g. ar, es, fr, hi"/>
           </div>
           <div>
             <label for="add-locale-name" style="font-weight: 600; display: block; margin-bottom: 4px;">Native Display Name:</label>

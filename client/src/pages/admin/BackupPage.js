@@ -15,6 +15,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { adminApi } from '../../services/admin.api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { formatNumber } from '../../services/format.js';
 
 export default function BackupPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -345,8 +346,8 @@ export default function BackupPage(root, { navigate } = {}) {
                       </div>
                     </td>
                     <td style="padding: 0.75rem; color: var(--text-secondary);">
-                      <div>${b.table_count || 95} tables</div>
-                      <div style="font-size: 0.75rem;">${(b.row_count || 0).toLocaleString()} rows</div>
+                      <div>${formatNumber(b.table_count || 95)} tables</div>
+                      <div style="font-size: 0.75rem;">${formatNumber(b.row_count || 0)} rows</div>
                     </td>
                     <td style="padding: 0.75rem; font-weight: 600; color: var(--text-primary);">
                       ${formatBytes(b.size_bytes)}

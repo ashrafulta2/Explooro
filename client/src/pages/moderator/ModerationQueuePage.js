@@ -563,10 +563,10 @@ export default function ModerationQueuePage(root, ctx = {}) {
       ">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span>⌨️ ${t('moderation.shortcuts_label', 'Keyboard Shortcuts:')}</span>
-          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">A</span> ${t('moderation.shortcut_approve', 'Approve')}
-          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">R</span> ${t('moderation.shortcut_reject', 'Reject')}
-          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">C</span> ${t('moderation.shortcut_claim', 'Claim')}
-          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">J/K</span> ${t('moderation.shortcut_navigate', 'Navigate')}
+          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: inherit; font-weight: 700; color: var(--text-primary, #0f172a);">A</span> ${t('moderation.shortcut_approve', 'Approve')}
+          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: inherit; font-weight: 700; color: var(--text-primary, #0f172a);">R</span> ${t('moderation.shortcut_reject', 'Reject')}
+          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: inherit; font-weight: 700; color: var(--text-primary, #0f172a);">C</span> ${t('moderation.shortcut_claim', 'Claim')}
+          <span style="padding: 1px 6px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); font-family: inherit; font-weight: 700; color: var(--text-primary, #0f172a);">J/K</span> ${t('moderation.shortcut_navigate', 'Navigate')}
         </div>
 
         <div style="display: flex; align-items: center; gap: 12px;">

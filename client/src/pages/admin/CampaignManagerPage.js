@@ -11,6 +11,7 @@ import { api } from '../../core/api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { formatCurrency, formatNumber, formatDate } from '../../services/format.js';
 
 export class CampaignManagerPage {
   constructor({ initialTab = 'flash_sales' } = {}) {
@@ -223,19 +224,19 @@ export class CampaignManagerPage {
       ">
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--warning, #d97706); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'সক্রিয় ফ্ল্যাশ সেল' : 'Active Flash Deals'}</span>
-          <div style="font-size: 24px; font-weight: 800; color: var(--warning, #d97706);">${activeCount}</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--warning, #d97706);">${formatNumber(activeCount)}</div>
         </div>
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'বরাদ্দকৃত স্টক' : 'Allocated Stock'}</span>
-          <div style="font-size: 24px; font-weight: 800; color: var(--text-brand, #4f46e5);">${totalAllocated.toLocaleString('en-US')}</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--text-brand, #4f46e5);">${formatNumber(totalAllocated)}</div>
         </div>
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'বিক্রি হওয়া ইউনিট' : 'Units Claimed'}</span>
-          <div style="font-size: 24px; font-weight: 800; color: var(--success, #059669);">${totalSold.toLocaleString('en-US')}</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--success, #059669);">${formatNumber(totalSold)}</div>
         </div>
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--text-muted, #64748b); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'স্টক ক্লিয়ারেন্স হার' : 'Clearance Rate'}</span>
-          <div style="font-size: 24px; font-weight: 800; color: var(--text-primary, #0f172a);">${clearanceRate}%</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--text-primary, #0f172a);">${formatNumber(clearanceRate)}%</div>
         </div>
       </div>
 
@@ -301,13 +302,13 @@ export class CampaignManagerPage {
           <div style="font-weight: 500; color: var(--text-primary, #0f172a);">${this._escapeHtml(productTitle || `Product #${fs.product_id}`)}</div>
         </td>
         <td style="padding: 14px 16px; font-family: monospace;">
-          <span style="text-decoration: line-through; color: var(--text-muted, #64748b); font-size: 12px;">৳${Number(fs.original_price || 0).toFixed(2)}</span>
-          <span style="color: var(--success, #059669); font-weight: 800; margin-left: 6px;">৳${Number(fs.discount_price || 0).toFixed(2)}</span>
+          <span style="text-decoration: line-through; color: var(--text-muted, #64748b); font-size: 12px;">${formatCurrency(fs.original_price || 0)}</span>
+          <span style="color: var(--success, #059669); font-weight: 800; margin-left: 6px;">${formatCurrency(fs.discount_price || 0)}</span>
         </td>
         <td style="padding: 14px 16px; min-width: 140px;">
           <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-            <span style="color: var(--text-muted, #64748b);">${sold} / ${allocated}</span>
-            <strong style="color: var(--text-primary, #0f172a);">${pct}%</strong>
+            <span style="color: var(--text-muted, #64748b);">${formatNumber(sold)} / ${formatNumber(allocated)}</span>
+            <strong style="color: var(--text-primary, #0f172a);">${formatNumber(pct)}%</strong>
           </div>
           <div style="width: 100%; height: 6px; background: var(--surface-2, #e2e8f0); border-radius: 99px; overflow: hidden;">
             <div style="width: ${pct}%; height: 100%; background: var(--brand, #4f46e5); border-radius: 99px;"></div>
@@ -354,19 +355,19 @@ export class CampaignManagerPage {
       ">
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'সক্রিয় কুপন' : 'Active Coupons'}</span>
-          <div style="font-size: 24px; font-weight: 800; color: var(--text-brand, #4f46e5);">${activeCoupons}</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--text-brand, #4f46e5);">${formatNumber(activeCoupons)}</div>
         </div>
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--warning, #d97706); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'মোট বাজেট বরাদ্দ' : 'Total Budget Allocated'}</span>
-          <div style="font-size: 24px; font-weight: 800; color: var(--warning, #d97706);">৳${totalBudget.toLocaleString('en-US')}</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--warning, #d97706);">${formatCurrency(totalBudget)}</div>
         </div>
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--danger, #e11d48); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'ব্যবহৃত বাজেট' : 'Budget Spent'}</span>
-          <div style="font-size: 24px; font-weight: 800; color: var(--danger, #e11d48);">৳${totalUsed.toFixed(2)}</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--danger, #e11d48);">${formatCurrency(totalUsed)}</div>
         </div>
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--success, #059669); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
           <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b); display: block; margin-bottom: 2px;">${isBn ? 'মোট রিডেম্পশন' : 'Total Redemptions'}</span>
-          <div style="font-size: 24px; font-weight: 800; color: var(--success, #059669);">${totalRedemptions.toLocaleString('en-US')}</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--success, #059669);">${formatNumber(totalRedemptions)}</div>
         </div>
       </div>
 
@@ -421,7 +422,7 @@ export class CampaignManagerPage {
         </td>
         <td style="padding: 14px 16px;">
           <div style="font-weight: 700; color: var(--text-primary, #0f172a);">${this._formatDiscount(c, isBn)}</div>
-          ${c.max_discount_amount ? `<div style="font-size: 11px; color: var(--text-muted, #64748b); margin-top: 2px;">${isBn ? 'সর্বোচ্চ ছাড়' : 'Max'}: ৳${Number(c.max_discount_amount).toFixed(2)}</div>` : ''}
+          ${c.max_discount_amount ? `<div style="font-size: 11px; color: var(--text-muted, #64748b); margin-top: 2px;">${isBn ? 'সর্বোচ্চ ছাড়' : 'Max'}: ${formatCurrency(c.max_discount_amount)}</div>` : ''}
         </td>
         <td style="padding: 14px 16px;">
           <span style="font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600; background: var(--surface-2, #e2e8f0); color: var(--text-secondary, #475569);">
@@ -429,20 +430,20 @@ export class CampaignManagerPage {
           </span>
         </td>
         <td style="padding: 14px 16px; min-width: 140px;">
-          <div style="font-size: 12px; font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">৳${budgetUsed.toFixed(2)} / ${budgetCap != null ? `৳${budgetCap.toFixed(2)}` : '∞'}</div>
+          <div style="font-size: 12px; font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">${formatCurrency(budgetUsed)} / ${budgetCap != null ? formatCurrency(budgetCap) : '∞'}</div>
           ${budgetCap != null ? `
             <div style="width: 100%; height: 6px; background: var(--surface-2, #e2e8f0); border-radius: 99px; overflow: hidden; margin-top: 4px;">
               <div style="width: ${pct}%; height: 100%; background: ${pct >= 90 ? 'var(--danger, #e11d48)' : 'var(--brand, #4f46e5)'}; border-radius: 99px;"></div>
             </div>
           ` : ''}
-          <div style="font-size: 11px; color: var(--text-muted, #64748b); margin-top: 2px;">${c.redemption_count || 0} ${isBn ? 'বার ব্যবহৃত' : 'uses'}</div>
+          <div style="font-size: 11px; color: var(--text-muted, #64748b); margin-top: 2px;">${formatNumber(c.redemption_count || 0)} ${isBn ? 'বার ব্যবহৃত' : 'uses'}</div>
         </td>
         <td style="padding: 14px 16px; font-size: 12px;">
-          <div style="color: var(--text-muted, #64748b);">Min Spend: <strong style="color: var(--text-primary, #0f172a);">৳${Number(c.min_spend_amount || 0).toFixed(2)}</strong></div>
+          <div style="color: var(--text-muted, #64748b);">Min Spend: <strong style="color: var(--text-primary, #0f172a);">${formatCurrency(c.min_spend_amount || 0)}</strong></div>
         </td>
         <td style="padding: 14px 16px; font-size: 11px; color: var(--text-muted, #64748b);">
-          <div>${new Date(c.starts_at).toLocaleDateString()} ➔</div>
-          <div>${new Date(c.expires_at).toLocaleDateString()}</div>
+          <div>${formatDate(c.starts_at, { lang: isBn ? 'bn' : 'en' })} ➔</div>
+          <div>${formatDate(c.expires_at, { lang: isBn ? 'bn' : 'en' })}</div>
         </td>
         <td style="padding: 14px 16px; text-align: right;">
           <input
@@ -458,8 +459,8 @@ export class CampaignManagerPage {
   }
 
   _formatDiscount(c, isBn) {
-    if (c.discount_type === 'PERCENT') return `${Number(c.discount_value)}% ${isBn ? 'ছাড়' : 'OFF'}`;
-    if (c.discount_type === 'FIXED') return `৳${Number(c.discount_value).toFixed(2)} ${isBn ? 'ছাড়' : 'OFF'}`;
+    if (c.discount_type === 'PERCENT') return `${formatNumber(Number(c.discount_value))}% ${isBn ? 'ছাড়' : 'OFF'}`;
+    if (c.discount_type === 'FIXED') return `${formatCurrency(c.discount_value)} ${isBn ? 'ছাড়' : 'OFF'}`;
     if (c.discount_type === 'FREE_SHIPPING') return isBn ? 'ফ্রি শিপিং' : 'Free Shipping';
     if (c.discount_type === 'BUY_X_GET_Y') return isBn ? 'বাই-এক্স-গেট-ওয়াই' : 'Buy X Get Y Free';
     return `${c.discount_value}`;

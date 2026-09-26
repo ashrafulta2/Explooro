@@ -187,7 +187,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
       <!-- Order Header Banner -->
       <div class="p-4 bg-surface-1 rounded-xl border border-border-subtle flex justify-between items-center flex-wrap gap-3">
         <div>
-          <div class="text-xs font-mono font-bold text-muted">${order.created_at ? new Date(order.created_at).toLocaleString() : ''}</div>
+          <div class="text-xs font-mono font-bold text-muted">${order.created_at ? formatDate(order.created_at, { timeStyle: 'short' }) : ''}</div>
           <div class="text-xl font-bold font-mono text-primary">${order.order_ref}</div>
         </div>
         <div class="text-right">

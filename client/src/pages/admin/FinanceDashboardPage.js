@@ -12,6 +12,7 @@
 
 import { api } from '../../core/api.js';
 import { formatCurrency } from '../../services/format.js';
+import { formatCompactBdt } from '../../services/adminDashboard.model.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
@@ -101,7 +102,7 @@ export default function FinanceDashboardPage(root, { navigate } = {}) {
         ${points.map((p) => `
           <circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--brand)" />
           <text x="${p.x}" y="${height - 10}" text-anchor="middle" font-size="11" fill="var(--text-secondary)">${p.label}</text>
-          <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--text-primary)">৳${p.amount}</text>
+          <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" font-size="10" font-weight="bold" fill="var(--text-primary)">${formatCompactBdt(p.amount)}</text>
         `).join('')}
       </svg>
     `;

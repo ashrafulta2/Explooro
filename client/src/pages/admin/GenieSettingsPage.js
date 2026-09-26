@@ -3,12 +3,15 @@
  *
  * Implements /admin/platform/genie:
  * 1. Whether the genie plays on popups at all (off = the plain CSS fade).
- * 2. How long one open or close takes.
- * 3. How finely it is drawn ("smoothness": light / balanced / smooth) — the trade between a
- *    smoother curve and the work done on every open and close.
- * 4. A "Try it" preview that plays the DRAFT values on a real popup without saving anything.
- * 5. "Who can change this" — role defaults plus live standing grants for `platform.genie.update`.
- * 6. Recent change history (actor, before → after, reason) straight from audit_logs.
+ * 2. A "Try it" preview that plays the DRAFT value on a real popup without saving anything.
+ * 3. "Who can change this" — role defaults plus live standing grants for `platform.genie.update`.
+ * 4. Recent change history (actor, before → after, reason) straight from audit_logs.
+ *
+ * WHY only on/off: duration and smoothness were exposed here too, but they only ever confused
+ * operators — the shipped defaults (650ms, balanced) already look right, so this page no longer
+ * lets anyone change them. The API and `platform_settings` still carry `duration_ms` / `quality`
+ * (server/src/services/genie.service.js) — this page just always saves the values it loaded,
+ * unedited, alongside whatever `enabled` was set to.
  *
  * WHY its own page, and its own permission pair: same reasoning as the Language page. Platform
  * Settings writes through `platform.settings.update`, which is CRITICAL and therefore never
@@ -30,7 +33,6 @@ import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { Switch } from '../../components/ui/Switch.js';
-import { RadioGroup } from '../../components/ui/Radio.js';
 import { Textarea } from '../../components/ui/Textarea.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
@@ -40,28 +42,19 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatRelativeTime } from '../../services/format.js';
 import { applyGeniePolicy } from '../../services/genieSettings.js';
-import { GENIE_DEFAULTS, GENIE_LIMITS, GENIE_QUALITIES } from '../../lib/genie.js';
+import { GENIE_DEFAULTS, GENIE_QUALITIES } from '../../lib/genie.js';
 import { prefersReducedMotion } from '../../lib/motion.js';
 
 const MIN_REASON_LENGTH = 10;
-const DURATION_STEP_MS = 50;
 
 /** History reasons and grantee names are typed by people; nothing is trusted into innerHTML raw. */
 const esc = (value) =>
   String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-const qualityLabel = (q) =>
-  ({
-    light: t('admin_genie.quality_light', 'Light'),
-    balanced: t('admin_genie.quality_balanced', 'Balanced'),
-    smooth: t('admin_genie.quality_smooth', 'Smooth'),
-  })[q] || q;
-
 /** One-line human summary of a policy, used by the confirm diff and the history list. */
 function summarise(p) {
   if (!p) return '—';
-  if (p.enabled === false) return t('admin_genie.summary_off', 'Off (plain fade)');
-  return `${t('admin_genie.on', 'On')} · ${p.duration_ms} ms · ${qualityLabel(p.quality)}`;
+  return p.enabled === false ? t('admin_genie.summary_off', 'Off (plain fade)') : t('admin_genie.on', 'On');
 }
 
 function toPolicy(raw = {}) {
@@ -83,18 +76,13 @@ export default function GenieSettingsPage(root, { navigate } = {}) {
   let draft = null;
   let authority = { roles: [], grants: [] };
   let history = [];
-  let limits = { min: GENIE_LIMITS.minDurationMs, max: GENIE_LIMITS.maxDurationMs };
   let isLoading = true;
   let isSaving = false;
   let canUpdate = can('platform.genie.update');
 
   function isDirty() {
     if (!policy || !draft) return false;
-    return (
-      policy.enabled !== draft.enabled ||
-      policy.duration_ms !== draft.duration_ms ||
-      policy.quality !== draft.quality
-    );
+    return policy.enabled !== draft.enabled;
   }
 
   async function loadData() {
@@ -106,12 +94,6 @@ export default function GenieSettingsPage(root, { navigate } = {}) {
       draft = { ...policy };
       authority = res?.authority || { roles: [], grants: [] };
       history = res?.history || [];
-      if (res?.limits) {
-        limits = {
-          min: res.limits.min_duration_ms ?? limits.min,
-          max: res.limits.max_duration_ms ?? limits.max,
-        };
-      }
       // The server is the authority on whether this operator may write; `can()` only knows what
       // the last permission sync told the client.
       if (typeof res?.can_update === 'boolean') canUpdate = res.can_update;
@@ -201,8 +183,6 @@ export default function GenieSettingsPage(root, { navigate } = {}) {
           policy.enabled ? t('admin_genie.on', 'On') : t('admin_genie.off', 'Off'),
           draft.enabled ? t('admin_genie.on', 'On') : t('admin_genie.off', 'Off')
         )}
-        ${diffRow(t('admin_genie.field_duration', 'Duration'), `${policy.duration_ms} ms`, `${draft.duration_ms} ms`)}
-        ${diffRow(t('admin_genie.field_quality', 'Smoothness'), qualityLabel(policy.quality), qualityLabel(draft.quality))}
       </dl>
     `;
 
@@ -330,77 +310,6 @@ export default function GenieSettingsPage(root, { navigate } = {}) {
         },
       })
     );
-
-    // ── Duration ──────────────────────────────────────────────────────────
-    const durationField = document.createElement('div');
-    durationField.className = 'genie-field';
-    const durationId = 'genie-duration';
-    const durationHead = document.createElement('div');
-    durationHead.className = 'genie-field__head';
-    const durationLabel = document.createElement('label');
-    durationLabel.className = 'genie-field__label';
-    durationLabel.htmlFor = durationId;
-    durationLabel.textContent = t('admin_genie.duration_label', 'Duration');
-    const output = document.createElement('output');
-    output.className = 'genie-field__value font-mono';
-    output.htmlFor = durationId;
-    output.textContent = `${draft.duration_ms} ms`;
-    durationHead.append(durationLabel, output);
-
-    const slider = document.createElement('input');
-    slider.type = 'range';
-    slider.id = durationId;
-    slider.className = 'genie-range';
-    slider.min = String(limits.min);
-    slider.max = String(limits.max);
-    slider.step = String(DURATION_STEP_MS);
-    slider.value = String(draft.duration_ms);
-    slider.disabled = readOnly || !draft.enabled;
-    // `input` only updates the readout, so dragging never rebuilds the control under the pointer;
-    // `change` (on release, or per keypress) commits to the draft and re-renders the buttons.
-    slider.addEventListener('input', () => {
-      output.textContent = `${slider.value} ms`;
-    });
-    slider.addEventListener('change', () => {
-      draft.duration_ms = Number(slider.value);
-      render();
-    });
-
-    const durationHint = document.createElement('p');
-    durationHint.className = 'genie-field__hint';
-    durationHint.textContent = t(
-      'admin_genie.duration_hint',
-      'How long one open or close takes. 650 ms is the shipped default; shorter feels snappier, longer shows off the curve.'
-    );
-    const scale = document.createElement('div');
-    scale.className = 'genie-range-scale font-mono';
-    scale.setAttribute('aria-hidden', 'true');
-    scale.innerHTML = `<span>${limits.min} ms</span><span>${limits.max} ms</span>`;
-    durationField.append(durationHead, slider, scale, durationHint);
-    card.append(durationField);
-
-    // ── Smoothness ────────────────────────────────────────────────────────
-    const quality = RadioGroup({
-      legend: t('admin_genie.quality_legend', 'Smoothness'),
-      hint: t(
-        'admin_genie.quality_hint',
-        'A finer drawing looks smoother but does more work on every open and close. Pick a lighter one if your visitors use budget phones.'
-      ),
-      name: 'genie-quality',
-      value: draft.quality,
-      disabled: readOnly || !draft.enabled,
-      options: GENIE_QUALITIES.map((q) => ({
-        value: q,
-        label: qualityLabel(q),
-        hint: t(`admin_genie.quality_${q}_desc`, ''),
-      })),
-      onChange: (value) => {
-        draft.quality = value;
-        render();
-      },
-    });
-    quality.classList.add('genie-quality');
-    card.append(quality);
 
     // ── Preview + meta ────────────────────────────────────────────────────
     const actions = document.createElement('div');
@@ -558,10 +467,6 @@ export default function GenieSettingsPage(root, { navigate } = {}) {
     const eyebrow = document.createElement('div');
     eyebrow.className = 'admin-page-eyebrow';
     eyebrow.append(Badge({ label: t('admin_genie.badge', 'POPUP EFFECT'), variant: 'primary' }));
-    const eyebrowMeta = document.createElement('span');
-    eyebrowMeta.className = 'text-xs text-secondary font-mono';
-    eyebrowMeta.textContent = 'platform_settings · genie';
-    eyebrow.append(eyebrowMeta);
 
     const titleEl = document.createElement('h1');
     titleEl.className = 'admin-page-title';
@@ -571,7 +476,7 @@ export default function GenieSettingsPage(root, { navigate } = {}) {
     subtitleEl.className = 'admin-page-subtitle';
     subtitleEl.textContent = t(
       'admin_genie.subtitle',
-      'Control the open-and-close animation every popup plays: turn it on or off, set how long it takes, and choose how smoothly it is drawn.'
+      'Control whether popups play the genie open-and-close animation, or use a plain fade instead.'
     );
     infoCol.append(eyebrow, titleEl, subtitleEl);
 

@@ -14,7 +14,7 @@
 .team-kpi-card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
 .team-kpi-label { font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; justify-content: space-between; }
 .team-kpi-icon { font-size: 16px; opacity: 0.85; }
-.team-kpi-val { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); font-family: var(--font-mono, monospace); line-height: 1.2; margin-top: 2px; }
+.team-kpi-val { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); font-family: inherit; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 2px; }
 .team-kpi-val--brand { color: var(--text-brand); }
 .team-kpi-val--active { color: var(--warning); }
 .team-kpi-val--success { color: var(--success); }
@@ -40,15 +40,15 @@
 .team-card__badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .team-card__title { font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .team-card__price-row { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
-.team-card__group-price { font-size: 1.15rem; font-weight: 800; color: var(--text-brand); font-family: var(--font-mono, monospace); }
-.team-card__orig-price { font-size: var(--text-xs); color: var(--text-muted); text-decoration: line-through; font-family: var(--font-mono, monospace); }
+.team-card__group-price { font-size: 1.15rem; font-weight: 800; color: var(--text-brand); font-family: inherit; font-variant-numeric: tabular-nums; }
+.team-card__orig-price { font-size: var(--text-xs); color: var(--text-muted); text-decoration: line-through; font-family: inherit; font-variant-numeric: tabular-nums; }
 .team-card__save-badge { font-size: 10px; font-weight: 800; background: var(--success-bg); color: var(--success); padding: 2px 7px; border-radius: var(--radius-sm); }
 
 /* Progress & Slot Box */
 .team-card__progress-box { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
 .team-card__progress-head { display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); }
 .team-card__progress-count { font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px; }
-.team-card__progress-timer { font-family: var(--font-mono, monospace); font-weight: 800; color: var(--warning); background: var(--warning-bg); padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid var(--warning-border); }
+.team-card__progress-timer { font-family: inherit; font-variant-numeric: tabular-nums; font-weight: 800; color: var(--warning); background: var(--warning-bg); padding: 2px 8px; border-radius: var(--radius-sm); border: 1px solid var(--warning-border); }
 .team-card__progress-status--completed { font-size: var(--text-xs); font-weight: 800; color: var(--success); }
 .team-card__progress-status--refunded { font-size: var(--text-xs); font-weight: 700; color: var(--danger); }
 
@@ -138,7 +138,7 @@
 
 .team-urgency-banner { background: var(--surface-0); border: 2px solid var(--brand); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-6); display: flex; flex-direction: column; gap: var(--space-3); align-items: center; text-align: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04); }
 @media (min-width: 640px) { .team-urgency-banner { flex-direction: row; justify-content: space-between; text-align: left; } }
-.team-timer-display { font-family: var(--font-mono, monospace); font-size: 1.75rem; font-weight: 900; color: var(--warning); }
+.team-timer-display { font-family: inherit; font-variant-numeric: tabular-nums; font-size: 1.75rem; font-weight: 900; color: var(--warning); }
 
 /* Product Card in Detail View */
 .team-detail-product-card {
@@ -250,7 +250,8 @@
   font-size: 1.75rem;
   font-weight: 900;
   color: var(--text-brand);
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
@@ -259,7 +260,8 @@
   font-weight: 600;
   color: var(--text-muted);
   text-decoration: line-through;
-  font-family: var(--font-mono, monospace);
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
 }
 
 .team-detail-product-card__save-tag {

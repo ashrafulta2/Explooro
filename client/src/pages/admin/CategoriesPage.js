@@ -298,11 +298,15 @@ export default function CategoriesPage(root, { navigate } = {}) {
     const bannerPreview = content.querySelector('#cat-banner-preview');
     const bannerImg = content.querySelector('#cat-banner-img');
 
+    // A dead/unreachable banner URL must hide the preview box, not leave the browser's
+    // broken-image icon sitting in the form.
+    bannerImg?.addEventListener('error', () => bannerPreview?.classList.remove('is-visible'));
+    bannerImg?.addEventListener('load', () => bannerPreview?.classList.add('is-visible'));
+
     bannerInput?.addEventListener('input', (e) => {
       const url = e.target.value.trim();
       if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
         bannerImg.src = url;
-        bannerPreview.classList.add('is-visible');
       } else {
         bannerPreview.classList.remove('is-visible');
       }
@@ -680,6 +684,12 @@ export default function CategoriesPage(root, { navigate } = {}) {
           render();
         }
       });
+    });
+
+    // A dead/unreachable banner URL must not leave the browser's broken-image icon sitting
+    // inline next to the category name — just drop the "has a banner" indicator.
+    container.querySelectorAll('.cat-banner-thumb').forEach((img) => {
+      img.addEventListener('error', () => img.remove(), { once: true });
     });
 
     // Edit Category

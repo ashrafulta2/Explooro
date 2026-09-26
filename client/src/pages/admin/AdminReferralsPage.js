@@ -17,7 +17,7 @@
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { formatCurrency, formatNumber } from '../../services/format.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 
 const FRAUD_SWITCHES = [
@@ -204,19 +204,19 @@ export default function AdminReferralsPage(root) {
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মোট রেফারেল' : 'Total referrals'}</div>
-          <div class="admin-kpi-card__val font-mono">${(stats.total_referrals || 0).toLocaleString()}</div>
+          <div class="admin-kpi-card__val font-mono">${formatNumber(stats.total_referrals || 0)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'সব সময়ের হিসাব' : 'All time'}</div>
         </div>
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'যোগ্য রেফারেল' : 'Qualified'}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">${(stats.qualified_count || 0).toLocaleString()}</div>
+          <div class="admin-kpi-card__val font-mono text-emerald-600">${formatNumber(stats.qualified_count || 0)}</div>
           <div class="admin-kpi-card__hint">
-            ${stats.total_referrals ? Math.round((stats.qualified_count / stats.total_referrals) * 100) : 0}% ${isBn ? 'রূপান্তর' : 'conversion'}
+            ${formatNumber(stats.total_referrals ? Math.round((stats.qualified_count / stats.total_referrals) * 100) : 0)}% ${isBn ? 'রূপান্তর' : 'conversion'}
           </div>
         </div>
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'সক্রিয় রেফারার' : 'Active referrers'}</div>
-          <div class="admin-kpi-card__val font-mono">${(stats.active_referrers_count || 0).toLocaleString()}</div>
+          <div class="admin-kpi-card__val font-mono">${formatNumber(stats.active_referrers_count || 0)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'গত ৩০ দিনে' : 'Last 30 days'}</div>
         </div>
         <div class="admin-kpi-card">

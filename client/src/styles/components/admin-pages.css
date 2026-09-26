@@ -500,6 +500,18 @@
 .gap-3 { gap: var(--space-3); }
 .gap-4 { gap: var(--space-4); }
 .gap-5 { gap: var(--space-5); }
+/* p-N mirrors --space-N 1:1 (design-system.md §4.1); p-12 has no --space-12, so it reuses the
+   largest defined step, --space-10, rather than inventing an off-scale value. */
+.p-1 { padding: var(--space-1); }
+.p-2 { padding: var(--space-2); }
+.p-3 { padding: var(--space-3); }
+.p-4 { padding: var(--space-4); }
+.p-5 { padding: var(--space-5); }
+.p-6 { padding: var(--space-6); }
+.p-7 { padding: var(--space-7); }
+.p-8 { padding: var(--space-8); }
+.p-9 { padding: var(--space-9); }
+.p-10, .p-11, .p-12 { padding: var(--space-10); }
 .w-full { width: 100%; }
 .text-right { text-align: right; }
 .text-center { text-align: center; }
@@ -509,7 +521,7 @@
 .nowrap { white-space: nowrap; }
 
 /* Typography & Color Utilities */
-.font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+.font-mono { font-family: inherit; font-variant-numeric: tabular-nums; }
 .font-bold { font-weight: var(--weight-bold); }
 .font-semibold { font-weight: var(--weight-semibold); }
 .font-medium { font-weight: var(--weight-medium); }
@@ -629,7 +641,8 @@
 .category-slug {
   font-size: var(--text-2xs);
   color: var(--text-muted);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
   background: var(--surface-2);
   padding: 1px 6px;
   border-radius: var(--radius-xs);

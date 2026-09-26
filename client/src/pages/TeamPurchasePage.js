@@ -977,7 +977,7 @@ export class TeamPurchasePage {
             <div class="team-detail-product-card__content">
               <div class="team-detail-product-card__badges">
                 ${discountPct > 0 ? `<span class="badge badge--success" style="font-weight: 700;">Save ${discountPct}%</span>` : ''}
-                <span class="badge badge--neutral" style="font-family: var(--font-mono, monospace); font-weight: 700;">${t.ref}</span>
+                <span class="badge badge--neutral" style="font-family: inherit; font-variant-numeric: tabular-nums; font-weight: 700;">${t.ref}</span>
                 <span class="badge badge--neutral" style="font-weight: 700; text-transform: uppercase;">${t.status === 'ACTIVE' ? (isBn ? 'চলতি' : 'ACTIVE') : t.status === 'COMPLETED' ? (isBn ? 'সফল' : 'COMPLETED') : (isBn ? 'মেয়াদোত্তীর্ণ' : 'EXPIRED')}</span>
               </div>
 

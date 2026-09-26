@@ -22,6 +22,12 @@
   margin-top: var(--space-5);
 }
 
+.language-policy-card,
+.language-authority-card,
+.language-history-card {
+  padding: var(--card-padding);
+}
+
 .language-policy-card {
   grid-area: policy;
 }

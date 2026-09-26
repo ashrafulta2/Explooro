@@ -17,6 +17,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { formatNumber } from '../../services/format.js';
 
 export default function WarehousesPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -308,7 +309,7 @@ export default function WarehousesPage(root, { navigate } = {}) {
               <div class="system-infra-card__gauge">
                 <div class="system-infra-card__gauge-head">
                   <span>${isBn ? 'স্টোরেজ পূর্ণতা' : 'Storage Capacity'}</span>
-                  <span class="font-mono font-bold ${isHigh ? 'text-amber-600' : 'text-emerald-600'}">${utilPct}% (${w.current_units.toLocaleString()} / ${w.capacity_units.toLocaleString()})</span>
+                  <span class="font-mono font-bold ${isHigh ? 'text-amber-600' : 'text-emerald-600'}">${formatNumber(utilPct)}% (${formatNumber(w.current_units)} / ${formatNumber(w.capacity_units)})</span>
                 </div>
                 <div class="system-infra-card__gauge-bar">
                   <div class="system-infra-card__gauge-fill" style="width: ${utilPct}%; background: ${isHigh ? 'linear-gradient(90deg, #f59e0b, #ef4444)' : 'linear-gradient(90deg, #10b981, #06b6d4)'};"></div>

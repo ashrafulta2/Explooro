@@ -20,7 +20,36 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatNumber } from '../../services/format.js';
+import { formatNumber, formatCurrency } from '../../services/format.js';
+import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.js';
+
+/**
+ * Broken/blocked image CDNs (ad-blockers, corporate proxies, dead links) must never surface the
+ * browser's default broken-image icon with overflowing alt text — swap in a local, dependency-free
+ * initials tile instead, mirroring the storefront ProductCard's own onerror handling.
+ */
+function attachImageFallback(img, title, ref, placeholderClassName) {
+  img.addEventListener(
+    'error',
+    () => {
+      const hash = String(ref || title || '').split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+      const palette = PLACEHOLDER_COLOURS[hash % PLACEHOLDER_COLOURS.length] || PLACEHOLDER_COLOURS[0];
+      const placeholder = document.createElement('div');
+      placeholder.className = placeholderClassName;
+      placeholder.style.cssText = `background:${palette.bg};color:${palette.fg}`;
+      placeholder.textContent = placeholderInitials(title);
+      // Preserve any data-* the caller relies on (e.g. the Add-Product preset picker reads
+      // data-src on click) so replacing the <img> doesn't silently break that behaviour.
+      if (img.dataset) {
+        Object.entries(img.dataset).forEach(([key, value]) => {
+          placeholder.dataset[key] = value;
+        });
+      }
+      img.replaceWith(placeholder);
+    },
+    { once: true }
+  );
+}
 
 export default function CatalogProductsPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -128,26 +157,26 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     const cards = [
       {
         label: t('admin_catalog.kpi_total_products', 'Total Products'),
-        value: stats.total_products.toLocaleString(),
-        meta: `${stats.total_categories} ${t('admin_catalog.kpi_categories_active', 'Active Categories')}`,
+        value: formatNumber(stats.total_products),
+        meta: `${formatNumber(stats.total_categories)} ${t('admin_catalog.kpi_categories_active', 'Active Categories')}`,
         metaClass: '',
       },
       {
         label: t('admin_catalog.kpi_in_stock', 'In-Stock & Live'),
-        value: stats.in_stock_count.toLocaleString(),
-        meta: `${Math.round((stats.in_stock_count / (stats.total_products || 1)) * 100)}% ${t('admin_catalog.kpi_availability', 'Available')}`,
+        value: formatNumber(stats.in_stock_count),
+        meta: `${formatNumber(Math.round((stats.in_stock_count / (stats.total_products || 1)) * 100))}% ${t('admin_catalog.kpi_availability', 'Available')}`,
         metaClass: 'catalog-stat-card__meta--success',
       },
       {
         label: t('admin_catalog.kpi_low_stock', { threshold: formatNumber(lowStockThreshold) }),
-        value: stats.low_stock_count.toLocaleString(),
-        meta: `${stats.out_of_stock_count} ${t('admin_catalog.kpi_out_of_stock', 'Out of Stock')}`,
+        value: formatNumber(stats.low_stock_count),
+        meta: `${formatNumber(stats.out_of_stock_count)} ${t('admin_catalog.kpi_out_of_stock', 'Out of Stock')}`,
         metaClass: stats.low_stock_count > 0 ? 'catalog-stat-card__meta--warning' : '',
       },
       {
         label: t('admin_catalog.kpi_inventory_value', 'Potential GMV Value'),
-        value: `৳${stats.total_potential_inventory_value.toLocaleString()}`,
-        meta: `${stats.verified_suppliers_count} ${t('admin_catalog.kpi_verified_suppliers', 'Verified Suppliers')}`,
+        value: formatCurrency(stats.total_potential_inventory_value),
+        meta: `${formatNumber(stats.verified_suppliers_count)} ${t('admin_catalog.kpi_verified_suppliers', 'Verified Suppliers')}`,
         metaClass: 'catalog-stat-card__meta--success',
       },
     ];
@@ -568,14 +597,14 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         </td>
         <td>
           <div class="catalog-price-cell">
-            <span class="catalog-price-retail">৳${parseFloat(p.price || 0).toLocaleString()}</span>
-            <span class="catalog-price-margin">${p.margin_pct ?? 18}% ${t('admin_catalog.saler_margin', 'margin')}</span>
+            <span class="catalog-price-retail">${formatCurrency(p.price || 0)}</span>
+            <span class="catalog-price-margin">${formatNumber(p.margin_pct ?? 18)}% ${t('admin_catalog.saler_margin', 'margin')}</span>
           </div>
         </td>
         <td>
           <div class="catalog-stock-wrap">
             <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
-              <span>${p.stock ?? 0} ${t('admin_catalog.units', 'units')}</span>
+              <span>${formatNumber(p.stock ?? 0)} ${t('admin_catalog.units', 'units')}</span>
               ${isOutOfStock ? `<span style="color: var(--danger);">${t('admin_catalog.out_of_stock', 'Out')}</span>` : ''}
               ${isLowStock ? `<span style="color: var(--warning);">${t('admin_catalog.low_stock', 'Low')}</span>` : ''}
             </div>
@@ -586,7 +615,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         </td>
         <td>
           <div style="display: flex; flex-direction: column; gap: 4px;">
-            ${p.is_flash_sale ? `<span class="badge badge--warning badge--sm">🔥 Flash Sale</span>` : `<span class="badge badge--neutral badge--sm">Active</span>`}
+            ${p.is_flash_sale ? `<span class="badge badge--warning badge--sm">${t('admin_catalog.flash_sale_badge', '🔥 Flash Sale')}</span>` : `<span class="badge badge--neutral badge--sm">${t('admin_catalog.status_active', 'Active')}</span>`}
           </div>
         </td>
         <td style="text-align: right;">
@@ -598,6 +627,9 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           </div>
         </td>
       `;
+
+      const thumbImg = tr.querySelector('.catalog-thumb');
+      if (thumbImg) attachImageFallback(thumbImg, isBn ? (p.title_bn || p.title_en) : (p.title_en || p.title_bn), p.ref, 'catalog-thumb catalog-thumb--placeholder');
 
       // Checkbox click
       tr.querySelector('.row-checkbox')?.addEventListener('change', (e) => {
@@ -650,7 +682,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         <div class="catalog-card__thumb-wrap">
           <img class="catalog-card__thumb" src="${p.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80'}" alt="${p.title_en}" loading="lazy" />
           <div class="catalog-card__badges">
-            ${p.is_flash_sale ? `<span class="badge badge--warning badge--sm">🔥 Flash Sale</span>` : ''}
+            ${p.is_flash_sale ? `<span class="badge badge--warning badge--sm">${t('admin_catalog.flash_sale_badge', '🔥 Flash Sale')}</span>` : ''}
             <span class="badge badge--neutral badge--sm">${p.category || 'General'}</span>
           </div>
         </div>
@@ -662,12 +694,12 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           <p style="font-size: var(--text-xs); color: var(--text-muted); margin: 0;">📍 ${p.district || 'Dhaka'} • ${p.store_ref || 'Supplier'}</p>
           <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: auto; padding-top: var(--space-2);">
             <div>
-              <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary);">৳${parseFloat(p.price || 0).toLocaleString()}</div>
-              <div style="font-size: 11px; color: var(--success); font-weight: 600;">${p.margin_pct ?? 18}% ${t('admin_catalog.saler_margin', 'margin')}</div>
+              <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary);">${formatCurrency(p.price || 0)}</div>
+              <div style="font-size: 11px; color: var(--success); font-weight: 600;">${formatNumber(p.margin_pct ?? 18)}% ${t('admin_catalog.saler_margin', 'margin')}</div>
             </div>
             <div style="text-align: right;">
               <span style="font-size: 12px; font-weight: 600; color: ${isOutOfStock ? 'var(--danger)' : isLowStock ? 'var(--warning)' : 'var(--text-primary)'};">
-                ${p.stock ?? 0} in stock
+                ${formatNumber(p.stock ?? 0)} ${t('admin_catalog.units_in_stock', 'in stock')}
               </span>
               <div style="font-size: 11px; color: var(--text-muted);">⭐ ${p.rating || '4.5'} (${p.rating_count || 12})</div>
             </div>
@@ -679,6 +711,9 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           <button class="catalog-icon-btn catalog-icon-btn--danger delete-btn" title="${t('common.delete', 'Delete')}">🗑️</button>
         </div>
       `;
+
+      const cardThumbImg = card.querySelector('.catalog-card__thumb');
+      if (cardThumbImg) attachImageFallback(cardThumbImg, isBn ? (p.title_bn || p.title_en) : (p.title_en || p.title_bn), p.ref, 'catalog-card__thumb catalog-card__thumb--placeholder');
 
       card.querySelector('.inspect-btn')?.addEventListener('click', () => openProductDrawer(p));
       card.querySelector('.edit-btn')?.addEventListener('click', () => openEditProductModal(p));
@@ -710,7 +745,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
     drawerContent.innerHTML = `
       <div style="border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-2); border: 1px solid var(--border-strong);">
-        <img src="${product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80'}" alt="${product.title_en}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover;" />
+        <img class="catalog-drawer-hero-img" src="${product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80'}" alt="${product.title_en}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block;" />
       </div>
 
       <div style="display: flex; flex-direction: column; gap: var(--space-2);">
@@ -723,8 +758,8 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         <p style="font-size: var(--text-sm); color: var(--text-muted); margin: 0;">${product.title_bn || ''}</p>
         <div style="display: flex; gap: var(--space-2); margin-top: var(--space-1); flex-wrap: wrap;">
           <span class="badge badge--neutral">${product.category}</span>
-          <span class="badge badge--${product.supplier_tier === 'elite' ? 'brand' : 'success'}">${product.supplier_tier || 'verified'} supplier</span>
-          ${product.is_flash_sale ? `<span class="badge badge--warning">🔥 Flash Sale Active</span>` : ''}
+          <span class="badge badge--${product.supplier_tier === 'elite' ? 'brand' : 'success'}">${product.supplier_tier || 'verified'} ${t('admin_catalog.supplier_tier_suffix', 'supplier')}</span>
+          ${product.is_flash_sale ? `<span class="badge badge--warning">${t('admin_catalog.flash_sale_active_badge', '🔥 Flash Sale Active')}</span>` : ''}
         </div>
       </div>
 
@@ -735,19 +770,19 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         </div>
         <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
           <span style="color: var(--text-muted);">${t('admin_catalog.suggested_retail', 'Suggested Retail Price')}:</span>
-          <strong style="color: var(--text-primary);">৳${retail.toFixed(2)}</strong>
+          <strong style="color: var(--text-primary);">${formatCurrency(retail)}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
           <span style="color: var(--text-muted);">${t('admin_catalog.wholesale_cost', 'Supplier Wholesale Cost')}:</span>
-          <span>৳${wholesaleCost.toFixed(2)}</span>
+          <span>${formatCurrency(wholesaleCost)}</span>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); border-top: 1px dashed var(--border-strong); padding-top: var(--space-2);">
           <span style="color: var(--success); font-weight: 600;">💰 ${t('admin_catalog.saler_earning', 'Saler Reseller Earning (40%)')}:</span>
-          <strong style="color: var(--success);">৳${salerEarning.toFixed(2)}</strong>
+          <strong style="color: var(--success);">${formatCurrency(salerEarning)}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
           <span style="color: var(--text-muted);">${t('admin_catalog.platform_fee', 'Platform Escrow Fee (60%)')}:</span>
-          <span style="color: var(--text-muted);">৳${platformEarning.toFixed(2)}</span>
+          <span style="color: var(--text-muted);">${formatCurrency(platformEarning)}</span>
         </div>
       </div>
 
@@ -755,7 +790,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); font-size: var(--text-xs);">
         <div style="background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-3);">
           <div style="color: var(--text-muted);">${t('admin_catalog.stock_level', 'Stock Quantity')}</div>
-          <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-top: 2px;">${product.stock ?? 0} units</div>
+          <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-top: 2px;">${formatNumber(product.stock ?? 0)} ${t('admin_catalog.units', 'units')}</div>
         </div>
         <div style="background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-3);">
           <div style="color: var(--text-muted);">${t('admin_catalog.origin_district', 'District Origin')}</div>
@@ -773,6 +808,9 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         </p>
       </div>
     `;
+
+    const heroImg = drawerContent.querySelector('.catalog-drawer-hero-img');
+    if (heroImg) attachImageFallback(heroImg, isBn ? (product.title_bn || product.title_en) : (product.title_en || product.title_bn), product.ref, 'catalog-drawer-hero-img catalog-drawer-hero-img--placeholder');
 
     const drawerFooter = document.createElement('div');
     drawerFooter.style.display = 'flex';
@@ -911,13 +949,18 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     `;
 
     const imgInput = form.querySelector('input[name="image_url"]');
-    form.querySelectorAll('.catalog-preset-thumb').forEach((thumb) => {
-      thumb.addEventListener('click', () => {
-        form.querySelectorAll('.catalog-preset-thumb').forEach((t) => t.classList.remove('catalog-preset-thumb--selected'));
-        thumb.classList.add('catalog-preset-thumb--selected');
-        selectedImg = thumb.getAttribute('data-src');
-        if (imgInput) imgInput.value = selectedImg;
-      });
+    form.querySelectorAll('.catalog-preset-thumb').forEach((thumb, i) => {
+      attachImageFallback(thumb, `Preset ${i + 1}`, `preset-${i}`, 'catalog-preset-thumb catalog-preset-thumb--placeholder');
+    });
+    // Delegated on the container (not each thumb) so a thumb swapped for a fallback placeholder
+    // after an image-load failure stays clickable.
+    form.querySelector('.catalog-presets-picker')?.addEventListener('click', (e) => {
+      const thumb = e.target.closest('.catalog-preset-thumb');
+      if (!thumb) return;
+      form.querySelectorAll('.catalog-preset-thumb').forEach((t) => t.classList.remove('catalog-preset-thumb--selected'));
+      thumb.classList.add('catalog-preset-thumb--selected');
+      selectedImg = thumb.getAttribute('data-src');
+      if (imgInput) imgInput.value = selectedImg;
     });
 
     const modalFooter = document.createElement('div');

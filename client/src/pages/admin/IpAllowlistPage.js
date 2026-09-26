@@ -476,7 +476,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
                   required
                   placeholder="103.145.120.42/32"
                   value="${formIp}"
-                  style="width: 100%; padding: 0.5rem; font-size: 0.8125rem; font-family: monospace; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);"
+                  style="width: 100%; padding: 0.5rem; font-size: 0.8125rem; font-family: inherit; font-variant-numeric: tabular-nums; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);"
                 />
               </div>
 

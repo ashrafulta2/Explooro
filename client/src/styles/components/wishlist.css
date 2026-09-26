@@ -27,8 +27,8 @@
 .wishlist-badge--drop { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning-border); }
 
 .wishlist-card__price-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-2); }
-.wishlist-card__price { font-size: 1.2rem; font-weight: 800; color: var(--text-brand); font-family: var(--font-mono, monospace); }
-.wishlist-card__price--old { font-size: var(--text-xs); color: var(--text-muted); text-decoration: line-through; font-family: var(--font-mono, monospace); }
+.wishlist-card__price { font-size: 1.2rem; font-weight: 800; color: var(--text-brand); font-family: inherit; font-variant-numeric: tabular-nums; }
+.wishlist-card__price--old { font-size: var(--text-xs); color: var(--text-muted); text-decoration: line-through; font-family: inherit; font-variant-numeric: tabular-nums; }
 .wishlist-card__notify { margin-top: var(--space-1); }
 
 /* Card Actions & Buttons */

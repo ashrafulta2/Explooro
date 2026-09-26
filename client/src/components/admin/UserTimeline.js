@@ -95,7 +95,8 @@ export function UserTimeline({ events = [] }) {
 
     if (ev.trace_id) {
       const traceTag = document.createElement('span');
-      traceTag.style.fontFamily = 'monospace';
+      traceTag.style.fontFamily = 'inherit';
+      traceTag.style.fontVariantNumeric = 'tabular-nums';
       traceTag.textContent = `${t('user_timeline.trace_label')}: ${ev.trace_id.substring(0, 8)}…`;
       tagsLeft.append(traceTag);
     }

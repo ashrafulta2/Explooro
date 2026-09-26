@@ -218,7 +218,7 @@ export default function VerificationCenterPage(root) {
           <div style="width: 100px; height: 120px; background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 40px; margin-bottom: 8px; box-shadow: var(--elevation-1);">
             <span style="display: inline-flex; color: var(--text-muted); transform: scale(2.5);">${ICONS.image}</span>
           </div>
-          <span style="font-family: var(--font-mono, monospace); font-size: 12px; font-weight: 700; color: var(--text-brand);">${esc(t('kyc.viewer_label', '[WATERMARKED SECURE VAULT PREVIEW]'))}</span>
+          <span style="font-family: inherit; font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 700; color: var(--text-brand);">${esc(t('kyc.viewer_label', '[WATERMARKED SECURE VAULT PREVIEW]'))}</span>
           <span style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">${esc(t('kyc.viewer_storage_key', 'Storage key:'))} <code>${esc(inspectingDoc.storage_key)}</code></span>
         </div>
 
@@ -342,7 +342,7 @@ export default function VerificationCenterPage(root) {
             (item) => `
           <div style="padding: var(--space-3); cursor: pointer; border-bottom: var(--border-width) solid var(--border-subtle); transition: background var(--dur-fast); ${selectedKyc?.id === item.id ? 'background: var(--surface-2); border-left: 3px solid var(--brand);' : ''}" data-kyc-id="${item.id}">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;">
-              <span style="font-family: var(--font-mono, monospace); font-weight: 700; font-size: 11px; color: var(--text-brand);">${esc(item.ref)}</span>
+              <span style="font-family: inherit; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 11px; color: var(--text-brand);">${esc(item.ref)}</span>
               <span class="badge ${item.status === 'VERIFIED' ? 'badge--success' : item.status === 'REJECTED' ? 'badge--danger' : 'badge--warning'}" style="font-size: 10px;">
                 ${esc(t(`kyc.status.${item.status}`, item.status))}
               </span>
@@ -379,7 +379,7 @@ export default function VerificationCenterPage(root) {
         <div style="display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: var(--space-4); border-bottom: var(--border-width) solid var(--border-subtle); flex-wrap: wrap; gap: var(--space-2);">
           <div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-family: var(--font-mono, monospace); font-size: 16px; font-weight: 800; color: var(--text-brand);">${esc(selectedKyc.ref)}</span>
+              <span style="font-family: inherit; font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 800; color: var(--text-brand);">${esc(selectedKyc.ref)}</span>
               <span class="badge ${selectedKyc.status === 'VERIFIED' ? 'badge--success' : selectedKyc.status === 'REJECTED' ? 'badge--danger' : 'badge--warning'}">
                 ${esc(t(`kyc.status.${selectedKyc.status}`, selectedKyc.status))}
               </span>

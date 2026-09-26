@@ -67,14 +67,16 @@
   position: absolute;
   inset-inline-start: var(--space-3);
   color: var(--text-muted);
-  font-family: ui-monospace, monospace;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-xs);
   pointer-events: none;
 }
 
 .cat-slug-input-wrap .form-input {
   padding-inline-start: 78px;
-  font-family: ui-monospace, monospace;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-xs);
 }
 

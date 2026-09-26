@@ -55,6 +55,7 @@ html {
 
 :lang(bn) {
   font-family: var(--font-bengali);
+  --font-mono: var(--font-bengali);
 }
 
 body {
@@ -182,11 +183,25 @@ h6 {
   color: var(--text-muted);
 }
 
-/* §3.3 — every price, counter, table cell, countdown. Without this digits jitter as they change. */
+/* §3.3 — every price, counter, table cell, countdown, reference, and numeric data.
+   Guarantees unified typography across all screens while preventing digit jitter. */
 .text-numeric,
 td,
 .price,
-.countdown {
+.countdown,
+.font-mono,
+.category-slug,
+.cat-slug-prefix,
+[class*="__price"],
+[class*="__total"],
+[class*="__ref"],
+[class*="__code"],
+[class*="__val"],
+[class*="-val"],
+[class*="-badge"],
+[class*="__slug"],
+[class*="-slug"] {
+  font-family: inherit;
   font-variant-numeric: tabular-nums;
 }
 

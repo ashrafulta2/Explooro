@@ -17,7 +17,7 @@ import { Badge } from '../../components/ui/Badge.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { formatCurrency, formatNumber } from '../../services/format.js';
 
 export default function AdminQuestsPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -156,7 +156,7 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'সক্রিয় স্ট্রিক ব্যবহারকারী' : 'Active Daily Streaks'}</div>
-          <div class="admin-kpi-card__val text-brand font-mono">${stats.active_daily_streakers.toLocaleString()}</div>
+          <div class="admin-kpi-card__val text-brand font-mono">${formatNumber(stats.active_daily_streakers)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'দৈনিক অ্যাপ চেক-ইন' : 'Engaged Users'}</div>
         </div>
       </div>
@@ -326,9 +326,9 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
                 <tr>
                   <td><span class="font-bold text-primary">${q.title}</span></td>
                   <td><span class="text-xs text-secondary">${q.description}</span></td>
-                  <td><strong class="font-mono text-amber-600">🪙 +${q.reward_coins}</strong></td>
+                  <td><strong class="font-mono text-amber-600">🪙 +${formatNumber(q.reward_coins)}</strong></td>
                   <td><span class="badge badge--neutral text-xs">${questFrequencyLabels[q.frequency] || q.frequency}</span></td>
-                  <td><span class="font-mono font-bold">${q.completions_today.toLocaleString()}</span></td>
+                  <td><span class="font-mono font-bold">${formatNumber(q.completions_today)}</span></td>
                   <td><span class="system-table__badge system-table__badge--success">${q.is_active ? (isBn ? 'সক্রিয়' : 'Active') : (isBn ? 'নিষ্ক্রিয়' : 'Paused')}</span></td>
                   <td style="text-align: right;">
                     <button type="button" class="btn btn--secondary btn--sm toggle-quest-btn" data-id="${q.id}">
@@ -367,11 +367,11 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
                 ? `<tr><td colspan="5" class="text-center text-muted">${isBn ? 'এখনো কোনো তথ্য নেই।' : 'No leaderboard data yet.'}</td></tr>`
                 : leaderboard.map((row) => `
                 <tr>
-                  <td><strong class="font-mono">#${row.rank}</strong></td>
+                  <td><strong class="font-mono">#${formatNumber(row.rank)}</strong></td>
                   <td><span class="font-bold text-primary">${row.name}</span></td>
                   <td><span class="text-xs text-secondary">${row.district}</span></td>
-                  <td><strong class="font-mono text-amber-600">🪙 ${row.coins_earned_30d.toLocaleString()}</strong></td>
-                  <td><span class="badge badge--neutral font-mono">${row.streak_days}</span></td>
+                  <td><strong class="font-mono text-amber-600">🪙 ${formatNumber(row.coins_earned_30d)}</strong></td>
+                  <td><span class="badge badge--neutral font-mono">${formatNumber(row.streak_days)}</span></td>
                 </tr>
               `).join('')}
             </tbody>

@@ -36,4 +36,4 @@
 .auth-footer a { color: var(--text-brand); font-weight: var(--weight-semibold); text-decoration: none; }
 .auth-footer a:hover { text-decoration: underline; color: var(--brand-hover); }
 .auth-extra-row { display: flex; align-items: center; justify-content: space-between; font-size: var(--text-sm); }
-.auth-2fa-secret { background: var(--surface-2); padding: var(--space-3); border-radius: var(--radius-md); font-family: monospace; font-size: var(--text-sm); text-align: center; letter-spacing: 2px; user-select: all; border: 1px dashed var(--border-subtle); color: var(--text-primary); }
+.auth-2fa-secret { background: var(--surface-2); padding: var(--space-3); border-radius: var(--radius-md); font-family: inherit; font-variant-numeric: tabular-nums; font-size: var(--text-sm); text-align: center; letter-spacing: 2px; user-select: all; border: 1px dashed var(--border-subtle); color: var(--text-primary); }

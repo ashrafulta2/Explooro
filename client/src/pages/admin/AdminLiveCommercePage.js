@@ -15,7 +15,8 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { formatCurrency, formatNumber } from '../../services/format.js';
+import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.js';
 
 export default function AdminLiveCommercePage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -86,13 +87,13 @@ export default function AdminLiveCommercePage(root, { navigate } = {}) {
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'চলমান লাইভ স্ট্রিম' : 'Active Broadcasts'}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">🔴 ${stats.active_broadcasts} Live</div>
+          <div class="admin-kpi-card__val font-mono text-emerald-600">🔴 ${formatNumber(stats.active_broadcasts)} Live</div>
           <div class="admin-kpi-card__hint">${isBn ? 'রিয়েল-টাইম সম্প্রচার' : 'Real-time Streaming'}</div>
         </div>
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'বর্তমান সক্রিয় দর্শক' : 'Concurrent Viewers'}</div>
-          <div class="admin-kpi-card__val font-mono text-primary">${stats.concurrent_viewers.toLocaleString()}</div>
+          <div class="admin-kpi-card__val font-mono text-primary">${formatNumber(stats.concurrent_viewers)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'ওয়েবসকেট কানেক্টেড' : 'Live WebSocket Presences'}</div>
         </div>
 
@@ -104,7 +105,7 @@ export default function AdminLiveCommercePage(root, { navigate } = {}) {
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মডারেশন অ্যালার্ট' : 'Moderation Flags'}</div>
-          <div class="admin-kpi-card__val font-mono text-amber-500">${stats.flagged_messages}</div>
+          <div class="admin-kpi-card__val font-mono text-amber-500">${formatNumber(stats.flagged_messages)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'অটো-মিউট কার্যকর' : 'Auto-Filtered Words'}</div>
         </div>
       </div>
@@ -114,13 +115,13 @@ export default function AdminLiveCommercePage(root, { navigate } = {}) {
         ${streams.map((s) => `
           <div class="system-infra-card p-4">
             <div class="relative rounded-lg overflow-hidden mb-3" style="height: 180px; background: #111;">
-              <img src="${s.thumbnail}" alt="Thumbnail" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85;" />
+              <img class="livestream-thumb" src="${s.thumbnail}" alt="Thumbnail" data-id="${s.id}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85;" />
               <div class="absolute top-2 left-2 flex items-center gap-1 bg-red-600 text-white font-bold text-xs px-2 py-1 rounded">
                 <span class="system-health__pulse-dot" style="background: #fff;"></span>
                 LIVE
               </div>
               <div class="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded font-mono">
-                👥 ${s.viewers_count}
+                👥 ${formatNumber(s.viewers_count)}
               </div>
               <div class="absolute bottom-2 left-2 right-2 bg-black/70 backdrop-blur text-white text-xs p-2 rounded">
                 <div class="text-amber-300 font-bold">📌 Pinned Deal:</div>
@@ -138,11 +139,11 @@ export default function AdminLiveCommercePage(root, { navigate } = {}) {
             <div class="system-infra-card__list">
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'সম্প্রচার সময়কাল' : 'Duration'}</span>
-                <span class="system-infra-card__val font-mono">${s.duration_min} minutes</span>
+                <span class="system-infra-card__val font-mono">${formatNumber(s.duration_min)} minutes</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'ইন-স্ট্রিম অর্ডার' : 'Orders Placed'}</span>
-                <span class="system-infra-card__val font-mono">${s.in_stream_orders} orders</span>
+                <span class="system-infra-card__val font-mono">${formatNumber(s.in_stream_orders)} orders</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'লাইভ সেলস আয়' : 'In-Stream GMV'}</span>
@@ -159,6 +160,22 @@ export default function AdminLiveCommercePage(root, { navigate } = {}) {
         `).join('')}
       </div>
     `;
+
+    // A dead/blocked thumbnail CDN must never surface the browser's broken-image icon —
+    // swap in a local, dependency-free initials tile instead (matches ProductCard's own onerror handling).
+    container.querySelectorAll('.livestream-thumb').forEach((img) => {
+      img.addEventListener('error', () => {
+        const s = streams.find((x) => String(x.id) === img.getAttribute('data-id'));
+        const title = s?.title || 'Live';
+        const hash = String(s?.id ?? title).split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+        const palette = PLACEHOLDER_COLOURS[hash % PLACEHOLDER_COLOURS.length] || PLACEHOLDER_COLOURS[0];
+        const placeholder = document.createElement('div');
+        placeholder.className = 'livestream-thumb';
+        placeholder.style.cssText = `width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: var(--text-2xl); font-weight: 700; background:${palette.bg}; color:${palette.fg};`;
+        placeholder.textContent = placeholderInitials(title);
+        img.replaceWith(placeholder);
+      }, { once: true });
+    });
 
     // Bind Event Listeners
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());

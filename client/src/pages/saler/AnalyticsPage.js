@@ -244,7 +244,7 @@ function renderRevenueTrendChart(container, trends = [], summary = {}) {
     const val = Math.round(maxVal * frac);
     return `
       <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="currentColor" stroke-opacity="0.08" stroke-dasharray="3,3" />
-      <text x="${padLeft - 6}" y="${y + 3}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.4" font-family="monospace">৳${val}</text>
+      <text x="${padLeft - 6}" y="${y + 3}" text-anchor="end" font-size="9" fill="currentColor" opacity="0.4" font-family="inherit">৳${val}</text>
     `;
   }).join('');
 
@@ -253,7 +253,7 @@ function renderRevenueTrendChart(container, trends = [], summary = {}) {
   const xLabels = trends.filter((_, i) => i % step === 0 || i === trends.length - 1).map((t) => {
     const idx = trends.indexOf(t);
     const x = getX(idx);
-    return `<text x="${x}" y="${height - 10}" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.5" font-family="monospace">${t.label}</text>`;
+    return `<text x="${x}" y="${height - 10}" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.5" font-family="inherit">${t.label}</text>`;
   }).join('');
 
   // Dots

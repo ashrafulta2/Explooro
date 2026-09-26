@@ -15,7 +15,7 @@ import { Badge } from '../../components/ui/Badge.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { formatCurrency, formatNumber } from '../../services/format.js';
 
 export default function AdminAdsPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -106,8 +106,8 @@ export default function AdminAdsPage(root, { navigate } = {}) {
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মোট ইমপ্রেশন ও ক্লিক' : 'Impressions & Clicks'}</div>
-          <div class="admin-kpi-card__val font-mono text-primary">${Math.round(stats.impressions / 1000)}k <span class="text-xs font-normal">imp</span></div>
-          <div class="admin-kpi-card__hint">${stats.clicks.toLocaleString()} ${isBn ? 'ক্লিক (৭.৭% সিটিআর)' : 'Clicks (7.7% CTR)'}</div>
+          <div class="admin-kpi-card__val font-mono text-primary">${formatNumber(Math.round(stats.impressions / 1000))}k <span class="text-xs font-normal">imp</span></div>
+          <div class="admin-kpi-card__hint">${formatNumber(stats.clicks)} ${isBn ? 'ক্লিক (৭.৭% সিটিআর)' : 'Clicks (7.7% CTR)'}</div>
         </div>
 
         <div class="admin-kpi-card">
@@ -118,7 +118,7 @@ export default function AdminAdsPage(root, { navigate } = {}) {
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'ফ্রড ক্লিক ব্লকড' : 'Fraud Discarded Clicks'}</div>
-          <div class="admin-kpi-card__val text-rose-600 font-mono">${stats.fraud_blocked_clicks}</div>
+          <div class="admin-kpi-card__val text-rose-600 font-mono">${formatNumber(stats.fraud_blocked_clicks)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'সেলফ-ক্লিক ও বট প্রতিরোধ' : 'Self-Click & Bot Filtered'}</div>
         </div>
       </div>
@@ -157,11 +157,11 @@ export default function AdminAdsPage(root, { navigate } = {}) {
                       <div class="text-xs text-muted">Total: ${formatCurrency(c.total_spent)}</div>
                     </td>
                     <td>
-                      <span class="font-bold text-emerald-600 font-mono">★ ${c.quality_score} / 10</span>
+                      <span class="font-bold text-emerald-600 font-mono">★ ${formatNumber(c.quality_score)} / 10</span>
                     </td>
                     <td>
-                      <div class="font-mono">${c.impressions.toLocaleString()} imp</div>
-                      <div class="text-xs text-muted font-mono">${c.clicks.toLocaleString()} clicks</div>
+                      <div class="font-mono">${formatNumber(c.impressions)} imp</div>
+                      <div class="text-xs text-muted font-mono">${formatNumber(c.clicks)} clicks</div>
                     </td>
                     <td>
                       <span class="system-table__badge ${isActive ? 'system-table__badge--success' : 'system-table__badge--warn'}">

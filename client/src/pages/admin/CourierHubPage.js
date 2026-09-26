@@ -16,6 +16,7 @@ import { Modal } from '../../components/ui/Modal.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { formatNumber } from '../../services/format.js';
 
 export default function CourierHubPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -154,13 +155,13 @@ export default function CourierHubPage(root, { navigate } = {}) {
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মোট কনসাইনমেন্ট' : 'Total Consignments'}</div>
-          <div class="admin-kpi-card__val font-mono">${stats.total_consignments.toLocaleString()}</div>
-          <div class="admin-kpi-card__hint">${stats.active_couriers} ${isBn ? 'সক্রিয় কুরিয়ার পার্টনার' : 'Connected Carriers'}</div>
+          <div class="admin-kpi-card__val font-mono">${formatNumber(stats.total_consignments)}</div>
+          <div class="admin-kpi-card__hint">${formatNumber(stats.active_couriers)} ${isBn ? 'সক্রিয় কুরিয়ার পার্টনার' : 'Connected Carriers'}</div>
         </div>
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'সার্বিক ডেলিভারি সাকসেস' : 'Delivery Success Rate'}</div>
-          <div class="admin-kpi-card__val text-emerald-600">${stats.delivered_rate}%</div>
+          <div class="admin-kpi-card__val text-emerald-600">${formatNumber(stats.delivered_rate)}%</div>
           <div class="admin-kpi-card__hint">${isBn ? 'SLA স্ট্যান্ডার্ডের চেয়ে বেশি' : 'Above SLA Target (95%)'}</div>
         </div>
 

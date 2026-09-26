@@ -19,6 +19,7 @@ import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
 import { adminApi } from '../../services/admin.api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { formatNumber } from '../../services/format.js';
 
 export default function IntegrationsPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -201,7 +202,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
       </div>
       <div class="admin-kpi-card">
         <span class="admin-kpi-card__label">${t('platform_integrations.kpi_webhooks_24h', 'Webhooks (24h)')}</span>
-        <span class="admin-kpi-card__value text-primary">${(m.webhooks_24h_count || 148200).toLocaleString()}</span>
+        <span class="admin-kpi-card__value text-primary">${formatNumber(m.webhooks_24h_count || 148200)}</span>
         <span class="admin-kpi-card__subtext">${m.webhook_success_pct || 99.9}% delivery rate</span>
       </div>
       <div class="admin-kpi-card">

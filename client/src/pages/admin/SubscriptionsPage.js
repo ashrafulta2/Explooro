@@ -19,7 +19,7 @@ import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 import { adminApi } from '../../services/admin.api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { formatCurrency, formatNumber, formatDate } from '../../services/format.js';
 
 export default function SubscriptionsPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';
@@ -156,7 +156,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     infoCol.innerHTML = `
       <div class="admin-page-eyebrow">
         <span class="badge badge--brand font-bold text-xs">COMMERCE & MONETIZATION</span>
-        <span class="text-xs text-secondary font-mono">${subData?.metrics?.mrr_bdt ? formatCurrency(subData.metrics.mrr_bdt) : '৳0'} MRR</span>
+        <span class="text-xs text-secondary font-mono">${formatCurrency(subData?.metrics?.mrr_bdt || 0)} MRR</span>
       </div>
       <h1 class="admin-page-title">${t('admin_subscriptions.page_title')}</h1>
       <p class="admin-page-subtitle">${t('admin_subscriptions.page_subtitle')}</p>
@@ -294,11 +294,11 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
                 <div class="subscription-plan-card__meta">
                   <div class="flex justify-between">
                     <span>${t('admin_subscriptions.listings_quota')}:</span>
-                    <strong class="text-primary">${plan.free_listings > 99999 ? 'Unlimited' : `${plan.free_listings} items`}</strong>
+                    <strong class="text-primary">${plan.free_listings > 99999 ? 'Unlimited' : `${formatNumber(plan.free_listings)} items`}</strong>
                   </div>
                   <div class="flex justify-between">
                     <span>${t('admin_subscriptions.extra_listing_fee')}:</span>
-                    <strong class="text-primary">৳${plan.extra_listing_fee}/item</strong>
+                    <strong class="text-primary">${formatCurrency(plan.extra_listing_fee)}/item</strong>
                   </div>
                   ${
                     plan.commission_rebate_pct > 0
