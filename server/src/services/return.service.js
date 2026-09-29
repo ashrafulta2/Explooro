@@ -16,6 +16,7 @@ import { getCourierAdapter } from '../integrations/courier/index.js';
 import * as clawbackService from './clawback.service.js';
 import * as moduleRepo from '../repositories/module.repository.js';
 import { writeAudit } from '../lib/audit.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 /**
  * Generates a public unique return reference code.
@@ -474,7 +475,8 @@ export async function getReturnDetails(db, returnRequestIdOrRef, { customerId = 
   const returnReq = retRows[0];
 
   const { rows: itemRows } = await runner.query(
-    `SELECT ri.*, p.title AS product_title, p.primary_image_url
+    `SELECT ri.*, p.title_en AS product_title, p.title_bn AS product_title_bn,
+            ${primaryImageKeySql('p')} AS primary_image_key
      FROM return_items ri
      JOIN products p ON p.id = ri.product_id
      WHERE ri.return_request_id = $1`,
@@ -483,7 +485,10 @@ export async function getReturnDetails(db, returnRequestIdOrRef, { customerId = 
 
   return {
     ...returnReq,
-    items: itemRows,
+    items: itemRows.map(({ primary_image_key: imageKey, ...item }) => ({
+      ...item,
+      primary_image_url: toPublicImageUrl(imageKey),
+    })),
     evidence_urls: typeof returnReq.evidence_urls_json === 'string'
       ? JSON.parse(returnReq.evidence_urls_json)
       : (returnReq.evidence_urls_json || []),

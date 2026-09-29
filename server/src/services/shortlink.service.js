@@ -10,6 +10,7 @@
 import { randomBytes, createHash } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 async function runWithClient(db, fn) {
   if (db && typeof db.connect === 'function') {
@@ -154,9 +155,9 @@ export async function recordShortLinkConversion(db, {
 export async function getSalerShortLinks(db, salerId) {
   const query = `
     SELECT sl.*,
-           p.name_en as product_name_en,
-           p.name_bn as product_name_bn,
-           p.primary_image_url
+           p.title_en as product_name_en,
+           p.title_bn as product_name_bn,
+           ${primaryImageKeySql('p')} as primary_image_key
     FROM short_links sl
     LEFT JOIN products p ON p.id = sl.product_id
     WHERE sl.saler_id = $1
@@ -164,8 +165,9 @@ export async function getSalerShortLinks(db, salerId) {
   `;
 
   const { rows } = await db.query(query, [salerId]);
-  return rows.map(l => ({
+  return rows.map(({ primary_image_key: imageKey, ...l }) => ({
     ...l,
+    primary_image_url: toPublicImageUrl(imageKey),
     short_url: `/s/${l.code}`,
     full_url: `https://explooro.com/s/${l.code}`,
     conversion_rate_pct: l.clicks_count > 0 ? ((l.conversions_count / l.clicks_count) * 100).toFixed(1) : '0.0',
