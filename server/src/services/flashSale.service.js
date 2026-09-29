@@ -13,6 +13,7 @@ import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
 import { isEnabled } from './module.service.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 function generateFlashSaleRef() {
   const code = randomBytes(4).toString('hex').toUpperCase();
@@ -126,7 +127,7 @@ export async function getActiveAndUpcomingFlashSales(db, cache, { limit = 20 } =
            p.title_en as product_title_en,
            p.title_bn as product_title_bn,
            p.slug as product_slug,
-           p.primary_image_url as product_image_url,
+           ${primaryImageKeySql('p')} as product_image_key,
            p.rating_avg,
            p.rating_count
     FROM flash_sales fs
@@ -143,7 +144,7 @@ export async function getActiveAndUpcomingFlashSales(db, cache, { limit = 20 } =
   const { rows } = await db.query(query, [limit]);
   const now = Date.now();
 
-  return rows.map((deal) => {
+  return rows.map(({ product_image_key: imageKey, ...deal }) => {
     const startsAtMs = new Date(deal.starts_at).getTime();
     const endsAtMs = new Date(deal.ends_at).getTime();
     const isLive = startsAtMs <= now && now <= endsAtMs;
@@ -152,6 +153,7 @@ export async function getActiveAndUpcomingFlashSales(db, cache, { limit = 20 } =
 
     return {
       ...deal,
+      product_image_url: toPublicImageUrl(imageKey),
       is_live: isLive,
       status: isLive ? 'ACTIVE' : 'SCHEDULED',
       remaining_stock: remainingStock,
