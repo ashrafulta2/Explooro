@@ -103,6 +103,18 @@ export async function updateProduct(db, id, fields = {}) {
   return rows[0] ?? null;
 }
 
+/** Adds `quantity` to stock in one statement, so concurrent orders are never overwritten. */
+export async function incrementStock(db, id, quantity) {
+  const { rows } = await db.query(
+    `UPDATE products
+     SET stock_qty = stock_qty + $2, updated_at = now()
+     WHERE id = $1 AND deleted_at IS NULL
+     RETURNING id, ref, stock_qty`,
+    [id, quantity]
+  );
+  return rows[0] ?? null;
+}
+
 export async function softDeleteProduct(db, id) {
   const { rows } = await db.query(
     `UPDATE products
@@ -173,6 +185,57 @@ export async function getImagesByProductId(db, productId) {
      WHERE pi.product_id = $1
      ORDER BY pi.is_primary DESC, pi.display_order ASC`,
     [productId]
+  );
+  return rows;
+}
+
+/** The subset of `mediaIds` that are live PRODUCT images uploaded by `ownerId`. */
+export async function findOwnedProductMedia(db, mediaIds, ownerId) {
+  const { rows } = await db.query(
+    `SELECT id FROM media_assets
+      WHERE id = ANY($1::bigint[]) AND owner_id = $2 AND purpose = 'PRODUCT' AND deleted_at IS NULL`,
+    [mediaIds, ownerId]
+  );
+  return rows;
+}
+
+/**
+ * The subset of `mediaIds` an editor may attach to `productId`: images already on that product
+ * (a staff editor keeps the supplier's photos) plus PRODUCT images the editor uploaded.
+ */
+export async function findAttachableProductMedia(db, mediaIds, ownerId, productId) {
+  const { rows } = await db.query(
+    `SELECT m.id FROM media_assets m
+      WHERE m.id = ANY($1::bigint[]) AND m.deleted_at IS NULL AND m.purpose = 'PRODUCT'
+        AND (m.owner_id = $2
+             OR EXISTS (SELECT 1 FROM product_images pi WHERE pi.product_id = $3 AND pi.media_id = m.id))`,
+    [mediaIds, ownerId, productId]
+  );
+  return rows;
+}
+
+/** Media ids currently attached to a product, primary first. */
+export async function getProductMediaIds(db, productId) {
+  const { rows } = await db.query(
+    `SELECT media_id FROM product_images WHERE product_id = $1 ORDER BY is_primary DESC, display_order ASC`,
+    [productId]
+  );
+  return rows.map((r) => Number(r.media_id));
+}
+
+export async function deleteProductImages(db, productId) {
+  await db.query(`DELETE FROM product_images WHERE product_id = $1`, [productId]);
+}
+
+/** Attaches images in the given order; the first becomes the primary. */
+export async function insertProductImages(db, productId, mediaIds) {
+  if (!mediaIds.length) return [];
+  const { rows } = await db.query(
+    `INSERT INTO product_images (product_id, media_id, display_order, is_primary)
+     SELECT $1, m.id, m.ord - 1, m.ord = 1
+       FROM unnest($2::bigint[]) WITH ORDINALITY AS m(id, ord)
+     RETURNING id, media_id, display_order, is_primary`,
+    [productId, mediaIds]
   );
   return rows;
 }
@@ -366,14 +429,23 @@ export async function listProducts(
             COALESCE(up.district, 'Dhaka') as district,
             COALESCE(vs.physical_open_status = 'OPEN', true) as store_open,
             CASE WHEN fs.id IS NOT NULL THEN true ELSE false END as is_flash_sale,
+            fs.id as flash_sale_id,
             fs.discount_price as flash_discount_price,
-            fs.ends_at as flash_ends_at${variantsSelect}
+            fs.ends_at as flash_ends_at,
+            (SELECT m.storage_key FROM product_images pi
+               JOIN media_assets m ON m.id = pi.media_id
+              WHERE pi.product_id = p.id
+              ORDER BY pi.is_primary DESC, pi.display_order ASC LIMIT 1) as primary_image_key${variantsSelect}
      FROM products p
      JOIN categories c ON c.id = p.category_id
      LEFT JOIN trust_scores ts ON ts.user_id = p.supplier_id
      LEFT JOIN user_profiles up ON up.user_id = p.supplier_id
      LEFT JOIN virtual_stores vs ON vs.saler_id = p.supplier_id
-     LEFT JOIN flash_sales fs ON fs.product_id = p.id AND fs.status = 'ACTIVE' AND now() BETWEEN fs.starts_at AND fs.ends_at
+     -- WHY SCHEDULED too: createFlashSale inserts SCHEDULED and nothing promotes it to ACTIVE; the
+     -- public flash-sale feed already treats "SCHEDULED and inside its window" as live. Matching only
+     -- ACTIVE meant a sale started from the admin catalog never showed on the product.
+     LEFT JOIN flash_sales fs ON fs.product_id = p.id AND fs.status IN ('ACTIVE', 'SCHEDULED')
+                             AND now() BETWEEN fs.starts_at AND fs.ends_at
      WHERE ${conditions.join(' AND ')}
      ORDER BY ${orderClause}
      LIMIT $${limitIdx} OFFSET $${offsetIdx}`,

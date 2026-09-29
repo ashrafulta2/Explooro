@@ -6,6 +6,8 @@ import * as productRepo from '../repositories/product.repository.js';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa } from './pricing.service.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
+import { withTransaction } from '../config/db.js';
+import { writeAudit } from '../lib/audit.js';
 
 // Response copy only — no schema for "average response time" exists yet (chat/messaging is
 // Phase 8), so the supplier card derives a reasonable estimate from trust tier instead of
@@ -15,6 +17,53 @@ const RESPONSE_TIME_BY_TIER = {
   VERIFIED_TRADER: { hours_en: 'Usually responds within a few hours', hours_bn: 'সাধারণত কয়েক ঘণ্টার মধ্যে সাড়া দেয়' },
   STARTER: { hours_en: 'Usually responds within a day', hours_bn: 'সাধারণত এক দিনের মধ্যে সাড়া দেয়' },
 };
+
+// WHY 8: matches the client ImageUploader's maxFiles, so the form can never offer more slots than
+// the API accepts. A gallery limit, not a business number, so it lives with the validation.
+export const MAX_PRODUCT_IMAGES = 8;
+
+/**
+ * Normalises `media_ids` from a create request and checks each one is a PRODUCT image the caller
+ * uploaded. Throws VALIDATION_FAILED otherwise, so a product is never created half-attached.
+ */
+async function resolveProductMediaIds(db, mediaIds, supplierId, { productId = null, requireOne = false } = {}) {
+  if (mediaIds === undefined || mediaIds === null) return [];
+  if (requireOne && Array.isArray(mediaIds) && mediaIds.length === 0) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      'A product needs at least one photo.',
+      'একটি প্রোডাক্টে অন্তত একটি ছবি থাকতে হবে।',
+      { field: 'media_ids' }
+    );
+  }
+  if (!Array.isArray(mediaIds) || mediaIds.some((id) => !/^\d+$/.test(String(id)))) {
+    throw new AppError('VALIDATION_FAILED', 'Invalid product image reference.', 'প্রোডাক্ট ছবির রেফারেন্স সঠিক নয়।', {
+      field: 'media_ids',
+    });
+  }
+  const ids = [...new Set(mediaIds.map(Number))];
+  if (ids.length > MAX_PRODUCT_IMAGES) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      `A product can have at most ${MAX_PRODUCT_IMAGES} images.`,
+      `একটি প্রোডাক্টে সর্বোচ্চ ${MAX_PRODUCT_IMAGES}টি ছবি থাকতে পারে।`,
+      { field: 'media_ids' }
+    );
+  }
+  if (!ids.length) return [];
+  const owned = productId
+    ? await productRepo.findAttachableProductMedia(db, ids, supplierId, productId)
+    : await productRepo.findOwnedProductMedia(db, ids, supplierId);
+  if (owned.length !== ids.length) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      'One or more images are not product images you uploaded.',
+      'এক বা একাধিক ছবি আপনার আপলোড করা প্রোডাক্ট ছবি নয়।',
+      { field: 'media_ids' }
+    );
+  }
+  return ids;
+}
 
 export function slugify(text) {
   if (!text) return `item-${Date.now()}`;
@@ -53,6 +102,7 @@ export async function createProduct(
     weightGrams,
     hasVariants = false,
     warrantyMonths = 0,
+    mediaIds,
     isModerationModuleEnabled = true,
     isSupplierVerificationEnabled = false,
   }
@@ -99,6 +149,8 @@ export async function createProduct(
     );
   }
 
+  const imageIds = await resolveProductMediaIds(db, mediaIds, supplierId);
+
   const cleanSlug = slugify(slug || titleEn);
   const ref = generateProductRef();
 
@@ -138,9 +190,34 @@ export async function createProduct(
     });
   }
 
+  const images = await productRepo.insertProductImages(db, product.id, imageIds);
+
   const pricing = await calculateProductPricing(db, product);
-  return { ...product, pricing };
+  return { ...product, pricing, images };
 }
+
+// WHY id-or-ref: every client surface addresses products by `ref` (PRD-…), but the route used to
+// parseInt the param, so an edit or delete from the admin catalog always hit NaN → NOT_FOUND.
+async function findProductByIdOrRef(db, idOrRef) {
+  const key = String(idOrRef ?? '').trim();
+  const product = /^\d+$/.test(key)
+    ? await productRepo.getProductById(db, Number(key))
+    : await productRepo.getProductByRef(db, key);
+  if (!product) {
+    throw new AppError('NOT_FOUND', 'Product not found.', 'প্রোডাক্ট পাওয়া যায়নি।');
+  }
+  return product;
+}
+
+// Mock DBs in tests have no pool.connect(); a real pg Pool does.
+function inTransaction(db, fn) {
+  return typeof db.connect === 'function' ? withTransaction(db, fn) : fn(db);
+}
+
+const AUDITED_PRODUCT_FIELDS = [
+  'title_en', 'title_bn', 'description_en', 'description_bn', 'brand', 'category_id', 'base_cost',
+  'wholesale_margin', 'default_retail_price', 'min_retail_price', 'stock_qty', 'status',
+];
 
 /**
  * Throws FORBIDDEN unless a supplier may move their own product from `from` to `to` without staff.
@@ -172,11 +249,10 @@ async function assertSupplierStatusChange(db, product, to) {
   );
 }
 
-export async function updateProduct(db, id, supplierId, fields = {}, isStaff = false) {
-  const existing = await productRepo.getProductById(db, id);
-  if (!existing) {
-    throw new AppError('NOT_FOUND', 'Product not found.', 'প্রোডাক্ট পাওয়া যায়নি।');
-  }
+export async function updateProduct(db, idOrRef, supplierId, rawFields = {}, isStaff = false) {
+  const existing = await findProductByIdOrRef(db, idOrRef);
+  const id = Number(existing.id);
+  const { media_ids: mediaIds, ...fields } = rawFields;
 
   // `supplier_id` is a NUMERIC/BIGINT column, which node-postgres returns as a string; `supplierId`
   // is a real Number off req.user.id — a strict !== always treated every owner as a non-owner.
@@ -205,16 +281,76 @@ export async function updateProduct(db, id, supplierId, fields = {}, isStaff = f
     );
   }
 
-  const updated = await productRepo.updateProduct(db, id, fields);
+  // Validated before any write, so a bad photo list never leaves a half-applied edit.
+  const imageIds =
+    mediaIds === undefined ? null : await resolveProductMediaIds(db, mediaIds, supplierId, { productId: id, requireOne: true });
+
+  const pick = (row) => Object.fromEntries(AUDITED_PRODUCT_FIELDS.map((k) => [k, row?.[k] ?? null]));
+  // WHY snapshot now: the "before" must not depend on the update returning a new row object.
+  const before = pick(existing);
+
+  const { updated, images } = await inTransaction(db, async (tx) => {
+    const beforeImageIds = imageIds ? await productRepo.getProductMediaIds(tx, id) : null;
+    const updated = await productRepo.updateProduct(tx, id, fields);
+    let images;
+    if (imageIds) {
+      await productRepo.deleteProductImages(tx, id);
+      images = await productRepo.insertProductImages(tx, id, imageIds);
+    }
+
+    await writeAudit(tx, {
+      action: 'catalog.product.update',
+      targetType: 'product',
+      targetRef: existing.ref,
+      actorId: supplierId,
+      before: { ...before, ...(beforeImageIds ? { media_ids: beforeImageIds } : {}) },
+      after: { ...pick(updated), ...(imageIds ? { media_ids: imageIds } : {}) },
+    });
+    return { updated, images };
+  });
+
   const pricing = await calculateProductPricing(db, updated);
-  return { ...updated, pricing };
+  return { ...updated, pricing, ...(images ? { images } : {}) };
 }
 
-export async function deleteProduct(db, id, supplierId, isStaff = false) {
-  const existing = await productRepo.getProductById(db, id);
-  if (!existing) {
-    throw new AppError('NOT_FOUND', 'Product not found.', 'প্রোডাক্ট পাওয়া যায়নি।');
+/**
+ * Adds stock to a product. WHY a dedicated increment instead of PATCH stock_qty: the admin page's
+ * copy of stock can be minutes old, and writing "old + 50" back would erase every unit sold since.
+ */
+export async function restockProduct(db, idOrRef, userId, quantity, isStaff = false) {
+  const qty = Number(quantity);
+  // 2^31-1 is the INTEGER column's ceiling — a technical bound, not a business rule.
+  if (!Number.isInteger(qty) || qty < 1 || qty > 2147483647) {
+    throw new AppError('VALIDATION_FAILED', 'Quantity must be a whole number of at least 1.', 'পরিমাণ অবশ্যই ১ বা তার বেশি পূর্ণ সংখ্যা হতে হবে।', {
+      field: 'quantity',
+    });
   }
+
+  const existing = await findProductByIdOrRef(db, idOrRef);
+  if (!isStaff && Number(existing.supplier_id) !== Number(userId)) {
+    throw new AppError('FORBIDDEN', 'You do not own this product.', 'আপনি এই প্রোডাক্টটির মালিক নন।');
+  }
+
+  return inTransaction(db, async (tx) => {
+    const updated = await productRepo.incrementStock(tx, Number(existing.id), qty);
+    if (!updated) {
+      throw new AppError('NOT_FOUND', 'Product not found.', 'প্রোডাক্ট পাওয়া যায়নি।');
+    }
+    await writeAudit(tx, {
+      action: 'catalog.product.restock',
+      targetType: 'product',
+      targetRef: existing.ref,
+      actorId: userId,
+      before: { stock_qty: Number(updated.stock_qty) - qty },
+      after: { stock_qty: Number(updated.stock_qty), added: qty },
+    });
+    return updated;
+  });
+}
+
+export async function deleteProduct(db, idOrRef, supplierId, isStaff = false) {
+  const existing = await findProductByIdOrRef(db, idOrRef);
+  const id = Number(existing.id);
 
   // `supplier_id` is a NUMERIC/BIGINT column, which node-postgres returns as a string; `supplierId`
   // is a real Number off req.user.id — a strict !== always treated every owner as a non-owner.
@@ -277,10 +413,13 @@ export async function getProductDetail(db, idOrRefOrSlug) {
 
 export async function listCatalog(db, filters = {}) {
   const products = await productRepo.listProducts(db, filters);
+  const driver = getStorageDriver();
   const enriched = await Promise.all(
     products.map(async (p) => {
       const pricing = await calculateProductPricing(db, p);
-      return { ...p, pricing };
+      // `products` has no image column — the primary image lives in product_images.
+      const image_url = p.primary_image_key ? driver.getPublicUrl(p.primary_image_key) : null;
+      return { ...p, image_url, pricing };
     })
   );
   return enriched;

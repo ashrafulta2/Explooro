@@ -64,6 +64,15 @@ function createMockDb() {
     { id: 1, saler_id: 201, ref: 'STR-001', slug: 'dhaka-fashion', shop_name: 'Dhaka Fashion' },
   ];
 
+  const mediaAssets = [
+    { id: 501, owner_id: 101, purpose: 'PRODUCT', deleted_at: null },
+    { id: 502, owner_id: 101, purpose: 'PRODUCT', deleted_at: null },
+    { id: 503, owner_id: 999, purpose: 'PRODUCT', deleted_at: null }, // someone else's
+    { id: 504, owner_id: 101, purpose: 'AVATAR', deleted_at: null }, // wrong purpose
+    { id: 505, owner_id: 900, purpose: 'PRODUCT', deleted_at: null }, // uploaded by the admin (id 900)
+  ];
+  const productImages = [];
+  const auditLogs = [];
   const storeItems = [];
   const approvals = [];
   const commissionRules = [];
@@ -77,9 +86,77 @@ function createMockDb() {
     approvals,
     commissionRules,
     platformSettings,
+    productImages,
+    auditLogs,
 
     async query(sql, params = []) {
       const normalized = sql.replace(/\s+/g, ' ').trim();
+
+      // Owned product media lookup (findOwnedProductMedia)
+      if (normalized.startsWith('SELECT id FROM media_assets')) {
+        const [ids, ownerId] = params;
+        const rows = mediaAssets
+          .filter((m) => ids.includes(m.id) && m.owner_id === ownerId && m.purpose === 'PRODUCT' && !m.deleted_at)
+          .map((m) => ({ id: m.id }));
+        return { rows };
+      }
+
+      // Attachable media on edit: caller's own PRODUCT uploads, or photos already on this product
+      if (normalized.startsWith('SELECT m.id FROM media_assets m')) {
+        const [ids, ownerId, productId] = params;
+        const onProduct = new Set(productImages.filter((pi) => pi.product_id === productId).map((pi) => pi.media_id));
+        const rows = mediaAssets
+          .filter((m) => ids.includes(m.id) && m.purpose === 'PRODUCT' && !m.deleted_at && (m.owner_id === ownerId || onProduct.has(m.id)))
+          .map((m) => ({ id: m.id }));
+        return { rows };
+      }
+
+      if (normalized.startsWith('SELECT media_id FROM product_images')) {
+        return { rows: productImages.filter((pi) => pi.product_id === params[0]).map((pi) => ({ media_id: pi.media_id })) };
+      }
+
+      if (normalized.startsWith('DELETE FROM product_images')) {
+        for (let i = productImages.length - 1; i >= 0; i -= 1) {
+          if (productImages[i].product_id === params[0]) productImages.splice(i, 1);
+        }
+        return { rows: [] };
+      }
+
+      if (normalized.startsWith('UPDATE products SET stock_qty = stock_qty + $2')) {
+        const p = products.find((prod) => prod.id === params[0] && !prod.deleted_at);
+        if (!p) return { rows: [] };
+        p.stock_qty += params[1];
+        return { rows: [{ id: p.id, ref: p.ref, stock_qty: p.stock_qty }] };
+      }
+
+      if (normalized.startsWith('UPDATE products SET')) {
+        const p = products.find((prod) => prod.id === params[0]);
+        const cols = [...normalized.matchAll(/(\w+) = \$(\d+)/g)].filter(([, col]) => col !== 'id');
+        for (const [, col, idx] of cols) p[col] = params[Number(idx) - 1];
+        return { rows: [p] };
+      }
+
+      if (normalized.startsWith('INSERT INTO audit_logs')) {
+        auditLogs.push(params);
+        return { rows: [{ id: auditLogs.length }] };
+      }
+
+      // Get product by ref
+      if (normalized.startsWith('SELECT p.*') && normalized.includes('WHERE p.ref = $1')) {
+        const p = products.find((prod) => prod.ref === params[0] && !prod.deleted_at);
+        return { rows: p ? [p] : [] };
+      }
+
+      // Attach product images (insertProductImages) — first id is primary, order preserved
+      if (normalized.startsWith('INSERT INTO product_images')) {
+        const [productId, ids] = params;
+        const rows = ids.map((mediaId, i) => {
+          const row = { id: productImages.length + 1, product_id: productId, media_id: mediaId, display_order: i, is_primary: i === 0 };
+          productImages.push(row);
+          return row;
+        });
+        return { rows };
+      }
 
       // Commission rules query
       if (normalized.startsWith('SELECT saler_split_pct, platform_split_pct FROM commission_rules')) {
@@ -146,14 +223,6 @@ function createMockDb() {
       if (normalized.startsWith('SELECT status FROM product_approvals')) {
         const latest = approvals.filter((a) => a.product_id === params[0]).at(-1);
         return { rows: latest ? [{ status: latest.status }] : [] };
-      }
-
-      // Update product (only `col = $n` pairs are applied)
-      if (normalized.startsWith('UPDATE products SET')) {
-        const p = products.find((prod) => prod.id === params[0]);
-        const cols = [...normalized.matchAll(/(\w+) = \$(\d+)/g)].filter(([, col]) => col !== 'id');
-        for (const [, col, idx] of cols) p[col] = params[Number(idx) - 1];
-        return { rows: [{ ...p }] };
       }
 
       // Product Approvals
@@ -414,7 +483,43 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
     assert.equal(approval.status, 'PENDING');
   });
 
-  describe('Supplier status changes (PATCH /products/:id)', () => {
+  describe('Product photos (media_ids) on create', () => {
+    const base = {
+      category_id: 2,
+      title_en: 'Hilsa Pack',
+      title_bn: 'ইলিশ প্যাক',
+      base_cost: 800,
+      default_retail_price: 1000,
+    };
+
+    test('attaches the caller\'s uploaded photos in order, the first as primary', async () => {
+      const res = await app.inject({ method: 'POST', url: '/api/v1/products', payload: { ...base, media_ids: [502, '501'] } });
+      assert.equal(res.statusCode, 201);
+      const { product } = res.json();
+      assert.deepEqual(
+        product.images.map((i) => [i.media_id, i.display_order, i.is_primary]),
+        [[502, 0, true], [501, 1, false]]
+      );
+    });
+
+    for (const [label, mediaIds] of [
+      ['another user\'s photo', [501, 503]],
+      ['a non-PRODUCT asset', [504]],
+      ['a non-numeric id', ['abc']],
+      ['more than the gallery limit', [1, 2, 3, 4, 5, 6, 7, 8, 9]],
+    ]) {
+      test(`rejects ${label} with 400 and creates nothing`, async () => {
+        const before = mockDb.products.length;
+        const res = await app.inject({ method: 'POST', url: '/api/v1/products', payload: { ...base, media_ids: mediaIds } });
+        assert.equal(res.statusCode, 400);
+        assert.equal(res.json().error.code, 'VALIDATION_FAILED');
+        assert.equal(mockDb.products.length, before, 'no half-created product');
+      });
+    }
+  });
+
+  describe('Editing a product (PATCH /products/:idOrRef)', () => {
+    // The real authenticate plugin sets `roles` (array), never `role`.
     async function appAs(user) {
       const a = Fastify({ logger: false });
       a.decorate('db', mockDb);
@@ -429,82 +534,174 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
       return a;
     }
 
-    const owner = { id: 101, role: 'supplier' };
-    const staff = { id: 900, role: 'admin' };
-    const product = () => mockDb.products.find((p) => p.id === 2);
-
-    // Puts product 2 in `status` with the given approval history (oldest first).
-    function setUp(status, approvalStatuses = []) {
-      product().status = status;
-      for (let i = mockDb.approvals.length - 1; i >= 0; i -= 1) {
-        if (mockDb.approvals[i].product_id === 2) mockDb.approvals.splice(i, 1);
-      }
-      for (const s of approvalStatuses) {
-        mockDb.approvals.push({ id: mockDb.approvals.length + 1, product_id: 2, submitted_by: 101, status: s });
-      }
-    }
-
-    async function patch(user, payload) {
-      const a = await appAs(user);
-      const res = await a.inject({ method: 'PATCH', url: '/api/v1/products/2', payload });
-      await a.close();
-      return res;
-    }
-
-    after(() => setUp('ACTIVE'));
-
-    for (const [from, to, history] of [
-      ['ACTIVE', 'PAUSED', []],
-      ['PAUSED', 'ACTIVE', ['APPROVED']],
-      ['PAUSED', 'ACTIVE', []],
-      ['PENDING_APPROVAL', 'ARCHIVED', ['PENDING']],
-      ['REJECTED', 'ARCHIVED', ['REJECTED']],
-      ['ACTIVE', 'ACTIVE', []],
-    ]) {
-      const label = history.length ? `latest approval ${history.at(-1)}` : 'never moderated';
-      test(`the owner may move ${from} → ${to} (${label})`, async () => {
-        setUp(from, history);
-        const res = await patch(owner, { status: to });
-        assert.equal(res.statusCode, 200, res.body);
-        assert.equal(product().status, to);
+    test('the owner edits by ref: fields, photos and an audit row with before/after', async () => {
+      const auditsBefore = mockDb.auditLogs.length;
+      const res = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/products/PRD-TEST-001',
+        payload: { title_en: 'Cotton Panjabi (Eid)', default_retail_price: 750, media_ids: [501] },
       });
-    }
-
-    for (const [from, to, history] of [
-      ['PENDING_APPROVAL', 'ACTIVE', ['PENDING']],
-      ['REJECTED', 'ACTIVE', ['REJECTED']],
-      ['DRAFT', 'ACTIVE', []],
-      ['PAUSED', 'ACTIVE', ['PENDING']],
-      ['PAUSED', 'ACTIVE', ['APPROVED', 'REJECTED']],
-      ['ARCHIVED', 'ACTIVE', ['APPROVED']],
-      ['ARCHIVED', 'PAUSED', ['APPROVED']],
-      ['PENDING_APPROVAL', 'PAUSED', ['PENDING']],
-      ['REJECTED', 'PENDING_APPROVAL', ['REJECTED']],
-    ]) {
-      test(`the owner is refused ${from} → ${to} (history: ${history.join(', ') || 'none'})`, async () => {
-        setUp(from, history);
-        const res = await patch(owner, { status: to });
-        assert.equal(res.statusCode, 403, res.body);
-        const { error } = res.json();
-        assert.equal(error.code, 'FORBIDDEN');
-        assert.ok(error.message_bn, 'Bangla message present');
-        assert.equal(product().status, from, 'status unchanged');
-      });
-    }
-
-    test('a refused status change also discards the other fields in the same request', async () => {
-      setUp('PENDING_APPROVAL', ['PENDING']);
-      const title = product().title_en;
-      const res = await patch(owner, { title_en: 'Sneaked through', status: 'ACTIVE' });
-      assert.equal(res.statusCode, 403);
-      assert.equal(product().title_en, title);
+      assert.equal(res.statusCode, 200, res.body);
+      const { product } = res.json();
+      assert.equal(product.title_en, 'Cotton Panjabi (Eid)');
+      assert.deepEqual(product.images.map((i) => [i.media_id, i.is_primary]), [[501, true]]);
+      assert.equal(mockDb.auditLogs.length, auditsBefore + 1, 'one audit_logs row per edit');
     });
 
-    test('staff may set ACTIVE on a pending product', async () => {
-      setUp('PENDING_APPROVAL', ['PENDING']);
-      const res = await patch(staff, { status: 'ACTIVE' });
+    test('an admin keeps the supplier\'s photo, adds their own upload, and the order sets the primary', async () => {
+      const admin = await appAs({ id: 900, roles: ['super_admin'] });
+      const res = await admin.inject({
+        method: 'PATCH',
+        url: '/api/v1/products/PRD-TEST-001',
+        payload: { media_ids: [505, 501] },
+      });
       assert.equal(res.statusCode, 200, res.body);
-      assert.equal(product().status, 'ACTIVE');
+      assert.deepEqual(res.json().product.images.map((i) => [i.media_id, i.is_primary]), [[505, true], [501, false]]);
+
+      // A photo that is neither on this product nor uploaded by the admin is refused.
+      const bad = await admin.inject({ method: 'PATCH', url: '/api/v1/products/PRD-TEST-001', payload: { media_ids: [503] } });
+      assert.equal(bad.statusCode, 400);
+      assert.deepEqual(
+        mockDb.productImages.filter((pi) => pi.product_id === 1).map((pi) => pi.media_id),
+        [505, 501],
+        'a rejected edit leaves the existing photos untouched'
+      );
+      await admin.close();
+    });
+
+    test('removing every photo is refused', async () => {
+      const res = await app.inject({ method: 'PATCH', url: '/api/v1/products/PRD-TEST-001', payload: { media_ids: [] } });
+      assert.equal(res.statusCode, 400);
+      assert.equal(res.json().error.code, 'VALIDATION_FAILED');
+    });
+
+    test('a supplier cannot edit another supplier\'s product', async () => {
+      const other = await appAs({ id: 777, roles: ['supplier'] });
+      const res = await other.inject({ method: 'PATCH', url: '/api/v1/products/PRD-TEST-002', payload: { title_en: 'Hijacked' } });
+      assert.equal(res.statusCode, 403);
+      await other.close();
+    });
+
+    test('restock adds to the stored stock (not a client-side total) and audits it', async () => {
+      const product = mockDb.products.find((p) => p.ref === 'PRD-TEST-002');
+      product.stock_qty = 20;
+      const auditsBefore = mockDb.auditLogs.length;
+      // Simulate a sale landing after the admin's page loaded stock=20.
+      product.stock_qty -= 3;
+      const res = await app.inject({ method: 'POST', url: '/api/v1/products/PRD-TEST-002/restock', payload: { quantity: 50 } });
+      assert.equal(res.statusCode, 200, res.body);
+      assert.equal(res.json().product.stock_qty, 67, '17 left after the sale + 50, not 20 + 50');
+      assert.equal(mockDb.auditLogs.length, auditsBefore + 1);
+
+      for (const quantity of [0, -5, 2.5, 'ten', undefined]) {
+        const bad = await app.inject({ method: 'POST', url: '/api/v1/products/PRD-TEST-002/restock', payload: { quantity } });
+        assert.equal(bad.statusCode, 400, `quantity ${quantity}`);
+      }
+
+      const other = await appAs({ id: 777, roles: ['supplier'] });
+      const denied = await other.inject({ method: 'POST', url: '/api/v1/products/PRD-TEST-002/restock', payload: { quantity: 5 } });
+      assert.equal(denied.statusCode, 403);
+      await other.close();
+    });
+
+    test('an unknown ref is 404, not a NaN lookup', async () => {
+      const res = await app.inject({ method: 'PATCH', url: '/api/v1/products/PRD-NOPE', payload: { title_en: 'X' } });
+      assert.equal(res.statusCode, 404);
+    });
+
+    describe('status changes', () => {
+      const owner = { id: 101, roles: ['supplier'] };
+      const staff = { id: 900, roles: ['admin'] };
+      const product = () => mockDb.products.find((p) => p.ref === 'PRD-TEST-002');
+
+      // Puts product 2 in `status` with the given approval history (oldest first).
+      function setUp(status, approvalStatuses = []) {
+        product().status = status;
+        for (let i = mockDb.approvals.length - 1; i >= 0; i -= 1) {
+          if (mockDb.approvals[i].product_id === 2) mockDb.approvals.splice(i, 1);
+        }
+        for (const s of approvalStatuses) {
+          mockDb.approvals.push({ id: mockDb.approvals.length + 1, product_id: 2, submitted_by: 101, status: s });
+        }
+      }
+
+      async function patchStatus(user, status) {
+        const a = await appAs(user);
+        const res = await a.inject({ method: 'PATCH', url: '/api/v1/products/PRD-TEST-002', payload: { status } });
+        await a.close();
+        return res;
+      }
+
+      after(() => setUp('ACTIVE'));
+
+      for (const [from, to, history] of [
+        ['ACTIVE', 'PAUSED', []],
+        ['PAUSED', 'ACTIVE', ['APPROVED']],
+        ['PAUSED', 'ACTIVE', []],
+        ['PENDING_APPROVAL', 'ARCHIVED', ['PENDING']],
+        ['REJECTED', 'ARCHIVED', ['REJECTED']],
+        ['ACTIVE', 'ACTIVE', []],
+      ]) {
+        const label = history.length ? `latest approval ${history.at(-1)}` : 'never moderated';
+        test(`the owner may move ${from} → ${to} (${label})`, async () => {
+          setUp(from, history);
+          const res = await patchStatus(owner, to);
+          assert.equal(res.statusCode, 200, res.body);
+          assert.equal(product().status, to);
+        });
+      }
+
+      for (const [from, to, history] of [
+        ['PENDING_APPROVAL', 'ACTIVE', ['PENDING']],
+        ['REJECTED', 'ACTIVE', ['REJECTED']],
+        ['DRAFT', 'ACTIVE', []],
+        ['PAUSED', 'ACTIVE', ['PENDING']],
+        ['PAUSED', 'ACTIVE', ['APPROVED', 'REJECTED']],
+        ['ARCHIVED', 'ACTIVE', ['APPROVED']],
+        ['ARCHIVED', 'PAUSED', ['APPROVED']],
+        ['PENDING_APPROVAL', 'PAUSED', ['PENDING']],
+        ['REJECTED', 'PENDING_APPROVAL', ['REJECTED']],
+      ]) {
+        test(`the owner is refused ${from} → ${to} (history: ${history.join(', ') || 'none'})`, async () => {
+          setUp(from, history);
+          const auditsBefore = mockDb.auditLogs.length;
+          const res = await patchStatus(owner, to);
+          assert.equal(res.statusCode, 403, res.body);
+          const { error } = res.json();
+          assert.equal(error.code, 'FORBIDDEN');
+          assert.ok(error.message_bn, 'Bangla message present');
+          assert.equal(product().status, from, 'status unchanged');
+          assert.equal(mockDb.auditLogs.length, auditsBefore, 'nothing written');
+        });
+      }
+
+      test('a refused status change also discards the other fields in the same request', async () => {
+        setUp('PENDING_APPROVAL', ['PENDING']);
+        const title = product().title_en;
+        const a = await appAs(owner);
+        const res = await a.inject({
+          method: 'PATCH',
+          url: '/api/v1/products/PRD-TEST-002',
+          payload: { title_en: 'Sneaked through', status: 'ACTIVE' },
+        });
+        await a.close();
+        assert.equal(res.statusCode, 403);
+        assert.equal(product().title_en, title);
+      });
+
+      test('staff (roles array) may set ACTIVE on a pending product, and it is audited before/after', async () => {
+        setUp('PENDING_APPROVAL', ['PENDING']);
+        const auditsBefore = mockDb.auditLogs.length;
+        const res = await patchStatus(staff, 'ACTIVE');
+        assert.equal(res.statusCode, 200, res.body);
+        assert.equal(product().status, 'ACTIVE');
+        assert.equal(mockDb.auditLogs.length, auditsBefore + 1, 'one audit_logs row');
+        const row = mockDb.auditLogs.at(-1);
+        assert.ok(row.includes('catalog.product.update'));
+        const [before, after] = row.filter((v) => typeof v === 'string' && v.startsWith('{')).map((v) => JSON.parse(v));
+        assert.equal(before.status, 'PENDING_APPROVAL', 'before state recorded');
+        assert.equal(after.status, 'ACTIVE', 'after state recorded');
+      });
     });
   });
 

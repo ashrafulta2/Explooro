@@ -22,6 +22,7 @@ export default async function productRoutes(app) {
 
   // Public Catalog & Product Detail
   app.get('/products', productController.listProducts);
+  app.get('/catalog/categories', productController.listCategories);
   app.get('/products/:id', productController.getProduct);
   app.post('/pricing/preview', productController.previewPricing);
 
@@ -51,6 +52,7 @@ export default async function productRoutes(app) {
   // supplier_id, but nothing populated req.user before — every request (including the real owner)
   // was silently falling through as unauthenticated, so the ownership check always failed.
   app.patch('/products/:id', { preHandler: [authenticate] }, productController.updateProduct);
+  app.post('/products/:id/restock', { preHandler: [authenticate] }, productController.restockProduct);
   app.delete('/products/:id', { preHandler: [authenticate] }, productController.deleteProduct);
 
   // Saler Sourcing & Virtual Storefront
