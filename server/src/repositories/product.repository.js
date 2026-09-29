@@ -393,6 +393,18 @@ export async function insertProductApproval(db, { productId, submittedBy, status
   return rows[0];
 }
 
+/** Status of the product's most recent moderation submission, or null if it was never moderated. */
+export async function getLatestProductApprovalStatus(db, productId) {
+  const { rows } = await db.query(
+    `SELECT status FROM product_approvals
+     WHERE product_id = $1
+     ORDER BY created_at DESC, id DESC
+     LIMIT 1`,
+    [productId]
+  );
+  return rows[0]?.status ?? null;
+}
+
 export async function getVirtualStoreBySalerId(db, salerId) {
   const { rows } = await db.query(
     `SELECT * FROM virtual_stores WHERE saler_id = $1 AND deleted_at IS NULL LIMIT 1`,

@@ -142,6 +142,36 @@ export async function createProduct(
   return { ...product, pricing };
 }
 
+/**
+ * Throws FORBIDDEN unless a supplier may move their own product from `from` to `to` without staff.
+ *
+ * WHY: PATCH writes `status` straight through, so an owner could set a PENDING_APPROVAL or REJECTED
+ * product to ACTIVE and skip moderation entirely. Going live is moderation's decision; a supplier
+ * may only take a listing down (pause, archive) or put back up one moderation already let through.
+ */
+async function assertSupplierStatusChange(db, product, to) {
+  const from = product.status;
+  if (to === from || to === 'ARCHIVED') return;
+  if (from === 'ACTIVE' && to === 'PAUSED') return;
+  if (from === 'PAUSED' && to === 'ACTIVE') {
+    // WHY null counts as approved: a product created with product_moderation off, or in an
+    // auto_approve category, goes live without any product_approvals row. The latest row (not any
+    // row) decides, so an approved product later resubmitted and rejected cannot be resumed.
+    const latest = await productRepo.getLatestProductApprovalStatus(db, Number(product.id));
+    if (latest === null || latest === 'APPROVED') return;
+    throw new AppError(
+      'FORBIDDEN',
+      'This product has not been approved, so it cannot be made active again.',
+      'এই প্রোডাক্টটি অনুমোদিত হয়নি, তাই এটি আবার সক্রিয় করা যাবে না।'
+    );
+  }
+  throw new AppError(
+    'FORBIDDEN',
+    `You cannot change this product's status from ${from} to ${to}.`,
+    `আপনি এই প্রোডাক্টের স্ট্যাটাস ${from} থেকে ${to} এ পরিবর্তন করতে পারবেন না।`
+  );
+}
+
 export async function updateProduct(db, id, supplierId, fields = {}, isStaff = false) {
   const existing = await productRepo.getProductById(db, id);
   if (!existing) {
@@ -152,6 +182,10 @@ export async function updateProduct(db, id, supplierId, fields = {}, isStaff = f
   // is a real Number off req.user.id — a strict !== always treated every owner as a non-owner.
   if (!isStaff && Number(existing.supplier_id) !== Number(supplierId)) {
     throw new AppError('FORBIDDEN', 'You do not own this product.', 'আপনি এই প্রোডাক্টটির মালিক নন।');
+  }
+
+  if (!isStaff && fields.status !== undefined) {
+    await assertSupplierStatusChange(db, existing, fields.status);
   }
 
   // Validate pricing invariants if updated

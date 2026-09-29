@@ -142,6 +142,20 @@ function createMockDb() {
         return { rows: [newProduct] };
       }
 
+      // Latest approval for a product (getLatestProductApprovalStatus)
+      if (normalized.startsWith('SELECT status FROM product_approvals')) {
+        const latest = approvals.filter((a) => a.product_id === params[0]).at(-1);
+        return { rows: latest ? [{ status: latest.status }] : [] };
+      }
+
+      // Update product (only `col = $n` pairs are applied)
+      if (normalized.startsWith('UPDATE products SET')) {
+        const p = products.find((prod) => prod.id === params[0]);
+        const cols = [...normalized.matchAll(/(\w+) = \$(\d+)/g)].filter(([, col]) => col !== 'id');
+        for (const [, col, idx] of cols) p[col] = params[Number(idx) - 1];
+        return { rows: [{ ...p }] };
+      }
+
       // Product Approvals
       if (normalized.startsWith('INSERT INTO product_approvals')) {
         const approval = {
@@ -398,6 +412,100 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
     const approval = mockDb.approvals.find((a) => a.product_id === body.product.id);
     assert.ok(approval, 'Approval entry must be recorded');
     assert.equal(approval.status, 'PENDING');
+  });
+
+  describe('Supplier status changes (PATCH /products/:id)', () => {
+    async function appAs(user) {
+      const a = Fastify({ logger: false });
+      a.decorate('db', mockDb);
+      a.addHook('onRequest', (req, reply, done) => {
+        req.user = { restrictions: [], ...user };
+        done();
+      });
+      a.register(requestContextPlugin);
+      a.register(errorHandlerPlugin);
+      await a.register(productRoutes, { prefix: '/api/v1' });
+      await a.ready();
+      return a;
+    }
+
+    const owner = { id: 101, role: 'supplier' };
+    const staff = { id: 900, role: 'admin' };
+    const product = () => mockDb.products.find((p) => p.id === 2);
+
+    // Puts product 2 in `status` with the given approval history (oldest first).
+    function setUp(status, approvalStatuses = []) {
+      product().status = status;
+      for (let i = mockDb.approvals.length - 1; i >= 0; i -= 1) {
+        if (mockDb.approvals[i].product_id === 2) mockDb.approvals.splice(i, 1);
+      }
+      for (const s of approvalStatuses) {
+        mockDb.approvals.push({ id: mockDb.approvals.length + 1, product_id: 2, submitted_by: 101, status: s });
+      }
+    }
+
+    async function patch(user, payload) {
+      const a = await appAs(user);
+      const res = await a.inject({ method: 'PATCH', url: '/api/v1/products/2', payload });
+      await a.close();
+      return res;
+    }
+
+    after(() => setUp('ACTIVE'));
+
+    for (const [from, to, history] of [
+      ['ACTIVE', 'PAUSED', []],
+      ['PAUSED', 'ACTIVE', ['APPROVED']],
+      ['PAUSED', 'ACTIVE', []],
+      ['PENDING_APPROVAL', 'ARCHIVED', ['PENDING']],
+      ['REJECTED', 'ARCHIVED', ['REJECTED']],
+      ['ACTIVE', 'ACTIVE', []],
+    ]) {
+      const label = history.length ? `latest approval ${history.at(-1)}` : 'never moderated';
+      test(`the owner may move ${from} → ${to} (${label})`, async () => {
+        setUp(from, history);
+        const res = await patch(owner, { status: to });
+        assert.equal(res.statusCode, 200, res.body);
+        assert.equal(product().status, to);
+      });
+    }
+
+    for (const [from, to, history] of [
+      ['PENDING_APPROVAL', 'ACTIVE', ['PENDING']],
+      ['REJECTED', 'ACTIVE', ['REJECTED']],
+      ['DRAFT', 'ACTIVE', []],
+      ['PAUSED', 'ACTIVE', ['PENDING']],
+      ['PAUSED', 'ACTIVE', ['APPROVED', 'REJECTED']],
+      ['ARCHIVED', 'ACTIVE', ['APPROVED']],
+      ['ARCHIVED', 'PAUSED', ['APPROVED']],
+      ['PENDING_APPROVAL', 'PAUSED', ['PENDING']],
+      ['REJECTED', 'PENDING_APPROVAL', ['REJECTED']],
+    ]) {
+      test(`the owner is refused ${from} → ${to} (history: ${history.join(', ') || 'none'})`, async () => {
+        setUp(from, history);
+        const res = await patch(owner, { status: to });
+        assert.equal(res.statusCode, 403, res.body);
+        const { error } = res.json();
+        assert.equal(error.code, 'FORBIDDEN');
+        assert.ok(error.message_bn, 'Bangla message present');
+        assert.equal(product().status, from, 'status unchanged');
+      });
+    }
+
+    test('a refused status change also discards the other fields in the same request', async () => {
+      setUp('PENDING_APPROVAL', ['PENDING']);
+      const title = product().title_en;
+      const res = await patch(owner, { title_en: 'Sneaked through', status: 'ACTIVE' });
+      assert.equal(res.statusCode, 403);
+      assert.equal(product().title_en, title);
+    });
+
+    test('staff may set ACTIVE on a pending product', async () => {
+      setUp('PENDING_APPROVAL', ['PENDING']);
+      const res = await patch(staff, { status: 'ACTIVE' });
+      assert.equal(res.statusCode, 200, res.body);
+      assert.equal(product().status, 'ACTIVE');
+    });
   });
 
   test('Saler add-to-store endpoint sets custom retail price and calculates saler profit', async () => {
