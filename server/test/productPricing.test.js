@@ -219,6 +219,12 @@ function createMockDb() {
         return { rows: [newProduct] };
       }
 
+      // Latest approval for a product (getLatestProductApprovalStatus)
+      if (normalized.startsWith('SELECT status FROM product_approvals')) {
+        const latest = approvals.filter((a) => a.product_id === params[0]).at(-1);
+        return { rows: latest ? [{ status: latest.status }] : [] };
+      }
+
       // Product Approvals
       if (normalized.startsWith('INSERT INTO product_approvals')) {
         const approval = {
@@ -601,6 +607,101 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
     test('an unknown ref is 404, not a NaN lookup', async () => {
       const res = await app.inject({ method: 'PATCH', url: '/api/v1/products/PRD-NOPE', payload: { title_en: 'X' } });
       assert.equal(res.statusCode, 404);
+    });
+
+    describe('status changes', () => {
+      const owner = { id: 101, roles: ['supplier'] };
+      const staff = { id: 900, roles: ['admin'] };
+      const product = () => mockDb.products.find((p) => p.ref === 'PRD-TEST-002');
+
+      // Puts product 2 in `status` with the given approval history (oldest first).
+      function setUp(status, approvalStatuses = []) {
+        product().status = status;
+        for (let i = mockDb.approvals.length - 1; i >= 0; i -= 1) {
+          if (mockDb.approvals[i].product_id === 2) mockDb.approvals.splice(i, 1);
+        }
+        for (const s of approvalStatuses) {
+          mockDb.approvals.push({ id: mockDb.approvals.length + 1, product_id: 2, submitted_by: 101, status: s });
+        }
+      }
+
+      async function patchStatus(user, status) {
+        const a = await appAs(user);
+        const res = await a.inject({ method: 'PATCH', url: '/api/v1/products/PRD-TEST-002', payload: { status } });
+        await a.close();
+        return res;
+      }
+
+      after(() => setUp('ACTIVE'));
+
+      for (const [from, to, history] of [
+        ['ACTIVE', 'PAUSED', []],
+        ['PAUSED', 'ACTIVE', ['APPROVED']],
+        ['PAUSED', 'ACTIVE', []],
+        ['PENDING_APPROVAL', 'ARCHIVED', ['PENDING']],
+        ['REJECTED', 'ARCHIVED', ['REJECTED']],
+        ['ACTIVE', 'ACTIVE', []],
+      ]) {
+        const label = history.length ? `latest approval ${history.at(-1)}` : 'never moderated';
+        test(`the owner may move ${from} → ${to} (${label})`, async () => {
+          setUp(from, history);
+          const res = await patchStatus(owner, to);
+          assert.equal(res.statusCode, 200, res.body);
+          assert.equal(product().status, to);
+        });
+      }
+
+      for (const [from, to, history] of [
+        ['PENDING_APPROVAL', 'ACTIVE', ['PENDING']],
+        ['REJECTED', 'ACTIVE', ['REJECTED']],
+        ['DRAFT', 'ACTIVE', []],
+        ['PAUSED', 'ACTIVE', ['PENDING']],
+        ['PAUSED', 'ACTIVE', ['APPROVED', 'REJECTED']],
+        ['ARCHIVED', 'ACTIVE', ['APPROVED']],
+        ['ARCHIVED', 'PAUSED', ['APPROVED']],
+        ['PENDING_APPROVAL', 'PAUSED', ['PENDING']],
+        ['REJECTED', 'PENDING_APPROVAL', ['REJECTED']],
+      ]) {
+        test(`the owner is refused ${from} → ${to} (history: ${history.join(', ') || 'none'})`, async () => {
+          setUp(from, history);
+          const auditsBefore = mockDb.auditLogs.length;
+          const res = await patchStatus(owner, to);
+          assert.equal(res.statusCode, 403, res.body);
+          const { error } = res.json();
+          assert.equal(error.code, 'FORBIDDEN');
+          assert.ok(error.message_bn, 'Bangla message present');
+          assert.equal(product().status, from, 'status unchanged');
+          assert.equal(mockDb.auditLogs.length, auditsBefore, 'nothing written');
+        });
+      }
+
+      test('a refused status change also discards the other fields in the same request', async () => {
+        setUp('PENDING_APPROVAL', ['PENDING']);
+        const title = product().title_en;
+        const a = await appAs(owner);
+        const res = await a.inject({
+          method: 'PATCH',
+          url: '/api/v1/products/PRD-TEST-002',
+          payload: { title_en: 'Sneaked through', status: 'ACTIVE' },
+        });
+        await a.close();
+        assert.equal(res.statusCode, 403);
+        assert.equal(product().title_en, title);
+      });
+
+      test('staff (roles array) may set ACTIVE on a pending product, and it is audited before/after', async () => {
+        setUp('PENDING_APPROVAL', ['PENDING']);
+        const auditsBefore = mockDb.auditLogs.length;
+        const res = await patchStatus(staff, 'ACTIVE');
+        assert.equal(res.statusCode, 200, res.body);
+        assert.equal(product().status, 'ACTIVE');
+        assert.equal(mockDb.auditLogs.length, auditsBefore + 1, 'one audit_logs row');
+        const row = mockDb.auditLogs.at(-1);
+        assert.ok(row.includes('catalog.product.update'));
+        const [before, after] = row.filter((v) => typeof v === 'string' && v.startsWith('{')).map((v) => JSON.parse(v));
+        assert.equal(before.status, 'PENDING_APPROVAL', 'before state recorded');
+        assert.equal(after.status, 'ACTIVE', 'after state recorded');
+      });
     });
   });
 

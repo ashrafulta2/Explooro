@@ -219,6 +219,36 @@ const AUDITED_PRODUCT_FIELDS = [
   'wholesale_margin', 'default_retail_price', 'min_retail_price', 'stock_qty', 'status',
 ];
 
+/**
+ * Throws FORBIDDEN unless a supplier may move their own product from `from` to `to` without staff.
+ *
+ * WHY: PATCH writes `status` straight through, so an owner could set a PENDING_APPROVAL or REJECTED
+ * product to ACTIVE and skip moderation entirely. Going live is moderation's decision; a supplier
+ * may only take a listing down (pause, archive) or put back up one moderation already let through.
+ */
+async function assertSupplierStatusChange(db, product, to) {
+  const from = product.status;
+  if (to === from || to === 'ARCHIVED') return;
+  if (from === 'ACTIVE' && to === 'PAUSED') return;
+  if (from === 'PAUSED' && to === 'ACTIVE') {
+    // WHY null counts as approved: a product created with product_moderation off, or in an
+    // auto_approve category, goes live without any product_approvals row. The latest row (not any
+    // row) decides, so an approved product later resubmitted and rejected cannot be resumed.
+    const latest = await productRepo.getLatestProductApprovalStatus(db, Number(product.id));
+    if (latest === null || latest === 'APPROVED') return;
+    throw new AppError(
+      'FORBIDDEN',
+      'This product has not been approved, so it cannot be made active again.',
+      'এই প্রোডাক্টটি অনুমোদিত হয়নি, তাই এটি আবার সক্রিয় করা যাবে না।'
+    );
+  }
+  throw new AppError(
+    'FORBIDDEN',
+    `You cannot change this product's status from ${from} to ${to}.`,
+    `আপনি এই প্রোডাক্টের স্ট্যাটাস ${from} থেকে ${to} এ পরিবর্তন করতে পারবেন না।`
+  );
+}
+
 export async function updateProduct(db, idOrRef, supplierId, rawFields = {}, isStaff = false) {
   const existing = await findProductByIdOrRef(db, idOrRef);
   const id = Number(existing.id);
@@ -228,6 +258,10 @@ export async function updateProduct(db, idOrRef, supplierId, rawFields = {}, isS
   // is a real Number off req.user.id — a strict !== always treated every owner as a non-owner.
   if (!isStaff && Number(existing.supplier_id) !== Number(supplierId)) {
     throw new AppError('FORBIDDEN', 'You do not own this product.', 'আপনি এই প্রোডাক্টটির মালিক নন।');
+  }
+
+  if (!isStaff && fields.status !== undefined) {
+    await assertSupplierStatusChange(db, existing, fields.status);
   }
 
   // Validate pricing invariants if updated
@@ -251,6 +285,10 @@ export async function updateProduct(db, idOrRef, supplierId, rawFields = {}, isS
   const imageIds =
     mediaIds === undefined ? null : await resolveProductMediaIds(db, mediaIds, supplierId, { productId: id, requireOne: true });
 
+  const pick = (row) => Object.fromEntries(AUDITED_PRODUCT_FIELDS.map((k) => [k, row?.[k] ?? null]));
+  // WHY snapshot now: the "before" must not depend on the update returning a new row object.
+  const before = pick(existing);
+
   const { updated, images } = await inTransaction(db, async (tx) => {
     const beforeImageIds = imageIds ? await productRepo.getProductMediaIds(tx, id) : null;
     const updated = await productRepo.updateProduct(tx, id, fields);
@@ -260,13 +298,12 @@ export async function updateProduct(db, idOrRef, supplierId, rawFields = {}, isS
       images = await productRepo.insertProductImages(tx, id, imageIds);
     }
 
-    const pick = (row) => Object.fromEntries(AUDITED_PRODUCT_FIELDS.map((k) => [k, row?.[k] ?? null]));
     await writeAudit(tx, {
       action: 'catalog.product.update',
       targetType: 'product',
       targetRef: existing.ref,
       actorId: supplierId,
-      before: { ...pick(existing), ...(beforeImageIds ? { media_ids: beforeImageIds } : {}) },
+      before: { ...before, ...(beforeImageIds ? { media_ids: beforeImageIds } : {}) },
       after: { ...pick(updated), ...(imageIds ? { media_ids: imageIds } : {}) },
     });
     return { updated, images };
