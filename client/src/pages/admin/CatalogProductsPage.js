@@ -920,11 +920,11 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="add-desc-en">${t('admin_catalog.field_description_en', 'Description (English)')}</label>
-          <textarea id="add-desc-en" name="description_en" class="catalog-form-textarea" rows="3" placeholder="${t('admin_catalog.field_description_placeholder', 'Materials, sizing and quality guarantee…')}"></textarea>
+          <textarea id="add-desc-en" name="description_en" class="catalog-form-textarea" rows="8" placeholder="${t('admin_catalog.field_description_placeholder', 'Materials, sizing and quality guarantee…')}"></textarea>
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="add-desc-bn">${t('admin_catalog.field_description_bn', 'Description (Bangla)')}</label>
-          <textarea id="add-desc-bn" name="description_bn" class="catalog-form-textarea" rows="3" placeholder="যেমন: কাপড়, মাপ ও মানের নিশ্চয়তা…"></textarea>
+          <textarea id="add-desc-bn" name="description_bn" class="catalog-form-textarea" rows="8" placeholder="যেমন: কাপড়, মাপ ও মানের নিশ্চয়তা…"></textarea>
         </div>
       </div>
     `;
@@ -1107,11 +1107,11 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="edit-desc-en">${t('admin_catalog.field_description_en', 'Description (English)')}</label>
-          <textarea id="edit-desc-en" name="description_en" class="catalog-form-textarea" rows="3"></textarea>
+          <textarea id="edit-desc-en" name="description_en" class="catalog-form-textarea" rows="8"></textarea>
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="edit-desc-bn">${t('admin_catalog.field_description_bn', 'Description (Bangla)')}</label>
-          <textarea id="edit-desc-bn" name="description_bn" class="catalog-form-textarea" rows="3"></textarea>
+          <textarea id="edit-desc-bn" name="description_bn" class="catalog-form-textarea" rows="8"></textarea>
         </div>
       </div>
     `;
