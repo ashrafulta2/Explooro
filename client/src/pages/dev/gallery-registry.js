@@ -74,6 +74,7 @@ import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfi
 import { createMilestoneProgressStepper } from '../../components/b2b/MilestoneProgressStepper.js';
 import { ShoppableReels } from '../../components/content/ShoppableReels.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
+import { SocialKitModal } from '../../components/saler/SocialKitModal.js';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.js';
@@ -880,6 +881,18 @@ function renderAddToStoreDrawer(detachedNodes) {
   return wrap;
 }
 
+function renderSocialKitModalSpecimen() {
+  const wrap = document.createDocumentFragment();
+  wrap.append(subgroup('SocialKitModal — Flyer studio popup: format, theme, tracked link & share'));
+  const btn = Button({
+    label: 'Open SocialKitModal Demo',
+    variant: 'primary',
+    onClick: () => new SocialKitModal().open(),
+  });
+  wrap.append(specimen('modal trigger', btn));
+  return wrap;
+}
+
 function renderStoreHeader() {
   const wrap = document.createDocumentFragment();
   wrap.append(subgroup('StoreHeader — Hero banner, avatar, announcement, bio, stats & open status'));
@@ -1212,6 +1225,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'profit-calculator', label: 'ProfitCalculator', group: 'Saler Sourcing & Profit', render: renderProfitCalculator },
     { id: 'margin-projection', label: 'MarginProjection', group: 'Saler Sourcing & Profit', render: renderMarginProjection },
     { id: 'add-to-store-drawer', label: 'AddToStoreDrawer', group: 'Saler Sourcing & Profit', render: () => renderAddToStoreDrawer(detachedNodes) },
+    { id: 'social-kit-modal', label: 'SocialKitModal', group: 'Saler Sourcing & Profit', render: renderSocialKitModalSpecimen },
     // Prompt 10.5 — Cross-Seller Bundling & Surge Pricing
     { id: 'bundle-profit-breakdown', label: 'BundleProfitBreakdown', group: 'Saler Sourcing & Profit', render: renderBundleBreakdownSpecimen },
 

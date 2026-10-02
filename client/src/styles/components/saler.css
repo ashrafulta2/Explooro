@@ -41,7 +41,7 @@
   gap: var(--space-2, 8px);
   font-size: var(--text-xs, 12px);
   color: var(--text-muted, #64748b);
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
 }
 
 .saler-header-row__title {
@@ -105,7 +105,7 @@
 .saler-kpi-card__value {
   font-size: var(--text-2xl, 24px);
   font-weight: var(--weight-bold, 700);
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   color: var(--text-primary, #0f172a);
 }
 
@@ -197,7 +197,7 @@
   border: 1px solid var(--border-subtle, #e2e8f0);
   border-radius: var(--radius-lg, 12px);
   padding: 2px 8px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: var(--text-sm, 14px);
   font-weight: var(--weight-bold, 700);
 }
@@ -315,6 +315,79 @@
   overflow: hidden;
   transition: transform 0.2s, max-width 0.2s;
 }
+
+/* ── Social Kit popup (SocialKitModal) — chrome comes from the shared Modal ── */
+.social-kit-modal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+@media (min-width: 900px) {
+  .social-kit-modal { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+}
+
+.social-kit-modal__controls { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
+.social-kit-modal__group { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; border: 0; min-width: 0; }
+.social-kit-modal__group--divided { padding-top: var(--space-4); border-top: 1px solid var(--border-subtle); }
+
+.social-kit-modal__label {
+  padding: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.social-kit-modal__label:lang(bn) { text-transform: none; letter-spacing: normal; }
+
+/* WHY minmax(0,1fr): .btn is nowrap, so plain 1fr tracks would grow to the label and overflow. */
+.social-kit-modal__choices,
+.social-kit-modal__share { display: grid; gap: var(--space-2); }
+.social-kit-modal__choices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.social-kit-modal__share { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.social-kit-modal__choices .btn { padding-inline: var(--space-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.social-kit-modal__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.social-kit-modal__link-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.social-kit-modal__code { font-family: var(--font-mono); }
+.social-kit-modal__link-row { display: flex; gap: var(--space-2); }
+/* WHY the long selector: input-affordance.css loads later and sets `.input:not(.field__control .input)`
+   (0,3,0) to flex:none + width:100%, which pushed the Copy button out of the row on phones. */
+.social-kit-modal .social-kit-modal__link-row .input.social-kit-modal__url { flex: 1 1 auto; width: auto; min-width: 0; font-family: var(--font-mono); font-size: var(--text-xs); background: var(--surface-1); }
+.social-kit-modal__link-row .btn { flex: none; }
+
+.social-kit-modal__downloads { display: flex; flex-direction: column; gap: var(--space-2); }
+
+.social-kit-modal__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+.social-kit-modal__frame {
+  width: 100%;
+  max-width: 340px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--elevation-3);
+  transition: max-width var(--dur-fast) var(--ease-standard);
+}
+.social-kit-modal__note { margin: 0; font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); text-align: center; }
 
 /* ── Saler Quests & Leaderboard ── */
 .saler-quest-card {
@@ -456,7 +529,7 @@
 
 .saler-simple-stat-label {
   font-size: 10px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   text-transform: uppercase;
   color: var(--text-muted, #64748b);
   letter-spacing: 0.05em;
@@ -465,7 +538,7 @@
 .saler-simple-stat-val {
   font-size: var(--text-lg, 17px);
   font-weight: var(--weight-bold, 700);
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   color: var(--text-primary, #0f172a);
 }
 
