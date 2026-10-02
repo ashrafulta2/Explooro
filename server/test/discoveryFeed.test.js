@@ -329,6 +329,21 @@ describe('Discovery feed — getFeed pagination & personalization', () => {
     const warm = feedDb({ total: 5, affinity: { categoryIds: [3] } });
     assert.equal((await discoveryService.getFeed(warm, { userId: 7 })).meta.personalized, true);
   });
+
+  test('a cold shopper never gets a bare constant in ORDER BY (Postgres reads it as a position)', async () => {
+    const orderBy = async (affinity) => {
+      const db = feedDb({ total: 5, affinity });
+      await discoveryService.getFeed(db, { userId: 7 });
+      const sql = db.calls.find((c) => c.sql.includes('FROM products p')).sql;
+      return sql.slice(sql.lastIndexOf('ORDER BY'));
+    };
+    const cold = await orderBy({});
+    assert.doesNotMatch(cold, /ORDER BY \(?\d+\)?\s*(DESC|ASC|,)/, `got: ${cold}`);
+    assert.match(cold, /^ORDER BY p\.sold_count DESC/);
+
+    const warm = await orderBy({ categoryIds: [3] });
+    assert.match(warm, /^ORDER BY \(\(CASE WHEN p\.category_id/);
+  });
 });
 
 describe('Discovery feed — `recommended` ranking intent', () => {

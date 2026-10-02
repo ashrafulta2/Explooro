@@ -376,8 +376,10 @@ export async function listProducts(
       params.push(boostSupplierIds);
       scoreParts.push(`(CASE WHEN p.supplier_id = ANY($${params.length}) THEN ${Number(affinityWeights.supplier) || 0} ELSE 0 END)`);
     }
-    const scoreExpr = scoreParts.length ? scoreParts.join(' + ') : '0';
-    orderClause = `(${scoreExpr}) DESC, p.sold_count DESC, p.rating_avg DESC NULLS LAST, p.created_at DESC`;
+    // WHY omit rather than `(0) DESC`: Postgres reads an integer constant in ORDER BY as a column
+    // position, so a shopper with no affinity history crashed the feed with "ORDER BY position 0".
+    const fallbackOrder = 'p.sold_count DESC, p.rating_avg DESC NULLS LAST, p.created_at DESC';
+    orderClause = scoreParts.length ? `(${scoreParts.join(' + ')}) DESC, ${fallbackOrder}` : fallbackOrder;
   }
 
   params.push(limit);
