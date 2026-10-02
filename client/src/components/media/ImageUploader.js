@@ -19,6 +19,10 @@ import { detectCameraMode, openCameraCapture } from './CameraCapture.js';
 export const MAX_IMAGE_SIZE = 8 * 1024 * 1024;    // 8MB
 export const MAX_VIDEO_SIZE = 100 * 1024 * 1024;  // 100MB
 
+// WHY: the picker's `accept` attribute is only a hint — drag-drop and paste bypass it, so the same
+// list is enforced again in handleFiles before anything is sent to the API.
+export const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'video/mp4'];
+
 export function ImageUploader({
   purpose = 'PRODUCT',
   aspectRatio = '1:1',
@@ -73,7 +77,7 @@ export function ImageUploader({
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.multiple = true;
-  fileInput.accept = 'image/jpeg,image/png,image/webp,image/gif,image/avif,video/mp4';
+  fileInput.accept = ALLOWED_MEDIA_TYPES.join(',');
   fileInput.setAttribute('aria-label', isBn ? 'মিডিয়া ফাইল আপলোড' : 'Upload media files');
   fileInput.style.display = 'none';
 
@@ -289,6 +293,15 @@ export function ImageUploader({
     }
 
     for (const file of files) {
+      if (!ALLOWED_MEDIA_TYPES.includes(file.type)) {
+        toast.error(
+          isBn
+            ? `"${file.name}" সমর্থিত নয়। শুধু JPEG, PNG, WebP, GIF, AVIF ছবি অথবা MP4 ভিডিও দিন।`
+            : `"${file.name}" is not a supported file type. Use a JPEG, PNG, WebP, GIF or AVIF image, or an MP4 video.`
+        );
+        continue;
+      }
+
       const isVideo = file.type.startsWith('video/');
       const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
 
