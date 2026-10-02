@@ -31,7 +31,7 @@
    ========================================================================== */
 .cod-recon-kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: var(--space-4);
 }
 
@@ -203,14 +203,14 @@
 
 .cod-recon-upload__config-grid {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: var(--space-4);
   width: 100%;
 }
 
 @media (min-width: 640px) {
   .cod-recon-upload__config-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -256,13 +256,17 @@
   outline-offset: 1px;
 }
 
-.cod-recon-control .input,
-.cod-recon-control .select {
-  flex: 1;
+/* WHY the :not() tail: input-affordance.css styles every bare .input with a border, a fixed height and
+   flex: none, at specificity 0,3,0. This control draws its own border, so it must out-rank that rule
+   or the field is boxed twice and, with flex-shrink 0, pushes the "Tk" affix 16px past the card. */
+.cod-recon-control .input:not(.field__control .input),
+.cod-recon-control .select:not(.field__control .select) {
+  flex: 1 1 0%;
   min-width: 0;
-  width: 100%;
+  width: auto;
   height: 100%;
   background: transparent;
+  box-shadow: none;
   border: none;
   color: var(--text-primary);
   font-family: inherit;
@@ -544,7 +548,7 @@
   border-radius: var(--radius-md);
   padding: var(--space-3);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr));
   gap: var(--space-2);
 }
 
@@ -657,3 +661,8 @@
   }
 }
 
+
+@media (max-width: 767.98px) {
+  .cod-recon-control { max-width: 100%; min-width: 0; }
+  .cod-recon-control :is(input, select) { flex: 1 1 0; min-width: 0; width: auto; }
+}

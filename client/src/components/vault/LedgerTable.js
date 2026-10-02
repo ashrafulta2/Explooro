@@ -80,7 +80,7 @@ export function LedgerTable({ transactions = [], onFilterChange = () => {} }) {
         <div class="ledger-table__header">
           <div>
             <h3 class="ledger-table__title">📜 ${t('vault.ledger_title')}</h3>
-            <p class="text-sm text-secondary">${t('vault.ledger_subtitle')}</p>
+            <p data-page-info class="text-sm text-secondary">${t('vault.ledger_subtitle')}</p>
           </div>
 
           <div class="ledger-table__actions">

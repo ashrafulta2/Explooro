@@ -64,6 +64,15 @@
 .tooltip[data-placement='left'] { transform-origin: right center; }
 .tooltip[data-placement='right'] { transform-origin: left center; }
 
+/* InfoTip — the (i) beside a title; its text lives in a Tooltip (components/ui/InfoTip.js) */
+.info-tip { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 24px; margin-inline-start: var(--space-2); padding: 0; border: 0; border-radius: var(--radius-full); background: transparent; color: var(--text-muted); cursor: help; vertical-align: middle; font-size: 0; transition: color var(--dur-fast) var(--ease-out-quart), background-color var(--dur-fast) var(--ease-out-quart); }
+.info-tip:hover, .info-tip:focus-visible { color: var(--text-brand); background: var(--surface-2); }
+.info-tip:focus-visible { outline: 2px solid var(--text-brand); outline-offset: 1px; }
+.info-tip svg { display: block; }
+.tooltip--info { max-width: 320px; text-align: start; text-transform: none; letter-spacing: normal; white-space: normal; }
+/* The folded subtitle stays in the DOM (pages may rewrite it) but must beat any display rule. */
+[data-info-folded] { display: none !important; }
+
 /* ConfirmDialog */
 .confirm[data-variant='danger'] .modal__title { color: var(--danger); }
 .confirm[data-shake='true'] .modal__panel { animation: confirm-shake 320ms var(--ease-standard); }

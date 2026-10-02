@@ -249,7 +249,7 @@ export default function ModeratorDashboardPage(root) {
           </span>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center;">
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; text-align: center;">
           <div style="padding: 12px 8px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
             <span style="font-size: 11px; font-weight: 500; color: var(--text-muted, #64748b); display: block; margin-bottom: 4px;">Total Resolved</span>
             <span style="font-size: 20px; font-weight: 800; color: var(--text-primary, #0f172a);">${perf.total_resolved || 0}</span>
@@ -283,7 +283,7 @@ export default function ModeratorDashboardPage(root) {
 
         <div style="
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
           gap: 16px;
         ">
           ${WORKSPACES.map((ws) => {
@@ -510,7 +510,7 @@ export default function ModeratorDashboardPage(root) {
       <!-- Section 2: Personal Stats & SLA Urgency Monitor -->
       <div style="
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
         gap: 20px;
         align-items: stretch;
       ">
@@ -526,7 +526,7 @@ export default function ModeratorDashboardPage(root) {
       <!-- Section 4: Elevated Access & Maker-Checker Tracker -->
       <div style="
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
         gap: 20px;
       ">
         ${renderElevatedAccessPanel()}

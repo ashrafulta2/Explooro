@@ -10,7 +10,8 @@ import { Textarea } from '../ui/Textarea.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatDate } from '../../services/format.js';
+import { formatDate, formatCurrency, normaliseBdPhone } from '../../services/format.js';
+import { scopeFieldsFor } from '../../config/grant-scopes.js';
 
 const MAX_GRANT_DAYS = 90;
 const DEFAULT_GRANT_DAYS = 14;
@@ -56,36 +57,93 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
   container.className = 'module-drawer-form';
 
   // Target user display or input
-  let userId = user?.id;
+  let userId = user?.id ?? null;
   let userDisplayName = user ? (user.full_name || user.phone || `User #${user.id}`) : '';
+  let userInput = null;
+  let lookupSeq = 0;
+
+  // WHY resolve instead of sending the typed text: the field invites "ID or phone number", but the
+  // API takes a numeric user_id — "01711000004" was coerced to the integer 1711000004 and the grant
+  // landed on the wrong account or failed on the foreign key.
+  async function resolveUser(text) {
+    const phone = normaliseBdPhone(text);
+    if (!phone && /^\d+$/.test(text)) {
+      try {
+        const res = await api.get(`/admin/users/${text}`);
+        return res.user ? [res.user] : [];
+      } catch {
+        return [];
+      }
+    }
+    const res = await api.get('/admin/users', { query: { q: phone || text, limit: 5 } });
+    const users = res.users || [];
+    const exact = users.filter((u) =>
+      (phone && normaliseBdPhone(u.phone) === phone) || String(u.ref || '').toLowerCase() === text.toLowerCase()
+    );
+    return exact.length ? exact : users;
+  }
+
+  async function lookupUser() {
+    const text = userInput.value.trim();
+    const seq = ++lookupSeq;
+    userId = null;
+    userDisplayName = '';
+    if (!text) {
+      userInput.setError('');
+      updatePreview();
+      return false;
+    }
+    let matches = [];
+    try {
+      matches = await resolveUser(text);
+    } catch {
+      matches = [];
+    }
+    if (seq !== lookupSeq) return false; // a newer keystroke superseded this lookup
+    if (matches.length === 1) {
+      const [match] = matches;
+      userId = Number(match.id);
+      userDisplayName = match.full_name || match.display_name || match.phone || match.ref;
+      userInput.setError('');
+      userInput.setHint(`${userDisplayName} · ${match.ref || ''}`);
+    } else {
+      userInput.setHint('');
+      userInput.setError(matches.length
+        ? t('grants.err_user_ambiguous', 'Several people match. Enter the exact user ID, ref or phone number.')
+        : t('grants.err_user_not_found', 'No user matches that ID, ref or phone number.'));
+    }
+    updatePreview();
+    return userId !== null;
+  }
 
   if (!user) {
-    const userInput = Input({
+    userInput = Input({
       label: t('grants.select_user'),
       placeholder: t('grants.user_placeholder', 'User ID or phone number'),
       required: true,
-      onInput: (e) => {
-        userId = e.target.value.trim();
-        userDisplayName = userId ? `User #${userId}` : t('grants.selected_user', 'the selected user');
-        updatePreview();
+      onInput: () => {
+        userId = null;
+        userInput.setError('');
+        userInput.setHint('');
       },
     });
+    userInput.input.addEventListener('blur', () => { lookupUser(); });
     container.append(userInput);
   }
 
   // Permission selection (filter out CRITICAL per Prompt 2.5)
   const delegablePerms = permissions.filter((p) => p.risk_tier !== 'CRITICAL');
+  // WHY no "[HIGH]" prefix: that was the raw enum, in English, in both languages.
   const permOptions = delegablePerms.map((p) => ({
     value: p.key,
-    label: `[${p.risk_tier}] ${isBn ? (p.label_bn || p.label_en) : (p.label_en || p.label_bn)}`,
+    label: `${isBn ? (p.label_bn || p.label_en) : (p.label_en || p.label_bn)} · ${t(`grants.risk.${p.risk_tier}`, p.risk_tier)}`,
   }));
 
   let selectedPerm = delegablePerms[0] || null;
 
   function permHint(perm) {
     if (!perm) return '';
-    const plain = isBn ? (perm.plain_bn || perm.plain_en) : (perm.plain_en || perm.plain_bn);
-    return [plain, perm.key].filter(Boolean).join(' — ');
+    return isBn ? (perm.plain_bn || perm.plain_en || '') : (perm.plain_en || perm.plain_bn || '');
   }
 
   const permSelect = Select({
@@ -94,9 +152,14 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
     options: permOptions,
     required: true,
     hint: permHint(selectedPerm),
-    onChange: (val) => {
+    // WHY e.target.value: Select passes the change Event, not the value. Matching the Event against
+    // keys left selectedPerm null after ANY change, so picking a permission made Issue Grant fail.
+    onChange: (e) => {
+      const val = e?.target ? e.target.value : e;
       selectedPerm = delegablePerms.find((p) => p.key === val) || null;
+      saveBtn.setDisabled?.(!selectedPerm);
       permSelect.setHint(permHint(selectedPerm));
+      syncScopeField();
       updatePreview();
     },
   });
@@ -124,12 +187,47 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
   expiryInput.input.min = minDate;
   expiryInput.input.max = maxDate;
 
-  // Scope input (optional)
+  // Scope (optional). WHY a typed field per supported permission instead of a free JSON box: the
+  // server enforces only the scopes in config/grant-scopes.js, and a hand-typed JSON limit it can't
+  // check (or a typo it used to store as {"constraint": …}) reads as a safety net that isn't there.
   const scopeInput = Input({
-    label: t('grants.scope_label'),
-    placeholder: 'e.g. {"district": "Dhaka", "max_amount": 5000}',
-    onInput: () => updatePreview(),
+    label: t('grants.scope_max_amount_label', 'Limit: largest amount per approval (Tk, optional)'),
+    hint: t('grants.scope_max_amount_hint', 'Leave empty for no limit. Anything above this is refused.'),
+    type: 'number',
+    inputmode: 'decimal',
+    placeholder: '50000',
+    onInput: () => {
+      scopeInput.setError('');
+      updatePreview();
+    },
   });
+  scopeInput.input.min = '1';
+  scopeInput.input.step = '0.01';
+
+  function scopeSupported() {
+    return Boolean(selectedPerm && scopeFieldsFor(selectedPerm.key)?.max_amount);
+  }
+
+  function syncScopeField() {
+    scopeInput.hidden = !scopeSupported();
+    if (scopeInput.hidden) {
+      scopeInput.value = '';
+      scopeInput.setError('');
+    }
+  }
+
+  /** `undefined` = invalid (error shown), `null` = no scope, otherwise the scope object. */
+  function readScope() {
+    if (!scopeSupported()) return null;
+    const raw = scopeInput.value.trim();
+    if (!raw) return null;
+    const amount = Number(raw);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      scopeInput.setError(t('grants.err_scope_amount', 'Enter an amount greater than zero, or leave it empty.'));
+      return undefined;
+    }
+    return { max_amount: Math.round(amount * 100) / 100 };
+  }
 
   // Mandatory reason
   const reasonTextarea = Textarea({
@@ -167,8 +265,10 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
       ? (isBn ? rawPerm : lowerFirst(rawPerm))
       : t('grants.preview_fallback_action', 'perform actions');
 
-    const scopeVal = scopeInput.value.trim();
-    const scopeText = scopeVal ? (isBn ? ` (${scopeVal} সীমার মধ্যে)` : ` (within ${scopeVal})`) : '';
+    const scopeAmount = scopeSupported() ? Number(scopeInput.value.trim()) : NaN;
+    const scopeText = scopeAmount > 0
+      ? ` ${t('grants.preview_scope', '(up to {{amount}} each)', { amount: formatCurrency(scopeAmount, { lang }) })}`
+      : '';
 
     // Built from text nodes, never innerHTML: the user field and the scope box are free text.
     const name = document.createElement('strong');
@@ -180,6 +280,7 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
     previewText.replaceChildren(...parts);
   }
 
+  syncScopeField();
   updatePreview();
 
   container.append(permSelect, expiryInput, scopeInput, reasonTextarea, previewBox);
@@ -216,6 +317,10 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
         return;
       }
 
+      if (userInput && userId === null && !(await lookupUser())) {
+        userInput.focus();
+        return;
+      }
       if (!userId || !selectedPerm) {
         toast.error(t('grants.err_user_perm', 'Please specify a user and permission'));
         return;
@@ -227,23 +332,22 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
         return;
       }
 
-      let parsedScope = null;
-      if (scopeInput.value.trim()) {
-        try {
-          parsedScope = JSON.parse(scopeInput.value.trim());
-        } catch {
-          parsedScope = { constraint: scopeInput.value.trim() };
-        }
+      const scope = readScope();
+      if (scope === undefined) {
+        scopeInput.focus();
+        return;
       }
 
       saveBtn.setLoading(true);
       try {
+        // WHY snake_case: the route schema is `additionalProperties: false` with snake_case
+        // required fields, so the camelCase body this used to send was a 400 on the live API.
         await api.post('/admin/grants', {
-          userId,
-          permissionKey: selectedPerm.key,
+          user_id: Number(userId),
+          permission_key: selectedPerm.key,
           reason,
-          expiresAt: expiry.toISOString(),
-          scopeJson: parsedScope,
+          expires_at: expiry.toISOString(),
+          scope_json: scope,
         });
 
         toast.success(t('grants.issued', 'Standing grant issued successfully'));

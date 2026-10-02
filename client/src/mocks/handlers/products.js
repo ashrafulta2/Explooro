@@ -3,6 +3,7 @@
  */
 import products from '../fixtures/products.json' with { type: 'json' };
 import stores from '../fixtures/stores.json' with { type: 'json' };
+import { resolveMockMediaUrl } from './media.js';
 
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
@@ -172,7 +173,8 @@ function toDetailShape(product) {
     ...product,
     ...synthesizeDescription(product),
     variants: synthesizeVariants(product),
-    images: synthesizeImages(product),
+    // Uploaded photos (media_id set) win over the synthesized gallery, as product_images does live.
+    images: product.images?.length ? product.images : synthesizeImages(product),
     supplier: synthesizeSupplier(product),
     pricing: synthesizePricing(product),
     has_variants: synthesizeVariants(product).length > 0,
@@ -205,8 +207,34 @@ function toPaisa(amount) {
   return Math.round(num * 100);
 }
 
-// In-memory mutable products store initialized from static fixtures
-let activeProducts = [...products];
+// In-memory mutable products store initialized from static fixtures.
+// WHY ids here: live list rows carry the numeric `id` that POST /admin/growth/campaigns/flash-sales
+// takes as product_id; fixture rows only had `ref`. Fixtures already flagged is_flash_sale get a
+// synthetic flash_sale_id (the live list's fs.id) so "End flash sale" has a deal to stop.
+const FIXTURE_FLASH_ID_FLOOR = 800_000;
+let activeProducts = products.map((p, i) => ({
+  id: i + 1,
+  ...p,
+  ...(p.is_flash_sale && !p.flash_sale_id ? { flash_sale_id: FIXTURE_FLASH_ID_FLOOR + i + 1 } : {}),
+}));
+
+export function findMockProductById(id) {
+  return activeProducts.find((p) => String(p.id) === String(id)) || null;
+}
+
+/** Points a product at its live flash sale, or clears it (`deal` = null) — the list's LEFT JOIN. */
+export function setMockProductFlashSale(productId, deal) {
+  const p = findMockProductById(productId);
+  if (!p) return;
+  p.is_flash_sale = Boolean(deal);
+  p.flash_sale_id = deal?.id ?? null;
+  p.flash_discount_price = deal?.discount_price ?? null;
+  p.flash_ends_at = deal?.ends_at ?? null;
+}
+
+export function findMockProductByFlashSaleId(flashSaleId) {
+  return activeProducts.find((p) => String(p.flash_sale_id) === String(flashSaleId)) || null;
+}
 
 // In-memory store items for mock saler storefront
 const mockSalerStoreItems = [
@@ -224,6 +252,23 @@ const mockSalerStoreItems = [
     is_active: true,
     added_at: new Date(Date.now() - 86400000).toISOString(),
   },
+];
+
+// Names match the admin catalog page's category filter so a product created in mock mode
+// shows up under it.
+const MOCK_CATEGORIES = [
+  { id: 1, name_en: 'Clothing', name_bn: 'পোশাক', slug: 'clothing', parent_id: null },
+  { id: 2, name_en: 'Electronics', name_bn: 'ইলেকট্রনিক্স', slug: 'electronics', parent_id: null },
+  { id: 3, name_en: 'Kids', name_bn: 'শিশু', slug: 'kids', parent_id: null },
+  { id: 4, name_en: 'Food & Grocery', name_bn: 'খাদ্য ও মুদি', slug: 'food-grocery', parent_id: null },
+  { id: 5, name_en: 'Beauty & Health', name_bn: 'সৌন্দর্য ও স্বাস্থ্য', slug: 'beauty-health', parent_id: null },
+  { id: 6, name_en: 'Crafts', name_bn: 'হস্তশিল্প', slug: 'crafts', parent_id: null },
+  { id: 7, name_en: 'Home & Kitchen', name_bn: 'ঘর ও রান্নাঘর', slug: 'home-kitchen', parent_id: null },
+  { id: 8, name_en: 'Jewellery', name_bn: 'গহনা', slug: 'jewellery', parent_id: null },
+  { id: 9, name_en: 'Footwear', name_bn: 'জুতা', slug: 'footwear', parent_id: null },
+  { id: 10, name_en: 'Furniture', name_bn: 'আসবাবপত্র', slug: 'furniture', parent_id: null },
+  { id: 11, name_en: 'Bags', name_bn: 'ব্যাগ', slug: 'bags', parent_id: null },
+  { id: 12, name_en: 'Wholesale', name_bn: 'পাইকারি', slug: 'wholesale', parent_id: null },
 ];
 
 export default [
@@ -334,32 +379,72 @@ export default [
     },
   },
   {
+    method: 'GET',
+    path: '/catalog/categories',
+    handler() {
+      return { status: 200, body: { data: { categories: MOCK_CATEGORIES } } };
+    },
+  },
+  {
     method: 'POST',
     path: '/products',
     handler({ body }) {
       const b = body || {};
+      // Mirrors the live contract (server/src/services/product.service.js createProduct).
+      if (!b.title_en || !b.title_bn || !b.category_id) {
+        return {
+          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          body: {
+            error: {
+              code: 'VALIDATION_FAILED',
+              message_en: 'Title (English & Bangla) and category are required.',
+              message_bn: 'শিরোনাম (ইংরেজি ও বাংলা) এবং ক্যাটাগরি আবশ্যক।',
+            },
+          },
+        };
+      }
+      // Same rule as the live API: media_ids must be product images this session uploaded.
+      const mediaIds = Array.isArray(b.media_ids) ? b.media_ids : [];
+      const imageUrls = mediaIds.map((id) => resolveMockMediaUrl(id));
+      if (b.media_ids !== undefined && (!Array.isArray(b.media_ids) || imageUrls.some((u) => !u))) {
+        return {
+          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          body: {
+            error: {
+              code: 'VALIDATION_FAILED',
+              message_en: 'One or more images are not product images you uploaded.',
+              message_bn: 'এক বা একাধিক ছবি আপনার আপলোড করা প্রোডাক্ট ছবি নয়।',
+            },
+          },
+        };
+      }
+      const category = MOCK_CATEGORIES.find((c) => String(c.id) === String(b.category_id));
+      const retail = parseFloat(b.default_retail_price) || 0;
+      const cost = (parseFloat(b.base_cost) || 0) + (parseFloat(b.wholesale_margin) || 0);
       const ref = b.ref || `PRD-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
       const newProduct = {
         ref,
-        id: activeProducts.length + 1,
-        title_en: b.title_en || 'New Sample Product',
-        title_bn: b.title_bn || 'নতুন স্যাম্পল পণ্য',
-        price: (parseFloat(b.price) || 999.00).toFixed(2),
+        id: activeProducts.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0) + 1,
+        title_en: b.title_en,
+        title_bn: b.title_bn,
+        price: retail.toFixed(2),
         currency: b.currency || 'BDT',
         district: b.district || 'Dhaka',
         store_ref: b.store_ref || 'STR-RAHIM001',
-        stock: parseInt(b.stock, 10) || 50,
-        category: b.category || 'Clothing',
-        category_bn: b.category_bn || 'পোশাক',
+        stock: parseInt(b.stock_qty, 10) || 0,
+        category: category?.name_en || 'Clothing',
+        category_bn: category?.name_bn || 'পোশাক',
         rating: b.rating ? String(b.rating) : '4.5',
         rating_count: b.rating_count || 1,
         supplier_tier: b.supplier_tier || 'verified',
-        margin_pct: parseFloat(b.margin_pct) || 20,
+        margin_pct: retail > 0 ? Math.round(((retail - cost) / retail) * 100) : 0,
         image_index: Math.floor(Math.random() * 10),
         is_flash_sale: Boolean(b.is_flash_sale),
         store_open: true,
         is_verified_supplier: b.supplier_tier === 'verified' || b.supplier_tier === 'elite',
-        image_url: b.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80',
+        image_url: imageUrls[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80',
+        images: imageUrls.map((url, i) => ({ media_id: Number(mediaIds[i]), url, display_order: i, is_primary: i === 0 })),
+        brand: b.brand || null,
         description_en: b.description_en || 'High quality commercial sample product listed on platform.',
         description_bn: b.description_bn || 'প্ল্যাটফর্মে তালিকাভুক্ত উচ্চ মানের বাণিজ্যিক স্যাম্পল পণ্য।',
         created_at: new Date().toISOString(),
@@ -411,6 +496,85 @@ export default [
           },
         },
       };
+    },
+  },
+  {
+    // Mirrors the live PATCH (server/src/services/product.service.js updateProduct): live column
+    // names, id-or-ref lookup, and media_ids replacing the photo set (at least one required).
+    method: 'PATCH',
+    path: '/products/:id',
+    handler({ params, body }) {
+      const idParam = decodeURIComponent(String(params?.id || ''));
+      const idx = activeProducts.findIndex((p) => p.ref === idParam || String(p.id) === idParam);
+      if (idx === -1) {
+        return notFound(`Product "${idParam}" not found.`, `"${idParam}" পণ্যটি পাওয়া যায়নি।`);
+      }
+      const b = body || {};
+      const current = activeProducts[idx];
+      const invalid = (en, bn) => ({
+        status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+        body: { error: { code: 'VALIDATION_FAILED', message_en: en, message_bn: bn } },
+      });
+
+      let images = current.images;
+      if (b.media_ids !== undefined) {
+        if (!Array.isArray(b.media_ids) || b.media_ids.length === 0) {
+          return invalid('A product needs at least one photo.', 'একটি প্রোডাক্টে অন্তত একটি ছবি থাকতে হবে।');
+        }
+        const attached = new Map((current.images || []).map((i) => [String(i.media_id), i.url]));
+        const urls = b.media_ids.map((id) => attached.get(String(id)) || resolveMockMediaUrl(id));
+        if (urls.some((u) => !u)) {
+          return invalid('One or more images are not product images you uploaded.', 'এক বা একাধিক ছবি আপনার আপলোড করা প্রোডাক্ট ছবি নয়।');
+        }
+        images = urls.map((url, i) => ({ media_id: Number(b.media_ids[i]), url, display_order: i, is_primary: i === 0 }));
+      }
+
+      const category = b.category_id !== undefined ? MOCK_CATEGORIES.find((c) => String(c.id) === String(b.category_id)) : null;
+      const retail = b.default_retail_price !== undefined ? parseFloat(b.default_retail_price) : parseFloat(current.price);
+      const updated = {
+        ...current,
+        ...(b.title_en !== undefined && { title_en: b.title_en }),
+        ...(b.title_bn !== undefined && { title_bn: b.title_bn }),
+        ...(b.description_en !== undefined && { description_en: b.description_en }),
+        ...(b.description_bn !== undefined && { description_bn: b.description_bn }),
+        ...(b.brand !== undefined && { brand: b.brand }),
+        ...(category && { category_id: category.id, category: category.name_en, category_bn: category.name_bn }),
+        ...(b.stock_qty !== undefined && { stock: parseInt(b.stock_qty, 10) || 0 }),
+        price: retail.toFixed(2),
+        ...(b.base_cost !== undefined && retail > 0 && {
+          margin_pct: Math.round(((retail - parseFloat(b.base_cost) - (parseFloat(b.wholesale_margin) || 0)) / retail) * 100),
+        }),
+        ...(images && { images, image_url: images[0]?.url || current.image_url }),
+        updated_at: new Date().toISOString(),
+      };
+      activeProducts[idx] = updated;
+      return { status: 200, body: { data: { product: updated } } };
+    },
+  },
+  {
+    // Mirrors POST /products/:id/restock (product.service.js restockProduct): adds to stored stock.
+    method: 'POST',
+    path: '/products/:id/restock',
+    handler({ params, body }) {
+      const idParam = decodeURIComponent(String(params?.id || ''));
+      const p = activeProducts.find((x) => x.ref === idParam || String(x.id) === idParam);
+      if (!p) return notFound(`Product "${idParam}" not found.`, `"${idParam}" পণ্যটি পাওয়া যায়নি।`);
+      const qty = Number(body?.quantity);
+      if (!Number.isInteger(qty) || qty < 1) {
+        return {
+          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          body: {
+            error: {
+              code: 'VALIDATION_FAILED',
+              message_en: 'Quantity must be a whole number of at least 1.',
+              message_bn: 'পরিমাণ অবশ্যই ১ বা তার বেশি পূর্ণ সংখ্যা হতে হবে।',
+            },
+          },
+        };
+      }
+      p.stock = (Number(p.stock) || 0) + qty;
+      const product = { id: p.id, ref: p.ref, stock_qty: p.stock };
+      return { status: 200, body: { data: { product }, product } };
     },
   },
   {

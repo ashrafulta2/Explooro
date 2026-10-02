@@ -73,7 +73,7 @@ export default function BannersManagerPage(root) {
         <input type="url" id="banner-img-mobile" class="form-input" placeholder="https://images.unsplash.com/photo-... (600x400)" value="${existingBanner?.image_url_mobile || ''}" />
       </div>
 
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+      <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px;">
         <div class="supplier-form-field">
           <label for="banner-link">Target Click Link URL *</label>
           <input type="text" id="banner-link" class="form-input" placeholder="/stories or /saler/b2b-escrow" value="${existingBanner?.target_link || '/stories'}" />
@@ -220,7 +220,7 @@ export default function BannersManagerPage(root) {
             ⚡ Flash Sale Strip
           </button>
         </div>
-        <input type="text" id="banner-search" aria-label="🔍 Search banner title..." placeholder="🔍 Search banner title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="search" id="banner-search" aria-label="Search banner title..." placeholder="Search banner title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 

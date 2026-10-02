@@ -219,7 +219,7 @@ export class CampaignManagerPage {
       <!-- KPI Metrics Grid -->
       <div style="
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
         gap: 14px;
       ">
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--warning, #d97706); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
@@ -350,7 +350,7 @@ export class CampaignManagerPage {
       <!-- KPI Metrics Grid -->
       <div style="
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
         gap: 14px;
       ">
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">
@@ -606,7 +606,7 @@ export class CampaignManagerPage {
             <input type="number" name="product_id" required aria-label="101" placeholder="101" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
             <div>
               <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ফ্ল্যাশ সেল মূল্য (৳)' : 'Flash Sale Price (৳)'} *</label>
               <input type="number" name="discount_price" min="1" step="0.5" required aria-label="990" placeholder="990" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
@@ -692,7 +692,7 @@ export class CampaignManagerPage {
             <input type="text" name="code" required aria-label="e.g. MEGA2026" placeholder="e.g. MEGA2026" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
             <div>
               <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ছাড়ের ধরণ' : 'Discount Type'} *</label>
               <select name="discount_type" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;">
@@ -707,7 +707,7 @@ export class CampaignManagerPage {
             </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
             <div>
               <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'বাজেট ক্যাপ (৳)' : 'Budget Cap (৳)'} *</label>
               <input type="number" name="budget_cap" required value="20000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />

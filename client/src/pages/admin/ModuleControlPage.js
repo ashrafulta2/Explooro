@@ -345,7 +345,7 @@ export default function ModuleControlPage(root, { navigate } = {}) {
       titleWrap.className = 'module-group__title-wrap';
 
       const iconSpan = document.createElement('span');
-      iconSpan.textContent = groupDef.icon;
+      iconSpan.innerHTML = groupDef.icon;
 
       const titleH3 = document.createElement('h3');
       titleH3.className = 'module-group__title';

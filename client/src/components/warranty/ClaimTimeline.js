@@ -81,7 +81,7 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
 
       <!-- Claim Details Panel -->
       <div class="claim-details-panel" style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 14px; margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 12px;">
           <div>
             <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted);">${t('warranty.issue_description')}:</span>
             <p style="font-size: 13px; font-weight: 600; color: var(--text-primary); margin: 3px 0 0; line-height: 1.4;">

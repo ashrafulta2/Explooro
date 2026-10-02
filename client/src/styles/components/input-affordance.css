@@ -1,0 +1,123 @@
+/**
+ * Input affordance — every place a user can type or pick must read as one.
+ *
+ * WHY: `.input/.select/.textarea` are borderless by design because FormField supplies the border
+ * on `.field__control`. Pages that used a bare `.input` (inventory search) or a bespoke control
+ * with `--border-strong` (neutral-300, ~1.5:1) rendered a field that looked like plain text.
+ * `--border-interactive` is the WCAG 1.4.11 (3:1) input border token, so every control below uses it.
+ * Imported last in main.css so it wins ties without raising specificity.
+ */
+
+/* 1. Bare .input / .select / .textarea (not inside a FormField control) */
+.input:not(.field__control .input),
+.select:not(.field__control .select),
+.textarea:not(.field__control .textarea) {
+  background-color: var(--surface-1);
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.06);
+}
+/* flex: none so a bare input never collapses to its content height inside a column flex parent */
+.input:not(.field__control .input) { height: var(--control-height); flex: none; }
+.textarea:not(.field__control .textarea) { flex: none; }
+
+/* 2. Bespoke controls that used the faint --border-strong / --border-subtle */
+.catalog-toolbar__search-input,
+.catalog-select,
+.catalog-form-input, .catalog-form-select, .catalog-form-textarea,
+.address-form .form-input, .address-form .form-select, .address-form .form-textarea,
+.coupons-claim-input,
+.warranties-search-input, .warranties-sort-select,
+.filter-panel__price-input,
+.product-grid-toolbar__sort select,
+.sourcing-select,
+.admin-users-select-control,
+.topbar__product-search {
+  border-color: var(--border-interactive);
+}
+
+/* 3. One hover + focus language for all of them */
+.input:not(.field__control .input):hover:not(:disabled),
+.select:not(.field__control .select):hover:not(:disabled),
+.textarea:not(.field__control .textarea):hover:not(:disabled),
+.catalog-toolbar__search-input:hover, .catalog-select:hover,
+.catalog-form-input:hover, .catalog-form-select:hover, .catalog-form-textarea:hover,
+.address-form .form-input:hover, .address-form .form-select:hover, .address-form .form-textarea:hover,
+.warranties-search-input:hover, .warranties-sort-select:hover,
+.filter-panel__price-input:hover, .sourcing-select:hover,
+.admin-users-select-control:hover, .topbar__product-search:hover {
+  border-color: var(--text-muted);
+}
+.input:not(.field__control .input):focus-visible,
+.select:not(.field__control .select):focus-visible,
+.textarea:not(.field__control .textarea):focus-visible,
+.catalog-toolbar__search-input:focus, .catalog-select:focus,
+.catalog-form-input:focus, .catalog-form-select:focus, .catalog-form-textarea:focus,
+.address-form .form-input:focus, .address-form .form-select:focus, .address-form .form-textarea:focus,
+.coupons-claim-input:focus,
+.warranties-search-input:focus, .warranties-sort-select:focus,
+.filter-panel__price-input:focus, .sourcing-select:focus,
+.admin-users-select-control:focus-within {
+  border-color: var(--brand);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+/* 4. Dropdowns: a chevron on every native <select> that has no .select__chevron sibling.
+      Drawn with gradients so it follows the theme token (no raw hex, dark mode for free). */
+select:not(.select):not([multiple]):not([size]),
+.select:not(.field__control .select) {
+  appearance: none;
+  cursor: pointer;
+  padding-inline-end: var(--space-8);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 17px) 55%, calc(100% - 12px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+[dir='rtl'] select:not(.select):not([multiple]):not([size]),
+[dir='rtl'] .select:not(.field__control .select) {
+  background-position: 17px 55%, 12px 55%;
+}
+/* Selects inside a bordered wrapper draw their own chevron/border — do not double up */
+.admin-users-select-control select, .field__control select { background-image: none; }
+
+/* 5. Search boxes: magnifier icon so "type here to search" is obvious.
+      The stroke colour is baked into the data URI (neutral mid-grey, readable on light and dark). */
+input[type='search']:not(.field__control input):not(.topbar__product-search-input),
+.input--search:not(.field__control .input) {
+  padding-inline-start: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 13px 50%;
+  background-size: 18px 18px;
+}
+[dir='rtl'] input[type='search']:not(.field__control input):not(.topbar__product-search-input),
+[dir='rtl'] .input--search:not(.field__control .input) {
+  background-position: calc(100% - 13px) 50%;
+}
+
+/* 5a. ONE search icon. Pages used to draw their own emoji/SVG beside the input, which stacked on
+      top of the icon above. The input's own background icon is now the only one, so any legacy
+      sibling icon next to a search field is hidden. (The TopBar typeahead and the command palette
+      keep theirs: they are excluded above / are not type=search.) */
+.catalog-toolbar__search-icon, .warranties-search-icon, .reviews-search-icon, .following-search-icon,
+.payout-search-icon, .module-control__search-icon, .admin-users-search-icon, .admin-staff-search__icon,
+.cod-recon-toolbar__search-icon, .thread-search-icon, .live-search-icon, .discover-page__search-icon,
+.home-floating-toolbar__search-icon, .saler-toolbar__search > span:first-child { display: none; }
+
+/* 5b. Zero-specificity baseline for unclassed native controls; any page rule still overrides it */
+:where(select:not([multiple]):not([size]), textarea, input:is([type='text'], [type='search'], [type='email'], [type='tel'], [type='url'], [type='number'], [type='password'], [type='date'])) {
+  border: var(--border-width) solid var(--border-interactive);
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-1);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* 6. Placeholders must read as an invitation, not as disabled text */
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}

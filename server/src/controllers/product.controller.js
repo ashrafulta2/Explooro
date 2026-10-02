@@ -26,6 +26,7 @@ export async function createProduct(req, reply) {
     weight_grams,
     has_variants,
     warranty_months,
+    media_ids,
   } = req.body || {};
 
   // Check if product_moderation module is enabled
@@ -50,6 +51,7 @@ export async function createProduct(req, reply) {
     weightGrams: weight_grams,
     hasVariants: has_variants,
     warrantyMonths: warranty_months,
+    mediaIds: media_ids,
     isModerationModuleEnabled,
     isSupplierVerificationEnabled,
   });
@@ -57,13 +59,41 @@ export async function createProduct(req, reply) {
   return reply.status(201).send({ data: { product }, product });
 }
 
+// WHY: the admin "Register Product" form must send a real category_id, and no endpoint exposed
+// the id/name pairs (only the top-level-only ads list). Category names are public catalog data.
+export async function listCategories(req, reply) {
+  const db = req.db || req.server?.db;
+  const { rows } = await db.query(
+    `SELECT id, name_en, name_bn, slug, parent_id
+     FROM categories
+     WHERE is_active = true
+     ORDER BY display_order ASC, name_en ASC
+     LIMIT 500`
+  );
+  return reply.send({ data: { categories: rows }, categories: rows });
+}
+
+// WHY both shapes: the real authenticate plugin sets `roles` (an array of role keys); `role` only
+// exists on test stubs. Checking `role` alone meant a signed-in admin was never treated as staff
+// and got FORBIDDEN editing any supplier's product.
+function isStaffUser(user) {
+  const roles = user?.roles || (user?.role ? [user.role] : []);
+  return roles.includes('admin') || roles.includes('super_admin');
+}
+
 export async function updateProduct(req, reply) {
   const db = req.db || req.server?.db;
   const supplierId = req.user?.id;
   const { id } = req.params;
-  const isStaff = req.user?.role === 'admin' || req.user?.role === 'super_admin';
 
-  const product = await productService.updateProduct(db, parseInt(id, 10), supplierId, req.body || {}, isStaff);
+  const product = await productService.updateProduct(db, id, supplierId, req.body || {}, isStaffUser(req.user));
+  return reply.send({ data: { product }, product });
+}
+
+export async function restockProduct(req, reply) {
+  const db = req.db || req.server?.db;
+  const { id } = req.params;
+  const product = await productService.restockProduct(db, id, req.user?.id, req.body?.quantity, isStaffUser(req.user));
   return reply.send({ data: { product }, product });
 }
 
@@ -71,9 +101,8 @@ export async function deleteProduct(req, reply) {
   const db = req.db || req.server?.db;
   const supplierId = req.user?.id;
   const { id } = req.params;
-  const isStaff = req.user?.role === 'admin' || req.user?.role === 'super_admin';
 
-  const result = await productService.deleteProduct(db, parseInt(id, 10), supplierId, isStaff);
+  const result = await productService.deleteProduct(db, id, supplierId, isStaffUser(req.user));
   return reply.send({ data: result, ...result });
 }
 

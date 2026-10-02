@@ -16,6 +16,7 @@
  * (PREVIEW: "Components appear in /dev/gallery (built in 1.8) — until then, render them on the
  * index page"). Content and behaviour are unchanged from that preview; only the wiring is new.
  */
+import '../../styles/components/customer-warranties.css';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { Select } from '../../components/ui/Select.js';
@@ -33,10 +34,12 @@ import { Skeleton } from '../../components/ui/Skeleton.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { Pagination } from '../../components/ui/Pagination.js';
 import { Tooltip } from '../../components/ui/Tooltip.js';
+import { InfoTip } from '../../components/ui/InfoTip.js';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { toast } from '../../services/toast.js';
 import { ImageUploader } from '../../components/media/ImageUploader.js';
 import { openMediaLibrary } from '../../components/media/MediaLibrary.js';
+import { openCameraCapture } from '../../components/media/CameraCapture.js';
 import { ProductCard, ProductCardSkeleton } from '../../components/product/ProductCard.js';
 import { ProductFeed } from '../../components/product/ProductFeed.js';
 import { MASTER_PRESETS } from '../../config/master-themes.js';
@@ -610,6 +613,15 @@ function renderTooltip() {
   return wrap;
 }
 
+function renderInfoTip() {
+  const wrap = document.createDocumentFragment();
+  const title = document.createElement('h2');
+  title.textContent = 'Seller Academy';
+  title.append(InfoTip({ content: 'Master factory sourcing, B2B escrow deals, and social marketing with micro-learning courses' }));
+  wrap.append(specimen('beside a title — hover, focus or tap', title));
+  return wrap;
+}
+
 function renderImageUploader() {
   const wrap = document.createDocumentFragment();
 
@@ -635,9 +647,20 @@ function renderImageUploader() {
     onClick: (e) => openMediaLibrary({ purpose: 'PRODUCT', trigger: e.target }),
   });
 
+  const camBtn = Button({
+    label: 'Open Webcam Capture Dialog',
+    variant: 'secondary',
+    size: 'sm',
+    onClick: async (e) => {
+      const photo = await openCameraCapture({ trigger: e.currentTarget });
+      if (photo) toast.success(`Captured ${photo.name} (${Math.round(photo.size / 1024)}KB)`);
+    },
+  });
+
   wrap.append(
     specimen('drag-drop / camera / paste / reorder', uploader),
-    specimen('media library browser', libBtn)
+    specimen('media library browser', libBtn),
+    specimen('desktop webcam capture (CameraCapture)', camBtn)
   );
   return wrap;
 }
@@ -1151,6 +1174,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'confirm-dialog', label: 'ConfirmDialog', group: 'Overlays', render: renderConfirmDialog },
     { id: 'toast', label: 'Toast', group: 'Overlays', render: renderToast },
     { id: 'tooltip', label: 'Tooltip', group: 'Overlays', render: renderTooltip },
+    { id: 'info-tip', label: 'InfoTip', group: 'Overlays', render: renderInfoTip },
 
     // ── Product Discovery ────────────────────────────────────────────────────
     // Prompt 4.5
@@ -2310,7 +2334,7 @@ function renderLiveStreamCardSpecimen() {
 
   const row = document.createElement('div');
   row.style.display = 'grid';
-  row.style.gridTemplateColumns = 'repeat(auto-fit, minmax(280px, 1fr))';
+  row.style.gridTemplateColumns = 'repeat(auto-fit, minmax(min(280px, 100%), 1fr))';
   row.style.gap = '16px';
   row.append(liveCard, scheduledCard);
 
@@ -2430,7 +2454,7 @@ function renderWarrantyCardSpecimen() {
 
   const grid = document.createElement('div');
   grid.style.display = 'grid';
-  grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(320px, 1fr))';
+  grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(min(320px, 100%), 1fr))';
   grid.style.gap = '20px';
 
   grid.append(

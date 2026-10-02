@@ -45,7 +45,7 @@ export default function AcademyPage(root, ctx = {}) {
         <span class="text-2xl">🎓</span>
         <h2 class="text-2xl font-bold tracking-tight m-0">${t('academy.page_title')}</h2>
       </div>
-      <p class="text-sm text-muted m-0 mt-1">${t('academy.page_subtitle')}</p>
+      <p class="text-sm text-muted m-0 mt-1" data-page-info>${t('academy.page_subtitle')}</p>
     </div>
     <div class="flex gap-2 flex-wrap category-pills">
       <button class="cat-pill badge cursor-pointer text-xs font-mono py-1 px-3 ${selectedCategory === 'all' ? 'badge-primary' : 'badge-neutral'}" data-cat="all">

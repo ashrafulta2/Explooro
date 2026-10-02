@@ -23,7 +23,7 @@ export default function WorkloadSummary({
   container.className = 'workload-summary-grid';
   container.style.cssText = `
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
     gap: 16px;
     margin-bottom: 20px;
   `;

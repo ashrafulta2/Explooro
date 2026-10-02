@@ -22,6 +22,12 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatNumber, formatCurrency } from '../../services/format.js';
 import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.js';
+import { ImageUploader } from '../../components/media/ImageUploader.js';
+import { can } from '../../services/permissions.js';
+import { isFeatureEnabled } from '../../services/featureFlags.js';
+
+// Mirrors MAX_PRODUCT_IMAGES in server/src/services/product.service.js — the API rejects more.
+const MAX_PRODUCT_PHOTOS = 8;
 
 /**
  * Broken/blocked image CDNs (ad-blockers, corporate proxies, dead links) must never surface the
@@ -416,42 +422,27 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     bulkBar.innerHTML = `
       <span>${selectedRefs.size} ${t('admin_catalog.items_selected', 'products selected')}</span>
       <div class="catalog-bulk-bar__actions">
-        <button class="catalog-icon-btn" id="bulk-flash-toggle">⚡ ${t('admin_catalog.bulk_toggle_flash', 'Toggle Flash Sale')}</button>
-        <button class="catalog-icon-btn" id="bulk-stock-btn">📦 ${t('admin_catalog.bulk_adjust_stock', '+50 Stock')}</button>
+        ${canStartFlashSale() ? `<button class="catalog-icon-btn" id="bulk-flash-start">⚡ ${t('admin_catalog.bulk_flash_start', 'Start Flash Sale')}</button>` : ''}
+        ${canEndFlashSale() ? `<button class="catalog-icon-btn" id="bulk-flash-end">⏹ ${t('admin_catalog.bulk_flash_end', 'End Flash Sale')}</button>` : ''}
+        <button class="catalog-icon-btn" id="bulk-stock-btn">📦 ${t('admin_catalog.bulk_add_stock', 'Add Stock')}</button>
         <button class="catalog-icon-btn catalog-icon-btn--danger" id="bulk-delete-btn">🗑️ ${t('common.delete', 'Delete')}</button>
       </div>
     `;
 
-    bulkBar.querySelector('#bulk-flash-toggle')?.addEventListener('click', async () => {
-      for (const ref of selectedRefs) {
-        const item = products.find((p) => p.ref === ref);
-        if (item) {
-          await api.put(`/products/${ref}`, { is_flash_sale: !item.is_flash_sale }).catch(() => {});
-        }
-      }
-      toast.success(t('admin_catalog.bulk_updated', 'Selected products updated successfully.'));
-      selectedRefs.clear();
-      await loadData();
-    });
-
-    bulkBar.querySelector('#bulk-stock-btn')?.addEventListener('click', async () => {
-      for (const ref of selectedRefs) {
-        const item = products.find((p) => p.ref === ref);
-        if (item) {
-          await api.put(`/products/${ref}`, { stock: (item.stock || 0) + 50 }).catch(() => {});
-        }
-      }
-      toast.success(t('admin_catalog.bulk_stock_added', 'Added 50 units stock to selected products.'));
-      selectedRefs.clear();
-      await loadData();
-    });
+    // WHY the old handlers were replaced: they sent PUT {is_flash_sale} / {stock: old + 50}, which the
+    // server has no route or field for, and swallowed every error with .catch(() => {}) before
+    // toasting "updated successfully" — so the bulk bar always claimed success against a real server.
+    const selectedProducts = () => products.filter((p) => selectedRefs.has(p.ref));
+    bulkBar.querySelector('#bulk-flash-start')?.addEventListener('click', () => openFlashSaleModal(selectedProducts()));
+    bulkBar.querySelector('#bulk-flash-end')?.addEventListener('click', () => endFlashSales(selectedProducts()));
+    bulkBar.querySelector('#bulk-stock-btn')?.addEventListener('click', () => openRestockModal(selectedProducts()));
 
     bulkBar.querySelector('#bulk-delete-btn')?.addEventListener('click', async () => {
       const ok = await confirmDialog({
         title: t('admin_catalog.confirm_bulk_delete_title', 'Delete Selected Products'),
-        message: t(
+        description: t(
           'admin_catalog.confirm_bulk_delete_msg',
-          'Are you sure you want to remove these {count} products from the platform catalog?',
+          'Are you sure you want to remove these {{count}} products from the platform catalog?',
           { count: selectedRefs.size }
         ),
         confirmLabel: t('common.delete', 'Delete'),
@@ -622,7 +613,15 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           <div class="catalog-row-actions" style="justify-content: flex-end;">
             <button class="catalog-icon-btn inspect-btn" data-ref="${p.ref}" title="${t('admin_catalog.inspect', 'Inspect')}">🔍</button>
             <button class="catalog-icon-btn edit-btn" data-ref="${p.ref}" title="${t('common.edit', 'Edit')}">✏️</button>
-            <button class="catalog-icon-btn flash-btn" data-ref="${p.ref}" title="${t('admin_catalog.toggle_flash', 'Toggle Flash Sale')}">⚡</button>
+            ${
+              (p.is_flash_sale ? canEndFlashSale() : canStartFlashSale())
+                ? `<button class="catalog-icon-btn flash-btn" data-ref="${p.ref}" title="${
+                    p.is_flash_sale ? t('admin_catalog.flash_end_btn', 'End Flash Sale') : t('admin_catalog.flash_start_btn', 'Start Flash Sale')
+                  }" aria-label="${
+                    p.is_flash_sale ? t('admin_catalog.flash_end_btn', 'End Flash Sale') : t('admin_catalog.flash_start_btn', 'Start Flash Sale')
+                  }">${p.is_flash_sale ? '⏹' : '⚡'}</button>`
+                : ''
+            }
             <button class="catalog-icon-btn catalog-icon-btn--danger delete-btn" data-ref="${p.ref}" title="${t('common.delete', 'Delete')}">🗑️</button>
           </div>
         </td>
@@ -648,15 +647,9 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
       tr.querySelector('.edit-btn')?.addEventListener('click', () => openEditProductModal(p));
 
-      tr.querySelector('.flash-btn')?.addEventListener('click', async () => {
-        await api.put(`/products/${p.ref}`, { is_flash_sale: !p.is_flash_sale });
-        toast.success(
-          p.is_flash_sale
-            ? t('admin_catalog.flash_removed', 'Removed from Flash Sale')
-            : t('admin_catalog.flash_added', 'Added to Flash Sale')
-        );
-        await loadData();
-      });
+      tr.querySelector('.flash-btn')?.addEventListener('click', () =>
+        p.is_flash_sale ? endFlashSales([p]) : openFlashSaleModal([p])
+      );
 
       tr.querySelector('.delete-btn')?.addEventListener('click', () => handleDeleteProduct(p));
 
@@ -787,7 +780,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       </div>
 
       <!-- Inventory & Supplier Details -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); font-size: var(--text-xs);">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3); font-size: var(--text-xs);">
         <div style="background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-3);">
           <div style="color: var(--text-muted);">${t('admin_catalog.stock_level', 'Stock Quantity')}</div>
           <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-top: 2px;">${formatNumber(product.stock ?? 0)} ${t('admin_catalog.units', 'units')}</div>
@@ -851,6 +844,24 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     drawer.open();
   }
 
+  // WHY: the product API takes a real category_id, not a display name — load the live list.
+  // `isSelected(category)` preselects the product's current category in the edit modal.
+  function fillCategoryOptions(selectEl, isSelected = () => false) {
+    return api
+      .get('/catalog/categories')
+      .then((res) => {
+        const cats = res.data?.categories || res.categories || [];
+        const opts = cats
+          .map((c) => `<option value="${c.id}" ${isSelected(c) ? 'selected' : ''}>${c.name_en}</option>`)
+          .join('');
+        selectEl.innerHTML =
+          `<option value="">${t('admin_catalog.select_category', 'Select a category')}</option>` + opts;
+      })
+      .catch(() => {
+        selectEl.innerHTML = `<option value="">${t('admin_catalog.categories_failed', 'Could not load categories')}</option>`;
+      });
+  }
+
   // ---------------------------------------------------------------------------
   // 6. Add Product Modal
   // ---------------------------------------------------------------------------
@@ -860,16 +871,6 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     form.style.display = 'flex';
     form.style.flexDirection = 'column';
     form.style.gap = 'var(--space-4)';
-
-    const sampleImages = [
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop&q=80',
-      'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=500&auto=format&fit=crop&q=80',
-    ];
-
-    let selectedImg = sampleImages[0];
 
     form.innerHTML = `
       <div class="catalog-form-grid">
@@ -886,23 +887,13 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_category', 'Category')} *</label>
-          <select name="category" class="catalog-form-select">
-            ${categoriesList.map((c) => `<option value="${c}">${c}</option>`).join('')}
+          <select name="category_id" class="catalog-form-select" required>
+            <option value="">${t('common.loading', 'Loading…')}</option>
           </select>
         </div>
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_district', 'District')} *</label>
-          <select name="district" class="catalog-form-select">
-            <option value="Dhaka">Dhaka</option>
-            <option value="Chattogram">Chattogram</option>
-            <option value="Sylhet">Sylhet</option>
-            <option value="Rajshahi">Rajshahi</option>
-            <option value="Khulna">Khulna</option>
-            <option value="Barisal">Barisal</option>
-            <option value="Rangpur">Rangpur</option>
-            <option value="Mymensingh">Mymensingh</option>
-            <option value="Bogura">Bogura</option>
-          </select>
+          <label class="catalog-form-label" for="add-brand">${t('admin_catalog.field_brand', 'Brand')}</label>
+          <input type="text" id="add-brand" name="brand" class="catalog-form-input" maxlength="120" placeholder="${t('admin_catalog.field_brand_placeholder', 'e.g. Aarong (optional)')}" />
         </div>
       </div>
 
@@ -921,47 +912,32 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         </div>
       </div>
 
-      <div class="catalog-form-group">
-        <label class="catalog-form-label">${t('admin_catalog.field_image_preset', 'Product Image Presets')}</label>
-        <div class="catalog-presets-picker">
-          ${sampleImages
-            .map(
-              (img, i) => `
-            <img class="catalog-preset-thumb ${i === 0 ? 'catalog-preset-thumb--selected' : ''}" src="${img}" data-src="${img}" alt="Preset ${i + 1}" />
-          `
-            )
-            .join('')}
+      <div class="catalog-form-group" data-slot="images">
+        <span class="catalog-form-label" id="add-images-label">${t('admin_catalog.field_images', 'Product Photos')} *</span>
+        <span class="catalog-form-hint">${t('admin_catalog.field_images_hint', 'Upload up to 8 photos. The first one is the main photo shown in listings.')}</span>
+      </div>
+
+      <div class="catalog-form-grid">
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="add-desc-en">${t('admin_catalog.field_description_en', 'Description (English)')}</label>
+          <textarea id="add-desc-en" name="description_en" class="catalog-form-textarea" rows="3" placeholder="${t('admin_catalog.field_description_placeholder', 'Materials, sizing and quality guarantee…')}"></textarea>
         </div>
-        <input type="url" name="image_url" class="catalog-form-input" style="margin-top: var(--space-2);" value="${sampleImages[0]}" aria-label="https://..." placeholder="https://..." />
-      </div>
-
-      <div class="catalog-form-group">
-        <label for="add-flash-sale" class="catalog-form-label">${t('admin_catalog.field_description_en', 'Description (English)')}</label>
-        <textarea name="description_en" class="catalog-form-textarea" rows="2" aria-label="Describe materials, sizing, and quality guarantee..." placeholder="Describe materials, sizing, and quality guarantee..."></textarea>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1);">
-        <input type="checkbox" id="add-flash-sale" name="is_flash_sale" />
-        <label for="add-flash-sale" style="font-size: var(--text-xs); font-weight: 600; cursor: pointer;">
-          🔥 ${t('admin_catalog.feature_flash_sale', 'Feature in Platform Flash Sale')}
-        </label>
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="add-desc-bn">${t('admin_catalog.field_description_bn', 'Description (Bangla)')}</label>
+          <textarea id="add-desc-bn" name="description_bn" class="catalog-form-textarea" rows="3" placeholder="যেমন: কাপড়, মাপ ও মানের নিশ্চয়তা…"></textarea>
+        </div>
       </div>
     `;
 
-    const imgInput = form.querySelector('input[name="image_url"]');
-    form.querySelectorAll('.catalog-preset-thumb').forEach((thumb, i) => {
-      attachImageFallback(thumb, `Preset ${i + 1}`, `preset-${i}`, 'catalog-preset-thumb catalog-preset-thumb--placeholder');
-    });
-    // Delegated on the container (not each thumb) so a thumb swapped for a fallback placeholder
-    // after an image-load failure stays clickable.
-    form.querySelector('.catalog-presets-picker')?.addEventListener('click', (e) => {
-      const thumb = e.target.closest('.catalog-preset-thumb');
-      if (!thumb) return;
-      form.querySelectorAll('.catalog-preset-thumb').forEach((t) => t.classList.remove('catalog-preset-thumb--selected'));
-      thumb.classList.add('catalog-preset-thumb--selected');
-      selectedImg = thumb.getAttribute('data-src');
-      if (imgInput) imgInput.value = selectedImg;
-    });
+    // WHY a real uploader instead of the old stock-photo presets + URL box: POST /products only
+    // links media_assets rows (product_images.media_id), so a pasted URL or an Unsplash preset was
+    // silently dropped and every product was listed without a photo of the actual item.
+    const uploader = ImageUploader({ purpose: 'PRODUCT', maxFiles: MAX_PRODUCT_PHOTOS, showAspectControls: false });
+    uploader.setAttribute('role', 'group');
+    uploader.setAttribute('aria-labelledby', 'add-images-label');
+    form.querySelector('[data-slot="images"]').append(uploader);
+
+    fillCategoryOptions(form.querySelector('select[name="category_id"]'));
 
     const modalFooter = document.createElement('div');
     modalFooter.style.display = 'flex';
@@ -983,25 +959,59 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       onClick: async () => {
         const formData = new FormData(form);
         const titleEn = formData.get('title_en')?.toString().trim();
-        const price = formData.get('price')?.toString();
+        const price = parseFloat(formData.get('price')?.toString() || '');
+        const marginPct = parseFloat(formData.get('margin_pct')?.toString() || '');
+        const categoryId = parseInt(formData.get('category_id')?.toString() || '', 10);
 
-        if (!titleEn || !price) {
+        // Highlight and focus the first invalid field so a rejected click is never silent.
+        const invalid = !titleEn
+          ? 'title_en'
+          : !categoryId
+            ? 'category_id'
+            : !(price > 0)
+              ? 'price'
+              : !(marginPct >= 0 && marginPct < 100)
+                ? 'margin_pct'
+                : null;
+        if (invalid) {
+          const el = form.querySelector(`[name="${invalid}"]`);
+          el?.focus();
+          el?.setAttribute('aria-invalid', 'true');
           toast.error(t('admin_catalog.validation_error', 'Please fill in required fields.'));
           return;
         }
 
+        const photos = uploader.getItems();
+        if (photos.some((p) => p.isUploading)) {
+          toast.warning(t('admin_catalog.images_uploading', 'Please wait for the photos to finish uploading.'));
+          return;
+        }
+        const mediaIds = photos.map((p) => p.id).filter((id) => /^\d+$/.test(String(id)));
+        if (!mediaIds.length) {
+          uploader.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          uploader.querySelector('button')?.focus({ preventScroll: true });
+          toast.error(t('admin_catalog.images_required', 'Add at least one product photo.'));
+          return;
+        }
+
+        // WHY: the server takes cost fields, not a saler margin. The margin % is the share of the
+        // retail price the saler keeps, so the supplier's base cost is retail minus that share and
+        // the wholesale margin is 0 (retail >= base + wholesale then holds by construction).
+        const baseCost = Math.round(price * (1 - marginPct / 100) * 100) / 100;
+        const titleBn = formData.get('title_bn')?.toString().trim() || titleEn;
+
         const payload = {
+          category_id: categoryId,
           title_en: titleEn,
-          title_bn: formData.get('title_bn')?.toString().trim() || titleEn,
-          category: formData.get('category')?.toString() || 'Clothing',
-          district: formData.get('district')?.toString() || 'Dhaka',
-          price: parseFloat(price),
-          stock: parseInt(formData.get('stock')?.toString() || '50', 10),
-          margin_pct: parseFloat(formData.get('margin_pct')?.toString() || '20'),
-          image_url: formData.get('image_url')?.toString() || selectedImg,
-          description_en: formData.get('description_en')?.toString() || '',
-          is_flash_sale: formData.get('is_flash_sale') === 'on',
-          supplier_tier: 'verified',
+          title_bn: titleBn,
+          description_en: formData.get('description_en')?.toString().trim() || undefined,
+          description_bn: formData.get('description_bn')?.toString().trim() || undefined,
+          brand: formData.get('brand')?.toString().trim() || undefined,
+          base_cost: baseCost,
+          wholesale_margin: 0,
+          default_retail_price: price,
+          stock_qty: parseInt(formData.get('stock')?.toString() || '0', 10),
+          media_ids: mediaIds,
         };
 
         try {
@@ -1022,6 +1032,9 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       e.preventDefault();
       submitBtn.click();
     });
+    // Clear the red "invalid" outline as soon as the user edits the field it was put on.
+    form.addEventListener('input', (e) => e.target.removeAttribute?.('aria-invalid'));
+    form.addEventListener('change', (e) => e.target.removeAttribute?.('aria-invalid'));
 
     modalFooter.append(cancelBtn, submitBtn);
 
@@ -1049,59 +1062,129 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     form.innerHTML = `
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_title_en', 'Product Title (English)')} *</label>
-          <input type="text" name="title_en" class="catalog-form-input" value="${product.title_en || ''}" required />
+          <label class="catalog-form-label" for="edit-title-en">${t('admin_catalog.field_title_en', 'Product Title (English)')} *</label>
+          <input type="text" id="edit-title-en" name="title_en" class="catalog-form-input" required />
         </div>
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_title_bn', 'Product Title (Bangla)')}</label>
-          <input type="text" name="title_bn" class="catalog-form-input" value="${product.title_bn || ''}" />
+          <label class="catalog-form-label" for="edit-title-bn">${t('admin_catalog.field_title_bn', 'Product Title (Bangla)')}</label>
+          <input type="text" id="edit-title-bn" name="title_bn" class="catalog-form-input" />
         </div>
       </div>
 
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_category', 'Category')} *</label>
-          <select name="category" class="catalog-form-select">
-            ${categoriesList.map((c) => `<option value="${c}" ${c === product.category ? 'selected' : ''}>${c}</option>`).join('')}
+          <label class="catalog-form-label" for="edit-category">${t('admin_catalog.field_category', 'Category')} *</label>
+          <select id="edit-category" name="category_id" class="catalog-form-select" required>
+            <option value="">${t('common.loading', 'Loading…')}</option>
           </select>
         </div>
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_district', 'District')} *</label>
-          <select name="district" class="catalog-form-select">
-            ${['Dhaka', 'Chattogram', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Rangpur', 'Mymensingh', 'Bogura', 'Gazipur', 'Narayanganj']
-              .map((d) => `<option value="${d}" ${d === product.district ? 'selected' : ''}>${d}</option>`)
-              .join('')}
-          </select>
+          <label class="catalog-form-label" for="edit-brand">${t('admin_catalog.field_brand', 'Brand')}</label>
+          <input type="text" id="edit-brand" name="brand" class="catalog-form-input" maxlength="120" placeholder="${t('admin_catalog.field_brand_placeholder', 'e.g. Aarong (optional)')}" />
         </div>
       </div>
 
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_price', 'Retail Price (BDT)')} *</label>
-          <input type="number" step="0.01" name="price" class="catalog-form-input" value="${product.price || ''}" required />
+          <label class="catalog-form-label" for="edit-price">${t('admin_catalog.field_price', 'Retail Price (BDT)')} *</label>
+          <input type="number" step="0.01" id="edit-price" name="price" class="catalog-form-input" required />
         </div>
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_stock', 'Stock Quantity')} *</label>
-          <input type="number" name="stock" class="catalog-form-input" value="${product.stock ?? 0}" required />
+          <label class="catalog-form-label" for="edit-stock">${t('admin_catalog.field_stock_current', 'Stock Quantity')} *</label>
+          <input type="number" min="0" id="edit-stock" name="stock" class="catalog-form-input" required />
         </div>
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_margin', 'Saler Margin %')} *</label>
-          <input type="number" name="margin_pct" class="catalog-form-input" value="${product.margin_pct ?? 18}" required />
+          <label class="catalog-form-label" for="edit-margin">${t('admin_catalog.field_margin', 'Saler Margin %')} *</label>
+          <input type="number" step="0.01" id="edit-margin" name="margin_pct" class="catalog-form-input" required />
         </div>
       </div>
 
-      <div class="catalog-form-group">
-        <label for="edit-flash-sale" class="catalog-form-label">${t('admin_catalog.field_image_url', 'Image URL')}</label>
-        <input type="url" name="image_url" class="catalog-form-input" value="${product.image_url || ''}" />
+      <div class="catalog-form-group" data-slot="images">
+        <span class="catalog-form-label" id="edit-images-label">${t('admin_catalog.field_images', 'Product Photos')} *</span>
+        <span class="catalog-form-hint">${t('admin_catalog.field_images_hint', 'Upload up to 8 photos. The first one is the main photo shown in listings.')}</span>
       </div>
 
-      <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-1);">
-        <input type="checkbox" id="edit-flash-sale" name="is_flash_sale" ${product.is_flash_sale ? 'checked' : ''} />
-        <label for="edit-flash-sale" style="font-size: var(--text-xs); font-weight: 600; cursor: pointer;">
-          🔥 ${t('admin_catalog.feature_flash_sale', 'Feature in Platform Flash Sale')}
-        </label>
+      <div class="catalog-form-grid">
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="edit-desc-en">${t('admin_catalog.field_description_en', 'Description (English)')}</label>
+          <textarea id="edit-desc-en" name="description_en" class="catalog-form-textarea" rows="3"></textarea>
+        </div>
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="edit-desc-bn">${t('admin_catalog.field_description_bn', 'Description (Bangla)')}</label>
+          <textarea id="edit-desc-bn" name="description_bn" class="catalog-form-textarea" rows="3"></textarea>
+        </div>
       </div>
     `;
+
+    // Values are assigned as properties, never interpolated into the markup: a title containing a
+    // quote (e.g. 42" TV) used to break out of value="…" and truncate the field.
+    const field = (name) => form.querySelector(`[name="${name}"]`);
+    const retailOf = (p) => parseFloat(p.default_retail_price ?? p.price) || 0;
+    const marginOf = (p) => {
+      const retail = retailOf(p);
+      if (p.base_cost !== undefined && p.base_cost !== null && retail > 0) {
+        const cost = parseFloat(p.base_cost) + (parseFloat(p.wholesale_margin) || 0);
+        return Math.round(((retail - cost) / retail) * 10000) / 100;
+      }
+      return parseFloat(p.margin_pct) || 0;
+    };
+    let detail = product;
+    const fillFields = (p) => {
+      field('title_en').value = p.title_en || '';
+      field('title_bn').value = p.title_bn || '';
+      field('brand').value = p.brand || '';
+      field('price').value = retailOf(p) ? retailOf(p).toFixed(2) : '';
+      field('stock').value = p.stock_qty ?? p.stock ?? 0;
+      field('margin_pct').value = marginOf(p);
+      field('description_en').value = p.description_en || '';
+      field('description_bn').value = p.description_bn || '';
+    };
+    fillFields(product);
+
+    // Uploader starts with the product's current photos. Only rows with a real media_id can be
+    // sent back; a mock fixture's synthesized gallery falls back to its single listing image.
+    const toItems = (p) => {
+      const real = (p.images || []).filter((i) => /^\d+$/.test(String(i.media_id ?? '')));
+      if (real.length) return real.map((i) => ({ id: Number(i.media_id), url: i.url, width: i.width, height: i.height }));
+      return p.image_url ? [{ id: 'current', url: p.image_url }] : [];
+    };
+    let photosTouched = false;
+    const uploader = ImageUploader({
+      purpose: 'PRODUCT',
+      maxFiles: MAX_PRODUCT_PHOTOS,
+      showAspectControls: false,
+      initialImages: toItems(product),
+      onChange: () => {
+        photosTouched = true;
+      },
+    });
+    uploader.setAttribute('role', 'group');
+    uploader.setAttribute('aria-labelledby', 'edit-images-label');
+    form.querySelector('[data-slot="images"]').append(uploader);
+
+    const categorySelectEl = field('category_id');
+    const categoriesReady = fillCategoryOptions(categorySelectEl, (c) =>
+      product.category_id !== undefined && product.category_id !== null
+        ? String(c.id) === String(product.category_id)
+        : c.name_en === product.category
+    );
+
+    // WHY fetch the detail: the list row carries neither the photo ids nor brand/descriptions, so
+    // editing from it alone would show an empty gallery and blank out those fields on save.
+    api
+      .get(`/products/${encodeURIComponent(product.ref)}`)
+      .then(async (res) => {
+        const d = res.data?.product || res.product;
+        if (!d) return;
+        detail = { ...product, ...d };
+        if (!form.matches(':focus-within')) fillFields(detail);
+        if (!photosTouched) uploader.setItems(toItems(detail));
+        await categoriesReady;
+        if (detail.category_id && !categorySelectEl.value) categorySelectEl.value = String(detail.category_id);
+      })
+      .catch(() => {
+        /* list-row values stay in the form; saving still works for the fields shown */
+      });
 
     const modalFooter = document.createElement('div');
     modalFooter.style.display = 'flex';
@@ -1122,21 +1205,75 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       size: 'sm',
       onClick: async () => {
         const formData = new FormData(form);
+        const str = (k) => formData.get(k)?.toString().trim() || '';
+        const titleEn = str('title_en');
+        const categoryId = parseInt(str('category_id'), 10);
+        const price = parseFloat(str('price'));
+        const marginPct = parseFloat(str('margin_pct'));
+        const stock = parseInt(str('stock'), 10);
+
+        const invalid = !titleEn
+          ? 'title_en'
+          : !categoryId
+            ? 'category_id'
+            : !(price > 0)
+              ? 'price'
+              : !(stock >= 0)
+                ? 'stock'
+                : !(marginPct >= 0 && marginPct < 100)
+                  ? 'margin_pct'
+                  : null;
+        if (invalid) {
+          const el = field(invalid);
+          el?.focus();
+          el?.setAttribute('aria-invalid', 'true');
+          toast.error(t('admin_catalog.validation_error', 'Please fill in required fields.'));
+          return;
+        }
+
+        const photos = uploader.getItems();
+        if (photos.some((p) => p.isUploading)) {
+          toast.warning(t('admin_catalog.images_uploading', 'Please wait for the photos to finish uploading.'));
+          return;
+        }
+        if (!photos.length) {
+          uploader.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          uploader.querySelector('button')?.focus({ preventScroll: true });
+          toast.error(t('admin_catalog.images_required', 'Add at least one product photo.'));
+          return;
+        }
+
+        // Field names are the live column names (PATCH /products/:idOrRef → product.repository
+        // updateProduct's allow-list). The old payload (category name, price, stock, margin_pct,
+        // image_url, district, is_flash_sale) matched none of them, so every edit was a no-op.
         const payload = {
-          title_en: formData.get('title_en')?.toString(),
-          title_bn: formData.get('title_bn')?.toString(),
-          category: formData.get('category')?.toString(),
-          district: formData.get('district')?.toString(),
-          price: parseFloat(formData.get('price')?.toString() || '0'),
-          stock: parseInt(formData.get('stock')?.toString() || '0', 10),
-          margin_pct: parseFloat(formData.get('margin_pct')?.toString() || '0'),
-          image_url: formData.get('image_url')?.toString(),
-          is_flash_sale: formData.get('is_flash_sale') === 'on',
+          title_en: titleEn,
+          title_bn: str('title_bn') || titleEn,
+          category_id: categoryId,
+          brand: str('brand') || null,
+          description_en: str('description_en') || null,
+          description_bn: str('description_bn') || null,
+          stock_qty: stock,
         };
+
+        // Only re-derive cost when price or margin actually changed, so opening and saving an
+        // untouched product never nudges its stored base cost through a rounding round-trip.
+        if (price !== retailOf(detail) || marginPct !== marginOf(detail)) {
+          const wholesale = parseFloat(detail.wholesale_margin) || 0;
+          // Same rule as the create form: the margin % is the saler's share of retail, and the
+          // supplier's existing wholesale margin is kept rather than silently zeroed.
+          payload.base_cost = Math.max(0, Math.round((price * (1 - marginPct / 100) - wholesale) * 100) / 100);
+          payload.wholesale_margin = wholesale;
+          payload.default_retail_price = price;
+        }
+
+        // A synthesized mock photo has no media id; if it's still the only photo, leave photos alone.
+        const mediaIds = photos.map((p) => p.id).filter((id) => /^\d+$/.test(String(id)));
+        if (photosTouched && mediaIds.length) payload.media_ids = mediaIds.map(Number);
 
         try {
           saveBtn.setLoading(true);
-          await api.put(`/products/${product.ref}`, payload);
+          await api.patch(`/products/${encodeURIComponent(product.ref)}`, payload);
           toast.success(t('admin_catalog.product_updated_success', 'Product updated successfully!'));
           modal.close();
           await loadData();
@@ -1152,6 +1289,8 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       e.preventDefault();
       saveBtn.click();
     });
+    form.addEventListener('input', (e) => e.target.removeAttribute?.('aria-invalid'));
+    form.addEventListener('change', (e) => e.target.removeAttribute?.('aria-invalid'));
 
     modalFooter.append(cancelBtn, saveBtn);
 
@@ -1167,14 +1306,281 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   }
 
   // ---------------------------------------------------------------------------
+  // 7b. Flash Sale & Restock Actions
+  // ---------------------------------------------------------------------------
+  // WHY these open forms instead of flipping a flag: a flash sale is a flash_sales row with a
+  // discount price, allocated units and an end time (flashSale.service.js createFlashSale), and
+  // ending one means stopping that specific deal. The old one-click PUT {is_flash_sale} matched no
+  // server field, so the ⚡ button "worked" only against the mock.
+  const canStartFlashSale = () => can('growth.campaign.manage') && isFeatureEnabled('flash_sale');
+  const canEndFlashSale = () => can('growth.campaign.emergency_stop') && isFeatureEnabled('flash_sale');
+
+  /** Settles one request per product and reports how many succeeded, naming the first failure. */
+  async function runForEach(items, fn) {
+    const results = [];
+    for (const p of items) {
+      try {
+        await fn(p);
+        results.push({ p, ok: true });
+      } catch (err) {
+        results.push({ p, ok: false, message: err.message });
+      }
+    }
+    return { done: results.filter((r) => r.ok).length, failed: results.filter((r) => !r.ok) };
+  }
+
+  function reportBatch({ done, failed }, successMsg) {
+    if (done) toast.success(successMsg(done));
+    if (failed.length) {
+      toast.error(
+        t('admin_catalog.batch_failed', '{{count}} failed — {{title}}: {{reason}}', {
+          count: failed.length,
+          title: failed[0].p.title_en,
+          reason: failed[0].message || t('admin_catalog.unknown_error', 'Something went wrong'),
+        })
+      );
+    }
+  }
+
+  function openFlashSaleModal(targets) {
+    const eligible = targets.filter((p) => !p.is_flash_sale && (p.stock || 0) > 0);
+    const skipped = targets.length - eligible.length;
+    if (!eligible.length) {
+      toast.warning(t('admin_catalog.flash_none_eligible', 'None of these products can start a flash sale (already on sale or out of stock).'));
+      return;
+    }
+    const single = eligible.length === 1 ? eligible[0] : null;
+    const maxStock = Math.max(...eligible.map((p) => p.stock || 0));
+
+    // datetime-local wants local wall-clock time without a zone; min = now so past ends are refused.
+    const toLocalInput = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+    const form = document.createElement('form');
+    form.className = 'catalog-form';
+    form.style.cssText = 'display:flex;flex-direction:column;gap:var(--space-4);';
+    form.innerHTML = `
+      ${
+        skipped
+          ? `<p class="catalog-form-hint">${t('admin_catalog.flash_skipped', '{{count}} selected products are skipped — already on sale or out of stock.', { count: skipped })}</p>`
+          : ''
+      }
+      <div class="catalog-form-grid">
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="fs-discount">${t('admin_catalog.flash_discount_pct', 'Discount %')} *</label>
+          <input type="number" id="fs-discount" name="discount_pct" class="catalog-form-input" min="1" max="99" step="1" required />
+        </div>
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="fs-units">${
+            single ? t('admin_catalog.flash_units', 'Units at flash price') : t('admin_catalog.flash_units_each', 'Units per product')
+          } *</label>
+          <input type="number" id="fs-units" name="units" class="catalog-form-input" min="1" max="${maxStock}" step="1" required />
+          <span class="catalog-form-hint">${
+            single
+              ? t('admin_catalog.flash_units_hint_single', 'In stock: {{stock}}', { stock: formatNumber(single.stock) })
+              : t('admin_catalog.flash_units_hint_bulk', 'Capped at each product’s stock.')
+          }</span>
+        </div>
+      </div>
+      <div class="catalog-form-grid">
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="fs-limit">${t('admin_catalog.flash_per_user', 'Limit per customer')}</label>
+          <input type="number" id="fs-limit" name="per_user_limit" class="catalog-form-input" min="1" step="1" placeholder="1" />
+        </div>
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="fs-ends">${t('admin_catalog.flash_ends_at', 'Ends at')} *</label>
+          <input type="datetime-local" id="fs-ends" name="ends_at" class="catalog-form-input" min="${toLocalInput(new Date())}" required />
+        </div>
+      </div>
+      ${single ? `<p class="catalog-form-hint" data-slot="preview" aria-live="polite"></p>` : ''}
+    `;
+
+    const field = (n) => form.querySelector(`[name="${n}"]`);
+    const priceAfter = (p, pct) => Math.round(Number(p.price) * (1 - pct / 100) * 100) / 100;
+    const preview = form.querySelector('[data-slot="preview"]');
+    const updatePreview = () => {
+      if (!preview) return;
+      const pct = parseFloat(field('discount_pct').value);
+      preview.textContent =
+        pct > 0 && pct < 100
+          ? t('admin_catalog.flash_preview', 'Flash price {{price}} (was {{was}})', {
+              price: formatCurrency(priceAfter(single, pct)),
+              was: formatCurrency(Number(single.price)),
+            })
+          : '';
+    };
+    form.addEventListener('input', (e) => {
+      e.target.removeAttribute?.('aria-invalid');
+      updatePreview();
+    });
+
+    const cancelBtn = Button({ label: t('common.cancel', 'Cancel'), variant: 'secondary', size: 'sm', onClick: () => modal.close() });
+    const startBtn = Button({
+      label: t('admin_catalog.flash_start_btn', 'Start Flash Sale'),
+      variant: 'primary',
+      size: 'sm',
+      onClick: async () => {
+        const pct = parseFloat(field('discount_pct').value);
+        const units = parseInt(field('units').value, 10);
+        const limitRaw = field('per_user_limit').value.trim();
+        const perUser = limitRaw ? parseInt(limitRaw, 10) : undefined;
+        const endsAt = field('ends_at').value ? new Date(field('ends_at').value) : null;
+
+        const invalid = !(pct >= 1 && pct < 100)
+          ? 'discount_pct'
+          : !(units >= 1)
+            ? 'units'
+            : perUser !== undefined && !(perUser >= 1)
+              ? 'per_user_limit'
+              : !(endsAt && endsAt > new Date())
+                ? 'ends_at'
+                : null;
+        if (invalid) {
+          field(invalid).focus();
+          field(invalid).setAttribute('aria-invalid', 'true');
+          toast.error(t('admin_catalog.validation_error', 'Please fill in required fields.'));
+          return;
+        }
+
+        startBtn.setLoading(true);
+        const result = await runForEach(eligible, (p) =>
+          api.post('/admin/growth/campaigns/flash-sales', {
+            product_id: p.id,
+            discount_price: priceAfter(p, pct),
+            allocated_qty: Math.min(units, p.stock),
+            ...(perUser !== undefined && { per_user_limit: perUser }),
+            ends_at: endsAt.toISOString(),
+          })
+        );
+        startBtn.setLoading(false);
+        reportBatch(result, (n) => t('admin_catalog.flash_started', 'Flash sale started for {{count}} product(s).', { count: n }));
+        if (result.done) {
+          modal.close();
+          selectedRefs.clear();
+          await loadData();
+        }
+      },
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      startBtn.click();
+    });
+
+    const footer = document.createElement('div');
+    footer.style.cssText = 'display:flex;justify-content:flex-end;gap:var(--space-2);width:100%;';
+    footer.append(cancelBtn, startBtn);
+
+    const modal = Modal({
+      title: t('admin_catalog.flash_modal_title', 'Start Flash Sale'),
+      description: single
+        ? `${single.title_en} · ${formatCurrency(Number(single.price))}`
+        : t('admin_catalog.flash_modal_bulk', '{{count}} products', { count: eligible.length }),
+      content: form,
+      footer,
+      size: 'md',
+    });
+    modal.open();
+  }
+
+  async function endFlashSales(targets) {
+    const live = targets.filter((p) => p.is_flash_sale && p.flash_sale_id);
+    if (!live.length) {
+      toast.warning(t('admin_catalog.flash_none_live', 'None of these products has a flash sale running.'));
+      return;
+    }
+    const ok = await confirmDialog({
+      title: t('admin_catalog.flash_end_title', 'End flash sale?'),
+      description:
+        live.length === 1
+          ? t('admin_catalog.flash_end_msg_one', '"{{name}}" goes back to its normal price immediately.', { name: live[0].title_en })
+          : t('admin_catalog.flash_end_msg_many', '{{count}} products go back to their normal price immediately.', { count: live.length }),
+      confirmLabel: t('admin_catalog.flash_end_btn', 'End Flash Sale'),
+      variant: 'danger',
+    });
+    if (!ok) return;
+
+    const result = await runForEach(live, (p) =>
+      api.post(`/admin/growth/campaigns/flash-sales/${p.flash_sale_id}/emergency-stop`, {
+        reason: 'Ended from the admin product catalog',
+      })
+    );
+    reportBatch(result, (n) => t('admin_catalog.flash_ended', 'Flash sale ended for {{count}} product(s).', { count: n }));
+    selectedRefs.clear();
+    await loadData();
+  }
+
+  function openRestockModal(targets) {
+    const form = document.createElement('form');
+    form.className = 'catalog-form';
+    form.innerHTML = `
+      <div class="catalog-form-group">
+        <label class="catalog-form-label" for="restock-qty">${t('admin_catalog.restock_qty', 'Units to add to each product')} *</label>
+        <input type="number" id="restock-qty" name="quantity" class="catalog-form-input" min="1" step="1" required />
+        <span class="catalog-form-hint">${t('admin_catalog.restock_hint', 'Added on top of current stock, including any sales since this page loaded.')}</span>
+      </div>
+    `;
+    const qtyEl = form.querySelector('[name="quantity"]');
+    qtyEl.addEventListener('input', () => qtyEl.removeAttribute('aria-invalid'));
+
+    const cancelBtn = Button({ label: t('common.cancel', 'Cancel'), variant: 'secondary', size: 'sm', onClick: () => modal.close() });
+    const addBtn = Button({
+      label: t('admin_catalog.restock_btn', 'Add Stock'),
+      variant: 'primary',
+      size: 'sm',
+      onClick: async () => {
+        const quantity = Number(qtyEl.value);
+        if (!Number.isInteger(quantity) || quantity < 1) {
+          qtyEl.focus();
+          qtyEl.setAttribute('aria-invalid', 'true');
+          toast.error(t('admin_catalog.restock_invalid', 'Enter a whole number of at least 1.'));
+          return;
+        }
+        addBtn.setLoading(true);
+        const result = await runForEach(targets, (p) =>
+          api.post(`/products/${encodeURIComponent(p.ref)}/restock`, { quantity })
+        );
+        addBtn.setLoading(false);
+        reportBatch(result, (n) =>
+          t('admin_catalog.restock_done', 'Added {{qty}} units to {{count}} product(s).', { qty: formatNumber(quantity), count: n })
+        );
+        if (result.done) {
+          modal.close();
+          selectedRefs.clear();
+          await loadData();
+        }
+      },
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      addBtn.click();
+    });
+
+    const footer = document.createElement('div');
+    footer.style.cssText = 'display:flex;justify-content:flex-end;gap:var(--space-2);width:100%;';
+    footer.append(cancelBtn, addBtn);
+
+    const modal = Modal({
+      title: t('admin_catalog.restock_title', 'Add Stock'),
+      description:
+        targets.length === 1
+          ? `${targets[0].title_en} · ${t('admin_catalog.flash_units_hint_single', 'In stock: {{stock}}', { stock: formatNumber(targets[0].stock || 0) })}`
+          : t('admin_catalog.flash_modal_bulk', '{{count}} products', { count: targets.length }),
+      content: form,
+      footer,
+      size: 'sm',
+    });
+    modal.open();
+  }
+
+  // ---------------------------------------------------------------------------
   // 8. Delete Product Action
   // ---------------------------------------------------------------------------
   async function handleDeleteProduct(product) {
     const ok = await confirmDialog({
       title: t('admin_catalog.confirm_delete_title', 'Delete Product Listing'),
-      message: t(
+      description: t(
         'admin_catalog.confirm_delete_msg',
-        'Are you sure you want to permanently remove "{name}" ({ref}) from the marketplace catalog?',
+        'Are you sure you want to permanently remove "{{name}}" ({{ref}}) from the marketplace catalog?',
         { name: product.title_en, ref: product.ref }
       ),
       confirmLabel: t('common.delete', 'Delete Product'),

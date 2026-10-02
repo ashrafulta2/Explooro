@@ -92,12 +92,12 @@ export function createMilestoneProgressStepper({
                 </div>
               </div>
 
-              <div class="flex items-center justify-between md:justify-end gap-3 pt-2 md:pt-0 border-t md:border-t-0">
+              <div class="flex flex-wrap items-center justify-between md:justify-end gap-3 pt-2 md:pt-0 border-t md:border-t-0">
                 <div class="text-right">
                   <span class="text-lg font-bold font-mono ${isReleased ? 'text-success' : 'text-primary'}">${formatCurrency(m.amount)}</span>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                   ${(userRole === 'supplier' || isAdmin) && (isPending || isEvidenceSubmitted) ? `
                     <button class="submit-evidence-btn btn btn-sm btn-secondary text-xs" data-id="${m.id}">
                       📤 ${isEvidenceSubmitted ? t('b2b_escrow.update_evidence') : t('b2b_escrow.submit_evidence')}

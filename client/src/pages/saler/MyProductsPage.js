@@ -117,7 +117,7 @@ export default function MyProductsPage(root, { navigate } = {}) {
       <div class="saler-toolbar__search">
         <span>🔍</span>
         <input
-          type="text"
+          type="search"
           id="product-search"
           class="input input--sm w-full"
           aria-label="${t('saler_products.search_placeholder')}"

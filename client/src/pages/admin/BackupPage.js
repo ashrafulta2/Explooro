@@ -234,7 +234,7 @@ export default function BackupPage(root, { navigate } = {}) {
       </div>
 
       <!-- KPI Strip -->
-      <div class="kpi-strip" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="kpi-strip" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
         <div class="card kpi-card" style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 1.25rem;">
           <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
             ${t('admin_backups.kpi_total_snapshots')}
@@ -293,7 +293,7 @@ export default function BackupPage(root, { navigate } = {}) {
             <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.25rem 0; color: var(--text-primary);">
               🗄️ ${t('admin_backups.table_title')}
             </h2>
-            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
+            <p data-page-info style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
               ${t('admin_backups.table_subtitle')}
             </p>
           </div>
@@ -387,13 +387,13 @@ export default function BackupPage(root, { navigate } = {}) {
       </div>
 
       <!-- Retention & Disaster Plan Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 1.5rem;">
         <!-- Retention Cadence -->
         <div class="card" style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 1.25rem;">
           <h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: var(--text-primary);">
             📅 ${t('admin_backups.retention_title')}
           </h3>
-          <p style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 1rem 0;">
+          <p data-page-info style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 1rem 0;">
             ${t('admin_backups.retention_desc')}
           </p>
           <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.8125rem;">
@@ -413,7 +413,7 @@ export default function BackupPage(root, { navigate } = {}) {
           <h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: var(--text-primary);">
             🌐 ${t('admin_backups.replication_title')}
           </h3>
-          <p style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 1rem 0;">
+          <p data-page-info style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 1rem 0;">
             ${t('admin_backups.replication_desc')}
           </p>
           <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; background: var(--surface-2); border-radius: 4px; font-size: 0.75rem; color: var(--success); font-weight: 600;">

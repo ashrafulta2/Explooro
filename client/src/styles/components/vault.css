@@ -5,12 +5,12 @@
 .vault-page { display: flex; flex-direction: column; gap: var(--space-5); }
 .vault-page__header { display: flex; justify-content: space-between; align-items: flex-start; }
 .vault-page__body { display: flex; flex-direction: column; gap: var(--space-5); }
-.vault-page__grid { display: grid; grid-template-columns: 1fr; gap: var(--space-5); }
-@media (min-width: 1024px) { .vault-page__grid { grid-template-columns: 1fr 1.6fr; } }
+.vault-page__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
+@media (min-width: 1024px) { .vault-page__grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); } }
 .vault-page__loading { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-8); gap: var(--space-3); color: var(--text-secondary); }
 
 /* Balance Summary */
-.balance-summary__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
+.balance-summary__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: var(--space-4); }
 .balance-card { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); position: relative; border-top: 3px solid transparent; }
 .balance-card--earned { border-top-color: var(--brand); }
 .balance-card--available { border-top-color: var(--success); }
@@ -24,7 +24,8 @@
 
 /* Escrow Timeline */
 .escrow-timeline-card { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
-.escrow-timeline__header { display: flex; justify-content: space-between; align-items: flex-start; }
+/* WHY wrap + gap: the title block and the "N Pending Holdings" badge don't both fit on a phone, and the badge was clipped by the card */
+.escrow-timeline__header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-2); }
 .escrow-timeline__list { display: flex; flex-direction: column; gap: var(--space-3); }
 .escrow-timeline__item { display: flex; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface-2); transition: background 0.15s ease; }
 .escrow-timeline__item--ready { border-left: 3px solid var(--success); }
@@ -45,16 +46,16 @@
 
 /* Admin Finance Dashboard */
 .finance-dashboard-page { display: flex; flex-direction: column; gap: var(--space-5); }
-.finance-dashboard-page__header { display: flex; justify-content: space-between; align-items: flex-start; }
-.finance-dashboard-page__header-actions { display: flex; gap: var(--space-2); }
-.finance-dashboard-page__kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); }
+.finance-dashboard-page__header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
+.finance-dashboard-page__header-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.finance-dashboard-page__kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: var(--space-3); }
 .finance-kpi-card { padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
 .finance-kpi-card__label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; }
 .finance-kpi-card__val { font-size: 1.35rem; font-family: var(--font-mono); }
 .finance-kpi-card__hint { font-size: 0.75rem; color: var(--text-secondary); }
 .finance-kpi-card--integrity { background: var(--surface-2); border-left: 3px solid var(--success); }
-.finance-dashboard-page__charts-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
-@media (min-width: 1024px) { .finance-dashboard-page__charts-grid { grid-template-columns: 1.6fr 1fr; } }
+.finance-dashboard-page__charts-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); }
+@media (min-width: 1024px) { .finance-dashboard-page__charts-grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); } }
 .finance-chart-card { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
 .finance-chart-card__header { display: flex; justify-content: space-between; align-items: center; }
 .finance-svg-chart { width: 100%; height: 180px; overflow: visible; }

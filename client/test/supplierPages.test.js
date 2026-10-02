@@ -221,18 +221,16 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
     const handler = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
     assert.ok(handler, 'POST /products handler exists');
 
+    // Same shape the live POST /products takes (server product.controller.js createProduct).
     const newProdPayload = {
+      category_id: 1,
       title_en: 'Supplier Silk Scarf',
       title_bn: 'সাপ্লায়ার সিল্ক স্কার্ফ',
-      category: 'Clothing',
-      district: 'Rajshahi',
-      price: 1850.0,
-      stock: 75,
-      margin_pct: 25,
-      image_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500',
       description_en: 'Authentic pure silk scarf crafted with traditional handlooms.',
-      is_flash_sale: true,
-      supplier_tier: 'verified',
+      base_cost: 1387.5,
+      wholesale_margin: 0,
+      default_retail_price: 1850.0,
+      stock_qty: 75,
     };
 
     const res = handler.handler({ body: newProdPayload });
@@ -240,8 +238,99 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
     assert.ok(res.body.data.product, 'product is returned in data');
     assert.equal(res.body.data.product.title_en, 'Supplier Silk Scarf');
     assert.equal(res.body.data.product.stock, 75);
-    assert.equal(res.body.data.product.is_flash_sale, true);
+    assert.equal(res.body.data.product.price, '1850.00');
+    assert.equal(res.body.data.product.margin_pct, 25);
+    assert.equal(res.body.data.product.category, 'Clothing');
     assert.ok(res.body.data.product.ref.startsWith('PRD-'));
+  });
+
+  await t.test('POST /products rejects a payload without category_id, as the live server does', async () => {
+    const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
+    const handler = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
+    // The old form shape — a category NAME and `price` — which the live server rejects.
+    const res = handler.handler({ body: { title_en: 'X', title_bn: 'X', category: 'Clothing', price: 100 } });
+    assert.equal(res.status, 400);
+    assert.equal(res.body.error.code, 'VALIDATION_FAILED');
+  });
+
+  await t.test('POST /products links uploaded photos via media_ids and rejects unknown ones', async () => {
+    const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
+    const { default: mediaHandlers } = await import('../src/mocks/handlers/media.js');
+    const upload = mediaHandlers.find((h) => h.path === '/media/direct');
+    const create = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
+    const a = upload.handler({ body: { purpose: 'PRODUCT', data_base64: 'data:image/png;base64,AAAA' } }).body.asset;
+    const b = upload.handler({ body: { purpose: 'PRODUCT', data_base64: 'data:image/jpeg;base64,BBBB' } }).body.asset;
+    const payload = { category_id: 2, title_en: 'Watch', title_bn: 'ঘড়ি', base_cost: 800, default_retail_price: 1000 };
+
+    const ok = create.handler({ body: { ...payload, media_ids: [b.id, a.id] } });
+    assert.equal(ok.status, 201);
+    assert.equal(ok.body.data.product.image_url, b.url, 'first photo is the listing image');
+    assert.deepEqual(ok.body.data.product.images.map((i) => i.is_primary), [true, false]);
+
+    const bad = create.handler({ body: { ...payload, media_ids: [123] } });
+    assert.equal(bad.status, 400);
+    assert.equal(bad.body.error.code, 'VALIDATION_FAILED');
+  });
+
+  await t.test('PATCH /products/:ref takes live field names and replaces photos, keeping attached ones', async () => {
+    const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
+    const { default: mediaHandlers } = await import('../src/mocks/handlers/media.js');
+    const upload = mediaHandlers.find((h) => h.path === '/media/direct');
+    const create = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
+    const patch = productHandlers.find((h) => h.method === 'PATCH' && h.path === '/products/:id');
+    const first = upload.handler({ body: { purpose: 'PRODUCT', data_base64: 'data:image/png;base64,CCCC' } }).body.asset;
+    const created = create.handler({
+      body: { category_id: 1, title_en: 'Kurta', title_bn: 'কুর্তা', base_cost: 800, default_retail_price: 1000, media_ids: [first.id] },
+    }).body.data.product;
+    const added = upload.handler({ body: { purpose: 'PRODUCT', data_base64: 'data:image/png;base64,DDDD' } }).body.asset;
+
+    const res = patch.handler({
+      params: { id: created.ref },
+      body: { title_en: 'Kurta (Eid)', category_id: 2, stock_qty: 9, base_cost: 750, wholesale_margin: 0, default_retail_price: 1000, media_ids: [added.id, first.id] },
+    });
+    assert.equal(res.status, 200);
+    const p = res.body.data.product;
+    assert.equal(p.title_en, 'Kurta (Eid)');
+    assert.equal(p.category, 'Electronics');
+    assert.equal(p.stock, 9);
+    assert.equal(p.margin_pct, 25);
+    assert.equal(p.image_url, added.url, 'new first photo becomes the listing image');
+    assert.deepEqual(p.images.map((i) => i.media_id), [added.id, first.id]);
+
+    assert.equal(patch.handler({ params: { id: created.ref }, body: { media_ids: [] } }).status, 400);
+    assert.equal(patch.handler({ params: { id: created.ref }, body: { media_ids: [424242] } }).status, 400);
+  });
+
+  await t.test('restock adds to stored stock; flash sales start, block overlap and end via the live endpoints', async () => {
+    const { default: productHandlers, findMockProductById } = await import('../src/mocks/handlers/products.js');
+    const { default: campaignHandlers } = await import('../src/mocks/handlers/campaigns.js');
+    const find = (list, method, path) => list.find((h) => h.method === method && h.path === path);
+    const create = find(productHandlers, 'POST', '/products');
+    const restock = find(productHandlers, 'POST', '/products/:id/restock');
+    const startSale = find(campaignHandlers, 'POST', '/admin/growth/campaigns/flash-sales');
+    const stopSale = find(campaignHandlers, 'POST', '/admin/growth/campaigns/flash-sales/:id/emergency-stop');
+
+    const p = create.handler({
+      body: { category_id: 3, title_en: 'Toy', title_bn: 'খেলনা', base_cost: 400, default_retail_price: 500, stock_qty: 10 },
+    }).body.data.product;
+
+    assert.equal(restock.handler({ params: { id: p.ref }, body: { quantity: 15 } }).body.product.stock_qty, 25);
+    assert.equal(restock.handler({ params: { id: p.ref }, body: { quantity: 0 } }).status, 400);
+
+    const tooCheap = startSale.handler({ body: { product_id: p.id, discount_price: 500, allocated_qty: 5 } });
+    assert.equal(tooCheap.status, 400, 'discount must be below retail');
+    assert.equal(startSale.handler({ body: { product_id: p.id, discount_price: 400, allocated_qty: 99 } }).status, 409, 'units capped by stock');
+
+    const ends = new Date(Date.now() + 3600000).toISOString();
+    const started = startSale.handler({ body: { product_id: p.id, discount_price: 400, allocated_qty: 5, ends_at: ends } });
+    assert.equal(started.status, 201);
+    assert.equal(findMockProductById(p.id).is_flash_sale, true);
+    assert.equal(findMockProductById(p.id).flash_sale_id, started.body.flash_sale.id);
+    assert.equal(startSale.handler({ body: { product_id: p.id, discount_price: 450, allocated_qty: 1 } }).status, 409, 'no overlapping sale');
+
+    const stopped = stopSale.handler({ params: { id: String(started.body.flash_sale.id) } });
+    assert.equal(stopped.body.flash_sale.status, 'CANCELLED');
+    assert.equal(findMockProductById(p.id).is_flash_sale, false);
   });
 });
 

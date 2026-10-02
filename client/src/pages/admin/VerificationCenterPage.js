@@ -124,9 +124,10 @@ export default function VerificationCenterPage(root) {
       render();
       const res = await api.get(`/admin/kyc/queue?status=${currentFilter}`);
       const items = res.data?.items || res.items || [];
-      queueItems = Array.isArray(items) && items.length > 0
-        ? items
-        : (currentFilter === 'ALL' ? defaultSampleQueue : defaultSampleQueue.filter((k) => k.status === currentFilter));
+      // WHY an empty queue stays empty: this used to fall back to the hard-coded sample applicants
+      // whenever the server returned zero rows, so once every Pending submission was approved the
+      // "Pending" filter re-showed them as Pending again — undoing the decision on screen.
+      queueItems = Array.isArray(items) ? items : [];
 
       if (queueItems.length > 0 && !selectedKyc) {
         selectedKyc = queueItems[0];
@@ -251,7 +252,8 @@ export default function VerificationCenterPage(root) {
       selectedKyc.status = 'VERIFIED';
       complianceChecks = emptyComplianceChecks();
       complianceFor = null;
-      render();
+      // Re-read the queue so the left-hand list reflects the server's state, not a stale badge.
+      fetchQueue();
     } catch (err) {
       // WHY not a success toast: this used to mark the submission VERIFIED (and award the Blue-Tick in the
       // UI) when the request had failed, so a reviewer could believe a merchant was approved that the
@@ -308,7 +310,7 @@ export default function VerificationCenterPage(root) {
         close();
         toast.success(t('kyc.reject_success', 'KYC submission rejected.'));
         selectedKyc.status = 'REJECTED';
-        render();
+        fetchQueue();
       } catch (err) {
         // Stay open on failure so the reasons typed here are not lost, and never claim it was rejected.
         confirmBtn.disabled = false;
@@ -395,7 +397,7 @@ export default function VerificationCenterPage(root) {
         </div>
 
         <!-- Business Details Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg); font-size: 12px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: var(--space-3); padding: var(--space-3); background: var(--surface-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg); font-size: 12px;">
           <div>
             <span style="font-size: 11px; color: var(--text-muted); display: block;">${t('kyc.field_business_name', 'Business / store name:')}</span>
             <strong style="color: var(--text-primary);">${esc(selectedKyc.business_name || t('kyc.not_available', 'N/A'))}</strong>
@@ -409,7 +411,7 @@ export default function VerificationCenterPage(root) {
         <!-- Documents Checklist & Inspection -->
         <div style="display: flex; flex-direction: column; gap: var(--space-3);">
           <h3 style="font-size: 14px; font-weight: 800; color: var(--text-primary); margin: 0;">${esc(t('kyc.docs_heading', 'Uploaded verification documents ({{count}})', { count: formatNumber(selectedKyc.documents?.length ?? 0) }))}</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3);">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--space-3);">
             ${(selectedKyc.documents || [])
               .map(
                 (doc) => `

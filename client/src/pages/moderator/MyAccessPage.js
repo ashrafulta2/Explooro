@@ -127,7 +127,7 @@ export default function MyAccessPage(root) {
           <h1 style="margin:0 0 4px;font-size:1.6rem;font-weight:700;color:var(--text-primary,#0f172a);letter-spacing:-0.3px;">
             ${t('mod_access.title', 'My Access')}
           </h1>
-          <p style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
+          <p data-page-info style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
             ${t('mod_access.subtitle', 'Your current role, permissions and elevated access grants.')}
           </p>
         </div>

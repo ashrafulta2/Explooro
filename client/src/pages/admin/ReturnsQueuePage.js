@@ -271,7 +271,7 @@ export default function ReturnsQueuePage(root) {
                 <!-- Middle Details Grid -->
                 <div style="
                   display: grid;
-                  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
                   gap: 14px;
                   padding: 12px 14px;
                   border-radius: var(--radius-md, 8px);

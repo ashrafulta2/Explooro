@@ -338,13 +338,13 @@ export default function B2bEscrowPage(root, ctx = {}) {
         <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           📝 ${t('b2b_escrow.proposal_title', 'Draft New Wholesale Supply Agreement')}
         </h3>
-        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+        <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           Specify buyer details, multi-stage delivery milestones, and quality inspection terms.
         </p>
       </div>
 
       <form id="new-b2b-deal-form" style="display: flex; flex-direction: column; gap: var(--space-4, 16px);">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3, 12px);">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Agreement Title (English) *</label>
             <input type="text" name="title_en" class="input input--sm" placeholder="e.g. 5,000 Cotton Sarees Supply Contract" required />
@@ -355,7 +355,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3, 12px);">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Buyer User ID / Account *</label>
             <input type="number" name="buyer_id" class="input input--sm font-mono" placeholder="e.g. 5" required />

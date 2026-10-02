@@ -112,7 +112,7 @@ export default function ResellerInsightsPage(root) {
         <span class="badge badge--success font-bold text-xs">⭐ Verified Top Saler</span>
       </div>
 
-      <div class="supplier-kpi-grid" style="grid-template-columns: repeat(3, 1fr); gap: 8px;">
+      <div class="supplier-kpi-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
         <div class="supplier-kpi-card" style="padding: 12px;">
           <span class="supplier-kpi-card__label">Curated SKUs</span>
           <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-primary); margin-top: 2px;">${saler.curated_products_count || saler.curated_sku_count || 0} items</div>
@@ -301,12 +301,12 @@ export default function ResellerInsightsPage(root) {
         <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           🏆 ${t('supplier.top_curators_leaderboard', 'Top Resellers Leaderboard')}
         </h3>
-        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+        <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           Ranked by direct customer sales volume and retail merchandise demand
         </p>
       </div>
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <input type="text" id="reseller-search-input" aria-label="Search Saler store" placeholder="🔍 Search Saler store..." value="${searchQuery}" class="form-input" style="padding: 6px 12px; font-size: 12px; width: 220px; border-radius: 8px;" />
+      <div style="display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 100%;">
+        <input type="search" id="reseller-search-input" aria-label="Search Saler store" placeholder="Search Saler store..." value="${searchQuery}" class="form-input" style="padding: 6px 12px; font-size: 12px; width: 220px; max-width: 100%; border-radius: 8px;" />
         <span class="badge badge--neutral text-xs font-mono font-bold">${topSalers.length} Curators Active</span>
       </div>
     `;
@@ -417,7 +417,7 @@ export default function ResellerInsightsPage(root) {
           <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
             📍 ${t('supplier.regional_demand', 'Regional Demand & Logistics Breakdown')}
           </h3>
-          <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+          <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
             Geographic sales distribution across Bangladesh districts to optimize warehouse stocking and courier fulfillment
           </p>
         </div>

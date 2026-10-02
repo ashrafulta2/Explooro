@@ -2,7 +2,8 @@
  * ImageUploader.js — Robust client-side media uploader (Prompt 4.2).
  *
  * Features:
- * - Drag & drop, file picker, clipboard paste (Ctrl+V), mobile camera capture
+ * - Drag & drop, file picker, clipboard paste (Ctrl+V), camera capture (mobile camera app,
+ *   desktop webcam dialog)
  * - Client-side size & format validation (max 8MB images, max 100MB videos)
  * - Aspect ratio presets (1:1 Product, 16:9 Banner, 4:3)
  * - Multi-file reordering & progress bars
@@ -13,6 +14,7 @@ import { Button } from '../ui/Button.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { detectCameraMode, openCameraCapture } from './CameraCapture.js';
 
 export const MAX_IMAGE_SIZE = 8 * 1024 * 1024;    // 8MB
 export const MAX_VIDEO_SIZE = 100 * 1024 * 1024;  // 100MB
@@ -22,6 +24,8 @@ export function ImageUploader({
   aspectRatio = '1:1',
   maxFiles = 8,
   initialImages = [],
+  // The aspect buttons only record a preference (nothing crops yet); forms with a fixed purpose hide them.
+  showAspectControls = true,
   onChange = () => {},
   onUploadComplete = () => {},
 } = {}) {
@@ -62,7 +66,8 @@ export function ImageUploader({
     aspectControls.append(btn);
   }
 
-  toolbar.append(toolbarTitle, aspectControls);
+  toolbar.append(toolbarTitle);
+  if (showAspectControls) toolbar.append(aspectControls);
 
   // Hidden File Inputs (Standard & Mobile Camera)
   const fileInput = document.createElement('input');
@@ -100,14 +105,35 @@ export function ImageUploader({
     onClick: () => fileInput.click(),
   });
 
+  // WHY iconLeft: Button sets its label via textContent, so an SVG string in `label` rendered as
+  // raw markup — a 400-character line of text that forced the dropzone to scroll sideways.
+  const cameraIconHost = document.createElement('span');
+  cameraIconHost.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`;
   const cameraBtn = Button({
-    label: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg> ${isBn ? 'ক্যামেরা' : 'Camera'}`,
+    label: isBn ? 'ক্যামেরা' : 'Camera',
+    iconLeft: cameraIconHost.firstElementChild,
     variant: 'ghost',
     size: 'sm',
-    onClick: () => cameraInput.click(),
+    // WHY two paths: desktop browsers ignore cameraInput's `capture` hint and open the file picker,
+    // so there the webcam is streamed in our own dialog instead (see CameraCapture.js).
+    onClick: async (e) => {
+      if (detectCameraMode() !== 'webcam') {
+        cameraInput.click();
+        return;
+      }
+      const photo = await openCameraCapture({ trigger: e.currentTarget });
+      if (photo) handleFiles([photo]);
+    },
   });
 
   actionsWrap.append(browseBtn, cameraBtn);
+
+  // WHY: the dropzone is styled cursor:pointer, so users click the box itself — which did nothing.
+  // Clicks on its own buttons are skipped so Browse/Camera don't also open the plain file picker.
+  dropzone.addEventListener('click', (e) => {
+    if (e.target.closest('button')) return;
+    fileInput.click();
+  });
 
   // Drag & Drop Events
   dropzone.addEventListener('dragover', (e) => {

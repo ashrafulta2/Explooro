@@ -225,7 +225,7 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
           </div>
         </div>
 
-        <form id="coin-policy-form" style="padding: var(--space-5); display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+        <form id="coin-policy-form" style="padding: var(--space-5); display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));">
           <div>
             <label class="form-label" for="cp-coins-per-bdt">${isBn ? 'প্রতি ৳১ = কত কয়েন' : 'Coins per ৳1'}</label>
             <input class="form-input" id="cp-coins-per-bdt" name="coins_per_bdt" type="number" min="1" max="10000" step="1" value="${coinPolicy.coins_per_bdt}" />

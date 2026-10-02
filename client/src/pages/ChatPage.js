@@ -42,6 +42,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
     <!-- Top Bar: Connection State & Title -->
     <div class="chat-topbar">
       <div class="chat-topbar-left">
+        <button type="button" class="chat-back-btn" id="chat-back-btn" aria-label="${t('common.back')}">&lsaquo;</button>
         <h3 class="chat-topbar-title">
           <span class="chat-topbar-title-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></span>
           <span>${t('chat.page_title') || 'Messages & Real-Time Chat'}</span>
@@ -78,6 +79,16 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
       </div>
     </div>
   `;
+
+  // WHY: below 768px the two panes can't sit side by side, so the container flips between the
+  // thread list and the open conversation. `data-view` only has a visual effect inside that media
+  // query (chat.css); on desktop both panes always show.
+  container.dataset.view = 'list';
+  container.querySelector('#chat-back-btn').addEventListener('click', () => {
+    selectedThread = null;
+    container.dataset.view = 'list';
+    renderThreadList();
+  });
 
   // 1. Update Connection Status Badge
   function updateConnectionBadge(status) {
@@ -127,6 +138,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
       renderThreadList();
 
       if (selectedThread) {
+        container.dataset.view = 'conversation';
         loadMessages(selectedThread);
       }
     } catch (err) {
@@ -145,6 +157,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
       selectedThreadId: selectedThread?.id,
       onSelectThread: (th) => {
         selectedThread = th;
+        container.dataset.view = 'conversation';
         renderThreadList();
         loadMessages(th);
       },

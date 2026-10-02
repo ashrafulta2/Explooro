@@ -948,9 +948,21 @@
 }
 
 /* ── Responsive rules ── */
+.chat-back-btn { display: none; flex: none; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; border-radius: var(--radius-sm, 6px); background: transparent; color: var(--text-primary); font-size: 28px; line-height: 1; cursor: pointer; }
+.chat-back-btn:hover { background: var(--surface-2); }
 @media (max-width: 768px) {
+  /* Master/detail: one pane at a time. */
+  .chat-page-container[data-view='list'] .chat-conversation-area { display: none; }
+  .chat-page-container[data-view='conversation'] .chat-threads-sidebar { display: none; }
+  .chat-page-container[data-view='conversation'] .chat-back-btn { display: inline-flex; }
+  .chat-page-container[data-view='conversation'] .chat-topbar-title,
+  .chat-page-container[data-view='conversation'] .chat-topbar-divider { display: none; }
+  .chat-topbar { padding: var(--space-2) var(--space-3); }
+  .chat-topbar-title, .chat-topbar-active-partner { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chat-empty-state { padding: var(--space-4); }
+
   .chat-page-container {
-    height: calc(100vh - 56px);
+    height: calc(100dvh - var(--topbar-h, 56px) - 64px);
     border-left: none;
     border-right: none;
   }

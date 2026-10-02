@@ -352,7 +352,7 @@ export default function LanguageSettingsPage(root, { navigate } = {}) {
     head.className = 'language-authority-card__head';
     head.innerHTML = `
       <h2 class="card-title">${t('admin_language.authority_title', 'Who can change this')}</h2>
-      <p class="text-xs text-secondary">
+      <p data-page-info class="text-xs text-secondary">
         ${t(
           'admin_language.authority_hint',
           'Super Admin always can. Anyone else needs a standing grant for platform.localization.update.'

@@ -107,7 +107,7 @@ export default function SupplierForecastingPage(root) {
       { label:t('sup_forecast.stat_high', 'High Risk'),        value: high,           text:'var(--warning-800,#9a3412)', bg:'var(--warning-100,#ffedd5)' },
       { label:t('sup_forecast.stat_revenue_risk', 'Revenue at Risk'),  value: revenueAtRisk>0 ? formatCurrency(revenueAtRisk) : '—', text:'var(--info-700,#7e22ce)', bg:'var(--info-100,#fae8ff)' },
     ];
-    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px, 100%), 1fr));gap:12px;">
       ${items.map(c=>`
         <div style="background:${c.bg};border-radius:12px;padding:14px 18px;text-align:center;">
           <div style="font-size:1.4rem;font-weight:800;color:${c.text};">${c.value}</div>
@@ -195,7 +195,7 @@ export default function SupplierForecastingPage(root) {
           <h1 style="margin:0 0 4px;font-size:1.6rem;font-weight:700;color:var(--text-primary,#0f172a);letter-spacing:-0.3px;">
             ${t('sup_forecast.title', 'AI Demand Forecasting')}
           </h1>
-          <p style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
+          <p data-page-info style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
             ${t('sup_forecast.subtitle', 'Predict inventory needs and prevent stockouts with AI-powered sales projections.')}
           </p>
         </div>

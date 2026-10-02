@@ -73,7 +73,7 @@
  * ------------------------------------------------------------------------------------------ */
 .ad-format-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr));
   gap: var(--space-4);
 }
 
@@ -294,7 +294,7 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
   gap: 0;
   overflow: hidden;
 }
@@ -431,7 +431,7 @@
  * ------------------------------------------------------------------------------------------ */
 .ad-pricing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: var(--space-4);
 }
 
@@ -459,7 +459,7 @@
 
 .ad-rate-card__stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-2);
   padding: var(--space-3);
   background: var(--surface-2);
@@ -470,7 +470,7 @@
 .ad-rate-stat__label { font-size: var(--text-xs); color: var(--text-muted); display: block; }
 .ad-rate-stat__value { font-size: var(--text-sm); font-weight: var(--weight-bold); font-family: var(--font-mono); color: var(--text-primary); }
 
-.ad-rate-card__fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
+.ad-rate-card__fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3); margin-bottom: var(--space-4); }
 .ad-rate-card__fields .field { margin-top: 0; }
 .ad-rate-card__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: auto; }
 
@@ -480,8 +480,8 @@
  * Responsive
  * ------------------------------------------------------------------------------------------ */
 @media (max-width: 820px) {
-  .ad-wizard__body { grid-template-columns: 1fr; overflow-y: auto; }
+  .ad-wizard__body { grid-template-columns: minmax(0, 1fr); overflow-y: auto; }
   .ad-wizard__side { border-left: none; border-top: 1px solid var(--border-subtle); }
   .ad-wizard__form { overflow: visible; }
-  .ad-rate-card__fields { grid-template-columns: 1fr; }
+  .ad-rate-card__fields { grid-template-columns: minmax(0, 1fr); }
 }

@@ -274,7 +274,7 @@ export default function UsersPage(root, { navigate } = {}) {
             <span>${t('admin_users.eyebrow_sub', 'ACCOUNT GOVERNANCE')}</span>
           </div>
           <h1 class="page-title">${t('admin_users.title', 'Users & Account Governance')}</h1>
-          <p class="text-secondary">${t('admin_users.subtitle', 'Search, inspect, and manage granular permissions, standing grants, and capability restrictions across all platform accounts.')}</p>
+          <p data-page-info class="text-secondary">${t('admin_users.subtitle', 'Search, inspect, and manage granular permissions, standing grants, and capability restrictions across all platform accounts.')}</p>
         </div>
         <div class="admin-users-page__header-actions">
           <button type="button" class="btn btn--secondary btn--sm admin-users-page__export-btn" ${users.length === 0 ? 'disabled' : ''}>

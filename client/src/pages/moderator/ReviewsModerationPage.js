@@ -84,7 +84,7 @@ export default function ReviewsModerationPage(root) {
       { label:t('mod_reviews.stat_approved_today', 'Approved Today'), value:stats.approved_today||0, text:'var(--success-700,#15803d)', bg:'var(--success-100,#dcfce7)' },
       { label:t('mod_reviews.stat_rejected_today', 'Rejected Today'), value:stats.rejected_today||0, text:'var(--danger-700,#b91c1c)', bg:'var(--danger-100,#fee2e2)' },
     ];
-    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;">
+    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px, 100%), 1fr));gap:12px;">
       ${items.map(c=>`
         <div style="background:${c.bg};border-radius:12px;padding:14px 18px;text-align:center;">
           <div style="font-size:1.6rem;font-weight:800;color:${c.text};">${c.value}</div>
@@ -196,7 +196,7 @@ export default function ReviewsModerationPage(root) {
         <h1 style="margin:0 0 4px;font-size:1.6rem;font-weight:700;color:var(--text-primary,#0f172a);letter-spacing:-0.3px;">
           ${t('mod_reviews.title', 'Review Moderation')}
         </h1>
-        <p style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
+        <p data-page-info style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
           ${t('mod_reviews.subtitle', 'Review flagged product ratings for spam, fakes, offensive content, and competitor attacks.')}
         </p>
       </div>

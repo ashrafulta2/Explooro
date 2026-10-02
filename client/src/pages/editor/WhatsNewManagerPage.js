@@ -44,7 +44,7 @@ export default function WhatsNewManagerPage(root) {
     content.style.flexDirection = 'column';
     content.style.gap = '14px';
     content.innerHTML = `
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
         <div class="supplier-form-field">
           <label for="update-ver">Version Tag *</label>
           <input type="text" id="update-ver" class="form-input" placeholder="e.g. v2.4.0" value="${existing?.version || 'v2.4.0'}" />
@@ -210,7 +210,7 @@ export default function WhatsNewManagerPage(root) {
             🛡️ Security & Escrow
           </button>
         </div>
-        <input type="text" id="update-search" aria-label="🔍 Search release notes..." placeholder="🔍 Search release notes..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="search" id="update-search" aria-label="Search release notes..." placeholder="Search release notes..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 

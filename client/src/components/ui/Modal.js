@@ -249,6 +249,10 @@ export function Modal({
 
   // Intercept Escape key to play graceful MacBook exit instead of abrupt instant vanishing
   dialog.addEventListener('cancel', (event) => {
+    // WHY the target check: an <input type="file"> fires a BUBBLING `cancel` when its picker is
+    // dismissed. Without this, closing the OS file window inside a modal (e.g. the product form's
+    // Browse button) closed the whole modal and threw away everything typed into it.
+    if (event.target !== dialog) return;
     event.preventDefault();
     close(false);
   });

@@ -150,21 +150,48 @@ export async function revokeGrantOverride(db, id, { revokedBy, reason = null }) 
   const { rows } = await db.query(
     `UPDATE user_permission_overrides
      SET revoked_at = now(),
-         revoked_by = $2
+         revoked_by = $2,
+         revocation_reason = $3
      WHERE id = $1 AND revoked_at IS NULL
      RETURNING *`,
-    [id, revokedBy]
+    [id, revokedBy, reason]
   );
   return rows[0] ?? null;
 }
 
-export async function listGrantOverrides(
-  db,
-  { userId = null, permissionKey = null, status = 'ACTIVE', limit = 50, offset = 0 } = {}
-) {
+/** The one row uq_active_override allows per (user, permission): active or expired, never revoked. */
+export async function getUnrevokedOverride(db, userId, permissionKey) {
+  const { rows } = await db.query(
+    `SELECT id, expires_at FROM user_permission_overrides
+     WHERE user_id = $1 AND permission_key = $2 AND revoked_at IS NULL`,
+    [userId, permissionKey]
+  );
+  return rows[0] ?? null;
+}
+
+/**
+ * Frees uq_active_override for a new grant by closing an expired row at its own expiry, so the
+ * list's status rule (revoked only if revoked_at < expires_at) still reports it as Expired.
+ */
+export async function closeExpiredOverride(db, id) {
+  await db.query(
+    `UPDATE user_permission_overrides SET revoked_at = expires_at
+     WHERE id = $1 AND revoked_at IS NULL AND expires_at <= now()`,
+    [id]
+  );
+}
+
+// WHY a revoked row counts as Expired when revoked_at >= expires_at: closeExpiredOverride() stamps
+// an expired grant with revoked_at = expires_at to free the unique index — nobody revoked it.
+const GRANT_STATUS_SQL = {
+  ACTIVE: ' AND upo.revoked_at IS NULL AND upo.expires_at > now()',
+  REVOKED: ' AND upo.revoked_at IS NOT NULL AND upo.revoked_at < upo.expires_at',
+  EXPIRED: ' AND upo.expires_at <= now() AND (upo.revoked_at IS NULL OR upo.revoked_at >= upo.expires_at)',
+};
+
+function grantListWhere({ userId = null, permissionKey = null, search = null, status = 'ACTIVE' }) {
   let where = 'WHERE 1=1';
   const params = [];
-
   if (userId) {
     params.push(userId);
     where += ` AND upo.user_id = $${params.length}`;
@@ -173,30 +200,51 @@ export async function listGrantOverrides(
     params.push(permissionKey);
     where += ` AND upo.permission_key = $${params.length}`;
   }
-  if (status === 'ACTIVE') {
-    where += ' AND upo.revoked_at IS NULL AND upo.expires_at > now()';
-  } else if (status === 'REVOKED') {
-    where += ' AND upo.revoked_at IS NOT NULL';
-  } else if (status === 'EXPIRED') {
-    where += ' AND upo.revoked_at IS NULL AND upo.expires_at <= now()';
+  if (search) {
+    params.push(`%${search.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+    const n = params.length;
+    where += ` AND (u.ref ILIKE $${n} OR u.phone ILIKE $${n} OR up.full_name ILIKE $${n}
+                OR up.display_name ILIKE $${n} OR upo.permission_key ILIKE $${n}
+                OR p.label_en ILIKE $${n} OR p.label_bn ILIKE $${n})`;
   }
+  where += GRANT_STATUS_SQL[status] ?? '';
+  return { where, params };
+}
 
-  params.push(limit, offset);
-  const { rows } = await db.query(
-    `SELECT upo.*, u.ref AS user_ref, u.phone AS user_phone,
-            g.ref AS granted_by_ref, r.ref AS revoked_by_ref,
-            p.label_en AS permission_label_en, p.label_bn AS permission_label_bn, p.risk_tier
+const GRANT_LIST_FROM = `
      FROM user_permission_overrides upo
      JOIN users u ON u.id = upo.user_id
+     LEFT JOIN user_profiles up ON up.user_id = upo.user_id
      JOIN users g ON g.id = upo.granted_by
+     LEFT JOIN user_profiles gp ON gp.user_id = upo.granted_by
      LEFT JOIN users r ON r.id = upo.revoked_by
-     JOIN permissions p ON p.key = upo.permission_key
+     LEFT JOIN user_profiles rp ON rp.user_id = upo.revoked_by
+     JOIN permissions p ON p.key = upo.permission_key`;
+
+export async function listGrantOverrides(db, filter = {}) {
+  const { limit = 50, offset = 0 } = filter;
+  const { where, params } = grantListWhere(filter);
+  params.push(limit, offset);
+  const { rows } = await db.query(
+    `SELECT upo.*,
+            u.ref AS grantee_ref, u.phone AS grantee_phone,
+            COALESCE(up.full_name, up.display_name) AS grantee_name,
+            g.ref AS granted_by_ref, COALESCE(gp.full_name, gp.display_name) AS granted_by_name,
+            r.ref AS revoked_by_ref, COALESCE(rp.full_name, rp.display_name) AS revoked_by_name,
+            p.label_en AS permission_label_en, p.label_bn AS permission_label_bn, p.risk_tier
+     ${GRANT_LIST_FROM}
      ${where}
      ORDER BY upo.created_at DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params
   );
   return rows;
+}
+
+export async function countGrantOverrides(db, filter = {}) {
+  const { where, params } = grantListWhere(filter);
+  const { rows } = await db.query(`SELECT COUNT(*)::int AS total ${GRANT_LIST_FROM} ${where}`, params);
+  return Number(rows[0]?.total ?? 0);
 }
 
 /* ========================================================================= */

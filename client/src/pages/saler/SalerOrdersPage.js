@@ -139,7 +139,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
       <div class="saler-toolbar__search">
         <span>🔍</span>
         <input
-          type="text"
+          type="search"
           id="order-search"
           class="input input--sm w-full"
           aria-label="${t('saler_orders.search_placeholder')}"

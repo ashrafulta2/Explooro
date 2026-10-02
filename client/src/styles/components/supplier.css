@@ -113,13 +113,13 @@
 /* ── KPI Grid & Cards ── */
 .supplier-kpi-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3, 12px);
 }
 
 @media (min-width: 520px) {
   .supplier-kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -130,18 +130,18 @@
 }
 
 .supplier-kpi-grid--6 {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (min-width: 768px) {
   .supplier-kpi-grid--6 {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1200px) {
   .supplier-kpi-grid--6 {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
@@ -269,19 +269,19 @@
 
 .supplier-action-tiles-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-3, 12px);
 }
 
 @media (min-width: 640px) {
   .supplier-action-tiles-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1024px) {
   .supplier-action-tiles-grid {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
@@ -332,19 +332,19 @@
 /* ── Pro Matrix Grid ── */
 .supplier-matrix-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5, 20px);
 }
 
 @media (min-width: 768px) {
   .supplier-matrix-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1100px) {
   .supplier-matrix-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -546,6 +546,7 @@
 
 .supplier-order-card__ref-group {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2, 8px);
 }
@@ -579,6 +580,8 @@
 
 .supplier-order-card__item-row {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1, 4px) var(--space-3, 12px);
   align-items: center;
   justify-content: space-between;
   font-size: var(--text-xs, 0.75rem);
@@ -830,7 +833,7 @@
 
 .supplier-region-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
   gap: var(--space-4, 16px);
 }
 
@@ -924,13 +927,13 @@
 /* ── FEFO Batches & Expiry ── */
 .supplier-batches-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4, 16px);
 }
 
 @media (min-width: 768px) {
   .supplier-batches-grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   }
 }
 
@@ -963,13 +966,13 @@
 /* ── Multi-Warehouse Nodes ── */
 .supplier-warehouse-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4, 16px);
 }
 
 @media (min-width: 768px) {
   .supplier-warehouse-grid {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   }
 }
 
@@ -1223,7 +1226,7 @@
 
 .supplier-settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: var(--space-4, 16px);
 }
 
@@ -1316,4 +1319,11 @@
 @keyframes supplierScaleUp {
   from { transform: translateY(-8px) scale(0.93); opacity: 0; }
   to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.supplier-order-card__item-row > * { min-width: 0; }
+
+@media (max-width: 767.98px) {
+  .supplier-mode-banner { flex-wrap: wrap; gap: var(--space-3, 12px); }
+  .supplier-mode-banner__content { min-width: 0; flex: 1 1 200px; }
 }

@@ -257,7 +257,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
       </div>
 
       <!-- KPI Strip -->
-      <div class="kpi-strip" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="kpi-strip" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
         <div class="card kpi-card" style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 1.25rem;">
           <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
             ${t('admin_ip_allowlist.kpi_mode')}
@@ -316,7 +316,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
             <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.25rem 0; color: var(--text-primary);">
               🌐 ${t('admin_ip_allowlist.table_title')}
             </h2>
-            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
+            <p data-page-info style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
               ${t('admin_ip_allowlist.table_subtitle')}
             </p>
           </div>
@@ -392,7 +392,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
           <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.25rem 0; color: var(--text-primary);">
             🚨 ${t('admin_ip_allowlist.blocked_title')}
           </h2>
-          <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
+          <p data-page-info style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
             ${t('admin_ip_allowlist.blocked_subtitle')}
           </p>
         </div>

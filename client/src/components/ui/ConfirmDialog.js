@@ -11,6 +11,7 @@
  *   const { confirmed, reason } = await confirmDialogWithReason({
  *     title: 'Disable Live Stream Commerce',
  *     reasonRequired: true,             // module toggles and admin restrictions need a reason
+ *     reasonMinLength: 10,              // match the API's minimum, or the caller fails silently
  *   });
  *
  * Invariants:
@@ -40,6 +41,8 @@ function baseConfirm({
   reasonRequired = false,
   reasonLabel = 'Reason',
   reasonHint = '',
+  reasonMinLength = 0,
+  reasonTooShortMessage = '',
   trigger = null,
 } = {}) {
   return new Promise((resolve) => {
@@ -108,6 +111,7 @@ function baseConfirm({
     function isValid() {
       if (typeToConfirm && typeField.value.trim() !== typeToConfirm) return false;
       if (reasonRequired && reasonField.value.trim().length === 0) return false;
+      if (reasonField && reasonMinLength && reasonField.value.trim().length < reasonMinLength) return false;
       return true;
     }
 
@@ -131,6 +135,9 @@ function baseConfirm({
         typeField.focus();
       } else if (reasonRequired && reasonField.value.trim().length === 0) {
         reasonField.setError('A reason is required.');
+        reasonField.focus();
+      } else if (reasonField && reasonMinLength && reasonField.value.trim().length < reasonMinLength) {
+        reasonField.setError(reasonTooShortMessage || `Enter at least ${reasonMinLength} characters.`);
         reasonField.focus();
       }
     }

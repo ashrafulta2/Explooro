@@ -141,7 +141,7 @@ export default function FinanceDashboardPage(root, { navigate } = {}) {
       <div class="finance-dashboard-page__header">
         <div>
           <h1 class="page-title">${t('finance_admin.page_title')}</h1>
-          <p class="text-secondary">${t('finance_admin.page_subtitle')}</p>
+          <p data-page-info class="text-secondary">${t('finance_admin.page_subtitle')}</p>
         </div>
 
         <div class="finance-dashboard-page__header-actions">

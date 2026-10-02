@@ -395,7 +395,7 @@ export default function KycSubmissionPage(root) {
           <h1 class="text-2xl font-bold flex items-center justify-center gap-2">
             🛡️ ${t('kyc.page_title')}
           </h1>
-          <p class="text-xs text-secondary mt-1">${t('kyc.page_subtitle')}</p>
+          <p data-page-info class="text-xs text-secondary mt-1">${t('kyc.page_subtitle')}</p>
         </div>
 
         ${renderStatusBanner()}

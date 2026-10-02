@@ -49,7 +49,7 @@ export default function StoriesFeedPage(root, ctx = {}) {
         <span class="text-2xl">📖</span>
         <h2 class="text-2xl font-bold tracking-tight m-0">${t('content.stories_title')}</h2>
       </div>
-      <p class="text-sm text-muted m-0 mt-1">${t('content.stories_subtitle')}</p>
+      <p data-page-info class="text-sm text-muted m-0 mt-1">${t('content.stories_subtitle')}</p>
     </div>
   `;
 

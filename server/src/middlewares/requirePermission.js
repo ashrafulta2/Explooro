@@ -23,6 +23,7 @@ import * as permRepo from '../repositories/permission.repository.js';
 import { generateRef } from '../lib/ref.js';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.js';
+import { restrictingScopes, scopeAllows } from '../lib/grantScope.js';
 
 const PENDING_ACTION_EXPIRY_HOURS = 72;
 
@@ -45,6 +46,12 @@ export function requirePermission(permissionKey, options = {}) {
     }
 
     const hasPerm = resolved.permissions.has(permissionKey);
+
+    // docs/rbac-spec.md §4.1: "scope satisfied?" runs after the permission resolves and before tier
+    // routing, so a scoped grant holder can't even submit an out-of-scope action for approval.
+    if (hasPerm && !isSuperAdmin) {
+      await assertWithinGrantScope(req, permissionKey, resolved.sources.get(permissionKey), options);
+    }
 
     // The DECIDE endpoints check this permission directly, never deferring to maker-checker
     // regardless of risk tier — see the header comment for why.
@@ -71,22 +78,27 @@ export function requirePermission(permissionKey, options = {}) {
         return;
       }
 
+      // WHY for both approval modes: docs/rbac-spec.md §8 step 2 — "orders.refund.execute is
+      // HIGH / approve_before. Rahim does not hold it → 403". This used to be checked only for
+      // execute_then_review, so anyone signed in could file approve_before actions, which also made
+      // a standing grant of a HIGH permission (/admin/grants) change nothing at all.
+      if (!hasPerm) {
+        throw new AppError(
+          'PERMISSION_DENIED',
+          "You don't have access to this action.",
+          'এই কাজটি করার অনুমতি আপনার নেই।',
+          {
+            permission_key: permissionKey,
+            risk_tier: 'HIGH',
+            requestable: false,
+            plain_en: perm.plain_en || undefined,
+            plain_bn: perm.plain_bn || undefined,
+          }
+        );
+      }
+
       // Urgent containment actions execute immediately, then undergo post-hoc review
       if (perm.approval_mode === 'execute_then_review') {
-        if (!hasPerm) {
-          throw new AppError(
-            'PERMISSION_DENIED',
-            "You don't have access to this action.",
-            'এই কাজটি করার অনুমতি আপনার নেই।',
-            {
-              permission_key: permissionKey,
-              risk_tier: 'HIGH',
-              requestable: false,
-              plain_en: perm.plain_en || undefined,
-              plain_bn: perm.plain_bn || undefined,
-            }
-          );
-        }
         return;
       }
 
@@ -197,6 +209,26 @@ export function requirePermission(permissionKey, options = {}) {
       );
     }
   };
+}
+
+/**
+ * Enforces a standing grant's scope_json (server/src/lib/grantScope.js). No-op unless every source
+ * of this permission is a scoped GRANT. `options.scopeFacts(req)` describes the action being
+ * attempted (e.g. `{ amount }`); a route with no `scopeFacts` fails closed for scoped holders.
+ */
+async function assertWithinGrantScope(req, permissionKey, sources, options) {
+  const scopes = restrictingScopes(sources);
+  if (!scopes) return;
+
+  const facts = typeof options.scopeFacts === 'function' ? await options.scopeFacts(req) : null;
+  if (facts && scopes.some((scope) => scopeAllows(scope, facts))) return;
+
+  throw new AppError(
+    'PERMISSION_DENIED',
+    'This is outside the limit of your access grant.',
+    'এটি আপনার অ্যাক্সেস গ্রান্টের নির্ধারিত সীমার বাইরে।',
+    { permission_key: permissionKey, reason: 'SCOPE_EXCEEDED', scopes, requestable: false }
+  );
 }
 
 export default function requirePermissionPlugin(app) {

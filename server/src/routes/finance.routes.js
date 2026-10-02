@@ -76,7 +76,13 @@ export default async function financeRoutes(app) {
 
   // 11. Admin Approve Payout (Maker-Checker / Execution)
   app.post('/admin/finance/payouts/:id/approve', {
-    preHandler: [app.authenticate, app.requirePermission('finance.payout.approve')],
+    preHandler: [
+      app.authenticate,
+      app.requirePermission('finance.payout.approve', {
+        // A standing grant may cap this at { max_amount } — see server/src/lib/grantScope.js.
+        scopeFacts: payoutController.payoutScopeFacts,
+      }),
+    ],
     schema: {
       params: {
         type: 'object',

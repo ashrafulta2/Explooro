@@ -169,7 +169,7 @@ export default function ReviewsPage(root, { navigate } = {}) {
     <div class="reviews-search-wrap">
       <span class="reviews-search-icon">🔍</span>
       <input
-        type="text"
+        type="search"
         class="reviews-search-input"
         placeholder="${t('customer_reviews.search_placeholder')}"
         value="${searchQuery}"

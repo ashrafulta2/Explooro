@@ -244,7 +244,7 @@ export default function AdminReferralsPage(root) {
           </div>
         </div>
 
-        <form id="ref-rules-form" style="padding: var(--space-5); display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));">
+        <form id="ref-rules-form" style="padding: var(--space-5); display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));">
           <div style="grid-column: 1 / -1; display: flex; align-items: center; gap: var(--space-2);">
             <input type="checkbox" id="ref-active" ${rules.is_active ? 'checked' : ''} />
             <label class="form-label" for="ref-active" style="margin: 0;">

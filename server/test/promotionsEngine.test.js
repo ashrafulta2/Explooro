@@ -315,6 +315,41 @@ describe('Prompt 9.2: Coupons, Vouchers & Flash Sale Campaigns', () => {
         { name: 'AppError', message: 'This flash sale deal has been cancelled.' }
       );
     });
+
+    test('A product cannot get a second flash sale overlapping one that is already scheduled or live', async () => {
+      const existing = [{ id: 9, product_id: 5, status: 'SCHEDULED', starts_at: new Date(Date.now() - 60000), ends_at: new Date(Date.now() + 3600000) }];
+      const inserted = [];
+      const mockDb = {
+        query: async (sql, params) => {
+          if (sql.includes('FROM products WHERE id = $1')) {
+            return { rows: [{ id: 5, title_en: 'Kurta', default_retail_price: '1000.00', stock_qty: 40, status: 'ACTIVE' }] };
+          }
+          if (sql.includes('FROM flash_sales') && sql.includes('starts_at < $3')) {
+            const [pid, start, end] = params;
+            return {
+              rows: existing.filter(
+                (s) => s.product_id === pid && ['ACTIVE', 'SCHEDULED'].includes(s.status) && s.starts_at < end && s.ends_at > start
+              ),
+            };
+          }
+          if (sql.includes('INSERT INTO flash_sales')) {
+            const row = { id: 10 + inserted.length, product_id: params[2], starts_at: params[8], ends_at: params[9], status: 'SCHEDULED' };
+            inserted.push(row);
+            return { rows: [row] };
+          }
+          return { rows: [] };
+        },
+      };
+      const sale = { product_id: 5, discount_price: 800, allocated_qty: 10 };
+
+      await assert.rejects(() => flashSaleService.createFlashSale(mockDb, { id: 1 }, sale), { code: 'CONFLICT' });
+      assert.equal(inserted.length, 0);
+
+      // Once the earlier sale is stopped, the same request goes through.
+      existing[0].status = 'CANCELLED';
+      const created = await flashSaleService.createFlashSale(mockDb, { id: 1 }, sale);
+      assert.equal(created.product_id, 5);
+    });
   });
 
 });

@@ -58,7 +58,7 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
     <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">
       ${t('saler.dashboard.title', 'Saler Commerce Command Center')}
     </h1>
-    <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
+    <p data-page-info style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
       ${t('saler.dashboard.subtitle', 'Dropship wholesale sourcing, AI creative tools, viral distribution & multi-channel selling.')}
     </p>
   `;
@@ -163,7 +163,7 @@ function renderSimpleMode(container, data, nav) {
       <h2 style="margin: 0; font-size: 17px; font-weight: 700; color: var(--text-primary);">
         ${t('saler.dashboard.simple_welcome', 'Simple Mode Active')}
       </h2>
-      <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
+      <p data-page-info style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
         ${t('saler.dashboard.simple_desc', 'Your 6 essential daily tasks organized with zero clutter.')}
       </p>
     </div>
@@ -504,7 +504,7 @@ function renderToolsGrid(container, data, nav) {
         <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">
           🧰 ${t('saler.dashboard.tools_title', 'Complete Saler Tool Suite')}
         </h3>
-        <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
+        <p data-page-info style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
           ${t('saler.dashboard.tools_desc', 'Every specialized sales, marketing, sourcing, and vault tool reachable within 2 clicks.')}
         </p>
       </div>

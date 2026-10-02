@@ -27,8 +27,13 @@ export async function createFlashSale(db, creatorUser, saleData, reqMeta = {}) {
   const productId = parseInt(saleData.product_id, 10);
   const variantId = saleData.variant_id ? parseInt(saleData.variant_id, 10) : null;
 
+  // WHY VALIDATION_FAILED / NOT_FOUND: the error handler maps a closed list of codes to statuses.
+  // The old ad-hoc codes (INVALID_DISCOUNT_PRICE, PRODUCT_NOT_FOUND, …) weren't on it, so every bad
+  // input came back as a 500 "server error" with no Bangla message.
+  const invalid = (field, en, bn) => new AppError('VALIDATION_FAILED', en, bn, { field });
+
   if (isNaN(productId)) {
-    throw new AppError('INVALID_PRODUCT', 'Valid product ID is required for flash sale.');
+    throw invalid('product_id', 'Valid product ID is required for flash sale.', 'ফ্ল্যাশ সেলের জন্য সঠিক পণ্য আইডি প্রয়োজন।');
   }
 
   const discountPrice = Number(saleData.discount_price);
@@ -36,17 +41,20 @@ export async function createFlashSale(db, creatorUser, saleData, reqMeta = {}) {
   const perUserLimit = parseInt(saleData.per_user_limit || 1, 10);
 
   if (isNaN(discountPrice) || discountPrice <= 0) {
-    throw new AppError('INVALID_DISCOUNT_PRICE', 'Discount price must be greater than zero.');
+    throw invalid('discount_price', 'Discount price must be greater than zero.', 'ছাড়ের মূল্য শূন্যের বেশি হতে হবে।');
   }
   if (isNaN(allocatedQty) || allocatedQty <= 0) {
-    throw new AppError('INVALID_ALLOCATED_QTY', 'Allocated stock quantity must be at least 1.');
+    throw invalid('allocated_qty', 'Allocated stock quantity must be at least 1.', 'বরাদ্দকৃত স্টক অন্তত ১ হতে হবে।');
+  }
+  if (isNaN(perUserLimit) || perUserLimit <= 0) {
+    throw invalid('per_user_limit', 'Per-customer limit must be at least 1.', 'প্রতি গ্রাহকের সীমা অন্তত ১ হতে হবে।');
   }
 
   const startsAt = saleData.starts_at ? new Date(saleData.starts_at) : new Date();
   const endsAt = saleData.ends_at ? new Date(saleData.ends_at) : new Date(Date.now() + 24 * 3600000);
 
-  if (endsAt <= startsAt) {
-    throw new AppError('INVALID_TIME_WINDOW', 'Flash sale end time must be strictly after start time.');
+  if (isNaN(startsAt) || isNaN(endsAt) || endsAt <= startsAt) {
+    throw invalid('ends_at', 'Flash sale end time must be strictly after start time.', 'ফ্ল্যাশ সেলের শেষ সময় শুরুর সময়ের পরে হতে হবে।');
   }
 
   // Fetch product to verify stock and price
@@ -57,18 +65,43 @@ export async function createFlashSale(db, creatorUser, saleData, reqMeta = {}) {
   );
 
   if (prodRows.length === 0) {
-    throw new AppError('PRODUCT_NOT_FOUND', 'Product not found.');
+    throw new AppError('NOT_FOUND', 'Product not found.', 'পণ্য পাওয়া যায়নি।');
   }
 
   const product = prodRows[0];
   const originalPrice = Number(product.default_retail_price);
 
   if (discountPrice >= originalPrice) {
-    throw new AppError('INVALID_DISCOUNT_PRICE', `Discount price (৳${discountPrice}) must be lower than original price (৳${originalPrice}).`);
+    throw invalid(
+      'discount_price',
+      `Discount price (৳${discountPrice}) must be lower than original price (৳${originalPrice}).`,
+      `ছাড়ের মূল্য (৳${discountPrice}) মূল মূল্যের (৳${originalPrice}) চেয়ে কম হতে হবে।`
+    );
   }
 
   if (Number(product.stock_qty) < allocatedQty) {
-    throw new AppError('INSUFFICIENT_STOCK', `Cannot allocate ${allocatedQty} units; available product stock is only ${product.stock_qty}.`);
+    throw new AppError(
+      'INSUFFICIENT_STOCK',
+      `Cannot allocate ${allocatedQty} units; available product stock is only ${product.stock_qty}.`,
+      `${allocatedQty} ইউনিট বরাদ্দ করা যাবে না; পণ্যের স্টক মাত্র ${product.stock_qty}।`
+    );
+  }
+
+  // WHY: product listings LEFT JOIN the live sale for each product, so two overlapping sales on one
+  // product would list it twice and leave its price ambiguous at checkout.
+  const { rows: overlapping } = await db.query(
+    `SELECT id FROM flash_sales
+      WHERE product_id = $1 AND status IN ('ACTIVE', 'SCHEDULED')
+        AND starts_at < $3 AND ends_at > $2
+      LIMIT 1`,
+    [productId, startsAt, endsAt]
+  );
+  if (overlapping.length > 0) {
+    throw new AppError(
+      'CONFLICT',
+      'This product already has a flash sale in that time window.',
+      'এই সময়ে পণ্যটিতে ইতিমধ্যে একটি ফ্ল্যাশ সেল চালু আছে।'
+    );
   }
 
   const ref = generateFlashSaleRef();
@@ -243,7 +276,7 @@ export async function emergencyStop(db, adminUser, flashSaleId, reason = 'Emerge
   );
 
   if (rows.length === 0) {
-    throw new AppError('FLASH_SALE_NOT_FOUND', 'Flash sale deal not found.');
+    throw new AppError('NOT_FOUND', 'Flash sale deal not found.', 'ফ্ল্যাশ সেল পাওয়া যায়নি।');
   }
 
   await writeAudit(db, {

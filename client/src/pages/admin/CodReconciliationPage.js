@@ -710,7 +710,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
             <span>3-WAY RECONCILIATION</span>
           </div>
           <h1 class="page-title">${t('cod.page_title')}</h1>
-          <p class="text-secondary">${t('cod.page_subtitle')}</p>
+          <p data-page-info class="text-secondary">${t('cod.page_subtitle')}</p>
         </div>
         <div class="cod-recon-page__header-actions">
           <button type="button" class="btn btn--secondary btn--sm cod-recon-page__export-btn" ${reconciliations.length === 0 ? 'disabled' : ''}>
@@ -930,7 +930,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
           <div class="cod-recon-toolbar__search-control">
             ${SVG_SEARCH}
             <input
-              type="text"
+              type="search"
               id="cod-search-input"
               class="cod-recon-toolbar__search-input"
               placeholder="${t('cod.search_placeholder')}"

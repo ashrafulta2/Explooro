@@ -723,7 +723,7 @@ export default function StoreBuilderPage(root, { navigate }) {
 
           const itemsRow = document.createElement('div');
           itemsRow.style.display = 'grid';
-          itemsRow.style.gridTemplateColumns = 'repeat(auto-fill, minmax(130px, 1fr))';
+          itemsRow.style.gridTemplateColumns = 'repeat(auto-fill, minmax(min(130px, 100%), 1fr))';
           itemsRow.style.gap = 'var(--space-2)';
 
           const items = Array.isArray(shelf.items) ? shelf.items : [];
@@ -831,7 +831,7 @@ export default function StoreBuilderPage(root, { navigate }) {
       title: t('social_kit.qr_flyer_title', 'Printable Branded QR Flyer'),
       content,
       primaryAction: {
-        label: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('social_kit.print_or_save', 'Print / Save Flyer')}`,
+        label: `${t('social_kit.print_or_save', 'Print / Save Flyer')}`,
         onClick: () => {
           window.print();
         },

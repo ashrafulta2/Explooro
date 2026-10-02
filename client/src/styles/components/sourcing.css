@@ -9,7 +9,7 @@
 .sourcing-hero__header { display: flex; flex-direction: column; gap: var(--space-2); }
 .sourcing-hero__title { font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; margin: 0; }
 .sourcing-hero__subtitle { font-size: var(--text-sm); color: var(--text-secondary); margin: 0; max-width: 60ch; }
-.sourcing-hero__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--space-3); }
+.sourcing-hero__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr)); gap: var(--space-3); }
 .sourcing-stat-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
 .sourcing-stat-card__label { font-size: var(--text-xs); color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
 /* WHY: --brand-700 is a fill shade (3.0:1 on the white stat card — fails WCAG AA). --text-brand is
@@ -30,7 +30,7 @@
 /* Grid */
 .sourcing-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: var(--space-5);
 }
 
@@ -338,8 +338,8 @@
 .profit-calc__input-wrap { display: flex; align-items: center; gap: var(--space-3); }
 .profit-calc__range { flex: 1; height: 6px; border-radius: 3px; background: var(--surface-3); outline: none; cursor: pointer; accent-color: var(--brand-600); }
 .profit-calc__num-input { width: 100px; background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-2); font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; text-align: right; }
-.profit-calc__breakdown { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
-@media (min-width: 640px) { .profit-calc__breakdown { grid-template-columns: repeat(3, 1fr); } }
+.profit-calc__breakdown { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-3); }
+@media (min-width: 640px) { .profit-calc__breakdown { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .profit-calc__card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
 .profit-calc__card--highlight { background: var(--surface-0); border: 2px solid var(--brand-600); }
 .profit-calc__card-label { font-size: var(--text-xs); color: var(--text-muted); font-weight: 500; }

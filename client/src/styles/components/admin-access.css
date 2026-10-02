@@ -132,7 +132,7 @@
 .approval-card--focused { border-color: var(--brand); box-shadow: 0 0 0 2px var(--focus-ring); }
 .approval-card.text-center { text-align: center; padding-block: var(--space-8); }
 .approval-card__actions { display: flex; gap: var(--space-3); justify-content: flex-end; align-items: center; margin-top: var(--space-4); flex-wrap: wrap; }
-.approval-diff { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); margin-top: var(--space-3); }
+.approval-diff { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: var(--space-4); margin-top: var(--space-3); }
 .approval-diff__pane { min-width: 0; padding: var(--space-3) var(--space-4); background: var(--surface-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); font-size: var(--text-xs); overflow: hidden; display: flex; flex-direction: column; }
 .approval-diff__tag { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-2xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-2); }
 .approval-diff__tag--before { color: var(--danger); }
@@ -149,12 +149,12 @@
 .admin-access .btn--xs, .kyc-modal .btn--xs { height: 26px; padding-inline: var(--space-2); font-size: var(--text-xs); }
 
 /* 9. KYC Verification Center — two-column review workspace.
-   WHY: this was a bare inline `grid-template-columns: repeat(12, 1fr)` with fixed `span 4`/`span 8`
+   WHY: this was a bare inline `grid-template-columns: repeat(12, minmax(0, 1fr))` with fixed `span 4`/`span 8`
    columns and no breakpoint, so under ~900px (any phone, and plenty of split-screen desktop windows)
    the queue list and the document/checklist pane were squeezed into ~30%/~60% slivers of the
    viewport instead of stacking — wrapped, run-together text ("Supplier3(TIER_1)docs") and
    business name/address truncated at the card edge. */
-.kyc-workspace { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--space-6); }
+.kyc-workspace { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-6); }
 .kyc-workspace__queue { grid-column: span 4; overflow: hidden; max-height: 80vh; overflow-y: auto; }
 .kyc-workspace__details { grid-column: span 8; min-width: 0; }
 
@@ -162,4 +162,46 @@
   .kyc-workspace { grid-template-columns: minmax(0, 1fr); }
   .kyc-workspace__queue { grid-column: 1; max-height: 360px; }
   .kyc-workspace__details { grid-column: 1; }
+}
+
+/* 10. Standing Access Grants (/admin/grants). WHY classes instead of the inline styles it had:
+   those hard-coded 10px/11px text, mono raw permission keys and a scope badge dropped outside its
+   cell's flex column by a <br>, which is why the "Scope:" label and its JSON wrapped apart. ----- */
+.access-grants__title-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); }
+.access-grants__eyebrow { display: inline-flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); font-weight: var(--weight-bold); font-size: var(--text-xs); text-transform: uppercase; }
+.access-grants__eyebrow svg { width: 14px; height: 14px; }
+.access-grants__toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xl); box-shadow: var(--elevation-1); }
+.access-grants__filters { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.access-grants__search { flex: 0 1 320px; }
+.access-grants__table th,
+.access-grants__table td { text-align: start; }
+.access-grants__table .access-grants__center { text-align: center; }
+.access-grants__stack { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
+.access-grants__name { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--text-primary); }
+.access-grants__meta { font-size: var(--text-xs); color: var(--text-muted); }
+.access-grants__meta--warning { color: var(--warning); font-weight: var(--weight-semibold); }
+.access-grants__id { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.access-grants__date { font-size: var(--text-sm); color: var(--text-secondary); white-space: nowrap; }
+.access-grants__chips { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-1); }
+.access-grants__chip { display: inline-flex; align-items: center; padding: 2px var(--space-2); border-radius: var(--radius-sm); background: var(--info-bg); border: var(--border-width) solid var(--info-border); color: var(--info); font-size: var(--text-xs); font-weight: var(--weight-semibold); }
+.access-grants__chip--warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.access-grants__reason-cell { min-width: 240px; }
+.access-grants__reason { margin: 0 0 var(--space-1); font-size: var(--text-sm); color: var(--text-primary); overflow-wrap: anywhere; }
+.access-grants__revocation { display: flex; flex-direction: column; gap: 2px; margin-top: var(--space-2); padding-inline-start: var(--space-2); border-inline-start: 2px solid var(--danger-border); }
+.access-grants__revocation-reason { font-size: var(--text-xs); color: var(--text-secondary); overflow-wrap: anywhere; }
+.access-grants__empty { display: flex; flex-direction: column; align-items: center; gap: var(--space-2); padding: var(--space-8) var(--space-4); text-align: center; color: var(--text-primary); }
+.access-grants__empty-icon { display: inline-flex; color: var(--text-muted); }
+.access-grants__empty-icon svg { width: 24px; height: 24px; }
+.access-grants__footer { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: var(--space-3); }
+.access-grants__footer:empty { display: none; }
+.access-grants__skel { display: block; }
+.access-grants__skel--name { width: 120px; }
+.access-grants__skel--perm { width: 140px; }
+.access-grants__skel--date { width: 90px; }
+.access-grants__skel--reason { width: 180px; }
+.access-grants__skel--badge { width: 60px; height: 18px; margin-inline: auto; }
+.access-grants__skel--btn { width: 80px; height: 26px; margin-inline: auto; }
+
+@media (max-width: 640px) {
+  .access-grants__search { flex: 1 1 100%; min-width: 0; }
 }

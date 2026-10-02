@@ -3,9 +3,9 @@
  */
 
 /* Layout */
-.app-shell { --topbar-h: 56px; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; grid-template-areas: 'topbar topbar' 'sidebar content'; min-height: 100vh; background: var(--surface-0); max-width: 100vw; overflow-x: clip; }
+.app-shell { --topbar-h: 56px; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: 'topbar topbar' 'sidebar content'; min-height: 100vh; background: var(--surface-0); max-width: 100vw; overflow-x: clip; }
 .app-shell.is-scrolled { --topbar-h: 48px; }
-.app-shell[data-has-chrome='false'], .app-shell[data-has-chrome='guest'] { grid-template-columns: 1fr; grid-template-rows: auto 1fr; grid-template-areas: 'topbar' 'content'; }
+.app-shell[data-has-chrome='false'], .app-shell[data-has-chrome='guest'] { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: 'topbar' 'content'; }
 .app-shell[data-has-chrome='false'] .app-shell__sidebar-slot, .app-shell[data-has-chrome='false'] .app-shell__mobilenav-slot, .app-shell[data-has-chrome='guest'] .app-shell__sidebar-slot, .app-shell[data-has-chrome='guest'] .app-shell__mobilenav-slot { display: none; }
 .app-shell__topbar-slot { grid-area: topbar; position: sticky; top: 0; z-index: var(--z-header); }
 .topbar__brand { display: flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--tb-brand-font, var(--text-lg)); letter-spacing: -0.02em; color: var(--navbar-text, var(--text-primary)); text-decoration: none; margin-right: var(--space-2); cursor: pointer; user-select: none; transition: color var(--dur-fast) var(--ease-standard), font-size var(--dur-base) var(--ease-standard); }
@@ -139,7 +139,8 @@
 .topbar__icon-btn:active { transform: scale(0.96); }
 .topbar__icon-btn .topbar__icon-symbol { display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; line-height: 1; }
 .topbar__icon-btn .topbar__icon-symbol svg { width: var(--tb-icon-svg, 22px); height: var(--tb-icon-svg, 22px); display: block; stroke: currentColor; fill: none; transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard); }
-.topbar__icon-btn .badge--count, .topbar__icon-btn .badge--numeric { position: absolute; top: var(--tb-badge-top, 2px); right: var(--tb-badge-right, 2px); transform: var(--tb-badge-transform, translate(30%, -30%)); min-width: var(--tb-badge-min, 18px); height: var(--tb-badge-min, 18px); padding: 0 var(--tb-badge-pad-x, 4px); font-size: var(--tb-badge-font, 10px); font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-full); border-style: solid; border-color: var(--surface-1); border-width: var(--tb-badge-border, 2px); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); pointer-events: none; z-index: 1; transition: min-width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard), font-size var(--dur-base) var(--ease-standard), top var(--dur-base) var(--ease-standard), right var(--dur-base) var(--ease-standard), transform var(--dur-base) var(--ease-standard), border-width var(--dur-base) var(--ease-standard); }
+/* Count badges share one 16px size with the bottom-nav badge (.mobile-nav__item > .badge). */
+.topbar__icon-btn .badge--count, .topbar__icon-btn .badge--numeric { position: absolute; top: var(--tb-badge-top, 2px); right: var(--tb-badge-right, 2px); transform: var(--tb-badge-transform, translate(30%, -30%)); min-width: var(--tb-badge-min, 16px); height: var(--tb-badge-min, 16px); padding: 0 var(--tb-badge-pad-x, 4px); font-size: var(--tb-badge-font, 10px); font-weight: 700; line-height: 1; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-full); border-style: solid; border-color: var(--surface-1); border-width: var(--tb-badge-border, 1px); pointer-events: none; z-index: 1; transition: min-width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard), font-size var(--dur-base) var(--ease-standard), top var(--dur-base) var(--ease-standard), right var(--dur-base) var(--ease-standard), transform var(--dur-base) var(--ease-standard), border-width var(--dur-base) var(--ease-standard); }
 .topbar__lang-btn { width: auto; padding: 0 var(--tb-lang-pad-x, var(--space-2)); font-size: var(--tb-lang-font, var(--text-sm)); font-weight: var(--weight-xs); transition: padding var(--dur-base) var(--ease-standard), font-size var(--dur-base) var(--ease-standard); }
 
 .topbar__avatar-menu { position: relative; }
@@ -210,4 +211,108 @@
 @media (prefers-reduced-motion: reduce) {
   .command-palette { transform: translateX(-50%); }
   .command-palette[open] { transform: translateX(-50%); }
+}
+
+/* Mobile TopBar — two rows below 768px. Row 1 is chrome (menu, brand, actions); row 2 is the search
+   field at full width. WHY: a single row needs ~780px for a guest (menu + brand + search + discover +
+   language + theme + cart + Sign In + Sign Up), which stretched the grid's `1fr` column and pushed the
+   whole page off the right edge. Wrapping the search keeps it usable instead of crushing it. */
+@media (max-width: 767.98px) {
+  .app-shell { --topbar-h: 110px; }
+  .app-shell.is-scrolled { --topbar-h: 96px; }
+  .topbar { height: auto; flex-wrap: wrap; row-gap: 0; gap: var(--space-1); padding: 0 var(--space-3); }
+  .topbar > :not(.topbar__product-search) { margin-block: 8px; }
+  .app-shell.is-scrolled .topbar > :not(.topbar__product-search) { margin-block: 4px; }
+  .topbar__product-search { order: 10; flex: 0 0 100%; max-width: none; width: 100%; margin: 0 0 8px; --tb-search-h: 38px; }
+  .app-shell.is-scrolled .topbar__product-search { margin-bottom: 6px; --tb-search-h: 34px; }
+  .app-shell__page { padding: var(--space-3); padding-bottom: calc(var(--space-3) + 72px); }
+  /* WHY: form controls default to a content-based min width, so a flex row of input + button spills
+     out of a narrow card instead of letting the input shrink. */
+  input, select, textarea { min-width: 0; max-width: 100%; }
+  .topbar__brand { margin-right: 0; min-width: 0; }
+  .topbar__spacer { min-width: 0; }
+  .topbar__lang-btn { padding: 0 var(--space-1); min-width: var(--tb-icon-btn, var(--control-height)); }
+  .topbar__auth-buttons { gap: var(--space-1); flex: none; }
+  .topbar__auth-buttons .btn { padding-inline: var(--space-2); white-space: nowrap; }
+  .topbar__avatar-panel, .topbar__theme-panel { max-width: calc(100vw - var(--space-4)); }
+}
+/* WHY: row 1 must never wrap — a wrapped avatar/bell looked broken. Compact 36px targets, a tight gap
+   and the secondary actions (discover, palette, elevated chip) leave only what fits at 320px:
+   menu + logo + language + cart + bell + avatar. */
+@media (max-width: 767.98px) {
+  .topbar { --tb-icon-btn: 36px; --tb-icon-svg: 20px; gap: 2px; padding-inline: var(--space-2); }
+  .topbar > * { flex-shrink: 0; }
+  .topbar > .topbar__spacer { flex-shrink: 1; flex-basis: 0; min-width: 0; }
+  .topbar__discover-btn, .topbar__palette-btn, .elevated-chip { display: none; }
+  .topbar__lang-btn { font-size: var(--text-xs); }
+}
+@media (max-width: 599.98px) {
+  .topbar__brand-text { display: none; }
+  .topbar__theme-menu { display: none; }
+}
+@media (max-width: 359.98px) {
+  .topbar { --tb-icon-btn: 32px; padding-inline: var(--space-1); }
+  .topbar__lang-btn { padding: 0 2px; min-width: 32px; }
+}
+
+/* Mobile type scale — the desktop display sizes (27–44px) wrap a headline onto four lines at 360px
+   and force horizontal scroll on long Bangla words. Only the large steps shrink; body stays legible. */
+@media (max-width: 599.98px) {
+  :root:root {
+    --text-xl: 17px; --leading-xl: 24px;
+    --text-2xl: 20px; --leading-2xl: 28px;
+    --text-3xl: 22px; --leading-3xl: 30px;
+    --text-4xl: 26px; --leading-4xl: 34px;
+    --text-5xl: 30px; --leading-5xl: 38px;
+  }
+  h1, h2, h3, h4, p, li, td, th, label { overflow-wrap: anywhere; }
+}
+
+/* Mobile hardening — generic backstops for content that is wider than the viewport. Page-specific
+   layout still belongs in each page's own sheet; these only stop one wide child from stretching
+   the whole page or being clipped with no way to reach it. */
+@media (max-width: 767.98px) {
+  /* A table's wrapper scrolls sideways instead of clipping (several wrappers set overflow:hidden for
+     their rounded corners, which made the right-hand columns unreachable). Specificity is written
+     to beat a single-class `overflow: hidden`. */
+  :is([class], div, section):has(> table) { overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch; }
+  pre, code { max-width: 100%; overflow-x: auto; }
+  .badge { white-space: normal; min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+  .btn { max-width: 100%; min-width: 0; }
+  .btn__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  img, video { max-width: 100%; }
+  /* Toasts sit above the fixed bottom nav instead of covering it. */
+  .toast-container { inset: auto var(--space-3) calc(var(--space-3) + 64px + env(safe-area-inset-bottom, 0px)) var(--space-3); width: auto; }
+  .flex:not(.flex-col):not(.flex-nowrap) { flex-wrap: wrap; }
+  /* WHY !important: many pages hard-code `width: 220px` inline; an inline style can only be capped
+     by an !important rule. The selector skips `max-width`/`min-width` (no space before `width`). */
+  [style*=' width:'], [style^='width:'] { max-width: 100% !important; }
+  /* Inline-styled flex rows (toolbars, headers, card footers) wrap rather than overflow. */
+  [style*='display: flex']:not([style*='flex-wrap']):not([style*='flex-direction: column']):not([style*='flex-direction:column']),
+  [style*='display:flex']:not([style*='flex-wrap']):not([style*='flex-direction: column']):not([style*='flex-direction:column']) { flex-wrap: wrap; }
+}
+
+/* The "More" bottom sheet reuses the desktop Sidebar, whose fixed 260px width left a dead strip on the right. */
+.drawer--bottom .sidebar { width: 100%; height: auto; overflow: visible; }
+
+/* Short control labels stay on one line; the pill grows instead of wrapping "Browse & filter" in two. */
+.home-floating-bar__toggle-text { white-space: nowrap; }
+
+/* WHY: the count badge was a third flex child, so "Orders" grew a second line and the tab bar got taller.
+   Pinning it to the item's top-right corner keeps every tab one label high. */
+.mobile-nav__item { position: relative; min-width: 0; }
+/* WHY: a count badge here is a notification dot, not a label. The default md badge (12px text,
+   8px side padding, 20px min-width) is ~28px tall and swamps a 56px tab. */
+.mobile-nav__item > .badge {
+  position: absolute; top: 6px; left: calc(50% + 4px);
+  min-width: 16px; height: 16px; padding: 0 4px; gap: 0;
+  font-size: var(--text-2xs); line-height: 1; justify-content: center; box-sizing: border-box;
+  /* Hidden until MobileNav.js adds .is-shown (timed pop + reminders). Stays in the DOM so the
+     count is still announced to screen readers. */
+  opacity: 0; transform: scale(0.4); pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.mobile-nav__item > .badge.is-shown { opacity: 1; transform: scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .mobile-nav__item > .badge { transition: none; }
 }

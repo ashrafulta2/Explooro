@@ -70,7 +70,7 @@
 /* ── Saler KPI Strip ── */
 .saler-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: var(--space-4, 16px);
 }
 
@@ -237,7 +237,7 @@
 
 .saler-order-card__buyer-info {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: var(--space-3, 12px);
   background: var(--surface-1, #f8fafc);
   padding: var(--space-3, 12px);
@@ -275,13 +275,13 @@
 /* ── Saler Social Kit Flyer Studio ── */
 .saler-social-kit-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6, 24px);
 }
 
 @media (min-width: 1024px) {
   .saler-social-kit-grid {
-    grid-template-columns: 420px 1fr;
+    grid-template-columns: 420px minmax(0, 1fr);
   }
 }
 
@@ -349,7 +349,7 @@
 
 .saler-leaderboard-podium {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: var(--space-4, 16px);
   margin-bottom: var(--space-6, 24px);
 }
@@ -475,7 +475,7 @@
 
 .saler-simple-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: var(--space-4, 16px);
 }
 
@@ -548,7 +548,7 @@
 
 .saler-onboarding-steps {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: var(--space-3, 12px);
 }
 
@@ -620,7 +620,7 @@
 
 .growth-assistant-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: var(--space-3, 12px);
 }
 
@@ -660,7 +660,7 @@
 
 .saler-tools-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
   gap: var(--space-4, 16px);
 }
 
@@ -722,13 +722,13 @@
 /* ── Saler Analytics Page ── */
 .saler-analytics-charts-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: var(--space-4, 16px);
 }
 
 @media (max-width: 1024px) {
   .saler-analytics-charts-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -793,43 +793,43 @@
 
 .saler-two-col {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6, 24px);
 }
 
 @media (min-width: 1024px) {
   .saler-two-col {
-    grid-template-columns: 7fr 5fr;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 }
 
 .saler-two-col--equal {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4, 16px);
 }
 
 @media (min-width: 640px) {
   .saler-two-col--equal {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 
 .saler-three-col {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4, 16px);
 }
 
 @media (min-width: 768px) {
   .saler-three-col {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 .saler-four-col {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: var(--space-4, 16px);
 }
 
@@ -883,20 +883,20 @@
 /* ── Saler Form & Method Picker ── */
 .saler-method-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2, 8px);
 }
 
 @media (min-width: 640px) {
   .saler-method-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 /* ── Abandoned Cart Insights ── */
 .saler-funnel-steps {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: var(--space-4, 16px);
 }
 
@@ -927,19 +927,19 @@
 /* ── Bundle Studio Components ── */
 .saler-bundle-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6, 24px);
 }
 
 @media (min-width: 1024px) {
   .saler-bundle-grid {
-    grid-template-columns: 7fr 5fr;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
   }
 }
 
 .saler-bundle-picker-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
   gap: var(--space-3, 12px);
   max-height: 380px;
   overflow-y: auto;
@@ -965,3 +965,10 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 }
 
+
+/* Mobile: a quest card stacks its reward/claim block under the description rather than overflowing. */
+@media (max-width: 767.98px) {
+  .saler-quest-card { flex-wrap: wrap; }
+  .saler-quest-card > .saler-row { flex-wrap: wrap; min-width: 0; }
+  .saler-quest-card .saler-row.shrink-0 { flex-shrink: 1; flex-wrap: wrap; }
+}

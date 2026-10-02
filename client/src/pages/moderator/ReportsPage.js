@@ -113,7 +113,7 @@ export default function ReportsPage(root) {
       { label: t('mod_reports.stat_resolved_today', 'Resolved Today'), value: stats.resolved_today||0, text:'var(--success-700,#15803d)', bg:'var(--success-100,#dcfce7)' },
       { label: t('mod_reports.stat_escalated', 'Escalated'),    value: stats.escalated||0, text:'var(--info-700,#7e22ce)', bg:'var(--info-100,#fae8ff)' },
     ];
-    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px, 100%), 1fr));gap:12px;">
       ${cards.map(c=>`
         <div style="background:${c.bg};border-radius:12px;padding:14px 18px;text-align:center;">
           <div style="font-size:1.6rem;font-weight:800;color:${c.text};">${c.value}</div>
@@ -214,7 +214,7 @@ export default function ReportsPage(root) {
         <h1 style="margin:0 0 4px;font-size:1.6rem;font-weight:700;color:var(--text-primary,#0f172a);letter-spacing:-0.3px;">
           ${t('mod_reports.title', 'User Reports')}
         </h1>
-        <p style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
+        <p data-page-info style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
           ${t('mod_reports.subtitle', 'Review and action user-submitted reports for spam, harassment, fraud, and policy violations.')}
         </p>
       </div>

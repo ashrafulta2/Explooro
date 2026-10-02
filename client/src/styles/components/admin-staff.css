@@ -48,7 +48,7 @@
 .admin-staff__header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 
 /* Vitals ------------------------------------------------------------------------------------ */
-.admin-staff-vitals { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-4); }
+.admin-staff-vitals { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: var(--space-4); }
 .admin-staff-vital {
   display: flex;
   flex-direction: column;
@@ -297,7 +297,7 @@
   .admin-staff__header-actions { width: 100%; }
   .admin-staff__filters { margin-inline-start: 0; width: 100%; }
   .admin-staff-search { max-width: none; }
-  .admin-staff-facts { grid-template-columns: 1fr; }
+  .admin-staff-facts { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Phones: a 1060px-wide table is a poor phone experience (and its pinned Actions column would cover

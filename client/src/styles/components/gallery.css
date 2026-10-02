@@ -285,7 +285,7 @@
 
 .spec {
   display: grid;
-  grid-template-columns: 120px 1fr;
+  grid-template-columns: 120px minmax(0, 1fr);
   gap: var(--space-4);
   align-items: start;
   padding: var(--space-4) 0;
@@ -316,7 +316,7 @@
 
 @media (max-width: 640px) {
   .spec {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
   }
 }
@@ -325,7 +325,7 @@
 
 .token-swatch-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(120px, 100%), 1fr));
   gap: var(--space-3);
   margin: 0 0 var(--space-4);
 }
@@ -395,7 +395,7 @@
 
 @media (max-width: 900px) {
   .gallery-page__layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   /* Stacked, not a wrapped row: the groups are collapsible blocks now. Capped so ~90 links don't
      push the specimens a screen and a half down on a phone. */

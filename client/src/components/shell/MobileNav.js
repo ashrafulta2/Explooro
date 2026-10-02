@@ -18,6 +18,54 @@ const TAB_ACTIONS = {
   openCart: () => openCartDrawer(),
 };
 
+// WHY: a count badge that never leaves the tab bar becomes wallpaper and nags. It pops in when the
+// count grows, then comes back at most three more times with widening gaps (≈2, 5, 15 min) until
+// the user opens the tab. [start, end) offsets in ms from the moment the count last grew.
+export const BADGE_SHOW_WINDOWS = [
+  [0, 4000],
+  [120000, 124000],
+  [300000, 304000],
+  [900000, 904000],
+];
+
+export function isBadgeShown(elapsedMs) {
+  return BADGE_SHOW_WINDOWS.some(([from, to]) => elapsedMs >= from && elapsedMs < to);
+}
+
+// Survives MobileNav re-renders (the shell rebuilds it on every store change), keyed by tab key.
+const badgeState = new Map();
+const badgeTimers = new Map();
+
+function trackBadge(key, count, seen) {
+  const prev = badgeState.get(key);
+  if (!count) {
+    badgeState.delete(key);
+    return null;
+  }
+  if (!prev || count > prev.count) {
+    const next = { count, since: Date.now(), seen: false };
+    badgeState.set(key, next);
+    return next;
+  }
+  prev.count = count;
+  if (seen) prev.seen = true;
+  return prev;
+}
+
+function scheduleBadge(key, badge, state) {
+  clearTimeout(badgeTimers.get(key));
+  const apply = () => {
+    if (!badge.isConnected) return;
+    const elapsed = Date.now() - state.since;
+    badge.classList.toggle('is-shown', !state.seen && isBadgeShown(elapsed));
+    const edges = BADGE_SHOW_WINDOWS.flat().filter((ms) => ms > elapsed);
+    if (!state.seen && edges.length) badgeTimers.set(key, setTimeout(apply, Math.min(...edges) - elapsed));
+  };
+  // WHY deferred: the nav is built detached and mounted after this returns, and the pop-in
+  // transition needs one painted frame at opacity 0 first.
+  badgeTimers.set(key, setTimeout(apply, 60));
+}
+
 export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups }) {
   const tabs = MOBILE_TABS[role] ?? [];
   const nav = document.createElement('nav');
@@ -63,9 +111,28 @@ export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups })
     btn.append(label);
 
     const count = tab.badge ? ctx.badges[tab.badge] : null;
-    if (count) btn.append(Badge({ variant: 'count', count }));
+    let badge = null;
+    let badgeKey = null;
+    let state = null;
+    if (count) {
+      badge = Badge({ variant: 'count', count });
+      btn.append(badge);
+      if (tab.action) {
+        badge.classList.add('is-shown'); // cart: a running total, always visible
+      } else {
+        badgeKey = tab.key;
+        state = trackBadge(badgeKey, count, tab.path === currentPath);
+        scheduleBadge(badgeKey, badge, state);
+      }
+    } else if (tab.badge && !tab.action) {
+      trackBadge(tab.key, 0, false);
+    }
 
     btn.addEventListener('click', () => {
+      if (state) {
+        state.seen = true;
+        badge.classList.remove('is-shown');
+      }
       if (tab.more) return openMoreSheet(btn);
       if (tab.action && TAB_ACTIONS[tab.action]) return TAB_ACTIONS[tab.action]();
       navigate(tab.path);

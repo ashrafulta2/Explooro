@@ -53,7 +53,7 @@ export default function VaultPage(root) {
       <div class="vault-page__header">
         <div>
           <h1 class="page-title">${t('vault.page_title')}</h1>
-          <p class="text-secondary">${t('vault.page_subtitle')}</p>
+          <p data-page-info class="text-secondary">${t('vault.page_subtitle')}</p>
         </div>
         <div class="vault-page__actions">
           <button type="button" class="btn btn--secondary vault-page__refresh-btn">

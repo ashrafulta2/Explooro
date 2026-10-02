@@ -230,6 +230,16 @@ export async function requestPayout(db, {
 }
 
 /**
+ * What a scoped `finance.payout.approve` grant is checked against (server/src/lib/grantScope.js).
+ * An unknown payout yields `{ amount: null }`, which no amount limit allows.
+ */
+export async function getPayoutScopeFacts(db, payoutId) {
+  if (!Number.isInteger(payoutId)) return { amount: null };
+  const { rows } = await db.query(`SELECT amount FROM payout_requests WHERE id = $1`, [payoutId]);
+  return { amount: rows[0] ? Number(rows[0].amount) : null };
+}
+
+/**
  * Approves a payout request.
  * - Non-Super-Admin (Moderator/Admin): Creates a pending_admin_action (Maker-Checker HIGH tier).
  * - Super Admin: Dispatches disbursement immediately.

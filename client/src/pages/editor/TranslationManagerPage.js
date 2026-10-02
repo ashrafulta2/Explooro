@@ -168,7 +168,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
     return `
       <div style="
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
         gap: 14px;
       ">
         ${locales
@@ -230,7 +230,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));
       ">
         <div style="flex: 1; min-width: 240px;">
-          <input type="text" id="trans-search-input" value="${searchQuery}" aria-label="🔍 Search translation keys or values..." placeholder="🔍 Search translation keys or values..." style="
+          <input type="search" id="trans-search-input" value="${searchQuery}" aria-label="Search translation keys or values..." placeholder="Search translation keys or values..." style="
             width: 100%;
             padding: 8px 12px;
             font-size: 12px;
@@ -313,7 +313,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
         overflow: hidden;
       ">
         <div style="overflow-x: auto;">
-          <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 13px;">
+          <table style="width: 100%; min-width: 720px; text-align: left; border-collapse: collapse; font-size: 13px;">
             <thead>
               <tr style="background: var(--surface-2, #f8fafc); border-bottom: 1px solid var(--border-subtle, #e2e8f0); font-size: 11px; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase;">
                 <th style="padding: 12px 16px; width: 140px;">Namespace</th>

@@ -14,6 +14,7 @@ import './styles/main.css';
 
 // Prompt 1.5 — router, store, api-client.
 import { createRouter } from './core/router.js';
+import { installPageInfo } from './services/pageInfo.js';
 import { appStore } from './state/appStore.js';
 
 // Prompt 1.6 — i18n.
@@ -1929,6 +1930,8 @@ async function bootRouterDemo() {
   subscribeLang(() => router.refresh());
 
   router.start();
+  // Folds the instruction line under every page/section title into an (i) InfoTip.
+  installPageInfo(appShell.pageOutlet);
 }
 
 if (routerOutlet) {

@@ -118,9 +118,9 @@ export default function InventoryPage(root) {
     toolbar.innerHTML = `
       <div class="supplier-toolbar__search">
         <input
-          type="text"
+          type="search"
           id="search-input"
-          class="input input--sm"
+          class="input input--sm input--search"
           style="width: 100%;"
           aria-label="${t('supplier.search_sku_placeholder', 'Search SKU by title, reference, or brand...')}"
           placeholder="${t('supplier.search_sku_placeholder', 'Search SKU by title, reference, or brand...')}"

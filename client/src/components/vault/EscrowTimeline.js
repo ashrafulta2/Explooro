@@ -39,7 +39,7 @@ export function EscrowTimeline({ escrowEntries = [] }) {
         <div class="escrow-timeline__header">
           <div>
             <h3 class="escrow-timeline__title">⏳ ${t('vault.escrow_timeline_title')}</h3>
-            <p class="text-sm text-secondary">${t('vault.escrow_timeline_subtitle')}</p>
+            <p data-page-info class="text-sm text-secondary">${t('vault.escrow_timeline_subtitle')}</p>
           </div>
           <span class="badge badge--warning font-mono font-bold">
             ${entriesState.length} ${t('vault.pending_items')}
@@ -83,7 +83,7 @@ export function EscrowTimeline({ escrowEntries = [] }) {
                   </div>
 
                   <div class="escrow-timeline__footer text-xs text-secondary">
-                    <span>${t('vault.role')}: <strong class="badge badge--neutral">${item.beneficiary_role}</strong></span>
+                    ${item.beneficiary_role ? `<span>${t('vault.role')}: <strong class="badge badge--neutral">${item.beneficiary_role}</strong></span>` : ''}
                     <span>${t('vault.clearance_policy')}</span>
                   </div>
                 </div>

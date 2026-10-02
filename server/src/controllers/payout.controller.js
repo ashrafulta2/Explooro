@@ -72,6 +72,11 @@ export async function listPayoutQueue(req, reply) {
   });
 }
 
+/** requirePermission `scopeFacts` for payout approval: what a scoped grant is checked against. */
+export async function payoutScopeFacts(req) {
+  return payoutService.getPayoutScopeFacts(req.server.db, parseInt(req.params.id, 10));
+}
+
 export async function approvePayout(req, reply) {
   const payoutId = parseInt(req.params.id, 10);
   const approverNote = req.body?.note || 'Approved for disbursement';

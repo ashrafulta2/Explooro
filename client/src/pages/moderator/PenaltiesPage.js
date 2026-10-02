@@ -177,7 +177,7 @@ export default function PenaltiesPage(root) {
           <label style="display:block;font-size:0.8rem;font-weight:600;color:var(--text-secondary,#64748b);margin-bottom:6px;text-transform:uppercase;">
             ${t('mod_penalties.type_label', 'Penalty Type')}
           </label>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(170px, 100%), 1fr));gap:8px;">
             ${PENALTY_TYPES.map(p => `
               <button class="btn-penalty-type" data-key="${p.key}"
                 style="padding:10px 12px;border-radius:9px;font-size:0.82rem;font-weight:600;cursor:pointer;text-align:left;
@@ -319,7 +319,7 @@ export default function PenaltiesPage(root) {
           <h1 style="margin:0 0 4px;font-size:1.6rem;font-weight:700;color:var(--text-primary,#0f172a);letter-spacing:-0.3px;">
             ${t('mod_penalties.title', 'Penalties & Suspensions')}
           </h1>
-          <p style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
+          <p data-page-info style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
             ${t('mod_penalties.subtitle', 'Issue warnings, temporary suspensions, or permanent bans against violating accounts.')}
           </p>
         </div>

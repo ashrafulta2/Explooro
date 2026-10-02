@@ -762,3 +762,16 @@
     min-height: 450px;
   }
 }
+
+/* Mobile: the channel pills scroll sideways inside their own bar instead of widening the page. */
+@media (max-width: 767.98px) {
+  .inbox-channel-filters { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .channel-filter-pill { flex: none; white-space: nowrap; }
+}
+
+@media (max-width: 767.98px) {
+  .chat-composer-row { padding: var(--space-2, 8px) var(--space-3, 12px); gap: var(--space-2, 8px); }
+  .chat-composer-row { flex-wrap: wrap; }
+  .chat-composer-row > input.input, .chat-composer-row > textarea.input, .chat-composer-row > input, .chat-composer-row > textarea { flex: 1 1 140px; width: auto; min-width: 0; }
+  .chat-composer-row > button, .chat-composer-row > .btn { flex: none; }
+}

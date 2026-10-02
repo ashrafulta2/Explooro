@@ -46,7 +46,7 @@
 /* KPI Summary Bar */
 .addresses-kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: var(--space-4);
 }
 
@@ -136,13 +136,13 @@
 
 .addresses-spotlight__body {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-4);
 }
 
 @media (min-width: 768px) {
   .addresses-spotlight__body {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
 }
@@ -211,7 +211,7 @@
 /* Address Cards Grid */
 .addresses-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr));
   gap: var(--space-5);
 }
 
@@ -563,14 +563,14 @@
 /* Grids */
 .address-modal-form__grid-2 {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
   width: 100%;
 }
 
 @media (min-width: 600px) {
   .address-modal-form__grid-2 {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 

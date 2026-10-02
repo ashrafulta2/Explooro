@@ -188,7 +188,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
       </div>
 
       <!-- Security KPI Strip -->
-      <div class="kpi-strip" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+      <div class="kpi-strip" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
         <div class="card kpi-card" style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 1.25rem;">
           <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
             ${t('admin_2fa.kpi_enforcement_rate')}
@@ -247,7 +247,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
             <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.25rem 0; color: var(--text-primary);">
               ⚙️ ${t('admin_2fa.policy_title')}
             </h2>
-            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
+            <p data-page-info style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
               ${t('admin_2fa.policy_subtitle')}
             </p>
           </div>
@@ -256,7 +256,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
           </button>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 1rem;">
           <div>
             <label for="policy-tier-select" style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.35rem; color: var(--text-primary);">
               ${t('admin_2fa.enforcement_tier')}
@@ -299,7 +299,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
             <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0 0 0.25rem 0; color: var(--text-primary);">
               👥 ${t('admin_2fa.staff_directory_title')}
             </h2>
-            <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
+            <p data-page-info style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">
               ${t('admin_2fa.staff_directory_subtitle')}
             </p>
           </div>
@@ -394,7 +394,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
       </div>
 
       <!-- Break-Glass Protocol & Recent Activity Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 1.5rem;">
         <!-- Break-Glass Protocol Status -->
         <div class="card" style="background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 1.25rem;">
           <h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: var(--text-primary);">

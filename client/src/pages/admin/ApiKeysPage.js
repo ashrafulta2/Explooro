@@ -176,7 +176,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
     actionHeader.innerHTML = `
       <div>
         <h3 class="text-lg font-bold m-0">${t('developer.keys_heading')}</h3>
-        <p class="text-xs text-muted m-0">${t('developer.keys_subheading')}</p>
+        <p data-page-info class="text-xs text-muted m-0">${t('developer.keys_subheading')}</p>
       </div>
     `;
 
@@ -430,7 +430,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
     headerRow.innerHTML = `
       <div>
         <h3 class="text-lg font-bold m-0">${t('developer.webhooks_heading')}</h3>
-        <p class="text-xs text-muted m-0">${t('developer.webhooks_subheading')}</p>
+        <p data-page-info class="text-xs text-muted m-0">${t('developer.webhooks_subheading')}</p>
       </div>
     `;
 

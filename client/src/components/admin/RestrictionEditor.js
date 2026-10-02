@@ -12,27 +12,30 @@ import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 
+// WHY: these must mirror VALID_CAPABILITIES / VALID_NUMERIC_LIMITS in
+// server/src/services/restriction.service.js — any key not in those sets is rejected with
+// "Invalid capability_key", so an option here that the server doesn't know is a dead option.
 const CAPABILITIES = [
-  'can_buy',
   'can_sell',
-  'can_payout',
+  'can_list_products',
+  'can_buy',
+  'can_use_cod',
   'can_withdraw',
   'can_chat',
-  'can_review',
-  'can_refer',
   'can_live_stream',
-  'can_create_store',
-  'can_apply_coupon',
-  'can_receive_commission',
-  'can_cod',
+  'can_run_ads',
+  'can_refer',
+  'can_post_review',
+  'can_upload_video',
+  'can_login',
 ];
 
 const NUMERIC_LIMITS = [
   'max_cod_order_value',
-  'max_daily_order_count',
-  'max_daily_order_value',
-  'max_payout_per_day',
-  'max_active_listings',
+  'max_withdrawal_per_day',
+  'max_products',
+  'max_daily_messages',
+  'ad_budget_cap',
 ];
 
 export function openRestrictionEditor({ user = null, trigger = null, onSuccess = null }) {
@@ -52,11 +55,10 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
       { value: 'USER', label: t('restrictions.scope_user') },
       { value: 'SEGMENT', label: t('restrictions.scope_segment') },
     ],
-    onChange: (val) => {
-      scope = val;
-      userFieldWrap.style.display = val === 'USER' ? 'block' : 'none';
-      segmentWrap.style.display = val === 'SEGMENT' ? 'block' : 'none';
-    },
+    // WHY: Select forwards the native change *event*, not the value. Treating the event as the
+    // value left both the user-ref field and the segment builder hidden, so USER scope could
+    // never be submitted ("Please provide target user ref" with no field to type it in).
+    onChange: (e) => syncScope(e.target.value),
   });
 
   // User input if USER scope
@@ -69,6 +71,12 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     onInput: (e) => { targetUserRef = e.target.value.trim(); },
   });
   userFieldWrap.append(userInput);
+
+  function syncScope(next) {
+    scope = next;
+    userFieldWrap.style.display = next === 'USER' ? 'block' : 'none';
+    segmentWrap.style.display = next === 'SEGMENT' ? 'block' : 'none';
+  }
 
   // Segment predicate builder if SEGMENT scope
   const segmentWrap = document.createElement('div');
@@ -115,12 +123,14 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
   const modeSelect = Select({
     label: isBn ? 'এনফোর্সমেন্ট মোড' : 'Enforcement Mode',
     value: 'BLOCK',
+    // Mirrors VALID_MODES on the server (there is no LIMIT mode — a numeric cap is THROTTLE).
     options: [
       { value: 'BLOCK', label: t('restrictions.mode_block') },
-      { value: 'LIMIT', label: t('restrictions.mode_limit') },
       { value: 'THROTTLE', label: t('restrictions.mode_throttle') },
+      { value: 'FORCE_REVIEW_QUEUE', label: t('restrictions.mode_review') },
       { value: 'SHADOW_BAN', label: t('restrictions.mode_shadow') },
     ],
+    onChange: () => syncLimitField(),
   });
 
   function getFriendlyTargetLabel(key) {
@@ -145,9 +155,9 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     label: isBn ? 'রেস্ট্রিকশন লক্ষ্য' : 'Target Capability / Limit',
     value: selectedCap,
     options: allTargets,
-    onChange: (val) => {
-      selectedCap = val;
-      limitValueInput.style.display = NUMERIC_LIMITS.includes(val) ? 'block' : 'none';
+    onChange: (e) => {
+      selectedCap = e.target.value;
+      syncLimitField();
     },
   });
 
@@ -157,6 +167,12 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     placeholder: 'e.g. 5000',
   });
   limitValueInput.style.display = 'none';
+
+  // The server requires limit_value for THROTTLE mode, and it is the whole point of a numeric cap.
+  function syncLimitField() {
+    const needed = modeSelect.value === 'THROTTLE' || NUMERIC_LIMITS.includes(selectedCap);
+    limitValueInput.style.display = needed ? 'block' : 'none';
+  }
 
   // Duration
   const durationSelect = Select({
@@ -201,11 +217,27 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
       }
 
       const subjectType = scopeSelect.value;
-      const subjectRef = subjectType === 'USER' ? targetUserRef : (segmentInput.value.trim() || 'all_matching');
+      const subjectRef = subjectType === 'USER' ? targetUserRef : 'segment';
 
       if (subjectType === 'USER' && !subjectRef) {
         toast.error(isBn ? 'ব্যবহারকারী রেফারেন্স লিখুন' : 'Please provide target user ref');
+        userInput.focus();
         return;
+      }
+
+      // The server rejects a SEGMENT restriction without a segment_predicate *object*.
+      let segmentPredicate = null;
+      if (subjectType === 'SEGMENT') {
+        const raw = segmentInput.value.trim();
+        try {
+          segmentPredicate = raw ? JSON.parse(raw) : null;
+        } catch {
+          segmentPredicate = null;
+        }
+        if (!segmentPredicate || typeof segmentPredicate !== 'object' || Array.isArray(segmentPredicate)) {
+          toast.error(isBn ? 'সেগমেন্ট শর্ত একটি বৈধ JSON অবজেক্ট হতে হবে' : 'Segment criteria must be a valid JSON object');
+          return;
+        }
       }
 
       let expiresAt = null;
@@ -220,6 +252,7 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
         await api.post('/admin/restrictions', {
           subject_type: subjectType,
           subject_ref: subjectRef,
+          segment_predicate: segmentPredicate,
           capability_key: selectedCap,
           mode: modeSelect.value,
           limit_value: limitValueInput.value ? parseFloat(limitValueInput.value) : null,

@@ -198,7 +198,7 @@ export default function WarehousePage(root) {
             <input type="text" id="wh-name-input" class="input input--sm" placeholder="e.g. Bogura Distribution Depot" required />
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2, 8px);">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-2, 8px);">
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <label class="label" style="font-size: var(--text-xs); font-weight: 700;">District *</label>
               <select id="wh-district-select" class="input input--sm">

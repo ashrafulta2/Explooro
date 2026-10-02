@@ -381,6 +381,62 @@ const mockUserRoster = [
   },
 ];
 
+// Standing grants (Mode A) — module-level so an issue or revoke survives until reload, like the
+// real table. Status follows permission.repository.js: a revoked_at at/after expiry is an expiry.
+let mockGrants = null;
+
+function mockGrantStatus(g) {
+  const exp = new Date(g.expires_at).getTime();
+  const rev = g.revoked_at ? new Date(g.revoked_at).getTime() : null;
+  if (rev !== null && rev < exp) return 'REVOKED';
+  return exp <= Date.now() ? 'EXPIRED' : 'ACTIVE';
+}
+
+function mockGrantStore() {
+  if (mockGrants) return mockGrants;
+  const hours = (h) => new Date(Date.now() + 3600000 * h).toISOString();
+  const issuer = { granted_by: 1, granted_by_name: 'Rahim Khan', granted_by_ref: 'USR-8F2K9QX7' };
+  const person = (id) => {
+    const u = mockUserRoster.find((x) => x.id === id);
+    return { user_id: id, grantee_name: u?.full_name ?? null, grantee_ref: u?.ref ?? null, grantee_phone: u?.phone ?? null };
+  };
+  const open = { revoked_at: null, revoked_by: null, revoked_by_name: null, revocation_reason: null };
+  mockGrants = [
+    {
+      id: 1, ...person(4), permission_key: 'finance.payout.approve',
+      permission_label_en: 'Approve payouts', permission_label_bn: 'পেআউট অনুমোদন', effect: 'GRANT',
+      scope_json: { max_amount: 50000 },
+      reason: 'Covering senior finance compliance officer during annual medical leave window.',
+      ...issuer, created_at: hours(-48), expires_at: hours(24 * 14), ...open,
+    },
+    {
+      id: 2, ...person(5), permission_key: 'catalog.product.delete',
+      permission_label_en: 'Delete products', permission_label_bn: 'পণ্য মুছে ফেলা', effect: 'GRANT',
+      scope_json: null,
+      reason: 'Emergency catalog spam purge for duplicate fake supplier submissions.',
+      ...issuer, created_at: hours(-24 * 5), expires_at: hours(24 * 2), ...open,
+    },
+    {
+      id: 3, ...person(5), permission_key: 'orders.cod.reconcile',
+      permission_label_en: null, permission_label_bn: null, effect: 'GRANT',
+      scope_json: null,
+      reason: 'Month-end courier settlement reconciliation support.',
+      ...issuer, created_at: hours(-24 * 35), expires_at: hours(-24 * 5), ...open,
+    },
+    {
+      id: 4, ...person(4), permission_key: 'users.restriction.manage',
+      permission_label_en: null, permission_label_bn: null, effect: 'GRANT',
+      scope_json: null,
+      reason: 'Eid surge velocity-limit triage for the Trust & Safety queue.',
+      ...issuer, created_at: hours(-24 * 20), expires_at: hours(24 * 10),
+      revoked_at: hours(-24 * 3), revoked_by: 1, revoked_by_name: 'Rahim Khan',
+      revocation_reason: 'Surge ended early; access no longer needed.',
+    },
+  ];
+  return mockGrants;
+}
+
+
 /** Detail-only extras, keyed by user id — the deep-dive tabs the list has no columns for. */
 const mockUserRestrictions = {
   // Same columns the real endpoint selects (user.repository.js → getActiveRestrictionsForUser):
@@ -607,6 +663,36 @@ function buildOverviewResponse(query) {
   };
 }
 
+// WHY decisions persist to localStorage: /admin/kyc/:id/decide used to return 200 and store nothing,
+// while buildMockKycRecords() rebuilt every applicant as PENDING on each request. Approving Anisur
+// Rahman showed the Blue-Tick toast, then a browser refresh put him straight back in the Pending
+// queue — a mock that forgets on reload makes a working approval flow look broken (same reasoning
+// as handlers/genie.js).
+const KYC_DECISIONS_KEY = 'explooro:mock:kyc:decisions';
+const KYC_OPEN_STATUSES = ['PENDING', 'UNDER_REVIEW', 'APPEALED'];
+
+function loadKycDecisions() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const parsed = JSON.parse(localStorage.getItem(KYC_DECISIONS_KEY) || '{}');
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch {
+    // Private browsing or corrupt storage — every applicant starts from its seeded status.
+  }
+  return {};
+}
+
+function saveKycDecision(id, decision) {
+  const decisions = loadKycDecisions();
+  decisions[id] = decision;
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(KYC_DECISIONS_KEY, JSON.stringify(decisions));
+  } catch {
+    // Non-fatal: the decision still holds until the next reload.
+  }
+}
+
 // WHY a function, not a static array: /admin/kyc/queue and /admin/kyc/:id used to each hand-write
 // their own copy of these three applicants. The details endpoint's copy never got the second and
 // third applicant's real `documents`, so selecting Farzana Akter (id 2, 2 real documents) or
@@ -614,6 +700,11 @@ function buildOverviewResponse(query) {
 // 3 documents — the reviewer could "inspect" a document that was never actually uploaded by the
 // applicant on screen. One shared source keeps both endpoints' documents in sync with doc_count.
 function buildMockKycRecords() {
+  const decisions = loadKycDecisions();
+  return buildSeedKycRecords().map((k) => (decisions[k.id] ? { ...k, ...decisions[k.id] } : k));
+}
+
+function buildSeedKycRecords() {
   return [
     {
       id: 1,
@@ -1366,79 +1457,31 @@ export const adminHandlers = [
   })(),
 
   // 17. Standing Access Grants (Mode A)
+  // WHY stateful and shaped like permission.repository.js listGrantOverrides(): this mock used to
+  // return three fixed rows with fields the real API never sends (grantee_name, a granted_by NAME),
+  // so the page looked right in dev and showed "User #4" / "Issued by 7" against the live server —
+  // and a grant issued or revoked here never appeared in the list.
   {
     method: 'GET',
     path: '/admin/grants',
     handler({ query }) {
-      const statusFilter = query?.status || 'ALL';
-      const mockGrants = [
-        {
-          id: 1,
-          user_id: 4,
-          grantee_phone: '+8801711000004',
-          grantee_name: 'Tariq Ahmed',
-          grantee_ref: 'STF-002',
-          permission_key: 'finance.payout.approve',
-          effect: 'GRANT',
-          scope_json: { max_amount_bdt: 50000 },
-          reason: 'Covering senior finance compliance officer during annual medical leave window.',
-          granted_by: 'Rahim Khan (Super Admin)',
-          created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-          expires_at: new Date(Date.now() + 3600000 * 24 * 14).toISOString(),
-          revoked_at: null,
-          revocation_reason: null,
-        },
-        {
-          id: 2,
-          user_id: 5,
-          grantee_phone: '+8801711000005',
-          grantee_name: 'Nusrat Jahan',
-          grantee_ref: 'STF-003',
-          permission_key: 'catalog.product.delete',
-          effect: 'GRANT',
-          scope_json: { category: 'fashion' },
-          reason: 'Emergency catalog spam purge for duplicate fake supplier submissions.',
-          granted_by: 'Rahim Khan (Super Admin)',
-          created_at: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
-          expires_at: new Date(Date.now() + 3600000 * 24 * 2).toISOString(),
-          revoked_at: null,
-          revocation_reason: null,
-        },
-        {
-          id: 3,
-          user_id: 8,
-          grantee_phone: '+8801711000008',
-          grantee_name: 'Kamal Uddin',
-          grantee_ref: 'STF-004',
-          permission_key: 'orders.cod.reconcile',
-          effect: 'GRANT',
-          scope_json: null,
-          reason: 'Month-end courier settlement reconciliation support.',
-          granted_by: 'Rahim Khan (Super Admin)',
-          created_at: new Date(Date.now() - 3600000 * 24 * 35).toISOString(),
-          expires_at: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
-          revoked_at: null,
-          revocation_reason: null,
-        },
-      ];
+      const statusFilter = query?.status || 'ACTIVE';
+      const q = String(query?.q || '').trim().toLowerCase();
+      const limit = Math.min(Math.max(Number(query?.limit) || 50, 1), 100);
+      const offset = Math.max(Number(query?.offset) || 0, 0);
 
-      let filtered = mockGrants.filter((g) => {
-        const isRevoked = Boolean(g.revoked_at);
-        const isExpired = new Date(g.expires_at).getTime() <= Date.now();
-        const curStatus = isRevoked ? 'REVOKED' : (isExpired ? 'EXPIRED' : 'ACTIVE');
-
-        if (statusFilter !== 'ALL' && curStatus !== statusFilter) return false;
-        return true;
+      const filtered = mockGrantStore().filter((g) => {
+        if (statusFilter !== 'ALL' && mockGrantStatus(g) !== statusFilter) return false;
+        if (!q) return true;
+        return [g.grantee_name, g.grantee_ref, g.grantee_phone, g.permission_key, g.permission_label_en, g.permission_label_bn]
+          .some((v) => String(v || '').toLowerCase().includes(q));
       });
 
       return {
         status: 200,
         body: {
-          data: {
-            grants: filtered,
-          },
-          grants: filtered,
-          total: filtered.length,
+          data: { grants: filtered.slice(offset, offset + limit) },
+          meta: { total: filtered.length, limit, offset },
         },
       };
     },
@@ -1449,31 +1492,48 @@ export const adminHandlers = [
     method: 'POST',
     path: '/admin/grants',
     handler({ body }) {
-      const newGrant = {
-        id: Math.floor(10 + Math.random() * 90),
-        user_id: body?.user_id,
-        grantee_phone: body?.grantee_phone || '01711000004',
-        grantee_name: 'Staff Operator',
-        grantee_ref: `STF-00${body?.user_id || 2}`,
-        permission_key: body?.permission_key,
-        effect: body?.effect || 'GRANT',
-        scope_json: body?.scope_json || null,
-        reason: body?.reason,
-        granted_by: 'Super Admin',
+      const fail = (status, code, en, bn) => ({ status, body: { error: { code, message_en: en, message_bn: bn, trace_id: traceId() } } });
+      const userId = Number(body?.user_id);
+      const target = mockUserRoster.find((u) => u.id === userId);
+      if (!target) return fail(404, 'NOT_FOUND', 'User not found.', 'ব্যবহারকারী পাওয়া যায়নি।');
+      if (!body?.permission_key || String(body?.reason || '').trim().length < 10) {
+        return fail(400, 'VALIDATION_FAILED', 'Reason must be at least 10 characters.', 'কারণ অন্তত ১০ অক্ষরের হতে হবে।');
+      }
+      const scope = body?.scope_json && Object.keys(body.scope_json).length ? body.scope_json : null;
+      // Mirrors server/src/lib/grantScope.js — only an enforceable scope is accepted.
+      if (scope && !(body.permission_key === 'finance.payout.approve' && Object.keys(scope).every((k) => k === 'max_amount') && Number(scope.max_amount) > 0)) {
+        return fail(400, 'VALIDATION_FAILED', 'This permission cannot be limited by a scope.', 'এই পারমিশনে কোনো সীমা (স্কোপ) নির্ধারণ করা যায় না।');
+      }
+      const store = mockGrantStore();
+      if (store.some((g) => g.user_id === userId && g.permission_key === body.permission_key && mockGrantStatus(g) === 'ACTIVE')) {
+        return fail(409, 'CONFLICT', 'This person already has an active grant for this permission. Revoke it first.',
+          'এই ব্যক্তির এই পারমিশনের একটি সক্রিয় গ্রান্ট আগে থেকেই আছে। আগে সেটি প্রত্যাহার করুন।');
+      }
+
+      const grant = {
+        id: Math.max(0, ...store.map((g) => g.id)) + 1,
+        user_id: userId,
+        grantee_name: target.full_name,
+        grantee_ref: target.ref,
+        grantee_phone: target.phone,
+        permission_key: body.permission_key,
+        permission_label_en: null,
+        permission_label_bn: null,
+        effect: 'GRANT',
+        scope_json: scope,
+        reason: String(body.reason).trim(),
+        granted_by: 1,
+        granted_by_name: 'Rahim Khan',
+        granted_by_ref: 'USR-8F2K9QX7',
         created_at: new Date().toISOString(),
         expires_at: body?.expires_at || new Date(Date.now() + 3600000 * 24 * 7).toISOString(),
         revoked_at: null,
+        revoked_by: null,
+        revoked_by_name: null,
+        revocation_reason: null,
       };
-
-      return {
-        status: 201,
-        body: {
-          data: { grant: newGrant },
-          grant: newGrant,
-          message_en: `Issued standing grant for ${newGrant.permission_key} with automatic expiration on ${new Date(newGrant.expires_at).toLocaleDateString()}.`,
-          message_bn: `${newGrant.permission_key}-এর জন্য স্ট্যান্ডিং গ্রান্ট সফলভাবে প্রদান করা হয়েছে।`,
-        },
-      };
+      store.unshift(grant);
+      return { status: 201, body: { data: { grant } } };
     },
   },
 
@@ -1482,18 +1542,21 @@ export const adminHandlers = [
     method: 'DELETE',
     path: '/admin/grants/:id',
     handler({ params, body }) {
-      return {
-        status: 200,
-        body: {
-          data: {
-            revoked: true,
-            grant_id: params?.id,
-            revocation_reason: body?.reason,
-          },
-          message_en: 'Standing grant successfully revoked.',
-          message_bn: 'স্ট্যান্ডিং গ্রান্ট সফলভাবে প্রত্যাহার করা হয়েছে।',
-        },
-      };
+      const grant = mockGrantStore().find((g) => String(g.id) === String(params?.id));
+      const fail = (status, code, en, bn) => ({ status, body: { error: { code, message_en: en, message_bn: bn, trace_id: traceId() } } });
+      if (!grant) return fail(404, 'NOT_FOUND', 'Grant not found.', 'অনুমতি পাওয়া যায়নি।');
+      if (String(body?.reason || '').trim().length < 10) {
+        return fail(400, 'VALIDATION_FAILED', 'Reason is mandatory and must be at least 10 characters to revoke a grant.',
+          'অনুমতি প্রত্যাহারের জন্য অন্তত ১০ অক্ষরের কারণ উল্লেখ করা বাধ্যতামূলক।');
+      }
+      if (mockGrantStatus(grant) !== 'ACTIVE') {
+        return fail(409, 'CONFLICT', 'Grant is no longer active.', 'এই গ্রান্টটি আর সক্রিয় নেই।');
+      }
+      grant.revoked_at = new Date().toISOString();
+      grant.revoked_by = 1;
+      grant.revoked_by_name = 'Rahim Khan';
+      grant.revocation_reason = String(body.reason).trim();
+      return { status: 200, body: { data: { revoked: true, grant } } };
     },
   },
 
@@ -1721,14 +1784,36 @@ export const adminHandlers = [
     method: 'POST',
     path: '/admin/kyc/:id/decide',
     handler({ params, body }) {
-      const decision = body?.decision || 'VERIFIED';
+      const decision = body?.decision;
+      if (!['VERIFIED', 'REJECTED'].includes(decision)) {
+        return {
+          status: 400,
+          body: { code: 'VALIDATION_FAILED', message_en: 'Decision must be VERIFIED or REJECTED.', message_bn: 'সিদ্ধান্ত অবশ্যই VERIFIED অথবা REJECTED হতে হবে।' },
+        };
+      }
+      const record = buildMockKycRecords().find((k) => String(k.id) === String(params?.id));
+      if (!record) {
+        return { status: 404, body: { code: 'NOT_FOUND', message_en: 'KYC submission not found.', message_bn: 'কেওয়াইসি আবেদন পাওয়া যায়নি।' } };
+      }
+      if (!KYC_OPEN_STATUSES.includes(record.status)) {
+        return {
+          status: 409,
+          body: { code: 'KYC_ALREADY_DECIDED', message_en: `This submission is already ${record.status}.`, message_bn: 'এই আবেদনের সিদ্ধান্ত আগেই নেওয়া হয়েছে।' },
+        };
+      }
+      const decided_at = new Date().toISOString();
+      saveKycDecision(record.id, {
+        status: decision,
+        decided_at,
+        ...(decision === 'REJECTED' ? { reason_en: body?.reason_en ?? null, reason_bn: body?.reason_bn ?? null } : {}),
+      });
       return {
         status: 200,
         body: {
           data: {
             kyc_id: params?.id,
             status: decision,
-            decided_at: new Date().toISOString(),
+            decided_at,
           },
           message_en: `KYC submission marked as ${decision}.`,
           message_bn: `কেওয়াইসি আবেদন সফলভাবে ${decision === 'VERIFIED' ? 'অনুমোদিত' : 'প্রত্যাখ্যাত'} করা হয়েছে।`,

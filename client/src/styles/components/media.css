@@ -99,10 +99,54 @@
   margin-top: var(--space-2);
 }
 
+/* Camera capture dialog (desktop webcam) */
+.camera-capture__stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--neutral-900);
+}
+
+.camera-capture__video,
+.camera-capture__still {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.camera-capture__status {
+  position: absolute;
+  inset: auto var(--space-4) var(--space-4);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.camera-capture__stage--error .camera-capture__status {
+  position: static;
+  margin: var(--space-4);
+}
+
+.camera-capture__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
 /* Thumbnail Grid */
 .media-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(110px, 100%), 1fr));
   gap: var(--space-3);
   margin-top: var(--space-2);
 }
@@ -274,7 +318,7 @@
 
 .media-library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(110px, 100%), 1fr));
   gap: var(--space-3);
   padding: var(--space-4);
   overflow-y: auto;

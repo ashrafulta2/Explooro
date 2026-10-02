@@ -45,14 +45,17 @@ export async function revokeGrant(req, reply) {
 
 export async function listGrants(req, reply) {
   const { db } = req.server;
-  const grants = await delegationService.listStandingGrants(db, {
+  const limit = req.query?.limit ? Number(req.query.limit) : 50;
+  const offset = req.query?.offset ? Number(req.query.offset) : 0;
+  const { grants, total } = await delegationService.listStandingGrants(db, {
     userId: req.query?.user_id ? Number(req.query.user_id) : null,
     permissionKey: req.query?.permission_key ?? null,
+    search: req.query?.q ? String(req.query.q).trim() : null,
     status: req.query?.status ?? 'ACTIVE',
-    limit: req.query?.limit ? Number(req.query.limit) : 50,
-    offset: req.query?.offset ? Number(req.query.offset) : 0,
+    limit,
+    offset,
   });
-  reply.send({ data: { grants } });
+  reply.send({ data: { grants }, meta: { total, limit, offset } });
 }
 
 /* ========================================================================= */

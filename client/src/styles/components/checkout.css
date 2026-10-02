@@ -21,7 +21,7 @@
 .checkout-stepper__line--done { background: var(--success); }
 
 .checkout-page__offline-banner { margin-bottom: 24px; border-left: 4px solid var(--warning); }
-.checkout-page__layout { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
+.checkout-page__layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
 @media (min-width: 960px) { .checkout-page__layout { grid-template-columns: minmax(0, 1.85fr) minmax(0, 1.15fr); gap: 32px; } }
 .checkout-page__steps-col { display: flex; flex-direction: column; gap: 20px; }
 
@@ -42,7 +42,7 @@
 
 /* Address Form */
 .address-form { display: flex; flex-direction: column; gap: 18px; }
-.address-form .address-form__grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+.address-form .address-form__grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
 .address-form .address-form__group-name, .address-form .address-form__group-phone, .address-form .address-form__group-div, .address-form .address-form__group-dist, .address-form .address-form__group-upa, .address-form .address-form__group-line, .address-form .address-form__group-notes { grid-column: span 6; }
 @media (min-width: 640px) {
   .address-form .address-form__group-name, .address-form .address-form__group-phone { grid-column: span 3; }
@@ -57,8 +57,8 @@
 
 /* Saved-address picker */
 .address-form__saved-wrap { display: flex; flex-direction: column; gap: 8px; }
-.address-form__saved-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-@media (min-width: 640px) { .address-form__saved-grid { grid-template-columns: 1fr 1fr; } }
+.address-form__saved-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+@media (min-width: 640px) { .address-form__saved-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 .address-form__saved-card { border: 1.5px solid var(--border-strong); border-radius: 10px; padding: 12px 14px; cursor: pointer; background: var(--surface-1); transition: border-color var(--dur-fast) var(--ease-standard), background-color var(--dur-fast) var(--ease-standard); }
 .address-form__saved-card:hover { border-color: var(--brand-300); }
 .address-form__saved-card--selected { border-color: var(--brand); background: var(--brand-50); }
@@ -79,8 +79,11 @@
 /* Parcels */
 .checkout-page__parcels-wrap { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
 .checkout-page__parcel-card { padding: 16px; border: 1.5px solid var(--border-subtle); border-radius: 12px; background: var(--surface-1); }
-.checkout-page__parcel-card-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px; }
-.checkout-page__item-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 4px 0; color: var(--text-secondary); }
+/* WHY wrap + nowrap price: on a phone the supplier name and the "Est. Delivery" badge can't share a row (the badge was
+   clipped by the card) and "Tk 2,500.00" broke across two lines. The badge drops below; the price stays on one line. */
+.checkout-page__parcel-card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 12px; }
+.checkout-page__item-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.9rem; padding: 4px 0; color: var(--text-secondary); }
+.checkout-page__item-row > :last-child { flex-shrink: 0; white-space: nowrap; }
 
 /* Summary */
 .checkout-summary { position: sticky; top: calc(var(--topbar-h, 56px) + 24px); padding: 24px; border: 1.5px solid var(--border-subtle); border-radius: 16px; background: var(--surface-0); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
@@ -110,9 +113,9 @@
 /* Order Detail & Tracker */
 .order-detail-page { padding: var(--space-6) 0 var(--space-9) 0; max-width: 1140px; margin: 0 auto; }
 .order-detail__summary-banner { padding: var(--space-5); margin-bottom: var(--space-6); }
-.order-detail__banner-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
-@media (min-width: 768px) { .order-detail__banner-grid { grid-template-columns: repeat(4, 1fr); } }
-.order-detail__content-layout { display: grid; grid-template-columns: 1fr; gap: var(--space-6); }
+.order-detail__banner-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+@media (min-width: 768px) { .order-detail__banner-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.order-detail__content-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
 @media (min-width: 900px) { .order-detail__content-layout { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); } }
 .order-detail__section-title { font-size: var(--text-lg); font-weight: var(--weight-bold); margin-bottom: var(--space-4); }
 .order-parcel { padding: var(--space-5); margin-bottom: var(--space-5); }
@@ -142,8 +145,8 @@
 .order-tracker__map-badge { background: var(--brand); color: var(--brand-contrast, #111827); font-weight: 800; border-color: var(--brand); font-size: var(--text-2xs); padding: 2px 8px; }
 .order-tracker__map-overlay p,
 .order-tracker__map-desc { color: #e2e8f0 !important; margin: 0; font-size: var(--text-xs); font-weight: 500; }
-.order-list-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-top: var(--space-4); }
-@media (min-width: 640px) { .order-list-grid { grid-template-columns: repeat(2, 1fr); } }
+.order-list-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); margin-top: var(--space-4); }
+@media (min-width: 640px) { .order-list-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .order-card { padding: var(--space-4); }
 .order-card__header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3); }
 .order-card__body { margin-bottom: var(--space-4); }

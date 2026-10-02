@@ -5,6 +5,7 @@
  * Gated by: `digital_warranty` module flag, `support.warranty.manage` permission.
  */
 
+import '../../styles/components/customer-warranties.css';
 import { api } from '../../core/api.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t, getLanguage } from '../../services/i18n.js';

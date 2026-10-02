@@ -194,7 +194,7 @@ export default function HelpCenterManagerPage(root) {
             🛡️ Warranties & Returns
           </button>
         </div>
-        <input type="text" id="faq-search" aria-label="🔍 Search question or keyword..." placeholder="🔍 Search question or keyword..." value="${searchQuery}" class="form-input" style="width: 240px; font-size: 12px; padding: 6px 12px;" />
+        <input type="search" id="faq-search" aria-label="Search question or keyword..." placeholder="Search question or keyword..." value="${searchQuery}" class="form-input" style="width: 240px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 

@@ -69,8 +69,7 @@
 @import './components/admin-dashboard.css';
 @import './components/system-health.css';
 /* admin-staff.css is imported by StaffPage.js directly to code-split into the route chunk */
-/* Prompt 10.4: Digital Warranties & Protection Cards Hub */
-@import './components/customer-warranties.css';
+/* Prompt 10.4: customer-warranties.css is imported by WarrantyCardsPage, WarrantyClaimsPage and the gallery directly to code-split into route chunks */
 /* Catalog & Product Governance */
 @import './components/catalog-products.css';
 /* Prompt 11.3: Followed Stores Feed & Social Commerce Hub */
@@ -106,3 +105,4 @@
 
 /* Universal Floating Bottom Horizontal Scrollbar */
 @import './components/floating-scroll.css';
+@import './components/input-affordance.css';

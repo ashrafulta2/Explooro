@@ -49,6 +49,19 @@ export default async function delegationRoutes(app) {
 
   app.get('/admin/grants', {
     preHandler: [app.authenticate, app.requirePermission('users.account.view')],
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          status: { type: 'string', enum: ['ALL', 'ACTIVE', 'EXPIRED', 'REVOKED'] },
+          user_id: { type: 'integer' },
+          permission_key: { type: 'string' },
+          q: { type: 'string', maxLength: 100 },
+          limit: { type: 'integer', minimum: 1, maximum: 100 },
+          offset: { type: 'integer', minimum: 0 },
+        },
+      },
+    },
     handler: controller.listGrants,
   });
 

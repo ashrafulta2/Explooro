@@ -262,7 +262,7 @@
   max-height: 100%;
   min-height: 100%;
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   gap: var(--space-4);
   padding: var(--space-4);
   box-sizing: border-box;
@@ -699,7 +699,7 @@
 
 .discover-slide__action-row--secondary {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--space-2);
 }
 
@@ -774,7 +774,7 @@
   .discover-page__search { flex: 1 1 auto; min-width: 0; }
   .discover-page__search-input { width: auto; flex: 1 1 auto; min-width: 0; max-width: none; }
   .discover-slide {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 55% 1fr;
     gap: var(--space-3);
     padding: var(--space-3);

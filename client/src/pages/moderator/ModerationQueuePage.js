@@ -456,7 +456,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
     return `
       <div style="
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
         gap: 14px;
       ">
         <div style="padding: 14px 18px; border-radius: var(--radius-lg, 12px); background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); border-left: 4px solid var(--brand, #4f46e5); box-shadow: var(--elevation-1, 0 1px 3px rgba(0,0,0,0.05));">

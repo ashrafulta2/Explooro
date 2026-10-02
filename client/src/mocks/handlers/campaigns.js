@@ -2,6 +2,8 @@
  * campaigns.js — Mock API handlers for Campaign & Promotion Manager (Prompt 9.2).
  */
 
+import { findMockProductById, findMockProductByFlashSaleId, setMockProductFlashSale } from './products.js';
+
 let mockFlashSales = [
   {
     id: 1,
@@ -147,29 +149,52 @@ export const campaignHandlers = [
   {
     method: 'POST',
     path: '/admin/growth/campaigns/flash-sales',
+    // Mirrors server/src/services/flashSale.service.js createFlashSale: same checks, same order.
     handler({ body }) {
+      const b = body || {};
+      const fail = (status, code, en, bn = en) => ({ status, body: { error: { code, message_en: en, message_bn: bn } } });
+      const product = findMockProductById(b.product_id);
+      const discountPrice = Number(b.discount_price);
+      const allocatedQty = parseInt(b.allocated_qty, 10);
+      const startsAt = b.starts_at ? new Date(b.starts_at) : new Date();
+      const endsAt = b.ends_at ? new Date(b.ends_at) : new Date(Date.now() + 86400000);
+
+      // Catalog products are the source of truth; ids that aren't in the mock catalog (the Campaign
+      // Manager's free-text Product ID field) keep the old permissive behaviour.
+      if (product) {
+        const originalPrice = Number(product.price);
+        if (!(discountPrice > 0) || discountPrice >= originalPrice) {
+          return fail(400, 'VALIDATION_FAILED', `Discount price (৳${discountPrice}) must be lower than original price (৳${originalPrice}).`, `ছাড়ের মূল্য (৳${discountPrice}) মূল মূল্যের (৳${originalPrice}) চেয়ে কম হতে হবে।`);
+        }
+        if (!(allocatedQty > 0)) return fail(400, 'VALIDATION_FAILED', 'Allocated stock quantity must be at least 1.', 'বরাদ্দকৃত স্টক অন্তত ১ হতে হবে।');
+        if (!(endsAt > startsAt)) return fail(400, 'VALIDATION_FAILED', 'Flash sale end time must be strictly after start time.', 'ফ্ল্যাশ সেলের শেষ সময় শুরুর সময়ের পরে হতে হবে।');
+        if (Number(product.stock) < allocatedQty) {
+          return fail(409, 'INSUFFICIENT_STOCK', `Cannot allocate ${allocatedQty} units; available product stock is only ${product.stock}.`);
+        }
+        if (product.is_flash_sale) {
+          return fail(409, 'CONFLICT', 'This product already has a flash sale in that time window.', 'এই সময়ে পণ্যটিতে ইতিমধ্যে একটি ফ্ল্যাশ সেল চালু আছে।');
+        }
+      }
+
       const newDeal = {
         id: Date.now(),
         ref: `FS-${Date.now().toString(36).toUpperCase()}`,
-        product_id: body?.product_id || 101,
-        product_title_en: body?.product_title || 'Promotional Flash Deal Item',
-        original_price: body?.original_price || 2000,
-        discount_price: body?.discount_price || 1500,
-        allocated_qty: body?.allocated_qty || 50,
+        title: b.title || `Flash Deal: ${product?.title_en || 'Promotional Item'}`,
+        product_id: b.product_id || 101,
+        product_title_en: product?.title_en || b.product_title || 'Promotional Flash Deal Item',
+        original_price: product ? Number(product.price) : b.original_price || 2000,
+        discount_price: b.discount_price || 1500,
+        allocated_qty: allocatedQty || 50,
         sold_qty: 0,
         reserved_qty: 0,
-        per_user_limit: body?.per_user_limit || 1,
-        starts_at: body?.starts_at || new Date().toISOString(),
-        ends_at: body?.ends_at || new Date(Date.now() + 86400000).toISOString(),
-        status: 'ACTIVE',
+        per_user_limit: b.per_user_limit || 1,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+        status: 'SCHEDULED', // live inserts SCHEDULED; the catalog counts it live inside its window
       };
       mockFlashSales.unshift(newDeal);
-      return {
-        status: 200,
-        body: {
-          data: newDeal,
-        },
-      };
+      if (product && startsAt <= new Date()) setMockProductFlashSale(product.id, newDeal);
+      return { status: 201, body: { flash_sale: newDeal } };
     },
   },
   {
@@ -177,15 +202,15 @@ export const campaignHandlers = [
     path: '/admin/growth/campaigns/flash-sales/:id/emergency-stop',
     handler({ params }) {
       const deal = mockFlashSales.find((f) => f.id === Number(params.id));
-      if (deal) {
-        deal.status = 'EMERGENCY_STOPPED';
+      // Fixture catalog products carry a synthetic flash_sale_id with no deal row behind it.
+      const product = findMockProductByFlashSaleId(params.id) || (deal && findMockProductById(deal.product_id));
+      if (!deal && !product) {
+        return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Flash sale deal not found.', message_bn: 'ফ্ল্যাশ সেল পাওয়া যায়নি।' } } };
       }
-      return {
-        status: 200,
-        body: {
-          data: deal,
-        },
-      };
+      if (deal) deal.status = 'CANCELLED'; // live status; EMERGENCY_STOPPED isn't in the CHECK list
+      if (product && String(product.flash_sale_id) === String(params.id)) setMockProductFlashSale(product.id, null);
+      const flashSale = deal || { id: Number(params.id), status: 'CANCELLED' };
+      return { status: 200, body: { flash_sale: flashSale } };
     },
   },
   {

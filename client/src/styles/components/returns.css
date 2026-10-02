@@ -16,13 +16,13 @@
 
 .return-page__grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
 }
 
 @media (min-width: 1024px) {
   .return-page__grid {
-    grid-template-columns: 1.8fr 1fr;
+    grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
   }
 }
 
@@ -234,7 +234,7 @@
 
 .customer-return-card__stepper {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-2, 8px);
   text-align: center;
   position: relative;
@@ -292,7 +292,7 @@
 /* Details Grid */
 .customer-return-card__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
   gap: var(--space-3, 12px);
   background: var(--surface-1);
   border: 1px solid var(--border-subtle);

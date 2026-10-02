@@ -109,7 +109,7 @@ export default function UgcModerationPage(root) {
       { label:t('mod_ugc.stat_approved_today', 'Approved Today'), value:stats.approved_today, text:'var(--success-700,#15803d)', bg:'var(--success-100,#dcfce7)' },
       { label:t('mod_ugc.stat_rejected_today', 'Rejected Today'), value:stats.rejected_today, text:'var(--text-secondary,#475569)', bg:'var(--surface-2,#f1f5f9)' },
     ];
-    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+    return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px, 100%), 1fr));gap:12px;">
       ${cards.map(c=>`
         <div style="background:${c.bg};border-radius:12px;padding:14px 18px;text-align:center;">
           <div style="font-size:1.5rem;font-weight:800;color:${c.text};">${c.value||0}</div>
@@ -204,7 +204,7 @@ export default function UgcModerationPage(root) {
           <h1 style="margin:0 0 4px;font-size:1.6rem;font-weight:700;color:var(--text-primary,#0f172a);letter-spacing:-0.3px;">
             ${t('mod_ugc.title', 'UGC Content Moderation')}
           </h1>
-          <p style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
+          <p data-page-info style="margin:0;font-size:0.93rem;color:var(--text-secondary,#64748b);">
             ${t('mod_ugc.subtitle', 'Review user-generated videos and content before they go live on the platform.')}
           </p>
         </div>

@@ -6,9 +6,9 @@
 .store-builder__header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); padding-bottom: var(--space-4); border-bottom: 1px solid var(--border-subtle); }
 .store-builder__title { font-size: var(--text-2xl); font-weight: var(--weight-bold); color: var(--text-primary); margin: 0; }
 .store-builder__subtitle { font-size: var(--text-sm); color: var(--text-muted); margin: var(--space-1) 0 0; }
-.store-builder__actions { display: flex; align-items: center; gap: var(--space-3); }
+.store-builder__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
 .store-builder__grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: var(--space-8); align-items: start; }
-@media (max-width: 1024px) { .store-builder__grid { grid-template-columns: 1fr; } }
+@media (max-width: 1024px) { .store-builder__grid { grid-template-columns: minmax(0, 1fr); } }
 .store-builder__form { display: flex; flex-direction: column; gap: var(--space-6); }
 .store-builder__section { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-5); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }
 .store-builder__section-title { font-size: var(--text-base); font-weight: var(--weight-semibold); color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: var(--space-2); }
@@ -20,7 +20,7 @@
 .store-builder__slug-status { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); font-weight: var(--weight-medium); margin-top: var(--space-1); }
 .store-builder__slug-status--available { color: var(--success); }
 .store-builder__slug-status--taken, .store-builder__slug-status--reserved, .store-builder__slug-status--invalid { color: var(--danger); }
-.store-builder__media-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-4); }
+.store-builder__media-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: var(--space-4); }
 
 /* Quick Share Hub & Social Seller Kit for Store Builder */
 .store-builder__share-card {
@@ -200,7 +200,7 @@
 .shelf-item-row__info { display: flex; align-items: center; gap: var(--space-3); }
 .shelf-item-row__title { font-size: var(--text-xs); font-weight: var(--weight-medium); color: var(--text-primary); }
 .shelf-item-row__price { font-size: var(--text-xs); font-weight: var(--weight-bold); color: var(--text-primary); }
-.shelf-item-row__controls { display: flex; align-items: center; gap: var(--space-1); }
+.shelf-item-row__controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1); }
 
 .social-kit-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-4); background: var(--surface-1); border: 1px solid var(--brand-300); border-radius: var(--radius-lg); box-shadow: var(--elevation-1); }
 .social-kit-bar__title { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--text-primary); display: flex; align-items: center; gap: var(--space-2); }
@@ -221,5 +221,5 @@
 .storefront-shelf { display: flex; flex-direction: column; gap: var(--space-4); }
 .storefront-shelf__header { display: flex; align-items: center; justify-content: space-between; padding-bottom: var(--space-2); border-bottom: 2px solid var(--border-subtle); }
 .storefront-shelf__title { font-size: var(--text-xl); font-weight: var(--weight-bold); color: var(--text-primary); margin: 0; }
-.storefront-shelf__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--space-4); }
-@media (max-width: 480px) { .storefront-shelf__grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); } }
+.storefront-shelf__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr)); gap: var(--space-4); }
+@media (max-width: 480px) { .storefront-shelf__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); } }

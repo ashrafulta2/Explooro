@@ -5,6 +5,7 @@
  * Gated by: `digital_warranty` module flag.
  */
 
+import '../../styles/components/customer-warranties.css';
 import { api } from '../../core/api.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t, getLanguage } from '../../services/i18n.js';
@@ -76,7 +77,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
     <div class="warranties-search-wrap">
       <span class="warranties-search-icon">🔍</span>
       <input
-        type="text"
+        type="search"
         class="warranties-search-input"
         placeholder="${t('warranty.search_placeholder') || 'Search by product name, serial number, or ID...'}"
         aria-label="${t('warranty.search_placeholder') || 'Search warranties'}"

@@ -369,6 +369,8 @@ export function createCommandPalette({ getState }) {
     if (event.target === dialog) close();
   });
   dialog.addEventListener('cancel', (event) => {
+    // Only the dialog's own Escape; a descendant's bubbling `cancel` (file inputs) is not a close.
+    if (event.target !== dialog) return;
     event.preventDefault();
     close();
   });

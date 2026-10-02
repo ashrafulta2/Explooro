@@ -44,7 +44,7 @@ export default function AcademyManagerPage(root) {
     content.style.flexDirection = 'column';
     content.style.gap = '14px';
     content.innerHTML = `
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
         <div class="supplier-form-field">
           <label for="course-role">Target Audience *</label>
           <select class="form-select" id="course-role">
@@ -83,7 +83,7 @@ export default function AcademyManagerPage(root) {
         <textarea id="course-desc-en" class="form-textarea" rows="3" placeholder="What will the learner gain from this course?">${existingCourse?.description_en || ''}</textarea>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
         <div class="supplier-form-field">
           <label for="course-cat">Category *</label>
           <select class="form-select" id="course-cat">
@@ -222,7 +222,7 @@ export default function AcademyManagerPage(root) {
             💰 Escrow & Finance
           </button>
         </div>
-        <input type="text" id="course-search" aria-label="🔍 Search course title..." placeholder="🔍 Search course title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="search" id="course-search" aria-label="Search course title..." placeholder="Search course title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
       </div>
     `;
 

@@ -243,7 +243,7 @@ export default function LiveModerationPage(root, ctx = {}) {
           <h1 style="display: flex; align-items: center; gap: 10px; margin: 0; font-size: 22px; font-weight: 800;">
             <span aria-hidden="true">📡</span>${esc(t('live_mod.page_title'))}
           </h1>
-          <p style="margin: 6px 0 0; font-size: 13px; color: var(--text-muted, #64748b); max-width: 640px;">
+          <p data-page-info style="margin: 6px 0 0; font-size: 13px; color: var(--text-muted, #64748b); max-width: 640px;">
             ${esc(t('live_mod.page_subtitle'))}
           </p>
         </div>
@@ -730,7 +730,13 @@ export default function LiveModerationPage(root, ctx = {}) {
   function render() {
     container.innerHTML = `
       ${renderHeader()}
-      <div class="live-moderation-page__grid" style="display: grid; grid-template-columns: minmax(240px, 300px) 1fr; gap: 16px; align-items: start;">
+      <style>
+        /* WHY: the page is built from inline styles, which cannot carry a media query. Two columns
+           left the detail pane 0px wide on a phone, so stack the rail above it there instead. */
+        .live-moderation-page__grid { grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); }
+        @media (max-width: 760px) { .live-moderation-page__grid { grid-template-columns: minmax(0, 1fr); } }
+      </style>
+      <div class="live-moderation-page__grid" style="display: grid; gap: 16px; align-items: start;">
         ${renderRail()}
         ${renderDetail()}
       </div>

@@ -93,7 +93,7 @@ export default function EditorDashboardPage(root) {
         <input type="url" id="q-banner-img" class="form-input" placeholder="https://images.unsplash.com/..." value="${existingBanner?.image_url_desktop || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80'}" />
       </div>
 
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+      <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 12px;">
         <div class="supplier-form-field">
           <label for="q-banner-link">Target Click URL *</label>
           <input type="text" id="q-banner-link" class="form-input" placeholder="/stories" value="${existingBanner?.target_link || '/stories'}" />
@@ -254,7 +254,7 @@ export default function EditorDashboardPage(root) {
     content.style.flexDirection = 'column';
     content.style.gap = '14px';
     content.innerHTML = `
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
         <div class="supplier-form-field">
           <label for="q-up-ver">Version *</label>
           <input type="text" id="q-up-ver" class="form-input" placeholder="v2.5.0" value="${existing?.version || 'v2.5.0'}" />

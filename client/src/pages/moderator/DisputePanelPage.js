@@ -410,7 +410,7 @@ export default function DisputePanelPage(root) {
         <!-- 3 Parties Mini Cards -->
         <div style="
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
           gap: 12px;
         ">
           <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
@@ -567,12 +567,7 @@ export default function DisputePanelPage(root) {
     container.innerHTML = `
       ${renderHeader()}
 
-      <div style="
-        display: grid;
-        grid-template-columns: 340px 1fr;
-        gap: 20px;
-        align-items: flex-start;
-      ">
+      <div class="dispute-panel-layout">
         <div>
           ${renderDisputeList()}
         </div>

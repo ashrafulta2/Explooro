@@ -27,8 +27,25 @@ let container = null;
 const visible = new Set();
 const queue = [];
 
+// WHY: the top layer stacks in the order elements entered it. The container enters once, on the
+// first toast (often "Signed in successfully"), so a <dialog> opened afterwards sits ABOVE it and
+// every toast fired from inside that modal was drawn underneath — a rejected "Create" click
+// looked like nothing happened. Hiding and re-showing moves the container back to the top.
+function raiseToTop(el) {
+  if (!el.popover) return;
+  try {
+    if (el.matches(':popover-open')) el.hidePopover();
+    el.showPopover();
+  } catch {
+    // Disconnected mid-call — the fallback styling still positions it.
+  }
+}
+
 function ensureContainer() {
-  if (container?.isConnected) return container;
+  if (container?.isConnected) {
+    raiseToTop(container);
+    return container;
+  }
 
   container = document.createElement('div');
   container.className = 'toast-container';
@@ -41,12 +58,7 @@ function ensureContainer() {
   if (HTMLElement.prototype.hasOwnProperty('popover')) {
     container.popover = 'manual';
     document.body.append(container);
-    try {
-      container.showPopover();
-    } catch {
-      // Already shown, or the element was disconnected mid-call — the fallback styling still
-      // positions it correctly, so this is not worth surfacing.
-    }
+    raiseToTop(container);
   } else {
     container.dataset.fallback = 'true';
     document.body.append(container);

@@ -11,6 +11,7 @@ import * as rbacService from './rbac.service.js';
 import { generateRef } from '../lib/ref.js';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.js';
+import { validateGrantScope } from '../lib/grantScope.js';
 
 const MAX_GRANT_DAYS = 90;
 const DEFAULT_JIT_WINDOW_MINUTES = 120;
@@ -88,11 +89,32 @@ export async function createStandingGrant(
     );
   }
 
+  // WHY validated here and not only in the drawer: an unenforceable scope reads as a safety limit
+  // on /admin/grants while restraining nothing (see server/src/lib/grantScope.js).
+  const normalizedScope = effect === 'GRANT' ? validateGrantScope(permissionKey, finalScopeJson) : null;
+
+  // WHY: uq_active_override is partial on `revoked_at IS NULL` (a partial index can't use now()),
+  // so an EXPIRED but never-revoked row still blocks a fresh grant and the INSERT used to fail
+  // with a raw unique-violation 500. An active one is a real conflict; an expired one is closed
+  // out at its own expiry time, which the list still reports as Expired, not Revoked.
+  const current = await permRepo.getUnrevokedOverride(db, userId, permissionKey);
+  if (current) {
+    if (new Date(current.expires_at) > now) {
+      throw new AppError(
+        'CONFLICT',
+        'This person already has an active grant for this permission. Revoke it first.',
+        'এই ব্যক্তির এই পারমিশনের একটি সক্রিয় গ্রান্ট আগে থেকেই আছে। আগে সেটি প্রত্যাহার করুন।',
+        { grant_id: current.id }
+      );
+    }
+    await permRepo.closeExpiredOverride(db, current.id);
+  }
+
   const grant = await permRepo.createGrantOverride(db, {
     userId,
     permissionKey,
     effect,
-    scopeJson: finalScopeJson,
+    scopeJson: normalizedScope,
     reason,
     grantedBy,
     expiresAt: expDate,
@@ -107,7 +129,7 @@ export async function createStandingGrant(
       user_id: userId,
       permission_key: permissionKey,
       effect,
-      scope_json: finalScopeJson,
+      scope_json: normalizedScope,
       expires_at: expDate.toISOString(),
       reason,
     },
@@ -144,10 +166,17 @@ export async function revokeStandingGrant(
     throw new AppError('CONFLICT', 'Grant is already revoked.', 'অনুমতিটি ইতিমধ্যে প্রত্যাহার করা হয়েছে।');
   }
 
+  if (new Date(existing.expires_at) <= new Date()) {
+    throw new AppError('CONFLICT', 'Grant has already expired.', 'এই গ্রান্টের মেয়াদ আগেই শেষ হয়ে গেছে।');
+  }
+
   const revoked = await permRepo.revokeGrantOverride(db, grantId, {
     revokedBy,
-    reason,
+    reason: reason.trim(),
   });
+  if (!revoked) {
+    throw new AppError('CONFLICT', 'Grant is already revoked.', 'অনুমতিটি ইতিমধ্যে প্রত্যাহার করা হয়েছে।');
+  }
 
   await writeAudit(db, {
     actorId: revokedBy,
@@ -159,6 +188,7 @@ export async function revokeStandingGrant(
       user_id: existing.user_id,
       permission_key: existing.permission_key,
       effect: existing.effect,
+      scope_json: existing.scope_json ?? null,
       expires_at: existing.expires_at,
     },
     afterJson: {
@@ -178,7 +208,11 @@ export async function revokeStandingGrant(
 }
 
 export async function listStandingGrants(db, filter) {
-  return permRepo.listGrantOverrides(db, filter);
+  const [grants, total] = await Promise.all([
+    permRepo.listGrantOverrides(db, filter),
+    permRepo.countGrantOverrides(db, filter),
+  ]);
+  return { grants, total };
 }
 
 /* ========================================================================= */

@@ -243,7 +243,7 @@ export default function SupplierShipmentsPage(root) {
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px;">
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs);">
             <div>
               <span>Recipient: <strong>${s.recipient_name}</strong> (${s.recipient_phone})</span> ·

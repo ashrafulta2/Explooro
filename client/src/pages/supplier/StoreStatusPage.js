@@ -364,7 +364,7 @@ export default function StoreStatusPage(root) {
           <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
             🕒 ${t('supplier.general_hours_title', 'General Operating Hours & 1-Click Presets')}
           </h3>
-          <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+          <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
             Set your standard daily business hours and instantly apply preset schedules for Bangladesh.
           </p>
         </div>
@@ -436,7 +436,7 @@ export default function StoreStatusPage(root) {
         <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           📅 ${t('supplier.weekly_schedule_title', 'Weekly Operating Schedule (Day by Day Matrix)')}
         </h3>
-        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+        <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           Click on any day card button below to toggle it OPEN 🟢 or CLOSED (Holiday) 🏖️, and customize hours per day.
         </p>
       </div>
@@ -540,7 +540,7 @@ export default function StoreStatusPage(root) {
         <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
           📍 ${t('supplier.address_contact_title', 'Showroom Address & Self-Pickup Configuration')}
         </h3>
-        <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
+        <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           Ensure your street address and customer pickup notes are accurate for walk-in buyers and consignments.
         </p>
       </div>
