@@ -574,6 +574,12 @@ export class AdCampaignPage {
     const w = this.wizard;
     const p = w.product;
 
+    // WHY: the whole panel is rebuilt per step/preset, which would drop focus onto the <dialog> itself
+    // (drawing its focus ring). Re-find the control the user was on by its data-* attribute.
+    const prev = document.activeElement;
+    const [dataKey, dataVal] = prev && this.wizardEl.contains(prev) ? Object.entries(prev.dataset)[0] || [] : [];
+    const refocus = dataKey ? `[data-${dataKey.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}="${CSS.escape(dataVal)}"]` : null;
+
     const stepTitles = [
       { en: 'What are you promoting?', bn: 'আপনি কী প্রচার করতে চান?' },
       { en: 'How big and how long?', bn: 'কত বড় এবং কত দিন?' },
@@ -629,6 +635,7 @@ export class AdCampaignPage {
     `;
 
     this._attachWizardEvents();
+    if (refocus) this.wizardEl.querySelector(refocus)?.focus();
   }
 
   _submitLabel() {
