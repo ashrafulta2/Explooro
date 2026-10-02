@@ -43,7 +43,7 @@ describe('creativeStudio — ad copy & description drafts', () => {
     const db = fakeDb();
     const fakeGenerate = async (_db, { prompt }) => {
       assert.ok(prompt.includes('450'), 'the prompt handed to the model must carry the real price');
-      return { text: 'Get this handwoven jute tote for just ৳450! Order now.', degraded: false, model: 'claude-sonnet-5', driver: 'anthropic' };
+      return { text: 'Get this handwoven jute tote for just ৳450! Order now.', degraded: false, model: 'claude-sonnet-5-5', driver: 'anthropic' };
     };
 
     const result = await generateAdCopy(

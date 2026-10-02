@@ -74,7 +74,7 @@ async function collect(gen) {
 
 describe('provider.js — cost accounting & PII redaction', () => {
   test('computeCostUsd applies the pricing table per 1K tokens', () => {
-    const cost = computeCostUsd('claude-sonnet-5', 1000, 1000);
+    const cost = computeCostUsd('claude-sonnet-5-5', 1000, 1000);
     assert.equal(cost, 0.003 + 0.015);
   });
 

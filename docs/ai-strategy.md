@@ -24,15 +24,15 @@ onto the SSE contract this prompt already needs for the AssistantPanel UI.
 
 | Feature | Env override | Default model | Why |
 | :--- | :--- | :--- | :--- |
-| Shopping Concierge (10.2) | `AI_MODEL_CONCIERGE` | `AI_MODEL` (`claude-sonnet-5`) | High volume, grounded lookup — not a hard reasoning task. Run at `output_config.effort: "low"` to bound cost/latency; correctness comes from tool grounding, not model depth. |
-| Sourcing Intelligence (10.2) | `AI_MODEL_SOURCING` | `AI_MODEL` (`claude-sonnet-5`) | Same shape as concierge — margin/trend lookup over structured data. `effort: "low"`. |
+| Shopping Concierge (10.2) | `AI_MODEL_CONCIERGE` | `AI_MODEL` (`claude-sonnet-5-5`) | High volume, grounded lookup — not a hard reasoning task. Run at `output_config.effort: "low"` to bound cost/latency; correctness comes from tool grounding, not model depth. |
+| Sourcing Intelligence (10.2) | `AI_MODEL_SOURCING` | `AI_MODEL` (`claude-sonnet-5-5`) | Same shape as concierge — margin/trend lookup over structured data. `effort: "low"`. |
 | Creative Studio (10.3) | `AI_MODEL_CREATIVE` | `AI_MODEL` | Longer generative output (ad copy) — default effort. |
 | Demand Forecasting (10.3) | — | N/A | Statistical baseline is the arithmetic engine (moving average + seasonality); the model is only used to *explain* a number that was already computed, never to compute it. |
 | Review Integrity (10.3) | — | N/A initially | Rule/heuristic scoring first (text patterns, velocity, reviewer history). A model call is an optional future enhancement, not required for the moderation flag. |
 | Prescriptive Insights (10.3) | `AI_MODEL_CREATIVE` | `AI_MODEL` | Short, per-user recommendation text grounded in the user's own metrics. |
 
 Every task-specific env var is optional; when unset, `AI_MODEL` (`.env.example`, default
-`claude-sonnet-5`) is used. This keeps a single source of truth for "which model are we paying
+`claude-sonnet-5-5`) is used. This keeps a single source of truth for "which model are we paying
 for" while leaving room to move a specific feature to a cheaper or more capable model later without
 touching code — a config change only, per the "business numbers live in settings, not code" rule.
 
@@ -40,7 +40,7 @@ touching code — a config change only, per the "business numbers live in settin
 
 | Model | Input / 1K | Output / 1K |
 | :--- | ---: | ---: |
-| `claude-sonnet-5` | $0.002–0.003 (intro rate through 2026-08-31, then $0.003) | $0.010–0.015 |
+| `claude-sonnet-5-5` | $0.002–0.003 (intro rate through 2026-08-31, then $0.003) | $0.010–0.015 |
 | `claude-haiku-4-5` | $0.001 | $0.005 |
 | `claude-opus-5` | $0.005 | $0.025 |
 

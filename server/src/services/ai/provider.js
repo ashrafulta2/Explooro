@@ -23,7 +23,7 @@ const PLATFORM_SETTING_CAP_KEY = 'ai.monthly_spend_cap_usd';
 
 // docs/ai-strategy.md §3 — re-verify against the claude-api skill's pricing reference on model change.
 export const PRICING_PER_1K = {
-  'claude-sonnet-5': { input: 0.003, output: 0.015 },
+  'claude-sonnet-5-5': { input: 0.003, output: 0.015 },
   'claude-haiku-4-5': { input: 0.001, output: 0.005 },
   'claude-opus-5': { input: 0.005, output: 0.025 },
 };
@@ -36,7 +36,7 @@ const MODEL_ENV_BY_FEATURE = {
 
 export function getModelForFeature(featureKey) {
   const envKey = MODEL_ENV_BY_FEATURE[featureKey];
-  return (envKey && process.env[envKey]) || process.env.AI_MODEL || 'claude-sonnet-5';
+  return (envKey && process.env[envKey]) || process.env.AI_MODEL || 'claude-sonnet-5-5';
 }
 
 export function getDriver() {
@@ -44,7 +44,7 @@ export function getDriver() {
 }
 
 export function computeCostUsd(model, inputTokens, outputTokens) {
-  const rate = PRICING_PER_1K[model] || PRICING_PER_1K['claude-sonnet-5'];
+  const rate = PRICING_PER_1K[model] || PRICING_PER_1K['claude-sonnet-5-5'];
   return (inputTokens / 1000) * rate.input + (outputTokens / 1000) * rate.output;
 }
 
