@@ -183,7 +183,9 @@ export default function ProductDetailPage(root, { params, navigate }) {
     if (isFeatureEnabled('quick_buy')) {
       const quickBuyWrap = document.createElement('div');
       quickBuyWrap.dataset.module = 'quick_buy';
-      quickBuyWrap.className = 'flex-1 min-w-[140px]';
+      // WHY: an own class, not utility names — `flex-1` became a real global rule (min-width: 0)
+      // in admin-pages.css and silently squeezed this button until its label overflowed.
+      quickBuyWrap.className = 'product-detail-page__quick-buy';
 
       const lightningIcon = document.createElement('span');
       lightningIcon.className = 'btn-icon-svg inline-flex items-center';

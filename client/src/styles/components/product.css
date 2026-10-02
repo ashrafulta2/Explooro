@@ -329,11 +329,19 @@
 .product-detail-page__stock[data-state='out-of-stock'] { background: var(--surface-2); color: var(--text-muted); }
 .product-detail-page__ctas { display: flex; flex-wrap: wrap; gap: var(--space-3); padding-block: var(--space-2); }
 .product-detail-page__cta-section { display: flex; flex-direction: column; gap: var(--space-3); padding-block: var(--space-2); width: 100%; }
-.product-detail-page__primary-ctas { display: flex; align-items: center; gap: var(--space-3); width: 100%; }
-.product-detail-page__primary-ctas > button.btn--primary { flex: 1 1 180px; }
-.product-detail-page__social-bar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3); width: 100%; }
-@media (max-width: 520px) { .product-detail-page__social-bar { grid-template-columns: minmax(0, 1fr); } }
-.product-detail-page__social-action { display: flex; width: 100%; }
+/* WHY: both CTA rows wrap instead of shrinking. A .btn is white-space: nowrap, so any column or flex
+   item allowed below its content width (min-width: 0, minmax(0, 1fr)) lets the label, icon and the
+   "Save 20%" badge spill out of the button border. Leaving min-width at auto keeps every button at
+   least as wide as its content; when the row runs out of room the item drops to the next line.
+   The primary row's basis is 150px, about the Add to Cart label's own width: the basis is what flex-wrap
+   measures, and 180px pushed the heart onto its own line in a ~420px column where all three fit. Not 0
+   either — the button carries 40px of padding the Quick Buy wrapper doesn't, so the two came out unequal. */
+.product-detail-page__primary-ctas { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); width: 100%; }
+.product-detail-page__primary-ctas > button.btn--primary,
+.product-detail-page__quick-buy { flex: 1 1 150px; }
+.product-detail-page__primary-ctas > .wishlist-btn { flex: 0 0 auto; }
+.product-detail-page__social-bar { display: flex; flex-wrap: wrap; gap: var(--space-3); width: 100%; }
+.product-detail-page__social-action { display: flex; flex: 1 1 220px; }
 .product-detail-page__social-action button { width: 100%; justify-content: center; }
 
 .btn-icon-svg { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
