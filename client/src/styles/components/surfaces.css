@@ -33,8 +33,16 @@
 .overlay.modal--genie-closing::backdrop { opacity: 0; transition: opacity var(--dur-genie) var(--ease-in-quad); }
 @media (prefers-reduced-motion: reduce), (max-width: 480px) { .overlay::backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; } }
 .overlay__close { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: var(--radius-sm); color: var(--text-muted); background: transparent; cursor: pointer; transition: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); }
-.overlay__close:hover { background: var(--surface-2); color: var(--text-primary); }
+/* WHY red + fully round: matches the familiar window-close affordance and tells the user this dismisses. */
+.overlay__close { border-radius: var(--radius-full); }
+.overlay__close:hover, .overlay__close:focus-visible { background: var(--danger); color: var(--neutral-0); }
+.overlay__close:active { background: var(--danger-800); }
 .overlay__close::before { content: ''; position: absolute; width: 44px; height: 44px; }
+/* WHY: popups that are not the shared Modal/Drawer (ad wizard, media library, admin drawers, legacy
+   backdrops) reuse the same red round close. `button.` raises specificity over .btn--*:hover. */
+button.popup-close { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 32px; height: 32px; min-height: 0; padding: 0; border: 0; border-radius: var(--radius-full); background: transparent; color: var(--text-muted); font-size: 1.25rem; line-height: 1; cursor: pointer; transition: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); }
+button.popup-close:hover, button.popup-close:focus-visible { background: var(--danger); color: var(--neutral-0); }
+button.popup-close:active { background: var(--danger-800); }
 .overlay__close-icon { display: inline-flex; width: 20px; height: 20px; }
 .overlay__close-icon svg { width: 100%; height: 100%; }
 

@@ -15,6 +15,7 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
+import { supplierModal } from './supplierModal.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function SupplierOrdersPage(root) {
@@ -340,15 +341,10 @@ export default function SupplierOrdersPage(root) {
 
   // 5. Printable Packing Slip Dialog
   function openPrintSlipModal(order) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'supplier-modal-scrim';
-    modalBackdrop.innerHTML = `
-      <div class="supplier-modal" style="max-width: 600px;">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">📄 EXPLOORO PACKING DIRECTIVE</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
-
+    const modalBackdrop = supplierModal({
+      title: `📄 EXPLOORO PACKING DIRECTIVE`,
+      size: 'lg',
+      body: `
         <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-family: var(--font-mono); font-size: var(--text-xs);">
           <div style="background: var(--surface-1); padding: 10px 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
             <div><strong>Order Ref:</strong> ${order.ref}</div>
@@ -380,34 +376,26 @@ export default function SupplierOrdersPage(root) {
             * <strong>FEFO Rule:</strong> Strictly fulfill from indicated lot numbers to guarantee shelf-life compliance.
           </div>
         </div>
-
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.close', 'Close')}</button>
           <button class="btn btn--sm btn--primary" id="print-slip-action-btn">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('supplier.print_packing_slip', 'Print Packing Slip')}
           </button>
-        </div>
-      </div>
-    `;
+        `,
+    });
 
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
     modalBackdrop.querySelector('#print-slip-action-btn').onclick = () => window.print();
 
-    document.body.appendChild(modalBackdrop);
+    modalBackdrop.open(document.activeElement);
   }
 
   // 6. Printable Thermal Shipping Label Modal
   function openPrintLabelModal(order) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'supplier-modal-scrim';
-    modalBackdrop.innerHTML = `
-      <div class="supplier-modal" style="max-width: 420px;">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">🏷️ Thermal Shipping Label (4x6)</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
-
+    const modalBackdrop = supplierModal({
+      title: `🏷️ Thermal Shipping Label (4x6)`,
+      size: 'sm',
+      body: `
         <div class="thermal-shipping-label">
           <div class="thermal-shipping-label__carrier-row">
             <span style="font-weight: 800; font-size: 14px;">EXPLOORO 3PL EXPRESS</span>
@@ -436,21 +424,18 @@ export default function SupplierOrdersPage(root) {
             Order Ref: ${order.ref} · Dispatched via Explooro Hub
           </div>
         </div>
-
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.close', 'Close')}</button>
           <button class="btn btn--sm btn--primary" id="print-label-action-btn">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${t('supplier.print_shipping_label', 'Print Label')}
           </button>
-        </div>
-      </div>
-    `;
+        `,
+    });
 
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
     modalBackdrop.querySelector('#print-label-action-btn').onclick = () => window.print();
 
-    document.body.appendChild(modalBackdrop);
+    modalBackdrop.open(document.activeElement);
   }
 
   loadOrders();

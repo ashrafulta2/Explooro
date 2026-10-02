@@ -31,6 +31,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatCurrency } from '../../services/format.js';
+import { supplierModal } from './supplierModal.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 
 export default function B2bEscrowPage(root, ctx = {}) {
@@ -416,26 +417,21 @@ export default function B2bEscrowPage(root, ctx = {}) {
   }
 
   function openEvidenceModal(deal, milestone) {
-    const modal = document.createElement('div');
-    modal.className = 'supplier-modal-scrim';
-    modal.innerHTML = `
-      <div class="supplier-modal">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">📤 Upload Milestone Evidence</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
+    const modal = supplierModal({
+      title: `📤 Upload Milestone Evidence`,
+      size: 'md',
+      body: `
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
           <p>Provide shipment tracking reference, inspection certificate, or photos for <strong>${milestone.title_en}</strong>.</p>
           <input type="text" id="evidence-text-input" class="input input--sm" placeholder="e.g. Steadfast Consignment #STF-881290" />
         </div>
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">Cancel</button>
           <button class="btn btn--sm btn--primary" id="submit-evidence-btn">Submit Proof</button>
-        </div>
-      </div>
-    `;
-    const close = () => modal.remove();
-    modal.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+        `,
+    });
+    const close = () => modal.close(false);
     modal.querySelector('#submit-evidence-btn').onclick = async () => {
       const text = modal.querySelector('#evidence-text-input').value.trim();
       if (!text) return toast.error('Please enter proof reference.');
@@ -453,7 +449,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
         toast.error(err?.message || 'Failed to submit evidence.');
       }
     };
-    document.body.appendChild(modal);
+    modal.open(document.activeElement);
   }
 
   async function handleReleaseMilestone(deal, milestone) {
@@ -501,14 +497,10 @@ export default function B2bEscrowPage(root, ctx = {}) {
 
   function openTermsModal(deal) {
     const terms = deal.contract_terms_json || {};
-    const modal = document.createElement('div');
-    modal.className = 'supplier-modal-scrim';
-    modal.innerHTML = `
-      <div class="supplier-modal" style="max-width: 520px;">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">📜 Contract Terms & Quality Specifications</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
+    const modal = supplierModal({
+      title: `📜 Contract Terms & Quality Specifications`,
+      size: 'md',
+      body: `
         <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--text-xs);">
           <div style="background: var(--surface-1); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 6px;">
             <div><strong>Agreement:</strong> ${deal.title_en || deal.ref}</div>
@@ -521,25 +513,20 @@ export default function B2bEscrowPage(root, ctx = {}) {
             ${deal.agreed_terms_hash || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
           </div>
         </div>
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--primary close-modal-btn">Close</button>
-        </div>
-      </div>
-    `;
-    const close = () => modal.remove();
-    modal.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
-    document.body.appendChild(modal);
+        `,
+    });
+    modal.open(document.activeElement);
   }
 
   function openDisputeModal(deal) {
-    const modal = document.createElement('div');
-    modal.className = 'supplier-modal-scrim';
-    modal.innerHTML = `
-      <div class="supplier-modal" style="max-width: 500px;">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title text-danger">⚠️ Raise Milestone Dispute</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
+    const modal = supplierModal({
+      title: `⚠️ Raise Milestone Dispute`,
+      size: 'md',
+      danger: true,
+      body: `
         <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--text-xs);">
           <p style="margin: 0; color: var(--text-secondary);">
             Raising a dispute will immediately freeze escrow release and escalate agreement #${deal.ref} to platform arbitration.
@@ -549,14 +536,13 @@ export default function B2bEscrowPage(root, ctx = {}) {
             <textarea id="dispute-reason-text" class="input input--sm" style="height: 80px; resize: vertical;" placeholder="Provide specific defect or breach of agreement details..."></textarea>
           </div>
         </div>
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">Cancel</button>
           <button class="btn btn--sm btn--danger" id="confirm-dispute-btn">⚠️ Confirm & Freeze Escrow</button>
-        </div>
-      </div>
-    `;
-    const close = () => modal.remove();
-    modal.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+        `,
+    });
+    const close = () => modal.close(false);
     modal.querySelector('#confirm-dispute-btn').onclick = async () => {
       const reason = modal.querySelector('#dispute-reason-text').value.trim();
       if (!reason) return toast.error('Please enter a reason for the dispute.');
@@ -571,7 +557,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
         toast.error(err?.message || 'Failed to raise dispute.');
       }
     };
-    document.body.appendChild(modal);
+    modal.open(document.activeElement);
   }
 
   loadDeals();

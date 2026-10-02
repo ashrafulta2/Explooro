@@ -13,6 +13,7 @@ import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { Badge } from '../../components/ui/Badge.js';
+import { supplierModal } from './supplierModal.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function SupplierInquiriesPage(root) {
@@ -222,15 +223,10 @@ export default function SupplierInquiriesPage(root) {
   }
 
   function openCustomQuoteModal(inq) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'supplier-modal-scrim';
-    modalBackdrop.innerHTML = `
-      <div class="supplier-modal">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">🏷️ Submit Wholesale Quotation</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
-
+    const modalBackdrop = supplierModal({
+      title: `🏷️ Submit Wholesale Quotation`,
+      size: 'md',
+      body: `
         <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--text-xs);">
           <div style="background: var(--surface-1); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
             <div><strong>Product:</strong> ${inq.product_title}</div>
@@ -256,18 +252,16 @@ export default function SupplierInquiriesPage(root) {
             <textarea id="quote-notes" class="input input--sm" style="height: 60px; resize: vertical;" placeholder="Include details regarding packaging, FEFO lot freshness, or shipping..."></textarea>
           </div>
         </div>
-
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
           <button class="btn btn--sm btn--primary" id="confirm-quote-btn">
             📨 Send Quote
           </button>
-        </div>
-      </div>
-    `;
+        `,
+    });
 
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    const close = () => modalBackdrop.close(false);
 
     modalBackdrop.querySelector('#confirm-quote-btn').onclick = () => {
       const price = parseFloat(modalBackdrop.querySelector('#offered-unit-price').value);
@@ -278,7 +272,7 @@ export default function SupplierInquiriesPage(root) {
       render();
     };
 
-    document.body.appendChild(modalBackdrop);
+    modalBackdrop.open(document.activeElement);
   }
 
   render();

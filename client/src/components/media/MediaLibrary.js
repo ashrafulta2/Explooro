@@ -3,6 +3,7 @@
  */
 
 import { Button } from '../ui/Button.js';
+import { Modal } from '../ui/Modal.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
@@ -13,27 +14,6 @@ export function openMediaLibrary({
   trigger = null,
 } = {}) {
   const isBn = getLanguage() === 'bn';
-  const overlay = document.createElement('div');
-  overlay.className = 'confirm-dialog-backdrop';
-
-  const modal = document.createElement('div');
-  modal.className = 'media-library-modal';
-
-  const header = document.createElement('div');
-  header.className = 'media-library-header';
-
-  const title = document.createElement('h3');
-  title.className = 'media-library-title';
-  title.textContent = isBn ? 'মিডিয়া লাইব্রেরি' : 'Media Library';
-
-  const closeBtn = document.createElement('button');
-  closeBtn.type = 'button';
-  closeBtn.className = 'media-library-close';
-  closeBtn.innerHTML = '✕';
-  closeBtn.addEventListener('click', close);
-
-  header.append(title, closeBtn);
-
   // Filters Bar
   const filtersBar = document.createElement('div');
   filtersBar.className = 'media-library-filters';
@@ -91,9 +71,18 @@ export function openMediaLibrary({
   });
 
   footer.append(cancelBtn, selectBtn);
-  modal.append(header, filtersBar, grid, footer);
-  overlay.append(modal);
-  document.body.append(overlay);
+
+  // WHY the shared Modal: the hand-rolled backdrop had no genie, Escape, focus trap or scroll lock.
+  const content = document.createElement('div');
+  content.className = 'media-library-content';
+  content.append(filtersBar, grid);
+  const modal = Modal({
+    title: isBn ? 'মিডিয়া লাইব্রেরি' : 'Media Library',
+    content,
+    footer,
+    size: 'lg',
+    onClose: () => modal.remove(),
+  });
 
   async function loadAssets() {
     grid.innerHTML = `<div class="media-library-empty">${isBn ? 'লোড হচ্ছে…' : 'Loading media…'}</div>`;
@@ -150,12 +139,11 @@ export function openMediaLibrary({
   searchInput.addEventListener('input', renderGrid);
   purposeSelect.addEventListener('change', loadAssets);
 
+  // Focus returns to the opener inside Modal (it restores previouslyFocused).
   function close() {
-    overlay.remove();
-    if (trigger && typeof trigger.focus === 'function') {
-      trigger.focus();
-    }
+    modal.close(false);
   }
 
   loadAssets();
+  modal.open(trigger);
 }

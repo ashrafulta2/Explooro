@@ -608,74 +608,25 @@
   }
 }
 
-/* ── Modal Scrim & Container ── */
-.supplier-modal-scrim {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  z-index: 1000;
+/* WHY: .input is width:100% with an intrinsic min-width, so inside a flex row it
+   refused to shrink and pushed the +1/+10 buttons out, forcing a horizontal scrollbar. */
+.supplier-stepper {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-4, 16px);
-  animation: supplierFadeIn 0.28s var(--ease-macbook);
-  transition: opacity 0.22s var(--ease-in-quad);
+  gap: var(--space-2, 8px);
 }
-
-.supplier-modal {
-  background: var(--surface-0, #ffffff);
-  border: var(--border-width, 1px) solid var(--border-subtle, #e1e5e8);
-  border-radius: var(--radius-xl, 16px);
-  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.08);
-  width: 100%;
-  max-width: 580px;
-  max-height: 90vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4, 16px);
-  padding: var(--space-6, 24px);
-  animation: supplierScaleUp 0.32s var(--ease-macbook);
-  transition: opacity 0.22s var(--ease-in-quad), transform 0.22s var(--ease-in-quad);
+.supplier-stepper .btn {
+  flex: 0 0 auto;
+  padding-inline: var(--space-3, 12px);
 }
-
-.supplier-modal-scrim.is-closing {
-  opacity: 0;
-  pointer-events: none;
-}
-.supplier-modal-scrim.is-closing .supplier-modal {
-  opacity: 0;
-  transform: translateY(10px) scale(0.94);
-}
-
-.supplier-modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: var(--space-3, 12px);
-  border-bottom: var(--border-width, 1px) solid var(--border-subtle, #e1e5e8);
-}
-
-.supplier-modal__title {
-  font-size: var(--text-lg, 1.125rem);
+.supplier-stepper__input {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  text-align: center;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: var(--text-primary, #192026);
-  margin: 0;
-}
-
-.supplier-modal__close {
-  background: transparent;
-  border: none;
-  font-size: 1.5rem;
-  line-height: 1;
-  color: var(--text-secondary, #52606d);
-  cursor: pointer;
-}
-
-.supplier-modal__close:hover {
-  color: var(--text-primary, #192026);
+  font-family: var(--font-mono);
 }
 
 .supplier-modal__footer {
@@ -1277,26 +1228,16 @@
   body * {
     visibility: hidden;
   }
-  .supplier-modal, .supplier-modal *,
+  /* WHY: popups are shared <dialog> Modals now; print just the body (slip / label). */
+  .modal .modal__body, .modal .modal__body *,
   .thermal-shipping-label, .thermal-shipping-label *,
   .print-area, .print-area * {
     visibility: visible;
   }
-  .supplier-modal-scrim {
-    position: absolute;
-    left: 0;
-    top: 0;
-    background: transparent;
-    padding: 0;
-  }
-  .supplier-modal {
-    box-shadow: none;
-    border: none;
-    padding: 0;
-    max-width: 100%;
-  }
-  .supplier-modal__header,
-  .supplier-modal__footer {
+  .modal { position: absolute; left: 0; top: 0; background: transparent; padding: 0; box-shadow: none; border: none; max-width: 100%; }
+  .modal::backdrop { display: none; }
+  .modal .modal__header,
+  .modal .modal__footer {
     display: none !important;
   }
 }

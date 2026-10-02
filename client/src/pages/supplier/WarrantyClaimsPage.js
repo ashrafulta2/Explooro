@@ -13,6 +13,7 @@ import { toast } from '../../services/toast.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
+import { supplierModal } from './supplierModal.js';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.js';
 
 export default function WarrantyClaimsPage(root) {
@@ -357,15 +358,10 @@ export default function WarrantyClaimsPage(root) {
   }
 
   function openClaimResolutionModal(claim) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'supplier-modal-scrim';
-    modalBackdrop.innerHTML = `
-      <div class="supplier-modal" style="max-width: 540px;">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">🛡️ Resolve Warranty Claim #${claim.claim_ref || claim.id}</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
-
+    const modalBackdrop = supplierModal({
+      title: `🛡️ Resolve Warranty Claim #${claim.claim_ref || claim.id}`,
+      size: 'md',
+      body: `
         <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px); font-size: var(--text-xs);">
           <div style="background: var(--surface-1); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
             <div><strong>Product:</strong> ${claim.product_title || 'Item'}</div>
@@ -386,18 +382,16 @@ export default function WarrantyClaimsPage(root) {
             <textarea id="technician-notes" class="input input--sm" style="height: 70px; resize: vertical;" placeholder="Add notes for customer notification..."></textarea>
           </div>
         </div>
-
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
           <button class="btn btn--sm btn--primary" id="confirm-resolution-btn">
             💾 Submit Resolution
           </button>
-        </div>
-      </div>
-    `;
+        `,
+    });
 
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    const close = () => modalBackdrop.close(false);
 
     modalBackdrop.querySelector('#confirm-resolution-btn').onclick = async () => {
       const action = modalBackdrop.querySelector('#resolution-action-select').value;
@@ -413,7 +407,7 @@ export default function WarrantyClaimsPage(root) {
       }
     };
 
-    document.body.appendChild(modalBackdrop);
+    modalBackdrop.open(document.activeElement);
   }
 
   // Setup tab listeners

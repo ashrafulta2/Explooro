@@ -513,23 +513,14 @@ export default function SettingsPage(root, { navigate } = {}) {
     root.replaceChildren(container);
   }
 
+  // WHY the shared Modal: the hand-rolled backdrop had no genie, Escape, focus trap or scroll lock.
+  // render() runs again while this is open, so refresh its content instead of stacking a second one.
+  let historyModal = null;
+
   function renderHistoryDrawer() {
-    const drawerOverlay = document.createElement('div');
-    drawerOverlay.className = 'modal-backdrop';
-
-    const drawer = document.createElement('div');
-    drawer.className = 'card max-w-2xl w-full p-5 max-h-[85vh] overflow-y-auto space-y-4';
-    drawer.style.margin = 'auto';
-
-    drawer.innerHTML = `
-      <div class="flex-between border-b pb-3">
-        <div>
-          <h3 class="text-lg font-bold m-0">${t('platform_settings.audit_drawer_title', 'Platform Settings Modification History')}</h3>
-          <p class="text-xs text-muted m-0">Immutable record of governance parameter changes</p>
-        </div>
-        <button class="btn btn--secondary btn--sm close-history-btn">✕</button>
-      </div>
-
+    const content = document.createElement('div');
+    content.className = 'space-y-4';
+    content.innerHTML = `
       <div class="space-y-3">
         ${historyData.map((item) => `
           <div class="p-3 border rounded-lg bg-surface-2 text-xs space-y-2">
@@ -551,21 +542,32 @@ export default function SettingsPage(root, { navigate } = {}) {
           </div>
         `).join('')}
       </div>
-
-      <div class="flex justify-end pt-3 border-t">
-        <button class="btn btn--secondary btn--sm close-history-btn">${t('common.close', 'Close')}</button>
-      </div>
     `;
 
-    drawer.querySelectorAll('.close-history-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        showHistoryDrawer = false;
-        drawerOverlay.remove();
-      });
-    });
+    if (historyModal?.isOpen()) {
+      historyModal.setContent(content);
+      return;
+    }
 
-    drawerOverlay.append(drawer);
-    document.body.append(drawerOverlay);
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn btn--secondary btn--sm';
+    closeBtn.textContent = t('common.close', 'Close');
+    closeBtn.addEventListener('click', () => historyModal.close(false));
+
+    historyModal = Modal({
+      title: `${t('platform_settings.audit_drawer_title', 'Platform Settings Modification History')}`,
+      description: 'Immutable record of governance parameter changes',
+      content,
+      footer: closeBtn,
+      size: 'lg',
+      onClose: () => {
+        showHistoryDrawer = false;
+        historyModal.remove();
+        historyModal = null;
+      },
+    });
+    historyModal.open(document.activeElement);
   }
 
   loadData();

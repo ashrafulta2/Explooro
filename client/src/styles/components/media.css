@@ -252,42 +252,8 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* Media Library Modal */
-.media-library-modal {
-  background: var(--surface-1);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--elevation-3);
-  width: 100%;
-  max-width: 640px;
-  display: flex;
-  flex-direction: column;
-  max-height: 85vh;
-  overflow: hidden;
-}
-
-.media-library-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.media-library-title {
-  font-size: var(--text-base);
-  font-weight: 700;
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.media-library-close {
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  color: var(--text-muted);
-}
+/* Media Library popup — chrome comes from the shared Modal */
+.media-library-content { margin: calc(var(--space-5) * -1); }
 
 .media-library-filters {
   display: flex;
@@ -371,9 +337,6 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--border-subtle);
-  background: var(--surface-2);
 }
 
 .media-library-empty {

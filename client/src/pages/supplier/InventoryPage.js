@@ -14,6 +14,7 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
+import { Modal } from '../../components/ui/Modal.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function InventoryPage(root) {
@@ -283,86 +284,79 @@ export default function InventoryPage(root) {
 
   // 5. Interactive Stock Adjuster Modal
   function openStockAdjusterModal(item) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'supplier-modal-scrim';
-
+    // WHY the shared Modal, not a hand-rolled scrim: Modal owns the genie open/close, focus trap,
+    // Escape and scroll lock, and honours the /admin/platform/genie settings.
     let currentQty = Number(item.stock_qty) || 0;
 
-    modalBackdrop.innerHTML = `
-      <div class="supplier-modal">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">✏️ ${t('supplier.adjust_stock_title', 'Update Physical Stock')}</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: var(--space-4, 16px);">
-          <div style="background: var(--surface-1); padding: 12px 16px; border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
-            <div style="font-weight: 700; color: var(--text-primary);">${item.title_en}</div>
-            <div style="font-size: var(--text-xs); color: var(--text-secondary); margin-top: 2px;">
-              SKU: <span class="supplier-order-card__ref">${item.ref}</span> · Threshold: <strong>${item.low_stock_threshold} units</strong>
-            </div>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
-            <label class="label" style="font-weight: 700; font-size: var(--text-xs);">
-              ${t('supplier.new_stock_qty', 'Total Available Physical Units')}
-            </label>
-            <div style="display: flex; align-items: center; gap: var(--space-2, 8px);">
-              <button type="button" class="btn btn--secondary" id="decrement-10-btn">-10</button>
-              <button type="button" class="btn btn--secondary" id="decrement-1-btn">-1</button>
-              <input
-                type="number"
-                id="stock-qty-input"
-                class="input"
-                style="text-align: center; font-size: 1.25rem; font-weight: 800; font-family: var(--font-mono);"
-                value="${currentQty}"
-                min="0"
-              />
-              <button type="button" class="btn btn--secondary" id="increment-1-btn">+1</button>
-              <button type="button" class="btn btn--secondary" id="increment-10-btn">+10</button>
-            </div>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
-            <label class="label" style="font-weight: 700; font-size: var(--text-xs);">
-              Reason for Adjustment (Audit Log)
-            </label>
-            <select class="input input--sm" id="adjust-reason-select">
-              <option value="NEW_SHIPMENT_RECEIVED">📦 New Manufacturing Batch Received</option>
-              <option value="PHYSICAL_AUDIT_CORRECTION">🔍 Physical Recount / Audit Correction</option>
-              <option value="DAMAGED_ITEMS">⚠️ Damaged / Expired Goods Discarded</option>
-              <option value="INTERNAL_TRANSFER">🚚 Depot Warehouse Transfer</option>
-            </select>
+    const content = document.createElement('div');
+    content.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: var(--space-4, 16px);">
+        <div style="background: var(--surface-1); padding: 12px 16px; border-radius: var(--radius-lg); border: var(--border-width) solid var(--border-subtle);">
+          <div class="js-title" style="font-weight: 700; color: var(--text-primary);"></div>
+          <div style="font-size: var(--text-xs); color: var(--text-secondary); margin-top: 2px;">
+            SKU: <span class="supplier-order-card__ref js-ref"></span> · Threshold: <strong class="js-threshold"></strong>
           </div>
         </div>
 
-        <div class="supplier-modal__footer">
-          <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
-          <button class="btn btn--sm btn--primary" id="save-stock-btn">
-            💾 ${t('common.save_changes', 'Save Stock Count')}
-          </button>
+        <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
+          <label class="label" style="font-weight: 700; font-size: var(--text-xs);">
+            ${t('supplier.new_stock_qty', 'Total Available Physical Units')}
+          </label>
+          <div class="supplier-stepper">
+            <button type="button" class="btn btn--secondary" id="decrement-10-btn">-10</button>
+            <button type="button" class="btn btn--secondary" id="decrement-1-btn">-1</button>
+            <input type="number" id="stock-qty-input" class="input supplier-stepper__input" value="${currentQty}" min="0" />
+            <button type="button" class="btn btn--secondary" id="increment-1-btn">+1</button>
+            <button type="button" class="btn btn--secondary" id="increment-10-btn">+10</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: var(--space-2, 8px);">
+          <label class="label" style="font-weight: 700; font-size: var(--text-xs);">
+            Reason for Adjustment (Audit Log)
+          </label>
+          <select class="input input--sm" id="adjust-reason-select">
+            <option value="NEW_SHIPMENT_RECEIVED">📦 New Manufacturing Batch Received</option>
+            <option value="PHYSICAL_AUDIT_CORRECTION">🔍 Physical Recount / Audit Correction</option>
+            <option value="DAMAGED_ITEMS">⚠️ Damaged / Expired Goods Discarded</option>
+            <option value="INTERNAL_TRANSFER">🚚 Depot Warehouse Transfer</option>
+          </select>
         </div>
       </div>
     `;
+    content.querySelector('.js-title').textContent = item.title_en;
+    content.querySelector('.js-ref').textContent = item.ref;
+    content.querySelector('.js-threshold').textContent = `${item.low_stock_threshold} units`;
 
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    const footer = document.createElement('div');
+    footer.className = 'supplier-modal__footer';
+    footer.style.cssText = 'border-top: 0; padding-top: 0;';
+    footer.innerHTML = `
+      <button type="button" class="btn btn--sm btn--secondary" id="cancel-stock-btn">${t('common.cancel', 'Cancel')}</button>
+      <button type="button" class="btn btn--sm btn--primary" id="save-stock-btn">💾 ${t('common.save_changes', 'Save Stock Count')}</button>
+    `;
 
-    const qtyInput = modalBackdrop.querySelector('#stock-qty-input');
-    modalBackdrop.querySelector('#decrement-10-btn').onclick = () => {
-      qtyInput.value = Math.max(0, parseInt(qtyInput.value || '0', 10) - 10);
-    };
-    modalBackdrop.querySelector('#decrement-1-btn').onclick = () => {
-      qtyInput.value = Math.max(0, parseInt(qtyInput.value || '0', 10) - 1);
-    };
-    modalBackdrop.querySelector('#increment-1-btn').onclick = () => {
-      qtyInput.value = parseInt(qtyInput.value || '0', 10) + 1;
-    };
-    modalBackdrop.querySelector('#increment-10-btn').onclick = () => {
-      qtyInput.value = parseInt(qtyInput.value || '0', 10) + 10;
-    };
+    const modal = Modal({
+      title: `✏️ ${t('supplier.adjust_stock_title', 'Update Physical Stock')}`,
+      content,
+      footer,
+      size: 'md',
+      onClose: () => modal.remove(),
+    });
 
-    modalBackdrop.querySelector('#save-stock-btn').onclick = async () => {
+    const close = () => modal.close(false);
+    footer.querySelector('#cancel-stock-btn').onclick = close;
+
+    const qtyInput = content.querySelector('#stock-qty-input');
+    const bump = (delta) => {
+      qtyInput.value = Math.max(0, (parseInt(qtyInput.value || '0', 10) || 0) + delta);
+    };
+    content.querySelector('#decrement-10-btn').onclick = () => bump(-10);
+    content.querySelector('#decrement-1-btn').onclick = () => bump(-1);
+    content.querySelector('#increment-1-btn').onclick = () => bump(1);
+    content.querySelector('#increment-10-btn').onclick = () => bump(10);
+
+    footer.querySelector('#save-stock-btn').onclick = async () => {
       const newQty = parseInt(qtyInput.value || '0', 10);
       try {
         await supplierApi.updateStock({ productId: item.id, stockQty: newQty });
@@ -375,7 +369,7 @@ export default function InventoryPage(root) {
       }
     };
 
-    document.body.appendChild(modalBackdrop);
+    modal.open(document.activeElement);
   }
 
   loadInventory();

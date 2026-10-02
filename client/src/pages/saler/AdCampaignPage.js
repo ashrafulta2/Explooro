@@ -22,6 +22,7 @@
 import { api } from '../../core/api.js';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { Modal } from '../../components/ui/Modal.js';
 import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.js';
 
 /** Budget presets, so most sellers never type a number at all. */
@@ -96,7 +97,7 @@ export class AdCampaignPage {
       this.unsubscribeLang = null;
     }
     if (this.quoteTimer) clearTimeout(this.quoteTimer);
-    this.closeWizard();
+    this.closeWizard(true);
   }
 
   get isBn() {
@@ -488,32 +489,33 @@ export class AdCampaignPage {
       },
     };
 
-    const backdrop = document.createElement('div');
-    backdrop.className = 'ad-wizard-backdrop';
-    backdrop.setAttribute('role', 'dialog');
-    backdrop.setAttribute('aria-modal', 'true');
-    backdrop.setAttribute('aria-label', this.isBn ? 'বিজ্ঞাপন তৈরি করুন' : 'Create an ad');
-    document.body.appendChild(backdrop);
-    this.wizardEl = backdrop;
-
-    this._onWizardKeydown = (e) => { if (e.key === 'Escape') this.closeWizard(); };
-    document.addEventListener('keydown', this._onWizardKeydown);
-    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) this.closeWizard(); });
+    // WHY the shared Modal: the hand-rolled backdrop had no genie or focus trap. The wizard keeps its
+    // own header (with the close button) and re-renders the whole panel per step, so the Modal is
+    // header-less and flush and wizardEl is the node renderWizard() fills.
+    this.wizardEl = document.createElement('div');
+    this.wizardModal = Modal({
+      content: this.wizardEl,
+      size: 'xl',
+      showClose: false,
+      onClose: () => {
+        this.wizardModal?.remove();
+        this.wizardModal = null;
+        this.wizardEl = null;
+        this.wizard = null;
+      },
+    });
+    this.wizardModal.classList.add('modal--flush');
+    this.wizardModal.setAttribute('aria-label', this.isBn ? 'বিজ্ঞাপন তৈরি করুন' : 'Create an ad');
+    this.wizardModal.open(document.activeElement);
 
     this.renderWizard();
     this.requestQuote();
   }
 
-  closeWizard() {
-    if (this._onWizardKeydown) {
-      document.removeEventListener('keydown', this._onWizardKeydown);
-      this._onWizardKeydown = null;
-    }
-    if (this.wizardEl && document.body.contains(this.wizardEl)) {
-      document.body.removeChild(this.wizardEl);
-    }
-    this.wizardEl = null;
-    this.wizard = null;
+  /** `force` skips the genie — used when the page itself is being torn down. */
+  closeWizard(force = false) {
+    if (!this.wizardModal) return;
+    this.wizardModal.close(false, { force });
   }
 
   /** Re-prices the wizard's current input on the server, debounced against typing. */
@@ -588,7 +590,7 @@ export class AdCampaignPage {
               <p class="ad-wizard__subtitle">${escapeHtml(isBn ? p.price_label_bn : p.price_label_en)}</p>
             </div>
           </div>
-          <button type="button" class="ad-wizard__close" data-close aria-label="${isBn ? 'বন্ধ করুন' : 'Close'}">×</button>
+          <button type="button" class="popup-close" data-close aria-label="${isBn ? 'বন্ধ করুন' : 'Close'}">×</button>
         </header>
 
         <ol class="ad-wizard__steps">

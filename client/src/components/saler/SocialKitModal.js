@@ -12,6 +12,7 @@
 import { api } from '../../core/api.js';
 import { getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { Modal } from '../ui/Modal.js';
 
 export class SocialKitModal {
   constructor(options = {}) {
@@ -57,130 +58,122 @@ export class SocialKitModal {
 
   _renderModal() {
     const isBn = getLanguage() === 'bn';
-    this.backdropEl = document.createElement('div');
-    this.backdropEl.className = 'social-kit-backdrop fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 overflow-y-auto';
-
-    this.backdropEl.innerHTML = `
-      <div class="modal-dialog bg-surface border border-border rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 my-auto">
-        <!-- Header -->
-        <div class="flex justify-between items-center border-b border-border pb-3">
-          <div class="flex items-center gap-2">
-            <span class="text-2xl">🎨</span>
-            <div>
-              <h3 class="font-bold text-lg text-foreground">${isBn ? 'সোশ্যাল সেলার কিট ও ফ্লায়ার জেনারেটর' : 'Social Seller Kit & Flyer Studio'}</h3>
-              <p class="text-xs text-muted">${isBn ? 'হোয়াটসঅ্যাপ ও ফেসবুকে প্রচারের জন্য প্রফেশনাল পোস্টার তৈরি করুন' : 'Create high-converting posters and tracked QR links for social selling'}</p>
-            </div>
-          </div>
-          <button type="button" class="btn-close text-muted hover:text-white font-bold text-2xl">×</button>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <!-- Controls Panel (Left 5 Cols) -->
-          <div class="lg:col-span-5 space-y-5">
-            <!-- Format Selector -->
-            <div class="space-y-2">
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider">${isBn ? 'পোস্টার ফরম্যাট' : 'Poster Format'}</label>
-              <div class="grid grid-cols-3 gap-2">
-                <button type="button" class="btn-format btn btn-sm ${this.format === 'SQUARE' ? 'btn-primary' : 'btn-outline'} text-xs" data-format="SQUARE">
-                  1:1 Square
-                </button>
-                <button type="button" class="btn-format btn btn-sm ${this.format === 'STORY' ? 'btn-primary' : 'btn-outline'} text-xs" data-format="STORY">
-                  9:16 Story
-                </button>
-                <button type="button" class="btn-format btn btn-sm ${this.format === 'A4_PRINT' ? 'btn-primary' : 'btn-outline'} text-xs" data-format="A4_PRINT">
-                  A4 Print
-                </button>
-              </div>
-            </div>
-
-            <!-- Theme Style Selector -->
-            <div class="space-y-2">
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider">${isBn ? 'কালার থিম' : 'Color Theme'}</label>
-              <div class="grid grid-cols-3 gap-2">
-                <button type="button" class="btn-theme btn btn-sm ${this.theme === 'DARK' ? 'btn-neutral border-primary' : 'btn-outline'} text-xs" data-theme="DARK">
-                  🌙 Dark
-                </button>
-                <button type="button" class="btn-theme btn btn-sm ${this.theme === 'MINIMAL' ? 'btn-neutral border-primary' : 'btn-outline'} text-xs" data-theme="MINIMAL">
-                  ☀️ Minimal
-                </button>
-                <button type="button" class="btn-theme btn btn-sm ${this.theme === 'GOLD' ? 'btn-neutral border-primary' : 'btn-outline'} text-xs" data-theme="GOLD">
-                  ✨ Gold
-                </button>
-              </div>
-            </div>
-
-            <!-- Tracked Short Link Box -->
-            <div class="p-3.5 bg-base border border-border rounded-xl space-y-2">
-              <div class="flex justify-between items-center text-xs">
-                <span class="font-bold text-muted uppercase">${isBn ? 'ট্র্যাকড শর্ট লিংক' : 'Tracked Affiliate Link'}</span>
-                <span class="badge badge-accent text-[10px] font-mono">${this.shortLink?.code || 's/demo'}</span>
-              </div>
-              <div class="flex gap-2">
-                <input
-                  type="text"
-                  readonly
-                  value="${this.shortLink?.full_url || 'https://explooro.com/s/demo'}"
-                  class="input input-xs font-mono w-full text-foreground bg-surface select-all" />
-                <button id="btn-copy-shortlink" class="btn btn-xs btn-primary shrink-0">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${isBn ? 'কপি' : 'Copy'}
-                </button>
-              </div>
-            </div>
-
-            <!-- Quick Share Actions -->
-            <div class="space-y-2 pt-2 border-t border-border">
-              <label class="block text-xs font-bold text-muted uppercase tracking-wider">${isBn ? 'সরাসরি শেয়ার' : 'Instant Share'}</label>
-              <div class="grid grid-cols-2 gap-2">
-                <a
-                  href="https://api.whatsapp.com/send?text=${encodeURIComponent((isBn ? `এক্সপ্লোরোতে এই দারুণ পণ্যটি দেখুন: ` : `Check out this product on Explooro: `) + (this.shortLink?.full_url || ''))}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="btn btn-sm btn-success text-xs font-bold w-full">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp
-                </a>
-                <a
-                  href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(this.shortLink?.full_url || '')}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="btn btn-sm btn-primary text-xs font-bold w-full">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg> Facebook
-                </a>
-              </div>
-            </div>
-
-            <!-- Download Actions -->
-            <div class="flex flex-col gap-2 pt-2">
-              <button id="btn-download-flyer" class="btn btn-primary font-bold btn-sm w-full shadow-md">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> ${isBn ? 'পোস্টার ডাউনলোড করুন (SVG / PNG)' : 'Download Print Poster (SVG / PNG)'}
-              </button>
-              <button id="btn-print-flyer" class="btn btn-outline btn-sm w-full text-xs">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${isBn ? 'সরাসরি প্রিন্ট করুন' : 'Print A4 Flyer'}
-              </button>
-            </div>
-          </div>
-
-          <!-- Flyer Visual Preview (Right 7 Cols) -->
-          <div class="lg:col-span-7 flex flex-col items-center justify-center p-4 bg-base/60 border border-border rounded-xl">
-            <div id="flyer-preview-frame" class="w-full max-w-[340px] shadow-2xl rounded-xl overflow-hidden transition-all duration-300">
-              <!-- Rendered SVG Injected Here -->
-            </div>
-            <div class="text-[11px] text-muted font-mono mt-3 text-center">
-              ✓ Local Zero-Dependency Vector QR Code · Embedded Fonts
-            </div>
-          </div>
-        </div>
+    // WHY the shared Modal: the hand-rolled fixed backdrop had no genie, Escape, focus trap or scroll lock.
+    const content = document.createElement('div');
+    content.innerHTML = `
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- Controls Panel (Left 5 Cols) -->
+  <div class="lg:col-span-5 space-y-5">
+    <!-- Format Selector -->
+    <div class="space-y-2">
+      <label class="block text-xs font-bold text-muted uppercase tracking-wider">${isBn ? 'পোস্টার ফরম্যাট' : 'Poster Format'}</label>
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" class="btn-format btn btn-sm ${this.format === 'SQUARE' ? 'btn-primary' : 'btn-outline'} text-xs" data-format="SQUARE">
+          1:1 Square
+        </button>
+        <button type="button" class="btn-format btn btn-sm ${this.format === 'STORY' ? 'btn-primary' : 'btn-outline'} text-xs" data-format="STORY">
+          9:16 Story
+        </button>
+        <button type="button" class="btn-format btn btn-sm ${this.format === 'A4_PRINT' ? 'btn-primary' : 'btn-outline'} text-xs" data-format="A4_PRINT">
+          A4 Print
+        </button>
       </div>
+    </div>
+
+    <!-- Theme Style Selector -->
+    <div class="space-y-2">
+      <label class="block text-xs font-bold text-muted uppercase tracking-wider">${isBn ? 'কালার থিম' : 'Color Theme'}</label>
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" class="btn-theme btn btn-sm ${this.theme === 'DARK' ? 'btn-neutral border-primary' : 'btn-outline'} text-xs" data-theme="DARK">
+          🌙 Dark
+        </button>
+        <button type="button" class="btn-theme btn btn-sm ${this.theme === 'MINIMAL' ? 'btn-neutral border-primary' : 'btn-outline'} text-xs" data-theme="MINIMAL">
+          ☀️ Minimal
+        </button>
+        <button type="button" class="btn-theme btn btn-sm ${this.theme === 'GOLD' ? 'btn-neutral border-primary' : 'btn-outline'} text-xs" data-theme="GOLD">
+          ✨ Gold
+        </button>
+      </div>
+    </div>
+
+    <!-- Tracked Short Link Box -->
+    <div class="p-3.5 bg-base border border-border rounded-xl space-y-2">
+      <div class="flex justify-between items-center text-xs">
+        <span class="font-bold text-muted uppercase">${isBn ? 'ট্র্যাকড শর্ট লিংক' : 'Tracked Affiliate Link'}</span>
+        <span class="badge badge-accent text-[10px] font-mono">${this.shortLink?.code || 's/demo'}</span>
+      </div>
+      <div class="flex gap-2">
+        <input
+          type="text"
+          readonly
+          value="${this.shortLink?.full_url || 'https://explooro.com/s/demo'}"
+          class="input input-xs font-mono w-full text-foreground bg-surface select-all" />
+        <button id="btn-copy-shortlink" class="btn btn-xs btn-primary shrink-0">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${isBn ? 'কপি' : 'Copy'}
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Share Actions -->
+    <div class="space-y-2 pt-2 border-t border-border">
+      <label class="block text-xs font-bold text-muted uppercase tracking-wider">${isBn ? 'সরাসরি শেয়ার' : 'Instant Share'}</label>
+      <div class="grid grid-cols-2 gap-2">
+        <a
+          href="https://api.whatsapp.com/send?text=${encodeURIComponent((isBn ? `এক্সপ্লোরোতে এই দারুণ পণ্যটি দেখুন: ` : `Check out this product on Explooro: `) + (this.shortLink?.full_url || ''))}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-sm btn-success text-xs font-bold w-full">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp
+        </a>
+        <a
+          href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(this.shortLink?.full_url || '')}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-sm btn-primary text-xs font-bold w-full">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg> Facebook
+        </a>
+      </div>
+    </div>
+
+    <!-- Download Actions -->
+    <div class="flex flex-col gap-2 pt-2">
+      <button id="btn-download-flyer" class="btn btn-primary font-bold btn-sm w-full shadow-md">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> ${isBn ? 'পোস্টার ডাউনলোড করুন (SVG / PNG)' : 'Download Print Poster (SVG / PNG)'}
+      </button>
+      <button id="btn-print-flyer" class="btn btn-outline btn-sm w-full text-xs">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg> ${isBn ? 'সরাসরি প্রিন্ট করুন' : 'Print A4 Flyer'}
+      </button>
+    </div>
+  </div>
+
+  <!-- Flyer Visual Preview (Right 7 Cols) -->
+  <div class="lg:col-span-7 flex flex-col items-center justify-center p-4 bg-base/60 border border-border rounded-xl">
+    <div id="flyer-preview-frame" class="w-full max-w-[340px] shadow-2xl rounded-xl overflow-hidden transition-all duration-300">
+      <!-- Rendered SVG Injected Here -->
+    </div>
+    <div class="text-[11px] text-muted font-mono mt-3 text-center">
+      ✓ Local Zero-Dependency Vector QR Code · Embedded Fonts
+    </div>
+  </div>
+</div>
     `;
 
-    document.body.appendChild(this.backdropEl);
+    this.backdropEl = Modal({
+      title: `🎨 ${isBn ? 'সোশ্যাল সেলার কিট ও ফ্লায়ার জেনারেটর' : 'Social Seller Kit & Flyer Studio'}`,
+      description: isBn ? 'হোয়াটসঅ্যাপ ও ফেসবুকে প্রচারের জন্য প্রফেশনাল পোস্টার তৈরি করুন' : 'Create high-converting posters and tracked QR links for social selling',
+      content,
+      size: 'xl',
+      onClose: () => {
+        this.backdropEl?.remove();
+        this.backdropEl = null;
+      },
+    });
+    this.backdropEl.open(document.activeElement);
     this._attachEvents(isBn);
     this._updateFlyerPreview();
   }
 
   _attachEvents(isBn) {
-    const closeBtn = this.backdropEl.querySelector('.btn-close');
-    closeBtn.addEventListener('click', () => this.close());
-
     // Format selection
     const formatBtns = this.backdropEl.querySelectorAll('.btn-format');
     formatBtns.forEach(btn => {
@@ -332,9 +325,6 @@ export class SocialKitModal {
   }
 
   close() {
-    if (this.backdropEl && document.body.contains(this.backdropEl)) {
-      document.body.removeChild(this.backdropEl);
-      this.backdropEl = null;
-    }
+    this.backdropEl?.close(false);
   }
 }

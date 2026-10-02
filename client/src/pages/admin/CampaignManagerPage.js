@@ -12,6 +12,7 @@ import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.
 import { toast } from '../../services/toast.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { formatCurrency, formatNumber, formatDate } from '../../services/format.js';
+import { Modal } from '../../components/ui/Modal.js';
 
 export class CampaignManagerPage {
   constructor({ initialTab = 'flash_sales' } = {}) {
@@ -564,71 +565,45 @@ export class CampaignManagerPage {
 
   _openCreateFlashSaleModal() {
     const isBn = getLanguage() === 'bn';
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.style.cssText = `
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(2px);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    `;
-
-    modalBackdrop.innerHTML = `
-      <div style="
-        background: var(--surface-1, #ffffff);
-        border: 1px solid var(--border-subtle, #e2e8f0);
-        border-radius: var(--radius-lg, 12px);
-        max-width: 520px;
-        width: 100%;
-        padding: 24px;
-        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      ">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle, #e2e8f0); padding-bottom: 12px;">
-          <h2 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary, #0f172a);">${isBn ? 'নতুন ফ্ল্যাশ সেল তৈরি করুন' : 'Schedule New Flash Sale'}</h2>
-          <button type="button" class="btn-close" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted, #64748b);">×</button>
-        </div>
-
-        <form id="form-create-flash-sale" style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
-          <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ক্যাম্পেইনের শিরোনাম' : 'Deal Title'} *</label>
-            <input type="text" name="title" required aria-label="e.g. Eid Mega Flash Sale" placeholder="e.g. Eid Mega Flash Sale" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;" />
-          </div>
-
-          <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'পণ্য আইডি (Product ID)' : 'Product ID'} *</label>
-            <input type="number" name="product_id" required aria-label="101" placeholder="101" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
-          </div>
-
-          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
-            <div>
-              <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ফ্ল্যাশ সেল মূল্য (৳)' : 'Flash Sale Price (৳)'} *</label>
-              <input type="number" name="discount_price" min="1" step="0.5" required aria-label="990" placeholder="990" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
-            </div>
-            <div>
-              <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'বরাদ্দকৃত স্টক পরিমাণ' : 'Allocated Stock Qty'} *</label>
-              <input type="number" name="allocated_qty" min="1" required value="20" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
-            <button type="button" class="btn-cancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${isBn ? 'বাতিল' : 'Cancel'}</button>
-            <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Schedule Deal'}</button>
-          </div>
-        </form>
+    // WHY the shared Modal: the hand-rolled backdrop had no genie, Escape, focus trap or scroll lock.
+    const content = document.createElement('div');
+    content.innerHTML = `
+    <form id="form-create-flash-sale" style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+      <div>
+        <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ক্যাম্পেইনের শিরোনাম' : 'Deal Title'} *</label>
+        <input type="text" name="title" required aria-label="e.g. Eid Mega Flash Sale" placeholder="e.g. Eid Mega Flash Sale" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;" />
       </div>
+
+      <div>
+        <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'পণ্য আইডি (Product ID)' : 'Product ID'} *</label>
+        <input type="number" name="product_id" required aria-label="101" placeholder="101" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
+        <div>
+          <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ফ্ল্যাশ সেল মূল্য (৳)' : 'Flash Sale Price (৳)'} *</label>
+          <input type="number" name="discount_price" min="1" step="0.5" required aria-label="990" placeholder="990" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+        </div>
+        <div>
+          <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'বরাদ্দকৃত স্টক পরিমাণ' : 'Allocated Stock Qty'} *</label>
+          <input type="number" name="allocated_qty" min="1" required value="20" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+        <button type="button" class="btn-cancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${isBn ? 'বাতিল' : 'Cancel'}</button>
+        <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Schedule Deal'}</button>
+      </div>
+    </form>
     `;
-
-    document.body.appendChild(modalBackdrop);
-
-    const closeModal = () => modalBackdrop.remove();
-    modalBackdrop.querySelector('.btn-close').addEventListener('click', closeModal);
+    const modalBackdrop = Modal({
+      title: `${isBn ? 'নতুন ফ্ল্যাশ সেল তৈরি করুন' : 'Schedule New Flash Sale'}`,
+      content,
+      size: 'md',
+      onClose: () => modalBackdrop.remove(),
+    });
+    const closeModal = () => modalBackdrop.close(false);
+    modalBackdrop.open(document.activeElement);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
 
     modalBackdrop.querySelector('#form-create-flash-sale').addEventListener('submit', async (e) => {
@@ -655,81 +630,55 @@ export class CampaignManagerPage {
 
   _openCreateCouponModal() {
     const isBn = getLanguage() === 'bn';
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.style.cssText = `
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(2px);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    `;
-
-    modalBackdrop.innerHTML = `
-      <div style="
-        background: var(--surface-1, #ffffff);
-        border: 1px solid var(--border-subtle, #e2e8f0);
-        border-radius: var(--radius-lg, 12px);
-        max-width: 520px;
-        width: 100%;
-        padding: 24px;
-        box-shadow: var(--elevation-3, 0 10px 25px rgba(0,0,0,0.15));
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      ">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle, #e2e8f0); padding-bottom: 12px;">
-          <h2 style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text-primary, #0f172a);">${isBn ? 'নতুন কুপন তৈরি করুন' : 'Create New Coupon Voucher'}</h2>
-          <button type="button" class="btn-close" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted, #64748b);">×</button>
-        </div>
-
-        <form id="form-create-coupon" style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
-          <div>
-            <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'কুপন কোড' : 'Coupon Code'} *</label>
-            <input type="text" name="code" required aria-label="e.g. MEGA2026" placeholder="e.g. MEGA2026" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
-          </div>
-
-          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
-            <div>
-              <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ছাড়ের ধরণ' : 'Discount Type'} *</label>
-              <select name="discount_type" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;">
-                <option value="PERCENT">Percentage (%)</option>
-                <option value="FIXED">Fixed Amount (৳)</option>
-                <option value="FREE_SHIPPING">Free Shipping</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ছাড়ের মান' : 'Discount Value'} *</label>
-              <input type="number" name="discount_value" required min="1" step="0.5" value="10" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
-            </div>
-          </div>
-
-          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
-            <div>
-              <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'বাজেট ক্যাপ (৳)' : 'Budget Cap (৳)'} *</label>
-              <input type="number" name="budget_cap" required value="20000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
-            </div>
-            <div>
-              <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'সর্বনিম্ন খরচ (৳)' : 'Min Spend (৳)'} *</label>
-              <input type="number" name="min_spend_amount" required value="1000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
-            </div>
-          </div>
-
-          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
-            <button type="button" class="btn-cancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${isBn ? 'বাতিল' : 'Cancel'}</button>
-            <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Create Coupon'}</button>
-          </div>
-        </form>
+    // WHY the shared Modal: the hand-rolled backdrop had no genie, Escape, focus trap or scroll lock.
+    const content = document.createElement('div');
+    content.innerHTML = `
+    <form id="form-create-coupon" style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
+      <div>
+        <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'কুপন কোড' : 'Coupon Code'} *</label>
+        <input type="text" name="code" required aria-label="e.g. MEGA2026" placeholder="e.g. MEGA2026" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
       </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
+        <div>
+          <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ছাড়ের ধরণ' : 'Discount Type'} *</label>
+          <select name="discount_type" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;">
+            <option value="PERCENT">Percentage (%)</option>
+            <option value="FIXED">Fixed Amount (৳)</option>
+            <option value="FREE_SHIPPING">Free Shipping</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ছাড়ের মান' : 'Discount Value'} *</label>
+          <input type="number" name="discount_value" required min="1" step="0.5" value="10" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
+        <div>
+          <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'বাজেট ক্যাপ (৳)' : 'Budget Cap (৳)'} *</label>
+          <input type="number" name="budget_cap" required value="20000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+        </div>
+        <div>
+          <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'সর্বনিম্ন খরচ (৳)' : 'Min Spend (৳)'} *</label>
+          <input type="number" name="min_spend_amount" required value="1000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+        <button type="button" class="btn-cancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${isBn ? 'বাতিল' : 'Cancel'}</button>
+        <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Create Coupon'}</button>
+      </div>
+    </form>
     `;
-
-    document.body.appendChild(modalBackdrop);
-
-    const closeModal = () => modalBackdrop.remove();
-    modalBackdrop.querySelector('.btn-close').addEventListener('click', closeModal);
+    const modalBackdrop = Modal({
+      title: `${isBn ? 'নতুন কুপন তৈরি করুন' : 'Create New Coupon Voucher'}`,
+      content,
+      size: 'md',
+      onClose: () => modalBackdrop.remove(),
+    });
+    const closeModal = () => modalBackdrop.close(false);
+    modalBackdrop.open(document.activeElement);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
 
     modalBackdrop.querySelector('#form-create-coupon').addEventListener('submit', async (e) => {

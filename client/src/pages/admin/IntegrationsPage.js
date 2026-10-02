@@ -516,23 +516,14 @@ export default function IntegrationsPage(root, { navigate } = {}) {
     });
   }
 
+  // WHY the shared Modal: the hand-rolled backdrop had no genie, Escape, focus trap or scroll lock.
+  // render() runs again while this is open, so refresh its content instead of stacking a second one.
+  let logsModal = null;
+
   function renderLogsDrawer() {
-    const drawerOverlay = document.createElement('div');
-    drawerOverlay.className = 'modal-backdrop';
-
-    const drawer = document.createElement('div');
-    drawer.className = 'card max-w-2xl w-full p-5 max-h-[85vh] overflow-y-auto space-y-4';
-    drawer.style.margin = 'auto';
-
-    drawer.innerHTML = `
-      <div class="flex-between border-b pb-3">
-        <div>
-          <h3 class="text-lg font-bold m-0">${t('platform_integrations.logs_drawer_title', 'Gateway Webhook & Callback Logs')}</h3>
-          <p class="text-xs text-muted m-0">Live inbound IPN payloads & courier event deliveries</p>
-        </div>
-        <button class="btn btn--secondary btn--sm close-logs-btn">✕</button>
-      </div>
-
+    const content = document.createElement('div');
+    content.className = 'space-y-4';
+    content.innerHTML = `
       ${isLoadingLogs ? `
         <div class="p-8 text-center text-muted">
           <div class="spinner"></div>
@@ -561,21 +552,32 @@ export default function IntegrationsPage(root, { navigate } = {}) {
           `).join('')}
         </div>
       `}
-
-      <div class="flex justify-end pt-3 border-t">
-        <button class="btn btn--secondary btn--sm close-logs-btn">${t('common.close', 'Close')}</button>
-      </div>
     `;
 
-    drawer.querySelectorAll('.close-logs-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        showLogsDrawer = false;
-        drawerOverlay.remove();
-      });
-    });
+    if (logsModal?.isOpen()) {
+      logsModal.setContent(content);
+      return;
+    }
 
-    drawerOverlay.append(drawer);
-    document.body.append(drawerOverlay);
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn btn--secondary btn--sm';
+    closeBtn.textContent = t('common.close', 'Close');
+    closeBtn.addEventListener('click', () => logsModal.close(false));
+
+    logsModal = Modal({
+      title: `${t('platform_integrations.logs_drawer_title', 'Gateway Webhook & Callback Logs')}`,
+      description: 'Live inbound IPN payloads & courier event deliveries',
+      content,
+      footer: closeBtn,
+      size: 'lg',
+      onClose: () => {
+        showLogsDrawer = false;
+        logsModal.remove();
+        logsModal = null;
+      },
+    });
+    logsModal.open(document.activeElement);
   }
 
   loadData();

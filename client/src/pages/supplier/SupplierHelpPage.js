@@ -11,6 +11,7 @@
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
+import { supplierModal } from './supplierModal.js';
 import { Badge } from '../../components/ui/Badge.js';
 
 export default function SupplierHelpPage(root) {
@@ -258,15 +259,10 @@ export default function SupplierHelpPage(root) {
 
   // 5. Interactive Priority Support Ticket Modal
   function openSupportTicketModal() {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'supplier-modal-scrim';
-    modalBackdrop.innerHTML = `
-      <div class="supplier-modal">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">🎫 Submit Priority Support Ticket</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
-
+    const modalBackdrop = supplierModal({
+      title: `🎫 Submit Priority Support Ticket`,
+      size: 'md',
+      body: `
         <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Issue Category</label>
@@ -289,18 +285,16 @@ export default function SupplierHelpPage(root) {
             <textarea id="ticket-body" class="input" style="height: 90px; resize: vertical;" placeholder="Describe your issue with full details..."></textarea>
           </div>
         </div>
-
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
           <button class="btn btn--sm btn--primary" id="submit-ticket-action-btn">
             📨 Submit Ticket (24/7 SLA)
           </button>
-        </div>
-      </div>
-    `;
+        `,
+    });
 
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    const close = () => modalBackdrop.close(false);
 
     modalBackdrop.querySelector('#submit-ticket-action-btn').onclick = () => {
       const subject = modalBackdrop.querySelector('#ticket-subject').value.trim();
@@ -313,7 +307,7 @@ export default function SupplierHelpPage(root) {
       close();
     };
 
-    document.body.appendChild(modalBackdrop);
+    modalBackdrop.open(document.activeElement);
   }
 
   render();

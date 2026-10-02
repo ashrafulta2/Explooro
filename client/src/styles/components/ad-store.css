@@ -199,20 +199,6 @@
 /* ------------------------------------------------------------------------------------------ *
  * Purchase wizard
  * ------------------------------------------------------------------------------------------ */
-.ad-wizard-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-4);
-  /* Transient overlay — the one place the design system allows a translucent surface. */
-  background: rgb(0 0 0 / 0.6);
-  backdrop-filter: blur(2px);
-  overflow-y: auto;
-}
-
 .ad-wizard {
   display: flex;
   flex-direction: column;
@@ -223,6 +209,10 @@
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
+
+/* Hosted in the shared Modal: the Modal panel supplies the surface, radius and size. */
+.modal--flush .modal__body { padding: 0; }
+.modal--flush .ad-wizard { max-width: none; max-height: none; border-radius: 0; }
 
 .ad-wizard__head {
   flex: none;
@@ -238,19 +228,6 @@
 .ad-wizard__icon { font-size: 2rem; line-height: 1; }
 .ad-wizard__title { margin: 0; font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--text-primary); }
 .ad-wizard__subtitle { margin: 2px 0 0; font-size: var(--text-sm); color: var(--text-brand); font-family: var(--font-mono); }
-
-.ad-wizard__close {
-  appearance: none;
-  background: none;
-  border: none;
-  font-size: 1.75rem;
-  line-height: 1;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0 var(--space-1);
-}
-
-.ad-wizard__close:hover { color: var(--text-primary); }
 
 .ad-wizard__steps {
   flex: none;

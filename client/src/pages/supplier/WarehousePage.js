@@ -13,6 +13,7 @@ import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
+import { supplierModal } from './supplierModal.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function WarehousePage(root) {
@@ -183,15 +184,10 @@ export default function WarehousePage(root) {
 
   // 4. Add Warehouse Modal
   function openAddWarehouseModal() {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'supplier-modal-scrim';
-    modalBackdrop.innerHTML = `
-      <div class="supplier-modal">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">➕ Add Regional Depot Node</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
-
+    const modalBackdrop = supplierModal({
+      title: `➕ Add Regional Depot Node`,
+      size: 'md',
+      body: `
         <form id="new-wh-form" style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Depot Name *</label>
@@ -224,18 +220,16 @@ export default function WarehousePage(root) {
             <input type="text" id="wh-address-input" class="input input--sm" placeholder="e.g. Plot 14, BSCIC Industrial Estate" required />
           </div>
         </form>
-
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
           <button class="btn btn--sm btn--primary" id="save-wh-btn">
             💾 Save Depot Node
           </button>
-        </div>
-      </div>
-    `;
+        `,
+    });
 
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    const close = () => modalBackdrop.close(false);
 
     modalBackdrop.querySelector('#save-wh-btn').onclick = async () => {
       const name = modalBackdrop.querySelector('#wh-name-input').value.trim();
@@ -266,7 +260,7 @@ export default function WarehousePage(root) {
       }
     };
 
-    document.body.appendChild(modalBackdrop);
+    modalBackdrop.open(document.activeElement);
   }
 
   loadWarehouses();

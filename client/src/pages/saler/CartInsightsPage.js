@@ -12,6 +12,7 @@
 import { api } from '../../core/api.js';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { Modal } from '../../components/ui/Modal.js';
 
 export class CartInsightsPage {
   constructor() {
@@ -329,66 +330,49 @@ export class CartInsightsPage {
   }
 
   _openOfferModal(cartId, token, itemsValue, isBn) {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.style.position = 'fixed';
-    modalBackdrop.style.inset = '0';
-    modalBackdrop.style.background = 'rgba(0, 0, 0, 0.6)';
-    modalBackdrop.style.zIndex = '9999';
-    modalBackdrop.style.display = 'flex';
-    modalBackdrop.style.alignItems = 'center';
-    modalBackdrop.style.justifyContent = 'center';
-    modalBackdrop.style.padding = '16px';
-
-    modalBackdrop.innerHTML = `
-      <div class="saler-card" style="max-width: 440px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.25);">
-        <div class="saler-row--between" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
-          <h3 class="saler-card__title" style="margin: 0;">${isBn ? 'গ্রাহককে বিশেষ অফার দিন' : 'Send Custom Recovery Offer'}</h3>
-          <button type="button" class="btn-close btn btn--neutral btn--xs font-bold">✕</button>
-        </div>
-
-        <form id="form-send-offer" class="saler-stack">
-          <div class="saler-row--between p-3 rounded-lg" style="background: var(--surface-1); border: 1px solid var(--border-subtle); font-size: 13px;">
-            <span class="text-muted">Cart Value: <strong class="font-mono text-foreground">৳${itemsValue}</strong></span>
-            <span class="font-mono text-muted text-xs">${token}</span>
-          </div>
-
-          <div class="saler-stack--xs">
-            <div class="saler-row--between text-xs font-bold uppercase">
-              <span>${isBn ? 'ডিসকাউন্ট শতাংশ' : 'Discount Percentage'}</span>
-              <span id="discount-preview" class="font-mono font-bold text-primary">10%</span>
-            </div>
-            <input
-              type="range"
-              name="discount_pct"
-              min="5"
-              max="15"
-              step="1"
-              value="10"
-              style="width: 100%; cursor: pointer;" />
-            <div class="saler-row--between text-xs text-muted">
-              <span>5%</span>
-              <span>10% (Default)</span>
-              <span>15% (Max Cap)</span>
-            </div>
-          </div>
-
-          <div class="saler-row" style="justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
-            <button type="button" class="btn btn--secondary btn--sm btn-cancel font-bold">${isBn ? 'বাতিল' : 'Cancel'}</button>
-            <button type="submit" class="btn btn--primary btn--sm font-bold">${isBn ? 'অফার পাঠান' : 'Dispatch Offer'}</button>
-          </div>
-        </form>
+    // WHY the shared Modal: the hand-rolled backdrop had no genie, Escape, focus trap or scroll lock.
+    const content = document.createElement('div');
+    content.innerHTML = `
+    <form id="form-send-offer" class="saler-stack">
+      <div class="saler-row--between p-3 rounded-lg" style="background: var(--surface-1); border: 1px solid var(--border-subtle); font-size: 13px;">
+        <span class="text-muted">Cart Value: <strong class="font-mono text-foreground">৳${itemsValue}</strong></span>
+        <span class="font-mono text-muted text-xs">${token}</span>
       </div>
+
+      <div class="saler-stack--xs">
+        <div class="saler-row--between text-xs font-bold uppercase">
+          <span>${isBn ? 'ডিসকাউন্ট শতাংশ' : 'Discount Percentage'}</span>
+          <span id="discount-preview" class="font-mono font-bold text-primary">10%</span>
+        </div>
+        <input
+          type="range"
+          name="discount_pct"
+          min="5"
+          max="15"
+          step="1"
+          value="10"
+          style="width: 100%; cursor: pointer;" />
+        <div class="saler-row--between text-xs text-muted">
+          <span>5%</span>
+          <span>10% (Default)</span>
+          <span>15% (Max Cap)</span>
+        </div>
+      </div>
+
+      <div class="saler-row" style="justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+        <button type="button" class="btn btn--secondary btn--sm btn-cancel font-bold">${isBn ? 'বাতিল' : 'Cancel'}</button>
+        <button type="submit" class="btn btn--primary btn--sm font-bold">${isBn ? 'অফার পাঠান' : 'Dispatch Offer'}</button>
+      </div>
+    </form>
     `;
-
-    document.body.appendChild(modalBackdrop);
-
-    const closeModal = () => {
-      if (document.body.contains(modalBackdrop)) {
-        document.body.removeChild(modalBackdrop);
-      }
-    };
-
-    modalBackdrop.querySelector('.btn-close').addEventListener('click', closeModal);
+    const modalBackdrop = Modal({
+      title: `${isBn ? 'গ্রাহককে বিশেষ অফার দিন' : 'Send Custom Recovery Offer'}`,
+      content,
+      size: 'sm',
+      onClose: () => modalBackdrop.remove(),
+    });
+    const closeModal = () => modalBackdrop.close(false);
+    modalBackdrop.open(document.activeElement);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
 
     const rangeInput = modalBackdrop.querySelector('input[name="discount_pct"]');

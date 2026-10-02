@@ -16,6 +16,7 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Button } from '../../components/ui/Button.js';
+import { supplierModal } from './supplierModal.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 
 export default function BatchManagerPage(root) {
@@ -290,15 +291,10 @@ export default function BatchManagerPage(root) {
 
   // 5. Intake New Batch Modal
   function openCreateBatchModal() {
-    const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'supplier-modal-scrim';
-    modalBackdrop.innerHTML = `
-      <div class="supplier-modal">
-        <div class="supplier-modal__header">
-          <h3 class="supplier-modal__title">➕ ${t('supplier.create_batch_btn', 'New Stock Lot / Batch Intake')}</h3>
-          <button class="supplier-modal__close close-modal-btn">&times;</button>
-        </div>
-
+    const modalBackdrop = supplierModal({
+      title: `➕ ${t('supplier.create_batch_btn', 'New Stock Lot / Batch Intake')}`,
+      size: 'md',
+      body: `
         <form id="new-batch-form" style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Lot / Batch Number *</label>
@@ -323,18 +319,16 @@ export default function BatchManagerPage(root) {
             </div>
           </div>
         </form>
-
-        <div class="supplier-modal__footer">
+      `,
+      footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel', 'Cancel')}</button>
           <button class="btn btn--sm btn--primary" id="save-batch-btn">
             💾 Save Batch
           </button>
-        </div>
-      </div>
-    `;
+        `,
+    });
 
-    const close = () => modalBackdrop.remove();
-    modalBackdrop.querySelectorAll('.close-modal-btn').forEach((b) => (b.onclick = close));
+    const close = () => modalBackdrop.close(false);
 
     modalBackdrop.querySelector('#save-batch-btn').onclick = async () => {
       const batchNum = modalBackdrop.querySelector('#batch-number-input').value.trim();
@@ -363,7 +357,7 @@ export default function BatchManagerPage(root) {
       }
     };
 
-    document.body.appendChild(modalBackdrop);
+    modalBackdrop.open(document.activeElement);
   }
 
   loadData();
