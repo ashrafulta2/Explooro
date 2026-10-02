@@ -57,8 +57,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-6);
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
   border: 2px dashed var(--border-interactive);
   border-radius: var(--radius-md);
   background: var(--surface-2);
@@ -74,7 +74,7 @@
 }
 
 .media-dropzone__icon {
-  font-size: 28px;
+  font-size: 22px;
 }
 
 .media-dropzone__text {
@@ -96,7 +96,7 @@
 .media-dropzone__actions {
   display: flex;
   gap: var(--space-2);
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
 }
 
 /* Camera capture dialog (desktop webcam) */
