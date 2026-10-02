@@ -615,7 +615,7 @@ export async function toggleFollowStore(db, { userId, storeId }) {
   const parsedStoreId = Number(storeId);
 
   if (!parsedUserId || !parsedStoreId) {
-    throw new AppError('VALIDATION_ERROR', 'User ID and Store ID are required.');
+    throw new AppError('VALIDATION_FAILED', 'User ID and Store ID are required.');
   }
 
   // WHY: the shop name travels back with the result so the client can name the store in its

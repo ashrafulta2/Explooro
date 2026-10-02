@@ -132,7 +132,7 @@ const SELF_SERVICE_ROLES = new Set(['customer', 'saler', 'supplier']);
 export async function registerUser(db, { phone, email, password, fullName, role }) {
   if (!phone && !email) {
     throw new AppError(
-      'VALIDATION_ERROR',
+      'VALIDATION_FAILED',
       'Either a mobile number or email address is required to register.',
       'রেজিস্টার করতে মোবাইল নম্বর বা ইমেইল ঠিকানা আবশ্যক।'
     );

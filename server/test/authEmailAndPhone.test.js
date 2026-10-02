@@ -286,7 +286,7 @@ describe('Dual Mobile Number & Email Address Registration System', () => {
     assert.equal(user.email, null);
   });
 
-  test('3. Registration without phone AND without email is rejected with VALIDATION_ERROR', async () => {
+  test('3. Registration without phone AND without email is rejected with VALIDATION_FAILED', async () => {
     await assert.rejects(
       async () => {
         await authService.registerUser(db, {
@@ -294,7 +294,7 @@ describe('Dual Mobile Number & Email Address Registration System', () => {
           fullName: 'No Contact User',
         });
       },
-      (err) => err.code === 'VALIDATION_ERROR'
+      (err) => err.code === 'VALIDATION_FAILED'
     );
   });
 

@@ -119,7 +119,7 @@ export default [
           status: 400,
           body: {
             error: {
-              code: 'VALIDATION_ERROR',
+              code: 'VALIDATION_FAILED',
               message_en: 'Credentials and password are required.',
               message_bn: 'মোবাইল নম্বর/ইমেইল এবং পাসওয়ার্ড আবশ্যক।',
             },

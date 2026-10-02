@@ -177,7 +177,7 @@ describe('Language & Default Locale governance', () => {
             allow_user_override: true,
           }),
         (err) => {
-          assert.equal(err.code, 'VALIDATION_ERROR');
+          assert.equal(err.code, 'VALIDATION_FAILED');
           assert.match(err.messageEn ?? err.message, /must also be enabled/i);
           assert.ok(err.messageBn, 'validation errors carry a Bengali message too');
           return true;
@@ -193,7 +193,7 @@ describe('Language & Default Locale governance', () => {
             enabled_locales: ['en', 'fr'],
             allow_user_override: true,
           }),
-        (err) => err.code === 'VALIDATION_ERROR'
+        (err) => err.code === 'VALIDATION_FAILED'
       );
     });
 
@@ -205,7 +205,7 @@ describe('Language & Default Locale governance', () => {
             enabled_locales: [],
             allow_user_override: true,
           }),
-        (err) => err.code === 'VALIDATION_ERROR'
+        (err) => err.code === 'VALIDATION_FAILED'
       );
     });
 
@@ -288,7 +288,7 @@ describe('Language & Default Locale governance', () => {
           reason: 'This reason is long enough to pass the length check.',
           userId: 7,
         }),
-        (err) => err.code === 'VALIDATION_ERROR'
+        (err) => err.code === 'VALIDATION_FAILED'
       );
       assert.equal(JSON.parse(db.settings.get('localization.default_locale').value_json), 'en');
       assert.equal(db.auditLog.length, 0);
@@ -303,7 +303,7 @@ describe('Language & Default Locale governance', () => {
           reason: 'because',
           userId: 7,
         }),
-        (err) => err.code === 'VALIDATION_ERROR' && /10 characters/.test(err.messageEn ?? err.message)
+        (err) => err.code === 'VALIDATION_FAILED' && /10 characters/.test(err.messageEn ?? err.message)
       );
       assert.equal(JSON.parse(db.settings.get('localization.default_locale').value_json), 'en');
       assert.equal(db.auditLog.length, 0);
@@ -383,6 +383,27 @@ describe('Language & Default Locale governance', () => {
         payload: { default_locale: 'bn', enabled_locales: ['bn', 'en'], allow_user_override: true },
       });
       assert.equal(res.statusCode, 400);
+    });
+
+    // WHY: the service used to throw AppError('VALIDATION_ERROR'), a code that is not in the closed
+    // ERROR_STATUS enum, so a rule broken past the route schema answered HTTP 500. The unit tests
+    // above only read err.code and could never see the status.
+    test('a PUT that passes the schema but breaks a service rule answers 400 VALIDATION_FAILED', async () => {
+      const res = await app.inject({
+        method: 'PUT',
+        url: '/api/v1/admin/platform/localization',
+        payload: {
+          default_locale: 'bn',
+          enabled_locales: ['en'],
+          allow_user_override: true,
+          reason: 'The default language is not in the enabled list.',
+        },
+      });
+      assert.equal(res.statusCode, 400);
+      const { error } = res.json();
+      assert.equal(error.code, 'VALIDATION_FAILED');
+      assert.match(error.message_en, /must also be enabled/i);
+      assert.ok(error.message_bn);
     });
 
     test('a valid PUT applies the policy', async () => {

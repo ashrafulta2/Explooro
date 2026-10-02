@@ -59,35 +59,35 @@ function validate(body) {
 
   if (typeof defaultLocale !== 'string' || !SUPPORTED_LOCALES.includes(defaultLocale)) {
     return {
-      code: 'VALIDATION_ERROR',
+      code: 'VALIDATION_FAILED',
       message_en: `Default language must be one of: ${SUPPORTED_LOCALES.join(', ')}.`,
       message_bn: `ডিফল্ট ভাষা এগুলোর একটি হতে হবে: ${SUPPORTED_LOCALES.join(', ')}।`,
     };
   }
   if (!Array.isArray(enabledLocales) || enabledLocales.length === 0) {
     return {
-      code: 'VALIDATION_ERROR',
+      code: 'VALIDATION_FAILED',
       message_en: 'At least one language must stay enabled.',
       message_bn: 'অন্তত একটি ভাষা সক্রিয় রাখতে হবে।',
     };
   }
   if (!enabledLocales.includes(defaultLocale)) {
     return {
-      code: 'VALIDATION_ERROR',
+      code: 'VALIDATION_FAILED',
       message_en: 'The default language must also be enabled.',
       message_bn: 'ডিফল্ট ভাষাটিও সক্রিয় থাকতে হবে।',
     };
   }
   if (typeof allowOverride !== 'boolean') {
     return {
-      code: 'VALIDATION_ERROR',
+      code: 'VALIDATION_FAILED',
       message_en: 'Visitor language choice must be true or false.',
       message_bn: 'দর্শনার্থীর ভাষা নির্বাচন true অথবা false হতে হবে।',
     };
   }
   if (typeof reason !== 'string' || reason.trim().length < 10) {
     return {
-      code: 'VALIDATION_ERROR',
+      code: 'VALIDATION_FAILED',
       message_en: 'Give a reason of at least 10 characters for this change.',
       message_bn: 'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।',
     };

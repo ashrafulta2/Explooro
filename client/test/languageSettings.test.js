@@ -180,7 +180,7 @@ test('Language & Default Locale — client invariants', async (t) => {
       },
     });
     assert.equal(res.status, 400);
-    assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+    assert.equal(res.body.error.code, 'VALIDATION_FAILED');
     assert.ok(res.body.error.message_bn, 'the mock returns both languages, like the API contract');
   });
 

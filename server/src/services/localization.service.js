@@ -106,7 +106,7 @@ function rowsToPolicy(rows = []) {
  * Validates a complete proposed policy. Pure and exported so the same rules are asserted by the
  * test suite and enforced by the API, with no second implementation to drift.
  *
- * Returns the normalised policy; throws AppError('VALIDATION_ERROR') on the first rule broken,
+ * Returns the normalised policy; throws AppError('VALIDATION_FAILED') on the first rule broken,
  * with both language messages the API contract requires.
  */
 export function validatePolicy(input = {}) {
@@ -116,7 +116,7 @@ export function validatePolicy(input = {}) {
 
   if (typeof defaultLocale !== 'string' || !SUPPORTED_LOCALES.includes(defaultLocale)) {
     throw new AppError(
-      'VALIDATION_ERROR',
+      'VALIDATION_FAILED',
       `Default language must be one of: ${SUPPORTED_LOCALES.join(', ')}.`,
       `ডিফল্ট ভাষা এগুলোর একটি হতে হবে: ${SUPPORTED_LOCALES.join(', ')}।`,
       { field: 'default_locale', supported: SUPPORTED_LOCALES }
@@ -125,7 +125,7 @@ export function validatePolicy(input = {}) {
 
   if (!Array.isArray(rawEnabled) || rawEnabled.length === 0) {
     throw new AppError(
-      'VALIDATION_ERROR',
+      'VALIDATION_FAILED',
       'At least one language must stay enabled.',
       'অন্তত একটি ভাষা সক্রিয় রাখতে হবে।',
       { field: 'enabled_locales' }
@@ -136,7 +136,7 @@ export function validatePolicy(input = {}) {
   const unknown = enabledLocales.filter((l) => !SUPPORTED_LOCALES.includes(l));
   if (unknown.length) {
     throw new AppError(
-      'VALIDATION_ERROR',
+      'VALIDATION_FAILED',
       `Unsupported language(s): ${unknown.join(', ')}.`,
       `অসমর্থিত ভাষা: ${unknown.join(', ')}।`,
       { field: 'enabled_locales', unsupported: unknown }
@@ -147,7 +147,7 @@ export function validatePolicy(input = {}) {
   // language the switcher refuses to offer, with no way back from inside the UI.
   if (!enabledLocales.includes(defaultLocale)) {
     throw new AppError(
-      'VALIDATION_ERROR',
+      'VALIDATION_FAILED',
       'The default language must also be enabled.',
       'ডিফল্ট ভাষাটিও সক্রিয় থাকতে হবে।',
       { field: 'default_locale' }
@@ -156,7 +156,7 @@ export function validatePolicy(input = {}) {
 
   if (typeof allowUserOverride !== 'boolean') {
     throw new AppError(
-      'VALIDATION_ERROR',
+      'VALIDATION_FAILED',
       'Visitor language choice must be true or false.',
       'দর্শনার্থীর ভাষা নির্বাচন true অথবা false হতে হবে।',
       { field: 'allow_user_override' }
@@ -235,7 +235,7 @@ export async function updatePolicy(
 
   if (typeof reason !== 'string' || reason.trim().length < 10) {
     throw new AppError(
-      'VALIDATION_ERROR',
+      'VALIDATION_FAILED',
       'Give a reason of at least 10 characters for this change.',
       'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।',
       { field: 'reason' }

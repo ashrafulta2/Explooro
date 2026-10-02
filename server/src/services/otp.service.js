@@ -22,7 +22,7 @@ function generateCode() {
 
 export async function sendOtp(db, cache, smsSender, emailSender, { phone, email, purpose, ip, isDevelopment }) {
   if (!phone && !email) {
-    throw new AppError('VALIDATION_ERROR', 'A phone number or email address is required to send OTP.', 'ওটিপি পাঠাতে ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');
+    throw new AppError('VALIDATION_FAILED', 'A phone number or email address is required to send OTP.', 'ওটিপি পাঠাতে ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');
   }
 
   if (phone) {
@@ -60,7 +60,7 @@ export async function sendOtp(db, cache, smsSender, emailSender, { phone, email,
 /** Throws OTP_EXPIRED / OTP_ATTEMPTS_EXCEEDED / OTP_INVALID; returns the consumed row on success. */
 export async function verifyOtp(db, { phone, email, purpose, code }) {
   if (!phone && !email) {
-    throw new AppError('VALIDATION_ERROR', 'A phone number or email address is required.', 'ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');
+    throw new AppError('VALIDATION_FAILED', 'A phone number or email address is required.', 'ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');
   }
 
   const otp = await userRepo.getLatestActiveOtp(db, { phone, email, purpose });
