@@ -9,6 +9,12 @@
   width: 100%;
 }
 
+/* WHY: empty slots (status rows, the gallery grid before any upload) still take a flex gap each,
+   leaving a tall blank band under the dropzone. Hide them until they have content. */
+.media-uploader > :empty {
+  display: none;
+}
+
 .media-uploader__toolbar {
   display: flex;
   align-items: center;
