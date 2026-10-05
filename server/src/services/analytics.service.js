@@ -253,16 +253,17 @@ export async function runDailyRollup(db, targetDate = null) {
   const activeSellersCount = parseInt(sellerAgg[0]?.active_sellers || 0, 10);
 
   // 5. Escrow and Payout liabilities
+  // WHY no .catch: both tables exist; a swallowed error would store 0 liability for the day.
   const { rows: escrowAgg } = await db.query(
     `SELECT COALESCE(SUM(held_balance), 0) as escrow_liability FROM wallets`
-  ).catch(() => ({ rows: [{ escrow_liability: 0 }] }));
+  );
   const escrowLiability = parseFloat(escrowAgg[0]?.escrow_liability || 0);
 
   const { rows: payoutAgg } = await db.query(
     `SELECT COALESCE(SUM(amount), 0) as pending_payouts
      FROM payout_requests
      WHERE status IN ('PENDING', 'PROCESSING')`
-  ).catch(() => ({ rows: [{ pending_payouts: 0 }] }));
+  );
   const pendingPayoutLiability = parseFloat(payoutAgg[0]?.pending_payouts || 0);
 
   // 6. COD Exposure: cash still to be collected on COD sub-orders that are packed or on the road.
@@ -287,8 +288,19 @@ export async function runDailyRollup(db, targetDate = null) {
   const disputeCount = parseInt(disputeAgg[0]?.dispute_count || 0, 10);
   const disputeRatePct = totalOrders > 0 ? parseFloat(((disputeCount / totalOrders) * 100).toFixed(2)) : 0.00;
 
-  // 8. Conversion Rate estimate
-  const conversionRatePct = 3.42; // baseline benchmark
+  // 8. Conversion rate = orders / tracked visits that day.
+  // WHY short_link_clicks: it is the only visit signal the platform records (no site-wide page-view
+  // table exists), so this is conversion of tracked traffic, not of all visitors. It used to be the
+  // literal 3.42 for every day. No clicks -> 0, never an invented figure; capped at 100 because
+  // orders can also arrive without a tracked click.
+  const { rows: visitAgg } = await db.query(
+    `SELECT COUNT(*) as visits FROM short_link_clicks WHERE DATE(clicked_at) = $1`,
+    [dateStr]
+  );
+  const visits = parseInt(visitAgg[0]?.visits || 0, 10);
+  const conversionRatePct = visits > 0
+    ? Math.min(100, parseFloat(((totalOrders / visits) * 100).toFixed(2)))
+    : 0.00;
 
   const breakdown = await computeDailyBreakdown(db, dateStr);
 
@@ -481,7 +493,7 @@ export async function getExecutiveOverview(db, { timeframe = '30d', from = null,
   let curPayout = latestField(currentRows, 'pending_payout_liability');
   let curCod = latestField(currentRows, 'cod_exposure');
   let curDisputeRate = avgField(currentRows, 'dispute_rate_pct');
-  let curConversionRate = avgField(currentRows, 'conversion_rate_pct') || 3.42;
+  let curConversionRate = avgField(currentRows, 'conversion_rate_pct');
 
   // Fallback defaults if no rollups exist yet (so first-load is never empty or 0)
   if (currentRows.length === 0) {
@@ -511,7 +523,7 @@ export async function getExecutiveOverview(db, { timeframe = '30d', from = null,
   let prevPayout = latestField(prevRows, 'pending_payout_liability') || (curPayout * 1.10);
   let prevCod = latestField(prevRows, 'cod_exposure') || (curCod * 0.94);
   let prevDisputeRate = avgField(prevRows, 'dispute_rate_pct') || 1.10;
-  let prevConversionRate = avgField(prevRows, 'conversion_rate_pct') || 3.10;
+  let prevConversionRate = avgField(prevRows, 'conversion_rate_pct');
 
   // Compute Delta Helper
   const calcDelta = (curr, prev) => {
