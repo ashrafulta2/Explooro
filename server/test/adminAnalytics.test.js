@@ -128,7 +128,7 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
         if (sql.includes('FROM sub_orders so') && sql.includes('COD')) {
           return { rows: [{ cod_exposure: '32000.00' }] };
         }
-        if (sql.includes('FROM disputes')) {
+        if (sql.includes('FROM dispute_threads')) {
           return { rows: [{ dispute_count: 1 }] };
         }
         if (sql.includes('INSERT INTO daily_analytics_rollups')) {

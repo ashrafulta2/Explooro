@@ -224,16 +224,19 @@ export async function runDailyRollup(db, targetDate = null) {
   const takeRatePct = gmv > 0 ? parseFloat(((platformNetRevenue / gmv) * 100).toFixed(2)) : 8.00;
 
   // 3. User signups on the target date
+  // WHY the roles join + no .catch: user_roles has role_id (not a role text column), and the old
+  // query's error was swallowed, so signups read 0 forever. Fail loudly instead.
   const { rows: userAgg } = await db.query(
     `SELECT
-       COUNT(*) FILTER (WHERE ur.role = 'customer' OR ur.role IS NULL) as new_customers,
-       COUNT(*) FILTER (WHERE ur.role = 'saler') as new_salers,
-       COUNT(*) FILTER (WHERE ur.role = 'supplier') as new_suppliers
+       COUNT(*) FILTER (WHERE r.key = 'customer' OR r.key IS NULL) as new_customers,
+       COUNT(*) FILTER (WHERE r.key = 'saler') as new_salers,
+       COUNT(*) FILTER (WHERE r.key = 'supplier') as new_suppliers
      FROM users u
      LEFT JOIN user_roles ur ON ur.user_id = u.id
+     LEFT JOIN roles r ON r.id = ur.role_id
      WHERE DATE(u.created_at) = $1`,
     [dateStr]
-  ).catch(() => ({ rows: [{ new_customers: 0, new_salers: 0, new_suppliers: 0 }] }));
+  );
 
   const newCustomers = parseInt(userAgg[0]?.new_customers || 0, 10);
   const newSalers = parseInt(userAgg[0]?.new_salers || 0, 10);
@@ -241,10 +244,12 @@ export async function runDailyRollup(db, targetDate = null) {
 
   // 4. Active sellers count
   const { rows: sellerAgg } = await db.query(
-    `SELECT COUNT(DISTINCT user_id) as active_sellers
-     FROM user_roles
-     WHERE role IN ('saler', 'supplier')`
-  ).catch(() => ({ rows: [{ active_sellers: 0 }] }));
+    `SELECT COUNT(DISTINCT ur.user_id) as active_sellers
+     FROM user_roles ur
+     JOIN roles r ON r.id = ur.role_id
+     JOIN users u ON u.id = ur.user_id
+     WHERE r.key IN ('saler', 'supplier') AND u.status = 'ACTIVE'`
+  );
   const activeSellersCount = parseInt(sellerAgg[0]?.active_sellers || 0, 10);
 
   // 5. Escrow and Payout liabilities
@@ -272,10 +277,10 @@ export async function runDailyRollup(db, targetDate = null) {
   // 7. Disputes
   const { rows: disputeAgg } = await db.query(
     `SELECT COUNT(*) as dispute_count
-     FROM disputes
+     FROM dispute_threads
      WHERE DATE(created_at) = $1`,
     [dateStr]
-  ).catch(() => ({ rows: [{ dispute_count: 0 }] }));
+  );
   const disputeCount = parseInt(disputeAgg[0]?.dispute_count || 0, 10);
   const disputeRatePct = totalOrders > 0 ? parseFloat(((disputeCount / totalOrders) * 100).toFixed(2)) : 0.00;
 
