@@ -188,14 +188,15 @@ export function aggregateBreakdown(rollupRows = [], { topCategories = 5 } = {}) 
 export async function runDailyRollup(db, targetDate = null) {
   const dateStr = targetDate || new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
-  // 1. Aggregate Orders & GMV for the date
+  // 1. Aggregate (WHY sub_orders: `orders` has no status column — fulfilment status lives on
+  // sub_orders, so an order counts as delivered/cancelled/returned if any of its parts is) Orders & GMV for the date
   const { rows: orderAgg } = await db.query(
     `SELECT
        COALESCE(SUM(total_amount), 0) as gmv,
        COUNT(*) as total_orders,
-       COUNT(*) FILTER (WHERE status = 'DELIVERED') as delivered_orders,
-       COUNT(*) FILTER (WHERE status = 'CANCELLED') as cancelled_orders,
-       COUNT(*) FILTER (WHERE status = 'RETURNED') as returned_orders,
+       COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM sub_orders so WHERE so.order_id = orders.id AND so.status = 'DELIVERED')) as delivered_orders,
+       COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM sub_orders so WHERE so.order_id = orders.id AND so.status = 'CANCELLED')) as cancelled_orders,
+       COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM sub_orders so WHERE so.order_id = orders.id AND so.status = 'RETURNED')) as returned_orders,
        COALESCE(AVG(total_amount), 0) as aov
      FROM orders
      WHERE DATE(created_at) = $1`,
@@ -209,15 +210,17 @@ export async function runDailyRollup(db, targetDate = null) {
   const returnedOrders = parseInt(orderAgg[0]?.returned_orders || 0, 10);
   const aov = parseFloat(orderAgg[0]?.aov || 0);
 
-  // 2. Aggregate Platform Net Revenue (platform fee / commission cuts)
+  // 2. Aggregate Platform Net Revenue (platform's share of the retail margin).
+  // WHY no .catch fallback: this used to read a non-existent `platform_fee` column and swallow
+  // the error, so Net Revenue was silently `gmv * 0.08`. A broken query must fail loudly.
   const { rows: revAgg } = await db.query(
-    `SELECT COALESCE(SUM(platform_fee), 0) as net_revenue
+    `SELECT COALESCE(SUM(platform_margin), 0) as net_revenue
      FROM sub_orders
      WHERE DATE(created_at) = $1 AND status != 'CANCELLED'`,
     [dateStr]
-  ).catch(() => ({ rows: [{ net_revenue: (gmv * 0.08).toFixed(2) }] }));
+  );
 
-  const platformNetRevenue = parseFloat(revAgg[0]?.net_revenue || (gmv * 0.08).toFixed(2));
+  const platformNetRevenue = parseFloat(revAgg[0]?.net_revenue || 0);
   const takeRatePct = gmv > 0 ? parseFloat(((platformNetRevenue / gmv) * 100).toFixed(2)) : 8.00;
 
   // 3. User signups on the target date

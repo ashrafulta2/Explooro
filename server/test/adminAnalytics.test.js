@@ -106,7 +106,7 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
             ],
           };
         }
-        if (sql.includes('FROM sub_orders') && sql.includes('platform_fee')) {
+        if (sql.includes('FROM sub_orders') && sql.includes('platform_margin')) {
           return {
             rows: [{ net_revenue: '10000.00' }], // 8% of 125,000
           };
