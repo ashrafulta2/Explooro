@@ -464,17 +464,13 @@ export async function updateGlobalSplit(req, reply) {
     extra_markup_platform_pct: extraMarkupPlatform,
   };
 
-  // Update in platform_settings
-  try {
-    await db.query(
-      `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
-       VALUES ('commission.default_splits', $1::jsonb, 'OBJECT', 'Default Commission Splits', 'ডিফল্ট কমিশন বণ্টন', 'finance', now())
-       ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
-      [JSON.stringify(globalPayload)]
-    );
-  } catch {
-    // Ignore schema errors in test
-  }
+  // WHY: no try/catch; a failed write must surface as a 500, not a success message.
+  await db.query(
+    `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
+     VALUES ('commission.default_splits', $1::jsonb, 'OBJECT', 'Default Commission Splits', 'ডিফল্ট কমিশন বণ্টন', 'finance', now())
+     ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
+    [JSON.stringify(globalPayload)]
+  );
 
   // Record audit log
   await writeAudit(db, {
@@ -596,16 +592,12 @@ export async function updateTierBonuses(req, reply) {
   const tiers = req.body?.tiers || [];
   const reason = req.body?.reason || 'Trust tier commission bonus adjustment';
 
-  try {
-    await db.query(
-      `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
-       VALUES ('finance.tier_bonuses', $1::jsonb, 'OBJECT', 'Trust Tier Bonuses', 'ট্রাস্ট টিয়ার বোনাস', 'finance', now())
-       ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
-      [JSON.stringify(tiers)]
-    );
-  } catch {
-    // Fallback in tests
-  }
+  await db.query(
+    `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
+     VALUES ('finance.tier_bonuses', $1::jsonb, 'OBJECT', 'Trust Tier Bonuses', 'ট্রাস্ট টিয়ার বোনাস', 'finance', now())
+     ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
+    [JSON.stringify(tiers)]
+  );
 
   await writeAudit(db, {
     actor_id: req.user?.id || null,
