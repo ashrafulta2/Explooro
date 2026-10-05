@@ -185,7 +185,7 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
         if (sql.includes('FROM payout_requests') && sql.includes('FAILED')) {
           return { rows: [{ failed_payouts: 1 }] };
         }
-        if (sql.includes('FROM sub_orders') && sql.includes('cod_settled_at IS NULL')) {
+        if (sql.includes('FROM sub_orders') && sql.includes('cod_reconciliation')) {
           return { rows: [{ unreconciled_cod: 15 }] };
         }
         if (sql.includes('FROM webhook_deliveries') && sql.includes('DEAD_LETTER')) {

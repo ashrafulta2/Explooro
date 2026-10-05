@@ -265,13 +265,16 @@ export async function runDailyRollup(db, targetDate = null) {
   ).catch(() => ({ rows: [{ pending_payouts: 0 }] }));
   const pendingPayoutLiability = parseFloat(payoutAgg[0]?.pending_payouts || 0);
 
-  // 6. COD Exposure (Dispatched sub-orders with COD)
+  // 6. COD Exposure: cash still to be collected on COD sub-orders that are packed or on the road.
+  // WHY these statuses / no .catch: 'DISPATCHED' is not a sub_orders status (the real ones are
+  // PACKED, SHIPPED, IN_TRANSIT), so the old filter matched at most PACKED and the swallowed error
+  // path hid any breakage.
   const { rows: codAgg } = await db.query(
     `SELECT COALESCE(SUM(so.total_amount), 0) as cod_exposure
      FROM sub_orders so
      JOIN orders o ON o.id = so.order_id
-     WHERE o.payment_method = 'COD' AND so.status IN ('DISPATCHED', 'PACKED')`
-  ).catch(() => ({ rows: [{ cod_exposure: 0 }] }));
+     WHERE o.payment_method = 'COD' AND so.status IN ('PACKED', 'SHIPPED', 'IN_TRANSIT')`
+  );
   const codExposure = parseFloat(codAgg[0]?.cod_exposure || 0);
 
   // 7. Disputes
@@ -610,12 +613,18 @@ export async function getOperationalAlerts(db) {
   const failedPayouts = parseInt(failPayoutRows[0]?.failed_payouts || 0, 10);
 
   // 5. Unreconciled COD orders
+  // WHY cod_reconciliation + no .catch: `sub_orders.cod_settled_at` never existed — settlement is
+  // tracked in cod_reconciliation (same MATCHED/RESOLVED definition as the finance dashboard), and
+  // the swallowed error pinned this alert at 0. A delivered COD sub-order with no reconciliation
+  // row yet is unreconciled too.
   const { rows: unrecCodRows } = await db.query(
     `SELECT COUNT(*) as unreconciled_cod
      FROM sub_orders so
      JOIN orders o ON o.id = so.order_id
-     WHERE o.payment_method = 'COD' AND so.status = 'DELIVERED' AND so.cod_settled_at IS NULL`
-  ).catch(() => ({ rows: [{ unreconciled_cod: 0 }] }));
+     LEFT JOIN cod_reconciliation cr ON cr.sub_order_id = so.id
+     WHERE o.payment_method = 'COD' AND so.status = 'DELIVERED'
+       AND (cr.id IS NULL OR cr.status NOT IN ('MATCHED', 'RESOLVED'))`
+  );
   const unreconciledCod = parseInt(unrecCodRows[0]?.unreconciled_cod || 0, 10);
 
   // 6. Dead-Letter Queue (DLQ) webhooks or stuck events
