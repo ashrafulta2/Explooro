@@ -440,9 +440,7 @@ export function assertRollupDate(date, today = new Date()) {
 
 /** The stored rollup for one day, or null — used as the audit row's `before` snapshot. */
 export async function getRollupForDate(db, day) {
-  const { rows } = await db
-    .query(`SELECT * FROM daily_analytics_rollups WHERE rollup_date = $1`, [day])
-    .catch(() => ({ rows: [] }));
+  const { rows } = await db.query(`SELECT * FROM daily_analytics_rollups WHERE rollup_date = $1`, [day]);
   return rows[0] || null;
 }
 
@@ -458,7 +456,7 @@ export async function getExecutiveOverview(db, { timeframe = '30d', from = null,
      WHERE rollup_date >= $1 AND rollup_date <= $2
      ORDER BY rollup_date ASC`,
     [range.from, range.to]
-  ).catch(() => ({ rows: [] }));
+  );
 
   // Previous comparison period rollups (same length, immediately before `from`)
   const { rows: prevRows } = await db.query(
@@ -466,13 +464,11 @@ export async function getExecutiveOverview(db, { timeframe = '30d', from = null,
      WHERE rollup_date >= $1 AND rollup_date < $2
      ORDER BY rollup_date ASC`,
     [range.prevFrom, range.from]
-  ).catch(() => ({ rows: [] }));
+  );
 
   // When the rollups were last actually computed — the UI shows this so an admin can tell a stale
   // dashboard from a live one. (This used to report `new Date()`, i.e. always "just now".)
-  const { rows: lastRows } = await db
-    .query(`SELECT MAX(created_at) AS last_rollup_at FROM daily_analytics_rollups`)
-    .catch(() => ({ rows: [] }));
+  const { rows: lastRows } = await db.query(`SELECT MAX(created_at) AS last_rollup_at FROM daily_analytics_rollups`);
   const lastRollupRaw = lastRows[0]?.last_rollup_at ?? null;
   const lastRollupAt = lastRollupRaw ? new Date(lastRollupRaw).toISOString() : null;
 
@@ -749,16 +745,19 @@ export async function getSystemHealth(db, cache = null) {
      FROM job_runs
      ORDER BY started_at DESC
      LIMIT 15`
-  ).catch(() => ({ rows: [] }));
+  );
 
   // 2. Webhook deliveries health
+  // WHY 'DELIVERED' / no .catch: 'SUCCESS' is not a webhook_deliveries status (PENDING, DELIVERED,
+  // FAILED, DEAD_LETTER), so the success rate was computed from a status that never occurs, and a
+  // swallowed error would have reported an empty queue as healthy.
   const { rows: webhookStats } = await db.query(
     `SELECT
        COUNT(*) as total_deliveries,
-       COUNT(*) FILTER (WHERE status = 'SUCCESS') as successful_deliveries,
+       COUNT(*) FILTER (WHERE status = 'DELIVERED') as successful_deliveries,
        COUNT(*) FILTER (WHERE status = 'DEAD_LETTER') as dlq_count
      FROM webhook_deliveries`
-  ).catch(() => ({ rows: [{ total_deliveries: 0, successful_deliveries: 0, dlq_count: 0 }] }));
+  );
 
   const totalWebhooks = parseInt(webhookStats[0]?.total_deliveries || 0, 10);
   const successWebhooks = parseInt(webhookStats[0]?.successful_deliveries || 0, 10);
@@ -816,19 +815,18 @@ export async function getSystemHealth(db, cache = null) {
  */
 export async function triggerManualBackup(db, { userId = null, type = 'MANUAL' } = {}) {
   // 1. Gather table row counts
-  const tables = ['users', 'orders', 'sub_orders', 'products', 'wallets', 'ledger_entries', 'virtual_stores'];
+  const tables = ['users', 'orders', 'sub_orders', 'products', 'wallets', 'ledger_transactions', 'virtual_stores'];
   const tableCounts = {};
   let totalRows = 0;
 
   for (const tbl of tables) {
-    try {
-      const { rows } = await db.query(`SELECT COUNT(*) as count FROM ${tbl}`);
-      const count = parseInt(rows[0]?.count || 0, 10);
-      tableCounts[tbl] = count;
-      totalRows += count;
-    } catch {
-      tableCounts[tbl] = 0;
-    }
+    // WHY no try/catch: a missing table used to be recorded as 0 rows, so a snapshot's checksum
+    // looked valid while covering nothing (`ledger_entries` never existed). `tbl` is from the
+    // fixed list above, never user input.
+    const { rows } = await db.query(`SELECT COUNT(*) as count FROM ${tbl}`);
+    const count = parseInt(rows[0]?.count || 0, 10);
+    tableCounts[tbl] = count;
+    totalRows += count;
   }
 
   // 2. Generate deterministic SHA-256 fingerprint
@@ -873,7 +871,7 @@ export async function getBackupHistory(db, { limit = 20 } = {}) {
      ORDER BY b.created_at DESC
      LIMIT $1`,
     [limit]
-  ).catch(() => ({ rows: [] }));
+  );
 
   return {
     backups: rows,
