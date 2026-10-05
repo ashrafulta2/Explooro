@@ -337,66 +337,49 @@ export async function getProfitSplits(req, reply) {
     updated_by: 'Platform Default',
   };
 
-  try {
-    const { rows } = await db.query(
-      `SELECT key, value_json, updated_at FROM platform_settings WHERE key = 'commission.default_splits'`
-    );
-    for (const r of rows) {
-      if (r.value_json) {
-        globalSplit.saler_split_pct = parseFloat(r.value_json.saler_split_pct ?? 40);
-        globalSplit.platform_split_pct = parseFloat(r.value_json.platform_split_pct ?? 60);
-        globalSplit.min_margin_pct = parseFloat(r.value_json.min_margin_pct ?? 5);
-        globalSplit.platform_default_profit_pct = parseFloat(r.value_json.platform_default_profit_pct ?? 10);
-        globalSplit.saler_default_profit_pct = parseFloat(r.value_json.saler_default_profit_pct ?? 20);
-        globalSplit.extra_markup_platform_pct = parseFloat(r.value_json.extra_markup_platform_pct ?? 20);
-        if (r.updated_at) globalSplit.updated_at = r.updated_at;
-      }
+  // WHY: query failures propagate (500) instead of falling back to demo data; a Finance screen
+  // showing invented splits or audit entries is worse than an error the admin can see.
+  const { rows: settingRows } = await db.query(
+    `SELECT key, value_json, updated_at FROM platform_settings WHERE key = 'commission.default_splits'`
+  );
+  for (const r of settingRows) {
+    if (r.value_json) {
+      globalSplit.saler_split_pct = parseFloat(r.value_json.saler_split_pct ?? 40);
+      globalSplit.platform_split_pct = parseFloat(r.value_json.platform_split_pct ?? 60);
+      globalSplit.min_margin_pct = parseFloat(r.value_json.min_margin_pct ?? 5);
+      globalSplit.platform_default_profit_pct = parseFloat(r.value_json.platform_default_profit_pct ?? 10);
+      globalSplit.saler_default_profit_pct = parseFloat(r.value_json.saler_default_profit_pct ?? 20);
+      globalSplit.extra_markup_platform_pct = parseFloat(r.value_json.extra_markup_platform_pct ?? 20);
+      if (r.updated_at) globalSplit.updated_at = r.updated_at;
     }
-  } catch {
-    // Graceful fallback to default in test/mock DB environments
   }
 
   // 2. Read category overrides
-  let categories = [
-    { id: 1, name_en: 'Fashion & Apparel', name_bn: 'ফ্যাশন ও পোশাক', slug: 'fashion', saler_split_pct: 45.0, platform_split_pct: 55.0, is_override: true },
-    { id: 2, name_en: 'Electronics & Gadgets', name_bn: 'ইলেকট্রনিক্স ও গ্যাজেট', slug: 'electronics', saler_split_pct: 35.0, platform_split_pct: 65.0, is_override: true },
-    { id: 3, name_en: 'Health & Beauty', name_bn: 'স্বাস্থ্য ও রূপচর্চা', slug: 'beauty', saler_split_pct: 42.0, platform_split_pct: 58.0, is_override: true },
-    { id: 4, name_en: 'Home & Kitchen', name_bn: 'গৃহস্থালি ও রান্নাঘর', slug: 'home', saler_split_pct: 40.0, platform_split_pct: 60.0, is_override: false },
-    { id: 5, name_en: 'Grocery & Organic Food', name_bn: 'মুদি ও অর্গানিক খাদ্য', slug: 'grocery', saler_split_pct: 30.0, platform_split_pct: 70.0, is_override: true },
-    { id: 6, name_en: 'Books & Stationery', name_bn: 'বই ও স্টেশনারি', slug: 'books', saler_split_pct: 40.0, platform_split_pct: 60.0, is_override: false },
-  ];
-
   // WHY: overrides live in commission_rules (scope CATEGORY) because that is the table
   // pricing.service.js resolves against; the categories table has no split columns.
-  try {
-    const { rows } = await db.query(
-      `SELECT c.id, c.name_en, c.name_bn, c.slug,
-              r.saler_split_pct, r.platform_split_pct, r.created_at AS override_at
-       FROM categories c
-       LEFT JOIN LATERAL (
-         SELECT saler_split_pct, platform_split_pct, created_at
-         FROM commission_rules
-         WHERE scope_type = 'CATEGORY' AND scope_ref = c.id::text
-           AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
-         ORDER BY id DESC LIMIT 1
-       ) r ON true
-       ORDER BY c.id ASC`
-    );
-    if (rows && rows.length > 0) {
-      categories = rows.map((c) => ({
-        id: c.id,
-        name_en: c.name_en,
-        name_bn: c.name_bn,
-        slug: c.slug,
-        saler_split_pct: c.saler_split_pct != null ? parseFloat(c.saler_split_pct) : globalSplit.saler_split_pct,
-        platform_split_pct: c.platform_split_pct != null ? parseFloat(c.platform_split_pct) : globalSplit.platform_split_pct,
-        is_override: c.saler_split_pct != null,
-        updated_at: c.override_at ?? null,
-      }));
-    }
-  } catch {
-    // Database schema fallback
-  }
+  const { rows: catRows } = await db.query(
+    `SELECT c.id, c.name_en, c.name_bn, c.slug,
+            r.saler_split_pct, r.platform_split_pct, r.created_at AS override_at
+     FROM categories c
+     LEFT JOIN LATERAL (
+       SELECT saler_split_pct, platform_split_pct, created_at
+       FROM commission_rules
+       WHERE scope_type = 'CATEGORY' AND scope_ref = c.id::text
+         AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
+       ORDER BY id DESC LIMIT 1
+     ) r ON true
+     ORDER BY c.id ASC`
+  );
+  const categories = catRows.map((c) => ({
+    id: c.id,
+    name_en: c.name_en,
+    name_bn: c.name_bn,
+    slug: c.slug,
+    saler_split_pct: c.saler_split_pct != null ? parseFloat(c.saler_split_pct) : globalSplit.saler_split_pct,
+    platform_split_pct: c.platform_split_pct != null ? parseFloat(c.platform_split_pct) : globalSplit.platform_split_pct,
+    is_override: c.saler_split_pct != null,
+    updated_at: c.override_at ?? null,
+  }));
 
   // 3. Read trust tier bonuses
   const tiers = [
@@ -407,32 +390,21 @@ export async function getProfitSplits(req, reply) {
   ];
 
   // 4. Read audit logs
-  let auditLog = [
-    { id: 101, actor: 'Super Admin', scope: 'GLOBAL', before: '38% Saler / 62% Platform', after: '40% Saler / 60% Platform', reason: 'Platform launch baseline normalization', created_at: '2026-08-25T11:20:00Z' },
-    { id: 102, actor: 'Super Admin', scope: 'CATEGORY: Grocery', before: '40% / 60%', after: '30% / 70%', reason: 'Low margin grocery perishable category override', created_at: '2026-08-25T11:00:00Z' },
-  ];
-
-  try {
-    const { rows } = await db.query(
-      `SELECT id, actor_id, target_type, target_ref, before_json, after_json, metadata_json, created_at
-       FROM audit_logs
-       WHERE target_type IN ('COMMISSION_SPLIT', 'PROFIT_SPLIT')
-       ORDER BY id DESC LIMIT 10`
-    );
-    if (rows && rows.length > 0) {
-      auditLog = rows.map((r) => ({
-        id: r.id,
-        actor: r.actor_id ? `Admin #${r.actor_id}` : 'System',
-        scope: r.target_ref || r.target_type,
-        before: JSON.stringify(r.before_json || {}),
-        after: JSON.stringify(r.after_json || {}),
-        reason: r.metadata_json?.reason || 'Policy update',
-        created_at: r.created_at,
-      }));
-    }
-  } catch {
-    // Keep fallback audit logs
-  }
+  const { rows: auditRows } = await db.query(
+    `SELECT id, actor_id, target_type, target_ref, before_json, after_json, metadata_json, created_at
+     FROM audit_logs
+     WHERE target_type IN ('COMMISSION_SPLIT', 'PROFIT_SPLIT')
+     ORDER BY id DESC LIMIT 10`
+  );
+  const auditLog = auditRows.map((r) => ({
+    id: r.id,
+    actor: r.actor_id ? `Admin #${r.actor_id}` : 'System',
+    scope: r.target_ref || r.target_type,
+    before: JSON.stringify(r.before_json || {}),
+    after: JSON.stringify(r.after_json || {}),
+    reason: r.metadata_json?.reason || 'Policy update',
+    created_at: r.created_at,
+  }));
 
   const activeOverrides = categories.filter((c) => c.is_override).length;
 
