@@ -18,6 +18,7 @@ import { Modal } from '../../components/ui/Modal.js';
 import { Drawer } from '../../components/ui/Drawer.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
+import { previewPricing } from '../../services/catalog.api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatNumber, formatCurrency } from '../../services/format.js';
@@ -723,92 +724,98 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   // ---------------------------------------------------------------------------
   function openProductDrawer(product) {
     const retail = parseFloat(product.price || 0);
-    const salerSplitPct = 40;
-    const platformSplitPct = 60;
-    const marginPct = product.margin_pct ?? 18;
-    const netRetailMargin = retail * (marginPct / 100) * (100 / salerSplitPct);
-    const wholesaleCost = Math.max(0, retail - netRetailMargin);
-    const salerEarning = netRetailMargin * (salerSplitPct / 100);
-    const platformEarning = netRetailMargin - salerEarning;
+
+    // WHY fresh read: the module-level `isBn` is captured once at page build, but the drawer is
+    // opened long after — and the secondary-language line must follow the language selected NOW.
+    const bn = getLanguage() === 'bn';
+    const primaryTitle = bn ? (product.title_bn || product.title_en) : (product.title_en || product.title_bn);
+    // Only the *other* language is shown as a subtitle, and only in Bangla mode — an English
+    // admin must never see Bangla copy they did not ask for.
+    const secondaryTitle = bn && product.title_bn ? product.title_en : '';
+    const categoryName = bn ? (product.category_name_bn || product.category) : product.category;
+    const tier = ['elite', 'verified'].includes(product.supplier_tier) ? product.supplier_tier : 'standard';
+    const description = bn
+      ? (product.description_bn || product.description_en)
+      : (product.description_en || product.description_bn);
+    const lowStock = isLow(product);
+    const outOfStock = (product.stock ?? 0) === 0;
+    const stockClass = outOfStock ? ' catalog-drawer__stat-value--danger' : lowStock ? ' catalog-drawer__stat-value--warning' : '';
+    const esc = (v) => String(v ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
     const drawerContent = document.createElement('div');
-    drawerContent.style.display = 'flex';
-    drawerContent.style.flexDirection = 'column';
-    drawerContent.style.gap = 'var(--space-5)';
+    drawerContent.className = 'catalog-drawer';
 
     drawerContent.innerHTML = `
-      <div style="border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-2); border: 1px solid var(--border-strong);">
-        <img class="catalog-drawer-hero-img" src="${product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80'}" alt="${product.title_en}" style="width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block;" />
+      <div class="catalog-drawer__hero">
+        <img class="catalog-drawer-hero-img" src="${esc(product.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=80')}" alt="${esc(primaryTitle)}" />
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: var(--space-2);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-2);">
-          <h3 style="font-size: var(--text-lg); font-weight: 700; margin: 0; color: var(--text-primary); line-height: 1.3;">
-            ${product.title_en}
-          </h3>
-          <span class="catalog-item-ref">${product.ref}</span>
-        </div>
-        <p style="font-size: var(--text-sm); color: var(--text-muted); margin: 0;">${product.title_bn || ''}</p>
-        <div style="display: flex; gap: var(--space-2); margin-top: var(--space-1); flex-wrap: wrap;">
-          <span class="badge badge--neutral">${product.category}</span>
-          <span class="badge badge--${product.supplier_tier === 'elite' ? 'brand' : 'success'}">${product.supplier_tier || 'verified'} ${t('admin_catalog.supplier_tier_suffix', 'supplier')}</span>
+      <section class="catalog-drawer__intro">
+        <h3 class="catalog-drawer__title">${esc(primaryTitle)}</h3>
+        ${secondaryTitle ? `<p class="catalog-drawer__subtitle">${esc(secondaryTitle)}</p>` : ''}
+        <div class="catalog-drawer__badges">
+          <span class="badge badge--neutral">${esc(categoryName || t('admin_catalog.uncategorised', 'General'))}</span>
+          <span class="badge badge--${tier === 'elite' ? 'brand' : tier === 'verified' ? 'success' : 'neutral'}">${t(`admin_catalog.tier_${tier}`, `${tier} supplier`)}</span>
           ${product.is_flash_sale ? `<span class="badge badge--warning">${t('admin_catalog.flash_sale_active_badge', '🔥 Flash Sale Active')}</span>` : ''}
         </div>
-      </div>
+      </section>
 
-      <!-- Financial Split Breakdown -->
-      <div style="background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3);">
-        <div style="font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">
-          ${t('admin_catalog.financial_split_title', 'Commerce Margin & Settlement Split')}
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
-          <span style="color: var(--text-muted);">${t('admin_catalog.suggested_retail', 'Suggested Retail Price')}:</span>
-          <strong style="color: var(--text-primary);">${formatCurrency(retail)}</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
-          <span style="color: var(--text-muted);">${t('admin_catalog.wholesale_cost', 'Supplier Wholesale Cost')}:</span>
-          <span>${formatCurrency(wholesaleCost)}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); border-top: 1px dashed var(--border-strong); padding-top: var(--space-2);">
-          <span style="color: var(--success); font-weight: 600;">💰 ${t('admin_catalog.saler_earning', 'Saler Reseller Earning (40%)')}:</span>
-          <strong style="color: var(--success);">${formatCurrency(salerEarning)}</strong>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: var(--text-sm);">
-          <span style="color: var(--text-muted);">${t('admin_catalog.platform_fee', 'Platform Escrow Fee (60%)')}:</span>
-          <span style="color: var(--text-muted);">${formatCurrency(platformEarning)}</span>
-        </div>
-      </div>
+      <section class="catalog-drawer__card">
+        <h4 class="catalog-drawer__card-title">${t('admin_catalog.financial_split_title', 'Commerce Margin & Settlement Split')}</h4>
+        <dl class="catalog-drawer__rows catalog-drawer__split"></dl>
+      </section>
 
-      <!-- Inventory & Supplier Details -->
-      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-3); font-size: var(--text-xs);">
-        <div style="background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-3);">
-          <div style="color: var(--text-muted);">${t('admin_catalog.stock_level', 'Stock Quantity')}</div>
-          <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-top: 2px;">${formatNumber(product.stock ?? 0)} ${t('admin_catalog.units', 'units')}</div>
+      <section class="catalog-drawer__stats">
+        <div class="catalog-drawer__stat">
+          <span class="catalog-drawer__stat-label">${t('admin_catalog.stock_level', 'Stock Quantity')}</span>
+          <span class="catalog-drawer__stat-value${stockClass}">${formatNumber(product.stock ?? 0)} ${t('admin_catalog.units', 'units')}</span>
         </div>
-        <div style="background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-3);">
-          <div style="color: var(--text-muted);">${t('admin_catalog.origin_district', 'District Origin')}</div>
-          <div style="font-size: var(--text-base); font-weight: 700; color: var(--text-primary); margin-top: 2px;">📍 ${product.district || 'Dhaka'}</div>
+        <div class="catalog-drawer__stat">
+          <span class="catalog-drawer__stat-label">${t('admin_catalog.origin_district', 'District Origin')}</span>
+          <span class="catalog-drawer__stat-value">📍 ${esc(product.district || 'Dhaka')}</span>
         </div>
-      </div>
+      </section>
 
-      <!-- Description -->
-      <div style="display: flex; flex-direction: column; gap: var(--space-1);">
-        <span style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
-          ${t('admin_catalog.description', 'Catalog Description')}
-        </span>
-        <p style="font-size: var(--text-sm); color: var(--text-primary); line-height: 1.5; margin: 0;">
-          ${product.description_en || 'High-grade commercial sample catalog product with guaranteed quality assurance.'}
-        </p>
-      </div>
+      <section class="catalog-drawer__desc">
+        <h4 class="catalog-drawer__card-title">${t('admin_catalog.description', 'Catalog Description')}</h4>
+        <p class="${description ? '' : 'catalog-drawer__empty'}">${esc(description) || t('admin_catalog.description_empty', 'No description has been added for this product yet.')}</p>
+      </section>
     `;
 
+    // WHY server-resolved: the split is a business number (product override > category rule >
+    // global rule > platform_settings), and the cost is the product's real one. The client never
+    // does split arithmetic — it renders what the pricing engine returns.
+    const splitEl = drawerContent.querySelector('.catalog-drawer__split');
+    const splitRow = (label, value, mod = '') =>
+      `<div class="catalog-drawer__row${mod}"><dt>${label}</dt><dd>${value}</dd></div>`;
+    splitEl.innerHTML = splitRow(t('admin_catalog.suggested_retail', 'Suggested Retail Price'), formatCurrency(retail), ' catalog-drawer__row--strong');
+    splitEl.insertAdjacentHTML('beforeend', `<p class="catalog-drawer__empty">${t('common.loading', 'Loading…')}</p>`);
+    previewPricing({
+      baseCost: product.base_cost,
+      wholesaleMargin: product.wholesale_margin ?? 0,
+      retailPrice: retail,
+      categoryId: product.category_id,
+      productId: product.id,
+      mode: 'split',
+    })
+      .then((pr) => {
+        splitEl.innerHTML =
+          splitRow(t('admin_catalog.suggested_retail', 'Suggested Retail Price'), formatCurrency(retail), ' catalog-drawer__row--strong') +
+          splitRow(t('admin_catalog.wholesale_cost', 'Supplier Wholesale Cost'), formatCurrency(pr.wholesale_cost)) +
+          splitRow(`💰 ${t('admin_catalog.saler_earning', { pct: formatNumber(pr.saler_split_pct) })}`, formatCurrency(pr.saler_earning), ' catalog-drawer__row--earn') +
+          splitRow(t('admin_catalog.platform_fee', { pct: formatNumber(pr.platform_split_pct) }), formatCurrency(pr.platform_earning), ' catalog-drawer__row--muted');
+      })
+      .catch(() => {
+        splitEl.innerHTML =
+          splitRow(t('admin_catalog.suggested_retail', 'Suggested Retail Price'), formatCurrency(retail), ' catalog-drawer__row--strong') +
+          `<p class="catalog-drawer__empty">${t('admin_catalog.split_unavailable', 'The settlement split could not be calculated for this product.')}</p>`;
+      });
+
     const heroImg = drawerContent.querySelector('.catalog-drawer-hero-img');
-    if (heroImg) attachImageFallback(heroImg, isBn ? (product.title_bn || product.title_en) : (product.title_en || product.title_bn), product.ref, 'catalog-drawer-hero-img catalog-drawer-hero-img--placeholder');
+    if (heroImg) attachImageFallback(heroImg, primaryTitle, product.ref, 'catalog-drawer-hero-img catalog-drawer-hero-img--placeholder');
 
     const drawerFooter = document.createElement('div');
-    drawerFooter.style.display = 'flex';
-    drawerFooter.style.gap = 'var(--space-2)';
-    drawerFooter.style.width = '100%';
+    drawerFooter.className = 'catalog-drawer__footer';
 
     const viewLiveBtn = Button({
       label: t('admin_catalog.view_marketplace', 'View on Storefront'),
@@ -821,7 +828,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     });
 
     const editBtn = Button({
-      label: t('common.edit', 'Edit Product'),
+      label: `✏️ ${t('common.edit', 'Edit')}`,
       variant: 'primary',
       size: 'sm',
       onClick: () => {

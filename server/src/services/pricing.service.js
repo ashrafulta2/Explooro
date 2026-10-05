@@ -9,9 +9,12 @@
  * Resolution hierarchy:
  *   1. Product-specific commission override in commission_rules (scope_type = 'PRODUCT')
  *   2. Category-specific commission rule in commission_rules (scope_type = 'CATEGORY')
- *   3. Global commission rule in commission_rules (scope_type = 'GLOBAL')
- *   4. Global platform_settings key ('commission.default_splits')
- *   5. Hard fallback (40% saler / 60% platform)
+ *   3. Global platform_settings key ('commission.default_splits') — the ONE global default
+ *   4. Hard fallback (40% saler / 60% platform)
+ *
+ * WHY there is no GLOBAL commission_rules step: a seeded GLOBAL row used to sit above the setting,
+ * so editing the default at /admin/finance/splits (which writes the setting) changed nothing in
+ * pricing. The global default has exactly one home; commission_rules holds only the overrides.
  *
  * Precision & Rounding Invariant:
  *   All arithmetic is strictly performed in integer paisa (1 BDT = 100 paisa) to eliminate
@@ -105,29 +108,7 @@ export async function resolveSplitPercentages(db, { productId, productRef, categ
     }
   }
 
-  // 3. Global commission rule
-  if (db) {
-    try {
-      const { rows } = await db.query(
-        `SELECT saler_split_pct, platform_split_pct
-         FROM commission_rules
-         WHERE scope_type = 'GLOBAL'
-           AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
-         ORDER BY id DESC LIMIT 1`
-      );
-      if (rows.length > 0) {
-        return {
-          salerSplitPct: parseFloat(rows[0].saler_split_pct),
-          platformSplitPct: parseFloat(rows[0].platform_split_pct),
-          ruleSource: 'GLOBAL_COMMISSION_RULE',
-        };
-      }
-    } catch {
-      // Continue to next level
-    }
-  }
-
-  // 4. Global platform_settings key
+  // 3. Global platform_settings key
   if (db) {
     try {
       const { rows } = await db.query(
@@ -148,7 +129,7 @@ export async function resolveSplitPercentages(db, { productId, productRef, categ
     }
   }
 
-  // 5. Default fallback
+  // 4. Default fallback
   return {
     salerSplitPct: 40.0,
     platformSplitPct: 60.0,

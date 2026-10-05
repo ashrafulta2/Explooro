@@ -188,13 +188,14 @@ export async function upvoteQuestion(questionId) {
  * Calls POST /api/v1/pricing/preview.
  * Pure server-calculated breakdown — client never performs split math directly.
  */
-export async function previewPricing({ baseCost, wholesaleMargin = 0, retailPrice, categoryId, productId }) {
+export async function previewPricing({ baseCost, wholesaleMargin = 0, retailPrice, categoryId, productId, mode }) {
   const payload = {
     base_cost: baseCost,
     wholesale_margin: wholesaleMargin,
     retail_price: retailPrice,
     category_id: categoryId,
     product_id: productId,
+    ...(mode ? { mode } : {}),
   };
   const { data } = await api.post('/pricing/preview', payload);
   return data.preview || data;

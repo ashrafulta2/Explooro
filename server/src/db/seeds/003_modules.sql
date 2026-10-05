@@ -499,8 +499,7 @@ ON CONFLICT (key) DO UPDATE SET
 -- Initial Platform Settings
 INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, is_sensitive)
 VALUES
-  ('default_saler_split_pct', '40.0'::jsonb, 'NUMBER', 'Default Saler Split Percentage', 'সেলার ডিফল্ট লাভ অংশ (%)', 'finance', false),
-  ('default_platform_split_pct', '60.0'::jsonb, 'NUMBER', 'Default Platform Split Percentage', 'প্ল্যাটফর্ম ডিফল্ট লাভ অংশ (%)', 'finance', false),
+  ('commission.default_splits', '{"saler_split_pct": 40, "platform_split_pct": 60, "min_margin_pct": 5, "platform_default_profit_pct": 10, "saler_default_profit_pct": 20, "extra_markup_platform_pct": 20}'::jsonb, 'OBJECT', 'Default Commission Splits', 'ডিফল্ট কমিশন বণ্টন', 'finance', false),
   ('escrow_hold_days', '7'::jsonb, 'NUMBER', 'Default Escrow Hold Days', 'ডিফল্ট এসক্রো ধরে রাখার দিন', 'finance', false),
   ('min_payout_amount', '500'::jsonb, 'NUMBER', 'Minimum Payout Amount (BDT)', 'সর্বনিম্ন উত্তোলনের পরিমাণ (টাকা)', 'finance', false),
   ('cod_otp_threshold', '2000'::jsonb, 'NUMBER', 'COD OTP Threshold (BDT)', 'সিওডি ওটিপি সীমা (টাকা)', 'trust', false),
@@ -513,6 +512,5 @@ VALUES
   ('localization.allow_user_override', 'true'::jsonb, 'BOOLEAN', 'Let visitors choose their own language', 'দর্শনার্থীদের নিজের ভাষা বেছে নিতে দিন', 'localization', false)
 ON CONFLICT (key) DO NOTHING;
 
--- Initial Global Commission Split Rule (40% saler, 60% platform)
-INSERT INTO commission_rules (scope_type, scope_ref, saler_split_pct, platform_split_pct, min_margin_pct)
-VALUES ('GLOBAL', NULL, 40.00, 60.00, 10.00);
+-- The global split default is the `commission.default_splits` setting above — deliberately NOT a
+-- GLOBAL commission_rules row (see pricing.service.js). commission_rules holds overrides only.

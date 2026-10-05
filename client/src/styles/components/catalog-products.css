@@ -98,3 +98,36 @@
 
 /* Product Inspector Drawer — hero image + its onerror fallback */
 .catalog-drawer-hero-img--placeholder { width: 100%; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; font-size: var(--text-3xl, var(--text-2xl)); font-weight: 700; }
+
+/* Product Inspector Drawer — layout.
+   WHY flex-shrink:0 on every child: the drawer body is a fixed-height scroll area, so a plain flex
+   column squashes the hero image and clips the title instead of scrolling (same trap as cart.css). */
+.catalog-drawer { display: flex; flex-direction: column; gap: var(--space-5); }
+.catalog-drawer > * { flex-shrink: 0; min-width: 0; }
+.catalog-drawer__hero { border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-2); border: 1px solid var(--border-strong); }
+.catalog-drawer__hero img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; }
+.catalog-drawer__intro { display: flex; flex-direction: column; gap: var(--space-2); }
+.catalog-drawer__title { margin: 0; font-size: var(--text-lg); font-weight: 700; line-height: 1.35; color: var(--text-primary); overflow-wrap: anywhere; }
+.catalog-drawer__subtitle { margin: 0; font-size: var(--text-sm); color: var(--text-muted); }
+.catalog-drawer__badges { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.catalog-drawer__card { background: var(--surface-2); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.catalog-drawer__card-title { margin: 0; font-size: var(--text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.catalog-drawer__rows { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.catalog-drawer__row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); font-size: var(--text-sm); }
+.catalog-drawer__row dt { color: var(--text-muted); }
+.catalog-drawer__row dd { margin: 0; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-primary); }
+.catalog-drawer__row--strong dd { font-weight: 700; }
+.catalog-drawer__row--earn { border-top: 1px dashed var(--border-strong); padding-top: var(--space-3); }
+.catalog-drawer__row--earn dt, .catalog-drawer__row--earn dd { color: var(--success); font-weight: 700; }
+.catalog-drawer__row--muted dd { color: var(--text-muted); }
+.catalog-drawer__stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.catalog-drawer__stat { display: flex; flex-direction: column; gap: 2px; background: var(--surface-1); border: 1px solid var(--border-strong); border-radius: var(--radius-md); padding: var(--space-3); }
+.catalog-drawer__stat-label { font-size: var(--text-xs); color: var(--text-muted); }
+.catalog-drawer__stat-value { font-size: var(--text-base); font-weight: 700; color: var(--text-primary); }
+.catalog-drawer__stat-value--danger { color: var(--danger); }
+.catalog-drawer__stat-value--warning { color: var(--warning); }
+.catalog-drawer__desc { display: flex; flex-direction: column; gap: var(--space-2); }
+.catalog-drawer__desc p { margin: 0; font-size: var(--text-sm); line-height: 1.6; color: var(--text-primary); overflow-wrap: anywhere; }
+.catalog-drawer__empty { color: var(--text-muted) !important; font-style: italic; }
+.catalog-drawer__footer { display: flex; gap: var(--space-3); width: 100%; }
+.catalog-drawer__footer > * { flex: 1; }

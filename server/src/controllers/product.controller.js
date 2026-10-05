@@ -161,6 +161,7 @@ export async function previewPricing(req, reply) {
     retail_price,
     category_id,
     product_id,
+    mode,
   } = req.body || {};
 
   const preview = await pricingService.previewPricing(db, {
@@ -169,6 +170,9 @@ export async function previewPricing(req, reply) {
     retailPrice: retail_price,
     categoryId: category_id ? parseInt(category_id, 10) : undefined,
     productId: product_id ? parseInt(product_id, 10) : undefined,
+    // WHY whitelisted: 'split' is the admin inspector's retail-minus-wholesale view driven by the
+    // stored commission split; anything else keeps the saler-facing tiered default.
+    mode: mode === 'split' ? 'split' : 'tiered',
   });
 
   return reply.send({ data: { preview }, preview });

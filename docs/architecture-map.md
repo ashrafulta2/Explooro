@@ -121,7 +121,7 @@ The 35 most likely change requests, with exact paths.
 
 | I want to… | Change |
 | :--- | :--- |
-| Change the profit split (40/60) | `platform_settings` row `default_saler_split_pct` via `/admin/finance/splits`. **Never in code** — `services/pricing.service.js` reads it |
+| Change the profit split (40/60) | `platform_settings` row `commission.default_splits` via `/admin/finance/splits`. **Never in code** — `services/pricing.service.js` reads it |
 | Add a category- or product-specific split | `commission_rules` table; resolution order is in `services/pricing.service.js` |
 | Change the escrow hold period | Module setting `escrow_engine.hold_days` via `/admin/platform/modules`. Read by `services/vault.service.js` |
 | Change the minimum payout | `platform_settings.min_payout_amount`. Enforced in `services/payout.service.js` |

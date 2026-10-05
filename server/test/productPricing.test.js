@@ -342,6 +342,17 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
     assert.equal(result.paisa.platform_earning, 12000);
   });
 
+  test('Global default has one home: a stale GLOBAL commission_rules row never shadows the platform setting', async () => {
+    mockDb.commissionRules.push({ scope_type: 'GLOBAL', scope_ref: null, saler_split_pct: 30, platform_split_pct: 70 });
+    mockDb.platformSettings['commission.default_splits'] = { saler_split_pct: 55, platform_split_pct: 45 };
+    const split = await resolveSplitPercentages(mockDb);
+    assert.equal(split.salerSplitPct, 55);
+    assert.equal(split.platformSplitPct, 45);
+    assert.equal(split.ruleSource, 'PLATFORM_SETTINGS');
+    mockDb.commissionRules.length = 0;
+    mockDb.platformSettings['commission.default_splits'] = { saler_split_pct: 40, platform_split_pct: 60 };
+  });
+
   test('Acceptance 2: Dynamic split resolution changes calculations when platform settings change without code deploy', async () => {
     // 1. Initial 40/60 split
     mockDb.platformSettings['commission.default_splits'] = { saler_split_pct: 40, platform_split_pct: 60 };

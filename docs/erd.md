@@ -411,7 +411,7 @@ CREATE TABLE platform_settings (            -- ⚠️ referenced by v1.0 but nev
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at          TIMESTAMPTZ
 );
--- Seeded keys: default_saler_split_pct, default_platform_split_pct, escrow_hold_days,
+-- Seeded keys: commission.default_splits, escrow_hold_days,
 -- min_payout_amount, cod_otp_threshold, high_value_refund_threshold, jit_window_minutes,
 -- max_grant_days, return_window_days, coin_redemption_rate …
 

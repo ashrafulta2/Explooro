@@ -339,10 +339,10 @@ export async function getProfitSplits(req, reply) {
 
   try {
     const { rows } = await db.query(
-      `SELECT key, value_json, updated_at FROM platform_settings WHERE key IN ('commission.default_splits', 'default_saler_split_pct')`
+      `SELECT key, value_json, updated_at FROM platform_settings WHERE key = 'commission.default_splits'`
     );
     for (const r of rows) {
-      if (r.key === 'commission.default_splits' && r.value_json) {
+      if (r.value_json) {
         globalSplit.saler_split_pct = parseFloat(r.value_json.saler_split_pct ?? 40);
         globalSplit.platform_split_pct = parseFloat(r.value_json.platform_split_pct ?? 60);
         globalSplit.min_margin_pct = parseFloat(r.value_json.min_margin_pct ?? 5);
@@ -350,9 +350,6 @@ export async function getProfitSplits(req, reply) {
         globalSplit.saler_default_profit_pct = parseFloat(r.value_json.saler_default_profit_pct ?? 20);
         globalSplit.extra_markup_platform_pct = parseFloat(r.value_json.extra_markup_platform_pct ?? 20);
         if (r.updated_at) globalSplit.updated_at = r.updated_at;
-      } else if (r.key === 'default_saler_split_pct' && r.value_json) {
-        globalSplit.saler_split_pct = parseFloat(r.value_json);
-        globalSplit.platform_split_pct = 100 - globalSplit.saler_split_pct;
       }
     }
   } catch {
@@ -369,11 +366,21 @@ export async function getProfitSplits(req, reply) {
     { id: 6, name_en: 'Books & Stationery', name_bn: 'বই ও স্টেশনারি', slug: 'books', saler_split_pct: 40.0, platform_split_pct: 60.0, is_override: false },
   ];
 
+  // WHY: overrides live in commission_rules (scope CATEGORY) because that is the table
+  // pricing.service.js resolves against; the categories table has no split columns.
   try {
     const { rows } = await db.query(
-      `SELECT id, name_en, name_bn, slug, saler_split_pct, platform_split_pct, updated_at
-       FROM categories
-       ORDER BY id ASC`
+      `SELECT c.id, c.name_en, c.name_bn, c.slug,
+              r.saler_split_pct, r.platform_split_pct, r.created_at AS override_at
+       FROM categories c
+       LEFT JOIN LATERAL (
+         SELECT saler_split_pct, platform_split_pct, created_at
+         FROM commission_rules
+         WHERE scope_type = 'CATEGORY' AND scope_ref = c.id::text
+           AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
+         ORDER BY id DESC LIMIT 1
+       ) r ON true
+       ORDER BY c.id ASC`
     );
     if (rows && rows.length > 0) {
       categories = rows.map((c) => ({
@@ -381,10 +388,10 @@ export async function getProfitSplits(req, reply) {
         name_en: c.name_en,
         name_bn: c.name_bn,
         slug: c.slug,
-        saler_split_pct: c.saler_split_pct ? parseFloat(c.saler_split_pct) : globalSplit.saler_split_pct,
-        platform_split_pct: c.platform_split_pct ? parseFloat(c.platform_split_pct) : globalSplit.platform_split_pct,
-        is_override: Boolean(c.saler_split_pct),
-        updated_at: c.updated_at,
+        saler_split_pct: c.saler_split_pct != null ? parseFloat(c.saler_split_pct) : globalSplit.saler_split_pct,
+        platform_split_pct: c.platform_split_pct != null ? parseFloat(c.platform_split_pct) : globalSplit.platform_split_pct,
+        is_override: c.saler_split_pct != null,
+        updated_at: c.override_at ?? null,
       }));
     }
   } catch {
@@ -493,11 +500,6 @@ export async function updateGlobalSplit(req, reply) {
        ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
       [JSON.stringify(globalPayload)]
     );
-
-    await db.query(
-      `UPDATE platform_settings SET value_json = $1::jsonb, updated_at = now() WHERE key = 'default_saler_split_pct'`,
-      [JSON.stringify(saler)]
-    );
   } catch {
     // Ignore schema errors in test
   }
@@ -541,16 +543,28 @@ export async function updateCategorySplit(req, reply) {
     });
   }
 
-  try {
-    await db.query(
-      `UPDATE categories
-       SET saler_split_pct = $1, platform_split_pct = $2, updated_at = now()
-       WHERE id = $3`,
-      [saler, platform, categoryId]
-    );
-  } catch {
-    // Fallback in tests
+  if (Math.abs(saler + platform - 100) > 0.01) {
+    return reply.status(400).send({
+      error: {
+        code: 'SPLIT_SUM_INVALID',
+        message_en: 'Saler split and platform split must sum to exactly 100%.',
+        message_bn: 'সেলার এবং প্ল্যাটফর্মের অংশের যোগফল অবশ্যই ১০০% হতে হবে।',
+      },
+    });
   }
+
+  // WHY: close the active rule and insert the new one in a single statement so a category
+  // never has zero or two live overrides; history stays in commission_rules.
+  await db.query(
+    `WITH closed AS (
+       UPDATE commission_rules SET effective_to = now()
+       WHERE scope_type = 'CATEGORY' AND scope_ref = $1
+         AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
+     )
+     INSERT INTO commission_rules (scope_type, scope_ref, saler_split_pct, platform_split_pct, created_by)
+     VALUES ('CATEGORY', $1, $2, $3, $4)`,
+    [String(categoryId), saler, platform, req.user?.id || null]
+  );
 
   await writeAudit(db, {
     actor_id: req.user?.id || null,
@@ -578,16 +592,12 @@ export async function deleteCategorySplit(req, reply) {
   const db = req.server.db;
   const categoryId = parseInt(req.params.id, 10);
 
-  try {
-    await db.query(
-      `UPDATE categories
-       SET saler_split_pct = NULL, platform_split_pct = NULL, updated_at = now()
-       WHERE id = $1`,
-      [categoryId]
-    );
-  } catch {
-    // Fallback in tests
-  }
+  await db.query(
+    `UPDATE commission_rules SET effective_to = now()
+     WHERE scope_type = 'CATEGORY' AND scope_ref = $1
+       AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())`,
+    [String(categoryId)]
+  );
 
   await writeAudit(db, {
     actor_id: req.user?.id || null,
