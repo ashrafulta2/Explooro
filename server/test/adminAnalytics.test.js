@@ -176,10 +176,10 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
         if (sql.includes('FROM products') && sql.includes('PENDING_APPROVAL')) {
           return { rows: [{ pending_products: 7 }] };
         }
-        if (sql.includes('FROM warranty_claims') && sql.includes('72 hours')) {
-          return { rows: [{ breached_claims: 2 }] };
+        if (sql.includes('FROM warranty_claims') && sql.includes('sla_due_at')) {
+          return { rows: [{ breached_claims: 2, breached_disputes: 0 }] };
         }
-        if (sql.includes('FROM ledger_entries')) {
+        if (sql.includes('FROM ledger_transactions')) {
           return { rows: [{ total_debits: '100000.00', total_credits: '100000.00' }] }; // zero drift
         }
         if (sql.includes('FROM payout_requests') && sql.includes('FAILED')) {

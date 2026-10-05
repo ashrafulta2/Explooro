@@ -568,48 +568,55 @@ export async function getExecutiveOverview(db, { timeframe = '30d', from = null,
  * Every alert item includes a 1-click deep-link URL to the operational remedy page.
  */
 export async function getOperationalAlerts(db) {
+  // WHY no .catch on the queries below: each one used to fall back to 0 on any error, so a wrong
+  // table/column/status silently pinned its alert at "all clear". A failing query now surfaces.
   // 1. Approval queue depth (KYC + Catalog moderation)
   const { rows: kycRows } = await db.query(
     `SELECT COUNT(*) as pending_kyc FROM kyc_verifications WHERE status = 'PENDING'`
-  ).catch(() => ({ rows: [{ pending_kyc: 0 }] }));
+  );
   const pendingKyc = parseInt(kycRows[0]?.pending_kyc || 0, 10);
 
   const { rows: modRows } = await db.query(
     `SELECT COUNT(*) as pending_products FROM products WHERE status = 'PENDING_APPROVAL'`
-  ).catch(() => ({ rows: [{ pending_products: 0 }] }));
+  );
   const pendingProducts = parseInt(modRows[0]?.pending_products || 0, 10);
 
-  // 2. SLA breaches (Warranty claims > 72h or disputes unresolved)
+  // 2. SLA breaches: warranty claims and disputes past their own stored sla_due_at.
+  // WHY sla_due_at + UNDER_REVIEW: the claim status was spelled 'IN_REVIEW' (not a valid value), and
+  // a hardcoded 72h ignored the deadline each row already carries. Disputes were promised by the
+  // alert title but never counted.
   const { rows: slaRows } = await db.query(
-    `SELECT COUNT(*) as breached_claims
-     FROM warranty_claims
-     WHERE status IN ('SUBMITTED', 'IN_REVIEW')
-       AND created_at < NOW() - INTERVAL '72 hours'`
-  ).catch(() => ({ rows: [{ breached_claims: 0 }] }));
-  const breachedClaims = parseInt(slaRows[0]?.breached_claims || 0, 10);
+    `SELECT
+       (SELECT COUNT(*) FROM warranty_claims
+         WHERE status IN ('SUBMITTED', 'UNDER_REVIEW', 'ESCALATED')
+           AND sla_due_at IS NOT NULL AND sla_due_at < NOW()) as breached_claims,
+       (SELECT COUNT(*) FROM dispute_threads
+         WHERE status IN ('OPEN', 'UNDER_ARBITRATION', 'AWAITING_CUSTOMER', 'AWAITING_SELLER')
+           AND sla_due_at IS NOT NULL AND sla_due_at < NOW()) as breached_disputes`
+  );
+  const breachedClaims = parseInt(slaRows[0]?.breached_claims || 0, 10)
+    + parseInt(slaRows[0]?.breached_disputes || 0, 10);
 
   // 3. Double-entry ledger integrity
-  let ledgerDrift = false;
-  let ledgerDifference = 0.00;
-  try {
-    const { rows: driftRows } = await db.query(
-      `SELECT
-         COALESCE(SUM(debit_amount), 0) as total_debits,
-         COALESCE(SUM(credit_amount), 0) as total_credits
-       FROM ledger_entries`
-    );
-    const debits = parseFloat(driftRows[0]?.total_debits || 0);
-    const credits = parseFloat(driftRows[0]?.total_credits || 0);
-    ledgerDifference = Math.abs(debits - credits);
-    ledgerDrift = ledgerDifference > 0.01;
-  } catch {}
+  // WHY ledger_transactions: `ledger_entries` / debit_amount / credit_amount never existed, so the
+  // swallowed error made this report "zero drift" forever. Entries carry entry_type + amount.
+  const { rows: driftRows } = await db.query(
+    `SELECT
+       COALESCE(SUM(amount) FILTER (WHERE entry_type = 'DEBIT'), 0) as total_debits,
+       COALESCE(SUM(amount) FILTER (WHERE entry_type = 'CREDIT'), 0) as total_credits
+     FROM ledger_transactions`
+  );
+  const debits = parseFloat(driftRows[0]?.total_debits || 0);
+  const credits = parseFloat(driftRows[0]?.total_credits || 0);
+  const ledgerDifference = Math.abs(debits - credits);
+  const ledgerDrift = ledgerDifference > 0.01;
 
   // 4. Failed or stuck payouts
   const { rows: failPayoutRows } = await db.query(
     `SELECT COUNT(*) as failed_payouts
      FROM payout_requests
      WHERE status = 'FAILED'`
-  ).catch(() => ({ rows: [{ failed_payouts: 0 }] }));
+  );
   const failedPayouts = parseInt(failPayoutRows[0]?.failed_payouts || 0, 10);
 
   // 5. Unreconciled COD orders
@@ -632,7 +639,7 @@ export async function getOperationalAlerts(db) {
     `SELECT COUNT(*) as dlq_count
      FROM webhook_deliveries
      WHERE status = 'DEAD_LETTER'`
-  ).catch(() => ({ rows: [{ dlq_count: 0 }] }));
+  );
   const dlqCount = parseInt(dlqRows[0]?.dlq_count || 0, 10);
 
   const alerts = [
