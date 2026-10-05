@@ -7,7 +7,7 @@ import * as walletRepo from '../repositories/wallet.repository.js';
 import * as clawbackService from '../services/clawback.service.js';
 import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.js';
 import { writeAudit } from '../lib/audit.js';
-import { resolveSplitPercentages } from '../services/pricing.service.js';
+import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.js';
 
 export async function getIntegrity(req, reply) {
   const report = await vaultService.getIntegrityReport(req.server.db);
@@ -383,11 +383,12 @@ export async function getProfitSplits(req, reply) {
 
   // 3. Read trust tier bonuses
   const tiers = [
-    { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0.0, criteria_en: 'Entry tier / under ৳50,000 GMV', criteria_bn: 'প্রাথমিক স্তর / ৫০,০০০ টাকার কম জিএমভি' },
-    { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 1.0, criteria_en: 'Consistent seller, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক সেলার, ৫০হাজার-২লাখ টাকা জিএমভি' },
-    { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড', bonus_pct: 2.0, criteria_en: 'High volume, ৳200k-৳1M GMV, <1% dispute rate', criteria_bn: 'উচ্চ ভলিউম, ২লাখ-১০লাখ টাকা জিএমভি' },
-    { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 5.0, criteria_en: 'Top 1% elite reseller, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট সেলার, ১০ লাখ টাকার বেশি জিএমভি' },
-  ];
+  const tierBonuses = await resolveTierBonuses(db);
+    { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0, criteria_en: 'Entry tier / under ৳50,000 GMV', criteria_bn: 'প্রাথমিক স্তর / ৫০,০০০ টাকার কম জিএমভি' },
+    { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 0, criteria_en: 'Consistent seller, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক সেলার, ৫০হাজার-২লাখ টাকা জিএমভি' },
+    { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড', bonus_pct: 0, criteria_en: 'High volume, ৳200k-৳1M GMV, <1% dispute rate', criteria_bn: 'উচ্চ ভলিউম, ২লাখ-১০লাখ টাকা জিএমভি' },
+    { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 0, criteria_en: 'Top 1% elite reseller, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট সেলার, ১০ লাখ টাকার বেশি জিএমভি' },
+  ].map((t) => ({ ...t, bonus_pct: tierBonuses[t.tier] }));
 
   // 4. Read audit logs
   const { rows: auditRows } = await db.query(
@@ -592,6 +593,24 @@ export async function updateTierBonuses(req, reply) {
   const tiers = req.body?.tiers || [];
   const reason = req.body?.reason || 'Trust tier commission bonus adjustment';
 
+  // WHY: store only { tier, bonus_pct }; names and criteria are display text, not policy.
+  const input = Array.isArray(req.body?.tiers) ? req.body.tiers : [];
+  const tiers = input.map((t) => ({ tier: t?.tier, bonus_pct: Number(t?.bonus_pct) }));
+  const valid =
+    tiers.length > 0 &&
+    new Set(tiers.map((t) => t.tier)).size === tiers.length &&
+    tiers.every((t) => TIER_KEYS.includes(t.tier) && Number.isFinite(t.bonus_pct) && t.bonus_pct >= 0 && t.bonus_pct <= 50);
+  if (!valid) {
+    return reply.status(400).send({
+      error: {
+        code: 'TIER_BONUS_INVALID',
+        message_en: 'Each tier must be BRONZE, SILVER, GOLD or PLATINUM (once) with a bonus between 0 and 50.',
+        message_bn: 'প্রতিটি টিয়ার (ব্রোঞ্জ, সিলভার, গোল্ড বা প্ল্যাটিনাম) একবার করে থাকতে হবে এবং বোনাস ০ থেকে ৫০ এর মধ্যে হতে হবে।',
+      },
+    });
+  }
+  const before = await resolveTierBonuses(db);
+
   await db.query(
     `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
      VALUES ('finance.tier_bonuses', $1::jsonb, 'OBJECT', 'Trust Tier Bonuses', 'ট্রাস্ট টিয়ার বোনাস', 'finance', now())
@@ -605,6 +624,7 @@ export async function updateTierBonuses(req, reply) {
     action: 'UPDATE_TIER_BONUSES',
     target_type: 'COMMISSION_SPLIT',
     target_ref: 'TIER_MATRIX',
+    before_json: { tiers: before },
     after_json: { tiers },
     metadata_json: { reason, ip: req.ip },
   });
@@ -629,10 +649,7 @@ export async function simulateSplit(req, reply) {
     categoryId,
   });
 
-  let tierBonusPct = 0;
-  if (tierKey === 'SILVER') tierBonusPct = 1.0;
-  else if (tierKey === 'GOLD') tierBonusPct = 2.0;
-  else if (tierKey === 'PLATINUM') tierBonusPct = 5.0;
+  const tierBonusPct = (await resolveTierBonuses(req.server.db))[tierKey] ?? 0;
 
   const effectiveSalerPct = Math.min(100, salerSplitPct + tierBonusPct);
   const effectivePlatformPct = Math.max(0, 100 - effectiveSalerPct);

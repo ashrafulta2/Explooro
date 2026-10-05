@@ -107,10 +107,8 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     const salerDefPct = formSalerDefaultProfit || 20;
     const extraPlatPct = formExtraMarkupPlatform || 20;
 
-    let tierBonus = 0;
-    if (simTier === 'SILVER') tierBonus = 1.0;
-    else if (simTier === 'GOLD') tierBonus = 2.0;
-    else if (simTier === 'PLATINUM') tierBonus = 5.0;
+    // WHY: bonuses come from the server's finance.tier_bonuses setting, never a constant here.
+    const tierBonus = parseFloat((splitsData?.tiers || []).find((x) => x.tier === simTier)?.bonus_pct) || 0;
 
     const platformDefProfitPaisa = Math.round((costPaisa * platDefPct) / 100);
     const salerDefProfitPaisa = Math.round((costPaisa * (salerDefPct + tierBonus)) / 100);
@@ -382,10 +380,9 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
           <div class="form-group">
             <label for="split-sim-tier" class="form-label">${t('admin_splits.sim_tier')}</label>
             <select id="split-sim-tier" class="form-select sim-select-tier">
-              <option value="BRONZE" ${simTier === 'BRONZE' ? 'selected' : ''}>Bronze (+0% Bonus)</option>
-              <option value="SILVER" ${simTier === 'SILVER' ? 'selected' : ''}>Silver (+1% Bonus)</option>
-              <option value="GOLD" ${simTier === 'GOLD' ? 'selected' : ''}>Gold (+2% Bonus)</option>
-              <option value="PLATINUM" ${simTier === 'PLATINUM' ? 'selected' : ''}>Platinum / Elite (+5% Bonus)</option>
+              ${(splitsData?.tiers || [])
+                .map((x) => `<option value="${x.tier}" ${simTier === x.tier ? 'selected' : ''}>${isBn ? x.name_bn : x.name_en} (+${parseFloat(x.bonus_pct) || 0}%)</option>`)
+                .join('')}
             </select>
           </div>
         </div>

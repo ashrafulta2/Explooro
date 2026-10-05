@@ -500,6 +500,7 @@ ON CONFLICT (key) DO UPDATE SET
 INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, is_sensitive)
 VALUES
   ('commission.default_splits', '{"saler_split_pct": 40, "platform_split_pct": 60, "min_margin_pct": 5, "platform_default_profit_pct": 10, "saler_default_profit_pct": 20, "extra_markup_platform_pct": 20}'::jsonb, 'OBJECT', 'Default Commission Splits', 'ডিফল্ট কমিশন বণ্টন', 'finance', false),
+  ('finance.tier_bonuses', '[{"tier": "BRONZE", "bonus_pct": 0}, {"tier": "SILVER", "bonus_pct": 1}, {"tier": "GOLD", "bonus_pct": 2}, {"tier": "PLATINUM", "bonus_pct": 5}]'::jsonb, 'OBJECT', 'Trust Tier Bonuses', 'ট্রাস্ট টিয়ার বোনাস', 'finance', false),
   ('escrow_hold_days', '7'::jsonb, 'NUMBER', 'Default Escrow Hold Days', 'ডিফল্ট এসক্রো ধরে রাখার দিন', 'finance', false),
   ('min_payout_amount', '500'::jsonb, 'NUMBER', 'Minimum Payout Amount (BDT)', 'সর্বনিম্ন উত্তোলনের পরিমাণ (টাকা)', 'finance', false),
   ('cod_otp_threshold', '2000'::jsonb, 'NUMBER', 'COD OTP Threshold (BDT)', 'সিওডি ওটিপি সীমা (টাকা)', 'trust', false),

@@ -149,6 +149,34 @@ export async function resolvePlatformPricingConfig(db) {
     salerDefaultProfitPct: 20.0,
     extraMarkupPlatformPct: 20.0,
     salerSplitPct: 40.0,
+/** Trust tiers a bonus can be set for, lowest first. */
+export const TIER_KEYS = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'];
+
+/**
+ * Resolves each trust tier's extra Saler split points from the `finance.tier_bonuses` setting
+ * (an array of { tier, bonus_pct }). A tier missing from the setting gets 0.
+ *
+ * WHY: the bonus is a business number, so it lives in platform_settings, not in code. A read
+ * failure propagates rather than silently paying (or showing) the wrong bonus.
+ *
+ * @param {object} db Database client
+ * @returns {Promise<Record<string, number>>}
+ */
+export async function resolveTierBonuses(db) {
+  const bonuses = Object.fromEntries(TIER_KEYS.map((k) => [k, 0]));
+  const { rows } = await db.query(
+    `SELECT value_json FROM platform_settings WHERE key = 'finance.tier_bonuses'`
+  );
+  const list = rows[0]?.value_json;
+  if (Array.isArray(list)) {
+    for (const row of list) {
+      const pct = parseFloat(row?.bonus_pct);
+      if (TIER_KEYS.includes(row?.tier) && Number.isFinite(pct) && pct >= 0) bonuses[row.tier] = pct;
+    }
+  }
+  return bonuses;
+}
+
     platformSplitPct: 60.0,
   };
 
