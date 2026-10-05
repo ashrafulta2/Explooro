@@ -37,6 +37,25 @@ export async function createRedisCache(redisUrl) {
       return client.get(key);
     },
 
+    /** Real server-side counters for System Health (INFO is cheap and read-only). */
+    async stats() {
+      const parse = (text, field) => {
+        const m = new RegExp(`^${field}:(\\d+)`, 'm').exec(text);
+        return m ? Number(m[1]) : null;
+      };
+      const [statsInfo, memInfo, keys] = await Promise.all([
+        client.info('stats'),
+        client.info('memory'),
+        client.dbSize(),
+      ]);
+      return {
+        keys,
+        hits: parse(statsInfo, 'keyspace_hits') ?? 0,
+        misses: parse(statsInfo, 'keyspace_misses') ?? 0,
+        memory_used_bytes: parse(memInfo, 'used_memory'),
+      };
+    },
+
     async set(key, value, ttlSeconds) {
       const options = ttlSeconds ? { EX: ttlSeconds } : undefined;
       return client.set(key, value, options);

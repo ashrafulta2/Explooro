@@ -738,7 +738,7 @@ export async function getOperationalAlerts(db) {
 /**
  * Returns System Health Vitals (API Latencies, Error Rate, DB Pool, Cache, Webhooks, Scheduler Job History).
  */
-export async function getSystemHealth(db, cache = null) {
+export async function getSystemHealth(db, cache = null, { metrics = null, config = null } = {}) {
   // 1. Scheduler Job Runs
   const { rows: jobRuns } = await db.query(
     `SELECT id, job_name, status, started_at, ended_at, duration_ms, error_count, processed_count
@@ -755,7 +755,10 @@ export async function getSystemHealth(db, cache = null) {
     `SELECT
        COUNT(*) as total_deliveries,
        COUNT(*) FILTER (WHERE status = 'DELIVERED') as successful_deliveries,
-       COUNT(*) FILTER (WHERE status = 'DEAD_LETTER') as dlq_count
+       COUNT(*) FILTER (WHERE status = 'DEAD_LETTER') as dlq_count,
+       COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours') as total_24h,
+       COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours' AND status = 'DELIVERED') as delivered_24h,
+       COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '24 hours' AND status IN ('FAILED', 'DEAD_LETTER')) as failed_24h
      FROM webhook_deliveries`
   );
 
@@ -763,39 +766,67 @@ export async function getSystemHealth(db, cache = null) {
   const successWebhooks = parseInt(webhookStats[0]?.successful_deliveries || 0, 10);
   const dlqWebhooks = parseInt(webhookStats[0]?.dlq_count || 0, 10);
 
-  // 3. Database connection pool stats
+  // 3. Database: live pool counters plus a timed round trip.
+  // WHY measured: this block used to be literals (4 active / 16 idle of 20). The pool counters are
+  // pg's own; they are null when `db` is not a pg Pool (e.g. a test double) rather than invented.
+  const queryStart = process.hrtime.bigint();
+  const { rows: sizeRows } = await db.query(`SELECT pg_database_size(current_database()) AS size_bytes`);
+  const dbLatencyMs = Math.round(Number(process.hrtime.bigint() - queryStart) / 1e4) / 100;
+  const poolMax = db.options?.max ?? config?.database?.poolMax ?? null;
+  const poolTotal = Number.isFinite(db.totalCount) ? db.totalCount : null;
+  const poolIdle = Number.isFinite(db.idleCount) ? db.idleCount : null;
+  const poolWaiting = Number.isFinite(db.waitingCount) ? db.waitingCount : null;
   const dbHealth = {
-    status: 'HEALTHY',
-    active_connections: 4,
-    idle_connections: 16,
-    max_pool_size: 20,
-    statement_timeout_ms: 10000,
-    ssl_enabled: true,
+    // Clients are queueing for a connection => the pool is the bottleneck.
+    status: poolWaiting > 0 ? 'DEGRADED' : 'HEALTHY',
+    active_connections: poolTotal !== null && poolIdle !== null ? poolTotal - poolIdle : null,
+    idle_connections: poolIdle,
+    waiting_clients: poolWaiting,
+    max_pool_size: poolMax,
+    max_connections: poolMax,
+    statement_timeout_ms: config?.database?.statementTimeoutMs ?? null,
+    ssl_enabled: Boolean(db.options?.ssl),
+    query_latency_ms: dbLatencyMs,
+    database_size_bytes: sizeRows[0]?.size_bytes != null ? Number(sizeRows[0].size_bytes) : null,
   };
 
-  // 4. Cache status
+  // 4. Cache: real driver counters. Hit rate stays null until the cache has served a lookup.
+  const cacheStats = typeof cache?.stats === 'function' ? await cache.stats() : null;
+  const lookups = cacheStats ? cacheStats.hits + cacheStats.misses : 0;
   const cacheHealth = {
-    status: 'HEALTHY',
-    driver: 'In-Memory LRU / Redis',
-    keys_count: 1420,
-    hit_rate_pct: 94.8,
-    memory_used_mb: '18.4 MB',
+    status: cache ? 'HEALTHY' : 'UNAVAILABLE',
+    driver: cache?.driver ?? null,
+    keys_count: cacheStats?.keys ?? null,
+    key_count: cacheStats?.keys ?? null,
+    hit_rate_pct: lookups > 0 ? parseFloat(((cacheStats.hits / lookups) * 100).toFixed(1)) : null,
+    memory_used_bytes: cacheStats?.memory_used_bytes ?? null,
   };
 
-  // 5. API Latency percentiles
+  // 5. API vitals from the requests this process actually served (see lib/requestMetrics.js).
+  const m = metrics ? metrics.snapshot() : { sample_size: 0, p50_ms: null, p95_ms: null, p99_ms: null, error_rate_pct: null };
+  const uptimeSeconds = Math.floor(process.uptime());
   const apiVitals = {
-    p50_latency_ms: 16.4,
-    p95_latency_ms: 42.1,
-    p99_latency_ms: 108.5,
-    error_rate_pct: 0.02,
-    uptime_seconds: Math.floor(process.uptime()),
+    p50_latency_ms: m.p50_ms,
+    p95_latency_ms: m.p95_ms,
+    p99_latency_ms: m.p99_ms,
+    p50_ms: m.p50_ms,
+    p95_ms: m.p95_ms,
+    p99_ms: m.p99_ms,
+    error_rate_pct: m.error_rate_pct,
+    sample_size: m.sample_size,
+    uptime_seconds: uptimeSeconds,
+    uptime_human: `${Math.floor(uptimeSeconds / 86400)}d ${Math.floor((uptimeSeconds % 86400) / 3600)}h ${Math.floor((uptimeSeconds % 3600) / 60)}m`,
     node_version: process.version,
     platform: process.platform,
     heap_used_mb: `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1)} MB`,
   };
 
+  // WHY derived: this was the literal 'OPERATIONAL'. 5% 5xx is the line where the API is failing
+  // users rather than hiccuping.
+  const degraded = dbHealth.status === 'DEGRADED' || (m.error_rate_pct !== null && m.error_rate_pct >= 5);
+
   return {
-    overall_status: 'OPERATIONAL',
+    overall_status: degraded ? 'DEGRADED' : 'OPERATIONAL',
     api_vitals: apiVitals,
     db_health: dbHealth,
     cache_health: cacheHealth,
@@ -803,6 +834,9 @@ export async function getSystemHealth(db, cache = null) {
       total: totalWebhooks,
       success_rate_pct: totalWebhooks > 0 ? parseFloat(((successWebhooks / totalWebhooks) * 100).toFixed(2)) : 100.00,
       dlq_depth: dlqWebhooks,
+      total_24h: parseInt(webhookStats[0]?.total_24h || 0, 10),
+      delivered_24h: parseInt(webhookStats[0]?.delivered_24h || 0, 10),
+      failed_24h: parseInt(webhookStats[0]?.failed_24h || 0, 10),
     },
     job_runs: jobRuns,
     timestamp: new Date().toISOString(),

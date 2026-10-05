@@ -155,10 +155,24 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     });
 
     // P50, P95, P99 values
-    const p50Val = Number(vitals.p50_ms || vitals.p50_latency_ms || 12.4);
-    const p95Val = Number(vitals.p95_ms || vitals.p95_latency_ms || 45.2);
-    const p99Val = Number(vitals.p99_ms || vitals.p99_latency_ms || 118.0);
-    const errRate = Number(vitals.error_rate_pct ?? 0.02);
+    // WHY null, not a default: these used to fall back to 12.4 / 45.2 / 118.0 ms and 0.02%, so a
+    // server with no measurements still showed healthy-looking numbers. null renders as "—".
+    const numOrNull = (v) => (v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v));
+    const p50Val = numOrNull(vitals.p50_ms ?? vitals.p50_latency_ms);
+    const p95Val = numOrNull(vitals.p95_ms ?? vitals.p95_latency_ms);
+    const p99Val = numOrNull(vitals.p99_ms ?? vitals.p99_latency_ms);
+    const errRate = numOrNull(vitals.error_rate_pct);
+    const ms = (v) => (v === null ? '—' : `${v.toFixed(1)} ms`);
+    const pctText = (v, digits = 1) => (v === null || v === undefined ? '—' : `${Number(v).toFixed(digits)}%`);
+    const countText = (v) => (v === null || v === undefined ? '—' : String(v));
+    const bytesText = (v) => (v === null || v === undefined ? '—' : formatBytes(v));
+    const dbMax = numOrNull(db.max_connections ?? db.max_pool_size);
+    const dbActive = numOrNull(db.active_connections);
+    const hitRate = numOrNull(cache.hit_rate_pct);
+    const whTotal24 = numOrNull(webhooks.total_24h);
+    const whDelivered24 = numOrNull(webhooks.delivered_24h);
+    const whRate = whTotal24 ? Math.round((whDelivered24 / whTotal24) * 10000) / 100 : null;
+    const sampleNote = vitals.sample_size === 0 ? (isBn ? 'এখনও কোনো রিকোয়েস্ট পরিমাপ হয়নি' : 'No requests measured yet') : null;
 
     const isAllTab = activeTab === 'all';
     const isVitalsTab = activeTab === 'vitals' || isAllTab;
@@ -176,7 +190,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               ${healthData?.overall_status || 'OPERATIONAL'}
             </span>
             <span style="font-size: var(--text-xs); color: var(--text-muted); font-weight: 600;">
-              • Uptime: ${vitals.uptime_human || '3d 0h 23m'} (99.98%)
+              • Uptime: ${vitals.uptime_human || '—'}
             </span>
           </div>
           <h1 class="system-health__title">
@@ -226,13 +240,13 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               </span>
               <span class="system-vital-card__icon" title="Median response speed">⚡</span>
             </div>
-            <div class="system-vital-card__val">${p50Val.toFixed(1)} ms</div>
+            <div class="system-vital-card__val">${ms(p50Val)}</div>
             <div class="system-vital-card__meter-wrap">
-              <div class="system-vital-card__meter-bar system-vital-card__meter-bar--success" style="width: ${Math.min(100, (p50Val / 50) * 100)}%;"></div>
+              <div class="system-vital-card__meter-bar system-vital-card__meter-bar--success" style="width: ${Math.min(100, ((p50Val ?? 0) / 50) * 100)}%;"></div>
             </div>
             <p class="system-vital-card__hint">
               <span>${isBn ? 'গড় রেসপন্স টাইম' : 'Median response time'}</span>
-              <span class="system-vital-card__badge">✓ ${isBn ? 'স্বাভাবিক' : 'Fast'}</span>
+              <span class="system-vital-card__badge">${p50Val === null ? (sampleNote || '—') : (p50Val < 50 ? '✓ ' + (isBn ? 'স্বাভাবিক' : 'Fast') : '⚠ ' + (isBn ? 'ধীর' : 'Slow'))}</span>
             </p>
           </div>
 
@@ -244,13 +258,13 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               </span>
               <span class="system-vital-card__icon" title="95% of traffic responds faster than this"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg></span>
             </div>
-            <div class="system-vital-card__val">${p95Val.toFixed(1)} ms</div>
+            <div class="system-vital-card__val">${ms(p95Val)}</div>
             <div class="system-vital-card__meter-wrap">
-              <div class="system-vital-card__meter-bar ${p95Val > 100 ? 'system-vital-card__meter-bar--warn' : 'system-vital-card__meter-bar--success'}" style="width: ${Math.min(100, (p95Val / 150) * 100)}%;"></div>
+              <div class="system-vital-card__meter-bar ${(p95Val ?? 0) > 100 ? 'system-vital-card__meter-bar--warn' : 'system-vital-card__meter-bar--success'}" style="width: ${Math.min(100, ((p95Val ?? 0) / 150) * 100)}%;"></div>
             </div>
             <p class="system-vital-card__hint">
               <span>${isBn ? '৯৫তম পারসেন্টাইল উইন্ডো' : '95th percentile window'}</span>
-              <span class="system-vital-card__badge">✓ SLA &lt;100ms</span>
+              <span class="system-vital-card__badge">${p95Val === null ? '—' : (p95Val <= 100 ? '✓ SLA &lt;100ms' : '⚠ Over 100ms')}</span>
             </p>
           </div>
 
@@ -262,13 +276,13 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               </span>
               <span class="system-vital-card__icon" title="Tail SLA budget limit 250ms">⏱️</span>
             </div>
-            <div class="system-vital-card__val">${p99Val.toFixed(1)} ms</div>
+            <div class="system-vital-card__val">${ms(p99Val)}</div>
             <div class="system-vital-card__meter-wrap">
-              <div class="system-vital-card__meter-bar ${p99Val > 200 ? 'system-vital-card__meter-bar--danger' : 'system-vital-card__meter-bar--success'}" style="width: ${Math.min(100, (p99Val / 250) * 100)}%;"></div>
+              <div class="system-vital-card__meter-bar ${(p99Val ?? 0) > 200 ? 'system-vital-card__meter-bar--danger' : 'system-vital-card__meter-bar--success'}" style="width: ${Math.min(100, ((p99Val ?? 0) / 250) * 100)}%;"></div>
             </div>
             <p class="system-vital-card__hint">
               <span>${isBn ? 'সর্বোচ্চ ১% রিকোয়েস্ট লেটেন্সি' : 'Tail SLA budget < 250ms'}</span>
-              <span class="system-vital-card__badge">✓ ${isBn ? 'সম্মত' : 'Compliant'}</span>
+              <span class="system-vital-card__badge">${p99Val === null ? '—' : (p99Val <= 250 ? '✓ ' + (isBn ? 'সম্মত' : 'Compliant') : '⚠ ' + (isBn ? 'সীমা ছাড়িয়েছে' : 'Over budget'))}</span>
             </p>
           </div>
 
@@ -280,13 +294,13 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               </span>
               <span class="system-vital-card__icon" title="Platform error frequency">🛡️</span>
             </div>
-            <div class="system-vital-card__val" style="color: ${errRate > 0.5 ? 'var(--danger)' : 'var(--success)'};">${errRate.toFixed(2)}%</div>
+            <div class="system-vital-card__val" style="color: ${errRate === null ? 'var(--text-muted)' : (errRate > 0.5 ? 'var(--danger)' : 'var(--success)')};">${pctText(errRate, 2)}</div>
             <div class="system-vital-card__meter-wrap">
-              <div class="system-vital-card__meter-bar ${errRate > 0.1 ? 'system-vital-card__meter-bar--warn' : 'system-vital-card__meter-bar--success'}" style="width: ${Math.min(100, errRate * 100)}%;"></div>
+              <div class="system-vital-card__meter-bar ${(errRate ?? 0) > 0.1 ? 'system-vital-card__meter-bar--warn' : 'system-vital-card__meter-bar--success'}" style="width: ${Math.min(100, (errRate ?? 0) * 100)}%;"></div>
             </div>
             <p class="system-vital-card__hint">
               <span>${isBn ? 'এইচটিটিপি ৫xx ত্রুটি মাত্রা' : 'HTTP 5xx error frequency'}</span>
-              <span class="system-vital-card__badge">✓ ${isBn ? 'নগণ্য' : 'Nominal'}</span>
+              <span class="system-vital-card__badge">${errRate === null ? '—' : (errRate <= 0.5 ? '✓ ' + (isBn ? 'নগণ্য' : 'Nominal') : '⚠ ' + (isBn ? 'উচ্চ' : 'Elevated'))}</span>
             </p>
           </div>
         </div>
@@ -302,40 +316,40 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                 <span>🐘 ${isBn ? 'পোস্টগ্রেসকিউএল পুল' : 'PostgreSQL Pool'}</span>
               </h3>
               <span class="system-infra-card__badge">
-                ${infraStatusLabel(db.status || 'CONNECTED')}
+                ${infraStatusLabel(db.status || 'UNKNOWN')}
               </span>
             </div>
 
             <div class="system-infra-card__gauge">
               <div class="system-infra-card__gauge-head">
                 <span>${isBn ? 'কানেকশন ব্যবহার' : 'Connection Utilization'}</span>
-                <span>${db.active_connections ?? 4} / ${db.max_connections || db.max_pool_size || 20}</span>
+                <span>${countText(dbActive)} / ${countText(dbMax)}</span>
               </div>
               <div class="system-infra-card__gauge-bar">
-                <div class="system-infra-card__gauge-fill" style="width: ${Math.min(100, ((db.active_connections || 4) / (db.max_connections || 20)) * 100)}%;"></div>
+                <div class="system-infra-card__gauge-fill" style="width: ${dbMax ? Math.min(100, ((dbActive ?? 0) / dbMax) * 100) : 0}%;"></div>
               </div>
             </div>
 
             <div class="system-infra-card__list">
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'সক্রিয় কানেকশন' : 'Active Connections'}</span>
-                <span class="system-infra-card__val">${db.active_connections ?? 4}</span>
+                <span class="system-infra-card__val">${countText(dbActive)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'আইডল কানেকশন' : 'Idle Connections'}</span>
-                <span class="system-infra-card__val">${db.idle_connections ?? 16}</span>
+                <span class="system-infra-card__val">${countText(db.idle_connections)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'সর্বোচ্চ ধারণক্ষমতা' : 'Max Pool Capacity'}</span>
-                <span class="system-infra-card__val">${db.max_connections || 20}</span>
+                <span class="system-infra-card__val">${countText(dbMax)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'অপেক্ষমাণ ক্লায়েন্ট' : 'Waiting Clients'}</span>
-                <span class="system-infra-card__val">${db.waiting_clients ?? 0}</span>
+                <span class="system-infra-card__val">${countText(db.waiting_clients)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'ডেটাবেজ সাইজ' : 'Database Storage'}</span>
-                <span class="system-infra-card__val">${formatBytes(db.database_size_bytes || 52428800)}</span>
+                <span class="system-infra-card__val">${bytesText(db.database_size_bytes)}</span>
               </div>
             </div>
 
@@ -353,40 +367,40 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                 <span>⚡ ${isBn ? 'ক্যাশিং লেয়ার' : 'Cache Layer'}</span>
               </h3>
               <span class="system-infra-card__badge">
-                ${infraStatusLabel(cache.status || 'HEALTHY')}
+                ${infraStatusLabel(cache.status || 'UNKNOWN')}
               </span>
             </div>
 
             <div class="system-infra-card__gauge">
               <div class="system-infra-card__gauge-head">
                 <span>${isBn ? 'ক্যাশ হিট রেট' : 'Cache Hit Efficiency'}</span>
-                <span style="color: var(--success); font-weight: 700;">${cache.hit_rate_pct || 94.6}%</span>
+                <span style="color: var(--success); font-weight: 700;">${pctText(hitRate)}</span>
               </div>
               <div class="system-infra-card__gauge-bar">
-                <div class="system-infra-card__gauge-fill" style="width: ${cache.hit_rate_pct || 94.6}%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div>
+                <div class="system-infra-card__gauge-fill" style="width: ${hitRate ?? 0}%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div>
               </div>
             </div>
 
             <div class="system-infra-card__list">
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'ড্রাইভার অ্যাডাপ্টার' : 'Driver Adapter'}</span>
-                <span class="system-infra-card__val">${cache.driver || 'In-Memory / Redis'}</span>
+                <span class="system-infra-card__val">${cache.driver || '—'}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'ক্যাশ হিট রেট' : 'Cache Hit Rate'}</span>
-                <span class="system-infra-card__val" style="color: var(--success);">${cache.hit_rate_pct || 94.6}%</span>
+                <span class="system-infra-card__val" style="color: var(--success);">${pctText(hitRate)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'ইনডেক্সড কি' : 'Indexed Keys'}</span>
-                <span class="system-infra-card__val">${cache.key_count || cache.keys_count || 1420} keys</span>
+                <span class="system-infra-card__val">${countText(cache.key_count ?? cache.keys_count)} keys</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'মেমোরি ব্যবহার' : 'Memory Footprint'}</span>
-                <span class="system-infra-card__val">${cache.memory_used_bytes ? formatBytes(cache.memory_used_bytes) : (cache.memory_used_mb || '8.4 MB')}</span>
+                <span class="system-infra-card__val">${bytesText(cache.memory_used_bytes)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'এভিকশন পলিসি' : 'Eviction Policy'}</span>
-                <span class="system-infra-card__val">LRU (Auto-sweep)</span>
+                <span class="system-infra-card__val">${cache.driver === 'memory' ? 'TTL sweep (5s)' : cache.driver === 'redis' ? 'Server-managed' : '—'}</span>
               </div>
             </div>
 
@@ -411,25 +425,25 @@ export default function SystemHealthPage(root, { navigate } = {}) {
             <div class="system-infra-card__gauge">
               <div class="system-infra-card__gauge-head">
                 <span>${isBn ? 'ডেলিভারি সাকসেস রেট' : 'Delivery Success Rate'}</span>
-                <span style="color: var(--success); font-weight: 700;">99.94%</span>
+                <span style="color: var(--success); font-weight: 700;">${pctText(whRate, 2)}</span>
               </div>
               <div class="system-infra-card__gauge-bar">
-                <div class="system-infra-card__gauge-fill" style="width: 99.94%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                <div class="system-infra-card__gauge-fill" style="width: ${whRate ?? 0}%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
               </div>
             </div>
 
             <div class="system-infra-card__list">
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'মোট ইভেন্ট (২৪ ঘণ্টা)' : 'Total Events (24h)'}</span>
-                <span class="system-infra-card__val">${webhooks.total_24h || webhooks.total || 3420}</span>
+                <span class="system-infra-card__val">${countText(whTotal24)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'সফল ডেলিভারি' : 'Delivered (24h)'}</span>
-                <span class="system-infra-card__val" style="color: var(--success);">${webhooks.delivered_24h || 3418}</span>
+                <span class="system-infra-card__val" style="color: var(--success);">${countText(whDelivered24)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'ব্যর্থ ডেলিভারি' : 'Failed Attempts'}</span>
-                <span class="system-infra-card__val">${webhooks.failed_24h ?? 2}</span>
+                <span class="system-infra-card__val">${countText(webhooks.failed_24h)}</span>
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'ডেড-লেটার কিউ (DLQ)' : 'Dead-Letter Queue'}</span>

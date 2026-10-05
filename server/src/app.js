@@ -17,6 +17,7 @@ import { loadEnv } from './config/env.js';
 import { createDbPool } from './config/db.js';
 import { createCache } from './config/cache.js';
 import requestContextPlugin from './plugins/requestContext.js';
+import requestMetricsPlugin from './lib/requestMetrics.js';
 import errorHandlerPlugin from './plugins/errorHandler.js';
 import authenticatePlugin from './middlewares/authenticate.js';
 import requirePermissionPlugin from './middlewares/requirePermission.js';
@@ -136,6 +137,7 @@ export async function buildApp(overrides = {}) {
   app.decorate('emailSender', createEmailSender(config));
 
   app.register(requestContextPlugin);
+  app.register(requestMetricsPlugin);
   app.register(errorHandlerPlugin);
   app.register(authenticatePlugin);
   app.register(requirePermissionPlugin);

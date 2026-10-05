@@ -47,7 +47,10 @@ export async function getAlertsHandler(req, reply) {
 }
 
 export async function getSystemHealthHandler(req, reply) {
-  const health = await analyticsService.getSystemHealth(req.server.db, req.server.cache);
+  const health = await analyticsService.getSystemHealth(req.server.db, req.server.cache, {
+    metrics: req.server.requestMetrics,
+    config: req.server.config,
+  });
   return reply.send({ success: true, data: health });
 }
 

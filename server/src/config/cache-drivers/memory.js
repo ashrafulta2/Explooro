@@ -27,12 +27,27 @@ export function createMemoryCache() {
     return entry && (entry.expiresAt === null || entry.expiresAt > Date.now());
   }
 
+  let hits = 0;
+  let misses = 0;
+
   return {
     driver: 'memory',
 
     async get(key) {
       const entry = store.get(key);
-      return isLive(entry) ? entry.value : null;
+      if (isLive(entry)) {
+        hits += 1;
+        return entry.value;
+      }
+      misses += 1;
+      return null;
+    },
+
+    /** Real counters for System Health. Memory use is not measurable per-Map, so it is omitted. */
+    async stats() {
+      let keys = 0;
+      for (const entry of store.values()) if (isLive(entry)) keys += 1;
+      return { keys, hits, misses, memory_used_bytes: null };
     },
 
     async set(key, value, ttlSeconds) {

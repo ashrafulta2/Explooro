@@ -16,6 +16,8 @@ import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import adminAnalyticsRoutes from '../src/routes/adminAnalytics.routes.js';
 import * as analyticsService from '../src/services/analytics.service.js';
+import { createRequestMetrics } from '../src/lib/requestMetrics.js';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
 
 function createMockDb({ queryHandler = null } = {}) {
   const db = {
@@ -258,6 +260,39 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
   // ---------------------------------------------------------------------------
   // 5. System Health Vitals & Diagnostics (Acceptance 5)
   // ---------------------------------------------------------------------------
+  test('System health reports nothing it did not measure, and degrades on real signals', async () => {
+    const db = createMockDb({ queryHandler: async () => ({ rows: [{ total_deliveries: 0 }] }) });
+    const empty = await analyticsService.getSystemHealth(db);
+    assert.equal(empty.api_vitals.p50_latency_ms, null);
+    assert.equal(empty.api_vitals.error_rate_pct, null);
+    assert.equal(empty.db_health.active_connections, null);
+    assert.equal(empty.cache_health.hit_rate_pct, null);
+    assert.equal(empty.cache_health.status, 'UNAVAILABLE');
+
+    Object.assign(db, { totalCount: 20, idleCount: 0, waitingCount: 3, options: { max: 20 } });
+    assert.equal((await analyticsService.getSystemHealth(db)).overall_status, 'DEGRADED');
+
+    const failing = createRequestMetrics();
+    for (let i = 0; i < 10; i += 1) failing.record(5, i < 2 ? 503 : 200);
+    const health = await analyticsService.getSystemHealth(createMockDb({ queryHandler: async () => ({ rows: [] }) }), null, { metrics: failing });
+    assert.equal(health.api_vitals.error_rate_pct, 20);
+    assert.equal(health.overall_status, 'DEGRADED');
+  });
+
+  test('createRequestMetrics keeps a rolling window and the memory cache counts real hits and misses', async () => {
+    const m = createRequestMetrics({ capacity: 3 });
+    [10, 20, 30, 40].forEach((ms) => m.record(ms, 200));
+    assert.equal(m.snapshot().sample_size, 3);
+    assert.equal(m.snapshot().p50_ms, 30); // 10 fell out of the window
+
+    const cache = createMemoryCache();
+    await cache.set('a', '1');
+    await cache.get('a');
+    await cache.get('missing');
+    assert.deepEqual(await cache.stats(), { keys: 1, hits: 1, misses: 1, memory_used_bytes: null });
+    await cache.quit();
+  });
+
   test('Acceptance 5: System health aggregates API latency percentiles, DB pool, and scheduler jobs', async () => {
     const mockDb = createMockDb({
       queryHandler: async (sql, params) => {
@@ -280,18 +315,35 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
             rows: [{ total_deliveries: 100, successful_deliveries: 98, dlq_count: 2 }],
           };
         }
+        if (sql.includes('pg_database_size')) return { rows: [{ size_bytes: '5242880' }] };
         return { rows: [] };
       },
     });
+    // pg.Pool exposes these counters and `options`; the figures below must come out unchanged.
+    Object.assign(mockDb, { totalCount: 7, idleCount: 5, waitingCount: 0, options: { max: 12, ssl: { rejectUnauthorized: false } } });
 
-    const health = await analyticsService.getSystemHealth(mockDb);
+    const metrics = createRequestMetrics();
+    for (let ms = 1; ms <= 100; ms += 1) metrics.record(ms, ms === 100 ? 500 : 200);
+    const cache = { driver: 'memory', stats: async () => ({ keys: 9, hits: 3, misses: 1, memory_used_bytes: null }) };
+
+    const health = await analyticsService.getSystemHealth(mockDb, cache, { metrics, config: { database: { statementTimeoutMs: 10000 } } });
 
     assert.equal(health.overall_status, 'OPERATIONAL');
-    assert.ok(health.api_vitals.p50_latency_ms > 0);
-    assert.ok(health.api_vitals.p95_latency_ms > 0);
-    assert.ok(health.api_vitals.p99_latency_ms > 0);
+    assert.deepEqual(
+      [health.api_vitals.p50_latency_ms, health.api_vitals.p95_latency_ms, health.api_vitals.p99_latency_ms],
+      [50, 95, 99],
+    );
+    assert.equal(health.api_vitals.error_rate_pct, 1);
+    assert.equal(health.api_vitals.sample_size, 100);
     assert.equal(health.db_health.status, 'HEALTHY');
-    assert.equal(health.cache_health.status, 'HEALTHY');
+    assert.equal(health.db_health.active_connections, 2);
+    assert.equal(health.db_health.idle_connections, 5);
+    assert.equal(health.db_health.max_connections, 12);
+    assert.equal(health.db_health.database_size_bytes, 5242880);
+    assert.equal(health.db_health.ssl_enabled, true);
+    assert.equal(health.cache_health.driver, 'memory');
+    assert.equal(health.cache_health.keys_count, 9);
+    assert.equal(health.cache_health.hit_rate_pct, 75);
     assert.equal(health.webhooks.dlq_depth, 2);
     assert.equal(health.job_runs.length, 1);
     assert.equal(health.job_runs[0].job_name, 'analytics_nightly_rollup');
