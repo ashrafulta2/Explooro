@@ -349,7 +349,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
 
             <div class="system-infra-card__actions">
               <button type="button" class="btn btn--secondary btn--sm w-full test-db-btn" style="width: 100%;">
-                🔍 ${isBn ? 'কানেকশন টেস্ট করুন' : 'Test DB Pool'}
+                🔍 ${isBn ? 'আবার মাপুন' : 'Re-measure'}
               </button>
             </div>
           </div>
@@ -398,11 +398,6 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               </div>
             </div>
 
-            <div class="system-infra-card__actions">
-              <button type="button" class="btn btn--secondary btn--sm w-full flush-cache-btn" style="width: 100%;">
-                🧹 ${isBn ? 'ক্যাশ ফ্লাশ করুন' : 'Flush Stale Cache'}
-              </button>
-            </div>
           </div>
 
           <!-- Webhooks & Dead-Letter Queue (DLQ) -->
@@ -446,11 +441,6 @@ export default function SystemHealthPage(root, { navigate } = {}) {
             </div>
             </div>
 
-            <div class="system-infra-card__actions">
-              <button type="button" class="btn btn--secondary btn--sm w-full test-webhook-btn" style="width: 100%;">
-                ⚡ ${isBn ? 'ওয়েবহুক পিং টেস্ট' : 'Ping Webhook Test'}
-              </button>
-            </div>
           </div>
         </div>
       ` : ''}
@@ -470,9 +460,6 @@ export default function SystemHealthPage(root, { navigate } = {}) {
 
             <div class="system-panel__header-actions">
               <input type="search" id="job-search-input" class="input input--sm" aria-label="${isBn ? 'জব সার্চ করুন...' : 'Filter jobs by name...'}" placeholder="${isBn ? 'জব সার্চ করুন...' : 'Filter jobs by name...'}" value="${jobFilterQuery}" style="width: 200px;" />
-              <button type="button" class="btn btn--secondary btn--sm run-all-jobs-btn">
-                ▶ ${isBn ? 'সকল জব চালান' : 'Run All Due Jobs'}
-              </button>
             </div>
           </div>
 
@@ -486,7 +473,6 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                   <th>${isBn ? 'শেষ রান' : 'Last Execution'}</th>
                   <th>${isBn ? 'সময়কাল' : 'Duration'}</th>
                   <th>${isBn ? 'প্রসেসকৃত আইটেম' : 'Items'}</th>
-                  <th style="text-align: right;">${isBn ? 'অ্যাকশন' : 'Action'}</th>
                 </tr>
               </thead>
               <tbody>
@@ -526,16 +512,11 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                       <td style="color: var(--text-secondary);">
                         ${count === null ? '—' : `${count} ${isBn ? 'টি আইটেম' : 'items'}`}
                       </td>
-                      <td style="text-align: right;">
-                        <button type="button" class="btn btn--secondary btn--sm run-single-job-btn" data-job="${jobName}" style="padding: 3px 10px; font-size: 11px;">
-                          ⚡ ${isBn ? 'চালান' : 'Run Now'}
-                        </button>
-                      </td>
                     </tr>
                   `;
                 }).join('') : `
                   <tr>
-                    <td colspan="7" style="text-align: center; padding: var(--space-6); color: var(--text-muted);">
+                    <td colspan="6" style="text-align: center; padding: var(--space-6); color: var(--text-muted);">
                       ${isBn ? 'কোনো শিডিউলার জব পাওয়া যায়নি।' : 'No scheduler jobs match your filter.'}
                     </td>
                   </tr>
@@ -733,46 +714,10 @@ export default function SystemHealthPage(root, { navigate } = {}) {
       createPanelSlot.append(snapPanelBtn);
     }
 
-    // Test DB Pool button
+    // Re-measure: refetches the live vitals; nothing is simulated.
     const testDbBtn = container.querySelector('.test-db-btn');
     if (testDbBtn) {
-      testDbBtn.addEventListener('click', () => {
-        testDbBtn.disabled = true;
-        testDbBtn.textContent = '⏳ Testing...';
-        setTimeout(() => {
-          testDbBtn.disabled = false;
-          testDbBtn.innerHTML = `🔍 ${isBn ? 'কানেকশন টেস্ট করুন' : 'Test DB Pool'}`;
-          toast.success(isBn ? 'পোস্টগ্রেসকিউএল পুল স্বাস্থ্যকর: ৪টি অ্যাক্টিভ, ১৬টি আইডল কানেকশন (০.৮ মি.সে.)' : 'PostgreSQL Pool Healthy: 4 active, 16 idle connections (0.8 ms latency)');
-        }, 400);
-      });
-    }
-
-    // Flush Cache button
-    const flushCacheBtn = container.querySelector('.flush-cache-btn');
-    if (flushCacheBtn) {
-      flushCacheBtn.addEventListener('click', () => {
-        flushCacheBtn.disabled = true;
-        flushCacheBtn.textContent = '⏳ Flushing...';
-        setTimeout(() => {
-          flushCacheBtn.disabled = false;
-          flushCacheBtn.innerHTML = `🧹 ${isBn ? 'ক্যাশ ফ্লাশ করুন' : 'Flush Stale Cache'}`;
-          toast.success(isBn ? '১,৪২০টি কি সফলভাবে ফ্লাশ করা হয়েছে এবং মেমোরি খালি করা হয়েছে!' : 'Successfully flushed 1,420 cached keys & freed 8.4 MB memory!');
-        }, 450);
-      });
-    }
-
-    // Test Webhook button
-    const testWebhookBtn = container.querySelector('.test-webhook-btn');
-    if (testWebhookBtn) {
-      testWebhookBtn.addEventListener('click', () => {
-        testWebhookBtn.disabled = true;
-        testWebhookBtn.textContent = '⏳ Pinging...';
-        setTimeout(() => {
-          testWebhookBtn.disabled = false;
-          testWebhookBtn.innerHTML = `⚡ ${isBn ? 'ওয়েবহুক পিং টেস্ট' : 'Ping Webhook Test'}`;
-          toast.success(isBn ? 'ওয়েবহুক পিং সফল হয়েছে (HTTP 200 OK — ৪২ মি.সে.)' : 'Webhook ping test passed (HTTP 200 OK — 42 ms latency)');
-        }, 400);
-      });
+      testDbBtn.addEventListener('click', () => loadData(true));
     }
 
     // Job search input
@@ -788,36 +733,6 @@ export default function SystemHealthPage(root, { navigate } = {}) {
         }
       });
     }
-
-    // Run all jobs button
-    const runAllBtn = container.querySelector('.run-all-jobs-btn');
-    if (runAllBtn) {
-      runAllBtn.addEventListener('click', () => {
-        runAllBtn.disabled = true;
-        runAllBtn.textContent = '⏳ Running all...';
-        setTimeout(() => {
-          runAllBtn.disabled = false;
-          runAllBtn.innerHTML = `▶ ${isBn ? 'সকল জব চালান' : 'Run All Due Jobs'}`;
-          toast.success(isBn ? 'সকল ৪টি ক্রন ওয়ার্কার্স সফলভাবে এক্সিকিউট হয়েছে!' : 'All 4 background scheduler cron jobs executed successfully!');
-          loadData();
-        }, 600);
-      });
-    }
-
-    // Single job run button
-    container.querySelectorAll('.run-single-job-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const jobName = btn.getAttribute('data-job');
-        btn.disabled = true;
-        btn.textContent = '⏳...';
-        setTimeout(() => {
-          btn.disabled = false;
-          btn.innerHTML = `⚡ ${isBn ? 'চালান' : 'Run Now'}`;
-          toast.success(isBn ? `জব "${jobName}" সফলভাবে এক্সিকিউট হয়েছে!` : `Job "${jobName}" executed successfully!`);
-          loadData();
-        }, 400);
-      });
-    });
 
     // Backup search input
     const backupSearchInput = container.querySelector('#backup-search-input');
