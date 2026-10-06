@@ -492,11 +492,15 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               <tbody>
                 ${jobs.length > 0 ? jobs.map((j) => {
                   const jobName = j.name || j.job_name || 'cron_job';
-                  const schedule = j.schedule || 'Scheduled';
-                  const status = j.status || 'SUCCESS';
+                  // WHY no defaults: a missing duration/count used to render as 120 ms and a random
+                  // 5-24 items, and every status was drawn with a green tick. Unknown shows "—".
+                  const schedule = j.schedule || null;
+                  const status = j.status || 'UNKNOWN';
                   const lastRunAt = j.last_run_at || j.started_at;
-                  const durationMs = j.duration_ms || 120;
-                  const count = j.processed_count ?? (Math.floor(Math.random() * 20) + 5);
+                  const durationMs = numOrNull(j.duration_ms);
+                  const count = numOrNull(j.processed_count);
+                  const statusOk = ['SUCCESS', 'COMPLETED'].includes(String(status).toUpperCase());
+                  const statusBad = ['FAILED', 'ERROR'].includes(String(status).toUpperCase());
 
                   return `
                     <tr>
@@ -506,23 +510,21 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                         </span>
                       </td>
                       <td>
-                        <span class="badge badge--neutral" style="font-size: 11px;">
-                          ${schedule}
-                        </span>
+                        ${schedule ? `<span class="badge badge--neutral" style="font-size: 11px;">${schedule}</span>` : '—'}
                       </td>
                       <td>
-                        <span class="system-table__badge system-table__badge--success">
-                          ✓ ${status}
+                        <span class="system-table__badge ${statusOk ? 'system-table__badge--success' : statusBad ? 'system-table__badge--danger' : 'system-table__badge--warn'}">
+                          ${statusOk ? '✓ ' : statusBad ? '✗ ' : ''}${status}
                         </span>
                       </td>
                       <td style="color: var(--text-secondary);">
                         ${lastRunAt ? new Date(lastRunAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}
                       </td>
                       <td style="font-family: var(--font-mono, monospace); font-weight: 600;">
-                        ${durationMs} ms
+                        ${durationMs === null ? '—' : `${durationMs} ms`}
                       </td>
                       <td style="color: var(--text-secondary);">
-                        ${count} ${isBn ? 'টি আইটেম' : 'items'}
+                        ${count === null ? '—' : `${count} ${isBn ? 'টি আইটেম' : 'items'}`}
                       </td>
                       <td style="text-align: right;">
                         <button type="button" class="btn btn--secondary btn--sm run-single-job-btn" data-job="${jobName}" style="padding: 3px 10px; font-size: 11px;">
@@ -585,11 +587,17 @@ export default function SystemHealthPage(root, { navigate } = {}) {
               <tbody>
                 ${backups.length > 0 ? backups.map((b) => {
                   const ref = b.ref || b.snapshot_tag || `SNAP-${b.id}`;
-                  const type = b.snapshot_type || 'NIGHTLY';
-                  const checksum = b.checksum_sha256 || b.sha256_checksum || 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
-                  const tableCount = b.table_count || 95;
-                  const rowCount = b.row_count || 143500;
-                  const size = formatBytes(b.size_bytes || 49100000);
+                  // WHY derived from table_counts_json: the API never sent table_count/row_count, so every
+                  // snapshot showed "95 tables - 144k rows" and a 49 MB size, and a missing checksum
+                  // was replaced by the SHA-256 of the empty string.
+                  const type = b.snapshot_type || '—';
+                  const checksum = b.checksum_sha256 || b.sha256_checksum || '';
+                  let counts = b.table_counts_json;
+                  if (typeof counts === 'string') { try { counts = JSON.parse(counts); } catch { counts = null; } }
+                  const countVals = counts && typeof counts === 'object' ? Object.values(counts).map(Number).filter(Number.isFinite) : null;
+                  const tableCount = b.table_count ?? (countVals ? countVals.length : null);
+                  const rowCount = b.row_count ?? (countVals ? countVals.reduce((a, n) => a + n, 0) : null);
+                  const size = numOrNull(b.size_bytes) === null ? '—' : formatBytes(Number(b.size_bytes));
                   const isRestored = b.status === 'RESTORED';
 
                   return `
@@ -607,21 +615,21 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                         </span>
                       </td>
                       <td>
-                        <div class="system-table__checksum-box" title="${checksum}">
+                        ${checksum ? `<div class="system-table__checksum-box" title="${checksum}">
                           <span>${checksum.substring(0, 16)}…${checksum.substring(checksum.length - 8)}</span>
                           <button type="button" class="system-table__checksum-copy copy-checksum-btn" data-checksum="${checksum}" title="${isBn ? 'কপি করুন' : 'Copy Checksum'}">
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg>
                           </button>
-                        </div>
+                        </div>` : '—'}
                       </td>
                       <td style="color: var(--text-secondary);">
-                        ${tableCount} tables • ${Math.round(rowCount / 1000)}k rows
+                        ${tableCount === null || rowCount === null ? '—' : `${tableCount} tables • ${rowCount.toLocaleString()} rows`}
                       </td>
                       <td style="font-family: var(--font-mono, monospace); font-weight: 600;">
                         ${size}
                       </td>
                       <td style="color: var(--text-secondary);">
-                        ${new Date(b.created_at || Date.now()).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                        ${b.created_at ? new Date(b.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '—'}
                       </td>
                       <td style="text-align: right;">
                         <button type="button" class="btn btn--danger btn--sm restore-snapshot-btn" data-id="${b.id}" data-ref="${ref}" style="padding: 3px 10px; font-size: 11px;">
