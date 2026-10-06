@@ -142,6 +142,8 @@ async function bootRouterDemo() {
       { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
       { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.js') },
+      // Full-page shopping cart (replaced the right-side drawer).
+      { path: '/cart', title: 'Shopping Cart — Explooro', permission: null, module: 'core', load: () => import('./pages/CartPage.js') },
       // Prompt 5.4: Checkout & Order Tracking Pages
       { path: '/checkout', title: 'Secure Checkout — Explooro', permission: null, module: 'core', load: () => import('./pages/CheckoutPage.js') },
       { path: '/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },

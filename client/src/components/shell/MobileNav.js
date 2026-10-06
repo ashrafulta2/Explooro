@@ -11,11 +11,11 @@ import { t } from '../../services/i18n.js';
 import { Badge } from '../ui/Badge.js';
 import { Drawer } from '../ui/Drawer.js';
 import { Sidebar } from './Sidebar.js';
-import { openCartDrawer } from '../../services/cart.js';
+import { openCart } from '../../services/cart.js';
 
 // Non-navigation tab actions — a tab with `action` opens UI in place instead of routing.
 const TAB_ACTIONS = {
-  openCart: () => openCartDrawer(),
+  openCart: () => openCart(),
 };
 
 // WHY: a count badge that never leaves the tab bar becomes wallpaper and nags. It pops in when the

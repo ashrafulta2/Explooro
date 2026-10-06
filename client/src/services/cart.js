@@ -97,7 +97,6 @@ export const cartStore = createStore({
     has_warnings: false,
   },
   wishlistProductIds: new Set(),
-  drawerOpen: false,
   loading: false,
 });
 
@@ -109,17 +108,19 @@ export async function initCart() {
   await Promise.all([fetchCart(), fetchWishlist()]);
 }
 
-export function openCartDrawer() {
-  cartStore.update({ drawerOpen: true });
+// WHY a registered navigator: the cart used to be a right-side drawer opened by flipping store
+// state, which cramped a multi-parcel cart into ~420px. It is now the full /cart page, but the
+// TopBar, MobileNav, wishlist and add-to-cart toast all trigger it from places that have no
+// router handle, so the shell registers one here at boot.
+let cartNavigator = null;
+
+export function setCartNavigator(fn) {
+  cartNavigator = typeof fn === 'function' ? fn : null;
 }
 
-export function closeCartDrawer() {
-  cartStore.update({ drawerOpen: false });
-}
-
-export function toggleCartDrawer() {
-  const current = cartStore.get().drawerOpen;
-  cartStore.update({ drawerOpen: !current });
+export function openCart() {
+  if (cartNavigator) cartNavigator('/cart');
+  else window.location.assign('/cart');
 }
 
 export async function fetchCart() {
@@ -224,16 +225,18 @@ export async function addToCart({
 
   const optimisticCart = buildCartFromItems(currentItems);
 
-  cartStore.update({
-    cart: optimisticCart,
-    drawerOpen: true, // open drawer immediately on adding to cart
-  });
+  cartStore.update({ cart: optimisticCart });
   saveStoredCart(optimisticCart);
 
   const badges = appStore.get().badges || {};
   appStore.update({ badges: { ...badges, cart: optimisticCart.items_count } });
 
-  toast.success(t('cart.added_to_cart_toast') || 'Added to cart');
+  // WHY a toast action, not an automatic redirect: shoppers add several items in a row, and
+  // yanking them off the product page after each one breaks that flow.
+  toast.success(t('cart.added_to_cart_toast') || 'Added to cart', {
+    action: openCart,
+    actionLabel: t('cart.view_cart') || 'View cart',
+  });
 
   try {
     const res = await api.post(

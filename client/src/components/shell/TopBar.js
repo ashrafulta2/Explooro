@@ -22,7 +22,7 @@ import { logout } from '../../services/session.js';
 import { getTheme, applyTheme } from '../../services/theme.js';
 import { Badge } from '../ui/Badge.js';
 import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
-import { openCartDrawer } from '../../services/cart.js';
+import { openCart } from '../../services/cart.js';
 import { openNotificationCenter } from '../notifications/NotificationCenter.js';
 import { openAssistantPanel } from '../ai/AssistantPanel.js';
 import { ICONS, getExplooroLogoSvg, formatExplooroBrandText } from '../ui/icons.js';
@@ -631,11 +631,11 @@ export function TopBar({
 
   if (badges && badges.cart !== undefined) {
     bar.append(
-      IconButton({ icon: CART_ICON_SVG, label: t('shell.cart'), badgeCount: badges.cart, onClick: () => openCartDrawer() })
+      IconButton({ icon: CART_ICON_SVG, label: t('shell.cart'), badgeCount: badges.cart, onClick: () => openCart() })
     );
   } else {
     bar.append(
-      IconButton({ icon: CART_ICON_SVG, label: t('shell.cart'), onClick: () => openCartDrawer() })
+      IconButton({ icon: CART_ICON_SVG, label: t('shell.cart'), onClick: () => openCart() })
     );
   }
 

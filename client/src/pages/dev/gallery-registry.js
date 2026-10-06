@@ -60,7 +60,6 @@ import { StoreHeader } from '../../components/store/StoreHeader.js';
 import { ShelfEditor } from '../../components/store/ShelfEditor.js';
 import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';
 import { WishlistButton } from '../../components/cart/WishlistButton.js';
-import { CartDrawer } from '../../components/cart/CartDrawer.js';
 import { openPayoutRequestModal } from '../../components/vault/PayoutRequestModal.js';
 import { EvidenceTimeline } from '../../components/dispute/EvidenceTimeline.js';
 import { ReviewCard } from '../../components/moderation/ReviewCard.js';
@@ -966,26 +965,6 @@ function renderWishlistButton() {
   return wrap;
 }
 
-function renderCartDrawer(detachedNodes) {
-  const wrap = document.createElement('div');
-  wrap.className = 'gallery-section';
-  wrap.append(subgroup('CartDrawer — Side drawer with multi-supplier parcel splitting & live revalidation'));
-
-  const openBtn = Button({
-    label: 'Open Cart Drawer Preview',
-    variant: 'primary',
-    onClick: () => {
-      drawer.open();
-    },
-  });
-
-  const drawer = CartDrawer();
-  detachedNodes.push(drawer);
-
-  wrap.append(specimen('trigger button', openBtn));
-  return wrap;
-}
-
 function renderPayoutModal() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section';
@@ -1230,7 +1209,6 @@ export function buildGalleryEntries(detachedNodes) {
     // ── Cart & Customer Account ──────────────────────────────────────────────
     // Prompt 5.1 — Cart & Wishlist
     { id: 'wishlist-button', label: 'WishlistButton', group: 'Cart & Customer Account', render: renderWishlistButton },
-    { id: 'cart-drawer', label: 'CartDrawer', group: 'Cart & Customer Account', render: () => renderCartDrawer(detachedNodes) },
     // Customer Saved Delivery Addresses Book
     { id: 'customer-address-card', label: 'CustomerAddressCard', group: 'Cart & Customer Account', render: renderCustomerAddressCardSpecimen },
 

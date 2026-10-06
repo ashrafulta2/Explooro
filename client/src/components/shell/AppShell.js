@@ -23,8 +23,7 @@ import { TopBar, formatRemaining } from './TopBar.js';
 import { MobileNav } from './MobileNav.js';
 import { createCommandPalette } from './CommandPalette.js';
 import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.js';
-import { CartDrawer } from '../cart/CartDrawer.js';
-import { initCart } from '../../services/cart.js';
+import { initCart, setCartNavigator } from '../../services/cart.js';
 
 const BACK_PORTAL_ROOTS = ['/admin', '/moderator', '/saler', '/supplier'];
 
@@ -66,8 +65,7 @@ export function createAppShell({ container, navigate }) {
   }
 
   const palette = createCommandPalette({ getState: () => ({ ctx: currentCtx(), navigate }) });
-  const cartDrawer = CartDrawer({ navigate });
-  document.body.append(cartDrawer);
+  setCartNavigator(navigate);
   initCart();
 
   // WHY: the TopBar is rebuilt wholesale on every store, language, and route change, so a naive

@@ -18,7 +18,7 @@ import { toast } from '../../services/toast.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { Switch } from '../../components/ui/Switch.js';
-import { addToCart, toggleWishlist, openCartDrawer, setWishlistNotify } from '../../services/cart.js';
+import { addToCart, toggleWishlist, openCart, setWishlistNotify } from '../../services/cart.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
 import { goBack, renderBackLink } from '../../core/navBack.js';
 
@@ -206,7 +206,7 @@ export default function WishlistPage(root, { navigate } = {}) {
           // Remove from wishlist once it lands in the cart.
           await toggleWishlist(item.product_id);
           card.remove();
-          openCartDrawer();
+          openCart();
           if (!listSlot.querySelector('[data-product-id]')) renderWishlist([]);
         } catch (err) {
           moveBtn.disabled = false;
