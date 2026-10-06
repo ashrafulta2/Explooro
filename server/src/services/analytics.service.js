@@ -478,48 +478,37 @@ export async function getExecutiveOverview(db, { timeframe = '30d', from = null,
   const latestField = (arr, field) => arr.length > 0 ? parseFloat(arr[arr.length - 1][field] || 0) : 0;
 
   // Compute Current Metrics
-  let curGmv = sumField(currentRows, 'gmv');
-  let curRev = sumField(currentRows, 'platform_net_revenue');
-  let curOrders = sumField(currentRows, 'total_orders');
-  let curAov = curOrders > 0 ? curGmv / curOrders : avgField(currentRows, 'aov');
-  let curTakeRate = curGmv > 0 ? (curRev / curGmv) * 100 : avgField(currentRows, 'take_rate_pct');
-  let curActiveSellers = latestField(currentRows, 'active_sellers_count');
-  let curNewSignups = sumField(currentRows, 'new_customers_count') + sumField(currentRows, 'new_salers_count') + sumField(currentRows, 'new_suppliers_count');
-  let curEscrow = latestField(currentRows, 'escrow_liability');
-  let curPayout = latestField(currentRows, 'pending_payout_liability');
-  let curCod = latestField(currentRows, 'cod_exposure');
-  let curDisputeRate = avgField(currentRows, 'dispute_rate_pct');
-  let curConversionRate = avgField(currentRows, 'conversion_rate_pct');
+  const curGmv = sumField(currentRows, 'gmv');
+  const curRev = sumField(currentRows, 'platform_net_revenue');
+  const curOrders = sumField(currentRows, 'total_orders');
+  const curAov = curOrders > 0 ? curGmv / curOrders : avgField(currentRows, 'aov');
+  const curTakeRate = curGmv > 0 ? (curRev / curGmv) * 100 : avgField(currentRows, 'take_rate_pct');
+  const curActiveSellers = latestField(currentRows, 'active_sellers_count');
+  const curNewSignups = sumField(currentRows, 'new_customers_count') + sumField(currentRows, 'new_salers_count') + sumField(currentRows, 'new_suppliers_count');
+  const curEscrow = latestField(currentRows, 'escrow_liability');
+  const curPayout = latestField(currentRows, 'pending_payout_liability');
+  const curCod = latestField(currentRows, 'cod_exposure');
+  const curDisputeRate = avgField(currentRows, 'dispute_rate_pct');
+  const curConversionRate = avgField(currentRows, 'conversion_rate_pct');
 
-  // Fallback defaults if no rollups exist yet (so first-load is never empty or 0)
-  if (currentRows.length === 0) {
-    curGmv = 1485000.00;
-    curRev = 118800.00;
-    curOrders = 820;
-    curAov = 1810.00;
-    curTakeRate = 8.00;
-    curActiveSellers = 142;
-    curNewSignups = 310;
-    curEscrow = 184500.00;
-    curPayout = 42000.00;
-    curCod = 96000.00;
-    curDisputeRate = 0.85;
-    curConversionRate = 3.65;
-  }
+  // WHY no placeholder block: with no rollups this used to substitute invented KPIs (GMV 1,485,000,
+  // 142 sellers, ...) and invented "previous period" multipliers (x0.88, x0.92, ...), so the deltas
+  // were fabricated too. Now every figure is the real sum (0 with no rows) and a missing comparison
+  // period yields a neutral delta; `data_source: 'baseline'` tells the UI no rollup exists yet.
 
-  // Previous Metrics
-  let prevGmv = sumField(prevRows, 'gmv') || (curGmv * 0.88);
-  let prevRev = sumField(prevRows, 'platform_net_revenue') || (curRev * 0.86);
-  let prevOrders = sumField(prevRows, 'total_orders') || (curOrders * 0.90);
-  let prevAov = prevOrders > 0 ? prevGmv / prevOrders : (curAov * 0.98);
-  let prevTakeRate = prevGmv > 0 ? (prevRev / prevGmv) * 100 : 7.85;
-  let prevActiveSellers = latestField(prevRows, 'active_sellers_count') || (curActiveSellers * 0.92);
-  let prevNewSignups = sumField(prevRows, 'new_customers_count') || (curNewSignups * 0.85);
-  let prevEscrow = latestField(prevRows, 'escrow_liability') || (curEscrow * 0.95);
-  let prevPayout = latestField(prevRows, 'pending_payout_liability') || (curPayout * 1.10);
-  let prevCod = latestField(prevRows, 'cod_exposure') || (curCod * 0.94);
-  let prevDisputeRate = avgField(prevRows, 'dispute_rate_pct') || 1.10;
-  let prevConversionRate = avgField(prevRows, 'conversion_rate_pct');
+  // Previous Metrics (0 when the comparison window has no rollups -> calcDelta reports neutral)
+  const prevGmv = sumField(prevRows, 'gmv');
+  const prevRev = sumField(prevRows, 'platform_net_revenue');
+  const prevOrders = sumField(prevRows, 'total_orders');
+  const prevAov = prevOrders > 0 ? prevGmv / prevOrders : 0;
+  const prevTakeRate = prevGmv > 0 ? (prevRev / prevGmv) * 100 : 0;
+  const prevActiveSellers = latestField(prevRows, 'active_sellers_count');
+  const prevNewSignups = sumField(prevRows, 'new_customers_count') + sumField(prevRows, 'new_salers_count') + sumField(prevRows, 'new_suppliers_count');
+  const prevEscrow = latestField(prevRows, 'escrow_liability');
+  const prevPayout = latestField(prevRows, 'pending_payout_liability');
+  const prevCod = latestField(prevRows, 'cod_exposure');
+  const prevDisputeRate = avgField(prevRows, 'dispute_rate_pct');
+  const prevConversionRate = avgField(prevRows, 'conversion_rate_pct');
 
   // Compute Delta Helper
   const calcDelta = (curr, prev) => {
@@ -533,23 +522,18 @@ export async function getExecutiveOverview(db, { timeframe = '30d', from = null,
   };
 
   // Build Time-Series Chart Data for SVG Rendering
-  const timeSeries = currentRows.length > 0 ? currentRows.map(r => ({
+  const timeSeries = currentRows.map(r => ({
     date: toDayString(r.rollup_date),
     gmv: parseFloat(r.gmv || 0),
     revenue: parseFloat(r.platform_net_revenue || 0),
     orders: parseInt(r.total_orders || 0, 10),
-  })) : [
-    { date: 'W1', gmv: 320000, revenue: 25600, orders: 180 },
-    { date: 'W2', gmv: 380000, revenue: 30400, orders: 210 },
-    { date: 'W3', gmv: 410000, revenue: 32800, orders: 230 },
-    { date: 'W4', gmv: 375000, revenue: 30000, orders: 200 },
-  ];
+  }));
 
   return {
     timeframe: range.timeframe,
     period: { from: range.from, to: range.to, days: range.days },
-    // 'baseline' = no rollup exists yet, so every figure below is an illustrative placeholder. The
-    // UI must say so rather than present invented numbers as telemetry.
+    // 'baseline' = no rollup exists yet, so every figure below is 0 and the chart is empty. The UI
+    // says so rather than presenting zeros as measured telemetry.
     data_source: currentRows.length > 0 ? 'rollup' : 'baseline',
     kpis: {
       gmv: { value: curGmv, ...calcDelta(curGmv, prevGmv), format: 'currency' },

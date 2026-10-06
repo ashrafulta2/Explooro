@@ -130,16 +130,10 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     const db = healthData?.db_health || {};
     const cache = healthData?.cache_health || {};
     const webhooks = healthData?.webhooks || {};
-    const allJobs = healthData?.job_runs || [
-      { name: 'analytics_nightly_rollup', schedule: 'Daily @ 00:00', status: 'SUCCESS', last_run_at: new Date(Date.now() - 3600000 * 6).toISOString(), duration_ms: 420, processed_count: 142 },
-      { name: 'fefo_batch_expiry_scan', schedule: 'Every 6 Hours', status: 'SUCCESS', last_run_at: new Date(Date.now() - 3600000 * 4).toISOString(), duration_ms: 180, processed_count: 38 },
-      { name: 'escrow_auto_release', schedule: 'Hourly Sweep', status: 'SUCCESS', last_run_at: new Date(Date.now() - 3600000 * 2).toISOString(), duration_ms: 310, processed_count: 18 },
-      { name: 'standing_grants_cleanup', schedule: 'Every 15 Min', status: 'SUCCESS', last_run_at: new Date(Date.now() - 3600000).toISOString(), duration_ms: 95, processed_count: 4 },
-    ];
-    const allBackups = backupData?.backups || [
-      { id: 1, ref: 'SNAP_20260902_001', snapshot_type: 'NIGHTLY', checksum_sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', table_count: 95, row_count: 143500, size_bytes: 49100000, status: 'VERIFIED', created_at: new Date(Date.now() - 3600000 * 12).toISOString() },
-      { id: 2, ref: 'SNAP_20260901_002', snapshot_type: 'PRE-DEPLOY', checksum_sha256: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08', table_count: 95, row_count: 141200, size_bytes: 48500000, status: 'VERIFIED', created_at: new Date(Date.now() - 3600000 * 36).toISOString() },
-    ];
+    // WHY empty, not demo rows: these used to fall back to four invented jobs and two invented
+    // SNAP_* backups with fake checksums whenever the API omitted them.
+    const allJobs = healthData?.job_runs || [];
+    const allBackups = backupData?.backups || [];
 
     // Filter Jobs
     const jobs = allJobs.filter((j) => {
@@ -449,10 +443,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                 <span class="system-infra-card__key">${isBn ? 'ডেড-লেটার কিউ (DLQ)' : 'Dead-Letter Queue'}</span>
                 <span class="system-infra-card__val ${webhooks.dlq_depth > 0 ? 'text-amber' : ''}">${webhooks.dlq_depth || 0}</span>
               </div>
-              <div class="system-infra-card__row">
-                <span class="system-infra-card__key">${isBn ? 'রিট্রাই পলিসি' : 'Retry Policy'}</span>
-                <span class="system-infra-card__val">3 Attempts • Backoff</span>
-              </div>
+            </div>
             </div>
 
             <div class="system-infra-card__actions">

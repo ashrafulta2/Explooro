@@ -508,10 +508,15 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
       assert.equal(ov.period.days, 7);
     });
 
-    test('with no rollups the payload is flagged as baseline so the UI can say the numbers are placeholders', async () => {
+    test('with no rollups the payload is flagged as baseline and carries no invented numbers', async () => {
       const ov = await analyticsService.getExecutiveOverview(createMockDb(), { timeframe: '30d' });
       assert.equal(ov.data_source, 'baseline');
       assert.equal(ov.last_rollup_at, null);
+      assert.deepEqual(ov.chart_data, []);
+      for (const [name, k] of Object.entries(ov.kpis)) {
+        assert.equal(k.value, 0, `${name} must be 0, not a placeholder`);
+        assert.equal(k.trend, 'neutral', `${name} has no comparison period`);
+      }
     });
 
     test('assertRollupDate defaults to yesterday and refuses malformed or future dates', () => {
