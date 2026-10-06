@@ -276,14 +276,14 @@ export default function UnifiedInboxPage(root) {
           </button>
         </div>
         <div class="chat-composer-row">
-          <input
-            type="text"
-            class="input chat-input"
+          <textarea
+            class="chat-input"
             id="chat-input"
+            rows="2"
             autocomplete="off"
             aria-label="${esc(t('saler_inbox.type_reply_placeholder') || 'Type a reply to customer...')}"
             placeholder="${esc(t('saler_inbox.type_reply_placeholder') || 'Type a reply to customer...')}"
-          />
+          ></textarea>
           <button type="button" class="btn btn--primary chat-send-btn" id="btn-send-reply">
             ${ICON_SEND}<span>${esc(t('saler_inbox.btn_send') || 'Send')}</span>
           </button>
@@ -294,8 +294,10 @@ export default function UnifiedInboxPage(root) {
     const input = chatPane.querySelector('#chat-input');
     const qrRow = chatPane.querySelector('#quick-replies-row');
     input.value = draft;
+    autosizeInput(input);
     input.addEventListener('input', () => {
       draft = input.value;
+      autosizeInput(input);
     });
 
     quickReplies.forEach((text) => {
@@ -306,6 +308,7 @@ export default function UnifiedInboxPage(root) {
       chip.addEventListener('click', () => {
         input.value = text;
         draft = text;
+        autosizeInput(input);
         quickOpen = false;
         qrRow.hidden = true;
         chatPane.querySelector('#btn-quick-toggle').setAttribute('aria-expanded', 'false');
@@ -394,6 +397,14 @@ export default function UnifiedInboxPage(root) {
     box.scrollTop = box.scrollHeight;
   }
 
+  // WHY: the reply box starts at two lines and grows with the text (capped by CSS max-height, then
+  // it scrolls) so a long reply is never hidden behind a one-line slot.
+  function autosizeInput(el) {
+    el.style.height = 'auto';
+    // border-box height = content + padding (scrollHeight) + borders (offset - client)
+    el.style.height = `${el.scrollHeight + (el.offsetHeight - el.clientHeight)}px`;
+  }
+
   async function sendReply(thread) {
     const input = container.querySelector('#chat-input');
     if (isSending || !input) return;
@@ -403,6 +414,7 @@ export default function UnifiedInboxPage(root) {
     isSending = true;
     input.value = '';
     draft = '';
+    autosizeInput(input);
 
     const optimisticMsg = {
       id: `tmp-${Date.now()}`,
@@ -433,6 +445,7 @@ export default function UnifiedInboxPage(root) {
         if (again && !again.value) {
           again.value = text;
           draft = text;
+          autosizeInput(again);
         }
       }
       toast.error(err.message || t('saler_inbox.send_failed') || 'Failed to send message.');

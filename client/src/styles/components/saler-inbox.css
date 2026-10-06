@@ -540,22 +540,44 @@
 
 .chat-composer-row {
   display: flex;
-  align-items: stretch;
+  align-items: flex-end;
   gap: 10px;
 }
 
+/* WHY: this is a bare <textarea>, not the shared .input — input-affordance.css gives
+   `.input:not(.field__control .input)` the specificity of three classes with `flex: none`, which
+   pinned the old one-line box to its ~335px intrinsic width. */
 .chat-composer-row .chat-input {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
-  width: auto;
-  min-height: 48px;
-  font-size: var(--text-base, 16px);
+  width: 100%;
+  min-height: 60px;
+  max-height: 140px;
+  padding: 12px 14px;
   box-sizing: border-box;
+  resize: none;
+  overflow-y: auto;
+  font-family: inherit;
+  font-size: var(--text-base, 16px);
+  line-height: 1.4;
+  color: var(--text-primary, #0f172a);
+  background: var(--surface-0, #ffffff);
+  border: 2px solid var(--border-interactive, #94a3b8);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.chat-composer-row .chat-input:focus {
+  outline: none;
+  border-color: var(--brand, #f59e0b);
+}
+
+.chat-composer-row .chat-input::placeholder {
+  color: var(--text-muted, #64748b);
 }
 
 .chat-send-btn {
   flex: 0 0 auto;
-  min-height: 48px;
+  min-height: 60px;
   padding: 0 20px;
   display: inline-flex;
   align-items: center;
