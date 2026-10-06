@@ -393,7 +393,7 @@ export async function getProfitSplits(req, reply) {
 
   // 4. Read audit logs
   const { rows: auditRows } = await db.query(
-    `SELECT id, actor_id, target_type, target_ref, before_json, after_json, metadata_json, created_at
+    `SELECT id, actor_id, target_type, target_ref, before_json, after_json, created_at
      FROM audit_logs
      WHERE target_type IN ('COMMISSION_SPLIT', 'PROFIT_SPLIT')
      ORDER BY id DESC LIMIT 10`
@@ -404,7 +404,7 @@ export async function getProfitSplits(req, reply) {
     scope: r.target_ref || r.target_type,
     before: JSON.stringify(r.before_json || {}),
     after: JSON.stringify(r.after_json || {}),
-    reason: r.metadata_json?.reason || 'Policy update',
+    reason: r.after_json?.meta?.reason || 'Policy update',
     created_at: r.created_at,
   }));
 
@@ -483,7 +483,7 @@ export async function updateGlobalSplit(req, reply) {
     target_ref: 'GLOBAL',
     before_json: { note: 'Previous default' },
     after_json: globalPayload,
-    metadata_json: { reason, ip: req.ip },
+    meta: { reason },
   });
 
   return reply.send({
@@ -543,7 +543,7 @@ export async function updateCategorySplit(req, reply) {
     target_type: 'COMMISSION_SPLIT',
     target_ref: `CATEGORY:${categoryId}`,
     after_json: { category_id: categoryId, saler_split_pct: saler, platform_split_pct: platform },
-    metadata_json: { reason, ip: req.ip },
+    meta: { reason },
   });
 
   return reply.send({
@@ -576,7 +576,6 @@ export async function deleteCategorySplit(req, reply) {
     target_type: 'COMMISSION_SPLIT',
     target_ref: `CATEGORY:${categoryId}`,
     after_json: { category_id: categoryId, reset_to_global: true },
-    metadata_json: { ip: req.ip },
   });
 
   return reply.send({
@@ -626,7 +625,7 @@ export async function updateTierBonuses(req, reply) {
     target_ref: 'TIER_MATRIX',
     before_json: { tiers: before },
     after_json: { tiers },
-    metadata_json: { reason, ip: req.ip },
+    meta: { reason },
   });
 
   return reply.send({
