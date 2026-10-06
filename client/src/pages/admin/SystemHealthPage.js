@@ -17,8 +17,10 @@ import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 export default function SystemHealthPage(root, { navigate } = {}) {
+  loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   // Infra status comes back as a raw backend enum (CONNECTED, DEGRADED, CONNECTION_ERROR, …) — shown
   // verbatim it reads as leftover code rather than a status label.
