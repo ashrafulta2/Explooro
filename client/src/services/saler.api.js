@@ -150,4 +150,30 @@ export const salerApi = {
   async createSocialKitLink(payload) {
     return api.post('/saler/social-kit/links', payload);
   },
+
+  /**
+   * Saler Pro: the plans on offer, the caller's live subscription and recent invoices.
+   * Only reachable while the `subscription_fees` module is ON.
+   */
+  async getSubscription() {
+    return api.get('/subscriptions/me');
+  },
+
+  /**
+   * Subscribes to a plan; a paid plan is charged from the Vault up front.
+   * @param {{ plan_id: number|string, auto_renew?: boolean }} payload
+   */
+  async subscribeToPlan(payload) {
+    return api.post('/subscriptions/subscribe', payload);
+  },
+
+  /** Stops renewal; benefits run until the paid period ends. */
+  async cancelSubscription() {
+    return api.post('/subscriptions/cancel');
+  },
+
+  /** Undoes a pending cancellation. */
+  async resumeSubscription() {
+    return api.post('/subscriptions/resume');
+  },
 };

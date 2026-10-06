@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (187 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (188 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -146,6 +146,7 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('finance.split.view', 'finance', 'View profit splits', 'মুনাফা বণ্টন দেখা', 'see the commission split rules', 'কমিশন বণ্টনের নিয়ম দেখতে', 'MEDIUM', true, 'approve_before'),
   ('finance.split.update', 'finance', 'Change profit splits', 'মুনাফা বণ্টন পরিবর্তন', 'change how commission is divided between saler and platform', 'সেলার ও প্ল্যাটফর্মের মধ্যে কমিশন কীভাবে ভাগ হবে তা পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
   ('finance.subscription.manage', 'finance', 'Manage seller fees', 'বিক্রেতা ফি ব্যবস্থাপনা', 'turn on or configure seller subscription and listing fees', 'বিক্রেতার সাবস্ক্রিপশন ও লিস্টিং ফি চালু বা নির্ধারণ করতে', 'CRITICAL', false, 'approve_before'),
+  ('finance.subscription.subscribe_own', 'finance', 'Subscribe to a seller plan', 'বিক্রেতা প্ল্যানে সাবস্ক্রাইব', NULL, NULL, 'LOW', true, 'approve_before'),
   ('finance.clawback.execute', 'finance', 'Execute a clawback', 'ক্লব্যাক কার্যকর', 'reverse a commission already credited to a seller', 'বিক্রেতাকে আগে দেওয়া কমিশন ফিরিয়ে নিতে', 'HIGH', true, 'approve_before'),
   ('finance.b2b_escrow.view_own', 'finance', 'View own B2B escrow', 'নিজের বি২বি এসক্রো দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('finance.b2b_escrow.manage', 'finance', 'Manage B2B escrow', 'বি২বি এসক্রো ব্যবস্থাপনা', 'oversee wholesale escrow deals and their milestones', 'পাইকারি এসক্রো চুক্তি ও তার ধাপগুলো তদারকি করতে', 'HIGH', true, 'approve_before'),
@@ -464,6 +465,8 @@ FROM (VALUES
   ('super_admin', 'finance.split.view'),
   ('super_admin', 'finance.split.update'),
   ('super_admin', 'finance.subscription.manage'),
+  ('saler', 'finance.subscription.subscribe_own'),
+  ('supplier', 'finance.subscription.subscribe_own'),
   ('admin', 'finance.clawback.execute'),
   ('super_admin', 'finance.clawback.execute'),
   ('supplier', 'finance.b2b_escrow.view_own'),

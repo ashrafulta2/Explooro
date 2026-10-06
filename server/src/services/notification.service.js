@@ -115,6 +115,28 @@ export const DEFAULT_TEMPLATES = {
     default_channels: ['INAPP', 'PUSH'],
     can_override_preferences: false,
   },
+  SUBSCRIPTION_RENEWAL_REMINDER: {
+    template_key: 'SUBSCRIPTION_RENEWAL_REMINDER',
+    category: 'FINANCE',
+    priority: 'NORMAL',
+    title_en: 'Your plan renews soon',
+    title_bn: 'আপনার প্ল্যান শীঘ্রই নবায়ন হবে',
+    body_template_en: '{{planName}} renews on {{renewalDate}} for ৳{{amount}}. Keep that much in your vault.',
+    body_template_bn: '{{planName}} {{renewalDate}} তারিখে ৳{{amount}} দিয়ে নবায়ন হবে। ভল্টে এই পরিমাণ টাকা রাখুন।',
+    default_channels: ['INAPP'],
+    can_override_preferences: true,
+  },
+  SUBSCRIPTION_PAYMENT_FAILED: {
+    template_key: 'SUBSCRIPTION_PAYMENT_FAILED',
+    category: 'FINANCE',
+    priority: 'HIGH',
+    title_en: 'Plan payment failed',
+    title_bn: 'প্ল্যানের ফি কাটা যায়নি',
+    body_template_en: 'We could not charge ৳{{amount}} for {{planName}}. Top up your vault by {{graceEndsAt}} to keep your benefits.',
+    body_template_bn: '{{planName}}-এর ৳{{amount}} কাটা যায়নি। সুবিধা বজায় রাখতে {{graceEndsAt}}-এর মধ্যে ভল্টে টাকা জমা দিন।',
+    default_channels: ['INAPP', 'SMS'],
+    can_override_preferences: false,
+  },
 };
 
 /**

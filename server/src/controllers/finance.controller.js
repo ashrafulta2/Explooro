@@ -8,6 +8,7 @@ import * as clawbackService from '../services/clawback.service.js';
 import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.js';
 import { writeAudit } from '../lib/audit.js';
 import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.js';
+import * as subscriptionService from '../services/subscription.service.js';
 
 export async function getIntegrity(req, reply) {
   const report = await vaultService.getIntegrityReport(req.server.db);
@@ -382,8 +383,8 @@ export async function getProfitSplits(req, reply) {
   }));
 
   // 3. Read trust tier bonuses
-  const tiers = [
   const tierBonuses = await resolveTierBonuses(db);
+  const tiers = [
     { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0, criteria_en: 'Entry tier / under ৳50,000 GMV', criteria_bn: 'প্রাথমিক স্তর / ৫০,০০০ টাকার কম জিএমভি' },
     { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 0, criteria_en: 'Consistent seller, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক সেলার, ৫০হাজার-২লাখ টাকা জিএমভি' },
     { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড', bonus_pct: 0, criteria_en: 'High volume, ৳200k-৳1M GMV, <1% dispute rate', criteria_bn: 'উচ্চ ভলিউম, ২লাখ-১০লাখ টাকা জিএমভি' },
@@ -590,7 +591,6 @@ export async function deleteCategorySplit(req, reply) {
 
 export async function updateTierBonuses(req, reply) {
   const db = req.server.db;
-  const tiers = req.body?.tiers || [];
   const reason = req.body?.reason || 'Trust tier commission bonus adjustment';
 
   // WHY: store only { tier, bonus_pct }; names and criteria are display text, not policy.
@@ -676,152 +676,18 @@ export async function simulateSplit(req, reply) {
 }
 
 // ================= SUBSCRIPTIONS CONTROLLER =================
+// Thin HTTP layer over services/subscription.service.js. Everything here sits behind the
+// `subscription_fees` module (the admin's on/off switch) — see that file for the rules.
+
+const actorOf = (req) => ({ id: req.user?.id ?? null, role: req.user?.role ?? null });
 
 export async function getSubscriptions(req, reply) {
-  const db = req.server.db;
-
-  // 1. Read module status from platform_modules
-  let moduleSettings = {
-    is_enabled: false,
-    monthly_fee: 0,
-    listing_fee: 0,
-    free_listing_quota: 100,
-    default_overage_fee: 5.0,
-    grace_period_days: 5,
-  };
-
-  try {
-    const { rows } = await db.query(
-      `SELECT is_enabled, settings_json FROM platform_modules WHERE key = 'subscription_fees'`
-    );
-    if (rows && rows.length > 0) {
-      moduleSettings.is_enabled = Boolean(rows[0].is_enabled);
-      if (rows[0].settings_json) {
-        Object.assign(moduleSettings, rows[0].settings_json);
-      }
-    }
-  } catch {
-    // Database schema fallback
-  }
-
-  // 2. Default Plans
-  const plans = [
-    {
-      id: 'plan_starter',
-      name_en: 'Free Starter',
-      name_bn: 'ফ্রি স্টার্টার',
-      role: 'ALL',
-      monthly_fee: 0,
-      free_listings: 100,
-      extra_listing_fee: 0,
-      commission_rebate_pct: 0,
-      active_subscribers: 1280,
-      is_active: true,
-      features_en: ['Up to 100 live products', 'Standard 7-day escrow release', 'Community support', 'Basic sales dashboard'],
-      features_bn: ['সর্বোচ্চ ১০০টি সক্রিয় পণ্য', 'সাধারণ ৭ দিনের এসক্রো রিলিজ', 'কমিউনিটি সহায়তা', 'বেসিক সেলস ড্যাশবোর্ড'],
-    },
-    {
-      id: 'plan_saler_pro',
-      name_en: 'Saler Pro',
-      name_bn: 'সেলার প্রো',
-      role: 'saler',
-      monthly_fee: 999,
-      free_listings: 1000,
-      extra_listing_fee: 2.0,
-      commission_rebate_pct: 2.0,
-      active_subscribers: 89,
-      is_active: true,
-      features_en: ['1,000 product listings', '+2% commission profit boost', 'Express courier pickup tag', 'Priority support & AI tools'],
-      features_bn: ['১,০০০ পণ্য লিস্টিং', '+২% অতিরিক্ত প্রফিট স্প্লিট', 'এক্সপ্রেস কুরিয়ার পিকআপ ট্যাগ', 'অগ্রাধিকার সাপোর্ট ও এআই টুলস'],
-    },
-    {
-      id: 'plan_supplier_growth',
-      name_en: 'Supplier Growth',
-      name_bn: 'সাপ্লায়ার গ্রোথ',
-      role: 'supplier',
-      monthly_fee: 2499,
-      free_listings: 5000,
-      extra_listing_fee: 1.5,
-      commission_rebate_pct: 1.0,
-      active_subscribers: 53,
-      is_active: true,
-      features_en: ['5,000 catalog items', 'Bulk CSV & inventory sync', 'Dedicated account executive', 'Verified supplier badge'],
-      features_bn: ['৫,০০০ পণ্য ক্যাটালগ', 'বাল্ক সিএসভি ও ইনভেন্টরি সিঙ্ক', 'ডেডিকেটেড অ্যাকাউন্ট এক্সিকিউটিভ', 'ভেরিফাইড সরবরাহকারী ব্যাজ'],
-    },
-    {
-      id: 'plan_enterprise',
-      name_en: 'Enterprise Wholesale',
-      name_bn: 'এন্টারপ্রাইজ হোলসেল',
-      role: 'ALL',
-      monthly_fee: 5999,
-      free_listings: 999999,
-      extra_listing_fee: 0,
-      commission_rebate_pct: 3.0,
-      active_subscribers: 14,
-      is_active: true,
-      features_en: ['Unlimited catalog listings', 'Zero listing overage fees', '3-day expedited escrow', 'Open API & webhook access'],
-      features_bn: ['আনলিমিটেড ক্যাটালগ লিস্টিং', 'কোনো ওভারএজ ফি নেই', '৩ দিনে দ্রুত এসক্রো রিলিজ', 'ওপেন এপিআই ও ওয়েবহুক অ্যাক্সেস'],
-    },
-  ];
-
-  // 3. Subscriber Roster
-  const subscribers = [
-    { id: 1, merchant_name: 'Tanvir Hossain', store_name: 'Dhaka Style Trends', phone: '01711223344', ref: 'SLR-88102', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 420, quota_total: 1000, next_renewal: '2026-09-28', status: 'ACTIVE', waived: false },
-    { id: 2, merchant_name: 'Nasrin Akter', store_name: 'Boutique Shomahar', phone: '01822334455', ref: 'SLR-88103', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 980, quota_total: 1000, next_renewal: '2026-09-15', status: 'ACTIVE', waived: false },
-    { id: 3, merchant_name: 'Rahim Textiles Ltd', store_name: 'Rahim Fabrics Depot', phone: '01933445566', ref: 'SUP-44120', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 2850, quota_total: 5000, next_renewal: '2026-09-20', status: 'ACTIVE', waived: false },
-    { id: 4, merchant_name: 'Bengal Agro Foods', store_name: 'Organic Harvest BD', phone: '01644556677', ref: 'SUP-44125', role: 'supplier', plan_id: 'plan_enterprise', plan_name: 'Enterprise Wholesale', monthly_fee: 5999, quota_used: 6400, quota_total: 999999, next_renewal: '2026-10-01', status: 'ACTIVE', waived: false },
-    { id: 5, merchant_name: 'Ashiqur Rahman', store_name: 'Gadget Express BD', phone: '01555667788', ref: 'SLR-88109', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 350, quota_total: 1000, next_renewal: '2026-09-02', status: 'PAST_DUE', waived: false },
-    { id: 6, merchant_name: 'Karupalli Crafts', store_name: 'Karupalli Artisan', phone: '01799887766', ref: 'SUP-44130', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 1100, quota_total: 5000, next_renewal: '2026-11-30', status: 'WAIVED', waived: true, waiver_reason: 'National SME startup grant' },
-    { id: 7, merchant_name: 'Shakil Ahmed', store_name: 'Apex Footwear Resell', phone: '01712345678', ref: 'SLR-88115', role: 'saler', plan_id: 'plan_starter', plan_name: 'Free Starter', monthly_fee: 0, quota_used: 65, quota_total: 100, next_renewal: '2026-09-30', status: 'ACTIVE', waived: false },
-  ];
-
-  const totalPaidSubscribers = subscribers.filter((s) => s.monthly_fee > 0 && s.status === 'ACTIVE').length;
-  const totalMRR = subscribers
-    .filter((s) => s.monthly_fee > 0 && s.status === 'ACTIVE')
-    .reduce((sum, s) => sum + s.monthly_fee, 0);
-
-  return reply.send({
-    data: {
-      module: moduleSettings,
-      metrics: {
-        mrr_bdt: totalMRR,
-        paid_subscribers_count: totalPaidSubscribers,
-        free_tier_count: subscribers.filter((s) => s.monthly_fee === 0).length,
-        overage_fees_bdt: 14250,
-        churn_rate_pct: 1.8,
-      },
-      plans,
-      subscribers,
-      total_subscribers: subscribers.length,
-    },
-  });
+  const data = await subscriptionService.getOverview(req.server.db, req.query || {});
+  return reply.send({ data });
 }
 
 export async function updateSubscriptionSettings(req, reply) {
-  const db = req.server.db;
-  const settings = req.body || {};
-
-  try {
-    await db.query(
-      `UPDATE platform_modules
-       SET settings_json = settings_json || $1::jsonb, updated_at = now()
-       WHERE key = 'subscription_fees'`,
-      [JSON.stringify(settings)]
-    );
-  } catch {
-    // Fallback in tests
-  }
-
-  await writeAudit(db, {
-    actor_id: req.user?.id || null,
-    actor_role: req.user?.role || 'super_admin',
-    action: 'UPDATE_SUBSCRIPTION_SETTINGS',
-    target_type: 'SUBSCRIPTION',
-    target_ref: 'MODULE_SETTINGS',
-    after_json: settings,
-    metadata_json: { ip: req.ip },
-  });
-
+  const settings = await subscriptionService.updateEngineSettings(req.server.db, req.body || {}, actorOf(req));
   return reply.send({
     data: {
       success: true,
@@ -833,32 +699,7 @@ export async function updateSubscriptionSettings(req, reply) {
 }
 
 export async function createSubscriptionPlan(req, reply) {
-  const db = req.server.db;
-  const plan = {
-    id: `plan_${Date.now()}`,
-    name_en: req.body?.name_en || 'Custom Plan',
-    name_bn: req.body?.name_bn || 'কাস্টম প্ল্যান',
-    role: req.body?.role || 'ALL',
-    monthly_fee: parseFloat(req.body?.monthly_fee || 0),
-    free_listings: parseInt(req.body?.free_listings || 100, 10),
-    extra_listing_fee: parseFloat(req.body?.extra_listing_fee || 0),
-    commission_rebate_pct: parseFloat(req.body?.commission_rebate_pct || 0),
-    active_subscribers: 0,
-    is_active: true,
-    features_en: req.body?.features_en || ['Standard features'],
-    features_bn: req.body?.features_bn || ['সাধারণ সুবিধাসমূহ'],
-  };
-
-  await writeAudit(db, {
-    actor_id: req.user?.id || null,
-    actor_role: req.user?.role || 'super_admin',
-    action: 'CREATE_SUBSCRIPTION_PLAN',
-    target_type: 'SUBSCRIPTION',
-    target_ref: plan.id,
-    after_json: plan,
-    metadata_json: { ip: req.ip },
-  });
-
+  const plan = await subscriptionService.createPlan(req.server.db, req.body || {}, actorOf(req));
   return reply.status(201).send({
     data: {
       success: true,
@@ -870,25 +711,12 @@ export async function createSubscriptionPlan(req, reply) {
 }
 
 export async function updateSubscriptionPlan(req, reply) {
-  const db = req.server.db;
-  const planId = req.params.id;
-  const patch = req.body || {};
-
-  await writeAudit(db, {
-    actor_id: req.user?.id || null,
-    actor_role: req.user?.role || 'super_admin',
-    action: 'UPDATE_SUBSCRIPTION_PLAN',
-    target_type: 'SUBSCRIPTION',
-    target_ref: planId,
-    after_json: patch,
-    metadata_json: { ip: req.ip },
-  });
-
+  const plan = await subscriptionService.updatePlan(req.server.db, req.params.id, req.body || {}, actorOf(req));
   return reply.send({
     data: {
       success: true,
-      plan_id: planId,
-      patch,
+      plan_id: plan.id,
+      plan,
       message_en: 'Plan updated.',
       message_bn: 'প্ল্যান আপডেট করা হয়েছে।',
     },
@@ -896,27 +724,14 @@ export async function updateSubscriptionPlan(req, reply) {
 }
 
 export async function updateSubscriberStatus(req, reply) {
-  const db = req.server.db;
-  const subscriberId = req.params.id;
-  const patch = req.body || {};
-
-  await writeAudit(db, {
-    actor_id: req.user?.id || null,
-    actor_role: req.user?.role || 'super_admin',
-    action: 'UPDATE_SUBSCRIBER_STATUS',
-    target_type: 'SUBSCRIPTION',
-    target_ref: `SUBSCRIBER:${subscriberId}`,
-    after_json: patch,
-    metadata_json: { ip: req.ip },
-  });
-
+  const subscriber = await subscriptionService.updateSubscriberStatus(req.server.db, req.params.id, req.body || {}, actorOf(req));
   return reply.send({
     data: {
       success: true,
-      subscriber_id: subscriberId,
-      patch,
+      subscriber_id: subscriber.id,
+      subscriber,
       message_en: 'Subscriber updated successfully.',
-      message_bn: 'সাবস্ক্রাইবার তথ্য সফলভাবে আপডেট করা হয়েছে।',
+      message_bn: 'সাবস্ক্রাইবার তথ্য সফলভাবে আপডেট হয়েছে।',
     },
   });
 }

@@ -59,7 +59,7 @@ shows a stronger warning and names exactly what will stop working, rather than a
 | `age_verification` | Only meaningful once age-restricted categories exist |
 | `auto_approval` | Human review first. Auto-approval is earned, per category, after the queue is understood |
 | `card_payment` | The SSLCommerz gateway is not live yet |
-| `subscription_fees` | *"100% Free at launch"* — the fee engine exists so it can be turned on later without a deploy |
+| `subscription_fees` | *"100% Free at launch"* — the fee engine exists so it can be turned on later without a deploy. While OFF, Saler Pro plans neither bill nor affect pricing (the rebate in `pricing.service.js` is gated on this module); plan prices, rebate %, grace days and billing period are all admin-editable, never constants. Existing subscriptions are kept, not deleted, when it is switched OFF |
 
 ---
 

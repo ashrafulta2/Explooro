@@ -424,6 +424,25 @@ let mockSalerLeaderboard = [
   { rank: 7, saler_name: 'Ashraf Ali', store_slug: 'gadget-galaxy', sales_count: 38, gmv: 84500.0, net_profit: 14800.0, tier_badge: 'BRONZE_SELLER', avatar: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>', is_current_user: false },
 ];
 
+// Saler Pro mock — mirrors server/src/services/subscriptionBilling.service.js shapes.
+const PRO_PERIOD_MS = 30 * 24 * 3600 * 1000;
+const mockProPlans = [
+  { id: 1, code: 'starter', name_en: 'Free Starter', name_bn: 'ফ্রি স্টার্টার', role: 'ALL', monthly_fee: 0, free_listings: 100,
+    extra_listing_fee: 0, commission_rebate_pct: 0, is_active: true,
+    features_en: ['Up to 100 live products', 'Standard escrow release'], features_bn: ['সর্বোচ্চ ১০০টি সক্রিয় পণ্য', 'সাধারণ এসক্রো রিলিজ'] },
+  { id: 2, code: 'saler_pro', name_en: 'Saler Pro', name_bn: 'সেলার প্রো', role: 'saler', monthly_fee: 999, free_listings: 1000,
+    extra_listing_fee: 2, commission_rebate_pct: 2, is_active: true,
+    features_en: ['1,000 live products', '+2 points on every sale split', 'Priority support'], features_bn: ['১,০০০টি সক্রিয় পণ্য', 'প্রতিটি বিক্রয়ে +২ পয়েন্ট', 'অগ্রাধিকার সহায়তা'] },
+];
+let mockProSub = null;
+let mockProInvoices = [];
+const proView = () => {
+  if (!mockProSub) return null;
+  const plan = mockProPlans.find((p) => p.id === mockProSub.plan_id);
+  return { ...mockProSub, plan_code: plan.code, plan_name_en: plan.name_en, plan_name_bn: plan.name_bn,
+    monthly_fee: plan.monthly_fee, commission_rebate_pct: plan.commission_rebate_pct };
+};
+
 export default [
   // 1. Unified Dashboard
   {
@@ -926,6 +945,51 @@ export default [
           },
         },
       };
+    },
+  },
+  // Saler Pro subscription (module `subscription_fees`)
+  {
+    method: 'GET',
+    path: '/subscriptions/me',
+    handler: () => ({
+      status: 200,
+      body: { data: { plans: mockProPlans, subscription: proView(), invoices: mockProInvoices, billing_period_days: 30, grace_period_days: 5 } },
+    }),
+  },
+  {
+    method: 'POST',
+    path: '/subscriptions/subscribe',
+    handler: ({ body }) => {
+      const plan = mockProPlans.find((p) => String(p.id) === String(body?.plan_id));
+      if (!plan) return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'That plan is not available.', message_bn: 'এই প্ল্যানটি পাওয়া যাচ্ছে না।' } } };
+      if (mockProSub) return { status: 409, body: { error: { code: 'CONFLICT', message_en: 'You already have a plan. Cancel it before choosing another.', message_bn: 'আপনার ইতিমধ্যে একটি প্ল্যান আছে।' } } };
+      const now = Date.now();
+      mockProSub = { id: 1, plan_id: plan.id, status: 'ACTIVE', current_period_start: new Date(now).toISOString(),
+        current_period_end: new Date(now + PRO_PERIOD_MS).toISOString(), auto_renew: body?.auto_renew !== false,
+        cancel_at_period_end: false, grace_ends_at: null };
+      if (plan.monthly_fee > 0) {
+        mockProInvoices.unshift({ id: mockProInvoices.length + 1, amount: plan.monthly_fee, period_start: mockProSub.current_period_start,
+          period_end: mockProSub.current_period_end, status: 'PAID', failure_reason: null, created_at: mockProSub.current_period_start });
+      }
+      return { status: 201, body: { data: proView() } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/subscriptions/cancel',
+    handler: () => {
+      if (!mockProSub) return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'No active plan.', message_bn: 'কোনো সক্রিয় প্ল্যান নেই।' } } };
+      Object.assign(mockProSub, { cancel_at_period_end: true, auto_renew: false });
+      return { status: 200, body: { data: proView() } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/subscriptions/resume',
+    handler: () => {
+      if (!mockProSub) return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'No active plan.', message_bn: 'কোনো সক্রিয় প্ল্যান নেই।' } } };
+      Object.assign(mockProSub, { cancel_at_period_end: false, auto_renew: true });
+      return { status: 200, body: { data: proView() } };
     },
   },
 ];

@@ -211,6 +211,7 @@ export const navItems = [
   { key: 'saler.referrals', label_i18n_key: 'nav.shared.referrals', icon: null, path: '/saler/referrals', group: 'saler.growth', permission: 'growth.referral.view_own', module: 'referral_engine', roles: ['saler'], order: 1, simpleMode: false },
   { key: 'saler.quests', label_i18n_key: 'nav.shared.quests', icon: null, path: '/saler/quests', group: 'saler.growth', permission: null, module: 'daily_quests', roles: ['saler'], order: 2, simpleMode: false },
   { key: 'saler.leaderboard', label_i18n_key: 'nav.saler.leaderboard', icon: null, path: '/saler/leaderboard', group: 'saler.growth', permission: null, module: 'gamification', roles: ['saler'], order: 3, simpleMode: false },
+  { key: 'saler.pro', label_i18n_key: 'nav.saler.pro', icon: null, path: '/saler/pro', group: 'saler.growth', permission: 'finance.subscription.subscribe_own', module: 'subscription_fees', roles: ['saler'], order: 6 },
   { key: 'saler.academy', label_i18n_key: 'nav.shared.academy', icon: null, path: '/saler/academy', group: 'saler.growth', permission: null, module: 'seller_academy', roles: ['saler'], order: 4 },
   { key: 'saler.inbox', label_i18n_key: 'nav.saler.inbox', icon: null, path: '/saler/inbox', group: 'saler.growth', permission: 'chat.thread.view_own', module: 'whatsapp_bridge', roles: ['saler'], order: 5 },
   // The personal-account surfaces also reachable from the TopBar avatar menu — mirrored into the

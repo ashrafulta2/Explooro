@@ -38,6 +38,9 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
   let freeQuota = 100;
   let defaultOverage = 5.0;
   let graceDays = 5;
+  let billingDays = 30;
+  let reminderDays = 3;
+  let autoRenewDefault = true;
   let isSavingSettings = false;
 
   // Active Modals State
@@ -52,6 +55,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
   let planFreeListings = 100;
   let planExtraFee = 2;
   let planRebatePct = 0;
+  let planActive = true;
 
   async function loadData() {
     isLoading = true;
@@ -64,6 +68,9 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
         freeQuota = subData.module.free_listing_quota ?? 100;
         defaultOverage = subData.module.default_overage_fee ?? 5.0;
         graceDays = subData.module.grace_period_days ?? 5;
+        billingDays = subData.module.billing_period_days ?? 30;
+        reminderDays = subData.module.renewal_reminder_days ?? 3;
+        autoRenewDefault = subData.module.auto_renew_default ?? true;
       }
     } catch (err) {
       toast.error(err.message || 'Failed to load subscription governance data.');
@@ -89,6 +96,9 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
         free_listing_quota: freeQuota,
         default_overage_fee: defaultOverage,
         grace_period_days: graceDays,
+        billing_period_days: billingDays,
+        renewal_reminder_days: reminderDays,
+        auto_renew_default: autoRenewDefault,
       });
       toast.success(t('admin_subscriptions.toast_settings_saved'));
       await loadData();
@@ -119,7 +129,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
   async function handleSavePlan() {
     if (!planNameEn.trim()) {
       toast.warning('Plan name is required.');
-      return;
+      return false;
     }
 
     const payload = {
@@ -129,6 +139,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
       free_listings: planFreeListings,
       extra_listing_fee: planExtraFee,
       commission_rebate_pct: planRebatePct,
+      is_active: planActive,
     };
 
     try {
@@ -140,8 +151,12 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
       toast.success(t('admin_subscriptions.toast_plan_saved'));
       activeEditingPlan = null;
       await loadData();
+      return true;
     } catch (err) {
+      // WHY return false: the modal stays open so the admin does not lose what they typed
+      // (e.g. when the rebate is rejected for exceeding the platform's share).
       toast.error(err.message || 'Failed to save subscription plan.');
+      return false;
     }
   }
 
@@ -176,6 +191,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
         planFreeListings = 1000;
         planExtraFee = 2.0;
         planRebatePct = 1.0;
+        planActive = true;
         renderPlanModal();
       },
     });
@@ -280,6 +296,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
                   <div>
                     <h3 class="font-bold text-base m-0">${isBn ? plan.name_bn || plan.name_en : plan.name_en}</h3>
                     <span class="badge badge--neutral text-2xs mt-1 uppercase font-mono">${plan.role || 'ALL'}</span>
+                    ${plan.is_active === false ? `<span class="badge badge--warning text-2xs mt-1">${t('admin_subscriptions.plan_inactive')}</span>` : ''}
                   </div>
                   <span class="badge badge--brand font-bold text-xs">
                     ${plan.active_subscribers || 0} ${t('admin_subscriptions.active_subscribers_count')}
@@ -304,7 +321,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
                     plan.commission_rebate_pct > 0
                       ? `<div class="flex justify-between text-success">
                           <span>${t('admin_subscriptions.commission_rebate')}:</span>
-                          <strong>+${plan.commission_rebate_pct}% boost</strong>
+                          <strong>${t('admin_subscriptions.rebate_points', { pct: plan.commission_rebate_pct })}</strong>
                         </div>`
                       : ''
                   }
@@ -330,7 +347,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     plansPanel.querySelectorAll('.btn-plan-edit').forEach((btn) => {
       btn.addEventListener('click', () => {
         const pId = btn.getAttribute('data-plan-id');
-        const p = plans.find((pl) => pl.id === pId);
+        const p = plans.find((pl) => String(pl.id) === pId);
         if (p) {
           activeEditingPlan = p;
           planNameEn = p.name_en;
@@ -339,6 +356,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
           planFreeListings = p.free_listings;
           planExtraFee = p.extra_listing_fee;
           planRebatePct = p.commission_rebate_pct || 0;
+          planActive = p.is_active !== false;
           renderPlanModal();
         }
       });
@@ -431,7 +449,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
                               ${sub.role === 'supplier' ? '🏭' : '🏪'}
                             </div>
                             <div class="category-info">
-                              <a href="#/admin/users/${sub.id}" class="category-name text-primary hover:underline">
+                              <a href="#/admin/users/${sub.user_id ?? sub.id}" class="category-name text-primary hover:underline">
                                 ${sub.merchant_name}
                               </a>
                               <span class="text-xs text-muted">${sub.store_name} · <span class="font-mono">${sub.phone}</span></span>
@@ -545,6 +563,23 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
             <label for="subs-grace" class="form-label">${t('admin_subscriptions.grace_period_label')}</label>
             <input id="subs-grace" type="number" class="form-input grace-input" min="1" max="30" value="${graceDays}" />
           </div>
+
+          <div class="form-group">
+            <label for="subs-period" class="form-label">${t('admin_subscriptions.billing_period_label')}</label>
+            <input id="subs-period" type="number" class="form-input period-input" min="1" max="365" value="${billingDays}" />
+          </div>
+
+          <div class="form-group">
+            <label for="subs-reminder" class="form-label">${t('admin_subscriptions.reminder_days_label')}</label>
+            <input id="subs-reminder" type="number" class="form-input reminder-input" min="0" max="30" value="${reminderDays}" />
+          </div>
+
+          <div class="form-group">
+            <label class="flex items-center gap-2">
+              <input type="checkbox" class="auto-renew-input" ${autoRenewDefault ? 'checked' : ''} />
+              <span class="form-label m-0">${t('admin_subscriptions.auto_renew_label')}</span>
+            </label>
+          </div>
         </div>
 
         <div class="form-actions">
@@ -562,6 +597,14 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     qInput?.addEventListener('input', (e) => (freeQuota = parseInt(e.target.value, 10) || 100));
     oInput?.addEventListener('input', (e) => (defaultOverage = parseFloat(e.target.value) || 5.0));
     gInput?.addEventListener('input', (e) => (graceDays = parseInt(e.target.value, 10) || 5));
+
+    policyPanel.querySelector('.period-input')?.addEventListener('input', (e) => (billingDays = parseInt(e.target.value, 10) || 30));
+    // WHY Number.isNaN, not `|| default`: 0 is a valid reminder window ("never remind").
+    policyPanel.querySelector('.reminder-input')?.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10);
+      reminderDays = Number.isNaN(v) ? 0 : v;
+    });
+    policyPanel.querySelector('.auto-renew-input')?.addEventListener('change', (e) => (autoRenewDefault = e.target.checked));
 
     policyPanel.querySelector('.fee-settings-form')?.addEventListener('submit', handleSaveSettings);
     container.append(policyPanel);
@@ -669,9 +712,15 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
       </div>
 
       <div class="form-group">
-        <label class="form-label">Commission Rebate (%)</label>
-        <input type="number" class="form-input plan-rebate" value="${planRebatePct}" min="0" max="10" step="0.5" />
+        <label class="form-label">${t('admin_subscriptions.rebate_label')}</label>
+        <input type="number" class="form-input plan-rebate" value="${planRebatePct}" min="0" max="100" step="0.5" />
+        <p class="text-xs text-secondary mt-1">${t('admin_subscriptions.rebate_hint')}</p>
       </div>
+
+      <label class="flex items-center gap-2">
+        <input type="checkbox" class="plan-active" ${planActive ? 'checked' : ''} />
+        <span class="text-sm">${t('admin_subscriptions.plan_active_label')}</span>
+      </label>
     `;
 
     const nameEnInput = wrap.querySelector('.plan-name-en');
@@ -687,6 +736,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     listInput?.addEventListener('input', (e) => (planFreeListings = parseInt(e.target.value, 10) || 100));
     extraInput?.addEventListener('input', (e) => (planExtraFee = parseFloat(e.target.value) || 0));
     rebateInput?.addEventListener('input', (e) => (planRebatePct = parseFloat(e.target.value) || 0));
+    wrap.querySelector('.plan-active')?.addEventListener('change', (e) => (planActive = e.target.checked));
 
     const footer = document.createElement('div');
     footer.className = 'flex items-center justify-end gap-2 w-full';
@@ -712,8 +762,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     });
 
     footer.querySelector('.modal-save-btn').addEventListener('click', async () => {
-      await handleSavePlan();
-      modal.close();
+      if (await handleSavePlan()) modal.close();
     });
 
     document.body.appendChild(modal);

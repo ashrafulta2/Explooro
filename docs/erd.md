@@ -949,7 +949,7 @@ CREATE TABLE abandoned_carts (
 
 ---
 
-## 5. Finance — 8 tables
+## 5. Finance — 8 tables (+3 migration 052: subscription_plans, subscriptions, subscription_invoices)
 
 ```sql
 CREATE TABLE wallets (
@@ -1120,6 +1120,15 @@ CREATE TABLE b2b_escrow_milestones (
   UNIQUE (sub_order_id, sequence_no)
 );
 ```
+
+### 5.1 Seller subscriptions (migration 052) — 3 tables, added after the original 95
+
+Inert while the `subscription_fees` module is OFF. `subscription_plans` carries the admin-editable
+numbers (`monthly_fee`, `commission_rebate_pct`, listing quota); `subscriptions` holds one *live* row
+per user (partial unique index on `status IN ('ACTIVE','PAST_DUE','WAIVED')`); `subscription_invoices`
+has a unique index on `(subscription_id, period_start)` for PAID/WAIVED rows so a renewal can never
+bill the same period twice. `renewal_reminded_for` records the period end a reminder was sent for, so the hourly job reminds once per renewal. Charges post to the ledger as `SUBSCRIPTION_FEE` (added to the
+`ledger_transactions.category` CHECK by the same migration).
 
 ---
 
@@ -1901,12 +1910,12 @@ server/src/db/migrations/NNN_snake_case_description.sql
 | 2. Platform Configuration | 8 |
 | 3. Catalog | 12 |
 | 4. Commerce | 12 |
-| 5. Finance | 8 |
+| 5. Finance | 11 |
 | 6. Logistics & Support | 8 |
 | 7. Engagement | 18 |
 | 8. Growth & Media | 12 |
 | 9. Developer Platform | 3 |
-| **Total** | **98** |
+| **Total** | **101** |
 
 Compared with v1.0's 20 untyped tables — and note that both tables v1.0 referenced without
 creating, `platform_settings` (§2) and `warehouse_nodes` (§3), are now defined. Engagement grew

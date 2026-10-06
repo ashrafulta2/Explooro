@@ -200,6 +200,17 @@ export default async function financeRoutes(app) {
   // 27. Merchant Subscriptions Overview & Subscriber Roster
   app.get('/admin/finance/subscriptions', {
     preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
+    schema: {
+      querystring: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          status: { type: 'string', enum: ['ACTIVE', 'PAST_DUE', 'WAIVED'] },
+          page: { type: 'integer', minimum: 1 },
+          page_size: { type: 'integer', minimum: 1, maximum: 100 },
+        },
+      },
+    },
     handler: controller.getSubscriptions,
   });
 
@@ -218,12 +229,14 @@ export default async function financeRoutes(app) {
   // 30. Update Subscription Plan
   app.put('/admin/finance/subscriptions/plans/:id', {
     preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
+    schema: { params: { type: 'object', required: ['id'], properties: { id: { type: 'string', pattern: '^\\d+$' } } } },
     handler: controller.updateSubscriptionPlan,
   });
 
   // 31. Update Subscriber Status / Grant Fee Waiver
   app.patch('/admin/finance/subscriptions/subscribers/:id', {
     preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
+    schema: { params: { type: 'object', required: ['id'], properties: { id: { type: 'string', pattern: '^\\d+$' } } } },
     handler: controller.updateSubscriberStatus,
   });
 }

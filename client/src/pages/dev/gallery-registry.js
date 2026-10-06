@@ -1078,6 +1078,26 @@ function renderProfitSplitsSpecimen() {
   return wrap;
 }
 
+function renderSalerProSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Saler Pro subscription (/saler/pro)'));
+
+  const card = document.createElement('div');
+  card.className = 'card p-4 flex flex-col gap-2';
+  card.innerHTML = `
+    <div class="flex items-center justify-between">
+      <span class="font-bold text-base">Saler Pro</span>
+      <span class="badge badge--success badge--sm">Active</span>
+    </div>
+    <p class="text-sm m-0">Renews on 12 Nov for the plan fee.</p>
+    <p class="text-sm m-0 text-brand font-semibold">+2 points added to your share of every sale</p>
+    <div class="flex gap-2"><button type="button" class="btn btn--secondary btn--sm">Cancel plan</button></div>
+  `;
+  wrap.append(specimen('current plan card (values come from the plan, never hardcoded)', card));
+  return wrap;
+}
+
 function renderSubscriptionsSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section';
@@ -1252,6 +1272,7 @@ export function buildGalleryEntries(detachedNodes) {
     // Super Admin Profit Splits & Merchant Subscriptions
     { id: 'profit-splits-page', label: 'ProfitSplitsPage', group: 'Vault & Payouts', render: renderProfitSplitsSpecimen },
     { id: 'subscriptions-page', label: 'SubscriptionsPage', group: 'Vault & Payouts', render: renderSubscriptionsSpecimen },
+    { id: 'saler-pro-page', label: 'SalerProPage', group: 'Vault & Payouts', render: renderSalerProSpecimen },
 
     // ── Order & Logistics ────────────────────────────────────────────────────
     // Prompt 7.1 — 3PL Logistics & Live Map

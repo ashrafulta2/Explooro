@@ -11,6 +11,8 @@
  *   2. Category-specific commission rule in commission_rules (scope_type = 'CATEGORY')
  *   3. Global platform_settings key ('commission.default_splits') — the ONE global default
  *   4. Hard fallback (40% saler / 60% platform)
+ *   Then, for steps 2-4 only and only when a salerId is given: the Saler Pro rebate
+ *   (subscriptionRebate.js) moves its points from platform to saler. Module OFF => no change.
  *
  * WHY there is no GLOBAL commission_rules step: a seeded GLOBAL row used to sit above the setting,
  * so editing the default at /admin/finance/splits (which writes the setting) changed nothing in
@@ -22,6 +24,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
+import { applyRebate, resolveProRebatePct } from './subscriptionRebate.js';
 
 /**
  * Converts a decimal BDT amount into integer paisa.
@@ -60,7 +63,16 @@ export function toBdtNumber(paisa) {
  * @param {object} context { productId, productRef, categoryId }
  * @returns {Promise<{ salerSplitPct: number, platformSplitPct: number, ruleSource: string }>}
  */
-export async function resolveSplitPercentages(db, { productId, productRef, categoryId } = {}) {
+export async function resolveSplitPercentages(db, { productId, productRef, categoryId, salerId, cache } = {}) {
+  const base = await resolveBaseSplit(db, { productId, productRef, categoryId });
+  // WHY not on PRODUCT_OVERRIDE: a per-product rule is an explicit, deliberate number set by an admin;
+  // layering a plan rebate on top would silently change what they typed.
+  if (!salerId || base.ruleSource === 'PRODUCT_OVERRIDE') return base;
+  // WHY no try/catch: a failed lookup must surface, not quietly pay the saler the wrong split.
+  return applyRebate(base, await resolveProRebatePct(db, { salerId, cache }));
+}
+
+async function resolveBaseSplit(db, { productId, productRef, categoryId }) {
   // 1. Product-level commission rule override
   if (db && (productId || productRef)) {
     try {
@@ -137,18 +149,6 @@ export async function resolveSplitPercentages(db, { productId, productRef, categ
   };
 }
 
-/**
- * Resolves platform-wide pricing configuration parameters from platform_settings.
- *
- * @param {object} db Database client
- * @returns {Promise<{ platformDefaultProfitPct: number, salerDefaultProfitPct: number, extraMarkupPlatformPct: number, salerSplitPct: number, platformSplitPct: number }>}
- */
-export async function resolvePlatformPricingConfig(db) {
-  const fallback = {
-    platformDefaultProfitPct: 10.0,
-    salerDefaultProfitPct: 20.0,
-    extraMarkupPlatformPct: 20.0,
-    salerSplitPct: 40.0,
 /** Trust tiers a bonus can be set for, lowest first. */
 export const TIER_KEYS = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'];
 
@@ -177,6 +177,18 @@ export async function resolveTierBonuses(db) {
   return bonuses;
 }
 
+/**
+ * Resolves platform-wide pricing configuration parameters from platform_settings.
+ *
+ * @param {object} db Database client
+ * @returns {Promise<{ platformDefaultProfitPct: number, salerDefaultProfitPct: number, extraMarkupPlatformPct: number, salerSplitPct: number, platformSplitPct: number }>}
+ */
+export async function resolvePlatformPricingConfig(db) {
+  const fallback = {
+    platformDefaultProfitPct: 10.0,
+    salerDefaultProfitPct: 20.0,
+    extraMarkupPlatformPct: 20.0,
+    salerSplitPct: 40.0,
     platformSplitPct: 60.0,
   };
 

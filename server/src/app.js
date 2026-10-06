@@ -46,6 +46,7 @@ import wishlistRoutes from './routes/wishlist.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import financeRoutes from './routes/finance.routes.js';
+import subscriptionRoutes from './routes/subscription.routes.js';
 import logisticsRoutes from './routes/logistics.routes.js';
 import returnRoutes from './routes/return.routes.js';
 import disputeRoutes from './routes/dispute.routes.js';
@@ -81,6 +82,7 @@ import './jobs/teamPurchaseExpiry.job.js'; // Registers team_purchase_expiry job
 import './jobs/cartRecovery.job.js'; // Registers cart_recovery_sweep job with scheduler
 import './jobs/expiryWarning.job.js'; // Registers batch_expiry_warning_sweep with scheduler
 import './jobs/analyticsRollup.job.js'; // Registers analytics_nightly_rollup with scheduler
+import './jobs/subscriptionRenewal.job.js'; // Registers subscription_renewal with scheduler (module: subscription_fees)
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
 import sitemapRoutes from './routes/sitemap.routes.js';
 import { createSmsSender } from './integrations/sms/index.js';
@@ -193,6 +195,7 @@ export async function buildApp(overrides = {}) {
   await app.register(orderRoutes, { prefix: '/api/v1' });
   await app.register(paymentRoutes, { prefix: '/api/v1' });
   await app.register(financeRoutes, { prefix: '/api/v1' });
+  await app.register(subscriptionRoutes, { prefix: '/api/v1' });
   await app.register(logisticsRoutes, { prefix: '/api/v1' });
   await app.register(returnRoutes, { prefix: '/api/v1' });
   await app.register(disputeRoutes, { prefix: '/api/v1' });

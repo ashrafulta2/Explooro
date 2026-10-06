@@ -1,0 +1,46 @@
+/* saler-pro.css — /saler/pro. Imported by the page module so it ships in that route's chunk, not the entry bundle. */
+
+.saler-pro__title { margin: 0; font-size: var(--text-xl, 1.5rem); }
+.saler-pro__muted { margin: var(--space-1, 4px) 0 0; color: var(--text-secondary); font-size: var(--text-sm, 0.875rem); }
+.saler-pro__section-title { margin: 0 0 var(--space-3, 12px); font-size: var(--text-lg, 1.125rem); }
+
+.saler-pro__current,
+.saler-pro__plan,
+.saler-pro__invoices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  padding: var(--space-5, 20px);
+}
+
+.saler-pro__current { border-color: var(--brand); }
+.saler-pro__current-head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3, 12px); }
+.saler-pro__eyebrow { margin: 0; color: var(--text-secondary); font-size: var(--text-xs, 0.75rem); text-transform: uppercase; letter-spacing: 0.04em; }
+.saler-pro__plan-name { margin: 0; font-size: var(--text-lg, 1.125rem); }
+
+.saler-pro__plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4, 16px);
+}
+
+.saler-pro__price { margin: 0; font-size: var(--text-2xl, 1.75rem); font-weight: 700; }
+.saler-pro__per { font-size: var(--text-sm, 0.875rem); font-weight: 400; color: var(--text-secondary); }
+.saler-pro__perk { margin: 0; color: var(--text-brand); font-weight: 600; }
+.saler-pro__note { margin: 0; color: var(--text-secondary); }
+.saler-pro__note--warn { color: var(--warning-700, var(--text-primary)); font-weight: 600; }
+
+.saler-pro__features { margin: 0; padding-left: var(--space-5, 20px); display: flex; flex-direction: column; gap: var(--space-1, 4px); flex: 1; }
+.saler-pro__actions { display: flex; flex-wrap: wrap; gap: var(--space-2, 8px); }
+
+.saler-pro__table-wrap { overflow-x: auto; }
+.saler-pro__table { width: 100%; border-collapse: collapse; font-size: var(--text-sm, 0.875rem); }
+.saler-pro__table th,
+.saler-pro__table td { padding: var(--space-2, 8px) var(--space-3, 12px); text-align: left; border-bottom: 1px solid var(--border-subtle); }
+.saler-pro__num { font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  .saler-pro__current,
+  .saler-pro__plan,
+  .saler-pro__invoices { padding: var(--space-4, 16px); }
+}

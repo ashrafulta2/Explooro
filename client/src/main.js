@@ -1790,6 +1790,14 @@ async function bootRouterDemo() {
         load: () => import('./pages/customer/CoinsPage.js'),
       },
       {
+        path: '/saler/pro',
+        title: () => `${t('saler_pro.page_title')} — Explooro`,
+        requiresAuth: true,
+        permission: 'finance.subscription.subscribe_own',
+        module: 'subscription_fees',
+        load: () => import('./pages/saler/SalerProPage.js'),
+      },
+      {
         path: '/saler/quests',
         title: 'Daily & Weekly Quests — Explooro',
         requiresAuth: true,

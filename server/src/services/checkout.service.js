@@ -23,7 +23,7 @@ import * as couponRepo from '../repositories/coupon.repository.js';
 import * as trustScoreService from './trustScore.service.js';
 import * as adsService from './ads.service.js';
 import * as otpService from './otp.service.js';
-import { calculatePricingBreakdown, toPaisa, toBdtNumber } from './pricing.service.js';
+import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
 
 export function hashPayload(payload) {
   return createHash('sha256').update(JSON.stringify(payload || {})).digest('hex');
@@ -372,12 +372,22 @@ export async function executeCheckout(pool, cache, {
         });
 
         // Calculate Pricing Formula via pricing.service.js
+        // WHY resolved, not 40/60: the split is a business number (platform_settings / overrides), and
+        // the Saler Pro rebate can only reach the order if checkout asks for this saler's split.
+        const split = await resolveSplitPercentages(client, {
+          productId: prod.id,
+          productRef: prod.ref,
+          categoryId: prod.category_id,
+          salerId: item.saler_id || null,
+          cache,
+        });
         const pricing = calculatePricingBreakdown({
           baseCost: prod.base_cost,
           wholesaleMargin: prod.wholesale_margin,
           retailPrice: item.unit_price,
-          salerSplitPct: 40,
-          platformSplitPct: 60,
+          salerSplitPct: split.salerSplitPct,
+          platformSplitPct: split.platformSplitPct,
+          ruleSource: split.ruleSource,
         });
 
         const lineTotalPaisa = toPaisa(item.unit_price) * itemQty;

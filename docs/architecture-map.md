@@ -129,6 +129,7 @@ The 35 most likely change requests, with exact paths.
 | Change the return window | Module setting `returns_engine.return_window_days` |
 | Change coin redemption rate | Module setting `loyalty_coins.redemption_rate` |
 | Change group-buy team size / window | Module setting `group_buying.default_team_size`, `.window_hours` |
+| Switch Saler Pro on/off, or change its fee, rebate points, grace days or billing period | Configuration, not code. Module `subscription_fees` (default OFF) at `/admin/platform/modules`; plans and policy at `/admin/finance/subscriptions` (`finance.subscription.manage`). The rebate is a per-plan `commission_rebate_pct` applied in `services/subscriptionRebate.js` and called from `pricing.service.js`. Billing/renewal: `services/subscriptionBilling.service.js` + `jobs/subscriptionRenewal.job.js`. Saler page: `pages/saler/SalerProPage.js` |
 | Fix a pricing calculation | `services/pricing.service.js` — **the only file with split arithmetic** |
 | Fix a wallet or ledger bug | `services/ledger.service.js` + `services/vault.service.js`. Re-read `erd.md` §12 first |
 

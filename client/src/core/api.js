@@ -19,6 +19,7 @@ export const API_BASE = BASE;
 const IDEMPOTENT_ROUTES = [
   /^\/orders\/checkout$/,
   /^\/vault\/withdraw$/,
+  /^\/subscriptions\/subscribe$/,
   /^\/payments\/execute$/,
   /^\/returns\/[^/]+\/refund$/,
   /^\/team-purchases\/join$/,

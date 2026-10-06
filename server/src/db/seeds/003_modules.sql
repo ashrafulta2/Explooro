@@ -209,8 +209,8 @@ VALUES
   ('subscription_fees', 'finance', 'Seller subscription & fees', 'বিক্রেতা সাবস্ক্রিপশন ও ফি',
    'Optional listing or membership fees. Platform is free at launch.',
    'ঐচ্ছিক লিস্টিং বা সদস্য ফি। চালুর সময় প্ল্যাটফর্ম সম্পূর্ণ ফ্রি।',
-   false, false, '{"monthly_fee": 0, "listing_fee": 0, "free_listing_quota": 100}'::jsonb,
-   '{"type": "object", "properties": { "monthly_fee": { "type": "number", "default": 0 }, "listing_fee": { "type": "number", "default": 0 }, "free_listing_quota": { "type": "integer", "default": 100 } } }'::jsonb,
+   false, false, '{"monthly_fee": 0, "listing_fee": 0, "free_listing_quota": 100, "default_overage_fee": 5, "grace_period_days": 5, "billing_period_days": 30, "renewal_reminder_days": 3, "auto_renew_default": true}'::jsonb,
+   '{"type": "object", "properties": { "monthly_fee": { "type": "number", "default": 0 }, "listing_fee": { "type": "number", "default": 0 }, "free_listing_quota": { "type": "integer", "default": 100 }, "default_overage_fee": { "type": "number", "default": 5 }, "grace_period_days": { "type": "integer", "default": 5 }, "billing_period_days": { "type": "integer", "default": 30 }, "renewal_reminder_days": { "type": "integer", "default": 3 }, "auto_renew_default": { "type": "boolean", "default": true } } }'::jsonb,
    ARRAY[]::text[]),
 
   ('escrow_engine', 'finance', 'Escrow holding period', 'এসক্রো ধরে রাখার সময়',
