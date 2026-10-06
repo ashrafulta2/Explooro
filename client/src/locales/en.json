@@ -2623,7 +2623,12 @@
     "quick_reply_1": "Product is available in stock.",
     "quick_reply_2": "Delivery takes 2-3 business days.",
     "quick_reply_3": "Inside Dhaka delivery ৳60, outside Dhaka ৳120.",
-    "quick_reply_4": "Sending your instant 1-tap checkout link now!"
+    "quick_reply_4": "Sending your instant 1-tap checkout link now!",
+    "loading": "Loading...",
+    "btn_back": "Back to conversations",
+    "btn_quick_replies": "Quick replies",
+    "window_closed_notice": "This customer last wrote more than 24 hours ago, so your reply may not be delivered.",
+    "send_failed": "Message could not be sent. Please try again."
   },
   "chat": {
     "page_title": "Messages & Real-Time Chat",

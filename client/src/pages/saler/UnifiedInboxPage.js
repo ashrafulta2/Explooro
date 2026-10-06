@@ -1,14 +1,16 @@
 /**
  * UnifiedInboxPage.js — Saler Unified Multi-Channel Commerce Inbox (Prompt 8.3 / DFD Subsystem 20.0).
  *
+ * Two-pane layout on purpose: conversations on the left, ONE conversation on the right. Everything
+ * the old third "customer context" pane carried is folded into the chat header (who, which channel)
+ * or shown only when it matters (a closed reply window). Fewer things on screen = faster decisions.
+ *
  * Implements:
- * - 3-pane unified commerce workstation (Thread list, Active conversation feed, Customer context).
- * - Multi-channel conversation aggregation (WhatsApp, Messenger, In-Platform).
- * - Interactive channel filtering pills with live count badges.
+ * - Multi-channel conversation aggregation (WhatsApp, Messenger, In-Platform) with filter tabs.
  * - Real-time WebSocket arrival listener & optimistic message dispatch.
  * - Catalog-driven Product Card selector modal with 1-tap single-use checkout link generation.
- * - Meta 24-hour customer service window status tracking.
- * - Quick reply shortcut chips with EN/BN bilingual support.
+ * - Quick reply shortcuts, hidden behind one button until asked for.
+ * - Phone: list → conversation navigation with a Back button (one pane at a time).
  */
 
 import { Button } from '../../components/ui/Button.js';
@@ -17,7 +19,29 @@ import { api } from '../../core/api.js';
 import { wsManager } from '../../services/websocket.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
+import { escapeHtml as esc } from '../../services/html.js';
 import { toast } from '../../services/toast.js';
+
+const ICON_CHAT =
+  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>';
+const ICON_BACK =
+  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>';
+const ICON_SEND =
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7z"></path></svg>';
+
+const CHANNELS = {
+  WHATSAPP: { label: 'WhatsApp', cls: 'tag-whatsapp' },
+  MESSENGER: { label: 'Messenger', cls: 'tag-messenger' },
+  IN_PLATFORM: { label: 'Direct', cls: 'tag-inplatform' },
+};
+
+function channelMeta(channel) {
+  return CHANNELS[channel] || CHANNELS.IN_PLATFORM;
+}
+
+function threadName(thread) {
+  return thread.other_participant_name || thread.customerPhone || `#${thread.ref || thread.id}`;
+}
 
 export default function UnifiedInboxPage(root) {
   const isBn = getLanguage() === 'bn';
@@ -31,147 +55,105 @@ export default function UnifiedInboxPage(root) {
   let activeChannel = 'ALL';
   let catalogProducts = null;
   let isSending = false;
+  let draft = '';
+  let quickOpen = false;
 
   container.innerHTML = `
     <div class="inbox-header-row">
-      <div>
-        <h2><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> ${t('saler_inbox.page_title') || 'Unified Commerce Inbox'}</h2>
-        <p class="page-subtitle">${t('saler_inbox.page_subtitle') || 'Manage WhatsApp, Messenger, and in-platform customer chats in one place.'}</p>
-      </div>
-      <div class="inbox-channel-filters" id="channel-filters-bar">
-        <button type="button" class="channel-filter-pill active" data-channel="ALL">
-          <span>${t('saler_inbox.filter_all') || 'All'}</span>
+      <h2>${ICON_CHAT}<span>${esc(t('saler_inbox.page_title') || 'Unified Commerce Inbox')}</span></h2>
+      <div class="inbox-channel-filters" id="channel-filters-bar" role="tablist">
+        <button type="button" role="tab" class="channel-filter-pill active" data-channel="ALL">
+          <span>${esc(t('saler_inbox.filter_all') || 'All')}</span>
           <span class="pill-count" id="count-all">0</span>
         </button>
-        <button type="button" class="channel-filter-pill" data-channel="WHATSAPP">
-          <span>🟢 ${t('saler_inbox.filter_whatsapp') || 'WhatsApp'}</span>
+        <button type="button" role="tab" class="channel-filter-pill" data-channel="WHATSAPP">
+          <span class="channel-dot dot-whatsapp"></span>
+          <span>${esc(t('saler_inbox.filter_whatsapp') || 'WhatsApp')}</span>
           <span class="pill-count" id="count-whatsapp">0</span>
         </button>
-        <button type="button" class="channel-filter-pill" data-channel="MESSENGER">
-          <span>🔵 ${t('saler_inbox.filter_messenger') || 'Messenger'}</span>
+        <button type="button" role="tab" class="channel-filter-pill" data-channel="MESSENGER">
+          <span class="channel-dot dot-messenger"></span>
+          <span>${esc(t('saler_inbox.filter_messenger') || 'Messenger')}</span>
           <span class="pill-count" id="count-messenger">0</span>
         </button>
-        <button type="button" class="channel-filter-pill" data-channel="IN_PLATFORM">
-          <span>🟣 ${t('saler_inbox.filter_direct') || 'Direct'}</span>
+        <button type="button" role="tab" class="channel-filter-pill" data-channel="IN_PLATFORM">
+          <span class="channel-dot dot-inplatform"></span>
+          <span>${esc(t('saler_inbox.filter_direct') || 'Direct')}</span>
           <span class="pill-count" id="count-direct">0</span>
         </button>
       </div>
     </div>
 
-    <div class="unified-inbox-layout">
-      <!-- Left: Thread List Pane -->
+    <div class="unified-inbox-layout" id="inbox-layout">
       <div class="inbox-threads-pane">
         <div class="thread-search-box">
           <input
-            type="text"
-            class="input input--sm"
+            type="search"
+            class="input"
             id="inbox-search"
-            aria-label="${t('saler_inbox.search_placeholder') || 'Search conversations...'}"
-            placeholder="${t('saler_inbox.search_placeholder') || 'Search conversations...'}"
+            aria-label="${esc(t('saler_inbox.search_placeholder') || 'Search conversations...')}"
+            placeholder="${esc(t('saler_inbox.search_placeholder') || 'Search conversations...')}"
           />
         </div>
         <div class="thread-list-scroll" id="threads-list">
-          <div class="p-6 text-center text-xs text-muted">Loading conversations...</div>
+          <div class="inbox-note">${esc(t('saler_inbox.loading') || 'Loading...')}</div>
         </div>
       </div>
 
-      <!-- Center: Active Chat Pane -->
       <div class="inbox-chat-pane" id="chat-pane">
         <div class="chat-placeholder">
-          <span class="placeholder-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></span>
-          <h4>${t('saler_inbox.page_title') || 'Unified Commerce Inbox'}</h4>
-          <p>${t('saler_inbox.select_conversation') || 'Select a conversation to start chatting.'}</p>
-        </div>
-      </div>
-
-      <!-- Right: Customer Profile & Order Context Pane -->
-      <div class="inbox-context-pane" id="context-pane">
-        <div class="context-empty-state">
-          <p>${t('saler_inbox.customer_context_title') || 'Customer Profile'}</p>
-          <span class="text-xxs text-muted">Customer details and order context will appear here when a thread is active.</span>
+          <span class="placeholder-icon">${ICON_CHAT}</span>
+          <p>${esc(t('saler_inbox.select_conversation') || 'Select a conversation to start chatting.')}</p>
         </div>
       </div>
     </div>
   `;
 
-  // Quick replies definition
-  const quickReplies = [
-    {
-      en: t('saler_inbox.quick_reply_1') || 'Product is available in stock.',
-      bn: t('saler_inbox.quick_reply_1') || 'পণ্যটি স্টকে এভেইলেবল আছে।',
-    },
-    {
-      en: t('saler_inbox.quick_reply_2') || 'Delivery takes 2-3 business days.',
-      bn: t('saler_inbox.quick_reply_2') || 'ডেলিভারি হতে ২-৩ কার্যদিবস লাগবে।',
-    },
-    {
-      en: t('saler_inbox.quick_reply_3') || 'Inside Dhaka delivery ৳60, outside Dhaka ৳120.',
-      bn: t('saler_inbox.quick_reply_3') || 'ঢাকার ভিতরে ডেলিভারি ৳৬০, ঢাকার বাইরে ৳১২০।',
-    },
-    {
-      en: t('saler_inbox.quick_reply_4') || 'Sending your instant 1-tap checkout link now!',
-      bn: t('saler_inbox.quick_reply_4') || 'আপনার অর্ডার করার ১-ট্যাপ লিংক দিচ্ছি!',
-    },
-  ];
+  const layout = container.querySelector('#inbox-layout');
+
+  const quickReplies = [1, 2, 3, 4].map((n) => t(`saler_inbox.quick_reply_${n}`)).filter(Boolean);
 
   // 1. Fetch Threads
-  async function fetchThreads(autoSelectFirst = true) {
+  async function fetchThreads() {
     try {
       const res = await api.get('/saler/inbox/threads');
       threads = res?.data?.items || [];
       updateChannelCounts();
       renderThreads();
 
-      if (autoSelectFirst && threads.length > 0 && !selectedThreadId) {
-        const first = getFilteredThreads()[0] || threads[0];
-        if (first) {
-          selectThread(first);
-        }
+      // Desktop opens the newest conversation straight away; on a phone the list is the landing view.
+      if (threads.length > 0 && !selectedThreadId && !window.matchMedia('(max-width: 768px)').matches) {
+        selectThread(getFilteredThreads()[0] || threads[0]);
       }
     } catch (err) {
       const list = container.querySelector('#threads-list');
-      if (list) {
-        list.innerHTML = `<div class="p-4 text-center text-xs text-rose-500">${err.message}</div>`;
-      }
+      if (list) list.innerHTML = `<div class="inbox-note inbox-note--error">${esc(err.message)}</div>`;
     }
   }
 
   // 2. Filter Threads Helper
   function getFilteredThreads() {
-    return threads.filter((t) => {
-      // Channel filter
-      if (activeChannel !== 'ALL' && t.channel !== activeChannel) {
-        return false;
-      }
-      // Search text filter
-      if (searchFilter.trim()) {
-        const q = searchFilter.toLowerCase();
-        const phone = (t.customerPhone || '').toLowerCase();
-        const name = (t.other_participant_name || '').toLowerCase();
-        const ref = (t.ref || '').toLowerCase();
-        const preview = (t.last_message_preview || '').toLowerCase();
-        return phone.includes(q) || name.includes(q) || ref.includes(q) || preview.includes(q);
-      }
-      return true;
+    const q = searchFilter.trim().toLowerCase();
+    return threads.filter((th) => {
+      if (activeChannel !== 'ALL' && th.channel !== activeChannel) return false;
+      if (!q) return true;
+      return [th.customerPhone, th.other_participant_name, th.ref, th.last_message_preview].some((v) =>
+        String(v || '').toLowerCase().includes(q)
+      );
     });
   }
 
   // 3. Update Channel Counts
   function updateChannelCounts() {
-    const allCount = threads.length;
-    const waCount = threads.filter((t) => t.channel === 'WHATSAPP').length;
-    const msCount = threads.filter((t) => t.channel === 'MESSENGER').length;
-    const dpCount = threads.filter((t) => t.channel === 'IN_PLATFORM').length;
-
-    const countAll = container.querySelector('#count-all');
-    const countWa = container.querySelector('#count-whatsapp');
-    const countMs = container.querySelector('#count-messenger');
-    const countDp = container.querySelector('#count-direct');
-
-    if (countAll) countAll.textContent = String(allCount);
-    if (countWa) countWa.textContent = String(waCount);
-    if (countMs) countMs.textContent = String(msCount);
-    if (countDp) countDp.textContent = String(dpCount);
+    const count = (ch) => threads.filter((th) => th.channel === ch).length;
+    const set = (id, n) => {
+      const el = container.querySelector(id);
+      if (el) el.textContent = String(n);
+    };
+    set('#count-all', threads.length);
+    set('#count-whatsapp', count('WHATSAPP'));
+    set('#count-messenger', count('MESSENGER'));
+    set('#count-direct', count('IN_PLATFORM'));
   }
 
   // 4. Render Thread List
@@ -181,64 +163,53 @@ export default function UnifiedInboxPage(root) {
     list.innerHTML = '';
 
     const filtered = getFilteredThreads();
-
     if (filtered.length === 0) {
-      list.innerHTML = `<div class="p-6 text-center text-xs text-muted">${t('saler_inbox.empty_threads') || 'No conversations found.'}</div>`;
+      list.innerHTML = `<div class="inbox-note">${esc(t('saler_inbox.empty_threads') || 'No conversations found.')}</div>`;
       return;
     }
 
-    filtered.forEach((t) => {
-      const item = document.createElement('div');
-      const isSelected = t.id === selectedThreadId;
-      const isUnread = (Number(t.unread_count) || 0) > 0;
-      item.className = `thread-card ${isSelected ? 'selected' : ''} ${isUnread ? 'unread' : ''}`;
+    filtered.forEach((th) => {
+      const unread = Number(th.unread_count) || 0;
+      const meta = channelMeta(th.channel);
+      const name = threadName(th);
 
-      const channelBadge =
-        t.channel === 'WHATSAPP'
-          ? '<span class="channel-tag tag-whatsapp">WhatsApp</span>'
-          : t.channel === 'MESSENGER'
-          ? '<span class="channel-tag tag-messenger">Messenger</span>'
-          : '<span class="channel-tag tag-inplatform">Direct</span>';
-
-      const displayName = t.other_participant_name || t.customerPhone || `User #${t.id}`;
-      const subPhone = t.customerPhone && t.other_participant_name ? t.customerPhone : `Ref: ${t.ref || t.id}`;
-
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = `thread-card${th.id === selectedThreadId ? ' selected' : ''}${unread ? ' unread' : ''}`;
       item.innerHTML = `
-        <div class="thread-card-header">
-          <div class="thread-title-wrap">
-            <span class="thread-name">${displayName}</span>
-            ${channelBadge}
-          </div>
-          <span class="thread-time">${formatDate(t.last_message_at)}</span>
-        </div>
-        <div class="thread-preview-row">
-          <p class="thread-preview">${t.last_message_preview || t('saler_inbox.empty_messages') || 'No messages yet'}</p>
-          ${isUnread ? `<span class="thread-unread-pill">${t.unread_count}</span>` : ''}
-        </div>
-        <span class="thread-phone">${subPhone}</span>
+        <span class="thread-avatar ${meta.cls}" title="${esc(meta.label)}">${esc(name.charAt(0).toUpperCase())}</span>
+        <span class="thread-body">
+          <span class="thread-card-header">
+            <span class="thread-name">${esc(name)}</span>
+            <span class="thread-time">${esc(formatDate(th.last_message_at))}</span>
+          </span>
+          <span class="thread-preview-row">
+            <span class="thread-preview">${esc(th.last_message_preview || t('saler_inbox.empty_messages') || '')}</span>
+            ${unread ? `<span class="thread-unread-pill">${unread}</span>` : ''}
+          </span>
+        </span>
       `;
-
-      item.addEventListener('click', () => {
-        selectThread(t);
-      });
-
+      item.addEventListener('click', () => selectThread(th));
       list.appendChild(item);
     });
   }
 
   // 5. Select Thread Action
   function selectThread(thread) {
+    if (thread.id !== selectedThreadId) {
+      draft = '';
+      quickOpen = false;
+    }
     selectedThreadId = thread.id;
 
-    // Clear unread count locally
     if (thread.unread_count > 0) {
       thread.unread_count = 0;
       api.post(`/chat/threads/${thread.id}/read`).catch(() => {});
     }
 
+    layout.classList.add('show-chat');
     renderThreads();
     loadActiveChat(thread);
-    renderContext(thread);
   }
 
   // 6. Load Active Chat Messages
@@ -246,272 +217,235 @@ export default function UnifiedInboxPage(root) {
     const chatPane = container.querySelector('#chat-pane');
     if (!chatPane) return;
 
-    chatPane.innerHTML = `<div class="p-8 text-center text-xs text-muted">Loading messages...</div>`;
+    messages = [];
+    renderChatShell(thread);
+    const box = chatPane.querySelector('#chat-messages-box');
+    box.innerHTML = `<div class="inbox-note">${esc(t('saler_inbox.loading') || 'Loading...')}</div>`;
 
     try {
       const res = await api.get(`/chat/threads/${thread.id}/messages`);
+      if (selectedThreadId !== thread.id) return; // user already moved to another thread
       messages = res?.data?.items || [];
-      renderChat(thread);
+      renderMessages(thread);
 
-      // Send read receipt over WebSocket if messages exist
       if (messages.length > 0) {
         const lastMsg = messages[messages.length - 1];
         wsManager.sendReadReceipt({ threadId: thread.id, lastReadMessageId: lastMsg.id });
       }
     } catch (err) {
-      chatPane.innerHTML = `<div class="p-6 text-center text-xs text-rose-500">${err.message}</div>`;
+      if (selectedThreadId !== thread.id) return;
+      box.innerHTML = `<div class="inbox-note inbox-note--error">${esc(err.message)}</div>`;
     }
   }
 
-  // 7. Render Chat Feed & Composer
-  function renderChat(thread) {
+  // 7a. Chat shell (header + feed container + composer) — built once per thread so typing is never lost.
+  function renderChatShell(thread) {
     const chatPane = container.querySelector('#chat-pane');
-    if (!chatPane) return;
-
-    const inside24h = thread.inside24h;
-    const windowNotice =
-      thread.channel === 'WHATSAPP' || thread.channel === 'MESSENGER'
-        ? inside24h
-          ? `<span class="session-pill session-active" title="Standard messaging allowed within 24 hours of customer inbound">🟢 ${t('saler_inbox.session_window_active') || '24h Meta Window Active'}</span>`
-          : `<span class="session-pill session-expired" title="Customer service window closed; template message required">⚠️ ${t('saler_inbox.session_window_expired') || 'Window Expired (Template Mode)'}</span>`
-        : `<span class="session-pill session-active">🟣 In-Platform Direct</span>`;
-
-    const channelTag =
-      thread.channel === 'WHATSAPP'
-        ? '<span class="channel-tag tag-whatsapp">WhatsApp</span>'
-        : thread.channel === 'MESSENGER'
-        ? '<span class="channel-tag tag-messenger">Messenger</span>'
-        : '<span class="channel-tag tag-inplatform">Direct</span>';
+    const meta = channelMeta(thread.channel);
+    const name = threadName(thread);
+    const needsWindow = thread.channel === 'WHATSAPP' || thread.channel === 'MESSENGER';
+    const windowClosed = needsWindow && !thread.inside24h;
+    const subtitle = [meta.label, thread.customerPhone].filter(Boolean).join(' · ');
 
     chatPane.innerHTML = `
       <div class="chat-header">
+        <button type="button" class="chat-back-btn" id="btn-back" aria-label="${esc(t('saler_inbox.btn_back') || 'Back')}">${ICON_BACK}</button>
+        <span class="thread-avatar ${meta.cls}">${esc(name.charAt(0).toUpperCase())}</span>
         <div class="chat-header-info">
-          <div class="chat-header-title-row">
-            <h4>${thread.other_participant_name || thread.customerPhone || `Conversation #${thread.ref}`}</h4>
-            ${channelTag}
-          </div>
-          <span class="text-xs text-muted font-mono">${thread.customerPhone || `Ref: ${thread.ref}`}</span>
+          <h4>${esc(name)}</h4>
+          <span class="chat-header-sub">${esc(subtitle)}</span>
         </div>
-        <div>${windowNotice}</div>
       </div>
+
+      ${
+        windowClosed
+          ? `<div class="chat-window-notice" role="status">⚠️ ${esc(t('saler_inbox.window_closed_notice') || 'This customer last wrote more than 24 hours ago, so your reply may not be delivered.')}</div>`
+          : ''
+      }
 
       <div class="chat-messages-scroll" id="chat-messages-box"></div>
 
-      <div class="chat-quick-replies" id="quick-replies-row"></div>
-
-      <div class="chat-composer-row">
-        <button type="button" class="btn btn--secondary btn--sm btn-send-prod" id="btn-open-prod-modal">
-          <span>🛍️</span>
-          <span>${t('saler_inbox.btn_send_product_card') || 'Send Product Card'}</span>
-        </button>
-        <input
-          type="text"
-          class="input input--sm flex-1"
-          id="chat-input"
-          aria-label="${t('saler_inbox.type_reply_placeholder') || 'Type a reply to customer...'}"
-          placeholder="${t('saler_inbox.type_reply_placeholder') || 'Type a reply to customer...'}"
-        />
-        <button type="button" class="btn btn--primary btn--sm" id="btn-send-reply">
-          ${t('saler_inbox.btn_send') || 'Send'}
-        </button>
+      <div class="chat-composer">
+        <div class="quick-replies-panel" id="quick-replies-row" ${quickOpen ? '' : 'hidden'}></div>
+        <div class="chat-composer-tools">
+          <button type="button" class="composer-tool" id="btn-quick-toggle" aria-expanded="${quickOpen}">
+            <span aria-hidden="true">⚡</span><span>${esc(t('saler_inbox.btn_quick_replies') || 'Quick replies')}</span>
+          </button>
+          <button type="button" class="composer-tool" id="btn-open-prod-modal">
+            <span aria-hidden="true">🛍️</span><span>${esc(t('saler_inbox.btn_send_product_card') || 'Send Product Card')}</span>
+          </button>
+        </div>
+        <div class="chat-composer-row">
+          <input
+            type="text"
+            class="input chat-input"
+            id="chat-input"
+            autocomplete="off"
+            aria-label="${esc(t('saler_inbox.type_reply_placeholder') || 'Type a reply to customer...')}"
+            placeholder="${esc(t('saler_inbox.type_reply_placeholder') || 'Type a reply to customer...')}"
+          />
+          <button type="button" class="btn btn--primary chat-send-btn" id="btn-send-reply">
+            ${ICON_SEND}<span>${esc(t('saler_inbox.btn_send') || 'Send')}</span>
+          </button>
+        </div>
       </div>
     `;
 
-    // Render quick reply chips
+    const input = chatPane.querySelector('#chat-input');
     const qrRow = chatPane.querySelector('#quick-replies-row');
-    quickReplies.forEach((qr) => {
+    input.value = draft;
+    input.addEventListener('input', () => {
+      draft = input.value;
+    });
+
+    quickReplies.forEach((text) => {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'quick-reply-chip';
-      chip.textContent = isBn ? qr.bn : qr.en;
+      chip.textContent = text;
       chip.addEventListener('click', () => {
-        const inp = chatPane.querySelector('#chat-input');
-        if (inp) {
-          inp.value = chip.textContent;
-          inp.focus();
-        }
+        input.value = text;
+        draft = text;
+        quickOpen = false;
+        qrRow.hidden = true;
+        chatPane.querySelector('#btn-quick-toggle').setAttribute('aria-expanded', 'false');
+        input.focus();
       });
       qrRow.appendChild(chip);
     });
 
-    // Render message bubbles
-    const box = chatPane.querySelector('#chat-messages-box');
-    if (messages.length === 0) {
-      box.innerHTML = `<div class="p-6 text-center text-xs text-muted">${t('saler_inbox.empty_messages') || 'No messages yet in this conversation.'}</div>`;
-    } else {
-      messages.forEach((msg) => {
-        const row = document.createElement('div');
-        const isSaler = msg.sender_role === 'saler' || msg.msg_type === 'PRODUCT_CARD' || msg.sender_id === thread.participant_ids?.[1];
-        row.className = `chat-bubble-row ${isSaler ? 'outgoing' : 'incoming'}`;
-
-        if (msg.msg_type === 'PRODUCT_CARD') {
-          const payload = msg.payload_json || {};
-          const title = payload.productTitle || msg.content || 'Featured Product';
-          const price = payload.price || '0.00';
-          const imgUrl = payload.imageUrl || payload.image_url || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=60';
-          const noteText = payload.note ? `<div class="prod-bubble-note">💡 ${payload.note}</div>` : '';
-
-          row.innerHTML = `
-            <div class="product-card-bubble">
-              <div class="prod-bubble-header">
-                <span class="badge badge--emerald text-xxs font-semibold">🛍️ 1-Tap Checkout Card</span>
-                <span class="channel-tag tag-whatsapp">${thread.channel}</span>
-              </div>
-              <img src="${imgUrl}" alt="${title}" class="prod-bubble-img" />
-              <h5>${title}</h5>
-              <div class="prod-bubble-price">৳${price}</div>
-              ${noteText}
-              <a href="${payload.checkoutUrl || '#'}" target="_blank" class="btn btn--primary btn--sm btn-1tap">
-                ⚡ Buy Now / অর্ডার করুন
-              </a>
-              <div class="bubble-meta">
-                <span class="bubble-time">${formatDate(msg.created_at)}</span>
-                <span title="Delivered">✓✓</span>
-              </div>
-            </div>
-          `;
-        } else {
-          row.innerHTML = `
-            <div class="chat-bubble ${isSaler ? 'bubble-saler' : 'bubble-customer'}">
-              <p>${msg.content || ''}</p>
-              <div class="bubble-meta">
-                <span class="bubble-time">${formatDate(msg.created_at)}</span>
-                ${isSaler ? '<span title="Delivered">✓✓</span>' : ''}
-              </div>
-            </div>
-          `;
-        }
-
-        box.appendChild(row);
-      });
-    }
-
-    // Scroll to bottom
-    box.scrollTop = box.scrollHeight;
-
-    // Send reply action
-    const sendBtn = chatPane.querySelector('#btn-send-reply');
-    const input = chatPane.querySelector('#chat-input');
-
-    async function sendReply() {
-      if (isSending) return;
-      const text = (input.value || '').trim();
-      if (!text) return;
-      input.value = '';
-      isSending = true;
-
-      // Optimistic message
-      const optimisticMsg = {
-        id: Date.now(),
-        thread_id: thread.id,
-        sender_role: 'saler',
-        content: text,
-        msg_type: 'TEXT',
-        created_at: new Date().toISOString(),
-      };
-
-      messages.push(optimisticMsg);
-      thread.last_message_preview = text;
-      thread.last_message_at = optimisticMsg.created_at;
-      renderChat(thread);
-      renderThreads();
-
-      try {
-        const res = await api.post(`/saler/inbox/threads/${thread.id}/send`, { content: text });
-        if (res?.data?.message) {
-          const idx = messages.findIndex((m) => m.id === optimisticMsg.id);
-          if (idx >= 0) {
-            messages[idx] = res.data.message;
-            renderChat(thread);
-          }
-        }
-      } catch (err) {
-        toast.error(err.message || 'Failed to send message.');
-      } finally {
-        isSending = false;
-      }
-    }
-
-    sendBtn.addEventListener('click', sendReply);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendReply();
-      }
+    chatPane.querySelector('#btn-quick-toggle').addEventListener('click', (e) => {
+      quickOpen = !quickOpen;
+      qrRow.hidden = !quickOpen;
+      e.currentTarget.setAttribute('aria-expanded', String(quickOpen));
     });
 
-    // Product Card modal trigger
+    chatPane.querySelector('#btn-back').addEventListener('click', () => {
+      layout.classList.remove('show-chat');
+    });
+
     chatPane.querySelector('#btn-open-prod-modal').addEventListener('click', () => {
       openProductPickerModal(thread);
     });
+
+    chatPane.querySelector('#btn-send-reply').addEventListener('click', () => sendReply(thread));
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendReply(thread);
+      }
+    });
   }
 
-  // 8. Render Right Customer Profile & Commerce Context
-  function renderContext(thread) {
-    const contextPane = container.querySelector('#context-pane');
-    if (!contextPane) return;
+  // 7b. Message feed only — safe to call on every incoming/outgoing message.
+  function renderMessages(thread) {
+    const box = container.querySelector('#chat-messages-box');
+    if (!box) return;
+    box.innerHTML = '';
 
-    const channelTag =
-      thread.channel === 'WHATSAPP'
-        ? '<span class="channel-tag tag-whatsapp">WhatsApp</span>'
-        : thread.channel === 'MESSENGER'
-        ? '<span class="channel-tag tag-messenger">Messenger</span>'
-        : '<span class="channel-tag tag-inplatform">Direct</span>';
+    if (messages.length === 0) {
+      box.innerHTML = `<div class="inbox-note">${esc(t('saler_inbox.empty_messages') || 'No messages yet in this conversation.')}</div>`;
+      return;
+    }
 
-    const initial = (thread.other_participant_name || thread.customerPhone || 'U')[0].toUpperCase();
+    messages.forEach((msg) => {
+      const row = document.createElement('div');
+      const isSaler =
+        msg.sender_role === 'saler' || msg.msg_type === 'PRODUCT_CARD' || msg.sender_id === thread.participant_ids?.[1];
+      row.className = `chat-bubble-row ${isSaler ? 'outgoing' : 'incoming'}`;
 
-    contextPane.innerHTML = `
-      <div class="context-card">
-        <h4>${t('saler_inbox.customer_context_title') || 'Customer Profile'}</h4>
+      if (msg.msg_type === 'PRODUCT_CARD') {
+        const payload = msg.payload_json || {};
+        const title = esc(payload.productTitle || msg.content || 'Featured Product');
+        const price = esc(payload.price || '0.00');
+        const imgUrl = esc(
+          payload.imageUrl ||
+            payload.image_url ||
+            'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=60'
+        );
+        const noteText = payload.note ? `<div class="prod-bubble-note">💡 ${esc(payload.note)}</div>` : '';
 
-        <div class="context-profile-box">
-          <div class="context-avatar">${initial}</div>
-          <div class="flex-1 min-w-0">
-            <div class="font-bold text-sm truncate">${thread.other_participant_name || 'Customer'}</div>
-            <div class="text-xs text-muted font-mono truncate">${thread.customerPhone || 'N/A'}</div>
+        row.innerHTML = `
+          <div class="product-card-bubble">
+            <img src="${imgUrl}" alt="${title}" class="prod-bubble-img" />
+            <h5>${title}</h5>
+            <div class="prod-bubble-price">৳${price}</div>
+            ${noteText}
+            <a href="${esc(payload.checkoutUrl || '#')}" target="_blank" rel="noopener" class="btn btn--primary btn--sm btn-1tap">
+              ⚡ Buy Now / অর্ডার করুন
+            </a>
+            <div class="bubble-meta"><span class="bubble-time">${esc(formatDate(msg.created_at))}</span><span title="Delivered">✓✓</span></div>
           </div>
-        </div>
-
-        <div class="context-field">
-          <label>${t('saler_inbox.channel_source') || 'Channel Source'}</label>
-          <div>${channelTag}</div>
-        </div>
-
-        <div class="context-field">
-          <label>${t('saler_inbox.session_status') || 'Session Window Status'}</label>
-          <div class="context-box-alert ${thread.inside24h ? 'context-box-alert--active' : 'context-box-alert--expired'}">
-            <strong>${thread.inside24h ? '🟢 24h Window Active' : '⚠️ 24h Window Closed'}</strong>
-            <p class="m-0 mt-1 text-xxs">
-              ${thread.inside24h ? (t('saler_inbox.session_active_desc') || 'Active 24h Customer Service Window') : (t('saler_inbox.session_expired_desc') || 'Expired (>24h since last inbound message)')}
-            </p>
+        `;
+      } else {
+        row.innerHTML = `
+          <div class="chat-bubble ${isSaler ? 'bubble-saler' : 'bubble-customer'}">
+            <p>${esc(msg.content || '')}</p>
+            <div class="bubble-meta">
+              <span class="bubble-time">${esc(formatDate(msg.created_at))}</span>
+              ${isSaler ? '<span title="Delivered">✓✓</span>' : ''}
+            </div>
           </div>
-        </div>
-
-        <div class="context-quick-action">
-          <div class="font-bold text-xs">⚡ ${t('saler_inbox.instant_checkout_title') || '1-Tap Checkout Generator'}</div>
-          <p>${t('saler_inbox.instant_checkout_desc') || 'Insert shoppable product cards with instant checkout tokens directly into this chat.'}</p>
-          <button type="button" class="btn btn--primary btn--sm w-full" id="btn-context-send-prod">
-            🛍️ ${t('saler_inbox.btn_send_product_card') || 'Send Product Card'}
-          </button>
-        </div>
-
-        <div class="context-field pt-2 border-t text-xxs text-muted">
-          <span>Ref ID: <strong class="font-mono">${thread.ref || thread.id}</strong></span>
-          <span>Created: ${formatDate(thread.created_at)}</span>
-        </div>
-      </div>
-    `;
-
-    contextPane.querySelector('#btn-context-send-prod')?.addEventListener('click', () => {
-      openProductPickerModal(thread);
+        `;
+      }
+      box.appendChild(row);
     });
+
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function sendReply(thread) {
+    const input = container.querySelector('#chat-input');
+    if (isSending || !input) return;
+    const text = (input.value || '').trim();
+    if (!text) return;
+
+    isSending = true;
+    input.value = '';
+    draft = '';
+
+    const optimisticMsg = {
+      id: `tmp-${Date.now()}`,
+      thread_id: thread.id,
+      sender_role: 'saler',
+      content: text,
+      msg_type: 'TEXT',
+      created_at: new Date().toISOString(),
+    };
+    messages.push(optimisticMsg);
+    thread.last_message_preview = text;
+    thread.last_message_at = optimisticMsg.created_at;
+    renderMessages(thread);
+    renderThreads();
+    input.focus();
+
+    try {
+      const res = await api.post(`/saler/inbox/threads/${thread.id}/send`, { content: text });
+      const idx = messages.findIndex((m) => m.id === optimisticMsg.id);
+      if (idx >= 0 && res?.data?.message) messages[idx] = res.data.message;
+      if (selectedThreadId === thread.id) renderMessages(thread);
+    } catch (err) {
+      // Roll back the bubble and hand the text back so nothing the user typed is lost.
+      messages = messages.filter((m) => m.id !== optimisticMsg.id);
+      if (selectedThreadId === thread.id) {
+        renderMessages(thread);
+        const again = container.querySelector('#chat-input');
+        if (again && !again.value) {
+          again.value = text;
+          draft = text;
+        }
+      }
+      toast.error(err.message || t('saler_inbox.send_failed') || 'Failed to send message.');
+    } finally {
+      isSending = false;
+    }
   }
 
   // 9. Interactive Product Picker Modal
   async function openProductPickerModal(thread) {
     const modalContent = document.createElement('div');
     modalContent.className = 'product-picker-modal';
-    modalContent.innerHTML = `<div class="p-4 text-center text-xs text-muted">Loading your catalog products...</div>`;
+    modalContent.innerHTML = `<div class="inbox-note">${esc(t('saler_inbox.loading') || 'Loading...')}</div>`;
 
     const modal = Modal({
       title: t('saler_inbox.modal_send_product_title') || 'Insert WhatsApp Product Card',
@@ -535,14 +469,14 @@ export default function UnifiedInboxPage(root) {
               note,
             });
 
-            toast.success(t('saler_inbox.card_sent_success') || 'Product card sent to customer via WhatsApp!');
+            toast.success(t('saler_inbox.card_sent_success') || 'Product card sent to customer!');
             modal.close();
 
             if (res?.data?.message) {
               messages.push(res.data.message);
               thread.last_message_preview = res.data.message.content || 'Product Card';
               thread.last_message_at = res.data.message.created_at;
-              renderChat(thread);
+              if (selectedThreadId === thread.id) renderMessages(thread);
               renderThreads();
             }
           } catch (err) {
@@ -554,7 +488,6 @@ export default function UnifiedInboxPage(root) {
 
     modal.open();
 
-    // Fetch catalog products
     try {
       if (!catalogProducts) {
         const prodRes = await api.get('/saler/products');
@@ -562,53 +495,45 @@ export default function UnifiedInboxPage(root) {
       }
 
       if (catalogProducts.length === 0) {
-        modalContent.innerHTML = `
-          <p class="text-xs text-muted text-center py-4">No curated products in your store catalog yet.</p>
-        `;
+        modalContent.innerHTML = `<p class="inbox-note">No curated products in your store catalog yet.</p>`;
         return;
       }
 
-      let listHtml = '';
-      catalogProducts.forEach((p, idx) => {
-        const isChecked = idx === 0 ? 'checked' : '';
-        const title = isBn && p.title_bn ? p.title_bn : p.title_en;
-        const price = (p.custom_retail_price || p.default_retail_price || 3500).toFixed(2);
-        const img = p.image_url || '/demo-product.jpg';
-
-        listHtml += `
-          <label class="product-picker-item ${idx === 0 ? 'selected' : ''}">
-            <input type="radio" name="selected_prod" value="${p.id}" ${isChecked} />
-            <img src="${img}" alt="${title}" class="product-picker-thumb" />
-            <div class="product-picker-info">
-              <span class="product-picker-title">${title}</span>
-              <div class="product-picker-meta">
-                <span class="product-picker-price">৳${price}</span>
-                <span class="product-picker-stock">• ${p.stock_qty || 10} in stock</span>
+      const listHtml = catalogProducts
+        .map((p, idx) => {
+          const title = esc(isBn && p.title_bn ? p.title_bn : p.title_en);
+          const price = (p.custom_retail_price || p.default_retail_price || 3500).toFixed(2);
+          const img = esc(p.image_url || '/demo-product.jpg');
+          return `
+            <label class="product-picker-item ${idx === 0 ? 'selected' : ''}">
+              <input type="radio" name="selected_prod" value="${esc(p.id)}" ${idx === 0 ? 'checked' : ''} />
+              <img src="${img}" alt="${title}" class="product-picker-thumb" />
+              <div class="product-picker-info">
+                <span class="product-picker-title">${title}</span>
+                <div class="product-picker-meta">
+                  <span class="product-picker-price">৳${price}</span>
+                  <span class="product-picker-stock">• ${p.stock_qty || 10} in stock</span>
+                </div>
               </div>
-            </div>
-          </label>
-        `;
-      });
+            </label>
+          `;
+        })
+        .join('');
 
       modalContent.innerHTML = `
-        <p class="text-xs text-secondary mb-2">${t('saler_inbox.modal_product_desc') || 'Choose a product from your catalog to generate an instant 1-tap checkout link for this customer.'}</p>
-        
-        <div class="product-picker-list">
-          ${listHtml}
-        </div>
-
+        <p class="text-xs text-secondary mb-2">${esc(t('saler_inbox.modal_product_desc') || 'Choose a product from your catalog to generate an instant 1-tap checkout link for this customer.')}</p>
+        <div class="product-picker-list">${listHtml}</div>
         <div class="form-group mt-2">
-          <label class="form-label text-xs">${t('saler_inbox.custom_note_label') || 'Custom Offer / Discount Note (Optional)'}</label>
+          <label class="form-label text-xs">${esc(t('saler_inbox.custom_note_label') || 'Custom Offer / Discount Note (Optional)')}</label>
           <input
             type="text"
             class="input input--sm w-full"
             id="modal-prod-note"
-            placeholder="${t('saler_inbox.custom_note_placeholder') || 'e.g. Special 10% discount for you!'}"
+            placeholder="${esc(t('saler_inbox.custom_note_placeholder') || 'e.g. Special 10% discount for you!')}"
           />
         </div>
       `;
 
-      // Highlight selected radio item
       modalContent.querySelectorAll('.product-picker-item').forEach((item) => {
         item.addEventListener('click', () => {
           modalContent.querySelectorAll('.product-picker-item').forEach((i) => i.classList.remove('selected'));
@@ -616,11 +541,11 @@ export default function UnifiedInboxPage(root) {
         });
       });
     } catch (err) {
-      modalContent.innerHTML = `<div class="p-4 text-center text-xs text-rose-500">${err.message}</div>`;
+      modalContent.innerHTML = `<div class="inbox-note inbox-note--error">${esc(err.message)}</div>`;
     }
   }
 
-  // 10. Channel Filter Buttons Event Listeners
+  // 10. Channel Filter Tabs
   const filterPills = container.querySelectorAll('.channel-filter-pill');
   filterPills.forEach((pill) => {
     pill.addEventListener('click', () => {
@@ -628,65 +553,50 @@ export default function UnifiedInboxPage(root) {
       pill.classList.add('active');
       activeChannel = pill.getAttribute('data-channel') || 'ALL';
       renderThreads();
-
-      // If active thread is not in filtered list, select the first visible thread
-      const filtered = getFilteredThreads();
-      if (!filtered.some((t) => t.id === selectedThreadId)) {
-        if (filtered.length > 0) {
-          selectThread(filtered[0]);
-        }
-      }
     });
   });
 
   // 11. Search Filter Listener
-  const searchInput = container.querySelector('#inbox-search');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      searchFilter = e.target.value;
-      renderThreads();
-    });
-  }
+  container.querySelector('#inbox-search')?.addEventListener('input', (e) => {
+    searchFilter = e.target.value;
+    renderThreads();
+  });
 
   // 12. WebSocket Real-Time Inbound Listener
   const unsubMsg = wsManager.onMessage((frame) => {
     const { type } = frame;
     const threadId = frame.threadId !== undefined ? Number(frame.threadId) : null;
 
-    // Inbound Message
     if (type === 'chat:message' && frame.message) {
       const incoming = frame.message;
       const th = threads.find((item) => Number(item.id) === threadId);
+      if (!th) return;
 
-      if (th) {
-        th.last_message_preview = incoming.content || 'New message';
-        th.last_message_at = incoming.created_at || new Date().toISOString();
+      th.last_message_preview = incoming.content || 'New message';
+      th.last_message_at = incoming.created_at || new Date().toISOString();
 
-        if (selectedThreadId === threadId) {
-          messages.push(incoming);
-          renderChat(th);
-          wsManager.sendReadReceipt({ threadId, lastReadMessageId: incoming.id });
-        } else {
-          th.unread_count = (Number(th.unread_count) || 0) + 1;
-        }
-        renderThreads();
-        updateChannelCounts();
+      if (selectedThreadId === threadId) {
+        messages.push(incoming);
+        renderMessages(th);
+        wsManager.sendReadReceipt({ threadId, lastReadMessageId: incoming.id });
+      } else {
+        th.unread_count = (Number(th.unread_count) || 0) + 1;
       }
+      renderThreads();
+      updateChannelCounts();
     }
 
-    // Message Ack
     if (type === 'chat:ack' && frame.clientMsgId) {
       const msg = messages.find((m) => m.client_msg_id === frame.clientMsgId);
-      if (msg) {
-        msg.id = frame.messageId;
-        renderChat(threads.find((t) => t.id === selectedThreadId));
-      }
+      if (msg) msg.id = frame.messageId;
     }
   });
 
-  // Connect WebSocket & fetch initial data
   wsManager.connect();
-  fetchThreads(true);
+  fetchThreads();
 
   root.append(container);
+  return () => {
+    if (typeof unsubMsg === 'function') unsubMsg();
+  };
 }
