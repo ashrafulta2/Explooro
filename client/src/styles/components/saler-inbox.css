@@ -334,7 +334,7 @@
 }
 
 /* Only shown on phones, where the list and the chat are separate screens */
-.chat-back-btn {
+.inbox-back-btn {
   display: none;
   align-items: center;
   justify-content: center;
@@ -349,7 +349,7 @@
   flex-shrink: 0;
 }
 
-.chat-back-btn:hover {
+.inbox-back-btn:hover {
   background: var(--surface-1, #f1f5f9);
 }
 
@@ -705,7 +705,7 @@
   .unified-inbox-layout.show-chat .inbox-chat-pane {
     display: flex;
   }
-  .chat-back-btn {
+  .inbox-back-btn {
     display: inline-flex;
   }
   .chat-header,

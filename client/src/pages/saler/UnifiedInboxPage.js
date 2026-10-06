@@ -249,7 +249,7 @@ export default function UnifiedInboxPage(root) {
 
     chatPane.innerHTML = `
       <div class="chat-header">
-        <button type="button" class="chat-back-btn" id="btn-back" aria-label="${esc(t('saler_inbox.btn_back') || 'Back')}">${ICON_BACK}</button>
+        <button type="button" class="inbox-back-btn" id="btn-back" aria-label="${esc(t('saler_inbox.btn_back') || 'Back')}">${ICON_BACK}</button>
         <span class="thread-avatar ${meta.cls}">${esc(name.charAt(0).toUpperCase())}</span>
         <div class="chat-header-info">
           <h4>${esc(name)}</h4>
