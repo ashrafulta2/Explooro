@@ -829,7 +829,8 @@ export async function getSystemHealth(db, cache = null, { metrics = null, config
 
 /**
  * Triggers a manual system backup snapshot.
- * Creates a deterministic SHA-256 state fingerprint across core tables.
+ * Creates a deterministic SHA-256 state fingerprint across core tables. This records row counts and a
+ * hash only; it does not copy any data, so it cannot be used to roll the database back.
  */
 export async function triggerManualBackup(db, { userId = null, type = 'MANUAL' } = {}) {
   // 1. Gather table row counts
@@ -857,7 +858,11 @@ export async function triggerManualBackup(db, { userId = null, type = 'MANUAL' }
   const checksum = createHash('sha256').update(rawFingerprint).digest('hex');
 
   const ref = `BAK-${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14)}-${Math.floor(100 + Math.random() * 900)}`;
-  const approximateSizeBytes = totalRows * 1024 + 65536; // estimated byte size
+  // WHY pg_database_size: this was `totalRows * 1024 + 65536`, an invented "snapshot size". No data is
+  // copied, so there is no snapshot size; the honest measurable figure is the database's size at the
+  // moment the fingerprint was taken.
+  const { rows: sizeRows } = await db.query(`SELECT pg_database_size(current_database()) AS size_bytes`);
+  const databaseSizeBytes = Number(sizeRows[0]?.size_bytes ?? 0);
 
   // 3. Persist record into system_backups
   const { rows: inserted } = await db.query(
@@ -867,7 +872,7 @@ export async function triggerManualBackup(db, { userId = null, type = 'MANUAL' }
      )
      VALUES ($1, $2, $3, $4, $5, 'COMPLETED', $6, NOW())
      RETURNING *`,
-    [ref, type, checksum, JSON.stringify(tableCounts), approximateSizeBytes, userId]
+    [ref, type, checksum, JSON.stringify(tableCounts), databaseSizeBytes, userId]
   );
 
   return inserted[0];
@@ -925,8 +930,9 @@ export async function restoreBackup(db, backupId, { userId = null } = {}) {
 
   return {
     success: true,
-    message_en: `System successfully verified and restored snapshot #${backup.ref}`,
-    message_bn: `সিস্টেম সফলভাবে স্ন্যাপশট #${backup.ref} যাচাই ও রিস্টোর করেছে`,
+    // WHY: this only flips the record's status. It does not roll any data back, so it must not say so.
+    message_en: `Snapshot #${backup.ref} marked as restored. This records the action only; no data was rolled back.`,
+    message_bn: `স্ন্যাপশট #${backup.ref} রিস্টোরড হিসেবে চিহ্নিত হয়েছে। এটি শুধু রেকর্ড; কোনো ডেটা ফিরিয়ে আনা হয়নি।`,
     backup: updated[0],
   };
 }

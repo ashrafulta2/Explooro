@@ -230,6 +230,7 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
         if (sql.includes('SELECT COUNT(*) as count FROM')) {
           return { rows: [{ count: 150 }] };
         }
+        if (sql.includes('pg_database_size')) return { rows: [{ size_bytes: '5242880' }] };
         if (sql.includes('INSERT INTO system_backups')) {
           savedBackup = {
             id: 1,
@@ -255,6 +256,7 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
     assert.equal(typeof snapshot.sha256_checksum, 'string');
     assert.equal(snapshot.sha256_checksum.length, 64, 'SHA-256 checksum must be exactly 64 hex characters');
     assert.equal(snapshot.status, 'COMPLETED');
+    assert.equal(snapshot.size_bytes, 5242880, 'size is the measured database size, not an estimate from row counts');
   });
 
   // ---------------------------------------------------------------------------

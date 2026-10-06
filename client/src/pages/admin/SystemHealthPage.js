@@ -557,10 +557,10 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                 </span>
               </div>
               <h3 class="system-panel__title">
-                <span>💾 ${isBn ? 'ব্যাকআপ ও ডিজাস্টার রিকভারি স্ন্যাপশট' : 'Backup & Disaster Recovery Snapshots'}</span>
+                <span>💾 ${isBn ? 'ইন্টিগ্রিটি ফিঙ্গারপ্রিন্ট' : 'Integrity Fingerprints'}</span>
               </h3>
               <p class="system-panel__sub">
-                ${isBn ? 'ট্রানজ্যাকশনাল টেবিল ও স্টেট ডেটার ক্রিপ্টোগ্রাফিক SHA-256 চেকার ভেরিফায়েড স্ন্যাপশট।' : 'Verifiable, deterministic SHA-256 fingerprint snapshots across transactional state tables.'}
+                ${isBn ? 'মূল টেবিলের সারি-সংখ্যা ও SHA-256 হ্যাশ রেকর্ড করে। এতে ডেটার কপি থাকে না, তাই এটি ব্যাকআপ নয় এবং এ থেকে ডেটা ফেরানো যায় না।' : 'Records core-table row counts and a SHA-256 hash. No data is copied, so this is not a backup and cannot be used to roll the database back.'}
               </p>
             </div>
 
@@ -579,7 +579,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                   <th>${isBn ? 'টাইপ' : 'Type'}</th>
                   <th>${isBn ? 'SHA-256 ইন্টিগ্রিটি চেকসাম' : 'SHA-256 Integrity Checksum'}</th>
                   <th>${isBn ? 'টেবিল ও সারি' : 'Tables & Rows'}</th>
-                  <th>${isBn ? 'সাইজ' : 'Size'}</th>
+                  <th>${isBn ? 'ডেটাবেজ সাইজ (তৈরির সময়)' : 'DB Size at Snapshot'}</th>
                   <th>${isBn ? 'তৈরির সময়' : 'Created At'}</th>
                   <th style="text-align: right;">${isBn ? 'অ্যাকশন' : 'Action'}</th>
                 </tr>
@@ -633,7 +633,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                       </td>
                       <td style="text-align: right;">
                         <button type="button" class="btn btn--danger btn--sm restore-snapshot-btn" data-id="${b.id}" data-ref="${ref}" style="padding: 3px 10px; font-size: 11px;">
-                          ${isRestored ? `✓ ${isBn ? 'রিস্টোরড' : 'Restored'}` : `🔄 ${isBn ? 'রিস্টোর' : 'Restore'}`}
+                          ${isRestored ? `✓ ${isBn ? 'রিস্টোরড' : 'Restored'}` : `${isBn ? 'রিস্টোরড চিহ্নিত করুন' : 'Mark Restored'}`}
                         </button>
                       </td>
                     </tr>
@@ -641,7 +641,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                 }).join('') : `
                   <tr>
                     <td colspan="7" style="text-align: center; padding: var(--space-6); color: var(--text-muted);">
-                      ${isBn ? 'কোনো ব্যাকআপ স্ন্যাপশট পাওয়া যায়নি। উপরের "Create Snapshot" এ ক্লিক করুন।' : 'No backup snapshots found. Click "Create Snapshot" above.'}
+                      ${isBn ? 'এখনো কোনো ফিঙ্গারপ্রিন্ট নেই। উপরের "ফিঙ্গারপ্রিন্ট নিন" এ ক্লিক করুন।' : 'No fingerprints recorded yet. Click "Record Fingerprint" above.'}
                     </td>
                   </tr>
                 `}
@@ -694,12 +694,12 @@ export default function SystemHealthPage(root, { navigate } = {}) {
       isCreatingSnapshot = true;
       if (btn) btn.disabled = true;
 
-      toast.info(isBn ? 'স্ন্যাপশট তৈরি হচ্ছে ও SHA-256 ফিঙ্গারপ্রিন্ট যাচাই হচ্ছে...' : 'Creating verified snapshot & computing SHA-256 fingerprint...');
+      toast.info(isBn ? 'SHA-256 ফিঙ্গারপ্রিন্ট তৈরি হচ্ছে...' : 'Computing SHA-256 fingerprint...');
 
       try {
         const res = await adminApi.triggerBackup();
         const createdRef = res.data?.backup?.ref || res.data?.ref || `SNAP_${Date.now()}`;
-        toast.success(isBn ? `সফলভাবে ভেরিফায়েড স্ন্যাপশট #${createdRef} তৈরি হয়েছে!` : `Created verified snapshot #${createdRef}!`);
+        toast.success(isBn ? `ফিঙ্গারপ্রিন্ট #${createdRef} রেকর্ড হয়েছে।` : `Fingerprint #${createdRef} recorded.`);
         await loadData();
       } catch {
         toast.error(isBn ? 'ব্যাকআপ স্ন্যাপশট তৈরিতে সমস্যা হয়েছে।' : 'Failed to generate backup snapshot.');
@@ -713,7 +713,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     const createHeaderSlot = container.querySelector('#create-backup-header-slot');
     if (createHeaderSlot) {
       const snapBtn = Button({
-        label: isBn ? '📸 স্ন্যাপশট তৈরি' : '📸 Create Snapshot',
+        label: isBn ? '📸 ফিঙ্গারপ্রিন্ট নিন' : '📸 Record Fingerprint',
         variant: 'primary',
         size: 'sm',
         onClick: () => handleCreateSnapshot(snapBtn),
@@ -725,7 +725,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     const createPanelSlot = container.querySelector('#create-snapshot-panel-slot');
     if (createPanelSlot) {
       const snapPanelBtn = Button({
-        label: isBn ? '📸 স্ন্যাপশট নিন' : '📸 Create Snapshot',
+        label: isBn ? '📸 ফিঙ্গারপ্রিন্ট নিন' : '📸 Record Fingerprint',
         variant: 'primary',
         size: 'sm',
         onClick: () => handleCreateSnapshot(snapPanelBtn),
@@ -856,28 +856,28 @@ export default function SystemHealthPage(root, { navigate } = {}) {
         const ref = btn.getAttribute('data-ref');
         if (!id) return;
 
-        const title = isBn ? 'ডিজাস্টার রিকভারি স্ন্যাপশট রিস্টোর' : 'Restore System Snapshot';
+        const title = isBn ? 'রিস্টোরড হিসেবে চিহ্নিত করুন' : 'Mark Snapshot as Restored';
         const msg = isBn
-          ? `সতর্কতা: আপনি কি নিশ্চিত যে আপনি প্ল্যাটফর্মের ডেটাবেজ স্টেট স্ন্যাপশট #${ref}-এ রিস্টোর করতে চান?`
-          : `CRITICAL ACTION: Are you sure you want to verify cryptographic SHA-256 integrity and restore platform database state to snapshot #${ref}?`;
+          ? `স্ন্যাপশট #${ref} রিস্টোরড হিসেবে চিহ্নিত করবেন? এটি শুধু রেকর্ড রাখে; ডেটাবেজের কোনো ডেটা ফিরিয়ে আনা হবে না।`
+          : `Mark snapshot #${ref} as restored? This only records the action; no database data is rolled back.`;
 
         const confirmed = await confirmDialog({
           title,
           message: msg,
-          confirmLabel: isBn ? 'রিস্টোর করুন' : 'Confirm Restore',
+          confirmLabel: isBn ? 'চিহ্নিত করুন' : 'Mark as Restored',
           cancelLabel: isBn ? 'বাতিল' : 'Cancel',
           isDanger: true,
         });
 
         if (confirmed) {
           btn.disabled = true;
-          btn.textContent = isBn ? '⏳ যাচাই হচ্ছে...' : '⏳ Verifying...';
+          btn.textContent = isBn ? '⏳ চিহ্নিত হচ্ছে...' : '⏳ Marking...';
           try {
             await adminApi.restoreBackup(id);
-            toast.success(isBn ? `স্ন্যাপশট #${ref} সফলভাবে রিস্টোর ও যাচাই হয়েছে!` : `Snapshot #${ref} verified and restored successfully!`);
+            toast.success(isBn ? `স্ন্যাপশট #${ref} রিস্টোরড হিসেবে চিহ্নিত হয়েছে (কোনো ডেটা ফেরানো হয়নি)।` : `Snapshot #${ref} marked as restored (no data was rolled back).`);
             await loadData();
           } catch {
-            toast.error(isBn ? 'স্ন্যাপশট রিস্টোরে ত্রুটি হয়েছে।' : 'Failed to restore snapshot.');
+            toast.error(isBn ? 'স্ন্যাপশট চিহ্নিত করতে ত্রুটি হয়েছে।' : 'Failed to mark snapshot as restored.');
           } finally {
             btn.disabled = false;
           }
