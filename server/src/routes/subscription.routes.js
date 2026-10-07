@@ -19,9 +19,12 @@ export default async function subscriptionRoutes(app) {
     requireRestriction('can_sell'),
   ];
 
-  app.get('/subscriptions/me', { preHandler: ownSubscription, handler: subscriptionSelf.getMine });
+  // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+  // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+  app.get('/subscriptions/me', { config: { page: '/saler/pro' }, preHandler: ownSubscription, handler: subscriptionSelf.getMine });
 
   app.post('/subscriptions/subscribe', {
+    config: { page: '/saler/pro' },
     preHandler: ownSubscription,
     schema: {
       body: {
@@ -37,6 +40,6 @@ export default async function subscriptionRoutes(app) {
     handler: subscriptionSelf.subscribe,
   });
 
-  app.post('/subscriptions/cancel', { preHandler: ownSubscription, handler: subscriptionSelf.cancel });
-  app.post('/subscriptions/resume', { preHandler: ownSubscription, handler: subscriptionSelf.resume });
+  app.post('/subscriptions/cancel', { config: { page: '/saler/pro' }, preHandler: ownSubscription, handler: subscriptionSelf.cancel });
+  app.post('/subscriptions/resume', { config: { page: '/saler/pro' }, preHandler: ownSubscription, handler: subscriptionSelf.resume });
 }

@@ -49,12 +49,16 @@ export default async function notificationRoutes(app) {
 
   // 5. Get notification channel preferences
   app.get('/notifications/preferences', {
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+    config: { page: '/settings/notifications' },
     preHandler: [app.authenticate],
     handler: controller.getPreferences,
   });
 
   // 6. Update notification preferences
   app.put('/notifications/preferences', {
+    config: { page: '/settings/notifications' },
     preHandler: [app.authenticate],
     schema: {
       body: {

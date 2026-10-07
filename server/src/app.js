@@ -23,6 +23,7 @@ import authenticatePlugin from './middlewares/authenticate.js';
 import requirePermissionPlugin from './middlewares/requirePermission.js';
 import requireRestrictionPlugin from './middlewares/requireRestriction.js';
 import requireModulePlugin from './middlewares/requireModule.js';
+import requirePagePlugin from './middlewares/requirePage.js';
 import authRoutes from './routes/auth.routes.js';
 import meRoutes from './routes/me.routes.js';
 import delegationRoutes from './routes/delegation.routes.js';
@@ -146,6 +147,8 @@ export async function buildApp(overrides = {}) {
   app.register(requirePermissionPlugin);
   app.register(requireRestrictionPlugin);
   app.register(requireModulePlugin);
+  // Must be registered before any route plugin: its onRoute hook only sees routes added after it.
+  app.register(requirePagePlugin);
 
   await app.register(helmet, { global: true });
 

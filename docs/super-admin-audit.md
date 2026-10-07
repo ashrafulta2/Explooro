@@ -167,6 +167,14 @@ These are real and were left open on purpose. Do not assume they were missed.
    all call it. Never re-implement the four states anywhere else: the command palette was the hole
    that would have made a HIDDEN page reachable by typing its name.
    `client/test/pageAvailability.test.js` fails if any of the three grows its own copy.
+   Server-side, an endpoint owned by one page declares `config: { page }` and
+   `middlewares/requirePage.js` appends the guard — declared at the route, never in a central
+   map, because a map is a second list nobody updates. The reader is what makes the declaration
+   real: `store.routes.js` carried `config: { requireModule, requirePermission }` on four routes
+   with nothing in the repo reading it, so those guards did nothing at all.
+   `server/test/requirePage.test.js` asserts through `app.inject()` — never by looking for the
+   key — and reads back each real route's preHandler chain to prove the guard is attached and
+   runs last, after `authenticate`, which is the only order in which LIMITED can know the viewer.
 3. **Module keys come from `server/src/config/modules.seed.json`.** Its `affected_routes` field is
    the registry's own statement of which module owns which route — check it rather than guessing.
    A key not in that file is silently treated as *enabled* by `isFeatureEnabled` but as *disabled*

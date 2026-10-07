@@ -29,13 +29,16 @@ export default async function genieRoutes(app) {
 
   app.get(
     '/admin/platform/genie',
-    { preHandler: [auth, reqPerm('platform.genie.view')] },
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+    { config: { page: '/admin/platform/genie' }, preHandler: [auth, reqPerm('platform.genie.view')] },
     genieController.getAdminPolicy
   );
 
   app.put(
     '/admin/platform/genie',
     {
+      config: { page: '/admin/platform/genie' },
       preHandler: [auth, reqPerm('platform.genie.update')],
       schema: {
         body: {

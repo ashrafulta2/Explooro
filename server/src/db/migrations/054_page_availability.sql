@@ -20,9 +20,12 @@
 -- and written only by one super admin screen. A two-row rollout list does not earn two tables, and
 -- the module system's targeting_rules already demonstrated that the join-table shape goes unused.
 --
--- Scope, stated honestly: this is a VISIBILITY layer. A hidden page's API endpoints still answer,
--- so this is not an authorization boundary — requirePermission and requireModule remain the ones
--- that are. Enforcing it server-side needs a route -> API-prefix map and is a separate step.
+-- Scope, stated honestly: on the client this is a VISIBILITY layer. Server-side the same states
+-- are now enforced, but only for the endpoints that belong to exactly ONE page: that route
+-- declares `config: { page: '/its/path' }` and the onRoute hook in
+-- server/src/middlewares/requirePage.js answers 403 PAGE_UNAVAILABLE. An endpoint two pages
+-- share cannot be refused, because the other page may still be Live, so for those the toggle
+-- stays visibility-only and requirePermission / requireModule remain the authorization boundary.
 
 CREATE TABLE IF NOT EXISTS page_toggles (
   route_path        TEXT PRIMARY KEY,

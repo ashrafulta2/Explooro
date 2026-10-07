@@ -31,6 +31,9 @@ export default async function supplierRoutes(app) {
   app.get(
     '/supplier/inventory',
     {
+      // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+      // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+      config: { page: '/supplier/inventory' },
       preHandler: [
         authenticate,
         requirePerm('catalog.inventory.manage'),
@@ -42,6 +45,7 @@ export default async function supplierRoutes(app) {
   app.post(
     '/supplier/inventory/stock',
     {
+      config: { page: '/supplier/inventory' },
       preHandler: [
         authenticate,
         requirePerm('catalog.inventory.manage'),
@@ -153,6 +157,7 @@ export default async function supplierRoutes(app) {
   app.get(
     '/supplier/resellers',
     {
+      config: { page: '/supplier/resellers' },
       preHandler: [
         authenticate,
         requirePerm('supplier.analytics.view'),

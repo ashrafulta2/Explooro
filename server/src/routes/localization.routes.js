@@ -36,13 +36,16 @@ export default async function localizationRoutes(app) {
 
   app.get(
     '/admin/platform/localization',
-    { preHandler: [auth, reqPerm('platform.localization.view')] },
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+    { config: { page: '/admin/platform/language' }, preHandler: [auth, reqPerm('platform.localization.view')] },
     localizationController.getAdminPolicy
   );
 
   app.put(
     '/admin/platform/localization',
     {
+      config: { page: '/admin/platform/language' },
       preHandler: [auth, reqPerm('platform.localization.update')],
       schema: {
         body: {

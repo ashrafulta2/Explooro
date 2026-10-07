@@ -11,6 +11,9 @@ export default async function adminAnalyticsRoutes(fastify) {
   fastify.get(
     '/admin/analytics/overview',
     {
+      // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+      // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+      config: { page: '/admin' },
       preHandler: [fastify.authenticate, reqPerm('admin.dashboard.view')],
     },
     controller.getOverviewHandler
@@ -20,6 +23,7 @@ export default async function adminAnalyticsRoutes(fastify) {
   fastify.get(
     '/admin/analytics/alerts',
     {
+      config: { page: '/admin' },
       preHandler: [fastify.authenticate, reqPerm('admin.dashboard.view')],
     },
     controller.getAlertsHandler
@@ -66,6 +70,7 @@ export default async function adminAnalyticsRoutes(fastify) {
   fastify.post(
     '/admin/analytics/rollup-now',
     {
+      config: { page: '/admin' },
       preHandler: [fastify.authenticate, reqPerm('admin.analytics.rollup')],
     },
     controller.triggerRollupHandler
@@ -75,6 +80,7 @@ export default async function adminAnalyticsRoutes(fastify) {
   fastify.post(
     '/admin/analytics/export',
     {
+      config: { page: '/admin' },
       preHandler: [fastify.authenticate, reqPerm('admin.analytics.export')],
     },
     controller.exportOverviewHandler

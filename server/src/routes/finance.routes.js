@@ -34,6 +34,9 @@ export default async function financeRoutes(app) {
 
   // 4. Admin Escrow Holdings Dashboard with live countdowns
   app.get('/admin/finance/escrow', {
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+    config: { page: '/admin/finance/escrow' },
     preHandler: [app.authenticate, app.requirePermission('finance.escrow.view')],
     handler: controller.listEscrowHoldings,
   });
@@ -52,6 +55,7 @@ export default async function financeRoutes(app) {
 
   // 7. Manual trigger for Escrow Release Sweep
   app.post('/admin/finance/escrow/sweep', {
+    config: { page: '/admin/finance' },
     preHandler: [app.authenticate, app.requirePermission('finance.escrow.release_manual')],
     handler: controller.triggerEscrowSweep,
   });
@@ -70,12 +74,14 @@ export default async function financeRoutes(app) {
 
   // 10. Admin Payout Queue
   app.get('/admin/finance/payouts', {
+    config: { page: '/admin/finance/payouts' },
     preHandler: [app.authenticate, app.requirePermission('finance.payout.view')],
     handler: payoutController.listPayoutQueue,
   });
 
   // 11. Admin Approve Payout (Maker-Checker / Execution)
   app.post('/admin/finance/payouts/:id/approve', {
+    config: { page: '/admin/finance/payouts' },
     preHandler: [
       app.authenticate,
       app.requirePermission('finance.payout.approve', {
@@ -95,6 +101,7 @@ export default async function financeRoutes(app) {
 
   // 12. Admin Reject Payout
   app.post('/admin/finance/payouts/:id/reject', {
+    config: { page: '/admin/finance/payouts' },
     preHandler: [app.authenticate, app.requirePermission('finance.payout.reject')],
     schema: {
       params: {
@@ -108,30 +115,35 @@ export default async function financeRoutes(app) {
 
   // 13. Admin Batch Disbursal
   app.post('/admin/finance/payouts/batch-disburse', {
+    config: { page: '/admin/finance/payouts' },
     preHandler: [app.authenticate, app.requirePermission('finance.payout.batch')],
     handler: payoutController.batchDisburse,
   });
 
   // 14. COD Settlement Report Ingest (CSV / JSON)
   app.post('/admin/finance/cod/upload', {
+    config: { page: '/admin/cod-reconciliation' },
     preHandler: [app.authenticate, app.requirePermission('orders.cod.reconcile')],
     handler: codController.uploadSettlementReport,
   });
 
   // 15. List COD Reconciliation Discrepancy Queue
   app.get('/admin/finance/cod', {
+    config: { page: '/admin/cod-reconciliation' },
     preHandler: [app.authenticate, app.requirePermission('orders.cod.reconcile')],
     handler: codController.listReconciliations,
   });
 
   // 16. COD Aging Matrix Report
   app.get('/admin/finance/cod/aging', {
+    config: { page: '/admin/cod-reconciliation' },
     preHandler: [app.authenticate, app.requirePermission('orders.cod.reconcile')],
     handler: codController.getAgingReport,
   });
 
   // 17. Resolve COD Discrepancy (Maker-Checker HIGH tier)
   app.post('/admin/finance/cod/:id/resolve', {
+    config: { page: '/admin/cod-reconciliation' },
     preHandler: [app.authenticate, app.requirePermission('orders.cod.reconcile')],
     schema: {
       params: {
@@ -157,30 +169,35 @@ export default async function financeRoutes(app) {
 
   // 20. Prompt 6.5: Admin Financial Health Overview & Inline Trend Metrics
   app.get('/admin/finance/overview', {
+    config: { page: '/admin/finance' },
     preHandler: [app.authenticate, app.requirePermission('finance.overview.view')],
     handler: controller.getFinanceOverview,
   });
 
   // 21. Profit Splits Governance
   app.get('/admin/finance/splits', {
+    config: { page: '/admin/finance/splits' },
     preHandler: [app.authenticate, app.requirePermission('finance.split.view')],
     handler: controller.getProfitSplits,
   });
 
   // 22. Update Global Profit Split (CRITICAL tier)
   app.put('/admin/finance/splits/default', {
+    config: { page: '/admin/finance/splits' },
     preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
     handler: controller.updateGlobalSplit,
   });
 
   // 23. Update Category Split Override
   app.put('/admin/finance/splits/categories/:id', {
+    config: { page: '/admin/finance/splits' },
     preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
     handler: controller.updateCategorySplit,
   });
 
   // 24. Delete / Reset Category Split Override
   app.delete('/admin/finance/splits/categories/:id', {
+    config: { page: '/admin/finance/splits' },
     preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
     handler: controller.deleteCategorySplit,
   });
@@ -199,6 +216,7 @@ export default async function financeRoutes(app) {
 
   // 27. Merchant Subscriptions Overview & Subscriber Roster
   app.get('/admin/finance/subscriptions', {
+    config: { page: '/admin/finance/subscriptions' },
     preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
     schema: {
       querystring: {
@@ -216,18 +234,21 @@ export default async function financeRoutes(app) {
 
   // 28. Update Subscription Engine Settings
   app.put('/admin/finance/subscriptions/settings', {
+    config: { page: '/admin/finance/subscriptions' },
     preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
     handler: controller.updateSubscriptionSettings,
   });
 
   // 29. Create Subscription Plan
   app.post('/admin/finance/subscriptions/plans', {
+    config: { page: '/admin/finance/subscriptions' },
     preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
     handler: controller.createSubscriptionPlan,
   });
 
   // 30. Update Subscription Plan
   app.put('/admin/finance/subscriptions/plans/:id', {
+    config: { page: '/admin/finance/subscriptions' },
     preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
     schema: { params: { type: 'object', required: ['id'], properties: { id: { type: 'string', pattern: '^\\d+$' } } } },
     handler: controller.updateSubscriptionPlan,
@@ -235,6 +256,7 @@ export default async function financeRoutes(app) {
 
   // 31. Update Subscriber Status / Grant Fee Waiver
   app.patch('/admin/finance/subscriptions/subscribers/:id', {
+    config: { page: '/admin/finance/subscriptions' },
     preHandler: [app.authenticate, app.requirePermission('finance.subscription.manage')],
     schema: { params: { type: 'object', required: ['id'], properties: { id: { type: 'string', pattern: '^\\d+$' } } } },
     handler: controller.updateSubscriberStatus,

@@ -62,38 +62,49 @@ export default async function publicApiRoutes(fastify) {
   // DEVELOPER PORTAL (JWT Auth required for dashboard management)
   // ---------------------------------------------------------------------------
   fastify.post('/developer/api-keys', {
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.createApiKey);
 
   fastify.get('/developer/api-keys', {
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.listApiKeys);
 
   fastify.post('/developer/api-keys/:id/rotate', {
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.rotateApiKey);
 
   fastify.delete('/developer/api-keys/:id', {
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.revokeApiKey);
 
   fastify.post('/developer/webhooks', {
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.createWebhookSubscription);
 
   fastify.get('/developer/webhooks', {
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.listWebhookSubscriptions);
 
   fastify.delete('/developer/webhooks/:id', {
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.deleteWebhookSubscription);
 
   fastify.get('/developer/webhooks/deliveries', {
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.listWebhookDeliveries);
 
   fastify.post('/developer/webhooks/deliveries/:id/replay', {
+    config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],
   }, controller.replayWebhookDelivery);
 }

@@ -26,6 +26,9 @@ export default async function salerRoutes(app) {
   app.get(
     '/saler/analytics',
     {
+      // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+      // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+      config: { page: '/saler/analytics' },
       preHandler: [authenticate, requirePerm('saler.order.view')],
     },
     controller.getAnalytics

@@ -77,10 +77,14 @@ export default async function adsRoutes(app) {
   //    `growth.ad.govern` is HIGH risk and delegable, which is what lets a Super Admin hand ad
   //    pricing to a named staff member without handing over anything else.
   app.get('/admin/ads/products', {
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+    config: { page: '/admin/growth/ad-pricing' },
     preHandler: [app.authenticate, requireModule, requireGovernAds],
   }, adsController.listAdProductsForAdmin);
 
   app.patch('/admin/ads/products/:id', {
+    config: { page: '/admin/growth/ad-pricing' },
     preHandler: [app.authenticate, requireModule, requireGovernAds],
   }, adsController.updateAdProductPricing);
 

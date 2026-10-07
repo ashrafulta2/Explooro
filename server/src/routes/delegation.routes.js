@@ -87,11 +87,15 @@ export default async function delegationRoutes(app) {
   });
 
   app.get('/access-requests', {
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+    config: { page: '/admin/approvals' },
     preHandler: app.authenticate,
     handler: controller.listAccessRequests,
   });
 
   app.patch('/access-requests/:id', {
+    config: { page: '/admin/approvals' },
     preHandler: [app.authenticate, app.requirePermission('admin.approval.decide', { skipMakerChecker: true })],
     schema: {
       params: {
@@ -117,11 +121,13 @@ export default async function delegationRoutes(app) {
   /* MODE C — Maker-Checker (pending_admin_actions)                         */
   /* ======================================================================= */
   app.get('/admin/pending-actions', {
+    config: { page: '/admin/approvals' },
     preHandler: [app.authenticate, app.requirePermission('admin.approval.view')],
     handler: controller.listPendingActions,
   });
 
   app.patch('/admin/pending-actions/:id', {
+    config: { page: '/admin/approvals' },
     preHandler: [app.authenticate, app.requirePermission('admin.approval.decide', { skipMakerChecker: true })],
     schema: {
       params: {
