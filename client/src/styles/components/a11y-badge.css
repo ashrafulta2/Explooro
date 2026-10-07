@@ -245,7 +245,7 @@
 }
 
 .a11y-issue-target {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: var(--text-2xs);
   color: var(--text-brand);
   background: var(--surface-2);

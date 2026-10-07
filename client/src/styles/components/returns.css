@@ -170,7 +170,7 @@
 }
 
 .customer-return-card__ref {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-weight: 800;
   font-size: var(--text-base, 1rem);
   color: var(--text-primary);
@@ -219,7 +219,7 @@
 .customer-return-card__amount-value {
   font-size: var(--text-xl, 1.25rem);
   font-weight: 800;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   color: var(--text-primary);
   line-height: 1.2;
 }

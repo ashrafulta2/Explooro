@@ -264,16 +264,16 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
       </h3>
       <div class="checkout-summary__row">
         <span>${t('cart.subtotal')}</span>
-        <span style="font-family: monospace; font-weight: 500;">${formatCurrency(order.items_amount)}</span>
+        <span style="font-family: var(--font-mono); font-weight: 500;">${formatCurrency(order.items_amount)}</span>
       </div>
       <div class="checkout-summary__row">
         <span>${t('cart.shipping_estimate', { count: subOrders.length })}</span>
-        <span style="font-family: monospace; font-weight: 500;">${formatCurrency(order.shipping_amount)}</span>
+        <span style="font-family: var(--font-mono); font-weight: 500;">${formatCurrency(order.shipping_amount)}</span>
       </div>
       ${Number(order.discount_amount) > 0 ? `
         <div class="checkout-summary__row" style="color: var(--success);">
           <span>${t('cart.discount')}</span>
-          <span style="font-family: monospace; font-weight: 500;">- ${formatCurrency(order.discount_amount)}</span>
+          <span style="font-family: var(--font-mono); font-weight: 500;">- ${formatCurrency(order.discount_amount)}</span>
         </div>
       ` : ''}
       <div class="checkout-summary__divider" style="margin: 12px 0;"></div>

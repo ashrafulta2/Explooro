@@ -250,7 +250,7 @@
   font-size: 28px;
   font-weight: 800;
   color: var(--text-primary);
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   letter-spacing: -0.02em;
   line-height: 1.1;
   margin: var(--space-1) 0;
@@ -416,7 +416,7 @@
 
 .system-infra-card__val {
   color: var(--text-primary);
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-weight: 700;
 }
 
@@ -590,7 +590,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 11px;
   background: var(--surface-2);
   padding: 3px 6px;

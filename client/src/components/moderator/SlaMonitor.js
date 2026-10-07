@@ -100,7 +100,7 @@ export default function SlaMonitor({
         ">
           <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-              <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${item.ref}</span>
+              <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text-brand, #4f46e5);">${item.ref}</span>
               <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--surface-3, rgba(100, 116, 139, 0.1)); color: var(--text-secondary, #475569); font-weight: 600;">${item.item_type || 'CONTENT'}</span>
               <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; ${getBadgeStyle(item.urgency)}">
                 ${formatRemainingTime(item.remaining_minutes, item.is_breached)}

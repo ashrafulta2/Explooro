@@ -658,7 +658,7 @@
 }
 
 .product-picker-price {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-weight: var(--weight-bold, 700);
   color: var(--success-700, #007f39);
 }

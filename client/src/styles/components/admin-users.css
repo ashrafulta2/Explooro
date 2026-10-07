@@ -95,7 +95,7 @@
 .admin-users-user-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .admin-users-name { font-weight: var(--weight-bold); color: var(--text-primary); cursor: pointer; text-decoration: none; transition: color var(--dur-fast) var(--ease-standard); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-users-name:hover, .admin-users-name:focus-visible { color: var(--brand); outline: none; }
-.admin-users-subline { font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono, monospace); display: flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; }
+.admin-users-subline { font-size: var(--text-xs); color: var(--text-muted); font-family: var(--font-mono); display: flex; align-items: center; gap: var(--space-1); flex-wrap: wrap; }
 .admin-users-ref-pill { font-size: var(--text-2xs); font-weight: var(--weight-medium); background: var(--surface-2); color: var(--text-secondary); padding: 1px var(--space-1); border-radius: var(--radius-xs); letter-spacing: 0.02em; }
 .admin-users-clean-pill { display: inline-flex; align-items: center; gap: 4px; font-size: var(--text-xs); font-weight: var(--weight-bold); color: var(--success); background: hsl(var(--shadow-color) / 0.06); padding: 2px var(--space-2); border-radius: var(--radius-full); }
 .admin-users-actions-wrap { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-1); flex-wrap: nowrap; white-space: nowrap; }
@@ -147,7 +147,7 @@
 
 .perm-source-card { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--space-4); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); }
 .perm-source-card__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.perm-source-card__title { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--text-primary); font-family: var(--font-mono, monospace); overflow-wrap: anywhere; }
+.perm-source-card__title { font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--text-primary); font-family: var(--font-mono); overflow-wrap: anywhere; }
 .perm-source-card__title--danger { color: var(--danger); }
 .perm-source-card__why { font-size: var(--text-xs); color: var(--text-secondary); overflow-wrap: anywhere; }
 .user-detail__empty { padding: var(--space-6); text-align: center; display: flex; flex-direction: column; gap: var(--space-1); }

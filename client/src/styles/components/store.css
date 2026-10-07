@@ -75,7 +75,7 @@
 .store-builder__share-url {
   flex: 1;
   min-width: 200px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
   color: var(--text-brand);
   font-weight: var(--weight-semibold);

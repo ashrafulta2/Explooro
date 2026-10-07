@@ -552,7 +552,7 @@
 }
 
 .supplier-order-card__ref {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-weight: 700;
   font-size: var(--text-sm, 0.875rem);
   padding: 2px 8px;
@@ -645,7 +645,7 @@
   border: 2px solid #000000;
   border-radius: 8px;
   padding: 16px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.4;
   display: flex;
@@ -839,7 +839,7 @@
 .supplier-region-card__amount {
   font-size: 1.35rem;
   font-weight: 800;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   color: var(--text-primary, #0f172a);
   margin: 2px 0;
 }

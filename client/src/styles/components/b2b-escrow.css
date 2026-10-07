@@ -70,7 +70,7 @@
 }
 
 .b2b-deal__ref {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: var(--text-sm);
   font-weight: 700;
   color: var(--text-primary);
@@ -121,7 +121,7 @@
 }
 
 .b2b-deal__total {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: var(--text-2xl);
   font-weight: 800;
   line-height: 1.1;
@@ -228,7 +228,7 @@
 }
 
 .b2b-milestone__amount {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: var(--text-lg);
   font-weight: 800;
   color: var(--text-primary);

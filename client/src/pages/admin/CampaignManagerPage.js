@@ -297,12 +297,12 @@ export class CampaignManagerPage {
       <tr style="border-bottom: 1px solid var(--border-subtle, #e2e8f0); transition: background 0.15s ease;">
         <td style="padding: 14px 16px;">
           <div style="font-weight: 700; color: var(--text-primary, #0f172a);">${this._escapeHtml(fs.title || productTitle || 'Flash Deal')}</div>
-          <div style="font-family: monospace; font-size: 11px; color: var(--text-brand, #4f46e5); margin-top: 2px;">${fs.ref}</div>
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-brand, #4f46e5); margin-top: 2px;">${fs.ref}</div>
         </td>
         <td style="padding: 14px 16px;">
           <div style="font-weight: 500; color: var(--text-primary, #0f172a);">${this._escapeHtml(productTitle || `Product #${fs.product_id}`)}</div>
         </td>
-        <td style="padding: 14px 16px; font-family: monospace;">
+        <td style="padding: 14px 16px; font-family: var(--font-mono);">
           <span style="text-decoration: line-through; color: var(--text-muted, #64748b); font-size: 12px;">${formatCurrency(fs.original_price || 0)}</span>
           <span style="color: var(--success, #059669); font-weight: 800; margin-left: 6px;">${formatCurrency(fs.discount_price || 0)}</span>
         </td>
@@ -315,7 +315,7 @@ export class CampaignManagerPage {
             <div style="width: ${pct}%; height: 100%; background: var(--brand, #4f46e5); border-radius: 99px;"></div>
           </div>
         </td>
-        <td style="padding: 14px 16px; font-family: monospace; font-size: 12px;">
+        <td style="padding: 14px 16px; font-family: var(--font-mono); font-size: 12px;">
           ${fs.status === 'EMERGENCY_STOPPED' || fs.status === 'CANCELLED' ? `<span style="color: var(--danger, #e11d48); font-weight: 700;">Stopped</span>` : `
             <span style="color: var(--text-muted, #64748b); font-size: 11px;">${isLive ? (isBn ? 'শেষ হবে:' : 'Ends in:') : (isBn ? 'শুরু হবে:' : 'Starts in:')}</span>
             <div class="live-countdown" data-target-ms="${targetMs}" style="font-weight: 700; color: var(--warning, #d97706); margin-top: 2px;">
@@ -418,7 +418,7 @@ export class CampaignManagerPage {
     return `
       <tr style="border-bottom: 1px solid var(--border-subtle, #e2e8f0); transition: background 0.15s ease;">
         <td style="padding: 14px 16px;">
-          <span style="font-family: monospace; font-weight: 800; color: var(--text-brand, #4f46e5); background: var(--info-bg, rgba(79, 70, 229, 0.1)); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));">${c.code}</span>
+          <span style="font-family: var(--font-mono); font-weight: 800; color: var(--text-brand, #4f46e5); background: var(--info-bg, rgba(79, 70, 229, 0.1)); padding: 3px 8px; border-radius: 4px; font-size: 12px; border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));">${c.code}</span>
           ${c.first_order_only ? `<span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--warning-bg, rgba(217, 119, 6, 0.1)); color: var(--warning, #d97706); margin-left: 4px;">1st Order</span>` : ''}
         </td>
         <td style="padding: 14px 16px;">
@@ -431,7 +431,7 @@ export class CampaignManagerPage {
           </span>
         </td>
         <td style="padding: 14px 16px; min-width: 140px;">
-          <div style="font-size: 12px; font-family: monospace; font-weight: 700; color: var(--text-primary, #0f172a);">${formatCurrency(budgetUsed)} / ${budgetCap != null ? formatCurrency(budgetCap) : '∞'}</div>
+          <div style="font-size: 12px; font-family: var(--font-mono); font-weight: 700; color: var(--text-primary, #0f172a);">${formatCurrency(budgetUsed)} / ${budgetCap != null ? formatCurrency(budgetCap) : '∞'}</div>
           ${budgetCap != null ? `
             <div style="width: 100%; height: 6px; background: var(--surface-2, #e2e8f0); border-radius: 99px; overflow: hidden; margin-top: 4px;">
               <div style="width: ${pct}%; height: 100%; background: ${pct >= 90 ? 'var(--danger, #e11d48)' : 'var(--brand, #4f46e5)'}; border-radius: 99px;"></div>
@@ -576,17 +576,17 @@ export class CampaignManagerPage {
 
       <div>
         <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'পণ্য আইডি (Product ID)' : 'Product ID'} *</label>
-        <input type="number" name="product_id" required aria-label="101" placeholder="101" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+        <input type="number" name="product_id" required aria-label="101" placeholder="101" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: var(--font-mono);" />
       </div>
 
       <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
         <div>
           <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ফ্ল্যাশ সেল মূল্য (৳)' : 'Flash Sale Price (৳)'} *</label>
-          <input type="number" name="discount_price" min="1" step="0.5" required aria-label="990" placeholder="990" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+          <input type="number" name="discount_price" min="1" step="0.5" required aria-label="990" placeholder="990" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: var(--font-mono);" />
         </div>
         <div>
           <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'বরাদ্দকৃত স্টক পরিমাণ' : 'Allocated Stock Qty'} *</label>
-          <input type="number" name="allocated_qty" min="1" required value="20" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+          <input type="number" name="allocated_qty" min="1" required value="20" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: var(--font-mono);" />
         </div>
       </div>
 
@@ -636,7 +636,7 @@ export class CampaignManagerPage {
     <form id="form-create-coupon" style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
       <div>
         <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'কুপন কোড' : 'Coupon Code'} *</label>
-        <input type="text" name="code" required aria-label="e.g. MEGA2026" placeholder="e.g. MEGA2026" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+        <input type="text" name="code" required aria-label="e.g. MEGA2026" placeholder="e.g. MEGA2026" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: var(--font-mono);" />
       </div>
 
       <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
@@ -650,18 +650,18 @@ export class CampaignManagerPage {
         </div>
         <div>
           <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'ছাড়ের মান' : 'Discount Value'} *</label>
-          <input type="number" name="discount_value" required min="1" step="0.5" value="10" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+          <input type="number" name="discount_value" required min="1" step="0.5" value="10" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: var(--font-mono);" />
         </div>
       </div>
 
       <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px;">
         <div>
           <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'বাজেট ক্যাপ (৳)' : 'Budget Cap (৳)'} *</label>
-          <input type="number" name="budget_cap" required value="20000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+          <input type="number" name="budget_cap" required value="20000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: var(--font-mono);" />
         </div>
         <div>
           <label style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">${isBn ? 'সর্বনিম্ন খরচ (৳)' : 'Min Spend (৳)'} *</label>
-          <input type="number" name="min_spend_amount" required value="1000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: monospace;" />
+          <input type="number" name="min_spend_amount" required value="1000" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; font-family: var(--font-mono);" />
         </div>
       </div>
 

@@ -42,7 +42,7 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
     <div class="claim-timeline__wrapper card p-5" style="border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); background: var(--surface-0);">
       <div class="claim-timeline__header flex justify-between items-center pb-3 border-b border-subtle mb-4" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <div style="font-family: var(--font-mono, monospace); font-size: 14px; font-weight: 800; color: var(--text-primary);">
+          <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 800; color: var(--text-primary);">
             Claim #${claim.ref || claim.id}
           </div>
           <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
@@ -101,7 +101,7 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
         ${claim.sla_due_at ? `
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: var(--radius-md); background: var(--surface-0); border: 1px solid var(--border-subtle); font-size: 11px;">
             <span style="color: var(--text-muted); font-weight: 600;">⏱️ ${t('warranty.supplier_sla_deadline')}:</span>
-            <span style="font-family: var(--font-mono, monospace); font-weight: 800; color: ${claim.is_sla_breached ? 'var(--danger)' : 'var(--text-primary)'};">
+            <span style="font-family: var(--font-mono); font-weight: 800; color: ${claim.is_sla_breached ? 'var(--danger)' : 'var(--text-primary)'};">
               ${new Date(claim.sla_due_at).toLocaleString(locale === 'bn' ? 'bn-BD' : 'en-GB')}
               ${claim.is_sla_breached ? `(${t('warranty.sla_breached')})` : ''}
             </span>
@@ -114,7 +114,7 @@ export function ClaimTimeline({ claim, isSupplier = false } = {}) {
               <strong>🚚 ${t('warranty.reverse_courier_booked')}</strong>
               <span class="badge badge--emerald" style="font-size: 10px;">${claim.reverse_courier || 'Courier'}</span>
             </div>
-            <div style="font-family: var(--font-mono, monospace); margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+            <div style="font-family: var(--font-mono); margin-top: 4px; display: flex; align-items: center; gap: 6px;">
               <span>${t('warranty.tracking_number')}: <strong>${claim.reverse_tracking_number}</strong></span>
               <button class="copy-tracking-btn" type="button" style="background:none; border:none; cursor:pointer; font-size:12px;" title="Copy"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></button>
             </div>

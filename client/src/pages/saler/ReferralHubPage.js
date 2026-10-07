@@ -425,7 +425,7 @@ export class ReferralHubPage {
                   <tr>
                     <td>
                       <div style="font-weight: 700;">${this._escapeHtml(node.referee_name || 'User')}</div>
-                      <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${node.ref}</div>
+                      <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">${node.ref}</div>
                     </td>
                     <td>
                       <span class="badge badge--${node.tier_level === 1 ? 'primary' : 'warning'}" style="font-size: 11px; font-weight: 800;">
@@ -442,7 +442,7 @@ export class ReferralHubPage {
                         ? `<span class="badge badge--danger" style="font-size: 10px; font-weight: 800;">⚠️ ${isBn ? 'বাতিল' : 'Fraud Flagged'}</span>`
                         : `<span class="badge badge--neutral" style="font-size: 10px; font-weight: 800;">⏳ ${isBn ? 'অপেক্ষমাণ' : 'Pending'}</span>`}
                     </td>
-                    <td style="text-align: right; font-family: var(--font-mono, monospace); font-weight: 800; color: #166534;">
+                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: #166534;">
                       ৳${Number(node.earned_from_referee || 0).toFixed(2)}
                     </td>
                   </tr>
@@ -507,18 +507,18 @@ export class ReferralHubPage {
                   <tr>
                     <td>
                       <div style="font-weight: 700; font-size: 11px;">${this._escapeHtml(item.referee_name || 'Referee')}</div>
-                      <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono, monospace);">
+                      <div style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">
                         ${item.referral_ref} • Tier ${item.tier_level}
                       </div>
                     </td>
-                    <td style="font-family: var(--font-mono, monospace); font-size: 11px;">
+                    <td style="font-family: var(--font-mono); font-size: 11px;">
                       <div>৳${Number(item.order_amount || 0).toFixed(2)}</div>
                       <span style="color: var(--text-muted); font-size: 10px;">@ ${Number(item.commission_rate_pct || 5).toFixed(1)}%</span>
                     </td>
-                    <td style="font-family: var(--font-mono, monospace); font-weight: 800; color: #166534; font-size: 12px;">
+                    <td style="font-family: var(--font-mono); font-weight: 800; color: #166534; font-size: 12px;">
                       +৳${Number(item.commission_amount).toFixed(2)}
                     </td>
-                    <td style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono, monospace);">
+                    <td style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">
                       ${item.status === 'AVAILABLE' ? '✓ Cleared' : new Date(item.escrow_release_at).toLocaleDateString(isBn ? 'bn-BD' : 'en-GB')}
                     </td>
                     <td style="text-align: right;">

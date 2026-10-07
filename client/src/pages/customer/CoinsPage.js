@@ -511,10 +511,10 @@ export class CoinsPage {
                           ${item.entry_type}
                         </span>
                       </td>
-                      <td style="font-family: var(--font-mono, monospace); font-weight: 800; font-size: var(--text-sm); color: ${isCredit ? '#15803d' : '#b91c1c'};">
+                      <td style="font-family: var(--font-mono); font-weight: 800; font-size: var(--text-sm); color: ${isCredit ? '#15803d' : '#b91c1c'};">
                         ${isCredit ? '+' : '-'}${item.amount.toLocaleString()}
                       </td>
-                      <td style="font-family: var(--font-mono, monospace); font-weight: 700; color: var(--text-secondary);">
+                      <td style="font-family: var(--font-mono); font-weight: 700; color: var(--text-secondary);">
                         ${item.balance_after.toLocaleString()}
                       </td>
                       <td style="text-align: right; color: var(--text-muted); font-size: 11px; white-space: nowrap;">

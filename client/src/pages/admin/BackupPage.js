@@ -335,7 +335,7 @@ export default function BackupPage(root, { navigate } = {}) {
                   <tr style="border-bottom: 1px solid var(--border-subtle);">
                     <td style="padding: 0.75rem;">
                       <div style="font-weight: 700; color: var(--text-primary);">${b.ref}</div>
-                      <div style="font-size: 0.75rem; color: var(--text-secondary); font-family: monospace;">${b.snapshot_tag}</div>
+                      <div style="font-size: 0.75rem; color: var(--text-secondary); font-family: var(--font-mono);">${b.snapshot_tag}</div>
                     </td>
                     <td style="padding: 0.75rem;">
                       <span class="badge" style="font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.45rem; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border-subtle);">

@@ -66,7 +66,7 @@
 
 .perm-matrix__perm-top { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
 .perm-matrix__perm-title { font-weight: var(--weight-bold); color: var(--text-primary); }
-.perm-matrix__perm-key { display: block; margin-top: 2px; font-family: var(--font-mono, monospace); font-size: var(--text-2xs); color: var(--text-muted); overflow-wrap: anywhere; }
+.perm-matrix__perm-key { display: block; margin-top: 2px; font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); overflow-wrap: anywhere; }
 .perm-matrix__perm-desc { display: block; margin-top: 2px; font-size: var(--text-xs); font-weight: var(--weight-regular); color: var(--text-secondary); }
 
 /* `position: relative` is the anchor for the cell's `.sr-only` text (see the wrap above). */
@@ -137,7 +137,7 @@
 .approval-diff__tag { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-2xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-2); }
 .approval-diff__tag--before { color: var(--danger); }
 .approval-diff__tag--after { color: var(--success); }
-.approval-diff__pane pre { margin: 0; padding: var(--space-3); font-family: var(--font-mono, monospace); font-size: 12px; line-height: 1.5; color: var(--text-primary); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-sm); white-space: pre-wrap; word-break: break-all; max-height: 240px; overflow-y: auto; }
+.approval-diff__pane pre { margin: 0; padding: var(--space-3); font-family: var(--font-mono); font-size: 12px; line-height: 1.5; color: var(--text-primary); background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-sm); white-space: pre-wrap; word-break: break-all; max-height: 240px; overflow-y: auto; }
 
 /* 8. KYC Verification Center modals — were `.modal-backdrop`/`.modal-dialog` + Tailwind-style utilities
    (`max-w-2xl p-6`), none of which exist here, so "Inspect" and "Reject" rendered inline in the page

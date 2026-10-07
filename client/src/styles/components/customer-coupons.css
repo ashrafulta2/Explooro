@@ -6,7 +6,7 @@
 /* Claim Bar */
 .coupons-claim-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
 .coupons-claim-form { display: flex; align-items: center; gap: var(--space-2); width: 100%; max-width: 480px; }
-.coupons-claim-input { flex: 1; height: 38px; padding: 0 16px; font-size: var(--text-sm); border: 1px solid var(--border-strong); border-radius: var(--radius-full); background: var(--surface-1); color: var(--text-primary); text-transform: uppercase; font-family: var(--font-mono, monospace); font-weight: 700; letter-spacing: 0.05em; outline: none; transition: border-color 0.18s ease, box-shadow 0.18s ease; }
+.coupons-claim-input { flex: 1; height: 38px; padding: 0 16px; font-size: var(--text-sm); border: 1px solid var(--border-strong); border-radius: var(--radius-full); background: var(--surface-1); color: var(--text-primary); text-transform: uppercase; font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.05em; outline: none; transition: border-color 0.18s ease, box-shadow 0.18s ease; }
 .coupons-claim-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-100); }
 .coupons-claim-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 38px; padding: 0 20px; border-radius: var(--radius-full); background: var(--brand); border: 1px solid var(--brand); color: var(--brand-contrast); font-size: var(--text-xs); font-weight: 800; cursor: pointer; white-space: nowrap; text-decoration: none !important; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
 .coupons-claim-btn:hover { background: var(--brand-hover); border-color: var(--brand-hover); color: var(--brand-alt-contrast); transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.14); }
@@ -17,7 +17,7 @@
 .coupons-kpi-card { background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); transition: border-color 0.18s ease, transform 0.18s ease; }
 .coupons-kpi-card:hover { border-color: var(--border-strong); transform: translateY(-1px); }
 .coupons-kpi-label { font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; justify-content: space-between; }
-.coupons-kpi-val { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); font-family: var(--font-mono, monospace); line-height: 1.2; margin-top: 2px; }
+.coupons-kpi-val { font-size: 1.75rem; font-weight: 800; color: var(--text-primary); font-family: var(--font-mono); line-height: 1.2; margin-top: 2px; }
 .coupons-kpi-val--brand { color: var(--text-brand); }
 .coupons-kpi-val--success { color: var(--success); }
 .coupons-kpi-val--warning { color: var(--warning); }
@@ -37,7 +37,7 @@
 
 /* Perforated Stub */
 .coupon-card__stub { width: 110px; background: var(--surface-1); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-3); text-align: center; border-right: 1px dashed var(--border-subtle); flex: none; }
-.coupon-card__discount-val { font-size: 1.5rem; font-weight: 900; color: var(--text-brand); line-height: 1.1; font-family: var(--font-mono, monospace); }
+.coupon-card__discount-val { font-size: 1.5rem; font-weight: 900; color: var(--text-brand); line-height: 1.1; font-family: var(--font-mono); }
 .coupon-card__discount-sub { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; letter-spacing: 0.05em; }
 
 .coupon-card__perforation { position: relative; width: 0; }
@@ -57,7 +57,7 @@
 .coupon-badge--expired { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
 
 .coupon-card__code-row { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); margin-top: 2px; }
-.coupon-card__code-pill { background: var(--surface-1); border: 1.5px dashed var(--brand); color: var(--text-brand); font-weight: 800; font-size: var(--text-sm); padding: 4px 10px; border-radius: var(--radius-md); font-family: var(--font-mono, monospace); letter-spacing: 0.03em; }
+.coupon-card__code-pill { background: var(--surface-1); border: 1.5px dashed var(--brand); color: var(--text-brand); font-weight: 800; font-size: var(--text-sm); padding: 4px 10px; border-radius: var(--radius-md); font-family: var(--font-mono); letter-spacing: 0.03em; }
 
 /* Action Buttons */
 .coupon-card__btn-copy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--radius-full); border: 1px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary); font-size: var(--text-xs); font-weight: 700; cursor: pointer; white-space: nowrap; text-decoration: none !important; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1); }

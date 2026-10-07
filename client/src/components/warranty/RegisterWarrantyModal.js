@@ -42,7 +42,7 @@ export function openRegisterWarrantyModal({ onSuccess = null } = {}) {
         name="serial_number"
         required
         placeholder="e.g. SN-WALT-8899-2026"
-        style="height: 38px; padding: 0 12px; font-size: 13px; font-family: var(--font-mono, monospace); font-weight: 600; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-1); color: var(--text-primary); outline: none;"
+        style="height: 38px; padding: 0 12px; font-size: 13px; font-family: var(--font-mono); font-weight: 600; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-1); color: var(--text-primary); outline: none;"
       />
       <span style="font-size: 11px; color: var(--text-muted);">${t('warranty.serial_hint') || 'Located on the product box, barcode sticker, or back panel.'}</span>
     </div>

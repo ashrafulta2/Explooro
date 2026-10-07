@@ -1545,7 +1545,7 @@ function renderLiveModerationSpecimen() {
       <strong style="font-size:12px;">WholesaleBroker_BD</strong>
       <span style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;background:var(--danger-bg);color:var(--danger);">&#9888; Flagged</span>
       <p style="margin:4px 0 0;font-size:13px;">Direct kotha bolen &mdash; 01711998877, WhatsApp e cheaper dibo.</p>
-      <span style="font-size:10px;font-family:monospace;font-weight:800;color:var(--danger);">EXTERNAL_CONTACT_LEAK</span>
+      <span style="font-size:10px;font-family: var(--font-mono);font-weight:800;color:var(--danger);">EXTERNAL_CONTACT_LEAK</span>
     </li>
     <li style="list-style:none;padding:10px 12px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--surface-2);opacity:0.72;">
       <strong style="font-size:12px;">Rakib_Hasan_01</strong>

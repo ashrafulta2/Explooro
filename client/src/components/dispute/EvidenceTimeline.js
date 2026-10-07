@@ -51,7 +51,7 @@ export function EvidenceTimeline({ timeline = [], disputeRef = '' } = {}) {
                 ${Object.entries(event.metadata)
                   .map(
                     ([k, v]) => `
-                  <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--surface-3, #e2e8f0); color: var(--text-secondary, #475569); font-family: monospace;">
+                  <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--surface-3, #e2e8f0); color: var(--text-secondary, #475569); font-family: var(--font-mono);">
                     <strong>${k}:</strong> ${typeof v === 'object' ? JSON.stringify(v) : v}
                   </span>
                 `

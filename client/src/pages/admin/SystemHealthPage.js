@@ -493,7 +493,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                   return `
                     <tr>
                       <td>
-                        <span style="font-family: var(--font-mono, monospace); font-weight: 700; color: var(--text-primary);">
+                        <span style="font-family: var(--font-mono); font-weight: 700; color: var(--text-primary);">
                           ${jobName}
                         </span>
                       </td>
@@ -508,7 +508,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                       <td style="color: var(--text-secondary);">
                         ${lastRunAt ? new Date(lastRunAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—'}
                       </td>
-                      <td style="font-family: var(--font-mono, monospace); font-weight: 600;">
+                      <td style="font-family: var(--font-mono); font-weight: 600;">
                         ${durationMs === null ? '—' : `${durationMs} ms`}
                       </td>
                       <td style="color: var(--text-secondary);">
@@ -587,7 +587,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                     <tr>
                       <td>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                          <span style="font-family: var(--font-mono, monospace); font-weight: 700; color: var(--text-primary);">
+                          <span style="font-family: var(--font-mono); font-weight: 700; color: var(--text-primary);">
                             ${ref}
                           </span>
                         </div>
@@ -608,7 +608,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                       <td style="color: var(--text-secondary);">
                         ${tableCount === null || rowCount === null ? '—' : `${tableCount} tables • ${rowCount.toLocaleString()} rows`}
                       </td>
-                      <td style="font-family: var(--font-mono, monospace); font-weight: 600;">
+                      <td style="font-family: var(--font-mono); font-weight: 600;">
                         ${size}
                       </td>
                       <td style="color: var(--text-secondary);">

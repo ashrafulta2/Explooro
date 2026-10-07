@@ -423,7 +423,7 @@ export default function AuditLogPage(root) {
       tdActor.style.textAlign = 'left';
       tdActor.innerHTML = `
         <strong style="font-size: 13px; color: var(--text-primary);">${r.actor_name || r.actor_phone || r.actor_ref || `Staff #${r.actor_id || 'System'}`}</strong><br>
-        <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono, monospace);">${r.ip || '127.0.0.1'}</span>
+        <span style="font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">${r.ip || '127.0.0.1'}</span>
       `;
 
       // Action & Risk

@@ -90,7 +90,8 @@
       color: #0f172a;
       margin-top: auto;
       margin-bottom: 10px;
-      font-family: monospace;
+      font-family: Inter, sans-serif;
+      font-variant-numeric: tabular-nums;
     }
     .explooro-buy-btn {
       display: block;

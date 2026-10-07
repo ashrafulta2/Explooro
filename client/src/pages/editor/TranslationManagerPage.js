@@ -409,7 +409,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
           </div>
           <div>
             <label for="import-json-text" style="font-weight: 600; display: block; margin-bottom: 4px;">Paste JSON Dictionary:</label>
-            <textarea id="import-json-text" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: var(--font-code, monospace); font-size: 11px;" rows="8" placeholder="{\n  &quot;common&quot;: {\n    &quot;buy_now&quot;: &quot;Buy Now&quot;\n  }\n}"></textarea>
+            <textarea id="import-json-text" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); font-family: var(--font-code); font-size: 11px;" rows="8" placeholder="{\n  &quot;common&quot;: {\n    &quot;buy_now&quot;: &quot;Buy Now&quot;\n  }\n}"></textarea>
           </div>
         </div>
 

@@ -100,7 +100,7 @@
 .editor-kpi-card__value {
   font-size: 1.65rem;
   font-weight: 800;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   color: var(--text-primary, #0f172a);
 }
 

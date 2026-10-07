@@ -70,7 +70,7 @@ export function ReviewCard({
                  and --warning are the palette's own pairings, and they follow the master seed and
                  dark mode, which the literals never did. -->
             <div style="display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--danger, #e11d48);">
-              <span style="padding: 1px 6px; border-radius: 4px; background: var(--danger-bg); font-weight: 700; font-family: monospace; font-size: 10px;">${f.code || 'FLAG'}</span>
+              <span style="padding: 1px 6px; border-radius: 4px; background: var(--danger-bg); font-weight: 700; font-family: var(--font-mono); font-size: 10px;">${f.code || 'FLAG'}</span>
               <span>${f.message || f.label_en || 'Prohibited content pattern'}</span>
             </div>
           `
@@ -191,8 +191,8 @@ export function ReviewCard({
     <!-- Top Meta Bar -->
     <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle, #e2e8f0); flex-wrap: wrap; gap: 8px;">
       <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-family: monospace; background: var(--info-bg, rgba(79, 70, 229, 0.1)); color: var(--text-brand, #4f46e5); border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));">${item.item_type}</span>
-        <span style="font-family: monospace; font-size: 12px; font-weight: 700; color: var(--text-primary, #0f172a);">${item.ref}</span>
+        <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-family: var(--font-mono); background: var(--info-bg, rgba(79, 70, 229, 0.1)); color: var(--text-brand, #4f46e5); border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));">${item.item_type}</span>
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--text-primary, #0f172a);">${item.ref}</span>
         ${
           item.status === 'IN_REVIEW'
             ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: var(--warning-bg, rgba(217, 119, 6, 0.1)); color: var(--warning, #d97706); border: 1px solid var(--warning-border, rgba(217, 119, 6, 0.25));">🔒 ${isClaimedByMe ? t('moderation.claimed_by_you', 'Claimed by you') : `${t('moderation.claimed_by', 'Claimed')} ${item.claimed_by_name || `#${item.claimed_by}`}`}</span>`

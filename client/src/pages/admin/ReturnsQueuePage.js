@@ -248,9 +248,9 @@ export default function ReturnsQueuePage(root) {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
                   <div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                      <strong style="font-family: monospace; font-size: 14px; color: var(--text-brand, #4f46e5);">${ret.ref}</strong>
+                      <strong style="font-family: var(--font-mono); font-size: 14px; color: var(--text-brand, #4f46e5);">${ret.ref}</strong>
                       <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: var(--info-bg, rgba(79, 70, 229, 0.1)); color: var(--text-brand, #4f46e5); border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25));">${t(`returns.status_${ret.status.toLowerCase()}`, ret.status)}</span>
-                      <span style="font-size: 11px; font-family: monospace; padding: 2px 6px; border-radius: 4px; background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0); color: var(--text-muted, #64748b);">Order #${ret.sub_order_ref || ret.sub_order_id}</span>
+                      <span style="font-size: 11px; font-family: var(--font-mono); padding: 2px 6px; border-radius: 4px; background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0); color: var(--text-muted, #64748b);">Order #${ret.sub_order_ref || ret.sub_order_id}</span>
                     </div>
 
                     <div style="font-size: 12px; color: var(--text-muted, #64748b); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
@@ -264,7 +264,7 @@ export default function ReturnsQueuePage(root) {
 
                   <div style="text-align: right;">
                     <span style="font-size: 11px; color: var(--text-muted, #64748b); display: block;">Refund Claim Target</span>
-                    <strong style="font-size: 18px; font-weight: 800; color: var(--success, #059669); font-family: monospace;">${formatCurrency(ret.refund_amount)}</strong>
+                    <strong style="font-size: 18px; font-weight: 800; color: var(--success, #059669); font-family: var(--font-mono);">${formatCurrency(ret.refund_amount)}</strong>
                   </div>
                 </div>
 
@@ -285,7 +285,7 @@ export default function ReturnsQueuePage(root) {
                     ${
                       ret.reverse_tracking_number
                         ? `
-                      <div style="margin-top: 8px; font-family: monospace; font-size: 11px; padding: 4px 8px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); display: inline-block;">
+                      <div style="margin-top: 8px; font-family: var(--font-mono); font-size: 11px; padding: 4px 8px; border-radius: 4px; background: var(--surface-1, #ffffff); border: 1px solid var(--border-subtle, #e2e8f0); display: inline-block;">
                         📦 Reverse Tracking: <strong>${ret.reverse_tracking_number}</strong> (${ret.reverse_carrier || 'Steadfast'})
                       </div>
                     `
