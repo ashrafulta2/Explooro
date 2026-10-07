@@ -25,7 +25,10 @@
 @import './components/shell.css';
 @import './components/auth.css';
 @import './components/access.css';
-@import './components/module-control.css';
+/* Module Toggles page CSS is NOT here: it is ~7.5KB raw and loads via
+   styles/loadModuleControlStyles.js so it lands in a route chunk. Only the drawer field
+   layout stays in the entry bundle, because seven pages render those drawers. */
+@import './components/admin-drawer-form.css';
 /* Prompt 3.3: admin-users.css is imported by UsersPage.js and UserDetailPage.js directly to code-split into route chunk */
 @import './components/audit-explorer.css';
 @import './components/theme-studio.css';

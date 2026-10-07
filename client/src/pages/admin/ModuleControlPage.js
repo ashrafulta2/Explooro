@@ -16,6 +16,7 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { setFlags } from '../../services/featureFlags.js';
 import { formatCurrency } from '../../services/format.js';
+import { loadModuleControlStyles } from '../../styles/loadModuleControlStyles.js';
 
 const GROUP_ORDER = [
   { key: 'trust', icon: '🛡️', label_en: 'Trust & Safety', label_bn: 'নিরাপত্তা ও আস্থা' },
@@ -30,6 +31,8 @@ const GROUP_ORDER = [
 ];
 
 export default function ModuleControlPage(root, { navigate } = {}) {
+  loadModuleControlStyles();
+
   const container = document.createElement('div');
   container.className = 'module-control';
 

@@ -1,0 +1,34 @@
+/**
+ * admin-drawer-form.css — Shared field layout for the admin governance drawers.
+ *
+ * WHY this is a file of its own, and why it stays in main.css while the rest of
+ * module-control.css moved out: `.module-drawer-form` is rendered by GrantDrawer,
+ * RestrictionEditor, ModuleSettingsDrawer and ModuleTargetingDrawer, which between them appear on
+ * seven surfaces (Access Grants, Users, User Detail, Restrictions, Module Toggles, Moderator
+ * Dashboard, My Access). Pinning it to any one page chunk means the next page that opens a drawer
+ * renders it unstyled with nothing to warn you. At ~0.15KB gzipped the entry bundle can carry it.
+ */
+
+.module-drawer-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.module-drawer-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.module-drawer-form__field label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.module-drawer-form__field .field-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
