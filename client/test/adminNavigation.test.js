@@ -44,9 +44,9 @@ describe('Admin Navigation & Sidebar Structure Invariants', () => {
     });
   });
 
-  it('3. All 52 admin nav items support both super_admin and admin roles', () => {
+  it('3. All 53 admin nav items support both super_admin and admin roles', () => {
     const adminItems = navItems.filter((item) => item.group?.startsWith('admin.'));
-    assert.equal(adminItems.length, 52, 'Expected exactly 52 admin nav items');
+    assert.equal(adminItems.length, 53, 'Expected exactly 53 admin nav items');
 
     const catalogMap = new Map(catalog.permissions.map((p) => [p.key, p]));
 

@@ -46,6 +46,7 @@ import { MASTER_PRESETS } from '../../config/master-themes.js';
 import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.js';
 import { CategoryPills } from '../../components/product/CategoryPills.js';
 import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.js';
+import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.js';
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.js';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.js';
 import { ImageGallery } from '../../components/product/ImageGallery.js';
@@ -1277,6 +1278,8 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'moderator-dashboard', label: 'ModeratorDashboard', group: 'Trust & Moderation', render: renderModeratorDashboardSpecimen },
     // Live Moderation Console (/moderator/live)
     { id: 'live-moderation-console', label: 'LiveModerationConsole', group: 'Trust & Moderation', render: renderLiveModerationSpecimen },
+    // Page Availability row (/admin/platform/pages) — all four states side by side
+    { id: 'page-availability-row', label: 'PageAvailabilityRow', group: 'Trust & Moderation', render: renderPageAvailabilityRowSpecimen },
 
     // ── Communication ────────────────────────────────────────────────────────
     // Prompt 8.2 — Unified Notification Center & What's New
@@ -3315,6 +3318,79 @@ function renderLocaleChoiceCardSpecimen() {
         LocaleChoiceCard({ locale: 'bn', isDefault: true, isEnabled: true, idPrefix: 'gal-c', readOnly: true }),
         LocaleChoiceCard({ locale: 'en', isDefault: false, isEnabled: true, idPrefix: 'gal-c', readOnly: true })
       )
+    )
+  );
+
+  return wrap;
+}
+
+/**
+ * PageAvailabilityRow — one row of /admin/platform/pages in each of its four states, plus the two
+ * read-only variants (a locked page, and a viewer who holds .view but not .toggle). The four
+ * states exist precisely because a Switch could not express them, so seeing them together is the
+ * point of this specimen.
+ */
+function renderPageAvailabilityRowSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section';
+  wrap.append(subgroup('Page availability states (/admin/platform/pages)'));
+
+  const page = (over = {}) => ({
+    path: '/supplier/warehouses',
+    portal: 'supplier',
+    module: 'multi_warehouse',
+    permission: 'catalog.warehouse.manage',
+    requiresAuth: true,
+    label_i18n_key: 'nav.shared.warehouses',
+    fallback_label: 'Supplier Warehouses',
+    in_nav: true,
+    ...over,
+  });
+
+  const noop = () => {};
+
+  wrap.append(
+    specimen('LIVE (the default — no stored row)', PageAvailabilityRow({ page: page(), toggle: null, canToggle: true, onPick: noop })),
+    specimen(
+      'COMING_SOON (nav item stays, with a badge)',
+      PageAvailabilityRow({
+        page: page(),
+        toggle: { state: 'COMING_SOON', reason: 'Warehouse routing not released yet', updated_at: new Date().toISOString() },
+        canToggle: true,
+        onPick: noop,
+      })
+    ),
+    specimen(
+      'HIDDEN (absent from nav, URL 404s)',
+      PageAvailabilityRow({
+        page: page(),
+        toggle: { state: 'HIDDEN', reason: 'Held back for the next release', updated_at: new Date().toISOString() },
+        canToggle: true,
+        onPick: noop,
+      })
+    ),
+    specimen(
+      'LIMITED (live for one role and two named users)',
+      PageAvailabilityRow({
+        page: page(),
+        toggle: {
+          state: 'LIMITED',
+          allowed_roles: ['supplier'],
+          allowed_user_ids: ['1024', '2048'],
+          reason: 'Piloting with two suppliers first',
+          updated_at: new Date().toISOString(),
+        },
+        canToggle: true,
+        onPick: noop,
+      })
+    ),
+    specimen(
+      'locked page (cannot be switched off at all)',
+      PageAvailabilityRow({ page: page({ path: '/login', portal: 'customer', module: 'core', permission: null, label_i18n_key: null, fallback_label: 'Login', in_nav: false }), toggle: null, canToggle: true, onPick: noop })
+    ),
+    specimen(
+      'read-only (holds platform.page.view but not .toggle)',
+      PageAvailabilityRow({ page: page(), toggle: { state: 'HIDDEN' }, canToggle: false, onPick: noop })
     )
   );
 

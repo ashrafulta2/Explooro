@@ -22,6 +22,11 @@
  * defect that Prompt 1.5's router guard must reject at registration time." The `notFound` route is
  * exempt — it is not a feature a permission or module could gate.
  *
+ * Guard order, once a route matches: auth -> role -> permission -> module -> page availability
+ * (`resolvePageState`, services/pageAccess.js). The first four redirect; the last one renders
+ * instead — COMING_SOON swaps in `comingSoonRoute`, HIDDEN swaps in `notFound`, so a parked page
+ * is indistinguishable from one that was never built.
+ *
  * Page module contract — the dynamic import's default export:
  *   (container, { params, query, navigate }) => (cleanup?: () => void)
  * `cleanup` runs before the next route mounts, so a page's timers/listeners never leak.
@@ -100,6 +105,11 @@ export function createRouter({
   getAuthContext = () => ({ isAuthenticated: false, permissions: [], modules: {} }),
   onGuardFail,
   loginPath = '/login',
+  // Page availability (services/pageAccess.js), checked AFTER auth/role/permission/module so a
+  // route the viewer could never reach anyway is never reported as "coming soon". Returns
+  // 'LIVE' | 'COMING_SOON' | 'HIDDEN'; the default keeps the router usable standalone and in tests.
+  resolvePageState = () => 'LIVE',
+  comingSoonRoute = null,
 } = {}) {
   if (!root) throw new Error('createRouter requires a root element');
   if (!notFound) throw new Error('createRouter requires a notFound route');
@@ -138,6 +148,11 @@ export function createRouter({
     const matched = findRoute(pathname);
     const ctx = getAuthContext();
 
+    // 'LIVE' unless the super admin has parked this page. HIDDEN falls through to notFound below
+    // rather than redirecting: a hidden page must be indistinguishable from one that was never
+    // built, and a redirect to `/` announces that something is there.
+    let pageState = 'LIVE';
+
     if (matched) {
       const reason = guardFailure(matched.route, ctx);
       if (reason) {
@@ -146,6 +161,7 @@ export function createRouter({
         navigate(dest, { replace: true });
         return;
       }
+      pageState = resolvePageState(matched.route, ctx) ?? 'LIVE';
     }
 
     if (current) {
@@ -153,7 +169,15 @@ export function createRouter({
       current.cleanup?.();
     }
 
-    const { route, params } = matched ?? { route: notFound, params: {} };
+    let { route, params } = matched ?? { route: notFound, params: {} };
+    if (matched && pageState === 'HIDDEN') {
+      route = notFound;
+      params = {};
+    } else if (matched && pageState === 'COMING_SOON' && comingSoonRoute) {
+      // Keeps the matched route's title so the browser tab still names the page the user clicked.
+      route = { ...comingSoonRoute, title: route.title, path: route.path };
+    }
+
     const query = parseQuery(search);
 
     beforeEach?.({ path: pathname, route, params, query });

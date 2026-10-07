@@ -3,6 +3,8 @@
  *
  * Connects the core platform governance surfaces:
  * 1. Module Toggles (/admin/platform/modules)
+ * 1b. Page Availability (/admin/platform/pages) — sits beside Modules, not under it: a module
+ *     gates a CAPABILITY, a page toggle gates VISIBILITY, and the two are not the same switch.
  * 2. Theme Studio (/admin/platform/theme)
  * 3. Integrations (/admin/platform/integrations)
  * 4. API Keys & Developer Portal (/admin/platform/api-keys)
@@ -19,6 +21,7 @@ export function PlatformSubnav({ activeKey = 'integrations', navigate = null } =
 
   const tabs = [
     { key: 'modules', label: isBn ? 'মডিউল টগল' : 'Module Toggles', href: '/admin/platform/modules', icon: '🎛️' },
+    { key: 'pages', label: isBn ? 'পেজ উপলব্ধতা' : 'Page Availability', href: '/admin/platform/pages', icon: '🗂️' },
     { key: 'theme', label: isBn ? 'থিম স্টুডিও' : 'Theme Studio', href: '/admin/platform/theme', icon: '🎨' },
     { key: 'integrations', label: isBn ? 'ইন্টিগ্রেশন' : 'Integrations', href: '/admin/platform/integrations', icon: '🔌' },
     { key: 'apikeys', label: isBn ? 'এপিআই কী' : 'API Keys', href: '/admin/platform/api-keys', icon: '⚡' },

@@ -29,6 +29,7 @@ import delegationRoutes from './routes/delegation.routes.js';
 import restrictionRoutes from './routes/restriction.routes.js';
 import auditRoutes from './routes/audit.routes.js';
 import moduleRoutes from './routes/module.routes.js';
+import pageAccessRoutes from './routes/pageAccess.routes.js';
 import userRoutes from './routes/user.routes.js';
 import staffRoutes from './routes/staff.routes.js';
 import themeRoutes from './routes/theme.routes.js';
@@ -178,6 +179,7 @@ export async function buildApp(overrides = {}) {
   await app.register(restrictionRoutes, { prefix: '/api/v1' });
   await app.register(auditRoutes, { prefix: '/api/v1' });
   await app.register(moduleRoutes, { prefix: '/api/v1' });
+  await app.register(pageAccessRoutes, { prefix: '/api/v1' });
   await app.register(userRoutes, { prefix: '/api/v1' });
   await app.register(staffRoutes, { prefix: '/api/v1' });
   await app.register(themeRoutes, { prefix: '/api/v1' });

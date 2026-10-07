@@ -159,9 +159,14 @@ These are real and were left open on purpose. Do not assume they were missed.
    `featureRoutes`. If you add a page, register its route and you are done — there is no second list
    to remember. `client/test/adminProfitSplitAndSubscriptionsPages.test.js` asserts that no
    `item.path !== '/…'` chain has crept back in.
-2. **The nav guard must equal the route guard.** Both the permission key and the module key. A nav
-   guard stricter than its route hides the feature; looser, and the link dead-ends in a toast. Use
-   the `.view`-level key for a listing page and gate the write actions separately.
+2. **The nav guard must equal the route guard.** The permission key, the module key, **and the page
+   availability state**. A nav guard stricter than its route hides the feature; looser, and the link
+   dead-ends in a toast. Use the `.view`-level key for a listing page and gate the write actions
+   separately. Page availability (`/admin/platform/pages`) has exactly one resolver —
+   `client/src/services/pageAccess.js` — and `core/router.js`, `Sidebar.js` and `CommandPalette.js`
+   all call it. Never re-implement the four states anywhere else: the command palette was the hole
+   that would have made a HIDDEN page reachable by typing its name.
+   `client/test/pageAvailability.test.js` fails if any of the three grows its own copy.
 3. **Module keys come from `server/src/config/modules.seed.json`.** Its `affected_routes` field is
    the registry's own statement of which module owns which route — check it rather than guessing.
    A key not in that file is silently treated as *enabled* by `isFeatureEnabled` but as *disabled*

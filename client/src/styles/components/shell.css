@@ -104,6 +104,14 @@
 .nav-item--active .nav-item__icon { color: var(--text-brand); }
 .nav-item--active .nav-item__icon svg { stroke: currentColor; }
 .nav-item--highlight { color: var(--text-brand); font-weight: var(--weight-lg); }
+/* A page the super admin has set to COMING_SOON (services/pageAccess.js). The badge carries the
+   meaning on its own, so a viewer who cannot perceive the dimming still reads the word.
+   WHY the rule lives here and not in the page's own stylesheet: this badge renders in the SIDEBAR,
+   which is on screen long before anyone opens /admin/platform/pages, so it cannot depend on that
+   route's lazily-loaded CSS chunk. */
+.nav-item--coming-soon .nav-item__label { opacity: 0.8; }
+.nav-item--coming-soon .badge { flex: none; font-size: 10px; padding-inline: var(--space-1); }
+
 .nav-item--locked { color: var(--text-muted); background: none; border: none; font: inherit; text-align: left; }
 .nav-item--locked:hover { background: var(--surface-2); }
 .locked-nav-item__icon { flex: none; width: 14px; height: 14px; color: var(--text-muted); }

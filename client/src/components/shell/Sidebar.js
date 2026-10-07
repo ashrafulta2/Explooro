@@ -6,11 +6,19 @@
  *
  * Locked-state UX (ia-sitemap.md §5.1), enforced here so every consumer gets it for free:
  *  - module disabled  → item skipped entirely (never in the DOM)
+ *  - page HIDDEN      → item skipped entirely (never in the DOM)
+ *  - page COMING_SOON → a normal link carrying a "Coming soon" badge; the route renders the
+ *                       placeholder rather than the real page
  *  - permission missing → LockedNavItem (greyed, lock icon, visible)
  *  - otherwise        → a normal link, active-highlighted against `currentPath`
+ *
+ * The page-state branches delegate to services/pageAccess.js — the SAME function core/router.js
+ * guards with, per docs/super-admin-audit.md §5 invariant 1 ("the nav guard must equal the route
+ * guard"). Never re-implement the four states here.
  */
 import { navGroups, navItems, SIMPLE_MODE_ITEMS, PROGRESSIVE_DISCLOSURE_ROLES } from '../../config/navigation.js';
 import { t } from '../../services/i18n.js';
+import { resolvePageAccess } from '../../services/pageAccess.js';
 import { LockedNavItem } from './LockedNavItem.js';
 import { Badge } from '../ui/Badge.js';
 import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.js';
@@ -24,7 +32,7 @@ function hasPermission(permissions, key) {
   return !key || permissions.includes(key);
 }
 
-function navLink({ item, label, currentPath, navigate, badges }) {
+function navLink({ item, label, currentPath, navigate, badges, comingSoon = false }) {
   const a = document.createElement('a');
   a.href = item.path;
   a.className = 'nav-item';
@@ -56,6 +64,11 @@ function navLink({ item, label, currentPath, navigate, badges }) {
   const count = item.badge ? badges[item.badge] : null;
   if (count) a.append(Badge({ variant: 'count', count }));
 
+  if (comingSoon) {
+    a.classList.add('nav-item--coming-soon');
+    a.append(Badge({ variant: 'warning', label: t('page_availability.badge_coming_soon', 'Coming soon') }));
+  }
+
   a.addEventListener('click', (event) => {
     event.preventDefault();
     navigate(item.path);
@@ -65,11 +78,20 @@ function navLink({ item, label, currentPath, navigate, badges }) {
 
 function renderItem({ item, ctx, currentPath, navigate }) {
   if (!hasModule(ctx.modules, item.module)) return null; // module off — hidden entirely
+  const pageState = resolvePageAccess(item.path, ctx);
+  if (pageState === 'HIDDEN') return null; // page parked by the super admin — hidden entirely
   const label = t(item.label_i18n_key);
   if (!hasPermission(ctx.permissions, item.permission)) {
     return LockedNavItem({ item });
   }
-  return navLink({ item, label, currentPath, navigate, badges: ctx.badges });
+  return navLink({
+    item,
+    label,
+    currentPath,
+    navigate,
+    badges: ctx.badges,
+    comingSoon: pageState === 'COMING_SOON',
+  });
 }
 
 function renderSimpleMode({ role, ctx, currentPath, navigate }) {

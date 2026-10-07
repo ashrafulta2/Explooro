@@ -5,46 +5,11 @@
 // WHY: the Module Control panel used to be fed a hand-written array of eight modules whose keys
 // (`bkash_direct_checkout`, `live_streaming_studio`, `ai_bengali_copywriter`, …) existed nowhere
 // else in the codebase. The super admin's master feature-flag switchboard therefore showed 8 of the
-// platform's 71 modules, and every toggle wrote a key no route or nav item gates on. This reads the
-// same registry the server seeds from, so the dev panel and the live panel list the same modules
-// under the same keys. Mock-only, so the client's zero-dependency rule is untouched.
-import moduleRegistry from '../../../../server/src/config/modules.seed.json' with { type: 'json' };
+// platform's 71 modules, and every toggle wrote a key no route or nav item gates on. The registry
+// is now read from mocks/moduleState.js, which reads the same seed file the server seeds from, so
+// the dev panel, the live panel and the PUBLIC `GET /modules` endpoint all answer from one map.
+import { moduleRegistry, moduleState, buildAdminModules, persistModuleState } from '../moduleState.js';
 import permissionCatalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
-
-/** Mutable per-session module state so a toggle survives until reload, like the real API. */
-const moduleState = new Map(
-  moduleRegistry.modules.map((m) => [
-    m.key,
-    {
-      is_enabled: m.default_enabled !== false,
-      last_reason: null,
-      updated_at: new Date(Date.now() - 3600000 * 72).toISOString(),
-    },
-  ])
-);
-
-function buildAdminModules() {
-  return moduleRegistry.modules.map((m) => {
-    const state = moduleState.get(m.key);
-    return {
-      key: m.key,
-      group_key: m.group,
-      label_en: m.label_en,
-      label_bn: m.label_bn,
-      description_en: m.description_en,
-      description_bn: m.description_bn,
-      is_enabled: state.is_enabled,
-      risk_of_disabling: m.risk_of_disabling,
-      depends_on: m.depends_on || [],
-      affected_routes: m.affected_routes || [],
-      affected_permissions: m.affected_permissions || [],
-      sub_settings_schema: m.sub_settings_schema || null,
-      last_reason: state.last_reason,
-      updated_at: state.updated_at,
-      targeting_rules: [],
-    };
-  });
-}
 
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
@@ -2154,6 +2119,8 @@ export const adminHandlers = [
       // off and re-opening the panel showed it on again — the panel looked broken to anyone who
       // checked their own work. Persist for the session and cascade to dependants, as the real
       // service does, so the dependency warning in the UI matches what actually happened.
+      // persistModuleState() below then carries it across a reload, which is what makes the
+      // public GET /modules answer agree with the switchboard on the next cold boot.
       state.is_enabled = isEnabled;
       state.last_reason = reason;
       state.updated_at = new Date().toISOString();
@@ -2170,6 +2137,8 @@ export const adminHandlers = [
           }
         }
       }
+
+      persistModuleState();
 
       return {
         status: 200,

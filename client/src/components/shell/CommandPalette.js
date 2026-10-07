@@ -18,6 +18,7 @@ import { MASTER_PRESETS } from '../../config/master-themes.js';
 import { switchThemePreset } from '../../services/themePalette.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import { isPageVisibleInNav } from '../../services/pageAccess.js';
 import { lockScroll, unlockScroll } from '../ui/Modal.js';
 import { getGroupIcon, ICONS } from '../ui/icons.js';
 
@@ -138,10 +139,14 @@ export function createCommandPalette({ getState }) {
     const { ctx } = getState();
     const q = query.trim();
 
+    // The page-availability check is the same resolvePageAccess() Sidebar.js and core/router.js
+    // use (super-admin-audit §5 invariant 1): a page the super admin has HIDDEN must not be
+    // reachable by typing its name either, or the palette becomes the hole in the whole layer.
     const visible = navItems.filter(
       (item) =>
         hasRole(ctx.role, item) &&
         hasModule(ctx.modules, item.module) &&
+        isPageVisibleInNav(item.path, ctx) &&
         hasPermission(ctx.permissions, item.permission)
     );
 

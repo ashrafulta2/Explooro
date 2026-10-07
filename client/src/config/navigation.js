@@ -135,12 +135,15 @@ export const navItems = [
   { key: 'admin.content.live', label_i18n_key: 'nav.admin.live', icon: null, path: '/admin/live', group: 'admin.content', permission: 'live.stream.govern', module: 'live_commerce', roles: ['super_admin', 'admin'], order: 6 },
 
   { key: 'admin.platform.modules', label_i18n_key: 'nav.admin.modules', icon: null, path: '/admin/platform/modules', group: 'admin.platform', permission: 'platform.module.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
-  { key: 'admin.platform.theme', label_i18n_key: 'nav.admin.theme', icon: null, path: '/admin/platform/theme', group: 'admin.platform', permission: 'platform.theme.view', module: 'theme_studio', roles: ['super_admin', 'admin'], order: 2 },
-  { key: 'admin.platform.integrations', label_i18n_key: 'nav.admin.integrations', icon: null, path: '/admin/platform/integrations', group: 'admin.platform', permission: 'platform.integration.view', module: 'core', roles: ['super_admin', 'admin'], order: 3 },
-  { key: 'admin.platform.apikeys', label_i18n_key: 'nav.admin.apikeys', icon: null, path: '/admin/platform/api-keys', group: 'admin.platform', permission: 'platform.apikey.view', module: 'open_api', roles: ['super_admin', 'admin'], order: 4 },
-  { key: 'admin.platform.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/admin/platform/settings', group: 'admin.platform', permission: 'platform.settings.view', module: 'core', roles: ['super_admin', 'admin'], order: 5 },
-  { key: 'admin.platform.language', label_i18n_key: 'nav.admin.language', icon: null, path: '/admin/platform/language', group: 'admin.platform', permission: 'platform.localization.view', module: 'core', roles: ['super_admin', 'admin'], order: 6 },
-  { key: 'admin.platform.genie', label_i18n_key: 'nav.admin.genie', icon: null, path: '/admin/platform/genie', group: 'admin.platform', permission: 'platform.genie.view', module: 'core', roles: ['super_admin', 'admin'], order: 7 },
+  // `module: 'core'` on purpose, like Module Control above it: a governance surface cannot be
+  // gated on a module, and this one must stay reachable precisely so parked pages can be unparked.
+  { key: 'admin.platform.pages', label_i18n_key: 'nav.admin.pages', icon: null, path: '/admin/platform/pages', group: 'admin.platform', permission: 'platform.page.view', module: 'core', roles: ['super_admin', 'admin'], order: 2 },
+  { key: 'admin.platform.theme', label_i18n_key: 'nav.admin.theme', icon: null, path: '/admin/platform/theme', group: 'admin.platform', permission: 'platform.theme.view', module: 'theme_studio', roles: ['super_admin', 'admin'], order: 3 },
+  { key: 'admin.platform.integrations', label_i18n_key: 'nav.admin.integrations', icon: null, path: '/admin/platform/integrations', group: 'admin.platform', permission: 'platform.integration.view', module: 'core', roles: ['super_admin', 'admin'], order: 4 },
+  { key: 'admin.platform.apikeys', label_i18n_key: 'nav.admin.apikeys', icon: null, path: '/admin/platform/api-keys', group: 'admin.platform', permission: 'platform.apikey.view', module: 'open_api', roles: ['super_admin', 'admin'], order: 5 },
+  { key: 'admin.platform.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/admin/platform/settings', group: 'admin.platform', permission: 'platform.settings.view', module: 'core', roles: ['super_admin', 'admin'], order: 6 },
+  { key: 'admin.platform.language', label_i18n_key: 'nav.admin.language', icon: null, path: '/admin/platform/language', group: 'admin.platform', permission: 'platform.localization.view', module: 'core', roles: ['super_admin', 'admin'], order: 7 },
+  { key: 'admin.platform.genie', label_i18n_key: 'nav.admin.genie', icon: null, path: '/admin/platform/genie', group: 'admin.platform', permission: 'platform.genie.view', module: 'core', roles: ['super_admin', 'admin'], order: 8 },
 
   { key: 'admin.security.audit', label_i18n_key: 'nav.admin.audit', icon: null, path: '/admin/security/audit', group: 'admin.security', permission: 'security.audit.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.security.sessions', label_i18n_key: 'nav.admin.sessions', icon: null, path: '/admin/security/sessions', group: 'admin.security', permission: 'security.session.revoke', module: 'core', roles: ['super_admin', 'admin'], order: 2 },

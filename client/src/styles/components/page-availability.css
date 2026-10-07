@@ -1,0 +1,338 @@
+/**
+ * page-availability.css — /admin/platform/pages (the per-page switchboard).
+ *
+ * Imported DYNAMICALLY by PageAvailabilityPage.js, never from main.css: the entry bundle's CSS
+ * budget (70KB gzipped, enforced by client/vite.config.js) is close to its ceiling, and a
+ * stylesheet imported from both places silently lands in the entry bundle AND a route chunk.
+ *
+ * Tokens only — no raw hex (design-system.md). Solid surfaces, zero gradients.
+ */
+
+.page-avail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4) var(--space-8);
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.page-avail__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.page-avail__title {
+  margin: 0;
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.page-avail__stats {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-3);
+  white-space: nowrap;
+}
+
+.page-avail__subtitle {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  max-width: 70ch;
+}
+
+.page-avail__banner,
+.page-avail__note {
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.page-avail__banner {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid var(--warning-border);
+}
+
+.page-avail__note {
+  background: var(--info-bg);
+  color: var(--info);
+  border: 1px solid var(--info-border);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+
+.page-avail__toolbar {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.page-avail__search {
+  flex: 1 1 260px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+.page-avail__search:focus-visible,
+.page-avail__filter:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.page-avail__filter {
+  height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-sm);
+}
+
+/* ── Groups & rows ───────────────────────────────────────────────────────── */
+
+.page-avail__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.page-avail__group-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.page-avail__empty {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.page-avail-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.page-avail-row + .page-avail-row {
+  margin-top: var(--space-2);
+}
+
+/* A parked page is marked on its own row, not only inside the state picker — scanning the list
+   for "what have I switched off" must not mean reading 224 button groups. */
+.page-avail-row[data-state='HIDDEN'] { border-inline-start: 3px solid var(--text-muted); }
+.page-avail-row[data-state='COMING_SOON'] { border-inline-start: 3px solid var(--warning); }
+.page-avail-row[data-state='LIMITED'] { border-inline-start: 3px solid var(--info); }
+
+.page-avail-row__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.page-avail-row__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.page-avail-row__label {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.page-avail-row__path {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  align-self: flex-start;
+  overflow-wrap: anywhere;
+}
+
+.page-avail-row__meta,
+.page-avail-row__audience {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.page-avail-row__audience {
+  color: var(--info);
+  font-weight: 600;
+}
+
+/* ── The four-state picker ───────────────────────────────────────────────── */
+
+.page-avail-row__states {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.page-avail-state {
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.page-avail-state:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.page-avail-state:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.page-avail-state:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* The active state is filled, so which one is selected does not rely on a border weight the eye
+   has to compare against its neighbours. */
+.page-avail-state--active.page-avail-state--success {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success-border);
+}
+
+.page-avail-state--active.page-avail-state--warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: var(--warning-border);
+}
+
+.page-avail-state--active.page-avail-state--info {
+  background: var(--info-bg);
+  color: var(--info);
+  border-color: var(--info-border);
+}
+
+.page-avail-state--active.page-avail-state--neutral {
+  background: var(--surface-3);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+/* ── Reason modal ────────────────────────────────────────────────────────── */
+
+.page-avail-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.page-avail-modal__desc {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.page-avail-modal__effect {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.page-avail-modal__roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin: 0;
+}
+
+.page-avail-modal__roles legend {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  padding-inline: var(--space-1);
+}
+
+.page-avail-modal__role {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.page-avail-modal__users,
+.page-avail-modal__reason {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* ── Narrow screens ─────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  .page-avail {
+    padding-inline: var(--space-3);
+  }
+
+  .page-avail-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-avail-row__states {
+    justify-content: flex-start;
+  }
+}

@@ -23,6 +23,8 @@ import { contentHandlers } from './handlers/content.js';
 import supplierHandlers from './handlers/supplier.js';
 import salerHandlers from './handlers/saler.js';
 import adminHandlers from './handlers/admin.js';
+import moduleHandlers from './handlers/modules.js';
+import pageAccessHandlers from './handlers/pageAccess.js';
 import vaultHandlers from './handlers/vault.js';
 import liveHandlers from './handlers/live.js';
 import warrantyHandlers from './handlers/warranty.js';
@@ -61,6 +63,8 @@ const handlers = [
   ...supplierHandlers,
   ...salerHandlers,
   ...adminHandlers,
+  ...moduleHandlers,
+  ...pageAccessHandlers,
   ...vaultHandlers,
   ...liveHandlers,
   ...warrantyHandlers,

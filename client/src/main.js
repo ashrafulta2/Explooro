@@ -27,6 +27,10 @@ import { initSession } from './services/session.js';
 // Prompt 3.2 — live feature flags and DOM module scanner.
 import { initFeatureFlags, scanDomForModuleGates } from './services/featureFlags.js';
 
+// Per-page availability — the layer beside the module system (services/pageAccess.js).
+import { initPageAccess, resolvePageAccess } from './services/pageAccess.js';
+import { registerPages } from './config/pageRegistry.js';
+
 // Prompt 3.5 — runtime theme engine.
 import { initTheme } from './services/themePalette.js';
 
@@ -113,6 +117,10 @@ async function bootRouterDemo() {
 
   // Prompt 3.2: Bootstrap live feature flags
   await initFeatureFlags();
+
+  // Which pages the super admin has parked. Awaited alongside the flags because the very first
+  // route render consults it — resolving it late would flash the real page before replacing it.
+  await initPageAccess();
 
   // AppShell needs `navigate` before the router that provides it exists (the router, in turn,
   // needs AppShell's `pageOutlet` as its mount root) — a proxy breaks the cycle. Every real call
@@ -1161,6 +1169,17 @@ async function bootRouterDemo() {
         module: 'core',
         load: () => import('./pages/admin/ModuleControlPage.js'),
       },
+      // Per-page availability — the layer beside the module system. `module: 'core'` on purpose:
+      // this is the surface that un-parks a parked page, so it can never be parked itself (it is
+      // also in services/pageAccess.js's LOCKED_PATHS).
+      {
+        path: '/admin/platform/pages',
+        title: 'Page Availability — Explooro',
+        requiresAuth: true,
+        permission: 'platform.page.view',
+        module: 'core',
+        load: () => import('./pages/admin/PageAvailabilityPage.js'),
+      },
       // Prompt 3.3: Users & Access Admin Pages
       {
         path: '/admin/users',
@@ -1907,12 +1926,22 @@ async function bootRouterDemo() {
       load: () => import('./pages/dev/RoleStubPage.js'),
     }));
 
+  const allRoutes = [...featureRoutes, ...stubRoutes];
+
+  // Hands /admin/platform/pages the exact route table the router guards on, so a page added later
+  // appears on that screen with no second list to maintain. See config/pageRegistry.js.
+  registerPages(allRoutes);
+
   router = createRouter({
     root: appShell.pageOutlet,
     loginPath: '/login',
-    routes: [...featureRoutes, ...stubRoutes],
+    routes: allRoutes,
     notFound: { load: () => import('./pages/dev/NotFoundStub.js') },
     getAuthContext: () => ({ ...appStore.get().auth, modules: appStore.get().modules }),
+    // The SAME resolver Sidebar.js and CommandPalette.js filter with — super-admin-audit §5
+    // invariant 1 ("the nav guard must equal the route guard"), now covering page availability too.
+    resolvePageState: (route, ctx) => resolvePageAccess(route.path, ctx),
+    comingSoonRoute: { load: () => import('./pages/ComingSoonPage.js') },
     // WHY: a permission/module guard failure used to bounce the user to `/` in total silence —
     // a moderator clicking a queue they lack the grant for just found themselves on the
     // marketplace home with no idea why. Returning nothing keeps the router's own fallback.
