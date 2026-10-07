@@ -195,6 +195,26 @@ These are real and were left open on purpose. Do not assume they were missed.
     the same way without creating a scroll container. Guarded by `client/test/homeOverflow.test.js`
     (tests 4–5); to check by hand, list every ancestor's computed overflow from
     `.app-shell__topbar-slot` up — all must read `visible` or `clip`.
+11. **A route guard must be a real `preHandler` function — never a key inside a `config:`
+    object.** Nothing in this server reads `routeOptions.config`: there is no `onRoute` hook
+    turning `config: { requireModule, requirePermission }` into guards, so that shape is dead
+    code and the route is left with whatever hooks its scope already had. It reads exactly like
+    the working pattern, the keys are spelled correctly, the endpoint returns 200 and nothing
+    logs — only a negative test (a user *without* the permission getting a 200) ever reveals it.
+    The working form is
+    `preHandler: [authenticate, app.requireModule('module_key'), app.requirePermission('domain.resource.action')]`
+    — see `server/src/routes/supplier.routes.js`, with the factories in
+    `server/src/middlewares/requireModule.js` / `requirePermission.js`. Hanging the guards off a
+    `fastify.register` child scope is equivalent, and `authenticate` may be that scope's
+    `onRequest` hook instead of repeating in each array, since `onRequest` runs first.
+    The four `/api/v1/saler/store*` routes in `store.routes.js` carried the dead form from the
+    2026-08-22 baseline until 2026-10-07, so they ran behind `authenticate` alone: any signed-in
+    customer could read and write their own storefront, with `virtual_storefront` and
+    `physical_shop_status` both switched off. Guarded by `server/test/routeGuards.test.js`, which
+    rejects the shape across every file in `server/src/routes/` and names the offending lines.
+    This is the first invariant here that lives on the server — §1 lists the server route surface
+    as out of scope for the 2026-09-04 pass — and it applies to every route file, not only the
+    ones behind an admin page.
 
 ---
 
