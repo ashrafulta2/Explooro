@@ -437,3 +437,58 @@ describe('wiring — every surface reports through the one tracker, once', () =>
     }
   });
 });
+
+// ── Surface attribution (Phase F) ────────────────────────────────────────────────────────────────
+describe('surface attribution', () => {
+  it('an event carries the surface that showed the product', () => {
+    signals.track('CLICK', { id: 5 }, { source: 'rail:trending' });
+    signals.flushSignals();
+    assert.equal(sentEvents()[0].source, 'rail:trending');
+  });
+
+  it('no surface, no key', () => {
+    signals.track('CLICK', { id: 5 });
+    signals.flushSignals();
+    assert.equal('source' in sentEvents()[0], false);
+  });
+
+  it('a malformed surface is dropped but the event still goes: the click matters more than its label', () => {
+    for (const bad of ['Rail:Trending', 'rail trending', 'rail:', '1grid', 'x'.repeat(41), 42, '']) {
+      signals.track('CLICK', { id: 5 }, { source: bad });
+    }
+    signals.flushSignals();
+    const events = sentEvents();
+    assert.equal(events.length, 7);
+    assert.ok(events.every((e) => !('source' in e)));
+  });
+
+  it('the same product seen on two surfaces is two impressions; on one surface it is still one', () => {
+    signals.track('VIEW', { id: 8 }, { source: 'rail:trending' });
+    signals.track('VIEW', { id: 8 }, { source: 'grid' });
+    signals.track('VIEW', { id: 8 }, { source: 'grid' });
+    signals.flushSignals();
+    assert.deepEqual(sentEvents().map((e) => e.source), ['rail:trending', 'grid']);
+  });
+
+  it('the swipe feed reports itself as the feed', () => {
+    signals.recordEvent({ event_type: 'CLICK', product_id: 4 });
+    signals.flushSignals();
+    assert.equal(sentEvents()[0].source, 'feed');
+  });
+
+  it('the client and the server accept exactly the same shape of surface name', () => {
+    const client = /SOURCE_PATTERN = (\/.+\/);/.exec(src('services/signals.js'))[1];
+    const server = /SOURCE_PATTERN = (\/.+\/);/.exec(serverSrc('services/discoveryFeed.service.js'))[1];
+    assert.equal(client, server);
+    const sql = /source ~ '([^']+)'/.exec(readFileSync(join(here, '..', '..', 'server', 'src', 'db', 'migrations', '060_recommendation_cache_metrics.sql'), 'utf8'))[1];
+    assert.equal(`/${sql}/`, client, 'migration 060 constrains the column to the same shape');
+  });
+
+  it('every surface names itself: rails by key, the grid, search results', () => {
+    assert.match(src('components/product/ProductRail.js'), /source: `rail:\$\{railKey\}`/);
+    assert.match(src('components/product/ProductGrid.js'), /source: signalContext\?\.query \? 'search' : 'grid'/);
+    const card = src('components/product/ProductCard.js');
+    assert.match(card, /source: signalContext\?\.source/);
+    assert.match(card, /observeImpression\(card, product, \{ audience: signalAudience, source: signalContext\?\.source \}\)/);
+  });
+});

@@ -8,8 +8,10 @@
  * @param {'full'|'compact'}  size
  * @param {function} onNavigate  — navigate(path) from router context
  * @param {function} onAction    — called with (product, actionType) on CTA click
- * @param {{query?: string}} signalContext — where the card is shown, for behavioural signals: a `query`
- *                                   means a search-result card, so opening it is a SEARCH_CLICK
+ * @param {{query?: string, source?: string}} signalContext — where the card is shown, for behavioural
+ *                                   signals: a `query` means a search-result card, so opening it is a
+ *                                   SEARCH_CLICK; `source` names the surface (rail:trending, grid, ...)
+ *                                   so the funnel can tell surfaces apart
  *
  * Invariants:
  *  - Aspect-ratio-locked placeholder (1:1) → zero CLS even before image arrives.
@@ -397,6 +399,7 @@ export function ProductCard({
     track(signalContext?.query ? 'SEARCH_CLICK' : 'CLICK', product, {
       audience: signalAudience,
       query: signalContext?.query,
+      source: signalContext?.source,
     });
 
     if (typeof onNavigate === 'function') {
@@ -410,7 +413,7 @@ export function ProductCard({
 
   card.addEventListener('click', navigate);
   // VIEW once the card has really been on screen (>= half visible for IMPRESSION_MS), not merely rendered.
-  observeImpression(card, product, { audience: signalAudience });
+  observeImpression(card, product, { audience: signalAudience, source: signalContext?.source });
   card.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       if (e.target.closest('button')) return;

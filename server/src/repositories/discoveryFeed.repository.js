@@ -32,9 +32,10 @@ export async function recordEvents(db, events) {
     'dwell_ms',
     'weight',
     'audience',
+    'source',
   ];
   // Explicit casts: in a VALUES list a bare NULL parameter has no type to infer from.
-  const casts = ['bigint', 'text', 'bigint', 'bigint', 'bigint', 'text', 'integer', 'numeric', 'text'];
+  const casts = ['bigint', 'text', 'bigint', 'bigint', 'bigint', 'text', 'integer', 'numeric', 'text', 'text'];
 
   const params = [];
   const valueRows = events.map((e) => {
@@ -48,6 +49,7 @@ export async function recordEvents(db, events) {
       e.dwellMs ?? 0,
       e.weight ?? 1,
       e.audience ?? 'customer',
+      e.source ?? null,
     ];
     const placeholders = row.map((val, i) => {
       params.push(val);
@@ -60,7 +62,7 @@ export async function recordEvents(db, events) {
     `INSERT INTO product_interaction_events (${cols.join(', ')})
      SELECT v.user_id, v.session_id, v.product_id,
             COALESCE(v.category_id, p.category_id), COALESCE(v.supplier_id, p.supplier_id),
-            v.event_type, v.dwell_ms, v.weight, v.audience
+            v.event_type, v.dwell_ms, v.weight, v.audience, v.source
      FROM (VALUES ${valueRows.join(', ')}) AS v(${cols.join(', ')})
      JOIN products p ON p.id = v.product_id`,
     params

@@ -93,7 +93,7 @@ describe('Signals — event vocabulary and weights', () => {
       events: ['CLICK', 'SEARCH_CLICK', 'PURCHASE'].map((event_type) => ({ event_type, product_id: 4 })),
     });
     const params = db.inserts('product_interaction_events')[0].params;
-    const weights = [params[7], params[16], params[25]]; // 9 params per row, weight at offset 7
+    const weights = [params[7], params[17], params[27]]; // 10 params per row, weight at offset 7
     assert.ok(weights[1] > weights[0], 'SEARCH_CLICK > CLICK');
     assert.ok(weights[2] > weights[1], 'PURCHASE > SEARCH_CLICK');
   });
@@ -112,7 +112,7 @@ describe('Signals — dwell threshold', () => {
     });
     assert.equal(res.recorded, 2);
     const params = db.inserts('product_interaction_events')[0].params;
-    assert.deepEqual([params[2], params[11]], [2, 3], 'the 900ms glance (product 1) never reached the INSERT');
+    assert.deepEqual([params[2], params[12]], [2, 3], 'the 900ms glance (product 1) never reached the INSERT');
   });
 
   test('a batch of only sub-threshold dwells issues no INSERT at all', async () => {

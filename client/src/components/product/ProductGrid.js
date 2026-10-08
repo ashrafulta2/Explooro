@@ -134,9 +134,11 @@ export function ProductGrid({
         grid.append(emptyWrap);
         hasMore = false;
       } else {
+        // The grid names itself unless the caller already did: a card with a query is a search result.
+        const context = { source: signalContext?.query ? 'search' : 'grid', ...signalContext };
         for (const product of products) {
           grid.append(
-            ProductCard({ product, role, modules, lang, size: 'full', onNavigate, onAction, signalContext })
+            ProductCard({ product, role, modules, lang, size: 'full', onNavigate, onAction, signalContext: context })
           );
         }
 

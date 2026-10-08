@@ -23,8 +23,7 @@
  * separate, labelled injection — they must not be able to pass for an organic pick).
  */
 
-import * as settingRepo from '../repositories/setting.repository.js';
-import * as recommendation from './recommendation.service.js';
+import * as recoCache from './recoCache.service.js';
 
 export const DIVERSITY_KEY = 'recommendation.diversity';
 
@@ -87,10 +86,10 @@ function readJson(raw) {
 }
 
 /** The live diversity policy. An unreadable table or row yields the shipped defaults, never an error. */
-export async function resolveDiversityConfig(db) {
+export async function resolveDiversityConfig(db, { cache } = {}) {
   let rows = [];
   try {
-    rows = await settingRepo.listSettingsByGroup(db, recommendation.SETTINGS_GROUP);
+    rows = await recoCache.loadRecommendationRows(db, cache);
   } catch {
     // Fresh clone that has not run migration 058 — the defaults are the right answer.
   }

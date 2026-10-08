@@ -63,8 +63,8 @@ export function toBdtNumber(paisa) {
  * @param {object} context { productId, productRef, categoryId }
  * @returns {Promise<{ salerSplitPct: number, platformSplitPct: number, ruleSource: string }>}
  */
-export async function resolveSplitPercentages(db, { productId, productRef, categoryId, salerId, cache } = {}) {
-  const base = await resolveBaseSplit(db, { productId, productRef, categoryId });
+export async function resolveSplitPercentages(db, { productId, productRef, categoryId, salerId, cache, preloaded } = {}) {
+  const base = await resolveBaseSplit(db, { productId, productRef, categoryId }, preloaded);
   // WHY not on PRODUCT_OVERRIDE: a per-product rule is an explicit, deliberate number set by an admin;
   // layering a plan rebate on top would silently change what they typed.
   if (!salerId || base.ruleSource === 'PRODUCT_OVERRIDE') return base;
@@ -72,19 +72,83 @@ export async function resolveSplitPercentages(db, { productId, productRef, categ
   return applyRebate(base, await resolveProRebatePct(db, { salerId, cache }));
 }
 
-async function resolveBaseSplit(db, { productId, productRef, categoryId }) {
+/**
+ * Loads the commission rules for a whole list of products in three queries (product overrides,
+ * category rules, the global default), so pricing a page of N products no longer costs about 3N.
+ *
+ * WHY this exists and does not change the hierarchy: resolveBaseSplit below is still the ONE place the
+ * 1 → 2 → 3 → 4 order is decided; it only reads from these maps instead of the database when it is
+ * given them. A key that was not part of the load falls back to its own query, so passing the wrong
+ * products costs speed, never correctness. A failed batch is left empty, which — exactly like a failed
+ * single lookup — falls through to the next level.
+ *
+ * @param {object} db
+ * @param {{id?: any, category_id?: any}[]} products
+ * @returns {Promise<{productRules: Map<string, object>, productKeys: Set<string>, categoryRules: Map<string, object>, categoryKeys: Set<string>, global: {value_json: any}|null}>}
+ */
+export async function loadSplitRules(db, products) {
+  const productKeys = new Set();
+  const categoryKeys = new Set();
+  for (const p of products || []) {
+    if (p?.id) productKeys.add(String(p.id));
+    if (p?.category_id) categoryKeys.add(String(p.category_id));
+  }
+  const loaded = { productRules: new Map(), productKeys: new Set(), categoryRules: new Map(), categoryKeys: new Set(), global: null };
+  if (!db) return loaded;
+
+  // DISTINCT ON … ORDER BY id DESC is the batch form of the per-product "ORDER BY id DESC LIMIT 1".
+  const byScope = async (scopeType, keys) => {
+    const rules = new Map();
+    if (!keys.size) return { rules, queried: new Set() };
+    try {
+      const { rows } = await db.query(
+        `SELECT DISTINCT ON (scope_ref) scope_ref, saler_split_pct, platform_split_pct
+         FROM commission_rules
+         WHERE scope_type = $1 AND scope_ref = ANY($2::text[])
+           AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
+         ORDER BY scope_ref, id DESC`,
+        [scopeType, [...keys]]
+      );
+      for (const r of rows) rules.set(String(r.scope_ref), r);
+      return { rules, queried: keys };
+    } catch {
+      // A failed lookup falls through to the next level, as a failed single lookup does.
+      return { rules, queried: keys };
+    }
+  };
+
+  const [prod, cat, global] = await Promise.all([
+    byScope('PRODUCT', productKeys),
+    byScope('CATEGORY', categoryKeys),
+    db
+      .query(`SELECT value_json FROM platform_settings WHERE key = 'commission.default_splits'`)
+      .then(({ rows }) => (rows.length > 0 ? rows[0] : null))
+      .catch(() => null),
+  ]);
+  loaded.productRules = prod.rules;
+  loaded.productKeys = prod.queried;
+  loaded.categoryRules = cat.rules;
+  loaded.categoryKeys = cat.queried;
+  loaded.global = global;
+  loaded.hasGlobal = true;
+  return loaded;
+}
+
+async function resolveBaseSplit(db, { productId, productRef, categoryId }, preloaded) {
   // 1. Product-level commission rule override
   if (db && (productId || productRef)) {
     try {
       const scopeRef = String(productId || productRef);
-      const { rows } = await db.query(
-        `SELECT saler_split_pct, platform_split_pct
-         FROM commission_rules
-         WHERE scope_type = 'PRODUCT' AND scope_ref = $1
-           AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
-         ORDER BY id DESC LIMIT 1`,
-        [scopeRef]
-      );
+      const { rows } = preloaded?.productKeys?.has(scopeRef)
+        ? { rows: preloaded.productRules.has(scopeRef) ? [preloaded.productRules.get(scopeRef)] : [] }
+        : await db.query(
+            `SELECT saler_split_pct, platform_split_pct
+             FROM commission_rules
+             WHERE scope_type = 'PRODUCT' AND scope_ref = $1
+               AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
+             ORDER BY id DESC LIMIT 1`,
+            [scopeRef]
+          );
       if (rows.length > 0) {
         return {
           salerSplitPct: parseFloat(rows[0].saler_split_pct),
@@ -100,14 +164,17 @@ async function resolveBaseSplit(db, { productId, productRef, categoryId }) {
   // 2. Category-level commission rule
   if (db && categoryId) {
     try {
-      const { rows } = await db.query(
-        `SELECT saler_split_pct, platform_split_pct
-         FROM commission_rules
-         WHERE scope_type = 'CATEGORY' AND scope_ref = $1
-           AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
-         ORDER BY id DESC LIMIT 1`,
-        [String(categoryId)]
-      );
+      const key = String(categoryId);
+      const { rows } = preloaded?.categoryKeys?.has(key)
+        ? { rows: preloaded.categoryRules.has(key) ? [preloaded.categoryRules.get(key)] : [] }
+        : await db.query(
+            `SELECT saler_split_pct, platform_split_pct
+             FROM commission_rules
+             WHERE scope_type = 'CATEGORY' AND scope_ref = $1
+               AND effective_from <= now() AND (effective_to IS NULL OR effective_to > now())
+             ORDER BY id DESC LIMIT 1`,
+            [key]
+          );
       if (rows.length > 0) {
         return {
           salerSplitPct: parseFloat(rows[0].saler_split_pct),
@@ -123,9 +190,9 @@ async function resolveBaseSplit(db, { productId, productRef, categoryId }) {
   // 3. Global platform_settings key
   if (db) {
     try {
-      const { rows } = await db.query(
-        `SELECT value_json FROM platform_settings WHERE key = 'commission.default_splits'`
-      );
+      const { rows } = preloaded?.hasGlobal
+        ? { rows: preloaded.global ? [preloaded.global] : [] }
+        : await db.query(`SELECT value_json FROM platform_settings WHERE key = 'commission.default_splits'`);
       if (rows.length > 0 && rows[0].value_json) {
         const val = rows[0].value_json;
         const salerPct = parseFloat(val.saler_split_pct ?? val.saler ?? 40);

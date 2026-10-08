@@ -3,11 +3,12 @@
  */
 
 import * as productRepo from '../repositories/product.repository.js';
-import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa } from './pricing.service.js';
+import { calculatePricingBreakdown, loadSplitRules, resolveSplitPercentages, toPaisa } from './pricing.service.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
 import { withTransaction } from '../config/db.js';
 import { writeAudit } from '../lib/audit.js';
+import * as recoCache from './recoCache.service.js';
 
 // Response copy only — no schema for "average response time" exists yet (chat/messaging is
 // Phase 8), so the supplier card derives a reasonable estimate from trust tier instead of
@@ -414,9 +415,12 @@ export async function getProductDetail(db, idOrRefOrSlug) {
 export async function listCatalog(db, filters = {}) {
   const products = await productRepo.listProducts(db, filters);
   const driver = getStorageDriver();
+  // WHY preloaded: pricing a page one product at a time cost three queries each (a product rule, a
+  // category rule, the global default) - about 70 for one home load. Three queries cover the page.
+  const preloaded = await loadSplitRules(db, products);
   const enriched = await Promise.all(
     products.map(async (p) => {
-      const pricing = await calculateProductPricing(db, p);
+      const pricing = await calculateProductPricing(db, p, preloaded);
       // `products` has no image column — the primary image lives in product_images.
       const image_url = p.primary_image_key ? driver.getPublicUrl(p.primary_image_key) : null;
       return { ...p, image_url, pricing };
@@ -430,8 +434,8 @@ export async function listCatalog(db, filters = {}) {
  * id, supplier, category, brand, listing date and the score with its components. Pricing, images and
  * variants are NOT loaded; hydrate the rows that survive with listCatalogByIds.
  */
-export async function listCandidates(db, { ranking, limit, ...filters } = {}) {
-  return productRepo.listProducts(db, {
+export async function listCandidates(db, { ranking, limit, poolCache, ...filters } = {}) {
+  const query = {
     ...filters,
     status: 'ACTIVE',
     sortBy: 'recommended',
@@ -439,6 +443,16 @@ export async function listCandidates(db, { ranking, limit, ...filters } = {}) {
     candidatesOnly: true,
     limit,
     offset: 0,
+  };
+  const load = () => recoCache.timed('pool_query', () => productRepo.listProducts(db, query));
+  if (!poolCache?.cache) return load();
+  // WHY the whole query is the key: the spec carries the weights, tuning, the shopper's seeds and
+  // affinity, so any change to the policy or the person is a different key, never a stale hit.
+  return recoCache.cachedPool({
+    cache: poolCache.cache,
+    config: poolCache.config,
+    key: recoCache.poolKey({ ...query, ranking }),
+    load,
   });
 }
 
@@ -629,11 +643,12 @@ export async function getSalerStoreItems(db, salerId) {
   return enriched;
 }
 
-async function calculateProductPricing(db, product) {
+async function calculateProductPricing(db, product, preloaded) {
   const { salerSplitPct, platformSplitPct, ruleSource } = await resolveSplitPercentages(db, {
     productId: product.id,
     productRef: product.ref,
     categoryId: product.category_id,
+    preloaded,
   });
 
   return calculatePricingBreakdown({

@@ -12,11 +12,11 @@
  * labelled separately (Phase D) so it can never pass for an organic pick.
  */
 
-import * as settingRepo from '../repositories/setting.repository.js';
 import * as productService from './product.service.js';
 import * as discoveryFeed from './discoveryFeed.service.js';
 import * as recommendation from './recommendation.service.js';
 import * as diversity from './diversity.service.js';
+import * as recoCache from './recoCache.service.js';
 
 export const RAILS_KEY = 'recommendation.rails';
 
@@ -129,10 +129,10 @@ function readJson(raw) {
 }
 
 /** The live rail layout. An unreadable table or row yields the shipped layout, never an error. */
-export async function resolveRailsConfig(db) {
+export async function resolveRailsConfig(db, { cache } = {}) {
   let rows = [];
   try {
-    rows = await settingRepo.listSettingsByGroup(db, recommendation.SETTINGS_GROUP);
+    rows = await recoCache.loadRecommendationRows(db, cache);
   } catch {
     // Fresh clone that has not run migration 057 — the defaults are the right answer.
   }
@@ -184,7 +184,7 @@ function isPersonal(spec) {
  * of them make the cut — a rail only ever shows `limit` products, so loading pricing and images for
  * a pool of a hundred would be waste.
  */
-async function fetchRail(db, rail, profile, spec, size) {
+async function fetchRail(db, rail, profile, spec, size, poolCache) {
   if (profile.needs === 'viewed') {
     // Most recently opened first — that is the order the ids arrive in.
     const rows = await productService.listCatalogByIds(db, spec.viewedIds, { inStock: true });
@@ -194,6 +194,7 @@ async function fetchRail(db, rail, profile, spec, size) {
     ranking: { ...spec, weights: profileWeights(spec.weights, profile.signals) },
     inStock: true,
     limit: size,
+    poolCache,
   });
   return { hydrated: false, rows };
 }
@@ -221,15 +222,21 @@ async function hydrateRail(db, rows) {
  *
  * @returns {Promise<{rails: {key: string, personalized: boolean, products: object[]}[], meta: object}>}
  */
-export async function getRails(
+export function getRails(db, opts = {}) {
+  return recoCache.timed('rails', () => buildRails(db, opts));
+}
+
+async function buildRails(
   db,
-  { userId, sessionId, audience = 'customer', personalize = true, now = Date.now() } = {}
+  { userId, sessionId, audience = 'customer', personalize = true, now = Date.now(), cache } = {}
 ) {
-  const [config, feedSettings, diversityConfig] = await Promise.all([
-    resolveRailsConfig(db),
+  const [config, feedSettings, diversityConfig, cacheConfig] = await Promise.all([
+    resolveRailsConfig(db, { cache }),
     discoveryFeed.resolveFeedSettings(db),
-    diversity.resolveDiversityConfig(db),
+    diversity.resolveDiversityConfig(db, { cache }),
+    recoCache.resolveCacheConfig(db, cache),
   ]);
+  const poolCache = { cache, config: cacheConfig };
   const active = config.rails.filter((r) => r.enabled);
   if (!active.length) return { rails: [], meta: { count: 0 } };
 
@@ -239,6 +246,7 @@ export async function getRails(
     audience,
     personalize,
     affinityWindowDays: feedSettings.affinityWindowDays,
+    cache,
   });
 
   const runnable = active.filter((r) => canRun(RAIL_PROFILES[r.key], spec));
@@ -252,7 +260,7 @@ export async function getRails(
   const fetched = await Promise.all(
     runnable.map(async (rail) => {
       try {
-        return await fetchRail(db, rail, RAIL_PROFILES[rail.key], spec, fetchSize(rail));
+        return await fetchRail(db, rail, RAIL_PROFILES[rail.key], spec, fetchSize(rail), poolCache);
       } catch {
         return null;
       }

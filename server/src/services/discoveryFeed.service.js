@@ -15,6 +15,7 @@ import * as productService from './product.service.js';
 import * as feedRepo from '../repositories/discoveryFeed.repository.js';
 import * as recommendation from './recommendation.service.js';
 import * as diversity from './diversity.service.js';
+import * as recoCache from './recoCache.service.js';
 import { AppError } from '../plugins/errorHandler.js';
 
 // How much each kind of interaction says about intent. A purchase is a far stronger signal than a
@@ -75,6 +76,22 @@ export async function resolveCapturePolicy(db) {
   return policy;
 }
 
+// Where an event came from: `rail:<key>` for a home rail, or a bare name (feed, grid, search, product).
+// Same shape migration 060's CHECK enforces.
+const SOURCE_PATTERN = /^[a-z][a-z_]*(:[a-z][a-z_]*)?$/;
+const MAX_SOURCE_LENGTH = 40;
+
+/**
+ * The surface tag on an event, or null. WHY null and not an error: the tag is attribution metadata
+ * for the metrics; a malformed one from a stale client must not cost the interaction signal that
+ * rides with it (ranking still needs the click).
+ */
+export function normalizeSource(raw) {
+  if (typeof raw !== 'string') return null;
+  const s = raw.trim().toLowerCase();
+  return s.length > 0 && s.length <= MAX_SOURCE_LENGTH && SOURCE_PATTERN.test(s) ? s : null;
+}
+
 /** Lowercase, trim and collapse whitespace so "  Red   SHOE" and "red shoe" group together. */
 export function normalizeQuery(raw) {
   return String(raw ?? '').normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase().slice(0, MAX_QUERY_LENGTH);
@@ -116,7 +133,7 @@ export async function resolveFeedSettings(db) {
  */
 export async function resolveActorRanking(
   db,
-  { userId, sessionId, audience = 'customer', personalize = true, affinityWindowDays = DEFAULT_AFFINITY_WINDOW_DAYS } = {}
+  { userId, sessionId, audience = 'customer', personalize = true, affinityWindowDays = DEFAULT_AFFINITY_WINDOW_DAYS, cache } = {}
 ) {
   const capture = await resolveCapturePolicy(db);
   const enabled = capture.enabled && personalize;
@@ -129,6 +146,7 @@ export async function resolveActorRanking(
     audience,
     personalize: enabled,
     affinity,
+    cache,
   });
   return { ranking, affinity };
 }
@@ -146,9 +164,13 @@ export async function resolveActorRanking(
  * @param {number} [opts.limit]
  * @param {number} [opts.offset]
  */
-export async function getFeed(
+export function getFeed(db, opts = {}) {
+  return recoCache.timed('feed', () => buildFeed(db, opts));
+}
+
+async function buildFeed(
   db,
-  { filters = {}, userId, sessionId, audience = 'customer', personalize = true, limit, offset = 0 } = {}
+  { filters = {}, userId, sessionId, audience = 'customer', personalize = true, limit, offset = 0, cache } = {}
 ) {
   const { affinityWindowDays, pageSize } = await resolveFeedSettings(db);
   const effectiveLimit = Math.min(Number(limit) || pageSize, MAX_PAGE_SIZE);
@@ -160,9 +182,13 @@ export async function getFeed(
     audience,
     personalize,
     affinityWindowDays,
+    cache,
   });
 
-  const diversityConfig = await diversity.resolveDiversityConfig(db);
+  const [diversityConfig, cacheConfig] = await Promise.all([
+    diversity.resolveDiversityConfig(db, { cache }),
+    recoCache.resolveCacheConfig(db, cache),
+  ]);
   let page;
   let hasMore;
   if (diversityConfig.enabled) {
@@ -173,6 +199,7 @@ export async function getFeed(
       ...filters,
       ranking,
       limit: diversityConfig.pool_size,
+      poolCache: { cache, config: cacheConfig },
     });
     const ordered = diversity.diversify(pool, diversityConfig);
     const picked = ordered.slice(safeOffset, safeOffset + effectiveLimit);
@@ -304,6 +331,7 @@ export async function recordEvents(db, { events, userId, sessionId, audience = '
       dwellMs,
       weight: EVENT_WEIGHTS[eventType],
       audience: feedAudience,
+      source: normalizeSource(e.source),
     });
   }
 

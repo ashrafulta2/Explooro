@@ -53,6 +53,8 @@ export function ProductRail({
   const root = document.createElement('section');
   root.className = 'product-rail';
   if (railKey) root.dataset.rail = railKey;
+  // Every card in the rail reports which rail showed it.
+  const signalContext = railKey ? { source: `rail:${railKey}` } : null;
   root.setAttribute('aria-label', title);
 
   // ── Header ───────────────────────────────────────────────────────────────
@@ -102,7 +104,7 @@ export function ProductRail({
   const scroll = document.createElement('div');
   scroll.className = 'product-rail__scroll';
   for (const product of products) {
-    scroll.append(ProductCard({ product, role, modules, lang, size: 'compact', onNavigate, onAction }));
+    scroll.append(ProductCard({ product, role, modules, lang, size: 'compact', onNavigate, onAction, signalContext }));
   }
 
   const updateArrows = () => {

@@ -61,13 +61,13 @@ describe('Discovery feed — recordEvents (service validation)', () => {
     });
 
     assert.equal(res.recorded, 2);
-    // 9 columns per row, in this order: user_id(0), session_id(1), product_id(2), category_id(3),
-    // supplier_id(4), event_type(5), dwell_ms(6), weight(7), audience(8). Row 1 starts at index 9.
-    assert.equal(inserted.length, 18);
+    // 10 columns per row, in this order: user_id(0), session_id(1), product_id(2), category_id(3),
+    // supplier_id(4), event_type(5), dwell_ms(6), weight(7), audience(8), source(9). Row 1 starts at index 10.
+    assert.equal(inserted.length, 20);
     assert.equal(inserted[5], 'VIEW'); // event_type coerced upper
     assert.equal(inserted[7], 1); // VIEW weight
-    assert.equal(inserted[14], 'ADD_CART'); // 9 + 5
-    assert.equal(inserted[16], 4); // 9 + 7 → ADD_CART weight
+    assert.equal(inserted[15], 'ADD_CART'); // 10 + 5
+    assert.equal(inserted[17], 4); // 10 + 7 → ADD_CART weight
   });
 
   test('a signed-in user is tracked by user_id, never their session_id', async () => {
@@ -143,7 +143,7 @@ describe('Discovery feed — recordEvents (service validation)', () => {
 });
 
 describe('Discovery feed — recordEvents (repository SQL shaping)', () => {
-  test('emits one placeholder group per event with all nine columns bound', async () => {
+  test('emits one placeholder group per event with all ten columns bound', async () => {
     let captured = null;
     const db = {
       async query(sql, params) {
@@ -156,18 +156,18 @@ describe('Discovery feed — recordEvents (repository SQL shaping)', () => {
       { userId: 1, sessionId: null, productId: 5, categoryId: null, supplierId: null, eventType: 'CLICK', dwellMs: 900, weight: 2, audience: 'customer' },
     ]);
     assert.equal(n, 2);
-    assert.equal(captured.params.length, 18, 'two rows × nine columns');
+    assert.equal(captured.params.length, 20, 'two rows × ten columns');
     // Each placeholder carries a cast (a bare NULL in VALUES has no type), so match the numbering.
     assert.ok(
-      captured.sql.includes('VALUES ($1::bigint, $2::text, $3::bigint, $4::bigint, $5::bigint, $6::text, $7::integer, $8::numeric, $9::text), ($10::bigint'),
+      captured.sql.includes('VALUES ($1::bigint, $2::text, $3::bigint, $4::bigint, $5::bigint, $6::text, $7::integer, $8::numeric, $9::text, $10::text), ($11::bigint'),
       'one cast placeholder group per event, numbered consecutively'
     );
     // WHY pinned: an unknown product must be skipped by the JOIN, not fail the whole batch on the FK.
     assert.ok(captured.sql.includes('JOIN products p ON p.id = v.product_id'));
     assert.ok(captured.sql.includes('COALESCE(v.category_id, p.category_id)'));
     // Nulls survive as nulls (not the string "null"), weight defaults hold.
-    assert.equal(captured.params[10], null); // second row category_id
-    assert.equal(captured.params[16], 2); // second row weight
+    assert.equal(captured.params[11], null); // second row session_id
+    assert.equal(captured.params[17], 2); // second row weight
   });
 
   test('an empty list is a no-op with no query', async () => {

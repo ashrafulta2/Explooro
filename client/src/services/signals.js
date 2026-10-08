@@ -159,7 +159,12 @@ function trackableId(product) {
   return /^\d+$/.test(text) ? Number(text) : text;
 }
 
-function buildEvent(type, product, { dwellMs, query } = {}) {
+// Where an event came from: `rail:<key>` for a home rail, or a bare name (feed, grid, search). The same
+// shape the server stores (migration 060) and validates; anything else is simply not sent.
+const SOURCE_PATTERN = /^[a-z][a-z_]*(:[a-z][a-z_]*)?$/;
+const validSource = (s) => (typeof s === 'string' && s.length <= 40 && SOURCE_PATTERN.test(s) ? s : null);
+
+function buildEvent(type, product, { dwellMs, query, source } = {}) {
   const id = trackableId(product);
   if (id == null) return null;
   const event = { event_type: type, product_id: id };
@@ -172,6 +177,10 @@ function buildEvent(type, product, { dwellMs, query } = {}) {
   if (product.category) event.category = product.category; // mock-mode affinity keys on the name
   if (dwellMs) event.dwell_ms = Math.round(dwellMs);
   if (query) event.query = query;
+  // WHY the surface rides on the event: it is what lets the server tell a click on the Trending rail
+  // from the same click in the grid, which is the only way to judge a rail by whether it gets opened.
+  const tag = validSource(source);
+  if (tag) event.source = tag;
   return event;
 }
 
@@ -260,16 +269,19 @@ function enqueue(audience, event) {
  * @param {'customer'|'saler'} [opts.audience]
  * @param {number} [opts.dwellMs]
  * @param {string} [opts.query]  for SEARCH_CLICK: the query that produced the result
+ * @param {string} [opts.source] the surface that showed the product (`rail:trending`, `feed`, `grid`, `search`)
  */
-export function track(type, product, { audience = 'customer', dwellMs, query } = {}) {
+export function track(type, product, { audience = 'customer', dwellMs, query, source } = {}) {
   if (!isPersonalizationEnabled()) return;
   if (type === 'DWELL' && !(dwellMs >= MIN_DWELL_MS)) return;
 
-  const event = buildEvent(type, product, { dwellMs, query });
+  const event = buildEvent(type, product, { dwellMs, query, source });
   if (!event) return;
 
   if (type === 'VIEW') {
-    const key = `${audience}:${event.product_id}`;
+    // WHY the source is in the key: seeing a product in a rail and again in the grid is two
+    // impressions of two surfaces; one shared key would credit only whichever came first.
+    const key = `${audience}:${event.source || ''}:${event.product_id}`;
     const last = seenViews.get(key);
     const now = Date.now();
     if (last != null && now - last < VIEW_DEDUPE_MS) return;
@@ -290,7 +302,7 @@ export function recordEvent(event, { audience = 'customer' } = {}) {
     track(
       String(e.event_type || '').toUpperCase(),
       { id: e.product_id, category_id: e.category_id, supplier_id: e.supplier_id, category: e.category },
-      { audience, dwellMs: e.dwell_ms, query: e.query }
+      { audience, dwellMs: e.dwell_ms, query: e.query, source: e.source || 'feed' }
     );
   }
 }
@@ -308,7 +320,7 @@ function onIntersect(entries) {
       if (rec.timer == null) {
         rec.timer = setTimeout(() => {
           rec.timer = null;
-          track('VIEW', rec.product, { audience: rec.audience });
+          track('VIEW', rec.product, { audience: rec.audience, source: rec.source });
           watched.delete(entry.target);
           observer?.unobserve(entry.target);
         }, IMPRESSION_MS);
@@ -324,12 +336,12 @@ function onIntersect(entries) {
  * Reports a VIEW once `el` has been at least half visible for IMPRESSION_MS. Returns a function that
  * stops watching (call it when the card is torn down). A no-op where IntersectionObserver is absent.
  */
-export function observeImpression(el, product, { audience = 'customer' } = {}) {
+export function observeImpression(el, product, { audience = 'customer', source } = {}) {
   if (!el || typeof IntersectionObserver === 'undefined' || trackableId(product) == null) {
     return () => {};
   }
   observer ||= new IntersectionObserver(onIntersect, { threshold: 0.5 });
-  watched.set(el, { product, audience, timer: null });
+  watched.set(el, { product, audience, source, timer: null });
   observer.observe(el);
   return () => {
     const rec = watched.get(el);

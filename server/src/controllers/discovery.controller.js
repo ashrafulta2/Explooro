@@ -67,6 +67,7 @@ export async function getFeed(req, reply) {
     personalize: !(personalize === '0' || personalize === 'false'),
     limit: limit ? parseInt(limit, 10) : undefined,
     offset: offset ? parseInt(offset, 10) : 0,
+    cache: req.server?.cache,
   });
 
   return reply.send({ data: { products: result.products }, meta: result.meta });
@@ -82,6 +83,7 @@ export async function getRails(req, reply) {
     audience: resolveAudience(audience),
     // Same opt-out switch as the feed (client signals.js sends personalize=0).
     personalize: !(personalize === '0' || personalize === 'false'),
+    cache: req.server?.cache,
   });
 
   return reply.send({ data: { rails: result.rails }, meta: result.meta });

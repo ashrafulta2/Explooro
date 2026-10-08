@@ -11,9 +11,9 @@
  * separately and labelled (Phase D), so a paid boost can never silently become an organic one.
  */
 
-import * as settingRepo from '../repositories/setting.repository.js';
 import * as recoRepo from '../repositories/recommendation.repository.js';
 import * as covisit from './covisit.service.js';
+import * as recoCache from './recoCache.service.js';
 
 export const SETTINGS_GROUP = 'recommendation';
 export const WEIGHTS_KEY = 'recommendation.weights';
@@ -110,10 +110,12 @@ export const sanitizeTuning = (raw) => sanitize(raw, DEFAULT_TUNING, (k) => TUNI
  * The live ranking policy: weights and tuning, plus the co-visitation policy (Phase E) read from the
  * same `recommendation` rows. An unreadable table or row yields the shipped defaults, never an error.
  */
-export async function resolveRankingConfig(db) {
+export async function resolveRankingConfig(db, { cache } = {}) {
   let rows = [];
   try {
-    rows = await settingRepo.listSettingsByGroup(db, SETTINGS_GROUP);
+    // One snapshot of the `recommendation` rows, shared with the rails/diversity/cache resolvers when
+    // a cache is given (Phase F); otherwise a plain read, as before.
+    rows = await recoCache.loadRecommendationRows(db, cache);
   } catch {
     // Fresh clone that has not run migration 056 — the defaults are the right answer.
   }
@@ -137,9 +139,9 @@ export async function resolveRankingConfig(db) {
  */
 export async function buildRankingSpec(
   db,
-  { userId, sessionId, audience = 'customer', personalize = true, affinity = {}, config } = {}
+  { userId, sessionId, audience = 'customer', personalize = true, affinity = {}, config, cache } = {}
 ) {
-  const { weights, tuning, covisit: covisitConfig = covisit.DEFAULT_COVISIT } = config || (await resolveRankingConfig(db));
+  const { weights, tuning, covisit: covisitConfig = covisit.DEFAULT_COVISIT } = config || (await resolveRankingConfig(db, { cache }));
   const spec = {
     weights,
     tuning,

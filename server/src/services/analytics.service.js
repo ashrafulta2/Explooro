@@ -11,6 +11,7 @@
 
 import { createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.js';
+import * as recoCache from './recoCache.service.js';
 
 // ---------------------------------------------------------------------------
 // Sales breakdowns (categories + channels) — derived from real orders
@@ -814,6 +815,9 @@ export async function getSystemHealth(db, cache = null, { metrics = null, config
     api_vitals: apiVitals,
     db_health: dbHealth,
     cache_health: cacheHealth,
+    // The personalized feed's own cache: pool/settings hit rates and mean/max latency of the feed and
+    // rails on THIS node since boot (services/recoCache.service.js). Phase G puts it on screen.
+    recommendation: recoCache.getStats(),
     webhooks: {
       total: totalWebhooks,
       success_rate_pct: totalWebhooks > 0 ? parseFloat(((successWebhooks / totalWebhooks) * 100).toFixed(2)) : 100.00,
