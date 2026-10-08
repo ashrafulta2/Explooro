@@ -36,6 +36,7 @@ import adsHandlers from './handlers/ads.js';
 import themeHandlers from './handlers/theme.js';
 import { localizationHandlers } from './handlers/localization.js';
 import { genieHandlers } from './handlers/genie.js';
+import { recommendationHandlers } from './handlers/recommendations.js';
 import { teamPurchaseHandlers } from './handlers/teamPurchase.js';
 import { gamificationHandlers } from './handlers/gamification.js';
 import { referralHandlers } from './handlers/referral.js';
@@ -76,6 +77,7 @@ const handlers = [
   ...themeHandlers,
   ...localizationHandlers,
   ...genieHandlers,
+  ...recommendationHandlers,
   ...teamPurchaseHandlers,
   ...gamificationHandlers,
   ...referralHandlers,

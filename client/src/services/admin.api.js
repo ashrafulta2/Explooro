@@ -324,6 +324,32 @@ export const adminApi = {
   async updateGeniePolicy({ enabled, duration_ms, quality, reason }) {
     return api.put('/admin/platform/genie', { enabled, duration_ms, quality, reason });
   },
+
+  /**
+   * Reads every personalized-feed section (weights, windows, rails, diversity, co-visitation, cache)
+   * as the system is running it, plus who may change them, the change history and the cache counters.
+   */
+  async getRecommendationSettings() {
+    return api.get('/admin/platform/recommendations');
+  },
+
+  /** Which surface works: impressions, clicks and click-attributed carts / purchases per surface. */
+  async getRecommendationFunnel({ days, attribution_days } = {}) {
+    const q = new URLSearchParams();
+    if (days) q.set('days', String(days));
+    if (attribution_days) q.set('attribution_days', String(attribution_days));
+    const qs = q.toString();
+    return api.get(`/admin/platform/recommendations/funnel${qs ? `?${qs}` : ''}`);
+  },
+
+  /**
+   * Saves ONE section. `reason` is mandatory (min 10 chars) and lands in audit_logs with the before/after.
+   * `base_updated_at` is the section's updated_at when the form was loaded: a mismatch is a 409, not a
+   * silent overwrite of another admin's change.
+   */
+  async updateRecommendationSection(section, { value, reason, base_updated_at = null }) {
+    return api.put(`/admin/platform/recommendations/${encodeURIComponent(section)}`, { value, reason, base_updated_at });
+  },
 };
 
 

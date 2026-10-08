@@ -11,6 +11,7 @@
  * 5. Platform Settings (/admin/platform/settings)
  * 6. Language & Default Locale (/admin/platform/language)
  * 7. Popup Genie Effect (/admin/platform/genie)
+ * 8. Personalized Feed (/admin/platform/recommendations)
  */
 
 import { getLanguage } from '../../services/i18n.js';
@@ -28,6 +29,7 @@ export function PlatformSubnav({ activeKey = 'integrations', navigate = null } =
     { key: 'settings', label: isBn ? 'প্ল্যাটফর্ম সেটিংস' : 'Settings', href: '/admin/platform/settings', icon: '⚙️' },
     { key: 'language', label: isBn ? 'ভাষা' : 'Language', href: '/admin/platform/language', icon: '🌐' },
     { key: 'genie', label: isBn ? 'পপআপ ইফেক্ট' : 'Popup Effect', href: '/admin/platform/genie', icon: '✨' },
+    { key: 'recommendations', label: isBn ? 'পার্সোনালাইজড ফিড' : 'Personalized Feed', href: '/admin/platform/recommendations', icon: '🎯' },
   ];
 
   const nav = document.createElement('nav');

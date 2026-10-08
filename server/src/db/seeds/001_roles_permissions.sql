@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (188 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (192 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -63,6 +63,8 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('platform.module.toggle', 'platform', 'Turn modules on or off', 'মডিউল চালু বা বন্ধ করা', 'enable or disable any platform feature for everyone', 'সবার জন্য যেকোনো প্ল্যাটফর্ম ফিচার চালু বা বন্ধ করতে', 'CRITICAL', false, 'approve_before'),
   ('platform.module.settings', 'platform', 'Change module settings', 'মডিউল সেটিংস পরিবর্তন', 'change a module''s configuration, such as the return window', 'কোনো মডিউলের কনফিগারেশন যেমন রিটার্ন সময়সীমা পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
   ('platform.module.targeting', 'platform', 'Configure module targeting', 'মডিউল টার্গেটিং নির্ধারণ', 'control which roles, districts or users a module applies to', 'কোন রোল, জেলা বা ইউজারের জন্য মডিউলটি প্রযোজ্য তা নিয়ন্ত্রণ করতে', 'CRITICAL', false, 'approve_before'),
+  ('platform.page.view', 'platform', 'View page availability', 'পেজ উপলব্ধতা দেখা', 'see which pages are live, coming soon, hidden or limited', 'কোন পেজ লাইভ, আসছে, লুকানো বা সীমিত তা দেখতে', 'LOW', true, 'approve_before'),
+  ('platform.page.toggle', 'platform', 'Turn pages on or off', 'পেজ চালু বা বন্ধ করা', 'hide any page from users, mark it coming soon, or release it to selected roles and users only', 'যেকোনো পেজ ইউজারদের কাছ থেকে লুকাতে, ''আসছে'' হিসেবে দেখাতে, বা শুধু নির্দিষ্ট রোল ও ইউজারের জন্য চালু করতে', 'CRITICAL', false, 'approve_before'),
   ('platform.theme.view', 'platform', 'View theme studio', 'থিম স্টুডিও দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.theme.draft', 'platform', 'Draft a theme', 'থিম খসড়া তৈরি', 'create and preview a colour palette without publishing it', 'প্রকাশ না করে রঙের প্যালেট তৈরি ও প্রিভিউ করতে', 'MEDIUM', true, 'approve_before'),
   ('platform.theme.publish', 'platform', 'Publish a theme', 'থিম প্রকাশ', 'change the site''s colours for every visitor', 'সব দর্শনার্থীর জন্য সাইটের রঙ পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
@@ -72,6 +74,8 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('platform.localization.update', 'platform', 'Set the default language', 'ডিফল্ট ভাষা নির্ধারণ', 'change the language the site opens in for every new visitor', 'প্রতিটি নতুন দর্শনার্থীর জন্য সাইট যে ভাষায় খোলে তা পরিবর্তন করতে', 'MEDIUM', true, 'approve_before'),
   ('platform.genie.view', 'platform', 'View popup effect settings', 'পপআপ ইফেক্ট সেটিংস দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.genie.update', 'platform', 'Change the popup genie effect', 'পপআপ জিনি ইফেক্ট পরিবর্তন', 'turn the popup open/close animation on or off and change how long and how smooth it is for every visitor', 'সব দর্শনার্থীর জন্য পপআপ খোলা/বন্ধ হওয়ার অ্যানিমেশন চালু-বন্ধ করতে এবং তার সময় ও মসৃণতা বদলাতে', 'MEDIUM', true, 'approve_before'),
+  ('platform.recommendation.view', 'platform', 'View personalized feed settings', 'পার্সোনালাইজড ফিড সেটিংস দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
+  ('platform.recommendation.update', 'platform', 'Tune the personalized feed', 'পার্সোনালাইজড ফিড টিউন করা', 'change how products are ranked and which rails appear on the home page for every shopper', 'সব ক্রেতার জন্য পণ্য কীভাবে সাজানো হবে এবং হোম পেজে কোন কোন রেল দেখা যাবে তা বদলাতে', 'MEDIUM', true, 'approve_before'),
   ('platform.integration.view', 'platform', 'View integrations', 'ইন্টিগ্রেশন দেখা', 'see which payment and courier integrations are connected', 'কোন পেমেন্ট ও কুরিয়ার ইন্টিগ্রেশন যুক্ত আছে তা দেখতে', 'MEDIUM', true, 'approve_before'),
   ('platform.integration.manage', 'platform', 'Manage integration credentials', 'ইন্টিগ্রেশন ক্রেডেনশিয়াল ব্যবস্থাপনা', 'change bKash, Nagad, courier and SMS gateway credentials', 'বিকাশ, নগদ, কুরিয়ার ও এসএমএস গেটওয়ের ক্রেডেনশিয়াল পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
   ('platform.apikey.view', 'platform', 'View API keys', 'এপিআই কী দেখা', 'see which third-party developers have API access', 'কোন থার্ড-পার্টি ডেভেলপারের এপিআই অ্যাক্সেস আছে তা দেখতে', 'MEDIUM', true, 'approve_before'),
@@ -292,6 +296,9 @@ FROM (VALUES
   ('super_admin', 'platform.module.toggle'),
   ('super_admin', 'platform.module.settings'),
   ('super_admin', 'platform.module.targeting'),
+  ('admin', 'platform.page.view'),
+  ('super_admin', 'platform.page.view'),
+  ('super_admin', 'platform.page.toggle'),
   ('editor', 'platform.theme.view'),
   ('admin', 'platform.theme.view'),
   ('super_admin', 'platform.theme.view'),
@@ -309,6 +316,9 @@ FROM (VALUES
   ('admin', 'platform.genie.view'),
   ('super_admin', 'platform.genie.view'),
   ('super_admin', 'platform.genie.update'),
+  ('admin', 'platform.recommendation.view'),
+  ('super_admin', 'platform.recommendation.view'),
+  ('super_admin', 'platform.recommendation.update'),
   ('admin', 'platform.integration.view'),
   ('super_admin', 'platform.integration.view'),
   ('super_admin', 'platform.integration.manage'),

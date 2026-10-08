@@ -144,6 +144,7 @@ export const navItems = [
   { key: 'admin.platform.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/admin/platform/settings', group: 'admin.platform', permission: 'platform.settings.view', module: 'core', roles: ['super_admin', 'admin'], order: 6 },
   { key: 'admin.platform.language', label_i18n_key: 'nav.admin.language', icon: null, path: '/admin/platform/language', group: 'admin.platform', permission: 'platform.localization.view', module: 'core', roles: ['super_admin', 'admin'], order: 7 },
   { key: 'admin.platform.genie', label_i18n_key: 'nav.admin.genie', icon: null, path: '/admin/platform/genie', group: 'admin.platform', permission: 'platform.genie.view', module: 'core', roles: ['super_admin', 'admin'], order: 8 },
+  { key: 'admin.platform.recommendations', label_i18n_key: 'nav.admin.recommendations', icon: null, path: '/admin/platform/recommendations', group: 'admin.platform', permission: 'platform.recommendation.view', module: 'core', roles: ['super_admin', 'admin'], order: 9 },
 
   { key: 'admin.security.audit', label_i18n_key: 'nav.admin.audit', icon: null, path: '/admin/security/audit', group: 'admin.security', permission: 'security.audit.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.security.sessions', label_i18n_key: 'nav.admin.sessions', icon: null, path: '/admin/security/sessions', group: 'admin.security', permission: 'security.session.revoke', module: 'core', roles: ['super_admin', 'admin'], order: 2 },
