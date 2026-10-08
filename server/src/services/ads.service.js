@@ -27,6 +27,7 @@ import * as adProductRepo from '../repositories/adProduct.repository.js';
 import * as adProductsService from './adProducts.service.js';
 import { quote as priceQuote, meteredCharge, rate, PREPAID_MODELS } from './adPricing.js';
 import { runSecondPriceAuction, MIN_RESERVE_PRICE } from './adAuction.service.js';
+import * as sponsoredSourcing from './sponsoredSourcing.service.js';
 
 const BLOCKED_KEYWORDS_DEFAULT = ['illegal', 'replica', 'counterfeit', 'fake', 'weapons', 'adult', 'gambling'];
 
@@ -193,6 +194,12 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta = 
   const blockedFound = containsBlockedKeywords(allText);
   if (blockedFound) {
     throw new AppError('BLOCKED_KEYWORD', `Content contains a prohibited keyword: "${blockedFound}".`);
+  }
+
+  // 3b. The Sponsored Sourcing Slot sells access to salers, so it has its own gate: own products
+  //     only, and not for a supplier the Scorecard grades as unreliable.
+  if (product.placement === sponsoredSourcing.PLACEMENT) {
+    await sponsoredSourcing.assertMayAdvertise(db, userId, creative.product_id, { isPrivileged });
   }
 
   // 4. Price it. adPricing.quote is the single authority and throws on every commercial floor
@@ -609,13 +616,26 @@ export async function runAuction(db, cache, { placement, categoryId, district, k
     return [];
   }
 
+  // 2b. The sourcing slot adds a reputation signal and its own eligibility rules (see
+  //     sponsoredSourcing.service). The slot cap is enforced here, not at the caller, so the public
+  //     /ads/auction endpoint cannot be asked for more cards than the platform allows.
+  let candidates = eligible;
+  let maxSlots = limit;
+  if (placement === sponsoredSourcing.PLACEMENT) {
+    const rules = await sponsoredSourcing.loadRules(db);
+    maxSlots = Math.min(limit, rules.max_slots);
+    if (maxSlots <= 0) return [];
+    candidates = await sponsoredSourcing.applyCandidatePolicy(db, eligible, rules);
+    if (candidates.length === 0) return [];
+  }
+
   // 3. Run Second-Price Auction algorithm
-  const winners = runSecondPriceAuction(eligible, {
+  const winners = runSecondPriceAuction(candidates, {
     placement,
     categoryId,
     district,
     keyword,
-    maxSlots: limit,
+    maxSlots,
   });
 
   return winners;
@@ -844,7 +864,13 @@ export async function recordClickAndBill(db, cache, {
     }
 
     // 4. Calculate actual billing amount bounded by remaining campaign budget
-    const targetCpc = chargedCpc != null ? Number(chargedCpc) : Number(campaign.bid_amount);
+    // WHY capped at the campaign's own bid: `chargedCpc` arrives from the browser. Uncapped, any
+    // visitor could bill a campaign for far more than its advertiser agreed to pay per click.
+    const campaignBid = Number(campaign.bid_amount);
+    const requestedCpc = chargedCpc != null && Number.isFinite(Number(chargedCpc)) && Number(chargedCpc) > 0
+      ? Number(chargedCpc)
+      : campaignBid;
+    const targetCpc = campaignBid > 0 ? Math.min(requestedCpc, campaignBid) : requestedCpc;
     const totalBudget = Number(campaign.total_budget);
     const totalSpent = Number(campaign.spent_amount);
     const dailyBudget = Number(campaign.daily_budget);

@@ -171,22 +171,6 @@
   border: 1px solid var(--border-subtle);
 }
 
-.sourcing-card__dispatch {
-  position: absolute;
-  bottom: 12px;
-  right: 12px;
-  z-index: 2;
-  background: var(--surface-1); /* WHY: see tier-badge--standard — text and surface must flip together. */
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm, 6px);
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  padding: 3px 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  pointer-events: none;
-}
-
 /* Card Content */
 .sourcing-card__content {
   padding: var(--space-4);
@@ -390,3 +374,4 @@
 .add-store-calc-row { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-secondary); }
 .add-store-calc-row--highlight { border-top: 1px solid var(--border-subtle); padding-top: var(--space-2); font-weight: 700; color: var(--text-brand); font-size: var(--text-sm); }
 .add-store-actions { display: flex; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-2); }
+

@@ -4,6 +4,7 @@
 
 import * as productController from '../controllers/product.controller.js';
 import * as sourcingController from '../controllers/sourcing.controller.js';
+import * as sampleKit from '../controllers/sampleKit.controller.js';
 import { requirePermission } from '../middlewares/requirePermission.js';
 import { requireRestriction } from '../middlewares/requireRestriction.js';
 import { AppError } from '../plugins/errorHandler.js';
@@ -57,8 +58,43 @@ export default async function productRoutes(app) {
 
   // Saler Sourcing & Virtual Storefront
   app.get('/sourcing/catalog', sourcingController.getSourcingCatalog);
+  // Sponsored Sourcing Slot (supplier attraction step 2). Unlike the catalog above this is guarded:
+  // sponsored cards expose a supplier's wholesale pricing to the saler it is sold to.
+  app.get(
+    '/sourcing/sponsored',
+    {
+      config: { page: '/saler/sourcing' },
+      preHandler: [
+        authenticate,
+        ...(app.requireModule ? [app.requireModule('sourcing')] : []),
+        requirePerm('saler.sourcing.view'),
+      ],
+    },
+    sourcingController.getSponsoredSourcing
+  );
+  // Volume Incentive from the saler's side: progress towards each supplier's tiers, and payouts.
+  app.get(
+    '/sourcing/incentives',
+    {
+      config: { page: '/saler/incentives' },
+      preHandler: [
+        authenticate,
+        ...(app.requireModule ? [app.requireModule('sourcing')] : []),
+        requirePerm('saler.sourcing.view'),
+      ],
+    },
+    sourcingController.getSalerIncentives
+  );
   // Same issue as above: getMyStore reads req.user.id to find the caller's own store, but with no
   // preHandler that id was always undefined, so this always returned an empty store.
+  // Sample Requests + Marketing Kits (supplier attraction step 4). A request moves the saler's own money
+  // (into their HELD bucket), so it has its own permission apart from browsing.
+  const sampleGuards = (perm) => [authenticate, ...(app.requireModule ? [app.requireModule('sourcing')] : []), requirePerm(perm)];
+  app.get('/sourcing/samples', { config: { page: '/saler/samples' }, preHandler: sampleGuards('saler.sourcing.view') }, sampleKit.getSalerSamples);
+  app.post('/sourcing/samples', { config: { page: '/saler/samples' }, preHandler: sampleGuards('saler.sample.request') }, sampleKit.requestSample);
+  app.post('/sourcing/samples/:id/:action', { config: { page: '/saler/samples' }, preHandler: sampleGuards('saler.sample.request') }, sampleKit.actOnMySample);
+  app.get('/sourcing/marketing-kits', { config: { page: '/saler/marketing-kits' }, preHandler: sampleGuards('saler.sourcing.view') }, sampleKit.getSalerKits);
+
   app.get('/sourcing/my-store', { preHandler: [authenticate] }, sourcingController.getMyStore);
   app.post(
     '/sourcing/add-to-store',

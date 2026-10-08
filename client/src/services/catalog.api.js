@@ -225,6 +225,8 @@ export async function listSourcingCatalog(filters = {}) {
   };
 }
 
+// Sponsored Sourcing Slot: see services/sponsoredSourcing.js (fetch + billable-event beacons).
+
 /**
  * Saler adds a product to their virtual storefront with optional custom retail price.
  */

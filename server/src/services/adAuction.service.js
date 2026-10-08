@@ -102,7 +102,12 @@ export function calculateQualityScore(campaign, sellerTier = 'STARTER', context 
   // WHY: Bounding CTR effect so clickbait cannot run away with 10x rank
   const effectiveCtr = Math.min(0.20, ctr);
 
-  const qs = baseRelevance * (1.0 + (5.0 * effectiveCtr)) * (1.0 + tierMultiplier);
+  // WHY an optional `quality_bonus`: a placement can feed its own reputation signal into rank (the
+  // Sponsored Sourcing Slot adds the supplier's scorecard grade) without this file knowing about it.
+  // The 0.1 floor stops a large penalty from zeroing a campaign out of the auction altogether.
+  const extra = Math.max(0.1, 1.0 + (Number(campaign.quality_bonus) || 0));
+
+  const qs = baseRelevance * (1.0 + (5.0 * effectiveCtr)) * (1.0 + tierMultiplier) * extra;
   return Number(qs.toFixed(4));
 }
 

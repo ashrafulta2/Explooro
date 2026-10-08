@@ -52,6 +52,11 @@ const ERROR_STATUS = {
   THEME_MASTER_CONTRAST_FAILED: 422,
   THEME_TOKEN_INVALID: 422,
   MASTER_CONFIG_INVALID: 422,
+  // Supplier attraction tools: a supplier the Scorecard grades too low may not run them (not a 500).
+  SUPPLIER_GRADE_BLOCKED: 403,
+  SAMPLE_LIMIT_REACHED: 409,
+  SAMPLE_ALREADY_REQUESTED: 409,
+  SAMPLE_STATE_INVALID: 409,
   // 3.5 Upstream & system — 5xx
   PAYMENT_FAILED: 502,
   UPSTREAM_UNAVAILABLE: 503,

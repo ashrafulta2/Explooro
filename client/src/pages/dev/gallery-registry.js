@@ -56,6 +56,11 @@ import { PriceBreakdown } from '../../components/product/PriceBreakdown.js';
 import { ReviewList } from '../../components/product/ReviewList.js';
 import { QnASection } from '../../components/product/QnASection.js';
 import { ProfitCalculator } from '../../components/saler/ProfitCalculator.js';
+import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.js';
+import { SponsoredTag } from '../../components/saler/SponsoredTag.js';
+import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.js';
+import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
+import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.js';
 import { MarginProjection } from '../../components/saler/MarginProjection.js';
 import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.js';
 import { StoreHeader } from '../../components/store/StoreHeader.js';
@@ -875,6 +880,93 @@ function renderProfitCalculator() {
   return wrap;
 }
 
+function renderSupplierScorecardBadge() {
+  const wrap = document.createDocumentFragment();
+  const graded = (grade, score, hrs) => ({ grade, score, is_new: false, sample_orders: 80, window_days: 90, median_dispatch_hours: hrs, on_time_dispatch_pct: 92, delivery_success_pct: 96, return_rate_pct: 4.2, dispute_rate_pct: 0.8 });
+  const rules = { dispatch_sla_hours: 48, min_sample_orders: 10, weights: { on_time_dispatch: 30, delivery_success: 30, return_rate: 20, dispute_rate: 20 } };
+  wrap.append(
+    subgroup('SupplierScorecardBadge — compact chip on a catalog card: A / B / C / D / New'),
+    specimen('A', SupplierScorecardBadge(graded('A', 92, 14))),
+    specimen('B', SupplierScorecardBadge(graded('B', 76, 30))),
+    specimen('C', SupplierScorecardBadge(graded('C', 58, 52))),
+    specimen('D', SupplierScorecardBadge(graded('D', 31, 96))),
+    specimen('New (too few orders)', SupplierScorecardBadge({ grade: null, is_new: true, min_sample_orders: 10 })),
+    subgroup('SupplierScorecardBadge — full panel on /supplier/scorecard'),
+    specimen('graded', SupplierScorecardBadge(graded('A', 92, 14), { variant: 'full', rules })),
+    specimen('new supplier, metrics unknown', SupplierScorecardBadge({ grade: null, is_new: true, sample_orders: 3, median_dispatch_hours: null }, { variant: 'full', rules })),
+  );
+  return wrap;
+}
+
+function renderIncentivePayoutTable() {
+  const wrap = document.createDocumentFragment();
+  const row = (id, status, month, volume, pct, gross) => {
+    const fee = (gross * 0.1).toFixed(2);
+    return { id, supplier_name: 'Rahman Traders', period_start: `${month}-01`, volume: volume.toFixed(2), rebate_pct: String(pct), gross_amount: gross.toFixed(2), platform_fee: fee, net_amount: (gross - fee).toFixed(2), status };
+  };
+  const rows = [
+    row(1, 'PAID', '2026-09', 62000, 2, 1240),
+    row(2, 'UNFUNDED', '2026-09', 14500, 1, 145),
+    row(3, 'LAPSED', '2026-08', 11000, 1, 110),
+  ];
+  wrap.append(
+    subgroup('IncentivePayoutTable — a supplier sees the saler share; status is always words'),
+    specimen('supplier view', IncentivePayoutTable(rows, { perspective: 'supplier' })),
+    subgroup('IncentivePayoutTable — a saler also sees which supplier paid'),
+    specimen('saler view', IncentivePayoutTable(rows, { perspective: 'saler' })),
+  );
+  return wrap;
+}
+
+function renderSampleRequestTable() {
+  const wrap = document.createDocumentFragment();
+  const row = (id, status, extra = {}) => ({
+    id, status, title_en: 'Cotton Panjabi', price: '250.00', shipping_fee: '60.00', platform_fee: '25.00',
+    saler_name: 'Dev Saler', supplier_name: 'Rahman Traders', ship_to_name: 'Rahim', ship_to_phone: '01712-345678',
+    ship_to_address: 'House 12, Road 3, Mirpur, Dhaka', note: null, tracking_note: null, decline_reason: null,
+    requested_at: new Date(Date.now() - id * 86400000).toISOString(), ...extra,
+  });
+  const rows = [
+    row(1, 'REQUESTED'),
+    row(2, 'SHIPPED', { tracking_note: 'Pathao #PT-88121' }),
+    row(3, 'DELIVERED'),
+    row(4, 'DECLINED', { decline_reason: 'Out of stock' }),
+    row(5, 'EXPIRED'),
+  ];
+  const actions = (r) => (r.status === 'REQUESTED' ? [{ label: 'Accept', variant: 'primary', onClick() {} }, { label: 'Decline', variant: 'ghost', onClick() {} }] : []);
+  wrap.append(
+    subgroup('SampleRequestTable - a supplier sees the delivery details and the actions they can take; status is always words'),
+    specimen('supplier view', SampleRequestTable(rows, { perspective: 'supplier', actionsFor: actions })),
+    subgroup('SampleRequestTable - a saler sees which supplier, and no delivery details'),
+    specimen('saler view', SampleRequestTable(rows, { perspective: 'saler' })),
+  );
+  return wrap;
+}
+
+function renderMarketingKitCard() {
+  const wrap = document.createDocumentFragment();
+  const kit = {
+    product_id: 1, title_en: 'Cotton Panjabi', title_bn: 'কটন পাঞ্জাবি', supplier_name: 'Rahman Traders',
+    caption_en: 'Fresh from the loom: breathable cotton panjabi, ready for Eid.', caption_bn: 'তাঁত থেকে সরাসরি: আরামদায়ক কটন পাঞ্জাবি।',
+    hashtags: ['#eid', '#panjabi'], selling_points: ['100% cotton', 'Sizes M to XXL'], video_url: 'https://example.com/v', images: [],
+  };
+  wrap.append(
+    subgroup('MarketingKitCard - copy buttons copy exactly what is shown; supplier text is never rendered as HTML'),
+    specimen('full kit', MarketingKitCard(kit)),
+    specimen('caption only', MarketingKitCard({ ...kit, hashtags: [], selling_points: [], video_url: null })),
+  );
+  return wrap;
+}
+
+function renderSponsoredTag() {
+  const wrap = document.createDocumentFragment();
+  wrap.append(
+    subgroup('SponsoredTag — labels a paid placement in the Sourcing Catalog (always in words)'),
+    specimen('tag', SponsoredTag()),
+  );
+  return wrap;
+}
+
 function renderMarginProjection() {
   const wrap = document.createDocumentFragment();
   wrap.append(subgroup('MarginProjection — Zero-dependency SVG earnings projection chart'));
@@ -1241,6 +1333,11 @@ export function buildGalleryEntries(detachedNodes) {
     // ── Saler Sourcing & Profit ──────────────────────────────────────────────
     // Prompt 4.7 — Sourcing & Profit Calculator
     { id: 'profit-calculator', label: 'ProfitCalculator', group: 'Saler Sourcing & Profit', render: renderProfitCalculator },
+    { id: 'supplier-scorecard-badge', label: 'SupplierScorecardBadge', group: 'Saler Sourcing & Profit', render: renderSupplierScorecardBadge },
+    { id: 'sponsored-tag', label: 'SponsoredTag', group: 'Saler Sourcing & Profit', render: renderSponsoredTag },
+    { id: 'incentive-payout-table', label: 'IncentivePayoutTable', group: 'Saler Sourcing & Profit', render: renderIncentivePayoutTable },
+    { id: 'sample-request-table', label: 'SampleRequestTable', group: 'Saler Sourcing & Profit', render: renderSampleRequestTable },
+    { id: 'marketing-kit-card', label: 'MarketingKitCard', group: 'Saler Sourcing & Profit', render: renderMarketingKitCard },
     { id: 'margin-projection', label: 'MarginProjection', group: 'Saler Sourcing & Profit', render: renderMarginProjection },
     { id: 'add-to-store-drawer', label: 'AddToStoreDrawer', group: 'Saler Sourcing & Profit', render: () => renderAddToStoreDrawer(detachedNodes) },
     { id: 'social-kit-modal', label: 'SocialKitModal', group: 'Saler Sourcing & Profit', render: renderSocialKitModalSpecimen },

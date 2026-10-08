@@ -137,6 +137,28 @@ export const DEFAULT_TEMPLATES = {
     default_channels: ['INAPP', 'SMS'],
     can_override_preferences: false,
   },
+  SAMPLE_REQUESTED: {
+    template_key: 'SAMPLE_REQUESTED',
+    category: 'ORDER',
+    priority: 'NORMAL',
+    title_en: 'A saler asked for a sample',
+    title_bn: 'একজন সেলার স্যাম্পল চেয়েছেন',
+    body_template_en: 'Sample request for {{productTitleEn}}. Accept or ship it within {{days}} days or it expires and the saler is refunded.',
+    body_template_bn: '{{productTitleBn}}-এর স্যাম্পলের অনুরোধ এসেছে। {{days}} দিনের মধ্যে গ্রহণ বা পাঠান, না হলে মেয়াদ শেষ হয়ে সেলারকে টাকা ফেরত দেওয়া হবে।',
+    default_channels: ['INAPP'],
+    can_override_preferences: true,
+  },
+  SAMPLE_UPDATED: {
+    template_key: 'SAMPLE_UPDATED',
+    category: 'ORDER',
+    priority: 'NORMAL',
+    title_en: 'Sample update',
+    title_bn: 'স্যাম্পলের আপডেট',
+    body_template_en: 'Your sample of {{productTitleEn}} {{statusEn}}.',
+    body_template_bn: '{{productTitleBn}}-এর স্যাম্পল {{statusBn}}।',
+    default_channels: ['INAPP'],
+    can_override_preferences: true,
+  },
 };
 
 /**

@@ -261,6 +261,36 @@ function filterBatches(status) {
   return SEEDED_BATCHES.filter((b) => b.status === status);
 }
 
+// Volume Incentive mock state: one running programme and room for a queued change.
+const INCENTIVE_RULES = { max_rebate_pct: 5, max_tiers: 4, min_threshold: 5000, platform_fee_pct: 10, settle_lag_days: 7 };
+const monthStart = (offset = 0) => {
+  const d = new Date();
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth() + offset, 1)).toISOString().slice(0, 10);
+};
+const nextMonthStart = () => monthStart(1);
+const incentiveState = {
+  current: {
+    id: 1,
+    valid_from: monthStart(-2),
+    is_active: true,
+    tiers_json: [{ min_volume: 10000, rebate_pct: 1 }, { min_volume: 50000, rebate_pct: 2 }],
+  },
+  upcoming: null,
+};
+function incentiveView() {
+  return {
+    rules: INCENTIVE_RULES,
+    current: incentiveState.current,
+    upcoming: incentiveState.upcoming,
+    projected: { qualifying_salers: 2, projected_rebate: '1450.00', gross_volume: '88000.00' },
+    payouts: [
+      { id: 3, saler_id: 21, period_start: monthStart(-1), period_end: monthStart(0), volume: '62000.00', rebate_pct: '2.00', gross_amount: '1240.00', platform_fee: '124.00', net_amount: '1116.00', status: 'PAID' },
+      { id: 2, saler_id: 22, period_start: monthStart(-1), period_end: monthStart(0), volume: '14500.00', rebate_pct: '1.00', gross_amount: '145.00', platform_fee: '14.50', net_amount: '130.50', status: 'UNFUNDED' },
+    ],
+    grade: 'B',
+  };
+}
+
 export const supplierHandlers = [
   {
     method: 'GET',
@@ -414,6 +444,49 @@ export const supplierHandlers = [
     method: 'GET',
     path: '/supplier/resellers',
     handler: () => ({ status: 200, body: { data: SEEDED_RESELLER_INSIGHTS } }),
+  },
+  {
+    // Same shape as GET /supplier/scorecard (services/supplierScorecard.service.js getOwnScorecard).
+    method: 'GET',
+    path: '/supplier/scorecard',
+    handler: () => ({
+      status: 200,
+      body: {
+        data: {
+          scorecard: {
+            grade: 'B', score: 78, is_new: false, sample_orders: 64, window_days: 90,
+            median_dispatch_hours: 26, on_time_dispatch_pct: 88.5, delivery_success_pct: 94.2,
+            return_rate_pct: 6.1, dispute_rate_pct: 1.6, computed_at: new Date().toISOString(),
+          },
+          rules: {
+            window_days: 90, min_sample_orders: 10, dispatch_sla_hours: 48,
+            weights: { on_time_dispatch: 30, delivery_success: 30, return_rate: 20, dispute_rate: 20 },
+            grade_cutoffs: { A: 85, B: 70, C: 50 },
+            penalty_ceilings: { return_rate: 20, dispute_rate: 10 },
+          },
+        },
+      },
+    }),
+  },
+  {
+    // Same shape as GET /supplier/incentive (services/volumeIncentive.service.js getSupplierView).
+    method: 'GET',
+    path: '/supplier/incentive',
+    handler: () => ({ status: 200, body: { data: incentiveView() } }),
+  },
+  {
+    // First programme starts this month; any later change is queued for the next one, as on the server.
+    method: 'PUT',
+    path: '/supplier/incentive',
+    handler: ({ body }) => {
+      const tiers = (body?.tiers || []).map((x) => ({ min_volume: Number(x.min_volume), rebate_pct: Number(x.rebate_pct) }));
+      if (!tiers.length || tiers.some((x) => !(x.min_volume >= INCENTIVE_RULES.min_threshold) || !(x.rebate_pct > 0 && x.rebate_pct <= INCENTIVE_RULES.max_rebate_pct))) {
+        return { status: 400, body: { error: { code: 'VALIDATION_FAILED', message_en: 'Check the tiers: volumes start at ৳' + INCENTIVE_RULES.min_threshold + ' and rebates go up to ' + INCENTIVE_RULES.max_rebate_pct + '%.', message_bn: 'টিয়ারগুলো যাচাই করুন।' } } };
+      }
+      const version = { id: Date.now(), valid_from: nextMonthStart(), is_active: body?.is_active !== false, tiers_json: tiers };
+      incentiveState.upcoming = version;
+      return { status: 200, body: { data: version } };
+    },
   },
   {
     method: 'GET',

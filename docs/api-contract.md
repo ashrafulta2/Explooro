@@ -169,6 +169,10 @@ Complete and closed. Adding a code is a deliberate change to this document.
 | `COUPON_INVALID` | 422 | Expired, wrong scope, min-spend unmet, or per-user limit reached |
 | `COUPON_BUDGET_EXHAUSTED` | 409 | The coupon's budget cap is spent |
 | `ESCROW_LOCKED` | 409 | Funds are still inside the return window |
+| `SUPPLIER_GRADE_BLOCKED` | 403 | The supplier's Scorecard grade is in a tool's `blocked_grades` (Sponsored Slot, Volume Incentive, Samples) |
+| `SAMPLE_LIMIT_REACHED` | 409 | The saler already has `max_open_per_saler` samples in progress |
+| `SAMPLE_ALREADY_REQUESTED` | 409 | The saler already has a live or delivered sample of this product |
+| `SAMPLE_STATE_INVALID` | 409 | The sample request is not in a state that allows this action (already ended, or not yet shipped) |
 | `TEAM_PURCHASE_CLOSED` | 409 | The group-buy window expired or the team is full |
 
 ### 3.5 Upstream & system — 5xx

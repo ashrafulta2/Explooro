@@ -99,6 +99,18 @@ function synthesizeImages(product) {
   }));
 }
 
+/**
+ * Mock of the public scorecard shape from services/supplierScorecard.service.js toPublicView.
+ * Cycles A / B / C / New by position so every state of the Sourcing card chip is visible in mock mode.
+ */
+const MOCK_SCORECARDS = [
+  { grade: 'A', score: 92, is_new: false, sample_orders: 140, window_days: 90, median_dispatch_hours: 14 },
+  { grade: 'B', score: 76, is_new: false, sample_orders: 64, window_days: 90, median_dispatch_hours: 30 },
+  { grade: 'C', score: 58, is_new: false, sample_orders: 22, window_days: 90, median_dispatch_hours: 52 },
+  { grade: null, is_new: true, min_sample_orders: 10 },
+];
+const mockScorecardAt = (i) => MOCK_SCORECARDS[i % MOCK_SCORECARDS.length];
+
 export function synthesizeSupplier(product) {
   const store = stores.find((s) => s.ref === product.store_ref);
   const tier = product.supplier_tier || 'standard';
@@ -771,7 +783,7 @@ export default [
     method: 'GET',
     path: '/sourcing/catalog',
     handler({ query }) {
-      let filtered = products.map((p) => {
+      let filtered = products.map((p, i) => {
         const pricing = synthesizePricing(p);
         const tier = p.supplier_tier || 'standard';
         const shippingSpeed = tier === 'elite' ? 'fast_24h' : tier === 'verified' ? 'standard_48h' : 'standard_72h';
@@ -779,6 +791,7 @@ export default [
 
         return {
           ...p,
+          supplier_scorecard: mockScorecardAt(i),
           pricing,
           supplier: synthesizeSupplier(p),
           shipping_speed: shippingSpeed,
@@ -967,6 +980,61 @@ export default [
     },
   },
   {
+    // Same shape as GET /sourcing/incentives (services/volumeIncentive.service.js getSalerView).
+    method: 'GET',
+    path: '/sourcing/incentives',
+    handler() {
+      const now = new Date();
+      const start = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
+      const end = new Date(Date.UTC(now.getFullYear(), now.getMonth() + 1, 0));
+      const iso = (d) => d.toISOString().slice(0, 10);
+      const tiers = [{ min_volume: 10000, rebate_pct: 1 }, { min_volume: 50000, rebate_pct: 2 }];
+      return {
+        status: 200,
+        body: {
+          data: {
+            period: { start: iso(start), end: iso(end) },
+            programs: [
+              { supplier_id: 7, supplier_name: 'Rahman Traders', volume: '32000.00', tiers, current_tier: tiers[0], next_tier: tiers[1], remaining_to_next: '18000.00', on_course: '288.00' },
+              { supplier_id: 8, supplier_name: 'Dhaka Home Goods', volume: '61000.00', tiers, current_tier: tiers[1], next_tier: null, remaining_to_next: null, on_course: '1098.00' },
+            ],
+            payouts: [
+              { id: 5, supplier_id: 7, supplier_name: 'Rahman Traders', saler_id: 1, period_start: iso(new Date(Date.UTC(now.getFullYear(), now.getMonth() - 1, 1))), period_end: iso(start), volume: '24000.00', rebate_pct: '1.00', gross_amount: '240.00', platform_fee: '24.00', net_amount: '216.00', status: 'PAID' },
+            ],
+          },
+        },
+      };
+    },
+  },
+  {
+    // Sponsored Sourcing Slot winners: same product shape as a catalog card, plus the ad ids.
+    method: 'GET',
+    path: '/sourcing/sponsored',
+    handler() {
+      const sponsored = products.slice(2, 4).map((p, i) => {
+        const price = parseFloat(p.price || 500);
+        const wholesale = Math.round(price * 0.72);
+        const profit = Math.round(price - wholesale - (price * 0.05));
+        const marginPct = Math.round((profit / price) * 100);
+        return {
+          campaign_id: 9100 + i,
+          creative_id: 9200 + i,
+          charged_cpc: 2.5,
+          slot_position: i + 1,
+          product: {
+            ...p,
+            supplier_scorecard: mockScorecardAt(i === 0 ? 0 : 3),
+            margin_pct: marginPct,
+            supplier_tier: p.supplier_tier || 'verified',
+            pricing: { wholesale_cost: wholesale, suggested_retail: price, saler_earning: profit, saler_margin_pct: marginPct },
+            sourcing_opportunity: { wholesale_cost: wholesale, potential_profit: profit, margin_pct: marginPct },
+          },
+        };
+      });
+      return { status: 200, body: { data: { sponsored } } };
+    },
+  },
+  {
     method: 'GET',
     path: '/sourcing/catalog',
     handler({ query }) {
@@ -974,7 +1042,7 @@ export default [
       const minMargin = parseFloat(query?.min_margin_pct || 0);
       const tier = query?.verification_tier;
 
-      let catalog = products.map((p) => {
+      let catalog = products.map((p, i) => {
         const price = parseFloat(p.price || 500);
         const wholesale = Math.round(price * 0.75);
         const profit = Math.round(price - wholesale - (price * 0.05));
@@ -982,6 +1050,7 @@ export default [
 
         return {
           ...p,
+          supplier_scorecard: mockScorecardAt(i),
           wholesale_price: wholesale.toString(),
           margin_pct: marginPct,
           supplier_tier: p.supplier_tier || 'verified',

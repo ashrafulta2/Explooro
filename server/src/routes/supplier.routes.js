@@ -3,6 +3,7 @@
  */
 
 import * as controller from '../controllers/supplier.controller.js';
+import * as sampleKit from '../controllers/sampleKit.controller.js';
 import { requirePermission } from '../middlewares/requirePermission.js';
 import { AppError } from '../plugins/errorHandler.js';
 
@@ -165,6 +166,55 @@ export default async function supplierRoutes(app) {
     },
     controller.getResellerInsights
   );
+
+  // 6b. Supplier Scorecard - the supplier's own view of how salers see them
+  app.get(
+    '/supplier/scorecard',
+    {
+      config: { page: '/supplier/scorecard' },
+      preHandler: [
+        authenticate,
+        reqModule('sourcing'),
+        requirePerm('supplier.analytics.view'),
+      ],
+    },
+    controller.getScorecard
+  );
+
+  // 6c. Volume Incentive - a supplier-funded monthly rebate for the salers who sell the most
+  app.get(
+    '/supplier/incentive',
+    {
+      config: { page: '/supplier/incentive' },
+      preHandler: [
+        authenticate,
+        reqModule('sourcing'),
+        requirePerm('supplier.analytics.view'),
+      ],
+    },
+    controller.getIncentive
+  );
+
+  app.put(
+    '/supplier/incentive',
+    {
+      config: { page: '/supplier/incentive' },
+      preHandler: [
+        authenticate,
+        reqModule('sourcing'),
+        requirePerm('supplier.incentive.manage'),
+      ],
+    },
+    controller.saveIncentive
+  );
+
+  // 6d. Sample Requests + Marketing Kits - what a saler wants before committing to a supplier's product
+  const sampleGuards = (perm) => [authenticate, reqModule('sourcing'), requirePerm(perm)];
+  app.get('/supplier/samples', { config: { page: '/supplier/samples' }, preHandler: sampleGuards('supplier.analytics.view') }, sampleKit.getSupplierSamples);
+  app.put('/supplier/samples/:productId/offer', { config: { page: '/supplier/samples' }, preHandler: sampleGuards('supplier.sample.manage') }, sampleKit.saveSampleOffer);
+  app.post('/supplier/samples/requests/:id/:action', { config: { page: '/supplier/samples' }, preHandler: sampleGuards('supplier.sample.manage') }, sampleKit.respondToSample);
+  app.get('/supplier/marketing-kits', { config: { page: '/supplier/marketing-kits' }, preHandler: sampleGuards('supplier.analytics.view') }, sampleKit.getSupplierSamples);
+  app.put('/supplier/marketing-kits/:productId', { config: { page: '/supplier/marketing-kits' }, preHandler: sampleGuards('supplier.sample.manage') }, sampleKit.saveMarketingKit);
 
   // 7. Physical Shop Operating Status (Gated by physical_shop_status module)
   app.get(

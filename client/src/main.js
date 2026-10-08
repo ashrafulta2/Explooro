@@ -176,7 +176,34 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => import('./pages/saler/SourcingCatalogPage.js'),
+        // WHY the stylesheet is loaded here and not imported by the page: salerPages.test.js imports
+        // every saler page under plain node, which cannot load a .css file. Importing it from the
+        // route keeps the CSS out of the entry bundle (70KB budget) and the page importable.
+        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./pages/saler/SourcingCatalogPage.js')]).then(([, , page]) => page),
+      },
+      {
+        path: '/saler/incentives',
+        title: 'Volume Incentives — Explooro',
+        requiresAuth: true,
+        permission: 'saler.sourcing.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./pages/saler/SalerIncentivesPage.js')]).then(([, page]) => page),
+      },
+      {
+        path: '/saler/samples',
+        title: 'Product Samples — Explooro',
+        requiresAuth: true,
+        permission: 'saler.sourcing.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerSamplesPage.js')]).then(([, , page]) => page),
+      },
+      {
+        path: '/saler/marketing-kits',
+        title: 'Marketing Kits — Explooro',
+        requiresAuth: true,
+        permission: 'saler.sourcing.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerMarketingKitsPage.js')]).then(([, , page]) => page),
       },
       // Prompt 10.3: AI Creative Studio (ad copy generation)
       {
@@ -564,6 +591,38 @@ async function bootRouterDemo() {
         permission: 'supplier.analytics.view',
         module: 'core',
         load: () => import('./pages/supplier/ResellerInsightsPage.js'),
+      },
+      {
+        path: '/supplier/scorecard',
+        title: 'Supplier Scorecard — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.analytics.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./pages/supplier/SupplierScorecardPage.js')]).then(([, page]) => page),
+      },
+      {
+        path: '/supplier/incentive',
+        title: 'Volume Incentive — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.analytics.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./pages/supplier/SupplierIncentivePage.js')]).then(([, page]) => page),
+      },
+      {
+        path: '/supplier/samples',
+        title: 'Sample Requests — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.analytics.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierSamplesPage.js')]).then(([, , page]) => page),
+      },
+      {
+        path: '/supplier/marketing-kits',
+        title: 'Marketing Kits — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.analytics.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierMarketingKitsPage.js')]).then(([, , page]) => page),
       },
       {
         path: '/supplier/orders',
@@ -1900,7 +1959,7 @@ async function bootRouterDemo() {
               title: 'Component Gallery — Explooro (dev)',
               permission: null,
               module: 'core',
-              load: () => import('./pages/dev/GalleryPage.js'),
+              load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/dev/GalleryPage.js')]).then(([, , , , page]) => page),
             },
             {
               path: '/dev/craft',

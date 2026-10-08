@@ -9,6 +9,9 @@ import { listSourcingCatalog } from '../../services/catalog.api.js';
 import { ProfitCalculator } from '../../components/saler/ProfitCalculator.js';
 import { MarginProjection } from '../../components/saler/MarginProjection.js';
 import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.js';
+import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.js';
+import { SponsoredTag } from '../../components/saler/SponsoredTag.js';
+import { fetchSponsored, trackImpression, clickReporter } from '../../services/sponsoredSourcing.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
@@ -286,9 +289,58 @@ export default function SourcingCatalogPage(root) {
   grid.className = 'sourcing-grid';
   grid.setAttribute('aria-label', t('sourcing.catalog_heading', 'Available Wholesale Products'));
 
-  container.append(hero, filterBar, grid);
+  // Paid placements sit above the ranked results, never inside them, so the grid below stays an
+  // honest ordering of the saler's chosen sort.
+  const sponsoredWrap = document.createElement('section');
+  sponsoredWrap.className = 'sourcing-grid__sponsored';
+  sponsoredWrap.setAttribute('aria-label', t('sourcing.sponsored.heading'));
+  sponsoredWrap.hidden = true;
+  let stopTracking = [];
+  let sponsoredRequest = 0;
+
+  container.append(hero, filterBar, sponsoredWrap, grid);
+
+  const cardActions = {
+    onCalculate: (p, btn) => {
+      const initialBase = p.pricing?.base_cost ?? p.base_cost ?? 500;
+      const initialWholesale = p.pricing?.wholesale_margin ?? p.wholesale_margin ?? 0;
+      const initialRetail = parseFloat(p.price || 700);
+      const defaultRetail = p.pricing?.default_retail_price ?? initialRetail;
+      modalCalc.setValues(initialBase, initialWholesale, initialRetail, defaultRetail);
+      calcModal.openModal(btn);
+    },
+    onAddToStore: (p, btn) => {
+      addToStoreDrawer.openForProduct(p, btn);
+    },
+    isSellRestricted,
+  };
+
+  async function loadSponsored() {
+    const request = ++sponsoredRequest;
+    stopTracking.forEach((stop) => stop());
+    stopTracking = [];
+    sponsoredWrap.replaceChildren();
+    sponsoredWrap.hidden = true;
+
+    const ads = await fetchSponsored();
+    if (request !== sponsoredRequest || ads.length === 0) return; // a newer load superseded this one
+
+    for (const ad of ads) {
+      const reportClick = clickReporter(ad);
+      const card = createSourcingCard(ad.product, {
+        ...cardActions,
+        onCalculate: (p, btn) => { reportClick(); cardActions.onCalculate(p, btn); },
+        onAddToStore: (p, btn) => { reportClick(); cardActions.onAddToStore(p, btn); },
+        sponsored: true,
+      });
+      sponsoredWrap.append(card);
+      stopTracking.push(trackImpression(card, ad));
+    }
+    sponsoredWrap.hidden = false;
+  }
 
   async function loadProducts() {
+    loadSponsored();
     state.loading = true;
     grid.innerHTML = '';
 
@@ -341,20 +393,7 @@ export default function SourcingCatalogPage(root) {
       }
 
       state.products.forEach((product) => {
-        grid.append(createSourcingCard(product, {
-          onCalculate: (p, btn) => {
-            const initialBase = p.pricing?.base_cost ?? p.base_cost ?? 500;
-            const initialWholesale = p.pricing?.wholesale_margin ?? p.wholesale_margin ?? 0;
-            const initialRetail = parseFloat(p.price || 700);
-            const defaultRetail = p.pricing?.default_retail_price ?? initialRetail;
-            modalCalc.setValues(initialBase, initialWholesale, initialRetail, defaultRetail);
-            calcModal.openModal(btn);
-          },
-          onAddToStore: (p, btn) => {
-            addToStoreDrawer.openForProduct(p, btn);
-          },
-          isSellRestricted,
-        }));
+        grid.append(createSourcingCard(product, cardActions));
       });
     } catch (err) {
       grid.innerHTML = '';
@@ -376,7 +415,10 @@ export default function SourcingCatalogPage(root) {
   loadProducts();
 
   root.append(container);
-  return () => {};
+  return () => {
+    sponsoredRequest += 1;
+    stopTracking.forEach((stop) => stop());
+  };
 }
 
 function createStatCard(label, value) {
@@ -409,9 +451,9 @@ const CATEGORY_META = {
   default: { icon: '📦', bg: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)', color: '#374151' },
 };
 
-function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestricted = false }) {
+function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestricted = false, sponsored = false }) {
   const card = document.createElement('article');
-  card.className = 'sourcing-card';
+  card.className = sponsored ? 'sourcing-card sourcing-card--sponsored' : 'sourcing-card';
 
   const isBn = getLanguage() === 'bn';
   const title = (isBn && product.title_bn) ? product.title_bn : (product.title_en || product.title);
@@ -472,12 +514,6 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
   badges.append(marginBadge, tierBadge);
   media.append(badges);
 
-  // Dispatch Speed Tag
-  const dispatch = document.createElement('span');
-  dispatch.className = 'sourcing-card__dispatch';
-  dispatch.textContent = tier === 'elite' ? `⚡ 24h ${t('sourcing.card.dispatch', 'Dispatch')}` : `📦 48h ${t('sourcing.card.dispatch', 'Dispatch')}`;
-  media.append(dispatch);
-
   // Content
   const content = document.createElement('div');
   content.className = 'sourcing-card__content';
@@ -493,7 +529,16 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
   hTitle.className = 'sourcing-card__title';
   hTitle.textContent = title;
 
-  header.append(cat, hTitle);
+  // WHY measured, not tier-derived: this slot used to print "24h dispatch" for Elite and "48h" for
+  // everyone else, a promise nothing checked. The scorecard is the supplier's actual track record.
+  if (sponsored) {
+    const row = document.createElement('div');
+    row.className = 'sourcing-card__sponsored-row';
+    row.append(cat, SponsoredTag());
+    header.append(row, hTitle, SupplierScorecardBadge(product.supplier_scorecard));
+  } else {
+    header.append(cat, hTitle, SupplierScorecardBadge(product.supplier_scorecard));
+  }
 
   // Pricing Matrix (Confidential wholesale: shows Suggested Retail, Min Selling Price Floor, and Reseller Profit)
   const matrix = document.createElement('div');

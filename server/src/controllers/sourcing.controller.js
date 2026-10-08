@@ -3,6 +3,7 @@
  */
 
 import * as productService from '../services/product.service.js';
+import { getSalerView as getSalerIncentiveView } from '../services/volumeIncentive.service.js';
 
 export async function addToStore(req, reply) {
   const db = req.db || req.server?.db;
@@ -32,6 +33,24 @@ export async function getSourcingCatalog(req, reply) {
   });
 
   return reply.send({ catalog: items });
+}
+
+export async function getSalerIncentives(req, reply) {
+  const db = req.db || req.server?.db;
+  return reply.send({ data: await getSalerIncentiveView(db, req.user.id) });
+}
+
+export async function getSponsoredSourcing(req, reply) {
+  const db = req.db || req.server?.db;
+  const cache = req.cache || req.server?.cache;
+  const { category_id } = req.query || {};
+
+  const sponsored = await productService.listSponsoredSourcing(db, cache, {
+    viewerId: req.user?.id || null,
+    categoryId: category_id ? parseInt(category_id, 10) : undefined,
+  });
+
+  return reply.send({ sponsored });
 }
 
 export async function getMyStore(req, reply) {

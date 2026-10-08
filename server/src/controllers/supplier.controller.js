@@ -13,6 +13,8 @@
 
 import * as inventoryService from '../services/inventory.service.js';
 import * as warehouseRoutingService from '../services/warehouseRouting.service.js';
+import { getOwnScorecard } from '../services/supplierScorecard.service.js';
+import { getSupplierView as getIncentiveView, saveProgram as saveIncentiveProgram } from '../services/volumeIncentive.service.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { toPaisa, toBdtNumber } from '../services/pricing.service.js';
 
@@ -421,6 +423,27 @@ export async function bookConsignment(req, reply) {
 /**
  * Reseller network insights: Analytics on Salers who curate and sell the supplier's products.
  */
+export async function getScorecard(req, reply) {
+  const result = await getOwnScorecard(req.server.db, req.user.id);
+  return reply.send({ data: result });
+}
+
+/** The supplier's own Volume Incentive programme, what it is on course to cost, and past payouts. */
+export async function getIncentive(req, reply) {
+  return reply.send({ data: await getIncentiveView(req.server.db, req.user.id) });
+}
+
+export async function saveIncentive(req, reply) {
+  const body = req.body || {};
+  const saved = await saveIncentiveProgram(req.server.db, {
+    supplierId: req.user.id,
+    isActive: body.is_active !== false,
+    tiers: body.tiers,
+    actor: req.user.id,
+  });
+  return reply.send({ data: saved });
+}
+
 export async function getResellerInsights(req, reply) {
   const supplierId = req.user.id;
   const db = req.server.db;

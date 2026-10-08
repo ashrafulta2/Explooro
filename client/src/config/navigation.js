@@ -176,6 +176,10 @@ export const navItems = [
   // ================= SUPPLIER — 16 items =================
   { key: 'supplier.dashboard', label_i18n_key: 'nav.shared.dashboard', icon: null, path: '/supplier', group: 'supplier.overview', permission: 'supplier.dashboard.view', module: 'core', roles: ['supplier'], order: 1 },
   { key: 'supplier.resellers', label_i18n_key: 'nav.supplier.resellers', icon: null, path: '/supplier/resellers', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'core', roles: ['supplier'], order: 2 },
+  { key: 'supplier.scorecard', label_i18n_key: 'nav.supplier.scorecard', icon: null, path: '/supplier/scorecard', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 4 },
+  { key: 'supplier.incentive', label_i18n_key: 'nav.supplier.incentive', icon: null, path: '/supplier/incentive', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 5 },
+  { key: 'supplier.samples', label_i18n_key: 'nav.supplier.samples', icon: null, path: '/supplier/samples', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 6 },
+  { key: 'supplier.marketing_kits', label_i18n_key: 'nav.supplier.marketing_kits', icon: null, path: '/supplier/marketing-kits', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 7 },
   { key: 'supplier.forecasting', label_i18n_key: 'nav.supplier.forecasting', icon: null, path: '/supplier/forecasting', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'ai_forecasting', roles: ['supplier'], order: 3 },
   { key: 'supplier.products', label_i18n_key: 'nav.shared.products', icon: null, path: '/supplier/products', group: 'supplier.inventory', permission: 'catalog.product.manage_own', module: 'core', roles: ['supplier'], order: 1 },
   { key: 'supplier.stock', label_i18n_key: 'nav.supplier.stock', icon: null, path: '/supplier/inventory', group: 'supplier.inventory', permission: 'catalog.inventory.manage', module: 'core', roles: ['supplier'], order: 2 },
@@ -204,6 +208,9 @@ export const navItems = [
   // Inferred route — see file header note: mirrors supplier's `/supplier/store-status` 1:1.
   { key: 'saler.store_status', label_i18n_key: 'nav.shared.store_status', icon: null, path: '/saler/store-status', group: 'saler.my_store', permission: 'saler.store.manage', module: 'physical_shop_status', roles: ['saler'], order: 3 },
   { key: 'saler.sourcing', label_i18n_key: 'nav.saler.sourcing', icon: null, path: '/saler/sourcing', group: 'saler.sourcing', permission: 'saler.sourcing.view', module: 'sourcing', roles: ['saler'], order: 1 },
+  { key: 'saler.incentives', label_i18n_key: 'nav.saler.incentives', icon: null, path: '/saler/incentives', group: 'saler.sourcing', permission: 'saler.sourcing.view', module: 'sourcing', roles: ['saler'], order: 3 },
+  { key: 'saler.samples', label_i18n_key: 'nav.saler.samples', icon: null, path: '/saler/samples', group: 'saler.sourcing', permission: 'saler.sourcing.view', module: 'sourcing', roles: ['saler'], order: 4 },
+  { key: 'saler.marketing_kits', label_i18n_key: 'nav.saler.marketing_kits', icon: null, path: '/saler/marketing-kits', group: 'saler.sourcing', permission: 'saler.sourcing.view', module: 'sourcing', roles: ['saler'], order: 5 },
   { key: 'saler.bundles', label_i18n_key: 'nav.saler.bundles', icon: null, path: '/saler/bundles', group: 'saler.sourcing', permission: 'saler.bundle.manage', module: 'product_bundling', roles: ['saler'], order: 2, simpleMode: false },
   { key: 'saler.creative_studio', label_i18n_key: 'nav.saler.creative_studio', icon: null, path: '/saler/creative-studio', group: 'saler.marketing', permission: 'ai.creative.use', module: 'ai_creative_studio', roles: ['saler'], order: 1, simpleMode: false },
   { key: 'saler.social_kit', label_i18n_key: 'nav.saler.social_kit', icon: null, path: '/saler/social-kit', group: 'saler.marketing', permission: null, module: 'social_seller_kit', roles: ['saler'], order: 2 },

@@ -81,6 +81,18 @@ export const supplierApi = {
     return api.get('/supplier/resellers');
   },
 
+  getScorecard() {
+    return api.get('/supplier/scorecard');
+  },
+
+  getIncentive() {
+    return api.get('/supplier/incentive');
+  },
+
+  saveIncentive(payload) {
+    return api.put('/supplier/incentive', payload);
+  },
+
   getStoreStatus() {
     return api.get('/supplier/store-status');
   },

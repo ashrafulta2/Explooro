@@ -727,7 +727,7 @@ CREATE TABLE bundle_items (
 
 ---
 
-## 4. Commerce — 12 tables
+## 4. Commerce — 15 tables (+1 migration 062: supplier_scorecards; +2 migration 064: volume_incentive_programs, volume_incentive_payouts; +3 migration 065: sample_offers, sample_requests, marketing_kits)
 
 ```sql
 CREATE TABLE carts (                        -- ⚠️ v1.0 had a client-only cart
@@ -946,6 +946,124 @@ CREATE TABLE abandoned_carts (
   UNIQUE (cart_id)
 );
 ```
+
+### 4.x supplier_scorecards (migration 062)
+
+```sql
+CREATE TABLE supplier_scorecards (          -- one snapshot row per supplier, rebuilt daily
+  supplier_id           BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  window_days           INTEGER NOT NULL CHECK (window_days BETWEEN 7 AND 365),
+  sample_orders         INTEGER NOT NULL DEFAULT 0,
+  median_dispatch_hours NUMERIC(8,2),
+  on_time_dispatch_pct  NUMERIC(5,2),
+  delivery_success_pct  NUMERIC(5,2),
+  return_rate_pct       NUMERIC(5,2),
+  dispute_rate_pct      NUMERIC(5,2),
+  grade                 TEXT CHECK (grade IN ('A','B','C','D')),
+  score                 INTEGER CHECK (score BETWEEN 0 AND 100),
+  computed_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+Metrics are NULL (not 0) when there is no data; `grade` is NULL until `sample_orders` reaches the
+`supplier.scorecard` setting `min_sample_orders`. Sources: `sub_orders`, `shipments`,
+`return_requests`, `dispute_threads`.
+
+### 4.x volume_incentive_programs, volume_incentive_payouts (migration 064)
+
+```sql
+CREATE TABLE volume_incentive_programs (    -- versioned: a change inserts a row effective a later month
+  id            BIGSERIAL PRIMARY KEY,
+  supplier_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  valid_from    DATE NOT NULL CHECK (EXTRACT(DAY FROM valid_from) = 1),
+  is_active     BOOLEAN NOT NULL DEFAULT true,       -- false = paused from valid_from
+  tiers_json    JSONB NOT NULL DEFAULT '[]',         -- [{ "min_volume": 50000, "rebate_pct": 2 }, ...]
+  created_by    BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (supplier_id, valid_from)
+);
+
+CREATE TABLE volume_incentive_payouts (     -- one per supplier x saler x month; the unique key makes the job re-runnable
+  id                  BIGSERIAL PRIMARY KEY,
+  supplier_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  saler_id            BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  period_start        DATE NOT NULL,
+  period_end          DATE NOT NULL,
+  volume              NUMERIC(14,2) NOT NULL,
+  rebate_pct          NUMERIC(5,2) NOT NULL CHECK (rebate_pct > 0),
+  gross_amount        NUMERIC(14,2) NOT NULL CHECK (gross_amount > 0),   -- debited from the supplier
+  platform_fee        NUMERIC(14,2) NOT NULL DEFAULT 0,                  -- credited to the treasury
+  net_amount          NUMERIC(14,2) NOT NULL CHECK (net_amount > 0),     -- credited to the saler
+  tiers_snapshot      JSONB NOT NULL,
+  status              TEXT NOT NULL DEFAULT 'UNFUNDED' CHECK (status IN ('UNFUNDED','PAID','LAPSED')),
+  ledger_txn_group_id UUID,
+  paid_at             TIMESTAMPTZ,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT vi_payout_reconciles CHECK (gross_amount = platform_fee + net_amount),
+  UNIQUE (supplier_id, saler_id, period_start)
+);
+```
+
+### 4.y sample_offers, sample_requests, marketing_kits (migration 065)
+
+```sql
+CREATE TABLE sample_offers (                 -- what a supplier will send as a paid sample: one per product
+  id            BIGSERIAL PRIMARY KEY,
+  product_id    BIGINT NOT NULL UNIQUE REFERENCES products(id) ON DELETE CASCADE,
+  supplier_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  price         NUMERIC(14,2) NOT NULL CHECK (price > 0),
+  shipping_fee  NUMERIC(14,2) NOT NULL DEFAULT 0 CHECK (shipping_fee >= 0),
+  is_active     BOOLEAN NOT NULL DEFAULT true,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE sample_requests (               -- price, shipping and the platform's share are SNAPSHOTS: editing the offer never re-prices an open request
+  id                  BIGSERIAL PRIMARY KEY,
+  product_id          BIGINT NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
+  supplier_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  saler_id            BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  price               NUMERIC(14,2) NOT NULL CHECK (price > 0),
+  shipping_fee        NUMERIC(14,2) NOT NULL CHECK (shipping_fee >= 0),
+  platform_fee        NUMERIC(14,2) NOT NULL CHECK (platform_fee >= 0),   -- of the price only, never the shipping
+  status              TEXT NOT NULL DEFAULT 'REQUESTED'
+                      CHECK (status IN ('REQUESTED','ACCEPTED','SHIPPED','DELIVERED','DECLINED','CANCELLED','EXPIRED')),
+  ship_to_name        TEXT NOT NULL,
+  ship_to_phone       TEXT NOT NULL,
+  ship_to_address     TEXT NOT NULL,
+  note                TEXT,
+  tracking_note       TEXT,
+  decline_reason      TEXT,
+  hold_txn_group_id   UUID,                -- saler AVAILABLE -> HELD
+  close_txn_group_id  UUID,                -- HELD -> supplier + treasury (release) or HELD -> AVAILABLE (refund)
+  requested_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  responded_at        TIMESTAMPTZ,
+  shipped_at          TIMESTAMPTZ,
+  closed_at           TIMESTAMPTZ,
+  CONSTRAINT sample_fee_within_price CHECK (platform_fee <= price)
+);
+-- one live sample per saler per product, even under a race
+CREATE UNIQUE INDEX uq_sample_requests_one_live ON sample_requests (saler_id, product_id)
+  WHERE status IN ('REQUESTED','ACCEPTED','SHIPPED','DELIVERED');
+
+CREATE TABLE marketing_kits (                -- a supplier's free, ready-to-copy promotion: one per product
+  id              BIGSERIAL PRIMARY KEY,
+  product_id      BIGINT NOT NULL UNIQUE REFERENCES products(id) ON DELETE CASCADE,
+  supplier_id     BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  caption_en      TEXT,
+  caption_bn      TEXT,
+  hashtags        JSONB NOT NULL DEFAULT '[]',
+  selling_points  JSONB NOT NULL DEFAULT '[]',
+  video_url       TEXT,                    -- http(s) only, enforced by the service
+  is_published    BOOLEAN NOT NULL DEFAULT true,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+Migration 064 also adds `VOLUME_INCENTIVE` to the `ledger_transactions.category` CHECK. Volume is the
+`total_amount - shipping_amount` of `DELIVERED` `sub_orders` for the supplier and saler in the month.
+
 
 ---
 
@@ -1909,13 +2027,13 @@ server/src/db/migrations/NNN_snake_case_description.sql
 | 1. Identity & Access | 17 |
 | 2. Platform Configuration | 8 |
 | 3. Catalog | 12 |
-| 4. Commerce | 12 |
+| 4. Commerce | 13 |
 | 5. Finance | 11 |
 | 6. Logistics & Support | 8 |
 | 7. Engagement | 18 |
 | 8. Growth & Media | 12 |
 | 9. Developer Platform | 3 |
-| **Total** | **101** |
+| **Total** | **102** |
 
 Compared with v1.0's 20 untyped tables — and note that both tables v1.0 referenced without
 creating, `platform_settings` (§2) and `warehouse_nodes` (§3), are now defined. Engagement grew

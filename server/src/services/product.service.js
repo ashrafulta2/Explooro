@@ -9,6 +9,21 @@ import { getStorageDriver } from '../integrations/storage/index.js';
 import { withTransaction } from '../config/db.js';
 import { writeAudit } from '../lib/audit.js';
 import * as recoCache from './recoCache.service.js';
+import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.js';
+import { runAuction as runAdAuction } from './ads.service.js';
+import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.js';
+
+/**
+ * WHY it swallows errors: the scorecard is decoration on the catalog, not the catalog. A missing
+ * table (migration not yet run) or a slow query must never turn "browse suppliers" into a 500.
+ */
+async function attachScorecards(db, products) {
+  try {
+    return await attachSupplierScorecards(db, products);
+  } catch {
+    return products;
+  }
+}
 
 // Response copy only — no schema for "average response time" exists yet (chat/messaging is
 // Phase 8), so the supplier card derives a reasonable estimate from trust tier instead of
@@ -551,19 +566,63 @@ export async function listSourcingCatalog(db, filters = {}) {
         continue; // Filter out if margin below threshold
       }
     }
-    enriched.push({
-      ...p,
-      pricing,
-      sourcing_opportunity: {
-        potential_profit: pricing.saler_earning,
-        margin_pct: pricing.total_margin_pct,
-        saler_margin_pct: pricing.saler_margin_pct,
-        stock_available: p.stock_qty,
-      },
-    });
+    enriched.push(toSourcingItem(p, pricing));
   }
 
-  return enriched;
+  // WHY here and not in the page: the catalog is the one place a saler compares suppliers, and the
+  // AI sourcing agent reads this same list, so it sees the same measured reputation.
+  return attachScorecards(db, enriched);
+}
+
+function toSourcingItem(p, pricing) {
+  return {
+    ...p,
+    pricing,
+    sourcing_opportunity: {
+      potential_profit: pricing.saler_earning,
+      margin_pct: pricing.total_margin_pct,
+      saler_margin_pct: pricing.saler_margin_pct,
+      stock_available: p.stock_qty,
+    },
+  };
+}
+
+/**
+ * The Sponsored Sourcing Slot: the auction winners for the catalog, each carrying the same product
+ * shape as a normal catalog card (pricing, profit, scorecard) so the page renders them with the one
+ * card it already has. The ad engine decides who wins; this only hydrates.
+ *
+ * WHY errors are swallowed: an ad lookup must never take the catalog down with it.
+ */
+export async function listSponsoredSourcing(db, cache, { viewerId = null, categoryId } = {}) {
+  try {
+    const winners = await runAdAuction(db, cache, {
+      placement: SPONSORED_SOURCING_PLACEMENT,
+      categoryId,
+      limit: 6, // the real cap is the `max_slots` setting, applied inside the auction
+      viewerId,
+    });
+
+    const items = [];
+    for (const w of winners) {
+      const product = await productRepo.getProductById(db, w.productId);
+      if (!product || product.status !== 'ACTIVE') continue;
+      const pricing = await calculateProductPricing(db, product);
+      items.push({
+        campaign_id: w.campaignId,
+        creative_id: w.creativeId,
+        charged_cpc: w.chargedCpc,
+        slot_position: w.slotPosition,
+        product: toSourcingItem(product, pricing),
+      });
+    }
+
+    const withScorecards = await attachScorecards(db, items.map((i) => i.product));
+    return items.map((item, idx) => ({ ...item, product: withScorecards[idx] }));
+  } catch (err) {
+    console.error('Sponsored sourcing lookup failed:', err.message);
+    return [];
+  }
 }
 
 export async function addProductToSalerStore(db, { salerId, productId, customRetailPrice, collectionName }) {

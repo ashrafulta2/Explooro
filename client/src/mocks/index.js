@@ -21,6 +21,7 @@ import { b2bEscrowHandlers } from './handlers/b2bEscrow.js';
 import { developerHandlers } from './handlers/developer.js';
 import { contentHandlers } from './handlers/content.js';
 import supplierHandlers from './handlers/supplier.js';
+import sampleKitHandlers from './handlers/sampleKit.js';
 import salerHandlers from './handlers/saler.js';
 import adminHandlers from './handlers/admin.js';
 import moduleHandlers from './handlers/modules.js';
@@ -62,6 +63,7 @@ const handlers = [
   ...developerHandlers,
   ...contentHandlers,
   ...supplierHandlers,
+  ...sampleKitHandlers,
   ...salerHandlers,
   ...adminHandlers,
   ...moduleHandlers,
