@@ -28,6 +28,7 @@ import { WishlistButton } from '../components/cart/WishlistButton.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { resolveProductImage } from '../components/product/ProductCard.js';
 import { addToCart } from '../services/cart.js';
+import { track, startDwell } from '../services/signals.js';
 import * as catalogApi from '../services/catalog.api.js';
 import { updateHead, buildProductJsonLd } from '../services/seo.js';
 import { api } from '../core/api.js';
@@ -369,6 +370,13 @@ export default function ProductDetailPage(root, { params, navigate }) {
       if (!product) throw new Error('Product not found.');
 
       if (destroyed) return;
+
+      // Behavioural signals: a VIEW covers a deep-linked visit that never passed a product card (a
+      // card tap already reports CLICK, and the VIEW de-dupes against the card's impression), and the
+      // dwell timer is stopped by this page's cleanup to emit one DWELL for the time actually spent.
+      const signalAudience = auth.role === 'saler' ? 'saler' : 'customer';
+      track('VIEW', product, { audience: signalAudience });
+      cleanups.push(startDwell(product, { audience: signalAudience }));
 
       const title = lang === 'bn' ? product.title_bn : product.title_en;
       const description = lang === 'bn' ? product.description_bn : product.description_en;

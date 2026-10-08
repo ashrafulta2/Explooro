@@ -22,4 +22,5 @@ export default async function discoveryRoutes(app) {
 
   app.get('/discovery/feed', { preHandler: [optionalAuth] }, discoveryController.getFeed);
   app.post('/discovery/events', { preHandler: [optionalAuth] }, discoveryController.recordEvents);
+  app.post('/discovery/search-events', { preHandler: [optionalAuth] }, discoveryController.recordSearch);
 }

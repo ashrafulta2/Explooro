@@ -116,14 +116,16 @@ test('Discover — Event Weight Parity (mock ⇄ server)', async (t) => {
   const mockWeights = parseWeights(mockSrc, 'EVENT_WEIGHTS = {');
   const serverWeights = parseWeights(serverSrc, 'EVENT_WEIGHTS = {');
 
-  await t.test('1. Both define the same six event types with the same weights', () => {
+  await t.test('1. Both define the same nine event types with the same weights', () => {
     assert.deepEqual(mockWeights, serverWeights);
-    assert.deepEqual(Object.keys(mockWeights).sort(), ['ADD_CART', 'CLICK', 'DWELL', 'PURCHASE', 'VIEW', 'WISHLIST']);
+    assert.deepEqual(Object.keys(mockWeights).sort(), ['ADD_CART', 'CLICK', 'DWELL', 'FOLLOW_STORE', 'PURCHASE', 'SEARCH_CLICK', 'SHARE', 'VIEW', 'WISHLIST']);
   });
 
   await t.test('2. A purchase outweighs a passive view (the ordering premise)', () => {
     assert.ok(mockWeights.PURCHASE > mockWeights.VIEW);
     assert.ok(mockWeights.ADD_CART > mockWeights.CLICK);
+    // A query-driven open states intent that a browse tap does not.
+    assert.ok(mockWeights.SEARCH_CLICK > mockWeights.CLICK);
   });
 });
 

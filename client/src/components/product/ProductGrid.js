@@ -45,6 +45,7 @@ export function ProductGrid({
   onAction = null,
   emptyTitle = null,
   emptyDescription = null,
+  signalContext = null,
 } = {}) {
   // ── Back-to-top button (fixed, outside the grid scroll) ─────────────────
   const backTop = document.createElement('button');
@@ -135,7 +136,7 @@ export function ProductGrid({
       } else {
         for (const product of products) {
           grid.append(
-            ProductCard({ product, role, modules, lang, size: 'full', onNavigate, onAction })
+            ProductCard({ product, role, modules, lang, size: 'full', onNavigate, onAction, signalContext })
           );
         }
 

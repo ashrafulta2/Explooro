@@ -425,6 +425,62 @@ export async function listCatalog(db, filters = {}) {
   return enriched;
 }
 
+// Protocol limit from docs/api-contract.md §4.1 ("limit default 20, maximum 100"), not a tunable
+// business number — it caps how much one page of any cursor-paginated feed may cost.
+export const MAX_CATALOG_PAGE_SIZE = 100;
+export const DEFAULT_CATALOG_PAGE_SIZE = 20;
+
+/**
+ * One cursor-paginated page of the public catalog, in the envelope docs/api-contract.md §4.1
+ * mandates for feeds. Over-fetches by one row to answer `has_more` without a second COUNT query.
+ *
+ * `total` is only resolved on a feed's first page (`withTotal`), because that is the only page the
+ * grid's "N products" label reads — a deep scroll must not pay for a repeated COUNT.
+ *
+ * @returns {Promise<{products: object[], hasMore: boolean, limit: number, offset: number, total: number|null}>}
+ */
+export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, withTotal = false, ...filters } = {}) {
+  const parsedLimit = parseInt(limit, 10);
+  const pageSize = Math.min(
+    Math.max(Number.isFinite(parsedLimit) ? parsedLimit : DEFAULT_CATALOG_PAGE_SIZE, 1),
+    MAX_CATALOG_PAGE_SIZE
+  );
+  const start = Math.max(parseInt(offset, 10) || 0, 0);
+
+  const [rows, total] = await Promise.all([
+    listCatalog(db, { ...filters, limit: pageSize + 1, offset: start }),
+    withTotal ? productRepo.countProducts(db, filters) : Promise.resolve(null),
+  ]);
+  const hasMore = rows.length > pageSize;
+  let page = hasMore ? rows.slice(0, pageSize) : rows;
+
+  // WHY margin is filtered here and not in SQL: saler margin % is derived by the pricing service
+  // from the commission split, which is configuration — there is no column to put in a WHERE.
+  // The consequence is honest and documented: with min_margin set a page can come back short
+  // while `has_more` stays true, so the grid keeps scrolling rather than stopping early.
+  let marginFiltered = false;
+  if (minMarginPct !== undefined && minMarginPct !== null && minMarginPct !== '') {
+    const threshold = parseFloat(minMarginPct);
+    if (Number.isFinite(threshold)) {
+      // Compare against the same number the product card badges (pricing.saler_margin_pct), so a
+      // "20%+" filter can never surface a card labelled 15%.
+      page = page.filter((p) => Number(p.pricing?.saler_margin_pct ?? 0) >= threshold);
+      marginFiltered = true;
+    }
+  }
+
+  return {
+    products: page,
+    hasMore,
+    limit: pageSize,
+    offset: start,
+    // The COUNT above only knows the SQL filters, so it would over-report once margin has been
+    // applied in JS. Report no total rather than a wrong one — the grid falls back to counting
+    // what it has loaded.
+    total: marginFiltered ? null : total,
+  };
+}
+
 export async function listSourcingCatalog(db, filters = {}) {
   const { minMarginPct, categoryId, brand, limit = 50, offset = 0 } = filters;
   const products = await productRepo.listProducts(db, {

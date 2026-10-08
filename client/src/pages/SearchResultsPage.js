@@ -13,6 +13,7 @@ import { ProductGrid } from '../components/product/ProductGrid.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { updateHead } from '../services/seo.js';
+import { trackSearch } from '../services/signals.js';
 
 export default function SearchResultsPage(root, { query, navigate }) {
   const cleanups = [];
@@ -72,6 +73,9 @@ export default function SearchResultsPage(root, { query, navigate }) {
     const result = await listProducts({ q: term, limit: 20, ...(cursor ? { cursor } : {}) });
     if (!cursor) {
       const total = result.meta?.total ?? result.products.length;
+      // One search event per results page load, with the real count: a zero here is the "our catalog
+      // is missing this" signal. Typeahead keystrokes never reach this page, so they are not counted.
+      trackSearch({ query: term, resultCount: total, audience: role === 'saler' ? 'saler' : 'customer' });
       countLabel.textContent =
         total === 0
           ? ''
@@ -89,6 +93,8 @@ export default function SearchResultsPage(root, { query, navigate }) {
     onAction: handleAction,
     emptyTitle: t('marketplace.search_page.empty_title'),
     emptyDescription: t('marketplace.search_page.empty_desc', { query: term }),
+    // Opening a card from here is a SEARCH_CLICK carrying this query, not a plain CLICK.
+    signalContext: { query: term },
   });
   cleanups.push(cleanup);
   page.append(el);

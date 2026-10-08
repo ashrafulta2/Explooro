@@ -10,6 +10,7 @@ import { createStore } from '../core/store.js';
 import { appStore } from '../state/appStore.js';
 import { toast } from './toast.js';
 import { t } from './i18n.js';
+import { track } from './signals.js';
 
 const GUEST_CART_STORAGE_KEY = 'explooro_guest_cart';
 
@@ -182,6 +183,11 @@ export async function addToCart({
   supplier_name = '',
   stock_qty = 10,
 }) {
+  // WHY only the id: this function's supplier_id defaults to a placeholder (1), which would poison the
+  // supplier affinity. The server backfills category and supplier from the product row instead.
+  // Reported here, not at each button, so every add-to-cart surface is counted exactly once.
+  track('ADD_CART', { id: product_id });
+
   const previousCart = cartStore.get().cart;
 
   // Optimistic update
@@ -344,6 +350,8 @@ export async function toggleWishlist(productId) {
       const confirmedSet = new Set(cartStore.get().wishlistProductIds);
       if (res.data.in_wishlist) {
         confirmedSet.add(Number(productId));
+        // Only a confirmed save is a signal: a rolled-back toggle or an un-save says nothing positive.
+        track('WISHLIST', { id: productId });
       } else {
         confirmedSet.delete(Number(productId));
       }

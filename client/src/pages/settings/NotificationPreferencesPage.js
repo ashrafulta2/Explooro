@@ -14,6 +14,12 @@ import { api } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { appStore } from '../../state/appStore.js';
+import {
+  isOffByBrowserSignal,
+  isPersonalizationEnabled,
+  setPersonalizationEnabled,
+} from '../../services/signals.js';
 
 // WHY the channel list is data, not markup: every category renders the same four toggles, and a
 // fifth channel (WhatsApp, Prompt 8.3) should be one row here rather than four edits per card.
@@ -292,6 +298,56 @@ export default function NotificationPreferencesPage(root, { navigate } = {}) {
     } finally {
       saveBtn.setLoading(false);
     }
+  }
+
+  // ── Personalization opt-out ───────────────────────────────────────────────
+  // Lives on the account settings page because that is where a shopper looks for "what do you do with
+  // my data". A Switch, not a form field: it takes effect the moment it flips and needs no Save.
+  function buildPersonalizationCard() {
+    const body = document.createElement('div');
+    body.className = 'notif-prefs-card__body';
+
+    const note = document.createElement('p');
+    note.className = 'notif-prefs-locked-note';
+    note.setAttribute('aria-live', 'polite');
+
+    const renderNote = () => {
+      if (isOffByBrowserSignal()) note.textContent = t('personalization.dnt_note');
+      else if (isPersonalizationEnabled()) note.textContent = t('personalization.on_note');
+      else note.textContent = t('personalization.off_note');
+    };
+
+    body.append(
+      Switch({
+        label: t('personalization.toggle_label'),
+        checked: isPersonalizationEnabled(),
+        onChange: (checked) => {
+          setPersonalizationEnabled(checked);
+          renderNote();
+          toast.info(t(checked ? 'personalization.toast_on' : 'personalization.toast_off'));
+        },
+      }),
+      note
+    );
+    renderNote();
+
+    const card = Card({
+      title: `✨  ${t('personalization.card_title')}`,
+      subtitle: t('personalization.card_subtitle'),
+      body,
+    });
+    card.classList.add('notif-prefs-card');
+    return card;
+  }
+
+  // WHY hidden only on an explicit `false`: an admin who switched the capture module off has made
+  // the choice moot (nothing is recorded either way), but a module list that does not mention it
+  // yet (mock mode, older server) must not make the control disappear.
+  if (appStore.get().modules?.personalization_signals !== false) {
+    const privacyGrid = document.createElement('div');
+    privacyGrid.className = 'notif-prefs-grid';
+    privacyGrid.append(buildPersonalizationCard());
+    container.append(privacyGrid);
   }
 
   root.append(container);

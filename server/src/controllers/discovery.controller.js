@@ -4,6 +4,7 @@
  * GET  /discovery/feed   — personalized, paginated catalog page (optional auth: guests ranked by
  *                          their session's history, signed-in users by their account's).
  * POST /discovery/events — record interaction signals that feed the ranking.
+ * POST /discovery/search-events — record one deliberate search (query, result count).
  */
 
 import * as discoveryService from '../services/discoveryFeed.service.js';
@@ -36,6 +37,7 @@ export async function getFeed(req, reply) {
     in_stock,
     q,
     audience,
+    personalize,
     limit,
     offset,
   } = req.query || {};
@@ -59,6 +61,8 @@ export async function getFeed(req, reply) {
     userId: req.user?.id,
     sessionId: resolveSessionId(req),
     audience: resolveAudience(audience),
+    // `personalize=0` is the shopper opting out of profiling (client signals.js); anything else keeps it on.
+    personalize: !(personalize === '0' || personalize === 'false'),
     limit: limit ? parseInt(limit, 10) : undefined,
     offset: offset ? parseInt(offset, 10) : 0,
   });
@@ -72,6 +76,22 @@ export async function recordEvents(req, reply) {
 
   const result = await discoveryService.recordEvents(db, {
     events: body.events ?? body.event,
+    userId: req.user?.id,
+    sessionId: resolveSessionId(req, body.session_id),
+    audience: resolveAudience(body.audience),
+  });
+
+  return reply.status(202).send({ data: result });
+}
+
+export async function recordSearch(req, reply) {
+  const db = req.db || req.server?.db;
+  const body = req.body || {};
+
+  const result = await discoveryService.recordSearch(db, {
+    query: body.query ?? body.q,
+    resultCount: body.result_count,
+    categoryId: body.category_id,
     userId: req.user?.id,
     sessionId: resolveSessionId(req, body.session_id),
     audience: resolveAudience(body.audience),

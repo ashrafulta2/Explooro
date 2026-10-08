@@ -10,6 +10,14 @@
 /**
  * Bulk-inserts interaction events in a single round trip. `events` are already validated/normalized
  * by the service (event_type, weight, audience checked), so this only shapes the multi-row VALUES.
+ *
+ * WHY INSERT … SELECT … JOIN products rather than a plain INSERT … VALUES: product_id is a foreign
+ * key, and with signals now captured site-wide a batch can carry a product that was deleted, or a
+ * card that never was a catalog row. A plain INSERT would fail the whole batch on one bad id and
+ * lose every good event beside it. The JOIN skips unknown products atomically, and lets category
+ * and supplier be backfilled from the product row so a call site only has to know product_id.
+ *
+ * @returns {Promise<number>} rows actually written (unknown products are not counted)
  */
 export async function recordEvents(db, events) {
   if (!events || events.length === 0) return 0;
@@ -25,6 +33,8 @@ export async function recordEvents(db, events) {
     'weight',
     'audience',
   ];
+  // Explicit casts: in a VALUES list a bare NULL parameter has no type to infer from.
+  const casts = ['bigint', 'text', 'bigint', 'bigint', 'bigint', 'text', 'integer', 'numeric', 'text'];
 
   const params = [];
   const valueRows = events.map((e) => {
@@ -39,19 +49,23 @@ export async function recordEvents(db, events) {
       e.weight ?? 1,
       e.audience ?? 'customer',
     ];
-    const placeholders = row.map((val) => {
+    const placeholders = row.map((val, i) => {
       params.push(val);
-      return `$${params.length}`;
+      return `$${params.length}::${casts[i]}`;
     });
     return `(${placeholders.join(', ')})`;
   });
 
-  await db.query(
+  const result = await db.query(
     `INSERT INTO product_interaction_events (${cols.join(', ')})
-     VALUES ${valueRows.join(', ')}`,
+     SELECT v.user_id, v.session_id, v.product_id,
+            COALESCE(v.category_id, p.category_id), COALESCE(v.supplier_id, p.supplier_id),
+            v.event_type, v.dwell_ms, v.weight, v.audience
+     FROM (VALUES ${valueRows.join(', ')}) AS v(${cols.join(', ')})
+     JOIN products p ON p.id = v.product_id`,
     params
   );
-  return events.length;
+  return typeof result?.rowCount === 'number' ? result.rowCount : events.length;
 }
 
 /**
@@ -120,4 +134,58 @@ export async function getAffinity(
     brands: brands.filter(Boolean),
     supplierIds: supplierIds.map((id) => Number(id)).filter(Number.isFinite),
   };
+}
+
+/** Appends one row to search_events. Inputs are validated/normalized by the service. */
+export async function insertSearchEvent(db, e) {
+  await db.query(
+    `INSERT INTO search_events
+       (user_id, session_id, query_raw, query_normalized, result_count, category_id, audience)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [e.userId, e.sessionId, e.queryRaw, e.queryNormalized, e.resultCount, e.categoryId, e.audience]
+  );
+}
+
+/**
+ * Stamps the actor's most recent not-yet-clicked search for this query with the product they
+ * opened. Scoped to the last 30 minutes so a click cannot be credited to a search from days ago.
+ */
+export async function attachSearchClick(
+  db,
+  { userId, sessionId, audience, queryNormalized, productId, categoryId }
+) {
+  const params = [];
+  const actor = actorClause(params, { userId, sessionId });
+  params.push(audience, queryNormalized, productId, categoryId ?? null);
+  const n = params.length;
+  await db.query(
+    `UPDATE search_events
+     SET clicked_product_id = $${n - 1},
+         category_id = COALESCE(category_id, $${n}::bigint, (SELECT category_id FROM products WHERE id = $${n - 1}))
+     WHERE id = (
+       SELECT id FROM search_events
+       WHERE ${actor}
+         AND audience = $${n - 3}
+         AND query_normalized = $${n - 2}
+         AND clicked_product_id IS NULL
+         AND created_at > now() - interval '30 minutes'
+       ORDER BY created_at DESC
+       LIMIT 1
+     )`,
+    params
+  );
+}
+
+/** Queries that found nothing, grouped and ranked by how often people ran them. */
+export async function topZeroResultQueries(db, { days, limit }) {
+  const { rows } = await db.query(
+    `SELECT query_normalized AS query, COUNT(*)::int AS searches, MAX(created_at) AS last_searched_at
+     FROM search_events
+     WHERE result_count = 0 AND created_at > now() - ($1 || ' days')::interval
+     GROUP BY query_normalized
+     ORDER BY searches DESC, last_searched_at DESC
+     LIMIT $2`,
+    [days, limit]
+  );
+  return rows;
 }

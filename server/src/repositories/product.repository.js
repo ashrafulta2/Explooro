@@ -254,38 +254,45 @@ export async function getSupplierInfo(db, supplierId) {
   return rows[0] ?? null;
 }
 
-export async function listProducts(
-  db,
-  {
-    categoryId,
-    categorySlug,
-    brand,
-    status = 'ACTIVE',
-    minPrice,
-    maxPrice,
-    sortBy = 'newest',
-    limit = 20,
-    offset = 0,
-    supplierId,
-    flashSale,
-    supplierTier,
-    district,
-    q,
-    // Personalized ranking inputs, only consulted when sortBy === 'recommended'. Each is the set of
-    // categories / brands / suppliers the caller has shown affinity for (see
-    // discoveryFeed.service.js), with the weight each match contributes to a row's score. The score
-    // is computed across the whole filtered set BEFORE the LIMIT, so it genuinely reorders the
-    // catalog rather than just the current page.
-    boostCategoryIds = [],
-    boostBrands = [],
-    boostSupplierIds = [],
-    affinityWeights = { category: 3, brand: 2, supplier: 2 },
-    // Opt-in: aggregate each row's active variants inline so the discovery feed can paint its Size
-    // selector in the first frame without a per-slide detail fetch. Off by default — the plain
-    // catalog grid must not pay for a variant array it never renders.
-    withVariants = false,
-  } = {}
-) {
+/**
+ * The FROM + JOIN block every public catalog read shares. Extracted so `listProducts` and
+ * `countProducts` can never drift apart — a filter referencing `up.district` or `fs.id` has to
+ * resolve identically in the page query and in the total that labels it.
+ */
+const CATALOG_FROM = `
+     FROM products p
+     JOIN categories c ON c.id = p.category_id
+     LEFT JOIN trust_scores ts ON ts.user_id = p.supplier_id
+     LEFT JOIN user_profiles up ON up.user_id = p.supplier_id
+     LEFT JOIN virtual_stores vs ON vs.saler_id = p.supplier_id
+     -- WHY SCHEDULED too: createFlashSale inserts SCHEDULED and nothing promotes it to ACTIVE; the
+     -- public flash-sale feed already treats "SCHEDULED and inside its window" as live. Matching only
+     -- ACTIVE meant a sale started from the admin catalog never showed on the product.
+     LEFT JOIN flash_sales fs ON fs.product_id = p.id AND fs.status IN ('ACTIVE', 'SCHEDULED')
+                             AND now() BETWEEN fs.starts_at AND fs.ends_at`;
+
+/**
+ * Builds the shared WHERE clause for a catalog read. Returns the conditions and the parameters
+ * they bind, in order — the caller keeps pushing onto `params` for its own LIMIT/ORDER BY.
+ *
+ * @returns {{conditions: string[], params: any[]}}
+ */
+function buildCatalogFilter({
+  categoryId,
+  categorySlug,
+  categoryRef,
+  brand,
+  status = 'ACTIVE',
+  minPrice,
+  maxPrice,
+  inStock,
+  minRating,
+  supplierId,
+  flashSale,
+  supplierTier,
+  district,
+  q,
+} = {}) {
   const conditions = ['p.deleted_at IS NULL'];
   const params = [];
 
@@ -309,6 +316,15 @@ export async function listProducts(
     conditions.push(`c.slug = $${params.length}`);
   }
 
+  // WHY match slug OR name_en: the marketplace grid's category pills are keyed by the category's
+  // English NAME ("Home & Kitchen"), not its slug — see KNOWN_CATEGORIES in client HomePage.js —
+  // so the one category param the catalog page actually sends has to resolve either spelling.
+  // Matching only the slug meant every pill silently returned the unfiltered catalog in live mode.
+  if (categoryRef) {
+    params.push(String(categoryRef));
+    conditions.push(`(c.slug ILIKE $${params.length} OR c.name_en ILIKE $${params.length})`);
+  }
+
   if (brand) {
     params.push(brand);
     conditions.push(`p.brand ILIKE $${params.length}`);
@@ -322,6 +338,17 @@ export async function listProducts(
   if (maxPrice !== undefined && maxPrice !== null) {
     params.push(maxPrice);
     conditions.push(`p.default_retail_price <= $${params.length}`);
+  }
+
+  if (inStock) {
+    conditions.push('p.stock_qty > 0');
+  }
+
+  // COALESCE so an unrated product counts as 0 rather than dropping out on NULL comparison — a
+  // "3 stars and up" filter should exclude it, not silently behave like an is-rated filter.
+  if (minRating !== undefined && minRating !== null) {
+    params.push(minRating);
+    conditions.push(`COALESCE(p.rating_avg, 0) >= $${params.length}`);
   }
 
   if (district) {
@@ -352,6 +379,47 @@ export async function listProducts(
     params.push(`%${q}%`);
     conditions.push(`(p.title_en ILIKE $${params.length} OR p.title_bn ILIKE $${params.length})`);
   }
+
+  return { conditions, params };
+}
+
+/**
+ * How many products match a catalog filter, ignoring pagination. Used for the "N products" label
+ * above the grid — see listCatalogPage, which only asks for it on a feed's first page so a deep
+ * scroll never pays for a repeat COUNT.
+ */
+export async function countProducts(db, filters = {}) {
+  const { conditions, params } = buildCatalogFilter(filters);
+  const { rows } = await db.query(
+    `SELECT COUNT(DISTINCT p.id)::int AS total${CATALOG_FROM}
+     WHERE ${conditions.join(' AND ')}`,
+    params
+  );
+  return rows[0]?.total ?? 0;
+}
+
+export async function listProducts(db, filters = {}) {
+  const {
+    sortBy = 'newest',
+    limit = 20,
+    offset = 0,
+    // Personalized ranking inputs, only consulted when sortBy === 'recommended'. Each is the set of
+    // categories / brands / suppliers the caller has shown affinity for (see
+    // discoveryFeed.service.js), with the weight each match contributes to a row's score. The score
+    // is computed across the whole filtered set BEFORE the LIMIT, so it genuinely reorders the
+    // catalog rather than just the current page.
+    boostCategoryIds = [],
+    boostBrands = [],
+    boostSupplierIds = [],
+    affinityWeights = { category: 3, brand: 2, supplier: 2 },
+    // Opt-in: aggregate each row's active variants inline so the discovery feed can paint its Size
+    // selector in the first frame without a per-slide detail fetch. Off by default — the plain
+    // catalog grid must not pay for a variant array it never renders.
+    withVariants = false,
+  } = filters;
+
+  // Filters come from the shared builder so the page and its "N products" count can never disagree.
+  const { conditions, params } = buildCatalogFilter(filters);
 
   let orderClause = 'p.created_at DESC';
   if (sortBy === 'price_asc') orderClause = 'p.default_retail_price ASC';
@@ -437,17 +505,7 @@ export async function listProducts(
             (SELECT m.storage_key FROM product_images pi
                JOIN media_assets m ON m.id = pi.media_id
               WHERE pi.product_id = p.id
-              ORDER BY pi.is_primary DESC, pi.display_order ASC LIMIT 1) as primary_image_key${variantsSelect}
-     FROM products p
-     JOIN categories c ON c.id = p.category_id
-     LEFT JOIN trust_scores ts ON ts.user_id = p.supplier_id
-     LEFT JOIN user_profiles up ON up.user_id = p.supplier_id
-     LEFT JOIN virtual_stores vs ON vs.saler_id = p.supplier_id
-     -- WHY SCHEDULED too: createFlashSale inserts SCHEDULED and nothing promotes it to ACTIVE; the
-     -- public flash-sale feed already treats "SCHEDULED and inside its window" as live. Matching only
-     -- ACTIVE meant a sale started from the admin catalog never showed on the product.
-     LEFT JOIN flash_sales fs ON fs.product_id = p.id AND fs.status IN ('ACTIVE', 'SCHEDULED')
-                             AND now() BETWEEN fs.starts_at AND fs.ends_at
+              ORDER BY pi.is_primary DESC, pi.display_order ASC LIMIT 1) as primary_image_key${variantsSelect}${CATALOG_FROM}
      WHERE ${conditions.join(' AND ')}
      ORDER BY ${orderClause}
      LIMIT $${limitIdx} OFFSET $${offsetIdx}`,

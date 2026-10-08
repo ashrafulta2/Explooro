@@ -5892,5 +5892,15 @@
     "trend_down": "DOWN",
     "trend_stable": "STABLE",
     "empty": "No SKUs match the current filter."
+  },
+  "personalization": {
+    "card_title": "Personalized recommendations",
+    "card_subtitle": "Use what you view, search for, save and buy to show you products you are more likely to want.",
+    "toggle_label": "Personalize what I see",
+    "on_note": "We remember the products you view, tap, search for, save and buy, on this device and on your account. It is only used to decide the order of what you see.",
+    "off_note": "Nothing new is being recorded, and your home page shows what is popular with everyone instead.",
+    "dnt_note": "Your browser is sending a Do Not Track signal, so personalization stays off until you turn it on here.",
+    "toast_on": "Personalized recommendations are on",
+    "toast_off": "Personalized recommendations are off"
   }
 }

@@ -29,7 +29,8 @@ import { formatCurrency, formatNumber } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { addToCart } from '../../services/cart.js';
-import { getFeed, recordEvent } from '../../services/discovery.api.js';
+import { getFeed } from '../../services/discovery.api.js';
+import { recordEvent, MIN_DWELL_MS } from '../../services/signals.js';
 import { getProduct, addToSalerStore } from '../../services/catalog.api.js';
 import { resolveProductImage } from './ProductCard.js';
 import { VariantSelector } from './VariantSelector.js';
@@ -43,8 +44,6 @@ import { Skeleton } from '../ui/Skeleton.js';
 
 // Fetch the next page once the active slide is within this many of the end.
 const PREFETCH_LOOKAHEAD = 5;
-// Ignore accidental micro-dwells as an engagement signal.
-const MIN_DWELL_MS = 800;
 
 function titleOf(p, lang) {
   return (lang === 'bn' ? p.title_bn || p.title_en : p.title_en || p.title_bn) || '';
@@ -480,7 +479,8 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
         supplier_name: p.supplier_name || p.supplier?.name || 'Verified Supplier',
         stock_qty: sel?.stockQty ?? st.availStock ?? 10,
       });
-      recordEvent({ event_type: 'ADD_CART', ...eventContext(p) }, { audience });
+      // ADD_CART is reported by addToCart() itself (services/cart.js), so every add-to-cart surface is
+      // counted once and this one is not double-counted.
     });
     primaryRow.append(primary);
 

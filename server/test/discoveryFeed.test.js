@@ -157,7 +157,14 @@ describe('Discovery feed — recordEvents (repository SQL shaping)', () => {
     ]);
     assert.equal(n, 2);
     assert.equal(captured.params.length, 18, 'two rows × nine columns');
-    assert.match(captured.sql, /VALUES \(\$1, \$2, \$3, \$4, \$5, \$6, \$7, \$8, \$9\), \(\$10, \$11, \$12, \$13, \$14, \$15, \$16, \$17, \$18\)/);
+    // Each placeholder carries a cast (a bare NULL in VALUES has no type), so match the numbering.
+    assert.ok(
+      captured.sql.includes('VALUES ($1::bigint, $2::text, $3::bigint, $4::bigint, $5::bigint, $6::text, $7::integer, $8::numeric, $9::text), ($10::bigint'),
+      'one cast placeholder group per event, numbered consecutively'
+    );
+    // WHY pinned: an unknown product must be skipped by the JOIN, not fail the whole batch on the FK.
+    assert.ok(captured.sql.includes('JOIN products p ON p.id = v.product_id'));
+    assert.ok(captured.sql.includes('COALESCE(v.category_id, p.category_id)'));
     // Nulls survive as nulls (not the string "null"), weight defaults hold.
     assert.equal(captured.params[10], null); // second row category_id
     assert.equal(captured.params[16], 2); // second row weight
@@ -409,9 +416,20 @@ describe('Discovery feed — migration ⇄ code contract', () => {
     const weightBlock = svc.slice(svc.indexOf('EVENT_WEIGHTS = {'), svc.indexOf('};', svc.indexOf('EVENT_WEIGHTS = {')));
     const types = [...weightBlock.matchAll(/^\s*([A-Z_]+):/gm)].map((m) => m[1]);
     assert.ok(types.length >= 6, 'sanity: found the event weight table');
-    const checkClause = migration.slice(migration.indexOf('event_type IN ('), migration.indexOf(')', migration.indexOf('event_type IN (')));
+    // WHY 055, not 047: 055 drops and re-adds this CHECK with a wider vocabulary, so it (the latest
+    // migration to define it) is the contract the live DB enforces. Compare against its quoted names.
+    const widened = fs.readFileSync(
+      path.resolve(import.meta.dirname, '../src/db/migrations/055_personalization_signals.sql'),
+      'utf8'
+    );
+    const start = widened.indexOf('event_type IN (');
+    const checkClause = widened.slice(start, widened.indexOf('));', start));
+    const allowed = [...checkClause.matchAll(/'([A-Z_]+)'/g)].map((m) => m[1]);
     for (const type of types) {
-      assert.ok(checkClause.includes(`'${type}'`), `migration CHECK must permit event_type ${type}`);
+      assert.ok(allowed.includes(type), `migration CHECK must permit event_type ${type}`);
+    }
+    for (const type of allowed) {
+      assert.ok(types.includes(type), `CHECK permits ${type} but the service has no weight for it`);
     }
   });
 

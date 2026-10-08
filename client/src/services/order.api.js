@@ -1,5 +1,6 @@
 import { api } from '../core/api.js';
-import { clearCart, syncCartToServer } from './cart.js';
+import { clearCart, getCart, syncCartToServer } from './cart.js';
+import { track, flushSignals } from './signals.js';
 
 const CHECKOUT_DRAFT_KEY = 'explooro_checkout_draft';
 
@@ -45,6 +46,13 @@ export async function placeCheckout(payload, { idempotencyKey = null } = {}) {
   const res = await api.post('/orders/checkout', payload, {
     idempotencyKey: key,
   });
+
+  // PURCHASE is the strongest signal there is. Read the lines BEFORE clearCart() empties them, and
+  // only after the order is confirmed — a failed checkout throws above and records nothing.
+  for (const item of getCart()?.items ?? []) {
+    track('PURCHASE', { id: item.product_id });
+  }
+  flushSignals();
 
   clearCheckoutDraft();
   clearCart();

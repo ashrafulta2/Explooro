@@ -3,6 +3,7 @@
  */
 
 import * as searchService from '../services/search.service.js';
+import { getZeroResultQueries } from '../services/discoveryFeed.service.js';
 
 export async function search(req, reply) {
   const db = req.db || req.server?.db;
@@ -56,7 +57,17 @@ export async function suggest(req, reply) {
 }
 
 export async function getZeroResultLog(req, reply) {
+  const db = req.db || req.server?.db;
+  // WHY both: the in-memory array is this process's recent raw log (kept for the existing consumer);
+  // the DB report is the durable, per-query ranking that survives restarts and spans instances.
+  let topQueries = [];
+  try {
+    topQueries = await getZeroResultQueries(db, { days: req.query?.days, limit: req.query?.limit });
+  } catch {
+    // search_events missing on a partial DB — the in-memory log below still answers.
+  }
   return reply.send({
     zero_result_searches: searchService.zeroResultSearchLog,
+    top_zero_result_queries: topQueries,
   });
 }

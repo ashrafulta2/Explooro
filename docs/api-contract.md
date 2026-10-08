@@ -249,6 +249,11 @@ GET /api/v1/products?limit=20&cursor=eyJpZCI6NDIxfQ
 
 - The cursor is an opaque base64 payload. Clients **must not** decode or construct it.
 - `limit` default 20, maximum 100.
+- `meta.total` is optional here and appears only on a feed's **first page** (no `cursor` sent), for
+  endpoints whose UI labels itself with a match count — the product catalog's "N products" line.
+  A cursor page omits it rather than paying for a repeated `COUNT`, and so does any page whose
+  filter cannot be expressed in SQL (the catalog's `min_margin`), because an approximate total is
+  worse than none. A client must treat a missing `total` as "unknown", never as zero.
 - **Why cursor:** with offset pagination, a row inserted while the user is on page 1 pushes an item
   onto page 2 and they see it twice — or miss one. On a live marketplace feed that happens
   constantly.

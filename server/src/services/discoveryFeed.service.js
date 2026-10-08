@@ -22,6 +22,11 @@ const EVENT_WEIGHTS = {
   VIEW: 1,
   DWELL: 1.5,
   CLICK: 2,
+  // WHY above CLICK: someone who typed a query and then opened a result stated what they want;
+  // someone who tapped a card while scrolling a grid only reacted to what we showed them.
+  SEARCH_CLICK: 3,
+  SHARE: 2.5,
+  FOLLOW_STORE: 3,
   ADD_CART: 4,
   WISHLIST: 3,
   PURCHASE: 6,
@@ -40,6 +45,42 @@ const DEFAULT_AFFINITY_WINDOW_DAYS = 30;
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_PAGE_SIZE = 30;
 const MAX_EVENTS_PER_CALL = 50;
+const MAX_QUERY_LENGTH = 200;
+
+// Fallbacks for the personalization_signals module's capture policy (migration 055 seeds the same
+// values). `enabled` defaults to true so a partial dev DB without the row still records.
+const DEFAULT_CAPTURE_POLICY = { enabled: true, trackGuests: true, minDwellMs: 1200 };
+
+/**
+ * Reads the capture policy off the personalization_signals module row. Same read-with-fallback
+ * shape as resolveFeedSettings: an unreadable row must not turn into silent data loss.
+ */
+export async function resolveCapturePolicy(db) {
+  const policy = { ...DEFAULT_CAPTURE_POLICY };
+  try {
+    const { rows } = await db.query(
+      `SELECT is_enabled, settings_json FROM platform_modules WHERE key = 'personalization_signals'`
+    );
+    if (rows[0]) {
+      policy.enabled = rows[0].is_enabled !== false;
+      const raw = rows[0].settings_json;
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (parsed && typeof parsed === 'object') {
+        if (typeof parsed.track_guests === 'boolean') policy.trackGuests = parsed.track_guests;
+        const d = Number(parsed.min_dwell_ms);
+        if (Number.isFinite(d) && d >= 0) policy.minDwellMs = Math.floor(d);
+      }
+    }
+  } catch {
+    // Row/table unreadable — keep the defaults.
+  }
+  return policy;
+}
+
+/** Lowercase, trim and collapse whitespace so "  Red   SHOE" and "red shoe" group together. */
+export function normalizeQuery(raw) {
+  return String(raw ?? '').normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase().slice(0, MAX_QUERY_LENGTH);
+}
 
 /**
  * Reads the admin-tunable feed settings off the discovery_feed module row, falling back to the
@@ -75,20 +116,24 @@ export async function resolveFeedSettings(db) {
  * @param {number} [opts.userId]  signed-in actor
  * @param {string} [opts.sessionId] guest actor
  * @param {string} [opts.audience] 'customer' | 'saler'
+ * @param {boolean} [opts.personalize] false = the shopper opted out of profiling: rank by popularity only
  * @param {number} [opts.limit]
  * @param {number} [opts.offset]
  */
-export async function getFeed(db, { filters = {}, userId, sessionId, audience = 'customer', limit, offset = 0 } = {}) {
+export async function getFeed(
+  db,
+  { filters = {}, userId, sessionId, audience = 'customer', personalize = true, limit, offset = 0 } = {}
+) {
   const { affinityWindowDays, pageSize } = await resolveFeedSettings(db);
   const effectiveLimit = Math.min(Number(limit) || pageSize, MAX_PAGE_SIZE);
   const safeOffset = Math.max(0, Number(offset) || 0);
 
-  const affinity = await feedRepo.getAffinity(db, {
-    userId,
-    sessionId,
-    audience,
-    windowDays: affinityWindowDays,
-  });
+  // WHY: a platform that switched signal capture off has said "do not personalize" — honour that on
+  // the read side too, so the feed degrades to popularity instead of ranking by stale history.
+  const capture = await resolveCapturePolicy(db);
+  const affinity = capture.enabled && personalize
+    ? await feedRepo.getAffinity(db, { userId, sessionId, audience, windowDays: affinityWindowDays })
+    : { categoryIds: [], brands: [], supplierIds: [] };
 
   // Over-fetch by one to know whether another page exists without a second COUNT query.
   const products = await productService.listCatalog(db, {
@@ -166,6 +211,10 @@ export async function recordEvents(db, { events, userId, sessionId, audience = '
   }
   const feedAudience = VALID_AUDIENCES.includes(audience) ? audience : 'customer';
 
+  const capture = await resolveCapturePolicy(db);
+  if (!capture.enabled) return { recorded: 0, skipped: 'capture_disabled' };
+  if (!userId && !capture.trackGuests) return { recorded: 0, skipped: 'guest_tracking_disabled' };
+
   const normalized = [];
   for (const e of list) {
     const eventType = String(e.event_type || e.eventType || '').toUpperCase();
@@ -184,7 +233,12 @@ export async function recordEvents(db, { events, userId, sessionId, audience = '
     const supplierId = Number(e.supplier_id ?? e.supplierId);
     const dwellMs = Math.max(0, Math.floor(Number(e.dwell_ms ?? e.dwellMs) || 0));
 
+    // WHY server-side too: the client filters short dwells, but the threshold is admin-tunable and a
+    // stale cached bundle would otherwise keep writing the sub-threshold glances it was built with.
+    if (eventType === 'DWELL' && dwellMs < capture.minDwellMs) continue;
+
     normalized.push({
+      query: eventType === 'SEARCH_CLICK' ? normalizeQuery(e.query) : '',
       userId: userId ?? null,
       sessionId: userId ? null : sessionId,
       productId,
@@ -198,5 +252,68 @@ export async function recordEvents(db, { events, userId, sessionId, audience = '
   }
 
   const recorded = await feedRepo.recordEvents(db, normalized);
+
+  // A SEARCH_CLICK that names its query closes the loop on that search: it is how a query with a
+  // click is told apart from one that converted nowhere. Best-effort — the event itself is saved.
+  for (const e of normalized) {
+    if (e.eventType === 'SEARCH_CLICK' && e.query) {
+      try {
+        await feedRepo.attachSearchClick(db, {
+          userId: e.userId,
+          sessionId: e.sessionId,
+          audience: e.audience,
+          queryNormalized: e.query,
+          productId: e.productId,
+          categoryId: e.categoryId,
+        });
+      } catch {
+        // search_events unavailable on a partial DB — the interaction event still counts.
+      }
+    }
+  }
   return { recorded };
+}
+
+/**
+ * Records one deliberate search (a submitted query, not a typeahead keystroke) so the shopper's
+ * query intent can feed ranking and the zero-result report survives a restart.
+ */
+export async function recordSearch(db, { query, resultCount, categoryId, userId, sessionId, audience = 'customer' }) {
+  const raw = String(query ?? '').trim().slice(0, MAX_QUERY_LENGTH);
+  const normalizedQuery = normalizeQuery(raw);
+  if (!normalizedQuery) {
+    throw new AppError('VALIDATION_FAILED', 'A non-empty query is required.', 'একটি অ-খালি কোয়েরি প্রয়োজন।');
+  }
+  if (!userId && !sessionId) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      'A session_id is required to record a search for a guest.',
+      'গেস্টের জন্য সার্চ রেকর্ড করতে session_id প্রয়োজন।'
+    );
+  }
+
+  const capture = await resolveCapturePolicy(db);
+  if (!capture.enabled) return { recorded: 0, skipped: 'capture_disabled' };
+  if (!userId && !capture.trackGuests) return { recorded: 0, skipped: 'guest_tracking_disabled' };
+
+  const count = Number(resultCount);
+  const category = Number(categoryId);
+  await feedRepo.insertSearchEvent(db, {
+    userId: userId ?? null,
+    sessionId: userId ? null : sessionId,
+    queryRaw: raw,
+    queryNormalized: normalizedQuery,
+    resultCount: Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0,
+    categoryId: Number.isFinite(category) ? category : null,
+    audience: VALID_AUDIENCES.includes(audience) ? audience : 'customer',
+  });
+  return { recorded: 1 };
+}
+
+/** Most-searched queries that returned nothing — the catalog-gap report merchandising reads. */
+export async function getZeroResultQueries(db, { days = 30, limit = 50 } = {}) {
+  return feedRepo.topZeroResultQueries(db, {
+    days: Math.min(Math.max(Number(days) || 30, 1), 365),
+    limit: Math.min(Math.max(Number(limit) || 50, 1), 200),
+  });
 }

@@ -114,43 +114,109 @@ export async function getProduct(req, reply) {
   return reply.send({ data: { product }, product });
 }
 
+const TRUTHY_FLAGS = new Set(['1', 'true', 'yes', 'on']);
+
+/** Treats the handful of spellings a query string can carry for a boolean flag as one. */
+function isFlagOn(value) {
+  if (value === true) return true;
+  if (value === undefined || value === null) return false;
+  return TRUTHY_FLAGS.has(String(value).toLowerCase());
+}
+
+/**
+ * The catalog cursor is an opaque base64 payload carrying the page offset, per
+ * docs/api-contract.md §4.1 ("clients must not decode or construct it").
+ *
+ * WHY offset inside the cursor rather than true keyset: the catalog's ORDER BY is chosen at
+ * request time (price, rating, an affinity score) and several of those keys are neither unique
+ * nor monotonic, so there is no single column to seek on the way the orders ledger seeks on id.
+ * Wrapping the offset keeps the wire contract (and the mock's `{i}` cursor) intact and leaves the
+ * door open to swap in a real keyset per sort later without touching any client.
+ */
+function decodeCatalogCursor(cursor) {
+  if (!cursor) return 0;
+  try {
+    const decoded = JSON.parse(Buffer.from(String(cursor), 'base64').toString('utf8'));
+    const offset = Number(decoded.o ?? decoded.i ?? decoded.offset);
+    return Number.isFinite(offset) && offset > 0 ? Math.floor(offset) : 0;
+  } catch {
+    return 0; // A malformed cursor restarts the feed rather than 500-ing a public page.
+  }
+}
+
+function encodeCatalogCursor(offset) {
+  return Buffer.from(JSON.stringify({ o: offset })).toString('base64');
+}
+
 export async function listProducts(req, reply) {
   const db = req.db || req.server?.db;
   const {
     category_id,
     category_slug,
+    category,
     brand,
     min_price,
     max_price,
+    in_stock,
+    min_rating,
+    min_margin,
     status,
     sort_by,
+    sort,
     limit,
     offset,
+    cursor,
     supplier_id,
     flash_sale,
     supplier_tier,
+    tier,
     district,
     q,
   } = req.query || {};
 
-  const products = await productService.listCatalog(db, {
+  // WHY the aliases: the marketplace grid has always sent `sort`, `category`, `tier`, `in_stock`,
+  // `min_rating`, `min_margin` and `cursor` (the names the mock driver reads), while this endpoint
+  // only ever read `sort_by`, `category_slug`, `supplier_tier` and `offset`. Every one of those
+  // controls therefore worked in mock mode and silently did nothing against the live API — the
+  // sort dropdown most visibly, since an unread `sort` fell through to `newest`.
+  const startOffset = cursor ? decodeCatalogCursor(cursor) : parseInt(offset, 10) || 0;
+
+  const { products, hasMore, limit: pageSize, total } = await productService.listCatalogPage(db, {
     categoryId: category_id ? parseInt(category_id, 10) : undefined,
     categorySlug: category_slug,
+    categoryRef: category && category !== 'all' ? category : undefined,
     brand,
     minPrice: min_price ? parseFloat(min_price) : undefined,
     maxPrice: max_price ? parseFloat(max_price) : undefined,
+    inStock: isFlagOn(in_stock),
+    minRating: min_rating ? parseFloat(min_rating) : undefined,
+    minMarginPct: min_margin,
     status: status || 'ACTIVE',
-    sortBy: sort_by || 'newest',
-    limit: limit ? parseInt(limit, 10) : 20,
-    offset: offset ? parseInt(offset, 10) : 0,
+    sortBy: sort_by || sort || 'newest',
+    limit,
+    offset: startOffset,
+    // The grid only labels itself ("N products") from the first page's meta, so that is the only
+    // page that pays for a COUNT.
+    withTotal: startOffset === 0,
     supplierId: supplier_id ? parseInt(supplier_id, 10) : undefined,
-    flashSale: flash_sale === '1' || flash_sale === 'true' || flash_sale === true,
-    supplierTier: supplier_tier,
+    flashSale: isFlagOn(flash_sale),
+    supplierTier: supplier_tier || tier,
     district,
     q,
   });
 
-  return reply.send({ data: { products }, products });
+  return reply.send({
+    data: { products },
+    products,
+    meta: {
+      cursor: {
+        next: hasMore ? encodeCatalogCursor(startOffset + pageSize) : null,
+        has_more: hasMore,
+      },
+      count: products.length,
+      ...(total === null || total === undefined ? {} : { total }),
+    },
+  });
 }
 
 export async function previewPricing(req, reply) {

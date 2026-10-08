@@ -12,7 +12,18 @@
 import products from '../fixtures/products.json' with { type: 'json' };
 import { synthesizeSupplier, synthesizeDescription, synthesizeVariants } from './products.js';
 
-const EVENT_WEIGHTS = { VIEW: 1, DWELL: 1.5, CLICK: 2, ADD_CART: 4, WISHLIST: 3, PURCHASE: 6 };
+// Mirrors server/src/services/discoveryFeed.service.js EVENT_WEIGHTS (test/discoverFeed.test.js pins the parity).
+const EVENT_WEIGHTS = {
+  VIEW: 1,
+  DWELL: 1.5,
+  CLICK: 2,
+  SEARCH_CLICK: 3,
+  SHARE: 2.5,
+  FOLLOW_STORE: 3,
+  ADD_CART: 4,
+  WISHLIST: 3,
+  PURCHASE: 6,
+};
 const categoryAffinity = new Map();
 const viewedProductRefs = new Set();
 
@@ -224,6 +235,22 @@ export default [
         }
       }
       return { status: 202, body: { data: { recorded: events.length } } };
+    },
+  },
+  {
+    // One deliberate search (query + result count). Mock mode keeps no search history, so this only
+    // has to accept the call the way the live endpoint does.
+    method: 'POST',
+    path: '/discovery/search-events',
+    handler({ body }) {
+      const query = String(body?.query ?? body?.q ?? '').trim();
+      if (!query) {
+        return {
+          status: 400,
+          body: { error: { code: 'VALIDATION_FAILED', message_en: 'A non-empty query is required.', message_bn: 'একটি অ-খালি কোয়েরি প্রয়োজন।' } },
+        };
+      }
+      return { status: 202, body: { data: { recorded: 1 } } };
     },
   },
 ];

@@ -7,27 +7,9 @@
  */
 import { api } from '../core/api.js';
 import { normalizeProductListItem } from './catalog.api.js';
+import { getDiscoverySessionId, isPersonalizationOff } from './signals.js';
 
-const SESSION_KEY = 'explooro_discovery_sid';
-
-/**
- * The guest ranking id: an opaque token persisted in this browser so an anonymous shopper's
- * discovery history is stable across a session. Never an auth credential — it only scopes
- * personalization. Returns null if storage is unavailable (private mode); the feed then simply
- * ranks by popularity.
- */
-export function getDiscoverySessionId() {
-  try {
-    let sid = localStorage.getItem(SESSION_KEY);
-    if (!sid) {
-      sid = `sid_${crypto.randomUUID?.() || Math.random().toString(36).slice(2)}`;
-      localStorage.setItem(SESSION_KEY, sid);
-    }
-    return sid;
-  } catch {
-    return null;
-  }
-}
+export { getDiscoverySessionId };
 
 /**
  * Fetches one personalized page of the feed.
@@ -44,6 +26,9 @@ export async function getFeed({ limit, offset, audience = 'customer', filters = 
   if (limit != null) query.limit = limit;
   if (offset != null) query.offset = offset;
   if (sid) query.session_id = sid;
+  // WHY: a shopper who opted out asked not to be profiled, so their feed must not be ranked by
+  // history gathered before they did. The server then ranks by popularity alone.
+  if (isPersonalizationOff()) query.personalize = '0';
 
   const { data, meta } = await api.get('/discovery/feed', {
     query,
@@ -51,26 +36,4 @@ export async function getFeed({ limit, offset, audience = 'customer', filters = 
   });
   const products = (data?.products ?? []).map(normalizeProductListItem);
   return { products, meta: meta || {} };
-}
-
-/**
- * Records interaction signal(s). Fire-and-forget: a ranking signal must never block or break the
- * browsing experience, so failures are swallowed. Accepts one event or an array.
- */
-export function recordEvent(event, { audience = 'customer' } = {}) {
-  const events = Array.isArray(event) ? event : [event];
-  if (events.length === 0) return;
-  const sid = getDiscoverySessionId();
-
-  try {
-    api
-      .post(
-        '/discovery/events',
-        { events, audience, session_id: sid },
-        { headers: sid ? { 'x-session-id': sid } : undefined, skipAuthRedirect: true }
-      )
-      .catch(() => {});
-  } catch {
-    // Ignore — personalization is best-effort.
-  }
 }
