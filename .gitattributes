@@ -1,0 +1,5 @@
+# WHY: server/src/db/migrate.js records a sha256 of each migration's raw bytes in _migrations and
+# refuses to run if an applied file's bytes differ. With core.autocrlf=true on Windows the checkout
+# turned every .sql into CRLF while the index (and so Linux/CI/Docker) holds LF, so the same
+# migration hashed differently per machine. Pin SQL to LF in the working tree everywhere.
+*.sql text eol=lf
