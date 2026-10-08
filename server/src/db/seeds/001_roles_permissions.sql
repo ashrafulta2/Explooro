@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (195 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (197 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -206,6 +206,8 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('supplier.incentive.manage', 'supplier', 'Manage the volume incentive', 'ভলিউম ইনসেনটিভ ব্যবস্থাপনা', 'set the monthly rebate that is paid out of the supplier''s wallet to top-selling salers', 'সর্বোচ্চ বিক্রয়কারী সেলারদের সাপ্লায়ারের ওয়ালেট থেকে দেওয়া মাসিক রিবেট নির্ধারণ করতে', 'MEDIUM', true, 'approve_before'),
   ('supplier.sample.manage', 'supplier', 'Manage samples and marketing kits', 'স্যাম্পল ও মার্কেটিং কিট ব্যবস্থাপনা', 'set sample prices, accept or ship sample requests, and publish promotional kits for salers', 'স্যাম্পলের দাম নির্ধারণ, স্যাম্পল অনুরোধ গ্রহণ বা প্রেরণ এবং সেলারদের জন্য প্রচারণা কিট প্রকাশ করতে', 'MEDIUM', true, 'approve_before'),
   ('saler.sample.request', 'saler', 'Request product samples', 'পণ্যের স্যাম্পল অনুরোধ', 'request a paid sample from a supplier, which holds the cost in the vault until it arrives', 'সাপ্লায়ারের কাছ থেকে টাকার বিনিময়ে স্যাম্পল চাইতে, যার খরচ পৌঁছানো পর্যন্ত ভল্টে আটকে থাকে', 'MEDIUM', true, 'approve_before'),
+  ('supplier.return_protection.manage', 'supplier', 'Manage return protection', 'রিটার্ন প্রোটেকশন ব্যবস্থাপনা', 'enrol in or leave return protection, under which the platform pays a saler''s commission back when one of your orders is returned, for a premium', 'রিটার্ন প্রোটেকশনে যোগ দিতে বা ছাড়তে, যেখানে আপনার অর্ডার রিটার্ন হলে প্ল্যাটফর্ম প্রিমিয়ামের বিনিময়ে সেলারের কমিশন ফেরত দেয়', 'MEDIUM', true, 'approve_before'),
+  ('finance.fast_payout.request', 'finance', 'Take an early payout', 'ফাস্ট পেআউট নেওয়া', 'release earnings from escrow before the return window ends, for a fee', 'ফি-র বিনিময়ে রিটার্নের সময়সীমা শেষ হওয়ার আগেই এসক্রো থেকে আয় ছাড়াতে', 'MEDIUM', true, 'approve_before'),
   ('ai.concierge.use', 'ai', 'Use the shopping assistant', 'শপিং সহকারী ব্যবহার', NULL, NULL, 'LOW', true, 'approve_before'),
   ('ai.sourcing.use', 'ai', 'Use the sourcing assistant', 'সোর্সিং সহকারী ব্যবহার', NULL, NULL, 'LOW', true, 'approve_before'),
   ('ai.creative.use', 'ai', 'Use the creative studio', 'ক্রিয়েটিভ স্টুডিও ব্যবহার', NULL, NULL, 'LOW', true, 'approve_before'),
@@ -586,6 +588,9 @@ FROM (VALUES
   ('supplier', 'supplier.incentive.manage'),
   ('supplier', 'supplier.sample.manage'),
   ('saler', 'saler.sample.request'),
+  ('supplier', 'supplier.return_protection.manage'),
+  ('saler', 'finance.fast_payout.request'),
+  ('supplier', 'finance.fast_payout.request'),
   ('customer', 'ai.concierge.use'),
   ('saler', 'ai.concierge.use'),
   ('supplier', 'ai.concierge.use'),

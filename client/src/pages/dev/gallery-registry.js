@@ -61,6 +61,8 @@ import { SponsoredTag } from '../../components/saler/SponsoredTag.js';
 import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.js';
 import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
 import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.js';
+import { FastPayoutTable } from '../../components/payoutProtection/FastPayoutTable.js';
+import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.js';
 import { MarginProjection } from '../../components/saler/MarginProjection.js';
 import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.js';
 import { StoreHeader } from '../../components/store/StoreHeader.js';
@@ -944,6 +946,48 @@ function renderSampleRequestTable() {
   return wrap;
 }
 
+function renderFastPayoutTable() {
+  const wrap = document.createDocumentFragment();
+  const day = 86400000;
+  const entry = (id, over = {}) => ({
+    entry_id: id, sub_order_id: 900 + id, sub_order_ref: `SUB-${900 + id}`, role: 'SUPPLIER', amount: '1000.00',
+    hold_until: new Date(Date.now() + 5 * day).toISOString(), eligible: false, reason: null,
+    fee_pct: null, fee: null, net: null, days_saved: 0, ...over,
+  });
+  const rows = [
+    entry(1, { eligible: true, fee_pct: 2, fee: '20.00', net: '980.00', days_saved: 5 }),
+    entry(2, { role: 'SALER', amount: '250.00', eligible: true, fee_pct: 1, fee: '2.50', net: '247.50', days_saved: 4 }),
+    entry(3, { reason: 'NOT_DELIVERED' }),
+    entry(4, { reason: 'OPEN_CLAIM' }),
+    entry(5, { reason: 'EXPOSURE_LIMIT' }),
+  ];
+  wrap.append(
+    subgroup('FastPayoutTable - an entry that can be taken shows its fee and what you receive; one that cannot says why, in words'),
+    specimen('mixed', FastPayoutTable(rows, { onTake() {} }))
+  );
+  return wrap;
+}
+
+function renderProtectionCoverTable() {
+  const wrap = document.createDocumentFragment();
+  const cover = (id, status, over = {}) => ({
+    id, sub_order_ref: `SUB-${400 + id}`, insured_amount: '120.00', premium_pct: '10.00', premium_amount: '12.00',
+    premium_charged_at: null, status, claim_amount: null, claimed_at: null, denied_reason: null, ...over,
+  });
+  const rows = [
+    cover(1, 'ACTIVE', { premium_charged_at: new Date().toISOString() }),
+    cover(2, 'CLAIMED', { claim_amount: '120.00', claimed_at: new Date().toISOString() }),
+    cover(3, 'DENIED', { denied_reason: 'CLAIM_LIMIT' }),
+  ];
+  wrap.append(
+    subgroup('ProtectionCoverTable - a supplier also sees the premium; status is always words and a refused claim says why'),
+    specimen('supplier view', ProtectionCoverTable(rows, { perspective: 'supplier' })),
+    subgroup('ProtectionCoverTable - a saler sees no premium column'),
+    specimen('saler view', ProtectionCoverTable(rows, { perspective: 'saler' }))
+  );
+  return wrap;
+}
+
 function renderMarketingKitCard() {
   const wrap = document.createDocumentFragment();
   const kit = {
@@ -1339,6 +1383,8 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'incentive-payout-table', label: 'IncentivePayoutTable', group: 'Saler Sourcing & Profit', render: renderIncentivePayoutTable },
     { id: 'sample-request-table', label: 'SampleRequestTable', group: 'Saler Sourcing & Profit', render: renderSampleRequestTable },
     { id: 'marketing-kit-card', label: 'MarketingKitCard', group: 'Saler Sourcing & Profit', render: renderMarketingKitCard },
+    { id: 'fast-payout-table', label: 'FastPayoutTable', group: 'Saler Sourcing & Profit', render: renderFastPayoutTable },
+    { id: 'protection-cover-table', label: 'ProtectionCoverTable', group: 'Saler Sourcing & Profit', render: renderProtectionCoverTable },
     { id: 'margin-projection', label: 'MarginProjection', group: 'Saler Sourcing & Profit', render: renderMarginProjection },
     { id: 'add-to-store-drawer', label: 'AddToStoreDrawer', group: 'Saler Sourcing & Profit', render: () => renderAddToStoreDrawer(detachedNodes) },
     { id: 'social-kit-modal', label: 'SocialKitModal', group: 'Saler Sourcing & Profit', render: renderSocialKitModalSpecimen },

@@ -205,6 +205,22 @@ async function bootRouterDemo() {
         module: 'sourcing',
         load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerMarketingKitsPage.js')]).then(([, , page]) => page),
       },
+      {
+        path: '/saler/fast-payout',
+        title: 'Fast Payout — Explooro',
+        requiresAuth: true,
+        permission: 'saler.sourcing.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerFastPayoutPage.js')]).then(([, , page]) => page),
+      },
+      {
+        path: '/saler/return-protection',
+        title: 'Return Protection — Explooro',
+        requiresAuth: true,
+        permission: 'saler.sourcing.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerReturnProtectionPage.js')]).then(([, , page]) => page),
+      },
       // Prompt 10.3: AI Creative Studio (ad copy generation)
       {
         path: '/saler/creative-studio',
@@ -623,6 +639,22 @@ async function bootRouterDemo() {
         permission: 'supplier.analytics.view',
         module: 'sourcing',
         load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierMarketingKitsPage.js')]).then(([, , page]) => page),
+      },
+      {
+        path: '/supplier/fast-payout',
+        title: 'Fast Payout — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.analytics.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierFastPayoutPage.js')]).then(([, , page]) => page),
+      },
+      {
+        path: '/supplier/return-protection',
+        title: 'Return Protection — Explooro',
+        requiresAuth: true,
+        permission: 'supplier.analytics.view',
+        module: 'sourcing',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierReturnProtectionPage.js')]).then(([, , page]) => page),
       },
       {
         path: '/supplier/orders',
@@ -1959,7 +1991,7 @@ async function bootRouterDemo() {
               title: 'Component Gallery — Explooro (dev)',
               permission: null,
               module: 'core',
-              load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/dev/GalleryPage.js')]).then(([, , , , page]) => page),
+              load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./styles/components/payout-protection.css'), import('./pages/dev/GalleryPage.js')]).then(([, , , , , page]) => page),
             },
             {
               path: '/dev/craft',

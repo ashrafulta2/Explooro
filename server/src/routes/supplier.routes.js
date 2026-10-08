@@ -4,6 +4,8 @@
 
 import * as controller from '../controllers/supplier.controller.js';
 import * as sampleKit from '../controllers/sampleKit.controller.js';
+import * as fastPayout from '../controllers/fastPayout.controller.js';
+import * as returnProtection from '../controllers/returnProtection.controller.js';
 import { requirePermission } from '../middlewares/requirePermission.js';
 import { AppError } from '../plugins/errorHandler.js';
 
@@ -215,6 +217,12 @@ export default async function supplierRoutes(app) {
   app.post('/supplier/samples/requests/:id/:action', { config: { page: '/supplier/samples' }, preHandler: sampleGuards('supplier.sample.manage') }, sampleKit.respondToSample);
   app.get('/supplier/marketing-kits', { config: { page: '/supplier/marketing-kits' }, preHandler: sampleGuards('supplier.analytics.view') }, sampleKit.getSupplierSamples);
   app.put('/supplier/marketing-kits/:productId', { config: { page: '/supplier/marketing-kits' }, preHandler: sampleGuards('supplier.sample.manage') }, sampleKit.saveMarketingKit);
+
+  // 6e. Fast Payout + Return Protection - get escrowed earnings early for a fee, and cover salers against returns
+  app.get('/supplier/fast-payout', { config: { page: '/supplier/fast-payout' }, preHandler: sampleGuards('supplier.analytics.view') }, fastPayout.getFastPayout);
+  app.post('/supplier/fast-payout', { config: { page: '/supplier/fast-payout' }, preHandler: sampleGuards('finance.fast_payout.request') }, fastPayout.requestFastPayout);
+  app.get('/supplier/return-protection', { config: { page: '/supplier/return-protection' }, preHandler: sampleGuards('supplier.analytics.view') }, returnProtection.getSupplierProtection);
+  app.put('/supplier/return-protection', { config: { page: '/supplier/return-protection' }, preHandler: sampleGuards('supplier.return_protection.manage') }, returnProtection.setSupplierEnrollment);
 
   // 7. Physical Shop Operating Status (Gated by physical_shop_status module)
   app.get(

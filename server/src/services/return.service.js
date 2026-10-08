@@ -14,6 +14,7 @@ import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { getCourierAdapter } from '../integrations/courier/index.js';
 import * as clawbackService from './clawback.service.js';
+import * as returnProtection from './returnProtection.service.js';
 import * as moduleRepo from '../repositories/module.repository.js';
 import { writeAudit } from '../lib/audit.js';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
@@ -412,6 +413,14 @@ export async function executeRefund(db, cache, {
       client: txClient,
     });
 
+    // 2b. Return protection: if the supplier had opted in when the order was placed, the saler is made whole
+    // for the commission the clawback just took. Savepointed, so it can never block the buyer's refund.
+    const protectionResult = await returnProtection.payClaimSafely(txClient, {
+      subOrderId: returnReq.sub_order_id,
+      returnRequestId: returnReq.id,
+      approvedBy,
+    });
+
     // 3. Restore warehouse stock for returned items
     const { rows: items } = await txClient.query(
       `SELECT product_id, quantity FROM return_items WHERE return_request_id = $1`,
@@ -440,6 +449,7 @@ export async function executeRefund(db, cache, {
       status: 'REFUNDED',
       refundAmount: returnReq.refund_amount,
       clawbackResult,
+      protectionResult,
       returnRequestId,
     };
   };

@@ -91,6 +91,7 @@ import './jobs/signalRetention.job.js'; // Registers signal_retention with sched
 import './jobs/supplierScorecard.job.js'; // Registers supplier_scorecard with scheduler (module: sourcing)
 import './jobs/volumeIncentive.job.js'; // Registers volume_incentive with scheduler (module: sourcing)
 import './jobs/sampleKit.job.js'; // Registers sample_kit with scheduler (module: sourcing)
+import './jobs/returnProtection.job.js'; // Registers return_protection with scheduler (module: sourcing)
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
 import sitemapRoutes from './routes/sitemap.routes.js';
 import { createSmsSender } from './integrations/sms/index.js';

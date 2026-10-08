@@ -54,6 +54,7 @@ const ERROR_STATUS = {
   MASTER_CONFIG_INVALID: 422,
   // Supplier attraction tools: a supplier the Scorecard grades too low may not run them (not a 500).
   SUPPLIER_GRADE_BLOCKED: 403,
+  FAST_PAYOUT_NOT_ELIGIBLE: 409,
   SAMPLE_LIMIT_REACHED: 409,
   SAMPLE_ALREADY_REQUESTED: 409,
   SAMPLE_STATE_INVALID: 409,

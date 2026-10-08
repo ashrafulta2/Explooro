@@ -1,0 +1,37 @@
+/**
+ * payout-protection.css — Fast Payout and Return Protection pages (supplier attraction, step 5).
+ * Loaded together with incentive.css, which supplies the card / table / status / form-field shell.
+ * WHY its own file: loaded by the routes that use it (main.js) so it ships in their chunks and not in
+ * the entry bundle, which is at its 70KB gzip CSS budget. Tokens only; no raw colours.
+ */
+
+/* the last column holds the button a person came to press, so it must not be scrolled out of sight */
+.fastpay-table th, .fastpay-table td { white-space: normal; vertical-align: top; }
+/* WHY nowrap on money: "Tk 1,000.00" split over two lines reads as two numbers. */
+.fastpay-table .incentive-table__num, .fastpay-table .fastpay-ref { white-space: nowrap; }
+.fastpay-info, .fastpay-action { min-width: 0; display: flex; flex-direction: column; gap: var(--space-1); align-items: flex-start; }
+.fastpay-sub { font-size: var(--text-xs); color: var(--text-secondary); }
+.fastpay-reason { white-space: normal; text-align: left; }
+
+/* headline numbers */
+.pp-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin-top: var(--space-4); }
+.pp-stat { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.pp-stat__value { font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); overflow-wrap: anywhere; }
+.pp-stat__label { font-size: var(--text-xs); color: var(--text-secondary); }
+
+.pp-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-top: var(--space-4); }
+.pp-list { display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+.pp-list li { overflow-wrap: anywhere; color: var(--text-primary); }
+
+@media (max-width: 640px) {
+  /* Six columns cannot fit a phone without crushing each to a letter, so each row becomes a card:
+     one labelled line per column, the action last. */
+  .fastpay-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .fastpay-table, .fastpay-table tbody, .fastpay-table tr, .fastpay-table td { display: block; width: 100%; }
+  .fastpay-table tr { padding: var(--space-3) 0; border-bottom: 1px solid var(--border-subtle); }
+  .fastpay-table td { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); padding: var(--space-1) 0; border: 0; text-align: right; }
+  .fastpay-table td::before { content: attr(data-label); flex: none; font-size: var(--text-xs); font-weight: 600; color: var(--text-secondary); text-align: left; }
+  .fastpay-table td:first-child { text-align: left; }
+  .fastpay-table .incentive-table__num { text-align: right !important; }
+  .fastpay-table .fastpay-info, .fastpay-table .fastpay-action { align-items: flex-end; }
+}

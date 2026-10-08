@@ -727,7 +727,7 @@ CREATE TABLE bundle_items (
 
 ---
 
-## 4. Commerce — 15 tables (+1 migration 062: supplier_scorecards; +2 migration 064: volume_incentive_programs, volume_incentive_payouts; +3 migration 065: sample_offers, sample_requests, marketing_kits)
+## 4. Commerce — 15 tables (+1 migration 062: supplier_scorecards; +2 migration 064: volume_incentive_programs, volume_incentive_payouts; +3 migration 065: sample_offers, sample_requests, marketing_kits; +3 migration 066: fast_payouts, return_protection_enrollments, return_protection_covers)
 
 ```sql
 CREATE TABLE carts (                        -- ⚠️ v1.0 had a client-only cart
@@ -1066,6 +1066,61 @@ Migration 064 also adds `VOLUME_INCENTIVE` to the `ledger_transactions.category`
 
 
 ---
+
+### 4.z fast_payouts, return_protection_enrollments, return_protection_covers (migration 066)
+
+```sql
+CREATE TABLE fast_payouts (                  -- one early release per escrow entry; the UNIQUE key is what stops a double click paying twice
+  id                  BIGSERIAL PRIMARY KEY,
+  escrow_entry_id     BIGINT NOT NULL UNIQUE REFERENCES escrow_entries(id) ON DELETE RESTRICT,
+  sub_order_id        BIGINT NOT NULL REFERENCES sub_orders(id) ON DELETE RESTRICT,
+  user_id             BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  wallet_id           BIGINT NOT NULL REFERENCES wallets(id) ON DELETE RESTRICT,
+  beneficiary_role    TEXT NOT NULL CHECK (beneficiary_role IN ('SUPPLIER','SALER')),
+  gross_amount        NUMERIC(14,2) NOT NULL CHECK (gross_amount > 0),
+  fee_pct             NUMERIC(5,2) NOT NULL CHECK (fee_pct >= 0),
+  fee_amount          NUMERIC(14,2) NOT NULL CHECK (fee_amount >= 0),
+  net_amount          NUMERIC(14,2) NOT NULL CHECK (net_amount > 0),
+  grade               CHAR(1),                 -- the scorecard grade the fee was judged on (NULL = ungraded)
+  original_hold_until TIMESTAMPTZ NOT NULL,    -- when it would have been released anyway; the exposure cap counts rows where this is still in the future
+  days_saved          INTEGER NOT NULL CHECK (days_saved >= 0),
+  ledger_txn_group_id UUID,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT fast_payout_reconciles CHECK (gross_amount = fee_amount + net_amount)
+);
+
+CREATE TABLE return_protection_enrollments ( -- a history, not a flag: an order is covered if its supplier was enrolled when it was PLACED
+  id            BIGSERIAL PRIMARY KEY,
+  supplier_id   BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  started_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  ended_at      TIMESTAMPTZ,
+  CONSTRAINT rp_enrollment_order CHECK (ended_at IS NULL OR ended_at >= started_at)
+);
+CREATE UNIQUE INDEX uq_rp_enrollment_open ON return_protection_enrollments (supplier_id) WHERE ended_at IS NULL;
+
+CREATE TABLE return_protection_covers (      -- one per sub-order; rate and insured amount are snapshots
+  id                      BIGSERIAL PRIMARY KEY,
+  sub_order_id            BIGINT NOT NULL UNIQUE REFERENCES sub_orders(id) ON DELETE RESTRICT,
+  supplier_id             BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  saler_id                BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  insured_amount          NUMERIC(14,2) NOT NULL CHECK (insured_amount > 0),   -- the saler's commission
+  premium_pct             NUMERIC(5,2) NOT NULL CHECK (premium_pct >= 0),
+  premium_amount          NUMERIC(14,2) NOT NULL CHECK (premium_amount >= 0),
+  premium_charged_at      TIMESTAMPTZ,         -- NULL until the supplier's own escrow has released and they could pay
+  premium_txn_group_id    UUID,
+  status                  TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE','CLAIMED','DENIED')),
+  claim_amount            NUMERIC(14,2) CHECK (claim_amount IS NULL OR claim_amount > 0),
+  claim_txn_group_id      UUID,
+  claimed_at              TIMESTAMPTZ,
+  denied_reason           TEXT,                -- CLAIM_LIMIT | NOT_CLAWED_BACK | NOTHING_TO_PAY
+  return_request_id       BIGINT REFERENCES return_requests(id) ON DELETE SET NULL,
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT rp_cover_claim_consistent CHECK (
+    (status = 'CLAIMED' AND claim_amount IS NOT NULL AND claimed_at IS NOT NULL)
+    OR (status <> 'CLAIMED' AND claim_amount IS NULL)
+  )
+);
+```
 
 ## 5. Finance — 8 tables (+3 migration 052: subscription_plans, subscriptions, subscription_invoices)
 

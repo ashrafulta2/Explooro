@@ -5,6 +5,8 @@
 import * as productController from '../controllers/product.controller.js';
 import * as sourcingController from '../controllers/sourcing.controller.js';
 import * as sampleKit from '../controllers/sampleKit.controller.js';
+import * as fastPayout from '../controllers/fastPayout.controller.js';
+import * as returnProtection from '../controllers/returnProtection.controller.js';
 import { requirePermission } from '../middlewares/requirePermission.js';
 import { requireRestriction } from '../middlewares/requireRestriction.js';
 import { AppError } from '../plugins/errorHandler.js';
@@ -94,6 +96,10 @@ export default async function productRoutes(app) {
   app.post('/sourcing/samples', { config: { page: '/saler/samples' }, preHandler: sampleGuards('saler.sample.request') }, sampleKit.requestSample);
   app.post('/sourcing/samples/:id/:action', { config: { page: '/saler/samples' }, preHandler: sampleGuards('saler.sample.request') }, sampleKit.actOnMySample);
   app.get('/sourcing/marketing-kits', { config: { page: '/saler/marketing-kits' }, preHandler: sampleGuards('saler.sourcing.view') }, sampleKit.getSalerKits);
+  // Fast Payout + Return Protection (step 5). Taking money early is a money move, so it has its own permission.
+  app.get('/sourcing/fast-payout', { config: { page: '/saler/fast-payout' }, preHandler: sampleGuards('saler.sourcing.view') }, fastPayout.getFastPayout);
+  app.post('/sourcing/fast-payout', { config: { page: '/saler/fast-payout' }, preHandler: sampleGuards('finance.fast_payout.request') }, fastPayout.requestFastPayout);
+  app.get('/sourcing/return-protection', { config: { page: '/saler/return-protection' }, preHandler: sampleGuards('saler.sourcing.view') }, returnProtection.getSalerProtection);
 
   app.get('/sourcing/my-store', { preHandler: [authenticate] }, sourcingController.getMyStore);
   app.post(
