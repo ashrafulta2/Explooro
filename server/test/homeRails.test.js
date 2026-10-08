@@ -54,9 +54,10 @@ function product(id, components = {}, over = {}) {
  * `rank_score`) and the hydration of the winners by id (an `p.id = ANY` filter with no score). The
  * fake answers the second one the way Postgres would, by keeping only the rows asked for.
  *
- * `diversity` is the recommendation.diversity row's value (absent = the shipped defaults).
+ * `diversity` and `covisit` are the recommendation.diversity / recommendation.covisit rows' values
+ * (absent = the shipped defaults).
  */
-function railsDb({ config, catalog, capture = true, district = null, viewed = [], diversity = null } = {}) {
+function railsDb({ config, catalog, capture = true, district = null, viewed = [], diversity = null, covisit = null } = {}) {
   return makeDb([
     {
       match: (s) => s.includes('FROM platform_settings'),
@@ -64,6 +65,7 @@ function railsDb({ config, catalog, capture = true, district = null, viewed = []
         rows: [
           ...(config ? [{ key: rails.RAILS_KEY, value_json: config }] : []),
           ...(diversity ? [{ key: 'recommendation.diversity', value_json: diversity }] : []),
+          ...(covisit ? [{ key: 'recommendation.covisit', value_json: covisit }] : []),
         ],
       }),
     },
@@ -100,7 +102,18 @@ describe('Home rails — layout policy', () => {
     );
     const m = sql.match(/'recommendation\.rails',\s*'(\{[\s\S]*?\})'::jsonb/);
     assert.ok(m, 'recommendation.rails must be seeded');
-    assert.deepEqual(JSON.parse(m[1]), JSON.parse(JSON.stringify(rails.DEFAULT_RAILS_CONFIG)));
+    // 059 (Phase E) inserts the also_viewed rail right after continue_browsing (or first, when an admin
+    // removed continue_browsing), so the seeded 057 layout plus that one rail is the shipped default.
+    const sql059 = fs.readFileSync(
+      path.resolve(import.meta.dirname, '../src/db/migrations/059_covisitation.sql'),
+      'utf8'
+    );
+    const added = sql059.match(/'(\{"key": "also_viewed"[^']*\})'::jsonb,/);
+    assert.ok(added, 'migration 059 must add the also_viewed rail');
+    const seeded = JSON.parse(m[1]);
+    const at = seeded.rails.findIndex((r) => r.key === 'continue_browsing');
+    seeded.rails.splice(at + 1, 0, JSON.parse(added[1]));
+    assert.deepEqual(seeded, JSON.parse(JSON.stringify(rails.DEFAULT_RAILS_CONFIG)));
   });
 
   test('every default rail is a known rail and sits inside its limits', () => {
@@ -175,7 +188,7 @@ describe('Home rails — profiles', () => {
     const w = rails.profileWeights(reco.DEFAULT_WEIGHTS, ['trending', 'quality']);
     assert.equal(w.trending, reco.DEFAULT_WEIGHTS.trending);
     assert.equal(w.quality, reco.DEFAULT_WEIGHTS.quality);
-    for (const off of ['affinity_category', 'affinity_brand', 'affinity_supplier', 'recently_viewed', 'bestseller', 'recent_sales', 'freshness', 'trust_tier', 'locality']) {
+    for (const off of ['affinity_category', 'affinity_brand', 'affinity_supplier', 'recently_viewed', 'covisited', 'bestseller', 'recent_sales', 'freshness', 'trust_tier', 'locality']) {
       assert.equal(w[off], 0, off);
     }
   });
@@ -433,6 +446,102 @@ describe('Home rails — getRails', () => {
     const ranked = db.calls.filter((x) => x.sql.includes('rank_score'));
     assert.ok(ranked.length >= 4);
     for (const c of ranked) assert.ok(c.params[c.params.length - 2] <= 60, `limit ${c.params[c.params.length - 2]}`);
+  });
+});
+
+// ── 3b. also_viewed (Phase E) ───────────────────────────────────────────────────────────────────
+describe('Home rails — also_viewed (co-visitation)', () => {
+  const rows = (from, n, comp = { covisited: 1.2 }) => Array.from({ length: n }, (_, i) => product(from + i, comp));
+  const only = (extra = {}) => cfg([{ key: 'also_viewed', enabled: true, limit: 6 }], 2);
+  const asked = (db) => db.calls.filter((c) => c.sql.includes('rank_score'));
+
+  test('it is a shipped rail, placed right after continue_browsing', () => {
+    const keys = rails.DEFAULT_RAILS_CONFIG.rails.map((r) => r.key);
+    assert.equal(keys.indexOf('also_viewed'), keys.indexOf('continue_browsing') + 1);
+    assert.ok(rails.RAIL_KEYS.includes('also_viewed'));
+  });
+
+  test('it needs something the shopper opened: no history, no rail and no ranking query', async () => {
+    const db = railsDb({ config: only(), catalog: () => rows(1, 6) });
+    const res = await rails.getRails(db, { sessionId: 's', now: NOW });
+    assert.deepEqual(res.rails, []);
+    assert.equal(asked(db).length, 0);
+  });
+
+  test('it has to earn its name: no co-visited component, no "also viewed" rail', async () => {
+    const db = railsDb({ config: only(), viewed: [1], catalog: () => rows(10, 6, { quality: 1.5 }) });
+    const res = await rails.getRails(db, { sessionId: 's', now: NOW });
+    assert.deepEqual(res.rails, []);
+  });
+
+  test('co-visited products form a personal rail with no score internals', async () => {
+    const db = railsDb({ config: only(), viewed: [1], catalog: () => rows(10, 6) });
+    const res = await rails.getRails(db, { sessionId: 's', now: NOW });
+    assert.equal(res.rails.length, 1);
+    assert.equal(res.rails[0].key, 'also_viewed');
+    assert.equal(res.rails[0].personalized, true);
+    assert.equal(res.rails[0].products.length, 6);
+    assert.equal('rank_components' in res.rails[0].products[0], false);
+  });
+
+  test('it listens to co-visitation and quality only, and looks up the shopper\'s own products', async () => {
+    const db = railsDb({ config: only(), viewed: [1, 2], catalog: () => rows(10, 6) });
+    await rails.getRails(db, { sessionId: 's', now: NOW });
+    const call = asked(db)[0];
+    assert.match(call.sql, /FROM product_covisits/);
+    assert.ok(call.params.some((p) => Array.isArray(p) && p.join() === '1,2'));
+    for (const off of ['trending', 'bestseller', 'freshness', 'affinity_category', 'recently_viewed']) {
+      assert.equal(call.sql.includes(`'${off}'`), false, off);
+    }
+  });
+
+  test('other rails do not pay for the co-visitation join', async () => {
+    const db = railsDb({
+      config: cfg([{ key: 'trending', enabled: true, limit: 4 }]),
+      viewed: [1],
+      catalog: () => rows(10, 4, { trending: 2 }),
+    });
+    await rails.getRails(db, { sessionId: 's', now: NOW });
+    assert.doesNotMatch(asked(db)[0].sql, /product_covisits/);
+  });
+
+  test('it claims its products before the broader "for you" rail can', async () => {
+    const db = railsDb({
+      config: cfg([
+        { key: 'also_viewed', enabled: true, limit: 4 },
+        { key: 'for_you', enabled: true, limit: 4 },
+      ]),
+      viewed: [1],
+      catalog: () => rows(10, 8, { covisited: 1.2 }),
+    });
+    const res = await rails.getRails(db, { sessionId: 's', now: NOW });
+    const ids = res.rails.flatMap((r) => r.products.map((p) => p.id));
+    assert.equal(new Set(ids).size, ids.length, 'no product twice');
+    assert.deepEqual(res.rails[0].products.map((p) => p.id), [10, 11, 12, 13]);
+  });
+
+  test('an opted-out shopper gets no co-visitation rail and nothing about them is read', async () => {
+    const db = railsDb({ config: only(), viewed: [1], catalog: () => rows(10, 6) });
+    const res = await rails.getRails(db, { sessionId: 's', personalize: false, now: NOW });
+    assert.deepEqual(res.rails, []);
+    assert.equal(db.calls.some((c) => c.sql.includes("event_type IN ('CLICK'")), false);
+  });
+
+  test('co-visitation switched off in settings: no rail', async () => {
+    const db = railsDb({
+      config: only(),
+      covisit: { enabled: false },
+      viewed: [1],
+      catalog: () => rows(10, 6),
+    });
+    const res = await rails.getRails(db, { sessionId: 's', now: NOW });
+    assert.deepEqual(res.rails, []);
+  });
+
+  test('a rail left thin by the claim filter is hidden, not padded', async () => {
+    const db = railsDb({ config: cfg([{ key: 'also_viewed', enabled: true, limit: 6 }], 4), viewed: [1], catalog: () => rows(10, 3) });
+    const res = await rails.getRails(db, { sessionId: 's', now: NOW });
+    assert.deepEqual(res.rails, []);
   });
 });
 

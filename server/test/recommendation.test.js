@@ -19,6 +19,7 @@ import path from 'node:path';
 import * as reco from '../src/services/recommendation.service.js';
 import { buildBlendedRank } from '../src/repositories/recommendation.repository.js';
 import * as feed from '../src/services/discoveryFeed.service.js';
+import * as covisit from '../src/services/covisit.service.js';
 
 function makeDb(routes = []) {
   const calls = [];
@@ -57,7 +58,15 @@ describe('Recommendation — policy', () => {
       assert.ok(m, `${key} must be seeded`);
       return JSON.parse(m[1]);
     };
-    assert.deepEqual(grab('recommendation.weights'), reco.DEFAULT_WEIGHTS);
+    // 059 (Phase E) fills in a missing `covisited` weight with `'{...}'::jsonb || value_json`, so the
+    // seeded 056 weights plus that one key are the shipped defaults.
+    const sql059 = fs.readFileSync(
+      path.resolve(import.meta.dirname, '../src/db/migrations/059_covisitation.sql'),
+      'utf8'
+    );
+    const patch = sql059.match(/'(\{"covisited":\s*[\d.]+\})'::jsonb\s*\|\|\s*value_json/);
+    assert.ok(patch, 'migration 059 must add the covisited weight');
+    assert.deepEqual({ ...JSON.parse(patch[1]), ...grab('recommendation.weights') }, reco.DEFAULT_WEIGHTS);
     assert.deepEqual(grab('recommendation.tuning'), reco.DEFAULT_TUNING);
   });
 
@@ -121,6 +130,7 @@ describe('Recommendation — policy', () => {
     assert.deepEqual(await reco.resolveRankingConfig(broken), {
       weights: reco.DEFAULT_WEIGHTS,
       tuning: reco.DEFAULT_TUNING,
+      covisit: covisit.DEFAULT_COVISIT,
     });
   });
 });

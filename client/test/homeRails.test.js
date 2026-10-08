@@ -26,12 +26,14 @@ const railsHandler = discoveryHandlers.find((h) => h.method === 'GET' && h.path 
 const eventsHandler = discoveryHandlers.find((h) => h.method === 'POST' && h.path === '/discovery/events');
 const call = (query = {}) => railsHandler.handler({ query }).body;
 
-// The rail keys the server can return (migration 057's seed is the list of record).
-const SERVER_RAIL_KEYS = [...read('../../server/src/db/migrations/057_home_rails_settings.sql').matchAll(/"key":\s*"([a-z_]+)"/g)].map((m) => m[1]);
+// The rail keys the server can return: migration 057's seed, plus the rail 059 (Phase E) adds to it.
+const SERVER_RAIL_KEYS = ['057_home_rails_settings', '059_covisitation'].flatMap((name) =>
+  [...read(`../../server/src/db/migrations/${name}.sql`).matchAll(/"key":\s*"([a-z_]+)"/g)].map((m) => m[1])
+);
 
 // ── 1. Locale integrity ─────────────────────────────────────────────────────────────────────────
 test('the server seeds the rails this client knows how to name', () => {
-  assert.deepEqual(SERVER_RAIL_KEYS, ['continue_browsing', 'for_you', 'trending', 'bestsellers', 'new_arrivals', 'near_you']);
+  assert.deepEqual(SERVER_RAIL_KEYS, ['continue_browsing', 'for_you', 'trending', 'bestsellers', 'new_arrivals', 'near_you', 'also_viewed']);
 });
 
 for (const lang of ['en', 'bn']) {

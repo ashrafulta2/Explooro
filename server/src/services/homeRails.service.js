@@ -30,6 +30,7 @@ export const RAILS_KEY = 'recommendation.rails';
 // `needs`    what the rail cannot work without; a rail missing it is skipped, not faked.
 export const RAIL_PROFILES = Object.freeze({
   continue_browsing: { needs: 'viewed' },
+  also_viewed: { signals: ['covisited', 'quality'], require: ['covisited'], needs: 'covisit' },
   for_you: { signals: null },
   trending: { signals: ['trending', 'recent_sales', 'quality'], require: ['trending'] },
   bestsellers: { signals: ['bestseller', 'recent_sales', 'quality'], require: ['bestseller', 'recent_sales'] },
@@ -45,6 +46,7 @@ const POSITIVE_SIGNALS = [
   'affinity_brand',
   'affinity_supplier',
   'recently_viewed',
+  'covisited',
   'trending',
   'bestseller',
   'recent_sales',
@@ -59,6 +61,7 @@ export const DEFAULT_RAILS_CONFIG = Object.freeze({
   min_items: 4,
   rails: Object.freeze([
     Object.freeze({ key: 'continue_browsing', enabled: true, limit: 10 }),
+    Object.freeze({ key: 'also_viewed', enabled: true, limit: 12 }),
     Object.freeze({ key: 'for_you', enabled: true, limit: 12 }),
     Object.freeze({ key: 'trending', enabled: true, limit: 12 }),
     Object.freeze({ key: 'bestsellers', enabled: true, limit: 12 }),
@@ -163,13 +166,14 @@ function qualifies(row, profile, { windowDays, now }) {
 function canRun(profile, spec) {
   if (profile.needs === 'viewed') return spec.viewedIds.length > 0;
   if (profile.needs === 'district') return Boolean(spec.district);
+  if (profile.needs === 'covisit') return (spec.covisitIds?.length || 0) > 0;
   return true;
 }
 
 /** Is the "for you" rail really about this person, or is it just the popular list? */
 function isPersonal(spec) {
   return (
-    spec.categoryIds.length + spec.brands.length + spec.supplierIds.length + spec.viewedIds.length > 0 ||
+    spec.categoryIds.length + spec.brands.length + spec.supplierIds.length + spec.viewedIds.length + (spec.covisitIds?.length || 0) > 0 ||
     Boolean(spec.district)
   );
 }
@@ -284,8 +288,8 @@ export async function getRails(
         recommendation.applyRankReasons(products);
         return {
           key: rail.key,
-          // continue_browsing and near_you are personal by definition; for_you only if it had something to go on.
-          personalized: rail.key === 'for_you' ? isPersonal(spec) : rail.key === 'continue_browsing' || rail.key === 'near_you',
+          // continue_browsing, also_viewed and near_you are personal by definition; for_you only if it had something to go on.
+          personalized: rail.key === 'for_you' ? isPersonal(spec) : ['continue_browsing', 'also_viewed', 'near_you'].includes(rail.key),
           products,
         };
       } catch {

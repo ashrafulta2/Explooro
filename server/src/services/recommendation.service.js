@@ -13,6 +13,7 @@
 
 import * as settingRepo from '../repositories/setting.repository.js';
 import * as recoRepo from '../repositories/recommendation.repository.js';
+import * as covisit from './covisit.service.js';
 
 export const SETTINGS_GROUP = 'recommendation';
 export const WEIGHTS_KEY = 'recommendation.weights';
@@ -28,6 +29,7 @@ export const DEFAULT_WEIGHTS = Object.freeze({
   affinity_brand: 2,
   affinity_supplier: 2,
   recently_viewed: 1.5,
+  covisited: 2,
   trending: 2.5,
   bestseller: 1.5,
   recent_sales: 1.5,
@@ -104,7 +106,10 @@ function sanitize(raw, defaults, limitFor) {
 export const sanitizeWeights = (raw) => sanitize(raw, DEFAULT_WEIGHTS, () => WEIGHT_LIMITS);
 export const sanitizeTuning = (raw) => sanitize(raw, DEFAULT_TUNING, (k) => TUNING_LIMITS[k]);
 
-/** The live ranking policy. An unreadable table or row yields the shipped defaults, never an error. */
+/**
+ * The live ranking policy: weights and tuning, plus the co-visitation policy (Phase E) read from the
+ * same `recommendation` rows. An unreadable table or row yields the shipped defaults, never an error.
+ */
 export async function resolveRankingConfig(db) {
   let rows = [];
   try {
@@ -116,6 +121,7 @@ export async function resolveRankingConfig(db) {
   return {
     weights: sanitizeWeights(readJson(byKey.get(WEIGHTS_KEY)?.value_json)),
     tuning: sanitizeTuning(readJson(byKey.get(TUNING_KEY)?.value_json)),
+    covisit: covisit.covisitFromSettingRows(rows),
   };
 }
 
@@ -133,7 +139,7 @@ export async function buildRankingSpec(
   db,
   { userId, sessionId, audience = 'customer', personalize = true, affinity = {}, config } = {}
 ) {
-  const { weights, tuning } = config || (await resolveRankingConfig(db));
+  const { weights, tuning, covisit: covisitConfig = covisit.DEFAULT_COVISIT } = config || (await resolveRankingConfig(db));
   const spec = {
     weights,
     tuning,
@@ -143,6 +149,8 @@ export async function buildRankingSpec(
     supplierIds: [],
     viewedIds: [],
     purchasedIds: [],
+    covisitIds: [],
+    covisitFullScore: covisitConfig.full_score,
     district: null,
   };
   if (!personalize || (!userId && !sessionId)) return spec;
@@ -182,6 +190,11 @@ export async function buildRankingSpec(
   const bought = new Set(purchased);
   spec.viewedIds = viewed.filter((id) => !bought.has(id));
   spec.district = district;
+  // The starting points for "shoppers also viewed". Derived from the history read above, so a shopper who
+  // opted out (no history) has none and the signal reads nothing about them.
+  if (covisitConfig.enabled && weights.covisited > 0) {
+    spec.covisitIds = covisit.pickSeedIds({ viewedIds: spec.viewedIds, purchasedIds: purchased }, covisitConfig);
+  }
   return spec;
 }
 
@@ -192,6 +205,8 @@ const REASON_BY_COMPONENT = {
   bestseller: 'bestseller',
   recent_sales: 'bestseller',
   recently_viewed: 'browsed',
+  // The existing "What others are looking for" badge: that is exactly what co-visitation says.
+  covisited: 'crowd',
   affinity_category: 'interest',
   affinity_brand: 'interest',
   affinity_supplier: 'interest',

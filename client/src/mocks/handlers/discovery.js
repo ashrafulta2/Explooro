@@ -244,8 +244,9 @@ export default [
   {
     // The home page's rails. Same rules as services/homeRails.service.js — a product shows in only the
     // first rail that claims it, a rail under MIN_ITEMS is dropped, an opted-out shopper gets no
-    // personal rail — over the signals the fixtures can support. new_arrivals and near_you are live-only:
-    // the fixtures carry no listing date and the mock shopper has no district.
+    // personal rail — over the signals the fixtures can support. new_arrivals, near_you and also_viewed are live-only:
+    // the fixtures carry no listing date, the mock shopper has no district, and co-visitation needs the
+    // behaviour of many shoppers, which a single in-memory mock session cannot supply.
     method: 'GET',
     path: '/discovery/rails',
     handler({ query }) {

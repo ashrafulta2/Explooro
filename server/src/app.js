@@ -85,6 +85,7 @@ import './jobs/cartRecovery.job.js'; // Registers cart_recovery_sweep job with s
 import './jobs/expiryWarning.job.js'; // Registers batch_expiry_warning_sweep with scheduler
 import './jobs/analyticsRollup.job.js'; // Registers analytics_nightly_rollup with scheduler
 import './jobs/subscriptionRenewal.job.js'; // Registers subscription_renewal with scheduler (module: subscription_fees)
+import './jobs/covisitRebuild.job.js'; // Registers covisit_rebuild with scheduler (module: personalization_signals)
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
 import sitemapRoutes from './routes/sitemap.routes.js';
 import { createSmsSender } from './integrations/sms/index.js';

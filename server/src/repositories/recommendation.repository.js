@@ -25,6 +25,8 @@ const int = (v) => Math.max(0, Math.floor(num(v)));
  * @param {number[]} [spec.supplierIds]
  * @param {number[]} [spec.viewedIds]   recently opened, not bought
  * @param {number[]} [spec.purchasedIds] already bought
+ * @param {number[]} [spec.covisitIds]  the products co-visitation starts from (recently opened / bought)
+ * @param {number} [spec.covisitFullScore] a similarity at or above this counts as a full 1.0
  * @param {string|null} [spec.district] the actor's district
  * @param {string} [spec.audience]
  * @param {any[]} params                the query's bound params; this pushes onto it
@@ -65,6 +67,24 @@ export function buildBlendedRank(spec, params) {
   }
   if (spec.district) {
     add('locality', w.locality, () => `CASE WHEN lower(up.district) = lower(${bind(spec.district)}::text) THEN 1 ELSE 0 END`);
+  }
+
+  // ── Co-visitation: products the same shoppers open alongside the ones this actor opened ─────────
+  // product_covisits is a precomputed aggregate (services/covisit.service.js), so this is one indexed
+  // range scan over the seeds, not a self-join of the event log. Several seeds that agree on a product
+  // add up, capped at the configured "full" similarity. The seeds themselves are excluded: a product the
+  // shopper already opened is not something they "also" opened.
+  if (spec.covisitIds?.length && num(w.covisited) > 0) {
+    const full = Math.max(0.01, num(spec.covisitFullScore) || 0.3);
+    const seeds = bind(spec.covisitIds);
+    joins.push(`LEFT JOIN (
+         SELECT related_product_id AS product_id, SUM(score) AS s
+         FROM product_covisits
+         WHERE product_id = ANY(${seeds}::bigint[])
+           AND related_product_id <> ALL(${seeds}::bigint[])
+         GROUP BY related_product_id
+       ) cv ON cv.product_id = p.id`);
+    add('covisited', w.covisited, () => `LEAST(1, COALESCE(cv.s, 0) / ${full})`);
   }
 
   // ── Trending: how far the last N hours exceed what the previous days predict ────────────────
