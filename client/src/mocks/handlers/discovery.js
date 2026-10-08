@@ -3,6 +3,7 @@
  *
  * Mirrors the live contract in server/src/{controllers,services}/discovery*:
  *   GET  /discovery/feed   → { data: { products }, meta: { count, has_more, next_offset, personalized } }
+ *   GET  /discovery/rails  → { data: { rails: [{ key, personalized, products }] }, meta: { count } }
  *   POST /discovery/events → { data: { recorded } }
  *
  * So the "algorithm" is visible during preview, this keeps a tiny in-memory affinity map: every
@@ -217,6 +218,51 @@ export default [
           },
         },
       };
+    },
+  },
+  {
+    // The home page's rails. Same rules as services/homeRails.service.js — a product shows in only the
+    // first rail that claims it, a rail under MIN_ITEMS is dropped, an opted-out shopper gets no
+    // personal rail — over the signals the fixtures can support. new_arrivals and near_you are live-only:
+    // the fixtures carry no listing date and the mock shopper has no district.
+    method: 'GET',
+    path: '/discovery/rails',
+    handler({ query }) {
+      const MIN_ITEMS = 4;
+      const optedOut = query.personalize === '0' || query.personalize === 'false';
+      const inStock = products.filter((p) => num(p.stock) > 0);
+      const byPopularity = [...inStock].sort((a, b) => popularityScore(b) - popularityScore(a));
+      const claimed = new Set();
+      const rails = [];
+
+      const add = (key, personalized, list, limit = 12) => {
+        const rows = list.filter((p) => !claimed.has(p.ref)).slice(0, limit);
+        if (rows.length < MIN_ITEMS) return;
+        rows.forEach((p) => claimed.add(p.ref));
+        rails.push({ key, personalized, products: rows.map((p) => ({ ...p })) });
+      };
+
+      if (!optedOut) {
+        // Most recently opened first.
+        const viewed = [...viewedProductRefs]
+          .reverse()
+          .map((ref) => inStock.find((p) => p.ref === ref))
+          .filter(Boolean);
+        add('continue_browsing', true, viewed, 10);
+      }
+      const personal = !optedOut && categoryAffinity.size > 0;
+      const forYou = personal
+        ? [...inStock].sort(
+            (a, b) =>
+              (categoryAffinity.get(b.category) || 0) * 4 + popularityScore(b) -
+              ((categoryAffinity.get(a.category) || 0) * 4 + popularityScore(a))
+          )
+        : byPopularity;
+      add('for_you', personal, forYou);
+      add('trending', false, byPopularity.filter((p) => p.is_flash_sale));
+      add('bestsellers', false, [...inStock].sort((a, b) => num(b.rating_count) - num(a.rating_count)));
+
+      return { status: 200, body: { data: { rails }, meta: { count: rails.length } } };
     },
   },
   {

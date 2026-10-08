@@ -105,6 +105,34 @@ export async function resolveFeedSettings(db) {
 }
 
 /**
+ * One actor's ranking inputs: their affinity profile and the blended-ranking spec built from it.
+ * Shared by the swipe feed and the home page rails so both read the capture policy and the opt-out
+ * the same way.
+ *
+ * WHY: a platform that switched signal capture off has said "do not personalize" — honour that on
+ * the read side too, so the ranking degrades to popularity instead of using stale history. The same
+ * goes for a shopper who opted out (`personalize: false`).
+ */
+export async function resolveActorRanking(
+  db,
+  { userId, sessionId, audience = 'customer', personalize = true, affinityWindowDays = DEFAULT_AFFINITY_WINDOW_DAYS } = {}
+) {
+  const capture = await resolveCapturePolicy(db);
+  const enabled = capture.enabled && personalize;
+  const affinity = enabled
+    ? await feedRepo.getAffinity(db, { userId, sessionId, audience, windowDays: affinityWindowDays })
+    : { categoryIds: [], brands: [], supplierIds: [] };
+  const ranking = await recommendation.buildRankingSpec(db, {
+    userId,
+    sessionId,
+    audience,
+    personalize: enabled,
+    affinity,
+  });
+  return { ranking, affinity };
+}
+
+/**
  * Returns a personalized, paginated page of the catalog for the discovery feed.
  *
  * @param {object} db
@@ -125,19 +153,12 @@ export async function getFeed(
   const effectiveLimit = Math.min(Number(limit) || pageSize, MAX_PAGE_SIZE);
   const safeOffset = Math.max(0, Number(offset) || 0);
 
-  // WHY: a platform that switched signal capture off has said "do not personalize" — honour that on
-  // the read side too, so the feed degrades to popularity instead of ranking by stale history.
-  const capture = await resolveCapturePolicy(db);
-  const affinity = capture.enabled && personalize
-    ? await feedRepo.getAffinity(db, { userId, sessionId, audience, windowDays: affinityWindowDays })
-    : { categoryIds: [], brands: [], supplierIds: [] };
-
-  const ranking = await recommendation.buildRankingSpec(db, {
+  const { ranking, affinity } = await resolveActorRanking(db, {
     userId,
     sessionId,
     audience,
-    personalize: capture.enabled && personalize,
-    affinity,
+    personalize,
+    affinityWindowDays,
   });
 
   // Over-fetch by one to know whether another page exists without a second COUNT query.

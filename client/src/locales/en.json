@@ -68,6 +68,23 @@
     "error": {
       "title": "Couldn’t load the feed",
       "desc": "Please try again in a moment."
+    },
+    "rails": {
+      "manage": "Why am I seeing this?",
+      "for_you_title": "Picked for you",
+      "for_you_sub": "Based on what you have been browsing",
+      "for_you_popular_title": "Popular right now",
+      "for_you_popular_sub": "What shoppers on Explooro are buying and rating highly",
+      "continue_browsing_title": "Pick up where you left off",
+      "continue_browsing_sub": "Products you opened recently",
+      "trending_title": "Trending now",
+      "trending_sub": "Getting more attention than usual",
+      "bestsellers_title": "Best sellers",
+      "bestsellers_sub": "What customers keep buying",
+      "new_arrivals_title": "New arrivals",
+      "new_arrivals_sub": "Freshly listed products",
+      "near_you_title": "Near you",
+      "near_you_sub": "From suppliers in your district"
     }
   },
   "common": {

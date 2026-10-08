@@ -68,6 +68,23 @@
     "error": {
       "title": "ফিড লোড করা যায়নি",
       "desc": "একটু পরে আবার চেষ্টা করুন।"
+    },
+    "rails": {
+      "manage": "এটি কেন দেখছি?",
+      "for_you_title": "আপনার জন্য বাছাই করা",
+      "for_you_sub": "আপনি যা ব্রাউজ করছেন তার ভিত্তিতে",
+      "for_you_popular_title": "এখন জনপ্রিয়",
+      "for_you_popular_sub": "এক্সপ্লুরোর ক্রেতারা যা কিনছেন এবং ভালো রেটিং দিচ্ছেন",
+      "continue_browsing_title": "যেখানে থেমেছিলেন সেখান থেকে শুরু করুন",
+      "continue_browsing_sub": "সম্প্রতি যে পণ্যগুলো খুলেছেন",
+      "trending_title": "এখন ট্রেন্ডিং",
+      "trending_sub": "স্বাভাবিকের চেয়ে বেশি মনোযোগ পাচ্ছে",
+      "bestsellers_title": "সর্বাধিক বিক্রিত",
+      "bestsellers_sub": "ক্রেতারা বারবার যা কিনছেন",
+      "new_arrivals_title": "নতুন পণ্য",
+      "new_arrivals_sub": "সদ্য তালিকাভুক্ত পণ্য",
+      "near_you_title": "আপনার কাছাকাছি",
+      "near_you_sub": "আপনার জেলার সরবরাহকারীদের থেকে"
     }
   },
   "common": {

@@ -1,0 +1,40 @@
+/* ProductRail — themed horizontal product rows on the home page (personalized feed, Phase C).
+   Imported by components/product/ProductRail.js only: the home page is a lazy route, so this stays
+   out of the entry bundle's CSS budget. */
+
+.home-rails { display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-5) var(--space-6) 0; max-width: 100%; box-sizing: border-box; }
+.home-rails[hidden] { display: none; }
+
+.product-rail { background: var(--surface-1); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-lg, var(--radius-md)); width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; position: relative; }
+.product-rail__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); padding: var(--space-4) var(--space-5) 0; }
+.product-rail__heading { min-width: 0; }
+.product-rail__title { margin: 0; font-size: var(--text-lg); font-weight: 700; color: var(--text-primary); line-height: 1.25; }
+.product-rail__subtitle { margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--text-secondary); }
+.product-rail__note { flex-shrink: 0; background: none; border: 0; padding: var(--space-1) 0; font-size: var(--text-xs); font-weight: 600; color: var(--text-brand); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.product-rail__note:hover { color: var(--text-primary); }
+
+.product-rail__scroll-wrapper { position: relative; display: flex; align-items: center; width: 100%; min-width: 0; overflow: hidden; }
+.product-rail__scroll { display: flex; gap: var(--space-3); padding: var(--space-4) var(--space-5); overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--border-default) transparent; width: 100%; min-width: 0; box-sizing: border-box; }
+.product-rail__scroll::-webkit-scrollbar { height: 5px; }
+.product-rail__scroll::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+
+.product-rail__nav-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 10; width: 36px; height: 36px; border-radius: var(--radius-full); background: var(--surface-0); border: 1px solid var(--border-strong); color: var(--text-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--elevation-2, 0 4px 6px -1px rgba(0, 0, 0, 0.1)); }
+.product-rail__nav-btn:hover { background: var(--brand); color: var(--brand-contrast); border-color: var(--brand); }
+.product-rail__nav-btn--prev { left: var(--space-2); }
+.product-rail__nav-btn--next { right: var(--space-2); }
+.product-rail__nav-btn.is-hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+.product-rail__nav-icon { display: inline-flex; width: 18px; height: 18px; }
+
+/* Skeleton: same footprint as a loaded rail (title bar + one row of compact cards). A loaded compact
+   card is ~380-450px tall (badges, buy button, price, rating), so the placeholder reserves 420px. */
+.product-rail--skeleton { pointer-events: none; }
+.product-rail__skeleton-title { height: 20px; width: 180px; margin: var(--space-4) var(--space-5) 0; border-radius: var(--radius-sm, 4px); background: var(--surface-2); animation: skeleton-pulse 1.4s ease-in-out infinite; }
+.product-rail__skeleton-card { flex: 0 0 184px; width: 184px; height: 420px; border-radius: var(--radius-md); background: var(--surface-2); animation: skeleton-pulse 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .product-rail__skeleton-title, .product-rail__skeleton-card { animation: none; } }
+
+@media (max-width: 768px) {
+  .home-rails { padding: var(--space-3) var(--space-3) 0; gap: var(--space-3); }
+  .product-rail__header { padding: var(--space-3) var(--space-3) 0; }
+  .product-rail__scroll { padding: var(--space-3); gap: var(--space-2); }
+  .product-rail__nav-btn { display: none; }
+}

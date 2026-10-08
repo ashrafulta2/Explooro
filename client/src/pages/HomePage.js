@@ -30,6 +30,7 @@ import { resolveProductImage } from '../components/product/ProductCard.js';
 import { addToCart } from '../services/cart.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { CategoryPills } from '../components/product/CategoryPills.js';
+import { PersonalizedRails } from '../components/product/PersonalizedRails.js';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.js';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
 import { updateHead, buildWebsiteJsonLd } from '../services/seo.js';
@@ -234,9 +235,10 @@ export default function HomePage(root, { navigate }) {
     });
     sec.append(el);
 
-    // Insert before the catalog section
-    if (catalogSection && catalogSection.parentNode === page) {
-      page.insertBefore(sec, catalogSection);
+    // Insert above the personalized rails (a time-boxed deal outranks them), else above the catalog
+    const anchor = railsView?.el.parentNode === page ? railsView.el : catalogSection;
+    if (anchor && anchor.parentNode === page) {
+      page.insertBefore(sec, anchor);
     } else {
       page.append(sec);
     }
@@ -251,6 +253,34 @@ export default function HomePage(root, { navigate }) {
     flashSection && flashSection.remove();
     flashSection = null;
     flashMounting = false;
+  }
+
+  // ── Personalized rails (Phase C) ─────────────────────────────────────────
+  // They belong to the unfiltered landing view: any feed tab, category, search or filter means the
+  // shopper is narrowing down, and a "for you" row above a filtered grid would only get in the way.
+  const RAIL_HIDING_PARAMS = ['q', 'sort', 'min_price', 'max_price', 'in_stock', 'tier', 'district', 'min_rating', 'min_margin'];
+  const railsView = PersonalizedRails({
+    role,
+    modules,
+    lang: getLanguage(),
+    signedIn: Boolean(auth.isAuthenticated),
+    onNavigate: navigate,
+    onAction: handleAction,
+  });
+  cleanups.push(railsView.cleanup);
+  page.append(railsView.el);
+  let railsRequested = false;
+
+  function syncRails() {
+    const sp = new URLSearchParams(window.location.search);
+    const narrowed = activeFeed !== 'all' || activeCategory !== 'all' || RAIL_HIDING_PARAMS.some((k) => sp.has(k));
+    // The rails are the discovery_feed module's output, so switching that module off removes them.
+    const show = !narrowed && isFeatureEnabled('discovery_feed');
+    railsView.setVisible(show);
+    if (show && !railsRequested) {
+      railsRequested = true;
+      railsView.refresh();
+    }
   }
 
   // ── Product catalog section ──────────────────────────────────────────────
@@ -429,6 +459,7 @@ export default function HomePage(root, { navigate }) {
   }
 
   function rebuildGrid() {
+    syncRails();
     updateSearchPill();
     updateFilterBadge();
     updateFloatingBarState && updateFloatingBarState();

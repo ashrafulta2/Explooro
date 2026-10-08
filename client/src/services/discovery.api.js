@@ -37,3 +37,31 @@ export async function getFeed({ limit, offset, audience = 'customer', filters = 
   const products = (data?.products ?? []).map(normalizeProductListItem);
   return { products, meta: meta || {} };
 }
+
+/**
+ * Fetches the home page's themed rails (for you / trending / best sellers / ...). The server decides
+ * which rails exist for this shopper, their order and their contents; a rail with no products is
+ * dropped here so the caller never has to render an empty row.
+ * @param {object} [opts]
+ * @param {'customer'|'saler'} [opts.audience]
+ * @returns {Promise<{key: string, personalized: boolean, products: object[]}[]>}
+ */
+export async function getRails({ audience = 'customer' } = {}) {
+  const sid = getDiscoverySessionId();
+  const query = { audience };
+  if (sid) query.session_id = sid;
+  // Same opt-out switch as getFeed: an opted-out shopper's rails are ranked without their history.
+  if (isPersonalizationOff()) query.personalize = '0';
+
+  const { data } = await api.get('/discovery/rails', {
+    query,
+    headers: sid ? { 'x-session-id': sid } : undefined,
+  });
+  return (data?.rails ?? [])
+    .filter((r) => r && r.key && Array.isArray(r.products) && r.products.length > 0)
+    .map((r) => ({
+      key: String(r.key),
+      personalized: Boolean(r.personalized),
+      products: r.products.map(normalizeProductListItem),
+    }));
+}

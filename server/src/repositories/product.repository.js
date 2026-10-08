@@ -294,6 +294,7 @@ function buildCatalogFilter({
   supplierTier,
   district,
   q,
+  productIds,
 } = {}) {
   const conditions = ['p.deleted_at IS NULL'];
   const params = [];
@@ -306,6 +307,13 @@ function buildCatalogFilter({
   if (supplierId) {
     params.push(supplierId);
     conditions.push(`p.supplier_id = $${params.length}`);
+  }
+
+  // A fixed set of products (the home page's "continue browsing" rail). An empty array matches
+  // nothing, which is the honest answer to "these ids" when there are none.
+  if (Array.isArray(productIds)) {
+    params.push(productIds);
+    conditions.push(`p.id = ANY($${params.length}::bigint[])`);
   }
 
   if (categoryId) {

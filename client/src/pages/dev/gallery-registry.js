@@ -49,6 +49,7 @@ import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.js';
 import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.js';
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.js';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.js';
+import { ProductRail, ProductRailSkeleton } from '../../components/product/ProductRail.js';
 import { ImageGallery } from '../../components/product/ImageGallery.js';
 import { VariantSelector } from '../../components/product/VariantSelector.js';
 import { PriceBreakdown } from '../../components/product/PriceBreakdown.js';
@@ -790,6 +791,23 @@ function renderFlashSaleWidget() {
   return wrap;
 }
 
+function renderProductRail() {
+  const wrap = document.createDocumentFragment();
+  wrap.append(subgroup('ProductRail — home page themed row (personalized feed, Phase C)'));
+  const common = { products: DEMO_PRODUCTS, role: 'customer', modules: DEMO_MODULES, lang: 'en', onNavigate: () => {}, onAction: () => {} };
+  const popular = ProductRail({
+    ...common, railKey: 'bestsellers', title: 'Best sellers', subtitle: 'What customers keep buying',
+  });
+  wrap.append(specimen('plain rail', popular.el));
+  const personal = ProductRail({
+    ...common, railKey: 'for_you', title: 'Picked for you', subtitle: 'Based on what you have been browsing',
+    note: { label: 'Why am I seeing this?', onClick: () => toast.info('opens personalization settings') },
+  });
+  wrap.append(specimen('personal rail with the why-link', personal.el));
+  wrap.append(specimen('loading skeleton (same footprint)', ProductRailSkeleton()));
+  return wrap;
+}
+
 // ── Prompt 4.6 — Product Detail specimens ────────────────────────────────
 
 const DEMO_VARIANTS = [
@@ -1196,6 +1214,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'category-pills', label: 'CategoryPills', group: 'Product Discovery', render: renderCategoryPills },
     { id: 'search-suggest', label: 'SearchSuggest (typeahead)', group: 'Product Discovery', render: renderSearchSuggest },
     { id: 'flash-sale-widget', label: 'FlashSaleWidget', group: 'Product Discovery', render: renderFlashSaleWidget },
+    { id: 'product-rail', label: 'ProductRail (home rails)', group: 'Product Discovery', render: renderProductRail },
     // Prompt 11.3 — Followed Stores & Product Drops Feed
     { id: 'following-feed', label: 'FollowingFeed', group: 'Product Discovery', render: renderFollowingFeedSpecimen },
 

@@ -3,11 +3,13 @@
  *
  * GET  /discovery/feed   — personalized, paginated catalog page (optional auth: guests ranked by
  *                          their session's history, signed-in users by their account's).
+ * GET  /discovery/rails  — the home page's themed rails (for you / trending / best sellers / ...).
  * POST /discovery/events — record interaction signals that feed the ranking.
  * POST /discovery/search-events — record one deliberate search (query, result count).
  */
 
 import * as discoveryService from '../services/discoveryFeed.service.js';
+import * as homeRailsService from '../services/homeRails.service.js';
 
 // A guest actor id: an opaque token the browser persists and sends back. Never trusted for auth —
 // it only scopes anonymous ranking history to one browser.
@@ -68,6 +70,21 @@ export async function getFeed(req, reply) {
   });
 
   return reply.send({ data: { products: result.products }, meta: result.meta });
+}
+
+export async function getRails(req, reply) {
+  const db = req.db || req.server?.db;
+  const { audience, personalize } = req.query || {};
+
+  const result = await homeRailsService.getRails(db, {
+    userId: req.user?.id,
+    sessionId: resolveSessionId(req),
+    audience: resolveAudience(audience),
+    // Same opt-out switch as the feed (client signals.js sends personalize=0).
+    personalize: !(personalize === '0' || personalize === 'false'),
+  });
+
+  return reply.send({ data: { rails: result.rails }, meta: result.meta });
 }
 
 export async function recordEvents(req, reply) {
