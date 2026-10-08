@@ -328,14 +328,16 @@ export async function releaseEscrow(db, {
 
     // 1b. Check COD reconciliation requirement (Prompt 6.4: Requirement 5)
     // Only release supplier/saler escrow for a COD order once its cash is reconciled
+    // WHY only o.payment_method: sub_orders has no payment_method column (it lives on orders), so selecting
+    // s.payment_method failed against the real schema and no escrow could ever be released. Mocked tests hid it.
     const { rows: orderRows } = await txClient.query(
-      `SELECT o.payment_method, s.payment_method AS sub_payment_method
+      `SELECT o.payment_method
        FROM sub_orders s
        JOIN orders o ON o.id = s.order_id
        WHERE s.id = $1`,
       [subOrderId]
     );
-    const isCod = orderRows[0]?.payment_method === 'COD' || orderRows[0]?.sub_payment_method === 'COD';
+    const isCod = orderRows[0]?.payment_method === 'COD';
 
     if (isCod) {
       const { rows: codRows } = await txClient.query(
