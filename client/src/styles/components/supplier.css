@@ -915,6 +915,36 @@
 }
 
 /* ── Multi-Warehouse Nodes ── */
+.supplier-wh-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+.supplier-wh-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.supplier-wh-toolbar .input {
+  min-width: 0;
+}
+
+.supplier-wh-toolbar #wh-search {
+  flex: 1 1 220px;
+}
+
+.supplier-wh-toolbar #wh-status-filter {
+  flex: 0 1 180px;
+}
+
+.supplier-wh-toolbar__count {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 .supplier-warehouse-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -936,6 +966,158 @@
   flex-direction: column;
   gap: var(--space-3, 12px);
   position: relative;
+}
+
+.supplier-warehouse-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  flex-wrap: wrap;
+}
+
+.supplier-warehouse-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2, 8px);
+}
+
+.supplier-warehouse-card__badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.supplier-warehouse-card__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2, 8px);
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--surface-1, #f7f9fa);
+  border-radius: var(--radius-md, 8px);
+}
+
+.supplier-warehouse-card__stats dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #52606d);
+}
+
+.supplier-warehouse-card__stats dd {
+  margin: 2px 0 0 0;
+  font-weight: 800;
+  color: var(--text-primary, #192026);
+}
+
+/* WHY: the table is the primary surface, but 7 columns cannot fit a tablet or phone —
+   below 1200px the identical rows render as cards instead. The breakpoint is 1200 and not
+   1024 because the supplier shell's sidebar takes ~350px, so a 1024px viewport leaves the
+   page only ~658px of content and the columns crush ("Dhaka" wrapping one letter per line). */
+.supplier-wh-table-wrap {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .supplier-wh-table-wrap {
+    display: block;
+  }
+
+  .supplier-warehouse-grid {
+    display: none;
+  }
+}
+
+/* WHY: backstop for a collapsed/expanded sidebar or a zoomed-in viewport — scroll the card,
+   never squeeze the cells. The wrapper already carries overflow-x: auto. */
+.supplier-wh-table {
+  min-width: 820px;
+}
+
+.supplier-wh-table .supplier-wh-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.supplier-wh-table .supplier-wh-num .supplier-th-sort {
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.supplier-th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.supplier-th-sort:hover,
+.supplier-th-sort.is-active {
+  color: var(--text-brand);
+}
+
+.supplier-th-sort:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--brand));
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.supplier-th-sort__arrow {
+  font-size: 9px;
+  line-height: 1;
+}
+
+.supplier-wh-name,
+.supplier-wh-location {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.supplier-wh-name__title {
+  font-size: var(--text-base, 1rem);
+  font-weight: 800;
+  color: var(--text-primary, #192026);
+  margin: 0;
+}
+
+.supplier-wh-table .supplier-wh-name__title {
+  font-size: var(--text-sm, 0.875rem);
+}
+
+.supplier-wh-location__district {
+  font-weight: 700;
+}
+
+.supplier-wh-coords {
+  display: block;
+  font-size: 11px;
+  color: var(--text-secondary, #52606d);
+}
+
+.supplier-wh-priority {
+  font-weight: 800;
+  color: var(--text-brand);
+}
+
+.supplier-wh-stock {
+  font-weight: 800;
+  color: var(--text-brand);
+}
+
+.supplier-wh-stock--empty {
+  color: var(--text-secondary, #52606d);
 }
 
 /* ── Shipments & Logistics ── */
