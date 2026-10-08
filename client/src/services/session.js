@@ -11,6 +11,7 @@
 import { api, setAccessToken, clearAccessToken, refreshSession } from '../core/api.js';
 import { appStore } from '../state/appStore.js';
 import { initPermissions, clearPermissions } from './permissions.js';
+import { mergeGuestCartOnLogin } from './cart.js';
 
 let refreshTimer = null;
 let currentUser = null;
@@ -132,6 +133,7 @@ export async function loginWithPassword({ phone, email, identifier, password }) 
       scheduleProactiveRefresh(res.data.access_token);
       const permData = await initPermissions();
       updateStoreAuth(res.data.user, permData?.permissions || []);
+      void mergeGuestCartOnLogin();
       return { success: true, user: res.data.user };
     }
 
@@ -176,6 +178,7 @@ export async function verifyOtp({ phone, email, otp, purpose = 'LOGIN' }) {
       scheduleProactiveRefresh(res.data.access_token);
       const permData = await initPermissions();
       updateStoreAuth(res.data.user, permData?.permissions || []);
+      void mergeGuestCartOnLogin();
       return { success: true, user: res.data.user };
     }
 
@@ -234,6 +237,7 @@ export async function completeTwoFactor({ challengeToken, code }) {
     scheduleProactiveRefresh(res.data.access_token);
     const permData = await initPermissions();
     updateStoreAuth(res.data.user, permData?.permissions || []);
+    void mergeGuestCartOnLogin();
     return { success: true, user: res.data.user };
   }
 

@@ -153,10 +153,13 @@ async function bootRouterDemo() {
       // Full-page shopping cart (replaced the right-side drawer).
       { path: '/cart', title: 'Shopping Cart — Explooro', permission: null, module: 'core', load: () => import('./pages/CartPage.js') },
       // Prompt 5.4: Checkout & Order Tracking Pages
-      { path: '/checkout', title: 'Secure Checkout — Explooro', permission: null, module: 'core', load: () => import('./pages/CheckoutPage.js') },
+      // WHY requiresAuth: POST /orders/checkout is behind fastify.authenticate, so a guest used to
+      // fill the whole form and only hit a 401 on "Place Order". The router guard now sends them to
+      // /login?redirect=/checkout first (the cart survives, it is not session-bound).
+      { path: '/checkout', title: 'Secure Checkout — Explooro', requiresAuth: true, permission: null, module: 'core', load: () => import('./pages/CheckoutPage.js') },
       { path: '/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
       { path: '/customer/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
-      { path: '/orders/:id', title: 'Order Details — Explooro', permission: null, module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
+      { path: '/orders/:id', title: 'Order Details — Explooro', requiresAuth: true, permission: null, module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
       // Prompt 10.1: Live Stream Commerce
       { path: '/live', title: 'Live Broadcasts — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
       { path: '/live/:id', title: 'Live Shopping — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },

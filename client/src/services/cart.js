@@ -148,6 +148,19 @@ export async function fetchCart() {
   }
 }
 
+// WHY at login, not only at checkout: the server also merges the guest cart inside POST
+// /orders/checkout, but until then a freshly logged-in user's server cart is empty and GET /cart
+// from another device would not show what they put in the cart as a guest. Best-effort: the
+// localStorage cart stays the fallback, so a failed merge never loses items.
+export async function mergeGuestCartOnLogin() {
+  try {
+    await api.post('/cart/merge', {}, { skipAuthRedirect: true });
+  } catch (err) {
+    console.warn('Guest cart merge notice:', err);
+  }
+  await fetchCart();
+}
+
 function updateCartState(cart) {
   const normalizedCart = (!cart.parcels || cart.parcels.length === 0) && cart.items?.length > 0
     ? buildCartFromItems(cart.items)
