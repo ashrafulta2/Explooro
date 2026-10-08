@@ -14,6 +14,7 @@
 import * as productService from './product.service.js';
 import * as feedRepo from '../repositories/discoveryFeed.repository.js';
 import * as recommendation from './recommendation.service.js';
+import * as diversity from './diversity.service.js';
 import { AppError } from '../plugins/errorHandler.js';
 
 // How much each kind of interaction says about intent. A purchase is a far stronger signal than a
@@ -161,23 +162,51 @@ export async function getFeed(
     affinityWindowDays,
   });
 
-  // Over-fetch by one to know whether another page exists without a second COUNT query.
-  const products = await productService.listCatalog(db, {
-    ...filters,
-    status: 'ACTIVE',
-    sortBy: 'recommended',
-    // Phase B: the blended ranking. Its weights are admin settings, not constants here.
-    ranking,
+  const diversityConfig = await diversity.resolveDiversityConfig(db);
+  let page;
+  let hasMore;
+  if (diversityConfig.enabled) {
+    // Phase D: rank a candidate pool, re-order it for variety, cut the page from THAT, then hydrate
+    // only the page. Cutting by SQL OFFSET would page the un-diversified order, and a re-order that
+    // only sees one page cannot keep a supplier out of the next one.
+    const pool = await productService.listCandidates(db, {
+      ...filters,
+      ranking,
+      limit: diversityConfig.pool_size,
+    });
+    const ordered = diversity.diversify(pool, diversityConfig);
+    const picked = ordered.slice(safeOffset, safeOffset + effectiveLimit);
+    hasMore = ordered.length > safeOffset + effectiveLimit;
     // The feed slide renders an inline buy box with a Size selector, so it needs each row's variants
     // up front — otherwise they'd pop in after a per-slide detail fetch. Only the discovery feed
     // asks for this; the plain catalog grid leaves it off.
-    withVariants: true,
-    limit: effectiveLimit + 1,
-    offset: safeOffset,
-  });
-
-  const hasMore = products.length > effectiveLimit;
-  const page = hasMore ? products.slice(0, effectiveLimit) : products;
+    const full = await productService.listCatalogByIds(
+      db,
+      picked.map((r) => r.id),
+      { withVariants: true }
+    );
+    const scored = new Map(picked.map((r) => [String(r.id), r]));
+    // The score components travel with the row so the reason badge still names what lifted it.
+    page = full.map((p) => ({
+      ...p,
+      rank_score: scored.get(String(p.id))?.rank_score,
+      rank_components: scored.get(String(p.id))?.rank_components,
+    }));
+  } else {
+    // Over-fetch by one to know whether another page exists without a second COUNT query.
+    const products = await productService.listCatalog(db, {
+      ...filters,
+      status: 'ACTIVE',
+      sortBy: 'recommended',
+      // Phase B: the blended ranking. Its weights are admin settings, not constants here.
+      ranking,
+      withVariants: true,
+      limit: effectiveLimit + 1,
+      offset: safeOffset,
+    });
+    hasMore = products.length > effectiveLimit;
+    page = hasMore ? products.slice(0, effectiveLimit) : products;
+  }
 
   // The reason comes from what actually lifted each product; the heuristics below only fill the gaps.
   recommendation.applyRankReasons(page);

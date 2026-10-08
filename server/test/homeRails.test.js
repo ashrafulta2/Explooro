@@ -17,6 +17,7 @@ import path from 'node:path';
 
 import * as rails from '../src/services/homeRails.service.js';
 import * as reco from '../src/services/recommendation.service.js';
+import * as diversityService from '../src/services/diversity.service.js';
 import * as productRepo from '../src/repositories/product.repository.js';
 
 function makeDb(routes = []) {
@@ -48,13 +49,22 @@ function product(id, components = {}, over = {}) {
 /**
  * A db whose settings row carries `config` and whose catalog answers with whatever `catalog(sql)`
  * returns, so a test can give each rail its own candidates by looking at the SQL it sent.
+ *
+ * A rail now costs two product queries: the thin ranked candidate query (its SQL carries
+ * `rank_score`) and the hydration of the winners by id (an `p.id = ANY` filter with no score). The
+ * fake answers the second one the way Postgres would, by keeping only the rows asked for.
+ *
+ * `diversity` is the recommendation.diversity row's value (absent = the shipped defaults).
  */
-function railsDb({ config, catalog, capture = true, district = null, viewed = [] } = {}) {
+function railsDb({ config, catalog, capture = true, district = null, viewed = [], diversity = null } = {}) {
   return makeDb([
     {
       match: (s) => s.includes('FROM platform_settings'),
       reply: () => ({
-        rows: config ? [{ key: rails.RAILS_KEY, value_json: config }] : [],
+        rows: [
+          ...(config ? [{ key: rails.RAILS_KEY, value_json: config }] : []),
+          ...(diversity ? [{ key: 'recommendation.diversity', value_json: diversity }] : []),
+        ],
       }),
     },
     { match: (s) => s.includes("key = 'personalization_signals'"), reply: () => ({ rows: [{ is_enabled: capture, settings_json: {} }] }) },
@@ -63,7 +73,18 @@ function railsDb({ config, catalog, capture = true, district = null, viewed = []
       match: (s) => s.includes("event_type IN ('CLICK'"),
       reply: () => ({ rows: viewed.map((id, i) => ({ product_id: id, last_at: daysAgo(i) })) }),
     },
-    { match: (s) => s.includes('FROM products p'), reply: (sql, params) => ({ rows: catalog(sql.replace(/\s+/g, ' '), params) }) },
+    {
+      match: (s) => s.includes('FROM products p'),
+      reply: (sql, params) => {
+        const flat = sql.replace(/\s+/g, ' ');
+        let rows = catalog(flat, params);
+        if (!flat.includes('rank_score') && flat.includes('p.id = ANY')) {
+          const ids = params.find(Array.isArray) || [];
+          rows = rows.filter((r) => ids.includes(r.id));
+        }
+        return { rows };
+      },
+    },
   ]);
 }
 
@@ -243,7 +264,7 @@ describe('Home rails — getRails', () => {
       catalog: () => trendingRows(1, 6, { bestseller: 1 }),
     });
     await rails.getRails(db, { sessionId: 's', now: NOW });
-    assert.equal(db.calls.filter((c) => c.sql.includes('FROM products p')).length, 1);
+    assert.equal(db.calls.filter((c) => c.sql.includes('rank_score')).length, 1, 'only bestsellers is ranked');
   });
 
   test('every rail disabled: no ranking work is done', async () => {
@@ -396,8 +417,22 @@ describe('Home rails — getRails', () => {
     assert.ok(ranked.length >= 4, 'the ranked rails were actually queried');
     for (const c of ranked) {
       const limit = c.params[c.params.length - 2];
-      assert.ok(limit <= 60, `limit ${limit}`);
+      assert.ok(limit <= diversityService.DIVERSITY_LIMITS.pool_size.max, `limit ${limit}`);
     }
+  });
+
+  test('with diversity off the fetch is the old bound', async () => {
+    const db = railsDb({
+      config: cfg(rails.RAIL_KEYS.map((key) => ({ key, enabled: true, limit: 30 }))),
+      diversity: { enabled: false },
+      district: 'Sylhet',
+      viewed: [1],
+      catalog: () => [],
+    });
+    await rails.getRails(db, { userId: 7, now: NOW });
+    const ranked = db.calls.filter((x) => x.sql.includes('rank_score'));
+    assert.ok(ranked.length >= 4);
+    for (const c of ranked) assert.ok(c.params[c.params.length - 2] <= 60, `limit ${c.params[c.params.length - 2]}`);
   });
 });
 

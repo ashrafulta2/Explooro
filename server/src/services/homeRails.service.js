@@ -16,6 +16,7 @@ import * as settingRepo from '../repositories/setting.repository.js';
 import * as productService from './product.service.js';
 import * as discoveryFeed from './discoveryFeed.service.js';
 import * as recommendation from './recommendation.service.js';
+import * as diversity from './diversity.service.js';
 
 export const RAILS_KEY = 'recommendation.rails';
 
@@ -72,7 +73,8 @@ export const RAIL_LIMITS = Object.freeze({
   window_days: { min: 1, max: 365 },
 });
 
-// Bounds one catalog query's size no matter what the settings say: every rail is a full ranking.
+// Bounds one candidate query's size when diversity is off (pool_size takes over when it is on, and is
+// itself range-checked): every rail is a full ranking.
 const MAX_FETCH = 60;
 
 const defaultRail = (key) => DEFAULT_RAILS_CONFIG.rails.find((r) => r.key === key);
@@ -172,28 +174,39 @@ function isPersonal(spec) {
   );
 }
 
+/**
+ * One rail's raw material. `hydrated` says whether the rows are full catalog rows already (the
+ * recency rail, a handful of ids) or thin candidates that still need hydrating once it is known which
+ * of them make the cut — a rail only ever shows `limit` products, so loading pricing and images for
+ * a pool of a hundred would be waste.
+ */
 async function fetchRail(db, rail, profile, spec, size) {
   if (profile.needs === 'viewed') {
-    const rows = await productService.listCatalog(db, {
-      status: 'ACTIVE',
-      productIds: spec.viewedIds,
-      inStock: true,
-      sortBy: 'newest',
-      limit: spec.viewedIds.length,
-      offset: 0,
-    });
     // Most recently opened first — that is the order the ids arrive in.
-    const order = new Map(spec.viewedIds.map((id, i) => [id, i]));
-    return rows.sort((a, b) => (order.get(Number(a.id)) ?? 0) - (order.get(Number(b.id)) ?? 0));
+    const rows = await productService.listCatalogByIds(db, spec.viewedIds, { inStock: true });
+    return { hydrated: true, rows };
   }
-  return productService.listCatalog(db, {
-    status: 'ACTIVE',
-    sortBy: 'recommended',
+  const rows = await productService.listCandidates(db, {
     ranking: { ...spec, weights: profileWeights(spec.weights, profile.signals) },
     inStock: true,
     limit: size,
-    offset: 0,
   });
+  return { hydrated: false, rows };
+}
+
+/** Full rows for a rail's chosen candidates, each still carrying the score that placed it. */
+async function hydrateRail(db, rows) {
+  const full = await productService.listCatalogByIds(
+    db,
+    rows.map((r) => r.id),
+    { inStock: true }
+  );
+  const scored = new Map(rows.map((r) => [String(r.id), r]));
+  return full.map((p) => ({
+    ...p,
+    rank_score: scored.get(String(p.id))?.rank_score,
+    rank_components: scored.get(String(p.id))?.rank_components,
+  }));
 }
 
 /**
@@ -208,7 +221,11 @@ export async function getRails(
   db,
   { userId, sessionId, audience = 'customer', personalize = true, now = Date.now() } = {}
 ) {
-  const [config, feedSettings] = await Promise.all([resolveRailsConfig(db), discoveryFeed.resolveFeedSettings(db)]);
+  const [config, feedSettings, diversityConfig] = await Promise.all([
+    resolveRailsConfig(db),
+    discoveryFeed.resolveFeedSettings(db),
+    diversity.resolveDiversityConfig(db),
+  ]);
   const active = config.rails.filter((r) => r.enabled);
   if (!active.length) return { rails: [], meta: { count: 0 } };
 
@@ -221,37 +238,62 @@ export async function getRails(
   });
 
   const runnable = active.filter((r) => canRun(RAIL_PROFILES[r.key], spec));
-  // Enough rows that products already claimed by an earlier rail cannot leave this one short.
+  // Enough candidates that products already claimed by an earlier rail cannot leave this one short.
+  // With diversity on, the pool is the candidate pool (and the diversity pass needs room to choose
+  // from); with it off, the sum of the rails' limits is all the room the claim step needs.
   const budget = runnable.reduce((sum, r) => sum + r.limit, 0);
+  const fetchSize = (rail) =>
+    diversityConfig.enabled ? diversityConfig.pool_size : Math.min(MAX_FETCH, Math.max(rail.limit, budget));
 
   const fetched = await Promise.all(
     runnable.map(async (rail) => {
       try {
-        return await fetchRail(db, rail, RAIL_PROFILES[rail.key], spec, Math.min(MAX_FETCH, Math.max(rail.limit, budget)));
+        return await fetchRail(db, rail, RAIL_PROFILES[rail.key], spec, fetchSize(rail));
       } catch {
         return null;
       }
     })
   );
 
+  // Fill the rails in layout order so a product shows in only the first rail that earns it. A rail
+  // is diversified AFTER the claim filter: variety is judged on the products it will really show.
+  // The recency rail keeps "most recently opened first" — that order is its whole point.
   const claimed = new Set();
-  const rails = [];
+  const picks = [];
   runnable.forEach((rail, i) => {
+    const got = fetched[i];
+    if (!got) return;
     const profile = RAIL_PROFILES[rail.key];
-    const rows = (fetched[i] || [])
-      .filter((p) => !claimed.has(String(p.id)) && qualifies(p, profile, { windowDays: rail.window_days, now }))
-      .slice(0, rail.limit);
+    let rows = got.rows.filter((p) => !claimed.has(String(p.id)) && qualifies(p, profile, { windowDays: rail.window_days, now }));
+    if (!got.hydrated) rows = diversity.diversify(rows, diversityConfig);
+    rows = rows.slice(0, rail.limit);
     if (rows.length < config.min_items) return;
     rows.forEach((p) => claimed.add(String(p.id)));
-    // The score's arithmetic is internal; the shopper-facing label is the rail's own title.
-    recommendation.applyRankReasons(rows);
-    rails.push({
-      key: rail.key,
-      // continue_browsing and near_you are personal by definition; for_you only if it had something to go on.
-      personalized: rail.key === 'for_you' ? isPersonal(spec) : rail.key === 'continue_browsing' || rail.key === 'near_you',
-      products: rows,
-    });
+    picks.push({ rail, rows, hydrated: got.hydrated });
   });
+
+  // Only now are the winners loaded in full. One rail failing to hydrate costs that rail, not the page
+  // (its claimed products stay claimed — a rare edge, and a later rail simply has one fewer to offer).
+  const built = await Promise.all(
+    picks.map(async ({ rail, rows, hydrated }) => {
+      try {
+        const products = hydrated ? rows : await hydrateRail(db, rows);
+        // A product can sell out between the pool query and now; a rail left thin by that is dropped.
+        if (products.length < config.min_items) return null;
+        // The score's arithmetic is internal; the shopper-facing label is the rail's own title.
+        recommendation.applyRankReasons(products);
+        return {
+          key: rail.key,
+          // continue_browsing and near_you are personal by definition; for_you only if it had something to go on.
+          personalized: rail.key === 'for_you' ? isPersonal(spec) : rail.key === 'continue_browsing' || rail.key === 'near_you',
+          products,
+        };
+      } catch {
+        return null;
+      }
+    })
+  );
+  const rails = built.filter(Boolean);
 
   return { rails, meta: { count: rails.length } };
 }

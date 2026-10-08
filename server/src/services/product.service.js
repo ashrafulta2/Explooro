@@ -425,6 +425,43 @@ export async function listCatalog(db, filters = {}) {
   return enriched;
 }
 
+/**
+ * The candidate pool for a ranked list (Phase D): the top `limit` catalog rows by `ranking`, thin —
+ * id, supplier, category, brand, listing date and the score with its components. Pricing, images and
+ * variants are NOT loaded; hydrate the rows that survive with listCatalogByIds.
+ */
+export async function listCandidates(db, { ranking, limit, ...filters } = {}) {
+  return productRepo.listProducts(db, {
+    ...filters,
+    status: 'ACTIVE',
+    sortBy: 'recommended',
+    ranking,
+    candidatesOnly: true,
+    limit,
+    offset: 0,
+  });
+}
+
+/**
+ * Full catalog rows for an ordered list of ids, in that order. An id that is no longer listed (sold
+ * out, unpublished between the pool query and now) is skipped, not an error. Any `filters` ride
+ * along unchanged (inStock, withVariants, ...), so hydration applies the same rules as the pool did.
+ */
+export async function listCatalogByIds(db, ids, filters = {}) {
+  const wanted = (ids || []).map(Number).filter(Number.isFinite);
+  if (!wanted.length) return [];
+  const rows = await listCatalog(db, {
+    ...filters,
+    status: 'ACTIVE',
+    productIds: wanted,
+    sortBy: 'newest',
+    limit: wanted.length,
+    offset: 0,
+  });
+  const order = new Map(wanted.map((id, i) => [id, i]));
+  return rows.sort((a, b) => (order.get(Number(a.id)) ?? 0) - (order.get(Number(b.id)) ?? 0));
+}
+
 // Protocol limit from docs/api-contract.md §4.1 ("limit default 20, maximum 100"), not a tunable
 // business number — it caps how much one page of any cursor-paginated feed may cost.
 export const MAX_CATALOG_PAGE_SIZE = 100;

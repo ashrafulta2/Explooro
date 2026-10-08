@@ -43,6 +43,27 @@ function matchesQuery(p, raw) {
     .includes(q);
 }
 
+// Mirrors services/diversity.service.js (migration 058 defaults) on the one dimension the fixtures
+// carry: no category more than MAX_PER_CATEGORY times inside any WINDOW consecutive picks. A product
+// held back keeps its queue position and is taken as soon as it fits; when nothing fits the best
+// remaining one is taken. It reorders and never shortens a list. The fixtures have no supplier or
+// brand ids, and the shopper-profile exploration slot is live-only.
+const DIVERSITY_WINDOW = 6;
+const DIVERSITY_MAX_PER_CATEGORY = 3;
+function spreadByCategory(list) {
+  const queue = list.slice();
+  const out = [];
+  while (queue.length) {
+    const recent = out.slice(-DIVERSITY_WINDOW);
+    let at = queue.findIndex(
+      (p) => recent.filter((r) => r.category === p.category).length < DIVERSITY_MAX_PER_CATEGORY
+    );
+    if (at < 0) at = 0;
+    out.push(queue.splice(at, 1)[0]);
+  }
+  return out;
+}
+
 function popularityScore(p) {
   // Rough proxy for the server's sold_count/rating ordering, using the fields the fixture has.
   return num(p.rating) * Math.log(1 + num(p.rating_count)) + (p.is_flash_sale ? 2 : 0);
@@ -235,8 +256,10 @@ export default [
       const claimed = new Set();
       const rails = [];
 
-      const add = (key, personalized, list, limit = 12) => {
-        const rows = list.filter((p) => !claimed.has(p.ref)).slice(0, limit);
+      const add = (key, personalized, list, limit = 12, { spread = true } = {}) => {
+        // The recency rail keeps "most recently opened first" — that order is its whole point.
+        const open = list.filter((p) => !claimed.has(p.ref));
+        const rows = (spread ? spreadByCategory(open) : open).slice(0, limit);
         if (rows.length < MIN_ITEMS) return;
         rows.forEach((p) => claimed.add(p.ref));
         rails.push({ key, personalized, products: rows.map((p) => ({ ...p })) });
@@ -248,7 +271,7 @@ export default [
           .reverse()
           .map((ref) => inStock.find((p) => p.ref === ref))
           .filter(Boolean);
-        add('continue_browsing', true, viewed, 10);
+        add('continue_browsing', true, viewed, 10, { spread: false });
       }
       const personal = !optedOut && categoryAffinity.size > 0;
       const forYou = personal

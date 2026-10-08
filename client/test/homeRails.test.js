@@ -75,6 +75,16 @@ test('a product appears in at most one rail', () => {
   assert.equal(new Set(ids).size, ids.length);
 });
 
+test('no category fills a rail: at most 3 of one category in any 6 consecutive cards', () => {
+  for (const r of call().data.rails) {
+    for (let i = 0; i + 6 <= r.products.length; i++) {
+      const counts = new Map();
+      for (const p of r.products.slice(i, i + 6)) counts.set(p.category, (counts.get(p.category) || 0) + 1);
+      assert.ok(Math.max(...counts.values()) <= 3, `${r.key} window at ${i}`);
+    }
+  }
+});
+
 test('only in-stock products are offered', () => {
   for (const r of call().data.rails) for (const p of r.products) assert.ok(Number(p.stock) > 0, p.ref);
 });

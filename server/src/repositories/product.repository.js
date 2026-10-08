@@ -429,6 +429,11 @@ export async function listProducts(db, filters = {}) {
     // Phase B: a full ranking spec (see recommendation.service.js buildRankingSpec). When present, the
     // `recommended` sort uses the blended score and the three boost arrays above are ignored.
     ranking = null,
+    // Phase D: the candidate pool. Select only what diversity and the rail rules read (ids, the three
+    // dimensions, listing date, score) — no image subquery, no variants, no supplier/store columns —
+    // so a pool of hundreds costs one thin query, and only the products that make the page are
+    // hydrated afterwards (product.service.js listCatalogByIds).
+    candidatesOnly = false,
   } = filters;
 
   // Filters come from the shared builder so the page and its "N products" count can never disagree.
@@ -495,6 +500,18 @@ export async function listProducts(db, filters = {}) {
               WHERE v2.product_id = p.id AND v2.is_active = true
             ) AS has_variants`
     : '';
+
+  if (candidatesOnly) {
+    const { rows } = await db.query(
+      `SELECT p.id, p.supplier_id, p.category_id, p.brand, p.created_at${rank ? rank.select : ''}${CATALOG_FROM}${rank ? `
+     ${rank.joins}` : ''}
+     WHERE ${conditions.join(' AND ')}
+     ORDER BY ${orderClause}
+     LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+      params
+    );
+    return rows;
+  }
 
   const { rows } = await db.query(
     `SELECT p.*,
