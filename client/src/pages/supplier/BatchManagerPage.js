@@ -275,7 +275,7 @@ export default function BatchManagerPage(root) {
           if (!confirm(`Are you sure you want to recall batch #${batch.batch_number}? This will immediately freeze checkout for these units.`)) return;
           try {
             await supplierApi.recallBatch({ batchId: batch.id, reason: 'Supplier Quality Recall' });
-            toast.success(t('supplier.recall_success', `Batch #${batch.batch_number} recalled and isolated.`));
+            toast.success(t('supplier.recall_success', 'Batch #{{batch}} recalled and isolated.', { batch: batch.batch_number }));
             loadData();
           } catch (err) {
             toast.error(t('supplier.recall_failed', 'Failed to recall batch.'));

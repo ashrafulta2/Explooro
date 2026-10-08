@@ -462,7 +462,7 @@ export default function StoreStatusPage(root) {
       const cardHeader = document.createElement('div');
       cardHeader.className = 'supplier-day-card__header';
       cardHeader.innerHTML = `
-        <span class="supplier-day-card__title">${t(`supplier.days.${dayName}`, dayName)}</span>
+        <span class="supplier-day-card__title">${t(`days.${dayName.toLowerCase()}`, dayName)}</span>
         <span style="font-size: 14px;">${dayData.is_open ? '🏬' : '🏖️'}</span>
       `;
 

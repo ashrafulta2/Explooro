@@ -250,7 +250,7 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
         <div class="saler-row" style="gap: 12px;">
           <input type="checkbox" class="checkbox day-toggle" id="check-${day}" ${dayConfig.is_open ? 'checked' : ''} />
           <label for="check-${day}" class="font-bold text-xs cursor-pointer text-foreground select-none">
-            ${day}
+            ${t(`days.${day.toLowerCase()}`, day)}
           </label>
         </div>
         <div class="saler-row ${dayConfig.is_open ? '' : 'opacity-40 pointer-events-none'}" style="gap: 8px;">
