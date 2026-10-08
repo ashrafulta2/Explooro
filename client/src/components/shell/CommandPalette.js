@@ -115,7 +115,13 @@ export function createCommandPalette({ getState }) {
   escKey.title = t('palette.close_hint') || 'Close';
   escKey.addEventListener('click', () => close());
 
-  header.append(searchIcon, input, escKey);
+  // WHY: the icon + input share one bordered "field" so the box reads as a text input, not as a
+  // bare heading line; ESC stays outside it because it closes the dialog, it is not part of the field.
+  const field = document.createElement('label');
+  field.className = 'command-palette__field';
+  field.append(searchIcon, input);
+
+  header.append(field, escKey);
 
   const resultsEl = document.createElement('div');
   resultsEl.className = 'command-palette__results';

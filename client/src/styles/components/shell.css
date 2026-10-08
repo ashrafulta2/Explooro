@@ -185,8 +185,11 @@
 .command-palette.is-closing::backdrop { opacity: 0; transition: opacity 200ms var(--ease-in-quad); }
 .command-palette__header { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border-bottom: var(--border-width) solid var(--border-subtle); background: var(--surface-0); }
 .command-palette__search-icon { display: flex; align-items: center; justify-content: center; color: var(--brand); flex: none; }
-.command-palette__input { flex: 1; min-width: 0; height: 40px; padding: 0; border: none; background: transparent; color: var(--text-primary); font-size: var(--text-base); font-weight: var(--weight-medium); outline: none; }
-.command-palette__input::placeholder { color: var(--text-muted); font-weight: var(--weight-xs, 400); }
+.command-palette__field { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-3); height: 48px; padding: 0 var(--space-3); background: var(--surface-1); border: 2px solid var(--border-strong); border-radius: var(--radius-md); cursor: text; transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
+.command-palette__field:hover { border-color: var(--text-muted); }
+.command-palette__field:focus-within { border-color: var(--brand); box-shadow: var(--focus-ring); }
+.command-palette__input { flex: 1; min-width: 0; height: 100%; padding: 0; border: none; background: transparent; color: var(--text-primary); font-size: var(--text-base); font-weight: var(--weight-medium); outline: none; }
+.command-palette__input::placeholder { color: var(--text-secondary, var(--text-muted)); font-weight: var(--weight-xs, 400); }
 .command-palette__esc-badge { display: inline-flex; align-items: center; justify-content: center; padding: 2px 6px; font-size: var(--text-2xs); font-family: inherit; font-weight: var(--weight-semibold); color: var(--text-muted); background: var(--surface-2); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xs); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05); cursor: pointer; user-select: none; transition: background var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); }
 .command-palette__esc-badge:hover { background: var(--surface-3, #e2e8f0); color: var(--text-primary); }
 .command-palette__results { overflow-y: auto; padding: var(--space-2); max-height: 380px; display: flex; flex-direction: column; gap: 2px; }
