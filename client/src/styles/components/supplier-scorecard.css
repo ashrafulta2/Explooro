@@ -1,0 +1,32 @@
+/**
+ * supplier-scorecard.css — chip on the Sourcing card and the full panel on /supplier/scorecard.
+ * WHY its own file: imported by SupplierScorecardBadge.js, so it ships in the route chunks that use
+ * it instead of the entry bundle, which is at its 70KB gzip CSS budget.
+ */
+
+/* ── Supplier Scorecard (chip on the catalog card, full panel on /supplier/scorecard) ── */
+.scorecard-chip { display: inline-flex; align-items: center; gap: var(--space-2); width: fit-content; padding: 3px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); background: var(--surface-1); color: var(--text-secondary); font-size: var(--text-xs); font-weight: 600; font-variant-numeric: tabular-nums; }
+.scorecard-chip__grade { font-weight: 800; }
+.scorecard-chip--success { background: var(--success-bg); border-color: var(--success-border); color: var(--success-800); }
+.scorecard-chip--info { background: var(--info-bg); border-color: var(--info-border); color: var(--info-800); }
+.scorecard-chip--warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-800); }
+.scorecard-chip--danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-800); }
+.scorecard { display: flex; flex-direction: column; gap: var(--space-5); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-5); }
+.scorecard__head { display: flex; align-items: center; gap: var(--space-4); }
+.scorecard__grade { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 88px; height: 88px; border-radius: var(--radius-lg); border: 2px solid var(--border-subtle); background: var(--surface-0); color: var(--text-secondary); }
+.scorecard__grade--success { background: var(--success-bg); border-color: var(--success-border); color: var(--success-800); }
+.scorecard__grade--info { background: var(--info-bg); border-color: var(--info-border); color: var(--info-800); }
+.scorecard__grade--warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-800); }
+.scorecard__grade--danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-800); }
+.scorecard__grade-letter { font-size: var(--text-3xl, 32px); font-weight: 800; line-height: 1; }
+.scorecard__grade-score { font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
+.scorecard__headline { margin: 0; font-size: var(--text-lg); color: var(--text-primary); }
+.scorecard__sub { margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--text-secondary); }
+.scorecard__metrics { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--space-3); }
+.scorecard__metric { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-0); }
+.scorecard__metric-value { font-size: var(--text-xl); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.scorecard__metric-label { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
+.scorecard__metric-hint, .scorecard__metric-weight { font-size: var(--text-xs); color: var(--text-secondary); }
+.scorecard-rules { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-5); }
+.scorecard-rules h2 { margin: 0 0 var(--space-2); font-size: var(--text-md, 16px); color: var(--text-primary); }
+.scorecard-rules p { margin: 0 0 var(--space-2); font-size: var(--text-sm); color: var(--text-secondary); }
