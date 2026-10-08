@@ -87,6 +87,7 @@ import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.js';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';
 import { openTeamPurchaseModal } from '../../components/product/TeamPurchaseModal.js';
+import '../../styles/components/returns.css';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */
 function specimen(title, ...nodes) {

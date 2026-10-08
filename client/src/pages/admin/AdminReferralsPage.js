@@ -19,6 +19,7 @@ import { toast } from '../../services/toast.js';
 import { getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 const FRAUD_SWITCHES = [
   { key: 'block_same_device', en: 'Block same device fingerprint', bn: 'একই ডিভাইস ফিঙ্গারপ্রিন্ট ব্লক করুন' },
@@ -35,6 +36,7 @@ const QUALIFY_EVENTS = [
 ];
 
 export default function AdminReferralsPage(root) {
+  loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page admin-referrals';

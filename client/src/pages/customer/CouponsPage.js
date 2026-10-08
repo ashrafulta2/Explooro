@@ -24,6 +24,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
 import { goBack, renderBackLink } from '../../core/navBack.js';
+import '../../styles/components/customer-coupons.css';
 
 const DEFAULT_FALLBACK_COUPONS = [
   {

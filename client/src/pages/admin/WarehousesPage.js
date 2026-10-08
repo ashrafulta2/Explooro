@@ -18,8 +18,10 @@ import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatNumber } from '../../services/format.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 export default function WarehousesPage(root, { navigate } = {}) {
+  loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page warehouses-page';

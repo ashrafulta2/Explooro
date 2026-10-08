@@ -6,6 +6,7 @@ import { toast } from '../../services/toast.js';
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
 import { customerApi } from '../../services/customer.api.js';
+import '../../styles/components/customer-reviews.css';
 
 export function openWriteReviewModal({ item = null, existingReview = null, onSaved = null }) {
   const isBn = getLanguage() === 'bn';

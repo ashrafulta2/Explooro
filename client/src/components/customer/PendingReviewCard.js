@@ -3,6 +3,7 @@
  */
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
+import '../../styles/components/customer-reviews.css';
 
 export function PendingReviewCard({ item, onWriteReview }) {
   const isBn = getLanguage() === 'bn';

@@ -8,6 +8,7 @@
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
+import '../../styles/components/customer-coupons.css';
 
 export function CouponCard({
   coupon,

@@ -15,6 +15,7 @@ import { api } from '../../core/api.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import '../../styles/components/returns.css';
 
 export default function ReturnsQueuePage(root) {
   const container = document.createElement('div');

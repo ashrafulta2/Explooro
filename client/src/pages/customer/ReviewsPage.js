@@ -22,6 +22,7 @@ import { PendingReviewCard } from '../../components/customer/PendingReviewCard.j
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.js';
 import { openWriteReviewModal } from '../../components/customer/WriteReviewModal.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import '../../styles/components/customer-reviews.css';
 
 export default function ReviewsPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {
