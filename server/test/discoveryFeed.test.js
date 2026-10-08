@@ -344,20 +344,22 @@ describe('Discovery feed — getFeed pagination & personalization', () => {
       const sql = db.calls.find((c) => c.sql.includes('FROM products p')).sql;
       return sql.slice(sql.lastIndexOf('ORDER BY'));
     };
-    const cold = await orderBy({});
-    assert.doesNotMatch(cold, /ORDER BY \(?\d+\)?\s*(DESC|ASC|,)/, `got: ${cold}`);
-    assert.match(cold, /^ORDER BY p\.sold_count DESC/);
-
-    const warm = await orderBy({ categoryIds: [3] });
-    assert.match(warm, /^ORDER BY \(\(CASE WHEN p\.category_id/);
+    // Phase B orders by the score's output alias for everyone, so a cold shopper (no affinity) and a
+    // warm one share the same ORDER BY and neither can ever produce a bare integer.
+    for (const affinity of [{}, { categoryIds: [3] }]) {
+      const clause = await orderBy(affinity);
+      assert.doesNotMatch(clause, /ORDER BY \(?\d+\)?\s*(DESC|ASC|,)/, `got: ${clause}`);
+      assert.match(clause, /^ORDER BY rank_score DESC, p\.sold_count DESC/);
+    }
   });
 });
 
 describe('Discovery feed — `recommended` ranking intent', () => {
-  // Mirrors the ORDER BY that product.repository.js builds for sortBy === 'recommended':
+  // Models the LEGACY affinity-only boost that product.repository.js still builds when a caller passes
+  // boost arrays but no `ranking` spec (the feed itself now passes one — see recommendation.test.js):
   //   score = Σ (weight[dim] when the row matches that affinity dimension)
   //   tiebreak: sold_count DESC, rating DESC, created_at DESC
-  // Weights mirror AFFINITY_WEIGHTS in discoveryFeed.service.js.
+  // Weights mirror the repository's boost default (affinityWeights).
   const W = { category: 3, brand: 2, supplier: 2 };
   const score = (p, aff) =>
     (aff.categoryIds.includes(p.category_id) ? W.category : 0) +

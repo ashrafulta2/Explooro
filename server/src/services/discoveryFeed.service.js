@@ -13,6 +13,7 @@
 
 import * as productService from './product.service.js';
 import * as feedRepo from '../repositories/discoveryFeed.repository.js';
+import * as recommendation from './recommendation.service.js';
 import { AppError } from '../plugins/errorHandler.js';
 
 // How much each kind of interaction says about intent. A purchase is a far stronger signal than a
@@ -33,10 +34,6 @@ const EVENT_WEIGHTS = {
 };
 const VALID_EVENT_TYPES = Object.keys(EVENT_WEIGHTS);
 const VALID_AUDIENCES = ['customer', 'saler'];
-
-// Contribution of each matched dimension to a product's score in the `recommended` sort. Mirrored
-// as the default in product.repository.js's listProducts.
-const AFFINITY_WEIGHTS = { category: 3, brand: 2, supplier: 2 };
 
 // Fallbacks used only when the discovery_feed module row carries no override. The module's
 // sub_settings_schema documents both as admin-tunable (affinity_window_days, page_size), so the
@@ -135,15 +132,21 @@ export async function getFeed(
     ? await feedRepo.getAffinity(db, { userId, sessionId, audience, windowDays: affinityWindowDays })
     : { categoryIds: [], brands: [], supplierIds: [] };
 
+  const ranking = await recommendation.buildRankingSpec(db, {
+    userId,
+    sessionId,
+    audience,
+    personalize: capture.enabled && personalize,
+    affinity,
+  });
+
   // Over-fetch by one to know whether another page exists without a second COUNT query.
   const products = await productService.listCatalog(db, {
     ...filters,
     status: 'ACTIVE',
     sortBy: 'recommended',
-    boostCategoryIds: affinity.categoryIds,
-    boostBrands: affinity.brands,
-    boostSupplierIds: affinity.supplierIds,
-    affinityWeights: AFFINITY_WEIGHTS,
+    // Phase B: the blended ranking. Its weights are admin settings, not constants here.
+    ranking,
     // The feed slide renders an inline buy box with a Size selector, so it needs each row's variants
     // up front — otherwise they'd pop in after a per-slide detail fetch. Only the discovery feed
     // asks for this; the plain catalog grid leaves it off.
@@ -154,6 +157,9 @@ export async function getFeed(
 
   const hasMore = products.length > effectiveLimit;
   const page = hasMore ? products.slice(0, effectiveLimit) : products;
+
+  // The reason comes from what actually lifted each product; the heuristics below only fill the gaps.
+  recommendation.applyRankReasons(page);
 
   // Enrich recommendation reason for the discovery feed slide badge
   for (const p of page) {

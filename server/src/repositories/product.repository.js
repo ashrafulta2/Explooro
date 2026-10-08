@@ -2,6 +2,8 @@
  * product.repository.js — Data access for catalog products, variants, images & sourcing (Prompt 4.3).
  */
 
+import { buildBlendedRank } from './recommendation.repository.js';
+
 export async function insertProduct(
   db,
   {
@@ -416,6 +418,9 @@ export async function listProducts(db, filters = {}) {
     // selector in the first frame without a per-slide detail fetch. Off by default — the plain
     // catalog grid must not pay for a variant array it never renders.
     withVariants = false,
+    // Phase B: a full ranking spec (see recommendation.service.js buildRankingSpec). When present, the
+    // `recommended` sort uses the blended score and the three boost arrays above are ignored.
+    ranking = null,
   } = filters;
 
   // Filters come from the shared builder so the page and its "N products" count can never disagree.
@@ -426,7 +431,11 @@ export async function listProducts(db, filters = {}) {
   else if (sortBy === 'price_desc') orderClause = 'p.default_retail_price DESC';
   else if (sortBy === 'popular') orderClause = 'p.sold_count DESC, p.rating_avg DESC';
   else if (sortBy === 'rating') orderClause = 'p.rating_avg DESC';
-  else if (sortBy === 'recommended') {
+  let rank = null;
+  if (sortBy === 'recommended' && ranking) {
+    rank = buildBlendedRank(ranking, params);
+    orderClause = `${rank.orderBy}, p.sold_count DESC, p.created_at DESC`;
+  } else if (sortBy === 'recommended') {
     // Affinity score (0 when the caller has no history yet, so this degrades cleanly to the
     // popularity/recency tiebreak below — i.e. a brand-new or signed-out shopper still gets a
     // sensible feed). Weights are integers from our own constant, never user input, so inlining
@@ -505,7 +514,8 @@ export async function listProducts(db, filters = {}) {
             (SELECT m.storage_key FROM product_images pi
                JOIN media_assets m ON m.id = pi.media_id
               WHERE pi.product_id = p.id
-              ORDER BY pi.is_primary DESC, pi.display_order ASC LIMIT 1) as primary_image_key${variantsSelect}${CATALOG_FROM}
+              ORDER BY pi.is_primary DESC, pi.display_order ASC LIMIT 1) as primary_image_key${variantsSelect}${rank ? rank.select : ''}${CATALOG_FROM}${rank ? `
+     ${rank.joins}` : ''}
      WHERE ${conditions.join(' AND ')}
      ORDER BY ${orderClause}
      LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
