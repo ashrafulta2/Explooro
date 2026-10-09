@@ -6,6 +6,9 @@
 
 import { clearMockCart } from './cart.js';
 
+// transactionRef -> order id, for the mock /payments/* handlers below.
+const mockPayments = new Map();
+
 let mockOrders = [
   {
     id: 1,
@@ -108,7 +111,8 @@ const orderHandlers = [
         discount_amount: '0.00',
         currency: 'BDT',
         payment_method: b.payment_method || 'COD',
-        payment_status: b.payment_method === 'COD' ? 'PENDING' : 'PAID',
+        // Gateway orders start unpaid, as on the server; checkout then pays them via /payments/*.
+        payment_status: 'PENDING',
         recipient_name: b.recipient_name || 'Valued Customer',
         recipient_phone: b.recipient_phone || '+8801700000000',
         division: b.division || 'dhaka',
@@ -188,6 +192,32 @@ const orderHandlers = [
         });
       }
       return { status: 200, body: { data: { order, message_en: 'Order cancelled successfully' } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/payments/initiate',
+    handler({ body }) {
+      const order = mockOrders.find((o) => String(o.id) === String(body?.orderId));
+      if (!order) return { status: 404, body: { code: 'NOT_FOUND', message_en: 'Order not found.', message_bn: 'অর্ডার পাওয়া যায়নি।' } };
+      const transactionRef = `TXN-MOCK-${order.id}-${Date.now()}`;
+      mockPayments.set(transactionRef, order.id);
+      return {
+        status: 200,
+        body: { data: { transactionRef, paymentId: transactionRef, redirectUrl: `${body.returnUrl || ''}?status=success`, amount: order.total_amount, gateway: order.payment_method, status: 'INITIATED' } },
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/payments/execute',
+    handler({ body }) {
+      const orderId = mockPayments.get(body?.transactionRef);
+      const order = mockOrders.find((o) => o.id === orderId);
+      if (!order) return { status: 404, body: { code: 'NOT_FOUND', message_en: 'Payment not found.', message_bn: 'পেমেন্ট পাওয়া যায়নি।' } };
+      order.payment_status = 'PAID';
+      order.sub_orders.forEach((so) => { so.status = 'CONFIRMED'; });
+      return { status: 200, body: { data: { success: true, transactionRef: body.transactionRef, orderId, status: 'PAID' } } };
     },
   },
 ];

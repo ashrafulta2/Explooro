@@ -9,6 +9,7 @@
  */
 
 import { getOrderById, getMyOrders, cancelOrder } from '../../services/order.api.js';
+import { needsOnlinePayment, payForOrder } from '../../services/payment.api.js';
 import { OrderTracker, getSubOrderStatusLabel, getPaymentStatusLabel } from '../../components/order/OrderTracker.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { Button } from '../../components/ui/Button.js';
@@ -283,6 +284,41 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
       </div>
     `;
     summaryCard.append(billSection);
+
+    // Pay Now (gateway orders placed but not yet paid)
+    if (needsOnlinePayment(order)) {
+      const payWrap = document.createElement('div');
+      payWrap.className = 'mt-6';
+
+      const hint = document.createElement('p');
+      hint.className = 'text-sm text-secondary mb-3';
+      hint.textContent = t('order_tracking.pay_now_hint');
+
+      const payLabel = t('order_tracking.pay_now_btn', { amount: formatCurrency(order.total_amount) });
+      const payBtn = Button({
+        label: payLabel,
+        variant: 'primary',
+        size: 'md',
+        fullWidth: true,
+        onClick: async () => {
+          payBtn.setLoading(true);
+          payBtn.setLabel(t('order_tracking.paying'));
+          try {
+            const result = await payForOrder(order);
+            if (result.redirected) return;
+            toast.success(t('checkout.payment_success'));
+            renderOrderDetail(container, orderIdOrRef, navigate);
+          } catch (err) {
+            const isBn = document.documentElement.lang === 'bn';
+            toast.error((isBn && err.messageBn) || err.message || t('common.error_occurred'));
+            payBtn.setLoading(false);
+            payBtn.setLabel(payLabel);
+          }
+        },
+      });
+      payWrap.append(hint, payBtn);
+      summaryCard.append(payWrap);
+    }
 
     // Cancellation Action (if eligible)
     const canCancel = subOrders.some((s) => s.status === 'PLACED');
