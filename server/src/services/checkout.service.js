@@ -20,9 +20,10 @@ import * as cartService from './cart.service.js';
 import * as cartRepo from '../repositories/cart.repository.js';
 import * as orderRepo from '../repositories/order.repository.js';
 import * as couponRepo from '../repositories/coupon.repository.js';
-import * as trustScoreService from './trustScore.service.js';
 import * as adsService from './ads.service.js';
-import * as otpService from './otp.service.js';
+import * as trustScoreService from './trustScore.service.js';
+import * as codGateService from './codGate.service.js';
+import * as deliveryChargeService from './deliveryCharge.service.js';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
 
 export function hashPayload(payload) {
@@ -43,6 +44,9 @@ export async function executeCheckout(pool, cache, {
   otpCode = null,
   guestToken = null,
   adCampaignId = null,
+  smsSender = null,
+  isDevelopment = false,
+  ip = null,
 }) {
   // 1. Validate Idempotency-Key requirement
   if (!idempotencyKey || typeof idempotencyKey !== 'string') {
@@ -251,65 +255,32 @@ export async function executeCheckout(pool, cache, {
     }
 
     const supplierCount = supplierGroups.size;
-    const shippingPerParcelPaisa = toPaisa(60.0); // ৳60 per supplier parcel
+    // WHY fresh: the charge written onto the order must be the one in the database now, not a
+    // cached copy from before a super admin changed it.
+    const shippingPerParcelPaisa = toPaisa(await deliveryChargeService.perParcelCharge(client, cache, { fresh: true }));
     const totalShippingPaisa = supplierCount * shippingPerParcelPaisa;
 
     const totalAmountPaisa = itemsAmountPaisa + totalShippingPaisa - discountAmountPaisa;
     const totalAmountBdt = toBdtNumber(totalAmountPaisa);
 
-    // 7. COD Anti-Fraud & Trust Score Risk Gate
+    // 7. COD Anti-Fraud & Trust Score Risk Gate (shared with team purchase — see codGate.service.js
+    //    for why the OTP itself is written on the pool, not on this transaction).
     let isOtpVerified = false;
     let trustScoreAtOrder = 50;
 
     if (paymentMethod === 'COD') {
-      const risk = await trustScoreService.evaluateCodRisk(client, {
+      const gate = await codGateService.enforceCodGate(pool, cache, {
+        client,
         userId,
+        phone: cleanPhone,
         orderAmount: totalAmountBdt,
+        otpCode,
+        smsSender,
+        isDevelopment,
+        ip,
       });
-
-      trustScoreAtOrder = risk.trustScore;
-
-      if (risk.requiresOtp) {
-        if (!otpCode) {
-          // Trigger SMS OTP send
-          try {
-            // WHY the explicit `null`: sendOtp's signature is
-            // (db, cache, smsSender, emailSender, options). This call was still passing the options
-            // object in the emailSender slot, so destructuring `undefined` threw on every COD gate —
-            // and the catch below swallowed it, so the OTP was never created or sent.
-            await otpService.sendOtp(client, cache, async () => {}, null, {
-              phone: cleanPhone,
-              purpose: 'COD_CONFIRM',
-              ip: '127.0.0.1',
-              isDevelopment: true,
-            });
-          } catch (err) {
-            // Mock/test senders may fail; the gate below is raised regardless. Surface the cause so
-            // a broken send is not indistinguishable from a working one.
-            client.log?.warn?.({ err }, 'COD OTP dispatch failed');
-          }
-
-          throw new AppError(
-            'COD_OTP_REQUIRED',
-            'SMS OTP verification is required for this Cash on Delivery order.',
-            'এই ক্যাশ অন ডেলিভারি অর্ডারের জন্য এসএমএস ওটিপি যাচাইকরণ প্রয়োজন।',
-            {
-              phone: cleanPhone,
-              trust_score: risk.trustScore,
-              reason: risk.reason,
-            }
-          );
-        }
-
-        // Verify provided OTP
-        await otpService.verifyOtp(client, {
-          phone: cleanPhone,
-          code: otpCode,
-          purpose: 'COD_CONFIRM',
-        });
-
-        isOtpVerified = true;
-      }
+      isOtpVerified = gate.isOtpVerified;
+      trustScoreAtOrder = gate.trustScore;
     }
 
     // 8. Create Parent Order

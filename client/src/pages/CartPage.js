@@ -213,7 +213,13 @@ export default function CartPage(root, { navigate } = {}) {
       className: 'cart-summary__checkout',
       onClick: () => nav('/checkout'),
     });
-    box.append(checkout, el('p', 'cart-summary__note', t('cart.shipping_calculated_note')));
+    box.append(checkout);
+    // One parcel's charge, read back from the server's estimate rather than a number kept here.
+    if (parcelCount > 0) {
+      box.append(el('p', 'cart-summary__note', t('cart.shipping_calculated_note', {
+        amount: formatCurrency((shipping / parcelCount).toFixed(2)),
+      })));
+    }
     return box;
   }
 

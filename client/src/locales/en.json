@@ -263,7 +263,8 @@
       "ad_pricing": "Ad pricing",
       "language": "Language",
       "genie": "Popup effect",
-      "recommendations": "Personalized feed"
+      "recommendations": "Personalized feed",
+      "delivery": "Delivery charge"
     },
     "moderator": {
       "queue": "Product Moderation",
@@ -1935,7 +1936,7 @@
     "subtotal": "Items Subtotal",
     "discount": "Discount",
     "shipping_estimate": "Est. Delivery ({{count}} parcels)",
-    "shipping_calculated_note": "৳60/parcel standard delivery across Bangladesh",
+    "shipping_calculated_note": "{{amount}} per parcel standard delivery across Bangladesh",
     "total": "Estimated Total",
     "proceed_to_checkout": "Proceed to Checkout",
     "coupon_placeholder": "Enter promo/voucher code",
@@ -2028,7 +2029,7 @@
     "card_desc": "Visa, Mastercard, AMEX & local Bangladeshi cards.",
     "cod": "Cash on Delivery (COD)",
     "cod_desc": "Pay in cash when your parcel is delivered to your doorstep.",
-    "cod_note": "Advance delivery fee of ৳60 may apply for new or unverified accounts.",
+    "cod_note": "An advance delivery fee may apply for new or unverified accounts.",
     "badge_instant": "Instant",
     "badge_fast": "Fast",
     "badge_dbbl": "DBBL",
@@ -3160,7 +3161,12 @@
       "error_address": "Enter the full address (at least 10 characters).",
       "guarantee": "Nothing is charged until the team fills. If it does not fill within {{hours}} hours, it closes and any wallet hold is returned in full.",
       "start_heading": "Or start a new team ({{hours}}h window)",
-      "unavailable": "Team purchase is not available for this product right now."
+      "unavailable": "Team purchase is not available for this product right now.",
+      "otp_label": "Confirmation code",
+      "otp_placeholder": "6-digit code",
+      "otp_sent": "Cash on Delivery for this order needs a confirmation. We sent a code by SMS to {{phone}}. Enter it and press the button again.",
+      "otp_dev": "Development mode code: {{code}}",
+      "error_otp": "Enter the code we sent by SMS."
     }
   },
   "cart_recovery": {
@@ -4722,6 +4728,32 @@
       "status_expired": "Expired",
       "status_cancelled": "Cancelled",
       "empty": "No team has been started yet."
+    },
+    "delivery": {
+      "title": "Delivery charge",
+      "subtitle": "What a normal checkout adds for each supplier parcel. The cart, Quick Buy and checkout all use this number.",
+      "card_title": "Delivery charge per parcel",
+      "card_desc": "An order with items from two suppliers ships as two parcels and pays this twice. A change applies to new carts and orders at once; orders already placed keep what they paid.",
+      "per_parcel": "Charge per parcel",
+      "per_parcel_hint": "Between ৳{{min}} and ৳{{max}}.",
+      "reason": "Reason for the change",
+      "reason_hint": "At least {{min}} characters. It is saved in the audit log.",
+      "example": "One parcel: {{one}} · two parcels: {{two}}",
+      "saved": "Delivery charge saved.",
+      "super_admin_only": "Only a super admin can change this.",
+      "team_note": "Team purchase has its own shipping charge:",
+      "team_link": "Team purchase settings",
+      "kpi_current": "Current charge",
+      "kpi_current_hint": "per supplier parcel",
+      "kpi_updated": "Last changed",
+      "kpi_updated_hint": "from the audit log",
+      "never_changed": "Not changed yet",
+      "history_title": "Change history",
+      "history_empty": "No changes yet.",
+      "col_when": "When",
+      "col_who": "Who",
+      "col_change": "Change",
+      "col_reason": "Reason"
     }
   },
   "admin_catalog": {

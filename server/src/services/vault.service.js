@@ -15,6 +15,28 @@ import * as walletRepo from '../repositories/wallet.repository.js';
 import * as ledgerService from './ledger.service.js';
 
 /**
+ * The platform treasury wallet: the first super admin's wallet (user 1 when there is none yet).
+ *
+ * It is also the counterpart for money that enters from outside the ledger — a bKash/Nagad/card
+ * payment, or the cash a courier collects for a COD order. Pass its id as `buyerWalletId` to
+ * depositToEscrow for those orders, so the escrow is funded from the platform's collection and the
+ * shopper's own wallet is never driven below zero for money they paid elsewhere. (payout.service.js
+ * credits the same wallet when money leaves, so the two directions mirror each other.)
+ */
+export async function resolvePlatformWalletId(db, txClient) {
+  const { rows: adminRows } = await txClient.query(
+    `SELECT u.id FROM users u
+     JOIN user_roles ur ON ur.user_id = u.id
+     JOIN roles r ON r.id = ur.role_id
+     WHERE r.key = 'super_admin'
+     ORDER BY u.id ASC LIMIT 1`
+  );
+  const adminUserId = adminRows[0]?.id ?? 1;
+  const w = await walletRepo.getOrCreateWallet(db, adminUserId, { client: txClient });
+  return w.id;
+}
+
+/**
  * Deposits sub-order funds into escrow, locking them into pending_escrow_balance.
  *
  * @param {import('pg').Pool} db
@@ -127,22 +149,21 @@ export async function depositToEscrow(db, {
       resolvedSalerWalletId = w.id;
     }
     if (!resolvedPlatformWalletId) {
-      // Platform treasury wallet defaults to user ID 1 (super_admin) or dev super admin
-      const { rows: adminRows } = await txClient.query(
-        `SELECT u.id FROM users u
-         JOIN user_roles ur ON ur.user_id = u.id
-         JOIN roles r ON r.id = ur.role_id
-         WHERE r.key = 'super_admin'
-         ORDER BY u.id ASC LIMIT 1`
-      );
-      const adminUserId = adminRows[0]?.id ?? 1;
-      const w = await walletRepo.getOrCreateWallet(db, adminUserId, { client: txClient });
-      resolvedPlatformWalletId = w.id;
+      resolvedPlatformWalletId = await resolvePlatformWalletId(db, txClient);
     }
 
     const supplierPaisa = Math.round(parseFloat(supplierAmt) * 100);
-    const salerPaisa = Math.round(parseFloat(salerAmt || '0') * 100);
-    const platformPaisa = Math.round(parseFloat(platformAmt || '0') * 100);
+    let salerPaisa = Math.round(parseFloat(salerAmt || '0') * 100);
+    let platformPaisa = Math.round(parseFloat(platformAmt || '0') * 100);
+
+    // WHY: an order bought straight from the product page has no saler, but pricing still splits a
+    // saler share into saler_commission. With no saler wallet that share was counted in the buyer's
+    // debit and credited to nobody, so the ledger refused the group as unbalanced and no escrow was
+    // locked. Nobody sold it, so the platform keeps that share.
+    if (salerPaisa > 0 && !resolvedSalerWalletId) {
+      platformPaisa += salerPaisa;
+      salerPaisa = 0;
+    }
     const totalPaisa = supplierPaisa + salerPaisa + platformPaisa;
 
     if (totalPaisa <= 0) {

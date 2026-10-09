@@ -5,6 +5,8 @@
  * live price change warnings, stock ceilings, and optimistic updates.
  */
 
+import { mockDeliveryCharge } from './delivery.js';
+
 export let mockCartItems = [
   {
     id: 101,
@@ -119,7 +121,7 @@ function calculateCart() {
     subtotal: p.subtotal.toFixed(2),
   }));
 
-  const estimatedShippingPerParcel = 60.0;
+  const estimatedShippingPerParcel = mockDeliveryCharge();
   const estimatedShipping = parcels.length * estimatedShippingPerParcel;
   const grandTotal = subtotal + estimatedShipping;
 

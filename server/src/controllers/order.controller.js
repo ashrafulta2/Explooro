@@ -25,6 +25,9 @@ export async function checkout(req, reply) {
     couponCode: req.body?.coupon_code,
     otpCode: req.body?.otp_code,
     adCampaignId: req.body?.ad_campaign_id,
+    smsSender: req.server.smsSender,
+    isDevelopment: Boolean(req.server.config?.isDevelopment),
+    ip: req.ip,
   });
 
   if (result.isReplay) {

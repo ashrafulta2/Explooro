@@ -11,6 +11,7 @@ import { appStore } from '../state/appStore.js';
 import { toast } from './toast.js';
 import { t } from './i18n.js';
 import { track } from './signals.js';
+import { knownDeliveryCharge, loadDeliveryCharge } from './deliveryCharge.js';
 
 const GUEST_CART_STORAGE_KEY = 'explooro_guest_cart';
 
@@ -67,7 +68,8 @@ export function buildCartFromItems(items = []) {
   });
 
   const parcels = Array.from(suppliersMap.values());
-  const estimatedShipping = (parcels.length * 60.0).toFixed(2);
+  // The super admin sets the charge (/admin/platform/delivery); the server cart replaces this estimate.
+  const estimatedShipping = (parcels.length * (knownDeliveryCharge() ?? 0)).toFixed(2);
   const grandTotal = (subtotal + Number(estimatedShipping)).toFixed(2);
 
   return {
@@ -106,7 +108,14 @@ let isInitialized = false;
 export async function initCart() {
   if (isInitialized) return;
   isInitialized = true;
+  // The delivery charge first, so a cart priced locally uses the charge the super admin set.
+  await loadDeliveryCharge();
   await Promise.all([fetchCart(), fetchWishlist()]);
+}
+
+/** A stored guest cart, re-priced with the current delivery charge (it may have changed since). */
+function repriceLocal(local) {
+  return { ...buildCartFromItems(local.items || []), cart_id: local.cart_id ?? null };
 }
 
 // WHY a registered navigator: the cart used to be a right-side drawer opened by flipping store
@@ -133,7 +142,7 @@ export async function fetchCart() {
     } else {
       const local = loadStoredCart();
       if (local && local.items && local.items.length > 0) {
-        updateCartState(local);
+        updateCartState(repriceLocal(local));
       } else if (res?.data?.cart) {
         updateCartState(res.data.cart);
       }
@@ -141,7 +150,7 @@ export async function fetchCart() {
   } catch (err) {
     const local = loadStoredCart();
     if (local) {
-      updateCartState(local);
+      updateCartState(repriceLocal(local));
     }
   } finally {
     cartStore.update({ loading: false });

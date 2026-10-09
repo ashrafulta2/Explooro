@@ -288,7 +288,9 @@ describe('Prompt 5.3: Payments — Gateways, Idempotency & Webhooks', () => {
     await app.register(errorHandlerPlugin);
 
     // Mock Fastify Decorators
-    app.decorate('pg', db);
+    // WHY 'db': app.js decorates the pool as `db`. This test used to decorate `pg`, matching the
+    // controllers' typo, so it passed while every real payment request failed with a 500.
+    app.decorate('db', db);
     app.decorate('cache', cache);
     app.decorate('authenticate', async (req, reply) => {
       req.user = { id: 1, role: 'customer', permissions: [] };

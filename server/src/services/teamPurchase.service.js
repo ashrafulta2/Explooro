@@ -17,6 +17,7 @@
 
 import { randomBytes, randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
+import * as codGateService from './codGate.service.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import { findDistrict } from '../lib/bdDistricts.js';
@@ -253,6 +254,26 @@ function memberTotalPaisa(team) {
   return toPaisa(team.group_price) + toPaisa(team.shipping_charge || 0);
 }
 
+/**
+ * The same COD trust / OTP gate checkout applies, for a member about to owe group price + shipping
+ * on delivery. The code goes to the account phone, which is also the phone on the order.
+ * A WALLET member pays up front and is not gated.
+ */
+async function gateCodMember(db, cache, client, { team, userId, paymentMethod, cod }) {
+  if (paymentMethod !== 'COD') return { isOtpVerified: false, trustScore: null };
+  const { rows } = await client.query(`SELECT phone FROM users WHERE id = $1`, [userId]);
+  return codGateService.enforceCodGate(db, cache, {
+    client,
+    userId,
+    phone: rows[0]?.phone || null,
+    orderAmount: Number(fromPaisa(memberTotalPaisa(team))),
+    otpCode: cod?.otpCode ?? null,
+    smsSender: cod?.smsSender ?? null,
+    isDevelopment: Boolean(cod?.isDevelopment),
+    ip: cod?.ip ?? null,
+  });
+}
+
 // ---- quote ------------------------------------------------------------------------------------------
 
 /**
@@ -312,6 +333,7 @@ export async function createTeamPurchase(db, cache, {
   recipientName,
   addressLine,
   paymentMethod = 'COD',
+  cod = null,
 }) {
   const enabled = await isEnabled(db, cache, 'group_buying');
   if (!enabled) {
@@ -376,7 +398,8 @@ export async function createTeamPurchase(db, cache, {
     );
     const team = teamRows[0];
 
-    const member = await addMember(client, { team, userId, recipient, paymentMethod });
+    const gate = await gateCodMember(db, cache, client, { team, userId, paymentMethod, cod });
+    const member = await addMember(client, { team, userId, recipient, paymentMethod, gate });
 
     return {
       team,
@@ -385,14 +408,15 @@ export async function createTeamPurchase(db, cache, {
   });
 }
 
-async function addMember(client, { team, userId, recipient, paymentMethod }) {
+async function addMember(client, { team, userId, recipient, paymentMethod, gate = null }) {
   const { rows } = await client.query(
     `INSERT INTO team_purchase_members (
-      team_purchase_id, user_id, shipping_address_json, payment_method, payment_hold_status
+      team_purchase_id, user_id, shipping_address_json, payment_method, payment_hold_status,
+      is_otp_verified, trust_score_at_join
     )
-    VALUES ($1, $2, $3, $4, 'HELD')
+    VALUES ($1, $2, $3, $4, 'HELD', $5, $6)
     RETURNING *`,
-    [team.id, userId, JSON.stringify(recipient), paymentMethod]
+    [team.id, userId, JSON.stringify(recipient), paymentMethod, Boolean(gate?.isOtpVerified), gate?.trustScore == null ? null : Math.round(gate.trustScore)]
   );
   const member = rows[0];
 
@@ -420,6 +444,7 @@ export async function joinTeamPurchase(db, cache, {
   recipientName,
   addressLine,
   paymentMethod = 'COD',
+  cod = null,
 }) {
   const enabled = await isEnabled(db, cache, 'group_buying');
   if (!enabled) {
@@ -460,7 +485,8 @@ export async function joinTeamPurchase(db, cache, {
       throw new AppError('CONFLICT', 'You are already a member of this team purchase.', 'আপনি ইতিমধ্যে এই টিমের সদস্য।');
     }
 
-    const newMember = await addMember(client, { team, userId, recipient, paymentMethod });
+    const gate = await gateCodMember(db, cache, client, { team, userId, paymentMethod, cod });
+    const newMember = await addMember(client, { team, userId, recipient, paymentMethod, gate });
     const newCount = team.current_members_count + 1;
 
     if (newCount < team.required_members) {
@@ -520,6 +546,7 @@ async function completeTeam(client, cache, team) {
 
   const { rows: members } = await client.query(
     `SELECT tpm.id, tpm.user_id, tpm.shipping_address_json, tpm.payment_method, u.phone,
+            tpm.is_otp_verified, tpm.trust_score_at_join,
             up.full_name AS profile_name
      FROM team_purchase_members tpm
      JOIN users u ON u.id = tpm.user_id
@@ -570,6 +597,8 @@ async function completeTeam(client, cache, team) {
       paymentMethod: m.payment_method,
       paymentStatus: isWallet ? 'PAID' : 'PENDING',
       teamPurchaseId: team.id,
+      isOtpVerified: Boolean(m.is_otp_verified),
+      trustScoreAtOrder: m.trust_score_at_join ?? null,
       idempotencyKey: `team:${team.id}:user:${m.user_id}`,
       recipientName: address.recipient_name || address.name || m.profile_name || '',
       recipientPhone: m.phone,

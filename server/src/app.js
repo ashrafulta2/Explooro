@@ -36,6 +36,7 @@ import staffRoutes from './routes/staff.routes.js';
 import themeRoutes from './routes/theme.routes.js';
 import localizationRoutes from './routes/localization.routes.js';
 import genieRoutes from './routes/genie.routes.js';
+import deliveryChargeRoutes from './routes/deliveryCharge.routes.js';
 import recommendationAdminRoutes from './routes/recommendationAdmin.routes.js';
 import mediaRoutes from './routes/media.routes.js';
 import productRoutes from './routes/product.routes.js';
@@ -197,6 +198,7 @@ export async function buildApp(overrides = {}) {
   await app.register(themeRoutes, { prefix: '/api/v1' });
   await app.register(localizationRoutes, { prefix: '/api/v1' });
   await app.register(genieRoutes, { prefix: '/api/v1' });
+  await app.register(deliveryChargeRoutes, { prefix: '/api/v1' });
   await app.register(recommendationAdminRoutes, { prefix: '/api/v1' });
   await app.register(mediaRoutes, { prefix: '/api/v1' });
   await app.register(productRoutes, { prefix: '/api/v1' });

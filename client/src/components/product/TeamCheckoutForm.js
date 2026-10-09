@@ -9,6 +9,10 @@
  * The phone number on the order is the buyer's account phone, and the district is read from the
  * address on the server, so neither is asked for.
  *
+ * Cash on Delivery passes the same trust check as a normal checkout. When the server answers
+ * COD_OTP_REQUIRED it has sent an SMS code to the account phone; the form then shows a code field
+ * and the next submit carries `otp_code` (server/src/services/codGate.service.js).
+ *
  *   const form = TeamCheckoutForm({ itemPrice, shippingCharge, walletBalance, submitLabel, onSubmit });
  *   form.el            // <form>
  *   form.setItemPrice(n)  // when the shopper switches team size
@@ -84,6 +88,33 @@ export function TeamCheckoutForm({
   cod.input.checked = true;
   payment.append(cod.label, wallet.label);
 
+  // -- COD confirmation code (shown only after the server asks for it) -----------------------------
+  const otpField = document.createElement('label');
+  otpField.className = 'team-checkout__field team-checkout__otp';
+  otpField.hidden = true;
+  otpField.innerHTML = `<span class="team-checkout__hint team-checkout__otp-note"></span>
+    <span class="team-checkout__label"></span>
+    <input class="input input--sm font-mono" name="otp_code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
+    <span class="team-checkout__hint team-checkout__otp-dev"></span>`;
+  otpField.querySelector('.team-checkout__label').textContent = t('team_purchases.checkout.otp_label');
+  const otpNote = otpField.querySelector('.team-checkout__otp-note');
+  const otpDev = otpField.querySelector('.team-checkout__otp-dev');
+  const otpInput = otpField.querySelector('input');
+  otpInput.placeholder = t('team_purchases.checkout.otp_placeholder');
+
+  function showOtp(details = {}) {
+    otpField.hidden = false;
+    otpNote.textContent = t('team_purchases.checkout.otp_sent', { phone: details.phone || '' });
+    otpDev.textContent = details.otp_debug ? t('team_purchases.checkout.otp_dev', { code: details.otp_debug }) : '';
+    otpDev.hidden = !details.otp_debug;
+    otpInput.value = '';
+    otpInput.focus();
+  }
+
+  // A wallet payment is not gated, so the code field only belongs to COD.
+  cod.input.addEventListener('change', () => { if (otpNote.textContent) otpField.hidden = false; });
+  wallet.input.addEventListener('change', () => { otpField.hidden = true; });
+
   // -- summary ----------------------------------------------------------------------------------
   const summary = document.createElement('dl');
   summary.className = 'team-checkout__summary';
@@ -97,7 +128,7 @@ export function TeamCheckoutForm({
   submit.type = 'submit';
   submit.className = 'btn btn--primary btn--md w-full team-checkout__submit';
 
-  form.append(nameField, addressField, payment, summary, error, submit);
+  form.append(nameField, addressField, payment, otpField, summary, error, submit);
 
   function totalPaisa() {
     return toPaisa(currentItemPrice) + toPaisa(shippingCharge);
@@ -155,6 +186,13 @@ export function TeamCheckoutForm({
       addressInput.focus();
       return;
     }
+    const payingCod = !wallet.input.checked;
+    const otpCode = otpInput.value.trim();
+    if (payingCod && !otpField.hidden && !otpCode) {
+      showError(t('team_purchases.checkout.error_otp'));
+      otpInput.focus();
+      return;
+    }
     showError('');
     const label = submit.textContent;
     submit.disabled = true;
@@ -163,9 +201,15 @@ export function TeamCheckoutForm({
       await onSubmit({
         recipient_name: recipientName,
         address_line: addressLine,
-        payment_method: wallet.input.checked ? 'WALLET' : 'COD',
+        payment_method: payingCod ? 'COD' : 'WALLET',
+        ...(payingCod && otpCode ? { otp_code: otpCode } : {}),
       });
     } catch (err) {
+      if (err?.code === 'COD_OTP_REQUIRED') {
+        showError('');
+        showOtp(err.details || {});
+        return;
+      }
       showError(err?.message || t('common.error_generic'));
     } finally {
       submit.disabled = false;

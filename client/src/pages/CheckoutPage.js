@@ -277,7 +277,8 @@ export default function CheckoutPage(root, { navigate } = {}) {
     card.className = 'checkout-summary card';
 
     const subtotal = Number(cartData.subtotal || 0);
-    const shipping = Number(cartData.estimated_shipping || 60);
+    // The server cart prices delivery with the charge the super admin set; checkout charges the same.
+    const shipping = Number(cartData.estimated_shipping) || 0;
     const discount = Number(cartData.discount_amount || 0);
     const total = Math.max(0, subtotal + shipping - discount);
 

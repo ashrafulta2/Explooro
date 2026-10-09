@@ -19,6 +19,11 @@
 .team-checkout__row--total { padding-top: var(--space-1); border-top: var(--border-width) solid var(--border-subtle); font-weight: var(--weight-bold); color: var(--text-primary); }
 .team-checkout__error { margin: 0; font-size: var(--text-xs); color: var(--danger-700); }
 .team-checkout__submit { font-weight: var(--weight-bold); }
+/* WHY: the field rules set display:flex, which would otherwise beat the [hidden] attribute. */
+.team-checkout [hidden] { display: none; }
+.team-checkout__otp { padding: var(--space-3); border: var(--border-width) solid var(--warning-300); border-radius: var(--radius-md); background: var(--warning-50); }
+.team-checkout__otp-note { color: var(--text-primary); font-size: var(--text-sm); }
+.team-checkout__otp input { letter-spacing: 0.3em; max-width: 12ch; }
 @media (max-width: 420px) {
   .team-checkout__payment { grid-template-columns: minmax(0, 1fr); }
 }

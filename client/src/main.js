@@ -406,6 +406,16 @@ async function bootRouterDemo() {
         module: 'core',
         load: () => import('./pages/admin/GenieSettingsPage.js'),
       },
+      // Delivery charge per parcel for normal checkout. `.view` gates the page, `.update` (CRITICAL,
+      // super admin only) gates Save — see server/src/routes/deliveryCharge.routes.js.
+      {
+        path: '/admin/platform/delivery',
+        title: 'Delivery Charge — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.delivery.view',
+        module: 'core',
+        load: () => import('./pages/admin/DeliveryChargePage.js'),
+      },
       // Personalized home feed governance (Phase G): weights, rails, diversity, co-visitation, cache and
       // the per-surface funnel. `core` for the same reason as Genie: the weights also govern the
       // non-personal signals an opted-out shopper gets, so it must stay reachable when the

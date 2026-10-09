@@ -29,10 +29,18 @@ const adminSrc = read('src/pages/admin/AdminGroupBuyPage.js');
 describe('Team purchase checkout form', () => {
   it('asks for recipient name and address only', () => {
     const names = [...formSrc.matchAll(/name="([a-z_]+)"/g)].map((m) => m[1]);
-    assert.deepEqual([...new Set(names)].sort(), ['address_line', 'payment_method', 'recipient_name']);
+    // otp_code is not asked up front: it appears only after the server answers COD_OTP_REQUIRED.
+    assert.deepEqual([...new Set(names)].sort(), ['address_line', 'otp_code', 'payment_method', 'recipient_name']);
+    assert.match(formSrc, /otpField\.hidden = true;/, 'the code field starts hidden');
     for (const absent of ['recipient_phone', 'division', 'district', 'upazila']) {
       assert.ok(!names.includes(absent), `the form must not ask for ${absent}`);
     }
+  });
+
+  it('asks for the SMS code only when the server requires it, and only for COD', () => {
+    assert.match(formSrc, /err\?\.code === 'COD_OTP_REQUIRED'/);
+    assert.match(formSrc, /payingCod && otpCode \? \{ otp_code: otpCode \}/);
+    assert.match(formSrc, /wallet\.input\.addEventListener\('change', \(\) => \{ otpField\.hidden = true; \}\)/);
   });
 
   it('offers exactly Cash on Delivery and Wallet', () => {

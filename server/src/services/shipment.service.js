@@ -291,10 +291,14 @@ export async function handleCourierWebhook(db, cache, {
         [shipment.sub_order_id]
       );
 
-      // Start escrow hold (idempotent)
+      // Start escrow hold (idempotent). A paid or wallet order already locked its escrow, so in
+      // practice this is a COD order: the courier collected the cash, so the platform treasury
+      // funds the deposit. WHY not the default (the buyer's wallet): that drove every COD
+      // customer's wallet below zero by the order total on delivery.
       try {
         await vaultService.depositToEscrow(txClient, {
           subOrderId: shipment.sub_order_id,
+          buyerWalletId: await vaultService.resolvePlatformWalletId(txClient, txClient),
           idempotencyKey: `escrow_deposit_delivered:${shipment.sub_order_id}`,
           client: txClient,
         });

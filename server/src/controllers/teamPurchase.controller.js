@@ -5,6 +5,16 @@
 import * as teamPurchaseService from '../services/teamPurchase.service.js';
 import { writeAudit } from '../lib/audit.js';
 
+/** What the COD trust / OTP gate needs from the request (see services/codGate.service.js). */
+function codContext(req) {
+  return {
+    otpCode: req.body?.otp_code || null,
+    smsSender: req.server?.smsSender ?? null,
+    isDevelopment: Boolean(req.server?.config?.isDevelopment),
+    ip: req.ip,
+  };
+}
+
 function toInt(value) {
   const n = Number.parseInt(value, 10);
   return Number.isFinite(n) ? n : null;
@@ -44,6 +54,7 @@ export async function create(req, reply) {
     recipientName: recipient_name,
     addressLine: address_line,
     paymentMethod: payment_method || 'COD',
+    cod: codContext(req),
   });
 
   return reply.status(201).send(result);
@@ -61,6 +72,7 @@ export async function join(req, reply) {
     recipientName: recipient_name,
     addressLine: address_line,
     paymentMethod: payment_method || 'COD',
+    cod: codContext(req),
   });
 
   return reply.send(result);

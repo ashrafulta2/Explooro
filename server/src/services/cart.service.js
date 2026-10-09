@@ -13,6 +13,7 @@ import { randomUUID } from 'node:crypto';
 import * as cartRepo from '../repositories/cart.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
+import * as deliveryChargeService from './deliveryCharge.service.js';
 
 export function generateGuestToken() {
   return `gst_${randomUUID().replace(/-/g, '')}`;
@@ -158,8 +159,8 @@ export async function getCart(db, { userId = null, guestToken = null }) {
     subtotal: p.subtotal.toFixed(2),
   }));
 
-  // Estimated standard shipping in Bangladesh (e.g., ৳60 per supplier parcel within Dhaka)
-  const estimatedShippingPerParcel = 60.0;
+  // The super admin sets this at /admin/platform/delivery; checkout charges the same number.
+  const estimatedShippingPerParcel = await deliveryChargeService.perParcelCharge(db, null);
   const estimatedShippingTotal = parcels.length * estimatedShippingPerParcel;
   const grandTotal = subtotal + estimatedShippingTotal;
 

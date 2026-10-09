@@ -179,10 +179,52 @@ super admin sets the shipping charge; Wallet stays as a payment option.
 
 ### Found, not fixed (outside this change)
 
-- `payment.service.js` `executePayment` calls `vaultService.depositToEscrow(db, cache, {...})`, but
-  the function takes `(db, {...})`. The call throws, and `.catch(() => {})` hides it, so a paid
-  bKash/Nagad/card order never locks escrow. Team-purchase Wallet orders call it correctly.
-- Normal checkout still hard-codes ৳60 per supplier parcel (`checkout.service.js`). This is a
-  business number in code. Team purchase uses its own setting.
-- Team-purchase COD orders skip the trust-score / OTP gate that checkout applies to COD.
+All three were fixed the same day — see the next section.
 
+## Fix log (2026-10-09, payments, delivery charge, COD gate)
+
+Screenshots: `docs/screenshots/fixes-2026-10-09/`.
+
+- **Paid orders now lock escrow.**
+  - `payment.service.js` passed `cache` where depositToEscrow expects its params and hid the throw.
+    It also called `orderRepo.findSubOrdersByOrderId`, which does not exist.
+  - Found while verifying: every payment endpoint answered 500. The controllers read
+    `req.server.pg`, which is undefined (the pool is `req.server.db`). `paymentGateway.test.js`
+    decorated `pg`, so it passed anyway.
+  - Found while verifying: an order with no saler still has a `saler_commission`. That share was
+    debited from the buyer and credited to nobody, so the ledger refused the group. With no saler
+    wallet, the platform now keeps that share (`vault.service.js`).
+  - The deposit is funded by the platform treasury wallet, not the shopper's wallet. The money came
+    from bKash/Nagad/card, so the shopper's Explooro balance must not drop. COD orders, deposited at
+    delivery by `shipment.service.js`, do the same; before this, every delivered COD order pushed
+    the customer's wallet below zero.
+  - A retry (execute again, webhook replay, reconcile sweep) now locks escrow for a paid order that
+    has none. It never re-locks a refunded or already-escrowed sub-order.
+  - Verified on the database: orders 26 and 27 (bKash via the mock gateway, ৳1,730 each) hold ৳1,330
+    supplier + ৳400 platform = ৳1,730 escrow. The customer's wallet is unchanged, with zero drift.
+- **Delivery charge is a setting.**
+  - A super admin sets it at `/admin/platform/delivery`. The permission is `platform.delivery.update`
+    (CRITICAL). It is stored in `platform_settings` as `delivery.per_parcel_charge` (migration 069).
+  - Checkout, the server cart, the local cart estimate, Quick Buy and the mock cart all read it. Each
+    change writes an audit row and is listed on the page.
+  - Verified: after setting ৳80, a two-supplier cart shows ৳160, and checkout charged ৳80 on a
+    one-parcel order.
+- **COD trust / OTP gate, shared.**
+  - `services/codGate.service.js` is used by checkout and by team-purchase start/join.
+  - Checkout's gate never worked:
+    - its SMS sender was a no-op;
+    - the OTP row was written on the transaction that the COD_OTP_REQUIRED throw then rolled back;
+    - wrong-code attempts were rolled back too, so the 5-attempt limit never held.
+  - The OTP is now written and checked on the pool.
+  - Team-purchase members keep `is_otp_verified` / `trust_score_at_join`, and they are copied onto
+    the order.
+  - Verified: a customer with trust 10 joining with COD was asked for the code (screenshot 04).
+    After entering it, their order has `is_otp_verified = true` and `trust_score_at_order = 10`.
+
+### Found, not fixed
+
+- `/admin/finance/escrow` (EscrowHoldingsPage) shows hard-coded demo rows (SO-99820-1 …) whenever the
+  API response is not shaped `{ holdings }`. Today it never is, so the page never shows real escrow.
+- The platform treasury wallet's AVAILABLE balance goes negative by the cash collected from outside
+  (gateway and COD). `payout.service.js` already treats this wallet as the outside-money counterpart.
+  A dedicated clearing account would read better on the finance pages. That is a product decision.

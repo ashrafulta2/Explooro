@@ -1,5 +1,8 @@
 /**
  * payment.controller.js — Payment Processing Controller (Prompt 5.3).
+ *
+ * WHY req.server.db: app.js decorates the pool as `db`. These handlers used to read a `pg`
+ * decoration, which is undefined, so every payment request answered 500 against the real server.
  */
 
 import * as paymentService from '../services/payment.service.js';
@@ -14,7 +17,7 @@ export async function initiatePaymentHandler(req, reply) {
     throw new AppError('BAD_REQUEST', 'orderId is required to initiate payment.', 'পেমেন্ট শুরু করার জন্য orderId আবশ্যক।');
   }
 
-  const result = await paymentService.initiatePayment(req.server.pg, req.server.cache, {
+  const result = await paymentService.initiatePayment(req.server.db, req.server.cache, {
     orderId,
     userId: req.user?.id,
     gateway,
@@ -34,7 +37,7 @@ export async function executePaymentHandler(req, reply) {
     throw new AppError('BAD_REQUEST', 'transactionRef or paymentId is required.', 'transactionRef অথবা paymentId আবশ্যক।');
   }
 
-  const result = await paymentService.executePayment(req.server.pg, req.server.cache, {
+  const result = await paymentService.executePayment(req.server.db, req.server.cache, {
     transactionRef,
     paymentId,
     gateway,
@@ -49,7 +52,7 @@ export async function executePaymentHandler(req, reply) {
 
 export async function getTransactionStatusHandler(req, reply) {
   const { ref } = req.params;
-  const txn = await paymentRepo.findPaymentTransactionByRef(req.server.pg, ref);
+  const txn = await paymentRepo.findPaymentTransactionByRef(req.server.db, ref);
 
   if (!txn) {
     throw new AppError('NOT_FOUND', 'Transaction not found.', 'লেনদেন পাওয়া যায়নি।');
@@ -60,7 +63,7 @@ export async function getTransactionStatusHandler(req, reply) {
 
 export async function reconcilePaymentsHandler(req, reply) {
   const { olderThanMinutes = 15 } = req.body || {};
-  const result = await paymentService.reconcileStuckTransactions(req.server.pg, req.server.cache, {
+  const result = await paymentService.reconcileStuckTransactions(req.server.db, req.server.cache, {
     olderThanMinutes,
   });
 
