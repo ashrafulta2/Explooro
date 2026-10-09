@@ -162,11 +162,14 @@ Representative examples:
   "advance_charge_below_score":{ "type": "integer", "default": 20 }
 }
 
-// group_buying — the Pinduoduo mechanic's parameters
+// group_buying — the Pinduoduo mechanic's parameters (as built by migration 068, 2026-10-09;
+// edited at /admin/growth/group-buy)
 {
-  "default_team_size": { "type": "integer", "minimum": 2, "default": 3 },
-  "window_hours":      { "type": "integer", "default": 24 },
-  "min_discount_pct":  { "type": "number",  "default": 10 }
+  "default_team_size": { "type": "integer", "minimum": 2, "maximum": 3,    "default": 3 },
+  "window_hours":      { "type": "integer", "minimum": 1, "maximum": 168,  "default": 24 },
+  "discount_pct_2":    { "type": "integer", "minimum": 0, "maximum": 90,   "default": 15 },
+  "discount_pct_3":    { "type": "integer", "minimum": 0, "maximum": 90,   "default": 25 },
+  "shipping_charge":   { "type": "number",  "minimum": 0, "maximum": 5000, "default": 60 }
 }
 
 // loyalty_coins — coins are a liability, so every rate is admin-controlled

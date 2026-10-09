@@ -57,8 +57,13 @@ function buildSlide(image, title, fallbackUrl) {
     img.src = primarySrc;
     img.alt = title;
     img.loading = 'lazy';
+    // WHY a flag and not `img.src !== fallbackUrl`: img.src reads back absolute while fallbackUrl is
+    // usually a relative path, so the comparison was always true. A fallback that also 404'd set the
+    // same URL again on every error, re-requesting it thousands of times a second until the API's
+    // rate limiter locked the visitor out (sign-in included).
     img.addEventListener('error', () => {
-      if (img.src !== fallbackUrl && fallbackUrl) {
+      if (fallbackUrl && !img.dataset.fellBack && primarySrc !== fallbackUrl) {
+        img.dataset.fellBack = '1';
         img.src = fallbackUrl;
       } else {
         img.replaceWith(placeholder);
@@ -128,7 +133,8 @@ export function ImageGallery({ images = [], title = '', product = null } = {}) {
       thumb.alt = '';
       thumb.loading = 'lazy';
       thumb.addEventListener('error', () => {
-        if (thumb.src !== fallbackUrl && fallbackUrl) {
+        if (fallbackUrl && !thumb.dataset.fellBack && thumbSrc !== fallbackUrl) {
+          thumb.dataset.fellBack = '1';
           thumb.src = fallbackUrl;
         } else {
           thumb.remove();

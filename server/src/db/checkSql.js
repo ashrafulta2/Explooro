@@ -40,16 +40,7 @@ const IGNORED_ERRORS =
 // Statements known to be wrong and deliberately left for a product decision. Each entry is matched
 // by file and by the error message, so the same file breaking in a new way still fails the check.
 // Remove an entry in the same change that fixes it.
-const KNOWN_FAILURES = [
-  {
-    file: 'services/teamPurchase.service.js',
-    error: 'column "user_id" of relation "orders" does not exist',
-    // WHY: turning a completed team into orders needs recipient name, phone, division and district,
-    // which the team-purchase flow does not collect yet, and a decision on shipping and on the
-    // WALLET payment option (orders.payment_method does not allow it). See
-    // docs/bug-report-2026-10-08.md.
-  },
-];
+const KNOWN_FAILURES = [];
 
 function isKnownFailure(file, message) {
   return KNOWN_FAILURES.some((k) => k.file === file && message.includes(k.error));

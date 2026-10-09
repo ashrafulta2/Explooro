@@ -3,7 +3,8 @@
  *
  * Allows shoppers on ProductDetailPage to:
  * 1. View active group-buying pools for this product and join immediately to unlock instant discounts.
- * 2. Start a new team purchase (2 or 3 members), customize shipping, and launch a viral team link.
+ * 2. Start a new team purchase (2 or 3 members) with a recipient name and address, pay by Cash on
+ *    Delivery or wallet, and launch a viral team link.
  * 3. Integrates with Fastify POST /team-purchases & /team-purchases/:id/join and navigates to /team/:id.
  */
 
@@ -16,6 +17,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { resolveProductImage } from './ProductCard.js';
+import { TeamCheckoutForm } from './TeamCheckoutForm.js';
 
 export function openTeamPurchaseModal({
   product,
@@ -35,11 +37,16 @@ export function openTeamPurchaseModal({
     0
   );
 
-  // Discount options: 2 members = 15% discount, 3 members = 25% discount
+  // WHY prices come from GET /team-purchases/quote: the server charges the group price it computes
+  // from the super admin's settings, so the modal shows those numbers rather than its own guess.
+  // The fallback (15% / 25% off, no shipping) only renders until the quote arrives.
+  let quote = null;
   let selectedMembers = 3;
   let activeTeams = [];
   let isLoadingTeams = true;
   let timerInterval = null;
+  let checkoutForm = null;
+  let quoteFailed = false;
 
   const contentEl = document.createElement('div');
   contentEl.className = 'team-purchase-modal';
@@ -51,9 +58,66 @@ export function openTeamPurchaseModal({
     showClose: true,
   });
 
+  function quoteOption(members) {
+    return quote?.options?.find((o) => Number(o.members) === members) || null;
+  }
+
   function calcGroupPrice(members) {
+    const option = quoteOption(members);
+    if (option) return Number(option.group_price);
     const discountPct = members === 2 ? 0.15 : 0.25;
     return Math.max(1, Math.round(retailPrice * (1 - discountPct)));
+  }
+
+  function discountPctFor(members) {
+    const option = quoteOption(members);
+    return option ? Number(option.discount_pct) : (members === 2 ? 15 : 25);
+  }
+
+  async function loadQuote() {
+    try {
+      quote = await api.get(`/team-purchases/quote?product_id=${encodeURIComponent(product.id)}`);
+      if (quote?.default_team_size && !quoteOption(selectedMembers)) selectedMembers = quote.default_team_size;
+    } catch {
+      quote = null;
+      quoteFailed = true;
+    }
+    render();
+  }
+
+  function goToLogin() {
+    modal.close();
+    const target = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+    if (navigate) navigate(target);
+    else window.location.href = target;
+  }
+
+  async function submitNewTeam(fields) {
+    const { auth } = appStore.get();
+    if (!auth?.isAuthenticated) {
+      toast.info(isBn ? 'টিম শুরু করতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to start a team purchase.');
+      goToLogin();
+      return;
+    }
+
+    const res = await api.post('/team-purchases', {
+      product_id: product.id,
+      required_members: selectedMembers,
+      ...fields,
+    });
+
+    const createdTeam = res?.team || res?.data?.team || res;
+    const targetId = createdTeam?.id || createdTeam?.ref;
+
+    toast.success(
+      isBn
+        ? 'টিম পারচেজ সফলভাবে শুরু হয়েছে! বন্ধুদের আমন্ত্রণ জানান।'
+        : 'Team purchase started! Invite friends to unlock your discount.'
+    );
+    modal.close();
+    if (!targetId) return;
+    if (navigate) navigate(`/team/${targetId}`);
+    else window.location.href = `/team/${targetId}`;
   }
 
   function calcSavings(members) {
@@ -86,17 +150,17 @@ export function openTeamPurchaseModal({
     contentEl.innerHTML = '';
 
     const title = isBn && product.title_bn ? product.title_bn : (product.title_en || product.title || 'Product');
-    const imageUrl = product.primary_image_url || product.image_url || product.images?.[0]?.url || resolveProductImage(product) || '/placeholder.svg';
+    const imageUrl = product.primary_image_url || product.image_url || product.images?.[0]?.url || resolveProductImage(product) || '/placeholder-product.svg';
     const currentGroupPrice = calcGroupPrice(selectedMembers);
     const currentSavings = calcSavings(selectedMembers);
-    const discountPct = selectedMembers === 2 ? 15 : 25;
+    const discountPct = discountPctFor(selectedMembers);
 
     // 1. Product Snapshot & Deal Highlight Header
     const header = document.createElement('div');
     header.className = 'team-purchase-modal__product-header';
     header.innerHTML = `
       <div class="team-purchase-modal__thumb">
-        <img src="${imageUrl}" alt="${title}" onerror="this.src='/placeholder.svg'" />
+        <img src="${imageUrl}" alt="${title}" onerror="this.onerror=null;this.src='/placeholder-product.svg'" />
       </div>
       <div class="team-purchase-modal__info">
         <div class="flex items-center gap-2">
@@ -197,7 +261,7 @@ export function openTeamPurchaseModal({
 
     const startHeading = document.createElement('h5');
     startHeading.className = 'team-purchase-modal__section-title';
-    startHeading.innerHTML = isBn ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> অথবা নতুন টিম শুরু করুন (২৪ ঘণ্টা সময়)' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> Or Start a New Team (24h Window)';
+    startHeading.innerHTML = isBn ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ' + t('team_purchases.checkout.start_heading', { hours: quote?.window_hours ?? 24 }) : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ' + t('team_purchases.checkout.start_heading', { hours: quote?.window_hours ?? 24 });
     startSection.append(startHeading);
 
     // Size Selector
@@ -209,7 +273,7 @@ export function openTeamPurchaseModal({
     size2Option.innerHTML = `
       <div class="font-bold text-xs">${isBn ? '২ জনের টিম' : '2-Member Team'}</div>
       <div class="text-sm font-extrabold text-primary mt-0.5">${formatCurrency(calcGroupPrice(2))}</div>
-      <div class="text-[10px] text-emerald-700 font-semibold">${isBn ? '১৫% ছাড়' : '15% OFF'}</div>
+      <div class="text-[10px] text-emerald-700 font-semibold">${isBn ? `${discountPctFor(2)}% ছাড়` : `${discountPctFor(2)}% OFF`}</div>
     `;
     size2Option.addEventListener('click', () => {
       selectedMembers = 2;
@@ -221,7 +285,7 @@ export function openTeamPurchaseModal({
     size3Option.innerHTML = `
       <div class="font-bold text-xs">${isBn ? '৩ জনের টিম (সেরা ডিল)' : '3-Member Team (Best Deal)'}</div>
       <div class="text-sm font-extrabold text-primary mt-0.5">${formatCurrency(calcGroupPrice(3))}</div>
-      <div class="text-[10px] text-emerald-700 font-semibold">${isBn ? '২৫% ছাড়' : '25% OFF'}</div>
+      <div class="text-[10px] text-emerald-700 font-semibold">${isBn ? `${discountPctFor(3)}% ছাড়` : `${discountPctFor(3)}% OFF`}</div>
     `;
     size3Option.addEventListener('click', () => {
       selectedMembers = 3;
@@ -231,108 +295,32 @@ export function openTeamPurchaseModal({
     sizeSelector.append(size2Option, size3Option);
     startSection.append(sizeSelector);
 
-    // Form inputs for Initiator
-    const form = document.createElement('form');
-    form.className = 'space-y-3 mt-3';
-    form.innerHTML = `
-      <div>
-        <label class="block text-[11px] font-bold text-secondary uppercase mb-1">
-          ${isBn ? 'আপনার ডেলিভারি ঠিকানা' : 'Your Shipping Address'}
-        </label>
-        <input
-          type="text"
-          name="address"
-          required
-          value="${currentUser?.address || currentUser?.address_line || 'House 45, Road 7, Dhanmondi, Dhaka'}"
-          class="input input--sm w-full" />
-      </div>
+    // Recipient name + address + payment, with the server's price, shipping and total.
+    // WHY the form survives re-renders: render() runs again on every size switch, and a shopper's
+    // typed name and address must not be wiped by changing the team size.
+    if (!checkoutForm && quote) {
+      checkoutForm = TeamCheckoutForm({
+        itemPrice: currentGroupPrice,
+        shippingCharge: Number(quote?.shipping_charge ?? 0),
+        walletBalance: quote?.wallet_balance ?? null,
+        submitLabel: t('team_purchases.btn_start'),
+        onSubmit: submitNewTeam,
+      });
+    }
+    let form;
+    if (checkoutForm) {
+      checkoutForm.setItemPrice(currentGroupPrice);
+      form = checkoutForm.el;
+    } else {
+      form = document.createElement('p');
+      form.className = 'p-3 text-xs text-secondary text-center';
+      form.textContent = quoteFailed ? t('team_purchases.checkout.unavailable') : t('common.loading');
+    }
+    const guarantee = document.createElement('p');
+    guarantee.className = 'text-[11px] text-muted';
+    guarantee.textContent = t('team_purchases.checkout.guarantee', { hours: quote?.window_hours ?? 24 });
 
-      <div>
-        <label class="block text-[11px] font-bold text-secondary uppercase mb-1">
-          ${isBn ? 'পেমেন্ট পদ্ধতি' : 'Payment Method'}
-        </label>
-        <select name="payment_method" class="input input--sm w-full font-medium">
-          <option value="COD">Cash on Delivery (Pay on Complete)</option>
-          <option value="BKASH">bKash Authorization Hold</option>
-          <option value="NAGAD">Nagad Authorization Hold</option>
-          <option value="WALLET">Explooro Earner Vault</option>
-        </select>
-        <p class="text-[11px] text-muted mt-1">
-          🛡️ ${isBn ? 'টিম পূর্ণ না হওয়া পর্যন্ত কোনো চার্জ হবে না। ২৪ ঘণ্টায় টিম পূর্ণ না হলে স্বয়ংক্রিয়ভাবে বাতিল হবে।' : 'Zero upfront charges. If the team does not complete within 24 hours, the hold is 100% released.'}
-        </p>
-      </div>
-
-      <div class="pt-2">
-        <button type="submit" class="btn btn--primary btn--md w-full font-bold" id="btn-submit-new-team">
-          ${isBn ? `টিম পারচেজ শুরু করুন (${formatCurrency(currentGroupPrice)})` : `Start Team Purchase (${formatCurrency(currentGroupPrice)})`}
-        </button>
-      </div>
-    `;
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const { auth } = appStore.get();
-      if (!auth?.isAuthenticated) {
-        toast.info(isBn ? 'টিম শুরু করতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to start a team purchase.');
-        modal.close();
-        if (navigate) {
-          navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
-        } else {
-          window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
-        }
-        return;
-      }
-
-      const submitBtn = form.querySelector('#btn-submit-new-team');
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = isBn ? 'টিম তৈরি হচ্ছে…' : 'Creating Team…';
-      }
-
-      const formData = new FormData(form);
-      const address = formData.get('address');
-      const paymentMethod = formData.get('payment_method');
-
-      try {
-        const res = await api.post('/team-purchases', {
-          product_id: product.id,
-          product_slug: product.slug,
-          product_name_en: product.title_en || product.title,
-          product_name_bn: product.title_bn || product.title,
-          product_image_url: imageUrl,
-          original_price: retailPrice,
-          group_price: currentGroupPrice,
-          required_members: selectedMembers,
-          shipping_address: { street: address },
-          payment_method: paymentMethod,
-        });
-
-        const createdTeam = res?.team || res?.data?.team || res;
-        const targetId = createdTeam?.id || createdTeam?.ref || 1;
-
-        toast.success(
-          isBn
-            ? 'টিম পারচেজ সফলভাবে শুরু হয়েছে! বন্ধুদের আমন্ত্রণ জানান।'
-            : 'Team purchase started! Invite friends to unlock your discount.'
-        );
-
-        modal.close();
-
-        if (navigate) {
-          navigate(`/team/${targetId}`);
-        } else {
-          window.location.href = `/team/${targetId}`;
-        }
-      } catch (err) {
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = isBn ? 'আবার চেষ্টা করুন' : 'Try Again';
-        }
-        toast.error(err.message || (isBn ? 'টিম তৈরি করতে ব্যর্থ হয়েছে।' : 'Failed to create team purchase.'));
-      }
-    });
-
-    startSection.append(form);
+    startSection.append(form, guarantee);
     contentEl.append(startSection);
 
     // 4. Footer link to /account/team-purchases
@@ -342,7 +330,7 @@ export function openTeamPurchaseModal({
       <a href="/account/team-purchases" class="text-xs text-primary font-bold hover:underline" id="modal-view-my-teams">
         ${isBn ? 'আমার সকল টিম পারচেজ ও ট্র্যাকিং →' : 'View all my team purchases & tracking →'}
       </a>
-      <span class="text-[11px] text-muted font-mono">24h SLA Escrow</span>
+      <span class="text-[11px] text-muted font-mono">${quote?.window_hours ?? 24}h SLA Escrow</span>
     `;
 
     footerLinks.querySelector('#modal-view-my-teams').addEventListener('click', (e) => {
@@ -359,6 +347,7 @@ export function openTeamPurchaseModal({
   }
 
   render();
+  loadQuote();
   loadActiveTeams();
 
   timerInterval = setInterval(() => {

@@ -89,6 +89,7 @@ import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.js';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';
 import { openTeamPurchaseModal } from '../../components/product/TeamPurchaseModal.js';
+import { TeamCheckoutForm } from '../../components/product/TeamCheckoutForm.js';
 import '../../styles/components/returns.css';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */
@@ -2402,6 +2403,16 @@ function renderTeamPurchaseSpecimen() {
     },
   });
   wrap.append(specimen('Product Detail Team Purchase Modal', modalTriggerBtn));
+
+  // TeamCheckoutForm: recipient name + address + COD/wallet, with the server's price and shipping.
+  const enoughWallet = TeamCheckoutForm({ itemPrice: 1700, shippingCharge: 60, walletBalance: '3500.00', submitLabel: 'Start Team Purchase', onSubmit: async () => {} });
+  const shortWallet = TeamCheckoutForm({ itemPrice: 1700, shippingCharge: 60, walletBalance: '200.00', submitLabel: 'Confirm Join', onSubmit: async () => {} });
+  const signedOut = TeamCheckoutForm({ itemPrice: 1700, shippingCharge: 0, walletBalance: null, submitLabel: 'Start Team Purchase', onSubmit: async () => {} });
+  wrap.append(
+    specimen('Team checkout form — wallet covers the total', enoughWallet.el),
+    specimen('Team checkout form — wallet too low (disabled)', shortWallet.el),
+    specimen('Team checkout form — signed out, free shipping', signedOut.el)
+  );
   return wrap;
 }
 

@@ -140,7 +140,44 @@ let mockTeamPurchases = [
   },
 ];
 
+// Mirrors the group_buying module settings the server reads (see server teamPurchase.service.js).
+export const mockTeamSettings = {
+  default_team_size: 3,
+  window_hours: 24,
+  discount_pct_2: 15,
+  discount_pct_3: 25,
+  shipping_charge: 60,
+};
+
 export const teamPurchaseHandlers = [
+  // Prices per team size, shipping charge, payment methods and wallet balance. Listed before
+  // /team-purchases/:id so "quote" is never matched as an id.
+  {
+    method: 'GET',
+    path: '/team-purchases/quote',
+    handler({ query }) {
+      const retail = 2000;
+      const price = (pct) => (Math.round((retail * (100 - pct)) / 100)).toFixed(2);
+      return {
+        status: 200,
+        body: {
+          product_id: query?.product_id ?? null,
+          retail_price: retail.toFixed(2),
+          in_stock: true,
+          options: [
+            { members: 2, group_price: price(mockTeamSettings.discount_pct_2), discount_pct: mockTeamSettings.discount_pct_2 },
+            { members: 3, group_price: price(mockTeamSettings.discount_pct_3), discount_pct: mockTeamSettings.discount_pct_3 },
+          ],
+          default_team_size: mockTeamSettings.default_team_size,
+          window_hours: mockTeamSettings.window_hours,
+          shipping_charge: mockTeamSettings.shipping_charge.toFixed(2),
+          payment_methods: ['COD', 'WALLET'],
+          wallet_balance: '3500.00',
+        },
+      };
+    },
+  },
+
   // 0. List all / active team purchases (filtered by product_id if query present)
   {
     method: 'GET',
@@ -279,7 +316,7 @@ export const teamPurchaseHandlers = [
         user_id: 7,
         user_name: 'Karim Customer',
         avatar_key: null,
-        shipping_address: body?.shipping_address || {},
+        shipping_address: { recipient_name: body?.recipient_name || '', address_line: body?.address_line || '' },
         payment_method: body?.payment_method || 'COD',
         joined_at: new Date().toISOString(),
         payment_hold_status: 'HELD',

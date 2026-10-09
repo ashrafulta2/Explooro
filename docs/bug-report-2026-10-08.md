@@ -129,15 +129,7 @@ How the less obvious ones were fixed:
 
 ### Still open — needs a product decision
 
-1. **Team-purchase completion** (`teamPurchase.service.js` `joinTeamPurchase`) still inserts into
-   non-existent `orders` columns, so no team can complete. Building real orders needs:
-   - recipient name, phone, division and district (the client sends only `{ street }`);
-   - a shipping rule;
-   - a decision on the WALLET payment option, which the UI offers and `orders.payment_method`
-     rejects.
-
-   `group_price` is also taken from the request body with no floor. This failure is the one entry
-   in `KNOWN_FAILURES` in `server/src/db/checkSql.js`.
+1. ~~**Team-purchase completion**~~ — **fixed 2026-10-09**, see below.
 2. **Partner orders** (`POST /public/orders`) call `orderService.createOrder`, which does not exist.
    The check cannot see this, because it is a JavaScript error, not SQL.
 3. **Maker-checker approval** has no registered executor for `finance.payout.approve`,
@@ -145,3 +137,52 @@ How the less obvious ones were fixed:
    `finance.escrow.release_manual`. Submitting now works; what approving does depends on each
    feature's own approve path, which was not reviewed here.
 4. The 99 statements built with `${...}` are still not checked.
+
+## Fix log (2026-10-09, team purchase)
+
+Decisions from the product owner: the form asks for the recipient's name and an address only; a
+super admin sets the shipping charge; Wallet stays as a payment option.
+
+- **Completion works.** When the last member joins, every member gets a real order
+  (`orders` → `sub_orders` → `order_items`) of one unit at the group price plus the shipping charge,
+  in the join's transaction. Stock is deducted then (FEFO batch first). If the product ran out or
+  was paused, the join is refused whole. Verified against a migrated, seeded database: two orders,
+  stock 120 → 118, escrow of ৳1,310 (supplier) + ৳153 (platform) = the ৳1,463 order total, and zero
+  drift between `wallets` and `ledger_transactions`.
+- **Form: name + address only.** The phone on the order is the buyer's account phone. Division and
+  district are read from the address text (`server/src/lib/bdDistricts.js`, English or Bangla
+  names). If no district is named they are left empty; the full address is in `address_line`
+  either way.
+- **Shipping charge is a setting.** `shipping_charge` (and one discount per team size, and the
+  window) live in the `group_buying` module's `settings_json`. A super admin edits them at
+  `/admin/growth/group-buy`. The page used to be hard-coded demo numbers and a sweep button that
+  only showed a toast. Each team snapshots the charge when it starts (`team_purchases.shipping_charge`).
+- **Wallet.** Joining with Wallet moves group price + shipping from AVAILABLE to HELD in the
+  member's own wallet (`TEAM_PURCHASE_HOLD`). On completion the hold is released and the order's
+  escrow deposit spends it, and the order is PAID. On expiry the hold goes back
+  (`TEAM_PURCHASE_RELEASE`). `orders.payment_method` now accepts `WALLET` (migration 068).
+- **Price.** The group price is computed on the server from settings. It is floored at the
+  supplier's wholesale cost (base cost + wholesale margin) and never read from the request.
+- **bKash/Nagad "authorization hold"** was removed from the team form. No such hold existed, and the
+  client never calls the payment endpoints. Only COD and Wallet are offered.
+- **Smaller fixes found on the way:**
+  - The public team detail no longer returns each member's address.
+  - `GET /team-purchases` (the open-teams list the modal reads) now exists on the server.
+  - Error codes are documented ones: `TEAM_NOT_FOUND` and the others used to answer HTTP 500.
+  - Start and join now check `can_place_order`.
+- **Not team-purchase, found while taking screenshots:**
+  - Product gallery images that 404'd re-requested themselves in a tight loop (6,600 requests in a
+    few seconds). This used up the API's rate limit and locked the visitor out of signing in. Fixed
+    in `ImageGallery.js`. Three `onerror` handlers pointed at a missing `/placeholder.svg` and had
+    the same loop.
+  - A rate-limited request answered HTTP 500 instead of 429. Fixed in `app.js`.
+
+### Found, not fixed (outside this change)
+
+- `payment.service.js` `executePayment` calls `vaultService.depositToEscrow(db, cache, {...})`, but
+  the function takes `(db, {...})`. The call throws, and `.catch(() => {})` hides it, so a paid
+  bKash/Nagad/card order never locks escrow. Team-purchase Wallet orders call it correctly.
+- Normal checkout still hard-codes ৳60 per supplier parcel (`checkout.service.js`). This is a
+  business number in code. Team purchase uses its own setting.
+- Team-purchase COD orders skip the trust-score / OTP gate that checkout applies to COD.
+

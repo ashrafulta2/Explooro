@@ -61,7 +61,7 @@ export function openQuickBuyModal({
     const isBn = document.documentElement.lang === 'bn';
     const title = isBn && product.title_bn ? product.title_bn : (product.title_en || product.title_bn || product.title || 'Product');
     const price = selectedVariant?.price_override ?? product.price ?? product.pricing?.retail_price ?? product.default_retail_price ?? product.retail_price ?? 0;
-    const imageUrl = product.primary_image_url || product.image_url || product.images?.[0]?.url || resolveProductImage(product) || '/placeholder.svg';
+    const imageUrl = product.primary_image_url || product.image_url || product.images?.[0]?.url || resolveProductImage(product) || '/placeholder-product.svg';
 
     header.innerHTML = `
       <div class="quick-buy-modal__thumb">
