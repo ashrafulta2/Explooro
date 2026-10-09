@@ -284,7 +284,8 @@ function createMockDb() {
       // Admin Wallet Liabilities
       if (q.includes('SELECT COALESCE(SUM(pending_escrow_balance), 0) AS total_escrow')) {
         const nonAdmin = wallets.filter((w) => w.user_id !== 1);
-        const escrowSum = nonAdmin.reduce((acc, w) => acc + parseFloat(w.pending_escrow_balance), 0);
+        // Escrow counts every wallet, the treasury's platform share included.
+        const escrowSum = wallets.reduce((acc, w) => acc + parseFloat(w.pending_escrow_balance), 0);
         const heldSum = nonAdmin.reduce((acc, w) => acc + parseFloat(w.held_balance), 0);
         const availSum = nonAdmin.reduce((acc, w) => acc + parseFloat(w.available_balance), 0);
         const withSum = nonAdmin.reduce((acc, w) => acc + parseFloat(w.lifetime_withdrawn), 0);

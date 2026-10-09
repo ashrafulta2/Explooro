@@ -256,7 +256,8 @@ export async function runDailyRollup(db, targetDate = null) {
   // 5. Escrow and Payout liabilities
   // WHY no .catch: both tables exist; a swallowed error would store 0 liability for the day.
   const { rows: escrowAgg } = await db.query(
-    `SELECT COALESCE(SUM(held_balance), 0) as escrow_liability FROM wallets`
+    // WHY pending_escrow_balance: held_balance is money parked for a payout or a dispute, not escrow.
+    `SELECT COALESCE(SUM(pending_escrow_balance), 0) as escrow_liability FROM wallets`
   );
   const escrowLiability = parseFloat(escrowAgg[0]?.escrow_liability || 0);
 

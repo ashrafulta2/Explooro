@@ -268,8 +268,29 @@ Screenshots: `docs/screenshots/fixes-2026-10-09-b/`.
 
 ### Found, not fixed
 
-- `/admin/finance/overview` "Total escrow liability" sums wallets with `user_id <> 1`. That leaves
-  out the treasury's own escrow share, and it assumes the treasury is user 1.
-- The Bangla escrow page shows counts in Latin digits ("7 দিন"), because `t()` does not localise
-  numbers. The money amounts are localised.
+- ~~`/admin/finance/overview` "Total escrow liability" sums wallets with `user_id <> 1`.~~ Fixed in
+  the third round (below).
+- ~~The Bangla escrow page shows counts in Latin digits ("7 দিন").~~ Fixed in the third round.
 - Earlier entries: partner orders, maker-checker executors (see above).
+
+## Fix log — 2026-10-09 (third round)
+
+1. **Total escrow liability now counts every taka in escrow.**
+   - `finance.controller.js` sums `pending_escrow_balance` over every person's wallet, the
+     treasury's platform share included. A refund claws all of it back, so it is all liability.
+   - The other liability sums (held, available, withdrawn) still leave the treasury out, but the
+     treasury is now found by role (first super admin), not assumed to be user 1.
+   - `analytics.service.js` stored the daily `escrow_liability` from `held_balance`, which is
+     payout/dispute money, not escrow. It now reads `pending_escrow_balance`.
+   - Verified on the local DB: the card shows ৳10,836, the same as "Total held" on the Escrow page
+     and `SUM(amount)` of LOCKED `escrow_entries`.
+2. **Numbers inside Bangla sentences use Bangla digits.**
+   - `t()` in `client/src/services/i18n.js` passes every number param through the new
+     `localizeDigits()` in `format.js`. It only swaps digits (no grouping, so a year stays "২০২৬"),
+     only in Bangla, and respects the visitor's Latin-numeral choice. String params are untouched.
+   - This fixes every `{{count}}` / `{{days}}` sentence in the app at once ("৭ দিন বাকি", "৫টি অর্ডার").
+   - Two spots that printed a number outside `t()` now use `formatNumber` (escrow "in return window"
+     KPI, finance "unreconciled COD records").
+3. Tests: `server/test/externalClearingEscrowAdmin.test.js` (one new test),
+   `client/test/bengaliDigitsInText.test.js` (new). Server 1203/1203, client 820/820, check:sql 911,
+   build OK. Screenshots: `docs/screenshots/fixes-2026-10-09-c/`.

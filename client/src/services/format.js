@@ -89,6 +89,14 @@ function applyNumerals(str, lang, numerals) {
   return useBengali ? toBengaliDigits(str) : str;
 }
 
+/**
+ * Swaps the digits for Bengali ones in the Bengali UI (unless the visitor chose Latin numerals) and
+ * changes nothing else: no grouping, so a year or a count reads the same, only in the right script.
+ */
+export function localizeDigits(value, { lang, numerals } = {}) {
+  return applyNumerals(String(value), resolveLang(lang), numerals);
+}
+
 /** Grouped integer/decimal, no currency symbol. `formatNumber(1234567)` → `'12,34,567'`. */
 export function formatNumber(amount, { lang, numerals } = {}) {
   const activeLang = resolveLang(lang);

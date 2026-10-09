@@ -2369,7 +2369,7 @@
     "kpi_external_collections": "Outside money owed to people",
     "kpi_external_collections_hint": "Held in the bKash/Nagad/card merchant accounts and by couriers for COD, still owed to suppliers, salers and shoppers. Not profit.",
     "kpi_escrow_liability": "Total Escrow Liability",
-    "kpi_escrow_hint": "Locked in supplier & saler return windows",
+    "kpi_escrow_hint": "All money locked in return windows: supplier, saler and platform shares",
     "kpi_payout_liability": "Pending Payout Liability",
     "kpi_payout_hint": "Held awaiting withdrawal disbursement",
     "kpi_cod_exposure": "COD In-Transit Exposure",

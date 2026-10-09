@@ -259,7 +259,21 @@ export async function getFinanceOverview(req, reply) {
     // Platform Revenue
     db.query(`SELECT COALESCE(SUM(platform_margin), 0) AS net_revenue FROM sub_orders WHERE status = 'DELIVERED'`),
     // Wallet Liabilities
-    db.query(`SELECT COALESCE(SUM(pending_escrow_balance), 0) AS total_escrow, COALESCE(SUM(held_balance), 0) AS total_held, COALESCE(SUM(available_balance), 0) AS total_available, COALESCE(SUM(lifetime_withdrawn), 0) AS total_withdrawn FROM wallets WHERE user_id IS NOT NULL AND user_id <> 1`),
+    // WHY escrow counts the treasury too: every taka locked in escrow (supplier, saler AND platform
+    // share) is customer money still inside a return window, and a refund claws all of it back. It
+    // must equal "Total held" on the Escrow page. The other sums are what the platform owes people,
+    // so they leave out the treasury, found by role rather than assumed to be user 1.
+    db.query(`SELECT COALESCE(SUM(pending_escrow_balance), 0) AS total_escrow,
+                     COALESCE(SUM(held_balance) FILTER (WHERE NOT is_treasury), 0) AS total_held,
+                     COALESCE(SUM(available_balance) FILTER (WHERE NOT is_treasury), 0) AS total_available,
+                     COALESCE(SUM(lifetime_withdrawn) FILTER (WHERE NOT is_treasury), 0) AS total_withdrawn
+              FROM (
+                SELECT w.*, w.user_id IS NOT DISTINCT FROM (
+                  SELECT ur.user_id FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                  WHERE r.key = 'super_admin' ORDER BY ur.user_id ASC LIMIT 1
+                ) AS is_treasury
+                FROM wallets w WHERE w.user_id IS NOT NULL
+              ) wl`),
     // COD Exposure
     db.query(`SELECT COALESCE(SUM(expected_amount - COALESCE(deposit_received, 0)), 0) AS cod_exposure, COUNT(*) AS unreconciled_count FROM cod_reconciliation WHERE status NOT IN ('MATCHED', 'RESOLVED')`),
     // Ledger Integrity Check

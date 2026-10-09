@@ -84,6 +84,14 @@ describe('1. external clearing wallet', () => {
     assert.match(c, /external_collections_outstanding/);
     assert.match(c, /system_key = 'EXTERNAL_CLEARING'/);
   });
+
+  test('total escrow liability counts the platform share; the other sums leave the treasury out', () => {
+    const c = src('controllers/finance.controller.js');
+    assert.ok(!/user_id <> 1/.test(c), 'the treasury is found by role, not assumed to be user 1');
+    assert.match(c, /SUM\(pending_escrow_balance\), 0\) AS total_escrow,/);
+    assert.match(c, /SUM\(held_balance\) FILTER \(WHERE NOT is_treasury\)/);
+    assert.match(src('services/analytics.service.js'), /SUM\(pending_escrow_balance\), 0\) as escrow_liability/);
+  });
 });
 
 describe('2. admin Escrow page reads real escrow', () => {

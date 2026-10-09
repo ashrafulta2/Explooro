@@ -21,7 +21,7 @@ import { api } from '../../core/api.js';
 import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { formatCurrency, formatDate, formatNumber } from '../../services/format.js';
 import { escapeHtml } from '../../services/html.js';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
@@ -130,7 +130,7 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
       </div>
       <div class="admin-kpi-card">
         <div class="admin-kpi-card__label">${escapeHtml(t('admin.escrow_page.kpi_window'))}</div>
-        <div class="admin-kpi-card__val font-mono">${escapeHtml(String(s.active_count))}</div>
+        <div class="admin-kpi-card__val font-mono">${escapeHtml(formatNumber(s.active_count))}</div>
         <div class="admin-kpi-card__hint">${escapeHtml(t('admin.escrow_page.kpi_window_hint', { days: s.return_window_days }))}</div>
       </div>
       <div class="admin-kpi-card">

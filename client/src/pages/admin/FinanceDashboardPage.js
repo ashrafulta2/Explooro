@@ -11,7 +11,7 @@
  */
 
 import { api } from '../../core/api.js';
-import { formatCurrency } from '../../services/format.js';
+import { formatCurrency, formatNumber } from '../../services/format.js';
 import { formatCompactBdt } from '../../services/adminDashboard.model.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
@@ -210,7 +210,7 @@ export default function FinanceDashboardPage(root, { navigate } = {}) {
           <div class="card finance-kpi-card">
             <div class="finance-kpi-card__label">${t('finance_admin.kpi_cod_exposure')}</div>
             <div class="finance-kpi-card__val text-danger font-bold">${formatCurrency(m.cod_exposure)}</div>
-            <div class="finance-kpi-card__hint">${m.cod_unreconciled_count || 0} ${t('finance_admin.unreconciled_records')}</div>
+            <div class="finance-kpi-card__hint">${formatNumber(m.cod_unreconciled_count || 0)} ${t('finance_admin.unreconciled_records')}</div>
           </div>
 
           <!-- Real-Time Ledger Integrity -->
