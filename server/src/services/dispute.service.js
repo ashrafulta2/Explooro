@@ -18,6 +18,7 @@ import { withTransaction } from '../config/db.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as trustRepo from '../repositories/trustScore.repository.js';
 import * as ledgerService from './ledger.service.js';
+import * as vaultService from './vault.service.js';
 import * as moduleRepo from '../repositories/module.repository.js';
 import { writeAudit } from '../lib/audit.js';
 
@@ -818,7 +819,9 @@ export async function arbitrateDispute(db, cache, {
       if (totalDebits < customerRefundPaisa) {
         // Platform absorbs shortfall
         const shortfallPaisa = customerRefundPaisa - totalDebits;
-        const platformWallet = await walletRepo.getOrCreateWallet(db, 1, { client: txClient }); // Platform wallet ID 1
+        // The treasury pays the subsidy. WHY not user 1: the treasury is the first super admin, who
+        // is not always user 1 (vault.service.js resolvePlatformWalletId).
+        const platformWallet = { id: await vaultService.resolvePlatformWalletId(db, txClient) };
         entries.push({
           walletId: platformWallet.id,
           entryType: 'DEBIT',

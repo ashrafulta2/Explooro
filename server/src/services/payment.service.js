@@ -276,8 +276,8 @@ export async function executePayment(db, cache, {
  * threw, and `.catch(() => {})` hid it — no bKash/Nagad/card order ever locked escrow, so suppliers
  * and the platform were never paid for them.
  *
- * The money came from the gateway, not from the shopper's Explooro wallet, so the platform treasury
- * wallet funds the deposit (see vault.service.js resolvePlatformWalletId). depositToEscrow is
+ * The money came from the gateway, not from the shopper's Explooro wallet, so the external clearing
+ * wallet funds the deposit (see vault.service.js resolveClearingWalletId). depositToEscrow is
  * idempotent per sub-order, so calling this again for an already-locked order changes nothing.
  * A failure is logged loudly and left for the next retry; it must not undo a payment the gateway
  * has already taken.
@@ -300,11 +300,11 @@ async function lockEscrowForPaidOrder(db, order) {
         [order.id]
       );
       if (subOrders.length === 0) return;
-      const platformWalletId = await vaultService.resolvePlatformWalletId(db, client);
+      const clearingWalletId = await vaultService.resolveClearingWalletId(client);
       for (const so of subOrders) {
         await vaultService.depositToEscrow(db, {
           subOrderId: so.id,
-          buyerWalletId: platformWalletId,
+          buyerWalletId: clearingWalletId,
           idempotencyKey: `escrow_lock_paid:${so.id}`,
           client,
         });

@@ -14,6 +14,7 @@ import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as ledgerService from './ledger.service.js';
+import * as vaultService from './vault.service.js';
 import { defaultB2CClient } from '../integrations/payments/bkash-b2c.js';
 import { writeAudit } from '../lib/audit.js';
 import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
@@ -389,16 +390,11 @@ export async function disbursePayout(db, {
     if (gatewayResult.success) {
       // 3. SUCCESS: Deduct from HELD bucket and increment lifetime_withdrawn
       // DEBIT: HELD bucket (reduces held_balance, increases lifetime_withdrawn)
-      // Offsetting CREDIT: Platform Disbursal / Settlement Account
-      const { rows: adminRows } = await txClient.query(
-        `SELECT u.id FROM users u
-         JOIN user_roles ur ON ur.user_id = u.id
-         JOIN roles r ON r.id = ur.role_id
-         WHERE r.key = 'super_admin'
-         ORDER BY u.id ASC LIMIT 1`
-      );
-      const adminUserId = adminRows[0]?.id ?? 1;
-      const platformWallet = await walletRepo.getOrCreateWallet(db, adminUserId, { client: txClient });
+      // Offsetting CREDIT: the external clearing wallet. The money left through the B2C gateway,
+      // the mirror of a gateway payment entering (vault.service.js resolveClearingWalletId).
+      // WHY not the treasury (as before): it made the platform's profit balance swing with every
+      // payout, so it could not be read as profit.
+      const clearingWalletId = await vaultService.resolveClearingWalletId(txClient);
 
       const txnGroupId = randomUUID();
       const ledgerEntries = [
@@ -414,7 +410,7 @@ export async function disbursePayout(db, {
           createdBy: executedBy,
         },
         {
-          walletId: platformWallet.id,
+          walletId: clearingWalletId,
           entryType: 'CREDIT',
           amount: payout.amount,
           balanceBucket: 'AVAILABLE',

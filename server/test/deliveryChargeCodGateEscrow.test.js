@@ -44,9 +44,9 @@ describe('1. paid gateway orders lock escrow', () => {
     assert.match(paymentSrc, /console\.error\(`\[payment\] Escrow lock failed/);
   });
 
-  test('the platform treasury funds it, so the shopper\'s wallet is never driven negative', () => {
-    assert.match(paymentSrc, /buyerWalletId: platformWalletId/);
-    assert.match(src('services/shipment.service.js'), /buyerWalletId: await vaultService\.resolvePlatformWalletId/);
+  test('the external clearing wallet funds it, so the shopper\'s wallet is never driven negative', () => {
+    assert.match(paymentSrc, /buyerWalletId: clearingWalletId/);
+    assert.match(src('services/shipment.service.js'), /buyerWalletId: await vaultService\.resolveClearingWalletId/);
   });
 
   test('a refunded or already-escrowed sub-order is never locked again', () => {

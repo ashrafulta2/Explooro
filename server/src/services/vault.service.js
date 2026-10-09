@@ -17,11 +17,9 @@ import * as ledgerService from './ledger.service.js';
 /**
  * The platform treasury wallet: the first super admin's wallet (user 1 when there is none yet).
  *
- * It is also the counterpart for money that enters from outside the ledger — a bKash/Nagad/card
- * payment, or the cash a courier collects for a COD order. Pass its id as `buyerWalletId` to
- * depositToEscrow for those orders, so the escrow is funded from the platform's collection and the
- * shopper's own wallet is never driven below zero for money they paid elsewhere. (payout.service.js
- * credits the same wallet when money leaves, so the two directions mirror each other.)
+ * It receives the platform's share of every sale and pays the platform's own costs (bonuses,
+ * dispute subsidies, ad refunds). It does NOT stand in for money from outside the ledger any more:
+ * that is resolveClearingWalletId below, so this balance reads as the platform's profit.
  */
 export async function resolvePlatformWalletId(db, txClient) {
   const { rows: adminRows } = await txClient.query(
@@ -34,6 +32,34 @@ export async function resolvePlatformWalletId(db, txClient) {
   const adminUserId = adminRows[0]?.id ?? 1;
   const w = await walletRepo.getOrCreateWallet(db, adminUserId, { client: txClient });
   return w.id;
+}
+
+export const EXTERNAL_CLEARING_KEY = 'EXTERNAL_CLEARING';
+
+/**
+ * The external clearing wallet (migration 070): the ledger's side of money held outside Explooro.
+ *
+ * A bKash/Nagad/card payment sits in the company's merchant account and COD cash sits with the
+ * courier, so neither is in any wallet. Pass this id as `buyerWalletId` to depositToEscrow for those
+ * orders; payout.service.js credits it when a payout sends money back out.
+ *
+ * WHY not the treasury (as before): the treasury then showed minus the money in transit, so a
+ * profitable platform could read -৳1,50,000 and nobody could tell its profit from it. A negative
+ * balance HERE is normal: it is minus what the company holds outside that the ledger owes people.
+ */
+export async function resolveClearingWalletId(txClient) {
+  const found = await txClient.query(`SELECT id FROM wallets WHERE system_key = $1`, [EXTERNAL_CLEARING_KEY]);
+  if (found.rows[0]) return found.rows[0].id;
+  // Migration 070 creates it; this only covers a database where that row was removed by hand.
+  await txClient.query(
+    `INSERT INTO wallets (user_id, system_key, available_balance, pending_escrow_balance, held_balance,
+                          lifetime_earned, lifetime_withdrawn, currency, version)
+     VALUES (NULL, $1, 0.00, 0.00, 0.00, 0.00, 0.00, 'BDT', 0)
+     ON CONFLICT (system_key) DO NOTHING`,
+    [EXTERNAL_CLEARING_KEY]
+  );
+  const { rows } = await txClient.query(`SELECT id FROM wallets WHERE system_key = $1`, [EXTERNAL_CLEARING_KEY]);
+  return rows[0].id;
 }
 
 /**

@@ -144,6 +144,31 @@ function createMockDb() {
         return { rows: [{ count }] };
       }
 
+      // The external clearing wallet (migration 070): a system wallet with no user.
+      if (q.includes('FROM wallets') && q.includes('WHERE system_key = $1')) {
+        const w = wallets.find((x) => x.system_key === params[0]);
+        return { rows: w ? [{ id: w.id }] : [] };
+      }
+      if (q.includes('INSERT INTO wallets') && q.includes('system_key')) {
+        if (!wallets.find((x) => x.system_key === params[0])) {
+          wallets.push({
+            id: Math.max(0, ...wallets.map((x) => x.id)) + 1,
+            user_id: null,
+            system_key: params[0],
+            available_balance: '0.00',
+            pending_escrow_balance: '0.00',
+            held_balance: '0.00',
+            lifetime_earned: '0.00',
+            lifetime_withdrawn: '0.00',
+            currency: 'BDT',
+            version: 0,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          });
+        }
+        return { rows: [] };
+      }
+
       // SELECT wallets WHERE user_id = $1
       if (q.includes('FROM wallets') && q.includes('WHERE user_id = $1')) {
         const userId = params[0];

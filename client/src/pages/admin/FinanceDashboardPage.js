@@ -178,6 +178,20 @@ export default function FinanceDashboardPage(root, { navigate } = {}) {
             <div class="finance-kpi-card__hint">${t('finance_admin.kpi_revenue_hint')}</div>
           </div>
 
+          <!-- Platform treasury: the platform's own money (migration 070 keeps outside money off it) -->
+          <div class="card finance-kpi-card">
+            <div class="finance-kpi-card__label">${t('finance_admin.kpi_treasury')}</div>
+            <div class="finance-kpi-card__val text-success font-bold">${formatCurrency(m.platform_treasury_available ?? 0)}</div>
+            <div class="finance-kpi-card__hint">${t('finance_admin.kpi_treasury_hint', { amount: formatCurrency(m.platform_treasury_escrow ?? 0) })}</div>
+          </div>
+
+          <!-- External collections: money in the merchant accounts and with couriers that is owed to people -->
+          <div class="card finance-kpi-card">
+            <div class="finance-kpi-card__label">${t('finance_admin.kpi_external_collections')}</div>
+            <div class="finance-kpi-card__val text-primary font-bold">${formatCurrency(m.external_collections_outstanding ?? 0)}</div>
+            <div class="finance-kpi-card__hint">${t('finance_admin.kpi_external_collections_hint')}</div>
+          </div>
+
           <!-- Escrow Liability -->
           <div class="card finance-kpi-card">
             <div class="finance-kpi-card__label">${t('finance_admin.kpi_escrow_liability')}</div>

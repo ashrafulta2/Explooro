@@ -223,8 +223,53 @@ Screenshots: `docs/screenshots/fixes-2026-10-09/`.
 
 ### Found, not fixed
 
-- `/admin/finance/escrow` (EscrowHoldingsPage) shows hard-coded demo rows (SO-99820-1 …) whenever the
-  API response is not shaped `{ holdings }`. Today it never is, so the page never shows real escrow.
-- The platform treasury wallet's AVAILABLE balance goes negative by the cash collected from outside
-  (gateway and COD). `payout.service.js` already treats this wallet as the outside-money counterpart.
-  A dedicated clearing account would read better on the finance pages. That is a product decision.
+The two items first listed here were fixed in the next round (below).
+
+## Fix log — 2026-10-09 (second round)
+
+Screenshots: `docs/screenshots/fixes-2026-10-09-b/`.
+
+- **The Escrow admin page shows real escrow.**
+  - `/admin/finance/escrow` read `holdings` from a response that only carried `escrow_entries`. It
+    fell back to four made-up orders (SO-99820-1 …). The sweep and "Release now" buttons only
+    changed those rows in the browser.
+  - `services/escrowAdmin.service.js` now returns one row per sub-order with:
+    - the customer, supplier and saler names;
+    - the supplier/saler/platform split;
+    - the status and the time left.
+  - The summary covers all held escrow, not just the page. The return window comes from the
+    `returns_engine` module. The list is paged and has a status filter and search.
+    `escrow_entries` is still sent for older callers.
+  - The sweep calls the real job. "Release now" calls the new
+    `POST /admin/finance/escrow/:subOrderId/release`. Both need `finance.escrow.release_manual`
+    (CRITICAL). Both write an audit row, and a single release needs a reason.
+  - A COD row is not offered for release until the courier's cash is reconciled, because
+    `releaseEscrow` refuses it.
+  - Verified: the page lists the six held orders from the database. Releasing ORD-STNHSY7Q-1 (৳1,463) moved
+    ৳1,310 to the supplier and ৳153 to the treasury. An audit row was written with the reason. The
+    ledger is HEALTHY with zero drift.
+- **Outside money has its own account; the treasury shows profit.**
+  - Migration 070 adds an `EXTERNAL_CLEARING` system wallet. `wallets.user_id` may now be NULL
+    when `system_key` is set, and a CHECK requires exactly one of the two.
+  - Gateway payments (`payment.service.js`) and delivered COD orders (`shipment.service.js`) fund
+    escrow from it. A completed payout (`payout.service.js`) credits it. Before this, all three used
+    the treasury, which showed −৳13,460 on the dev database while the platform was in profit.
+  - The migration moves what the treasury already carried for outside money onto the clearing
+    wallet. It does this as one balanced, append-only ADJUSTMENT group that cannot run twice.
+  - The dispute subsidy now uses the real treasury, not a hard-coded user 1.
+  - The finance overview shows two new cards:
+    - "Platform treasury" shows the treasury's spendable balance and its share still in escrow;
+    - "Outside money owed to people" shows the clearing balance, sign flipped.
+  - Verified: a new bKash order (৳1,730) took ৳1,730 from the clearing wallet. ৳400 went to the
+    treasury's escrow, and its spendable balance stayed ৳0 instead of going negative. The customer's
+    wallet did not change.
+  - Local data only: two manual "test funding" adjustments from earlier sessions were also moved to
+    the clearing wallet. They were outside money too.
+
+### Found, not fixed
+
+- `/admin/finance/overview` "Total escrow liability" sums wallets with `user_id <> 1`. That leaves
+  out the treasury's own escrow share, and it assumes the treasury is user 1.
+- The Bangla escrow page shows counts in Latin digits ("7 দিন"), because `t()` does not localise
+  numbers. The money amounts are localised.
+- Earlier entries: partner orders, maker-checker executors (see above).
