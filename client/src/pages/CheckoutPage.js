@@ -13,6 +13,7 @@ import { AddressForm } from '../components/checkout/AddressForm.js';
 import { PaymentSelector } from '../components/checkout/PaymentSelector.js';
 import { getCart, fetchCart, clearCart } from '../services/cart.js';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.js';
+import { needsOnlinePayment, payForOrder } from '../services/payment.api.js';
 import { adsApi } from '../services/ads.api.js';
 import { customerApi } from '../services/customer.api.js';
 import { getCurrentUser } from '../services/session.js';
@@ -339,10 +340,23 @@ export default function CheckoutPage(root, { navigate } = {}) {
           };
 
           const result = await placeCheckout(payload);
-          toast.success(t('checkout.order_success') || 'Order placed successfully!');
           clearCheckoutDraft();
           clearCart();
           adsApi.clearAttribution();
+
+          if (needsOnlinePayment(result.order)) {
+            // The order exists now; a failed payment must not look like a failed order. The order
+            // page offers "Pay now" for anything left unpaid.
+            try {
+              const paid = await payForOrder(result.order);
+              if (paid.redirected) return;
+              toast.success(t('checkout.payment_success'));
+            } catch {
+              toast.warn(t('checkout.payment_failed_after_order'));
+            }
+          } else {
+            toast.success(t('checkout.order_success') || 'Order placed successfully!');
+          }
 
           if (navigate && result.order?.ref) {
             navigate(`/orders/${result.order.ref}`);

@@ -50,6 +50,21 @@ export function maskPayloadForStorage(payload) {
   return clone;
 }
 
+// Checkout's payment methods mapped to the gateway driver that collects them. COD is absent on
+// purpose: it never goes through a gateway. MOCK only appears on test fixtures.
+const GATEWAY_BY_METHOD = {
+  BKASH: 'BKASH',
+  NAGAD: 'NAGAD',
+  ROCKET: 'ROCKET',
+  CARD: 'SSLCOMMERZ',
+  SSLCOMMERZ: 'SSLCOMMERZ',
+  MOCK: 'MOCK',
+};
+
+export function gatewayForPaymentMethod(method) {
+  return GATEWAY_BY_METHOD[String(method || '').toUpperCase()] || null;
+}
+
 /**
  * Initiates a payment session with a gateway.
  */
@@ -63,7 +78,7 @@ export async function initiatePayment(db, cache, {
   idempotencyKey = null,
   customer = {},
 }) {
-  const normGateway = String(gateway || 'MOCK').toUpperCase();
+  let normGateway = String(gateway || 'MOCK').toUpperCase();
 
   // 1. Check Idempotency Key
   if (idempotencyKey) {
@@ -93,6 +108,28 @@ export async function initiatePayment(db, cache, {
 
   if (order.payment_status === 'PAID') {
     throw new AppError('ORDER_ALREADY_PAID', 'This order has already been paid.', 'এই অর্ডারটির মূল্য ইতিমধ্যে পরিশোধিত হয়েছে।');
+  }
+
+  // WHY the order decides the gateway, not the request: a shopper who picked bKash at checkout
+  // must not be able to settle the order through another driver (in particular MOCK, which
+  // approves everything). A COD order is paid in cash at the door and has no gateway at all.
+  const orderGateway = gatewayForPaymentMethod(order.payment_method);
+  if (!orderGateway) {
+    throw new AppError(
+      'PAYMENT_METHOD_UNSUPPORTED',
+      `Order #${order.id} is paid by ${order.payment_method}, not through an online gateway.`,
+      `অর্ডার #${order.id} ${order.payment_method} পদ্ধতিতে পরিশোধযোগ্য, অনলাইন গেটওয়েতে নয়।`
+    );
+  }
+  normGateway = orderGateway;
+
+  const { rows: [payable] } = await db.query(
+    `SELECT COUNT(*)::int AS n FROM sub_orders
+     WHERE order_id = $1 AND status NOT IN ('CANCELLED', 'RETURNED', 'REFUNDED')`,
+    [order.id]
+  );
+  if (payable && payable.n === 0) {
+    throw new AppError('CONFLICT', 'This order was cancelled and cannot be paid.', 'এই অর্ডারটি বাতিল হয়েছে, তাই পরিশোধ করা যাবে না।');
   }
 
   const transactionRef = generateRef('TXN');
@@ -186,6 +223,12 @@ export async function executePayment(db, cache, {
   }
   if (!txn) {
     throw new AppError('NOT_FOUND', 'Payment transaction record not found.', 'পেমেন্ট ট্রানজ্যাকশন রেকর্ড পাওয়া যায়নি।');
+  }
+
+  // A shopper may only complete their own payment. Webhooks and the reconcile sweep call this
+  // without an actor and are trusted through the gateway's own verification instead.
+  if (actor?.id && txn.user_id && Number(actor.id) !== Number(txn.user_id)) {
+    throw new AppError('FORBIDDEN', 'You do not have access to this payment.', 'এই পেমেন্টে আপনার অনুমতি নেই।');
   }
 
   // If already SUCCESS, return idempotently — after making sure its escrow exists. WHY: a paid
