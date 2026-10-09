@@ -80,9 +80,11 @@ export async function getDashboardSummary(req, reply) {
   let activeGrants = [];
   try {
     const { rows: grantRows } = await db.query(
-      `SELECT pg.id, pg.permission_key, pg.effect, pg.expires_at, pg.grant_reason, pg.created_at
-       FROM permission_grants pg
-       WHERE pg.user_id = $1 AND pg.effect = 'GRANT' AND (pg.expires_at IS NULL OR pg.expires_at > now())
+      // WHY: standing grants live in user_permission_overrides (Mode A); response field names are kept.
+      `SELECT pg.id, pg.permission_key, pg.effect, pg.expires_at, pg.reason AS grant_reason, pg.created_at
+       FROM user_permission_overrides pg
+       WHERE pg.user_id = $1 AND pg.effect = 'GRANT' AND pg.revoked_at IS NULL
+         AND (pg.expires_at IS NULL OR pg.expires_at > now())
        ORDER BY pg.created_at DESC`,
       [moderatorId]
     );
@@ -101,10 +103,12 @@ export async function getDashboardSummary(req, reply) {
   let submittedActions = [];
   try {
     const { rows: actionRows } = await db.query(
-      `SELECT paa.id, paa.ref, paa.action_key, paa.risk_tier, paa.target_entity, paa.target_id,
-              paa.status, paa.created_at, paa.reviewed_at,
+      // WHY: the risk tier lives on the permission, not on the action row; response field names are kept.
+      `SELECT paa.id, paa.ref, paa.action_key, perm.risk_tier, paa.target_type AS target_entity,
+              paa.target_ref AS target_id, paa.status, paa.created_at, paa.decided_at AS reviewed_at,
               COALESCE(apprp.display_name, apprp.full_name) as approver_name
        FROM pending_admin_actions paa
+       LEFT JOIN permissions perm ON perm.key = paa.action_key
        LEFT JOIN users appr ON appr.id = paa.approver_id
        LEFT JOIN user_profiles apprp ON apprp.user_id = appr.id
        WHERE paa.actor_id = $1

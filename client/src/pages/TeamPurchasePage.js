@@ -5,7 +5,7 @@
  * 1. Pinduoduo-style viral team purchase view (/team/:id and /account/team-purchases).
  * 2. Live countdown timer with auto-expiry (real-time ticker).
  * 3. Member slot visualizer with avatars and invitation slots.
- * 4. 1-Tap Join Modal with shipping address and payment method selector.
+ * 4. Join form: recipient name and address, pay by Cash on Delivery or wallet (TeamCheckoutForm).
  * 5. Viral share toolbar with 1-click WhatsApp and link copy actions.
  * 6. Bilingual localization (English & Bengali).
  * 7. KPI Metrics and Filter Tabs (All, Active, Completed, Expired).
@@ -14,6 +14,8 @@
 
 import { api } from '../core/api.js';
 import { Modal } from '../components/ui/Modal.js';
+import { TeamCheckoutForm } from '../components/product/TeamCheckoutForm.js';
+import { appStore } from '../state/appStore.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { formatCurrency } from '../services/format.js';
 import { toast } from '../services/toast.js';
@@ -1219,69 +1221,35 @@ export class TeamPurchasePage {
     });
   }
 
-  _openJoinModal(isBn) {
+  async _openJoinModal(isBn) {
+    const { auth } = appStore.get();
+    if (!auth?.isAuthenticated) {
+      toast.info(isBn ? 'টিমে যুক্ত হতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to join this team.');
+      this.navTo(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    // WHY the quote: it carries the wallet balance. The price and shipping charge are the team's
+    // own, snapshotted when it was started, so they come from the team row.
+    let walletBalance = null;
+    try {
+      const quote = await api.get(`/team-purchases/quote?product_id=${encodeURIComponent(this.team.product_id)}`);
+      walletBalance = quote?.wallet_balance ?? null;
+    } catch {
+      walletBalance = null;
+    }
+
     const contentEl = document.createElement('div');
-    contentEl.style.cssText = 'padding: 0;';
+    contentEl.className = 'team-join-modal';
 
-    contentEl.innerHTML = `
-      <form id="form-join-team" class="space-y-4" style="padding: 0;">
-        <div>
-          <label class="block text-xs font-bold text-muted uppercase mb-1">
-            ${isBn ? 'ডেলিভারি ঠিকানা' : 'Shipping Address'}
-          </label>
-          <input
-            type="text"
-            name="address"
-            required
-            value="House 45, Road 7, Dhanmondi, Dhaka"
-            placeholder="House 12, Road 4, Dhanmondi, Dhaka"
-            class="form-control text-sm w-full p-2.5 border border-subtle rounded-lg bg-surface" />
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-muted uppercase mb-1">
-            ${isBn ? 'পেমেন্ট পদ্ধতি' : 'Payment Method'}
-          </label>
-          <select name="payment_method" class="form-control text-sm w-full p-2.5 border border-subtle rounded-lg bg-surface font-medium">
-            <option value="COD">Cash on Delivery (Hold on Complete)</option>
-            <option value="BKASH">bKash Authorization Hold</option>
-            <option value="NAGAD">Nagad Authorization Hold</option>
-            <option value="WALLET">Explooro Earner Vault</option>
-          </select>
-          <p class="text-[11px] text-muted mt-1.5">${isBn ? 'টিম পূর্ণ না হওয়া পর্যন্ত কোনো অর্থ কাটা হবে না।' : 'Funds are held only; auto-refunded 100% if team window closes.'}</p>
-        </div>
-
-        <div class="flex justify-end gap-2 pt-3 border-t border-subtle" style="margin-top: 1rem;">
-          <button type="button" class="btn btn--secondary btn--sm font-bold btn-cancel">${isBn ? 'বাতিল' : 'Cancel'}</button>
-          <button type="submit" class="btn btn--primary btn--sm font-bold">${isBn ? 'নিশ্চিত করুন' : 'Confirm Join'}</button>
-        </div>
-      </form>
-    `;
-
-    const modal = Modal({
-      title: isBn ? 'টিমে যুক্ত হন' : 'Join Team Purchase',
-      content: contentEl,
-      size: 'md',
-    });
-
-    modal.openModal();
-
-    const form = contentEl.querySelector('#form-join-team');
-    const cancelBtn = contentEl.querySelector('.btn-cancel');
-    cancelBtn.addEventListener('click', () => modal.closeModal());
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(form);
-      const address = formData.get('address');
-      const paymentMethod = formData.get('payment_method');
-
-      try {
-        const res = await api.post(`/team-purchases/${this.team.id}/join`, {
-          shipping_address: { street: address },
-          payment_method: paymentMethod,
-        });
-
+    let modal = null;
+    const checkout = TeamCheckoutForm({
+      itemPrice: Number(this.team.group_price),
+      shippingCharge: Number(this.team.shipping_charge ?? 0),
+      walletBalance,
+      submitLabel: t('team_purchases.confirm_join'),
+      onSubmit: async (fields) => {
+        const res = await api.post(`/team-purchases/${this.team.id}/join`, fields);
         toast.success(
           res.completed
             ? (isBn ? 'অভিনন্দন! টিম পূর্ণ হয়েছে এবং অর্ডার সফল হয়েছে!' : 'Team goal reached! Order created!')
@@ -1290,10 +1258,17 @@ export class TeamPurchasePage {
         modal.closeModal();
         await this.fetchData();
         this.render();
-      } catch (err) {
-        toast.error(err.message || 'Failed to join team');
-      }
+      },
     });
+    contentEl.append(checkout.el);
+
+    modal = Modal({
+      title: isBn ? 'টিমে যুক্ত হন' : 'Join Team Purchase',
+      content: contentEl,
+      size: 'md',
+    });
+
+    modal.openModal();
   }
 }
 

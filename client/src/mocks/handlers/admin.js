@@ -8,6 +8,7 @@
 // platform's 71 modules, and every toggle wrote a key no route or nav item gates on. The registry
 // is now read from mocks/moduleState.js, which reads the same seed file the server seeds from, so
 // the dev panel, the live panel and the PUBLIC `GET /modules` endpoint all answer from one map.
+import { mockTeamSettings } from './teamPurchase.js';
 import { moduleRegistry, moduleState, buildAdminModules, persistModuleState } from '../moduleState.js';
 import permissionCatalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
 
@@ -2851,25 +2852,42 @@ export const adminHandlers = [
     },
   },
 
-  // Group Buy
+  // Group Buy (Team Purchase) — same shape as the server's getAdminOverview().
   {
     method: 'GET',
     path: '/admin/growth/group-buy',
     handler() {
       const now = Date.now();
+      const teams = [
+        { id: 1, team_code: 'TEAM-8821A', product_title: 'Handloom Jamdani Saree (Navy Blue)', initiator_name: 'Fatima Sultana', target_members: 3, joined_members: 2, group_price: '2400.00', retail_price: '3200.00', shipping_charge: '60.00', expires_at: new Date(now + 3600000 * 8).toISOString(), status: 'ACTIVE' },
+        { id: 2, team_code: 'TEAM-8820B', product_title: 'Pure Forest Honey 1kg (2-Pack)', initiator_name: 'Rahim Khan', target_members: 2, joined_members: 2, group_price: '1500.00', retail_price: '1900.00', shipping_charge: '60.00', expires_at: new Date(now - 3600000 * 2).toISOString(), status: 'COMPLETED' },
+        { id: 3, team_code: 'TEAM-8819C', product_title: 'Wireless TWS Earbuds Bass Edition', initiator_name: 'Tariq Ahmed', target_members: 3, joined_members: 1, group_price: '850.00', retail_price: '1200.00', shipping_charge: '60.00', expires_at: new Date(now + 3600000 * 14).toISOString(), status: 'ACTIVE' },
+        { id: 4, team_code: 'TEAM-8818D', product_title: 'Mustard Cold-Pressed Oil 5L Can', initiator_name: 'Anwar Hossain', target_members: 3, joined_members: 1, group_price: '1650.00', retail_price: '2100.00', shipping_charge: '60.00', expires_at: new Date(now - 3600000 * 5).toISOString(), status: 'EXPIRED' },
+      ];
       return {
         status: 200,
         body: {
-          data: {
-            teams: [
-              { id: 1, team_code: 'TEAM-8821A', product_title: 'Handloom Jamdani Saree (Navy Blue)', initiator_name: 'Fatima Sultana', target_members: 3, joined_members: 2, group_price: 2400.00, retail_price: 3200.00, expires_at: new Date(now + 3600000 * 8).toISOString(), status: 'ACTIVE' },
-              { id: 2, team_code: 'TEAM-8820B', product_title: 'Pure Forest Honey 1kg (2-Pack)', initiator_name: 'Rahim Khan', target_members: 2, joined_members: 2, group_price: 1500.00, retail_price: 1900.00, expires_at: new Date(now - 3600000 * 2).toISOString(), status: 'COMPLETED' },
-              { id: 3, team_code: 'TEAM-8819C', product_title: 'Wireless TWS Earbuds Bass Edition', initiator_name: 'Tariq Ahmed', target_members: 3, joined_members: 1, group_price: 850.00, retail_price: 1200.00, expires_at: new Date(now + 3600000 * 14).toISOString(), status: 'ACTIVE' },
-              { id: 4, team_code: 'TEAM-8818D', product_title: 'Mustard Cold-Pressed Oil 5L Can', initiator_name: 'Anwar Hossain', target_members: 3, joined_members: 1, group_price: 1650.00, retail_price: 2100.00, expires_at: new Date(now - 3600000 * 5).toISOString(), status: 'EXPIRED' },
-            ],
-          },
+          settings: { ...mockTeamSettings },
+          limits: { window_hours: { min: 1, max: 168 }, discount_pct: { min: 0, max: 90 }, shipping_charge: { min: 0, max: 5000 } },
+          stats: { total_teams: 4, active_pools: 2, completed_teams: 1, expired_teams: 1, gross_team_gmv_bdt: '3120.00', conversion_rate_pct: 50 },
+          teams,
         },
       };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/admin/growth/group-buy/settings',
+    handler({ body }) {
+      Object.assign(mockTeamSettings, body || {});
+      return { status: 200, body: { settings: { ...mockTeamSettings } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/admin/growth/group-buy/sweep',
+    handler() {
+      return { status: 200, body: { expiredCount: 0, refundedCount: 0 } };
     },
   },
 

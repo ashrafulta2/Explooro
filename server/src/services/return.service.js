@@ -104,7 +104,8 @@ export async function createReturnRequest(db, cache, {
 
     // 4. Fetch Order Items for unit price validation & refund total calculation
     const { rows: orderItemRows } = await txClient.query(
-      `SELECT id, product_id, quantity, unit_price FROM order_items WHERE sub_order_id = $1`,
+      // WHY: order_items stores qty and the per-unit retail_price; alias them to the names used below.
+      `SELECT id, product_id, qty AS quantity, retail_price AS unit_price FROM order_items WHERE sub_order_id = $1`,
       [subOrderId]
     );
 
@@ -175,14 +176,21 @@ export async function createReturnRequest(db, cache, {
       if (newReturnRate > 30 && completed >= 3) {
         // Enforce restriction via activity control
         await txClient.query(
+          // WHY: there is no system user to record as applied_by, so the restriction is
+          // attributed to the customer it targets and evidence_json marks it as automated.
           `INSERT INTO user_restrictions (
-             user_id, scope, target_id, capability, mode, reason_en, reason_bn, created_by
+             subject_type, subject_ref, capability_key, mode, reason, reason_bn, evidence_json, applied_by
            )
-           VALUES ($1, 'USER', $1, 'can_return', 'BLOCK',
-                   'Automated restriction: Return rate exceeded 30% threshold.',
-                   'স্বয়ংক্রিয় সীমাবদ্ধতা: রিটার্নের হার ৩০% এর সীমা অতিক্রম করেছে।', 1)
-           ON CONFLICT DO NOTHING`,
-          [customerId]
+           SELECT 'USER', $1::text, 'can_return', 'BLOCK',
+                  'Automated restriction: Return rate exceeded 30% threshold.',
+                  'স্বয়ংক্রিয় সীমাবদ্ধতা: রিটার্নের হার ৩০% এর সীমা অতিক্রম করেছে।',
+                  $2::jsonb, $3
+           WHERE NOT EXISTS (
+             SELECT 1 FROM user_restrictions
+             WHERE subject_type = 'USER' AND subject_ref = $1::text AND capability_key = 'can_return'
+               AND lifted_at IS NULL AND (expires_at IS NULL OR expires_at > now())
+           )`,
+          [String(customerId), JSON.stringify({ automated: true, source: 'return_rate', return_rate: newReturnRate.toFixed(2) }), customerId]
         );
       }
 
@@ -270,7 +278,9 @@ export async function reviewReturnRequest(db, cache, {
 } = {}) {
   const runner = async (txClient) => {
     const { rows: retRows } = await txClient.query(
-      `SELECT r.*, s.ref AS sub_order_ref, s.supplier_id, o.recipient_name, o.recipient_phone, o.delivery_address_json
+      `SELECT r.*, s.ref AS sub_order_ref, s.supplier_id, o.recipient_name, o.recipient_phone,
+              jsonb_build_object('division', o.division, 'district', o.district,
+                                 'upazila', o.upazila, 'address_line', o.address_line) AS delivery_address_json
        FROM return_requests r
        JOIN sub_orders s ON s.id = r.sub_order_id
        JOIN orders o ON o.id = s.order_id
@@ -430,7 +440,7 @@ export async function executeRefund(db, cache, {
     for (const item of items) {
       await txClient.query(
         `UPDATE products
-         SET stock_quantity = stock_quantity + $2, updated_at = now()
+         SET stock_qty = stock_qty + $2, updated_at = now()
          WHERE id = $1`,
         [item.product_id, item.quantity]
       );

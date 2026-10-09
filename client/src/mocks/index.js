@@ -38,6 +38,7 @@ import adsHandlers from './handlers/ads.js';
 import themeHandlers from './handlers/theme.js';
 import { localizationHandlers } from './handlers/localization.js';
 import { genieHandlers } from './handlers/genie.js';
+import { deliveryHandlers } from './handlers/delivery.js';
 import { recommendationHandlers } from './handlers/recommendations.js';
 import { teamPurchaseHandlers } from './handlers/teamPurchase.js';
 import { gamificationHandlers } from './handlers/gamification.js';
@@ -81,6 +82,7 @@ const handlers = [
   ...themeHandlers,
   ...localizationHandlers,
   ...genieHandlers,
+  ...deliveryHandlers,
   ...recommendationHandlers,
   ...teamPurchaseHandlers,
   ...gamificationHandlers,

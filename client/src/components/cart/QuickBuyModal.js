@@ -12,6 +12,7 @@ import { AddressForm } from '../checkout/AddressForm.js';
 import { PaymentSelector } from '../checkout/PaymentSelector.js';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.js';
 import { addToCart } from '../../services/cart.js';
+import { knownDeliveryCharge, loadDeliveryCharge } from '../../services/deliveryCharge.js';
 import { getCurrentUser } from '../../services/session.js';
 import { formatCurrency } from '../../services/format.js';
 import { resolveProductImage } from '../product/ProductCard.js';
@@ -41,6 +42,7 @@ export function openQuickBuyModal({
   } : {});
   let paymentMethod = 'COD';
   let isSubmitting = false;
+  let deliveryCharge = knownDeliveryCharge();
 
   const contentEl = document.createElement('div');
   contentEl.className = 'quick-buy-modal';
@@ -61,7 +63,7 @@ export function openQuickBuyModal({
     const isBn = document.documentElement.lang === 'bn';
     const title = isBn && product.title_bn ? product.title_bn : (product.title_en || product.title_bn || product.title || 'Product');
     const price = selectedVariant?.price_override ?? product.price ?? product.pricing?.retail_price ?? product.default_retail_price ?? product.retail_price ?? 0;
-    const imageUrl = product.primary_image_url || product.image_url || product.images?.[0]?.url || resolveProductImage(product) || '/placeholder.svg';
+    const imageUrl = product.primary_image_url || product.image_url || product.images?.[0]?.url || resolveProductImage(product) || '/placeholder-product.svg';
 
     header.innerHTML = `
       <div class="quick-buy-modal__thumb">
@@ -139,7 +141,8 @@ export function openQuickBuyModal({
 
       const unitPriceNum = Number(price);
       const itemsSubtotal = unitPriceNum * qty;
-      const shipping = 60.0;
+      // The super admin's per-parcel charge (/admin/platform/delivery), loaded when the modal opened.
+      const shipping = Number(deliveryCharge ?? 0);
       const totalAmount = itemsSubtotal + shipping;
 
       const summaryCard = document.createElement('div');
@@ -257,5 +260,12 @@ export function openQuickBuyModal({
 
   renderStep();
   modal.openModal();
+  // A Quick Buy is one supplier, so one parcel. Refresh the summary if the charge changed.
+  loadDeliveryCharge().then((charge) => {
+    if (charge !== null && charge !== deliveryCharge) {
+      deliveryCharge = charge;
+      if (step === 2) renderStep();
+    }
+  });
   return modal;
 }

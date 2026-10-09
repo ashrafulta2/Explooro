@@ -264,7 +264,7 @@ function renderSingleOrderCard(order, nav) {
     itemRow.innerHTML = `
       <div class="customer-order-card__item-left">
         <div class="customer-order-card__item-img-wrap">
-          <img src="${itemImg}" alt="${itemTitle}" class="customer-order-card__item-img" onerror="this.src='/placeholder.svg'"/>
+          <img src="${itemImg}" alt="${itemTitle}" class="customer-order-card__item-img" onerror="this.onerror=null;this.src='/placeholder-product.svg'"/>
         </div>
         <div class="customer-order-card__item-info">
           <div class="customer-order-card__item-title">${itemTitle}</div>

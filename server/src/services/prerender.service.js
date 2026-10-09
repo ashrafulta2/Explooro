@@ -84,18 +84,19 @@ export async function renderOnDemandHtml(db, cache, pathname = '/', userLocale =
   if (productMatch) {
     const slugOrId = productMatch[1];
     const { rows } = await db.query(
-      `SELECT p.*, c.name_en as cat_en, c.name_bn as cat_bn,
-              s.company_name_en as supplier_name,
-              COALESCE(pr.avg_rating, 4.8) as rating_val,
-              COALESCE(pr.review_count, 14) as review_cnt
+      // WHY: explicit columns (products also holds supplier cost), the supplier's name from
+      // user_profiles, and the real stored rating — never an invented default, which search
+      // engines treat as fake review markup.
+      `SELECT p.id, p.ref, p.slug, p.title_en, p.title_bn, p.description_en, p.description_bn,
+              p.default_retail_price AS retail_price, p.stock_qty AS stock_quantity,
+              c.name_en as cat_en, c.name_bn as cat_bn,
+              COALESCE(up.display_name, up.full_name) as supplier_name,
+              p.rating_avg as rating_val,
+              p.rating_count as review_cnt
        FROM products p
        LEFT JOIN categories c ON c.id = p.category_id
-       LEFT JOIN supplier_profiles s ON s.id = p.supplier_id
-       LEFT JOIN (
-         SELECT product_id, AVG(rating)::numeric(3,1) as avg_rating, COUNT(*) as review_count
-         FROM product_reviews GROUP BY product_id
-       ) pr ON pr.product_id = p.id
-       WHERE (p.slug = $1 OR p.id::text = $1) AND p.status = 'ACTIVE'`,
+       LEFT JOIN user_profiles up ON up.user_id = p.supplier_id
+       WHERE (p.slug = $1 OR p.id::text = $1) AND p.status = 'ACTIVE' AND p.deleted_at IS NULL`,
       [slugOrId]
     ).catch(() => ({ rows: [] }));
 
@@ -107,7 +108,7 @@ export async function renderOnDemandHtml(db, cache, pathname = '/', userLocale =
       heading = title;
       price = `৳${parseFloat(p.retail_price || 0).toLocaleString('en-BD', { minimumFractionDigits: 2 })}`;
       brand = p.supplier_name || 'Explooro Verified Supplier';
-      sku = p.sku || `EXP-${p.id}`;
+      sku = p.ref || `EXP-${p.id}`;
       bodyText = description;
       ogType = 'product';
 
@@ -125,12 +126,14 @@ export async function renderOnDemandHtml(db, cache, pathname = '/', userLocale =
           price: parseFloat(p.retail_price || 0).toFixed(2),
           availability: (p.stock_quantity || 0) > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         },
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: String(p.rating_val || '4.8'),
-          reviewCount: String(p.review_cnt || '14'),
-        },
       };
+      if (Number(p.review_cnt) > 0 && p.rating_val !== null) {
+        jsonLd.aggregateRating = {
+          '@type': 'AggregateRating',
+          ratingValue: String(p.rating_val),
+          reviewCount: String(p.review_cnt),
+        };
+      }
     }
   }
 

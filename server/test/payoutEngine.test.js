@@ -45,7 +45,7 @@ function createMockDb() {
   ];
 
   const userRestrictions = [
-    { user_id: 301, can_withdraw: 'BLOCK', max_withdrawal_per_day: null, expires_at: null },
+    { subject_type: 'USER', subject_ref: '301', capability_key: 'can_withdraw', mode: 'BLOCK', limit_value: null, expires_at: null },
   ];
 
   const wallets = [
@@ -121,10 +121,9 @@ function createMockDb() {
       }
 
       // SELECT user_restrictions
-      if (q.includes('FROM user_restrictions WHERE user_id = $1')) {
-        const userId = params[0];
-        const r = userRestrictions.find((x) => x.user_id === userId);
-        return { rows: r ? [{ ...r }] : [] };
+      if (q.includes('FROM user_restrictions ur')) {
+        const subjectRef = String(params[0]);
+        return { rows: userRestrictions.filter((x) => x.subject_ref === subjectRef).map((x) => ({ ...x })) };
       }
 
       // SELECT users LEFT JOIN user_profiles
@@ -143,6 +142,31 @@ function createMockDb() {
         const userId = params[0];
         const count = payoutRequests.filter((p) => p.user_id === userId && p.status === 'COMPLETED').length;
         return { rows: [{ count }] };
+      }
+
+      // The external clearing wallet (migration 070): a system wallet with no user.
+      if (q.includes('FROM wallets') && q.includes('WHERE system_key = $1')) {
+        const w = wallets.find((x) => x.system_key === params[0]);
+        return { rows: w ? [{ id: w.id }] : [] };
+      }
+      if (q.includes('INSERT INTO wallets') && q.includes('system_key')) {
+        if (!wallets.find((x) => x.system_key === params[0])) {
+          wallets.push({
+            id: Math.max(0, ...wallets.map((x) => x.id)) + 1,
+            user_id: null,
+            system_key: params[0],
+            available_balance: '0.00',
+            pending_escrow_balance: '0.00',
+            held_balance: '0.00',
+            lifetime_earned: '0.00',
+            lifetime_withdrawn: '0.00',
+            currency: 'BDT',
+            version: 0,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          });
+        }
+        return { rows: [] };
       }
 
       // SELECT wallets WHERE user_id = $1
@@ -279,9 +303,8 @@ function createMockDb() {
           actor_id: params[1],
           action_key: 'finance.payout.approve',
           payload_json: params[2],
-          target_type: params[3],
-          target_ref: params[4],
-          risk_tier: params[5],
+          target_type: 'payout_request',
+          target_ref: params[3],
           status: 'PENDING',
           created_at: new Date().toISOString(),
         };

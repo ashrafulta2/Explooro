@@ -41,6 +41,26 @@ export default async function financeRoutes(app) {
     handler: controller.listEscrowHoldings,
   });
 
+  // 4b. Release one sub-order's escrow before its return window ends (CRITICAL: super admin only)
+  app.post('/admin/finance/escrow/:subOrderId/release', {
+    config: { page: '/admin/finance/escrow' },
+    preHandler: [app.authenticate, app.requirePermission('finance.escrow.release_manual')],
+    schema: {
+      params: {
+        type: 'object',
+        required: ['subOrderId'],
+        properties: { subOrderId: { type: 'string', pattern: '^[0-9]+$' } },
+      },
+      body: {
+        type: 'object',
+        required: ['reason'],
+        additionalProperties: false,
+        properties: { reason: { type: 'string', minLength: 10, maxLength: 500 } },
+      },
+    },
+    handler: controller.releaseEscrowHolding,
+  });
+
   // 5. Escrow Dead-Letter Queue (Failed releases)
   app.get('/admin/finance/dead-letters', {
     preHandler: [app.authenticate, app.requirePermission('finance.escrow.view')],

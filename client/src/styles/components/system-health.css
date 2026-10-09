@@ -625,3 +625,9 @@
   cursor: pointer;
   transition: all 0.15s ease;
 }
+
+/* /admin/growth/group-buy — the team-purchase settings card. */
+.group-buy-settings { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-4); }
+.group-buy-settings__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: var(--space-3); }
+.group-buy-settings__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.group-buy-settings__actions > p { margin: 0; flex: 1 1 240px; }

@@ -175,8 +175,8 @@ VALUES
   ('group_buying', 'commerce', 'Team purchase (group buying)', 'টিম পারচেজ (গ্রুপ কেনাকাটা)',
    'Buyers form a team within a countdown window to unlock a lower price.',
    'নির্দিষ্ট সময়ের মধ্যে ক্রেতারা দল গড়ে কম দাম পায়।',
-   true, true, '{"default_team_size": 3, "window_hours": 24, "min_discount_pct": 10}'::jsonb,
-   '{"type": "object", "properties": { "default_team_size": { "type": "integer", "minimum": 2, "default": 3 }, "window_hours": { "type": "integer", "default": 24 }, "min_discount_pct": { "type": "number", "default": 10 } } }'::jsonb,
+   true, true, '{"default_team_size": 3, "window_hours": 24, "discount_pct_2": 15, "discount_pct_3": 25, "shipping_charge": 60}'::jsonb,
+   '{"type": "object", "properties": { "default_team_size": { "type": "integer", "minimum": 2, "maximum": 3, "default": 3 }, "window_hours": { "type": "integer", "minimum": 1, "maximum": 168, "default": 24 }, "discount_pct_2": { "type": "integer", "minimum": 0, "maximum": 90, "default": 15 }, "discount_pct_3": { "type": "integer", "minimum": 0, "maximum": 90, "default": 25 }, "shipping_charge": { "type": "number", "minimum": 0, "maximum": 5000, "default": 60 } } }'::jsonb,
    ARRAY[]::text[]),
 
   ('cart_recovery', 'commerce', 'Abandoned cart recovery', 'পরিত্যক্ত কার্ট পুনরুদ্ধার',

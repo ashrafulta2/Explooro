@@ -102,7 +102,7 @@ export async function getStoresSitemap(req, reply) {
   const { rows } = await req.server.db.query(
     `SELECT slug, updated_at, created_at
      FROM virtual_stores
-     WHERE is_published = true AND deleted_at IS NULL
+     WHERE is_active = true AND deleted_at IS NULL
      ORDER BY updated_at DESC
      LIMIT 5000`
   ).catch(() => ({ rows: [] }));
@@ -126,7 +126,7 @@ export async function getCategoriesSitemap(req, reply) {
   const { rows } = await req.server.db.query(
     `SELECT slug, updated_at, created_at
      FROM categories
-     WHERE status = 'ACTIVE'
+     WHERE is_active = true
      ORDER BY name_en ASC`
   ).catch(() => ({ rows: [] }));
 

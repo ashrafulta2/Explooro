@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (197 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (199 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -74,6 +74,8 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('platform.localization.update', 'platform', 'Set the default language', 'ডিফল্ট ভাষা নির্ধারণ', 'change the language the site opens in for every new visitor', 'প্রতিটি নতুন দর্শনার্থীর জন্য সাইট যে ভাষায় খোলে তা পরিবর্তন করতে', 'MEDIUM', true, 'approve_before'),
   ('platform.genie.view', 'platform', 'View popup effect settings', 'পপআপ ইফেক্ট সেটিংস দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.genie.update', 'platform', 'Change the popup genie effect', 'পপআপ জিনি ইফেক্ট পরিবর্তন', 'turn the popup open/close animation on or off and change how long and how smooth it is for every visitor', 'সব দর্শনার্থীর জন্য পপআপ খোলা/বন্ধ হওয়ার অ্যানিমেশন চালু-বন্ধ করতে এবং তার সময় ও মসৃণতা বদলাতে', 'MEDIUM', true, 'approve_before'),
+  ('platform.delivery.view', 'platform', 'View the delivery charge', 'ডেলিভারি চার্জ দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
+  ('platform.delivery.update', 'platform', 'Change the delivery charge', 'ডেলিভারি চার্জ পরিবর্তন', 'change the delivery charge every shopper pays per parcel at checkout', 'চেকআউটে প্রত্যেক ক্রেতা প্রতি পার্সেলে যে ডেলিভারি চার্জ দেন তা বদলাতে', 'CRITICAL', false, 'approve_before'),
   ('platform.recommendation.view', 'platform', 'View personalized feed settings', 'পার্সোনালাইজড ফিড সেটিংস দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.recommendation.update', 'platform', 'Tune the personalized feed', 'পার্সোনালাইজড ফিড টিউন করা', 'change how products are ranked and which rails appear on the home page for every shopper', 'সব ক্রেতার জন্য পণ্য কীভাবে সাজানো হবে এবং হোম পেজে কোন কোন রেল দেখা যাবে তা বদলাতে', 'MEDIUM', true, 'approve_before'),
   ('platform.integration.view', 'platform', 'View integrations', 'ইন্টিগ্রেশন দেখা', 'see which payment and courier integrations are connected', 'কোন পেমেন্ট ও কুরিয়ার ইন্টিগ্রেশন যুক্ত আছে তা দেখতে', 'MEDIUM', true, 'approve_before'),
@@ -321,6 +323,9 @@ FROM (VALUES
   ('admin', 'platform.genie.view'),
   ('super_admin', 'platform.genie.view'),
   ('super_admin', 'platform.genie.update'),
+  ('admin', 'platform.delivery.view'),
+  ('super_admin', 'platform.delivery.view'),
+  ('super_admin', 'platform.delivery.update'),
   ('admin', 'platform.recommendation.view'),
   ('super_admin', 'platform.recommendation.view'),
   ('super_admin', 'platform.recommendation.update'),

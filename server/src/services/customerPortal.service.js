@@ -139,7 +139,7 @@ export async function getCustomerDashboardSummary(db, userId) {
     const { rows: warrantyRows } = await db.query(
       `SELECT COUNT(*) as active_count
        FROM warranty_cards
-       WHERE customer_id = $1 AND status = 'ACTIVE' AND expires_at > NOW()`,
+       WHERE customer_id = $1 AND starts_at <= NOW() AND expires_at > NOW()`,
       [parsedUserId]
     );
     activeWarrantiesCount = Number(warrantyRows[0]?.active_count || 0);
@@ -150,9 +150,9 @@ export async function getCustomerDashboardSummary(db, userId) {
   try {
     const { rows: teamRows } = await db.query(
       `SELECT COUNT(*) as team_count
-       FROM group_buy_members gbm
-       JOIN group_buy_teams gbt ON gbt.id = gbm.team_id
-       WHERE gbm.user_id = $1 AND gbt.status = 'ACTIVE' AND gbt.expires_at > NOW()`,
+       FROM team_purchase_members tpm
+       JOIN team_purchases tp ON tp.id = tpm.team_purchase_id
+       WHERE tpm.user_id = $1 AND tp.status = 'ACTIVE' AND tp.expires_at > NOW()`,
       [parsedUserId]
     );
     activeTeamsCount = Number(teamRows[0]?.team_count || 0);

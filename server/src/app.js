@@ -18,7 +18,7 @@ import { createDbPool } from './config/db.js';
 import { createCache } from './config/cache.js';
 import requestContextPlugin from './plugins/requestContext.js';
 import requestMetricsPlugin from './lib/requestMetrics.js';
-import errorHandlerPlugin from './plugins/errorHandler.js';
+import errorHandlerPlugin, { AppError } from './plugins/errorHandler.js';
 import authenticatePlugin from './middlewares/authenticate.js';
 import requirePermissionPlugin from './middlewares/requirePermission.js';
 import requireRestrictionPlugin from './middlewares/requireRestriction.js';
@@ -36,6 +36,7 @@ import staffRoutes from './routes/staff.routes.js';
 import themeRoutes from './routes/theme.routes.js';
 import localizationRoutes from './routes/localization.routes.js';
 import genieRoutes from './routes/genie.routes.js';
+import deliveryChargeRoutes from './routes/deliveryCharge.routes.js';
 import recommendationAdminRoutes from './routes/recommendationAdmin.routes.js';
 import mediaRoutes from './routes/media.routes.js';
 import productRoutes from './routes/product.routes.js';
@@ -171,16 +172,18 @@ export async function buildApp(overrides = {}) {
     max: 300,
     timeWindow: '1 minute',
     store: createRateLimitStoreClass(cache),
-    // Match docs/api-contract.md §2.3's error envelope instead of the plugin's own shape — the
-    // X-RateLimit-*/Retry-After headers are still set by the plugin regardless of this builder.
-    errorResponseBuilder: (req, context) => ({
-      error: {
-        code: 'RATE_LIMITED',
-        message_en: `Too many requests. Please try again in ${Math.ceil(context.ttl / 1000)}s.`,
-        message_bn: `অনেক বেশি অনুরোধ করা হয়েছে। প্রায় ${Math.ceil(context.ttl / 1000)} সেকেন্ড পরে আবার চেষ্টা করুন।`,
-        trace_id: req.traceId ?? 'unknown',
-      },
-    }),
+    // WHY an AppError and not a plain { error } object: @fastify/rate-limit 11 throws what this
+    // returns, and the error handler only maps AppError codes to a status. The plain object fell
+    // through to INTERNAL_ERROR, so a rate-limited visitor got HTTP 500 "something went wrong"
+    // instead of 429 with the wait time. The X-RateLimit-*/Retry-After headers are set either way.
+    errorResponseBuilder: (req, context) => {
+      const seconds = Math.ceil(context.ttl / 1000);
+      return new AppError(
+        'RATE_LIMITED',
+        `Too many requests. Please try again in ${seconds}s.`,
+        `অনেক বেশি অনুরোধ করা হয়েছে। প্রায় ${seconds} সেকেন্ড পরে আবার চেষ্টা করুন।`
+      );
+    },
   });
 
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
@@ -195,6 +198,7 @@ export async function buildApp(overrides = {}) {
   await app.register(themeRoutes, { prefix: '/api/v1' });
   await app.register(localizationRoutes, { prefix: '/api/v1' });
   await app.register(genieRoutes, { prefix: '/api/v1' });
+  await app.register(deliveryChargeRoutes, { prefix: '/api/v1' });
   await app.register(recommendationAdminRoutes, { prefix: '/api/v1' });
   await app.register(mediaRoutes, { prefix: '/api/v1' });
   await app.register(productRoutes, { prefix: '/api/v1' });

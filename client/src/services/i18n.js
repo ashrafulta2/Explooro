@@ -32,6 +32,8 @@
  * would mean an admin's change reached nobody who already had the site open.
  */
 
+import { localizeDigits } from './format.js';
+
 const STORAGE_KEY = 'explooro:lang';
 const POLICY_STORAGE_KEY = 'explooro:lang:policy';
 const POLICY_ENDPOINT = '/localization/policy';
@@ -178,11 +180,21 @@ function humanize(key) {
   return last.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+/**
+ * WHY numbers go through localizeDigits: a count like `{ count: 7 }` used to print as "7 দিন" in the
+ * Bengali UI while money printed Bengali digits. Only real numbers are converted, in the active
+ * language and the visitor's numeral choice; strings (refs, codes, already formatted amounts) are
+ * left exactly as passed.
+ */
 function interpolate(template, params) {
   if (!params) return template;
-  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name) =>
-    Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : match
-  );
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name) => {
+    if (!Object.prototype.hasOwnProperty.call(params, name)) return match;
+    const value = params[name];
+    return typeof value === 'number' && Number.isFinite(value)
+      ? localizeDigits(value, { lang: currentLang })
+      : String(value);
+  });
 }
 
 function pluralCategory(lang, count) {

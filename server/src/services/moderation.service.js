@@ -473,22 +473,22 @@ export async function decideItem(db, {
     }
 
     // Shadow restrict seller if requested
+    // WHY: no try/catch — a failed insert inside this transaction aborts it, so swallowing the
+    // error would make the whole verdict fail instead of only the restriction.
     if (shadowRestrictSeller && item.submitted_by) {
-      try {
-        await txClient.query(
-          `INSERT INTO user_restrictions (
-             user_id, restriction_type, can_list_products, reason_en, reason_bn,
-             created_by, starts_at, is_active, created_at
-           )
-           VALUES ($1, 'SHADOW_BAN', 'BLOCK', $2, $3, $4, now(), true, now())`,
-          [
-            item.submitted_by,
-            reasonEn || 'Content moderation policy violation',
-            reasonBn || 'কন্টেন্ট মডারেশন পলিসি লঙ্ঘনের কারণে সীমাবদ্ধতা',
-            moderatorId,
-          ]
-        );
-      } catch {}
+      await txClient.query(
+        `INSERT INTO user_restrictions (
+           subject_type, subject_ref, capability_key, mode, reason, reason_bn, evidence_json, applied_by
+         )
+         VALUES ('USER', $1::text, 'can_list_products', 'SHADOW_BAN', $2, $3, $4::jsonb, $5)`,
+        [
+          String(item.submitted_by),
+          reasonEn && reasonEn.length >= 10 ? reasonEn : 'Content moderation policy violation',
+          reasonBn || 'কন্টেন্ট মডারেশন পলিসি লঙ্ঘনের কারণে সীমাবদ্ধতা',
+          JSON.stringify({ moderation_queue_id: queueId, item_type: item.item_type, entity_id: item.entity_id }),
+          moderatorId,
+        ]
+      );
     }
 
     await writeAudit(txClient, {

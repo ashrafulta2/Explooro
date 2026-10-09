@@ -442,7 +442,9 @@ export async function reviewWarrantyClaim(db, {
     const { rows: claimRows } = await txClient.query(
       `SELECT c.*, wc.supplier_id, wc.customer_id, wc.serial_number, wc.ref AS card_ref,
               p.title_en, p.title_bn, p.id AS product_id,
-              so.ref AS sub_order_ref, o.recipient_name, o.recipient_phone, o.delivery_address_json,
+              so.ref AS sub_order_ref, o.recipient_name, o.recipient_phone,
+              jsonb_build_object('division', o.division, 'district', o.district,
+                                 'upazila', o.upazila, 'address_line', o.address_line) AS delivery_address_json,
               oi.line_total, oi.retail_price, oi.sub_order_id
        FROM warranty_claims c
        JOIN warranty_cards wc ON wc.id = c.warranty_card_id

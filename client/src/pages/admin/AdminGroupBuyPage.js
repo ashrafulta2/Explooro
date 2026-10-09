@@ -1,187 +1,268 @@
 /**
- * AdminGroupBuyPage.js — Social Group Buying / Team Purchases Governance (Prompt 9.5).
+ * AdminGroupBuyPage.js — Team Purchase settings and pools (/admin/growth/group-buy, Prompt 9.5).
  *
- * Implements:
- * 1. Social Group Buying Metrics (Active Team Pools, Completed Orders, Conversion Rate, Expired Teams).
- * 2. Real-Time 24-Hour Countdown Timer & Slot Capacity Inspector.
- * 3. 1-Click Expired Pool Full Refund Sweep Action (Ensures buyer protection for incomplete groups).
- * 4. Anti-Gaming Double-Join Enforcement Inspector.
- * 5. Zero-CLS skeleton loader and bilingual i18n support.
+ * 1. Settings a super admin sets: the shipping charge every team member pays, the discount for a
+ *    2- and a 3-member team, and how long a team stays open. Saved through
+ *    PUT /admin/growth/group-buy/settings (growth.groupbuy.govern, HIGH: a super admin's save applies
+ *    at once, anyone else's goes for approval and the page says so).
+ * 2. Real counts and the latest teams from GET /admin/growth/group-buy.
+ * 3. "Expire overdue teams" runs the same sweep the 5-minute job runs, releasing wallet holds.
+ *
+ * WHY the bounds shown in the form come from the API (`limits`): the server refuses out-of-range
+ * values, and the page must never offer a value it would refuse.
  */
 
 import { Button } from '../../components/ui/Button.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { Input } from '../../components/ui/Input.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
+import { escapeHtml } from '../../services/html.js';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
-export default function AdminGroupBuyPage(root, { navigate } = {}) {
+const STATUS_BADGE = {
+  ACTIVE: 'system-table__badge--info',
+  COMPLETED: 'system-table__badge--success',
+  EXPIRED: 'system-table__badge--danger',
+  CANCELLED: 'system-table__badge--danger',
+};
+
+export default function AdminGroupBuyPage(root) {
   loadSystemHealthStyles();
-  const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page group-buy-page';
 
-  let teams = [];
-  let stats = {
-    total_teams: 142,
-    active_pools: 8,
-    conversion_rate_pct: 88.5,
-    gross_team_gmv_bdt: 184500.00,
-  };
+  let overview = null;
+  let loadError = null;
   let isLoading = true;
 
   async function loadData() {
     isLoading = true;
     render();
-
     try {
-      const res = await api.get('/admin/growth/group-buy');
-      teams = res.data?.teams || res.teams || getDefaultTeams();
-    } catch {
-      teams = getDefaultTeams();
+      overview = await api.get('/admin/growth/group-buy');
+      loadError = null;
+    } catch (err) {
+      loadError = err?.message || t('common.error_generic');
     } finally {
       isLoading = false;
       render();
     }
   }
 
-  function getDefaultTeams() {
+  function settingsPanel() {
+    const { settings, limits } = overview;
+    const panel = document.createElement('section');
+    panel.className = 'admin-panel group-buy-settings';
+    panel.innerHTML = `
+      <h2 class="admin-panel__title">${escapeHtml(t('admin.group_buy.settings_title'))}</h2>
+      <p class="text-sm text-secondary">${escapeHtml(t('admin.group_buy.settings_desc'))}</p>
+    `;
+
+    const grid = document.createElement('div');
+    grid.className = 'group-buy-settings__grid';
+
+    const shipping = Input({
+      label: t('admin.group_buy.shipping_charge'),
+      hint: t('admin.group_buy.shipping_charge_hint', { min: limits.shipping_charge.min, max: limits.shipping_charge.max }),
+      type: 'number',
+      name: 'shipping_charge',
+      prefix: '৳',
+      value: String(settings.shipping_charge),
+      inputmode: 'decimal',
+      required: true,
+    });
+    shipping.input.min = String(limits.shipping_charge.min);
+    shipping.input.max = String(limits.shipping_charge.max);
+    shipping.input.step = '0.01';
+
+    const pctInput = (name, label) => {
+      const field = Input({
+        label,
+        hint: t('admin.group_buy.discount_hint', { min: limits.discount_pct.min, max: limits.discount_pct.max }),
+        type: 'number',
+        name,
+        suffix: '%',
+        value: String(settings[name]),
+        inputmode: 'numeric',
+        required: true,
+      });
+      field.input.min = String(limits.discount_pct.min);
+      field.input.max = String(limits.discount_pct.max);
+      field.input.step = '1';
+      return field;
+    };
+    const discount2 = pctInput('discount_pct_2', t('admin.group_buy.discount_2'));
+    const discount3 = pctInput('discount_pct_3', t('admin.group_buy.discount_3'));
+
+    const windowHours = Input({
+      label: t('admin.group_buy.window_hours'),
+      hint: t('admin.group_buy.window_hours_hint', { min: limits.window_hours.min, max: limits.window_hours.max }),
+      type: 'number',
+      name: 'window_hours',
+      suffix: t('admin.group_buy.hours_suffix'),
+      value: String(settings.window_hours),
+      inputmode: 'numeric',
+      required: true,
+    });
+    windowHours.input.min = String(limits.window_hours.min);
+    windowHours.input.max = String(limits.window_hours.max);
+    windowHours.input.step = '1';
+
+    grid.append(shipping, discount2, discount3, windowHours);
+
+    const note = document.createElement('p');
+    note.className = 'text-xs text-muted';
+    note.textContent = t('admin.group_buy.snapshot_note');
+
+    const save = Button({
+      label: t('common.save_changes'),
+      variant: 'primary',
+      size: 'sm',
+      onClick: async () => {
+        const payload = {
+          shipping_charge: Number(shipping.value),
+          discount_pct_2: Number(discount2.value),
+          discount_pct_3: Number(discount3.value),
+          window_hours: Number(windowHours.value),
+        };
+        save.disabled = true;
+        try {
+          const res = await api.put('/admin/growth/group-buy/settings', payload);
+          if (res?.deferred) {
+            toast.info(t('admin.group_buy.sent_for_approval'));
+          } else {
+            toast.success(t('admin.group_buy.saved'));
+            await loadData();
+          }
+        } catch (err) {
+          toast.error(err?.message || t('common.error_generic'));
+        } finally {
+          save.disabled = false;
+        }
+      },
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'group-buy-settings__actions';
+    actions.append(note, save);
+
+    panel.append(grid, actions);
+    return panel;
+  }
+
+  function kpis() {
+    const s = overview.stats;
+    const grid = document.createElement('div');
+    grid.className = 'admin-kpi-grid';
+    const card = (label, value, hint) => `
+      <div class="admin-kpi-card">
+        <div class="admin-kpi-card__label">${escapeHtml(label)}</div>
+        <div class="admin-kpi-card__val font-mono">${escapeHtml(value)}</div>
+        <div class="admin-kpi-card__hint">${escapeHtml(hint)}</div>
+      </div>`;
+    grid.innerHTML = [
+      card(t('admin.group_buy.kpi_total'), String(s.total_teams), t('admin.group_buy.kpi_active', { count: s.active_pools })),
+      card(t('admin.group_buy.kpi_conversion'), s.conversion_rate_pct == null ? '—' : `${s.conversion_rate_pct}%`,
+        t('admin.group_buy.kpi_conversion_hint', { completed: s.completed_teams, expired: s.expired_teams })),
+      card(t('admin.group_buy.kpi_gmv'), formatCurrency(s.gross_team_gmv_bdt), t('admin.group_buy.kpi_gmv_hint')),
+      card(t('admin.group_buy.kpi_shipping'), formatCurrency(overview.settings.shipping_charge), t('admin.group_buy.kpi_shipping_hint')),
+    ].join('');
+    return grid;
+  }
+
+  function teamsTable() {
+    const panel = document.createElement('section');
+    panel.className = 'admin-panel mt-4';
     const now = Date.now();
-    return [
-      { id: 1, team_code: 'TEAM-8821A', product_title: 'Handloom Jamdani Saree (Navy Blue)', initiator_name: 'Fatima Sultana', target_members: 3, joined_members: 2, group_price: 2400.00, retail_price: 3200.00, expires_at: new Date(now + 3600000 * 8).toISOString(), status: 'ACTIVE' },
-      { id: 2, team_code: 'TEAM-8820B', product_title: 'Pure Forest Honey 1kg (2-Pack)', initiator_name: 'Rahim Khan', target_members: 2, joined_members: 2, group_price: 1500.00, retail_price: 1900.00, expires_at: new Date(now - 3600000 * 2).toISOString(), status: 'COMPLETED' },
-      { id: 3, team_code: 'TEAM-8819C', product_title: 'Wireless TWS Earbuds Bass Edition', initiator_name: 'Tariq Ahmed', target_members: 3, joined_members: 1, group_price: 850.00, retail_price: 1200.00, expires_at: new Date(now + 3600000 * 14).toISOString(), status: 'ACTIVE' },
-      { id: 4, team_code: 'TEAM-8818D', product_title: 'Mustard Cold-Pressed Oil 5L Can', initiator_name: 'Anwar Hossain', target_members: 3, joined_members: 1, group_price: 1650.00, retail_price: 2100.00, expires_at: new Date(now - 3600000 * 5).toISOString(), status: 'EXPIRED' },
-    ];
+    const rows = overview.teams.map((tm) => {
+      const hoursLeft = Math.max(0, Math.ceil((new Date(tm.expires_at).getTime() - now) / 3600000));
+      const statusLabel = t(`admin.group_buy.status_${String(tm.status).toLowerCase()}`);
+      return `
+        <tr>
+          <td><code class="font-mono font-bold text-xs">${escapeHtml(tm.team_code)}</code></td>
+          <td>${escapeHtml(tm.product_title)}</td>
+          <td class="text-xs text-secondary">${escapeHtml(tm.initiator_name || '—')}</td>
+          <td class="font-mono">${Number(tm.joined_members)} / ${Number(tm.target_members)}</td>
+          <td class="font-mono">
+            <div>${formatCurrency(tm.group_price)}</div>
+            <div class="text-xs text-muted">+ ${formatCurrency(tm.shipping_charge)} ${escapeHtml(t('admin.group_buy.shipping_short'))}</div>
+          </td>
+          <td class="text-xs font-mono">${tm.status === 'ACTIVE' ? escapeHtml(t('admin.group_buy.hours_left', { hours: hoursLeft })) : '—'}</td>
+          <td><span class="system-table__badge ${STATUS_BADGE[tm.status] || ''}">${escapeHtml(statusLabel)}</span></td>
+        </tr>`;
+    }).join('');
+
+    panel.innerHTML = overview.teams.length === 0
+      ? `<p class="p-6 text-center text-sm text-muted">${escapeHtml(t('admin.group_buy.empty'))}</p>`
+      : `<div class="system-table-wrap">
+          <table class="system-table">
+            <thead><tr>
+              <th>${escapeHtml(t('admin.group_buy.col_team'))}</th>
+              <th>${escapeHtml(t('admin.group_buy.col_product'))}</th>
+              <th>${escapeHtml(t('admin.group_buy.col_initiator'))}</th>
+              <th>${escapeHtml(t('admin.group_buy.col_members'))}</th>
+              <th>${escapeHtml(t('admin.group_buy.col_price'))}</th>
+              <th>${escapeHtml(t('admin.group_buy.col_time'))}</th>
+              <th>${escapeHtml(t('admin.group_buy.col_status'))}</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>`;
+    return panel;
   }
 
   function render() {
     root.innerHTML = '';
+    container.innerHTML = '';
 
-    if (isLoading) {
-      container.innerHTML = `<div class="p-8 text-center text-muted">${t('common.loading')}</div>`;
-      root.appendChild(container);
-      return;
-    }
-
-    const now = Date.now();
-
-    container.innerHTML = `
-      <!-- Header -->
-      <div class="admin-page-header">
-        <div>
-          <div class="admin-page-eyebrow">
-            <span class="badge badge--neutral">👥 ${isBn ? 'গ্রুপ বাইয়িং অ্যান্ড ভাইরাল গ্রোথ' : 'Social Team Purchases'}</span>
-          </div>
-          <h1 class="admin-page-title">${isBn ? 'গ্রুপ বাই ও টিম পারচেজ গভর্নেন্স' : 'Group Buying & Team Purchase Pools'}</h1>
-          <p class="admin-page-subtitle">
-            ${isBn ? 'সোশ্যাল ভাইরাল টিম পারচেজ, ২৪ ঘণ্টার টাইম-বক্সড টিম পুল, অর্ডার কনভার্সন ও রিফান্ড সুইপ।' : 'Manage viral team buy campaigns, member milestone pools, 24h countdowns, and automated full refund sweeps.'}
-          </p>
-        </div>
-
-        <div class="admin-page-actions">
-          <button type="button" class="btn btn--secondary btn--sm refresh-btn">
-            🔄 ${isBn ? 'রিফ্রেশ' : 'Refresh'}
-          </button>
-          <button type="button" class="btn btn--primary btn--sm refund-sweep-btn">
-            ⚡ ${isBn ? 'অসমাপ্ত পুল রিফান্ড সুইপ' : 'Run Expired Pool Sweep'}
-          </button>
-        </div>
+    const header = document.createElement('div');
+    header.className = 'admin-page-header';
+    header.innerHTML = `
+      <div>
+        <h1 class="admin-page-title">${escapeHtml(t('admin.group_buy.title'))}</h1>
+        <p class="admin-page-subtitle">${escapeHtml(t('admin.group_buy.subtitle'))}</p>
       </div>
-
-      <!-- KPI Metrics Strip -->
-      <div class="admin-kpi-grid">
-        <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'মোট টিম গঠিত' : 'Total Teams Formed'}</div>
-          <div class="admin-kpi-card__val font-mono">${stats.total_teams}</div>
-          <div class="admin-kpi-card__hint">${stats.active_pools} ${isBn ? 'টি বর্তমানে চলমান' : 'Active Pools Live'}</div>
-        </div>
-
-        <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'টিম কনভার্সন রেট' : 'Team Conversion Rate'}</div>
-          <div class="admin-kpi-card__val text-emerald-600 font-mono">${stats.conversion_rate_pct}%</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'সফলভাবে টিম পূর্ণ হয়েছে' : 'Successfully Completed'}</div>
-        </div>
-
-        <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'গ্রুপ বাই ভলিউম' : 'Group GMV Volume'}</div>
-          <div class="admin-kpi-card__val font-mono text-primary">${formatCurrency(stats.gross_team_gmv_bdt)}</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'ভাইরাল বিক্রয় আয়' : 'Viral Purchase GMV'}</div>
-        </div>
-
-        <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'অটো-রিফান্ড সুরক্ষা' : 'Refund Invariant'}</div>
-          <div class="admin-kpi-card__val text-brand font-mono">100%</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'ব্যর্থ হলে পূর্ণ ফেরত' : 'Full Refund on Timeout'}</div>
-        </div>
-      </div>
-
-      <!-- Team Pools Table -->
-      <div class="admin-panel mt-4">
-        <div class="system-table-wrap">
-          <table class="system-table">
-            <thead>
-              <tr>
-                <th>${isBn ? 'টিম কোড' : 'Team Ref'}</th>
-                <th>${isBn ? 'পণ্য' : 'Product'}</th>
-                <th>${isBn ? 'উদ্যোক্তা (Initiator)' : 'Initiator'}</th>
-                <th>${isBn ? 'সদস্য স্লট' : 'Member Slots'}</th>
-                <th>${isBn ? 'মূল্য ও ছাড়' : 'Group Price'}</th>
-                <th>${isBn ? 'কাউন্টডাউন' : 'Remaining Time'}</th>
-                <th>${isBn ? 'স্ট্যাটাস' : 'Status'}</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${teams.map((t) => {
-                const isCompleted = t.status === 'COMPLETED';
-                const isExpired = t.status === 'EXPIRED';
-                const diffHours = Math.max(0, Math.ceil((new Date(t.expires_at).getTime() - now) / 3600000));
-
-                return `
-                  <tr>
-                    <td><code class="font-mono font-bold text-xs text-primary">${t.team_code}</code></td>
-                    <td><span class="font-bold text-primary">${t.product_title}</span></td>
-                    <td><span class="text-xs text-secondary">${t.initiator_name}</span></td>
-                    <td>
-                      <span class="badge ${isCompleted ? 'badge--success' : 'badge--neutral'} font-mono font-bold">
-                        ${t.joined_members} / ${t.target_members}
-                      </span>
-                    </td>
-                    <td>
-                      <div class="font-mono font-bold text-emerald-600">${formatCurrency(t.group_price)}</div>
-                      <div class="text-xs text-muted line-through">${formatCurrency(t.retail_price)}</div>
-                    </td>
-                    <td>
-                      ${isCompleted ? `
-                        <span class="text-xs text-emerald-600 font-bold">✓ Converted</span>
-                      ` : (isExpired ? `
-                        <span class="text-xs text-rose-600 font-bold">⚠️ Timed Out</span>
-                      ` : `
-                        <span class="text-xs font-mono font-bold text-amber-600">⏳ ${diffHours}h left</span>
-                      `)}
-                    </td>
-                    <td>
-                      <span class="system-table__badge ${isCompleted ? 'system-table__badge--success' : (isExpired ? 'system-table__badge--danger' : 'system-table__badge--info')}">
-                        ${isCompleted ? (isBn ? 'সম্পন্ন' : 'Completed') : (isExpired ? (isBn ? 'মেয়াদোত্তীর্ণ' : 'Expired') : (isBn ? 'চলমান' : 'Active'))}
-                      </span>
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <div class="admin-page-actions"></div>
     `;
+    const actions = header.querySelector('.admin-page-actions');
+    actions.append(
+      Button({ label: t('common.refresh'), variant: 'secondary', size: 'sm', onClick: () => loadData() }),
+      Button({
+        label: t('admin.group_buy.sweep'),
+        variant: 'secondary',
+        size: 'sm',
+        onClick: async () => {
+          try {
+            const res = await api.post('/admin/growth/group-buy/sweep', {});
+            if (res?.deferred) {
+              toast.info(t('admin.group_buy.sent_for_approval'));
+              return;
+            }
+            toast.success(t('admin.group_buy.sweep_done', { count: res?.expiredCount ?? 0 }));
+            await loadData();
+          } catch (err) {
+            toast.error(err?.message || t('common.error_generic'));
+          }
+        },
+      })
+    );
+    container.append(header);
 
-    // Bind Event Listeners
-    container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
-
-    container.querySelector('.refund-sweep-btn')?.addEventListener('click', () => {
-      toast.success(isBn ? 'অসমাপ্ত পুলের রিফান্ড সুইপ সম্পন্ন হয়েছে!' : 'Expired team pools swept and refunded 100%!');
-    });
+    if (isLoading && !overview) {
+      const loading = document.createElement('div');
+      loading.className = 'p-8 text-center text-muted';
+      loading.textContent = t('common.loading');
+      container.append(loading);
+    } else if (loadError && !overview) {
+      const error = document.createElement('div');
+      error.className = 'admin-panel p-6 text-center text-sm';
+      error.textContent = loadError;
+      container.append(error);
+    } else if (overview) {
+      container.append(kpis(), settingsPanel(), teamsTable());
+    }
 
     root.appendChild(container);
   }

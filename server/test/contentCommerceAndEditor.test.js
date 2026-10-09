@@ -281,7 +281,7 @@ describe('Prompt 10.8 — Content Commerce, Reels, Seller Academy & Editor Dashb
         if (sql.includes('author_name') && sql.includes('stories')) {
           return { rows: [{ ...storyRecord, author_name: 'Habib Traders' }] };
         }
-        if (sql.includes('SELECT id, ref, slug, title_en, title_bn, retail_price, media_json')) {
+        if (sql.includes('p.default_retail_price AS retail_price') && sql.includes('FROM products p')) {
           return {
             rows: [
               {
@@ -291,7 +291,7 @@ describe('Prompt 10.8 — Content Commerce, Reels, Seller Academy & Editor Dashb
                 title_en: 'Heritage Jamdani',
                 title_bn: 'ঐতিহ্যবাহী জামদানি',
                 retail_price: '4500.00',
-                media_json: [],
+                image_key: null,
                 stock_quantity: 10,
               },
             ],

@@ -17,6 +17,7 @@ import * as paymentRepo from '../repositories/payment.repository.js';
 import * as orderRepo from '../repositories/order.repository.js';
 import * as auditService from './audit.service.js';
 import * as vaultService from './vault.service.js';
+import { withTransaction } from '../config/db.js';
 
 /**
  * Mask account or card numbers.
@@ -187,8 +188,12 @@ export async function executePayment(db, cache, {
     throw new AppError('NOT_FOUND', 'Payment transaction record not found.', 'পেমেন্ট ট্রানজ্যাকশন রেকর্ড পাওয়া যায়নি।');
   }
 
-  // If already SUCCESS, return idempotently
+  // If already SUCCESS, return idempotently — after making sure its escrow exists. WHY: a paid
+  // order whose escrow failed to lock (or that was paid before this was fixed) is healed by the
+  // next webhook replay, reconcile sweep or execute retry, instead of staying unescrowed forever.
   if (txn.status === 'SUCCESS') {
+    const paidOrder = await orderRepo.findOrderById(db, txn.order_id);
+    if (paidOrder) await lockEscrowForPaidOrder(db, paidOrder);
     return {
       success: true,
       transactionRef: txn.ref,
@@ -228,7 +233,8 @@ export async function executePayment(db, cache, {
   const order = await orderRepo.findOrderById(db, txn.order_id);
   if (order) {
     await db.query(
-      `UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', updated_at = now() WHERE id = $1;`,
+      // WHY: orders has no status column — fulfilment state lives on sub_orders (updated below).
+      `UPDATE orders SET payment_status = 'PAID', updated_at = now() WHERE id = $1;`,
       [order.id]
     );
 
@@ -238,25 +244,7 @@ export async function executePayment(db, cache, {
       [order.id]
     );
 
-    // Trigger Escrow Deposit lock for sub-orders
-    try {
-      const subOrders = await orderRepo.findSubOrdersByOrderId(db, order.id);
-      for (const so of subOrders) {
-        if (vaultService.depositToEscrow) {
-          await vaultService.depositToEscrow(db, cache, {
-            subOrderId: so.id,
-            buyerId: order.customer_id,
-            supplierId: so.supplier_id,
-            salerId: so.saler_id,
-            totalAmount: so.total_amount,
-            salerCommission: so.saler_commission,
-            platformMargin: so.platform_margin,
-          }).catch(() => {});
-        }
-      }
-    } catch {
-      // Escrow deposit will be synced by reconciliation if transient issue
-    }
+    await lockEscrowForPaidOrder(db, order);
   }
 
   // 3. Write Audit Trail
@@ -278,6 +266,54 @@ export async function executePayment(db, cache, {
     status: 'PAID',
     paidAt: execResult.paidAt || new Date().toISOString(),
   };
+}
+
+/**
+ * Locks escrow for every sub-order of a paid gateway order, in one transaction.
+ *
+ * WHY this replaced the old inline loop: it passed `cache` as the second argument, but the
+ * function takes (db, params). `cache` was read as the params, so subOrderId was undefined, the call
+ * threw, and `.catch(() => {})` hid it — no bKash/Nagad/card order ever locked escrow, so suppliers
+ * and the platform were never paid for them.
+ *
+ * The money came from the gateway, not from the shopper's Explooro wallet, so the external clearing
+ * wallet funds the deposit (see vault.service.js resolveClearingWalletId). depositToEscrow is
+ * idempotent per sub-order, so calling this again for an already-locked order changes nothing.
+ * A failure is logged loudly and left for the next retry; it must not undo a payment the gateway
+ * has already taken.
+ */
+async function lockEscrowForPaidOrder(db, order) {
+  const run = (fn) => (typeof db.connect === 'function' ? withTransaction(db, fn) : fn(db));
+  try {
+    await run(async (client) => {
+      // WHY the NOT EXISTS: an order refunded or clawed back has escrow rows in another state; a
+      // late webhook replay must never lock its money again. Only never-escrowed sub-orders qualify.
+      const { rows: subOrders } = await client.query(
+        `SELECT s.id
+         FROM sub_orders s
+         JOIN orders o ON o.id = s.order_id
+         WHERE s.order_id = $1
+           AND o.payment_status = 'PAID'
+           AND s.status NOT IN ('CANCELLED', 'RETURNED', 'REFUNDED')
+           AND NOT EXISTS (SELECT 1 FROM escrow_entries e WHERE e.sub_order_id = s.id)
+         ORDER BY s.id`,
+        [order.id]
+      );
+      if (subOrders.length === 0) return;
+      const clearingWalletId = await vaultService.resolveClearingWalletId(client);
+      for (const so of subOrders) {
+        await vaultService.depositToEscrow(db, {
+          subOrderId: so.id,
+          buyerWalletId: clearingWalletId,
+          idempotencyKey: `escrow_lock_paid:${so.id}`,
+          client,
+        });
+      }
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error(`[payment] Escrow lock failed for paid order #${order.id}: ${err.message}`);
+  }
 }
 
 /**

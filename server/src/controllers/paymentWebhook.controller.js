@@ -9,7 +9,7 @@ export async function handleWebhookHandler(req, reply) {
   const payload = req.body || {};
   const signature = req.headers['x-signature'] || req.headers['x-webhook-signature'] || req.headers['verify-sign'] || req.query?.signature;
 
-  const result = await paymentService.handleWebhook(req.server.pg, req.server.cache, {
+  const result = await paymentService.handleWebhook(req.server.db, req.server.cache, {
     gateway,
     payload,
     rawBody: req.rawBody || JSON.stringify(payload),
@@ -31,7 +31,7 @@ export async function handlePaymentCallbackHandler(req, reply) {
 
   if (status === 'success' || status === 'Success' || status === 'VALID' || status === 'Completed') {
     try {
-      await paymentService.executePayment(req.server.pg, req.server.cache, {
+      await paymentService.executePayment(req.server.db, req.server.cache, {
         paymentId,
         gateway,
         trxId: combined.trxID || combined.tran_id,

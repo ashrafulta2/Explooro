@@ -25,7 +25,7 @@ import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { restrictingScopes, scopeAllows } from '../lib/grantScope.js';
 
-const PENDING_ACTION_EXPIRY_HOURS = 72;
+export const PENDING_ACTION_EXPIRY_HOURS = 72;
 
 export function requirePermission(permissionKey, options = {}) {
   return async function requirePermissionHandler(req, reply) {

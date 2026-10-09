@@ -15,6 +15,7 @@
 
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
+import { writeAudit } from '../lib/audit.js';
 import { toPaisa, toBdtNumber } from './pricing.service.js';
 
 const DEFAULT_CONFIG = {
@@ -366,21 +367,16 @@ export async function acceptSurgeRecommendation(db, { recommendationId, supplier
     );
 
     // 3. Write audit log entry
-    try {
-      await client.query(
-        `INSERT INTO audit_logs (
-          user_id, action, entity_type, entity_id, before_state, after_state, ip_address, created_at
-        ) VALUES ($1, 'catalog.product.surge_price_accept', 'products', $2, $3, $4, '127.0.0.1', now())`,
-        [
-          appliedBy || supplierId || rec.supplier_id,
-          rec.product_id,
-          JSON.stringify({ retail_price: rec.current_price, status: 'PENDING' }),
-          JSON.stringify({ retail_price: rec.recommended_price, surge_pct: rec.surge_pct, status: 'ACCEPTED' }),
-        ]
-      );
-    } catch {
-      // Non-blocking if audit table schema variances exist
-    }
+    // WHY: not wrapped in try/catch — inside this transaction a failed insert aborts it, and the
+    // COMMIT below would then silently roll back the price change.
+    await writeAudit(client, {
+      actorId: appliedBy || supplierId || rec.supplier_id,
+      action: 'catalog.product.surge_price_accept',
+      targetType: 'products',
+      targetRef: String(rec.product_id),
+      beforeJson: { retail_price: rec.current_price, status: 'PENDING' },
+      afterJson: { retail_price: rec.recommended_price, surge_pct: rec.surge_pct, status: 'ACCEPTED' },
+    });
 
     if (isDedicated) await client.query('COMMIT');
 

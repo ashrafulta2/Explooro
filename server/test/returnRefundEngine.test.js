@@ -328,9 +328,11 @@ function createMockDb() {
       if (q.includes('INSERT INTO user_restrictions')) {
         const res = {
           id: userRestrictions.length + 1,
-          user_id: params[0],
-          capability: params[1] || 'can_return',
+          subject_type: 'USER',
+          subject_ref: params[0],
+          capability_key: 'can_return',
           mode: 'BLOCK',
+          applied_by: params[2],
         };
         userRestrictions.push(res);
         return { rows: [res] };
@@ -414,8 +416,8 @@ function createMockDb() {
         return { rows: items };
       }
 
-      // UPDATE products SET stock_quantity = stock_quantity + $2
-      if (q.includes('UPDATE products SET stock_quantity = stock_quantity + $2')) {
+      // UPDATE products SET stock_qty = stock_qty + $2
+      if (q.includes('UPDATE products SET stock_qty = stock_qty + $2')) {
         const pId = params[0];
         const qty = params[1];
         const p = products.find((x) => x.id === pId);
@@ -582,7 +584,7 @@ describe('Prompt 7.2 — Return & Refund Engine', () => {
     assert.equal(createRes.success, true);
 
     const restrictions = db.getRawData().userRestrictions;
-    const customerRestricted = restrictions.find((r) => r.user_id === 302);
+    const customerRestricted = restrictions.find((r) => r.subject_ref === '302' && r.capability_key === 'can_return');
     assert.ok(customerRestricted, 'Automated abuse restriction applied to serial returner');
   });
 

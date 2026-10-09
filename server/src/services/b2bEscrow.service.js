@@ -17,6 +17,7 @@ import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.js';
 import { recordTransactionGroup } from './ledger.service.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import { writeAudit } from '../lib/audit.js';
+import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
 
 /**
  * Validates and apportion milestone amounts with zero fractional paisa drift.
@@ -446,9 +447,10 @@ export async function releaseMilestone(db, {
       const actionRef = generateRef('ACT');
       const actionSql = `
         INSERT INTO pending_admin_actions (
-          ref, action_type, target_entity_type, target_entity_id,
-          payload_json, requested_by, risk_tier, status, notes
-        ) VALUES ($1, 'b2b_escrow.release', 'b2b_escrow_milestone', $2, $3, $4, 'HIGH', 'PENDING', $5)
+          ref, action_key, target_type, target_ref,
+          payload_json, actor_id, status, actor_note, expires_at
+        ) VALUES ($1, 'finance.escrow.release_manual', 'b2b_escrow_milestone', $2::text, $3, $4, 'PENDING', $5,
+                  now() + make_interval(hours => $6))
         RETURNING *;
       `;
       const { rows: actionRows } = await client.query(actionSql, [
@@ -457,6 +459,7 @@ export async function releaseMilestone(db, {
         JSON.stringify({ milestoneId, amount: milestoneAmount, dealId: milestone.deal_id, notes }),
         actorId,
         notes || `Admin manual release of milestone #${milestone.sequence_no} (৳${milestoneAmount.toFixed(2)}) for deal ${milestone.deal_ref}`,
+        PENDING_ACTION_EXPIRY_HOURS,
       ]);
 
       if (isDedicatedClient) await client.query('COMMIT');
@@ -607,26 +610,40 @@ export async function raiseB2bDispute(db, {
 
     const frozenTotal = frozenRows.reduce((acc, m) => acc + parseFloat(m.amount), 0);
 
-    // Create dispute record in disputes table
-    const disputeRef = generateRef('DIS');
-    const disputeSql = `
-      INSERT INTO disputes (
-        ref, sub_order_id, customer_id, supplier_id, saler_id,
-        category, reason, status, claim_amount, evidence_json
-      ) VALUES ($1, $2, $3, $4, $5, 'B2B_ESCROW', $6, 'OPEN', $7, $8)
-      RETURNING *;
-    `;
-    const { rows: disputeRows } = await client.query(disputeSql, [
-      disputeRef,
-      deal.sub_order_id,
-      deal.buyer_id,
-      deal.supplier_id,
-      deal.buyer_id, // buyer is the saler
-      reasonEn || 'B2B Wholesale Escrow Milestone Dispute',
-      frozenTotal,
-      JSON.stringify({ evidenceMedia, reasonBn, frozenMilestones: frozenRows.map((m) => m.id) }),
-    ]);
-    const dispute = disputeRows[0];
+    // Create the dispute thread so the deal shows up in the arbitration workspace.
+    // WHY: dispute_threads.sub_order_id is NOT NULL, so a deal not tied to a sub-order cannot get a
+    // thread. Its milestones are still frozen and the deal is still marked DISPUTED below.
+    let dispute = null;
+    if (deal.sub_order_id) {
+      const { rows: disputeRows } = await client.query(
+        `INSERT INTO dispute_threads (
+           ref, sub_order_id, customer_id, supplier_id, saler_id, disputed_amount, reason, status
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'OPEN')
+         RETURNING *;`,
+        [
+          generateRef('DIS'),
+          deal.sub_order_id,
+          deal.buyer_id,
+          deal.supplier_id,
+          deal.buyer_id, // buyer is the saler
+          frozenTotal,
+          reasonEn || 'B2B Wholesale Escrow Milestone Dispute',
+        ]
+      );
+      dispute = disputeRows[0];
+
+      await client.query(
+        `INSERT INTO dispute_messages (dispute_id, sender_id, sender_role, body, attachments_json)
+         VALUES ($1, $2, $3, $4, $5);`,
+        [
+          dispute.id,
+          raisedBy,
+          isBuyer ? 'SALER' : 'SUPPLIER',
+          [reasonEn, reasonBn].filter(Boolean).join('\n\n') || 'B2B escrow dispute raised.',
+          JSON.stringify(Array.isArray(evidenceMedia) ? evidenceMedia : []),
+        ]
+      );
+    }
 
     // Update deal
     const { rows: updatedDeals } = await client.query(
@@ -637,7 +654,7 @@ export async function raiseB2bDispute(db, {
            updated_at = now()
        WHERE id = $3
        RETURNING *;`,
-      [dispute.id, frozenTotal, dealId]
+      [dispute?.id ?? null, frozenTotal, dealId]
     );
 
     if (isDedicatedClient) await client.query('COMMIT');

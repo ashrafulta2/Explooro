@@ -29,12 +29,14 @@ export async function computeLeaderboardSnapshot(db, {
   if (category === 'SALER_REVENUE') {
     aggregationQuery = `
       SELECT
-        so.saler_user_id as user_id,
-        COALESCE(SUM(so.subtotal_price), 0)::numeric(14,2) as metric_value
+        so.saler_id as user_id,
+        -- WHY: sub_orders keeps no items subtotal; total - shipping + discount share is the gross item value
+        COALESCE(SUM(so.total_amount - so.shipping_amount + so.discount_share), 0)::numeric(14,2) as metric_value
       FROM sub_orders so
       WHERE to_char(so.created_at, 'YYYY-MM') = $1
+        AND so.saler_id IS NOT NULL
         AND so.status NOT IN ('CANCELLED', 'RETURNED')
-      GROUP BY so.saler_user_id
+      GROUP BY so.saler_id
       ORDER BY metric_value DESC
       LIMIT 100
     `;
@@ -42,12 +44,13 @@ export async function computeLeaderboardSnapshot(db, {
     // SALER_ORDERS
     aggregationQuery = `
       SELECT
-        so.saler_user_id as user_id,
+        so.saler_id as user_id,
         COUNT(so.id)::numeric(14,2) as metric_value
       FROM sub_orders so
       WHERE to_char(so.created_at, 'YYYY-MM') = $1
+        AND so.saler_id IS NOT NULL
         AND so.status NOT IN ('CANCELLED', 'RETURNED')
-      GROUP BY so.saler_user_id
+      GROUP BY so.saler_id
       ORDER BY metric_value DESC
       LIMIT 100
     `;

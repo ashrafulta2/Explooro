@@ -224,7 +224,7 @@ describe('Prompt 9.2: Coupons, Vouchers & Flash Sale Campaigns', () => {
         query: async (sql) => {
           if (sql.includes('FROM coupons')) return { rows: [mockCoupon] };
           if (sql.includes('FROM coupon_redemptions')) return { rows: [{ count: 0 }] };
-          if (sql.includes('FROM orders WHERE customer_id')) {
+          if (sql.includes('FROM orders o') && sql.includes('o.customer_id = $1')) {
             // User has 1 previous order
             return { rows: [{ id: 999 }] };
           }

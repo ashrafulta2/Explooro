@@ -11,7 +11,7 @@
  */
 
 import { api } from '../../core/api.js';
-import { formatCurrency } from '../../services/format.js';
+import { formatCurrency, formatNumber } from '../../services/format.js';
 import { formatCompactBdt } from '../../services/adminDashboard.model.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
@@ -178,6 +178,20 @@ export default function FinanceDashboardPage(root, { navigate } = {}) {
             <div class="finance-kpi-card__hint">${t('finance_admin.kpi_revenue_hint')}</div>
           </div>
 
+          <!-- Platform treasury: the platform's own money (migration 070 keeps outside money off it) -->
+          <div class="card finance-kpi-card">
+            <div class="finance-kpi-card__label">${t('finance_admin.kpi_treasury')}</div>
+            <div class="finance-kpi-card__val text-success font-bold">${formatCurrency(m.platform_treasury_available ?? 0)}</div>
+            <div class="finance-kpi-card__hint">${t('finance_admin.kpi_treasury_hint', { amount: formatCurrency(m.platform_treasury_escrow ?? 0) })}</div>
+          </div>
+
+          <!-- External collections: money in the merchant accounts and with couriers that is owed to people -->
+          <div class="card finance-kpi-card">
+            <div class="finance-kpi-card__label">${t('finance_admin.kpi_external_collections')}</div>
+            <div class="finance-kpi-card__val text-primary font-bold">${formatCurrency(m.external_collections_outstanding ?? 0)}</div>
+            <div class="finance-kpi-card__hint">${t('finance_admin.kpi_external_collections_hint')}</div>
+          </div>
+
           <!-- Escrow Liability -->
           <div class="card finance-kpi-card">
             <div class="finance-kpi-card__label">${t('finance_admin.kpi_escrow_liability')}</div>
@@ -196,7 +210,7 @@ export default function FinanceDashboardPage(root, { navigate } = {}) {
           <div class="card finance-kpi-card">
             <div class="finance-kpi-card__label">${t('finance_admin.kpi_cod_exposure')}</div>
             <div class="finance-kpi-card__val text-danger font-bold">${formatCurrency(m.cod_exposure)}</div>
-            <div class="finance-kpi-card__hint">${m.cod_unreconciled_count || 0} ${t('finance_admin.unreconciled_records')}</div>
+            <div class="finance-kpi-card__hint">${formatNumber(m.cod_unreconciled_count || 0)} ${t('finance_admin.unreconciled_records')}</div>
           </div>
 
           <!-- Real-Time Ledger Integrity -->

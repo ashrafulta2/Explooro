@@ -14,8 +14,10 @@ import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as ledgerService from './ledger.service.js';
+import * as vaultService from './vault.service.js';
 import { defaultB2CClient } from '../integrations/payments/bkash-b2c.js';
 import { writeAudit } from '../lib/audit.js';
+import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
 
 /**
  * Generates a public payout ref (e.g. PAY-3M7V2WQ1).
@@ -112,20 +114,24 @@ export async function requestPayout(db, {
     }
 
     // 1. Check user restrictions (can_withdraw)
+    // WHY: user_restrictions is one row per (subject, capability_key); the subject is the user's
+    // id or ref.
     const { rows: restRows } = await txClient.query(
-      `SELECT can_withdraw, max_withdrawal_per_day
-       FROM user_restrictions
-       WHERE user_id = $1 AND (expires_at IS NULL OR expires_at > now())`,
+      `SELECT ur.capability_key, ur.mode, ur.limit_value
+       FROM user_restrictions ur
+       JOIN users u ON u.id = $1
+       WHERE ur.subject_type = 'USER' AND ur.subject_ref IN (u.id::text, u.ref)
+         AND ur.capability_key IN ('can_withdraw', 'max_withdrawal_per_day')
+         AND ur.lifted_at IS NULL
+         AND (ur.expires_at IS NULL OR ur.expires_at > now())`,
       [userId]
     );
-    if (restRows.length > 0) {
-      const r = restRows[0];
-      if (r.can_withdraw === 'BLOCK') {
-        throw new Error('USER_RESTRICTED: Your account is currently restricted from requesting withdrawals.');
-      }
-      if (r.max_withdrawal_per_day && amt > parseFloat(r.max_withdrawal_per_day)) {
-        throw new Error(`WITHDRAWAL_LIMIT_EXCEEDED: Maximum withdrawal allowed per day is ৳${r.max_withdrawal_per_day}.`);
-      }
+    if (restRows.some((r) => r.capability_key === 'can_withdraw' && r.mode === 'BLOCK')) {
+      throw new Error('USER_RESTRICTED: Your account is currently restricted from requesting withdrawals.');
+    }
+    const limitRow = restRows.find((r) => r.capability_key === 'max_withdrawal_per_day' && r.limit_value !== null);
+    if (limitRow && amt > parseFloat(limitRow.limit_value)) {
+      throw new Error(`WITHDRAWAL_LIMIT_EXCEEDED: Maximum withdrawal allowed per day is ৳${limitRow.limit_value}.`);
     }
 
     // 2. Lock wallet with FOR UPDATE
@@ -280,15 +286,17 @@ export async function approvePayout(db, {
       const ref = `ACT-PAY-${payout.id}-${Date.now().toString(36).toUpperCase()}`;
       const { rows: actionRows } = await txClient.query(
         `INSERT INTO pending_admin_actions (
-           ref, actor_id, action_key, payload_json, target_type, target_ref, risk_tier, status
+           ref, actor_id, action_key, payload_json, target_type, target_ref, status, expires_at
          )
-         VALUES ($1, $2, 'finance.payout.approve', $3, 'payout_request', $4, 'HIGH', 'PENDING')
+         VALUES ($1, $2, 'finance.payout.approve', $3, 'payout_request', $4, 'PENDING',
+                 now() + make_interval(hours => $5))
          RETURNING id, ref, action_key, status`,
         [
           ref,
           approverId,
           JSON.stringify({ payoutId: payout.id, payoutRef: payout.ref, amount: payout.amount, approverNote }),
           payout.ref,
+          PENDING_ACTION_EXPIRY_HOURS,
         ]
       );
       const pendingAction = actionRows[0];
@@ -382,16 +390,11 @@ export async function disbursePayout(db, {
     if (gatewayResult.success) {
       // 3. SUCCESS: Deduct from HELD bucket and increment lifetime_withdrawn
       // DEBIT: HELD bucket (reduces held_balance, increases lifetime_withdrawn)
-      // Offsetting CREDIT: Platform Disbursal / Settlement Account
-      const { rows: adminRows } = await txClient.query(
-        `SELECT u.id FROM users u
-         JOIN user_roles ur ON ur.user_id = u.id
-         JOIN roles r ON r.id = ur.role_id
-         WHERE r.key = 'super_admin'
-         ORDER BY u.id ASC LIMIT 1`
-      );
-      const adminUserId = adminRows[0]?.id ?? 1;
-      const platformWallet = await walletRepo.getOrCreateWallet(db, adminUserId, { client: txClient });
+      // Offsetting CREDIT: the external clearing wallet. The money left through the B2C gateway,
+      // the mirror of a gateway payment entering (vault.service.js resolveClearingWalletId).
+      // WHY not the treasury (as before): it made the platform's profit balance swing with every
+      // payout, so it could not be read as profit.
+      const clearingWalletId = await vaultService.resolveClearingWalletId(txClient);
 
       const txnGroupId = randomUUID();
       const ledgerEntries = [
@@ -407,7 +410,7 @@ export async function disbursePayout(db, {
           createdBy: executedBy,
         },
         {
-          walletId: platformWallet.id,
+          walletId: clearingWalletId,
           entryType: 'CREDIT',
           amount: payout.amount,
           balanceBucket: 'AVAILABLE',

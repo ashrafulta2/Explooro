@@ -9,6 +9,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
+import { generateRef } from '../lib/ref.js';
 
 /**
  * Retrieves the optimal batch for dispatch following strict FEFO (First-Expired, First-Out) rules.
@@ -187,12 +188,13 @@ export async function checkExpiryWarnings(db, cache, logger = console) {
     try {
       await db.query(
         `INSERT INTO notifications (
-           user_id, type, title_en, title_bn, body_en, body_bn, data_json, created_at
+           ref, user_id, template_key, category, priority, title_en, title_bn, body_en, body_bn, data_json, created_at
          ) VALUES (
-           $1, 'BATCH_EXPIRY_WARNING',
-           $2, $3, $4, $5, $6, now()
-         ) ON CONFLICT DO NOTHING`,
+           $1, $2, 'BATCH_EXPIRY_WARNING', 'ORDER', 'HIGH',
+           $3, $4, $5, $6, $7, now()
+         )`,
         [
+          generateRef('NTF'),
           batch.supplier_id,
           `Batch Expiring Soon: ${batch.batch_number}`,
           `ব্যাচের মেয়াদ দ্রুত শেষ হচ্ছে: ${batch.batch_number}`,

@@ -3,6 +3,7 @@
  */
 
 import * as service from '../services/whatsappCommerce.service.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 export async function getUnifiedThreads(req, reply) {
   const { limit = 30, offset = 0 } = req.query || {};
@@ -64,12 +65,17 @@ export async function resolveCheckoutToken(req, reply) {
 
   // Fetch product details for prefilling checkout
   const { rows: prodRows } = await req.server.db.query(
-    `SELECT id, title_en, title_bn, base_price, images_json, supplier_id
-     FROM products WHERE id = $1`,
+    // WHY: this prefills a customer checkout, so it carries the retail price, not base_price
+    // (supplier cost). Images live in product_images, not on products.
+    `SELECT p.id, p.title_en, p.title_bn, p.default_retail_price AS retail_price, p.supplier_id,
+            ${primaryImageKeySql('p')} AS image_key
+     FROM products p WHERE p.id = $1`,
     [result.data.productId]
   );
 
-  const product = prodRows[0] || null;
+  const product = prodRows[0]
+    ? (({ image_key: imageKey, ...rest }) => ({ ...rest, image_url: toPublicImageUrl(imageKey) }))(prodRows[0])
+    : null;
 
   return reply.send({
     data: {

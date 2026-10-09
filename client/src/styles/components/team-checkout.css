@@ -1,0 +1,29 @@
+/* team-checkout.css — TeamCheckoutForm: recipient name, address, payment method and the charge summary. */
+.team-checkout { display: flex; flex-direction: column; gap: var(--space-3); }
+.team-checkout__field { display: flex; flex-direction: column; gap: var(--space-1); }
+.team-checkout__label { font-size: var(--text-xs); font-weight: var(--weight-bold); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; padding: 0; }
+.team-checkout__address { resize: vertical; min-height: 64px; font-family: inherit; }
+.team-checkout__hint { font-size: var(--text-xs); color: var(--text-muted); }
+.team-checkout__payment { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-2); border: 0; margin: 0; padding: 0; min-width: 0; }
+.team-checkout__payment > legend { grid-column: 1 / -1; margin-bottom: var(--space-1); }
+.team-checkout__pay-option { display: flex; align-items: flex-start; gap: var(--space-2); padding: var(--space-2) var(--space-3); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-1); cursor: pointer; min-width: 0; }
+.team-checkout__pay-option:has(input:checked) { border-color: var(--brand); background: var(--surface-2); }
+.team-checkout__pay-option input { margin-top: 3px; accent-color: var(--brand); }
+.team-checkout__pay-option--disabled { cursor: not-allowed; opacity: 0.6; }
+.team-checkout__pay-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team-checkout__pay-text strong { font-size: var(--text-sm); color: var(--text-primary); }
+.team-checkout__pay-text small { font-size: var(--text-xs); color: var(--text-muted); overflow-wrap: anywhere; }
+.team-checkout__summary { margin: 0; padding: var(--space-3); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-2); display: flex; flex-direction: column; gap: var(--space-1); font-variant-numeric: tabular-nums; }
+.team-checkout__row { display: flex; justify-content: space-between; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-secondary); }
+.team-checkout__row dt, .team-checkout__row dd { margin: 0; }
+.team-checkout__row--total { padding-top: var(--space-1); border-top: var(--border-width) solid var(--border-subtle); font-weight: var(--weight-bold); color: var(--text-primary); }
+.team-checkout__error { margin: 0; font-size: var(--text-xs); color: var(--danger-700); }
+.team-checkout__submit { font-weight: var(--weight-bold); }
+/* WHY: the field rules set display:flex, which would otherwise beat the [hidden] attribute. */
+.team-checkout [hidden] { display: none; }
+.team-checkout__otp { padding: var(--space-3); border: var(--border-width) solid var(--warning-300); border-radius: var(--radius-md); background: var(--warning-50); }
+.team-checkout__otp-note { color: var(--text-primary); font-size: var(--text-sm); }
+.team-checkout__otp input { letter-spacing: 0.3em; max-width: 12ch; }
+@media (max-width: 420px) {
+  .team-checkout__payment { grid-template-columns: minmax(0, 1fr); }
+}

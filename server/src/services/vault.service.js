@@ -15,6 +15,54 @@ import * as walletRepo from '../repositories/wallet.repository.js';
 import * as ledgerService from './ledger.service.js';
 
 /**
+ * The platform treasury wallet: the first super admin's wallet (user 1 when there is none yet).
+ *
+ * It receives the platform's share of every sale and pays the platform's own costs (bonuses,
+ * dispute subsidies, ad refunds). It does NOT stand in for money from outside the ledger any more:
+ * that is resolveClearingWalletId below, so this balance reads as the platform's profit.
+ */
+export async function resolvePlatformWalletId(db, txClient) {
+  const { rows: adminRows } = await txClient.query(
+    `SELECT u.id FROM users u
+     JOIN user_roles ur ON ur.user_id = u.id
+     JOIN roles r ON r.id = ur.role_id
+     WHERE r.key = 'super_admin'
+     ORDER BY u.id ASC LIMIT 1`
+  );
+  const adminUserId = adminRows[0]?.id ?? 1;
+  const w = await walletRepo.getOrCreateWallet(db, adminUserId, { client: txClient });
+  return w.id;
+}
+
+export const EXTERNAL_CLEARING_KEY = 'EXTERNAL_CLEARING';
+
+/**
+ * The external clearing wallet (migration 070): the ledger's side of money held outside Explooro.
+ *
+ * A bKash/Nagad/card payment sits in the company's merchant account and COD cash sits with the
+ * courier, so neither is in any wallet. Pass this id as `buyerWalletId` to depositToEscrow for those
+ * orders; payout.service.js credits it when a payout sends money back out.
+ *
+ * WHY not the treasury (as before): the treasury then showed minus the money in transit, so a
+ * profitable platform could read -৳1,50,000 and nobody could tell its profit from it. A negative
+ * balance HERE is normal: it is minus what the company holds outside that the ledger owes people.
+ */
+export async function resolveClearingWalletId(txClient) {
+  const found = await txClient.query(`SELECT id FROM wallets WHERE system_key = $1`, [EXTERNAL_CLEARING_KEY]);
+  if (found.rows[0]) return found.rows[0].id;
+  // Migration 070 creates it; this only covers a database where that row was removed by hand.
+  await txClient.query(
+    `INSERT INTO wallets (user_id, system_key, available_balance, pending_escrow_balance, held_balance,
+                          lifetime_earned, lifetime_withdrawn, currency, version)
+     VALUES (NULL, $1, 0.00, 0.00, 0.00, 0.00, 0.00, 'BDT', 0)
+     ON CONFLICT (system_key) DO NOTHING`,
+    [EXTERNAL_CLEARING_KEY]
+  );
+  const { rows } = await txClient.query(`SELECT id FROM wallets WHERE system_key = $1`, [EXTERNAL_CLEARING_KEY]);
+  return rows[0].id;
+}
+
+/**
  * Deposits sub-order funds into escrow, locking them into pending_escrow_balance.
  *
  * @param {import('pg').Pool} db
@@ -127,22 +175,21 @@ export async function depositToEscrow(db, {
       resolvedSalerWalletId = w.id;
     }
     if (!resolvedPlatformWalletId) {
-      // Platform treasury wallet defaults to user ID 1 (super_admin) or dev super admin
-      const { rows: adminRows } = await txClient.query(
-        `SELECT u.id FROM users u
-         JOIN user_roles ur ON ur.user_id = u.id
-         JOIN roles r ON r.id = ur.role_id
-         WHERE r.key = 'super_admin'
-         ORDER BY u.id ASC LIMIT 1`
-      );
-      const adminUserId = adminRows[0]?.id ?? 1;
-      const w = await walletRepo.getOrCreateWallet(db, adminUserId, { client: txClient });
-      resolvedPlatformWalletId = w.id;
+      resolvedPlatformWalletId = await resolvePlatformWalletId(db, txClient);
     }
 
     const supplierPaisa = Math.round(parseFloat(supplierAmt) * 100);
-    const salerPaisa = Math.round(parseFloat(salerAmt || '0') * 100);
-    const platformPaisa = Math.round(parseFloat(platformAmt || '0') * 100);
+    let salerPaisa = Math.round(parseFloat(salerAmt || '0') * 100);
+    let platformPaisa = Math.round(parseFloat(platformAmt || '0') * 100);
+
+    // WHY: an order bought straight from the product page has no saler, but pricing still splits a
+    // saler share into saler_commission. With no saler wallet that share was counted in the buyer's
+    // debit and credited to nobody, so the ledger refused the group as unbalanced and no escrow was
+    // locked. Nobody sold it, so the platform keeps that share.
+    if (salerPaisa > 0 && !resolvedSalerWalletId) {
+      platformPaisa += salerPaisa;
+      salerPaisa = 0;
+    }
     const totalPaisa = supplierPaisa + salerPaisa + platformPaisa;
 
     if (totalPaisa <= 0) {

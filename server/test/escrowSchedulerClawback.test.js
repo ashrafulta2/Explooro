@@ -130,6 +130,31 @@ function createMockDb() {
         return { rows: m ? [{ ...m }] : [] };
       }
 
+      // The external clearing wallet (migration 070): a system wallet with no user.
+      if (q.includes('FROM wallets') && q.includes('WHERE system_key = $1')) {
+        const w = wallets.find((x) => x.system_key === params[0]);
+        return { rows: w ? [{ id: w.id }] : [] };
+      }
+      if (q.includes('INSERT INTO wallets') && q.includes('system_key')) {
+        if (!wallets.find((x) => x.system_key === params[0])) {
+          wallets.push({
+            id: Math.max(0, ...wallets.map((x) => x.id)) + 1,
+            user_id: null,
+            system_key: params[0],
+            available_balance: '0.00',
+            pending_escrow_balance: '0.00',
+            held_balance: '0.00',
+            lifetime_earned: '0.00',
+            lifetime_withdrawn: '0.00',
+            currency: 'BDT',
+            version: 0,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          });
+        }
+        return { rows: [] };
+      }
+
       // SELECT wallets WHERE user_id = $1
       if (q.includes('FROM wallets') && q.includes('WHERE user_id = $1')) {
         const userId = params[0];
@@ -420,31 +445,51 @@ function createMockDb() {
         return { rows: [{ ...row }] };
       }
 
-      // SELECT escrow_entries JOIN sub_orders JOIN wallets JOIN users (Admin Escrow Holdings)
-      if (q.includes('FROM escrow_entries e JOIN sub_orders s')) {
-        const list = escrowEntries.map((e) => {
-          const so = subOrders.find((s) => s.id === e.sub_order_id);
-          const w = wallets.find((wal) => wal.id === e.wallet_id);
-          const u = users.find((usr) => usr.id === w?.user_id);
+      // Admin Escrow page (services/escrowAdmin.service.js): one row per sub-order.
+      if (q.includes('WITH holdings AS')) {
+        const bySub = new Map();
+        for (const e of escrowEntries) {
+          const list = bySub.get(e.sub_order_id) || [];
+          list.push(e);
+          bySub.set(e.sub_order_id, list);
+        }
+        const rows = [...bySub.entries()].map(([subId, list]) => {
+          const sum = (role) => list.filter((e) => !role || e.beneficiary_role === role)
+            .reduce((acc, e) => acc + parseFloat(e.amount), 0).toFixed(2);
+          const st = list.some((e) => e.status === 'LOCKED') ? 'LOCKED'
+            : list.every((e) => e.status === 'RELEASED') ? 'RELEASED' : list[0].status;
           return {
-            id: e.id,
-            sub_order_id: e.sub_order_id,
-            wallet_id: e.wallet_id,
-            beneficiary_role: e.beneficiary_role,
-            amount: e.amount,
-            status: e.status,
-            hold_until: e.hold_until,
-            released_at: e.released_at,
-            failure_count: e.failure_count,
-            last_error: e.last_error,
-            created_at: e.created_at,
-            sub_order_ref: `SUB-${e.sub_order_id}`,
-            user_phone: u?.phone ?? '+8801700000000',
-            user_ref: u?.ref ?? 'USR-0',
-            available_balance: w?.available_balance ?? '0.00',
+            sub_order_id: subId,
+            amount: sum(null),
+            supplier_amount: sum('SUPPLIER'),
+            saler_amount: sum('SALER'),
+            platform_amount: sum('PLATFORM'),
+            hold_until: list.map((e) => e.hold_until).sort()[0],
+            released_at: null,
+            locked_at: null,
+            failure_count: 0,
+            last_error: null,
+            status: st,
+            sub_order_ref: `SUB-${subId}`,
+            order_ref: 'ORD-1',
+            payment_method: 'BKASH',
+            customer_name: 'Customer',
+            supplier_name: 'Supplier',
+            saler_name: 'Saler',
+            cod_status: null,
+            delivered_at: null,
+            total_count: bySub.size,
           };
-        });
-        return { rows: list };
+        }).filter((r) => params[0] === 'ALL' || r.status === params[0]);
+        return { rows };
+      }
+      if (q.includes('AS total_held') && q.includes('FROM escrow_entries')) {
+        const locked = escrowEntries.filter((e) => e.status === 'LOCKED');
+        const total = locked.reduce((acc, e) => acc + parseFloat(e.amount), 0);
+        return { rows: [{ total_held: total.toFixed(2), mature_amount: '0.00', held_count: new Set(locked.map((e) => e.sub_order_id)).size, mature_count: 0 }] };
+      }
+      if (q.includes('AS frozen_amount')) {
+        return { rows: [{ frozen_amount: '0.00', frozen_count: 0 }] };
       }
 
       // SELECT escrow_dead_letters
@@ -715,8 +760,18 @@ describe('Prompt 6.2 — Escrow Release Scheduler & Clawback Automation', () => 
     });
     assert.equal(escrowRes.statusCode, 200);
     const escrowBody = escrowRes.json();
-    assert.ok(escrowBody.data.escrow_entries, 'Contains escrow_entries');
-    assert.ok(typeof escrowBody.data.escrow_entries[0].remaining_seconds === 'number', 'Contains remaining_seconds');
+    // One row per sub-order, with a summary over all held escrow and pagination.
+    const all = await app.inject({ method: 'GET', url: '/api/v1/admin/finance/escrow?status=ALL' });
+    assert.equal(all.statusCode, 200);
+    const allBody = all.json();
+    assert.ok(allBody.data.holdings.length > 0, 'Contains holdings');
+    assert.ok(typeof allBody.data.holdings[0].remaining_seconds === 'number', 'Contains remaining_seconds');
+    assert.ok(allBody.data.summary && 'total_held' in allBody.data.summary, 'Contains the summary');
+    assert.ok(allBody.data.pagination, 'Contains pagination');
+    assert.ok(Array.isArray(escrowBody.data.escrow_entries), 'Keeps escrow_entries for older callers');
+
+    const bad = await app.inject({ method: 'GET', url: '/api/v1/admin/finance/escrow?status=NOPE' });
+    assert.equal(bad.statusCode, 400);
 
     // 2. GET /api/v1/admin/finance/recoveries
     const recoveriesRes = await app.inject({

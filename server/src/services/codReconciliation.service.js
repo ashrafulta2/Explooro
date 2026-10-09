@@ -13,6 +13,7 @@
 
 import { withTransaction } from '../config/db.js';
 import { writeAudit } from '../lib/audit.js';
+import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
 
 /**
  * Normalizes courier identifier.
@@ -89,7 +90,7 @@ export async function ingestSettlementReport(db, {
         const { rows } = await txClient.query(
           `SELECT s.id, s.order_id, s.ref, s.total_amount, s.status, s.created_at
            FROM sub_orders s
-           LEFT JOIN consignments c ON c.sub_order_id = s.id
+           LEFT JOIN shipments c ON c.sub_order_id = s.id
            WHERE c.tracking_number = $1 OR c.courier_consignment_id = $1 OR s.ref = $1
            LIMIT 1`,
           [consignmentId]
@@ -317,15 +318,17 @@ export async function resolveDiscrepancy(db, {
       const ref = `ACT-COD-${recon.id}-${Date.now().toString(36).toUpperCase()}`;
       const { rows: actionRows } = await txClient.query(
         `INSERT INTO pending_admin_actions (
-           ref, actor_id, action_key, payload_json, target_type, target_ref, risk_tier, status
+           ref, actor_id, action_key, payload_json, target_type, target_ref, status, expires_at
          )
-         VALUES ($1, $2, 'orders.cod.reconcile', $3, 'cod_reconciliation', $4, 'HIGH', 'PENDING')
+         VALUES ($1, $2, 'orders.cod.reconcile', $3, 'cod_reconciliation', $4, 'PENDING',
+                 now() + make_interval(hours => $5))
          RETURNING id, ref, action_key, status`,
         [
           ref,
           resolvedBy,
           JSON.stringify({ reconId: recon.id, subOrderId: recon.sub_order_id, resolutionReason }),
           String(recon.id),
+          PENDING_ACTION_EXPIRY_HOURS,
         ]
       );
 

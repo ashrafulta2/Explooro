@@ -6,6 +6,7 @@ import * as vaultService from '../services/vault.service.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as clawbackService from '../services/clawback.service.js';
 import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.js';
+import * as escrowAdminService from '../services/escrowAdmin.service.js';
 import { writeAudit } from '../lib/audit.js';
 import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.js';
 import * as subscriptionService from '../services/subscription.service.js';
@@ -42,52 +43,38 @@ export async function getWalletById(req, reply) {
 }
 
 /**
- * Lists escrow entries with live countdowns for the Admin Escrow Dashboard.
+ * The admin Escrow page: one row per sub-order with names, real totals and pagination
+ * (services/escrowAdmin.service.js). `escrow_entries` keeps the raw rows for older callers.
  */
 export async function listEscrowHoldings(req, reply) {
-  const status = req.query.status || null;
-  const limit = req.query.limit ? parseInt(req.query.limit, 10) : 50;
+  const data = await escrowAdminService.listHoldings(req.server.db, req.query || {});
+  const escrowEntries = data.holdings.map((h) => ({
+    sub_order_id: h.sub_order_id,
+    sub_order_ref: h.sub_order_ref,
+    amount: h.amount,
+    status: h.status,
+    hold_until: h.hold_until,
+    remaining_seconds: h.remaining_seconds,
+    is_due: h.is_due,
+  }));
+  return reply.send({ data: { ...data, escrow_entries: escrowEntries, count: data.holdings.length } });
+}
 
-  let query = `
-    SELECT e.id, e.sub_order_id, e.wallet_id, e.beneficiary_role, e.amount,
-           e.status, e.hold_until, e.released_at, e.failure_count, e.last_error,
-           e.created_at,
-           s.ref AS sub_order_ref,
-           u.phone AS user_phone,
-           u.ref AS user_ref,
-           w.available_balance
-    FROM escrow_entries e
-    JOIN sub_orders s ON s.id = e.sub_order_id
-    JOIN wallets w ON w.id = e.wallet_id
-    JOIN users u ON u.id = w.user_id
-  `;
-  const params = [];
-  if (status) {
-    query += ` WHERE e.status = $1 ORDER BY e.hold_until ASC LIMIT $2`;
-    params.push(status, limit);
-  } else {
-    query += ` ORDER BY e.hold_until ASC LIMIT $1`;
-    params.push(limit);
-  }
-
-  const { rows } = await req.server.db.query(query, params);
-  const nowMs = Date.now();
-
-  const entriesWithCountdowns = rows.map((r) => {
-    const holdTime = new Date(r.hold_until).getTime();
-    const remainingSeconds = Math.max(0, Math.round((holdTime - nowMs) / 1000));
-    return {
-      ...r,
-      remaining_seconds: remainingSeconds,
-      is_due: remainingSeconds === 0 && r.status === 'LOCKED',
-    };
+/**
+ * Releases one sub-order's escrow before its return window ends (CRITICAL, super admin only).
+ */
+export async function releaseEscrowHolding(req, reply) {
+  const result = await escrowAdminService.releaseOne(req.server.db, {
+    subOrderId: req.params.subOrderId,
+    reason: req.body?.reason,
+    actorId: req.user?.id ?? null,
+    actorRole: req.user?.roles?.[0] ?? req.user?.role ?? null,
+    reqContext: { ip: req.ip, userAgent: req.headers?.['user-agent'], traceId: req.traceId },
   });
-
   return reply.send({
-    data: {
-      escrow_entries: entriesWithCountdowns,
-      count: entriesWithCountdowns.length,
-    },
+    data: result,
+    message_en: 'Escrow released to the supplier, saler and platform wallets.',
+    message_bn: 'এসক্রোর টাকা সাপ্লায়ার, সেলার ও প্ল্যাটফর্মের ওয়ালেটে ছেড়ে দেওয়া হয়েছে।',
   });
 }
 
@@ -134,6 +121,21 @@ export async function listRecoveries(req, reply) {
  */
 export async function triggerEscrowSweep(req, reply) {
   const result = await runEscrowReleaseSweep(req.server.db, req.server.cache, req.log);
+  // A staff-triggered money movement, so it is audited like any other.
+  await writeAudit(req.server.db, {
+    actor_id: req.user?.id ?? null,
+    actor_role: req.user?.roles?.[0] ?? req.user?.role ?? null,
+    action: 'finance.escrow.sweep',
+    target_type: 'ESCROW',
+    target_ref: 'SWEEP',
+    before_json: null,
+    after_json: {
+      processed: result?.processedCount ?? 0,
+      released: result?.successCount ?? 0,
+      failed: result?.errorCount ?? 0,
+    },
+    risk_tier: 'CRITICAL',
+  }).catch(() => {});
   return reply.send({
     data: result,
   });
@@ -250,17 +252,44 @@ export async function getFinanceOverview(req, reply) {
     walletTotalsResult,
     codResult,
     integrityReport,
+    treasuryResult,
   ] = await Promise.all([
     // GMV
     db.query(`SELECT COALESCE(SUM(total_amount), 0) AS gmv FROM sub_orders WHERE status IN ('DELIVERED', 'SHIPPED', 'CONFIRMED')`),
     // Platform Revenue
     db.query(`SELECT COALESCE(SUM(platform_margin), 0) AS net_revenue FROM sub_orders WHERE status = 'DELIVERED'`),
     // Wallet Liabilities
-    db.query(`SELECT COALESCE(SUM(pending_escrow_balance), 0) AS total_escrow, COALESCE(SUM(held_balance), 0) AS total_held, COALESCE(SUM(available_balance), 0) AS total_available, COALESCE(SUM(lifetime_withdrawn), 0) AS total_withdrawn FROM wallets WHERE user_id <> 1`),
+    // WHY escrow counts the treasury too: every taka locked in escrow (supplier, saler AND platform
+    // share) is customer money still inside a return window, and a refund claws all of it back. It
+    // must equal "Total held" on the Escrow page. The other sums are what the platform owes people,
+    // so they leave out the treasury, found by role rather than assumed to be user 1.
+    db.query(`SELECT COALESCE(SUM(pending_escrow_balance), 0) AS total_escrow,
+                     COALESCE(SUM(held_balance) FILTER (WHERE NOT is_treasury), 0) AS total_held,
+                     COALESCE(SUM(available_balance) FILTER (WHERE NOT is_treasury), 0) AS total_available,
+                     COALESCE(SUM(lifetime_withdrawn) FILTER (WHERE NOT is_treasury), 0) AS total_withdrawn
+              FROM (
+                SELECT w.*, w.user_id IS NOT DISTINCT FROM (
+                  SELECT ur.user_id FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                  WHERE r.key = 'super_admin' ORDER BY ur.user_id ASC LIMIT 1
+                ) AS is_treasury
+                FROM wallets w WHERE w.user_id IS NOT NULL
+              ) wl`),
     // COD Exposure
     db.query(`SELECT COALESCE(SUM(expected_amount - COALESCE(deposit_received, 0)), 0) AS cod_exposure, COUNT(*) AS unreconciled_count FROM cod_reconciliation WHERE status NOT IN ('MATCHED', 'RESOLVED')`),
     // Ledger Integrity Check
     walletRepo.checkLedgerIntegrity(db),
+    // The treasury (platform profit) and the external clearing account, read apart so neither hides
+    // the other (migration 070). The treasury is the first super admin's wallet.
+    db.query(`
+      SELECT
+        (SELECT w.available_balance FROM wallets w
+           WHERE w.user_id = (SELECT ur.user_id FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                              WHERE r.key = 'super_admin' ORDER BY ur.user_id ASC LIMIT 1)) AS treasury_available,
+        (SELECT w.pending_escrow_balance FROM wallets w
+           WHERE w.user_id = (SELECT ur.user_id FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+                              WHERE r.key = 'super_admin' ORDER BY ur.user_id ASC LIMIT 1)) AS treasury_escrow,
+        (SELECT w.available_balance FROM wallets w WHERE w.system_key = 'EXTERNAL_CLEARING') AS clearing_available
+    `),
   ]);
 
   const gmv = parseFloat(gmvResult.rows[0]?.gmv || 0).toFixed(2);
@@ -307,6 +336,12 @@ export async function getFinanceOverview(req, reply) {
         total_withdrawn: totalWithdrawn,
         cod_exposure: codExposure,
         cod_unreconciled_count: codUnreconciledCount,
+        // The platform's own money: what it can spend now, and its share still in escrow.
+        platform_treasury_available: parseFloat(treasuryResult.rows[0]?.treasury_available || 0).toFixed(2),
+        platform_treasury_escrow: parseFloat(treasuryResult.rows[0]?.treasury_escrow || 0).toFixed(2),
+        // Money the company holds outside (merchant accounts, couriers) that the ledger owes people.
+        // The clearing wallet carries it as a negative balance, so it is shown flipped.
+        external_collections_outstanding: (-parseFloat(treasuryResult.rows[0]?.clearing_available || 0) || 0).toFixed(2),
         ledger_health: integrityReport.status,
         ledger_drifts: integrityReport.drift_count,
       },

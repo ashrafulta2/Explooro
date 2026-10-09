@@ -18,6 +18,7 @@ import { withTransaction } from '../config/db.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as trustRepo from '../repositories/trustScore.repository.js';
 import * as ledgerService from './ledger.service.js';
+import * as vaultService from './vault.service.js';
 import * as moduleRepo from '../repositories/module.repository.js';
 import { writeAudit } from '../lib/audit.js';
 
@@ -462,11 +463,12 @@ export async function getEvidenceTimeline(db, disputeId, { requestingUser } = {}
   // 2. Fetch shipment events if any
   try {
     const { rows: shipEvents } = await db.query(
-      `SELECT e.*, s.ref AS shipment_ref, s.courier
+      `SELECT e.*, e.created_at AS occurred_at, e.carrier_status AS raw_status,
+              s.ref AS shipment_ref, s.carrier AS courier
        FROM shipment_events e
        JOIN shipments s ON s.id = e.shipment_id
        WHERE s.sub_order_id = $1
-       ORDER BY e.occurred_at ASC`,
+       ORDER BY e.created_at ASC`,
       [dispute.sub_order_id]
     );
 
@@ -668,18 +670,17 @@ export async function arbitrateDispute(db, cache, {
 
       const { rows: actionRows } = await txClient.query(
         `INSERT INTO pending_admin_actions (
-           ref, action_key, risk_tier, actor_id, target_entity, target_id,
+           ref, action_key, actor_id, target_type, target_ref,
            payload_json, status, expires_at, created_at
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())
          RETURNING *`,
         [
           actionRef,
           'orders.dispute.arbitrate',
-          'HIGH',
           arbitratorId,
           'dispute_threads',
-          dispute.id,
+          String(dispute.id),
           JSON.stringify({
             disputeId: dispute.id,
             outcome,
@@ -818,7 +819,9 @@ export async function arbitrateDispute(db, cache, {
       if (totalDebits < customerRefundPaisa) {
         // Platform absorbs shortfall
         const shortfallPaisa = customerRefundPaisa - totalDebits;
-        const platformWallet = await walletRepo.getOrCreateWallet(db, 1, { client: txClient }); // Platform wallet ID 1
+        // The treasury pays the subsidy. WHY not user 1: the treasury is the first super admin, who
+        // is not always user 1 (vault.service.js resolvePlatformWalletId).
+        const platformWallet = { id: await vaultService.resolvePlatformWalletId(db, txClient) };
         entries.push({
           walletId: platformWallet.id,
           entryType: 'DEBIT',
