@@ -15,19 +15,15 @@
  */
 
 import { readdir, readFile } from 'node:fs/promises';
-import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import '../config/loadEnvFile.js';
 import { loadEnv } from '../config/env.js';
 import { createDbPool } from '../config/db.js';
+import { checksumOf, compareApplied } from './migrationChecksum.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
-
-function checksumOf(sql) {
-  return createHash('sha256').update(sql, 'utf8').digest('hex');
-}
 
 async function listMigrationFiles() {
   const entries = await readdir(MIGRATIONS_DIR);
@@ -82,13 +78,31 @@ async function run() {
     }
 
     const applied = await getAppliedByName(pool);
-    const changed = files.filter(
-      (f) => applied.has(f) && applied.get(f) !== checksumOf(contents.get(f))
-    );
+    const verdicts = files
+      .filter((f) => applied.has(f))
+      .map((f) => [f, compareApplied(applied.get(f), contents.get(f))]);
+    const changed = verdicts.filter(([, v]) => v === 'changed').map(([f]) => f);
     if (changed.length > 0) {
       throw new Error(
         `Refusing to proceed — already-applied migration(s) changed on disk: ${changed.join(', ')}. ` +
-          'Applied migrations are immutable; fix forward with a new migration file instead.'
+          'Applied migrations are immutable; fix forward with a new migration file instead. ' +
+          'If you did not edit them, run `git status` and `git checkout -- <file>` to restore them.'
+      );
+    }
+
+    // Same SQL, other line endings (see migrationChecksum.js): record today's bytes so the next run
+    // compares like with like. `status` only reports and never writes.
+    const lineEndingOnly = verdicts.filter(([, v]) => v === 'line-endings').map(([f]) => f);
+    if (lineEndingOnly.length > 0 && command !== 'status') {
+      for (const name of lineEndingOnly) {
+        await pool.query('UPDATE _migrations SET checksum = $1 WHERE name = $2', [
+          checksumOf(contents.get(name)),
+          name,
+        ]);
+      }
+      console.log(
+        `Re-recorded ${lineEndingOnly.length} applied migration(s) whose only change was line endings: ` +
+          lineEndingOnly.join(', ')
       );
     }
 
