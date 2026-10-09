@@ -29,9 +29,10 @@ function createMockDb() {
 
   const userRestrictions = [
     {
-      user_id: 103,
-      capability: 'can_chat',
-      restriction_type: 'BLOCK',
+      subject_type: 'USER',
+      subject_ref: '103',
+      capability_key: 'can_chat',
+      mode: 'BLOCK',
       reason_en: 'Direct messaging has been suspended due to policy violations.',
       reason_bn: 'নীতি লঙ্ঘনের কারণে সরাসরি মেসেজিং স্থগিত করা হয়েছে।',
     },
@@ -84,9 +85,9 @@ function createMockDb() {
       const q = sql.trim();
 
       // Check restrictions
-      if (q.includes('FROM user_restrictions') && q.includes("capability = 'can_chat'")) {
+      if (q.includes('FROM user_restrictions') && q.includes("capability_key = 'can_chat'")) {
         const uId = params[0];
-        const res = userRestrictions.filter((r) => r.user_id === Number(uId));
+        const res = userRestrictions.filter((r) => r.subject_ref === String(uId));
         return { rows: res };
       }
 

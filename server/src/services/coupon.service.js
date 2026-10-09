@@ -181,7 +181,11 @@ export async function validateCoupon(db, {
     // 4. Check first-order-only requirement
     if (coupon.first_order_only) {
       const { rows: orderRows } = await db.query(
-        `SELECT id FROM orders WHERE customer_id = $1 AND status != 'CANCELLED' LIMIT 1`,
+        // WHY: orders has no status; an order counts unless every one of its sub-orders was cancelled.
+        `SELECT o.id FROM orders o
+         WHERE o.customer_id = $1
+           AND EXISTS (SELECT 1 FROM sub_orders so WHERE so.order_id = o.id AND so.status <> 'CANCELLED')
+         LIMIT 1`,
         [userId]
       );
       if (orderRows.length > 0) {

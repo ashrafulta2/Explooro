@@ -13,6 +13,7 @@ import { generateRef } from '../lib/ref.js';
 import { createWhatsAppSender } from '../integrations/whatsapp/index.js';
 import { sendToUser } from '../sockets/presence.js';
 import { withTransaction } from '../config/db.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 // In-memory checkout tokens map: token -> { salerId, productId, variantId, quantity, customerPhone, expiresAt, used }
 const checkoutTokens = new Map();
@@ -357,8 +358,11 @@ export async function sendProductCard(db, {
 
     // 2. Fetch product details
     const { rows: productRows } = await txClient.query(
-      `SELECT id, title_en, title_bn, base_price, images_json, description_en
-       FROM products WHERE id = $1`,
+      // WHY: the customer sees the retail price, never base_price (supplier cost). Images live in
+      // product_images, not on products.
+      `SELECT p.id, p.title_en, p.title_bn, p.default_retail_price AS price, p.description_en,
+              ${primaryImageKeySql('p')} AS image_key
+       FROM products p WHERE p.id = $1`,
       [productId]
     );
 
@@ -367,8 +371,7 @@ export async function sendProductCard(db, {
     }
 
     const prod = productRows[0];
-    const images = Array.isArray(prod.images_json) ? prod.images_json : [];
-    const imageUrl = images[0] || '/demo-product.jpg';
+    const imageUrl = toPublicImageUrl(prod.image_key) || '/demo-product.jpg';
 
     // 3. Generate single-use expiring 1-tap checkout token
     const tokenInfo = createCheckoutToken({
@@ -381,7 +384,7 @@ export async function sendProductCard(db, {
 
     const productPayload = {
       title: prod.title_en,
-      price: prod.base_price,
+      price: prod.price,
       description: prod.description_en || '',
       image_url: imageUrl,
     };
@@ -391,7 +394,7 @@ export async function sendProductCard(db, {
     const dispatchRes = await sender.sendInteractiveProductCard(customerPhone, {
       product: productPayload,
       checkoutUrl: tokenInfo.checkoutUrl,
-      headerText: note ? `${note}\n\n*${prod.title_en}* (৳${prod.base_price})` : null,
+      headerText: note ? `${note}\n\n*${prod.title_en}* (৳${prod.price})` : null,
     });
 
     // 5. Persist message in chat_messages
@@ -404,12 +407,12 @@ export async function sendProductCard(db, {
       [
         threadId,
         salerId,
-        `[Product Card] ${prod.title_en} - ৳${prod.base_price}`,
+        `[Product Card] ${prod.title_en} - ৳${prod.price}`,
         JSON.stringify({
           channel: 'WHATSAPP',
           productId: prod.id,
           productTitle: prod.title_en,
-          price: prod.base_price,
+          price: prod.price,
           checkoutUrl: tokenInfo.checkoutUrl,
           token: tokenInfo.token,
           providerId: dispatchRes?.messageId,

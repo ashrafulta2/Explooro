@@ -278,8 +278,8 @@ function createMockDb() {
         return { rows: items };
       }
 
-      // UPDATE products SET stock_quantity = stock_quantity + $2
-      if (q.includes('UPDATE products SET stock_quantity = stock_quantity + $2')) {
+      // UPDATE products SET stock_qty = stock_qty + $2
+      if (q.includes('UPDATE products SET stock_qty = stock_qty + $2')) {
         const pId = params[0];
         const qty = params[1];
         const p = products.find((x) => x.id === pId);

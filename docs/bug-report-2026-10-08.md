@@ -1,6 +1,7 @@
 # Bug report — SQL/schema mismatch audit (2026-10-08)
 
-**Status:** found, NOT fixed. This file only records what was found.
+**Status (2026-10-09):** fixed except team-purchase completion and partner order creation — see
+"Fix log" at the end. `npm run check:sql --workspace server` now runs the check below in CI.
 
 ## How it was found
 
@@ -70,9 +71,77 @@ These are arguably worse, because nothing is reported:
 - `services/customerPortal.service.js:140,152` — active warranties and team purchases always show 0.
 - `controllers/moderatorDashboard.controller.js:83,104` — dashboard sections empty.
 
-## Suggested follow-up
+## Correction: the "silent" ones were worse than they looked
+
+A failed statement inside a transaction aborts the transaction, even when JavaScript catches the error.
+Every later query then fails with "current transaction is aborted", and a `COMMIT` turns into a
+silent `ROLLBACK`. So in practice:
+
+- `chat.service.js` — every message send failed, not just the restriction check.
+- `surgePricing.service.js` — accepting a surge price was rolled back. The price never changed.
+- `moderation.service.js` — a verdict with "shadow restrict seller" ticked failed outright.
+
+## Suggested follow-up (original)
 
 1. Fix each statement against the real schema (most are 1-word renames).
 2. Add a CI test that applies migrations to a throwaway Postgres and `PREPARE`s every static SQL
    string (the script used here is ~25 lines) so this class of bug cannot reach `main` again.
 3. Stop swallowing errors with bare `catch {}` around restriction/audit queries.
+
+## Fix log (2026-10-09)
+
+Every item above was fixed against the real schema, except the two listed under "Still open".
+`npm test` passes (client 806, server 1164). The tests whose mock database matched the old, wrong
+SQL text were updated to the new SQL. The new check prepares 895 statements with no unexpected
+failures.
+
+How the less obvious ones were fixed:
+
+- **Order address** (`return`, `shipment`, `warranty`): `orders` stores the address as columns, so
+  the query now builds `delivery_address_json` with `jsonb_build_object(division, district, upazila,
+  address_line)`.
+- **Restrictions** (`chat`, `payout`, `return`, `moderation`): these use `subject_type = 'USER'`,
+  `subject_ref IN (users.id::text, users.ref)`, `capability_key` and `mode`, and ignore lifted rows.
+  The payout limit reads `max_withdrawal_per_day.limit_value`. The bare `try/catch` around the
+  chat and moderation statements was removed, for the reason given in the correction above.
+- **Return-abuse auto block**: no system user exists, so `applied_by` is the customer.
+  `evidence_json` marks the block as `automated`, and a second block is not inserted while one is
+  active. Note that `can_return` is not in `VALID_CAPABILITIES` and nothing enforces it yet.
+- **Maker-checker inserts** (`payout`, `cod`, `dispute`, `kyc`, `b2b`): these now use `action_key`,
+  `target_type`, `target_ref` and `expires_at`. The risk tier comes from the permission. B2B uses
+  the catalog key `finance.escrow.release_manual`, because `b2b_escrow.release` is not a
+  permission. Payout, COD and B2B expire after `PENDING_ACTION_EXPIRY_HOURS` (exported from
+  `middlewares/requirePermission.js`).
+- **B2B dispute**: now creates a `dispute_threads` row, with the evidence as a `dispute_messages`
+  row. `dispute_threads.sub_order_id` is NOT NULL, so a deal with no sub-order gets its milestones
+  frozen and is marked DISPUTED, but gets no thread.
+- **Supplier showroom status**: the `physical_shop_status` table never existed. Migration
+  `067_physical_shop_status.sql` creates it.
+- **Public API / WhatsApp / inbox / stories / prerender**: products have no image column. Images now
+  come from `product_images` → `media_assets`. Prices come from `default_retail_price`, never
+  `base_price` (supplier cost), which WhatsApp product cards were about to send to customers.
+  `/public/products/:id` and the prerendered product page no longer select `p.*`. The prerendered
+  JSON-LD carried an invented "4.8 stars, 14 reviews" for every unrated product; it now carries the
+  stored rating, or none.
+- **Leaderboard**: uses `sub_orders.saler_id`, skips direct sales (no saler), and values revenue as
+  `total_amount - shipping_amount + discount_share`.
+- **First-order coupon**: an order counts unless every one of its sub-orders is CANCELLED.
+
+### Still open — needs a product decision
+
+1. **Team-purchase completion** (`teamPurchase.service.js` `joinTeamPurchase`) still inserts into
+   non-existent `orders` columns, so no team can complete. Building real orders needs:
+   - recipient name, phone, division and district (the client sends only `{ street }`);
+   - a shipping rule;
+   - a decision on the WALLET payment option, which the UI offers and `orders.payment_method`
+     rejects.
+
+   `group_price` is also taken from the request body with no floor. This failure is the one entry
+   in `KNOWN_FAILURES` in `server/src/db/checkSql.js`.
+2. **Partner orders** (`POST /public/orders`) call `orderService.createOrder`, which does not exist.
+   The check cannot see this, because it is a JavaScript error, not SQL.
+3. **Maker-checker approval** has no registered executor for `finance.payout.approve`,
+   `orders.cod.reconcile`, `orders.dispute.arbitrate`, `users.kyc.approve` or
+   `finance.escrow.release_manual`. Submitting now works; what approving does depends on each
+   feature's own approve path, which was not reviewed here.
+4. The 99 statements built with `${...}` are still not checked.

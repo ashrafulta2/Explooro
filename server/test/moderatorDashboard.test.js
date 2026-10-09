@@ -131,7 +131,7 @@ function createMockDb() {
       }
 
       // Active Grants
-      if (q.includes('FROM permission_grants pg')) {
+      if (q.includes('FROM user_permission_overrides pg')) {
         const uId = params[0];
         const grants = permissionGrants.filter((g) => g.user_id === Number(uId));
         return { rows: grants };

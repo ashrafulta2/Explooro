@@ -6,10 +6,39 @@ import * as apiKeyService from '../services/apiKey.service.js';
 import * as webhookService from '../services/webhookDelivery.service.js';
 import * as orderService from '../services/order.service.js';
 import { AppError } from '../plugins/errorHandler.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 // -----------------------------------------------------------------------------
 // PUBLIC READ-ONLY CATALOG ENDPOINTS
 // -----------------------------------------------------------------------------
+
+// WHY: products has no media column — images live in product_images → media_assets. This returns
+// the storage keys in display order; the response maps them to public URLs.
+const IMAGE_KEYS_SQL = `COALESCE((
+    SELECT json_agg(m.storage_key ORDER BY pi.is_primary DESC, pi.display_order ASC)
+    FROM product_images pi
+    JOIN media_assets m ON m.id = pi.media_id
+    WHERE pi.product_id = p.id
+  ), '[]'::json)`;
+
+// WHY: an explicit column list, never p.* — products carries base_cost and wholesale_margin, which
+// are supplier cost data and must not leave through an unauthenticated endpoint.
+const PUBLIC_PRODUCT_COLUMNS = `
+    p.id, p.ref, p.slug, p.title_en, p.title_bn, p.description_en, p.description_bn, p.brand,
+    p.default_retail_price AS retail_price, p.stock_qty AS stock_quantity, p.category_id, p.supplier_id,
+    p.has_variants, p.warranty_months, p.rating_avg, p.rating_count, p.sold_count, p.created_at,
+    ${IMAGE_KEYS_SQL} AS image_keys`;
+
+function toPublicProduct(p) {
+  const { image_keys: imageKeys, ...rest } = p;
+  return {
+    ...rest,
+    retail_price: parseFloat(p.retail_price),
+    is_in_stock: (p.stock_quantity || 0) > 0,
+    // Shape matches what client/public/widget.js reads (media[0].url).
+    media: (Array.isArray(imageKeys) ? imageKeys : []).map((key) => ({ url: toPublicImageUrl(key) })),
+  };
+}
 
 export async function getPublicProducts(req, reply) {
   const {
@@ -24,12 +53,11 @@ export async function getPublicProducts(req, reply) {
   } = req.query;
 
   let sql = `
-    SELECT p.id, p.ref, p.slug, p.title_en, p.title_bn, p.description_en, p.description_bn,
-           p.retail_price, p.stock_quantity, p.media_json, p.category_id, p.supplier_id,
+    SELECT ${PUBLIC_PRODUCT_COLUMNS},
            c.name_en as category_name_en, c.name_bn as category_name_bn
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
-    WHERE p.status = 'ACTIVE'
+    WHERE p.status = 'ACTIVE' AND p.deleted_at IS NULL
   `;
   const params = [];
 
@@ -39,18 +67,18 @@ export async function getPublicProducts(req, reply) {
   }
   if (store_id) {
     params.push(store_id);
-    sql += ` AND p.id IN (SELECT product_id FROM saler_store_items WHERE saler_store_id = $${params.length} AND is_active = true)`;
+    sql += ` AND p.id IN (SELECT product_id FROM saler_store_items WHERE store_id = $${params.length} AND is_active = true)`;
   }
   if (min_price) {
     params.push(parseFloat(min_price));
-    sql += ` AND p.retail_price >= $${params.length}`;
+    sql += ` AND p.default_retail_price >= $${params.length}`;
   }
   if (max_price) {
     params.push(parseFloat(max_price));
-    sql += ` AND p.retail_price <= $${params.length}`;
+    sql += ` AND p.default_retail_price <= $${params.length}`;
   }
   if (in_stock === 'true' || in_stock === true) {
-    sql += ` AND p.stock_quantity > 0`;
+    sql += ` AND p.stock_qty > 0`;
   }
   if (search) {
     params.push(`%${search.trim()}%`);
@@ -68,12 +96,7 @@ export async function getPublicProducts(req, reply) {
 
   return reply.send({
     success: true,
-    data: rows.map((p) => ({
-      ...p,
-      retail_price: parseFloat(p.retail_price),
-      is_in_stock: (p.stock_quantity || 0) > 0,
-      media: Array.isArray(p.media_json) ? p.media_json : JSON.parse(p.media_json || '[]'),
-    })),
+    data: rows.map(toPublicProduct),
     count: rows.length,
     limit: parseInt(limit, 10),
     offset: parseInt(offset, 10),
@@ -86,15 +109,18 @@ export async function getPublicProductById(req, reply) {
   const whereClause = isNumeric ? 'p.id = $1' : 'p.slug = $1';
 
   const sql = `
-    SELECT p.*,
+    SELECT ${PUBLIC_PRODUCT_COLUMNS},
            c.name_en as category_name_en, c.name_bn as category_name_bn,
            COALESCE(up.display_name, up.full_name) as supplier_name,
-           (SELECT json_agg(v) FROM product_variants v WHERE v.product_id = p.id) as variants
+           (SELECT json_agg(json_build_object(
+              'id', v.id, 'sku', v.sku, 'attributes_json', v.attributes_json,
+              'price', p.default_retail_price + v.price_delta, 'stock_qty', v.stock_qty))
+            FROM product_variants v WHERE v.product_id = p.id AND v.is_active = true) as variants
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
     LEFT JOIN users u ON p.supplier_id = u.id
     LEFT JOIN user_profiles up ON up.user_id = u.id
-    WHERE ${whereClause} AND p.status = 'ACTIVE';
+    WHERE ${whereClause} AND p.status = 'ACTIVE' AND p.deleted_at IS NULL;
   `;
 
   const { rows } = await req.server.db.query(sql, [idOrSlug]);
@@ -106,29 +132,39 @@ export async function getPublicProductById(req, reply) {
   return reply.send({
     success: true,
     data: {
-      ...p,
-      retail_price: parseFloat(p.retail_price),
-      is_in_stock: (p.stock_quantity || 0) > 0,
-      media: Array.isArray(p.media_json) ? p.media_json : JSON.parse(p.media_json || '[]'),
+      ...toPublicProduct(p),
       variants: p.variants || [],
     },
   });
 }
 
+// WHY: Saler storefronts are virtual_stores; the public field names (store_name, tagline, logo_url,
+// banner_url) are kept so existing API consumers do not break.
+const PUBLIC_STORE_COLUMNS = `
+    s.id, s.ref, s.slug, s.shop_name AS store_name, s.bio AS tagline,
+    (SELECT m.storage_key FROM media_assets m WHERE m.id = s.logo_media_id) AS logo_key,
+    (SELECT m.storage_key FROM media_assets m WHERE m.id = s.banner_media_id) AS banner_key,
+    s.created_at`;
+
+function toPublicStore(s) {
+  const { logo_key: logoKey, banner_key: bannerKey, ...rest } = s;
+  return { ...rest, logo_url: toPublicImageUrl(logoKey), banner_url: toPublicImageUrl(bannerKey) };
+}
+
 export async function getPublicStores(req, reply) {
   const { limit = 20, offset = 0 } = req.query;
   const sql = `
-    SELECT id, slug, store_name, tagline, logo_url, banner_url, created_at
-    FROM saler_stores
-    WHERE is_published = true
-    ORDER BY created_at DESC
+    SELECT ${PUBLIC_STORE_COLUMNS}
+    FROM virtual_stores s
+    WHERE s.is_active = true AND s.deleted_at IS NULL
+    ORDER BY s.created_at DESC
     LIMIT $1 OFFSET $2;
   `;
-  const { rows } = await req.server.db.query(sql, [parseInt(limit, 10), parseInt(offset, 10)]);
+  const { rows } = await req.server.db.query(sql, [parseInt(limit, 10) || 20, parseInt(offset, 10) || 0]);
 
   return reply.send({
     success: true,
-    data: rows,
+    data: rows.map(toPublicStore),
   });
 }
 
@@ -138,23 +174,23 @@ export async function getPublicStoreById(req, reply) {
   const whereClause = isNumeric ? 's.id = $1' : 's.slug = $1';
 
   const sql = `
-    SELECT s.*,
+    SELECT ${PUBLIC_STORE_COLUMNS},
            (SELECT json_agg(json_build_object(
               'product_id', p.id,
               'product_ref', p.ref,
               'title_en', p.title_en,
               'title_bn', p.title_bn,
-              'retail_price', p.retail_price,
-              'custom_price', i.custom_price,
-              'media_json', p.media_json,
-              'stock_quantity', p.stock_quantity
-            ))
+              'retail_price', p.default_retail_price,
+              'custom_price', i.custom_retail_price,
+              'image_key', ${primaryImageKeySql('p')},
+              'stock_quantity', p.stock_qty
+            ) ORDER BY i.display_order)
             FROM saler_store_items i
             JOIN products p ON i.product_id = p.id
-            WHERE i.saler_store_id = s.id AND i.is_active = true AND p.status = 'ACTIVE'
+            WHERE i.store_id = s.id AND i.is_active = true AND p.status = 'ACTIVE' AND p.deleted_at IS NULL
            ) as items
-    FROM saler_stores s
-    WHERE ${whereClause} AND s.is_published = true;
+    FROM virtual_stores s
+    WHERE ${whereClause} AND s.is_active = true AND s.deleted_at IS NULL;
   `;
 
   const { rows } = await req.server.db.query(sql, [idOrSlug]);
@@ -162,15 +198,21 @@ export async function getPublicStoreById(req, reply) {
     throw new AppError('NOT_FOUND', `Store "${idOrSlug}" not found.`, 404);
   }
 
+  const store = toPublicStore(rows[0]);
+  store.items = (rows[0].items || []).map(({ image_key: imageKey, ...item }) => ({
+    ...item,
+    image_url: toPublicImageUrl(imageKey),
+  }));
+
   return reply.send({
     success: true,
-    data: rows[0],
+    data: store,
   });
 }
 
 export async function getPublicCategories(req, reply) {
   const sql = `
-    SELECT id, parent_id, slug, name_en, name_bn, icon_url, display_order
+    SELECT id, parent_id, slug, name_en, name_bn, icon_key, display_order
     FROM categories
     WHERE is_active = true
     ORDER BY display_order ASC, name_en ASC;

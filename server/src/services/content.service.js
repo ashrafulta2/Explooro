@@ -12,6 +12,7 @@
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import { writeAudit } from '../lib/audit.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 // -----------------------------------------------------------------------------
 // 1. STORIES (UGC CONTENT COMMERCE)
@@ -140,15 +141,16 @@ export async function getStoryBySlugOrId(db, idOrSlug) {
   let products = [];
   if (prodIds.length > 0) {
     const { rows: prodRows } = await db.query(
-      `SELECT id, ref, slug, title_en, title_bn, retail_price, media_json, stock_quantity
-       FROM products
-       WHERE id = ANY($1::bigint[]);`,
+      `SELECT p.id, p.ref, p.slug, p.title_en, p.title_bn, p.default_retail_price AS retail_price,
+              p.stock_qty AS stock_quantity, ${primaryImageKeySql('p')} AS image_key
+       FROM products p
+       WHERE p.id = ANY($1::bigint[]);`,
       [prodIds]
     );
-    products = prodRows.map((p) => ({
+    products = prodRows.map(({ image_key: imageKey, ...p }) => ({
       ...p,
       retail_price: parseFloat(p.retail_price),
-      media: Array.isArray(p.media_json) ? p.media_json : JSON.parse(p.media_json || '[]'),
+      media: imageKey ? [{ url: toPublicImageUrl(imageKey) }] : [],
     }));
   }
 

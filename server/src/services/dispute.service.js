@@ -462,11 +462,12 @@ export async function getEvidenceTimeline(db, disputeId, { requestingUser } = {}
   // 2. Fetch shipment events if any
   try {
     const { rows: shipEvents } = await db.query(
-      `SELECT e.*, s.ref AS shipment_ref, s.courier
+      `SELECT e.*, e.created_at AS occurred_at, e.carrier_status AS raw_status,
+              s.ref AS shipment_ref, s.carrier AS courier
        FROM shipment_events e
        JOIN shipments s ON s.id = e.shipment_id
        WHERE s.sub_order_id = $1
-       ORDER BY e.occurred_at ASC`,
+       ORDER BY e.created_at ASC`,
       [dispute.sub_order_id]
     );
 
@@ -668,18 +669,17 @@ export async function arbitrateDispute(db, cache, {
 
       const { rows: actionRows } = await txClient.query(
         `INSERT INTO pending_admin_actions (
-           ref, action_key, risk_tier, actor_id, target_entity, target_id,
+           ref, action_key, actor_id, target_type, target_ref,
            payload_json, status, expires_at, created_at
          )
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())
          RETURNING *`,
         [
           actionRef,
           'orders.dispute.arbitrate',
-          'HIGH',
           arbitratorId,
           'dispute_threads',
-          dispute.id,
+          String(dispute.id),
           JSON.stringify({
             disputeId: dispute.id,
             outcome,

@@ -395,10 +395,10 @@ export async function decideKyc(db, {
 
       const { rows: actionRows } = await txClient.query(
         `INSERT INTO pending_admin_actions (
-           ref, action_key, risk_tier, actor_id, target_entity, target_id,
+           ref, action_key, actor_id, target_type, target_ref,
            payload_json, status, expires_at, created_at
          )
-         VALUES ($1, 'users.kyc.approve', 'HIGH', $2, 'kyc_verifications', $3, $4, 'PENDING', $5, now())
+         VALUES ($1, 'users.kyc.approve', $2, 'kyc_verifications', $3::text, $4, 'PENDING', $5, now())
          RETURNING *`,
         [
           pendingRef,

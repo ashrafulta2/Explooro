@@ -30,8 +30,9 @@ function createMockDb() {
       id: 1,
       title_en: 'Premium Jamdani Saree',
       title_bn: 'প্রিমিয়াম জামদানি শাড়ি',
-      base_price: '4500.00',
-      images_json: ['/jamdani-1.jpg'],
+      price: '4500.00',
+      retail_price: '4500.00',
+      image_key: null,
       description_en: 'Authentic handwoven Jamdani saree.',
       supplier_id: 10,
     },
@@ -162,7 +163,7 @@ function createMockDb() {
       }
 
       // SELECT products WHERE id = $1
-      if (q.includes('FROM products WHERE id = $1')) {
+      if (q.includes('FROM products p WHERE p.id = $1')) {
         const pId = params[0];
         const found = products.find((p) => p.id === Number(pId));
         return { rows: found ? [found] : [] };

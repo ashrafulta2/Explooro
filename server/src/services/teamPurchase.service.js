@@ -73,7 +73,7 @@ export async function createTeamPurchase(db, cache, {
   return runWithClient(db, async (client) => {
     // 1. Fetch product and lock stock row
     const { rows: prodRows } = await client.query(
-      `SELECT id, name_en, base_price, stock_quantity
+      `SELECT id, title_en AS name_en, default_retail_price AS base_price, stock_qty AS stock_quantity
        FROM products
        WHERE id = $1
        FOR UPDATE`,

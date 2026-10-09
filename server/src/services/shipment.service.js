@@ -62,7 +62,10 @@ export async function createShipmentForSubOrder(db, {
     // 1. Fetch sub-order & parent order details
     const { rows: subRows } = await txClient.query(
       `SELECT s.id, s.order_id, s.ref, s.supplier_id, s.saler_id, s.total_amount, s.status, s.shipping_amount,
-              o.delivery_address_json, o.recipient_name, o.recipient_phone, o.payment_method
+              o.recipient_name, o.recipient_phone, o.payment_method,
+              -- WHY: orders stores the address as columns; shape it like shipments.delivery_address_json
+              jsonb_build_object('division', o.division, 'district', o.district,
+                                 'upazila', o.upazila, 'address_line', o.address_line) AS delivery_address_json
        FROM sub_orders s
        JOIN orders o ON o.id = s.order_id
        WHERE s.id = $1
@@ -324,13 +327,13 @@ export async function handleCourierWebhook(db, cache, {
 
       // Restore inventory items
       const { rows: items } = await txClient.query(
-        `SELECT product_id, quantity FROM order_items WHERE sub_order_id = $1`,
+        `SELECT product_id, qty AS quantity FROM order_items WHERE sub_order_id = $1`,
         [shipment.sub_order_id]
       );
 
       for (const item of items) {
         await txClient.query(
-          `UPDATE products SET stock_quantity = stock_quantity + $2, updated_at = now() WHERE id = $1`,
+          `UPDATE products SET stock_qty = stock_qty + $2, updated_at = now() WHERE id = $1`,
           [item.product_id, item.quantity]
         );
       }

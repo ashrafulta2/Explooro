@@ -45,7 +45,7 @@ function createMockDb() {
   ];
 
   const userRestrictions = [
-    { user_id: 301, can_withdraw: 'BLOCK', max_withdrawal_per_day: null, expires_at: null },
+    { subject_type: 'USER', subject_ref: '301', capability_key: 'can_withdraw', mode: 'BLOCK', limit_value: null, expires_at: null },
   ];
 
   const wallets = [
@@ -121,10 +121,9 @@ function createMockDb() {
       }
 
       // SELECT user_restrictions
-      if (q.includes('FROM user_restrictions WHERE user_id = $1')) {
-        const userId = params[0];
-        const r = userRestrictions.find((x) => x.user_id === userId);
-        return { rows: r ? [{ ...r }] : [] };
+      if (q.includes('FROM user_restrictions ur')) {
+        const subjectRef = String(params[0]);
+        return { rows: userRestrictions.filter((x) => x.subject_ref === subjectRef).map((x) => ({ ...x })) };
       }
 
       // SELECT users LEFT JOIN user_profiles
@@ -279,9 +278,8 @@ function createMockDb() {
           actor_id: params[1],
           action_key: 'finance.payout.approve',
           payload_json: params[2],
-          target_type: params[3],
-          target_ref: params[4],
-          risk_tier: params[5],
+          target_type: 'payout_request',
+          target_ref: params[3],
           status: 'PENDING',
           created_at: new Date().toISOString(),
         };

@@ -454,7 +454,7 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
   test('raiseB2bDispute freezes unreleased milestones and inserts dispute record', async () => {
     let dealState = {
       id: 5,
-      sub_order_id: null,
+      sub_order_id: 77,
       buyer_id: 6,
       supplier_id: 5,
       status: 'IN_PROGRESS',
@@ -478,12 +478,12 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
           return { rows: frozenMilestones };
         }
 
-        if (sql.includes('INSERT INTO disputes')) {
+        if (sql.includes('INSERT INTO dispute_threads')) {
           disputeCreated = {
             id: 901,
             ref: params[0],
-            category: 'B2B_ESCROW',
-            claim_amount: params[6],
+            sub_order_id: params[1],
+            disputed_amount: params[5],
             status: 'OPEN',
           };
           return { rows: [disputeCreated] };
@@ -509,7 +509,9 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
     assert.equal(res.deal.status, 'DISPUTED');
     assert.equal(res.frozen_milestones_count, 2);
     assert.equal(res.frozen_amount, 350000.00);
-    assert.equal(disputeCreated.category, 'B2B_ESCROW');
+    assert.equal(disputeCreated.sub_order_id, 77);
+    assert.equal(disputeCreated.disputed_amount, 350000.00);
+    assert.equal(res.dispute.id, 901);
   });
 
   // ---------------------------------------------------------------------------

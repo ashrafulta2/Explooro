@@ -133,26 +133,27 @@ export async function sendMessage(db, {
 
   const runner = async (txClient) => {
     // 1. Check user restriction: can_chat capability
-    try {
-      const { rows: restrictions } = await txClient.query(
-        `SELECT capability, restriction_type, reason_en, reason_bn
-         FROM user_restrictions
-         WHERE user_id = $1 AND capability = 'can_chat' AND restriction_type = 'BLOCK'
-           AND (expires_at IS NULL OR expires_at > now())`,
-        [senderId]
-      );
+    // WHY: no try/catch here — a failed query inside the transaction aborts it, so swallowing the
+    // error only turned a broken restriction check into a broken send (and never blocked anyone).
+    const { rows: restrictions } = await txClient.query(
+      `SELECT ur.capability_key, ur.mode, ur.reason AS reason_en, ur.reason_bn
+       FROM user_restrictions ur
+       JOIN users u ON u.id = $1
+       WHERE ur.subject_type = 'USER' AND ur.subject_ref IN (u.id::text, u.ref)
+         AND ur.capability_key = 'can_chat' AND ur.mode = 'BLOCK'
+         AND ur.lifted_at IS NULL
+         AND (ur.expires_at IS NULL OR ur.expires_at > now())`,
+      [senderId]
+    );
 
-      if (restrictions.length > 0) {
-        const res = restrictions[0];
-        const err = new Error(res.reason_en || 'Chat messaging is restricted on your account.');
-        err.code = 'USER_RESTRICTED';
-        err.capability = 'can_chat';
-        err.reason_en = res.reason_en;
-        err.reason_bn = res.reason_bn;
-        throw err;
-      }
-    } catch (err) {
-      if (err.code === 'USER_RESTRICTED') throw err;
+    if (restrictions.length > 0) {
+      const res = restrictions[0];
+      const err = new Error(res.reason_en || 'Chat messaging is restricted on your account.');
+      err.code = 'USER_RESTRICTED';
+      err.capability = 'can_chat';
+      err.reason_en = res.reason_en;
+      err.reason_bn = res.reason_bn;
+      throw err;
     }
 
     // 2. Idempotency check with clientMsgId

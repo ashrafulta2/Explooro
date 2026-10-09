@@ -40,3 +40,36 @@ jobs:
       # Includes the performance budget gate (150KB JS / 70KB CSS gzipped) and the prerender step.
       - name: Build
         run: npm run build
+
+  # The test suite mocks the database, so a query naming a column that does not exist passes it.
+  # This job migrates a real PostgreSQL 16 and PREPAREs every static SQL statement against it.
+  # WHY the runner's own PostgreSQL and not a service container: no Docker before Prompt 12.7.
+  sql-schema:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: postgresql://explooro:explooro@localhost:5432/explooro_ci
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Create .env from the committed example
+        run: cp .env.example .env
+
+      - name: Start PostgreSQL
+        run: |
+          sudo systemctl start postgresql.service
+          sudo -u postgres psql -c "CREATE USER explooro WITH PASSWORD 'explooro';"
+          sudo -u postgres psql -c "CREATE DATABASE explooro_ci OWNER explooro;"
+
+      - name: Apply migrations
+        run: npm run migrate --workspace server
+
+      - name: Prepare every SQL statement against the schema
+        run: npm run check:sql --workspace server

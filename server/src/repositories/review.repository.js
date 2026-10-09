@@ -54,8 +54,8 @@ export async function insertReview(db, { productId, orderItemId, userId, rating,
 
 export async function insertReviewMedia(db, { reviewId, mediaId, mediaKind }) {
   const { rows } = await db.query(
-    `INSERT INTO review_media (review_id, media_id, media_kind, moderation_status, created_at)
-     VALUES ($1, $2, $3, 'PENDING', now())
+    `INSERT INTO review_media (review_id, media_id, media_kind, moderation_status)
+     VALUES ($1, $2, $3, 'PENDING')
      RETURNING *`,
     [reviewId, mediaId, mediaKind]
   );

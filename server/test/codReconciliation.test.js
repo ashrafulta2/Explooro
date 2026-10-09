@@ -220,8 +220,8 @@ function createMockDb() {
         return { rows: so ? [{ ...so }] : [] };
       }
 
-      // SELECT sub_orders JOIN consignments
-      if (q.includes('FROM sub_orders s') && q.includes('LEFT JOIN consignments c')) {
+      // SELECT sub_orders JOIN shipments
+      if (q.includes('FROM sub_orders s') && q.includes('LEFT JOIN shipments c')) {
         const tracking = params[0];
         const c = consignments.find(
           (con) => con.tracking_number === tracking || con.courier_consignment_id === tracking
@@ -346,9 +346,8 @@ function createMockDb() {
           actor_id: params[1],
           action_key: 'orders.cod.reconcile',
           payload_json: params[2],
-          target_type: params[3],
-          target_ref: params[4],
-          risk_tier: params[5],
+          target_type: 'cod_reconciliation',
+          target_ref: params[3],
           status: 'PENDING',
           created_at: new Date().toISOString(),
         };

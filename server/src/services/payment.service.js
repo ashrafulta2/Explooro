@@ -228,7 +228,8 @@ export async function executePayment(db, cache, {
   const order = await orderRepo.findOrderById(db, txn.order_id);
   if (order) {
     await db.query(
-      `UPDATE orders SET payment_status = 'PAID', status = 'CONFIRMED', updated_at = now() WHERE id = $1;`,
+      // WHY: orders has no status column — fulfilment state lives on sub_orders (updated below).
+      `UPDATE orders SET payment_status = 'PAID', updated_at = now() WHERE id = $1;`,
       [order.id]
     );
 
