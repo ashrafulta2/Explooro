@@ -40,7 +40,7 @@ export default function CartPage(root, { navigate } = {}) {
     else window.location.assign(url);
   };
 
-  loadCartPageStyles();
+  const stylesReady = loadCartPageStyles();
 
   const container = el('div', 'cart-page container');
   root.append(container);
@@ -282,10 +282,23 @@ export default function CartPage(root, { navigate } = {}) {
     if (focusKey) container.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
   }
 
-  render();
-  const unsubscribe = cartStore.subscribe(render);
-  // Refresh from the server so prices/stock are current when the shopper lands here.
-  fetchCart();
+  // WHY wait for the stylesheet: cart-page.css is a separate chunk, so on the first visit of a page
+  // load the markup used to paint ~250ms before its CSS arrived — an unstyled, oversized flash.
+  // The router needs a synchronous cleanup function, so the first render is deferred inside and
+  // `disposed` stops it if the shopper navigates away before the CSS lands. loadCartPageStyles
+  // never rejects (it swallows its own failure), so a missing stylesheet still renders the page.
+  let unsubscribe = null;
+  let disposed = false;
+  stylesReady.then(() => {
+    if (disposed) return;
+    render();
+    unsubscribe = cartStore.subscribe(render);
+    // Refresh from the server so prices/stock are current when the shopper lands here.
+    fetchCart();
+  });
 
-  return () => unsubscribe();
+  return () => {
+    disposed = true;
+    unsubscribe?.();
+  };
 }
