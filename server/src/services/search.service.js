@@ -4,6 +4,7 @@
 
 import { postgresSearchDriver } from './search-drivers/postgres.js';
 import { meilisearchDriver } from './search-drivers/meilisearch.js';
+import { withAvailableStock } from './teamStockReservation.service.js';
 
 export function getSearchDriver() {
   const driverType = (process.env.SEARCH_DRIVER || 'postgres').toLowerCase().trim();
@@ -37,6 +38,12 @@ export async function executeSearch(db, cache, { query = '', filters = {}, limit
   }
 
   const results = await driver.search(db, { query: rawQuery, filters, limit, offset });
+  // Applied here, not in a driver, so Meilisearch results (whose index holds raw stock) agree too.
+  try {
+    results.products = await withAvailableStock(db, results.products);
+  } catch {
+    // Reservation lookup is a refinement; a failure must not lose the search results.
+  }
 
   // Telemetry: Record zero-result queries to inform catalog merchandising
   if (rawQuery && results.products.length === 0 && results.stores.length === 0) {

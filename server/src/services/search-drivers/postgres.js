@@ -7,6 +7,7 @@
 
 import { expandSearchTerms } from '../../utils/transliterate.js';
 import { calculatePricingBreakdown } from '../pricing.service.js';
+import { reservedUnitsSql } from '../teamStockReservation.service.js';
 
 export class PostgresSearchDriver {
   constructor() {
@@ -43,7 +44,9 @@ export class PostgresSearchDriver {
     }
 
     if (filters.inStock) {
-      productConditions.push('p.stock_qty > 0');
+      // WHY minus the reservation: stock an open team is counting on cannot be bought, so it must not
+      // satisfy "in stock only" (see teamStockReservation.service.js).
+      productConditions.push(`p.stock_qty - ${reservedUnitsSql('p')} > 0`);
     }
 
     if (filters.minRating) {

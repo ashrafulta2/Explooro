@@ -5,6 +5,7 @@
 import * as storeRepo from '../repositories/store.repository.js';
 import { isReservedStoreSlug } from '../config/reservedSlugs.js';
 import { AppError } from '../plugins/errorHandler.js';
+import { withAvailableStock } from './teamStockReservation.service.js';
 
 export const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -137,7 +138,9 @@ export async function getPublicStore(db, slug) {
   }
 
   const status = resolvePhysicalShopStatus(store);
-  const rawItems = await storeRepo.listStoreItems(db, store.id);
+  // WHY reservation-aware: this is what a shopper sees, so units an open team is counting on must not
+  // look buyable. The saler's own management view below keeps the raw figure.
+  const rawItems = await withAvailableStock(db, await storeRepo.listStoreItems(db, store.id), { idKey: 'product_id' });
 
   // Group items by collection / shelf
   const shelvesMap = new Map();

@@ -15,6 +15,38 @@
 
 const OPEN_TEAMS = `status = 'ACTIVE' AND expires_at > now()`;
 
+/**
+ * The same figure as a SQL expression, for filters and sorts that must agree with `getReservedByProduct`
+ * (e.g. "in stock only"). `alias` is the products table alias in the surrounding query.
+ */
+export function reservedUnitsSql(alias = 'p') {
+  return `COALESCE((SELECT SUM(tp.required_members) FROM team_purchases tp
+                      WHERE tp.product_id = ${alias}.id AND tp.status = 'ACTIVE' AND tp.expires_at > now()), 0)`;
+}
+
+/**
+ * Turns raw `stock_qty` into what a shopper can actually buy: stock minus units open teams are
+ * counting on. Mutates nothing; each returned row keeps `stock_on_hand` (the raw figure) and gains
+ * `reserved_qty`. Rows without a product id or stock figure pass through unchanged.
+ *
+ * WHY here: search, the storefront and the concierge each read `stock_qty` straight off a row, so
+ * a product whose last units were reserved by a half-full team still showed as buyable and then
+ * failed at cart or checkout. Cart and checkout already subtract this; the display now agrees.
+ */
+export async function withAvailableStock(client, rows, { idKey = 'id' } = {}) {
+  const list = Array.isArray(rows) ? rows : [];
+  const ids = list.map((r) => r?.[idKey]).filter((v) => v !== null && v !== undefined);
+  if (ids.length === 0) return list;
+  const reserved = await getReservedByProduct(client, ids);
+  return list.map((r) => {
+    const raw = r?.stock_qty;
+    if (r?.[idKey] === null || r?.[idKey] === undefined) return r;
+    if (raw === null || raw === undefined || Number.isNaN(Number(raw))) return r;
+    const held = reserved.get(Number(r[idKey])) || 0;
+    return { ...r, stock_on_hand: Number(raw), reserved_qty: held, stock_qty: Math.max(0, Number(raw) - held) };
+  });
+}
+
 /** Units of one product held by open teams, optionally ignoring one team (its own reservation). */
 export async function getReservedForProduct(client, productId, { excludeTeamId = null } = {}) {
   const { rows } = await client.query(
