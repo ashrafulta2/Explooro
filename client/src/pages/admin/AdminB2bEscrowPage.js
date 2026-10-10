@@ -20,6 +20,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { listB2bDeals, releaseMilestone } from '../../services/b2bEscrow.api.js';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
+import { trackStyleLoad } from '../../core/styleGate.js';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 // WHY dynamic: Vite splits this into the route's CSS chunk (keeping it out of the entry bundle's
@@ -28,9 +29,11 @@ import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 let stylesPromise = null;
 function loadStyles() {
   if (!stylesPromise) {
-    stylesPromise = import('../../styles/components/b2b-escrow.css').catch(() => {
-      stylesPromise = null;
-    });
+    stylesPromise = trackStyleLoad(
+      import('../../styles/components/b2b-escrow.css').catch(() => {
+        stylesPromise = null;
+      })
+    );
   }
   return stylesPromise;
 }

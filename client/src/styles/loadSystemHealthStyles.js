@@ -7,13 +7,17 @@
  * (adminGovernancePages.test.js imports most of these pages directly).
  */
 
+import { trackStyleLoad } from '../core/styleGate.js';
+
 let stylesPromise = null;
 
 export function loadSystemHealthStyles() {
   if (!stylesPromise) {
-    stylesPromise = import('./components/system-health.css').catch(() => {
-      stylesPromise = null;
-    });
+    stylesPromise = trackStyleLoad(
+      import('./components/system-health.css').catch(() => {
+        stylesPromise = null;
+      })
+    );
   }
   return stylesPromise;
 }

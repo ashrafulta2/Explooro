@@ -5,13 +5,17 @@
  * avoids a static .css import in a page module, which Node's test runner cannot load.
  */
 
+import { trackStyleLoad } from '../core/styleGate.js';
+
 let stylesPromise = null;
 
 export function loadAdminCockpitStyles() {
   if (!stylesPromise) {
-    stylesPromise = import('./components/admin-cockpit.css').catch(() => {
-      stylesPromise = null;
-    });
+    stylesPromise = trackStyleLoad(
+      import('./components/admin-cockpit.css').catch(() => {
+        stylesPromise = null;
+      })
+    );
   }
   return stylesPromise;
 }

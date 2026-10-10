@@ -18,15 +18,19 @@
  * Idempotent: the promise is cached, so mounting the page twice does not re-request the chunk.
  */
 
+import { trackStyleLoad } from '../core/styleGate.js';
+
 let stylesPromise = null;
 
 export function loadAdStoreStyles() {
   if (!stylesPromise) {
-    stylesPromise = import('./components/ad-store.css').catch(() => {
-      // A failed stylesheet must never take the page down with it — the markup stays usable,
-      // just unstyled, and the next mount retries.
-      stylesPromise = null;
-    });
+    stylesPromise = trackStyleLoad(
+      import('./components/ad-store.css').catch(() => {
+        // A failed stylesheet must never take the page down with it — the markup stays usable,
+        // just unstyled, and the next mount retries.
+        stylesPromise = null;
+      })
+    );
   }
   return stylesPromise;
 }
