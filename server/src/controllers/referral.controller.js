@@ -3,6 +3,7 @@
  */
 
 import * as referralService from '../services/referral.service.js';
+import * as referralAdminService from '../services/referralAdmin.service.js';
 
 export async function getOverview(req, reply) {
   const db = req.db || req.server?.db;
@@ -52,38 +53,12 @@ export async function updateCustomSlug(req, reply) {
 
 export async function adminGetOverview(req, reply) {
   const db = req.db || req.server?.db;
+  return reply.send(await referralAdminService.getReferralAdminOverview(db));
+}
 
-  const { rows: stats } = await db.query(`
-    SELECT
-      COUNT(*)::int as total_referrals,
-      COUNT(*) FILTER (WHERE status = 'QUALIFIED')::int as qualified_count,
-      COUNT(*) FILTER (WHERE status = 'FRAUD_FLAGGED')::int as fraud_flagged_count,
-      COUNT(DISTINCT referrer_user_id)::int as active_referrers_count
-    FROM referrals
-  `);
-
-  const { rows: totalPaid } = await db.query(`
-    SELECT COALESCE(SUM(commission_amount), 0)::numeric(14,2) as total_commissions_paid
-    FROM referral_earnings
-  `);
-
-  const { rows: flaggedReferrals } = await db.query(`
-    SELECT r.*,
-           COALESCE(rup.display_name, rup.full_name) as referrer_name,
-           COALESCE(up.display_name, up.full_name) as referee_name
-    FROM referrals r
-    JOIN users ru ON ru.id = r.referrer_user_id
-    LEFT JOIN user_profiles rup ON rup.user_id = ru.id
-    JOIN users u ON u.id = r.referred_user_id
-    LEFT JOIN user_profiles up ON up.user_id = u.id
-    WHERE r.status = 'FRAUD_FLAGGED'
-    ORDER BY r.created_at DESC
-    LIMIT 50
-  `);
-
-  return reply.send({
-    stats: stats[0],
-    total_commissions_paid: totalPaid[0]?.total_commissions_paid || '0.00',
-    flagged_referrals: flaggedReferrals,
-  });
+export async function adminUpdateRules(req, reply) {
+  const { db, cache } = req.server;
+  const actor = { id: req.user.id, role: req.user.roles?.[0] ?? null };
+  const rules = await referralAdminService.updateReferralRules(db, cache ?? null, actor, req.body || {});
+  return reply.send({ rules });
 }

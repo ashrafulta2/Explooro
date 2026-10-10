@@ -54,4 +54,7 @@ export default async function referralRoutes(app) {
   app.get('/admin/growth/referrals', {
     preHandler: [app.authenticate, requireReferralModule, requireGovern],
   }, referralController.adminGetOverview);
+  app.patch('/admin/growth/referrals/rules', {
+    preHandler: [app.authenticate, requireReferralModule, requireGovern],
+  }, referralController.adminUpdateRules);
 }

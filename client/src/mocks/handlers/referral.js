@@ -390,19 +390,10 @@ export const referralHandlers = [
           tier_depth: 2,
           tier_1_rate_pct: 5,
           tier_2_rate_pct: 2,
-          attribution_window_days: 30,
-          qualify_on: 'FIRST_DELIVERED_ORDER',
-          min_order_value_bdt: 500,
-          max_payout_per_referrer_bdt: 25000,
+          holding_period_days: 7,
+          qualify_on: 'FIRST_ORDER',
+          velocity_cap_per_day: 20,
           is_active: true,
-        },
-        fraud_controls: {
-          block_same_device: true,
-          block_same_ip: true,
-          block_same_nid: true,
-          block_same_payment_instrument: true,
-          block_circular: true,
-          velocity_cap_per_day: 10,
         },
         flagged_referrals: [
           { id: 'REF-2026-0412', referrer_name: 'Shakil Ahmed', referee_name: 'S. Ahmed (alt)', reason: 'SAME_DEVICE_FINGERPRINT', amount_held_bdt: 850, flagged_at: new Date(Date.now() - 3600000 * 6).toISOString(), status: 'HELD' },
@@ -421,23 +412,7 @@ export const referralHandlers = [
     handler: ({ body }) => ({
       status: 200,
       body: {
-        data: { rules: { ...body } },
-        message_en: 'Referral rules updated.',
-        message_bn: 'রেফারেল নীতিমালা হালনাগাদ হয়েছে।',
-      },
-    }),
-  },
-
-  // Resolve one flagged referral: release the held commission or void it.
-  {
-    method: 'POST',
-    path: '/admin/growth/referrals/flagged/:id/resolve',
-    handler: ({ params, body }) => ({
-      status: 200,
-      body: {
-        data: { id: params?.id, status: body?.decision === 'RELEASE' ? 'RELEASED' : 'VOIDED' },
-        message_en: `Referral ${params?.id} ${body?.decision === 'RELEASE' ? 'released' : 'voided'}.`,
-        message_bn: `রেফারেলটি ${body?.decision === 'RELEASE' ? 'ছাড় দেওয়া' : 'বাতিল'} হয়েছে।`,
+        rules: { ...body },
       },
     }),
   },
