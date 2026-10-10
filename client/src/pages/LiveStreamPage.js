@@ -1012,7 +1012,12 @@ function openInStreamCheckoutDrawer(product, streamId) {
   const lang = getLanguage();
   const isBn = lang === 'bn';
   const prodTitle = (isBn ? (product.title_bn || product.title_en) : (product.title_en || product.title_bn)) || product.title || 'Live Deal';
-  const retailPrice = Number(product.special_price || product.price || 2000);
+  // WHY no fallback figure: a made-up price in the checkout drawer is a price nobody agreed to.
+  const retailPrice = Number(product.special_price || product.price);
+  if (!Number.isFinite(retailPrice) || retailPrice <= 0) {
+    toast.error(t('live.chk_price_unavailable') || 'This deal has no price yet. Please try again shortly.');
+    return;
+  }
 
   const drawerContent = document.createElement('div');
   drawerContent.className = 'in-stream-checkout-drawer';

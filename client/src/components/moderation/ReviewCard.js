@@ -121,7 +121,7 @@ export function ReviewCard({
           </div>
           <div>
             <span style="color: var(--text-muted, #64748b); display: block; font-size: 11px;">Initial Stock Lot:</span>
-            <strong style="color: var(--text-primary, #0f172a);">${payload.stock_qty || 50} units</strong>
+            <strong style="color: var(--text-primary, #0f172a);">${payload.stock_qty ?? payload.stock ?? '—'} units</strong>
           </div>
         </div>
 
