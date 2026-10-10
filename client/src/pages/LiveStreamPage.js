@@ -1001,6 +1001,15 @@ async function renderStreamViewer(container, streamId, navigate) {
  * 3. In-Stream 1-Click Buy Now Checkout Drawer
  * Fixed Drawer invocation, 8 BD administrative divisions, and BD mobile phone validation.
  */
+/**
+ * WHY: an account's phone is stored as +8801XXXXXXXXX, but the field and its check want the 11-digit
+ * local form, so a prefilled number failed its own validation and the shopper could not order.
+ */
+function toLocalBdPhone(phone) {
+  const digits = String(phone ?? '').replace(/[\s-]/g, '');
+  return digits.startsWith('+88') ? digits.slice(3) : (digits.startsWith('88') && digits.length === 13 ? digits.slice(2) : digits);
+}
+
 function openInStreamCheckoutDrawer(product, streamId) {
   const user = getCurrentUser();
 
@@ -1045,7 +1054,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
           type="tel" 
           id="chk-phone" 
           placeholder="${t('live.chk_phone_placeholder') || 'e.g. 01712345678'}" 
-          value="${user.phone || ''}" 
+          value="${toLocalBdPhone(user.phone)}" 
           required 
           pattern="^01[3-9]\\d{8}$"
           class="input" 
@@ -1141,7 +1150,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const phoneVal = phoneInput.value.trim();
+    const phoneVal = toLocalBdPhone(phoneInput.value);
     // Validate BD 11-digit phone number
     const bdPhoneRegex = /^01[3-9]\d{8}$/;
     if (!bdPhoneRegex.test(phoneVal)) {
