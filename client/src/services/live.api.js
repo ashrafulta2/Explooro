@@ -38,6 +38,12 @@ export async function sendLiveReaction(streamId, emoji = '❤️') {
   return api.post(`/live/streams/${streamId}/reaction`, { emoji });
 }
 
+export async function getInStreamQuote(streamId, { productId, variantId = null, quantity = 1 }) {
+  const query = { product_id: Number(productId), quantity };
+  if (variantId) query.variant_id = Number(variantId);
+  return api.get(`/live/streams/${streamId}/quote`, { query });
+}
+
 export async function inStreamBuy(streamId, payload, { idempotencyKey = null } = {}) {
   // WHY a caller-held key: the drawer keeps one per open drawer so a double-tap replays the same order.
   return api.post(`/live/streams/${streamId}/in-stream-buy`, payload, idempotencyKey ? { idempotencyKey } : undefined);

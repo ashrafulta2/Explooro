@@ -60,6 +60,9 @@ function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus 
       if (sql.includes('FROM products') && sql.includes('FOR UPDATE')) {
         return { rows: [{ ...product, stock_qty: stock }] };
       }
+      if (sql.includes('FROM products')) {
+        return { rows: [{ id: 101, status: product.status, stock_qty: stock }] };
+      }
       if (sql.includes('FROM team_purchases')) {
         return { rows: [{ reserved }] };
       }
@@ -327,5 +330,57 @@ describe('assertSpecialPricesAboveFloor', () => {
       liveService.assertSpecialPricesAboveFloor(db, [{ productId: 9, specialPrice: 100 }]),
       (e) => e.code === 'PRODUCT_NOT_FOUND'
     );
+  });
+});
+
+describe('quoteInStreamBuy', () => {
+  function quoteDb({ stock = 10, reserved = 0, unitPrice = '1150.00', inStream = true, status = 'ACTIVE', variant = null } = {}) {
+    return {
+      async query(sql) {
+        if (sql.includes('FROM live_stream_products')) {
+          return { rows: inStream ? [{ product_id: 101, special_price: null, unit_price: unitPrice }] : [] };
+        }
+        if (sql.includes('FROM live_streams')) return { rows: [{ id: 50, status: 'LIVE', host_id: 10 }] };
+        if (sql.includes('FROM product_variants')) return { rows: variant ? [variant] : [] };
+        if (sql.includes('FROM products')) return { rows: [{ id: 101, status, stock_qty: stock }] };
+        if (sql.includes('FROM team_purchases')) return { rows: [{ reserved }] };
+        return { rows: [] };
+      },
+    };
+  }
+  const args = { streamId: 50, productId: 101, qty: 2 };
+
+  test('returns the price the order would bill, the delivery charge and the total', async () => {
+    const q = await liveService.quoteInStreamBuy(quoteDb(), null, args);
+    assert.equal(q.unit_price, 1150);
+    assert.equal(q.items_amount, 2300);
+    assert.equal(q.shipping_amount, 60);
+    assert.equal(q.total_amount, 2360);
+    assert.equal(q.in_stock, true);
+  });
+
+  test('quote and order agree on the same inputs', async () => {
+    const db = makeDb({ unitPrice: '1100.00' });
+    const q = await liveService.quoteInStreamBuy(db, null, args);
+    await liveService.executeInStreamBuy(db, null, { ...base, qty: 2 });
+    assert.equal(q.total_amount, Number(db.log.orderParams[2]));
+    assert.equal(q.items_amount, Number(db.log.orderParams[3]));
+  });
+
+  test('stock is net of open-team reservations and flags a short quantity', async () => {
+    const q = await liveService.quoteInStreamBuy(quoteDb({ stock: 5, reserved: 4 }), null, args);
+    assert.equal(q.available_stock, 1);
+    assert.equal(q.in_stock, false);
+  });
+
+  test('a variant price_delta is added, as at order time', async () => {
+    const q = await liveService.quoteInStreamBuy(
+      quoteDb({ variant: { price_delta: '50.00', stock_qty: 10, is_active: true } }), null, { ...args, qty: 1, variantId: 9 });
+    assert.equal(q.unit_price, 1200);
+  });
+
+  test('refuses a product that is not on the stream and a bad quantity', async () => {
+    await assert.rejects(liveService.quoteInStreamBuy(quoteDb({ inStream: false }), null, args), (e) => e.code === 'PRODUCT_NOT_IN_STREAM');
+    await assert.rejects(liveService.quoteInStreamBuy(quoteDb(), null, { ...args, qty: 0 }), (e) => e.code === 'VALIDATION_FAILED');
   });
 });

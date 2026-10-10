@@ -124,6 +124,16 @@ export async function recordReaction(req, reply) {
   });
 }
 
+export async function quoteInStreamBuy(req, reply) {
+  const quote = await liveService.quoteInStreamBuy(req.server.db, req.server.cache, {
+    streamId: req.params.id,
+    productId: req.query.product_id,
+    variantId: req.query.variant_id || null,
+    qty: req.query.quantity ?? 1,
+  });
+  return reply.send({ data: { quote } });
+}
+
 export async function executeInStreamBuy(req, reply) {
   const result = await liveService.executeInStreamBuy(req.server.db, req.server.cache, {
     streamId: req.params.id,

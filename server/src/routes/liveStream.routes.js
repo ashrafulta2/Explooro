@@ -152,6 +152,26 @@ export default async function liveStreamRoutes(fastify) {
     liveCtrl.recordReaction
   );
 
+  // 9a. In-Stream quote: what the order would cost, from the server, before the shopper confirms
+  fastify.get(
+    '/live/streams/:id/quote',
+    {
+      preHandler: [fastify.authenticate, reqMod],
+      schema: {
+        querystring: {
+          type: 'object',
+          required: ['product_id'],
+          properties: {
+            product_id: { type: 'integer', minimum: 1 },
+            variant_id: { type: 'integer', minimum: 1 },
+            quantity: { type: 'integer', minimum: 1 },
+          },
+        },
+      },
+    },
+    liveCtrl.quoteInStreamBuy
+  );
+
   // 9. In-Stream 1-Click Buy Now
   fastify.post(
     '/live/streams/:id/in-stream-buy',

@@ -3298,6 +3298,7 @@
     "start_live_session": "Start Live Session",
     "chk_title": "⚡ 1-Click In-Stream Checkout",
     "chk_price_unavailable": "This deal has no price yet. Please try again shortly.",
+    "chk_out_of_stock": "This deal is sold out.",
     "chk_otp_label": "SMS confirmation code",
     "chk_otp_sent": "We sent a code to {{phone}}. Enter it and confirm again.",
     "chk_flash_deal": "In-Stream Flash Deal",

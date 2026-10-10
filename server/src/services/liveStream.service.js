@@ -391,6 +391,71 @@ export async function recordStreamPurchase(db, { streamId, orderRef, orderAmount
   return stats;
 }
 
+/**
+ * What a live order would cost right now, without taking anything: the price the server will bill
+ * (stream special price, else listed, plus a variant's price_delta), the delivery charge, the total,
+ * and how many units are still buyable (stock net of open-team reservations).
+ *
+ * WHY it exists: the drawer used to add its own guess of the delivery charge to its own copy of the
+ * price. Asking the server means the figure on the button is the figure that is billed. Read-only and
+ * unlocked, so it is advisory: the order itself re-checks everything under the row lock.
+ */
+export async function quoteInStreamBuy(pool, cache, { streamId, productId, variantId = null, qty = 1 }) {
+  const quantity = Number(qty);
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    throw new AppError('VALIDATION_FAILED', 'Quantity must be a whole number of at least 1.', 'পরিমাণ কমপক্ষে ১ এর পূর্ণসংখ্যা হতে হবে।');
+  }
+  const sId = Number(streamId);
+  const stream = await liveRepo.findStreamById(pool, sId);
+  if (!stream) {
+    throw new AppError('STREAM_NOT_FOUND', 'Live stream not found.', 'লাইভ স্ট্রিম পাওয়া যায়নি।');
+  }
+  const streamProduct = await liveRepo.getStreamProduct(pool, sId, Number(productId));
+  if (!streamProduct) {
+    throw new AppError('PRODUCT_NOT_IN_STREAM', 'This product is not part of this live stream.', 'এই পণ্যটি এই লাইভ স্ট্রিমের অংশ নয়।');
+  }
+  let unitPrice = Number(streamProduct.unit_price);
+  if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+    throw new AppError('PRODUCT_UNPRICED', 'This product has no price yet.', 'এই পণ্যের এখনও দাম নির্ধারণ হয়নি।');
+  }
+
+  const { rows } = await pool.query(
+    'SELECT id, status, stock_qty FROM products WHERE id = $1',
+    [Number(productId)]
+  );
+  const prod = rows[0];
+  if (!prod || prod.status !== 'ACTIVE') {
+    throw new AppError('PRODUCT_NOT_FOUND', 'Product is no longer available.', 'পণ্যটি এখন আর উপলব্ধ নেই।');
+  }
+  let available = Number(prod.stock_qty);
+  if (variantId) {
+    const { rows: vRows } = await pool.query(
+      'SELECT price_delta, stock_qty, is_active FROM product_variants WHERE id = $1 AND product_id = $2',
+      [Number(variantId), Number(productId)]
+    );
+    if (!vRows[0] || !vRows[0].is_active) {
+      throw new AppError('NOT_FOUND', 'Selected variant is no longer available.', 'নির্বাচিত ভ্যারিয়েন্টটি আর উপলব্ধ নেই।');
+    }
+    unitPrice += Number(vRows[0].price_delta ?? 0);
+    available = Number(vRows[0].stock_qty);
+  }
+  available = Math.max(0, Math.min(available, Number(prod.stock_qty) - await getReservedForProduct(pool, prod.id)));
+
+  const shippingPaisa = toPaisa(await perParcelCharge(pool, cache));
+  const itemsPaisa = toPaisa(unitPrice) * quantity;
+  return {
+    stream_id: sId,
+    product_id: Number(productId),
+    quantity,
+    unit_price: toBdtNumber(toPaisa(unitPrice)),
+    items_amount: toBdtNumber(itemsPaisa),
+    shipping_amount: toBdtNumber(shippingPaisa),
+    total_amount: toBdtNumber(itemsPaisa + shippingPaisa),
+    available_stock: available,
+    in_stock: available >= quantity,
+  };
+}
+
 export async function executeInStreamBuy(pool, cache, {
   streamId,
   user,

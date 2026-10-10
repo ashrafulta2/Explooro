@@ -13,7 +13,7 @@
  */
 
 import { knownDeliveryCharge, loadDeliveryCharge } from '../services/deliveryCharge.js';
-import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, terminateLiveStream } from '../services/live.api.js';
+import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, getInStreamQuote, terminateLiveStream } from '../services/live.api.js';
 import { adsApi } from '../services/ads.api.js';
 import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.js';
 import { LiveStreamCard } from '../components/live/LiveStreamCard.js';
@@ -1029,7 +1029,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
       <img src="${product.main_image || product.image_url || '/placeholder-product.png'}" alt="${prodTitle}" onerror="this.src='/placeholder-product.png'" />
       <div>
         <h4>${prodTitle}</h4>
-        <div class="price-highlight">${formatBdt(retailPrice)}</div>
+        <div class="price-highlight" id="chk-price">${formatBdt(retailPrice)}</div>
         <span class="badge badge--success">⚡ ${t('live.chk_flash_deal') || 'In-Stream Flash Deal'}</span>
       </div>
     </div>
@@ -1125,6 +1125,18 @@ function openInStreamCheckoutDrawer(product, streamId) {
   loadDeliveryCharge().then((ship) => {
     if (ship !== null) totalEl.textContent = formatBdt(retailPrice + ship);
   });
+  // WHY ask the server: its quote is the figure that will be billed (price, delivery charge, stock), so
+  // it overrides the estimate above whenever it arrives. A failed quote keeps the estimate.
+  getInStreamQuote(streamId, { productId: product.product_id || product.id, quantity: 1 }).then((res) => {
+    const quote = res?.data?.quote ?? res?.quote;
+    if (!quote) return;
+    drawerContent.querySelector('#chk-price').textContent = formatBdt(quote.unit_price);
+    totalEl.textContent = formatBdt(quote.total_amount);
+    if (!quote.in_stock) {
+      confirmBtn.disabled = true;
+      toast.error(t('live.chk_out_of_stock') || 'This deal is sold out.');
+    }
+  }).catch(() => {});
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
