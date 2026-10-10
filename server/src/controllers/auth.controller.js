@@ -11,6 +11,7 @@
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import * as authService from '../services/auth.service.js';
 import * as otpService from '../services/otp.service.js';
+import * as referralService from '../services/referral.service.js';
 import {
   markPhoneVerified,
   markEmailVerified,
@@ -76,9 +77,25 @@ function loginResponseBody(result) {
 }
 
 export async function register(req, reply) {
-  const { db } = req.server;
-  const { phone, email, password, full_name: fullName, role } = req.body;
+  const { db, cache } = req.server;
+  const { phone, email, password, full_name: fullName, role, referral_code: referralCode } = req.body;
   const user = await authService.registerUser(db, { phone, email, password, fullName, role });
+
+  // WHY best-effort: a bad, expired or fraud-flagged code must never cost someone their account.
+  // The refusal is recorded by the engine (FRAUD_FLAGGED row) and the signup carries on.
+  if (referralCode) {
+    try {
+      await referralService.recordReferralAttribution(db, cache, {
+        referralCode,
+        referredUserId: user.id,
+        ip: req.ip,
+        phone: user.phone,
+      });
+    } catch (err) {
+      req.log.warn({ err, userRef: user.ref }, 'referral attribution failed');
+    }
+  }
+
   reply.code(201).send({
     data: { user: { ref: user.ref, phone: user.phone, email: user.email, status: user.status } },
   });

@@ -15,6 +15,7 @@ import { getCourierAdapter } from '../integrations/courier/index.js';
 import * as vaultService from './vault.service.js';
 import * as clawbackService from './clawback.service.js';
 import * as warrantyService from './warranty.service.js';
+import * as referralService from './referral.service.js';
 import { writeAudit } from '../lib/audit.js';
 
 /**
@@ -359,6 +360,7 @@ export async function handleCourierWebhook(db, cache, {
     return {
       success: true,
       shipmentId: shipment.id,
+      subOrderId: shipment.sub_order_id,
       trackingNumber: shipment.tracking_number,
       previousStatus: shipment.status,
       currentStatus: normalized.normalizedStatus,
@@ -368,7 +370,44 @@ export async function handleCourierWebhook(db, cache, {
     };
   };
 
-  return client ? runner(client) : withTransaction(db, runner);
+  if (client) return runner(client);
+
+  const result = await withTransaction(db, runner);
+  if (result.isDelivered) {
+    await creditReferralOnDelivery(db, cache, result.subOrderId);
+  }
+  return result;
+}
+
+/**
+ * Pays the referral commission for the buyer's first delivered order.
+ * WHY after the webhook transaction and not inside it: evaluateQualifyingEvent opens its own
+ * transaction per earning, which cannot nest in the webhook's. WHY on DELIVERED and not on
+ * placement: a COD order that is refused or returned would otherwise have paid a commission on a
+ * sale that never happened. WHY best-effort: the courier already told us the parcel arrived; a
+ * referral problem must not turn that acknowledgement into a failed webhook the carrier retries.
+ * The base is the sub-order total less its delivery charge, i.e. what was spent on goods.
+ */
+async function creditReferralOnDelivery(db, cache, subOrderId) {
+  try {
+    const { rows } = await db.query(
+      `SELECT o.customer_id, o.id AS order_id, so.total_amount, so.shipping_amount
+       FROM sub_orders so
+       JOIN orders o ON o.id = so.order_id
+       WHERE so.id = $1`,
+      [subOrderId]
+    );
+    const order = rows[0];
+    if (!order) return;
+    await referralService.evaluateQualifyingEvent(db, cache, {
+      userId: order.customer_id,
+      eventType: 'FIRST_ORDER',
+      orderId: order.order_id,
+      orderAmount: Math.max(0, Number(order.total_amount) - Number(order.shipping_amount || 0)),
+    });
+  } catch (err) {
+    console.warn(`[CourierWebhook] Referral commission notice for sub-order #${subOrderId}: ${err.message}`);
+  }
 }
 
 /**

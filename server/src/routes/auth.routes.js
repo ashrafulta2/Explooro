@@ -28,6 +28,7 @@ export default async function authRoutes(app) {
           password: { type: 'string', minLength: 8, maxLength: 128, nullable: true },
           full_name: { type: 'string', minLength: 1, maxLength: 200, nullable: true },
           role: SELF_SERVICE_ROLE,
+          referral_code: { type: 'string', minLength: 3, maxLength: 60, nullable: true },
         },
         anyOf: [{ required: ['phone'] }, { required: ['email'] }],
       },

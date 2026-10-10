@@ -1275,6 +1275,9 @@ async function bootRouterDemo() {
       { path: '/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.js') },
       { path: '/auth/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.js') },
       { path: '/auth/register', title: 'Register — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.js') },
+      // Referral Hub share links: /join/<custom-slug> and /join?ref=<code> open sign-up prefilled.
+      { path: '/join', title: 'Join — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.js') },
+      { path: '/join/:slug', title: 'Join — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.js') },
       { path: '/auth/otp', title: 'Verify OTP — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/OtpPage.js') },
       { path: '/auth/2fa', title: 'Staff 2FA — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/TwoFactorPage.js') },
       // Prompt 3.2: Module Control Panel

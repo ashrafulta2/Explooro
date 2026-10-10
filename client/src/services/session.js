@@ -205,13 +205,14 @@ export async function verifyOtp({ phone, email, otp, purpose = 'LOGIN' }) {
 /**
  * Registers a new user account with phone or email.
  */
-export async function register({ phone, email, role, password, name }) {
+export async function register({ phone, email, role, password, name, referralCode }) {
   return api.post('/auth/register', {
     phone: phone || undefined,
     email: email || undefined,
     role,
     password,
     full_name: name || undefined,
+    referral_code: referralCode || undefined,
   });
 }
 

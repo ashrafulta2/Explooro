@@ -448,6 +448,8 @@
       "email_placeholder": "name@example.com",
       "name_label": "Full Name",
       "password_label": "Password",
+      "referral_label": "Referral code (optional)",
+      "referral_placeholder": "e.g. REF-A1B2C3",
       "role_label": "Select Account Type",
       "role_customer": "Customer",
       "role_customer_desc": "Shop products, track orders, enjoy rewards",

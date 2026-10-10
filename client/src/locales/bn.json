@@ -448,6 +448,8 @@
       "email_placeholder": "name@example.com",
       "name_label": "পুরো নাম",
       "password_label": "পাসওয়ার্ড",
+      "referral_label": "রেফারেল কোড (ঐচ্ছিক)",
+      "referral_placeholder": "যেমন REF-A1B2C3",
       "role_label": "অ্যাকাউন্টের ধরণ বেছে নিন",
       "role_customer": "ক্রেতা (Customer)",
       "role_customer_desc": "পণ্য কিনুন, অর্ডার ট্র্যাক করুন এবং রিওয়ার্ড উপভোগ করুন",

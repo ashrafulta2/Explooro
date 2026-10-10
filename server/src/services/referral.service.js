@@ -127,6 +127,35 @@ export async function updateCustomSlug(db, userId, customSlug) {
 }
 
 /**
+ * Persists a refused attribution as a FRAUD_FLAGGED row so /admin/growth/referrals can list it.
+ * WHY a row and not just a return value: the admin fraud panel reads `referrals.fraud_reason`; with
+ * nothing written it was permanently empty. The row is tier 1, never earns (evaluateQualifyingEvent
+ * only reads PENDING) and never becomes an upstream sponsor (the tier-2 lookup skips FRAUD_FLAGGED).
+ * Same-account attempts are not stored: the table's no_self_referral CHECK forbids them.
+ */
+async function flagFraud(db, { referrerUserId, referredUserId, reason, qualifyingEvent, deviceFingerprint, ip, referralCode }) {
+  await db.query(
+    `INSERT INTO referrals (
+      ref, referrer_user_id, referred_user_id, tier_level, status, fraud_reason,
+      qualifying_event, device_fingerprint, ip_address, meta_json
+    )
+    VALUES ($1, $2, $3, 1, 'FRAUD_FLAGGED', $4, $5, $6, $7, $8)
+    ON CONFLICT (referrer_user_id, referred_user_id) DO NOTHING`,
+    [
+      generateReferralLinkRef(),
+      referrerUserId,
+      referredUserId,
+      reason,
+      qualifyingEvent,
+      deviceFingerprint,
+      ip,
+      JSON.stringify({ codeUsed: referralCode }),
+    ]
+  );
+  return { attributed: false, isFraud: true, reason };
+}
+
+/**
  * Records referral attribution for a new user with multi-tier hierarchy & anti-fraud verification.
  */
 export async function recordReferralAttribution(db, cache, {
@@ -164,6 +193,10 @@ export async function recordReferralAttribution(db, cache, {
 
   const referrer = codeRows[0];
   const referrerUserId = Number(referrer.user_id);
+  const qualifyingEvent = settings?.qualifying_event || 'FIRST_ORDER';
+  const flag = (reason) => flagFraud(db, {
+    referrerUserId, referredUserId, reason, qualifyingEvent, deviceFingerprint, ip, referralCode,
+  });
 
   // 2. Anti-Fraud Check 1: Self-Referral
   if (referrerUserId === Number(referredUserId)) {
@@ -172,10 +205,10 @@ export async function recordReferralAttribution(db, cache, {
 
   // Cross-check matching phone or NID
   if (phone && referrer.referrer_phone && phone === referrer.referrer_phone) {
-    return { attributed: false, isFraud: true, reason: 'SELF_REFERRAL_PHONE_MATCH' };
+    return flag('SELF_REFERRAL_PHONE_MATCH');
   }
   if (nid && referrer.referrer_nid && nid === referrer.referrer_nid) {
-    return { attributed: false, isFraud: true, reason: 'SELF_REFERRAL_NID_MATCH' };
+    return flag('SELF_REFERRAL_NID_MATCH');
   }
 
   // Cross-check matching device fingerprint
@@ -187,7 +220,7 @@ export async function recordReferralAttribution(db, cache, {
       [referrerUserId, deviceFingerprint]
     );
     if (deviceMatches.length > 0) {
-      return { attributed: false, isFraud: true, reason: 'SELF_REFERRAL_DEVICE_MATCH' };
+      return flag('SELF_REFERRAL_DEVICE_MATCH');
     }
   }
 
@@ -199,7 +232,7 @@ export async function recordReferralAttribution(db, cache, {
     [referredUserId, referrerUserId]
   );
   if (circularCheck.length > 0) {
-    return { attributed: false, isFraud: true, reason: 'CIRCULAR_REFERRAL_DETECTED' };
+    return flag('CIRCULAR_REFERRAL_DETECTED');
   }
 
   // 4. Anti-Fraud Check 3: Velocity Limit
@@ -209,12 +242,14 @@ export async function recordReferralAttribution(db, cache, {
     [referrerUserId]
   );
   if ((velocityRows[0]?.count || 0) >= dailyVelocityLimit) {
-    return { attributed: false, isFraud: true, reason: 'VELOCITY_LIMIT_EXCEEDED' };
+    return flag('VELOCITY_LIMIT_EXCEEDED');
   }
 
   // 5. Multi-Tier Referral Construction (Tier 1 and Tier 2)
   const tier1Ref = generateReferralLinkRef();
-  const qualifyingEvent = settings?.qualifying_event || 'FIRST_ORDER';
+  // WHY max_tier_depth is read here: the admin page writes it, but nothing enforced it, so depth 1
+  // still minted tier-2 rows and paid them.
+  const maxTierDepth = Number(settings?.max_tier_depth ?? 2);
 
   const { rows: tier1Rows } = await db.query(
     `INSERT INTO referrals (
@@ -255,7 +290,7 @@ export async function recordReferralAttribution(db, cache, {
   );
 
   let tier2Referral = null;
-  if (upstreamRows.length > 0) {
+  if (maxTierDepth >= 2 && upstreamRows.length > 0) {
     const tier2ReferrerId = Number(upstreamRows[0].referrer_user_id);
     // Ensure no circular loop at tier 2
     if (tier2ReferrerId !== Number(referredUserId)) {
@@ -321,7 +356,11 @@ export async function evaluateQualifyingEvent(db, cache, {
 
   const earningsCreated = [];
 
+  const maxTierDepth = Number(settings?.max_tier_depth ?? 2);
+
   for (const ref of pendingReferrals) {
+    // A tier-2 row minted earlier stops paying once the admin lowers the depth to 1.
+    if (ref.tier_level > maxTierDepth) continue;
     const ratePct = ref.tier_level === 1 ? tier1Rate : tier2Rate;
     const commissionAmount = Number(((orderAmount * ratePct) / 100).toFixed(2));
 

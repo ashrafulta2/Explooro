@@ -11,7 +11,7 @@ import { t } from '../../services/i18n.js';
 import { Button } from '../../components/ui/Button.js';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.js';
 
-export default function RegisterPage(container, { query = {}, navigate }) {
+export default function RegisterPage(container, { query = {}, params = {}, navigate }) {
   container.replaceChildren();
 
   const redirectPath = query.redirect ? decodeURIComponent(query.redirect) : '/';
@@ -185,6 +185,24 @@ export default function RegisterPage(container, { query = {}, navigate }) {
   nameInput.setAttribute('aria-label', t('auth.register.name_label'));
   nameField.append(nameLabel, nameInput);
 
+  // Referral code (optional). Prefilled from /join/:slug or ?ref=CODE, which are the links the
+  // Referral Hub shares. The server judges the code; a wrong one never blocks sign-up.
+  const referralField = document.createElement('div');
+  referralField.className = 'auth-field';
+  const referralLabel = document.createElement('label');
+  referralLabel.className = 'auth-field__label';
+  referralLabel.htmlFor = 'register-referral';
+  referralLabel.textContent = t('auth.register.referral_label');
+  const referralInput = document.createElement('input');
+  referralInput.id = 'register-referral';
+  referralInput.className = 'auth-field__input';
+  referralInput.type = 'text';
+  referralInput.maxLength = 60;
+  referralInput.autocomplete = 'off';
+  referralInput.placeholder = t('auth.register.referral_placeholder');
+  referralInput.value = String(params?.slug || query.ref || '').trim();
+  referralField.append(referralLabel, referralInput);
+
   // Password
   const EYE_ICON_SVG =
     '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
@@ -263,6 +281,7 @@ export default function RegisterPage(container, { query = {}, navigate }) {
         role: selectedRole,
         name,
         password,
+        referralCode: referralInput.value.trim() || undefined,
       });
 
       // Send OTP code to verify the chosen contact method
@@ -287,7 +306,7 @@ export default function RegisterPage(container, { query = {}, navigate }) {
     }
   });
 
-  form.append(roleSection, phoneField, emailField, nameField, passwordField, errorDiv, submitBtn);
+  form.append(roleSection, phoneField, emailField, nameField, passwordField, referralField, errorDiv, submitBtn);
 
   // Footer / Login link
   const footer = document.createElement('div');
