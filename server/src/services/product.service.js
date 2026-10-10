@@ -12,6 +12,7 @@ import * as recoCache from './recoCache.service.js';
 import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.js';
 import { runAuction as runAdAuction } from './ads.service.js';
 import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.js';
+import { getReservedForProduct } from './teamStockReservation.service.js';
 
 /**
  * WHY it swallows errors: the scorecard is decoration on the catalog, not the catalog. A missing
@@ -400,9 +401,17 @@ export async function getProductDetail(db, idOrRefOrSlug) {
     productRepo.getSupplierInfo(db, product.supplier_id),
   ]);
 
+  // WHY beside, not instead of, stock_qty: the admin editor loads this row and writes stock_qty back on
+  // save, so it must stay the raw count. Shoppers read available_qty (net of open-team reservations).
+  const reservedQty = await getReservedForProduct(db, product.id);
+  const availableQty = Math.max(0, Number(product.stock_qty) - reservedQty);
+
   const driver = getStorageDriver();
   const variants = variantRows.map((v) => ({
     ...v,
+    // Variants have no reservation of their own (teams reserve at product level), so a variant can
+    // never offer more than the product has left; the cart applies the same min().
+    available_qty: Math.max(0, Math.min(Number(v.stock_qty), availableQty)),
     image_url: v.image_storage_key ? driver.getPublicUrl(v.image_storage_key) : null,
   }));
   const images = imageRows.map((img) => ({
@@ -424,7 +433,7 @@ export async function getProductDetail(db, idOrRefOrSlug) {
     response_time_bn: RESPONSE_TIME_BY_TIER[tier]?.hours_bn,
   };
 
-  return { ...product, pricing, variants, images, supplier: supplierInfo };
+  return { ...product, reserved_qty: reservedQty, available_qty: availableQty, pricing, variants, images, supplier: supplierInfo };
 }
 
 export async function listCatalog(db, filters = {}) {

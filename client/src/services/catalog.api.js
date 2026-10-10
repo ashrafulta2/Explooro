@@ -26,7 +26,7 @@ function normalizeTier(tier) {
  * photography exists yet) don't share a wire shape — normalize once here so every component below
  * this call only ever sees one shape, regardless of VITE_API_MODE.
  */
-function normalizeProduct(product) {
+export function normalizeProduct(product) {
   if (!product) return product;
   const fallbackUrl = resolveProductImage(product);
   const rawImages = (product.images && product.images.length > 0) ? product.images : [];
@@ -52,12 +52,16 @@ function normalizeProduct(product) {
     ...product,
     image_url: product.image_url || fallbackUrl,
     primary_image_url: product.primary_image_url || fallbackUrl,
+    // WHY available_qty: the server keeps stock_qty raw (the admin editor writes it back on save) and
+    // sends what can actually be bought, net of open-team reservations, beside it. Everything below
+    // this call reads stock_qty, so it is swapped once here for shoppers.
+    stock_qty: product.available_qty ?? product.stock_qty,
     variants: (product.variants || []).map((v) => ({
       id: v.id,
       sku: v.sku,
       attributes: v.attributes || v.attributes_json || {},
       price_delta: Number(v.price_delta) || 0,
-      stock_qty: v.stock_qty ?? 0,
+      stock_qty: v.available_qty ?? v.stock_qty ?? 0,
       is_active: v.is_active !== false,
       image_url: v.image_url || null,
       image_index: v.image_index ?? null,
