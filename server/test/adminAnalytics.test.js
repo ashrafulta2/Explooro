@@ -370,6 +370,10 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
     assert.equal(byName.coin_expiry.last_run, null);
     assert.equal(byName.coin_expiry.module_key, 'loyalty_coins');
     assert.equal(byName.coin_expiry.interval_ms, 24 * 3600000);
+    // A job with a module always reports whether that module is on (true/false, or null if unknown),
+    // so "never ran" can be told apart from "switched off".
+    assert.ok([true, false, null].includes(byName.coin_expiry.module_enabled));
+    assert.equal(jobs.every((j) => j.module_key || j.module_enabled === true), true);
     assert.equal(byName.referral_release.last_run.status, 'COMPLETED');
     assert.equal(byName.referral_release.last_run.processed_count, 3);
     assert.deepEqual(jobs.map((j) => j.name), [...jobs.map((j) => j.name)].sort());

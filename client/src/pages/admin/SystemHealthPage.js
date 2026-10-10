@@ -141,7 +141,10 @@ export default function SystemHealthPage(root, { navigate } = {}) {
       ? healthData.jobs.map((j) => ({
         job_name: j.name,
         schedule: scheduleLabel(j.interval_ms),
-        status: j.last_run?.status || 'NEVER_RUN',
+        module_key: j.module_key || null,
+        module_enabled: j.module_enabled,
+        // A switched-off module is not a failure: the scheduler skips it without writing a run.
+        status: j.last_run?.status || (j.module_enabled === false ? 'MODULE_OFF' : 'NEVER_RUN'),
         started_at: j.last_run?.started_at || null,
         duration_ms: j.last_run?.duration_ms ?? null,
         processed_count: j.last_run?.processed_count ?? null,
@@ -508,6 +511,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
                         <span style="font-family: var(--font-mono); font-weight: 700; color: var(--text-primary);">
                           ${jobName}
                         </span>
+                        ${j.module_key ? `<div style="font-size: 11px; color: var(--text-muted);">${isBn ? 'মডিউল' : 'Module'}: ${j.module_key}</div>` : ''}
                       </td>
                       <td>
                         ${schedule ? `<span class="badge badge--neutral" style="font-size: 11px;">${schedule}</span>` : '—'}

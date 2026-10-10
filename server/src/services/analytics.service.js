@@ -13,6 +13,7 @@ import { createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.js';
 import * as recoCache from './recoCache.service.js';
 import { listRegisteredJobs } from '../jobs/scheduler.js';
+import * as moduleService from './module.service.js';
 
 // ---------------------------------------------------------------------------
 // Sales breakdowns (categories + channels) — derived from real orders
@@ -743,7 +744,16 @@ export async function getSystemHealth(db, cache = null, { metrics = null, config
      ORDER BY job_name, started_at DESC`
   );
   const lastRunByJob = new Map(lastRuns.filter((r) => r.job_name).map((r) => [r.job_name, r]));
-  const jobCatalogue = listRegisteredJobs().map((j) => ({ ...j, last_run: lastRunByJob.get(j.name) || null }));
+  // WHY module_enabled: the scheduler skips a job whose module is off WITHOUT writing a job_runs row,
+  // so "never ran" alone cannot tell an admin whether the job is broken or simply switched off.
+  // null = could not be determined; a job with no module is always enabled.
+  const jobCatalogue = await Promise.all(listRegisteredJobs().map(async (j) => {
+    let moduleEnabled = true;
+    if (j.module_key) {
+      try { moduleEnabled = await moduleService.isEnabled(db, cache, j.module_key); } catch { moduleEnabled = null; }
+    }
+    return { ...j, module_enabled: moduleEnabled, last_run: lastRunByJob.get(j.name) || null };
+  }));
 
   // 2. Webhook deliveries health
   // WHY 'DELIVERED' / no .catch: 'SUCCESS' is not a webhook_deliveries status (PENDING, DELIVERED,
