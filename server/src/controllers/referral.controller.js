@@ -15,6 +15,17 @@ export async function getOverview(req, reply) {
   });
 }
 
+export async function simulate(req, reply) {
+  const db = req.db || req.server?.db;
+  const { event_type, type, amount } = req.body || {};
+  return reply.send({
+    simulation: await referralService.simulateEarnings(db, {
+      eventType: event_type || (type === 'ORDER' ? 'FIRST_ORDER' : type) || 'FIRST_ORDER',
+      orderAmount: amount ?? 0,
+    }),
+  });
+}
+
 export async function getTree(req, reply) {
   const db = req.db || req.server?.db;
   const user = req.user;

@@ -72,6 +72,57 @@ export function commissionFor(eventType, tierLevel, { orderAmount = 0, settings 
   return { amount, ratePct, baseAmount: null };
 }
 
+/** The part of the live rules a member may see: what they would earn and when it becomes theirs. */
+export function publicProgramRules(settings = {}) {
+  const num = (v, d) => (Number.isFinite(Number(v)) && v !== null && v !== undefined ? Number(v) : d);
+  return {
+    qualifying_event: settings.qualifying_event || 'FIRST_ORDER',
+    tier_1_rate_pct: num(settings.tier_1_rate_pct, 5),
+    tier_2_rate_pct: num(settings.tier_2_rate_pct, 2),
+    max_tier_depth: num(settings.max_tier_depth, 2),
+    holding_period_days: num(settings.holding_period_days, 7),
+    signup_bonus_bdt: num(settings.signup_bonus_bdt, 0),
+    first_sale_bonus_bdt: num(settings.first_sale_bonus_bdt, 0),
+    kyc_bonus_bdt: num(settings.kyc_bonus_bdt, 0),
+  };
+}
+
+export const SIMULATION_EVENTS = Object.freeze(['FIRST_ORDER', 'SIGNUP', 'FIRST_SALE', 'KYC_VERIFIED']);
+export const SIMULATION_MAX_ORDER_BDT = 10_000_000;
+
+/**
+ * Dry run: what one referral would pay for one event under the rules saved right now, and when it
+ * would be released. WHY read-only and not a "QA simulator" that writes: a button that mints
+ * referrals or earnings is a fraud surface on a live platform. This answers the same question
+ * ("what would happen?") through the same commissionFor the engine pays with, and touches nothing.
+ */
+export async function simulateEarnings(db, { eventType = 'FIRST_ORDER', orderAmount = 0 } = {}) {
+  if (!SIMULATION_EVENTS.includes(eventType)) {
+    throw new AppError('VALIDATION_FAILED', `event_type must be one of ${SIMULATION_EVENTS.join(', ')}.`, 'ইভেন্টের ধরন সঠিক নয়।');
+  }
+  const amount = Number(orderAmount);
+  if (!Number.isFinite(amount) || amount < 0 || amount > SIMULATION_MAX_ORDER_BDT) {
+    throw new AppError('VALIDATION_FAILED', `amount must be between 0 and ${SIMULATION_MAX_ORDER_BDT}.`, 'পরিমাণ সঠিক নয়।');
+  }
+  const settings = await getReferralSettings(db);
+  const rules = publicProgramRules(settings);
+  const tiers = [];
+  for (let tier = 1; tier <= rules.max_tier_depth; tier += 1) {
+    const { amount: commission, ratePct, baseAmount } = commissionFor(eventType, tier, { orderAmount: amount, settings });
+    tiers.push({ tier, rate_pct: baseAmount === null ? null : ratePct, amount: commission.toFixed(2) });
+  }
+  return {
+    dry_run: true,
+    event_type: eventType,
+    order_amount: EVENT_HAS_ORDER(eventType) ? amount.toFixed(2) : null,
+    pays_on_this_event: rules.qualifying_event === eventType,
+    holding_period_days: rules.holding_period_days,
+    tiers,
+  };
+}
+
+const EVENT_HAS_ORDER = (eventType) => !FIXED_BONUS_KEYS[eventType];
+
 function generateReferralCode() {
   const code = randomBytes(3).toString('hex').toUpperCase();
   return `REF-${code}`;
@@ -537,6 +588,7 @@ export async function getReferralNetworkOverview(db, userId) {
     signups_count: codeRecord.signups_count,
     stats: stats[0] || { total_referrals: 0, tier1_count: 0, tier2_count: 0, qualified_count: 0, pending_count: 0 },
     earnings: earningStats[0] || { total_earnings: '0.00', pending_escrow: '0.00', available_earnings: '0.00' },
+    program: publicProgramRules(await getReferralSettings(db)),
   };
 }
 

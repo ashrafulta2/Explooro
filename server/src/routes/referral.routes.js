@@ -50,6 +50,13 @@ export default async function referralRoutes(app) {
     preHandler: [app.authenticate, requireReferralModule, requireViewOwn],
   }, referralController.updateCustomSlug);
 
+  // Read-only dry run, so it is a POST only because it takes a body. It never writes.
+  for (const path of ['/saler/referrals/simulate', '/referrals/simulate', '/account/referrals/simulate']) {
+    app.post(path, {
+      preHandler: [app.authenticate, requireReferralModule, requireViewOwn],
+    }, referralController.simulate);
+  }
+
   // 2. Admin Referral Governance
   app.get('/admin/growth/referrals', {
     preHandler: [app.authenticate, requireReferralModule, requireGovern],

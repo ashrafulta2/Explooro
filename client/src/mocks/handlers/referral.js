@@ -24,6 +24,17 @@ let mockOverview = {
     coins_per_signup: 100,
   },
   tier_badge: 'GOLD_VIP',
+  // The live rules a member may see (server: publicProgramRules). Numbers here are fixtures, not policy.
+  program: {
+    qualifying_event: 'FIRST_ORDER',
+    tier_1_rate_pct: 5,
+    tier_2_rate_pct: 2,
+    max_tier_depth: 2,
+    holding_period_days: 7,
+    signup_bonus_bdt: 50,
+    first_sale_bonus_bdt: 200,
+    kyc_bonus_bdt: 100,
+  },
   next_tier_progress: {
     current: 14,
     target: 20,
@@ -296,82 +307,41 @@ export const referralHandlers = [
     },
   },
 
-  // QA Simulation endpoints
+  // Read-only dry run: mirrors referral.service.js simulateEarnings and never touches the mock state.
   {
     method: 'POST',
     path: '/saler/referrals/simulate',
     handler: ({ body }) => {
-      const type = body?.type || 'SIGNUP';
-      if (type === 'SIGNUP') {
-        const newId = Date.now();
-        const names = ['Arif Chowdhury', 'Nabila Haque', 'Zubair Al Mamun', 'Sultana Razia', 'Ashiqur Rahman'];
-        const randomName = names[Math.floor(Math.random() * names.length)];
-        const newNode = {
-          id: newId,
-          ref: `REF-LK-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
-          referee_name: `${randomName} (Test ${mockTree.length + 1})`,
-          referee_email: `test.${newId}@example.com`,
-          tier_level: 1,
-          status: 'PENDING',
-          joined_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-          earned_from_referee: '0.00',
-        };
-        mockTree.unshift(newNode);
-        mockOverview.signups_count += 1;
-        mockOverview.stats.total_referrals += 1;
-        mockOverview.stats.tier1_count += 1;
-        mockOverview.stats.pending_count += 1;
-        mockOverview.coins.coins_earned += 100;
-        return {
-          status: 200,
-          body: { success: true, message: `Simulated signup for ${newNode.referee_name} (+100 Coins awarded)` },
-        };
+      const eventType = body?.event_type || (body?.type === 'ORDER' ? 'FIRST_ORDER' : body?.type) || 'FIRST_ORDER';
+      const amount = Number(body?.amount ?? 0);
+      const p = mockOverview.program;
+      const bonusKey = { SIGNUP: 'signup_bonus_bdt', FIRST_SALE: 'first_sale_bonus_bdt', KYC_VERIFIED: 'kyc_bonus_bdt' }[eventType];
+      const tiers = [];
+      for (let tier = 1; tier <= p.max_tier_depth; tier += 1) {
+        const rate = tier === 1 ? p.tier_1_rate_pct : p.tier_2_rate_pct;
+        const scale = tier === 1 || !p.tier_1_rate_pct ? 1 : p.tier_2_rate_pct / p.tier_1_rate_pct;
+        const value = bonusKey ? p[bonusKey] * (tier === 1 ? 1 : scale) : (amount * rate) / 100;
+        tiers.push({ tier, rate_pct: bonusKey ? null : rate, amount: value.toFixed(2) });
       }
-
-      if (type === 'ORDER') {
-        const orderAmount = Number(body?.amount || 2500);
-        const commRate = 5.0;
-        const commAmount = (orderAmount * commRate) / 100;
-        const targetNode = mockTree[0] || { referee_name: 'Test Referee', ref: 'REF-DEMO' };
-        targetNode.status = 'QUALIFIED';
-        targetNode.earned_from_referee = (Number(targetNode.earned_from_referee || 0) + commAmount).toFixed(2);
-
-        const newTx = {
-          id: Date.now(),
-          referral_ref: targetNode.ref,
-          referee_name: targetNode.referee_name,
-          tier_level: 1,
-          order_amount: orderAmount.toFixed(2),
-          commission_rate_pct: commRate,
-          commission_amount: commAmount.toFixed(2),
-          status: 'PENDING_ESCROW',
-          escrow_release_at: new Date(Date.now() + 7 * 86400000).toISOString(),
-          created_at: new Date().toISOString(),
-        };
-        mockStatement.unshift(newTx);
-
-        mockOverview.stats.qualified_count += 1;
-        if (mockOverview.stats.pending_count > 0) mockOverview.stats.pending_count -= 1;
-        mockOverview.earnings.total_earnings = (Number(mockOverview.earnings.total_earnings) + commAmount).toFixed(2);
-        mockOverview.earnings.pending_escrow = (Number(mockOverview.earnings.pending_escrow) + commAmount).toFixed(2);
-
-        return {
-          status: 200,
-          body: { success: true, message: `Simulated ৳${orderAmount} order: ৳${commAmount.toFixed(2)} commission placed into escrow!` },
-        };
-      }
-
       return {
         status: 200,
-        body: { success: true },
+        body: {
+          simulation: {
+            dry_run: true,
+            event_type: eventType,
+            order_amount: bonusKey ? null : amount.toFixed(2),
+            pays_on_this_event: p.qualifying_event === eventType,
+            holding_period_days: p.holding_period_days,
+            tiers,
+          },
+        },
       };
     },
   },
   {
     method: 'POST',
     path: '/referrals/simulate',
-    handler: ({ body }) => referralHandlers.find((h) => h.path === '/saler/referrals/simulate').handler({ body }),
+    handler: (ctx) => referralHandlers.find((h) => h.path === '/saler/referrals/simulate').handler(ctx),
   },
 
   // Admin governance overview — powers /admin/growth/referrals (docs/ia-sitemap.md: "Referral rules").

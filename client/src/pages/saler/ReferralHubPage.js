@@ -21,6 +21,7 @@ import { getExplooroLogoSvg, ICONS } from '../../components/ui/icons.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { goBack } from '../../core/navBack.js';
+import { estimateEarnings, programOf } from './referralEstimate.js';
 
 export class ReferralHubPage {
   constructor(ctx = {}) {
@@ -34,6 +35,7 @@ export class ReferralHubPage {
     this.searchQuery = '';
     this.calcFriends = 10;
     this.calcSpend = 4000;
+    this.sim = { event: 'FIRST_ORDER', amount: 2500, result: null };
     this.loading = true;
     this.rootEl = null;
     this.unsubscribeLang = null;
@@ -537,11 +539,8 @@ export class ReferralHubPage {
   }
 
   _renderCalcTab(isBn) {
-    const directEarn = (this.calcFriends * this.calcSpend * 0.05);
-    const subFriends = Math.round(this.calcFriends * 1.5);
-    const subEarn = (subFriends * this.calcSpend * 0.02);
-    const totalEstCash = Math.round(directEarn + subEarn);
-    const totalCoins = this.calcFriends * 100;
+    const { direct: directEarn, sub: subEarn, total: totalEstCash } = estimateEarnings(programOf(this.overview), this.calcFriends, this.calcSpend);
+    const totalCoins = this.calcFriends * (this.overview?.coins?.coins_per_signup ?? 0);
 
     return `
       <div class="referral-card">
@@ -611,12 +610,12 @@ export class ReferralHubPage {
 
           <div class="referral-faq-item">
             <h4 class="referral-faq-q">${t('referrals.faq_q1', '২-স্তরের রেফারেল কমিশন কীভাবে কাজ করে?')}</h4>
-            <p class="referral-faq-a">${t('referrals.faq_a1', 'আপনার লিংকে কেউ যুক্ত হলে (টিয়ার ১), তার সফল কেনাকাটা বা বিক্রির ওপর আপনি ৫% কমিশন পাবেন। আবার সেই বন্ধু কাউকে যুক্ত করলে (টিয়ার ২), আপনি তার থেকেও ২% কমিশন আজীবন পাবেন!')}</p>
+            <p class="referral-faq-a">${t('referrals.faq_a1', { t1: programOf(this.overview).tier_1_rate_pct, t2: programOf(this.overview).tier_2_rate_pct })}</p>
           </div>
 
           <div class="referral-faq-item">
             <h4 class="referral-faq-q">${t('referrals.faq_q2', 'কমিশনের টাকা কখন এবং কীভাবে পাব?')}</h4>
-            <p class="referral-faq-a">${t('referrals.faq_a2', 'কমিশন ৭ দিনের রিটার্ন উইন্ডোর জন্য এসক্রোতে হোল্ড থাকে। ৭ দিন পর তা সরাসরি আপনার ভল্ট ওয়ালেটে জমা হয়, যা বিকাশ, নগদ বা ব্যাংকে ক্যাশআউট করা যায়।')}</p>
+            <p class="referral-faq-a">${t('referrals.faq_a2', { days: programOf(this.overview).holding_period_days })}</p>
           </div>
 
           <div class="referral-faq-item">
@@ -628,23 +627,42 @@ export class ReferralHubPage {
     `;
   }
 
+  // WHY a dry run and not the old "QA simulator": that wrote fake referrals and earnings, which only
+  // ever worked against the mock and would be a fraud surface on a live platform. This asks the server
+  // what one referral would pay under the rules saved right now, and nothing is created.
   _renderQaTab(isBn) {
+    const events = ['FIRST_ORDER', 'SIGNUP', 'FIRST_SALE', 'KYC_VERIFIED'];
+    const { sim } = this;
+    const result = sim.result;
+    const rows = result
+      ? result.tiers.map((row) => `<li><strong>${t('referrals.sim_tier', { tier: row.tier })}</strong>: ৳${Number(row.amount).toLocaleString()}${row.rate_pct === null ? '' : ` (${row.rate_pct}%)`}</li>`).join('')
+      : '';
     return `
       <div class="referral-card p-6" style="padding: 24px;">
         <div class="referral-qa-box">
           <h3 class="referral-qa-title">
-            🧪 ${t('referrals.qa_title', 'ডেভেলপার ও কিউএ সিমুলেশন টুলস')}
+            🧪 ${t('referrals.qa_title')}
           </h3>
           <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 0;">
-            ${t('referrals.qa_desc', 'রেফারেল ইভেন্ট লাইভ টেস্ট করুন এবং তাৎক্ষণিক আপডেট দেখুন:')}
+            ${t('referrals.qa_desc')}
           </p>
           <div class="referral-qa-actions">
-            <button id="btn-qa-signup" class="btn btn--primary btn--sm">
-              ➕ ${t('referrals.qa_btn_signup', 'নতুন বন্ধু সাইনআপ সিমুলেট করুন (+১০০ কয়েন)')}
-            </button>
-            <button id="btn-qa-order" class="btn btn--outline btn--sm">
-              🛍️ ${t('referrals.qa_btn_order', '৳২,৫০০ অর্ডারের কমিশন সিমুলেট করুন (+৳১২৫ এসক্রো)')}
-            </button>
+            <label for="sim-event">${t('referrals.sim_event_label')}</label>
+            <select id="sim-event" class="input">
+              ${events.map((e) => `<option value="${e}" ${sim.event === e ? 'selected' : ''}>${t(`referrals.sim_event_${e}`)}</option>`).join('')}
+            </select>
+            ${sim.event === 'FIRST_ORDER' ? `
+              <label for="sim-amount">${t('referrals.sim_amount_label')}</label>
+              <input id="sim-amount" class="input" type="number" min="0" step="100" value="${sim.amount}" />` : ''}
+            <button id="btn-sim-run" class="btn btn--primary btn--sm" type="button">${t('referrals.sim_btn_run')}</button>
+          </div>
+          <div id="sim-result" aria-live="polite">
+            ${result ? `
+              <ul style="list-style: none; padding: 0; margin: 12px 0 0;">${rows}</ul>
+              <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 8px 0 0;">
+                ${result.pays_on_this_event ? t('referrals.sim_pays_yes') : t('referrals.sim_pays_no')}
+                ${t('referrals.sim_hold', { days: result.holding_period_days })}
+              </p>` : ''}
           </div>
         </div>
       </div>
@@ -754,41 +772,29 @@ export class ReferralHubPage {
         if (elFriends) elFriends.textContent = `${this.calcFriends} ${isBn ? 'জন' : 'friends'}`;
         if (elSpend) elSpend.textContent = `৳${this.calcSpend.toLocaleString()}`;
         if (elCash) {
-          const direct = this.calcFriends * this.calcSpend * 0.05;
-          const sub = Math.round(this.calcFriends * 1.5) * this.calcSpend * 0.02;
-          elCash.textContent = `৳${Math.round(direct + sub).toLocaleString()}`;
+          elCash.textContent = `৳${estimateEarnings(programOf(this.overview), this.calcFriends, this.calcSpend).total.toLocaleString()}`;
         }
       };
       sliderFriends.addEventListener('input', updateCalc);
       sliderSpend.addEventListener('input', updateCalc);
     }
 
-    // QA Simulator actions
-    const btnQaSignup = this.rootEl.querySelector('#btn-qa-signup');
-    if (btnQaSignup) {
-      btnQaSignup.addEventListener('click', async () => {
-        try {
-          const res = await api.post('/saler/referrals/simulate', { type: 'SIGNUP' }).catch(() =>
-            api.post('/referrals/simulate', { type: 'SIGNUP' })
-          );
-          toast.success(res.message || 'Simulated new referral signup (+100 Coins)!');
-          await this.fetchData();
-          this.render();
-        } catch (err) {
-          toast.error(err.message || 'Simulation error');
-        }
+    // Earnings simulator: a read-only dry run against the programme rules saved right now.
+    const simEvent = this.rootEl.querySelector('#sim-event');
+    if (simEvent) {
+      simEvent.addEventListener('change', () => {
+        this.sim = { ...this.sim, event: simEvent.value, result: null };
+        this.render();
       });
     }
-
-    const btnQaOrder = this.rootEl.querySelector('#btn-qa-order');
-    if (btnQaOrder) {
-      btnQaOrder.addEventListener('click', async () => {
+    const btnSim = this.rootEl.querySelector('#btn-sim-run');
+    if (btnSim) {
+      btnSim.addEventListener('click', async () => {
+        const amountEl = this.rootEl.querySelector('#sim-amount');
+        const amount = amountEl ? Number(amountEl.value) : 0;
         try {
-          const res = await api.post('/saler/referrals/simulate', { type: 'ORDER', amount: 2500 }).catch(() =>
-            api.post('/referrals/simulate', { type: 'ORDER', amount: 2500 })
-          );
-          toast.success(res.message || 'Simulated qualifying ৳2,500 order (+৳125 Escrow)!');
-          await this.fetchData();
+          const res = await api.post('/saler/referrals/simulate', { event_type: this.sim.event, amount });
+          this.sim = { ...this.sim, amount: amountEl ? amount : this.sim.amount, result: res.simulation };
           this.render();
         } catch (err) {
           toast.error(err.message || 'Simulation error');
