@@ -37,4 +37,22 @@ describe('live in-stream quote (mock)', () => {
     assert.match(read('services/live.api.js'), /\/live\/streams\/\$\{streamId\}\/quote/);
     assert.match(read('pages/LiveStreamPage.js'), /getInStreamQuote\(streamId/);
   });
+
+  it('the drawer has a quantity stepper that re-quotes and sends the chosen quantity', () => {
+    const src = read('pages/LiveStreamPage.js');
+    assert.match(src, /id="chk-qty-inc"/);
+    assert.match(src, /quantity: qty,[\s]*recipient_name/);
+    assert.match(src, /getInStreamQuote\(streamId, \{ productId: [^}]*quantity: qty \}\)/);
+    // a slow answer for an earlier quantity must not overwrite a later one
+    assert.match(src, /if \(seq !== quoteSeq\) return;/);
+  });
+
+  it('the stepper strings exist in both languages', () => {
+    for (const lang of ['en', 'bn']) {
+      const live = JSON.parse(read(`locales/${lang}.json`)).live;
+      for (const k of ['chk_qty_label', 'chk_qty_dec', 'chk_qty_inc', 'chk_only_left']) {
+        assert.ok(live[k], `${lang}.live.${k}`);
+      }
+    }
+  });
 });

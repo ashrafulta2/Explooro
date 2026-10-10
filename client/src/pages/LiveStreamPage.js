@@ -1087,6 +1087,16 @@ function openInStreamCheckoutDrawer(product, streamId) {
         </select>
       </div>
 
+      <div class="form-group">
+        <label for="chk-qty">${t('live.chk_qty_label') || 'Quantity'}</label>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" class="btn btn--secondary" id="chk-qty-dec" aria-label="${t('live.chk_qty_dec') || 'Decrease quantity'}">−</button>
+          <output id="chk-qty" aria-live="polite" style="min-width: 28px; text-align: center; font-weight: 600;">1</output>
+          <button type="button" class="btn btn--secondary" id="chk-qty-inc" aria-label="${t('live.chk_qty_inc') || 'Increase quantity'}">+</button>
+        </div>
+        <span class="form-hint" id="chk-stock-hint" style="font-size: 11px; color: var(--text-muted);"></span>
+      </div>
+
       <div class="form-group" id="chk-otp-group" hidden>
         <label for="chk-otp">${t('live.chk_otp_label') || 'SMS confirmation code'}</label>
         <input type="text" id="chk-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="input" />
@@ -1131,21 +1141,69 @@ function openInStreamCheckoutDrawer(product, streamId) {
 
   // WHY one flat charge: the server bills the platform's per-parcel delivery charge for a live order,
   // whatever the division, so the total follows that number instead of a guessed Dhaka/other split.
-  loadDeliveryCharge().then((ship) => {
-    if (ship !== null) totalEl.textContent = formatBdt(retailPrice + ship);
-  });
+  let qty = 1;
+  let maxQty = Infinity;
+  let shipEstimate = knownDeliveryCharge() ?? 0;
+  let quoteSeq = 0;
+  const qtyEl = drawerContent.querySelector('#chk-qty');
+  const decBtn = drawerContent.querySelector('#chk-qty-dec');
+  const incBtn = drawerContent.querySelector('#chk-qty-inc');
+  const stockHint = drawerContent.querySelector('#chk-stock-hint');
+
+  const syncStepper = () => {
+    qtyEl.textContent = String(qty);
+    decBtn.disabled = qty <= 1;
+    incBtn.disabled = qty >= maxQty;
+  };
+  const showEstimate = () => {
+    totalEl.textContent = formatBdt(retailPrice * qty + shipEstimate);
+  };
   // WHY ask the server: its quote is the figure that will be billed (price, delivery charge, stock), so
-  // it overrides the estimate above whenever it arrives. A failed quote keeps the estimate.
-  getInStreamQuote(streamId, { productId: product.product_id || product.id, quantity: 1 }).then((res) => {
-    const quote = res?.data?.quote ?? res?.quote;
-    if (!quote) return;
-    drawerContent.querySelector('#chk-price').textContent = formatBdt(quote.unit_price);
-    totalEl.textContent = formatBdt(quote.total_amount);
-    if (!quote.in_stock) {
-      confirmBtn.disabled = true;
-      toast.error(t('live.chk_out_of_stock') || 'This deal is sold out.');
-    }
-  }).catch(() => {});
+  // it overrides the local estimate whenever it arrives. A failed quote keeps the estimate. Each call
+  // carries a sequence number so a slow answer for an earlier quantity cannot overwrite a later one.
+  const refreshQuote = () => {
+    const seq = ++quoteSeq;
+    getInStreamQuote(streamId, { productId: product.product_id || product.id, quantity: qty }).then((res) => {
+      if (seq !== quoteSeq) return;
+      const quote = res?.data?.quote ?? res?.quote;
+      if (!quote) return;
+      drawerContent.querySelector('#chk-price').textContent = formatBdt(quote.unit_price);
+      totalEl.textContent = formatBdt(quote.total_amount);
+      maxQty = Math.max(1, Number(quote.available_stock) || 1);
+      stockHint.textContent = quote.available_stock > 0 && quote.available_stock <= 10
+        ? (t('live.chk_only_left') || 'Only {{n}} left').replace('{{n}}', String(quote.available_stock))
+        : '';
+      confirmBtn.disabled = !quote.in_stock;
+      if (!quote.in_stock) {
+        toast.error(t('live.chk_out_of_stock') || 'This deal is sold out.');
+      }
+      syncStepper();
+    }).catch(() => {});
+  };
+  decBtn.addEventListener('click', () => {
+    if (qty <= 1) return;
+    qty -= 1;
+    syncStepper();
+    showEstimate();
+    refreshQuote();
+  });
+  incBtn.addEventListener('click', () => {
+    if (qty >= maxQty) return;
+    qty += 1;
+    syncStepper();
+    showEstimate();
+    refreshQuote();
+  });
+  syncStepper();
+
+  // WHY one flat charge: the server bills the platform's per-parcel delivery charge for a live order,
+  // whatever the division, so the total follows that number instead of a guessed Dhaka/other split.
+  loadDeliveryCharge().then((ship) => {
+    if (ship === null) return;
+    shipEstimate = ship;
+    showEstimate();
+  });
+  refreshQuote();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1166,7 +1224,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
     try {
       const res = await inStreamBuy(streamId, {
         product_id: product.product_id || product.id,
-        quantity: 1,
+        quantity: qty,
         recipient_name: drawerContent.querySelector('#chk-name').value.trim(),
         recipient_phone: phoneVal,
         division: divSelect.value,
