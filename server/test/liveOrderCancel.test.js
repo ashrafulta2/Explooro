@@ -6,11 +6,11 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as orderService from '../src/services/order.service.js';
 
-function makeDb({ liveStreamId }) {
+function makeDb({ liveStreamId, couponId = null }) {
   const log = [];
   const order = {
     id: 9, ref: 'ORD-X', customer_id: 100, total_amount: '1210.00', discount_amount: '0.00',
-    coupon_id: null, live_stream_id: liveStreamId, placed_at: new Date().toISOString(),
+    coupon_id: couponId, live_stream_id: liveStreamId, placed_at: new Date().toISOString(),
   };
   const db = {
     log,
@@ -20,6 +20,8 @@ function makeDb({ liveStreamId }) {
       if (sql.includes('FROM orders o') && sql.includes('WHERE o.id')) return { rows: [order] };
       if (sql.includes('FROM sub_orders')) return { rows: [{ id: 5, order_id: 9, status: 'PLACED' }] };
       if (sql.includes('FROM order_items')) return { rows: [{ id: 6, sub_order_id: 5, product_id: 6, qty: 1 }] };
+      if (sql.includes('UPDATE coupons')) { log.push(['coupon_back', params]); return { rows: [] }; }
+      if (sql.includes('DELETE FROM coupon_redemptions')) { log.push(['redemption_deleted', params]); return { rows: [], rowCount: 1 }; }
       if (sql.includes('UPDATE live_streams')) { log.push(['reverse', params]); return { rows: [{ total_sales_count: 0, total_sales_amount: 0 }] }; }
       if (sql.includes('UPDATE products')) { log.push(['restock', params]); return { rows: [] }; }
       return { rows: [] };
@@ -43,5 +45,18 @@ describe('cancelOrder and live stream sales', () => {
     const db = makeDb({ liveStreamId: null });
     await orderService.cancelOrder(db, 9, user);
     assert.equal(db.log.some((l) => l[0] === 'reverse'), false);
+  });
+
+  test('a cancelled order gives its coupon back, including the per-user redemption', async () => {
+    const db = makeDb({ liveStreamId: 1, couponId: 7 });
+    await orderService.cancelOrder(db, 9, user);
+    assert.ok(db.log.some((l) => l[0] === 'coupon_back'));
+    assert.deepEqual(db.log.find((l) => l[0] === 'redemption_deleted')[1], [9]);
+  });
+
+  test('an order without a coupon deletes no redemption', async () => {
+    const db = makeDb({ liveStreamId: 1 });
+    await orderService.cancelOrder(db, 9, user);
+    assert.equal(db.log.some((l) => l[0] === 'redemption_deleted'), false);
   });
 });

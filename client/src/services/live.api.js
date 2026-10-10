@@ -38,8 +38,9 @@ export async function sendLiveReaction(streamId, emoji = '❤️') {
   return api.post(`/live/streams/${streamId}/reaction`, { emoji });
 }
 
-export async function getInStreamQuote(streamId, { productId, variantId = null, quantity = 1 }) {
+export async function getInStreamQuote(streamId, { productId, variantId = null, quantity = 1, couponCode = '' }) {
   const query = { product_id: Number(productId), quantity };
+  if (couponCode) query.coupon_code = couponCode;
   if (variantId) query.variant_id = Number(variantId);
   return api.get(`/live/streams/${streamId}/quote`, { query });
 }

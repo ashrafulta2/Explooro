@@ -496,7 +496,7 @@ export const liveHandlers = [
     method: 'GET',
     path: '/live/streams/:id/quote',
     handler({ params, query }) {
-      const quote = mockQuote(Number(params.id), Number(query?.product_id), Number(query?.quantity ?? 1));
+      const quote = mockQuote(Number(params.id), Number(query?.product_id), Number(query?.quantity ?? 1), query?.coupon_code);
       if (!quote) {
         return {
           status: 404,
@@ -512,7 +512,13 @@ export const liveHandlers = [
     handler({ params, body }) {
       const streamId = Number(params.id);
       const b = body || {};
-      const quote = mockQuote(streamId, Number(b.product_id), Number(b.quantity ?? 1));
+      const quote = mockQuote(streamId, Number(b.product_id), Number(b.quantity ?? 1), b.coupon_code);
+      if (quote?.coupon && !quote.coupon.valid) {
+        return {
+          status: 422,
+          body: { error: { code: 'COUPON_INVALID', message_en: quote.coupon.message_en, message_bn: quote.coupon.message_bn } },
+        };
+      }
       const orderRef = `ORD-LIVE-${Date.now().toString().slice(-6)}`;
       return {
         status: 201,
@@ -773,7 +779,10 @@ export const liveHandlers = [
  * Mirrors the server's quoteInStreamBuy: the stream product's price times quantity plus the mock
  * delivery charge (the same one the mock cart uses), so the drawer shows one figure in mock and live.
  */
-export function mockQuote(streamId, productId, quantity = 1) {
+// One demo code, so the drawer's coupon field has something to apply in mock mode.
+const MOCK_LIVE_COUPONS = { LIVE10: 10 };
+
+export function mockQuote(streamId, productId, quantity = 1, couponCode = '') {
   const stream = mockLiveStreams.find((s) => s.id === streamId);
   if (!stream) return null;
   const candidates = [stream.pinned_product, ...(stream.products || [])].filter(Boolean);
@@ -783,6 +792,18 @@ export function mockQuote(streamId, productId, quantity = 1) {
   const qty = Number.isInteger(quantity) && quantity >= 1 ? quantity : 1;
   const shipping = mockDeliveryCharge();
   const stock = Number(item.stock ?? 0);
+  let discount = 0;
+  let coupon = null;
+  const code = String(couponCode || '').trim().toUpperCase();
+  if (code) {
+    const pct = MOCK_LIVE_COUPONS[code];
+    if (pct) {
+      discount = Math.round(unit * qty * pct) / 100;
+      coupon = { code, valid: true, discount_amount: discount };
+    } else {
+      coupon = { code, valid: false, reason: 'COUPON_NOT_FOUND_OR_INACTIVE', message_en: 'This coupon code is not valid.', message_bn: 'এই কুপন কোডটি সঠিক নয়।' };
+    }
+  }
   return {
     stream_id: streamId,
     product_id: productId,
@@ -790,7 +811,9 @@ export function mockQuote(streamId, productId, quantity = 1) {
     unit_price: unit,
     items_amount: unit * qty,
     shipping_amount: shipping,
-    total_amount: unit * qty + shipping,
+    discount_amount: discount,
+    total_amount: unit * qty + shipping - discount,
+    coupon,
     available_stock: stock,
     in_stock: stock >= qty,
   };

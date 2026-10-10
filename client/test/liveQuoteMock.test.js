@@ -42,7 +42,7 @@ describe('live in-stream quote (mock)', () => {
     const src = read('pages/LiveStreamPage.js');
     assert.match(src, /id="chk-qty-inc"/);
     assert.match(src, /quantity: qty,[\s]*recipient_name/);
-    assert.match(src, /getInStreamQuote\(streamId, \{ productId: [^}]*quantity: qty \}\)/);
+    assert.match(src, /getInStreamQuote\(streamId, \{ productId: [^}]*quantity: qty, couponCode \}\)/);
     // a slow answer for an earlier quantity must not overwrite a later one
     assert.match(src, /if \(seq !== quoteSeq\) return;/);
   });
@@ -53,6 +53,29 @@ describe('live in-stream quote (mock)', () => {
       for (const k of ['chk_qty_label', 'chk_qty_dec', 'chk_qty_inc', 'chk_only_left']) {
         assert.ok(live[k], `${lang}.live.${k}`);
       }
+    }
+  });
+
+  it('a valid coupon lowers the mock total and a bad one is reported, not applied', () => {
+    const ok = mockQuote(1, 1, 1, 'live10');
+    assert.equal(ok.coupon.valid, true);
+    assert.equal(ok.discount_amount, 350);
+    assert.equal(ok.total_amount, 3500 + mockDeliveryCharge() - 350);
+    const bad = mockQuote(1, 1, 1, 'NOPE');
+    assert.equal(bad.coupon.valid, false);
+    assert.equal(bad.discount_amount, 0);
+    assert.equal(bad.total_amount, 3500 + mockDeliveryCharge());
+    assert.equal(mockQuote(1, 1, 1).coupon, null);
+  });
+
+  it('the drawer sends the applied coupon with the order and the strings exist in both languages', () => {
+    const src = read('pages/LiveStreamPage.js');
+    assert.match(src, /coupon_code: couponCode \|\| undefined/);
+    assert.match(src, /id="chk-coupon-apply"/);
+    assert.match(read('services/live.api.js'), /query\.coupon_code = couponCode/);
+    for (const lang of ['en', 'bn']) {
+      const live = JSON.parse(read(`locales/${lang}.json`)).live;
+      for (const k of ['chk_coupon_label', 'chk_coupon_apply', 'chk_coupon_applied']) assert.ok(live[k], `${lang}.live.${k}`);
     }
   });
 });

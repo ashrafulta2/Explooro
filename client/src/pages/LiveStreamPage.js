@@ -1097,6 +1097,15 @@ function openInStreamCheckoutDrawer(product, streamId) {
         <span class="form-hint" id="chk-stock-hint" style="font-size: 11px; color: var(--text-muted);"></span>
       </div>
 
+      <div class="form-group">
+        <label for="chk-coupon">${t('live.chk_coupon_label') || 'Coupon code'}</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="chk-coupon" maxlength="64" autocomplete="off" class="input" />
+          <button type="button" class="btn btn--secondary" id="chk-coupon-apply">${t('live.chk_coupon_apply') || 'Apply'}</button>
+        </div>
+        <span class="form-hint" id="chk-coupon-msg" role="status" style="font-size: 11px;"></span>
+      </div>
+
       <div class="form-group" id="chk-otp-group" hidden>
         <label for="chk-otp">${t('live.chk_otp_label') || 'SMS confirmation code'}</label>
         <input type="text" id="chk-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="input" />
@@ -1145,6 +1154,9 @@ function openInStreamCheckoutDrawer(product, streamId) {
   let maxQty = Infinity;
   let shipEstimate = knownDeliveryCharge() ?? 0;
   let quoteSeq = 0;
+  let couponCode = '';
+  const couponInput = drawerContent.querySelector('#chk-coupon');
+  const couponMsg = drawerContent.querySelector('#chk-coupon-msg');
   const qtyEl = drawerContent.querySelector('#chk-qty');
   const decBtn = drawerContent.querySelector('#chk-qty-dec');
   const incBtn = drawerContent.querySelector('#chk-qty-inc');
@@ -1163,7 +1175,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
   // carries a sequence number so a slow answer for an earlier quantity cannot overwrite a later one.
   const refreshQuote = () => {
     const seq = ++quoteSeq;
-    getInStreamQuote(streamId, { productId: product.product_id || product.id, quantity: qty }).then((res) => {
+    getInStreamQuote(streamId, { productId: product.product_id || product.id, quantity: qty, couponCode }).then((res) => {
       if (seq !== quoteSeq) return;
       const quote = res?.data?.quote ?? res?.quote;
       if (!quote) return;
@@ -1174,12 +1186,33 @@ function openInStreamCheckoutDrawer(product, streamId) {
         ? (t('live.chk_only_left') || 'Only {{n}} left').replace('{{n}}', String(quote.available_stock))
         : '';
       confirmBtn.disabled = !quote.in_stock;
+      // WHY a bad code is dropped: the order refuses an invalid coupon, so keeping it applied would
+      // make the next confirm fail for a reason the shopper has already seen.
+      if (quote.coupon?.valid) {
+        couponMsg.style.color = 'var(--text-success, var(--text-muted))';
+        couponMsg.textContent = (t('live.chk_coupon_applied') || 'Coupon {{code}} applied: -{{amount}}')
+          .replace('{{code}}', quote.coupon.code)
+          .replace('{{amount}}', formatBdt(quote.discount_amount));
+      } else if (quote.coupon) {
+        couponMsg.style.color = 'var(--danger)';
+        couponMsg.textContent = (isBn && quote.coupon.message_bn) || quote.coupon.message_en || '';
+        couponCode = '';
+      } else {
+        couponMsg.textContent = '';
+      }
       if (!quote.in_stock) {
         toast.error(t('live.chk_out_of_stock') || 'This deal is sold out.');
       }
       syncStepper();
     }).catch(() => {});
   };
+  drawerContent.querySelector('#chk-coupon-apply').addEventListener('click', () => {
+    couponCode = couponInput.value.trim();
+    if (!couponCode) {
+      couponMsg.textContent = '';
+    }
+    refreshQuote();
+  });
   decBtn.addEventListener('click', () => {
     if (qty <= 1) return;
     qty -= 1;
@@ -1232,6 +1265,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
         address_line: drawerContent.querySelector('#chk-address').value.trim(),
         payment_method: drawerContent.querySelector('#chk-payment').value,
         otp_code: drawerContent.querySelector('#chk-otp').value.trim() || undefined,
+        coupon_code: couponCode || undefined,
       }, { idempotencyKey });
 
       toast.success(res?.meta?.message_en || t('live.chk_order_success') || 'Order placed successfully!');

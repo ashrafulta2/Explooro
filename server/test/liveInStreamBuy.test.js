@@ -28,7 +28,7 @@ const PRODUCT = {
  * Dispatch order matters: the stream-products query and the product-lock query both name `products`,
  * and the sale-stats UPDATE names live_streams, so the most specific matches come first.
  */
-function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus = 'LIVE', inStream = true, product = PRODUCT, existingOrder = null, maxCod = null } = {}) {
+function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus = 'LIVE', inStream = true, product = PRODUCT, existingOrder = null, maxCod = null, coupon = null, redemptions = 0 } = {}) {
   const log = { writes: [], orderParams: null, subOrderParams: null, itemParams: null, stockUpdate: null, began: 0, committed: 0, rolledBack: 0 };
   const db = {
     log,
@@ -45,6 +45,10 @@ function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus 
       if (sql.includes('max_cod_order_value')) {
         return { rows: maxCod ? [{ value_json: { amount: maxCod } }] : [] };
       }
+      if (sql.includes('FROM coupon_redemptions')) return { rows: [{ count: redemptions }] };
+      if (sql.includes('FROM coupons')) return { rows: coupon ? [coupon] : [] };
+      if (sql.includes('UPDATE coupons')) { log.writes.push('coupon_usage'); log.couponUsage = params; return { rows: [] }; }
+      if (sql.includes('INSERT INTO coupon_redemptions')) { log.writes.push('redemption'); log.redemption = params; return { rows: [{ id: 1 }] }; }
       if (sql.startsWith('BEGIN')) { log.began += 1; return { rows: [] }; }
       if (sql.startsWith('COMMIT')) { log.committed += 1; return { rows: [] }; }
       if (sql.startsWith('ROLLBACK')) { log.rolledBack += 1; return { rows: [] }; }
@@ -92,6 +96,14 @@ function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus 
   };
   return db;
 }
+
+const COUPON = {
+  id: 7, code: 'LIVE10', is_active: true,
+  starts_at: '2020-01-01T00:00:00Z', expires_at: '2099-01-01T00:00:00Z',
+  discount_type: 'PERCENT', discount_value: '10', max_discount: null,
+  scope_type: 'PLATFORM', scope_ref: null, min_spend: '0', per_user_limit: 1,
+  usage_limit: null, usage_count: 0, budget_cap: null, budget_used: '0', first_order_only: false,
+};
 
 const buyer = { id: 100, full_name: 'Tanvir Ahmed', phone: '01711111111' };
 const base = {
@@ -405,5 +417,106 @@ describe('live commerce error codes map to client errors, not 500', () => {
     const codes = [...new Set([...src.matchAll(/new AppError\('([A-Z_]+)'/g)].map((m) => m[1]))];
     const unmapped = codes.filter((c) => new AppError(c, 'x', 'x').statusCode === 500 && c !== 'INTERNAL_ERROR');
     assert.deepEqual(unmapped, []);
+  });
+});
+
+describe('executeInStreamBuy with a coupon', () => {
+  test('a valid coupon lowers the total, is stored on the order and is redeemed once', async () => {
+    const db = makeDb({ coupon: COUPON });
+    await liveService.executeInStreamBuy(db, null, { ...base, couponCode: 'LIVE10' });
+    // items 1150, 10% off = 115, delivery 60 -> 1095
+    assert.equal(db.log.orderParams[2], 1095);
+    assert.equal(db.log.orderParams[3], 1150);
+    assert.equal(db.log.orderParams[5], 115);
+    assert.equal(db.log.orderParams[13], 7);
+    assert.equal(db.log.subOrderParams[11], 115);
+    assert.equal(db.log.subOrderParams[12], 1095);
+    assert.deepEqual(db.log.writes, ['deduct', 'order', 'sub_order', 'item', 'coupon_usage', 'redemption']);
+    assert.equal(db.log.redemption[0], 7);
+    assert.equal(db.log.redemption[1], 100);
+  });
+
+  test('an unknown code is refused and nothing is written', async () => {
+    const db = makeDb({ coupon: null });
+    await assert.rejects(
+      liveService.executeInStreamBuy(db, null, { ...base, couponCode: 'NOPE' }),
+      (e) => e.code === 'COUPON_INVALID' && e.details?.reason === 'COUPON_NOT_FOUND_OR_INACTIVE'
+    );
+    assert.deepEqual(db.log.writes, []);
+    assert.equal(db.log.rolledBack, 1);
+  });
+
+  test('an exhausted budget, a used-up per-user limit and an expired coupon are refused', async () => {
+    const cases = [
+      [{ ...COUPON, budget_cap: '100', budget_used: '100' }, 0, 'COUPON_BUDGET_EXHAUSTED'],
+      [COUPON, 1, 'COUPON_INVALID'],
+      [{ ...COUPON, expires_at: '2020-06-01T00:00:00Z' }, 0, 'COUPON_INVALID'],
+    ];
+    for (const [coupon, redemptions, code] of cases) {
+      const db = makeDb({ coupon, redemptions });
+      await assert.rejects(
+        liveService.executeInStreamBuy(db, null, { ...base, couponCode: 'LIVE10' }),
+        (e) => e.code === code
+      );
+      assert.deepEqual(db.log.writes, []);
+    }
+  });
+
+  test('the COD limit is judged on the discounted total', async () => {
+    // gross 1210 is over a 1100 limit; net 1095 is not
+    const db = makeDb({ coupon: COUPON, maxCod: 1100 });
+    await liveService.executeInStreamBuy(db, null, { ...base, couponCode: 'LIVE10' });
+    assert.equal(db.log.orderParams[2], 1095);
+    const noCoupon = makeDb({ maxCod: 1100 });
+    await assert.rejects(
+      liveService.executeInStreamBuy(noCoupon, { async get() { return null; }, async set() {}, async del() {}, async incr() { return 1; }, async expire() {}, async ttl() { return 1; } }, base),
+      (e) => e.code === 'COD_OTP_REQUIRED'
+    );
+  });
+
+  test('no coupon code means no discount and no redemption', async () => {
+    const db = makeDb({ coupon: COUPON });
+    await liveService.executeInStreamBuy(db, null, base);
+    assert.equal(db.log.orderParams[5], 0);
+    assert.deepEqual(db.log.writes, ['deduct', 'order', 'sub_order', 'item']);
+  });
+});
+
+describe('quoteInStreamBuy with a coupon', () => {
+  function couponQuoteDb(coupon, redemptions = 0) {
+    return {
+      async query(sql) {
+        if (sql.includes('FROM live_stream_products')) return { rows: [{ product_id: 101, special_price: null, unit_price: '1150.00' }] };
+        if (sql.includes('FROM live_streams')) return { rows: [{ id: 50, status: 'LIVE', host_id: 10 }] };
+        if (sql.includes('FROM coupon_redemptions')) return { rows: [{ count: redemptions }] };
+        if (sql.includes('FROM coupons')) return { rows: coupon ? [coupon] : [] };
+        if (sql.includes('FROM products')) return { rows: [{ id: 101, status: 'ACTIVE', stock_qty: 10, category_id: 3, supplier_id: 7 }] };
+        if (sql.includes('FROM team_purchases')) return { rows: [{ reserved: 0 }] };
+        return { rows: [] };
+      },
+    };
+  }
+  const args = { streamId: 50, productId: 101, qty: 1, userId: 100 };
+
+  test('prices the coupon into the total', async () => {
+    const q = await liveService.quoteInStreamBuy(couponQuoteDb(COUPON), null, { ...args, couponCode: 'LIVE10' });
+    assert.equal(q.discount_amount, 115);
+    assert.equal(q.total_amount, 1095);
+    assert.equal(q.coupon.valid, true);
+  });
+
+  test('a bad code is reported beside the quote, not thrown, and the total is undiscounted', async () => {
+    const q = await liveService.quoteInStreamBuy(couponQuoteDb(null), null, { ...args, couponCode: 'NOPE' });
+    assert.equal(q.total_amount, 1210);
+    assert.equal(q.discount_amount, 0);
+    assert.equal(q.coupon.valid, false);
+    assert.ok(q.coupon.message_en && q.coupon.message_bn);
+  });
+
+  test('a quote and the order it precedes agree with a coupon too', async () => {
+    const db = makeDb({ coupon: COUPON });
+    const q = await liveService.quoteInStreamBuy(db, null, { ...args, couponCode: 'LIVE10' });
+    await liveService.executeInStreamBuy(db, null, { ...base, couponCode: 'LIVE10' });
+    assert.equal(q.total_amount, Number(db.log.orderParams[2]));
   });
 });

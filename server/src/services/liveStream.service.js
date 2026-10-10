@@ -16,6 +16,8 @@ import { perParcelCharge } from './deliveryCharge.service.js';
 import { withTransaction } from '../config/db.js';
 import * as orderRepo from '../repositories/order.repository.js';
 import { enforceCodGate } from './codGate.service.js';
+import { validateCoupon } from './coupon.service.js';
+import * as couponRepo from '../repositories/coupon.repository.js';
 import { getReservedForProduct } from './teamStockReservation.service.js';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
 import * as liveRepo from '../repositories/liveStream.repository.js';
@@ -400,7 +402,44 @@ export async function recordStreamPurchase(db, { streamId, orderRef, orderAmount
  * price. Asking the server means the figure on the button is the figure that is billed. Read-only and
  * unlocked, so it is advisory: the order itself re-checks everything under the row lock.
  */
-export async function quoteInStreamBuy(pool, cache, { streamId, productId, variantId = null, qty = 1 }) {
+const COUPON_FAILURE_TEXT = {
+  NO_CODE_PROVIDED: ['Enter a coupon code.', 'একটি কুপন কোড লিখুন।'],
+  COUPON_NOT_FOUND_OR_INACTIVE: ['This coupon code is not valid.', 'এই কুপন কোডটি সঠিক নয়।'],
+  COUPON_EXPIRED: ['This coupon has expired.', 'এই কুপনের মেয়াদ শেষ হয়ে গেছে।'],
+  COUPON_BUDGET_EXHAUSTED: ['This coupon budget has been used up.', 'এই কুপনের বাজেট শেষ হয়ে গেছে।'],
+  COUPON_USAGE_LIMIT_REACHED: ['This coupon has reached its usage limit.', 'এই কুপনের ব্যবহারের সীমা পূর্ণ হয়েছে।'],
+  USER_USAGE_LIMIT_EXCEEDED: ['You have already used this coupon the maximum number of times.', 'আপনি এই কুপন সর্বোচ্চ সংখ্যক বার ব্যবহার করে ফেলেছেন।'],
+  FIRST_ORDER_ONLY: ['This coupon is only for your first order.', 'এই কুপন শুধু আপনার প্রথম অর্ডারের জন্য।'],
+  NO_ELIGIBLE_ITEMS_FOR_SCOPE: ['This coupon does not apply to this product.', 'এই কুপন এই পণ্যে প্রযোজ্য নয়।'],
+  MIN_SPEND_NOT_MET: ['Your order is below the minimum spend for this coupon.', 'আপনার অর্ডার এই কুপনের সর্বনিম্ন খরচের চেয়ে কম।'],
+};
+
+/** English/Bangla wording for a validateCoupon failure reason, with a safe default. */
+export function describeCouponFailure(reason) {
+  const [en, bn] = COUPON_FAILURE_TEXT[reason] || ['This coupon cannot be applied.', 'এই কুপন প্রয়োগ করা যাচ্ছে না।'];
+  return { message_en: en, message_bn: bn };
+}
+
+/** Runs validateCoupon for one live line; money in BDT numbers, as validateCoupon expects. */
+function validateLiveCoupon(db, { code, userId, prod, salerId, unitPrice, quantity, shippingBdt, forUpdate }) {
+  return validateCoupon(db, {
+    code: String(code).trim(),
+    userId,
+    items: [{
+      productId: prod.id,
+      categoryId: prod.category_id,
+      supplierId: prod.supplier_id,
+      salerId,
+      price: unitPrice,
+      qty: quantity,
+    }],
+    subtotal: unitPrice * quantity,
+    shippingAmount: shippingBdt,
+    forUpdate,
+  });
+}
+
+export async function quoteInStreamBuy(pool, cache, { streamId, productId, variantId = null, qty = 1, couponCode = null, userId = null }) {
   const quantity = Number(qty);
   if (!Number.isInteger(quantity) || quantity < 1) {
     throw new AppError('VALIDATION_FAILED', 'Quantity must be a whole number of at least 1.', 'পরিমাণ কমপক্ষে ১ এর পূর্ণসংখ্যা হতে হবে।');
@@ -420,7 +459,7 @@ export async function quoteInStreamBuy(pool, cache, { streamId, productId, varia
   }
 
   const { rows } = await pool.query(
-    'SELECT id, status, stock_qty FROM products WHERE id = $1',
+    'SELECT id, status, stock_qty, category_id, supplier_id FROM products WHERE id = $1',
     [Number(productId)]
   );
   const prod = rows[0];
@@ -443,6 +482,29 @@ export async function quoteInStreamBuy(pool, cache, { streamId, productId, varia
 
   const shippingPaisa = toPaisa(await perParcelCharge(pool, cache));
   const itemsPaisa = toPaisa(unitPrice) * quantity;
+
+  // WHY not thrown: a wrong code is something the drawer shows beside the field, not a failed quote.
+  // The order re-validates under the coupon row lock, so this is advisory like the rest of the quote.
+  let coupon = null;
+  let discountPaisa = 0;
+  if (couponCode && String(couponCode).trim()) {
+    const v = await validateLiveCoupon(pool, {
+      code: couponCode,
+      userId,
+      prod,
+      salerId: stream.host_id ? Number(stream.host_id) : null,
+      unitPrice,
+      quantity,
+      shippingBdt: toBdtNumber(shippingPaisa),
+      forUpdate: false,
+    });
+    if (v.valid) {
+      discountPaisa = Math.min(toPaisa(v.discountAmount), itemsPaisa + shippingPaisa);
+      coupon = { code: v.coupon.code, valid: true, discount_amount: toBdtNumber(discountPaisa) };
+    } else {
+      coupon = { code: String(couponCode).trim(), valid: false, reason: v.reason, ...describeCouponFailure(v.reason) };
+    }
+  }
   return {
     stream_id: sId,
     product_id: Number(productId),
@@ -450,7 +512,9 @@ export async function quoteInStreamBuy(pool, cache, { streamId, productId, varia
     unit_price: toBdtNumber(toPaisa(unitPrice)),
     items_amount: toBdtNumber(itemsPaisa),
     shipping_amount: toBdtNumber(shippingPaisa),
-    total_amount: toBdtNumber(itemsPaisa + shippingPaisa),
+    discount_amount: toBdtNumber(discountPaisa),
+    total_amount: toBdtNumber(itemsPaisa + shippingPaisa - discountPaisa),
+    coupon,
     available_stock: available,
     in_stock: available >= quantity,
   };
@@ -468,6 +532,7 @@ export async function executeInStreamBuy(pool, cache, {
   district,
   addressLine,
   paymentMethod = 'COD',
+  couponCode = null,
   idempotencyKey = null,
   otpCode = null,
   smsSender = null,
@@ -580,7 +645,38 @@ export async function executeInStreamBuy(pool, cache, {
 
       // WHY before any write: COD_OTP_REQUIRED throws and rolls the transaction back, so no stock is
       // taken for an order the shopper has not confirmed. Same gate as checkout and team purchase.
-      const totalPaisa = toPaisa(unitPrice) * quantity + shippingPaisa;
+      // WHY the host as saler is resolved first: SALER-scoped coupons match on it.
+      const salerId = stream.host_id ? Number(stream.host_id) : null;
+
+      // WHY validated here: under the coupon row lock (forUpdate), so two orders cannot both take the
+      // last use or the last of the budget. A bad code is refused, never silently ignored.
+      let coupon = null;
+      let discountPaisa = 0;
+      if (couponCode && String(couponCode).trim()) {
+        const v = await validateLiveCoupon(client, {
+          code: couponCode,
+          userId: user.id,
+          prod,
+          salerId,
+          unitPrice,
+          quantity,
+          shippingBdt: toBdtNumber(shippingPaisa),
+          forUpdate: true,
+        });
+        if (!v.valid) {
+          const text = describeCouponFailure(v.reason);
+          throw new AppError(
+            v.reason === 'COUPON_BUDGET_EXHAUSTED' ? 'COUPON_BUDGET_EXHAUSTED' : 'COUPON_INVALID',
+            text.message_en,
+            text.message_bn,
+            { reason: v.reason }
+          );
+        }
+        coupon = v.coupon;
+        discountPaisa = Math.min(toPaisa(v.discountAmount), toPaisa(unitPrice) * quantity + shippingPaisa);
+      }
+
+      const totalPaisa = toPaisa(unitPrice) * quantity + shippingPaisa - discountPaisa;
       let isOtpVerified = false;
       let trustScoreAtOrder = 50;
       if (paymentMethod === 'COD') {
@@ -600,7 +696,6 @@ export async function executeInStreamBuy(pool, cache, {
 
       // WHY the host: the stream's host is the seller whose audience bought, so the sub-order carries
       // them as saler and the normal commission split applies.
-      const salerId = stream.host_id ? Number(stream.host_id) : null;
       const split = await resolveSplitPercentages(client, {
         productId: prod.id,
         productRef: prod.ref,
@@ -637,9 +732,11 @@ export async function executeInStreamBuy(pool, cache, {
       const rootOrder = await orderRepo.createOrder(client, {
         ref: orderRef,
         customerId: user.id,
-        totalAmount: toBdtNumber(lineTotalPaisa + shippingPaisa),
+        totalAmount: toBdtNumber(totalPaisa),
         itemsAmount: toBdtNumber(lineTotalPaisa),
         shippingAmount: toBdtNumber(shippingPaisa),
+        discountAmount: toBdtNumber(discountPaisa),
+        couponId: coupon?.id || null,
         paymentMethod,
         paymentStatus: 'PENDING',
         isOtpVerified,
@@ -664,7 +761,8 @@ export async function executeInStreamBuy(pool, cache, {
         // Reconciled so saler_commission + platform_margin = net_retail_margin, as checkout does.
         platformMargin: toBdtNumber(netRetailPaisa - salerPaisa),
         shippingAmount: toBdtNumber(shippingPaisa),
-        totalAmount: toBdtNumber(lineTotalPaisa + shippingPaisa),
+        discountShare: toBdtNumber(discountPaisa),
+        totalAmount: toBdtNumber(totalPaisa),
         status: 'PLACED',
       });
       await orderRepo.createOrderItem(client, {
@@ -678,6 +776,17 @@ export async function executeInStreamBuy(pool, cache, {
         retailPrice: pricing.retail_price,
         lineTotal: toBdtNumber(lineTotalPaisa),
       });
+
+      // WHY the same two calls as checkout: cancelOrder undoes exactly this (decrementCouponUsage).
+      if (coupon) {
+        await couponRepo.incrementCouponUsage(client, coupon.id, toBdtNumber(discountPaisa));
+        await couponRepo.recordRedemption(client, {
+          couponId: coupon.id,
+          userId: user.id,
+          orderId: rootOrder.id,
+          discountAmount: toBdtNumber(discountPaisa),
+        });
+      }
 
       return { order: rootOrder, product: prod };
     });

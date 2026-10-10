@@ -130,6 +130,8 @@ export async function quoteInStreamBuy(req, reply) {
     productId: req.query.product_id,
     variantId: req.query.variant_id || null,
     qty: req.query.quantity ?? 1,
+    couponCode: req.query.coupon_code || null,
+    userId: req.user?.id ?? null,
   });
   return reply.send({ data: { quote } });
 }
@@ -147,6 +149,7 @@ export async function executeInStreamBuy(req, reply) {
     district: req.body?.district,
     addressLine: req.body?.address_line,
     paymentMethod: req.body?.payment_method || 'COD',
+    couponCode: req.body?.coupon_code,
     idempotencyKey: req.headers['idempotency-key'],
     otpCode: req.body?.otp_code,
     smsSender: req.server.smsSender,

@@ -121,6 +121,7 @@ export async function cancelOrder(pool, refOrId, userContext, reason = null) {
     // 3. If coupon was applied, decrement coupon budget and usage count
     if (order.coupon_id) {
       await couponRepo.decrementCouponUsage(client, order.coupon_id, Number(order.discount_amount || 0));
+      await couponRepo.deleteRedemptionsByOrder(client, order.id);
     }
 
     // WHY: a live order was counted in its stream's sales when it was placed
