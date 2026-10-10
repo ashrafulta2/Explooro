@@ -187,10 +187,10 @@ describe('GET /products — filters the grid actually sends', () => {
 
   test('`in_stock=1` excludes sold-out rows in SQL, not after the page was cut', async () => {
     const { query } = await listProducts(app, db, '?in_stock=1');
-    assert.match(whereClause(query), /p\.stock_qty > 0/);
+    assert.match(whereClause(query), /tp\.expires_at > now\(\)\), 0\) > 0/);
 
     const off = await listProducts(app, db, '');
-    assert.doesNotMatch(whereClause(off.query), /p\.stock_qty > 0/);
+    assert.doesNotMatch(whereClause(off.query), /tp\.expires_at > now\(\)\), 0\) > 0/);
   });
 
   test('`min_rating` counts an unrated product as 0 rather than dropping it on NULL', async () => {
@@ -283,7 +283,7 @@ describe('GET /products — cursor pagination (docs/api-contract.md §4.1)', () 
   test('the COUNT shares the page query filters, so the label can never contradict the grid', async () => {
     await listProducts(app, db, '?in_stock=1&min_rating=4&category=Clothing');
     const count = db.countQueries.at(-1);
-    assert.match(count.sql, /p\.stock_qty > 0/);
+    assert.match(count.sql, /tp\.expires_at > now\(\)\), 0\) > 0/);
     assert.match(count.sql, /COALESCE\(p\.rating_avg, 0\) >= \$\d+/);
     assert.match(count.sql, /c\.name_en ILIKE \$\d+/);
     // No pagination bound into the total — that is the whole point of it.

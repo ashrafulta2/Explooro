@@ -187,7 +187,7 @@ function isPersonal(spec) {
 async function fetchRail(db, rail, profile, spec, size, poolCache) {
   if (profile.needs === 'viewed') {
     // Most recently opened first — that is the order the ids arrive in.
-    const rows = await productService.listCatalogByIds(db, spec.viewedIds, { inStock: true });
+    const rows = await productService.listCatalogByIds(db, spec.viewedIds, { inStock: true, netStock: true });
     return { hydrated: true, rows };
   }
   const rows = await productService.listCandidates(db, {
@@ -204,7 +204,7 @@ async function hydrateRail(db, rows) {
   const full = await productService.listCatalogByIds(
     db,
     rows.map((r) => r.id),
-    { inStock: true }
+    { inStock: true, netStock: true }
   );
   const scored = new Map(rows.map((r) => [String(r.id), r]));
   return full.map((p) => ({

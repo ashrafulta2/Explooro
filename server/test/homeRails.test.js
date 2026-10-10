@@ -294,7 +294,7 @@ describe('Home rails — getRails', () => {
     });
     await rails.getRails(db, { sessionId: 's', now: NOW });
     const call = railCall(db, 'FROM products p');
-    assert.match(call.sql, /p\.stock_qty > 0/);
+    assert.match(call.sql, /p\.stock_qty - COALESCE\(\(SELECT SUM\(tp\.required_members\)/);
     assert.ok(call.params.includes('ACTIVE'));
   });
 

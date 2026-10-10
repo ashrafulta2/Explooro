@@ -210,7 +210,7 @@ async function buildFeed(
     const full = await productService.listCatalogByIds(
       db,
       picked.map((r) => r.id),
-      { withVariants: true }
+      { withVariants: true, netStock: true }
     );
     const scored = new Map(picked.map((r) => [String(r.id), r]));
     // The score components travel with the row so the reason badge still names what lifted it.
@@ -228,6 +228,7 @@ async function buildFeed(
       // Phase B: the blended ranking. Its weights are admin settings, not constants here.
       ranking,
       withVariants: true,
+      netStock: true,
       limit: effectiveLimit + 1,
       offset: safeOffset,
     });

@@ -97,3 +97,31 @@ describe('public storefront', () => {
     assert.equal(item.stock_qty, 0);
   });
 });
+
+describe('catalog listing', () => {
+  const row = { id: 1, stock_qty: 10, base_cost: 100, wholesale_margin: 0, default_retail_price: 200, variants: [{ id: 7, stock_qty: 9 }, { id: 8, stock_qty: 2 }] };
+  const makeDb = () =>
+    reservationDb(async (sql) => {
+      if (sql.includes('FROM products p') && !sql.startsWith('SELECT product_id')) return { rows: [{ ...row }] };
+      return null;
+    });
+
+  test('netStock subtracts reservations and caps variants; without it the count stays raw', async () => {
+    const { listCatalog } = await import('../src/services/product.service.js');
+    const net = (await listCatalog(makeDb(), { netStock: true }))[0];
+    assert.equal(net.stock_qty, 7);
+    assert.equal(net.stock_on_hand, 10);
+    assert.deepEqual(net.variants.map((v) => v.stock_qty), [7, 2]);
+
+    const raw = (await listCatalog(makeDb(), {}))[0];
+    assert.equal(raw.stock_qty, 10);
+    assert.equal(raw.reserved_qty, undefined);
+  });
+
+  test('the "in stock" filter subtracts reservations in SQL', async () => {
+    const db = makeDb();
+    const { listCatalog } = await import('../src/services/product.service.js');
+    await listCatalog(db, { inStock: true });
+    assert.match(db.calls.find((s) => s.includes('FROM products p')), /p\.stock_qty - COALESCE/);
+  });
+});

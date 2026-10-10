@@ -123,7 +123,8 @@ export function normalizeProductListItem(product) {
 }
 
 export async function listProducts(query = {}) {
-  const { data, meta } = await api.get('/products', { query });
+  // net_stock: shoppers see stock net of open-team reservations; admin screens read raw counts.
+  const { data, meta } = await api.get('/products', { query: { net_stock: 1, ...query } });
   const products = (data?.products ?? []).map(normalizeProductListItem);
   return { products, meta };
 }

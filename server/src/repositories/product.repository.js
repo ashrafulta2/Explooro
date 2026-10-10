@@ -3,6 +3,7 @@
  */
 
 import { buildBlendedRank } from './recommendation.repository.js';
+import { reservedUnitsSql } from '../services/teamStockReservation.service.js';
 
 export async function insertProduct(
   db,
@@ -351,7 +352,9 @@ function buildCatalogFilter({
   }
 
   if (inStock) {
-    conditions.push('p.stock_qty > 0');
+    // WHY net of reservations: units an open team is counting on cannot be bought, so they must not
+    // make a product "in stock" (see teamStockReservation.service.js).
+    conditions.push(`p.stock_qty - ${reservedUnitsSql('p')} > 0`);
   }
 
   // COALESCE so an unrated product counts as 0 rather than dropping out on NULL comparison — a

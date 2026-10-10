@@ -158,6 +158,7 @@ export async function listProducts(req, reply) {
     min_price,
     max_price,
     in_stock,
+    net_stock,
     min_rating,
     min_margin,
     status,
@@ -189,6 +190,8 @@ export async function listProducts(req, reply) {
     minPrice: min_price ? parseFloat(min_price) : undefined,
     maxPrice: max_price ? parseFloat(max_price) : undefined,
     inStock: isFlagOn(in_stock),
+    // Shopper grids opt in; the admin catalog reads this endpoint too and needs the raw count.
+    netStock: isFlagOn(net_stock),
     minRating: min_rating ? parseFloat(min_rating) : undefined,
     minMarginPct: min_margin,
     status: status || 'ACTIVE',

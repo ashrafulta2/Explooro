@@ -12,7 +12,7 @@ import * as recoCache from './recoCache.service.js';
 import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.js';
 import { runAuction as runAdAuction } from './ads.service.js';
 import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.js';
-import { getReservedForProduct } from './teamStockReservation.service.js';
+import { getReservedForProduct, withAvailableStock } from './teamStockReservation.service.js';
 
 /**
  * WHY it swallows errors: the scorecard is decoration on the catalog, not the catalog. A missing
@@ -436,8 +436,23 @@ export async function getProductDetail(db, idOrRefOrSlug) {
   return { ...product, reserved_qty: reservedQty, available_qty: availableQty, pricing, variants, images, supplier: supplierInfo };
 }
 
-export async function listCatalog(db, filters = {}) {
-  const products = await productRepo.listProducts(db, filters);
+/**
+ * Shopper view of a catalog page: `stock_qty` becomes what can actually be bought (net of open-team
+ * reservations) and each inline variant is capped by it, the same min() the cart applies. Admin
+ * lists skip this, because their editor writes `stock_qty` back and must see the raw count.
+ */
+async function netOfReservations(db, rows) {
+  const adjusted = await withAvailableStock(db, rows);
+  return adjusted.map((p) =>
+    Array.isArray(p.variants) && p.stock_on_hand !== undefined
+      ? { ...p, variants: p.variants.map((v) => ({ ...v, stock_qty: Math.max(0, Math.min(Number(v.stock_qty) || 0, p.stock_qty)) })) }
+      : p
+  );
+}
+
+export async function listCatalog(db, { netStock = false, ...filters } = {}) {
+  const raw = await productRepo.listProducts(db, filters);
+  const products = netStock ? await netOfReservations(db, raw) : raw;
   const driver = getStorageDriver();
   // WHY preloaded: pricing a page one product at a time cost three queries each (a product rule, a
   // category rule, the global default) - about 70 for one home load. Three queries cover the page.
