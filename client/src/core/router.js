@@ -146,7 +146,14 @@ export function createRouter({
     return null;
   }
 
+  // WHY a sequence number: render() awaits the lazy page import, so two navigations that overlap
+  // (a link click that also pushes its own history entry, a double click) both emptied `root`,
+  // both awaited, and both mounted — leaving two copies of the page. Only the newest render may
+  // mount; an older one that wakes up after a newer one started drops its result.
+  let renderSeq = 0;
+
   async function render(pathname, search, { key, isPopstate = false, preserveScroll = false } = {}) {
+    const seq = ++renderSeq;
     const matched = findRoute(pathname);
     const ctx = getAuthContext();
 
@@ -169,6 +176,8 @@ export function createRouter({
     if (current) {
       scrollPositions.set(current.key, window.scrollY);
       current.cleanup?.();
+      // Cleared so an overlapping render does not run the same cleanup a second time.
+      current = null;
     }
 
     let { route, params } = matched ?? { route: notFound, params: {} };
@@ -192,6 +201,7 @@ export function createRouter({
     root.replaceChildren();
     root.style.visibility = '';
     const mod = await route.load();
+    if (seq !== renderSeq) return;
     if (typeof mod.default !== 'function') {
       throw new Error(
         `Route "${route.path}" loaded a module with no callable default export. A page module must ` +
