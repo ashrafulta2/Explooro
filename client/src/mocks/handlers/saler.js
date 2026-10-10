@@ -858,15 +858,14 @@ export default [
     path: '/saler/social-kit/templates',
     handler: () => ({
       status: 200,
+      // Same shape and ids as the server (FLYER_FORMATS / FLYER_THEMES in flyer.service.js).
       body: {
-        data: {
-          templates: [
-            { id: 't_square', name: 'Social Post 1:1', width: 1080, height: 1080 },
-            { id: 't_story', name: 'WhatsApp Story 9:16', width: 1080, height: 1920 },
-            { id: 't_print', name: 'A4 Print Flyer', width: 1240, height: 1754 },
-            { id: 't_banner', name: 'WhatsApp Header', width: 1200, height: 630 },
-          ],
-        },
+        templates: [
+          { id: 'SQUARE', width: 1080, height: 1080, label_en: 'Social Post 1:1', label_bn: 'সোশ্যাল পোস্ট ১:১' },
+          { id: 'STORY', width: 1080, height: 1920, label_en: 'WhatsApp / Facebook Story 9:16', label_bn: 'স্টোরি ৯:১৬' },
+          { id: 'A4_PRINT', width: 1240, height: 1754, label_en: 'A4 Print Flyer', label_bn: 'A4 প্রিন্ট ফ্লায়ার' },
+        ],
+        themes: ['DARK', 'MINIMAL', 'GOLD'],
       },
     }),
   },

@@ -106,6 +106,15 @@ export function generateLocalQrSvg(url, size = 180, fgColor = '#000000', bgColor
   </svg>`;
 }
 
+// WHY one table: the flyer renderer and GET /saler/social-kit/templates read the same sizes, so the
+// picker can never offer a format the renderer would silently draw as a square.
+export const FLYER_FORMATS = Object.freeze({
+  SQUARE: Object.freeze({ width: 1080, height: 1080, label_en: 'Social Post 1:1', label_bn: 'সোশ্যাল পোস্ট ১:১' }),
+  STORY: Object.freeze({ width: 1080, height: 1920, label_en: 'WhatsApp / Facebook Story 9:16', label_bn: 'স্টোরি ৯:১৬' }),
+  A4_PRINT: Object.freeze({ width: 1240, height: 1754, label_en: 'A4 Print Flyer', label_bn: 'A4 প্রিন্ট ফ্লায়ার' }),
+});
+export const FLYER_THEMES = Object.freeze(['DARK', 'MINIMAL', 'GOLD']);
+
 /**
  * Builds a promotional flyer SVG across formats and themes.
  */
@@ -116,16 +125,7 @@ export function generateFlyerSvg({
   format = 'SQUARE', // 'SQUARE' (1080x1080), 'STORY' (1080x1920), 'A4_PRINT' (1240x1754)
   theme = 'DARK',    // 'DARK', 'MINIMAL', 'GOLD'
 }) {
-  let width = 1080;
-  let height = 1080;
-
-  if (format === 'STORY') {
-    width = 1080;
-    height = 1920;
-  } else if (format === 'A4_PRINT') {
-    width = 1240;
-    height = 1754;
-  }
+  const { width, height } = FLYER_FORMATS[format] || FLYER_FORMATS.SQUARE;
 
   const productNameEn = escapeXml(product?.name_en || 'Handcrafted Artisan Saree');
   const productNameBn = escapeXml(product?.name_bn || 'ঐতিহ্যবাহী সুতি জামদানি শাড়ি');

@@ -15,6 +15,11 @@ export default async function socialKitRoutes(app) {
     preHandler: [app.authenticate, requireSocialKit],
   }, socialKitController.createLink);
 
+  // 2b. Flyer formats and themes the renderer accepts
+  app.get('/saler/social-kit/templates', {
+    preHandler: [app.authenticate, requireSocialKit],
+  }, socialKitController.listTemplates);
+
   // 3. Render Dynamic Vector Poster / Flyer SVG
   app.get('/saler/social-kit/flyer', {
     preHandler: [requireSocialKit],

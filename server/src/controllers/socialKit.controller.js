@@ -34,6 +34,13 @@ export async function createLink(req, reply) {
   return reply.status(201).send(result);
 }
 
+export async function listTemplates(req, reply) {
+  return reply.send({
+    templates: Object.entries(flyerService.FLYER_FORMATS).map(([id, f]) => ({ id, ...f })),
+    themes: [...flyerService.FLYER_THEMES],
+  });
+}
+
 export async function renderFlyer(req, reply) {
   const db = req.db || req.server?.db;
   const { product_id, format, theme } = req.query || {};
