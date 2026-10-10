@@ -11,6 +11,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { handleSocketMessage } from '../src/sockets/chat.handler.js';
+import { registerUserSocket } from '../src/sockets/presence.js';
 
 function createMockDb() {
   const users = [
@@ -81,6 +82,28 @@ function createMockDb() {
         };
         messages.push(m);
         return { rows: [m] };
+      }
+
+      // UPDATE chat_messages SET read_by (read receipts)
+      if (q.startsWith('UPDATE chat_messages')) {
+        const [threadId, readerId, upTo] = params;
+        const hit = messages.filter(
+          (m) =>
+            Number(m.thread_id) === Number(threadId) &&
+            Number(m.sender_id) !== Number(readerId) &&
+            (upTo === null || m.id <= Number(upTo)) &&
+            !(m.read_by || []).includes(Number(readerId))
+        );
+        hit.forEach((m) => {
+          m.read_by = [...(m.read_by || []), Number(readerId)];
+        });
+        return { rows: hit.map((m) => ({ id: m.id })) };
+      }
+
+      // SELECT participant_ids FROM chat_threads (read receipt fan-out)
+      if (q.startsWith('SELECT participant_ids FROM chat_threads')) {
+        const found = threads.find((t) => t.id === Number(params[0]));
+        return { rows: found ? [{ participant_ids: found.participant_ids }] : [] };
       }
 
       // INSERT INTO chat_thread_participants
@@ -259,5 +282,29 @@ test('Prompt 8.4 — Chat UI & WebSocket Offline Queue Integration', async (t) =
     const p = state.participants.find((cp) => cp.user_id === 1);
     assert.equal(p.last_read_message_id, 5);
     assert.equal(p.unread_count, 0);
+  });
+  // Test 4: read receipts reach the sender
+  await t.test('Read receipt marks messages read_by and notifies the sender', async () => {
+    const { mockDb, state } = createMockDb();
+    state.messages.push({ id: 7, thread_id: 10, sender_id: 1, read_by: [1] });
+
+    const senderFrames = [];
+    registerUserSocket(1, { send: (d) => senderFrames.push(JSON.parse(d)), readyState: 1 });
+    const readerSocket = { send() {} };
+
+    handleSocketMessage(
+      readerSocket,
+      { id: 2, role: 'saler' },
+      JSON.stringify({ type: 'chat:read', payload: { thread_id: 10, last_read_message_id: 7 } }),
+      mockDb
+    );
+    await new Promise((r) => setTimeout(r, 60));
+
+    assert.deepEqual(state.messages[0].read_by, [1, 2]);
+    const frame = senderFrames.find((f) => f.type === 'chat:read');
+    assert.ok(frame, 'sender receives a chat:read frame');
+    assert.equal(frame.threadId, 10);
+    assert.equal(frame.userId, 2);
+    assert.equal(frame.lastReadMessageId, 7);
   });
 });

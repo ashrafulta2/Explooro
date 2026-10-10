@@ -12,6 +12,21 @@
 import * as chatService from '../services/chat.service.js';
 import { updateHeartbeat, broadcastToThread, sendToUser } from './presence.js';
 
+/** Tells the other participants which messages this user has now read, so the sender's ✓ becomes ✓✓. */
+export function broadcastReadReceipt(result, readerId) {
+  if (!result?.readThroughMessageId) return;
+  broadcastToThread(
+    result.participantIds,
+    {
+      type: 'chat:read',
+      threadId: Number(result.threadId),
+      userId: Number(readerId),
+      lastReadMessageId: result.readThroughMessageId,
+    },
+    readerId
+  );
+}
+
 export function handleSocketMessage(ws, user, rawData, db) {
   let message;
   try {
@@ -80,8 +95,9 @@ export function handleSocketMessage(ws, user, rawData, db) {
           userId: user.id,
           lastReadMessageId: last_read_message_id,
         })
-        .then(() => {
+        .then((result) => {
           ws.send(JSON.stringify({ type: 'chat:read_ack', threadId: Number(thread_id) }));
+          broadcastReadReceipt(result, user.id);
         })
         .catch(() => {});
       break;

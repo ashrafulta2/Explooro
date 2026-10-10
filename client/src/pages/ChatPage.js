@@ -440,6 +440,22 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
       toast.error(frame.reasonEn || frame.message || t('chat.send_failed') || 'Message could not be sent.');
     }
 
+    // Read receipt: the peer opened the thread, so our messages up to that id become ✓✓
+    if (type === 'chat:read' && selectedThread && threadId === Number(selectedThread.id)) {
+      const readerId = Number(frame.userId);
+      const upTo = Number(frame.lastReadMessageId) || 0;
+      let changed = false;
+      for (const m of messages) {
+        if (!m.id || Number(m.id) > upTo) continue;
+        const readBy = Array.isArray(m.read_by) ? m.read_by : [];
+        if (!readBy.map(Number).includes(readerId)) {
+          m.read_by = [...readBy, readerId];
+          changed = true;
+        }
+      }
+      if (changed) renderActiveConversation();
+    }
+
     // Inbound Message
     if (type === 'chat:message' && frame.message) {
       const incoming = normalizeWireMessage(threadId, frame.message);

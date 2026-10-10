@@ -21,6 +21,7 @@ import { logOutMock, releaseElevatedAccess } from '../../state/appStore.js';
 import { logout } from '../../services/session.js';
 import { getTheme, applyTheme } from '../../services/theme.js';
 import { Badge } from '../ui/Badge.js';
+import { api } from '../../core/api.js';
 import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
 import { openCart } from '../../services/cart.js';
 import { openNotificationCenter } from '../notifications/NotificationCenter.js';
@@ -120,6 +121,32 @@ function IconButton({ icon, label, badgeCount, onClick }) {
   }
   if (onClick) btn.addEventListener('click', onClick);
   return btn;
+}
+
+// WHY: GET /notifications/unread-count had no caller, so the bell showed no badge until the drawer
+// was opened. The count is fetched once per TopBar render and then kept live by the same
+// `explooro:notification` event the drawer listens to.
+function setBellBadge(btn, count) {
+  btn.querySelector('.badge')?.remove();
+  if (count > 0) btn.append(Badge({ variant: 'count', size: 'sm', count }));
+  btn.dataset.unread = String(Math.max(0, count));
+}
+
+async function initBellBadge(btn) {
+  try {
+    const res = await api.get('/notifications/unread-count');
+    setBellBadge(btn, Number(res?.data?.unread_count) || 0);
+  } catch {
+    /* no badge is the safe fallback */
+  }
+  const onLive = () => {
+    if (!btn.isConnected) {
+      window.removeEventListener('explooro:notification', onLive);
+      return;
+    }
+    setBellBadge(btn, (Number(btn.dataset.unread) || 0) + 1);
+  };
+  window.addEventListener('explooro:notification', onLive);
 }
 
 // ia-sitemap.md role set — labels sourced from server/src/db/seeds/001_roles_permissions.sql so
@@ -665,13 +692,15 @@ export function TopBar({
         openAssistantPanel({ agentType: 'concierge', trigger: e.currentTarget });
       },
     }));
-    bar.append(IconButton({
+    const bellBtn = IconButton({
       icon: BELL_ICON_SVG,
       label: t('shell.notifications'),
       onClick: () => {
-        openNotificationCenter();
+        openNotificationCenter({ onUnreadCountChanged: (n) => setBellBadge(bellBtn, n) });
       },
-    }));
+    });
+    bar.append(bellBtn);
+    initBellBadge(bellBtn);
     bar.append(AvatarMenu({ role, user, onNavigate: navigate }));
   }
 

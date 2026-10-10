@@ -376,6 +376,10 @@ export async function getThreadMessages(db, {
 
 /**
  * Marks messages in a thread as read.
+ *
+ * WHY: read receipts need `chat_messages.read_by` to actually gain the reader's id — before this
+ * only the participant cursor moved, so the sender's ✓✓ could never appear. A null
+ * `lastReadMessageId` (the HTTP route sends none) means "everything up to now".
  */
 export async function markThreadRead(db, { threadId, userId, lastReadMessageId } = {}) {
   await db.query(
@@ -387,7 +391,26 @@ export async function markThreadRead(db, { threadId, userId, lastReadMessageId }
     [threadId, userId, lastReadMessageId]
   );
 
-  return { success: true, threadId, unreadCount: 0 };
+  const { rows: updated } = await db.query(
+    `UPDATE chat_messages
+        SET read_by = read_by || to_jsonb($2::bigint)
+      WHERE thread_id = $1
+        AND sender_id <> $2
+        AND ($3::bigint IS NULL OR id <= $3::bigint)
+        AND NOT (read_by @> to_jsonb($2::bigint))
+      RETURNING id`,
+    [threadId, userId, lastReadMessageId || null]
+  );
+
+  const { rows: threadRows } = await db.query(
+    `SELECT participant_ids FROM chat_threads WHERE id = $1`,
+    [threadId]
+  );
+  const raw = threadRows[0]?.participant_ids;
+  const participantIds = Array.isArray(raw) ? raw.map(Number) : [];
+  const readThroughMessageId = updated.reduce((max, r) => Math.max(max, Number(r.id)), 0) || null;
+
+  return { success: true, threadId, unreadCount: 0, participantIds, readThroughMessageId };
 }
 
 /**

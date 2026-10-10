@@ -22,7 +22,7 @@ import { initI18n, t, subscribe as subscribeLang } from './services/i18n.js';
 import { initGenieSettings } from './services/genieSettings.js';
 
 // Prompt 2.8 — real session and permission service.
-import { initSession } from './services/session.js';
+import { initSession, isUserAuthenticated } from './services/session.js';
 
 // Prompt 3.2 — live feature flags and DOM module scanner.
 import { initFeatureFlags, scanDomForModuleGates } from './services/featureFlags.js';
@@ -114,6 +114,15 @@ async function bootRouterDemo() {
 
   // Prompt 2.8: Proactive session bootstrap from HttpOnly refresh cookie.
   await initSession();
+
+  // Prompt 8.2 req. 7: show the latest release note once per version. Never awaited and loaded
+  // lazily so it cannot delay the first route or grow the entry bundle; guests have no
+  // notifications to read, and a failed call is swallowed inside the modal module.
+  if (isUserAuthenticated()) {
+    setTimeout(() => {
+      import('./components/notifications/WhatsNewModal.js').then((m) => m.checkAndShowWhatsNew()).catch(() => {});
+    }, 2500);
+  }
 
   // Prompt 3.2: Bootstrap live feature flags
   await initFeatureFlags();

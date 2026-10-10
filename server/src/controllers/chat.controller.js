@@ -3,6 +3,7 @@
  */
 
 import { createTicket } from '../sockets/presence.js';
+import { broadcastReadReceipt } from '../sockets/chat.handler.js';
 import * as chatService from '../services/chat.service.js';
 
 export async function getTicket(req, reply) {
@@ -144,8 +145,10 @@ export async function markRead(req, reply) {
     lastReadMessageId: last_read_message_id ? parseInt(last_read_message_id, 10) : null,
   });
 
+  broadcastReadReceipt(result, req.user.id);
+
   return reply.send({
-    data: result,
+    data: { success: result.success, threadId: result.threadId, unreadCount: result.unreadCount },
     meta: { trace_id: req.traceId },
   });
 }
