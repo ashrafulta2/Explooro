@@ -5,14 +5,13 @@
  * 1. Streaming adapter interface with STREAM_DRIVER=mock (room creation, publisher/viewer tokens).
  * 2. Live stream schedule and lifecycle transitions (SCHEDULED -> LIVE -> ENDED / TERMINATED).
  * 3. Real-time product pinning and catalog sync (< 1s latency event).
- * 4. In-stream 1-click purchase execution and order stream attribution.
+ * 4. (In-stream 1-click purchase: see liveInStreamBuy.test.js.)
  * 5. Moderator safety controls: participant muting and stream force-termination.
  */
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { streaming } from '../src/integrations/streaming/index.js';
-import * as liveService from '../src/services/liveStream.service.js';
 import {
   joinStreamRoom,
   leaveStreamRoom,
@@ -104,88 +103,6 @@ describe('Prompt 10.1: Live Stream Commerce Engine (DFD Subsystem 15.0)', () => 
     });
   });
 
-  describe('3. In-Memory Mock Database Flow & Sales Attribution', () => {
-    test('Simulates in-stream buy with stream attribution and sales statistics', async () => {
-      let salesCount = 0;
-      let insertParams = null;
-      let salesAmount = 0;
-
-      const mockDb = {
-        async query(sql, params) {
-          if (sql.includes('SELECT') && sql.includes('live_streams')) {
-            return {
-              rows: [{
-                id: 50,
-                title: 'Live Silk Showcase',
-                status: 'LIVE',
-                host_id: 10,
-                room_id: 'room_mock_50',
-                viewer_count: 15,
-                total_likes_count: 84,
-                total_sales_count: salesCount,
-                total_sales_amount: salesAmount,
-              }],
-            };
-          }
-          if (sql.includes('SELECT') && sql.includes('products')) {
-            return {
-              rows: [{
-                id: 101,
-                title_en: 'Tangail Cotton Saree',
-                base_cost: '800.00',
-                wholesale_margin: '200.00',
-                default_retail_price: '1150.00',
-              }],
-            };
-          }
-          if (sql.includes('INSERT INTO orders')) {
-            salesCount += 1;
-            insertParams = params;
-            salesAmount += 1210;
-            return {
-              rows: [{
-                id: 2001,
-                ref: 'ORD-TEST-LIV-01',
-                customer_id: params[1],
-                total_amount: params[2],
-                live_stream_id: params[11],
-              }],
-            };
-          }
-          if (sql.includes('UPDATE live_streams') && sql.includes('total_sales_count')) {
-            return {
-              rows: [{
-                total_sales_count: salesCount,
-                total_sales_amount: salesAmount,
-              }],
-            };
-          }
-          return { rows: [] };
-        },
-      };
-
-      const buyRes = await liveService.executeInStreamBuy(mockDb, null, {
-        streamId: 50,
-        user: { id: 100, full_name: 'Tanvir Ahmed', phone: '01711111111' },
-        productId: 101,
-        qty: 1,
-        recipientName: 'Tanvir Ahmed',
-        recipientPhone: '01711111111',
-        division: 'Dhaka',
-        district: 'Dhaka',
-        addressLine: 'House 12, Road 4, Dhanmondi',
-        paymentMethod: 'COD',
-      });
-
-      assert.ok(buyRes.order);
-      assert.strictEqual(buyRes.order.live_stream_id, 50);
-      assert.strictEqual(salesCount, 1);
-      // Items at the listed retail price, shipping from the delivery policy (default 60), not the
-      // old base-cost-plus-150 placeholder or a Dhaka/other 60/120 split.
-      assert.equal(insertParams[3], 1150);
-      assert.equal(insertParams[4], 60);
-      assert.equal(insertParams[2], 1210);
-    });
-  });
+  // 3. The in-stream 1-click order (stock, order shape, price, validation) is covered in liveInStreamBuy.test.js.
 
 });

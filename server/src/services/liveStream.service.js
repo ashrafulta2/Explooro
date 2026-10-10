@@ -13,6 +13,10 @@
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import { perParcelCharge } from './deliveryCharge.service.js';
+import { withTransaction } from '../config/db.js';
+import * as orderRepo from '../repositories/order.repository.js';
+import { getReservedForProduct } from './teamStockReservation.service.js';
+import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
 import * as liveRepo from '../repositories/liveStream.repository.js';
 import { streaming } from '../integrations/streaming/index.js';
 import {
@@ -360,64 +364,171 @@ export async function executeInStreamBuy(pool, cache, {
   paymentMethod = 'COD',
 }) {
   const sId = Number(streamId);
+  const quantity = Number(qty);
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    throw new AppError('VALIDATION_FAILED', 'Quantity must be a whole number of at least 1.', 'পরিমাণ কমপক্ষে ১ এর পূর্ণসংখ্যা হতে হবে।');
+  }
+
+  // WHY reject, not default: an order shipped to "In-Stream Buyer, 01700000000, Live Stream Instant
+  // Order" is an order nobody can deliver. The drawer always sends all of these.
+  const name = String(recipientName ?? '').trim();
+  const address = String(addressLine ?? '').trim();
+  if (!name || !division || !district || !address) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      'Recipient name, division, district and address line are required.',
+      'প্রাপকের নাম, বিভাগ, জেলা এবং ঠিকানার বিবরণ আবশ্যক।'
+    );
+  }
+  let cleanPhone = String(recipientPhone ?? '').replace(/[\s-]/g, '');
+  if (cleanPhone.startsWith('01')) cleanPhone = `+88${cleanPhone}`;
+  if (!/^\+8801[3-9]\d{8}$/.test(cleanPhone)) {
+    throw new AppError('VALIDATION_FAILED', 'Invalid Bangladeshi phone number for delivery.', 'ডেলিভারির জন্য ভুল বাংলাদেশি ফোন নম্বর।');
+  }
+
   const stream = await liveRepo.findStreamById(pool, sId);
   if (!stream) {
     throw new AppError('STREAM_NOT_FOUND', 'Live stream not found.', 'লাইভ স্ট্রিম পাওয়া যায়নি।');
   }
-
-  // Look up product
-  const { rows: prodRows } = await pool.query('SELECT * FROM products WHERE id = $1', [productId]);
-  const product = prodRows[0];
-  if (!product) {
-    throw new AppError('PRODUCT_NOT_FOUND', 'Product not found.', 'পণ্য পাওয়া যায়নি।');
+  if (stream.status !== 'LIVE') {
+    throw new AppError('STREAM_NOT_LIVE', 'This stream is not live, so in-stream orders are closed.', 'এই স্ট্রিম এখন লাইভ নয়, তাই ইন-স্ট্রিম অর্ডার বন্ধ।');
   }
 
-  const orderRef = generateRef('ORD');
-  // WHY the listed price: the drawer shows the product's retail price, so that is what is charged. The
-  // old "base cost + margin + 150" was a placeholder that billed a figure the shopper never saw.
-  const unitPrice = Number(product.default_retail_price);
+  // WHY the stream's own price: the host sets a special price per stream product; the drawer shows
+  // exactly that figure (unit_price in the pinned-product payload), so the server resolves the same
+  // one. A product that is not on this stream cannot be bought through it.
+  const streamProduct = await liveRepo.getStreamProduct(pool, sId, Number(productId));
+  if (!streamProduct) {
+    throw new AppError('PRODUCT_NOT_IN_STREAM', 'This product is not part of this live stream.', 'এই পণ্যটি এই লাইভ স্ট্রিমের অংশ নয়।');
+  }
+  let unitPrice = Number(streamProduct.unit_price);
   if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
     throw new AppError('PRODUCT_UNPRICED', 'This product has no price yet.', 'এই পণ্যের এখনও দাম নির্ধারণ হয়নি।');
   }
-  const itemsAmount = unitPrice * Number(qty);
+
   // WHY configuration: the per-parcel delivery charge is set at /admin/platform/delivery; a live order
   // is one supplier parcel, so it pays the same charge as a normal checkout.
-  const shippingAmount = await perParcelCharge(pool, cache);
-  const totalAmount = itemsAmount + shippingAmount;
+  const shippingPaisa = toPaisa(await perParcelCharge(pool, cache, { fresh: true }));
 
-  // Insert order attributed to live_stream_id
-  const insertOrderSql = `
-    INSERT INTO orders (
-      ref, customer_id, total_amount, items_amount, shipping_amount,
-      payment_method, payment_status, recipient_name, recipient_phone,
-      division, district, address_line, live_stream_id, placed_at, created_at
-    )
-    VALUES ($1, $2, $3, $4, $5, $6, 'PENDING', $7, $8, $9, $10, $11, $12, now(), now())
-    RETURNING *;
-  `;
+  const { order, product } = await withTransaction(pool, async (client) => {
+    // WHY lock first: stock is read and decremented under the same row lock checkout uses, so two
+    // viewers hitting "buy" on the last unit cannot both succeed.
+    const { productsById, variantsById } = await orderRepo.lockProductsAndVariants(client, [
+      { product_id: Number(productId), variant_id: variantId ? Number(variantId) : null },
+    ]);
+    const prod = productsById.get(Number(productId));
+    if (!prod || prod.status !== 'ACTIVE') {
+      throw new AppError('PRODUCT_NOT_FOUND', 'Product is no longer available.', 'পণ্যটি এখন আর উপলব্ধ নেই।');
+    }
 
-  const { rows: orderRows } = await pool.query(insertOrderSql, [
-    orderRef,
-    user.id,
-    totalAmount,
-    itemsAmount,
-    shippingAmount,
-    paymentMethod,
-    recipientName || user.full_name || 'In-Stream Buyer',
-    recipientPhone || user.phone || '01700000000',
-    division || 'Dhaka',
-    district || 'Dhaka',
-    addressLine || 'Live Stream Instant Order',
-    sId,
-  ]);
+    let availableStock = Number(prod.stock_qty);
+    if (variantId) {
+      const variant = variantsById.get(Number(variantId));
+      if (!variant || !variant.is_active || Number(variant.product_id) !== Number(prod.id)) {
+        throw new AppError('NOT_FOUND', 'Selected variant is no longer available.', 'নির্বাচিত ভ্যারিয়েন্টটি আর উপলব্ধ নেই।');
+      }
+      // price_delta is signed and relative to the price, as in the cart.
+      unitPrice += Number(variant.price_delta ?? 0);
+      availableStock = Number(variant.stock_qty);
+    }
+    // WHY net of reservations: units open team purchases are counting on are not for sale here.
+    const reserved = await getReservedForProduct(client, prod.id);
+    availableStock = Math.min(availableStock, Number(prod.stock_qty) - reserved);
+    if (availableStock < quantity) {
+      throw new AppError(
+        'INSUFFICIENT_STOCK',
+        `Only ${Math.max(0, availableStock)} left of "${prod.title_en}".`,
+        `"${prod.title_bn || prod.title_en}" এর মাত্র ${Math.max(0, availableStock)}টি বাকি আছে।`,
+        { product_ref: prod.ref, requested: quantity, available: Math.max(0, availableStock) }
+      );
+    }
 
-  const order = orderRows[0];
+    // WHY the host: the stream's host is the seller whose audience bought, so the sub-order carries
+    // them as saler and the normal commission split applies.
+    const salerId = stream.host_id ? Number(stream.host_id) : null;
+    const split = await resolveSplitPercentages(client, {
+      productId: prod.id,
+      productRef: prod.ref,
+      categoryId: prod.category_id,
+      salerId,
+      cache,
+    });
+    // Throws VALIDATION_FAILED when the (special) price is below the wholesale floor.
+    const pricing = calculatePricingBreakdown({
+      baseCost: prod.base_cost,
+      wholesaleMargin: prod.wholesale_margin,
+      retailPrice: unitPrice,
+      salerSplitPct: split.salerSplitPct,
+      platformSplitPct: split.platformSplitPct,
+      ruleSource: split.ruleSource,
+    });
 
-  // Record stream sale stats and broadcast purchase notification toast
+    const lineTotalPaisa = toPaisa(unitPrice) * quantity;
+    const netRetailPaisa = pricing.paisa.net_retail_margin * quantity;
+    const salerPaisa = pricing.paisa.saler_earning * quantity;
+
+    const batch = await orderRepo.allocateFefoBatch(client, {
+      productId: prod.id,
+      variantId: variantId ? Number(variantId) : null,
+      qty: quantity,
+    });
+    await orderRepo.deductStock(client, {
+      productId: prod.id,
+      variantId: variantId ? Number(variantId) : null,
+      qty: quantity,
+    });
+
+    const orderRef = generateRef('ORD');
+    const rootOrder = await orderRepo.createOrder(client, {
+      ref: orderRef,
+      customerId: user.id,
+      totalAmount: toBdtNumber(lineTotalPaisa + shippingPaisa),
+      itemsAmount: toBdtNumber(lineTotalPaisa),
+      shippingAmount: toBdtNumber(shippingPaisa),
+      paymentMethod,
+      paymentStatus: 'PENDING',
+      recipientName: name,
+      recipientPhone: cleanPhone,
+      division,
+      district,
+      addressLine: address,
+      liveStreamId: sId,
+    });
+    const subOrder = await orderRepo.createSubOrder(client, {
+      ref: `${orderRef}-1`,
+      orderId: rootOrder.id,
+      supplierId: prod.supplier_id,
+      salerId,
+      subtotalBase: toBdtNumber(pricing.paisa.base_cost * quantity),
+      wholesaleMargin: toBdtNumber(pricing.paisa.wholesale_margin * quantity),
+      netRetailMargin: toBdtNumber(netRetailPaisa),
+      salerCommission: toBdtNumber(salerPaisa),
+      // Reconciled so saler_commission + platform_margin = net_retail_margin, as checkout does.
+      platformMargin: toBdtNumber(netRetailPaisa - salerPaisa),
+      shippingAmount: toBdtNumber(shippingPaisa),
+      totalAmount: toBdtNumber(lineTotalPaisa + shippingPaisa),
+      status: 'PLACED',
+    });
+    await orderRepo.createOrderItem(client, {
+      subOrderId: subOrder.id,
+      productId: prod.id,
+      variantId: variantId ? Number(variantId) : null,
+      batchId: batch?.id || null,
+      titleSnapshot: prod.title_en,
+      qty: quantity,
+      basePrice: pricing.base_cost,
+      retailPrice: pricing.retail_price,
+      lineTotal: toBdtNumber(lineTotalPaisa),
+    });
+
+    return { order: rootOrder, product: prod };
+  });
+
+  // Stream stats and the sale toast run after commit: a failed broadcast must not undo a paid-for order.
   await recordStreamPurchase(pool, {
     streamId: sId,
     orderRef: order.ref,
-    orderAmount: totalAmount,
+    orderAmount: Number(order.total_amount),
     buyerName: user.full_name || 'Customer',
     productTitle: product.title_en,
   });

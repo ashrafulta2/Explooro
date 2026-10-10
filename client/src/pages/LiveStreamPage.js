@@ -1014,7 +1014,9 @@ function openInStreamCheckoutDrawer(product, streamId) {
   const isBn = lang === 'bn';
   const prodTitle = (isBn ? (product.title_bn || product.title_en) : (product.title_en || product.title_bn)) || product.title || 'Live Deal';
   // WHY no fallback figure: a made-up price in the checkout drawer is a price nobody agreed to.
-  const retailPrice = Number(product.special_price || product.price);
+  // WHY unit_price first: the server resolves what a live order is billed (the stream's special price,
+  // else the listed one) and sends it with the pinned product, so the drawer and the bill agree.
+  const retailPrice = Number(product.unit_price ?? (product.special_price || product.list_price || product.price));
   if (!Number.isFinite(retailPrice) || retailPrice <= 0) {
     toast.error(t('live.chk_price_unavailable') || 'This deal has no price yet. Please try again shortly.');
     return;

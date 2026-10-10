@@ -230,6 +230,8 @@ export async function getStreamProducts(client, streamId) {
       lsp.pinned_at,
       lsp.pin_order,
       lsp.special_price,
+      p.default_retail_price AS list_price,
+      COALESCE(lsp.special_price, p.default_retail_price) AS unit_price,
       p.title_en,
       p.title_bn,
       p.slug,
@@ -250,6 +252,19 @@ export async function getStreamProducts(client, streamId) {
   `;
   const { rows } = await client.query(query, [streamId]);
   return rows;
+}
+
+/** One product's row on one stream, with the price a live buyer is billed (special price, else the listed one). */
+export async function getStreamProduct(client, streamId, productId) {
+  const { rows } = await client.query(
+    `SELECT lsp.product_id, lsp.special_price,
+            COALESCE(lsp.special_price, p.default_retail_price) AS unit_price
+       FROM live_stream_products lsp
+       JOIN products p ON p.id = lsp.product_id
+      WHERE lsp.live_stream_id = $1 AND lsp.product_id = $2`,
+    [streamId, productId]
+  );
+  return rows[0] || null;
 }
 
 export async function pinProduct(client, streamId, productId) {
@@ -293,6 +308,8 @@ export async function getPinnedProduct(client, streamId) {
       lsp.is_pinned,
       lsp.pinned_at,
       lsp.special_price,
+      p.default_retail_price AS list_price,
+      COALESCE(lsp.special_price, p.default_retail_price) AS unit_price,
       p.title_en,
       p.title_bn,
       p.slug,
