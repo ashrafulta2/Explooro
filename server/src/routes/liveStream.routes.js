@@ -175,6 +175,7 @@ export default async function liveStreamRoutes(fastify) {
             district: { type: 'string' },
             address_line: { type: 'string' },
             payment_method: { type: 'string' },
+            otp_code: { type: 'string' },
           },
         },
       },

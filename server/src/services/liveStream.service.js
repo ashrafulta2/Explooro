@@ -15,6 +15,7 @@ import { generateRef } from '../lib/ref.js';
 import { perParcelCharge } from './deliveryCharge.service.js';
 import { withTransaction } from '../config/db.js';
 import * as orderRepo from '../repositories/order.repository.js';
+import { enforceCodGate } from './codGate.service.js';
 import { getReservedForProduct } from './teamStockReservation.service.js';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
 import * as liveRepo from '../repositories/liveStream.repository.js';
@@ -362,7 +363,21 @@ export async function executeInStreamBuy(pool, cache, {
   district,
   addressLine,
   paymentMethod = 'COD',
+  idempotencyKey = null,
+  otpCode = null,
+  smsSender = null,
+  isDevelopment = false,
+  ip = null,
 }) {
+  // WHY required: a double-tap or a retried request must never place a second order for the same intent.
+  if (!idempotencyKey || typeof idempotencyKey !== 'string') {
+    throw new AppError('IDEMPOTENCY_KEY_REQUIRED', 'An Idempotency-Key header is required for an in-stream order.', 'ইন-স্ট্রিম অর্ডারের জন্য একটি Idempotency-Key হেডার আবশ্যক।');
+  }
+  const existing = await orderRepo.findOrderByIdempotencyKey(pool, idempotencyKey);
+  if (existing) {
+    return { order: existing, isReplay: true, originalAt: existing.created_at };
+  }
+
   const sId = Number(streamId);
   const quantity = Number(qty);
   if (!Number.isInteger(quantity) || quantity < 1) {
@@ -443,6 +458,26 @@ export async function executeInStreamBuy(pool, cache, {
       );
     }
 
+    // WHY before any write: COD_OTP_REQUIRED throws and rolls the transaction back, so no stock is
+    // taken for an order the shopper has not confirmed. Same gate as checkout and team purchase.
+    const totalPaisa = toPaisa(unitPrice) * quantity + shippingPaisa;
+    let isOtpVerified = false;
+    let trustScoreAtOrder = 50;
+    if (paymentMethod === 'COD') {
+      const gate = await enforceCodGate(pool, cache, {
+        client,
+        userId: user.id,
+        phone: cleanPhone,
+        orderAmount: toBdtNumber(totalPaisa),
+        otpCode,
+        smsSender,
+        isDevelopment,
+        ip,
+      });
+      isOtpVerified = gate.isOtpVerified;
+      trustScoreAtOrder = gate.trustScore;
+    }
+
     // WHY the host: the stream's host is the seller whose audience bought, so the sub-order carries
     // them as saler and the normal commission split applies.
     const salerId = stream.host_id ? Number(stream.host_id) : null;
@@ -487,6 +522,9 @@ export async function executeInStreamBuy(pool, cache, {
       shippingAmount: toBdtNumber(shippingPaisa),
       paymentMethod,
       paymentStatus: 'PENDING',
+      isOtpVerified,
+      trustScoreAtOrder,
+      idempotencyKey,
       recipientName: name,
       recipientPhone: cleanPhone,
       division,
@@ -535,6 +573,7 @@ export async function executeInStreamBuy(pool, cache, {
 
   return {
     order,
+    isReplay: false,
     messageEn: 'In-stream purchase completed successfully!',
     messageBn: 'লাইভ স্ট্রিমে অর্ডারটি সফলভাবে সম্পন্ন হয়েছে!',
   };

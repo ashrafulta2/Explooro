@@ -18,6 +18,7 @@ export const API_BASE = BASE;
 // blanket rule, because a retried key on a non-money endpoint would just be wasted overhead.
 const IDEMPOTENT_ROUTES = [
   /^\/orders\/checkout$/,
+  /^\/live\/streams\/[^/]+\/in-stream-buy$/,
   /^\/vault\/withdraw$/,
   /^\/subscriptions\/subscribe$/,
   /^\/payments\/execute$/,

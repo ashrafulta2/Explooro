@@ -28,7 +28,7 @@ const PRODUCT = {
  * Dispatch order matters: the stream-products query and the product-lock query both name `products`,
  * and the sale-stats UPDATE names live_streams, so the most specific matches come first.
  */
-function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus = 'LIVE', inStream = true, product = PRODUCT } = {}) {
+function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus = 'LIVE', inStream = true, product = PRODUCT, existingOrder = null, maxCod = null } = {}) {
   const log = { writes: [], orderParams: null, subOrderParams: null, itemParams: null, stockUpdate: null, began: 0, committed: 0, rolledBack: 0 };
   const db = {
     log,
@@ -36,6 +36,15 @@ function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus 
       return { query: db.query, release() {} };
     },
     async query(sql, params) {
+      if (sql.includes('FROM orders WHERE idempotency_key')) {
+        return { rows: existingOrder ? [existingOrder] : [] };
+      }
+      if (sql.includes('FROM trust_scores')) {
+        return { rows: [{ user_id: 100, score: 80, tier: 'TRUSTED' }] };
+      }
+      if (sql.includes('max_cod_order_value')) {
+        return { rows: maxCod ? [{ value_json: { amount: maxCod } }] : [] };
+      }
       if (sql.startsWith('BEGIN')) { log.began += 1; return { rows: [] }; }
       if (sql.startsWith('COMMIT')) { log.committed += 1; return { rows: [] }; }
       if (sql.startsWith('ROLLBACK')) { log.rolledBack += 1; return { rows: [] }; }
@@ -63,7 +72,7 @@ function makeDb({ stock = 10, reserved = 0, unitPrice = '1150.00', streamStatus 
       if (sql.includes('INSERT INTO orders')) {
         log.writes.push('order');
         log.orderParams = params;
-        return { rows: [{ id: 2001, ref: params[0], total_amount: params[2], live_stream_id: params[22] }] };
+        return { rows: [{ id: 2001, ref: params[0], total_amount: params[2], live_stream_id: params[22], idempotency_key: params[15], is_otp_verified: params[11] }] };
       }
       if (sql.includes('INSERT INTO sub_orders')) {
         log.writes.push('sub_order');
@@ -93,6 +102,7 @@ const base = {
   district: 'Dhaka',
   addressLine: 'House 12, Road 4, Dhanmondi',
   paymentMethod: 'COD',
+  idempotencyKey: 'key-1',
 };
 
 describe('executeInStreamBuy', () => {
@@ -199,5 +209,57 @@ describe('executeInStreamBuy', () => {
     );
     assert.equal(db.log.rolledBack, 1);
     assert.equal(db.log.committed, 0);
+  });
+
+  test('an Idempotency-Key is required', async () => {
+    const db = makeDb();
+    await assert.rejects(
+      liveService.executeInStreamBuy(db, null, { ...base, idempotencyKey: undefined }),
+      (e) => e.code === 'IDEMPOTENCY_KEY_REQUIRED'
+    );
+    assert.equal(db.log.began, 0);
+  });
+
+  test('a repeated key replays the first order and writes nothing', async () => {
+    const db = makeDb({ existingOrder: { id: 2001, ref: 'ORD-OLD', created_at: 'then' } });
+    const res = await liveService.executeInStreamBuy(db, null, base);
+    assert.equal(res.isReplay, true);
+    assert.equal(res.order.ref, 'ORD-OLD');
+    assert.deepEqual(db.log.writes, []);
+    assert.equal(db.log.began, 0);
+  });
+
+  test('the order records the key and the trust score it was placed under', async () => {
+    const db = makeDb();
+    await liveService.executeInStreamBuy(db, null, base);
+    assert.equal(db.log.orderParams[15], 'key-1');
+    assert.equal(db.log.orderParams[12], 80);
+  });
+
+  test('a COD order above the platform COD limit needs the SMS code first and takes no stock', async () => {
+    const db = makeDb({ maxCod: 100 });
+    let sent = 0;
+    const counters = new Map();
+    const cache = {
+      async get() { return null; },
+      async set() {},
+      async del() {},
+      async incr(k) { counters.set(k, (counters.get(k) || 0) + 1); return counters.get(k); },
+      async expire() {},
+      async ttl() { return 1000; },
+    };
+    await assert.rejects(
+      liveService.executeInStreamBuy(db, cache, { ...base, smsSender: async () => { sent += 1; }, isDevelopment: true }),
+      (e) => e.code === 'COD_OTP_REQUIRED'
+    );
+    assert.equal(sent, 1);
+    assert.deepEqual(db.log.writes, []);
+    assert.equal(db.log.rolledBack, 1);
+  });
+
+  test('the COD gate does not apply to a prepaid method', async () => {
+    const db = makeDb({ maxCod: 100 });
+    await liveService.executeInStreamBuy(db, null, { ...base, paymentMethod: 'BKASH' });
+    assert.deepEqual(db.log.writes, ['deduct', 'order', 'sub_order', 'item']);
   });
 });

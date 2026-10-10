@@ -1078,6 +1078,12 @@ function openInStreamCheckoutDrawer(product, streamId) {
         </select>
       </div>
 
+      <div class="form-group" id="chk-otp-group" hidden>
+        <label for="chk-otp">${t('live.chk_otp_label') || 'SMS confirmation code'}</label>
+        <input type="text" id="chk-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="input" />
+        <span class="form-hint" id="chk-otp-hint" style="font-size: 11px; color: var(--text-muted);"></span>
+      </div>
+
       <div class="order-total-preview">
         <span>${t('live.chk_total_payable') || 'Total Payable:'}</span>
         <strong id="chk-total">${formatBdt(retailPrice + (knownDeliveryCharge() ?? 0))}</strong>
@@ -1110,6 +1116,9 @@ function openInStreamCheckoutDrawer(product, streamId) {
   const divSelect = drawerContent.querySelector('#chk-division');
   const phoneInput = drawerContent.querySelector('#chk-phone');
   const totalEl = drawerContent.querySelector('#chk-total');
+  // WHY one key per open drawer: a double-tap or a retry after the OTP step replays the same order
+  // instead of placing another.
+  const idempotencyKey = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `idem-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
   // WHY one flat charge: the server bills the platform's per-parcel delivery charge for a live order,
   // whatever the division, so the total follows that number instead of a guessed Dhaka/other split.
@@ -1143,12 +1152,21 @@ function openInStreamCheckoutDrawer(product, streamId) {
         district: divSelect.value,
         address_line: drawerContent.querySelector('#chk-address').value.trim(),
         payment_method: drawerContent.querySelector('#chk-payment').value,
-      });
+        otp_code: drawerContent.querySelector('#chk-otp').value.trim() || undefined,
+      }, { idempotencyKey });
 
       toast.success(res?.meta?.message_en || t('live.chk_order_success') || 'Order placed successfully!');
       drawer.closeDrawer();
     } catch (err) {
-      toast.error(err.message || 'Checkout failed.');
+      if (err.code === 'COD_OTP_REQUIRED') {
+        // The server has sent the code; reveal the field and let the shopper confirm again.
+        drawerContent.querySelector('#chk-otp-group').hidden = false;
+        drawerContent.querySelector('#chk-otp-hint').textContent =
+          (t('live.chk_otp_sent') || 'We sent a code to {{phone}}. Enter it and confirm again.').replace('{{phone}}', err.details?.phone || phoneVal);
+        drawerContent.querySelector('#chk-otp').focus();
+      } else {
+        toast.error((isBn && err.message_bn) || err.message || 'Checkout failed.');
+      }
       confirmBtn.setLoading(false);
     }
   });
