@@ -36,6 +36,10 @@ export default async function promotionRoutes(app) {
     preHandler: [app.authenticate, requireCouponsModule, requireManageCoupons],
   }, promotionController.listCoupons);
 
+  app.post('/admin/growth/coupons', {
+    preHandler: [app.authenticate, requireCouponsModule, requireManageCoupons],
+  }, promotionController.createCoupon);
+
   app.post('/admin/growth/coupons/:id/toggle', {
     preHandler: [app.authenticate, requireCouponsModule, requireManageCoupons],
   }, promotionController.toggleCouponActive);

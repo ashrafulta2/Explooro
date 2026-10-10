@@ -26,12 +26,12 @@ export default function AdminAdsPage(root, { navigate } = {}) {
 
   let campaigns = [];
   let stats = {
-    total_spend_bdt: 42500.00,
-    impressions: 184500,
-    clicks: 14200,
-    avg_cpc_bdt: 2.99,
-    fraud_blocked_clicks: 342,
-    active_campaigns: 4,
+    total_spend_bdt: 0,
+    impressions: 0,
+    clicks: 0,
+    avg_cpc_bdt: 0,
+    fraud_blocked_clicks: 0,
+    active_campaigns: 0,
   };
   let isLoading = true;
   let searchQuery = '';
@@ -42,22 +42,16 @@ export default function AdminAdsPage(root, { navigate } = {}) {
 
     try {
       const res = await api.get('/admin/growth/ads');
-      campaigns = res.data?.campaigns || res.campaigns || getDefaultCampaigns();
-    } catch {
-      campaigns = getDefaultCampaigns();
+      const payload = res.data || res || {};
+      campaigns = payload.campaigns || [];
+      if (payload.stats) stats = { ...stats, ...payload.stats };
+    } catch (err) {
+      campaigns = [];
+      toast.error(err?.message || (isBn ? 'ডেটা লোড করা যায়নি।' : 'Could not load ad campaigns.'));
     } finally {
       isLoading = false;
       render();
     }
-  }
-
-  function getDefaultCampaigns() {
-    return [
-      { id: 1, title: 'Eid Mega Flash Sale Jamdani Boost', merchant_name: 'Jamdani Heritage Weavers', merchant_role: 'SUPPLIER', daily_budget: 1500.00, total_spent: 4200.00, impressions: 45000, clicks: 3800, cpc_bdt: 1.10, quality_score: 9.4, status: 'ACTIVE' },
-      { id: 2, title: 'Sundarban Pure Honey Sponsored Placement', merchant_name: 'Sundarban Honey House', merchant_role: 'SUPPLIER', daily_budget: 800.00, total_spent: 2400.00, impressions: 28000, clicks: 2100, cpc_bdt: 1.14, quality_score: 8.8, status: 'ACTIVE' },
-      { id: 3, title: 'Wireless Earbuds Top Category Banner', merchant_name: 'Gadget Express BD', merchant_role: 'SALER', daily_budget: 2000.00, total_spent: 12500.00, impressions: 85000, clicks: 6400, cpc_bdt: 1.95, quality_score: 9.1, status: 'ACTIVE' },
-      { id: 4, title: 'Organic Mustard Oil Search Boost', merchant_name: 'Bengal Organics Ltd.', merchant_role: 'SUPPLIER', daily_budget: 500.00, total_spent: 1500.00, impressions: 14000, clicks: 950, cpc_bdt: 1.58, quality_score: 8.2, status: 'PAUSED' },
-    ];
   }
 
   function render() {
@@ -109,7 +103,7 @@ export default function AdminAdsPage(root, { navigate } = {}) {
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মোট ইমপ্রেশন ও ক্লিক' : 'Impressions & Clicks'}</div>
           <div class="admin-kpi-card__val font-mono text-primary">${formatNumber(Math.round(stats.impressions / 1000))}k <span class="text-xs font-normal">imp</span></div>
-          <div class="admin-kpi-card__hint">${formatNumber(stats.clicks)} ${isBn ? 'ক্লিক (৭.৭% সিটিআর)' : 'Clicks (7.7% CTR)'}</div>
+          <div class="admin-kpi-card__hint">${formatNumber(stats.clicks)} ${isBn ? 'ক্লিক' : 'Clicks'} (${stats.impressions > 0 ? ((stats.clicks / stats.impressions) * 100).toFixed(1) : '0.0'}% ${isBn ? 'সিটিআর' : 'CTR'})</div>
         </div>
 
         <div class="admin-kpi-card">

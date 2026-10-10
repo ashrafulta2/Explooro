@@ -57,7 +57,8 @@ export async function createCoupon(db, cache, creatorUser, couponData, reqMeta =
     throw new AppError('UNAUTHORIZED_FUNDING', 'Only platform administrators can create platform-funded coupons.');
   }
 
-  const minSpend = Number(couponData.min_spend) || 0;
+  // WHY: the admin Campaign Manager form posts `min_spend_amount`; creator forms post `min_spend`.
+  const minSpend = Number(couponData.min_spend ?? couponData.min_spend_amount) || 0;
   const maxDiscount = couponData.max_discount != null ? Number(couponData.max_discount) : null;
   const budgetCap = couponData.budget_cap != null ? Number(couponData.budget_cap) : null;
   const usageLimit = couponData.usage_limit != null ? parseInt(couponData.usage_limit, 10) : null;

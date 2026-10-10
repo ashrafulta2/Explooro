@@ -2817,11 +2817,11 @@ export const adminHandlers = [
               min_redeem_balance: 200,
             },
             streak_curve: [
-              { day: 1, multiplier: 1.0, coins: 50 },
-              { day: 3, multiplier: 1.2, coins: 60 },
-              { day: 7, multiplier: 1.5, coins: 75 },
-              { day: 14, multiplier: 2.0, coins: 100 },
-              { day: 30, multiplier: 3.0, coins: 150 },
+              { day: 1, multiplier: 1.0, reward_coins: 50 },
+              { day: 3, multiplier: 1.2, reward_coins: 60 },
+              { day: 7, multiplier: 1.5, reward_coins: 75 },
+              { day: 14, multiplier: 2.0, reward_coins: 100 },
+              { day: 30, multiplier: 3.0, reward_coins: 150 },
             ],
             leaderboard: [
               { rank: 1, name: 'Fatima Sultana', district: 'Dhaka', coins_earned_30d: 18400, streak_days: 41 },
@@ -2833,6 +2833,24 @@ export const adminHandlers = [
           },
         },
       };
+    },
+  },
+
+  // The coins page reads the same payload as quests but under its own permission guard.
+  {
+    method: 'GET',
+    path: '/admin/growth/coins',
+    handler(ctx) {
+      const quests = adminHandlers.find((h) => h.method === 'GET' && h.path === '/admin/growth/quests');
+      return quests.handler(ctx);
+    },
+  },
+
+  {
+    method: 'PATCH',
+    path: '/admin/growth/quests/:id',
+    handler({ params, body }) {
+      return { status: 200, body: { data: { quest: { id: Number(params.id), ...body } } } };
     },
   },
 

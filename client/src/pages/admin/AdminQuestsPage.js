@@ -34,10 +34,10 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
 
   let quests = [];
   let stats = {
-    coins_in_circulation: 1245000,
-    total_liability_bdt: 12450.00,
-    redeemed_coins_30d: 480000,
-    active_daily_streakers: 3420,
+    coins_in_circulation: 0,
+    total_liability_bdt: 0,
+    redeemed_coins_30d: 0,
+    active_daily_streakers: 0,
   };
   let coinPolicy = { coins_per_bdt: 100, max_redeem_pct_of_order: 20, daily_earn_cap: 500, expiry_days: 365, min_redeem_balance: 200 };
   let streakCurve = [];
@@ -53,28 +53,22 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
     render();
 
     try {
-      const res = await api.get('/admin/growth/quests');
+      // WHY: the coins page is guarded by growth.coins.govern, the quests page by growth.quest.govern,
+      // so each tab reads its own endpoint (same payload) and a delegate needs only one permission.
+      const res = await api.get(activeTab === 'coins' ? '/admin/growth/coins' : '/admin/growth/quests');
       const payload = res.data || res || {};
-      quests = payload.quests || getDefaultQuests();
+      quests = payload.quests || [];
       if (payload.economy) stats = { ...stats, ...payload.economy };
       if (payload.coin_policy) coinPolicy = { ...coinPolicy, ...payload.coin_policy };
       streakCurve = payload.streak_curve || [];
       leaderboard = payload.leaderboard || [];
-    } catch {
-      quests = getDefaultQuests();
+    } catch (err) {
+      quests = [];
+      toast.error(err?.message || (isBn ? 'ডেটা লোড করা যায়নি।' : 'Could not load the loyalty economy.'));
     } finally {
       isLoading = false;
       render();
     }
-  }
-
-  function getDefaultQuests() {
-    return [
-      { id: 1, title: 'Daily App Check-In', description: 'Open app & check in daily to build consecutive streak', reward_coins: 50, frequency: 'DAILY', completions_today: 3420, is_active: true },
-      { id: 2, title: 'Place Order above ৳1,000', description: 'Complete a purchase of ৳1,000 or higher', reward_coins: 200, frequency: 'DAILY', completions_today: 184, is_active: true },
-      { id: 3, title: 'Photo Review with Verified Badge', description: 'Leave a genuine review with at least 1 clear photo', reward_coins: 100, frequency: 'PER_ORDER', completions_today: 92, is_active: true },
-      { id: 4, title: 'Invite 3 Friends to Explooro', description: 'Share your referral code and achieve 3 registrations', reward_coins: 500, frequency: 'WEEKLY', completions_today: 48, is_active: true },
-    ];
   }
 
   function render() {
@@ -183,8 +177,17 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
     });
 
     container.querySelectorAll('.toggle-quest-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        toast.info(isBn ? 'কোয়েস্ট সেটিংস হালনাগাদ করা হয়েছে!' : 'Quest settings saved!');
+      btn.addEventListener('click', async () => {
+        const quest = quests.find((x) => String(x.id) === btn.getAttribute('data-id'));
+        if (!quest) return;
+        try {
+          await api.patch(`/admin/growth/quests/${quest.id}`, { is_active: !quest.is_active });
+          quest.is_active = !quest.is_active;
+          toast.success(isBn ? 'কোয়েস্ট হালনাগাদ হয়েছে।' : 'Quest updated.');
+          render();
+        } catch (err) {
+          toast.error(err?.message || (isBn ? 'হালনাগাদ ব্যর্থ হয়েছে।' : 'Could not update the quest.'));
+        }
       });
     });
 
@@ -280,7 +283,7 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
                 <tr>
                   <td><strong class="font-mono">${isBn ? 'দিন ' : 'Day '}${s.day}</strong></td>
                   <td><span class="badge badge--neutral font-mono">×${s.multiplier.toFixed(1)}</span></td>
-                  <td><strong class="font-mono text-amber-600">🪙 +${s.coins}</strong></td>
+                  <td><strong class="font-mono text-amber-600">🪙 +${s.reward_coins}</strong></td>
                   <td>
                     <div class="system-infra-card__gauge" role="img" aria-label="${isBn ? 'মাল্টিপ্লায়ার' : 'Multiplier'} ${s.multiplier.toFixed(1)}">
                       <div class="system-infra-card__gauge-fill" style="width: ${Math.round((s.multiplier / maxMultiplier) * 100)}%; background: var(--brand);"></div>
@@ -331,10 +334,10 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
                   <td><strong class="font-mono text-amber-600">🪙 +${formatNumber(q.reward_coins)}</strong></td>
                   <td><span class="badge badge--neutral text-xs">${questFrequencyLabels[q.frequency] || q.frequency}</span></td>
                   <td><span class="font-mono font-bold">${formatNumber(q.completions_today)}</span></td>
-                  <td><span class="system-table__badge system-table__badge--success">${q.is_active ? (isBn ? 'সক্রিয়' : 'Active') : (isBn ? 'নিষ্ক্রিয়' : 'Paused')}</span></td>
+                  <td><span class="system-table__badge ${q.is_active ? 'system-table__badge--success' : ''}">${q.is_active ? (isBn ? 'সক্রিয়' : 'Active') : (isBn ? 'নিষ্ক্রিয়' : 'Paused')}</span></td>
                   <td style="text-align: right;">
                     <button type="button" class="btn btn--secondary btn--sm toggle-quest-btn" data-id="${q.id}">
-                      ⚙️ ${isBn ? 'এডিট' : 'Edit'}
+                      ${q.is_active ? (isBn ? 'বিরতি দিন' : 'Pause') : (isBn ? 'চালু করুন' : 'Resume')}
                     </button>
                   </td>
                 </tr>

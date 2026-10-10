@@ -64,6 +64,7 @@ import adsRoutes from './routes/ads.routes.js';
 import promotionRoutes from './routes/promotion.routes.js';
 import referralRoutes from './routes/referral.routes.js';
 import gamificationRoutes from './routes/gamification.routes.js';
+import growthAdminRoutes from './routes/growthAdmin.routes.js';
 import teamPurchaseRoutes from './routes/teamPurchase.routes.js';
 import cartRecoveryRoutes from './routes/cartRecovery.routes.js';
 import socialKitRoutes from './routes/socialKit.routes.js';
@@ -226,6 +227,7 @@ export async function buildApp(overrides = {}) {
   await app.register(promotionRoutes, { prefix: '/api/v1' });
   await app.register(referralRoutes, { prefix: '/api/v1' });
   await app.register(gamificationRoutes, { prefix: '/api/v1' });
+  await app.register(growthAdminRoutes, { prefix: '/api/v1' });
   await app.register(teamPurchaseRoutes, { prefix: '/api/v1' });
   await app.register(cartRecoveryRoutes, { prefix: '/api/v1' });
   await app.register(socialKitRoutes, { prefix: '/api/v1' });
