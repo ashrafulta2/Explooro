@@ -369,6 +369,7 @@ export async function decideKyc(db, {
   reviewerRole = 'moderator',
   reasonEn = '',
   reasonBn = '',
+  checkerApproved = false, // a Super Admin already approved this exact decision (maker-checker executor)
   client = null,
 } = {}) {
   const validDecisions = ['VERIFIED', 'REJECTED'];
@@ -389,7 +390,7 @@ export async function decideKyc(db, {
     const kyc = kycRows[0];
 
     // High-tier Maker-Checker check: if decision is VERIFIED and actor is not super_admin
-    if (decision === 'VERIFIED' && reviewerRole !== 'super_admin') {
+    if (decision === 'VERIFIED' && reviewerRole !== 'super_admin' && !checkerApproved) {
       const pendingRef = `ACT-${Date.now().toString(36).toUpperCase()}`;
       const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
 

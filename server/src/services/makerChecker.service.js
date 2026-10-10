@@ -119,7 +119,7 @@ export async function decidePendingAction(
   const payload = existing.payload_json || {};
 
   // Atomic execution inside a transaction
-  return withTransaction(db, async (txClient) => {
+  const outcome = await withTransaction(db, async (txClient) => {
     // 1. Lock the row to prevent race conditions
     const lockedAction = await permRepo.getPendingAdminActionById(txClient, actionId, true);
     if (!lockedAction || lockedAction.status !== 'PENDING') {
@@ -287,4 +287,19 @@ export async function decidePendingAction(
       result: executionResult,
     };
   });
+
+  // WHY a separate hook: side effects that open their own transactions (paying a referral bonus)
+  // must not run inside this one. Best-effort — the action is already APPLIED and committed, so a
+  // failure here must never turn a successful approval into an error.
+  if (executor?.afterCommit) {
+    try {
+      await executor.afterCommit(payload, {
+        db, cache, actionId, actionRef: existing.ref, targetRef: existing.target_ref,
+        actorId: existing.actor_id, approverId,
+      }, outcome.result);
+    } catch {
+      // swallowed by design, see above
+    }
+  }
+  return outcome;
 }
