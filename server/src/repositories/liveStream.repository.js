@@ -437,6 +437,19 @@ export async function updateViewersCount(client, streamId, currentCount) {
   return rows[0];
 }
 
+/** Undo recordStreamSale for a cancelled live order. Floored at zero so a stale count can never go negative. */
+export async function reverseStreamSale(client, streamId, amount) {
+  const { rows } = await client.query(
+    `UPDATE live_streams
+        SET total_sales_count = GREATEST(0, total_sales_count - 1),
+            total_sales_amount = GREATEST(0, total_sales_amount - $2)
+      WHERE id = $1
+      RETURNING total_sales_count, total_sales_amount`,
+    [streamId, amount]
+  );
+  return rows[0];
+}
+
 export async function recordStreamSale(client, streamId, amount) {
   const query = `
     UPDATE live_streams

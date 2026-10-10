@@ -10,6 +10,7 @@
 import { AppError } from '../plugins/errorHandler.js';
 import * as orderRepo from '../repositories/order.repository.js';
 import * as couponRepo from '../repositories/coupon.repository.js';
+import * as liveRepo from '../repositories/liveStream.repository.js';
 import * as trustScoreService from './trustScore.service.js';
 
 export const CANCELLATION_CONFIG = {
@@ -120,6 +121,12 @@ export async function cancelOrder(pool, refOrId, userContext, reason = null) {
     // 3. If coupon was applied, decrement coupon budget and usage count
     if (order.coupon_id) {
       await couponRepo.decrementCouponUsage(client, order.coupon_id, Number(order.discount_amount || 0));
+    }
+
+    // WHY: a live order was counted in its stream's sales when it was placed
+    // (liveStream.service.js recordStreamPurchase); a cancelled one must stop counting there.
+    if (order.live_stream_id) {
+      await liveRepo.reverseStreamSale(client, order.live_stream_id, Number(order.total_amount || 0));
     }
 
     // 4. Update sub-orders and root order status to CANCELLED
