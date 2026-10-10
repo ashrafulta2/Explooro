@@ -32,6 +32,8 @@
  * `cleanup` runs before the next route mounts, so a page's timers/listeners never leak.
  */
 
+import { stylesPending } from './styleGate.js';
+
 /** Matches `pathname` against a route `pattern`, returning `null` or the extracted params. */
 export function matchPath(pattern, pathname) {
   const paramNames = [];
@@ -188,6 +190,7 @@ export function createRouter({
     document.title = (typeof route.title === 'function' ? route.title() : route.title) ?? 'Explooro';
 
     root.replaceChildren();
+    root.style.visibility = '';
     const mod = await route.load();
     if (typeof mod.default !== 'function') {
       throw new Error(
@@ -199,7 +202,21 @@ export function createRouter({
     // WHY: a page that returns something else (an element it built but never mounted, a promise)
     // used to be stored as `cleanup` and then *called* on the next navigation — throwing mid-render
     // and wedging the router for the rest of the session. Only a function is a cleanup.
-    current = { cleanup: typeof result === 'function' ? result : null, key };
+    const mounted = { cleanup: typeof result === 'function' ? result : null, key };
+    current = mounted;
+
+    // WHY: a page that lazy-loads its own CSS mounts markup in the same tick, so the first visit per
+    // page load painted unstyled content (a black flash) until the chunk arrived. Pages register the
+    // in-flight stylesheet in core/styleGate.js; the markup is built but kept invisible until it
+    // settles. Layout is untouched (visibility, not display), and the `current === mounted` check
+    // stops a slow stylesheet from un-hiding a page the user has already navigated away from.
+    const styles = stylesPending();
+    if (styles) {
+      root.style.visibility = 'hidden';
+      styles.then(() => {
+        if (current === mounted) root.style.visibility = '';
+      });
+    }
 
     if (!preserveScroll) window.scrollTo(0, isPopstate ? scrollPositions.get(key) ?? 0 : 0);
   }

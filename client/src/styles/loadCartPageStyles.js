@@ -5,13 +5,17 @@
  * and avoids a static .css import in a page module, which Node's test runner cannot load.
  */
 
+import { trackStyleLoad } from '../core/styleGate.js';
+
 let stylesPromise = null;
 
 export function loadCartPageStyles() {
   if (!stylesPromise) {
-    stylesPromise = import('./components/cart-page.css').catch(() => {
-      stylesPromise = null;
-    });
+    stylesPromise = trackStyleLoad(
+      import('./components/cart-page.css').catch(() => {
+        stylesPromise = null;
+      })
+    );
   }
   return stylesPromise;
 }
