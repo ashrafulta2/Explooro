@@ -232,6 +232,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
     size: 'md',
     floating: true,
     positionKey: 'notifications',
+    removeOnClose: true,
     onClose: () => {
       // Without this the listener outlives every closed drawer and each reopen adds another,
       // so one live notification would be appended N times.

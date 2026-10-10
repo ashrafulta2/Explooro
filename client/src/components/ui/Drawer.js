@@ -47,6 +47,7 @@ export function Drawer({
   dragToDismiss = true,
   floating = false,
   positionKey = null,
+  removeOnClose = false,
   bodyPadding = true,
   lockBodyScroll = true,
   className = '',
@@ -277,6 +278,15 @@ export function Drawer({
       previouslyFocused.focus();
     }
     if (onClose) onClose(result);
+    // WHY opt-in and delayed: a drawer built per open is appended to <body> and was never taken
+    // out, so every open left a dead <dialog> behind. Persistent drawers (nav, filters) reuse one
+    // instance and must stay mounted. The delay lets the exit fade finish, and the open check keeps
+    // a quick reopen of the same instance from being removed.
+    if (removeOnClose) {
+      setTimeout(() => {
+        if (!dialog.hasAttribute('open')) dialog.remove();
+      }, 500);
+    }
   });
 
   if (closeOnScrim) {
