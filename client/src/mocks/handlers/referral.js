@@ -396,6 +396,9 @@ export const referralHandlers = [
           holding_period_days: 7,
           qualify_on: 'FIRST_ORDER',
           velocity_cap_per_day: 20,
+          signup_bonus_bdt: 0,
+          first_sale_bonus_bdt: 0,
+          kyc_bonus_bdt: 0,
           is_active: true,
         },
         flagged_referrals: [

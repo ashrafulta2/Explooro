@@ -44,6 +44,33 @@ export async function getReferralSettings(db) {
   }
 }
 
+// WHY fixed amounts for these three: a percentage of an order is meaningless when the event is a signup,
+// a first sale by a seller or a KYC approval — there is no order value, so the old rule paid 0.
+// A 0 (the default) switches the bonus off, so a deployment that never set one pays nothing.
+export const FIXED_BONUS_KEYS = Object.freeze({
+  SIGNUP: 'signup_bonus_bdt',
+  FIRST_SALE: 'first_sale_bonus_bdt',
+  KYC_VERIFIED: 'kyc_bonus_bdt',
+});
+
+/**
+ * What one referral row earns for one event. FIRST_ORDER stays a percentage of the order; the others pay
+ * the configured bonus, scaled for tier 2 by the same tier_2 : tier_1 ratio the percentage rule uses.
+ */
+export function commissionFor(eventType, tierLevel, { orderAmount = 0, settings = {} } = {}) {
+  const tier1Rate = Number(settings.tier_1_rate_pct ?? 5);
+  const tier2Rate = Number(settings.tier_2_rate_pct ?? 2);
+  const ratePct = tierLevel === 1 ? tier1Rate : tier2Rate;
+  const key = FIXED_BONUS_KEYS[eventType];
+  if (!key) {
+    return { amount: Number(((orderAmount * ratePct) / 100).toFixed(2)), ratePct, baseAmount: orderAmount };
+  }
+  const bonus = Number(settings[key] ?? 0);
+  const scale = tierLevel === 1 ? 1 : (tier1Rate > 0 ? tier2Rate / tier1Rate : 0);
+  const amount = Number.isFinite(bonus) && bonus > 0 ? Number((bonus * scale).toFixed(2)) : 0;
+  return { amount, ratePct, baseAmount: null };
+}
+
 function generateReferralCode() {
   const code = randomBytes(3).toString('hex').toUpperCase();
   return `REF-${code}`;
@@ -337,8 +364,6 @@ export async function evaluateQualifyingEvent(db, cache, {
   if (!enabled) return [];
 
   const settings = await getReferralSettings(db);
-  const tier1Rate = Number(settings?.tier_1_rate_pct || 5.0);
-  const tier2Rate = Number(settings?.tier_2_rate_pct || 2.0);
   const holdingPeriodDays = Number(settings?.holding_period_days || 7);
 
   // Find active pending referrals for this referred user
@@ -361,8 +386,7 @@ export async function evaluateQualifyingEvent(db, cache, {
   for (const ref of pendingReferrals) {
     // A tier-2 row minted earlier stops paying once the admin lowers the depth to 1.
     if (ref.tier_level > maxTierDepth) continue;
-    const ratePct = ref.tier_level === 1 ? tier1Rate : tier2Rate;
-    const commissionAmount = Number(((orderAmount * ratePct) / 100).toFixed(2));
+    const { amount: commissionAmount, ratePct, baseAmount } = commissionFor(eventType, ref.tier_level, { orderAmount, settings });
 
     if (commissionAmount <= 0) continue;
 
@@ -437,7 +461,7 @@ export async function evaluateQualifyingEvent(db, cache, {
           ref.tier_level,
           `${eventType}_COMPLETED`,
           orderId,
-          orderAmount.toFixed(2),
+          baseAmount === null ? null : baseAmount.toFixed(2),
           ratePct.toFixed(2),
           amountStr,
           escrowReleaseAt,

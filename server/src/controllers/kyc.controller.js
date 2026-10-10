@@ -3,6 +3,7 @@
  */
 
 import * as kycService from '../services/kyc.service.js';
+import * as referralService from '../services/referral.service.js';
 import * as trustTierService from '../services/trustTier.service.js';
 
 export async function submitStep(req, reply) {
@@ -145,6 +146,19 @@ export async function decide(req, reply) {
     reasonEn: reason_en,
     reasonBn: reason_bn,
   });
+
+  // WHY after decideKyc returns: it has committed by then, and evaluateQualifyingEvent opens its own
+  // transactions. Best-effort so a referral problem never turns an approval into an error.
+  if (!result.makerCheckerPending && result.decision === 'VERIFIED' && result.kyc?.user_id) {
+    try {
+      await referralService.evaluateQualifyingEvent(req.server.db, req.server.cache ?? null, {
+        userId: result.kyc.user_id,
+        eventType: 'KYC_VERIFIED',
+      });
+    } catch (err) {
+      req.log.warn({ err, kycId }, 'referral KYC bonus failed');
+    }
+  }
 
   const statusCode = result.makerCheckerPending ? 202 : 200;
   return reply.status(statusCode).send({

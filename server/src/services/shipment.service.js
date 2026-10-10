@@ -391,7 +391,8 @@ export async function handleCourierWebhook(db, cache, {
 async function creditReferralOnDelivery(db, cache, subOrderId) {
   try {
     const { rows } = await db.query(
-      `SELECT o.customer_id, o.id AS order_id, so.total_amount, so.shipping_amount
+      `SELECT o.customer_id, o.id AS order_id, so.total_amount, so.shipping_amount,
+              so.saler_id, so.supplier_id
        FROM sub_orders so
        JOIN orders o ON o.id = so.order_id
        WHERE so.id = $1`,
@@ -405,6 +406,11 @@ async function creditReferralOnDelivery(db, cache, subOrderId) {
       orderId: order.order_id,
       orderAmount: Math.max(0, Number(order.total_amount) - Number(order.shipping_amount || 0)),
     });
+    // FIRST_SALE: the saler and the supplier on this parcel each just completed a sale. The engine only
+    // pays a referral still PENDING for that event, so only their first delivered one ever pays.
+    for (const sellerId of new Set([order.saler_id, order.supplier_id].filter(Boolean).map(Number))) {
+      await referralService.evaluateQualifyingEvent(db, cache, { userId: sellerId, eventType: 'FIRST_SALE' });
+    }
   } catch (err) {
     console.warn(`[CourierWebhook] Referral commission notice for sub-order #${subOrderId}: ${err.message}`);
   }

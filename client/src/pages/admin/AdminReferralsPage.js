@@ -52,6 +52,9 @@ export default function AdminReferralsPage(root) {
     holding_period_days: 7,
     qualify_on: 'FIRST_ORDER',
     velocity_cap_per_day: 20,
+    signup_bonus_bdt: 0,
+    first_sale_bonus_bdt: 0,
+    kyc_bonus_bdt: 0,
     is_active: true,
   };
   let flagged = [];
@@ -87,6 +90,9 @@ export default function AdminReferralsPage(root) {
       tier_2_rate_pct: Number(form.querySelector('#ref-tier2').value),
       holding_period_days: Number(form.querySelector('#ref-holding').value),
       qualify_on: form.querySelector('#ref-qualify-on').value,
+      signup_bonus_bdt: Number(form.querySelector('#ref-bonus-signup').value),
+      first_sale_bonus_bdt: Number(form.querySelector('#ref-bonus-first-sale').value),
+      kyc_bonus_bdt: Number(form.querySelector('#ref-bonus-kyc').value),
     };
 
     // WHY validate here: a tier-2 rate above tier 1 inverts the incentive and a combined rate above
@@ -300,6 +306,19 @@ export default function AdminReferralsPage(root) {
                 <option value="${e.value}" ${rules.qualify_on === e.value ? 'selected' : ''}>${isBn ? e.bn : e.en}</option>
               `).join('')}
             </select>
+          </div>
+          <!-- WHY fixed amounts: signup, first sale and KYC have no order value to take a percentage of. 0 = off. -->
+          <div>
+            <label class="form-label" for="ref-bonus-signup">${isBn ? 'সাইন-আপ বোনাস (৳)' : 'Signup bonus (৳)'}</label>
+            <input class="form-input" id="ref-bonus-signup" type="number" min="0" max="5000" step="1" value="${rules.signup_bonus_bdt}" />
+          </div>
+          <div>
+            <label class="form-label" for="ref-bonus-first-sale">${isBn ? 'প্রথম বিক্রয় বোনাস (৳)' : 'First sale bonus (৳)'}</label>
+            <input class="form-input" id="ref-bonus-first-sale" type="number" min="0" max="5000" step="1" value="${rules.first_sale_bonus_bdt}" />
+          </div>
+          <div>
+            <label class="form-label" for="ref-bonus-kyc">${isBn ? 'KYC যাচাই বোনাস (৳)' : 'KYC verified bonus (৳)'}</label>
+            <input class="form-input" id="ref-bonus-kyc" type="number" min="0" max="5000" step="1" value="${rules.kyc_bonus_bdt}" />
           </div>
           <div style="display: flex; align-items: flex-end;">
             <button type="submit" class="btn btn--primary btn--sm" ${loadFailed ? 'disabled' : ''}>${isBn ? 'নীতিমালা সংরক্ষণ করুন' : 'Save rules'}</button>

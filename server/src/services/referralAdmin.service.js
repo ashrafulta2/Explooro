@@ -27,6 +27,9 @@ const RULE_KEYS = Object.freeze({
   holding_period_days: 'holding_period_days',
   qualify_on: 'qualifying_event',
   velocity_cap_per_day: 'daily_velocity_limit',
+  signup_bonus_bdt: 'signup_bonus_bdt',
+  first_sale_bonus_bdt: 'first_sale_bonus_bdt',
+  kyc_bonus_bdt: 'kyc_bonus_bdt',
 });
 
 // WHY depth tops out at 2: recordReferralAttribution only ever builds tier 1 and tier 2 rows.
@@ -36,6 +39,10 @@ export const RULE_LIMITS = Object.freeze({
   tier_2_rate_pct: { min: 0, max: 50 },
   holding_period_days: { min: 0, max: 90, integer: true },
   velocity_cap_per_day: { min: 1, max: 500, integer: true },
+  // Fixed taka bonuses for the non-order events; 0 switches the bonus off.
+  signup_bonus_bdt: { min: 0, max: 5000 },
+  first_sale_bonus_bdt: { min: 0, max: 5000 },
+  kyc_bonus_bdt: { min: 0, max: 5000 },
 });
 
 // Mirrors the CHECK constraint on referrals.qualifying_event (migration 023).
@@ -57,6 +64,9 @@ export function toReferralRules(settings = {}) {
     holding_period_days: num(settings.holding_period_days, 7),
     qualify_on: settings.qualifying_event || 'FIRST_ORDER',
     velocity_cap_per_day: num(settings.daily_velocity_limit, 20),
+    signup_bonus_bdt: num(settings.signup_bonus_bdt, 0),
+    first_sale_bonus_bdt: num(settings.first_sale_bonus_bdt, 0),
+    kyc_bonus_bdt: num(settings.kyc_bonus_bdt, 0),
   };
 }
 

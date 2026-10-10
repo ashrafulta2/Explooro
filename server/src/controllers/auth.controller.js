@@ -85,12 +85,16 @@ export async function register(req, reply) {
   // The refusal is recorded by the engine (FRAUD_FLAGGED row) and the signup carries on.
   if (referralCode) {
     try {
-      await referralService.recordReferralAttribution(db, cache, {
+      const attribution = await referralService.recordReferralAttribution(db, cache, {
         referralCode,
         referredUserId: user.id,
         ip: req.ip,
         phone: user.phone,
       });
+      // A no-op unless the programme pays on SIGNUP (rows are stamped with the event at attribution).
+      if (attribution?.attributed) {
+        await referralService.evaluateQualifyingEvent(db, cache, { userId: user.id, eventType: 'SIGNUP' });
+      }
     } catch (err) {
       req.log.warn({ err, userRef: user.ref }, 'referral attribution failed');
     }
