@@ -12,6 +12,7 @@
 import { api } from '../../core/api.js';
 import { getLanguage, t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
+import { questClaimMessage } from './questClaimMessage.js';
 
 export class QuestPanel {
   constructor({ quests = [], onRewardClaimed = null } = {}) {
@@ -158,12 +159,9 @@ export class QuestPanel {
 
         try {
           const res = await api.post(`/quests/${questId}/claim`);
-          const awarded = res.claim?.rewardCoins || 20;
-          toast.success(
-            isBn
-              ? `অভিনন্দন! +${awarded} কয়েন সফলভাবে আপনার অ্যাকাউন্টে যুক্ত হয়েছে!`
-              : `Reward claimed! +${awarded} coins added to your balance!`
-          );
+          const message = questClaimMessage(res.claim, isBn);
+          if (res.claim?.capped) toast.info(message);
+          else toast.success(message);
           if (this.onRewardClaimed) {
             await this.onRewardClaimed(res.claim);
           }
