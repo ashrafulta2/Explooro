@@ -171,7 +171,8 @@ export async function claimQuestReward(db, userId, questId) {
 
     return {
       claimed: true,
-      rewardCoins: quest.reward_coins,
+      rewardCoins: awardRes.awarded ?? quest.reward_coins,
+      capped: Boolean(awardRes.capped),
       newBalance: awardRes.newBalance,
     };
   });

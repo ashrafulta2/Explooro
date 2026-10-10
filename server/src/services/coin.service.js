@@ -36,6 +36,35 @@ export async function getCoinSettings(db) {
   }
 }
 
+// WHY: matches POLICY_DEFAULTS.expiry_days in growthAdmin.service.js, so a row with no stored value
+// expires coins after the same 365 days the admin form shows. (Not imported: that file imports this one.)
+const DEFAULT_EXPIRY_DAYS = 365;
+
+// Refunds and manual corrections put back coins that already existed; they are not new earnings.
+const NON_EARNING_SOURCES = ['ORDER_CANCELLED_REFUND', 'MANUAL_ADJUSTMENT'];
+
+/**
+ * How many of `requested` coins fit under the daily earn cap. A cap of 0 means "no cap".
+ * Pure so the rule can be tested without a database.
+ */
+export function applyEarnCap(requested, cap, earnedToday) {
+  const limit = Math.max(0, Math.trunc(Number(cap) || 0));
+  if (limit === 0) return requested;
+  return Math.max(0, Math.min(requested, limit - Math.max(0, Number(earnedToday) || 0)));
+}
+
+async function getEarnedToday(client, userId) {
+  const { rows } = await client.query(
+    `SELECT COALESCE(SUM(amount), 0)::bigint AS earned
+       FROM coin_transactions
+      WHERE user_id = $1 AND entry_type = 'CREDIT'
+        AND source_category <> ALL($2::text[])
+        AND created_at >= date_trunc('day', now())`,
+    [userId, NON_EARNING_SOURCES]
+  );
+  return Number(rows[0]?.earned || 0);
+}
+
 /**
  * Gets or creates the coin balance record for a user.
  */
@@ -118,7 +147,9 @@ export async function recordDailyCheckIn(db, cache, userId) {
     }
 
     // Calculate streak reward: Day 1 = 10, Day 2 = 15, Day 3 = 20 ... up to 50
-    const coinsAwarded = Math.min(baseCoins + (newStreak - 1) * streakStep, maxStreakCoins);
+    const streakReward = Math.min(baseCoins + (newStreak - 1) * streakStep, maxStreakCoins);
+    // WHY: the streak still advances when the cap eats the reward, so a capped day does not break it.
+    const coinsAwarded = applyEarnCap(streakReward, settings.daily_earn_cap, await getEarnedToday(client, userId));
     const newBalance = currentBalance.balance + coinsAwarded;
     const newLifetime = currentBalance.lifetime_earned + coinsAwarded;
 
@@ -134,8 +165,8 @@ export async function recordDailyCheckIn(db, cache, userId) {
       [newBalance, newLifetime, newStreak, todayStr, userId]
     );
 
-    // 3. Record transaction in double-entry audit trail
-    await client.query(
+    // 3. Record transaction in double-entry audit trail (nothing to record when the cap paid 0)
+    if (coinsAwarded > 0) await client.query(
       `INSERT INTO coin_transactions (
         user_id, entry_type, amount, balance_after, source_category,
         reference_type, reference_id, memo
@@ -158,6 +189,7 @@ export async function recordDailyCheckIn(db, cache, userId) {
       newBalance,
       streakDays: newStreak,
       checkInDate: todayStr,
+      capped: coinsAwarded < streakReward,
     };
   });
 }
@@ -195,8 +227,18 @@ export async function awardCoins(db, {
       bal = created[0];
     }
 
-    const newBalance = bal.balance + coinAmount;
-    const newLifetime = bal.lifetime_earned + coinAmount;
+    // Manual corrections are exempt from the cap (it limits earning, not admin adjustments).
+    let granted = coinAmount;
+    if (!NON_EARNING_SOURCES.includes(sourceCategory)) {
+      const settings = await getCoinSettings(client);
+      granted = applyEarnCap(coinAmount, settings.daily_earn_cap, await getEarnedToday(client, userId));
+    }
+    if (granted === 0) {
+      return { newBalance: bal.balance, transaction: null, awarded: 0, capped: true };
+    }
+
+    const newBalance = bal.balance + granted;
+    const newLifetime = bal.lifetime_earned + granted;
 
     await client.query(
       `UPDATE coin_balances
@@ -212,12 +254,14 @@ export async function awardCoins(db, {
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *`,
-      [userId, 'CREDIT', coinAmount, newBalance, sourceCategory, referenceType, referenceId, memo]
+      [userId, 'CREDIT', granted, newBalance, sourceCategory, referenceType, referenceId, memo]
     );
 
     return {
       newBalance,
       transaction: txnRows[0],
+      awarded: granted,
+      capped: granted < coinAmount,
     };
   });
 }
@@ -260,6 +304,14 @@ export async function redeemCoins(db, {
     const bal = bRows[0];
     if (!bal || bal.balance < coinsToRedeem) {
       throw new AppError('INSUFFICIENT_COINS', 'You do not have enough loyalty coins for this redemption.');
+    }
+
+    const minBalance = Number(settings.min_redeem_balance || 0);
+    if (minBalance > 0 && bal.balance < minBalance) {
+      throw new AppError(
+        'BELOW_MIN_REDEEM_BALANCE',
+        `You need at least ${minBalance} coins in your balance before you can redeem.`
+      );
     }
 
     const newBalance = bal.balance - coinsToRedeem;
@@ -347,6 +399,66 @@ export async function refundRedeemedCoins(db, {
       transaction: txnRows[0],
     };
   });
+}
+
+/**
+ * Expires coins older than the policy's expiry_days (0 = never).
+ *
+ * WHY no per-lot table: coins spend oldest-first, so what is still unspent after N days is the
+ * balance minus whatever was credited inside the window. lifetime_spent is raised by the same amount
+ * so `lifetime_earned - lifetime_spent = balance` keeps holding for the liability audit.
+ */
+export async function expireStaleCoins(db, { batchSize = 500 } = {}) {
+  const settings = await getCoinSettings(db);
+  const expiryDays = Math.trunc(Number(settings.expiry_days ?? DEFAULT_EXPIRY_DAYS));
+  if (!(expiryDays > 0)) return { expiryDays: 0, usersExpired: 0, coinsExpired: 0 };
+
+  const { rows: candidates } = await db.query(
+    `SELECT cb.user_id
+       FROM coin_balances cb
+      WHERE cb.balance > COALESCE((
+              SELECT SUM(t.amount) FROM coin_transactions t
+               WHERE t.user_id = cb.user_id AND t.entry_type = 'CREDIT'
+                 AND t.created_at >= now() - make_interval(days => $1::int)
+            ), 0)
+      ORDER BY cb.user_id
+      LIMIT $2`,
+    [expiryDays, batchSize]
+  );
+
+  let usersExpired = 0;
+  let coinsExpired = 0;
+  for (const { user_id: userId } of candidates) {
+    const expired = await runWithClient(db, async (client) => {
+      const { rows } = await client.query(`SELECT * FROM coin_balances WHERE user_id = $1 FOR UPDATE`, [userId]);
+      const bal = rows[0];
+      if (!bal) return 0;
+      const { rows: win } = await client.query(
+        `SELECT COALESCE(SUM(amount), 0)::bigint AS fresh
+           FROM coin_transactions
+          WHERE user_id = $1 AND entry_type = 'CREDIT' AND created_at >= now() - make_interval(days => $2::int)`,
+        [userId, expiryDays]
+      );
+      const amount = Math.max(0, Number(bal.balance) - Number(win[0]?.fresh || 0));
+      if (amount === 0) return 0;
+      const newBalance = Number(bal.balance) - amount;
+      await client.query(
+        `UPDATE coin_balances SET balance = $1, lifetime_spent = lifetime_spent + $2, updated_at = now() WHERE user_id = $3`,
+        [newBalance, amount, userId]
+      );
+      await client.query(
+        `INSERT INTO coin_transactions (user_id, entry_type, amount, balance_after, source_category, reference_type, reference_id, memo)
+         VALUES ($1, 'DEBIT', $2, $3, 'COIN_EXPIRY', 'coin_expiry', NULL, $4)`,
+        [userId, amount, newBalance, `${amount} coins expired after ${expiryDays} days`]
+      );
+      return amount;
+    });
+    if (expired > 0) {
+      usersExpired += 1;
+      coinsExpired += expired;
+    }
+  }
+  return { expiryDays, usersExpired, coinsExpired, batchFull: candidates.length === batchSize };
 }
 
 /**

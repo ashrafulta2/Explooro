@@ -90,6 +90,7 @@ import './jobs/analyticsRollup.job.js'; // Registers analytics_nightly_rollup wi
 import './jobs/subscriptionRenewal.job.js'; // Registers subscription_renewal with scheduler (module: subscription_fees)
 import './jobs/covisitRebuild.job.js'; // Registers covisit_rebuild with scheduler (module: personalization_signals)
 import './jobs/signalRetention.job.js'; // Registers signal_retention with scheduler (module: personalization_signals)
+import './jobs/coinExpiry.job.js'; // Registers coin_expiry with scheduler (module: loyalty_coins)
 import './jobs/supplierScorecard.job.js'; // Registers supplier_scorecard with scheduler (module: sourcing)
 import './jobs/volumeIncentive.job.js'; // Registers volume_incentive with scheduler (module: sourcing)
 import './jobs/sampleKit.job.js'; // Registers sample_kit with scheduler (module: sourcing)
