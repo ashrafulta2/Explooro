@@ -18,6 +18,7 @@ import { writeAudit } from '../lib/audit.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as ledgerService from './ledger.service.js';
 import { isEnabled } from './module.service.js';
+import { hashNid } from './kyc.service.js';
 
 export async function getReferralSettings(db) {
   try {
@@ -206,10 +207,10 @@ export async function recordReferralAttribution(db, cache, {
   const cleanSlug = String(referralCode).trim().toLowerCase();
 
   const { rows: codeRows } = await db.query(
-    `SELECT urc.*, u.phone as referrer_phone, k.nid_number as referrer_nid
+    `SELECT urc.*, u.phone as referrer_phone, k.nid_hash as referrer_nid_hash
      FROM user_referral_codes urc
      JOIN users u ON u.id = urc.user_id
-     LEFT JOIN kyc_verifications k ON k.user_id = u.id AND k.status = 'APPROVED'
+     LEFT JOIN kyc_verifications k ON k.user_id = u.id AND k.status = 'VERIFIED' AND k.nid_hash IS NOT NULL
      WHERE UPPER(urc.code) = $1 OR urc.custom_slug = $2`,
     [cleanCode, cleanSlug]
   );
@@ -234,7 +235,8 @@ export async function recordReferralAttribution(db, cache, {
   if (phone && referrer.referrer_phone && phone === referrer.referrer_phone) {
     return flag('SELF_REFERRAL_PHONE_MATCH');
   }
-  if (nid && referrer.referrer_nid && nid === referrer.referrer_nid) {
+  // WHY hash compare: the stored NID is encrypted with a random IV, so only the keyed HMAC is comparable.
+  if (nid && referrer.referrer_nid_hash && hashNid(nid) === referrer.referrer_nid_hash) {
     return flag('SELF_REFERRAL_NID_MATCH');
   }
 
@@ -386,6 +388,27 @@ export async function evaluateQualifyingEvent(db, cache, {
   for (const ref of pendingReferrals) {
     // A tier-2 row minted earlier stops paying once the admin lowers the depth to 1.
     if (ref.tier_level > maxTierDepth) continue;
+
+    // WHY here and not only at signup: register carries no NID, so the match only becomes knowable
+    // once both people are KYC-verified. Two accounts on one National ID are one person.
+    const { rows: nidMatch } = await db.query(
+      `SELECT 1 FROM kyc_verifications a
+         JOIN kyc_verifications b ON b.nid_hash = a.nid_hash
+        WHERE a.user_id = $1 AND b.user_id = $2
+          AND a.status = 'VERIFIED' AND b.status = 'VERIFIED' AND a.nid_hash IS NOT NULL
+        LIMIT 1`,
+      [ref.referred_user_id, ref.referrer_user_id]
+    );
+    if (nidMatch.length > 0) {
+      await db.query(
+        `UPDATE referrals
+            SET status = 'FRAUD_FLAGGED', fraud_reason = 'SELF_REFERRAL_NID_MATCH', updated_at = now()
+          WHERE id = $1`,
+        [ref.id]
+      );
+      continue;
+    }
+
     const { amount: commissionAmount, ratePct, baseAmount } = commissionFor(eventType, ref.tier_level, { orderAmount, settings });
 
     if (commissionAmount <= 0) continue;
