@@ -425,142 +425,158 @@ export async function executeInStreamBuy(pool, cache, {
   // is one supplier parcel, so it pays the same charge as a normal checkout.
   const shippingPaisa = toPaisa(await perParcelCharge(pool, cache, { fresh: true }));
 
-  const { order, product } = await withTransaction(pool, async (client) => {
-    // WHY lock first: stock is read and decremented under the same row lock checkout uses, so two
-    // viewers hitting "buy" on the last unit cannot both succeed.
-    const { productsById, variantsById } = await orderRepo.lockProductsAndVariants(client, [
-      { product_id: Number(productId), variant_id: variantId ? Number(variantId) : null },
-    ]);
-    const prod = productsById.get(Number(productId));
-    if (!prod || prod.status !== 'ACTIVE') {
-      throw new AppError('PRODUCT_NOT_FOUND', 'Product is no longer available.', 'পণ্যটি এখন আর উপলব্ধ নেই।');
+  let placed;
+  try {
+    placed = await placeInStreamOrder();
+  } catch (err) {
+    // WHY: two requests with one key can both pass the replay lookup above; the loser hits the UNIQUE
+    // index on orders.idempotency_key. That is a replay of the winner's order, not a server error.
+    if (err?.code === '23505' && String(err.constraint || '').includes('idempotency')) {
+      const winner = await orderRepo.findOrderByIdempotencyKey(pool, idempotencyKey);
+      if (winner) return { order: winner, isReplay: true, originalAt: winner.created_at };
     }
+    throw err;
+  }
+  const { order, product } = placed;
 
-    let availableStock = Number(prod.stock_qty);
-    if (variantId) {
-      const variant = variantsById.get(Number(variantId));
-      if (!variant || !variant.is_active || Number(variant.product_id) !== Number(prod.id)) {
-        throw new AppError('NOT_FOUND', 'Selected variant is no longer available.', 'নির্বাচিত ভ্যারিয়েন্টটি আর উপলব্ধ নেই।');
+  async function placeInStreamOrder() {
+    return withTransaction(pool, async (client) => {
+      // WHY lock first: stock is read and decremented under the same row lock checkout uses, so two
+      // viewers hitting "buy" on the last unit cannot both succeed.
+      const { productsById, variantsById } = await orderRepo.lockProductsAndVariants(client, [
+        { product_id: Number(productId), variant_id: variantId ? Number(variantId) : null },
+      ]);
+      const prod = productsById.get(Number(productId));
+      if (!prod || prod.status !== 'ACTIVE') {
+        throw new AppError('PRODUCT_NOT_FOUND', 'Product is no longer available.', 'পণ্যটি এখন আর উপলব্ধ নেই।');
       }
-      // price_delta is signed and relative to the price, as in the cart.
-      unitPrice += Number(variant.price_delta ?? 0);
-      availableStock = Number(variant.stock_qty);
-    }
-    // WHY net of reservations: units open team purchases are counting on are not for sale here.
-    const reserved = await getReservedForProduct(client, prod.id);
-    availableStock = Math.min(availableStock, Number(prod.stock_qty) - reserved);
-    if (availableStock < quantity) {
-      throw new AppError(
-        'INSUFFICIENT_STOCK',
-        `Only ${Math.max(0, availableStock)} left of "${prod.title_en}".`,
-        `"${prod.title_bn || prod.title_en}" এর মাত্র ${Math.max(0, availableStock)}টি বাকি আছে।`,
-        { product_ref: prod.ref, requested: quantity, available: Math.max(0, availableStock) }
-      );
-    }
 
-    // WHY before any write: COD_OTP_REQUIRED throws and rolls the transaction back, so no stock is
-    // taken for an order the shopper has not confirmed. Same gate as checkout and team purchase.
-    const totalPaisa = toPaisa(unitPrice) * quantity + shippingPaisa;
-    let isOtpVerified = false;
-    let trustScoreAtOrder = 50;
-    if (paymentMethod === 'COD') {
-      const gate = await enforceCodGate(pool, cache, {
-        client,
-        userId: user.id,
-        phone: cleanPhone,
-        orderAmount: toBdtNumber(totalPaisa),
-        otpCode,
-        smsSender,
-        isDevelopment,
-        ip,
+      let availableStock = Number(prod.stock_qty);
+      if (variantId) {
+        const variant = variantsById.get(Number(variantId));
+        if (!variant || !variant.is_active || Number(variant.product_id) !== Number(prod.id)) {
+          throw new AppError('NOT_FOUND', 'Selected variant is no longer available.', 'নির্বাচিত ভ্যারিয়েন্টটি আর উপলব্ধ নেই।');
+        }
+        // price_delta is signed and relative to the price, as in the cart.
+        unitPrice += Number(variant.price_delta ?? 0);
+        availableStock = Number(variant.stock_qty);
+      }
+      // WHY net of reservations: units open team purchases are counting on are not for sale here.
+      const reserved = await getReservedForProduct(client, prod.id);
+      availableStock = Math.min(availableStock, Number(prod.stock_qty) - reserved);
+      if (availableStock < quantity) {
+        throw new AppError(
+          'INSUFFICIENT_STOCK',
+          `Only ${Math.max(0, availableStock)} left of "${prod.title_en}".`,
+          `"${prod.title_bn || prod.title_en}" এর মাত্র ${Math.max(0, availableStock)}টি বাকি আছে।`,
+          { product_ref: prod.ref, requested: quantity, available: Math.max(0, availableStock) }
+        );
+      }
+
+      // WHY before any write: COD_OTP_REQUIRED throws and rolls the transaction back, so no stock is
+      // taken for an order the shopper has not confirmed. Same gate as checkout and team purchase.
+      const totalPaisa = toPaisa(unitPrice) * quantity + shippingPaisa;
+      let isOtpVerified = false;
+      let trustScoreAtOrder = 50;
+      if (paymentMethod === 'COD') {
+        const gate = await enforceCodGate(pool, cache, {
+          client,
+          userId: user.id,
+          phone: cleanPhone,
+          orderAmount: toBdtNumber(totalPaisa),
+          otpCode,
+          smsSender,
+          isDevelopment,
+          ip,
+        });
+        isOtpVerified = gate.isOtpVerified;
+        trustScoreAtOrder = gate.trustScore;
+      }
+
+      // WHY the host: the stream's host is the seller whose audience bought, so the sub-order carries
+      // them as saler and the normal commission split applies.
+      const salerId = stream.host_id ? Number(stream.host_id) : null;
+      const split = await resolveSplitPercentages(client, {
+        productId: prod.id,
+        productRef: prod.ref,
+        categoryId: prod.category_id,
+        salerId,
+        cache,
       });
-      isOtpVerified = gate.isOtpVerified;
-      trustScoreAtOrder = gate.trustScore;
-    }
+      // Throws VALIDATION_FAILED when the (special) price is below the wholesale floor.
+      const pricing = calculatePricingBreakdown({
+        baseCost: prod.base_cost,
+        wholesaleMargin: prod.wholesale_margin,
+        retailPrice: unitPrice,
+        salerSplitPct: split.salerSplitPct,
+        platformSplitPct: split.platformSplitPct,
+        ruleSource: split.ruleSource,
+      });
 
-    // WHY the host: the stream's host is the seller whose audience bought, so the sub-order carries
-    // them as saler and the normal commission split applies.
-    const salerId = stream.host_id ? Number(stream.host_id) : null;
-    const split = await resolveSplitPercentages(client, {
-      productId: prod.id,
-      productRef: prod.ref,
-      categoryId: prod.category_id,
-      salerId,
-      cache,
-    });
-    // Throws VALIDATION_FAILED when the (special) price is below the wholesale floor.
-    const pricing = calculatePricingBreakdown({
-      baseCost: prod.base_cost,
-      wholesaleMargin: prod.wholesale_margin,
-      retailPrice: unitPrice,
-      salerSplitPct: split.salerSplitPct,
-      platformSplitPct: split.platformSplitPct,
-      ruleSource: split.ruleSource,
-    });
+      const lineTotalPaisa = toPaisa(unitPrice) * quantity;
+      const netRetailPaisa = pricing.paisa.net_retail_margin * quantity;
+      const salerPaisa = pricing.paisa.saler_earning * quantity;
 
-    const lineTotalPaisa = toPaisa(unitPrice) * quantity;
-    const netRetailPaisa = pricing.paisa.net_retail_margin * quantity;
-    const salerPaisa = pricing.paisa.saler_earning * quantity;
+      const batch = await orderRepo.allocateFefoBatch(client, {
+        productId: prod.id,
+        variantId: variantId ? Number(variantId) : null,
+        qty: quantity,
+      });
+      await orderRepo.deductStock(client, {
+        productId: prod.id,
+        variantId: variantId ? Number(variantId) : null,
+        qty: quantity,
+      });
 
-    const batch = await orderRepo.allocateFefoBatch(client, {
-      productId: prod.id,
-      variantId: variantId ? Number(variantId) : null,
-      qty: quantity,
-    });
-    await orderRepo.deductStock(client, {
-      productId: prod.id,
-      variantId: variantId ? Number(variantId) : null,
-      qty: quantity,
-    });
+      const orderRef = generateRef('ORD');
+      const rootOrder = await orderRepo.createOrder(client, {
+        ref: orderRef,
+        customerId: user.id,
+        totalAmount: toBdtNumber(lineTotalPaisa + shippingPaisa),
+        itemsAmount: toBdtNumber(lineTotalPaisa),
+        shippingAmount: toBdtNumber(shippingPaisa),
+        paymentMethod,
+        paymentStatus: 'PENDING',
+        isOtpVerified,
+        trustScoreAtOrder,
+        idempotencyKey,
+        recipientName: name,
+        recipientPhone: cleanPhone,
+        division,
+        district,
+        addressLine: address,
+        liveStreamId: sId,
+      });
+      const subOrder = await orderRepo.createSubOrder(client, {
+        ref: `${orderRef}-1`,
+        orderId: rootOrder.id,
+        supplierId: prod.supplier_id,
+        salerId,
+        subtotalBase: toBdtNumber(pricing.paisa.base_cost * quantity),
+        wholesaleMargin: toBdtNumber(pricing.paisa.wholesale_margin * quantity),
+        netRetailMargin: toBdtNumber(netRetailPaisa),
+        salerCommission: toBdtNumber(salerPaisa),
+        // Reconciled so saler_commission + platform_margin = net_retail_margin, as checkout does.
+        platformMargin: toBdtNumber(netRetailPaisa - salerPaisa),
+        shippingAmount: toBdtNumber(shippingPaisa),
+        totalAmount: toBdtNumber(lineTotalPaisa + shippingPaisa),
+        status: 'PLACED',
+      });
+      await orderRepo.createOrderItem(client, {
+        subOrderId: subOrder.id,
+        productId: prod.id,
+        variantId: variantId ? Number(variantId) : null,
+        batchId: batch?.id || null,
+        titleSnapshot: prod.title_en,
+        qty: quantity,
+        basePrice: pricing.base_cost,
+        retailPrice: pricing.retail_price,
+        lineTotal: toBdtNumber(lineTotalPaisa),
+      });
 
-    const orderRef = generateRef('ORD');
-    const rootOrder = await orderRepo.createOrder(client, {
-      ref: orderRef,
-      customerId: user.id,
-      totalAmount: toBdtNumber(lineTotalPaisa + shippingPaisa),
-      itemsAmount: toBdtNumber(lineTotalPaisa),
-      shippingAmount: toBdtNumber(shippingPaisa),
-      paymentMethod,
-      paymentStatus: 'PENDING',
-      isOtpVerified,
-      trustScoreAtOrder,
-      idempotencyKey,
-      recipientName: name,
-      recipientPhone: cleanPhone,
-      division,
-      district,
-      addressLine: address,
-      liveStreamId: sId,
+      return { order: rootOrder, product: prod };
     });
-    const subOrder = await orderRepo.createSubOrder(client, {
-      ref: `${orderRef}-1`,
-      orderId: rootOrder.id,
-      supplierId: prod.supplier_id,
-      salerId,
-      subtotalBase: toBdtNumber(pricing.paisa.base_cost * quantity),
-      wholesaleMargin: toBdtNumber(pricing.paisa.wholesale_margin * quantity),
-      netRetailMargin: toBdtNumber(netRetailPaisa),
-      salerCommission: toBdtNumber(salerPaisa),
-      // Reconciled so saler_commission + platform_margin = net_retail_margin, as checkout does.
-      platformMargin: toBdtNumber(netRetailPaisa - salerPaisa),
-      shippingAmount: toBdtNumber(shippingPaisa),
-      totalAmount: toBdtNumber(lineTotalPaisa + shippingPaisa),
-      status: 'PLACED',
-    });
-    await orderRepo.createOrderItem(client, {
-      subOrderId: subOrder.id,
-      productId: prod.id,
-      variantId: variantId ? Number(variantId) : null,
-      batchId: batch?.id || null,
-      titleSnapshot: prod.title_en,
-      qty: quantity,
-      basePrice: pricing.base_cost,
-      retailPrice: pricing.retail_price,
-      lineTotal: toBdtNumber(lineTotalPaisa),
-    });
-
-    return { order: rootOrder, product: prod };
-  });
+  }
 
   // Stream stats and the sale toast run after commit: a failed broadcast must not undo a paid-for order.
   await recordStreamPurchase(pool, {

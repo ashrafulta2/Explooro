@@ -262,4 +262,42 @@ describe('executeInStreamBuy', () => {
     await liveService.executeInStreamBuy(db, null, { ...base, paymentMethod: 'BKASH' });
     assert.deepEqual(db.log.writes, ['deduct', 'order', 'sub_order', 'item']);
   });
+
+  test('a racing duplicate key (unique violation) replays the winner instead of failing', async () => {
+    const db = makeDb();
+    const real = db.query;
+    let lookups = 0;
+    db.query = async (sql, params) => {
+      if (sql.includes('FROM orders WHERE idempotency_key')) {
+        lookups += 1;
+        // first lookup: nothing yet; after the loss, the winner's order is visible
+        return { rows: lookups === 1 ? [] : [{ id: 2001, ref: 'ORD-WIN', created_at: 'then' }] };
+      }
+      if (sql.includes('INSERT INTO orders')) {
+        const err = new Error('duplicate key value violates unique constraint "orders_idempotency_key_key"');
+        err.code = '23505';
+        err.constraint = 'orders_idempotency_key_key';
+        throw err;
+      }
+      return real(sql, params);
+    };
+    const res = await liveService.executeInStreamBuy(db, null, base);
+    assert.equal(res.isReplay, true);
+    assert.equal(res.order.ref, 'ORD-WIN');
+    assert.equal(db.log.rolledBack, 1);
+  });
+
+  test('other database errors are not swallowed', async () => {
+    const db = makeDb();
+    const real = db.query;
+    db.query = async (sql, params) => {
+      if (sql.includes('INSERT INTO orders')) {
+        const err = new Error('boom');
+        err.code = '23503';
+        throw err;
+      }
+      return real(sql, params);
+    };
+    await assert.rejects(liveService.executeInStreamBuy(db, null, base), /boom/);
+  });
 });
