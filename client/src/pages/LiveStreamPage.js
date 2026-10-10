@@ -12,6 +12,7 @@
  * 8. Complete bilingual localization (EN/BN) and WCAG accessibility with aria-live regions.
  */
 
+import { knownDeliveryCharge, loadDeliveryCharge } from '../services/deliveryCharge.js';
 import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, terminateLiveStream } from '../services/live.api.js';
 import { adsApi } from '../services/ads.api.js';
 import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.js';
@@ -1077,7 +1078,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
 
       <div class="order-total-preview">
         <span>${t('live.chk_total_payable') || 'Total Payable:'}</span>
-        <strong id="chk-total">${formatBdt(retailPrice + 60)}</strong>
+        <strong id="chk-total">${formatBdt(retailPrice + (knownDeliveryCharge() ?? 0))}</strong>
       </div>
 
       <div class="checkout-btn-slot" style="margin-top: 14px;"></div>
@@ -1108,10 +1109,10 @@ function openInStreamCheckoutDrawer(product, streamId) {
   const phoneInput = drawerContent.querySelector('#chk-phone');
   const totalEl = drawerContent.querySelector('#chk-total');
 
-  divSelect.addEventListener('change', () => {
-    const isDhaka = divSelect.value === 'Dhaka';
-    const ship = isDhaka ? 60 : 120;
-    totalEl.textContent = formatBdt(retailPrice + ship);
+  // WHY one flat charge: the server bills the platform's per-parcel delivery charge for a live order,
+  // whatever the division, so the total follows that number instead of a guessed Dhaka/other split.
+  loadDeliveryCharge().then((ship) => {
+    if (ship !== null) totalEl.textContent = formatBdt(retailPrice + ship);
   });
 
   form.addEventListener('submit', async (e) => {

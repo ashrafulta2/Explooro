@@ -12,6 +12,7 @@
 
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
+import { perParcelCharge } from './deliveryCharge.service.js';
 import * as liveRepo from '../repositories/liveStream.repository.js';
 import { streaming } from '../integrations/streaming/index.js';
 import {
@@ -372,9 +373,16 @@ export async function executeInStreamBuy(pool, cache, {
   }
 
   const orderRef = generateRef('ORD');
-  const unitPrice = Number(product.base_cost) + Number(product.wholesale_margin) + 150; // demo retail
+  // WHY the listed price: the drawer shows the product's retail price, so that is what is charged. The
+  // old "base cost + margin + 150" was a placeholder that billed a figure the shopper never saw.
+  const unitPrice = Number(product.default_retail_price);
+  if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+    throw new AppError('PRODUCT_UNPRICED', 'This product has no price yet.', 'এই পণ্যের এখনও দাম নির্ধারণ হয়নি।');
+  }
   const itemsAmount = unitPrice * Number(qty);
-  const shippingAmount = division === 'Dhaka' ? 60 : 120;
+  // WHY configuration: the per-parcel delivery charge is set at /admin/platform/delivery; a live order
+  // is one supplier parcel, so it pays the same charge as a normal checkout.
+  const shippingAmount = await perParcelCharge(pool, cache);
   const totalAmount = itemsAmount + shippingAmount;
 
   // Insert order attributed to live_stream_id

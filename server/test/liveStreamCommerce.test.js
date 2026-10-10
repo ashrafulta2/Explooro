@@ -107,6 +107,7 @@ describe('Prompt 10.1: Live Stream Commerce Engine (DFD Subsystem 15.0)', () => 
   describe('3. In-Memory Mock Database Flow & Sales Attribution', () => {
     test('Simulates in-stream buy with stream attribution and sales statistics', async () => {
       let salesCount = 0;
+      let insertParams = null;
       let salesAmount = 0;
 
       const mockDb = {
@@ -133,11 +134,13 @@ describe('Prompt 10.1: Live Stream Commerce Engine (DFD Subsystem 15.0)', () => 
                 title_en: 'Tangail Cotton Saree',
                 base_cost: '800.00',
                 wholesale_margin: '200.00',
+                default_retail_price: '1150.00',
               }],
             };
           }
           if (sql.includes('INSERT INTO orders')) {
             salesCount += 1;
+            insertParams = params;
             salesAmount += 1210;
             return {
               rows: [{
@@ -177,6 +180,11 @@ describe('Prompt 10.1: Live Stream Commerce Engine (DFD Subsystem 15.0)', () => 
       assert.ok(buyRes.order);
       assert.strictEqual(buyRes.order.live_stream_id, 50);
       assert.strictEqual(salesCount, 1);
+      // Items at the listed retail price, shipping from the delivery policy (default 60), not the
+      // old base-cost-plus-150 placeholder or a Dhaka/other 60/120 split.
+      assert.equal(insertParams[3], 1150);
+      assert.equal(insertParams[4], 60);
+      assert.equal(insertParams[2], 1210);
     });
   });
 
