@@ -24,6 +24,7 @@ import * as adsService from './ads.service.js';
 import * as trustScoreService from './trustScore.service.js';
 import * as codGateService from './codGate.service.js';
 import * as deliveryChargeService from './deliveryCharge.service.js';
+import { getReservedByProduct } from './teamStockReservation.service.js';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
 
 export function hashPayload(payload) {
@@ -125,6 +126,10 @@ export async function executeCheckout(pool, cache, {
     // 4. Deterministic Row Locking on Products & Variants (id ASC)
     const { productsById, variantsById } = await orderRepo.lockProductsAndVariants(client, cart.items);
 
+    // WHY: units that open team purchases are counting on are not for sale here; the product rows are
+    // locked above, so this read cannot race a team being created.
+    const reservedByProduct = await getReservedByProduct(client, cart.items.map((i) => i.product_id));
+
     // Verify product status & stock sufficiency
     let itemsAmountPaisa = 0;
     for (const item of cart.items) {
@@ -149,6 +154,7 @@ export async function executeCheckout(pool, cache, {
         }
         availableStock = Number(variant.stock_qty);
       }
+      availableStock = Math.min(availableStock, Number(prod.stock_qty) - (reservedByProduct.get(Number(item.product_id)) || 0));
 
       if (availableStock < item.qty) {
         throw new AppError(

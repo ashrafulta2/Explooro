@@ -27,6 +27,7 @@ import * as ledgerService from './ledger.service.js';
 import * as vaultService from './vault.service.js';
 import { isEnabled, updateModuleSettings } from './module.service.js';
 import { calculatePricingBreakdown } from './pricing.service.js';
+import { getReservedForProduct } from './teamStockReservation.service.js';
 
 export const TEAM_SIZES = Object.freeze([2, 3]);
 export const PAYMENT_METHODS = Object.freeze(['COD', 'WALLET']);
@@ -292,6 +293,7 @@ export async function getQuote(db, { productId, userId = null }) {
     throw new AppError('NOT_FOUND', 'This product is not available for a team purchase.', 'এই পণ্যটি টিম পারচেজের জন্য উপলব্ধ নয়।');
   }
   const settings = await getTeamBuyingSettings(db);
+  const reserved = await getReservedForProduct(db, product.id);
   const options = TEAM_SIZES.map((size) => {
     const price = computeGroupPrice({
       retailPrice: product.default_retail_price,
@@ -311,7 +313,7 @@ export async function getQuote(db, { productId, userId = null }) {
   return {
     product_id: product.id,
     retail_price: product.default_retail_price,
-    in_stock: Number(product.stock_qty) > 0,
+    in_stock: Number(product.stock_qty) - reserved >= Math.min(...TEAM_SIZES),
     options,
     default_team_size: settings.default_team_size,
     window_hours: settings.window_hours,
@@ -365,7 +367,9 @@ export async function createTeamPurchase(db, cache, {
     if (!product || product.status !== 'ACTIVE') {
       throw new AppError('NOT_FOUND', 'Target product for team purchase does not exist.', 'এই পণ্যটি টিম পারচেজের জন্য উপলব্ধ নয়।');
     }
-    if (Number(product.stock_qty) < teamSize) {
+    // WHY minus the other open teams: each one is counting on its units (teamStockReservation.service.js).
+    const reserved = await getReservedForProduct(client, product.id);
+    if (Number(product.stock_qty) - reserved < teamSize) {
       throw new AppError('INSUFFICIENT_STOCK', 'Not enough stock for a team of this size.', 'এই আকারের টিমের জন্য যথেষ্ট স্টক নেই।');
     }
 

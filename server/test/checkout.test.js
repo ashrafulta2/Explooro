@@ -149,6 +149,7 @@ function createMockDb() {
     subOrders,
     orderItems,
     otpCodes,
+    teamReserved: {}, // productId -> units open teams hold
 
     async connect() {
       // Return transactional client wrapper sharing state
@@ -277,6 +278,11 @@ function createMockDb() {
           c.converted_order_id = orderId;
         }
         return { rows: [] };
+      }
+
+      // Units held by open team purchases (teamStockReservation.service.js)
+      if (q.includes('FROM team_purchases') && q.includes('SUM(required_members)')) {
+        return { rows: Object.entries(db.teamReserved).map(([product_id, reserved]) => ({ product_id, reserved })) };
       }
 
       // Products & Deterministic Locking
@@ -762,5 +768,30 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     const body = JSON.parse(res.payload);
     assert.ok(body.data?.orders, 'Returns orders array');
     assert.ok(body.meta?.cursor, 'Returns cursor metadata');
+  });
+  test('Open team purchases hold units back from a normal checkout', async () => {
+    const fresh = createMockDb();
+    const cache2 = createMemoryCache();
+    const input = {
+      userId: 1, idempotencyKey: 'idem-team-hold-001', recipientName: 'Karim Ahmed', recipientPhone: '+8801711111111',
+      division: 'Dhaka', district: 'Dhaka', addressLine: 'House 12, Road 4, Dhanmondi', paymentMethod: 'BKASH',
+    };
+    // 10 in stock, all 10 promised to open teams: none is left for this order
+    fresh.teamReserved = { 1: 10 };
+    await assert.rejects(
+      () => executeCheckout(fresh, cache2, input),
+      (err) => {
+        assert.equal(err.code, 'INSUFFICIENT_STOCK');
+        assert.equal(err.details?.product_ref, 'PRD-ALPHA-01');
+        assert.equal(err.details?.available, 0);
+        return true;
+      }
+    );
+    assert.equal(fresh.products.find((p) => p.id === 1).stock_qty, 10, 'nothing was deducted');
+
+    // 9 held, 1 free: exactly enough for a quantity of 1
+    fresh.teamReserved = { 1: 9 };
+    const ok = await executeCheckout(fresh, cache2, { ...input, idempotencyKey: 'idem-team-hold-002' });
+    assert.ok(ok.order, 'the free unit can be bought');
   });
 });

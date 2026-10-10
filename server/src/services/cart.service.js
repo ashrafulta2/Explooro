@@ -14,6 +14,7 @@ import * as cartRepo from '../repositories/cart.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
 import * as deliveryChargeService from './deliveryCharge.service.js';
+import { getReservedForProduct } from './teamStockReservation.service.js';
 
 export function generateGuestToken() {
   return `gst_${randomUUID().replace(/-/g, '')}`;
@@ -212,6 +213,8 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
     unitPrice += Number(varRows[0].price_delta ?? 0);
     availableStock = Number(varRows[0].stock_qty);
   }
+  // Advisory only (checkout re-checks under a lock): don't let a shopper add what open teams hold.
+  availableStock = Math.min(availableStock, Number(prodRows[0].stock_qty) - await getReservedForProduct(db, productId));
 
   if (availableStock <= 0) {
     throw new AppError('OUT_OF_STOCK', 'Item is out of stock.', 'আইটেমটির স্টক শেষ।');
