@@ -139,3 +139,18 @@ describe('sourcing catalog', () => {
     assert.equal(items[0].sourcing_opportunity.stock_available, 7);
   });
 });
+
+describe('saler management views', () => {
+  test('getSalerStoreItems shows stock net of reservations', async () => {
+    const { getSalerStoreItems } = await import('../src/services/product.service.js');
+    const db = reservationDb(async (sql) => {
+      if (sql.includes('FROM virtual_stores')) return { rows: [{ id: 9 }] };
+      if (sql.includes('store_items')) {
+        return { rows: [{ item_id: 1, product_id: 1, category_id: 1, base_cost: 100, wholesale_margin: 0, default_retail_price: 200, stock_qty: 10 }] };
+      }
+      return null;
+    });
+    const items = await getSalerStoreItems(db, 5);
+    assert.equal(items[0].stock_qty, 7);
+  });
+});

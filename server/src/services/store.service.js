@@ -251,7 +251,7 @@ export async function getSalerStore(db, salerId) {
     });
   }
 
-  const rawItems = await storeRepo.listStoreItems(db, store.id);
+  const rawItems = await withAvailableStock(db, await storeRepo.listStoreItems(db, store.id), { idKey: 'product_id' });
   const status = resolvePhysicalShopStatus(store);
 
   // Group items by collection / shelf

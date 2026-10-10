@@ -712,7 +712,8 @@ export async function getSalerStoreItems(db, salerId) {
   const store = await productRepo.getVirtualStoreBySalerId(db, salerId);
   if (!store) return [];
 
-  const items = await productRepo.listSalerStoreItems(db, store.id);
+  // WHY net: the saler decides what to promote from this count; units open teams hold are not sellable.
+  const items = await withAvailableStock(db, await productRepo.listSalerStoreItems(db, store.id), { idKey: 'product_id' });
   const enriched = await Promise.all(
     items.map(async (item) => {
       const pricing = await calculateProductPricing(db, {
