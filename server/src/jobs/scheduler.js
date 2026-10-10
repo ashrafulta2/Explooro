@@ -45,6 +45,16 @@ export function registerJob(jobDef) {
 }
 
 /**
+ * The jobs this process has registered, so an admin page can list a job that has never run (or whose
+ * module is off) instead of only the ones that happen to appear in the latest `job_runs` rows.
+ */
+export function listRegisteredJobs() {
+  return [...jobRegistry.values()]
+    .map((j) => ({ name: j.name, interval_ms: j.intervalMs || 3600000, module_key: j.moduleKey || null }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
  * Executes a single job run with distributed advisory lock and database audit tracking.
  */
 export async function runJobNow(jobName, db, cache, logger = console) {

@@ -18,6 +18,7 @@ import { Badge } from '../../components/ui/Badge.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { scheduleLabel } from './jobSchedule.js';
 
 export default function SystemHealthPage(root, { navigate } = {}) {
   loadSystemHealthStyles();
@@ -134,7 +135,18 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     const webhooks = healthData?.webhooks || {};
     // WHY empty, not demo rows: these used to fall back to four invented jobs and two invented
     // SNAP_* backups with fake checksums whenever the API omitted them.
-    const allJobs = healthData?.job_runs || [];
+    // One row per registered job (its own latest run, or NEVER_RUN) so a daily job is not pushed out
+    // by busier ones; older APIs without the catalogue fall back to the recent-run list.
+    const allJobs = Array.isArray(healthData?.jobs)
+      ? healthData.jobs.map((j) => ({
+        job_name: j.name,
+        schedule: scheduleLabel(j.interval_ms),
+        status: j.last_run?.status || 'NEVER_RUN',
+        started_at: j.last_run?.started_at || null,
+        duration_ms: j.last_run?.duration_ms ?? null,
+        processed_count: j.last_run?.processed_count ?? null,
+      }))
+      : (healthData?.job_runs || []);
     const allBackups = backupData?.backups || [];
 
     // Filter Jobs

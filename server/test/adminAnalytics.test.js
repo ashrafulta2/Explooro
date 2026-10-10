@@ -351,6 +351,30 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
     assert.equal(health.job_runs[0].job_name, 'analytics_nightly_rollup');
   });
 
+  test('System health lists every registered job with its own last run, or null if it never ran', async () => {
+    await import('../src/jobs/coinExpiry.job.js');
+    await import('../src/jobs/referralRelease.job.js');
+    const db = createMockDb({
+      queryHandler: async (sql) => {
+        // The per-job query is the only one that says DISTINCT ON; the recent list is a plain LIMIT.
+        if (sql.includes('DISTINCT ON (job_name)')) {
+          return { rows: [{ job_name: 'referral_release', status: 'COMPLETED', started_at: '2026-10-10T01:00:00Z', duration_ms: 12, processed_count: 3 }] };
+        }
+        return { rows: [] };
+      },
+    });
+    const { jobs } = await analyticsService.getSystemHealth(db);
+    const byName = Object.fromEntries(jobs.map((j) => [j.name, j]));
+
+    assert.ok(byName.coin_expiry, 'coin_expiry is listed although it has never run');
+    assert.equal(byName.coin_expiry.last_run, null);
+    assert.equal(byName.coin_expiry.module_key, 'loyalty_coins');
+    assert.equal(byName.coin_expiry.interval_ms, 24 * 3600000);
+    assert.equal(byName.referral_release.last_run.status, 'COMPLETED');
+    assert.equal(byName.referral_release.last_run.processed_count, 3);
+    assert.deepEqual(jobs.map((j) => j.name), [...jobs.map((j) => j.name)].sort());
+  });
+
   // ---------------------------------------------------------------------------
   // 6. Fastify HTTP Endpoints (Acceptance 6)
   // ---------------------------------------------------------------------------

@@ -932,6 +932,13 @@ export const adminHandlers = [
               { name: 'escrow_auto_release', status: 'SUCCESS', last_run_at: new Date(Date.now() - 3600000 * 2).toISOString(), duration_ms: 310 },
               { name: 'standing_grants_cleanup', status: 'SUCCESS', last_run_at: new Date(Date.now() - 3600000).toISOString(), duration_ms: 95 },
             ],
+            // Same shape as the server's catalogue: one row per registered job, last_run null if it never ran.
+            jobs: [
+              { name: 'analytics_nightly_rollup', interval_ms: 86400000, module_key: null, last_run: { status: 'COMPLETED', started_at: new Date(Date.now() - 3600000 * 6).toISOString(), duration_ms: 420, processed_count: 1 } },
+              { name: 'coin_expiry', interval_ms: 86400000, module_key: 'loyalty_coins', last_run: null },
+              { name: 'escrow_release', interval_ms: 3600000, module_key: null, last_run: { status: 'COMPLETED', started_at: new Date(Date.now() - 3600000 * 2).toISOString(), duration_ms: 310, processed_count: 4 } },
+              { name: 'referral_release', interval_ms: 3600000, module_key: 'referral_engine', last_run: { status: 'COMPLETED', started_at: new Date(Date.now() - 3600000).toISOString(), duration_ms: 64, processed_count: 2 } },
+            ],
           },
         },
       };

@@ -12,6 +12,7 @@
 import { createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.js';
 import * as recoCache from './recoCache.service.js';
+import { listRegisteredJobs } from '../jobs/scheduler.js';
 
 // ---------------------------------------------------------------------------
 // Sales breakdowns (categories + channels) — derived from real orders
@@ -733,6 +734,17 @@ export async function getSystemHealth(db, cache = null, { metrics = null, config
      LIMIT 15`
   );
 
+  // WHY a per-job last run beside the recent list: the list is the newest 15 rows of every job, so a
+  // daily or hourly job is pushed out by busier ones, and a job that never ran is not in it at all.
+  // The catalogue names every registered job and attaches its own latest run (or null).
+  const { rows: lastRuns } = await db.query(
+    `SELECT DISTINCT ON (job_name) job_name, status, started_at, ended_at, duration_ms, error_count, processed_count
+     FROM job_runs
+     ORDER BY job_name, started_at DESC`
+  );
+  const lastRunByJob = new Map(lastRuns.filter((r) => r.job_name).map((r) => [r.job_name, r]));
+  const jobCatalogue = listRegisteredJobs().map((j) => ({ ...j, last_run: lastRunByJob.get(j.name) || null }));
+
   // 2. Webhook deliveries health
   // WHY 'DELIVERED' / no .catch: 'SUCCESS' is not a webhook_deliveries status (PENDING, DELIVERED,
   // FAILED, DEAD_LETTER), so the success rate was computed from a status that never occurs, and a
@@ -828,6 +840,7 @@ export async function getSystemHealth(db, cache = null, { metrics = null, config
       failed_24h: parseInt(webhookStats[0]?.failed_24h || 0, 10),
     },
     job_runs: jobRuns,
+    jobs: jobCatalogue,
     timestamp: new Date().toISOString(),
   };
 }
