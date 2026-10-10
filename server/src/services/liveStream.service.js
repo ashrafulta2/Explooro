@@ -31,6 +31,44 @@ import * as auditService from './audit.service.js';
 import { detectContactInfoLeak } from './chat.service.js';
 import { preScreenContent } from './moderation.service.js';
 
+/**
+ * A stream product's special price must cover the wholesale cost (base cost + wholesale margin).
+ *
+ * WHY here and not only at order time: executeInStreamBuy refuses a price under that floor, so a
+ * special price below it produced a pinned "deal" nobody could buy. The seeded demo streams had four
+ * such rows, including both currently pinned products. Checked before the stream row is created so a
+ * rejected schedule leaves nothing behind.
+ */
+export async function assertSpecialPricesAboveFloor(db, products) {
+  const priced = (products || [])
+    .map((item) => ({
+      productId: Number(item?.productId ?? item?.product_id ?? item),
+      price: item?.specialPrice ?? item?.special_price ?? null,
+    }))
+    .filter((p) => p.price !== null && p.price !== undefined && p.price !== '');
+  if (priced.length === 0) return;
+
+  const { rows } = await db.query(
+    'SELECT id, title_en, (base_cost + wholesale_margin) AS floor_price FROM products WHERE id = ANY($1::bigint[])',
+    [priced.map((p) => p.productId)]
+  );
+  const floors = new Map(rows.map((r) => [Number(r.id), r]));
+  for (const { productId, price } of priced) {
+    const row = floors.get(productId);
+    if (!row) {
+      throw new AppError('PRODUCT_NOT_FOUND', `Product ${productId} not found.`, `পণ্য ${productId} পাওয়া যায়নি।`);
+    }
+    if (toPaisa(price) < toPaisa(row.floor_price)) {
+      throw new AppError(
+        'VALIDATION_FAILED',
+        `The special price for "${row.title_en}" cannot be below its wholesale cost (৳${Number(row.floor_price).toFixed(2)}).`,
+        `"${row.title_en}" এর বিশেষ দাম পাইকারি খরচের (৳${Number(row.floor_price).toFixed(2)}) নিচে হতে পারবে না।`,
+        { product_id: productId, floor_price: Number(row.floor_price) }
+      );
+    }
+  }
+}
+
 export async function scheduleStream(db, {
   hostId,
   storeId = null,
@@ -44,6 +82,8 @@ export async function scheduleStream(db, {
   if (!title || !title.trim()) {
     throw new AppError('TITLE_REQUIRED', 'Stream title is required.', 'লাইভ স্ট্রিমের শিরোনাম আবশ্যক।');
   }
+
+  await assertSpecialPricesAboveFloor(db, products);
 
   const ref = generateRef('LIV');
   const tempRoomId = `room_pending_${ref}`;

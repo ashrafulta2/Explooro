@@ -301,3 +301,31 @@ describe('executeInStreamBuy', () => {
     await assert.rejects(liveService.executeInStreamBuy(db, null, base), /boom/);
   });
 });
+
+describe('assertSpecialPricesAboveFloor', () => {
+  const dbWithFloor = (floor) => ({
+    async query() {
+      return { rows: [{ id: 5, title_en: 'Jamdani', floor_price: floor }] };
+    },
+  });
+
+  test('refuses a special price below base cost + wholesale margin', async () => {
+    await assert.rejects(
+      liveService.assertSpecialPricesAboveFloor(dbWithFloor('4800.00'), [{ productId: 5, specialPrice: 3200 }]),
+      (e) => e.code === 'VALIDATION_FAILED' && e.details?.floor_price === 4800
+    );
+  });
+
+  test('accepts a price at or above the floor, and entries without a special price', async () => {
+    await liveService.assertSpecialPricesAboveFloor(dbWithFloor('4800.00'), [{ productId: 5, special_price: 4800 }]);
+    await liveService.assertSpecialPricesAboveFloor(dbWithFloor('4800.00'), [5, { productId: 5 }]);
+  });
+
+  test('an unknown product is refused', async () => {
+    const db = { async query() { return { rows: [] }; } };
+    await assert.rejects(
+      liveService.assertSpecialPricesAboveFloor(db, [{ productId: 9, specialPrice: 100 }]),
+      (e) => e.code === 'PRODUCT_NOT_FOUND'
+    );
+  });
+});
