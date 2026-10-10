@@ -121,6 +121,15 @@ button.popup-close:active { background: var(--danger-800); }
   .drawer--bottom[open] { transform: translateY(100%); }
 }
 .drawer--bottom::backdrop, .drawer--right::backdrop, .drawer--left::backdrop { opacity: calc(1 - var(--drag-progress, 0)); }
+/* Floating drawer: a detached, wider panel the user can drag by its header (desktop only; phones keep the docked sheet). */
+@media (min-width: 768px) and (pointer: fine) {
+  .drawer--floating { height: calc(100dvh - var(--space-8)); max-height: calc(100dvh - var(--space-8)); width: min(620px, calc(100vw - var(--space-8))); max-width: none; margin: var(--space-4) var(--space-4) var(--space-4) auto; translate: var(--float-x, 0px) var(--float-y, 0px); }
+  .drawer--floating .drawer__panel { border-radius: var(--radius-lg); }
+  .drawer--floating::backdrop { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .drawer__header--movable { cursor: grab; user-select: none; touch-action: none; padding-bottom: var(--space-3); }
+  .drawer--moving, .drawer--moving .drawer__header--movable { cursor: grabbing; }
+  .drawer--moving { transition: none; }
+}
 .drawer__grip { width: 36px; height: 4px; flex: none; margin: var(--space-3) auto var(--space-1); border-radius: var(--radius-full); background: var(--border-strong); }
 .drawer__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5) var(--space-5) 0; }
 .drawer__heading { min-width: 0; }

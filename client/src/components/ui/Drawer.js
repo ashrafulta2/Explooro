@@ -45,6 +45,8 @@ export function Drawer({
   closeOnScrim = true,
   closeLabel = 'Close',
   dragToDismiss = true,
+  floating = false,
+  positionKey = null,
   bodyPadding = true,
   lockBodyScroll = true,
   className = '',
@@ -56,7 +58,7 @@ export function Drawer({
   const descId = `drawer-desc-${drawerSeq}`;
 
   const dialog = document.createElement('dialog');
-  dialog.className = `overlay drawer drawer--${side} drawer--${size}${className ? ` ${className}` : ''}`;
+  dialog.className = `overlay drawer drawer--${side} drawer--${size}${floating ? ' drawer--floating' : ''}${className ? ` ${className}` : ''}`;
   dialog.setAttribute('aria-modal', 'true');
   if (title) dialog.setAttribute('aria-labelledby', titleId);
   if (description) dialog.setAttribute('aria-describedby', descId);
@@ -130,12 +132,15 @@ export function Drawer({
 
   let previouslyFocused = null;
   let result;
+  // Assigned in the floating block below; a no-op for every docked drawer.
+  let restorePosition = () => {};
 
   function open(trigger = null) {
     if (dialog.hasAttribute('open')) return;
     previouslyFocused = trigger ?? document.activeElement;
     if (!dialog.isConnected) document.body.append(dialog);
     dialog.showModal();
+    restorePosition();
     if (lockBodyScroll) lockScroll();
     if (onOpen) onOpen();
   }
@@ -148,7 +153,121 @@ export function Drawer({
     nativeClose();
   }
 
+  /* ---- Floating mode: move the panel by its header (desktop only) ----- */
+  // WHY a media query and not a size check: on a phone the panel is full-width, so there is nowhere
+  // to move it to, and the swipe-to-dismiss gesture below must keep working there.
+  const floatMq = window.matchMedia('(min-width: 768px) and (pointer: fine)');
+  const isFloatingDesktop = () => floating && floatMq.matches;
+
+  if (floating) {
+    let moveId = null;
+    let originX = 0;
+    let originY = 0;
+    let baseX = 0;
+    let baseY = 0;
+    let minX = 0;
+    let maxX = 0;
+    let minY = 0;
+    let maxY = 0;
+
+    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    const setOffset = (x, y) => {
+      dialog.style.setProperty('--float-x', `${x}px`);
+      dialog.style.setProperty('--float-y', `${y}px`);
+    };
+
+    header.classList.add('drawer__header--movable');
+
+    // WHY try/catch: storage throws in private windows and with blocked site data, and a drawer that
+    // cannot remember where it was must still open.
+    const storeKey = positionKey ? `explooro.drawer.pos.${positionKey}` : null;
+    const savePosition = (x, y) => {
+      if (!storeKey) return;
+      try {
+        if (x === 0 && y === 0) localStorage.removeItem(storeKey);
+        else localStorage.setItem(storeKey, JSON.stringify({ x, y }));
+      } catch {
+        /* position just isn't remembered */
+      }
+    };
+    const currentOffset = () => [
+      parseFloat(dialog.style.getPropertyValue('--float-x')) || 0,
+      parseFloat(dialog.style.getPropertyValue('--float-y')) || 0,
+    ];
+
+    restorePosition = () => {
+      if (!storeKey || !isFloatingDesktop()) return;
+      let saved = null;
+      try {
+        saved = JSON.parse(localStorage.getItem(storeKey) || 'null');
+      } catch {
+        return;
+      }
+      if (!saved || !Number.isFinite(saved.x) || !Number.isFinite(saved.y)) return;
+      // WHY re-clamp: the window may be smaller than when the position was saved, and an off-screen
+      // panel has no reachable handle. WHY offset*: this runs during the slide-in, when
+      // getBoundingClientRect() still includes the entry transform; the layout box does not.
+      setOffset(saved.x, saved.y);
+      // WHY a frame later: the dialog has no layout box until the browser has run style for the
+      // freshly opened <dialog> (its `display` transitions), so measuring synchronously gives 0.
+      requestAnimationFrame(() => {
+        if (!dialog.offsetWidth) return;
+        setOffset(
+          Math.min(window.innerWidth - dialog.offsetLeft - dialog.offsetWidth, Math.max(-dialog.offsetLeft, saved.x)),
+          Math.min(window.innerHeight - dialog.offsetTop - dialog.offsetHeight, Math.max(-dialog.offsetTop, saved.y)),
+        );
+      });
+    };
+
+    header.addEventListener('pointerdown', (event) => {
+      if (!isFloatingDesktop() || event.button !== 0) return;
+      if (event.target.closest('button, a, input, select, textarea')) return;
+      const rect = panel.getBoundingClientRect();
+      baseX = parseFloat(dialog.style.getPropertyValue('--float-x')) || 0;
+      baseY = parseFloat(dialog.style.getPropertyValue('--float-y')) || 0;
+      // Keep the whole panel on screen: the header is the only handle, so a panel dragged out of
+      // the viewport could never be grabbed again.
+      minX = baseX - rect.left;
+      maxX = baseX + (window.innerWidth - rect.right);
+      minY = baseY - rect.top;
+      maxY = baseY + (window.innerHeight - rect.bottom);
+      originX = event.clientX;
+      originY = event.clientY;
+      moveId = event.pointerId;
+      header.setPointerCapture(moveId);
+      dialog.classList.add('drawer--moving');
+      event.preventDefault();
+    });
+
+    header.addEventListener('pointermove', (event) => {
+      if (moveId === null || event.pointerId !== moveId) return;
+      setOffset(
+        clamp(baseX + event.clientX - originX, minX, maxX),
+        clamp(baseY + event.clientY - originY, minY, maxY),
+      );
+    });
+
+    const endMove = (event) => {
+      if (moveId === null || event.pointerId !== moveId) return;
+      if (header.hasPointerCapture(moveId)) header.releasePointerCapture(moveId);
+      moveId = null;
+      dialog.classList.remove('drawer--moving');
+      savePosition(...currentOffset());
+    };
+    header.addEventListener('pointerup', endMove);
+    header.addEventListener('pointercancel', endMove);
+
+    // Double-click the title bar to snap back to the docked position.
+    header.addEventListener('dblclick', (event) => {
+      if (event.target.closest('button, a')) return;
+      setOffset(0, 0);
+      savePosition(0, 0);
+    });
+  }
+
   dialog.addEventListener('close', () => {
+    dialog.style.removeProperty('--float-x');
+    dialog.style.removeProperty('--float-y');
     if (lockBodyScroll) unlockScroll();
     // Clear any transform left behind by an interrupted drag, so the next open starts clean.
     panel.style.transform = '';
@@ -193,6 +312,8 @@ export function Drawer({
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       // Never hijack a gesture that starts on a control.
       if (event.target.closest('button, a, input, select, textarea')) return;
+      // A floating panel on desktop is moved, not swiped away.
+      if (isFloatingDesktop()) return;
       // The bottom sheet dismisses on the same axis its content scrolls, so it must
       // own the gesture only when scrolled to the very top. A side drawer dismisses
       // horizontally, orthogonal to its vertical scroll, so the axis is resolved on

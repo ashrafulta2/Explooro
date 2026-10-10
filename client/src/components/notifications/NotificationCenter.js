@@ -32,7 +32,6 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
   headerBar.className = 'notification-center-header';
   headerBar.innerHTML = `
     <div class="notification-header-title">
-      <h3>${t('notifications.center_title') || 'Notifications'}</h3>
       <span class="notification-badge-count" id="drawer-unread-badge">0</span>
     </div>
   `;
@@ -151,7 +150,14 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
         }
       `;
 
-      itemNode.addEventListener('click', async () => {
+      itemNode.addEventListener('click', async (event) => {
+        // WHY: the "View Details" anchor is already navigated by the router's document-level link
+        // handler. Also pushing the URL here rendered the target page twice (two overlapping renders
+        // each appended a copy, so a 404 showed up stacked). For an anchor click we only close the
+        // drawer and mark the item read; the router does the navigation.
+        const viaLink = Boolean(event.target.closest('a[href]'));
+        if (viaLink) drawerInstance.closeDrawer();
+
         if (!notif.is_read) {
           try {
             await api.post(`/notifications/${notif.id}/read`);
@@ -170,6 +176,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
           if (String(notif.id).startsWith('ad_')) {
             adsApi.trackClick(String(notif.id).replace('ad_', ''));
           }
+          if (viaLink) return;
           // WHY pushState and not location.hash: the app is on the History API router
           // (core/router.js matches pathname), so a hash write changed the URL fragment and
           // navigated nowhere.
@@ -223,6 +230,8 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
     content: container,
     side: 'right',
     size: 'md',
+    floating: true,
+    positionKey: 'notifications',
     onClose: () => {
       // Without this the listener outlives every closed drawer and each reopen adds another,
       // so one live notification would be appended N times.
