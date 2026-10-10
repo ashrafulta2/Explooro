@@ -573,13 +573,18 @@ export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, wit
 
 export async function listSourcingCatalog(db, filters = {}) {
   const { minMarginPct, categoryId, brand, limit = 50, offset = 0 } = filters;
-  const products = await productRepo.listProducts(db, {
-    categoryId,
-    brand,
-    status: 'ACTIVE',
-    limit: parseInt(limit, 10),
-    offset: parseInt(offset, 10),
-  });
+  // WHY net: a saler (and the AI sourcing agent) reads this to decide how much can be sold, and units
+  // an open team is counting on cannot be.
+  const products = await netOfReservations(
+    db,
+    await productRepo.listProducts(db, {
+      categoryId,
+      brand,
+      status: 'ACTIVE',
+      limit: parseInt(limit, 10),
+      offset: parseInt(offset, 10),
+    })
+  );
 
   const enriched = [];
   for (const p of products) {

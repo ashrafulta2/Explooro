@@ -125,3 +125,17 @@ describe('catalog listing', () => {
     assert.match(db.calls.find((s) => s.includes('FROM products p')), /p\.stock_qty - COALESCE/);
   });
 });
+
+describe('sourcing catalog', () => {
+  test('stock_available is net of open-team reservations', async () => {
+    const { listSourcingCatalog } = await import('../src/services/product.service.js');
+    const db = reservationDb(async (sql) => {
+      if (sql.includes('FROM products p') && !sql.startsWith('SELECT product_id')) {
+        return { rows: [{ id: 1, stock_qty: 10, base_cost: 100, wholesale_margin: 0, default_retail_price: 200 }] };
+      }
+      return null;
+    });
+    const items = await listSourcingCatalog(db, {});
+    assert.equal(items[0].sourcing_opportunity.stock_available, 7);
+  });
+});
