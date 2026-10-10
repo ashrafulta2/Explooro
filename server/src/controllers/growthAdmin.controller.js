@@ -12,6 +12,16 @@ export async function getAdsOverview(req, reply) {
   return reply.send(await growthAdminService.getAdsOverview(db));
 }
 
+const campaignAction = (action) => async (req, reply) => {
+  const { db } = req.server;
+  const campaign = await growthAdminService.setCampaignState(
+    db, actorOf(req), req.params.id, action, req.body?.reason, auditService
+  );
+  return reply.send({ campaign });
+};
+export const pauseCampaign = campaignAction('pause');
+export const resumeCampaign = campaignAction('resume');
+
 export async function getQuestsOverview(req, reply) {
   const { db } = req.server;
   return reply.send(await growthAdminService.getQuestsOverview(db));

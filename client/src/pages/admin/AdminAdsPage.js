@@ -12,6 +12,7 @@
 
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.js';
+import { Modal } from '../../components/ui/Modal.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
@@ -52,6 +53,62 @@ export default function AdminAdsPage(root, { navigate } = {}) {
       isLoading = false;
       render();
     }
+  }
+
+  // WHY a reason dialog: pausing a merchant's paid campaign is a platform decision the merchant cannot
+  // undo themselves, and the server refuses it without a reason (the audit row is the only record).
+  function askToggle(camp) {
+    const pausing = camp.status !== 'PAUSED';
+    const verb = pausing ? 'pause' : 'resume';
+    const body = document.createElement('div');
+    const desc = document.createElement('p');
+    desc.className = 'text-sm text-secondary';
+    desc.textContent = pausing
+      ? (isBn ? `"${camp.title}" বিরতিতে যাবে এবং মার্চেন্ট নিজে চালু করতে পারবেন না।` : `"${camp.title}" stops serving and the merchant cannot resume it themselves.`)
+      : (isBn ? `"${camp.title}" আবার চালু হবে।` : `"${camp.title}" goes back to serving.`);
+    const label = document.createElement('label');
+    label.className = 'form-label';
+    label.textContent = isBn ? 'কারণ (বাধ্যতামূলক)' : 'Reason (required)';
+    const input = document.createElement('textarea');
+    input.className = 'form-input';
+    input.rows = 3;
+    input.maxLength = 500;
+    label.append(input);
+    body.append(desc, label);
+
+    const cancel = Button({ label: isBn ? 'বাতিল' : 'Cancel', variant: 'ghost', onClick: () => modal.closeModal(false) });
+    const confirm = Button({
+      label: pausing ? (isBn ? 'বিরতি দিন' : 'Pause campaign') : (isBn ? 'চালু করুন' : 'Resume campaign'),
+      variant: pausing ? 'danger' : 'primary',
+      onClick: async () => {
+        const reason = input.value.trim();
+        if (reason.length < 3) {
+          toast.error(isBn ? 'কারণ লিখুন (কমপক্ষে ৩ অক্ষর)।' : 'Enter a reason (at least 3 characters).');
+          return;
+        }
+        confirm.setLoading(true);
+        try {
+          await api.post(`/admin/growth/ads/${camp.id}/${verb}`, { reason });
+          toast.success(pausing ? (isBn ? 'ক্যাম্পেইন বিরতিতে গেছে।' : 'Campaign paused.') : (isBn ? 'ক্যাম্পেইন চালু হয়েছে।' : 'Campaign resumed.'));
+          modal.closeModal(true);
+          await loadData();
+        } catch (err) {
+          toast.error(err?.message || (isBn ? 'অ্যাকশন কার্যকর হয়নি।' : 'The action could not be applied.'));
+        } finally {
+          confirm.setLoading(false);
+        }
+      },
+    });
+    const footer = document.createDocumentFragment();
+    footer.append(cancel, confirm);
+    const modal = Modal({
+      title: pausing ? (isBn ? 'ক্যাম্পেইন বিরতি' : 'Pause campaign') : (isBn ? 'ক্যাম্পেইন চালু' : 'Resume campaign'),
+      content: body,
+      footer,
+      onClose: () => modal.remove(),
+    });
+    document.body.append(modal);
+    modal.openModal();
   }
 
   function render() {
@@ -137,6 +194,7 @@ export default function AdminAdsPage(root, { navigate } = {}) {
             <tbody>
               ${filtered.map((c) => {
                 const isActive = c.status === 'ACTIVE';
+                const canPause = ['ACTIVE', 'SCHEDULED'].includes(c.status);
 
                 return `
                   <tr>
@@ -165,9 +223,9 @@ export default function AdminAdsPage(root, { navigate } = {}) {
                       </span>
                     </td>
                     <td style="text-align: right;">
-                      <button type="button" class="btn btn--secondary btn--sm toggle-camp-btn" data-id="${c.id}">
-                        ${isActive ? (isBn ? 'বিরতি' : 'Pause') : (isBn ? 'চালু' : 'Resume')}
-                      </button>
+                      ${canPause || c.admin_paused ? `<button type="button" class="btn btn--secondary btn--sm toggle-camp-btn" data-id="${c.id}">
+                        ${canPause ? (isBn ? 'বিরতি' : 'Pause') : (isBn ? 'চালু' : 'Resume')}
+                      </button>` : `<span class="text-xs text-muted">${c.status === 'PAUSED' ? (isBn ? 'মার্চেন্ট বিরতি' : 'Paused by merchant') : '—'}</span>`}
                     </td>
                   </tr>
                 `;
@@ -183,13 +241,8 @@ export default function AdminAdsPage(root, { navigate } = {}) {
 
     container.querySelectorAll('.toggle-camp-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const id = Number(btn.getAttribute('data-id'));
-        const camp = campaigns.find((x) => x.id === id);
-        if (camp) {
-          camp.status = camp.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
-          toast.success(`Campaign "${camp.title}" is now ${camp.status}`);
-          render();
-        }
+        const camp = campaigns.find((x) => x.id === Number(btn.getAttribute('data-id')));
+        if (camp) askToggle(camp);
       });
     });
 

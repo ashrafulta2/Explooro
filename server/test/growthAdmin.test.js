@@ -111,6 +111,77 @@ describe('Phase 9 admin: ads overview', () => {
   });
 });
 
+describe('Phase 9 admin: campaign pause / resume', () => {
+  function adDb(campaign) {
+    const log = { updates: [], audits: [] };
+    const db = {
+      log,
+      query: async (sql, params) => {
+        if (/^SELECT id, ref, status/i.test(sql.trim())) return { rows: campaign && params[0] === campaign.id ? [campaign] : [] };
+        if (/^UPDATE ad_campaigns/i.test(sql.trim())) {
+          log.updates.push({ sql, params });
+          const paused = /status = 'PAUSED'/.test(sql);
+          return { rows: [{ id: campaign.id, ref: campaign.ref, status: paused ? 'PAUSED' : (campaign.start_date > new Date() ? 'SCHEDULED' : 'ACTIVE'), admin_paused_at: paused ? new Date() : null }] };
+        }
+        return { rows: [] };
+      },
+    };
+    return db;
+  }
+  const auditSvc = (db) => ({ record: async (_d, row) => db.log.audits.push(row) });
+  const actor = { id: 2, role: 'super_admin' };
+
+  test('pause stamps the admin marker and writes a HIGH audit row', async () => {
+    const db = adDb({ id: 5, ref: 'ADC-5', status: 'ACTIVE', start_date: new Date(0), admin_paused_at: null });
+    const out = await svc.setCampaignState(db, actor, 5, 'pause', 'Misleading creative', auditSvc(db));
+    assert.deepEqual([out.status, out.admin_paused], ['PAUSED', true]);
+    assert.match(db.log.updates[0].sql, /admin_paused_at = now\(\)/);
+    assert.equal(db.log.audits[0].action, 'growth.ad.admin_pause');
+    assert.equal(db.log.audits[0].risk_tier, 'HIGH');
+  });
+
+  test('resume clears the marker and sends a not-yet-started campaign back to SCHEDULED', async () => {
+    const future = new Date(Date.now() + 86400000);
+    const db = adDb({ id: 5, ref: 'ADC-5', status: 'PAUSED', start_date: future, admin_paused_at: new Date() });
+    const out = await svc.setCampaignState(db, actor, 5, 'resume', 'Creative fixed', auditSvc(db));
+    assert.deepEqual([out.status, out.admin_paused], ['SCHEDULED', false]);
+    assert.match(db.log.updates[0].sql, /start_date > now\(\)/);
+    assert.deepEqual(db.log.updates[0].params, [5]);
+  });
+
+  test('refuses a missing reason, an unknown campaign, a non-running pause and a merchant-paused resume', async () => {
+    const running = adDb({ id: 5, ref: 'ADC-5', status: 'ACTIVE', start_date: new Date(0), admin_paused_at: null });
+    await assert.rejects(() => svc.setCampaignState(running, actor, 5, 'pause', ' ', auditSvc(running)), /reason/);
+    await assert.rejects(() => svc.setCampaignState(running, actor, 99, 'pause', 'reason here', auditSvc(running)), (e) => e.code === 'CAMPAIGN_NOT_FOUND');
+    await assert.rejects(() => svc.setCampaignState(running, actor, 5, 'resume', 'reason here', auditSvc(running)), (e) => e.code === 'CAMPAIGN_NOT_ADMIN_PAUSED');
+    const done = adDb({ id: 6, ref: 'ADC-6', status: 'COMPLETED', start_date: new Date(0), admin_paused_at: null });
+    await assert.rejects(() => svc.setCampaignState(done, actor, 6, 'pause', 'reason here', auditSvc(done)), (e) => e.code === 'CAMPAIGN_NOT_RUNNING');
+    assert.equal(running.log.updates.length + done.log.updates.length, 0);
+  });
+
+  test('the merchant cannot resume a campaign the platform paused', async () => {
+    const { toggleCampaignStatus } = await import('../src/services/ads.service.js');
+    const db = { query: async () => ({ rows: [{ id: 5, status: 'PAUSED', admin_paused_at: new Date() }] }) };
+    await assert.rejects(() => toggleCampaignStatus(db, null, 9, 5, 'ACTIVE'), (e) => e.code === 'CAMPAIGN_ADMIN_PAUSED');
+  });
+
+  test('pause and resume routes carry the ads module and permission', async () => {
+    const app = Fastify();
+    const found = [];
+    app.decorate('authenticate', async () => {});
+    app.decorate('requireModule', (key) => { const fn = async () => {}; fn.moduleKey = key; return fn; });
+    app.decorate('requirePermission', (key) => { const fn = async () => {}; fn.permissionKey = key; return fn; });
+    app.addHook('onRoute', (r) => found.push({ m: [].concat(r.method).join(','), u: r.url, chain: [].concat(r.preHandler || []) }));
+    await app.register(growthAdminRoutes);
+    for (const verb of ['pause', 'resume']) {
+      const r = found.find((x) => x.m === 'POST' && x.u === `/admin/growth/ads/:id/${verb}`);
+      assert.ok(r, `${verb} route must exist`);
+      assert.deepEqual(r.chain.map((f) => f.permissionKey).filter(Boolean), ['growth.ad.govern']);
+      assert.deepEqual(r.chain.map((f) => f.moduleKey).filter(Boolean), ['sponsored_ads']);
+    }
+  });
+});
+
 describe('Phase 9 admin: route guards', () => {
   async function build(plugin) {
     const app = Fastify();

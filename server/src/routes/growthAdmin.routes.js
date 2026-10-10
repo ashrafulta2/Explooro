@@ -14,6 +14,12 @@ export default async function growthAdminRoutes(app) {
     preHandler: [app.authenticate, requireAdsModule, app.requirePermission('growth.ad.govern')],
   }, growthAdminController.getAdsOverview);
 
+  for (const verb of ['pause', 'resume']) {
+    app.post(`/admin/growth/ads/:id/${verb}`, {
+      preHandler: [app.authenticate, requireAdsModule, app.requirePermission('growth.ad.govern')],
+    }, verb === 'pause' ? growthAdminController.pauseCampaign : growthAdminController.resumeCampaign);
+  }
+
   app.get('/admin/growth/quests', {
     preHandler: [app.authenticate, requireQuestsModule, app.requirePermission('growth.quest.govern')],
   }, growthAdminController.getQuestsOverview);

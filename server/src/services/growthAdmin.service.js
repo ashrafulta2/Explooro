@@ -219,10 +219,63 @@ export async function updateQuest(db, actor, id, input, auditService) {
   return rows[0];
 }
 
+/**
+ * Pause or resume one campaign as the platform. A pause stamps `admin_paused_at` so the merchant's
+ * own Resume is refused (ads.service.toggleCampaignStatus); only this function clears it.
+ */
+export async function setCampaignState(db, actor, campaignId, action, reason, auditSvc) {
+  if (!['pause', 'resume'].includes(action)) throw new AppError('VALIDATION_ERROR', 'Action must be pause or resume.');
+  const note = typeof reason === 'string' ? reason.trim() : '';
+  if (note.length < 3 || note.length > 500) {
+    throw new AppError('VALIDATION_ERROR', 'A reason of 3–500 characters is required.');
+  }
+  const { rows: found } = await db.query(
+    'SELECT id, ref, status, start_date, admin_paused_at FROM ad_campaigns WHERE id = $1',
+    [campaignId]
+  );
+  const before = found[0];
+  if (!before) throw new AppError('CAMPAIGN_NOT_FOUND', 'Campaign not found.');
+
+  let sql;
+  let params = [campaignId];
+  if (action === 'pause') {
+    if (!['ACTIVE', 'SCHEDULED'].includes(before.status)) {
+      throw new AppError('CAMPAIGN_NOT_RUNNING', 'Only an active or scheduled campaign can be paused.');
+    }
+    params = [campaignId, note];
+    sql = `UPDATE ad_campaigns SET status = 'PAUSED', admin_paused_at = now(), admin_pause_reason = $2, updated_at = now()
+            WHERE id = $1 RETURNING id, ref, status, admin_paused_at, admin_pause_reason`;
+  } else {
+    if (!before.admin_paused_at) {
+      throw new AppError('CAMPAIGN_NOT_ADMIN_PAUSED', 'Only a campaign the platform paused can be resumed here.');
+    }
+    // WHY: a campaign paused before its first booked day must go back to SCHEDULED, not ACTIVE,
+    // or it would be served early.
+    sql = `UPDATE ad_campaigns
+              SET status = CASE WHEN start_date > now() THEN 'SCHEDULED' ELSE 'ACTIVE' END,
+                  admin_paused_at = NULL, admin_pause_reason = NULL, updated_at = now()
+            WHERE id = $1
+        RETURNING id, ref, status, admin_paused_at, admin_pause_reason`;
+  }
+  const { rows } = await db.query(sql, params);
+
+  await auditSvc.record(db, {
+    actor: actor?.id ?? null,
+    actor_role: actor?.role ?? 'admin',
+    action: `growth.ad.admin_${action}`,
+    target_type: 'ad_campaign',
+    target_ref: before.ref,
+    before: { status: before.status, admin_paused_at: before.admin_paused_at },
+    after: { status: rows[0].status, reason: note },
+    risk_tier: 'HIGH',
+  });
+  return { id: rows[0].id, ref: rows[0].ref, status: rows[0].status, admin_paused: Boolean(rows[0].admin_paused_at) };
+}
+
 /** Every ad campaign with its owner, plus platform-wide totals, for /admin/growth/ads. */
 export async function getAdsOverview(db) {
   const { rows } = await db.query(`
-    SELECT c.id, c.ref, c.title, c.placement, c.status, c.targeting_json, c.bid_amount,
+    SELECT c.id, c.ref, c.title, c.placement, c.status, c.admin_paused_at, c.admin_pause_reason, c.targeting_json, c.bid_amount,
            c.daily_budget, c.total_budget, c.spent_amount, c.today_spent_amount, c.last_spent_date,
            c.start_date, c.end_date, c.impressions_count, c.clicks_count,
            COALESCE(up.display_name, up.full_name, u.phone) AS merchant_name,
@@ -248,6 +301,8 @@ export async function getAdsOverview(db) {
       title: c.title,
       placement: c.placement,
       status: c.status,
+      admin_paused: Boolean(c.admin_paused_at),
+      admin_pause_reason: c.admin_pause_reason || null,
       merchant_name: c.merchant_name,
       merchant_role: (c.merchant_role || '').toUpperCase() || 'SALER',
       daily_budget: num(c.daily_budget),

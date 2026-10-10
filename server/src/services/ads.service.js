@@ -485,6 +485,10 @@ export async function toggleCampaignStatus(db, cache, userId, campaignId, newSta
     throw new AppError('CAMPAIGN_COMPLETED', 'Completed campaigns must have total budget increased before resuming.');
   }
 
+  if (newStatus === 'ACTIVE' && campaign.admin_paused_at) {
+    throw new AppError('CAMPAIGN_ADMIN_PAUSED', 'This campaign was paused by the platform. Contact support to have it resumed.');
+  }
+
   const { rows: updatedRows } = await db.query(
     `UPDATE ad_campaigns
      SET status = $1, updated_at = now()

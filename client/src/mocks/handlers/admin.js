@@ -738,6 +738,14 @@ function buildSeedKycRecords() {
   ];
 }
 
+// Mutable so the pause/resume handlers below change what the next GET returns.
+const adminAdCampaigns = [
+              { id: 1, title: 'Eid Mega Flash Sale Jamdani Boost', merchant_name: 'Jamdani Heritage Weavers', merchant_role: 'SUPPLIER', daily_budget: 1500.00, total_spent: 4200.00, impressions: 45000, clicks: 3800, cpc_bdt: 1.10, quality_score: 9.4, status: 'ACTIVE' },
+              { id: 2, title: 'Sundarban Pure Honey Sponsored Placement', merchant_name: 'Sundarban Honey House', merchant_role: 'SUPPLIER', daily_budget: 800.00, total_spent: 2400.00, impressions: 28000, clicks: 2100, cpc_bdt: 1.14, quality_score: 8.8, status: 'ACTIVE' },
+              { id: 3, title: 'Wireless Earbuds Top Category Banner', merchant_name: 'Gadget Express BD', merchant_role: 'SALER', daily_budget: 2000.00, total_spent: 12500.00, impressions: 85000, clicks: 6400, cpc_bdt: 1.95, quality_score: 9.1, status: 'ACTIVE' },
+              { id: 4, title: 'Organic Mustard Oil Search Boost', merchant_name: 'Bengal Organics Ltd.', merchant_role: 'SUPPLIER', daily_budget: 500.00, total_spent: 1500.00, impressions: 14000, clicks: 950, cpc_bdt: 1.58, quality_score: 8.2, status: 'PAUSED' },
+];
+
 export const adminHandlers = [
   // 1. Executive Analytics Overview
   {
@@ -2765,6 +2773,30 @@ export const adminHandlers = [
     },
   },
 
+  {
+    method: 'POST',
+    path: '/admin/growth/ads/:id/pause',
+    handler({ params, body }) {
+      const camp = adminAdCampaigns.find((c) => c.id === Number(params.id));
+      if (!camp) return { status: 404, body: { error: { code: 'CAMPAIGN_NOT_FOUND', message: 'Campaign not found.' } } };
+      if (!body?.reason || String(body.reason).trim().length < 3) return { status: 422, body: { error: { code: 'VALIDATION_ERROR', message: 'A reason of 3–500 characters is required.' } } };
+      camp.status = 'PAUSED';
+      camp.admin_paused = true;
+      return { status: 200, body: { data: { campaign: { id: camp.id, status: camp.status, admin_paused: true } } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/admin/growth/ads/:id/resume',
+    handler({ params, body }) {
+      const camp = adminAdCampaigns.find((c) => c.id === Number(params.id));
+      if (!camp) return { status: 404, body: { error: { code: 'CAMPAIGN_NOT_FOUND', message: 'Campaign not found.' } } };
+      if (!body?.reason || String(body.reason).trim().length < 3) return { status: 422, body: { error: { code: 'VALIDATION_ERROR', message: 'A reason of 3–500 characters is required.' } } };
+      camp.status = 'ACTIVE';
+      camp.admin_paused = false;
+      return { status: 200, body: { data: { campaign: { id: camp.id, status: camp.status, admin_paused: false } } } };
+    },
+  },
   // Sponsored Ads
   {
     method: 'GET',
@@ -2774,12 +2806,7 @@ export const adminHandlers = [
         status: 200,
         body: {
           data: {
-            campaigns: [
-              { id: 1, title: 'Eid Mega Flash Sale Jamdani Boost', merchant_name: 'Jamdani Heritage Weavers', merchant_role: 'SUPPLIER', daily_budget: 1500.00, total_spent: 4200.00, impressions: 45000, clicks: 3800, cpc_bdt: 1.10, quality_score: 9.4, status: 'ACTIVE' },
-              { id: 2, title: 'Sundarban Pure Honey Sponsored Placement', merchant_name: 'Sundarban Honey House', merchant_role: 'SUPPLIER', daily_budget: 800.00, total_spent: 2400.00, impressions: 28000, clicks: 2100, cpc_bdt: 1.14, quality_score: 8.8, status: 'ACTIVE' },
-              { id: 3, title: 'Wireless Earbuds Top Category Banner', merchant_name: 'Gadget Express BD', merchant_role: 'SALER', daily_budget: 2000.00, total_spent: 12500.00, impressions: 85000, clicks: 6400, cpc_bdt: 1.95, quality_score: 9.1, status: 'ACTIVE' },
-              { id: 4, title: 'Organic Mustard Oil Search Boost', merchant_name: 'Bengal Organics Ltd.', merchant_role: 'SUPPLIER', daily_budget: 500.00, total_spent: 1500.00, impressions: 14000, clicks: 950, cpc_bdt: 1.58, quality_score: 8.2, status: 'PAUSED' },
-            ],
+            campaigns: adminAdCampaigns,
           },
         },
       };
