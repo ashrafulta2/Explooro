@@ -384,3 +384,26 @@ describe('quoteInStreamBuy', () => {
     await assert.rejects(liveService.quoteInStreamBuy(quoteDb(), null, { ...args, qty: 0 }), (e) => e.code === 'VALIDATION_FAILED');
   });
 });
+
+describe('live commerce error codes map to client errors, not 500', () => {
+  test('each code the live service throws has an HTTP status below 500', async () => {
+    const { AppError } = await import('../src/plugins/errorHandler.js');
+    const expected = {
+      STREAM_NOT_FOUND: 404, PRODUCT_NOT_FOUND: 404, PRODUCT_NOT_IN_STREAM: 404,
+      STREAM_NOT_LIVE: 409, PRODUCT_UNPRICED: 409, INSUFFICIENT_STOCK: 409,
+      IDEMPOTENCY_KEY_REQUIRED: 400, COD_OTP_REQUIRED: 422,
+    };
+    for (const [code, status] of Object.entries(expected)) {
+      assert.equal(new AppError(code, 'x', 'x').statusCode, status, code);
+    }
+  });
+
+  test('every AppError code thrown in liveStream.service.js is mapped', async () => {
+    const { AppError } = await import('../src/plugins/errorHandler.js');
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('../src/services/liveStream.service.js', import.meta.url), 'utf8');
+    const codes = [...new Set([...src.matchAll(/new AppError\('([A-Z_]+)'/g)].map((m) => m[1]))];
+    const unmapped = codes.filter((c) => new AppError(c, 'x', 'x').statusCode === 500 && c !== 'INTERNAL_ERROR');
+    assert.deepEqual(unmapped, []);
+  });
+});
