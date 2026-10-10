@@ -744,6 +744,7 @@ const adminAdCampaigns = [
               { id: 2, title: 'Sundarban Pure Honey Sponsored Placement', merchant_name: 'Sundarban Honey House', merchant_role: 'SUPPLIER', daily_budget: 800.00, total_spent: 2400.00, impressions: 28000, clicks: 2100, cpc_bdt: 1.14, quality_score: 8.8, status: 'ACTIVE' },
               { id: 3, title: 'Wireless Earbuds Top Category Banner', merchant_name: 'Gadget Express BD', merchant_role: 'SALER', daily_budget: 2000.00, total_spent: 12500.00, impressions: 85000, clicks: 6400, cpc_bdt: 1.95, quality_score: 9.1, status: 'ACTIVE' },
               { id: 4, title: 'Organic Mustard Oil Search Boost', merchant_name: 'Bengal Organics Ltd.', merchant_role: 'SUPPLIER', daily_budget: 500.00, total_spent: 1500.00, impressions: 14000, clicks: 950, cpc_bdt: 1.58, quality_score: 8.2, status: 'PAUSED' },
+              { id: 5, title: 'Pohela Boishakh Panjabi Banner', merchant_name: 'Jamdani Heritage Weavers', merchant_role: 'SUPPLIER', daily_budget: 900.00, total_spent: 0.00, impressions: 0, clicks: 0, cpc_bdt: 1.20, quality_score: 8.9, status: 'SCHEDULED' },
 ];
 
 export const adminHandlers = [

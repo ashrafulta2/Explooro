@@ -14,6 +14,12 @@ import { getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Modal } from '../ui/Modal.js';
 
+const FALLBACK_FORMATS = [
+  { id: 'SQUARE', label_en: '1:1 Square', label_bn: '১:১ স্কয়ার' },
+  { id: 'STORY', label_en: '9:16 Story', label_bn: '৯:১৬ স্টোরি' },
+  { id: 'A4_PRINT', label_en: 'A4 Print', label_bn: 'A4 প্রিন্ট' },
+];
+
 export class SocialKitModal {
   constructor(options = {}) {
     this.product = options.product || {
@@ -29,11 +35,27 @@ export class SocialKitModal {
     this.theme = 'DARK';    // 'DARK', 'MINIMAL', 'GOLD'
     this.shortLink = null;
     this.backdropEl = null;
+    // WHY a fallback: the list comes from GET /saler/social-kit/templates (the same table the
+    // server's flyer renderer reads), but a failed request must never stop the modal opening.
+    this.formats = FALLBACK_FORMATS;
   }
 
   async open() {
-    await this._generateLink();
+    await Promise.all([this._generateLink(), this._loadFormats()]);
     this._renderModal();
+  }
+
+  async _loadFormats() {
+    try {
+      const res = await api.get('/saler/social-kit/templates');
+      const list = (res?.templates ?? []).filter((f) => f?.id);
+      if (list.length > 0) {
+        this.formats = list;
+        if (!list.some((f) => f.id === this.format)) this.format = list[0].id;
+      }
+    } catch {
+      // keep the fallback
+    }
   }
 
   async _generateLink() {
@@ -67,9 +89,7 @@ export class SocialKitModal {
     <fieldset class="social-kit-modal__group">
       <legend class="social-kit-modal__label">${isBn ? 'পোস্টার ফরম্যাট' : 'Poster Format'}</legend>
       <div class="social-kit-modal__choices">
-        <button type="button" class="btn btn--sm ${pick(this.format === 'SQUARE')} btn-format" data-format="SQUARE" aria-pressed="${this.format === 'SQUARE'}">1:1 Square</button>
-        <button type="button" class="btn btn--sm ${pick(this.format === 'STORY')} btn-format" data-format="STORY" aria-pressed="${this.format === 'STORY'}">9:16 Story</button>
-        <button type="button" class="btn btn--sm ${pick(this.format === 'A4_PRINT')} btn-format" data-format="A4_PRINT" aria-pressed="${this.format === 'A4_PRINT'}">A4 Print</button>
+        ${this.formats.map((f) => `<button type="button" class="btn btn--sm ${pick(this.format === f.id)} btn-format" data-format="${f.id}" aria-pressed="${this.format === f.id}">${(isBn ? f.label_bn : f.label_en) || f.label_en || f.id}</button>`).join('')}
       </div>
     </fieldset>
 

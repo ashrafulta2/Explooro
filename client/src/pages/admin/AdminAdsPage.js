@@ -19,6 +19,21 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
+const STATUS_BADGES = {
+  ACTIVE: { tone: 'system-table__badge--success', en: 'Active', bn: 'চালু' },
+  SCHEDULED: { tone: 'system-table__badge--info', en: 'Scheduled', bn: 'নির্ধারিত' },
+  PAUSED: { tone: 'system-table__badge--warn', en: 'Paused', bn: 'বিরতিপ্রাপ্ত' },
+  PENDING_REVIEW: { tone: 'system-table__badge--info', en: 'In review', bn: 'পর্যালোচনায়' },
+  COMPLETED: { tone: 'system-table__badge--info', en: 'Completed', bn: 'সম্পন্ন' },
+  REJECTED: { tone: 'system-table__badge--danger', en: 'Rejected', bn: 'প্রত্যাখ্যাত' },
+  DRAFT: { tone: 'system-table__badge--info', en: 'Draft', bn: 'খসড়া' },
+};
+
+/** WHY a table: every status other than ACTIVE used to read "Paused", including SCHEDULED and COMPLETED. */
+export function statusBadge(status) {
+  return STATUS_BADGES[status] ?? { tone: 'system-table__badge--info', en: String(status ?? '—'), bn: String(status ?? '—') };
+}
+
 export default function AdminAdsPage(root, { navigate } = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
@@ -193,7 +208,6 @@ export default function AdminAdsPage(root, { navigate } = {}) {
             </thead>
             <tbody>
               ${filtered.map((c) => {
-                const isActive = c.status === 'ACTIVE';
                 const canPause = ['ACTIVE', 'SCHEDULED'].includes(c.status);
 
                 return `
@@ -218,8 +232,8 @@ export default function AdminAdsPage(root, { navigate } = {}) {
                       <div class="text-xs text-muted font-mono">${formatNumber(c.clicks)} clicks</div>
                     </td>
                     <td>
-                      <span class="system-table__badge ${isActive ? 'system-table__badge--success' : 'system-table__badge--warn'}">
-                        ${isActive ? (isBn ? 'চালু' : 'Active') : (isBn ? 'বিরতিপ্রাপ্ত' : 'Paused')}
+                      <span class="system-table__badge ${statusBadge(c.status).tone}">
+                        ${isBn ? statusBadge(c.status).bn : statusBadge(c.status).en}
                       </span>
                     </td>
                     <td style="text-align: right;">
