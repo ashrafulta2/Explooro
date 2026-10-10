@@ -846,6 +846,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       footer: drawerFooter,
       side: 'right',
       size: 'md',
+      removeOnClose: true,
     });
 
     drawer.open();

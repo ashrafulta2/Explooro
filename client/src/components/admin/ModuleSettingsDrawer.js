@@ -138,6 +138,7 @@ export function openModuleSettingsDrawer({ module, trigger, onSuccess }) {
     footer,
     side: 'right',
     size: 'md',
+    removeOnClose: true,
   });
 
   document.body.append(drawer);

@@ -286,6 +286,7 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     footer,
     side: 'right',
     size: 'lg',
+    removeOnClose: true,
   });
 
   document.body.append(drawer);

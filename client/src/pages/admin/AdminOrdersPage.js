@@ -288,6 +288,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
       title: `${isBn ? 'অর্ডার বিবরণ' : 'Order Inspector'} — #${order.order_ref}`,
       content,
       width: '620px',
+      removeOnClose: true,
     });
 
     document.body.append(drawer);

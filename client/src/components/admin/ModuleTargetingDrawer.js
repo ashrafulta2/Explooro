@@ -171,6 +171,7 @@ export function openModuleTargetingDrawer({ module, trigger, onSuccess }) {
     footer,
     side: 'right',
     size: 'md',
+    removeOnClose: true,
   });
 
   document.body.append(drawer);
