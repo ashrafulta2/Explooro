@@ -57,4 +57,10 @@ export default async function referralRoutes(app) {
   app.patch('/admin/growth/referrals/rules', {
     preHandler: [app.authenticate, requireReferralModule, requireGovern],
   }, referralController.adminUpdateRules);
+  app.post('/admin/growth/referrals/:ref/release', {
+    preHandler: [app.authenticate, requireReferralModule, requireGovern],
+  }, referralController.adminReleaseReferral);
+  app.post('/admin/growth/referrals/:ref/void', {
+    preHandler: [app.authenticate, requireReferralModule, requireGovern],
+  }, referralController.adminVoidReferral);
 }

@@ -15,6 +15,8 @@
  */
 
 import { api } from '../../core/api.js';
+import { Modal } from '../../components/ui/Modal.js';
+import { Button } from '../../components/ui/Button.js';
 import { toast } from '../../services/toast.js';
 import { getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
@@ -119,6 +121,66 @@ export default function AdminReferralsPage(root) {
     } catch (err) {
       toast.error(err?.message || (isBn ? 'সংরক্ষণ ব্যর্থ হয়েছে।' : 'Could not save fraud controls.'));
     }
+  }
+
+  // WHY a reason dialog and not a bare confirm: both answers move money (or allow it to move later),
+  // and the server refuses a decision without one — the audit row is the only record of why.
+  function askDecision(f, decision) {
+    const isVoid = decision === 'void';
+    const body = document.createElement('div');
+    const desc = document.createElement('p');
+    desc.className = 'text-sm text-secondary';
+    desc.textContent = isVoid
+      ? (isBn
+        ? `${f.id} বাতিল হবে। আটকে থাকা ${formatCurrency(f.amount_held_bdt)} প্ল্যাটফর্মের ট্রেজারিতে ফেরত যাবে এবং এই রেফারেল আর কমিশন পাবে না।`
+        : `${f.id} will be rejected. The held ${formatCurrency(f.amount_held_bdt)} returns to the platform treasury and this referral can never earn.`)
+      : (isBn
+        ? `${f.id} নির্দোষ ধরা হবে। আটকে থাকা ${formatCurrency(f.amount_held_bdt)} রেফারারের ব্যালেন্সে যোগ হবে।`
+        : `${f.id} is cleared. The held ${formatCurrency(f.amount_held_bdt)} is paid to the referrer's balance.`);
+    const label = document.createElement('label');
+    label.className = 'form-label';
+    label.textContent = isBn ? 'কারণ (বাধ্যতামূলক)' : 'Reason (required)';
+    const input = document.createElement('textarea');
+    input.className = 'form-input';
+    input.rows = 3;
+    input.maxLength = 500;
+    label.append(input);
+    body.append(desc, label);
+
+    const cancel = Button({ label: isBn ? 'বাতিল' : 'Cancel', variant: 'ghost', onClick: () => modal.closeModal(false) });
+    const confirm = Button({
+      label: isVoid ? (isBn ? 'রেফারেল বাতিল করুন' : 'Void referral') : (isBn ? 'কমিশন রিলিজ করুন' : 'Release commission'),
+      variant: isVoid ? 'danger' : 'primary',
+      onClick: async () => {
+        const reason = input.value.trim();
+        if (reason.length < 3) {
+          toast.error(isBn ? 'কারণ লিখুন (কমপক্ষে ৩ অক্ষর)।' : 'Enter a reason (at least 3 characters).');
+          return;
+        }
+        confirm.setLoading(true);
+        try {
+          await api.post(`/admin/growth/referrals/${encodeURIComponent(f.id)}/${decision}`, { reason });
+          toast.success(isVoid ? (isBn ? 'রেফারেল বাতিল হয়েছে।' : 'Referral voided.') : (isBn ? 'কমিশন রিলিজ হয়েছে।' : 'Commission released.'));
+          modal.closeModal(true);
+          await loadData();
+        } catch (err) {
+          toast.error(err?.message || (isBn ? 'সিদ্ধান্ত কার্যকর হয়নি।' : 'The decision could not be applied.'));
+        } finally {
+          confirm.setLoading(false);
+        }
+      },
+    });
+    const footer = document.createDocumentFragment();
+    footer.append(cancel, confirm);
+
+    const modal = Modal({
+      title: isVoid ? (isBn ? 'রেফারেল বাতিল' : 'Void referral') : (isBn ? 'কমিশন রিলিজ' : 'Release commission'),
+      content: body,
+      footer,
+      onClose: () => modal.remove(),
+    });
+    document.body.append(modal);
+    modal.openModal();
   }
 
   function reasonLabel(reason) {
@@ -279,8 +341,8 @@ export default function AdminReferralsPage(root) {
             <h3 class="system-panel__title"><span>🚩 ${isBn ? 'চিহ্নিত রেফারেল কিউ' : 'Flagged Referral Queue'}</span></h3>
             <p class="system-panel__sub">
               ${isBn
-                ? 'শুধু দেখা যায়। রিলিজ/বাতিলের সিদ্ধান্ত এখনও এই পেজ থেকে নেওয়া যায় না।'
-                : 'Read-only. Release / void decisions cannot be taken from this page yet.'}
+                ? 'প্রতিটি সিদ্ধান্তে কারণ লাগে এবং অডিট লগে রেকর্ড হয়। চিহ্নিত থাকা অবস্থায় হোল্ডিং পিরিয়ড শেষ হলেও কমিশন অটো-রিলিজ হয় না।'
+                : 'Every decision needs a reason and is written to the audit log. A flagged referral is never auto-released, even after its holding period.'}
             </p>
           </div>
         </div>
@@ -294,11 +356,12 @@ export default function AdminReferralsPage(root) {
                 <th>${isBn ? 'রেফারি' : 'Referee'}</th>
                 <th>${isBn ? 'কারণ' : 'Reason'}</th>
                 <th>${isBn ? 'আটকে থাকা কমিশন' : 'Held commission'}</th>
+                <th>${isBn ? 'সিদ্ধান্ত' : 'Decision'}</th>
               </tr>
             </thead>
             <tbody>
               ${flagged.length === 0
-                ? `<tr><td colspan="5" class="text-center text-muted">${isBn ? '🎉 কোনো চিহ্নিত রেফারেল নেই।' : '🎉 Nothing flagged — the queue is clear.'}</td></tr>`
+                ? `<tr><td colspan="6" class="text-center text-muted">${isBn ? '🎉 কোনো চিহ্নিত রেফারেল নেই।' : '🎉 Nothing flagged — the queue is clear.'}</td></tr>`
                 : flagged.map((f) => `
                 <tr>
                   <td><strong class="font-mono">${f.id}</strong></td>
@@ -306,6 +369,10 @@ export default function AdminReferralsPage(root) {
                   <td>${f.referee_name}</td>
                   <td><span class="system-table__badge system-table__badge--warning">${reasonLabel(f.reason)}</span></td>
                   <td><strong class="font-mono">${formatCurrency(f.amount_held_bdt)}</strong></td>
+                  <td>
+                    <button type="button" class="btn btn--secondary btn--sm" data-decide="release" data-ref="${f.id}">${isBn ? 'রিলিজ' : 'Release'}</button>
+                    <button type="button" class="btn btn--danger btn--sm" data-decide="void" data-ref="${f.id}">${isBn ? 'বাতিল' : 'Void'}</button>
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
@@ -315,6 +382,12 @@ export default function AdminReferralsPage(root) {
     `;
 
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
+    container.querySelectorAll('[data-decide]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const f = flagged.find((x) => x.id === btn.dataset.ref);
+        if (f) askDecision(f, btn.dataset.decide);
+      });
+    });
     container.querySelector('#ref-rules-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       saveRules(e.currentTarget);

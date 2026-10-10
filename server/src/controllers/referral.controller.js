@@ -56,6 +56,20 @@ export async function adminGetOverview(req, reply) {
   return reply.send(await referralAdminService.getReferralAdminOverview(db));
 }
 
+function adminResolve(decisionKey) {
+  return async function resolve(req, reply) {
+    const db = req.db || req.server?.db;
+    const actor = { id: req.user.id, role: req.user.roles?.[0] ?? null };
+    const result = await referralAdminService.resolveFlaggedReferral(
+      db, actor, req.params.ref, decisionKey, (req.body || {}).reason
+    );
+    return reply.send({ result });
+  };
+}
+
+export const adminReleaseReferral = adminResolve('release');
+export const adminVoidReferral = adminResolve('void');
+
 export async function adminUpdateRules(req, reply) {
   const { db, cache } = req.server;
   const actor = { id: req.user.id, role: req.user.roles?.[0] ?? null };

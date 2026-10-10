@@ -12,8 +12,11 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
+import { withTransaction } from '../config/db.js';
 import { getReferralSettings } from './referral.service.js';
 import { updateModuleSettings } from './module.service.js';
+import { settleReferralEarnings } from './referralEscrow.service.js';
+import * as auditService from './audit.service.js';
 
 // WHY: the page speaks in operator terms (tier_depth, velocity_cap_per_day), the engine stores its
 // own keys. This map is the only place the two vocabularies meet.
@@ -110,6 +113,70 @@ export async function updateReferralRules(db, cache, actor, input) {
     reason: 'Referral rules edited at /admin/growth/referrals',
   });
   return toReferralRules(await getReferralSettings(db));
+}
+
+const DECISIONS = Object.freeze({ release: 'RELEASE', void: 'VOID' });
+const MAX_REASON_LENGTH = 500;
+
+/**
+ * Settles one FRAUD_FLAGGED referral.
+ *
+ * release  the flag was wrong. Any held commission is paid out to AVAILABLE; the referral becomes
+ *          QUALIFIED if it had earned, otherwise PENDING so the engine pays it at the qualifying event.
+ * void     the flag was right. Held commission goes back to the treasury; the referral is REJECTED and
+ *          can never earn.
+ *
+ * WHY a reason is mandatory for both: either answer moves money or lets money be moved later, and the
+ * audit row is the only record of why.
+ */
+export async function resolveFlaggedReferral(db, actor, ref, decisionKey, reason) {
+  const decision = DECISIONS[decisionKey];
+  if (!decision) throw new AppError('VALIDATION_ERROR', 'decision must be release or void.');
+  const why = typeof reason === 'string' ? reason.trim() : '';
+  if (why.length < 3 || why.length > MAX_REASON_LENGTH) {
+    throw new AppError('VALIDATION_ERROR', `A reason of 3 to ${MAX_REASON_LENGTH} characters is required.`);
+  }
+
+  return withTransaction(db, async (client) => {
+    const { rows } = await client.query(`SELECT * FROM referrals WHERE ref = $1 FOR UPDATE`, [ref]);
+    const referral = rows[0];
+    if (!referral) throw new AppError('REFERRAL_NOT_FOUND', 'Referral not found.');
+    if (referral.status !== 'FRAUD_FLAGGED') {
+      throw new AppError('REFERRAL_NOT_FLAGGED', 'Only a flagged referral can be released or voided.');
+    }
+
+    const settled = await settleReferralEarnings(
+      client,
+      referral.id,
+      decision,
+      `Flagged referral ${referral.ref} ${decision === 'RELEASE' ? 'released' : 'voided'}: ${why}`
+    );
+
+    const nextStatus = decision === 'VOID' ? 'REJECTED' : (settled.count > 0 ? 'QUALIFIED' : 'PENDING');
+    const review = { decision, reason: why, reviewed_by: actor?.id ?? null, reviewed_at: new Date().toISOString() };
+    await client.query(
+      `UPDATE referrals
+          SET status = $2::text,
+              qualified_at = CASE WHEN $2::text = 'QUALIFIED' THEN now() ELSE qualified_at END,
+              meta_json = meta_json || jsonb_build_object('fraud_review', $3::jsonb),
+              updated_at = now()
+        WHERE id = $1`,
+      [referral.id, nextStatus, JSON.stringify(review)]
+    );
+
+    await auditService.record(client, {
+      actor: actor?.id ?? null,
+      actor_role: actor?.role ?? 'super_admin',
+      action: decision === 'RELEASE' ? 'growth.referral.release' : 'growth.referral.void',
+      target_type: 'referral',
+      target_ref: referral.ref,
+      before: { status: referral.status, fraud_reason: referral.fraud_reason },
+      after: { status: nextStatus, earnings_settled: settled.count, amount: settled.amount, reason: why },
+      risk_tier: 'CRITICAL',
+    });
+
+    return { id: referral.ref, status: nextStatus, decision, earnings_settled: settled.count, amount: settled.amount };
+  });
 }
 
 /** Programme stats, current rules and the flagged queue, in the shape AdminReferralsPage reads. */

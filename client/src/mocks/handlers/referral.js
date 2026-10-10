@@ -176,6 +176,9 @@ let mockStatement = [
   },
 ];
 
+// Flagged referrals an admin has already released or voided in this mock session.
+const decidedFlags = new Set();
+
 export const referralHandlers = [
   // Overview endpoints
   {
@@ -400,10 +403,26 @@ export const referralHandlers = [
           { id: 'REF-2026-0398', referrer_name: 'Mitu Akter', referee_name: 'Rina Akter', reason: 'SAME_NID', amount_held_bdt: 1200, flagged_at: new Date(Date.now() - 3600000 * 27).toISOString(), status: 'HELD' },
           { id: 'REF-2026-0371', referrer_name: 'Jubayer Hasan', referee_name: 'Rafi Hasan', reason: 'CIRCULAR_REFERRAL', amount_held_bdt: 640, flagged_at: new Date(Date.now() - 3600000 * 52).toISOString(), status: 'HELD' },
           { id: 'REF-2026-0355', referrer_name: 'Nadia Islam', referee_name: 'Anonymous #4471', reason: 'VELOCITY_SPIKE', amount_held_bdt: 3100, flagged_at: new Date(Date.now() - 3600000 * 80).toISOString(), status: 'HELD' },
-        ],
+        ].filter((f) => !decidedFlags.has(f.id)),
       },
     }),
   },
+
+  // Release / void a flagged referral. The decided id is remembered so the queue shrinks on reload.
+  ...['release', 'void'].map((decision) => ({
+    method: 'POST',
+    path: `/admin/growth/referrals/:ref/${decision}`,
+    handler: ({ params, body }) => {
+      if (!body?.reason || String(body.reason).trim().length < 3) {
+        return { status: 422, body: { error: { code: 'VALIDATION_ERROR', message: 'A reason of 3 to 500 characters is required.' } } };
+      }
+      decidedFlags.add(params.ref);
+      return {
+        status: 200,
+        body: { result: { id: params.ref, decision: decision.toUpperCase(), status: decision === 'void' ? 'REJECTED' : 'PENDING', earnings_settled: 1 } },
+      };
+    },
+  })),
 
   // Save referral programme rules.
   {
