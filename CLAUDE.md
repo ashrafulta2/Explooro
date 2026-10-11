@@ -11,9 +11,9 @@ through an escrow-backed digital vault.
 ## The build plan lives in docs/prompt.md — read it before building anything
 
 All planning and specification documents live in [`docs/`](docs/), not the repo root.
-[`docs/prompt.md`](docs/prompt.md) is the master blueprint: 86 sequential, dependency-ordered
-prompts across 12 phases (Foundations → Design System → Auth/RBAC → Admin → Catalog → Checkout →
-Vault/Escrow → Logistics/Disputes → Chat → Growth engines → Advanced → Hardening/Deployment). Each
+[`docs/prompt.md`](docs/prompt.md) is the master blueprint: 93 sequential, dependency-ordered
+prompts across 13 phases (Foundations → Design System → Auth/RBAC → Admin → Catalog → Checkout →
+Vault/Escrow → Logistics/Disputes → Chat → Growth engines → Advanced → Hardening/Deployment, then Phase 13 Guided Experience, added 2026-10-11 and meant to run before Phase 12). Each
 prompt declares its `DEPENDS ON`, exact `FILES`, `REQUIREMENTS`, objectively checkable `ACCEPTANCE`
 criteria, and a `PREVIEW` describing what must be visible in the browser afterward.
 

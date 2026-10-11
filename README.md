@@ -111,7 +111,7 @@ explooro/
 ├── mobile/          Flutter app (Phase 12)
 ├── scripts/         palette.mjs — generates + verifies the colour ramps
 ├── docs/            Active specifications and planning documents
-│   ├── prompt.md              ⭐ Master blueprint — 86 sequential prompts, 12 phases
+│   ├── prompt.md              ⭐ Master blueprint — 93 sequential prompts, 13 phases
 │   ├── design-system.md       Colour (OKLCH), type, spacing, motion, craft rules
 │   ├── ia-sitemap.md          ~120 routes, 6 role nav trees, locked-state UX
 │   ├── rbac-spec.md           Risk tiers, 3 delegation modes, resolution algorithm

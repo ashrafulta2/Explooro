@@ -166,6 +166,7 @@ The AI must not consider a prompt complete until every ACCEPTANCE line is satisf
 | **10** | Advanced (Live Stream, AI, Warranty, Bundling, B2B, SDK) | 10.1 – 10.8 | ❌ |
 | **11** | Role Dashboards, Analytics, SEO, PWA | 11.1 – 11.6 | ❌ |
 | **12** | Hardening, Flutter, Deployment | 12.1 – 12.7 | ✅ (12.7 only) |
+| **13** | Guided Experience — UX simplification, next-step guidance (added 2026-10-11; run **before** 12.x) | 13.1 – 13.7 | ❌ |
 
 ---
 
@@ -4301,6 +4302,308 @@ Parity check: `docker compose up` and verify identical behaviour.
 
 ---
 
+# Phase 11.5 — Out-of-Order Additions (Spec Backfill)
+
+> Between 2026-08-26 and 2026-10-10 the owner requested features that no numbered prompt describes.
+> They were built and recorded only as traceability-matrix rows 71–105 (and rows 106+ below), so
+> `prompt.md` stopped being the spec of the running app. This section is the backfill: it names
+> each group, where its spec now lives, and the invariant that must not break. **It adds no new
+> work.** If you change one of these areas, update the matrix row and the named document.
+
+| Group | Matrix rows | Where the spec lives now | Invariant to preserve |
+| :--- | :--- | :--- | :--- |
+| Admin governance pages (Payout Queue, Categories, Staff, Roles & Permissions, Audit) | 71–73, 81–84, 87 | Row text + `docs/super-admin-audit.md` §5 | Nav guard equals route guard; guards are real `preHandler`s |
+| Self-service profile + shared `/account/*` shell | 74–76 | Row text, `client/src/styles/components/account-shell.css` | A stylesheet is imported once (never by both `main.css` and its page) |
+| Ad marketplace (multi-format, admin-governed pricing) | 77 | `docs/ad-marketplace.md` | Prices come from a stored rate card, never a constant |
+| Platform policy pages (language, genie, per-page availability, delivery charge) | 78, 85, 86, 90–92, 107 | `docs/architecture-map.md` §2 | Configuration, not code; every save writes `audit_logs` |
+| Discovery + personalised home feed (Phases A–G) and signal retention | 79, 93–100 | `docs/architecture-map.md` §2 | Bounds live in the enforcing service; writes strict, readers forgiving |
+| Saler Pro subscription | 89 | Row text, module `subscription_fees` | Default OFF; values admin-editable |
+| Supplier-to-Saler attraction (Scorecard, Sponsored Slot, Volume Incentive, Samples, Fast Payout, Return Protection) | 101–105 | Row text | Every money path runs inside a transaction through the vault |
+| Team purchase, escrow, clearing wallet, referral engine, notifications (2026-10-08 → 10-10) | 106–117 | Row text | Outside money goes through the external clearing wallet, never the treasury |
+
+---
+
+# Phase 13 — Guided Experience (UX Simplification)
+
+> **Why this phase exists.** Phases 3–11 produced roughly 176 navigable pages (admin 63, saler 36,
+> supplier 32, account 19, moderator 14, editor 9). Every page is correct; together they are too
+> much. A new user must already know what to do next. The owner's requirement (2026-10-11): *the
+> application itself must tell the user what to do next, one step at a time — after finishing a
+> task the user should never have to wonder what comes after it.*
+>
+> This phase adds **no new commerce feature**. It changes how existing features are reached, named
+> and sequenced. Simple Mode and the Saler onboarding checklist (11.2) are the seed; Phase 13
+> generalises them to every role.
+>
+> **Run this phase before Phase 12.** Hardening a UX that is about to change wastes the effort, and
+> Docker (12.7) stays last.
+
+**Phase-wide rules**
+- A "journey" is an ordered list of steps per role, defined **once** in configuration
+  (`client/src/config/journeys.js`) and mirrored by the server's evaluator — never re-implemented
+  inside a page.
+- The user's progress is **derived from real data** (has a KYC row, has ≥1 product, has ≥1 order …),
+  never from a "completed" flag the user can tick, so it cannot drift.
+- Every journey step is reachable in one click from the Next-Step card, and each step names the
+  page that completes it.
+- A role's new-user sidebar shows at most 7 items; the rest sit under **More**, never removed.
+- All copy in plain language, English and Bangla together (Standing Rule 4).
+
+---
+
+### Prompt 13.1: Journey Map per Role (Spec)
+
+```text
+ID: 13.1
+DEPENDS ON: 11.1, 11.2, 11.3, 11.4
+FILES:
+  docs/journeys.md
+  client/src/config/journeys.js
+  client/test/journeys.test.js
+
+TASK:
+Write the journey for every role and encode it as data.
+
+REQUIREMENTS:
+1. docs/journeys.md: for Customer, Saler, Supplier, Moderator, Editor, Admin and Super Admin, list
+   the 5–9 ordered steps from first login to the role's first real success, e.g. Saler: verify
+   phone → submit KYC → name the store → add 3 products → share the store → first order →
+   first withdrawal. For each step: the page that completes it, the data fact that proves it
+   is done, the "what happens next" sentence, and who is blocked behind it (approval, KYC).
+2. journeys.js: the same steps as data `{ id, role, order, route, doneWhen, nextHint_key }`. Each
+   `route` must exist in navigation.js; each `nextHint_key` must exist in en.json and bn.json.
+3. A step may be skipped only if a documented rule says so (e.g. KYC not required for Customers).
+4. List the "dead ends" found today — pages after which the user is left on a plain list or an
+   empty state with no suggested action — as a numbered backlog the later prompts must clear.
+
+ACCEPTANCE:
+- A test fails if a journey references a route missing from navigation.js or a missing i18n key.
+- Every role has a journey; every step has exactly one completing page.
+- docs/journeys.md lists at least the dead ends of checkout, KYC submit, add product, withdrawal
+  request and order-ship, each with the intended follow-up.
+
+PREVIEW:
+No UI. `npm test` shows the journeys test green.
+```
+
+---
+
+### Prompt 13.2: Next-Step Engine
+
+```text
+ID: 13.2
+DEPENDS ON: 13.1
+FILES:
+  server/src/services/nextStep.service.js
+  server/src/repositories/nextStep.repository.js
+  server/src/controllers/nextStep.controller.js
+  server/src/routes/nextStep.routes.js
+  client/src/services/nextStep.js
+  client/src/components/guide/NextStepCard.js
+  server/test/nextStep.test.js
+
+TASK:
+One service answers "what should this user do now?" for every role.
+
+REQUIREMENTS:
+1. `GET /api/v1/me/next-step` returns `{ journey, progress: { done, total }, current, upcoming[] }`,
+   derived from the data facts in journeys.js. Generalises, and replaces the role-specific
+   logic in, `/saler/onboarding` and `/saler/growth-assistant` (keep those endpoints answering,
+   delegating to this service).
+2. The evaluation is read-only, paginated where it lists, permission-aware (a step the user
+   cannot perform is reported as `blocked_by` with the reason, never offered as an action) and
+   cached for seconds, invalidated by the write that completes a step.
+3. NextStepCard: shows the current step, one primary button that navigates to its page, a
+   "later" action that hides it for the session, and progress "3 of 7". Registered in
+   `/dev/gallery` with loading, empty, all-done and blocked states.
+4. Behind module `guided_experience` (default ON) with a per-user opt-out in settings.
+5. The mock API implements the same contract (`VITE_API_MODE=mock`).
+
+ACCEPTANCE:
+- A fresh seeded Saler is told "verify KYC" first; after the KYC row exists the answer changes to
+  "name your store" with no page reload logic of its own.
+- A step blocked on admin approval shows the waiting reason, not a dead button.
+- The result never offers an action the user's permissions refuse.
+- Server test covers each role's first and last step and the blocked case.
+
+PREVIEW:
+Any dashboard shows the card for the seeded account; complete a step and watch it advance.
+```
+
+---
+
+### Prompt 13.3: "What Next?" After Every Key Action
+
+```text
+ID: 13.3
+DEPENDS ON: 13.2
+FILES:
+  client/src/components/guide/ActionResult.js
+  client/src/pages/CheckoutPage.js
+  client/src/pages/seller/KycSubmissionPage.js
+  client/src/pages/saler/MyProductsPage.js
+  client/src/pages/saler/WithdrawalsPage.js
+  client/src/pages/supplier/FulfilmentPage.js
+
+TASK:
+Replace the plain toast / empty list that ends today's key actions with a result panel that says
+what was done and what to do next.
+
+REQUIREMENTS:
+1. `ActionResult` takes `{ title, body, primaryAction, secondaryAction }`; the actions come from the
+   journey's next step, falling back to the dead-end backlog entry from 13.1.
+2. Apply it to: order placed, KYC submitted, product added, store published, withdrawal requested,
+   order shipped, return approved, sample requested, ad campaign created.
+3. Each panel states the waiting party when relevant ("Admin reviews KYC within 24h — you will get a
+   notification") and the next thing the user can do meanwhile.
+4. Focus moves to the panel heading; it is announced to screen readers; reduced motion respected.
+
+ACCEPTANCE:
+- None of the nine actions ends on a bare toast or an unexplained empty state.
+- Each panel's primary button lands on the next journey step's route.
+- Strings exist in en.json and bn.json; the panel is in /dev/gallery.
+
+PREVIEW:
+Perform each action with the seeded accounts and read the panel.
+```
+
+---
+
+### Prompt 13.4: Setup Checklist for Every Role
+
+```text
+ID: 13.4
+DEPENDS ON: 13.2
+FILES:
+  client/src/components/guide/SetupChecklist.js
+  client/src/pages/customer/CustomerDashboardPage.js
+  client/src/pages/supplier/SupplierDashboardPage.js
+  client/src/pages/admin/AdminDashboardPage.js
+
+TASK:
+Extend the Saler first-run checklist (11.2) to Customer, Supplier and staff dashboards.
+
+REQUIREMENTS:
+1. A collapsible checklist driven by the journey, with progress, one-click steps and the optional
+   15-second walkthrough where one exists.
+2. It collapses to a one-line bar once ≥ 80% is done and disappears at 100% (re-openable from
+   Help).
+3. Admin and Super Admin variants guide platform set-up: default language, delivery charge,
+   payment gateways, first category, first staff invite, 2FA.
+4. A brand-new user never lands on an empty dashboard.
+
+ACCEPTANCE:
+- Each role's dashboard shows its checklist for a fresh seeded account and none for a completed one.
+- Completing a step elsewhere updates the checklist without a manual refresh.
+
+PREVIEW:
+Log in as each seeded role; compare with a role that has finished everything.
+```
+
+---
+
+### Prompt 13.5: Progressive Navigation ("More")
+
+```text
+ID: 13.5
+DEPENDS ON: 13.1
+FILES:
+  client/src/config/navigation.js
+  client/src/components/shell/Sidebar.js
+  client/src/components/shell/MobileNav.js
+  client/src/config/pageRegistry.js
+
+TASK:
+Show a new user only what the first journey needs.
+
+REQUIREMENTS:
+1. Each nav item gains `tier: 'core' | 'more'` (default `more`). Per role, ≤ 7 `core` items; the rest
+   sit under a **More** group, still searchable in the command palette.
+2. The core set is derived from the role's first journey steps, so the sidebar and the journey
+   cannot disagree (a test enforces it).
+3. A user may pin any `more` item to core; the choice persists per user.
+4. Per-page availability (/admin/platform/pages) and the permission/module guards still win:
+   the tier only orders what is already visible.
+5. Mobile nav follows the same tiers.
+
+ACCEPTANCE:
+- A fresh Saler sees ≤ 7 sidebar items; every other page is one click away under More.
+- No page becomes unreachable, and the command palette still finds all of them.
+- Nav guard still equals route guard (super-admin-audit §5).
+
+PREVIEW:
+Compare the sidebar for a fresh and an experienced seeded Saler, on desktop and mobile width.
+```
+
+---
+
+### Prompt 13.6: Plain-Language Pass
+
+```text
+ID: 13.6
+DEPENDS ON: 13.1
+FILES:
+  client/src/locales/en.json
+  client/src/locales/bn.json
+  docs/glossary.md
+  client/test/plainLanguage.test.js
+
+TASK:
+Replace internal vocabulary in user-facing text with words a first-time shopper or shop owner uses.
+
+REQUIREMENTS:
+1. docs/glossary.md maps each internal term to its user-facing label and a one-line explanation:
+   escrow, vault, FEFO, maker-checker, risk tier, sub-order, clearing wallet, idempotency, etc.
+2. Apply the glossary to Customer, Saler and Supplier surfaces first, admin second. Technical terms
+   may remain only inside admin "details" panels.
+3. Every form field has a one-line helper; every status badge has a tooltip saying what happens
+   next.
+4. Error messages say what to do ("Add a phone number to continue"), not what failed.
+5. A test lists banned internal terms and fails if one appears in a customer/saler/supplier string.
+
+ACCEPTANCE:
+- The banned-term test passes and en/bn parity holds.
+- Read-through of checkout, KYC, add-product and withdrawal shows no unexplained jargon.
+
+PREVIEW:
+Walk the four flows in English and Bangla.
+```
+
+---
+
+### Prompt 13.7: Usability Acceptance & Measurement
+
+```text
+ID: 13.7
+DEPENDS ON: 13.2, 13.3, 13.4, 13.5, 13.6
+FILES:
+  docs/usability-report.md
+  server/src/services/journeyMetrics.service.js
+  client/src/pages/admin/GuidedExperiencePage.js
+
+TASK:
+Prove the app is easier, with numbers.
+
+REQUIREMENTS:
+1. Task script per role with a target, e.g. Customer: find a product and place a COD order in
+   ≤ 2 min; Saler: publish a store and share it in ≤ 5 min; Supplier: add a product and mark an
+   order shipped in ≤ 6 min. Run each with someone who has not seen the app; record time, wrong
+   turns and where they hesitated in docs/usability-report.md.
+2. journeyMetrics: per step, how many users reached it, how many finished, median time, and where
+   they leave. `/admin/platform/guided-experience` shows it, with the module switch and opt-out
+   rate (permission `platform.guidance.view`, LOW; read-only).
+3. Any step where > 40% abandon becomes a numbered fix in the usability report.
+
+ACCEPTANCE:
+- Every role's task script meets its target, or the report names the failing step and the fix.
+- The metrics page reconciles with the underlying events and uses configuration for the 40% threshold.
+
+PREVIEW:
+/admin/platform/guided-experience with seeded journey data.
+```
+
+---
+
 # ✅ Honest Traceability Matrix
 
 > Every row starts at ⬜ **Not Started**. Update the status only when the ACCEPTANCE criteria of the
@@ -4419,6 +4722,19 @@ Parity check: `docker compose up` and verify identical behaviour.
 | 103 | **Volume Incentive — step 3 of supplier-to-saler attraction** | *(new — owner chose it after the Sponsored Sourcing Slot; landed 2026-10-08)* | *(none — a supplier-funded rebate on top of 6.1 Vault and 4.7 Sourcing, not a numbered prompt)* | 🟡 Partial — **built, unit-tested, and its money path run end to end against real Postgres in a scratch database (migrations 001–064 applied from empty); the pages were inspected in a browser in mock mode only, the HTTP routes were never called against a live API, and migration 064 is not applied to the dev DB.** A supplier publishes up to `max_tiers` monthly tiers ("sell ৳50,000 of mine in a month → 2% back"). When a month closes, plus `settle_lag_days` so returns land first, `jobs/volumeIncentive.job.js` (hourly, gated on the `sourcing` module) creates one payout per supplier × saler × month and pays it from the **supplier's wallet** as ONE balanced ledger group (`VOLUME_INCENTIVE`: supplier DEBIT = saler CREDIT + treasury CREDIT). **The platform earns `platform_fee_pct` of every rebate** without touching the order's own profit split. Volume is the delivered goods value (`total_amount − shipping_amount` of `DELIVERED` sub-orders, read at settlement so a returned order has already dropped out; a supplier's own account is never a saler of itself). Invariants, each exercised by a test: programmes are **versioned, never edited** — a change starts next month (a supplier's first programme may start this month) so nobody is moved onto worse tiers mid-month; a payout is judged against the tiers in force at the start of its month, snapshotted on the row; amounts are fixed when the row is created and the unique key makes a second run pay nothing twice; the supplier's wallet is locked and **never overdrawn** — an unaffordable payout stays `UNFUNDED`, is retried for `funding_retry_days`, then `LAPSED` and stays lapsed even if funds arrive later; a supplier graded in `blocked_grades` (D) cannot switch a programme on but can still pause one; tiers must rise in both volume and rebate and stay inside `max_rebate_pct` / `min_threshold` (refused, never clamped). Every number is the `supplier.volume_incentive` OBJECT row in `platform_settings` (`max_rebate_pct` 5, `max_tiers` 4, `min_threshold` 5000, `platform_fee_pct` 10, `settle_lag_days` 7, `funding_retry_days` 7, `blocked_grades` [D], `timezone` Asia/Dhaka). Server: migration 064 (`volume_incentive_programs`, `volume_incentive_payouts`, widens the ledger category CHECK, seeds the settings row), `volumeIncentive.repository.js` / `.service.js` / `.job.js`, `GET`+`PUT /supplier/incentive` (new permission `supplier.incentive.manage`, MEDIUM, delegable, seed regenerated; every save writes an `audit_logs` row with before/after), `GET /sourcing/incentives` for salers. Client: `SupplierIncentivePage` (tier editor, what this month is on course to cost, payouts), `SalerIncentivesPage` (progress to the next tier, net amount on course, rebates received), `IncentivePayoutTable` (registered in the gallery), `incentive.css` (route-loaded; entry bundle untouched), `incentive.*` strings in both locales, nav entries, mock handlers. **Found by running it, not by reading it:** the real database showed `display_name` lives on `user_profiles`, not `users` (the mock never would have). **Known gaps:** no admin editor or audit-logged write path for the `supplier.volume_incentive` row (edit the row directly); no notification to a saler or supplier when a rebate is paid, waits for funds or lapses; `ledger.service` counts only `SALE_COMMISSION` / `SUPPLIER_PAYMENT` / `ESCROW_RELEASE` into a wallet's `lifetime_earned`, so a rebate does not raise it; a lapsed payout carries no penalty on the Scorecard; programmes are supplier-wide (no per-product or per-category tiers); the incentive is not shown on Sourcing Catalog cards; volume uses `total_amount`, so a coupon discount on an order lowers it; the new permission needs `npm run seed` on an existing database; the mock has no payout ledger. |
 | 104 | **Sample Request + Marketing Kit — step 4 of supplier-to-saler attraction** | *(new — owner chose it after the Volume Incentive; landed 2026-10-08)* | *(none — a paid-sample flow on top of 6.1 Vault and 4.7 Sourcing, not a numbered prompt)* | 🟡 Partial — **built, unit-tested, and its money path run end to end against real Postgres in a scratch database (migrations 001–065 applied from empty, 18 checks); the four pages were exercised in a browser in mock mode only, the HTTP routes were never called against a live API, the Copy buttons' success path could not be verified in the embedded browser (clipboard permission), and migration 065 is not applied to the dev DB.** A supplier offers a paid sample of a product (price + shipping fee); a saler orders it and the cost is **held in the saler's own wallet** — one balanced ledger group moves it from their AVAILABLE to their HELD bucket (`SAMPLE_HOLD`), so nothing leaves their vault before the sample has arrived. It then ends exactly one of two ways: **released** (saler HELD → supplier AVAILABLE + treasury AVAILABLE, `SAMPLE_RELEASE`) when the saler confirms receipt, or when `auto_confirm_days` pass after shipping so a saler who forgets cannot leave a supplier unpaid; or **refunded** in full (HELD → AVAILABLE, `SAMPLE_REFUND`) when the supplier declines, the saler cancels before the supplier accepts, or the supplier does not ship within `response_days`. **The platform earns `platform_fee_pct` of the sample PRICE only** — the shipping fee goes whole to the supplier, who is the one paying a courier. A **Marketing Kit** is the supplier's free, ready-to-copy promotion for one product: captions in both languages, hashtags, selling points, a video link; photos come from the product's own gallery. Invariants, each exercised by a test: every state change locks the request row first and is only legal from the states that allow it (`TRANSITIONS`), so a double click or a racing job moves nothing twice; price, shipping and the platform's share are snapshotted on the request, so editing the offer later never re-prices an open one; one live sample per saler per product is a **unique partial index** (it held when two simultaneous requests raced: one won, one hold), plus `max_open_per_saler` in flight, counted under the saler's wallet lock; a supplier graded in `blocked_grades` (D) cannot switch an offer on and a saler cannot request from one, but the supplier can still withdraw; a kit's video link must be http(s) and its text is never rendered as HTML; validation is strict (refused, never clamped). Every number is the `supplier.sample_kit` OBJECT row in `platform_settings` (`platform_fee_pct` 10, `min_price` 10, `max_price` 5000, `max_shipping_fee` 300, `response_days` 3, `auto_confirm_days` 10, `max_open_per_saler` 3, `blocked_grades` [D], `max_hashtags` 15, `max_selling_points` 8, `caption_max_chars` 1000). Server: migration 065 (`sample_offers`, `sample_requests`, `marketing_kits`, widens the ledger category CHECK, seeds the settings row and two notification templates), `sampleKit.repository.js` / `.service.js` / `.controller.js` / `jobs/sampleKit.job.js` (hourly, `sourcing` module), routes `GET`/`PUT /supplier/samples…`, `POST /supplier/samples/requests/:id/:action`, `GET`/`PUT /supplier/marketing-kits…`, `GET`/`POST /sourcing/samples…`, `GET /sourcing/marketing-kits`; new permissions `supplier.sample.manage` and `saler.sample.request` (both MEDIUM, delegable, seed regenerated); every offer and kit save writes an `audit_logs` row with before/after. Client: four pages (`SupplierSamplesPage`, `SupplierMarketingKitsPage`, `SalerSamplesPage`, `SalerMarketingKitsPage`), `SampleRequestTable` and `MarketingKitCard` (both registered in the gallery), `sample-kit.css` (route-loaded; entry bundle untouched; a request becomes a stacked card on a phone), `sample.*` / `kit.*` strings in both locales, nav entries, mock handlers that mirror the state machine. **Found by running it, not by reading it:** (1) `notifications.template_key` is a foreign key to `notification_templates`, which nothing fills from the in-code `DEFAULT_TEMPLATES`, so a notification for a template that exists only in code is silently lost — migration 065 inserts its two templates; the same latent fault affects every other in-code template (see gaps). (2) `SUPPLIER_GRADE_BLOCKED` was missing from `ERROR_STATUS`, so the blocked-grade refusal in the Sponsored Sourcing Slot (102) and Volume Incentive (103) would have answered HTTP 500 instead of 403 — now fixed, with the three new sample codes. (3) A six-column table crushed to one letter per column at 360px; the layout now stacks. **Known gaps:** no dispute path — a saler who never receives the sample, or gets the wrong item, has no way to hold the money past the auto-confirm window (a "report a problem" action that freezes the hold for an admin is the missing piece); there is no admin editor or audit-logged write path for the `supplier.sample_kit` row (edit it directly); samples do not decrement stock and cannot be limited per product by quantity; a supplier cannot upload kit-specific images or videos (only the product gallery and a link); no courier integration or tracking lookup (the tracking note is free text); the offer is not shown on Sourcing Catalog cards; `lifetime_earned` ignores `SAMPLE_RELEASE`; the existing in-code notification templates are not seeded into `notification_templates` (every other template's notification fails the same foreign key — outside this change, flagged here); there is no `Idempotency-Key` on the write routes (the state machine and the unique index make a replay harmless, not a no-op response); the new permissions need `npm run seed` on an existing database; the mock has no ledger, so the saler's balance never moves in mock mode. |
 | 105 | **Fast Payout + Return Protection — step 5 of supplier-to-saler attraction** | *(new — owner chose it after the Sample Request + Marketing Kit; landed 2026-10-08)* | *(none — two services on top of 6.1 Vault/Escrow and 7.2 Returns, not a numbered prompt)* | 🟡 Partial — **built, unit-tested, and its money paths run end to end against real Postgres in a scratch database (migrations 001–066 applied from empty, 22 checks); the four pages were exercised in a browser in mock mode only, the HTTP routes were never called against a live API, and migration 066 is not applied to the dev DB.** **Fast Payout:** escrow holds a supplier's payment and a saler's commission until the return window ends; either may take an entry out early. One balanced ledger group (earner ESCROW debit = earner AVAILABLE credit of the net + treasury AVAILABLE credit of the fee; category `ESCROW_RELEASE` for the earner's lines so lifetime-earned still counts it, `FAST_PAYOUT_FEE` for the platform's) and the escrow row becomes RELEASED. The fee is a percentage of the amount set by the order supplier's **scorecard grade** (A 1, B 1.5, C 2.5, ungraded 2, D refused). An entry is offered only when the goods are DELIVERED, a COD order's cash is reconciled, no return or dispute is open, it is within `min_amount`/`max_per_request`, at least `min_days_saved` days remain, and the person's exposure stays under `max_outstanding`; each refusal names its own reason code. **Return Protection:** a supplier opts in; an order is covered if its supplier was enrolled when the order was PLACED (enrolment is a history, so leaving never strips cover from orders already sold). If a customer return is refunded, the saler is paid back what the clawback actually took from them — min(insured commission, their clawed-back escrow entry, `max_claim_amount`) — from the treasury (`RETURN_PROTECTION_CLAIM`). The platform is paid for that risk by a premium (`premium_pct` of the insured commission, `RETURN_PROTECTION_PREMIUM`, supplier AVAILABLE → treasury) charged once, only after the supplier's own escrow entry has really released and only if the supplier can pay it; an order that is returned first never pays one. **The platform earns on both without touching the profit split.** Invariants, each exercised by a test: an escrow entry is released early at most once (the row is locked first and must still be LOCKED, `fast_payouts.escrow_entry_id` is UNIQUE; two simultaneous requests paid one fee), and the ordinary `vault.releaseEscrow` skips an entry already released; the exposure cap is counted under the earner's wallet lock; one cover per sub-order (UNIQUE) so a claim pays at most once however often the refund path, the job or a retry reaches it; `max_claims_per_saler_30d` stops a saler farming returns against the pool (a claim past it is recorded DENIED, not paid); a claim runs in a **savepoint** inside the refund transaction so a failing claim can never block the buyer's refund, and the hourly job's claim sweep pays it afterwards (proved by breaking the cover table, refunding, restoring it, and sweeping: paid once, a second sweep paid nothing); enrol is idempotent (partial unique index) and a grade-D supplier cannot enrol but can leave. Every number is a `platform_settings` OBJECT row: `supplier.fast_payout` (`fee_pct_by_grade`, `ungraded_fee_pct`, `min_amount` 100, `max_per_request` 50000, `max_outstanding` 100000, `min_days_saved` 2, `blocked_grades` [D]) and `supplier.return_protection` (`enabled`, `premium_pct` 10, `max_claim_amount` 5000, `max_claims_per_saler_30d` 5, `blocked_grades` [D], `premium_batch` 200). Server: migration 066 (`fast_payouts`, `return_protection_enrollments`, `return_protection_covers`, widens the ledger category CHECK with `FAST_PAYOUT_FEE` / `RETURN_PROTECTION_PREMIUM` / `RETURN_PROTECTION_CLAIM`, seeds both settings rows), `fastPayout.repository.js` / `.service.js` / `.controller.js`, `returnProtection.repository.js` / `.service.js` / `.controller.js`, `jobs/returnProtection.job.js` (hourly, `sourcing` module), a one-call hook in `return.service.js` `executeRefund`, routes `GET`/`POST /supplier/fast-payout`, `GET`/`PUT /supplier/return-protection`, `GET`/`POST /sourcing/fast-payout`, `GET /sourcing/return-protection`; new permissions `finance.fast_payout.request` and `supplier.return_protection.manage` (both MEDIUM, delegable, seed regenerated); every early payout, enrolment change and claim writes an `audit_logs` row. Client: four pages (`SupplierFastPayoutPage`, `SalerFastPayoutPage` — one shared `mountFastPayout` body — `SupplierReturnProtectionPage`, `SalerReturnProtectionPage`), `FastPayoutTable` and `ProtectionCoverTable` (both registered in the gallery), `payout-protection.css` (route-loaded, 0.66KB gzip as its own chunk; entry bundle untouched; rows stack into cards on a phone), `fastpay.*` / `rprot.*` strings in both locales with every number through `formatNumber`/`formatCurrency`, nav entries, mock handlers. The confirm dialog states the fee, the net, the days saved, and that a later return is still recovered from the balance and the fee is not given back. **Found by running it, not by reading it:** (1) **`vault.releaseEscrow` could not run against the real schema** — it selected `s.payment_method` from `sub_orders`, which has no such column (it lives on `orders`), so every escrow release, including the hourly `escrow_release` job, would have errored on a real database; mocked unit tests hid it. Fixed in `vault.service.js` (one query, a `// WHY:` comment), outside this feature but a prerequisite for it. (2) A claim that fails inside its savepoint also rolls back the cover row it had just created, so the claim sweep could not find it; the sweep now looks at refunded returns of covered orders and the enrolment history, not only at existing covers. (3) My own exposure-cap test assumed zero outstanding; the earlier early release in the same run was still inside its window and correctly consumed headroom. **Known gaps:** the premium rate (10% of commission) is an untuned starting estimate — the treasury lives on `premium_rate × completed orders − claims`, there is no pool report or alert, and the treasury may go below zero when a claim is paid (deliberate: the claim is the platform's promise); a premium the supplier can never afford is retried forever with no waiver; an early release followed by a return recovers from the earner's AVAILABLE balance through the existing clawback and `negative_balance_recoveries` deficit path, with no extra reserve held; only customer returns through `executeRefund` trigger a claim, not dispute settlements or the shipment/warranty clawbacks; the cover rate is snapshotted when the cover is first created (at a claim or the premium sweep), not at checkout; there is no admin editor or audit-logged write path for the two settings rows (same gap as 102–104); no notification is sent when an early payout completes or a claim is paid; HTTP routes not called against a live API and the mock has no ledger; the new permissions need `npm run seed`; migrations 062–066 must be applied (`npm run migrate`). Other mocked-DB code may hide faults like (1); that was not audited. |
+| 106 | **Team purchase completes into real orders + stock reservation** | *(new — owner-driven follow-up to 9.5; landed 2026-10-09/10)* | *(none — completes 9.5, not a numbered prompt)* | 🟡 Partial — a completed team becomes real orders with an admin-set shipping charge and wallet payment; COD is gated. `teamStockReservation.service.js` subtracts the `required_members` of every open, unexpired team from what checkout, cart-add, new teams, search, storefront, feed, rails and the saler views may sell (derived, nothing to release). Admin and supplier catalog editors still read raw stock on purpose (they write it back). **Not exercised in a browser in live mode.** |
+| 107 | **Delivery charge as a setting; escrow locked for paid orders; external clearing wallet** | *(new — money-correctness fixes found 2026-10-09)* | *(none — corrects 5.2 / 6.1, not a numbered prompt)* | 🟡 Partial — normal-checkout delivery charge is `delivery.per_parcel_charge` (`/admin/platform/delivery`, migration 069); paid orders now lock escrow; money entering or leaving through the outside world goes through the `EXTERNAL_CLEARING` wallet (migration 070), not the treasury; the admin escrow page and total liability count the platform share. Checked against fakes and SQL; **no live end-to-end run recorded.** |
+| 108 | **Gateway orders are paid at checkout and reach `PAID`** | *(new — bug fix, PR #42, landed 2026-10-09)* | *(none — corrects 5.3's checkout path)* | 🟡 Partial — gateway orders now call the payment step so escrow locks; mock driver only. Real bKash/Nagad/SSLCommerz sandboxes **not exercised.** |
+| 109 | **~45 SQL statements repaired to match the schema; schema check in CI** | *(new — audit 2026-10-08/09: every query prepared against the migrated schema)* | *(none — cross-cutting repair)* | ✅ Done — mismatches (e.g. `releaseEscrow` selecting a missing `sub_orders.payment_method`) fixed and a CI step now fails on a statement that does not prepare. Prepare-checks prove the SQL parses against the schema, **not** that each path returns the right rows. |
+| 110 | **Referral engine wired end to end** | *(new — closes the Phase 9 "engine built, never triggered" gap; landed 2026-10-10)* | *(none — completes 9.3)* | 🟡 Partial — `POST /auth/register` takes `referral_code`; courier DELIVERED calls `evaluateQualifyingEvent` after commit; refused attempts are stored `FRAUD_FLAGGED`; `max_tier_depth` enforced; fixed-bonus events for `SIGNUP`, `FIRST_SALE`, `KYC_VERIFIED`; release/void with ledger settlement; hourly `referral_release` job (migration 071); read-only `POST /referrals/simulate`. Exercised on a real local Postgres in a rolled-back run; **the HTTP register and courier-webhook entry points are unit-tested only.** KYC maker-checker now has a `users.kyc.approve` executor and reads `req.user.roles`. |
+| 111 | **Real admin growth endpoints (ads, quests, coins, referral rules) and ad pause/resume** | *(new — admin pages audited against the API 2026-10-10)* | *(none — completes 9.1/9.2/9.4 admin surface)* | 🟡 Partial — repaired `POST /admin/growth/coupons`, `GET /admin/growth/ads|quests|coins`, `PATCH` coin policy and quests; admin ad pause/resume is audited HIGH and stamps `admin_paused_at` (migration 072) so a merchant cannot resume it. Not browser-verified in live mode. |
+| 112 | **Coin policy enforced** | *(new — landed 2026-10-10)* | *(none — completes 9.4)* | 🟡 Partial — `daily_earn_cap`, `min_redeem_balance`, `expiry_days` are enforced; expiry is an approximation; quest-claim toast reports the coins actually awarded and the cap. |
+| 113 | **Notifications, chat read receipts, What's New, bell badge** | *(new — landed 2026-10-10)* | *(none — completes 8.1/8.2)* | 🟡 Partial — floating, draggable notification panel and a fixed deep-link 404; `read_by` + `chat:read` fan-out; What's New modal invoked on boot; unread badge on the bell. **Never verified in a browser in live mode** (the mock socket emits no read frames). |
+| 114 | **Router and overlay robustness** | *(new — bug fixes 2026-10-10)* | *(none — corrects Phase 1 shell)* | ✅ Done — only the newest overlapping render mounts its page; per-open drawers and the notification dialog are removed from the DOM on close; a page waits for its lazy stylesheet (and `cart-page.css`) before first render to stop the unstyled flash (PR #43). |
+| 115 | **System Health lists every registered scheduler job** | *(new — landed 2026-10-10)* | *(none — completes 3.x admin observability)* | 🟡 Partial — `listRegisteredJobs()` is returned as `jobs`, each with its own latest run or `NEVER_RUN` and a `MODULE_OFF` flag when its module is off. Unit-tested; not browser-verified live. |
+| 116 | **In-stream live order bills the listed price and the configured delivery charge; no invented fallback figures** | *(new — correctness fixes 2026-10-10)* | *(none — corrects 10.1 / catalog client)* | 🟡 Partial — live-deal orders use the stored price and `delivery.per_parcel_charge`; the client no longer fabricates a stock count or live price when the value is missing. |
+| 117 | **Checkout requires login (guest cart merged at login); 257 missing supplier i18n strings; Social Kit templates endpoint** | *(new — landed 2026-10-08/10)* | *(none — polish of 5.2, 11.1, 9.7)* | ✅ Done — guest cart merges on login; supplier strings added to `en` and `bn` and store-status day names translated; `GET /saler/social-kit/templates` serves the flyer formats (preview geometry is still keyed by the three known ids). |
+| 118 | **Phase 13 — Guided Experience (13.1–13.7) and Phase 11.5 spec backfill** | *(new — owner request 2026-10-11: the app felt too complex and should tell the user what to do next, step by step)* | 13.1 – 13.7 | ⬜ Not Started — specified only. Starting point: Simple Mode and the Saler onboarding checklist from 11.2. Nothing is built. |
 
 **Bold rows** were entirely absent from v1.0.
 
