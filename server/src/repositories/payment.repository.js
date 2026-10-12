@@ -84,6 +84,23 @@ export async function findPaymentTransactionByRef(db, ref) {
   return res.rows[0] || null;
 }
 
+/**
+ * Finds a transaction from the identifier a gateway hands back on its return redirect — the
+ * gateway's own payment id (stored in gateway_ref) or our ref — scoped to that gateway.
+ * WHY not findPaymentTransactionsByOrderId: that column is an integer order id; a gateway id is a
+ * string, so the old callback lookup could never match a real payment (and errored on Postgres).
+ */
+export async function findPaymentTransactionByGatewayReference(db, gateway, reference) {
+  const sql = `
+    SELECT * FROM payment_transactions
+    WHERE gateway = $1 AND (gateway_ref = $2 OR ref = $2)
+    ORDER BY created_at DESC
+    LIMIT 1;
+  `;
+  const res = await db.query(sql, [String(gateway).toUpperCase(), reference]);
+  return res.rows[0] || null;
+}
+
 export async function findPaymentTransactionById(db, id) {
   const sql = `SELECT * FROM payment_transactions WHERE id = $1 LIMIT 1;`;
   const res = await db.query(sql, [id]);

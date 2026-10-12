@@ -3,6 +3,7 @@
  */
 
 import * as paymentService from '../services/payment.service.js';
+import { AppError } from '../plugins/errorHandler.js';
 
 export async function handleWebhookHandler(req, reply) {
   const { gateway } = req.params;
@@ -22,36 +23,32 @@ export async function handleWebhookHandler(req, reply) {
 
 export async function handlePaymentCallbackHandler(req, reply) {
   const { gateway } = req.params;
-  const queryParams = req.query || {};
-  const body = req.body || {};
-  const combined = { ...queryParams, ...body };
+  const combined = { ...(req.query || {}), ...(req.body && typeof req.body === 'object' ? req.body : {}) };
 
-  const paymentId = combined.paymentID || combined.payment_ref_id || combined.sessionkey || combined.paymentId;
-  const status = combined.status || combined.transactionStatus;
+  const reference = combined.paymentID || combined.payment_ref_id || combined.sessionkey || combined.paymentId;
+  const claimedStatus = combined.status || combined.transactionStatus;
 
-  if (status === 'success' || status === 'Success' || status === 'VALID' || status === 'Completed') {
-    try {
-      await paymentService.executePayment(req.server.db, req.server.cache, {
-        paymentId,
-        gateway,
-        trxId: combined.trxID || combined.tran_id,
-      });
-    } catch {
-      // Ignored if already executed
-    }
-  }
+  const result = await paymentService.handleGatewayReturn(req.server.db, req.server.cache, {
+    gateway,
+    reference,
+    claimedStatus,
+    log: req.log,
+  });
 
-  // If browser redirect, redirect to client checkout completion page
+  // A browser return lands on a page; an API caller gets JSON. Either way the status shown is the
+  // transaction's real one, never the `status` the URL claimed.
   if (req.headers.accept && req.headers.accept.includes('text/html')) {
-    return reply.redirect(`/checkout/success?paymentId=${paymentId}&status=${status}`);
+    // WHY URLSearchParams: the old redirect pasted raw query values into the URL.
+    if (!result.found) return reply.redirect('/checkout?payment=unknown');
+    if (result.status === 'PAID' && result.orderRef) return reply.redirect(`/orders/${encodeURIComponent(result.orderRef)}`);
+    const q = new URLSearchParams({ payment: result.status.toLowerCase(), ref: result.transactionRef });
+    return reply.redirect(`/checkout?${q.toString()}`);
   }
 
+  if (!result.found) {
+    throw new AppError('NOT_FOUND', 'Payment transaction record not found.', 'পেমেন্ট ট্রানজ্যাকশন রেকর্ড পাওয়া যায়নি।');
+  }
   return reply.code(200).send({
-    data: {
-      gateway,
-      paymentId,
-      status,
-      message: 'Callback processed successfully.',
-    },
+    data: { gateway, transactionRef: result.transactionRef, status: result.status },
   });
 }

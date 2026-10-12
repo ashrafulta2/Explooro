@@ -204,6 +204,52 @@ export async function initiatePayment(db, cache, {
 /**
  * Executes or finalizes a payment after customer approval.
  */
+/**
+ * Handles the browser coming back from a gateway (GET/POST /payments/callback/:gateway).
+ *
+ * WHY this is not "mark it paid": the endpoint is public and everything in the request is chosen by
+ * whoever sends it, including the `status` parameter. The old handler trusted that status, looked the
+ * payment up by the wrong column, called executePayment with no actor, and swallowed every failure.
+ * Now the request only *identifies* a transaction. Money state changes only when the gateway driver
+ * confirms server-side (`driver.isLive`), never because a query string says "success". Drivers that
+ * approve without asking a gateway (mock, sandbox stand-ins) are not allowed to complete payments
+ * from a public URL; they finish through the authenticated /payments/execute or the signed webhook.
+ *
+ * Returns the transaction's real state so the page the shopper lands on reflects it, not their URL.
+ */
+export async function handleGatewayReturn(db, cache, { gateway, reference, claimedStatus = null, log = console }) {
+  const normGateway = String(gateway || '').trim().toUpperCase();
+  const ref = typeof reference === 'string' || typeof reference === 'number' ? String(reference).trim() : '';
+  if (!normGateway || !ref || ref.length > 128) return { found: false };
+
+  let txn = await paymentRepo.findPaymentTransactionByGatewayReference(db, normGateway, ref);
+  if (!txn) return { found: false };
+
+  const claimsSuccess = ['success', 'completed', 'valid', 'validated'].includes(String(claimedStatus || '').toLowerCase());
+  if (claimsSuccess && ['INITIATED', 'PENDING'].includes(txn.status)) {
+    try {
+      const driver = createPaymentGateway(txn.gateway);
+      if (driver.isLive === true) {
+        await executePayment(db, cache, { transactionRef: txn.ref, gateway: txn.gateway });
+        txn = (await paymentRepo.findPaymentTransactionById(db, txn.id)) || txn;
+      }
+    } catch (err) {
+      // WHY logged, not ignored: the gateway said no (or is unreachable). The shopper sees PENDING/FAILED
+      // and the reconcile sweep retries; swallowing silently hid every failure here before.
+      log.warn?.({ err: err.message, transactionRef: txn.ref }, 'payment callback could not confirm with the gateway');
+      txn = (await paymentRepo.findPaymentTransactionById(db, txn.id)) || txn;
+    }
+  }
+
+  const order = txn.order_id ? await orderRepo.findOrderById(db, txn.order_id) : null;
+  return {
+    found: true,
+    transactionRef: txn.ref,
+    orderRef: order?.ref || null,
+    status: txn.status === 'SUCCESS' ? 'PAID' : txn.status === 'FAILED' ? 'FAILED' : 'PENDING',
+  };
+}
+
 export async function executePayment(db, cache, {
   transactionRef,
   paymentId = null,
