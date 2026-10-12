@@ -206,6 +206,13 @@ function mixHue(from, to, amount) {
   return (from + delta * amount + 360) % 360;
 }
 
+/** Blend of two hex colours in OKLCH (`amount` 0 = `a`, 1 = `b`), hue by the shortest path. */
+function mixOklch(a, b, amount) {
+  const x = hexToOklch(a);
+  const y = hexToOklch(b);
+  return oklchToHex(x.l + (y.l - x.l) * amount, x.c + (y.c - x.c) * amount, mixHue(x.h, y.h, amount));
+}
+
 /* =========================================================================
  * 4. Ramp generation
  * ======================================================================= */
@@ -362,9 +369,18 @@ export function generatePalette(userConfig = {}) {
     accent[step] = oklchToHex(src.l, src.c * clamp(chromaScale, 0.5, 1.6), accentHue);
   }
 
+  // WHY: the flash-sale strip and FLASH tag are a burnt orange, not the danger red — red on the
+  // campaign surfaces read as an error state. It is blended from the danger and warning ramps (55/45,
+  // the same mix home-top.css uses for --campaign-orange) so it still follows the master seed
+  // without adding a fifth status ramp.
+  const campaign = {
+    300: mixOklch(status.danger[300], status.warning[300], 0.45),
+    800: mixOklch(status.danger[800], status.warning[800], 0.45),
+  };
+
   const roles = {
-    light: buildLightRoles({ cfg, brand, neutral, anchor, danger: status.danger }),
-    dark: buildDarkRoles({ brand, neutral, danger: status.danger }),
+    light: buildLightRoles({ cfg, brand, neutral, anchor, campaign }),
+    dark: buildDarkRoles({ brand, neutral, campaign }),
   };
 
   return {
@@ -416,7 +432,7 @@ function flashRole(fillHex, fillVar, inkCandidates) {
   return { fill, fillRef: fill === fillHex ? fillVar : fill, ink };
 }
 
-function buildLightRoles({ cfg, brand, neutral, anchor, danger }) {
+function buildLightRoles({ cfg, brand, neutral, anchor, campaign }) {
   const stepAt = (i) => BRAND_STEPS[clamp(i, 0, BRAND_STEPS.length - 1)];
   const inkCandidates = [neutral[900], neutral[0]];
   const bestInkRatio = (i) => {
@@ -444,8 +460,9 @@ function buildLightRoles({ cfg, brand, neutral, anchor, danger }) {
   const surface1 = cfg.surfaceWash ? brand[100] : neutral[0];
   const inkVar = (bg) => (bestContrastOn(bg, inkCandidates) === neutral[0] ? 'var(--neutral-0)' : 'var(--neutral-900)');
 
-  const flash = flashRole(danger[300], 'var(--danger-300)', inkCandidates);
-  const flashTag = flashRole(danger[800], 'var(--danger-800)', inkCandidates);
+  // No ramp step to reference for a blend, so the literal hex is both the fill and its reference.
+  const flash = flashRole(campaign[300], campaign[300], inkCandidates);
+  const flashTag = flashRole(campaign[800], campaign[800], inkCandidates);
   const flashInkVar = flash.ink === neutral[0] ? 'var(--neutral-0)' : 'var(--neutral-900)';
   const tagInkVar = flashTag.ink === neutral[0] ? 'var(--neutral-0)' : 'var(--neutral-900)';
   // The countdown digits inherit the header's ink, so the chip behind them has to run the OTHER
@@ -540,7 +557,7 @@ function buildLightRoles({ cfg, brand, neutral, anchor, danger }) {
   };
 }
 
-function buildDarkRoles({ brand, neutral, danger }) {
+function buildDarkRoles({ brand, neutral, campaign }) {
   // Dark inverts the brand: a LIGHT tint carries the action and dark ink sits on it, because no
   // mid-lightness fill clears 4.5:1 against a near-black canvas.
   const page = neutral[950];
@@ -575,7 +592,7 @@ function buildDarkRoles({ brand, neutral, danger }) {
   // Dark inverts the strip too: the deep -800 fill that carries the tag on light becomes the
   // header, since a coral-300 band across a near-black page glares.
   const darkInk = [neutral[100], neutral[950]];
-  const flash = flashRole(danger[800], 'var(--danger-800)', darkInk);
+  const flash = flashRole(campaign[800], campaign[800], darkInk);
   const flashLightInk = flash.ink === neutral[100];
 
   return {
