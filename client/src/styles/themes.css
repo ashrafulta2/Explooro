@@ -227,10 +227,10 @@
   --info-border: var(--info-300);
 
   /* Flash sale / campaign strip — countdown digits inherit --flash-text */
-  --flash-bg: var(--danger-300);
+  --flash-bg: #ffab7b;
   --flash-text: var(--neutral-900);
   --flash-chip-bg: var(--neutral-0);
-  --flash-tag-bg: var(--danger-800);
+  --flash-tag-bg: #7f3800;
   --flash-tag-text: var(--neutral-0);
 
   /* Chrome */
@@ -298,10 +298,10 @@
     --info-border: var(--info-500);
 
     /* Flash sale / campaign strip — countdown digits inherit --flash-text */
-    --flash-bg: var(--danger-800);
+    --flash-bg: #7f3800;
     --flash-text: var(--neutral-100);
     --flash-chip-bg: var(--neutral-900);
-    --flash-tag-bg: var(--danger-800);
+    --flash-tag-bg: #7f3800;
     --flash-tag-text: var(--neutral-100);
 
     /* Chrome */
@@ -365,10 +365,10 @@
   --info-border: var(--info-500);
 
   /* Flash sale / campaign strip — countdown digits inherit --flash-text */
-  --flash-bg: var(--danger-800);
+  --flash-bg: #7f3800;
   --flash-text: var(--neutral-100);
   --flash-chip-bg: var(--neutral-900);
-  --flash-tag-bg: var(--danger-800);
+  --flash-tag-bg: #7f3800;
   --flash-tag-text: var(--neutral-100);
 
   /* Chrome */
@@ -432,10 +432,10 @@
   --info-border: var(--info-300);
 
   /* Flash sale / campaign strip — countdown digits inherit --flash-text */
-  --flash-bg: var(--danger-300);
+  --flash-bg: #ffab7b;
   --flash-text: var(--neutral-900);
   --flash-chip-bg: var(--neutral-0);
-  --flash-tag-bg: var(--danger-800);
+  --flash-tag-bg: #7f3800;
   --flash-tag-text: var(--neutral-0);
 
   /* Chrome */
