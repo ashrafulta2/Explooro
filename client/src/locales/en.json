@@ -4134,6 +4134,19 @@
       "tools_desc": "Every specialized sales, marketing, sourcing, and vault tool reachable within 2 clicks.",
       "load_failed": "Failed to load saler dashboard data."
     },
+    "commission_tier": {
+      "title": "Your commission tier",
+      "name_bronze": "Bronze",
+      "name_silver": "Silver",
+      "name_gold": "Gold",
+      "name_platinum": "Platinum",
+      "bonus": "+{{bonus}}% on every sale",
+      "no_bonus": "Base commission",
+      "to_next": "Sell {{amount}} more to reach {{tier}} (+{{bonus}}%)",
+      "top": "You are on the top tier. Keep your sales up to stay here.",
+      "start": "Start",
+      "window": "{{amount}} delivered in the last {{days}} days. Returned and cancelled orders do not count."
+    },
     "onboarding": {
       "title": "Quick Start Guide: Road to Your First Sale",
       "desc": "Follow these 4 simple steps to launch your virtual business and make your first profit deposit."
@@ -5919,6 +5932,20 @@
     "modal_confirm_warn": "CRITICAL ACTION: Changing the global split affects every sale on Explooro without a specific category override. This change is irreversible and will be logged in the immutable audit ledger.",
     "modal_edit_category_title": "Configure Category Profit Split",
     "toast_global_saved": "Global profit split policy successfully updated.",
+    "tier_state_on": "On",
+    "tier_state_off": "Off",
+    "tier_enabled_label": "Earned commission tiers",
+    "tier_enabled_hint": "Off: every saler is paid the base split. On: a saler's tier adds its bonus to every order they sell, taken from the platform's share.",
+    "tier_window_label": "Sales window (days)",
+    "tier_window_hint": "Delivered sales in this many recent days decide the tier. A saler who stops selling drifts back down. 7 to 365.",
+    "th_min_volume": "Delivered sales needed (৳)",
+    "tier_entry": "Everyone starts here",
+    "tier_save_btn": "Save tier policy",
+    "tier_confirm_title": "Apply the tier policy?",
+    "tier_confirm_on": "Tiers will be ON. Salers are re-tiered now, and new orders pay the bonus above, moving margin from the platform to salers.",
+    "tier_confirm_off": "Tiers will be OFF. Every saler is paid the base split on new orders.",
+    "tier_confirm_btn": "Apply tier policy",
+    "toast_tiers_failed": "Could not save the tier policy.",
     "toast_category_saved": "Category split override updated.",
     "toast_category_reset": "Category reset to global default split.",
     "toast_tiers_saved": "Trust tier bonuses successfully updated."

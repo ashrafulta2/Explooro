@@ -13,6 +13,14 @@ export const salerApi = {
   },
 
   /**
+   * The saler's earned commission tier: tier, bonus, delivered volume in the window and the way to the
+   * next tier. `enabled: false` means the platform has tiers switched off.
+   */
+  async getCommissionTier() {
+    return api.get('/saler/commission-tier');
+  },
+
+  /**
    * Fetches detailed time-series analytics, traffic breakdown, and product performance.
    * @param {{ range?: '7d' | '30d' | '90d' }} [params]
    */

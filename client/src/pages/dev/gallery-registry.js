@@ -83,6 +83,7 @@ import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfi
 import { createMilestoneProgressStepper } from '../../components/b2b/MilestoneProgressStepper.js';
 import { ShoppableReels } from '../../components/content/ShoppableReels.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
+import { CommissionTierCard } from '../../components/saler/CommissionTierCard.js';
 import { SocialKitModal } from '../../components/saler/SocialKitModal.js';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
@@ -1505,6 +1506,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'assistant-panel-sourcing', label: 'AssistantPanel (Sourcing)', group: 'AI & Intelligence', render: renderAssistantPanelSourcingSpecimen },
     // Prompt 11.2 — Saler Prescriptive AI Growth Assistant
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'AI & Intelligence', render: renderGrowthAssistantSpecimen },
+    { id: 'commission-tier-card', label: 'CommissionTierCard', group: 'AI & Intelligence', render: renderCommissionTierCardSpecimen },
   ];
 }
 
@@ -3040,6 +3042,23 @@ function renderGrowthAssistantSpecimen() {
 
   const assistant = GrowthAssistant({ recommendations: sampleRecs });
   wrap.append(specimen('Live Advice Cards with Directly Executable 1-Click Triggers', assistant.element));
+  return wrap;
+}
+
+function renderCommissionTierCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Earned commission tier with progress to the next tier'));
+  const ladder = [
+    { tier: 'BRONZE', min_volume: 0, bonus_pct: 0 },
+    { tier: 'SILVER', min_volume: 50000, bonus_pct: 1 },
+    { tier: 'GOLD', min_volume: 150000, bonus_pct: 2 },
+    { tier: 'PLATINUM', min_volume: 400000, bonus_pct: 5 },
+  ];
+  const mid = { enabled: true, window_days: 30, tier: 'SILVER', bonus_pct: 1, volume: '82000.00', ladder, next: { tier: 'GOLD', min_volume: 150000, remaining: 68000, bonus_pct: 2 } };
+  const top = { enabled: true, window_days: 30, tier: 'PLATINUM', bonus_pct: 5, volume: '520000.00', ladder, next: null };
+  wrap.append(specimen('Mid ladder (Silver, 68,000 to Gold)', CommissionTierCard({ data: mid })));
+  wrap.append(specimen('Top tier (no next step)', CommissionTierCard({ data: top })));
   return wrap;
 }
 

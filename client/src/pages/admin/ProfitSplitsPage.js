@@ -43,6 +43,14 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
   let formExtraMarkupPlatform = 20;
   let formReason = '';
 
+  // Saler commission tier form (bonuses + the volume ladder, saved together)
+  let tierEnabled = false;
+  let tierWindow = 30;
+  let tierMin = { SILVER: 0, GOLD: 0, PLATINUM: 0 };
+  let tierBonus = { BRONZE: 0, SILVER: 0, GOLD: 0, PLATINUM: 0 };
+  let tierReason = '';
+  let isSavingTiers = false;
+
   // Modal State for Category Override Edit
   let activeModalCategory = null;
   let modalSalerSplit = 40;
@@ -65,6 +73,50 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     return map[slug] || '🏷️';
   }
 
+  // WHY a copy: the inputs edit this form state, so an unsaved edit never mutates what the server sent.
+  function syncTierForm() {
+    const rules = splitsData?.tier_rules;
+    tierEnabled = rules?.enabled === true;
+    tierWindow = rules?.window_days ?? 30;
+    for (const k of ['SILVER', 'GOLD', 'PLATINUM']) tierMin[k] = rules?.thresholds?.[k] ?? 0;
+    for (const row of splitsData?.tiers || []) tierBonus[row.tier] = parseFloat(row.bonus_pct) || 0;
+  }
+
+  async function handleSaveTiers(e) {
+    e.preventDefault();
+    if (!tierReason.trim()) {
+      toast.warning(t('admin_splits.policy_reason_label') + ' is required.');
+      return;
+    }
+    const confirmed = await confirmDialog({
+      title: t('admin_splits.tier_confirm_title'),
+      description: t(tierEnabled ? 'admin_splits.tier_confirm_on' : 'admin_splits.tier_confirm_off'),
+      confirmLabel: t('admin_splits.tier_confirm_btn'),
+      cancelLabel: t('common.cancel', 'Cancel'),
+      variant: tierEnabled ? 'danger' : 'primary',
+    });
+    if (!confirmed) return;
+
+    isSavingTiers = true;
+    render();
+    try {
+      await adminApi.updateTierBonuses(
+        ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'].map((k) => ({ tier: k, bonus_pct: Number(tierBonus[k]) })),
+        tierReason.trim(),
+        { enabled: tierEnabled, window_days: Number(tierWindow), thresholds: { SILVER: Number(tierMin.SILVER), GOLD: Number(tierMin.GOLD), PLATINUM: Number(tierMin.PLATINUM) } }
+      );
+      toast.success(t('admin_splits.toast_tiers_saved'));
+      tierReason = '';
+      await loadData();
+    } catch (err) {
+      // The server's message names the rule that failed (a ladder that does not rise, a window out of range).
+      toast.error(err.message || t('admin_splits.toast_tiers_failed'));
+    } finally {
+      isSavingTiers = false;
+      render();
+    }
+  }
+
   async function loadData() {
     isLoading = true;
     render();
@@ -79,6 +131,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
         formSalerDefaultProfit = splitsData.global.saler_default_profit_pct ?? 20;
         formExtraMarkupPlatform = splitsData.global.extra_markup_platform_pct ?? 20;
       }
+      syncTierForm();
     } catch (err) {
       toast.error(err.message || 'Failed to load profit split policies.');
       splitsData = {
@@ -787,67 +840,113 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
 
     container.append(catPanel);
 
-    // 7. Trust Tier Incentive Matrix
+    // 7. Trust Tier Incentive Matrix (editable: the volume ladder and the bonus each tier pays)
     const tierPanel = document.createElement('div');
     tierPanel.className = 'admin-panel';
+    const ladderKeys = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'];
     tierPanel.innerHTML = `
       <div class="admin-panel__header">
         <div>
           <h2 class="admin-panel__title">⭐ ${t('admin_splits.tiers_title')}</h2>
           <p class="admin-panel__subtitle">${t('admin_splits.tiers_subtitle')}</p>
         </div>
+        <span class="badge ${tierEnabled ? 'badge--success' : 'badge--neutral'} font-bold text-xs">${t(tierEnabled ? 'admin_splits.tier_state_on' : 'admin_splits.tier_state_off')}</span>
       </div>
 
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>${t('admin_splits.th_tier')}</th>
-              <th>${t('admin_splits.th_qualifier')}</th>
-              <th>${t('admin_splits.th_bonus_pct')}</th>
-              <th>${t('admin_splits.th_effective_split')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tiers
-              .map((tier) => {
-                const bonus = parseFloat(tier.bonus_pct || 0);
-                const exampleSaler = g.saler_split_pct + bonus;
-                const examplePlatform = 100 - exampleSaler;
-                const tierBadgeClass =
-                  tier.tier === 'PLATINUM' ? 'badge--success' :
-                  tier.tier === 'GOLD' ? 'badge--brand' :
-                  tier.tier === 'SILVER' ? 'badge--info' : 'badge--neutral';
-                return `
-                <tr>
-                  <td>
-                    <div class="flex items-center gap-2">
-                      <span class="font-bold text-primary">${isBn ? tier.name_bn : tier.name_en}</span>
-                      <span class="badge ${tierBadgeClass} badge--sm font-mono">${tier.tier.charAt(0)}${tier.tier.slice(1).toLowerCase()}</span>
-                    </div>
-                  </td>
-                  <td class="text-xs text-secondary max-w-md">${isBn ? tier.criteria_bn : tier.criteria_en}</td>
-                  <td class="font-bold text-success font-mono">+${bonus.toFixed(1)}%</td>
-                  <td>
-                    <div class="split-pill split-pill--saler">
-                      <span class="split-pill__val font-mono">${exampleSaler}%</span>
-                      <span class="split-pill__lbl">${isBn ? 'সেলার' : 'Saler'}</span>
-                    </div>
-                    <span class="text-xs text-muted font-mono"> / </span>
-                    <div class="split-pill split-pill--platform">
-                      <span class="split-pill__val font-mono">${examplePlatform}%</span>
-                      <span class="split-pill__lbl">${isBn ? 'প্ল্যাটফর্ম' : 'Platform'}</span>
-                    </div>
-                  </td>
-                </tr>
-              `;
-              })
-              .join('')}
-          </tbody>
-        </table>
-      </div>
+      <form class="tier-rules-form flex flex-col gap-4">
+        <div class="form-grid form-grid--3col">
+          <div class="form-group">
+            <label class="form-label" for="tier-enabled">${t('admin_splits.tier_enabled_label')}</label>
+            <select id="tier-enabled" class="form-select tier-enabled-input">
+              <option value="off" ${tierEnabled ? '' : 'selected'}>${t('admin_splits.tier_state_off')}</option>
+              <option value="on" ${tierEnabled ? 'selected' : ''}>${t('admin_splits.tier_state_on')}</option>
+            </select>
+            <span class="text-2xs text-secondary mt-1 block">${t('admin_splits.tier_enabled_hint')}</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tier-window">${t('admin_splits.tier_window_label')}</label>
+            <input id="tier-window" type="number" class="form-input tier-window-input" min="7" max="365" step="1" value="${tierWindow}" />
+            <span class="text-2xs text-secondary mt-1 block">${t('admin_splits.tier_window_hint')}</span>
+          </div>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>${t('admin_splits.th_tier')}</th>
+                <th>${t('admin_splits.th_min_volume')}</th>
+                <th>${t('admin_splits.th_bonus_pct')}</th>
+                <th>${t('admin_splits.th_effective_split')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ladderKeys
+                .map((k) => {
+                  const row = tiers.find((x) => x.tier === k) || { tier: k, name_en: k, name_bn: k };
+                  const exampleSaler = parseFloat((g.saler_split_pct + (Number(tierBonus[k]) || 0)).toFixed(2));
+                  const examplePlatform = parseFloat((100 - exampleSaler).toFixed(2));
+                  const tierBadgeClass =
+                    k === 'PLATINUM' ? 'badge--success' : k === 'GOLD' ? 'badge--brand' : k === 'SILVER' ? 'badge--info' : 'badge--neutral';
+                  return `
+                  <tr>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <span class="font-bold text-primary">${isBn ? row.name_bn : row.name_en}</span>
+                        <span class="badge ${tierBadgeClass} badge--sm font-mono">${k.charAt(0)}${k.slice(1).toLowerCase()}</span>
+                      </div>
+                    </td>
+                    <td>
+                      ${k === 'BRONZE'
+                        ? `<span class="text-xs text-secondary">${t('admin_splits.tier_entry')}</span>`
+                        : `<input type="number" class="form-input tier-min-input" data-tier="${k}" aria-label="${t('admin_splits.th_min_volume')} ${k}" min="1" step="1" value="${tierMin[k]}" />`}
+                    </td>
+                    <td>
+                      <input type="number" class="form-input tier-bonus-input" data-tier="${k}" aria-label="${t('admin_splits.th_bonus_pct')} ${k}" min="0" max="50" step="0.5" value="${tierBonus[k]}" />
+                    </td>
+                    <td>
+                      <div class="split-pill split-pill--saler">
+                        <span class="split-pill__val font-mono">${exampleSaler}%</span>
+                        <span class="split-pill__lbl">${isBn ? 'সেলার' : 'Saler'}</span>
+                      </div>
+                      <span class="text-xs text-muted font-mono"> / </span>
+                      <div class="split-pill split-pill--platform">
+                        <span class="split-pill__val font-mono">${examplePlatform}%</span>
+                        <span class="split-pill__lbl">${isBn ? 'প্ল্যাটফর্ম' : 'Platform'}</span>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+                })
+                .join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="tier-reason">${t('admin_splits.policy_reason_label')}</label>
+          <input id="tier-reason" type="text" class="form-input tier-reason-input" maxlength="200" />
+        </div>
+        <div class="flex justify-end">
+          <button type="submit" class="btn btn--primary" ${isSavingTiers ? 'disabled' : ''}>${t('admin_splits.tier_save_btn')}</button>
+        </div>
+      </form>
     `;
     container.append(tierPanel);
+
+    // Inputs write to form state without re-rendering, so typing never loses focus.
+    const tierReasonInput = tierPanel.querySelector('.tier-reason-input');
+    if (tierReasonInput) tierReasonInput.value = tierReason; // set as a property, never spliced into markup
+    tierReasonInput?.addEventListener('input', (e) => { tierReason = e.target.value; });
+    tierPanel.querySelector('.tier-enabled-input')?.addEventListener('change', (e) => { tierEnabled = e.target.value === 'on'; });
+    tierPanel.querySelector('.tier-window-input')?.addEventListener('input', (e) => { tierWindow = e.target.value; });
+    tierPanel.querySelectorAll('.tier-min-input').forEach((el) => {
+      el.addEventListener('input', (e) => { tierMin[el.dataset.tier] = e.target.value; });
+    });
+    tierPanel.querySelectorAll('.tier-bonus-input').forEach((el) => {
+      el.addEventListener('input', (e) => { tierBonus[el.dataset.tier] = e.target.value; });
+    });
+    tierPanel.querySelector('.tier-rules-form')?.addEventListener('submit', handleSaveTiers);
 
     // 8. Audit Log Viewer
     const auditPanel = document.createElement('div');

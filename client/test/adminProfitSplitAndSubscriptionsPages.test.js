@@ -221,6 +221,41 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
       assert.equal(res.status, 200);
       assert.equal(res.body.tiers[3].bonus_pct, 6.0);
     });
+
+    it('GET /admin/finance/splits carries the tier ladder, shipped OFF', () => {
+      const res = call(adminHandlers, 'GET', '/admin/finance/splits');
+      assert.equal(res.body.tier_rules.enabled, false);
+      assert.ok(res.body.tier_rules.thresholds.SILVER < res.body.tier_rules.thresholds.GOLD);
+      assert.ok(res.body.tier_rules.thresholds.GOLD < res.body.tier_rules.thresholds.PLATINUM);
+    });
+
+    it('PUT /admin/finance/splits/tiers saves a ladder and refuses one that does not rise', () => {
+      const tiers = [{ tier: 'GOLD', bonus_pct: 2 }];
+      const good = { enabled: true, window_days: 45, thresholds: { SILVER: 10000, GOLD: 40000, PLATINUM: 90000 } };
+      const ok = call(adminHandlers, 'PUT', '/admin/finance/splits/tiers', { body: { tiers, rules: good, reason: 'Eid' } });
+      assert.equal(ok.status, 200);
+      assert.deepEqual(ok.body.rules, good);
+
+      const bad = { ...good, thresholds: { SILVER: 40000, GOLD: 40000, PLATINUM: 90000 } };
+      const refused = call(adminHandlers, 'PUT', '/admin/finance/splits/tiers', { body: { tiers, rules: bad, reason: 'x' } });
+      assert.equal(refused.status, 400);
+      assert.equal(refused.body.error.code, 'TIER_RULES_INVALID');
+      // The refused save left the earlier ladder in place.
+      assert.deepEqual(call(adminHandlers, 'GET', '/admin/finance/splits').body.tier_rules, good);
+    });
+
+    it('the tier form strings exist in both languages', () => {
+      const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+      const en = JSON.parse(readFileSync(join(root, 'src/locales/en.json'), 'utf8'));
+      const bn = JSON.parse(readFileSync(join(root, 'src/locales/bn.json'), 'utf8'));
+      const keys = ['tier_state_on', 'tier_state_off', 'tier_enabled_label', 'tier_enabled_hint', 'tier_window_label',
+        'tier_window_hint', 'th_min_volume', 'tier_entry', 'tier_save_btn', 'tier_confirm_title', 'tier_confirm_on',
+        'tier_confirm_off', 'tier_confirm_btn', 'toast_tiers_saved', 'toast_tiers_failed'];
+      for (const k of keys) {
+        assert.ok(en.admin_splits[k]?.trim(), `en.admin_splits.${k}`);
+        assert.ok(bn.admin_splits[k]?.trim(), `bn.admin_splits.${k}`);
+      }
+    });
   });
 
   describe('4. Subscriptions Mock Handlers & Plan Governance', () => {

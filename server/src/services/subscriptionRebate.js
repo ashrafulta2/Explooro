@@ -19,7 +19,7 @@ export const SUBSCRIPTION_MODULE_KEY = 'subscription_fees';
  * Moves `rebatePct` points from the platform's share to the saler's, never taking the platform
  * below zero. Pure; returns the input untouched when there is nothing to apply.
  */
-export function applyRebate(split, rebatePct) {
+export function applyRebate(split, rebatePct, label = 'PRO_REBATE') {
   const rebate = Number(rebatePct);
   if (!Number.isFinite(rebate) || rebate <= 0) return split;
   const moved = Math.min(rebate, Math.max(split.platformSplitPct, 0));
@@ -27,7 +27,7 @@ export function applyRebate(split, rebatePct) {
   return {
     salerSplitPct: parseFloat((split.salerSplitPct + moved).toFixed(2)),
     platformSplitPct: parseFloat((split.platformSplitPct - moved).toFixed(2)),
-    ruleSource: `${split.ruleSource}+PRO_REBATE`,
+    ruleSource: `${split.ruleSource}+${label}`,
   };
 }
 

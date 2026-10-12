@@ -87,6 +87,13 @@ export default async function productRoutes(app) {
     },
     sourcingController.getSalerIncentives
   );
+  // The saler's own commission tier (earned by sales volume; what it pays is set at /admin/finance/splits).
+  // No `config.page`: the card is shown on more than one saler page, so the endpoint cannot belong to one.
+  app.get(
+    '/saler/commission-tier',
+    { preHandler: [authenticate, requirePerm('saler.sourcing.view')] },
+    sourcingController.getSalerCommissionTier
+  );
   // Same issue as above: getMyStore reads req.user.id to find the caller's own store, but with no
   // preHandler that id was always undefined, so this always returned an empty store.
   // Sample Requests + Marketing Kits (supplier attraction step 4). A request moves the saler's own money

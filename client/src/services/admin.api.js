@@ -193,10 +193,12 @@ export const adminApi = {
   },
 
   /**
-   * Updates Saler trust tier commission incentive bonuses.
+   * Updates Saler trust tier commission incentive bonuses and, optionally, the volume ladder
+   * ({ enabled, window_days, thresholds }) that decides which tier a saler is in. One request, so a
+   * rejected ladder never leaves the bonuses half-saved.
    */
-  async updateTierBonuses(tiers, reason) {
-    return api.put('/admin/finance/splits/tiers', { tiers, reason });
+  async updateTierBonuses(tiers, reason, rules) {
+    return api.put('/admin/finance/splits/tiers', { tiers, reason, ...(rules ? { rules } : {}) });
   },
 
   /**
