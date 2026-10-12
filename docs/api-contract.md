@@ -166,6 +166,8 @@ Complete and closed. Adding a code is a deliberate change to this document.
 | `INSUFFICIENT_BALANCE` | 422 | Wallet cannot cover the request |
 | `PAYOUT_BELOW_MINIMUM` | 422 | Below `min_payout_amount` |
 | `COD_OTP_REQUIRED` | 422 | COD order needs OTP confirmation before it can be placed |
+| `STREAM_NOT_FOUND` / `PRODUCT_NOT_FOUND` / `PRODUCT_NOT_IN_STREAM` | 404 | Live stream or product does not exist, or the product is not on that stream |
+| `STREAM_NOT_LIVE` / `PRODUCT_UNPRICED` | 409 | The stream is not LIVE, or the stream product has no price |
 | `COUPON_INVALID` | 422 | Expired, wrong scope, min-spend unmet, or per-user limit reached |
 | `COUPON_BUDGET_EXHAUSTED` | 409 | The coupon's budget cap is spent |
 | `ESCROW_LOCKED` | 409 | Funds are still inside the return window |

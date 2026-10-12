@@ -40,6 +40,15 @@ const ERROR_STATUS = {
   RATE_LIMITED: 429,
   // 3.4 Commerce & finance — 409 / 422
   INSUFFICIENT_STOCK: 409,
+  // Live stream commerce: these were thrown by liveStream.service.js but unmapped, so a bad stream or
+  // product id answered 500 INTERNAL_ERROR. Found by an end-to-end run against the dev database.
+  STREAM_NOT_FOUND: 404,
+  PRODUCT_NOT_FOUND: 404,
+  PRODUCT_NOT_IN_STREAM: 404,
+  STREAM_NOT_LIVE: 409,
+  PRODUCT_UNPRICED: 409,
+  STREAM_CLOSED: 409,
+  TITLE_REQUIRED: 400,
   INSUFFICIENT_BALANCE: 422,
   PAYOUT_BELOW_MINIMUM: 422,
   COD_OTP_REQUIRED: 422,

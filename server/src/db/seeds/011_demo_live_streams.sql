@@ -76,17 +76,18 @@ ON CONFLICT (ref) DO UPDATE SET
 INSERT INTO live_stream_products (
   id, live_stream_id, product_id, is_pinned, pinned_at, pin_order, special_price
 ) VALUES
-  -- Stream 1 Products
-  (1, 1, 5, true, now() - interval '20 minutes', 1, 3200.00),
+  -- Stream 1 Products. WHY every special price sits above base_cost + wholesale_margin: a live order
+  -- under that floor is refused (pricing.service.js), so a cheaper "deal" could never be bought.
+  (1, 1, 5, true, now() - interval '20 minutes', 1, 4900.00),
   (2, 1, 6, false, NULL, 2, 1150.00),
   (3, 1, 7, false, NULL, 3, 1600.00),
 
   -- Stream 2 Products
-  (4, 2, 11, true, now() - interval '10 minutes', 1, 2350.00),
-  (5, 2, 12, false, NULL, 2, 1250.00),
+  (4, 2, 11, true, now() - interval '10 minutes', 1, 2600.00),
+  (5, 2, 12, false, NULL, 2, 1700.00),
 
   -- Stream 3 Products
-  (6, 3, 5, false, NULL, 1, 3500.00),
+  (6, 3, 5, false, NULL, 1, 5000.00),
   (7, 3, 7, false, NULL, 2, 1750.00),
 
   -- Stream 4 Products

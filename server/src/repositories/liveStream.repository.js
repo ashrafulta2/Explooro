@@ -230,6 +230,8 @@ export async function getStreamProducts(client, streamId) {
       lsp.pinned_at,
       lsp.pin_order,
       lsp.special_price,
+      p.default_retail_price AS list_price,
+      COALESCE(lsp.special_price, p.default_retail_price) AS unit_price,
       p.title_en,
       p.title_bn,
       p.slug,
@@ -250,6 +252,19 @@ export async function getStreamProducts(client, streamId) {
   `;
   const { rows } = await client.query(query, [streamId]);
   return rows;
+}
+
+/** One product's row on one stream, with the price a live buyer is billed (special price, else the listed one). */
+export async function getStreamProduct(client, streamId, productId) {
+  const { rows } = await client.query(
+    `SELECT lsp.product_id, lsp.special_price,
+            COALESCE(lsp.special_price, p.default_retail_price) AS unit_price
+       FROM live_stream_products lsp
+       JOIN products p ON p.id = lsp.product_id
+      WHERE lsp.live_stream_id = $1 AND lsp.product_id = $2`,
+    [streamId, productId]
+  );
+  return rows[0] || null;
 }
 
 export async function pinProduct(client, streamId, productId) {
@@ -293,6 +308,8 @@ export async function getPinnedProduct(client, streamId) {
       lsp.is_pinned,
       lsp.pinned_at,
       lsp.special_price,
+      p.default_retail_price AS list_price,
+      COALESCE(lsp.special_price, p.default_retail_price) AS unit_price,
       p.title_en,
       p.title_bn,
       p.slug,
@@ -417,6 +434,19 @@ export async function updateViewersCount(client, streamId, currentCount) {
     RETURNING viewer_count, peak_viewer_count;
   `;
   const { rows } = await client.query(query, [streamId, currentCount]);
+  return rows[0];
+}
+
+/** Undo recordStreamSale for a cancelled live order. Floored at zero so a stale count can never go negative. */
+export async function reverseStreamSale(client, streamId, amount) {
+  const { rows } = await client.query(
+    `UPDATE live_streams
+        SET total_sales_count = GREATEST(0, total_sales_count - 1),
+            total_sales_amount = GREATEST(0, total_sales_amount - $2)
+      WHERE id = $1
+      RETURNING total_sales_count, total_sales_amount`,
+    [streamId, amount]
+  );
   return rows[0];
 }
 

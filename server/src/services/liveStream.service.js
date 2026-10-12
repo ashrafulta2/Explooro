@@ -13,6 +13,13 @@
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import { perParcelCharge } from './deliveryCharge.service.js';
+import { withTransaction } from '../config/db.js';
+import * as orderRepo from '../repositories/order.repository.js';
+import { enforceCodGate } from './codGate.service.js';
+import { validateCoupon } from './coupon.service.js';
+import * as couponRepo from '../repositories/coupon.repository.js';
+import { getReservedForProduct } from './teamStockReservation.service.js';
+import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
 import * as liveRepo from '../repositories/liveStream.repository.js';
 import { streaming } from '../integrations/streaming/index.js';
 import {
@@ -25,6 +32,44 @@ import {
 import * as auditService from './audit.service.js';
 import { detectContactInfoLeak } from './chat.service.js';
 import { preScreenContent } from './moderation.service.js';
+
+/**
+ * A stream product's special price must cover the wholesale cost (base cost + wholesale margin).
+ *
+ * WHY here and not only at order time: executeInStreamBuy refuses a price under that floor, so a
+ * special price below it produced a pinned "deal" nobody could buy. The seeded demo streams had four
+ * such rows, including both currently pinned products. Checked before the stream row is created so a
+ * rejected schedule leaves nothing behind.
+ */
+export async function assertSpecialPricesAboveFloor(db, products) {
+  const priced = (products || [])
+    .map((item) => ({
+      productId: Number(item?.productId ?? item?.product_id ?? item),
+      price: item?.specialPrice ?? item?.special_price ?? null,
+    }))
+    .filter((p) => p.price !== null && p.price !== undefined && p.price !== '');
+  if (priced.length === 0) return;
+
+  const { rows } = await db.query(
+    'SELECT id, title_en, (base_cost + wholesale_margin) AS floor_price FROM products WHERE id = ANY($1::bigint[])',
+    [priced.map((p) => p.productId)]
+  );
+  const floors = new Map(rows.map((r) => [Number(r.id), r]));
+  for (const { productId, price } of priced) {
+    const row = floors.get(productId);
+    if (!row) {
+      throw new AppError('PRODUCT_NOT_FOUND', `Product ${productId} not found.`, `পণ্য ${productId} পাওয়া যায়নি।`);
+    }
+    if (toPaisa(price) < toPaisa(row.floor_price)) {
+      throw new AppError(
+        'VALIDATION_FAILED',
+        `The special price for "${row.title_en}" cannot be below its wholesale cost (৳${Number(row.floor_price).toFixed(2)}).`,
+        `"${row.title_en}" এর বিশেষ দাম পাইকারি খরচের (৳${Number(row.floor_price).toFixed(2)}) নিচে হতে পারবে না।`,
+        { product_id: productId, floor_price: Number(row.floor_price) }
+      );
+    }
+  }
+}
 
 export async function scheduleStream(db, {
   hostId,
@@ -39,6 +84,8 @@ export async function scheduleStream(db, {
   if (!title || !title.trim()) {
     throw new AppError('TITLE_REQUIRED', 'Stream title is required.', 'লাইভ স্ট্রিমের শিরোনাম আবশ্যক।');
   }
+
+  await assertSpecialPricesAboveFloor(db, products);
 
   const ref = generateRef('LIV');
   const tempRoomId = `room_pending_${ref}`;
@@ -346,6 +393,133 @@ export async function recordStreamPurchase(db, { streamId, orderRef, orderAmount
   return stats;
 }
 
+/**
+ * What a live order would cost right now, without taking anything: the price the server will bill
+ * (stream special price, else listed, plus a variant's price_delta), the delivery charge, the total,
+ * and how many units are still buyable (stock net of open-team reservations).
+ *
+ * WHY it exists: the drawer used to add its own guess of the delivery charge to its own copy of the
+ * price. Asking the server means the figure on the button is the figure that is billed. Read-only and
+ * unlocked, so it is advisory: the order itself re-checks everything under the row lock.
+ */
+const COUPON_FAILURE_TEXT = {
+  NO_CODE_PROVIDED: ['Enter a coupon code.', 'একটি কুপন কোড লিখুন।'],
+  COUPON_NOT_FOUND_OR_INACTIVE: ['This coupon code is not valid.', 'এই কুপন কোডটি সঠিক নয়।'],
+  COUPON_EXPIRED: ['This coupon has expired.', 'এই কুপনের মেয়াদ শেষ হয়ে গেছে।'],
+  COUPON_BUDGET_EXHAUSTED: ['This coupon budget has been used up.', 'এই কুপনের বাজেট শেষ হয়ে গেছে।'],
+  COUPON_USAGE_LIMIT_REACHED: ['This coupon has reached its usage limit.', 'এই কুপনের ব্যবহারের সীমা পূর্ণ হয়েছে।'],
+  USER_USAGE_LIMIT_EXCEEDED: ['You have already used this coupon the maximum number of times.', 'আপনি এই কুপন সর্বোচ্চ সংখ্যক বার ব্যবহার করে ফেলেছেন।'],
+  FIRST_ORDER_ONLY: ['This coupon is only for your first order.', 'এই কুপন শুধু আপনার প্রথম অর্ডারের জন্য।'],
+  NO_ELIGIBLE_ITEMS_FOR_SCOPE: ['This coupon does not apply to this product.', 'এই কুপন এই পণ্যে প্রযোজ্য নয়।'],
+  MIN_SPEND_NOT_MET: ['Your order is below the minimum spend for this coupon.', 'আপনার অর্ডার এই কুপনের সর্বনিম্ন খরচের চেয়ে কম।'],
+};
+
+/** English/Bangla wording for a validateCoupon failure reason, with a safe default. */
+export function describeCouponFailure(reason) {
+  const [en, bn] = COUPON_FAILURE_TEXT[reason] || ['This coupon cannot be applied.', 'এই কুপন প্রয়োগ করা যাচ্ছে না।'];
+  return { message_en: en, message_bn: bn };
+}
+
+/** Runs validateCoupon for one live line; money in BDT numbers, as validateCoupon expects. */
+function validateLiveCoupon(db, { code, userId, prod, salerId, unitPrice, quantity, shippingBdt, forUpdate }) {
+  return validateCoupon(db, {
+    code: String(code).trim(),
+    userId,
+    items: [{
+      productId: prod.id,
+      categoryId: prod.category_id,
+      supplierId: prod.supplier_id,
+      salerId,
+      price: unitPrice,
+      qty: quantity,
+    }],
+    subtotal: unitPrice * quantity,
+    shippingAmount: shippingBdt,
+    forUpdate,
+  });
+}
+
+export async function quoteInStreamBuy(pool, cache, { streamId, productId, variantId = null, qty = 1, couponCode = null, userId = null }) {
+  const quantity = Number(qty);
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    throw new AppError('VALIDATION_FAILED', 'Quantity must be a whole number of at least 1.', 'পরিমাণ কমপক্ষে ১ এর পূর্ণসংখ্যা হতে হবে।');
+  }
+  const sId = Number(streamId);
+  const stream = await liveRepo.findStreamById(pool, sId);
+  if (!stream) {
+    throw new AppError('STREAM_NOT_FOUND', 'Live stream not found.', 'লাইভ স্ট্রিম পাওয়া যায়নি।');
+  }
+  const streamProduct = await liveRepo.getStreamProduct(pool, sId, Number(productId));
+  if (!streamProduct) {
+    throw new AppError('PRODUCT_NOT_IN_STREAM', 'This product is not part of this live stream.', 'এই পণ্যটি এই লাইভ স্ট্রিমের অংশ নয়।');
+  }
+  let unitPrice = Number(streamProduct.unit_price);
+  if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+    throw new AppError('PRODUCT_UNPRICED', 'This product has no price yet.', 'এই পণ্যের এখনও দাম নির্ধারণ হয়নি।');
+  }
+
+  const { rows } = await pool.query(
+    'SELECT id, status, stock_qty, category_id, supplier_id FROM products WHERE id = $1',
+    [Number(productId)]
+  );
+  const prod = rows[0];
+  if (!prod || prod.status !== 'ACTIVE') {
+    throw new AppError('PRODUCT_NOT_FOUND', 'Product is no longer available.', 'পণ্যটি এখন আর উপলব্ধ নেই।');
+  }
+  let available = Number(prod.stock_qty);
+  if (variantId) {
+    const { rows: vRows } = await pool.query(
+      'SELECT price_delta, stock_qty, is_active FROM product_variants WHERE id = $1 AND product_id = $2',
+      [Number(variantId), Number(productId)]
+    );
+    if (!vRows[0] || !vRows[0].is_active) {
+      throw new AppError('NOT_FOUND', 'Selected variant is no longer available.', 'নির্বাচিত ভ্যারিয়েন্টটি আর উপলব্ধ নেই।');
+    }
+    unitPrice += Number(vRows[0].price_delta ?? 0);
+    available = Number(vRows[0].stock_qty);
+  }
+  available = Math.max(0, Math.min(available, Number(prod.stock_qty) - await getReservedForProduct(pool, prod.id)));
+
+  const shippingPaisa = toPaisa(await perParcelCharge(pool, cache));
+  const itemsPaisa = toPaisa(unitPrice) * quantity;
+
+  // WHY not thrown: a wrong code is something the drawer shows beside the field, not a failed quote.
+  // The order re-validates under the coupon row lock, so this is advisory like the rest of the quote.
+  let coupon = null;
+  let discountPaisa = 0;
+  if (couponCode && String(couponCode).trim()) {
+    const v = await validateLiveCoupon(pool, {
+      code: couponCode,
+      userId,
+      prod,
+      salerId: stream.host_id ? Number(stream.host_id) : null,
+      unitPrice,
+      quantity,
+      shippingBdt: toBdtNumber(shippingPaisa),
+      forUpdate: false,
+    });
+    if (v.valid) {
+      discountPaisa = Math.min(toPaisa(v.discountAmount), itemsPaisa + shippingPaisa);
+      coupon = { code: v.coupon.code, valid: true, discount_amount: toBdtNumber(discountPaisa) };
+    } else {
+      coupon = { code: String(couponCode).trim(), valid: false, reason: v.reason, ...describeCouponFailure(v.reason) };
+    }
+  }
+  return {
+    stream_id: sId,
+    product_id: Number(productId),
+    quantity,
+    unit_price: toBdtNumber(toPaisa(unitPrice)),
+    items_amount: toBdtNumber(itemsPaisa),
+    shipping_amount: toBdtNumber(shippingPaisa),
+    discount_amount: toBdtNumber(discountPaisa),
+    total_amount: toBdtNumber(itemsPaisa + shippingPaisa - discountPaisa),
+    coupon,
+    available_stock: available,
+    in_stock: available >= quantity,
+  };
+}
+
 export async function executeInStreamBuy(pool, cache, {
   streamId,
   user,
@@ -358,72 +532,278 @@ export async function executeInStreamBuy(pool, cache, {
   district,
   addressLine,
   paymentMethod = 'COD',
+  couponCode = null,
+  idempotencyKey = null,
+  otpCode = null,
+  smsSender = null,
+  isDevelopment = false,
+  ip = null,
 }) {
+  // WHY required: a double-tap or a retried request must never place a second order for the same intent.
+  if (!idempotencyKey || typeof idempotencyKey !== 'string') {
+    throw new AppError('IDEMPOTENCY_KEY_REQUIRED', 'An Idempotency-Key header is required for an in-stream order.', 'ইন-স্ট্রিম অর্ডারের জন্য একটি Idempotency-Key হেডার আবশ্যক।');
+  }
+  const existing = await orderRepo.findOrderByIdempotencyKey(pool, idempotencyKey);
+  if (existing) {
+    return { order: existing, isReplay: true, originalAt: existing.created_at };
+  }
+
   const sId = Number(streamId);
+  const quantity = Number(qty);
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    throw new AppError('VALIDATION_FAILED', 'Quantity must be a whole number of at least 1.', 'পরিমাণ কমপক্ষে ১ এর পূর্ণসংখ্যা হতে হবে।');
+  }
+
+  // WHY reject, not default: an order shipped to "In-Stream Buyer, 01700000000, Live Stream Instant
+  // Order" is an order nobody can deliver. The drawer always sends all of these.
+  const name = String(recipientName ?? '').trim();
+  const address = String(addressLine ?? '').trim();
+  if (!name || !division || !district || !address) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      'Recipient name, division, district and address line are required.',
+      'প্রাপকের নাম, বিভাগ, জেলা এবং ঠিকানার বিবরণ আবশ্যক।'
+    );
+  }
+  let cleanPhone = String(recipientPhone ?? '').replace(/[\s-]/g, '');
+  if (cleanPhone.startsWith('01')) cleanPhone = `+88${cleanPhone}`;
+  if (!/^\+8801[3-9]\d{8}$/.test(cleanPhone)) {
+    throw new AppError('VALIDATION_FAILED', 'Invalid Bangladeshi phone number for delivery.', 'ডেলিভারির জন্য ভুল বাংলাদেশি ফোন নম্বর।');
+  }
+
   const stream = await liveRepo.findStreamById(pool, sId);
   if (!stream) {
     throw new AppError('STREAM_NOT_FOUND', 'Live stream not found.', 'লাইভ স্ট্রিম পাওয়া যায়নি।');
   }
-
-  // Look up product
-  const { rows: prodRows } = await pool.query('SELECT * FROM products WHERE id = $1', [productId]);
-  const product = prodRows[0];
-  if (!product) {
-    throw new AppError('PRODUCT_NOT_FOUND', 'Product not found.', 'পণ্য পাওয়া যায়নি।');
+  if (stream.status !== 'LIVE') {
+    throw new AppError('STREAM_NOT_LIVE', 'This stream is not live, so in-stream orders are closed.', 'এই স্ট্রিম এখন লাইভ নয়, তাই ইন-স্ট্রিম অর্ডার বন্ধ।');
   }
 
-  const orderRef = generateRef('ORD');
-  // WHY the listed price: the drawer shows the product's retail price, so that is what is charged. The
-  // old "base cost + margin + 150" was a placeholder that billed a figure the shopper never saw.
-  const unitPrice = Number(product.default_retail_price);
+  // WHY the stream's own price: the host sets a special price per stream product; the drawer shows
+  // exactly that figure (unit_price in the pinned-product payload), so the server resolves the same
+  // one. A product that is not on this stream cannot be bought through it.
+  const streamProduct = await liveRepo.getStreamProduct(pool, sId, Number(productId));
+  if (!streamProduct) {
+    throw new AppError('PRODUCT_NOT_IN_STREAM', 'This product is not part of this live stream.', 'এই পণ্যটি এই লাইভ স্ট্রিমের অংশ নয়।');
+  }
+  let unitPrice = Number(streamProduct.unit_price);
   if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
     throw new AppError('PRODUCT_UNPRICED', 'This product has no price yet.', 'এই পণ্যের এখনও দাম নির্ধারণ হয়নি।');
   }
-  const itemsAmount = unitPrice * Number(qty);
+
   // WHY configuration: the per-parcel delivery charge is set at /admin/platform/delivery; a live order
   // is one supplier parcel, so it pays the same charge as a normal checkout.
-  const shippingAmount = await perParcelCharge(pool, cache);
-  const totalAmount = itemsAmount + shippingAmount;
+  const shippingPaisa = toPaisa(await perParcelCharge(pool, cache, { fresh: true }));
 
-  // Insert order attributed to live_stream_id
-  const insertOrderSql = `
-    INSERT INTO orders (
-      ref, customer_id, total_amount, items_amount, shipping_amount,
-      payment_method, payment_status, recipient_name, recipient_phone,
-      division, district, address_line, live_stream_id, placed_at, created_at
-    )
-    VALUES ($1, $2, $3, $4, $5, $6, 'PENDING', $7, $8, $9, $10, $11, $12, now(), now())
-    RETURNING *;
-  `;
+  let placed;
+  try {
+    placed = await placeInStreamOrder();
+  } catch (err) {
+    // WHY: two requests with one key can both pass the replay lookup above; the loser hits the UNIQUE
+    // index on orders.idempotency_key. That is a replay of the winner's order, not a server error.
+    if (err?.code === '23505' && String(err.constraint || '').includes('idempotency')) {
+      const winner = await orderRepo.findOrderByIdempotencyKey(pool, idempotencyKey);
+      if (winner) return { order: winner, isReplay: true, originalAt: winner.created_at };
+    }
+    throw err;
+  }
+  const { order, product } = placed;
 
-  const { rows: orderRows } = await pool.query(insertOrderSql, [
-    orderRef,
-    user.id,
-    totalAmount,
-    itemsAmount,
-    shippingAmount,
-    paymentMethod,
-    recipientName || user.full_name || 'In-Stream Buyer',
-    recipientPhone || user.phone || '01700000000',
-    division || 'Dhaka',
-    district || 'Dhaka',
-    addressLine || 'Live Stream Instant Order',
-    sId,
-  ]);
+  async function placeInStreamOrder() {
+    return withTransaction(pool, async (client) => {
+      // WHY lock first: stock is read and decremented under the same row lock checkout uses, so two
+      // viewers hitting "buy" on the last unit cannot both succeed.
+      const { productsById, variantsById } = await orderRepo.lockProductsAndVariants(client, [
+        { product_id: Number(productId), variant_id: variantId ? Number(variantId) : null },
+      ]);
+      const prod = productsById.get(Number(productId));
+      if (!prod || prod.status !== 'ACTIVE') {
+        throw new AppError('PRODUCT_NOT_FOUND', 'Product is no longer available.', 'পণ্যটি এখন আর উপলব্ধ নেই।');
+      }
 
-  const order = orderRows[0];
+      let availableStock = Number(prod.stock_qty);
+      if (variantId) {
+        const variant = variantsById.get(Number(variantId));
+        if (!variant || !variant.is_active || Number(variant.product_id) !== Number(prod.id)) {
+          throw new AppError('NOT_FOUND', 'Selected variant is no longer available.', 'নির্বাচিত ভ্যারিয়েন্টটি আর উপলব্ধ নেই।');
+        }
+        // price_delta is signed and relative to the price, as in the cart.
+        unitPrice += Number(variant.price_delta ?? 0);
+        availableStock = Number(variant.stock_qty);
+      }
+      // WHY net of reservations: units open team purchases are counting on are not for sale here.
+      const reserved = await getReservedForProduct(client, prod.id);
+      availableStock = Math.min(availableStock, Number(prod.stock_qty) - reserved);
+      if (availableStock < quantity) {
+        throw new AppError(
+          'INSUFFICIENT_STOCK',
+          `Only ${Math.max(0, availableStock)} left of "${prod.title_en}".`,
+          `"${prod.title_bn || prod.title_en}" এর মাত্র ${Math.max(0, availableStock)}টি বাকি আছে।`,
+          { product_ref: prod.ref, requested: quantity, available: Math.max(0, availableStock) }
+        );
+      }
 
-  // Record stream sale stats and broadcast purchase notification toast
+      // WHY before any write: COD_OTP_REQUIRED throws and rolls the transaction back, so no stock is
+      // taken for an order the shopper has not confirmed. Same gate as checkout and team purchase.
+      // WHY the host as saler is resolved first: SALER-scoped coupons match on it.
+      const salerId = stream.host_id ? Number(stream.host_id) : null;
+
+      // WHY validated here: under the coupon row lock (forUpdate), so two orders cannot both take the
+      // last use or the last of the budget. A bad code is refused, never silently ignored.
+      let coupon = null;
+      let discountPaisa = 0;
+      if (couponCode && String(couponCode).trim()) {
+        const v = await validateLiveCoupon(client, {
+          code: couponCode,
+          userId: user.id,
+          prod,
+          salerId,
+          unitPrice,
+          quantity,
+          shippingBdt: toBdtNumber(shippingPaisa),
+          forUpdate: true,
+        });
+        if (!v.valid) {
+          const text = describeCouponFailure(v.reason);
+          throw new AppError(
+            v.reason === 'COUPON_BUDGET_EXHAUSTED' ? 'COUPON_BUDGET_EXHAUSTED' : 'COUPON_INVALID',
+            text.message_en,
+            text.message_bn,
+            { reason: v.reason }
+          );
+        }
+        coupon = v.coupon;
+        discountPaisa = Math.min(toPaisa(v.discountAmount), toPaisa(unitPrice) * quantity + shippingPaisa);
+      }
+
+      const totalPaisa = toPaisa(unitPrice) * quantity + shippingPaisa - discountPaisa;
+      let isOtpVerified = false;
+      let trustScoreAtOrder = 50;
+      if (paymentMethod === 'COD') {
+        const gate = await enforceCodGate(pool, cache, {
+          client,
+          userId: user.id,
+          phone: cleanPhone,
+          orderAmount: toBdtNumber(totalPaisa),
+          otpCode,
+          smsSender,
+          isDevelopment,
+          ip,
+        });
+        isOtpVerified = gate.isOtpVerified;
+        trustScoreAtOrder = gate.trustScore;
+      }
+
+      // WHY the host: the stream's host is the seller whose audience bought, so the sub-order carries
+      // them as saler and the normal commission split applies.
+      const split = await resolveSplitPercentages(client, {
+        productId: prod.id,
+        productRef: prod.ref,
+        categoryId: prod.category_id,
+        salerId,
+        cache,
+      });
+      // Throws VALIDATION_FAILED when the (special) price is below the wholesale floor.
+      const pricing = calculatePricingBreakdown({
+        baseCost: prod.base_cost,
+        wholesaleMargin: prod.wholesale_margin,
+        retailPrice: unitPrice,
+        salerSplitPct: split.salerSplitPct,
+        platformSplitPct: split.platformSplitPct,
+        ruleSource: split.ruleSource,
+      });
+
+      const lineTotalPaisa = toPaisa(unitPrice) * quantity;
+      const netRetailPaisa = pricing.paisa.net_retail_margin * quantity;
+      const salerPaisa = pricing.paisa.saler_earning * quantity;
+
+      const batch = await orderRepo.allocateFefoBatch(client, {
+        productId: prod.id,
+        variantId: variantId ? Number(variantId) : null,
+        qty: quantity,
+      });
+      await orderRepo.deductStock(client, {
+        productId: prod.id,
+        variantId: variantId ? Number(variantId) : null,
+        qty: quantity,
+      });
+
+      const orderRef = generateRef('ORD');
+      const rootOrder = await orderRepo.createOrder(client, {
+        ref: orderRef,
+        customerId: user.id,
+        totalAmount: toBdtNumber(totalPaisa),
+        itemsAmount: toBdtNumber(lineTotalPaisa),
+        shippingAmount: toBdtNumber(shippingPaisa),
+        discountAmount: toBdtNumber(discountPaisa),
+        couponId: coupon?.id || null,
+        paymentMethod,
+        paymentStatus: 'PENDING',
+        isOtpVerified,
+        trustScoreAtOrder,
+        idempotencyKey,
+        recipientName: name,
+        recipientPhone: cleanPhone,
+        division,
+        district,
+        addressLine: address,
+        liveStreamId: sId,
+      });
+      const subOrder = await orderRepo.createSubOrder(client, {
+        ref: `${orderRef}-1`,
+        orderId: rootOrder.id,
+        supplierId: prod.supplier_id,
+        salerId,
+        subtotalBase: toBdtNumber(pricing.paisa.base_cost * quantity),
+        wholesaleMargin: toBdtNumber(pricing.paisa.wholesale_margin * quantity),
+        netRetailMargin: toBdtNumber(netRetailPaisa),
+        salerCommission: toBdtNumber(salerPaisa),
+        // Reconciled so saler_commission + platform_margin = net_retail_margin, as checkout does.
+        platformMargin: toBdtNumber(netRetailPaisa - salerPaisa),
+        shippingAmount: toBdtNumber(shippingPaisa),
+        discountShare: toBdtNumber(discountPaisa),
+        totalAmount: toBdtNumber(totalPaisa),
+        status: 'PLACED',
+      });
+      await orderRepo.createOrderItem(client, {
+        subOrderId: subOrder.id,
+        productId: prod.id,
+        variantId: variantId ? Number(variantId) : null,
+        batchId: batch?.id || null,
+        titleSnapshot: prod.title_en,
+        qty: quantity,
+        basePrice: pricing.base_cost,
+        retailPrice: pricing.retail_price,
+        lineTotal: toBdtNumber(lineTotalPaisa),
+      });
+
+      // WHY the same two calls as checkout: cancelOrder undoes exactly this (decrementCouponUsage).
+      if (coupon) {
+        await couponRepo.incrementCouponUsage(client, coupon.id, toBdtNumber(discountPaisa));
+        await couponRepo.recordRedemption(client, {
+          couponId: coupon.id,
+          userId: user.id,
+          orderId: rootOrder.id,
+          discountAmount: toBdtNumber(discountPaisa),
+        });
+      }
+
+      return { order: rootOrder, product: prod };
+    });
+  }
+
+  // Stream stats and the sale toast run after commit: a failed broadcast must not undo a paid-for order.
   await recordStreamPurchase(pool, {
     streamId: sId,
     orderRef: order.ref,
-    orderAmount: totalAmount,
+    orderAmount: Number(order.total_amount),
     buyerName: user.full_name || 'Customer',
     productTitle: product.title_en,
   });
 
   return {
     order,
+    isReplay: false,
     messageEn: 'In-stream purchase completed successfully!',
     messageBn: 'লাইভ স্ট্রিমে অর্ডারটি সফলভাবে সম্পন্ন হয়েছে!',
   };
