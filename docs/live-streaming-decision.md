@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary & Problem Context
 
-Explooro is a social commerce and zero-inventory reseller marketplace built for Bangladesh. In interactive live commerce (the Shopee Live / TikTok Shop model), hosts broadcast real-time video demonstrations, answer customer questions live, pin featured products dynamically onto viewers' screens, and viewers purchase pinned items via 1-click in-stream checkout without interrupting the video stream.
+Explooro is a social commerce and zero-inventory saler marketplace built for Bangladesh. In interactive live commerce (the Shopee Live / TikTok Shop model), hosts broadcast real-time video demonstrations, answer customer questions live, pin featured products dynamically onto viewers' screens, and viewers purchase pinned items via 1-click in-stream checkout without interrupting the video stream.
 
 Unlike passive VOD or sports broadcasting, **live stream commerce demands sub-500ms glass-to-glass latency**:
 - If a host announces *"The next 10 buyers get this saree for ৳1,200 — 3, 2, 1, pinned!"*, a 5–15 second HLS delay breaks the interactive auction/flash-deal dynamic completely.

@@ -4,6 +4,7 @@
 
 import * as productService from '../services/product.service.js';
 import { getSalerView as getSalerIncentiveView } from '../services/volumeIncentive.service.js';
+import { getSalerView as getSalerTierView } from '../services/salerTier.service.js';
 
 export async function addToStore(req, reply) {
   const db = req.db || req.server?.db;
@@ -38,6 +39,11 @@ export async function getSourcingCatalog(req, reply) {
 export async function getSalerIncentives(req, reply) {
   const db = req.db || req.server?.db;
   return reply.send({ data: await getSalerIncentiveView(db, req.user.id) });
+}
+
+export async function getSalerCommissionTier(req, reply) {
+  const db = req.db || req.server?.db;
+  return reply.send({ data: await getSalerTierView(db, req.user.id) });
 }
 
 export async function getSponsoredSourcing(req, reply) {

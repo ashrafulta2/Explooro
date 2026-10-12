@@ -764,8 +764,8 @@
   line-height: var(--leading-sm);
 }
 
-/* ── Reseller Insights & Leaderboards ── */
-.supplier-reseller-stack {
+/* ── Saler Insights & Leaderboards ── */
+.supplier-saler-stack {
   display: flex;
   flex-direction: column;
   gap: var(--space-5, 20px);

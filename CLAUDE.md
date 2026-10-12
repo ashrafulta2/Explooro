@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-Explooro — a social commerce and reseller partnership platform for Bangladesh. Suppliers hold
+Explooro — a social commerce and saler partnership platform for Bangladesh. Suppliers hold
 stock, Salers sell it from zero-inventory branded virtual storefronts, and commissions settle
 through an escrow-backed digital vault.
 

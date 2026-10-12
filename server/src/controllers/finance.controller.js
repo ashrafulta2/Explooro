@@ -9,6 +9,8 @@ import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.js';
 import * as escrowAdminService from '../services/escrowAdmin.service.js';
 import { writeAudit } from '../lib/audit.js';
 import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.js';
+import { loadRules as loadTierRules, saveRules as saveTierRules, validateRules as validateTierRules } from '../services/salerTierBonus.js';
+import { recomputeAll as recomputeSalerTiers } from '../services/salerTier.service.js';
 import * as subscriptionService from '../services/subscription.service.js';
 
 export async function getIntegrity(req, reply) {
@@ -417,14 +419,29 @@ export async function getProfitSplits(req, reply) {
     updated_at: c.override_at ?? null,
   }));
 
-  // 3. Read trust tier bonuses
+  // 3. Read trust tier bonuses and the volume each tier asks for
   const tierBonuses = await resolveTierBonuses(db);
+  const tierRules = await loadTierRules(db);
+  // WHY built from the stored thresholds: the old criteria text hardcoded volumes that no code ever
+  // enforced, so the screen described a ladder the platform did not run.
+  const fmt = (n) => `৳${Number(n).toLocaleString('en-US')}`;
+  const minOf = (k) => (k === 'BRONZE' ? 0 : tierRules.thresholds[k]);
   const tiers = [
-    { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0, criteria_en: 'Entry tier / under ৳50,000 GMV', criteria_bn: 'প্রাথমিক স্তর / ৫০,০০০ টাকার কম জিএমভি' },
-    { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 0, criteria_en: 'Consistent seller, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক সেলার, ৫০হাজার-২লাখ টাকা জিএমভি' },
-    { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড', bonus_pct: 0, criteria_en: 'High volume, ৳200k-৳1M GMV, <1% dispute rate', criteria_bn: 'উচ্চ ভলিউম, ২লাখ-১০লাখ টাকা জিএমভি' },
-    { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 0, criteria_en: 'Top 1% elite reseller, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট সেলার, ১০ লাখ টাকার বেশি জিএমভি' },
-  ].map((t) => ({ ...t, bonus_pct: tierBonuses[t.tier] }));
+    { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ' },
+    { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার' },
+    { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড' },
+    { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট' },
+  ].map((t) => ({
+    ...t,
+    bonus_pct: tierBonuses[t.tier],
+    min_volume: minOf(t.tier),
+    criteria_en: t.tier === 'BRONZE'
+      ? `Everyone starts here (under ${fmt(tierRules.thresholds.SILVER)} delivered in ${tierRules.window_days} days)`
+      : `${fmt(minOf(t.tier))} or more delivered in ${tierRules.window_days} days`,
+    criteria_bn: t.tier === 'BRONZE'
+      ? `সবাই এখান থেকে শুরু করে (${tierRules.window_days} দিনে ${fmt(tierRules.thresholds.SILVER)} এর কম ডেলিভারি)`
+      : `${tierRules.window_days} দিনে ${fmt(minOf(t.tier))} বা তার বেশি ডেলিভারি`,
+  }));
 
   // 4. Read audit logs
   const { rows: auditRows } = await db.query(
@@ -450,12 +467,13 @@ export async function getProfitSplits(req, reply) {
       global: globalSplit,
       categories,
       tiers,
+      tier_rules: tierRules,
       audit_log: auditLog,
       metrics: {
         default_saler_split: globalSplit.saler_split_pct,
         default_platform_split: globalSplit.platform_split_pct,
         active_overrides_count: activeOverrides,
-        max_tier_bonus: 5.0,
+        max_tier_bonus: Math.max(...Object.values(tierBonuses)),
         effective_platform_retention_pct: 58.2,
       },
     },
@@ -626,31 +644,58 @@ export async function deleteCategorySplit(req, reply) {
 export async function updateTierBonuses(req, reply) {
   const db = req.server.db;
   const reason = req.body?.reason || 'Trust tier commission bonus adjustment';
+  const hasTiers = req.body?.tiers !== undefined;
+  const hasRules = req.body?.rules !== undefined;
 
-  // WHY: store only { tier, bonus_pct }; names and criteria are display text, not policy.
-  const input = Array.isArray(req.body?.tiers) ? req.body.tiers : [];
-  const tiers = input.map((t) => ({ tier: t?.tier, bonus_pct: Number(t?.bonus_pct) }));
-  const valid =
-    tiers.length > 0 &&
-    new Set(tiers.map((t) => t.tier)).size === tiers.length &&
-    tiers.every((t) => TIER_KEYS.includes(t.tier) && Number.isFinite(t.bonus_pct) && t.bonus_pct >= 0 && t.bonus_pct <= 50);
-  if (!valid) {
-    return reply.status(400).send({
-      error: {
-        code: 'TIER_BONUS_INVALID',
-        message_en: 'Each tier must be BRONZE, SILVER, GOLD or PLATINUM (once) with a bonus between 0 and 50.',
-        message_bn: 'প্রতিটি টিয়ার (ব্রোঞ্জ, সিলভার, গোল্ড বা প্ল্যাটিনাম) একবার করে থাকতে হবে এবং বোনাস ০ থেকে ৫০ এর মধ্যে হতে হবে।',
-      },
-    });
+  // WHY both validated before either is written: the screen saves bonuses and the volume ladder with one
+  // button, so a bad ladder must not leave the new bonuses half-applied.
+  let tiers = null;
+  if (hasTiers || !hasRules) {
+    // WHY: store only { tier, bonus_pct }; names and criteria are display text, not policy.
+    const input = Array.isArray(req.body?.tiers) ? req.body.tiers : [];
+    tiers = input.map((t) => ({ tier: t?.tier, bonus_pct: Number(t?.bonus_pct) }));
+    const valid =
+      tiers.length > 0 &&
+      new Set(tiers.map((t) => t.tier)).size === tiers.length &&
+      tiers.every((t) => TIER_KEYS.includes(t.tier) && Number.isFinite(t.bonus_pct) && t.bonus_pct >= 0 && t.bonus_pct <= 50);
+    if (!valid) {
+      return reply.status(400).send({
+        error: {
+          code: 'TIER_BONUS_INVALID',
+          message_en: 'Each tier must be BRONZE, SILVER, GOLD or PLATINUM (once) with a bonus between 0 and 50.',
+          message_bn: 'প্রতিটি টিয়ার (ব্রোঞ্জ, সিলভার, গোল্ড বা প্ল্যাটিনাম) একবার করে থাকতে হবে এবং বোনাস ০ থেকে ৫০ এর মধ্যে হতে হবে।',
+        },
+      });
+    }
   }
-  const before = await resolveTierBonuses(db);
 
-  await db.query(
-    `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
-     VALUES ('finance.tier_bonuses', $1::jsonb, 'OBJECT', 'Trust Tier Bonuses', 'ট্রাস্ট টিয়ার বোনাস', 'finance', now())
-     ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
-    [JSON.stringify(tiers)]
-  );
+  let rules = null;
+  if (hasRules) {
+    try {
+      rules = validateTierRules(req.body.rules);
+    } catch (err) {
+      return reply.status(400).send({
+        error: {
+          code: 'TIER_RULES_INVALID',
+          message_en: err.message,
+          message_bn: 'টিয়ারের শর্ত সঠিক নয়: চালু/বন্ধ, ৭ থেকে ৩৬৫ দিনের উইন্ডো, এবং প্রতিটি উঁচু টিয়ারে আগেরটির চেয়ে বেশি ভলিউম দিতে হবে।',
+        },
+      });
+    }
+  }
+
+  const beforeBonuses = await resolveTierBonuses(db);
+  const beforeRules = await loadTierRules(db);
+
+  if (tiers) {
+    await db.query(
+      `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
+       VALUES ('finance.tier_bonuses', $1::jsonb, 'OBJECT', 'Trust Tier Bonuses', 'ট্রাস্ট টিয়ার বোনাস', 'finance', now())
+       ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
+      [JSON.stringify(tiers)]
+    );
+  }
+  if (rules) await saveTierRules(db, rules);
 
   await writeAudit(db, {
     actor_id: req.user?.id || null,
@@ -658,17 +703,28 @@ export async function updateTierBonuses(req, reply) {
     action: 'UPDATE_TIER_BONUSES',
     target_type: 'COMMISSION_SPLIT',
     target_ref: 'TIER_MATRIX',
-    before_json: { tiers: before },
-    after_json: { tiers },
+    before_json: { tiers: beforeBonuses, rules: beforeRules },
+    after_json: { tiers: tiers ?? beforeBonuses, rules: rules ?? beforeRules },
     meta: { reason },
   });
+
+  // WHY here as well as hourly: an admin who switches the ladder on or changes a threshold expects
+  // salers to move now. A failure only means the hourly job does it, so it must not fail the save.
+  if (rules) {
+    try {
+      await recomputeSalerTiers(db);
+    } catch (err) {
+      req.log?.warn?.({ err }, 'saler tier recompute after save failed; the hourly job will retry');
+    }
+  }
 
   return reply.send({
     data: {
       success: true,
-      tiers,
-      message_en: 'Trust tier bonuses updated.',
-      message_bn: 'ট্রাস্ট টিয়ার বোনাস আপডেট করা হয়েছে।',
+      tiers: tiers ?? undefined,
+      rules: rules ?? undefined,
+      message_en: 'Trust tier settings updated.',
+      message_bn: 'ট্রাস্ট টিয়ার সেটিংস আপডেট করা হয়েছে।',
     },
   });
 }

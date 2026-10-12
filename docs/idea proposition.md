@@ -1,19 +1,19 @@
 # 🚀 Explooro — Business & Technical Idea Proposition
 
-> **Next-Generation Social Commerce, Reseller Partnership & Smart Sourcing Ecosystem**  
+> **Next-Generation Social Commerce, Saler Partnership & Smart Sourcing Ecosystem**  
 > *Empowering manufacturers, digital micro-entrepreneurs (Salers), and everyday shoppers to trade, share profits, and grow together.*
 
 ---
 
 ## 1. Executive Summary
 
-**Explooro** is a high-performance, industry-scale social e-commerce and reselling platform designed around a collaborative, **profit-sharing partnership model**.
+**Explooro** is a high-performance, industry-scale social e-commerce and selling platform designed around a collaborative, **profit-sharing partnership model**.
 
 Unlike conventional single-vendor stores or traditional dropshipping websites, Explooro bridges physical inventory owners (**Manufacturers & Suppliers**) with digital micro-entrepreneurs (**Salers**) and end **Customers** in a single interconnected, self-sustaining circular economy.
 
 ### 🌟 The Core Vision
 * **Manufacturers & Suppliers**: Focus purely on production, inventory management, and fast fulfillment.
-* **Salers (Virtual Resellers)**: Build personalized virtual storefronts without holding physical stock, sourcing supplier items and driving sales through storytelling, community engagement, and internal advertising.
+* **Salers (Virtual Salers)**: Build personalized virtual storefronts without holding physical stock, sourcing supplier items and driving sales through storytelling, community engagement, and internal advertising.
 * **Customers**: Enjoy a personalized, social shopping experience with transparent ratings, verified suppliers, AI-assisted product discovery, and one-click purchasing.
 * **Fluid Role Upgrades**: Any customer can upgrade to become a Saler with one click; any supplier or Saler can purchase products from other members for personal or business needs.
 
@@ -74,7 +74,7 @@ Explooro operates on a **multi-level Role-Based Access Control (RBAC)** architec
 | Role | Who They Are | Key Capabilities |
 | :--- | :--- | :--- |
 | **🏭 Supplier / Manufacturer** | Physical inventory holders and factory owners. | • Upload products with base cost, wholesale margins & stock levels.<br>• Manage order fulfillment, packaging, and dispatch.<br>• Activate Saler mode to resell products from other suppliers.<br>• Real-time stock alerts and wholesale performance analytics. |
-| **🛍️ Saler (Virtual Reseller)** | Digital creators, marketers, micro-entrepreneurs. | • Add any supplier item to their virtual shop with zero inventory risk.<br>• Market via storytelling, problem-solving posts, and video clips.<br>• Run paid sponsored ads within Explooro to boost reach.<br>• Earn commissions on every completed purchase. |
+| **🛍️ Saler (Virtual Saler)** | Digital creators, marketers, micro-entrepreneurs. | • Add any supplier item to their virtual shop with zero inventory risk.<br>• Market via storytelling, problem-solving posts, and video clips.<br>• Run paid sponsored ads within Explooro to boost reach.<br>• Earn commissions on every completed purchase. |
 | **🛒 Customer / Visitor** | Everyday shoppers looking for curated products. | • Browse multi-seller catalogs, discover trending items.<br>• Follow favorite creators, Salers, and verified manufacturers.<br>• 1-click upgrade to become a Saler anytime. |
 
 ### B. Platform Governance & Administrative Hierarchy
@@ -109,7 +109,7 @@ The Super Admin Dashboard includes a centralized **Module Control Panel** — a 
 │  Module / Feature                                │  Default   │  Notes                             │
 ├──────────────────────────────────────────────────┼────────────┼────────────────────────────────────┤
 │  Supplier / Manufacturer Verification            │  🟢 ON     │  Mandatory before product listing  │
-│  Saler (Reseller) Verification                   │  🟢 ON     │  Lightweight NID + OTP             │
+│  Saler Verification                   │  🟢 ON     │  Lightweight NID + OTP             │
 │  Customer Identity Verification                  │  🔴 OFF    │  Enable per threshold or globally  │
 │  Customer Age Verification                       │  🔴 OFF    │  For age-restricted categories     │
 │  Product Approval & Moderation Queue             │  🟢 ON     │  Configurable per category         │
@@ -217,7 +217,7 @@ Suppliers and manufacturers who want to list products must pass identity and bus
 * **Rejection with Appeal**: Suppliers whose verification is rejected can re-submit corrected documents with an automated appeal queue.
 * **Blue-Tick Badge** displayed publicly on verified supplier profiles and product listings.
 
-#### 2. 🛍️ Saler (Reseller) Verification (Active by Default — Lightweight)
+#### 2. 🛍️ Saler Verification (Active by Default — Lightweight)
 
 Salers undergo a lighter-weight identity check since they do not hold physical inventory, but enough to ensure accountability:
 
@@ -452,7 +452,7 @@ Recovers 20% to 35% of lost revenue by re-engaging customers who added products 
 ### R. Gamification, Leaderboards & Seller Motivation Rewards
 
 Keeps micro-entrepreneurs and creators engaged, active, and motivated to achieve higher sales volumes:
-* **Monthly Top Saler Leaderboard**: Real-time leaderboard showcasing top-performing resellers by sales volume and customer satisfaction.
+* **Monthly Top Saler Leaderboard**: Real-time leaderboard showcasing top-performing salers by sales volume and customer satisfaction.
 * **Tiered Milestone Badges**: `Bronze Seller ➔ Silver Merchant ➔ Gold Star ➔ Diamond Partner`.
 * **Performance Bonus Pool & Ad Credits**: Monthly cash prize pools and free sponsored ad credits awarded to top achievers.
 * **Achievement Streaks**: Extra reward points for consistent weekly sales that can be redeemed for platform perks or cash bonuses.
@@ -560,7 +560,7 @@ Protects suppliers from stockouts and overproduction through predictive time-ser
 
 Empowers independent Salers and Suppliers to combine complementary items into high-converting combo packages:
 * **Multi-Merchant Combo Builder**: Combine items from different suppliers (e.g., Supplier A's formal shirt + Supplier B's trousers) into an "Executive Office Outfit" bundle.
-* **Automated Split-Settlement**: Customers enjoy a 15–20% combo discount, while the platform's split-payout engine automatically routes exact wholesale costs and individual profits to each respective supplier and reseller.
+* **Automated Split-Settlement**: Customers enjoy a 15–20% combo discount, while the platform's split-payout engine automatically routes exact wholesale costs and individual profits to each respective supplier and saler.
 
 ---
 
@@ -644,7 +644,7 @@ Every subscriber tier and administrative role in Explooro is equipped with a **d
 │           🛍️ Marketplace Subscriber Dashboards     │          🛡️ Platform Governance Dashboards         │
 ├───────────────────────────────────────────────────┼────────────────────────────────────────────────────┤
 │ 1. 🏭 Manufacturer & Supplier Dashboard           │ 4. 👑 Super Admin Dashboard (Full Executive)       │
-│ 2. 🛍️ Saler (Virtual Reseller) Dashboard          │ 5. 🛡️ Moderator Dashboard (Trust & Safety)         │
+│ 2. 🛍️ Saler (Virtual Saler) Dashboard          │ 5. 🛡️ Moderator Dashboard (Trust & Safety)         │
 │ 3. 🛒 Customer / Shopper Portal                   │ 6. ✍️ Editor Dashboard (Content & Localization)   │
 └───────────────────────────────────────────────────┴────────────────────────────────────────────────────┘
 ```
@@ -659,12 +659,12 @@ Designed for factory owners, wholesalers, and physical inventory holders:
 * **🚚 3PL Courier Dispatch & GPS Tracking**: 1-click consignment creation (Steadfast, Pathao, RedX, Paperfly), packing slip printing, and live rider map tracking.
 * **📹 Live Commerce Host Panel**: Schedule and broadcast live supplier stream sessions directly to all platform Salers and buyers.
 * **🔒 B2B Wholesale Escrow Ledger**: Track large bulk orders held in escrow and pending milestone release upon verified delivery.
-* **👥 Reseller Network Insights**: Real-time analytics showing which Salers are curating and selling their products most effectively.
+* **👥 Saler Network Insights**: Real-time analytics showing which Salers are curating and selling their products most effectively.
 * **💰 Supplier Payout & Earnings Vault**: Real-time statements of fulfilled wholesale orders, available balance, and automated COD payouts (Bank/bKash).
 * **💬 Direct Wholesale Inquiries**: Dedicated chat channel to negotiate custom orders and bulk pricing with Salers.
 * **🏪 Physical Store Status Toggle**: Toggle physical shop status (**Open** 🟢 / **Closed** 🔴) with operating hours setup.
 
-#### 2. 🛍️ Saler (Virtual Reseller) Dashboard (Digital Storefront & Growth Studio)
+#### 2. 🛍️ Saler (Virtual Saler) Dashboard (Digital Storefront & Growth Studio)
 Designed for digital micro-entrepreneurs, social marketers, and creators:
 * **🎨 Virtual Storefront Builder**: Customize store name, unique URL slug, custom logo/banner, bio, and featured product shelves.
 * **📊 Prescriptive AI Growth Assistant**: Real-time actionable tips (*"Run a 10% promo on item X to boost conversions"*).
@@ -696,7 +696,7 @@ Designed for buyers to manage their purchases and interactions seamlessly:
 * **👥 Followed Stores & Creators**: Dedicated feed showcasing latest product drops, live stream notifications, and stories from favorite Salers and Suppliers.
 * **🤖 Shopping Concierge History**: Saved conversations and product recommendation threads with the AI Shopping Assistant.
 * **🔄 Return, Refund & Dispute Hub**: 1-click return requests with status updates and wallet refund statements.
-* **🚀 1-Click "Become a Saler" Upgrade**: Instant activation button to launch their own virtual reseller shop with zero paperwork.
+* **🚀 1-Click "Become a Saler" Upgrade**: Instant activation button to launch their own virtual saler shop with zero paperwork.
 
 #### 4. 👑 Super Admin Dashboard (Executive Governance & Financial Control)
 The master cockpit for business owners and platform administrators:

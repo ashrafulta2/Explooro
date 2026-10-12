@@ -443,7 +443,30 @@ const proView = () => {
     monthly_fee: plan.monthly_fee, commission_rebate_pct: plan.commission_rebate_pct };
 };
 
+// Same shape as GET /saler/commission-tier (server services/salerTier.service.js getSalerView).
+const mockCommissionTier = () => ({
+  enabled: true,
+  window_days: 30,
+  tier: 'SILVER',
+  bonus_pct: 1,
+  volume: '82000.00',
+  computed_at: new Date().toISOString(),
+  next: { tier: 'GOLD', min_volume: 150000, remaining: 68000, bonus_pct: 2 },
+  ladder: [
+    { tier: 'BRONZE', min_volume: 0, bonus_pct: 0 },
+    { tier: 'SILVER', min_volume: 50000, bonus_pct: 1 },
+    { tier: 'GOLD', min_volume: 150000, bonus_pct: 2 },
+    { tier: 'PLATINUM', min_volume: 400000, bonus_pct: 5 },
+  ],
+});
+
 export default [
+  {
+    method: 'GET',
+    path: '/saler/commission-tier',
+    handler: () => ({ status: 200, body: { data: mockCommissionTier() } }),
+  },
+
   // 1. Unified Dashboard
   {
     method: 'GET',

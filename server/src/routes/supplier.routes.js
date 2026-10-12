@@ -156,17 +156,17 @@ export default async function supplierRoutes(app) {
     controller.bookConsignment
   );
 
-  // 6. Reseller Network Insights & Leaderboard
+  // 6. Saler Network Insights & Leaderboard
   app.get(
-    '/supplier/resellers',
+    '/supplier/salers',
     {
-      config: { page: '/supplier/resellers' },
+      config: { page: '/supplier/salers' },
       preHandler: [
         authenticate,
         requirePerm('supplier.analytics.view'),
       ],
     },
-    controller.getResellerInsights
+    controller.getSalerInsights
   );
 
   // 6b. Supplier Scorecard - the supplier's own view of how salers see them

@@ -1,7 +1,7 @@
 # 🔄 Data Flow Architecture & Specifications (DFD) — Explooro Ecosystem (`DFD.md`)
 
 > **Document Version:** 2.0 (Comprehensive — All 20 Subsystems Covered)  
-> **Target System:** Explooro Multi-Tier Social Commerce & Digital Reseller Partnership Platform  
+> **Target System:** Explooro Multi-Tier Social Commerce & Digital Saler Partnership Platform  
 > **Authoring AI Pair:** Google Antigravity + Claude Code  
 > **Coverage:** Level 0 (Context), Level 1 (20 Macro Subsystems), Level 2 (17 Detailed Micro-Flows), Data Dictionary & Event Pipelines.
 
@@ -35,7 +35,7 @@ The Level 0 Context Diagram establishes the global perimeter of Explooro, captur
 graph TD
     %% External Entities
     Supplier["🏭 Supplier / Manufacturer"]
-    Saler["🛍️ Saler (Virtual Reseller)"]
+    Saler["🛍️ Saler (Virtual Saler)"]
     Customer["🛒 Customer / Shopper"]
     Admin["👑 Super Admin / Moderator / Editor"]
     MFS["💳 MFS Gateways (bKash, Nagad, Rocket)"]

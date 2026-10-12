@@ -23,7 +23,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null } = 
       <div class="become-saler-cta__info">
         <div class="inline-flex items-center gap-2">
           <span class="badge badge--brand text-[10px] font-bold uppercase tracking-wider">
-            ✨ ${t('customer.become_saler.badge', 'Zero-Capital Reseller Hub')}
+            ✨ ${t('customer.become_saler.badge', 'Zero-Capital Saler Hub')}
           </span>
         </div>
         <h2 class="become-saler-cta__title">

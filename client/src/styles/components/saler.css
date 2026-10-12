@@ -1045,3 +1045,28 @@
   .saler-quest-card > .saler-row { flex-wrap: wrap; min-width: 0; }
   .saler-quest-card .saler-row.shrink-0 { flex-shrink: 1; flex-wrap: wrap; }
 }
+
+/* Earned commission tier card (CommissionTierCard.js) */
+.commission-tier-card {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+.commission-tier-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3, 12px); flex-wrap: wrap; }
+.commission-tier-card__eyebrow { font-size: var(--text-xs, 12px); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.commission-tier-card__tier { margin: 2px 0 0; font-size: var(--text-2xl, 24px); font-weight: var(--weight-bold, 700); color: var(--text-primary); }
+.commission-tier-card__bonus { background: var(--brand-50, #fdf8ef); color: var(--brand-900, #866100); border-radius: var(--radius-full, 999px); padding: var(--space-1, 4px) var(--space-3, 12px); font-size: var(--text-sm, 14px); font-weight: var(--weight-bold, 700); }
+.commission-tier-card__bar { height: 10px; border-radius: var(--radius-full, 999px); background: var(--surface-2, #f1f5f9); overflow: hidden; }
+.commission-tier-card__fill { height: 100%; background: var(--brand-400, #ffbc00); border-radius: inherit; transition: width 0.4s ease; }
+.commission-tier-card__line { margin: 0; font-size: var(--text-sm, 14px); font-weight: var(--weight-bold, 700); color: var(--text-primary); }
+.commission-tier-card__ladder { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--space-2, 8px); }
+.commission-tier-card__step { display: flex; flex-direction: column; gap: 2px; padding: var(--space-2, 8px) var(--space-3, 12px); border: 1px solid var(--border-subtle, #e2e8f0); border-radius: var(--radius-lg, 12px); background: var(--surface-1, #f8fafc); }
+.commission-tier-card__step.is-passed { opacity: 0.7; }
+.commission-tier-card__step.is-current { border-color: var(--brand-400, #ffbc00); background: var(--brand-50, #fdf8ef); }
+.commission-tier-card__step-name { font-size: var(--text-sm, 14px); font-weight: var(--weight-bold, 700); color: var(--text-primary); }
+.commission-tier-card__step-meta { font-size: var(--text-xs, 12px); color: var(--text-muted); font-family: var(--font-mono, monospace); }
+.commission-tier-card__foot { margin: 0; font-size: var(--text-xs, 12px); color: var(--text-muted); }

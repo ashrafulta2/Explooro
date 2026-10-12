@@ -43,7 +43,7 @@ test('2. Navigation Structure for Supplier Portal', async (t) => {
     
     const requiredRoutes = [
       '/supplier',
-      '/supplier/resellers',
+      '/supplier/salers',
       '/supplier/products',
       '/supplier/inventory',
       '/supplier/batches',
@@ -334,10 +334,10 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
   });
 });
 
-test('10. Reseller Insights & Currency Formatting Integrity', async (t) => {
-  await t.test('GET /supplier/resellers returns top salers and regional distribution', () => {
-    const handler = supplierHandlers.find((h) => h.method === 'GET' && h.path === '/supplier/resellers');
-    assert.ok(handler, 'GET /supplier/resellers handler exists');
+test('10. Saler Insights & Currency Formatting Integrity', async (t) => {
+  await t.test('GET /supplier/salers returns top salers and regional distribution', () => {
+    const handler = supplierHandlers.find((h) => h.method === 'GET' && h.path === '/supplier/salers');
+    assert.ok(handler, 'GET /supplier/salers handler exists');
 
     const res = handler.handler();
     assert.equal(res.status, 200);

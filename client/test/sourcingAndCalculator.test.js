@@ -158,8 +158,8 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(!content.includes("details.append(\n    row('product_detail.price.platform_earning'"), 'Must not append platform earning unconditionally');
   });
 
-  // 9. ProfitCalculator Invariant — Reseller only sees wholesale, retail, and their own profit
-  await t.test('9. ProfitCalculator exposes wholesale cost, retail price, and reseller profit with zero platform cards or split leak', async () => {
+  // 9. ProfitCalculator Invariant — Saler only sees wholesale, retail, and their own profit
+  await t.test('9. ProfitCalculator exposes wholesale cost, retail price, and saler profit with zero platform cards or split leak', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const filePath = path.resolve(import.meta.dirname, '../src/components/saler/ProfitCalculator.js');
@@ -200,8 +200,8 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(drawerContent.includes("minRetailPrice"), 'AddToStoreDrawer must enforce minRetailPrice');
   });
 
-  // 12. Tiered Reseller Pricing Engine Client Math
-  await t.test('12. Tiered Reseller Pricing: discount absorbs saler profit with platform protected; boost shares extra markup', () => {
+  // 12. Tiered Saler Pricing Engine Client Math
+  await t.test('12. Tiered Saler Pricing: discount absorbs saler profit with platform protected; boost shares extra markup', () => {
     const supplierCost = 1000;
     const platDefPct = 10;
     const salerDefPct = 20;

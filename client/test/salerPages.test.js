@@ -5,7 +5,7 @@
  * 1. Saler API and mock handlers contracts across all 19 saler pages.
  * 2. Saler curated products price markup updates, stock levels, and margin calculations.
  * 3. Physical shop status toggle, master hours presets, and 7-day schedule consistency.
- * 4. Reseller order tracking, sub-item profits, courier consignment, and escrow release status.
+ * 4. Saler order tracking, sub-item profits, courier consignment, and escrow release status.
  * 5. Instant payout request validation (min ৳100, max available balance) & cancellation.
  * 6. Daily & weekly quest completion and 1-click reward claiming.
  * 7. Top 50 national seller leaderboard ranking and podium tiers.

@@ -7,7 +7,7 @@
  * - FEFO Batch Management, Clearance Actions & Recalls.
  * - Multi-Warehouse Mapping & Node Configurations.
  * - Fulfilment Queue, Consignments & Labels.
- * - Reseller Network Insights & Curators Leaderboard.
+ * - Saler Network Insights & Curators Leaderboard.
  * - Physical Shop Operating Status Toggle.
  */
 
@@ -68,8 +68,8 @@ export async function getDashboardOverview(req, reply) {
     [supplierId]
   );
 
-  // 5. Active resellers count
-  const { rows: resellerStats } = await db.query(
+  // 5. Active salers count
+  const { rows: salerStats } = await db.query(
     `SELECT COUNT(DISTINCT ssi.store_id) AS active_curators_count
      FROM saler_store_items ssi
      JOIN products p ON p.id = ssi.product_id
@@ -102,7 +102,7 @@ export async function getDashboardOverview(req, reply) {
         expiring_soon_count: Number(batchStats[0]?.expiring_soon_count || 0),
         expired_count: Number(batchStats[0]?.expired_count || 0),
         total_warehouses: Number(warehouseStats[0]?.total_warehouses || 0),
-        active_curators_count: Number(resellerStats[0]?.active_curators_count || 0),
+        active_curators_count: Number(salerStats[0]?.active_curators_count || 0),
       },
       physical_shop: shopStatus,
     },
@@ -421,7 +421,7 @@ export async function bookConsignment(req, reply) {
 }
 
 /**
- * Reseller network insights: Analytics on Salers who curate and sell the supplier's products.
+ * Saler network insights: Analytics on Salers who curate and sell the supplier's products.
  */
 export async function getScorecard(req, reply) {
   const result = await getOwnScorecard(req.server.db, req.user.id);
@@ -444,7 +444,7 @@ export async function saveIncentive(req, reply) {
   return reply.send({ data: saved });
 }
 
-export async function getResellerInsights(req, reply) {
+export async function getSalerInsights(req, reply) {
   const supplierId = req.user.id;
   const db = req.server.db;
 

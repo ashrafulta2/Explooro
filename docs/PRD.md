@@ -3,16 +3,16 @@
 > **Document Version:** 1.0 (Final Architecture & Product Blueprint)  
 > **Status:** Approved for Implementation  
 > **Authoring AI Pair:** Google Antigravity + Claude Code  
-> **Core Objective:** Build a superfast, zero-bloat, high-concurrency Social Commerce and Reseller Partnership platform with native real-time capabilities and flexible admin governance.
+> **Core Objective:** Build a superfast, zero-bloat, high-concurrency Social Commerce and Saler Partnership platform with native real-time capabilities and flexible admin governance.
 
 ---
 
 ## 1. Executive Product Overview
 
 ### 1.1 Product Mission
-**Explooro** is an industry-scale social e-commerce and reselling platform operating on a **collaborative profit-sharing partnership model**. It establishes a circular, self-sustaining marketplace that connects:
+**Explooro** is an industry-scale social e-commerce and selling platform operating on a **collaborative profit-sharing partnership model**. It establishes a circular, self-sustaining marketplace that connects:
 1. **Physical Manufacturers / Suppliers** (Inventory owners without direct marketing overhead).
-2. **Salers / Resellers** (Digital micro-entrepreneurs who sell without physical inventory).
+2. **Salers / Salers** (Digital micro-entrepreneurs who sell without physical inventory).
 3. **End Customers** (Shoppers looking for curated products, transparent reviews, and social shopping).
 
 ### 1.2 Core Product Principles
@@ -42,7 +42,7 @@
 ───────────────────────────────────── MARKETPLACE USERS ─────────────────────────────────────
 
      ┌────────────────────────┐      ┌────────────────────────┐      ┌────────────────────────┐
-     │  Supplier/Manufacturer │ ◄──► │ Saler (Reseller Shop)  │ ◄──► │   Customer / Shopper   │
+     │  Supplier/Manufacturer │ ◄──► │ Saler Shop          │ ◄──► │   Customer / Shopper   │
      │  • Holds Stock & Base  │      │ • Sells via Story/Ads  │      │ • Browses, Chats, Buys │
      │  • Fulfillment Hub     │      │ • Earns Dynamic Split  │      │ • 1-Click Saler Upgrade│
      └────────────────────────┘      └────────────────────────┘      └────────────────────────┘
@@ -58,7 +58,7 @@
   * Dual Mode: Can activate Saler mode to resell products from other suppliers.
   * Real-time stock depletion alerts.
 
-#### B. 🛍️ Saler (Virtual Reseller)
+#### B. 🛍️ Saler (Virtual Saler)
 * **Goal:** Run a profitable online business with zero capital, zero warehouse, and zero logistics hassle.
 * **Key Capabilities:**
   * 1-Click "Add to My Store" from verified supplier catalogs.

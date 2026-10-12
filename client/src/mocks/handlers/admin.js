@@ -3175,6 +3175,7 @@ export const adminHandlers = [
           global: mockGlobalSplit,
           categories: mockCategorySplits,
           tiers: mockTierIncentives,
+          tier_rules: mockTierRules,
           audit_log: mockSplitAuditLog,
           metrics: {
             default_saler_split: mockGlobalSplit.saler_split_pct,
@@ -3317,6 +3318,26 @@ export const adminHandlers = [
     method: 'PUT',
     path: '/admin/finance/splits/tiers',
     handler({ body }) {
+      const rules = body?.rules;
+      if (rules !== undefined) {
+        // Same refusals as the server: strict, never clamped, and nothing is saved on a bad ladder.
+        const t = rules?.thresholds || {};
+        const rises = Number(t.SILVER) > 0 && Number(t.GOLD) > Number(t.SILVER) && Number(t.PLATINUM) > Number(t.GOLD);
+        const okWindow = Number.isInteger(rules?.window_days) && rules.window_days >= 7 && rules.window_days <= 365;
+        if (typeof rules?.enabled !== 'boolean' || !okWindow || !rises) {
+          return {
+            status: 400,
+            body: {
+              error: {
+                code: 'TIER_RULES_INVALID',
+                message_en: 'Tier rules are invalid: on/off, a 7 to 365 day window, and each higher tier must ask for more volume.',
+                message_bn: 'টিয়ারের শর্ত সঠিক নয়: চালু/বন্ধ, ৭ থেকে ৩৬৫ দিনের উইন্ডো, এবং প্রতিটি উঁচু টিয়ারে আগেরটির চেয়ে বেশি ভলিউম দিতে হবে।',
+              },
+            },
+          };
+        }
+        mockTierRules = { enabled: rules.enabled, window_days: rules.window_days, thresholds: { SILVER: Number(t.SILVER), GOLD: Number(t.GOLD), PLATINUM: Number(t.PLATINUM) } };
+      }
       if (Array.isArray(body?.tiers)) {
         mockTierIncentives = body.tiers;
       }
@@ -3335,8 +3356,9 @@ export const adminHandlers = [
         body: {
           success: true,
           tiers: mockTierIncentives,
-          message_en: 'Trust tier bonuses updated.',
-          message_bn: 'ট্রাস্ট টিয়ার বোনাস আপডেট করা হয়েছে।',
+          rules: mockTierRules,
+          message_en: 'Trust tier settings updated.',
+          message_bn: 'ট্রাস্ট টিয়ার সেটিংস আপডেট করা হয়েছে।',
         },
       };
     },
@@ -3829,8 +3851,11 @@ let mockTierIncentives = [
   { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0.0, criteria_en: 'Entry tier / under ৳50,000 GMV', criteria_bn: 'প্রাথমিক স্তর / ৫০,০০০ টাকার কম জিএমভি' },
   { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 1.0, criteria_en: 'Consistent seller, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক সেলার, ৫০হাজার-২লাখ টাকা জিএমভি' },
   { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড', bonus_pct: 2.0, criteria_en: 'High volume, ৳200k-৳1M GMV, <1% dispute rate', criteria_bn: 'উচ্চ ভলিউম, ২লাখ-১০লাখ টাকা জিএমভি' },
-  { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 5.0, criteria_en: 'Top 1% elite reseller, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট সেলার, ১০ লাখ টাকার বেশি জিএমভি' },
+  { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 5.0, criteria_en: 'Top 1% elite saler, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট সেলার, ১০ লাখ টাকার বেশি জিএমভি' },
 ];
+
+// Mirrors the server's `saler.commission_tiers` setting; ships OFF, like the migration.
+let mockTierRules = { enabled: false, window_days: 30, thresholds: { SILVER: 50000, GOLD: 150000, PLATINUM: 400000 } };
 
 let mockSplitAuditLog = [
   { id: 101, actor: 'Super Admin #1', scope: 'GLOBAL', before: '38% Saler / 62% Platform', after: '40% Saler / 60% Platform', reason: 'Platform launch baseline normalization', created_at: '2026-08-25T11:20:00Z' },
@@ -3914,7 +3939,7 @@ let mockSubscribers = [
   { id: 4, merchant_name: 'Bengal Agro Foods', store_name: 'Organic Harvest BD', phone: '01644556677', ref: 'SUP-44125', role: 'supplier', plan_id: 'plan_enterprise', plan_name: 'Enterprise Wholesale', monthly_fee: 5999, quota_used: 6400, quota_total: 999999, next_renewal: '2026-10-01', status: 'ACTIVE', waived: false },
   { id: 5, merchant_name: 'Ashiqur Rahman', store_name: 'Gadget Express BD', phone: '01555667788', ref: 'SLR-88109', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Saler Pro', monthly_fee: 999, quota_used: 350, quota_total: 1000, next_renewal: '2026-09-02', status: 'PAST_DUE', waived: false },
   { id: 6, merchant_name: 'Karupalli Crafts', store_name: 'Karupalli Artisan', phone: '01799887766', ref: 'SUP-44130', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 1100, quota_total: 5000, next_renewal: '2026-11-30', status: 'WAIVED', waived: true, waiver_reason: 'National SME startup grant' },
-  { id: 7, merchant_name: 'Shakil Ahmed', store_name: 'Apex Footwear Resell', phone: '01712345678', ref: 'SLR-88115', role: 'saler', plan_id: 'plan_starter', plan_name: 'Free Starter', monthly_fee: 0, quota_used: 65, quota_total: 100, next_renewal: '2026-09-30', status: 'ACTIVE', waived: false },
+  { id: 7, merchant_name: 'Shakil Ahmed', store_name: 'Apex Footwear Store', phone: '01712345678', ref: 'SLR-88115', role: 'saler', plan_id: 'plan_starter', plan_name: 'Free Starter', monthly_fee: 0, quota_used: 65, quota_total: 100, next_renewal: '2026-09-30', status: 'ACTIVE', waived: false },
 ];
 
 // --- Platform Integrations & Settings Mock State ---

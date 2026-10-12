@@ -543,10 +543,10 @@ describe('Prompt 11.1 — Supplier / Manufacturer Dashboard, FEFO & Warehouse Ro
     assert.equal(resFul.json().data.length, 1);
     assert.equal(resFul.json().data[0].items.length, 1);
 
-    // 6. GET /api/v1/supplier/resellers
-    const resReseller = await app.inject({ method: 'GET', url: '/api/v1/supplier/resellers' });
-    assert.equal(resReseller.statusCode, 200);
-    assert.equal(resReseller.json().data.top_salers.length, 1);
+    // 6. GET /api/v1/supplier/salers
+    const resSaler = await app.inject({ method: 'GET', url: '/api/v1/supplier/salers' });
+    assert.equal(resSaler.statusCode, 200);
+    assert.equal(resSaler.json().data.top_salers.length, 1);
 
     // 7. GET & PATCH /api/v1/supplier/store-status
     const resGetStore = await app.inject({ method: 'GET', url: '/api/v1/supplier/store-status' });

@@ -116,7 +116,7 @@ export function ReviewCard({
             <strong style="color: var(--text-primary, #0f172a);">${formatCurrency(payload.base_cost || (payload.price ? payload.price * 0.8 : 0))}</strong>
           </div>
           <div>
-            <span style="color: var(--text-muted, #64748b); display: block; font-size: 11px;">Est. Reseller Margin:</span>
+            <span style="color: var(--text-muted, #64748b); display: block; font-size: 11px;">Est. Saler Margin:</span>
             <strong style="color: var(--success, #059669);">${formatCurrency(payload.wholesale_margin || (payload.price ? payload.price * 0.2 : 0))}</strong>
           </div>
           <div>

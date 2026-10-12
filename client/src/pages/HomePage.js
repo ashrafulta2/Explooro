@@ -7,7 +7,7 @@
  *  - Reads role and module flags from appStore reactively — role changes update badge visibility
  *    without a page reload by re-rendering the grid on store subscription.
  *  - URL-backed state: `?feed=`, `?category=`, `?min_price=`, etc. Back button restores view.
- *  - Four feed tabs: All / Verified Supplier / Top Reseller / Flash Sales.
+ *  - Four feed tabs: All / Verified Supplier / Top Saler / Flash Sales.
  *  - CategoryPills → filters the product grid.
  *  - FlashSaleWidget → only mounted when modules.flash_sale is on.
  *  - FilterPanel sidebar (desktop) / drawer (mobile).
@@ -54,7 +54,7 @@ const KNOWN_CATEGORIES = [
 const FEEDS = [
   { id: 'all',       i18n: 'marketplace.feed.all' },
   { id: 'verified',  i18n: 'marketplace.feed.verified' },
-  { id: 'reseller',  i18n: 'marketplace.feed.reseller' },
+  { id: 'saler',  i18n: 'marketplace.feed.saler' },
   { id: 'flash',     i18n: 'marketplace.feed.flash' },
 ];
 

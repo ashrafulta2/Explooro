@@ -117,7 +117,7 @@ export function ProfitCalculator({
   const barLabel = document.createElement('div');
   barLabel.className = 'profit-calc__bar-label';
   const barLabelLeft = document.createElement('span');
-  barLabelLeft.textContent = t('sourcing.calc.margin_performance', 'Reseller Profit Margin');
+  barLabelLeft.textContent = t('sourcing.calc.margin_performance', 'Saler Profit Margin');
   const barLabelRight = document.createElement('span');
   barLabelRight.textContent = '';
   barLabel.append(barLabelLeft, barLabelRight);

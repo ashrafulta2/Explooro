@@ -1,6 +1,6 @@
 # Explooro
 
-Social commerce and reseller partnership platform for Bangladesh.
+Social commerce and saler partnership platform for Bangladesh.
 Suppliers hold the stock, Salers sell it from branded virtual storefronts with zero inventory,
 and every commission settles through an escrow-backed digital vault.
 

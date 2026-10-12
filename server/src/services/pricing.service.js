@@ -25,6 +25,7 @@
 
 import { AppError } from '../plugins/errorHandler.js';
 import { applyRebate, resolveProRebatePct } from './subscriptionRebate.js';
+import { TIER_KEYS, parseTierBonuses, resolveSalerTierBonusPct } from './salerTierBonus.js';
 
 /**
  * Converts a decimal BDT amount into integer paisa.
@@ -69,7 +70,10 @@ export async function resolveSplitPercentages(db, { productId, productRef, categ
   // layering a plan rebate on top would silently change what they typed.
   if (!salerId || base.ruleSource === 'PRODUCT_OVERRIDE') return base;
   // WHY no try/catch: a failed lookup must surface, not quietly pay the saler the wrong split.
-  return applyRebate(base, await resolveProRebatePct(db, { salerId, cache }));
+  const withPro = applyRebate(base, await resolveProRebatePct(db, { salerId, cache }));
+  // WHY after the plan rebate and through the same capped move: the two stack, but together they can
+  // never take more than the platform's own share, so the split still sums to 100.
+  return applyRebate(withPro, await resolveSalerTierBonusPct(db, { salerId }), 'TIER_BONUS');
 }
 
 /**
@@ -216,8 +220,7 @@ async function resolveBaseSplit(db, { productId, productRef, categoryId }, prelo
   };
 }
 
-/** Trust tiers a bonus can be set for, lowest first. */
-export const TIER_KEYS = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'];
+export { TIER_KEYS };
 
 /**
  * Resolves each trust tier's extra Saler split points from the `finance.tier_bonuses` setting
@@ -230,18 +233,10 @@ export const TIER_KEYS = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'];
  * @returns {Promise<Record<string, number>>}
  */
 export async function resolveTierBonuses(db) {
-  const bonuses = Object.fromEntries(TIER_KEYS.map((k) => [k, 0]));
   const { rows } = await db.query(
     `SELECT value_json FROM platform_settings WHERE key = 'finance.tier_bonuses'`
   );
-  const list = rows[0]?.value_json;
-  if (Array.isArray(list)) {
-    for (const row of list) {
-      const pct = parseFloat(row?.bonus_pct);
-      if (TIER_KEYS.includes(row?.tier) && Number.isFinite(pct) && pct >= 0) bonuses[row.tier] = pct;
-    }
-  }
-  return bonuses;
+  return parseTierBonuses(rows[0]?.value_json);
 }
 
 /**
@@ -286,7 +281,7 @@ export async function resolvePlatformPricingConfig(db) {
  * Calculates complete pricing breakdown in integer paisa.
  *
  * Supports two operational modes:
- * 1. 'tiered': Reseller model where supplier cost is confidential from salers.
+ * 1. 'tiered': Saler model where supplier cost is confidential from salers.
  *    - Default retail = supplier cost + platform default profit + saler default profit.
  *    - If saler sets retail price < default: only saler profit drops; platform profit is preserved.
  *    - If saler sets retail price > default: extra markup is split between platform and saler.

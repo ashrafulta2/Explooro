@@ -540,7 +540,7 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
     header.append(cat, hTitle, SupplierScorecardBadge(product.supplier_scorecard));
   }
 
-  // Pricing Matrix (Confidential wholesale: shows Suggested Retail, Min Selling Price Floor, and Reseller Profit)
+  // Pricing Matrix (Confidential wholesale: shows Suggested Retail, Min Selling Price Floor, and Saler Profit)
   const matrix = document.createElement('div');
   matrix.className = 'sourcing-card__pricing-matrix';
 

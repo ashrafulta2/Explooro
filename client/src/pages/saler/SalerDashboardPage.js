@@ -22,6 +22,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
+import { CommissionTierCard } from '../../components/saler/CommissionTierCard.js';
 
 const SALER_MODE_KEY = 'explooro:saler_mode_preference';
 
@@ -281,6 +282,18 @@ function renderProMode(container, data, nav) {
 
   // 1. KPI Telemetry Bar
   renderProKpiBar(wrap, data);
+
+  // 1b. Earned commission tier. Loaded on its own so a slow or failed lookup never holds up the
+  // dashboard; with tiers switched off (or on any error) the slot simply stays empty.
+  const tierSlot = document.createElement('div');
+  wrap.append(tierSlot);
+  salerApi
+    .getCommissionTier()
+    .then((res) => {
+      const card = CommissionTierCard({ data: res?.data });
+      if (card && tierSlot.isConnected) tierSlot.replaceChildren(card);
+    })
+    .catch(() => {});
 
   // 2. First-Run Onboarding Checklist (if brand new or incomplete)
   if (data.onboarding && data.onboarding.completed_steps_count < data.onboarding.total_steps) {

@@ -344,7 +344,7 @@ export default function StoriesManagerPage(root) {
           EmptyState({
             icon: '📰',
             title: 'No stories found',
-            description: 'Publish an artisan spotlight story to educate buyers and resellers.',
+            description: 'Publish an artisan spotlight story to educate buyers and salers.',
           })
         );
         return;

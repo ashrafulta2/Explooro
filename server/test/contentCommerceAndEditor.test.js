@@ -138,7 +138,7 @@ describe('Prompt 10.8 — Content Commerce, Reels, Seller Academy & Editor Dashb
       namespace: 'common',
       key: 'welcome_tag',
       locale: 'bn',
-      value: 'বাংলাদেশের প্রথম ডিজিটাল পাইকারি ও রিসেলিং মার্কেটপ্লেস এক্সপ্লোরোতে স্বাগতম!',
+      value: 'বাংলাদেশের প্রথম ডিজিটাল পাইকারি ও সেলিং মার্কেটপ্লেস এক্সপ্লোরোতে স্বাগতম!',
       editorId: 99,
     });
 
@@ -146,7 +146,7 @@ describe('Prompt 10.8 — Content Commerce, Reels, Seller Academy & Editor Dashb
     const updatedBn = await contentService.getTranslationsForLocale(db, 'bn');
     assert.equal(
       updatedBn.common.welcome_tag,
-      'বাংলাদেশের প্রথম ডিজিটাল পাইকারি ও রিসেলিং মার্কেটপ্লেস এক্সপ্লোরোতে স্বাগতম!'
+      'বাংলাদেশের প্রথম ডিজিটাল পাইকারি ও সেলিং মার্কেটপ্লেস এক্সপ্লোরোতে স্বাগতম!'
     );
   });
 

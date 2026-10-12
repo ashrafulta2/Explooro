@@ -95,6 +95,7 @@ import './jobs/coinExpiry.job.js'; // Registers coin_expiry with scheduler (modu
 import './jobs/referralRelease.job.js'; // Registers referral_release with scheduler (module: referral_engine)
 import './jobs/supplierScorecard.job.js'; // Registers supplier_scorecard with scheduler (module: sourcing)
 import './jobs/volumeIncentive.job.js'; // Registers volume_incentive with scheduler (module: sourcing)
+import './jobs/salerTier.job.js'; // Registers saler_tier with scheduler (setting: saler.commission_tiers.enabled)
 import './jobs/sampleKit.job.js'; // Registers sample_kit with scheduler (module: sourcing)
 import './jobs/returnProtection.job.js'; // Registers return_protection with scheduler (module: sourcing)
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';

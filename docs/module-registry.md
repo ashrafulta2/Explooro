@@ -228,7 +228,7 @@ because other source documents require them.
 | # | Source row | Registry key |
 | ---: | :--- | :--- |
 | 1 | Supplier / Manufacturer Verification | `supplier_verification` |
-| 2 | Saler (Reseller) Verification | `saler_verification` |
+| 2 | Saler Verification | `saler_verification` |
 | 3 | Customer Identity Verification | `customer_verification` |
 | 4 | Customer Age Verification | `age_verification` |
 | 5 | Product Approval & Moderation Queue | `product_moderation` |

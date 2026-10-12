@@ -17,7 +17,7 @@ import { ICONS } from '../ui/icons.js';
 const SLIDES = [
   { id: 'flash',    feed: 'flash',    key: 'marketplace.top.slide_flash' },
   { id: 'verified', feed: 'verified', key: 'marketplace.top.slide_verified' },
-  { id: 'reseller', feed: 'reseller', key: 'marketplace.top.slide_reseller' },
+  { id: 'saler', feed: 'saler', key: 'marketplace.top.slide_saler' },
 ];
 
 // i18n keys in the order a Saler experiences them; the number is drawn by a CSS counter.
@@ -30,7 +30,7 @@ const TILES = [
   { id: 'team',      icon: 'users',       path: '/account/team-purchases' },
   { id: 'live',      icon: 'circle_play', path: '/live' },
   { id: 'coupons',   icon: 'tag',         path: '/account/coupons' },
-  { id: 'resellers', icon: 'my_store',    feed: 'reseller' },
+  { id: 'salers', icon: 'my_store',    feed: 'saler' },
 ];
 
 const ROTATE_MS = 6000;

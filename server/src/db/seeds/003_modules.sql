@@ -12,8 +12,8 @@ VALUES
    ARRAY[]::text[]),
 
   ('saler_verification', 'trust', 'Saler verification', 'সেলার যাচাই',
-   'Lightweight NID plus OTP-verified phone for resellers.',
-   'রিসেলারদের জন্য হালকা এনআইডি ও ওটিপি-যাচাইকৃত ফোন।',
+   'Lightweight NID plus OTP-verified phone for salers.',
+   'সেলারদের জন্য হালকা এনআইডি ও ওটিপি-যাচাইকৃত ফোন।',
    true, true, '{"require_nid": true, "allow_unverified_selling": true, "unverified_monthly_cap": 20000}'::jsonb,
    '{"type": "object", "properties": { "require_nid": { "type": "boolean", "default": true }, "allow_unverified_selling": { "type": "boolean", "default": true }, "unverified_monthly_cap": { "type": "number", "default": 20000 } } }'::jsonb,
    ARRAY[]::text[]),
@@ -106,8 +106,8 @@ VALUES
    ARRAY['cod_payment']::text[]),
 
   ('virtual_storefront', 'commerce', 'Virtual storefronts', 'ভার্চুয়াল স্টোরফ্রন্ট',
-   'Branded reseller shops at explooro.com/store/name.',
-   'explooro.com/store/নাম ঠিকানায় ব্র্যান্ডেড রিসেলার দোকান।',
+   'Branded saler shops at explooro.com/store/name.',
+   'explooro.com/store/নাম ঠিকানায় ব্র্যান্ডেড সেলার দোকান।',
    true, true, '{"allow_custom_domain": false, "min_tier_for_custom_domain": "ELITE_PARTNER"}'::jsonb,
    '{"type": "object", "properties": { "allow_custom_domain": { "type": "boolean", "default": false }, "min_tier_for_custom_domain": { "type": "string", "enum": ["VERIFIED_TRADER", "ELITE_PARTNER"], "default": "ELITE_PARTNER" } } }'::jsonb,
    ARRAY[]::text[]),

@@ -142,7 +142,7 @@ const ITEM_ICON_NAMES = {
   'editor.academy': 'graduation_cap', 'editor.whats_new': 'sparkles', 'editor.help_center': 'help_circle',
   'editor.translations': 'localization',
 
-  'supplier.dashboard': 'dashboard', 'supplier.resellers': 'users', 'supplier.forecasting': 'trending_up',
+  'supplier.dashboard': 'dashboard', 'supplier.salers': 'users', 'supplier.forecasting': 'trending_up',
   'supplier.products': 'catalog', 'supplier.stock': 'inventory', 'supplier.batches': 'layers',
   'supplier.warehouses': 'warehouse', 'supplier.orders.incoming': 'orders', 'supplier.fulfilment': 'package',
   'supplier.shipments': 'truck', 'supplier.warranty_claims': 'aftercare', 'supplier.vault': 'vault',

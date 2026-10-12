@@ -122,6 +122,7 @@ The 35 most likely change requests, with exact paths.
 | I want to… | Change |
 | :--- | :--- |
 | Change the profit split (40/60) | `platform_settings` row `commission.default_splits` via `/admin/finance/splits`. **Never in code** — `services/pricing.service.js` reads it |
+| Change the **saler commission tiers** (BRONZE→PLATINUM, earned by sales volume) | Two settings, no code. **What a tier pays** = `finance.tier_bonuses` (edited at `/admin/finance/splits`). **Who is in a tier** = `saler.commission_tiers` (`enabled`, `window_days`, `thresholds`; migration 073, ships **off**). The `saler_tier` job writes `saler_commission_tiers`; `salerTierBonus.js` reads it for checkout; a per-product override is never touched, and the bonus stacks with the Saler Pro rebate but the pair is capped at the platform share. Both are edited on one panel at `/admin/finance/splits` ("Saler Trust Tier Incentives", `finance.split.update`): one `PUT /admin/finance/splits/tiers` carries the bonuses and `rules`, validated together, and a save re-tiers salers at once |
 | Add a category- or product-specific split | `commission_rules` table; resolution order is in `services/pricing.service.js` |
 | Change the escrow hold period | Module setting `escrow_engine.hold_days` via `/admin/platform/modules`. Read by `services/vault.service.js` |
 | Change the minimum payout | `platform_settings.min_payout_amount`. Enforced in `services/payout.service.js` |
