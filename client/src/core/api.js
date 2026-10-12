@@ -6,7 +6,6 @@
  * ~10 phases before the backend exists. `live` calls the real API through the Vite proxy. Callers
  * never know which — see docs/api-contract.md §1 "Client compatibility rule".
  */
-import { handleMockRequest } from '../mocks/index.js';
 import { toast } from '../services/toast.js';
 
 const MODE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_MODE === 'live') ? 'live' : 'mock';
@@ -173,6 +172,10 @@ async function performMock(method, path, { body, query, params }) {
   const delay = 150 + Math.random() * 250;
   await new Promise((resolve) => setTimeout(resolve, delay));
   const q = query || params || {};
+  // WHY dynamic: the mock layer (~550KB raw, every handler and fixture) must not sit in the entry's
+  // static import graph. It loads on the first mock request, in parallel with first paint, and a live
+  // deployment never fetches it at all.
+  const { handleMockRequest } = await import('../mocks/index.js');
   return handleMockRequest({ method, path, query: q, body });
 }
 

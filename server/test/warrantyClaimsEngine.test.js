@@ -18,20 +18,27 @@ import { calculateTierFromMetrics } from '../src/services/trustTier.service.js';
 function createMockDb({
   queryHandler = null,
 } = {}) {
+  // WHY: notification.service looks the recipient up first and throws USER_NOT_FOUND when no row
+  // comes back. Answering it here keeps the real notification path exercised instead of logging a
+  // swallowed failure on every run, which is how a genuine notification regression would hide.
+  const run = async (sql, params) => {
+    if (sql.includes('u.locale') && sql.includes('LEFT JOIN user_profiles up ON up.user_id = u.id')) {
+      return { rows: [{ id: params[0], full_name: 'Test User', phone: null, email: null, locale: 'en' }] };
+    }
+    if (sql.includes('INSERT INTO notifications')) {
+      return { rows: [{ id: 1, ref: params[0], user_id: params[1] }] };
+    }
+    if (queryHandler) return queryHandler(sql, params);
+    return { rows: [] };
+  };
   return {
     async query(sql, params = []) {
-      if (queryHandler) {
-        return queryHandler(sql, params);
-      }
-      return { rows: [] };
+      return run(sql, params);
     },
     async connect() {
       return {
         async query(sql, params = []) {
-          if (queryHandler) {
-            return queryHandler(sql, params);
-          }
-          return { rows: [] };
+          return run(sql, params);
         },
         release() {},
       };

@@ -6,6 +6,19 @@ import * as webhookController from '../controllers/whatsappWebhook.controller.js
 import * as inboxController from '../controllers/salerInbox.controller.js';
 
 export default async function whatsappRoutes(app) {
+  // WHY: the HMAC must cover the exact bytes Meta sent. This parser is scoped to this plugin only, so
+  // every other route keeps Fastify's default JSON parsing.
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+    req.rawBody = body;
+    if (!body) return done(null, {});
+    try {
+      done(null, JSON.parse(body));
+    } catch (err) {
+      err.statusCode = 400;
+      done(err, undefined);
+    }
+  });
+
   // 1. Meta Webhook Verification Challenge
   app.get('/integrations/whatsapp/webhook', webhookController.verifyWebhook);
 

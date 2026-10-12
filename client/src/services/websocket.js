@@ -10,7 +10,6 @@
  */
 
 import { api } from '../core/api.js';
-import { createMockChatSocket } from '../mocks/chatSocket.js';
 
 // Same switch core/api.js reads. In mock mode the ticket resolves but there is no /ws upgrade to
 // make, so the manager talks to a loopback socket instead of retry-storming a backend that is not
@@ -179,7 +178,10 @@ class WebSocketManager {
       const host = (typeof window !== 'undefined' && window.location.host) || 'localhost:3000';
       const wsUrl = `${protocol}//${host}/ws?ticket=${ticket}`;
 
-      this.socket = MOCK_MODE ? createMockChatSocket(wsUrl) : new WebSocket(wsUrl);
+      // WHY dynamic: keeps the mock socket out of the entry bundle; live mode never loads it.
+      this.socket = MOCK_MODE
+        ? (await import('../mocks/chatSocket.js')).createMockChatSocket(wsUrl)
+        : new WebSocket(wsUrl);
 
       this.socket.onopen = () => {
         this.setStatus(WS_STATUS.CONNECTED);
