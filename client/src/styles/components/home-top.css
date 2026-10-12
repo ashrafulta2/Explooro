@@ -18,7 +18,10 @@
 .home-top__slide-sub { margin: 0; font-size: var(--text-sm); color: var(--neutral-0); max-width: 46ch; }
 /* WHY: ramp steps (not role tokens) because the roles flip in dark mode and a campaign slide must stay a
    saturated fill with white text in both. -700 steps all clear 4.5:1 against --neutral-0. */
-.home-top__slide--flash { background: var(--danger-700); --slide-ink: var(--danger-800); }
+/* WHY: burnt orange is mixed from the danger and warning ramps instead of a new hex or ramp, so it follows the
+   theme (and dark mode) with no edit to the generated themes.css. The 55/45 blend stays above 4.5:1 with white. */
+.home-top { --campaign-orange: color-mix(in oklch, var(--danger-700) 55%, var(--warning-700)); }
+.home-top__slide--flash { background: var(--campaign-orange); --slide-ink: var(--campaign-orange); }
 .home-top__slide--verified { background: var(--success-700); --slide-ink: var(--success-800); }
 .home-top__slide--saler { background: var(--accent-700); --slide-ink: var(--accent-700); }
 .home-top__slide::before, .home-top__slide::after { content: ''; position: absolute; border-radius: var(--radius-full); background: var(--neutral-0); opacity: 0.1; pointer-events: none; }
@@ -27,6 +30,9 @@
 .home-top__slide > * { position: relative; z-index: 1; }
 .home-top__slide .home-top__slide-cta { background: var(--neutral-0); border-color: var(--neutral-0); color: var(--slide-ink); }
 .home-top__slide .home-top__slide-cta:hover { background: var(--brand-200); border-color: var(--brand-200); color: var(--neutral-900); }
+/* WHY: a white CTA on charcoal is low-emphasis; the brand fill makes the flash-sale action the loudest thing on the slide. Must follow the generic slide CTA rule above (same specificity). */
+.home-top__slide--flash .home-top__slide-cta { background: var(--brand); border-color: var(--brand); color: var(--brand-contrast); }
+.home-top__slide--flash .home-top__slide-cta:hover { background: var(--brand-hover); border-color: var(--brand-hover); color: var(--brand-alt-contrast); }
 .home-top__slide-cta, .home-top__card-cta { display: inline-flex; align-items: center; margin-top: var(--space-2); padding: var(--space-2) var(--space-4); background: var(--brand); color: var(--brand-contrast); border: 1px solid var(--brand); border-radius: var(--radius-sm); font-weight: 600; font-size: var(--text-sm); cursor: pointer; text-decoration: none; }
 .home-top__slide-cta:hover, .home-top__card-cta:hover { background: var(--brand-hover); color: var(--brand-alt-contrast); }
 .home-top__dots { position: absolute; left: var(--space-8); bottom: var(--space-3); display: flex; gap: var(--space-2); }
@@ -44,7 +50,7 @@
 .home-top__tile--chat { background: var(--info-700); }
 .home-top__tile--verified { background: var(--success-700); }
 .home-top__tile--team { background: var(--neutral-800); }
-.home-top__tile--live { background: var(--danger-700); }
+.home-top__tile--live { background: var(--campaign-orange); }
 .home-top__tile--coupons { background: var(--brand-700); }
 .home-top__tile--salers { background: var(--accent-700); }
 .home-top__card--info { background: var(--neutral-800); border-color: var(--neutral-800); }
