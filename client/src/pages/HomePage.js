@@ -96,17 +96,11 @@ export default function HomePage(root, { navigate }) {
   const page = document.createElement('div');
   page.className = 'home-page';
 
-  // ── Top band: category rail · campaign slider · Become a Saler (+ welcome strip when signed in) ──
+  // ── Top band: how-a-Saler-earns panel · campaign slider · Become a Saler (+ welcome strip when signed in) ──
   const homeTop = HomeTop({
     role,
     isAuthenticated: Boolean(auth.isAuthenticated),
-    categories: KNOWN_CATEGORIES,
-    lang,
     onNavigate: navigate,
-    onSelectCategory: (catId) => {
-      syncCategory(catId);
-      catalogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    },
     onSelectFeed: (feedId) => {
       syncFeed(feedId);
       catalogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });

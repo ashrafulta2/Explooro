@@ -28,18 +28,15 @@ export function fingerprintOf(payload) {
 }
 
 /**
- * @param {object} cache       the cache adapter (get / setnx / set / del)
- * @param {object} opts
- * @param {string} opts.scope       namespace, e.g. `staff:12:create`
- * @param {string|undefined} opts.key   the Idempotency-Key header (optional)
- * @param {*} opts.payload          what the request means; a key reused with another payload is refused
- * @param {() => Promise<{status:number, body:object}>} execute
- * @returns {Promise<{status:number, body:object, replayed:boolean}>}
+ * First half of the protocol, split out so a Fastify hook (middlewares/idempotency.js) can claim in
+ * preHandler and finish in onSend. `runIdempotent` below is the same two halves around one call.
+ *
+ * @returns {Promise<{proceed:true, claim:object|null} | {proceed:false, result:object}>}
+ *   `claim` is null when the request carried no key; otherwise hand it to completeIdempotency or
+ *   releaseIdempotency. A replay comes back as `proceed:false` with the stored result.
  */
-export async function runIdempotent(cache, { scope, key, payload, ttlSeconds = DEFAULT_TTL_SECONDS }, execute) {
-  if (key === undefined || key === null || key === '') {
-    return { ...(await execute()), replayed: false };
-  }
+export async function claimIdempotency(cache, { scope, key, payload }) {
+  if (key === undefined || key === null || key === '') return { proceed: true, claim: null };
   if (typeof key !== 'string' || !KEY_PATTERN.test(key)) {
     throw new AppError(
       'VALIDATION_FAILED',
@@ -53,21 +50,47 @@ export async function runIdempotent(cache, { scope, key, payload, ttlSeconds = D
   const fingerprint = fingerprintOf(payload);
 
   const existing = await cache.get(cacheKey);
-  if (existing) return replayOrRefuse(existing, fingerprint);
+  if (existing) return { proceed: false, result: replayOrRefuse(existing, fingerprint) };
 
   const claimed = await cache.setnx(cacheKey, JSON.stringify({ state: STATE_PENDING, fingerprint }), PENDING_TTL_SECONDS);
   if (!claimed) {
     // Lost the race to a concurrent request carrying the same key.
     const winner = await cache.get(cacheKey);
-    if (winner) return replayOrRefuse(winner, fingerprint);
+    if (winner) return { proceed: false, result: replayOrRefuse(winner, fingerprint) };
   }
+  return { proceed: true, claim: { cacheKey, fingerprint } };
+}
+
+/** Remembers a completed request so a retry with the same key gets this result back. */
+export async function completeIdempotency(cache, claim, result, ttlSeconds = DEFAULT_TTL_SECONDS) {
+  await cache.set(claim.cacheKey, JSON.stringify({ state: STATE_DONE, fingerprint: claim.fingerprint, result }), ttlSeconds);
+}
+
+/** Frees the key after a failure, so the client can retry once it has fixed the cause. */
+export async function releaseIdempotency(cache, claim) {
+  await cache.del(claim.cacheKey);
+}
+
+/**
+ * @param {object} cache       the cache adapter (get / setnx / set / del)
+ * @param {object} opts
+ * @param {string} opts.scope       namespace, e.g. `staff:12:create`
+ * @param {string|undefined} opts.key   the Idempotency-Key header (optional)
+ * @param {*} opts.payload          what the request means; a key reused with another payload is refused
+ * @param {() => Promise<{status:number, body:object}>} execute
+ * @returns {Promise<{status:number, body:object, replayed:boolean}>}
+ */
+export async function runIdempotent(cache, { scope, key, payload, ttlSeconds = DEFAULT_TTL_SECONDS }, execute) {
+  const first = await claimIdempotency(cache, { scope, key, payload });
+  if (!first.proceed) return first.result;
+  if (!first.claim) return { ...(await execute()), replayed: false };
 
   try {
     const result = await execute();
-    await cache.set(cacheKey, JSON.stringify({ state: STATE_DONE, fingerprint, result }), ttlSeconds);
+    await completeIdempotency(cache, first.claim, result, ttlSeconds);
     return { ...result, replayed: false };
   } catch (err) {
-    await cache.del(cacheKey);
+    await releaseIdempotency(cache, first.claim);
     throw err;
   }
 }

@@ -24,6 +24,7 @@ import requirePermissionPlugin from './middlewares/requirePermission.js';
 import requireRestrictionPlugin from './middlewares/requireRestriction.js';
 import requireModulePlugin from './middlewares/requireModule.js';
 import requirePagePlugin from './middlewares/requirePage.js';
+import idempotencyPlugin from './middlewares/idempotency.js';
 import authRoutes from './routes/auth.routes.js';
 import meRoutes from './routes/me.routes.js';
 import delegationRoutes from './routes/delegation.routes.js';
@@ -161,6 +162,9 @@ export async function buildApp(overrides = {}) {
   app.register(requireModulePlugin);
   // Must be registered before any route plugin: its onRoute hook only sees routes added after it.
   app.register(requirePagePlugin);
+  // Same rule: its onRoute hook must be registered before the route plugins. Gives every write route
+  // Idempotency-Key support (CLAUDE.md constraint 11).
+  app.register(idempotencyPlugin);
 
   await app.register(helmet, { global: true });
 
