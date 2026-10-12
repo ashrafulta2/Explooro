@@ -57,6 +57,12 @@ const SCHEMA = [
   { key: 'PII_ENCRYPTION_KEY', group: 'auth', required: true, type: 'string', secret: true },
   { key: 'ADMIN_IP_ALLOWLIST', group: 'auth', required: false, type: 'string', default: '' },
   { key: 'REQUIRE_2FA_FOR_STAFF', group: 'auth', required: false, type: 'boolean', default: true },
+  // WHY: behind nginx / a load balancer every request arrives from the proxy's address, so req.ip
+  // (rate limiting, the admin IP allowlist, audit rows) would be the proxy for everybody. Empty/false
+  // trusts nothing; `true`, a hop count (`1`) or a comma-separated CIDR list is passed to Fastify.
+  { key: 'TRUST_PROXY', group: 'core', required: false, type: 'string', default: '' },
+  // WHY: escape hatch for a staging box that runs NODE_ENV=production on purpose with mock drivers.
+  { key: 'ALLOW_MOCK_DRIVERS_IN_PRODUCTION', group: 'core', required: false, type: 'boolean', default: false },
 
   // Everything below is reserved for later phases. Presence is validated for shape; absence never
   // blocks boot, because the owning driver defaults to `mock`/`local`/`postgres` in development.
@@ -99,6 +105,15 @@ function parseValue(spec, rawValue) {
     return b === undefined ? rawValue : b;
   }
   return rawValue;
+}
+
+/** '' / 'false' → false; 'true' → true; '2' → 2 hops; anything else is a CIDR/name list for Fastify. */
+export function parseTrustProxy(raw) {
+  const v = String(raw ?? '').trim();
+  if (v === '' || v === 'false') return false;
+  if (v === 'true') return true;
+  if (/^\d+$/.test(v)) return Number(v);
+  return v.split(',').map((x) => x.trim()).filter(Boolean);
 }
 
 /**
@@ -147,6 +162,18 @@ export function loadEnv(source = process.env) {
     problems.push('  - SMS_API_KEY is required when SMS_DRIVER=greenweb');
   }
 
+  // Production rule: a mock payment / courier / SMS driver would approve payments, mark parcels
+  // delivered and "send" OTPs without doing any of it. These default to `mock`, so forgetting the
+  // variable must stop the boot instead of quietly shipping a store that takes no real money.
+  if (grouped.core?.NODE_ENV === 'production' && !grouped.core?.ALLOW_MOCK_DRIVERS_IN_PRODUCTION) {
+    for (const key of ['PAYMENT_DRIVER', 'COURIER_DRIVER', 'SMS_DRIVER']) {
+      const group = SCHEMA.find((s) => s.key === key).group;
+      if (String(grouped[group]?.[key] ?? 'mock').toLowerCase() === 'mock') {
+        problems.push(`  - ${key} must not be "mock" when NODE_ENV=production (set ALLOW_MOCK_DRIVERS_IN_PRODUCTION=true only for a staging box)`);
+      }
+    }
+  }
+
   // Shape rule: PII_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256), or lib/encryption.js
   // fails confusingly on first use rather than at boot.
   if (grouped.auth?.PII_ENCRYPTION_KEY) {
@@ -171,6 +198,7 @@ export function loadEnv(source = process.env) {
       host: grouped.core.HOST,
       publicWebUrl: grouped.core.PUBLIC_WEB_URL,
       publicApiUrl: grouped.core.PUBLIC_API_URL,
+      trustProxy: parseTrustProxy(grouped.core?.TRUST_PROXY),
     }),
     database: Object.freeze({
       url: grouped.database.DATABASE_URL,

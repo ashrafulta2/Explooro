@@ -10,6 +10,7 @@
  */
 
 import { createHmac, randomBytes } from 'node:crypto';
+import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.js';
 
 export class MockPaymentDriver {
   constructor(config = {}) {
@@ -174,9 +175,8 @@ export class MockPaymentDriver {
    * Validates inbound webhook signature.
    */
   verifyWebhookSignature({ payload, rawBody, signature, secret = this.webhookSecret }) {
-    if (!signature) return false;
-    const bodyStr = typeof rawBody === 'string' ? rawBody : JSON.stringify(payload);
-    const expected = createHmac('sha256', secret).update(bodyStr).digest('hex');
-    return signature === expected;
+    // WHY: the mock secret is in the repo, so in production a "mock" webhook would be a forgery key.
+    if (process.env.NODE_ENV === 'production') return false;
+    return hmacHexMatches(secret, typeof rawBody === 'string' ? rawBody : payload, signature);
   }
 }

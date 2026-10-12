@@ -10,7 +10,8 @@
  *  6. Full credentials and payload masking
  */
 
-import { createHmac, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
+import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.js';
 
 export class BkashPaymentDriver {
   constructor(config = {}) {
@@ -19,7 +20,8 @@ export class BkashPaymentDriver {
     this.username = config.username || process.env.BKASH_USERNAME || 'mock_username';
     this.password = config.password || process.env.BKASH_PASSWORD || 'mock_password';
     this.baseUrl = config.baseUrl || process.env.BKASH_BASE_URL || 'https://tokenized.sandbox.bka.sh/v1.2.0-beta';
-    this.webhookSecret = config.webhookSecret || process.env.BKASH_WEBHOOK_SECRET || 'bkash_webhook_secret_key';
+    // WHY null in live mode: a repo-visible default secret would let anyone forge a signed webhook.
+    this.webhookSecret = secretOrDevDefault(config.webhookSecret || process.env.BKASH_WEBHOOK_SECRET, 'bkash_webhook_secret_key', 'PAYMENT_DRIVER');
     this.isLive = config.isLive || process.env.NODE_ENV === 'production';
   }
 
@@ -153,9 +155,6 @@ export class BkashPaymentDriver {
    * Webhook Signature Verification.
    */
   verifyWebhookSignature({ payload, rawBody, signature, secret = this.webhookSecret }) {
-    if (!signature) return false;
-    const bodyStr = typeof rawBody === 'string' ? rawBody : JSON.stringify(payload);
-    const expected = createHmac('sha256', secret).update(bodyStr).digest('hex');
-    return signature === expected;
+    return hmacHexMatches(secret, typeof rawBody === 'string' ? rawBody : payload, signature);
   }
 }

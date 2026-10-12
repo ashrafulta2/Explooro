@@ -8,12 +8,14 @@
  */
 
 import crypto from 'node:crypto';
+import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.js';
 
 export class SteadfastCourierAdapter {
   constructor(config = {}) {
     this.name = 'STEADFAST';
     this.apiKey = config.apiKey || process.env.STEADFAST_API_KEY || 'mock_steadfast_key';
-    this.secretKey = config.secretKey || process.env.STEADFAST_SECRET_KEY || 'mock_steadfast_secret';
+    // WHY null in live mode: a repo-visible default would let anyone forge a signed delivery webhook.
+    this.secretKey = secretOrDevDefault(config.secretKey || process.env.STEADFAST_SECRET_KEY, 'mock_steadfast_secret', 'COURIER_DRIVER');
     this.baseUrl = config.baseUrl || 'https://api.steadfast.com.bd/v1';
   }
 
@@ -78,9 +80,10 @@ export class SteadfastCourierAdapter {
 
   verifyWebhookSignature({ headers, rawBody } = {}) {
     const signature = headers?.['x-steadfast-signature'] || headers?.['x-signature'];
-    if (!signature) return true; // allow fallback in dev if not signed
-    const hmac = crypto.createHmac('sha256', this.secretKey).update(rawBody || '').digest('hex');
-    return hmac === signature;
+    // WHY: an unsigned call is only tolerated for local dev. In live mode "no signature" means reject,
+    // otherwise omitting the header skips the check and anyone can mark a parcel delivered.
+    if (!signature) return !isLive('COURIER_DRIVER');
+    return hmacHexMatches(this.secretKey, rawBody || '', signature);
   }
 
   normalizeWebhookEvent(payload = {}) {

@@ -2,12 +2,14 @@
  * pathao.js — Pathao Courier 3PL Adapter (Prompt 7.1).
  */
 
+import { isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.js';
+
 export class PathaoCourierAdapter {
   constructor(config = {}) {
     this.name = 'PATHAO';
     this.clientId = config.clientId || process.env.PATHAO_CLIENT_ID || 'mock_pathao_client';
     this.clientSecret = config.clientSecret || process.env.PATHAO_CLIENT_SECRET || 'mock_pathao_secret';
-    this.webhookToken = config.webhookToken || process.env.PATHAO_WEBHOOK_TOKEN || 'mock_pathao_webhook_token';
+    this.webhookToken = secretOrDevDefault(config.webhookToken || process.env.PATHAO_WEBHOOK_TOKEN, 'mock_pathao_webhook_token', 'COURIER_DRIVER');
   }
 
   async createConsignment({
@@ -60,8 +62,11 @@ export class PathaoCourierAdapter {
 
   verifyWebhookSignature({ headers } = {}) {
     const token = headers?.['x-pathao-token'] || headers?.authorization;
-    if (!token) return true;
-    return token.includes(this.webhookToken) || token === this.webhookToken;
+    // WHY: in live mode a missing header or missing configured token must reject; `includes` also
+    // accepted any string that merely contained the token.
+    if (!token) return !isLive('COURIER_DRIVER');
+    if (!this.webhookToken) return false;
+    return safeEqual(String(token).replace(/^Bearer\s+/i, ''), this.webhookToken);
   }
 
   normalizeWebhookEvent(payload = {}) {

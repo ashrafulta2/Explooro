@@ -139,6 +139,7 @@ export async function buildApp(overrides = {}) {
 
   const app = Fastify({
     logger: { level: config.core.logLevel },
+    trustProxy: config.core.trustProxy,
     routerOptions: { ignoreTrailingSlash: true },
   });
 

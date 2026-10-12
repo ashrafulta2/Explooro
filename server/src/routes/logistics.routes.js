@@ -2,9 +2,13 @@
  * logistics.routes.js — Fastify Route definitions for 3PL Logistics Hub & Courier Webhooks (Prompt 7.1).
  */
 
+import { addRawJsonBody } from '../plugins/rawBody.js';
 import * as controller from '../controllers/courierWebhook.controller.js';
 
 export default async function logisticsRoutes(app) {
+  // WHY: courier webhook signatures cover the raw bytes (see plugins/rawBody.js).
+  addRawJsonBody(app);
+
   // 1. Inbound Webhooks per carrier (public, protected by HMAC / token in controller)
   app.post('/webhooks/courier/:carrier', {
     handler: controller.handleWebhook,

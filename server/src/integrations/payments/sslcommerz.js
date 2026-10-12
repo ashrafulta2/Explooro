@@ -10,11 +10,13 @@
  */
 
 import { createHmac, createHash, randomBytes } from 'node:crypto';
+import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.js';
 
 export class SslcommerzPaymentDriver {
   constructor(config = {}) {
     this.storeId = config.storeId || process.env.SSLCOMMERZ_STORE_ID || 'mock_store_id';
-    this.storePasswd = config.storePasswd || process.env.SSLCOMMERZ_STORE_PASSWORD || 'mock_store_passwd';
+    // WHY null in live mode: the store password is also the webhook verification key, so a repo-visible default is a forgery key.
+    this.storePasswd = secretOrDevDefault(config.storePasswd || process.env.SSLCOMMERZ_STORE_PASSWORD, 'mock_store_passwd', 'PAYMENT_DRIVER');
     this.baseUrl = config.baseUrl || (process.env.NODE_ENV === 'production' ? 'https://securepay.sslcommerz.com' : 'https://sandbox.sslcommerz.com');
     this.isLive = config.isLive || process.env.NODE_ENV === 'production';
   }
@@ -129,6 +131,15 @@ export class SslcommerzPaymentDriver {
    */
   verifyWebhookSignature({ payload, rawBody, signature, secret = this.storePasswd }) {
     if (!payload && !rawBody) return false;
+    if (isLive('PAYMENT_DRIVER')) {
+      // WHY no fallback: the dev path below accepts any unsigned call. SSLCommerz's IPN carries
+      // verify_sign = md5 of the fields named in verify_key (sorted) plus md5(store_password).
+      if (!secret || !payload?.verify_sign || !payload?.verify_key) return false;
+      const fields = { ...payload, store_passwd: createHash('md5').update(secret).digest('hex') };
+      const keys = [...String(payload.verify_key).split(','), 'store_passwd'].sort();
+      const joined = keys.map((k) => `${k}=${fields[k] ?? ''}`).join('&');
+      return safeEqual(createHash('md5').update(joined).digest('hex'), payload.verify_sign);
+    }
     // In mock mode, check either provided verify_sign or store_passwd match
     if (payload && payload.verify_sign && payload.verify_key) {
       return true;

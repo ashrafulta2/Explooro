@@ -14,6 +14,16 @@ export function createPaymentGateway(gatewayName = 'MOCK', config = {}) {
   const norm = String(gatewayName || 'MOCK').trim().toUpperCase();
   const globalDriver = (process.env.PAYMENT_DRIVER || 'MOCK').toUpperCase();
 
+  // WHY: /payments/webhook/mock and /payments/initiate with gateway=MOCK reach this factory from the
+  // outside. In production the mock driver approves everything, so it is never handed out there.
+  if (norm === 'MOCK' && process.env.NODE_ENV === 'production' && process.env.ALLOW_MOCK_DRIVERS_IN_PRODUCTION !== 'true') {
+    throw new AppError(
+      'PAYMENT_METHOD_UNSUPPORTED',
+      'The mock payment gateway is disabled in production.',
+      'প্রোডাকশনে মক পেমেন্ট গেটওয়ে বন্ধ আছে।'
+    );
+  }
+
   // If PAYMENT_DRIVER is explicitly 'MOCK' or in non-production, allow MOCK driver
   if (globalDriver === 'MOCK' || norm === 'MOCK') {
     return new MockPaymentDriver(config);

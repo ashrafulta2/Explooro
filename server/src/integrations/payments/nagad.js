@@ -9,7 +9,8 @@
  *  5. Webhook signature validation
  */
 
-import { createHmac, randomBytes } from 'node:crypto';
+import { randomBytes } from 'node:crypto';
+import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.js';
 
 export class NagadPaymentDriver {
   constructor(config = {}) {
@@ -17,7 +18,8 @@ export class NagadPaymentDriver {
     this.publicKey = config.publicKey || process.env.NAGAD_PGW_PUBLIC_KEY || 'mock_public_key';
     this.privateKey = config.privateKey || process.env.NAGAD_MERCHANT_PRIVATE_KEY || 'mock_private_key';
     this.baseUrl = config.baseUrl || process.env.NAGAD_BASE_URL || 'https://api.mynagad.com/api/dfs';
-    this.webhookSecret = config.webhookSecret || process.env.NAGAD_WEBHOOK_SECRET || 'nagad_webhook_secret_key';
+    // WHY null in live mode: a repo-visible default secret would let anyone forge a signed webhook.
+    this.webhookSecret = secretOrDevDefault(config.webhookSecret || process.env.NAGAD_WEBHOOK_SECRET, 'nagad_webhook_secret_key', 'PAYMENT_DRIVER');
     this.isLive = config.isLive || process.env.NODE_ENV === 'production';
   }
 
@@ -133,9 +135,6 @@ export class NagadPaymentDriver {
    * Webhook Signature Verification.
    */
   verifyWebhookSignature({ payload, rawBody, signature, secret = this.webhookSecret }) {
-    if (!signature) return false;
-    const bodyStr = typeof rawBody === 'string' ? rawBody : JSON.stringify(payload);
-    const expected = createHmac('sha256', secret).update(bodyStr).digest('hex');
-    return signature === expected;
+    return hmacHexMatches(secret, typeof rawBody === 'string' ? rawBody : payload, signature);
   }
 }

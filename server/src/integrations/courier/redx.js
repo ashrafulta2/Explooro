@@ -2,6 +2,8 @@
  * redx.js — RedX Delivery 3PL Adapter (Prompt 7.1).
  */
 
+import { isLive, safeEqual } from '../webhookSecurity.js';
+
 export class RedxCourierAdapter {
   constructor(config = {}) {
     this.name = 'REDX';
@@ -54,8 +56,14 @@ export class RedxCourierAdapter {
     };
   }
 
-  verifyWebhookSignature() {
-    return true;
+  verifyWebhookSignature({ headers } = {}) {
+    // WHY: this used to return true unconditionally. RedX publishes no signature scheme, so a shared
+    // token header (REDX_WEBHOOK_TOKEN) is the strongest check available; live mode requires it.
+    if (!isLive('COURIER_DRIVER')) return true;
+    const expected = process.env.REDX_WEBHOOK_TOKEN;
+    const got = headers?.['x-redx-token'] || headers?.authorization;
+    if (!expected || !got) return false;
+    return safeEqual(String(got).replace(/^Bearer\s+/i, ''), expected);
   }
 
   normalizeWebhookEvent(payload = {}) {

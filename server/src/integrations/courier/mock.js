@@ -118,8 +118,9 @@ export class MockCourierAdapter {
   }
 
   verifyWebhookSignature({ headers, rawBody, secret = 'mock_secret' } = {}) {
-    // In mock mode or dev, accept test token or true
-    return true;
+    // WHY: unknown carrier keys fall back to this adapter, so in live mode it must never accept a
+    // webhook — otherwise POST /webhooks/courier/anything is an open door.
+    return process.env.NODE_ENV !== 'production' && String(process.env.COURIER_DRIVER || 'mock').toLowerCase() === 'mock';
   }
 
   normalizeWebhookEvent(payload = {}) {
