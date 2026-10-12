@@ -202,7 +202,7 @@ const SEEDED_FULFILMENT_QUEUE = [
   },
 ];
 
-const SEEDED_RESELLER_INSIGHTS = {
+const SEEDED_SALER_INSIGHTS = {
   top_salers: [
     { saler_id: 6, saler_name: 'Tanvir Hasan', store_name: "Tanvir's Trend Store", store_slug: 'tanvir-trends', curated_products_count: 18, total_orders_sold: 64, total_revenue_generated: 218500.0 },
     { saler_id: 7, saler_name: 'Sadia Islam', store_name: 'Sadia Beauty Corner', store_slug: 'sadia-beauty', curated_products_count: 9, total_orders_sold: 41, total_revenue_generated: 96200.0 },
@@ -311,7 +311,7 @@ export const supplierHandlers = [
             expiring_soon_count: SEEDED_BATCHES.filter((b) => b.days_to_expiry > 0 && b.days_to_expiry <= 60).length,
             expired_count: SEEDED_BATCHES.filter((b) => b.status === 'EXPIRED').length,
             total_warehouses: SEEDED_WAREHOUSES.length,
-            active_curators_count: SEEDED_RESELLER_INSIGHTS.top_salers.length,
+            active_curators_count: SEEDED_SALER_INSIGHTS.top_salers.length,
           },
           physical_shop: physicalShop,
         },
@@ -442,8 +442,8 @@ export const supplierHandlers = [
   },
   {
     method: 'GET',
-    path: '/supplier/resellers',
-    handler: () => ({ status: 200, body: { data: SEEDED_RESELLER_INSIGHTS } }),
+    path: '/supplier/salers',
+    handler: () => ({ status: 200, body: { data: SEEDED_SALER_INSIGHTS } }),
   },
   {
     // Same shape as GET /supplier/scorecard (services/supplierScorecard.service.js getOwnScorecard).

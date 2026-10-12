@@ -286,7 +286,7 @@ export async function resolvePlatformPricingConfig(db) {
  * Calculates complete pricing breakdown in integer paisa.
  *
  * Supports two operational modes:
- * 1. 'tiered': Reseller model where supplier cost is confidential from salers.
+ * 1. 'tiered': Saler model where supplier cost is confidential from salers.
  *    - Default retail = supplier cost + platform default profit + saler default profit.
  *    - If saler sets retail price < default: only saler profit drops; platform profit is preserved.
  *    - If saler sets retail price > default: extra markup is split between platform and saler.

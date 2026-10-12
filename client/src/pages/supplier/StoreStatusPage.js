@@ -571,7 +571,7 @@ export default function StoreStatusPage(root) {
         <div class="supplier-form-field" style="grid-column: 1 / -1; background: var(--surface-1); padding: 14px 18px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
           <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: var(--text-sm); color: var(--text-primary);">
             <input type="checkbox" id="store-pickup-toggle" ${store.pickup_enabled ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--brand);" />
-            <strong>${t('supplier.pickup_desk_toggle', 'Enable Direct Customer & Reseller Self-Pickup at Showroom')}</strong>
+            <strong>${t('supplier.pickup_desk_toggle', 'Enable Direct Customer & Saler Self-Pickup at Showroom')}</strong>
           </label>
         </div>
 

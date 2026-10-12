@@ -176,7 +176,7 @@ export const navItems = [
 
   // ================= SUPPLIER — 16 items =================
   { key: 'supplier.dashboard', label_i18n_key: 'nav.shared.dashboard', icon: null, path: '/supplier', group: 'supplier.overview', permission: 'supplier.dashboard.view', module: 'core', roles: ['supplier'], order: 1 },
-  { key: 'supplier.resellers', label_i18n_key: 'nav.supplier.resellers', icon: null, path: '/supplier/resellers', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'core', roles: ['supplier'], order: 2 },
+  { key: 'supplier.salers', label_i18n_key: 'nav.supplier.salers', icon: null, path: '/supplier/salers', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'core', roles: ['supplier'], order: 2 },
   { key: 'supplier.scorecard', label_i18n_key: 'nav.supplier.scorecard', icon: null, path: '/supplier/scorecard', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 4 },
   { key: 'supplier.incentive', label_i18n_key: 'nav.supplier.incentive', icon: null, path: '/supplier/incentive', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 5 },
   { key: 'supplier.samples', label_i18n_key: 'nav.supplier.samples', icon: null, path: '/supplier/samples', group: 'supplier.overview', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 6 },

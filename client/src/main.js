@@ -620,12 +620,12 @@ async function bootRouterDemo() {
         load: () => import('./pages/supplier/FulfilmentPage.js'),
       },
       {
-        path: '/supplier/resellers',
-        title: 'Reseller Network Insights — Explooro',
+        path: '/supplier/salers',
+        title: 'Saler Network Insights — Explooro',
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'core',
-        load: () => import('./pages/supplier/ResellerInsightsPage.js'),
+        load: () => import('./pages/supplier/SalerInsightsPage.js'),
       },
       {
         path: '/supplier/scorecard',

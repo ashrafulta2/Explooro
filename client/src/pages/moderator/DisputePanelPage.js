@@ -418,7 +418,7 @@ export default function DisputePanelPage(root) {
             <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.customer_name}</strong>
           </div>
           <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
-            <span style="font-size: 11px; font-weight: 600; color: var(--info); display: block;">🏪 Reseller (Saler)</span>
+            <span style="font-size: 11px; font-weight: 600; color: var(--info); display: block;">🏪 Saler</span>
             <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.saler_name || 'Direct Sale'}</strong>
           </div>
           <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">

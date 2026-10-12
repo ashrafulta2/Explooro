@@ -208,7 +208,7 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
       assert.equal(delRes.body.category.is_override, false);
     });
 
-    it('PUT /admin/finance/splits/tiers updates reseller trust tier bonuses', () => {
+    it('PUT /admin/finance/splits/tiers updates saler trust tier bonuses', () => {
       const newTiers = [
         { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0.0 },
         { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 1.5 },

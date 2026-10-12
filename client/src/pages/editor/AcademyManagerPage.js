@@ -48,7 +48,7 @@ export default function AcademyManagerPage(root) {
         <div class="supplier-form-field">
           <label for="course-role">Target Audience *</label>
           <select class="form-select" id="course-role">
-            <option value="saler" ${existingCourse?.target_role === 'saler' ? 'selected' : ''}>🛍️ Resellers & Salers</option>
+            <option value="saler" ${existingCourse?.target_role === 'saler' ? 'selected' : ''}>🛍️ Salers</option>
             <option value="supplier" ${existingCourse?.target_role === 'supplier' ? 'selected' : ''}>🏭 Factory Suppliers</option>
             <option value="all" ${existingCourse?.target_role === 'all' ? 'selected' : ''}>🌐 All Platform Members</option>
           </select>

@@ -149,7 +149,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     const supplierPct = Math.min(100, Math.round((costPaisa / total) * 100));
     const salerTotalPct = Math.min(100 - supplierPct, Math.round((salerCommissionPaisa / total) * 100));
     const platformTotalPct = Math.max(0, 100 - supplierPct - salerTotalPct);
-    const ruleSource = isBn ? 'টায়ার্ড রিসেলার প্রাইসিং' : 'Tiered Reseller Pricing';
+    const ruleSource = isBn ? 'টায়ার্ড সেলার প্রাইসিং' : 'Tiered Saler Pricing';
 
     return {
       grossMargin,
@@ -502,7 +502,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
       <form class="global-split-form flex flex-col gap-4">
         <div class="mb-2">
           <span class="text-xs font-bold uppercase tracking-wider text-secondary">
-            ${isBn ? 'রিসেলার টায়ার প্রাইসিং পলিসি (গোপন পাইকারি মূল্য ও প্রফিট বণ্টন)' : 'Tiered Reseller Pricing Policy (Hidden Wholesale & Markup Split)'}
+            ${isBn ? 'সেলার টায়ার প্রাইসিং পলিসি (গোপন পাইকারি মূল্য ও প্রফিট বণ্টন)' : 'Tiered Saler Pricing Policy (Hidden Wholesale & Markup Split)'}
           </span>
         </div>
 

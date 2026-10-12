@@ -1,12 +1,12 @@
 /**
- * BecomeSalerPage.js — 1-Click Zero-Paperwork Reseller Upgrade & Onboarding Hub.
+ * BecomeSalerPage.js — 1-Click Zero-Paperwork Saler Upgrade & Onboarding Hub.
  *
  * Implements:
- * 1. Low-literacy friendly, high-contrast visual reseller onboarding with 100% bilingual i18n.
+ * 1. Low-literacy friendly, high-contrast visual saler onboarding with 100% bilingual i18n.
  * 2. Active Saler status detection with direct deep-links to Store Builder, Saler Analytics & Sourcing.
  * 3. Genuine 1-Click Saler upgrade calling customerApi.becomeSaler() with role mutation & vanity store provisioning.
  * 4. Interactive real-time Monthly Profit Potential Calculator.
- * 5. Traditional Business vs Explooro Reselling comparison matrix.
+ * 5. Traditional Business vs Explooro Selling comparison matrix.
  * 6. 4-Step visual workflow roadmap & interactive FAQ accordion.
  * 7. 15-Second low-literacy video guide modal.
  *
@@ -50,11 +50,11 @@ export default function BecomeSalerPage(root, { navigate } = {}) {
     <div class="account-page__title-wrap">
       <div class="become-saler-page__badge-row">
         <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">
-          ✨ ${t('customer.become_saler.badge', 'Zero-Capital Reseller Hub')}
+          ✨ ${t('customer.become_saler.badge', 'Zero-Capital Saler Hub')}
         </span>
       </div>
       <button id="saler-video-guide-btn" class="btn btn--secondary btn--sm flex items-center gap-1 text-xs font-bold">
-        🎬 ${t('customer.become_saler.video_modal_headline', '15-Second Reseller Business Walkthrough')}
+        🎬 ${t('customer.become_saler.video_modal_headline', '15-Second Saler Business Walkthrough')}
       </button>
     </div>
 
@@ -262,7 +262,7 @@ function renderProvisioningHero(container, { is_saler }, nav) {
   const upgradeBtn = Button({
     label: is_saler
       ? `🏬 ${t('customer.become_saler.btn_store_builder', 'Open Storefront Builder')}`
-      : `${t('customer.become_saler.btn_upgrade_cta', 'Start Reselling Now (1-Click Upgrade)')}`,
+      : `${t('customer.become_saler.btn_upgrade_cta', 'Start Selling Now (1-Click Upgrade)')}`,
     variant: 'primary',
     size: 'lg',
     fullWidth: true,
@@ -300,7 +300,7 @@ function renderProvisioningHero(container, { is_saler }, nav) {
       toast.error(err.message || 'Upgrade failed. Please try again.');
       isUpgrading = false;
       upgradeBtn.setLoading(false);
-      upgradeBtn.setLabel(`${t('customer.become_saler.btn_upgrade_cta', 'Start Reselling Now (1-Click Upgrade)')}`);
+      upgradeBtn.setLabel(`${t('customer.become_saler.btn_upgrade_cta', 'Start Selling Now (1-Click Upgrade)')}`);
     }
   }
 
@@ -318,14 +318,14 @@ function renderProfitCalculator(container) {
     <div class="become-saler-calculator__header">
       <div class="inline-flex items-center gap-2">
         <span class="badge badge--success text-[10px] font-bold">
-          💰 ${t('customer.become_saler.calculator_badge', 'Passive & Reseller Income')}
+          💰 ${t('customer.become_saler.calculator_badge', 'Passive & Saler Income')}
         </span>
       </div>
       <h2 class="become-saler-calculator__title">
         🧮 ${t('customer.become_saler.calculator_title', 'Monthly Profit Potential Calculator')}
       </h2>
       <p class="become-saler-calculator__subtitle">
-        ${t('customer.become_saler.calculator_subtitle', 'See how much you can earn every month with Explooro zero-inventory reselling.')}
+        ${t('customer.become_saler.calculator_subtitle', 'See how much you can earn every month with Explooro zero-inventory selling.')}
       </p>
     </div>
 
@@ -366,7 +366,7 @@ function renderProfitCalculator(container) {
 
         <div class="become-saler-calculator__control-group">
           <div class="become-saler-calculator__label-row">
-            <label for="calc-margin-slider">${t('customer.become_saler.calculator_margin_label', 'Average Reseller Profit Margin')}:</label>
+            <label for="calc-margin-slider">${t('customer.become_saler.calculator_margin_label', 'Average Saler Profit Margin')}:</label>
             <span id="calc-margin-readout" class="become-saler-calculator__slider-val font-mono">25% (${formatCurrency(375)}${t('customer.become_saler.per_order_unit', '/order')})</span>
           </div>
           <input 
@@ -376,7 +376,7 @@ function renderProfitCalculator(container) {
             max="40" 
             step="5" 
             value="25" 
-            aria-label="${t('customer.become_saler.calculator_margin_label', 'Average Reseller Profit Margin')}" 
+            aria-label="${t('customer.become_saler.calculator_margin_label', 'Average Saler Profit Margin')}" 
             class="become-saler-calculator__range" 
           />
         </div>
@@ -443,7 +443,7 @@ function renderProfitCalculator(container) {
 }
 
 /**
- * Traditional Business vs Explooro Reselling Comparison Matrix
+ * Traditional Business vs Explooro Selling Comparison Matrix
  */
 function renderComparisonMatrix(container) {
   const card = document.createElement('div');
@@ -451,7 +451,7 @@ function renderComparisonMatrix(container) {
 
   card.innerHTML = `
     <h2 class="become-saler-comparison__title">
-      ⚖️ ${t('customer.become_saler.comparison_title', 'Why Reselling on Explooro Beats Traditional Business')}
+      ⚖️ ${t('customer.become_saler.comparison_title', 'Why Selling on Explooro Beats Traditional Business')}
     </h2>
 
     <div class="become-saler-comparison__table-wrap">
@@ -460,7 +460,7 @@ function renderComparisonMatrix(container) {
           <tr>
             <th>${t('customer.become_saler.comparison_col_feature', 'Feature')}</th>
             <th>${t('customer.become_saler.comparison_col_traditional', 'Traditional Business')}</th>
-            <th>${t('customer.become_saler.comparison_col_explooro', 'Explooro Reselling')}</th>
+            <th>${t('customer.become_saler.comparison_col_explooro', 'Explooro Selling')}</th>
           </tr>
         </thead>
         <tbody>
@@ -611,7 +611,7 @@ function openSalerWalkthroughModal(nav) {
         ▶
       </div>
       <div>
-        <div class="text-sm font-bold text-primary">${t('customer.become_saler.video_modal_headline', '15-Second Reseller Business Walkthrough')}</div>
+        <div class="text-sm font-bold text-primary">${t('customer.become_saler.video_modal_headline', '15-Second Saler Business Walkthrough')}</div>
         <div class="text-xs text-muted">${t('customer.become_saler.video_modal_sub', 'Learn how to launch, sell, and withdraw your first profit.')}</div>
       </div>
     </div>

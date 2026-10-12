@@ -14,7 +14,7 @@ let mockDisputes = [
     customer_id: 2,
     customer_name: 'Tanvir Hossain',
     saler_id: 3,
-    saler_name: 'Dhaka Trendz Reseller',
+    saler_name: 'Dhaka Trendz Saler',
     supplier_id: 4,
     supplier_name: 'Walton Electronics Ltd',
     sla_expires_at: new Date(Date.now() + 90 * 60 * 1000).toISOString(),

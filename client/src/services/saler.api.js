@@ -75,7 +75,7 @@ export const salerApi = {
   },
 
   /**
-   * Fetches saler reseller orders with commission breakdowns.
+   * Fetches Saler orders with commission breakdowns.
    * @param {{ status?: string, search?: string, limit?: number }} [params]
    */
   async getOrders(params = {}) {

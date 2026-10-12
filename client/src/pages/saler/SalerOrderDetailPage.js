@@ -1,5 +1,5 @@
 /**
- * SalerOrderDetailPage.js — Detailed Reseller Order Breakdown & Delivery Timeline (Prompt 11.2).
+ * SalerOrderDetailPage.js — Detailed Saler Order Breakdown & Delivery Timeline (Prompt 11.2).
  *
  * Route: /saler/orders/:id
  */
@@ -111,7 +111,7 @@ export default function SalerOrderDetailPage(root, { params, navigate } = {}) {
     kpiBox.innerHTML = `
       <div class="saler-row--between">
         <div class="saler-stack--xs">
-          <div class="text-xs font-bold text-muted uppercase tracking-wider">Your Reseller Commission on this Order</div>
+          <div class="text-xs font-bold text-muted uppercase tracking-wider">Your Saler Commission on this Order</div>
           <div class="text-3xl font-black font-mono text-emerald-600" style="color: var(--success-600, #16a34a);">+${formatCurrency(order.saler_commission_earned)}</div>
           <div class="text-xs text-muted">
             Escrow Status: <strong class="${order.escrow_status === 'RELEASED' ? 'text-emerald-600' : 'text-amber-600'}">${order.escrow_status === 'RELEASED' ? '✓ Settled & Available in Vault' : '🔒 Locked in Escrow (Clears upon delivery confirmation)'}</strong>

@@ -77,8 +77,8 @@ export const supplierApi = {
     return api.post('/supplier/fulfilment/consign', payload);
   },
 
-  getResellerInsights() {
-    return api.get('/supplier/resellers');
+  getSalerInsights() {
+    return api.get('/supplier/salers');
   },
 
   getScorecard() {

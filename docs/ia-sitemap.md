@@ -147,7 +147,7 @@
 | `/supplier/shipments` | Shipment tracking | `logistics.shipment.view` | `courier_hub` |
 | `/supplier/warranty-claims` | Warranty claims | `support.warranty.manage` | `digital_warranty` |
 | `/supplier/b2b-escrow` | B2B wholesale escrow | `finance.b2b_escrow.view_own` | `b2b_escrow` |
-| `/supplier/resellers` | Reseller network insights | `supplier.analytics.view` | core |
+| `/supplier/salers` | Saler network insights | `supplier.analytics.view` | core |
 | `/supplier/forecasting` | AI demand forecasting | `supplier.analytics.view` | `ai_forecasting` |
 | `/supplier/vault` | Earnings vault | `finance.wallet.view_own` | core |
 | `/supplier/inquiries` | Wholesale inquiries | `chat.thread.view_own` | `chat` |
@@ -300,7 +300,7 @@ Anything the Moderator has not been granted appears **locked with a Request Acce
 ### 2.4 🏭 Supplier — 7 groups
 
 ```
-📊  Overview          Dashboard · Reseller Insights · Demand Forecasting
+📊  Overview          Dashboard · Saler Insights · Demand Forecasting
 📦  Inventory         Products · Stock · Batches & Expiry · Warehouses
 🛒  Orders            Incoming Orders · Fulfilment · Shipments
 🛡️  Aftercare         Warranty Claims

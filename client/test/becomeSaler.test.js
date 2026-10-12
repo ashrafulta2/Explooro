@@ -1,5 +1,5 @@
 /**
- * becomeSaler.test.js — Invariants for the 1-Click Saler Upgrade & Reseller Hub.
+ * becomeSaler.test.js — Invariants for the 1-Click Saler Upgrade & Saler Hub.
  *
  * Tests:
  * 1. Locale integrity — en/bn parity for customer.become_saler keys, nav keys, no double emoji.
@@ -59,7 +59,7 @@ test('2. Profit calculator arithmetic invariants', async (t) => {
     assert.equal(res.monthlyProfit, 1500);
   });
 
-  await t.test('Power-reseller scenario: 30 orders/day @ ৳2,000 with 30% margin', () => {
+  await t.test('Power-saler scenario: 30 orders/day @ ৳2,000 with 30% margin', () => {
     const res = calculateEarnings(30, 2000, 30);
     assert.equal(res.profitPerOrder, 600);
     assert.equal(res.dailyProfit, 18000);

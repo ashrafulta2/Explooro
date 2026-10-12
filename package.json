@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Explooro — social commerce and reseller partnership platform. Zero-bloat monorepo.",
+  "description": "Explooro — social commerce and saler partnership platform. Zero-bloat monorepo.",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"

@@ -423,7 +423,7 @@ export async function getProfitSplits(req, reply) {
     { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0, criteria_en: 'Entry tier / under ৳50,000 GMV', criteria_bn: 'প্রাথমিক স্তর / ৫০,০০০ টাকার কম জিএমভি' },
     { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 0, criteria_en: 'Consistent seller, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক সেলার, ৫০হাজার-২লাখ টাকা জিএমভি' },
     { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড', bonus_pct: 0, criteria_en: 'High volume, ৳200k-৳1M GMV, <1% dispute rate', criteria_bn: 'উচ্চ ভলিউম, ২লাখ-১০লাখ টাকা জিএমভি' },
-    { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 0, criteria_en: 'Top 1% elite reseller, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট সেলার, ১০ লাখ টাকার বেশি জিএমভি' },
+    { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 0, criteria_en: 'Top 1% elite saler, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট সেলার, ১০ লাখ টাকার বেশি জিএমভি' },
   ].map((t) => ({ ...t, bonus_pct: tierBonuses[t.tier] }));
 
   // 4. Read audit logs

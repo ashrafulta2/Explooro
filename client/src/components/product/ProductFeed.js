@@ -612,7 +612,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   function buildSalerCtas(p) {
     const row = document.createElement('div');
     row.className = 'discover-slide__ctas';
-    // Sourcing CTA: show the reseller margin and let them add it to their store.
+    // Sourcing CTA: show the saler margin and let them add it to their store.
     if (p.margin_pct != null || p.pricing?.saler_margin_pct != null) {
       const margin = document.createElement('span');
       margin.className = 'discover-slide__margin';

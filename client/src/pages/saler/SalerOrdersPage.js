@@ -1,9 +1,9 @@
 /**
- * SalerOrdersPage.js — Saler Reseller Orders & Commission Dashboard (Prompt 11.2 / §AL.2).
+ * SalerOrdersPage.js — Saler Orders & Commission Dashboard (Prompt 11.2 / §AL.2).
  *
  * Route: /saler/orders
  * Implements:
- * 1. Reseller-specific orders dashboard with supplier fulfillment tracking & net commission calculations.
+ * 1. Saler-specific orders dashboard with supplier fulfillment tracking & net commission calculations.
  * 2. Status filter tabs (All, Pending Packing, In Transit, Delivered, Cancelled).
  * 3. Search by Order Ref, Buyer Name, Phone, and Product Title.
  * 4. 1-Tap Buyer WhatsApp Messaging & Direct Phone Call shortcuts.
@@ -127,7 +127,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
         <div class="saler-kpi-card__value saler-kpi-card__value--profit">
           +${formatCurrency(summary.total_commission_earned || orders.reduce((sum, o) => sum + o.saler_commission_earned, 0))}
         </div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'অর্জিত মোট নিট কমিশন' : 'Total reseller earnings'}</div>
+        <div class="saler-kpi-card__subtext">${isBn ? 'অর্জিত মোট নিট কমিশন' : 'Total saler earnings'}</div>
       </div>
     `;
     container.append(kpiGrid);

@@ -4,7 +4,7 @@
  * Implements `idea proposition.md` §AL.1 & Prompt 11.1 REQUIREMENTS 3, 4, 5:
  * - Simple Mode: Surfaces 4 primary KPI action cards + 6 essential daily task tiles.
  * - Pro Mode: Full 6-metric telemetry grid, operational control matrix (Live stock, FEFO batches,
- *   Multi-Depot routing, 3PL fulfilment queue, Reseller analytics, Digital Vault, Physical Shop Status).
+ *   Multi-Depot routing, 3PL fulfilment queue, Saler analytics, Digital Vault, Physical Shop Status).
  * - Styled with native design tokens and CSS in `supplier.css`.
  */
 
@@ -419,27 +419,27 @@ export default function SupplierDashboardPage(root) {
     `;
     matrixGrid.appendChild(fulfilmentCard);
 
-    // Matrix Card 5: Reseller Network Insights
-    const resellerCard = document.createElement('div');
-    resellerCard.className = 'supplier-matrix-card';
-    resellerCard.innerHTML = `
+    // Matrix Card 5: Saler Network Insights
+    const salerCard = document.createElement('div');
+    salerCard.className = 'supplier-matrix-card';
+    salerCard.innerHTML = `
       <div>
         <div class="supplier-matrix-card__header">
           <div class="supplier-matrix-card__title-group">
             <span style="font-size: 1.25rem;">👥</span>
-            <h3 class="supplier-matrix-card__title">${t('supplier.reseller_insights_title', 'Reseller Network')}</h3>
+            <h3 class="supplier-matrix-card__title">${t('supplier.saler_insights_title', 'Saler Network')}</h3>
           </div>
           <span class="badge badge--success text-xs font-mono">${metrics.active_curators_count || 0} salers</span>
         </div>
         <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
-          ${t('supplier.reseller_insights_desc', 'See which Salers curate and sell your products most effectively, top conversion districts, and sales volume analytics.')}
+          ${t('supplier.saler_insights_desc', 'See which Salers curate and sell your products most effectively, top conversion districts, and sales volume analytics.')}
         </p>
       </div>
       <div class="supplier-matrix-card__footer">
-        <a href="/supplier/resellers" class="btn btn--sm btn--secondary" style="flex: 1; text-align: center;">${t('supplier.view_salers', 'View Reseller Stats')}</a>
+        <a href="/supplier/salers" class="btn btn--sm btn--secondary" style="flex: 1; text-align: center;">${t('supplier.view_salers', 'View Saler Stats')}</a>
       </div>
     `;
-    matrixGrid.appendChild(resellerCard);
+    matrixGrid.appendChild(salerCard);
 
     // Matrix Card 6: Earnings Vault & Escrow
     const vaultCard = document.createElement('div');
