@@ -13,7 +13,7 @@
  */
 
 import { knownDeliveryCharge, loadDeliveryCharge } from '../services/deliveryCharge.js';
-import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, terminateLiveStream } from '../services/live.api.js';
+import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, getInStreamQuote, terminateLiveStream } from '../services/live.api.js';
 import { adsApi } from '../services/ads.api.js';
 import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.js';
 import { LiveStreamCard } from '../components/live/LiveStreamCard.js';
@@ -1001,6 +1001,15 @@ async function renderStreamViewer(container, streamId, navigate) {
  * 3. In-Stream 1-Click Buy Now Checkout Drawer
  * Fixed Drawer invocation, 8 BD administrative divisions, and BD mobile phone validation.
  */
+/**
+ * WHY: an account's phone is stored as +8801XXXXXXXXX, but the field and its check want the 11-digit
+ * local form, so a prefilled number failed its own validation and the shopper could not order.
+ */
+function toLocalBdPhone(phone) {
+  const digits = String(phone ?? '').replace(/[\s-]/g, '');
+  return digits.startsWith('+88') ? digits.slice(3) : (digits.startsWith('88') && digits.length === 13 ? digits.slice(2) : digits);
+}
+
 function openInStreamCheckoutDrawer(product, streamId) {
   const user = getCurrentUser();
 
@@ -1014,7 +1023,9 @@ function openInStreamCheckoutDrawer(product, streamId) {
   const isBn = lang === 'bn';
   const prodTitle = (isBn ? (product.title_bn || product.title_en) : (product.title_en || product.title_bn)) || product.title || 'Live Deal';
   // WHY no fallback figure: a made-up price in the checkout drawer is a price nobody agreed to.
-  const retailPrice = Number(product.special_price || product.price);
+  // WHY unit_price first: the server resolves what a live order is billed (the stream's special price,
+  // else the listed one) and sends it with the pinned product, so the drawer and the bill agree.
+  const retailPrice = Number(product.unit_price ?? (product.special_price || product.list_price || product.price));
   if (!Number.isFinite(retailPrice) || retailPrice <= 0) {
     toast.error(t('live.chk_price_unavailable') || 'This deal has no price yet. Please try again shortly.');
     return;
@@ -1027,7 +1038,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
       <img src="${product.main_image || product.image_url || '/placeholder-product.png'}" alt="${prodTitle}" onerror="this.src='/placeholder-product.png'" />
       <div>
         <h4>${prodTitle}</h4>
-        <div class="price-highlight">${formatBdt(retailPrice)}</div>
+        <div class="price-highlight" id="chk-price">${formatBdt(retailPrice)}</div>
         <span class="badge badge--success">⚡ ${t('live.chk_flash_deal') || 'In-Stream Flash Deal'}</span>
       </div>
     </div>
@@ -1043,7 +1054,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
           type="tel" 
           id="chk-phone" 
           placeholder="${t('live.chk_phone_placeholder') || 'e.g. 01712345678'}" 
-          value="${user.phone || ''}" 
+          value="${toLocalBdPhone(user.phone)}" 
           required 
           pattern="^01[3-9]\\d{8}$"
           class="input" 
@@ -1074,6 +1085,31 @@ function openInStreamCheckoutDrawer(product, streamId) {
           <option value="BKASH">bKash Mobile Wallet</option>
           <option value="NAGAD">Nagad Mobile Wallet</option>
         </select>
+      </div>
+
+      <div class="form-group">
+        <label for="chk-qty">${t('live.chk_qty_label') || 'Quantity'}</label>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" class="btn btn--secondary" id="chk-qty-dec" aria-label="${t('live.chk_qty_dec') || 'Decrease quantity'}">−</button>
+          <output id="chk-qty" aria-live="polite" style="min-width: 28px; text-align: center; font-weight: 600;">1</output>
+          <button type="button" class="btn btn--secondary" id="chk-qty-inc" aria-label="${t('live.chk_qty_inc') || 'Increase quantity'}">+</button>
+        </div>
+        <span class="form-hint" id="chk-stock-hint" style="font-size: 11px; color: var(--text-muted);"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="chk-coupon">${t('live.chk_coupon_label') || 'Coupon code'}</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="chk-coupon" maxlength="64" autocomplete="off" class="input" />
+          <button type="button" class="btn btn--secondary" id="chk-coupon-apply">${t('live.chk_coupon_apply') || 'Apply'}</button>
+        </div>
+        <span class="form-hint" id="chk-coupon-msg" role="status" style="font-size: 11px;"></span>
+      </div>
+
+      <div class="form-group" id="chk-otp-group" hidden>
+        <label for="chk-otp">${t('live.chk_otp_label') || 'SMS confirmation code'}</label>
+        <input type="text" id="chk-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="input" />
+        <span class="form-hint" id="chk-otp-hint" style="font-size: 11px; color: var(--text-muted);"></span>
       </div>
 
       <div class="order-total-preview">
@@ -1108,17 +1144,104 @@ function openInStreamCheckoutDrawer(product, streamId) {
   const divSelect = drawerContent.querySelector('#chk-division');
   const phoneInput = drawerContent.querySelector('#chk-phone');
   const totalEl = drawerContent.querySelector('#chk-total');
+  // WHY one key per open drawer: a double-tap or a retry after the OTP step replays the same order
+  // instead of placing another.
+  const idempotencyKey = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `idem-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+  // WHY one flat charge: the server bills the platform's per-parcel delivery charge for a live order,
+  // whatever the division, so the total follows that number instead of a guessed Dhaka/other split.
+  let qty = 1;
+  let maxQty = Infinity;
+  let shipEstimate = knownDeliveryCharge() ?? 0;
+  let quoteSeq = 0;
+  let couponCode = '';
+  const couponInput = drawerContent.querySelector('#chk-coupon');
+  const couponMsg = drawerContent.querySelector('#chk-coupon-msg');
+  const qtyEl = drawerContent.querySelector('#chk-qty');
+  const decBtn = drawerContent.querySelector('#chk-qty-dec');
+  const incBtn = drawerContent.querySelector('#chk-qty-inc');
+  const stockHint = drawerContent.querySelector('#chk-stock-hint');
+
+  const syncStepper = () => {
+    qtyEl.textContent = String(qty);
+    decBtn.disabled = qty <= 1;
+    incBtn.disabled = qty >= maxQty;
+  };
+  const showEstimate = () => {
+    totalEl.textContent = formatBdt(retailPrice * qty + shipEstimate);
+  };
+  // WHY ask the server: its quote is the figure that will be billed (price, delivery charge, stock), so
+  // it overrides the local estimate whenever it arrives. A failed quote keeps the estimate. Each call
+  // carries a sequence number so a slow answer for an earlier quantity cannot overwrite a later one.
+  const refreshQuote = () => {
+    const seq = ++quoteSeq;
+    getInStreamQuote(streamId, { productId: product.product_id || product.id, quantity: qty, couponCode }).then((res) => {
+      if (seq !== quoteSeq) return;
+      const quote = res?.data?.quote ?? res?.quote;
+      if (!quote) return;
+      drawerContent.querySelector('#chk-price').textContent = formatBdt(quote.unit_price);
+      totalEl.textContent = formatBdt(quote.total_amount);
+      maxQty = Math.max(1, Number(quote.available_stock) || 1);
+      stockHint.textContent = quote.available_stock > 0 && quote.available_stock <= 10
+        ? (t('live.chk_only_left') || 'Only {{n}} left').replace('{{n}}', String(quote.available_stock))
+        : '';
+      confirmBtn.disabled = !quote.in_stock;
+      // WHY a bad code is dropped: the order refuses an invalid coupon, so keeping it applied would
+      // make the next confirm fail for a reason the shopper has already seen.
+      if (quote.coupon?.valid) {
+        couponMsg.style.color = 'var(--text-success, var(--text-muted))';
+        couponMsg.textContent = (t('live.chk_coupon_applied') || 'Coupon {{code}} applied: -{{amount}}')
+          .replace('{{code}}', quote.coupon.code)
+          .replace('{{amount}}', formatBdt(quote.discount_amount));
+      } else if (quote.coupon) {
+        couponMsg.style.color = 'var(--danger)';
+        couponMsg.textContent = (isBn && quote.coupon.message_bn) || quote.coupon.message_en || '';
+        couponCode = '';
+      } else {
+        couponMsg.textContent = '';
+      }
+      if (!quote.in_stock) {
+        toast.error(t('live.chk_out_of_stock') || 'This deal is sold out.');
+      }
+      syncStepper();
+    }).catch(() => {});
+  };
+  drawerContent.querySelector('#chk-coupon-apply').addEventListener('click', () => {
+    couponCode = couponInput.value.trim();
+    if (!couponCode) {
+      couponMsg.textContent = '';
+    }
+    refreshQuote();
+  });
+  decBtn.addEventListener('click', () => {
+    if (qty <= 1) return;
+    qty -= 1;
+    syncStepper();
+    showEstimate();
+    refreshQuote();
+  });
+  incBtn.addEventListener('click', () => {
+    if (qty >= maxQty) return;
+    qty += 1;
+    syncStepper();
+    showEstimate();
+    refreshQuote();
+  });
+  syncStepper();
 
   // WHY one flat charge: the server bills the platform's per-parcel delivery charge for a live order,
   // whatever the division, so the total follows that number instead of a guessed Dhaka/other split.
   loadDeliveryCharge().then((ship) => {
-    if (ship !== null) totalEl.textContent = formatBdt(retailPrice + ship);
+    if (ship === null) return;
+    shipEstimate = ship;
+    showEstimate();
   });
+  refreshQuote();
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const phoneVal = phoneInput.value.trim();
+    const phoneVal = toLocalBdPhone(phoneInput.value);
     // Validate BD 11-digit phone number
     const bdPhoneRegex = /^01[3-9]\d{8}$/;
     if (!bdPhoneRegex.test(phoneVal)) {
@@ -1134,19 +1257,29 @@ function openInStreamCheckoutDrawer(product, streamId) {
     try {
       const res = await inStreamBuy(streamId, {
         product_id: product.product_id || product.id,
-        quantity: 1,
+        quantity: qty,
         recipient_name: drawerContent.querySelector('#chk-name').value.trim(),
         recipient_phone: phoneVal,
         division: divSelect.value,
         district: divSelect.value,
         address_line: drawerContent.querySelector('#chk-address').value.trim(),
         payment_method: drawerContent.querySelector('#chk-payment').value,
-      });
+        otp_code: drawerContent.querySelector('#chk-otp').value.trim() || undefined,
+        coupon_code: couponCode || undefined,
+      }, { idempotencyKey });
 
       toast.success(res?.meta?.message_en || t('live.chk_order_success') || 'Order placed successfully!');
       drawer.closeDrawer();
     } catch (err) {
-      toast.error(err.message || 'Checkout failed.');
+      if (err.code === 'COD_OTP_REQUIRED') {
+        // The server has sent the code; reveal the field and let the shopper confirm again.
+        drawerContent.querySelector('#chk-otp-group').hidden = false;
+        drawerContent.querySelector('#chk-otp-hint').textContent =
+          (t('live.chk_otp_sent') || 'We sent a code to {{phone}}. Enter it and confirm again.').replace('{{phone}}', err.details?.phone || phoneVal);
+        drawerContent.querySelector('#chk-otp').focus();
+      } else {
+        toast.error((isBn && err.message_bn) || err.message || 'Checkout failed.');
+      }
       confirmBtn.setLoading(false);
     }
   });

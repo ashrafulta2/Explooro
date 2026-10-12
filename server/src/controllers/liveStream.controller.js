@@ -124,6 +124,18 @@ export async function recordReaction(req, reply) {
   });
 }
 
+export async function quoteInStreamBuy(req, reply) {
+  const quote = await liveService.quoteInStreamBuy(req.server.db, req.server.cache, {
+    streamId: req.params.id,
+    productId: req.query.product_id,
+    variantId: req.query.variant_id || null,
+    qty: req.query.quantity ?? 1,
+    couponCode: req.query.coupon_code || null,
+    userId: req.user?.id ?? null,
+  });
+  return reply.send({ data: { quote } });
+}
+
 export async function executeInStreamBuy(req, reply) {
   const result = await liveService.executeInStreamBuy(req.server.db, req.server.cache, {
     streamId: req.params.id,
@@ -137,7 +149,23 @@ export async function executeInStreamBuy(req, reply) {
     district: req.body?.district,
     addressLine: req.body?.address_line,
     paymentMethod: req.body?.payment_method || 'COD',
+    couponCode: req.body?.coupon_code,
+    idempotencyKey: req.headers['idempotency-key'],
+    otpCode: req.body?.otp_code,
+    smsSender: req.server.smsSender,
+    isDevelopment: Boolean(req.server.config?.isDevelopment),
+    ip: req.ip,
   });
+
+  if (result.isReplay) {
+    return reply
+      .header('Idempotency-Replayed', 'true')
+      .status(200)
+      .send({
+        data: { order: result.order },
+        meta: { idempotency: { code: 'IDEMPOTENCY_REPLAY', original_at: result.originalAt } },
+      });
+  }
 
   return reply.status(201).send({
     data: { order: result.order },

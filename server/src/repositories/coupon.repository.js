@@ -46,6 +46,16 @@ export async function incrementCouponUsage(db, couponId, discountAmount) {
   return rows[0] || null;
 }
 
+/**
+ * Removes the redemption rows of a cancelled order.
+ * WHY: the per-user limit counts coupon_redemptions, so a cancelled order's row kept the coupon "used"
+ * for that shopper even after usage_count and budget_used were given back.
+ */
+export async function deleteRedemptionsByOrder(db, orderId) {
+  const { rowCount } = await db.query(`DELETE FROM coupon_redemptions WHERE order_id = $1`, [orderId]);
+  return rowCount ?? 0;
+}
+
 export async function decrementCouponUsage(db, couponId, discountAmount) {
   const { rows } = await db.query(
     `UPDATE coupons
