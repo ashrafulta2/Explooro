@@ -55,7 +55,9 @@ export async function getCartItemsWithDetails(db, cartId) {
       p.title_bn AS product_title_bn,
       p.slug AS product_slug,
       p.status AS product_status,
-      p.default_retail_price AS current_product_retail_price,
+      -- WHY: a line sold through a saler is priced at that saler's own price; the supplier default
+      -- only applies to a direct buy or when the saler has no active store item for the product.
+      COALESCE(ssi.custom_retail_price, p.default_retail_price) AS current_product_retail_price,
       p.base_cost AS current_product_base_price,
       p.stock_qty AS current_product_stock_qty,
       p.supplier_id,
@@ -66,7 +68,7 @@ export async function getCartItemsWithDetails(db, cartId) {
       pv.attributes_json AS variant_attributes,
       pv.sku AS variant_sku,
       CASE WHEN pv.id IS NULL THEN NULL
-           ELSE p.default_retail_price + pv.price_delta END AS variant_price_override,
+           ELSE COALESCE(ssi.custom_retail_price, p.default_retail_price) + pv.price_delta END AS variant_price_override,
       pv.stock_qty AS variant_stock_qty,
       pv.is_active AS variant_is_active,
       (
@@ -82,6 +84,13 @@ export async function getCartItemsWithDetails(db, cartId) {
     JOIN users u ON u.id = p.supplier_id
     LEFT JOIN user_profiles up ON up.user_id = u.id
     LEFT JOIN product_variants pv ON pv.id = ci.variant_id
+    LEFT JOIN LATERAL (
+      SELECT i.custom_retail_price
+      FROM saler_store_items i
+      WHERE i.saler_id = ci.saler_id AND i.product_id = ci.product_id AND i.is_active
+      ORDER BY i.added_at DESC
+      LIMIT 1
+    ) ssi ON ci.saler_id IS NOT NULL
     WHERE ci.cart_id = $1
     ORDER BY ci.added_at ASC
   `;

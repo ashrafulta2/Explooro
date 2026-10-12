@@ -198,7 +198,18 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
     throw new AppError('NOT_FOUND', 'Product not available.', 'পণ্যটি উপলব্ধ নেই।');
   }
 
-  let unitPrice = Number(prodRows[0].default_retail_price);
+  // WHY: price_at_add must be the price getCart will read back, or every saler line shows PRICE_CHANGED.
+  let basePrice = Number(prodRows[0].default_retail_price);
+  if (salerId) {
+    const { rows: itemRows } = await db.query(
+      `SELECT custom_retail_price FROM saler_store_items
+        WHERE saler_id = $1 AND product_id = $2 AND is_active
+        ORDER BY added_at DESC LIMIT 1`,
+      [salerId, productId]
+    );
+    if (itemRows[0]?.custom_retail_price != null) basePrice = Number(itemRows[0].custom_retail_price);
+  }
+  let unitPrice = basePrice;
   let availableStock = Number(prodRows[0].stock_qty);
 
   if (variantId) {
