@@ -2,16 +2,17 @@
  * HomeTop — the band above the product feed on the marketplace home page.
  *
  * Replaces the old text-only hero. Two layouts share one component:
- *  - Guest / customer: category rail · campaign slider · side cards (Become a Saler, orders/sign in).
+ *  - Guest / customer: how-a-Saler-earns panel · campaign slider · shortcut tiles + sign-in/orders card.
  *  - Signed in: the same, plus a "welcome back" strip of role-specific quick links.
  *
  * WHY: nothing here fetches. The slides are shortcuts into the existing feed tabs and the quick
  * links are plain routes, so the band renders instantly and cannot show a number that is wrong.
- * The Become a Saler CTA keeps the one-click flow: guests go to register, customers to the
- * /account/become-saler page that runs BecomeSalerCta, salers to their dashboard.
+ * The Become a Saler CTA keeps the one-click flow, now on the earn panel: guests go to register,
+ * customers to the /account/become-saler page that runs BecomeSalerCta, salers to their dashboard.
  */
 
 import { t } from '../../services/i18n.js';
+import { ICONS } from '../ui/icons.js';
 
 const SLIDES = [
   { id: 'flash',    feed: 'flash',    key: 'marketplace.top.slide_flash' },
@@ -19,7 +20,19 @@ const SLIDES = [
   { id: 'reseller', feed: 'reseller', key: 'marketplace.top.slide_reseller' },
 ];
 
-const RAIL_LIMIT = 7;
+// i18n keys in the order a Saler experiences them; the number is drawn by a CSS counter.
+const EARN_STEPS = ['marketplace.top.earn_step_pick', 'marketplace.top.earn_step_share', 'marketplace.top.earn_step_keep'];
+// Shortcut tiles on the right. `feed` tiles switch the feed tab below; the rest are plain routes
+// (the router sends a signed-out visitor to sign in first). Flash sales has no tile: it is a slide.
+const TILES = [
+  { id: 'chat',      icon: 'engage',      path: '/chat' },
+  { id: 'verified',  icon: 'check_circle', feed: 'verified' },
+  { id: 'team',      icon: 'users',       path: '/account/team-purchases' },
+  { id: 'live',      icon: 'circle_play', path: '/live' },
+  { id: 'coupons',   icon: 'tag',         path: '/account/coupons' },
+  { id: 'resellers', icon: 'my_store',    feed: 'reseller' },
+];
+
 const ROTATE_MS = 6000;
 
 // Role -> [label key, path]. Roles with their own console get one link to it.
@@ -59,28 +72,30 @@ function link(className, label, path, onNavigate) {
   return a;
 }
 
-export function HomeTop({ role, isAuthenticated, categories, lang, onNavigate, onSelectCategory, onSelectFeed }) {
+export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   const root = el('section', 'home-top');
   root.setAttribute('aria-label', t('marketplace.top.label'));
   const cleanups = [];
   // WHY: the three slides are h2s that rotate; the page still needs one stable h1 for SEO and screen readers.
   root.append(el('h1', 'sr-only', t('marketplace.hero.tagline')));
 
-  // ── Category rail ────────────────────────────────────────────────────────
-  const rail = el('nav', 'home-top__rail');
-  rail.setAttribute('aria-label', t('marketplace.categories.label'));
-  rail.append(el('h2', 'home-top__rail-title', t('marketplace.top.categories')));
-  for (const cat of categories.slice(0, RAIL_LIMIT)) {
-    const label = lang === 'bn' ? (cat.label_bn || cat.id) : (cat.label_en || cat.id);
-    const b = el('button', 'home-top__rail-item', label);
-    b.type = 'button';
-    b.addEventListener('click', () => onSelectCategory(cat.id));
-    rail.append(b);
+  // ── Earn panel ───────────────────────────────────────────────────────────
+  // WHY: this used to be a category rail, but the category chips under the feed tabs already list
+  // the same names. Showing how a Saler earns tells a shopper the platform is also a way to earn.
+  const isSaler = role === 'saler';
+  const salerPath = isSaler ? '/saler' : isAuthenticated ? '/account/become-saler' : '/auth/register';
+  const earn = el('aside', 'home-top__earn');
+  earn.setAttribute('aria-label', t('marketplace.top.earn_label'));
+  earn.append(
+    el('p', 'home-top__earn-kicker', t('marketplace.top.earn_kicker')),
+    el('h2', 'home-top__earn-title', t('marketplace.top.earn_title')),
+  );
+  const steps = el('ol', 'home-top__earn-steps');
+  for (const key of EARN_STEPS) steps.append(el('li', 'home-top__earn-step', t(key)));
+  earn.append(steps);
+  if (!CONSOLE_HOME[role]) {
+    earn.append(link('home-top__earn-cta', t(isSaler ? 'marketplace.top.open_store' : 'marketplace.top.earn_cta'), salerPath, onNavigate));
   }
-  const all = el('button', 'home-top__rail-item home-top__rail-item--all', `${t('marketplace.top.all_categories')} ›`);
-  all.type = 'button';
-  all.addEventListener('click', () => onSelectCategory('all'));
-  rail.append(all);
 
   // ── Slider ───────────────────────────────────────────────────────────────
   const slider = el('div', 'home-top__slider');
@@ -143,19 +158,33 @@ export function HomeTop({ role, isAuthenticated, categories, lang, onNavigate, o
   const side = el('div', 'home-top__side');
 
   if (!CONSOLE_HOME[role]) {
-    const isSaler = role === 'saler';
-    const card = el('div', 'home-top__card home-top__card--saler');
-    card.append(
-      el('h2', 'home-top__card-title', t(isSaler ? 'marketplace.top.saler_card_saler' : 'marketplace.top.saler_card_title')),
-      el('p', 'home-top__card-sub', t(isSaler ? 'marketplace.top.saler_card_saler_sub' : 'marketplace.top.saler_card_sub')),
-    );
-    const path = isSaler ? '/saler' : isAuthenticated ? '/account/become-saler' : '/auth/register';
-    card.append(link('home-top__card-cta', t(isSaler ? 'marketplace.top.open_store' : 'marketplace.hero.cta'), path, onNavigate));
-    side.append(card);
+    const tiles = el('nav', 'home-top__tiles');
+    tiles.setAttribute('aria-label', t('marketplace.top.tiles_title'));
+    tiles.append(el('h2', 'home-top__tiles-title', t('marketplace.top.tiles_title')));
+    const grid = el('div', 'home-top__tile-grid');
+    for (const tile of TILES) {
+      const label = t(`marketplace.top.tile_${tile.id}`);
+      const node = tile.feed
+        ? el('button', `home-top__tile home-top__tile--${tile.id}`)
+        : link(`home-top__tile home-top__tile--${tile.id}`, '', tile.path, onNavigate);
+      if (tile.feed) {
+        node.type = 'button';
+        node.addEventListener('click', () => onSelectFeed(tile.feed));
+      }
+      const icon = el('span', 'home-top__tile-icon');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.innerHTML = ICONS[tile.icon]; // trusted constant SVG from icons.js
+      node.append(icon, el('span', null, label));
+      grid.append(node);
+    }
+    tiles.append(grid);
+    side.append(tiles);
   }
 
-  const second = el('div', 'home-top__card');
+  // WHY: no sign-in card for guests. The topbar already has Sign In / Sign Up, and the card only
+  // made the band taller. Signed-in users keep a card that points at their orders or console.
   if (isAuthenticated) {
+    const second = el('div', 'home-top__card home-top__card--info');
     const home = CONSOLE_HOME[role];
     const path = home || (role === 'saler' ? '/saler/orders' : '/account/orders');
     second.append(
@@ -163,17 +192,11 @@ export function HomeTop({ role, isAuthenticated, categories, lang, onNavigate, o
       el('p', 'home-top__card-sub', t(home ? 'marketplace.top.console_sub' : 'marketplace.top.orders_sub')),
       link('home-top__card-link', t(home ? 'marketplace.top.q_dashboard' : 'marketplace.top.q_orders') + ' ›', path, onNavigate),
     );
-  } else {
-    second.append(
-      el('h2', 'home-top__card-title', t('marketplace.top.signin_title')),
-      el('p', 'home-top__card-sub', t('marketplace.top.signin_sub')),
-      link('home-top__card-link', t('marketplace.top.signin_cta') + ' ›', '/auth/login', onNavigate),
-    );
+    side.append(second);
   }
-  side.append(second);
 
   const main = el('div', 'home-top__main');
-  main.append(rail, slider, side);
+  main.append(earn, slider, side);
   root.append(main);
 
   // ── Welcome back strip (signed in only) ──────────────────────────────────

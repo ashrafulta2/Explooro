@@ -792,12 +792,7 @@ function renderSearchSuggest() {
 function renderHomeTop() {
   const wrap = document.createDocumentFragment();
   const common = {
-    categories: [
-      { id: 'Clothing', label_en: 'Clothing', label_bn: 'পোশাক' },
-      { id: 'Electronics', label_en: 'Electronics', label_bn: 'ইলেকট্রনিক্স' },
-      { id: 'Bags', label_en: 'Bags', label_bn: 'ব্যাগ' },
-    ],
-    lang: 'en', onNavigate: () => {}, onSelectCategory: () => {}, onSelectFeed: () => {},
+    onNavigate: () => {}, onSelectFeed: () => {},
   };
   for (const [label, role, isAuthenticated] of [['guest', 'customer', false], ['customer', 'customer', true], ['saler', 'saler', true]]) {
     wrap.append(subgroup(`HomeTop — ${label}`));

@@ -25,6 +25,18 @@ const IDEMPOTENT_ROUTES = [
   /^\/coupons\/redeem$/,
   /^\/admin\/pending-actions\/[^/]+$/,
   /^\/admin\/payouts\/batch$/,
+  // WHY these were added: the server now honours Idempotency-Key on every write route
+  // (middlewares/idempotency.js), and these are the endpoints where a retry that runs twice moves
+  // money twice. The two entries above for refunds and batch payouts never matched a real route.
+  /^\/admin\/finance\/escrow\/[^/]+\/release$/,
+  /^\/admin\/finance\/payouts\/[^/]+\/approve$/,
+  /^\/admin\/finance\/payouts\/batch-disburse$/,
+  /^\/admin\/returns\/[^/]+\/refund$/,
+  /^\/admin\/payments\/reconcile$/,
+  /^\/admin\/growth\/referrals\/[^/]+\/release$/,
+  /^\/b2b-escrow\/milestones\/[^/]+\/(release|refund)$/,
+  /^\/(sourcing|supplier)\/fast-payout$/,
+  /^\/coins\/check-in$/,
 ];
 
 /** Thrown for every 4xx/5xx response. Carries both language messages per §2.3 "Field rules". */
