@@ -49,6 +49,7 @@ import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.js';
 import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.js';
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.js';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.js';
+import { HomeTop } from '../../components/home/HomeTop.js';
 import { ProductRail, ProductRailSkeleton } from '../../components/product/ProductRail.js';
 import { ImageGallery } from '../../components/product/ImageGallery.js';
 import { VariantSelector } from '../../components/product/VariantSelector.js';
@@ -788,6 +789,23 @@ function renderSearchSuggest() {
   return wrap;
 }
 
+function renderHomeTop() {
+  const wrap = document.createDocumentFragment();
+  const common = {
+    categories: [
+      { id: 'Clothing', label_en: 'Clothing', label_bn: 'পোশাক' },
+      { id: 'Electronics', label_en: 'Electronics', label_bn: 'ইলেকট্রনিক্স' },
+      { id: 'Bags', label_en: 'Bags', label_bn: 'ব্যাগ' },
+    ],
+    lang: 'en', onNavigate: () => {}, onSelectCategory: () => {}, onSelectFeed: () => {},
+  };
+  for (const [label, role, isAuthenticated] of [['guest', 'customer', false], ['customer', 'customer', true], ['saler', 'saler', true]]) {
+    wrap.append(subgroup(`HomeTop — ${label}`));
+    wrap.append(specimen(label, HomeTop({ ...common, role, isAuthenticated }).el));
+  }
+  return wrap;
+}
+
 function renderFlashSaleWidget() {
   const wrap = document.createDocumentFragment();
   wrap.append(subgroup('FlashSaleWidget — 4h countdown with demo products'));
@@ -1351,6 +1369,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'product-feed', label: 'ProductFeed (/discover)', group: 'Product Discovery', render: renderProductFeed },
     { id: 'category-pills', label: 'CategoryPills', group: 'Product Discovery', render: renderCategoryPills },
     { id: 'search-suggest', label: 'SearchSuggest (typeahead)', group: 'Product Discovery', render: renderSearchSuggest },
+    { id: 'home-top', label: 'HomeTop', group: 'Product Discovery', render: renderHomeTop },
     { id: 'flash-sale-widget', label: 'FlashSaleWidget', group: 'Product Discovery', render: renderFlashSaleWidget },
     { id: 'product-rail', label: 'ProductRail (home rails)', group: 'Product Discovery', render: renderProductRail },
     // Prompt 11.3 — Followed Stores & Product Drops Feed

@@ -24,7 +24,7 @@ import { listProducts } from '../services/catalog.api.js';
 import { adsApi } from '../services/ads.api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
-import { Button } from '../components/ui/Button.js';
+import { HomeTop } from '../components/home/HomeTop.js';
 import { ProductGrid } from '../components/product/ProductGrid.js';
 import { resolveProductImage } from '../components/product/ProductCard.js';
 import { addToCart } from '../services/cart.js';
@@ -96,25 +96,24 @@ export default function HomePage(root, { navigate }) {
   const page = document.createElement('div');
   page.className = 'home-page';
 
-  // ── Hero banner ─────────────────────────────────────────────────────────
-  const hero = document.createElement('div');
-  hero.className = 'home-hero';
-  const heroText = document.createElement('div');
-  heroText.className = 'home-hero__text';
-  const heroTagline = document.createElement('h1');
-  heroTagline.className = 'home-hero__tagline';
-  heroTagline.textContent = t('marketplace.hero.tagline');
-  const heroSub = document.createElement('p');
-  heroSub.className = 'home-hero__sub';
-  heroSub.textContent = t('marketplace.hero.sub');
-  const heroCta = Button({
-    label: t('marketplace.hero.cta'),
-    variant: 'secondary',
-    onClick: () => navigate('/auth/register'),
+  // ── Top band: category rail · campaign slider · Become a Saler (+ welcome strip when signed in) ──
+  const homeTop = HomeTop({
+    role,
+    isAuthenticated: Boolean(auth.isAuthenticated),
+    categories: KNOWN_CATEGORIES,
+    lang,
+    onNavigate: navigate,
+    onSelectCategory: (catId) => {
+      syncCategory(catId);
+      catalogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    onSelectFeed: (feedId) => {
+      syncFeed(feedId);
+      catalogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
   });
-  heroText.append(heroTagline, heroSub, heroCta);
-  hero.append(heroText);
-  page.append(hero);
+  cleanups.push(homeTop.cleanup);
+  page.append(homeTop.el);
 
   // ── Feed switcher ───────────────────────────────────────────────────────
   let { feed: activeFeed, category: activeCategory } = readURLState();
