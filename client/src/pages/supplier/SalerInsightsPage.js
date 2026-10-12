@@ -48,27 +48,27 @@ export default function SalerInsightsPage(root) {
     content.style.gap = '14px';
     content.innerHTML = `
       <p style="font-size: var(--text-sm); color: var(--text-secondary); margin: 0;">
-        Incentivize Salers curating your products with an exclusive wholesale discount or flash commission bonus.
+        ${t('supplier.si_bc_intro')}
       </p>
       <div class="supplier-form-field">
-        <label>Offer Type *</label>
+        <label>${t('supplier.si_bc_type')}</label>
         <select class="form-select" id="broadcast-type">
-          <option value="margin_boost">⚡ +5% Extra Margin Bonus (Flash 48 Hours)</option>
-          <option value="bulk_discount">📦 Bulk Sourcing Tier Discount (-10% on 20+ units)</option>
-          <option value="new_arrival">✨ New Catalog Collection Launch Announcement</option>
+          <option value="margin_boost">${t('supplier.si_bc_opt_margin')}</option>
+          <option value="bulk_discount">${t('supplier.si_bc_opt_bulk')}</option>
+          <option value="new_arrival">${t('supplier.si_bc_opt_new')}</option>
         </select>
       </div>
       <div class="supplier-form-field">
-        <label>Target Audience *</label>
+        <label>${t('supplier.si_bc_target')}</label>
         <select class="form-select" id="broadcast-target">
-          <option value="all">All Active Salers (${insights?.top_salers?.length || 0} Curators)</option>
-          <option value="top_tier">Top 3 Tier Curators Only</option>
-          <option value="dhaka">Dhaka & Chittagong High-Demand Salers</option>
+          <option value="all">${t('supplier.si_bc_t_all', { n: insights?.top_salers?.length || 0 })}</option>
+          <option value="top_tier">${t('supplier.si_bc_t_top')}</option>
+          <option value="dhaka">${t('supplier.si_bc_t_dhaka')}</option>
         </select>
       </div>
       <div class="supplier-form-field">
-        <label>Custom Message / Note for Salers</label>
-        <textarea class="form-textarea" id="broadcast-message" rows="3" placeholder="e.g. Special Eid flash commission for our top selling sarees and garments! Feature them now on your storefront."></textarea>
+        <label>${t('supplier.si_bc_msg')}</label>
+        <textarea class="form-textarea" id="broadcast-message" rows="3" placeholder="${t('supplier.si_bc_msg_ph')}"></textarea>
       </div>
     `;
 
@@ -77,12 +77,12 @@ export default function SalerInsightsPage(root) {
     footer.style.justifyContent = 'flex-end';
     footer.style.gap = '8px';
     footer.innerHTML = `
-      <button class="btn btn--secondary btn--sm" id="cancel-broadcast-btn">Cancel</button>
-      <button class="btn btn--primary btn--sm" id="send-broadcast-btn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> Send Broadcast</button>
+      <button class="btn btn--secondary btn--sm" id="cancel-broadcast-btn">${t('supplier.si_cancel')}</button>
+      <button class="btn btn--primary btn--sm" id="send-broadcast-btn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${t('supplier.si_bc_send')}</button>
     `;
 
     const modal = Modal({
-      title: '📢 Broadcast Wholesale Offer',
+      title: `📢 ${t('supplier.si_bc_title')}`,
       content,
       footer,
       size: 'md',
@@ -93,7 +93,7 @@ export default function SalerInsightsPage(root) {
 
     footer.querySelector('#cancel-broadcast-btn').onclick = () => modal.close();
     footer.querySelector('#send-broadcast-btn').onclick = () => {
-      toast.success('Wholesale promotion broadcasted successfully to active Salers!');
+      toast.success(t('supplier.si_bc_sent'));
       modal.close();
     };
   }
@@ -107,36 +107,36 @@ export default function SalerInsightsPage(root) {
       <div style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-1); padding: 12px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
         <div>
           <div style="font-weight: 800; font-size: var(--text-base); color: var(--text-primary);">${saler.saler_name}</div>
-          <div class="text-xs text-muted">Virtual Storefront: <span class="font-mono text-brand font-bold">explooro.com/store/${saler.store_slug || saler.slug || 'store'}</span></div>
+          <div class="text-xs text-muted">${t('supplier.si_d_storefront')} <span class="font-mono text-brand font-bold">explooro.com/store/${saler.store_slug || saler.slug || 'store'}</span></div>
         </div>
-        <span class="badge badge--success font-bold text-xs">⭐ Verified Top Saler</span>
+        <span class="badge badge--success font-bold text-xs">${t('supplier.si_d_verified')}</span>
       </div>
 
       <div class="supplier-kpi-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
         <div class="supplier-kpi-card" style="padding: 12px;">
-          <span class="supplier-kpi-card__label">Curated SKUs</span>
-          <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-primary); margin-top: 2px;">${saler.curated_products_count || saler.curated_sku_count || 0} items</div>
+          <span class="supplier-kpi-card__label">${t('supplier.si_d_skus')}</span>
+          <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-primary); margin-top: 2px;">${t('supplier.si_items_n', { n: saler.curated_products_count || saler.curated_sku_count || 0 })}</div>
         </div>
         <div class="supplier-kpi-card" style="padding: 12px;">
-          <span class="supplier-kpi-card__label">Orders Sold</span>
-          <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-primary); margin-top: 2px;">${saler.total_orders_sold || 0} orders</div>
+          <span class="supplier-kpi-card__label">${t('supplier.si_d_orders')}</span>
+          <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-primary); margin-top: 2px;">${t('supplier.si_orders_n', { n: saler.total_orders_sold || 0 })}</div>
         </div>
         <div class="supplier-kpi-card" style="padding: 12px;">
-          <span class="supplier-kpi-card__label">Sales Volume</span>
+          <span class="supplier-kpi-card__label">${t('supplier.si_d_volume')}</span>
           <div style="font-weight: 800; font-size: 1.15rem; color: var(--success); margin-top: 2px;">${formatCurrency(saler.total_revenue_generated || 0)}</div>
         </div>
       </div>
 
       <div>
         <h4 style="font-size: var(--text-xs); font-weight: 800; text-transform: uppercase; color: var(--text-secondary); margin: 0 0 8px 0;">
-          Supplier Collaboration Options
+          ${t('supplier.si_d_collab')}
         </h4>
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <button class="btn btn--sm btn--outline" id="grant-margin-btn" style="text-align: left; justify-content: flex-start;">
-            🎁 Grant Exclusive Tier-1 Wholesale Margin (+3% discount)
+            ${t('supplier.si_d_grant')}
           </button>
           <button class="btn btn--sm btn--outline" id="send-direct-msg-btn" style="text-align: left; justify-content: flex-start;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> Message Saler on Explooro Messenger
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> ${t('supplier.si_d_message')}
           </button>
         </div>
       </div>
@@ -146,7 +146,7 @@ export default function SalerInsightsPage(root) {
     footer.style.display = 'flex';
     footer.style.justifyContent = 'flex-end';
     footer.innerHTML = `
-      <button class="btn btn--secondary btn--sm" id="done-saler-btn">Close</button>
+      <button class="btn btn--secondary btn--sm" id="done-saler-btn">${t('supplier.si_close')}</button>
     `;
 
     const modal = Modal({
@@ -161,11 +161,11 @@ export default function SalerInsightsPage(root) {
 
     footer.querySelector('#done-saler-btn').onclick = () => modal.close();
     content.querySelector('#grant-margin-btn').onclick = () => {
-      toast.success(`Exclusive margin granted to ${saler.saler_name}!`);
+      toast.success(t('supplier.si_d_granted', { name: saler.saler_name }));
       modal.close();
     };
     content.querySelector('#send-direct-msg-btn').onclick = () => {
-      toast.info(`Opening messenger chat with ${saler.saler_name}...`);
+      toast.info(t('supplier.si_d_opening', { name: saler.saler_name }));
       modal.close();
     };
   }
@@ -183,7 +183,7 @@ export default function SalerInsightsPage(root) {
         <div class="supplier-header__badge-row">
           <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">&lt; ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
           <span class="text-muted">/</span>
-          <span class="text-xs text-muted font-mono">Saler Network Insights</span>
+          <span class="text-xs text-muted font-mono">${t('supplier.si_breadcrumb')}</span>
         </div>
         <h1 class="supplier-header__title">
           <span>👥</span> ${t('supplier.saler_insights_title', 'Saler Network Insights & Curators')}
@@ -194,7 +194,7 @@ export default function SalerInsightsPage(root) {
       </div>
       <div class="supplier-header__actions">
         <button class="btn btn--sm btn--outline" id="broadcast-offer-btn">
-          📢 Broadcast Margin Offer
+          📢 ${t('supplier.si_broadcast_btn')}
         </button>
         <button class="btn btn--sm btn--secondary" id="refresh-insights-btn">
           🔄 ${t('common.refresh', 'Refresh')}
@@ -250,14 +250,14 @@ export default function SalerInsightsPage(root) {
     kpiSummary.innerHTML = `
       <div class="supplier-kpi-card" style="padding: 16px;">
         <span class="supplier-kpi-card__label">${t('supplier.total_active_curators', 'Active Salers Sourcing Your SKUs')}</span>
-        <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${rawTopSalers.length} Curators</div>
-        <span class="text-xs text-muted">Virtual storefronts with your items active</span>
+        <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${t('supplier.si_curators_count', { n: rawTopSalers.length })}</div>
+        <span class="text-xs text-muted">${t('supplier.si_curators_sub')}</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
         <span class="supplier-kpi-card__label">${t('supplier.saler_order_volume', 'Total Orders via Salers')}</span>
-        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">${totalOrders} Orders</div>
-        <span class="text-xs text-muted">Direct retail orders generated by Salers</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">${t('supplier.si_orders_count', { n: totalOrders })}</div>
+        <span class="text-xs text-muted">${t('supplier.si_orders_sub')}</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
@@ -265,15 +265,15 @@ export default function SalerInsightsPage(root) {
         <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 4px 0;">
           ${formatCurrency(totalRevenue)}
         </div>
-        <span class="text-xs text-muted">Gross merchandise volume through Saler stores</span>
+        <span class="text-xs text-muted">${t('supplier.si_gmv_sub')}</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">Top Demand Hub</span>
+        <span class="supplier-kpi-card__label">${t('supplier.si_top_hub')}</span>
         <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">
           📍 ${topDistrict}
         </div>
-        <span class="text-xs text-muted">${topDistrictOrders} orders delivered</span>
+        <span class="text-xs text-muted">${t('supplier.si_orders_delivered', { n: topDistrictOrders })}</span>
       </div>
     `;
     container.appendChild(kpiSummary);
@@ -302,12 +302,12 @@ export default function SalerInsightsPage(root) {
           🏆 ${t('supplier.top_curators_leaderboard', 'Top Salers Leaderboard')}
         </h3>
         <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
-          Ranked by direct customer sales volume and retail merchandise demand
+          ${t('supplier.si_ranked_by')}
         </p>
       </div>
       <div style="display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 100%;">
-        <input type="search" id="saler-search-input" aria-label="Search Saler store" placeholder="Search Saler store..." value="${searchQuery}" class="form-input" style="padding: 6px 12px; font-size: 12px; width: 220px; max-width: 100%; border-radius: 8px;" />
-        <span class="badge badge--neutral text-xs font-mono font-bold">${topSalers.length} Curators Active</span>
+        <input type="search" id="saler-search-input" aria-label="${t('supplier.si_search_label')}" placeholder="${t('supplier.si_search_ph')}" value="${searchQuery}" class="form-input" style="padding: 6px 12px; font-size: 12px; width: 220px; max-width: 100%; border-radius: 8px;" />
+        <span class="badge badge--neutral text-xs font-mono font-bold">${t('supplier.si_curators_active', { n: topSalers.length })}</span>
       </div>
     `;
     tableCard.appendChild(tableHeader);
@@ -334,12 +334,12 @@ export default function SalerInsightsPage(root) {
       table.innerHTML = `
         <thead>
           <tr>
-            <th style="width: 70px;"># Rank</th>
+            <th style="width: 70px;">${t('supplier.si_rank')}</th>
             <th>${t('supplier.saler', 'Saler Storefront')}</th>
             <th>${t('supplier.curated_skus', 'Curated SKUs')}</th>
             <th>${t('supplier.orders_sold', 'Orders Fulfilled')}</th>
             <th style="text-align: right;">${t('supplier.revenue_generated', 'Revenue Generated')}</th>
-            <th style="text-align: right; width: 110px;">Action</th>
+            <th style="text-align: right; width: 110px;">${t('supplier.si_action')}</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -366,19 +366,19 @@ export default function SalerInsightsPage(root) {
             <div style="display: flex; flex-direction: column; gap: 2px;">
               <span style="font-weight: 800; font-size: 13px; color: var(--text-primary);">${saler.store_name || saler.saler_name}</span>
               <div style="display: flex; align-items: center; gap: 6px;">
-                <span class="text-xs text-muted">by ${saler.saler_name}</span>
+                <span class="text-xs text-muted">${t('supplier.si_by', { name: saler.saler_name })}</span>
                 <span class="text-muted">•</span>
-                <a href="/store/${slug}" target="_blank" class="text-xs text-primary hover:underline font-mono" style="text-decoration: none;" title="Open live storefront">
+                <a href="/store/${slug}" target="_blank" class="text-xs text-primary hover:underline font-mono" style="text-decoration: none;" title="${t('supplier.si_open_store')}">
                   explooro.com/store/${slug} ↗
                 </a>
               </div>
             </div>
           </td>
           <td>
-            <span class="badge badge--neutral text-xs font-bold" style="padding: 4px 8px;">📦 ${curatedCount} items</span>
+            <span class="badge badge--neutral text-xs font-bold" style="padding: 4px 8px;">📦 ${t('supplier.si_items_n', { n: curatedCount })}</span>
           </td>
           <td>
-            <strong style="font-family: var(--font-mono); font-size: 13px;">${orders} orders</strong>
+            <strong style="font-family: var(--font-mono); font-size: 13px;">${t('supplier.si_orders_n', { n: orders })}</strong>
           </td>
           <td style="text-align: right;">
             <span style="font-weight: 800; font-family: var(--font-mono); font-size: 14px; color: var(--success);">
@@ -387,7 +387,7 @@ export default function SalerInsightsPage(root) {
           </td>
           <td style="text-align: right;">
             <button class="btn btn--xs btn--outline text-primary view-saler-btn" style="font-size: 11px; padding: 4px 10px; font-weight: 700;">
-              👁️ View Profile
+              👁️ ${t('supplier.si_view_profile')}
             </button>
           </td>
         `;
@@ -418,12 +418,12 @@ export default function SalerInsightsPage(root) {
             📍 ${t('supplier.regional_demand', 'Regional Demand & Logistics Breakdown')}
           </h3>
           <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
-            Geographic sales distribution across Bangladesh districts to optimize warehouse stocking and courier fulfillment
+            ${t('supplier.si_regional_sub')}
           </p>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span class="badge badge--neutral text-xs font-mono font-bold">${regionalDist.length} Districts</span>
-          <span class="badge badge--success text-xs font-mono font-bold">Total: ${formatCurrency(totalRegionalSales)}</span>
+          <span class="badge badge--neutral text-xs font-mono font-bold">${t('supplier.si_districts_n', { n: regionalDist.length })}</span>
+          <span class="badge badge--success text-xs font-mono font-bold">${t('supplier.si_total_amt', { amount: formatCurrency(totalRegionalSales) })}</span>
         </div>
       </div>
     `;
@@ -456,7 +456,7 @@ export default function SalerInsightsPage(root) {
                 📍 ${region.district}
               </span>
               <span class="badge ${isTop ? 'badge--primary' : 'badge--neutral'} font-mono font-bold" style="font-size: 10px;">
-                ${isTop ? '👑 #1 Hub' : '#' + (idx + 1)} (${sharePct}%)
+                ${isTop ? `👑 ${t('supplier.si_hub_top')}` : '#' + (idx + 1)} (${sharePct}%)
               </span>
             </div>
             <div class="supplier-region-card__amount">
@@ -466,8 +466,8 @@ export default function SalerInsightsPage(root) {
 
           <div>
             <div class="supplier-region-card__meta" style="margin-bottom: 6px;">
-              <span><strong>📦 ${orderCount}</strong> Orders</span>
-              <span><strong>${sharePct}%</strong> of total volume</span>
+              <span><strong>📦 ${orderCount}</strong> ${t('supplier.si_orders_word')}</span>
+              <span><strong>${sharePct}%</strong> ${t('supplier.si_of_total')}</span>
             </div>
             <div class="supplier-region-bar-track">
               <div class="supplier-region-bar-fill" style="width: ${barPct}%;"></div>
@@ -491,9 +491,7 @@ export default function SalerInsightsPage(root) {
       adviceBox.style.color = 'var(--text-secondary)';
       adviceBox.style.lineHeight = '1.5';
       adviceBox.innerHTML = `
-        💡 <strong>Regional Logistics Strategy:</strong>
-        <strong>Dhaka</strong> and <strong>Chittagong</strong> generate <strong>81%</strong> of your total retail demand.
-        Keep safety stock allocated at your central Tejgaon and Agrabad dispatch hubs to ensure rapid 24-hour courier fulfillment.
+        💡 ${t('supplier.si_advice')}
       `;
       regionCard.appendChild(adviceBox);
     }
