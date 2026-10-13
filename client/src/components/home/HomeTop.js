@@ -157,10 +157,25 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   // ── Side cards ───────────────────────────────────────────────────────────
   const side = el('div', 'home-top__side');
 
+  // WHY: the card sits ABOVE the tiles. The side column has a fixed height (`contain: size`), so the tiles
+  // must be the flexible part; with the card below, taller Bangla tile labels overflowed and covered it.
+  // No sign-in card for guests. The topbar already has Sign In / Sign Up, and the card only
+  // made the band taller. Signed-in users keep a card that points at their orders or console.
+  if (isAuthenticated) {
+    const second = el('div', 'home-top__card home-top__card--info');
+    const home = CONSOLE_HOME[role];
+    const path = home || (role === 'saler' ? '/saler/orders' : '/account/orders');
+    second.append(
+      el('h2', 'home-top__card-title', t(home ? 'marketplace.top.console_title' : 'marketplace.top.orders_title')),
+      el('p', 'home-top__card-sub', t(home ? 'marketplace.top.console_sub' : 'marketplace.top.orders_sub')),
+      link('home-top__card-link', t(home ? 'marketplace.top.q_dashboard' : 'marketplace.top.orders_cta') + ' ›', path, onNavigate),
+    );
+    side.append(second);
+  }
+
   if (!CONSOLE_HOME[role]) {
     const tiles = el('nav', 'home-top__tiles');
     tiles.setAttribute('aria-label', t('marketplace.top.tiles_title'));
-    tiles.append(el('h2', 'home-top__tiles-title', t('marketplace.top.tiles_title')));
     const grid = el('div', 'home-top__tile-grid');
     for (const tile of TILES) {
       const label = t(`marketplace.top.tile_${tile.id}`);
@@ -179,20 +194,6 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
     }
     tiles.append(grid);
     side.append(tiles);
-  }
-
-  // WHY: no sign-in card for guests. The topbar already has Sign In / Sign Up, and the card only
-  // made the band taller. Signed-in users keep a card that points at their orders or console.
-  if (isAuthenticated) {
-    const second = el('div', 'home-top__card home-top__card--info');
-    const home = CONSOLE_HOME[role];
-    const path = home || (role === 'saler' ? '/saler/orders' : '/account/orders');
-    second.append(
-      el('h2', 'home-top__card-title', t(home ? 'marketplace.top.console_title' : 'marketplace.top.orders_title')),
-      el('p', 'home-top__card-sub', t(home ? 'marketplace.top.console_sub' : 'marketplace.top.orders_sub')),
-      link('home-top__card-link', t(home ? 'marketplace.top.q_dashboard' : 'marketplace.top.orders_cta') + ' ›', path, onNavigate),
-    );
-    side.append(second);
   }
 
   const main = el('div', 'home-top__main');
