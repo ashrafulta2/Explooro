@@ -190,7 +190,7 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
     second.append(
       el('h2', 'home-top__card-title', t(home ? 'marketplace.top.console_title' : 'marketplace.top.orders_title')),
       el('p', 'home-top__card-sub', t(home ? 'marketplace.top.console_sub' : 'marketplace.top.orders_sub')),
-      link('home-top__card-link', t(home ? 'marketplace.top.q_dashboard' : 'marketplace.top.q_orders') + ' ›', path, onNavigate),
+      link('home-top__card-link', t(home ? 'marketplace.top.q_dashboard' : 'marketplace.top.orders_cta') + ' ›', path, onNavigate),
     );
     side.append(second);
   }
