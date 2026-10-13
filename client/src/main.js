@@ -32,7 +32,8 @@ import { initPageAccess, resolvePageAccess } from './services/pageAccess.js';
 import { registerPages } from './config/pageRegistry.js';
 
 // Prompt 3.5 — runtime theme engine.
-import { initTheme } from './services/themePalette.js';
+import { initTheme, dropLocalPreset, PRESET_SWITCH_PERMISSION } from './services/themePalette.js';
+import { can } from './services/permissions.js';
 
 // Prompt 1.7 — role-aware shell.
 import { navItems } from './config/navigation.js';
@@ -114,6 +115,9 @@ async function bootRouterDemo() {
 
   // Prompt 2.8: Proactive session bootstrap from HttpOnly refresh cookie.
   await initSession();
+
+  // A guest never loads permissions, so the check inside permissions.js never runs for them.
+  if (!can(PRESET_SWITCH_PERMISSION)) dropLocalPreset();
 
   // Prompt 8.2 req. 7: show the latest release note once per version. Never awaited and loaded
   // lazily so it cannot delay the first route or grow the entry bundle; guests have no

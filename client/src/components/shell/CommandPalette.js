@@ -15,7 +15,8 @@
  */
 import { navItems, navGroups } from '../../config/navigation.js';
 import { MASTER_PRESETS } from '../../config/master-themes.js';
-import { switchThemePreset } from '../../services/themePalette.js';
+import { switchThemePreset, PRESET_SWITCH_PERMISSION } from '../../services/themePalette.js';
+import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { isPageVisibleInNav } from '../../services/pageAccess.js';
@@ -179,7 +180,9 @@ export function createCommandPalette({ getState }) {
     // Match Theme Presets if user types 'theme' or preset names
     const themeMatches = [];
     const qLower = q.toLowerCase();
-    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+    // Presets are the super admin's; nobody else may find them here either.
+    const presetEntries = can(PRESET_SWITCH_PERMISSION) ? Object.entries(MASTER_PRESETS) : [];
+    for (const [key, preset] of presetEntries) {
       const nameEn = preset.name_en.toLowerCase();
       const nameBn = (preset.name_bn || '').toLowerCase();
       const descEn = (preset.description_en || '').toLowerCase();
