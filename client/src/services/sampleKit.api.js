@@ -1,6 +1,6 @@
 /**
  * sampleKit.api.js — Sample requests and marketing kits (supplier attraction, step 4).
- * Supplier and saler endpoints live side by side because the two pages are two halves of one exchange.
+ * Supplier and shop partner endpoints live side by side because the two pages are two halves of one exchange.
  */
 import { api } from '../core/api.js';
 
@@ -22,7 +22,7 @@ export const sampleKitApi = {
     return api.put(`/supplier/marketing-kits/${productId}`, payload);
   },
 
-  // saler
+  // shop partner
   getSalerSamples() {
     return api.get('/sourcing/samples');
   },

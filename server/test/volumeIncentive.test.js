@@ -2,7 +2,7 @@
  * volumeIncentive.test.js — the rules that decide who is paid what, and when.
  *
  *   1. Tiers must rise in BOTH volume and rebate, and stay inside the platform's bounds.
- *   2. The platform's share and the saler's share always add back to the rebate, to the paisa.
+ *   2. The platform's share and the shop partner's share always add back to the rebate, to the paisa.
  *   3. A month is only due once the settle lag has passed, and only recent months are visited.
  *   4. A programme change waits for next month (except a supplier's first), and a blocked grade
  *      cannot switch one on.
@@ -56,7 +56,7 @@ test('pickTier takes the highest tier reached; nextTier is the goal after it', (
   assert.equal(nextTier(50000, tiers), null);
 });
 
-test('computeRebate: saler + platform always equal the gross, to the paisa', () => {
+test('computeRebate: shop partner + platform always equal the gross, to the paisa', () => {
   for (const [volume, pct, fee] of [[12345.67, 1.5, 10], [99999.99, 3.33, 7.5], [10000, 2, 0], [0.01, 5, 33.33], [250000, 4.75, 50]]) {
     const m = computeRebate({ volume, rebatePct: pct, platformFeePct: fee });
     assert.equal(m.netPaisa + m.feePaisa, m.grossPaisa, `${volume} @ ${pct}% fee ${fee}%`);

@@ -1,7 +1,7 @@
 /**
- * SalerFastPayoutPage.js — A saler takes escrowed commission early, for a fee.
+ * SalerFastPayoutPage.js — A shop partner takes escrowed commission early, for a fee.
  *
- * Route: /saler/fast-payout  (module: sourcing, read: saler.sourcing.view, act: finance.fast_payout.request)
+ * Route: /saler/fast-payout  (module: sourcing, read: shop partner.sourcing.view, act: finance.fast_payout.request)
  * The screen is shared with the supplier's; see components/payoutProtection/mountFastPayout.js.
  */
 import { mountFastPayout } from '../../components/payoutProtection/mountFastPayout.js';

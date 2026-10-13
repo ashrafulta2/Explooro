@@ -1,5 +1,5 @@
 /**
- * saler.js — Mock handlers for the Saler Dashboard, Analytics, Products, Orders, Store Status, Payouts & Quests.
+ * saler.js — Mock handlers for the Shop Partner Dashboard, Analytics, Products, Orders, Store Status, Payouts & Quests.
  */
 import { listMockChatThreads, appendMockMessage, SELF } from './chat.js';
 
@@ -64,7 +64,7 @@ function buildTrends(range) {
   return trends;
 }
 
-// ── In-Memory State for Saler Features ──────────────────────────────────────
+// ── In-Memory State for Shop Partner Features ──────────────────────────────────────
 
 let mockSalerProducts = [
   {
@@ -390,7 +390,7 @@ let mockSalerQuests = [
     id: 'quest_4',
     title_en: 'Complete 2 Delivered Orders this Week',
     title_bn: 'এই সপ্তাহে ২টি সফল ডেলিভারি সম্পন্ন করুন',
-    desc_en: 'Earn seller commission on 2 confirmed and delivered customer orders.',
+    desc_en: 'Earn shop partner commission on 2 confirmed and delivered customer orders.',
     category: 'weekly',
     reward_coins: 75,
     target_count: 2,
@@ -424,13 +424,13 @@ let mockSalerLeaderboard = [
   { rank: 7, saler_name: 'Ashraf Ali', store_slug: 'gadget-galaxy', sales_count: 38, gmv: 84500.0, net_profit: 14800.0, tier_badge: 'BRONZE_SELLER', avatar: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>', is_current_user: false },
 ];
 
-// Saler Pro mock — mirrors server/src/services/subscriptionBilling.service.js shapes.
+// Shop Partner Pro mock — mirrors server/src/services/subscriptionBilling.service.js shapes.
 const PRO_PERIOD_MS = 30 * 24 * 3600 * 1000;
 const mockProPlans = [
   { id: 1, code: 'starter', name_en: 'Free Starter', name_bn: 'ফ্রি স্টার্টার', role: 'ALL', monthly_fee: 0, free_listings: 100,
     extra_listing_fee: 0, commission_rebate_pct: 0, is_active: true,
     features_en: ['Up to 100 live products', 'Standard escrow release'], features_bn: ['সর্বোচ্চ ১০০টি সক্রিয় পণ্য', 'সাধারণ এসক্রো রিলিজ'] },
-  { id: 2, code: 'saler_pro', name_en: 'Saler Pro', name_bn: 'সেলার প্রো', role: 'saler', monthly_fee: 999, free_listings: 1000,
+  { id: 2, code: 'saler_pro', name_en: 'Shop Partner Pro', name_bn: 'শপ পার্টনার প্রো', role: 'saler', monthly_fee: 999, free_listings: 1000,
     extra_listing_fee: 2, commission_rebate_pct: 2, is_active: true,
     features_en: ['1,000 live products', '+2 points on every sale split', 'Priority support'], features_bn: ['১,০০০টি সক্রিয় পণ্য', 'প্রতিটি বিক্রয়ে +২ পয়েন্ট', 'অগ্রাধিকার সহায়তা'] },
 ];
@@ -590,7 +590,7 @@ export default [
     }),
   },
 
-  // 4. Saler Curated Products (My Products)
+  // 4. Shop Partner Curated Products (My Products)
   {
     method: 'GET',
     path: '/saler/products',
@@ -672,7 +672,7 @@ export default [
     },
   },
 
-  // 5. Saler Physical Store Status
+  // 5. Shop Partner Physical Store Status
   {
     method: 'GET',
     path: '/saler/store-status',
@@ -696,7 +696,7 @@ export default [
     },
   },
 
-  // 6. Saler Orders
+  // 6. Shop Partner Orders
   {
     method: 'GET',
     path: '/saler/orders',
@@ -746,7 +746,7 @@ export default [
     },
   },
 
-  // 7. Saler Vault Withdrawals & Payouts
+  // 7. Shop Partner Vault Withdrawals & Payouts
   {
     method: 'GET',
     path: '/saler/vault/payouts',
@@ -785,7 +785,7 @@ export default [
         amount,
         method: body?.method || 'BKASH',
         account_number: body?.account_number || '01700000000',
-        account_name: body?.account_name || 'Saler Account',
+        account_name: body?.account_name || 'Shop Partner Account',
         bank_name: body?.bank_name || null,
         status: 'PROCESSING',
         requested_at: new Date().toISOString(),
@@ -817,7 +817,7 @@ export default [
     },
   },
 
-  // 8. Saler Quests & Leaderboard
+  // 8. Shop Partner Quests & Leaderboard
   {
     method: 'GET',
     path: '/saler/quests',
@@ -969,7 +969,7 @@ export default [
       };
     },
   },
-  // Saler Pro subscription (module `subscription_fees`)
+  // Shop Partner Pro subscription (module `subscription_fees`)
   {
     method: 'GET',
     path: '/subscriptions/me',

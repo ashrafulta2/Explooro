@@ -1,5 +1,5 @@
 /**
- * SocialKitPage.js — Viral Social Seller Marketing Toolkit & Flyer Studio (Prompt 9.7 / §AL.2).
+ * SocialKitPage.js — Viral Social Shop Partner Marketing Toolkit & Flyer Studio (Prompt 9.7 / §AL.2).
  *
  * Route: /saler/social-kit
  * Implements:
@@ -405,7 +405,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
           <circle cx="50" cy="40" r="24" fill="${accent}" />
           <text x="50" y="48" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="bold">⚡</text>
           <text x="90" y="38" font-size="20" fill="${text}" font-weight="bold">Tanvir Trends Store</text>
-          <text x="90" y="58" font-size="13" fill="${muted}">Verified Explooro Saler · Fast Nationwide Courier</text>
+          <text x="90" y="58" font-size="13" fill="${muted}">Verified Explooro Shop Partner · Fast Nationwide Courier</text>
           <rect x="${width - 290}" y="20" width="150" height="40" rx="20" fill="${accent}" />
           <text x="${width - 215}" y="45" font-size="13" text-anchor="middle" fill="#ffffff" font-weight="bold">${promoLabel}</text>
         </g>

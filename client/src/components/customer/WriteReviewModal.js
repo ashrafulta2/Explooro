@@ -17,7 +17,7 @@ export function openWriteReviewModal({ item = null, existingReview = null, onSav
     ? (existingReview?.product_title_bn || item?.product_title_bn || 'পণ্য')
     : (existingReview?.product_title_en || item?.product_title_en || 'Product');
   const productImage = existingReview?.product_image || item?.product_image || '/media/placeholder.webp';
-  const storeName = existingReview?.store_ref || item?.store_name || 'Verified Seller';
+  const storeName = existingReview?.store_ref || item?.store_name || 'Verified Shop Partner';
 
   let currentRating = existingReview?.rating || 5;
   let attachedMedia = existingReview?.media ? [...existingReview.media] : [];

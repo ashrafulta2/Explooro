@@ -2,13 +2,13 @@
  * HomeTop — the band above the product feed on the marketplace home page.
  *
  * Replaces the old text-only hero. Two layouts share one component:
- *  - Guest / customer: how-a-Saler-earns panel · campaign slider · shortcut tiles + sign-in/orders card.
+ *  - Guest / customer: how-a-Shop Partner-earns panel · campaign slider · shortcut tiles + sign-in/orders card.
  *  - Signed in: the same, plus a "welcome back" strip of role-specific quick links.
  *
  * WHY: nothing here fetches. The slides are shortcuts into the existing feed tabs and the quick
  * links are plain routes, so the band renders instantly and cannot show a number that is wrong.
- * The Become a Saler CTA keeps the one-click flow, now on the earn panel: guests go to register,
- * customers to the /account/become-saler page that runs BecomeSalerCta, salers to their dashboard.
+ * The Become a Shop Partner CTA keeps the one-click flow, now on the earn panel: guests go to register,
+ * customers to the /account/become-saler page that runs BecomeSalerCta, shop partners to their dashboard.
  */
 
 import { t } from '../../services/i18n.js';
@@ -20,7 +20,7 @@ const SLIDES = [
   { id: 'saler', feed: 'saler', key: 'marketplace.top.slide_saler' },
 ];
 
-// i18n keys in the order a Saler experiences them; the number is drawn by a CSS counter.
+// i18n keys in the order a Shop Partner experiences them; the number is drawn by a CSS counter.
 const EARN_STEPS = ['marketplace.top.earn_step_pick', 'marketplace.top.earn_step_share', 'marketplace.top.earn_step_keep'];
 // Shortcut tiles on the right. `feed` tiles switch the feed tab below; the rest are plain routes
 // (the router sends a signed-out visitor to sign in first). Flash sales has no tile: it is a slide.
@@ -81,7 +81,7 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
 
   // ── Earn panel ───────────────────────────────────────────────────────────
   // WHY: this used to be a category rail, but the category chips under the feed tabs already list
-  // the same names. Showing how a Saler earns tells a shopper the platform is also a way to earn.
+  // the same names. Showing how a Shop Partner earns tells a shopper the platform is also a way to earn.
   const isSaler = role === 'saler';
   const salerPath = isSaler ? '/saler' : isAuthenticated ? '/account/become-saler' : '/auth/register';
   const earn = el('aside', 'home-top__earn');

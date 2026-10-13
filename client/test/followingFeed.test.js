@@ -295,7 +295,7 @@ test('Following Feed — Markdown Pricing', async (t) => {
     assert.equal(p.discount_pct, null, 'no badge when nothing is discounted');
   });
 
-  await t.test('3. A saler priced ABOVE the supplier default is not shown as a discount', () => {
+  await t.test('3. A shop partner priced ABOVE the supplier default is not shown as a discount', () => {
     const p = priceOf('1000.00', '1200.00');
     assert.equal(p.retail_price, '1200.00');
     assert.equal(p.original_price, null);
@@ -320,7 +320,7 @@ test('Following Feed — Escaping Merchant Text', async (t) => {
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#39;');
 
-  await t.test('1. Script tags in a seller bio are neutralised', () => {
+  await t.test('1. Script tags in a shop partner bio are neutralised', () => {
     const out = esc('<script>alert("xss")</script>');
     assert.ok(!out.includes('<script'), 'no live tag survives');
     assert.equal(out, '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');

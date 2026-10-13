@@ -138,7 +138,7 @@ export async function getPublicProductById(req, reply) {
   });
 }
 
-// WHY: Saler storefronts are virtual_stores; the public field names (store_name, tagline, logo_url,
+// WHY: Shop Partner storefronts are virtual_stores; the public field names (store_name, tagline, logo_url,
 // banner_url) are kept so existing API consumers do not break.
 const PUBLIC_STORE_COLUMNS = `
     s.id, s.ref, s.slug, s.shop_name AS store_name, s.bio AS tagline,

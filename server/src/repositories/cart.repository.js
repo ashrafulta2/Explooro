@@ -55,8 +55,8 @@ export async function getCartItemsWithDetails(db, cartId) {
       p.title_bn AS product_title_bn,
       p.slug AS product_slug,
       p.status AS product_status,
-      -- WHY: a line sold through a saler is priced at that saler's own price; the supplier default
-      -- only applies to a direct buy or when the saler has no active store item for the product.
+      -- WHY: a line sold through a shop partner is priced at that shop partner's own price; the supplier default
+      -- only applies to a direct buy or when the shop partner has no active store item for the product.
       COALESCE(ssi.custom_retail_price, p.default_retail_price) AS current_product_retail_price,
       p.base_cost AS current_product_base_price,
       p.stock_qty AS current_product_stock_qty,

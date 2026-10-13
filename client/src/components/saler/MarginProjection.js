@@ -13,7 +13,7 @@ const MILESTONES = [10, 25, 50, 100, 250, 500];
  * Creates the Margin Projection Component.
  *
  * @param {object} props
- * @param {number} [props.unitProfit=80] Saler profit per unit
+ * @param {number} [props.unitProfit=80] Shop Partner profit per unit
  * @param {number} [props.initialVolume=50] Estimated monthly sales volume
  * @returns {HTMLElement}
  */

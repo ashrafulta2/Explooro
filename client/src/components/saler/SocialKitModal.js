@@ -1,5 +1,5 @@
 /**
- * SocialKitModal.js — Viral Social Seller Marketing Toolkit & Flyer Builder (Prompt 9.7).
+ * SocialKitModal.js — Viral Social Shop Partner Marketing Toolkit & Flyer Builder (Prompt 9.7).
  *
  * Implements:
  * 1. Multi-format flyer preview (Social Square 1:1, WhatsApp Story 9:16, A4 Print Poster).
@@ -157,7 +157,7 @@ export class SocialKitModal {
     `;
 
     this.backdropEl = Modal({
-      title: `🎨 ${isBn ? 'সোশ্যাল সেলার কিট ও ফ্লায়ার জেনারেটর' : 'Social Seller Kit & Flyer Studio'}`,
+      title: `🎨 ${isBn ? 'সোশ্যাল শপ পার্টনার কিট ও ফ্লায়ার জেনারেটর' : 'Social Shop Partner Kit & Flyer Studio'}`,
       description: isBn ? 'হোয়াটসঅ্যাপ ও ফেসবুকে প্রচারের জন্য প্রফেশনাল পোস্টার তৈরি করুন' : 'Create high-converting posters and tracked QR links for social selling',
       content,
       size: 'xl',
@@ -291,7 +291,7 @@ export class SocialKitModal {
           <circle cx="50" cy="40" r="24" fill="${accent}" />
           <text x="50" y="48" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="bold">⚡</text>
           <text x="90" y="38" font-size="20" fill="${text}" font-weight="bold">${shopName}</text>
-          <text x="90" y="58" font-size="13" fill="${muted}">Verified Explooro Seller</text>
+          <text x="90" y="58" font-size="13" fill="${muted}">Verified Explooro Shop Partner</text>
         </g>
         <g transform="translate(60, 170)">
           <rect width="${width - 120}" height="${height - 380}" rx="24" fill="${cardBg}" />

@@ -1,10 +1,10 @@
 /**
- * CreativeStudioPage.js — AI Ad Copy Generator for Salers (Prompt 10.3).
+ * CreativeStudioPage.js — AI Ad Copy Generator for Shop Partners (Prompt 10.3).
  *
  * Route: /saler/creative-studio
  * Gated by: `ai_creative_studio` module flag, `ai.creative.use` permission.
  *
- * Generates a short, bilingual-ready ad caption grounded in a real product from the saler's own
+ * Generates a short, bilingual-ready ad caption grounded in a real product from the shop partner's own
  * store (POST /ai/creative/ad-copy) — never a fabricated price/feature. The draft is copy-only:
  * there is no "post" button, so "never auto-publish" holds by construction, not by a checkbox.
  */

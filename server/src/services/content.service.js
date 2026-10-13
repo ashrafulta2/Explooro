@@ -4,7 +4,7 @@
  * Implements idea proposition.md §A, §T, §AL.6:
  * 1. UGC Storytelling Posts with embedded buyable product cards.
  * 2. Shoppable Video Reels with pinned products and 1-tap checkout.
- * 3. Seller Academy micro-courses, lesson progress tracking, and certificates.
+ * 3. Shop Partner Academy micro-courses, lesson progress tracking, and certificates.
  * 4. Zero-deploy Homepage Banners and Hero Slider management.
  * 5. Dynamic Translation Manager with completeness gauges and zero-deploy new locale addition.
  */

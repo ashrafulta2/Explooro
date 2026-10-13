@@ -2,7 +2,7 @@
  * Badge — compact status, identity, and count indicator.
  *
  * Responsibility: the small trust and state markers that appear beside names, products, and
- * stores — verified sellers, elite tier, open/closed shops, unread counts.
+ * stores — verified shop partners, elite tier, open/closed shops, unread counts.
  *
  * Invariants:
  *  - Colour is never the sole carrier of meaning (WCAG 1.4.1). Every variant pairs its colour

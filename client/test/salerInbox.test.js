@@ -1,5 +1,5 @@
 /**
- * salerInbox.test.js — Invariant & Unit Tests for Saler Unified Multi-Channel Inbox (Prompt 8.3).
+ * salerInbox.test.js — Invariant & Unit Tests for Shop Partner Unified Multi-Channel Inbox (Prompt 8.3).
  *
  * Tests:
  * 1. Locale integrity (100% key parity between en.json and bn.json for saler_inbox).

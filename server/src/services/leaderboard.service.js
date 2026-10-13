@@ -3,7 +3,7 @@
  *
  * Implements:
  * 1. Nightly snapshot computation (no expensive live aggregate table scans).
- * 2. Multi-category rankings (Saler Revenue, Saler Orders, Supplier Volume).
+ * 2. Multi-category rankings (Shop Partner Revenue, Shop Partner Orders, Supplier Volume).
  * 3. Monthly prize pool distribution via double-entry ledger.
  */
 

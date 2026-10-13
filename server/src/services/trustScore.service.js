@@ -1,5 +1,5 @@
 /**
- * trustScore.service.js — Customer & Seller Trust Scoring Engine & COD Anti-Fraud (Prompt 5.2).
+ * trustScore.service.js — Customer & Shop Partner Trust Scoring Engine & COD Anti-Fraud (Prompt 5.2).
  *
  * Factors:
  *  - Delivery success rate (completed vs total)

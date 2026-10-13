@@ -1,7 +1,7 @@
 # 🔄 Data Flow Architecture & Specifications (DFD) — Explooro Ecosystem (`DFD.md`)
 
 > **Document Version:** 2.0 (Comprehensive — All 20 Subsystems Covered)  
-> **Target System:** Explooro Multi-Tier Social Commerce & Digital Saler Partnership Platform  
+> **Target System:** Explooro Multi-Tier Social Commerce & Digital Shop Partner Platform  
 > **Authoring AI Pair:** Google Antigravity + Claude Code  
 > **Coverage:** Level 0 (Context), Level 1 (20 Macro Subsystems), Level 2 (17 Detailed Micro-Flows), Data Dictionary & Event Pipelines.
 
@@ -35,7 +35,7 @@ The Level 0 Context Diagram establishes the global perimeter of Explooro, captur
 graph TD
     %% External Entities
     Supplier["🏭 Supplier / Manufacturer"]
-    Saler["🛍️ Saler (Virtual Saler)"]
+    Shop Partner["🛍️ Shop Partner (Virtual Shop Partner)"]
     Customer["🛒 Customer / Shopper"]
     Admin["👑 Super Admin / Moderator / Editor"]
     MFS["💳 MFS Gateways (bKash, Nagad, Rocket)"]
@@ -53,11 +53,11 @@ graph TD
     Supplier -- "3. KYC Documents (NID, Trade License, Bank Link)" --> ExplooroSystem
     ExplooroSystem -- "4. Order Fulfillment Alerts, Base Payouts, Demand Forecasts" --> Supplier
 
-    %% Saler Flows
-    Saler -- "5. 1-Click Sourcing, Store Customization, Story Posts" --> ExplooroSystem
-    Saler -- "6. Sponsored Ad Budget, Referral Links, Bundle Config" --> ExplooroSystem
-    Saler -- "7. Daily Quest Completion, Live Stream Initiation" --> ExplooroSystem
-    ExplooroSystem -- "8. Commission Vault Balance, Leaderboard Rank, Payout Statements" --> Saler
+    %% Shop Partner Flows
+    Shop Partner -- "5. 1-Click Sourcing, Store Customization, Story Posts" --> ExplooroSystem
+    Shop Partner -- "6. Sponsored Ad Budget, Referral Links, Bundle Config" --> ExplooroSystem
+    Shop Partner -- "7. Daily Quest Completion, Live Stream Initiation" --> ExplooroSystem
+    ExplooroSystem -- "8. Commission Vault Balance, Leaderboard Rank, Payout Statements" --> Shop Partner
 
     %% Customer Flows
     Customer -- "9. Product Inquiries, Social Follow, Order Placement, Coupon Code" --> ExplooroSystem
@@ -127,7 +127,7 @@ The core engine is decomposed into **20 primary processing subsystems**:
 
 ### 4.1 Subsystem 2.0: Product Sourcing & Dynamic Pricing Data Flow
 
-This process models how a product flows from physical supplier listing to dynamic retail price calculation and saler store sourcing.
+This process models how a product flows from physical supplier listing to dynamic retail price calculation and shop partner store sourcing.
 
 ```mermaid
 sequenceDiagram
@@ -136,23 +136,23 @@ sequenceDiagram
     participant Catalog as 2.1 Product Catalog Engine
     participant PricingEngine as 2.2 Dynamic Margin Engine
     participant AdminStore as D8: Feature Flags & Margin Rules
-    actor Saler as 🛍️ Saler
+    actor Shop Partner as 🛍️ Shop Partner
     participant StoreEngine as 2.3 Storefront Sourcing Engine
     participant DB as D2: Product Catalog DB
 
     Supplier->>Catalog: Submit Product (Title, Images, Stock, Base Cost = 500 Tk, Wholesale Margin = 50 Tk)
     Catalog->>AdminStore: Fetch Active Platform Margin Rules (Category-based)
-    AdminStore-->>Catalog: Return Active Margin Rules (e.g. 15% Platform Margin + 40% Saler Share)
+    AdminStore-->>Catalog: Return Active Margin Rules (e.g. 15% Platform Margin + 40% Shop Partner Share)
     Catalog->>PricingEngine: Compute Default Retail Price
     PricingEngine-->>Catalog: Calculated Retail Price = 650 Tk (Net Retail Margin = 100 Tk)
     Catalog->>DB: Store Master Product Record (Status = Active / Pending Moderation)
 
-    Saler->>StoreEngine: Browse Supplier Sourcing Catalog
+    Shop Partner->>StoreEngine: Browse Supplier Sourcing Catalog
     StoreEngine->>DB: Query Verified Supplier Products
     DB-->>StoreEngine: Return Catalog with Margin Breakdown
-    Saler->>StoreEngine: Click "Add to My Store" (Optional: Custom Story & Promo Banner)
+    Shop Partner->>StoreEngine: Click "Add to My Store" (Optional: Custom Story & Promo Banner)
     StoreEngine->>DB: Insert `saler_store_items` (SalerID, ProductID, CustomBio, DisplayOrder)
-    StoreEngine-->>Saler: Product Active on `explooro.com/store/{shop-name}`
+    StoreEngine-->>Shop Partner: Product Active on `explooro.com/store/{shop-name}`
 ```
 
 ---
@@ -197,7 +197,7 @@ flowchart TD
 
     DeductStock --> CreditCoins[13.1 Credit Loyalty Coins<br/>to Customer Wallet]
     CreditCoins --> CreateConsignment[4.4 Call 3PL Courier API<br/>Generate Tracking ID & Consignment Note]
-    CreateConsignment --> NotifyParties[4.5 WebSocket & SMS Notification<br/>to Customer, Saler & Supplier]
+    CreateConsignment --> NotifyParties[4.5 WebSocket & SMS Notification<br/>to Customer, Shop Partner & Supplier]
 ```
 
 ---
@@ -213,11 +213,11 @@ sequenceDiagram
     participant Vault as 5.1 Escrow & Vault Ledger (PostgreSQL ACID)
     participant CourierHook as 6.2 3PL Courier Webhook
     participant DisputeEngine as 9.0 Dispute & Return Engine
-    actor Saler as 🛍️ Saler / Supplier
+    actor Shop Partner as 🛍️ Shop Partner / Supplier
     participant Payout as 5.2 MFS Payout Engine
 
     OrderHub->>Vault: Order Paid -> Deposit Total Amount into `Escrow_Holding_Vault`
-    Note over Vault: Funds Locked: Base Cost, Saler Commission, Platform Fee
+    Note over Vault: Funds Locked: Base Cost, Shop Partner Commission, Platform Fee
 
     CourierHook->>OrderHub: Webhook Event: `STATUS = DELIVERED` (Timestamp: T0)
     OrderHub->>Vault: Start 7-Day Return Escrow Timer (T0 + 7 Days)
@@ -225,10 +225,10 @@ sequenceDiagram
     alt Scenario A: No Return Filed (Normal Settlement)
         Vault->>Vault: Timer Expires (T0 + 7 Days) -> Release Escrow Lock
         Vault->>Vault: Atomic Split Transfer:
-        Note over Vault: 1. Supplier Wallet += Base Cost + Wholesale Margin<br/>2. Saler Wallet += 40% Net Margin<br/>3. Explooro Platform Wallet += 60% Net Margin
-        Vault-->>Saler: In-App Notification: "Earnings Cleared to Available Balance"
+        Note over Vault: 1. Supplier Wallet += Base Cost + Wholesale Margin<br/>2. Shop Partner Wallet += 40% Net Margin<br/>3. Explooro Platform Wallet += 60% Net Margin
+        Vault-->>Shop Partner: In-App Notification: "Earnings Cleared to Available Balance"
         
-        Saler->>Payout: Request Payout (e.g. 5,000 Tk to bKash)
+        Shop Partner->>Payout: Request Payout (e.g. 5,000 Tk to bKash)
         Payout->>Vault: Verify `Available_Balance >= 5000` & Lock Amount
         Payout->>Payout: Execute bKash B2C Direct Transfer API
         Payout->>Vault: Deduct Wallet Balance & Log Transaction Receipt
@@ -237,8 +237,8 @@ sequenceDiagram
         DisputeEngine->>Vault: Return Approved -> Freeze Escrow Transfer
         DisputeEngine->>OrderHub: Reverse Sub-Order Status (`STATUS = RETURNED`)
         Vault->>Vault: Execute Full Clawback:
-        Note over Vault: Return Escrow to Customer Refund Account<br/>Zero commission credited to Saler/Supplier
-        Vault-->>Saler: Notification: "Commission Cancelled due to Verified Return"
+        Note over Vault: Return Escrow to Customer Refund Account<br/>Zero commission credited to Shop Partner/Supplier
+        Vault-->>Shop Partner: Notification: "Commission Cancelled due to Verified Return"
     end
 ```
 
@@ -250,7 +250,7 @@ This process models bi-directional WebSockets, Redis pub/sub routing, and gracef
 
 ```mermaid
 flowchart LR
-    Sender["💬 Sender<br/>(Customer/Saler)"] -->|1. ws.send JSON Payload| WSServer["7.1 WebSocket Gateway<br/>(Fastify ws)"]
+    Sender["💬 Sender<br/>(Customer/Shop Partner)"] -->|1. ws.send JSON Payload| WSServer["7.1 WebSocket Gateway<br/>(Fastify ws)"]
     
     WSServer -->|2. Verify JWT Token| AuthGuard{Valid Session?}
     AuthGuard -->|No| DropConn[Drop Socket Connection]
@@ -306,18 +306,18 @@ flowchart TD
     SelectReason --> UploadEvidence[Upload Photo/Video Evidence<br/>Optional but Encouraged]
     UploadEvidence --> SaveReturn[9.1 Create Return Record in D9<br/>Status: PENDING_SALER_REVIEW]
 
-    SaveReturn --> NotifySaler[WebSocket + Push Notification<br/>to Saler: 'Return Request Received']
-    NotifySaler --> SalerDecision{Saler Reviews<br/>Return Request}
+    SaveReturn --> NotifySaler[WebSocket + Push Notification<br/>to Shop Partner: 'Return Request Received']
+    NotifySaler --> SalerDecision{Shop Partner Reviews<br/>Return Request}
 
     SalerDecision -->|Approve| SalerApproved[Status: APPROVED_BY_SALER]
-    SalerDecision -->|Counter-Offer| CounterOffer[Saler Sends Counter-Offer<br/>Partial Refund / Replacement]
+    SalerDecision -->|Counter-Offer| CounterOffer[Shop Partner Sends Counter-Offer<br/>Partial Refund / Replacement]
     SalerDecision -->|Escalate / No Response 48h| EscalateAdmin[Status: ESCALATED_TO_ADMIN]
 
     CounterOffer --> CustomerAccept{Customer Accepts<br/>Counter-Offer?}
     CustomerAccept -->|Yes| SalerApproved
     CustomerAccept -->|No| EscalateAdmin
 
-    EscalateAdmin --> ModeratorPanel[9.2 Moderator Arbitration Panel<br/>3-Way Mediation Thread<br/>Buyer ↔ Saler ↔ Admin]
+    EscalateAdmin --> ModeratorPanel[9.2 Moderator Arbitration Panel<br/>3-Way Mediation Thread<br/>Buyer ↔ Shop Partner ↔ Admin]
     ModeratorPanel --> AdminVerdict{Moderator Verdict}
     AdminVerdict -->|Return Approved| SalerApproved
     AdminVerdict -->|Return Denied| ReturnDenied([❌ Return Denied<br/>Customer Notified with Reason])
@@ -325,7 +325,7 @@ flowchart TD
     SalerApproved --> ArrangePickup[9.3 Supplier Arranges Courier Pickup<br/>or Customer Self-Ships]
     ArrangePickup --> ItemReceived{Returned Item<br/>Received & Inspected?}
     ItemReceived -->|Yes| ProcessRefund[9.4 Trigger Refund via<br/>Original Payment Method or Wallet]
-    ProcessRefund --> ClawbackVault[5.0 Execute Escrow Clawback<br/>Deduct Saler & Supplier Pending Balance]
+    ProcessRefund --> ClawbackVault[5.0 Execute Escrow Clawback<br/>Deduct Shop Partner & Supplier Pending Balance]
     ClawbackVault --> UpdateOrder[Update Order Status: RETURNED<br/>Log in D4 & D9]
     UpdateOrder --> NotifyAll[Notify All Parties<br/>SMS + In-App + Push]
 ```
@@ -367,12 +367,12 @@ flowchart TD
 
 ### 4.8 Subsystem 11.0: KYC Verification & Blue-Tick Badge Engine *(NEW)*
 
-This process models the multi-step identity verification flow for Suppliers, Salers, and conditional Customer verification.
+This process models the multi-step identity verification flow for Suppliers, Shop Partners, and conditional Customer verification.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as 🏭 Supplier / 🛍️ Saler / 🛒 Customer
+    actor User as 🏭 Supplier / 🛍️ Shop Partner / 🛒 Customer
     participant VerifyUI as 11.1 Verification Portal
     participant AICheck as 11.2 AI Identity Auto-Check
     participant KYC_DB as D11: KYC Verifications Store
@@ -380,7 +380,7 @@ sequenceDiagram
     participant BadgeEngine as 11.3 Badge & Tier Engine
 
     User->>VerifyUI: Submit KYC Documents
-    Note over VerifyUI: Supplier: NID + Trade License + Warehouse Photos + Bank Link<br/>Saler: NID + OTP Mobile (Lightweight)<br/>Customer: NID + Selfie (Only if threshold-triggered)
+    Note over VerifyUI: Supplier: NID + Trade License + Warehouse Photos + Bank Link<br/>Shop Partner: NID + OTP Mobile (Lightweight)<br/>Customer: NID + Selfie (Only if threshold-triggered)
 
     VerifyUI->>KYC_DB: Insert Verification Record (Status: PENDING_REVIEW)
     VerifyUI->>AICheck: Run Automated Identity Checks
@@ -431,8 +431,8 @@ flowchart TD
     StillAbandoned -->|No| End2([✅ Recovered])
     StillAbandoned -->|Yes| RecoveryWave2[12.4 Wave 2: SMS Reminder<br/>'Your Explooro bag has items selling fast!<br/>Checkout: short-link']
     
-    RecoveryWave2 --> SalerDashboard[12.5 Update Saler Dashboard<br/>Abandoned Cart Analytics Counter]
-    SalerDashboard --> SalerAction{Saler Triggers<br/>Custom Discount?}
+    RecoveryWave2 --> SalerDashboard[12.5 Update Shop Partner Dashboard<br/>Abandoned Cart Analytics Counter]
+    SalerDashboard --> SalerAction{Shop Partner Triggers<br/>Custom Discount?}
     SalerAction -->|Yes| SendPromo[12.6 Push Personalized<br/>Limited-Time Promo to Customer]
     SalerAction -->|No| End3([Cart Expires After 7 Days])
 ```
@@ -465,13 +465,13 @@ flowchart TD
     end
 
     subgraph Leaderboard["🏆 Monthly Leaderboard & Badges"]
-        SalerSales[Track Saler Monthly Sales Volume] --> RankCalc[13.3 Calculate Monthly Rankings<br/>Sort by: Revenue, Orders, Ratings]
+        SalerSales[Track Shop Partner Monthly Sales Volume] --> RankCalc[13.3 Calculate Monthly Rankings<br/>Sort by: Revenue, Orders, Ratings]
         RankCalc --> UpdateBoard[Update Leaderboard in D13]
         UpdateBoard --> AssignBadge{Sales Milestone<br/>Reached?}
         AssignBadge -->|Yes| BadgeUp[Upgrade Badge Tier<br/>Bronze → Silver → Gold → Diamond]
         AssignBadge -->|No| KeepBadge[Retain Current Badge]
         
-        MonthEnd[Month-End Trigger] --> BonusPool[13.4 Distribute Bonus Pool<br/>Cash + Free Ad Credits<br/>to Top 10 Salers]
+        MonthEnd[Month-End Trigger] --> BonusPool[13.4 Distribute Bonus Pool<br/>Cash + Free Ad Credits<br/>to Top 10 Shop Partners]
     end
 
     subgraph Quests["🎮 Daily Missions & Streaks"]
@@ -492,7 +492,7 @@ This process models referral link generation, attribution tracking, and multi-ti
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Referrer as 🛍️ Existing Saler / Customer
+    actor Referrer as 🛍️ Existing Shop Partner / Customer
     participant RefEngine as 14.1 Referral Tracking Engine
     participant DB as D14: Referral Links & Tree Store
     actor NewUser as 👤 New User (Invited)
@@ -504,8 +504,8 @@ sequenceDiagram
     NewUser->>RefEngine: Clicks Referral Link & Registers
     RefEngine->>DB: Attribute New User to Referrer (Insert `referral_tree` Record)
 
-    alt Saler-to-Saler Referral
-        Note over NewUser: New Saler makes their first 10 sales
+    alt Shop Partner-to-Shop Partner Referral
+        Note over NewUser: New Shop Partner makes their first 10 sales
         RefEngine->>Vault: Credit Micro-Commission (5-10% from Explooro margin)<br/>for each of the 10 sales to Referrer's Wallet
         Vault-->>Referrer: Notification: "Referral Earning: Tk. X credited"
     end
@@ -529,7 +529,7 @@ This process models the end-to-end live broadcasting, product pinning, in-stream
 
 ```mermaid
 flowchart TD
-    Start([📹 Saler/Supplier Starts Live Stream]) --> AuthCheck[15.1 Verify Eligibility<br/>Blue-Tick Verified + Feature Toggle ON]
+    Start([📹 Shop Partner/Supplier Starts Live Stream]) --> AuthCheck[15.1 Verify Eligibility<br/>Blue-Tick Verified + Feature Toggle ON]
     AuthCheck --> StreamCreate[15.2 Create Stream Session<br/>WebSocket Room ID in D15]
     StreamCreate --> GoLive[Push Live Stream to<br/>All Followers via WebSocket]
 
@@ -599,14 +599,14 @@ This process models the creation, validation, and application of discount codes 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Admin as 👑 Admin / Supplier / Saler
+    actor Admin as 👑 Admin / Supplier / Shop Partner
     participant CampaignEngine as 17.1 Campaign Manager
     participant DB as D17: Coupons & Campaigns Store
     actor Customer as 🛒 Customer
     participant Checkout as 4.0 Order Checkout Engine
 
     Admin->>CampaignEngine: Create Coupon / Flash Sale Campaign
-    Note over CampaignEngine: Types:<br/>1. Platform-Wide Global Coupon (Admin)<br/>2. Supplier Brand Voucher (Supplier-funded)<br/>3. Saler Custom Promo (From own margin)<br/>4. Flash Sale with Countdown Timer
+    Note over CampaignEngine: Types:<br/>1. Platform-Wide Global Coupon (Admin)<br/>2. Supplier Brand Voucher (Supplier-funded)<br/>3. Shop Partner Custom Promo (From own margin)<br/>4. Flash Sale with Countdown Timer
 
     CampaignEngine->>DB: Store Campaign Record
     Note over DB: Fields: code, discount_type (%, fixed), max_uses,<br/>budget_cap, min_spend, start_date, end_date,<br/>eligible_categories, funder (platform/supplier/saler)
@@ -618,7 +618,7 @@ sequenceDiagram
         DB-->>Checkout: Return Discount Rules
         Checkout->>Checkout: Check: Min Spend Met? Budget Cap Not Exceeded? Within Date Range?
         Checkout->>Checkout: Calculate Discount Amount
-        Note over Checkout: If Saler Custom Promo → Deduct from Saler's margin<br/>If Supplier Voucher → Deduct from Supplier's payout<br/>If Platform Coupon → Deduct from Explooro's margin
+        Note over Checkout: If Shop Partner Custom Promo → Deduct from Shop Partner's margin<br/>If Supplier Voucher → Deduct from Supplier's payout<br/>If Platform Coupon → Deduct from Explooro's margin
         Checkout-->>Customer: Apply Discount & Show Updated Total
         Checkout->>DB: Increment `times_used` Counter
     else Invalid / Expired
@@ -718,17 +718,17 @@ sequenceDiagram
     actor BuyerWA as 💬 Customer (WhatsApp)
     participant MetaAPI as Meta WhatsApp Cloud API
     participant Bridge as 20.1 Conversational Commerce Bridge
-    participant Inbox as 20.2 Saler Unified Inbox
-    actor Saler as 🛍️ Saler
+    participant Inbox as 20.2 Shop Partner Unified Inbox
+    actor Shop Partner as 🛍️ Shop Partner
     participant OrderEngine as 4.0 Order Processing Engine
 
     BuyerWA->>MetaAPI: Send WhatsApp Message ("I want to buy the blue bag")
     MetaAPI->>Bridge: Webhook: Incoming Message Payload
-    Bridge->>Bridge: Parse Intent & Match to Saler's Store
-    Bridge->>Inbox: Route Message to Saler's Unified Inbox (D20)
-    Inbox-->>Saler: Real-Time Notification: New WhatsApp Inquiry
+    Bridge->>Bridge: Parse Intent & Match to Shop Partner's Store
+    Bridge->>Inbox: Route Message to Shop Partner's Unified Inbox (D20)
+    Inbox-->>Shop Partner: Real-Time Notification: New WhatsApp Inquiry
 
-    Saler->>Inbox: View Message & Select Product to Share
+    Shop Partner->>Inbox: View Message & Select Product to Share
     Inbox->>Bridge: Generate Interactive Product Card
     Bridge->>MetaAPI: Send Product Card (Image, Price, 'Buy Now' Button)
     MetaAPI-->>BuyerWA: Display Interactive Product Card in Chat
@@ -756,7 +756,7 @@ sequenceDiagram
 | :--- | :--- | :--- | :--- | :--- |
 | **D1** | **Users & RBAC Store** | PostgreSQL 16 | `users`, `roles`, `user_roles`, `sessions` | User credentials, role capabilities, active session tokens. |
 | **D2** | **Product & Catalog Store** | PostgreSQL 16 | `products`, `product_variants`, `saler_store_items`, `categories` | Base cost, wholesale margin, retail price formulas, stock inventory. |
-| **D3** | **Storefront & Content Store** | PostgreSQL 16 | `virtual_stores`, `story_posts`, `sponsored_campaigns` | Saler shop customization, storytelling blogs, internal paid ad campaigns. |
+| **D3** | **Storefront & Content Store** | PostgreSQL 16 | `virtual_stores`, `story_posts`, `sponsored_campaigns` | Shop Partner shop customization, storytelling blogs, internal paid ad campaigns. |
 | **D4** | **Order & Sub-Order Store** | PostgreSQL 16 | `orders`, `sub_orders`, `order_items`, `order_status_history` | Multi-supplier split orders, customer addresses, invoice metadata. |
 | **D5** | **Vault & Ledger Store** | PostgreSQL 16 | `wallets`, `escrow_entries`, `ledger_transactions`, `payout_requests` | Strict double-entry accounting for financial balances, escrow timers, MFS payouts. |
 | **D6** | **Logistics & Delivery Store** | PostgreSQL 16 | `shipments`, `courier_webhooks`, `cod_settlements` | Consignment notes, Steadfast/Pathao tracking status, COD reconciliation. |
@@ -765,7 +765,7 @@ sequenceDiagram
 | **D9** | **Returns & Disputes Store** | PostgreSQL 16 | `return_requests`, `dispute_threads`, `dispute_messages`, `refund_records` | Return lifecycle tracking, 3-way arbitration threads, refund settlement logs. |
 | **D10** | **Product Moderation Store** | PostgreSQL 16 | `moderation_queue`, `product_edit_history`, `ai_scan_results` | Auto-scan results, moderator verdicts, product change audit trail. |
 | **D11** | **KYC & Verification Store** | PostgreSQL 16 | `kyc_verifications`, `kyc_documents`, `verification_status_history` | NID/Trade License documents, AI face-match results, blue-tick badge assignments. |
-| **D12** | **Abandoned Cart Store** | Redis 7 + PostgreSQL | `abandoned_carts`, Redis Keys: `cart:idle:*` | Idle cart detection timers, recovery SMS/push logs, Saler analytics. |
+| **D12** | **Abandoned Cart Store** | Redis 7 + PostgreSQL | `abandoned_carts`, Redis Keys: `cart:idle:*` | Idle cart detection timers, recovery SMS/push logs, Shop Partner analytics. |
 | **D13** | **Gamification & Loyalty Store** | PostgreSQL 16 | `loyalty_coins`, `coin_transactions`, `leaderboard_rankings`, `daily_quests`, `badge_tiers` | Coin balances, earning/redemption history, monthly rankings, quest progress, streak multipliers. |
 | **D14** | **Referral & Growth Store** | PostgreSQL 16 | `referral_codes`, `referral_tree`, `referral_commissions` | Unique referral link mappings, parent-child attribution tree, micro-commission ledger. |
 | **D15** | **Live Stream Store** | PostgreSQL 16 + Cloudflare R2 | `live_streams`, `pinned_products`, `stream_reactions`, `stream_replays` | Active stream sessions, pinned product overlays, archived replay clips. |
@@ -896,12 +896,12 @@ sequenceDiagram
 | **9.0 Return & Disputes** | ✅ Multi-step arbitration, Clawback | Idea Prop §F | ✅ Yes |
 | **10.0 Product Moderation** | ✅ AI scan, Manual review, Appeal flow | Idea Prop §G | ✅ Yes |
 | **11.0 KYC & Verification** | ✅ Multi-step KYC, Blue-tick, Tier progression | Idea Prop §C | ✅ Yes |
-| **12.0 Abandoned Cart** | ✅ Idle detection, SMS/Push recovery, Saler promo | Idea Prop §Q | ✅ Yes |
+| **12.0 Abandoned Cart** | ✅ Idle detection, SMS/Push recovery, Shop Partner promo | Idea Prop §Q | ✅ Yes |
 | **13.0 Gamification & Coins** | ✅ Earning, Redemption, Leaderboard, Quests, Streaks | Idea Prop §R, §X, §AE | ✅ Yes |
 | **14.0 Referral Engine** | ✅ Link generation, Attribution tree, Multi-tier commission | Idea Prop §Y | ✅ Yes |
 | **15.0 Live Stream Commerce** | ✅ Broadcast, Pin products, In-stream checkout, Archive | Idea Prop §U | ✅ Yes |
 | **16.0 Group Buying** | ✅ Team formation, 24h timer, Auto-cancel/refund | Idea Prop §V | ✅ Yes |
-| **17.0 Coupon & Campaigns** | ✅ Platform/Supplier/Saler coupons, Flash sale timers | Idea Prop §S | ✅ Yes |
+| **17.0 Coupon & Campaigns** | ✅ Platform/Supplier/Shop Partner coupons, Flash sale timers | Idea Prop §S | ✅ Yes |
 | **18.0 i18n Language** | ✅ JSON dictionaries, Dynamic switch, RTL, Admin editor | Idea Prop §L | ✅ Yes |
 | **19.0 Batch/FEFO/Warehouse** | ✅ Batch tagging, FEFO dispatch, Expiry alerts, GIS routing | Idea Prop §AJ, §AK | ✅ Yes |
 | **20.0 WhatsApp Bridge** | ✅ Meta API webhook, Unified inbox, In-chat checkout | Idea Prop §AD | ✅ Yes |

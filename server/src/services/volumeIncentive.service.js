@@ -1,5 +1,5 @@
 /**
- * volumeIncentive.service.js — A supplier-funded monthly rebate for the salers who sell the most.
+ * volumeIncentive.service.js — A supplier-funded monthly rebate for the shop partners who sell the most.
  *
  * How it works: a supplier publishes tiers ("sell 50,000 of mine in a month -> 1% back"). When a
  * month closes, and `settle_lag_days` later so returns have landed, the job pays each qualifying
@@ -8,11 +8,11 @@
  *
  * Invariants:
  *   1. A programme is versioned, never edited in place. A change takes effect on the first day of
- *      the NEXT month, so no saler is moved onto worse tiers part-way through a month. (A supplier's
- *      very first programme may start this month: that can only help salers.)
+ *      the NEXT month, so no shop partner is moved onto worse tiers part-way through a month. (A supplier's
+ *      very first programme may start this month: that can only help shop partners.)
  *   2. A payout is judged against the tiers in force at the START of its month, and those tiers are
  *      snapshotted on the payout row.
- *   3. One payout per supplier x saler x month (unique key), amounts fixed when it is created. Running
+ *   3. One payout per supplier x shop partner x month (unique key), amounts fixed when it is created. Running
  *      the job twice pays nothing twice; a late return after creation does not re-price it.
  *   4. The money moves as ONE balanced ledger group - supplier DEBIT = saler CREDIT + treasury
  *      CREDIT - with the supplier's wallet locked, and never leaves it negative. A supplier who
@@ -64,7 +64,7 @@ export function resolveRules(raw) {
     max_rebate_pct: dec(r.max_rebate_pct, 0.01, 50, d.max_rebate_pct),
     max_tiers: int(r.max_tiers, 1, 10, d.max_tiers),
     min_threshold: dec(r.min_threshold, 1, 100000000, d.min_threshold),
-    // WHY capped at 50: above that the saler would receive less than the platform keeps, and the
+    // WHY capped at 50: above that the shop partner would receive less than the platform keeps, and the
     // incentive would stop being one.
     platform_fee_pct: dec(r.platform_fee_pct, 0, 50, d.platform_fee_pct),
     settle_lag_days: int(r.settle_lag_days, 0, 60, d.settle_lag_days),
@@ -90,7 +90,7 @@ function invalid(en, bn) {
 
 /**
  * Pure. Checks a supplier's tiers against the platform rules and returns them normalised and sorted.
- * Strict: out-of-range input is refused, never clamped, so what a supplier saves is what salers see.
+ * Strict: out-of-range input is refused, never clamped, so what a supplier saves is what shop partners see.
  */
 export function validateTiers(input, rules) {
   if (!Array.isArray(input) || input.length === 0) {
@@ -129,7 +129,7 @@ export function validateTiers(input, rules) {
 
   tiers.sort((a, b) => a.min_volume - b.min_volume);
   for (let i = 1; i < tiers.length; i++) {
-    // WHY both must rise: a higher volume paying a lower rebate would punish the saler who sold more.
+    // WHY both must rise: a higher volume paying a lower rebate would punish the shop partner who sold more.
     if (tiers[i].min_volume <= tiers[i - 1].min_volume || tiers[i].rebate_pct <= tiers[i - 1].rebate_pct) {
       throw invalid(
         'Each higher tier needs both a larger volume and a larger rebate.',
@@ -151,7 +151,7 @@ export function pickTier(volume, tiers) {
   return best;
 }
 
-/** Pure. The tier after the one reached (the saler's next goal), or null at the top. */
+/** Pure. The tier after the one reached (the shop partner's next goal), or null at the top. */
 export function nextTier(volume, tiers) {
   const v = Number(volume);
   const above = (tiers || []).filter((t) => Number(t.min_volume) > v).sort((a, b) => a.min_volume - b.min_volume);
@@ -159,8 +159,8 @@ export function nextTier(volume, tiers) {
 }
 
 /**
- * Pure. Splits a rebate into what the saler receives and what the platform keeps, in integer paisa so
- * the two always add back to the gross. Rounds the platform's share, so the saler never gets less
+ * Pure. Splits a rebate into what the shop partner receives and what the platform keeps, in integer paisa so
+ * the two always add back to the gross. Rounds the platform's share, so the shop partner never gets less
  * than gross - fee by a rounding quirk.
  */
 export function computeRebate({ volume, rebatePct, platformFeePct }) {
@@ -270,7 +270,7 @@ function publicRules(rules) {
 
 /**
  * Saves a supplier's programme as a new version. Throws on invalid tiers or a blocked grade.
- * @returns {Promise<object>} the version written (its `valid_from` says when salers will see it)
+ * @returns {Promise<object>} the version written (its `valid_from` says when shop partners will see it)
  */
 export async function saveProgram(db, { supplierId, isActive, tiers, actor = null }) {
   const rules = await loadRules(db);
@@ -290,7 +290,7 @@ export async function saveProgram(db, { supplierId, isActive, tiers, actor = nul
 
   const cal = await repo.getLocalCalendar(db, rules.timezone);
   const versions = await repo.listVersions(db, supplierId);
-  // WHY this month only for a first programme: it can only help salers. Any later change waits for
+  // WHY this month only for a first programme: it can only help shop partners. Any later change waits for
   // the next month, so nobody is moved onto worse tiers while a month is running.
   const validFrom = versions.length === 0 ? cal.month_start : addMonths(cal.month_start, 1);
 
@@ -309,7 +309,7 @@ export async function saveProgram(db, { supplierId, isActive, tiers, actor = nul
 
 // ---- saler side -------------------------------------------------------------------------------------------
 
-/** A saler's standing against every supplier they sold for this month, plus what they have been paid. */
+/** A shop partner's standing against every supplier they sold for this month, plus what they have been paid. */
 export async function getSalerView(db, salerId) {
   const rules = await loadRules(db);
   const cal = await repo.getLocalCalendar(db, rules.timezone);

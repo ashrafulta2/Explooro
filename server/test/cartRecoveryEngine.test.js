@@ -7,7 +7,7 @@
  * 3. Immediate sequence termination when an order is placed.
  * 4. Exact cart restoration with items, variants, and product details.
  * 5. Step-level conversion attribution and recovered revenue calculation.
- * 6. Saler manual offer dispatch with discount cap validation (<= 15%).
+ * 6. Shop Partner manual offer dispatch with discount cap validation (<= 15%).
  */
 
 import { describe, test } from 'node:test';
@@ -250,8 +250,8 @@ describe('Prompt 9.6: Abandoned Cart Recovery Engine', () => {
     });
   });
 
-  describe('5. Saler Manual Offer Dispatch & Cap Enforcement', () => {
-    test('Saler manual recovery offer cannot exceed configured cap (15%)', async () => {
+  describe('5. Shop Partner Manual Offer Dispatch & Cap Enforcement', () => {
+    test('Shop Partner manual recovery offer cannot exceed configured cap (15%)', async () => {
       const mockCart = {
         id: 44,
         cart_id: 101,

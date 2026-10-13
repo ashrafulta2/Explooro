@@ -30,7 +30,7 @@ const ALL_ROLES = [
   { id: 1, key: 'super_admin', label_en: 'Super Admin', level: 100 },
   { id: 2, key: 'admin', label_en: 'Admin', level: 80 },
   { id: 3, key: 'moderator', label_en: 'Moderator', level: 60 },
-  { id: 4, key: 'saler', label_en: 'Saler', level: 20 },
+  { id: 4, key: 'saler', label_en: 'Shop Partner', level: 20 },
   { id: 5, key: 'customer', label_en: 'Customer', level: 10 },
 ];
 
@@ -415,14 +415,14 @@ describe('Granular Activity Control (Prompt 2.6)', () => {
           },
           capability_key: 'can_use_cod',
           mode: 'BLOCK',
-          reason: 'COD disabled for low-trust salers in Dhaka segment',
-          reason_bn: 'ঢাকা সেগমেন্টের স্বল্প-ট্রাস্ট সেলারদের জন্য ক্যাশ অন ডেলিভারি বন্ধ',
+          reason: 'COD disabled for low-trust shop partners in Dhaka segment',
+          reason_bn: 'ঢাকা সেগমেন্টের স্বল্প-ট্রাস্ট শপ পার্টনারদের জন্য ক্যাশ অন ডেলিভারি বন্ধ',
         },
       ],
     });
     const cache = createMemoryCache();
 
-    // User 10 (Saler in Dhaka with trust score 30) matches dynamically
+    // User 10 (Shop Partner in Dhaka with trust score 30) matches dynamically
     const app = Fastify();
     app.decorate('db', db);
     app.decorate('cache', cache);
@@ -455,7 +455,7 @@ describe('Granular Activity Control (Prompt 2.6)', () => {
     assert.equal(body1.error.code, 'USER_RESTRICTED');
     assert.equal(body1.error.details.capability, 'can_use_cod');
 
-    // 2. User 20 (Saler in Chattogram with trust score 85) is NOT blocked
+    // 2. User 20 (Shop Partner in Chattogram with trust score 85) is NOT blocked
     const appUser20 = Fastify();
     appUser20.decorate('db', db);
     appUser20.decorate('cache', cache);
@@ -654,7 +654,7 @@ describe('Granular Activity Control (Prompt 2.6)', () => {
     const lifted = await restrictionService.liftRestriction(db, cache, {
       restrictionId: applied.id,
       liftedBy: 1,
-      reason: 'Full seller verification complete, restrictions removed',
+      reason: 'Full shop partner verification complete, restrictions removed',
     });
 
     assert.ok(lifted.lifted_at);
@@ -760,13 +760,13 @@ describe('Granular Activity Control (Prompt 2.6)', () => {
           capability_key: 'max_cod_order_value',
           mode: 'THROTTLE',
           limit_value: 3000,
-          reason: 'COD capped at ৳3,000 for Dhaka starter salers',
-          reason_bn: 'ঢাকা স্টার্টার সেলারদের জন্য ক্যাশ অন ডেলিভারি সর্বোচ্চ ৩০০০ টাকা',
+          reason: 'COD capped at ৳3,000 for Dhaka starter shop partners',
+          reason_bn: 'ঢাকা স্টার্টার শপ পার্টনারদের জন্য ক্যাশ অন ডেলিভারি সর্বোচ্চ ৩০০০ টাকা',
         },
       ],
     });
 
-    // User 10: Saler in Dhaka with STARTER tier -> MATCHES predicate -> exceeding limit throws
+    // User 10: Shop Partner in Dhaka with STARTER tier -> MATCHES predicate -> exceeding limit throws
     await assert.rejects(
       async () => {
         await restrictionService.checkNumericLimit(db, 10, 'max_cod_order_value', 4000);
@@ -778,7 +778,7 @@ describe('Granular Activity Control (Prompt 2.6)', () => {
       }
     );
 
-    // User 20: Saler in Chattogram with VERIFIED tier -> DOES NOT MATCH predicate -> allowed
+    // User 20: Shop Partner in Chattogram with VERIFIED tier -> DOES NOT MATCH predicate -> allowed
     await assert.doesNotReject(async () => {
       await restrictionService.checkNumericLimit(db, 20, 'max_cod_order_value', 4000);
     });

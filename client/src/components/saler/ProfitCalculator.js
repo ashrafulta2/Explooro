@@ -3,7 +3,7 @@
  * pricing preview API (Prompt 4.7).
  *
  * Invariant: The client NEVER calculates split arithmetic locally. All breakdown numbers
- * (wholesale cost, net margin, saler earnings, platform earnings) come directly from
+ * (wholesale cost, net margin, shop partner earnings, platform earnings) come directly from
  * previewPricing (POST /api/v1/pricing/preview).
  */
 import { previewPricing } from '../../services/catalog.api.js';
@@ -117,7 +117,7 @@ export function ProfitCalculator({
   const barLabel = document.createElement('div');
   barLabel.className = 'profit-calc__bar-label';
   const barLabelLeft = document.createElement('span');
-  barLabelLeft.textContent = t('sourcing.calc.margin_performance', 'Saler Profit Margin');
+  barLabelLeft.textContent = t('sourcing.calc.margin_performance', 'Shop Partner Profit Margin');
   const barLabelRight = document.createElement('span');
   barLabelRight.textContent = '';
   barLabel.append(barLabelLeft, barLabelRight);

@@ -1,5 +1,5 @@
 /**
- * WithdrawalsPage.js — Saler Vault Balance, Escrow & Instant Payouts Portal (Prompt 6.5 / §AL.2).
+ * WithdrawalsPage.js — Shop Partner Vault Balance, Escrow & Instant Payouts Portal (Prompt 6.5 / §AL.2).
  *
  * Route: /saler/vault/payouts
  * Implements:
@@ -214,7 +214,7 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
             </td>
             <td>
               <div class="font-mono text-sm text-foreground font-bold">${p.account_number}</div>
-              <div class="text-xs text-muted">${p.account_name || 'Saler Account'} ${p.bank_name ? `(${p.bank_name})` : ''}</div>
+              <div class="text-xs text-muted">${p.account_name || 'Shop Partner Account'} ${p.bank_name ? `(${p.bank_name})` : ''}</div>
             </td>
             <td class="font-mono text-base font-extrabold text-foreground">
               ${formatCurrency(p.amount)}

@@ -10,7 +10,7 @@ const DEV_USERS = {
   '+8801700000003': { id: 'usr-dev-3', ref: 'USR-DEV-MODERATOR', name: 'Dev Moderator', role: 'moderator', email: 'moderator@dev.explooro.local' },
   '+8801700000004': { id: 'usr-dev-4', ref: 'USR-DEV-EDITOR', name: 'Dev Editor', role: 'editor', email: 'editor@dev.explooro.local' },
   '+8801700000005': { id: 'usr-dev-5', ref: 'USR-DEV-SUPPLIER', name: 'Dev Supplier', role: 'supplier', email: 'supplier@dev.explooro.local' },
-  '+8801700000006': { id: 'usr-dev-6', ref: 'USR-DEV-SALER', name: 'Dev Saler', role: 'saler', email: 'saler@dev.explooro.local' },
+  '+8801700000006': { id: 'usr-dev-6', ref: 'USR-DEV-SALER', name: 'Dev Shop Partner', role: 'saler', email: 'saler@dev.explooro.local' },
   '+8801700000007': { id: 'usr-dev-7', ref: 'USR-DEV-CUSTOMER', name: 'Dev Customer', role: 'customer', email: 'customer@dev.explooro.local' },
 };
 

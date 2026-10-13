@@ -23,7 +23,7 @@ import { handleSocketMessage } from '../src/sockets/chat.handler.js';
 function createMockDb() {
   const users = [
     { id: 101, full_name: 'Customer Rahim', role: 'customer' },
-    { id: 102, full_name: 'Saler Karim', role: 'saler' },
+    { id: 102, full_name: 'Shop Partner Karim', role: 'saler' },
     { id: 103, full_name: 'Restricted User', role: 'customer' },
   ];
 
@@ -345,7 +345,7 @@ test('Prompt 8.1 — WebSocket Chat Gateway', async (t) => {
     // Reconnecting client requests sync since message id 1
     handleSocketMessage(
       reconnectingWs,
-      { id: 102, full_name: 'Saler Karim' },
+      { id: 102, full_name: 'Shop Partner Karim' },
       JSON.stringify({
         type: 'chat:sync',
         payload: {

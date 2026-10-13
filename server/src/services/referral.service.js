@@ -46,7 +46,7 @@ export async function getReferralSettings(db) {
 }
 
 // WHY fixed amounts for these three: a percentage of an order is meaningless when the event is a signup,
-// a first sale by a seller or a KYC approval — there is no order value, so the old rule paid 0.
+// a first sale by a shop partner or a KYC approval — there is no order value, so the old rule paid 0.
 // A 0 (the default) switches the bonus off, so a deployment that never set one pays nothing.
 export const FIXED_BONUS_KEYS = Object.freeze({
   SIGNUP: 'signup_bonus_bdt',

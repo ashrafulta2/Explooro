@@ -544,7 +544,7 @@ export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, wit
   const hasMore = rows.length > pageSize;
   let page = hasMore ? rows.slice(0, pageSize) : rows;
 
-  // WHY margin is filtered here and not in SQL: saler margin % is derived by the pricing service
+  // WHY margin is filtered here and not in SQL: shop partner margin % is derived by the pricing service
   // from the commission split, which is configuration — there is no column to put in a WHERE.
   // The consequence is honest and documented: with min_margin set a page can come back short
   // while `has_more` stays true, so the grid keeps scrolling rather than stopping early.
@@ -573,7 +573,7 @@ export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, wit
 
 export async function listSourcingCatalog(db, filters = {}) {
   const { minMarginPct, categoryId, brand, limit = 50, offset = 0 } = filters;
-  // WHY net: a saler (and the AI sourcing agent) reads this to decide how much can be sold, and units
+  // WHY net: a shop partner (and the AI sourcing agent) reads this to decide how much can be sold, and units
   // an open team is counting on cannot be.
   const products = await netOfReservations(
     db,
@@ -598,7 +598,7 @@ export async function listSourcingCatalog(db, filters = {}) {
     enriched.push(toSourcingItem(p, pricing));
   }
 
-  // WHY here and not in the page: the catalog is the one place a saler compares suppliers, and the
+  // WHY here and not in the page: the catalog is the one place a shop partner compares suppliers, and the
   // AI sourcing agent reads this same list, so it sees the same measured reputation.
   return attachScorecards(db, enriched);
 }
@@ -660,7 +660,7 @@ export async function addProductToSalerStore(db, { salerId, productId, customRet
     throw new AppError('NOT_FOUND', 'Product not found or not active.', 'প্রোডাক্ট পাওয়া যায়নি অথবা সক্রিয় নয়।');
   }
 
-  // Ensure saler has a virtual store
+  // Ensure shop partner has a virtual store
   let store = await productRepo.getVirtualStoreBySalerId(db, salerId);
   if (!store) {
     const storeRef = `STR-${Date.now().toString(36).toUpperCase()}`;
@@ -712,7 +712,7 @@ export async function getSalerStoreItems(db, salerId) {
   const store = await productRepo.getVirtualStoreBySalerId(db, salerId);
   if (!store) return [];
 
-  // WHY net: the saler decides what to promote from this count; units open teams hold are not sellable.
+  // WHY net: the shop partner decides what to promote from this count; units open teams hold are not sellable.
   const items = await withAvailableStock(db, await productRepo.listSalerStoreItems(db, store.id), { idKey: 'product_id' });
   const enriched = await Promise.all(
     items.map(async (item) => {

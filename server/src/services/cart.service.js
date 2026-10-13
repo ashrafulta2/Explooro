@@ -198,7 +198,7 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
     throw new AppError('NOT_FOUND', 'Product not available.', 'পণ্যটি উপলব্ধ নেই।');
   }
 
-  // WHY: price_at_add must be the price getCart will read back, or every saler line shows PRICE_CHANGED.
+  // WHY: price_at_add must be the price getCart will read back, or every shop partner line shows PRICE_CHANGED.
   let basePrice = Number(prodRows[0].default_retail_price);
   if (salerId) {
     const { rows: itemRows } = await db.query(

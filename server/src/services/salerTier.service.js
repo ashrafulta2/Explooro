@@ -1,10 +1,10 @@
 /**
- * salerTier.service.js — puts every saler in a commission tier by what they sold, and shows them where
+ * salerTier.service.js — puts every shop partner in a commission tier by what they sold, and shows them where
  * they stand.
  *
  * The tier is a rolling-window figure (`window_days`, default 30) of DELIVERED sales, goods only
  * (`total_amount - shipping_amount`), the same measure the supplier Volume Incentive uses, so a returned
- * or cancelled order never counts. Because the window rolls, a saler who stops selling drifts back down:
+ * or cancelled order never counts. Because the window rolls, a shop partner who stops selling drifts back down:
  * a tier is earned continuously, not kept.
  *
  * What a tier pays is NOT decided here - `finance.tier_bonuses` owns that (see salerTierBonus.js).
@@ -26,7 +26,7 @@ async function loadSettings(db) {
 }
 
 /**
- * Recomputes every saler's tier. Safe to run as often as the scheduler likes: it is a pure function of
+ * Recomputes every shop partner's tier. Safe to run as often as the scheduler likes: it is a pure function of
  * the delivered orders in the window, and it writes (and audits) only the rows that change.
  * @returns {Promise<{ evaluated: number, changed: number, skipped: boolean }>}
  */
@@ -50,7 +50,7 @@ export async function recomputeAll(db) {
 
   const next = new Map();
   for (const v of volumes) next.set(String(v.saler_id), { volume: Number(v.volume), tier: pickTierKey(v.volume, rules.thresholds) });
-  // A saler with a row but no sales in the window has fallen out of it: back to BRONZE with volume 0.
+  // A shop partner with a row but no sales in the window has fallen out of it: back to BRONZE with volume 0.
   for (const id of current.keys()) if (!next.has(id)) next.set(id, { volume: 0, tier: 'BRONZE' });
 
   let changed = 0;
@@ -80,7 +80,7 @@ export async function recomputeAll(db) {
   return { evaluated: next.size, changed, skipped: false };
 }
 
-/** A saler's standing for their own card: tier, what it pays, and the way to the next one. */
+/** A shop partner's standing for their own card: tier, what it pays, and the way to the next one. */
 export async function getSalerView(db, salerId) {
   const { rules, bonuses } = await loadSettings(db);
   const { rows } = await db.query(

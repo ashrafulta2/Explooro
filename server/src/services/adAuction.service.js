@@ -15,7 +15,7 @@
 // Reserve minimum CPC price in BDT
 export const MIN_RESERVE_PRICE = 1.00;
 
-// Multipliers for seller trust tiers in quality scoring
+// Multipliers for shop partner trust tiers in quality scoring
 export const TIER_MULTIPLIERS = {
   STARTER: 0.0,
   VERIFIED_TRADER: 0.15,

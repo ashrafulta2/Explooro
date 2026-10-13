@@ -34,13 +34,13 @@ function createMockDb() {
     { id: 1, ref: 'USR-SUPER1', full_name: 'Super Admin Kabir', role: 'super_admin', created_at: '2025-01-01T00:00:00Z' },
     { id: 2, ref: 'USR-MOD1', full_name: 'Moderator Rifat', role: 'moderator', created_at: '2025-01-01T00:00:00Z' },
     { id: 101, ref: 'USR-SUPP1', phone: '+8801700000101', full_name: 'Supplier Aarong', role: 'supplier', created_at: '2025-01-01T00:00:00Z' },
-    { id: 201, ref: 'USR-SALER1', phone: '+8801700000201', full_name: 'Saler Jamila', role: 'saler', created_at: new Date(Date.now() - 2 * 86400 * 1000).toISOString() }, // New account (<7d)
+    { id: 201, ref: 'USR-SALER1', phone: '+8801700000201', full_name: 'Shop Partner Jamila', role: 'saler', created_at: new Date(Date.now() - 2 * 86400 * 1000).toISOString() }, // New account (<7d)
     { id: 301, ref: 'USR-RESTRICTED', phone: '+8801700000301', full_name: 'Restricted User', role: 'saler', created_at: '2025-01-01T00:00:00Z' },
   ];
 
   const userProfiles = [
     { user_id: 101, full_name: 'Supplier Aarong' },
-    { user_id: 201, full_name: 'Saler Jamila' },
+    { user_id: 201, full_name: 'Shop Partner Jamila' },
     { user_id: 301, full_name: 'Restricted User' },
   ];
 
@@ -513,7 +513,7 @@ describe('Prompt 6.3 — Payout Engine with Maker-Checker Authorization', () => 
   });
 
   test('Acceptance 3: Automated Risk Analysis evaluates flags', async () => {
-    // Saler 201: New account (<7d), large amount (৳26,000 >= ৳25k), and mismatched account name
+    // Shop Partner 201: New account (<7d), large amount (৳26,000 >= ৳25k), and mismatched account name
     const reqResult = await payoutService.requestPayout(db, {
       userId: 201,
       method: 'BANK',

@@ -1,12 +1,12 @@
 /**
  * SupplierSamplesPage.js — A supplier sets which products they will send as a paid sample, and answers
- * the salers who ask for one.
+ * the shop partners who ask for one.
  *
  * Route: /supplier/samples  (module: sourcing, read: supplier.analytics.view, write: supplier.sample.manage)
  *
  * WHY the page spells out the money: a supplier who offers a sample at ৳200 should know before they
  * switch it on that the platform keeps its share of the price, that the shipping goes whole to them,
- * and that nothing reaches their vault until the saler confirms (or the confirm window runs out).
+ * and that nothing reaches their vault until the shop partner confirms (or the confirm window runs out).
  */
 import { sampleKitApi } from '../../services/sampleKit.api.js';
 import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
@@ -76,7 +76,7 @@ export default function SupplierSamplesPage(root) {
       toast.success(t(`sample.done_${action}`));
     } catch (err) {
       toast.error(pickMessage(err) || t('sample.action_failed'));
-      // The request may have moved under us (the saler cancelled, the job expired it): show the truth.
+      // The request may have moved under us (the shop partner cancelled, the job expired it): show the truth.
       try { await load(); } catch { /* keep what is on screen */ }
     }
   }
@@ -146,7 +146,7 @@ export default function SupplierSamplesPage(root) {
     grid.append(price.wrap, ship.wrap, toggle, save);
     row.append(grid);
 
-    // What the saler pays and what the supplier ends up with, using the platform's own fee setting.
+    // What the shop partner pays and what the supplier ends up with, using the platform's own fee setting.
     const priceNum = Number(price.input.value);
     if (priceNum > 0) {
       const fee = Math.round(priceNum * view.rules.platform_fee_pct) / 100;

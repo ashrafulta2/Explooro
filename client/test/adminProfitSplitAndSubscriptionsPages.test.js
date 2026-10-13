@@ -185,7 +185,7 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
       assert.ok(typeof data.saler_commission === 'number');
       assert.ok(typeof data.platform_share === 'number');
 
-      // Exact integer paisa conservation: saler commission + platform share === gross margin
+      // Exact integer paisa conservation: shop partner commission + platform share === gross margin
       const totalShare = Math.round((data.saler_commission + data.platform_share) * 100) / 100;
       assert.equal(totalShare, data.gross_retail_margin, 'Zero drift across split shares');
     });
@@ -208,7 +208,7 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
       assert.equal(delRes.body.category.is_override, false);
     });
 
-    it('PUT /admin/finance/splits/tiers updates saler trust tier bonuses', () => {
+    it('PUT /admin/finance/splits/tiers updates shop partner trust tier bonuses', () => {
       const newTiers = [
         { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0.0 },
         { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 1.5 },

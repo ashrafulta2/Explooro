@@ -1,5 +1,5 @@
 /**
- * AcademyManagerPage.js — Explooro Seller & Buyer Academy Course Manager.
+ * AcademyManagerPage.js — Explooro Shop Partner & Buyer Academy Course Manager.
  *
  * Implements /editor/academy:
  * - Educational tutorials, sourcing masterclasses, social commerce playbooks.
@@ -48,7 +48,7 @@ export default function AcademyManagerPage(root) {
         <div class="supplier-form-field">
           <label for="course-role">Target Audience *</label>
           <select class="form-select" id="course-role">
-            <option value="saler" ${existingCourse?.target_role === 'saler' ? 'selected' : ''}>🛍️ Salers</option>
+            <option value="saler" ${existingCourse?.target_role === 'saler' ? 'selected' : ''}>🛍️ Shop Partners</option>
             <option value="supplier" ${existingCourse?.target_role === 'supplier' ? 'selected' : ''}>🏭 Factory Suppliers</option>
             <option value="all" ${existingCourse?.target_role === 'all' ? 'selected' : ''}>🌐 All Platform Members</option>
           </select>
@@ -184,7 +184,7 @@ export default function AcademyManagerPage(root) {
           <span class="badge badge--primary font-bold font-mono">SELLER ACADEMY</span>
         </div>
         <h1 class="editor-header__title">
-          <span>🎓</span> ${t('editor.academy_title', 'Explooro Seller & Buyer Academy')}
+          <span>🎓</span> ${t('editor.academy_title', 'Explooro Shop Partner & Buyer Academy')}
         </h1>
         <p class="editor-header__subtitle">
           Manage step-by-step masterclasses, wholesale escrow guides, and video lessons for growing entrepreneurs.
@@ -262,7 +262,7 @@ export default function AcademyManagerPage(root) {
         EmptyState({
           icon: '🎓',
           title: 'No academy courses found',
-          description: 'Create an educational tutorial to help salers and buyers grow.',
+          description: 'Create an educational tutorial to help shop partners and buyers grow.',
         })
       );
       return;

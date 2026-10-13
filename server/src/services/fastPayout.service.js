@@ -1,7 +1,7 @@
 /**
  * fastPayout.service.js — Early release of escrowed earnings, for a fee (supplier attraction, step 5a).
  *
- * Escrow holds a supplier's and a saler's money until the return window ends. Someone who would rather
+ * Escrow holds a supplier's and a shop partner's money until the return window ends. Someone who would rather
  * have it now can ask for it, and the platform keeps a share set by the supplier's scorecard grade.
  *
  * Invariants:

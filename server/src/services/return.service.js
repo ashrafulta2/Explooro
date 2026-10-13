@@ -384,7 +384,7 @@ export async function receiveAndInspectReturn(db, {
 }
 
 /**
- * Executes customer refund and triggers seller escrow clawback / stock restoration.
+ * Executes customer refund and triggers shop partner escrow clawback / stock restoration.
  */
 export async function executeRefund(db, cache, {
   returnRequestId,
@@ -423,7 +423,7 @@ export async function executeRefund(db, cache, {
       client: txClient,
     });
 
-    // 2b. Return protection: if the supplier had opted in when the order was placed, the saler is made whole
+    // 2b. Return protection: if the supplier had opted in when the order was placed, the shop partner is made whole
     // for the commission the clawback just took. Savepointed, so it can never block the buyer's refund.
     const protectionResult = await returnProtection.payClaimSafely(txClient, {
       subOrderId: returnReq.sub_order_id,

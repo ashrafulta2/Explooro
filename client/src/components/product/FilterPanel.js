@@ -609,7 +609,7 @@ export function FilterPanel({
   ratingGroup.append(starRow);
   body.append(ratingGroup);
 
-  // ── Margin range (Saler only) ────────────────────────────────────────────
+  // ── Margin range (Shop Partner only) ────────────────────────────────────────────
   let marginGroup = null;
   if (role === 'saler') {
     marginGroup = group('marketplace.filter.margin_range');

@@ -94,7 +94,7 @@ export async function getSlotUsage(db, slotKey, fromDate, toDate, { client } = {
 
 /**
  * Which slot_index values are free on EVERY day of the range — a booking must hold the same
- * position for its whole run, so the seller's banner does not hop between positions mid-campaign.
+ * position for its whole run, so the shop partner's banner does not hop between positions mid-campaign.
  */
 export async function findFreeSlotIndex(client, slotKey, fromDate, toDate, slotsPerPeriod) {
   const { rows } = await client.query(

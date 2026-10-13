@@ -12,7 +12,7 @@ INSERT INTO live_streams (
   -- 1. LIVE: Dhakai Jamdani Showcase & Flash Sale
   (1, 'LIV-JAMDANI-01', 6, 1,
    'Dhakai Jamdani Live Weaving & Festive Flash Sale 🔥',
-   'Live weaving demo and real-time showcase of pure cotton Dhakai Jamdani Sarees with special instant discounts and seller Q&A.',
+   'Live weaving demo and real-time showcase of pure cotton Dhakai Jamdani Sarees with special instant discounts and shop partner Q&A.',
    'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop&q=80',
    'LIVE', NULL, now() - interval '25 minutes', NULL,
    184, 220, 1250, 14, 48500.00,

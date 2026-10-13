@@ -213,7 +213,7 @@ export async function listUnshippedOlderThan(db, days) {
   return rows.map((r) => r.id);
 }
 
-/** Shipped samples whose saler never confirmed within `days` of shipping. */
+/** Shipped samples whose shop partner never confirmed within `days` of shipping. */
 export async function listShippedOlderThan(db, days) {
   const { rows } = await db.query(
     `SELECT id FROM sample_requests

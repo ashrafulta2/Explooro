@@ -44,7 +44,7 @@ Digits are permitted (`security.2fa.reset`, `finance.b2b_escrow.release`, `conte
   "domain": "finance",
   "label_en": "Approve payouts",
   "label_bn": "পেআউট অনুমোদন",
-  "plain_en": "approve withdrawal requests and send money to sellers",
+  "plain_en": "approve withdrawal requests and send money to shop partners",
   "plain_bn": "উত্তোলনের আবেদন অনুমোদন করে বিক্রেতাদের টাকা পাঠাতে",
   "risk_tier": "HIGH",
   "delegable": true,
@@ -230,7 +230,7 @@ pending_admin_actions (
    independent layers, because this is the constraint that the entire model rests on.
 2. **Preconditions are re-validated at approval time, never trusted from the payload.**
    This is the single most important rule in this document. A payout submitted when the balance
-   was ৳50,000 must re-check the balance at the moment of approval — the seller may have withdrawn
+   was ৳50,000 must re-check the balance at the moment of approval — the shop partner may have withdrawn
    in between. Trusting a captured payload is how marketplaces pay out money they no longer hold.
 3. **Executor registry.** Each `action_key` registers an executor function so the approval path
    knows how to apply the payload. An action with no registered executor cannot be submitted.

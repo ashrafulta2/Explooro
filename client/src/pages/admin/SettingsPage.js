@@ -5,7 +5,7 @@
  * 1. General & regional configuration (Platform name, support contacts, base currency, timezone).
  * 2. Escrow & settlement rules (Holding periods, auto-sweep schedule, dispute freezes).
  * 3. Vault & payout governance (Min/max payout thresholds, fee coverage, cutoff windows).
- * 4. Marketplace commission guardrails (Baseline take rate, seller margin floor, free listing quotas).
+ * 4. Marketplace commission guardrails (Baseline take rate, shop partner margin floor, free listing quotas).
  * 5. Security & staff access policies (Mandatory 2FA enforcement, inactivity timeouts, login lockouts).
  * 6. Emergency killswitches (Live platform maintenance mode & read-only mutation freeze).
  * 7. Change justification audit log drawer tracking historical revisions.
@@ -344,7 +344,7 @@ export default function SettingsPage(root, { navigate } = {}) {
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
-          <label class="settings-field__label" for="set-min-saler-payout">${t('platform_settings.field_min_saler_payout', 'Minimum Saler Payout Threshold (৳)')}</label>
+          <label class="settings-field__label" for="set-min-saler-payout">${t('platform_settings.field_min_saler_payout', 'Minimum Shop Partner Payout Threshold (৳)')}</label>
           <input type="number" min="100" step="50" class="input input--sm font-mono" id="set-min-saler-payout" value="${formState.min_saler_payout_bdt || 500}" />
         </div>
         <div class="settings-field">
@@ -388,7 +388,7 @@ export default function SettingsPage(root, { navigate } = {}) {
           <input type="number" min="0" max="100" step="0.5" class="input input--sm font-mono" id="set-platform-take" value="${formState.platform_take_pct || 10.0}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label" for="set-min-seller-margin">${t('platform_settings.field_min_seller_margin', 'Minimum Seller Margin Floor (%)')}</label>
+          <label class="settings-field__label" for="set-min-seller-margin">${t('platform_settings.field_min_seller_margin', 'Minimum Shop Partner Margin Floor (%)')}</label>
           <input type="number" min="1" max="50" step="0.5" class="input input--sm font-mono" id="set-min-seller-margin" value="${formState.min_seller_margin_pct || 5.0}" />
         </div>
         <div class="settings-field">

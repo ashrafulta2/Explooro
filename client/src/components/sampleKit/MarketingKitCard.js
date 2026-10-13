@@ -1,5 +1,5 @@
 /**
- * MarketingKitCard — a supplier's ready-made promotion for one product, for a saler to copy from.
+ * MarketingKitCard — a supplier's ready-made promotion for one product, for a shop partner to copy from.
  *
  * Invariants:
  *  - Copy buttons copy exactly what is shown; nothing is rewritten on the way to the clipboard.

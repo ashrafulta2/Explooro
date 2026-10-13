@@ -1,10 +1,10 @@
 /**
  * SalerMarketingKitsPage.js — Ready-made promotion from suppliers: captions, hashtags, selling points,
- * product photos and a video link, to copy from when a saler lists a product.
+ * product photos and a video link, to copy from when a shop partner lists a product.
  *
- * Route: /saler/marketing-kits  (module: sourcing, permission: saler.sourcing.view)
+ * Route: /saler/marketing-kits  (module: sourcing, permission: shop partner.sourcing.view)
  *
- * WHY a search box and nothing else: a saler arrives looking for ONE product's kit. Filtering is done
+ * WHY a search box and nothing else: a shop partner arrives looking for ONE product's kit. Filtering is done
  * in the browser over what the server already returned (the list is capped), so typing never costs a
  * request.
  */

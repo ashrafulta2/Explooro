@@ -4,7 +4,7 @@
  * Implements:
  * 1. Module status banner linking to Module Control (Dormant Free Launch Mode vs Active Fee Engine).
  * 2. Executive recurring revenue & quota utilization metrics (MRR, Paid Subscribers, Free Merchants, Overages).
- * 3. Subscription tier plans manager (Free Starter, Saler Pro, Supplier Growth, Enterprise Wholesale).
+ * 3. Subscription tier plans manager (Free Starter, Shop Partner Pro, Supplier Growth, Enterprise Wholesale).
  * 4. Merchant subscriber directory with deep search, role/status filtering, and quota tracking.
  * 5. 1-Click Fee Waiver & Exemption grants with immutable audit trail.
  * 6. Global listing quota and billing grace period parameters.
@@ -407,7 +407,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
         <div class="admin-toolbar__filters">
           <select class="form-select roster-role-select" aria-label="${t('admin_subscriptions.filter_role_all')}">
             <option value="ALL" ${roleFilter === 'ALL' ? 'selected' : ''}>${t('admin_subscriptions.filter_role_all')}</option>
-            <option value="saler" ${roleFilter === 'saler' ? 'selected' : ''}>Saler</option>
+            <option value="saler" ${roleFilter === 'saler' ? 'selected' : ''}>Shop Partner</option>
             <option value="supplier" ${roleFilter === 'supplier' ? 'selected' : ''}>Supplier</option>
           </select>
           <select class="form-select roster-status-select" aria-label="${t('admin_subscriptions.filter_status_all')}">

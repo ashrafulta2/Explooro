@@ -23,7 +23,7 @@ import requestContextPlugin from '../src/plugins/requestContext.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import productRoutes from '../src/routes/product.routes.js';
 
-/** base_cost 100 / retail 200 at the 40% default saler split ⇒ saler_margin_pct 20. */
+/** base_cost 100 / retail 200 at the 40% default shop partner split ⇒ saler_margin_pct 20. */
 function makeRow(id, overrides = {}) {
   return {
     id,

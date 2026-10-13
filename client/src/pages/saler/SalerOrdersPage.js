@@ -1,9 +1,9 @@
 /**
- * SalerOrdersPage.js — Saler Orders & Commission Dashboard (Prompt 11.2 / §AL.2).
+ * SalerOrdersPage.js — Shop Partner Orders & Commission Dashboard (Prompt 11.2 / §AL.2).
  *
  * Route: /saler/orders
  * Implements:
- * 1. Saler-specific orders dashboard with supplier fulfillment tracking & net commission calculations.
+ * 1. Shop Partner-specific orders dashboard with supplier fulfillment tracking & net commission calculations.
  * 2. Status filter tabs (All, Pending Packing, In Transit, Delivered, Cancelled).
  * 3. Search by Order Ref, Buyer Name, Phone, and Product Title.
  * 4. 1-Tap Buyer WhatsApp Messaging & Direct Phone Call shortcuts.
@@ -49,7 +49,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
       orders = res?.data?.orders || [];
       summary = res?.data?.summary || {};
     } catch (err) {
-      toast.error(err.message || 'Failed to load saler orders');
+      toast.error(err.message || 'Failed to load shop partner orders');
     } finally {
       loading = false;
       render();
@@ -127,7 +127,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
         <div class="saler-kpi-card__value saler-kpi-card__value--profit">
           +${formatCurrency(summary.total_commission_earned || orders.reduce((sum, o) => sum + o.saler_commission_earned, 0))}
         </div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'অর্জিত মোট নিট কমিশন' : 'Total saler earnings'}</div>
+        <div class="saler-kpi-card__subtext">${isBn ? 'অর্জিত মোট নিট কমিশন' : 'Total shop partner earnings'}</div>
       </div>
     `;
     container.append(kpiGrid);
@@ -257,7 +257,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
                 </div>
                 <div class="text-right">
                   <div class="font-mono text-sm font-bold text-emerald-600">+${formatCurrency(item.saler_profit)}</div>
-                  <div class="text-[10px] text-muted uppercase">Saler Profit</div>
+                  <div class="text-[10px] text-muted uppercase">Shop Partner Profit</div>
                 </div>
               </div>
             `).join('')}
@@ -301,7 +301,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
   function exportCsv(data) {
     if (!data.length) return;
     const rows = [
-      ['Order Ref', 'Date', 'Customer Name', 'Phone', 'District', 'Payment Method', 'Status', 'Courier', 'Tracking No', 'Retail Total (BDT)', 'Wholesale Cost (BDT)', 'Saler Commission (BDT)'],
+      ['Order Ref', 'Date', 'Customer Name', 'Phone', 'District', 'Payment Method', 'Status', 'Courier', 'Tracking No', 'Retail Total (BDT)', 'Wholesale Cost (BDT)', 'Shop Partner Commission (BDT)'],
       ...data.map(o => [
         o.order_ref,
         o.placed_at,

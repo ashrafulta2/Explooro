@@ -1,5 +1,5 @@
 /**
- * StorefrontPage.js — Public, SEO-indexable Saler Storefront with Social Seller Kit & QR Flyer (Prompt 4.8).
+ * StorefrontPage.js — Public, SEO-indexable Shop Partner Storefront with Social Shop Partner Kit & QR Flyer (Prompt 4.8).
  */
 
 import { getStoreBySlug } from '../services/store.api.js';
@@ -73,7 +73,7 @@ export default function StorefrontPage(root, { params, navigate }) {
     const header = StoreHeader({ store });
     parent.append(header);
 
-    // 2. Social Seller Kit Bar
+    // 2. Social Shop Partner Kit Bar
     const socialKitBar = buildSocialSellerKitBar(store);
     parent.append(socialKitBar);
 
@@ -202,7 +202,7 @@ export default function StorefrontPage(root, { params, navigate }) {
 }
 
 /**
- * Builds the Social Seller Kit action bar (WhatsApp share, QR Flyer, Affiliate Link).
+ * Builds the Social Shop Partner Kit action bar (WhatsApp share, QR Flyer, Affiliate Link).
  */
 function buildSocialSellerKitBar(store) {
   const bar = document.createElement('div');
@@ -379,7 +379,7 @@ function injectStoreSeo(store) {
 
   updateHead({
     title: `${store.shop_name} — Explooro Store`,
-    description: store.bio || 'Verified Bangladeshi Social Seller · 100% Escrow Protection',
+    description: store.bio || 'Verified Bangladeshi Social Shop Partner · 100% Escrow Protection',
     canonicalPath: `/store/${store.slug}`,
     locale: getLanguage(),
     ogImage: `${window.location.origin}/api/v1/og/store/${store.slug}.png`,

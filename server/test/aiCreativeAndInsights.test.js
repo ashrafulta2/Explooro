@@ -227,7 +227,7 @@ describe('reviewIntegrity — fake-review scoring & moderation flagging', () => 
 });
 
 describe('prescriptiveInsights — grounded in real sales numbers, never invented', () => {
-  test('a saler with an underperforming price point gets a finding built from real sold-unit counts', async () => {
+  test('a shop partner with an underperforming price point gets a finding built from real sold-unit counts', async () => {
     const db = fakeDb();
     const salerRows = [
       {

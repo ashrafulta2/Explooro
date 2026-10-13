@@ -488,7 +488,7 @@ describe('Prompt 11.1 — Supplier / Manufacturer Dashboard, FEFO & Warehouse Ro
             rows: [
               {
                 saler_id: 2,
-                saler_name: 'Karim Saler',
+                saler_name: 'Karim Shop Partner',
                 store_name: 'Dhaka Trends',
                 store_slug: 'dhaka-trends',
                 total_orders_sold: 15,

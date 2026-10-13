@@ -145,7 +145,7 @@ sits near the ramp floor rather than in its middle — the opposite shape to a m
 Slate carries almost no chroma (0.039 at the seed), which is a deliberate commerce decision, not a
 lack of one: on a marketplace page the colour that should be loudest is the product photography,
 and the chrome that surrounds it competes with every thumbnail it frames. A near-neutral shell also
-survives the thing a branded-storefront product does constantly — putting a seller's own colours on
+survives the thing a branded-storefront product does constantly — putting a shop partner's own colours on
 the page — without two brand hues fighting.
 
 The alternates ship in `client/src/config/master-themes.js`, `explooro_pink` (the previous identity)
@@ -810,8 +810,8 @@ largely because of image discipline, not layout.
 | Watermark detection | Edge/corner artefact heuristic | Flag |
 | Background uniformity | Score 0–100 | Below 40 → offer the AI cleanup from Prompt 10.3 |
 
-Flagged images are **accepted, not blocked** — a rejected upload is a lost seller. They are shown
-with a "improve this photo" prompt and surfaced to the seller's quality score.
+Flagged images are **accepted, not blocked** — a rejected upload is a lost shop partner. They are shown
+with a "improve this photo" prompt and surfaced to the shop partner's quality score.
 
 ---
 

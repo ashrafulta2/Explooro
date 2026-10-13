@@ -6,7 +6,7 @@
  * Capabilities:
  * 1. Multi-Merchant Combo Builder: Select products from multiple distinct suppliers.
  * 2. Real-Time Profit Split Breakdown: Live breakdown showing sum of parts, discount share per item,
- *    guaranteed wholesale payouts to suppliers, saler commission, and platform share.
+ *    guaranteed wholesale payouts to suppliers, shop partner commission, and platform share.
  * 3. Validation: Enforces price floors and minimum 2 items.
  * 4. Published Bundles Manager: List and manage active bundle combos.
  * 5. Dynamic Demand Surge Radar: View advisory surge price recommendations and opt-in/dismiss.

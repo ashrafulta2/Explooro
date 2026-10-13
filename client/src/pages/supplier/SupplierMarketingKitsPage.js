@@ -1,11 +1,11 @@
 /**
- * SupplierMarketingKitsPage.js — A supplier writes the promotion a saler can copy for each product:
+ * SupplierMarketingKitsPage.js — A supplier writes the promotion a shop partner can copy for each product:
  * captions in both languages, hashtags, selling points and a video link.
  *
  * Route: /supplier/marketing-kits  (module: sourcing, read: supplier.analytics.view, write: supplier.sample.manage)
  *
  * WHY one <details> per product: a supplier may have hundreds of products, and a form per product open
- * at once is unusable. Closed, each row still says in words whether it has a kit and whether salers
+ * at once is unusable. Closed, each row still says in words whether it has a kit and whether shop partners
  * can see it.
  */
 import { sampleKitApi } from '../../services/sampleKit.api.js';

@@ -4,7 +4,7 @@
  * Displays a live, transparent financial breakdown for cross-seller combos:
  * - Original Sum of Parts vs Bundle Price vs Discount
  * - Per-Supplier Guaranteed Wholesale Payouts
- * - Saler Profit Split & Commission
+ * - Shop Partner Profit Split & Commission
  * - Platform Share
  * - Itemized discount apportionment & effective retail prices
  */

@@ -6,7 +6,7 @@
  *   2. Reserved slugs blacklist — strictly prohibits reserved paths ('admin', 'api', 'checkout', etc.).
  *   3. Store builder shelf hierarchy & flattening invariants.
  *   4. Physical shop status evaluation — manual OPEN/CLOSED overrides & AUTO business hours resolution.
- *   5. Social Seller Kit link generation & WhatsApp message formatting.
+ *   5. Social Shop Partner Kit link generation & WhatsApp message formatting.
  */
 
 import test from 'node:test';
@@ -110,8 +110,8 @@ test('Prompt 4.8: Storefront Builder & Public Store — Client Invariants', asyn
     assert.equal(saturdayNight, false, 'Saturday 22:30 is outside 09:00-21:00 business hours');
   });
 
-  // 5. Social Seller Kit Link Generation
-  await t.test('5. Social Seller Kit generates valid WhatsApp share URLs & vanity paths', () => {
+  // 5. Social Shop Partner Kit Link Generation
+  await t.test('5. Social Shop Partner Kit generates valid WhatsApp share URLs & vanity paths', () => {
     const storeSlug = 'priyo-handloom';
     const storeName = 'Priyo Handloom';
     const phone = '8801711223344';

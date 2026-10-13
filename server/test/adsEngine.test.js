@@ -59,7 +59,7 @@ describe('Prompt 9.1: Sponsored Ads Engine', () => {
       assert.ok(lowRel < 1.0, `Expected low relevance < 1.0, got ${lowRel}`);
     });
 
-    test('calculateQualityScore factors in CTR and Seller Trust Tier', () => {
+    test('calculateQualityScore factors in CTR and Shop Partner Trust Tier', () => {
       const campaign = {
         targeting_json: { keywords: ['saree'] },
         impressions_count: 1000,

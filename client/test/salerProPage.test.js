@@ -1,5 +1,5 @@
 /**
- * salerProPage.test.js — the Saler Pro page is wired the way the module switch requires.
+ * salerProPage.test.js — the Shop Partner Pro page is wired the way the module switch requires.
  *
  * Invariants:
  *   - the route guard and the nav guard are the same (permission AND module), so with the

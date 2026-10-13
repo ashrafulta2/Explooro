@@ -1,7 +1,7 @@
 /**
  * sponsoredSourcing.test.js — the billable-event rules of the Sponsored Sourcing Slot client.
  *
- *   1. A click is reported once per ad however many times the saler acts on the card.
+ *   1. A click is reported once per ad however many times the shop partner acts on the card.
  *   2. A failing beacon never throws into the page (it must not stop "Add to Store").
  *   3. The catalog still loads when the ad lookup fails or ads are off.
  */

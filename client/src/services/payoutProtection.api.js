@@ -1,6 +1,6 @@
 /**
  * payoutProtection.api.js — Fast Payout and Return Protection (supplier attraction, step 5).
- * A supplier and a saler use the same Fast Payout handlers on their own routes; the person is always the
+ * A supplier and a shop partner use the same Fast Payout handlers on their own routes; the person is always the
  * signed-in user, never a parameter.
  */
 import { api } from '../core/api.js';

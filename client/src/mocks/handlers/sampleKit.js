@@ -3,8 +3,8 @@
  *
  * Same shapes as the real endpoints (services/sampleKit.service.js). The state machine is mirrored so
  * the pages behave like the finished feature in mock mode: a request only moves along the legal
- * transitions, and a saler cannot request the same product twice. It does NOT move money - the mock
- * has no ledger - so the saler's balance never changes here.
+ * transitions, and a shop partner cannot request the same product twice. It does NOT move money - the mock
+ * has no ledger - so the shop partner's balance never changes here.
  */
 
 const RULES = {
@@ -27,10 +27,10 @@ const state = {
   ],
   requests: [
     { id: 1, product_id: 11, title_en: 'Cotton Panjabi - Eid Collection', title_bn: 'কটন পাঞ্জাবি - ঈদ কালেকশন', price: '250.00', shipping_fee: '60.00', platform_fee: '25.00', status: 'REQUESTED',
-      saler_name: 'Dev Saler', supplier_name: 'Rahman Traders', ship_to_name: 'Rahim', ship_to_phone: '01712-345678', ship_to_address: 'House 12, Road 3, Mirpur, Dhaka', note: 'Size L please',
+      saler_name: 'Dev Shop Partner', supplier_name: 'Rahman Traders', ship_to_name: 'Rahim', ship_to_phone: '01712-345678', ship_to_address: 'House 12, Road 3, Mirpur, Dhaka', note: 'Size L please',
       tracking_note: null, decline_reason: null, requested_at: iso(1) },
     { id: 2, product_id: 13, title_en: 'Handmade Nakshi Kantha', title_bn: 'হাতে তৈরি নকশি কাঁথা', price: '900.00', shipping_fee: '100.00', platform_fee: '90.00', status: 'SHIPPED',
-      saler_name: 'Dev Saler', supplier_name: 'Rahman Traders', ship_to_name: 'Karim', ship_to_phone: '01898-765432', ship_to_address: 'Flat 4B, Agrabad, Chattogram', note: null,
+      saler_name: 'Dev Shop Partner', supplier_name: 'Rahman Traders', ship_to_name: 'Karim', ship_to_phone: '01898-765432', ship_to_address: 'Flat 4B, Agrabad, Chattogram', note: null,
       tracking_note: 'Pathao #PT-88121', decline_reason: null, requested_at: iso(4) },
   ],
   nextId: 3,
@@ -142,7 +142,7 @@ export const sampleKitHandlers = [
         id: state.nextId++, product_id: p.product_id, title_en: p.title_en, title_bn: p.title_bn,
         price: Number(p.sample_price).toFixed(2), shipping_fee: Number(p.sample_shipping_fee).toFixed(2),
         platform_fee: (Math.round(Number(p.sample_price) * RULES.platform_fee_pct) / 100).toFixed(2), status: 'REQUESTED',
-        saler_name: 'Dev Saler', supplier_name: 'Rahman Traders', ship_to_name: to.name.trim(), ship_to_phone: to.phone.trim(), ship_to_address: to.address.trim(),
+        saler_name: 'Dev Shop Partner', supplier_name: 'Rahman Traders', ship_to_name: to.name.trim(), ship_to_phone: to.phone.trim(), ship_to_address: to.address.trim(),
         note: String(body?.note || '').trim() || null, tracking_note: null, decline_reason: null, requested_at: iso(0),
       };
       state.requests.unshift(row);

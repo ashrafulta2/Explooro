@@ -6,7 +6,7 @@ Welcome to the comprehensive user manual for Explooro. This guide provides step-
 
 ## 1. Customer Guide
 
-As a customer, you can browse products, interact with sellers, manage your cart, and track your orders.
+As a customer, you can browse products, interact with shop partners, manage your cart, and track your orders.
 
 ### 1.1 Browsing and Searching
 - **Step 1:** Go to the Explooro homepage.
@@ -28,12 +28,12 @@ As a customer, you can browse products, interact with sellers, manage your cart,
 
 ---
 
-## 2. Saler (Seller) Guide
+## 2. Shop Partner Guide
 
-Salers manage their storefronts, products, and customer interactions.
+Shop Partners manage their storefronts, products, and customer interactions.
 
 ### 2.1 Setting Up Your Store
-- **Step 1:** Log in to your Saler account.
+- **Step 1:** Log in to your Shop Partner account.
 - **Step 2:** Navigate to the **"Store Builder"** from your dashboard.
 - **Step 3:** Fill in your store name, bio, and connect your WhatsApp/Facebook accounts.
 - **Step 4:** Upload your store logo and banner in the Media Library.
@@ -50,7 +50,7 @@ Salers manage their storefronts, products, and customer interactions.
 
 ## 3. Supplier Guide
 
-Suppliers provide the inventory that Salers sell on the platform.
+Suppliers provide the inventory that Shop Partners sell on the platform.
 
 ### 3.1 Fulfilling Orders
 - **Step 1:** Log in and navigate to the **"Orders"** dashboard.
@@ -109,7 +109,7 @@ Admins oversee platform operations, finances, and moderator approvals.
 ### 6.2 Finance Dashboard
 - **Step 1:** Access the **"Finance Overview"**.
 - **Step 2:** Monitor GMV, platform revenue, and escrow liabilities in real-time.
-- **Step 3:** Approve pending payouts to Salers and Suppliers.
+- **Step 3:** Approve pending payouts to Shop Partners and Suppliers.
 
 ---
 

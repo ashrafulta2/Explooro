@@ -79,7 +79,7 @@ silent `ROLLBACK`. So in practice:
 
 - `chat.service.js` — every message send failed, not just the restriction check.
 - `surgePricing.service.js` — accepting a surge price was rolled back. The price never changed.
-- `moderation.service.js` — a verdict with "shadow restrict seller" ticked failed outright.
+- `moderation.service.js` — a verdict with "shadow restrict shop partner" ticked failed outright.
 
 ## Suggested follow-up (original)
 
@@ -123,7 +123,7 @@ How the less obvious ones were fixed:
   `/public/products/:id` and the prerendered product page no longer select `p.*`. The prerendered
   JSON-LD carried an invented "4.8 stars, 14 reviews" for every unrated product; it now carries the
   stored rating, or none.
-- **Leaderboard**: uses `sub_orders.saler_id`, skips direct sales (no saler), and values revenue as
+- **Leaderboard**: uses `sub_orders.saler_id`, skips direct sales (no shop partner), and values revenue as
   `total_amount - shipping_amount + discount_share`.
 - **First-order coupon**: an order counts unless every one of its sub-orders is CANCELLED.
 
@@ -191,8 +191,8 @@ Screenshots: `docs/screenshots/fixes-2026-10-09/`.
   - Found while verifying: every payment endpoint answered 500. The controllers read
     `req.server.pg`, which is undefined (the pool is `req.server.db`). `paymentGateway.test.js`
     decorated `pg`, so it passed anyway.
-  - Found while verifying: an order with no saler still has a `saler_commission`. That share was
-    debited from the buyer and credited to nobody, so the ledger refused the group. With no saler
+  - Found while verifying: an order with no shop partner still has a `saler_commission`. That share was
+    debited from the buyer and credited to nobody, so the ledger refused the group. With no shop partner
     wallet, the platform now keeps that share (`vault.service.js`).
   - The deposit is funded by the platform treasury wallet, not the shopper's wallet. The money came
     from bKash/Nagad/card, so the shopper's Explooro balance must not drop. COD orders, deposited at
@@ -234,7 +234,7 @@ Screenshots: `docs/screenshots/fixes-2026-10-09-b/`.
     fell back to four made-up orders (SO-99820-1 …). The sweep and "Release now" buttons only
     changed those rows in the browser.
   - `services/escrowAdmin.service.js` now returns one row per sub-order with:
-    - the customer, supplier and saler names;
+    - the customer, supplier and shop partner names;
     - the supplier/saler/platform split;
     - the status and the time left.
   - The summary covers all held escrow, not just the page. The return window comes from the

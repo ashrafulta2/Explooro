@@ -1,12 +1,12 @@
 /**
- * socialSellerKitEngine.test.js — Test suite for Prompt 9.7: Social Seller Kit (Flyers, QR & Shortlinks).
+ * socialSellerKitEngine.test.js — Test suite for Prompt 9.7: Social Shop Partner Kit (Flyers, QR & Shortlinks).
  *
  * Tests:
  * 1. Zero-dependency local QR code SVG generation without external APIs.
  * 2. Multi-format flyer SVG generation with Bengali typography across formats and themes.
  * 3. Shortlink creation, unique code assignment, and affiliate parameter binding.
  * 4. Shortlink resolution, click tracking, and IP hash logging.
- * 5. Conversion recording and revenue attribution to the originating seller.
+ * 5. Conversion recording and revenue attribution to the originating shop partner.
  */
 
 import { describe, test } from 'node:test';
@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import * as shortlinkService from '../src/services/shortlink.service.js';
 import * as flyerService from '../src/services/flyer.service.js';
 
-describe('Prompt 9.7: Social Seller Kit & Viral Distribution Engine', () => {
+describe('Prompt 9.7: Social Shop Partner Kit & Viral Distribution Engine', () => {
 
   describe('1. Local Zero-Dependency QR Code Generator', () => {
     test('Generates valid vector QR code SVG path locally with finder and timing patterns', () => {
@@ -77,7 +77,7 @@ describe('Prompt 9.7: Social Seller Kit & Viral Distribution Engine', () => {
   });
 
   describe('3. Affiliate Short Link Creation', () => {
-    test('Creates tracked short link with affiliate query parameters bound to seller', async () => {
+    test('Creates tracked short link with affiliate query parameters bound to shop partner', async () => {
       let createdLink = null;
 
       const mockDb = {

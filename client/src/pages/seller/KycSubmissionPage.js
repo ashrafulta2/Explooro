@@ -1,9 +1,9 @@
 /**
- * KycSubmissionPage.js — Seller & Supplier KYC Verification Wizard (Prompt 7.5).
+ * KycSubmissionPage.js — Shop Partner & Supplier KYC Verification Wizard (Prompt 7.5).
  *
  * Implements:
  * 1. 4-step wizard for Suppliers (NID/Selfie -> Trade License -> Facility Photos -> Bank/MFS).
- * 2. 1-step wizard for Salers (NID/Selfie).
+ * 2. 1-step wizard for Shop Partners (NID/Selfie).
  * 3. Status card with blue-tick badge when verified.
  * 4. Appeal workflow for rejected submissions.
  */

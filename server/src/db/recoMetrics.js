@@ -3,7 +3,7 @@
  *
  *   npm run reco:metrics                       last 7 days, 7-day attribution
  *   npm run reco:metrics -- --days 30 --attribution 14
- *   npm run reco:metrics -- --audience saler
+ *   npm run reco:metrics -- --audience shop partner
  *
  * Read-only. The admin screen for the same numbers is Phase G; until then this is how an owner (or the
  * next developer) answers "is the Trending rail earning its place?".

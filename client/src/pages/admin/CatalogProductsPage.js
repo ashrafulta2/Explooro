@@ -915,7 +915,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           <input type="number" name="stock" class="catalog-form-input" aria-label="50" placeholder="50" value="50" required />
         </div>
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_margin', 'Saler Margin %')} *</label>
+          <label class="catalog-form-label">${t('admin_catalog.field_margin', 'Shop Partner Margin %')} *</label>
           <input type="number" name="margin_pct" class="catalog-form-input" aria-label="20" placeholder="20" value="20" required />
         </div>
       </div>
@@ -1002,8 +1002,8 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           return;
         }
 
-        // WHY: the server takes cost fields, not a saler margin. The margin % is the share of the
-        // retail price the saler keeps, so the supplier's base cost is retail minus that share and
+        // WHY: the server takes cost fields, not a shop partner margin. The margin % is the share of the
+        // retail price the shop partner keeps, so the supplier's base cost is retail minus that share and
         // the wholesale margin is 0 (retail >= base + wholesale then holds by construction).
         const baseCost = Math.round(price * (1 - marginPct / 100) * 100) / 100;
         const titleBn = formData.get('title_bn')?.toString().trim() || titleEn;
@@ -1102,7 +1102,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           <input type="number" min="0" id="edit-stock" name="stock" class="catalog-form-input" required />
         </div>
         <div class="catalog-form-group">
-          <label class="catalog-form-label" for="edit-margin">${t('admin_catalog.field_margin', 'Saler Margin %')} *</label>
+          <label class="catalog-form-label" for="edit-margin">${t('admin_catalog.field_margin', 'Shop Partner Margin %')} *</label>
           <input type="number" step="0.01" id="edit-margin" name="margin_pct" class="catalog-form-input" required />
         </div>
       </div>
@@ -1268,7 +1268,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         // untouched product never nudges its stored base cost through a rounding round-trip.
         if (price !== retailOf(detail) || marginPct !== marginOf(detail)) {
           const wholesale = parseFloat(detail.wholesale_margin) || 0;
-          // Same rule as the create form: the margin % is the saler's share of retail, and the
+          // Same rule as the create form: the margin % is the shop partner's share of retail, and the
           // supplier's existing wholesale margin is kept rather than silently zeroed.
           payload.base_cost = Math.max(0, Math.round((price * (1 - marginPct / 100) - wholesale) * 100) / 100);
           payload.wholesale_margin = wholesale;

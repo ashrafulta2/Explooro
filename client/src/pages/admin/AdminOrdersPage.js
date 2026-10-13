@@ -258,7 +258,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
               </div>
               <div class="grid grid-cols-4 gap-2 pt-2 border-t border-dashed border-border-subtle text-xs">
                 <div><span class="text-muted">Retail:</span> <strong class="font-mono">${formatCurrency(so.unit_price)}</strong></div>
-                <div><span class="text-muted">Saler Comm:</span> <strong class="font-mono text-brand">${formatCurrency(so.saler_commission)}</strong></div>
+                <div><span class="text-muted">Shop Partner Comm:</span> <strong class="font-mono text-brand">${formatCurrency(so.saler_commission)}</strong></div>
                 <div><span class="text-muted">Platform Fee:</span> <strong class="font-mono text-emerald-600">${formatCurrency(so.platform_fee)}</strong></div>
                 <div><span class="text-muted">Supplier Net:</span> <strong class="font-mono">${formatCurrency(so.supplier_payout)}</strong></div>
               </div>

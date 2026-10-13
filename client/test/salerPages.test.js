@@ -1,17 +1,17 @@
 /**
- * salerPages.test.js — Invariant & Unit Tests for Saler Account Portal Pages & Handlers.
+ * salerPages.test.js — Invariant & Unit Tests for Shop Partner Account Portal Pages & Handlers.
  *
  * Tests:
- * 1. Saler API and mock handlers contracts across all 19 saler pages.
- * 2. Saler curated products price markup updates, stock levels, and margin calculations.
+ * 1. Shop Partner API and mock handlers contracts across all 19 saler pages.
+ * 2. Shop Partner curated products price markup updates, stock levels, and margin calculations.
  * 3. Physical shop status toggle, master hours presets, and 7-day schedule consistency.
- * 4. Saler order tracking, sub-item profits, courier consignment, and escrow release status.
+ * 4. Shop Partner order tracking, sub-item profits, courier consignment, and escrow release status.
  * 5. Instant payout request validation (min ৳100, max available balance) & cancellation.
  * 6. Daily & weekly quest completion and 1-click reward claiming.
- * 7. Top 50 national seller leaderboard ranking and podium tiers.
+ * 7. Top 50 national shop partner leaderboard ranking and podium tiers.
  * 8. Social flyer generator SVG template rendering & QR code integration.
- * 9. Locale integrity across en.json and bn.json for all saler translation keys.
- * 10. Navigation configuration completeness for saler role.
+ * 9. Locale integrity across en.json and bn.json for all shop partner translation keys.
+ * 10. Navigation configuration completeness for shop partner role.
  */
 
 import test from 'node:test';
@@ -26,7 +26,7 @@ import { navItems, navGroups, SIMPLE_MODE_ITEMS } from '../src/config/navigation
 
 const clientRoot = path.resolve(import.meta.dirname, '..');
 
-test('1. Saler Locale Integrity across en.json and bn.json', async (t) => {
+test('1. Shop Partner Locale Integrity across en.json and bn.json', async (t) => {
   const namespaces = [
     'saler_products',
     'saler_store_status',
@@ -53,8 +53,8 @@ test('1. Saler Locale Integrity across en.json and bn.json', async (t) => {
   }
 });
 
-test('2. Navigation Structure for Saler Portal', async (t) => {
-  await t.test('Saler nav has all required routes', () => {
+test('2. Navigation Structure for Shop Partner Portal', async (t) => {
+  await t.test('Shop Partner nav has all required routes', () => {
     assert.ok(Array.isArray(navItems), 'navItems must be an array');
     const salerPaths = navItems.filter((i) => i.roles?.includes('saler')).map((i) => i.path);
 
@@ -82,17 +82,17 @@ test('2. Navigation Structure for Saler Portal', async (t) => {
     ];
 
     for (const route of requiredRoutes) {
-      assert.ok(salerPaths.includes(route), `Saler nav must include route: ${route}`);
+      assert.ok(salerPaths.includes(route), `Shop Partner nav must include route: ${route}`);
     }
   });
 
-  await t.test('Saler Simple Mode has all required items', () => {
+  await t.test('Shop Partner Simple Mode has all required items', () => {
     assert.ok(SIMPLE_MODE_ITEMS.saler, 'SIMPLE_MODE_ITEMS.saler must exist');
     assert.equal(SIMPLE_MODE_ITEMS.saler.length, 6, 'Simple mode must have 6 essential items');
   });
 });
 
-test('3. Saler Mock Endpoints & Business Logic', async (t) => {
+test('3. Shop Partner Mock Endpoints & Business Logic', async (t) => {
   function findHandler(method, path) {
     return salerHandlers.find((h) => h.method === method && h.path === path);
   }
@@ -172,7 +172,7 @@ test('3. Saler Mock Endpoints & Business Logic', async (t) => {
     assert.equal(claimRes.body?.data?.quest?.is_claimed, true);
   });
 
-  await t.test('GET /saler/leaderboard returns ranked sellers with podium prizes', () => {
+  await t.test('GET /saler/leaderboard returns ranked shop partners with podium prizes', () => {
     const h = findHandler('GET', '/saler/leaderboard');
     assert.ok(h, 'Handler for GET /saler/leaderboard exists');
     const res = h.handler();
@@ -190,7 +190,7 @@ test('3. Saler Mock Endpoints & Business Logic', async (t) => {
   });
 });
 
-test('4. Saler Route Registration Invariants in main.js', async (t) => {
+test('4. Shop Partner Route Registration Invariants in main.js', async (t) => {
   const mainSrc = fs.readFileSync(path.join(clientRoot, 'src/main.js'), 'utf8');
 
   const salerPaths = [
@@ -218,7 +218,7 @@ test('4. Saler Route Registration Invariants in main.js', async (t) => {
     '/saler/inbox',
   ];
 
-  await t.test('All 22 Saler routes are explicitly registered in main.js', () => {
+  await t.test('All 22 Shop Partner routes are explicitly registered in main.js', () => {
     for (const p of salerPaths) {
       assert.ok(
         mainSrc.includes(`path: '${p}'`),
@@ -227,7 +227,7 @@ test('4. Saler Route Registration Invariants in main.js', async (t) => {
     }
   });
 
-  await t.test('No duplicate route declarations for saler routes in main.js', () => {
+  await t.test('No duplicate route declarations for shop partner routes in main.js', () => {
     for (const p of salerPaths) {
       const count = (mainSrc.match(new RegExp(`path:\\s*['"]${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g')) || []).length;
       assert.equal(
@@ -238,7 +238,7 @@ test('4. Saler Route Registration Invariants in main.js', async (t) => {
     }
   });
 
-  await t.test('All 18 Saler page modules export a default mount/render function', async () => {
+  await t.test('All 18 Shop Partner page modules export a default mount/render function', async () => {
     const pageFiles = [
       'AdCampaignPage.js',
       'AnalyticsPage.js',

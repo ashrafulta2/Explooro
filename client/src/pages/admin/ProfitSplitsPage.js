@@ -5,7 +5,7 @@
  * 1. Global Platform Margin Sharing Governor (CRITICAL tier audited policy).
  * 2. Real-Time Interactive Margin & Profit Split Simulator with exact paisa arithmetic.
  * 3. Category-Level Split Overrides table with instant add/edit/reset workflows.
- * 4. Saler Trust Tier Incentive Bonus Matrix (Bronze through Platinum/Elite boosts).
+ * 4. Shop Partner Trust Tier Incentive Bonus Matrix (Bronze through Platinum/Elite boosts).
  * 5. Full audit log history tracking who changed split policies and why.
  * 6. Shared FinanceSubnav bar interconnecting all 7 financial control surfaces.
  */
@@ -43,7 +43,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
   let formExtraMarkupPlatform = 20;
   let formReason = '';
 
-  // Saler commission tier form (bonuses + the volume ladder, saved together)
+  // Shop Partner commission tier form (bonuses + the volume ladder, saved together)
   let tierEnabled = false;
   let tierWindow = 30;
   let tierMin = { SILVER: 0, GOLD: 0, PLATINUM: 0 };
@@ -202,7 +202,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     const supplierPct = Math.min(100, Math.round((costPaisa / total) * 100));
     const salerTotalPct = Math.min(100 - supplierPct, Math.round((salerCommissionPaisa / total) * 100));
     const platformTotalPct = Math.max(0, 100 - supplierPct - salerTotalPct);
-    const ruleSource = isBn ? 'টায়ার্ড সেলার প্রাইসিং' : 'Tiered Saler Pricing';
+    const ruleSource = isBn ? 'টায়ার্ড শপ পার্টনার প্রাইসিং' : 'Tiered Shop Partner Pricing';
 
     return {
       grossMargin,
@@ -449,12 +449,12 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
             </div>
 
             <!-- 3-Segment Visual Bar -->
-            <div class="split-visual-bar" title="Wholesale: ${simCalc.supplierPct}% | Saler: ${simCalc.salerTotalPct}% | Platform: ${simCalc.platformTotalPct}%">
+            <div class="split-visual-bar" title="Wholesale: ${simCalc.supplierPct}% | Shop Partner: ${simCalc.salerTotalPct}% | Platform: ${simCalc.platformTotalPct}%">
               <div class="split-visual-bar__supplier" style="width: ${simCalc.supplierPct}%;">
                 ${simCalc.supplierPct > 15 ? `Wholesale (${simCalc.supplierPct}%)` : ''}
               </div>
               <div class="split-visual-bar__saler" style="width: ${simCalc.salerTotalPct}%;">
-                ${simCalc.salerTotalPct > 15 ? `Saler (${simCalc.salerTotalPct}%)` : ''}
+                ${simCalc.salerTotalPct > 15 ? `Shop Partner (${simCalc.salerTotalPct}%)` : ''}
               </div>
               <div class="split-visual-bar__platform" style="width: ${simCalc.platformTotalPct}%;">
                 ${simCalc.platformTotalPct > 15 ? `Platform (${simCalc.platformTotalPct}%)` : ''}
@@ -467,7 +467,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
             <div class="split-breakdown-chip">
               <span class="split-breakdown-chip__title">${t('admin_splits.sim_default_retail')}</span>
               <span class="split-breakdown-chip__amount text-brand">${formatCurrency(simCalc.defaultRetail)}</span>
-              <span class="split-breakdown-chip__pct">${isBn ? 'সাপ্লায়ার + প্ল্যাটফর্ম + সেলার' : 'Supplier + Plat + Saler'}</span>
+              <span class="split-breakdown-chip__pct">${isBn ? 'সাপ্লায়ার + প্ল্যাটফর্ম + শপ পার্টনার' : 'Supplier + Plat + Shop Partner'}</span>
             </div>
 
             <div class="split-breakdown-chip">
@@ -501,12 +501,12 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
           }">
             ${
               simCalc.pricingState === 'below_min'
-                ? `⚠️ ${isBn ? 'সর্বনিম্ন বিক্রয় মূল্যের নিচে! সেলার এই মূল্যের নিচে বিক্রি করতে পারবেন না।' : 'Below Minimum Floor! Selling below this price is blocked to protect supplier and platform margin.'}`
+                ? `⚠️ ${isBn ? 'সর্বনিম্ন বিক্রয় মূল্যের নিচে! শপ পার্টনার এই মূল্যের নিচে বিক্রি করতে পারবেন না।' : 'Below Minimum Floor! Selling below this price is blocked to protect supplier and platform margin.'}`
                 : simCalc.pricingState === 'discount'
-                ? `🏷️ ${isBn ? 'ডিসকাউন্ট মূল্য: সেলারের প্রফিট কমেছে, প্ল্যাটফর্মের ডিফল্ট প্রফিট ১০০% অক্ষত।' : 'Discount Tier: Saler profit reduced; Platform default profit is 100% protected.'}`
+                ? `🏷️ ${isBn ? 'ডিসকাউন্ট মূল্য: শপ পার্টনারের প্রফিট কমেছে, প্ল্যাটফর্মের ডিফল্ট প্রফিট ১০০% অক্ষত।' : 'Discount Tier: Shop Partner profit reduced; Platform default profit is 100% protected.'}`
                 : simCalc.pricingState === 'boost'
-                ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${isBn ? `অতিরিক্ত মূল্য: ডিফল্ট মূল্যের অতিরিক্ত অংশ প্ল্যাটফর্ম (${simCalc.extraPlatPct}%) ও সেলারের (${100 - simCalc.extraPlatPct}%) মধ্যে বণ্টন হবে।` : `Extra Markup Tier: Surplus markup shared between platform (${simCalc.extraPlatPct}%) and saler (${100 - simCalc.extraPlatPct}%).`}`
-                : `✨ ${isBn ? 'স্ট্যান্ডার্ড ডিফল্ট মূল্য: প্ল্যাটফর্ম ও সেলার উভয়েই পূর্ণ ডিফল্ট প্রফিট পাচ্ছেন।' : 'Standard Suggested Retail: Both platform and saler receive full default markup.'}`
+                ? `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${isBn ? `অতিরিক্ত মূল্য: ডিফল্ট মূল্যের অতিরিক্ত অংশ প্ল্যাটফর্ম (${simCalc.extraPlatPct}%) ও শপ পার্টনারের (${100 - simCalc.extraPlatPct}%) মধ্যে বণ্টন হবে।` : `Extra Markup Tier: Surplus markup shared between platform (${simCalc.extraPlatPct}%) and shop partner (${100 - simCalc.extraPlatPct}%).`}`
+                : `✨ ${isBn ? 'স্ট্যান্ডার্ড ডিফল্ট মূল্য: প্ল্যাটফর্ম ও শপ পার্টনার উভয়েই পূর্ণ ডিফল্ট প্রফিট পাচ্ছেন।' : 'Standard Suggested Retail: Both platform and shop partner receive full default markup.'}`
             }
           </div>
         </div>
@@ -555,7 +555,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
       <form class="global-split-form flex flex-col gap-4">
         <div class="mb-2">
           <span class="text-xs font-bold uppercase tracking-wider text-secondary">
-            ${isBn ? 'সেলার টায়ার প্রাইসিং পলিসি (গোপন পাইকারি মূল্য ও প্রফিট বণ্টন)' : 'Tiered Saler Pricing Policy (Hidden Wholesale & Markup Split)'}
+            ${isBn ? 'শপ পার্টনার টায়ার প্রাইসিং পলিসি (গোপন পাইকারি মূল্য ও প্রফিট বণ্টন)' : 'Tiered Shop Partner Pricing Policy (Hidden Wholesale & Markup Split)'}
           </span>
         </div>
 
@@ -567,18 +567,18 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
             <span class="text-2xs text-secondary mt-1 block">${isBn ? 'সাপ্লায়ার মূল্যের ওপর প্ল্যাটফর্মের নির্ধারিত ডিফল্ট প্রফিট' : 'Platform base markup added to supplier cost'}</span>
           </div>
 
-          <!-- Saler Default Profit Markup % -->
+          <!-- Shop Partner Default Profit Markup % -->
           <div class="form-group">
             <label for="split-global-saler-profit" class="form-label">${t('admin_splits.saler_default_profit_label')}</label>
             <input id="split-global-saler-profit" type="number" class="form-input global-saler-profit-input" min="1" max="50" step="0.5" value="${formSalerDefaultProfit}" />
-            <span class="text-2xs text-secondary mt-1 block">${isBn ? 'সাপ্লায়ার মূল্যের ওপর সেলারের নির্ধারিত ডিফল্ট প্রফিট' : 'Saler base profit added to suggested retail'}</span>
+            <span class="text-2xs text-secondary mt-1 block">${isBn ? 'সাপ্লায়ার মূল্যের ওপর শপ পার্টনারের নির্ধারিত ডিফল্ট প্রফিট' : 'Shop Partner base profit added to suggested retail'}</span>
           </div>
 
           <!-- Extra Markup Platform Share % -->
           <div class="form-group">
             <label for="split-global-extra-platform" class="form-label">${t('admin_splits.extra_markup_platform_label')}</label>
             <input id="split-global-extra-platform" type="number" class="form-input global-extra-platform-input" min="0" max="100" step="1" value="${formExtraMarkupPlatform}" />
-            <span class="text-2xs text-secondary mt-1 block">${isBn ? 'ডিফল্ট মূল্যের অতিরিক্ত অংশে প্ল্যাটফর্মের ভাগ (বাকি সেলার পাবে)' : 'Surplus above default shared with platform (remainder to saler)'}</span>
+            <span class="text-2xs text-secondary mt-1 block">${isBn ? 'ডিফল্ট মূল্যের অতিরিক্ত অংশে প্ল্যাটফর্মের ভাগ (বাকি শপ পার্টনার পাবে)' : 'Surplus above default shared with platform (remainder to shop partner)'}</span>
           </div>
         </div>
 
@@ -589,7 +589,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
         </div>
 
         <div class="form-grid form-grid--3col">
-          <!-- Saler Share -->
+          <!-- Shop Partner Share -->
           <div class="form-group">
             <label for="split-global-saler" class="form-label">${t('admin_splits.saler_split_label')}</label>
             <div class="form-range-wrap">
@@ -758,9 +758,9 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
                       <td>
                         <div class="split-pill split-pill--saler">
                           <span class="split-pill__val font-mono">${cat.saler_split_pct}%</span>
-                          <span class="split-pill__lbl">${isBn ? 'সেলার' : 'Saler'}</span>
+                          <span class="split-pill__lbl">${isBn ? 'শপ পার্টনার' : 'Shop Partner'}</span>
                         </div>
-                        <div class="split-ratio-bar" title="Saler: ${cat.saler_split_pct}% | Platform: ${cat.platform_split_pct}%">
+                        <div class="split-ratio-bar" title="Shop Partner: ${cat.saler_split_pct}% | Platform: ${cat.platform_split_pct}%">
                           <div class="split-ratio-bar__saler" style="width: ${cat.saler_split_pct}%;"></div>
                           <div class="split-ratio-bar__platform" style="width: ${cat.platform_split_pct}%;"></div>
                         </div>
@@ -907,7 +907,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
                     <td>
                       <div class="split-pill split-pill--saler">
                         <span class="split-pill__val font-mono">${exampleSaler}%</span>
-                        <span class="split-pill__lbl">${isBn ? 'সেলার' : 'Saler'}</span>
+                        <span class="split-pill__lbl">${isBn ? 'শপ পার্টনার' : 'Shop Partner'}</span>
                       </div>
                       <span class="text-xs text-muted font-mono"> / </span>
                       <div class="split-pill split-pill--platform">

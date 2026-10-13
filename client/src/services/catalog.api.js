@@ -207,7 +207,7 @@ export async function previewPricing({ baseCost, wholesaleMargin = 0, retailPric
 }
 
 /**
- * Lists supplier products suitable for saler sourcing with margin info.
+ * Lists supplier products suitable for shop partner sourcing with margin info.
  */
 export async function listSourcingCatalog(filters = {}) {
   const query = {};
@@ -233,7 +233,7 @@ export async function listSourcingCatalog(filters = {}) {
 // Sponsored Sourcing Slot: see services/sponsoredSourcing.js (fetch + billable-event beacons).
 
 /**
- * Saler adds a product to their virtual storefront with optional custom retail price.
+ * Shop Partner adds a product to their virtual storefront with optional custom retail price.
  */
 export async function addToSalerStore({ productId, customRetailPrice, collectionName }) {
   const payload = {
@@ -246,7 +246,7 @@ export async function addToSalerStore({ productId, customRetailPrice, collection
 }
 
 /**
- * Gets all curated items in the saler's store.
+ * Gets all curated items in the shop partner's store.
  */
 export async function getSalerStoreItems() {
   const { data } = await api.get('/sourcing/my-store');

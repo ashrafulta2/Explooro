@@ -472,7 +472,7 @@ export async function decideItem(db, {
       );
     }
 
-    // Shadow restrict seller if requested
+    // Shadow restrict shop partner if requested
     // WHY: no try/catch — a failed insert inside this transaction aborts it, so swallowing the
     // error would make the whole verdict fail instead of only the restriction.
     if (shadowRestrictSeller && item.submitted_by) {

@@ -23,7 +23,7 @@ export async function getStoreBySlug(slug) {
 }
 
 /**
- * Retrieves the authenticated saler's store profile, shelves & items.
+ * Retrieves the authenticated shop partner's store profile, shelves & items.
  */
 export async function getMyStore() {
   const res = await api.get('/saler/store');
@@ -31,7 +31,7 @@ export async function getMyStore() {
 }
 
 /**
- * Updates the saler's virtual store profile.
+ * Updates the shop partner's virtual store profile.
  */
 export async function updateMyStore(payload) {
   const res = await api.put('/saler/store', payload);

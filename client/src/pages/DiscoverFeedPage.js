@@ -3,7 +3,7 @@
  *
  * A full-screen, one-product-at-a-time vertical feed personalized to the shopper's interests. The
  * heavy lifting lives in components/product/ProductFeed.js; this page picks the audience from the
- * signed-in role (a saler gets the sourcing CTA set, everyone else the shopper set), owns the SEO
+ * signed-in role (a shop partner gets the sourcing CTA set, everyone else the shopper set), owns the SEO
  * head, and wires the discovery controls: category pills, an in-page search box, and the shared
  * FilterPanel (live sidebar on desktop, drawer on mobile).
  *

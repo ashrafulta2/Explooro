@@ -30,7 +30,7 @@ function createMockDb() {
     { id: 1, ref: 'USR-SUPER1', full_name: 'Super Admin Kabir', email: 'admin@explooro.com', role: 'super_admin' },
     { id: 2, ref: 'USR-MOD1', full_name: 'Moderator Nabila', email: 'mod@explooro.com', role: 'moderator' },
     { id: 101, ref: 'USR-SUPP1', full_name: 'Supplier Aarong', email: 'aarong@explooro.com', role: 'supplier' },
-    { id: 201, ref: 'USR-SALER1', full_name: 'Saler Jamila', email: 'jamila@explooro.com', role: 'saler' },
+    { id: 201, ref: 'USR-SALER1', full_name: 'Shop Partner Jamila', email: 'jamila@explooro.com', role: 'saler' },
     { id: 301, ref: 'USR-CUST1', full_name: 'Customer Tanvir', email: 'tanvir@explooro.com', role: 'customer' },
     { id: 401, ref: 'USR-STRANGER', full_name: 'Stranger User', email: 'stranger@explooro.com', role: 'customer' },
   ];
@@ -519,7 +519,7 @@ describe('Prompt 7.3 — Dispute Arbitration (Three-Way)', () => {
       body: 'Item passed QC before dispatch. Could be shipping damage.',
     });
 
-    // 4. Saler posts a reply
+    // 4. Shop Partner posts a reply
     await disputeService.postMessage(mockDb, {
       disputeId: dispute.id,
       senderId: 201,
@@ -565,7 +565,7 @@ describe('Prompt 7.3 — Dispute Arbitration (Three-Way)', () => {
       requestingUser: { id: 301, role: 'customer' },
     });
     assert.equal(customerView.messages.some((m) => m.is_internal_note), false, 'Customer must not see internal notes');
-    assert.equal(customerView.messages.length, 4); // Initial + Cust + Supp + Saler
+    assert.equal(customerView.messages.length, 4); // Initial + Cust + Supp + Shop Partner
 
     // Supplier views dispute -> internal note MUST NOT be present
     const supplierView = await disputeService.getDisputeById(mockDb, dispute.id, {
@@ -656,7 +656,7 @@ describe('Prompt 7.3 — Dispute Arbitration (Three-Way)', () => {
     const custWallet = state.wallets.find((w) => w.user_id === 301);
     assert.equal(custWallet.available_balance, '2500.00'); // initial 500 + 2000
 
-    // Dispute 2: Split Liability (Partial refund 1000 to buyer, 800 from supp, 200 from saler)
+    // Dispute 2: Split Liability (Partial refund 1000 to buyer, 800 from supp, 200 from shop partner)
     const d2 = await disputeService.createDispute(mockDb, null, {
       subOrderId: 951,
       customerId: 301,

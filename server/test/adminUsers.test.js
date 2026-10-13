@@ -38,7 +38,7 @@ function createMockDb() {
   const permissions = [
     { key: 'catalog.product.view', domain: 'catalog', label_en: 'View Products', label_bn: 'পণ্য দেখুন', plain_en: 'View catalog products', plain_bn: 'ক্যাটালগ পণ্য দেখুন', risk_tier: 'LOW', delegable: true, approval_mode: 'NONE' },
     { key: 'orders.order.view_all', domain: 'orders', label_en: 'View All Orders', label_bn: 'সকল অর্ডার দেখুন', plain_en: 'View all marketplace orders', plain_bn: 'সকল মার্কেটপ্লেস অর্ডার দেখুন', risk_tier: 'MEDIUM', delegable: true, approval_mode: 'JIT_PER_ACTION' },
-    { key: 'finance.payout.approve', domain: 'finance', label_en: 'Approve Payouts', label_bn: 'পেআউট অনুমোদন', plain_en: 'Disburse merchant payouts', plain_bn: 'সেলার পেআউট অনুমোদন', risk_tier: 'HIGH', delegable: false, approval_mode: 'MAKER_CHECKER' },
+    { key: 'finance.payout.approve', domain: 'finance', label_en: 'Approve Payouts', label_bn: 'পেআউট অনুমোদন', plain_en: 'Disburse merchant payouts', plain_bn: 'শপ পার্টনার পেআউট অনুমোদন', risk_tier: 'HIGH', delegable: false, approval_mode: 'MAKER_CHECKER' },
     { key: 'platform.module.toggle', domain: 'platform', label_en: 'Toggle Modules', label_bn: 'মডিউল টগল', plain_en: 'Enable/disable platform features', plain_bn: 'প্ল্যাটফর্ম মডিউল টগল', risk_tier: 'CRITICAL', delegable: false, approval_mode: 'NONE' },
   ];
 

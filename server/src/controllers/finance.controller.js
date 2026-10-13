@@ -75,8 +75,8 @@ export async function releaseEscrowHolding(req, reply) {
   });
   return reply.send({
     data: result,
-    message_en: 'Escrow released to the supplier, saler and platform wallets.',
-    message_bn: 'এসক্রোর টাকা সাপ্লায়ার, সেলার ও প্ল্যাটফর্মের ওয়ালেটে ছেড়ে দেওয়া হয়েছে।',
+    message_en: 'Escrow released to the supplier, shop partner and platform wallets.',
+    message_bn: 'এসক্রোর টাকা সাপ্লায়ার, শপ পার্টনার ও প্ল্যাটফর্মের ওয়ালেটে ছেড়ে দেওয়া হয়েছে।',
   });
 }
 
@@ -261,7 +261,7 @@ export async function getFinanceOverview(req, reply) {
     // Platform Revenue
     db.query(`SELECT COALESCE(SUM(platform_margin), 0) AS net_revenue FROM sub_orders WHERE status = 'DELIVERED'`),
     // Wallet Liabilities
-    // WHY escrow counts the treasury too: every taka locked in escrow (supplier, saler AND platform
+    // WHY escrow counts the treasury too: every taka locked in escrow (supplier, shop partner AND platform
     // share) is customer money still inside a return window, and a refund claws all of it back. It
     // must equal "Total held" on the Escrow page. The other sums are what the platform owes people,
     // so they leave out the treasury, found by role rather than assumed to be user 1.
@@ -494,8 +494,8 @@ export async function updateGlobalSplit(req, reply) {
     return reply.status(400).send({
       error: {
         code: 'INVALID_SPLIT_PERCENTAGE',
-        message_en: 'Saler split percentage must be between 5% and 95%.',
-        message_bn: 'সেলার স্প্লিট অংশ অবশ্যই ৫% থেকে ৯৫% এর মধ্যে হতে হবে।',
+        message_en: 'Shop Partner split percentage must be between 5% and 95%.',
+        message_bn: 'শপ পার্টনার স্প্লিট অংশ অবশ্যই ৫% থেকে ৯৫% এর মধ্যে হতে হবে।',
       },
     });
   }
@@ -504,8 +504,8 @@ export async function updateGlobalSplit(req, reply) {
     return reply.status(400).send({
       error: {
         code: 'SPLIT_SUM_INVALID',
-        message_en: 'Saler split and platform split must sum to exactly 100%.',
-        message_bn: 'সেলার এবং প্ল্যাটফর্মের অংশের যোগফল অবশ্যই ১০০% হতে হবে।',
+        message_en: 'Shop Partner split and platform split must sum to exactly 100%.',
+        message_bn: 'শপ পার্টনার এবং প্ল্যাটফর্মের অংশের যোগফল অবশ্যই ১০০% হতে হবে।',
       },
     });
   }
@@ -560,8 +560,8 @@ export async function updateCategorySplit(req, reply) {
     return reply.status(400).send({
       error: {
         code: 'INVALID_SPLIT_PERCENTAGE',
-        message_en: 'Saler split percentage must be between 5% and 95%.',
-        message_bn: 'সেলার স্প্লিট অংশ অবশ্যই ৫% থেকে ৯৫% এর মধ্যে হতে হবে।',
+        message_en: 'Shop Partner split percentage must be between 5% and 95%.',
+        message_bn: 'শপ পার্টনার স্প্লিট অংশ অবশ্যই ৫% থেকে ৯৫% এর মধ্যে হতে হবে।',
       },
     });
   }
@@ -570,8 +570,8 @@ export async function updateCategorySplit(req, reply) {
     return reply.status(400).send({
       error: {
         code: 'SPLIT_SUM_INVALID',
-        message_en: 'Saler split and platform split must sum to exactly 100%.',
-        message_bn: 'সেলার এবং প্ল্যাটফর্মের অংশের যোগফল অবশ্যই ১০০% হতে হবে।',
+        message_en: 'Shop Partner split and platform split must sum to exactly 100%.',
+        message_bn: 'শপ পার্টনার এবং প্ল্যাটফর্মের অংশের যোগফল অবশ্যই ১০০% হতে হবে।',
       },
     });
   }
@@ -709,7 +709,7 @@ export async function updateTierBonuses(req, reply) {
   });
 
   // WHY here as well as hourly: an admin who switches the ladder on or changes a threshold expects
-  // salers to move now. A failure only means the hourly job does it, so it must not fail the save.
+  // shop partners to move now. A failure only means the hourly job does it, so it must not fail the save.
   if (rules) {
     try {
       await recomputeSalerTiers(db);

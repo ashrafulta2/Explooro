@@ -20,7 +20,7 @@ import * as notifService from '../src/services/notification.service.js';
 function createMockDb() {
   const users = [
     { id: 201, full_name: 'Habib Customer', phone: '01712345678', email: 'habib@explooro.com', locale: 'en' },
-    { id: 202, full_name: 'Fatima Saler', phone: '01898765432', email: 'fatima@explooro.com', locale: 'bn' },
+    { id: 202, full_name: 'Fatima Shop Partner', phone: '01898765432', email: 'fatima@explooro.com', locale: 'bn' },
   ];
 
   const notificationTemplates = [

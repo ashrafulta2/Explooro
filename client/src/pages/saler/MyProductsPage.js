@@ -1,5 +1,5 @@
 /**
- * MyProductsPage.js — Saler Curated Store Products & Price Markup Management (Prompt 4.8 / idea §AL.2).
+ * MyProductsPage.js — Shop Partner Curated Store Products & Price Markup Management (Prompt 4.8 / idea §AL.2).
  *
  * Route: /saler/products
  * Implements:

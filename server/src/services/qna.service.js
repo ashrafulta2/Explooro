@@ -19,8 +19,8 @@ export async function answerQuestion(db, { questionId, responderId, body, isSell
   if (!isSellerOrSupplier) {
     throw new AppError(
       'FORBIDDEN',
-      'Only a seller or supplier can answer a product question.',
-      'শুধুমাত্র সেলার বা সরবরাহকারী পণ্যের প্রশ্নের উত্তর দিতে পারবেন।'
+      'Only a shop partner or supplier can answer a product question.',
+      'শুধুমাত্র শপ পার্টনার বা সরবরাহকারী পণ্যের প্রশ্নের উত্তর দিতে পারবেন।'
     );
   }
 

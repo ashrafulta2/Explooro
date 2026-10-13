@@ -222,7 +222,7 @@ export default async function financeRoutes(app) {
     handler: controller.deleteCategorySplit,
   });
 
-  // 25. Update Saler Trust Tier Split Bonuses
+  // 25. Update Shop Partner Trust Tier Split Bonuses
   app.put('/admin/finance/splits/tiers', {
     preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
     handler: controller.updateTierBonuses,

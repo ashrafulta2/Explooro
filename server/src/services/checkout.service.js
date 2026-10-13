@@ -350,7 +350,7 @@ export async function executeCheckout(pool, cache, {
 
         // Calculate Pricing Formula via pricing.service.js
         // WHY resolved, not 40/60: the split is a business number (platform_settings / overrides), and
-        // the Saler Pro rebate can only reach the order if checkout asks for this saler's split.
+        // the Shop Partner Pro rebate can only reach the order if checkout asks for this shop partner's split.
         const split = await resolveSplitPercentages(client, {
           productId: prod.id,
           productRef: prod.ref,

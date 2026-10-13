@@ -37,7 +37,7 @@ function createMockDb() {
     { id: 2, full_name: 'Customer Rahim (Low Trust)', phone: '+8801722222222', is_phone_verified: false, is_email_verified: false, created_at: new Date() },
     { id: 101, full_name: 'Supplier Alpha (Aarong)', phone: '+8801733333333' },
     { id: 102, full_name: 'Supplier Beta (Yellow)', phone: '+8801744444444' },
-    { id: 201, full_name: 'Saler Jamila', phone: '+8801755555555' },
+    { id: 201, full_name: 'Shop Partner Jamila', phone: '+8801755555555' },
   ];
 
   const products = [
@@ -521,7 +521,7 @@ function createMockDb() {
             ...s,
             supplier_name: supp?.full_name || 'Supplier',
             supplier_phone: supp?.phone || '',
-            saler_name: saler?.full_name || 'Saler',
+            saler_name: saler?.full_name || 'Shop Partner',
           };
         });
         return { rows: matchingSubs };

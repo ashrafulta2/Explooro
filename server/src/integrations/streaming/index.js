@@ -156,7 +156,7 @@ const livekitDriver = {
       audioOnly: Boolean(audioOnly),
       observer: Boolean(observer),
       // LiveKit maps this to `hidden` on the access-token grant: the participant subscribes without
-      // appearing in the room roster. A seller who could see a moderator join would simply behave
+      // appearing in the room roster. A shop partner who could see a moderator join would simply behave
       // differently for the duration of the watch, which defeats the point of watching.
       hidden: Boolean(observer),
       // Short-lived on purpose. An observation token is scoped to the sitting, not to the shift.

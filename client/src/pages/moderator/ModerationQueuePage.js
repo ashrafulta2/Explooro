@@ -176,7 +176,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
             ❌ ${t('moderation.reject_modal_title', 'Reject Submission')} (${item.ref})
           </h3>
           <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted, #64748b);">
-            ${t('moderation.reject_modal_desc', 'State actionable reasons for rejection. Notifications will be dispatched to the seller.')}
+            ${t('moderation.reject_modal_desc', 'State actionable reasons for rejection. Notifications will be dispatched to the shop partner.')}
           </p>
         </div>
 
@@ -193,18 +193,18 @@ export default function ModerationQueuePage(root, ctx = {}) {
           </div>
 
           <div>
-            <label for="txt-reason-en" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">English Reason (Sent to seller):</label>
+            <label for="txt-reason-en" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">English Reason (Sent to shop partner):</label>
             <textarea id="txt-reason-en" rows="2" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="Actionable rejection explanation..."></textarea>
           </div>
 
           <div>
-            <label for="txt-reason-bn" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">বাংলা কারণ (সেলারকে প্রেরিত):</label>
+            <label for="txt-reason-bn" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">বাংলা কারণ (শপ পার্টনারকে প্রেরিত):</label>
             <textarea id="txt-reason-bn" rows="2" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="বাতিলের সুস্পষ্ট কারণ লিখুন..."></textarea>
           </div>
 
           <label for="chk-shadow-restrict" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--danger-border, rgba(225, 29, 72, 0.3)); border-radius: 8px; background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">
             <input type="checkbox" id="chk-shadow-restrict"/>
-            <span style="font-weight: 600; font-size: 12px;">🚫 ${t('moderation.shadow_restrict_seller', 'Shadow-Restrict Seller (Flag suspicious behavior)')}</span>
+            <span style="font-weight: 600; font-size: 12px;">🚫 ${t('moderation.shadow_restrict_seller', 'Shadow-Restrict Shop Partner (Flag suspicious behavior)')}</span>
           </label>
         </div>
 
@@ -300,7 +300,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
             ✏️ ${t('moderation.changes_modal_title', 'Request Product Edits')} (${item.ref})
           </h3>
           <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted, #64748b);">
-            ${t('moderation.changes_modal_desc', 'Instruct seller what specific modifications are needed before approval.')}
+            ${t('moderation.changes_modal_desc', 'Instruct shop partner what specific modifications are needed before approval.')}
           </p>
         </div>
 
@@ -311,7 +311,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
           </div>
           <div>
             <label for="txt-changes-bn" style="font-weight: 600; display: block; margin-bottom: 4px; color: var(--text-primary, #0f172a);">প্রয়োজনীয় সংশোধন (বাংলা):</label>
-            <textarea id="txt-changes-bn" rows="3" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="সেলারকে কী কী সংশোধন করতে হবে লিখুন..."></textarea>
+            <textarea id="txt-changes-bn" rows="3" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px; resize: vertical;" placeholder="শপ পার্টনারকে কী কী সংশোধন করতে হবে লিখুন..."></textarea>
           </div>
         </div>
 
@@ -427,7 +427,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
             </h1>
           </div>
           <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
-            ${t('moderation.page_subtitle', 'Review new listings, customer reviews, UGC videos, and seller storefront assets.')}
+            ${t('moderation.page_subtitle', 'Review new listings, customer reviews, UGC videos, and shop partner storefront assets.')}
           </p>
         </div>
 

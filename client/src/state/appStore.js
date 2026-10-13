@@ -20,7 +20,7 @@ import { defaultPermissionsForRole } from '../config/permissions.mock.js';
 // affordance) withheld permission per role that actually appears in navigation.js, so both
 // locked-state branches in ia-sitemap.md §5.1 are visible without an all-or-nothing demo.
 //
-// Only super_admin, moderator, and editor get one: every Supplier/Saler/Customer nav item checked
+// Only super_admin, moderator, and editor get one: every Supplier/Shop Partner/Customer nav item checked
 // against docs/permission-catalog.json turned out to be LOW tier — self-scoped "manage_own" /
 // "view_own" actions are LOW by design, always granted with the role. Withholding one of those
 // would demo a state the real permission model never produces. Risk tiers above LOW concentrate

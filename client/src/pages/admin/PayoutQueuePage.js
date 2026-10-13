@@ -141,7 +141,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
       description: t('payout.enter_reject_reason'),
       reasonRequired: true,
       reasonLabel: 'Rejection Reason / কারণ',
-      reasonHint: 'This reason will be recorded in the audit ledger and visible to the seller.',
+      reasonHint: 'This reason will be recorded in the audit ledger and visible to the shop partner.',
       confirmLabel: t('payout.btn_reject'),
       variant: 'danger',
     });

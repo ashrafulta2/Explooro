@@ -310,7 +310,7 @@ describe('Live Moderation Console (/moderator/live)', () => {
 
       await liveService.terminateStream(db, { streamId: 1, moderatorId: 3, reason: 'Counterfeit goods' });
 
-      assert.equal(db.audits.length, 1, 'cutting a seller off mid-sale must be auditable');
+      assert.equal(db.audits.length, 1, 'cutting a shop partner off mid-sale must be auditable');
       const [, params] = [db.audits[0].sql, db.audits[0].params];
       const flat = JSON.stringify(params);
       assert.match(flat, /live\.stream\.terminate/, 'the audit names the action');

@@ -406,7 +406,7 @@ async function creditReferralOnDelivery(db, cache, subOrderId) {
       orderId: order.order_id,
       orderAmount: Math.max(0, Number(order.total_amount) - Number(order.shipping_amount || 0)),
     });
-    // FIRST_SALE: the saler and the supplier on this parcel each just completed a sale. The engine only
+    // FIRST_SALE: the shop partner and the supplier on this parcel each just completed a sale. The engine only
     // pays a referral still PENDING for that event, so only their first delivered one ever pays.
     for (const sellerId of new Set([order.saler_id, order.supplier_id].filter(Boolean).map(Number))) {
       await referralService.evaluateQualifyingEvent(db, cache, { userId: sellerId, eventType: 'FIRST_SALE' });

@@ -30,13 +30,13 @@ export const BREAKDOWN_VERSION = 2;
 export const SALES_CHANNELS = [
   { key: 'LIVE', name: 'Live Stream' },
   { key: 'TEAM', name: 'Team Social Buying' },
-  { key: 'SALER_STORE', name: 'Saler Storefronts' },
+  { key: 'SALER_STORE', name: 'Shop Partner Storefronts' },
   { key: 'DIRECT', name: 'Direct (Supplier Listing)' },
 ];
 
 /**
  * One row per channel for the day. An order lands in exactly ONE channel, first match wins:
- * a live-stream purchase made through a saler's store is a LIVE sale, so the shares add up to
+ * a live-stream purchase made through a shop partner's store is a LIVE sale, so the shares add up to
  * 100% of orders instead of double-counting. Sales = orders.total_amount, the same basis the
  * rollup's GMV uses, so the bars reconcile with the GMV KPI.
  */
@@ -245,7 +245,7 @@ export async function runDailyRollup(db, targetDate = null) {
   const newSalers = parseInt(userAgg[0]?.new_salers || 0, 10);
   const newSuppliers = parseInt(userAgg[0]?.new_suppliers || 0, 10);
 
-  // 4. Active sellers count
+  // 4. Active shop partners count
   const { rows: sellerAgg } = await db.query(
     `SELECT COUNT(DISTINCT ur.user_id) as active_sellers
      FROM user_roles ur

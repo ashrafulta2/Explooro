@@ -1,5 +1,5 @@
 /**
- * mountFastPayout — the Fast Payout page body, shared by the supplier's page and the saler's page.
+ * mountFastPayout — the Fast Payout page body, shared by the supplier's page and the shop partner's page.
  *
  * Both audiences take their own escrowed earnings early; only the endpoints differ, so the two route pages
  * pass in `load` and `take` and this builds the same screen for each.

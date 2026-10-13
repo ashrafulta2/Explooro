@@ -116,7 +116,7 @@ export function ReviewCard({
             <strong style="color: var(--text-primary, #0f172a);">${formatCurrency(payload.base_cost || (payload.price ? payload.price * 0.8 : 0))}</strong>
           </div>
           <div>
-            <span style="color: var(--text-muted, #64748b); display: block; font-size: 11px;">Est. Saler Margin:</span>
+            <span style="color: var(--text-muted, #64748b); display: block; font-size: 11px;">Est. Shop Partner Margin:</span>
             <strong style="color: var(--success, #059669);">${formatCurrency(payload.wholesale_margin || (payload.price ? payload.price * 0.2 : 0))}</strong>
           </div>
           <div>
@@ -205,7 +205,7 @@ export function ReviewCard({
       </div>
 
       <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted, #64748b);">
-        <span>👤 <strong>${item.submitter_name || 'Seller'}</strong></span>
+        <span>👤 <strong>${item.submitter_name || 'Shop Partner'}</strong></span>
         <span>•</span>
         <span>⏱️ ${formatDate(item.created_at)}</span>
       </div>

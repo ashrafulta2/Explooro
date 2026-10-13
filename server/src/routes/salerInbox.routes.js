@@ -1,5 +1,5 @@
 /**
- * salerInbox.routes.js — Saler Unified Multi-Channel Inbox Routes (Prompt 8.3).
+ * salerInbox.routes.js — Shop Partner Unified Multi-Channel Inbox Routes (Prompt 8.3).
  */
 
 import * as controller from '../controllers/salerInbox.controller.js';

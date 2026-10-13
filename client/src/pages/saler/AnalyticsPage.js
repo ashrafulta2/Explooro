@@ -1,5 +1,5 @@
 /**
- * AnalyticsPage.js — Saler Sales, Profit, Traffic & Conversion Analytics (Prompt 11.2 / idea §AL.2).
+ * AnalyticsPage.js — Shop Partner Sales, Profit, Traffic & Conversion Analytics (Prompt 11.2 / idea §AL.2).
  *
  * Implements:
  * 1. Time-range selector (7d, 30d, 90d).

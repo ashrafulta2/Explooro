@@ -160,7 +160,7 @@ export async function ingestInboundMessage(db, {
       );
     }
 
-    // 2. Find or create unified chat_thread between customer and saler
+    // 2. Find or create unified chat_thread between customer and shop partner
     const participantIds = [Math.min(Number(customerUserId), Number(salerId)), Math.max(Number(customerUserId), Number(salerId))];
 
     const { rows: existingThreads } = await txClient.query(
@@ -226,7 +226,7 @@ export async function ingestInboundMessage(db, {
 
     const message = insertedMessages[0];
 
-    // 4. Update unread count for Saler
+    // 4. Update unread count for Shop Partner
     await txClient.query(
       `INSERT INTO chat_thread_participants (thread_id, user_id, unread_count, joined_at)
        VALUES ($1, $2, 1, now())
@@ -235,7 +235,7 @@ export async function ingestInboundMessage(db, {
       [thread.id, salerId]
     );
 
-    // 5. Emit live arrival over WebSocket to Saler
+    // 5. Emit live arrival over WebSocket to Shop Partner
     sendToUser(salerId, {
       type: 'chat:message',
       threadId: thread.id,
@@ -262,7 +262,7 @@ export async function ingestInboundMessage(db, {
 }
 
 /**
- * Sends an outbound WhatsApp reply to a customer from a saler.
+ * Sends an outbound WhatsApp reply to a customer from a shop partner.
  */
 export async function sendOutboundReply(db, {
   threadId,
@@ -433,7 +433,7 @@ export async function sendProductCard(db, {
 }
 
 /**
- * Retrieves unified conversations for saler with channel badges and 24-hour status.
+ * Retrieves unified conversations for shop partner with channel badges and 24-hour status.
  */
 export async function getUnifiedSalerThreads(db, salerId, { limit = 30, offset = 0 } = {}) {
   const { rows } = await db.query(

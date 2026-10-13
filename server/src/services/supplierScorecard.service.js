@@ -1,5 +1,5 @@
 /**
- * supplierScorecard.service.js — The measured reputation of a supplier, shown to salers.
+ * supplierScorecard.service.js — The measured reputation of a supplier, shown to shop partners.
  *
  * Invariants:
  *   1. A supplier with fewer than `min_sample_orders` orders in the window has NO grade (grade and
@@ -138,7 +138,7 @@ export async function refreshAll(db) {
 }
 
 /**
- * What a saler may see. WHY a whitelist and not `...row`: the row is internal, and a column added
+ * What a shop partner may see. WHY a whitelist and not `...row`: the row is internal, and a column added
  * later must not leak to the public catalog by default.
  */
 export function toPublicView(row, rules = DEFAULT_RULES) {

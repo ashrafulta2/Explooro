@@ -1,19 +1,19 @@
 /**
- * saler.api.js — Client API helper for Saler Dashboard & Analytics (Prompt 11.2).
+ * saler.api.js — Client API helper for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
 import { api } from '../core/api.js';
 
 export const salerApi = {
   /**
-   * Fetches the unified saler dashboard overview metrics and store state.
+   * Fetches the unified shop partner dashboard overview metrics and store state.
    */
   async getDashboard() {
     return api.get('/saler/dashboard');
   },
 
   /**
-   * The saler's earned commission tier: tier, bonus, delivered volume in the window and the way to the
+   * The shop partner's earned commission tier: tier, bonus, delivered volume in the window and the way to the
    * next tier. `enabled: false` means the platform has tiers switched off.
    */
   async getCommissionTier() {
@@ -43,7 +43,7 @@ export const salerApi = {
   },
 
   /**
-   * Fetches curated products in the saler's store.
+   * Fetches curated products in the shop partner's store.
    * @param {{ category?: string, in_stock?: boolean, sort?: string, search?: string }} [params]
    */
   async getProducts(params = {}) {
@@ -60,7 +60,7 @@ export const salerApi = {
   },
 
   /**
-   * Removes a product from the saler's curated store.
+   * Removes a product from the shop partner's curated store.
    * @param {number|string} id
    */
   async removeProduct(id) {
@@ -68,7 +68,7 @@ export const salerApi = {
   },
 
   /**
-   * Fetches the saler's physical shop and showroom operational status.
+   * Fetches the shop partner's physical shop and showroom operational status.
    */
   async getStoreStatus() {
     return api.get('/saler/store-status');
@@ -83,7 +83,7 @@ export const salerApi = {
   },
 
   /**
-   * Fetches Saler orders with commission breakdowns.
+   * Fetches Shop Partner orders with commission breakdowns.
    * @param {{ status?: string, search?: string, limit?: number }} [params]
    */
   async getOrders(params = {}) {
@@ -91,7 +91,7 @@ export const salerApi = {
   },
 
   /**
-   * Fetches full order detail for a saler order.
+   * Fetches full order detail for a shop partner order.
    * @param {number|string} id
    */
   async getOrderDetail(id) {
@@ -99,7 +99,7 @@ export const salerApi = {
   },
 
   /**
-   * Fetches saler vault payouts history and balance summary.
+   * Fetches shop partner vault payouts history and balance summary.
    */
   async getPayouts() {
     return api.get('/saler/vault/payouts');
@@ -122,7 +122,7 @@ export const salerApi = {
   },
 
   /**
-   * Fetches saler daily and weekly missions and quest progress.
+   * Fetches shop partner daily and weekly missions and quest progress.
    */
   async getQuests() {
     return api.get('/saler/quests');
@@ -145,7 +145,7 @@ export const salerApi = {
   },
 
   /**
-   * Generates or fetches social seller kit marketing templates.
+   * Generates or fetches social shop partner kit marketing templates.
    */
   async getSocialKitTemplates() {
     return api.get('/saler/social-kit/templates');
@@ -160,7 +160,7 @@ export const salerApi = {
   },
 
   /**
-   * Saler Pro: the plans on offer, the caller's live subscription and recent invoices.
+   * Shop Partner Pro: the plans on offer, the caller's live subscription and recent invoices.
    * Only reachable while the `subscription_fees` module is ON.
    */
   async getSubscription() {

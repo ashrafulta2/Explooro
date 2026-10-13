@@ -1,5 +1,5 @@
 /**
- * FollowingFeedPage.js — Activity Feed & Product Drops from Followed Sellers (Prompt 11.3 / idea §AL.3).
+ * FollowingFeedPage.js — Activity Feed & Product Drops from Followed Shop Partners (Prompt 11.3 / idea §AL.3).
  *
  * Implements:
  * 1. Product drops feed from followed merchant storefronts.
@@ -130,7 +130,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
           ${esc(t('customer.following.title', 'Followed Stores & Activity Feed'))}
         </h1>
         <p class="account-page__subtitle">
-          ${esc(t('customer.following.subtitle', 'Fresh product drops, live streams, stories & exclusive discounts from your favorite sellers.'))}
+          ${esc(t('customer.following.subtitle', 'Fresh product drops, live streams, stories & exclusive discounts from your favorite shop partners.'))}
         </p>
       </div>
     </div>
@@ -375,7 +375,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
       { key: 'drops', label: t('customer.following.tab_drops', 'Product Drops'), count: counts.drops },
       { key: 'live', label: t('customer.following.tab_live', 'Live Streams'), count: counts.live },
       { key: 'stores', label: t('customer.following.tab_stores', 'Followed Stores'), count: counts.stores },
-      { key: 'discover', label: t('customer.following.tab_discover', 'Discover Sellers'), count: counts.discover },
+      { key: 'discover', label: t('customer.following.tab_discover', 'Discover Shop Partners'), count: counts.discover },
     ];
   }
 
@@ -553,7 +553,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
         ${esc(t('customer.following.no_stores_title', "You haven't followed any stores yet"))}
       </h2>
       <p class="following-empty-card__desc">
-        ${esc(t('customer.following.no_stores_desc', 'Follow your favorite verified sellers to get notified of new product drops, exclusive flash discounts, and interactive live shopping streams.'))}
+        ${esc(t('customer.following.no_stores_desc', 'Follow your favorite verified shop partners to get notified of new product drops, exclusive flash discounts, and interactive live shopping streams.'))}
       </p>
 
       <div class="following-benefits-list">
@@ -575,7 +575,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
     // WHY: the old empty state listed three benefits and then stopped — no way forward from it.
     card.append(
       Button({
-        label: t('customer.following.btn_explore_all', 'Explore All Sellers'),
+        label: t('customer.following.btn_explore_all', 'Explore All Shop Partners'),
         variant: 'primary',
         size: 'md',
         onClick: () => (suggestions.length ? switchTab('discover') : nav('/')),
@@ -596,7 +596,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
     box.innerHTML = `
       <div class="following-empty-card__icon-box" aria-hidden="true">🌟</div>
       <h3 class="following-empty-card__title">
-        ${esc(t('customer.following.no_suggestions_title', 'No sellers to suggest right now'))}
+        ${esc(t('customer.following.no_suggestions_title', 'No shop partners to suggest right now'))}
       </h3>
       <p class="following-empty-card__desc">
         ${esc(t('customer.following.no_suggestions_desc', 'Browse the marketplace and follow any storefront to start building your feed.'))}
@@ -1112,7 +1112,7 @@ function storeCardMarkup(store, { fallbackIcon }) {
           </div>
           <div class="store-card__slug">@${esc(store.slug || '')}</div>
           <p class="store-card__bio">${esc(
-            store.bio || t('customer.following.card_no_bio', 'This seller has not added a description yet.')
+            store.bio || t('customer.following.card_no_bio', 'This shop partner has not added a description yet.')
           )}</p>
         </div>
       </div>
@@ -1175,7 +1175,7 @@ function createDiscoverStoresSection(stores, nav, onToggleFollow) {
   section.append(
     sectionHeader({
       icon: '🌟',
-      title: t('customer.following.discover_title', 'Discover Top Rated Sellers'),
+      title: t('customer.following.discover_title', 'Discover Top Rated Shop Partners'),
       subtitle: t('customer.following.discover_subtitle', 'Verified stores with artisan goods, handloom sarees, gadgets & organics.'),
       blockClass: 'discover-sellers-section',
     })

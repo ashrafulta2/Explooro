@@ -1,5 +1,5 @@
 /**
- * store.css — Styles for StoreBuilder, StorefrontPage, StoreHeader, ShelfEditor, ShopStatusToggle & Social Seller Kit (Prompt 4.8).
+ * store.css — Styles for StoreBuilder, StorefrontPage, StoreHeader, ShelfEditor, ShopStatusToggle & Social Shop Partner Kit (Prompt 4.8).
  */
 
 .store-builder { display: flex; flex-direction: column; gap: var(--space-6); padding: var(--space-6) 0 var(--space-9); width: 100%; }
@@ -22,7 +22,7 @@
 .store-builder__slug-status--taken, .store-builder__slug-status--reserved, .store-builder__slug-status--invalid { color: var(--danger); }
 .store-builder__media-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: var(--space-4); }
 
-/* Quick Share Hub & Social Seller Kit for Store Builder */
+/* Quick Share Hub & Social Shop Partner Kit for Store Builder */
 .store-builder__share-card {
   display: flex;
   flex-direction: column;

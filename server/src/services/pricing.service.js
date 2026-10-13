@@ -11,8 +11,8 @@
  *   2. Category-specific commission rule in commission_rules (scope_type = 'CATEGORY')
  *   3. Global platform_settings key ('commission.default_splits') — the ONE global default
  *   4. Hard fallback (40% saler / 60% platform)
- *   Then, for steps 2-4 only and only when a salerId is given: the Saler Pro rebate
- *   (subscriptionRebate.js) moves its points from platform to saler. Module OFF => no change.
+ *   Then, for steps 2-4 only and only when a salerId is given: the Shop Partner Pro rebate
+ *   (subscriptionRebate.js) moves its points from platform to shop partner. Module OFF => no change.
  *
  * WHY there is no GLOBAL commission_rules step: a seeded GLOBAL row used to sit above the setting,
  * so editing the default at /admin/finance/splits (which writes the setting) changed nothing in
@@ -69,7 +69,7 @@ export async function resolveSplitPercentages(db, { productId, productRef, categ
   // WHY not on PRODUCT_OVERRIDE: a per-product rule is an explicit, deliberate number set by an admin;
   // layering a plan rebate on top would silently change what they typed.
   if (!salerId || base.ruleSource === 'PRODUCT_OVERRIDE') return base;
-  // WHY no try/catch: a failed lookup must surface, not quietly pay the saler the wrong split.
+  // WHY no try/catch: a failed lookup must surface, not quietly pay the shop partner the wrong split.
   const withPro = applyRebate(base, await resolveProRebatePct(db, { salerId, cache }));
   // WHY after the plan rebate and through the same capped move: the two stack, but together they can
   // never take more than the platform's own share, so the split still sums to 100.
@@ -223,7 +223,7 @@ async function resolveBaseSplit(db, { productId, productRef, categoryId }, prelo
 export { TIER_KEYS };
 
 /**
- * Resolves each trust tier's extra Saler split points from the `finance.tier_bonuses` setting
+ * Resolves each trust tier's extra Shop Partner split points from the `finance.tier_bonuses` setting
  * (an array of { tier, bonus_pct }). A tier missing from the setting gets 0.
  *
  * WHY: the bonus is a business number, so it lives in platform_settings, not in code. A read
@@ -281,10 +281,10 @@ export async function resolvePlatformPricingConfig(db) {
  * Calculates complete pricing breakdown in integer paisa.
  *
  * Supports two operational modes:
- * 1. 'tiered': Saler model where supplier cost is confidential from salers.
+ * 1. 'tiered': Shop Partner model where supplier cost is confidential from shop partners.
  *    - Default retail = supplier cost + platform default profit + saler default profit.
- *    - If saler sets retail price < default: only saler profit drops; platform profit is preserved.
- *    - If saler sets retail price > default: extra markup is split between platform and saler.
+ *    - If shop partner sets retail price < default: only shop partner profit drops; platform profit is preserved.
+ *    - If shop partner sets retail price > default: extra markup is split between platform and shop partner.
  * 2. 'split': Legacy proportional split mode (backward compatibility).
  *
  * @param {object} params
@@ -346,7 +346,7 @@ export function calculatePricingBreakdown({
     let priceStatus = 'DEFAULT';
 
     if (retailPricePaisa < defaultRetailPricePaisa) {
-      // 1. Discount below default: Platform profit is protected; only saler profit decreases
+      // 1. Discount below default: Platform profit is protected; only shop partner profit decreases
       priceStatus = 'DISCOUNTED';
       const dropPaisa = defaultRetailPricePaisa - retailPricePaisa;
       platformEarningPaisa = platformDefaultProfitPaisa;
@@ -357,7 +357,7 @@ export function calculatePricingBreakdown({
       platformEarningPaisa = platformDefaultProfitPaisa;
       salerEarningPaisa = salerDefaultProfitPaisa;
     } else {
-      // 3. Marked up above default: Extra markup shared between platform and saler
+      // 3. Marked up above default: Extra markup shared between platform and shop partner
       priceStatus = 'BOOSTED';
       const extraPaisa = retailPricePaisa - defaultRetailPricePaisa;
       const extraPlatformPaisa = Math.floor((extraPaisa * extraMarkupPlatformPct) / 100);

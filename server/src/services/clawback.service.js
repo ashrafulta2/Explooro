@@ -2,9 +2,9 @@
  * clawback.service.js — Return-Triggered Clawback Automation & Deficit Recovery (Prompt 6.2).
  *
  * Handles:
- * 1. Locked Escrow Clawback: Reverses pending escrow balance, zeroes saler commission, refunds buyer.
+ * 1. Locked Escrow Clawback: Reverses pending escrow balance, zeroes shop partner commission, refunds buyer.
  * 2. Post-Release Clawback: Recovers funds from beneficiary available balance.
- * 3. Insufficient Balance Deficit: When sellers have already withdrawn earnings, creates a
+ * 3. Insufficient Balance Deficit: When shop partners have already withdrawn earnings, creates a
  *    negative_balance_recoveries tracking record and allows negative available balance.
  * 4. Customer Refund: Credits customer refund through wallet available balance.
  * 5. Trust Score Adjustments & Audit Trail: Updates seller/buyer risk metrics and logs audit entries.
@@ -136,7 +136,7 @@ export async function processReturnClawback(db, {
         let deficitPaisa = 0;
 
         if (availPaisa < itemAmtPaisa) {
-          // Insufficient balance edge case: seller already withdrew funds
+          // Insufficient balance edge case: shop partner already withdrew funds
           recoveredPaisa = Math.max(0, availPaisa);
           deficitPaisa = itemAmtPaisa - recoveredPaisa;
           totalDeficitPaisa += deficitPaisa;

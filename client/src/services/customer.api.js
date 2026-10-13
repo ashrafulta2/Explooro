@@ -22,7 +22,7 @@ export const customerApi = {
   },
 
   /**
-   * Fetches following feed (product drops, live streams, stories from followed sellers).
+   * Fetches following feed (product drops, live streams, stories from followed shop partners).
    */
   async getFollowingFeed() {
     return api.get('/customer/following-feed');
@@ -36,7 +36,7 @@ export const customerApi = {
   },
 
   /**
-   * 1-Click genuine saler upgrade.
+   * 1-Click genuine shop partner upgrade.
    */
   async becomeSaler() {
     return api.post('/customer/become-saler');

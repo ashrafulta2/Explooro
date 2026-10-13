@@ -39,7 +39,7 @@ const ALL_ROLES = [
   { id: 1, key: 'super_admin', label_en: 'Super Admin', level: 100 },
   { id: 2, key: 'admin', label_en: 'Admin', level: 80 },
   { id: 3, key: 'moderator', label_en: 'Moderator', level: 60 },
-  { id: 4, key: 'saler', label_en: 'Saler', level: 20 },
+  { id: 4, key: 'saler', label_en: 'Shop Partner', level: 20 },
   { id: 5, key: 'customer', label_en: 'Customer', level: 10 },
 ];
 

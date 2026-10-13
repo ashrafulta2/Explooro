@@ -547,7 +547,7 @@ export default function ProfilePage(root, { navigate } = {}) {
       'profile.section_location',
       'Location',
       'profile.section_location_desc',
-      'Where you are, so Explooro can show relevant sellers and delivery estimates.',
+      'Where you are, so Explooro can show relevant shop partners and delivery estimates.',
       [fields.division, fields.district, fields.upazila, fields.postal_code, fields.address_line, linkRow]
     );
 

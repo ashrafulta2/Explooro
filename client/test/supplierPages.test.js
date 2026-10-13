@@ -334,8 +334,8 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
   });
 });
 
-test('10. Saler Insights & Currency Formatting Integrity', async (t) => {
-  await t.test('GET /supplier/salers returns top salers and regional distribution', () => {
+test('10. Shop Partner Insights & Currency Formatting Integrity', async (t) => {
+  await t.test('GET /supplier/salers returns top shop partners and regional distribution', () => {
     const handler = supplierHandlers.find((h) => h.method === 'GET' && h.path === '/supplier/salers');
     assert.ok(handler, 'GET /supplier/salers handler exists');
 

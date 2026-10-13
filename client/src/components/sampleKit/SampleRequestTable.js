@@ -1,5 +1,5 @@
 /**
- * SampleRequestTable — sample requests as a supplier handles them or a saler follows them.
+ * SampleRequestTable — sample requests as a supplier handles them or a shop partner follows them.
  *
  * One table for both audiences because the rows are the same facts; `perspective` only decides who
  * the "other party" column names. What a row can DO is passed in (`actionsFor`), so this file never

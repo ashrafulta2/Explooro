@@ -47,7 +47,7 @@ function call(fn, db, { body = {} } = {}) {
   return fn({ server: { db }, params: {}, body, user: { id: 1 }, ip: '127.0.0.1' }, reply).then(() => out);
 }
 
-describe('Finance splits: saler commission tier rules', () => {
+describe('Finance splits: shop partner commission tier rules', () => {
   test('GET shows the stored ladder, and the criteria text is built from it', async () => {
     const { payload } = await call(getProfitSplits, createDb({ rules: RULES }));
     assert.deepEqual(payload.data.tier_rules, RULES);
@@ -64,7 +64,7 @@ describe('Finance splits: saler commission tier rules', () => {
     assert.equal(payload.data.tiers.find((t) => t.tier === 'SILVER').min_volume, 50000);
   });
 
-  test('saving rules alone leaves the bonuses untouched, writes one audit row and re-tiers salers', async () => {
+  test('saving rules alone leaves the bonuses untouched, writes one audit row and re-tiers shop partners', async () => {
     const db = createDb();
     const res = await call(updateTierBonuses, db, { body: { rules: RULES, reason: 'Eid push' } });
     assert.equal(res.status, 200);

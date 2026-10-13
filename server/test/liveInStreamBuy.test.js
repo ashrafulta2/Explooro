@@ -135,7 +135,7 @@ describe('executeInStreamBuy', () => {
     assert.equal(db.log.orderParams[4], 60);
     assert.equal(db.log.orderParams[2], 1210);
     assert.equal(res.order.live_stream_id, 50);
-    // sub-order: supplier from the product, host as saler, totals consistent
+    // sub-order: supplier from the product, host as shop partner, totals consistent
     assert.equal(db.log.subOrderParams[2], 7);
     assert.equal(db.log.subOrderParams[3], 10);
     const [, , , , , , , netRetail, saler, platform] = db.log.subOrderParams;

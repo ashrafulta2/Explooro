@@ -13,7 +13,7 @@ export default async function storeRoutes(fastify) {
   fastify.get('/og/store/:slug', storeController.getStoreOgImage);
   fastify.get('/og/product/:slug', storeController.getProductOgImage);
 
-  // Saler Store Management (Protected)
+  // Shop Partner Store Management (Protected)
   // WHY preHandler and not `config: { requireModule, requirePermission }`: nothing in the server
   // reads `routeOptions.config` — there is no onRoute hook that turns those keys into guards — so
   // the declarative form these four routes used compiled down to "authenticate only". Any signed-in

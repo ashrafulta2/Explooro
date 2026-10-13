@@ -1,9 +1,9 @@
 /**
- * returnProtection.service.js — A saler keeps their commission when a protected order is returned
+ * returnProtection.service.js — A shop partner keeps their commission when a protected order is returned
  * (supplier attraction, step 5b).
  *
- * A return claws the saler's commission back along with everyone else's, and the saler did nothing
- * wrong. A supplier can opt in to make the saler whole. The platform stands behind that promise:
+ * A return claws the shop partner's commission back along with everyone else's, and the shop partner did nothing
+ * wrong. A supplier can opt in to make the shop partner whole. The platform stands behind that promise:
  * the treasury pays the claim, and is paid for the risk by a premium on protected orders that complete.
  *
  * Invariants:
@@ -12,9 +12,9 @@
  *      orders already sold, and joining never covers orders already sold.
  *   2. One cover per sub-order (a UNIQUE key), so a claim can be paid at most once however many times the
  *      refund path, the job or a retry reaches it.
- *   3. A claim pays back only what the clawback actually took from the saler, capped at `max_claim_amount`:
- *      min(insured commission, the saler's clawed-back escrow entry, cap). If nothing was taken, nothing is paid.
- *   4. The treasury cannot be farmed: a saler past `max_claims_per_saler_30d` paid claims in 30 days has
+ *   3. A claim pays back only what the clawback actually took from the shop partner, capped at `max_claim_amount`:
+ *      min(insured commission, the shop partner's clawed-back escrow entry, cap). If nothing was taken, nothing is paid.
+ *   4. The treasury cannot be farmed: a shop partner past `max_claims_per_saler_30d` paid claims in 30 days has
  *      further claims DENIED (recorded, with the reason), not paid.
  *   5. The premium is charged once, only after the supplier's money has really been released, and only if
  *      the supplier can pay it from their AVAILABLE balance. An order that is returned first never pays one.
@@ -85,7 +85,7 @@ export function premiumPaisa(insuredAmount, premiumPct) {
   return Math.round((toPaisa(insuredAmount) * premiumPct) / 100);
 }
 
-/** What a claim pays, in paisa: never more than was insured, taken from the saler, or allowed per order. */
+/** What a claim pays, in paisa: never more than was insured, taken from the shop partner, or allowed per order. */
 export function claimPaisa({ insured, clawedBack, maxClaim }) {
   return Math.max(0, Math.min(toPaisa(insured), toPaisa(clawedBack), toPaisa(maxClaim)));
 }
@@ -201,7 +201,7 @@ export async function getSalerView(db, salerId) {
 // ---- the claim --------------------------------------------------------------------------------------------
 
 /**
- * Pays the saler what a return clawed back from them, if the order was covered. Runs inside the caller's
+ * Pays the shop partner what a return clawed back from them, if the order was covered. Runs inside the caller's
  * transaction (the refund's), so the claim and the refund commit together. Returns a description of what
  * happened, or null when the order carries no cover.
  */
@@ -210,10 +210,10 @@ export async function payClaim(client, { subOrderId, returnRequestId = null, app
   const cover = await ensureCover(client, subOrderId, rules);
   if (!cover || cover.status !== 'ACTIVE') return null;
 
-  // Only what the clawback actually took: a saler whose commission was never clawed back lost nothing.
+  // Only what the clawback actually took: a shop partner whose commission was never clawed back lost nothing.
   const entry = await repo.getSalerEscrowEntry(client, subOrderId, cover.saler_id);
   if (!entry || entry.status !== 'CLAWED_BACK') {
-    // WHY closed, not left ACTIVE: the order was refunded and nothing was taken from the saler, so there is
+    // WHY closed, not left ACTIVE: the order was refunded and nothing was taken from the shop partner, so there is
     // nothing to claim now or later; leaving it ACTIVE would have the claim sweep revisit it forever.
     await repo.markDenied(client, cover.id, 'NOT_CLAWED_BACK', returnRequestId);
     return { denied: true, reason: 'NOT_CLAWED_BACK', coverId: cover.id };
@@ -238,7 +238,7 @@ export async function payClaim(client, { subOrderId, returnRequestId = null, app
     txnGroupId,
     entries: [
       // WHY the treasury may go below zero here: the claim is the platform's promise, and refusing to
-      // pay it because the pool is momentarily empty would break that promise to the saler.
+      // pay it because the pool is momentarily empty would break that promise to the shop partner.
       { walletId: treasuryWallet.id, entryType: 'DEBIT', amount: fromPaisa(pay), balanceBucket: 'AVAILABLE', idempotencyKey: `${key}:out` },
       { walletId: salerWallet.id, entryType: 'CREDIT', amount: fromPaisa(pay), balanceBucket: 'AVAILABLE', idempotencyKey: `${key}:in` },
     ],
@@ -339,7 +339,7 @@ export async function settleDue(db, logger = console) {
 
 /**
  * The refund path's way in. The claim runs inside a savepoint so that a failure undoes only the claim:
- * the buyer's refund must never be held up by the saler's compensation. A claim that fails here is paid
+ * the buyer's refund must never be held up by the shop partner's compensation. A claim that fails here is paid
  * later by the job's claim sweep (settleDue), which finds refunded returns whose cover is still ACTIVE.
  */
 export async function payClaimSafely(client, args, logger = console) {

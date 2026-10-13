@@ -187,7 +187,7 @@ export function generateFlyerSvg({
     <circle cx="50" cy="40" r="24" fill="${primaryAccent}" />
     <text x="50" y="48" font-size="20" text-anchor="middle" fill="#ffffff" class="font-brand" font-weight="900">⚡</text>
     <text x="90" y="38" font-size="20" fill="${textColor}" class="font-brand" font-weight="800">${shopName}</text>
-    <text x="90" y="58" font-size="13" fill="${mutedColor}" class="font-brand">Verified Explooro Social Seller · Dhaka</text>
+    <text x="90" y="58" font-size="13" fill="${mutedColor}" class="font-brand">Verified Explooro Social Shop Partner · Dhaka</text>
   </g>
 
   <!-- Main Showcase Card -->

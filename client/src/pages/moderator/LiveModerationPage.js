@@ -15,7 +15,7 @@
  *                 with advisory flags resolved per message, who is currently muted, and the log of
  *                 every moderation action already taken on it.
  *
- * Three actions, deliberately ordered by how much they cost the seller:
+ * Three actions, deliberately ordered by how much they cost the shop partner:
  *   1. Remove one message   (chat.message.moderate) — the sale continues.
  *   2. Mute a participant   (moderation.live.handle) — timed, reversible, they can still buy.
  *   3. Terminate the stream (live.stream.terminate)  — HIGH tier, so a moderator's request is

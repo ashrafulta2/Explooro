@@ -230,7 +230,7 @@ export async function terminateStream(db, { streamId, moderatorId, reason }) {
     metadataJson: { action: 'TERMINATE', moderatorId, reason },
   });
 
-  // WHY: cutting a seller's broadcast off mid-sale is one of the most contestable actions a
+  // WHY: cutting a shop partner's broadcast off mid-sale is one of the most contestable actions a
   // moderator can take, and it was writing nothing to audit_logs — leaving no before/after to
   // answer "who stopped my stream, and on what grounds?" with.
   await auditService.record(db, {
@@ -645,7 +645,7 @@ export async function executeInStreamBuy(pool, cache, {
 
       // WHY before any write: COD_OTP_REQUIRED throws and rolls the transaction back, so no stock is
       // taken for an order the shopper has not confirmed. Same gate as checkout and team purchase.
-      // WHY the host as saler is resolved first: SALER-scoped coupons match on it.
+      // WHY the host as shop partner is resolved first: SALER-scoped coupons match on it.
       const salerId = stream.host_id ? Number(stream.host_id) : null;
 
       // WHY validated here: under the coupon row lock (forUpdate), so two orders cannot both take the
@@ -694,8 +694,8 @@ export async function executeInStreamBuy(pool, cache, {
         trustScoreAtOrder = gate.trustScore;
       }
 
-      // WHY the host: the stream's host is the seller whose audience bought, so the sub-order carries
-      // them as saler and the normal commission split applies.
+      // WHY the host: the stream's host is the shop partner whose audience bought, so the sub-order carries
+      // them as shop partner and the normal commission split applies.
       const split = await resolveSplitPercentages(client, {
         productId: prod.id,
         productRef: prod.ref,

@@ -1,7 +1,7 @@
 /**
  * ReferralHubPage.js — Multi-Tier Referral & Network Growth Hub (Prompts 9.3 & 11.3).
  *
- * Provides a viral, high-conversion growth workspace for both Customers & Salers:
+ * Provides a viral, high-conversion growth workspace for both Customers & Shop Partners:
  * 1. 2-Tier Earnings Model: Tier 1 (Direct 5%) + Tier 2 (Sub-network 2%) + 100 Loyalty Coins / invite.
  * 2. 1-Tap Viral Share Kit: Copy Code, Copy Link, WhatsApp Web/App, Facebook, QR & Social Story Card.
  * 3. 4 Executive Telemetry KPIs: Network Size, Tier 1, Tier 2, Commissions in Escrow & Available.
@@ -620,7 +620,7 @@ export class ReferralHubPage {
 
           <div class="referral-faq-item">
             <h4 class="referral-faq-q">${t('referrals.faq_q3', 'ক্রেতা এবং বিক্রেতা উভয়েই কি রেফার করতে পারেন?')}</h4>
-            <p class="referral-faq-a">${t('referrals.faq_a3', 'হ্যাঁ! যেকোনো এক্সপ্লোরো গ্রাহক বা সেলার রেফার করে সরাসরি নগদ টাকা ও রিওয়ার্ড কয়েন আয় করতে পারবেন।')}</p>
+            <p class="referral-faq-a">${t('referrals.faq_a3', 'হ্যাঁ! যেকোনো এক্সপ্লোরো গ্রাহক বা শপ পার্টনার রেফার করে সরাসরি নগদ টাকা ও রিওয়ার্ড কয়েন আয় করতে পারবেন।')}</p>
           </div>
         </div>
       </div>

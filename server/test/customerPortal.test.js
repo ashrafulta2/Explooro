@@ -1,8 +1,8 @@
 /**
- * customerPortal.test.js — Automated test suite for Prompt 11.3 (Customer Portal, Following Feed & 1-Click Saler Upgrade).
+ * customerPortal.test.js — Automated test suite for Prompt 11.3 (Customer Portal, Following Feed & 1-Click Shop Partner Upgrade).
  *
  * Verifies all ACCEPTANCE criteria from docs/prompt.md Prompt 11.3:
- * 1. 1-Click saler upgrade completes in under 3 seconds, creates saler role, and provisions virtual store.
+ * 1. 1-Click shop partner upgrade completes in under 3 seconds, creates shop partner role, and provisions virtual store.
  * 2. Price-drop alerts fire for wishlisted items with lower retail prices.
  * 3. Low-literacy design principles (icon-led touch targets, plain Bengali copy).
  * 4. Orders visual tracking stages resolve accurately with courier info and warranty cards.
@@ -33,12 +33,12 @@ function createMockDb({ queryHandler = null } = {}) {
   return db;
 }
 
-describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrade', () => {
+describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Shop Partner Upgrade', () => {
 
   // ---------------------------------------------------------------------------
-  // 1. 1-Click Genuine Saler Upgrade (Acceptance 1)
+  // 1. 1-Click Genuine Shop Partner Upgrade (Acceptance 1)
   // ---------------------------------------------------------------------------
-  test('Acceptance 1: 1-click saler upgrade creates saler role, provisions virtual store with suggested slug, and completes rapidly', async () => {
+  test('Acceptance 1: 1-click shop partner upgrade creates shop partner role, provisions virtual store with suggested slug, and completes rapidly', async () => {
     let insertedRoles = [];
     let insertedStores = [];
     let insertedWallets = [];
@@ -105,7 +105,7 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
     assert.equal(result.already_existed, false);
     assert.equal(result.redirect_url, '/saler/store-builder');
     assert.ok(result.store.slug.includes('ashraful-islam-3344'));
-    assert.ok(insertedRoles.includes('saler'), 'Must insert saler role into user_roles');
+    assert.ok(insertedRoles.includes('saler'), 'Must insert shop partner role into user_roles');
     assert.equal(insertedStores.length, 1, 'Must provision 1 virtual store');
     assert.ok(insertedWallets.includes(42), 'Must ensure user wallet exists');
   });
@@ -467,7 +467,7 @@ describe('Prompt 11.3 — Customer Portal, Following Feed & 1-Click Saler Upgrad
 
     // 2. Suggestions are returned even though the customer already follows a store.
     // Regression guard: this used to be computed ONLY on the zero-follow path, so the client's
-    // "Discover Sellers" tab and its header CTA were permanently empty for every real follower.
+    // "Discover Shop Partners" tab and its header CTA were permanently empty for every real follower.
     assert.equal(feed.suggested_stores.length, 1, 'suggestions must not be gated on having zero follows');
     assert.equal(feed.suggested_stores[0].is_following, false);
 

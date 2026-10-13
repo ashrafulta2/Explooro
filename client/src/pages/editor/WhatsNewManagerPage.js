@@ -62,7 +62,7 @@ export default function WhatsNewManagerPage(root) {
           <label for="update-aud">Target Audience *</label>
           <select class="form-select" id="update-aud">
             <option value="ALL" ${existing?.target_audience === 'ALL' ? 'selected' : ''}>🌐 All Users</option>
-            <option value="SALERS" ${existing?.target_audience === 'SALERS' ? 'selected' : ''}>🛍️ Salers Only</option>
+            <option value="SALERS" ${existing?.target_audience === 'SALERS' ? 'selected' : ''}>🛍️ Shop Partners Only</option>
             <option value="SUPPLIERS" ${existing?.target_audience === 'SUPPLIERS' ? 'selected' : ''}>🏭 Suppliers Only</option>
           </select>
         </div>

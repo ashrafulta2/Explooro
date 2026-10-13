@@ -28,7 +28,7 @@ Authenticate requests using either of the following HTTP headers:
 | Scope | Description |
 |---|---|
 | `catalog.products.read` | Read-only access to products, variants, and stock availability |
-| `catalog.stores.read` | Read-only access to published seller stores and curated items |
+| `catalog.stores.read` | Read-only access to published shop partner stores and curated items |
 | `catalog.categories.read` | Read-only access to categories and navigation trees |
 | `orders.create` | Write permission to inject partner orders on behalf of customers |
 | `webhooks.manage` | Permission to register, update, and inspect webhook endpoints |
@@ -147,7 +147,7 @@ paths:
         - Stores
       responses:
         '200':
-          description: List of active seller stores
+          description: List of active shop partner stores
 
   /public/stores/{idOrSlug}:
     get:

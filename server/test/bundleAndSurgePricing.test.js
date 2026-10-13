@@ -4,7 +4,7 @@
  * Verifies the ACCEPTANCE criteria from docs/prompt.md Prompt 10.5:
  * 1. Multi-supplier cross-seller combo creation with deterministic discount apportionment.
  * 2. Two-supplier bundle produces two sub-orders with correctly apportioned discount and margins.
- * 3. Ledger balances exactly after a bundle sale (Customer Payment === Supplier Payouts + Saler Profit + Platform Margin).
+ * 3. Ledger balances exactly after a bundle sale (Customer Payment === Supplier Payouts + Shop Partner Profit + Platform Margin).
  * 4. Price floor validation: rejects combo price below combined wholesale base costs.
  * 5. Dynamic demand surge detection: evaluates order velocity, stock depletion rate, and search traffic.
  * 6. Surge pricing recommends but NEVER applies automatically, and respects the platform increase cap.
@@ -113,7 +113,7 @@ describe('Prompt 10.5 — Cross-Seller Bundling & Demand Surge Pricing', () => {
     assert.equal(item2.platformMargin, 168.00); // 60% of 280
 
     // 3. Double-entry ledger balance invariant:
-    // Customer Payment (2,550.00) === Supplier 1 Payout (800) + Supplier 2 Payout (1250) + Saler Commission (200) + Platform Margin (300)
+    // Customer Payment (2,550.00) === Supplier 1 Payout (800) + Supplier 2 Payout (1250) + Shop Partner Commission (200) + Platform Margin (300)
     const totalSupplierPayouts = breakdown.suppliers.reduce((acc, s) => acc + s.total_wholesale_payout, 0);
     assert.equal(totalSupplierPayouts, 2050.00);
     assert.equal(breakdown.total_saler_commission, 200.00);

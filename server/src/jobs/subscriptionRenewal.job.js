@@ -1,5 +1,5 @@
 /**
- * subscriptionRenewal.job.js — hourly Saler Pro renewal sweep.
+ * subscriptionRenewal.job.js — hourly Shop Partner Pro renewal sweep.
  *
  * Bills renewals, runs the grace period, lifts expired waivers and sends renewal reminders
  * (see subscriptionBilling.service.js). Gated on the `subscription_fees` module by the scheduler:
