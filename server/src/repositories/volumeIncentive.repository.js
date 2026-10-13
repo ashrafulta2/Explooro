@@ -66,11 +66,11 @@ export async function upsertVersion(db, { supplierId, validFrom, isActive, tiers
 }
 
 /**
- * Delivered volume per saler for the given suppliers in one calendar month (platform timezone).
+ * Delivered volume per shop partner for the given suppliers in one calendar month (platform timezone).
  *
  * Volume is the goods value: total_amount less shipping. Only DELIVERED counts - and it is read at
  * settlement time, after `settle_lag_days`, so a return that flipped the status in the meantime has
- * already dropped out. A supplier's own account is never a saler of itself.
+ * already dropped out. A supplier's own account is never a shop partner of itself.
  */
 export async function volumeBySaler(db, { supplierIds, periodStart, periodEnd, timezone }) {
   if (!supplierIds.length) return [];
@@ -89,7 +89,7 @@ export async function volumeBySaler(db, { supplierIds, periodStart, periodEnd, t
   return rows;
 }
 
-/** One saler's running volume against each supplier, this month - for the progress cards. */
+/** One shop partner's running volume against each supplier, this month - for the progress cards. */
 export async function volumeForSaler(db, { salerId, periodStart, periodEnd, timezone }) {
   const { rows } = await db.query(
     `SELECT supplier_id, SUM(total_amount - shipping_amount) AS volume
@@ -103,7 +103,7 @@ export async function volumeForSaler(db, { salerId, periodStart, periodEnd, time
   return rows;
 }
 
-/** Inserts the payout row if this supplier x saler x month has none. Returns the row only when new. */
+/** Inserts the payout row if this supplier x shop partner x month has none. Returns the row only when new. */
 export async function insertPayoutIfAbsent(db, p) {
   const { rows } = await db.query(
     `INSERT INTO volume_incentive_payouts

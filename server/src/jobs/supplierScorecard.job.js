@@ -24,7 +24,7 @@ export async function runSupplierScorecard(db, cache, logger = console) {
 }
 
 // WHY daily: the window is weeks long, so one day of drift moves a score by a fraction of a point,
-// and a daily rebuild keeps the grade steady enough that a saler does not see it flicker.
+// and a daily rebuild keeps the grade steady enough that a shop partner does not see it flicker.
 registerJob({
   name: 'supplier_scorecard',
   intervalMs: 24 * 3600000,

@@ -3,8 +3,8 @@
  *
  * Implements:
  * - depositToEscrow(subOrderId, breakdown): locks funds into pending_escrow_balance
- * - releaseEscrow(subOrderId): moves pending → available for supplier, saler, and platform
- * - executeClawback(subOrderId, reason): reverses pending/available, zeroes saler commission, credits refund
+ * - releaseEscrow(subOrderId): moves pending → available for supplier, shop partner, and platform
+ * - executeClawback(subOrderId, reason): reverses pending/available, zeroes shop partner commission, credits refund
  * - Strict double-entry invariant verification and row-level FOR UPDATE locking
  * - Strict idempotency keyed by (subOrderId, operation) to eliminate double-crediting
  */
@@ -71,7 +71,7 @@ export async function resolveClearingWalletId(txClient) {
  * @param {Object} [params.breakdown] - Explicit breakdown (supplierAmount, salerCommission, platformMargin)
  * @param {number} [params.buyerWalletId] - Buyer's wallet ID (or customer user ID)
  * @param {number} [params.supplierWalletId] - Supplier's wallet ID
- * @param {number} [params.salerWalletId] - Saler's wallet ID (if applicable)
+ * @param {number} [params.salerWalletId] - Shop Partner's wallet ID (if applicable)
  * @param {number} [params.platformWalletId] - Platform system wallet ID
  * @param {number} [params.holdDays=7] - Escrow return window hold in days
  * @param {string} [params.idempotencyKey]
@@ -182,8 +182,8 @@ export async function depositToEscrow(db, {
     let salerPaisa = Math.round(parseFloat(salerAmt || '0') * 100);
     let platformPaisa = Math.round(parseFloat(platformAmt || '0') * 100);
 
-    // WHY: an order bought straight from the product page has no saler, but pricing still splits a
-    // saler share into saler_commission. With no saler wallet that share was counted in the buyer's
+    // WHY: an order bought straight from the product page has no shop partner, but pricing still splits a
+    // shop partner share into saler_commission. With no shop partner wallet that share was counted in the buyer's
     // debit and credited to nobody, so the ledger refused the group as unbalanced and no escrow was
     // locked. Nobody sold it, so the platform keeps that share.
     if (salerPaisa > 0 && !resolvedSalerWalletId) {
@@ -300,7 +300,7 @@ export async function depositToEscrow(db, {
         referenceType: 'SUB_ORDER',
         referenceId: subOrderId,
         idempotencyKey: idempotencyKey ? `${idempotencyKey}:saler_escrow` : `escrow_lock:${subOrderId}:saler`,
-        memo: `Saler pending commission escrow hold for sub-order #${subOrderId}`,
+        memo: `Shop Partner pending commission escrow hold for sub-order #${subOrderId}`,
         createdBy,
       });
     }
@@ -508,7 +508,7 @@ export async function releaseEscrow(db, {
 
 /**
  * Executes a clawback for a sub-order (e.g. return, dispute, or cancellation).
- * Reverses pending or available balances, zeroes saler commission, and refunds buyer.
+ * Reverses pending or available balances, zeroes shop partner commission, and refunds buyer.
  *
  * @param {import('pg').Pool} db
  * @param {Object} params

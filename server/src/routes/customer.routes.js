@@ -20,7 +20,7 @@ export default async function customerRoutes(fastify) {
     customerCtrl.getOrders
   );
 
-  // 3. Following Sellers Feed
+  // 3. Following Shop Partners Feed
   fastify.get(
     '/customer/following-feed',
     { preHandler: [fastify.authenticate] },
@@ -34,7 +34,7 @@ export default async function customerRoutes(fastify) {
     customerCtrl.toggleFollowStore
   );
 
-  // 5. 1-Click Saler Upgrade
+  // 5. 1-Click Shop Partner Upgrade
   fastify.post(
     '/customer/become-saler',
     { preHandler: [fastify.authenticate] },

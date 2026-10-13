@@ -168,7 +168,7 @@ describe('VIEW and DWELL rules', () => {
     assert.deepEqual(types, ['VIEW:5', 'VIEW:6', 'CLICK:5', 'CLICK:5']);
   });
 
-  it('the same product seen by the saler audience is a separate VIEW', () => {
+  it('the same product seen by the shop partner audience is a separate VIEW', () => {
     signals.track('VIEW', { id: 5 }, { audience: 'customer' });
     signals.track('VIEW', { id: 5 }, { audience: 'saler' });
     signals.flushSignals();

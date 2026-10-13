@@ -1,9 +1,9 @@
 /**
- * IncentivePayoutTable — the monthly volume-incentive rebates, as the supplier paid them or the saler
+ * IncentivePayoutTable — the monthly volume-incentive rebates, as the supplier paid them or the shop partner
  * received them.
  *
  * One table for both audiences because the rows are the same facts; `perspective` only decides which
- * column is first (a supplier looks for the saler's share, a saler looks for who paid).
+ * column is first (a supplier looks for the shop partner's share, a shop partner looks for who paid).
  *
  * Invariants:
  *  - Status is always words (Paid / Waiting for funds / Not paid), never colour alone.

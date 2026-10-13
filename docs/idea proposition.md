@@ -1,7 +1,7 @@
 # 🚀 Explooro — Business & Technical Idea Proposition
 
-> **Next-Generation Social Commerce, Saler Partnership & Smart Sourcing Ecosystem**  
-> *Empowering manufacturers, digital micro-entrepreneurs (Salers), and everyday shoppers to trade, share profits, and grow together.*
+> **Next-Generation Social Commerce, Shop Partner Network & Smart Sourcing Ecosystem**  
+> *Empowering manufacturers, digital micro-entrepreneurs (Shop Partners), and everyday shoppers to trade, share profits, and grow together.*
 
 ---
 
@@ -9,13 +9,13 @@
 
 **Explooro** is a high-performance, industry-scale social e-commerce and selling platform designed around a collaborative, **profit-sharing partnership model**.
 
-Unlike conventional single-vendor stores or traditional dropshipping websites, Explooro bridges physical inventory owners (**Manufacturers & Suppliers**) with digital micro-entrepreneurs (**Salers**) and end **Customers** in a single interconnected, self-sustaining circular economy.
+Unlike conventional single-vendor stores or traditional dropshipping websites, Explooro bridges physical inventory owners (**Manufacturers & Suppliers**) with digital micro-entrepreneurs (**Shop Partners**) and end **Customers** in a single interconnected, self-sustaining circular economy.
 
 ### 🌟 The Core Vision
 * **Manufacturers & Suppliers**: Focus purely on production, inventory management, and fast fulfillment.
-* **Salers (Virtual Salers)**: Build personalized virtual storefronts without holding physical stock, sourcing supplier items and driving sales through storytelling, community engagement, and internal advertising.
+* **Shop Partners (Virtual Shop Partners)**: Build personalized virtual storefronts without holding physical stock, sourcing supplier items and driving sales through storytelling, community engagement, and internal advertising.
 * **Customers**: Enjoy a personalized, social shopping experience with transparent ratings, verified suppliers, AI-assisted product discovery, and one-click purchasing.
-* **Fluid Role Upgrades**: Any customer can upgrade to become a Saler with one click; any supplier or Saler can purchase products from other members for personal or business needs.
+* **Fluid Role Upgrades**: Any customer can upgrade to become a Shop Partner with one click; any supplier or Shop Partner can purchase products from other members for personal or business needs.
 
 ---
 
@@ -32,7 +32,7 @@ The financial backbone of Explooro is a **dynamic, multi-tier profit-sharing eng
                                                   ┌────────────────────────────────────┴────────────────────────────────────┐
                                                   ▼                                                                         ▼
                                      ┌─────────────────────────┐                                               ┌─────────────────────────┐
-                                     │      Saler Profit       │                                               │     Explooro Margin      │
+                                     │      Shop Partner Profit       │                                               │     Explooro Margin      │
                                      │ (Configurable: e.g. 40%)│                                               │ (Configurable: e.g. 60%)│
                                      └─────────────────────────┘                                               └─────────────────────────┘
 ```
@@ -40,15 +40,15 @@ The financial backbone of Explooro is a **dynamic, multi-tier profit-sharing eng
 ### 💰 Dynamic Pricing & Profit Rules
 
 1. **Configurable Profit-Sharing Splits**:
-   * The profit split ratio between Explooro and Salers is flexible and manageable from the Admin Panel.
-   * *Example Scenario*: During normal operations, net retail profit is split **40% Saler / 60% Explooro**. During promotional seasons or for top-tier Salers, this ratio can be boosted (e.g., 50/50, 45/55, or custom tier-based splits).
+   * The profit split ratio between Explooro and Shop Partners is flexible and manageable from the Admin Panel.
+   * *Example Scenario*: During normal operations, net retail profit is split **40% Shop Partner / 60% Explooro**. During promotional seasons or for top-tier Shop Partners, this ratio can be boosted (e.g., 50/50, 45/55, or custom tier-based splits).
 2. **Product Listing & Dynamic Pricing Calculation**:
    * **Supplier Listing**: The supplier uploads their product with the base production cost plus their own wholesale profit (e.g., Base = **Tk. 500**).
    * **Dynamic Retail Adjustment**: Explooro calculates the final customer retail price automatically or manually according to active margin rules and market competition (e.g., Retail Price = **Tk. 600**, Net Retail Margin = **Tk. 100**).
 3. **Settlement Upon Order Completion**:
-   * When a customer purchases from a Saler's virtual storefront:
+   * When a customer purchases from a Shop Partner's virtual storefront:
      * **Supplier Receives**: Full base cost + wholesale margin (**Tk. 500**).
-     * **Saler Receives**: Active percentage of retail profit (e.g., 40% of Tk. 100 = **Tk. 40**).
+     * **Shop Partner Receives**: Active percentage of retail profit (e.g., 40% of Tk. 100 = **Tk. 40**).
      * **Explooro Receives**: Platform operating margin (e.g., 60% of Tk. 100 = **Tk. 60**).
 4. **Digital Profit Vault & Payouts**:
    * Every subscriber account features an integrated **Digital Vault (Wallet)** where earnings are credited in real time upon verified delivery.
@@ -56,7 +56,7 @@ The financial backbone of Explooro is a **dynamic, multi-tier profit-sharing eng
    * Flexible payouts supported via **bKash, Nagad, Rocket, and Direct Bank Transfer** (with both automated batch payouts and manual approval workflows).
 
 5. **Zero Initial Fees & Future Configurable Subscription/Fee Engine**:
-   * **100% Free Onboarding at Launch**: During the initial launch and growth phase, Explooro charges **ZERO registration fees, ZERO monthly subscription fees, and ZERO listing fees** to Manufacturers, Suppliers, and Salers. This removes all entry barriers and drives rapid community adoption.
+   * **100% Free Onboarding at Launch**: During the initial launch and growth phase, Explooro charges **ZERO registration fees, ZERO monthly subscription fees, and ZERO listing fees** to Manufacturers, Suppliers, and Shop Partners. This removes all entry barriers and drives rapid community adoption.
    * **Future-Ready Scalable Fee System**: A comprehensive fee and subscription engine is architected into the core platform, remaining inactive (`OFF`) initially.
    * **Admin & Authorized Staff Governance**: When the business matures, the **Super Admin (or authorized staff appointed by the Admin)** can activate and configure fee structures directly from the dashboard:
      * *Optional Subscription Tiers*: Free Starter vs. Pro/Elite Merchant plans (with perks like lower commission rates, VIP ad credits, or advanced analytics).
@@ -73,22 +73,22 @@ Explooro operates on a **multi-level Role-Based Access Control (RBAC)** architec
 
 | Role | Who They Are | Key Capabilities |
 | :--- | :--- | :--- |
-| **🏭 Supplier / Manufacturer** | Physical inventory holders and factory owners. | • Upload products with base cost, wholesale margins & stock levels.<br>• Manage order fulfillment, packaging, and dispatch.<br>• Activate Saler mode to resell products from other suppliers.<br>• Real-time stock alerts and wholesale performance analytics. |
-| **🛍️ Saler (Virtual Saler)** | Digital creators, marketers, micro-entrepreneurs. | • Add any supplier item to their virtual shop with zero inventory risk.<br>• Market via storytelling, problem-solving posts, and video clips.<br>• Run paid sponsored ads within Explooro to boost reach.<br>• Earn commissions on every completed purchase. |
-| **🛒 Customer / Visitor** | Everyday shoppers looking for curated products. | • Browse multi-seller catalogs, discover trending items.<br>• Follow favorite creators, Salers, and verified manufacturers.<br>• 1-click upgrade to become a Saler anytime. |
+| **🏭 Supplier / Manufacturer** | Physical inventory holders and factory owners. | • Upload products with base cost, wholesale margins & stock levels.<br>• Manage order fulfillment, packaging, and dispatch.<br>• Activate Shop Partner mode to resell products from other suppliers.<br>• Real-time stock alerts and wholesale performance analytics. |
+| **🛍️ Shop Partner (Virtual Shop Partner)** | Digital creators, marketers, micro-entrepreneurs. | • Add any supplier item to their virtual shop with zero inventory risk.<br>• Market via storytelling, problem-solving posts, and video clips.<br>• Run paid sponsored ads within Explooro to boost reach.<br>• Earn commissions on every completed purchase. |
+| **🛒 Customer / Visitor** | Everyday shoppers looking for curated products. | • Browse multi-seller catalogs, discover trending items.<br>• Follow favorite creators, Shop Partners, and verified manufacturers.<br>• 1-click upgrade to become a Shop Partner anytime. |
 
 ### B. Platform Governance & Administrative Hierarchy
 
 | Administrative Role | Operational Scope | Core Permissions |
 | :--- | :--- | :--- |
 | **👑 Super Admin** | Complete Platform Authority & Executive Oversight | • Full financial governance, revenue analytics, profit split controls.<br>• Master Feature Toggle Panel (turn any module ON/OFF).<br>• User verification approval (NID, Trade License), payout approvals.<br>• Staff role management (create/assign Admins, Moderators, Editors).<br>• System backups, database snapshots, and infrastructure health. |
-| **🛡️ Moderator** | Trust, Safety, Compliance & Dispute Arbitration | • Product approval and listing moderation queue.<br>• Flagged content, fake reviews, and abusive user report handling.<br>• Return & refund dispute arbitration between Buyer ↔ Saler ↔ Supplier.<br>• Issuing seller warnings, policy strikes, or temporary suspensions. |
+| **🛡️ Moderator** | Trust, Safety, Compliance & Dispute Arbitration | • Product approval and listing moderation queue.<br>• Flagged content, fake reviews, and abusive user report handling.<br>• Return & refund dispute arbitration between Buyer ↔ Shop Partner ↔ Supplier.<br>• Issuing shop partner warnings, policy strikes, or temporary suspensions. |
 | **✍️ Editor** | Content, Communications, Marketing & Localization | • Managing homepage banners, hero sliders, and featured collections.<br>• Publishing official "What's New" release notes and announcements.<br>• Curating storytelling and content commerce articles.<br>• Managing multi-language translation dictionaries (i18n UI keys). |
 
 ### 🌐 Interconnected Trading Network (Circular Economy)
 * Users are never restricted to a single rigid persona.
-* A supplier can purchase raw materials, accessories, or personal items from other Salers or suppliers.
-* Salers can buy complementary goods from one another to create product bundles.
+* A supplier can purchase raw materials, accessories, or personal items from other Shop Partners or suppliers.
+* Shop Partners can buy complementary goods from one another to create product bundles.
 * Fosters an active, self-sustaining community where members satisfy each other's commercial needs.
 
 ---
@@ -109,20 +109,20 @@ The Super Admin Dashboard includes a centralized **Module Control Panel** — a 
 │  Module / Feature                                │  Default   │  Notes                             │
 ├──────────────────────────────────────────────────┼────────────┼────────────────────────────────────┤
 │  Supplier / Manufacturer Verification            │  🟢 ON     │  Mandatory before product listing  │
-│  Saler Verification                   │  🟢 ON     │  Lightweight NID + OTP             │
+│  Shop Partner Verification                   │  🟢 ON     │  Lightweight NID + OTP             │
 │  Customer Identity Verification                  │  🔴 OFF    │  Enable per threshold or globally  │
 │  Customer Age Verification                       │  🔴 OFF    │  For age-restricted categories     │
 │  Product Approval & Moderation Queue             │  🟢 ON     │  Configurable per category         │
 │  Auto-Approval for Products                      │  🔴 OFF    │  Enable to skip manual review      │
-│  In-Platform Sponsored Ads Engine                │  🟢 ON     │  Sellers pay to boost listings     │
+│  In-Platform Sponsored Ads Engine                │  🟢 ON     │  Shop Partners pay to boost listings     │
 │  Customer Shopping Concierge Chat (AI)           │  🟢 ON     │  NLP product discovery assistant   │
-│  Saler Sourcing Intelligence Chat (AI)           │  🟢 ON     │  Margin & supplier finder          │
-│  Real-Time Peer-to-Peer Messaging                │  🟢 ON     │  Customer ↔ Saler ↔ Supplier       │
+│  Shop Partner Sourcing Intelligence Chat (AI)           │  🟢 ON     │  Margin & supplier finder          │
+│  Real-Time Peer-to-Peer Messaging                │  🟢 ON     │  Customer ↔ Shop Partner ↔ Supplier       │
 │  Return & Refund Engine                          │  🟢 ON     │  Return window is configurable     │
-│  Dispute Panel (Buyer-Seller Arbitration)        │  🟢 ON     │  Visible to Admin only             │
+│  Dispute Panel (Buyer-Shop Partner Arbitration)        │  🟢 ON     │  Visible to Admin only             │
 │  Social Follow & Follower Feed                   │  🟢 ON     │  Platform social layer             │
 │  Content Commerce (Storytelling Posts)           │  🟢 ON     │  Blog-style linked product posts   │
-│  Physical Shop Open/Close Toggle                 │  🟢 ON     │  For sellers with physical stores  │
+│  Physical Shop Open/Close Toggle                 │  🟢 ON     │  For shop partners with physical stores  │
 │  Blue-Tick Verification Badge                    │  🟢 ON     │  Displayed publicly on profiles    │
 │  Qualification Tier System                       │  🟢 ON     │  Starter → Verified → Elite        │
 │  Voice Search                                    │  🟢 ON     │  Bengali & English spoken input    │
@@ -148,25 +148,25 @@ The Super Admin Dashboard includes a centralized **Module Control Panel** — a 
 │  COD (Cash on Delivery) Payment                  │  🟢 ON     │  Configurable per region           │
 │  bKash / Nagad / Rocket Payment                  │  🟢 ON     │  Mobile financial services         │
 │  Debit/Credit Card Payment                       │  🔴 OFF    │  Enable when gateway ready         │
-│  Seller & Supplier Subscription / Fee Engine     │  🔴 OFF    │  100% Free at launch; Admin toggle │
+│  Shop Partner & Supplier Subscription / Fee Engine     │  🔴 OFF    │  100% Free at launch; Admin toggle │
 │  3PL Courier Aggregator & Live GPS Hub           │  🟢 ON     │  Steadfast, Pathao, RedX, Paperfly │
 │  Anti-Fraud Fake Order & COD Protection          │  🟢 ON     │  OTP confirmation & success score  │
 │  Interactive Live Stream Commerce                │  🟢 ON     │  Live video shopping & pinned cart │
 │  Social Group Buying / Team Purchase Engine      │  🟢 ON     │  Viral multi-buyer team discounts  │
-│  AI Creative Marketing Studio for Salers         │  🟢 ON     │  1-click product backdrops & reels │
+│  AI Creative Marketing Studio for Shop Partners         │  🟢 ON     │  1-click product backdrops & reels │
 │  Customer Loyalty Points & Explooro Coins         │  🟢 ON     │  Daily check-in & review cashback  │
-│  Multi-Tier Referral & Network Growth Engine     │  🟢 ON     │  Viral seller & buyer recruitment  │
-│  Social Seller Kit & Auto-Flyer Generator        │  🟢 ON     │  QR code flyers & affiliate links  │
+│  Multi-Tier Referral & Network Growth Engine     │  🟢 ON     │  Viral shop partner & buyer recruitment  │
+│  Social Shop Partner Kit & Auto-Flyer Generator        │  🟢 ON     │  QR code flyers & affiliate links  │
 │  Abandoned Cart Recovery Engine                  │  🟢 ON     │  Automated SMS/Push checkout nudge │
-│  Gamification, Leaderboard & Seller Rewards      │  🟢 ON     │  Monthly Top Saler & bonus pool    │
-│  Coupons, Vouchers & Flash Sale Campaign Engine  │  🟢 ON     │  Platform, supplier & saler promos │
-│  Explooro Seller Academy (Micro-Learning Center)  │  🟢 ON     │  Video/audio selling masterclasses │
+│  Gamification, Leaderboard & Shop Partner Rewards      │  🟢 ON     │  Monthly Top Shop Partner & bonus pool    │
+│  Coupons, Vouchers & Flash Sale Campaign Engine  │  🟢 ON     │  Platform, supplier & shop partner promos │
+│  Explooro Shop Partner Academy (Micro-Learning Center)  │  🟢 ON     │  Video/audio selling masterclasses │
 │  Prescriptive Analytics & Next-Action Insights   │  🟢 ON     │  AI actionable advice for users    │
 │  Digital Warranty & Product Protection Engine    │  🟢 ON     │  Warranty cards, claims & counters │
 │  AI Smart Inventory & Demand Forecasting         │  🟢 ON     │  Predicts stockouts & season peaks │
 │  Cross-Seller Dynamic Product Bundling Engine    │  🟢 ON     │  Multi-seller combo discount packs │
 │  WhatsApp & Messenger Conversational Commerce    │  🟢 ON     │  Meta API sync & in-chat checkout  │
-│  Daily Challenges & Seller Achievement Quests    │  🟢 ON     │  Gamified daily tasks & credits    │
+│  Daily Challenges & Shop Partner Achievement Quests    │  🟢 ON     │  Gamified daily tasks & credits    │
 │  Dynamic Demand Surge & Yield Optimization       │  🟢 ON     │  Live high-demand price alerts     │
 │  B2B Wholesale Escrow & Milestone Settlement     │  🟢 ON     │  Secure holding vault for big deals│
 │  UGC Video Reviews & Social Proof Wall           │  🟢 ON     │  Shoppable video unboxing clips    │
@@ -183,18 +183,18 @@ The Super Admin Dashboard includes a centralized **Module Control Panel** — a 
 ---
 
 ### A. Dynamic Social Commerce & Marketing Suite
-* **Branded Virtual Storefronts**: Each Saler gets a personalized, shareable shop URL, customized banner, bio, and curated collections.
-* **Content Commerce & Storytelling**: Salers can publish blog-style stories, problem-solving use cases, and benefit breakdowns linked directly to buyable products.
+* **Branded Virtual Storefronts**: Each Shop Partner gets a personalized, shareable shop URL, customized banner, bio, and curated collections.
+* **Content Commerce & Storytelling**: Shop Partners can publish blog-style stories, problem-solving use cases, and benefit breakdowns linked directly to buyable products.
 * **In-Platform Sponsored Ads Engine**:
-  * Sellers and suppliers can launch targeted paid promotions within search results, category banners, and social feeds for a micro-budget.
+  * Shop Partners and suppliers can launch targeted paid promotions within search results, category banners, and social feeds for a micro-budget.
 * **Social Networking & Follower System**:
-  * Shoppers can follow their favorite Salers and manufacturers for instant product drop notifications.
+  * Shoppers can follow their favorite Shop Partners and manufacturers for instant product drop notifications.
   * Direct customer-to-seller messaging and community inquiry threads.
 
 
 ### B. Hybrid Physical & Digital Shop Management
 * **Physical Store Status Indicator**:
-  * Sellers with brick-and-mortar shops can toggle their status between **Open** 🟢 and **Closed** 🔴.
+  * Shop Partners with brick-and-mortar shops can toggle their status between **Open** 🟢 and **Closed** 🔴.
   * Configurable business hours and live timestamp indicators for walk-in customers.
 
 ### C. Multi-Layer Trust & Verification Architecture
@@ -217,13 +217,13 @@ Suppliers and manufacturers who want to list products must pass identity and bus
 * **Rejection with Appeal**: Suppliers whose verification is rejected can re-submit corrected documents with an automated appeal queue.
 * **Blue-Tick Badge** displayed publicly on verified supplier profiles and product listings.
 
-#### 2. 🛍️ Saler Verification (Active by Default — Lightweight)
+#### 2. 🛍️ Shop Partner Verification (Active by Default — Lightweight)
 
-Salers undergo a lighter-weight identity check since they do not hold physical inventory, but enough to ensure accountability:
+Shop Partners undergo a lighter-weight identity check since they do not hold physical inventory, but enough to ensure accountability:
 
 * **Mandatory**: NID photo + active mobile number (OTP verified).
-* **Optional (encouraged)**: Social media profile link or referral from an existing verified Saler.
-* **Graduated Trust**: Unverified Salers can operate but are displayed without a badge; verified ones gain higher search visibility, higher earning tiers, and ad eligibility.
+* **Optional (encouraged)**: Social media profile link or referral from an existing verified Shop Partner.
+* **Graduated Trust**: Unverified Shop Partners can operate but are displayed without a badge; verified ones gain higher search visibility, higher earning tiers, and ad eligibility.
 
 #### 3. 🛒 Customer Verification (Inactive by Default — Admin Toggleable)
 
@@ -257,9 +257,9 @@ Level 1: Starter            →  Level 2: Verified Trader    →  Level 3: Elite
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                               Explooro Chat Ecosystem                                   │
 ├───────────────────────────────────────────┬────────────────────────────────────────────┤
-│   🛍️ Customer Shopping Assistant Chat     │     💼 Saler Sourcing & Deal Hunter Chat   │
+│   🛍️ Customer Shopping Assistant Chat     │     💼 Shop Partner Sourcing & Deal Hunter Chat   │
 │ • Natural language product discovery      │ • Best wholesale price & margin finder     │
-│ • Feature comparison across sellers       │ • High-demand & trending product alerts    │
+│ • Feature comparison across shop partners       │ • High-demand & trending product alerts    │
 │ • Budget & category smart matching        │ • Top-rated & verified supplier matching   │
 │ • Instant "Add to Cart" from chat         │ • 1-Click "Add to My Store" from chat      │
 └───────────────────────────────────────────┴────────────────────────────────────────────┘
@@ -267,15 +267,15 @@ Level 1: Starter            →  Level 2: Verified Trader    →  Level 3: Elite
 
 1. **🛍️ Customer Product Discovery Chat ("Shopping Concierge")**:
    * **Conversational Shopping**: Customers can type or voice-search what they need in natural language (*"Find me a waterproof laptop bag under Tk. 1,500 with top customer ratings"*).
-   * **Smart Comparison**: Compares prices, delivery speeds, and warranty terms across different sellers in seconds.
+   * **Smart Comparison**: Compares prices, delivery speeds, and warranty terms across different shop partners in seconds.
    * **Interactive Product Cards**: Generates product cards inside the conversation with photos, specifications, and instant **"Add to Cart" / "Buy Now"** buttons.
-   * **Direct Seller Hand-off**: Seamless transition to a live direct chat with the seller for specific questions.
+   * **Direct Shop Partner Hand-off**: Seamless transition to a live direct chat with the shop partner for specific questions.
 
-2. **💼 Saler Sourcing & Deal Hunter Chat ("Sourcing Intelligence")**:
-   * **Profit & Margin Hunter**: Salers can query the system to find the highest-profit or best-priced products from manufacturers (*"Show me electronics with profit margins over 35% and 4.5+ star rating"*).
+2. **💼 Shop Partner Sourcing & Deal Hunter Chat ("Sourcing Intelligence")**:
+   * **Profit & Margin Hunter**: Shop Partners can query the system to find the highest-profit or best-priced products from manufacturers (*"Show me electronics with profit margins over 35% and 4.5+ star rating"*).
    * **Supplier Quality Vetting**: Filters products by verified blue-tick status, low return rates, and reliable inventory volume.
-   * **1-Click Virtual Store Import**: Salers can preview specs, wholesale base cost, and expected profit margin, importing products into their store directly from the chat.
-   * **Direct Supplier Negotiations**: Dedicated channel for Salers to chat directly with manufacturers for bulk pricing, customized packaging, or exclusive supply arrangements.
+   * **1-Click Virtual Store Import**: Shop Partners can preview specs, wholesale base cost, and expected profit margin, importing products into their store directly from the chat.
+   * **Direct Supplier Negotiations**: Dedicated channel for Shop Partners to chat directly with manufacturers for bulk pricing, customized packaging, or exclusive supply arrangements.
 
 ### E. Standard E-Commerce Fundamentals (Engineered for Simplicity)
 * **❤️ Add to Favorite / Wishlist**: One-tap heart icon on all product cards to save items for future purchase.
@@ -298,11 +298,11 @@ A clearly structured post-purchase protection framework that builds trust across
 * **Return Reasons**: Predefined options (Wrong item, Damaged, Not as described, Changed mind) with optional photo/video evidence.
 * **Resolution Workflow**:
   1. Customer raises a return/refund request.
-  2. Saler reviews and either approves, counter-offers, or escalates to Explooro Admin.
+  2. Shop Partner reviews and either approves, counter-offers, or escalates to Explooro Admin.
   3. Supplier arranges pickup or authorizes return.
   4. Refund is credited back to the customer's payment method or wallet.
-* **Profit Clawback on Returns**: If a return is approved, the Saler's credited profit for that transaction is automatically deducted from their Vault.
-* **Buyer-Seller Dispute Panel**: A structured messaging thread between the buyer and seller visible to Explooro Admin for arbitration.
+* **Profit Clawback on Returns**: If a return is approved, the Shop Partner's credited profit for that transaction is automatically deducted from their Vault.
+* **Buyer-Shop Partner Dispute Panel**: A structured messaging thread between the buyer and shop partner visible to Explooro Admin for arbitration.
 
 ---
 
@@ -350,14 +350,14 @@ A unified, multi-channel notification engine covering all subscriber types:
 * **Review Integrity System**: AI-flagged suspicious review patterns (mass reviews from same IP, 5-star reviews within minutes of purchase) queued for admin audit.
 * **Wallet Fraud Detection**: Unusual withdrawal patterns trigger a hold and manual review before fund release.
 * **Duplicate Account Detection**: Cross-check NID numbers and mobile numbers across accounts to prevent multi-account abuse.
-* **Report & Flag System**: Any user can report a product, seller, or review for policy violations; flagged reports are handled through the Admin moderation queue.
+* **Report & Flag System**: Any user can report a product, shop partner, or review for policy violations; flagged reports are handled through the Admin moderation queue.
 
 ---
 
 ### J. Onboarding Agreements & Platform Policy Acceptance
 
-* Every new account (Customer, Saler, Supplier) must explicitly accept the **Explooro Terms of Service & Platform Policy** during registration.
-* Suppliers and Salers must additionally accept the **Seller Partnership Agreement** which outlines profit-sharing rules, return responsibilities, and code of conduct.
+* Every new account (Customer, Shop Partner, Supplier) must explicitly accept the **Explooro Terms of Service & Platform Policy** during registration.
+* Suppliers and Shop Partners must additionally accept the **Shop Partner Partnership Agreement** which outlines profit-sharing rules, return responsibilities, and code of conduct.
 * All agreements are **versioned** — when terms are updated, active users receive a mandatory re-acceptance prompt before continuing.
 
 ---
@@ -366,7 +366,7 @@ A unified, multi-channel notification engine covering all subscriber types:
 
 Platform products and storefronts are built with public-facing SEO-optimized pages to attract organic search traffic:
 
-* **SEO-Friendly URLs**: Every product page and Saler storefront has a clean, readable URL (e.g., `/shop/saler-name/product-slug`).
+* **SEO-Friendly URLs**: Every product page and Shop Partner storefront has a clean, readable URL (e.g., `/shop/saler-name/product-slug`).
 * **Auto-Generated Meta Tags**: Product titles, descriptions, and structured data (JSON-LD schema for Google Product Rich Results) generated automatically.
 * **Sitemap & Search Engine Indexing**: Dynamic XML sitemaps for all active products, categories, and storefronts, submitted automatically to Google Search Console.
 * **Social Sharing Cards (OG Tags)**: Product pages generate preview cards when shared on Facebook, WhatsApp, or Twitter, enabling viral organic reach.
@@ -415,8 +415,8 @@ The platform launches with **English** and **Bengali (বাংলা)**, but an
 
 A seamless logistics bridge connecting suppliers with major domestic delivery couriers (e.g., **Steadfast, Pathao Courier, RedX, Paperfly**):
 * **1-Click Courier Parcel Booking**: When an order is confirmed, the supplier generates an official consignment/tracking number and printable shipping label with a single click.
-* **Live Courier Status Sync**: Real-time webhook integration syncing courier milestones (`In Transit ➔ Out for Delivery ➔ Delivered / Returned`) directly into customer and seller dashboards.
-* **Automated COD Remittance & Settlement**: Collected Cash on Delivery (COD) funds from courier partners are automatically reconciled into the Explooro Platform Treasury, instantly distributing wholesale funds to the Supplier's Vault and net profit to the Saler's Vault.
+* **Live Courier Status Sync**: Real-time webhook integration syncing courier milestones (`In Transit ➔ Out for Delivery ➔ Delivered / Returned`) directly into customer and shop partner dashboards.
+* **Automated COD Remittance & Settlement**: Collected Cash on Delivery (COD) funds from courier partners are automatically reconciled into the Explooro Platform Treasury, instantly distributing wholesale funds to the Supplier's Vault and net profit to the Shop Partner's Vault.
 
 ---
 
@@ -431,11 +431,11 @@ A comprehensive safeguard against bogus orders, prank checkouts, and high COD re
 
 ---
 
-### P. Viral Social Seller Kit & Auto-Flyer / Affiliate Link Generator
+### P. Viral Social Shop Partner Kit & Auto-Flyer / Affiliate Link Generator
 
-Equips Salers with high-converting marketing materials to sell across Facebook Groups, WhatsApp, TikTok, Instagram, and YouTube:
-* **Smart Short Affiliate Links**: Unique branded tracking links (`explooro.com/s/shop-name/item-slug`) that attribute sales and commissions to the specific Saler regardless of where the traffic originates.
-* **Auto-Generated Promotional Posters & Flyers**: 1-click generator that creates high-resolution branded product images featuring the product photo, retail price, key highlights, Saler store name, and a scannable **QR Code**.
+Equips Shop Partners with high-converting marketing materials to sell across Facebook Groups, WhatsApp, TikTok, Instagram, and YouTube:
+* **Smart Short Affiliate Links**: Unique branded tracking links (`explooro.com/s/shop-name/item-slug`) that attribute sales and commissions to the specific Shop Partner regardless of where the traffic originates.
+* **Auto-Generated Promotional Posters & Flyers**: 1-click generator that creates high-resolution branded product images featuring the product photo, retail price, key highlights, Shop Partner store name, and a scannable **QR Code**.
 * **1-Tap Social Share Buttons**: Instant "Share to WhatsApp Story", "Share to Facebook Feed/Group", and "Copy Instagram Caption & Link".
 
 ---
@@ -445,15 +445,15 @@ Equips Salers with high-converting marketing materials to sell across Facebook G
 Recovers 20% to 35% of lost revenue by re-engaging customers who added products but dropped off before completing checkout:
 * **Smart Drop-Off Detection**: Automatically detects carts left idle for more than 20 minutes.
 * **Multi-Channel Recovery Reminders**: Sends polite, automated in-app push notifications and SMS reminders (*"Your reserved items in your Explooro bag are selling fast! Complete your order with 1 click: [Short Link]"*).
-* **Saler Recovery Pipeline**: Salers can view anonymized abandoned cart metrics for their store and trigger promotional limited-time discount incentives to close pending sales.
+* **Shop Partner Recovery Pipeline**: Shop Partners can view anonymized abandoned cart metrics for their store and trigger promotional limited-time discount incentives to close pending sales.
 
 ---
 
-### R. Gamification, Leaderboards & Seller Motivation Rewards
+### R. Gamification, Leaderboards & Shop Partner Motivation Rewards
 
 Keeps micro-entrepreneurs and creators engaged, active, and motivated to achieve higher sales volumes:
-* **Monthly Top Saler Leaderboard**: Real-time leaderboard showcasing top-performing salers by sales volume and customer satisfaction.
-* **Tiered Milestone Badges**: `Bronze Seller ➔ Silver Merchant ➔ Gold Star ➔ Diamond Partner`.
+* **Monthly Top Shop Partner Leaderboard**: Real-time leaderboard showcasing top-performing shop partners by sales volume and customer satisfaction.
+* **Tiered Milestone Badges**: `Bronze Shop Partner ➔ Silver Merchant ➔ Gold Star ➔ Diamond Partner`.
 * **Performance Bonus Pool & Ad Credits**: Monthly cash prize pools and free sponsored ad credits awarded to top achievers.
 * **Achievement Streaks**: Extra reward points for consistent weekly sales that can be redeemed for platform perks or cash bonuses.
 
@@ -464,14 +464,14 @@ Keeps micro-entrepreneurs and creators engaged, active, and motivated to achieve
 A high-powered promotional framework for seasonal sales (Eid Deals, 11.11, Boishakhi Mela, Weekend Specials):
 * **Platform-Wide Global Coupons**: Super Admin can create site-wide promo codes (e.g., `EID2026` for 10% off) with minimum spend limits and budget caps.
 * **Supplier-Funded Brand Vouchers**: Manufacturers can launch targeted discount vouchers on their own product lines to clear excess inventory.
-* **Saler Custom Promo Codes**: Salers can create custom discount codes funded directly from their own profit margin to offer special deals to their VIP customers.
+* **Shop Partner Custom Promo Codes**: Shop Partners can create custom discount codes funded directly from their own profit margin to offer special deals to their VIP customers.
 * **Flash Sale Countdown Timers**: Homepage flash deal widgets with live countdown timers and real-time remaining stock meters.
 
 ---
 
-### T. Explooro Seller Academy & Micro-Learning Center
+### T. Explooro Shop Partner Academy & Micro-Learning Center
 
-An in-app education portal that empowers beginner Salers with zero business background to become successful digital entrepreneurs:
+An in-app education portal that empowers beginner Shop Partners with zero business background to become successful digital entrepreneurs:
 * **15-to-120 Second Micro-Courses**: Bite-sized visual and audio lessons on topics like:
   * *"How to promote your store on Facebook & WhatsApp"*
   * *"How to write engaging product stories that sell"*
@@ -484,7 +484,7 @@ An in-app education portal that empowers beginner Salers with zero business back
 ### U. Interactive Live Stream Commerce (Shopee Live & TikTok Shop Model)
 
 Brings real-time interactive video broadcasting directly inside the Explooro ecosystem:
-* **In-App Live Broadcasting Studio**: Suppliers and top-tier Salers can broadcast live video streams showcasing product demonstrations, unboxing, live sizing, and Q&A sessions.
+* **In-App Live Broadcasting Studio**: Suppliers and top-tier Shop Partners can broadcast live video streams showcasing product demonstrations, unboxing, live sizing, and Q&A sessions.
 * **Pinned Product Popups & 1-Click Cart**: During the live stream, hosts can pin active products onto viewers' screens. Shoppers can tap **"Buy Now"** or **"Add to Bag"** and complete checkout without cutting or leaving the video stream.
 * **Live Chat & Interactive Reactions**: Real-time audience comments, floating heart reactions, live coupon drops, and limited-quantity flash sale triggers during broadcasts.
 * **Live Replay & Shoppable Video Clips**: Completed live sessions are automatically archived and converted into shoppable short video clips attached to product detail pages.
@@ -503,9 +503,9 @@ A viral social acquisition mechanism that incentivizes customers to recruit thei
 
 ---
 
-### W. AI Creative Marketing Suite & Visual Studio for Salers
+### W. AI Creative Marketing Suite & Visual Studio for Shop Partners
 
-Empowers non-designer Salers to generate agency-grade promotional assets with zero technical skill:
+Empowers non-designer Shop Partners to generate agency-grade promotional assets with zero technical skill:
 * **AI Product Background Studio**: Replaces simple supplier mobile photos with photorealistic luxury studio, outdoor, or living room backdrops with a single click.
 * **AI Copywriting Assistant**: Automatically generates compelling Facebook captions, Instagram hashtags, WhatsApp promotional pitches, and product benefit bullets tailored for the Bangladesh market.
 * **1-Click 15-Second Video Reel Generator**: Combines product images, pricing badges, and background music into ready-to-post vertical video reels (format-ready for TikTok, Facebook Reels, and YouTube Shorts).
@@ -524,8 +524,8 @@ Maximizes customer retention, daily app engagement (DAU), and repeat purchase fr
 ### Y. Multi-Tier Referral & Network Growth Engine
 
 Drives self-sustaining, viral network expansion by rewarding users for onboarding new merchants and shoppers:
-* **Saler-to-Saler Referral Commissions**: Existing Salers earn a micro-percentage commission (e.g., 5% to 10% funded from Explooro's margin) on the first 10 completed sales made by any new Saler they invite.
-* **Supplier Recruitment Bounty**: Salers or users who onboard a verified new manufacturer/supplier receive a cash bounty or platform credits upon the supplier's first batch dispatch.
+* **Shop Partner-to-Shop Partner Referral Commissions**: Existing Shop Partners earn a micro-percentage commission (e.g., 5% to 10% funded from Explooro's margin) on the first 10 completed sales made by any new Shop Partner they invite.
+* **Supplier Recruitment Bounty**: Shop Partners or users who onboard a verified new manufacturer/supplier receive a cash bounty or platform credits upon the supplier's first batch dispatch.
 * **Customer Invite-a-Friend Rewards**: Shoppers invite friends with a referral link; both the inviter and invitee receive Tk. 50 in Explooro Coins upon the friend's first delivered purchase.
 
 ---
@@ -533,9 +533,9 @@ Drives self-sustaining, viral network expansion by rewarding users for onboardin
 ### Z. Prescriptive Analytics & Actionable Next-Step Insights
 
 Moving beyond descriptive charts ("what happened") to intelligent, prescriptive recommendations ("what to do next"):
-* **Smart Saler Insights**: Recommends immediate profit-generating actions (e.g., *"5 products in your shop have 200+ views but low sales—launch a 10% flash sale to convert them today"*).
-* **Supplier Demand Intelligence**: Highlights high-velocity trending categories, under-supplied market niches, and lists top-performing Salers driving their wholesale volume.
-* **Customer Personalized Discovery**: Heuristic recommendation engine matching past browsing behavior with newly added supplier stock and exclusive Saler discounts.
+* **Smart Shop Partner Insights**: Recommends immediate profit-generating actions (e.g., *"5 products in your shop have 200+ views but low sales—launch a 10% flash sale to convert them today"*).
+* **Supplier Demand Intelligence**: Highlights high-velocity trending categories, under-supplied market niches, and lists top-performing Shop Partners driving their wholesale volume.
+* **Customer Personalized Discovery**: Heuristic recommendation engine matching past browsing behavior with newly added supplier stock and exclusive Shop Partner discounts.
 
 ---
 
@@ -558,21 +558,21 @@ Protects suppliers from stockouts and overproduction through predictive time-ser
 
 ### AC. Cross-Seller Dynamic Product Bundling & Combo Engine
 
-Empowers independent Salers and Suppliers to combine complementary items into high-converting combo packages:
+Empowers independent Shop Partners and Suppliers to combine complementary items into high-converting combo packages:
 * **Multi-Merchant Combo Builder**: Combine items from different suppliers (e.g., Supplier A's formal shirt + Supplier B's trousers) into an "Executive Office Outfit" bundle.
-* **Automated Split-Settlement**: Customers enjoy a 15–20% combo discount, while the platform's split-payout engine automatically routes exact wholesale costs and individual profits to each respective supplier and saler.
+* **Automated Split-Settlement**: Customers enjoy a 15–20% combo discount, while the platform's split-payout engine automatically routes exact wholesale costs and individual profits to each respective supplier and shop partner.
 
 ---
 
 ### AD. Automated Conversational Commerce Bridge (WhatsApp & Messenger)
 
 Brings external social chat inquiries directly into the Explooro transactional pipeline:
-* **Meta WhatsApp Cloud API Integration**: Syncs incoming WhatsApp Business chats directly into the Explooro unified seller inbox.
-* **In-Chat Product Cards & Checkout**: Salers can send clickable interactive product cards into WhatsApp/Messenger conversations, allowing rural or low-tech customers to complete orders in a single tap without navigating complex web pages.
+* **Meta WhatsApp Cloud API Integration**: Syncs incoming WhatsApp Business chats directly into the Explooro unified shop partner inbox.
+* **In-Chat Product Cards & Checkout**: Shop Partners can send clickable interactive product cards into WhatsApp/Messenger conversations, allowing rural or low-tech customers to complete orders in a single tap without navigating complex web pages.
 
 ---
 
-### AE. Daily Challenges, Missions & Seller Achievement Quests
+### AE. Daily Challenges, Missions & Shop Partner Achievement Quests
 
 Drives consistent daily active usage (DAU) and sustained merchant productivity through gamification:
 * **Daily Action Quests**: Bite-sized daily missions (e.g., *"Mission 1: Share 3 new products on WhatsApp ➔ Earn 50 free ad credits"*, *"Mission 2: Onboard 2 new shoppers ➔ Earn Tk. 50 bonus"*).
@@ -590,9 +590,9 @@ Helps manufacturers and the platform maximize profitability during viral demand 
 
 ### AG. B2B Wholesale Escrow Holding & Milestone Settlement
 
-Provides complete transaction security for high-volume B2B bulk orders between Salers and Manufacturers:
+Provides complete transaction security for high-volume B2B bulk orders between Shop Partners and Manufacturers:
 * **Protected Escrow Vault**: Bulk wholesale payments are securely held in the Explooro Escrow Vault rather than direct disbursement upon ordering.
-* **Milestone Multi-Sig Release**: Funds are automatically released to the manufacturer once the Saler inspects and confirms the bulk shipment or delivery courier marks completion.
+* **Milestone Multi-Sig Release**: Funds are automatically released to the manufacturer once the Shop Partner inspects and confirms the bulk shipment or delivery courier marks completion.
 
 ---
 
@@ -618,7 +618,7 @@ Transforms Explooro into an extensible commerce infrastructure for third-party d
 Engineered specifically for FMCG, Food, Cosmetics, Skincare, Organic Agro, Supplements, and Healthcare products:
 * **Batch/Lot Number & Expiration Tagging**: Suppliers record unique `Batch Number`, `Manufacturing Date (Mfg)`, and `Expiration Date (Exp)` during product stock intake.
 * **FEFO (First Expire, First Out) Automated Dispatch**: When an order is confirmed, the warehouse packing slip automatically prioritizes items from the earliest-expiring batch, eliminating unsold expired inventory losses.
-* **30-Day Expiry Early Clearance Alerts**: System automatically alerts the supplier and assigned Salers when a batch approaches 30–60 days to expiry, offering 1-click clearance flash sale discounts.
+* **30-Day Expiry Early Clearance Alerts**: System automatically alerts the supplier and assigned Shop Partners when a batch approaches 30–60 days to expiry, offering 1-click clearance flash sale discounts.
 * **Batch-Level Rapid Recall Isolation**: If a quality defect or investigation occurs, the supplier or Super Admin can instantly isolate, block, or recall all units from that specific batch without affecting the entire product catalog.
 
 ---
@@ -644,7 +644,7 @@ Every subscriber tier and administrative role in Explooro is equipped with a **d
 │           🛍️ Marketplace Subscriber Dashboards     │          🛡️ Platform Governance Dashboards         │
 ├───────────────────────────────────────────────────┼────────────────────────────────────────────────────┤
 │ 1. 🏭 Manufacturer & Supplier Dashboard           │ 4. 👑 Super Admin Dashboard (Full Executive)       │
-│ 2. 🛍️ Saler (Virtual Saler) Dashboard          │ 5. 🛡️ Moderator Dashboard (Trust & Safety)         │
+│ 2. 🛍️ Shop Partner (Virtual Shop Partner) Dashboard          │ 5. 🛡️ Moderator Dashboard (Trust & Safety)         │
 │ 3. 🛒 Customer / Shopper Portal                   │ 6. ✍️ Editor Dashboard (Content & Localization)   │
 └───────────────────────────────────────────────────┴────────────────────────────────────────────────────┘
 ```
@@ -657,14 +657,14 @@ Designed for factory owners, wholesalers, and physical inventory holders:
 * **🏷️ Base Cost, Volume Pricing & Surge Controls**: Adjust wholesale tier pricing and review dynamic demand surge recommendations.
 * **🛡️ Digital Warranty & Claims Hub**: Attach warranty guarantees, manage repair/replacement requests, and view customer claim logs.
 * **🚚 3PL Courier Dispatch & GPS Tracking**: 1-click consignment creation (Steadfast, Pathao, RedX, Paperfly), packing slip printing, and live rider map tracking.
-* **📹 Live Commerce Host Panel**: Schedule and broadcast live supplier stream sessions directly to all platform Salers and buyers.
+* **📹 Live Commerce Host Panel**: Schedule and broadcast live supplier stream sessions directly to all platform Shop Partners and buyers.
 * **🔒 B2B Wholesale Escrow Ledger**: Track large bulk orders held in escrow and pending milestone release upon verified delivery.
-* **👥 Saler Network Insights**: Real-time analytics showing which Salers are curating and selling their products most effectively.
+* **👥 Shop Partner Network Insights**: Real-time analytics showing which Shop Partners are curating and selling their products most effectively.
 * **💰 Supplier Payout & Earnings Vault**: Real-time statements of fulfilled wholesale orders, available balance, and automated COD payouts (Bank/bKash).
-* **💬 Direct Wholesale Inquiries**: Dedicated chat channel to negotiate custom orders and bulk pricing with Salers.
+* **💬 Direct Wholesale Inquiries**: Dedicated chat channel to negotiate custom orders and bulk pricing with Shop Partners.
 * **🏪 Physical Store Status Toggle**: Toggle physical shop status (**Open** 🟢 / **Closed** 🔴) with operating hours setup.
 
-#### 2. 🛍️ Saler (Virtual Saler) Dashboard (Digital Storefront & Growth Studio)
+#### 2. 🛍️ Shop Partner (Virtual Shop Partner) Dashboard (Digital Storefront & Growth Studio)
 Designed for digital micro-entrepreneurs, social marketers, and creators:
 * **🎨 Virtual Storefront Builder**: Customize store name, unique URL slug, custom logo/banner, bio, and featured product shelves.
 * **📊 Prescriptive AI Growth Assistant**: Real-time actionable tips (*"Run a 10% promo on item X to boost conversions"*).
@@ -674,13 +674,13 @@ Designed for digital micro-entrepreneurs, social marketers, and creators:
 * **💬 WhatsApp & Messenger Unified Inbox**: Bidirectional chat sync and 1-tap in-chat checkout link generator for social buyers.
 * **🎮 Daily Missions & Achievement Quests**: Complete daily marketing challenges to earn free ad credits, cash bonuses, and streak multipliers.
 * **📲 Social Marketing Kit & Auto-Flyer Studio**: Generate branded promotional posters with QR codes and copy short tracking links for Facebook/WhatsApp sharing.
-* **📹 Saler Live Streaming Studio**: Host live video selling sessions with pinned product cards and live customer chat.
+* **📹 Shop Partner Live Streaming Studio**: Host live video selling sessions with pinned product cards and live customer chat.
 * **🔗 Referral & Team Network Hub**: Track referred sub-sellers, recruitment tree earnings, and referral commission statements.
 * **📈 Sales, Profit & Commission Analytics**: Real-time graphs showing daily/weekly visitor traffic, conversion rates, and accrued net earnings.
-* **💰 Saler Digital Vault**: Direct access to accumulated retail profit with instant 1-click withdrawal requests via bKash, Nagad, Rocket, or Bank Transfer.
+* **💰 Shop Partner Digital Vault**: Direct access to accumulated retail profit with instant 1-click withdrawal requests via bKash, Nagad, Rocket, or Bank Transfer.
 * **📢 Sponsored Ad Campaign Manager**: Self-service creation and budget tracking for in-platform ads (boosted products, sponsored category banners).
 * **🏆 Leaderboard & Milestone Badges**: Track current rank on the monthly leaderboard, milestone tier (Silver/Gold), and bonus credits.
-* **🎓 Seller Academy Access**: In-app video tutorials and step-by-step guides on social selling and marketing.
+* **🎓 Shop Partner Academy Access**: In-app video tutorials and step-by-step guides on social selling and marketing.
 * **🛒 Abandoned Cart Insights**: View drop-off counts and trigger special promo discounts to close pending customer carts.
 
 #### 3. 🛒 Customer / Shopper Dashboard (Personal Shopping Portal)
@@ -691,16 +691,16 @@ Designed for buyers to manage their purchases and interactions seamlessly:
 * **🪙 Explooro Coins & Rewards Wallet**: View coin balance, daily check-in streak calendar, and coin discount redemption history.
 * **📣 My Video Reviews & UGC Gallery**: Upload 15-second unboxing video reviews and earn double coin cashbacks.
 * **❤️ Saved Items & Wishlist**: Curated personal collection of favorited items with price-drop alerts.
-* **🎟️ My Coupons & Rewards**: View active platform promo codes, supplier vouchers, and exclusive Saler discounts.
+* **🎟️ My Coupons & Rewards**: View active platform promo codes, supplier vouchers, and exclusive Shop Partner discounts.
 * **🔗 Invite Friends & Earn**: Personal referral link to invite friends and earn Tk. 50 shopping coins.
-* **👥 Followed Stores & Creators**: Dedicated feed showcasing latest product drops, live stream notifications, and stories from favorite Salers and Suppliers.
+* **👥 Followed Stores & Creators**: Dedicated feed showcasing latest product drops, live stream notifications, and stories from favorite Shop Partners and Suppliers.
 * **🤖 Shopping Concierge History**: Saved conversations and product recommendation threads with the AI Shopping Assistant.
 * **🔄 Return, Refund & Dispute Hub**: 1-click return requests with status updates and wallet refund statements.
-* **🚀 1-Click "Become a Saler" Upgrade**: Instant activation button to launch their own virtual saler shop with zero paperwork.
+* **🚀 1-Click "Become a Shop Partner" Upgrade**: Instant activation button to launch their own virtual shop partner shop with zero paperwork.
 
 #### 4. 👑 Super Admin Dashboard (Executive Governance & Financial Control)
 The master cockpit for business owners and platform administrators:
-* **📊 Global Financial & Revenue Analytics**: Real-time GMV (Gross Merchandise Value), net platform revenue, active seller margins, and pending disbursement liability.
+* **📊 Global Financial & Revenue Analytics**: Real-time GMV (Gross Merchandise Value), net platform revenue, active shop partner margins, and pending disbursement liability.
 * **⚖️ Dynamic Profit Split & Pricing Manager**: Dynamically adjust global profit splits (e.g., 40/60, 50/50), category-specific margins, and promotional campaign splits.
 * **🏷️ Merchant Subscription & Fee Manager**: Configure optional future subscription tiers, listing fees, or onboarding fees (100% Free at launch; manageable by Super Admin or authorized staff).
 * **🎛️ Master Module Control Panel**: Centrally enable or disable any of the 50+ platform features with instant database-driven feature flags.
@@ -717,7 +717,7 @@ The master cockpit for business owners and platform administrators:
 * **🎟️ Campaign & Global Coupon Manager**: Create platform flash sales, set global discount vouchers, and configure seasonal campaign themes.
 * **🏆 Gamification & Daily Quests Manager**: Configure monthly leaderboard bonus pools, daily mission rewards, and free ad credit allocations.
 * **💸 Payout Disbursal Engine**: Review, approve, or batch-disburse pending withdrawals to bKash, Nagad, and direct bank accounts.
-* **🔍 Verification Approval Center**: Review and verify submitted NIDs, Trade Licenses, and tax certificates for Suppliers and Salers.
+* **🔍 Verification Approval Center**: Review and verify submitted NIDs, Trade Licenses, and tax certificates for Suppliers and Shop Partners.
 * **👥 Staff & Role Permission Manager**: Create, invite, and assign granular permissions to Administrators, Moderators, and Editors.
 * **💾 System Backup & Health Monitor**: Trigger manual database backups, inspect automated snapshot schedules, and monitor API server latency and uptime.
 
@@ -727,15 +727,15 @@ Dedicated workspace for compliance teams, customer support leads, and trust offi
 * **📹 Live Stream Moderation & Audit**: Real-time moderation tools to inspect live broadcasts, mute abusive comments, or terminate violating streams.
 * **📣 UGC Video Review Moderation**: Inspect customer-submitted video reviews for community guidelines and approve for coin crediting.
 * **🚨 User Report & Flag Center**: Review community reports on suspicious products, abusive comments, fake reviews, or spam accounts.
-* **⚖️ Dispute Arbitration Panel**: Three-way mediation workspace to resolve disputed returns and refunds between Buyers, Salers, and Suppliers.
+* **⚖️ Dispute Arbitration Panel**: Three-way mediation workspace to resolve disputed returns and refunds between Buyers, Shop Partners, and Suppliers.
 * **🛡️ Review Integrity & Anti-Fraud Queue**: Investigate suspicious review spikes, bot accounts, and unusual transaction velocity.
-* **⚠️ Seller Penalty & Warning Manager**: Issue formal warnings, apply temporary restrictions, or suspend non-compliant seller accounts.
+* **⚠️ Shop Partner Penalty & Warning Manager**: Issue formal warnings, apply temporary restrictions, or suspend non-compliant shop partner accounts.
 
 #### 6. ✍️ Editor Dashboard (Content CMS, Marketing & Localization Studio)
 Dedicated workspace for content managers, marketing teams, and translators:
 * **📰 Content Commerce & Storytelling Feed Manager**: Curate, feature, and edit top community stories, buyer guides, and case studies.
 * **🎨 Site Visual CMS & Promotional Banners**: Manage homepage hero sliders, flash sale banners, seasonal sale themes, and category visual tiles.
-* **🎓 Seller Academy Content Manager**: Upload and organize micro-video courses, selling guides, and tutorial articles.
+* **🎓 Shop Partner Academy Content Manager**: Upload and organize micro-video courses, selling guides, and tutorial articles.
 * **📢 "What's New" & Announcement Publisher**: Draft and schedule in-app release update modals, system maintenance alerts, and promotional announcements.
 * **🌐 Multi-Language Translation Manager (i18n)**: Review, edit, and add dynamic translation strings across all supported language dictionaries (English, Bengali, and future languages).
 * **📚 Help Center & FAQ Manager**: Maintain customer support FAQs and onboarding guides.
@@ -762,7 +762,7 @@ Dedicated workspace for content managers, marketing teams, and translators:
            │                │                │                │                │                │
 ┌──────────▼──┐  ┌──────────▼──┐  ┌──────────▼──┐  ┌──────────▼──────────┐  ┌──────────▼──┐  ┌──────────▼──────────┐
 │3PL Logistics│  │Fraud Protect│  │ Marketing & │  │ Gamification &      │  │ Group Buying│  │ Multi-Tier Referral │
-│(Courier API)│  │ (OTP / Risk)│  │Promo Engine │  │ Seller Academy      │  │(Team Links) │  │ Network Engine      │
+│(Courier API)│  │ (OTP / Risk)│  │Promo Engine │  │ Shop Partner Academy      │  │(Team Links) │  │ Network Engine      │
 └──────────┬──┘  └──────────┬──┘  └──────────┬──┘  └──────────┬──────────┘  └──────────┬──┘  └──────────┬──────────┘
            │                │                │                │                │                │
 ┌──────────▼──┐  ┌──────────▼──┐  ┌──────────▼──┐  ┌──────────▼──────────┐  ┌──────────▼──┐  ┌──────────▼──────────┐
@@ -786,8 +786,8 @@ Dedicated workspace for content managers, marketing teams, and translators:
 2. **Real-time WebSockets, WebRTC & NLP Engine**: Low-latency WebSocket connections for instant live messaging, order notifications, live stream broadcasts, and intelligent chat assistants.
 3. **Generative & Predictive AI Pipelines**: Fast AI image background manipulation, prompt-driven copy generation, dynamic video rendering, and time-series inventory forecasting.
 4. **Intelligent GIS Proximity Routing & FEFO Engine**: Geo-distance algorithmic calculation matching buyer addresses to the closest supplier warehouse node and enforcing first-expire inventory dispatch.
-5. **Conversational Meta API Bridge**: Bidirectional webhook synchronization connecting WhatsApp Business Cloud API and Messenger directly into the platform seller inbox.
-6. **Multi-Tenant Role-Based Access Control (RBAC)**: Comprehensive level-based authorization matrix powering 6 dedicated dashboards (Super Admin, Moderator, Editor, Supplier, Saler, Customer).
+5. **Conversational Meta API Bridge**: Bidirectional webhook synchronization connecting WhatsApp Business Cloud API and Messenger directly into the platform shop partner inbox.
+6. **Multi-Tenant Role-Based Access Control (RBAC)**: Comprehensive level-based authorization matrix powering 6 dedicated dashboards (Super Admin, Moderator, Editor, Supplier, Shop Partner, Customer).
 7. **Extensible Public REST API & Webhooks**: Open architecture with developer API keys, token authentication, rate limiting, and embeddable widget SDKs.
 8. **Automated & Manual Backup System**: Scheduled daily/weekly automated database backups plus 1-click manual snapshot creation from the Admin panel.
 9. **Live Preview Environment**: Optimized hot-reloading setup for seamless paired development with AI coding agents (Antigravity & Claude Code).
@@ -806,13 +806,13 @@ flowchart LR
 ```
 
 ### 📅 Phase 1: Core E-Commerce Engine & Authentication (Weeks 1–2)
-* Multi-role authentication with OTP mobile verification (Customer, Saler, Supplier, Super Admin).
+* Multi-role authentication with OTP mobile verification (Customer, Shop Partner, Supplier, Super Admin).
 * Product catalog, inventory tracking, multi-filter search, cart & 2-step checkout.
 * Onboarding agreements and Terms of Service acceptance flow.
 * Fully responsive, mobile-optimized cross-platform layout.
 
 ### 📅 Phase 2: Virtual Stores, Profit Vault, 3PL Logistics & Multi-Warehouse (Weeks 3–4)
-* Virtual Storefront creation for Salers.
+* Virtual Storefront creation for Shop Partners.
 * Dynamic margin & pricing calculation engine (Base + Wholesale Margin + Retail Split).
 * Digital Profit Vault with real-time balance tracking, statements, and payout requests (bKash/Nagad/Bank).
 * **Multi-Location Warehouse Management & Smart Proximity Order Routing**.
@@ -820,12 +820,12 @@ flowchart LR
 * 3PL Courier API Integration (Steadfast, Pathao, RedX, Paperfly) with live GPS tracking and automated COD reconciliation.
 * Return, Refund & Dispute Resolution Engine.
 
-### 📅 Phase 3: AI Chat Assistants, Social Seller Kit & Cart Recovery (Weeks 5–6)
+### 📅 Phase 3: AI Chat Assistants, Social Shop Partner Kit & Cart Recovery (Weeks 5–6)
 * **Customer Shopping Concierge Chat**: Conversational product discovery and interactive product recommendation cards.
-* **Saler Sourcing Intelligence Chat**: Margin finder, best-price supplier search, 1-click virtual store import.
-* **Social Seller Kit**: Branded affiliate short links & auto-generated promotional flyers with QR codes.
+* **Shop Partner Sourcing Intelligence Chat**: Margin finder, best-price supplier search, 1-click virtual store import.
+* **Social Shop Partner Kit**: Branded affiliate short links & auto-generated promotional flyers with QR codes.
 * **Abandoned Cart Recovery Engine**: Automated drop-off detection and SMS/push notification nudges.
-* Real-time peer-to-peer messaging (Customer ↔ Saler, Saler ↔ Supplier).
+* Real-time peer-to-peer messaging (Customer ↔ Shop Partner, Shop Partner ↔ Supplier).
 * Content publishing (product stories, benefit articles) & Follower feed.
 
 ### 📅 Phase 4: Group Buying, Product Bundling, Referrals & Loyalty Coins (Weeks 7–8)
@@ -833,24 +833,24 @@ flowchart LR
 * **Cross-Seller Dynamic Product Bundling Engine**: Multi-merchant combo packs with split profit reconciliation.
 * **Multi-Tier Referral & Network Growth Engine**: Sub-seller commission tracking and supplier onboarding bounties.
 * **Customer Loyalty Points & Explooro Coins Engine**: Daily check-in coins, review cashback, and coin checkout deductions.
-* **Daily Challenges & Seller Achievement Quests**: Gamified daily marketing tasks and bonus credits.
-* Manufacturer/Supplier full verification workflow (NID, Trade License, Bank Linking) & Saler verification.
+* **Daily Challenges & Shop Partner Achievement Quests**: Gamified daily marketing tasks and bonus credits.
+* Manufacturer/Supplier full verification workflow (NID, Trade License, Bank Linking) & Shop Partner verification.
 * Blue-tick badges & Qualification Tier system.
 * Self-service in-platform sponsored advertisement management.
 * Dynamic Multi-Language Engine (English & Bengali launch + Admin Language Manager).
 
 ### 📅 Phase 5: Live Stream Commerce, AI Studio, Warranty & B2B Escrow (Weeks 9–10)
 * **Interactive Live Stream Commerce**: WebRTC live streaming studio with pinned product popups and 1-click in-stream checkout.
-* **AI Creative Marketing Suite for Salers**: 1-click studio backdrop replacer, AI copywriter, and 15-second reel maker.
+* **AI Creative Marketing Suite for Shop Partners**: 1-click studio backdrop replacer, AI copywriter, and 15-second reel maker.
 * **Digital Warranty & Product Protection Engine**: Digital warranty cards, expiry counters, and 1-click claims.
 * **B2B Wholesale Escrow Holding Engine**: Milestone-based fund release for bulk orders.
 * **AI Smart Inventory & Demand Forecasting**: Time-series predictive stockout alerts.
 * **UGC Video Reviews & Social Proof Wall**: Shoppable customer unboxing video reels.
 * Anti-Fraud Fake Order & COD Protection (OTP order verification & Customer Delivery Success Score).
 * Dynamic Demand Surge & Automated Yield Optimization.
-* Gamification, Monthly Leaderboards & Seller Bonus Rewards Pool.
-* Explooro Seller Academy with micro-learning video/audio tutorials.
-* Campaign, Flash Sale, Coupon & Voucher Engine (Platform, Supplier & Saler codes).
+* Gamification, Monthly Leaderboards & Shop Partner Bonus Rewards Pool.
+* Explooro Shop Partner Academy with micro-learning video/audio tutorials.
+* Campaign, Flash Sale, Coupon & Voucher Engine (Platform, Supplier & Shop Partner codes).
 * Product Approval & Content Moderation Workflow.
 * SEO-optimized product pages, auto-sitemaps, OG social sharing cards.
 
@@ -873,16 +873,16 @@ flowchart LR
 | **Viral Growth** | Expensive paid ads only. | High customer acquisition cost. | **Built-in Social Group Buying (Team Purchase) & Multi-Tier Referral Engine.** |
 | **Live Engagement** | Static photos & listings. | No real-time interaction. | **Interactive Live Stream Commerce with in-video 1-click shopping & pinned cards.** |
 | **Conversational Commerce** | External chats disconnected from checkout. | Unorganized DM negotiations. | **Integrated WhatsApp Cloud API & Messenger bridge with 1-tap in-chat checkout.** |
-| **Seller Enablement** | Complex design software needed. | Paid external courses required. | **Built-in AI Creative Studio (Backdrops & Reels) + Explooro Seller Academy.** |
+| **Shop Partner Enablement** | Complex design software needed. | Paid external courses required. | **Built-in AI Creative Studio (Backdrops & Reels) + Explooro Shop Partner Academy.** |
 | **Cross-Selling Power** | Single-vendor combos only. | No cross-merchant partnerships. | **Cross-Seller Dynamic Product Bundling with automated multi-way split settlement.** |
 | **Predictive Intelligence** | Basic historical reports. | Manual stock guessing. | **Prescriptive Next-Action Insights + AI Smart Inventory & Demand Forecasting.** |
-| **Trust & Warranty** | Basic seller ratings only. | No warranty protection. | **Digital Warranty Cards + B2B Wholesale Escrow Holding Vault + NID Verification.** |
+| **Trust & Warranty** | Basic shop partner ratings only. | No warranty protection. | **Digital Warranty Cards + B2B Wholesale Escrow Holding Vault + NID Verification.** |
 | **Social Proof** | Static text reviews. | Easy to fake reviews. | **Shoppable UGC Video Unboxing Reels with double coin cashback incentives.** |
 | **Customer Retention** | Periodic discount emails. | Low repeat visit rates. | **Gamified Explooro Coins, Daily Missions & automated Abandoned Cart Recovery.** |
-| **Marketing Power** | Passive product listings. | Expensive 3rd-party ads. | **Built-in Social Seller Kit (QR Flyers), AI sourcing chat & internal sponsored ads.** |
+| **Marketing Power** | Passive product listings. | Expensive 3rd-party ads. | **Built-in Social Shop Partner Kit (QR Flyers), AI sourcing chat & internal sponsored ads.** |
 | **Developer Ecosystem** | Closed proprietary platform. | Rigid closed architecture. | **Open REST API & Embeddable JS SDK for external sites and Facebook groups.** |
 | **Accessibility** | Often complex for novices. | Complicated dashboards. | **Ultra-simple visual UI designed for all literacy levels in English & বাংলা.** |
-| **Ecosystem Flow** | Rigid buyer vs seller divide. | Isolated transactions. | **Circular economy: anyone can sell, buy, partner, and earn.** |
+| **Ecosystem Flow** | Rigid buyer vs shop partner divide. | Isolated transactions. | **Circular economy: anyone can sell, buy, partner, and earn.** |
 
 ---
 

@@ -579,7 +579,7 @@ function renderConfirmDialog() {
   confirmReason.addEventListener('click', async () => {
     const { confirmed, reason } = await confirmDialogWithReason({
       title: 'Disable Live Stream Commerce',
-      description: 'Salers will lose access to this module immediately.',
+      description: 'Shop Partners will lose access to this module immediately.',
       confirmLabel: 'Disable module',
       reasonRequired: true,
       reasonLabel: 'Reason (recorded in the audit log)',
@@ -629,7 +629,7 @@ function renderTooltip() {
 function renderInfoTip() {
   const wrap = document.createDocumentFragment();
   const title = document.createElement('h2');
-  title.textContent = 'Seller Academy';
+  title.textContent = 'Shop Partner Academy';
   title.append(InfoTip({ content: 'Master factory sourcing, B2B escrow deals, and social marketing with micro-learning courses' }));
   wrap.append(specimen('beside a title — hover, focus or tap', title));
   return wrap;
@@ -892,7 +892,7 @@ function renderQnASection() {
 
 function renderProfitCalculator() {
   const wrap = document.createDocumentFragment();
-  wrap.append(subgroup('ProfitCalculator — Base 500 / Wholesale 0 / Retail 700 (Saler ৳80.00)'));
+  wrap.append(subgroup('ProfitCalculator — Base 500 / Wholesale 0 / Retail 700 (Shop Partner ৳80.00)'));
   const calc = ProfitCalculator({ initialBaseCost: 500, initialWholesaleMargin: 0, initialRetailPrice: 700 });
   wrap.append(specimen('interactive slider calculator', calc));
   return wrap;
@@ -928,9 +928,9 @@ function renderIncentivePayoutTable() {
     row(3, 'LAPSED', '2026-08', 11000, 1, 110),
   ];
   wrap.append(
-    subgroup('IncentivePayoutTable — a supplier sees the saler share; status is always words'),
+    subgroup('IncentivePayoutTable — a supplier sees the shop partner share; status is always words'),
     specimen('supplier view', IncentivePayoutTable(rows, { perspective: 'supplier' })),
-    subgroup('IncentivePayoutTable — a saler also sees which supplier paid'),
+    subgroup('IncentivePayoutTable — a shop partner also sees which supplier paid'),
     specimen('saler view', IncentivePayoutTable(rows, { perspective: 'saler' })),
   );
   return wrap;
@@ -940,7 +940,7 @@ function renderSampleRequestTable() {
   const wrap = document.createDocumentFragment();
   const row = (id, status, extra = {}) => ({
     id, status, title_en: 'Cotton Panjabi', price: '250.00', shipping_fee: '60.00', platform_fee: '25.00',
-    saler_name: 'Dev Saler', supplier_name: 'Rahman Traders', ship_to_name: 'Rahim', ship_to_phone: '01712-345678',
+    saler_name: 'Dev Shop Partner', supplier_name: 'Rahman Traders', ship_to_name: 'Rahim', ship_to_phone: '01712-345678',
     ship_to_address: 'House 12, Road 3, Mirpur, Dhaka', note: null, tracking_note: null, decline_reason: null,
     requested_at: new Date(Date.now() - id * 86400000).toISOString(), ...extra,
   });
@@ -955,7 +955,7 @@ function renderSampleRequestTable() {
   wrap.append(
     subgroup('SampleRequestTable - a supplier sees the delivery details and the actions they can take; status is always words'),
     specimen('supplier view', SampleRequestTable(rows, { perspective: 'supplier', actionsFor: actions })),
-    subgroup('SampleRequestTable - a saler sees which supplier, and no delivery details'),
+    subgroup('SampleRequestTable - a shop partner sees which supplier, and no delivery details'),
     specimen('saler view', SampleRequestTable(rows, { perspective: 'saler' })),
   );
   return wrap;
@@ -997,7 +997,7 @@ function renderProtectionCoverTable() {
   wrap.append(
     subgroup('ProtectionCoverTable - a supplier also sees the premium; status is always words and a refused claim says why'),
     specimen('supplier view', ProtectionCoverTable(rows, { perspective: 'supplier' })),
-    subgroup('ProtectionCoverTable - a saler sees no premium column'),
+    subgroup('ProtectionCoverTable - a shop partner sees no premium column'),
     specimen('saler view', ProtectionCoverTable(rows, { perspective: 'saler' }))
   );
   return wrap;
@@ -1139,7 +1139,7 @@ function renderWishlistButton() {
 function renderPayoutModal() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section';
-  wrap.append(subgroup('PayoutRequestModal — Seller/Supplier wallet withdrawal request modal (Prompt 6.3)'));
+  wrap.append(subgroup('PayoutRequestModal — Shop Partner/Supplier wallet withdrawal request modal (Prompt 6.3)'));
 
   const openBtn = Button({
     label: 'Open Withdrawal Modal Preview',
@@ -1216,11 +1216,11 @@ function renderProfitSplitsSpecimen() {
     </div>
     <div class="split-visual-bar">
       <div class="split-visual-bar__supplier" style="width: 65%;">Wholesale 65%</div>
-      <div class="split-visual-bar__saler" style="width: 15%;">Saler 15%</div>
+      <div class="split-visual-bar__saler" style="width: 15%;">Shop Partner 15%</div>
       <div class="split-visual-bar__platform" style="width: 20%;">Platform 20%</div>
     </div>
     <div class="grid grid-cols-2 gap-2 text-xs">
-      <div class="p-2 bg-surface-2 rounded">Default: <strong>40% Saler / 60% Platform</strong></div>
+      <div class="p-2 bg-surface-2 rounded">Default: <strong>40% Shop Partner / 60% Platform</strong></div>
       <div class="p-2 bg-surface-2 rounded">Elite Boost: <strong class="text-success">+5.0% Commission</strong></div>
     </div>
   `;
@@ -1231,13 +1231,13 @@ function renderProfitSplitsSpecimen() {
 function renderSalerProSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section';
-  wrap.append(subgroup('Saler Pro subscription (/saler/pro)'));
+  wrap.append(subgroup('Shop Partner Pro subscription (/saler/pro)'));
 
   const card = document.createElement('div');
   card.className = 'card p-4 flex flex-col gap-2';
   card.innerHTML = `
     <div class="flex items-center justify-between">
-      <span class="font-bold text-base">Saler Pro</span>
+      <span class="font-bold text-base">Shop Partner Pro</span>
       <span class="badge badge--success badge--sm">Active</span>
     </div>
     <p class="text-sm m-0">Renews on 12 Nov for the plan fee.</p>
@@ -1267,7 +1267,7 @@ function renderSubscriptionsSpecimen() {
         <div class="text-secondary text-2xs">100 listings included</div>
       </div>
       <div class="p-2 border border-brand rounded bg-surface-2">
-        <strong class="text-brand">Saler Pro</strong>
+        <strong class="text-brand">Shop Partner Pro</strong>
         <div class="text-sm font-bold text-primary mt-1">৳999 / mo</div>
         <div class="text-secondary text-2xs">1,000 listings + 2% split boost</div>
       </div>
@@ -1297,8 +1297,8 @@ export const GALLERY_GROUPS = [
   { name: 'Product Discovery', blurb: 'How a customer finds products: cards, feeds, search, flash sales, followed stores.' },
   { name: 'Product Detail', blurb: 'The product page: gallery, variants, pricing, reviews and Q&A.' },
   { name: 'Cart & Customer Account', blurb: 'Wishlist, cart, and the customer’s saved addresses.' },
-  { name: 'Virtual Storefront', blurb: 'The Saler’s branded storefront and its builder.' },
-  { name: 'Saler Sourcing & Profit', blurb: 'Margin maths and the tools a Saler uses to pick and price stock.' },
+  { name: 'Virtual Storefront', blurb: 'The Shop Partner’s branded storefront and its builder.' },
+  { name: 'Shop Partner Sourcing & Profit', blurb: 'Margin maths and the tools a Shop Partner uses to pick and price stock.' },
   { name: 'Supplier Workspace', blurb: 'Supplier / manufacturer dashboard widgets and catalog governance.' },
   { name: 'Vault & Payouts', blurb: 'Escrow-backed balances, payouts, COD reconciliation, splits and subscriptions.' },
   { name: 'Order & Logistics', blurb: 'Courier tracking, returns and dispute evidence.' },
@@ -1308,7 +1308,7 @@ export const GALLERY_GROUPS = [
   { name: 'Live & Content Commerce', blurb: 'Live streams and shoppable video.' },
   { name: 'Ads & Promotions', blurb: 'Sponsored slots, campaigns and coupons.' },
   { name: 'Referral & Loyalty', blurb: 'Referral network, coins, quests and leaderboards.' },
-  { name: 'Conversion & Social Selling', blurb: 'Group buying, abandoned-cart recovery and the social seller kit.' },
+  { name: 'Conversion & Social Selling', blurb: 'Group buying, abandoned-cart recovery and the social shop partner kit.' },
   { name: 'AI & Intelligence', blurb: 'Conversational and prescriptive assistants.' },
 ];
 
@@ -1391,21 +1391,21 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'shelf-editor', label: 'ShelfEditor', group: 'Virtual Storefront', render: renderShelfEditor },
     { id: 'shop-status-toggle', label: 'ShopStatusToggle', group: 'Virtual Storefront', render: renderShopStatusToggle },
 
-    // ── Saler Sourcing & Profit ──────────────────────────────────────────────
+    // ── Shop Partner Sourcing & Profit ──────────────────────────────────────────────
     // Prompt 4.7 — Sourcing & Profit Calculator
-    { id: 'profit-calculator', label: 'ProfitCalculator', group: 'Saler Sourcing & Profit', render: renderProfitCalculator },
-    { id: 'supplier-scorecard-badge', label: 'SupplierScorecardBadge', group: 'Saler Sourcing & Profit', render: renderSupplierScorecardBadge },
-    { id: 'sponsored-tag', label: 'SponsoredTag', group: 'Saler Sourcing & Profit', render: renderSponsoredTag },
-    { id: 'incentive-payout-table', label: 'IncentivePayoutTable', group: 'Saler Sourcing & Profit', render: renderIncentivePayoutTable },
-    { id: 'sample-request-table', label: 'SampleRequestTable', group: 'Saler Sourcing & Profit', render: renderSampleRequestTable },
-    { id: 'marketing-kit-card', label: 'MarketingKitCard', group: 'Saler Sourcing & Profit', render: renderMarketingKitCard },
-    { id: 'fast-payout-table', label: 'FastPayoutTable', group: 'Saler Sourcing & Profit', render: renderFastPayoutTable },
-    { id: 'protection-cover-table', label: 'ProtectionCoverTable', group: 'Saler Sourcing & Profit', render: renderProtectionCoverTable },
-    { id: 'margin-projection', label: 'MarginProjection', group: 'Saler Sourcing & Profit', render: renderMarginProjection },
-    { id: 'add-to-store-drawer', label: 'AddToStoreDrawer', group: 'Saler Sourcing & Profit', render: () => renderAddToStoreDrawer(detachedNodes) },
-    { id: 'social-kit-modal', label: 'SocialKitModal', group: 'Saler Sourcing & Profit', render: renderSocialKitModalSpecimen },
+    { id: 'profit-calculator', label: 'ProfitCalculator', group: 'Shop Partner Sourcing & Profit', render: renderProfitCalculator },
+    { id: 'supplier-scorecard-badge', label: 'SupplierScorecardBadge', group: 'Shop Partner Sourcing & Profit', render: renderSupplierScorecardBadge },
+    { id: 'sponsored-tag', label: 'SponsoredTag', group: 'Shop Partner Sourcing & Profit', render: renderSponsoredTag },
+    { id: 'incentive-payout-table', label: 'IncentivePayoutTable', group: 'Shop Partner Sourcing & Profit', render: renderIncentivePayoutTable },
+    { id: 'sample-request-table', label: 'SampleRequestTable', group: 'Shop Partner Sourcing & Profit', render: renderSampleRequestTable },
+    { id: 'marketing-kit-card', label: 'MarketingKitCard', group: 'Shop Partner Sourcing & Profit', render: renderMarketingKitCard },
+    { id: 'fast-payout-table', label: 'FastPayoutTable', group: 'Shop Partner Sourcing & Profit', render: renderFastPayoutTable },
+    { id: 'protection-cover-table', label: 'ProtectionCoverTable', group: 'Shop Partner Sourcing & Profit', render: renderProtectionCoverTable },
+    { id: 'margin-projection', label: 'MarginProjection', group: 'Shop Partner Sourcing & Profit', render: renderMarginProjection },
+    { id: 'add-to-store-drawer', label: 'AddToStoreDrawer', group: 'Shop Partner Sourcing & Profit', render: () => renderAddToStoreDrawer(detachedNodes) },
+    { id: 'social-kit-modal', label: 'SocialKitModal', group: 'Shop Partner Sourcing & Profit', render: renderSocialKitModalSpecimen },
     // Prompt 10.5 — Cross-Seller Bundling & Surge Pricing
-    { id: 'bundle-profit-breakdown', label: 'BundleProfitBreakdown', group: 'Saler Sourcing & Profit', render: renderBundleBreakdownSpecimen },
+    { id: 'bundle-profit-breakdown', label: 'BundleProfitBreakdown', group: 'Shop Partner Sourcing & Profit', render: renderBundleBreakdownSpecimen },
 
     // ── Supplier Workspace ───────────────────────────────────────────────────
     // Prompt 11.1 — Supplier / Manufacturer Dashboard & Operational Widgets
@@ -1497,14 +1497,14 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'team-purchase', label: 'TeamPurchase', group: 'Conversion & Social Selling', render: renderTeamPurchaseSpecimen },
     // Prompt 9.6 — Abandoned Cart Recovery
     { id: 'cart-insights', label: 'CartInsights', group: 'Conversion & Social Selling', render: renderCartInsightsSpecimen },
-    // Prompt 9.7 — Social Seller Kit
+    // Prompt 9.7 — Social Shop Partner Kit
     { id: 'social-seller-kit', label: 'SocialSellerKit', group: 'Conversion & Social Selling', render: renderSocialSellerKitSpecimen },
 
     // ── AI & Intelligence ────────────────────────────────────────────────────
     // Prompt 10.2 — AI Service Layer & Conversational Assistants
     { id: 'assistant-panel-concierge', label: 'AssistantPanel (Concierge)', group: 'AI & Intelligence', render: renderAssistantPanelConciergeSpecimen },
     { id: 'assistant-panel-sourcing', label: 'AssistantPanel (Sourcing)', group: 'AI & Intelligence', render: renderAssistantPanelSourcingSpecimen },
-    // Prompt 11.2 — Saler Prescriptive AI Growth Assistant
+    // Prompt 11.2 — Shop Partner Prescriptive AI Growth Assistant
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'AI & Intelligence', render: renderGrowthAssistantSpecimen },
     { id: 'commission-tier-card', label: 'CommissionTierCard', group: 'AI & Intelligence', render: renderCommissionTierCardSpecimen },
   ];
@@ -2050,7 +2050,7 @@ function renderCouponCardSpecimen() {
 
 /**
  * /admin/growth/referrals — the governance half of the referral programme, as opposed to
- * ReferralHub above, which is the saler's own earnings view. The admin route used to load that
+ * ReferralHub above, which is the shop partner's own earnings view. The admin route used to load that
  * saler page; this specimen exists so the two are visibly different in the gallery.
  */
 function renderAdminReferralGovernanceSpecimen() {
@@ -2337,13 +2337,13 @@ function renderQuestPanelSpecimen() {
 function renderLeaderboardWidgetSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section space-y-4';
-  wrap.append(subgroup('Monthly Seller Performance Leaderboard (Prompt 9.4)'));
+  wrap.append(subgroup('Monthly Shop Partner Performance Leaderboard (Prompt 9.4)'));
 
   const leaderCard = document.createElement('div');
   leaderCard.className = 'card p-4 space-y-3';
   leaderCard.innerHTML = `
     <div class="flex items-center justify-between border-b pb-2">
-      <h4 class="font-bold text-sm">🏆 August 2026 Seller Leaderboard</h4>
+      <h4 class="font-bold text-sm">🏆 August 2026 Shop Partner Leaderboard</h4>
       <span class="badge badge-primary text-xs">Prize Pool: ৳50,000</span>
     </div>
     <div class="grid grid-cols-3 gap-2 text-center text-xs">
@@ -2470,7 +2470,7 @@ function renderCartInsightsSpecimen() {
 function renderSocialSellerKitSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section space-y-4';
-  wrap.append(subgroup('Social Seller Kit & Dynamic Flyer Builder (Prompt 9.7)'));
+  wrap.append(subgroup('Social Shop Partner Kit & Dynamic Flyer Builder (Prompt 9.7)'));
 
   const kitCard = document.createElement('div');
   kitCard.className = 'card p-4 space-y-3';
@@ -2497,7 +2497,7 @@ function renderSocialSellerKitSpecimen() {
     </div>
   `;
 
-  wrap.append(specimen('Social Seller Kit & Affiliate Link Card', kitCard));
+  wrap.append(specimen('Social Shop Partner Kit & Affiliate Link Card', kitCard));
   return wrap;
 }
 
@@ -2939,7 +2939,7 @@ function renderSupplierHelpSpecimen() {
       <input type="checkbox" checked aria-label="Register & Price Your Products" />
       <div>
         <div style="font-weight: 700; font-size: 13px;">1. Register & Price Your Products</div>
-        <div style="font-size: 11px; color: var(--text-secondary);">Set competitive wholesale margins for Saler storefronts.</div>
+        <div style="font-size: 11px; color: var(--text-secondary);">Set competitive wholesale margins for Shop Partner storefronts.</div>
       </div>
     </div>
   `;
@@ -3018,7 +3018,7 @@ function renderGrowthAssistantSpecimen() {
       id: 'rec_demo_1',
       type: 'PRICE_OPPORTUNITY',
       title: 'Jamdani Silk Saree (Red & Gold)',
-      message: 'Lower price by ৳120 to match peer seller volume.',
+      message: 'Lower price by ৳120 to match peer shop partner volume.',
       recommendation: 'Matching the top-seller price of ৳4,800 is projected to increase order volume by 2.4x.',
       action: {
         type: 'QUICK_PRICE_MATCH',
@@ -3065,7 +3065,7 @@ function renderCommissionTierCardSpecimen() {
 function renderBecomeSalerCtaSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section space-y-4';
-  wrap.append(subgroup('1-Click Zero-Paperwork Saler Upgrade Component (Prompt 11.3)'));
+  wrap.append(subgroup('1-Click Zero-Paperwork Shop Partner Upgrade Component (Prompt 11.3)'));
 
   const cta = BecomeSalerCta({
     onUpgradeSuccess: () => toast.success('Mock upgrade triggered!'),
@@ -3155,7 +3155,7 @@ function renderFollowingFeedSpecimen() {
             <h4 class="store-card__name">Notun Bazar Handicrafts</h4>
           </div>
           <div class="store-card__slug">@notun-bazar</div>
-          <p class="store-card__bio">This seller has not added a description yet.</p>
+          <p class="store-card__bio">This shop partner has not added a description yet.</p>
         </div>
       </div>
       <div class="store-card__meta-bar mt-3">

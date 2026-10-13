@@ -34,7 +34,7 @@ function createMockDb() {
     { id: 2, ref: 'USR-MOD1', full_name: 'Moderator Rifat', role: 'moderator' },
     { id: 10, ref: 'USR-CUST1', phone: '+8801700000010', full_name: 'Customer Karim', role: 'customer' },
     { id: 101, ref: 'USR-SUPP1', phone: '+8801700000101', full_name: 'Supplier Aarong', role: 'supplier' },
-    { id: 201, ref: 'USR-SALER1', phone: '+8801700000201', full_name: 'Saler Jamila', role: 'saler' },
+    { id: 201, ref: 'USR-SALER1', phone: '+8801700000201', full_name: 'Shop Partner Jamila', role: 'saler' },
   ];
 
   const wallets = [

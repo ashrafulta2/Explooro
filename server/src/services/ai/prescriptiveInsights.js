@@ -14,8 +14,8 @@ import * as demandForecast from './demandForecast.js';
 const FEATURE_KEY = 'insights';
 const SALES_WINDOW_DAYS = 30;
 
-/** Real per-product sold-unit counts for this saler's store, plus the platform-wide best price
- * point for the same product across all salers who carry it — a genuine, groundable comparison. */
+/** Real per-product sold-unit counts for this shop partner's store, plus the platform-wide best price
+ * point for the same product across all shop partners who carry it — a genuine, groundable comparison. */
 async function loadSalerMetrics(db, userId) {
   const { rows } = await db.query(
     `SELECT ssi.product_id, ssi.custom_retail_price, p.title_en, p.title_bn, p.default_retail_price,
@@ -111,8 +111,8 @@ function buildSalerFindings(rows, lang) {
           title,
           message:
             lang === 'bn'
-              ? `আপনার "${title}" ৳${myPrice} এ ${r.units_sold}টি বিক্রি হয়েছে; অন্য সেলার ৳${peerPrice} এ ${r.best_peer_units_sold}টি বিক্রি করেছেন।`
-              : `Your "${title}" sold ${r.units_sold} at ৳${myPrice}; a peer seller sold ${r.best_peer_units_sold} at ৳${peerPrice}.`,
+              ? `আপনার "${title}" ৳${myPrice} এ ${r.units_sold}টি বিক্রি হয়েছে; অন্য শপ পার্টনার ৳${peerPrice} এ ${r.best_peer_units_sold}টি বিক্রি করেছেন।`
+              : `Your "${title}" sold ${r.units_sold} at ৳${myPrice}; a peer shop partner sold ${r.best_peer_units_sold} at ৳${peerPrice}.`,
         });
       }
     }

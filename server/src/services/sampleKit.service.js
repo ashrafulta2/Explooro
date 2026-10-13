@@ -1,12 +1,12 @@
 /**
  * sampleKit.service.js — Sample requests and marketing kits (supplier attraction, step 4).
  *
- * A saler who has never handled a supplier's product is asked to commit blind. A sample removes that
+ * A shop partner who has never handled a supplier's product is asked to commit blind. A sample removes that
  * risk, and a marketing kit removes the blank page after it. The platform earns `platform_fee_pct` of
  * every sample price; the kit is free.
  *
  * Invariants:
- *   1. The saler's money is never spent before it is earned: the sample total moves from their
+ *   1. The shop partner's money is never spent before it is earned: the sample total moves from their
  *      AVAILABLE bucket to their own HELD bucket (one balanced ledger group), and stays there until
  *      the request ends. It then either RELEASES (HELD -> supplier + treasury) or REFUNDS
  *      (HELD -> AVAILABLE). A request ends exactly once: every transition locks the row first and is
@@ -15,11 +15,11 @@
  *      offer afterwards never changes what an open request pays.
  *   3. The platform's share is taken from the sample PRICE only; the shipping fee goes whole to the
  *      supplier, who is the one paying a courier.
- *   4. One live sample per saler per product (a database index, so it holds under a race), and at most
+ *   4. One live sample per shop partner per product (a database index, so it holds under a race), and at most
  *      `max_open_per_saler` in flight. A declined, cancelled or expired request frees the slot.
- *   5. A supplier who does not ship within `response_days` is expired and the saler is refunded; a saler
+ *   5. A supplier who does not ship within `response_days` is expired and the shop partner is refunded; a shop partner
  *      who never confirms is auto-confirmed `auto_confirm_days` after shipping, so a supplier is
- *      never left unpaid by a saler who simply forgot.
+ *      never left unpaid by a shop partner who simply forgot.
  *   6. Every number comes from the `supplier.sample_kit` platform_settings row. The defaults below
  *      only apply while that row is absent or unreadable.
  *
@@ -105,7 +105,7 @@ function invalid(en, bn) {
 // ---- pure rules -------------------------------------------------------------------------------------------
 
 /**
- * Splits what a saler pays. The platform's share comes from the price only; the supplier receives
+ * Splits what a shop partner pays. The platform's share comes from the price only; the supplier receives
  * the rest of the price plus the whole shipping fee. fee + supplier === total, always, to the paisa.
  */
 export function splitSample({ price, shippingFee, platformFeePct }) {
@@ -352,7 +352,7 @@ export async function saveKit(db, { supplierId, productId, input, actor = null }
 
 // ---- saler side -------------------------------------------------------------------------------------------
 
-/** The offers a saler can take up, their own requests, and how many more they may have in flight. */
+/** The offers a shop partner can take up, their own requests, and how many more they may have in flight. */
 export async function getSalerView(db, salerId) {
   const rules = await loadRules(db);
   const driver = getStorageDriver();
@@ -400,7 +400,7 @@ export async function requestSample(db, { salerId, productId, shipTo, note = nul
     throw new AppError('FORBIDDEN', 'You cannot request a sample of your own product.', 'নিজের পণ্যের স্যাম্পল চাওয়া যায় না।');
   }
   // WHY re-check the grade here as well as when the offer is saved: a supplier can drop to D after
-  // switching samples on, and a saler must not be sent to a supplier the platform now rates poorly.
+  // switching samples on, and a shop partner must not be sent to a supplier the platform now rates poorly.
   assertGradeAllowed(await supplierGrade(db, offer.supplier_id), rules);
 
   const split = splitSample({ price: offer.price, shippingFee: offer.shipping_fee, platformFeePct: rules.platform_fee_pct });
@@ -468,7 +468,7 @@ export async function transition(db, { requestId, action, actor, who = null, tra
 
     if (rule.actor !== actor) throw new Error(`Action ${action} cannot be taken as ${actor}`);
 
-    // Ownership: a supplier acts only on their own requests, a saler only on theirs.
+    // Ownership: a supplier acts only on their own requests, a shop partner only on theirs.
     if (rule.actor === 'supplier' && String(row.supplier_id) !== String(who)) {
       throw new AppError('FORBIDDEN', 'This is not your sample request.', 'এটি আপনার স্যাম্পল অনুরোধ নয়।');
     }
@@ -495,7 +495,7 @@ export async function transition(db, { requestId, action, actor, who = null, tra
   return result.updated;
 }
 
-/** Moves the held money out: back to the saler on a refund, to the supplier and treasury on a release. */
+/** Moves the held money out: back to the shop partner on a refund, to the supplier and treasury on a release. */
 async function settleHeld(client, row, outcome) {
   const totalPaisa = toPaisa(row.price) + toPaisa(row.shipping_fee);
   const feePaisa = toPaisa(row.platform_fee);
@@ -552,7 +552,7 @@ async function announce(db, row, action) {
 // ---- settlement (the hourly job) --------------------------------------------------------------------------
 
 /**
- * Refunds samples the supplier never shipped, and releases samples the saler never confirmed. Each
+ * Refunds samples the supplier never shipped, and releases samples the shop partner never confirmed. Each
  * request is its own transaction, so one failure never holds up the rest.
  */
 export async function settleDue(db, logger = console) {
@@ -569,7 +569,7 @@ export async function settleDue(db, logger = console) {
         await transition(db, { requestId: id, action, actor: 'system' });
         result[counter] += 1;
       } catch (err) {
-        // A request the saler or supplier just moved is no longer eligible: that is not a failure.
+        // A request the shop partner or supplier just moved is no longer eligible: that is not a failure.
         if (err.code === 'SAMPLE_STATE_INVALID') result.skipped += 1;
         else {
           result.errors.push({ id, message: err.message });

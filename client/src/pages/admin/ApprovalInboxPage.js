@@ -122,7 +122,7 @@ export default function ApprovalInboxPage(root) {
       requester_name: 'Tariq Ahmed (Trust & Safety)',
       permission_key: 'users.restriction.manage',
       risk_tier: 'HIGH',
-      reason: 'Urgent seller velocity limit override for verified high-volume Eid merchant.',
+      reason: 'Urgent shop partner velocity limit override for verified high-volume Eid merchant.',
       status: 'PENDING',
       created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
       expires_at: new Date(Date.now() + 3600000 * 22).toISOString(),

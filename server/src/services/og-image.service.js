@@ -26,7 +26,7 @@ function escapeXml(unsafe) {
 export function generateStoreOgSvg(store) {
   const shopName = escapeXml(store.shop_name || 'Explooro Store');
   const slug = escapeXml(store.slug || '');
-  const bio = escapeXml(store.bio || 'Verified Bangladeshi Social Seller · Powered by Explooro');
+  const bio = escapeXml(store.bio || 'Verified Bangladeshi Social Shop Partner · Powered by Explooro');
   const district = escapeXml(store.district || 'Dhaka, Bangladesh');
   const rating = store.rating ? Number(store.rating).toFixed(1) : '4.9';
   const followers = store.followers ? Number(store.followers).toLocaleString() : '1,200+';
@@ -93,7 +93,7 @@ export function generateStoreOgSvg(store) {
   <text x="250" y="210" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="40" font-weight="800" fill="${textWhite}">${shopName}</text>
   <text x="250" y="248" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="500" fill="${brandVioletLight}">explooro.com/store/${slug}</text>
 
-  <!-- Verified Seller Badge Icon -->
+  <!-- Verified Shop Partner Badge Icon -->
   <circle cx="215" cy="170" r="14" fill="#0284c7" />
   <path d="M209 170l4 4 8-8" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
 
@@ -178,7 +178,7 @@ export function generateProductOgSvg(product) {
 
   <!-- CTA Box -->
   <rect x="120" y="460" width="960" height="70" rx="12" fill="#0f172a" stroke="#1e293b" />
-  <text x="150" y="503" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="700" fill="${brandVioletLight}">🚀 Buy online or chat with seller on Explooro · Cash on Delivery available</text>
+  <text x="150" y="503" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="700" fill="${brandVioletLight}">🚀 Buy online or chat with shop partner on Explooro · Cash on Delivery available</text>
 </svg>`;
 }
 

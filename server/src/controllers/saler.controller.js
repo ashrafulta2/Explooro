@@ -1,5 +1,5 @@
 /**
- * saler.controller.js — Fastify Controller for Saler Dashboard & Analytics (Prompt 11.2).
+ * saler.controller.js — Fastify Controller for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
 import * as salerService from '../services/salerDashboard.service.js';

@@ -7,7 +7,7 @@
  * Implements:
  * 1. Voucher collection & Promo Code claiming engine.
  * 2. KPI metrics: Available coupons, estimated savings potential, expiring alerts.
- * 3. Categorized filter tabs (All, Platform Deals, Store & Saler, Free Delivery, History).
+ * 3. Categorized filter tabs (All, Platform Deals, Store & Shop Partner, Free Delivery, History).
  * 4. Ticket-style voucher cards with 1-click copy-to-clipboard and shop now shortcuts.
  * 5. Terms & conditions modal breakdown for every voucher rule.
  * 6. English ↔ Bangla bilingual localization and instant reactivity.

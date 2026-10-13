@@ -16,7 +16,7 @@ import { registerUserSocket } from '../src/sockets/presence.js';
 function createMockDb() {
   const users = [
     { id: 1, full_name: 'Customer Rahim', role: 'customer' },
-    { id: 2, full_name: 'Saler Karim', role: 'saler' },
+    { id: 2, full_name: 'Shop Partner Karim', role: 'saler' },
   ];
 
   const threads = [

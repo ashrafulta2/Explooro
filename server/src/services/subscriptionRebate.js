@@ -1,12 +1,12 @@
 /**
- * subscriptionRebate.js — the Saler Pro commission rebate lookup used by pricing.
+ * subscriptionRebate.js — the Shop Partner Pro commission rebate lookup used by pricing.
  *
  * WHY a separate file: pricing.service.js is imported by subscription.service.js (for the platform
  * split cap), so the rebate lookup cannot live in subscription.service.js without a cycle.
  *
  * The rebate applies only when BOTH are true:
- *   1. the `subscription_fees` module is enabled for this saler (admin's OFF switch wins), and
- *   2. the saler holds a live subscription: ACTIVE inside its period, PAST_DUE inside grace, or
+ *   1. the `subscription_fees` module is enabled for this shop partner (admin's OFF switch wins), and
+ *   2. the shop partner holds a live subscription: ACTIVE inside its period, PAST_DUE inside grace, or
  *      WAIVED with no end / an end still in the future.
  * Anything else — no row, expired, module OFF — yields 0, i.e. today's behaviour exactly.
  */
@@ -16,7 +16,7 @@ import { isEnabled } from './module.service.js';
 export const SUBSCRIPTION_MODULE_KEY = 'subscription_fees';
 
 /**
- * Moves `rebatePct` points from the platform's share to the saler's, never taking the platform
+ * Moves `rebatePct` points from the platform's share to the shop partner's, never taking the platform
  * below zero. Pure; returns the input untouched when there is nothing to apply.
  */
 export function applyRebate(split, rebatePct, label = 'PRO_REBATE') {

@@ -1,6 +1,6 @@
 -- 005_demo_catalog.sql (Prompt 4.1)
 -- Seed realistic Bangladeshi demo data:
--- 3 Suppliers, 2 Salers with Virtual Storefronts, 3 Warehouses, and 60 Products with bilingual titles,
+-- 3 Suppliers, 2 Shop Partners with Virtual Storefronts, 3 Warehouses, and 60 Products with bilingual titles,
 -- variants, warehouse stock allocations, and FEFO batches.
 --
 -- FIX (Prompt 4.6, caught while verifying this file against a real Postgres wire-protocol
@@ -14,7 +14,7 @@
 -- occurrence has been corrected to the real ids (5, 6) that 002_dev_users.sql assigns; 102/103/202
 -- were already correct since those phones are genuinely new.
 
--- 1. Ensure 3 Suppliers and 2 Salers exist with user profiles & roles
+-- 1. Ensure 3 Suppliers and 2 Shop Partners exist with user profiles & roles
 INSERT INTO users (id, ref, phone, email, password_hash, is_phone_verified, is_email_verified, status) VALUES
   (5, 'USR-SUPP-DHAKA', '+8801700000005', 'supplier@dev.explooro.local', '$argon2id$v=19$m=65536,p=4,t=3$Chct4gTM5PJHXS/N5rtF7Q$54SeQDMvY8md1PzEN1BX0mWFzsvAlVidfbhFLgPcl4s', true, true, 'ACTIVE'),
   (102, 'USR-SUPP-BENGAL', '+8801700000015', 'bengal.electronics@dev.explooro.local', '$argon2id$v=19$m=65536,p=4,t=3$Chct4gTM5PJHXS/N5rtF7Q$54SeQDMvY8md1PzEN1BX0mWFzsvAlVidfbhFLgPcl4s', true, true, 'ACTIVE'),
@@ -502,7 +502,7 @@ INSERT INTO product_batches (product_id, variant_id, warehouse_node_id, batch_nu
   (31, NULL, 3, 'BATCH-ALV-2026A', '2026-01-20', '2027-07-20', 200, 'ACTIVE')
 ON CONFLICT (product_id, batch_number, warehouse_node_id) DO NOTHING;
 
--- 8. Curate Items into Salers' Virtual Stores
+-- 8. Curate Items into Shop Partners' Virtual Stores
 INSERT INTO saler_store_items (store_id, saler_id, product_id, custom_retail_price, collection_name, display_order, is_active) VALUES
   -- Store 1: Dhaka Fashion House (Apparel, Leather, Crafts)
   (1, 6, 1, 1650.00, 'Eid Panjabi Collection', 1, true),

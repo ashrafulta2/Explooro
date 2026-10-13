@@ -1,5 +1,5 @@
 /**
- * SupplierScorecardBadge — a supplier's measured reputation, as salers and the supplier see it.
+ * SupplierScorecardBadge — a supplier's measured reputation, as shop partners and the supplier see it.
  *
  * Two shapes of one component:
  *   compact  a one-line chip for a catalog card: grade + typical dispatch time.

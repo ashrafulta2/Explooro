@@ -4,9 +4,9 @@
  * Implements:
  * 1. Customer dashboard aggregation (active orders, streak coins, wishlist drops, warranties, coupons, referrals).
  * 2. Visual tracking orders list with courier consignment sync, warranty cards, and return eligibility.
- * 3. Following feed aggregating product drops, live streams, and stories from followed sellers.
+ * 3. Following feed aggregating product drops, live streams, and stories from followed shop partners.
  * 4. Store follow/unfollow engine.
- * 5. 1-Click Saler Upgrade (provisions saler role, virtual store with unique vanity slug, wallet, zero paperwork).
+ * 5. 1-Click Shop Partner Upgrade (provisions shop partner role, virtual store with unique vanity slug, wallet, zero paperwork).
  * 6. Wishlist price-drop evaluation & notification dispatcher.
  */
 
@@ -189,7 +189,7 @@ export async function getCustomerDashboardSummary(db, userId) {
     activeReturnsCount = Number(returnRows[0]?.return_count || 0);
   } catch {}
 
-  // 10. Check if user is already a saler
+  // 10. Check if user is already a shop partner
   // user_roles is a join table (user_id, role_id) — the role name lives on `roles.key`.
   const { rows: roleRows } = await db.query(
     `SELECT r.key FROM user_roles ur JOIN roles r ON r.id = ur.role_id
@@ -446,7 +446,7 @@ export async function getFollowingFeed(db, userId) {
 
   // 2. Suggested stores.
   // WHY: this used to be computed only when the customer followed zero stores, so the
-  // "Discover Sellers" tab and its header CTA were permanently empty for anyone who already
+  // "Discover Shop Partners" tab and its header CTA were permanently empty for anyone who already
   // followed at least one store. It is now always populated, excluding stores already followed.
   const { rows: suggestedRows } = await db.query(
     `SELECT vs.id, vs.ref, vs.slug, vs.shop_name, vs.bio, vs.has_physical_shop,
@@ -474,7 +474,7 @@ export async function getFollowingFeed(db, userId) {
   }
 
   // 3. Product Drops from Followed Stores (recently curated items).
-  // ssi.custom_retail_price is the saler's own price; when it undercuts the supplier's
+  // ssi.custom_retail_price is the shop partner's own price; when it undercuts the supplier's
   // default_retail_price the difference is a genuine markdown, so both are returned and the
   // client renders a strike-through only when a real discount exists.
   const { rows: dropRows } = await db.query(
@@ -525,7 +525,7 @@ export async function getFollowingFeed(db, userId) {
   });
 
   // 4. Active & Scheduled Live Streams from Followed Merchants.
-  // WHY ls.store_id first: host_id only identifies the saler, so a saler running two storefronts
+  // WHY ls.store_id first: host_id only identifies the shop partner, so a shop partner running two storefronts
   // used to surface the same stream under both. store_id is the precise link; the host_id branch
   // remains as a fallback for streams created before store_id was populated.
   let liveStreams = [];
@@ -661,7 +661,7 @@ export async function toggleFollowStore(db, { userId, storeId }) {
 }
 
 /**
- * 1-Click Genuine Saler Upgrade:
+ * 1-Click Genuine Shop Partner Upgrade:
  * - Grants 'saler' role in user_roles.
  * - Provisions a virtual store with a clean vanity slug.
  * - Ensures user digital wallet exists.
@@ -670,7 +670,7 @@ export async function toggleFollowStore(db, { userId, storeId }) {
 export async function becomeSaler(db, userId) {
   const parsedUserId = Number(userId);
   if (!parsedUserId) {
-    throw new AppError('AUTH_REQUIRED', 'Sign in required for 1-click saler upgrade.');
+    throw new AppError('AUTH_REQUIRED', 'Sign in required for 1-click shop partner upgrade.');
   }
 
   // 1. Fetch User details
@@ -687,7 +687,7 @@ export async function becomeSaler(db, userId) {
     throw new AppError('NOT_FOUND', 'User account not found.');
   }
 
-  // 2. Grant Saler Role
+  // 2. Grant Shop Partner Role
   await db.query(
     `INSERT INTO user_roles (user_id, role_id, assigned_at)
      SELECT $1, r.id, NOW() FROM roles r WHERE r.key = 'saler'
@@ -707,7 +707,7 @@ export async function becomeSaler(db, userId) {
       already_existed: true,
       store: existingStoreRows[0],
       redirect_url: '/saler/store-builder',
-      message_en: 'Saler portal ready! Welcome back to your storefront.',
+      message_en: 'Shop Partner portal ready! Welcome back to your storefront.',
       message_bn: 'আপনার বিক্রেতা পোর্টাল সক্রিয় আছে! স্টোরফ্রন্ট বিল্ডারে স্বাগতম।',
     };
   }
@@ -760,7 +760,7 @@ export async function becomeSaler(db, userId) {
     already_existed: false,
     store: newStoreRows[0],
     redirect_url: '/saler/store-builder',
-    message_en: 'Congratulations! Your virtual store is created. Welcome to Explooro Saler Hub!',
+    message_en: 'Congratulations! Your virtual store is created. Welcome to Explooro Shop Partner Hub!',
     message_bn: 'অভিনন্দন! আপনার ভার্চুয়াল দোকান তৈরি হয়েছে। এক্সপ্লোরো বিক্রেতা পোর্টালে স্বাগতম!',
   };
 }

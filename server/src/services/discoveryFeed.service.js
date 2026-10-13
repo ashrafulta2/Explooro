@@ -7,7 +7,7 @@
  * shopper actually engages with. recordEvents validates and persists the raw signals that profile
  * is built from.
  *
- * The customer feed and the saler sourcing feed share this code; `audience` keeps their histories
+ * The customer feed and the shop partner sourcing feed share this code; `audience` keeps their histories
  * (and therefore their rankings) separate.
  */
 

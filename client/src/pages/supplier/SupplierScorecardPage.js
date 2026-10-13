@@ -1,5 +1,5 @@
 /**
- * SupplierScorecardPage.js — How salers see this supplier, and exactly what they are judged on.
+ * SupplierScorecardPage.js — How shop partners see this supplier, and exactly what they are judged on.
  *
  * Route: /supplier/scorecard  (module: sourcing, permission: supplier.analytics.view)
  *

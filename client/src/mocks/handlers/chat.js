@@ -8,7 +8,7 @@
  *
  * WHY a `SELF` sentinel instead of a literal sender id: `ChatPage` decides `isOutgoing` by
  * comparing `msg.sender_id` to the signed-in user's id, and the mock auth driver hands out string
- * ids that differ per dev account (`usr-dev-7` for the customer, `usr-dev-6` for the saler). A
+ * ids that differ per dev account (`usr-dev-7` for the customer, `usr-dev-6` for the shop partner). A
  * hardcoded id would render every bubble on the wrong side for six of the seven dev logins, so
  * seeds store `SELF` and it is substituted with the live session's id at serialization time.
  */
@@ -177,7 +177,7 @@ function hydrateThread(thread) {
   };
 }
 
-/** All threads for the signed-in user, newest activity first. Shared with the saler inbox mock. */
+/** All threads for the signed-in user, newest activity first. Shared with the shop partner inbox mock. */
 export function listMockChatThreads() {
   return MOCK_CHAT_THREADS
     .slice()

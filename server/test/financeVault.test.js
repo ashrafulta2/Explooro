@@ -8,7 +8,7 @@
  * 2. Attempting to write a single-sided or unbalanced ledger entry fails with UNBALANCED_TRANSACTION_GROUP.
  * 3. Calling releaseEscrow twice for the same sub-order credits exactly once (strict idempotency).
  * 4. High concurrency test: 50 simultaneous credits to one wallet ends with exact correct balance (row-locking).
- * 5. Clawback automation correctly reverses pending/released escrow, zeroes saler commission, and refunds buyer.
+ * 5. Clawback automation correctly reverses pending/released escrow, zeroes shop partner commission, and refunds buyer.
  * 6. After a full order lifecycle, the integrity check endpoint reports zero drift across all wallets.
  */
 
@@ -43,7 +43,7 @@ function createMockFinanceDb() {
     { id: 2, ref: 'USR-ADMIN1', full_name: 'Dev Admin', role: 'admin' },
     { id: 10, ref: 'USR-CUST1', full_name: 'Customer Rahim', role: 'customer' },
     { id: 101, ref: 'USR-SUPP1', full_name: 'Supplier Aarong', role: 'supplier' },
-    { id: 201, ref: 'USR-SALER1', full_name: 'Saler Jamila', role: 'saler' },
+    { id: 201, ref: 'USR-SALER1', full_name: 'Shop Partner Jamila', role: 'saler' },
   ];
 
   const wallets = [];
@@ -452,8 +452,8 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
     assert.equal(parseFloat(updatedW2.available_balance), initW2 + 250.00);
   });
 
-  test('Acceptance 4: Deposit to escrow locks funds into pending_escrow_balance across supplier, saler, and platform', async () => {
-    // Sub-order 501: subtotal 1000 + margin 200 + shipping 60 = supplier 1260, saler 120, platform 180 (total 1560)
+  test('Acceptance 4: Deposit to escrow locks funds into pending_escrow_balance across supplier, shop partner, and platform', async () => {
+    // Sub-order 501: subtotal 1000 + margin 200 + shipping 60 = supplier 1260, shop partner 120, platform 180 (total 1560)
     const depositResult = await vaultService.depositToEscrow(db, {
       subOrderId: 501,
       holdDays: 7,
@@ -461,7 +461,7 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
 
     assert.equal(depositResult.success, true);
     assert.equal(depositResult.totalDeposited, '1560.00');
-    assert.equal(depositResult.escrowEntries.length, 3, 'Must create 3 escrow entries: Supplier, Saler, Platform');
+    assert.equal(depositResult.escrowEntries.length, 3, 'Must create 3 escrow entries: Supplier, Shop Partner, Platform');
 
     const supplierWallet = await walletRepo.getWalletByUserId(db, 101);
     const salerWallet = await walletRepo.getWalletByUserId(db, 201);
@@ -508,10 +508,10 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
     const salerWalletRecheck = await walletRepo.getWalletByUserId(db, 201);
 
     assert.equal(supplierWalletRecheck.available_balance, supplierWalletAfter.available_balance, 'Balance must NOT change on replay');
-    assert.equal(salerWalletRecheck.available_balance, salerWalletAfter.available_balance, 'Saler balance must NOT change on replay');
+    assert.equal(salerWalletRecheck.available_balance, salerWalletAfter.available_balance, 'Shop Partner balance must NOT change on replay');
   });
 
-  test('Acceptance 6: Clawback reverses released funds, zeroes saler commission, and refunds buyer', async () => {
+  test('Acceptance 6: Clawback reverses released funds, zeroes shop partner commission, and refunds buyer', async () => {
     const custWalletBefore = await walletRepo.getWalletByUserId(db, 10);
     const supplierWalletBefore = await walletRepo.getWalletByUserId(db, 101);
     const salerWalletBefore = await walletRepo.getWalletByUserId(db, 201);
@@ -535,7 +535,7 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
 
     // Buyer received refund (+1560.00)
     assert.equal(parseFloat(custWalletAfter.available_balance), custAvailBefore + 1560.00);
-    // Supplier and Saler reversed (-1260.00 and -120.00)
+    // Supplier and Shop Partner reversed (-1260.00 and -120.00)
     assert.equal(parseFloat(supplierWalletAfter.available_balance), supAvailBefore - 1260.00);
     assert.equal(parseFloat(salerWalletAfter.available_balance), salerAvailBefore - 120.00);
   });

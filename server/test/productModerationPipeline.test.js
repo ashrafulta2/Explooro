@@ -5,7 +5,7 @@
  * - Acceptance 1: A new product does not go live until approved when the moderation module is on.
  * - Acceptance 2: Turning on auto_approval for a category bypasses the queue for that category only.
  * - Acceptance 3: Two moderators cannot claim the same item simultaneously.
- * - Acceptance 4: A rejection reason reaches the seller in their chosen language.
+ * - Acceptance 4: A rejection reason reaches the shop partner in their chosen language.
  * - Pre-screening engine: Detects banned keywords (EN/BN), price anomalies, and duplicate listings.
  * - Bulk actions and throughput statistics aggregation.
  * - Fastify HTTP endpoints for the moderation pipeline.
@@ -423,7 +423,7 @@ test('Prompt 7.4 — Product Approval & Content Moderation Pipeline', async (t) 
     assert.equal(claim2.claimed_by, 3);
   });
 
-  // Test 4: Acceptance 4 — A rejection reason reaches the seller in their chosen language
+  // Test 4: Acceptance 4 — A rejection reason reaches the shop partner in their chosen language
   await t.test('Acceptance 4: Rejection stores bilingual reasons and updates entity status', async () => {
     const { mockDb, state } = createMockDb();
 

@@ -1,5 +1,5 @@
 /**
- * socialKit.controller.js — Route handlers for Social Seller Kit & Short Links (Prompt 9.7).
+ * socialKit.controller.js — Route handlers for Social Shop Partner Kit & Short Links (Prompt 9.7).
  */
 
 import * as shortlinkService from '../services/shortlink.service.js';

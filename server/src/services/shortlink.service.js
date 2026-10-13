@@ -3,7 +3,7 @@
  *
  * Implements:
  * 1. Branded short link generation (`explooro.com/s/:code`).
- * 2. Click tracking, deduplication, and affiliate binding to seller.
+ * 2. Click tracking, deduplication, and affiliate binding to shop partner.
  * 3. Conversion and revenue attribution.
  */
 
@@ -150,7 +150,7 @@ export async function recordShortLinkConversion(db, {
 }
 
 /**
- * Returns analytics on all short links for a seller.
+ * Returns analytics on all short links for a shop partner.
  */
 export async function getSalerShortLinks(db, salerId) {
   const query = `

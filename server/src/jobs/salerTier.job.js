@@ -1,5 +1,5 @@
 /**
- * salerTier.job.js — keeps every saler's commission tier current (see services/salerTier.service.js).
+ * salerTier.job.js — keeps every shop partner's commission tier current (see services/salerTier.service.js).
  *
  * Not gated on a platform module: the `saler.commission_tiers.enabled` setting is the switch, and the
  * service writes nothing while it is off.

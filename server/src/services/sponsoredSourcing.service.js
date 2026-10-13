@@ -3,12 +3,12 @@
  *
  * The slot is an ordinary CPC ad (`ad_products.sourcing_boost`) shown above the Sourcing Catalog.
  * Everything generic - pricing, billing, the second-price auction - stays in the ad engine. This file
- * owns only what is specific to selling to salers, and ties the slot to the Supplier Scorecard:
+ * owns only what is specific to selling to shop partners, and ties the slot to the Supplier Scorecard:
  *
- *   1. A supplier can only promote their OWN products here. Salers pick a supplier to build a store
+ *   1. A supplier can only promote their OWN products here. Shop Partners pick a supplier to build a store
  *      on; letting anyone push anyone's product into that list would be paid impersonation.
  *   2. A supplier graded in `blocked_grades` (default D) can neither buy the slot nor keep serving
- *      it. Charging a supplier the platform already measures as unreliable for access to salers would
+ *      it. Charging a supplier the platform already measures as unreliable for access to shop partners would
  *      turn the platform's own scorecard into something money can override.
  *   3. The scorecard grade moves ad rank, not price: `grade_rank_bonus` is added to the campaign's
  *      quality multiplier, so an A supplier outranks a D one at the same bid and the auction still
@@ -91,7 +91,7 @@ async function gradesFor(db, supplierIds) {
 /**
  * Narrows auction candidates to the ones this placement may serve and stamps each with the rank
  * bonus its supplier's grade earns. Drops a candidate when its supplier is in a blocked grade, or
- * its product can no longer be sold (inactive or out of stock - a saler who clicks a sponsored
+ * its product can no longer be sold (inactive or out of stock - a shop partner who clicks a sponsored
  * card must be able to act on it, and the supplier must not pay for a click that cannot convert).
  */
 export async function applyCandidatePolicy(db, candidates, rules) {

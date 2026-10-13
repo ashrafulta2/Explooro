@@ -23,7 +23,7 @@ FROM (VALUES
   ('+8801700000003', 'Dev Moderator (zero delegated permissions)'),
   ('+8801700000004', 'Dev Editor'),
   ('+8801700000005', 'Dev Supplier'),
-  ('+8801700000006', 'Dev Saler'),
+  ('+8801700000006', 'Dev Shop Partner'),
   ('+8801700000007', 'Dev Customer')
 ) AS x(phone, full_name)
 JOIN users u ON u.phone = x.phone

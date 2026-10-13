@@ -22,7 +22,7 @@ export const PAGE_PORTALS = Object.freeze([
   { key: 'moderator', prefix: '/moderator', label_en: 'Moderator', label_bn: 'মডারেটর' },
   { key: 'editor', prefix: '/editor', label_en: 'Editor', label_bn: 'এডিটর' },
   { key: 'supplier', prefix: '/supplier', label_en: 'Supplier', label_bn: 'সাপ্লায়ার' },
-  { key: 'saler', prefix: '/saler', label_en: 'Saler', label_bn: 'সেলার' },
+  { key: 'saler', prefix: '/saler', label_en: 'Shop Partner', label_bn: 'শপ পার্টনার' },
   { key: 'account', prefix: '/account', label_en: 'My Account', label_bn: 'আমার অ্যাকাউন্ট' },
   { key: 'dev', prefix: '/dev', label_en: 'Developer', label_bn: 'ডেভেলপার' },
   { key: 'customer', prefix: '', label_en: 'Public & Customer', label_bn: 'পাবলিক ও কাস্টমার' },

@@ -339,7 +339,7 @@ describe('Co-visitation — rebuild', () => {
     for (const wanted of ['CLICK', 'SEARCH_CLICK', 'ADD_CART', 'PURCHASE']) assert.match(list, new RegExp(`'${wanted}'`));
   });
 
-  test('shoppers only: the saler sourcing audience is not mixed in', async () => {
+  test('shoppers only: the shop partner sourcing audience is not mixed in', async () => {
     assert.match(await sqlOf(), /e\.audience = 'customer'/);
   });
 

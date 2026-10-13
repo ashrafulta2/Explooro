@@ -560,8 +560,8 @@ async function completeTeam(client, cache, team) {
     [team.id]
   );
 
-  // WHY no saler share: a team purchase is bought from the product page, not through a saler's
-  // storefront, so there is no saler to pay. With a 40/60 split and no saler wallet the escrow
+  // WHY no shop partner share: a team purchase is bought from the product page, not through a shop partner's
+  // storefront, so there is no shop partner to pay. With a 40/60 split and no shop partner wallet the escrow
   // deposit would lock less than the buyer paid; 0/100 makes the escrow equal the order total.
   const pricing = calculatePricingBreakdown({
     baseCost: product.base_cost,

@@ -15,7 +15,7 @@
 | **⚙️ Backend API Server** | **Node.js (Fastify)** *(Alternative: Go)* | 4x–5x faster throughput than Express with minimal memory footprint. | Low latency, clean schema validation, easy for AI tools. |
 | **🗄️ Primary Database** | **PostgreSQL** | Strict ACID compliance for financial integrity (Digital Vault & Wallets). | Reliable transactional safety, zero money calculation errors. |
 | **⚡ In-Memory Cache & Queue** | **Redis** | Sub-millisecond data retrieval for flash sales, session tokens, and rate limits. | Prevents database overload during high-traffic spikes. |
-| **🔌 Real-Time Communications** | **WebSockets (`ws`)** | Bi-directional, low-latency live communication. | Instant Saler-Customer live chat & order notifications. |
+| **🔌 Real-Time Communications** | **WebSockets (`ws`)** | Bi-directional, low-latency live communication. | Instant Shop Partner-Customer live chat & order notifications. |
 | **🇧🇩 Bangladesh Services** | **bKash, Nagad, Rocket, Steadfast/Pathao** | Direct MFS payment gateway integration + Courier logistics webhook sync. | Seamless automated cash-out, COD & tracking. |
 | **🤖 AI Pair-Programming Tools** | **Google Antigravity + Claude Code** | Clean, modular codebase structure allows AI agents to write, test & debug fast. | Maximum developer productivity & zero hallucination errors. |
 
@@ -73,12 +73,12 @@
 ### 🗄️ Layer 4: Database & Caching (`/database`)
 * **Relational Database:** **PostgreSQL**
   * Tables: `users`, `roles`, `wallets`, `vault_transactions`, `products`, `orders`, `commission_rules`, `disputes`, `audit_logs`.
-  * ACID transactions guarantee atomic balance transfers (e.g., Customer payment ➔ Escrow ➔ Saler Profit Split ➔ Supplier Payout).
+  * ACID transactions guarantee atomic balance transfers (e.g., Customer payment ➔ Escrow ➔ Shop Partner Profit Split ➔ Supplier Payout).
 * **Cache & Memory Store:** **Redis**
   * Live user sessions, shopping cart memory cache, high-speed product catalog indexing, and WebSocket pub/sub messaging.
 
 ### 🔌 Layer 5: Real-Time & Integrations
-* **Real-time Live Chat:** WebSockets (`ws`) for low-latency peer-to-peer messaging (Customer ↔ Saler ↔ Supplier).
+* **Real-time Live Chat:** WebSockets (`ws`) for low-latency peer-to-peer messaging (Customer ↔ Shop Partner ↔ Supplier).
 * **Bangladesh Payment Gateways (MFS):**
   * bKash Direct Checkout API (Tokenized).
   * Nagad Payment Gateway (PGW).

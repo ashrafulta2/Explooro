@@ -1,5 +1,5 @@
 /**
- * sourcing.controller.js — Handlers for Saler sourcing & virtual storefront curation (Prompt 4.3).
+ * sourcing.controller.js — Handlers for Shop Partner sourcing & virtual storefront curation (Prompt 4.3).
  */
 
 import * as productService from '../services/product.service.js';

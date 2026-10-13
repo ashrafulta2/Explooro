@@ -397,7 +397,7 @@ export default function EditorDashboardPage(root) {
           <span>✍️</span> ${t('editor.dashboard_title', 'Content & Editorial Management Studio')}
         </h1>
         <p class="editor-header__subtitle">
-          Manage storefront hero banners, shoppable reels, seller tutorials, and live localization phrases.
+          Manage storefront hero banners, shoppable reels, shop partner tutorials, and live localization phrases.
         </p>
       </div>
 
@@ -500,7 +500,7 @@ export default function EditorDashboardPage(root) {
       },
       {
         icon: '🎓',
-        title: 'Seller & Buyer Academy',
+        title: 'Shop Partner & Buyer Academy',
         desc: 'Manage educational courses, video lessons, and sourcing best practices.',
         path: '/editor/academy',
         badge: `${courses.length} Courses`,

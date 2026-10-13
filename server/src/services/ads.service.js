@@ -121,7 +121,7 @@ async function chargeAdvertiser(client, { buyerUserId, campaign, amount, memo })
 
 /**
  * Reserves the day-level inventory a slot-backed format occupies. Throws if the run is already
- * sold out — the unique index is the real guard, so two sellers racing for the last slot cannot
+ * sold out — the unique index is the real guard, so two shop partners racing for the last slot cannot
  * both win.
  */
 async function reserveSlots(client, { product, campaign, input, totalAmount }) {
@@ -196,7 +196,7 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta = 
     throw new AppError('BLOCKED_KEYWORD', `Content contains a prohibited keyword: "${blockedFound}".`);
   }
 
-  // 3b. The Sponsored Sourcing Slot sells access to salers, so it has its own gate: own products
+  // 3b. The Sponsored Sourcing Slot sells access to shop partners, so it has its own gate: own products
   //     only, and not for a supplier the Scorecard grades as unreliable.
   if (product.placement === sponsoredSourcing.PLACEMENT) {
     await sponsoredSourcing.assertMayAdvertise(db, userId, creative.product_id, { isPrivileged });
@@ -231,7 +231,7 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta = 
   // 6. Verify buyer has a valid wallet
   const wallet = await walletRepo.getOrCreateWallet(db, userId);
   if (!wallet) {
-    throw new AppError('WALLET_NOT_FOUND', 'Seller wallet could not be found or initialized.');
+    throw new AppError('WALLET_NOT_FOUND', 'Shop Partner wallet could not be found or initialized.');
   }
 
   // 7. Review policy: the format's own switch wins, but the module can turn review off globally.
@@ -325,7 +325,7 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta = 
     const createdCreative = crRows[0];
 
     // 8. Reserve inventory, then take the money. Reservation first so a sold-out run fails before
-    //    the seller is charged for a placement they cannot have.
+    //    the shop partner is charged for a placement they cannot have.
     let reservation = null;
     if (adProductsService.SLOT_BACKED_MODELS.includes(product.pricing_model)) {
       reservation = await reserveSlots(client, { product, campaign, input: campaignData, totalAmount: commitment });
@@ -600,7 +600,7 @@ export async function runAuction(db, cache, { placement, categoryId, district, k
       AND (c.end_date IS NULL OR c.end_date > now())
   `;
   // WHY billing_mode filter: a PREPAID placement was bought outright and holds a reserved slot.
-  // Feeding it back into the auction would let a higher bidder outrank a seller who already paid.
+  // Feeding it back into the auction would let a higher bidder outrank a shop partner who already paid.
   // Reserved placements are served by listReservedPlacements() instead.
 
   const { rows } = await db.query(query, [placement]);
@@ -693,7 +693,7 @@ export async function recordImpression(db, cache, {
     return { recorded: true, billed: false };
   }
 
-  // CPM settles on whole thousands, which is what the seller was quoted ("৳80 per 1,000 views").
+  // CPM settles on whole thousands, which is what the shop partner was quoted ("৳80 per 1,000 views").
   // A partial final thousand is never charged — rounding goes to the advertiser, not the platform.
   if (newCount?.pricing_model === 'CPM' && newCount.billing_mode === 'METERED'
       && Number(newCount.impressions_count) % CPM_BILLING_BATCH === 0) {
@@ -758,7 +758,7 @@ export async function billCpmBatch(db, campaignId) {
       availableBudget,
     });
 
-    // An empty vault pauses the campaign rather than failing the charge: the seller can top up and
+    // An empty vault pauses the campaign rather than failing the charge: the shop partner can top up and
     // resume, and the platform stops delivering views it cannot bill for.
     const advertiserWallet = await walletRepo.getOrCreateWallet(client, campaign.user_id, { client });
     if (Number(advertiserWallet.available_balance) < Number(charge)) {
@@ -799,7 +799,7 @@ export async function billCpmBatch(db, campaignId) {
 
 /**
  * Records an ad click, validates against fraud (self-clicks, rapid duplicates),
- * and atomically debits seller wallet and credits platform treasury via double-entry ledger.
+ * and atomically debits shop partner wallet and credits platform treasury via double-entry ledger.
  */
 export async function recordClickAndBill(db, cache, {
   campaignId,
@@ -903,7 +903,7 @@ export async function recordClickAndBill(db, cache, {
     const actualCharge = Math.min(targetCpc, availableBudget);
     const chargeStr = actualCharge.toFixed(2);
 
-    // 5. Deduct from seller's wallet via Double-Entry General Ledger
+    // 5. Deduct from shop partner's wallet via Double-Entry General Ledger
     const sellerWallet = await walletRepo.getOrCreateWallet(db, campaign.user_id, { client });
 
     // Platform treasury wallet (Super Admin / Admin User ID 1)
@@ -919,7 +919,7 @@ export async function recordClickAndBill(db, cache, {
 
     const txnGroupId = randomUUID();
 
-    // Balanced Double-Entry: Debit Seller, Credit Platform Treasury
+    // Balanced Double-Entry: Debit Shop Partner, Credit Platform Treasury
     await ledgerService.recordTransactionGroup(client, {
       txnGroupId,
       defaultCategory: 'AD_SPEND',

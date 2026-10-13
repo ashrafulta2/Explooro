@@ -5,7 +5,7 @@
  * `escrow_entries`, found nothing, and fell back to four made-up orders. Its sweep and "Release now"
  * buttons only changed those rows in the browser. Admins never saw a real taka of escrow.
  *
- * One row per sub-order (a sub-order has up to three escrow rows: supplier, saler, platform), with
+ * One row per sub-order (a sub-order has up to three escrow rows: supplier, shop partner, platform), with
  * the names an admin needs to recognise it. The summary is computed over ALL held escrow, not the
  * page, so the totals do not change when the admin searches or pages.
  */

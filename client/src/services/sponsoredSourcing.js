@@ -3,9 +3,9 @@
  *
  * Fetches the auction winners for the Sourcing Catalog and reports the two billable events:
  *   impression  the card was >= 50% visible for >= 1 second (same bar as SponsoredSlot)
- *   click       the saler acted on the card (calculate / add to store), reported once per ad
+ *   click       the shop partner acted on the card (calculate / add to store), reported once per ad
  *
- * WHY tracking never throws: a failed beacon must not stop a saler adding a product to their store.
+ * WHY tracking never throws: a failed beacon must not stop a shop partner adding a product to their store.
  * The server decides what is billable (self-clicks, duplicates and the budget cap are all enforced
  * there), so nothing here is a billing authority.
  */

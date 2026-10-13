@@ -4,7 +4,7 @@
  * Implements:
  * 1. Icon-led navigation with large touch targets (48px+) and bilingual localization.
  * 2. Real-time telemetry: in-transit orders tracker, coins & login streak calendar, wishlist price drops, warranties.
- * 3. 1-Click Saler Upgrade integration (BecomeSalerCta).
+ * 3. 1-Click Shop Partner Upgrade integration (BecomeSalerCta).
  * 4. 15-Second interactive video walkthrough modals for seamless low-literacy onboarding.
  * 5. Complete 2-click access to all customer features.
  * 6. Dynamic language switching reactivity with zero reload.
@@ -135,7 +135,7 @@ function renderDashboard(container, data, nav) {
     renderInFlightOrderWidget(wrap, data.orders.latest_order, nav);
   }
 
-  // 3. 1-Click Saler Upgrade CTA (BecomeSalerCta)
+  // 3. 1-Click Shop Partner Upgrade CTA (BecomeSalerCta)
   if (!data.is_saler) {
     const becomeSaler = BecomeSalerCta({ onNavigate: nav });
     wrap.append(becomeSaler.element);

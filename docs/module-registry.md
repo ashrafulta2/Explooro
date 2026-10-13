@@ -59,7 +59,7 @@ shows a stronger warning and names exactly what will stop working, rather than a
 | `age_verification` | Only meaningful once age-restricted categories exist |
 | `auto_approval` | Human review first. Auto-approval is earned, per category, after the queue is understood |
 | `card_payment` | The SSLCommerz gateway is not live yet |
-| `subscription_fees` | *"100% Free at launch"* — the fee engine exists so it can be turned on later without a deploy. While OFF, Saler Pro plans neither bill nor affect pricing (the rebate in `pricing.service.js` is gated on this module); plan prices, rebate %, grace days and billing period are all admin-editable, never constants. Existing subscriptions are kept, not deleted, when it is switched OFF |
+| `subscription_fees` | *"100% Free at launch"* — the fee engine exists so it can be turned on later without a deploy. While OFF, Shop Partner Pro plans neither bill nor affect pricing (the rebate in `pricing.service.js` is gated on this module); plan prices, rebate %, grace days and billing period are all admin-editable, never constants. Existing subscriptions are kept, not deleted, when it is switched OFF |
 
 ---
 
@@ -181,7 +181,7 @@ Representative examples:
   "expiry_days":       { "type": "integer", "default": 365 }
 }
 
-// escrow_engine — the hold period, and a shorter one for trusted sellers
+// escrow_engine — the hold period, and a shorter one for trusted shop partners
 {
   "hold_days":       { "type": "integer", "minimum": 0, "maximum": 60, "default": 7 },
   "elite_hold_days": { "type": "integer", "default": 3 }
@@ -208,7 +208,7 @@ More specific always wins. `by_user` beats `by_district` beats `by_tier` beats `
 
 | Targeting | Used by | Example |
 | :--- | :--- | :--- |
-| `by_role` | 5 modules | `daily_quests` differs for saler vs customer |
+| `by_role` | 5 modules | `daily_quests` differs for shop partner vs customer |
 | `by_tier` | 12 modules | `live_commerce` requires Verified Trader to host |
 | `by_district` | 11 modules | `cod_payment` only where couriers actually collect cash |
 | `by_user` | all | Per-user override for support and testing |
@@ -228,14 +228,14 @@ because other source documents require them.
 | # | Source row | Registry key |
 | ---: | :--- | :--- |
 | 1 | Supplier / Manufacturer Verification | `supplier_verification` |
-| 2 | Saler Verification | `saler_verification` |
+| 2 | Shop Partner Verification | `saler_verification` |
 | 3 | Customer Identity Verification | `customer_verification` |
 | 4 | Customer Age Verification | `age_verification` |
 | 5 | Product Approval & Moderation Queue | `product_moderation` |
 | 6 | Auto-Approval for Products | `auto_approval` |
 | 7 | In-Platform Sponsored Ads Engine | `sponsored_ads` |
 | 8 | Customer Shopping Concierge Chat (AI) | `ai_concierge` |
-| 9 | Saler Sourcing Intelligence Chat (AI) | `ai_sourcing_chat` |
+| 9 | Shop Partner Sourcing Intelligence Chat (AI) | `ai_sourcing_chat` |
 | 10 | Real-Time Peer-to-Peer Messaging | `chat` |
 | 11 | Return & Refund Engine | `returns_engine` |
 | 12 | Dispute Panel | `dispute_panel` |
@@ -267,7 +267,7 @@ because other source documents require them.
 | 38 | COD Payment | `cod_payment` |
 | 39 | bKash / Nagad / Rocket Payment | `mfs_payment` |
 | 40 | Debit/Credit Card Payment | `card_payment` |
-| 41 | Seller & Supplier Subscription / Fee Engine | `subscription_fees` |
+| 41 | Shop Partner & Supplier Subscription / Fee Engine | `subscription_fees` |
 | 42 | 3PL Courier Aggregator & Live GPS Hub | `courier_hub` |
 | 43 | Anti-Fraud Fake Order & COD Protection | `cod_protection` |
 | 44 | Interactive Live Stream Commerce | `live_commerce` |
@@ -275,17 +275,17 @@ because other source documents require them.
 | 46 | AI Creative Marketing Studio | `ai_creative_studio` |
 | 47 | Customer Loyalty Points & Explooro Coins | `loyalty_coins` |
 | 48 | Multi-Tier Referral & Network Growth | `referral_engine` |
-| 49 | Social Seller Kit & Auto-Flyer Generator | `social_seller_kit` |
+| 49 | Social Shop Partner Kit & Auto-Flyer Generator | `social_seller_kit` |
 | 50 | Abandoned Cart Recovery Engine | `cart_recovery` |
-| 51 | Gamification, Leaderboard & Seller Rewards | `gamification` |
+| 51 | Gamification, Leaderboard & Shop Partner Rewards | `gamification` |
 | 52 | Coupons, Vouchers & Flash Sale Campaign | `coupons` + `flash_sale` ⁽ˢᵖˡᶦᵗ⁾ |
-| 53 | Explooro Seller Academy | `seller_academy` |
+| 53 | Explooro Shop Partner Academy | `seller_academy` |
 | 54 | Prescriptive Analytics & Next-Action Insights | `prescriptive_insights` |
 | 55 | Digital Warranty & Product Protection | `digital_warranty` |
 | 56 | AI Smart Inventory & Demand Forecasting | `ai_forecasting` |
 | 57 | Cross-Seller Dynamic Product Bundling | `product_bundling` |
 | 58 | WhatsApp & Messenger Conversational Commerce | `whatsapp_bridge` |
-| 59 | Daily Challenges & Seller Achievement Quests | `daily_quests` |
+| 59 | Daily Challenges & Shop Partner Achievement Quests | `daily_quests` |
 | 60 | Dynamic Demand Surge & Yield Optimization | `demand_surge` |
 | 61 | B2B Wholesale Escrow & Milestone Settlement | `b2b_escrow` |
 | 62 | UGC Video Reviews & Social Proof Wall | `ugc_video_wall` |
@@ -309,7 +309,7 @@ exactly the wrong moment.
 
 | Key | Why it was added |
 | :--- | :--- |
-| `virtual_storefront` | The core Saler feature. `idea proposition.md` §A describes it in prose but omits it from the toggle table — an oversight, since every `/store/:slug` route depends on it |
+| `virtual_storefront` | The core Shop Partner feature. `idea proposition.md` §A describes it in prose but omits it from the toggle table — an oversight, since every `/store/:slug` route depends on it |
 | `sourcing` | Same: §A's 1-click "Add to My Store" is a distinct capability from the storefront itself |
 | `escrow_engine` | `PRD.md` §3.2 makes the 7-day hold a hard requirement. The hold period must be configurable, so it needs a module |
 | `cod_reconciliation` | `PRD.md` §5 gap 6. Absent from the source toggle table and from v1.0 entirely |

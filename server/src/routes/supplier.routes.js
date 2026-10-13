@@ -156,7 +156,7 @@ export default async function supplierRoutes(app) {
     controller.bookConsignment
   );
 
-  // 6. Saler Network Insights & Leaderboard
+  // 6. Shop Partner Network Insights & Leaderboard
   app.get(
     '/supplier/salers',
     {
@@ -169,7 +169,7 @@ export default async function supplierRoutes(app) {
     controller.getSalerInsights
   );
 
-  // 6b. Supplier Scorecard - the supplier's own view of how salers see them
+  // 6b. Supplier Scorecard - the supplier's own view of how shop partners see them
   app.get(
     '/supplier/scorecard',
     {
@@ -183,7 +183,7 @@ export default async function supplierRoutes(app) {
     controller.getScorecard
   );
 
-  // 6c. Volume Incentive - a supplier-funded monthly rebate for the salers who sell the most
+  // 6c. Volume Incentive - a supplier-funded monthly rebate for the shop partners who sell the most
   app.get(
     '/supplier/incentive',
     {
@@ -210,7 +210,7 @@ export default async function supplierRoutes(app) {
     controller.saveIncentive
   );
 
-  // 6d. Sample Requests + Marketing Kits - what a saler wants before committing to a supplier's product
+  // 6d. Sample Requests + Marketing Kits - what a shop partner wants before committing to a supplier's product
   const sampleGuards = (perm) => [authenticate, reqModule('sourcing'), requirePerm(perm)];
   app.get('/supplier/samples', { config: { page: '/supplier/samples' }, preHandler: sampleGuards('supplier.analytics.view') }, sampleKit.getSupplierSamples);
   app.put('/supplier/samples/:productId/offer', { config: { page: '/supplier/samples' }, preHandler: sampleGuards('supplier.sample.manage') }, sampleKit.saveSampleOffer);
@@ -218,7 +218,7 @@ export default async function supplierRoutes(app) {
   app.get('/supplier/marketing-kits', { config: { page: '/supplier/marketing-kits' }, preHandler: sampleGuards('supplier.analytics.view') }, sampleKit.getSupplierSamples);
   app.put('/supplier/marketing-kits/:productId', { config: { page: '/supplier/marketing-kits' }, preHandler: sampleGuards('supplier.sample.manage') }, sampleKit.saveMarketingKit);
 
-  // 6e. Fast Payout + Return Protection - get escrowed earnings early for a fee, and cover salers against returns
+  // 6e. Fast Payout + Return Protection - get escrowed earnings early for a fee, and cover shop partners against returns
   app.get('/supplier/fast-payout', { config: { page: '/supplier/fast-payout' }, preHandler: sampleGuards('supplier.analytics.view') }, fastPayout.getFastPayout);
   app.post('/supplier/fast-payout', { config: { page: '/supplier/fast-payout' }, preHandler: sampleGuards('finance.fast_payout.request') }, fastPayout.requestFastPayout);
   app.get('/supplier/return-protection', { config: { page: '/supplier/return-protection' }, preHandler: sampleGuards('supplier.analytics.view') }, returnProtection.getSupplierProtection);

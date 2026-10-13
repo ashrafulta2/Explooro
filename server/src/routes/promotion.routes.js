@@ -22,7 +22,7 @@ export default async function promotionRoutes(app) {
     preHandler: [requireFlashSaleModule],
   }, promotionController.getActiveFlashSales);
 
-  // 2. Creator Coupon Management (Seller / Saler / Supplier)
+  // 2. Creator Coupon Management (Shop Partner / Supplier)
   app.post('/promotions/coupons', {
     preHandler: [app.authenticate, requireCouponsModule, requireCreateCoupon],
   }, promotionController.createCoupon);

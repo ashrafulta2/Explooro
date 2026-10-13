@@ -168,7 +168,7 @@ export function getBackDestination(fromPath, lang = 'en') {
   }
   if (pathname === '/account/become-saler' || pathname.startsWith('/account/become-saler/')) {
     return {
-      name: resolveLabel('nav.customer.become_saler', 'সেলার একাউন্ট', 'Become a Saler', activeLang),
+      name: resolveLabel('nav.customer.become_saler', 'শপ পার্টনার একাউন্ট', 'Become a Shop Partner', activeLang),
       path: '/account/become-saler',
     };
   }
@@ -181,7 +181,7 @@ export function getBackDestination(fromPath, lang = 'en') {
     };
   }
 
-  // 5. Saler & Supplier Portals
+  // 5. Shop Partner & Supplier Portals
   if (pathname.startsWith('/supplier')) {
     return {
       name: resolveLabel('common.dashboard', 'ড্যাশবোর্ড', 'Dashboard', activeLang),

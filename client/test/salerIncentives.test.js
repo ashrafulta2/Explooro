@@ -1,5 +1,5 @@
 /**
- * salerIncentives.test.js — the progress bar must say how far a saler is to the NEXT tier, not to zero,
+ * salerIncentives.test.js — the progress bar must say how far a shop partner is to the NEXT tier, not to zero,
  * and must never overflow or go negative.
  */
 import { test } from 'node:test';

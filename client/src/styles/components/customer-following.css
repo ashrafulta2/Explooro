@@ -7,7 +7,7 @@
  * - Filter & Navigation tab strip with badge counters
  * - Search bar & category pill selectors
  * - Followed store cards & Recommended store discovery cards
- * - Product drop cards with seller attribution and price tags
+ * - Product drop cards with shop partner attribution and price tags
  * - Live broadcast stream cards with pulsing indicators
  * - Shoppable merchant stories strip
  * - High-converting empty states and discovery banners
@@ -901,7 +901,7 @@
   padding: 2px 8px;
 }
 
-/* A metric the seller has not earned yet reads quieter than one they have. */
+/* A metric the shop partner has not earned yet reads quieter than one they have. */
 .store-card__meta-item--muted {
   opacity: 0.7;
 }

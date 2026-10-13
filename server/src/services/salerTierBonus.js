@@ -1,8 +1,8 @@
 /**
- * salerTierBonus.js — the sales-volume commission tier a saler has EARNED, as the pricing step sees it.
+ * salerTierBonus.js — the sales-volume commission tier a shop partner has EARNED, as the pricing step sees it.
  *
  * WHY a separate file: pricing.service.js resolves the split and subscriptionRebate.js is its sibling
- * for the Saler Pro rebate; this follows the same shape so pricing can import it without a cycle.
+ * for the Shop Partner Pro rebate; this follows the same shape so pricing can import it without a cycle.
  *
  * How a tier works (BRONZE < SILVER < GOLD < PLATINUM):
  *   - `saler.commission_tiers` (platform_settings) holds the switch, the rolling window and the monthly
@@ -10,7 +10,7 @@
  *   - `finance.tier_bonuses` (platform_settings, already edited at /admin/finance/splits) holds the extra
  *     saler split points each tier pays. Thresholds and bonuses are separate settings on purpose: the
  *     screen that already owns the bonuses keeps owning them.
- *   - the daily `saler_tier` job writes each saler's tier to `saler_commission_tiers`. Checkout only READS
+ *   - the daily `saler_tier` job writes each shop partner's tier to `saler_commission_tiers`. Checkout only READS
  *     that row, so the split an order is priced with never depends on a sum computed mid-checkout, and a
  *     tier is the same for every item of the same order.
  *
@@ -45,9 +45,9 @@ export function parseTierBonuses(list) {
 
 /**
  * Pure. Merges a stored rules object over the defaults field by field. A malformed field falls back to
- * its default rather than failing: one bad edit must not stop every saler from being tiered.
+ * its default rather than failing: one bad edit must not stop every shop partner from being tiered.
  * Thresholds that do not rise (GOLD <= SILVER) are discarded as a set, because a ladder that does not
- * rise would promote a saler past a tier they have not reached.
+ * rise would promote a shop partner past a tier they have not reached.
  */
 export function resolveRules(raw) {
   const r = raw && typeof raw === 'object' ? raw : {};
@@ -71,7 +71,7 @@ export function resolveRules(raw) {
 
 /**
  * Strict form of `resolveRules` for an admin write: out-of-range input is refused, never clamped, so what
- * an admin saves is what salers see. Returns the clean object or throws an Error with a message.
+ * an admin saves is what shop partners see. Returns the clean object or throws an Error with a message.
  */
 export function validateRules(input) {
   const bad = (m) => Object.assign(new Error(m), { code: 'VALIDATION_FAILED' });
@@ -113,8 +113,8 @@ export function nextTierInfo(tier, volume, thresholds) {
 }
 
 /**
- * @returns {Promise<number>} extra saler split points this saler's earned tier pays, 0 when none applies.
- * One query reads the switch, the saler's tier and the bonus list together, so a checkout of N items
+ * @returns {Promise<number>} extra shop partner split points this shop partner's earned tier pays, 0 when none applies.
+ * One query reads the switch, the shop partner's tier and the bonus list together, so a checkout of N items
  * costs N cheap lookups, not 3N.
  */
 export async function resolveSalerTierBonusPct(db, { salerId } = {}) {
@@ -140,7 +140,7 @@ export async function loadRules(db) {
 export async function saveRules(db, rules) {
   await db.query(
     `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
-     VALUES ($1, $2::jsonb, 'OBJECT', 'Saler commission tiers', 'সেলার কমিশন টিয়ার', 'finance', now())
+     VALUES ($1, $2::jsonb, 'OBJECT', 'Shop Partner commission tiers', 'শপ পার্টনার কমিশন টিয়ার', 'finance', now())
      ON CONFLICT (key) DO UPDATE SET value_json = EXCLUDED.value_json, updated_at = now()`,
     [RULES_KEY, JSON.stringify(rules)]
   );

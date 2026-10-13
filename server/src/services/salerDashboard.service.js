@@ -1,17 +1,17 @@
 /**
- * salerDashboard.service.js — Saler Dashboard & Analytics Business Logic (Prompt 11.2 / idea §AL.2).
+ * salerDashboard.service.js — Shop Partner Dashboard & Analytics Business Logic (Prompt 11.2 / idea §AL.2).
  *
  * Implements:
- * 1. Unified saler overview metrics (today's revenue/profit, 30d stats, wallet balances, store health).
+ * 1. Unified shop partner overview metrics (today's revenue/profit, 30d stats, wallet balances, store health).
  * 2. Analytics engine with pure time-series breakdown, traffic sources, conversion rates, and district distribution.
- * 3. First-run onboarding checklist with 15-second module walkthroughs for new salers.
+ * 3. First-run onboarding checklist with 15-second module walkthroughs for new shop partners.
  * 4. Grounded prescriptive Growth Assistant recommendations with 1-click executable actions.
  */
 
 import { getInsightsForUser } from './ai/prescriptiveInsights.js';
 
 /**
- * Aggregates high-level telemetry and status for the Saler Dashboard overview.
+ * Aggregates high-level telemetry and status for the Shop Partner Dashboard overview.
  */
 export async function getSalerOverview(db, salerId) {
   const parsedSalerId = Number(salerId);
@@ -46,10 +46,10 @@ export async function getSalerOverview(db, salerId) {
 
   // 2. Earnings and Order Volumes (reconciled with sub_orders and wallet)
   // WHY `saler_commission`: that is the column the split arithmetic writes and the vault pays out
-  // from (checkout.service.js, vault.service.js). It is the saler's take of `net_retail_margin`.
+  // from (checkout.service.js, vault.service.js). It is the shop partner's take of `net_retail_margin`.
   //
   // WHY RETURNED is excluded from the money columns: an approved return triggers a clawback that
-  // reverses the commission (clawback.service.js). Counting it as profit showed salers earnings
+  // reverses the commission (clawback.service.js). Counting it as profit showed shop partners earnings
   // they no longer had — and this function reports `returned_orders_count` in the same breath, so
   // it was contradicting itself. Order *counts* still include returns; only the money excludes them.
   const { rows: orderMetrics } = await db.query(
@@ -98,7 +98,7 @@ export async function getSalerOverview(db, salerId) {
   // 4. Activity indicators (Unread messages, active ads, short link clicks, active referrals)
   // WHY no per-query `.catch(() => 0)` here any more: these four used to swallow every error and
   // report a confident zero. Two of them were querying columns that do not exist
-  // (`referrals.sponsor_id`), so the dashboard showed "0 referrals" to salers who had referrals —
+  // (`referrals.sponsor_id`), so the dashboard showed "0 referrals" to shop partners who had referrals —
   // indistinguishable from the truth, and silent in the logs. A broken query must now fail loudly.
   const { rows: unreadRows } = await db.query(
     `SELECT COUNT(*)::int AS count
@@ -170,7 +170,7 @@ export async function getSalerOverview(db, salerId) {
       title_en: 'Share your store on WhatsApp & Facebook',
       title_bn: 'হোয়াটসঅ্যাপ ও ফেসবুকে স্টোর শেয়ার করুন',
       desc_en: 'Generate print-quality vector flyers or tracked affiliate short links.',
-      desc_bn: 'সোশ্যাল সেলার কিট থেকে ব্যানার ও শর্ট লিংক তৈরি করে শেয়ার করুন।',
+      desc_bn: 'সোশ্যাল শপ পার্টনার কিট থেকে ব্যানার ও শর্ট লিংক তৈরি করে শেয়ার করুন।',
       action_url: '/saler/social-kit',
       action_label_en: 'Launch Social Kit',
       action_label_bn: 'সোশ্যাল কিট খুলুন',
@@ -257,14 +257,14 @@ export async function getSalerAnalytics(db, salerId, { range = '30d' } = {}) {
   // 3. Top performing products.
   //
   // WHY the join order matters: `order_items` used to be joined on `product_id` alone, with the
-  // saler filter sitting on a LEFT JOIN to `sub_orders` further down — so every item row survived
-  // whether or not it belonged to this saler, and `units_sold` silently reported the whole
-  // platform's sales of that product. The saler's own parcels have to be selected first.
+  // shop partner filter sitting on a LEFT JOIN to `sub_orders` further down — so every item row survived
+  // whether or not it belonged to this shop partner, and `units_sold` silently reported the whole
+  // platform's sales of that product. The shop partner's own parcels have to be selected first.
   //
-  // WHY commission is prorated: there is no per-item saler earning in the schema — `saler_commission`
+  // WHY commission is prorated: there is no per-item shop partner earning in the schema — `saler_commission`
   // is settled per sub-order. Splitting it across the parcel's items by their share of `line_total`
   // is the honest attribution. (The previous `unit_price - unit_cost` expression named two columns
-  // that do not exist, and would have measured gross markup, not the saler's cut, if they had.)
+  // that do not exist, and would have measured gross markup, not the shop partner's cut, if they had.)
   const { rows: topProducts } = await db.query(
     `SELECT
        p.id AS product_id,
@@ -295,7 +295,7 @@ export async function getSalerAnalytics(db, salerId, { range = '30d' } = {}) {
 
   // 4. Traffic sources & conversion rate
   // `source_channel` is a CHECK-constrained enum: GENERAL | WHATSAPP | FACEBOOK | PRINT_FLYER |
-  // QR_CODE | INSTAGRAM. Printed flyers and QR codes are one offline bucket to the saler.
+  // QR_CODE | INSTAGRAM. Printed flyers and QR codes are one offline bucket to the shop partner.
   const { rows: clickStats } = await db.query(
     `SELECT
        COALESCE(SUM(clicks_count), 0)::int AS total_clicks,
@@ -316,7 +316,7 @@ export async function getSalerAnalytics(db, salerId, { range = '30d' } = {}) {
 
   // WHY percentages are derived rather than declared: they used to be the literals 45/30/15/10 with
   // counts that fell back to `visitors * 0.45` when the real number was zero, so the attribution
-  // donut drew the same four slices for every saler on the platform regardless of their actual
+  // donut drew the same four slices for every shop partner on the platform regardless of their actual
   // traffic. An analytics figure that ignores its own data is worse than an empty chart.
   const totalAttributed = clicks.whatsapp_clicks + clicks.facebook_clicks + clicks.flyer_clicks + clicks.direct_clicks;
   const pct = (n) => (totalAttributed > 0 ? Number(((n / totalAttributed) * 100).toFixed(1)) : 0);
@@ -417,7 +417,7 @@ export async function getSalerGrowthRecommendations(db, salerId, lang = 'en', de
     };
   });
 
-  // Fallback defaults if new saler has few metrics
+  // Fallback defaults if new shop partner has few metrics
   if (actionableRecommendations.length === 0) {
     actionableRecommendations.push({
       id: 'rec_default_1',
@@ -440,7 +440,7 @@ export async function getSalerGrowthRecommendations(db, salerId, lang = 'en', de
     actionableRecommendations.push({
       id: 'rec_default_2',
       type: 'SOCIAL_DISTRIBUTION',
-      title: lang === 'bn' ? 'সোশ্যাল সেলার কিট' : 'Viral WhatsApp Distribution',
+      title: lang === 'bn' ? 'সোশ্যাল শপ পার্টনার কিট' : 'Viral WhatsApp Distribution',
       message: lang === 'bn'
         ? 'সোশ্যাল মিডিয়া ব্যানারে কিউআর কোড যুক্ত করে ক্রেতাদের সরাসরি স্টোরে আনুন।'
         : 'Vector flyers with QR codes increase WhatsApp status conversion by 3x.',

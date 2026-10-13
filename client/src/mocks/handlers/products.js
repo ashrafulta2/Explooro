@@ -248,7 +248,7 @@ export function findMockProductByFlashSaleId(flashSaleId) {
   return activeProducts.find((p) => String(p.flash_sale_id) === String(flashSaleId)) || null;
 }
 
-// In-memory store items for mock saler storefront
+// In-memory store items for mock shop partner storefront
 const mockSalerStoreItems = [
   {
     id: 1,
@@ -711,7 +711,7 @@ export default [
       let priceStatus = 'DEFAULT';
 
       if (retailPricePaisa < defaultRetailPricePaisa) {
-        // Price dropped below default: Platform profit is fixed; only saler profit drops
+        // Price dropped below default: Platform profit is fixed; only shop partner profit drops
         priceStatus = 'DISCOUNTED';
         const dropPaisa = defaultRetailPricePaisa - retailPricePaisa;
         platformEarningPaisa = platformDefaultProfitPaisa;
@@ -721,7 +721,7 @@ export default [
         platformEarningPaisa = platformDefaultProfitPaisa;
         salerEarningPaisa = salerDefaultProfitPaisa;
       } else {
-        // Price marked up above default: Extra markup shared between platform and saler
+        // Price marked up above default: Extra markup shared between platform and shop partner
         priceStatus = 'BOOSTED';
         const extraPaisa = retailPricePaisa - defaultRetailPricePaisa;
         const extraPlatformPaisa = Math.floor((extraPaisa * extraMarkupPlatformPct) / 100);

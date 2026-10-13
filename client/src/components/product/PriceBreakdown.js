@@ -1,5 +1,5 @@
 /**
- * PriceBreakdown — retail price for everyone, full margin breakdown for Salers only (Prompt 4.6).
+ * PriceBreakdown — retail price for everyone, full margin breakdown for Shop Partners only (Prompt 4.6).
  *
  * WHY the margin numbers come from the server's `pricing` object (product.service.js's
  * calculateProductPricing, backed by pricing.service.js's split arithmetic) rather than being

@@ -2,7 +2,7 @@
  * GrowthAssistant.js — Prescriptive AI Next-Step Growth Recommendations (Prompt 11.2 / 10.3).
  *
  * Renders grounded advice with direct 1-click executable actions,
- * converting raw analytics into concrete daily seller tasks.
+ * converting raw analytics into concrete daily shop partner tasks.
  */
 
 import { salerApi } from '../../services/saler.api.js';

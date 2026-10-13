@@ -122,7 +122,7 @@ describe('Catalog Schema & Warehouse Foundations (Prompt 4.1)', () => {
       );
     }
 
-    // Verify presence of suppliers, salers, and warehouses
+    // Verify presence of suppliers, shop partners, and warehouses
     assert.ok(catalogSeedSql.includes('WH-DHK-01'), 'Tejgaon warehouse must be seeded');
     assert.ok(catalogSeedSql.includes('WH-CTG-01'), 'Agrabad warehouse must be seeded');
     assert.ok(catalogSeedSql.includes('WH-SYL-01'), 'Sylhet warehouse must be seeded');

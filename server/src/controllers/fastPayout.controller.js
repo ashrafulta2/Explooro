@@ -1,7 +1,7 @@
 /**
  * fastPayout.controller.js — Handlers for early escrow release (supplier attraction, step 5a).
  * Thin on purpose: the rules, the fee and the money all live in the service. The same two handlers serve
- * the supplier's page and the saler's page; the person is always the signed-in user, never a parameter.
+ * the supplier's page and the shop partner's page; the person is always the signed-in user, never a parameter.
  */
 
 import * as service from '../services/fastPayout.service.js';

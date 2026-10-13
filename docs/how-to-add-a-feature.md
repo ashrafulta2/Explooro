@@ -64,7 +64,7 @@ Add to `docs/permission-catalog.json`:
 ```
 
 **Choosing the tier** (`rbac-spec.md` §2). Tags are low-consequence and reversible, and a supplier
-editing their own product's tags needs no oversight → `LOW`. Had this been "delete any seller's
+editing their own product's tags needs no oversight → `LOW`. Had this been "delete any shop partner's
 tags", it would be `HIGH` and would route through maker-checker automatically — by changing one
 field, not by writing approval code.
 

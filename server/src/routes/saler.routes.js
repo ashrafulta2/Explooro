@@ -1,5 +1,5 @@
 /**
- * saler.routes.js — Fastify HTTP Routes for Saler Dashboard & Analytics (Prompt 11.2).
+ * saler.routes.js — Fastify HTTP Routes for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
 import * as controller from '../controllers/saler.controller.js';
@@ -13,7 +13,7 @@ export default async function salerRoutes(app) {
       if (!req.user) req.user = { id: 1, role: 'saler' };
     });
 
-  // 1. Saler Dashboard Overview
+  // 1. Shop Partner Dashboard Overview
   app.get(
     '/saler/dashboard',
     {
@@ -22,7 +22,7 @@ export default async function salerRoutes(app) {
     controller.getDashboardOverview
   );
 
-  // 2. Saler Analytics & Inline SVG Chart Data
+  // 2. Shop Partner Analytics & Inline SVG Chart Data
   app.get(
     '/saler/analytics',
     {
@@ -34,7 +34,7 @@ export default async function salerRoutes(app) {
     controller.getAnalytics
   );
 
-  // 3. Saler First-Run Onboarding Checklist
+  // 3. Shop Partner First-Run Onboarding Checklist
   app.get(
     '/saler/onboarding',
     {
@@ -43,7 +43,7 @@ export default async function salerRoutes(app) {
     controller.getOnboardingStatus
   );
 
-  // 4. Saler Prescriptive Growth Assistant Recommendations
+  // 4. Shop Partner Prescriptive Growth Assistant Recommendations
   app.get(
     '/saler/growth-assistant',
     {

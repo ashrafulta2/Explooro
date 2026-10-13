@@ -1,11 +1,11 @@
 /**
- * CommissionTierCard.js — where a saler stands on the earned commission ladder.
+ * CommissionTierCard.js — where a shop partner stands on the earned commission ladder.
  *
  * Draws only what GET /saler/commission-tier returns (server services/salerTier.service.js getSalerView):
  * the tier, the bonus it pays, the delivered volume in the window and the gap to the next tier.
  * The client never works out a tier or a bonus itself.
  *
- * Returns null while the platform has tiers switched off, so a saler is never shown a ladder that
+ * Returns null while the platform has tiers switched off, so a shop partner is never shown a ladder that
  * pays nothing.
  */
 import { formatCurrency, formatNumber } from '../../services/format.js';
@@ -26,7 +26,7 @@ export function isVisible(data) {
 
 /**
  * Pure. Percent of the way from the current tier's floor to the next tier, 0 to 100; 100 at the top.
- * WHY from the floor: a saler just above SILVER should see a near-empty bar towards GOLD, not one
+ * WHY from the floor: a shop partner just above SILVER should see a near-empty bar towards GOLD, not one
  * already half full from the BRONZE-to-SILVER climb.
  */
 export function progressPct(data) {

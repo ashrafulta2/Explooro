@@ -7,7 +7,7 @@
  *  - Reads role and module flags from appStore reactively — role changes update badge visibility
  *    without a page reload by re-rendering the grid on store subscription.
  *  - URL-backed state: `?feed=`, `?category=`, `?min_price=`, etc. Back button restores view.
- *  - Four feed tabs: All / Verified Supplier / Top Saler / Flash Sales.
+ *  - Four feed tabs: All / Verified Supplier / Top Shop Partner / Flash Sales.
  *  - CategoryPills → filters the product grid.
  *  - FlashSaleWidget → only mounted when modules.flash_sale is on.
  *  - FilterPanel sidebar (desktop) / drawer (mobile).
@@ -15,7 +15,7 @@
  *
  * ACCEPTANCE gate:
  *  - 60 seeded products render with Bengali titles and ৳ formatting.
- *  - Switching to Saler role reveals margin badges without reload.
+ *  - Switching to Shop Partner role reveals margin badges without reload.
  *  - Turning off flash_sale module removes the widget instantly (re-render path).
  */
 
@@ -96,7 +96,7 @@ export default function HomePage(root, { navigate }) {
   const page = document.createElement('div');
   page.className = 'home-page';
 
-  // ── Top band: how-a-Saler-earns panel · campaign slider · Become a Saler (+ welcome strip when signed in) ──
+  // ── Top band: how-a-Shop Partner-earns panel · campaign slider · Become a Shop Partner (+ welcome strip when signed in) ──
   const homeTop = HomeTop({
     role,
     isAuthenticated: Boolean(auth.isAuthenticated),

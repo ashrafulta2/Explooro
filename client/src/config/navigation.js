@@ -21,8 +21,8 @@
  * sidebar entry, reached from within a page rather than the tree — normal, not an omission.
  *
  * Two inferences beyond a literal table lookup, both flagged where they occur:
- *  - `saler.store_status` — §2.5 lists "Physical Shop Status" under Saler's My Store group, but
- *    §1.5's saler route table has no such row. Mirrors supplier's identical `/supplier/store-status`
+ *  - `saler.store_status` — §2.5 lists "Physical Shop Status" under Shop Partner's My Store group, but
+ *    §1.5's shop partner route table has no such row. Mirrors supplier's identical `/supplier/store-status`
  *    concept 1:1 (same perm shape, same module) under the `/saler/` prefix.
  *  - Module keys for the ten `/admin/*` oversight routes that mirror a toggleable feature (catalog
  *    moderation, batches, warehouses, returns, disputes, courier, b2b escrow, growth items, theme
@@ -68,7 +68,7 @@ export const navGroups = [
   { key: 'supplier.my_shop', role: 'supplier', icon: '🏪', label_i18n_key: 'nav.group.supplier.my_shop', order: 7 },
   { key: 'supplier.me', role: 'supplier', icon: '👤', label_i18n_key: 'nav.group.me', order: 8 },
 
-  // ---- Saler (7 groups, ia-sitemap.md §2.5) ----
+  // ---- Shop Partner (7 groups, ia-sitemap.md §2.5) ----
   { key: 'saler.overview', role: 'saler', icon: '📊', label_i18n_key: 'nav.group.overview', order: 1 },
   { key: 'saler.my_store', role: 'saler', icon: '🏪', label_i18n_key: 'nav.group.saler.my_store', order: 2 },
   { key: 'saler.sourcing', role: 'saler', icon: '🔍', label_i18n_key: 'nav.group.saler.sourcing', order: 3 },

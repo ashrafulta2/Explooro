@@ -12,7 +12,7 @@ export default async function adsRoutes(app) {
   const requireGovernAds = app.requirePermission('growth.ad.govern');
   const checkCanRunAds = requireRestriction('can_run_ads');
 
-  // 1. Ad marketplace catalogue — what a seller may buy, at what price, with what left in stock.
+  // 1. Ad marketplace catalogue — what a shop partner may buy, at what price, with what left in stock.
   app.get('/ads/products', {
     preHandler: [app.authenticate, requireModule, requireManageAds],
   }, adsController.listAdProducts);
@@ -30,7 +30,7 @@ export default async function adsRoutes(app) {
     preHandler: [app.authenticate, requireModule, requireManageAds],
   }, adsController.listTargetCategories);
 
-  // 2. Seller / Saler Campaign Management
+  // 2. Shop Partner Campaign Management
   app.post('/ads/campaigns', {
     preHandler: [app.authenticate, requireModule, requireManageAds, checkCanRunAds],
   }, adsController.createCampaign);

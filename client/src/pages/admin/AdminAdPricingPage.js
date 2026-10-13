@@ -6,7 +6,7 @@
  * named staff member without handing over anything else, and every change they make lands in
  * audit_logs with a before/after pair.
  *
- * Each card is one row of `ad_products`. What you change here is what sellers see in their Ad
+ * Each card is one row of `ad_products`. What you change here is what shop partners see in their Ad
  * Store the moment they reload — there is no deploy, and no price constant anywhere in the code.
  * Campaigns already bought keep the quote they were sold at (frozen in ad_campaigns.quote_json),
  * so raising a rate never re-bills someone retroactively.
@@ -204,7 +204,7 @@ export default function AdminAdPricingPage(root) {
           <p class="admin-page-subtitle">
             ${isBn
               ? 'প্রতিটি বিজ্ঞাপন ফরম্যাটের দাম এখানেই ঠিক হয়। পরিবর্তন সঙ্গে সঙ্গে বিক্রেতাদের বিজ্ঞাপন স্টোরে দেখা যাবে, আর প্রতিটি পরিবর্তন অডিট লগে লেখা হবে।'
-              : 'Every ad format’s price is set here. Changes reach the sellers’ Ad Store immediately, and each one is written to the audit log with a before/after pair.'}
+              : 'Every ad format’s price is set here. Changes reach the shop partners’ Ad Store immediately, and each one is written to the audit log with a before/after pair.'}
           </p>
         </div>
         <div class="admin-page-actions">
@@ -223,7 +223,7 @@ export default function AdminAdPricingPage(root) {
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'বিক্রির জন্য চালু ফরম্যাট' : 'Formats on sale'}</div>
           <div class="admin-kpi-card__val font-mono">${liveFormats} / ${products.length}</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'বন্ধ করলে সেলাররা কিনতে পারবে না' : 'Switching one off hides it from sellers'}</div>
+          <div class="admin-kpi-card__hint">${isBn ? 'বন্ধ করলে শপ পার্টনাররা কিনতে পারবে না' : 'Switching one off hides it from shop partners'}</div>
         </div>
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'সর্বোচ্চ আয়ের ফরম্যাট' : 'Top earning format'}</div>

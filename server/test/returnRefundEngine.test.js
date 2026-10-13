@@ -30,7 +30,7 @@ function createMockDb() {
   const users = [
     { id: 1, ref: 'USR-SUPER1', full_name: 'Super Admin Kabir', role: 'super_admin' },
     { id: 101, ref: 'USR-SUPP1', full_name: 'Supplier Aarong', role: 'supplier' },
-    { id: 201, ref: 'USR-SALER1', full_name: 'Saler Jamila', role: 'saler' },
+    { id: 201, ref: 'USR-SALER1', full_name: 'Shop Partner Jamila', role: 'saler' },
     { id: 301, ref: 'USR-CUST1', full_name: 'Customer Tanvir', role: 'customer' },
     { id: 302, ref: 'USR-ABUSER', full_name: 'Serial Returner Rahim', role: 'customer' },
   ];

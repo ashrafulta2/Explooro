@@ -234,7 +234,7 @@ export default function HelpCenterManagerPage(root) {
         EmptyState({
           icon: '❓',
           title: 'No articles found',
-          description: 'Add a new FAQ article to assist platform buyers and sellers.',
+          description: 'Add a new FAQ article to assist platform buyers and shop partners.',
         })
       );
       return;

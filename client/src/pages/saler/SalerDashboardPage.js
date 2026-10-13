@@ -1,9 +1,9 @@
 /**
- * SalerDashboardPage.js — Central Saler Operating Hub & Business Control Center (Prompt 11.2 / idea §AL.2).
+ * SalerDashboardPage.js — Central Shop Partner Operating Hub & Business Control Center (Prompt 11.2 / idea §AL.2).
  *
  * Implements:
  * 1. Dual-mode UI: Simple Mode (≤ 6 primary actions) vs. Pro Dashboard.
- * 2. Complete aggregation of all 15 Saler tools across Phases 4–10 with module & permission gating.
+ * 2. Complete aggregation of all 15 Shop Partner tools across Phases 4–10 with module & permission gating.
  * 3. Prescriptive AI Growth Assistant with 1-click executable actions.
  * 4. First-run Onboarding checklist with 15-second interactive video walkthrough modals.
  * 5. Reconciled telemetry (revenue, profit, vault balances, order fulfillment queue).
@@ -53,11 +53,11 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
   const titleBox = document.createElement('div');
   titleBox.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-      <span class="badge badge--primary" style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Saler Portal</span>
+      <span class="badge badge--primary" style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Shop Partner Portal</span>
       <span class="font-mono text-muted" style="font-size: 11px;" id="store-slug-badge">...</span>
     </div>
     <h1 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em;">
-      ${t('saler.dashboard.title', 'Saler Commerce Command Center')}
+      ${t('saler.dashboard.title', 'Shop Partner Commerce Command Center')}
     </h1>
     <p data-page-info style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
       ${t('saler.dashboard.subtitle', 'Dropship wholesale sourcing, AI creative tools, viral distribution & multi-channel selling.')}
@@ -125,7 +125,7 @@ export default function SalerDashboardPage(root, { navigate } = {}) {
       errBox.style.padding = '32px';
       errBox.style.textAlign = 'center';
       errBox.style.color = 'var(--danger-500)';
-      errBox.textContent = t('saler.dashboard.load_failed', 'Failed to load saler dashboard data.');
+      errBox.textContent = t('saler.dashboard.load_failed', 'Failed to load shop partner dashboard data.');
       viewSlot.append(errBox);
     }
   }
@@ -234,7 +234,7 @@ function renderSimpleMode(container, data, nav) {
     },
     {
       id: 'simple_help',
-      title: t('saler.dashboard.action_help', '6. Seller Academy & Help'),
+      title: t('saler.dashboard.action_help', '6. Shop Partner Academy & Help'),
       desc: t('saler.dashboard.action_help_desc', 'Watch 15-second selling tutorials and learn how to scale your profit.'),
       icon: '🎓',
       url: '/academy',
@@ -272,7 +272,7 @@ function renderSimpleMode(container, data, nav) {
 }
 
 /**
- * 2. Pro Mode: Comprehensive Control Deck Aggregating all 15 Saler Tools
+ * 2. Pro Mode: Comprehensive Control Deck Aggregating all 15 Shop Partner Tools
  */
 function renderProMode(container, data, nav) {
   const wrap = document.createElement('div');
@@ -304,7 +304,7 @@ function renderProMode(container, data, nav) {
   const growth = GrowthAssistant({ onNavigate: nav });
   wrap.append(growth.element);
 
-  // 4. All 15 Saler Tools Grid (Phases 4–10 Aggregation)
+  // 4. All 15 Shop Partner Tools Grid (Phases 4–10 Aggregation)
   renderToolsGrid(wrap, data, nav);
 
   container.append(wrap);
@@ -505,7 +505,7 @@ function openVideoWalkthroughModal(step, nav) {
 }
 
 /**
- * Grid Aggregating All 15 Saler Tools (Phases 4–10)
+ * Grid Aggregating All 15 Shop Partner Tools (Phases 4–10)
  */
 function renderToolsGrid(container, data, nav) {
   const section = document.createElement('div');
@@ -515,7 +515,7 @@ function renderToolsGrid(container, data, nav) {
     <div class="saler-tools-header">
       <div>
         <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text-primary);">
-          🧰 ${t('saler.dashboard.tools_title', 'Complete Saler Tool Suite')}
+          🧰 ${t('saler.dashboard.tools_title', 'Complete Shop Partner Tool Suite')}
         </h3>
         <p data-page-info style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
           ${t('saler.dashboard.tools_desc', 'Every specialized sales, marketing, sourcing, and vault tool reachable within 2 clicks.')}
@@ -580,7 +580,7 @@ function renderToolsGrid(container, data, nav) {
     },
     {
       id: 'tool_social_kit',
-      name: t('saler.tools.social_kit', 'Social Seller Kit & Flyers'),
+      name: t('saler.tools.social_kit', 'Social Shop Partner Kit & Flyers'),
       desc: t('saler.tools.social_kit_desc', 'Generate print-ready vector flyers with zero-dependency QR code tracking.'),
       icon: '📣',
       url: '/saler/social-kit',

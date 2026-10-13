@@ -45,7 +45,7 @@ function createMockDb() {
     { id: 1, ref: 'USR-SUPER1', full_name: 'Dev Super Admin', role: 'super_admin' },
     { id: 10, ref: 'USR-CUST1', phone: '+8801700000010', full_name: 'Customer Karim', role: 'customer' },
     { id: 101, ref: 'USR-SUPP1', phone: '+8801700000101', full_name: 'Supplier Aarong', role: 'supplier' },
-    { id: 201, ref: 'USR-SALER1', phone: '+8801700000201', full_name: 'Saler Jamila', role: 'saler' },
+    { id: 201, ref: 'USR-SALER1', phone: '+8801700000201', full_name: 'Shop Partner Jamila', role: 'saler' },
   ];
 
   const wallets = [];
@@ -475,7 +475,7 @@ function createMockDb() {
             payment_method: 'BKASH',
             customer_name: 'Customer',
             supplier_name: 'Supplier',
-            saler_name: 'Saler',
+            saler_name: 'Shop Partner',
             cod_status: null,
             delivered_at: null,
             total_count: bySub.size,
@@ -637,7 +637,7 @@ describe('Prompt 6.2 — Escrow Release Scheduler & Clawback Automation', () => 
     const supplierWalletAfter = await walletRepo.getWalletByUserId(db, 101);
     const salerWalletAfter = await walletRepo.getWalletByUserId(db, 201);
 
-    // Supplier received ৳1260.00 and Saler received ৳120.00
+    // Supplier received ৳1260.00 and Shop Partner received ৳120.00
     assert.equal(parseFloat(supplierWalletAfter.available_balance), supAvailBefore + 1260.00);
     assert.equal(parseFloat(salerWalletAfter.available_balance), salerAvailBefore + 120.00);
 
@@ -696,12 +696,12 @@ describe('Prompt 6.2 — Escrow Release Scheduler & Clawback Automation', () => 
 
     // Customer receives ৳1560.00 refund
     assert.equal(parseFloat(custWalletAfter.available_balance), custAvailBefore + 1560.00);
-    // Supplier and Saler recovered (-1260.00 and -120.00)
+    // Supplier and Shop Partner recovered (-1260.00 and -120.00)
     assert.equal(parseFloat(supWalletAfter.available_balance), supAvailBefore - 1260.00);
     assert.equal(parseFloat(salerWalletAfter.available_balance), salerAvailBefore - 120.00);
   });
 
-  test('Acceptance 6: Insufficient Balance Deficit — creates negative_balance_recoveries record when seller has withdrawn funds', async () => {
+  test('Acceptance 6: Insufficient Balance Deficit — creates negative_balance_recoveries record when shop partner has withdrawn funds', async () => {
     // Setup sub-order 602: release its funds first
     const raw = db.getRawData();
     for (const e of raw.escrowEntries) {

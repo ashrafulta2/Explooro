@@ -1,5 +1,5 @@
 /**
- * SupplierReturnProtectionPage.js — A supplier opts in to protect salers' commission against returns.
+ * SupplierReturnProtectionPage.js — A supplier opts in to protect shop partners' commission against returns.
  *
  * Route: /supplier/return-protection  (module: sourcing, read: supplier.analytics.view, act: supplier.return_protection.manage)
  *

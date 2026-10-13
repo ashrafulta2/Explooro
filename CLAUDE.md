@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-Explooro — a social commerce and saler partnership platform for Bangladesh. Suppliers hold
-stock, Salers sell it from zero-inventory branded virtual storefronts, and commissions settle
+Explooro — a social commerce and shop partner platform for Bangladesh. Suppliers hold
+stock, Shop Partners sell it from zero-inventory branded virtual storefronts, and commissions settle
 through an escrow-backed digital vault.
 
 ## The build plan lives in docs/prompt.md — read it before building anything
@@ -129,7 +129,7 @@ These are enforced across every prompt, not stylistic suggestions:
   cookies + local SMS OTP. WebSockets (`ws` / `@fastify/websocket`) for chat/live notifications,
   fanned out via Redis Pub/Sub across nodes.
 - **Database**: PostgreSQL 16, **95 tables** fully specified in `docs/erd.md`. ACID transactions
-  guarantee atomic balance transfers: Customer payment → Escrow → Saler profit split → Supplier
+  guarantee atomic balance transfers: Customer payment → Escrow → Shop Partner profit split → Supplier
   payout.
 - **Bangladesh-specific integrations**: bKash / Nagad / Rocket (MFS payments), SSLCommerz (backup
   gateway), Steadfast / Pathao / RedX (courier + tracking webhooks), local SMS gateways for OTP —
@@ -148,7 +148,7 @@ The ones that trip people up most:
 | Add a permission | `docs/permission-catalog.json`, then re-seed. Never invent a key in code |
 | Make an action need Admin approval | Set its `risk_tier` to `HIGH` in the catalog. The maker-checker flow is automatic |
 | Change what an ad format costs | **Configuration, not code** — `/admin/growth/ad-pricing` edits the `ad_products.rate_card` JSONB behind `growth.ad.govern` (HIGH risk, delegable, so it can be handed to one staff member). Never a constant: `services/adPricing.js` only ever reads a stored rate card |
-| Add a new kind of ad the platform sells | One `ad_products` row (see the seed block in `server/src/db/migrations/041_ad_marketplace.sql`). If it prices like one of the five existing models (CPC, CPM, FLAT_DAILY, FLAT_SLOT, CPS) that is the whole change — the seller's Ad Store, the wizard's fields and the quote engine all branch on `pricing_model`. A genuinely new *model* is the only case that touches `services/adPricing.js` |
+| Add a new kind of ad the platform sells | One `ad_products` row (see the seed block in `server/src/db/migrations/041_ad_marketplace.sql`). If it prices like one of the five existing models (CPC, CPM, FLAT_DAILY, FLAT_SLOT, CPS) that is the whole change — the shop partner's Ad Store, the wizard's fields and the quote engine all branch on `pricing_model`. A genuinely new *model* is the only case that touches `services/adPricing.js` |
 | Add a nav item | `client/src/config/navigation.js` — one object. Never edit `Sidebar.js` |
 | Hide a page from users, or release it to one of them | **Configuration, not code** — **/admin/platform/pages** (`platform.page.view` / `.toggle`, CRITICAL so super admin only). Four states per route: Live / Coming soon (nav badge + placeholder) / Hidden (no nav item, URL 404s) / Limited (live only for listed roles and user ids). It is a layer BESIDE the module system, not above it: a module answers "does the feature work", a page toggle answers "may this viewer see it", and the 101 `module: 'core'` routes have no module to switch. `/`, `/login` and the page itself are locked on. One resolver — `client/src/services/pageAccess.js` — serves the router, the sidebar and the command palette; never re-implement the states. On the server the same states are enforced for the **56 endpoints that belong to exactly one page**: that route declares `config: { page: '/its/path' }` and the `onRoute` hook in `server/src/middlewares/requirePage.js` appends the guard, which answers `403 PAGE_UNAVAILABLE`. An endpoint two pages share cannot be refused (the other page may be Live), so for those the toggle stays visibility-only |
 | Change how long behavioural events (views, clicks, searches) are kept | **Configuration, not code.** `retention_days` (7–730, default 180) in the `personalization_signals` module's `settings_json`. The daily `signal_retention` job (`jobs/signalRetention.job.js` → `services/signalRetention.service.js`) deletes older rows from `product_interaction_events` and `search_events` in 5,000-row batches. A retention shorter than the co-visitation `window_days` (default 60) shortens that window; the run's `job_runs.metadata_json` flags it. The job only runs while the module is on |

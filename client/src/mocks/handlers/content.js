@@ -163,8 +163,8 @@ let mockCourses = [
     ref: 'CRS-302',
     title_en: 'Social Commerce & WhatsApp 1-Tap Conversions',
     title_bn: 'সোশ্যাল কমার্স ও হোয়াটসঅ্যাপ ১-ট্যাপ বিক্রয় কৌশল',
-    description_en: 'Set up WhatsApp product catalogs, automated abandoned cart recovery, and social seller kits.',
-    description_bn: 'হোয়াটসঅ্যাপ প্রোডাক্ট ক্যাটালগ, কার্ট রিকভারি এবং সোশ্যাল সেলার কিট সেটআপ করার পূর্ণাঙ্গ গাইড।',
+    description_en: 'Set up WhatsApp product catalogs, automated abandoned cart recovery, and social shop partner kits.',
+    description_bn: 'হোয়াটসঅ্যাপ প্রোডাক্ট ক্যাটালগ, কার্ট রিকভারি এবং সোশ্যাল শপ পার্টনার কিট সেটআপ করার পূর্ণাঙ্গ গাইড।',
     target_role: 'saler',
     category: 'marketing',
     cover_image_url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=600&q=80',
@@ -289,8 +289,8 @@ let mockHelpArticles = [
   {
     id: 2,
     category: 'finance',
-    title_en: 'When are saler commissions disbursed to my bKash / Nagad wallet?',
-    title_bn: 'সেলার কমিশন কখন বিকাশ বা নগদ ওয়ালেটে জমা হয়?',
+    title_en: 'When are shop partner commissions disbursed to my bKash / Nagad wallet?',
+    title_bn: 'শপ পার্টনার কমিশন কখন বিকাশ বা নগদ ওয়ালেটে জমা হয়?',
     content_en: 'Commissions are unlocked immediately once the courier confirms customer delivery and the 3-day warranty period clears without claims.',
     content_bn: 'কুরিয়ার ডেলিভারি সম্পন্ন হওয়ার সাথে সাথে এবং ৩ দিনের মধ্যে কোনো রিটার্ন না থাকলে কমিশন সাথে সাথে আনলক হয়।',
     helpful_count: 285,
@@ -338,7 +338,7 @@ let mockDynamicTranslations = {
   en: {
     marketing: {
       welcome_banner: 'Welcome to Explooro Multi-Tier Commerce',
-      slogan: 'Empowering local weavers, direct manufacturers & saler entrepreneurs',
+      slogan: 'Empowering local weavers, direct manufacturers & shop partner entrepreneurs',
       tagline: 'Bangladesh’s Premier Factory-Direct & Social Commerce Platform',
     },
     common: {
@@ -350,7 +350,7 @@ let mockDynamicTranslations = {
   bn: {
     marketing: {
       welcome_banner: 'এক্সপ্লোরো মাল্টি-টিয়ার কমার্সে স্বাগতম',
-      slogan: 'স্থানীয় তাঁতি, কারখানা ও সেলার উদ্যোক্তাদের ক্ষমতায়ন',
+      slogan: 'স্থানীয় তাঁতি, কারখানা ও শপ পার্টনার উদ্যোক্তাদের ক্ষমতায়ন',
       tagline: 'বাংলাদেশের শীর্ষস্থানীয় ফ্যাক্টরি-ডিরেক্ট ও সোশ্যাল কমার্স প্ল্যাটফর্ম',
     },
     common: {

@@ -1,5 +1,5 @@
 /**
- * DisputePanelPage.js — Buyer ↔ Saler ↔ Supplier Three-Way Arbitration Workspace (Prompt 7.3).
+ * DisputePanelPage.js — Buyer ↔ Shop Partner ↔ Supplier Three-Way Arbitration Workspace (Prompt 7.3).
  *
  * Implements:
  * 1. Multi-role dispute queue with SLA urgency sorting and breach alerts.
@@ -184,7 +184,7 @@ export default function DisputePanelPage(root) {
             <select id="sel-outcome" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-primary, #0f172a); font-size: 12px;">
               <option value="FULL_REFUND">Full Refund to Buyer (Supplier Liable)</option>
               <option value="PARTIAL_REFUND">Partial Refund (Mutual Concession)</option>
-              <option value="SPLIT_LIABILITY">Split Liability 50/50 (Saler & Supplier)</option>
+              <option value="SPLIT_LIABILITY">Split Liability 50/50 (Shop Partner & Supplier)</option>
               <option value="REPLACEMENT">Issue Free Replacement Delivery</option>
               <option value="REJECTED">Reject Dispute (Buyer Claim Invalid)</option>
             </select>
@@ -418,7 +418,7 @@ export default function DisputePanelPage(root) {
             <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.customer_name}</strong>
           </div>
           <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
-            <span style="font-size: 11px; font-weight: 600; color: var(--info); display: block;">🏪 Saler</span>
+            <span style="font-size: 11px; font-weight: 600; color: var(--info); display: block;">🏪 Shop Partner</span>
             <strong style="font-size: 13px; color: var(--text-primary, #0f172a);">${selectedDispute.saler_name || 'Direct Sale'}</strong>
           </div>
           <div style="padding: 10px 12px; border-radius: var(--radius-md, 8px); background: var(--surface-2, #f8fafc); border: 1px solid var(--border-subtle, #e2e8f0);">
@@ -523,7 +523,7 @@ export default function DisputePanelPage(root) {
                       <div style="display: flex; align-items: center; justify-content: space-between;">
                         <label for="chk-internal-note" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--danger, #e11d48); cursor: pointer;">
                           <input type="checkbox" id="chk-internal-note" ${isInternalNote ? 'checked' : ''}/>
-                          🔒 Staff-Only Internal Note (Invisible to Buyer/Seller)
+                          🔒 Staff-Only Internal Note (Invisible to Buyer/Shop Partner)
                         </label>
                       </div>
 

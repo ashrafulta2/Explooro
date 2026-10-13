@@ -77,7 +77,7 @@ export async function handleWebhook(req, reply) {
           content = `[Interactive Response: ${msg.interactive?.button_reply?.title || msg.interactive?.list_reply?.title || 'Option selected'}]`;
         }
 
-        // Ingest to target saler (default to saler ID in metadata or system saler 1)
+        // Ingest to target shop partner (default to shop partner ID in metadata or system shop partner 1)
         const targetSalerId = val.metadata?.saler_id ? parseInt(val.metadata.saler_id, 10) : 1;
 
         await service.ingestInboundMessage(req.server.db, {

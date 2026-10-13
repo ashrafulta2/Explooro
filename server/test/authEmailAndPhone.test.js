@@ -17,7 +17,7 @@ class MockDb {
     this.profiles = [];
     this.roles = [
       { id: 1, key: 'customer', label_en: 'Customer', label_bn: 'ক্রেতা', level: 10 },
-      { id: 2, key: 'saler', label_en: 'Saler', label_bn: 'সেলার', level: 20 },
+      { id: 2, key: 'saler', label_en: 'Shop Partner', label_bn: 'শপ পার্টনার', level: 20 },
       { id: 3, key: 'supplier', label_en: 'Supplier', label_bn: 'সাপ্লায়ার', level: 30 },
     ];
     this.userRoles = [];

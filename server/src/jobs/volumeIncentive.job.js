@@ -1,7 +1,7 @@
 /**
  * volumeIncentive.job.js — pays the monthly volume-incentive rebates that have come due.
  *
- * Gated on the `sourcing` module by the scheduler: the incentive is shown to salers in the Sourcing
+ * Gated on the `sourcing` module by the scheduler: the incentive is shown to shop partners in the Sourcing
  * Catalog area, and with that module off there is nobody to pay it for.
  */
 
@@ -23,7 +23,7 @@ export async function runVolumeIncentive(db, cache, logger = console) {
 }
 
 // WHY hourly: a month only becomes due once, so the work is tiny; but an UNFUNDED payout is retried
-// on every run and a supplier who tops up their wallet should see the saler paid the same day.
+// on every run and a supplier who tops up their wallet should see the shop partner paid the same day.
 registerJob({
   name: 'volume_incentive',
   intervalMs: 3600000,

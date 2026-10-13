@@ -1,5 +1,5 @@
 /**
- * subscriptionPlans.test.js — Saler Pro plan rules (admin side).
+ * subscriptionPlans.test.js — Shop Partner Pro plan rules (admin side).
  *
  * Invariants guarded here:
  *   - a plan's commission rebate can never exceed the platform's own share;
@@ -27,10 +27,10 @@ const validationFailed = (fn) =>
 describe('parsePlanInput', () => {
   test('accepts the shape the admin plan editor sends', () => {
     const out = parsePlanInput({
-      name_en: ' Saler Pro ', name_bn: 'সেলার প্রো', monthly_fee: 999,
+      name_en: ' Shop Partner Pro ', name_bn: 'শপ পার্টনার প্রো', monthly_fee: 999,
       free_listings: 1000, extra_listing_fee: 2, commission_rebate_pct: 2,
     });
-    assert.equal(out.name_en, 'Saler Pro');
+    assert.equal(out.name_en, 'Shop Partner Pro');
     assert.equal(out.commission_rebate_pct, 2);
     assert.equal(out.monthly_fee, 999);
   });
@@ -108,8 +108,8 @@ describe('parseWaiverDuration', () => {
 
 describe('slugifyCode', () => {
   test('makes a stable ASCII code, with a fallback for names with no ASCII letters', () => {
-    assert.equal(slugifyCode('Saler Pro!'), 'saler_pro');
-    assert.equal(slugifyCode('সেলার প্রো'), 'plan');
+    assert.equal(slugifyCode('Shop Partner Pro!'), 'shop_partner_pro');
+    assert.equal(slugifyCode('শপ পার্টনার প্রো'), 'plan');
   });
 });
 

@@ -4,7 +4,7 @@
  *   1. A fast-payout fee and the net the earner receives always add up to the amount, to the paisa.
  *   2. Money is released early only when it has a reason to be safe, and each refusal names its own reason.
  *   3. The fee follows the supplier's scorecard grade; a grade with no fee (or a blocked one) cannot take it.
- *   4. A protection claim never pays more than was insured, taken from the saler, or allowed per order.
+ *   4. A protection claim never pays more than was insured, taken from the shop partner, or allowed per order.
  *   5. Every number is a platform setting; a malformed stored value falls back field by field.
  *
  * The ledger moves, locking and races are exercised against a real Postgres in the step-5 end-to-end run;

@@ -233,14 +233,14 @@ export default function ProductDetailPage(root, { params, navigate }) {
       chatIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
 
       const chatBtn = Button({
-        label: t('product_detail.cta.chat_with_seller') || 'Chat with Seller',
+        label: t('product_detail.cta.chat_with_seller') || 'Chat with Shop Partner',
         variant: 'secondary',
         size: 'md',
         iconLeft: chatIcon,
         onClick: async () => {
           const { auth } = appStore.get();
           if (!auth?.isAuthenticated) {
-            toast.info(lang === 'bn' ? 'বিক্রেতার সাথে চ্যাট করতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to chat with the seller.');
+            toast.info(lang === 'bn' ? 'শপ পার্টনারর সাথে চ্যাট করতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to chat with the shop partner.');
             const redirectUrl = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
             if (navigate) navigate(redirectUrl);
             else window.location.href = redirectUrl;
@@ -272,7 +272,7 @@ export default function ProductDetailPage(root, { params, navigate }) {
             if (navigate) navigate(chatUrl);
             else window.location.href = chatUrl;
           } catch (err) {
-            toast.error(err.message || (lang === 'bn' ? 'চ্যাট শুরু করতে ব্যর্থ হয়েছে।' : 'Failed to start chat with seller.'));
+            toast.error(err.message || (lang === 'bn' ? 'চ্যাট শুরু করতে ব্যর্থ হয়েছে।' : 'Failed to start chat with shop partner.'));
           } finally {
             chatBtn.setLoading(false);
           }

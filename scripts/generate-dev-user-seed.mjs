@@ -25,7 +25,7 @@ const DEV_USERS = [
   { role: 'moderator', phone: '+8801700000003', name: 'Dev Moderator (zero delegated permissions)' },
   { role: 'editor', phone: '+8801700000004', name: 'Dev Editor' },
   { role: 'supplier', phone: '+8801700000005', name: 'Dev Supplier' },
-  { role: 'saler', phone: '+8801700000006', name: 'Dev Saler' },
+  { role: 'saler', phone: '+8801700000006', name: 'Dev Shop Partner' },
   { role: 'customer', phone: '+8801700000007', name: 'Dev Customer' },
 ];
 

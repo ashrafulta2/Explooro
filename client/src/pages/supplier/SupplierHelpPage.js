@@ -5,7 +5,7 @@
  * 1. Supplier Operational Routine Checklist (interactive progress tracking).
  * 2. Operational FAQ accordion (Escrow, FEFO, Couriers, Vault Withdrawals).
  * 3. 1-Click WhatsApp Concierge & Interactive Priority Support Ticket modal.
- * 4. Direct link to Seller & Supplier Academy courses.
+ * 4. Direct link to Shop Partner & Supplier Academy courses.
  */
 
 import { t } from '../../services/i18n.js';
@@ -53,7 +53,7 @@ export default function SupplierHelpPage(root) {
       </div>
       <div class="supplier-header__actions">
         <a href="/academy" class="btn btn--sm btn--secondary">
-          🎓 ${t('supplier.academy_btn', 'Seller Academy Courses')}
+          🎓 ${t('supplier.academy_btn', 'Shop Partner Academy Courses')}
         </a>
         <button class="btn btn--sm btn--primary" id="open-ticket-btn">
           🎫 ${t('supplier.ticket_btn', 'Open Support Ticket')}
@@ -95,7 +95,7 @@ export default function SupplierHelpPage(root) {
               ${t('supplier.step_1_title', '1. Register & Price Your Products')}
             </label>
             <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
-              ${t('supplier.step_1_desc', 'Add your manufacturing SKUs with attractive wholesale margins for Salers to promote.')}
+              ${t('supplier.step_1_desc', 'Add your manufacturing SKUs with attractive wholesale margins for Shop Partners to promote.')}
             </p>
           </div>
           <a href="/supplier/products" class="btn btn--xs btn--outline">Add SKU →</a>

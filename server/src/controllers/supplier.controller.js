@@ -7,7 +7,7 @@
  * - FEFO Batch Management, Clearance Actions & Recalls.
  * - Multi-Warehouse Mapping & Node Configurations.
  * - Fulfilment Queue, Consignments & Labels.
- * - Saler Network Insights & Curators Leaderboard.
+ * - Shop Partner Network Insights & Curators Leaderboard.
  * - Physical Shop Operating Status Toggle.
  */
 
@@ -68,7 +68,7 @@ export async function getDashboardOverview(req, reply) {
     [supplierId]
   );
 
-  // 5. Active salers count
+  // 5. Active shop partners count
   const { rows: salerStats } = await db.query(
     `SELECT COUNT(DISTINCT ssi.store_id) AS active_curators_count
      FROM saler_store_items ssi
@@ -421,7 +421,7 @@ export async function bookConsignment(req, reply) {
 }
 
 /**
- * Saler network insights: Analytics on Salers who curate and sell the supplier's products.
+ * Shop Partner network insights: Analytics on Shop Partners who curate and sell the supplier's products.
  */
 export async function getScorecard(req, reply) {
   const result = await getOwnScorecard(req.server.db, req.user.id);
@@ -448,7 +448,7 @@ export async function getSalerInsights(req, reply) {
   const supplierId = req.user.id;
   const db = req.server.db;
 
-  // 1. Top Salers Leaderboard for this supplier
+  // 1. Top Shop Partners Leaderboard for this supplier
   const { rows: topSalers } = await db.query(
     `SELECT
        u.id AS saler_id,

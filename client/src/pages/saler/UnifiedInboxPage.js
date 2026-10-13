@@ -1,5 +1,5 @@
 /**
- * UnifiedInboxPage.js — Saler Unified Multi-Channel Commerce Inbox (Prompt 8.3 / DFD Subsystem 20.0).
+ * UnifiedInboxPage.js — Shop Partner Unified Multi-Channel Commerce Inbox (Prompt 8.3 / DFD Subsystem 20.0).
  *
  * Two-pane layout on purpose: conversations on the left, ONE conversation on the right. Everything
  * the old third "customer context" pane carried is folded into the chat header (who, which channel)

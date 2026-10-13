@@ -1,5 +1,5 @@
 /**
- * subscriptionBilling.service.js — Saler Pro from the merchant's side, and the renewal engine.
+ * subscriptionBilling.service.js — Shop Partner Pro from the merchant's side, and the renewal engine.
  *
  * Self-serve: subscribe, cancel, resume. Background: the hourly renewal sweep (jobs/
  * subscriptionRenewal.job.js) that bills renewals, runs the grace period, lifts expired waivers and
@@ -7,7 +7,7 @@
  *
  * Invariants:
  *   - a fee moves Vault -> platform treasury as ONE balanced double-entry group (SUBSCRIPTION_FEE),
- *     inside the same transaction as the invoice row, with the saler's wallet locked FOR UPDATE;
+ *     inside the same transaction as the invoice row, with the shop partner's wallet locked FOR UPDATE;
  *   - one PAID invoice per subscription per period (unique index + idempotency key), so a retried
  *     request or a double-fired sweep cannot charge the same month twice;
  *   - cancelling never cuts benefits early: the plan runs to period end;
@@ -16,7 +16,7 @@
  *
  * WHY a renewal starts its new period at `now` (not at the old period end): if the module was OFF
  * when a period lapsed, billing from the old end date would charge for time the admin had switched
- * the feature off. Starting at `now` can only ever favour the saler by under one sweep interval.
+ * the feature off. Starting at `now` can only ever favour the shop partner by under one sweep interval.
  */
 
 import { randomUUID } from 'node:crypto';
@@ -41,11 +41,11 @@ const addDays = (date, days) => new Date(new Date(date).getTime() + days * DAY_M
  * Returns what the sweep should do with one subscription right now:
  *   LIFT_WAIVER  a timed waiver ran out -> back to ACTIVE
  *   RENEW        period over, auto-renew on -> charge the next period
- *   CANCEL       period over and the saler cancelled -> CANCELLED
+ *   CANCEL       period over and the shop partner cancelled -> CANCELLED
  *   EXPIRE       period over and auto-renew is off -> EXPIRED
  *   RETRY        PAST_DUE inside grace -> try the charge again
  *   EXPIRE_GRACE PAST_DUE and grace is over -> EXPIRED
- *   REMIND       renewal is near and the saler has not been told yet
+ *   REMIND       renewal is near and the shop partner has not been told yet
  *   NONE
  */
 export function decideRenewalAction(sub, now, { renewal_reminder_days: reminderDays }) {
@@ -147,7 +147,7 @@ const SUB_WITH_PLAN = `
          p.role AS plan_role, p.is_active AS plan_is_active
     FROM subscriptions s JOIN subscription_plans p ON p.id = s.plan_id`;
 
-/** The saler's own view: plans they may pick, their live subscription and recent invoices. */
+/** The shop partner's own view: plans they may pick, their live subscription and recent invoices. */
 export async function getMySubscription(db, userId, { roles = [] } = {}) {
   const [plans, settings, current, invoices] = await Promise.all([
     listPlans(db, { onlyActive: true }),
@@ -322,7 +322,7 @@ async function applyAction(db, subId, settings, now) {
             [sub.id, now, periodEnd]
           );
         } else if (action === 'RENEW') {
-          // First failure: open the grace window and tell the saler once. Retries stay quiet.
+          // First failure: open the grace window and tell the shop partner once. Retries stay quiet.
           const graceEnds = addDays(now, Number(settings.grace_period_days));
           await recordFailedInvoice(client, { sub, plan, periodStart: now, periodEnd, reason: charge.reason });
           await client.query(

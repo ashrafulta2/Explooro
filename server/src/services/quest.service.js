@@ -3,7 +3,7 @@
  *
  * Implements:
  * 1. Data-driven quest definitions (daily, weekly, one-time).
- * 2. Role-specific quest routing (Customer, Saler, Supplier).
+ * 2. Role-specific quest routing (Customer, Shop Partner, Supplier).
  * 3. Dynamic progress tracking on platform actions.
  * 4. Atomic reward claiming with double-entry coin crediting.
  */

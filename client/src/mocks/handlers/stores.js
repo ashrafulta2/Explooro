@@ -1,5 +1,5 @@
 /**
- * Mock handlers for Saler storefronts & store builder (Prompt 4.8).
+ * Mock handlers for Shop Partner storefronts & store builder (Prompt 4.8).
  */
 import stores from '../fixtures/stores.json' with { type: 'json' };
 import products from '../fixtures/products.json' with { type: 'json' };
@@ -179,7 +179,7 @@ export default [
         ref: store.ref,
         slug: store.slug,
         shop_name: store.shop_name || store.name_en || 'Store',
-        bio: store.bio || 'Verified Bangladeshi Social Seller · Powered by Explooro',
+        bio: store.bio || 'Verified Bangladeshi Social Shop Partner · Powered by Explooro',
         announcement: store.announcement || currentSalerStore.announcement,
         social_links: store.social_links || currentSalerStore.social_links,
         has_physical_shop: store.has_physical_shop ?? true,
@@ -204,7 +204,7 @@ export default [
     },
   },
 
-  // 3. Saler Store Profile
+  // 3. Shop Partner Store Profile
   {
     method: 'GET',
     path: '/saler/store',
@@ -222,7 +222,7 @@ export default [
     },
   },
 
-  // 4. Update Saler Store Profile
+  // 4. Update Shop Partner Store Profile
   {
     method: 'PUT',
     path: '/saler/store',

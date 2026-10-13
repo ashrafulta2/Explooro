@@ -1,7 +1,7 @@
 /**
- * AdCampaignPage.js — Saler Ad Store & Campaign Manager.
+ * AdCampaignPage.js — Shop Partner Ad Store & Campaign Manager.
  *
- * Two tabs, one job: let a seller buy advertising without understanding advertising.
+ * Two tabs, one job: let a shop partner buy advertising without understanding advertising.
  *
  *   Ad Store      — every format the platform sells, as a card with its real price on it.
  *                   Prices come from the admin's rate cards (/admin/growth/ad-pricing), so what a
@@ -25,7 +25,7 @@ import { toast } from '../../services/toast.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.js';
 
-/** Budget presets, so most sellers never type a number at all. */
+/** Budget presets, so most shop partners never type a number at all. */
 const BUDGET_PRESETS = [500, 1000, 2500, 5000];
 const RECIPIENT_PRESETS = [1000, 5000, 10000, 25000];
 
@@ -256,7 +256,7 @@ export class AdCampaignPage {
     const model = PRICING_MODEL_LABELS[p.pricing_model] || { en: p.pricing_model, bn: p.pricing_model };
     const prepaid = p.billing_mode === 'PREPAID';
     // A prepaid format that rents a position also holds inventory; a one-off send does not, and
-    // promising a seller a "reserved slot" for a push blast would be a lie.
+    // promising a shop partner a "reserved slot" for a push blast would be a lie.
     const reservesSlot = p.pricing_model === 'FLAT_DAILY' || p.pricing_model === 'FLAT_SLOT';
 
     return `

@@ -1,10 +1,10 @@
 /**
- * BecomeSalerPage.js — 1-Click Zero-Paperwork Saler Upgrade & Onboarding Hub.
+ * BecomeSalerPage.js — 1-Click Zero-Paperwork Shop Partner Upgrade & Onboarding Hub.
  *
  * Implements:
- * 1. Low-literacy friendly, high-contrast visual saler onboarding with 100% bilingual i18n.
- * 2. Active Saler status detection with direct deep-links to Store Builder, Saler Analytics & Sourcing.
- * 3. Genuine 1-Click Saler upgrade calling customerApi.becomeSaler() with role mutation & vanity store provisioning.
+ * 1. Low-literacy friendly, high-contrast visual shop partner onboarding with 100% bilingual i18n.
+ * 2. Active Shop Partner status detection with direct deep-links to Store Builder, Shop Partner Analytics & Sourcing.
+ * 3. Genuine 1-Click Shop Partner upgrade calling customerApi.becomeSaler() with role mutation & vanity store provisioning.
  * 4. Interactive real-time Monthly Profit Potential Calculator.
  * 5. Traditional Business vs Explooro Selling comparison matrix.
  * 6. 4-Step visual workflow roadmap & interactive FAQ accordion.
@@ -44,22 +44,22 @@ export default function BecomeSalerPage(root, { navigate } = {}) {
       <span>/</span>
       <a href="/account">${t('nav.customer.dashboard', 'Customer Account')}</a>
       <span>/</span>
-      <span class="text-primary font-bold">${t('customer.become_saler.page_title', '1-Click Saler Upgrade')}</span>
+      <span class="text-primary font-bold">${t('customer.become_saler.page_title', '1-Click Shop Partner Upgrade')}</span>
     </nav>
 
     <div class="account-page__title-wrap">
       <div class="become-saler-page__badge-row">
         <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">
-          ✨ ${t('customer.become_saler.badge', 'Zero-Capital Saler Hub')}
+          ✨ ${t('customer.become_saler.badge', 'Zero-Capital Shop Partner Hub')}
         </span>
       </div>
       <button id="saler-video-guide-btn" class="btn btn--secondary btn--sm flex items-center gap-1 text-xs font-bold">
-        🎬 ${t('customer.become_saler.video_modal_headline', '15-Second Saler Business Walkthrough')}
+        🎬 ${t('customer.become_saler.video_modal_headline', '15-Second Shop Partner Business Walkthrough')}
       </button>
     </div>
 
     <h1 class="account-page__title">
-      ${t('customer.become_saler.page_title', '1-Click Saler Upgrade')}
+      ${t('customer.become_saler.page_title', '1-Click Shop Partner Upgrade')}
     </h1>
     <p class="account-page__subtitle">
       ${t('customer.become_saler.page_subtitle', 'Turn wholesale catalog products into your own profitable brand. No inventory holding, no packaging stress, zero upfront cost.')}
@@ -108,7 +108,7 @@ export default function BecomeSalerPage(root, { navigate } = {}) {
 }
 
 /**
- * Ensures the session holds full Saler permissions before navigating to Saler routes.
+ * Ensures the session holds full Shop Partner permissions before navigating to Shop Partner routes.
  */
 function elevateToSalerRole() {
   try {
@@ -130,14 +130,14 @@ function elevateToSalerRole() {
 }
 
 /**
- * Renders complete sections of Become a Saler page.
+ * Renders complete sections of Become a Shop Partner page.
  */
 function renderSalerPageContent(container, { is_saler = false } = {}, nav) {
   container.innerHTML = '';
   const wrap = document.createElement('div');
   wrap.className = 'space-y-8';
 
-  // Section A: If user is already a saler, show active status banner
+  // Section A: If user is already a shop partner, show active status banner
   if (is_saler) {
     const statusBanner = document.createElement('div');
     statusBanner.className = 'become-saler-status';
@@ -146,7 +146,7 @@ function renderSalerPageContent(container, { is_saler = false } = {}, nav) {
         <div class="become-saler-status__icon">🎉</div>
         <div class="become-saler-status__content">
           <h2 class="become-saler-status__title">
-            ${t('customer.become_saler.already_saler_title', 'You are already a registered Saler!')}
+            ${t('customer.become_saler.already_saler_title', 'You are already a registered Shop Partner!')}
           </h2>
           <p class="become-saler-status__desc">
             ${t('customer.become_saler.already_saler_desc', 'Your virtual storefront is live and ready to take customer orders.')}
@@ -158,7 +158,7 @@ function renderSalerPageContent(container, { is_saler = false } = {}, nav) {
           🏬 ${t('customer.become_saler.btn_store_builder', 'Open Storefront Builder')}
         </button>
         <button id="goto-saler-dash-btn" class="btn btn--secondary btn--sm font-bold">
-          📊 ${t('customer.become_saler.btn_saler_dashboard', 'Saler Analytics Dashboard')}
+          📊 ${t('customer.become_saler.btn_saler_dashboard', 'Shop Partner Analytics Dashboard')}
         </button>
         <button id="goto-sourcing-btn" class="btn btn--secondary btn--sm font-bold">
           📦 ${t('customer.become_saler.btn_sourcing', 'Browse Sourcing Catalog')}
@@ -288,7 +288,7 @@ function renderProvisioningHero(container, { is_saler }, nav) {
 
       toast.success(data.message_bn || data.message_en || t('customer.become_saler.upgrade_success', 'Congratulations! Your digital store is active.'));
 
-      // Update auth store with full Saler role and permissions
+      // Update auth store with full Shop Partner role and permissions
       elevateToSalerRole();
 
       // Navigate to store builder
@@ -318,7 +318,7 @@ function renderProfitCalculator(container) {
     <div class="become-saler-calculator__header">
       <div class="inline-flex items-center gap-2">
         <span class="badge badge--success text-[10px] font-bold">
-          💰 ${t('customer.become_saler.calculator_badge', 'Passive & Saler Income')}
+          💰 ${t('customer.become_saler.calculator_badge', 'Passive & Shop Partner Income')}
         </span>
       </div>
       <h2 class="become-saler-calculator__title">
@@ -366,7 +366,7 @@ function renderProfitCalculator(container) {
 
         <div class="become-saler-calculator__control-group">
           <div class="become-saler-calculator__label-row">
-            <label for="calc-margin-slider">${t('customer.become_saler.calculator_margin_label', 'Average Saler Profit Margin')}:</label>
+            <label for="calc-margin-slider">${t('customer.become_saler.calculator_margin_label', 'Average Shop Partner Profit Margin')}:</label>
             <span id="calc-margin-readout" class="become-saler-calculator__slider-val font-mono">25% (${formatCurrency(375)}${t('customer.become_saler.per_order_unit', '/order')})</span>
           </div>
           <input 
@@ -376,7 +376,7 @@ function renderProfitCalculator(container) {
             max="40" 
             step="5" 
             value="25" 
-            aria-label="${t('customer.become_saler.calculator_margin_label', 'Average Saler Profit Margin')}" 
+            aria-label="${t('customer.become_saler.calculator_margin_label', 'Average Shop Partner Profit Margin')}" 
             class="become-saler-calculator__range" 
           />
         </div>
@@ -611,12 +611,12 @@ function openSalerWalkthroughModal(nav) {
         ▶
       </div>
       <div>
-        <div class="text-sm font-bold text-primary">${t('customer.become_saler.video_modal_headline', '15-Second Saler Business Walkthrough')}</div>
+        <div class="text-sm font-bold text-primary">${t('customer.become_saler.video_modal_headline', '15-Second Shop Partner Business Walkthrough')}</div>
         <div class="text-xs text-muted">${t('customer.become_saler.video_modal_sub', 'Learn how to launch, sell, and withdraw your first profit.')}</div>
       </div>
     </div>
     <div class="become-saler-video-modal__tips">
-      <div class="font-bold text-foreground">💡 ${t('customer.become_saler.tips_title', '3 Quick Tips for New Salers:')}</div>
+      <div class="font-bold text-foreground">💡 ${t('customer.become_saler.tips_title', '3 Quick Tips for New Shop Partners:')}</div>
       <ul>
         <li>${t('customer.become_saler.tip_1', 'Launch your store in 1 tap with zero paperwork and no upfront cost.')}</li>
         <li>${t('customer.become_saler.tip_2', 'Add high-demand handloom sarees, fashion, and tech from verified suppliers.')}</li>
@@ -636,7 +636,7 @@ function openSalerWalkthroughModal(nav) {
   });
 
   const upgradeModalBtn = Button({
-    label: `${t('customer.become_saler.cta_btn', 'Click to Become a Saler')}`,
+    label: `${t('customer.become_saler.cta_btn', 'Click to Become a Shop Partner')}`,
     variant: 'primary',
     size: 'sm',
     onClick: () => {
@@ -649,7 +649,7 @@ function openSalerWalkthroughModal(nav) {
   footer.append(closeBtn, upgradeModalBtn);
 
   modal = Modal({
-    title: `🎬 ${t('customer.become_saler.video_modal_title', 'Explooro Saler Video Guide')}`,
+    title: `🎬 ${t('customer.become_saler.video_modal_title', 'Explooro Shop Partner Video Guide')}`,
     content: body,
     footer,
     size: 'md',

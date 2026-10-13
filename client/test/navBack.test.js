@@ -29,7 +29,7 @@ describe('navBack — Dynamic Navigation & Origin Label Resolution', () => {
       assert.equal(getBackDestination('/account/addresses', 'en').name, 'Addresses');
       assert.equal(getBackDestination('/account/profile', 'en').name, 'Profile');
       assert.equal(getBackDestination('/account/settings', 'en').name, 'Settings');
-      assert.equal(getBackDestination('/account/become-saler', 'en').name, 'Become a Saler');
+      assert.equal(getBackDestination('/account/become-saler', 'en').name, 'Become a Shop Partner');
     });
 
     test('Customer Account dashboard root', () => {

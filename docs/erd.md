@@ -667,7 +667,7 @@ CREATE TABLE virtual_stores (
   deleted_at          TIMESTAMPTZ
 );
 CREATE UNIQUE INDEX uq_store_slug ON virtual_stores (slug) WHERE deleted_at IS NULL;
--- Reserved slugs (admin, api, store, checkout, account, saler, supplier, moderator, editor,
+-- Reserved slugs (admin, api, store, checkout, account, shop partner, supplier, moderator, editor,
 -- dev, live, help, legal, search, cart, s, c, team) are rejected at the service layer.
 
 CREATE TABLE saler_store_items (
@@ -983,7 +983,7 @@ CREATE TABLE volume_incentive_programs (    -- versioned: a change inserts a row
   UNIQUE (supplier_id, valid_from)
 );
 
-CREATE TABLE volume_incentive_payouts (     -- one per supplier x saler x month; the unique key makes the job re-runnable
+CREATE TABLE volume_incentive_payouts (     -- one per supplier x shop partner x month; the unique key makes the job re-runnable
   id                  BIGSERIAL PRIMARY KEY,
   supplier_id         BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   saler_id            BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
@@ -993,7 +993,7 @@ CREATE TABLE volume_incentive_payouts (     -- one per supplier x saler x month;
   rebate_pct          NUMERIC(5,2) NOT NULL CHECK (rebate_pct > 0),
   gross_amount        NUMERIC(14,2) NOT NULL CHECK (gross_amount > 0),   -- debited from the supplier
   platform_fee        NUMERIC(14,2) NOT NULL DEFAULT 0,                  -- credited to the treasury
-  net_amount          NUMERIC(14,2) NOT NULL CHECK (net_amount > 0),     -- credited to the saler
+  net_amount          NUMERIC(14,2) NOT NULL CHECK (net_amount > 0),     -- credited to the shop partner
   tiers_snapshot      JSONB NOT NULL,
   status              TEXT NOT NULL DEFAULT 'UNFUNDED' CHECK (status IN ('UNFUNDED','PAID','LAPSED')),
   ledger_txn_group_id UUID,
@@ -1042,7 +1042,7 @@ CREATE TABLE sample_requests (               -- price, shipping and the platform
   closed_at           TIMESTAMPTZ,
   CONSTRAINT sample_fee_within_price CHECK (platform_fee <= price)
 );
--- one live sample per saler per product, even under a race
+-- one live sample per shop partner per product, even under a race
 CREATE UNIQUE INDEX uq_sample_requests_one_live ON sample_requests (saler_id, product_id)
   WHERE status IN ('REQUESTED','ACCEPTED','SHIPPED','DELIVERED');
 
@@ -1062,7 +1062,7 @@ CREATE TABLE marketing_kits (                -- a supplier's free, ready-to-copy
 ```
 
 Migration 064 also adds `VOLUME_INCENTIVE` to the `ledger_transactions.category` CHECK. Volume is the
-`total_amount - shipping_amount` of `DELIVERED` `sub_orders` for the supplier and saler in the month.
+`total_amount - shipping_amount` of `DELIVERED` `sub_orders` for the supplier and shop partner in the month.
 
 
 ---
@@ -1103,7 +1103,7 @@ CREATE TABLE return_protection_covers (      -- one per sub-order; rate and insu
   sub_order_id            BIGINT NOT NULL UNIQUE REFERENCES sub_orders(id) ON DELETE RESTRICT,
   supplier_id             BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
   saler_id                BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-  insured_amount          NUMERIC(14,2) NOT NULL CHECK (insured_amount > 0),   -- the saler's commission
+  insured_amount          NUMERIC(14,2) NOT NULL CHECK (insured_amount > 0),   -- the shop partner's commission
   premium_pct             NUMERIC(5,2) NOT NULL CHECK (premium_pct >= 0),
   premium_amount          NUMERIC(14,2) NOT NULL CHECK (premium_amount >= 0),
   premium_charged_at      TIMESTAMPTZ,         -- NULL until the supplier's own escrow has released and they could pay
@@ -1294,7 +1294,7 @@ CREATE TABLE b2b_escrow_milestones (
 );
 ```
 
-### 5.1 Seller subscriptions (migration 052) — 3 tables, added after the original 95
+### 5.1 Shop Partner subscriptions (migration 052) — 3 tables, added after the original 95
 
 Inert while the `subscription_fees` module is OFF. `subscription_plans` carries the admin-editable
 numbers (`monthly_fee`, `commission_rebate_pct`, listing quota); `subscriptions` holds one *live* row

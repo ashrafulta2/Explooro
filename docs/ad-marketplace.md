@@ -2,8 +2,8 @@
 
 How Explooro sells advertising, who sets the prices, and how the money moves.
 
-Prompt 9.1 shipped one thing a seller could buy: a sponsored search slot, priced by whatever CPC
-bid the seller typed in. There was no catalogue, no second format, and no way for the platform to
+Prompt 9.1 shipped one thing a shop partner could buy: a sponsored search slot, priced by whatever CPC
+bid the shop partner typed in. There was no catalogue, no second format, and no way for the platform to
 say what an ad costs. This document describes what replaced that.
 
 ---
@@ -25,7 +25,7 @@ Three ideas carry the whole feature:
    terms live in a `rate_card` JSONB that an administrator edits from a page. Adding a tenth format
    that prices like an existing one is a row, not a deploy.
 2. **One pricing engine.** `server/src/services/adPricing.js` computes every ad price the platform
-   ever shows or charges — the seller's live wizard preview, the binding quote frozen onto the
+   ever shows or charges — the shop partner's live wizard preview, the binding quote frozen onto the
    campaign, each metered click or thousand views, and the "from ৳450/day" label on the card. It
    works in integer paisa, so ৳0.35 × 1000 is exactly ৳350.00.
 3. **Two ways to be billed.** Formats that rent a position are **PREPAID**: paid in full at
@@ -39,7 +39,7 @@ Three ideas carry the whole feature:
 | Key | Format | Surface | Model | Ships at |
 | :-- | :-- | :-- | :-- | :-- |
 | `search_boost` | Search Boost | Search results | CPC | floor ৳1.00/click |
-| `product_page_ads` | Competitor Page Ads | Other sellers' product pages | CPC | floor ৳1.50/click |
+| `product_page_ads` | Competitor Page Ads | Other shop partners' product pages | CPC | floor ৳1.50/click |
 | `feed_promotion` | Home Feed Promotion | Home feed | CPM | ৳80 / 1,000 views |
 | `category_banner` | Category Banner Takeover | Top of one category | FLAT_DAILY | ৳450/day, min 3 days, 4 positions |
 | `home_spotlight` | Homepage Spotlight | Homepage hero carousel | FLAT_DAILY | ৳1,500/day, 5 positions |
@@ -83,11 +83,11 @@ stored and then silently used to bill someone.
 
 ---
 
-## 4. What a seller sees
+## 4. What a shop partner sees
 
 `/saler/ads` has two tabs.
 
-**Ad Store** lists every format the seller's role may buy, as a card carrying its real price, its
+**Ad Store** lists every format the shop partner's role may buy, as a card carrying its real price, its
 billing style ("charged as results come in" vs "paid upfront, slot reserved"), and any loyalty
 discount their tier earns.
 
@@ -95,7 +95,7 @@ discount their tier earns.
 
 1. *What are you promoting?* — name, headline, description, keywords or category, banner.
 2. *How big and how long?* — budget presets for metered formats, day chips for rentals, slot or
-   recipient counts for the rest. Most sellers never type a number.
+   recipient counts for the rest. Most shop partners never type a number.
 3. *Confirm and pay* — an itemised quote: line items, tier discount, service fee, VAT, total, and a
    button that says exactly what will happen ("Pay ৳2,992.50 from vault" or "Start campaign (cap
    ৳1,000.00)").
@@ -108,17 +108,17 @@ rate itself, so the number on the button is the number the purchase charges.
 ## 5. How the money moves
 
 **Prepaid (FLAT_DAILY, FLAT_SLOT, CPS).** Inside one transaction: insert the campaign and creative
-→ reserve the slot days → debit the seller's vault and credit the platform treasury as a balanced
+→ reserve the slot days → debit the shop partner's vault and credit the platform treasury as a balanced
 double-entry `AD_SPEND` group → write the `ad_billing` row. Reservation happens *before* the
-charge, so a sold-out run fails before the seller is charged for a placement they cannot have. An
+charge, so a sold-out run fails before the shop partner is charged for a placement they cannot have. An
 empty vault fails the purchase with a message naming the shortfall.
 
 **Metered CPC.** Unchanged from 9.1: second-price auction, self-click and duplicate-click fraud
 checks, charge bounded by the remaining budget, campaign marked `COMPLETED` at the cap.
 
-**Metered CPM.** Settles on whole thousands of viewable impressions — the unit the seller was
+**Metered CPM.** Settles on whole thousands of viewable impressions — the unit the shop partner was
 quoted. A partial final thousand is never charged; the rounding goes to the advertiser. If the
-vault is short at settlement the campaign is **paused**, not failed, so the seller can top up and
+vault is short at settlement the campaign is **paused**, not failed, so the shop partner can top up and
 resume while the platform stops delivering views it cannot bill for.
 
 ---
@@ -126,12 +126,12 @@ resume while the platform stops delivering views it cannot bill for.
 ## 6. Inventory
 
 Reserved placements expand to one `ad_slot_bookings` row per slot per day, uniquely indexed on
-`(slot_key, slot_index, booking_date)`. Two sellers racing for the last homepage position cannot
+`(slot_key, slot_index, booking_date)`. Two shop partners racing for the last homepage position cannot
 both win: the second insert violates the index and the whole purchase rolls back.
 
-A booking holds the *same* `slot_index` for its entire run, so a seller's banner does not hop
+A booking holds the *same* `slot_index` for its entire run, so a shop partner's banner does not hop
 between positions mid-campaign. `slot_key` is the placement name, except category banners, which
-are per-category (`CATEGORY:42`) so two sellers can each own a banner in different categories.
+are per-category (`CATEGORY:42`) so two shop partners can each own a banner in different categories.
 
 Cancelling a campaign releases every booking from today forward — the platform can resell those
 days. It issues **no refund** for the unused tail; that is a money movement an administrator
@@ -164,7 +164,7 @@ to it is the next piece of work, and it is one call per surface.
 | SQL | `server/src/repositories/adProduct.repository.js` |
 | Purchase, billing, serving | `server/src/services/ads.service.js` |
 | Routes | `server/src/routes/ads.routes.js` |
-| Seller Ad Store + wizard | `client/src/pages/saler/AdCampaignPage.js` |
+| Shop Partner Ad Store + wizard | `client/src/pages/saler/AdCampaignPage.js` |
 | Admin rate cards | `client/src/pages/admin/AdminAdPricingPage.js` |
 | Styles (route chunk, never `main.css`) | `client/src/styles/components/ad-store.css` |
 | Mocks | `client/src/mocks/handlers/ads.js` |

@@ -2,7 +2,7 @@
  * adPricing.js — THE single source of ad pricing arithmetic.
  *
  * WHY one file: CLAUDE.md constraint 10 requires money arithmetic to live in exactly one place.
- * Every ad price the platform ever quotes, charges, or displays is computed here — the seller's
+ * Every ad price the platform ever quotes, charges, or displays is computed here — the shop partner's
  * wizard preview, the binding quote frozen onto a campaign at purchase, the metered CPC/CPM
  * charge per event, and the "from ৳450/day" label on an ad product card. Nothing else multiplies
  * a rate by a quantity.
@@ -27,7 +27,7 @@ import { AppError } from '../plugins/errorHandler.js';
 
 export const PRICING_MODELS = ['CPC', 'CPM', 'FLAT_DAILY', 'FLAT_SLOT', 'CPS', 'CPA'];
 
-/** Models that take the seller's money up front vs. models that meter it as events happen. */
+/** Models that take the shop partner's money up front vs. models that meter it as events happen. */
 export const PREPAID_MODELS = ['FLAT_DAILY', 'FLAT_SLOT', 'CPS'];
 export const METERED_MODELS = ['CPC', 'CPM', 'CPA'];
 
@@ -378,7 +378,7 @@ export function quote(product, input = {}, options = {}) {
 }
 
 /**
- * The short price label a seller sees on an ad format card, before opening the wizard.
+ * The short price label a shop partner sees on an ad format card, before opening the wizard.
  * Lives here so the card and the quote can never disagree about what a format costs.
  */
 export function priceLabel(product) {

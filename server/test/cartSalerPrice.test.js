@@ -1,11 +1,11 @@
 /**
- * cartSalerPrice.test.js — a saler's own price (saler_store_items.custom_retail_price) must be the
+ * cartSalerPrice.test.js — a shop partner's own price (saler_store_items.custom_retail_price) must be the
  * price the shopper is charged in the cart, not the supplier's default_retail_price.
  *
  * WHY a fake db that reads the SQL: cart.repository.js is raw SQL, so the price a cart line carries is
  * decided by which tables the query joins. The fake answers `getCartItemsWithDetails` the way
  * Postgres would for the SQL it was given: custom price only if the query actually joins
- * saler_store_items on the line's saler. Before the fix the query never mentions that table, so the
+ * saler_store_items on the line's shop partner. Before the fix the query never mentions that table, so the
  * line is priced at the supplier default and these tests fail.
  */
 
@@ -80,10 +80,10 @@ function createFakeDb({ customPrice = CUSTOM_PRICE } = {}) {
   };
 }
 
-describe('cart prices a saler-sourced line at the saler custom price', () => {
-  test('addItemToCart records the saler price as price_at_add', async () => {
+describe('cart prices a saler-sourced line at the shop partner custom price', () => {
+  test('addItemToCart records the shop partner price as price_at_add', async () => {
     const db = createFakeDb();
-    // addItemToCart looks the saler's store item up directly; answer it as Postgres would.
+    // addItemToCart looks the shop partner's store item up directly; answer it as Postgres would.
     const realQuery = db.query.bind(db);
     db.query = async (sql, params) => {
       if (/FROM saler_store_items/.test(sql) && !/FROM cart_items/.test(sql)) {
@@ -99,7 +99,7 @@ describe('cart prices a saler-sourced line at the saler custom price', () => {
     assert.equal(Number(db.writes[0].price_at_add), CUSTOM_PRICE);
   });
 
-  test('getCart charges the saler custom price, not the supplier default', async () => {
+  test('getCart charges the shop partner custom price, not the supplier default', async () => {
     const db = createFakeDb();
     db.items.push({
       id: 1, cart_id: 1, product_id: 1, variant_id: null, saler_id: SALER_ID, bundle_id: null,
@@ -113,7 +113,7 @@ describe('cart prices a saler-sourced line at the saler custom price', () => {
     assert.equal(cart.items[0].warnings.some((w) => w.code === 'PRICE_CHANGED'), false);
   });
 
-  test('a line with no saler still uses the supplier default price', async () => {
+  test('a line with no shop partner still uses the supplier default price', async () => {
     const db = createFakeDb();
     db.items.push({
       id: 1, cart_id: 1, product_id: 1, variant_id: null, saler_id: null, bundle_id: null,

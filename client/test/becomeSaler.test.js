@@ -1,5 +1,5 @@
 /**
- * becomeSaler.test.js — Invariants for the 1-Click Saler Upgrade & Saler Hub.
+ * becomeSaler.test.js — Invariants for the 1-Click Shop Partner Upgrade & Shop Partner Hub.
  *
  * Tests:
  * 1. Locale integrity — en/bn parity for customer.become_saler keys, nav keys, no double emoji.

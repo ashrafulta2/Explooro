@@ -1,7 +1,7 @@
 /**
  * SponsoredTag — the "Sponsored" label on a paid placement in the Sourcing Catalog.
  *
- * Invariant: paid placements are always labelled, in words (never colour or an icon alone). A saler
+ * Invariant: paid placements are always labelled, in words (never colour or an icon alone). A shop partner
  * deciding what to stock must be able to tell a ranked result from a bought one.
  */
 import { t } from '../../services/i18n.js';

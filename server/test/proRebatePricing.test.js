@@ -1,5 +1,5 @@
 /**
- * proRebatePricing.test.js — the Saler Pro rebate inside resolveSplitPercentages.
+ * proRebatePricing.test.js — the Shop Partner Pro rebate inside resolveSplitPercentages.
  *
  * Invariants:
  *   - module OFF, no subscription, or a lapsed one => the split is EXACTLY what it was before;
@@ -57,7 +57,7 @@ describe('applyRebate', () => {
   });
 });
 
-describe('resolveSplitPercentages with a saler', () => {
+describe('resolveSplitPercentages with a shop partner', () => {
   test('active subscription + module ON => 42/58', async () => {
     const out = await resolveSplitPercentages(fakeDb({ rebate: 2 }), { salerId: 7 });
     assert.equal(out.salerSplitPct, 42);

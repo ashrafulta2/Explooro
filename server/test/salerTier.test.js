@@ -1,10 +1,10 @@
 /**
- * salerTier.test.js — tiered saler commission.
+ * salerTier.test.js — tiered shop partner commission.
  *
  * Invariants:
  *   - switch OFF, no tier row, or BRONZE => the split is EXACTLY what it was before;
  *   - a tier moves points platform -> saler, and the two still sum to the same total;
- *   - the tier bonus stacks with the Saler Pro rebate but the pair can never exceed the platform share;
+ *   - the tier bonus stacks with the Shop Partner Pro rebate but the pair can never exceed the platform share;
  *   - an admin's per-product override is never altered by a tier;
  *   - the ladder must rise, and a malformed setting falls back instead of promoting anyone;
  *   - the job promotes on volume, demotes when sales stop, and audits only real changes.
@@ -24,7 +24,7 @@ const BONUSES = [
 ];
 const ON = { enabled: true, window_days: 30, thresholds: { SILVER: 50000, GOLD: 150000, PLATINUM: 400000 } };
 
-/** Fake db answering only the queries pricing makes for a saler. */
+/** Fake db answering only the queries pricing makes for a shop partner. */
 function pricingDb({ rules = ON, tier = null, proRebate = null, productRule = null, bonuses = BONUSES } = {}) {
   return {
     async query(sql) {
@@ -98,7 +98,7 @@ describe('resolveSplitPercentages with a tier', () => {
     assert.equal(out.salerSplitPct, 43.5);
   });
 
-  test('switch OFF => identical to a saler with no tier at all', async () => {
+  test('switch OFF => identical to a shop partner with no tier at all', async () => {
     const off = await resolveSplitPercentages(pricingDb({ tier: 'PLATINUM', rules: { ...ON, enabled: false } }), { salerId: 7 });
     const none = await resolveSplitPercentages(pricingDb({ tier: null }), { salerId: 7 });
     assert.deepEqual(off, none);
@@ -113,7 +113,7 @@ describe('resolveSplitPercentages with a tier', () => {
     }
   });
 
-  test('stacks with the Saler Pro rebate and the sum is preserved', async () => {
+  test('stacks with the Shop Partner Pro rebate and the sum is preserved', async () => {
     const out = await resolveSplitPercentages(pricingDb({ tier: 'GOLD', proRebate: 2 }), { salerId: 7 });
     assert.equal(out.salerSplitPct, 44);
     assert.equal(out.platformSplitPct, 56);
@@ -188,7 +188,7 @@ describe('recomputeAll', () => {
     assert.equal(db.table.size, 0);
   });
 
-  test('promotes on volume, demotes salers who stopped selling, leaves the steady ones', async () => {
+  test('promotes on volume, demotes shop partners who stopped selling, leaves the steady ones', async () => {
     const db = jobDb({
       volumes: [{ saler_id: 1, volume: '60000' }, { saler_id: 2, volume: '500000' }, { saler_id: 3, volume: '10' }],
       tiers: [{ saler_id: 2, tier: 'PLATINUM' }, { saler_id: 4, tier: 'GOLD' }],
@@ -220,7 +220,7 @@ describe('getSalerView', () => {
     assert.equal(v.ladder.length, 4);
   });
 
-  test('a saler with no row is BRONZE, and has no next step while the switch is off', async () => {
+  test('a shop partner with no row is BRONZE, and has no next step while the switch is off', async () => {
     const off = await getSalerView(jobDb({ rules: { ...ON, enabled: false } }), 5);
     assert.equal(off.tier, 'BRONZE');
     assert.equal(off.next, null);

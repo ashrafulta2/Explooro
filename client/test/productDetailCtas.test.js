@@ -1,6 +1,6 @@
 /**
  * productDetailCtas.test.js — Invariant tests for Product Detail Page CTAs:
- * - "Chat with Seller" functionality, thread linking & inquiry pre-fill.
+ * - "Chat with Shop Partner" functionality, thread linking & inquiry pre-fill.
  * - "Team Purchase" social group buying, pricing calculation, modal & mock handlers.
  * - Bilingual locale parity across English and Bengali.
  */
@@ -21,7 +21,7 @@ const pdpSrc = readFileSync(join(root, 'src/pages/ProductDetailPage.js'), 'utf8'
 const chatPageSrc = readFileSync(join(root, 'src/pages/ChatPage.js'), 'utf8');
 const teamModalSrc = readFileSync(join(root, 'src/components/product/TeamPurchaseModal.js'), 'utf8');
 
-describe('Product Detail CTAs — Chat with Seller & Team Purchase Invariants', () => {
+describe('Product Detail CTAs — Chat with Shop Partner & Team Purchase Invariants', () => {
   it('1. Locale parity — all new team_purchases and product_detail.cta keys exist in both locales', () => {
     const requiredCtaKeys = ['add_to_cart', 'quick_buy', 'chat_with_seller', 'team_purchase'];
     for (const key of requiredCtaKeys) {
@@ -59,7 +59,7 @@ describe('Product Detail CTAs — Chat with Seller & Team Purchase Invariants', 
     assert.ok(pdpSrc.includes('team-purchase-teaser'), 'Missing team-purchase-teaser banner');
   });
 
-  it('3. Chat with Seller calls /chat/threads with supplier metadata and navigates to /chat?threadId=...', () => {
+  it('3. Chat with Shop Partner calls /chat/threads with supplier metadata and navigates to /chat?threadId=...', () => {
     assert.ok(pdpSrc.includes("api.post('/chat/threads'"), 'Chat button must call POST /chat/threads');
     assert.ok(pdpSrc.includes('target_user_id'), 'Chat thread creation must supply target_user_id');
     assert.ok(pdpSrc.includes('CUSTOMER_SALER'), 'Chat thread must use CUSTOMER_SALER type');

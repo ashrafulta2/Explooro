@@ -178,7 +178,7 @@ async function bootRouterDemo() {
       // page, so the "Live Streams" nav item under REVIEW QUEUES opened a storefront with a "Host a
       // Live Stream" button and no moderation controls at all.
       { path: '/moderator/live', title: 'Live Moderation — Explooro', requiresAuth: true, permission: 'moderation.live.handle', module: 'live_commerce', load: () => import('./pages/moderator/LiveModerationPage.js') },
-      // Prompt 4.7: Saler Sourcing Catalog & Profit Calculator
+      // Prompt 4.7: Shop Partner Sourcing Catalog & Profit Calculator
       {
         path: '/saler/sourcing',
         title: 'Sourcing Catalog — Explooro',
@@ -186,7 +186,7 @@ async function bootRouterDemo() {
         permission: 'saler.sourcing.view',
         module: 'sourcing',
         // WHY the stylesheet is loaded here and not imported by the page: salerPages.test.js imports
-        // every saler page under plain node, which cannot load a .css file. Importing it from the
+        // every shop partner page under plain node, which cannot load a .css file. Importing it from the
         // route keeps the CSS out of the entry bundle (70KB budget) and the page importable.
         load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./pages/saler/SourcingCatalogPage.js')]).then(([, , page]) => page),
       },
@@ -461,7 +461,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/academy',
-        title: 'Seller Academy — Explooro',
+        title: 'Shop Partner Academy — Explooro',
         permission: null,
         module: 'seller_academy',
         load: () => import('./pages/AcademyPage.js'),
@@ -500,7 +500,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/editor/academy',
-        title: 'Seller Academy — Explooro',
+        title: 'Shop Partner Academy — Explooro',
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
@@ -621,7 +621,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/supplier/salers',
-        title: 'Saler Network Insights — Explooro',
+        title: 'Shop Partner Network Insights — Explooro',
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'core',
@@ -715,7 +715,7 @@ async function bootRouterDemo() {
         module: 'physical_shop_status',
         load: () => import('./pages/supplier/StoreStatusPage.js'),
       },
-      // Prompt 4.8: Saler Virtual Storefront Builder
+      // Prompt 4.8: Shop Partner Virtual Storefront Builder
       {
         path: '/saler/store-builder',
         title: 'Store Builder — Explooro',
@@ -734,20 +734,20 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/social-kit',
-        title: 'Social Seller Kit — Explooro',
+        title: 'Social Shop Partner Kit — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'core',
         load: () => import('./pages/saler/SocialKitPage.js'),
       },
-      // Prompt 11.2: Saler Dashboard & Analytics
+      // Prompt 11.2: Shop Partner Dashboard & Analytics
       // WHY this is the only `/saler` entry: a Prompt-1.5 guard-demo stub was also registered at
       // this path, ~200 lines earlier. The router matches first-wins, so the stub shadowed the real
-      // dashboard and every saler landing on /saler saw a permissions demo. That route and the stub
+      // dashboard and every shop partner landing on /saler saw a permissions demo. That route and the stub
       // file (pages/dev/SalerDashboardStub.js) are both deleted now — keep /saler registered once.
       {
         path: '/saler',
-        title: 'Saler Dashboard — Explooro',
+        title: 'Shop Partner Dashboard — Explooro',
         requiresAuth: true,
         permission: 'saler.dashboard.view',
         module: 'core',
@@ -755,7 +755,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/dashboard',
-        title: 'Saler Dashboard — Explooro',
+        title: 'Shop Partner Dashboard — Explooro',
         requiresAuth: true,
         permission: 'saler.dashboard.view',
         module: 'core',
@@ -787,7 +787,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/academy',
-        title: 'Saler Academy — Explooro',
+        title: 'Shop Partner Academy — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'core',
@@ -860,7 +860,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/account/become-saler',
-        title: '1-Click Saler Upgrade — Explooro',
+        title: '1-Click Shop Partner Upgrade — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
@@ -868,7 +868,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/customer/become-saler',
-        title: '1-Click Saler Upgrade — Explooro',
+        title: '1-Click Shop Partner Upgrade — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
@@ -876,7 +876,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/become-saler',
-        title: '1-Click Saler Upgrade — Explooro',
+        title: '1-Click Shop Partner Upgrade — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
@@ -1138,7 +1138,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/content/academy',
-        title: 'Seller Academy — Explooro Admin',
+        title: 'Shop Partner Academy — Explooro Admin',
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
@@ -1624,7 +1624,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/products',
-        title: 'Saler Store Products — Explooro',
+        title: 'Shop Partner Store Products — Explooro',
         requiresAuth: true,
         permission: 'saler.store.manage',
         module: 'virtual_storefront',
@@ -1956,7 +1956,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/leaderboard',
-        title: 'Seller Leaderboard — Explooro',
+        title: 'Shop Partner Leaderboard — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'gamification',

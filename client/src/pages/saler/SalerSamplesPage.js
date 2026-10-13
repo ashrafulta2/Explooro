@@ -1,11 +1,11 @@
 /**
- * SalerSamplesPage.js — A saler orders a paid sample of a supplier's product, and follows it to the door.
+ * SalerSamplesPage.js — A shop partner orders a paid sample of a supplier's product, and follows it to the door.
  *
- * Route: /saler/samples  (module: sourcing, read: saler.sourcing.view, act: saler.sample.request)
+ * Route: /saler/samples  (module: sourcing, read: shop partner.sourcing.view, act: shop partner.sample.request)
  *
  * WHY the dialog says the money is HELD, not spent: that is the whole promise of the feature. The cost
- * sits in the saler's own vault until they confirm it arrived (or the confirm window runs out), and
- * comes straight back if the supplier declines or never ships. A saler who does not believe that will
+ * sits in the shop partner's own vault until they confirm it arrived (or the confirm window runs out), and
+ * comes straight back if the supplier declines or never ships. A shop partner who does not believe that will
  * not order, so the dialog states it next to the amount, every time.
  */
 import { sampleKitApi } from '../../services/sampleKit.api.js';

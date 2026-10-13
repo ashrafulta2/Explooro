@@ -21,7 +21,7 @@ import * as mockWaDriver from '../src/integrations/whatsapp/mock.js';
 
 function createMockDb() {
   const users = [
-    { id: 1, full_name: 'Saler Karim', role: 'saler', phone: '01700000001' },
+    { id: 1, full_name: 'Shop Partner Karim', role: 'saler', phone: '01700000001' },
     { id: 50, full_name: 'Customer Jamila', role: 'customer', phone: '01711223344' },
   ];
 
@@ -169,7 +169,7 @@ function createMockDb() {
         return { rows: found ? [found] : [] };
       }
 
-      // SELECT unified threads for saler
+      // SELECT unified threads for shop partner
       if (q.includes('FROM chat_threads t') && q.includes('chat_thread_participants p')) {
         const sId = params[0];
         const salerThreads = chatThreads.filter((t) => t.participant_ids.includes(Number(sId)));
@@ -224,7 +224,7 @@ test('Prompt 8.3 — WhatsApp & Messenger Conversational Commerce Bridge', async
     assert.ok(result.threadId);
     assert.ok(result.messageId);
 
-    // Verify saler unified inbox retrieves conversation
+    // Verify shop partner unified inbox retrieves conversation
     const threads = await waService.getUnifiedSalerThreads(mockDb, 1);
     assert.ok(threads.items.length >= 2);
     const waThread = threads.items.find((th) => th.id === result.threadId);
@@ -319,8 +319,8 @@ test('Prompt 8.3 — WhatsApp & Messenger Conversational Commerce Bridge', async
     await app.close();
   });
 
-  // Test 5: Fastify REST API Routes for Saler Unified Inbox
-  await t.test('Acceptance 5: Fastify HTTP REST API for saler unified inbox & replies', async () => {
+  // Test 5: Fastify REST API Routes for Shop Partner Unified Inbox
+  await t.test('Acceptance 5: Fastify HTTP REST API for shop partner unified inbox & replies', async () => {
     const { mockDb } = createMockDb();
     const app = Fastify({ logger: false });
 
@@ -328,7 +328,7 @@ test('Prompt 8.3 — WhatsApp & Messenger Conversational Commerce Bridge', async
     await app.register(errorHandlerPlugin);
 
     app.decorate('authenticate', async (req) => {
-      req.user = { id: 1, role: 'saler', full_name: 'Saler Karim' };
+      req.user = { id: 1, role: 'saler', full_name: 'Shop Partner Karim' };
     });
 
     app.decorate('db', mockDb);

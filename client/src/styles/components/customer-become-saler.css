@@ -1,10 +1,10 @@
 /**
- * customer-become-saler.css — 1-Click Zero-Paperwork Saler Upgrade & Onboarding Hub.
+ * customer-become-saler.css — 1-Click Zero-Paperwork Shop Partner Upgrade & Onboarding Hub.
  *
  * Implements:
  * - Page container & breadcrumb navigation
  * - Value proposition hero card & 1-click provisioning box
- * - Already-Saler active status notification banner
+ * - Already-Shop Partner active status notification banner
  * - Interactive monthly profit potential calculator with sliders
  * - Explooro Selling vs Traditional Business comparison matrix
  * - 4-Step visual workflow roadmap
@@ -55,7 +55,7 @@
   gap: var(--space-2);
 }
 
-/* Status Banner (for already active Salers) */
+/* Status Banner (for already active Shop Partners) */
 .become-saler-status {
   padding: var(--space-5) var(--space-6);
   border-radius: var(--radius-lg);

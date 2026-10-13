@@ -1,7 +1,7 @@
 /**
  * RegisterPage.js — User registration page (Prompt 2.8).
  *
- * Supports account creation for Customer, Saler, and Supplier roles.
+ * Supports account creation for Customer, Shop Partner, and Supplier roles.
  * Advances to OTP verification on submission.
  */
 

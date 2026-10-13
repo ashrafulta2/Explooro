@@ -10,7 +10,7 @@
  *    highest-value item so that sum(discount_share) === total_discount.
  * 3. Guaranteed wholesale payout: The bundle price may never be lower than the sum of wholesale costs
  *    (base_cost + wholesale_margin) across all items, protecting suppliers from loss.
- * 4. Exact ledger balance: Total Customer Payment = Sum of Supplier Wholesale Payouts + Saler Profit + Platform Margin.
+ * 4. Exact ledger balance: Total Customer Payment = Sum of Supplier Wholesale Payouts + Shop Partner Profit + Platform Margin.
  */
 
 import { AppError } from '../plugins/errorHandler.js';
@@ -23,7 +23,7 @@ import { generateRef } from '../lib/ref.js';
  * @param {object} params
  * @param {Array<object>} params.items List of items [{ productId, productTitle, variantId, qty, retailPrice, baseCost, wholesaleMargin, supplierId, supplierName }]
  * @param {number|string} params.bundlePrice Total bundle sale price
- * @param {number} [params.salerSplitPct=40] Saler commission split %
+ * @param {number} [params.salerSplitPct=40] Shop Partner commission split %
  * @param {number} [params.platformSplitPct=60] Platform split %
  * @returns {object} Full financial breakdown in BDT numbers, strings, and integer paisa
  */
@@ -270,7 +270,7 @@ export async function createBundle(db, {
   items,
 }) {
   if (!salerId) {
-    throw new AppError('UNAUTHORIZED', 'Saler ID is required.', 'সেলার আইডি আবশ্যক।');
+    throw new AppError('UNAUTHORIZED', 'Shop Partner ID is required.', 'শপ পার্টনার আইডি আবশ্যক।');
   }
   if (!titleEn || !titleBn) {
     throw new AppError(

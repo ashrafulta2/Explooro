@@ -1,7 +1,7 @@
 /**
  * sampleKit.test.js — the rules behind sample requests and marketing kits.
  *
- *   1. The platform's share, the supplier's share and the saler's payment always reconcile to the paisa,
+ *   1. The platform's share, the supplier's share and the shop partner's payment always reconcile to the paisa,
  *      and the platform's share is taken from the sample PRICE only, never the shipping.
  *   2. Offers and kits are validated strictly: out-of-range input is refused, never clamped.
  *   3. A request can only move along legal transitions, so it cannot end twice (and so cannot pay twice).
@@ -108,9 +108,9 @@ test('transitions: only legal moves exist, and a finished request has no way out
   // Money is only released once the sample has actually been shipped.
   assert.deepEqual(TRANSITIONS.confirm.from, ['SHIPPED']);
   assert.deepEqual(TRANSITIONS.auto_confirm.from, ['SHIPPED']);
-  // A saler can cancel only before the supplier has committed to it.
+  // A shop partner can cancel only before the supplier has committed to it.
   assert.deepEqual(TRANSITIONS.cancel.from, ['REQUESTED']);
-  // The saler cannot decline, ship or accept on the supplier's behalf, nor the reverse.
+  // The shop partner cannot decline, ship or accept on the supplier's behalf, nor the reverse.
   assert.equal(TRANSITIONS.accept.actor, 'supplier');
   assert.equal(TRANSITIONS.ship.actor, 'supplier');
   assert.equal(TRANSITIONS.confirm.actor, 'saler');

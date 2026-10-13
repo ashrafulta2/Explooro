@@ -2,7 +2,7 @@
  * kyc.service.js — KYC Verification & Blue-Tick Engine (Prompt 7.5 / DFD Subsystem 11.0).
  *
  * Implements:
- * 1. Role-specific verification flows (Supplier 4-step, Saler 1-step, Customer configurable).
+ * 1. Role-specific verification flows (Supplier 4-step, Shop Partner 1-step, Customer configurable).
  * 2. Strict document encryption at rest & hashed duplicate detection (HMAC-SHA256).
  * 3. Audited document views recording the reviewer for every NID/Trade License inspection.
  * 4. High-tier Maker-Checker authorization on approvals.

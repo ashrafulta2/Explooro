@@ -59,7 +59,7 @@ export async function getBundle(req, reply) {
 }
 
 /**
- * List bundles for the authenticated saler or public catalog.
+ * List bundles for the authenticated shop partner or public catalog.
  * GET /api/v1/saler/bundles
  */
 export async function listSalerBundles(req, reply) {

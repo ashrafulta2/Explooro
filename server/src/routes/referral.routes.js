@@ -9,7 +9,7 @@ export default async function referralRoutes(app) {
   const requireViewOwn = app.requirePermission('growth.referral.view_own');
   const requireGovern = app.requirePermission('growth.referral.govern');
 
-  // 1. Saler & User Referral Network Hub
+  // 1. Shop Partner & User Referral Network Hub
   app.get('/saler/referrals/overview', {
     preHandler: [app.authenticate, requireReferralModule, requireViewOwn],
   }, referralController.getOverview);

@@ -172,8 +172,8 @@ Complete and closed. Adding a code is a deliberate change to this document.
 | `COUPON_BUDGET_EXHAUSTED` | 409 | The coupon's budget cap is spent |
 | `ESCROW_LOCKED` | 409 | Funds are still inside the return window |
 | `SUPPLIER_GRADE_BLOCKED` | 403 | The supplier's Scorecard grade is in a tool's `blocked_grades` (Sponsored Slot, Volume Incentive, Samples) |
-| `SAMPLE_LIMIT_REACHED` | 409 | The saler already has `max_open_per_saler` samples in progress |
-| `SAMPLE_ALREADY_REQUESTED` | 409 | The saler already has a live or delivered sample of this product |
+| `SAMPLE_LIMIT_REACHED` | 409 | The shop partner already has `max_open_per_saler` samples in progress |
+| `SAMPLE_ALREADY_REQUESTED` | 409 | The shop partner already has a live or delivered sample of this product |
 | `SAMPLE_STATE_INVALID` | 409 | The sample request is not in a state that allows this action (already ended, or not yet shipped) |
 | `FAST_PAYOUT_NOT_ELIGIBLE` | 409 | The escrow amount cannot be taken early (not delivered, an open return or dispute, below/above the limits, due soon anyway, exposure cap reached, or already taken); the message names which |
 | `TEAM_PURCHASE_CLOSED` | 409 | The group-buy window expired or the team is full |
@@ -697,7 +697,7 @@ Idempotency-Key: c41e...
 }
 ```
 
-The Super Admin approves — but the seller withdrew in the meantime:
+The Super Admin approves — but the shop partner withdrew in the meantime:
 
 ```json
 {

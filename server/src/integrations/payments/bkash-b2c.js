@@ -1,7 +1,7 @@
 /**
  * bkash-b2c.js — B2C Disbursement Integration Adapter (Prompt 6.3).
  *
- * Implements MFS B2C automated disbursements for seller payouts (bKash/Nagad/Rocket/Bank).
+ * Implements MFS B2C automated disbursements for shop partner payouts (bKash/Nagad/Rocket/Bank).
  * Defaults to 'mock' driver in development, switchable via env var PAYMENT_DRIVER.
  * All credentials masked, idempotent requests, isolated behind this single adapter.
  */

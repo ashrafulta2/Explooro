@@ -51,7 +51,7 @@ export default function AdminLiveCommercePage(root, { navigate } = {}) {
 
   function getDefaultStreams() {
     return [
-      { id: 1, room_code: 'LIVE-DHK-99', title: 'Eid Exclusive Jamdani Saree Showcase & Flash Sale', host_name: 'Fatima Sultana (Saler)', host_district: 'Sylhet', viewers_count: 1240, in_stream_orders: 34, live_gmv: 68000.00, duration_min: 45, pinned_product: 'Handloom Jamdani Saree (Navy Blue) — ৳2,400', status: 'LIVE', thumbnail: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600' },
+      { id: 1, room_code: 'LIVE-DHK-99', title: 'Eid Exclusive Jamdani Saree Showcase & Flash Sale', host_name: 'Fatima Sultana (Shop Partner)', host_district: 'Sylhet', viewers_count: 1240, in_stream_orders: 34, live_gmv: 68000.00, duration_min: 45, pinned_product: 'Handloom Jamdani Saree (Navy Blue) — ৳2,400', status: 'LIVE', thumbnail: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600' },
       { id: 2, room_code: 'LIVE-CTG-42', title: 'Sundarban Raw Natural Honey Tasting & Live Extraction', host_name: 'Karim Textile & Honey (Supplier)', host_district: 'Khulna', viewers_count: 600, in_stream_orders: 18, live_gmv: 18400.00, duration_min: 22, pinned_product: 'Raw Forest Honey 1kg Jar — ৳850', status: 'LIVE', thumbnail: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600' },
     ];
   }

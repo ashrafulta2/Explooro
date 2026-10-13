@@ -7,7 +7,7 @@
  *  - `rows === null` means UNKNOWN (still loading) and renders skeleton rows; `rows === []` means
  *    KNOWN-EMPTY and renders the EmptyState. Collapsing these two into one falsy check is the bug
  *    that makes a slow connection look like an empty account — the single most damaging thing a
- *    marketplace can tell a seller who has products.
+ *    marketplace can tell a shop partner who has products.
  *  - Horizontal overflow is contained by the wrapper, never the page (design-system §8). The
  *    wrapper is the only thing that scrolls sideways at 360px.
  *  - Sort state is CONTROLLED. The table renders what it is given and reports intent through

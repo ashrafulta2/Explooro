@@ -193,8 +193,8 @@ export const adminApi = {
   },
 
   /**
-   * Updates Saler trust tier commission incentive bonuses and, optionally, the volume ladder
-   * ({ enabled, window_days, thresholds }) that decides which tier a saler is in. One request, so a
+   * Updates Shop Partner trust tier commission incentive bonuses and, optionally, the volume ladder
+   * ({ enabled, window_days, thresholds }) that decides which tier a shop partner is in. One request, so a
    * rejected ladder never leaves the bonuses half-saved.
    */
   async updateTierBonuses(tiers, reason, rules) {

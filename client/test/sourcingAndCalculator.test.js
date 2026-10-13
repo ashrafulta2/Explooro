@@ -1,5 +1,5 @@
 /**
- * sourcingAndCalculator.test.js — Invariants for Saler Sourcing, Profit Calculator & Margin Projections (Prompt 4.7).
+ * sourcingAndCalculator.test.js — Invariants for Shop Partner Sourcing, Profit Calculator & Margin Projections (Prompt 4.7).
  *
  * Pins the core business invariants:
  *   1. Locale integrity — en/bn parity for sourcing.* keys.
@@ -44,7 +44,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const salerEarning = salerPaisa / 100;
     const platformEarning = platformPaisa / 100;
 
-    assert.equal(salerEarning, 80.00, 'Saler receives exactly ৳80.00');
+    assert.equal(salerEarning, 80.00, 'Shop Partner receives exactly ৳80.00');
     assert.equal(platformEarning, 120.00, 'Platform receives exactly ৳120.00');
     assert.equal(salerEarning + platformEarning, netRetailMargin, 'Sum of earnings matches net margin exactly');
   });
@@ -66,7 +66,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const salerEarning = salerPaisa / 100;
     const platformEarning = platformPaisa / 100;
 
-    assert.equal(salerEarning, 120.00, 'Saler earns exactly ৳120.00');
+    assert.equal(salerEarning, 120.00, 'Shop Partner earns exactly ৳120.00');
     assert.equal(platformEarning, 180.00, 'Platform earns exactly ৳180.00');
   });
 
@@ -139,7 +139,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const wholesaleCost = product.base_cost + product.wholesale_margin; // 450
     const elevatedMargin = customPriceValid - wholesaleCost; // 200
     const salerProfit = Math.floor((elevatedMargin * 40) / 100);
-    assert.equal(salerProfit, 80, 'Higher retail price increases saler profit');
+    assert.equal(salerProfit, 80, 'Higher retail price increases shop partner profit');
 
     // Invalid custom price (below min_retail_price)
     const customPriceInvalid = 480;
@@ -158,14 +158,14 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(!content.includes("details.append(\n    row('product_detail.price.platform_earning'"), 'Must not append platform earning unconditionally');
   });
 
-  // 9. ProfitCalculator Invariant — Saler only sees wholesale, retail, and their own profit
-  await t.test('9. ProfitCalculator exposes wholesale cost, retail price, and saler profit with zero platform cards or split leak', async () => {
+  // 9. ProfitCalculator Invariant — Shop Partner only sees wholesale, retail, and their own profit
+  await t.test('9. ProfitCalculator exposes wholesale cost, retail price, and shop partner profit with zero platform cards or split leak', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const filePath = path.resolve(import.meta.dirname, '../src/components/saler/ProfitCalculator.js');
     const content = fs.readFileSync(filePath, 'utf8');
 
-    // Cards must be wholesale, retail price, and saler profit
+    // Cards must be wholesale, retail price, and shop partner profit
     assert.ok(content.includes('retailPriceCard = createCard'), 'Must contain customer retail price card');
     assert.ok(!content.includes('platformEarningCard = createCard'), 'Must NOT contain platform earning card');
     assert.ok(!content.includes('segPlatform'), 'Must NOT contain segPlatform element');
@@ -183,8 +183,8 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(content.includes('${showPlatformShare && total_platform_margin !== undefined'), 'Platform share tag must be guarded by showPlatformShare');
   });
 
-  // 11. Saler Confidentiality Invariant — Wholesale cost hidden on sourcing cards & AddToStoreDrawer
-  await t.test('11. Sourcing catalog cards and drawer never expose raw wholesale cost to saler', async () => {
+  // 11. Shop Partner Confidentiality Invariant — Wholesale cost hidden on sourcing cards & AddToStoreDrawer
+  await t.test('11. Sourcing catalog cards and drawer never expose raw wholesale cost to shop partner', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
 
@@ -200,8 +200,8 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(drawerContent.includes("minRetailPrice"), 'AddToStoreDrawer must enforce minRetailPrice');
   });
 
-  // 12. Tiered Saler Pricing Engine Client Math
-  await t.test('12. Tiered Saler Pricing: discount absorbs saler profit with platform protected; boost shares extra markup', () => {
+  // 12. Tiered Shop Partner Pricing Engine Client Math
+  await t.test('12. Tiered Shop Partner Pricing: discount absorbs shop partner profit with platform protected; boost shares extra markup', () => {
     const supplierCost = 1000;
     const platDefPct = 10;
     const salerDefPct = 20;
@@ -220,7 +220,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const discountPlatProfit = platDefProfit; // 100 (100% protected)
     const discountSalerProfit = discountPrice - minPrice; // 100 (saler absorbs discount)
     assert.equal(discountPlatProfit, 100, 'Platform profit must not decrease');
-    assert.equal(discountSalerProfit, 100, 'Saler profit drops by 100');
+    assert.equal(discountSalerProfit, 100, 'Shop Partner profit drops by 100');
     assert.equal(supplierCost + discountPlatProfit + discountSalerProfit, discountPrice, 'Funds conserved');
 
     // Case B: Boosted customer price = 1500 (extra 200)
@@ -231,7 +231,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const boostPlatProfit = platDefProfit + extraPlat; // 140
     const boostSalerProfit = salerDefProfit + extraSaler; // 360
     assert.equal(boostPlatProfit, 140, 'Platform gets 100 + 40 extra markup share');
-    assert.equal(boostSalerProfit, 360, 'Saler gets 200 + 160 extra markup share');
+    assert.equal(boostSalerProfit, 360, 'Shop Partner gets 200 + 160 extra markup share');
     assert.equal(supplierCost + boostPlatProfit + boostSalerProfit, boostPrice, 'Funds conserved');
   });
 });

@@ -30,7 +30,7 @@ function createMockDb() {
   const users = [
     { id: 1, ref: 'USR-SUPER1', full_name: 'Super Admin Kabir', role: 'super_admin' },
     { id: 101, ref: 'USR-SUPP1', full_name: 'Supplier Aarong', role: 'supplier' },
-    { id: 201, ref: 'USR-SALER1', full_name: 'Saler Jamila', role: 'saler' },
+    { id: 201, ref: 'USR-SALER1', full_name: 'Shop Partner Jamila', role: 'saler' },
   ];
 
   const wallets = [
@@ -361,7 +361,7 @@ describe('Prompt 6.5 — Vault UI & Admin Finance Dashboard', () => {
     app.decorate('db', db);
     app.decorate('cache', null);
     app.decorate('authenticate', async (req) => {
-      req.user = { id: 201, role: 'saler' }; // Saler Jamila
+      req.user = { id: 201, role: 'saler' }; // Shop Partner Jamila
     });
     app.decorate('requirePermission', () => async () => {});
 

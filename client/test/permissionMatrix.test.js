@@ -2,7 +2,7 @@
  * permissionMatrix.test.js — invariants behind the Roles & Permissions matrix (Prompt 3.3).
  *
  * The bug this pins: the page drew a tick for Super Admin on every row, but the catalog gives
- * Super Admin 151 of 187 permissions (it deliberately lacks the saler.* / supplier.* workspace
+ * Super Admin 151 of 187 permissions (it deliberately lacks the shop partner.* / supplier.* workspace
  * ones). A cell must be decided by the data, never by the role's name.
  */
 

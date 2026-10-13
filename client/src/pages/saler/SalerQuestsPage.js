@@ -1,12 +1,12 @@
 /**
- * SalerQuestsPage.js — Saler Daily Quests, Milestone Rewards & National Leaderboard (Prompt 9.4 / §AL.2).
+ * SalerQuestsPage.js — Shop Partner Daily Quests, Milestone Rewards & National Leaderboard (Prompt 9.4 / §AL.2).
  *
  * Routes: /saler/quests, /saler/leaderboard
  * Implements:
- * 1. Saler Daily & Weekly Quests (Sourcing, WhatsApp Sharing, Order Milestones, Live Streaming).
+ * 1. Shop Partner Daily & Weekly Quests (Sourcing, WhatsApp Sharing, Order Milestones, Live Streaming).
  * 2. 1-Click Interactive Reward Claiming with instant coin balance ledger updates.
  * 3. Monthly National Merchant Podium (Top 3 Gold/Silver/Bronze Champion Cards).
- * 4. Top 50 Ranked Seller Leaderboard with status badges & personal rank highlight.
+ * 4. Top 50 Ranked Shop Partner Leaderboard with status badges & personal rank highlight.
  * 5. 100% Bilingual localization (English & Bengali).
  */
 

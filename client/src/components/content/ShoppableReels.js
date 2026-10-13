@@ -232,7 +232,7 @@ export function ShoppableReels({ onBuyProduct = null } = {}) {
       <div class="text-white space-y-1 pr-12">
         <div class="font-bold text-xs flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-success inline-block"></span>
-          @${reel.author_name || 'Artisan Seller'}
+          @${reel.author_name || 'Artisan Shop Partner'}
         </div>
         <p class="text-xs text-white/90 line-clamp-2 m-0">${caption}</p>
       </div>

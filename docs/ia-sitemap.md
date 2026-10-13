@@ -13,7 +13,7 @@
 
 ## 0. Governing Principles
 
-1. **Group by user intent, never by database table.** A seller thinks "I want to get paid", not
+1. **Group by user intent, never by database table.** A shop partner thinks "I want to get paid", not
    "I want to query the `payout_requests` table". Groups are named for jobs, not entities.
 2. **Maximum 9 top-level groups per role, maximum 8 items per group.** Beyond that, humans stop
    scanning and start hunting. Where a group would exceed 8, it splits or moves items to a
@@ -49,7 +49,7 @@
 | `/` | Marketplace home | none | core | public | ✅ |
 | `/c/:categorySlug` | Category listing | none | core | public | ✅ |
 | `/product/:id/:slug?` | Product detail | none | core | public | ✅ |
-| `/store/:slug` | Saler storefront | none | `virtual_storefront` | public | ✅ |
+| `/store/:slug` | Shop Partner storefront | none | `virtual_storefront` | public | ✅ |
 | `/store/:slug/c/:collection` | Store collection | none | `virtual_storefront` | public | ✅ |
 | `/search` | Search results | none | core | public | ❌ |
 | `/stories` | Storytelling feed | none | `content_commerce` | public | ✅ |
@@ -59,10 +59,10 @@
 | `/live/:id` | Live stream viewer | none | `live_commerce` | public | ❌ |
 | `/team/:id` | Team purchase invite | none | `group_buying` | public | ❌ |
 | `/s/:code` | Shortlink redirect | none | `social_seller_kit` | public | ❌ |
-| `/academy` | Seller Academy (preview) | none | `seller_academy` | public | ✅ |
+| `/academy` | Shop Partner Academy (preview) | none | `seller_academy` | public | ✅ |
 | `/academy/:courseSlug` | Course detail | none | `seller_academy` | public | ✅ |
 | `/help`, `/help/:slug` | Help centre / FAQ | none | core | public | ✅ |
-| `/legal/:doc` | Terms, privacy, refund, seller agreement | none | core | public | ✅ |
+| `/legal/:doc` | Terms, privacy, refund, shop partner agreement | none | core | public | ✅ |
 | `/sitemap.xml`, `/robots.txt` | SEO endpoints | none | core | public | — |
 
 ### 1.2 Authentication
@@ -106,9 +106,9 @@
 | `/account/addresses` | Saved addresses | none | core |
 | `/account/settings` | Profile & security | none | core |
 | `/account/settings/notifications` | Notification preferences | none | core |
-| `/account/become-saler` | 1-click Saler upgrade | none | `virtual_storefront` |
+| `/account/become-saler` | 1-click Shop Partner upgrade | none | `virtual_storefront` |
 
-### 1.5 Saler — `/saler/*`
+### 1.5 Shop Partner — `/saler/*`
 
 | Path | Page | perm | module |
 | :--- | :--- | :--- | :--- |
@@ -130,7 +130,7 @@
 | `/saler/leaderboard` | Leaderboard & badges | none | `gamification` |
 | `/saler/cart-insights` | Abandoned cart insights | `saler.analytics.view` | `cart_recovery` |
 | `/saler/social-kit` | Flyer & QR generator | none | `social_seller_kit` |
-| `/saler/academy` | Seller Academy | none | `seller_academy` |
+| `/saler/academy` | Shop Partner Academy | none | `seller_academy` |
 
 ### 1.6 Supplier — `/supplier/*`
 
@@ -147,7 +147,7 @@
 | `/supplier/shipments` | Shipment tracking | `logistics.shipment.view` | `courier_hub` |
 | `/supplier/warranty-claims` | Warranty claims | `support.warranty.manage` | `digital_warranty` |
 | `/supplier/b2b-escrow` | B2B wholesale escrow | `finance.b2b_escrow.view_own` | `b2b_escrow` |
-| `/supplier/salers` | Saler network insights | `supplier.analytics.view` | core |
+| `/supplier/salers` | Shop Partner network insights | `supplier.analytics.view` | core |
 | `/supplier/forecasting` | AI demand forecasting | `supplier.analytics.view` | `ai_forecasting` |
 | `/supplier/vault` | Earnings vault | `finance.wallet.view_own` | core |
 | `/supplier/inquiries` | Wholesale inquiries | `chat.thread.view_own` | `chat` |
@@ -300,7 +300,7 @@ Anything the Moderator has not been granted appears **locked with a Request Acce
 ### 2.4 🏭 Supplier — 7 groups
 
 ```
-📊  Overview          Dashboard · Saler Insights · Demand Forecasting
+📊  Overview          Dashboard · Shop Partner Insights · Demand Forecasting
 📦  Inventory         Products · Stock · Batches & Expiry · Warehouses
 🛒  Orders            Incoming Orders · Fulfilment · Shipments
 🛡️  Aftercare         Warranty Claims
@@ -309,7 +309,7 @@ Anything the Moderator has not been granted appears **locked with a Request Acce
 🏪  My Shop           Physical Shop Status
 ```
 
-### 2.5 🛍️ Saler — 7 groups
+### 2.5 🛍️ Shop Partner — 7 groups
 
 ```
 📊  Overview          Dashboard · Analytics · Cart Insights
@@ -330,7 +330,7 @@ architecture; they scan for the thing they recognise.
 🛒  Shopping          Orders · Returns · Wishlist · Coupons · Team Purchases
 🎁  Rewards           Coins & Streak · Referrals
 🛡️  Protection        Warranties
-👤  Me                Following · My Reviews · Addresses · Settings · Become a Saler ⭐
+👤  Me                Following · My Reviews · Addresses · Settings · Become a Shop Partner ⭐
 ```
 
 ---
@@ -371,7 +371,7 @@ Request access to…  ← opens the JIT request modal directly
 
 ## 4. Progressive Disclosure — Simple vs Advanced Mode
 
-Applies to the **Saler** and **Supplier** shells. Many Explooro sellers are first-time digital
+Applies to the **Shop Partner** and **Supplier** shells. Many Explooro shop partners are first-time digital
 entrepreneurs; a 7-group sidebar with 30 items on day one causes abandonment.
 
 | | Simple Mode (default for new accounts) | Advanced Mode |
@@ -381,13 +381,13 @@ entrepreneurs; a 7-group sidebar with 30 items on day one causes abandonment.
 | Forms | Required fields only; optional fields behind "More options" | All fields |
 | Terminology | Plain language — "Money you can withdraw" | Precise — "Available balance" |
 
-**Saler Simple Mode:** Add Product · Share My Store · My Orders · My Earnings · Messages · Help
+**Shop Partner Simple Mode:** Add Product · Share My Store · My Orders · My Earnings · Messages · Help
 **Supplier Simple Mode:** Add Product · Stock · Orders to Pack · Print Labels · My Earnings · Help
 
 Rules:
 - Persisted per user (`user_profiles.ui_mode`), not per device.
 - Switch available in the avatar menu **and** the command palette — never buried in settings.
-- Auto-prompt (never auto-switch) to Advanced after the seller completes 10 orders:
+- Auto-prompt (never auto-switch) to Advanced after the shop partner completes 10 orders:
   *"Ready for more tools?"* — the user always decides.
 - Simple Mode **never hides money, orders, or messages.** It hides configuration and analytics.
 
@@ -473,7 +473,7 @@ design target.**
 | Role | Tab 1 | Tab 2 | Tab 3 | Tab 4 | Tab 5 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Customer** | Home | Search | Cart ⁽ᵇᵃᵈᵍᵉ⁾ | Orders | More |
-| **Saler** | Dashboard | My Store | Orders ⁽ᵇᵃᵈᵍᵉ⁾ | Vault | More |
+| **Shop Partner** | Dashboard | My Store | Orders ⁽ᵇᵃᵈᵍᵉ⁾ | Vault | More |
 | **Supplier** | Dashboard | Stock | Orders ⁽ᵇᵃᵈᵍᵉ⁾ | Vault | More |
 | **Moderator** | Dashboard | Queues ⁽ᵇᵃᵈᵍᵉ⁾ | Cases ⁽ᵇᵃᵈᵍᵉ⁾ | My Access | More |
 | **Editor** | Content | Translations | — | — | More |
@@ -523,7 +523,7 @@ returning-empty copy is status-framed**; both languages, written natively.
 - [ ] `Ctrl+K` palette: fuzzy search, permission-filtered, keyboard-complete, < 50ms first paint
 - [ ] Locked items **visible with lock + Request Access**; module-disabled items **hidden**
 - [ ] Elevated-access chip with live countdown and release button
-- [ ] Simple / Advanced toggle for Saler and Supplier, persisted per user
+- [ ] Simple / Advanced toggle for Shop Partner and Supplier, persisted per user
 - [ ] Bottom tab bar, 5 items max, correct per role, no horizontal scroll at 360px
 - [ ] Every string in both `en.json` and `bn.json`
 - [ ] Router rejects registration of any route lacking an explicit `permission` and `module`

@@ -46,7 +46,7 @@ export async function likeReel(id) {
   return api.post(`/content/reels/${id}/like`, {});
 }
 
-// Seller & Buyer Academy
+// Shop Partner & Buyer Academy
 export async function listAcademyCourses(params = {}) {
   return api.get('/academy/courses', { query: params });
 }

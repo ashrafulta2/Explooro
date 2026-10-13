@@ -56,7 +56,7 @@ described in the user message. Rules:
 }
 
 /** Generates a bilingual-ready ad caption grounded in the real product row. Draft only — never
- * posted anywhere automatically; the saler copies it into WhatsApp/Facebook/the flyer tool. */
+ * posted anywhere automatically; the shop partner copies it into WhatsApp/Facebook/the flyer tool. */
 export async function generateAdCopy(db, { userId, productId, lang = 'en', tone = 'friendly' }, deps = {}) {
   const generate = deps.generateCompletion || provider.generateCompletion;
   const product = await loadGroundingProduct(db, productId, deps);

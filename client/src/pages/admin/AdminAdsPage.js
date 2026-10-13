@@ -3,7 +3,7 @@
  *
  * Implements:
  * 1. Ad Auction & Campaign Vitals (Total Ad Spend, Impressions, Clicks, Avg CPC, Fraud Discarded).
- * 2. Second-Price Auction & Seller Trust Quality Score (QS) Inspector.
+ * 2. Second-Price Auction & Shop Partner Trust Quality Score (QS) Inspector.
  * 3. Daily Budget Pacing Meter & Hard Stop Cap Enforcement.
  * 4. Self-Click & Bot Fraud Defense Exclusion Log.
  * 5. Active Advertising Campaigns Table with 1-click Pause/Resume/Cancel actions.
@@ -218,7 +218,7 @@ export default function AdminAdsPage(root, { navigate } = {}) {
                     </td>
                     <td>
                       <div class="font-semibold text-primary">${c.merchant_name}</div>
-                      <span class="badge badge--neutral text-xs">${c.merchant_role === 'SUPPLIER' ? (isBn ? 'সরবরাহকারী' : 'Supplier') : (isBn ? 'সেলার' : 'Saler')}</span>
+                      <span class="badge badge--neutral text-xs">${c.merchant_role === 'SUPPLIER' ? (isBn ? 'সরবরাহকারী' : 'Supplier') : (isBn ? 'শপ পার্টনার' : 'Shop Partner')}</span>
                     </td>
                     <td>
                       <div class="font-mono font-bold">${formatCurrency(c.daily_budget)}/day</div>

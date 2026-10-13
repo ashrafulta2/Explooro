@@ -15,7 +15,7 @@ export const prerenderConfig = {
       title: 'Explooro — Bangladesh\'s #1 Social Commerce Platform',
       description: 'Buy from verified suppliers with zero-markup wholesale sourcing. Sell from your own branded store with zero upfront capital.',
       heading: 'Bangladesh\'s Premier Social Commerce & Dropshipping Platform',
-      bodyText: 'Explooro empowers suppliers, salers, and consumers with wholesale catalog sourcing, AI store builder, 1-click bKash payouts, and digital escrow protection.',
+      bodyText: 'Explooro empowers suppliers, shop partners, and consumers with wholesale catalog sourcing, AI store builder, 1-click bKash payouts, and digital escrow protection.',
       ogType: 'website',
       jsonLd: {
         '@context': 'https://schema.org',
@@ -34,8 +34,8 @@ export const prerenderConfig = {
     },
     {
       path: '/stories',
-      title: 'Seller Stories & Community Feed — Explooro',
-      description: 'Read authentic stories, merchant craft breakdowns, and product video reels from top social sellers in Bangladesh.',
+      title: 'Shop Partner Stories & Community Feed — Explooro',
+      description: 'Read authentic stories, merchant craft breakdowns, and product video reels from top social shop partners in Bangladesh.',
       heading: 'Explooro Merchant Stories & UGC Feed',
       bodyText: 'Watch master weavers, organic beekeepers, and digital artisans showcase authentic Bangladeshi goods.',
       ogType: 'blog',
@@ -98,7 +98,7 @@ export const prerenderConfig = {
       description: 'Explore curated Bangladeshi handmade textiles, brass crafts, and organic goods from Heritage Crafts BD. Fast COD & bKash checkout.',
       heading: 'Heritage Crafts BD Online Storefront',
       salerName: 'Farhana Sultana',
-      bodyText: 'Specializing in authentic Jamdani sarees, Tangail handlooms, and traditional brassware. Verified blue-tick seller on Explooro.',
+      bodyText: 'Specializing in authentic Jamdani sarees, Tangail handlooms, and traditional brassware. Verified blue-tick shop partner on Explooro.',
       ogType: 'profile',
       jsonLd: {
         '@context': 'https://schema.org',

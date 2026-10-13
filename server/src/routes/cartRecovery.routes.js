@@ -12,7 +12,7 @@ export default async function cartRecoveryRoutes(app) {
     preHandler: [requireCartRecovery],
   }, cartRecoveryController.restore);
 
-  // 2. Saler cart abandonment analytics, drop-offs, and funnel insights
+  // 2. Shop Partner cart abandonment analytics, drop-offs, and funnel insights
   app.get('/saler/cart-insights', {
     // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
     // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
@@ -20,7 +20,7 @@ export default async function cartRecoveryRoutes(app) {
     preHandler: [app.authenticate, requireCartRecovery],
   }, cartRecoveryController.getInsights);
 
-  // 3. Saler manual recovery offer dispatch
+  // 3. Shop Partner manual recovery offer dispatch
   app.post('/saler/cart-recovery/:id/manual-offer', {
     config: { page: '/saler/cart-insights' },
     preHandler: [app.authenticate, requireCartRecovery],

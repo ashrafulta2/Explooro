@@ -20,7 +20,7 @@ function createMockDb() {
   const users = [
     { id: 1, full_name: 'Super Admin', role: 'super_admin' },
     { id: 2, full_name: 'Moderator Alpha', role: 'moderator' },
-    { id: 10, full_name: 'Seller One', role: 'supplier' },
+    { id: 10, full_name: 'Shop Partner One', role: 'supplier' },
   ];
 
   const moderationQueue = [

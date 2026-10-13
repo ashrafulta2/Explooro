@@ -1,5 +1,5 @@
 /**
- * SourcingCatalogPage.js — Saler Supplier Catalog, Sourcing Opportunity Feed &
+ * SourcingCatalogPage.js — Shop Partner Supplier Catalog, Sourcing Opportunity Feed &
  * Interactive Profit Calculator (Prompt 4.7).
  *
  * Route: /saler/sourcing
@@ -290,7 +290,7 @@ export default function SourcingCatalogPage(root) {
   grid.setAttribute('aria-label', t('sourcing.catalog_heading', 'Available Wholesale Products'));
 
   // Paid placements sit above the ranked results, never inside them, so the grid below stays an
-  // honest ordering of the saler's chosen sort.
+  // honest ordering of the shop partner's chosen sort.
   const sponsoredWrap = document.createElement('section');
   sponsoredWrap.className = 'sourcing-grid__sponsored';
   sponsoredWrap.setAttribute('aria-label', t('sourcing.sponsored.heading'));
@@ -540,7 +540,7 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
     header.append(cat, hTitle, SupplierScorecardBadge(product.supplier_scorecard));
   }
 
-  // Pricing Matrix (Confidential wholesale: shows Suggested Retail, Min Selling Price Floor, and Saler Profit)
+  // Pricing Matrix (Confidential wholesale: shows Suggested Retail, Min Selling Price Floor, and Shop Partner Profit)
   const matrix = document.createElement('div');
   matrix.className = 'sourcing-card__pricing-matrix';
 

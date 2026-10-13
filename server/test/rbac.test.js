@@ -37,7 +37,7 @@ const ALL_SAMPLE_ROLES = [
   { id: 3, key: 'moderator', label_en: 'Moderator', level: 60 },
   { id: 4, key: 'editor', label_en: 'Editor', level: 60 },
   { id: 5, key: 'supplier', label_en: 'Supplier', level: 20 },
-  { id: 6, key: 'saler', label_en: 'Saler', level: 20 },
+  { id: 6, key: 'saler', label_en: 'Shop Partner', level: 20 },
   { id: 7, key: 'customer', label_en: 'Customer', level: 10 },
 ];
 

@@ -1,10 +1,10 @@
 /**
- * SupplierIncentivePage.js — A supplier sets the monthly rebate they pay their top-selling salers.
+ * SupplierIncentivePage.js — A supplier sets the monthly rebate they pay their top-selling shop partners.
  *
  * Route: /supplier/incentive  (module: sourcing, read: supplier.analytics.view, write: supplier.incentive.manage)
  *
  * WHY the page shows what is "running now" apart from what is "queued": a change applies from the
- * next month so no saler is moved onto worse tiers mid-month, and a supplier who edits tiers and then
+ * next month so no shop partner is moved onto worse tiers mid-month, and a supplier who edits tiers and then
  * sees the old ones still live needs to be told that is intended, not that the save failed.
  */
 import { supplierApi } from '../../services/supplier.api.js';

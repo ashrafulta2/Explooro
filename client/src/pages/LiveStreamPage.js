@@ -33,7 +33,7 @@ const FALLBACK_DEMO_STREAMS = [
   {
     id: 1,
     title: 'Dhakai Jamdani Live Weaving & Festive Flash Sale 🔥',
-    description: 'Live weaving demo and real-time showcase of pure cotton Dhakai Jamdani Sarees with special instant discounts and seller Q&A.',
+    description: 'Live weaving demo and real-time showcase of pure cotton Dhakai Jamdani Sarees with special instant discounts and shop partner Q&A.',
     cover_image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=800&auto=format&fit=crop&q=80',
     status: 'LIVE',
     host_name: 'Dhaka Fashion House',
@@ -218,7 +218,7 @@ async function renderStreamDiscoveryList(container, navigate) {
               </span>
             </div>
             <h1 class="stream-discovery__title">${t('live.explore_live') || 'Live Shopping Broadcasts'}</h1>
-            <p class="stream-discovery__subtitle">${t('live.explore_subtitle') || 'Watch real-time product demonstrations, unlock exclusive in-stream discounts, chat directly with verified Bangladeshi sellers, and order with 1-click checkout.'}</p>
+            <p class="stream-discovery__subtitle">${t('live.explore_subtitle') || 'Watch real-time product demonstrations, unlock exclusive in-stream discounts, chat directly with verified Bangladeshi shop partners, and order with 1-click checkout.'}</p>
           </div>
           <div class="live-hero-banner__actions" id="hero-actions-slot"></div>
         </div>
@@ -229,7 +229,7 @@ async function renderStreamDiscoveryList(container, navigate) {
             <div class="live-highlight-icon">📌</div>
             <div class="live-highlight-info">
               <span class="live-highlight-title">${t('live.feature_pinning') || 'Real-Time Pinning'}</span>
-              <span class="live-highlight-desc">${t('live.feature_pinning_sub') || 'Sub-second sync with seller showcase'}</span>
+              <span class="live-highlight-desc">${t('live.feature_pinning_sub') || 'Sub-second sync with shop partner showcase'}</span>
             </div>
           </div>
           <div class="live-highlight-card">
@@ -289,7 +289,7 @@ async function renderStreamDiscoveryList(container, navigate) {
               type="search" 
               id="live-search-input" 
               class="live-search-input" 
-              placeholder="${t('live.search_placeholder') || 'Search broadcasts by title, seller, or products…'}"
+              placeholder="${t('live.search_placeholder') || 'Search broadcasts by title, shop partner, or products…'}"
               aria-label="Search live streams"
             />
           </div>
@@ -349,7 +349,7 @@ async function renderStreamDiscoveryList(container, navigate) {
   const hostStudioBtn = Button({
     label: isSellerRole
       ? (t('live.host_studio') || 'Host a Live Stream')
-      : (t('live.become_seller_to_host') || 'Become a Seller to Host'),
+      : (t('live.become_seller_to_host') || 'Become a Shop Partner to Host'),
     variant: 'primary',
     size: 'sm',
     onClick: () => {
@@ -551,7 +551,7 @@ function openLiveShoppingGuideModal() {
         <div style="font-size: 24px; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--surface-2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--border-subtle);">📹</div>
         <div>
           <h4 style="margin: 0 0 4px; font-size: var(--text-sm); font-weight: var(--weight-bold);">${t('live.guide_step1_title') || '1. Watch Live Product Demos'}</h4>
-          <p style="margin: 0; font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.4;">${t('live.guide_step1_desc') || 'Watch verified sellers showcase products live — feel the fabric, test gadgets, and see real quality.'}</p>
+          <p style="margin: 0; font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.4;">${t('live.guide_step1_desc') || 'Watch verified shop partners showcase products live — feel the fabric, test gadgets, and see real quality.'}</p>
         </div>
       </div>
 

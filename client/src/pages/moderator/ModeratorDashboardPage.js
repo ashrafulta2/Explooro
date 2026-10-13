@@ -64,7 +64,7 @@ export default function ModeratorDashboardPage(root) {
     {
       id: 'product-moderation',
       title: 'Product & Content Moderation',
-      desc: 'Review newly listed and edited seller products, banned keyword flags, and price anomalies.',
+      desc: 'Review newly listed and edited shop partner products, banned keyword flags, and price anomalies.',
       icon: '🛍️',
       permissionKey: 'moderation.product.approve',
       route: '/moderator/queue',

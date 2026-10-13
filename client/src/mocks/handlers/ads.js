@@ -11,7 +11,7 @@ const PREPAID_MODELS = ['FLAT_DAILY', 'FLAT_SLOT', 'CPS'];
 
 const DEFAULT_TIER_DISCOUNTS = { STARTER: 0, VERIFIED_TRADER: 5, ELITE_PARTNER: 10 };
 
-/** The signed-in seller's trust tier in mock mode — drives the loyalty discount on every quote. */
+/** The signed-in shop partner's trust tier in mock mode — drives the loyalty discount on every quote. */
 const MOCK_TIER = 'VERIFIED_TRADER';
 
 let mockAdProducts = [
@@ -102,7 +102,7 @@ let mockAdProducts = [
     name_bn: 'প্রতিযোগীর পেজে বিজ্ঞাপন',
     tagline_en: "Show up on similar products' pages",
     tagline_bn: 'একই ধরনের পণ্যের পেজে দেখান',
-    description_en: 'Your product appears in the "Sponsored" strip on other sellers’ product pages, in front of shoppers already ready to buy.',
+    description_en: 'Your product appears in the "Sponsored" strip on other shop partners’ product pages, in front of shoppers already ready to buy.',
     description_bn: 'অন্য বিক্রেতার পণ্য পেজের "স্পনসর্ড" অংশে আপনার পণ্য দেখানো হয় — যেখানে ক্রেতা এমনিতেই কিনতে প্রস্তুত।',
     icon: '🎯',
     placement: 'PRODUCT_PAGE',
@@ -180,10 +180,10 @@ let mockAdProducts = [
     key: 'sourcing_boost',
     name_en: 'Sponsored Sourcing Slot',
     name_bn: 'স্পনসর্ড সোর্সিং স্লট',
-    tagline_en: 'Get your product in front of salers choosing what to stock',
-    tagline_bn: 'কী স্টক করবেন তা ঠিক করছেন এমন সেলারদের সামনে পণ্য তুলে ধরুন',
-    description_en: 'Your product is pinned above the Sourcing Catalog, marked Sponsored. You pay only when a saler clicks, and a better Supplier Scorecard grade ranks you higher for the same bid.',
-    description_bn: 'আপনার পণ্য সোর্সিং ক্যাটালগের উপরে "স্পনসর্ড" চিহ্নসহ দেখানো হয়। সেলার ক্লিক করলেই কেবল টাকা কাটা হয়, আর ভালো স্কোরকার্ড গ্রেড থাকলে একই বিডে উপরে থাকবেন।',
+    tagline_en: 'Get your product in front of shop partners choosing what to stock',
+    tagline_bn: 'কী স্টক করবেন তা ঠিক করছেন এমন শপ পার্টনারদের সামনে পণ্য তুলে ধরুন',
+    description_en: 'Your product is pinned above the Sourcing Catalog, marked Sponsored. You pay only when a shop partner clicks, and a better Supplier Scorecard grade ranks you higher for the same bid.',
+    description_bn: 'আপনার পণ্য সোর্সিং ক্যাটালগের উপরে "স্পনসর্ড" চিহ্নসহ দেখানো হয়। শপ পার্টনার ক্লিক করলেই কেবল টাকা কাটা হয়, আর ভালো স্কোরকার্ড গ্রেড থাকলে একই বিডে উপরে থাকবেন।',
     icon: '📦',
     placement: 'SOURCING_CATALOG',
     pricing_model: 'CPC',

@@ -545,7 +545,7 @@ export function ProductCard({
     }
   }
 
-  // WHY: margin badge only visible to Salers AND only when 'sourcing' module is on —
+  // WHY: margin badge only visible to Shop Partners AND only when 'sourcing' module is on —
   // a divergence here (client vs server) is a financial bug; the badge is informational only.
   if (role === 'saler' && modules.sourcing && product.margin_pct != null) {
     const marginBadge = document.createElement('span');

@@ -8,7 +8,7 @@
  * 4. Multi-party coupon incentive controls and single-use discount caps.
  * 5. Step-level attribution and conversion tracking.
  * 6. Anti-spam user cooldowns (7 days) and 1 sequence per cart cap.
- * 7. Saler cart insights dashboard and manual offer dispatch.
+ * 7. Shop Partner cart insights dashboard and manual offer dispatch.
  */
 
 import { randomBytes } from 'node:crypto';
@@ -376,7 +376,7 @@ export async function sendManualOffer(db, {
 }
 
 /**
- * Aggregates cart abandonment insights, drop-off products, and funnel attribution for sellers.
+ * Aggregates cart abandonment insights, drop-off products, and funnel attribution for shop partners.
  */
 export async function getSalerCartInsights(db, salerUserId) {
   // 1. Overall stats

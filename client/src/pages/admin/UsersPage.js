@@ -353,7 +353,7 @@ export default function UsersPage(root, { navigate } = {}) {
             <select id="admin-users-role-filter" aria-label="${escapeHtml(t('admin_users.all_roles', 'All Roles'))}">
               <option value="ALL" ${selectedRole === 'ALL' ? 'selected' : ''}>${t('admin_users.all_roles', 'All Roles')}</option>
               <option value="customer" ${selectedRole === 'customer' ? 'selected' : ''}>Customer</option>
-              <option value="saler" ${selectedRole === 'saler' ? 'selected' : ''}>Saler</option>
+              <option value="saler" ${selectedRole === 'saler' ? 'selected' : ''}>Shop Partner</option>
               <option value="supplier" ${selectedRole === 'supplier' ? 'selected' : ''}>Supplier</option>
               <option value="moderator" ${selectedRole === 'moderator' ? 'selected' : ''}>Moderator</option>
               <option value="editor" ${selectedRole === 'editor' ? 'selected' : ''}>Editor</option>

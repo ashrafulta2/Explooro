@@ -85,7 +85,7 @@
 @import './components/customer-following.css';
 /* Customer Saved Delivery Addresses Book */
 @import './components/customer-addresses.css';
-/* Customer Dashboard Hub & 1-Click Saler Upgrade */
+/* Customer Dashboard Hub & 1-Click Shop Partner Upgrade */
 @import './components/customer-dashboard.css';
 @import './components/customer-become-saler.css';
 
@@ -101,7 +101,7 @@
 /* Admin Governance Pages (Categories, Batches, Warehouses, Orders, Courier, Ledger, Escrow, Ads, Quests, Groups, Sessions) */
 @import './components/admin-pages.css';
 
-/* Saler Portal: Products, Showroom Status, Orders, Flyer Studio, Withdrawals, Quests & Leaderboard */
+/* Shop Partner Portal: Products, Showroom Status, Orders, Flyer Studio, Withdrawals, Quests & Leaderboard */
 @import './components/saler.css';
 @import './components/saler-inbox.css';
 @import './components/chat.css';

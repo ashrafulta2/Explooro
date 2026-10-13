@@ -1,5 +1,5 @@
 /**
- * commissionTierCard.test.js — the saler's commission tier card draws only what the server sent.
+ * commissionTierCard.test.js — the shop partner's commission tier card draws only what the server sent.
  *
  * Invariants:
  *   - tiers switched off (or no data / an unknown tier) => no card at all, never an empty ladder;
@@ -94,7 +94,7 @@ describe('commission tier endpoint mock and strings', () => {
     }
     const slots = (s) => (s.match(/\{\{[a-z]+\}\}/g) || []).sort().join();
     for (const k of ['bonus', 'to_next', 'window']) {
-      // The i18n engine only fills {{name}}; a single-brace slot would reach the saler as raw text.
+      // The i18n engine only fills {{name}}; a single-brace slot would reach the shop partner as raw text.
       assert.ok(slots(en.saler.commission_tier[k]).length > 0, `en ${k} has a {{slot}}`);
       assert.ok(!/(^|[^{])\{[a-z]+\}([^}]|$)/.test(en.saler.commission_tier[k] + bn.saler.commission_tier[k]), `${k} uses single braces`);
       assert.equal(slots(bn.saler.commission_tier[k]), slots(en.saler.commission_tier[k]), k);

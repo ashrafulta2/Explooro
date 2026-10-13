@@ -43,7 +43,7 @@ describe('Prompt 10.1: Live Stream Commerce Engine (DFD Subsystem 15.0)', () => 
         streamId: 101,
         roomId: 'room_mock_101',
         userId: 5,
-        userName: 'Host Saler',
+        userName: 'Host Shop Partner',
       });
 
       assert.strictEqual(pubToken.role, 'PUBLISHER');

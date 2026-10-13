@@ -1,5 +1,5 @@
 /**
- * trustTier.service.js — Seller Trust Tier Engine (Prompt 7.5 / Master Spec §C.4).
+ * trustTier.service.js — Shop Partner Trust Tier Engine (Prompt 7.5 / Master Spec §C.4).
  *
  * Manages the Starter → Verified Trader → Elite Partner progression ladder.
  * Dynamically computes tiers based on:

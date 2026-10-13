@@ -481,7 +481,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
       kycRow(
         t('user_detail.kyc_trade_license', 'Trade License'),
         t('user_detail.kyc_trade_hint', 'Enterprise merchant verification'),
-        t('user_detail.kyc_optional', 'Optional for Salers'),
+        t('user_detail.kyc_optional', 'Optional for Shop Partners'),
         'muted',
       ),
     );
