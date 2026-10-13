@@ -294,22 +294,28 @@ function AvatarMenu({ role, user, onNavigate }) {
 }
 
 import { MASTER_PRESETS } from '../../config/master-themes.js';
-import { switchThemePreset, getActivePresetKey } from '../../services/themePalette.js';
+import { switchThemePreset, getActivePresetKey, PRESET_SWITCH_PERMISSION } from '../../services/themePalette.js';
 import { toast } from '../../services/toast.js';
+import { can } from '../../services/permissions.js';
 
 function ThemeMenu() {
   const wrap = document.createElement('div');
   wrap.className = 'topbar__theme-menu topbar__avatar-menu';
 
   let activePreset = getActivePresetKey();
+  // Everyone keeps Light / Dark / System; the colour presets are the super admin's.
+  const canPresets = can(PRESET_SWITCH_PERMISSION);
+  const menuTitle = canPresets
+    ? t('shell.theme_menu_title') || 'Theme & Presets'
+    : t('shell.theme_menu_title_plain') || 'Theme';
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'topbar__icon-btn topbar__theme-btn';
   trigger.setAttribute('aria-haspopup', 'true');
   trigger.setAttribute('aria-expanded', 'false');
-  trigger.setAttribute('aria-label', t('shell.theme_menu_title') || 'Theme & Presets');
-  trigger.title = t('shell.theme_menu_title') || 'Theme & Presets';
+  trigger.setAttribute('aria-label', menuTitle);
+  trigger.title = menuTitle;
 
   const updateTriggerIcon = () => {
     const mode = getTheme();
@@ -333,7 +339,7 @@ function ThemeMenu() {
     header.style.padding = '2px 4px 6px 4px';
     header.style.borderBottom = '1px solid var(--border-subtle)';
     header.innerHTML = `
-      <span style="font-weight: 700; font-size: 11px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">${t('shell.theme_menu_title') || 'Theme & Presets'}</span>
+      <span style="font-weight: 700; font-size: 11px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">${menuTitle}</span>
     `;
     panel.append(header);
 
@@ -343,7 +349,7 @@ function ThemeMenu() {
     modeRow.style.display = 'flex';
     modeRow.style.gap = '4px';
     modeRow.style.padding = '8px 0';
-    modeRow.style.borderBottom = '1px solid var(--border-subtle)';
+    if (canPresets) modeRow.style.borderBottom = '1px solid var(--border-subtle)';
 
     const modes = [
       { id: 'light', label: t('shell.theme_mode_light') || 'Light', icon: THEME_ICONS_SVG.light },
@@ -372,6 +378,7 @@ function ThemeMenu() {
       modeRow.append(modeBtn);
     });
     panel.append(modeRow);
+    if (!canPresets) return;
 
     // Presets List
     const presetsList = document.createElement('div');

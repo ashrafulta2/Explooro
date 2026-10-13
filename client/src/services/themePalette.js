@@ -376,7 +376,33 @@ export function cacheActiveTheme(tokens, presetKey = null) {
 }
 
 /**
+ * Who may use the 1-click presets. Light / Dark / System stays with every user; the colour preset
+ * is the platform's look, so it sits behind the same key as publishing a theme (super admin only).
+ */
+export const PRESET_SWITCH_PERMISSION = 'platform.theme.publish';
+
+/**
+ * Removes a preset this browser picked for itself and goes back to the published theme (or the
+ * shipped default). A no-op when no preset was picked.
+ *
+ * WHY: the presets used to be open to everyone, so a browser can still be holding one. Hiding the
+ * list alone would leave that user on a colour they can no longer change back.
+ */
+export function dropLocalPreset() {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    if (!localStorage.getItem(ACTIVE_PRESET_STORAGE_KEY)) return;
+    localStorage.removeItem(ACTIVE_PRESET_STORAGE_KEY);
+    localStorage.removeItem(ACTIVE_THEME_STORAGE_KEY);
+  } catch {
+    return;
+  }
+  initTheme();
+}
+
+/**
  * 1-Click theme preset switcher. Applies theme instantly and persists to localStorage.
+ * Callers gate it on PRESET_SWITCH_PERMISSION.
  */
 export function switchThemePreset(presetKey) {
   const targetKey = MASTER_PRESETS[presetKey] ? presetKey : (THEME_PRESETS[presetKey] ? presetKey : DEFAULT_MASTER_PRESET);

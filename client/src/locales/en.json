@@ -675,6 +675,7 @@
     "coming_soon": "This page is not built yet — it's coming in a later phase.",
     "back_to_shell": "Back to shell preview",
     "theme_menu_title": "Theme & Presets",
+    "theme_menu_title_plain": "Theme",
     "theme_mode_title": "Mode",
     "theme_group_explooro": "Explooro",
     "theme_presets_title": "Marketplace Style (1-Click)",

@@ -12,6 +12,7 @@
 
 import { api } from '../core/api.js';
 import { appStore } from '../state/appStore.js';
+import { PRESET_SWITCH_PERMISSION, dropLocalPreset } from './themePalette.js';
 import catalog from '../../../docs/permission-catalog.json' with { type: 'json' };
 
 const catalogPermissions = new Map(catalog.permissions.map((p) => [p.key, p]));
@@ -28,6 +29,8 @@ let activeRestrictions = [];
  */
 function syncWithStore() {
   const permList = Array.from(heldPermissions);
+  // Runs on every login, logout and permission refresh, so a preset never outlives the right to it.
+  if (!heldPermissions.has(PRESET_SWITCH_PERMISSION)) dropLocalPreset();
   appStore.update((s) => ({
     auth: {
       ...s.auth,

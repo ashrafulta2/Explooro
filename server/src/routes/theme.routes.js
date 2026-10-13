@@ -53,8 +53,12 @@ export default async function themeRoutes(app) {
     themeController.publishTheme
   );
 
+  // WHY: this used to have no guard at all, so anyone could probe the Theme Studio API.
   app.post(
     '/admin/theme/validate-contrast',
+    {
+      preHandler: [auth, reqPerm('platform.theme.view')],
+    },
     themeController.validateContrast
   );
 }
