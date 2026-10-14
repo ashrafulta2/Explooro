@@ -79,6 +79,7 @@ import contentRoutes from './routes/content.routes.js';
 import supplierRoutes from './routes/supplier.routes.js';
 import salerRoutes from './routes/saler.routes.js';
 import customerRoutes from './routes/customer.routes.js';
+import homeSummaryRoutes from './routes/homeSummary.routes.js';
 import fastifyWebsocket from '@fastify/websocket';
 import websocketGateway from './sockets/gateway.js';
 import { startGrantExpiryScheduler } from './jobs/grantExpiryCron.js';
@@ -250,6 +251,7 @@ export async function buildApp(overrides = {}) {
   await app.register(supplierRoutes, { prefix: '/api/v1' });
   await app.register(salerRoutes, { prefix: '/api/v1' });
   await app.register(customerRoutes, { prefix: '/api/v1' });
+  await app.register(homeSummaryRoutes, { prefix: '/api/v1' });
   await app.register(adminAnalyticsRoutes, { prefix: '/api/v1' });
   await app.register(sitemapRoutes); // Root registration for /sitemap.xml and /robots.txt
 

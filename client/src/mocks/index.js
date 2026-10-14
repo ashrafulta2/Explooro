@@ -44,6 +44,7 @@ import { teamPurchaseHandlers } from './handlers/teamPurchase.js';
 import { gamificationHandlers } from './handlers/gamification.js';
 import { referralHandlers } from './handlers/referral.js';
 import { customerHandlers } from './handlers/customer.js';
+import { homeSummaryHandlers } from './handlers/homeSummary.js';
 import { notificationHandlers } from './handlers/notifications.js';
 import chatHandlers from './handlers/chat.js';
 import meHandlers from './handlers/me.js';
@@ -88,6 +89,7 @@ const handlers = [
   ...gamificationHandlers,
   ...referralHandlers,
   ...customerHandlers,
+  ...homeSummaryHandlers,
   ...notificationHandlers,
   ...chatHandlers,
   ...meHandlers,

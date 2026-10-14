@@ -1,18 +1,26 @@
 /**
  * HomeTop — the band above the product feed on the marketplace home page.
  *
- * Replaces the old text-only hero. Two layouts share one component:
- *  - Guest / customer: how-a-Shop Partner-earns panel · campaign slider · shortcut tiles + sign-in/orders card.
- *  - Signed in: the same, plus a "welcome back" strip of role-specific quick links.
+ * Replaces the old text-only hero. The layout depends on the account type:
+ *  - Guest: how-a-Shop Partner-earns panel · campaign slider · shortcut tiles.
+ *  - Customer: a "for you" panel (price drops, coins, team buys) · campaign slider · orders card + tiles,
+ *    plus a "welcome back" strip of quick links.
+ *  - Shop Partner, supplier, moderator, editor, admin, super admin: three panels of their own
+ *    (components/home/homeBands.js). A supplier has no use for "start earning with zero stock" and an
+ *    admin is never a Shop Partner, so none of them get the earn panel, slider or tiles.
  *
- * WHY: nothing here fetches. The slides are shortcuts into the existing feed tabs and the quick
- * links are plain routes, so the band renders instantly and cannot show a number that is wrong.
+ * WHY: the band renders instantly and never waits on the network. The slides and links are static
+ * routes; the only fetch is the signed-in role's few numbers (GET /home/summary), filled in after
+ * first paint, and a failed request leaves working links with "–" instead of a number.
  * The Become a Shop Partner CTA keeps the one-click flow, now on the earn panel: guests go to register,
  * customers to the /account/become-saler page that runs BecomeSalerCta, shop partners to their dashboard.
  */
 
 import { t } from '../../services/i18n.js';
 import { ICONS } from '../ui/icons.js';
+import { getHomeSummary } from '../../services/homeSummary.api.js';
+import { RoleBand } from './RoleBand.js';
+import { FULL_BAND_ROLES } from './homeBands.js';
 
 const SLIDES = [
   { id: 'flash',    feed: 'flash',    key: 'marketplace.top.slide_flash' },
@@ -35,7 +43,7 @@ const TILES = [
 
 const ROTATE_MS = 6000;
 
-// Role -> [label key, path]. Roles with their own console get one link to it.
+// Customer quick links under the band. The other signed-in roles have their own panels instead.
 const QUICK_LINKS = {
   customer: [
     ['marketplace.top.q_orders', '/account/orders'],
@@ -43,15 +51,6 @@ const QUICK_LINKS = {
     ['marketplace.top.q_coupons', '/account/coupons'],
     ['marketplace.top.q_live', '/live'],
   ],
-  saler: [
-    ['marketplace.top.q_dashboard', '/saler'],
-    ['marketplace.top.q_my_products', '/saler/products'],
-    ['marketplace.top.q_saler_orders', '/saler/orders'],
-    ['marketplace.top.q_earnings', '/saler/vault'],
-  ],
-};
-const CONSOLE_HOME = {
-  super_admin: '/admin', admin: '/admin', moderator: '/moderator', editor: '/editor', supplier: '/supplier',
 };
 
 function el(tag, className, text) {
@@ -79,11 +78,16 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   // WHY: the three slides are h2s that rotate; the page still needs one stable h1 for SEO and screen readers.
   root.append(el('h1', 'sr-only', t('marketplace.hero.tagline')));
 
+  // Role panels (null for guests and for roles without a band, which keep the default layout).
+  const band = isAuthenticated ? RoleBand(role, { onNavigate }) : null;
+  const fullBand = Boolean(band) && FULL_BAND_ROLES.includes(role);
+
   // ── Earn panel ───────────────────────────────────────────────────────────
   // WHY: this used to be a category rail, but the category chips under the feed tabs already list
   // the same names. Showing how a Shop Partner earns tells a shopper the platform is also a way to earn.
-  const isSaler = role === 'saler';
-  const salerPath = isSaler ? '/saler' : isAuthenticated ? '/account/become-saler' : '/auth/register';
+  // WHY no Shop Partner branch: a Shop Partner has a band of their own, so this panel only reaches guests
+  // and roles without a band. A signed-in role without one is a customer-like account, hence become-saler.
+  const salerPath = isAuthenticated ? '/account/become-saler' : '/auth/register';
   const earn = el('aside', 'home-top__earn');
   earn.setAttribute('aria-label', t('marketplace.top.earn_label'));
   earn.append(
@@ -93,9 +97,7 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   const steps = el('ol', 'home-top__earn-steps');
   for (const key of EARN_STEPS) steps.append(el('li', 'home-top__earn-step', t(key)));
   earn.append(steps);
-  if (!CONSOLE_HOME[role]) {
-    earn.append(link('home-top__earn-cta', t(isSaler ? 'marketplace.top.open_store' : 'marketplace.top.earn_cta'), salerPath, onNavigate));
-  }
+  earn.append(link('home-top__earn-cta', t('marketplace.top.earn_cta'), salerPath, onNavigate));
 
   // ── Slider ───────────────────────────────────────────────────────────────
   const slider = el('div', 'home-top__slider');
@@ -152,7 +154,8 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   slider.addEventListener('focusout', restart);
   cleanups.push(stop);
   show(0);
-  restart();
+  // WHY: the slider is not mounted for the role bands, so its rotation timer must not run for them.
+  if (!fullBand) restart();
 
   // ── Side cards ───────────────────────────────────────────────────────────
   const side = el('div', 'home-top__side');
@@ -161,19 +164,17 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   // must be the flexible part; with the card below, taller Bangla tile labels overflowed and covered it.
   // No sign-in card for guests. The topbar already has Sign In / Sign Up, and the card only
   // made the band taller. Signed-in users keep a card that points at their orders or console.
-  if (isAuthenticated) {
+  if (isAuthenticated && !fullBand) {
     const second = el('div', 'home-top__card home-top__card--info');
-    const home = CONSOLE_HOME[role];
-    const path = home || (role === 'saler' ? '/saler/orders' : '/account/orders');
     second.append(
-      el('h2', 'home-top__card-title', t(home ? 'marketplace.top.console_title' : 'marketplace.top.orders_title')),
-      el('p', 'home-top__card-sub', t(home ? 'marketplace.top.console_sub' : 'marketplace.top.orders_sub')),
-      link('home-top__card-link', t(home ? 'marketplace.top.q_dashboard' : 'marketplace.top.orders_cta') + ' ›', path, onNavigate),
+      el('h2', 'home-top__card-title', t('marketplace.top.orders_title')),
+      el('p', 'home-top__card-sub', t('marketplace.top.orders_sub')),
+      link('home-top__card-link', t('marketplace.top.orders_cta') + ' ›', '/account/orders', onNavigate),
     );
     side.append(second);
   }
 
-  if (!CONSOLE_HOME[role]) {
+  if (!fullBand) {
     const tiles = el('nav', 'home-top__tiles');
     tiles.setAttribute('aria-label', t('marketplace.top.tiles_title'));
     const grid = el('div', 'home-top__tile-grid');
@@ -196,12 +197,24 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
     side.append(tiles);
   }
 
-  const main = el('div', 'home-top__main');
-  main.append(earn, slider, side);
+  const main = el('div', `home-top__main${fullBand ? ' home-top__main--band' : ''}${band && !fullBand ? ' home-top__main--for-you' : ''}`);
+  if (fullBand) {
+    main.append(...['left', 'center', 'right'].map((position) => band.panels[position]));
+  } else {
+    main.append(band ? band.panels.left : earn, slider, side);
+  }
   root.append(main);
 
+  if (band) {
+    let alive = true;
+    cleanups.push(() => { alive = false; });
+    getHomeSummary()
+      .then((summary) => { if (alive) band.fill(summary?.stats ?? null); })
+      .catch(() => { if (alive) band.fill(null); });
+  }
+
   // ── Welcome back strip (signed in only) ──────────────────────────────────
-  if (isAuthenticated) {
+  if (isAuthenticated && !fullBand) {
     const links = QUICK_LINKS[role];
     if (links) {
       const strip = el('div', 'home-top__welcome');
