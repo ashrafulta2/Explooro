@@ -4,7 +4,7 @@
 
 import * as controller from '../controllers/supplier.controller.js';
 import * as sampleKit from '../controllers/sampleKit.controller.js';
-import * as fastPayout from '../controllers/fastPayout.controller.js';
+import * as fastPayout from '../controllers/fastPayout.controller.ts';
 import * as returnProtection from '../controllers/returnProtection.controller.js';
 import { requirePermission } from '../middlewares/requirePermission.js';
 import { AppError } from '../plugins/errorHandler.js';

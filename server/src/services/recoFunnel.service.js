@@ -15,7 +15,7 @@
  *     an A/B test can, and none exists.
  */
 
-import * as funnelRepo from '../repositories/recoFunnel.repository.js';
+import * as funnelRepo from '../repositories/recoFunnel.repository.ts';
 
 export const FUNNEL_LIMITS = Object.freeze({
   days: { min: 1, max: 90, fallback: 7 },

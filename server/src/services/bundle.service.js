@@ -15,7 +15,7 @@
 
 import { AppError } from '../plugins/errorHandler.js';
 import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.ts';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 
 /**
  * Calculates deterministic pricing and profit breakdown for a multi-product bundle.

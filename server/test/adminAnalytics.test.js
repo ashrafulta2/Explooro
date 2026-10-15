@@ -16,8 +16,8 @@ import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import adminAnalyticsRoutes from '../src/routes/adminAnalytics.routes.js';
 import * as analyticsService from '../src/services/analytics.service.js';
-import { createRequestMetrics } from '../src/lib/requestMetrics.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import { createRequestMetrics } from '../src/lib/requestMetrics.ts';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   const db = {

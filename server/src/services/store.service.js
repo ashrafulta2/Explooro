@@ -3,9 +3,9 @@
  */
 
 import * as storeRepo from '../repositories/store.repository.js';
-import { isReservedStoreSlug } from '../config/reservedSlugs.js';
+import { isReservedStoreSlug } from '../config/reservedSlugs.ts';
 import { AppError } from '../plugins/errorHandler.js';
-import { withAvailableStock } from './teamStockReservation.service.js';
+import { withAvailableStock } from './teamStockReservation.service.ts';
 
 export const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

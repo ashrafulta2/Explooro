@@ -3,7 +3,7 @@
  */
 
 import { createSmsSender } from '../../integrations/sms/index.js';
-import * as mockDriver from '../../integrations/sms/mock.js';
+import * as mockDriver from '../../integrations/sms/mock.ts';
 import { loadEnv } from '../../config/env.js';
 
 let cachedSender = null;

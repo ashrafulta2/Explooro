@@ -12,7 +12,7 @@
  * group_buying module when it starts (teamPurchase.service.ts).
  */
 
-import * as settingRepo from '../repositories/setting.repository.js';
+import * as settingRepo from '../repositories/setting.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 export const SETTINGS_GROUP = 'delivery';

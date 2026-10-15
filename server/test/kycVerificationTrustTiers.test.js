@@ -13,7 +13,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import kycRoutes from '../src/routes/kyc.routes.js';
 import * as kycService from '../src/services/kyc.service.js';

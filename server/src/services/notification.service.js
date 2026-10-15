@@ -9,11 +9,11 @@
  * 5. What's New release announcements tracker.
  */
 
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { sendInApp } from './notification-channels/inapp.js';
 import { sendSms } from './notification-channels/sms.js';
-import { sendPush } from './notification-channels/push.js';
-import { sendEmail } from './notification-channels/email.js';
+import { sendPush } from './notification-channels/push.ts';
+import { sendEmail } from './notification-channels/email.ts';
 
 export const DEFAULT_TEMPLATES = {
   OTP_VERIFICATION: {

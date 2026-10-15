@@ -10,7 +10,7 @@
 
 import { randomBytes, createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.js';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 
 /**
  * Computes SHA-256 hash of a raw API key token.

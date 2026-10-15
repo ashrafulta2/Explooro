@@ -3,7 +3,7 @@
  */
 
 import { buildBlendedRank } from './recommendation.repository.js';
-import { reservedUnitsSql } from '../services/teamStockReservation.service.js';
+import { reservedUnitsSql } from '../services/teamStockReservation.service.ts';
 
 export async function insertProduct(
   db,

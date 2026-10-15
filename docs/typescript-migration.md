@@ -40,6 +40,12 @@ places in comments and docs that still name the old files.
      filled later. Annotate it (`body: Record<string, any> = {}`, `const out: Record<string, number> = {}`).
    - `Expected 3 arguments, but got 2`: in a .ts file a parameter without a default is required.
      Mark it optional (`details?: unknown`).
+   - `Property 'x' does not exist on type 'SomeClass'`: a TypeScript class declares its fields before
+     the constructor assigns them. Add `name: string;` lines at the top of the class body.
+   - `Property 'x' does not exist on type '{ limit?: number }'`: a destructured parameter
+     `{ x, limit = 50 } = {}` where `x` has no default. Write its type out in full.
+   - `Property 'x' does not exist on type 'unknown'`: an untyped `res.json()` or `new AsyncLocalStorage()`.
+     Give it a type (`Promise<any>`, `AsyncLocalStorage<Record<string, any>>`).
    - `Property 'x' does not exist on type '{...}'. Did you mean 'y'?` on a value from another module:
      read it before silencing it. In step 3 this was a real bug (below).
 4. Change every import of the file from `x.js` to `x.ts`, in `src/` **and** `test/`. Also fix
@@ -52,7 +58,11 @@ places in comments and docs that still name the old files.
    - `npm test`: client and server all pass. `server/test/tsMigration.test.js` fails on any import
      that still points at a `.js` file which is now `.ts`. `tsc` does **not** catch this, because
      NodeNext resolution quietly maps `x.js` to `x.ts`, but Node at runtime does not.
-   - The app module graph loads: `buildApp()` then `GET /api/v1/health` returns 200.
+   - The app module graph loads: `buildApp()` then `GET /api/v1/health` returns 200. From step 4 the
+     real entry point is started too (`PORT=5099 node src/index.js`, then the same health check),
+     because `index.js` itself imports moved files.
+   - Scripts outside `server/` that import server code (`scripts/generate-dev-user-seed.mjs` imports
+     `lib/password.ts`) are not rewritten by `ts-migrate.mjs`; grep the root `scripts/` folder.
    - `npm run check:sql`, when a migrated database is available (it scans `.ts` files too).
 
 Order: leaf modules first (pure helpers, then services, then repositories), so that each step only
@@ -66,7 +76,9 @@ because their JSDoc types already pass.
 | 1 | 2026-10-15 | `services/subscriptionRebate.ts`, `services/salerTierBonus.ts` (pilot, plus the setup above) | typecheck 0 errors; client 871/871, server 1451/1451; app loads, health 200 |
 | 2 | 2026-10-15 | 19 `// @ts-check` files with no JSDoc: repositories `cart`, `coupon`, `fastPayout`, `returnProtection`, `trustScore`, `volumeIncentive`; services `checkout`, `codReconciliation`, `coin`, `leaderboard`, `order`, `quest`, `referralAdmin`, `return`, `returnProtection`, `subscription`, `teamPurchase`, `trustTier`, `warranty` | typecheck 0 errors (17 annotations added); client 871/871, server 1451/1451; app loads, health 200; every job module imports |
 | 3 | 2026-10-15 | The last 24 `// @ts-check` files, the money core: `ledger`, `vault`, `pricing`, `payment`, `payout`, `clawback`, `escrowAdmin`, `fastPayout`, `referral`, `referralEscrow`, `b2bEscrow`, `coupon`, `codGate`, `deliveryCharge`, `sampleKit`, `subscriptionBilling`, `surgePricing`, `volumeIncentive`, `salerTier`, `adPricing` services; `order`, `payment`, `wallet` repositories; `escrowRelease` job | typecheck 0 errors; client 871/871, server 1451/1451; app loads, health 200; every job module imports; build within budget. **Bug found:** `b2bEscrow.service` read `ledgerTxn.txn_group_id`, but the ledger returns `txnGroupId`, so a milestone release, refund or cancellation recorded no transaction group in its response or its audit row. Fixed; `b2bEscrowMilestones.test.js` now fails on the old code |
+| 4 | 2026-10-15 | 41 leaf files (they import no other `.js` file), all checked for the first time: `lib/` (`password`, `ref`, `jwt`, `encryption`, `requestMetrics`), `config/` (`loadEnvFile`, `db`, `staffRoles`, `reservedSlugs`, both cache drivers), `plugins/` (`rawBody`, `requestContext`), the SMS, email, WhatsApp and storage drivers, `webhookSecurity`, the Meilisearch driver, 11 repositories, `teamStockReservation` and `totp` services, the `fastPayout`, `order`, `gamification` and `referral` controllers, `db/migrationChecksum`, two notification channels | typecheck 0 errors (class field declarations and 12 annotations added); client 871/871, server 1451/1451; `buildApp` health 200 **and** the real `node src/index.js` health 200; every job and db entry imports; build within budget |
 
-Remaining: 310 `.js` files under `server/src` (migrations and seeds excluded); 45 are `.ts`. None has
-`// @ts-check` any more, so from here each file is checked for the first time when it moves, and may
-turn up more errors per file than steps 2 and 3 did. Next: the files those 45 import, leaf modules first.
+Remaining: 269 `.js` files under `server/src` (migrations and seeds excluded); 86 are `.ts`. Each file
+is checked for the first time when it moves. Next: the 51 files that now import no other `.js` file (`config/env.js`,
+`plugins/errorHandler.js`, the bigger repositories, `sockets/presence.js`, ...); each step turns more
+files into leaves.

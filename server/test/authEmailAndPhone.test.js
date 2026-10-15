@@ -8,7 +8,7 @@ import { buildApp } from '../src/app.js';
 import * as authService from '../src/services/auth.service.js';
 import * as otpService from '../src/services/otp.service.js';
 import * as userRepo from '../src/repositories/user.repository.js';
-import { getSentEmails, clearSentEmails } from '../src/integrations/email/mock.js';
+import { getSentEmails, clearSentEmails } from '../src/integrations/email/mock.ts';
 
 // In-memory mock database implementation for testing
 class MockDb {

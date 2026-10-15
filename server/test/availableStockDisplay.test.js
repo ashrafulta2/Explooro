@@ -6,7 +6,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { withAvailableStock, reservedUnitsSql } from '../src/services/teamStockReservation.service.js';
+import { withAvailableStock, reservedUnitsSql } from '../src/services/teamStockReservation.service.ts';
 import { executeSearch } from '../src/services/search.service.js';
 import { getPublicStore } from '../src/services/store.service.js';
 

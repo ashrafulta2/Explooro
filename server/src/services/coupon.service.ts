@@ -9,7 +9,7 @@
  * 5. Concurrency safety guaranteeing a budget cap is never exceeded.
  */
 
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
 import * as couponRepo from '../repositories/coupon.repository.ts';

@@ -7,8 +7,8 @@
 
 import fp from 'fastify-plugin';
 import { isEnabled } from '../services/module.service.js';
-import * as repo from '../repositories/module.repository.js';
-import { getRequestContext } from '../plugins/requestContext.js';
+import * as repo from '../repositories/module.repository.ts';
+import { getRequestContext } from '../plugins/requestContext.ts';
 
 export function createRequireModuleMiddleware(app) {
   return function requireModule(moduleKey) {

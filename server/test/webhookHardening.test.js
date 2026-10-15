@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import Fastify from 'fastify';
 
 import { loadEnv, parseTrustProxy } from '../src/config/env.js';
-import { addRawJsonBody } from '../src/plugins/rawBody.js';
+import { addRawJsonBody } from '../src/plugins/rawBody.ts';
 import { BkashPaymentDriver } from '../src/integrations/payments/bkash.js';
 import { NagadPaymentDriver } from '../src/integrations/payments/nagad.js';
 import { SslcommerzPaymentDriver } from '../src/integrations/payments/sslcommerz.js';

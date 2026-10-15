@@ -16,7 +16,7 @@
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import themeRoutes from '../src/routes/theme.routes.js';
 import * as themeService from '../src/services/theme.service.js';

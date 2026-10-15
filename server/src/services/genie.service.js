@@ -9,7 +9,7 @@
  * every cold page load.
  */
 
-import * as settingRepo from '../repositories/setting.repository.js';
+import * as settingRepo from '../repositories/setting.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 export const SETTINGS_GROUP = 'genie';

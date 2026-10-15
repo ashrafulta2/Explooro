@@ -3,11 +3,11 @@
  */
 
 import * as webhookController from '../controllers/whatsappWebhook.controller.js';
-import { addRawJsonBody } from '../plugins/rawBody.js';
+import { addRawJsonBody } from '../plugins/rawBody.ts';
 import * as inboxController from '../controllers/salerInbox.controller.js';
 
 export default async function whatsappRoutes(app) {
-  // WHY: the HMAC must cover the exact bytes Meta sent (see plugins/rawBody.js).
+  // WHY: the HMAC must cover the exact bytes Meta sent (see plugins/rawBody.ts).
   addRawJsonBody(app);
 
   // 1. Meta Webhook Verification Challenge

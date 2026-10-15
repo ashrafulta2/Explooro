@@ -11,7 +11,7 @@
  * 6. Maker-checker discrepancy resolution workflow with complete audit logging
  */
 
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.js';
 import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
 

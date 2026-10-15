@@ -20,7 +20,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import * as repo from '../repositories/supplierScorecard.repository.js';
+import * as repo from '../repositories/supplierScorecard.repository.ts';
 
 export const PLACEMENT = 'SOURCING_CATALOG';
 

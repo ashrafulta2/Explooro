@@ -9,10 +9,10 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 import { createWhatsAppSender } from '../integrations/whatsapp/index.js';
 import { sendToUser } from '../sockets/presence.js';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 // In-memory checkout tokens map: token -> { salerId, productId, variantId, quantity, customerPhone, expiresAt, used }

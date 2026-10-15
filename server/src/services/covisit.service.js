@@ -3,16 +3,16 @@
  *
  * Owns the co-visitation policy (the recommendation.covisit setting, sanitised per field) and the
  * rebuild that turns the behavioural event log into the product_covisits aggregate. The SQL of the
- * rebuild lives in repositories/covisit.repository.js; the SQL that READS the aggregate while ranking
+ * rebuild lives in repositories/covisit.repository.ts; the SQL that READS the aggregate while ranking
  * lives with the rest of the blended score in repositories/recommendation.repository.js.
  *
  * Organic only, and aggregate only: the table keeps product pairs and an actor COUNT, never who the
  * actors were, and a pair needs `min_actors` distinct actors (never fewer than 2) to exist.
  */
 
-import { withTransaction } from '../config/db.js';
-import * as settingRepo from '../repositories/setting.repository.js';
-import * as covisitRepo from '../repositories/covisit.repository.js';
+import { withTransaction } from '../config/db.ts';
+import * as settingRepo from '../repositories/setting.repository.ts';
+import * as covisitRepo from '../repositories/covisit.repository.ts';
 
 export const SETTINGS_GROUP = 'recommendation';
 export const COVISIT_KEY = 'recommendation.covisit';

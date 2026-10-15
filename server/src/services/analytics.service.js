@@ -810,7 +810,7 @@ export async function getSystemHealth(db, cache = null, { metrics = null, config
     memory_used_bytes: cacheStats?.memory_used_bytes ?? null,
   };
 
-  // 5. API vitals from the requests this process actually served (see lib/requestMetrics.js).
+  // 5. API vitals from the requests this process actually served (see lib/requestMetrics.ts).
   const m = metrics ? metrics.snapshot() : { sample_size: 0, p50_ms: null, p95_ms: null, p99_ms: null, error_rate_pct: null };
   const uptimeSeconds = Math.floor(process.uptime());
   const apiVitals = {

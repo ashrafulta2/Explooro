@@ -174,7 +174,7 @@ export function loadEnv(source = process.env) {
     }
   }
 
-  // Shape rule: PII_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256), or lib/encryption.js
+  // Shape rule: PII_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256), or lib/encryption.ts
   // fails confusingly on first use rather than at boot.
   if (grouped.auth?.PII_ENCRYPTION_KEY) {
     const decodedLength = Buffer.from(grouped.auth.PII_ENCRYPTION_KEY, 'base64').length;

@@ -8,7 +8,7 @@
  * 4. Atomic reward claiming with double-entry coin crediting.
  */
 
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import * as coinService from './coin.service.ts';
 

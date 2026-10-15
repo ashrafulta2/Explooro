@@ -14,12 +14,12 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as trustRepo from '../repositories/trustScore.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
-import * as moduleRepo from '../repositories/module.repository.js';
+import * as moduleRepo from '../repositories/module.repository.ts';
 import { writeAudit } from '../lib/audit.js';
 
 /**

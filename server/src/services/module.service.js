@@ -3,7 +3,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import * as repo from '../repositories/module.repository.js';
+import * as repo from '../repositories/module.repository.ts';
 import * as auditService from './audit.service.js';
 
 const TARGET_TYPE_PRIORITIES = {

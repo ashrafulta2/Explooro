@@ -11,12 +11,12 @@
  *  2. Changing the email drops `is_email_verified`. Otherwise anyone could inherit a verified
  *     badge for an address they have never proven they control.
  *  3. `date_of_birth` is a 🔐 column (docs/erd.md §0.6) — stored as AES-256-GCM ciphertext through
- *     lib/encryption.js, decrypted only on read for its own owner.
+ *     lib/encryption.ts, decrypted only on read for its own owner.
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { withTransaction } from '../config/db.js';
-import { encryptField, decryptField } from '../lib/encryption.js';
+import { withTransaction } from '../config/db.ts';
+import { encryptField, decryptField } from '../lib/encryption.ts';
 import { getStorageDriver } from '../integrations/storage/index.js';
 import * as userRepo from '../repositories/user.repository.js';
 import * as auditService from './audit.service.js';

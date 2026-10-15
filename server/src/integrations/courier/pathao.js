@@ -2,7 +2,7 @@
  * pathao.js — Pathao Courier 3PL Adapter (Prompt 7.1).
  */
 
-import { isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.js';
+import { isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.ts';
 
 export class PathaoCourierAdapter {
   constructor(config = {}) {

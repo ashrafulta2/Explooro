@@ -4,8 +4,8 @@
  * Defaults to `mock` driver in development and testing.
  */
 
-import * as mockDriver from './mock.js';
-import { createCloudApiClient } from './cloud-api.js';
+import * as mockDriver from './mock.ts';
+import { createCloudApiClient } from './cloud-api.ts';
 
 export function createWhatsAppSender(config = {}) {
   const driver = config.whatsapp?.driver || process.env.WHATSAPP_DRIVER || 'mock';

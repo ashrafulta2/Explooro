@@ -12,7 +12,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { getReferralSettings } from './referral.service.ts';
 import { updateModuleSettings } from './module.service.js';
 import { settleReferralEarnings } from './referralEscrow.service.ts';

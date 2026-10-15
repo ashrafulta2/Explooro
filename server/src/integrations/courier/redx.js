@@ -2,7 +2,7 @@
  * redx.js — RedX Delivery 3PL Adapter (Prompt 7.1).
  */
 
-import { isLive, safeEqual } from '../webhookSecurity.js';
+import { isLive, safeEqual } from '../webhookSecurity.ts';
 
 export class RedxCourierAdapter {
   constructor(config = {}) {

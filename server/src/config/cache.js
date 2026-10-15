@@ -6,8 +6,8 @@
  * driver file directly. Swapping CACHE_DRIVER is then a zero-code-change operation.
  */
 
-import { createMemoryCache } from './cache-drivers/memory.js';
-import { createRedisCache } from './cache-drivers/redis.js';
+import { createMemoryCache } from './cache-drivers/memory.ts';
+import { createRedisCache } from './cache-drivers/redis.ts';
 
 export async function createCache(config, logger = console) {
   const info = (logger.info ?? logger.log ?? console.log).bind(logger);

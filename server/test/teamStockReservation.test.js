@@ -9,7 +9,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as reservation from '../src/services/teamStockReservation.service.js';
+import * as reservation from '../src/services/teamStockReservation.service.ts';
 import * as teamPurchaseService from '../src/services/teamPurchase.service.ts';
 
 const mockCache = { get: async () => null, set: async () => {} };

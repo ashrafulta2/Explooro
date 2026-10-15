@@ -16,7 +16,7 @@
  * calling, not *what* they may do.
  */
 
-import { verifyAccessToken } from '../lib/jwt.js';
+import { verifyAccessToken } from '../lib/jwt.ts';
 import { getSessionWithIdentity } from '../repositories/user.repository.js';
 import { AppError } from '../plugins/errorHandler.js';
 

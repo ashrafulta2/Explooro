@@ -2,7 +2,7 @@
  * staff.repository.js — SQL for the Staff Management admin surface (Prompt 3.3).
  *
  * "Staff" is not a table. It is a users row that holds a role at or above STAFF_MIN_ROLE_LEVEL
- * (config/staffRoles.js), so every read here goes through one CTE — ROSTER_CTE — and every caller
+ * (config/staffRoles.ts), so every read here goes through one CTE — ROSTER_CTE — and every caller
  * sees the same derived columns. Money never appears; nothing here is a balance mutation.
  *
  * Derived status (the API's vocabulary is ACTIVE | INVITED | SUSPENDED, the table's is not):

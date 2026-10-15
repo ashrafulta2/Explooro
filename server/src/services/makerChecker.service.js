@@ -12,7 +12,7 @@
 
 import * as permRepo from '../repositories/permission.repository.js';
 import * as rbacService from './rbac.service.js';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.js';
 

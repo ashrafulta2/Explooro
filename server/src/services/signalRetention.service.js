@@ -12,7 +12,7 @@
  * rather than overriding either number - they are two owners' settings, and the right fix is theirs.
  */
 
-import * as signalRepo from '../repositories/signalRetention.repository.js';
+import * as signalRepo from '../repositories/signalRetention.repository.ts';
 import { resolveCovisitConfig } from './covisit.service.js';
 
 export const MODULE_KEY = 'personalization_signals';

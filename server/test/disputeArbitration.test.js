@@ -17,7 +17,7 @@ import Fastify from 'fastify';
 
 import * as disputeService from '../src/services/dispute.service.js';
 import disputeRoutes from '../src/routes/dispute.routes.js';
-import requestContextPlugin from '../src/plugins/requestContext.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 
 function createMockDb() {

@@ -2,7 +2,7 @@
  * order.routes.js — Fastify routes for Checkout and Orders (Prompt 5.2).
  */
 
-import * as orderCtrl from '../controllers/order.controller.js';
+import * as orderCtrl from '../controllers/order.controller.ts';
 import { requirePermission } from '../middlewares/requirePermission.js';
 import { requireRestriction } from '../middlewares/requireRestriction.js';
 

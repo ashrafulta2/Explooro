@@ -11,13 +11,13 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 import { createPaymentGateway } from '../integrations/payments/index.js';
 import * as paymentRepo from '../repositories/payment.repository.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
 import * as auditService from './audit.service.js';
 import * as vaultService from './vault.service.ts';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 
 /**
  * Mask account or card numbers.

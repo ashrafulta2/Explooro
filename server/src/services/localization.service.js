@@ -16,7 +16,7 @@
  * transaction, and audited with before/after JSON.
  */
 
-import * as settingRepo from '../repositories/setting.repository.js';
+import * as settingRepo from '../repositories/setting.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 /**

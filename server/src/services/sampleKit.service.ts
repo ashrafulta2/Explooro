@@ -27,7 +27,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
@@ -35,7 +35,7 @@ import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as notificationService from './notification.service.js';
 import * as repo from '../repositories/sampleKit.repository.js';
-import * as scorecardRepo from '../repositories/supplierScorecard.repository.js';
+import * as scorecardRepo from '../repositories/supplierScorecard.repository.ts';
 
 const GRADES = ['A', 'B', 'C', 'D'];
 

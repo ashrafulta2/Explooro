@@ -16,10 +16,10 @@
  */
 
 import { randomBytes, randomUUID } from 'node:crypto';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import * as codGateService from './codGate.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 import { findDistrict } from '../lib/bdDistricts.js';
 import * as orderRepo from '../repositories/order.repository.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
@@ -27,7 +27,7 @@ import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
 import { isEnabled, updateModuleSettings } from './module.service.js';
 import { calculatePricingBreakdown } from './pricing.service.ts';
-import { getReservedForProduct } from './teamStockReservation.service.js';
+import { getReservedForProduct } from './teamStockReservation.service.ts';
 
 export const TEAM_SIZES = Object.freeze([2, 3]);
 export const PAYMENT_METHODS = Object.freeze(['COD', 'WALLET']);

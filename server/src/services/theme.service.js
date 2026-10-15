@@ -2,7 +2,7 @@
  * theme.service.js — Theme Studio service, contrast verification & critical publishing (Prompt 3.5).
  */
 
-import * as themeRepo from '../repositories/theme.repository.js';
+import * as themeRepo from '../repositories/theme.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import {
   generatePalette,

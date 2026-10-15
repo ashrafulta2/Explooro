@@ -6,13 +6,13 @@ import * as productRepo from '../repositories/product.repository.js';
 import { calculatePricingBreakdown, loadSplitRules, resolveSplitPercentages, toPaisa } from './pricing.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.js';
 import * as recoCache from './recoCache.service.js';
 import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.js';
 import { runAuction as runAdAuction } from './ads.service.js';
 import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.js';
-import { getReservedForProduct, withAvailableStock } from './teamStockReservation.service.js';
+import { getReservedForProduct, withAvailableStock } from './teamStockReservation.service.ts';
 
 /**
  * WHY it swallows errors: the scorecard is decoration on the catalog, not the catalog. A missing

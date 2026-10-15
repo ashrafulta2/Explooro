@@ -19,7 +19,7 @@ import * as walletRepo from '../src/repositories/wallet.repository.ts';
 import * as vaultService from '../src/services/vault.service.ts';
 import * as codService from '../src/services/codReconciliation.service.ts';
 import financeRoutes from '../src/routes/finance.routes.js';
-import requestContextPlugin from '../src/plugins/requestContext.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 
 function createMockDb() {

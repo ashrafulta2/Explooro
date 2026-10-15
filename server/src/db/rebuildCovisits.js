@@ -7,9 +7,9 @@
  * bulk import of events, or when checking a tuning change.
  */
 
-import '../config/loadEnvFile.js';
+import '../config/loadEnvFile.ts';
 import { loadEnv } from '../config/env.js';
-import { createDbPool } from '../config/db.js';
+import { createDbPool } from '../config/db.ts';
 import { rebuildCovisits, resolveCovisitConfig } from '../services/covisit.service.js';
 
 const pool = createDbPool(loadEnv());

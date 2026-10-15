@@ -3,7 +3,7 @@
  */
 
 import * as mediaService from '../services/media.service.js';
-import * as mediaRepo from '../repositories/media.repository.js';
+import * as mediaRepo from '../repositories/media.repository.ts';
 import { getStorageDriver } from '../integrations/storage/index.js';
 
 export async function requestUpload(req, reply) {

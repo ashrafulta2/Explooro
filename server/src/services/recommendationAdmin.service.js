@@ -15,7 +15,7 @@
  * One section per call, one transaction, one audit row carrying that section's before/after.
  */
 
-import * as settingRepo from '../repositories/setting.repository.js';
+import * as settingRepo from '../repositories/setting.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import * as recommendation from './recommendation.service.js';
 import * as homeRails from './homeRails.service.js';

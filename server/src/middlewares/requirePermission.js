@@ -20,7 +20,7 @@
 
 import * as rbacService from '../services/rbac.service.js';
 import * as permRepo from '../repositories/permission.repository.js';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { restrictingScopes, scopeAllows } from '../lib/grantScope.js';

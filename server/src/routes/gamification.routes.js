@@ -2,7 +2,7 @@
  * gamification.routes.js — Fastify route declarations for Gamification Subsystem 13.0 (Prompt 9.4).
  */
 
-import * as gamificationController from '../controllers/gamification.controller.js';
+import * as gamificationController from '../controllers/gamification.controller.ts';
 
 export default async function gamificationRoutes(app) {
   const requireCoinsModule = app.requireModule('loyalty_coins');

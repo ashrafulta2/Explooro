@@ -8,7 +8,7 @@
  */
 
 import { randomBytes, createHash } from 'node:crypto';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 

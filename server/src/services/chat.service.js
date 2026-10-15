@@ -10,7 +10,7 @@
  * 6. Report-to-moderation integration.
  */
 
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { isUserOnline, sendToUser } from '../sockets/presence.js';
 import { writeAudit } from '../lib/audit.js';
 

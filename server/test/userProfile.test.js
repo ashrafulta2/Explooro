@@ -17,9 +17,9 @@ import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import meRoutes from '../src/routes/me.routes.js';
 import * as profileService from '../src/services/profile.service.js';
 import * as userRepo from '../src/repositories/user.repository.js';
-import { decryptField } from '../src/lib/encryption.js';
+import { decryptField } from '../src/lib/encryption.ts';
 
-// 32 zero bytes, base64 — a valid AES-256 key shape for lib/encryption.js.
+// 32 zero bytes, base64 — a valid AES-256 key shape for lib/encryption.ts.
 const TEST_CONFIG = { auth: { piiEncryptionKey: Buffer.alloc(32).toString('base64') } };
 
 const USER_ID = 42;

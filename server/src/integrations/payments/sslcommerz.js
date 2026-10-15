@@ -10,7 +10,7 @@
  */
 
 import { createHmac, createHash, randomBytes } from 'node:crypto';
-import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.js';
+import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.ts';
 
 export class SslcommerzPaymentDriver {
   constructor(config = {}) {

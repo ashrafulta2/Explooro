@@ -14,10 +14,10 @@ import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 
 import { loadEnv } from './config/env.js';
-import { createDbPool } from './config/db.js';
+import { createDbPool } from './config/db.ts';
 import { createCache } from './config/cache.js';
-import requestContextPlugin from './plugins/requestContext.js';
-import requestMetricsPlugin from './lib/requestMetrics.js';
+import requestContextPlugin from './plugins/requestContext.ts';
+import requestMetricsPlugin from './lib/requestMetrics.ts';
 import errorHandlerPlugin, { AppError } from './plugins/errorHandler.js';
 import authenticatePlugin from './middlewares/authenticate.js';
 import requirePermissionPlugin from './middlewares/requirePermission.js';

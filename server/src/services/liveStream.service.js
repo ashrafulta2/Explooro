@@ -11,14 +11,14 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 import { perParcelCharge } from './deliveryCharge.service.ts';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
 import { enforceCodGate } from './codGate.service.ts';
 import { validateCoupon } from './coupon.service.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
-import { getReservedForProduct } from './teamStockReservation.service.js';
+import { getReservedForProduct } from './teamStockReservation.service.ts';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.ts';
 import * as liveRepo from '../repositories/liveStream.repository.js';
 import { streaming } from '../integrations/streaming/index.js';

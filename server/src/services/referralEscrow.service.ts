@@ -14,7 +14,7 @@
  * admins or the job racing an admin settles an earning exactly once.
  */
 
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import * as ledgerService from './ledger.service.ts';
 import { resolvePlatformWalletId } from './vault.service.ts';

@@ -2,12 +2,12 @@
  * payment.routes.js — Fastify Routes for Payments, Callbacks & Webhooks (Prompt 5.3).
  */
 
-import { addRawJsonBody } from '../plugins/rawBody.js';
+import { addRawJsonBody } from '../plugins/rawBody.ts';
 import * as paymentCtrl from '../controllers/payment.controller.js';
 import * as webhookCtrl from '../controllers/paymentWebhook.controller.js';
 
 export default async function paymentRoutes(fastify) {
-  // WHY: gateway webhook signatures cover the raw bytes (see plugins/rawBody.js).
+  // WHY: gateway webhook signatures cover the raw bytes (see plugins/rawBody.ts).
   addRawJsonBody(fastify);
 
   // 1. Payment Initiation (Authenticated customer)

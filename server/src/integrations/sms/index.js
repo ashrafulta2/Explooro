@@ -6,8 +6,8 @@
  * operation.
  */
 
-import * as mockDriver from './mock.js';
-import * as greenwebDriver from './greenweb.js';
+import * as mockDriver from './mock.ts';
+import * as greenwebDriver from './greenweb.ts';
 
 export function createSmsSender(config) {
   if (config.sms.driver === 'greenweb') {

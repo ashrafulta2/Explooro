@@ -13,10 +13,10 @@
  *   - every write is audited with before/after.
  */
 
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
-import * as moduleRepo from '../repositories/module.repository.js';
+import * as moduleRepo from '../repositories/module.repository.ts';
 import { resolvePlatformPricingConfig } from './pricing.service.ts';
 
 export const MODULE_KEY = 'subscription_fees';

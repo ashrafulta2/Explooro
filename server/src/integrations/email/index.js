@@ -5,7 +5,7 @@
  * Switching EMAIL_DRIVER is a zero-code-change operation.
  */
 
-import * as mockDriver from './mock.js';
+import * as mockDriver from './mock.ts';
 
 export function createEmailSender(config) {
   // Can be extended with SMTP/SES/SendGrid when configured.

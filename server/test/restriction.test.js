@@ -24,7 +24,7 @@ import { requireRestriction } from '../src/middlewares/requireRestriction.js';
 import { requirePermission } from '../src/middlewares/requirePermission.js';
 import restrictionRoutes from '../src/routes/restriction.routes.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const ALL_ROLES = [
   { id: 1, key: 'super_admin', label_en: 'Super Admin', level: 100 },

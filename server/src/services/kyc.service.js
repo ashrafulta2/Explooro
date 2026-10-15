@@ -11,8 +11,8 @@
  */
 
 import { createHmac, createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
-import { withTransaction } from '../config/db.js';
-import * as moduleRepo from '../repositories/module.repository.js';
+import { withTransaction } from '../config/db.ts';
+import * as moduleRepo from '../repositories/module.repository.ts';
 import { writeAudit } from '../lib/audit.js';
 import { recomputeUserTier } from './trustTier.service.ts';
 

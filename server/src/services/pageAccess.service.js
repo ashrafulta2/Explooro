@@ -21,7 +21,7 @@
  * prefix map and is a separate piece of work.
  */
 
-import * as pageToggleRepo from '../repositories/pageToggle.repository.js';
+import * as pageToggleRepo from '../repositories/pageToggle.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 export const PAGE_STATES = Object.freeze(['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMITED']);

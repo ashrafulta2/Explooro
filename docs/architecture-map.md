@@ -161,8 +161,8 @@ The 35 most likely change requests, with exact paths.
 | I want to… | Change |
 | :--- | :--- |
 | Add a permission | `docs/permission-catalog.json` → re-run seed. **Never invent a key in code** |
-| Change the default language | `/admin/platform/language` → the `localization` group in `platform_settings`. Code path: `routes/localization.routes.js` → `controllers/localization.controller.js` → `services/localization.service.js` → `repositories/setting.repository.js`; the client reads it in `client/src/services/i18n.js` (`resolveInitialLocale`). `VITE_DEFAULT_LOCALE` is the pre-policy fallback only |
-| Change the popup genie effect (on/off, duration, smoothness) | `/admin/platform/genie` → the `genie` group in `platform_settings`. Code path: `routes/genie.routes.js` → `controllers/genie.controller.js` → `services/genie.service.js` → `repositories/setting.repository.js`; the client applies it in `client/src/services/genieSettings.js` → `configureGenie()` in `client/src/lib/genie.js` (the engine). The slicing/easing constants (`NECK`, `SWAY`, `MAX_FRAME_DT_MS`) are still named constants in `genie.js`, not settings |
+| Change the default language | `/admin/platform/language` → the `localization` group in `platform_settings`. Code path: `routes/localization.routes.js` → `controllers/localization.controller.js` → `services/localization.service.js` → `repositories/setting.repository.ts`; the client reads it in `client/src/services/i18n.js` (`resolveInitialLocale`). `VITE_DEFAULT_LOCALE` is the pre-policy fallback only |
+| Change the popup genie effect (on/off, duration, smoothness) | `/admin/platform/genie` → the `genie` group in `platform_settings`. Code path: `routes/genie.routes.js` → `controllers/genie.controller.js` → `services/genie.service.js` → `repositories/setting.repository.ts`; the client applies it in `client/src/services/genieSettings.js` → `configureGenie()` in `client/src/lib/genie.js` (the engine). The slicing/easing constants (`NECK`, `SWAY`, `MAX_FRAME_DT_MS`) are still named constants in `genie.js`, not settings |
 | Tune the personalized home feed (signal weights, windows, rails, diversity, "also viewed", cache) or read which surface converts | `/admin/platform/recommendations` → the `recommendation` group in `platform_settings` (one OBJECT row per tab). Code path: `routes/recommendationAdmin.routes.js` → `controllers/recommendationAdmin.controller.js` → `services/recommendationAdmin.service.js`, which validates strictly against the limits exported by `recommendation`, `homeRails`, `diversity`, `covisit` and `recoCache` services (change a bound THERE, never in the page). The page is `client/src/pages/admin/RecommendationSettingsPage.js`, drawn from the API's field descriptions; its pure helpers are `client/src/services/recoSettings.js`; the browser mock's copy of the fields is `client/src/mocks/handlers/recommendations.js` and `server/test/recommendationAdmin.test.js` fails if it drifts. Permissions `platform.recommendation.view` / `.update` |
 | Make an action require Admin approval | Change its `risk_tier` to `HIGH` in the catalog. Everything else is automatic |
 | Make an action Super-Admin-only | `risk_tier: "CRITICAL"`, `delegable: false`, `default_roles: ["super_admin"]` |
@@ -239,7 +239,7 @@ Vite proxy (dev) / nginx (prod)          vite.config.js  /  nginx/nginx.conf
    ▼
 Fastify                                   server/src/app.js
    │
-   ├─ plugins/requestContext.js   generate trace_id, capture ip + user agent
+   ├─ plugins/requestContext.ts   generate trace_id, capture ip + user agent
    ├─ plugins/security.js         helmet, CORS, rate limit
    ├─ middlewares/idempotency.js  claim the key (api-contract.md §5.2)
    ├─ middlewares/authenticate.js verify JWT → req.user
@@ -248,7 +248,7 @@ Fastify                                   server/src/app.js
    ├─ middlewares/requireRestriction is this user allowed?    → 403 USER_RESTRICTED
    ├─ route JSON schema           additionalProperties: false → 400 VALIDATION_FAILED
    ▼
-controllers/order.controller.js   parse → call service → shape response
+controllers/order.controller.ts   parse → call service → shape response
    ▼
 services/checkout.service.ts      ⭐ withTransaction: lock stock, split by supplier,
    │                                 price via pricing.service, allocate FEFO batch

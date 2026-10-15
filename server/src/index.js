@@ -1,4 +1,4 @@
-import './config/loadEnvFile.js';
+import './config/loadEnvFile.ts';
 import { buildApp } from './app.js';
 
 async function start() {

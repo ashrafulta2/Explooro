@@ -13,7 +13,7 @@
 import { createHash } from 'node:crypto';
 import * as auditRepo from '../repositories/audit.repository.js';
 import * as permRepo from '../repositories/permission.repository.js';
-import { getRequestContext } from '../plugins/requestContext.js';
+import { getRequestContext } from '../plugins/requestContext.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 /**

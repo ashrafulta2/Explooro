@@ -13,7 +13,7 @@
  * Scoring is a pure function (`scoreMetrics`) so the rule can be tested without a database.
  */
 
-import * as repo from '../repositories/supplierScorecard.repository.js';
+import * as repo from '../repositories/supplierScorecard.repository.ts';
 
 export const DEFAULT_RULES = Object.freeze({
   window_days: 90,

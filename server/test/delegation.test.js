@@ -20,7 +20,7 @@ import { resolvePermissions, hasPermission } from '../src/services/rbac.service.
 import { requirePermission } from '../src/middlewares/requirePermission.js';
 import delegationRoutes from '../src/routes/delegation.routes.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const SAMPLE_ROLES = [
   { id: 1, key: 'super_admin', label_en: 'Super Admin', level: 100 },

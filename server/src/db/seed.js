@@ -10,9 +10,9 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import '../config/loadEnvFile.js';
+import '../config/loadEnvFile.ts';
 import { loadEnv } from '../config/env.js';
-import { createDbPool, withTransaction } from '../config/db.js';
+import { createDbPool, withTransaction } from '../config/db.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SEEDS_DIR = path.join(__dirname, 'seeds');

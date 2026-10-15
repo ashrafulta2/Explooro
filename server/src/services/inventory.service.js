@@ -9,7 +9,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 
 /**
  * Retrieves the optimal batch for dispatch following strict FEFO (First-Expired, First-Out) rules.

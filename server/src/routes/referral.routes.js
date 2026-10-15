@@ -2,7 +2,7 @@
  * referral.routes.js — Fastify route declarations for Referral Growth Engine (Prompt 9.3).
  */
 
-import * as referralController from '../controllers/referral.controller.js';
+import * as referralController from '../controllers/referral.controller.ts';
 
 export default async function referralRoutes(app) {
   const requireReferralModule = app.requireModule('referral_engine');

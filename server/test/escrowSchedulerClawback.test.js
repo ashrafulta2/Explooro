@@ -27,7 +27,7 @@ import * as clawbackService from '../src/services/clawback.service.ts';
 import * as scheduler from '../src/jobs/scheduler.js';
 import { runEscrowReleaseSweep } from '../src/jobs/escrowRelease.job.ts';
 import financeRoutes from '../src/routes/finance.routes.js';
-import requestContextPlugin from '../src/plugins/requestContext.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);

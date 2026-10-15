@@ -4,7 +4,7 @@
 
 import sharp from 'sharp';
 import { getStorageDriver } from '../integrations/storage/index.js';
-import * as mediaRepo from '../repositories/media.repository.js';
+import * as mediaRepo from '../repositories/media.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 export const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024;    // 8 MB

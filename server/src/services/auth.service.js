@@ -8,10 +8,10 @@
  */
 
 import { randomUUID, randomBytes, createHash } from 'node:crypto';
-import { hashPassword, verifyPassword } from '../lib/password.js';
-import { signAccessToken } from '../lib/jwt.js';
-import { encryptField, decryptField } from '../lib/encryption.js';
-import { generateRef } from '../lib/ref.js';
+import { hashPassword, verifyPassword } from '../lib/password.ts';
+import { signAccessToken } from '../lib/jwt.ts';
+import { encryptField, decryptField } from '../lib/encryption.ts';
+import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { checkBucket } from '../lib/rateBucket.js';
@@ -22,7 +22,7 @@ import {
   buildOtpauthUri,
   verifyTotp,
   generateRecoveryCodes,
-} from './totp.service.js';
+} from './totp.service.ts';
 
 const TWO_FACTOR_CHALLENGE_TTL_S = 5 * 60;
 const STAFF_RISK_TIERS = ['MEDIUM', 'HIGH', 'CRITICAL'];

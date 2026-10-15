@@ -9,9 +9,9 @@
  * next developer) answers "is the Trending rail earning its place?".
  */
 
-import '../config/loadEnvFile.js';
+import '../config/loadEnvFile.ts';
 import { loadEnv } from '../config/env.js';
-import { createDbPool } from '../config/db.js';
+import { createDbPool } from '../config/db.ts';
 import { getFunnel } from '../services/recoFunnel.service.js';
 
 const arg = (name) => {

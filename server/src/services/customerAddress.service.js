@@ -10,7 +10,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import * as addressRepo from '../repositories/customerAddress.repository.js';
 
 export const MAX_ADDRESSES_PER_USER = addressRepo.MAX_ADDRESSES_PER_USER;

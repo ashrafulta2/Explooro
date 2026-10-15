@@ -10,7 +10,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { withTransaction } from '../config/db.js';
+import { withTransaction } from '../config/db.ts';
 import { getCourierAdapter } from '../integrations/courier/index.js';
 import * as vaultService from './vault.service.ts';
 import * as clawbackService from './clawback.service.ts';

@@ -12,12 +12,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import whatsappRoutes from '../src/routes/whatsapp.routes.js';
 import salerInboxRoutes from '../src/routes/salerInbox.routes.js';
 import * as waService from '../src/services/whatsappCommerce.service.js';
-import * as mockWaDriver from '../src/integrations/whatsapp/mock.js';
+import * as mockWaDriver from '../src/integrations/whatsapp/mock.ts';
 
 function createMockDb() {
   const users = [

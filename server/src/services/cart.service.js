@@ -14,7 +14,7 @@ import * as cartRepo from '../repositories/cart.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
-import { getReservedForProduct } from './teamStockReservation.service.js';
+import { getReservedForProduct } from './teamStockReservation.service.ts';
 
 export function generateGuestToken() {
   return `gst_${randomUUID().replace(/-/g, '')}`;

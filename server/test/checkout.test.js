@@ -13,13 +13,13 @@
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import orderRoutes from '../src/routes/order.routes.js';
 import { executeCheckout } from '../src/services/checkout.service.ts';
 import * as orderService from '../src/services/order.service.ts';
 import * as trustScoreService from '../src/services/trustScore.service.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

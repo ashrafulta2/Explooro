@@ -21,7 +21,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Fastify from 'fastify';
 
-import requestContextPlugin from '../src/plugins/requestContext.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import recommendationAdminRoutes from '../src/routes/recommendationAdmin.routes.js';
 import * as admin from '../src/services/recommendationAdmin.service.js';

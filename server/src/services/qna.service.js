@@ -2,7 +2,7 @@
  * qna.service.js — Product Q&A: ask, answer (seller/supplier only), upvote (Prompt 4.6).
  */
 
-import * as qnaRepo from '../repositories/qna.repository.js';
+import * as qnaRepo from '../repositories/qna.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 export async function askQuestion(db, { productId, userId, body }) {

@@ -19,7 +19,7 @@ import { GRANT_SCOPES, validateGrantScope, restrictingScopes, scopeAllows } from
 import { GRANT_SCOPES as CLIENT_GRANT_SCOPES } from '../../client/src/config/grant-scopes.js';
 import { requirePermission } from '../src/middlewares/requirePermission.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const PAYOUT_APPROVE = {
   key: 'finance.payout.approve',

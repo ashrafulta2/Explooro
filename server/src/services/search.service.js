@@ -3,8 +3,8 @@
  */
 
 import { postgresSearchDriver } from './search-drivers/postgres.js';
-import { meilisearchDriver } from './search-drivers/meilisearch.js';
-import { withAvailableStock } from './teamStockReservation.service.js';
+import { meilisearchDriver } from './search-drivers/meilisearch.ts';
+import { withAvailableStock } from './teamStockReservation.service.ts';
 
 export function getSearchDriver() {
   const driverType = (process.env.SEARCH_DRIVER || 'postgres').toLowerCase().trim();

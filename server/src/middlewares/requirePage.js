@@ -37,7 +37,7 @@
 
 import fp from 'fastify-plugin';
 import { getPublicPageMap, resolveState } from '../services/pageAccess.service.js';
-import { getRequestContext } from '../plugins/requestContext.js';
+import { getRequestContext } from '../plugins/requestContext.ts';
 
 /** The viewer identity resolveState() needs — same shape requireModule builds, for the same reason. */
 function viewerContext(req) {

@@ -27,7 +27,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import * as settingRepo from '../repositories/setting.repository.js';
+import * as settingRepo from '../repositories/setting.repository.ts';
 
 export const SETTINGS_GROUP = 'recommendation';
 export const CACHE_KEY = 'recommendation.cache';

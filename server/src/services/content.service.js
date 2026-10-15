@@ -10,7 +10,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { generateRef } from '../lib/ref.js';
+import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
