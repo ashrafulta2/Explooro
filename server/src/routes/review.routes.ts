@@ -1,5 +1,5 @@
 /**
- * review.routes.js — Routes for product reviews (Prompt 4.6).
+ * review.routes.ts — Routes for product reviews (Prompt 4.6).
  */
 
 import * as reviewController from '../controllers/review.controller.ts';

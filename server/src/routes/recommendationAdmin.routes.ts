@@ -1,5 +1,5 @@
 /**
- * recommendationAdmin.routes.js — operator routes for the personalized home feed (Phase G).
+ * recommendationAdmin.routes.ts — operator routes for the personalized home feed (Phase G).
  *
  *   GET /admin/platform/recommendations                  platform.recommendation.view    (LOW,    delegable)
  *   GET /admin/platform/recommendations/funnel           platform.recommendation.view
@@ -22,8 +22,8 @@
  * must stop the server from booting, not leave a governance write unguarded.
  */
 
-import * as controller from '../controllers/recommendationAdmin.controller.js';
-import { SECTION_KEYS, MIN_REASON_LENGTH } from '../services/recommendationAdmin.service.js';
+import * as controller from '../controllers/recommendationAdmin.controller.ts';
+import { SECTION_KEYS, MIN_REASON_LENGTH } from '../services/recommendationAdmin.service.ts';
 
 const PAGE = '/admin/platform/recommendations';
 

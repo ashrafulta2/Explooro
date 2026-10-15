@@ -1,8 +1,8 @@
 /**
- * theme.controller.js — Request handlers for Theme Studio APIs (Prompt 3.5).
+ * theme.controller.ts — Request handlers for Theme Studio APIs (Prompt 3.5).
  */
 
-import * as themeService from '../services/theme.service.js';
+import * as themeService from '../services/theme.service.ts';
 import * as auditService from '../services/audit.service.ts';
 
 export async function getActive(req, reply) {

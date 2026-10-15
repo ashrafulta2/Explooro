@@ -3,7 +3,7 @@
  *
  * The page draws its form from the section descriptions the API returns (`fields`, with min / max /
  * type / default), so the bounds live on the server in exactly one place: services/homeRails,
- * recommendation, diversity, covisit and recoCache own them, and recommendationAdmin.service.js
+ * recommendation, diversity, covisit and recoCache own them, and recommendationAdmin.service.ts
  * hands them over. Nothing here hard-codes a limit. These checks only exist so the operator hears
  * "too high" while typing; the API remains the authority and re-checks everything.
  *

@@ -1,5 +1,5 @@
 /**
- * homeRails.service.js — The themed rails on the home page (Phase C of the personalized feed).
+ * homeRails.service.ts — The themed rails on the home page (Phase C of the personalized feed).
  *
  * A rail is a slice of the same blended ranking the swipe feed uses (recommendation.service.js),
  * looking at one idea at a time: what is trending, what sells, what is new, what is near you, what
@@ -80,7 +80,7 @@ export const RAIL_LIMITS = Object.freeze({
 // itself range-checked): every rail is a full ranking.
 const MAX_FETCH = 60;
 
-const defaultRail = (key) => DEFAULT_RAILS_CONFIG.rails.find((r) => r.key === key);
+const defaultRail = (key): Record<string, any> => DEFAULT_RAILS_CONFIG.rails.find((r) => r.key === key);
 
 function boundedInt(raw, { min, max }, fallback) {
   const n = raw === null || raw === '' || raw === undefined ? NaN : Number(raw);
@@ -106,7 +106,7 @@ export function sanitizeRailsConfig(raw) {
     if (!RAIL_PROFILES[key] || seen.has(key)) continue;
     seen.add(key);
     const base = defaultRail(key);
-    const rail = {
+    const rail: Record<string, any> = {
       key,
       enabled: typeof item.enabled === 'boolean' ? item.enabled : base.enabled,
       limit: boundedInt(item.limit, RAIL_LIMITS.limit, base.limit),
@@ -129,7 +129,7 @@ function readJson(raw) {
 }
 
 /** The live rail layout. An unreadable table or row yields the shipped layout, never an error. */
-export async function resolveRailsConfig(db, { cache } = {}) {
+export async function resolveRailsConfig(db, { cache }: Record<string, any> = {}) {
   let rows = [];
   try {
     rows = await recoCache.loadRecommendationRows(db, cache);
@@ -206,7 +206,7 @@ async function hydrateRail(db, rows) {
     rows.map((r) => r.id),
     { inStock: true, netStock: true }
   );
-  const scored = new Map(rows.map((r) => [String(r.id), r]));
+  const scored = new Map<string, any>(rows.map((r) => [String(r.id), r]));
   return full.map((p) => ({
     ...p,
     rank_score: scored.get(String(p.id))?.rank_score,
@@ -222,13 +222,13 @@ async function hydrateRail(db, rows) {
  *
  * @returns {Promise<{rails: {key: string, personalized: boolean, products: object[]}[], meta: object}>}
  */
-export function getRails(db, opts = {}) {
+export function getRails(db, opts: Record<string, any> = {}): Promise<{ rails: { key: string; personalized: boolean; products: any[]; }[]; meta: any; }> {
   return recoCache.timed('rails', () => buildRails(db, opts));
 }
 
 async function buildRails(
   db,
-  { userId, sessionId, audience = 'customer', personalize = true, now = Date.now(), cache } = {}
+  { userId, sessionId, audience = 'customer', personalize = true, now = Date.now(), cache }: Record<string, any> = {}
 ) {
   const [config, feedSettings, diversityConfig, cacheConfig] = await Promise.all([
     resolveRailsConfig(db, { cache }),

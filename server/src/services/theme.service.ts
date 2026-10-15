@@ -1,5 +1,5 @@
 /**
- * theme.service.js — Theme Studio service, contrast verification & critical publishing (Prompt 3.5).
+ * theme.service.ts — Theme Studio service, contrast verification & critical publishing (Prompt 3.5).
  */
 
 import * as themeRepo from '../repositories/theme.repository.ts';
@@ -14,7 +14,7 @@ import {
   MASTER_ACCENT_HARMONIES,
   MASTER_RANGES,
   TOKEN_SECTIONS,
-} from './masterPalette.js';
+} from './masterPalette.ts';
 
 const HEX6 = /^#[0-9a-fA-F]{6}$/;
 
@@ -61,7 +61,7 @@ export function validateNoGradients(tokens) {
   return checkValue(tokens);
 }
 
-function masterError(en, bn, details) {
+function masterError(en, bn, details?) {
   return new AppError('MASTER_CONFIG_INVALID', en, bn, details);
 }
 
@@ -102,7 +102,7 @@ export function validateMasterBlock(raw) {
     );
   }
 
-  const enums = [
+  const enums: [string, string[]][] = [
     ['neutralMode', MASTER_NEUTRAL_MODES],
     ['accentHarmony', MASTER_ACCENT_HARMONIES],
   ];
@@ -185,7 +185,7 @@ function assertSectionsAreHex(tokens) {
  * never shows, so the gate runs on the merge — exactly what themePalette.applyTheme() produces.
  */
 function mergeSectionOverrides(derived, submitted) {
-  const merged = {};
+  const merged: Record<string, any> = {};
   for (const section of TOKEN_SECTIONS) {
     merged[section] = { ...(derived[section] || {}), ...(submitted[section] || {}) };
   }
@@ -305,7 +305,7 @@ function runContrastChecks(sections) {
   return failures;
 }
 
-export function validatePalette(tokens = {}) {
+export function validatePalette(tokens: Record<string, any> = {}) {
   if (!tokens || typeof tokens !== 'object') {
     throw new AppError('VALIDATION_FAILED', 'Theme tokens object is required.', 'থিম টোকেন অবজেক্ট আবশ্যক।');
   }
@@ -343,7 +343,7 @@ export function validatePalette(tokens = {}) {
 }
 
 /** Same gate as validatePalette, but reports what it certified instead of only pass/fail. */
-export function inspectPalette(tokens = {}) {
+export function inspectPalette(tokens: Record<string, any> = {}) {
   validatePalette(tokens);
   const master = tokens.master ? validateMasterBlock(tokens.master) : null;
   return {
@@ -394,7 +394,7 @@ export async function saveDraft(db, { name, presetKey = null, tokens, userId }) 
   });
 }
 
-export async function renameTheme(db, auditService, { id, name, userId, reqContext = {} }) {
+export async function renameTheme(db, auditService, { id, name, userId, reqContext = {} as Record<string, any> }) {
   const trimmed = typeof name === 'string' ? name.trim() : '';
   if (!trimmed) {
     throw new AppError('VALIDATION_FAILED', 'A theme name is required.', 'থিমের নাম আবশ্যক।');
@@ -424,7 +424,7 @@ export async function renameTheme(db, auditService, { id, name, userId, reqConte
   return renamed;
 }
 
-export async function deleteTheme(db, auditService, { id, userId, reqContext = {} }) {
+export async function deleteTheme(db, auditService, { id, userId, reqContext = {} as Record<string, any> }) {
   const target = await themeRepo.getThemePaletteById(db, id);
   if (!target) {
     throw new AppError('NOT_FOUND', `Theme palette #${id} not found.`, `থিম প্যালেট #${id} পাওয়া যায়নি।`);
@@ -460,7 +460,7 @@ export async function deleteTheme(db, auditService, { id, userId, reqContext = {
   return { id };
 }
 
-export async function publishTheme(db, cache, auditService, { id, userId, reqContext = {} }) {
+export async function publishTheme(db, cache, auditService, { id, userId, reqContext = {} as Record<string, any> }) {
   const target = await themeRepo.getThemePaletteById(db, id);
   if (!target) {
     throw new AppError('NOT_FOUND', `Theme palette #${id} not found.`, `থিম প্যালেট #${id} পাওয়া যায়নি।`);

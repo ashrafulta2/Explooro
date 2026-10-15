@@ -1,7 +1,7 @@
 /**
  * recommendations.js — Mock API handlers for the personalized-feed admin page.
  *
- * Mirrors server/src/routes/recommendationAdmin.routes.js so the whole page is demonstrable with
+ * Mirrors server/src/routes/recommendationAdmin.routes.ts so the whole page is demonstrable with
  * VITE_API_MODE=mock and no database (Master Instruction: every integration ships a mock driver).
  *
  * The shipped defaults and bounds below are a copy of the server's, because a browser mock cannot

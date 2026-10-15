@@ -21,7 +21,7 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import productRoutes from '../src/routes/product.routes.js';
+import productRoutes from '../src/routes/product.routes.ts';
 
 /** base_cost 100 / retail 200 at the 40% default shop partner split ⇒ saler_margin_pct 20. */
 function makeRow(id, overrides = {}) {

@@ -1,5 +1,5 @@
 /**
- * discovery.routes.js — Interest-based discovery feed (/discover surface).
+ * discovery.routes.ts — Interest-based discovery feed (/discover surface).
  *
  * Both endpoints use optional auth: a signed-in shopper is ranked by (and records against) their
  * account, a guest by their browser's session_id. The `discovery_feed` module gate is enforced on
@@ -7,7 +7,7 @@
  * erroring if a request arrives while the module is briefly toggling.
  */
 
-import * as discoveryController from '../controllers/discovery.controller.js';
+import * as discoveryController from '../controllers/discovery.controller.ts';
 
 export default async function discoveryRoutes(app) {
   // Attach req.user when a valid session is present, but never reject an anonymous caller —

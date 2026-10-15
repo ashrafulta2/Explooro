@@ -1,5 +1,5 @@
 /**
- * services/ai/index.js — Barrel for the AI service layer (Prompt 10.2).
+ * services/ai/index.ts — Barrel for the AI service layer (Prompt 10.2).
  *
  * Controllers import only from here (or provider.js for usage/cap admin endpoints) — never
  * reach past this into conciergeAgent/sourcingAgent's internals directly, and never touch the

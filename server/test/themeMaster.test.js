@@ -18,15 +18,15 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import themeRoutes from '../src/routes/theme.routes.js';
-import * as themeService from '../src/services/theme.service.js';
+import themeRoutes from '../src/routes/theme.routes.ts';
+import * as themeService from '../src/services/theme.service.ts';
 import { MASTER_PRESETS } from '../../client/src/config/master-themes.js';
 import {
   generatePalette,
   paletteToSectionTokens,
   DEFAULT_MASTER,
   MASTER_RANGES,
-} from '../src/services/masterPalette.js';
+} from '../src/services/masterPalette.ts';
 
 /** What the Studio actually POSTs: the master config plus the sections it derived from it. */
 function masterTokens(master, overrides = {}) {

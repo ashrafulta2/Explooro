@@ -1,5 +1,5 @@
 /**
- * recommendationAdmin.service.js — the operator's hands on the personalized home feed (Phase G).
+ * recommendationAdmin.service.ts — the operator's hands on the personalized home feed (Phase G).
  *
  * Phases B–F made every number of the feed a `platform_settings` row in group `recommendation`:
  * the blend weights and tuning (056), the rail layout (057), diversity (058), co-visitation (059)
@@ -18,7 +18,7 @@
 import * as settingRepo from '../repositories/setting.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import * as recommendation from './recommendation.service.ts';
-import * as homeRails from './homeRails.service.js';
+import * as homeRails from './homeRails.service.ts';
 import * as diversity from './diversity.service.ts';
 import * as covisit from './covisit.service.ts';
 import * as recoCache from './recoCache.service.ts';
@@ -142,12 +142,12 @@ export const RAIL_CATALOGUE = Object.freeze(
 
 // ── Strict validation ──────────────────────────────────────────────────────────────────────────
 
-const invalid = (field, en, bn, extra = {}) =>
+const invalid = (field, en, bn, extra: Record<string, any> = {}) =>
   new AppError('VALIDATION_FAILED', en, bn, { field, ...extra });
 
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
-function checkField(spec, raw, path) {
+function checkField(spec, raw, path?) {
   const where = path ? `${path}.${spec.key}` : spec.key;
   if (spec.type === 'bool') {
     if (typeof raw !== 'boolean') {
@@ -187,7 +187,7 @@ function validateFlat(section, value) {
       throw invalid(key, `Unknown setting "${key}".`, `অজানা সেটিং "${key}"।`);
     }
   }
-  const out = {};
+  const out: Record<string, any> = {};
   for (const spec of section.fields) {
     if (!(spec.key in value)) {
       throw invalid(spec.key, `${spec.key} is missing.`, `${spec.key} দেওয়া হয়নি।`);
@@ -248,7 +248,7 @@ function validateRails(_section, value) {
         throw invalid(`${path}.${k}`, `"${k}" does not apply to the ${item.key} rail.`, `"${k}" ${item.key} রেলের জন্য প্রযোজ্য নয়।`);
       }
     }
-    const rail = {
+    const rail: Record<string, any> = {
       key: item.key,
       enabled: checkField({ key: 'enabled', type: 'bool' }, item.enabled, path),
       limit: checkField({ key: 'limit', type: 'int', ...homeRails.RAIL_LIMITS.limit }, item.limit, path),
@@ -380,7 +380,7 @@ export async function updateSection(
   db,
   cache,
   auditService,
-  { section: name, value, reason, baseUpdatedAt, userId, actorRole = null, reqContext = {} }
+  { section: name, value, reason, baseUpdatedAt, userId, actorRole = null, reqContext = {} as Record<string, any> }
 ) {
   const section = SECTIONS[name];
   const next = validateSection(name, value);

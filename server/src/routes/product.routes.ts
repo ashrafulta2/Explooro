@@ -1,5 +1,5 @@
 /**
- * product.routes.js — Routes for Products, Dynamic Pricing & Sourcing (Prompt 4.3).
+ * product.routes.ts — Routes for Products, Dynamic Pricing & Sourcing (Prompt 4.3).
  */
 
 import * as productController from '../controllers/product.controller.ts';

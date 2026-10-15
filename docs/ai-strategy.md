@@ -88,7 +88,7 @@ system prompt and tool schema — the dominant fixed cost of a grounded, tool-us
 ## 7. Graceful degradation policy
 
 Every AI-dependent feature must keep working — in a reduced form — when AI is unavailable. "AI
-unavailable" covers three cases, all handled inside `services/ai/index.js` before the client ever
+unavailable" covers three cases, all handled inside `services/ai/index.ts` before the client ever
 sees an error:
 
 1. **Module disabled** (`ai_concierge` / `ai_sourcing_chat` / `ai_creative_studio` off) — handled

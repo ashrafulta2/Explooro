@@ -19,7 +19,7 @@
  *
  * NOTE (traceability): the live server exposes none of these paths yet except /me/permissions
  * (auth.js) — see docs/prompt.md row 80. `/supplier/forecasting` in particular has no live route;
- * the live AI endpoint is the per-product GET /ai/forecast/:productId (server/src/routes/ai.routes.js).
+ * the live AI endpoint is the per-product GET /ai/forecast/:productId (server/src/routes/ai.routes.ts).
  */
 
 const HOUR = 3600 * 1000;

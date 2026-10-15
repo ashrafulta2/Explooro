@@ -1,11 +1,11 @@
 /**
- * ai.routes.js — Routes for the AI Service Layer (Prompt 10.2).
+ * ai.routes.ts — Routes for the AI Service Layer (Prompt 10.2).
  *
  * Module checks: requireModule('ai_concierge' | 'ai_sourcing_chat')
  * Permissions: ai.concierge.use, ai.sourcing.use, ai.config.manage
  */
 
-import * as aiCtrl from '../controllers/ai.controller.js';
+import * as aiCtrl from '../controllers/ai.controller.ts';
 import { requirePermission } from '../middlewares/requirePermission.ts';
 
 export default async function aiRoutes(fastify) {

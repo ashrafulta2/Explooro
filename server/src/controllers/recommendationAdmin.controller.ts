@@ -1,8 +1,8 @@
 /**
- * recommendationAdmin.controller.js — Request handlers for the personalized-feed admin page (Phase G).
+ * recommendationAdmin.controller.ts — Request handlers for the personalized-feed admin page (Phase G).
  */
 
-import * as admin from '../services/recommendationAdmin.service.js';
+import * as admin from '../services/recommendationAdmin.service.ts';
 import * as funnel from '../services/recoFunnel.service.ts';
 import * as recoCache from '../services/recoCache.service.ts';
 import * as auditService from '../services/audit.service.ts';

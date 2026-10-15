@@ -1,5 +1,5 @@
 /**
- * search.controller.js — Handlers for search & typeahead suggest endpoints (Prompt 4.4).
+ * search.controller.ts — Handlers for search & typeahead suggest endpoints (Prompt 4.4).
  */
 
 import * as searchService from '../services/search.service.ts';

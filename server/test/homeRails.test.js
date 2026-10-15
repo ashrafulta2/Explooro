@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as rails from '../src/services/homeRails.service.js';
+import * as rails from '../src/services/homeRails.service.ts';
 import * as reco from '../src/services/recommendation.service.ts';
 import * as diversityService from '../src/services/diversity.service.ts';
 import * as productRepo from '../src/repositories/product.repository.ts';

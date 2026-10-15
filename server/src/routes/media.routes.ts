@@ -16,7 +16,7 @@ export default async function mediaRoutes(app) {
   // WHY authenticate: the service stamps media_assets.owner_id from req.user, and product/avatar
   // linking only accepts media the caller owns. Without a guard req.user was never populated, so
   // every upload was ownerless — anonymous writes to storage, and unusable by the uploader.
-  // Same fallback as product.routes.js for minimal test apps that simulate req.user themselves.
+  // Same fallback as product.routes.ts for minimal test apps that simulate req.user themselves.
   const authenticate =
     app.authenticate ||
     (async (req) => {

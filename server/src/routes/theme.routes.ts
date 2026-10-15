@@ -1,8 +1,8 @@
 /**
- * theme.routes.js — Theme Studio API routing (Prompt 3.5).
+ * theme.routes.ts — Theme Studio API routing (Prompt 3.5).
  */
 
-import * as themeController from '../controllers/theme.controller.js';
+import * as themeController from '../controllers/theme.controller.ts';
 
 export default async function themeRoutes(app) {
   const auth = app.authenticate || (async () => {});

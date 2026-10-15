@@ -3,7 +3,7 @@
  *
  *   1. Locale integrity — every rail the server can return has a title and a subtitle in both
  *      languages (a missing key renders a humanized slug, which no test would otherwise notice).
- *   2. Mock contract   — GET /discovery/rails mirrors services/homeRails.service.js: no product in
+ *   2. Mock contract   — GET /discovery/rails mirrors services/homeRails.service.ts: no product in
  *                        two rails, thin rails dropped, opt-out removes the personal rails, and the
  *                        mock shopper's own clicks surface a "continue browsing" row.
  *   3. Wiring guards   — the home page mounts the rails and hides them while a filter is active; the

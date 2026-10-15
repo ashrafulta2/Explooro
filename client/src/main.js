@@ -432,7 +432,7 @@ async function bootRouterDemo() {
       // Personalized home feed governance (Phase G): weights, rails, diversity, co-visitation, cache and
       // the per-surface funnel. `core` for the same reason as Genie: the weights also govern the
       // non-personal signals an opted-out shopper gets, so it must stay reachable when the
-      // `personalization_signals` capture module is off (see server/src/routes/recommendationAdmin.routes.js).
+      // `personalization_signals` capture module is off (see server/src/routes/recommendationAdmin.routes.ts).
       {
         path: '/admin/platform/recommendations',
         title: 'Personalized Feed — Explooro Admin',

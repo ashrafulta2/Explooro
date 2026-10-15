@@ -1,5 +1,5 @@
 /**
- * masterPalette.js — the ONE server module allowed to reach into the client's colour engine.
+ * masterPalette.ts — the ONE server module allowed to reach into the client's colour engine.
  *
  * WHY import across the workspace instead of porting the maths: the Theme Studio stores a master
  * seed and the LIVE SITE regenerates all 45 ramp steps from it at boot. If the server carried its

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import searchRoutes from '../src/routes/search.routes.js';
+import searchRoutes from '../src/routes/search.routes.ts';
 import { expandSearchTerms, levenshteinDistance } from '../src/utils/transliterate.ts';
 import { executeSearch, executeSuggest, getSearchDriver, zeroResultSearchLog } from '../src/services/search.service.ts';
 

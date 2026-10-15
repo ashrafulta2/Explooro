@@ -164,7 +164,7 @@ export async function resolveActorRanking(
  * @param {number} [opts.limit]
  * @param {number} [opts.offset]
  */
-export function getFeed(db: any, opts: { filters?: any; userId?: number; sessionId?: string; audience?: string; personalize?: boolean; limit?: number; offset?: number; } = {}) {
+export function getFeed(db: any, opts: { filters?: any; userId?: number; sessionId?: string; audience?: string; personalize?: boolean; limit?: number; offset?: number; cache?: any; } = {}) {
   return recoCache.timed('feed', () => buildFeed(db, opts));
 }
 

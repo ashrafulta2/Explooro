@@ -1,8 +1,8 @@
 /**
- * search.routes.js — Routes for Full-Text Search, Typeahead & Merchandising Logs (Prompt 4.4).
+ * search.routes.ts — Routes for Full-Text Search, Typeahead & Merchandising Logs (Prompt 4.4).
  */
 
-import * as searchController from '../controllers/search.controller.js';
+import * as searchController from '../controllers/search.controller.ts';
 
 export default async function searchRoutes(app) {
   // Public search & typeahead

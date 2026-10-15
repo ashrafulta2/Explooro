@@ -1,11 +1,11 @@
 /**
- * ai.controller.js — HTTP handlers for the AI Service Layer (Prompt 10.2).
+ * ai.controller.ts — HTTP handlers for the AI Service Layer (Prompt 10.2).
  *
  * Concierge/sourcing turns stream over SSE (`text/event-stream`) — the response is hijacked so
  * Fastify never tries to send its own JSON envelope on top of the manually-written stream.
  */
 
-import * as aiService from '../services/ai/index.js';
+import * as aiService from '../services/ai/index.ts';
 import * as provider from '../services/ai/provider.ts';
 import * as auditService from '../services/audit.service.ts';
 import * as productRepo from '../repositories/product.repository.ts';

@@ -1,5 +1,5 @@
 /**
- * discovery.controller.js — Handlers for the interest-based discovery feed (/discover).
+ * discovery.controller.ts — Handlers for the interest-based discovery feed (/discover).
  *
  * GET  /discovery/feed   — personalized, paginated catalog page (optional auth: guests ranked by
  *                          their session's history, signed-in users by their account's).
@@ -9,11 +9,11 @@
  */
 
 import * as discoveryService from '../services/discoveryFeed.service.ts';
-import * as homeRailsService from '../services/homeRails.service.js';
+import * as homeRailsService from '../services/homeRails.service.ts';
 
 // A guest actor id: an opaque token the browser persists and sends back. Never trusted for auth —
 // it only scopes anonymous ranking history to one browser.
-function resolveSessionId(req, fromBody) {
+function resolveSessionId(req, fromBody?) {
   return (
     fromBody ||
     req.headers['x-session-id'] ||
@@ -44,7 +44,7 @@ export async function getFeed(req, reply) {
     offset,
   } = req.query || {};
 
-  const filters = {
+  const filters: Record<string, any> = {
     brand,
     minPrice: min_price ? parseFloat(min_price) : undefined,
     maxPrice: max_price ? parseFloat(max_price) : undefined,

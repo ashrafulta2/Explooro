@@ -181,7 +181,7 @@ describe('Feed cache — settings snapshot', () => {
   });
 
   test('the ranking, rails and diversity resolvers share one read', async () => {
-    const { resolveRailsConfig } = await import('../src/services/homeRails.service.js');
+    const { resolveRailsConfig } = await import('../src/services/homeRails.service.ts');
     const { resolveDiversityConfig } = await import('../src/services/diversity.service.ts');
     const db = makeDb([settingsRoute(rows)]);
     const cache = makeCache();
