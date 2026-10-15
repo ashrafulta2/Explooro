@@ -1,5 +1,5 @@
 /**
- * media.controller.js — Media endpoint handlers (Prompt 4.2).
+ * media.controller.ts — Media endpoint handlers (Prompt 4.2).
  */
 
 import * as mediaService from '../services/media.service.ts';

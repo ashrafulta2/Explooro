@@ -1,5 +1,5 @@
 /**
- * requireRestriction.js — Granular per-user activity restriction middleware (Prompt 2.4 / 2.6).
+ * requireRestriction.ts — Granular per-user activity restriction middleware (Prompt 2.4 / 2.6).
  *
  * Enforces user and segment restrictions per docs/rbac-spec.md §5:
  * - BLOCK: 403 USER_RESTRICTED with reason in user's language.

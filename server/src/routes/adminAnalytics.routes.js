@@ -11,7 +11,7 @@ export default async function adminAnalyticsRoutes(fastify) {
   fastify.get(
     '/admin/analytics/overview',
     {
-      // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+      // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
       // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
       config: { page: '/admin' },
       preHandler: [fastify.authenticate, reqPerm('admin.dashboard.view')],

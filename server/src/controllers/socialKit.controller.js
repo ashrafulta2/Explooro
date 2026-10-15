@@ -2,7 +2,7 @@
  * socialKit.controller.js — Route handlers for Social Shop Partner Kit & Short Links (Prompt 9.7).
  */
 
-import * as shortlinkService from '../services/shortlink.service.js';
+import * as shortlinkService from '../services/shortlink.service.ts';
 import * as flyerService from '../services/flyer.service.ts';
 
 export async function redirectShortLink(req, reply) {

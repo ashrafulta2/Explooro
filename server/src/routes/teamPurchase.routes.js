@@ -3,7 +3,7 @@
  */
 
 import * as teamPurchaseController from '../controllers/teamPurchase.controller.js';
-import { requireRestriction } from '../middlewares/requireRestriction.js';
+import { requireRestriction } from '../middlewares/requireRestriction.ts';
 
 export default async function teamPurchaseRoutes(app) {
   const requireGroupBuying = app.requireModule('group_buying');

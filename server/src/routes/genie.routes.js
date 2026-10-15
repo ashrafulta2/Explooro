@@ -18,7 +18,7 @@
  * capability key for an admin governance write (no other admin route uses one).
  */
 
-import * as genieController from '../controllers/genie.controller.js';
+import * as genieController from '../controllers/genie.controller.ts';
 
 export default async function genieRoutes(app) {
   const auth = app.authenticate || (async () => {});
@@ -29,7 +29,7 @@ export default async function genieRoutes(app) {
 
   app.get(
     '/admin/platform/genie',
-    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
     // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
     { config: { page: '/admin/platform/genie' }, preHandler: [auth, reqPerm('platform.genie.view')] },
     genieController.getAdminPolicy

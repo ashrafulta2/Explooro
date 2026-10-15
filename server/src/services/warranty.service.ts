@@ -14,9 +14,9 @@
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import { getCourierAdapter } from '../integrations/courier/index.ts';
-import * as notificationService from './notification.service.js';
+import * as notificationService from './notification.service.ts';
 import * as clawbackService from './clawback.service.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 
 export function generateWarrantyRef() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';

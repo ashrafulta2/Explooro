@@ -1,5 +1,5 @@
 /**
- * shortlink.service.js — Tracked Affiliate Short Links Engine (Prompt 9.7).
+ * shortlink.service.ts — Tracked Affiliate Short Links Engine (Prompt 9.7).
  *
  * Implements:
  * 1. Branded short link generation (`explooro.com/s/:code`).
@@ -89,7 +89,7 @@ export async function createShortLink(db, {
 /**
  * Resolves a short link by code, records the click, and returns target URL for redirection.
  */
-export async function resolveShortLink(db, code, clickMeta = {}) {
+export async function resolveShortLink(db, code, clickMeta: Record<string, any> = {}) {
   return runWithClient(db, async (client) => {
     const { rows } = await client.query(
       `SELECT * FROM short_links WHERE code = $1`,
@@ -134,7 +134,7 @@ export async function recordShortLinkConversion(db, {
   shortLinkId,
   orderTotal = 0,
 }) {
-  const total = parseFloat(orderTotal) || 0;
+  const total = parseFloat(String(orderTotal)) || 0;
   return runWithClient(db, async (client) => {
     const { rows } = await client.query(
       `UPDATE short_links

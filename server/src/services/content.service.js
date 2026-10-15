@@ -11,7 +11,7 @@
 
 import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 // -----------------------------------------------------------------------------

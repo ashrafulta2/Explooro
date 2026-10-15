@@ -14,7 +14,7 @@
 import { randomBytes } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { isEnabled } from './module.service.js';
+import { isEnabled } from './module.service.ts';
 
 // WHY a subquery: products carry no image column. The primary image is the top-ranked row in
 // product_images, whose bytes live on media_assets.storage_key (006_catalog.sql).

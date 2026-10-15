@@ -16,7 +16,7 @@ import { getCourierAdapter } from '../integrations/courier/index.ts';
 import * as clawbackService from './clawback.service.ts';
 import * as returnProtection from './returnProtection.service.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 /**

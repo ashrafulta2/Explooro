@@ -2,7 +2,7 @@
  * notification.controller.js — Fastify controller for Unified Notification Service (Prompt 8.2).
  */
 
-import * as service from '../services/notification.service.js';
+import * as service from '../services/notification.service.ts';
 
 export async function getNotifications(req, reply) {
   const { category, is_read, limit = 20, offset = 0 } = req.query || {};

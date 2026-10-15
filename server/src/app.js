@@ -21,10 +21,10 @@ import requestMetricsPlugin from './lib/requestMetrics.ts';
 import errorHandlerPlugin, { AppError } from './plugins/errorHandler.ts';
 import authenticatePlugin from './middlewares/authenticate.ts';
 import requirePermissionPlugin from './middlewares/requirePermission.js';
-import requireRestrictionPlugin from './middlewares/requireRestriction.js';
+import requireRestrictionPlugin from './middlewares/requireRestriction.ts';
 import requireModulePlugin from './middlewares/requireModule.js';
-import requirePagePlugin from './middlewares/requirePage.js';
-import idempotencyPlugin from './middlewares/idempotency.js';
+import requirePagePlugin from './middlewares/requirePage.ts';
+import idempotencyPlugin from './middlewares/idempotency.ts';
 import authRoutes from './routes/auth.routes.js';
 import meRoutes from './routes/me.routes.js';
 import delegationRoutes from './routes/delegation.routes.js';
@@ -49,7 +49,7 @@ import storeRoutes from './routes/store.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import orderRoutes from './routes/order.routes.js';
-import paymentRoutes from './routes/payment.routes.js';
+import paymentRoutes from './routes/payment.routes.ts';
 import financeRoutes from './routes/finance.routes.js';
 import subscriptionRoutes from './routes/subscription.routes.js';
 import logisticsRoutes from './routes/logistics.routes.js';
@@ -101,7 +101,7 @@ import './jobs/sampleKit.job.js'; // Registers sample_kit with scheduler (module
 import './jobs/returnProtection.job.js'; // Registers return_protection with scheduler (module: sourcing)
 import './jobs/deficitRecovery.job.js'; // Registers deficit_recovery with scheduler (module: returns_engine)
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
-import sitemapRoutes from './routes/sitemap.routes.js';
+import sitemapRoutes from './routes/sitemap.routes.ts';
 import { createSmsSender } from './integrations/sms/index.ts';
 import { createEmailSender } from './integrations/email/index.ts';
 

@@ -1,5 +1,5 @@
 /**
- * whatsappCommerce.service.js — Conversational Commerce Engine (Prompt 8.3 / DFD Subsystem 20.0).
+ * whatsappCommerce.service.ts — Conversational Commerce Engine (Prompt 8.3 / DFD Subsystem 20.0).
  *
  * Implements:
  * 1. 1-Tap Single-Use Expiring Checkout Tokens (/checkout/wa/:token).
@@ -435,7 +435,7 @@ export async function sendProductCard(db, {
 /**
  * Retrieves unified conversations for shop partner with channel badges and 24-hour status.
  */
-export async function getUnifiedSalerThreads(db, salerId, { limit = 30, offset = 0 } = {}) {
+export async function getUnifiedSalerThreads(db, salerId, { limit = 30, offset = 0 }: Record<string, any> = {}) {
   const { rows } = await db.query(
     `SELECT t.id, t.ref, t.thread_type, t.participant_ids, t.metadata_json,
             t.last_message_at, t.last_message_preview, t.created_at,

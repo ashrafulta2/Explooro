@@ -10,7 +10,7 @@
 import { AppError } from '../plugins/errorHandler.ts';
 import { calculateQualityScore } from './adAuction.service.ts';
 import { getCoinSettings } from './coin.service.ts';
-import { updateModuleSettings } from './module.service.js';
+import { updateModuleSettings } from './module.service.ts';
 
 // WHY: the admin form speaks in operator terms (coins_per_bdt), the engine stores its own keys.
 // This map is the only place the two vocabularies meet.

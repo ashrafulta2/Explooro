@@ -1,5 +1,5 @@
 /**
- * audit.js — audit_logs helper (Prompt 2.3 / 2.7).
+ * audit.ts — audit_logs helper (Prompt 2.3 / 2.7).
  *
  * Delegates to the Audit Service (Prompt 2.7) so that all audit writers automatically
  * benefit from context extraction, recursive sensitive data redaction, and hash chaining.

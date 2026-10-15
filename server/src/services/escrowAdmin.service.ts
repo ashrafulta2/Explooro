@@ -12,7 +12,7 @@
 
 import { AppError } from '../plugins/errorHandler.ts';
 import * as vaultService from './vault.service.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 
 export const STATUS_FILTERS = Object.freeze(['LOCKED', 'FROZEN', 'RELEASED', 'CLAWED_BACK', 'FAILED', 'ALL']);
 export const PAGE_LIMITS = Object.freeze({ default: 25, max: 100 });

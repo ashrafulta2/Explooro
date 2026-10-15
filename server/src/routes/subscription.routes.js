@@ -6,8 +6,8 @@
  * under finance.subscription.manage.
  */
 
-import * as subscriptionSelf from '../controllers/subscriptionSelf.controller.js';
-import { requireRestriction } from '../middlewares/requireRestriction.js';
+import * as subscriptionSelf from '../controllers/subscriptionSelf.controller.ts';
+import { requireRestriction } from '../middlewares/requireRestriction.ts';
 
 export default async function subscriptionRoutes(app) {
   const ownSubscription = [
@@ -19,7 +19,7 @@ export default async function subscriptionRoutes(app) {
     requireRestriction('can_sell'),
   ];
 
-  // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+  // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
   // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
   app.get('/subscriptions/me', { config: { page: '/saler/pro' }, preHandler: ownSubscription, handler: subscriptionSelf.getMine });
 

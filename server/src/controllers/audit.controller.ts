@@ -1,5 +1,5 @@
 /**
- * audit.controller.js — HTTP Controller for Audit Log Query & Verification APIs (Prompt 2.7).
+ * audit.controller.ts — HTTP Controller for Audit Log Query & Verification APIs (Prompt 2.7).
  */
 
 import * as auditService from '../services/audit.service.ts';

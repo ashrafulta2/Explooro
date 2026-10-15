@@ -1,5 +1,5 @@
 /**
- * user.controller.js — Request handlers for user and permission introspection admin APIs (Prompt 3.3).
+ * user.controller.ts — Request handlers for user and permission introspection admin APIs (Prompt 3.3).
  */
 
 import * as userRepo from '../repositories/user.repository.ts';

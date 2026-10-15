@@ -7,7 +7,7 @@ import { calculatePricingBreakdown, loadSplitRules, resolveSplitPercentages, toP
 import { AppError } from '../plugins/errorHandler.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 import { withTransaction } from '../config/db.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import * as recoCache from './recoCache.service.ts';
 import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.ts';
 import { runAuction as runAdAuction } from './ads.service.js';

@@ -1,5 +1,5 @@
 /**
- * qna.controller.js — Handlers for product Q&A endpoints (Prompt 4.6).
+ * qna.controller.ts — Handlers for product Q&A endpoints (Prompt 4.6).
  */
 
 import * as qnaService from '../services/qna.service.ts';

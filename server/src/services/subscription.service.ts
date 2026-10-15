@@ -15,7 +15,7 @@
 
 import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
 import { resolvePlatformPricingConfig } from './pricing.service.ts';
 

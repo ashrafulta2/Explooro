@@ -22,12 +22,12 @@
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
-import * as notificationService from './notification.service.js';
+import * as notificationService from './notification.service.ts';
 import { getEngineSettings, listPlans } from './subscription.service.ts';
-import { isEnabled } from './module.service.js';
+import { isEnabled } from './module.service.ts';
 
 const MODULE_KEY = 'subscription_fees';
 const DAY_MS = 24 * 60 * 60 * 1000;

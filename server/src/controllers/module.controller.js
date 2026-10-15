@@ -2,7 +2,7 @@
  * module.controller.js — Fastify request handlers for module control endpoints (Prompt 3.1).
  */
 
-import * as moduleService from '../services/module.service.js';
+import * as moduleService from '../services/module.service.ts';
 
 export async function getPublicModules(req, reply) {
   const db = req.db || req.server?.db;

@@ -20,7 +20,7 @@
  * capability key for an admin governance write (no other admin route uses one).
  */
 
-import * as pageAccessController from '../controllers/pageAccess.controller.js';
+import * as pageAccessController from '../controllers/pageAccess.controller.ts';
 
 export default async function pageAccessRoutes(app) {
   const auth = app.authenticate || (async () => {});

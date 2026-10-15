@@ -1,5 +1,5 @@
 /**
- * otp.service.js — 6-digit OTP lifecycle (Prompt 2.3).
+ * otp.service.ts — 6-digit OTP lifecycle (Prompt 2.3).
  *
  * docs/erd.md's otp_codes table: 5-minute TTL, max 5 attempts, hashed at rest, single-use.
  * Rate limits (docs/api-contract.md §6): 3/hour per phone, 10/hour per IP on send.
@@ -28,7 +28,7 @@ function generateCode() {
  * @param {*} emailSender
  * @param {{ phone?: string|null, email?: string|null, purpose: string, ip?: string, isDevelopment?: boolean }} params
  */
-export async function sendOtp(db, cache, smsSender, emailSender, { phone, email, purpose, ip, isDevelopment }) {
+export async function sendOtp(db: any, cache: any, smsSender: any, emailSender: any, { phone, email, purpose, ip, isDevelopment }: { phone?: string|null; email?: string|null; purpose: string; ip?: string; isDevelopment?: boolean; }) {
   if (!phone && !email) {
     throw new AppError('VALIDATION_FAILED', 'A phone number or email address is required to send OTP.', 'ওটিপি পাঠাতে ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');
   }
@@ -71,7 +71,7 @@ export async function sendOtp(db, cache, smsSender, emailSender, { phone, email,
  * @param {*} db
  * @param {{ phone?: string|null, email?: string|null, purpose: string, code: string }} params
  */
-export async function verifyOtp(db, { phone, email, purpose, code }) {
+export async function verifyOtp(db: any, { phone, email, purpose, code }: { phone?: string|null; email?: string|null; purpose: string; code: string; }) {
   if (!phone && !email) {
     throw new AppError('VALIDATION_FAILED', 'A phone number or email address is required.', 'ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');
   }

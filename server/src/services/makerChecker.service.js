@@ -13,7 +13,7 @@
 import * as permRepo from '../repositories/permission.repository.ts';
 import * as rbacService from './rbac.service.ts';
 import { withTransaction } from '../config/db.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 // Action executor registry: action_key -> { validatePreconditions, execute }

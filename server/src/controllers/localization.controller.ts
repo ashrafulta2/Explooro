@@ -1,5 +1,5 @@
 /**
- * localization.controller.js — Request handlers for the Language & Localization policy API.
+ * localization.controller.ts — Request handlers for the Language & Localization policy API.
  */
 
 import * as localizationService from '../services/localization.service.ts';

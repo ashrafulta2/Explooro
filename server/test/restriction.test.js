@@ -20,7 +20,7 @@ import Fastify from 'fastify';
 
 import * as restrictionService from '../src/services/restriction.service.js';
 import * as segmentService from '../src/services/segment.service.ts';
-import { requireRestriction } from '../src/middlewares/requireRestriction.js';
+import { requireRestriction } from '../src/middlewares/requireRestriction.ts';
 import { requirePermission } from '../src/middlewares/requirePermission.js';
 import restrictionRoutes from '../src/routes/restriction.routes.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';

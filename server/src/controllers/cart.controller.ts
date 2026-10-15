@@ -1,5 +1,5 @@
 /**
- * cart.controller.js — HTTP controller for Cart endpoints (Prompt 5.1).
+ * cart.controller.ts — HTTP controller for Cart endpoints (Prompt 5.1).
  */
 
 import * as cartService from '../services/cart.service.ts';

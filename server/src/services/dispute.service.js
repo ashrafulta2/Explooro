@@ -20,7 +20,7 @@ import * as trustRepo from '../repositories/trustScore.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 
 /**
  * Generates a public unique dispute reference code: DSP-XXXXXXXX

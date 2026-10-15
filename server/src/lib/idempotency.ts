@@ -28,7 +28,7 @@ export function fingerprintOf(payload) {
 }
 
 /**
- * First half of the protocol, split out so a Fastify hook (middlewares/idempotency.js) can claim in
+ * First half of the protocol, split out so a Fastify hook (middlewares/idempotency.ts) can claim in
  * preHandler and finish in onSend. `runIdempotent` below is the same two halves around one call.
  *
  * @returns {Promise<{proceed:true, claim:object|null} | {proceed:false, result:object}>}

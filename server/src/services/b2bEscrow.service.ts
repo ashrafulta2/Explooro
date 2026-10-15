@@ -16,7 +16,7 @@ import { generateRef } from '../lib/ref.ts';
 import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.ts';
 import { recordTransactionGroup } from './ledger.service.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
 
 /**

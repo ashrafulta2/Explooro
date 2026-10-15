@@ -1,5 +1,5 @@
 /**
- * bundle.controller.js — Controller for Cross-Seller Bundling & Surge Pricing (Prompt 10.5).
+ * bundle.controller.ts — Controller for Cross-Seller Bundling & Surge Pricing (Prompt 10.5).
  */
 
 import * as bundleService from '../services/bundle.service.ts';

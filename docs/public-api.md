@@ -214,6 +214,8 @@ paths:
           description: Invalid request payload
         '403':
           description: Missing required scope orders.create
+        '501':
+          description: Partner ordering is not available yet (NOT_IMPLEMENTED). Scope and payload are still validated first.
 
 components:
   securitySchemes:

@@ -11,7 +11,7 @@
  * Anything else — no row, expired, module OFF — yields 0, i.e. today's behaviour exactly.
  */
 
-import { isEnabled } from './module.service.js';
+import { isEnabled } from './module.service.ts';
 
 export const SUBSCRIPTION_MODULE_KEY = 'subscription_fees';
 

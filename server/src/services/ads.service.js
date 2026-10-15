@@ -18,8 +18,8 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { writeAudit } from '../lib/audit.js';
-import { isEnabled } from './module.service.js';
+import { writeAudit } from '../lib/audit.ts';
+import { isEnabled } from './module.service.ts';
 import * as rbacService from './rbac.service.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';

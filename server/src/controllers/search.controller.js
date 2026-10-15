@@ -2,7 +2,7 @@
  * search.controller.js — Handlers for search & typeahead suggest endpoints (Prompt 4.4).
  */
 
-import * as searchService from '../services/search.service.js';
+import * as searchService from '../services/search.service.ts';
 import { getZeroResultQueries } from '../services/discoveryFeed.service.js';
 
 export async function search(req, reply) {

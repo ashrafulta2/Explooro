@@ -2,7 +2,7 @@
  * salerInbox.controller.js — Shop Partner Unified Inbox Controller (Prompt 8.3 / DFD Subsystem 20.0).
  */
 
-import * as service from '../services/whatsappCommerce.service.js';
+import * as service from '../services/whatsappCommerce.service.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 export async function getUnifiedThreads(req, reply) {

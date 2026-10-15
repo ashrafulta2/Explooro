@@ -15,7 +15,7 @@ import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import notificationRoutes from '../src/routes/notification.routes.js';
-import * as notifService from '../src/services/notification.service.js';
+import * as notifService from '../src/services/notification.service.ts';
 
 function createMockDb() {
   const users = [

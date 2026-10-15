@@ -9,7 +9,7 @@
 
 import * as provider from './provider.ts';
 import * as aiRepo from '../../repositories/ai.repository.ts';
-import * as searchService from '../search.service.js';
+import * as searchService from '../search.service.ts';
 
 const FEATURE_KEY = 'concierge';
 

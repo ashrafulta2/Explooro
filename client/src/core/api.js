@@ -27,7 +27,7 @@ const IDEMPOTENT_ROUTES = [
   /^\/admin\/pending-actions\/[^/]+$/,
   /^\/admin\/payouts\/batch$/,
   // WHY these were added: the server now honours Idempotency-Key on every write route
-  // (middlewares/idempotency.js), and these are the endpoints where a retry that runs twice moves
+  // (middlewares/idempotency.ts), and these are the endpoints where a retry that runs twice moves
   // money twice. The two entries above for refunds and batch payouts never matched a real route.
   /^\/admin\/finance\/escrow\/[^/]+\/release$/,
   /^\/admin\/finance\/payouts\/[^/]+\/approve$/,

@@ -1,10 +1,9 @@
 /**
- * publicApi.controller.js — Controller for Public REST API, Partner Integration & Developer Portal (Prompt 10.7).
+ * publicApi.controller.ts — Controller for Public REST API, Partner Integration & Developer Portal (Prompt 10.7).
  */
 
 import * as apiKeyService from '../services/apiKey.service.ts';
 import * as webhookService from '../services/webhookDelivery.service.ts';
-import * as orderService from '../services/order.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
@@ -229,20 +228,13 @@ export async function getPublicCategories(req, reply) {
 // PARTNER ORDER CREATION (WRITE)
 // -----------------------------------------------------------------------------
 
-export async function createPartnerOrder(req, reply) {
+export async function createPartnerOrder(req, _reply) {
   const apiKey = req.apiKey;
   if (!apiKey || !apiKeyService.hasScope(apiKey, 'orders.create')) {
     throw new AppError('FORBIDDEN', 'API key does not have the required "orders.create" permission scope.');
   }
 
-  const {
-    customer,
-    items,
-    shipping_address,
-    payment_method = 'COD',
-    notes = '',
-    idempotency_key = null,
-  } = req.body;
+  const { customer, items } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw new AppError('VALIDATION_FAILED', 'At least 1 item is required to place an order.');
@@ -251,34 +243,17 @@ export async function createPartnerOrder(req, reply) {
     throw new AppError('VALIDATION_FAILED', 'Customer name and phone number are required.');
   }
 
-  // Create order via core orderService
-  const orderResult = await orderService.createOrder(req.server.db, {
-    customerId: apiKey.userId, // partner's user account acts as agent/buyer
-    customerPhone: customer.phone,
-    customerName: customer.name,
-    items,
-    shippingAddress: shipping_address,
-    paymentMethod: payment_method,
-    notes: `Partner API Order (Key: ${apiKey.ref}) — ${notes}`,
-    idempotencyKey: idempotency_key,
-  });
-
-  // Trigger outbound webhook event asynchronously
-  webhookService.dispatchWebhookEvent(req.server.db, {
-    eventName: 'order.created',
-    payload: {
-      order_ref: orderResult.order?.ref,
-      total_amount: orderResult.order?.total_amount,
-      customer_name: customer.name,
-      partner_key: apiKey.ref,
-      created_at: new Date().toISOString(),
-    },
-  }).catch(() => {});
-
-  return reply.status(201).send({
-    success: true,
-    data: orderResult,
-  });
+  // WHY 501 and not an order: this endpoint called orderService.createOrder, which has never existed,
+  // so every partner order crashed with a TypeError and answered 500 INTERNAL_ERROR. Placing an order
+  // means pricing, stock locks, escrow and payment (services/checkout.service.ts), and a partner
+  // ordering for a customer who has no account is a product decision not yet made. Until it is, the
+  // endpoint says so instead of crashing. Scope and payload are still checked first, so an integration
+  // already gets the 403/400 answers it will get once ordering works.
+  throw new AppError(
+    'NOT_IMPLEMENTED',
+    'Placing orders through the public API is not available yet.',
+    'পাবলিক API দিয়ে অর্ডার দেওয়া এখনো চালু হয়নি।'
+  );
 }
 
 // -----------------------------------------------------------------------------

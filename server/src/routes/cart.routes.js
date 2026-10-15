@@ -2,7 +2,7 @@
  * cart.routes.js — Fastify routes for Cart (Prompt 5.1).
  */
 
-import * as cartCtrl from '../controllers/cart.controller.js';
+import * as cartCtrl from '../controllers/cart.controller.ts';
 
 export default async function cartRoutes(fastify) {
   fastify.get(

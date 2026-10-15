@@ -1,5 +1,5 @@
 /**
- * requirePage.js — server-side enforcement of per-page availability (traceability row 92).
+ * requirePage.ts — server-side enforcement of per-page availability (traceability row 92).
  *
  * The page availability layer (migration 054, services/pageAccess.service.ts) started as a
  * VISIBILITY layer: the client router, sidebar and command palette consult it, but a parked page's

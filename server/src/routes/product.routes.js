@@ -8,7 +8,7 @@ import * as sampleKit from '../controllers/sampleKit.controller.ts';
 import * as fastPayout from '../controllers/fastPayout.controller.ts';
 import * as returnProtection from '../controllers/returnProtection.controller.ts';
 import { requirePermission } from '../middlewares/requirePermission.js';
-import { requireRestriction } from '../middlewares/requireRestriction.js';
+import { requireRestriction } from '../middlewares/requireRestriction.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 export default async function productRoutes(app) {

@@ -1,5 +1,5 @@
 /**
- * demandForecast.js — Statistical Demand Forecasting (Prompt 10.3 / `idea proposition.md` §AB).
+ * demandForecast.ts — Statistical Demand Forecasting (Prompt 10.3 / `idea proposition.md` §AB).
  *
  * docs/prompt.md REQUIREMENT 2: "Start with a deterministic statistical baseline (moving average
  * plus seasonality); use the model only for explanation and recommendation. Do not make a language
@@ -139,7 +139,7 @@ function fallbackExplanation(forecast, lang) {
  * Full forecast for one product: real statistical baseline + a grounded, non-arithmetic
  * explanation. `deps` is an injection seam for tests.
  */
-export async function runForecast(db, { userId, productId, horizonDays = 14, lang = 'en' }, deps = {}) {
+export async function runForecast(db, { userId, productId, horizonDays = 14, lang = 'en' }, deps: Record<string, any> = {}) {
   const getProduct = deps.getProductById || productRepo.getProductById;
   const loadHistory = deps.loadDailyHistory || loadDailyHistory;
   const generate = deps.generateCompletion || provider.generateCompletion;

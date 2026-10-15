@@ -7,7 +7,7 @@ import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as clawbackService from '../services/clawback.service.ts';
 import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.ts';
 import * as escrowAdminService from '../services/escrowAdmin.service.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.ts';
 import { loadRules as loadTierRules, saveRules as saveTierRules, validateRules as validateTierRules } from '../services/salerTierBonus.ts';
 import { recomputeAll as recomputeSalerTiers } from '../services/salerTier.service.ts';

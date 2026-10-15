@@ -1,5 +1,5 @@
 /**
- * customerAddress.controller.js — Fastify controller for Customer Address Book CRUD endpoints.
+ * customerAddress.controller.ts — Fastify controller for Customer Address Book CRUD endpoints.
  */
 
 import * as addressService from '../services/customerAddress.service.ts';

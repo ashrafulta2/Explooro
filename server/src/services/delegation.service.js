@@ -9,7 +9,7 @@
 import * as permRepo from '../repositories/permission.repository.ts';
 import * as rbacService from './rbac.service.ts';
 import { generateRef } from '../lib/ref.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { validateGrantScope } from '../lib/grantScope.ts';
 

@@ -1,5 +1,5 @@
 /**
- * search.service.js — Central search orchestration & query caching (Prompt 4.4).
+ * search.service.ts — Central search orchestration & query caching (Prompt 4.4).
  */
 
 import { postgresSearchDriver } from './search-drivers/postgres.ts';
@@ -73,7 +73,7 @@ export async function executeSearch(db, cache, { query = '', filters = {}, limit
 /**
  * Fast typeahead suggest endpoint (≤ 50ms).
  */
-export async function executeSuggest(db, cache, { query = '', limit = 6 } = {}) {
+export async function executeSuggest(db, cache, { query = '', limit = 6 }: Record<string, any> = {}) {
   const driver = getSearchDriver();
   const rawQuery = (query || '').trim();
 

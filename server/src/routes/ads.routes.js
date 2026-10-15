@@ -3,7 +3,7 @@
  */
 
 import * as adsController from '../controllers/ads.controller.js';
-import { requireRestriction } from '../middlewares/requireRestriction.js';
+import { requireRestriction } from '../middlewares/requireRestriction.ts';
 
 export default async function adsRoutes(app) {
   const requireModule = app.requireModule('sponsored_ads');
@@ -77,7 +77,7 @@ export default async function adsRoutes(app) {
   //    `growth.ad.govern` is HIGH risk and delegable, which is what lets a Super Admin hand ad
   //    pricing to a named staff member without handing over anything else.
   app.get('/admin/ads/products', {
-    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
     // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
     config: { page: '/admin/growth/ad-pricing' },
     preHandler: [app.authenticate, requireModule, requireGovernAds],

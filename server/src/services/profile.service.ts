@@ -1,5 +1,5 @@
 /**
- * profile.service.js — the signed-in user's own profile (GET/PUT /api/v1/me/profile).
+ * profile.service.ts — the signed-in user's own profile (GET/PUT /api/v1/me/profile).
  *
  * Distinct from the admin user surfaces: this one is scoped to `req.user.id` and never takes a
  * target id, so there is no object to authorize against beyond "you are logged in". Everything a
@@ -115,9 +115,9 @@ export function normalizeDateOfBirth(value) {
  * Anything not named here (phone, status, roles, id) is dropped rather than rejected, so a client
  * that echoes back the whole GET payload still gets a correct PUT.
  */
-export function buildProfileUpdate(payload = {}) {
-  const profile = {};
-  const account = {};
+export function buildProfileUpdate(payload: Record<string, any> = {}) {
+  const profile: Record<string, any> = {};
+  const account: Record<string, any> = {};
 
   const fullName = cleanText(payload.full_name, 'full_name', MAX_LENGTHS.full_name);
   if (!fullName) fail('Your full name is required.', 'আপনার পুরো নাম আবশ্যক।', 'full_name');
@@ -241,7 +241,7 @@ export async function getMyProfile(db, config, userId) {
   return { ...presentProfile(row, config.auth.piiEncryptionKey), roles };
 }
 
-export async function updateMyProfile(db, config, userId, payload = {}) {
+export async function updateMyProfile(db, config, userId, payload: Record<string, any> = {}) {
   const current = await userRepo.getSelfProfile(db, userId);
   if (!current) throw new AppError('NOT_FOUND', 'Account not found.', 'অ্যাকাউন্ট পাওয়া যায়নি।');
 

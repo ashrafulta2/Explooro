@@ -21,7 +21,7 @@
 import * as rbacService from '../services/rbac.service.ts';
 import * as permRepo from '../repositories/permission.repository.ts';
 import { generateRef } from '../lib/ref.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { restrictingScopes, scopeAllows } from '../lib/grantScope.ts';
 

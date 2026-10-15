@@ -14,7 +14,7 @@
 import { AppError } from '../plugins/errorHandler.ts';
 import { withTransaction } from '../config/db.ts';
 import { getReferralSettings } from './referral.service.ts';
-import { updateModuleSettings } from './module.service.js';
+import { updateModuleSettings } from './module.service.ts';
 import { settleReferralEarnings } from './referralEscrow.service.ts';
 import * as auditService from './audit.service.ts';
 

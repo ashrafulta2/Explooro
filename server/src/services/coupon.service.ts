@@ -11,9 +11,9 @@
 
 import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
-import { isEnabled } from './module.service.js';
+import { isEnabled } from './module.service.ts';
 
 export const VALID_DISCOUNT_TYPES = new Set(['PERCENT', 'FIXED', 'FREE_SHIPPING', 'BUY_X_GET_Y']);
 export const VALID_SCOPES = new Set(['PLATFORM', 'SUPPLIER', 'SALER', 'CATEGORY', 'PRODUCT']);

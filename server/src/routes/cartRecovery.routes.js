@@ -14,7 +14,7 @@ export default async function cartRecoveryRoutes(app) {
 
   // 2. Shop Partner cart abandonment analytics, drop-offs, and funnel insights
   app.get('/saler/cart-insights', {
-    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
     // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
     config: { page: '/saler/cart-insights' },
     preHandler: [app.authenticate, requireCartRecovery],

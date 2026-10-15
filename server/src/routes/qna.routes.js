@@ -2,7 +2,7 @@
  * qna.routes.js — Routes for product Q&A (Prompt 4.6).
  */
 
-import * as qnaController from '../controllers/qna.controller.js';
+import * as qnaController from '../controllers/qna.controller.ts';
 
 export default async function qnaRoutes(app) {
   app.get('/products/:productId/questions', qnaController.listQuestions);

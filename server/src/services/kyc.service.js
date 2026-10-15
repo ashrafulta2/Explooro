@@ -13,7 +13,7 @@
 import { createHmac, createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { recomputeUserTier } from './trustTier.service.ts';
 
 // Encryption key for PII at rest

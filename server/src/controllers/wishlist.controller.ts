@@ -1,5 +1,5 @@
 /**
- * wishlist.controller.js — HTTP controller for Wishlist endpoints (Prompt 5.1).
+ * wishlist.controller.ts — HTTP controller for Wishlist endpoints (Prompt 5.1).
  */
 
 import * as wishlistService from '../services/wishlist.service.ts';

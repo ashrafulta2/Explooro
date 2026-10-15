@@ -2,7 +2,7 @@
  * bundle.routes.js — Fastify routes for Cross-Seller Bundling & Surge Pricing Engine (Prompt 10.5).
  */
 
-import * as bundleController from '../controllers/bundle.controller.js';
+import * as bundleController from '../controllers/bundle.controller.ts';
 
 export default async function bundleRoutes(app) {
   const requireBundlingModule = app.requireModule('product_bundling');

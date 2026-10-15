@@ -1,5 +1,5 @@
 /**
- * module.service.js — Module Control Backend, Hierarchical Targeting & Dependency Engine (Prompt 3.1).
+ * module.service.ts — Module Control Backend, Hierarchical Targeting & Dependency Engine (Prompt 3.1).
  */
 
 import { createHash } from 'node:crypto';
@@ -55,7 +55,7 @@ export function computePercentageBucket(moduleKey, seed) {
  * 3. Targeting rules: USER (40) > DISTRICT (30) > TIER (20) > ROLE (10) > PERCENTAGE (0)
  * 4. Default: default_enabled / is_enabled
  */
-export async function isEnabled(db, cache, moduleKey, context = {}) {
+export async function isEnabled(db, cache, moduleKey, context: Record<string, any> = {}) {
   if (!moduleKey) return true;
 
   const version = await getCacheVersion(cache);
@@ -161,9 +161,9 @@ export async function isEnabled(db, cache, moduleKey, context = {}) {
 /**
  * Returns map of moduleKey -> boolean for public flag consumption.
  */
-export async function getPublicModulesMap(db, cache, context = {}) {
+export async function getPublicModulesMap(db, cache, context: Record<string, any> = {}) {
   const all = await repo.getAllModules(db);
-  const result = {};
+  const result: Record<string, any> = {};
 
   await Promise.all(
     all.map(async (m) => {
@@ -200,7 +200,7 @@ export async function listAdminModules(db) {
  */
 export async function toggleModule(db, cache, actor, moduleKey, { enabled, reason, cascade = false, scheduledOnAt = null, scheduledOffAt = null }) {
   if (!reason || typeof reason !== 'string' || reason.trim().length < 10) {
-    const err = new Error('A reason of at least 10 characters is mandatory for module state changes.');
+    const err: any = new Error('A reason of at least 10 characters is mandatory for module state changes.');
     err.statusCode = 400;
     err.code = 'INVALID_REASON';
     err.message_en = 'A reason of at least 10 characters is mandatory for module state changes.';
@@ -210,7 +210,7 @@ export async function toggleModule(db, cache, actor, moduleKey, { enabled, reaso
 
   const existing = await repo.getModuleByKey(db, moduleKey);
   if (!existing) {
-    const err = new Error(`Module "${moduleKey}" not found.`);
+    const err: any = new Error(`Module "${moduleKey}" not found.`);
     err.statusCode = 404;
     err.code = 'NOT_FOUND';
     throw err;
@@ -224,7 +224,7 @@ export async function toggleModule(db, cache, actor, moduleKey, { enabled, reaso
     for (const parentKey of existing.depends_on) {
       const parent = await repo.getModuleByKey(db, parentKey);
       if (parent && !parent.is_enabled) {
-        const err = new Error(`Cannot enable "${existing.label_en}" because required parent module "${parent.label_en}" (${parentKey}) is disabled.`);
+        const err: any = new Error(`Cannot enable "${existing.label_en}" because required parent module "${parent.label_en}" (${parentKey}) is disabled.`);
         err.statusCode = 409;
         err.code = 'PARENT_MODULE_DISABLED';
         err.message_en = `Cannot enable "${existing.label_en}" because required module "${parent.label_en}" (${parentKey}) is disabled.`;
@@ -241,7 +241,7 @@ export async function toggleModule(db, cache, actor, moduleKey, { enabled, reaso
       if (!cascade) {
         const dependentNamesEn = activeDependents.map((d) => `"${d.label_en}" (${d.key})`).join(', ');
         const dependentNamesBn = activeDependents.map((d) => `"${d.label_bn}" (${d.key})`).join(', ');
-        const err = new Error(`Cannot disable "${existing.label_en}" because ${dependentNamesEn} depend(s) on it.`);
+        const err: any = new Error(`Cannot disable "${existing.label_en}" because ${dependentNamesEn} depend(s) on it.`);
         err.statusCode = 409;
         err.code = 'MODULE_DEPENDENCY_CONFLICT';
         err.dependents = activeDependents.map((d) => ({
@@ -312,7 +312,7 @@ export async function toggleModule(db, cache, actor, moduleKey, { enabled, reaso
  */
 export async function updateModuleSettings(db, cache, actor, moduleKey, { settings, reason }) {
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
-    const err = new Error('Settings payload must be a JSON object.');
+    const err: any = new Error('Settings payload must be a JSON object.');
     err.statusCode = 400;
     err.code = 'INVALID_SETTINGS';
     throw err;
@@ -320,7 +320,7 @@ export async function updateModuleSettings(db, cache, actor, moduleKey, { settin
 
   const existing = await repo.getModuleByKey(db, moduleKey);
   if (!existing) {
-    const err = new Error(`Module "${moduleKey}" not found.`);
+    const err: any = new Error(`Module "${moduleKey}" not found.`);
     err.statusCode = 404;
     err.code = 'NOT_FOUND';
     throw err;
@@ -333,31 +333,31 @@ export async function updateModuleSettings(db, cache, actor, moduleKey, { settin
       if (props[key]) {
         const schemaProp = props[key];
         if (schemaProp.type === 'integer' && !Number.isInteger(val)) {
-          const err = new Error(`Field "${key}" must be an integer.`);
+          const err: any = new Error(`Field "${key}" must be an integer.`);
           err.statusCode = 400;
           err.code = 'SCHEMA_VALIDATION_ERROR';
           throw err;
         }
         if (schemaProp.type === 'number' && typeof val !== 'number') {
-          const err = new Error(`Field "${key}" must be a number.`);
+          const err: any = new Error(`Field "${key}" must be a number.`);
           err.statusCode = 400;
           err.code = 'SCHEMA_VALIDATION_ERROR';
           throw err;
         }
         if (schemaProp.type === 'boolean' && typeof val !== 'boolean') {
-          const err = new Error(`Field "${key}" must be a boolean.`);
+          const err: any = new Error(`Field "${key}" must be a boolean.`);
           err.statusCode = 400;
           err.code = 'SCHEMA_VALIDATION_ERROR';
           throw err;
         }
         if (schemaProp.type === 'array' && !Array.isArray(val)) {
-          const err = new Error(`Field "${key}" must be an array.`);
+          const err: any = new Error(`Field "${key}" must be an array.`);
           err.statusCode = 400;
           err.code = 'SCHEMA_VALIDATION_ERROR';
           throw err;
         }
         if (schemaProp.enum && !schemaProp.enum.includes(val)) {
-          const err = new Error(`Field "${key}" must be one of: ${schemaProp.enum.join(', ')}.`);
+          const err: any = new Error(`Field "${key}" must be one of: ${schemaProp.enum.join(', ')}.`);
           err.statusCode = 400;
           err.code = 'SCHEMA_VALIDATION_ERROR';
           throw err;
@@ -399,7 +399,7 @@ export async function updateModuleSettings(db, cache, actor, moduleKey, { settin
 export async function createTargetingRule(db, cache, actor, moduleKey, { targetType, targetValue, isEnabled = true, priority }) {
   const existing = await repo.getModuleByKey(db, moduleKey);
   if (!existing) {
-    const err = new Error(`Module "${moduleKey}" not found.`);
+    const err: any = new Error(`Module "${moduleKey}" not found.`);
     err.statusCode = 404;
     err.code = 'NOT_FOUND';
     throw err;
@@ -407,14 +407,14 @@ export async function createTargetingRule(db, cache, actor, moduleKey, { targetT
 
   const upperType = (targetType || '').toUpperCase();
   if (!['ROLE', 'TIER', 'DISTRICT', 'USER', 'PERCENTAGE'].includes(upperType)) {
-    const err = new Error(`Invalid target_type: ${targetType}. Supported: ROLE, TIER, DISTRICT, USER, PERCENTAGE.`);
+    const err: any = new Error(`Invalid target_type: ${targetType}. Supported: ROLE, TIER, DISTRICT, USER, PERCENTAGE.`);
     err.statusCode = 400;
     err.code = 'INVALID_TARGET_TYPE';
     throw err;
   }
 
   if (targetValue === undefined || targetValue === null || String(targetValue).trim() === '') {
-    const err = new Error('target_value is required.');
+    const err: any = new Error('target_value is required.');
     err.statusCode = 400;
     err.code = 'MISSING_TARGET_VALUE';
     throw err;
@@ -453,7 +453,7 @@ export async function createTargetingRule(db, cache, actor, moduleKey, { targetT
 export async function deleteTargetingRule(db, cache, actor, id) {
   const deleted = await repo.deleteTargetingRule(db, id);
   if (!deleted) {
-    const err = new Error(`Targeting rule ${id} not found.`);
+    const err: any = new Error(`Targeting rule ${id} not found.`);
     err.statusCode = 404;
     err.code = 'NOT_FOUND';
     throw err;
@@ -481,7 +481,7 @@ export async function deleteTargetingRule(db, cache, actor, id) {
 export async function getModuleHistory(db, moduleKey) {
   const existing = await repo.getModuleByKey(db, moduleKey);
   if (!existing) {
-    const err = new Error(`Module "${moduleKey}" not found.`);
+    const err: any = new Error(`Module "${moduleKey}" not found.`);
     err.statusCode = 404;
     err.code = 'NOT_FOUND';
     throw err;

@@ -25,7 +25,7 @@
  * write, and no other admin route (theme, modules, delegation) uses one.
  */
 
-import * as localizationController from '../controllers/localization.controller.js';
+import * as localizationController from '../controllers/localization.controller.ts';
 
 export default async function localizationRoutes(app) {
   const auth = app.authenticate || (async () => {});
@@ -36,7 +36,7 @@ export default async function localizationRoutes(app) {
 
   app.get(
     '/admin/platform/localization',
-    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
     // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
     { config: { page: '/admin/platform/language' }, preHandler: [auth, reqPerm('platform.localization.view')] },
     localizationController.getAdminPolicy

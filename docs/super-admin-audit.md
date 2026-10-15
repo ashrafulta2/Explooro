@@ -168,7 +168,7 @@ These are real and were left open on purpose. Do not assume they were missed.
    that would have made a HIDDEN page reachable by typing its name.
    `client/test/pageAvailability.test.js` fails if any of the three grows its own copy.
    Server-side, an endpoint owned by one page declares `config: { page }` and
-   `middlewares/requirePage.js` appends the guard — declared at the route, never in a central
+   `middlewares/requirePage.ts` appends the guard — declared at the route, never in a central
    map, because a map is a second list nobody updates. The reader is what makes the declaration
    real: `store.routes.js` carried `config: { requireModule, requirePermission }` on four routes
    with nothing in the repo reading it, so those guards did nothing at all.

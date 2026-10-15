@@ -1,5 +1,5 @@
 /**
- * deliveryCharge.controller.js — the per-parcel delivery charge for normal checkout.
+ * deliveryCharge.controller.ts — the per-parcel delivery charge for normal checkout.
  */
 
 import * as deliveryChargeService from '../services/deliveryCharge.service.ts';

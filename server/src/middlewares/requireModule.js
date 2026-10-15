@@ -6,7 +6,7 @@
  */
 
 import fp from 'fastify-plugin';
-import { isEnabled } from '../services/module.service.js';
+import { isEnabled } from '../services/module.service.ts';
 import * as repo from '../repositories/module.repository.ts';
 import { getRequestContext } from '../plugins/requestContext.ts';
 

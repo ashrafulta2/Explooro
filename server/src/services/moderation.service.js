@@ -17,7 +17,7 @@
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 
 // Default blocklist dictionaries (can be augmented by module sub-settings)
 const DEFAULT_KEYWORD_BLOCKLIST_EN = [

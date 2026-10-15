@@ -13,7 +13,7 @@
  * WHY no requireModule: like Language and Genie this is a `core` governance surface.
  */
 
-import * as deliveryChargeController from '../controllers/deliveryCharge.controller.js';
+import * as deliveryChargeController from '../controllers/deliveryCharge.controller.ts';
 
 export default async function deliveryChargeRoutes(app) {
   const auth = app.authenticate || (async () => {});

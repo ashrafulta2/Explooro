@@ -11,7 +11,7 @@
 
 import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { isEnabled } from './module.service.js';
+import { isEnabled } from './module.service.ts';
 
 export async function getCoinSettings(db) {
   try {

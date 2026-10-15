@@ -1,5 +1,5 @@
 /**
- * subscriptionSelf.controller.js — a merchant's own Shop Partner Pro subscription (thin HTTP layer).
+ * subscriptionSelf.controller.ts — a merchant's own Shop Partner Pro subscription (thin HTTP layer).
  * The admin side lives in finance.controller.js; the rules live in subscriptionBilling.service.ts.
  */
 

@@ -12,7 +12,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import * as adProductRepo from '../repositories/adProduct.repository.ts';
 import {
   quote as priceQuote,

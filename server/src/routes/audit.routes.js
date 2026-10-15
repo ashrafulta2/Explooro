@@ -2,7 +2,7 @@
  * audit.routes.js — Route definitions for Audit Log Engine (Prompt 2.7).
  */
 
-import * as controller from '../controllers/audit.controller.js';
+import * as controller from '../controllers/audit.controller.ts';
 
 export default async function auditRoutes(app) {
   // 1. Query audit log with filters and cursor pagination

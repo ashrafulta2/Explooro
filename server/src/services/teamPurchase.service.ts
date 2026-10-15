@@ -25,7 +25,7 @@ import * as orderRepo from '../repositories/order.repository.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
-import { isEnabled, updateModuleSettings } from './module.service.js';
+import { isEnabled, updateModuleSettings } from './module.service.ts';
 import { calculatePricingBreakdown } from './pricing.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
 

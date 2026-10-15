@@ -3,7 +3,7 @@
  */
 
 import * as customerCtrl from '../controllers/customer.controller.js';
-import * as addressCtrl from '../controllers/customerAddress.controller.js';
+import * as addressCtrl from '../controllers/customerAddress.controller.ts';
 
 export default async function customerRoutes(fastify) {
   // 1. Customer Dashboard Overview

@@ -7,7 +7,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { withAvailableStock, reservedUnitsSql } from '../src/services/teamStockReservation.service.ts';
-import { executeSearch } from '../src/services/search.service.js';
+import { executeSearch } from '../src/services/search.service.ts';
 import { getPublicStore } from '../src/services/store.service.ts';
 
 // Reservation query: product 1 has 3 units held by open teams, product 2 none.

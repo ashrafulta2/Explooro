@@ -9,7 +9,7 @@
  */
 
 import * as provider from './provider.ts';
-import * as demandForecast from './demandForecast.js';
+import * as demandForecast from './demandForecast.ts';
 
 const FEATURE_KEY = 'insights';
 const SALES_WINDOW_DAYS = 30;

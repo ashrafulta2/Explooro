@@ -11,7 +11,7 @@
  * This file only decides who is in which tier, and the pricing step reads the result.
  */
 
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import {
   RULES_KEY, TIER_KEYS, nextTierInfo, parseTierBonuses, pickTierKey, resolveRules,
 } from './salerTierBonus.ts';

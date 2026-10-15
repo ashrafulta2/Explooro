@@ -78,6 +78,8 @@ const ERROR_STATUS = {
   UPSTREAM_UNAVAILABLE: 503,
   WEBHOOK_SIGNATURE_INVALID: 401,
   INTERNAL_ERROR: 500,
+  // WHY: POST /public/orders answers this until partner ordering is designed (publicApi.controller.ts).
+  NOT_IMPLEMENTED: 501,
   SERVICE_DEGRADED: 503,
 };
 

@@ -1,5 +1,5 @@
 /**
- * genie.controller.js — Request handlers for the popup genie-effect policy API.
+ * genie.controller.ts — Request handlers for the popup genie-effect policy API.
  */
 
 import * as genieService from '../services/genie.service.ts';

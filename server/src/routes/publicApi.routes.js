@@ -2,7 +2,7 @@
  * publicApi.routes.js — Fastify Route Registrations for Public Catalog, Partner APIs & Developer Portal (Prompt 10.7).
  */
 
-import * as controller from '../controllers/publicApi.controller.js';
+import * as controller from '../controllers/publicApi.controller.ts';
 import * as apiKeyService from '../services/apiKey.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
@@ -62,7 +62,7 @@ export default async function publicApiRoutes(fastify) {
   // DEVELOPER PORTAL (JWT Auth required for dashboard management)
   // ---------------------------------------------------------------------------
   fastify.post('/developer/api-keys', {
-    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
     // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
     config: { page: '/admin/platform/api-keys' },
     preHandler: [requireOpenApiModule, fastify.authenticate],

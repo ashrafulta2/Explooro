@@ -16,7 +16,7 @@ import * as vaultService from './vault.service.ts';
 import * as clawbackService from './clawback.service.ts';
 import * as warrantyService from './warranty.service.ts';
 import * as referralService from './referral.service.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 
 /**
  * Resolves the optimal carrier for a sub-order based on routing rules.

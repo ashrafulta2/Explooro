@@ -1,5 +1,5 @@
 /**
- * idempotency.js — makes every state-changing route honour an `Idempotency-Key` header
+ * idempotency.ts — makes every state-changing route honour an `Idempotency-Key` header
  * (CLAUDE.md constraint 11, docs/api-contract.md §5).
  *
  * WHY a plugin and not per-controller code: only five controllers called runIdempotent, so a
@@ -47,7 +47,7 @@ const OWN_KEY = [
 // A replayed response is held in the cache for 24h; money endpoints answer in a few hundred bytes.
 const MAX_STORED_BYTES = 256 * 1024;
 
-export function isIdempotentRoute(url, methods, config = {}) {
+export function isIdempotentRoute(url, methods, config: Record<string, any> = {}) {
   if (config.idempotency === false) return false;
   const list = Array.isArray(methods) ? methods : [methods];
   if (!list.some((m) => WRITE_METHODS.has(String(m).toUpperCase()))) return false;
@@ -82,7 +82,7 @@ function createHooks(routeUrl) {
     });
 
     if (!outcome.proceed) {
-      const stored = outcome.result;
+      const stored = (outcome as { result: any }).result;
       reply.header('Idempotency-Replayed', 'true');
       if (stored.contentType) reply.header('content-type', stored.contentType);
       return reply.code(stored.status).send(stored.body);

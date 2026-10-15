@@ -32,7 +32,7 @@ export default async function recommendationAdminRoutes(app) {
   const view = app.requirePermission('platform.recommendation.view');
   const update = app.requirePermission('platform.recommendation.update');
 
-  // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is parked
+  // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is parked
   // at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
   app.get(PAGE, { config: { page: PAGE }, preHandler: [auth, view] }, controller.getAdminSettings);
 

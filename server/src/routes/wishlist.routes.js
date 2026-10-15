@@ -2,7 +2,7 @@
  * wishlist.routes.js — Fastify routes for Wishlist (Prompt 5.1).
  */
 
-import * as wishlistCtrl from '../controllers/wishlist.controller.js';
+import * as wishlistCtrl from '../controllers/wishlist.controller.ts';
 
 export default async function wishlistRoutes(fastify) {
   fastify.get(

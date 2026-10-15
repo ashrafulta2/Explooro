@@ -3,7 +3,7 @@
  */
 
 import crypto from 'node:crypto';
-import * as service from '../services/whatsappCommerce.service.js';
+import * as service from '../services/whatsappCommerce.service.ts';
 
 // WHY: outside production the mock driver needs a predictable token for local runs; in production a
 // guessable default would let anyone subscribe a hostile endpoint, so it must come from the env.

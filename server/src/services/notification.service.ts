@@ -1,5 +1,5 @@
 /**
- * notification.service.js — Unified Multi-Channel Notification Engine (Prompt 8.2 / Master Spec §H).
+ * notification.service.ts — Unified Multi-Channel Notification Engine (Prompt 8.2 / Master Spec §H).
  *
  * Implements:
  * 1. Channel-agnostic notify API with template variable rendering.
@@ -164,7 +164,7 @@ export const DEFAULT_TEMPLATES = {
 /**
  * Replaces {{variable}} placeholders with values from data object.
  */
-export function renderTemplateString(templateStr, data = {}) {
+export function renderTemplateString(templateStr, data: Record<string, any> = {}) {
   if (!templateStr) return '';
   return templateStr.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, key) => {
     return data[key] !== undefined ? String(data[key]) : '';
@@ -293,7 +293,7 @@ export async function notify(db, {
     );
 
     const notification = inserted[0];
-    const deliveryStatus = {};
+    const deliveryStatus: Record<string, any> = {};
 
     // 6. Fan-out to resolved channels
     const localeMsg = user.locale === 'bn' ? renderedBodyBn : renderedBodyEn;

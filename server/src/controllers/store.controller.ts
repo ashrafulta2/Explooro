@@ -1,5 +1,5 @@
 /**
- * store.controller.js — Request handlers for storefronts, builder, status & OG images (Prompt 4.8).
+ * store.controller.ts — Request handlers for storefronts, builder, status & OG images (Prompt 4.8).
  */
 
 import * as storeService from '../services/store.service.ts';

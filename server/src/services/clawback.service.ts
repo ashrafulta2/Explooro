@@ -15,7 +15,7 @@ import { withTransaction } from '../config/db.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 
 /**
  * Generates a unique public ref for negative balance recovery records.

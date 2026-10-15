@@ -1,5 +1,5 @@
 /**
- * payment.routes.js — Fastify Routes for Payments, Callbacks & Webhooks (Prompt 5.3).
+ * payment.routes.ts — Fastify Routes for Payments, Callbacks & Webhooks (Prompt 5.3).
  */
 
 import { addRawJsonBody } from '../plugins/rawBody.ts';

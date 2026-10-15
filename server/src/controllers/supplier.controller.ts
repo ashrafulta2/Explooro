@@ -1,5 +1,5 @@
 /**
- * supplier.controller.js — Supplier / Manufacturer Operations Controller (Prompt 11.1).
+ * supplier.controller.ts — Supplier / Manufacturer Operations Controller (Prompt 11.1).
  *
  * Implements `idea proposition.md` §AL.1:
  * - KPI Dashboard Aggregations (Live Stock, Low Stock, Pending Orders, Today's Earnings, Expiring Batches).

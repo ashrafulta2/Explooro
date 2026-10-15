@@ -19,7 +19,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 
-import * as moduleService from '../src/services/module.service.js';
+import * as moduleService from '../src/services/module.service.ts';
 import * as moduleRepo from '../src/repositories/module.repository.ts';
 import * as auditService from '../src/services/audit.service.ts';
 import moduleRoutes from '../src/routes/module.routes.js';

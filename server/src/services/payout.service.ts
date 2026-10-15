@@ -16,7 +16,7 @@ import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
 import { defaultB2CClient } from '../integrations/payments/bkash-b2c.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
 
 /**

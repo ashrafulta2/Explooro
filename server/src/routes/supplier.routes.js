@@ -2,7 +2,7 @@
  * supplier.routes.js — Fastify Route definitions for Supplier / Manufacturer Dashboard & Operations (Prompt 11.1).
  */
 
-import * as controller from '../controllers/supplier.controller.js';
+import * as controller from '../controllers/supplier.controller.ts';
 import * as sampleKit from '../controllers/sampleKit.controller.ts';
 import * as fastPayout from '../controllers/fastPayout.controller.ts';
 import * as returnProtection from '../controllers/returnProtection.controller.ts';
@@ -34,7 +34,7 @@ export default async function supplierRoutes(app) {
   app.get(
     '/supplier/inventory',
     {
-      // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+      // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
       // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
       config: { page: '/supplier/inventory' },
       preHandler: [

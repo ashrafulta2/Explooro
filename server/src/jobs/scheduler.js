@@ -9,7 +9,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import * as moduleService from '../services/module.service.js';
+import * as moduleService from '../services/module.service.ts';
 
 /**
  * Converts a string job name into a deterministic 32-bit signed integer for pg advisory locking.

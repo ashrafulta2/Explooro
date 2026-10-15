@@ -2,7 +2,7 @@
  * media.routes.js — Media routing & static storage server (Prompt 4.2).
  */
 
-import * as mediaController from '../controllers/media.controller.js';
+import * as mediaController from '../controllers/media.controller.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 import { MAX_IMAGE_SIZE_BYTES } from '../services/media.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';

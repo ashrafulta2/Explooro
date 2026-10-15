@@ -1,5 +1,5 @@
 /**
- * pageAccess.controller.js — Request handlers for the per-page availability API.
+ * pageAccess.controller.ts — Request handlers for the per-page availability API.
  */
 
 import * as pageAccessService from '../services/pageAccess.service.ts';

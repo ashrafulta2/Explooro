@@ -2,7 +2,7 @@
  * store.routes.js — Fastify plugin for storefront, builder, status & OG routes (Prompt 4.8).
  */
 
-import * as storeController from '../controllers/store.controller.js';
+import * as storeController from '../controllers/store.controller.ts';
 
 export default async function storeRoutes(fastify) {
   // Public storefront & slug check

@@ -15,7 +15,7 @@
 
 import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 import { toPaisa, toBdtNumber } from './pricing.service.ts';
 
 const DEFAULT_CONFIG = {

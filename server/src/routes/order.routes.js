@@ -4,7 +4,7 @@
 
 import * as orderCtrl from '../controllers/order.controller.ts';
 import { requirePermission } from '../middlewares/requirePermission.js';
-import { requireRestriction } from '../middlewares/requireRestriction.js';
+import { requireRestriction } from '../middlewares/requireRestriction.ts';
 
 export default async function orderRoutes(fastify) {
   const requirePerm = fastify.requirePermission || requirePermission;

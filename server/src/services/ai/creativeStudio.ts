@@ -1,5 +1,5 @@
 /**
- * creativeStudio.js — AI Creative Studio (Prompt 10.3 / `idea proposition.md` §W).
+ * creativeStudio.ts — AI Creative Studio (Prompt 10.3 / `idea proposition.md` §W).
  *
  * Ad copy generation, product-description improvement, and a studio-background treatment for
  * product photos. Every output is a DRAFT — this module never writes to `products` or
@@ -35,7 +35,7 @@ function formatPrice(product) {
 }
 
 /** Loads the real product row an ad-copy/description/background request must be grounded in. */
-async function loadGroundingProduct(db, productId, deps = {}) {
+async function loadGroundingProduct(db, productId, deps: Record<string, any> = {}) {
   const getProductById = deps.getProductById || productRepo.getProductById;
   const product = await getProductById(db, productId);
   if (!product) {
@@ -57,7 +57,7 @@ described in the user message. Rules:
 
 /** Generates a bilingual-ready ad caption grounded in the real product row. Draft only — never
  * posted anywhere automatically; the shop partner copies it into WhatsApp/Facebook/the flyer tool. */
-export async function generateAdCopy(db, { userId, productId, lang = 'en', tone = 'friendly' }, deps = {}) {
+export async function generateAdCopy(db, { userId, productId, lang = 'en', tone = 'friendly' }, deps: Record<string, any> = {}) {
   const generate = deps.generateCompletion || provider.generateCompletion;
   const product = await loadGroundingProduct(db, productId, deps);
 
@@ -101,7 +101,7 @@ persuasiveness, and scannability. Rules:
 
 /** Improves an existing product description. Draft only — the caller (a supplier who owns the
  * product) must explicitly apply it via the existing `PATCH /products/:id`, never auto-saved. */
-export async function improveDescription(db, { userId, productId, lang = 'en' }, deps = {}) {
+export async function improveDescription(db, { userId, productId, lang = 'en' }, deps: Record<string, any> = {}) {
   const generate = deps.generateCompletion || provider.generateCompletion;
   const product = await loadGroundingProduct(db, productId, deps);
 
@@ -149,7 +149,7 @@ function parseBackgroundChoice(text) {
 
 /** Suggests which flat studio-background treatment fits this product, grounded in its real
  * category/title. The model only picks a style from a fixed enum — sharp does the actual pixels. */
-export async function suggestBackgroundTreatment(db, { userId, productId, lang = 'en' }, deps = {}) {
+export async function suggestBackgroundTreatment(db, { userId, productId, lang = 'en' }, deps: Record<string, any> = {}) {
   const generate = deps.generateCompletion || provider.generateCompletion;
   const product = await loadGroundingProduct(db, productId, deps);
   const title = lang === 'bn' ? product.title_bn : product.title_en;
@@ -181,7 +181,7 @@ export async function suggestBackgroundTreatment(db, { userId, productId, lang =
  * existing, already-moderated upload pipeline. Returns the new asset; nothing is attached to the
  * product until the saler/supplier explicitly does so through the existing product-image flow.
  */
-export async function applyBackgroundTreatment(db, { userId, productId, style, userRestrictions = [] }, deps = {}) {
+export async function applyBackgroundTreatment(db, { userId, productId, style, userRestrictions = [] }, deps: Record<string, any> = {}) {
   if (!BACKGROUND_STYLES.includes(style)) {
     throw new AppError('VALIDATION_FAILED', `Unknown background style: ${style}`, `অজানা ব্যাকগ্রাউন্ড স্টাইল: ${style}`);
   }

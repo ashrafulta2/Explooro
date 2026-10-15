@@ -27,7 +27,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
-import requirePagePlugin from '../src/middlewares/requirePage.js';
+import requirePagePlugin from '../src/middlewares/requirePage.ts';
 import { LOCKED_PATHS } from '../src/services/pageAccess.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -340,7 +340,7 @@ describe('the wired route files', () => {
 describe('registration', () => {
   test('the plugin is registered in app.js', () => {
     const appSrc = read('server/src/app.js');
-    assert.match(appSrc, /import requirePagePlugin from '\.\/middlewares\/requirePage\.js'/);
+    assert.match(appSrc, /import requirePagePlugin from '\.\/middlewares\/requirePage\.ts'/);
     assert.match(appSrc, /app\.register\(requirePagePlugin\)/);
   });
 

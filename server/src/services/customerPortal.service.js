@@ -11,7 +11,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.ts';
-import { notify } from './notification.service.js';
+import { notify } from './notification.service.ts';
 import { SLUG_REGEX, validateSlugAvailability } from './store.service.ts';
 import { orderStatusSql } from '../repositories/order.repository.ts';
 

@@ -2,7 +2,7 @@
  * user.routes.js — Admin routes for users, user details, permissions introspection, and matrix (Prompt 3.3).
  */
 
-import * as userController from '../controllers/user.controller.js';
+import * as userController from '../controllers/user.controller.ts';
 
 export default async function userRoutes(app) {
   const auth = app.authenticate || (async () => {});

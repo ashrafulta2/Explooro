@@ -34,7 +34,7 @@ export default async function financeRoutes(app) {
 
   // 4. Admin Escrow Holdings Dashboard with live countdowns
   app.get('/admin/finance/escrow', {
-    // `config.page` is read by the onRoute hook in middlewares/requirePage.js: when this page is
+    // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
     // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
     config: { page: '/admin/finance/escrow' },
     preHandler: [app.authenticate, app.requirePermission('finance.escrow.view')],

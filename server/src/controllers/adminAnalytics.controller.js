@@ -3,7 +3,7 @@
  */
 
 import * as analyticsService from '../services/analytics.service.js';
-import { writeAudit } from '../lib/audit.js';
+import { writeAudit } from '../lib/audit.ts';
 
 export async function getOverviewHandler(req, reply) {
   const { timeframe = '30d', from = null, to = null } = req.query;

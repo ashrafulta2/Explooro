@@ -5,7 +5,7 @@
  * a value from the request body or params. Everything else is profile.service.js.
  */
 
-import * as profileService from '../services/profile.service.js';
+import * as profileService from '../services/profile.service.ts';
 
 export async function getMyProfile(req, reply) {
   const data = await profileService.getMyProfile(req.server.db, req.server.config, req.user.id);
