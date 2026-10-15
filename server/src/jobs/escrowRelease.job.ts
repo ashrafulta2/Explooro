@@ -9,7 +9,7 @@
  */
 
 import * as vaultService from '../services/vault.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 /**
  * Sweeps all mature escrow entries and releases them to respective supplier/saler/platform wallets.

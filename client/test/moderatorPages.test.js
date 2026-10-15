@@ -127,7 +127,7 @@ test('Moderator — the Products tab covers product edits', async (t) => {
   });
 
   await t.test('3. The server matches item_type against a list, not a single value', () => {
-    const serviceSrc = readText('server/src/services/moderation.service.js');
+    const serviceSrc = readText('server/src/services/moderation.service.ts');
     assert.ok(/item_type = ANY\(/.test(serviceSrc), 'the queue query must use = ANY(...) for item_type');
   });
 

@@ -2,7 +2,7 @@
  * module.routes.js — Route definitions for platform module management and public flags (Prompt 3.1).
  */
 
-import * as controller from '../controllers/module.controller.js';
+import * as controller from '../controllers/module.controller.ts';
 
 export default async function moduleRoutes(app) {
   // Optional auth pre-handler for public endpoint (to attach user context if logged in)

@@ -3,7 +3,7 @@
  *
  * The single file that imports `argon2` (docs/dependency-ledger.md) — introduced a phase early, in
  * 2.2, because the dev-user seed needs real hashes rather than placeholders. Prompt 2.3's
- * auth.service.js imports from here, not from `argon2` directly, so the dependency still has
+ * auth.service.ts imports from here, not from `argon2` directly, so the dependency still has
  * exactly one point of contact.
  */
 

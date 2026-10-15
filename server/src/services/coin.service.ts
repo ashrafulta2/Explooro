@@ -36,7 +36,7 @@ export async function getCoinSettings(db) {
   }
 }
 
-// WHY: matches POLICY_DEFAULTS.expiry_days in growthAdmin.service.js, so a row with no stored value
+// WHY: matches POLICY_DEFAULTS.expiry_days in growthAdmin.service.ts, so a row with no stored value
 // expires coins after the same 365 days the admin form shows. (Not imported: that file imports this one.)
 const DEFAULT_EXPIRY_DAYS = 365;
 

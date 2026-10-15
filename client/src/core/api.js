@@ -114,7 +114,7 @@ function buildHeaders(method, path, options) {
 
 // WHY single-flight: refresh tokens are single-use and rotating, and the server treats a second
 // presentation of an already-used one as token theft — it revokes the whole session
-// (auth.service.js `refresh_reuse_detected`), which logs the user out for good. A page that fires
+// (auth.service.ts `refresh_reuse_detected`), which logs the user out for good. A page that fires
 // several requests in parallel produces several simultaneous 401s, so without de-duplication the
 // *second* refresh would kill the session the first one just renewed. Every caller — the 401 retry
 // below and session.js's bootstrap/proactive timer alike — must go through this one promise.

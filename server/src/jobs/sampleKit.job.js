@@ -6,7 +6,7 @@
  */
 
 import { settleDue } from '../services/sampleKit.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runSampleKit(db, cache, logger = console) {
   const r = await settleDue(db, logger);

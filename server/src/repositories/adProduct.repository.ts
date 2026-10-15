@@ -2,7 +2,7 @@
  * adProduct.repository.ts — SQL only for the ad product catalogue and reserved-slot inventory.
  *
  * No business rules here: pricing lives in services/adPricing.ts, policy in
- * services/adProducts.service.js. This file just moves rows.
+ * services/adProducts.service.ts. This file just moves rows.
  */
 
 /**

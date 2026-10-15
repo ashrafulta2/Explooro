@@ -11,7 +11,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import * as svc from '../src/services/growthAdmin.service.js';
+import * as svc from '../src/services/growthAdmin.service.ts';
 import growthAdminRoutes from '../src/routes/growthAdmin.routes.js';
 import promotionRoutes from '../src/routes/promotion.routes.js';
 

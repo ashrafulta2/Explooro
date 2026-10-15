@@ -11,9 +11,9 @@
  * fraud check) happens exactly once per verdict, whichever door was used.
  */
 
-import * as kycService from './kyc.service.js';
+import * as kycService from './kyc.service.ts';
 import * as referralService from './referral.service.ts';
-import { registerActionExecutor } from './makerChecker.service.js';
+import { registerActionExecutor } from './makerChecker.service.ts';
 
 /** Highest-privilege role the caller holds; decideKyc only needs to know whether it is super_admin. */
 export function reviewerRoleOf(roles) {

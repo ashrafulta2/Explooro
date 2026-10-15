@@ -8,7 +8,7 @@
  * 4. Grounded prescriptive Growth Assistant recommendations with 1-click executable actions.
  */
 
-import { getInsightsForUser } from './ai/prescriptiveInsights.js';
+import { getInsightsForUser } from './ai/prescriptiveInsights.ts';
 
 /**
  * Aggregates high-level telemetry and status for the Shop Partner Dashboard overview.

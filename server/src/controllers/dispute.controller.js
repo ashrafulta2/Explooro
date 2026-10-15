@@ -2,7 +2,7 @@
  * dispute.controller.js — Fastify controller for Three-Way Dispute Arbitration (Prompt 7.3).
  */
 
-import * as disputeService from '../services/dispute.service.js';
+import * as disputeService from '../services/dispute.service.ts';
 
 export async function createDispute(req, reply) {
   const {

@@ -17,7 +17,7 @@ import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
 import { defaultB2CClient } from '../integrations/payments/bkash-b2c.ts';
 import { writeAudit } from '../lib/audit.ts';
-import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
+import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.ts';
 
 /**
  * Generates a public payout ref (e.g. PAY-3M7V2WQ1).

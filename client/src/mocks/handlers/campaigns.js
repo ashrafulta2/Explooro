@@ -149,7 +149,7 @@ export const campaignHandlers = [
   {
     method: 'POST',
     path: '/admin/growth/campaigns/flash-sales',
-    // Mirrors server/src/services/flashSale.service.js createFlashSale: same checks, same order.
+    // Mirrors server/src/services/flashSale.service.ts createFlashSale: same checks, same order.
     handler({ body }) {
       const b = body || {};
       const fail = (status, code, en, bn = en) => ({ status, body: { error: { code, message_en: en, message_bn: bn } } });

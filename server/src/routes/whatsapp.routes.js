@@ -2,9 +2,9 @@
  * whatsapp.routes.js — Meta WhatsApp Cloud API Webhook & Public Checkout Routes (Prompt 8.3).
  */
 
-import * as webhookController from '../controllers/whatsappWebhook.controller.js';
+import * as webhookController from '../controllers/whatsappWebhook.controller.ts';
 import { addRawJsonBody } from '../plugins/rawBody.ts';
-import * as inboxController from '../controllers/salerInbox.controller.js';
+import * as inboxController from '../controllers/salerInbox.controller.ts';
 
 export default async function whatsappRoutes(app) {
   // WHY: the HMAC must cover the exact bytes Meta sent (see plugins/rawBody.ts).

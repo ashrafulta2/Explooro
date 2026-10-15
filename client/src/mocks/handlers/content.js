@@ -324,7 +324,7 @@ let mockHelpArticles = [
 /**
  * Dynamic (DB-backed) i18n strings, keyed `locale -> namespace -> key -> value`.
  *
- * WHY the nesting: content.service.js's getTranslationsForLocale() folds its
+ * WHY the nesting: content.service.ts's getTranslationsForLocale() folds its
  * `SELECT namespace, key, value` rows into `result[namespace][key] = value`, and
  * pages/editor/TranslationManagerPage.js's renderTable() walks exactly that two-level shape —
  * it skips any entry whose value is not an object. This fixture used to be a flat

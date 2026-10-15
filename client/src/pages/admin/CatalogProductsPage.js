@@ -1317,7 +1317,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   // 7b. Flash Sale & Restock Actions
   // ---------------------------------------------------------------------------
   // WHY these open forms instead of flipping a flag: a flash sale is a flash_sales row with a
-  // discount price, allocated units and an end time (flashSale.service.js createFlashSale), and
+  // discount price, allocated units and an end time (flashSale.service.ts createFlashSale), and
   // ending one means stopping that specific deal. The old one-click PUT {is_flash_sale} matched no
   // server field, so the ⚡ button "worked" only against the mock.
   const canStartFlashSale = () => can('growth.campaign.manage') && isFeatureEnabled('flash_sale');

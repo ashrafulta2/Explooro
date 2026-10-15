@@ -13,7 +13,7 @@
 import * as provider from './provider.ts';
 import * as aiRepo from '../../repositories/ai.repository.ts';
 import * as productService from '../product.service.js';
-import { sanitizeUntrustedText } from './conciergeAgent.js';
+import { sanitizeUntrustedText } from './conciergeAgent.ts';
 
 const FEATURE_KEY = 'sourcing';
 

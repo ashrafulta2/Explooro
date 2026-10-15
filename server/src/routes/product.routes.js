@@ -7,7 +7,7 @@ import * as sourcingController from '../controllers/sourcing.controller.js';
 import * as sampleKit from '../controllers/sampleKit.controller.ts';
 import * as fastPayout from '../controllers/fastPayout.controller.ts';
 import * as returnProtection from '../controllers/returnProtection.controller.ts';
-import { requirePermission } from '../middlewares/requirePermission.js';
+import { requirePermission } from '../middlewares/requirePermission.ts';
 import { requireRestriction } from '../middlewares/requireRestriction.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 

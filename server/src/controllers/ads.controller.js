@@ -3,7 +3,7 @@
  */
 
 import * as adsService from '../services/ads.service.js';
-import * as adProductsService from '../services/adProducts.service.js';
+import * as adProductsService from '../services/adProducts.service.ts';
 
 export async function createCampaign(req, reply) {
   const db = req.db || req.server?.db;

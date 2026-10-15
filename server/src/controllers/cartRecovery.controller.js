@@ -2,7 +2,7 @@
  * cartRecovery.controller.js — Route handlers for Abandoned Cart Recovery & Insights (Prompt 9.6).
  */
 
-import * as cartRecoveryService from '../services/cartRecovery.service.js';
+import * as cartRecoveryService from '../services/cartRecovery.service.ts';
 
 export async function restore(req, reply) {
   const db = req.db || req.server?.db;

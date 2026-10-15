@@ -2,7 +2,7 @@
  * moderation.controller.js — Fastify controller for Product Approval & Content Moderation (Prompt 7.4).
  */
 
-import * as moderationService from '../services/moderation.service.js';
+import * as moderationService from '../services/moderation.service.ts';
 
 export async function getQueue(req, reply) {
   const { item_type, status, claimed_by, flagged_only, search, limit = 20, offset = 0 } = req.query || {};

@@ -17,7 +17,7 @@ import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.ts';
 import { recordTransactionGroup } from './ledger.service.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import { writeAudit } from '../lib/audit.ts';
-import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
+import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.ts';
 
 /**
  * Validates and apportion milestone amounts with zero fractional paisa drift.

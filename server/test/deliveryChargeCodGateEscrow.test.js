@@ -46,7 +46,7 @@ describe('1. paid gateway orders lock escrow', () => {
 
   test('the external clearing wallet funds it, so the shopper\'s wallet is never driven negative', () => {
     assert.match(paymentSrc, /buyerWalletId: clearingWalletId/);
-    assert.match(src('services/shipment.service.js'), /buyerWalletId: await vaultService\.resolveClearingWalletId/);
+    assert.match(src('services/shipment.service.ts'), /buyerWalletId: await vaultService\.resolveClearingWalletId/);
   });
 
   test('a refunded or already-escrowed sub-order is never locked again', () => {
@@ -201,6 +201,6 @@ describe('3. COD trust / OTP gate', () => {
     assert.match(team, /codGateService\.enforceCodGate\(db, cache, \{/);
     assert.match(team, /if \(paymentMethod !== 'COD'\) return/);
     assert.match(team, /isOtpVerified: Boolean\(m\.is_otp_verified\)/);
-    assert.match(src('controllers/teamPurchase.controller.js'), /otpCode: req\.body\?\.otp_code/);
+    assert.match(src('controllers/teamPurchase.controller.ts'), /otpCode: req\.body\?\.otp_code/);
   });
 });

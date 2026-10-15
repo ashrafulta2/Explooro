@@ -6,7 +6,7 @@
  */
 
 import { recomputeAll } from '../services/salerTier.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runSalerTier(db, cache, logger = console) {
   const r = await recomputeAll(db);

@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import localizationRoutes from '../src/routes/localization.routes.js';
+import localizationRoutes from '../src/routes/localization.routes.ts';
 import * as localizationService from '../src/services/localization.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -456,7 +456,7 @@ describe('Language & Default Locale governance', () => {
 
     test('the routes are guarded by exactly those two keys', () => {
       const src = fs.readFileSync(
-        path.join(repoRoot, 'server/src/routes/localization.routes.js'),
+        path.join(repoRoot, 'server/src/routes/localization.routes.ts'),
         'utf8'
       );
       assert.match(src, /reqPerm\('platform\.localization\.view'\)/);

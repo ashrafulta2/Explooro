@@ -2,7 +2,7 @@
  * salerInbox.routes.js — Shop Partner Unified Multi-Channel Inbox Routes (Prompt 8.3).
  */
 
-import * as controller from '../controllers/salerInbox.controller.js';
+import * as controller from '../controllers/salerInbox.controller.ts';
 
 export default async function salerInboxRoutes(app) {
   // 1. Get unified threads (WhatsApp + Messenger + In-Platform)

@@ -10,7 +10,7 @@
  */
 
 import * as rbacService from '../services/rbac.service.ts';
-import * as profileController from '../controllers/profile.controller.js';
+import * as profileController from '../controllers/profile.controller.ts';
 
 export default async function meRoutes(app) {
   app.get(

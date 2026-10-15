@@ -18,7 +18,7 @@ import { writeAudit } from '../lib/audit.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import { isEnabled } from './module.service.ts';
-import { hashNid } from './kyc.service.js';
+import { hashNid } from './kyc.service.ts';
 
 export async function getReferralSettings(db) {
   try {

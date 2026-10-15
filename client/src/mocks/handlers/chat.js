@@ -2,7 +2,7 @@
  * chat.js — mock driver for Real-Time Chat (Prompts 8.1, 8.3, 8.4 / DFD Subsystem 7.0).
  *
  * Envelopes mirror `server/src/controllers/chat.controller.js` and the shapes returned by
- * `chat.service.js` (`getThreads` -> {items,count,limit,offset}, `getThreadMessages` ->
+ * `chat.service.ts` (`getThreads` -> {items,count,limit,offset}, `getThreadMessages` ->
  * {threadId,items,nextCursor}, `markThreadRead` -> {success,threadId,unreadCount}), so the same
  * page code renders identically against this driver and against the real API.
  *
@@ -91,7 +91,7 @@ export const MOCK_CHAT_THREADS = [
 
 let nextMessageId = 5000;
 
-// WHY no `read_by`: `chat.service.js`'s getThreadMessages SELECT does not return that column, so
+// WHY no `read_by`: `chat.service.ts`'s getThreadMessages SELECT does not return that column, so
 // a live response never carries it. Seeding it here would make MessageBubble's ✓✓ appear in mock
 // mode and nowhere else — the exact mock-vs-live divergence this driver exists to avoid.
 function seedMessage({ threadId, senderId, senderName, senderRole, content, minutes, msgType = 'TEXT', payload = {} }) {
@@ -150,7 +150,7 @@ const AUTO_REPLIES = [
 ];
 let autoReplyCursor = 0;
 
-// Mirrors chat.service.js `detectContactInfoLeak` closely enough that a preview shows the
+// Mirrors chat.service.ts `detectContactInfoLeak` closely enough that a preview shows the
 // moderation flag firing on a BD phone number or an off-platform handle.
 const LEAK_PATTERNS = [
   /(?:\+?880|0)?1[3-9][\s.-]?\d{2}[\s.-]?\d{2}[\s.-]?\d{4}/,

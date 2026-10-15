@@ -6,7 +6,7 @@
  */
 
 import { releaseDueEarnings } from '../services/referralEscrow.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runReferralRelease(db, cache, logger = console) {
   const result = await releaseDueEarnings(db);

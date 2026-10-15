@@ -11,7 +11,7 @@
  * band never disagrees with the dashboard it links to. Money stays a string (NUMERIC(14,2)).
  */
 
-import { getCustomerDashboardSummary } from './customerPortal.service.js';
+import { getCustomerDashboardSummary } from './customerPortal.service.ts';
 import { getSalerOverview } from './salerDashboard.service.js';
 
 const n = (v) => Number(v) || 0;

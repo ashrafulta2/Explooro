@@ -24,7 +24,7 @@ import { withTransaction } from '../config/db.ts';
 import { STAFF_MIN_ROLE_LEVEL, STAFF_PRIVILEGED_MIN_LEVEL, STAFF_ROLE_DESCRIPTIONS } from '../config/staffRoles.ts';
 import * as staffRepo from '../repositories/staff.repository.ts';
 import * as rbacService from './rbac.service.ts';
-import { registerActionExecutor } from './makerChecker.service.js';
+import { registerActionExecutor } from './makerChecker.service.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { checkBucket } from '../lib/rateBucket.ts';
 import { generateRef } from '../lib/ref.ts';

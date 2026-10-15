@@ -3,7 +3,7 @@
  */
 
 import * as controller from '../controllers/saler.controller.js';
-import { requirePermission } from '../middlewares/requirePermission.js';
+import { requirePermission } from '../middlewares/requirePermission.ts';
 
 export default async function salerRoutes(app) {
   const requirePerm = app.requirePermission || requirePermission;

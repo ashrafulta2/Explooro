@@ -6,7 +6,7 @@
  */
 
 import { settleDue } from '../services/returnProtection.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runReturnProtection(db, cache, logger = console) {
   const r = await settleDue(db, logger);

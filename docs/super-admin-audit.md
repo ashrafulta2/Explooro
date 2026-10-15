@@ -170,7 +170,7 @@ These are real and were left open on purpose. Do not assume they were missed.
    Server-side, an endpoint owned by one page declares `config: { page }` and
    `middlewares/requirePage.ts` appends the guard — declared at the route, never in a central
    map, because a map is a second list nobody updates. The reader is what makes the declaration
-   real: `store.routes.js` carried `config: { requireModule, requirePermission }` on four routes
+   real: `store.routes.ts` carried `config: { requireModule, requirePermission }` on four routes
    with nothing in the repo reading it, so those guards did nothing at all.
    `server/test/requirePage.test.js` asserts through `app.inject()` — never by looking for the
    key — and reads back each real route's preHandler chain to prove the guard is attached and
@@ -212,10 +212,10 @@ These are real and were left open on purpose. Do not assume they were missed.
     The working form is
     `preHandler: [authenticate, app.requireModule('module_key'), app.requirePermission('domain.resource.action')]`
     — see `server/src/routes/supplier.routes.js`, with the factories in
-    `server/src/middlewares/requireModule.js` / `requirePermission.js`. Hanging the guards off a
+    `server/src/middlewares/requireModule.ts` / `requirePermission.ts`. Hanging the guards off a
     `fastify.register` child scope is equivalent, and `authenticate` may be that scope's
     `onRequest` hook instead of repeating in each array, since `onRequest` runs first.
-    The four `/api/v1/saler/store*` routes in `store.routes.js` carried the dead form from the
+    The four `/api/v1/saler/store*` routes in `store.routes.ts` carried the dead form from the
     2026-08-22 baseline until 2026-10-07, so they ran behind `authenticate` alone: any signed-in
     customer could read and write their own storefront, with `virtual_storefront` and
     `physical_shop_status` both switched off. Guarded by `server/test/routeGuards.test.js`, which

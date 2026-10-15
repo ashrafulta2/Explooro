@@ -30,8 +30,8 @@ import {
   getStreamMutes,
 } from '../sockets/presence.ts';
 import * as auditService from './audit.service.ts';
-import { detectContactInfoLeak } from './chat.service.js';
-import { preScreenContent } from './moderation.service.js';
+import { detectContactInfoLeak } from './chat.service.ts';
+import { preScreenContent } from './moderation.service.ts';
 
 /**
  * A stream product's special price must cover the wholesale cost (base cost + wholesale margin).
@@ -821,8 +821,8 @@ export async function executeInStreamBuy(pool, cache, {
 /**
  * Advisory flags on one chat message. Deliberately reuses the two detectors the platform already
  * trusts elsewhere rather than inventing a third vocabulary:
- *   - chat.service.js's detectContactInfoLeak — the Phase 8 off-platform-contact detector.
- *   - moderation.service.js's preScreenContent — the same EN/BN banned-keyword blocklist the
+ *   - chat.service.ts's detectContactInfoLeak — the Phase 8 off-platform-contact detector.
+ *   - moderation.service.ts's preScreenContent — the same EN/BN banned-keyword blocklist the
  *     product queue screens against, so a term banned for a listing is banned in live chat too.
  *
  * ADVISORY, never automatic: nothing here removes a message on its own. It only decides what a

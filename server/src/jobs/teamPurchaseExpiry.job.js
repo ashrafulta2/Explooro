@@ -9,7 +9,7 @@
  */
 
 import * as teamPurchaseService from '../services/teamPurchase.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runTeamPurchaseExpirySweep(db, cache, logger = console) {
   const log = logger.info?.bind(logger) || logger.log?.bind(logger) || console.log;

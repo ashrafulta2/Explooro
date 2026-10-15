@@ -7,7 +7,7 @@
  */
 
 import { runRenewalSweep } from '../services/subscriptionBilling.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runSubscriptionRenewalSweep(db, cache, logger = console) {
   const result = await runRenewalSweep(db, cache);

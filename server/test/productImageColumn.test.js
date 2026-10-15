@@ -10,7 +10,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as flashSaleService from '../src/services/flashSale.service.js';
+import * as flashSaleService from '../src/services/flashSale.service.ts';
 import * as returnService from '../src/services/return.service.ts';
 import * as shortlinkService from '../src/services/shortlink.service.ts';
 import { getStorageDriver } from '../src/integrations/storage/index.ts';

@@ -6,7 +6,7 @@
  */
 
 import { refreshAll } from '../services/supplierScorecard.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runSupplierScorecard(db, cache, logger = console) {
   const result = await refreshAll(db);

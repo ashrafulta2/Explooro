@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import mediaRoutes from '../src/routes/media.routes.js';
+import mediaRoutes from '../src/routes/media.routes.ts';
 import {
   detectMimeType,
   detectDimensions,

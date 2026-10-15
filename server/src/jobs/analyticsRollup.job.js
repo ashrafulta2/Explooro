@@ -8,7 +8,7 @@
  */
 
 import * as analyticsService from '../services/analytics.service.js';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runNightlyAnalyticsRollup(db, cache, logger = console) {
   const log = logger.info?.bind(logger) || logger.log?.bind(logger) || console.log;

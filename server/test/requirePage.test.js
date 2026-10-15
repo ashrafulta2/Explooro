@@ -269,13 +269,13 @@ describe('the wired route files', () => {
     'cartRecovery.routes.js',
     'delegation.routes.js',
     'finance.routes.js',
-    'genie.routes.js',
-    'localization.routes.js',
+    'genie.routes.ts',
+    'localization.routes.ts',
     'notification.routes.js',
-    'publicApi.routes.js',
+    'publicApi.routes.ts',
     'return.routes.js',
     'saler.routes.js',
-    'subscription.routes.js',
+    'subscription.routes.ts',
     'supplier.routes.js',
   ];
 

@@ -14,7 +14,7 @@
  * No requireModule: staff management belongs to the always-on `core` surface (client nav and route
  * definitions mark it `module: 'core'`), and `core` is not a row in `modules` — requireModule would
  * read the missing row as "disabled" and lock every admin out. The other /admin identity routes
- * (user.routes.js, restriction.routes.js) make the same choice. No requireRestriction either: those
+ * (user.routes.ts, restriction.routes.js) make the same choice. No requireRestriction either: those
  * gates are per-capability limits on a user's own activity, and there is no capability to attach here.
  */
 

@@ -4,7 +4,7 @@
  * WHY the person-name joins look the way they do: `users` holds only credentials and status. The
  * human name lives on `user_profiles.full_name` (one column, not an en/bn pair) and the trust tier
  * on `trust_scores.tier` — see 001_identity.sql. The `*_name_en` / `*_name_bn` aliases are kept
- * because store.service.js and customerPortal.service.js read them by those names; both resolve to
+ * because store.service.js and customerPortal.service.ts read them by those names; both resolve to
  * the same profile name until per-language names exist in the schema.
  */
 

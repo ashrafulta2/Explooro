@@ -14,7 +14,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as contentService from '../src/services/content.service.js';
+import * as contentService from '../src/services/content.service.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   return {

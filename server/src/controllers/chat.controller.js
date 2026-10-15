@@ -4,7 +4,7 @@
 
 import { createTicket } from '../sockets/presence.ts';
 import { broadcastReadReceipt } from '../sockets/chat.handler.js';
-import * as chatService from '../services/chat.service.js';
+import * as chatService from '../services/chat.service.ts';
 
 export async function getTicket(req, reply) {
   // WHY `roles[0]` and `full_name`: authenticate.js populates `req.user` from the JWT claims, which

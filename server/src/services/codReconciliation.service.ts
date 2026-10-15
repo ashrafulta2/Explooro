@@ -13,7 +13,7 @@
 
 import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.ts';
-import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
+import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.ts';
 
 /**
  * Normalizes courier identifier.

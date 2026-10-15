@@ -1,7 +1,7 @@
 /**
  * genie.js — Mock API handlers for the popup genie-effect policy.
  *
- * Mirrors server/src/routes/genie.routes.js so the whole feature is demonstrable with
+ * Mirrors server/src/routes/genie.routes.ts so the whole feature is demonstrable with
  * VITE_API_MODE=mock and no database (Master Instruction: every integration ships a mock driver).
  *
  * The policy persists to localStorage rather than a module-scope variable: the thing being tested is

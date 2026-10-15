@@ -24,7 +24,7 @@ import * as rbacService from './rbac.service.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as adProductRepo from '../repositories/adProduct.repository.ts';
-import * as adProductsService from './adProducts.service.js';
+import * as adProductsService from './adProducts.service.ts';
 import { quote as priceQuote, meteredCharge, rate, PREPAID_MODELS } from './adPricing.ts';
 import { runSecondPriceAuction, MIN_RESERVE_PRICE } from './adAuction.service.ts';
 import * as sponsoredSourcing from './sponsoredSourcing.service.ts';

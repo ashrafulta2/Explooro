@@ -2,7 +2,7 @@
  * courierWebhook.controller.js — HTTP Controller for Courier Webhooks & Shipment Tracking (Prompt 7.1).
  */
 
-import * as shipmentService from '../services/shipment.service.js';
+import * as shipmentService from '../services/shipment.service.ts';
 
 export async function handleWebhook(req, reply) {
   const carrier = req.params.carrier || req.query.carrier || 'MOCK';

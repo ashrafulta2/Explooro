@@ -9,7 +9,7 @@
  *   SUSPENDED  users.status is SUSPENDED or BANNED
  *   INVITED    users.status is ACTIVE (or PENDING_VERIFICATION) and the person has never signed in
  *   ACTIVE     users.status is ACTIVE and last_login_at is set
- * WHY "invited" is derived instead of a stored status: auth.service.js only lets status = 'ACTIVE'
+ * WHY "invited" is derived instead of a stored status: auth.service.ts only lets status = 'ACTIVE'
  * sign in, so a PENDING_VERIFICATION invitee could never reach the OTP flow that activates them. An
  * ACTIVE account with no last_login_at is exactly "created, has not accepted yet" and signs in
  * through the existing OTP + staff-2FA path with no auth change.
@@ -266,7 +266,7 @@ export async function revokeAllSessions(db, userId, reason) {
 
 /**
  * Deleting the row is the reset: with no staff_2fa row, the next login reports `enrolled: false`
- * and walks the person through a fresh enrolment (auth.service.js completeLogin). Returns whether
+ * and walks the person through a fresh enrolment (auth.service.ts completeLogin). Returns whether
  * an enrolled authenticator was actually removed, so "nothing to reset" is distinguishable.
  */
 export async function deleteEnrolledStaff2fa(db, userId) {

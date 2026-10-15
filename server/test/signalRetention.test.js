@@ -20,7 +20,7 @@ import path from 'node:path';
 import * as svc from '../src/services/signalRetention.service.ts';
 import * as repo from '../src/repositories/signalRetention.repository.ts';
 import { runSignalRetention } from '../src/jobs/signalRetention.job.js';
-import { runJobNow } from '../src/jobs/scheduler.js';
+import { runJobNow } from '../src/jobs/scheduler.ts';
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = new Date('2026-10-08T12:00:00.000Z');

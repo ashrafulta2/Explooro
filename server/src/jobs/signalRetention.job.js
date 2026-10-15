@@ -8,7 +8,7 @@
  */
 
 import { purgeExpiredSignals } from '../services/signalRetention.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runSignalRetention(db, cache, logger = console) {
   const result = await purgeExpiredSignals(db);

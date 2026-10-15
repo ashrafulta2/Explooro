@@ -2,7 +2,7 @@
  * teamPurchase.routes.js — Fastify route declarations for Group Buying (Prompt 9.5).
  */
 
-import * as teamPurchaseController from '../controllers/teamPurchase.controller.js';
+import * as teamPurchaseController from '../controllers/teamPurchase.controller.ts';
 import { requireRestriction } from '../middlewares/requireRestriction.ts';
 
 export default async function teamPurchaseRoutes(app) {

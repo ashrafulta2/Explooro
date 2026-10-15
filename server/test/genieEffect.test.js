@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import genieRoutes from '../src/routes/genie.routes.js';
+import genieRoutes from '../src/routes/genie.routes.ts';
 import * as genieService from '../src/services/genie.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -419,7 +419,7 @@ describe('Popup genie effect governance', () => {
     });
 
     test('the routes are guarded by exactly those two keys', () => {
-      const src = fs.readFileSync(path.join(repoRoot, 'server/src/routes/genie.routes.js'), 'utf8');
+      const src = fs.readFileSync(path.join(repoRoot, 'server/src/routes/genie.routes.ts'), 'utf8');
       assert.match(src, /reqPerm\('platform\.genie\.view'\)/);
       assert.match(src, /reqPerm\('platform\.genie\.update'\)/);
     });

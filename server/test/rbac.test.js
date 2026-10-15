@@ -26,7 +26,7 @@ import {
   bumpUserPermissionVersion,
   invalidateUserPermissionCache,
 } from '../src/services/rbac.service.ts';
-import { requirePermission } from '../src/middlewares/requirePermission.js';
+import { requirePermission } from '../src/middlewares/requirePermission.ts';
 import { requireRestriction } from '../src/middlewares/requireRestriction.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';

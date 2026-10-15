@@ -24,7 +24,7 @@ import * as walletRepo from '../src/repositories/wallet.repository.ts';
 import * as ledgerService from '../src/services/ledger.service.ts';
 import * as vaultService from '../src/services/vault.service.ts';
 import * as clawbackService from '../src/services/clawback.service.ts';
-import * as scheduler from '../src/jobs/scheduler.js';
+import * as scheduler from '../src/jobs/scheduler.ts';
 import { runEscrowReleaseSweep } from '../src/jobs/escrowRelease.job.ts';
 import financeRoutes from '../src/routes/finance.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.ts';

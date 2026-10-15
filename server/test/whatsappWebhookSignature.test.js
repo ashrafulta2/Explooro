@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import { handleWebhook } from '../src/controllers/whatsappWebhook.controller.js';
+import { handleWebhook } from '../src/controllers/whatsappWebhook.controller.ts';
 
 // WHY: the webhook used to verify only when a signature header was present, so omitting it bypassed the check.
 function call({ isProduction, secret, signature, body = { entry: [] }, rawBody }) {

@@ -86,7 +86,7 @@ describe('terminal states', () => {
 });
 
 describe('merchant routes', () => {
-  const src = readFileSync(new URL('../src/routes/subscription.routes.js', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../src/routes/subscription.routes.ts', import.meta.url), 'utf8');
 
   test('all four are guarded by the module switch and finance.subscription.subscribe_own', () => {
     const own = src.slice(src.indexOf('const ownSubscription'));

@@ -8,7 +8,7 @@
  * - Gated by module `fefo_batches`.
  */
 
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 import * as inventoryService from '../services/inventory.service.ts';
 
 export async function runExpiryWarningSweep(db, cache, logger = console) {

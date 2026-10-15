@@ -9,7 +9,7 @@ import {
   getProfitSplits,
   updateCategorySplit,
   deleteCategorySplit,
-} from '../src/controllers/finance.controller.js';
+} from '../src/controllers/finance.controller.ts';
 import { resolveSplitPercentages } from '../src/services/pricing.service.ts';
 
 // Minimal in-memory commission_rules that understands only the statements these paths issue.

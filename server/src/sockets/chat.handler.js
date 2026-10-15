@@ -9,7 +9,7 @@
  * - ping / pong — Heartbeat keepalive.
  */
 
-import * as chatService from '../services/chat.service.js';
+import * as chatService from '../services/chat.service.ts';
 import { updateHeartbeat, broadcastToThread, sendToUser } from './presence.ts';
 
 /** Tells the other participants which messages this user has now read, so the sender's ✓ becomes ✓✓. */

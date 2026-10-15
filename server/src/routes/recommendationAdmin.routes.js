@@ -5,7 +5,7 @@
  *   GET /admin/platform/recommendations/funnel           platform.recommendation.view
  *   PUT /admin/platform/recommendations/:section         platform.recommendation.update  (MEDIUM, delegable)
  *
- * WHY MEDIUM and not CRITICAL for the update key: same reasoning as genie.routes.js — the brief is
+ * WHY MEDIUM and not CRITICAL for the update key: same reasoning as genie.routes.ts — the brief is
  * "Super Admin or someone the Super Admin assigns", and CRITICAL implies `delegable: false`. These
  * numbers decide what shoppers see first, not where money moves: the commission split, escrow and
  * payouts are untouched by anything on this page.

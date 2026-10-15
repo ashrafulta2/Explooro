@@ -15,7 +15,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as disputeService from '../src/services/dispute.service.js';
+import * as disputeService from '../src/services/dispute.service.ts';
 import disputeRoutes from '../src/routes/dispute.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';

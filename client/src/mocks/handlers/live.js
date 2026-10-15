@@ -128,7 +128,7 @@ let nextStreamId = 5;
  * Live-moderation fixtures for /moderator/live.
  *
  * `flags` are pre-computed here rather than re-derived in the mock layer. The real detectors live
- * server-side (chat.service.js's detectContactInfoLeak and moderation.service.js's banned-keyword
+ * server-side (chat.service.ts's detectContactInfoLeak and moderation.service.ts's banned-keyword
  * blocklist) and the client must never import server code, so re-implementing the regexes here
  * would create a second copy that silently drifts from the one that actually governs. A mock's job
  * is to reproduce the API's *shape*, not its logic.
@@ -547,7 +547,7 @@ export const liveHandlers = [
 
       // WHY the 202: `live.stream.terminate` is a HIGH-tier permission, so on the real server
       // requirePermission intercepts a non-super_admin and files a pending_admin_action instead of
-      // executing (middlewares/requirePermission.js). A mock that always terminated would hide the
+      // executing (middlewares/requirePermission.ts). A mock that always terminated would hide the
       // maker-checker path from every moderator testing in dev — the exact path they will hit in
       // production.
       const roles = getMockSessionUser()?.roles ?? [];

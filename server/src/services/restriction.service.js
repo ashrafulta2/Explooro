@@ -12,7 +12,7 @@
 import * as permRepo from '../repositories/permission.repository.ts';
 import * as rbacService from './rbac.service.ts';
 import { evaluatePredicate } from './segment.service.ts';
-import { registerActionExecutor } from './makerChecker.service.js';
+import { registerActionExecutor } from './makerChecker.service.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
@@ -346,7 +346,7 @@ export async function checkNumericLimit(db, userId, limitKey, requestedValue) {
  * Every route in restriction.routes.js that mutates (apply/update/lift) is gated by the single
  * real catalog permission `users.restriction.manage` (HIGH tier) — there is no
  * `users.restriction.apply`/`users.restriction.lift` permission, so registering executors under
- * those names left this completely unreachable: requirePermission.js always creates the pending
+ * those names left this completely unreachable: requirePermission.ts always creates the pending
  * action under action_key='users.restriction.manage', and approving it found no executor and
  * silently marked the action APPLIED without ever touching user_restrictions.
  *

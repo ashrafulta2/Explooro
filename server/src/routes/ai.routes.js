@@ -6,7 +6,7 @@
  */
 
 import * as aiCtrl from '../controllers/ai.controller.js';
-import { requirePermission } from '../middlewares/requirePermission.js';
+import { requirePermission } from '../middlewares/requirePermission.ts';
 
 export default async function aiRoutes(fastify) {
   const reqMod = (key) => (fastify.requireModule ? fastify.requireModule(key) : async () => {});

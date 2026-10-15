@@ -1,7 +1,7 @@
 /**
  * auth.controller.js — HTTP shaping for auth endpoints (Prompt 2.3).
  *
- * Cookies and CSRF live here, not in auth.service.js: services return plain data, controllers own
+ * Cookies and CSRF live here, not in auth.service.ts: services return plain data, controllers own
  * everything that touches the request/reply. docs/api-contract.md §8: refresh token is an opaque
  * HttpOnly cookie scoped to /api/v1/auth; a separate, JS-readable `csrf` cookie implements the
  * double-submit pattern required for cookie-authenticated POSTs (`SameSite=Lax` alone is not
@@ -9,7 +9,7 @@
  */
 
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
-import * as authService from '../services/auth.service.js';
+import * as authService from '../services/auth.service.ts';
 import * as otpService from '../services/otp.service.ts';
 import * as referralService from '../services/referral.service.ts';
 import {

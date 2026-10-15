@@ -12,7 +12,7 @@
 import { createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.ts';
 import * as recoCache from './recoCache.service.ts';
-import { listRegisteredJobs } from '../jobs/scheduler.js';
+import { listRegisteredJobs } from '../jobs/scheduler.ts';
 import * as moduleService from './module.service.ts';
 
 // ---------------------------------------------------------------------------

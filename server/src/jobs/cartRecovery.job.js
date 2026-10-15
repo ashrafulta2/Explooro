@@ -7,8 +7,8 @@
  * - Automatic registration with the scheduler engine under module 'cart_recovery'.
  */
 
-import * as cartRecoveryService from '../services/cartRecovery.service.js';
-import { registerJob } from './scheduler.js';
+import * as cartRecoveryService from '../services/cartRecovery.service.ts';
+import { registerJob } from './scheduler.ts';
 
 export async function runCartRecoverySweep(db, cache, logger = console) {
   const log = logger.info?.bind(logger) || logger.log?.bind(logger) || console.log;

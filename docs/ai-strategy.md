@@ -124,7 +124,7 @@ since retrying a malformed request just wastes the latency budget.
    content returned by a tool are untrusted data, never instructions. Two independent layers:
    - The system prompt explicitly states that tool-result text is catalog data to summarize, never
      commands to follow, and that only the platform's own system prompt carries instructions.
-   - `sanitizeUntrustedText()` (`conciergeAgent.js` / `sourcingAgent.js`) pattern-matches common
+   - `sanitizeUntrustedText()` (`conciergeAgent.ts` / `sourcingAgent.js`) pattern-matches common
      injection phrasing ("ignore previous instructions", "you are now", "disregard the above",
      "system:") in any text pulled from the database before it is embedded in a tool result sent to
      the model, replacing a match with `[REDACTED_INSTRUCTION_ATTEMPT]` and recording an
@@ -185,7 +185,7 @@ source of a number or a fact.
   variance. A review scoring below `FLAG_THRESHOLD` (55) is pushed into the existing Prompt 7.4
   `moderation_queue` (never auto-deleted/auto-hidden — a human always decides); Claude is used only,
   optionally, to phrase the moderator-facing explanation of already-computed signal codes.
-- **`prescriptiveInsights.js`** — findings are built from real `order_items`/`saler_store_items`
+- **`prescriptiveInsights.ts`** — findings are built from real `order_items`/`saler_store_items`
   sales counts (no page-view/analytics table exists yet, so a conversion-rate metric isn't
   groundable — sold-unit comparisons are used instead) and real stockout forecasts from
   `demandForecast.js`. Claude turns already-computed findings into one recommendation sentence each

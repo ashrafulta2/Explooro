@@ -49,7 +49,7 @@ export function createMockChatSocket() {
     socket.onmessage({ data: JSON.stringify(frame) });
   }
 
-  /** Wire shape of `chat.service.js`'s real-time delivery payload. */
+  /** Wire shape of `chat.service.ts`'s real-time delivery payload. */
   function wireMessage(threadId, stored) {
     return {
       type: 'chat:message',

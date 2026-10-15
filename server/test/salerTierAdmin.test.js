@@ -5,7 +5,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getProfitSplits, updateTierBonuses } from '../src/controllers/finance.controller.js';
+import { getProfitSplits, updateTierBonuses } from '../src/controllers/finance.controller.ts';
 
 const BONUSES = [
   { tier: 'BRONZE', bonus_pct: 0 }, { tier: 'SILVER', bonus_pct: 1 },

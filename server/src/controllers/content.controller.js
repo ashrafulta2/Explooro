@@ -2,7 +2,7 @@
  * content.controller.js — Fastify controller for Stories, Reels, Academy, Banners & Translations (Prompt 10.8).
  */
 
-import * as service from '../services/content.service.js';
+import * as service from '../services/content.service.ts';
 
 // -----------------------------------------------------------------------------
 // Stories

@@ -7,7 +7,7 @@
  */
 
 import { rebuildCovisits } from '../services/covisit.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runCovisitRebuild(db, cache, logger = console) {
   const result = await rebuildCovisits(db);

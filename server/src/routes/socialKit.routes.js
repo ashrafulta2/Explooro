@@ -2,7 +2,7 @@
  * socialKit.routes.js — Fastify route definitions for Social Shop Partner Kit & Short Links (Prompt 9.7).
  */
 
-import * as socialKitController from '../controllers/socialKit.controller.js';
+import * as socialKitController from '../controllers/socialKit.controller.ts';
 
 export default async function socialKitRoutes(app) {
   const requireSocialKit = app.requireModule('social_seller_kit');

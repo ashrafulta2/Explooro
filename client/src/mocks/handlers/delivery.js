@@ -1,7 +1,7 @@
 /**
  * delivery.js — Mock API handlers for the per-parcel delivery charge.
  *
- * Mirrors server/src/routes/deliveryCharge.routes.js. The mock cart (handlers/cart.js) prices
+ * Mirrors server/src/routes/deliveryCharge.routes.ts. The mock cart (handlers/cart.js) prices
  * delivery with the same value, so a change here shows up in the cart, as it does against the API.
  * Persisted to localStorage for the same reason handlers/genie.js does: "does it survive a reload?"
  */

@@ -13,12 +13,12 @@
  */
 
 import * as provider from './provider.ts';
-import { submitToQueue } from '../moderation.service.js';
+import { submitToQueue } from '../moderation.service.ts';
 
 const FEATURE_KEY = 'review_integrity';
 export const FLAG_THRESHOLD = 55; // integrity_score below this → sent to moderation
 
-// Mirrors the shape moderation.service.js's own preScreenContent flags use, so a review flag
+// Mirrors the shape moderation.service.ts's own preScreenContent flags use, so a review flag
 // renders identically to a product flag in the existing moderation queue UI (Prompt 7.4).
 const SIGNAL_LABELS = {
   VERY_SHORT_BODY: { severity: 'LOW', label_en: 'Review body is very short', label_bn: 'রিভিউর লেখা খুবই সংক্ষিপ্ত' },

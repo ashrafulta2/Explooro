@@ -16,7 +16,7 @@ import Fastify from 'fastify';
 
 import * as auditService from '../src/services/audit.service.ts';
 import * as auditRepo from '../src/repositories/audit.repository.ts';
-import auditRoutes from '../src/routes/audit.routes.js';
+import auditRoutes from '../src/routes/audit.routes.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';

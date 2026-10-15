@@ -2,7 +2,7 @@
  * customer.controller.js — Fastify controller for Customer Portal & 1-Click Upgrade (Prompt 11.3).
  */
 
-import * as customerService from '../services/customerPortal.service.js';
+import * as customerService from '../services/customerPortal.service.ts';
 
 export async function getDashboard(req, reply) {
   const userId = req.user?.id;

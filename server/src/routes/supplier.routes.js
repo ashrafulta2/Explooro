@@ -6,7 +6,7 @@ import * as controller from '../controllers/supplier.controller.ts';
 import * as sampleKit from '../controllers/sampleKit.controller.ts';
 import * as fastPayout from '../controllers/fastPayout.controller.ts';
 import * as returnProtection from '../controllers/returnProtection.controller.ts';
-import { requirePermission } from '../middlewares/requirePermission.js';
+import { requirePermission } from '../middlewares/requirePermission.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 export default async function supplierRoutes(app) {

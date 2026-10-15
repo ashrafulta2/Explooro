@@ -135,7 +135,7 @@ export async function ingestInboundMessage(db, {
     } else {
       // WHY three statements: `users` holds neither the name nor the role. The display name lives
       // on `user_profiles` and the role is a row in `user_roles` -> `roles`, the same shape
-      // auth.service.js creates a signup with. `ref` is NOT NULL with no default, so it is minted
+      // auth.service.ts creates a signup with. `ref` is NOT NULL with no default, so it is minted
       // here rather than left to the database.
       const { rows: createdUsers } = await txClient.query(
         `INSERT INTO users (ref, phone, status)

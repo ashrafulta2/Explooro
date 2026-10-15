@@ -3,7 +3,7 @@
  */
 
 import * as couponService from '../services/coupon.service.ts';
-import * as flashSaleService from '../services/flashSale.service.js';
+import * as flashSaleService from '../services/flashSale.service.ts';
 
 export async function createCoupon(req, reply) {
   const db = req.db || req.server?.db;

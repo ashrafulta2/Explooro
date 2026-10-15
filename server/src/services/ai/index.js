@@ -6,13 +6,13 @@
  * SDK. See docs/ai-strategy.md.
  */
 
-export * as conciergeAgent from './conciergeAgent.js';
+export * as conciergeAgent from './conciergeAgent.ts';
 export * as sourcingAgent from './sourcingAgent.js';
 export * as provider from './provider.ts';
 export * as creativeStudio from './creativeStudio.ts';
 export * as demandForecast from './demandForecast.ts';
 export * as reviewIntegrity from './reviewIntegrity.js';
-export * as prescriptiveInsights from './prescriptiveInsights.js';
+export * as prescriptiveInsights from './prescriptiveInsights.ts';
 
 import * as aiRepo from '../../repositories/ai.repository.ts';
 

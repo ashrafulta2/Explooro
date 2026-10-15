@@ -6,7 +6,7 @@
  */
 
 import { expireStaleCoins } from '../services/coin.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runCoinExpiry(db, cache, logger = console) {
   const result = await expireStaleCoins(db);

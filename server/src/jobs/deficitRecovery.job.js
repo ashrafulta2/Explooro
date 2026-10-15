@@ -7,7 +7,7 @@
  */
 
 import { settleDeficitRecoveries } from '../services/clawback.service.ts';
-import { registerJob } from './scheduler.js';
+import { registerJob } from './scheduler.ts';
 
 export async function runDeficitRecovery(db, cache, logger = console) {
   const r = await settleDeficitRecoveries(db);

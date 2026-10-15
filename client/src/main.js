@@ -410,7 +410,7 @@ async function bootRouterDemo() {
       },
       // Popup genie effect governance. Same key pair pattern as Language: `.view` gates the page and
       // the sidebar entry, `.update` gates Save. No `module` beyond `core` — a governance surface a
-      // Super Admin must always reach (see server/src/routes/genie.routes.js).
+      // Super Admin must always reach (see server/src/routes/genie.routes.ts).
       {
         path: '/admin/platform/genie',
         title: 'Popup Genie Effect — Explooro Admin',
@@ -420,7 +420,7 @@ async function bootRouterDemo() {
         load: () => import('./pages/admin/GenieSettingsPage.js'),
       },
       // Delivery charge per parcel for normal checkout. `.view` gates the page, `.update` (CRITICAL,
-      // super admin only) gates Save — see server/src/routes/deliveryCharge.routes.js.
+      // super admin only) gates Save — see server/src/routes/deliveryCharge.routes.ts.
       {
         path: '/admin/platform/delivery',
         title: 'Delivery Charge — Explooro Admin',

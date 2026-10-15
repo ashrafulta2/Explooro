@@ -2,8 +2,8 @@
  * delegation.controller.js — HTTP controllers for delegation & maker-checker endpoints (Prompt 2.5).
  */
 
-import * as delegationService from '../services/delegation.service.js';
-import * as makerCheckerService from '../services/makerChecker.service.js';
+import * as delegationService from '../services/delegation.service.ts';
+import * as makerCheckerService from '../services/makerChecker.service.ts';
 
 function requestMeta(req) {
   return {

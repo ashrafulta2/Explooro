@@ -206,7 +206,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
   }
 
   // The gateway's live payload is camelCase and nested under `message`; every other code path
-  // here (HTTP load, optimistic send) uses the snake_case row shape chat.service.js returns over
+  // here (HTTP load, optimistic send) uses the snake_case row shape chat.service.ts returns over
   // HTTP. Normalise once at the boundary so MessageBubble only ever sees one shape.
   function normalizeWireMessage(threadId, m) {
     return {
@@ -411,7 +411,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
   });
 
   // WHY the flat camelCase reads below: server/src/sockets/chat.handler.js and
-  // chat.service.js send frames as { type, clientMsgId, messageId, threadId } and
+  // chat.service.ts send frames as { type, clientMsgId, messageId, threadId } and
   // { type, threadId, message: {...} } — never wrapped in a `payload` object. This handler
   // destructured `payload` off the frame, so it was undefined on every live frame and the whole
   // real-time half of the page (acks, inbound messages, typing) silently did nothing.

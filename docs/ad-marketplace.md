@@ -160,7 +160,7 @@ to it is the next piece of work, and it is one call per surface.
 | :-- | :-- |
 | Schema | `server/src/db/migrations/041_ad_marketplace.sql` |
 | **Pricing — the only place ad money is multiplied** | `server/src/services/adPricing.ts` |
-| Catalogue policy, availability, rate-card writes | `server/src/services/adProducts.service.js` |
+| Catalogue policy, availability, rate-card writes | `server/src/services/adProducts.service.ts` |
 | SQL | `server/src/repositories/adProduct.repository.js` |
 | Purchase, billing, serving | `server/src/services/ads.service.js` |
 | Routes | `server/src/routes/ads.routes.js` |

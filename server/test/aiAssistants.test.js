@@ -13,7 +13,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { sanitizeUntrustedText, composeGroundedReply, runTurn as runConciergeTurn } from '../src/services/ai/conciergeAgent.js';
+import { sanitizeUntrustedText, composeGroundedReply, runTurn as runConciergeTurn } from '../src/services/ai/conciergeAgent.ts';
 import { runTurn as runSourcingTurn } from '../src/services/ai/sourcingAgent.js';
 import { computeCostUsd, redactPii } from '../src/services/ai/provider.ts';
 

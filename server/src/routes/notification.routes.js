@@ -2,7 +2,7 @@
  * notification.routes.js — Fastify routes for Unified Notification Service (Prompt 8.2).
  */
 
-import * as controller from '../controllers/notification.controller.js';
+import * as controller from '../controllers/notification.controller.ts';
 
 export default async function notificationRoutes(app) {
   // 1. Get notifications

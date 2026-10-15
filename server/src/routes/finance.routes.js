@@ -2,7 +2,7 @@
  * finance.routes.js — Route definitions for Finance, Ledger, Escrow, Clawbacks, Payouts, COD Reconciliation & Dashboards (Prompts 6.1, 6.2, 6.3, 6.4 & 6.5).
  */
 
-import * as controller from '../controllers/finance.controller.js';
+import * as controller from '../controllers/finance.controller.ts';
 import * as payoutController from '../controllers/payout.controller.ts';
 import * as codController from '../controllers/codReconciliation.controller.ts';
 
