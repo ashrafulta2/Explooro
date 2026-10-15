@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import { resolveSplitPercentages } from '../src/services/pricing.service.js';
 import {
   DEFAULT_RULES, nextTierInfo, parseTierBonuses, pickTierKey, resolveRules, validateRules,
-} from '../src/services/salerTierBonus.js';
+} from '../src/services/salerTierBonus.ts';
 import { recomputeAll, getSalerView } from '../src/services/salerTier.service.js';
 
 const BONUSES = [

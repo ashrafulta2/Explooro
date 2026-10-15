@@ -9,7 +9,7 @@ import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.js';
 import * as escrowAdminService from '../services/escrowAdmin.service.js';
 import { writeAudit } from '../lib/audit.js';
 import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.js';
-import { loadRules as loadTierRules, saveRules as saveTierRules, validateRules as validateTierRules } from '../services/salerTierBonus.js';
+import { loadRules as loadTierRules, saveRules as saveTierRules, validateRules as validateTierRules } from '../services/salerTierBonus.ts';
 import { recomputeAll as recomputeSalerTiers } from '../services/salerTier.service.js';
 import * as subscriptionService from '../services/subscription.service.js';
 

@@ -13,7 +13,7 @@
  *   3. Global platform_settings key ('commission.default_splits') — the ONE global default
  *   4. Hard fallback (40% saler / 60% platform)
  *   Then, for steps 2-4 only and only when a salerId is given: the Shop Partner Pro rebate
- *   (subscriptionRebate.js) moves its points from platform to shop partner. Module OFF => no change.
+ *   (subscriptionRebate.ts) moves its points from platform to shop partner. Module OFF => no change.
  *
  * WHY there is no GLOBAL commission_rules step: a seeded GLOBAL row used to sit above the setting,
  * so editing the default at /admin/finance/splits (which writes the setting) changed nothing in
@@ -25,8 +25,8 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { applyRebate, resolveProRebatePct } from './subscriptionRebate.js';
-import { TIER_KEYS, parseTierBonuses, resolveSalerTierBonusPct } from './salerTierBonus.js';
+import { applyRebate, resolveProRebatePct } from './subscriptionRebate.ts';
+import { TIER_KEYS, parseTierBonuses, resolveSalerTierBonusPct } from './salerTierBonus.ts';
 
 /**
  * Converts a decimal BDT amount into integer paisa.

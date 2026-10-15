@@ -124,7 +124,7 @@ These are enforced across every prompt, not stylistic suggestions:
   overlays (modal scrims, command palette backdrop), never on cards/navbars/tables/product surfaces.
   Design tokens as CSS custom properties; no raw hex in component CSS. i18n is a native JSON
   dictionary engine (English ↔ Bangla).
-- **`server/`** — Node.js v20+ LTS + Fastify, strict 3-tier layered architecture:
+- **`server/`** — Node.js v22.18+ LTS + Fastify (being moved to TypeScript file by file, run by Node's own type stripping with no build step — see [`docs/typescript-migration.md`](docs/typescript-migration.md)), strict 3-tier layered architecture:
   `Routes → Controllers → Services → Repositories`. Auth is stateless JWT + HttpOnly refresh
   cookies + local SMS OTP. WebSockets (`ws` / `@fastify/websocket`) for chat/live notifications,
   fanned out via Redis Pub/Sub across nodes.

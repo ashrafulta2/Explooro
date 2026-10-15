@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * subscriptionRebate.js — the Shop Partner Pro commission rebate lookup used by pricing.
+ * subscriptionRebate.ts —the Shop Partner Pro commission rebate lookup used by pricing.
  *
  * WHY a separate file: pricing.service.js is imported by subscription.service.js (for the platform
  * split cap), so the rebate lookup cannot live in subscription.service.js without a cycle.
@@ -16,11 +15,18 @@ import { isEnabled } from './module.service.js';
 
 export const SUBSCRIPTION_MODULE_KEY = 'subscription_fees';
 
+/** A commission split as pricing passes it along: percentage points for each party. */
+export interface Split {
+  salerSplitPct: number;
+  platformSplitPct: number;
+  ruleSource: string;
+}
+
 /**
  * Moves `rebatePct` points from the platform's share to the shop partner's, never taking the platform
  * below zero. Pure; returns the input untouched when there is nothing to apply.
  */
-export function applyRebate(split, rebatePct, label = 'PRO_REBATE') {
+export function applyRebate(split: Split, rebatePct: number | string, label = 'PRO_REBATE'): Split {
   const rebate = Number(rebatePct);
   if (!Number.isFinite(rebate) || rebate <= 0) return split;
   const moved = Math.min(rebate, Math.max(split.platformSplitPct, 0));
@@ -32,12 +38,11 @@ export function applyRebate(split, rebatePct, label = 'PRO_REBATE') {
   };
 }
 
-/**
- * @param {*} db
- * @param {{ salerId?: number|string|null, cache?: * }} [params]
- * @returns {Promise<number>} rebate percentage points, 0 when none applies
- */
-export async function resolveProRebatePct(db, { salerId, cache = null } = {}) {
+/** Rebate percentage points for this shop partner, 0 when none applies. */
+export async function resolveProRebatePct(
+  db: any,
+  { salerId, cache = null }: { salerId?: number | string | null; cache?: any } = {}
+): Promise<number> {
   if (!db || !salerId) return 0;
   if (!(await isEnabled(db, cache, SUBSCRIPTION_MODULE_KEY, { userId: salerId, role: 'saler' }))) return 0;
 

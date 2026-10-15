@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * salerTierBonus.js — the sales-volume commission tier a shop partner has EARNED, as the pricing step sees it.
+ * salerTierBonus.ts — the sales-volume commission tier a shop partner has EARNED, as the pricing step sees it.
  *
  * WHY a separate file: pricing.service.js resolves the split and subscriptionRebate.js is its sibling
  * for the Shop Partner Pro rebate; this follows the same shape so pricing can import it without a cycle.
@@ -21,6 +20,15 @@
 /** Trust tiers a bonus can be set for, lowest first. */
 export const TIER_KEYS = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'];
 
+/** Volume each tier above BRONZE asks for; null means the stored value was unusable. */
+export type Thresholds = Record<string, number | null>;
+
+export interface TierRules {
+  enabled: boolean;
+  window_days: number;
+  thresholds: Thresholds;
+}
+
 export const RULES_KEY = 'saler.commission_tiers';
 
 export const DEFAULT_RULES = Object.freeze({
@@ -33,8 +41,8 @@ export const DEFAULT_RULES = Object.freeze({
  * Pure. Reads the `finance.tier_bonuses` list ({ tier, bonus_pct }[]) into a map; a tier that is missing
  * or malformed gets 0. Shared with the Finance splits screen so both read one definition.
  */
-export function parseTierBonuses(list) {
-  const bonuses = Object.fromEntries(TIER_KEYS.map((k) => [k, 0]));
+export function parseTierBonuses(list: unknown): Record<string, number> {
+  const bonuses: Record<string, number> = Object.fromEntries(TIER_KEYS.map((k) => [k, 0]));
   if (Array.isArray(list)) {
     for (const row of list) {
       const pct = parseFloat(row?.bonus_pct);
@@ -50,17 +58,15 @@ export function parseTierBonuses(list) {
  * Thresholds that do not rise (GOLD <= SILVER) are discarded as a set, because a ladder that does not
  * rise would promote a shop partner past a tier they have not reached.
  */
-export function resolveRules(raw) {
-  const r = raw && typeof raw === 'object' ? raw : {};
+export function resolveRules(raw: unknown): TierRules {
+  const r: any = raw && typeof raw === 'object' ? raw : {};
   const d = DEFAULT_RULES;
   const windowDays = Number.isInteger(r.window_days) && r.window_days >= 7 && r.window_days <= 365 ? r.window_days : d.window_days;
 
-  /** @type {Record<string, number|null>} */
-  let thresholds = { ...d.thresholds };
+  let thresholds: Thresholds = { ...d.thresholds };
   const t = r.thresholds && typeof r.thresholds === 'object' ? r.thresholds : null;
   if (t) {
-    /** @type {Record<string, number|null>} */
-    const next = {};
+    const next: Thresholds = {};
     for (const k of TIER_KEYS.slice(1)) {
       const v = Number(t[k]);
       next[k] = Number.isFinite(v) && v > 0 ? v : null;
@@ -76,14 +82,14 @@ export function resolveRules(raw) {
  * Strict form of `resolveRules` for an admin write: out-of-range input is refused, never clamped, so what
  * an admin saves is what shop partners see. Returns the clean object or throws an Error with a message.
  */
-export function validateRules(input) {
-  const bad = (m) => Object.assign(new Error(m), { code: 'VALIDATION_FAILED' });
+export function validateRules(input: any): TierRules {
+  const bad = (m: string) => Object.assign(new Error(m), { code: 'VALIDATION_FAILED' });
   if (!input || typeof input !== 'object') throw bad('Rules must be an object.');
   if (typeof input.enabled !== 'boolean') throw bad('"enabled" must be true or false.');
   if (!Number.isInteger(input.window_days) || input.window_days < 7 || input.window_days > 365) {
     throw bad('"window_days" must be a whole number from 7 to 365.');
   }
-  const thresholds = {};
+  const thresholds: Thresholds = {};
   let prev = 0;
   for (const k of TIER_KEYS.slice(1)) {
     const v = Number(input.thresholds?.[k]);
@@ -96,7 +102,7 @@ export function validateRules(input) {
 }
 
 /** Pure. The highest tier a volume reaches. BRONZE is the floor, never null. */
-export function pickTierKey(volume, thresholds) {
+export function pickTierKey(volume: unknown, thresholds: Thresholds | null | undefined): string {
   const v = Number(volume);
   let tier = 'BRONZE';
   if (!Number.isFinite(v)) return tier;
@@ -107,7 +113,11 @@ export function pickTierKey(volume, thresholds) {
 }
 
 /** Pure. The tier after `tier` and how much more volume reaches it, or null at the top. */
-export function nextTierInfo(tier, volume, thresholds) {
+export function nextTierInfo(
+  tier: string,
+  volume: unknown,
+  thresholds: Thresholds
+): { tier: string; min_volume: number; remaining: number } | null {
   const i = TIER_KEYS.indexOf(tier);
   const nextKey = i >= 0 ? TIER_KEYS[i + 1] : null;
   if (!nextKey) return null;
@@ -116,13 +126,14 @@ export function nextTierInfo(tier, volume, thresholds) {
 }
 
 /**
- * @returns {Promise<number>} extra shop partner split points this shop partner's earned tier pays, 0 when none applies.
+ * Extra shop partner split points this shop partner's earned tier pays, 0 when none applies.
  * One query reads the switch, the shop partner's tier and the bonus list together, so a checkout of N items
  * costs N cheap lookups, not 3N.
- * @param {*} db
- * @param {{ salerId?: number|string|null }} [params]
  */
-export async function resolveSalerTierBonusPct(db, { salerId } = {}) {
+export async function resolveSalerTierBonusPct(
+  db: any,
+  { salerId }: { salerId?: number | string | null } = {}
+): Promise<number> {
   if (!db || !salerId) return 0;
   const { rows } = await db.query(
     `SELECT (SELECT value_json FROM platform_settings WHERE key = 'saler.commission_tiers') AS rules,
@@ -136,13 +147,13 @@ export async function resolveSalerTierBonusPct(db, { salerId } = {}) {
 }
 
 /** The stored rules, merged over the defaults. */
-export async function loadRules(db) {
+export async function loadRules(db: any): Promise<TierRules> {
   const { rows } = await db.query(`SELECT value_json FROM platform_settings WHERE key = '${RULES_KEY}'`);
   return resolveRules(rows[0]?.value_json);
 }
 
 /** Writes rules that have already passed `validateRules`. */
-export async function saveRules(db, rules) {
+export async function saveRules(db: any, rules: TierRules): Promise<void> {
   await db.query(
     `INSERT INTO platform_settings (key, value_json, value_type, label_en, label_bn, group_key, updated_at)
      VALUES ($1, $2::jsonb, 'OBJECT', 'Shop Partner commission tiers', 'শপ পার্টনার কমিশন টিয়ার', 'finance', now())

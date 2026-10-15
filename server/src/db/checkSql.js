@@ -2,7 +2,7 @@
  * checkSql.js — prepares every static SQL statement in server/src against the migrated schema.
  *
  * `npm run check:sql` (needs DATABASE_URL pointing at a database that `npm run migrate` has brought
- * up to date) scans every .js file under server/src for template literals that start with SELECT,
+ * up to date) scans every .js and .ts file under server/src for template literals that start with SELECT,
  * INSERT, UPDATE, DELETE or WITH and asks Postgres to PREPARE each one. PREPARE parses and plans
  * the statement without running it, so a statement naming a table or column that does not exist
  * fails here instead of in production.
@@ -53,7 +53,7 @@ async function listSourceFiles(dir) {
     entries.map((e) => {
       const full = path.join(dir, e.name);
       if (e.isDirectory()) return listSourceFiles(full);
-      return e.name.endsWith('.js') ? [full] : [];
+      return /\.(js|ts)$/.test(e.name) ? [full] : [];
     })
   );
   return nested.flat();

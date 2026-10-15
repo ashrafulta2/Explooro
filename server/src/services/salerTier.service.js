@@ -8,14 +8,14 @@
  * or cancelled order never counts. Because the window rolls, a shop partner who stops selling drifts back down:
  * a tier is earned continuously, not kept.
  *
- * What a tier pays is NOT decided here - `finance.tier_bonuses` owns that (see salerTierBonus.js).
+ * What a tier pays is NOT decided here - `finance.tier_bonuses` owns that (see salerTierBonus.ts).
  * This file only decides who is in which tier, and the pricing step reads the result.
  */
 
 import { writeAudit } from '../lib/audit.js';
 import {
   RULES_KEY, TIER_KEYS, nextTierInfo, parseTierBonuses, pickTierKey, resolveRules,
-} from './salerTierBonus.js';
+} from './salerTierBonus.ts';
 
 async function loadSettings(db) {
   const { rows } = await db.query(
