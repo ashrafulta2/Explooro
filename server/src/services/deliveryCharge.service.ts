@@ -105,7 +105,7 @@ export async function getPolicy(db, cache, { fresh = false } = {}) {
 }
 
 /** The charge in BDT for one supplier parcel. */
-export async function perParcelCharge(db, cache, opts) {
+export async function perParcelCharge(db, cache, opts?: { fresh?: boolean }) {
   return (await getPolicy(db, cache, opts)).per_parcel_charge;
 }
 

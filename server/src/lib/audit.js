@@ -5,7 +5,7 @@
  * benefit from context extraction, recursive sensitive data redaction, and hash chaining.
  */
 
-import { record } from '../services/audit.service.js';
+import { record } from '../services/audit.service.ts';
 
 export async function writeAudit(db, params) {
   return record(db, params);

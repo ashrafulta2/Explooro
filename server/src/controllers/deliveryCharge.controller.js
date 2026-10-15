@@ -3,7 +3,7 @@
  */
 
 import * as deliveryChargeService from '../services/deliveryCharge.service.ts';
-import * as auditService from '../services/audit.service.js';
+import * as auditService from '../services/audit.service.ts';
 import * as auditRepo from '../repositories/audit.repository.ts';
 
 const dbOf = (req) => req.db || req.server?.db;

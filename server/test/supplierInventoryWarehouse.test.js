@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import supplierRoutes from '../src/routes/supplier.routes.js';
-import * as inventoryService from '../src/services/inventory.service.js';
+import * as inventoryService from '../src/services/inventory.service.ts';
 import * as warehouseRoutingService from '../src/services/warehouseRouting.service.ts';
 import { SIMPLE_MODE_ITEMS } from '../../client/src/config/navigation.js';
 

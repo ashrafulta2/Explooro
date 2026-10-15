@@ -2,8 +2,8 @@
  * qna.controller.js — Handlers for product Q&A endpoints (Prompt 4.6).
  */
 
-import * as qnaService from '../services/qna.service.js';
-import * as productRepo from '../repositories/product.repository.js';
+import * as qnaService from '../services/qna.service.ts';
+import * as productRepo from '../repositories/product.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 async function resolveProduct(db, idOrRef) {

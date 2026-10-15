@@ -25,7 +25,7 @@ import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import localizationRoutes from '../src/routes/localization.routes.js';
-import * as localizationService from '../src/services/localization.service.js';
+import * as localizationService from '../src/services/localization.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
@@ -242,7 +242,7 @@ describe('Language & Default Locale governance', () => {
     test('writes all three settings rows and audits before/after', async () => {
       const db = createMockDb();
       const cache = createCache();
-      const auditService = await import('../src/services/audit.service.js');
+      const auditService = await import('../src/services/audit.service.ts');
 
       await cache.set('localization:policy', JSON.stringify({ default_locale: 'en' }));
 

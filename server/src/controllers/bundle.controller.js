@@ -2,7 +2,7 @@
  * bundle.controller.js — Controller for Cross-Seller Bundling & Surge Pricing (Prompt 10.5).
  */
 
-import * as bundleService from '../services/bundle.service.js';
+import * as bundleService from '../services/bundle.service.ts';
 import * as surgeService from '../services/surgePricing.service.ts';
 
 /**

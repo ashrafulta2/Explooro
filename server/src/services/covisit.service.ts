@@ -54,7 +54,7 @@ function readJson(raw) {
  * must not discard the rest of an admin's tuning. `null` and '' are rejected explicitly because
  * Number(null) is 0, which would read an absent key as a real value.
  */
-export function sanitizeCovisit(raw) {
+export function sanitizeCovisit(raw): Record<string, any> {
   const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
   const out = { enabled: typeof src.enabled === 'boolean' ? src.enabled : DEFAULT_COVISIT.enabled };
   for (const [key, { min, max, integer }] of Object.entries(COVISIT_LIMITS) as [string, { min: number; max: number; integer?: boolean }][]) {

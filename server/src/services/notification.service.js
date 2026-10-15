@@ -10,8 +10,8 @@
  */
 
 import { withTransaction } from '../config/db.ts';
-import { sendInApp } from './notification-channels/inapp.js';
-import { sendSms } from './notification-channels/sms.js';
+import { sendInApp } from './notification-channels/inapp.ts';
+import { sendSms } from './notification-channels/sms.ts';
 import { sendPush } from './notification-channels/push.ts';
 import { sendEmail } from './notification-channels/email.ts';
 

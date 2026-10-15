@@ -9,7 +9,7 @@ import { BkashPaymentDriver } from '../src/integrations/payments/bkash.ts';
 import { NagadPaymentDriver } from '../src/integrations/payments/nagad.ts';
 import { SslcommerzPaymentDriver } from '../src/integrations/payments/sslcommerz.ts';
 import { MockPaymentDriver } from '../src/integrations/payments/mock.ts';
-import { createPaymentGateway } from '../src/integrations/payments/index.js';
+import { createPaymentGateway } from '../src/integrations/payments/index.ts';
 import { SteadfastCourierAdapter } from '../src/integrations/courier/steadfast.ts';
 import { PathaoCourierAdapter } from '../src/integrations/courier/pathao.ts';
 import { RedxCourierAdapter } from '../src/integrations/courier/redx.ts';

@@ -11,7 +11,7 @@
  */
 
 import * as staffService from '../services/staff.service.js';
-import { runIdempotent } from '../lib/idempotency.js';
+import { runIdempotent } from '../lib/idempotency.ts';
 
 const requestMeta = (req) => ({
   ip: req.ip,

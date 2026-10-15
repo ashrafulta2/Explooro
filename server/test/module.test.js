@@ -21,7 +21,7 @@ import Fastify from 'fastify';
 
 import * as moduleService from '../src/services/module.service.js';
 import * as moduleRepo from '../src/repositories/module.repository.ts';
-import * as auditService from '../src/services/audit.service.js';
+import * as auditService from '../src/services/audit.service.ts';
 import moduleRoutes from '../src/routes/module.routes.js';
 import requireModulePlugin from '../src/middlewares/requireModule.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';

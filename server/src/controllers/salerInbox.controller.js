@@ -3,7 +3,7 @@
  */
 
 import * as service from '../services/whatsappCommerce.service.js';
-import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 export async function getUnifiedThreads(req, reply) {
   const { limit = 30, offset = 0 } = req.query || {};

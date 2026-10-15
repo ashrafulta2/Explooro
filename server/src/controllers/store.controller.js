@@ -2,9 +2,9 @@
  * store.controller.js — Request handlers for storefronts, builder, status & OG images (Prompt 4.8).
  */
 
-import * as storeService from '../services/store.service.js';
+import * as storeService from '../services/store.service.ts';
 import * as ogService from '../services/og-image.service.ts';
-import * as productRepo from '../repositories/product.repository.js';
+import * as productRepo from '../repositories/product.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 export async function getStore(req, reply) {

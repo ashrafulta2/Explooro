@@ -11,7 +11,7 @@ import requirePermissionPlugin from '../src/middlewares/requirePermission.js';
 import userRoutes from '../src/routes/user.routes.js';
 import delegationRoutes from '../src/routes/delegation.routes.js';
 import restrictionRoutes from '../src/routes/restriction.routes.js';
-import * as rbacService from '../src/services/rbac.service.js';
+import * as rbacService from '../src/services/rbac.service.ts';
 
 function createMockDb() {
   const users = [

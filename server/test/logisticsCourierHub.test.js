@@ -18,7 +18,7 @@ import Fastify from 'fastify';
 import * as shipmentService from '../src/services/shipment.service.js';
 import * as vaultService from '../src/services/vault.service.ts';
 import * as clawbackService from '../src/services/clawback.service.ts';
-import { getCourierAdapter } from '../src/integrations/courier/index.js';
+import { getCourierAdapter } from '../src/integrations/courier/index.ts';
 import logisticsRoutes from '../src/routes/logistics.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';

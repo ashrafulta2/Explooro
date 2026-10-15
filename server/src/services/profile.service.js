@@ -19,7 +19,7 @@ import { withTransaction } from '../config/db.ts';
 import { encryptField, decryptField } from '../lib/encryption.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 import * as userRepo from '../repositories/user.repository.ts';
-import * as auditService from './audit.service.js';
+import * as auditService from './audit.service.ts';
 
 export const GENDERS = ['MALE', 'FEMALE', 'OTHER', 'UNSPECIFIED'];
 export const LOCALES = ['bn', 'en'];

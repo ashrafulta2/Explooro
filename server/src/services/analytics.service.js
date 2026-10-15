@@ -940,7 +940,7 @@ export async function restoreBackup(db, backupId, { userId = null } = {}) {
   );
 
   if (rows.length === 0) {
-    throw new AppError('BACKUP_NOT_FOUND', 'The requested backup snapshot does not exist.', 404);
+    throw new AppError('BACKUP_NOT_FOUND', 'The requested backup snapshot does not exist.');
   }
 
   const backup = rows[0];

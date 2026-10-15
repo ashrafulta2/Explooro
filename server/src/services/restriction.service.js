@@ -10,7 +10,7 @@
  */
 
 import * as permRepo from '../repositories/permission.repository.ts';
-import * as rbacService from './rbac.service.js';
+import * as rbacService from './rbac.service.ts';
 import { evaluatePredicate } from './segment.service.ts';
 import { registerActionExecutor } from './makerChecker.service.js';
 import { writeAudit } from '../lib/audit.js';

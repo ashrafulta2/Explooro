@@ -1,7 +1,7 @@
 /**
  * grant-scopes.js — which permissions a standing grant can narrow, and with which fields.
  *
- * Mirror of GRANT_SCOPES in server/src/lib/grantScope.js, which validates and ENFORCES them;
+ * Mirror of GRANT_SCOPES in server/src/lib/grantScope.ts, which validates and ENFORCES them;
  * server/test/grantScope.test.js fails if the two drift. A permission missing here gets no scope
  * field in the Issue Grant drawer, because the server would reject — or, before it validated,
  * silently ignore — any scope on it.

@@ -13,7 +13,7 @@ import { generateRef } from '../lib/ref.ts';
 import { createWhatsAppSender } from '../integrations/whatsapp/index.ts';
 import { sendToUser } from '../sockets/presence.ts';
 import { withTransaction } from '../config/db.ts';
-import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 // In-memory checkout tokens map: token -> { salerId, productId, variantId, quantity, customerPhone, expiresAt, used }
 const checkoutTokens = new Map();

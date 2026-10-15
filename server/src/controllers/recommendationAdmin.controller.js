@@ -5,7 +5,7 @@
 import * as admin from '../services/recommendationAdmin.service.js';
 import * as funnel from '../services/recoFunnel.service.ts';
 import * as recoCache from '../services/recoCache.service.ts';
-import * as auditService from '../services/audit.service.js';
+import * as auditService from '../services/audit.service.ts';
 import * as auditRepo from '../repositories/audit.repository.ts';
 
 function dbOf(req) {

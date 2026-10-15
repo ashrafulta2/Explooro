@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as reco from '../src/services/recommendation.service.js';
+import * as reco from '../src/services/recommendation.service.ts';
 import { buildBlendedRank } from '../src/repositories/recommendation.repository.ts';
 import * as feed from '../src/services/discoveryFeed.service.js';
 import * as covisit from '../src/services/covisit.service.ts';

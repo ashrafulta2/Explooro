@@ -11,7 +11,7 @@
  * - Physical Shop Operating Status Toggle.
  */
 
-import * as inventoryService from '../services/inventory.service.js';
+import * as inventoryService from '../services/inventory.service.ts';
 import * as warehouseRoutingService from '../services/warehouseRouting.service.ts';
 import { getOwnScorecard } from '../services/supplierScorecard.service.ts';
 import { getSupplierView as getIncentiveView, saveProgram as saveIncentiveProgram } from '../services/volumeIncentive.service.ts';

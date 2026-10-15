@@ -20,7 +20,7 @@ import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import '../src/config/loadEnvFile.ts';
 import { normalisePhone, validateProvision, cleanReason } from '../src/services/staff.service.js';
-import { runIdempotent, fingerprintOf } from '../src/lib/idempotency.js';
+import { runIdempotent, fingerprintOf } from '../src/lib/idempotency.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 // ── 1. Pure unit tests ───────────────────────────────────────────────────────────────────────

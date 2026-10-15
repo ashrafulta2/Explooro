@@ -11,7 +11,7 @@
  */
 
 import * as permRepo from '../repositories/permission.repository.ts';
-import * as rbacService from './rbac.service.js';
+import * as rbacService from './rbac.service.ts';
 import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.ts';

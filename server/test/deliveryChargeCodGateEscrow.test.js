@@ -55,7 +55,7 @@ describe('1. paid gateway orders lock escrow', () => {
   });
 
   test('the payment controllers use the pool app.js actually decorates', () => {
-    for (const f of ['controllers/payment.controller.js', 'controllers/paymentWebhook.controller.js']) {
+    for (const f of ['controllers/payment.controller.ts', 'controllers/paymentWebhook.controller.ts']) {
       assert.ok(!/req\.server\.pg\b/.test(src(f)), `${f} reads req.server.pg, which does not exist`);
     }
   });
@@ -69,7 +69,7 @@ describe('1. paid gateway orders lock escrow', () => {
 describe('2. delivery charge is a setting', () => {
   test('checkout and the cart read it; no ৳60 constant is left', () => {
     const checkout = src('services/checkout.service.ts');
-    const cart = src('services/cart.service.js');
+    const cart = src('services/cart.service.ts');
     assert.ok(!/toPaisa\(60(\.0)?\)/.test(checkout));
     assert.ok(!/PerParcel = 60/.test(cart));
     assert.match(checkout, /deliveryChargeService\.perParcelCharge\(client, cache, \{ fresh: true \}\)/);

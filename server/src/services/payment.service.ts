@@ -12,10 +12,10 @@
 
 import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
-import { createPaymentGateway } from '../integrations/payments/index.js';
+import { createPaymentGateway } from '../integrations/payments/index.ts';
 import * as paymentRepo from '../repositories/payment.repository.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
-import * as auditService from './audit.service.js';
+import * as auditService from './audit.service.ts';
 import * as vaultService from './vault.service.ts';
 import { withTransaction } from '../config/db.ts';
 

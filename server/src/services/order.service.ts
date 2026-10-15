@@ -11,7 +11,7 @@ import { AppError } from '../plugins/errorHandler.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
 import * as liveRepo from '../repositories/liveStream.repository.ts';
-import * as trustScoreService from './trustScore.service.js';
+import * as trustScoreService from './trustScore.service.ts';
 
 export const CANCELLATION_CONFIG = {
   WINDOW_MINUTES: 30,

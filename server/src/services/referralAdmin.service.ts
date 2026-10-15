@@ -16,7 +16,7 @@ import { withTransaction } from '../config/db.ts';
 import { getReferralSettings } from './referral.service.ts';
 import { updateModuleSettings } from './module.service.js';
 import { settleReferralEarnings } from './referralEscrow.service.ts';
-import * as auditService from './audit.service.js';
+import * as auditService from './audit.service.ts';
 
 // WHY: the page speaks in operator terms (tier_depth, velocity_cap_per_day), the engine stores its
 // own keys. This map is the only place the two vocabularies meet.

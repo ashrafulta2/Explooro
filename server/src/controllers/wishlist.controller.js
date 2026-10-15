@@ -2,7 +2,7 @@
  * wishlist.controller.js — HTTP controller for Wishlist endpoints (Prompt 5.1).
  */
 
-import * as wishlistService from '../services/wishlist.service.js';
+import * as wishlistService from '../services/wishlist.service.ts';
 
 export async function getWishlist(req, reply) {
   const { db } = req.server;

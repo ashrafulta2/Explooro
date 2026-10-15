@@ -9,7 +9,7 @@
  * — there is no permission key for "read your own name".
  */
 
-import * as rbacService from '../services/rbac.service.js';
+import * as rbacService from '../services/rbac.service.ts';
 import * as profileController from '../controllers/profile.controller.js';
 
 export default async function meRoutes(app) {

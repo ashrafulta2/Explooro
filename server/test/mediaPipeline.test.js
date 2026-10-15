@@ -14,7 +14,7 @@ import {
   generateDerivatives,
   MAX_IMAGE_SIZE_BYTES,
   MAX_VIDEO_SIZE_BYTES,
-} from '../src/services/media.service.js';
+} from '../src/services/media.service.ts';
 import { getStorageDriver, localStorageDriver } from '../src/integrations/storage/index.ts';
 
 function createMockDb() {

@@ -8,8 +8,8 @@
  * Claude and asks only for a one-paragraph human explanation; it cannot change the prediction.
  */
 
-import * as provider from './provider.js';
-import * as productRepo from '../../repositories/product.repository.js';
+import * as provider from './provider.ts';
+import * as productRepo from '../../repositories/product.repository.ts';
 import { AppError } from '../../plugins/errorHandler.ts';
 
 const FEATURE_KEY = 'forecast';

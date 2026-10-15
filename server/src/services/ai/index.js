@@ -8,7 +8,7 @@
 
 export * as conciergeAgent from './conciergeAgent.js';
 export * as sourcingAgent from './sourcingAgent.js';
-export * as provider from './provider.js';
+export * as provider from './provider.ts';
 export * as creativeStudio from './creativeStudio.js';
 export * as demandForecast from './demandForecast.js';
 export * as reviewIntegrity from './reviewIntegrity.js';

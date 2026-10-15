@@ -21,7 +21,7 @@
  */
 
 import fp from 'fastify-plugin';
-import { claimIdempotency, completeIdempotency, releaseIdempotency } from '../lib/idempotency.js';
+import { claimIdempotency, completeIdempotency, releaseIdempotency } from '../lib/idempotency.ts';
 
 const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 

@@ -16,12 +16,12 @@
 import { createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
-import * as cartService from './cart.service.js';
+import * as cartService from './cart.service.ts';
 import * as cartRepo from '../repositories/cart.repository.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
 import * as adsService from './ads.service.js';
-import * as trustScoreService from './trustScore.service.js';
+import * as trustScoreService from './trustScore.service.ts';
 import * as codGateService from './codGate.service.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedByProduct } from './teamStockReservation.service.ts';

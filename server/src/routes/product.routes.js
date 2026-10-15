@@ -4,9 +4,9 @@
 
 import * as productController from '../controllers/product.controller.js';
 import * as sourcingController from '../controllers/sourcing.controller.js';
-import * as sampleKit from '../controllers/sampleKit.controller.js';
+import * as sampleKit from '../controllers/sampleKit.controller.ts';
 import * as fastPayout from '../controllers/fastPayout.controller.ts';
-import * as returnProtection from '../controllers/returnProtection.controller.js';
+import * as returnProtection from '../controllers/returnProtection.controller.ts';
 import { requirePermission } from '../middlewares/requirePermission.js';
 import { requireRestriction } from '../middlewares/requireRestriction.js';
 import { AppError } from '../plugins/errorHandler.ts';

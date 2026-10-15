@@ -270,7 +270,7 @@ let mockStories = [
   },
 ];
 
-// Saved delivery addresses — in-memory address book mirroring server/src/services/customerAddress.service.js
+// Saved delivery addresses — in-memory address book mirroring server/src/services/customerAddress.service.ts
 // (first address is always the default; promoting a new default demotes the old one; deleting the
 // default auto-promotes the most recently touched remaining address).
 let mockAddresses = [

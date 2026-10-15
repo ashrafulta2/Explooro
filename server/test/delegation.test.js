@@ -16,7 +16,7 @@ import Fastify from 'fastify';
 import * as delegationService from '../src/services/delegation.service.js';
 import * as makerCheckerService from '../src/services/makerChecker.service.js';
 import { runGrantExpiryJob } from '../src/jobs/grantExpiryCron.js';
-import { resolvePermissions, hasPermission } from '../src/services/rbac.service.js';
+import { resolvePermissions, hasPermission } from '../src/services/rbac.service.ts';
 import { requirePermission } from '../src/middlewares/requirePermission.js';
 import delegationRoutes from '../src/routes/delegation.routes.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';

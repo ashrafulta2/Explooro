@@ -10,7 +10,7 @@
  * state change (same rule as the Creative Studio's "draft requires human approval").
  */
 
-import * as provider from './provider.js';
+import * as provider from './provider.ts';
 import * as aiRepo from '../../repositories/ai.repository.ts';
 import * as productService from '../product.service.js';
 import { sanitizeUntrustedText } from './conciergeAgent.js';

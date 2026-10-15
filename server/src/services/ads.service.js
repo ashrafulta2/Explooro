@@ -20,14 +20,14 @@ import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.js';
 import { isEnabled } from './module.service.js';
-import * as rbacService from './rbac.service.js';
+import * as rbacService from './rbac.service.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as adProductRepo from '../repositories/adProduct.repository.ts';
 import * as adProductsService from './adProducts.service.js';
 import { quote as priceQuote, meteredCharge, rate, PREPAID_MODELS } from './adPricing.ts';
 import { runSecondPriceAuction, MIN_RESERVE_PRICE } from './adAuction.service.ts';
-import * as sponsoredSourcing from './sponsoredSourcing.service.js';
+import * as sponsoredSourcing from './sponsoredSourcing.service.ts';
 
 const BLOCKED_KEYWORDS_DEFAULT = ['illegal', 'replica', 'counterfeit', 'fake', 'weapons', 'adult', 'gambling'];
 

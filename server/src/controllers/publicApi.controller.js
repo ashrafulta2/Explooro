@@ -2,11 +2,11 @@
  * publicApi.controller.js — Controller for Public REST API, Partner Integration & Developer Portal (Prompt 10.7).
  */
 
-import * as apiKeyService from '../services/apiKey.service.js';
-import * as webhookService from '../services/webhookDelivery.service.js';
+import * as apiKeyService from '../services/apiKey.service.ts';
+import * as webhookService from '../services/webhookDelivery.service.ts';
 import * as orderService from '../services/order.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 // -----------------------------------------------------------------------------
 // PUBLIC READ-ONLY CATALOG ENDPOINTS
@@ -125,7 +125,7 @@ export async function getPublicProductById(req, reply) {
 
   const { rows } = await req.server.db.query(sql, [idOrSlug]);
   if (!rows.length) {
-    throw new AppError('NOT_FOUND', `Product "${idOrSlug}" not found.`, 404);
+    throw new AppError('NOT_FOUND', `Product "${idOrSlug}" not found.`);
   }
 
   const p = rows[0];
@@ -195,7 +195,7 @@ export async function getPublicStoreById(req, reply) {
 
   const { rows } = await req.server.db.query(sql, [idOrSlug]);
   if (!rows.length) {
-    throw new AppError('NOT_FOUND', `Store "${idOrSlug}" not found.`, 404);
+    throw new AppError('NOT_FOUND', `Store "${idOrSlug}" not found.`);
   }
 
   const store = toPublicStore(rows[0]);
@@ -232,7 +232,7 @@ export async function getPublicCategories(req, reply) {
 export async function createPartnerOrder(req, reply) {
   const apiKey = req.apiKey;
   if (!apiKey || !apiKeyService.hasScope(apiKey, 'orders.create')) {
-    throw new AppError('FORBIDDEN', 'API key does not have the required "orders.create" permission scope.', 403);
+    throw new AppError('FORBIDDEN', 'API key does not have the required "orders.create" permission scope.');
   }
 
   const {
@@ -245,10 +245,10 @@ export async function createPartnerOrder(req, reply) {
   } = req.body;
 
   if (!items || !Array.isArray(items) || items.length === 0) {
-    throw new AppError('VALIDATION_FAILED', 'At least 1 item is required to place an order.', 400);
+    throw new AppError('VALIDATION_FAILED', 'At least 1 item is required to place an order.');
   }
   if (!customer || !customer.phone || !customer.name) {
-    throw new AppError('VALIDATION_FAILED', 'Customer name and phone number are required.', 400);
+    throw new AppError('VALIDATION_FAILED', 'Customer name and phone number are required.');
   }
 
   // Create order via core orderService

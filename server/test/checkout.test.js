@@ -18,7 +18,7 @@ import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import orderRoutes from '../src/routes/order.routes.js';
 import { executeCheckout } from '../src/services/checkout.service.ts';
 import * as orderService from '../src/services/order.service.ts';
-import * as trustScoreService from '../src/services/trustScore.service.js';
+import * as trustScoreService from '../src/services/trustScore.service.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 import fs from 'node:fs';
 import path from 'node:path';

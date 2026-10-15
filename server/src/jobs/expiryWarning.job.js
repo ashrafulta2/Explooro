@@ -9,7 +9,7 @@
  */
 
 import { registerJob } from './scheduler.js';
-import * as inventoryService from '../services/inventory.service.js';
+import * as inventoryService from '../services/inventory.service.ts';
 
 export async function runExpiryWarningSweep(db, cache, logger = console) {
   return inventoryService.checkExpiryWarnings(db, cache, logger);

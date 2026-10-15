@@ -8,7 +8,7 @@
  * - SHADOW_BAN: Allows request, tags req.shadowBanned = true for suppressed visibility.
  */
 
-import * as rbacService from '../services/rbac.service.js';
+import * as rbacService from '../services/rbac.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 const THROTTLE_WINDOW_SECONDS = 86400; // 24 hours default limit window

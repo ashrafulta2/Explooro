@@ -3,8 +3,8 @@
  */
 
 import { addRawJsonBody } from '../plugins/rawBody.ts';
-import * as paymentCtrl from '../controllers/payment.controller.js';
-import * as webhookCtrl from '../controllers/paymentWebhook.controller.js';
+import * as paymentCtrl from '../controllers/payment.controller.ts';
+import * as webhookCtrl from '../controllers/paymentWebhook.controller.ts';
 
 export default async function paymentRoutes(fastify) {
   // WHY: gateway webhook signatures cover the raw bytes (see plugins/rawBody.ts).

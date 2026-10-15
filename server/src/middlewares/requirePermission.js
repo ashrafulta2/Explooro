@@ -18,12 +18,12 @@
  * endpoint IS the approval mechanism, not an action that itself needs approving.
  */
 
-import * as rbacService from '../services/rbac.service.js';
+import * as rbacService from '../services/rbac.service.ts';
 import * as permRepo from '../repositories/permission.repository.ts';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.ts';
-import { restrictingScopes, scopeAllows } from '../lib/grantScope.js';
+import { restrictingScopes, scopeAllows } from '../lib/grantScope.ts';
 
 export const PENDING_ACTION_EXPIRY_HOURS = 72;
 
@@ -212,7 +212,7 @@ export function requirePermission(permissionKey, options = {}) {
 }
 
 /**
- * Enforces a standing grant's scope_json (server/src/lib/grantScope.js). No-op unless every source
+ * Enforces a standing grant's scope_json (server/src/lib/grantScope.ts). No-op unless every source
  * of this permission is a scoped GRANT. `options.scopeFacts(req)` describes the action being
  * attempted (e.g. `{ amount }`); a route with no `scopeFacts` fails closed for scoped holders.
  */

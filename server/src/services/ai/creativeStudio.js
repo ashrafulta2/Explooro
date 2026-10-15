@@ -15,10 +15,10 @@
  * computes" split used by demandForecast.js.
  */
 
-import * as provider from './provider.js';
-import * as productRepo from '../../repositories/product.repository.js';
+import * as provider from './provider.ts';
+import * as productRepo from '../../repositories/product.repository.ts';
 import { getStorageDriver } from '../../integrations/storage/index.ts';
-import { processAndSaveMedia, applyFlatBackgroundMatte } from '../media.service.js';
+import { processAndSaveMedia, applyFlatBackgroundMatte } from '../media.service.ts';
 import { AppError } from '../../plugins/errorHandler.ts';
 
 const FEATURE_KEY = 'creative';

@@ -25,11 +25,11 @@ import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import recommendationAdminRoutes from '../src/routes/recommendationAdmin.routes.js';
 import * as admin from '../src/services/recommendationAdmin.service.js';
-import * as auditService from '../src/services/audit.service.js';
+import * as auditService from '../src/services/audit.service.ts';
 import * as recoCache from '../src/services/recoCache.service.ts';
-import * as recommendation from '../src/services/recommendation.service.js';
+import * as recommendation from '../src/services/recommendation.service.ts';
 import * as homeRails from '../src/services/homeRails.service.js';
-import * as diversity from '../src/services/diversity.service.js';
+import * as diversity from '../src/services/diversity.service.ts';
 import * as clientMock from '../../client/src/mocks/handlers/recommendations.js';
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');

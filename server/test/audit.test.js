@@ -14,7 +14,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as auditService from '../src/services/audit.service.js';
+import * as auditService from '../src/services/audit.service.ts';
 import * as auditRepo from '../src/repositories/audit.repository.ts';
 import auditRoutes from '../src/routes/audit.routes.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';

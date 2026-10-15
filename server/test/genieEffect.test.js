@@ -25,7 +25,7 @@ import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import genieRoutes from '../src/routes/genie.routes.js';
-import * as genieService from '../src/services/genie.service.js';
+import * as genieService from '../src/services/genie.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
@@ -210,7 +210,7 @@ describe('Popup genie effect governance', () => {
     test('writes all three rows in one transaction and audits before/after', async () => {
       const db = createMockDb();
       const cache = createCache();
-      const auditService = await import('../src/services/audit.service.js');
+      const auditService = await import('../src/services/audit.service.ts');
       await cache.set('genie:policy', JSON.stringify({ enabled: true }));
 
       const result = await genieService.updatePolicy(db, cache, auditService, {

@@ -2,8 +2,8 @@
  * genie.controller.js — Request handlers for the popup genie-effect policy API.
  */
 
-import * as genieService from '../services/genie.service.js';
-import * as auditService from '../services/audit.service.js';
+import * as genieService from '../services/genie.service.ts';
+import * as auditService from '../services/audit.service.ts';
 import * as auditRepo from '../repositories/audit.repository.ts';
 
 function dbOf(req) {

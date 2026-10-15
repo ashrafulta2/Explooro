@@ -2,8 +2,8 @@
  * pageAccess.controller.js — Request handlers for the per-page availability API.
  */
 
-import * as pageAccessService from '../services/pageAccess.service.js';
-import * as auditService from '../services/audit.service.js';
+import * as pageAccessService from '../services/pageAccess.service.ts';
+import * as auditService from '../services/audit.service.ts';
 import * as auditRepo from '../repositories/audit.repository.ts';
 
 function dbOf(req) {

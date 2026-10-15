@@ -3,7 +3,7 @@
  */
 
 import * as themeService from '../services/theme.service.js';
-import * as auditService from '../services/audit.service.js';
+import * as auditService from '../services/audit.service.ts';
 
 export async function getActive(req, reply) {
   const db = req.db || req.server?.db;

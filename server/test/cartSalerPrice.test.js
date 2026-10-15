@@ -11,7 +11,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { addItemToCart, getCart } from '../src/services/cart.service.js';
+import { addItemToCart, getCart } from '../src/services/cart.service.ts';
 
 const PRODUCT = {
   id: 1,

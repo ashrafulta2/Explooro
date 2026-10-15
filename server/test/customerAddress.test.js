@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import customerRoutes from '../src/routes/customer.routes.js';
-import * as addressService from '../src/services/customerAddress.service.js';
+import * as addressService from '../src/services/customerAddress.service.ts';
 
 /**
  * Mock pool whose `.connect()` returns an in-transaction client backed by the same queryHandler,

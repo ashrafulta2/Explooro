@@ -11,7 +11,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
-import { getCourierAdapter } from '../integrations/courier/index.js';
+import { getCourierAdapter } from '../integrations/courier/index.ts';
 import * as vaultService from './vault.service.ts';
 import * as clawbackService from './clawback.service.ts';
 import * as warrantyService from './warranty.service.ts';

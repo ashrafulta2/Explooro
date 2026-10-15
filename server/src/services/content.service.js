@@ -12,7 +12,7 @@
 import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
-import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 // -----------------------------------------------------------------------------
 // 1. STORIES (UGC CONTENT COMMERCE)
@@ -30,7 +30,7 @@ export async function createStory(db, {
   autoPublish = false,
 }) {
   if (!titleEn || !titleBn) {
-    throw new AppError('VALIDATION_FAILED', 'Both English and Bengali story titles are required.', 400);
+    throw new AppError('VALIDATION_FAILED', 'Both English and Bengali story titles are required.');
   }
 
   const baseSlug = titleEn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -130,7 +130,7 @@ export async function getStoryBySlugOrId(db, idOrSlug) {
 
   const { rows } = await db.query(sql, [idOrSlug]);
   if (!rows.length) {
-    throw new AppError('NOT_FOUND', `Story "${idOrSlug}" not found.`, 404);
+    throw new AppError('NOT_FOUND', `Story "${idOrSlug}" not found.`);
   }
 
   const story = rows[0];
@@ -168,7 +168,7 @@ export async function getStoryBySlugOrId(db, idOrSlug) {
 export async function reviewStory(db, { storyId, editorId, action, notes = '' }) {
   const { rows } = await db.query('SELECT * FROM stories WHERE id = $1;', [storyId]);
   if (!rows.length) {
-    throw new AppError('NOT_FOUND', `Story #${storyId} not found.`, 404);
+    throw new AppError('NOT_FOUND', `Story #${storyId} not found.`);
   }
 
   const current = rows[0];
@@ -337,7 +337,7 @@ export async function getCourseDetail(db, courseIdOrRef, userId = null) {
 
   const { rows: courses } = await db.query(`SELECT * FROM academy_courses WHERE ${whereClause};`, [courseIdOrRef]);
   if (!courses.length) {
-    throw new AppError('NOT_FOUND', `Course "${courseIdOrRef}" not found.`, 404);
+    throw new AppError('NOT_FOUND', `Course "${courseIdOrRef}" not found.`);
   }
 
   const course = courses[0];
@@ -441,7 +441,7 @@ export async function upsertBanner(db, {
   const active = isActive !== undefined ? isActive : (is_active !== undefined ? is_active : true);
 
   if (!tEn || !imgD || !link) {
-    throw new AppError('VALIDATION_FAILED', 'Title, desktop image URL, and target link are required.', 'শিরোনাম, ডেক্সটপ ছবির লিঙ্ক এবং টার্গেট লিঙ্ক প্রয়োজন।', null, 400);
+    throw new AppError('VALIDATION_FAILED', 'Title, desktop image URL, and target link are required.', 'শিরোনাম, ডেক্সটপ ছবির লিঙ্ক এবং টার্গেট লিঙ্ক প্রয়োজন।', null);
   }
 
   let banner;
@@ -509,7 +509,7 @@ export async function upsertBanner(db, {
 export async function deleteBanner(db, { bannerId, editorId }) {
   const { rows } = await db.query('DELETE FROM banners WHERE id = $1 RETURNING *;', [bannerId]);
   if (!rows.length) {
-    throw new AppError('NOT_FOUND', `Banner #${bannerId} not found.`, 404);
+    throw new AppError('NOT_FOUND', `Banner #${bannerId} not found.`);
   }
 
   await writeAudit(db, {
@@ -549,7 +549,7 @@ export async function upsertTranslationKey(db, {
   editorId = null,
 }) {
   if (!key || !locale || value === undefined) {
-    throw new AppError('VALIDATION_FAILED', 'Key, locale, and value are required.', 400);
+    throw new AppError('VALIDATION_FAILED', 'Key, locale, and value are required.');
   }
 
   const sql = `
@@ -614,7 +614,7 @@ export async function exportTranslationsJson(db, locale) {
 
 export async function importTranslationsJson(db, { locale, data, editorId = null }) {
   if (!data || typeof data !== 'object') {
-    throw new AppError('VALIDATION_FAILED', 'Invalid translations object.', 400);
+    throw new AppError('VALIDATION_FAILED', 'Invalid translations object.');
   }
 
   let importedCount = 0;

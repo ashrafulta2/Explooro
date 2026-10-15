@@ -54,7 +54,7 @@ updates of transitive `fast-uri`, `shell-quote`, `source-map-js` (via `vite`) an
 | `@fastify/rate-limit` | 11.2.0 | server | `server/src/app.js` | Official plugin; wired to a custom Store class backed by `config/cache.js` so `CACHE_DRIVER=memory` keeps limiting working with no Redis | **Low.** One `app.register` call plus the Store class in `app.js` |
 | `argon2` | 0.45.1 | server | `server/src/lib/password.js` | Password hashing must never be hand-rolled. Pulled forward from Phase 2.3 into 2.2 because the dev-user seed needs real argon2id hashes, not placeholders; 2.3's `auth.service.js` imports from `password.js`, never from `argon2` directly, so it still has exactly one importer | **Low.** `hashPassword`/`verifyPassword` in one file; swapping the algorithm touches only `password.js` |
 | `jose` | 6.2.10 | server | `server/src/lib/jwt.js` | Access-token signing/verification. Zero runtime dependencies of its own (vs. `jsonwebtoken`'s 9 transitive packages including several `lodash.*` micro-packages) — the deciding factor given docs/prompt.md's "reject anything with a large transitive tree" rule | **Low.** `signAccessToken`/`verifyAccessToken` in one file; `authenticate.js` and `auth.service.js` both import from there, never from `jose` |
-| `sharp` | 0.35.5 | server | `server/src/services/media.service.js` | Image resize/encode in native code (libvips). The one permitted native build; ships prebuilt `@img/*` binaries per platform, so no compiler is needed | **Medium.** Only `media.service.js` imports it. Removing it means serving originals unresized or moving image work to a separate service |
+| `sharp` | 0.35.5 | server | `server/src/services/media.service.ts` | Image resize/encode in native code (libvips). The one permitted native build; ships prebuilt `@img/*` binaries per platform, so no compiler is needed | **Medium.** Only `media.service.js` imports it. Removing it means serving originals unresized or moving image work to a separate service |
 
 **Fourteen direct dependencies (two are type-only dev tools). Zero of them run in the browser.**
 
@@ -67,8 +67,8 @@ These are named in the Dependency Policy. Adding one still requires a ledger row
 | Package | Phase | Isolated in | Why not hand-written |
 | :--- | :--- | :--- | :--- |
 | `@fastify/websocket` `@fastify/postgres` | 8.1 | `server/src/app.js` | Official plugins; same release cadence as Fastify. (`cors`/`helmet`/`cookie`/`rate-limit` landed in 2.1 — see §2) |
-| `sharp` | 4.2 | `server/src/services/media.service.js` | Image resize/encode in native code. The one permitted native build |
-| `@anthropic-ai/sdk` 0.120.0 | 10.2 | `server/src/services/ai/provider.js` | Streaming, retries, token accounting |
+| `sharp` | 4.2 | `server/src/services/media.service.ts` | Image resize/encode in native code. The one permitted native build |
+| `@anthropic-ai/sdk` 0.120.0 | 10.2 | `server/src/services/ai/provider.ts` | Streaming, retries, token accounting |
 | `vitest` | 12.1 | `vitest.config.js`, **dev only** | Vite-native; no second toolchain |
 
 ---

@@ -2,7 +2,7 @@
  * media.controller.js — Media endpoint handlers (Prompt 4.2).
  */
 
-import * as mediaService from '../services/media.service.js';
+import * as mediaService from '../services/media.service.ts';
 import * as mediaRepo from '../repositories/media.repository.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 

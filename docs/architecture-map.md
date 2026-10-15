@@ -139,20 +139,20 @@ The 35 most likely change requests, with exact paths.
 | I want to… | Change |
 | :--- | :--- |
 | Change how suppliers are graded in the Sourcing Catalog (window, minimum orders, dispatch SLA, weights, grade cut-offs) | **Configuration, not code** — the `supplier.scorecard` OBJECT row in `platform_settings` (migration 062). Scoring rules are `scoreMetrics` / `resolveRules` in `services/supplierScorecard.service.ts`; the daily `supplier_scorecard` job rebuilds `supplier_scorecards`. Weights must sum to 100 or the stored set is ignored. There is no admin editor for the row yet |
-| Sell a supplier a paid slot above the Sourcing Catalog, or change who may buy it / how rank reacts to the scorecard grade | **Configuration, not code** — price is the `sourcing_boost` rate card at /admin/growth/ad-pricing. The slot-specific rules (`max_slots`, `grade_rank_bonus`, `blocked_grades`) are the `supplier.sponsored_sourcing` OBJECT row in `platform_settings` (migration 063), read by `services/sponsoredSourcing.service.js`; `ads.service.runAuction` applies them and `product.service.listSponsoredSourcing` serves `GET /sourcing/sponsored`. There is no admin editor for the row yet |
+| Sell a supplier a paid slot above the Sourcing Catalog, or change who may buy it / how rank reacts to the scorecard grade | **Configuration, not code** — price is the `sourcing_boost` rate card at /admin/growth/ad-pricing. The slot-specific rules (`max_slots`, `grade_rank_bonus`, `blocked_grades`) are the `supplier.sponsored_sourcing` OBJECT row in `platform_settings` (migration 063), read by `services/sponsoredSourcing.service.ts`; `ads.service.runAuction` applies them and `product.service.listSponsoredSourcing` serves `GET /sourcing/sponsored`. There is no admin editor for the row yet |
 | Let a supplier pay a monthly rebate to the shop partners who sell the most of their stock, or change the caps on it | **Configuration, not code** — the caps (`max_rebate_pct`, `max_tiers`, `min_threshold`, `platform_fee_pct` = what the platform keeps, `settle_lag_days`, `funding_retry_days`, `blocked_grades`, `timezone`) are the `supplier.volume_incentive` OBJECT row in `platform_settings` (migration 064), read by `services/volumeIncentive.service.ts`. The supplier's own tiers are rows of `volume_incentive_programs`, versioned and never edited in place; the monthly `jobs/volumeIncentive.job.js` creates `volume_incentive_payouts` and pays them from the supplier's wallet (ledger category `VOLUME_INCENTIVE`). Routes: `GET`/`PUT /supplier/incentive`, `GET /sourcing/incentives`. There is no admin editor for the settings row yet |
 | Let a supplier offer paid samples and publish a marketing kit, or change the caps on either | **Configuration, not code** — the caps (`platform_fee_pct` = what the platform keeps of the sample price, `min_price`, `max_price`, `max_shipping_fee`, `response_days`, `auto_confirm_days`, `max_open_per_saler`, `blocked_grades`, and the kit limits) are the `supplier.sample_kit` OBJECT row in `platform_settings` (migration 065), read by `services/sampleKit.service.ts`. Offers are `sample_offers`, requests are `sample_requests` (price, shipping and the platform's share snapshotted on the row), kits are `marketing_kits`. The shop partner's money is held in their own wallet's HELD bucket (ledger categories `SAMPLE_HOLD` / `SAMPLE_RELEASE` / `SAMPLE_REFUND`); the only place a request changes state is `transition()` in the service, and the hourly `jobs/sampleKit.job.js` expires unshipped requests and auto-confirms unconfirmed ones. Routes: `/supplier/samples…`, `/supplier/marketing-kits…`, `/sourcing/samples…`, `/sourcing/marketing-kits`; permissions `supplier.sample.manage`, `saler.sample.request`. There is no admin editor for the settings row yet |
 | Change what an early escrow payout costs, who may take one, or how Return Protection is priced and capped | **Configuration, not code** — `fee_pct_by_grade`, `ungraded_fee_pct`, `min_amount`, `max_per_request`, `max_outstanding`, `min_days_saved`, `blocked_grades` are the `supplier.fast_payout` OBJECT row in `platform_settings` (migration 066), read by `services/fastPayout.service.ts`; `premium_pct`, `max_claim_amount`, `max_claims_per_saler_30d`, `enabled`, `blocked_grades` are the `supplier.return_protection` row, read by `services/returnProtection.service.ts`. Early releases are `fast_payouts` (one per escrow entry, UNIQUE); protection is `return_protection_enrollments` (a history, so leaving never strips cover from orders already sold) and `return_protection_covers` (one per sub-order). Money moves as balanced ledger groups (`ESCROW_RELEASE` + `FAST_PAYOUT_FEE`, `RETURN_PROTECTION_PREMIUM`, `RETURN_PROTECTION_CLAIM`); a claim is paid from `return.service.ts` `executeRefund` inside a savepoint (so it can never block a refund) and, if that fails, by the hourly `jobs/returnProtection.job.js` claim sweep, which also charges premiums. Routes: `/supplier/fast-payout`, `/supplier/return-protection`, `/sourcing/fast-payout`, `/sourcing/return-protection`; permissions `finance.fast_payout.request`, `supplier.return_protection.manage`. There is no admin editor for either settings row yet |
 | Add a product field | See [`how-to-add-a-feature.md`](how-to-add-a-feature.md) — the full worked example |
 | Add a product status | `erd.md` §3 `products.status` CHECK → new migration → `services/product.service.js` |
-| Change search ranking | `services/search-drivers/postgres.js` |
+| Change search ranking | `services/search-drivers/postgres.ts` |
 | Add a Banglish search mapping | `utils/transliterate.ts` |
-| Change the product image aspect ratio | `design-system.md` §12 first, then `styles/components/product.css` + `services/media.service.js` derivatives |
-| Change FEFO batch selection | `services/inventory.service.js` → `getFEFOBatch()` |
+| Change the product image aspect ratio | `design-system.md` §12 first, then `styles/components/product.css` + `services/media.service.ts` derivatives |
+| Change FEFO batch selection | `services/inventory.service.ts` → `getFEFOBatch()` |
 | Change warehouse routing | `services/warehouseRouting.service.ts` |
 | Add/modify product image fallback keywords | `client/src/components/product/ProductCard.js` (`KEYWORD_IMAGE_RULES`, `CATEGORY_DUMMY_IMAGES`, `resolveProductImage`) |
-| Modify customer wishlist | `client/src/pages/customer/WishlistPage.js` (UI), `server/src/services/wishlist.service.js` (logic), `server/src/repositories/cart.repository.ts` (SQL) |
-| Modify customer returns listing | `client/src/pages/customer/ReturnsPage.js` (UI), `server/src/services/return.service.ts` (logic), `server/src/routes/return.routes.js` (`/returns/my-returns`) |
+| Modify customer wishlist | `client/src/pages/customer/WishlistPage.js` (UI), `server/src/services/wishlist.service.ts` (logic), `server/src/repositories/cart.repository.ts` (SQL) |
+| Modify customer returns listing | `client/src/pages/customer/ReturnsPage.js` (UI), `server/src/services/return.service.ts` (logic), `server/src/routes/return.routes.ts` (`/returns/my-returns`) |
 | Modify customer coupons & vouchers hub | `client/src/pages/customer/CouponsPage.js` (`/account/coupons`), `client/src/components/customer/CouponCard.js`, `server/src/services/coupon.service.ts` (logic), `client/src/mocks/handlers/campaigns.js` (mock data) |
 | Modify team purchases / group buying UI | `client/src/pages/TeamPurchasePage.js` (`/team/:id`, `/account/team-purchases`), `server/src/services/teamPurchase.service.ts` (logic), `client/src/mocks/handlers/teamPurchase.js` (mock data) |
 
@@ -161,15 +161,15 @@ The 35 most likely change requests, with exact paths.
 | I want to… | Change |
 | :--- | :--- |
 | Add a permission | `docs/permission-catalog.json` → re-run seed. **Never invent a key in code** |
-| Change the default language | `/admin/platform/language` → the `localization` group in `platform_settings`. Code path: `routes/localization.routes.js` → `controllers/localization.controller.js` → `services/localization.service.js` → `repositories/setting.repository.ts`; the client reads it in `client/src/services/i18n.js` (`resolveInitialLocale`). `VITE_DEFAULT_LOCALE` is the pre-policy fallback only |
-| Change the popup genie effect (on/off, duration, smoothness) | `/admin/platform/genie` → the `genie` group in `platform_settings`. Code path: `routes/genie.routes.js` → `controllers/genie.controller.js` → `services/genie.service.js` → `repositories/setting.repository.ts`; the client applies it in `client/src/services/genieSettings.js` → `configureGenie()` in `client/src/lib/genie.js` (the engine). The slicing/easing constants (`NECK`, `SWAY`, `MAX_FRAME_DT_MS`) are still named constants in `genie.js`, not settings |
+| Change the default language | `/admin/platform/language` → the `localization` group in `platform_settings`. Code path: `routes/localization.routes.js` → `controllers/localization.controller.js` → `services/localization.service.ts` → `repositories/setting.repository.ts`; the client reads it in `client/src/services/i18n.js` (`resolveInitialLocale`). `VITE_DEFAULT_LOCALE` is the pre-policy fallback only |
+| Change the popup genie effect (on/off, duration, smoothness) | `/admin/platform/genie` → the `genie` group in `platform_settings`. Code path: `routes/genie.routes.js` → `controllers/genie.controller.js` → `services/genie.service.ts` → `repositories/setting.repository.ts`; the client applies it in `client/src/services/genieSettings.js` → `configureGenie()` in `client/src/lib/genie.js` (the engine). The slicing/easing constants (`NECK`, `SWAY`, `MAX_FRAME_DT_MS`) are still named constants in `genie.js`, not settings |
 | Tune the personalized home feed (signal weights, windows, rails, diversity, "also viewed", cache) or read which surface converts | `/admin/platform/recommendations` → the `recommendation` group in `platform_settings` (one OBJECT row per tab). Code path: `routes/recommendationAdmin.routes.js` → `controllers/recommendationAdmin.controller.js` → `services/recommendationAdmin.service.js`, which validates strictly against the limits exported by `recommendation`, `homeRails`, `diversity`, `covisit` and `recoCache` services (change a bound THERE, never in the page). The page is `client/src/pages/admin/RecommendationSettingsPage.js`, drawn from the API's field descriptions; its pure helpers are `client/src/services/recoSettings.js`; the browser mock's copy of the fields is `client/src/mocks/handlers/recommendations.js` and `server/test/recommendationAdmin.test.js` fails if it drifts. Permissions `platform.recommendation.view` / `.update` |
 | Make an action require Admin approval | Change its `risk_tier` to `HIGH` in the catalog. Everything else is automatic |
 | Make an action Super-Admin-only | `risk_tier: "CRITICAL"`, `delegable: false`, `default_roles: ["super_admin"]` |
 | Give a moderator a capability | `/admin/grants` (Mode A). No code change |
 | Restrict one user's activity | `/admin/restrictions` or `POST /api/v1/admin/restrictions` |
 | Add a role | `roles` table + `role_permissions`. Update `rbac-spec.md` §1 |
-| Change permission resolution | `services/rbac.service.js` — follow `rbac-spec.md` §4 exactly |
+| Change permission resolution | `services/rbac.service.ts` — follow `rbac-spec.md` §4 exactly |
 | Debug "why can't this user do X?" | `GET /api/v1/me/permissions` returns the `sources` map explaining every permission |
 
 ### Platform configuration
@@ -196,7 +196,7 @@ The 35 most likely change requests, with exact paths.
 | Add a payment gateway | `integrations/payments/<name>.js` implementing the same interface. One file |
 | Add a courier | `integrations/courier/<name>.js`. One file |
 | Add an SMS provider | `integrations/sms/<name>.js`. One file |
-| Add an outbound webhook event | `services/webhookDelivery.service.js` + `docs/public-api.md` |
+| Add an outbound webhook event | `services/webhookDelivery.service.ts` + `docs/public-api.md` |
 | Change rate limits | `api-contract.md` §6, then `plugins/security.js` |
 
 ### UI
@@ -242,7 +242,7 @@ Fastify                                   server/src/app.js
    ├─ plugins/requestContext.ts   generate trace_id, capture ip + user agent
    ├─ plugins/security.js         helmet, CORS, rate limit
    ├─ middlewares/idempotency.js  claim the key (api-contract.md §5.2)
-   ├─ middlewares/authenticate.js verify JWT → req.user
+   ├─ middlewares/authenticate.ts verify JWT → req.user
    ├─ middlewares/requireModule   is the feature on?          → 403 MODULE_DISABLED
    ├─ middlewares/requirePermission  resolve + tier-route     → 403 / 202 deferred
    ├─ middlewares/requireRestriction is this user allowed?    → 403 USER_RESTRICTED
@@ -253,7 +253,7 @@ controllers/order.controller.ts   parse → call service → shape response
 services/checkout.service.ts      ⭐ withTransaction: lock stock, split by supplier,
    │                                 price via pricing.service, allocate FEFO batch
    ├─ services/pricing.service.ts
-   ├─ services/inventory.service.js
+   ├─ services/inventory.service.ts
    └─ repositories/*.repository.js   SQL only
    ▼
 PostgreSQL   SELECT … FOR UPDATE · CHECK constraints as the last line of defence
@@ -302,7 +302,7 @@ insufficient. Never silently skip it.
 
 ### 4.3 Permission resolution — on almost every request
 
-`services/rbac.service.js`, algorithm in `rbac-spec.md` §4:
+`services/rbac.service.ts`, algorithm in `rbac-spec.md` §4:
 
 ```
 roles → union GRANTs → union active JIT windows → SUBTRACT DENYs (always win)

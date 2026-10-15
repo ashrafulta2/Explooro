@@ -7,11 +7,11 @@
  */
 
 import * as permRepo from '../repositories/permission.repository.ts';
-import * as rbacService from './rbac.service.js';
+import * as rbacService from './rbac.service.ts';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.ts';
-import { validateGrantScope } from '../lib/grantScope.js';
+import { validateGrantScope } from '../lib/grantScope.ts';
 
 const MAX_GRANT_DAYS = 90;
 const DEFAULT_JIT_WINDOW_MINUTES = 120;
@@ -90,7 +90,7 @@ export async function createStandingGrant(
   }
 
   // WHY validated here and not only in the drawer: an unenforceable scope reads as a safety limit
-  // on /admin/grants while restraining nothing (see server/src/lib/grantScope.js).
+  // on /admin/grants while restraining nothing (see server/src/lib/grantScope.ts).
   const normalizedScope = effect === 'GRANT' ? validateGrantScope(permissionKey, finalScopeJson) : null;
 
   // WHY: uq_active_override is partial on `revoked_at IS NULL` (a partial index can't use now()),

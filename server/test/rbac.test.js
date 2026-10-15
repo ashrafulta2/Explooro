@@ -25,7 +25,7 @@ import {
   getPermissionsPayload,
   bumpUserPermissionVersion,
   invalidateUserPermissionCache,
-} from '../src/services/rbac.service.js';
+} from '../src/services/rbac.service.ts';
 import { requirePermission } from '../src/middlewares/requirePermission.js';
 import { requireRestriction } from '../src/middlewares/requireRestriction.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';

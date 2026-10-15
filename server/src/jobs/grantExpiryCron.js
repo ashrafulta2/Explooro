@@ -9,7 +9,7 @@
  */
 
 import * as permRepo from '../repositories/permission.repository.ts';
-import * as rbacService from '../services/rbac.service.js';
+import * as rbacService from '../services/rbac.service.ts';
 import { writeAudit } from '../lib/audit.js';
 
 export async function runGrantExpiryJob(db, cache, logger = console) {

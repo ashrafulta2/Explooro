@@ -2,7 +2,7 @@
  * audit.controller.js — HTTP Controller for Audit Log Query & Verification APIs (Prompt 2.7).
  */
 
-import * as auditService from '../services/audit.service.js';
+import * as auditService from '../services/audit.service.ts';
 
 export async function listAuditLogs(req, reply) {
   const { db } = req.server;

@@ -7,7 +7,7 @@
 
 import { createHash, randomInt } from 'node:crypto';
 import * as userRepo from '../repositories/user.repository.ts';
-import { checkBucket } from '../lib/rateBucket.js';
+import { checkBucket } from '../lib/rateBucket.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 const OTP_TTL_SECONDS = 5 * 60;

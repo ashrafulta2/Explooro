@@ -3,7 +3,7 @@
  */
 
 import * as growthAdminService from '../services/growthAdmin.service.js';
-import * as auditService from '../services/audit.service.js';
+import * as auditService from '../services/audit.service.ts';
 
 const actorOf = (req) => ({ id: req.user.id, role: req.user.roles?.[0] ?? null });
 

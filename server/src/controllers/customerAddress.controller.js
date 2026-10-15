@@ -2,7 +2,7 @@
  * customerAddress.controller.js — Fastify controller for Customer Address Book CRUD endpoints.
  */
 
-import * as addressService from '../services/customerAddress.service.js';
+import * as addressService from '../services/customerAddress.service.ts';
 
 export async function getAddresses(req, reply) {
   const userId = req.user?.id;

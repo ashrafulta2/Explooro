@@ -29,7 +29,7 @@ import {
   unmuteUserInStream,
   getStreamMutes,
 } from '../sockets/presence.ts';
-import * as auditService from './audit.service.js';
+import * as auditService from './audit.service.ts';
 import { detectContactInfoLeak } from './chat.service.js';
 import { preScreenContent } from './moderation.service.js';
 

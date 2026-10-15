@@ -79,11 +79,11 @@ describe('page availability — the shared resolver is the only implementation',
 describe('page availability — the lock list cannot drift between client and server', () => {
   it('client and server LOCKED_PATHS are identical', () => {
     const serverSrc = readFileSync(
-      join(root, '..', 'server/src/services/pageAccess.service.js'),
+      join(root, '..', 'server/src/services/pageAccess.service.ts'),
       'utf8'
     );
     const block = serverSrc.match(/export const LOCKED_PATHS = Object\.freeze\(\[([^\]]*)\]\)/);
-    assert.ok(block, 'LOCKED_PATHS not found in server/src/services/pageAccess.service.js');
+    assert.ok(block, 'LOCKED_PATHS not found in server/src/services/pageAccess.service.ts');
     const serverPaths = [...block[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
     assert.deepEqual(
       serverPaths,
@@ -94,7 +94,7 @@ describe('page availability — the lock list cannot drift between client and se
 
   it('client and server PAGE_STATES are identical', () => {
     const serverSrc = readFileSync(
-      join(root, '..', 'server/src/services/pageAccess.service.js'),
+      join(root, '..', 'server/src/services/pageAccess.service.ts'),
       'utf8'
     );
     const block = serverSrc.match(/export const PAGE_STATES = Object\.freeze\(\[([^\]]*)\]\)/);

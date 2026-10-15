@@ -248,7 +248,7 @@ export async function requestPayout(db: import('pg').Pool, {
 }
 
 /**
- * What a scoped `finance.payout.approve` grant is checked against (server/src/lib/grantScope.js).
+ * What a scoped `finance.payout.approve` grant is checked against (server/src/lib/grantScope.ts).
  * An unknown payout yields `{ amount: null }`, which no amount limit allows.
  */
 export async function getPayoutScopeFacts(db, payoutId) {

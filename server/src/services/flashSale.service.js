@@ -13,7 +13,7 @@ import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.js';
 import { isEnabled } from './module.service.js';
-import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 function generateFlashSaleRef() {
   const code = randomBytes(4).toString('hex').toUpperCase();

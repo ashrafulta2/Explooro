@@ -4,7 +4,7 @@
 
 import * as mediaController from '../controllers/media.controller.js';
 import { getStorageDriver } from '../integrations/storage/index.ts';
-import { MAX_IMAGE_SIZE_BYTES } from '../services/media.service.js';
+import { MAX_IMAGE_SIZE_BYTES } from '../services/media.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 // WHY: /media/direct carries the file as a base64 data URL inside JSON, which is ~4/3 the file's

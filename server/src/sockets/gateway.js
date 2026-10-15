@@ -9,7 +9,7 @@
 
 import { consumeTicket, registerUserSocket, unregisterUserSocket } from './presence.ts';
 import { handleSocketMessage } from './chat.handler.js';
-import { handleLiveSocketMessage } from './live.handler.js';
+import { handleLiveSocketMessage } from './live.handler.ts';
 
 export default async function websocketGateway(app) {
   app.get('/ws', { websocket: true }, (socket, req) => {

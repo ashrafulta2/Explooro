@@ -565,7 +565,7 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
   // ---------------------------------------------------------------------------
   test('Fastify HTTP API: POST /b2b-escrow/deals creates deal and returns 201', async () => {
     const Fastify = (await import('fastify')).default;
-    const b2bEscrowRoutes = (await import('../src/routes/b2bEscrow.routes.js')).default;
+    const b2bEscrowRoutes = (await import('../src/routes/b2bEscrow.routes.ts')).default;
     const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
 
     const mockDb = createMockDb({

@@ -14,9 +14,9 @@ import { encryptField, decryptField } from '../lib/encryption.ts';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
 import { AppError } from '../plugins/errorHandler.ts';
-import { checkBucket } from '../lib/rateBucket.js';
+import { checkBucket } from '../lib/rateBucket.ts';
 import * as userRepo from '../repositories/user.repository.ts';
-import * as rbacService from './rbac.service.js';
+import * as rbacService from './rbac.service.ts';
 import {
   generateSecret,
   buildOtpauthUri,

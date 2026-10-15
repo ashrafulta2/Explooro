@@ -7,7 +7,7 @@
  * until it is switched back on.
  */
 
-import { purgeExpiredSignals } from '../services/signalRetention.service.js';
+import { purgeExpiredSignals } from '../services/signalRetention.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runSignalRetention(db, cache, logger = console) {

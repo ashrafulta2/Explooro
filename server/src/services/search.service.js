@@ -2,7 +2,7 @@
  * search.service.js — Central search orchestration & query caching (Prompt 4.4).
  */
 
-import { postgresSearchDriver } from './search-drivers/postgres.js';
+import { postgresSearchDriver } from './search-drivers/postgres.ts';
 import { meilisearchDriver } from './search-drivers/meilisearch.ts';
 import { withAvailableStock } from './teamStockReservation.service.ts';
 

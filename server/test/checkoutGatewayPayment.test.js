@@ -12,7 +12,7 @@
 import { describe, test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import * as paymentService from '../src/services/payment.service.ts';
-import { createPaymentGateway } from '../src/integrations/payments/index.js';
+import { createPaymentGateway } from '../src/integrations/payments/index.ts';
 
 // Answers every query with the given rows, keyed by the table the SQL reads.
 function fakeDb(tables) {

@@ -105,7 +105,7 @@ export default async function financeRoutes(app) {
     preHandler: [
       app.authenticate,
       app.requirePermission('finance.payout.approve', {
-        // A standing grant may cap this at { max_amount } — see server/src/lib/grantScope.js.
+        // A standing grant may cap this at { max_amount } — see server/src/lib/grantScope.ts.
         scopeFacts: payoutController.payoutScopeFacts,
       }),
     ],

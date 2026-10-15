@@ -2,8 +2,8 @@
  * localization.controller.js — Request handlers for the Language & Localization policy API.
  */
 
-import * as localizationService from '../services/localization.service.js';
-import * as auditService from '../services/audit.service.js';
+import * as localizationService from '../services/localization.service.ts';
+import * as auditService from '../services/audit.service.ts';
 import * as auditRepo from '../repositories/audit.repository.ts';
 
 function dbOf(req) {

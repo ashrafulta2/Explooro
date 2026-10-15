@@ -17,7 +17,7 @@ import {
   isBlocked,
   applyCandidatePolicy,
   assertMayAdvertise,
-} from '../src/services/sponsoredSourcing.service.js';
+} from '../src/services/sponsoredSourcing.service.ts';
 import { calculateQualityScore, runSecondPriceAuction } from '../src/services/adAuction.service.ts';
 
 const rules = resolveRules(null);

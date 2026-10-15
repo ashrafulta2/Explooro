@@ -12,12 +12,12 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
-import { getCourierAdapter } from '../integrations/courier/index.js';
+import { getCourierAdapter } from '../integrations/courier/index.ts';
 import * as clawbackService from './clawback.service.ts';
 import * as returnProtection from './returnProtection.service.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
 import { writeAudit } from '../lib/audit.js';
-import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 /**
  * Generates a public unique return reference code.

@@ -1,7 +1,7 @@
 /**
  * requirePage.js — server-side enforcement of per-page availability (traceability row 92).
  *
- * The page availability layer (migration 054, services/pageAccess.service.js) started as a
+ * The page availability layer (migration 054, services/pageAccess.service.ts) started as a
  * VISIBILITY layer: the client router, sidebar and command palette consult it, but a parked page's
  * API endpoints kept answering. That is fine for COMING_SOON on a feature nobody knows the URL of,
  * and not fine for LIMITED, whose whole promise is "live for these users and nobody else" — a
@@ -36,7 +36,7 @@
  */
 
 import fp from 'fastify-plugin';
-import { getPublicPageMap, resolveState } from '../services/pageAccess.service.js';
+import { getPublicPageMap, resolveState } from '../services/pageAccess.service.ts';
 import { getRequestContext } from '../plugins/requestContext.ts';
 
 /** The viewer identity resolveState() needs — same shape requireModule builds, for the same reason. */
@@ -56,7 +56,7 @@ function viewerContext(req) {
  * not been migrated yet, so an infrastructure problem leaves every page LIVE. A page layer that
  * failed closed would turn one transient database error into a platform-wide outage, which is a far
  * worse failure than a parked page answering for a minute — the posture
- * services/pageAccess.service.js already takes for the public map.
+ * services/pageAccess.service.ts already takes for the public map.
  */
 export function createPageGuard(pagePath) {
   return async function requirePagePreHandler(req, reply) {

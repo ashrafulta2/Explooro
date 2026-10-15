@@ -3,7 +3,7 @@
  */
 
 import * as controller from '../controllers/publicApi.controller.js';
-import * as apiKeyService from '../services/apiKey.service.js';
+import * as apiKeyService from '../services/apiKey.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 export default async function publicApiRoutes(fastify) {
@@ -24,13 +24,13 @@ export default async function publicApiRoutes(fastify) {
     }
 
     if (!rawKey) {
-      throw new AppError('AUTH_REQUIRED', 'API key required in X-Api-Key or Authorization header.', 401);
+      throw new AppError('AUTH_REQUIRED', 'API key required in X-Api-Key or Authorization header.');
     }
 
     const clientIp = req.ip || req.headers['x-forwarded-for'] || req.socket?.remoteAddress;
     const keyRecord = await apiKeyService.authenticateApiKey(fastify.db, rawKey, clientIp);
     if (!keyRecord) {
-      throw new AppError('UNAUTHORIZED', 'Invalid or inactive API key.', 401);
+      throw new AppError('UNAUTHORIZED', 'Invalid or inactive API key.');
     }
 
     req.apiKey = keyRecord;

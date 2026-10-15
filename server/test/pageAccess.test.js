@@ -26,7 +26,7 @@ import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import pageAccessRoutes from '../src/routes/pageAccess.routes.js';
-import * as pageAccessService from '../src/services/pageAccess.service.js';
+import * as pageAccessService from '../src/services/pageAccess.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');

@@ -2,7 +2,7 @@
  * product.service.js — Product management, moderation routing & sourcing logic (Prompt 4.3).
  */
 
-import * as productRepo from '../repositories/product.repository.js';
+import * as productRepo from '../repositories/product.repository.ts';
 import { calculatePricingBreakdown, loadSplitRules, resolveSplitPercentages, toPaisa } from './pricing.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
@@ -11,7 +11,7 @@ import { writeAudit } from '../lib/audit.js';
 import * as recoCache from './recoCache.service.ts';
 import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.ts';
 import { runAuction as runAdAuction } from './ads.service.js';
-import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.js';
+import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.ts';
 import { getReservedForProduct, withAvailableStock } from './teamStockReservation.service.ts';
 
 /**

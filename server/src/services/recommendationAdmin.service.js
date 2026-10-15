@@ -17,9 +17,9 @@
 
 import * as settingRepo from '../repositories/setting.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import * as recommendation from './recommendation.service.js';
+import * as recommendation from './recommendation.service.ts';
 import * as homeRails from './homeRails.service.js';
-import * as diversity from './diversity.service.js';
+import * as diversity from './diversity.service.ts';
 import * as covisit from './covisit.service.ts';
 import * as recoCache from './recoCache.service.ts';
 

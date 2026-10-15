@@ -1482,7 +1482,7 @@ export const adminHandlers = [
         return fail(400, 'VALIDATION_FAILED', 'Reason must be at least 10 characters.', 'কারণ অন্তত ১০ অক্ষরের হতে হবে।');
       }
       const scope = body?.scope_json && Object.keys(body.scope_json).length ? body.scope_json : null;
-      // Mirrors server/src/lib/grantScope.js — only an enforceable scope is accepted.
+      // Mirrors server/src/lib/grantScope.ts — only an enforceable scope is accepted.
       if (scope && !(body.permission_key === 'finance.payout.approve' && Object.keys(scope).every((k) => k === 'max_amount') && Number(scope.max_amount) > 0)) {
         return fail(400, 'VALIDATION_FAILED', 'This permission cannot be limited by a scope.', 'এই পারমিশনে কোনো সীমা (স্কোপ) নির্ধারণ করা যায় না।');
       }

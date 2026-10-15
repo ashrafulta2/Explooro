@@ -9,7 +9,7 @@ every AI feature in this codebase must follow.
 
 **Default: Anthropic Claude API**, called through the official `@anthropic-ai/sdk` (pinned exact
 version — see `docs/dependency-ledger.md`), isolated in the single adapter file
-`server/src/services/ai/provider.js`. No controller, agent, or route may import the SDK or call
+`server/src/services/ai/provider.ts`. No controller, agent, or route may import the SDK or call
 `fetch` against `api.anthropic.com` directly — every model call goes through `provider.js`, which
 is the only file allowed to know the SDK's request/response shapes. This mirrors every other
 external integration in this codebase (payments, courier, SMS, streaming): one adapter file, one

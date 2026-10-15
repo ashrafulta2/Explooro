@@ -3,7 +3,7 @@
  */
 
 import * as userRepo from '../repositories/user.repository.ts';
-import * as rbacService from '../services/rbac.service.js';
+import * as rbacService from '../services/rbac.service.ts';
 
 export async function listUsers(req, reply) {
   const db = req.db || req.server?.db;

@@ -7,7 +7,7 @@
  * parsed out of the model's prose (docs/ai-strategy.md §9.1).
  */
 
-import * as provider from './provider.js';
+import * as provider from './provider.ts';
 import * as aiRepo from '../../repositories/ai.repository.ts';
 import * as searchService from '../search.service.js';
 

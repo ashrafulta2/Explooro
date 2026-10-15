@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 
-import * as apiKeyService from '../src/services/apiKey.service.js';
-import * as webhookService from '../src/services/webhookDelivery.service.js';
+import * as apiKeyService from '../src/services/apiKey.service.ts';
+import * as webhookService from '../src/services/webhookDelivery.service.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   return {

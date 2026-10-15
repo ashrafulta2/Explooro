@@ -12,7 +12,7 @@
  * `moderation_queue` (item_type REVIEW) — never auto-deleted or auto-hidden.
  */
 
-import * as provider from './provider.js';
+import * as provider from './provider.ts';
 import { submitToQueue } from '../moderation.service.js';
 
 const FEATURE_KEY = 'review_integrity';

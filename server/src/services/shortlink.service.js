@@ -10,7 +10,7 @@
 import { randomBytes, createHash } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
+import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
 async function runWithClient(db, fn) {
   if (db && typeof db.connect === 'function') {

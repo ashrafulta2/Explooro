@@ -19,7 +19,7 @@ import path from 'node:path';
 
 import * as covisit from '../src/services/covisit.service.ts';
 import * as covisitRepo from '../src/repositories/covisit.repository.ts';
-import * as reco from '../src/services/recommendation.service.js';
+import * as reco from '../src/services/recommendation.service.ts';
 import { buildBlendedRank } from '../src/repositories/recommendation.repository.ts';
 import { runCovisitRebuild } from '../src/jobs/covisitRebuild.job.js';
 

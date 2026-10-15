@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 
 import { sanitizeUntrustedText, composeGroundedReply, runTurn as runConciergeTurn } from '../src/services/ai/conciergeAgent.js';
 import { runTurn as runSourcingTurn } from '../src/services/ai/sourcingAgent.js';
-import { computeCostUsd, redactPii } from '../src/services/ai/provider.js';
+import { computeCostUsd, redactPii } from '../src/services/ai/provider.ts';
 
 /** Minimal fake DB: only understands the handful of query shapes ai.repository.js issues. */
 function createFakeDb() {

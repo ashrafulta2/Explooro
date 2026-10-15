@@ -16,7 +16,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.ts';
-import * as trustScoreService from './trustScore.service.js';
+import * as trustScoreService from './trustScore.service.ts';
 import * as otpService from './otp.service.js';
 
 export const OTP_PURPOSE = 'COD_CONFIRM';

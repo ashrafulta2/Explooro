@@ -8,7 +8,7 @@
  * into a short recommendation sentence; it never invents a metric.
  */
 
-import * as provider from './provider.js';
+import * as provider from './provider.ts';
 import * as demandForecast from './demandForecast.js';
 
 const FEATURE_KEY = 'insights';

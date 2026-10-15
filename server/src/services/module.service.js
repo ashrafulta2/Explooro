@@ -4,7 +4,7 @@
 
 import { createHash } from 'node:crypto';
 import * as repo from '../repositories/module.repository.ts';
-import * as auditService from './audit.service.js';
+import * as auditService from './audit.service.ts';
 
 const TARGET_TYPE_PRIORITIES = {
   USER: 40,

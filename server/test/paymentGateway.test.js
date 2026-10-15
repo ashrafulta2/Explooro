@@ -18,7 +18,7 @@ import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import paymentRoutes from '../src/routes/payment.routes.js';
-import { createPaymentGateway, MockPaymentDriver } from '../src/integrations/payments/index.js';
+import { createPaymentGateway, MockPaymentDriver } from '../src/integrations/payments/index.ts';
 import * as paymentService from '../src/services/payment.service.ts';
 import * as paymentRepo from '../src/repositories/payment.repository.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';

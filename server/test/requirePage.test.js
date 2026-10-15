@@ -28,7 +28,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import requirePagePlugin from '../src/middlewares/requirePage.js';
-import { LOCKED_PATHS } from '../src/services/pageAccess.service.js';
+import { LOCKED_PATHS } from '../src/services/pageAccess.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
@@ -208,7 +208,8 @@ describe('declared pages', () => {
   /** Every `config: { page: '...' }` in the route layer, with the file it came from. */
   function declaredPages() {
     const found = [];
-    for (const file of fs.readdirSync(routesDir).filter((f) => f.endsWith('.js'))) {
+    // .ts too: the server is moving to TypeScript file by file (docs/typescript-migration.md).
+    for (const file of fs.readdirSync(routesDir).filter((f) => /\.(js|ts)$/.test(f))) {
       const src = fs.readFileSync(path.join(routesDir, file), 'utf8');
       for (const m of src.matchAll(/config:\s*\{[^}]*\bpage:\s*'([^']+)'/g)) {
         found.push({ file, page: m[1] });
@@ -303,7 +304,10 @@ describe('the wired route files', () => {
       });
     });
 
-    const mod = await import(`../src/routes/${file}`);
+    // A file listed as x.js may have moved to x.ts (docs/typescript-migration.md).
+    const routesDir = path.join(repoRoot, 'server/src/routes');
+    const actual = fs.existsSync(path.join(routesDir, file)) ? file : file.replace(/\.js$/, '.ts');
+    const mod = await import(`../src/routes/${actual}`);
     await app.register(mod.default, { prefix: '/api/v1' });
     await app.ready();
     await app.close();

@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as svc from '../src/services/signalRetention.service.js';
+import * as svc from '../src/services/signalRetention.service.ts';
 import * as repo from '../src/repositories/signalRetention.repository.ts';
 import { runSignalRetention } from '../src/jobs/signalRetention.job.js';
 import { runJobNow } from '../src/jobs/scheduler.js';

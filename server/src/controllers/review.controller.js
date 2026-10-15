@@ -3,7 +3,7 @@
  */
 
 import * as reviewService from '../services/review.service.js';
-import * as productRepo from '../repositories/product.repository.js';
+import * as productRepo from '../repositories/product.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 /** `:productId` route params are `product.ref` everywhere in the client (see product.service.js's

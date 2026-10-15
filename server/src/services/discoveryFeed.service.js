@@ -13,8 +13,8 @@
 
 import * as productService from './product.service.js';
 import * as feedRepo from '../repositories/discoveryFeed.repository.ts';
-import * as recommendation from './recommendation.service.js';
-import * as diversity from './diversity.service.js';
+import * as recommendation from './recommendation.service.ts';
+import * as diversity from './diversity.service.ts';
 import * as recoCache from './recoCache.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 

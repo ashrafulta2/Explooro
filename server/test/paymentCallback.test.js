@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { handleGatewayReturn } from '../src/services/payment.service.ts';
-import { handlePaymentCallbackHandler } from '../src/controllers/paymentWebhook.controller.js';
+import { handlePaymentCallbackHandler } from '../src/controllers/paymentWebhook.controller.ts';
 
 // WHY: GET/POST /payments/callback/:gateway is public and every value in it is attacker-chosen. The
 // old handler trusted `status=success`, looked the payment up by the wrong column, ran executePayment

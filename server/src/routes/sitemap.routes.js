@@ -2,7 +2,7 @@
  * sitemap.routes.js — Fastify routes for Dynamic Sitemaps, Robots.txt & Crawler Prerendering (Prompt 11.5).
  */
 
-import * as controller from '../controllers/sitemap.controller.js';
+import * as controller from '../controllers/sitemap.controller.ts';
 
 export default async function sitemapRoutes(fastify) {
   // 1. Sitemap Index
