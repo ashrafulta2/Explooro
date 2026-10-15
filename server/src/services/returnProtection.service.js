@@ -205,13 +205,17 @@ export async function getSalerView(db, salerId) {
  * transaction (the refund's), so the claim and the refund commit together. Returns a description of what
  * happened, or null when the order carries no cover.
  */
-export async function payClaim(client, { subOrderId, returnRequestId = null, approvedBy = null }) {
+export async function payClaim(client, { subOrderId, returnRequestId = null, approvedBy = null, clawedBackAmount = null }) {
   const rules = await loadRules(client);
   const cover = await ensureCover(client, subOrderId, rules);
   if (!cover || cover.status !== 'ACTIVE') return null;
 
   // Only what the clawback actually took: a shop partner whose commission was never clawed back lost nothing.
-  const entry = await repo.getSalerEscrowEntry(client, subOrderId, cover.saler_id);
+  // WHY clawedBackAmount: a partial return takes the shop partner's share from AVAILABLE and leaves the
+  // escrow row as it was, so the row's status cannot say what was taken; the caller passes the share.
+  const entry = clawedBackAmount != null
+    ? { amount: clawedBackAmount, status: Number(clawedBackAmount) > 0 ? 'CLAWED_BACK' : 'LOCKED' }
+    : await repo.getSalerEscrowEntry(client, subOrderId, cover.saler_id);
   if (!entry || entry.status !== 'CLAWED_BACK') {
     // WHY closed, not left ACTIVE: the order was refunded and nothing was taken from the shop partner, so there is
     // nothing to claim now or later; leaving it ACTIVE would have the claim sweep revisit it forever.

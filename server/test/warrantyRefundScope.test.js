@@ -12,12 +12,14 @@ import assert from 'node:assert/strict';
 
 import * as warrantyService from '../src/services/warranty.service.js';
 import * as clawbackService from '../src/services/clawback.service.js';
+import * as returnService from '../src/services/return.service.js';
 
 const CUSTOMER_ID = 10;
 const SUPPLIER_ID = 101;
 const SALER_ID = 201;
 const PLATFORM_ID = 1;
 const SUB_ORDER_ID = 701;
+const RETURN_ID = 3001;
 
 // Sub-order with two items. Only the cable (item 902, line total ৳200) has a warranty claim.
 // Escrow is held per sub-order, not per item: supplier 1010 (base+wholesale+shipping 60),
@@ -56,8 +58,32 @@ function createScenarioDb() {
   const claimUpdates = [];
   let claimResolution = null;
   let failLedger = false;
+  let returnedTotal = '200.00';
+  let coverage = [];
+  let usedItems = [];
+  let itemReturned = false;
 
   const handle = async (sql, params = []) => {
+    // double-refund guards
+    if (sql.includes('prior_qty') && sql.includes('warranty_refunded')) {
+      return { rows: usedItems };
+    }
+    if (sql.includes('WHERE ri.order_item_id = $1') && sql.includes("r.status = 'REFUNDED'")) {
+      return { rows: itemReturned ? [{ '?column?': 1 }] : [] };
+    }
+    // processPartialReturnClawback: goods value of the sub-order and of the returned items
+    if (sql.includes('goods_total') && sql.includes('returned_total')) {
+      return { rows: [{ goods_total: '1200.00', returned_total: returnedTotal }] };
+    }
+
+    // return.service executeRefund
+    if (sql.includes('FROM return_requests r') && sql.includes('FOR UPDATE')) {
+      return { rows: [{ id: RETURN_ID, ref: 'RET-TEST0001', sub_order_id: SUB_ORDER_ID, status: 'INSPECTED', refund_amount: returnedTotal }] };
+    }
+    if (sql.includes('LEFT JOIN return_items ri')) {
+      return { rows: coverage };
+    }
+
     // notification.service recipient lookup + insert (same answers as warrantyClaimsEngine.test.js)
     if (sql.includes('u.locale') && sql.includes('LEFT JOIN user_profiles up ON up.user_id = u.id')) {
       return { rows: [{ id: params[0], full_name: 'Test User', phone: null, email: null, locale: 'en' }] };
@@ -88,6 +114,7 @@ function createScenarioDb() {
           line_total: CLAIMED_ITEM.line_total,
           retail_price: CLAIMED_ITEM.retail_price,
           sub_order_id: SUB_ORDER_ID,
+          order_item_id: CLAIMED_ITEM.id,
           resolution: claimResolution,
         }],
       };
@@ -145,12 +172,22 @@ function createScenarioDb() {
       return { rows: wallets.filter((w) => w.id === Number(params[0])) };
     }
 
-    // processReturnClawback: warranty refunds already credited on this sub-order
+    // processReturnClawback: item refunds (warranty claims, partial returns) already on this sub-order
     if (sql.includes('FROM ledger_transactions lt') && sql.includes('WARRANTY_CLAIM')) {
-      const refunded = ledgerRows
-        .filter((r) => r.reference_type === 'WARRANTY_CLAIM' && r.category === 'REFUND' && r.entry_type === 'CREDIT')
-        .reduce((sum, r) => sum + toPaisa(r.amount), 0);
-      return { rows: [{ refunded: (refunded / 100).toFixed(2) }] };
+      const totals = new Map();
+      for (const r of ledgerRows) {
+        if (!['WARRANTY_CLAIM', 'RETURN_REQUEST'].includes(r.reference_type)) continue;
+        const counts = (r.entry_type === 'DEBIT' && r.category === 'CLAWBACK') || (r.entry_type === 'CREDIT' && r.category === 'REFUND');
+        if (!counts) continue;
+        const key = `${r.wallet_id}|${r.entry_type}`;
+        totals.set(key, (totals.get(key) || 0) + toPaisa(r.amount));
+      }
+      return {
+        rows: [...totals].map(([key, paisa]) => {
+          const [walletId, entryType] = key.split('|');
+          return { wallet_id: Number(walletId), entry_type: entryType, total: (paisa / 100).toFixed(2) };
+        }),
+      };
     }
 
     if (sql.includes('INSERT INTO ledger_transactions')) {
@@ -192,6 +229,9 @@ function createScenarioDb() {
     claimUpdates,
     setClaimResolution(value) { claimResolution = value; },
     failLedgerInserts() { failLedger = true; },
+    setReturn(total, rows) { returnedTotal = total; coverage = rows; },
+    setUsedItems(rows) { usedItems = rows; },
+    markItemReturned() { itemReturned = true; },
   };
 }
 
@@ -297,7 +337,7 @@ describe('A return after a warranty refund does not refund the item twice', () =
     await approveRefund(db);
     const result = await returnWholeSubOrder(db);
 
-    assert.equal(result.priorWarrantyRefund, '200.00');
+    assert.equal(result.priorItemRefunds, '200.00');
     assert.equal(result.customerRefundAmount, '1060.00');
     assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), ESCROW_TOTAL_PAISA, 'not ৳1,460 (the cable twice)');
   });
@@ -319,9 +359,130 @@ describe('A return after a warranty refund does not refund the item twice', () =
 
     const result = await returnWholeSubOrder(db);
 
-    assert.equal(result.priorWarrantyRefund, '0.00');
+    assert.equal(result.priorItemRefunds, '0.00');
     assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), ESCROW_TOTAL_PAISA);
     assert.equal(sumPaisa(ledgerRows, 101, 'CREDIT'), 0, 'no repayment entry for the supplier');
+  });
+});
+
+describe('A partial return refunds only the returned items', () => {
+  const net = (ledgerRows, walletId) => sumPaisa(ledgerRows, walletId, 'CREDIT') - sumPaisa(ledgerRows, walletId, 'DEBIT');
+
+  async function returnCable(db) {
+    return clawbackService.processPartialReturnClawback(db, { subOrderId: SUB_ORDER_ID, returnRequestId: RETURN_ID });
+  }
+
+  test('the customer gets the returned item only, not the whole sub-order or shipping', async () => {
+    const { db, ledgerRows } = createScenarioDb();
+
+    const result = await returnCable(db);
+
+    assert.equal(result.totalClawbackAmount, '200.00');
+    assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), 20000, 'not ৳1,260');
+  });
+
+  test('each party gives back its own pro-rata share, summing exactly to the refund', async () => {
+    const { db, ledgerRows } = createScenarioDb();
+
+    const result = await returnCable(db);
+
+    // goods-only escrow: supplier 950 (1010 minus ৳60 shipping), shop partner 90, platform 160 = 1200
+    assert.deepEqual(result.sharesByRole, { SUPPLIER: '158.33', SALER: '15.00', PLATFORM: '26.67' });
+    assert.equal(net(ledgerRows, 101) + net(ledgerRows, 201) + net(ledgerRows, 1), -20000);
+  });
+
+  test('escrow rows are left as they were', async () => {
+    const { db, escrowEntries } = createScenarioDb();
+
+    await returnCable(db);
+
+    assert.ok(escrowEntries.every((e) => e.status === 'LOCKED'));
+  });
+
+  test('a full return afterwards refunds the rest once, and each party ends as after one full return', async () => {
+    const { db, ledgerRows } = createScenarioDb();
+
+    await returnCable(db);
+    const result = await clawbackService.processReturnClawback(db, { subOrderId: SUB_ORDER_ID });
+
+    assert.equal(result.customerRefundAmount, '1060.00');
+    assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), 126000);
+    assert.equal(net(ledgerRows, 101), -101000);
+    assert.equal(net(ledgerRows, 201), -9000);
+    assert.equal(net(ledgerRows, 1), -16000);
+  });
+
+  test('a partial return after the sub-order was fully refunded is refused', async () => {
+    const { db, escrowEntries } = createScenarioDb();
+    for (const e of escrowEntries) e.status = 'CLAWED_BACK';
+
+    await assert.rejects(returnCable(db), /ALREADY_CLAWED_BACK/);
+  });
+
+  test('executeRefund takes the partial path when a unit is left behind', async () => {
+    const { db, ledgerRows, setReturn } = createScenarioDb();
+    setReturn('200.00', [
+      { id: 901, qty: 1, returned_qty: 0 },
+      { id: 902, qty: 1, returned_qty: 1 },
+    ]);
+
+    const result = await returnService.executeRefund(db, null, { returnRequestId: RETURN_ID, client: db });
+
+    assert.equal(result.clawbackResult.partial, true);
+    assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), 20000);
+  });
+
+  test('executeRefund keeps the full path when every unit comes back', async () => {
+    const { db, ledgerRows, setReturn } = createScenarioDb();
+    setReturn('1200.00', [
+      { id: 901, qty: 1, returned_qty: 1 },
+      { id: 902, qty: 1, returned_qty: 1 },
+    ]);
+
+    const result = await returnService.executeRefund(db, null, { returnRequestId: RETURN_ID, client: db });
+
+    assert.notEqual(result.clawbackResult.partial, true);
+    assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), 126000, 'a full return still refunds shipping');
+  });
+});
+
+describe('The same item cannot be refunded twice', () => {
+  test('a second return of an item already returned is refused', async () => {
+    const { db, ledgerRows, setUsedItems } = createScenarioDb();
+    setUsedItems([{ order_item_id: 902, qty: 1, this_qty: 1, prior_qty: 1, warranty_refunded: false }]);
+
+    await assert.rejects(
+      clawbackService.processPartialReturnClawback(db, { subOrderId: SUB_ORDER_ID, returnRequestId: RETURN_ID }),
+      /ITEM_ALREADY_RETURNED/
+    );
+    assert.equal(ledgerRows.length, 0);
+  });
+
+  test('returning an item already refunded by warranty is refused', async () => {
+    const { db, setUsedItems } = createScenarioDb();
+    setUsedItems([{ order_item_id: 902, qty: 1, this_qty: 1, prior_qty: 0, warranty_refunded: true }]);
+
+    await assert.rejects(
+      clawbackService.processPartialReturnClawback(db, { subOrderId: SUB_ORDER_ID, returnRequestId: RETURN_ID }),
+      /ITEM_ALREADY_REFUNDED/
+    );
+  });
+
+  test('a warranty refund on an item already returned is refused', async () => {
+    const { db, ledgerRows, claimUpdates, markItemReturned } = createScenarioDb();
+    markItemReturned();
+
+    await assert.rejects(approveRefund(db), /ITEM_ALREADY_RETURNED/);
+    assert.equal(ledgerRows.length, 0);
+    assert.equal(claimUpdates.length, 0);
+  });
+
+  test('returning the remaining units of a partly returned item is allowed', async () => {
+    const { db, setUsedItems } = createScenarioDb();
+    setUsedItems([{ order_item_id: 902, qty: 3, this_qty: 1, prior_qty: 2, warranty_refunded: false }]);
+
+    const result = await clawbackService.processPartialReturnClawback(db, { subOrderId: SUB_ORDER_ID, returnRequestId: RETURN_ID });
+    assert.equal(result.success, true);
   });
 });
 

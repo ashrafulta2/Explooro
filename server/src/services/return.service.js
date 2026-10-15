@@ -413,14 +413,36 @@ export async function executeRefund(db, cache, {
     }
 
     // 2. Trigger Clawback Engine from Prompt 6.2 (atomic ledger reversals, deficit recovery, customer wallet credit)
-    const clawbackResult = await clawbackService.processReturnClawback(txClient, {
-      subOrderId: returnReq.sub_order_id,
-      returnRequestId: returnReq.id,
-      reason: `Return #${returnReq.ref} approved and inspected`,
-      approvedBy,
-      cache,
-      client: txClient,
-    });
+    // WHY two paths: a return that leaves any unit behind must refund only the returned items. The
+    // full clawback refunds the whole sub-order, shipping included, so it runs only when every unit
+    // comes back.
+    const { rows: coverage } = await txClient.query(
+      `SELECT oi.id, oi.qty, COALESCE(SUM(ri.quantity), 0)::int AS returned_qty
+       FROM order_items oi
+       LEFT JOIN return_items ri ON ri.order_item_id = oi.id AND ri.return_request_id = $2
+       WHERE oi.sub_order_id = $1
+       GROUP BY oi.id, oi.qty`,
+      [returnReq.sub_order_id, returnReq.id]
+    );
+    const isPartial = coverage.length > 0 && coverage.some((row) => Number(row.returned_qty) < Number(row.qty));
+    const reason = `Return #${returnReq.ref} approved and inspected`;
+
+    const clawbackResult = isPartial
+      ? await clawbackService.processPartialReturnClawback(txClient, {
+        subOrderId: returnReq.sub_order_id,
+        returnRequestId: returnReq.id,
+        reason,
+        approvedBy,
+        client: txClient,
+      })
+      : await clawbackService.processReturnClawback(txClient, {
+        subOrderId: returnReq.sub_order_id,
+        returnRequestId: returnReq.id,
+        reason,
+        approvedBy,
+        cache,
+        client: txClient,
+      });
 
     // 2b. Return protection: if the supplier had opted in when the order was placed, the shop partner is made whole
     // for the commission the clawback just took. Savepointed, so it can never block the buyer's refund.
@@ -428,6 +450,8 @@ export async function executeRefund(db, cache, {
       subOrderId: returnReq.sub_order_id,
       returnRequestId: returnReq.id,
       approvedBy,
+      // A partial return leaves the escrow row LOCKED/RELEASED, so pass what it actually took.
+      clawedBackAmount: isPartial ? (clawbackResult.sharesByRole?.SALER ?? '0.00') : null,
     });
 
     // 3. Restore warehouse stock for returned items

@@ -132,3 +132,30 @@ AVAILABLE nets out when that escrow releases, so no migration was needed. A shor
    all units today), Q6 (maker-checker for supplier-approved refunds) and Q7 (refund destination:
    wallet today) are unanswered.
 
+## 6. Partial returns (2026-10-15)
+
+The same defect existed for returns. `return.service.js` computed `refund_amount` from the
+returned items only, but `executeRefund` always ran `processReturnClawback`, which refunded the
+whole sub-order. Decided: each party gives back its own pro-rata share of the returned items, and
+shipping is not refunded on a partial return.
+
+- **Two paths in `executeRefund`.** If every unit of every order item comes back, the old full
+  clawback runs (shipping included). Otherwise `processPartialReturnClawback` runs.
+- **Shares.** Each escrow row's goods-only amount (the supplier's minus shipping) is the weight.
+  The refund is the escrowed goods value scaled by the returned items' retail value, so a discount
+  is respected. Shares are split with largest-remainder rounding in paisa, so they sum exactly.
+  They are debited from AVAILABLE and escrow is left alone, as for a warranty refund.
+- **A later full return** nets out every earlier item refund (warranty or partial return): the
+  customer gets the rest, and each wallet is repaid what it paid.
+- **No double refund of a unit.** A partial return refuses an item already returned (more units
+  than ordered across REFUNDED requests) or already refunded by warranty. A warranty REFUND
+  refuses an item already returned.
+- **Return protection** receives the shop partner's actual share via `clawedBackAmount`, because a
+  partial return leaves the escrow row's status unchanged.
+
+### Still open
+
+1. One protection cover pays once. A partial-return claim consumes it, so a later full return on the
+   same sub-order gets no protection payout.
+2. `negative_balance_recoveries` rows created by item refunds stay `PENDING`; nothing settles them yet.
+

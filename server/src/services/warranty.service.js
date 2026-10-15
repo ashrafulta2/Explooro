@@ -445,7 +445,7 @@ export async function reviewWarrantyClaim(db, {
               so.ref AS sub_order_ref, o.recipient_name, o.recipient_phone,
               jsonb_build_object('division', o.division, 'district', o.district,
                                  'upazila', o.upazila, 'address_line', o.address_line) AS delivery_address_json,
-              oi.line_total, oi.retail_price, oi.sub_order_id
+              oi.line_total, oi.retail_price, oi.sub_order_id, wc.order_item_id
        FROM warranty_claims c
        JOIN warranty_cards wc ON wc.id = c.warranty_card_id
        JOIN order_items oi ON oi.id = wc.order_item_id
@@ -578,6 +578,7 @@ export async function reviewWarrantyClaim(db, {
         claimId: claim.id,
         claimRef: claim.ref,
         subOrderId: claim.sub_order_id,
+        orderItemId: claim.order_item_id,
         supplierId: claim.supplier_id,
         customerId: claim.customer_id,
         amount: claim.line_total,
