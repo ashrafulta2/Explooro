@@ -43,6 +43,11 @@
    slider's min-height (the height a signed-out visitor sees); the signed-in "Your orders" card then fits
    inside that height instead of stretching the whole band by ~300px. */
 .home-top__side { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: var(--space-2); min-width: 0; contain: size; }
+.home-top__side--solo { grid-template-rows: minmax(0, 1fr); }
+.home-top__side--solo .home-top__tiles { padding: var(--space-4); gap: var(--space-3); }
+.home-top__side--solo .home-top__tile-grid { gap: var(--space-3); }
+.home-top__side--solo .home-top__tile { gap: var(--space-1); font-size: var(--text-sm); border-radius: var(--radius-lg); }
+.home-top__side--solo .home-top__tile-icon svg { width: 30px; height: 30px; }
 .home-top__card { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: var(--space-2) var(--space-4); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); min-width: 0; }
 .home-top__tiles { display: flex; flex-direction: column; gap: var(--space-2); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-3); min-width: 0; min-height: 0; overflow: hidden; flex: 1; }
 .home-top__tile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); flex: 1; min-height: 0; grid-auto-rows: minmax(0, 1fr); }
@@ -94,9 +99,11 @@
 .home-band__tiles { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: var(--space-2); min-height: 0; }
 .home-band__tile { display: flex; align-items: center; justify-content: center; padding: var(--space-3); text-align: center; background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-primary); font-size: var(--text-sm); font-weight: 600; text-decoration: none; }
 .home-band__tile:hover, .home-band__tile:focus-visible { border-color: var(--text-secondary); }
-/* WHY: the middle panel is coloured from the theme's own ramps (brand wash + one semantic hue per card) so it follows the master seed and dark mode instead of looking like a blank white box. */
-.home-band--soft { background: var(--brand-50); border-color: var(--brand-100); color: var(--brand-1000); }
-.home-band--soft .home-band__cta { background: var(--brand-400); color: var(--brand-1000); }
+/* WHY: the middle panel itself is the deep surface (accent-700, a ramp step so it stays saturated in dark mode too),
+   sitting between the yellow and charcoal panels. Its cards stay light tints with dark text so the figures read
+   as bright tiles on the deep ground. */
+.home-band--soft { background: var(--accent-700); border-color: var(--accent-700); color: var(--neutral-0); }
+.home-band--soft .home-band__cta { background: var(--brand); color: var(--brand-contrast); }
 .home-band__metric--info, .home-band__tile--info { --tone-bg: var(--info-50); --tone-bar: var(--info-500); --tone-fg: var(--info-800); }
 .home-band__metric--ok, .home-band__tile--ok { --tone-bg: var(--success-50); --tone-bar: var(--success-500); --tone-fg: var(--success-800); }
 .home-band__metric--warn, .home-band__tile--warn { --tone-bg: var(--warning-50); --tone-bar: var(--warning-500); --tone-fg: var(--warning-800); }

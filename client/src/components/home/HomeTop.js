@@ -194,6 +194,9 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
       grid.append(node);
     }
     tiles.append(grid);
+    // WHY: with no card above them (guests) the tiles are the only child of a grid whose first row is `auto`,
+    // so they hugged their content and left the column's lower half empty. The modifier lets them fill it.
+    if (!side.children.length) side.classList.add('home-top__side--solo');
     side.append(tiles);
   }
 
