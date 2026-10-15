@@ -565,17 +565,26 @@ export async function reviewWarrantyClaim(db, {
       }
     }
 
-    // If Refund resolution, execute wallet refund / clawback
+    // WHY: refund only the claimed item, paid by the supplier, and let a failure throw. The old
+    // call clawed back the whole sub-order and swallowed errors, so a failed refund still marked
+    // the claim APPROVED with no money moved (docs/warranty-refund-scope.md).
+    let refund = null;
     if (finalResolution === 'REFUND') {
-      try {
-        await clawbackService.executeClawback(txClient, {
-          subOrderId: claim.sub_order_id,
-          reason: `Warranty claim #${claim.ref} approved for replacement refund`,
-          client: txClient,
-        });
-      } catch (err) {
-        console.warn(`[WarrantyService] Refund clawback notice: ${err.message}`);
+      // The claim row is locked FOR UPDATE above, so this also stops two concurrent approvals.
+      if (claim.resolution === 'REFUND') {
+        throw new Error(`CLAIM_ALREADY_REFUNDED: Warranty claim ${claim.ref} has already been refunded.`);
       }
+      refund = await clawbackService.processWarrantyRefund(txClient, {
+        claimId: claim.id,
+        claimRef: claim.ref,
+        subOrderId: claim.sub_order_id,
+        supplierId: claim.supplier_id,
+        customerId: claim.customer_id,
+        amount: claim.line_total,
+        approvedBy: decidBy,
+        actorRole: isStaffOverride ? 'admin' : 'supplier',
+        client: txClient,
+      });
     }
 
     await txClient.query(
@@ -615,6 +624,7 @@ export async function reviewWarrantyClaim(db, {
         status: 'APPROVED',
         resolution: finalResolution,
         reverse_shipment_id: reverseShipmentId,
+        refund_amount: refund ? refund.refundAmount : null,
       },
       riskTier: isStaffOverride ? 'HIGH' : 'LOW',
     }).catch(() => {});
@@ -625,6 +635,7 @@ export async function reviewWarrantyClaim(db, {
       resolution: finalResolution,
       reverseShipmentId,
       claimId,
+      refundAmount: refund ? refund.refundAmount : null,
     };
   };
 

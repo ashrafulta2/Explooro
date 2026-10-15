@@ -289,4 +289,151 @@ export async function getPendingRecoveries(db, { walletId = null, limit = 50, cl
   return rows;
 }
 
+/**
+ * Refunds ONE warranty claim: the customer gets the claimed order item's line total, and the
+ * supplier who issued the warranty pays all of it.
+ *
+ * WHY not processReturnClawback: a warranty card covers one order item, but escrow is held per
+ * sub-order. Clawing back the sub-order refunded every item in it (a ৳200 cable refunded ৳1,260)
+ * and took the shop partner's and platform's cut for items nobody claimed. See
+ * docs/warranty-refund-scope.md (Option B, chosen 2026-10-15).
+ *
+ * WHY the supplier's AVAILABLE bucket even while escrow is still LOCKED: escrow_entries rows are
+ * all-or-nothing, so debiting ESCROW here would leave the row's full amount to be released again
+ * later and push pending_escrow_balance below zero. Debiting AVAILABLE nets out when that escrow
+ * releases. A shortfall is recorded in negative_balance_recoveries, the same as a post-release
+ * return clawback. Escrow rows are left untouched, so other items stay refundable.
+ *
+ * @param {import('pg').Pool} db
+ * @param {Object} params - no `= {}` default, for the same reason as processReturnClawback.
+ * @param {number|string} params.claimId
+ * @param {string} params.claimRef
+ * @param {number|string} params.subOrderId
+ * @param {number|string} params.supplierId - user id of the supplier who issued the warranty
+ * @param {number|string} params.customerId
+ * @param {string} params.amount - the claimed item's line_total, NUMERIC(14,2) as pg returns it
+ * @param {number|string|null} params.approvedBy - who approved the claim (supplier or staff)
+ * @param {string} params.actorRole
+ * @param {import('pg').PoolClient} [params.client]
+ */
+export async function processWarrantyRefund(db, {
+  claimId,
+  claimRef,
+  subOrderId,
+  supplierId,
+  customerId,
+  amount,
+  approvedBy,
+  actorRole,
+  client = null,
+}) {
+  const runner = async (txClient) => {
+    const refundPaisa = Math.round(parseFloat(String(amount)) * 100);
+    if (!Number.isFinite(refundPaisa) || refundPaisa <= 0) {
+      throw new Error(`INVALID_REFUND_AMOUNT: Warranty claim ${claimRef} has no refundable line total (${amount}).`);
+    }
+    const refundAmount = (refundPaisa / 100).toFixed(2);
+    // pg returns BIGINT ids as strings; the ledger's reference_id is numeric.
+    const referenceId = Number(claimId);
+
+    const supplierWallet = await walletRepo.getOrCreateWallet(db, supplierId, { client: txClient });
+    const customerWallet = await walletRepo.getOrCreateWallet(db, customerId, { client: txClient });
+
+    const availPaisa = Math.round(parseFloat(String(supplierWallet.available_balance)) * 100);
+    const recoveredPaisa = Math.min(refundPaisa, Math.max(0, availPaisa));
+    const deficitPaisa = refundPaisa - recoveredPaisa;
+    const reason = `Warranty claim ${claimRef} refunded`;
+
+    let recoveryRecord = null;
+    if (deficitPaisa > 0) {
+      const { rows: recRows } = await txClient.query(
+        `INSERT INTO negative_balance_recoveries (
+           ref, wallet_id, user_id, sub_order_id,
+           total_clawback_amount, recovered_from_available, unrecovered_deficit,
+           recovery_status, reason
+         )
+         VALUES ($1, $2, $3, $4, $5::numeric(14,2), $6::numeric(14,2), $7::numeric(14,2), 'PENDING', $8)
+         RETURNING id, ref, wallet_id, total_clawback_amount, recovered_from_available, unrecovered_deficit, recovery_status`,
+        [
+          generateRecoveryRef(),
+          supplierWallet.id,
+          supplierId,
+          subOrderId,
+          refundAmount,
+          (recoveredPaisa / 100).toFixed(2),
+          (deficitPaisa / 100).toFixed(2),
+          reason,
+        ]
+      );
+      recoveryRecord = recRows[0] || null;
+    }
+
+    const txnGroupId = randomUUID();
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
+    const ledgerEntries = [
+      {
+        walletId: supplierWallet.id,
+        entryType: 'DEBIT',
+        amount: refundAmount,
+        balanceBucket: 'AVAILABLE',
+        category: 'CLAWBACK',
+        referenceType: 'WARRANTY_CLAIM',
+        referenceId,
+        memo: `${reason} (supplier bears the warranty)${deficitPaisa > 0 ? ` [Deficit: ৳${(deficitPaisa / 100).toFixed(2)}]` : ''}`,
+        createdBy: approvedBy,
+      },
+      {
+        walletId: customerWallet.id,
+        entryType: 'CREDIT',
+        amount: refundAmount,
+        balanceBucket: 'AVAILABLE',
+        category: 'REFUND',
+        referenceType: 'WARRANTY_CLAIM',
+        referenceId,
+        memo: `${reason} to customer`,
+        createdBy: approvedBy,
+      },
+    ];
+
+    const ledgerResult = await ledgerService.recordTransactionGroup(txClient, {
+      txnGroupId,
+      entries: ledgerEntries,
+      defaultCategory: 'REFUND',
+      defaultReferenceType: 'WARRANTY_CLAIM',
+      defaultReferenceId: referenceId,
+      createdBy: approvedBy,
+    });
+
+    await writeAudit(txClient, {
+      actorId: approvedBy,
+      actorRole,
+      action: 'finance.clawback.execute',
+      targetType: 'warranty_claim',
+      targetRef: claimRef,
+      beforeJson: { supplier_available_balance: supplierWallet.available_balance },
+      afterJson: {
+        refund_amount: refundAmount,
+        sub_order_id: subOrderId,
+        unrecovered_deficit: (deficitPaisa / 100).toFixed(2),
+        recovery_record: recoveryRecord,
+        txn_group_id: txnGroupId,
+      },
+      riskTier: 'HIGH',
+    }).catch(() => {});
+
+    return {
+      success: true,
+      claimId,
+      refundAmount,
+      recoveredAmount: (recoveredPaisa / 100).toFixed(2),
+      unrecoveredDeficit: (deficitPaisa / 100).toFixed(2),
+      recoveryRecord,
+      txnGroupId,
+      ledgerResult,
+    };
+  };
+
+  return client ? runner(client) : withTransaction(db, runner);
+}
+
 export const executeClawback = processReturnClawback;
