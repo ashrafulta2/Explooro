@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * referralEscrow.service.js — what happens to a referral commission after it is earned.
+ * referralEscrow.service.ts — what happens to a referral commission after it is earned.
  *
  * referral.service.evaluateQualifyingEvent credits the beneficiary's ESCROW bucket and writes a
  * `referral_earnings` row in PENDING_ESCROW. Nothing used to move it on from there: no job released
@@ -17,8 +16,8 @@
 
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
-import * as ledgerService from './ledger.service.js';
-import { resolvePlatformWalletId } from './vault.service.js';
+import * as ledgerService from './ledger.service.ts';
+import { resolvePlatformWalletId } from './vault.service.ts';
 
 const DEFAULT_BATCH_SIZE = 200;
 
@@ -114,7 +113,7 @@ export async function releaseDueEarnings(db, { batchSize = DEFAULT_BATCH_SIZE } 
  * @param {'RELEASE'|'VOID'} decision
  * @returns {Promise<{ count: number, amount: string }>}
  */
-export async function settleReferralEarnings(client, referralId, decision, memo) {
+export async function settleReferralEarnings(client, referralId, decision: 'RELEASE'|'VOID', memo): Promise<{ count: number; amount: string; }> {
   if (decision !== 'RELEASE' && decision !== 'VOID') {
     throw new AppError('VALIDATION_ERROR', 'decision must be RELEASE or VOID.');
   }

@@ -1,7 +1,7 @@
 /**
  * deliveryChargeCodGateEscrow.test.js — the three fixes of 2026-10-09 (bug report "Found, not fixed").
  *
- * 1. A paid bKash/Nagad/card order locks escrow (payment.service.js used to call depositToEscrow
+ * 1. A paid bKash/Nagad/card order locks escrow (payment.service.ts used to call depositToEscrow
  *    with the wrong arguments and hid the error).
  * 2. The normal-checkout delivery charge is a setting (it was ৳60 in code).
  * 3. Team-purchase COD members pass the same trust / OTP gate as checkout, and the OTP row survives
@@ -11,8 +11,8 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import * as deliveryChargeService from '../src/services/deliveryCharge.service.js';
-import * as codGateService from '../src/services/codGate.service.js';
+import * as deliveryChargeService from '../src/services/deliveryCharge.service.ts';
+import * as codGateService from '../src/services/codGate.service.ts';
 import { AppError } from '../src/plugins/errorHandler.js';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
 
@@ -32,7 +32,7 @@ function fakeDb(name, answer = () => ({ rows: [] })) {
 }
 
 describe('1. paid gateway orders lock escrow', () => {
-  const paymentSrc = src('services/payment.service.js');
+  const paymentSrc = src('services/payment.service.ts');
 
   test('depositToEscrow is called as (db, {...}), never (db, cache, {...})', () => {
     assert.ok(!/depositToEscrow\(db, cache/.test(paymentSrc));

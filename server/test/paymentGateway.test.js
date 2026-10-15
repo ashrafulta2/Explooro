@@ -19,8 +19,8 @@ import requestContextPlugin from '../src/plugins/requestContext.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import paymentRoutes from '../src/routes/payment.routes.js';
 import { createPaymentGateway, MockPaymentDriver } from '../src/integrations/payments/index.js';
-import * as paymentService from '../src/services/payment.service.js';
-import * as paymentRepo from '../src/repositories/payment.repository.js';
+import * as paymentService from '../src/services/payment.service.ts';
+import * as paymentRepo from '../src/repositories/payment.repository.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
 
 function createMockDb() {

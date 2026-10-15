@@ -3,7 +3,7 @@
  */
 
 import * as productRepo from '../repositories/product.repository.js';
-import { calculatePricingBreakdown, loadSplitRules, resolveSplitPercentages, toPaisa } from './pricing.service.js';
+import { calculatePricingBreakdown, loadSplitRules, resolveSplitPercentages, toPaisa } from './pricing.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
 import { withTransaction } from '../config/db.js';
@@ -759,7 +759,7 @@ const FALLBACK_LOW_STOCK_THRESHOLD = 10;
 
 /**
  * Resolves the catalog-wide low-stock threshold: platform_settings wins, the constant above is the
- * bootstrap default. Same read-with-fallback shape as getSurgeConfig() in surgePricing.service.js.
+ * bootstrap default. Same read-with-fallback shape as getSurgeConfig() in surgePricing.service.ts.
  */
 export async function resolveLowStockThreshold(db) {
   try {

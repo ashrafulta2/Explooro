@@ -5,7 +5,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as referral from '../src/services/referral.service.js';
+import * as referral from '../src/services/referral.service.ts';
 
 function makeDb(settings) {
   const statements = [];

@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * referral.service.js — Multi-Tier Referral & Network Growth Engine (Prompt 9.3).
+ * referral.service.ts — Multi-Tier Referral & Network Growth Engine (Prompt 9.3).
  *
  * Implements DFD Subsystem 14.0:
  * 1. Multi-tier attribution (Tier 1 direct 5%, Tier 2 indirect 2%).
@@ -16,8 +15,8 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
 import { isEnabled } from './module.service.js';
 import { hashNid } from './kyc.service.js';
 
@@ -59,7 +58,7 @@ export const FIXED_BONUS_KEYS = Object.freeze({
  * What one referral row earns for one event. FIRST_ORDER stays a percentage of the order; the others pay
  * the configured bonus, scaled for tier 2 by the same tier_2 : tier_1 ratio the percentage rule uses.
  */
-export function commissionFor(eventType, tierLevel, { orderAmount = 0, settings = /** @type {Record<string, *>} */ ({}) } = {}) {
+export function commissionFor(eventType, tierLevel, { orderAmount = 0, settings = ({} as Record<string, any>) } = {}) {
   const tier1Rate = Number(settings.tier_1_rate_pct ?? 5);
   const tier2Rate = Number(settings.tier_2_rate_pct ?? 2);
   const ratePct = tierLevel === 1 ? tier1Rate : tier2Rate;
@@ -74,7 +73,7 @@ export function commissionFor(eventType, tierLevel, { orderAmount = 0, settings 
 }
 
 /** The part of the live rules a member may see: what they would earn and when it becomes theirs. */
-export function publicProgramRules(settings = {}) {
+export function publicProgramRules(settings: Record<string, any> = {}) {
   const num = (v, d) => (Number.isFinite(Number(v)) && v !== null && v !== undefined ? Number(v) : d);
   return {
     qualifying_event: settings.qualifying_event || 'FIRST_ORDER',

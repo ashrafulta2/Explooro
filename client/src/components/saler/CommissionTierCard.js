@@ -1,7 +1,7 @@
 /**
  * CommissionTierCard.js — where a shop partner stands on the earned commission ladder.
  *
- * Draws only what GET /saler/commission-tier returns (server services/salerTier.service.js getSalerView):
+ * Draws only what GET /saler/commission-tier returns (server services/salerTier.service.ts getSalerView):
  * the tier, the bonus it pays, the delivered volume in the window and the gap to the next tier.
  * The client never works out a tier or a bonus itself.
  *

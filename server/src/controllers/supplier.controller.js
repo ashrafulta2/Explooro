@@ -14,9 +14,9 @@
 import * as inventoryService from '../services/inventory.service.js';
 import * as warehouseRoutingService from '../services/warehouseRouting.service.js';
 import { getOwnScorecard } from '../services/supplierScorecard.service.js';
-import { getSupplierView as getIncentiveView, saveProgram as saveIncentiveProgram } from '../services/volumeIncentive.service.js';
+import { getSupplierView as getIncentiveView, saveProgram as saveIncentiveProgram } from '../services/volumeIncentive.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
-import { toPaisa, toBdtNumber } from '../services/pricing.service.js';
+import { toPaisa, toBdtNumber } from '../services/pricing.service.ts';
 
 /**
  * Aggregates high-level KPI metrics for the Supplier Dashboard.

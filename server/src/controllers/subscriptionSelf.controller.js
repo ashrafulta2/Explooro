@@ -1,9 +1,9 @@
 /**
  * subscriptionSelf.controller.js — a merchant's own Shop Partner Pro subscription (thin HTTP layer).
- * The admin side lives in finance.controller.js; the rules live in subscriptionBilling.service.js.
+ * The admin side lives in finance.controller.js; the rules live in subscriptionBilling.service.ts.
  */
 
-import * as billing from '../services/subscriptionBilling.service.js';
+import * as billing from '../services/subscriptionBilling.service.ts';
 import { runIdempotent } from '../lib/idempotency.js';
 
 const actorOf = (req) => ({ id: req.user.id, role: req.user.role, roles: req.user.roles || (req.user.role ? [req.user.role] : []) });

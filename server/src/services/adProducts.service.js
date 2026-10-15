@@ -7,7 +7,7 @@
  *   - Holders of `growth.ad.govern` see every format including disabled ones, with revenue per
  *     format, and may rewrite any rate card (GET/PATCH /admin/ads/products).
  *
- * Every price shown anywhere comes from services/adPricing.js. This file decides *who may buy
+ * Every price shown anywhere comes from services/adPricing.ts. This file decides *who may buy
  * what* and *what inventory is left*; it never multiplies a rate by a quantity itself.
  */
 
@@ -20,7 +20,7 @@ import {
   validateRateCard,
   rate,
   PREPAID_MODELS,
-} from './adPricing.js';
+} from './adPricing.ts';
 
 /** Formats that rent a physical position and therefore consume day-level inventory. */
 const SLOT_BACKED_MODELS = ['FLAT_DAILY', 'FLAT_SLOT'];

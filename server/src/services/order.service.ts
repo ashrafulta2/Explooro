@@ -8,7 +8,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import * as orderRepo from '../repositories/order.repository.js';
+import * as orderRepo from '../repositories/order.repository.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
 import * as liveRepo from '../repositories/liveStream.repository.js';
 import * as trustScoreService from './trustScore.service.js';

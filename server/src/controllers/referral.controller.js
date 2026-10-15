@@ -2,7 +2,7 @@
  * referral.controller.js — Route handlers for Multi-Tier Referral Network (Prompt 9.3).
  */
 
-import * as referralService from '../services/referral.service.js';
+import * as referralService from '../services/referral.service.ts';
 import * as referralAdminService from '../services/referralAdmin.service.ts';
 
 export async function getOverview(req, reply) {

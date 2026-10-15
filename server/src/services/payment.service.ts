@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * payment.service.js — Transactional Payment Processing & Webhook Engine (Prompt 5.3).
+ * payment.service.ts — Transactional Payment Processing & Webhook Engine (Prompt 5.3).
  *
  * Implements:
  *  1. Multi-gateway checkout initiation (bKash, Nagad, SSLCommerz, Mock)
@@ -14,10 +13,10 @@
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import { createPaymentGateway } from '../integrations/payments/index.js';
-import * as paymentRepo from '../repositories/payment.repository.js';
-import * as orderRepo from '../repositories/order.repository.js';
+import * as paymentRepo from '../repositories/payment.repository.ts';
+import * as orderRepo from '../repositories/order.repository.ts';
 import * as auditService from './audit.service.js';
-import * as vaultService from './vault.service.js';
+import * as vaultService from './vault.service.ts';
 import { withTransaction } from '../config/db.js';
 
 /**
@@ -81,7 +80,7 @@ export function gatewayForPaymentMethod(method) {
  * @param {string|null} [params.idempotencyKey]
  * @param {{ name?: string, phone?: string }} [params.customer]
  */
-export async function initiatePayment(db, cache, {
+export async function initiatePayment(db: import('pg').Pool, cache: any, {
   orderId,
   orderRef = null,
   userId,
@@ -90,7 +89,7 @@ export async function initiatePayment(db, cache, {
   callbackUrl = null,
   idempotencyKey = null,
   customer = {},
-}) {
+}: { orderId: number|string; orderRef?: string|null; userId: number|string; gateway?: string; returnUrl?: string|null; callbackUrl?: string|null; idempotencyKey?: string|null; customer?: { name?: string; phone?: string; }; }) {
   let normGateway = String(gateway || 'MOCK').toUpperCase();
 
   // 1. Check Idempotency Key
@@ -379,7 +378,7 @@ export async function executePayment(db, cache, {
  * and the platform were never paid for them.
  *
  * The money came from the gateway, not from the shopper's Explooro wallet, so the external clearing
- * wallet funds the deposit (see vault.service.js resolveClearingWalletId). depositToEscrow is
+ * wallet funds the deposit (see vault.service.ts resolveClearingWalletId). depositToEscrow is
  * idempotent per sub-order, so calling this again for an already-locked order changes nothing.
  * A failure is logged loudly and left for the next retry; it must not undo a payment the gateway
  * has already taken.

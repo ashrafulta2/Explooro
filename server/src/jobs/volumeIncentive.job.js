@@ -5,7 +5,7 @@
  * Catalog area, and with that module off there is nobody to pay it for.
  */
 
-import { settleDue } from '../services/volumeIncentive.service.js';
+import { settleDue } from '../services/volumeIncentive.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runVolumeIncentive(db, cache, logger = console) {

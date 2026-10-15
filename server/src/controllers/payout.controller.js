@@ -2,7 +2,7 @@
  * payout.controller.js — HTTP Controller for Vault Withdrawals and Admin Payout Queue (Prompt 6.3).
  */
 
-import * as payoutService from '../services/payout.service.js';
+import * as payoutService from '../services/payout.service.ts';
 
 export async function requestWithdrawal(req, reply) {
   const idempotencyKey = req.headers['idempotency-key'] || null;

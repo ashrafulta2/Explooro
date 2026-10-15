@@ -1,7 +1,7 @@
 /**
  * adProduct.repository.js — SQL only for the ad product catalogue and reserved-slot inventory.
  *
- * No business rules here: pricing lives in services/adPricing.js, policy in
+ * No business rules here: pricing lives in services/adPricing.ts, policy in
  * services/adProducts.service.js. This file just moves rows.
  */
 

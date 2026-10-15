@@ -136,10 +136,10 @@ export function synthesizeDescription(product) {
   };
 }
 
-/** Mirrors the shape server/src/services/pricing.service.js's calculatePricingBreakdown returns —
+/** Mirrors the shape server/src/services/pricing.service.ts's calculatePricingBreakdown returns —
  * the mock fixture only carries a flat `margin_pct` (the saler-facing badge value), so the rest of
  * the breakdown is reverse-engineered from it for display purposes. The real split arithmetic
- * lives only in pricing.service.js; this is presentation data for a page that has no real backend
+ * lives only in pricing.service.ts; this is presentation data for a page that has no real backend
  * order behind it in mock mode. */
 function synthesizePricing(product) {
   const retail = Number(product.price);
@@ -980,7 +980,7 @@ export default [
     },
   },
   {
-    // Same shape as GET /sourcing/incentives (services/volumeIncentive.service.js getSalerView).
+    // Same shape as GET /sourcing/incentives (services/volumeIncentive.service.ts getSalerView).
     method: 'GET',
     path: '/sourcing/incentives',
     handler() {

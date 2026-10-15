@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * payment.repository.js — Data Access Repository for Payment Transactions & Webhooks (Prompt 5.3).
+ * payment.repository.ts — Data Access Repository for Payment Transactions & Webhooks (Prompt 5.3).
  */
 
 export async function createPaymentTransaction(db, {
@@ -51,18 +50,17 @@ export async function createPaymentTransaction(db, {
  * @param {object|null} [fields.rawResponse]
  * @param {Date|null} [fields.reconciledAt]
  */
-export async function updatePaymentTransaction(db, idOrRef, {
+export async function updatePaymentTransaction(db: import('pg').Pool, idOrRef: number|string, {
   status,
   gatewayRef,
   rawResponse,
   reconciledAt,
-}) {
+}: { status?: string; gatewayRef?: string|null; rawResponse?: any|null; reconciledAt?: Date|null; }) {
   const isId = typeof idOrRef === 'number' || (!isNaN(Number(idOrRef)) && !String(idOrRef).startsWith('TXN-') && !String(idOrRef).startsWith('PAY-'));
   const whereClause = isId ? 'id = $1' : 'ref = $1';
 
   const updates = [];
-  /** @type {unknown[]} */
-  const values = [idOrRef];
+  const values: unknown[] = [idOrRef];
   let idx = 2;
 
   if (status) {

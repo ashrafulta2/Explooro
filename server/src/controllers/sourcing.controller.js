@@ -3,8 +3,8 @@
  */
 
 import * as productService from '../services/product.service.js';
-import { getSalerView as getSalerIncentiveView } from '../services/volumeIncentive.service.js';
-import { getSalerView as getSalerTierView } from '../services/salerTier.service.js';
+import { getSalerView as getSalerIncentiveView } from '../services/volumeIncentive.service.ts';
+import { getSalerView as getSalerTierView } from '../services/salerTier.service.ts';
 
 export async function addToStore(req, reply) {
   const db = req.db || req.server?.db;

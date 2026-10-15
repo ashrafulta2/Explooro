@@ -14,7 +14,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import * as escrow from '../src/services/referralEscrow.service.js';
+import * as escrow from '../src/services/referralEscrow.service.ts';
 import * as admin from '../src/services/referralAdmin.service.ts';
 import referralRoutes from '../src/routes/referral.routes.js';
 

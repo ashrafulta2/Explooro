@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * sampleKit.service.js — Sample requests and marketing kits (supplier attraction, step 4).
+ * sampleKit.service.ts — Sample requests and marketing kits (supplier attraction, step 4).
  *
  * A shop partner who has never handled a supplier's product is asked to commit blind. A sample removes that
  * risk, and a marketing kit removes the blank page after it. The platform earns `platform_fee_pct` of
@@ -32,8 +31,8 @@ import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
 import * as notificationService from './notification.service.js';
 import * as repo from '../repositories/sampleKit.repository.js';
 import * as scorecardRepo from '../repositories/supplierScorecard.repository.js';
@@ -507,8 +506,7 @@ async function settleHeld(client, row, outcome) {
   if (outcome === 'DELIVERED') {
     const supplierWallet = await walletRepo.getOrCreateWallet(client, row.supplier_id, { client });
     const treasuryWallet = await walletRepo.getOrCreateWallet(client, await treasuryUserId(client), { client });
-    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-    const entries = [
+    const entries: import('./ledger.service.ts').LedgerEntryInput[] = [
       { walletId: salerWallet.id, entryType: 'DEBIT', amount: fromPaisa(totalPaisa), balanceBucket: 'HELD', idempotencyKey: `${key}:out` },
       { walletId: supplierWallet.id, entryType: 'CREDIT', amount: fromPaisa(totalPaisa - feePaisa), balanceBucket: 'AVAILABLE', idempotencyKey: `${key}:supplier` },
     ];

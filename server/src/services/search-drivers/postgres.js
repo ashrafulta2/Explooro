@@ -6,7 +6,7 @@
  */
 
 import { expandSearchTerms } from '../../utils/transliterate.js';
-import { calculatePricingBreakdown } from '../pricing.service.js';
+import { calculatePricingBreakdown } from '../pricing.service.ts';
 import { reservedUnitsSql } from '../teamStockReservation.service.js';
 
 export class PostgresSearchDriver {

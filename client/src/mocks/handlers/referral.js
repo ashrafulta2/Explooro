@@ -307,7 +307,7 @@ export const referralHandlers = [
     },
   },
 
-  // Read-only dry run: mirrors referral.service.js simulateEarnings and never touches the mock state.
+  // Read-only dry run: mirrors referral.service.ts simulateEarnings and never touches the mock state.
   {
     method: 'POST',
     path: '/saler/referrals/simulate',

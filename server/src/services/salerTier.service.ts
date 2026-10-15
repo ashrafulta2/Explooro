@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * salerTier.service.js — puts every shop partner in a commission tier by what they sold, and shows them where
+ * salerTier.service.ts — puts every shop partner in a commission tier by what they sold, and shows them where
  * they stand.
  *
  * The tier is a rolling-window figure (`window_days`, default 30) of DELIVERED sales, goods only
@@ -31,7 +30,7 @@ async function loadSettings(db) {
  * the delivered orders in the window, and it writes (and audits) only the rows that change.
  * @returns {Promise<{ evaluated: number, changed: number, skipped: boolean }>}
  */
-export async function recomputeAll(db) {
+export async function recomputeAll(db): Promise<{ evaluated: number; changed: number; skipped: boolean; }> {
   const { rules } = await loadSettings(db);
   // WHY nothing is written while off: the rows would be unused, and switching it on later runs the job
   // once before any order is priced against a stale tier.

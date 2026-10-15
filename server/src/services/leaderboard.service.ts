@@ -9,8 +9,8 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
 
 export function getCurrentMonthPeriodKey(date = new Date()) {
   return new Date(date).toISOString().slice(0, 7); // 'YYYY-MM'

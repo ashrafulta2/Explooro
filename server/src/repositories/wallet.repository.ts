@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * wallet.repository.js — Data access for wallets, ledger transactions, and balance integrity (Prompt 6.1).
+ * wallet.repository.ts — Data access for wallets, ledger transactions, and balance integrity (Prompt 6.1).
  *
  * Implements:
  * - Row-level exclusive locking (SELECT ... FOR UPDATE) in deterministic ascending wallet ID order
@@ -14,25 +13,25 @@
  *
  * WHY strings: no `pg.types.setTypeParser` is registered, so BIGINT (`id`, `user_id`, `version`)
  * and NUMERIC(14,2) (every balance) arrive as strings. Adding two balances with `+` concatenates
- * them; do money arithmetic in paisa (see ledger.service.js), never on these values directly.
- *
- * @typedef {object} WalletRow
- * @property {string} id
- * @property {string} user_id
- * @property {string} available_balance
- * @property {string} pending_escrow_balance
- * @property {string} held_balance
- * @property {string} lifetime_earned
- * @property {string} lifetime_withdrawn
- * @property {string} currency
- * @property {string} version
- * @property {Date} created_at
- * @property {Date | null} updated_at
+ * them; do money arithmetic in paisa (see ledger.service.ts), never on these values directly.
  */
+export interface WalletRow {
+  id: string;
+  user_id: string;
+  available_balance: string;
+  pending_escrow_balance: string;
+  held_balance: string;
+  lifetime_earned: string;
+  lifetime_withdrawn: string;
+  currency: string;
+  version: string;
+  created_at: Date;
+  updated_at: Date | null;
+}
 
-/**
- * @typedef {{ client?: import('pg').PoolClient }} QueryOptions
- */
+export interface QueryOptions {
+  client?: import('pg').PoolClient;
+}
 
 /**
  * Retrieves an existing wallet for a user, or creates a new one with zero balances if none exists.
@@ -43,7 +42,7 @@
  * @param {QueryOptions} [options]
  * @returns {Promise<WalletRow>}
  */
-export async function getOrCreateWallet(db, userId, { client } = {}) {
+export async function getOrCreateWallet(db: import('pg').Pool, userId: number|string, { client }: QueryOptions = {}): Promise<WalletRow> {
   const runner = client ?? db;
   const selectQuery = `
     SELECT id, user_id, available_balance, pending_escrow_balance, held_balance,
@@ -76,7 +75,7 @@ export async function getOrCreateWallet(db, userId, { client } = {}) {
  * @param {QueryOptions} [options]
  * @returns {Promise<WalletRow | null>}
  */
-export async function getWalletById(db, walletId, { client } = {}) {
+export async function getWalletById(db: import('pg').Pool, walletId: number|string, { client }: QueryOptions = {}): Promise<WalletRow|null> {
   const runner = client ?? db;
   const { rows } = await runner.query(
     `SELECT id, user_id, available_balance, pending_escrow_balance, held_balance,
@@ -96,7 +95,7 @@ export async function getWalletById(db, walletId, { client } = {}) {
  * @param {QueryOptions} [options]
  * @returns {Promise<WalletRow | null>}
  */
-export async function getWalletByUserId(db, userId, { client } = {}) {
+export async function getWalletByUserId(db: import('pg').Pool, userId: number|string, { client }: QueryOptions = {}): Promise<WalletRow|null> {
   const runner = client ?? db;
   const { rows } = await runner.query(
     `SELECT id, user_id, available_balance, pending_escrow_balance, held_balance,
@@ -115,7 +114,7 @@ export async function getWalletByUserId(db, userId, { client } = {}) {
  * @param {number|string} walletId
  * @returns {Promise<WalletRow | null>}
  */
-export async function getWalletByIdForUpdate(client, walletId) {
+export async function getWalletByIdForUpdate(client: import('pg').PoolClient, walletId: number|string): Promise<WalletRow|null> {
   const { rows } = await client.query(
     `SELECT id, user_id, available_balance, pending_escrow_balance, held_balance,
             lifetime_earned, lifetime_withdrawn, currency, version, created_at, updated_at
@@ -135,7 +134,7 @@ export async function getWalletByIdForUpdate(client, walletId) {
  * @param {Array<number|string>} walletIds
  * @returns {Promise<WalletRow[]>}
  */
-export async function getWalletsByIdsForUpdate(client, walletIds) {
+export async function getWalletsByIdsForUpdate(client: import('pg').PoolClient, walletIds: Array<number|string>): Promise<WalletRow[]> {
   if (!walletIds || walletIds.length === 0) return [];
   const uniqueSortedIds = [...new Set(walletIds.map(Number))].sort((a, b) => a - b);
 
@@ -233,7 +232,7 @@ export async function insertLedgerEntries(client, entries) {
  * @param {import('pg').Pool} db
  * @param {QueryOptions} [options]
  */
-export async function checkLedgerIntegrity(db, { client } = {}) {
+export async function checkLedgerIntegrity(db: import('pg').Pool, { client }: QueryOptions = {}) {
   const runner = client ?? db;
 
   // 1. Verify wallet balances against ledger transactions

@@ -12,7 +12,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as couponService from '../src/services/coupon.service.js';
+import * as couponService from '../src/services/coupon.service.ts';
 import * as flashSaleService from '../src/services/flashSale.service.js';
 
 describe('Prompt 9.2: Coupons, Vouchers & Flash Sale Campaigns', () => {

@@ -2,15 +2,15 @@
  * finance.controller.js — Finance, Vault, Escrow, Clawbacks & Dashboard HTTP Request Controller (Prompts 6.1, 6.2 & 6.5).
  */
 
-import * as vaultService from '../services/vault.service.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as clawbackService from '../services/clawback.service.js';
-import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.js';
-import * as escrowAdminService from '../services/escrowAdmin.service.js';
+import * as vaultService from '../services/vault.service.ts';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as clawbackService from '../services/clawback.service.ts';
+import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.ts';
+import * as escrowAdminService from '../services/escrowAdmin.service.ts';
 import { writeAudit } from '../lib/audit.js';
-import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.js';
+import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.ts';
 import { loadRules as loadTierRules, saveRules as saveTierRules, validateRules as validateTierRules } from '../services/salerTierBonus.ts';
-import { recomputeAll as recomputeSalerTiers } from '../services/salerTier.service.js';
+import { recomputeAll as recomputeSalerTiers } from '../services/salerTier.service.ts';
 import * as subscriptionService from '../services/subscription.service.ts';
 
 export async function getIntegrity(req, reply) {
@@ -46,7 +46,7 @@ export async function getWalletById(req, reply) {
 
 /**
  * The admin Escrow page: one row per sub-order with names, real totals and pagination
- * (services/escrowAdmin.service.js). `escrow_entries` keeps the raw rows for older callers.
+ * (services/escrowAdmin.service.ts). `escrow_entries` keeps the raw rows for older callers.
  */
 export async function listEscrowHoldings(req, reply) {
   const data = await escrowAdminService.listHoldings(req.server.db, req.query || {});
@@ -394,7 +394,7 @@ export async function getProfitSplits(req, reply) {
 
   // 2. Read category overrides
   // WHY: overrides live in commission_rules (scope CATEGORY) because that is the table
-  // pricing.service.js resolves against; the categories table has no split columns.
+  // pricing.service.ts resolves against; the categories table has no split columns.
   const { rows: catRows } = await db.query(
     `SELECT c.id, c.name_en, c.name_bn, c.slug,
             r.saler_split_pct, r.platform_split_pct, r.created_at AS override_at

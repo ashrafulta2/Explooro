@@ -2,7 +2,7 @@
  * deliveryCharge.controller.js — the per-parcel delivery charge for normal checkout.
  */
 
-import * as deliveryChargeService from '../services/deliveryCharge.service.js';
+import * as deliveryChargeService from '../services/deliveryCharge.service.ts';
 import * as auditService from '../services/audit.service.js';
 import * as auditRepo from '../repositories/audit.repository.js';
 

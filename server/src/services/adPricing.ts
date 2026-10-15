@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * adPricing.js — THE single source of ad pricing arithmetic.
+ * adPricing.ts — THE single source of ad pricing arithmetic.
  *
  * WHY one file: CLAUDE.md constraint 10 requires money arithmetic to live in exactly one place.
  * Every ad price the platform ever quotes, charges, or displays is computed here — the shop partner's
@@ -83,12 +82,12 @@ export function rate(rateCard, field) {
  * Validates an admin-submitted rate card for a pricing model. Returns the sanitised card.
  * Throws AppError on any out-of-range or non-numeric value, so a bad price can never be saved.
  */
-export function validateRateCard(pricingModel, rateCard = {}) {
+export function validateRateCard(pricingModel, rateCard: Record<string, any> = {}) {
   if (!PRICING_MODELS.includes(pricingModel)) {
     throw new AppError('INVALID_PRICING_MODEL', `Unknown pricing model "${pricingModel}".`);
   }
 
-  const clean = {};
+  const clean: Record<string, any> = {};
   for (const [field, spec] of Object.entries(RATE_CARD_FIELDS)) {
     const appliesToModel = spec.models === '*' || spec.models.includes(pricingModel);
     if (!appliesToModel) continue;
@@ -274,7 +273,7 @@ function buildLines(pricingModel, rateCard, input) {
  * @param {Object} [options] - { tier: 'STARTER'|'VERIFIED_TRADER'|'ELITE_PARTNER' }
  * @returns {Object} a complete, display-ready quote in BDT strings.
  */
-export function quote(product, input = {}, options = {}) {
+export function quote(product: any, input: any = {}, options: any = {}): any {
   const pricingModel = product?.pricing_model;
   const rateCard = product?.rate_card || {};
 
@@ -428,7 +427,7 @@ export function priceLabel(product) {
  * @param {Object} args          - { bidAmount, cpmRate, impressionsInBatch, availableBudget }
  * @returns {string} the amount to charge, as a NUMERIC(14,2)-safe string.
  */
-export function meteredCharge(pricingModel, { bidAmount = 0, cpmRate = 0, impressions = 1, availableBudget = 0 }) {
+export function meteredCharge(pricingModel: string, { bidAmount = 0, cpmRate = 0, impressions = 1, availableBudget = 0 }: any): string {
   const availablePaisa = toPaisa(availableBudget);
   if (availablePaisa <= 0) return '0.00';
 

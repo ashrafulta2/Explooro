@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * coupon.service.js — Coupon & Voucher Promotion Service (Prompt 9.2).
+ * coupon.service.ts — Coupon & Voucher Promotion Service (Prompt 9.2).
  *
  * Implements:
  * 1. Coupon creation with multi-dimensional scopes (PLATFORM, SUPPLIER, SALER, CATEGORY, PRODUCT).
@@ -23,7 +22,7 @@ export const VALID_FUNDING_PARTIES = new Set(['PLATFORM', 'SUPPLIER', 'SALER']);
 /**
  * Creates a new coupon with budget caps and cost attribution.
  */
-export async function createCoupon(db, cache, creatorUser, couponData, reqMeta = {}) {
+export async function createCoupon(db, cache, creatorUser, couponData, reqMeta: Record<string, any> = {}) {
   const code = String(couponData.code || '').trim().toUpperCase();
   if (!code || code.length < 3 || code.length > 30) {
     throw new AppError('INVALID_COUPON_CODE', 'Coupon code must be between 3 and 30 characters.');
@@ -139,14 +138,14 @@ export async function createCoupon(db, cache, creatorUser, couponData, reqMeta =
  * @param {boolean} [params.forUpdate=false] - Whether to lock the coupon row
  * @returns {Promise<{ valid: boolean, coupon?: Object, discountAmount?: number, reason?: string, attribution?: Object, [extra: string]: any }>}
  */
-export async function validateCoupon(db, {
+export async function validateCoupon(db: import('pg').Pool|import('pg').PoolClient, {
   code,
   userId = null,
   items = [],
   subtotal = 0,
   shippingAmount = 0,
   forUpdate = false,
-}) {
+}: { code: string; userId?: number; items: Array<any>; subtotal: number; shippingAmount?: number; forUpdate?: boolean; }): Promise<{ valid: boolean; coupon?: any; discountAmount?: number; reason?: string; attribution?: any;[extra: string]: any; }> {
   if (!code) {
     return { valid: false, reason: 'NO_CODE_PROVIDED' };
   }
@@ -289,12 +288,12 @@ export async function validateCoupon(db, {
  * @param {number} params.discountAmount
  * @returns {Promise<Object>} Redemption record
  */
-export async function redeemCouponInTransaction(client, {
+export async function redeemCouponInTransaction(client: import('pg').PoolClient, {
   couponId,
   userId,
   orderId,
   discountAmount,
-}) {
+}: { couponId: number; userId: number; orderId: number; discountAmount: number; }): Promise<any> {
   // Lock coupon row for concurrency safety
   const { rows: cRows } = await client.query(
     `SELECT * FROM coupons WHERE id = $1 FOR UPDATE`,
@@ -385,7 +384,7 @@ export async function listCoupons(db, { scopeType, fundedBy, isActive, limit = 5
 /**
  * Deactivates or cancels an active coupon.
  */
-export async function toggleCouponActive(db, userId, couponId, isActive, reqMeta = {}) {
+export async function toggleCouponActive(db, userId, couponId, isActive, reqMeta: Record<string, any> = {}) {
   const { rows } = await db.query(
     `UPDATE coupons SET is_active = $1 WHERE id = $2 RETURNING *`,
     [isActive, couponId]

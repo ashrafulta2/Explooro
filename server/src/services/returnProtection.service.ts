@@ -31,8 +31,8 @@ import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
 import * as repo from '../repositories/returnProtection.repository.ts';
 import * as scorecardRepo from '../repositories/supplierScorecard.repository.js';
 

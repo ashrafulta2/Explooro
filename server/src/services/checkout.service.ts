@@ -9,7 +9,7 @@
  *  5. COD anti-fraud risk check with SMS OTP gate (COD_OTP_REQUIRED).
  *  6. Deterministic row locking (id ASC) to eliminate deadlocks.
  *  7. FEFO batch allocation.
- *  8. Multi-supplier order splitting with exact pricing formula via pricing.service.js.
+ *  8. Multi-supplier order splitting with exact pricing formula via pricing.service.ts.
  *  9. Stock decrement and cart conversion.
  */
 
@@ -18,14 +18,14 @@ import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import * as cartService from './cart.service.js';
 import * as cartRepo from '../repositories/cart.repository.ts';
-import * as orderRepo from '../repositories/order.repository.js';
+import * as orderRepo from '../repositories/order.repository.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
 import * as adsService from './ads.service.js';
 import * as trustScoreService from './trustScore.service.js';
-import * as codGateService from './codGate.service.js';
-import * as deliveryChargeService from './deliveryCharge.service.js';
+import * as codGateService from './codGate.service.ts';
+import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedByProduct } from './teamStockReservation.service.js';
-import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
+import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.ts';
 
 export function hashPayload(payload) {
   return createHash('sha256').update(JSON.stringify(payload || {})).digest('hex');
@@ -269,7 +269,7 @@ export async function executeCheckout(pool, cache, {
     const totalAmountPaisa = itemsAmountPaisa + totalShippingPaisa - discountAmountPaisa;
     const totalAmountBdt = toBdtNumber(totalAmountPaisa);
 
-    // 7. COD Anti-Fraud & Trust Score Risk Gate (shared with team purchase — see codGate.service.js
+    // 7. COD Anti-Fraud & Trust Score Risk Gate (shared with team purchase — see codGate.service.ts
     //    for why the OTP itself is written on the pool, not on this transaction).
     let isOtpVerified = false;
     let trustScoreAtOrder = 50;
@@ -348,7 +348,7 @@ export async function executeCheckout(pool, cache, {
           qty: itemQty,
         });
 
-        // Calculate Pricing Formula via pricing.service.js
+        // Calculate Pricing Formula via pricing.service.ts
         // WHY resolved, not 40/60: the split is a business number (platform_settings / overrides), and
         // the Shop Partner Pro rebate can only reach the order if checkout asks for this shop partner's split.
         const split = await resolveSplitPercentages(client, {

@@ -2,7 +2,7 @@
  * paymentWebhook.controller.js — Inbound Webhook & IPN Controller (Prompt 5.3).
  */
 
-import * as paymentService from '../services/payment.service.js';
+import * as paymentService from '../services/payment.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 export async function handleWebhookHandler(req, reply) {

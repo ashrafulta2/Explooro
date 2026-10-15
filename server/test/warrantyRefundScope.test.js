@@ -11,7 +11,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 import * as warrantyService from '../src/services/warranty.service.ts';
-import * as clawbackService from '../src/services/clawback.service.js';
+import * as clawbackService from '../src/services/clawback.service.ts';
 import * as returnService from '../src/services/return.service.ts';
 
 const CUSTOMER_ID = 10;

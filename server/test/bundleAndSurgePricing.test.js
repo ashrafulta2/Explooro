@@ -16,8 +16,8 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 import * as bundleService from '../src/services/bundle.service.js';
-import * as surgeService from '../src/services/surgePricing.service.js';
-import { toPaisa, toBdtNumber } from '../src/services/pricing.service.js';
+import * as surgeService from '../src/services/surgePricing.service.ts';
+import { toPaisa, toBdtNumber } from '../src/services/pricing.service.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   return {

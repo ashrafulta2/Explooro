@@ -12,7 +12,7 @@
  */
 
 import * as kycService from './kyc.service.js';
-import * as referralService from './referral.service.js';
+import * as referralService from './referral.service.ts';
 import { registerActionExecutor } from './makerChecker.service.js';
 
 /** Highest-privilege role the caller holds; decideKyc only needs to know whether it is super_admin. */

@@ -12,10 +12,10 @@
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { getCourierAdapter } from '../integrations/courier/index.js';
-import * as vaultService from './vault.service.js';
-import * as clawbackService from './clawback.service.js';
+import * as vaultService from './vault.service.ts';
+import * as clawbackService from './clawback.service.ts';
 import * as warrantyService from './warranty.service.ts';
-import * as referralService from './referral.service.js';
+import * as referralService from './referral.service.ts';
 import { writeAudit } from '../lib/audit.js';
 
 /**
@@ -296,7 +296,7 @@ export async function handleCourierWebhook(db, cache, {
       // practice this is a COD order: the courier collected the cash, so the external clearing
       // wallet funds the deposit. WHY not the default (the buyer's wallet): that drove every COD
       // customer's wallet below zero by the order total on delivery. WHY not the treasury: see
-      // vault.service.js resolveClearingWalletId.
+      // vault.service.ts resolveClearingWalletId.
       try {
         await vaultService.depositToEscrow(txClient, {
           subOrderId: shipment.sub_order_id,

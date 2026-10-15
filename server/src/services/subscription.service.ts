@@ -17,7 +17,7 @@ import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
 import * as moduleRepo from '../repositories/module.repository.js';
-import { resolvePlatformPricingConfig } from './pricing.service.js';
+import { resolvePlatformPricingConfig } from './pricing.service.ts';
 
 export const MODULE_KEY = 'subscription_fees';
 

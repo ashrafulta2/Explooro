@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * clawback.service.js — Return-Triggered Clawback Automation & Deficit Recovery (Prompt 6.2).
+ * clawback.service.ts — Return-Triggered Clawback Automation & Deficit Recovery (Prompt 6.2).
  *
  * Handles:
  * 1. Locked Escrow Clawback: Reverses pending escrow balance, zeroes shop partner commission, refunds buyer.
@@ -13,9 +12,9 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
-import * as vaultService from './vault.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
+import * as vaultService from './vault.service.ts';
 import { writeAudit } from '../lib/audit.js';
 
 /**
@@ -43,14 +42,14 @@ function generateRecoveryRef() {
  * @param {Object} [params.cache]
  * @param {import('pg').PoolClient} [params.client]
  */
-export async function processReturnClawback(db, {
+export async function processReturnClawback(db: import('pg').Pool, {
   subOrderId,
   returnRequestId = null,
   reason = 'Return approved',
   approvedBy = null,
   cache = null,
   client = null,
-}) {
+}: { subOrderId: number; returnRequestId?: number; reason?: string; approvedBy?: number; cache?: any; client?: import('pg').PoolClient; }) {
   const runner = async (txClient) => {
     // 1. Fetch sub-order and customer information
     const { rows: subOrderRows } = await txClient.query(
@@ -102,8 +101,7 @@ export async function processReturnClawback(db, {
     let totalDeficitPaisa = 0;
 
     const txnGroupId = randomUUID();
-    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-    const ledgerEntries = [];
+    const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [];
     const entryIdsToClawback = [];
 
     // 4. Process each beneficiary entry
@@ -380,7 +378,7 @@ export async function getPendingRecoveries(db, { walletId = null, limit = 50, cl
  * @param {string} params.actorRole
  * @param {import('pg').PoolClient} [params.client]
  */
-export async function processWarrantyRefund(db, {
+export async function processWarrantyRefund(db: import('pg').Pool, {
   claimId,
   claimRef,
   subOrderId,
@@ -393,7 +391,7 @@ export async function processWarrantyRefund(db, {
   approvedBy,
   actorRole,
   client = null,
-}) {
+}: { claimId: number|string; claimRef: string; subOrderId: number|string; orderItemId: number|string; warrantyCardId: number|string; quantity: number|string; supplierId: number|string; customerId: number|string; amount: string; approvedBy: number|string|null; actorRole: string; client?: import('pg').PoolClient; }) {
   const runner = async (txClient) => {
     const linePaisa = Math.round(parseFloat(String(amount)) * 100);
     if (!Number.isFinite(linePaisa) || linePaisa <= 0) {
@@ -463,8 +461,7 @@ export async function processWarrantyRefund(db, {
     }
 
     const txnGroupId = randomUUID();
-    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-    const ledgerEntries = [
+    const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [
       {
         walletId: supplierWallet.id,
         entryType: 'DEBIT',
@@ -538,7 +535,7 @@ export async function processWarrantyRefund(db, {
  * @param {bigint} targetPaisa
  * @returns {bigint[]}
  */
-function allocateProRata(weights, targetPaisa) {
+function allocateProRata(weights: bigint[], targetPaisa: bigint): bigint[] {
   const totalWeight = weights.reduce((sum, w) => sum + w, 0n);
   if (totalWeight <= 0n || targetPaisa <= 0n) return weights.map(() => 0n);
   const parts = weights.map((w) => (w * targetPaisa) / totalWeight);
@@ -574,13 +571,13 @@ function allocateProRata(weights, targetPaisa) {
  * @param {number|string|null} [params.approvedBy]
  * @param {import('pg').PoolClient} [params.client]
  */
-export async function processPartialReturnClawback(db, {
+export async function processPartialReturnClawback(db: import('pg').Pool, {
   subOrderId,
   returnRequestId,
   reason = 'Partial return approved',
   approvedBy = null,
   client = null,
-}) {
+}: { subOrderId: number|string; returnRequestId: number|string; reason?: string; approvedBy?: number|string|null; client?: import('pg').PoolClient; }) {
   const runner = async (txClient) => {
     const { rows: subOrderRows } = await txClient.query(
       `SELECT s.id, s.shipping_amount, o.customer_id
@@ -648,7 +645,7 @@ export async function processPartialReturnClawback(db, {
            WHERE ri.return_request_id = $2)::numeric(14,2) AS returned_total`,
       [subOrderId, returnRequestId]
     );
-    const toPaisaBig = (/** @type {unknown} */ v) => BigInt(Math.round(parseFloat(String(v ?? '0')) * 100));
+    const toPaisaBig = (v: unknown) => BigInt(Math.round(parseFloat(String(v ?? '0')) * 100));
     const goodsPaisa = toPaisaBig(valueRows[0]?.goods_total);
     const returnedPaisa = toPaisaBig(valueRows[0]?.returned_total);
     if (goodsPaisa <= 0n || returnedPaisa <= 0n) {
@@ -672,8 +669,7 @@ export async function processPartialReturnClawback(db, {
 
     const customerWallet = await walletRepo.getOrCreateWallet(db, subOrder.customer_id, { client: txClient });
     const txnGroupId = randomUUID();
-    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-    const ledgerEntries = [];
+    const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [];
     const recoveryRecords = [];
     let totalPaisa = 0;
     let deficitTotalPaisa = 0;
@@ -799,7 +795,7 @@ export async function processPartialReturnClawback(db, {
  * @param {import('pg').Pool} db
  * @param {{ limit?: number }} [options] - wallets settled per run
  */
-export async function settleDeficitRecoveries(db, { limit = 500 } = {}) {
+export async function settleDeficitRecoveries(db: import('pg').Pool, { limit = 500 }: { limit?: number; } = {}) {
   const { rows: walletRows } = await db.query(
     `SELECT DISTINCT wallet_id
      FROM negative_balance_recoveries
@@ -813,8 +809,7 @@ export async function settleDeficitRecoveries(db, { limit = 500 } = {}) {
   let recordsRecovered = 0;
   let recordsPartial = 0;
   let recoveredPaisaTotal = 0;
-  /** @type {{ walletId: number|string, message: string }[]} */
-  const errors = [];
+  const errors: { walletId: number|string; message: string; }[] = [];
 
   for (const { wallet_id: walletId } of walletRows) {
     try {
@@ -831,7 +826,7 @@ export async function settleDeficitRecoveries(db, { limit = 500 } = {}) {
           [walletId]
         );
 
-        const toPaisa = (/** @type {unknown} */ v) => Math.round(parseFloat(String(v ?? '0')) * 100);
+        const toPaisa = (v: unknown) => Math.round(parseFloat(String(v ?? '0')) * 100);
         const outstandingPaisa = records.reduce((sum, r) => sum + toPaisa(r.unrecovered_deficit), 0);
         const stillOwedPaisa = Math.min(outstandingPaisa, Math.max(0, -toPaisa(wallet.available_balance)));
         let recoverablePaisa = outstandingPaisa - stillOwedPaisa;

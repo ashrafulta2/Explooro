@@ -12,7 +12,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { decideRenewalAction } from '../src/services/subscriptionBilling.service.js';
+import { decideRenewalAction } from '../src/services/subscriptionBilling.service.ts';
 
 const NOW = new Date('2026-10-10T12:00:00Z');
 const settings = { renewal_reminder_days: 3 };

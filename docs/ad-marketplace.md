@@ -24,7 +24,7 @@ Three ideas carry the whole feature:
 1. **A format is data, not code.** Every sellable ad is a row in `ad_products`. Its commercial
    terms live in a `rate_card` JSONB that an administrator edits from a page. Adding a tenth format
    that prices like an existing one is a row, not a deploy.
-2. **One pricing engine.** `server/src/services/adPricing.js` computes every ad price the platform
+2. **One pricing engine.** `server/src/services/adPricing.ts` computes every ad price the platform
    ever shows or charges — the shop partner's live wizard preview, the binding quote frozen onto the
    campaign, each metered click or thousand views, and the "from ৳450/day" label on the card. It
    works in integer paisa, so ৳0.35 × 1000 is exactly ৳350.00.
@@ -159,7 +159,7 @@ to it is the next piece of work, and it is one call per surface.
 | Layer | File |
 | :-- | :-- |
 | Schema | `server/src/db/migrations/041_ad_marketplace.sql` |
-| **Pricing — the only place ad money is multiplied** | `server/src/services/adPricing.js` |
+| **Pricing — the only place ad money is multiplied** | `server/src/services/adPricing.ts` |
 | Catalogue policy, availability, rate-card writes | `server/src/services/adProducts.service.js` |
 | SQL | `server/src/repositories/adProduct.repository.js` |
 | Purchase, billing, serving | `server/src/services/ads.service.js` |

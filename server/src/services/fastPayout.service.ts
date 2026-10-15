@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * fastPayout.service.js — Early release of escrowed earnings, for a fee (supplier attraction, step 5a).
+ * fastPayout.service.ts — Early release of escrowed earnings, for a fee (supplier attraction, step 5a).
  *
  * Escrow holds a supplier's and a shop partner's money until the return window ends. Someone who would rather
  * have it now can ask for it, and the platform keeps a share set by the supplier's scorecard grade.
@@ -27,8 +26,8 @@ import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
 import * as repo from '../repositories/fastPayout.repository.ts';
 import * as scorecardRepo from '../repositories/supplierScorecard.repository.js';
 
@@ -267,8 +266,7 @@ export async function requestFastPayout(db, { userId, entryId }) {
     const split = splitFastPayout({ amount: entry.amount, feePct: ev.fee_pct });
     const txnGroupId = randomUUID();
     const key = `fast_payout:${entry.entry_id}`;
-    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-    const entries = [
+    const entries: import('./ledger.service.ts').LedgerEntryInput[] = [
       { walletId: entry.wallet_id, entryType: 'DEBIT', amount: split.gross, balanceBucket: 'ESCROW', category: 'ESCROW_RELEASE', idempotencyKey: `${key}:out` },
       { walletId: entry.wallet_id, entryType: 'CREDIT', amount: split.net, balanceBucket: 'AVAILABLE', category: 'ESCROW_RELEASE', idempotencyKey: `${key}:net` },
     ];

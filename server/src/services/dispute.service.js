@@ -15,10 +15,10 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as trustRepo from '../repositories/trustScore.repository.ts';
-import * as ledgerService from './ledger.service.js';
-import * as vaultService from './vault.service.js';
+import * as ledgerService from './ledger.service.ts';
+import * as vaultService from './vault.service.ts';
 import * as moduleRepo from '../repositories/module.repository.js';
 import { writeAudit } from '../lib/audit.js';
 
@@ -820,7 +820,7 @@ export async function arbitrateDispute(db, cache, {
         // Platform absorbs shortfall
         const shortfallPaisa = customerRefundPaisa - totalDebits;
         // The treasury pays the subsidy. WHY not user 1: the treasury is the first super admin, who
-        // is not always user 1 (vault.service.js resolvePlatformWalletId).
+        // is not always user 1 (vault.service.ts resolvePlatformWalletId).
         const platformWallet = { id: await vaultService.resolvePlatformWalletId(db, txClient) };
         entries.push({
           walletId: platformWallet.id,

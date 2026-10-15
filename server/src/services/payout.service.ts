@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * payout.service.js — Withdrawal Disbursement Engine with Maker-Checker Authorization (Prompt 6.3).
+ * payout.service.ts — Withdrawal Disbursement Engine with Maker-Checker Authorization (Prompt 6.3).
  *
  * Implements:
  * 1. Immediate HELD balance locking on request, preventing double-spend attempts
@@ -13,9 +12,9 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
-import * as vaultService from './vault.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
+import * as vaultService from './vault.service.ts';
 import { defaultB2CClient } from '../integrations/payments/bkash-b2c.js';
 import { writeAudit } from '../lib/audit.js';
 import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
@@ -96,7 +95,7 @@ async function evaluatePayoutRisk(db, { userId, amount, accountName, client }) {
  * @param {string|null} [params.idempotencyKey]
  * @param {import('pg').PoolClient|null} [params.client]
  */
-export async function requestPayout(db, {
+export async function requestPayout(db: import('pg').Pool, {
   userId,
   method,
   accountNumber,
@@ -105,7 +104,7 @@ export async function requestPayout(db, {
   amount,
   idempotencyKey = null,
   client = null,
-}) {
+}: { userId: number|string; method: string; accountNumber: string; accountName: string; bankName?: string|null; amount: string|number; idempotencyKey?: string|null; client?: import('pg').PoolClient|null; }) {
   const runner = async (txClient) => {
     const amt = parseFloat(String(amount));
     if (isNaN(amt) || amt <= 0) {
@@ -201,8 +200,7 @@ export async function requestPayout(db, {
     // DEBIT: AVAILABLE bucket (reduces available_balance)
     // CREDIT: HELD bucket (increases held_balance)
     const txnGroupId = randomUUID();
-    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-    const ledgerEntries = [
+    const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [
       {
         walletId: lockedWallet.id,
         entryType: 'DEBIT',
@@ -274,14 +272,14 @@ export async function getPayoutScopeFacts(db, payoutId) {
  * @param {import('../integrations/payments/bkash-b2c.js').B2CClient} [params.b2cClient]
  * @param {import('pg').PoolClient|null} [params.client]
  */
-export async function approvePayout(db, {
+export async function approvePayout(db: import('pg').Pool, {
   payoutId,
   approverId,
   approverRole = 'admin',
   approverNote = 'Approved for disbursement',
   b2cClient = defaultB2CClient,
   client = null,
-}) {
+}: { payoutId: number|string; approverId: number|string; approverRole?: string; approverNote?: string; b2cClient?: import('../integrations/payments/bkash-b2c.js').B2CClient; client?: import('pg').PoolClient|null; }) {
   const runner = async (txClient) => {
     // 1. Lock payout row
     const { rows: payoutRows } = await txClient.query(
@@ -375,12 +373,12 @@ export async function approvePayout(db, {
  * @param {import('../integrations/payments/bkash-b2c.js').B2CClient} [params.b2cClient]
  * @param {import('pg').PoolClient|null} [params.client]
  */
-export async function disbursePayout(db, {
+export async function disbursePayout(db: import('pg').Pool, {
   payoutId,
   executedBy = null,
   b2cClient = defaultB2CClient,
   client = null,
-}) {
+}: { payoutId: number|string; executedBy?: number|string|null; b2cClient?: import('../integrations/payments/bkash-b2c.js').B2CClient; client?: import('pg').PoolClient|null; }) {
   const runner = async (txClient) => {
     // 1. Lock payout row and user wallet
     const { rows: payoutRows } = await txClient.query(
@@ -423,14 +421,13 @@ export async function disbursePayout(db, {
       // 3. SUCCESS: Deduct from HELD bucket and increment lifetime_withdrawn
       // DEBIT: HELD bucket (reduces held_balance, increases lifetime_withdrawn)
       // Offsetting CREDIT: the external clearing wallet. The money left through the B2C gateway,
-      // the mirror of a gateway payment entering (vault.service.js resolveClearingWalletId).
+      // the mirror of a gateway payment entering (vault.service.ts resolveClearingWalletId).
       // WHY not the treasury (as before): it made the platform's profit balance swing with every
       // payout, so it could not be read as profit.
       const clearingWalletId = await vaultService.resolveClearingWalletId(txClient);
 
       const txnGroupId = randomUUID();
-      /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-      const ledgerEntries = [
+      const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [
         {
           walletId: wallet.id,
           entryType: 'DEBIT',
@@ -502,8 +499,7 @@ export async function disbursePayout(db, {
     } else {
       // 4. FAILURE: Automatically reverse funds from HELD bucket back to AVAILABLE bucket
       const txnGroupId = randomUUID();
-      /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-      const ledgerEntries = [
+      const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [
         {
           walletId: wallet.id,
           entryType: 'DEBIT',
@@ -581,12 +577,12 @@ export async function disbursePayout(db, {
  * @param {number|string|null} [params.rejectedBy]
  * @param {import('pg').PoolClient|null} [params.client]
  */
-export async function rejectPayout(db, {
+export async function rejectPayout(db: import('pg').Pool, {
   payoutId,
   reason = 'Rejected by administrator',
   rejectedBy = null,
   client = null,
-}) {
+}: { payoutId: number|string; reason?: string; rejectedBy?: number|string|null; client?: import('pg').PoolClient|null; }) {
   const runner = async (txClient) => {
     const { rows: payoutRows } = await txClient.query(
       `SELECT id, ref, wallet_id, amount, status
@@ -607,8 +603,7 @@ export async function rejectPayout(db, {
 
     // Reverse HELD -> AVAILABLE
     const txnGroupId = randomUUID();
-    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-    const ledgerEntries = [
+    const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [
       {
         walletId: payout.wallet_id,
         entryType: 'DEBIT',

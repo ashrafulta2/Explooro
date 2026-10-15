@@ -5,7 +5,7 @@
  * request already in flight is better settled by hand than by a job running behind a switched-off feature.
  */
 
-import { settleDue } from '../services/sampleKit.service.js';
+import { settleDue } from '../services/sampleKit.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runSampleKit(db, cache, logger = console) {

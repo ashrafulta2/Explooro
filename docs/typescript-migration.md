@@ -27,13 +27,21 @@ places in comments and docs that still name the old files.
 2. Remove the `// @ts-check` line and rename the file in its own header comment.
 3. Move each JSDoc type into a TypeScript annotation (`@param {number} a` becomes `a: number`).
    **This step is required:** inside a `.ts` file TypeScript ignores JSDoc types, so a file
-   renamed without it silently loses its checking. Put a `@typedef` in an `interface` or `type`
-   and export it if other files use it.
+   renamed without it silently loses its checking. Most of it is automated:
+   `node scripts/ts-jsdoc-to-annotations.mjs <server-relative .ts paths...>` runs TypeScript's own
+   "Annotate with type from JSDoc" quick fix over each file. By hand afterwards:
+   - a `@typedef` becomes an exported `interface` or `type`;
+   - a cast `/** @type {X} */ (value)` becomes `(value as X)`;
+   - a JSDoc `{object}` meant `any` in JavaScript, but the quick fix writes `object`, which allows no
+     property access. Write `any` (or a real shape) instead;
+   - delete a `/** @type {...} */` line that sits above a declaration the quick fix already annotated.
    The usual errors after a rename, and their fix:
    - `Property 'x' does not exist on type '{}'`: a parameter defaulting to `= {}`, or a `const out = {}`
      filled later. Annotate it (`body: Record<string, any> = {}`, `const out: Record<string, number> = {}`).
    - `Expected 3 arguments, but got 2`: in a .ts file a parameter without a default is required.
      Mark it optional (`details?: unknown`).
+   - `Property 'x' does not exist on type '{...}'. Did you mean 'y'?` on a value from another module:
+     read it before silencing it. In step 3 this was a real bug (below).
 4. Change every import of the file from `x.js` to `x.ts`, in `src/` **and** `test/`. Also fix
    mentions of the old name in comments and in `docs/architecture-map.md`. Leave applied migrations
    and dated reports (`docs/bug-report-*.md`, `docs/prompt.md`) alone; they record their own date.
@@ -57,6 +65,8 @@ because their JSDoc types already pass.
 | :--- | :--- | :--- | :--- |
 | 1 | 2026-10-15 | `services/subscriptionRebate.ts`, `services/salerTierBonus.ts` (pilot, plus the setup above) | typecheck 0 errors; client 871/871, server 1451/1451; app loads, health 200 |
 | 2 | 2026-10-15 | 19 `// @ts-check` files with no JSDoc: repositories `cart`, `coupon`, `fastPayout`, `returnProtection`, `trustScore`, `volumeIncentive`; services `checkout`, `codReconciliation`, `coin`, `leaderboard`, `order`, `quest`, `referralAdmin`, `return`, `returnProtection`, `subscription`, `teamPurchase`, `trustTier`, `warranty` | typecheck 0 errors (17 annotations added); client 871/871, server 1451/1451; app loads, health 200; every job module imports |
+| 3 | 2026-10-15 | The last 24 `// @ts-check` files, the money core: `ledger`, `vault`, `pricing`, `payment`, `payout`, `clawback`, `escrowAdmin`, `fastPayout`, `referral`, `referralEscrow`, `b2bEscrow`, `coupon`, `codGate`, `deliveryCharge`, `sampleKit`, `subscriptionBilling`, `surgePricing`, `volumeIncentive`, `salerTier`, `adPricing` services; `order`, `payment`, `wallet` repositories; `escrowRelease` job | typecheck 0 errors; client 871/871, server 1451/1451; app loads, health 200; every job module imports; build within budget. **Bug found:** `b2bEscrow.service` read `ledgerTxn.txn_group_id`, but the ledger returns `txnGroupId`, so a milestone release, refund or cancellation recorded no transaction group in its response or its audit row. Fixed; `b2bEscrowMilestones.test.js` now fails on the old code |
 
-Remaining: 334 `.js` files under `server/src` (migrations and seeds excluded). The 24 that still carry
-`// @ts-check` go next; they have JSDoc types, which must be moved into annotations by hand.
+Remaining: 310 `.js` files under `server/src` (migrations and seeds excluded); 45 are `.ts`. None has
+`// @ts-check` any more, so from here each file is checked for the first time when it moves, and may
+turn up more errors per file than steps 2 and 3 did. Next: the files those 45 import, leaf modules first.

@@ -84,7 +84,7 @@ import fastifyWebsocket from '@fastify/websocket';
 import websocketGateway from './sockets/gateway.js';
 import { startGrantExpiryScheduler } from './jobs/grantExpiryCron.js';
 import { startScheduler, stopScheduler } from './jobs/scheduler.js';
-import './jobs/escrowRelease.job.js'; // Registers escrow_release job with scheduler
+import './jobs/escrowRelease.job.ts'; // Registers escrow_release job with scheduler
 import './jobs/teamPurchaseExpiry.job.js'; // Registers team_purchase_expiry job with scheduler
 import './jobs/cartRecovery.job.js'; // Registers cart_recovery_sweep job with scheduler
 import './jobs/expiryWarning.job.js'; // Registers batch_expiry_warning_sweep with scheduler

@@ -5,7 +5,7 @@
  * - Campaign Lifecycle: Create, update, pause, resume, cancel, auto/manual review.
  * - Granular Permissions & Restrictions: can_run_ads capability, ad_budget_cap limit.
  * - Multi-format purchase: every campaign is bought as an `ad_products` row, priced by
- *   services/adPricing.js, and billed one of two ways —
+ *   services/adPricing.ts, and billed one of two ways —
  *     METERED  (CPC, CPM)                 → charged per valid click / per viewable impression.
  *     PREPAID  (FLAT_DAILY, FLAT_SLOT, CPS) → charged in full at purchase, inventory reserved.
  * - Second-Price Real-Time Auction & Module Gating (metered formats only — a reserved placement
@@ -21,11 +21,11 @@ import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
 import { isEnabled } from './module.service.js';
 import * as rbacService from './rbac.service.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
 import * as adProductRepo from '../repositories/adProduct.repository.js';
 import * as adProductsService from './adProducts.service.js';
-import { quote as priceQuote, meteredCharge, rate, PREPAID_MODELS } from './adPricing.js';
+import { quote as priceQuote, meteredCharge, rate, PREPAID_MODELS } from './adPricing.ts';
 import { runSecondPriceAuction, MIN_RESERVE_PRICE } from './adAuction.service.js';
 import * as sponsoredSourcing from './sponsoredSourcing.service.js';
 

@@ -24,7 +24,7 @@ amount NUMERIC(14,2) NOT NULL
 binary floating point cannot deliver it — `0.1 + 0.2 ≠ 0.3` is not an acceptable property for a
 wallet.
 
-Storage is `NUMERIC(14,2)`. **Computation** inside `pricing.service.js` is done in integer paisa
+Storage is `NUMERIC(14,2)`. **Computation** inside `pricing.service.ts` is done in integer paisa
 and rounded once at the boundary (Prompt 4.3), so repeated percentage splits cannot drift.
 
 ### 0.2 Identifiers — two-column strategy

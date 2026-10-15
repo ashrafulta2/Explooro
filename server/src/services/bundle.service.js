@@ -14,7 +14,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.js';
+import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.ts';
 import { generateRef } from '../lib/ref.js';
 
 /**

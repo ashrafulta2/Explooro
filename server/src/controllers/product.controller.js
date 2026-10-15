@@ -3,7 +3,7 @@
  */
 
 import * as productService from '../services/product.service.js';
-import * as pricingService from '../services/pricing.service.js';
+import * as pricingService from '../services/pricing.service.ts';
 
 export async function createProduct(req, reply) {
   const db = req.db || req.server?.db;

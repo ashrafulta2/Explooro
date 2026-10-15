@@ -4,7 +4,7 @@
  * the supplier's page and the shop partner's page; the person is always the signed-in user, never a parameter.
  */
 
-import * as service from '../services/fastPayout.service.js';
+import * as service from '../services/fastPayout.service.ts';
 
 export async function getFastPayout(req, reply) {
   return reply.send({ data: await service.getView(req.server.db, req.user.id) });

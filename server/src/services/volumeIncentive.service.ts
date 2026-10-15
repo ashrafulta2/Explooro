@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * volumeIncentive.service.js — A supplier-funded monthly rebate for the shop partners who sell the most.
+ * volumeIncentive.service.ts — A supplier-funded monthly rebate for the shop partners who sell the most.
  *
  * How it works: a supplier publishes tiers ("sell 50,000 of mine in a month -> 1% back"). When a
  * month closes, and `settle_lag_days` later so returns have landed, the job pays each qualifying
@@ -29,8 +28,8 @@ import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
 import * as repo from '../repositories/volumeIncentive.repository.ts';
 import * as scorecardRepo from '../repositories/supplierScorecard.repository.js';
 
@@ -273,7 +272,7 @@ function publicRules(rules) {
  * Saves a supplier's programme as a new version. Throws on invalid tiers or a blocked grade.
  * @returns {Promise<object>} the version written (its `valid_from` says when shop partners will see it)
  */
-export async function saveProgram(db, { supplierId, isActive, tiers, actor = null }) {
+export async function saveProgram(db, { supplierId, isActive, tiers, actor = null }): Promise<any> {
   const rules = await loadRules(db);
 
   const grade = await supplierGrade(db, supplierId);
@@ -317,7 +316,7 @@ export async function getSalerView(db, salerId) {
   const end = monthEnd(cal.month_start);
   const volumes = await repo.volumeForSaler(db, { salerId, periodStart: cal.month_start, periodEnd: end, timezone: rules.timezone });
   const versions = await repo.versionsInForce(db, cal.today, volumes.map((v) => v.supplier_id));
-  const byId = new Map(versions.map((v) => [String(v.supplier_id), v]));
+  const byId = new Map<string, any>(versions.map((v) => [String(v.supplier_id), v]));
 
   const names = volumes.length
     ? (await db.query(
@@ -369,7 +368,7 @@ async function treasuryUserId(client) {
  * `UNFUNDED` so the sweep can retry later, and one supplier cannot hold up the rest.
  * @returns {Promise<'PAID'|'ALREADY_SETTLED'|'UNFUNDED'|'LAPSED'>}
  */
-export async function payOne(db, payoutId, rules, today) {
+export async function payOne(db, payoutId, rules, today): Promise<'PAID'|'ALREADY_SETTLED'|'UNFUNDED'|'LAPSED'> {
   return withTransaction(db, async (client) => {
     const payout = await repo.lockPayout(client, payoutId);
     if (!payout || payout.status !== 'UNFUNDED') return 'ALREADY_SETTLED';
@@ -392,8 +391,7 @@ export async function payOne(db, payoutId, rules, today) {
 
     const txnGroupId = randomUUID();
     const feePaisa = toPaisa(payout.platform_fee);
-    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
-    const entries = [
+    const entries: import('./ledger.service.ts').LedgerEntryInput[] = [
       { walletId: supplierWallet.id, entryType: 'DEBIT', amount: payout.gross_amount, balanceBucket: 'AVAILABLE', idempotencyKey: `volume_incentive:${payout.id}:debit` },
       { walletId: salerWallet.id, entryType: 'CREDIT', amount: payout.net_amount, balanceBucket: 'AVAILABLE', idempotencyKey: `volume_incentive:${payout.id}:saler` },
     ];

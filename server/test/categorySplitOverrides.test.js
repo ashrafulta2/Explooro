@@ -1,6 +1,6 @@
 /**
  * categorySplitOverrides.test.js — Finance category split overrides must land in
- * commission_rules (scope CATEGORY), the table pricing.service.js resolves against.
+ * commission_rules (scope CATEGORY), the table pricing.service.ts resolves against.
  */
 
 import { describe, test } from 'node:test';
@@ -10,7 +10,7 @@ import {
   updateCategorySplit,
   deleteCategorySplit,
 } from '../src/controllers/finance.controller.js';
-import { resolveSplitPercentages } from '../src/services/pricing.service.js';
+import { resolveSplitPercentages } from '../src/services/pricing.service.ts';
 
 // Minimal in-memory commission_rules that understands only the statements these paths issue.
 function createDb() {

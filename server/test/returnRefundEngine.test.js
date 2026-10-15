@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
 import * as returnService from '../src/services/return.service.ts';
-import * as clawbackService from '../src/services/clawback.service.js';
+import * as clawbackService from '../src/services/clawback.service.ts';
 import returnRoutes from '../src/routes/return.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';

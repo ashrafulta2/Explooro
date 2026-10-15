@@ -16,7 +16,7 @@
  *
  * WHY the price always comes from the server: the wizard never multiplies a rate itself. Every
  * keystroke re-quotes through POST /ads/quote, so the number on the confirm button is the same
- * number the purchase will charge, computed by one engine (server/src/services/adPricing.js).
+ * number the purchase will charge, computed by one engine (server/src/services/adPricing.ts).
  */
 
 import { api } from '../../core/api.js';

@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * surgePricing.service.js — Dynamic Demand Surge & Automated Yield Optimization (Prompt 10.5).
+ * surgePricing.service.ts — Dynamic Demand Surge & Automated Yield Optimization (Prompt 10.5).
  *
  * Implements idea proposition.md §AF.
  *
@@ -17,7 +16,7 @@
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import { writeAudit } from '../lib/audit.js';
-import { toPaisa, toBdtNumber } from './pricing.service.js';
+import { toPaisa, toBdtNumber } from './pricing.service.ts';
 
 const DEFAULT_CONFIG = {
   max_increase_pct: 15.0,
@@ -56,7 +55,7 @@ export async function getSurgeConfig(db) {
  * @param {number|string} productId
  * @returns {Promise<object>} Demand analysis result
  */
-export async function analyzeProductDemand(db, productId) {
+export async function analyzeProductDemand(db: any, productId: number|string): Promise<any> {
   const { rows: prodRows } = await db.query(
     `SELECT p.id, p.ref, p.title_en, p.title_bn, p.default_retail_price AS retail_price,
             p.base_cost, p.wholesale_margin,

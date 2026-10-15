@@ -5,8 +5,8 @@
  * decoration, which is undefined, so every payment request answered 500 against the real server.
  */
 
-import * as paymentService from '../services/payment.service.js';
-import * as paymentRepo from '../repositories/payment.repository.js';
+import * as paymentService from '../services/payment.service.ts';
+import * as paymentRepo from '../repositories/payment.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 export async function initiatePaymentHandler(req, reply) {

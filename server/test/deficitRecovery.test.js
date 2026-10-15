@@ -9,7 +9,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { settleDeficitRecoveries } from '../src/services/clawback.service.js';
+import { settleDeficitRecoveries } from '../src/services/clawback.service.ts';
 import { runDeficitRecovery } from '../src/jobs/deficitRecovery.job.js';
 
 function createDb({ available, records }) {

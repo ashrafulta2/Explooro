@@ -15,7 +15,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as b2bService from '../src/services/b2bEscrow.service.js';
+import * as b2bService from '../src/services/b2bEscrow.service.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   return {
@@ -300,6 +300,7 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
     };
 
     let ledgerEntriesRecorded = [];
+    const auditParams = [];
 
     const db = createMockDb({
       queryHandler: async (sql, params) => {
@@ -359,6 +360,7 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
         }
 
         if (sql.includes('INSERT INTO audit_logs')) {
+          auditParams.push(params);
           return { rows: [{ id: 1 }] };
         }
 
@@ -389,6 +391,12 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
     assert.equal(ledgerEntriesRecorded[1].entry_type, 'CREDIT');
     assert.equal(ledgerEntriesRecorded[1].balance_bucket, 'AVAILABLE');
     assert.equal(ledgerEntriesRecorded[1].amount, '200000.00');
+
+    // The ledger returns `txnGroupId`; the release used to read `txn_group_id` and so recorded undefined
+    // in both the response and the audit row. Found when b2bEscrow.service moved to TypeScript.
+    assert.ok(typeof res.txn_group_id === 'string' && res.txn_group_id.length > 0, 'the release names its ledger transaction group');
+    const auditJson = auditParams.flat().filter((v) => typeof v === 'string' && v.includes('"RELEASED"'));
+    assert.ok(auditJson.some((v) => JSON.parse(v).txn_group_id === res.txn_group_id), 'the audit row names the same group');
   });
 
   // ---------------------------------------------------------------------------

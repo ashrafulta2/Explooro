@@ -13,7 +13,7 @@ import { randomUUID } from 'node:crypto';
 import * as cartRepo from '../repositories/cart.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
-import * as deliveryChargeService from './deliveryCharge.service.js';
+import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.js';
 
 export function generateGuestToken() {

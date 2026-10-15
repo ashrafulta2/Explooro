@@ -11,7 +11,7 @@ Evidence: `server/test/warrantyRefundScope.test.js` (7 tests; 6 fail against the
 | Card | `030_warranty.sql` — `warranty_cards.order_item_id` `UNIQUE` | one **order item** |
 | Claim | `warranty_claims.warranty_card_id` — no amount, no qty column | one card |
 | Approve REFUND | `warranty.service.ts` `reviewWarrantyClaim` → `clawbackService.executeClawback(txClient, { subOrderId })` | passes only the **sub-order** |
-| Clawback | `clawback.service.js` `processReturnClawback` — debits every `escrow_entries` row of the sub-order and credits the customer the sum | whole **sub-order** |
+| Clawback | `clawback.service.ts` `processReturnClawback` — debits every `escrow_entries` row of the sub-order and credits the customer the sum | whole **sub-order** |
 
 Nothing between the claim and the ledger caps the amount. The claim query even selects
 `oi.line_total`, then never uses it.
@@ -39,7 +39,7 @@ partner, platform) marked `CLAWED_BACK`.
 ## 3. Fix options
 
 All options: one transaction, `SELECT … FOR UPDATE` on the escrow rows and wallets (already done by
-`ledgerService.recordTransactionGroup`), arithmetic in paisa via `pricing.service.js`
+`ledgerService.recordTransactionGroup`), arithmetic in paisa via `pricing.service.ts`
 `toPaisa`/`toBdtString`, `NUMERIC(14,2)` columns, an idempotency guard keyed on the claim id, and an
 `audit_logs` row with before/after carrying the real actor. Remove the `try/catch` so a failed refund
 rolls back the approval.
@@ -55,7 +55,7 @@ The second gives idempotency for free and keeps `escrow_entries` immutable; it i
 ### Option A — pro-rata partial clawback (mirrors a return)
 
 New `processItemClawback(db, { subOrderId, orderItemId, sourceType, sourceId, approvedBy, client })`
-in `clawback.service.js`. Refund = the item's `line_total`. Each escrow row's share =
+in `clawback.service.ts`. Refund = the item's `line_total`. Each escrow row's share =
 `row.amount × line_total / Σ line_total` in paisa, rounded with largest-remainder so the shares sum to
 the refund exactly. Shipping is excluded from the base (it stays with the supplier) unless §4 Q3 says
 otherwise.
@@ -109,7 +109,7 @@ Q4 → the refund is always the full `line_total`.
 
 | Defect | Now |
 | :--- | :--- |
-| Over-refund of the whole sub-order | `clawback.service.js` `processWarrantyRefund` credits the customer the claimed item's `line_total` only |
+| Over-refund of the whole sub-order | `clawback.service.ts` `processWarrantyRefund` credits the customer the claimed item's `line_total` only |
 | Shop partner and platform lose their cut | Only the supplier's wallet is debited |
 | Second claim on the same sub-order refunds ৳0 | Escrow rows are no longer touched, so every item stays refundable |
 | Failures swallowed | The `try/catch` is gone: a failed refund throws and the approval rolls back with it |
@@ -158,7 +158,7 @@ shipping is not refunded on a partial return.
 1. One protection cover pays once. A partial-return claim consumes it, so a later full return on the
    same sub-order gets no protection payout.
 2. ~~`negative_balance_recoveries` rows stay `PENDING`~~ **Fixed 2026-10-15.** The daily
-   `deficit_recovery` job (`jobs/deficitRecovery.job.js` → `clawback.service.js`
+   `deficit_recovery` job (`jobs/deficitRecovery.job.js` → `clawback.service.ts`
    `settleDeficitRecoveries`) marks them `PARTIALLY_RECOVERED` / `RECOVERED` as the wallet's balance
    climbs back. No money moves: the clawback already debited the full amount.
 

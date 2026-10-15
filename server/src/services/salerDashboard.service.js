@@ -46,10 +46,10 @@ export async function getSalerOverview(db, salerId) {
 
   // 2. Earnings and Order Volumes (reconciled with sub_orders and wallet)
   // WHY `saler_commission`: that is the column the split arithmetic writes and the vault pays out
-  // from (checkout.service.ts, vault.service.js). It is the shop partner's take of `net_retail_margin`.
+  // from (checkout.service.ts, vault.service.ts). It is the shop partner's take of `net_retail_margin`.
   //
   // WHY RETURNED is excluded from the money columns: an approved return triggers a clawback that
-  // reverses the commission (clawback.service.js). Counting it as profit showed shop partners earnings
+  // reverses the commission (clawback.service.ts). Counting it as profit showed shop partners earnings
   // they no longer had — and this function reports `returned_orders_count` in the same breath, so
   // it was contradicting itself. Order *counts* still include returns; only the money excludes them.
   const { rows: orderMetrics } = await db.query(

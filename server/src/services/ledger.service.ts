@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * ledger.service.js — Double-Entry General Ledger Service (Prompt 6.1).
+ * ledger.service.ts — Double-Entry General Ledger Service (Prompt 6.1).
  *
  * Enforces:
  * - Mathematical balance invariant: SUM(Debits) === SUM(Credits) across every transaction group.
@@ -10,7 +9,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import * as walletRepo from '../repositories/wallet.repository.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
 
 /**
  * Converts a monetary value to integer paisa to eliminate floating-point rounding errors.
@@ -34,8 +33,19 @@ function fromPaisa(paisa) {
  * One side of a double-entry pair. Exported so callers can annotate the arrays they build:
  * without it TypeScript widens `entryType: 'DEBIT'` to `string` and rejects the call.
  * `walletId` may be a string because pg returns BIGINT ids as strings; it is parseInt-ed below.
- * @typedef {{walletId: number|string, entryType: 'DEBIT'|'CREDIT', amount: string|number, balanceBucket: 'AVAILABLE'|'ESCROW'|'HELD', category?: string, referenceType?: string, referenceId?: number, idempotencyKey?: string, memo?: string, createdBy?: number|string}} LedgerEntryInput
  */
+export interface LedgerEntryInput {
+  walletId: number | string;
+  entryType: 'DEBIT' | 'CREDIT';
+  amount: string | number;
+  balanceBucket: 'AVAILABLE' | 'ESCROW' | 'HELD';
+  category?: string;
+  referenceType?: string;
+  referenceId?: number;
+  idempotencyKey?: string;
+  memo?: string;
+  createdBy?: number | string;
+}
 
 /**
  * Records a balanced double-entry transaction group within an active database transaction.
@@ -51,7 +61,7 @@ function fromPaisa(paisa) {
  * @param {string} [params.memo] - Group-level memo
  * @param {number|string} [params.createdBy] - User ID initiating the transaction
  */
-export async function recordTransactionGroup(client, {
+export async function recordTransactionGroup(client: import('pg').PoolClient, {
   txnGroupId = randomUUID(),
   entries = [],
   defaultCategory = 'ADJUSTMENT',
@@ -60,7 +70,7 @@ export async function recordTransactionGroup(client, {
   idempotencyKey = null,
   memo = null,
   createdBy = null,
-} = {}) {
+}: { txnGroupId?: string; entries?: LedgerEntryInput[]; defaultCategory?: string; defaultReferenceType?: string; defaultReferenceId?: number; idempotencyKey?: string; memo?: string; createdBy?: number|string; } = {}) {
   if (!entries || entries.length < 2) {
     throw new Error('DOUBLE_ENTRY_VIOLATION: A transaction group must contain at least 2 entries (debit and credit).');
   }

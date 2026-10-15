@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * b2bEscrow.service.js — B2B Wholesale Escrow & Milestone Settlement Service (Prompt 10.6).
+ * b2bEscrow.service.ts — B2B Wholesale Escrow & Milestone Settlement Service (Prompt 10.6).
  *
  * Implements idea proposition.md §AG:
  * 1. Staged milestone escrow schedule (e.g. 30% upfront, 40% dispatch, 30% inspection).
@@ -14,9 +13,9 @@
 import { createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
-import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.js';
-import { recordTransactionGroup } from './ledger.service.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
+import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.ts';
+import { recordTransactionGroup } from './ledger.service.ts';
+import * as walletRepo from '../repositories/wallet.repository.ts';
 import { writeAudit } from '../lib/audit.js';
 import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
 
@@ -80,7 +79,7 @@ export function calculateMilestonesSchedule({ totalAmount, milestones = [] }) {
 /**
  * Computes an immutable SHA-256 hash of agreed contract terms and milestone schedule.
  */
-export function computeAgreedTermsHash({ dealRef, totalAmount, buyerId, supplierId, terms = /** @type {Record<string, any>} */ ({}), milestones = [] }) {
+export function computeAgreedTermsHash({ dealRef, totalAmount, buyerId, supplierId, terms = ({} as Record<string, any>), milestones = [] }) {
   const canonical = {
     dealRef,
     totalAmount: parseFloat(totalAmount).toFixed(2),
@@ -549,7 +548,7 @@ export async function releaseMilestone(db, {
       entityType: 'b2b_escrow_milestone',
       entityId: milestoneId,
       beforeJson: { status: milestone.status, released_amount: milestone.deal_total },
-      afterJson: { status: 'RELEASED', released_amount: milestoneAmount, txn_group_id: ledgerTxn.txn_group_id },
+      afterJson: { status: 'RELEASED', released_amount: milestoneAmount, txn_group_id: ledgerTxn.txnGroupId },
       notes,
     });
 
@@ -558,7 +557,7 @@ export async function releaseMilestone(db, {
     return {
       is_pending_maker_checker: false,
       milestone: updatedMilestones[0],
-      txn_group_id: ledgerTxn.txn_group_id,
+      txn_group_id: ledgerTxn.txnGroupId,
     };
   } catch (err) {
     if (isDedicatedClient) await client.query('ROLLBACK');
@@ -763,7 +762,7 @@ export async function refundMilestone(db, {
     return {
       milestone: updatedMilestones[0],
       refunded_amount: milestoneAmount,
-      txn_group_id: ledgerTxn.txn_group_id,
+      txn_group_id: ledgerTxn.txnGroupId,
     };
   } catch (err) {
     if (isDedicatedClient) await client.query('ROLLBACK');
@@ -873,8 +872,8 @@ export async function cancelDeal(db, { dealId, actorId, reason = '' }) {
 export function generateContractPdf({
   deal,
   milestones = [],
-  buyer = /** @type {Record<string, any>} */ ({}),
-  supplier = /** @type {Record<string, any>} */ ({}),
+  buyer = ({} as Record<string, any>),
+  supplier = ({} as Record<string, any>),
 }) {
   const dealRef = deal.ref || 'B2B-0000';
   const dealTitle = (deal.title_en || 'B2B Wholesale Escrow Agreement').replace(/[()\\]/g, '');

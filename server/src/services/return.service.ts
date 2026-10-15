@@ -13,7 +13,7 @@
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { getCourierAdapter } from '../integrations/courier/index.js';
-import * as clawbackService from './clawback.service.js';
+import * as clawbackService from './clawback.service.ts';
 import * as returnProtection from './returnProtection.service.ts';
 import * as moduleRepo from '../repositories/module.repository.js';
 import { writeAudit } from '../lib/audit.js';

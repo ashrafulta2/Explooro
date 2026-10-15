@@ -3,10 +3,10 @@
  *
  * Gated on `returns_engine` by the scheduler, like escrow_release: every deficit comes from a
  * clawback (return, partial return, warranty refund). No money moves here; see
- * clawback.service.js settleDeficitRecoveries.
+ * clawback.service.ts settleDeficitRecoveries.
  */
 
-import { settleDeficitRecoveries } from '../services/clawback.service.js';
+import { settleDeficitRecoveries } from '../services/clawback.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runDeficitRecovery(db, cache, logger = console) {

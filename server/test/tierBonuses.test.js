@@ -10,7 +10,7 @@ import {
   updateTierBonuses,
   simulateSplit,
 } from '../src/controllers/finance.controller.js';
-import { resolveTierBonuses } from '../src/services/pricing.service.js';
+import { resolveTierBonuses } from '../src/services/pricing.service.ts';
 
 // In-memory platform_settings that understands only the statements these paths issue.
 function createDb(initial) {

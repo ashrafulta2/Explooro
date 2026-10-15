@@ -469,7 +469,7 @@ export const supplierHandlers = [
     }),
   },
   {
-    // Same shape as GET /supplier/incentive (services/volumeIncentive.service.js getSupplierView).
+    // Same shape as GET /supplier/incentive (services/volumeIncentive.service.ts getSupplierView).
     method: 'GET',
     path: '/supplier/incentive',
     handler: () => ({ status: 200, body: { data: incentiveView() } }),

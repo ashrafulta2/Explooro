@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * escrowRelease.job.js — Hourly Escrow Release Automation & Dead-Letter Routing (Prompt 6.2).
+ * escrowRelease.job.ts — Hourly Escrow Release Automation & Dead-Letter Routing (Prompt 6.2).
  *
  * Implements:
  * - Hourly sweep finding mature LOCKED escrow holds (hold_until <= now())
@@ -9,7 +8,7 @@
  * - Automatic registration with the scheduler engine under module 'returns_engine'
  */
 
-import * as vaultService from '../services/vault.service.js';
+import * as vaultService from '../services/vault.service.ts';
 import { registerJob } from './scheduler.js';
 
 /**
@@ -19,7 +18,7 @@ import { registerJob } from './scheduler.js';
  * @param {Object} [cache]
  * @param {Console} [logger]
  */
-export async function runEscrowReleaseSweep(db, cache, logger = console) {
+export async function runEscrowReleaseSweep(db: import('pg').Pool, cache: any, logger: Console = console) {
   const log = logger.info?.bind(logger) || logger.log?.bind(logger) || console.log;
   const errLog = logger.error?.bind(logger) || console.error;
 

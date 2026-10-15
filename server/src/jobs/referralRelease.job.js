@@ -1,11 +1,11 @@
 /**
  * referralRelease.job.js — pays out referral commissions whose holding period has ended.
  *
- * The rule lives in referralEscrow.service.js `releaseDueEarnings`; this file only schedules it. Gated
+ * The rule lives in referralEscrow.service.ts `releaseDueEarnings`; this file only schedules it. Gated
  * on the referral_engine module, so with the programme switched off held commissions stay held.
  */
 
-import { releaseDueEarnings } from '../services/referralEscrow.service.js';
+import { releaseDueEarnings } from '../services/referralEscrow.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runReferralRelease(db, cache, logger = console) {

@@ -3,7 +3,7 @@
  * Thin on purpose: the rules, the money and the state machine all live in the service.
  */
 
-import * as service from '../services/sampleKit.service.js';
+import * as service from '../services/sampleKit.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 function id(value, label) {

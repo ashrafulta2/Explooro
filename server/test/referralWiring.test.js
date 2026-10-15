@@ -12,7 +12,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import * as referralService from '../src/services/referral.service.js';
+import * as referralService from '../src/services/referral.service.ts';
 import authRoutes from '../src/routes/auth.routes.js';
 
 const cache = { get: async () => null, set: async () => {} };

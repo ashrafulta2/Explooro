@@ -11,7 +11,7 @@
  *
  * Cash on Delivery passes the same trust check as a normal checkout. When the server answers
  * COD_OTP_REQUIRED it has sent an SMS code to the account phone; the form then shows a code field
- * and the next submit carries `otp_code` (server/src/services/codGate.service.js).
+ * and the next submit carries `otp_code` (server/src/services/codGate.service.ts).
  *
  *   const form = TeamCheckoutForm({ itemPrice, shippingCharge, walletBalance, submitLabel, onSubmit });
  *   form.el            // <form>

@@ -11,7 +11,7 @@ import productRoutes from '../src/routes/product.routes.js';
 import {
   calculatePricingBreakdown,
   resolveSplitPercentages,
-} from '../src/services/pricing.service.js';
+} from '../src/services/pricing.service.ts';
 
 function createMockDb() {
   const products = [

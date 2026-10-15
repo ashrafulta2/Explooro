@@ -10,8 +10,8 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import * as vaultService from '../src/services/vault.service.js';
-import * as escrowAdminService from '../src/services/escrowAdmin.service.js';
+import * as vaultService from '../src/services/vault.service.ts';
+import * as escrowAdminService from '../src/services/escrowAdmin.service.ts';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const src = (p) => read(`src/${p}`);
@@ -35,9 +35,9 @@ describe('1. external clearing wallet', () => {
   });
 
   test('gateway, COD and payout all use the clearing wallet, never the treasury', () => {
-    const payment = src('services/payment.service.js');
+    const payment = src('services/payment.service.ts');
     const shipment = src('services/shipment.service.js');
-    const payout = src('services/payout.service.js');
+    const payout = src('services/payout.service.ts');
     assert.match(payment, /resolveClearingWalletId\(client\)/);
     assert.ok(!/resolvePlatformWalletId/.test(payment));
     assert.match(shipment, /resolveClearingWalletId\(txClient\)/);
@@ -194,7 +194,7 @@ describe('2. admin Escrow page reads real escrow', () => {
     const routes = src('routes/finance.routes.js');
     assert.match(routes, /'\/admin\/finance\/escrow\/:subOrderId\/release'[\s\S]{0,200}requirePermission\('finance\.escrow\.release_manual'\)/);
     assert.match(routes, /'\/admin\/finance\/escrow\/sweep'[\s\S]{0,200}requirePermission\('finance\.escrow\.release_manual'\)/);
-    assert.match(src('services/escrowAdmin.service.js'), /action: 'finance\.escrow\.release_manual'/);
+    assert.match(src('services/escrowAdmin.service.ts'), /action: 'finance\.escrow\.release_manual'/);
     assert.match(src('controllers/finance.controller.js'), /action: 'finance\.escrow\.sweep'/);
   });
 

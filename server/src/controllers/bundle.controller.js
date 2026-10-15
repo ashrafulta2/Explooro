@@ -3,7 +3,7 @@
  */
 
 import * as bundleService from '../services/bundle.service.js';
-import * as surgeService from '../services/surgePricing.service.js';
+import * as surgeService from '../services/surgePricing.service.ts';
 
 /**
  * Preview live profit breakdown for proposed bundle combo before creation.

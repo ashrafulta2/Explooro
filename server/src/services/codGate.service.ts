@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * codGate.service.js — the Cash on Delivery trust / OTP gate, shared by checkout and team purchase.
+ * codGate.service.ts — the Cash on Delivery trust / OTP gate, shared by checkout and team purchase.
  *
  * A COD order from a low-trust account, or one above the platform's COD value limit, must be
  * confirmed with an SMS code before it is placed (trustScore.service.js `evaluateCodRisk` decides).
@@ -43,7 +42,7 @@ export function maskPhone(phone) {
  * @param {string} [params.ip]
  * @returns {Promise<{isOtpVerified: boolean, trustScore: number}>}
  */
-export async function enforceCodGate(db, cache, {
+export async function enforceCodGate(db: any, cache: any, {
   client = null,
   userId,
   phone,
@@ -52,7 +51,7 @@ export async function enforceCodGate(db, cache, {
   smsSender = null,
   isDevelopment = false,
   ip = null,
-}) {
+}: { client: any; userId: number; phone: string; orderAmount: number; otpCode?: string; smsSender?: Function; isDevelopment?: boolean; ip?: string; }): Promise<{ isOtpVerified: boolean; trustScore: number; }> {
   const risk = await trustScoreService.evaluateCodRisk(client || db, { userId, orderAmount });
   if (!risk.requiresOtp) {
     return { isOtpVerified: false, trustScore: risk.trustScore };

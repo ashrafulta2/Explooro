@@ -59,14 +59,23 @@ for (const file of targets) {
 
 // 3: rewrite relative specifiers that point at a moved file. Files are scanned after the renames.
 const LITERAL = /(['"])(\.{1,2}\/[^'"\r\n]+?)\.js\1/g;
+// Tests also read source text through helpers like src('services/x.js'), relative to server/src.
+const SRC_RELATIVE = /(['"])((?:[\w-]+\/)+[\w.-]+?)\.js\1/g;
+const SRC = path.join(SERVER, 'src');
 let rewrites = 0;
 for (const file of [...sourceFiles(path.join(SERVER, 'src')), ...sourceFiles(path.join(SERVER, 'test'))]) {
   const src = readFileSync(file, 'utf8');
-  const out = src.replace(LITERAL, (whole, quote, stem) => {
-    if (!moved.has(path.resolve(path.dirname(file), `${stem}.js`))) return whole;
-    rewrites += 1;
-    return `${quote}${stem}.ts${quote}`;
-  });
+  const out = src
+    .replace(LITERAL, (whole, quote, stem) => {
+      if (!moved.has(path.resolve(path.dirname(file), `${stem}.js`))) return whole;
+      rewrites += 1;
+      return `${quote}${stem}.ts${quote}`;
+    })
+    .replace(SRC_RELATIVE, (whole, quote, stem) => {
+      if (!file.startsWith(path.join(SERVER, 'test')) || !moved.has(path.resolve(SRC, `${stem}.js`))) return whole;
+      rewrites += 1;
+      return `${quote}${stem}.ts${quote}`;
+    });
   if (out !== src) writeFileSync(file, out);
 }
 

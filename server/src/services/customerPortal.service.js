@@ -13,7 +13,7 @@
 import { AppError } from '../plugins/errorHandler.js';
 import { notify } from './notification.service.js';
 import { SLUG_REGEX, validateSlugAvailability } from './store.service.js';
-import { orderStatusSql } from '../repositories/order.repository.js';
+import { orderStatusSql } from '../repositories/order.repository.ts';
 
 /** Lifecycle status → 1..5 progress dot. SHIPPED and IN_TRANSIT share step 4. */
 const TRACKING_STEP_BY_STATUS = {

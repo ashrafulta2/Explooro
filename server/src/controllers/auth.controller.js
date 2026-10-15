@@ -11,7 +11,7 @@
 import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import * as authService from '../services/auth.service.js';
 import * as otpService from '../services/otp.service.js';
-import * as referralService from '../services/referral.service.js';
+import * as referralService from '../services/referral.service.ts';
 import {
   markPhoneVerified,
   markEmailVerified,

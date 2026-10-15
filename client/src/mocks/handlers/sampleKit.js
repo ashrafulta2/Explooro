@@ -1,7 +1,7 @@
 /**
  * sampleKit.js — Mock handlers for Sample Requests and Marketing Kits (supplier attraction, step 4).
  *
- * Same shapes as the real endpoints (services/sampleKit.service.js). The state machine is mirrored so
+ * Same shapes as the real endpoints (services/sampleKit.service.ts). The state machine is mirrored so
  * the pages behave like the finished feature in mock mode: a request only moves along the legal
  * transitions, and a shop partner cannot request the same product twice. It does NOT move money - the mock
  * has no ledger - so the shop partner's balance never changes here.

@@ -5,7 +5,7 @@
 import * as teamPurchaseService from '../services/teamPurchase.service.ts';
 import { writeAudit } from '../lib/audit.js';
 
-/** What the COD trust / OTP gate needs from the request (see services/codGate.service.js). */
+/** What the COD trust / OTP gate needs from the request (see services/codGate.service.ts). */
 function codContext(req) {
   return {
     otpCode: req.body?.otp_code || null,

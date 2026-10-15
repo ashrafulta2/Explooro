@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * order.repository.js — SQL repository for orders, sub-orders, and order items (Prompt 5.2).
+ * order.repository.ts — SQL repository for orders, sub-orders, and order items (Prompt 5.2).
  *
  * Implements deterministic row locking, FEFO batch allocation, and multi-supplier queries.
  */
@@ -22,7 +21,7 @@
  * @param {string} orderAlias SQL alias of the `orders` row in the enclosing query (e.g. 'o').
  * @returns {string} a scalar subquery, safe to interpolate — takes no user input.
  */
-export function orderStatusSql(orderAlias = 'o') {
+export function orderStatusSql(orderAlias: string = 'o'): string {
   return `COALESCE(
     (SELECT so_a.status FROM sub_orders so_a
       WHERE so_a.order_id = ${orderAlias}.id
@@ -49,7 +48,7 @@ export async function createOrder(db, {
   totalAmount,
   itemsAmount,
   // WHY the cast: callers pass NUMERIC strings from fromPaisa as often as numbers.
-  shippingAmount = /** @type {number|string} */ (0),
+  shippingAmount = (0 as number|string),
   discountAmount = 0,
   coinsRedeemed = 0,
   coinsDiscount = 0,
@@ -126,7 +125,7 @@ export async function createSubOrder(db, {
   salerCommission = 0,
   platformMargin = 0,
   // WHY the cast: callers pass NUMERIC strings from fromPaisa as often as numbers.
-  shippingAmount = /** @type {number|string} */ (0),
+  shippingAmount = (0 as number|string),
   discountShare = 0,
   totalAmount,
   status = 'PLACED',
@@ -204,7 +203,7 @@ export async function createOrderItem(db, {
  * Deterministic Row Locking:
  * Locks products and variants in strictly ascending ID order to eliminate database deadlocks.
  */
-export async function lockProductsAndVariants(client, lineItems) {
+export async function lockProductsAndVariants(client, lineItems: any[]) {
   // 1. Extract unique product IDs in ASC order
   const productIds = [...new Set(lineItems.map((item) => Number(item.product_id)))].sort((a, b) => a - b);
 

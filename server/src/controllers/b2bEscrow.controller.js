@@ -2,7 +2,7 @@
  * b2bEscrow.controller.js — B2B Wholesale Escrow & Milestone Settlement Controller (Prompt 10.6).
  */
 
-import * as b2bService from '../services/b2bEscrow.service.js';
+import * as b2bService from '../services/b2bEscrow.service.ts';
 
 export async function createDeal(req, reply) {
   const buyerId = req.body.buyer_id || req.body.buyerId || req.user.id;

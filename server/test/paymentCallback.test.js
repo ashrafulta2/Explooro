@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { handleGatewayReturn } from '../src/services/payment.service.js';
+import { handleGatewayReturn } from '../src/services/payment.service.ts';
 import { handlePaymentCallbackHandler } from '../src/controllers/paymentWebhook.controller.js';
 
 // WHY: GET/POST /payments/callback/:gateway is public and every value in it is attacker-chosen. The

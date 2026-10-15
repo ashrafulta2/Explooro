@@ -12,7 +12,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as fast from '../src/services/fastPayout.service.js';
+import * as fast from '../src/services/fastPayout.service.ts';
 import * as prot from '../src/services/returnProtection.service.ts';
 
 const rules = fast.resolveRules(null);

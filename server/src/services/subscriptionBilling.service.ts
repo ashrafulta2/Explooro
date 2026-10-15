@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * subscriptionBilling.service.js — Shop Partner Pro from the merchant's side, and the renewal engine.
+ * subscriptionBilling.service.ts — Shop Partner Pro from the merchant's side, and the renewal engine.
  *
  * Self-serve: subscribe, cancel, resume. Background: the hourly renewal sweep (jobs/
  * subscriptionRenewal.job.js) that bills renewals, runs the grace period, lifts expired waivers and
@@ -24,8 +23,8 @@ import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
 import * as notificationService from './notification.service.js';
 import { getEngineSettings, listPlans } from './subscription.service.ts';
 import { isEnabled } from './module.service.js';
@@ -178,7 +177,7 @@ export async function getMySubscription(db, userId, { roles = [] } = {}) {
  * @param {*} user
  * @param {{ planId?: *, autoRenew?: boolean }} [params]
  */
-export async function subscribe(db, user, { planId, autoRenew } = {}) {
+export async function subscribe(db: any, user: any, { planId, autoRenew }: { planId?: any; autoRenew?: boolean; } = {}) {
   const settings = await getEngineSettings(db);
   return withTransaction(db, async (client) => {
     // WHY lock the user row: serialises two concurrent subscribe calls so the partial unique index

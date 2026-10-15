@@ -2,7 +2,7 @@
  * promotion.controller.js — Handlers for Coupons, Vouchers & Flash Sales API (Prompt 9.2).
  */
 
-import * as couponService from '../services/coupon.service.js';
+import * as couponService from '../services/coupon.service.ts';
 import * as flashSaleService from '../services/flashSale.service.js';
 
 export async function createCoupon(req, reply) {

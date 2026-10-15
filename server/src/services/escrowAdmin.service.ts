@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * escrowAdmin.service.js — what the admin Escrow page (/admin/finance/escrow) reads and does.
+ * escrowAdmin.service.ts — what the admin Escrow page (/admin/finance/escrow) reads and does.
  *
  * WHY this exists: the page used to read `holdings` from a response that only carried
  * `escrow_entries`, found nothing, and fell back to four made-up orders. Its sweep and "Release now"
@@ -12,7 +11,7 @@
  */
 
 import { AppError } from '../plugins/errorHandler.js';
-import * as vaultService from './vault.service.js';
+import * as vaultService from './vault.service.ts';
 import { writeAudit } from '../lib/audit.js';
 
 export const STATUS_FILTERS = Object.freeze(['LOCKED', 'FROZEN', 'RELEASED', 'CLAWED_BACK', 'FAILED', 'ALL']);
@@ -24,7 +23,7 @@ const toMoney = (v) => (Number.parseFloat(v ?? 0) || 0).toFixed(2);
 /**
  * @param {{ status?: string, q?: string, page?: string|number, limit?: string|number }} [query] - Raw req.query
  */
-function normaliseQuery({ status, q, page, limit } = {}) {
+function normaliseQuery({ status, q, page, limit }: { status?: string; q?: string; page?: string|number; limit?: string|number; } = {}) {
   const s = String(status || 'LOCKED').toUpperCase();
   if (!STATUS_FILTERS.includes(s)) {
     throw new AppError('VALIDATION_FAILED', `status must be one of ${STATUS_FILTERS.join(', ')}.`,
@@ -140,7 +139,7 @@ export async function listHoldings(db, query = {}) {
   const holdings = rows.map((r) => {
     const remainingSeconds = Math.max(0, Math.round((new Date(r.hold_until).getTime() - nowMs) / 1000));
     const isLocked = r.status === 'LOCKED';
-    // A COD order's cash must be reconciled first (vault.service.js releaseEscrow refuses otherwise).
+    // A COD order's cash must be reconciled first (vault.service.ts releaseEscrow refuses otherwise).
     const codBlocked = r.payment_method === 'COD' && r.cod_status !== 'MATCHED' && r.cod_status !== 'RESOLVED';
     return {
       sub_order_id: Number(r.sub_order_id),
@@ -190,7 +189,7 @@ export async function listHoldings(db, query = {}) {
  * @param {string|null} [params.actorRole]
  * @param {{ ip?: string, userAgent?: string, traceId?: string }} [params.reqContext]
  */
-export async function releaseOne(db, { subOrderId, reason, actorId = null, actorRole = null, reqContext = {} }) {
+export async function releaseOne(db: import('pg').Pool, { subOrderId, reason, actorId = null, actorRole = null, reqContext = {} }: { subOrderId: number|string; reason: string; actorId?: number|string|null; actorRole?: string|null; reqContext?: { ip?: string; userAgent?: string; traceId?: string; }; }) {
   const id = Number.parseInt(String(subOrderId), 10);
   if (!Number.isInteger(id) || id <= 0) {
     throw new AppError('VALIDATION_FAILED', 'Unknown sub-order.', 'সাব-অর্ডারটি পাওয়া যায়নি।', { field: 'subOrderId' });

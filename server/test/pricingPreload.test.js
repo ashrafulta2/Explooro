@@ -11,7 +11,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { loadSplitRules, resolveSplitPercentages } from '../src/services/pricing.service.js';
+import { loadSplitRules, resolveSplitPercentages } from '../src/services/pricing.service.ts';
 import { listCatalog } from '../src/services/product.service.js';
 
 /**

@@ -17,16 +17,16 @@
 
 import { randomBytes, randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
-import * as codGateService from './codGate.service.js';
+import * as codGateService from './codGate.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import { findDistrict } from '../lib/bdDistricts.js';
-import * as orderRepo from '../repositories/order.repository.js';
-import * as walletRepo from '../repositories/wallet.repository.js';
-import * as ledgerService from './ledger.service.js';
-import * as vaultService from './vault.service.js';
+import * as orderRepo from '../repositories/order.repository.ts';
+import * as walletRepo from '../repositories/wallet.repository.ts';
+import * as ledgerService from './ledger.service.ts';
+import * as vaultService from './vault.service.ts';
 import { isEnabled, updateModuleSettings } from './module.service.js';
-import { calculatePricingBreakdown } from './pricing.service.js';
+import { calculatePricingBreakdown } from './pricing.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.js';
 
 export const TEAM_SIZES = Object.freeze([2, 3]);

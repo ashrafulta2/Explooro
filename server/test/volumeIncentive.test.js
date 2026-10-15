@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import {
   DEFAULT_RULES, resolveRules, validateTiers, pickTier, nextTier, computeRebate,
   addMonths, monthEnd, duePeriods, saveProgram, payOne,
-} from '../src/services/volumeIncentive.service.js';
+} from '../src/services/volumeIncentive.service.ts';
 
 const rules = resolveRules(null);
 const tiers = [{ min_volume: 10000, rebate_pct: 1 }, { min_volume: 50000, rebate_pct: 2 }];

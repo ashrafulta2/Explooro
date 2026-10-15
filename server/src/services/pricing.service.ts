@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * pricing.service.js — Dynamic pricing engine & profit split calculator (Prompt 4.3).
+ * pricing.service.ts — Dynamic pricing engine & profit split calculator (Prompt 4.3).
  *
  * Rules:
  *   retail_price = base_cost + wholesale_margin + net_retail_margin
@@ -33,7 +32,7 @@ import { TIER_KEYS, parseTierBonuses, resolveSalerTierBonusPct } from './salerTi
  * @param {number|string} amount
  * @returns {number} Integer paisa
  */
-export function toPaisa(amount) {
+export function toPaisa(amount: number|string): number {
   if (amount === undefined || amount === null || amount === '') return 0;
   const num = typeof amount === 'number' ? amount : parseFloat(amount);
   if (isNaN(num)) return 0;
@@ -45,7 +44,7 @@ export function toPaisa(amount) {
  * @param {number} paisa
  * @returns {string} e.g. "120.00"
  */
-export function toBdtString(paisa) {
+export function toBdtString(paisa: number): string {
   return (paisa / 100).toFixed(2);
 }
 
@@ -54,7 +53,7 @@ export function toBdtString(paisa) {
  * @param {number} paisa
  * @returns {number} e.g. 120.00
  */
-export function toBdtNumber(paisa) {
+export function toBdtNumber(paisa: number): number {
   return parseFloat((paisa / 100).toFixed(2));
 }
 
@@ -69,7 +68,7 @@ export function toBdtNumber(paisa) {
  * @param {*} db
  * @param {{ productId?: *, productRef?: *, categoryId?: *, salerId?: *, cache?: *, preloaded?: * }} [params]
  */
-export async function resolveSplitPercentages(db, { productId, productRef, categoryId, salerId, cache, preloaded } = {}) {
+export async function resolveSplitPercentages(db: any, { productId, productRef, categoryId, salerId, cache, preloaded }: { productId?: any; productRef?: any; categoryId?: any; salerId?: any; cache?: any; preloaded?: any; } = {}) {
   const base = await resolveBaseSplit(db, { productId, productRef, categoryId }, preloaded);
   // WHY not on PRODUCT_OVERRIDE: a per-product rule is an explicit, deliberate number set by an admin;
   // layering a plan rebate on top would silently change what they typed.
@@ -95,14 +94,14 @@ export async function resolveSplitPercentages(db, { productId, productRef, categ
  * @param {{id?: any, category_id?: any}[]} products
  * @returns {Promise<{productRules: Map<string, object>, productKeys: Set<string>, categoryRules: Map<string, object>, categoryKeys: Set<string>, global: {value_json: any}|null}>}
  */
-export async function loadSplitRules(db, products) {
+export async function loadSplitRules(db: any, products: { id?: any; category_id?: any; }[]): Promise<{ productRules: Map<string,any>; productKeys: Set<string>; categoryRules: Map<string,any>; categoryKeys: Set<string>; global: { value_json: any; }|null; hasGlobal?: boolean; }> {
   const productKeys = new Set();
   const categoryKeys = new Set();
   for (const p of products || []) {
     if (p?.id) productKeys.add(String(p.id));
     if (p?.category_id) categoryKeys.add(String(p.category_id));
   }
-  const loaded = { productRules: new Map(), productKeys: new Set(), categoryRules: new Map(), categoryKeys: new Set(), global: null };
+  const loaded: Awaited<ReturnType<typeof loadSplitRules>> = { productRules: new Map(), productKeys: new Set(), categoryRules: new Map(), categoryKeys: new Set(), global: null };
   if (!db) return loaded;
 
   // DISTINCT ON … ORDER BY id DESC is the batch form of the per-product "ORDER BY id DESC LIMIT 1".
@@ -237,7 +236,7 @@ export { TIER_KEYS };
  * @param {object} db Database client
  * @returns {Promise<Record<string, number>>}
  */
-export async function resolveTierBonuses(db) {
+export async function resolveTierBonuses(db: any): Promise<Record<string,number>> {
   const { rows } = await db.query(
     `SELECT value_json FROM platform_settings WHERE key = 'finance.tier_bonuses'`
   );
@@ -250,7 +249,7 @@ export async function resolveTierBonuses(db) {
  * @param {object} db Database client
  * @returns {Promise<{ platformDefaultProfitPct: number, salerDefaultProfitPct: number, extraMarkupPlatformPct: number, salerSplitPct: number, platformSplitPct: number }>}
  */
-export async function resolvePlatformPricingConfig(db) {
+export async function resolvePlatformPricingConfig(db: any): Promise<{ platformDefaultProfitPct: number; salerDefaultProfitPct: number; extraMarkupPlatformPct: number; salerSplitPct: number; platformSplitPct: number; }> {
   const fallback = {
     platformDefaultProfitPct: 10.0,
     salerDefaultProfitPct: 20.0,
@@ -318,7 +317,7 @@ export function calculatePricingBreakdown({
   extraMarkupPlatformPct = 20,
   mode = 'split',
   ruleSource = 'CALCULATED',
-}) {
+}: { baseCost: number|string; wholesaleMargin?: number|string; retailPrice: number|string; defaultRetailPrice?: number|string; salerSplitPct?: number; platformSplitPct?: number; platformDefaultProfitPct?: number; salerDefaultProfitPct?: number; extraMarkupPlatformPct?: number; mode?: string; ruleSource?: string; }): any {
   const baseCostPaisa = toPaisa(baseCost);
   const wholesaleMarginPaisa = toPaisa(wholesaleMargin);
   const wholesaleCostPaisa = baseCostPaisa + wholesaleMarginPaisa; // P_supplier

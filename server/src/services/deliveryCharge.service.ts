@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * deliveryCharge.service.js — the delivery charge a normal checkout adds per supplier parcel.
+ * deliveryCharge.service.ts — the delivery charge a normal checkout adds per supplier parcel.
  *
  * It used to be a ৳60 constant in checkout.service.ts and cart.service.js (and three more copies in
  * the client). It is a business number, so it lives in platform_settings (group `delivery`, seeded by
@@ -58,7 +57,7 @@ function rowToPolicy(row) {
 }
 
 /** Pure, so the API and the tests assert the same rule. Throws VALIDATION_FAILED (HTTP 400). */
-export function validatePolicy(input = {}) {
+export function validatePolicy(input: Record<string, any> = {}) {
   const charge = input.per_parcel_charge;
   if (!isCharge(charge)) {
     throw new AppError(
@@ -88,8 +87,7 @@ export async function getPolicy(db, cache, { fresh = false } = {}) {
     }
   }
 
-  /** @type {{ per_parcel_charge: number, updated_at: *, updated_by: * }} */
-  let policy = { ...DEFAULT_POLICY, updated_at: null, updated_by: null };
+  let policy: { per_parcel_charge: number; updated_at: any; updated_by: any; } = { ...DEFAULT_POLICY, updated_at: null, updated_by: null };
   try {
     policy = rowToPolicy(await settingRepo.getSettingByKey(db, SETTING_KEY));
   } catch {
@@ -124,7 +122,7 @@ export async function updatePolicy(
   db,
   cache,
   auditService,
-  { policy, reason, userId, actorRole = null, reqContext = /** @type {{ ip?: string, userAgent?: string, traceId?: string }} */ ({}) }
+  { policy, reason, userId, actorRole = null, reqContext = ({} as { ip?: string, userAgent?: string, traceId?: string }) }
 ) {
   const next = validatePolicy(policy);
 
