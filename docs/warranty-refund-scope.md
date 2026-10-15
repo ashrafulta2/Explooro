@@ -123,9 +123,11 @@ AVAILABLE nets out when that escrow releases, so no migration was needed. A shor
 
 ### Still open
 
-1. **Return after a warranty refund on the same sub-order.** `processReturnClawback` is still
-   sub-order-wide, so a later return would refund the already-refunded item again. Rare (warranty
-   runs months after the return window closes), but not prevented.
+1. ~~Return after a warranty refund on the same sub-order~~ **Fixed 2026-10-15.**
+   `processReturnClawback` subtracts the warranty refunds already credited on that sub-order from the
+   customer's refund and repays that amount to the supplier, who funded it. Each party ends where a
+   plain return leaves it. The supplier's `negative_balance_recoveries` row from the warranty refund,
+   if any, stays `PENDING`; nothing settles those rows automatically yet.
 2. Q2 (platform fronting the refund instead of a supplier deficit), Q5 (`qty > 1`: one claim refunds
    all units today), Q6 (maker-checker for supplier-approved refunds) and Q7 (refund destination:
    wallet today) are unanswered.

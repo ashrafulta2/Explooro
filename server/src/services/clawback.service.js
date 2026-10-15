@@ -185,12 +185,50 @@ export async function processReturnClawback(db, {
       }
     }
 
-    // 5. Credit Customer Refund
-    if (totalClawbackPaisa > 0) {
+    // 5. Net out items the customer was already refunded through a warranty claim.
+    // WHY: a warranty REFUND (processWarrantyRefund) pays one item's line_total from the supplier
+    // and leaves escrow alone. Clawing back the whole escrow here would refund that item a second
+    // time, so the customer gets the remainder and the supplier, who funded the earlier refund, is
+    // paid it back out of the clawed-back money. Every party then ends where a plain return leaves it.
+    const { rows: priorRows } = await txClient.query(
+      `SELECT COALESCE(SUM(lt.amount), 0)::numeric(14,2) AS refunded
+       FROM ledger_transactions lt
+       JOIN warranty_claims c ON c.id = lt.reference_id
+       JOIN warranty_cards wc ON wc.id = c.warranty_card_id
+       JOIN order_items oi ON oi.id = wc.order_item_id
+       WHERE lt.reference_type = 'WARRANTY_CLAIM'
+         AND lt.category = 'REFUND'
+         AND lt.entry_type = 'CREDIT'
+         AND oi.sub_order_id = $1`,
+      [subOrderId]
+    );
+    const priorRefundPaisa = Math.min(
+      totalClawbackPaisa,
+      Math.round(parseFloat(String(priorRows[0]?.refunded ?? '0')) * 100)
+    );
+    const customerRefundPaisa = totalClawbackPaisa - priorRefundPaisa;
+
+    if (priorRefundPaisa > 0) {
+      const supplierWallet = await walletRepo.getOrCreateWallet(db, subOrder.supplier_id, { client: txClient });
+      ledgerEntries.push({
+        walletId: supplierWallet.id,
+        entryType: 'CREDIT',
+        amount: (priorRefundPaisa / 100).toFixed(2),
+        balanceBucket: 'AVAILABLE',
+        category: 'ADJUSTMENT',
+        referenceType: 'SUB_ORDER',
+        referenceId: subOrderId,
+        memo: `Supplier repaid the warranty refund already given on sub-order #${subOrderId} (${reason})`,
+        createdBy: approvedBy,
+      });
+    }
+
+    // 6. Credit Customer Refund
+    if (customerRefundPaisa > 0) {
       ledgerEntries.push({
         walletId: customerWallet.id,
         entryType: 'CREDIT',
-        amount: (totalClawbackPaisa / 100).toFixed(2),
+        amount: (customerRefundPaisa / 100).toFixed(2),
         balanceBucket: 'AVAILABLE',
         category: 'REFUND',
         referenceType: 'SUB_ORDER',
@@ -200,7 +238,7 @@ export async function processReturnClawback(db, {
       });
     }
 
-    // 6. Record Double-Entry Group
+    // 7. Record Double-Entry Group
     const ledgerResult = await ledgerService.recordTransactionGroup(txClient, {
       txnGroupId,
       entries: ledgerEntries,
@@ -210,7 +248,7 @@ export async function processReturnClawback(db, {
       createdBy: approvedBy,
     });
 
-    // 7. Update escrow entries status
+    // 8. Update escrow entries status
     await txClient.query(
       `UPDATE escrow_entries
        SET status = 'CLAWED_BACK'
@@ -218,7 +256,7 @@ export async function processReturnClawback(db, {
       [entryIdsToClawback]
     );
 
-    // 8. Update trust score return count & stats
+    // 9. Update trust score return count & stats
     await txClient.query(
       `UPDATE trust_scores
        SET completed_orders = GREATEST(0, completed_orders - 1),
@@ -227,7 +265,7 @@ export async function processReturnClawback(db, {
       [subOrder.supplier_id, subOrder.customer_id]
     ).catch(() => {});
 
-    // 9. Write audit log
+    // 10. Write audit log
     await writeAudit(txClient, {
       actorId: approvedBy,
       actorRole: 'admin',
@@ -237,6 +275,8 @@ export async function processReturnClawback(db, {
       beforeJson: { escrow_entries: escrowRows },
       afterJson: {
         total_clawback: (totalClawbackPaisa / 100).toFixed(2),
+        prior_warranty_refund: (priorRefundPaisa / 100).toFixed(2),
+        customer_refund: (customerRefundPaisa / 100).toFixed(2),
         unrecovered_deficit: (totalDeficitPaisa / 100).toFixed(2),
         recovery_records: recoveryRecords,
         txn_group_id: txnGroupId,
@@ -249,6 +289,8 @@ export async function processReturnClawback(db, {
       subOrderId,
       returnRequestId,
       totalClawbackAmount: (totalClawbackPaisa / 100).toFixed(2),
+      priorWarrantyRefund: (priorRefundPaisa / 100).toFixed(2),
+      customerRefundAmount: (customerRefundPaisa / 100).toFixed(2),
       recoveredAmount: (totalRecoveredPaisa / 100).toFixed(2),
       unrecoveredDeficit: (totalDeficitPaisa / 100).toFixed(2),
       recoveryRecords,

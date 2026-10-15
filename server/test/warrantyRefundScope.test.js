@@ -11,6 +11,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 import * as warrantyService from '../src/services/warranty.service.js';
+import * as clawbackService from '../src/services/clawback.service.js';
 
 const CUSTOMER_ID = 10;
 const SUPPLIER_ID = 101;
@@ -144,6 +145,14 @@ function createScenarioDb() {
       return { rows: wallets.filter((w) => w.id === Number(params[0])) };
     }
 
+    // processReturnClawback: warranty refunds already credited on this sub-order
+    if (sql.includes('FROM ledger_transactions lt') && sql.includes('WARRANTY_CLAIM')) {
+      const refunded = ledgerRows
+        .filter((r) => r.reference_type === 'WARRANTY_CLAIM' && r.category === 'REFUND' && r.entry_type === 'CREDIT')
+        .reduce((sum, r) => sum + toPaisa(r.amount), 0);
+      return { rows: [{ refunded: (refunded / 100).toFixed(2) }] };
+    }
+
     if (sql.includes('INSERT INTO ledger_transactions')) {
       if (failLedger) throw new Error('DB_DOWN: ledger insert failed');
       const row = {
@@ -154,6 +163,7 @@ function createScenarioDb() {
         amount: params[3],
         balance_bucket: params[4],
         category: params[5],
+        reference_type: params[6],
       };
       ledgerRows.push(row);
       return { rows: [row] };
@@ -273,3 +283,45 @@ describe('Warranty REFUND is scoped to the claimed order item', () => {
     assert.equal(ledgerRows.length, 0);
   });
 });
+
+describe('A return after a warranty refund does not refund the item twice', () => {
+  const ESCROW_TOTAL_PAISA = 126000;
+
+  async function returnWholeSubOrder(db) {
+    return clawbackService.processReturnClawback(db, { subOrderId: SUB_ORDER_ID, reason: 'Return approved' });
+  }
+
+  test('the customer receives the sub-order total once in all', async () => {
+    const { db, ledgerRows } = createScenarioDb();
+
+    await approveRefund(db);
+    const result = await returnWholeSubOrder(db);
+
+    assert.equal(result.priorWarrantyRefund, '200.00');
+    assert.equal(result.customerRefundAmount, '1060.00');
+    assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), ESCROW_TOTAL_PAISA, 'not ৳1,460 (the cable twice)');
+  });
+
+  test('every party ends where a plain return would leave it', async () => {
+    const { db, ledgerRows } = createScenarioDb();
+
+    await approveRefund(db);
+    await returnWholeSubOrder(db);
+
+    const net = (walletId) => sumPaisa(ledgerRows, walletId, 'CREDIT') - sumPaisa(ledgerRows, walletId, 'DEBIT');
+    assert.equal(net(101), -101000, 'supplier loses only its escrow, its warranty payment is repaid');
+    assert.equal(net(201), -9000, 'shop partner loses only its escrow');
+    assert.equal(net(1), -16000, 'platform loses only its escrow');
+  });
+
+  test('a return with no earlier warranty refund is unchanged', async () => {
+    const { db, ledgerRows } = createScenarioDb();
+
+    const result = await returnWholeSubOrder(db);
+
+    assert.equal(result.priorWarrantyRefund, '0.00');
+    assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), ESCROW_TOTAL_PAISA);
+    assert.equal(sumPaisa(ledgerRows, 101, 'CREDIT'), 0, 'no repayment entry for the supplier');
+  });
+});
+
