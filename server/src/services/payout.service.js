@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * payout.service.js — Withdrawal Disbursement Engine with Maker-Checker Authorization (Prompt 6.3).
  *
@@ -82,6 +83,18 @@ async function evaluatePayoutRisk(db, { userId, amount, accountName, client }) {
 
 /**
  * Initiates a payout request, immediately locking funds from available_balance -> held_balance.
+ *
+ * @param {import('pg').Pool} db
+ * @param {object} params - WHY: no `= {}` default. Money code must not run with its ids undefined;
+ *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
+ * @param {number|string} params.userId - req.user.id (a BIGINT string from pg)
+ * @param {string} params.method
+ * @param {string} params.accountNumber
+ * @param {string} params.accountName
+ * @param {string|null} [params.bankName]
+ * @param {string|number} params.amount
+ * @param {string|null} [params.idempotencyKey]
+ * @param {import('pg').PoolClient|null} [params.client]
  */
 export async function requestPayout(db, {
   userId,
@@ -92,9 +105,9 @@ export async function requestPayout(db, {
   amount,
   idempotencyKey = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
-    const amt = parseFloat(amount);
+    const amt = parseFloat(String(amount));
     if (isNaN(amt) || amt <= 0) {
       throw new Error('INVALID_AMOUNT: Withdrawal amount must be greater than 0.');
     }
@@ -188,6 +201,7 @@ export async function requestPayout(db, {
     // DEBIT: AVAILABLE bucket (reduces available_balance)
     // CREDIT: HELD bucket (increases held_balance)
     const txnGroupId = randomUUID();
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const ledgerEntries = [
       {
         walletId: lockedWallet.id,
@@ -249,6 +263,16 @@ export async function getPayoutScopeFacts(db, payoutId) {
  * Approves a payout request.
  * - Non-Super-Admin (Moderator/Admin): Creates a pending_admin_action (Maker-Checker HIGH tier).
  * - Super Admin: Dispatches disbursement immediately.
+ *
+ * @param {import('pg').Pool} db
+ * @param {object} params - WHY: no `= {}` default. Money code must not run with its ids undefined;
+ *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
+ * @param {number|string} params.payoutId
+ * @param {number|string} params.approverId
+ * @param {string} [params.approverRole]
+ * @param {string} [params.approverNote]
+ * @param {import('../integrations/payments/bkash-b2c.js').B2CClient} [params.b2cClient]
+ * @param {import('pg').PoolClient|null} [params.client]
  */
 export async function approvePayout(db, {
   payoutId,
@@ -257,7 +281,7 @@ export async function approvePayout(db, {
   approverNote = 'Approved for disbursement',
   b2cClient = defaultB2CClient,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Lock payout row
     const { rows: payoutRows } = await txClient.query(
@@ -342,13 +366,21 @@ export async function approvePayout(db, {
 
 /**
  * Executes the B2C disbursement for an approved payout.
+ *
+ * @param {import('pg').Pool} db
+ * @param {object} params - WHY: no `= {}` default. Money code must not run with its ids undefined;
+ *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
+ * @param {number|string} params.payoutId
+ * @param {number|string|null} [params.executedBy]
+ * @param {import('../integrations/payments/bkash-b2c.js').B2CClient} [params.b2cClient]
+ * @param {import('pg').PoolClient|null} [params.client]
  */
 export async function disbursePayout(db, {
   payoutId,
   executedBy = null,
   b2cClient = defaultB2CClient,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Lock payout row and user wallet
     const { rows: payoutRows } = await txClient.query(
@@ -397,6 +429,7 @@ export async function disbursePayout(db, {
       const clearingWalletId = await vaultService.resolveClearingWalletId(txClient);
 
       const txnGroupId = randomUUID();
+      /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
       const ledgerEntries = [
         {
           walletId: wallet.id,
@@ -469,6 +502,7 @@ export async function disbursePayout(db, {
     } else {
       // 4. FAILURE: Automatically reverse funds from HELD bucket back to AVAILABLE bucket
       const txnGroupId = randomUUID();
+      /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
       const ledgerEntries = [
         {
           walletId: wallet.id,
@@ -538,13 +572,21 @@ export async function disbursePayout(db, {
 
 /**
  * Rejects a payout request and returns locked held funds back to available_balance.
+ *
+ * @param {import('pg').Pool} db
+ * @param {object} params - WHY: no `= {}` default. Money code must not run with its ids undefined;
+ *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
+ * @param {number|string} params.payoutId
+ * @param {string} [params.reason]
+ * @param {number|string|null} [params.rejectedBy]
+ * @param {import('pg').PoolClient|null} [params.client]
  */
 export async function rejectPayout(db, {
   payoutId,
   reason = 'Rejected by administrator',
   rejectedBy = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     const { rows: payoutRows } = await txClient.query(
       `SELECT id, ref, wallet_id, amount, status
@@ -565,6 +607,7 @@ export async function rejectPayout(db, {
 
     // Reverse HELD -> AVAILABLE
     const txnGroupId = randomUUID();
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const ledgerEntries = [
       {
         walletId: payout.wallet_id,

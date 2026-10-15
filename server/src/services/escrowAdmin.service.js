@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * escrowAdmin.service.js — what the admin Escrow page (/admin/finance/escrow) reads and does.
  *
@@ -20,14 +21,17 @@ const DEFAULT_RETURN_WINDOW_DAYS = 7;
 
 const toMoney = (v) => (Number.parseFloat(v ?? 0) || 0).toFixed(2);
 
+/**
+ * @param {{ status?: string, q?: string, page?: string|number, limit?: string|number }} [query] - Raw req.query
+ */
 function normaliseQuery({ status, q, page, limit } = {}) {
   const s = String(status || 'LOCKED').toUpperCase();
   if (!STATUS_FILTERS.includes(s)) {
     throw new AppError('VALIDATION_FAILED', `status must be one of ${STATUS_FILTERS.join(', ')}.`,
       `স্ট্যাটাস হতে হবে: ${STATUS_FILTERS.join(', ')}।`, { field: 'status' });
   }
-  const p = Math.max(1, Number.parseInt(page, 10) || 1);
-  const l = Math.min(PAGE_LIMITS.max, Math.max(1, Number.parseInt(limit, 10) || PAGE_LIMITS.default));
+  const p = Math.max(1, Number.parseInt(String(page), 10) || 1);
+  const l = Math.min(PAGE_LIMITS.max, Math.max(1, Number.parseInt(String(limit), 10) || PAGE_LIMITS.default));
   const search = typeof q === 'string' && q.trim() ? q.trim().slice(0, 100) : null;
   return { status: s, search, page: p, limit: l };
 }
@@ -177,9 +181,17 @@ export async function listHoldings(db, query = {}) {
 /**
  * Releases one sub-order's escrow now, before its return window ends. finance.escrow.release_manual
  * (CRITICAL, super admin only). Needs a reason and writes an audit row with before/after.
+ *
+ * @param {import('pg').Pool} db
+ * @param {object} params
+ * @param {number|string} params.subOrderId
+ * @param {string} params.reason
+ * @param {number|string|null} [params.actorId]
+ * @param {string|null} [params.actorRole]
+ * @param {{ ip?: string, userAgent?: string, traceId?: string }} [params.reqContext]
  */
 export async function releaseOne(db, { subOrderId, reason, actorId = null, actorRole = null, reqContext = {} }) {
-  const id = Number.parseInt(subOrderId, 10);
+  const id = Number.parseInt(String(subOrderId), 10);
   if (!Number.isInteger(id) || id <= 0) {
     throw new AppError('VALIDATION_FAILED', 'Unknown sub-order.', 'সাব-অর্ডারটি পাওয়া যায়নি।', { field: 'subOrderId' });
   }

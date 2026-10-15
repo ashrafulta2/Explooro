@@ -19,6 +19,32 @@ export function maskAccountNumber(accountNumber) {
 }
 
 /**
+ * @typedef {object} B2CDisburseParams
+ * @property {string} payoutRef
+ * @property {string} accountNumber
+ * @property {string} [accountName]
+ * @property {string|number} amount
+ * @property {string} [currency]
+ * @property {string} [method]
+ */
+
+/**
+ * One disbursement outcome. `success: false` is an answer from the gateway (bad account, timeout);
+ * a driver that cannot reach a gateway at all throws instead, which rolls the payout transaction back.
+ *
+ * @typedef {object} B2CResult
+ * @property {boolean} success
+ * @property {string} [trxId]
+ * @property {string} [gatewayRef]
+ * @property {object} [receipt]
+ * @property {{ code: string, message: string }} [error]
+ */
+
+/**
+ * @typedef {{ disburse: (params: B2CDisburseParams) => Promise<B2CResult> }} B2CClient
+ */
+
+/**
  * Mock B2C driver for local development and deterministic automated testing.
  */
 class MockBkashB2CDriver {
@@ -26,6 +52,10 @@ class MockBkashB2CDriver {
     this.config = config;
   }
 
+  /**
+   * @param {B2CDisburseParams} params
+   * @returns {Promise<B2CResult>}
+   */
   async disburse({
     payoutRef,
     accountNumber,
@@ -91,6 +121,10 @@ class LiveBkashB2CDriver {
     this.config = config;
   }
 
+  /**
+   * @param {B2CDisburseParams} params
+   * @returns {Promise<B2CResult>}
+   */
   async disburse(params) {
     throw new Error('LIVE_DRIVER_NOT_CONFIGURED: Live bKash B2C credentials not configured in this environment.');
   }
@@ -98,6 +132,9 @@ class LiveBkashB2CDriver {
 
 /**
  * Factory creating B2C payment disbursement client based on environment config.
+ *
+ * @param {object} [config]
+ * @returns {B2CClient}
  */
 export function createB2CDisbursementClient(config = {}) {
   const driverName = config.payments?.b2cDriver || process.env.PAYMENT_B2C_DRIVER || 'mock';

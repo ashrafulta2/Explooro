@@ -571,7 +571,6 @@ export async function reviewWarrantyClaim(db, {
         await clawbackService.executeClawback(txClient, {
           subOrderId: claim.sub_order_id,
           reason: `Warranty claim #${claim.ref} approved for replacement refund`,
-          refundCustomer: true,
           client: txClient,
         });
       } catch (err) {

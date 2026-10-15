@@ -22,7 +22,9 @@
     "test": "npm run test --workspace client && npm run test --workspace server"
   },
   "devDependencies": {
-    "concurrently": "10.0.6"
+    "@types/node": "20.19.43",
+    "concurrently": "10.0.6",
+    "typescript": "5.9.3"
   },
   "allowScripts": {
     "argon2@0.45.1": true
