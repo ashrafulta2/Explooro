@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * volumeIncentive.service.js — A supplier-funded monthly rebate for the shop partners who sell the most.
  *
@@ -391,6 +392,7 @@ export async function payOne(db, payoutId, rules, today) {
 
     const txnGroupId = randomUUID();
     const feePaisa = toPaisa(payout.platform_fee);
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const entries = [
       { walletId: supplierWallet.id, entryType: 'DEBIT', amount: payout.gross_amount, balanceBucket: 'AVAILABLE', idempotencyKey: `volume_incentive:${payout.id}:debit` },
       { walletId: salerWallet.id, entryType: 'CREDIT', amount: payout.net_amount, balanceBucket: 'AVAILABLE', idempotencyKey: `volume_incentive:${payout.id}:saler` },

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * deliveryCharge.service.js — the delivery charge a normal checkout adds per supplier parcel.
  *
@@ -87,6 +88,7 @@ export async function getPolicy(db, cache, { fresh = false } = {}) {
     }
   }
 
+  /** @type {{ per_parcel_charge: number, updated_at: *, updated_by: * }} */
   let policy = { ...DEFAULT_POLICY, updated_at: null, updated_by: null };
   try {
     policy = rowToPolicy(await settingRepo.getSettingByKey(db, SETTING_KEY));
@@ -122,7 +124,7 @@ export async function updatePolicy(
   db,
   cache,
   auditService,
-  { policy, reason, userId, actorRole = null, reqContext = {} }
+  { policy, reason, userId, actorRole = null, reqContext = /** @type {{ ip?: string, userAgent?: string, traceId?: string }} */ ({}) }
 ) {
   const next = validatePolicy(policy);
 

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * subscriptionRebate.js — the Shop Partner Pro commission rebate lookup used by pricing.
  *
@@ -32,6 +33,8 @@ export function applyRebate(split, rebatePct, label = 'PRO_REBATE') {
 }
 
 /**
+ * @param {*} db
+ * @param {{ salerId?: number|string|null, cache?: * }} [params]
  * @returns {Promise<number>} rebate percentage points, 0 when none applies
  */
 export async function resolveProRebatePct(db, { salerId, cache = null } = {}) {

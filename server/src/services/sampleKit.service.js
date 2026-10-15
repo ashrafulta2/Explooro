@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * sampleKit.service.js — Sample requests and marketing kits (supplier attraction, step 4).
  *
@@ -506,6 +507,7 @@ async function settleHeld(client, row, outcome) {
   if (outcome === 'DELIVERED') {
     const supplierWallet = await walletRepo.getOrCreateWallet(client, row.supplier_id, { client });
     const treasuryWallet = await walletRepo.getOrCreateWallet(client, await treasuryUserId(client), { client });
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const entries = [
       { walletId: salerWallet.id, entryType: 'DEBIT', amount: fromPaisa(totalPaisa), balanceBucket: 'HELD', idempotencyKey: `${key}:out` },
       { walletId: supplierWallet.id, entryType: 'CREDIT', amount: fromPaisa(totalPaisa - feePaisa), balanceBucket: 'AVAILABLE', idempotencyKey: `${key}:supplier` },

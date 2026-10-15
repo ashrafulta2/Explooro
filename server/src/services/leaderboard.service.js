@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * leaderboard.service.js — Monthly Performance Leaderboards & Snapshot Engine (Prompt 9.4).
  *

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * salerTier.service.js — puts every shop partner in a commission tier by what they sold, and shows them where
  * they stand.

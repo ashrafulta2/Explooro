@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * quest.service.js — Daily & Weekly Quest Engine (Prompt 9.4).
  *
@@ -23,7 +24,7 @@ export function computePeriodKey(cadence, date = new Date()) {
     const dayNum = tempDate.getUTCDay() || 7;
     tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+    const weekNo = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
     return `${tempDate.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
   }
   return 'LIFETIME';

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * subscriptionBilling.service.js — Shop Partner Pro from the merchant's side, and the renewal engine.
  *
@@ -173,6 +174,9 @@ export async function getMySubscription(db, userId, { roles = [] } = {}) {
 /**
  * Subscribes the caller to a plan. A paid plan is charged for its first period up front; if the
  * Vault cannot cover it the whole request fails and nothing is created.
+ * @param {*} db
+ * @param {*} user
+ * @param {{ planId?: *, autoRenew?: boolean }} [params]
  */
 export async function subscribe(db, user, { planId, autoRenew } = {}) {
   const settings = await getEngineSettings(db);

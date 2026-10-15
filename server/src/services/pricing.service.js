@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * pricing.service.js — Dynamic pricing engine & profit split calculator (Prompt 4.3).
  *
@@ -63,6 +64,10 @@ export function toBdtNumber(paisa) {
  * @param {object} db Database client
  * @param {object} context { productId, productRef, categoryId }
  * @returns {Promise<{ salerSplitPct: number, platformSplitPct: number, ruleSource: string }>}
+ */
+/**
+ * @param {*} db
+ * @param {{ productId?: *, productRef?: *, categoryId?: *, salerId?: *, cache?: *, preloaded?: * }} [params]
  */
 export async function resolveSplitPercentages(db, { productId, productRef, categoryId, salerId, cache, preloaded } = {}) {
   const base = await resolveBaseSplit(db, { productId, productRef, categoryId }, preloaded);

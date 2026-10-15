@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * surgePricing.service.js — Dynamic Demand Surge & Automated Yield Optimization (Prompt 10.5).
  *

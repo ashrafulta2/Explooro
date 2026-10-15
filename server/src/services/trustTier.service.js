@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * trustTier.service.js — Shop Partner Trust Tier Engine (Prompt 7.5 / Master Spec §C.4).
  *

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * referralAdmin.service.js — read model and rule writes behind /admin/growth/referrals.
  *

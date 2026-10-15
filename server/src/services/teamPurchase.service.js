@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * teamPurchase.service.js — Social Group Buying / Team Purchase Engine (Prompt 9.5).
  *
@@ -773,7 +774,7 @@ export async function getTeamPurchaseById(db, teamId) {
     [teamId]
   );
 
-  const remainingSeconds = Math.max(0, Math.floor((new Date(team.expires_at) - Date.now()) / 1000));
+  const remainingSeconds = Math.max(0, Math.floor((new Date(team.expires_at).getTime() - Date.now()) / 1000));
 
   return {
     ...team,

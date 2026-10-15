@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * coin.service.js — Loyalty Coins Liability Engine & Streak System (Prompt 9.4).
  *

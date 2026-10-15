@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * referral.service.js — Multi-Tier Referral & Network Growth Engine (Prompt 9.3).
  *
@@ -58,7 +59,7 @@ export const FIXED_BONUS_KEYS = Object.freeze({
  * What one referral row earns for one event. FIRST_ORDER stays a percentage of the order; the others pay
  * the configured bonus, scaled for tier 2 by the same tier_2 : tier_1 ratio the percentage rule uses.
  */
-export function commissionFor(eventType, tierLevel, { orderAmount = 0, settings = {} } = {}) {
+export function commissionFor(eventType, tierLevel, { orderAmount = 0, settings = /** @type {Record<string, *>} */ ({}) } = {}) {
   const tier1Rate = Number(settings.tier_1_rate_pct ?? 5);
   const tier2Rate = Number(settings.tier_2_rate_pct ?? 2);
   const ratePct = tierLevel === 1 ? tier1Rate : tier2Rate;

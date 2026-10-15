@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * adPricing.js — THE single source of ad pricing arithmetic.
  *

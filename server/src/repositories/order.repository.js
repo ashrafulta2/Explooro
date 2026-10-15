@@ -48,7 +48,8 @@ export async function createOrder(db, {
   customerId,
   totalAmount,
   itemsAmount,
-  shippingAmount = 0,
+  // WHY the cast: callers pass NUMERIC strings from fromPaisa as often as numbers.
+  shippingAmount = /** @type {number|string} */ (0),
   discountAmount = 0,
   coinsRedeemed = 0,
   coinsDiscount = 0,
@@ -124,7 +125,8 @@ export async function createSubOrder(db, {
   netRetailMargin = 0,
   salerCommission = 0,
   platformMargin = 0,
-  shippingAmount = 0,
+  // WHY the cast: callers pass NUMERIC strings from fromPaisa as often as numbers.
+  shippingAmount = /** @type {number|string} */ (0),
   discountShare = 0,
   totalAmount,
   status = 'PLACED',

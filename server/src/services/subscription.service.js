@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * subscription.service.js — Shop Partner subscription plans (Shop Partner Pro) — admin side.
  *

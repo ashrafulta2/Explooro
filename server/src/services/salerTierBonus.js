@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * salerTierBonus.js — the sales-volume commission tier a shop partner has EARNED, as the pricing step sees it.
  *
@@ -54,9 +55,11 @@ export function resolveRules(raw) {
   const d = DEFAULT_RULES;
   const windowDays = Number.isInteger(r.window_days) && r.window_days >= 7 && r.window_days <= 365 ? r.window_days : d.window_days;
 
+  /** @type {Record<string, number|null>} */
   let thresholds = { ...d.thresholds };
   const t = r.thresholds && typeof r.thresholds === 'object' ? r.thresholds : null;
   if (t) {
+    /** @type {Record<string, number|null>} */
     const next = {};
     for (const k of TIER_KEYS.slice(1)) {
       const v = Number(t[k]);
@@ -116,6 +119,8 @@ export function nextTierInfo(tier, volume, thresholds) {
  * @returns {Promise<number>} extra shop partner split points this shop partner's earned tier pays, 0 when none applies.
  * One query reads the switch, the shop partner's tier and the bonus list together, so a checkout of N items
  * costs N cheap lookups, not 3N.
+ * @param {*} db
+ * @param {{ salerId?: number|string|null }} [params]
  */
 export async function resolveSalerTierBonusPct(db, { salerId } = {}) {
   if (!db || !salerId) return 0;
