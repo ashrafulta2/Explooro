@@ -34,12 +34,15 @@ layer) · React / Vue / Next.js / Tailwind / Bootstrap.
 
 ## 2. Currently Installed
 
-Verify with `npm ls --depth=0`. Audited: **0 vulnerabilities**.
+Verify with `npm ls --depth=0`. Audited 2026-10-15: **4 open** after the fastify 5.12.1 → 5.12.7
+security bump (which also pulled `fast-uri` to 3.1.8 / 4.2.2). Still open, each a non-major fix: `sharp`
+(high, → 0.35.5), `shell-quote` via `concurrently` (critical, dev only, → 10.0.6), `source-map-js` via
+`vite` (high, dev only) and `ip-address` via `@fastify/rate-limit` (moderate). The target is still 0.
 
 | Package | Version | Where | Isolated in | Why | Removal cost |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `vite` | 8.2.2 | client, **dev only** | `client/vite.config.js` | Dev server with sub-500ms start and HMR; production bundling | **Low.** No source file outside `vite.config.js` may import from `vite`. `client/src` is plain ES modules — swap the bundler, or serve natively |
-| `fastify` | 5.12.1 | server | `server/src/app.js` + `routes/` | 30k+ req/s, built-in JSON schema validation, small memory footprint | **Medium.** The 3-tier architecture keeps Fastify in routes/plugins only; `services/` and `repositories/` are plain Node and would be unaffected |
+| `fastify` | 5.12.7 | server | `server/src/app.js` + `routes/` | 30k+ req/s, built-in JSON schema validation, small memory footprint | **Medium.** The 3-tier architecture keeps Fastify in routes/plugins only; `services/` and `repositories/` are plain Node and would be unaffected |
 | `concurrently` | 10.0.5 | root, **dev only** | root `package.json` scripts | Runs client + server in one terminal | **Trivial.** Two terminals |
 | `pg` | 8.23.0 | server | `server/src/config/db.js` | The PostgreSQL wire protocol is not something to reimplement | **Medium.** Only `db.js` and `db/migrate.js` import it; repositories receive a client/pool, never the driver |
 | `redis` | 6.2.1 | server | `server/src/config/cache-drivers/redis.js` | Real Redis client for `CACHE_DRIVER=redis` | **Trivial.** `CACHE_DRIVER=memory` runs the whole app with this package never touched at runtime |
