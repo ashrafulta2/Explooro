@@ -99,6 +99,7 @@ import './jobs/volumeIncentive.job.js'; // Registers volume_incentive with sched
 import './jobs/salerTier.job.js'; // Registers saler_tier with scheduler (setting: saler.commission_tiers.enabled)
 import './jobs/sampleKit.job.js'; // Registers sample_kit with scheduler (module: sourcing)
 import './jobs/returnProtection.job.js'; // Registers return_protection with scheduler (module: sourcing)
+import './jobs/deficitRecovery.job.js'; // Registers deficit_recovery with scheduler (module: returns_engine)
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
 import sitemapRoutes from './routes/sitemap.routes.js';
 import { createSmsSender } from './integrations/sms/index.js';

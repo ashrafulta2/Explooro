@@ -126,8 +126,8 @@ AVAILABLE nets out when that escrow releases, so no migration was needed. A shor
 1. ~~Return after a warranty refund on the same sub-order~~ **Fixed 2026-10-15.**
    `processReturnClawback` subtracts the warranty refunds already credited on that sub-order from the
    customer's refund and repays that amount to the supplier, who funded it. Each party ends where a
-   plain return leaves it. The supplier's `negative_balance_recoveries` row from the warranty refund,
-   if any, stays `PENDING`; nothing settles those rows automatically yet.
+   plain return leaves it. Any `negative_balance_recoveries` row from the warranty refund is closed
+   by the `deficit_recovery` job once the supplier's balance is back (§6).
 2. Q2 (platform fronting the refund instead of a supplier deficit), Q5 (`qty > 1`: one claim refunds
    all units today), Q6 (maker-checker for supplier-approved refunds) and Q7 (refund destination:
    wallet today) are unanswered.
@@ -157,5 +157,8 @@ shipping is not refunded on a partial return.
 
 1. One protection cover pays once. A partial-return claim consumes it, so a later full return on the
    same sub-order gets no protection payout.
-2. `negative_balance_recoveries` rows created by item refunds stay `PENDING`; nothing settles them yet.
+2. ~~`negative_balance_recoveries` rows stay `PENDING`~~ **Fixed 2026-10-15.** The daily
+   `deficit_recovery` job (`jobs/deficitRecovery.job.js` → `clawback.service.js`
+   `settleDeficitRecoveries`) marks them `PARTIALLY_RECOVERED` / `RECOVERED` as the wallet's balance
+   climbs back. No money moves: the clawback already debited the full amount.
 

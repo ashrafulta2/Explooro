@@ -764,4 +764,109 @@ export async function processPartialReturnClawback(db, {
   return client ? runner(client) : withTransaction(db, runner);
 }
 
+/**
+ * Marks deficit records recovered once the wallet has earned the money back.
+ *
+ * WHY no ledger entry: every clawback that records a deficit debits the FULL amount, so the
+ * deficit already lives in the wallet as a negative available_balance, and later credits fill it
+ * in on their own. This only brings the records in line with the balance. What the wallet still
+ * owes is max(0, -available_balance); anything above that has been recovered, applied oldest
+ * record first.
+ *
+ * @param {import('pg').Pool} db
+ * @param {{ limit?: number }} [options] - wallets settled per run
+ */
+export async function settleDeficitRecoveries(db, { limit = 500 } = {}) {
+  const { rows: walletRows } = await db.query(
+    `SELECT DISTINCT wallet_id
+     FROM negative_balance_recoveries
+     WHERE recovery_status IN ('PENDING', 'PARTIALLY_RECOVERED')
+     ORDER BY wallet_id
+     LIMIT $1`,
+    [limit]
+  );
+
+  let walletsSettled = 0;
+  let recordsRecovered = 0;
+  let recordsPartial = 0;
+  let recoveredPaisaTotal = 0;
+  /** @type {{ walletId: number|string, message: string }[]} */
+  const errors = [];
+
+  for (const { wallet_id: walletId } of walletRows) {
+    try {
+      const result = await withTransaction(db, async (txClient) => {
+        const wallet = await walletRepo.getWalletByIdForUpdate(txClient, walletId);
+        if (!wallet) return null;
+
+        const { rows: records } = await txClient.query(
+          `SELECT id, recovered_from_available, unrecovered_deficit
+           FROM negative_balance_recoveries
+           WHERE wallet_id = $1 AND recovery_status IN ('PENDING', 'PARTIALLY_RECOVERED')
+           ORDER BY created_at, id
+           FOR UPDATE`,
+          [walletId]
+        );
+
+        const toPaisa = (/** @type {unknown} */ v) => Math.round(parseFloat(String(v ?? '0')) * 100);
+        const outstandingPaisa = records.reduce((sum, r) => sum + toPaisa(r.unrecovered_deficit), 0);
+        const stillOwedPaisa = Math.min(outstandingPaisa, Math.max(0, -toPaisa(wallet.available_balance)));
+        let recoverablePaisa = outstandingPaisa - stillOwedPaisa;
+        if (recoverablePaisa <= 0) return { recovered: 0, partial: 0, paisa: 0 };
+
+        let recovered = 0;
+        let partial = 0;
+        let paisa = 0;
+        for (const record of records) {
+          if (recoverablePaisa <= 0) break;
+          const deficitPaisa = toPaisa(record.unrecovered_deficit);
+          const takePaisa = Math.min(deficitPaisa, recoverablePaisa);
+          if (takePaisa <= 0) continue;
+          recoverablePaisa -= takePaisa;
+          paisa += takePaisa;
+          const remainingPaisa = deficitPaisa - takePaisa;
+          if (remainingPaisa === 0) recovered += 1;
+          else partial += 1;
+
+          await txClient.query(
+            `UPDATE negative_balance_recoveries
+             SET recovered_from_available = $2::numeric(14,2),
+                 unrecovered_deficit = $3::numeric(14,2),
+                 recovery_status = $4,
+                 recovered_at = CASE WHEN $4 = 'RECOVERED' THEN now() ELSE recovered_at END,
+                 updated_at = now()
+             WHERE id = $1`,
+            [
+              record.id,
+              ((toPaisa(record.recovered_from_available) + takePaisa) / 100).toFixed(2),
+              (remainingPaisa / 100).toFixed(2),
+              remainingPaisa === 0 ? 'RECOVERED' : 'PARTIALLY_RECOVERED',
+            ]
+          );
+        }
+        return { recovered, partial, paisa };
+      });
+
+      if (result && result.paisa > 0) {
+        walletsSettled += 1;
+        recordsRecovered += result.recovered;
+        recordsPartial += result.partial;
+        recoveredPaisaTotal += result.paisa;
+      }
+    } catch (err) {
+      errors.push({ walletId, message: err instanceof Error ? err.message : String(err) });
+    }
+  }
+
+  return {
+    walletsChecked: walletRows.length,
+    walletsSettled,
+    recordsRecovered,
+    recordsPartial,
+    recoveredAmount: (recoveredPaisaTotal / 100).toFixed(2),
+    batchFull: walletRows.length >= limit,
+    errors,
+  };
+}
+
 export const executeClawback = processReturnClawback;
