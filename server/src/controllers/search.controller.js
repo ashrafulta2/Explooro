@@ -3,7 +3,7 @@
  */
 
 import * as searchService from '../services/search.service.ts';
-import { getZeroResultQueries } from '../services/discoveryFeed.service.js';
+import { getZeroResultQueries } from '../services/discoveryFeed.service.ts';
 
 export async function search(req, reply) {
   const db = req.db || req.server?.db;

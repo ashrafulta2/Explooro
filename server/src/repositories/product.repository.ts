@@ -418,7 +418,7 @@ export async function listProducts(db, filters: Record<string, any> = {}) {
     offset = 0,
     // Personalized ranking inputs, only consulted when sortBy === 'recommended'. Each is the set of
     // categories / brands / suppliers the caller has shown affinity for (see
-    // discoveryFeed.service.js), with the weight each match contributes to a row's score. The score
+    // discoveryFeed.service.ts), with the weight each match contributes to a row's score. The score
     // is computed across the whole filtered set BEFORE the LIMIT, so it genuinely reorders the
     // catalog rather than just the current page.
     boostCategoryIds = [],

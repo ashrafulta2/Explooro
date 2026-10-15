@@ -1,5 +1,5 @@
 /**
- * ads.routes.js — Fastify routes for In-Platform Sponsored Ads Engine (Prompt 9.1).
+ * ads.routes.ts — Fastify routes for In-Platform Sponsored Ads Engine (Prompt 9.1).
  */
 
 import * as adsController from '../controllers/ads.controller.ts';

@@ -1,5 +1,5 @@
 /**
- * product.controller.js — Handlers for Catalog & Product endpoints (Prompt 4.3).
+ * product.controller.ts — Handlers for Catalog & Product endpoints (Prompt 4.3).
  */
 
 import * as productService from '../services/product.service.ts';

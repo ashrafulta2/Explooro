@@ -1,5 +1,5 @@
 /**
- * sourcingAgent.js — Shop Partner Sourcing Intelligence assistant (Prompt 10.2 / `idea proposition.md` §D.2).
+ * sourcingAgent.ts — Shop Partner Sourcing Intelligence assistant (Prompt 10.2 / `idea proposition.md` §D.2).
  *
  * Finds high-margin, trending, well-rated products for a Shop Partner to import into their store. Grounded
  * strictly in the real sourcing catalog (`product.service.listSourcingCatalog`) — the same
@@ -115,7 +115,7 @@ async function executeSourcingTool(db, input, listSourcingCatalogFn) {
  * Runs one sourcing turn. Same event shape as conciergeAgent.runTurn. `deps` is a test injection
  * seam (listSourcingCatalog / streamTurn / isOverBudget / recordUsage).
  */
-export async function* runTurn({ db, userId, conversationId, message, lang = 'en' }, deps = {}) {
+export async function* runTurn({ db, userId, conversationId, message, lang = 'en' }, deps: Record<string, any> = {}) {
   const streamTurnFn = deps.streamTurn || provider.streamTurn;
   const isOverBudgetFn = deps.isOverBudget || provider.isOverBudget;
   const recordUsageFn = deps.recordUsage || provider.recordUsage;

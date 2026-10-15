@@ -7,7 +7,7 @@
  */
 
 export * as conciergeAgent from './conciergeAgent.ts';
-export * as sourcingAgent from './sourcingAgent.js';
+export * as sourcingAgent from './sourcingAgent.ts';
 export * as provider from './provider.ts';
 export * as creativeStudio from './creativeStudio.ts';
 export * as demandForecast from './demandForecast.ts';

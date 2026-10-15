@@ -1,5 +1,5 @@
 /**
- * staff.routes.js — Staff Management admin API (Prompt 3.3), backing /admin/staff.
+ * staff.routes.ts — Staff Management admin API (Prompt 3.3), backing /admin/staff.
  *
  * Permission gates and why they are what they are (risk tiers come from docs/permission-catalog.json):
  *   GET    /admin/staff, /admin/staff/:id        staff.account.view     MEDIUM
@@ -14,7 +14,7 @@
  * No requireModule: staff management belongs to the always-on `core` surface (client nav and route
  * definitions mark it `module: 'core'`), and `core` is not a row in `modules` — requireModule would
  * read the missing row as "disabled" and lock every admin out. The other /admin identity routes
- * (user.routes.ts, restriction.routes.js) make the same choice. No requireRestriction either: those
+ * (user.routes.ts, restriction.routes.ts) make the same choice. No requireRestriction either: those
  * gates are per-capability limits on a user's own activity, and there is no capability to attach here.
  */
 

@@ -1,5 +1,5 @@
 /**
- * restriction.routes.js — Route definitions for Granular User Activity Restrictions (Prompt 2.6).
+ * restriction.routes.ts — Route definitions for Granular User Activity Restrictions (Prompt 2.6).
  */
 
 import * as controller from '../controllers/restriction.controller.ts';

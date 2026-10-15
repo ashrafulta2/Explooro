@@ -1,5 +1,5 @@
 /**
- * adminAnalytics.routes.js — Fastify routes for Super Admin Analytics & System Health (Prompt 11.4).
+ * adminAnalytics.routes.ts — Fastify routes for Super Admin Analytics & System Health (Prompt 11.4).
  */
 
 import * as controller from '../controllers/adminAnalytics.controller.ts';

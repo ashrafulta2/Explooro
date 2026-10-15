@@ -8,7 +8,7 @@
  * POST /discovery/search-events — record one deliberate search (query, result count).
  */
 
-import * as discoveryService from '../services/discoveryFeed.service.js';
+import * as discoveryService from '../services/discoveryFeed.service.ts';
 import * as homeRailsService from '../services/homeRails.service.js';
 
 // A guest actor id: an opaque token the browser persists and sends back. Never trusted for auth —

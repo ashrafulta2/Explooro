@@ -1,5 +1,5 @@
 /**
- * kyc.routes.js — Fastify routes for KYC Verification & Trust Tiers (Prompt 7.5).
+ * kyc.routes.ts — Fastify routes for KYC Verification & Trust Tiers (Prompt 7.5).
  */
 
 import * as controller from '../controllers/kyc.controller.ts';

@@ -21,7 +21,7 @@ import path from 'node:path';
 import * as rc from '../src/services/recoCache.service.ts';
 import * as reco from '../src/services/recommendation.service.ts';
 import * as productService from '../src/services/product.service.ts';
-import * as feed from '../src/services/discoveryFeed.service.js';
+import * as feed from '../src/services/discoveryFeed.service.ts';
 
 const migration = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/060_recommendation_cache_metrics.sql'), 'utf8');
 

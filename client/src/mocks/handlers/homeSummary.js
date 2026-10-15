@@ -1,5 +1,5 @@
 /**
- * homeSummary.js — Mock handler for GET /home/summary (server/src/routes/homeSummary.routes.js).
+ * homeSummary.js — Mock handler for GET /home/summary (server/src/routes/homeSummary.routes.ts).
  *
  * Mirrors the live envelope `{ data: { role, stats } }` and the live key names per role, so the
  * home top band is fully previewable under VITE_API_MODE=mock for every dev account.

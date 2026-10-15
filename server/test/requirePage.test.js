@@ -264,8 +264,8 @@ describe('declared pages', () => {
  */
 describe('the wired route files', () => {
   const WIRED = [
-    'adminAnalytics.routes.js',
-    'ads.routes.js',
+    'adminAnalytics.routes.ts',
+    'ads.routes.ts',
     'cartRecovery.routes.ts',
     'delegation.routes.ts',
     'finance.routes.ts',
@@ -274,7 +274,7 @@ describe('the wired route files', () => {
     'notification.routes.ts',
     'publicApi.routes.ts',
     'return.routes.js',
-    'saler.routes.js',
+    'saler.routes.ts',
     'subscription.routes.ts',
     'supplier.routes.ts',
   ];

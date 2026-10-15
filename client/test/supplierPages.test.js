@@ -251,7 +251,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
     const handler = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
     assert.ok(handler, 'POST /products handler exists');
 
-    // Same shape the live POST /products takes (server product.controller.js createProduct).
+    // Same shape the live POST /products takes (server product.controller.ts createProduct).
     const newProdPayload = {
       category_id: 1,
       title_en: 'Supplier Silk Scarf',

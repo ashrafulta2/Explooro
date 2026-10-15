@@ -1,5 +1,5 @@
 /**
- * discoveryFeed.service.js — Ranking + signal recording for the /discover feed (interest-based,
+ * discoveryFeed.service.ts — Ranking + signal recording for the /discover feed (interest-based,
  * one-product-at-a-time swipe feed).
  *
  * getFeed reuses the catalog listing (filters, joins, pricing enrichment) but asks for the
@@ -133,7 +133,7 @@ export async function resolveFeedSettings(db) {
  */
 export async function resolveActorRanking(
   db,
-  { userId, sessionId, audience = 'customer', personalize = true, affinityWindowDays = DEFAULT_AFFINITY_WINDOW_DAYS, cache } = {}
+  { userId, sessionId, audience = 'customer', personalize = true, affinityWindowDays = DEFAULT_AFFINITY_WINDOW_DAYS, cache }: Record<string, any> = {}
 ) {
   const capture = await resolveCapturePolicy(db);
   const enabled = capture.enabled && personalize;
@@ -164,13 +164,13 @@ export async function resolveActorRanking(
  * @param {number} [opts.limit]
  * @param {number} [opts.offset]
  */
-export function getFeed(db, opts = {}) {
+export function getFeed(db: any, opts: { filters?: any; userId?: number; sessionId?: string; audience?: string; personalize?: boolean; limit?: number; offset?: number; } = {}) {
   return recoCache.timed('feed', () => buildFeed(db, opts));
 }
 
 async function buildFeed(
   db,
-  { filters = {}, userId, sessionId, audience = 'customer', personalize = true, limit, offset = 0, cache } = {}
+  { filters = {}, userId, sessionId, audience = 'customer', personalize = true, limit, offset = 0, cache }: Record<string, any> = {}
 ) {
   const { affinityWindowDays, pageSize } = await resolveFeedSettings(db);
   const effectiveLimit = Math.min(Number(limit) || pageSize, MAX_PAGE_SIZE);
@@ -396,7 +396,7 @@ export async function recordSearch(db, { query, resultCount, categoryId, userId,
 }
 
 /** Most-searched queries that returned nothing — the catalog-gap report merchandising reads. */
-export async function getZeroResultQueries(db, { days = 30, limit = 50 } = {}) {
+export async function getZeroResultQueries(db, { days = 30, limit = 50 }: Record<string, any> = {}) {
   return feedRepo.topZeroResultQueries(db, {
     days: Math.min(Math.max(Number(days) || 30, 1), 365),
     limit: Math.min(Math.max(Number(limit) || 50, 1), 200),

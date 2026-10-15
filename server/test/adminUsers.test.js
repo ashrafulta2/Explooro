@@ -10,7 +10,7 @@ import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import requirePermissionPlugin from '../src/middlewares/requirePermission.ts';
 import userRoutes from '../src/routes/user.routes.ts';
 import delegationRoutes from '../src/routes/delegation.routes.ts';
-import restrictionRoutes from '../src/routes/restriction.routes.js';
+import restrictionRoutes from '../src/routes/restriction.routes.ts';
 import * as rbacService from '../src/services/rbac.service.ts';
 
 function createMockDb() {

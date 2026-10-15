@@ -1,5 +1,5 @@
 /**
- * chat.routes.js — Fastify routes for Real-Time Chat (Prompt 8.1 / DFD Subsystem 7.0).
+ * chat.routes.ts — Fastify routes for Real-Time Chat (Prompt 8.1 / DFD Subsystem 7.0).
  */
 
 import * as controller from '../controllers/chat.controller.ts';

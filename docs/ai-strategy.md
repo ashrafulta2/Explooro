@@ -124,7 +124,7 @@ since retrying a malformed request just wastes the latency budget.
    content returned by a tool are untrusted data, never instructions. Two independent layers:
    - The system prompt explicitly states that tool-result text is catalog data to summarize, never
      commands to follow, and that only the platform's own system prompt carries instructions.
-   - `sanitizeUntrustedText()` (`conciergeAgent.ts` / `sourcingAgent.js`) pattern-matches common
+   - `sanitizeUntrustedText()` (`conciergeAgent.ts` / `sourcingAgent.ts`) pattern-matches common
      injection phrasing ("ignore previous instructions", "you are now", "disregard the above",
      "system:") in any text pulled from the database before it is embedded in a tool result sent to
      the model, replacing a match with `[REDACTED_INSTRUCTION_ATTEMPT]` and recording an

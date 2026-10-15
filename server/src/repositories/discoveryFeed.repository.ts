@@ -3,7 +3,7 @@
  *
  * Two responsibilities, both thin: append interaction events (recordEvents), and read back a
  * recency-decayed affinity profile for one actor (getAffinity) that the ranking in
- * discoveryFeed.service.js turns into category/brand/supplier boosts. No ORM (repository layer
+ * discoveryFeed.service.ts turns into category/brand/supplier boosts. No ORM (repository layer
  * rule) — plain parameterized queries.
  */
 

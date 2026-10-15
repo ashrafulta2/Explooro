@@ -1,5 +1,5 @@
 /**
- * liveStream.routes.js — Fastify routes for Live Stream Commerce (Prompt 10.1 / DFD Subsystem 15.0).
+ * liveStream.routes.ts — Fastify routes for Live Stream Commerce (Prompt 10.1 / DFD Subsystem 15.0).
  *
  * Enforces:
  * - Module check: requireModule('live_commerce')

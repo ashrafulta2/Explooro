@@ -14,7 +14,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import adminAnalyticsRoutes from '../src/routes/adminAnalytics.routes.js';
+import adminAnalyticsRoutes from '../src/routes/adminAnalytics.routes.ts';
 import * as analyticsService from '../src/services/analytics.service.ts';
 import { createRequestMetrics } from '../src/lib/requestMetrics.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';

@@ -1,5 +1,5 @@
 /**
- * homeSummary.routes.js — GET /home/summary: the numbers behind the home page's top band.
+ * homeSummary.routes.ts — GET /home/summary: the numbers behind the home page's top band.
  *
  * Authenticated only, with no permission key on purpose: the figures are the caller's OWN role
  * summary (the same counts that role's console opens with), chosen server-side from the session's

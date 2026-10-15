@@ -163,7 +163,7 @@ to it is the next piece of work, and it is one call per surface.
 | Catalogue policy, availability, rate-card writes | `server/src/services/adProducts.service.ts` |
 | SQL | `server/src/repositories/adProduct.repository.js` |
 | Purchase, billing, serving | `server/src/services/ads.service.ts` |
-| Routes | `server/src/routes/ads.routes.js` |
+| Routes | `server/src/routes/ads.routes.ts` |
 | Shop Partner Ad Store + wizard | `client/src/pages/saler/AdCampaignPage.js` |
 | Admin rate cards | `client/src/pages/admin/AdminAdPricingPage.js` |
 | Styles (route chunk, never `main.css`) | `client/src/styles/components/ad-store.css` |

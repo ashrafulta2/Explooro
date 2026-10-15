@@ -2,8 +2,8 @@
  * product.routes.js — Routes for Products, Dynamic Pricing & Sourcing (Prompt 4.3).
  */
 
-import * as productController from '../controllers/product.controller.js';
-import * as sourcingController from '../controllers/sourcing.controller.js';
+import * as productController from '../controllers/product.controller.ts';
+import * as sourcingController from '../controllers/sourcing.controller.ts';
 import * as sampleKit from '../controllers/sampleKit.controller.ts';
 import * as fastPayout from '../controllers/fastPayout.controller.ts';
 import * as returnProtection from '../controllers/returnProtection.controller.ts';

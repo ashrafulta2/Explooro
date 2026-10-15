@@ -1,5 +1,5 @@
 /**
- * review.controller.js — Handlers for product review endpoints (Prompt 4.6).
+ * review.controller.ts — Handlers for product review endpoints (Prompt 4.6).
  */
 
 import * as reviewService from '../services/review.service.ts';

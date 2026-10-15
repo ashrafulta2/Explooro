@@ -2,7 +2,7 @@
  * review.routes.js — Routes for product reviews (Prompt 4.6).
  */
 
-import * as reviewController from '../controllers/review.controller.js';
+import * as reviewController from '../controllers/review.controller.ts';
 import { requireRestriction } from '../middlewares/requireRestriction.ts';
 
 export default async function reviewRoutes(app) {

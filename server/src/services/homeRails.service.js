@@ -13,7 +13,7 @@
  */
 
 import * as productService from './product.service.ts';
-import * as discoveryFeed from './discoveryFeed.service.js';
+import * as discoveryFeed from './discoveryFeed.service.ts';
 import * as recommendation from './recommendation.service.ts';
 import * as diversity from './diversity.service.ts';
 import * as recoCache from './recoCache.service.ts';

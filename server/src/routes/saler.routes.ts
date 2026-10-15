@@ -1,5 +1,5 @@
 /**
- * saler.routes.js — Fastify HTTP Routes for Shop Partner Dashboard & Analytics (Prompt 11.2).
+ * saler.routes.ts — Fastify HTTP Routes for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
 import * as controller from '../controllers/saler.controller.ts';

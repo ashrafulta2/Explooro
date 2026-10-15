@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as svc from '../src/services/discoveryFeed.service.js';
+import * as svc from '../src/services/discoveryFeed.service.ts';
 
 // A mock db: `module` is the personalization_signals row (null = row missing → defaults apply).
 function makeDb({ module = undefined } = {}) {

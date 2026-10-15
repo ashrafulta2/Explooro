@@ -30,7 +30,7 @@ const LIVE = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_MOD
 
 // WHY these are constants here and not fetched: they are the CLIENT-side defaults of the
 // `personalization_signals` module's capture policy (migration 055 seeds the same numbers), and the
-// server re-enforces the authoritative values on every write (see discoveryFeed.service.js
+// server re-enforces the authoritative values on every write (see discoveryFeed.service.ts
 // resolveCapturePolicy). test/signals.test.js fails if the two sets drift.
 export const BATCH_SIZE = 20;
 export const FLUSH_INTERVAL_MS = 4000;

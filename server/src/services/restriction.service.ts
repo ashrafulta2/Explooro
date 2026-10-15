@@ -343,7 +343,7 @@ export async function checkNumericLimit(db: any, userId: number, limitKey: strin
 /* Register the Maker-Checker Executor for Restriction Management            */
 /* ========================================================================= */
 /*
- * Every route in restriction.routes.js that mutates (apply/update/lift) is gated by the single
+ * Every route in restriction.routes.ts that mutates (apply/update/lift) is gated by the single
  * real catalog permission `users.restriction.manage` (HIGH tier) — there is no
  * `users.restriction.apply`/`users.restriction.lift` permission, so registering executors under
  * those names left this completely unreachable: requirePermission.ts always creates the pending
@@ -351,7 +351,7 @@ export async function checkNumericLimit(db: any, userId: number, limitKey: strin
  * silently marked the action APPLIED without ever touching user_restrictions.
  *
  * Since apply/update/lift share one action_key, this one executor tells them apart via
- * `context.targetType`, set per-route in restriction.routes.js's requirePermission(...) options.
+ * `context.targetType`, set per-route in restriction.routes.ts's requirePermission(...) options.
  */
 registerActionExecutor('users.restriction.manage', {
   async validatePreconditions(payload, context) {

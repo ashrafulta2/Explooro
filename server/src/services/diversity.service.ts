@@ -65,7 +65,7 @@ function boundedInt(raw, { min, max, allowZero = false }, fallback) {
  * not discard the rest of an admin's tuning. Pure and exported so the (future) admin API and the
  * tests share one validator.
  */
-export function sanitizeDiversity(raw) {
+export function sanitizeDiversity(raw): Record<string, any> {
   const src = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
   const out = {
     enabled: typeof src.enabled === 'boolean' ? src.enabled : DEFAULT_DIVERSITY.enabled,

@@ -13,7 +13,7 @@
 import products from '../fixtures/products.json' with { type: 'json' };
 import { synthesizeSupplier, synthesizeDescription, synthesizeVariants } from './products.js';
 
-// Mirrors server/src/services/discoveryFeed.service.js EVENT_WEIGHTS (test/discoverFeed.test.js pins the parity).
+// Mirrors server/src/services/discoveryFeed.service.ts EVENT_WEIGHTS (test/discoverFeed.test.js pins the parity).
 const EVENT_WEIGHTS = {
   VIEW: 1,
   DWELL: 1.5,
