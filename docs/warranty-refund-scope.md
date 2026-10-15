@@ -162,3 +162,16 @@ shipping is not refunded on a partial return.
    `settleDeficitRecoveries`) marks them `PARTIALLY_RECOVERED` / `RECOVERED` as the wallet's balance
    climbs back. No money moves: the clawback already debited the full amount.
 
+## 7. The remaining questions (answered 2026-10-15)
+
+| Question | Answer | What the code does |
+| :--- | :--- | :--- |
+| Q5 `qty > 1` | One claim refunds **one unit** | `processWarrantyRefund` pays `line_total / qty`; the last unit takes the rounding remainder, so the units sum to `line_total`. Units already returned count against it, and a claim past the last unit is refused (`ITEM_ALREADY_REFUNDED`). A paid REFUND no longer blocks a new claim on the same card |
+| Q6 supplier approves alone | **No** | A supplier's REFUND sets the claim to `ESCALATED` (resolution `REFUND` as a proposal) and moves no money. An admin approves or rejects it at **/admin/warranty-claims** (`support.warranty.override`, module `digital_warranty`), which calls the existing override endpoint. The supplier cannot change an escalated claim (`CLAIM_AWAITING_ADMIN`) |
+| Q2 platform fronts a supplier deficit | **No** | Unchanged: the supplier's balance goes negative and `negative_balance_recoveries` records it; the daily `deficit_recovery` job closes it as the balance recovers |
+| Q7 refund destination | Open | Refunds still go to the Explooro wallet. Customers cannot withdraw from it yet, so a refund is effectively store credit |
+
+Also fixed on the way: the supplier claims page posted to `/supplier/claims/:id/resolve`, a route only
+the client mock answered, so resolving a claim failed against the live API. It now posts to
+`/supplier/claims/:id/review` with the live body shape.
+

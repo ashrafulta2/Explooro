@@ -61,15 +61,25 @@ function createScenarioDb() {
   let returnedTotal = '200.00';
   let coverage = [];
   let usedItems = [];
-  let itemReturned = false;
+  let returnedQty = 0;
+  let claimStatus = 'SUBMITTED';
+  let itemQty = 1;
+  let itemLineTotal = CLAIMED_ITEM.line_total;
+  let nextClaimId = 5001;
 
   const handle = async (sql, params = []) => {
     // double-refund guards
-    if (sql.includes('prior_qty') && sql.includes('warranty_refunded')) {
+    if (sql.includes('prior_qty') && sql.includes('warranty_units')) {
       return { rows: usedItems };
     }
-    if (sql.includes('WHERE ri.order_item_id = $1') && sql.includes("r.status = 'REFUNDED'")) {
-      return { rows: itemReturned ? [{ '?column?': 1 }] : [] };
+    // processWarrantyRefund: units of this item already refunded (returns + earlier warranty claims)
+    if (sql.includes('returned_qty') && sql.includes('warranty_units')) {
+      const claimIds = new Set(
+        ledgerRows
+          .filter((r) => r.reference_type === 'WARRANTY_CLAIM' && r.category === 'REFUND' && r.entry_type === 'CREDIT')
+          .map((r) => r.reference_id)
+      );
+      return { rows: [{ returned_qty: returnedQty, warranty_units: claimIds.size }] };
     }
     // processPartialReturnClawback: goods value of the sub-order and of the returned items
     if (sql.includes('goods_total') && sql.includes('returned_total')) {
@@ -97,8 +107,8 @@ function createScenarioDb() {
       return {
         rows: [{
           id: params[0],
-          ref: 'CLM-TEST0001',
-          status: 'SUBMITTED',
+          ref: `CLM-${params[0]}`,
+          status: claimStatus,
           warranty_card_id: 55,
           supplier_id: SUPPLIER_ID,
           customer_id: CUSTOMER_ID,
@@ -111,7 +121,8 @@ function createScenarioDb() {
           recipient_name: 'Customer Karim',
           recipient_phone: '+8801700000010',
           delivery_address_json: {},
-          line_total: CLAIMED_ITEM.line_total,
+          line_total: itemLineTotal,
+          qty: itemQty,
           retail_price: CLAIMED_ITEM.retail_price,
           sub_order_id: SUB_ORDER_ID,
           order_item_id: CLAIMED_ITEM.id,
@@ -201,6 +212,7 @@ function createScenarioDb() {
         balance_bucket: params[4],
         category: params[5],
         reference_type: params[6],
+        reference_id: params[7],
       };
       ledgerRows.push(row);
       return { rows: [row] };
@@ -231,7 +243,10 @@ function createScenarioDb() {
     failLedgerInserts() { failLedger = true; },
     setReturn(total, rows) { returnedTotal = total; coverage = rows; },
     setUsedItems(rows) { usedItems = rows; },
-    markItemReturned() { itemReturned = true; },
+    markItemReturned(units = 1) { returnedQty = units; },
+    setClaimStatus(value) { claimStatus = value; },
+    setItem(qty, lineTotal) { itemQty = qty; itemLineTotal = lineTotal; },
+    nextClaim() { return nextClaimId++; },
   };
 }
 
@@ -239,7 +254,17 @@ function toPaisa(amount) {
   return Math.round(parseFloat(amount) * 100);
 }
 
-async function approveRefund(db) {
+async function approveRefund(db, claimId = 5001) {
+  return warrantyService.reviewWarrantyClaim(db, {
+    claimId,
+    action: 'APPROVE',
+    resolution: 'REFUND',
+    isStaffOverride: true,
+    staffUserId: 900,
+  });
+}
+
+async function supplierProposesRefund(db) {
   return warrantyService.reviewWarrantyClaim(db, {
     claimId: 5001,
     supplierId: SUPPLIER_ID,
@@ -449,7 +474,7 @@ describe('A partial return refunds only the returned items', () => {
 describe('The same item cannot be refunded twice', () => {
   test('a second return of an item already returned is refused', async () => {
     const { db, ledgerRows, setUsedItems } = createScenarioDb();
-    setUsedItems([{ order_item_id: 902, qty: 1, this_qty: 1, prior_qty: 1, warranty_refunded: false }]);
+    setUsedItems([{ order_item_id: 902, qty: 1, this_qty: 1, prior_qty: 1, warranty_units: 0 }]);
 
     await assert.rejects(
       clawbackService.processPartialReturnClawback(db, { subOrderId: SUB_ORDER_ID, returnRequestId: RETURN_ID }),
@@ -460,7 +485,7 @@ describe('The same item cannot be refunded twice', () => {
 
   test('returning an item already refunded by warranty is refused', async () => {
     const { db, setUsedItems } = createScenarioDb();
-    setUsedItems([{ order_item_id: 902, qty: 1, this_qty: 1, prior_qty: 0, warranty_refunded: true }]);
+    setUsedItems([{ order_item_id: 902, qty: 1, this_qty: 1, prior_qty: 0, warranty_units: 1 }]);
 
     await assert.rejects(
       clawbackService.processPartialReturnClawback(db, { subOrderId: SUB_ORDER_ID, returnRequestId: RETURN_ID }),
@@ -479,10 +504,76 @@ describe('The same item cannot be refunded twice', () => {
 
   test('returning the remaining units of a partly returned item is allowed', async () => {
     const { db, setUsedItems } = createScenarioDb();
-    setUsedItems([{ order_item_id: 902, qty: 3, this_qty: 1, prior_qty: 2, warranty_refunded: false }]);
+    setUsedItems([{ order_item_id: 902, qty: 3, this_qty: 1, prior_qty: 2, warranty_units: 0 }]);
 
     const result = await clawbackService.processPartialReturnClawback(db, { subOrderId: SUB_ORDER_ID, returnRequestId: RETURN_ID });
     assert.equal(result.success, true);
+  });
+});
+
+describe('A supplier cannot refund on their own', () => {
+  test('a supplier REFUND is escalated to the admin queue and moves no money', async () => {
+    const { db, ledgerRows, claimUpdates } = createScenarioDb();
+
+    const result = await supplierProposesRefund(db);
+
+    assert.equal(result.status, 'ESCALATED');
+    assert.equal(result.pendingApproval, true);
+    assert.equal(ledgerRows.length, 0);
+    assert.equal(claimUpdates.length, 1);
+  });
+
+  test('an admin approving the escalated claim pays the refund', async () => {
+    const { db, ledgerRows, setClaimStatus, setClaimResolution } = createScenarioDb();
+    setClaimStatus('ESCALATED');
+    setClaimResolution('REFUND');
+
+    const result = await approveRefund(db);
+
+    assert.equal(result.status, 'APPROVED');
+    assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), 20000);
+  });
+
+  test('the supplier cannot change a claim while it waits for an admin', async () => {
+    const { db, setClaimStatus } = createScenarioDb();
+    setClaimStatus('ESCALATED');
+
+    await assert.rejects(supplierProposesRefund(db), /CLAIM_AWAITING_ADMIN/);
+  });
+});
+
+describe('One warranty claim refunds one unit', () => {
+  test('qty 2: each claim refunds one unit, a third is refused', async () => {
+    const { db, ledgerRows, setItem, nextClaim } = createScenarioDb();
+    setItem(2, '400.00');
+
+    const first = await approveRefund(db, nextClaim());
+    const second = await approveRefund(db, nextClaim());
+
+    assert.equal(first.refundAmount, '200.00');
+    assert.equal(second.refundAmount, '200.00');
+    await assert.rejects(approveRefund(db, nextClaim()), /ITEM_ALREADY_REFUNDED/);
+    assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), 40000, 'never more than the line total');
+  });
+
+  test('the last unit takes the rounding remainder', async () => {
+    const { db, setItem, nextClaim } = createScenarioDb();
+    setItem(3, '1000.00');
+
+    const amounts = [];
+    for (let i = 0; i < 3; i++) amounts.push((await approveRefund(db, nextClaim())).refundAmount);
+
+    assert.deepEqual(amounts, ['333.33', '333.33', '333.34']);
+  });
+
+  test('units already returned count against the warranty', async () => {
+    const { db, setItem, markItemReturned, nextClaim } = createScenarioDb();
+    setItem(2, '400.00');
+    markItemReturned(1);
+
+    const result = await approveRefund(db, nextClaim());
+    assert.equal(result.refundAmount, '200.00');
+    await assert.rejects(approveRefund(db, nextClaim()), /ITEM_ALREADY_REFUNDED/);
   });
 });
 

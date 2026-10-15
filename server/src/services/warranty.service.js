@@ -345,7 +345,9 @@ export async function submitWarrantyClaim(db, {
     // Check for open pending claims
     const { rows: pendingClaims } = await txClient.query(
       `SELECT id, ref, status FROM warranty_claims
-       WHERE warranty_card_id = $1 AND status IN ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'IN_PROGRESS')
+       WHERE warranty_card_id = $1 AND status IN ('SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'IN_PROGRESS', 'ESCALATED')
+         -- WHY: a paid REFUND is finished, and the card may cover more units (one unit per claim).
+         AND NOT (status = 'APPROVED' AND resolution = 'REFUND')
        LIMIT 1`,
       [warrantyCardId]
     );
@@ -446,7 +448,7 @@ export async function reviewWarrantyClaim(db, {
               so.ref AS sub_order_ref, o.recipient_name, o.recipient_phone,
               jsonb_build_object('division', o.division, 'district', o.district,
                                  'upazila', o.upazila, 'address_line', o.address_line) AS delivery_address_json,
-              oi.line_total, oi.retail_price, oi.sub_order_id, wc.order_item_id
+              oi.line_total, oi.retail_price, oi.qty, oi.sub_order_id, wc.order_item_id
        FROM warranty_claims c
        JOIN warranty_cards wc ON wc.id = c.warranty_card_id
        JOIN order_items oi ON oi.id = wc.order_item_id
@@ -470,6 +472,11 @@ export async function reviewWarrantyClaim(db, {
     }
 
     const decidBy = isStaffOverride ? staffUserId : (supplierId || claim.supplier_id);
+
+    // An escalated REFUND is waiting for an admin; the supplier cannot change it meanwhile.
+    if (!isStaffOverride && claim.status === 'ESCALATED') {
+      throw new Error(`CLAIM_AWAITING_ADMIN: Warranty claim ${claim.ref} is waiting for an admin decision.`);
+    }
 
     // 2. Reject flow
     if (action === 'REJECT') {
@@ -526,6 +533,39 @@ export async function reviewWarrantyClaim(db, {
     const finalResolution = ['REPAIR', 'REPLACE', 'REFUND'].includes(resolution) ? resolution : 'REPAIR';
     let reverseShipmentId = null;
 
+    // WHY: a supplier may not refund on their own (decided 2026-10-15). Their REFUND is a proposal:
+    // the claim is escalated to the admin queue and the money moves only when an admin approves it.
+    if (finalResolution === 'REFUND' && !isStaffOverride) {
+      await txClient.query(
+        `UPDATE warranty_claims
+         SET status = 'ESCALATED',
+             resolution = 'REFUND',
+             supplier_notes = $2,
+             updated_at = now()
+         WHERE id = $1`,
+        [claimId, supplierNotes || null]
+      );
+
+      await writeAudit(txClient, {
+        actorId: decidBy,
+        actorRole: 'supplier',
+        action: 'support.warranty.manage',
+        targetType: 'warranty_claim',
+        targetRef: claim.ref,
+        beforeJson: { status: claim.status, resolution: claim.resolution ?? null },
+        afterJson: { status: 'ESCALATED', proposed_resolution: 'REFUND' },
+        riskTier: 'LOW',
+      }).catch(() => {});
+
+      return {
+        success: true,
+        status: 'ESCALATED',
+        resolution: 'REFUND',
+        pendingApproval: true,
+        claimId,
+      };
+    }
+
     // For physical inspection (Repair / Replace), book reverse consignment with 3PL courier
     if (finalResolution === 'REPAIR' || finalResolution === 'REPLACE') {
       try {
@@ -572,7 +612,8 @@ export async function reviewWarrantyClaim(db, {
     let refund = null;
     if (finalResolution === 'REFUND') {
       // The claim row is locked FOR UPDATE above, so this also stops two concurrent approvals.
-      if (claim.resolution === 'REFUND') {
+      // An ESCALATED claim carries resolution REFUND as the supplier's proposal, not as money paid.
+      if (claim.resolution === 'REFUND' && claim.status !== 'ESCALATED') {
         throw new Error(`CLAIM_ALREADY_REFUNDED: Warranty claim ${claim.ref} has already been refunded.`);
       }
       refund = await clawbackService.processWarrantyRefund(txClient, {
@@ -580,6 +621,8 @@ export async function reviewWarrantyClaim(db, {
         claimRef: claim.ref,
         subOrderId: claim.sub_order_id,
         orderItemId: claim.order_item_id,
+        warrantyCardId: claim.warranty_card_id,
+        quantity: claim.qty,
         supplierId: claim.supplier_id,
         customerId: claim.customer_id,
         amount: claim.line_total,
@@ -1022,6 +1065,7 @@ export async function getAdminClaimsQueue(db, { status = null, limit = 50, offse
   const { rows } = await db.query(
     `SELECT c.*,
             wc.ref AS warranty_card_ref, wc.serial_number,
+            oi.qty AS item_qty, oi.line_total AS item_line_total,
             p.id AS product_id, p.title_en AS product_title_en,
             COALESCE(custp.display_name, custp.full_name) AS customer_name,
             COALESCE(suppp.display_name, suppp.full_name) AS supplier_name,

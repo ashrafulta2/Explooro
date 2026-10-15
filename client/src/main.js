@@ -1520,6 +1520,14 @@ async function bootRouterDemo() {
         load: () => import('./pages/admin/ReturnsQueuePage.js'),
       },
       {
+        path: '/admin/warranty-claims',
+        title: () => `${t('nav.admin.warranty_claims')} — Explooro`,
+        requiresAuth: true,
+        permission: 'support.warranty.override',
+        module: 'digital_warranty',
+        load: () => import('./pages/admin/AdminWarrantyClaimsPage.js'),
+      },
+      {
         path: '/admin/returns/queue',
         title: 'Returns Moderation Queue — Explooro',
         requiresAuth: true,

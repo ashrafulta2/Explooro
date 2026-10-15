@@ -350,8 +350,9 @@ export async function getPendingRecoveries(db, { walletId = null, limit = 50, cl
 }
 
 /**
- * Refunds ONE warranty claim: the customer gets the claimed order item's line total, and the
- * supplier who issued the warranty pays all of it.
+ * Refunds ONE warranty claim: the customer gets ONE unit of the claimed order item, and the
+ * supplier who issued the warranty pays all of it. A card covering qty > 1 needs one claim per unit
+ * (decided 2026-10-15); the last unit takes the rounding remainder so the units sum to line_total.
  *
  * WHY not processReturnClawback: a warranty card covers one order item, but escrow is held per
  * sub-order. Clawing back the sub-order refunded every item in it (a ৳200 cable refunded ৳1,260)
@@ -370,9 +371,11 @@ export async function getPendingRecoveries(db, { walletId = null, limit = 50, cl
  * @param {string} params.claimRef
  * @param {number|string} params.subOrderId
  * @param {number|string} params.orderItemId - the order item the warranty card covers
+ * @param {number|string} params.warrantyCardId
+ * @param {number|string} params.quantity - units on the order item
  * @param {number|string} params.supplierId - user id of the supplier who issued the warranty
  * @param {number|string} params.customerId
- * @param {string} params.amount - the claimed item's line_total, NUMERIC(14,2) as pg returns it
+ * @param {string} params.amount - the order item's line_total, NUMERIC(14,2) as pg returns it
  * @param {number|string|null} params.approvedBy - who approved the claim (supplier or staff)
  * @param {string} params.actorRole
  * @param {import('pg').PoolClient} [params.client]
@@ -382,6 +385,8 @@ export async function processWarrantyRefund(db, {
   claimRef,
   subOrderId,
   orderItemId,
+  warrantyCardId,
+  quantity,
   supplierId,
   customerId,
   amount,
@@ -390,25 +395,40 @@ export async function processWarrantyRefund(db, {
   client = null,
 }) {
   const runner = async (txClient) => {
-    const refundPaisa = Math.round(parseFloat(String(amount)) * 100);
-    if (!Number.isFinite(refundPaisa) || refundPaisa <= 0) {
+    const linePaisa = Math.round(parseFloat(String(amount)) * 100);
+    if (!Number.isFinite(linePaisa) || linePaisa <= 0) {
       throw new Error(`INVALID_REFUND_AMOUNT: Warranty claim ${claimRef} has no refundable line total (${amount}).`);
     }
-    const refundAmount = (refundPaisa / 100).toFixed(2);
-
-    const { rows: returnedRows } = await txClient.query(
-      `SELECT 1
-       FROM return_items ri
-       JOIN return_requests r ON r.id = ri.return_request_id
-       WHERE ri.order_item_id = $1 AND r.status = 'REFUNDED'
-       LIMIT 1`,
-      [orderItemId]
-    );
-    if (returnedRows.length > 0) {
-      throw new Error(`ITEM_ALREADY_RETURNED: The item on warranty claim ${claimRef} was already returned and refunded.`);
-    }
+    const qty = Math.max(1, Math.floor(Number(quantity)) || 1);
     // pg returns BIGINT ids as strings; the ledger's reference_id is numeric.
     const referenceId = Number(claimId);
+
+    // Units already refunded on this order item, by a return or an earlier warranty claim.
+    const { rows: usedRows } = await txClient.query(
+      `SELECT
+         (SELECT COALESCE(SUM(ri.quantity), 0)
+            FROM return_items ri
+            JOIN return_requests r ON r.id = ri.return_request_id
+           WHERE ri.order_item_id = $1 AND r.status = 'REFUNDED')::int AS returned_qty,
+         (SELECT COUNT(DISTINCT c.id)
+            FROM ledger_transactions lt
+            JOIN warranty_claims c ON c.id = lt.reference_id
+           WHERE lt.reference_type = 'WARRANTY_CLAIM' AND lt.category = 'REFUND'
+             AND lt.entry_type = 'CREDIT' AND c.warranty_card_id = $2)::int AS warranty_units`,
+      [orderItemId, warrantyCardId]
+    );
+    const returnedQty = Number(usedRows[0]?.returned_qty ?? 0);
+    const usedUnits = returnedQty + Number(usedRows[0]?.warranty_units ?? 0);
+    if (returnedQty >= qty) {
+      throw new Error(`ITEM_ALREADY_RETURNED: The item on warranty claim ${claimRef} was already returned and refunded.`);
+    }
+    if (usedUnits >= qty) {
+      throw new Error(`ITEM_ALREADY_REFUNDED: Every unit of the item on warranty claim ${claimRef} was already refunded.`);
+    }
+
+    const unitPaisa = Math.floor(linePaisa / qty);
+    const refundPaisa = usedUnits === qty - 1 ? linePaisa - unitPaisa * (qty - 1) : unitPaisa;
+    const refundAmount = (refundPaisa / 100).toFixed(2);
 
     const supplierWallet = await walletRepo.getOrCreateWallet(db, supplierId, { client: txClient });
     const customerWallet = await walletRepo.getOrCreateWallet(db, customerId, { client: txClient });
@@ -598,21 +618,24 @@ export async function processPartialReturnClawback(db, {
                           JOIN return_requests r2 ON r2.id = r2i.return_request_id
                          WHERE r2i.order_item_id = ri.order_item_id
                            AND r2.status = 'REFUNDED' AND r2.id <> $1), 0)::int AS prior_qty,
-              EXISTS (SELECT 1
-                        FROM warranty_cards wc
-                        JOIN warranty_claims c ON c.warranty_card_id = wc.id
-                       WHERE wc.order_item_id = ri.order_item_id AND c.resolution = 'REFUND') AS warranty_refunded
+              (SELECT COUNT(*)
+                 FROM warranty_cards wc
+                 JOIN warranty_claims c ON c.warranty_card_id = wc.id
+                WHERE wc.order_item_id = ri.order_item_id AND c.resolution = 'REFUND'
+                  AND c.status IN ('APPROVED', 'IN_PROGRESS', 'COMPLETED'))::int AS warranty_units
        FROM return_items ri
        JOIN order_items oi ON oi.id = ri.order_item_id
        WHERE ri.return_request_id = $1`,
       [returnRequestId]
     );
     for (const row of usedRows) {
-      if (row.warranty_refunded) {
-        throw new Error(`ITEM_ALREADY_REFUNDED: Order item #${row.order_item_id} was already refunded through a warranty claim.`);
-      }
-      if (Number(row.prior_qty) + Number(row.this_qty) > Number(row.qty)) {
-        throw new Error(`ITEM_ALREADY_RETURNED: Order item #${row.order_item_id} was already returned.`);
+      const used = Number(row.prior_qty) + Number(row.warranty_units);
+      if (used + Number(row.this_qty) > Number(row.qty)) {
+        throw new Error(
+          Number(row.warranty_units) > 0
+            ? `ITEM_ALREADY_REFUNDED: Order item #${row.order_item_id} was already refunded through a warranty claim.`
+            : `ITEM_ALREADY_RETURNED: Order item #${row.order_item_id} was already returned.`
+        );
       }
     }
 

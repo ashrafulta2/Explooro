@@ -263,9 +263,13 @@ export default function WarrantyClaimsPage(root) {
             </span>
           </td>
           <td style="text-align: right;">
+            ${claim.status === 'ESCALATED' ? `
+            <span class="badge badge--warning text-xs">${t('warranty.awaiting_admin', 'Waiting for admin')}</span>
+            ` : `
             <button class="btn btn--xs btn--primary review-claim-btn" data-id="${claim.id}">
               🔍 Review & Resolve
             </button>
+            `}
           </td>
         </tr>
       `;
@@ -373,6 +377,7 @@ export default function WarrantyClaimsPage(root) {
             <select class="input input--sm" id="resolution-action-select">
               <option value="APPROVE_REPLACE">🔄 Approve Brand New Replacement</option>
               <option value="APPROVE_REPAIR">🔧 Approve Factory Repair (Reverse Courier)</option>
+              <option value="APPROVE_REFUND">${t('warranty.supplier_option_refund', 'Propose a refund (an admin must approve it)')}</option>
               <option value="REJECT">🚫 Reject Claim (Out of Policy / Customer Damage)</option>
             </select>
           </div>
@@ -397,9 +402,17 @@ export default function WarrantyClaimsPage(root) {
       const action = modalBackdrop.querySelector('#resolution-action-select').value;
       const notes = modalBackdrop.querySelector('#technician-notes').value.trim();
 
+      // The live API takes action APPROVE/REJECT plus a resolution; a REFUND only escalates to an admin.
+      const isReject = action === 'REJECT';
+      const body = isReject
+        ? { action: 'REJECT', rejection_reason: notes, supplier_notes: notes }
+        : { action: 'APPROVE', resolution: action.replace('APPROVE_', ''), supplier_notes: notes };
+
       try {
-        await api.post(`/supplier/claims/${claim.id}/resolve`, { action, notes });
-        toast.success('Warranty claim resolved successfully.');
+        const res = await api.post(`/supplier/claims/${claim.id}/review`, body);
+        toast.success(res?.data?.status === 'ESCALATED'
+          ? t('warranty.refund_sent_for_approval', 'Refund sent to an admin for approval.')
+          : 'Warranty claim resolved successfully.');
         close();
         loadData();
       } catch (err) {
