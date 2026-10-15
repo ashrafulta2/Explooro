@@ -20,6 +20,14 @@ function generateCode() {
   return String(randomInt(0, 1_000_000)).padStart(6, '0');
 }
 
+/**
+ * Sends a code by SMS or email. One of phone or email is required.
+ * @param {*} db
+ * @param {*} cache
+ * @param {*} smsSender
+ * @param {*} emailSender
+ * @param {{ phone?: string|null, email?: string|null, purpose: string, ip?: string, isDevelopment?: boolean }} params
+ */
 export async function sendOtp(db, cache, smsSender, emailSender, { phone, email, purpose, ip, isDevelopment }) {
   if (!phone && !email) {
     throw new AppError('VALIDATION_FAILED', 'A phone number or email address is required to send OTP.', 'ওটিপি পাঠাতে ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');
@@ -57,7 +65,12 @@ export async function sendOtp(db, cache, smsSender, emailSender, { phone, email,
   return { expiresInS: OTP_TTL_SECONDS, devCode: isDevelopment ? code : undefined };
 }
 
-/** Throws OTP_EXPIRED / OTP_ATTEMPTS_EXCEEDED / OTP_INVALID; returns the consumed row on success. */
+/**
+ * Throws OTP_EXPIRED / OTP_ATTEMPTS_EXCEEDED / OTP_INVALID; returns the consumed row on success.
+ * One of phone or email is required.
+ * @param {*} db
+ * @param {{ phone?: string|null, email?: string|null, purpose: string, code: string }} params
+ */
 export async function verifyOtp(db, { phone, email, purpose, code }) {
   if (!phone && !email) {
     throw new AppError('VALIDATION_FAILED', 'A phone number or email address is required.', 'ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');

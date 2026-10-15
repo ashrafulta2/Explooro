@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * order.service.js — Order management and cancellation service (Prompt 5.2).
  *

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * referralEscrow.service.js — what happens to a referral commission after it is earned.
  *
@@ -111,7 +112,7 @@ export async function releaseDueEarnings(db, { batchSize = DEFAULT_BATCH_SIZE } 
 /**
  * Settles every held earning on one referral inside the caller's transaction.
  * @param {'RELEASE'|'VOID'} decision
- * @returns {{ count: number, amount: string }}
+ * @returns {Promise<{ count: number, amount: string }>}
  */
 export async function settleReferralEarnings(client, referralId, decision, memo) {
   if (decision !== 'RELEASE' && decision !== 'VOID') {

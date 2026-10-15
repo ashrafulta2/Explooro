@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * codGate.service.js — the Cash on Delivery trust / OTP gate, shared by checkout and team purchase.
  *
