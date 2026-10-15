@@ -16,7 +16,7 @@ export class RedxCourierAdapter {
     recipientPhone,
     deliveryAddress,
     codAmount = 0,
-  } = {}) {
+  }) {
     const trackingNumber = `REDX-${Date.now()}`;
     return {
       success: true,

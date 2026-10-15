@@ -33,7 +33,7 @@ export class MockCourierAdapter {
     codAmount = 0,
     weightKg = 0.5,
     itemDescription = 'Apparel & Goods',
-  } = {}) {
+  }) {
     const randomHex = Math.floor(Math.random() * 0xffffff).toString(16).toUpperCase().padStart(6, '0');
     const trackingNumber = `TRK-MOCK-${randomHex}`;
     const courierConsignmentId = `MOCK-CN-${randomHex}`;

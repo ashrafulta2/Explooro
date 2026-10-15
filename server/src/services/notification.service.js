@@ -224,7 +224,7 @@ export async function notify(db, {
   channels = null,
   priority = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Fetch user info
     const { rows: userRows } = await txClient.query(

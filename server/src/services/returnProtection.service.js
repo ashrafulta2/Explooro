@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * returnProtection.service.js — A shop partner keeps their commission when a protected order is returned
  * (supplier attraction, step 5b).

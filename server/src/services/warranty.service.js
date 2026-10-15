@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * warranty.service.js — Digital Warranty & Claims Engine (Prompt 10.4 / Master Spec §AA).
  *
@@ -35,7 +36,7 @@ export function generateClaimRef() {
 /**
  * Auto-issues digital warranty cards for all eligible items in a delivered sub-order.
  */
-export async function issueWarrantiesForSubOrder(db, { subOrderId, client = null } = {}) {
+export async function issueWarrantiesForSubOrder(db, { subOrderId, client = null }) {
   const runner = async (txClient) => {
     // 1. Fetch sub-order, items, product warranty duration, and category transferability
     const { rows: items } = await txClient.query(
@@ -312,7 +313,7 @@ export async function submitWarrantyClaim(db, {
   evidenceMedia = [],
   preferredResolution = 'REPAIR',
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Fetch & lock warranty card
     const { rows: cardRows } = await txClient.query(
@@ -436,7 +437,7 @@ export async function reviewWarrantyClaim(db, {
   isStaffOverride = false,
   staffUserId = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Fetch claim and parent card details
     const { rows: claimRows } = await txClient.query(
@@ -653,7 +654,7 @@ export async function updateClaimProgress(db, {
   supplierNotes = '',
   isStaffOverride = false,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     const { rows } = await txClient.query(
       `SELECT c.*, wc.supplier_id, wc.customer_id
@@ -720,7 +721,7 @@ export async function transferWarrantyCard(db, {
   currentCustomerId,
   targetPhoneOrEmail,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Fetch warranty card
     const { rows: cardRows } = await txClient.query(

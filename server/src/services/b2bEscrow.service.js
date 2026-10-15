@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * b2bEscrow.service.js — B2B Wholesale Escrow & Milestone Settlement Service (Prompt 10.6).
  *
@@ -79,7 +80,7 @@ export function calculateMilestonesSchedule({ totalAmount, milestones = [] }) {
 /**
  * Computes an immutable SHA-256 hash of agreed contract terms and milestone schedule.
  */
-export function computeAgreedTermsHash({ dealRef, totalAmount, buyerId, supplierId, terms = {}, milestones = [] }) {
+export function computeAgreedTermsHash({ dealRef, totalAmount, buyerId, supplierId, terms = /** @type {Record<string, any>} */ ({}), milestones = [] }) {
   const canonical = {
     dealRef,
     totalAmount: parseFloat(totalAmount).toFixed(2),
@@ -872,8 +873,8 @@ export async function cancelDeal(db, { dealId, actorId, reason = '' }) {
 export function generateContractPdf({
   deal,
   milestones = [],
-  buyer = {},
-  supplier = {},
+  buyer = /** @type {Record<string, any>} */ ({}),
+  supplier = /** @type {Record<string, any>} */ ({}),
 }) {
   const dealRef = deal.ref || 'B2B-0000';
   const dealTitle = (deal.title_en || 'B2B Wholesale Escrow Agreement').replace(/[()\\]/g, '');

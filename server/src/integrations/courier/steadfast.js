@@ -26,7 +26,7 @@ export class SteadfastCourierAdapter {
     deliveryAddress,
     codAmount = 0,
     itemDescription = '',
-  } = {}) {
+  }) {
     const consignmentId = `ST-${Date.now().toString(36).toUpperCase()}`;
     const trackingNumber = `CID-${Date.now()}`;
 

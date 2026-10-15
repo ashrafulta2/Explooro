@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * codReconciliation.service.js — 3-Way COD Reconciliation Engine (Prompt 6.4).
  *
@@ -38,7 +39,7 @@ export async function ingestSettlementReport(db, {
   tolerance = 0.00,
   importedBy = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     const normCourier = normalizeCourier(courier);
     const resolvedBatchRef = batchRef || `BATCH-${normCourier}-${Date.now().toString(36).toUpperCase()}`;
@@ -288,7 +289,7 @@ export async function resolveDiscrepancy(db, {
   resolvedBy,
   role = 'admin',
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     if (!resolutionReason || resolutionReason.trim().length < 5) {
       throw new Error('RESOLUTION_REASON_REQUIRED: A documented resolution reason of at least 5 characters is required.');

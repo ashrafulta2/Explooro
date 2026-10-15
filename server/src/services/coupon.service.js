@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * coupon.service.js — Coupon & Voucher Promotion Service (Prompt 9.2).
  *
@@ -136,7 +137,7 @@ export async function createCoupon(db, cache, creatorUser, couponData, reqMeta =
  * @param {number} params.subtotal - Total cart qualifying amount
  * @param {number} [params.shippingAmount=0] - Shipping fee for free shipping calculation
  * @param {boolean} [params.forUpdate=false] - Whether to lock the coupon row
- * @returns {Promise<{ valid: boolean, coupon: Object, discountAmount: number, reason?: string, attribution: Object }>}
+ * @returns {Promise<{ valid: boolean, coupon?: Object, discountAmount?: number, reason?: string, attribution?: Object, [extra: string]: any }>}
  */
 export async function validateCoupon(db, {
   code,
@@ -349,7 +350,7 @@ export async function redeemCouponInTransaction(client, {
 /**
  * Lists coupons for management with budget and usage analytics.
  */
-export async function listCoupons(db, { scopeType, fundedBy, isActive, limit = 50, offset = 0 } = {}) {
+export async function listCoupons(db, { scopeType, fundedBy, isActive, limit = 50, offset = 0 }) {
   let query = `
     SELECT c.*,
            u.display_name as creator_name,

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * return.service.js — Return & Refund Engine (DFD Subsystem 9.0 / Prompt 7.2).
  *
@@ -55,7 +56,7 @@ export async function createReturnRequest(db, cache, {
   evidenceUrls = [],
   preferredResolution = 'WALLET_REFUND',
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Fetch sub-order, order, and delivery timestamp
     const { rows: subRows } = await txClient.query(
@@ -275,7 +276,7 @@ export async function reviewReturnRequest(db, cache, {
   rejectionReason = '',
   reviewedBy = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     const { rows: retRows } = await txClient.query(
       `SELECT r.*, s.ref AS sub_order_ref, s.supplier_id, o.recipient_name, o.recipient_phone,
@@ -351,7 +352,7 @@ export async function receiveAndInspectReturn(db, {
   conditionPass = true,
   inspectedBy = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     const nextStatus = conditionPass ? 'INSPECTED' : 'DISPUTED';
 
@@ -390,7 +391,7 @@ export async function executeRefund(db, cache, {
   returnRequestId,
   approvedBy = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Fetch return request
     const { rows: retRows } = await txClient.query(

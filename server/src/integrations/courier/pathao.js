@@ -18,7 +18,7 @@ export class PathaoCourierAdapter {
     recipientPhone,
     deliveryAddress,
     codAmount = 0,
-  } = {}) {
+  }) {
     const consignmentId = `PT-${Date.now().toString(36).toUpperCase()}`;
     const trackingNumber = `PTH-${Date.now()}`;
 

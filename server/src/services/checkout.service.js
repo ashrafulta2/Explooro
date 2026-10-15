@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * checkout.service.js — Transactional Checkout Engine (Prompt 5.2).
  *
