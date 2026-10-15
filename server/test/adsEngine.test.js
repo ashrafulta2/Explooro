@@ -23,7 +23,7 @@ import {
   runSecondPriceAuction,
   MIN_RESERVE_PRICE,
 } from '../src/services/adAuction.service.ts';
-import * as adsService from '../src/services/ads.service.js';
+import * as adsService from '../src/services/ads.service.ts';
 
 describe('Prompt 9.1: Sponsored Ads Engine', () => {
 

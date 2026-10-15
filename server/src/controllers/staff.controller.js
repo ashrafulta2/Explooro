@@ -10,7 +10,7 @@
  * same convention user.controller.js follows).
  */
 
-import * as staffService from '../services/staff.service.js';
+import * as staffService from '../services/staff.service.ts';
 import { runIdempotent } from '../lib/idempotency.ts';
 
 const requestMeta = (req) => ({

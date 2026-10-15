@@ -2,7 +2,7 @@
  * dispute.routes.js — Fastify Route definitions for Dispute Arbitration Engine (Prompt 7.3).
  */
 
-import * as controller from '../controllers/dispute.controller.js';
+import * as controller from '../controllers/dispute.controller.ts';
 
 export default async function disputeRoutes(app) {
   // 1. Create Dispute

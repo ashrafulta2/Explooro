@@ -18,7 +18,7 @@ import Fastify from 'fastify';
 import * as walletRepo from '../src/repositories/wallet.repository.ts';
 import * as vaultService from '../src/services/vault.service.ts';
 import * as financeController from '../src/controllers/finance.controller.ts';
-import financeRoutes from '../src/routes/finance.routes.js';
+import financeRoutes from '../src/routes/finance.routes.ts';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 

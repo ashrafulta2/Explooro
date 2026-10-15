@@ -10,7 +10,7 @@ import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.ts';
 import * as recoCache from './recoCache.service.ts';
 import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.ts';
-import { runAuction as runAdAuction } from './ads.service.js';
+import { runAuction as runAdAuction } from './ads.service.ts';
 import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.ts';
 import { getReservedForProduct, withAvailableStock } from './teamStockReservation.service.ts';
 

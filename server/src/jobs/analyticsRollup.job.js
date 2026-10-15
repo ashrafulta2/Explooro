@@ -7,7 +7,7 @@
  * - Automatic registration with the distributed job scheduler.
  */
 
-import * as analyticsService from '../services/analytics.service.js';
+import * as analyticsService from '../services/analytics.service.ts';
 import { registerJob } from './scheduler.ts';
 
 export async function runNightlyAnalyticsRollup(db, cache, logger = console) {
@@ -33,10 +33,10 @@ export async function runNightlyAnalyticsRollup(db, cache, logger = console) {
 }
 
 // Register with distributed job scheduler to run daily
+// WHY no module/cron keys: the scheduler reads neither (it runs every intervalMs from process start),
+// and 'core' is not a module that can be switched off.
 registerJob({
   name: 'analytics_nightly_rollup',
-  module: 'core',
-  cron: '0 1 * * *', // 1:00 AM daily
   intervalMs: 86400000, // 24 hours
   handler: runNightlyAnalyticsRollup,
 });

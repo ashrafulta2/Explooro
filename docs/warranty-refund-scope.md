@@ -158,7 +158,7 @@ shipping is not refunded on a partial return.
 1. One protection cover pays once. A partial-return claim consumes it, so a later full return on the
    same sub-order gets no protection payout.
 2. ~~`negative_balance_recoveries` rows stay `PENDING`~~ **Fixed 2026-10-15.** The daily
-   `deficit_recovery` job (`jobs/deficitRecovery.job.js` → `clawback.service.ts`
+   `deficit_recovery` job (`jobs/deficitRecovery.job.ts` → `clawback.service.ts`
    `settleDeficitRecoveries`) marks them `PARTIALLY_RECOVERED` / `RECOVERED` as the wallet's balance
    climbs back. No money moves: the clawback already debited the full amount.
 

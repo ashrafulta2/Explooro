@@ -268,15 +268,15 @@ describe('the wired route files', () => {
     'ads.routes.js',
     'cartRecovery.routes.js',
     'delegation.routes.js',
-    'finance.routes.js',
+    'finance.routes.ts',
     'genie.routes.ts',
     'localization.routes.ts',
-    'notification.routes.js',
+    'notification.routes.ts',
     'publicApi.routes.ts',
     'return.routes.js',
     'saler.routes.js',
     'subscription.routes.ts',
-    'supplier.routes.js',
+    'supplier.routes.ts',
   ];
 
   async function inspect(file) {

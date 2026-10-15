@@ -10,7 +10,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { handleSocketMessage } from '../src/sockets/chat.handler.js';
+import { handleSocketMessage } from '../src/sockets/chat.handler.ts';
 import { registerUserSocket } from '../src/sockets/presence.ts';
 
 function createMockDb() {

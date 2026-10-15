@@ -3,7 +3,7 @@
  */
 
 import * as kycService from '../services/kyc.service.ts';
-import * as kycDecisionService from '../services/kycDecision.service.js';
+import * as kycDecisionService from '../services/kycDecision.service.ts';
 import * as trustTierService from '../services/trustTier.service.ts';
 
 export async function submitStep(req, reply) {

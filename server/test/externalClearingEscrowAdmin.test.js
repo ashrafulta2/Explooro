@@ -90,7 +90,7 @@ describe('1. external clearing wallet', () => {
     assert.ok(!/user_id <> 1/.test(c), 'the treasury is found by role, not assumed to be user 1');
     assert.match(c, /SUM\(pending_escrow_balance\), 0\) AS total_escrow,/);
     assert.match(c, /SUM\(held_balance\) FILTER \(WHERE NOT is_treasury\)/);
-    assert.match(src('services/analytics.service.js'), /SUM\(pending_escrow_balance\), 0\) as escrow_liability/);
+    assert.match(src('services/analytics.service.ts'), /SUM\(pending_escrow_balance\), 0\) as escrow_liability/);
   });
 });
 
@@ -191,7 +191,7 @@ describe('2. admin Escrow page reads real escrow', () => {
   });
 
   test('both write endpoints are super admin only and audited', () => {
-    const routes = src('routes/finance.routes.js');
+    const routes = src('routes/finance.routes.ts');
     assert.match(routes, /'\/admin\/finance\/escrow\/:subOrderId\/release'[\s\S]{0,200}requirePermission\('finance\.escrow\.release_manual'\)/);
     assert.match(routes, /'\/admin\/finance\/escrow\/sweep'[\s\S]{0,200}requirePermission\('finance\.escrow\.release_manual'\)/);
     assert.match(src('services/escrowAdmin.service.ts'), /action: 'finance\.escrow\.release_manual'/);

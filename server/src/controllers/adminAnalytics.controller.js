@@ -2,7 +2,7 @@
  * adminAnalytics.controller.js — Fastify controller for Super Admin Executive Dashboard (Prompt 11.4).
  */
 
-import * as analyticsService from '../services/analytics.service.js';
+import * as analyticsService from '../services/analytics.service.ts';
 import { writeAudit } from '../lib/audit.ts';
 
 export async function getOverviewHandler(req, reply) {

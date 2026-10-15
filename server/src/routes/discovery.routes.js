@@ -11,7 +11,7 @@ import * as discoveryController from '../controllers/discovery.controller.js';
 
 export default async function discoveryRoutes(app) {
   // Attach req.user when a valid session is present, but never reject an anonymous caller —
-  // mirrors module.routes.js's optionalAuth.
+  // mirrors module.routes.ts's optionalAuth.
   const optionalAuth = async (req, reply) => {
     try {
       if (app.authenticate) await app.authenticate(req, reply);

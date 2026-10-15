@@ -39,7 +39,7 @@ export async function createStandingGrant(
     ip,
     userAgent,
     traceId,
-  }
+  }: Record<string, any>
 ) {
   const userId = rawUserId ?? rawUserId2;
   const permissionKey = rawPermKey ?? rawPermKey2;

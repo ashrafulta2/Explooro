@@ -11,7 +11,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import * as flyerService from '../src/services/flyer.service.ts';
-import socialKitRoutes from '../src/routes/socialKit.routes.js';
+import socialKitRoutes from '../src/routes/socialKit.routes.ts';
 
 describe('social kit templates', () => {
   test('each advertised format renders at its advertised size', () => {

@@ -30,7 +30,7 @@ const FIX_HINT = [
   '',
   "    preHandler: [authenticate, app.requireModule('module_key'), app.requirePermission('domain.resource.action')]",
   '',
-  'See server/src/routes/supplier.routes.js for an example, and',
+  'See server/src/routes/supplier.routes.ts for an example, and',
   'server/src/middlewares/requireModule.ts / requirePermission.ts for the factories.',
 ].join('\n');
 

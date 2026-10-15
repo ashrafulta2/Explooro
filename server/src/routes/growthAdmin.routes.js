@@ -3,7 +3,7 @@
  * (/admin/growth/ads, /admin/growth/quests, /admin/growth/coins).
  */
 
-import * as growthAdminController from '../controllers/growthAdmin.controller.js';
+import * as growthAdminController from '../controllers/growthAdmin.controller.ts';
 
 export default async function growthAdminRoutes(app) {
   const requireAdsModule = app.requireModule('sponsored_ads');

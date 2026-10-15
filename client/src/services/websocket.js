@@ -259,7 +259,7 @@ class WebSocketManager {
   }
 
   handleIncomingFrame(frame) {
-    // WHY the flat reads: server/src/sockets/chat.handler.js sends
+    // WHY the flat reads: server/src/sockets/chat.handler.ts sends
     // { type, clientMsgId, messageId, threadId } and { type, threadId, message: {...} } — it has
     // never wrapped frames in a `payload` object. Destructuring `payload` off the frame left it
     // undefined, so no ack ever cleared the outbound queue and no inbound message ever advanced

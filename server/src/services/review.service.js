@@ -4,7 +4,7 @@
 
 import * as reviewRepo from '../repositories/review.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
-import { evaluateAndFlag } from './ai/reviewIntegrity.js';
+import { evaluateAndFlag } from './ai/reviewIntegrity.ts';
 
 /**
  * Whether the current user may submit a review right now, and why not if they can't. Mirrors the

@@ -2,7 +2,7 @@
  * subscriptionBilling.service.ts — Shop Partner Pro from the merchant's side, and the renewal engine.
  *
  * Self-serve: subscribe, cancel, resume. Background: the hourly renewal sweep (jobs/
- * subscriptionRenewal.job.js) that bills renewals, runs the grace period, lifts expired waivers and
+ * subscriptionRenewal.job.ts) that bills renewals, runs the grace period, lifts expired waivers and
  * sends reminders. Admin-side plan / settings CRUD lives in subscription.service.ts.
  *
  * Invariants:

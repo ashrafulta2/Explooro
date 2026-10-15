@@ -106,7 +106,7 @@ export async function purgeExpiredSignals(
   { now = new Date(), batchSize = BATCH_SIZE, maxBatches = MAX_BATCHES_PER_TABLE } = {}
 ): Promise<{
 retentionDays: number; cutoff: string; covisitWindowDays: number;
-shortensCovisitWindow: boolean; deleted: number; tables: any; errors: any[];
+shortensCovisitWindow: boolean; deleted: number; tables: Record<string, any>; errors: any[];
 }> {
   const retentionDays = await resolveRetentionDays(db);
   const cutoff = retentionCutoff(retentionDays, now);

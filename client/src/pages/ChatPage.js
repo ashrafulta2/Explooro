@@ -111,7 +111,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
   async function loadData() {
     try {
       // WHY the session store and not a request: this used to GET /me, which is not a route —
-      // me.routes.js mounts at /api/v1/me and registers only /permissions, so there has never
+      // me.routes.ts mounts at /api/v1/me and registers only /permissions, so there has never
       // been a bare /me endpoint to call. initSession() already holds the authenticated user,
       // so read it there rather than round-tripping for something we have.
       currentUserId = getCurrentUser()?.id ?? currentUserId;
@@ -410,7 +410,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
     updateConnectionBadge(status);
   });
 
-  // WHY the flat camelCase reads below: server/src/sockets/chat.handler.js and
+  // WHY the flat camelCase reads below: server/src/sockets/chat.handler.ts and
   // chat.service.ts send frames as { type, clientMsgId, messageId, threadId } and
   // { type, threadId, message: {...} } — never wrapped in a `payload` object. This handler
   // destructured `payload` off the frame, so it was undefined on every live frame and the whole

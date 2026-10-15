@@ -13,7 +13,7 @@
 
 import { describe, test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import * as liveService from '../src/services/liveStream.service.js';
+import * as liveService from '../src/services/liveStream.service.ts';
 import {
   muteUserInStream,
   unmuteUserInStream,

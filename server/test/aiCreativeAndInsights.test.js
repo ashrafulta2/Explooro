@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 
 import { generateAdCopy, improveDescription } from '../src/services/ai/creativeStudio.ts';
 import { computeStatisticalForecast, runForecast } from '../src/services/ai/demandForecast.ts';
-import { scoreReview, evaluateAndFlag, FLAG_THRESHOLD } from '../src/services/ai/reviewIntegrity.js';
+import { scoreReview, evaluateAndFlag, FLAG_THRESHOLD } from '../src/services/ai/reviewIntegrity.ts';
 import { getInsightsForUser } from '../src/services/ai/prescriptiveInsights.ts';
 
 const FIXTURE_PRODUCT = {

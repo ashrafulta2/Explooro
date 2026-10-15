@@ -284,7 +284,7 @@ function nextLogId() {
 
 
 /**
- * Mirrors buildPreview() in server/src/services/liveStream.service.js. The console renders straight
+ * Mirrors buildPreview() in server/src/services/liveStream.service.ts. The console renders straight
  * off this shape, so if it drifts from the server the mock stops being a rehearsal of the real
  * thing. An observer token is hidden from the room by design — see the service for why.
  */

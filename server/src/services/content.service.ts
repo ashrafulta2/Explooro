@@ -431,7 +431,7 @@ export async function upsertBanner(db, {
   isActive = true,
   is_active = true,
   editorId = null,
-}) {
+}: Record<string, any>) {
   const tEn = titleEn || title_en;
   const tBn = titleBn || title_bn || tEn;
   const imgD = imageUrlDesktop || image_url_desktop;

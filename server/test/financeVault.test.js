@@ -22,7 +22,7 @@ import Fastify from 'fastify';
 import * as walletRepo from '../src/repositories/wallet.repository.ts';
 import * as ledgerService from '../src/services/ledger.service.ts';
 import * as vaultService from '../src/services/vault.service.ts';
-import financeRoutes from '../src/routes/finance.routes.js';
+import financeRoutes from '../src/routes/finance.routes.ts';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 

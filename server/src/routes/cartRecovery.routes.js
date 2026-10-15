@@ -2,7 +2,7 @@
  * cartRecovery.routes.js — Fastify route definitions for Cart Recovery (Prompt 9.6).
  */
 
-import * as cartRecoveryController from '../controllers/cartRecovery.controller.js';
+import * as cartRecoveryController from '../controllers/cartRecovery.controller.ts';
 
 export default async function cartRecoveryRoutes(app) {
   const requireCartRecovery = app.requireModule('cart_recovery');

@@ -2,7 +2,7 @@
  * customer.routes.js — Fastify routes for Customer Portal, Following Feed & 1-Click Upgrade (Prompt 11.3).
  */
 
-import * as customerCtrl from '../controllers/customer.controller.js';
+import * as customerCtrl from '../controllers/customer.controller.ts';
 import * as addressCtrl from '../controllers/customerAddress.controller.ts';
 
 export default async function customerRoutes(fastify) {

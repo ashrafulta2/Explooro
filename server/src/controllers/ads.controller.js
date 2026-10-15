@@ -2,7 +2,7 @@
  * ads.controller.js — Handlers for Sponsored Ads API (Prompt 9.1).
  */
 
-import * as adsService from '../services/ads.service.js';
+import * as adsService from '../services/ads.service.ts';
 import * as adProductsService from '../services/adProducts.service.ts';
 
 export async function createCampaign(req, reply) {

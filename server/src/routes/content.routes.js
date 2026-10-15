@@ -2,7 +2,7 @@
  * content.routes.js — Fastify Route Registrations for Content Commerce, Reels, Academy, Banners & Translations (Prompt 10.8).
  */
 
-import * as controller from '../controllers/content.controller.js';
+import * as controller from '../controllers/content.controller.ts';
 
 export default async function contentRoutes(fastify) {
   const requireContentModule = fastify.requireModule ? fastify.requireModule('content_commerce') : async () => {};

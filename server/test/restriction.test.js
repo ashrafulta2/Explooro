@@ -18,7 +18,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as restrictionService from '../src/services/restriction.service.js';
+import * as restrictionService from '../src/services/restriction.service.ts';
 import * as segmentService from '../src/services/segment.service.ts';
 import { requireRestriction } from '../src/middlewares/requireRestriction.ts';
 import { requirePermission } from '../src/middlewares/requirePermission.ts';

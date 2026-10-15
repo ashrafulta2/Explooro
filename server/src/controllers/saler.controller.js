@@ -2,7 +2,7 @@
  * saler.controller.js — Fastify Controller for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
-import * as salerService from '../services/salerDashboard.service.js';
+import * as salerService from '../services/salerDashboard.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 export async function getDashboardOverview(req, reply) {

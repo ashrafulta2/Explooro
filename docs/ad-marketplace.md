@@ -162,7 +162,7 @@ to it is the next piece of work, and it is one call per surface.
 | **Pricing — the only place ad money is multiplied** | `server/src/services/adPricing.ts` |
 | Catalogue policy, availability, rate-card writes | `server/src/services/adProducts.service.ts` |
 | SQL | `server/src/repositories/adProduct.repository.js` |
-| Purchase, billing, serving | `server/src/services/ads.service.js` |
+| Purchase, billing, serving | `server/src/services/ads.service.ts` |
 | Routes | `server/src/routes/ads.routes.js` |
 | Shop Partner Ad Store + wizard | `client/src/pages/saler/AdCampaignPage.js` |
 | Admin rate cards | `client/src/pages/admin/AdminAdPricingPage.js` |

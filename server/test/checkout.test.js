@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import orderRoutes from '../src/routes/order.routes.js';
+import orderRoutes from '../src/routes/order.routes.ts';
 import { executeCheckout } from '../src/services/checkout.service.ts';
 import * as orderService from '../src/services/order.service.ts';
 import * as trustScoreService from '../src/services/trustScore.service.ts';

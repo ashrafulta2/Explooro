@@ -2,7 +2,7 @@
  * promotion.routes.js — Fastify routes for Coupons & Flash Sales Promotion Engine (Prompt 9.2).
  */
 
-import * as promotionController from '../controllers/promotion.controller.js';
+import * as promotionController from '../controllers/promotion.controller.ts';
 
 export default async function promotionRoutes(app) {
   const requireCouponsModule = app.requireModule('coupons');

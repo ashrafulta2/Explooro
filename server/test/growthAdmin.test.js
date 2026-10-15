@@ -160,7 +160,7 @@ describe('Phase 9 admin: campaign pause / resume', () => {
   });
 
   test('the merchant cannot resume a campaign the platform paused', async () => {
-    const { toggleCampaignStatus } = await import('../src/services/ads.service.js');
+    const { toggleCampaignStatus } = await import('../src/services/ads.service.ts');
     const db = { query: async () => ({ rows: [{ id: 5, status: 'PAUSED', admin_paused_at: new Date() }] }) };
     await assert.rejects(() => toggleCampaignStatus(db, null, 9, 5, 'ACTIVE'), (e) => e.code === 'CAMPAIGN_ADMIN_PAUSED');
   });

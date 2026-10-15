@@ -14,7 +14,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import meRoutes from '../src/routes/me.routes.js';
+import meRoutes from '../src/routes/me.routes.ts';
 import * as profileService from '../src/services/profile.service.ts';
 import * as userRepo from '../src/repositories/user.repository.ts';
 import { decryptField } from '../src/lib/encryption.ts';

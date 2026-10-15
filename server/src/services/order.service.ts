@@ -125,7 +125,7 @@ export async function cancelOrder(pool, refOrId, userContext, reason = null) {
     }
 
     // WHY: a live order was counted in its stream's sales when it was placed
-    // (liveStream.service.js recordStreamPurchase); a cancelled one must stop counting there.
+    // (liveStream.service.ts recordStreamPurchase); a cancelled one must stop counting there.
     if (order.live_stream_id) {
       await liveRepo.reverseStreamSale(client, order.live_stream_id, Number(order.total_amount || 0));
     }

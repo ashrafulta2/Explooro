@@ -10,7 +10,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { settleDeficitRecoveries } from '../src/services/clawback.service.ts';
-import { runDeficitRecovery } from '../src/jobs/deficitRecovery.job.js';
+import { runDeficitRecovery } from '../src/jobs/deficitRecovery.job.ts';
 
 function createDb({ available, records }) {
   const wallet = { id: 101, user_id: 7, available_balance: available };

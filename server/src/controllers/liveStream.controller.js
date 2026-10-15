@@ -4,7 +4,7 @@
  * Implements API contract responses with data envelope, error codes, and audit logs.
  */
 
-import * as liveService from '../services/liveStream.service.js';
+import * as liveService from '../services/liveStream.service.ts';
 
 export async function scheduleStream(req, reply) {
   const stream = await liveService.scheduleStream(req.server.db, {

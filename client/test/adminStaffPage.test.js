@@ -5,7 +5,7 @@
  * are asserted against it: the last Super Admin cannot be demoted or suspended, every write
  * needs a reason for the audit log, and contact details are unique.
  *
- * The mock is also held to the REAL API's contract (server/src/services/staff.service.js, asserted
+ * The mock is also held to the REAL API's contract (server/src/services/staff.service.ts, asserted
  * against PostgreSQL in server/test/staffManagement.test.js): validation is HTTP 400, refusals use
  * the closed code enum with the reason in `details.reason`, phones are E.164. A mock that answers
  * differently from the live endpoint lets a page pass in development and break in production.

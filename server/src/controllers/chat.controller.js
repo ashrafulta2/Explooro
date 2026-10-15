@@ -3,7 +3,7 @@
  */
 
 import { createTicket } from '../sockets/presence.ts';
-import { broadcastReadReceipt } from '../sockets/chat.handler.js';
+import { broadcastReadReceipt } from '../sockets/chat.handler.ts';
 import * as chatService from '../services/chat.service.ts';
 
 export async function getTicket(req, reply) {

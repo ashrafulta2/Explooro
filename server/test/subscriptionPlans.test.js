@@ -114,7 +114,7 @@ describe('slugifyCode', () => {
 });
 
 describe('subscription admin routes', () => {
-  const src = readFileSync(new URL('../src/routes/finance.routes.js', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../src/routes/finance.routes.ts', import.meta.url), 'utf8');
   const routes = [...src.matchAll(/app\.(get|put|post|patch)\('(\/admin\/finance\/subscriptions[^']*)'[\s\S]*?\}\);/g)];
 
   test('all five routes exist and each is guarded by finance.subscription.manage', () => {

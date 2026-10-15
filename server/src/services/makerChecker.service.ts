@@ -22,9 +22,9 @@ const executorRegistry = new Map();
 /**
  * Registers an executor for a HIGH-tier action key.
  * @param {string} actionKey - e.g. 'orders.refund.execute'
- * @param {{ validatePreconditions?: Function, execute: Function }} executor
+ * @param {{ validatePreconditions?: Function, execute: Function, afterCommit?: Function }} executor
  */
-export function registerActionExecutor(actionKey: string, executor: { validatePreconditions?: Function; execute: Function; }) {
+export function registerActionExecutor(actionKey: string, executor: { validatePreconditions?: Function; execute: Function; afterCommit?: Function; }) {
   if (!executor || typeof executor.execute !== 'function') {
     throw new Error(`Invalid executor registered for ${actionKey}: execute function required`);
   }

@@ -2,7 +2,7 @@
  * moderation.routes.js — Fastify routes for Unified Product Approval & Content Moderation (Prompt 7.4).
  */
 
-import * as controller from '../controllers/moderation.controller.js';
+import * as controller from '../controllers/moderation.controller.ts';
 import * as dashboardController from '../controllers/moderatorDashboard.controller.ts';
 
 export default async function moderationRoutes(app) {

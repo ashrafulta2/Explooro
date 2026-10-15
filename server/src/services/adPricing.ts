@@ -421,7 +421,7 @@ export function priceLabel(product) {
 
 /**
  * The charge for one metered billing event, bounded by what is left of the campaign budget.
- * Used by both the CPC click path and the CPM impression path in ads.service.js.
+ * Used by both the CPC click path and the CPM impression path in ads.service.ts.
  *
  * @param {string} pricingModel  - 'CPC' or 'CPM'
  * @param {Object} args          - { bidAmount, cpmRate, impressionsInBatch, availableBudget }

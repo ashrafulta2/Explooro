@@ -22,7 +22,7 @@ import Fastify from 'fastify';
 import * as moduleService from '../src/services/module.service.ts';
 import * as moduleRepo from '../src/repositories/module.repository.ts';
 import * as auditService from '../src/services/audit.service.ts';
-import moduleRoutes from '../src/routes/module.routes.js';
+import moduleRoutes from '../src/routes/module.routes.ts';
 import requireModulePlugin from '../src/middlewares/requireModule.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import requestContextPlugin from '../src/plugins/requestContext.ts';

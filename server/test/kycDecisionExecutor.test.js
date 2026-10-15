@@ -9,7 +9,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as kycDecision from '../src/services/kycDecision.service.js';
+import * as kycDecision from '../src/services/kycDecision.service.ts';
 import { getRegisteredExecutor, decidePendingAction } from '../src/services/makerChecker.service.ts';
 
 describe('reviewerRoleOf', () => {

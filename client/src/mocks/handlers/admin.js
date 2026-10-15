@@ -1161,7 +1161,7 @@ export const adminHandlers = [
 
   // 12–16b. Staff roster & governance.
   //
-  // Mirrors server/src/services/staff.service.js: the same status codes (validation is 400, not 422),
+  // Mirrors server/src/services/staff.service.ts: the same status codes (validation is 400, not 422),
   // the closed error-code enum with the business reason in `details.reason`, E.164 phones, a null
   // department when blank, and the same message wording — so what the page does here is what it does
   // live. (The real endpoint also refuses changes to your own account; the mock has no notion of who

@@ -5,7 +5,7 @@
  * docs/api-contract.md §7. Registered under the `/api/v1/auth` prefix by app.js.
  */
 
-import * as controller from '../controllers/auth.controller.js';
+import * as controller from '../controllers/auth.controller.ts';
 
 const PHONE = { type: 'string', pattern: '^\\+8801[3-9]\\d{8}$', nullable: true };
 const EMAIL = { type: 'string', format: 'email', maxLength: 255, nullable: true };

@@ -14,8 +14,8 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import whatsappRoutes from '../src/routes/whatsapp.routes.js';
-import salerInboxRoutes from '../src/routes/salerInbox.routes.js';
+import whatsappRoutes from '../src/routes/whatsapp.routes.ts';
+import salerInboxRoutes from '../src/routes/salerInbox.routes.ts';
 import * as waService from '../src/services/whatsappCommerce.service.ts';
 import * as mockWaDriver from '../src/integrations/whatsapp/mock.ts';
 

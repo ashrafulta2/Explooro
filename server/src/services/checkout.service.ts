@@ -20,7 +20,7 @@ import * as cartService from './cart.service.ts';
 import * as cartRepo from '../repositories/cart.repository.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
-import * as adsService from './ads.service.js';
+import * as adsService from './ads.service.ts';
 import * as trustScoreService from './trustScore.service.ts';
 import * as codGateService from './codGate.service.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';

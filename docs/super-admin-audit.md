@@ -132,7 +132,7 @@ These are real and were left open on purpose. Do not assume they were missed.
      *General*. `normalizeProducts()` in `CatalogProductsPage.js` now bridges the two shapes.
    - `verified_suppliers_count` counted *products whose supplier is verified* under a KPI labelled
      "Verified Suppliers". Both the endpoint and the mock now count distinct suppliers.
-3. **The Module Control fix is mock-side.** `server/src/routes/module.routes.js` already serves
+3. **The Module Control fix is mock-side.** `server/src/routes/module.routes.ts` already serves
    `/admin/modules` from the real registry; the fabricated 8-module list was only in
    `client/src/mocks/handlers/admin.js`, which shadows it when `VITE_API_MODE=mock`. Dev and live now
    list the same modules under the same keys. **Not verified against a live Postgres-backed server**
@@ -211,7 +211,7 @@ These are real and were left open on purpose. Do not assume they were missed.
     logs — only a negative test (a user *without* the permission getting a 200) ever reveals it.
     The working form is
     `preHandler: [authenticate, app.requireModule('module_key'), app.requirePermission('domain.resource.action')]`
-    — see `server/src/routes/supplier.routes.js`, with the factories in
+    — see `server/src/routes/supplier.routes.ts`, with the factories in
     `server/src/middlewares/requireModule.ts` / `requirePermission.ts`. Hanging the guards off a
     `fastify.register` child scope is equivalent, and `authenticate` may be that scope's
     `onRequest` hook instead of repeating in each array, since `onRequest` runs first.

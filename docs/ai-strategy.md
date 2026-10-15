@@ -179,7 +179,7 @@ source of a number or a fact.
   only for a short explanation — the model cannot alter the prediction. A sparse-history guard
   (`insufficient_data`) stops a handful of sales days from producing a falsely confident-looking
   number.
-- **`reviewIntegrity.js`** — the fake-review score is a deterministic rule-based sum (text
+- **`reviewIntegrity.ts`** — the fake-review score is a deterministic rule-based sum (text
   patterns, exact-duplicate body text, reviewer/product velocity, account age), not a model
   judgment — a moderation score has to be reproducible and explainable, not subject to sampling
   variance. A review scoring below `FLAG_THRESHOLD` (55) is pushed into the existing Prompt 7.4

@@ -241,7 +241,7 @@ export async function submitToQueue(db, {
     }
 
     // 2. Run Automated Advisory Pre-screening, plus any caller-supplied flags already computed
-    // from domain-specific signals the generic pre-screen can't see (e.g. reviewIntegrity.js's
+    // from domain-specific signals the generic pre-screen can't see (e.g. reviewIntegrity.ts's
     // velocity/duplicate/rating-mismatch checks for REVIEW items).
     const autoFlags = [
       ...extraAutoFlags,

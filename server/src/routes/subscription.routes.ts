@@ -2,7 +2,7 @@
  * subscription.routes.ts — a merchant's own Shop Partner Pro subscription.
  *
  * Every route is behind the `subscription_fees` module, so with the admin's switch OFF these answer
- * 403 MODULE_DISABLED and the UI hides the page. The admin-side routes stay in finance.routes.js
+ * 403 MODULE_DISABLED and the UI hides the page. The admin-side routes stay in finance.routes.ts
  * under finance.subscription.manage.
  */
 

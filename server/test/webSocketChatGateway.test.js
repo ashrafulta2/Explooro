@@ -18,7 +18,7 @@ import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import chatRoutes from '../src/routes/chat.routes.js';
 import * as chatService from '../src/services/chat.service.ts';
 import * as presence from '../src/sockets/presence.ts';
-import { handleSocketMessage } from '../src/sockets/chat.handler.js';
+import { handleSocketMessage } from '../src/sockets/chat.handler.ts';
 
 function createMockDb() {
   const users = [

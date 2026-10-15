@@ -12,7 +12,7 @@
  */
 
 import { getCustomerDashboardSummary } from './customerPortal.service.ts';
-import { getSalerOverview } from './salerDashboard.service.js';
+import { getSalerOverview } from './salerDashboard.service.ts';
 
 const n = (v) => Number(v) || 0;
 

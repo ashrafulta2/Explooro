@@ -3,7 +3,7 @@
  */
 
 import { addRawJsonBody } from '../plugins/rawBody.ts';
-import * as controller from '../controllers/courierWebhook.controller.js';
+import * as controller from '../controllers/courierWebhook.controller.ts';
 
 export default async function logisticsRoutes(app) {
   // WHY: courier webhook signatures cover the raw bytes (see plugins/rawBody.ts).
