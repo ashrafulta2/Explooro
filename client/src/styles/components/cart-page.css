@@ -83,3 +83,8 @@
 .cart-summary__checkout { width: 100%; }
 
 .cart-page__skeleton { display: flex; flex-direction: column; gap: var(--space-3); }
+
+/* WHY: a 22px-tall text link is hard to hit with a thumb. */
+@media (pointer: coarse), (max-width: 1023.98px) {
+  .cart-page__continue { display: inline-flex; align-items: center; min-height: 44px; }
+}

@@ -123,6 +123,14 @@
   .home-band { min-height: 0; }
   .home-band__rows, .home-band__metrics, .home-band__tiles { flex: none; }
 }
+/* WHY: from 768px the left sidebar is a fixed 260px column, so at 768-1023px the content area is only ~500-760px wide.
+   A slider beside a 220px side column was squeezed to ~170px (title wrapped to seven lines). Stack the side cards under the slider instead. */
+@media (min-width: 720px) and (max-width: 1023px) {
+  .home-top__main, .home-top__main--for-you { grid-template-columns: minmax(0, 1fr); }
+  .home-top__side { grid-template-columns: 1fr 1fr; grid-template-rows: auto; contain: none; }
+  .home-top__card--info, .home-top__tiles { grid-column: 1 / -1; }
+  .home-top__tile-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (max-width: 719px) {
   .home-top { padding: var(--space-3); }
   .home-top__main, .home-top__main--for-you { grid-template-columns: minmax(0, 1fr); }
@@ -131,6 +139,9 @@
   .home-top__dots { left: var(--space-5); }
   .home-top__side { grid-template-columns: 1fr 1fr; grid-template-rows: auto; contain: none; }
   .home-top__card--info { grid-column: 1 / -1; }
+  /* WHY: the side grid is two columns here only so the info card can span both; without this the tiles card took one column and left the right half of the phone empty. */
+  .home-top__tiles { grid-column: 1 / -1; }
+  .home-top__tile-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) {
   .home-top__slide { transition: none; }

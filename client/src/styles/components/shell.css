@@ -327,3 +327,10 @@
 @media (prefers-reduced-motion: reduce) {
   .mobile-nav__item > .badge { transition: none; }
 }
+
+/* WHY: the 28px logo link and search button sit under the 44px touch guideline. A transparent ::after grows only the hit
+   area so the topbar layout (and its measured height) does not move. */
+@media (pointer: coarse), (max-width: 767.98px) {
+  .topbar__brand, .topbar__product-search-btn { position: relative; }
+  .topbar__brand::after, .topbar__product-search-btn::after { content: ''; position: absolute; inset: -8px; }
+}

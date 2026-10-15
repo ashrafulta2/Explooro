@@ -145,3 +145,8 @@
   margin: 0;
   font-size: var(--text-sm);
 }
+
+/* WHY: the back link was a 30px-tall target; phones and tablets need ~44px. */
+@media (pointer: coarse), (max-width: 1023.98px) {
+  .account-page__back { min-height: 44px; }
+}
