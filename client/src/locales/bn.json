@@ -534,21 +534,158 @@
       "tile_live": "লাইভ",
       "tile_coupons": "কুপন",
       "tile_salers": "শপ পার্টনার",
-      "open_store": "আমার স্টোর খুলুন",
       "orders_title": "আপনার পার্সেল ট্র্যাক করুন",
       "orders_cta": "সব অর্ডার দেখুন",
       "orders_sub": "পার্সেল ট্র্যাক করুন এবং আগের কেনাকাটা দেখুন।",
-      "console_title": "আপনার ওয়ার্কস্পেস",
-      "console_sub": "আপনার ড্যাশবোর্ডে ফিরে যান।",
       "welcome_back": "আবার স্বাগতম",
       "q_orders": "আমার অর্ডার",
       "q_wishlist": "উইশলিস্ট",
       "q_coupons": "কুপন",
       "q_live": "লাইভ শপিং",
-      "q_dashboard": "ড্যাশবোর্ড",
-      "q_my_products": "আমার পণ্য",
-      "q_saler_orders": "স্টোরের অর্ডার",
-      "q_earnings": "আয়"
+      "band": {
+        "stat": {
+          "price_drops": "উইশলিস্টে দাম কমেছে",
+          "coins": "কয়েন",
+          "active_teams": "চলমান টিম কেনাকাটা",
+          "active_returns": "চলমান রিটার্ন",
+          "today_orders": "আজকের অর্ডার",
+          "link_clicks": "স্টোর লিংকে ক্লিক",
+          "unread_messages": "অপঠিত মেসেজ",
+          "escrow_balance": "এসক্রোতে",
+          "available_balance": "তোলার মতো",
+          "profit_30d": "গত ৩০ দিন",
+          "pending_fulfillment": "পাঠানোর অপেক্ষায় অর্ডার",
+          "to_fulfil": "পিকআপের অপেক্ষায়",
+          "today_earnings": "আজকের আয়",
+          "settled_earnings": "নিষ্পন্ন আয়",
+          "products": "পণ্য",
+          "low_stock": "স্টক কম",
+          "out_of_stock": "স্টক শেষ",
+          "my_queue": "আপনার কিউতে",
+          "unassigned": "অবণ্টিত",
+          "resolved_today": "আজ সমাধান",
+          "sla_at_risk": "SLA ভাঙার ঝুঁকিতে",
+          "orders_today": "আজকের অর্ডার",
+          "gmv_today": "আজকের বিক্রি",
+          "pending_kyc": "সাপ্লায়ার KYC",
+          "pending_products": "অনুমোদনের অপেক্ষায় পণ্য",
+          "approvals_waiting": "অপেক্ষমাণ অনুমোদন",
+          "my_pending_requests": "আপনার অপেক্ষমাণ অনুরোধ",
+          "disputes_past_sla": "SLA পার হওয়া বিরোধ",
+          "failed_payouts": "ব্যর্থ পেআউট"
+        },
+        "link": {
+          "saler_products": "আমার পণ্য",
+          "saler_social_kit": "স্টোর শেয়ার করুন",
+          "saler_ads": "বিজ্ঞাপন চালান",
+          "supplier_orders": "অর্ডার",
+          "supplier_salers": "যেসব শপ পার্টনার বিক্রি করছেন",
+          "supplier_scorecard": "স্কোরকার্ড",
+          "supplier_shipments": "শিপমেন্ট",
+          "moderator_reports": "রিপোর্ট",
+          "moderator_reviews": "রিভিউ",
+          "moderator_live": "লাইভ স্ট্রিম",
+          "moderator_disputes": "বিরোধ",
+          "editor_banners": "ব্যানার",
+          "editor_stories": "স্টোরি",
+          "editor_academy": "একাডেমি",
+          "editor_help_center": "হেল্প সেন্টার",
+          "editor_whats_new": "নতুন কী",
+          "editor_translations": "অনুবাদ"
+        },
+        "customer": {
+          "left": {
+            "kicker": "আপনার জন্য",
+            "title": "এক নজরে আপনার অ্যাকাউন্ট",
+            "cta": "আমার উইশলিস্ট"
+          }
+        },
+        "saler": {
+          "left": {
+            "kicker": "আজ আপনার স্টোরে",
+            "title": "আজকের কার্যকলাপ",
+            "cta": "আমার স্টোর খুলুন"
+          },
+          "center": {
+            "kicker": "আপনার আয়",
+            "title": "এক নজরে কমিশন",
+            "cta": "ভল্ট খুলুন"
+          },
+          "right": {
+            "kicker": "আপনার মনোযোগ দরকার",
+            "title": "এরপর কী",
+            "cta": "ড্যাশবোর্ড"
+          }
+        },
+        "supplier": {
+          "left": {
+            "kicker": "ফুলফিলমেন্ট",
+            "title": "পাঠানোর জন্য প্রস্তুত",
+            "cta": "অর্ডার প্যাক করুন"
+          },
+          "center": {
+            "kicker": "স্টক",
+            "title": "ইনভেন্টরির অবস্থা",
+            "cta": "স্টক আপডেট করুন"
+          },
+          "right": {
+            "kicker": "আপনার ব্যবসা",
+            "title": "দ্রুত যান",
+            "cta": "ড্যাশবোর্ড"
+          }
+        },
+        "moderator": {
+          "left": {
+            "kicker": "আপনার কিউ",
+            "title": "রিভিউয়ের অপেক্ষায়",
+            "cta": "কিউ খুলুন"
+          },
+          "center": {
+            "kicker": "আজ",
+            "title": "আপনার মডারেশন কাজ",
+            "cta": "ড্যাশবোর্ড"
+          },
+          "right": {
+            "kicker": "রিভিউয়ের জায়গা",
+            "title": "দ্রুত যান",
+            "cta": "ড্যাশবোর্ড"
+          }
+        },
+        "editor": {
+          "left": {
+            "kicker": "কনটেন্ট",
+            "title": "আপনার খসড়া",
+            "cta": "এডিটর হোম"
+          },
+          "center": {
+            "kicker": "জ্ঞানভাণ্ডার",
+            "title": "শেখা ও সহায়তা",
+            "cta": "এডিটর হোম"
+          },
+          "right": {
+            "kicker": "শর্টকাট",
+            "title": "হালনাগাদ রাখুন",
+            "cta": "এডিটর হোম"
+          }
+        },
+        "admin": {
+          "left": {
+            "kicker": "আজ",
+            "title": "আজকের মার্কেটপ্লেস",
+            "cta": "অ্যাডমিন কনসোল"
+          },
+          "center": {
+            "kicker": "রিভিউয়ের অপেক্ষায়",
+            "title": "রিভিউ কিউ",
+            "cta": "অনুমোদন খুলুন"
+          },
+          "right": {
+            "kicker": "মনোযোগ দরকার",
+            "title": "এসকেলেশন",
+            "cta": "বিরোধ"
+          }
+        }
+      }
     },
     "feed": {
       "label": "পণ্য ফিড",

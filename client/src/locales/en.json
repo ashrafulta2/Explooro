@@ -534,21 +534,158 @@
       "tile_live": "Live",
       "tile_coupons": "Coupons",
       "tile_salers": "Shop Partners",
-      "open_store": "Open my store",
       "orders_title": "Track your parcels",
       "orders_cta": "View all orders",
       "orders_sub": "Track parcels and review past purchases.",
-      "console_title": "Your workspace",
-      "console_sub": "Jump back to your dashboard.",
       "welcome_back": "Welcome back",
       "q_orders": "My orders",
       "q_wishlist": "Wishlist",
       "q_coupons": "Coupons",
       "q_live": "Live shopping",
-      "q_dashboard": "Dashboard",
-      "q_my_products": "My products",
-      "q_saler_orders": "Store orders",
-      "q_earnings": "Earnings"
+      "band": {
+        "stat": {
+          "price_drops": "Wishlist price drops",
+          "coins": "Coins",
+          "active_teams": "Team buys in progress",
+          "active_returns": "Returns in progress",
+          "today_orders": "Orders today",
+          "link_clicks": "Store link clicks",
+          "unread_messages": "Unread messages",
+          "escrow_balance": "In escrow",
+          "available_balance": "Available",
+          "profit_30d": "Last 30 days",
+          "pending_fulfillment": "Orders to fulfil",
+          "to_fulfil": "Awaiting pickup",
+          "today_earnings": "Earned today",
+          "settled_earnings": "Settled earnings",
+          "products": "Products",
+          "low_stock": "Low stock",
+          "out_of_stock": "Out of stock",
+          "my_queue": "In your queue",
+          "unassigned": "Unassigned",
+          "resolved_today": "Resolved today",
+          "sla_at_risk": "At risk of SLA breach",
+          "orders_today": "Orders today",
+          "gmv_today": "Sales today",
+          "pending_kyc": "Supplier KYC",
+          "pending_products": "Products to approve",
+          "approvals_waiting": "Approvals waiting",
+          "my_pending_requests": "Your pending requests",
+          "disputes_past_sla": "Disputes past SLA",
+          "failed_payouts": "Failed payouts"
+        },
+        "link": {
+          "saler_products": "My products",
+          "saler_social_kit": "Share your store",
+          "saler_ads": "Run an ad",
+          "supplier_orders": "Orders",
+          "supplier_salers": "Shop partners selling you",
+          "supplier_scorecard": "Scorecard",
+          "supplier_shipments": "Shipments",
+          "moderator_reports": "Reports",
+          "moderator_reviews": "Reviews",
+          "moderator_live": "Live streams",
+          "moderator_disputes": "Disputes",
+          "editor_banners": "Banners",
+          "editor_stories": "Stories",
+          "editor_academy": "Academy",
+          "editor_help_center": "Help center",
+          "editor_whats_new": "What's new",
+          "editor_translations": "Translations"
+        },
+        "customer": {
+          "left": {
+            "kicker": "For you",
+            "title": "Your account at a glance",
+            "cta": "My wishlist"
+          }
+        },
+        "saler": {
+          "left": {
+            "kicker": "Your store today",
+            "title": "Today's activity",
+            "cta": "Open my store"
+          },
+          "center": {
+            "kicker": "Your earnings",
+            "title": "Commission at a glance",
+            "cta": "Open vault"
+          },
+          "right": {
+            "kicker": "Needs you",
+            "title": "Next up",
+            "cta": "Dashboard"
+          }
+        },
+        "supplier": {
+          "left": {
+            "kicker": "Fulfilment",
+            "title": "Ready to ship",
+            "cta": "Pack orders"
+          },
+          "center": {
+            "kicker": "Stock",
+            "title": "Inventory health",
+            "cta": "Update stock"
+          },
+          "right": {
+            "kicker": "Your business",
+            "title": "Jump to",
+            "cta": "Dashboard"
+          }
+        },
+        "moderator": {
+          "left": {
+            "kicker": "Your queue",
+            "title": "Items to review",
+            "cta": "Open queue"
+          },
+          "center": {
+            "kicker": "Today",
+            "title": "Your moderation work",
+            "cta": "Dashboard"
+          },
+          "right": {
+            "kicker": "Review areas",
+            "title": "Jump to",
+            "cta": "Dashboard"
+          }
+        },
+        "editor": {
+          "left": {
+            "kicker": "Content",
+            "title": "Your drafts",
+            "cta": "Editor home"
+          },
+          "center": {
+            "kicker": "Knowledge",
+            "title": "Learning and help",
+            "cta": "Editor home"
+          },
+          "right": {
+            "kicker": "Shortcuts",
+            "title": "Keep it fresh",
+            "cta": "Editor home"
+          }
+        },
+        "admin": {
+          "left": {
+            "kicker": "Today",
+            "title": "Marketplace today",
+            "cta": "Admin console"
+          },
+          "center": {
+            "kicker": "Waiting for review",
+            "title": "Review queue",
+            "cta": "Open approvals"
+          },
+          "right": {
+            "kicker": "Needs attention",
+            "title": "Escalations",
+            "cta": "Disputes"
+          }
+        }
+      }
     },
     "feed": {
       "label": "Product feed",
