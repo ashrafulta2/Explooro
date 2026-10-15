@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * payment.repository.js — Data Access Repository for Payment Transactions & Webhooks (Prompt 5.3).
  */
@@ -60,6 +61,7 @@ export async function updatePaymentTransaction(db, idOrRef, {
   const whereClause = isId ? 'id = $1' : 'ref = $1';
 
   const updates = [];
+  /** @type {unknown[]} */
   const values = [idOrRef];
   let idx = 2;
 

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * returnProtection.repository.js — Raw SQL for return-protection enrolments and covers.
  * No rules here: the service decides what the numbers mean, this file only reads and stores them.

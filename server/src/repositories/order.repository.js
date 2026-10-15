@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * order.repository.js — SQL repository for orders, sub-orders, and order items (Prompt 5.2).
  *

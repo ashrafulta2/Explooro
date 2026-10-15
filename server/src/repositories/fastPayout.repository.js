@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * fastPayout.repository.js — Raw SQL for early escrow releases.
  * No rules here: the service decides who may take one and what it costs.

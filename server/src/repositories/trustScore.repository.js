@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * trustScore.repository.js — SQL repository for buyer/seller trust scores (Prompt 5.2).
  *

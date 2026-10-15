@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * cart.repository.js — SQL repository for carts, cart items, wishlists, and abandoned carts (Prompt 5.1).
  *

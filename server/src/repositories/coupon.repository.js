@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * coupon.repository.js — SQL repository for coupon validation and redemptions (Prompt 5.2).
  *
