@@ -352,7 +352,11 @@ export async function handleCourierWebhook(db, cache, {
           client: txClient,
         });
       } catch (err) {
-        console.warn(`[CourierWebhook] Clawback notice for sub-order #${shipment.sub_order_id}: ${err.message}`);
+        // WHY only ESCROW_NOT_FOUND is ignored: a COD parcel that never reached the customer has no
+        // escrow yet (it is deposited on delivery), so there is nothing to refund. Any other failure
+        // used to be swallowed too, leaving a prepaid customer unrefunded with the order marked
+        // RETURNED. Rethrowing rolls the webhook back, so the courier's retry tries again.
+        if (!String(err?.message ?? '').startsWith('ESCROW_NOT_FOUND')) throw err;
       }
     }
 

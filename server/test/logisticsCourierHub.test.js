@@ -442,6 +442,24 @@ describe('Prompt 7.1 — 3PL Courier Hub & Webhooks', () => {
     assert.equal(updatedStock, initialStock + 2, 'Warehouse inventory restored upon carrier return');
   });
 
+  test('RETURNED webhook fails, instead of silently skipping the refund, when the clawback errors', async () => {
+    const base = createMockDb();
+    const failing = (q, params) => (q.includes('FROM escrow_entries')
+      ? Promise.reject(new Error('DB_DOWN: escrow read failed'))
+      : base.query(q, params));
+    const failingDb = { ...base, query: failing, async connect() { return { query: failing, release() {} }; } };
+
+    const { trackingNumber } = await shipmentService.createShipmentForSubOrder(base, { subOrderId: 901, carrierOverride: 'MOCK' });
+
+    await assert.rejects(
+      shipmentService.handleCourierWebhook(failingDb, createMockCache(), {
+        carrier: 'MOCK',
+        payload: { event_id: 'mock-evt-ret-fail', tracking_number: trackingNumber, status: 'RETURNED' },
+      }),
+      /DB_DOWN/
+    );
+  });
+
   test('Acceptance 6: Fastify HTTP Routes for Webhooks, Tracking & Shipping Labels', async () => {
     const app = Fastify();
     app.decorate('db', db);
