@@ -417,7 +417,6 @@ export async function executeRefund(db, cache, {
       subOrderId: returnReq.sub_order_id,
       returnRequestId: returnReq.id,
       reason: `Return #${returnReq.ref} approved and inspected`,
-      refundCustomer: true,
       approvedBy,
       cache,
       client: txClient,

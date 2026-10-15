@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * ledger.service.js — Double-Entry General Ledger Service (Prompt 6.1).
  *
@@ -30,18 +31,25 @@ function fromPaisa(paisa) {
 }
 
 /**
+ * One side of a double-entry pair. Exported so callers can annotate the arrays they build:
+ * without it TypeScript widens `entryType: 'DEBIT'` to `string` and rejects the call.
+ * `walletId` may be a string because pg returns BIGINT ids as strings; it is parseInt-ed below.
+ * @typedef {{walletId: number|string, entryType: 'DEBIT'|'CREDIT', amount: string|number, balanceBucket: 'AVAILABLE'|'ESCROW'|'HELD', category?: string, referenceType?: string, referenceId?: number, idempotencyKey?: string, memo?: string, createdBy?: number|string}} LedgerEntryInput
+ */
+
+/**
  * Records a balanced double-entry transaction group within an active database transaction.
  *
  * @param {import('pg').PoolClient} client - Checked-out database client inside BEGIN/COMMIT
  * @param {Object} params
  * @param {string} [params.txnGroupId] - Shared UUID for this balanced transaction group
- * @param {Array<{walletId: number, entryType: 'DEBIT'|'CREDIT', amount: string|number, balanceBucket: 'AVAILABLE'|'ESCROW'|'HELD', category?: string, referenceType?: string, referenceId?: number, idempotencyKey?: string, memo?: string, createdBy?: number}>} params.entries
+ * @param {LedgerEntryInput[]} [params.entries] - Defaults to [], which is refused: a group needs at least two entries
  * @param {string} [params.defaultCategory] - Default category if not provided per entry
  * @param {string} [params.defaultReferenceType] - Default referenceType if not provided per entry
  * @param {number} [params.defaultReferenceId] - Default referenceId if not provided per entry
  * @param {string} [params.idempotencyKey] - Group-level idempotency key
  * @param {string} [params.memo] - Group-level memo
- * @param {number} [params.createdBy] - User ID initiating the transaction
+ * @param {number|string} [params.createdBy] - User ID initiating the transaction
  */
 export async function recordTransactionGroup(client, {
   txnGroupId = randomUUID(),
@@ -85,14 +93,14 @@ export async function recordTransactionGroup(client, {
 
     normalizedEntries.push({
       txn_group_id: txnGroupId,
-      wallet_id: parseInt(e.walletId, 10),
+      wallet_id: parseInt(String(e.walletId), 10),
       entry_type: e.entryType,
       amount: fromPaisa(amountPaisa),
       amountPaisa,
       balance_bucket: e.balanceBucket,
       category: e.category ?? defaultCategory,
       reference_type: e.referenceType ?? defaultReferenceType,
-      reference_id: parseInt(e.referenceId ?? defaultReferenceId, 10),
+      reference_id: parseInt(String(e.referenceId ?? defaultReferenceId), 10),
       idempotency_key: e.idempotencyKey ?? idempotencyKey ?? null,
       memo: e.memo ?? memo ?? null,
       created_by: e.createdBy ?? createdBy ?? null,
@@ -111,7 +119,9 @@ export async function recordTransactionGroup(client, {
   const lockedWallets = await walletRepo.getWalletsByIdsForUpdate(client, distinctWalletIds);
 
   if (lockedWallets.length !== distinctWalletIds.length) {
-    const foundIds = new Set(lockedWallets.map((w) => w.id));
+    // WHY Number(): pg returns BIGINT ids as strings while distinctWalletIds holds parsed numbers,
+    // so a Set of raw w.id never matched and the error listed every wallet instead of the missing ones.
+    const foundIds = new Set(lockedWallets.map((w) => Number(w.id)));
     const missing = distinctWalletIds.filter((id) => !foundIds.has(id));
     throw new Error(`WALLET_NOT_FOUND: The following wallet IDs were not found: ${missing.join(', ')}`);
   }

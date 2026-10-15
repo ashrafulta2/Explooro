@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * payment.service.js — Transactional Payment Processing & Webhook Engine (Prompt 5.3).
  *
@@ -67,6 +68,18 @@ export function gatewayForPaymentMethod(method) {
 
 /**
  * Initiates a payment session with a gateway.
+ *
+ * @param {import('pg').Pool} db
+ * @param {any} cache
+ * @param {object} params
+ * @param {number|string} params.orderId
+ * @param {string|null} [params.orderRef]
+ * @param {number|string} params.userId
+ * @param {string} [params.gateway]
+ * @param {string|null} [params.returnUrl]
+ * @param {string|null} [params.callbackUrl]
+ * @param {string|null} [params.idempotencyKey]
+ * @param {{ name?: string, phone?: string }} [params.customer]
  */
 export async function initiatePayment(db, cache, {
   orderId,

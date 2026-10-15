@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * escrowRelease.job.js — Hourly Escrow Release Automation & Dead-Letter Routing (Prompt 6.2).
  *

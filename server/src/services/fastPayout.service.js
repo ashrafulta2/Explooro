@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * fastPayout.service.js — Early release of escrowed earnings, for a fee (supplier attraction, step 5a).
  *
@@ -266,6 +267,7 @@ export async function requestFastPayout(db, { userId, entryId }) {
     const split = splitFastPayout({ amount: entry.amount, feePct: ev.fee_pct });
     const txnGroupId = randomUUID();
     const key = `fast_payout:${entry.entry_id}`;
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const entries = [
       { walletId: entry.wallet_id, entryType: 'DEBIT', amount: split.gross, balanceBucket: 'ESCROW', category: 'ESCROW_RELEASE', idempotencyKey: `${key}:out` },
       { walletId: entry.wallet_id, entryType: 'CREDIT', amount: split.net, balanceBucket: 'AVAILABLE', category: 'ESCROW_RELEASE', idempotencyKey: `${key}:net` },

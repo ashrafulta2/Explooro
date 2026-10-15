@@ -35,11 +35,26 @@ export async function createPaymentTransaction(db, {
   return res.rows[0];
 }
 
+/**
+ * Updates only the columns the caller passes. Pass `null` to clear a column on purpose.
+ *
+ * WHY no `= null` defaults: they made every omitted field look "passed", so the `!== undefined`
+ * checks below always fired. A reconcile that sent only `{ reconciledAt }`, or any FAILED update,
+ * silently set gateway_ref and raw_response to NULL, which broke refunds and callback lookup.
+ *
+ * @param {import('pg').Pool} db
+ * @param {number|string} idOrRef
+ * @param {object} fields
+ * @param {string} [fields.status]
+ * @param {string|null} [fields.gatewayRef]
+ * @param {object|null} [fields.rawResponse]
+ * @param {Date|null} [fields.reconciledAt]
+ */
 export async function updatePaymentTransaction(db, idOrRef, {
   status,
-  gatewayRef = null,
-  rawResponse = null,
-  reconciledAt = null,
+  gatewayRef,
+  rawResponse,
+  reconciledAt,
 }) {
   const isId = typeof idOrRef === 'number' || (!isNaN(Number(idOrRef)) && !String(idOrRef).startsWith('TXN-') && !String(idOrRef).startsWith('PAY-'));
   const whereClause = isId ? 'id = $1' : 'ref = $1';

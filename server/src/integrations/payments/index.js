@@ -10,6 +10,25 @@ import { AppError } from '../../plugins/errorHandler.js';
 
 export { MockPaymentDriver, BkashPaymentDriver, NagadPaymentDriver, SslcommerzPaymentDriver };
 
+/**
+ * What every payment driver exposes. The four driver classes do not share a base class, so without
+ * this the checker sees a union and demands each method's arguments satisfy all four at once.
+ *
+ * @typedef {object} PaymentGateway
+ * @property {boolean} [isLive] - WHY optional: the mock driver has none on purpose. A driver that
+ *   approves without asking a real gateway must never complete a payment from the public callback URL.
+ * @property {(params: Record<string, any>) => Promise<any>} createPayment
+ * @property {(params: { paymentId?: string, trxId?: string, otp?: string, token?: string, valId?: string }) => Promise<any>} executePayment
+ * @property {(params: { paymentId?: string, gatewayRef?: string }) => Promise<any>} queryPayment
+ * @property {(params: { gatewayRef: string, amount: string|number, reason?: string, trxId?: string }) => Promise<any>} refund
+ * @property {(params: { payload?: any, rawBody?: any, signature?: string, secret?: string }) => boolean} verifyWebhookSignature
+ */
+
+/**
+ * @param {string} [gatewayName]
+ * @param {object} [config]
+ * @returns {PaymentGateway}
+ */
 export function createPaymentGateway(gatewayName = 'MOCK', config = {}) {
   const norm = String(gatewayName || 'MOCK').trim().toUpperCase();
   const globalDriver = (process.env.PAYMENT_DRIVER || 'MOCK').toUpperCase();

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * vault.service.js — Vault, Escrow Engine & Clawback Automation (Prompt 6.1).
  *
@@ -66,13 +67,14 @@ export async function resolveClearingWalletId(txClient) {
  * Deposits sub-order funds into escrow, locking them into pending_escrow_balance.
  *
  * @param {import('pg').Pool} db
- * @param {Object} params
+ * @param {Object} params - WHY: no `= {}` default. Money code must not run with subOrderId undefined;
+ *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
  * @param {number} params.subOrderId
  * @param {Object} [params.breakdown] - Explicit breakdown (supplierAmount, salerCommission, platformMargin)
- * @param {number} [params.buyerWalletId] - Buyer's wallet ID (or customer user ID)
- * @param {number} [params.supplierWalletId] - Supplier's wallet ID
- * @param {number} [params.salerWalletId] - Shop Partner's wallet ID (if applicable)
- * @param {number} [params.platformWalletId] - Platform system wallet ID
+ * @param {number|string} [params.buyerWalletId] - Buyer's wallet ID (or customer user ID)
+ * @param {number|string} [params.supplierWalletId] - Supplier's wallet ID
+ * @param {number|string} [params.salerWalletId] - Shop Partner's wallet ID (if applicable)
+ * @param {number|string} [params.platformWalletId] - Platform system wallet ID
  * @param {number} [params.holdDays=7] - Escrow return window hold in days
  * @param {string} [params.idempotencyKey]
  * @param {number} [params.createdBy]
@@ -89,7 +91,7 @@ export async function depositToEscrow(db, {
   idempotencyKey = null,
   createdBy = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Check existing escrow entries for idempotency
     const { rows: existingEscrows } = await txClient.query(
@@ -260,6 +262,7 @@ export async function depositToEscrow(db, {
     // DEBIT: Buyer / Funding Wallet (AVAILABLE bucket)
     // CREDIT: Beneficiary Wallets (ESCROW bucket)
     const txnGroupId = randomUUID();
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const ledgerEntries = [
       {
         walletId: resolvedBuyerWalletId,
@@ -347,9 +350,10 @@ export async function depositToEscrow(db, {
  * Strictly idempotent: retrying for an already-released sub-order safely returns without double-crediting.
  *
  * @param {import('pg').Pool} db
- * @param {Object} params
+ * @param {Object} params - WHY: no `= {}` default. Money code must not run with subOrderId undefined;
+ *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
  * @param {number} params.subOrderId
- * @param {number} [params.releasedBy] - User ID releasing escrow
+ * @param {number|string} [params.releasedBy] - User ID releasing escrow (req.user.id is a BIGINT string)
  * @param {string} [params.idempotencyKey]
  * @param {import('pg').PoolClient} [params.client]
  */
@@ -358,7 +362,7 @@ export async function releaseEscrow(db, {
   releasedBy = null,
   idempotencyKey = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Fetch and lock escrow entries for this sub-order
     const { rows: escrowRows } = await txClient.query(
@@ -418,6 +422,7 @@ export async function releaseEscrow(db, {
     // DEBIT: Beneficiary Wallet (ESCROW bucket) -> reduces pending_escrow_balance
     // CREDIT: Beneficiary Wallet (AVAILABLE bucket) -> increases available_balance & lifetime_earned
     const txnGroupId = randomUUID();
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const ledgerEntries = [];
     const entryIdsToUpdate = [];
 
@@ -511,11 +516,12 @@ export async function releaseEscrow(db, {
  * Reverses pending or available balances, zeroes shop partner commission, and refunds buyer.
  *
  * @param {import('pg').Pool} db
- * @param {Object} params
+ * @param {Object} params - WHY: no `= {}` default. Money code must not run with subOrderId undefined;
+ *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
  * @param {number} params.subOrderId
  * @param {string} [params.reason='Order returned/disputed']
  * @param {number} [params.executedBy] - Staff user ID executing clawback
- * @param {number} [params.refundBuyerWalletId] - Buyer wallet ID to receive refund
+ * @param {number|string} [params.refundBuyerWalletId] - Buyer wallet ID to receive refund
  * @param {string} [params.idempotencyKey]
  * @param {import('pg').PoolClient} [params.client]
  */
@@ -526,7 +532,7 @@ export async function executeClawback(db, {
   refundBuyerWalletId = null,
   idempotencyKey = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Lock escrow entries
     const { rows: escrowRows } = await txClient.query(
@@ -576,6 +582,7 @@ export async function executeClawback(db, {
     // If status == 'RELEASED': DEBIT Beneficiary (AVAILABLE bucket) -> per spec, available balance can go negative only on clawback
     // Matching CREDIT: Buyer Wallet (AVAILABLE bucket) with category = 'REFUND'
     const txnGroupId = randomUUID();
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const ledgerEntries = [];
     let totalClawbackPaisa = 0;
     const entryIdsToClawback = [];
@@ -657,6 +664,9 @@ export async function executeClawback(db, {
 
 /**
  * Checks ledger and wallet integrity across all platform wallets.
+ *
+ * @param {import('pg').Pool} db
+ * @param {{ client?: import('pg').PoolClient }} [options]
  */
 export async function getIntegrityReport(db, { client } = {}) {
   return walletRepo.checkLedgerIntegrity(db, { client });

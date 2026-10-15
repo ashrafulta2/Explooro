@@ -41,6 +41,8 @@ Verify with `npm ls --depth=0`. Audited: **0 vulnerabilities**.
 | `vite` | 8.2.2 | client, **dev only** | `client/vite.config.js` | Dev server with sub-500ms start and HMR; production bundling | **Low.** No source file outside `vite.config.js` may import from `vite`. `client/src` is plain ES modules — swap the bundler, or serve natively |
 | `fastify` | 5.12.1 | server | `server/src/app.js` + `routes/` | 30k+ req/s, built-in JSON schema validation, small memory footprint | **Medium.** The 3-tier architecture keeps Fastify in routes/plugins only; `services/` and `repositories/` are plain Node and would be unaffected |
 | `concurrently` | 10.0.5 | root, **dev only** | root `package.json` scripts | Runs client + server in one terminal | **Trivial.** Two terminals |
+| `typescript` | 5.9.3 | root, **dev only** | root `package.json` (never imported by source) | Type **checker** only, run with `noEmit` over plain `.js` via `checkJs` and JSDoc. Nothing is transpiled, so no build step, no `.ts` files and no runtime or bundle-size effect. Catches shape mismatches (e.g. a ledger `entryType` typo) that otherwise surface as runtime or money bugs | **Trivial.** Delete the package and the `tsconfig.json` files. The JSDoc stays as ordinary comments |
+| `@types/node` | 20.19.43 | root, **dev only** | root `package.json` (never imported by source) | Type declarations for Node built-ins so `checkJs` can resolve `node:crypto` etc. Pinned to 20.x to match `engines.node >=20` so the checker never accepts an API newer than the minimum supported Node | **Trivial.** Same as `typescript` |
 | `pg` | 8.23.0 | server | `server/src/config/db.js` | The PostgreSQL wire protocol is not something to reimplement | **Medium.** Only `db.js` and `db/migrate.js` import it; repositories receive a client/pool, never the driver |
 | `redis` | 6.2.1 | server | `server/src/config/cache-drivers/redis.js` | Real Redis client for `CACHE_DRIVER=redis` | **Trivial.** `CACHE_DRIVER=memory` runs the whole app with this package never touched at runtime |
 | `@fastify/cors` | 11.3.0 | server | `server/src/app.js` | Official plugin; same release cadence as Fastify | **Low.** One `app.register` call |
@@ -50,7 +52,7 @@ Verify with `npm ls --depth=0`. Audited: **0 vulnerabilities**.
 | `argon2` | 0.45.1 | server | `server/src/lib/password.js` | Password hashing must never be hand-rolled. Pulled forward from Phase 2.3 into 2.2 because the dev-user seed needs real argon2id hashes, not placeholders; 2.3's `auth.service.js` imports from `password.js`, never from `argon2` directly, so it still has exactly one importer | **Low.** `hashPassword`/`verifyPassword` in one file; swapping the algorithm touches only `password.js` |
 | `jose` | 6.2.10 | server | `server/src/lib/jwt.js` | Access-token signing/verification. Zero runtime dependencies of its own (vs. `jsonwebtoken`'s 9 transitive packages including several `lodash.*` micro-packages) — the deciding factor given docs/prompt.md's "reject anything with a large transitive tree" rule | **Low.** `signAccessToken`/`verifyAccessToken` in one file; `authenticate.js` and `auth.service.js` both import from there, never from `jose` |
 
-**Twelve direct dependencies. Zero of them run in the browser.**
+**Fourteen direct dependencies (two are type-only dev tools). Zero of them run in the browser.**
 
 ---
 

@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * clawback.service.js — Return-Triggered Clawback Automation & Deficit Recovery (Prompt 6.2).
  *
@@ -33,7 +34,8 @@ function generateRecoveryRef() {
  * Executes a full clawback for an approved return on a sub-order.
  *
  * @param {import('pg').Pool} db
- * @param {Object} params
+ * @param {Object} params - WHY: no `= {}` default. Money code must not run with subOrderId undefined;
+ *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
  * @param {number} params.subOrderId
  * @param {number} [params.returnRequestId]
  * @param {string} [params.reason='Return approved']
@@ -48,7 +50,7 @@ export async function processReturnClawback(db, {
   approvedBy = null,
   cache = null,
   client = null,
-} = {}) {
+}) {
   const runner = async (txClient) => {
     // 1. Fetch sub-order and customer information
     const { rows: subOrderRows } = await txClient.query(
@@ -100,6 +102,7 @@ export async function processReturnClawback(db, {
     let totalDeficitPaisa = 0;
 
     const txnGroupId = randomUUID();
+    /** @type {import('./ledger.service.js').LedgerEntryInput[]} */
     const ledgerEntries = [];
     const entryIdsToClawback = [];
 

@@ -1,0 +1,16 @@
+{
+  "//": "Type CHECKER only. Nothing is emitted and no .ts files exist: the server still runs as plain JavaScript (node src/index.js). checkJs is off globally on purpose; a file opts in by putting `// @ts-check` on its first line. See docs/dependency-ledger.md for why typescript is a dev tool and not a build step.",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "strict": false,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.js"]
+}

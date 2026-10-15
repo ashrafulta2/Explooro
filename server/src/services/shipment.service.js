@@ -349,7 +349,6 @@ export async function handleCourierWebhook(db, cache, {
         await clawbackService.executeClawback(txClient, {
           subOrderId: shipment.sub_order_id,
           reason: `Consignment returned by carrier (${normalized.note || 'Returned to origin'})`,
-          refundCustomer: true,
           client: txClient,
         });
       } catch (err) {

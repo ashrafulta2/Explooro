@@ -12,6 +12,7 @@
     "migrate": "node src/db/migrate.js up",
     "migrate:status": "node src/db/migrate.js status",
     "check:sql": "node src/db/checkSql.js",
+    "typecheck": "tsc -p tsconfig.json",
     "seed": "node src/db/seed.js",
     "covisit:rebuild": "node src/db/rebuildCovisits.js",
     "reco:metrics": "node src/db/recoMetrics.js"
