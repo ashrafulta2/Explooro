@@ -2,9 +2,9 @@
  * sms.js — SMS Notification Channel (Prompt 8.2).
  */
 
-import { createSmsSender } from '../../integrations/sms/index.js';
+import { createSmsSender } from '../../integrations/sms/index.ts';
 import * as mockDriver from '../../integrations/sms/mock.ts';
-import { loadEnv } from '../../config/env.js';
+import { loadEnv } from '../../config/env.ts';
 
 let cachedSender = null;
 

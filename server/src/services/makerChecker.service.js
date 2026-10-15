@@ -10,11 +10,11 @@
  * 4. Audit trail with full before/after JSON on submission, approval, rejection, and failure.
  */
 
-import * as permRepo from '../repositories/permission.repository.js';
+import * as permRepo from '../repositories/permission.repository.ts';
 import * as rbacService from './rbac.service.js';
 import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 // Action executor registry: action_key -> { validatePreconditions, execute }
 const executorRegistry = new Map();

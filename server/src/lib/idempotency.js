@@ -15,7 +15,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 const STATE_PENDING = 'PENDING';
 const STATE_DONE = 'DONE';

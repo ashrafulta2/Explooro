@@ -10,8 +10,8 @@
  */
 
 import { createHash } from 'node:crypto';
-import { AppError } from '../plugins/errorHandler.js';
-import * as recoCache from './recoCache.service.js';
+import { AppError } from '../plugins/errorHandler.ts';
+import * as recoCache from './recoCache.service.ts';
 import { listRegisteredJobs } from '../jobs/scheduler.js';
 import * as moduleService from './module.service.js';
 
@@ -839,7 +839,7 @@ export async function getSystemHealth(db, cache = null, { metrics = null, config
     db_health: dbHealth,
     cache_health: cacheHealth,
     // The personalized feed's own cache: pool/settings hit rates and mean/max latency of the feed and
-    // rails on THIS node since boot (services/recoCache.service.js). Phase G puts it on screen.
+    // rails on THIS node since boot (services/recoCache.service.ts). Phase G puts it on screen.
     recommendation: recoCache.getStats(),
     webhooks: {
       total: totalWebhooks,

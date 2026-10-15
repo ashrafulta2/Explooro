@@ -11,7 +11,7 @@
  */
 
 import { withTransaction } from '../config/db.ts';
-import { isUserOnline, sendToUser } from '../sockets/presence.js';
+import { isUserOnline, sendToUser } from '../sockets/presence.ts';
 import { writeAudit } from '../lib/audit.js';
 
 // Debounce map for offline notifications: key -> { timer, count, lastContent }

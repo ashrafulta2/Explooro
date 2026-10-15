@@ -75,7 +75,9 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
           { release_pct: 40 },
         ],
       }),
-      (err) => err.code === 'VALIDATION_FAILED'
+      // The 3rd AppError argument is the Bangla message. This service used to pass the HTTP status
+      // there, so the API answered message_bn: 400 (found when errorHandler moved to TypeScript).
+      (err) => err.code === 'VALIDATION_FAILED' && err.statusCode === 400 && typeof err.messageBn !== 'number'
     );
   });
 
@@ -564,7 +566,7 @@ describe('Prompt 10.6 — B2B Wholesale Escrow & Milestone Settlement', () => {
   test('Fastify HTTP API: POST /b2b-escrow/deals creates deal and returns 201', async () => {
     const Fastify = (await import('fastify')).default;
     const b2bEscrowRoutes = (await import('../src/routes/b2bEscrow.routes.js')).default;
-    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.js')).default;
+    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
 
     const mockDb = createMockDb({
       queryHandler: async (sql, params) => {

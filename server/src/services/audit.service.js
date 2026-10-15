@@ -11,10 +11,10 @@
  */
 
 import { createHash } from 'node:crypto';
-import * as auditRepo from '../repositories/audit.repository.js';
-import * as permRepo from '../repositories/permission.repository.js';
+import * as auditRepo from '../repositories/audit.repository.ts';
+import * as permRepo from '../repositories/permission.repository.ts';
 import { getRequestContext } from '../plugins/requestContext.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 /**
  * List of sensitive key patterns that must never be stored in plaintext.

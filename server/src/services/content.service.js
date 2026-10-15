@@ -9,7 +9,7 @@
  * 5. Dynamic Translation Manager with completeness gauges and zero-deploy new locale addition.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';

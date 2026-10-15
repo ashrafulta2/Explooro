@@ -22,7 +22,7 @@
  */
 
 import * as pageToggleRepo from '../repositories/pageToggle.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export const PAGE_STATES = Object.freeze(['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMITED']);
 

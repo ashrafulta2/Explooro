@@ -10,7 +10,7 @@
  * commit together, or a failed rebuild would leave the signal with an empty table.
  *
  * @param {{query: Function}} client
- * @param {object} cfg sanitised covisit config (services/covisit.service.js)
+ * @param {object} cfg sanitised covisit config (services/covisit.service.ts)
  * @returns {Promise<{pairs: number, products: number}>}
  */
 export async function replaceCovisits(client: { query: Function; }, cfg: any): Promise<{ pairs: number; products: number; }> {

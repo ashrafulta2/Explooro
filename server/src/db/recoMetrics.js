@@ -10,9 +10,9 @@
  */
 
 import '../config/loadEnvFile.ts';
-import { loadEnv } from '../config/env.js';
+import { loadEnv } from '../config/env.ts';
 import { createDbPool } from '../config/db.ts';
-import { getFunnel } from '../services/recoFunnel.service.js';
+import { getFunnel } from '../services/recoFunnel.service.ts';
 
 const arg = (name) => {
   const i = process.argv.indexOf(`--${name}`);

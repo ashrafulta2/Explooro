@@ -2,7 +2,7 @@
  * inapp.js — In-App Live WebSocket Notification Channel (Prompt 8.2).
  */
 
-import { sendToUser } from '../../sockets/presence.js';
+import { sendToUser } from '../../sockets/presence.ts';
 
 export async function sendInApp(notification) {
   const payload = {

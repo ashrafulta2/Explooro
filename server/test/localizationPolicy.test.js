@@ -23,7 +23,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import localizationRoutes from '../src/routes/localization.routes.js';
 import * as localizationService from '../src/services/localization.service.js';
 

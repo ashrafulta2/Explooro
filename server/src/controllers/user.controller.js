@@ -2,7 +2,7 @@
  * user.controller.js — Request handlers for user and permission introspection admin APIs (Prompt 3.3).
  */
 
-import * as userRepo from '../repositories/user.repository.js';
+import * as userRepo from '../repositories/user.repository.ts';
 import * as rbacService from '../services/rbac.service.js';
 
 export async function listUsers(req, reply) {

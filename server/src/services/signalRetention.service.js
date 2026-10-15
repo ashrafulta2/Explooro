@@ -13,7 +13,7 @@
  */
 
 import * as signalRepo from '../repositories/signalRetention.repository.ts';
-import { resolveCovisitConfig } from './covisit.service.js';
+import { resolveCovisitConfig } from './covisit.service.ts';
 
 export const MODULE_KEY = 'personalization_signals';
 

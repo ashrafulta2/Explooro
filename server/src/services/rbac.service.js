@@ -12,9 +12,9 @@
  *    TTL expiry. A revoked permission must stop working within one request.
  */
 
-import * as permRepo from '../repositories/permission.repository.js';
-import { evaluatePredicate } from './segment.service.js';
-import { AppError } from '../plugins/errorHandler.js';
+import * as permRepo from '../repositories/permission.repository.ts';
+import { evaluatePredicate } from './segment.service.ts';
+import { AppError } from '../plugins/errorHandler.ts';
 
 const PERMISSION_CACHE_TTL_S = 300; // 5 minutes
 

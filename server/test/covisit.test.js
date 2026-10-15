@@ -17,10 +17,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as covisit from '../src/services/covisit.service.js';
+import * as covisit from '../src/services/covisit.service.ts';
 import * as covisitRepo from '../src/repositories/covisit.repository.ts';
 import * as reco from '../src/services/recommendation.service.js';
-import { buildBlendedRank } from '../src/repositories/recommendation.repository.js';
+import { buildBlendedRank } from '../src/repositories/recommendation.repository.ts';
 import { runCovisitRebuild } from '../src/jobs/covisitRebuild.job.js';
 
 const migration = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/059_covisitation.sql'), 'utf8');

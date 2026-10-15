@@ -14,7 +14,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import sitemapRoutes from '../src/routes/sitemap.routes.js';
-import * as prerenderService from '../src/services/prerender.service.js';
+import * as prerenderService from '../src/services/prerender.service.ts';
 import { normalizeSlug, buildProductJsonLd, buildStoreJsonLd, buildWebsiteJsonLd, buildBreadcrumbJsonLd } from '../../client/src/services/seo.js';
 
 function createMockDb({ queryHandler = null } = {}) {

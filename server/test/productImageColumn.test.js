@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import * as flashSaleService from '../src/services/flashSale.service.js';
 import * as returnService from '../src/services/return.service.ts';
 import * as shortlinkService from '../src/services/shortlink.service.js';
-import { getStorageDriver } from '../src/integrations/storage/index.js';
+import { getStorageDriver } from '../src/integrations/storage/index.ts';
 
 const KEY = 'products/42/primary.webp';
 

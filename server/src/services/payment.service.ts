@@ -10,7 +10,7 @@
  *  6. Full credential masking (tokens, PINs, account digits) in logs and DB
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import { createPaymentGateway } from '../integrations/payments/index.js';
 import * as paymentRepo from '../repositories/payment.repository.ts';

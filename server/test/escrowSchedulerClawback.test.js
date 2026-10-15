@@ -28,7 +28,7 @@ import * as scheduler from '../src/jobs/scheduler.js';
 import { runEscrowReleaseSweep } from '../src/jobs/escrowRelease.job.ts';
 import financeRoutes from '../src/routes/finance.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

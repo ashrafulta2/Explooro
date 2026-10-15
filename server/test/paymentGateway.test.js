@@ -16,7 +16,7 @@ import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import paymentRoutes from '../src/routes/payment.routes.js';
 import { createPaymentGateway, MockPaymentDriver } from '../src/integrations/payments/index.js';
 import * as paymentService from '../src/services/payment.service.ts';

@@ -4,7 +4,7 @@
 
 import * as deliveryChargeService from '../services/deliveryCharge.service.ts';
 import * as auditService from '../services/audit.service.js';
-import * as auditRepo from '../repositories/audit.repository.js';
+import * as auditRepo from '../repositories/audit.repository.ts';
 
 const dbOf = (req) => req.db || req.server?.db;
 const cacheOf = (req) => req.cache || req.server?.cache;

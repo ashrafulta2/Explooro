@@ -188,7 +188,7 @@ these calls inside one transaction.
 
 ```js
 import { withTransaction } from '../config/db.js';
-import { ApiError } from '../plugins/errorHandler.js';
+import { ApiError } from '../plugins/errorHandler.ts';
 
 /**
  * Product tag rules.

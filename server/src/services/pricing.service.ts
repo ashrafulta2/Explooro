@@ -23,7 +23,7 @@
  *   floating-point drift. Rounding remainders (fractional paisa) always go to the platform.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { applyRebate, resolveProRebatePct } from './subscriptionRebate.ts';
 import { TIER_KEYS, parseTierBonuses, resolveSalerTierBonusPct } from './salerTierBonus.ts';
 

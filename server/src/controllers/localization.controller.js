@@ -4,7 +4,7 @@
 
 import * as localizationService from '../services/localization.service.js';
 import * as auditService from '../services/audit.service.js';
-import * as auditRepo from '../repositories/audit.repository.js';
+import * as auditRepo from '../repositories/audit.repository.ts';
 
 function dbOf(req) {
   return req.db || req.server?.db;

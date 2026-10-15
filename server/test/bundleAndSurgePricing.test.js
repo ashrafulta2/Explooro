@@ -539,7 +539,7 @@ describe('Prompt 10.5 — Cross-Seller Bundling & Demand Surge Pricing', () => {
   test('Fastify HTTP API: POST /saler/bundles/preview returns 200 with complete live profit breakdown', async () => {
     const Fastify = (await import('fastify')).default;
     const bundleRoutes = (await import('../src/routes/bundle.routes.js')).default;
-    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.js')).default;
+    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
 
     const app = Fastify();
     app.decorate('authenticate', async (req) => {

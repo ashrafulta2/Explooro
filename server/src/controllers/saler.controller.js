@@ -3,7 +3,7 @@
  */
 
 import * as salerService from '../services/salerDashboard.service.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export async function getDashboardOverview(req, reply) {
   const db = req.db || req.server.db;

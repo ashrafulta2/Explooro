@@ -3,8 +3,8 @@
  */
 
 import * as cartRepo from '../repositories/cart.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
-import { getStorageDriver } from '../integrations/storage/index.js';
+import { AppError } from '../plugins/errorHandler.ts';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 
 export async function getWishlist(db, userId) {
   if (!userId) {

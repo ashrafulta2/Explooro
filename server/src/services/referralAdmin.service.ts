@@ -11,7 +11,7 @@
  * self-referral, circular referral and device fingerprint; only the daily velocity cap is a number.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { withTransaction } from '../config/db.ts';
 import { getReferralSettings } from './referral.service.ts';
 import { updateModuleSettings } from './module.service.js';

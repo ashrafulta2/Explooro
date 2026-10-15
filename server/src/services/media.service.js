@@ -3,9 +3,9 @@
  */
 
 import sharp from 'sharp';
-import { getStorageDriver } from '../integrations/storage/index.js';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 import * as mediaRepo from '../repositories/media.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024;    // 8 MB
 export const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024;  // 100 MB

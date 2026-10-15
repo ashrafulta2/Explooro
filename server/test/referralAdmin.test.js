@@ -13,7 +13,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import * as svc from '../src/services/referralAdmin.service.ts';
-import referralRoutes from '../src/routes/referral.routes.js';
+import referralRoutes from '../src/routes/referral.routes.ts';
 
 describe('Referral admin: rules', () => {
   test('maps engine settings to the form and fills defaults', () => {

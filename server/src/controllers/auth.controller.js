@@ -19,8 +19,8 @@ import {
   findUserByEmail,
   findUserByIdentifier,
   getRefreshTokenByHash,
-} from '../repositories/user.repository.js';
-import { AppError } from '../plugins/errorHandler.js';
+} from '../repositories/user.repository.ts';
+import { AppError } from '../plugins/errorHandler.ts';
 
 const REFRESH_COOKIE = 'rt';
 const CSRF_COOKIE = 'csrf';

@@ -404,7 +404,7 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
   test('Fastify HTTP API: Content stories and reels querying return 200', async () => {
     const Fastify = (await import('fastify')).default;
     const contentRoutes = (await import('../src/routes/content.routes.js')).default;
-    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.js')).default;
+    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
 
     const mockDb = createMockDb({
       queryHandler: async (sql) => {

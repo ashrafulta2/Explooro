@@ -22,11 +22,11 @@ import path from 'node:path';
 import Fastify from 'fastify';
 
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import recommendationAdminRoutes from '../src/routes/recommendationAdmin.routes.js';
 import * as admin from '../src/services/recommendationAdmin.service.js';
 import * as auditService from '../src/services/audit.service.js';
-import * as recoCache from '../src/services/recoCache.service.js';
+import * as recoCache from '../src/services/recoCache.service.ts';
 import * as recommendation from '../src/services/recommendation.service.js';
 import * as homeRails from '../src/services/homeRails.service.js';
 import * as diversity from '../src/services/diversity.service.js';

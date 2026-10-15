@@ -4,7 +4,7 @@
  */
 
 import * as service from '../services/sampleKit.service.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 function id(value, label) {
   const n = Number(value);

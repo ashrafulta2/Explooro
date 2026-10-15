@@ -17,7 +17,7 @@
  */
 
 import * as settingRepo from '../repositories/setting.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 /**
  * The locales the product actually ships dictionaries for. Kept in lockstep with `SUPPORTED` in

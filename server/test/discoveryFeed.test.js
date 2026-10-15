@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import * as discoveryService from '../src/services/discoveryFeed.service.js';
-import * as feedRepo from '../src/repositories/discoveryFeed.repository.js';
+import * as feedRepo from '../src/repositories/discoveryFeed.repository.ts';
 
 // ── A configurable mock db. Each test wires only the queries it needs; anything unrecognized
 // returns { rows: [] } so pricing enrichment falls to its documented defaults rather than throwing.

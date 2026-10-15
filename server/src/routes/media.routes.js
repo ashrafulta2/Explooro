@@ -3,9 +3,9 @@
  */
 
 import * as mediaController from '../controllers/media.controller.js';
-import { getStorageDriver } from '../integrations/storage/index.js';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 import { MAX_IMAGE_SIZE_BYTES } from '../services/media.service.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 // WHY: /media/direct carries the file as a base64 data URL inside JSON, which is ~4/3 the file's
 // size. Fastify's default 1MB body limit rejected any photo over ~750KB with a bare 413 before the

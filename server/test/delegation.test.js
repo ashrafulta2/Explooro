@@ -19,7 +19,7 @@ import { runGrantExpiryJob } from '../src/jobs/grantExpiryCron.js';
 import { resolvePermissions, hasPermission } from '../src/services/rbac.service.js';
 import { requirePermission } from '../src/middlewares/requirePermission.js';
 import delegationRoutes from '../src/routes/delegation.routes.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const SAMPLE_ROLES = [

@@ -3,9 +3,9 @@
  */
 
 import * as storeService from '../services/store.service.js';
-import * as ogService from '../services/og-image.service.js';
+import * as ogService from '../services/og-image.service.ts';
 import * as productRepo from '../repositories/product.repository.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export async function getStore(req, reply) {
   const db = req.db || req.server?.db;

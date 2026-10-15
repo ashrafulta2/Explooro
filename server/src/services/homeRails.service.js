@@ -16,7 +16,7 @@ import * as productService from './product.service.js';
 import * as discoveryFeed from './discoveryFeed.service.js';
 import * as recommendation from './recommendation.service.js';
 import * as diversity from './diversity.service.js';
-import * as recoCache from './recoCache.service.js';
+import * as recoCache from './recoCache.service.ts';
 
 export const RAILS_KEY = 'recommendation.rails';
 

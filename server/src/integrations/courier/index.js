@@ -2,10 +2,10 @@
  * index.js — Multi-Carrier Logistics Adapter Hub (Prompt 7.1).
  */
 
-import { MockCourierAdapter } from './mock.js';
-import { SteadfastCourierAdapter } from './steadfast.js';
-import { PathaoCourierAdapter } from './pathao.js';
-import { RedxCourierAdapter } from './redx.js';
+import { MockCourierAdapter } from './mock.ts';
+import { SteadfastCourierAdapter } from './steadfast.ts';
+import { PathaoCourierAdapter } from './pathao.ts';
+import { RedxCourierAdapter } from './redx.ts';
 
 const adapters = {
   MOCK: new MockCourierAdapter(),

@@ -8,9 +8,9 @@
  */
 
 import '../config/loadEnvFile.ts';
-import { loadEnv } from '../config/env.js';
+import { loadEnv } from '../config/env.ts';
 import { createDbPool } from '../config/db.ts';
-import { rebuildCovisits, resolveCovisitConfig } from '../services/covisit.service.js';
+import { rebuildCovisits, resolveCovisitConfig } from '../services/covisit.service.ts';
 
 const pool = createDbPool(loadEnv());
 try {

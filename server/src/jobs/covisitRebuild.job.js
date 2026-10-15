@@ -6,7 +6,7 @@
  * learn from, so the job is skipped and the last aggregate simply ages.
  */
 
-import { rebuildCovisits } from '../services/covisit.service.js';
+import { rebuildCovisits } from '../services/covisit.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runCovisitRebuild(db, cache, logger = console) {

@@ -2,8 +2,8 @@
  * review.service.js — Review eligibility, submission, listing & helpful votes (Prompt 4.6).
  */
 
-import * as reviewRepo from '../repositories/review.repository.js';
-import { AppError } from '../plugins/errorHandler.js';
+import * as reviewRepo from '../repositories/review.repository.ts';
+import { AppError } from '../plugins/errorHandler.ts';
 import { evaluateAndFlag } from './ai/reviewIntegrity.js';
 
 /**

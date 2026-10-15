@@ -13,7 +13,7 @@
  * 4. Exact ledger balance: Total Customer Payment = Sum of Supplier Wholesale Payouts + Shop Partner Profit + Platform Margin.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.ts';
 import { generateRef } from '../lib/ref.ts';
 

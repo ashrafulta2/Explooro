@@ -4,7 +4,7 @@
 
 import * as reviewService from '../services/review.service.js';
 import * as productRepo from '../repositories/product.repository.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 /** `:productId` route params are `product.ref` everywhere in the client (see product.service.js's
  * getProductDetail) — resolve the same way so review endpoints accept the same URLs. */

@@ -11,7 +11,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import { toPaisa, toBdtNumber, toBdtString } from './pricing.service.ts';
 import { recordTransactionGroup } from './ledger.service.ts';
@@ -25,10 +25,10 @@ import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js
 export function calculateMilestonesSchedule({ totalAmount, milestones = [] }) {
   const totalNum = parseFloat(totalAmount);
   if (isNaN(totalNum) || totalNum <= 0) {
-    throw new AppError('VALIDATION_FAILED', 'Total deal amount must be greater than zero.', 400);
+    throw new AppError('VALIDATION_FAILED', 'Total deal amount must be greater than zero.');
   }
   if (!Array.isArray(milestones) || milestones.length < 1) {
-    throw new AppError('VALIDATION_FAILED', 'At least 1 milestone is required for B2B escrow.', 400);
+    throw new AppError('VALIDATION_FAILED', 'At least 1 milestone is required for B2B escrow.');
   }
 
   const totalPaisa = toPaisa(totalNum);
@@ -37,13 +37,13 @@ export function calculateMilestonesSchedule({ totalAmount, milestones = [] }) {
   for (const m of milestones) {
     const pct = parseFloat(m.release_pct || m.releasePct || 0);
     if (isNaN(pct) || pct <= 0) {
-      throw new AppError('VALIDATION_FAILED', 'Milestone release percentage must be greater than 0.', 400);
+      throw new AppError('VALIDATION_FAILED', 'Milestone release percentage must be greater than 0.');
     }
     totalPct += pct;
   }
 
   if (Math.abs(totalPct - 100.0) > 0.01) {
-    throw new AppError('VALIDATION_FAILED', `Milestone percentages must sum to exactly 100% (currently ${totalPct.toFixed(2)}%).`, 400);
+    throw new AppError('VALIDATION_FAILED', `Milestone percentages must sum to exactly 100% (currently ${totalPct.toFixed(2)}%).`);
   }
 
   let assignedPaisa = 0;
@@ -116,13 +116,13 @@ export async function createB2bDeal(db, {
   milestones = [],
 }) {
   if (!buyerId || !supplierId) {
-    throw new AppError('VALIDATION_FAILED', 'Buyer and Supplier IDs are required.', 400);
+    throw new AppError('VALIDATION_FAILED', 'Buyer and Supplier IDs are required.');
   }
   if (Number(buyerId) === Number(supplierId)) {
-    throw new AppError('VALIDATION_FAILED', 'Buyer and Supplier cannot be the same account.', 400);
+    throw new AppError('VALIDATION_FAILED', 'Buyer and Supplier cannot be the same account.');
   }
   if (!titleEn || !titleBn) {
-    throw new AppError('VALIDATION_FAILED', 'Bilingual deal titles (English & Bengali) are required.', 400);
+    throw new AppError('VALIDATION_FAILED', 'Bilingual deal titles (English & Bengali) are required.');
   }
 
   const calculatedMilestones = calculateMilestonesSchedule({ totalAmount, milestones });
@@ -231,7 +231,7 @@ export async function acceptDealTerms(db, { dealId, userId, role }) {
       [dealId]
     );
     if (!deals.length) {
-      throw new AppError('NOT_FOUND', `B2B Deal #${dealId} not found.`, 404);
+      throw new AppError('NOT_FOUND', `B2B Deal #${dealId} not found.`);
     }
     const deal = deals[0];
 
@@ -239,7 +239,7 @@ export async function acceptDealTerms(db, { dealId, userId, role }) {
     const isSupplier = Number(deal.supplier_id) === Number(userId);
 
     if (!isBuyer && !isSupplier && role !== 'admin' && role !== 'super_admin') {
-      throw new AppError('FORBIDDEN', 'You are not a participant in this B2B deal.', 403);
+      throw new AppError('FORBIDDEN', 'You are not a participant in this B2B deal.');
     }
 
     let buyerSignedAt = deal.buyer_signed_at;
@@ -265,8 +265,7 @@ export async function acceptDealTerms(db, { dealId, userId, role }) {
       if (buyerAvailable < dealAmount) {
         throw new AppError(
           'INSUFFICIENT_FUNDS',
-          `Buyer wallet has insufficient available balance (৳${buyerAvailable.toFixed(2)}) for B2B deal total ৳${dealAmount.toFixed(2)}.`,
-          400
+          `Buyer wallet has insufficient available balance (৳${buyerAvailable.toFixed(2)}) for B2B deal total ৳${dealAmount.toFixed(2)}.`
         );
       }
 
@@ -351,18 +350,18 @@ export async function submitMilestoneEvidence(db, {
       [milestoneId]
     );
     if (!ms.length) {
-      throw new AppError('NOT_FOUND', `Milestone #${milestoneId} not found.`, 404);
+      throw new AppError('NOT_FOUND', `Milestone #${milestoneId} not found.`);
     }
     const milestone = ms[0];
 
     if (milestone.status === 'RELEASED') {
-      throw new AppError('INVALID_STATE', 'Milestone has already been released.', 400);
+      throw new AppError('INVALID_STATE', 'Milestone has already been released.');
     }
     if (milestone.status === 'FROZEN') {
-      throw new AppError('INVALID_STATE', 'Milestone is frozen due to an active dispute.', 400);
+      throw new AppError('INVALID_STATE', 'Milestone is frozen due to an active dispute.');
     }
     if (milestone.status === 'REFUNDED') {
-      throw new AppError('INVALID_STATE', 'Milestone has been refunded.', 400);
+      throw new AppError('INVALID_STATE', 'Milestone has been refunded.');
     }
 
     const evidenceData = {
@@ -418,25 +417,25 @@ export async function releaseMilestone(db, {
       [milestoneId]
     );
     if (!ms.length) {
-      throw new AppError('NOT_FOUND', `Milestone #${milestoneId} not found.`, 404);
+      throw new AppError('NOT_FOUND', `Milestone #${milestoneId} not found.`);
     }
     const milestone = ms[0];
 
     if (milestone.status === 'RELEASED') {
-      throw new AppError('INVALID_STATE', 'Milestone has already been released.', 400);
+      throw new AppError('INVALID_STATE', 'Milestone has already been released.');
     }
     if (milestone.status === 'FROZEN') {
-      throw new AppError('INVALID_STATE', 'Milestone is frozen due to active dispute.', 400);
+      throw new AppError('INVALID_STATE', 'Milestone is frozen due to active dispute.');
     }
     if (milestone.status === 'REFUNDED') {
-      throw new AppError('INVALID_STATE', 'Milestone has been refunded.', 400);
+      throw new AppError('INVALID_STATE', 'Milestone has been refunded.');
     }
 
     const isBuyer = Number(milestone.buyer_id) === Number(actorId);
     const isAdmin = actorRole === 'admin' || actorRole === 'super_admin' || isSuperAdmin;
 
     if (!isBuyer && !isAdmin) {
-      throw new AppError('FORBIDDEN', 'Only the buyer or an authorized admin can release milestone escrow funds.', 403);
+      throw new AppError('FORBIDDEN', 'Only the buyer or an authorized admin can release milestone escrow funds.');
     }
 
     const milestoneAmount = parseFloat(milestone.amount);
@@ -588,7 +587,7 @@ export async function raiseB2bDispute(db, {
       [dealId]
     );
     if (!deals.length) {
-      throw new AppError('NOT_FOUND', `B2B Deal #${dealId} not found.`, 404);
+      throw new AppError('NOT_FOUND', `B2B Deal #${dealId} not found.`);
     }
     const deal = deals[0];
 
@@ -596,7 +595,7 @@ export async function raiseB2bDispute(db, {
     const isSupplier = Number(deal.supplier_id) === Number(raisedBy);
 
     if (!isBuyer && !isSupplier) {
-      throw new AppError('FORBIDDEN', 'Only deal participants can raise a B2B escrow dispute.', 403);
+      throw new AppError('FORBIDDEN', 'Only deal participants can raise a B2B escrow dispute.');
     }
 
     // Freeze all remaining non-released milestones
@@ -695,15 +694,15 @@ export async function refundMilestone(db, {
       [milestoneId]
     );
     if (!ms.length) {
-      throw new AppError('NOT_FOUND', `Milestone #${milestoneId} not found.`, 404);
+      throw new AppError('NOT_FOUND', `Milestone #${milestoneId} not found.`);
     }
     const milestone = ms[0];
 
     if (milestone.status === 'RELEASED') {
-      throw new AppError('INVALID_STATE', 'Released milestones cannot be refunded directly; use clawback.', 400);
+      throw new AppError('INVALID_STATE', 'Released milestones cannot be refunded directly; use clawback.');
     }
     if (milestone.status === 'REFUNDED') {
-      throw new AppError('INVALID_STATE', 'Milestone has already been refunded.', 400);
+      throw new AppError('INVALID_STATE', 'Milestone has already been refunded.');
     }
 
     const milestoneAmount = parseFloat(milestone.amount);
@@ -787,7 +786,7 @@ export async function cancelDeal(db, { dealId, actorId, reason = '' }) {
       [dealId]
     );
     if (!deals.length) {
-      throw new AppError('NOT_FOUND', `B2B Deal #${dealId} not found.`, 404);
+      throw new AppError('NOT_FOUND', `B2B Deal #${dealId} not found.`);
     }
     const deal = deals[0];
 
@@ -1049,7 +1048,7 @@ export async function getB2bDealById(db, dealIdOrRef) {
 
   const { rows } = await db.query(sql, [dealIdOrRef]);
   if (!rows.length) {
-    throw new AppError('NOT_FOUND', `B2B Deal "${dealIdOrRef}" not found.`, 404);
+    throw new AppError('NOT_FOUND', `B2B Deal "${dealIdOrRef}" not found.`);
   }
 
   const r = rows[0];

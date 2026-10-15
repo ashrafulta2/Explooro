@@ -14,7 +14,7 @@ export * as demandForecast from './demandForecast.js';
 export * as reviewIntegrity from './reviewIntegrity.js';
 export * as prescriptiveInsights from './prescriptiveInsights.js';
 
-import * as aiRepo from '../../repositories/ai.repository.js';
+import * as aiRepo from '../../repositories/ai.repository.ts';
 
 export async function listConversations(db, { userId, agentType, limit = 20 }) {
   return aiRepo.listConversations(db, { userId, agentType, limit });

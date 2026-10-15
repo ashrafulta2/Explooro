@@ -17,7 +17,7 @@ import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import themeRoutes from '../src/routes/theme.routes.js';
 import * as themeService from '../src/services/theme.service.js';
 import { MASTER_PRESETS } from '../../client/src/config/master-themes.js';

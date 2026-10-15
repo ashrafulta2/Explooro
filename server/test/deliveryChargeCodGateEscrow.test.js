@@ -13,7 +13,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as deliveryChargeService from '../src/services/deliveryCharge.service.ts';
 import * as codGateService from '../src/services/codGate.service.ts';
-import { AppError } from '../src/plugins/errorHandler.js';
+import { AppError } from '../src/plugins/errorHandler.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const src = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');

@@ -10,7 +10,7 @@ function traceId() {
 }
 
 // A tiny Banglish → Bengali seed map so "shari"/"saree" find "শাড়ি" in mock mode. The real
-// engine (Prompt 4.4) replaces this with server/src/utils/transliterate.js + the i18n_strings
+// engine (Prompt 4.4) replaces this with server/src/utils/transliterate.ts + the i18n_strings
 // table — this is only here so the mock search feels like the finished feature during preview.
 const SEARCH_SYNONYMS = {
   saree: ['শাড়ি'], shari: ['শাড়ি'], sari: ['শাড়ি'],

@@ -4,12 +4,12 @@
 
 import * as productRepo from '../repositories/product.repository.js';
 import { calculatePricingBreakdown, loadSplitRules, resolveSplitPercentages, toPaisa } from './pricing.service.ts';
-import { AppError } from '../plugins/errorHandler.js';
-import { getStorageDriver } from '../integrations/storage/index.js';
+import { AppError } from '../plugins/errorHandler.ts';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.js';
-import * as recoCache from './recoCache.service.js';
-import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.js';
+import * as recoCache from './recoCache.service.ts';
+import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.ts';
 import { runAuction as runAdAuction } from './ads.service.js';
 import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.js';
 import { getReservedForProduct, withAvailableStock } from './teamStockReservation.service.ts';

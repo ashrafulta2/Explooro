@@ -17,9 +17,9 @@
 
 import * as provider from './provider.js';
 import * as productRepo from '../../repositories/product.repository.js';
-import { getStorageDriver } from '../../integrations/storage/index.js';
+import { getStorageDriver } from '../../integrations/storage/index.ts';
 import { processAndSaveMedia, applyFlatBackgroundMatte } from '../media.service.js';
-import { AppError } from '../../plugins/errorHandler.js';
+import { AppError } from '../../plugins/errorHandler.ts';
 
 const FEATURE_KEY = 'creative';
 

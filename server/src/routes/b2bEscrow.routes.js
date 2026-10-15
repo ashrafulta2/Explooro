@@ -2,7 +2,7 @@
  * b2bEscrow.routes.js — Fastify routes for B2B Wholesale Escrow & Milestone Settlement (Prompt 10.6).
  */
 
-import * as b2bController from '../controllers/b2bEscrow.controller.js';
+import * as b2bController from '../controllers/b2bEscrow.controller.ts';
 
 export default async function b2bEscrowRoutes(app) {
   const requireB2bModule = app.requireModule('b2b_escrow');

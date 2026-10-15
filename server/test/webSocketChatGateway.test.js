@@ -14,10 +14,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import chatRoutes from '../src/routes/chat.routes.js';
 import * as chatService from '../src/services/chat.service.js';
-import * as presence from '../src/sockets/presence.js';
+import * as presence from '../src/sockets/presence.ts';
 import { handleSocketMessage } from '../src/sockets/chat.handler.js';
 
 function createMockDb() {

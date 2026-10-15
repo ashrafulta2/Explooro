@@ -76,9 +76,9 @@ explooro/
 │       ├── index.js             Boot
 │       ├── app.js               Fastify instance + plugin registration
 │       ├── config/
-│       │   ├── env.js           Validates every env var at boot, fails fast
-│       │   ├── db.js            pg Pool + withTransaction()
-│       │   ├── cache.js         Driver interface (redis | memory)
+│       │   ├── env.ts           Validates every env var at boot, fails fast
+│       │   ├── db.ts            pg Pool + withTransaction()
+│       │   ├── cache.ts         Driver interface (redis | memory)
 │       │   └── modules.seed.json  71 module definitions
 │       ├── db/
 │       │   ├── migrate.js       Forward-only runner, checksum-verified
@@ -138,7 +138,7 @@ The 35 most likely change requests, with exact paths.
 
 | I want to… | Change |
 | :--- | :--- |
-| Change how suppliers are graded in the Sourcing Catalog (window, minimum orders, dispatch SLA, weights, grade cut-offs) | **Configuration, not code** — the `supplier.scorecard` OBJECT row in `platform_settings` (migration 062). Scoring rules are `scoreMetrics` / `resolveRules` in `services/supplierScorecard.service.js`; the daily `supplier_scorecard` job rebuilds `supplier_scorecards`. Weights must sum to 100 or the stored set is ignored. There is no admin editor for the row yet |
+| Change how suppliers are graded in the Sourcing Catalog (window, minimum orders, dispatch SLA, weights, grade cut-offs) | **Configuration, not code** — the `supplier.scorecard` OBJECT row in `platform_settings` (migration 062). Scoring rules are `scoreMetrics` / `resolveRules` in `services/supplierScorecard.service.ts`; the daily `supplier_scorecard` job rebuilds `supplier_scorecards`. Weights must sum to 100 or the stored set is ignored. There is no admin editor for the row yet |
 | Sell a supplier a paid slot above the Sourcing Catalog, or change who may buy it / how rank reacts to the scorecard grade | **Configuration, not code** — price is the `sourcing_boost` rate card at /admin/growth/ad-pricing. The slot-specific rules (`max_slots`, `grade_rank_bonus`, `blocked_grades`) are the `supplier.sponsored_sourcing` OBJECT row in `platform_settings` (migration 063), read by `services/sponsoredSourcing.service.js`; `ads.service.runAuction` applies them and `product.service.listSponsoredSourcing` serves `GET /sourcing/sponsored`. There is no admin editor for the row yet |
 | Let a supplier pay a monthly rebate to the shop partners who sell the most of their stock, or change the caps on it | **Configuration, not code** — the caps (`max_rebate_pct`, `max_tiers`, `min_threshold`, `platform_fee_pct` = what the platform keeps, `settle_lag_days`, `funding_retry_days`, `blocked_grades`, `timezone`) are the `supplier.volume_incentive` OBJECT row in `platform_settings` (migration 064), read by `services/volumeIncentive.service.ts`. The supplier's own tiers are rows of `volume_incentive_programs`, versioned and never edited in place; the monthly `jobs/volumeIncentive.job.js` creates `volume_incentive_payouts` and pays them from the supplier's wallet (ledger category `VOLUME_INCENTIVE`). Routes: `GET`/`PUT /supplier/incentive`, `GET /sourcing/incentives`. There is no admin editor for the settings row yet |
 | Let a supplier offer paid samples and publish a marketing kit, or change the caps on either | **Configuration, not code** — the caps (`platform_fee_pct` = what the platform keeps of the sample price, `min_price`, `max_price`, `max_shipping_fee`, `response_days`, `auto_confirm_days`, `max_open_per_saler`, `blocked_grades`, and the kit limits) are the `supplier.sample_kit` OBJECT row in `platform_settings` (migration 065), read by `services/sampleKit.service.ts`. Offers are `sample_offers`, requests are `sample_requests` (price, shipping and the platform's share snapshotted on the row), kits are `marketing_kits`. The shop partner's money is held in their own wallet's HELD bucket (ledger categories `SAMPLE_HOLD` / `SAMPLE_RELEASE` / `SAMPLE_REFUND`); the only place a request changes state is `transition()` in the service, and the hourly `jobs/sampleKit.job.js` expires unshipped requests and auto-confirms unconfirmed ones. Routes: `/supplier/samples…`, `/supplier/marketing-kits…`, `/sourcing/samples…`, `/sourcing/marketing-kits`; permissions `supplier.sample.manage`, `saler.sample.request`. There is no admin editor for the settings row yet |
@@ -146,10 +146,10 @@ The 35 most likely change requests, with exact paths.
 | Add a product field | See [`how-to-add-a-feature.md`](how-to-add-a-feature.md) — the full worked example |
 | Add a product status | `erd.md` §3 `products.status` CHECK → new migration → `services/product.service.js` |
 | Change search ranking | `services/search-drivers/postgres.js` |
-| Add a Banglish search mapping | `utils/transliterate.js` |
+| Add a Banglish search mapping | `utils/transliterate.ts` |
 | Change the product image aspect ratio | `design-system.md` §12 first, then `styles/components/product.css` + `services/media.service.js` derivatives |
 | Change FEFO batch selection | `services/inventory.service.js` → `getFEFOBatch()` |
-| Change warehouse routing | `services/warehouseRouting.service.js` |
+| Change warehouse routing | `services/warehouseRouting.service.ts` |
 | Add/modify product image fallback keywords | `client/src/components/product/ProductCard.js` (`KEYWORD_IMAGE_RULES`, `CATEGORY_DUMMY_IMAGES`, `resolveProductImage`) |
 | Modify customer wishlist | `client/src/pages/customer/WishlistPage.js` (UI), `server/src/services/wishlist.service.js` (logic), `server/src/repositories/cart.repository.ts` (SQL) |
 | Modify customer returns listing | `client/src/pages/customer/ReturnsPage.js` (UI), `server/src/services/return.service.ts` (logic), `server/src/routes/return.routes.js` (`/returns/my-returns`) |
@@ -184,15 +184,15 @@ The 35 most likely change requests, with exact paths.
 | Change the flash-sale strip / FLASH tag colours | Theme Studio → **Flash Sale & Campaign Strip**, or `--flash-bg` / `--flash-text` / `--flash-chip-bg` / `--flash-tag-bg` / `--flash-tag-text` in `styles/themes.css` for the shipped default. `components/product.css` reads only those tokens — it used to hardcode `--danger-300`, which is why the strip was the one piece of chrome no preset and no validator ever touched. The generator resolves the ink by measurement (`flashRole()` in `services/colorRamp.js`) because `statusPull` moves the danger ramp's luminance with the seed |
 | Add a language | `i18n_locales` row + `locales/<code>.json`. No code change — `content.i18n.locale_add` |
 | Change a UI string | `client/src/locales/en.json` **and** `bn.json`, or `/editor/translations` at runtime |
-| Add an env variable | `.env.example` (documented) **and** `server/src/config/env.js` (validated) |
+| Add an env variable | `.env.example` (documented) **and** `server/src/config/env.ts` (validated) |
 
 ### API & integrations
 
 | I want to… | Change |
 | :--- | :--- |
 | Add an endpoint | `routes/` (path + schema) → `controllers/` → `services/`. Re-read `api-contract.md` |
-| Add an error code | `docs/api-contract.md` §3 first, then `plugins/errorHandler.js` |
-| Change an error message | `plugins/errorHandler.js` — **both** `message_en` and `message_bn` |
+| Add an error code | `docs/api-contract.md` §3 first, then `plugins/errorHandler.ts` |
+| Change an error message | `plugins/errorHandler.ts` — **both** `message_en` and `message_bn` |
 | Add a payment gateway | `integrations/payments/<name>.js` implementing the same interface. One file |
 | Add a courier | `integrations/courier/<name>.js`. One file |
 | Add an SMS provider | `integrations/sms/<name>.js`. One file |
@@ -210,7 +210,7 @@ The 35 most likely change requests, with exact paths.
 | Add a nav item | `client/src/config/navigation.js` — one object. Never edit `Sidebar.js` |
 | Hide a page from users, or release it to one of them | **Configuration, not code** — **/admin/platform/pages** (`platform.page.view` / `.toggle`, CRITICAL so super admin only). Four states per route: Live / Coming soon (nav badge + placeholder) / Hidden (no nav item, URL 404s) / Limited (live only for listed roles and user ids). It is a layer BESIDE the module system, not above it: a module answers "does the feature work", a page toggle answers "may this viewer see it", and the 101 `module: 'core'` routes have no module to switch. `/`, `/login` and the page itself are locked on. One resolver — `client/src/services/pageAccess.js` — serves the router, the sidebar and the command palette; never re-implement the states. On the server the same states are enforced for the **56 endpoints that belong to exactly one page**: that route declares `config: { page: '/its/path' }` and the `onRoute` hook in `server/src/middlewares/requirePage.js` appends the guard, which answers `403 PAGE_UNAVAILABLE`. An endpoint two pages share cannot be refused (the other page may be Live), so for those the toggle stays visibility-only |
 | Add a UI component | `components/ui/` + register in `pages/dev/gallery-registry.js` **in the same change** |
-| Add a field a user edits about themselves | `user_profiles` (Prompt 2.2 migration) → the whitelist in `server/src/repositories/user.repository.js` → validation in `profile.service.js` → a control in `client/src/pages/settings/ProfilePage.js` → the same key in `mocks/handlers/me.js`. Never add a writable column without adding it to BOTH whitelists |
+| Add a field a user edits about themselves | `user_profiles` (Prompt 2.2 migration) → the whitelist in `server/src/repositories/user.repository.ts` → validation in `profile.service.js` → a control in `client/src/pages/settings/ProfilePage.js` → the same key in `mocks/handlers/me.js`. Never add a writable column without adding it to BOTH whitelists |
 | Add an item to the avatar (account) menu | `AvatarMenu()` in `client/src/components/shell/TopBar.js`. It is the only account entry point every role shares — the sidebar is per-role |
 | Add a dashboard card | The role's page under `pages/<role>/`, gated by `PermissionGate` |
 | Change spacing/radius/motion | `styles/tokens.css`, after updating `design-system.md` |

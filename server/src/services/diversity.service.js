@@ -23,7 +23,7 @@
  * separate, labelled injection — they must not be able to pass for an organic pick).
  */
 
-import * as recoCache from './recoCache.service.js';
+import * as recoCache from './recoCache.service.ts';
 
 export const DIVERSITY_KEY = 'recommendation.diversity';
 

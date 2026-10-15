@@ -10,7 +10,7 @@
  * page, so the totals do not change when the admin searches or pages.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import * as vaultService from './vault.service.ts';
 import { writeAudit } from '../lib/audit.js';
 

@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import * as storeService from '../src/services/store.service.js';
-import * as ogService from '../src/services/og-image.service.js';
+import * as ogService from '../src/services/og-image.service.ts';
 import { isReservedStoreSlug } from '../src/config/reservedSlugs.ts';
 
 test('Prompt 4.8: Reserved store slug enforcement', () => {

@@ -9,7 +9,7 @@
  */
 
 import { randomBytes, createHash } from 'node:crypto';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 
 /**

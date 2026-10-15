@@ -13,7 +13,7 @@
  * 4. Audited Application: Accepting a recommendation updates the product retail price and writes an audit log.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
 import { toPaisa, toBdtNumber } from './pricing.service.ts';

@@ -3,7 +3,7 @@
  */
 
 import * as controller from '../controllers/moderation.controller.js';
-import * as dashboardController from '../controllers/moderatorDashboard.controller.js';
+import * as dashboardController from '../controllers/moderatorDashboard.controller.ts';
 
 export default async function moderationRoutes(app) {
   // 0. Moderator Dashboard Summary (Prompt 7.6)

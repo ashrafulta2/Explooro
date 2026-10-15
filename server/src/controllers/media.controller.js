@@ -4,7 +4,7 @@
 
 import * as mediaService from '../services/media.service.js';
 import * as mediaRepo from '../repositories/media.repository.ts';
-import { getStorageDriver } from '../integrations/storage/index.js';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 
 export async function requestUpload(req, reply) {
   const { purpose, mime_type, size_bytes, filename } = req.body || {};

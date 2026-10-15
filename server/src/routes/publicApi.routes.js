@@ -4,7 +4,7 @@
 
 import * as controller from '../controllers/publicApi.controller.js';
 import * as apiKeyService from '../services/apiKey.service.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export default async function publicApiRoutes(fastify) {
   const requireOpenApiModule = fastify.requireModule ? fastify.requireModule('open_api') : async () => {};

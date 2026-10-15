@@ -7,7 +7,7 @@
  * 3. Connection lifecycle & protocol routing (Chat & Live Stream Commerce).
  */
 
-import { consumeTicket, registerUserSocket, unregisterUserSocket } from './presence.js';
+import { consumeTicket, registerUserSocket, unregisterUserSocket } from './presence.ts';
 import { handleSocketMessage } from './chat.handler.js';
 import { handleLiveSocketMessage } from './live.handler.js';
 

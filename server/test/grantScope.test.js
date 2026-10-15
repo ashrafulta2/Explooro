@@ -18,7 +18,7 @@ import Fastify from 'fastify';
 import { GRANT_SCOPES, validateGrantScope, restrictingScopes, scopeAllows } from '../src/lib/grantScope.js';
 import { GRANT_SCOPES as CLIENT_GRANT_SCOPES } from '../../client/src/config/grant-scopes.js';
 import { requirePermission } from '../src/middlewares/requirePermission.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const PAYOUT_APPROVE = {

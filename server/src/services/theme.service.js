@@ -3,7 +3,7 @@
  */
 
 import * as themeRepo from '../repositories/theme.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import {
   generatePalette,
   paletteToSectionTokens,

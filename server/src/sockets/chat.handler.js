@@ -10,7 +10,7 @@
  */
 
 import * as chatService from '../services/chat.service.js';
-import { updateHeartbeat, broadcastToThread, sendToUser } from './presence.js';
+import { updateHeartbeat, broadcastToThread, sendToUser } from './presence.ts';
 
 /** Tells the other participants which messages this user has now read, so the sender's ✓ becomes ✓✓. */
 export function broadcastReadReceipt(result, readerId) {

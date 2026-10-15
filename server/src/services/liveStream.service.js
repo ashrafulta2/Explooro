@@ -10,7 +10,7 @@
  * 6. Live recordings and replay media pipeline integration.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import { perParcelCharge } from './deliveryCharge.service.ts';
 import { withTransaction } from '../config/db.ts';
@@ -20,15 +20,15 @@ import { validateCoupon } from './coupon.service.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.ts';
-import * as liveRepo from '../repositories/liveStream.repository.js';
-import { streaming } from '../integrations/streaming/index.js';
+import * as liveRepo from '../repositories/liveStream.repository.ts';
+import { streaming } from '../integrations/streaming/index.ts';
 import {
   broadcastToStream,
   isUserMutedInStream,
   muteUserInStream,
   unmuteUserInStream,
   getStreamMutes,
-} from '../sockets/presence.js';
+} from '../sockets/presence.ts';
 import * as auditService from './audit.service.js';
 import { detectContactInfoLeak } from './chat.service.js';
 import { preScreenContent } from './moderation.service.js';

@@ -3,10 +3,10 @@
  */
 
 import * as admin from '../services/recommendationAdmin.service.js';
-import * as funnel from '../services/recoFunnel.service.js';
-import * as recoCache from '../services/recoCache.service.js';
+import * as funnel from '../services/recoFunnel.service.ts';
+import * as recoCache from '../services/recoCache.service.ts';
 import * as auditService from '../services/audit.service.js';
-import * as auditRepo from '../repositories/audit.repository.js';
+import * as auditRepo from '../repositories/audit.repository.ts';
 
 function dbOf(req) {
   return req.db || req.server?.db;

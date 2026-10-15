@@ -18,7 +18,7 @@ import {
   applyCandidatePolicy,
   assertMayAdvertise,
 } from '../src/services/sponsoredSourcing.service.js';
-import { calculateQualityScore, runSecondPriceAuction } from '../src/services/adAuction.service.js';
+import { calculateQualityScore, runSecondPriceAuction } from '../src/services/adAuction.service.ts';
 
 const rules = resolveRules(null);
 

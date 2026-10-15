@@ -9,7 +9,7 @@
 
 import { randomBytes, createHash } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 
 async function runWithClient(db, fn) {

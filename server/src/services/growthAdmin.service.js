@@ -7,8 +7,8 @@
  * `updateModuleSettings`, which writes the audit_logs row with before/after.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
-import { calculateQualityScore } from './adAuction.service.js';
+import { AppError } from '../plugins/errorHandler.ts';
+import { calculateQualityScore } from './adAuction.service.ts';
 import { getCoinSettings } from './coin.service.ts';
 import { updateModuleSettings } from './module.service.js';
 

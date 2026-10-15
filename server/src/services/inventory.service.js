@@ -8,7 +8,7 @@
  * - Supplier inventory aggregation & real-time low-stock telemetry.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 
 /**

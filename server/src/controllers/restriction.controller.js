@@ -3,7 +3,7 @@
  */
 
 import * as restrictionService from '../services/restriction.service.js';
-import * as segmentService from '../services/segment.service.js';
+import * as segmentService from '../services/segment.service.ts';
 
 function requestMeta(req) {
   return {

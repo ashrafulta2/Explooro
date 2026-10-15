@@ -195,7 +195,7 @@ export async function moderateTerminate(req, reply) {
 export async function moderateMute(req, reply) {
   const { target_user_id, duration_minutes = 15, reason } = req.body || {};
 
-  // WHY: this used to reach straight into sockets/presence.js and silence the user with nothing
+  // WHY: this used to reach straight into sockets/presence.ts and silence the user with nothing
   // written anywhere — no audit_logs row, no entry in the stream's own moderation log. It now
   // goes through the service so muting a participant leaves the same trail every other staff
   // action does.

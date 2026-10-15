@@ -3,7 +3,7 @@
  */
 
 import * as paymentService from '../services/payment.service.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export async function handleWebhookHandler(req, reply) {
   const { gateway } = req.params;

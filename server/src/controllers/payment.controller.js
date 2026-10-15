@@ -7,7 +7,7 @@
 
 import * as paymentService from '../services/payment.service.ts';
 import * as paymentRepo from '../repositories/payment.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export async function initiatePaymentHandler(req, reply) {
   const { orderId, gateway = 'MOCK', returnUrl, callbackUrl, customer } = req.body || {};

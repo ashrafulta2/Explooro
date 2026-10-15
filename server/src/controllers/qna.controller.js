@@ -4,7 +4,7 @@
 
 import * as qnaService from '../services/qna.service.js';
 import * as productRepo from '../repositories/product.repository.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 async function resolveProduct(db, idOrRef) {
   const product = /^\d+$/.test(idOrRef)

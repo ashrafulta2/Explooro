@@ -13,9 +13,9 @@ import { signAccessToken } from '../lib/jwt.ts';
 import { encryptField, decryptField } from '../lib/encryption.ts';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { checkBucket } from '../lib/rateBucket.js';
-import * as userRepo from '../repositories/user.repository.js';
+import * as userRepo from '../repositories/user.repository.ts';
 import * as rbacService from './rbac.service.js';
 import {
   generateSecret,

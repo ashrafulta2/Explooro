@@ -233,7 +233,7 @@ describe('Prompt 10.4 — Digital Warranty & Claims Engine', () => {
         }
 
         if (sql.includes('INSERT INTO shipments')) {
-          createdShipment = { id: 77, tracking_number: params[2] };
+          createdShipment = { id: 77, tracking_number: params[2], courier_consignment_id: params[3] };
           return { rows: [createdShipment] };
         }
 
@@ -263,6 +263,9 @@ describe('Prompt 10.4 — Digital Warranty & Claims Engine', () => {
     assert.equal(result.status, 'APPROVED');
     assert.equal(result.resolution, 'REPAIR');
     assert.ok(result.reverseShipmentId, 'Reverse consignment shipment must be booked on repair approval');
+    // The adapter returns courierConsignmentId. Reading consignmentId stored the CNG- fallback instead
+    // (found when the courier adapters moved to TypeScript).
+    assert.match(createdShipment.courier_consignment_id, /^MOCK-CN-/, 'the real consignment id is stored');
   });
 
   test('reviewWarrantyClaim on REJECT requires rejection reason', async () => {

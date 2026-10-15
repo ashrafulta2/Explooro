@@ -3,7 +3,7 @@
  */
 
 import * as qnaRepo from '../repositories/qna.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export async function askQuestion(db, { productId, userId, body }) {
   const trimmed = (body || '').trim();

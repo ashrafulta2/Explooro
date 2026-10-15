@@ -13,12 +13,12 @@ import helmet from '@fastify/helmet';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 
-import { loadEnv } from './config/env.js';
+import { loadEnv } from './config/env.ts';
 import { createDbPool } from './config/db.ts';
-import { createCache } from './config/cache.js';
+import { createCache } from './config/cache.ts';
 import requestContextPlugin from './plugins/requestContext.ts';
 import requestMetricsPlugin from './lib/requestMetrics.ts';
-import errorHandlerPlugin, { AppError } from './plugins/errorHandler.js';
+import errorHandlerPlugin, { AppError } from './plugins/errorHandler.ts';
 import authenticatePlugin from './middlewares/authenticate.js';
 import requirePermissionPlugin from './middlewares/requirePermission.js';
 import requireRestrictionPlugin from './middlewares/requireRestriction.js';
@@ -63,8 +63,8 @@ import whatsappRoutes from './routes/whatsapp.routes.js';
 import salerInboxRoutes from './routes/salerInbox.routes.js';
 import adsRoutes from './routes/ads.routes.js';
 import promotionRoutes from './routes/promotion.routes.js';
-import referralRoutes from './routes/referral.routes.js';
-import gamificationRoutes from './routes/gamification.routes.js';
+import referralRoutes from './routes/referral.routes.ts';
+import gamificationRoutes from './routes/gamification.routes.ts';
 import growthAdminRoutes from './routes/growthAdmin.routes.js';
 import teamPurchaseRoutes from './routes/teamPurchase.routes.js';
 import cartRecoveryRoutes from './routes/cartRecovery.routes.js';
@@ -102,8 +102,8 @@ import './jobs/returnProtection.job.js'; // Registers return_protection with sch
 import './jobs/deficitRecovery.job.js'; // Registers deficit_recovery with scheduler (module: returns_engine)
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.js';
 import sitemapRoutes from './routes/sitemap.routes.js';
-import { createSmsSender } from './integrations/sms/index.js';
-import { createEmailSender } from './integrations/email/index.js';
+import { createSmsSender } from './integrations/sms/index.ts';
+import { createEmailSender } from './integrations/email/index.ts';
 
 /**
  * A @fastify/rate-limit custom Store, backed by our cache adapter instead of the plugin's

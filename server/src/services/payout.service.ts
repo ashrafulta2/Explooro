@@ -15,7 +15,7 @@ import { withTransaction } from '../config/db.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
-import { defaultB2CClient } from '../integrations/payments/bkash-b2c.js';
+import { defaultB2CClient } from '../integrations/payments/bkash-b2c.ts';
 import { writeAudit } from '../lib/audit.js';
 import { PENDING_ACTION_EXPIRY_HOURS } from '../middlewares/requirePermission.js';
 
@@ -269,7 +269,7 @@ export async function getPayoutScopeFacts(db, payoutId) {
  * @param {number|string} params.approverId
  * @param {string} [params.approverRole]
  * @param {string} [params.approverNote]
- * @param {import('../integrations/payments/bkash-b2c.js').B2CClient} [params.b2cClient]
+ * @param {import('../integrations/payments/bkash-b2c.ts').B2CClient} [params.b2cClient]
  * @param {import('pg').PoolClient|null} [params.client]
  */
 export async function approvePayout(db: import('pg').Pool, {
@@ -279,7 +279,7 @@ export async function approvePayout(db: import('pg').Pool, {
   approverNote = 'Approved for disbursement',
   b2cClient = defaultB2CClient,
   client = null,
-}: { payoutId: number|string; approverId: number|string; approverRole?: string; approverNote?: string; b2cClient?: import('../integrations/payments/bkash-b2c.js').B2CClient; client?: import('pg').PoolClient|null; }) {
+}: { payoutId: number|string; approverId: number|string; approverRole?: string; approverNote?: string; b2cClient?: import('../integrations/payments/bkash-b2c.ts').B2CClient; client?: import('pg').PoolClient|null; }) {
   const runner = async (txClient) => {
     // 1. Lock payout row
     const { rows: payoutRows } = await txClient.query(
@@ -370,7 +370,7 @@ export async function approvePayout(db: import('pg').Pool, {
  *   a call without params now throws at once, and `// @ts-check` flags it before it runs.
  * @param {number|string} params.payoutId
  * @param {number|string|null} [params.executedBy]
- * @param {import('../integrations/payments/bkash-b2c.js').B2CClient} [params.b2cClient]
+ * @param {import('../integrations/payments/bkash-b2c.ts').B2CClient} [params.b2cClient]
  * @param {import('pg').PoolClient|null} [params.client]
  */
 export async function disbursePayout(db: import('pg').Pool, {
@@ -378,7 +378,7 @@ export async function disbursePayout(db: import('pg').Pool, {
   executedBy = null,
   b2cClient = defaultB2CClient,
   client = null,
-}: { payoutId: number|string; executedBy?: number|string|null; b2cClient?: import('../integrations/payments/bkash-b2c.js').B2CClient; client?: import('pg').PoolClient|null; }) {
+}: { payoutId: number|string; executedBy?: number|string|null; b2cClient?: import('../integrations/payments/bkash-b2c.ts').B2CClient; client?: import('pg').PoolClient|null; }) {
   const runner = async (txClient) => {
     // 1. Lock payout row and user wallet
     const { rows: payoutRows } = await txClient.query(

@@ -8,7 +8,7 @@
  * fails if the two drift.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 // WHY only permissions with a live enforcement point are listed: a scope the server never checks
 // is worse than no scope, because it reads as a safety limit. A permission is added here in the

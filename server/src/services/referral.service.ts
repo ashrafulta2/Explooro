@@ -13,7 +13,7 @@
 
 import { randomBytes, randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.js';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';

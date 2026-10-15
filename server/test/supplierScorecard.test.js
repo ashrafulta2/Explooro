@@ -16,7 +16,7 @@ import {
   toPublicView,
   attachToProducts,
   refreshAll,
-} from '../src/services/supplierScorecard.service.js';
+} from '../src/services/supplierScorecard.service.ts';
 
 const rules = resolveRules(null);
 const strong = { sample_orders: 100, on_time_dispatch_pct: 98, delivery_success_pct: 97, return_rate_pct: 2, dispute_rate_pct: 0.5 };

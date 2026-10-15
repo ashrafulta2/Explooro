@@ -2,9 +2,9 @@
  * store.service.js — Business logic for virtual storefronts, physical shop status, and curated shelves (Prompt 4.8).
  */
 
-import * as storeRepo from '../repositories/store.repository.js';
+import * as storeRepo from '../repositories/store.repository.ts';
 import { isReservedStoreSlug } from '../config/reservedSlugs.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { withAvailableStock } from './teamStockReservation.service.ts';
 
 export const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

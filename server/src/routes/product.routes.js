@@ -9,7 +9,7 @@ import * as fastPayout from '../controllers/fastPayout.controller.ts';
 import * as returnProtection from '../controllers/returnProtection.controller.js';
 import { requirePermission } from '../middlewares/requirePermission.js';
 import { requireRestriction } from '../middlewares/requireRestriction.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export default async function productRoutes(app) {
   const requirePerm = app.requirePermission || requirePermission;

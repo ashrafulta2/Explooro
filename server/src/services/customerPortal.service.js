@@ -10,7 +10,7 @@
  * 6. Wishlist price-drop evaluation & notification dispatcher.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { notify } from './notification.service.js';
 import { SLUG_REGEX, validateSlugAvailability } from './store.service.js';
 import { orderStatusSql } from '../repositories/order.repository.ts';

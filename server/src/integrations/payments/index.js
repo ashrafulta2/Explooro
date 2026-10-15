@@ -2,11 +2,11 @@
  * index.js — Payment Gateway Driver Factory (Prompt 5.3).
  */
 
-import { MockPaymentDriver } from './mock.js';
-import { BkashPaymentDriver } from './bkash.js';
-import { NagadPaymentDriver } from './nagad.js';
-import { SslcommerzPaymentDriver } from './sslcommerz.js';
-import { AppError } from '../../plugins/errorHandler.js';
+import { MockPaymentDriver } from './mock.ts';
+import { BkashPaymentDriver } from './bkash.ts';
+import { NagadPaymentDriver } from './nagad.ts';
+import { SslcommerzPaymentDriver } from './sslcommerz.ts';
+import { AppError } from '../../plugins/errorHandler.ts';
 
 export { MockPaymentDriver, BkashPaymentDriver, NagadPaymentDriver, SslcommerzPaymentDriver };
 

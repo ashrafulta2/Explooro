@@ -127,14 +127,14 @@ describe('Staff Management API — integration', { skip: DB_URL ? false : 'set S
   const randomDigits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');
 
   before(async () => {
-    const { loadEnv } = await import('../src/config/env.js');
+    const { loadEnv } = await import('../src/config/env.ts');
     const { buildApp } = await import('../src/app.js');
     const { createDbPool } = await import('../src/config/db.ts');
     ({ generateRef } = await import('../src/lib/ref.ts'));
     ({ signAccessToken } = await import('../src/lib/jwt.ts'));
-    ({ createSession } = await import('../src/repositories/user.repository.js'));
+    ({ createSession } = await import('../src/repositories/user.repository.ts'));
     ({ randomUUID } = await import('node:crypto'));
-    ({ mockDriver: mockEmail } = await import('../src/integrations/email/index.js'));
+    ({ mockDriver: mockEmail } = await import('../src/integrations/email/index.ts'));
 
     const base = loadEnv();
     cfg = { ...base, database: { ...base.database, url: DB_URL } };

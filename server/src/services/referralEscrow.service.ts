@@ -15,7 +15,7 @@
  */
 
 import { withTransaction } from '../config/db.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import * as ledgerService from './ledger.service.ts';
 import { resolvePlatformWalletId } from './vault.service.ts';
 

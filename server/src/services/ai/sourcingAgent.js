@@ -11,7 +11,7 @@
  */
 
 import * as provider from './provider.js';
-import * as aiRepo from '../../repositories/ai.repository.js';
+import * as aiRepo from '../../repositories/ai.repository.ts';
 import * as productService from '../product.service.js';
 import { sanitizeUntrustedText } from './conciergeAgent.js';
 

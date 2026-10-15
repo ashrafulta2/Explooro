@@ -22,13 +22,13 @@
 
 import { withTransaction } from '../config/db.ts';
 import { STAFF_MIN_ROLE_LEVEL, STAFF_PRIVILEGED_MIN_LEVEL, STAFF_ROLE_DESCRIPTIONS } from '../config/staffRoles.ts';
-import * as staffRepo from '../repositories/staff.repository.js';
+import * as staffRepo from '../repositories/staff.repository.ts';
 import * as rbacService from './rbac.service.js';
 import { registerActionExecutor } from './makerChecker.service.js';
 import { writeAudit } from '../lib/audit.js';
 import { checkBucket } from '../lib/rateBucket.js';
 import { generateRef } from '../lib/ref.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export const NAME_MAX = 120;
 export const DEPARTMENT_MAX = 120;

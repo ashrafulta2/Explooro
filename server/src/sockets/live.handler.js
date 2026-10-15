@@ -12,7 +12,7 @@
  * - live:terminate — Moderator terminates violating stream immediately.
  */
 
-import * as liveRepo from '../repositories/liveStream.repository.js';
+import * as liveRepo from '../repositories/liveStream.repository.ts';
 import {
   joinStreamRoom,
   leaveStreamRoom,
@@ -20,7 +20,7 @@ import {
   isUserMutedInStream,
   muteUserInStream,
   getStreamViewerCount,
-} from './presence.js';
+} from './presence.ts';
 
 export async function handleLiveSocketMessage(ws, user, message, db) {
   const { type, payload } = message;

@@ -5,7 +5,7 @@
  * Catalog, so with that module off there is nobody to show it to and the job is skipped.
  */
 
-import { refreshAll } from '../services/supplierScorecard.service.js';
+import { refreshAll } from '../services/supplierScorecard.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runSupplierScorecard(db, cache, logger = console) {

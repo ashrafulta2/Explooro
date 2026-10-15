@@ -20,7 +20,7 @@ import * as returnService from '../src/services/return.service.ts';
 import * as clawbackService from '../src/services/clawback.service.ts';
 import returnRoutes from '../src/routes/return.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 function createMockDb() {
   let nextReturnId = 1;

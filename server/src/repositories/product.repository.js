@@ -2,7 +2,7 @@
  * product.repository.js — Data access for catalog products, variants, images & sourcing (Prompt 4.3).
  */
 
-import { buildBlendedRank } from './recommendation.repository.js';
+import { buildBlendedRank } from './recommendation.repository.ts';
 import { reservedUnitsSql } from '../services/teamStockReservation.service.ts';
 
 export async function insertProduct(

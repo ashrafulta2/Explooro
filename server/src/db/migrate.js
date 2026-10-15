@@ -18,7 +18,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import '../config/loadEnvFile.ts';
-import { loadEnv } from '../config/env.js';
+import { loadEnv } from '../config/env.ts';
 import { createDbPool } from '../config/db.ts';
 import { checksumOf, compareApplied } from './migrationChecksum.ts';
 

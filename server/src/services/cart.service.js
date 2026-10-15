@@ -11,8 +11,8 @@
 
 import { randomUUID } from 'node:crypto';
 import * as cartRepo from '../repositories/cart.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
-import { getStorageDriver } from '../integrations/storage/index.js';
+import { AppError } from '../plugins/errorHandler.ts';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
 

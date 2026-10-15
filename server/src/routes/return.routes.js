@@ -2,7 +2,7 @@
  * return.routes.js — Fastify Route definitions for Return & Refund Engine (Prompt 7.2).
  */
 
-import * as controller from '../controllers/return.controller.js';
+import * as controller from '../controllers/return.controller.ts';
 
 export default async function returnRoutes(app) {
   // 1. Customer: Create Return Request

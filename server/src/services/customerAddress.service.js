@@ -9,9 +9,9 @@
  * 4. Idempotent, race-free provisioning from the user's profile address on first read.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { withTransaction } from '../config/db.ts';
-import * as addressRepo from '../repositories/customerAddress.repository.js';
+import * as addressRepo from '../repositories/customerAddress.repository.ts';
 
 export const MAX_ADDRESSES_PER_USER = addressRepo.MAX_ADDRESSES_PER_USER;
 

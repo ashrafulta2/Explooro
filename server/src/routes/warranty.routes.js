@@ -2,7 +2,7 @@
  * warranty.routes.js — Fastify Route definitions for Digital Warranty & Claims Engine (Prompt 10.4).
  */
 
-import * as controller from '../controllers/warranty.controller.js';
+import * as controller from '../controllers/warranty.controller.ts';
 
 export default async function warrantyRoutes(app) {
   // 1. Customer: Get my digital warranty cards

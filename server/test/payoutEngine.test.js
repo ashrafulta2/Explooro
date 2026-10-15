@@ -22,7 +22,7 @@ import * as ledgerService from '../src/services/ledger.service.ts';
 import * as payoutService from '../src/services/payout.service.ts';
 import financeRoutes from '../src/routes/finance.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 function createMockDb() {
   let nextWalletId = 1;

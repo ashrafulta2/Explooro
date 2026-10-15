@@ -28,7 +28,7 @@ import {
 } from '../src/services/rbac.service.js';
 import { requirePermission } from '../src/middlewares/requirePermission.js';
 import { requireRestriction } from '../src/middlewares/requireRestriction.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const ALL_SAMPLE_ROLES = [

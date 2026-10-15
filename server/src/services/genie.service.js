@@ -10,7 +10,7 @@
  */
 
 import * as settingRepo from '../repositories/setting.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export const SETTINGS_GROUP = 'genie';
 
@@ -80,7 +80,7 @@ function rowsToPolicy(rows = []) {
  * rule broken, with both language messages the API contract requires.
  *
  * WHY VALIDATION_FAILED: it is the code in the closed enum of docs/api-contract.md §3 (and in
- * plugins/errorHandler.js), so the API answers 400. An invented code falls through to 500.
+ * plugins/errorHandler.ts), so the API answers 400. An invented code falls through to 500.
  */
 export function validatePolicy(input = {}) {
   const { enabled, duration_ms: durationMs, quality } = input;

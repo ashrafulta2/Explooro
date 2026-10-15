@@ -13,7 +13,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import salerRoutes from '../src/routes/saler.routes.js';
 import * as salerService from '../src/services/salerDashboard.service.js';
 import { SIMPLE_MODE_ITEMS, navItems } from '../../client/src/config/navigation.js';

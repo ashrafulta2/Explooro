@@ -9,7 +9,7 @@
  * 5. Auto-submit ping helper to notify Google and Bing upon new catalog publish.
  */
 
-import { isCrawler, renderOnDemandHtml } from '../services/prerender.service.js';
+import { isCrawler, renderOnDemandHtml } from '../services/prerender.service.ts';
 
 const SITE_URL = 'https://explooro.com';
 

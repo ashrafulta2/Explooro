@@ -19,10 +19,10 @@
  */
 
 import * as rbacService from '../services/rbac.service.js';
-import * as permRepo from '../repositories/permission.repository.js';
+import * as permRepo from '../repositories/permission.repository.ts';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { restrictingScopes, scopeAllows } from '../lib/grantScope.js';
 
 export const PENDING_ACTION_EXPIRY_HOURS = 72;

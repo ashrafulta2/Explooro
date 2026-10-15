@@ -18,9 +18,9 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import * as codGateService from './codGate.service.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
-import { findDistrict } from '../lib/bdDistricts.js';
+import { findDistrict } from '../lib/bdDistricts.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';

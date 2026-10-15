@@ -14,11 +14,11 @@
  *     lib/encryption.ts, decrypted only on read for its own owner.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { withTransaction } from '../config/db.ts';
 import { encryptField, decryptField } from '../lib/encryption.ts';
-import { getStorageDriver } from '../integrations/storage/index.js';
-import * as userRepo from '../repositories/user.repository.js';
+import { getStorageDriver } from '../integrations/storage/index.ts';
+import * as userRepo from '../repositories/user.repository.ts';
 import * as auditService from './audit.service.js';
 
 export const GENDERS = ['MALE', 'FEMALE', 'OTHER', 'UNSPECIFIED'];

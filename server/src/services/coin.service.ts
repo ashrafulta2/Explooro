@@ -10,7 +10,7 @@
  */
 
 import { withTransaction } from '../config/db.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { isEnabled } from './module.service.js';
 
 export async function getCoinSettings(db) {

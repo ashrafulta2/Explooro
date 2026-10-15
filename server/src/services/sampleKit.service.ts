@@ -28,13 +28,13 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.js';
-import { getStorageDriver } from '../integrations/storage/index.js';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as notificationService from './notification.service.js';
-import * as repo from '../repositories/sampleKit.repository.js';
+import * as repo from '../repositories/sampleKit.repository.ts';
 import * as scorecardRepo from '../repositories/supplierScorecard.repository.ts';
 
 const GRADES = ['A', 'B', 'C', 'D'];

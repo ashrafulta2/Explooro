@@ -149,7 +149,7 @@ export async function issueWarrantiesForSubOrder(db, { subOrderId, client = null
 /**
  * Retrieves all digital warranty cards for a customer with computed live countdown status.
  */
-export async function getCustomerWarrantyCards(db, customerId, { status = 'all', limit = 50, offset = 0 } = {}) {
+export async function getCustomerWarrantyCards(db, customerId, { status = 'all', limit = 50, offset = 0 }: Record<string, any> = {}) {
   let statusClause = '';
   if (status === 'active') {
     statusClause = 'AND wc.expires_at > now()';
@@ -240,7 +240,7 @@ export async function getCustomerWarrantyCards(db, customerId, { status = 'all',
 /**
  * Retrieves a single warranty card with full details.
  */
-export async function getWarrantyCardById(db, cardIdOrRef, { customerId = null, supplierId = null } = {}) {
+export async function getWarrantyCardById(db, cardIdOrRef, { customerId = null, supplierId = null }: Record<string, any> = {}) {
   const isNumeric = /^\d+$/.test(String(cardIdOrRef));
   const queryParam = isNumeric ? parseInt(cardIdOrRef, 10) : String(cardIdOrRef);
   const whereColumn = isNumeric ? 'wc.id' : 'wc.ref';
@@ -593,7 +593,7 @@ export async function reviewWarrantyClaim(db, {
             claim.sub_order_id,
             courierAdapter.name,
             consignment.trackingNumber || `REV-${claim.ref}`,
-            consignment.consignmentId || `CNG-${claim.ref}`,
+            consignment.courierConsignmentId || `CNG-${claim.ref}`,
           ]
         );
 
@@ -921,7 +921,7 @@ export async function checkAndEscalateBreachedSla(db) {
  * Computes claim rate per product (claims / total delivered warranties * 100).
  * High claim rates serve as an early quality signal.
  */
-export async function getProductClaimAnalytics(db, { supplierId = null, productId = null } = {}) {
+export async function getProductClaimAnalytics(db, { supplierId = null, productId = null }: Record<string, any> = {}) {
   let filterClause = '';
   const params = [];
 
@@ -996,7 +996,7 @@ export async function getProductClaimAnalytics(db, { supplierId = null, productI
 /**
  * Supplier claims list with SLA countdown and details.
  */
-export async function getSupplierClaims(db, supplierId, { status = null, limit = 50, offset = 0 } = {}) {
+export async function getSupplierClaims(db, supplierId, { status = null, limit = 50, offset = 0 }: Record<string, any> = {}) {
   let statusClause = '';
   const params = [supplierId, limit, offset];
 
@@ -1052,7 +1052,7 @@ export async function getSupplierClaims(db, supplierId, { status = null, limit =
 /**
  * Admin / Moderator claims queue for oversight & escalations.
  */
-export async function getAdminClaimsQueue(db, { status = null, limit = 50, offset = 0 } = {}) {
+export async function getAdminClaimsQueue(db, { status = null, limit = 50, offset = 0 }: Record<string, any> = {}) {
   let statusClause = '';
   const params = [limit, offset];
 

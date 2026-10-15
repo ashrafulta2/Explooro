@@ -493,7 +493,7 @@ export async function executeRefund(db, cache, {
 /**
  * Retrieves details of a return request.
  */
-export async function getReturnDetails(db, returnRequestIdOrRef, { customerId = null, client = null } = {}) {
+export async function getReturnDetails(db, returnRequestIdOrRef, { customerId = null, client = null }: Record<string, any> = {}) {
   const runner = client ?? db;
 
   let query = `
@@ -541,7 +541,7 @@ export async function getReturnDetails(db, returnRequestIdOrRef, { customerId = 
 /**
  * Retrieves admin returns moderation queue.
  */
-export async function getAdminReturnsQueue(db, { status = null, limit = 50, offset = 0, client = null } = {}) {
+export async function getAdminReturnsQueue(db, { status = null, limit = 50, offset = 0, client = null }: Record<string, any> = {}) {
   const runner = client ?? db;
 
   let query = `

@@ -9,7 +9,7 @@
  */
 
 import { withTransaction } from '../config/db.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import * as coinService from './coin.service.ts';
 
 export function computePeriodKey(cadence, date = new Date()) {

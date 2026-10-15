@@ -2,7 +2,7 @@
  * chat.controller.js — Fastify controller for Real-Time Chat (Prompt 8.1 / DFD Subsystem 7.0).
  */
 
-import { createTicket } from '../sockets/presence.js';
+import { createTicket } from '../sockets/presence.ts';
 import { broadcastReadReceipt } from '../sockets/chat.handler.js';
 import * as chatService from '../services/chat.service.js';
 

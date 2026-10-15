@@ -6,11 +6,11 @@
  * - Mode B: JIT Access Requests (MEDIUM tier only, no self-grant, time-boxed window, audited, cache bumped).
  */
 
-import * as permRepo from '../repositories/permission.repository.js';
+import * as permRepo from '../repositories/permission.repository.ts';
 import * as rbacService from './rbac.service.js';
 import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { validateGrantScope } from '../lib/grantScope.js';
 
 const MAX_GRANT_DAYS = 90;

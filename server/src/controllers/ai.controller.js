@@ -9,7 +9,7 @@ import * as aiService from '../services/ai/index.js';
 import * as provider from '../services/ai/provider.js';
 import * as auditService from '../services/audit.service.js';
 import * as productRepo from '../repositories/product.repository.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 const { creativeStudio, demandForecast, prescriptiveInsights } = aiService;
 

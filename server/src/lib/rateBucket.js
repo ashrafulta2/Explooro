@@ -8,7 +8,7 @@
  * so it works under CACHE_DRIVER=memory with no Redis.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 /** Throws RATE_LIMITED (429) if `key` has already been hit `max` times within `windowSeconds`. */
 export async function checkBucket(cache, key, max, windowSeconds) {

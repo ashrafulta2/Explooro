@@ -18,7 +18,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as rc from '../src/services/recoCache.service.js';
+import * as rc from '../src/services/recoCache.service.ts';
 import * as reco from '../src/services/recommendation.service.js';
 import * as productService from '../src/services/product.service.js';
 import * as feed from '../src/services/discoveryFeed.service.js';

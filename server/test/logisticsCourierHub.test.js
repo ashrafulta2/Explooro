@@ -21,7 +21,7 @@ import * as clawbackService from '../src/services/clawback.service.ts';
 import { getCourierAdapter } from '../src/integrations/courier/index.js';
 import logisticsRoutes from '../src/routes/logistics.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 function createMockDb() {
   let nextShipmentId = 1;

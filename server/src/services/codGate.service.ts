@@ -15,7 +15,7 @@
  * The trust read stays on the transaction client, so it sees the same snapshot as the order.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import * as trustScoreService from './trustScore.service.js';
 import * as otpService from './otp.service.js';
 

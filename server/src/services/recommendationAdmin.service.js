@@ -16,12 +16,12 @@
  */
 
 import * as settingRepo from '../repositories/setting.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import * as recommendation from './recommendation.service.js';
 import * as homeRails from './homeRails.service.js';
 import * as diversity from './diversity.service.js';
-import * as covisit from './covisit.service.js';
-import * as recoCache from './recoCache.service.js';
+import * as covisit from './covisit.service.ts';
+import * as recoCache from './recoCache.service.ts';
 
 export const SETTINGS_GROUP = 'recommendation';
 export const AUDIT_ACTION = 'platform.recommendation.update';

@@ -3,8 +3,8 @@
  */
 
 import * as controller from '../controllers/finance.controller.js';
-import * as payoutController from '../controllers/payout.controller.js';
-import * as codController from '../controllers/codReconciliation.controller.js';
+import * as payoutController from '../controllers/payout.controller.ts';
+import * as codController from '../controllers/codReconciliation.controller.ts';
 
 export default async function financeRoutes(app) {
   // 1. Ledger Integrity Check across all wallets

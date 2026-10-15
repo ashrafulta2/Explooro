@@ -12,10 +12,10 @@
  */
 
 import * as inventoryService from '../services/inventory.service.js';
-import * as warehouseRoutingService from '../services/warehouseRouting.service.js';
-import { getOwnScorecard } from '../services/supplierScorecard.service.js';
+import * as warehouseRoutingService from '../services/warehouseRouting.service.ts';
+import { getOwnScorecard } from '../services/supplierScorecard.service.ts';
 import { getSupplierView as getIncentiveView, saveProgram as saveIncentiveProgram } from '../services/volumeIncentive.service.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { toPaisa, toBdtNumber } from '../services/pricing.service.ts';
 
 /**

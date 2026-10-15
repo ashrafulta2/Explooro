@@ -9,7 +9,7 @@
  */
 
 import * as rbacService from '../services/rbac.service.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 const THROTTLE_WINDOW_SECONDS = 86400; // 24 hours default limit window
 

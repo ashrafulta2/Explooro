@@ -5,7 +5,7 @@
  * to match products, virtual stores, and categories with zero extra infrastructure.
  */
 
-import { expandSearchTerms } from '../../utils/transliterate.js';
+import { expandSearchTerms } from '../../utils/transliterate.ts';
 import { calculatePricingBreakdown } from '../pricing.service.ts';
 import { reservedUnitsSql } from '../teamStockReservation.service.ts';
 

@@ -13,7 +13,7 @@
  */
 
 import * as settingRepo from '../repositories/setting.repository.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export const SETTINGS_GROUP = 'delivery';
 export const SETTING_KEY = 'delivery.per_parcel_charge';

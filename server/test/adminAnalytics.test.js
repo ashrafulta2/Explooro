@@ -13,7 +13,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import adminAnalyticsRoutes from '../src/routes/adminAnalytics.routes.js';
 import * as analyticsService from '../src/services/analytics.service.js';
 import { createRequestMetrics } from '../src/lib/requestMetrics.ts';

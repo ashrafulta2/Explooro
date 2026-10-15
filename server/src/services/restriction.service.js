@@ -9,12 +9,12 @@
  * - Maker-checker registration for restriction management actions.
  */
 
-import * as permRepo from '../repositories/permission.repository.js';
+import * as permRepo from '../repositories/permission.repository.ts';
 import * as rbacService from './rbac.service.js';
-import { evaluatePredicate } from './segment.service.js';
+import { evaluatePredicate } from './segment.service.ts';
 import { registerActionExecutor } from './makerChecker.service.js';
 import { writeAudit } from '../lib/audit.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export const VALID_CAPABILITIES = new Set([
   'can_login',

@@ -13,7 +13,7 @@
 
 import { randomBytes } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { isEnabled } from './module.service.js';
 
 // WHY a subquery: products carry no image column. The primary image is the top-ranked row in

@@ -4,7 +4,7 @@
  */
 
 import * as service from '../services/returnProtection.service.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export async function getSupplierProtection(req, reply) {
   return reply.send({ data: await service.getSupplierView(req.server.db, req.user.id) });

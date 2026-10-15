@@ -23,7 +23,7 @@
  * /admin/growth/ad-pricing by anyone holding `growth.ad.govern`.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 
 export const PRICING_MODELS = ['CPC', 'CPM', 'FLAT_DAILY', 'FLAT_SLOT', 'CPS', 'CPA'];
 

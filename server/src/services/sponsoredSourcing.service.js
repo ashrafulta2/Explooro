@@ -19,7 +19,7 @@
  * below only apply while that row is absent or unreadable.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import * as repo from '../repositories/supplierScorecard.repository.ts';
 
 export const PLACEMENT = 'SOURCING_CATALOG';

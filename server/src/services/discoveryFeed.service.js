@@ -12,11 +12,11 @@
  */
 
 import * as productService from './product.service.js';
-import * as feedRepo from '../repositories/discoveryFeed.repository.js';
+import * as feedRepo from '../repositories/discoveryFeed.repository.ts';
 import * as recommendation from './recommendation.service.js';
 import * as diversity from './diversity.service.js';
-import * as recoCache from './recoCache.service.js';
-import { AppError } from '../plugins/errorHandler.js';
+import * as recoCache from './recoCache.service.ts';
+import { AppError } from '../plugins/errorHandler.ts';
 
 // How much each kind of interaction says about intent. A purchase is a far stronger signal than a
 // glance, so they must not count equally. These are ranking coefficients, not business figures —

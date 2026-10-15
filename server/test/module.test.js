@@ -24,7 +24,7 @@ import * as moduleRepo from '../src/repositories/module.repository.ts';
 import * as auditService from '../src/services/audit.service.js';
 import moduleRoutes from '../src/routes/module.routes.js';
 import requireModulePlugin from '../src/middlewares/requireModule.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 

@@ -289,7 +289,7 @@ describe('Prompt 10.7 — Open Marketplace API, Webhooks & Developer SDK', () =>
   test('Fastify HTTP API: Public catalog querying returns 200', async () => {
     const Fastify = (await import('fastify')).default;
     const publicApiRoutes = (await import('../src/routes/publicApi.routes.js')).default;
-    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.js')).default;
+    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
 
     const mockDb = createMockDb({
       queryHandler: async (sql) => {

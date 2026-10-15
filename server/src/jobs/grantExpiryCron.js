@@ -8,7 +8,7 @@
  * - Writes audit log entries for all closed windows/actions.
  */
 
-import * as permRepo from '../repositories/permission.repository.js';
+import * as permRepo from '../repositories/permission.repository.ts';
 import * as rbacService from '../services/rbac.service.js';
 import { writeAudit } from '../lib/audit.js';
 

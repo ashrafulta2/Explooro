@@ -19,7 +19,7 @@ import {
   unmuteUserInStream,
   getStreamMutes,
   isUserMutedInStream,
-} from '../src/sockets/presence.js';
+} from '../src/sockets/presence.ts';
 
 /**
  * A minimal fake pool. Every service call below routes through liveStream.repository.js, so the
@@ -234,7 +234,7 @@ describe('Live Moderation Console (/moderator/live)', () => {
       // The viewer-facing query is the one that must exclude it; asserted on the SQL because the
       // fake pool cannot evaluate a WHERE clause.
       const repoSrc = await import('node:fs').then((fs) =>
-        fs.readFileSync(new URL('../src/repositories/liveStream.repository.js', import.meta.url), 'utf8')
+        fs.readFileSync(new URL('../src/repositories/liveStream.repository.ts', import.meta.url), 'utf8')
       );
       const viewerQuery = repoSrc.slice(repoSrc.indexOf('export async function getStreamMessages('));
       assert.match(

@@ -8,7 +8,7 @@
  * the one correct way to pick the primary image inside a query.
  */
 
-import { getStorageDriver } from '../integrations/storage/index.js';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 
 /**
  * Correlated subquery returning the primary image's storage key for the

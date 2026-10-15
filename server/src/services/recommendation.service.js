@@ -4,16 +4,16 @@
  * Owns three things: the ranking policy (weights + tuning, read from platform_settings and
  * sanitised), the per-actor inputs that turn the policy into a concrete ranking spec, and the
  * human-readable reason attached to each ranked product. The SQL itself lives in
- * repositories/recommendation.repository.js so the score is computed across the whole filtered
+ * repositories/recommendation.repository.ts so the score is computed across the whole filtered
  * catalog before the page is cut.
  *
  * Organic only: nothing here reads ad spend or any paid placement. Sponsored slots are injected
  * separately and labelled (Phase D), so a paid boost can never silently become an organic one.
  */
 
-import * as recoRepo from '../repositories/recommendation.repository.js';
-import * as covisit from './covisit.service.js';
-import * as recoCache from './recoCache.service.js';
+import * as recoRepo from '../repositories/recommendation.repository.ts';
+import * as covisit from './covisit.service.ts';
+import * as recoCache from './recoCache.service.ts';
 
 export const SETTINGS_GROUP = 'recommendation';
 export const WEIGHTS_KEY = 'recommendation.weights';

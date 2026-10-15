@@ -7,10 +7,10 @@
  *  - Order cancellation with cancellation window check, status verification, and inventory restoration
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
-import * as liveRepo from '../repositories/liveStream.repository.js';
+import * as liveRepo from '../repositories/liveStream.repository.ts';
 import * as trustScoreService from './trustScore.service.js';
 
 export const CANCELLATION_CONFIG = {

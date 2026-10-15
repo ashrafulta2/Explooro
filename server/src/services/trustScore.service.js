@@ -17,7 +17,7 @@
  */
 
 import * as trustRepo from '../repositories/trustScore.repository.ts';
-import * as userRepo from '../repositories/user.repository.js';
+import * as userRepo from '../repositories/user.repository.ts';
 
 export const TRUST_THRESHOLDS = {
   MIN_COD_SCORE: 40,

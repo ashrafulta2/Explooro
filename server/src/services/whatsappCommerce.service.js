@@ -10,8 +10,8 @@
 
 import { randomUUID } from 'node:crypto';
 import { generateRef } from '../lib/ref.ts';
-import { createWhatsAppSender } from '../integrations/whatsapp/index.js';
-import { sendToUser } from '../sockets/presence.js';
+import { createWhatsAppSender } from '../integrations/whatsapp/index.ts';
+import { sendToUser } from '../sockets/presence.ts';
 import { withTransaction } from '../config/db.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 

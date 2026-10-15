@@ -13,10 +13,10 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import meRoutes from '../src/routes/me.routes.js';
 import * as profileService from '../src/services/profile.service.js';
-import * as userRepo from '../src/repositories/user.repository.js';
+import * as userRepo from '../src/repositories/user.repository.ts';
 import { decryptField } from '../src/lib/encryption.ts';
 
 // 32 zero bytes, base64 — a valid AES-256 key shape for lib/encryption.ts.

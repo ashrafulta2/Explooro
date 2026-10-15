@@ -41,7 +41,11 @@ places in comments and docs that still name the old files.
    - `Expected 3 arguments, but got 2`: in a .ts file a parameter without a default is required.
      Mark it optional (`details?: unknown`).
    - `Property 'x' does not exist on type 'SomeClass'`: a TypeScript class declares its fields before
-     the constructor assigns them. Add `name: string;` lines at the top of the class body.
+     the constructor assigns them. Add `name: string;` lines at the top of the class body. For drivers
+     with many fields, declaring them `any` (what JavaScript had) is acceptable.
+   - Moving a module that many files use (`errorHandler`, `env`) gives every caller stricter types at
+     once: step 5 went from 0 to 418 errors, 166 of them because `AppError` read as four required
+     parameters. Fix the shared module's signature first, then re-count.
    - `Property 'x' does not exist on type '{ limit?: number }'`: a destructured parameter
      `{ x, limit = 50 } = {}` where `x` has no default. Write its type out in full.
    - `Property 'x' does not exist on type 'unknown'`: an untyped `res.json()` or `new AsyncLocalStorage()`.
@@ -77,8 +81,7 @@ because their JSDoc types already pass.
 | 2 | 2026-10-15 | 19 `// @ts-check` files with no JSDoc: repositories `cart`, `coupon`, `fastPayout`, `returnProtection`, `trustScore`, `volumeIncentive`; services `checkout`, `codReconciliation`, `coin`, `leaderboard`, `order`, `quest`, `referralAdmin`, `return`, `returnProtection`, `subscription`, `teamPurchase`, `trustTier`, `warranty` | typecheck 0 errors (17 annotations added); client 871/871, server 1451/1451; app loads, health 200; every job module imports |
 | 3 | 2026-10-15 | The last 24 `// @ts-check` files, the money core: `ledger`, `vault`, `pricing`, `payment`, `payout`, `clawback`, `escrowAdmin`, `fastPayout`, `referral`, `referralEscrow`, `b2bEscrow`, `coupon`, `codGate`, `deliveryCharge`, `sampleKit`, `subscriptionBilling`, `surgePricing`, `volumeIncentive`, `salerTier`, `adPricing` services; `order`, `payment`, `wallet` repositories; `escrowRelease` job | typecheck 0 errors; client 871/871, server 1451/1451; app loads, health 200; every job module imports; build within budget. **Bug found:** `b2bEscrow.service` read `ledgerTxn.txn_group_id`, but the ledger returns `txnGroupId`, so a milestone release, refund or cancellation recorded no transaction group in its response or its audit row. Fixed; `b2bEscrowMilestones.test.js` now fails on the old code |
 | 4 | 2026-10-15 | 41 leaf files (they import no other `.js` file), all checked for the first time: `lib/` (`password`, `ref`, `jwt`, `encryption`, `requestMetrics`), `config/` (`loadEnvFile`, `db`, `staffRoles`, `reservedSlugs`, both cache drivers), `plugins/` (`rawBody`, `requestContext`), the SMS, email, WhatsApp and storage drivers, `webhookSecurity`, the Meilisearch driver, 11 repositories, `teamStockReservation` and `totp` services, the `fastPayout`, `order`, `gamification` and `referral` controllers, `db/migrationChecksum`, two notification channels | typecheck 0 errors (class field declarations and 12 annotations added); client 871/871, server 1451/1451; `buildApp` health 200 **and** the real `node src/index.js` health 200; every job and db entry imports; build within budget |
+| 5 | 2026-10-15 | 51 leaf files: `config/env`, `config/cache`, `plugins/errorHandler` (`AppError` now typed: `messageBn` and `details` optional), all payment and courier drivers and the four integration indexes, `sockets/presence`, 13 repositories (`user`, `permission`, `staff`, `store`, `liveStream`, ...), 13 services, 5 controllers, the `gamification` and `referral` routes, `lib/bdDistricts`, `utils/transliterate` | typecheck 0 errors; client 871/871, server 1451/1451; real `node src/index.js` health 200; every job and db entry imports; build within budget. **Two bugs found and fixed, each with a test that fails on the old code:** (1) `b2bEscrow.service` passed the HTTP status as `AppError`'s Bangla message in 25 places, so the API answered `message_bn: 400`; (2) the warranty reverse pickup read `consignment.consignmentId`, but the courier adapters return `courierConsignmentId`, so the real consignment id was never stored (always the `CNG-<ref>` fallback) |
 
-Remaining: 269 `.js` files under `server/src` (migrations and seeds excluded); 86 are `.ts`. Each file
-is checked for the first time when it moves. Next: the 51 files that now import no other `.js` file (`config/env.js`,
-`plugins/errorHandler.js`, the bigger repositories, `sockets/presence.js`, ...); each step turns more
-files into leaves.
+Remaining: 218 `.js` files under `server/src` (migrations and seeds excluded); 137 are `.ts`. 46 of the
+remaining files now import no other `.js` file and go next.

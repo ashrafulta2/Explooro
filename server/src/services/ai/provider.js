@@ -16,7 +16,7 @@
  * 6. PII redaction on outbound user text (docs/ai-strategy.md §9.2).
  */
 
-import * as aiRepo from '../../repositories/ai.repository.js';
+import * as aiRepo from '../../repositories/ai.repository.ts';
 
 const DEFAULT_SPEND_CAP_USD = parseFloat(process.env.AI_MONTHLY_SPEND_CAP_USD || '100');
 const PLATFORM_SETTING_CAP_KEY = 'ai.monthly_spend_cap_usd';

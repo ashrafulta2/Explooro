@@ -17,8 +17,8 @@
  */
 
 import { verifyAccessToken } from '../lib/jwt.ts';
-import { getSessionWithIdentity } from '../repositories/user.repository.js';
-import { AppError } from '../plugins/errorHandler.js';
+import { getSessionWithIdentity } from '../repositories/user.repository.ts';
+import { AppError } from '../plugins/errorHandler.ts';
 
 async function resolveUser(app, req) {
   const header = req.headers.authorization;

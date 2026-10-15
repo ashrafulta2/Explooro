@@ -11,9 +11,9 @@
  * what* and *what inventory is left*; it never multiplies a rate by a quantity itself.
  */
 
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.js';
-import * as adProductRepo from '../repositories/adProduct.repository.js';
+import * as adProductRepo from '../repositories/adProduct.repository.ts';
 import {
   quote as priceQuote,
   priceLabel,

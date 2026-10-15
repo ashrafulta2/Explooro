@@ -3,7 +3,7 @@
  */
 
 import * as shortlinkService from '../services/shortlink.service.js';
-import * as flyerService from '../services/flyer.service.js';
+import * as flyerService from '../services/flyer.service.ts';
 
 export async function redirectShortLink(req, reply) {
   const db = req.db || req.server?.db;

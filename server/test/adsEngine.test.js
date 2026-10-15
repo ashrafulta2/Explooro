@@ -15,14 +15,14 @@ import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import {
   calculateQualityScore,
   calculateBaseRelevance,
   evaluateBudgetPacing,
   runSecondPriceAuction,
   MIN_RESERVE_PRICE,
-} from '../src/services/adAuction.service.js';
+} from '../src/services/adAuction.service.ts';
 import * as adsService from '../src/services/ads.service.js';
 
 describe('Prompt 9.1: Sponsored Ads Engine', () => {

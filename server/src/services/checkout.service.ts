@@ -14,7 +14,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import * as cartService from './cart.service.js';
 import * as cartRepo from '../repositories/cart.repository.ts';

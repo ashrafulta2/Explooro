@@ -10,7 +10,7 @@
  */
 
 import { withTransaction } from '../config/db.ts';
-import { AppError } from '../plugins/errorHandler.js';
+import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.js';
 import * as couponRepo from '../repositories/coupon.repository.ts';
 import { isEnabled } from './module.service.js';
