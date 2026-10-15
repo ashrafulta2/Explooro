@@ -126,7 +126,7 @@ The 35 most likely change requests, with exact paths.
 | Add a category- or product-specific split | `commission_rules` table; resolution order is in `services/pricing.service.js` |
 | Change the escrow hold period | Module setting `escrow_engine.hold_days` via `/admin/platform/modules`. Read by `services/vault.service.js` |
 | Change the minimum payout | `platform_settings.min_payout_amount`. Enforced in `services/payout.service.js` |
-| Change the COD OTP threshold | Module setting `cod_protection.otp_threshold_amount`. Read by `services/checkout.service.js` |
+| Change the COD OTP threshold | Module setting `cod_protection.otp_threshold_amount`. Read by `services/checkout.service.ts` |
 | Change the return window | Module setting `returns_engine.return_window_days` |
 | Change coin redemption rate | Module setting `loyalty_coins.redemption_rate` |
 | Change group-buy team size / window | Module setting `group_buying.default_team_size`, `.window_hours` |
@@ -142,7 +142,7 @@ The 35 most likely change requests, with exact paths.
 | Sell a supplier a paid slot above the Sourcing Catalog, or change who may buy it / how rank reacts to the scorecard grade | **Configuration, not code** — price is the `sourcing_boost` rate card at /admin/growth/ad-pricing. The slot-specific rules (`max_slots`, `grade_rank_bonus`, `blocked_grades`) are the `supplier.sponsored_sourcing` OBJECT row in `platform_settings` (migration 063), read by `services/sponsoredSourcing.service.js`; `ads.service.runAuction` applies them and `product.service.listSponsoredSourcing` serves `GET /sourcing/sponsored`. There is no admin editor for the row yet |
 | Let a supplier pay a monthly rebate to the shop partners who sell the most of their stock, or change the caps on it | **Configuration, not code** — the caps (`max_rebate_pct`, `max_tiers`, `min_threshold`, `platform_fee_pct` = what the platform keeps, `settle_lag_days`, `funding_retry_days`, `blocked_grades`, `timezone`) are the `supplier.volume_incentive` OBJECT row in `platform_settings` (migration 064), read by `services/volumeIncentive.service.js`. The supplier's own tiers are rows of `volume_incentive_programs`, versioned and never edited in place; the monthly `jobs/volumeIncentive.job.js` creates `volume_incentive_payouts` and pays them from the supplier's wallet (ledger category `VOLUME_INCENTIVE`). Routes: `GET`/`PUT /supplier/incentive`, `GET /sourcing/incentives`. There is no admin editor for the settings row yet |
 | Let a supplier offer paid samples and publish a marketing kit, or change the caps on either | **Configuration, not code** — the caps (`platform_fee_pct` = what the platform keeps of the sample price, `min_price`, `max_price`, `max_shipping_fee`, `response_days`, `auto_confirm_days`, `max_open_per_saler`, `blocked_grades`, and the kit limits) are the `supplier.sample_kit` OBJECT row in `platform_settings` (migration 065), read by `services/sampleKit.service.js`. Offers are `sample_offers`, requests are `sample_requests` (price, shipping and the platform's share snapshotted on the row), kits are `marketing_kits`. The shop partner's money is held in their own wallet's HELD bucket (ledger categories `SAMPLE_HOLD` / `SAMPLE_RELEASE` / `SAMPLE_REFUND`); the only place a request changes state is `transition()` in the service, and the hourly `jobs/sampleKit.job.js` expires unshipped requests and auto-confirms unconfirmed ones. Routes: `/supplier/samples…`, `/supplier/marketing-kits…`, `/sourcing/samples…`, `/sourcing/marketing-kits`; permissions `supplier.sample.manage`, `saler.sample.request`. There is no admin editor for the settings row yet |
-| Change what an early escrow payout costs, who may take one, or how Return Protection is priced and capped | **Configuration, not code** — `fee_pct_by_grade`, `ungraded_fee_pct`, `min_amount`, `max_per_request`, `max_outstanding`, `min_days_saved`, `blocked_grades` are the `supplier.fast_payout` OBJECT row in `platform_settings` (migration 066), read by `services/fastPayout.service.js`; `premium_pct`, `max_claim_amount`, `max_claims_per_saler_30d`, `enabled`, `blocked_grades` are the `supplier.return_protection` row, read by `services/returnProtection.service.js`. Early releases are `fast_payouts` (one per escrow entry, UNIQUE); protection is `return_protection_enrollments` (a history, so leaving never strips cover from orders already sold) and `return_protection_covers` (one per sub-order). Money moves as balanced ledger groups (`ESCROW_RELEASE` + `FAST_PAYOUT_FEE`, `RETURN_PROTECTION_PREMIUM`, `RETURN_PROTECTION_CLAIM`); a claim is paid from `return.service.js` `executeRefund` inside a savepoint (so it can never block a refund) and, if that fails, by the hourly `jobs/returnProtection.job.js` claim sweep, which also charges premiums. Routes: `/supplier/fast-payout`, `/supplier/return-protection`, `/sourcing/fast-payout`, `/sourcing/return-protection`; permissions `finance.fast_payout.request`, `supplier.return_protection.manage`. There is no admin editor for either settings row yet |
+| Change what an early escrow payout costs, who may take one, or how Return Protection is priced and capped | **Configuration, not code** — `fee_pct_by_grade`, `ungraded_fee_pct`, `min_amount`, `max_per_request`, `max_outstanding`, `min_days_saved`, `blocked_grades` are the `supplier.fast_payout` OBJECT row in `platform_settings` (migration 066), read by `services/fastPayout.service.js`; `premium_pct`, `max_claim_amount`, `max_claims_per_saler_30d`, `enabled`, `blocked_grades` are the `supplier.return_protection` row, read by `services/returnProtection.service.ts`. Early releases are `fast_payouts` (one per escrow entry, UNIQUE); protection is `return_protection_enrollments` (a history, so leaving never strips cover from orders already sold) and `return_protection_covers` (one per sub-order). Money moves as balanced ledger groups (`ESCROW_RELEASE` + `FAST_PAYOUT_FEE`, `RETURN_PROTECTION_PREMIUM`, `RETURN_PROTECTION_CLAIM`); a claim is paid from `return.service.ts` `executeRefund` inside a savepoint (so it can never block a refund) and, if that fails, by the hourly `jobs/returnProtection.job.js` claim sweep, which also charges premiums. Routes: `/supplier/fast-payout`, `/supplier/return-protection`, `/sourcing/fast-payout`, `/sourcing/return-protection`; permissions `finance.fast_payout.request`, `supplier.return_protection.manage`. There is no admin editor for either settings row yet |
 | Add a product field | See [`how-to-add-a-feature.md`](how-to-add-a-feature.md) — the full worked example |
 | Add a product status | `erd.md` §3 `products.status` CHECK → new migration → `services/product.service.js` |
 | Change search ranking | `services/search-drivers/postgres.js` |
@@ -151,10 +151,10 @@ The 35 most likely change requests, with exact paths.
 | Change FEFO batch selection | `services/inventory.service.js` → `getFEFOBatch()` |
 | Change warehouse routing | `services/warehouseRouting.service.js` |
 | Add/modify product image fallback keywords | `client/src/components/product/ProductCard.js` (`KEYWORD_IMAGE_RULES`, `CATEGORY_DUMMY_IMAGES`, `resolveProductImage`) |
-| Modify customer wishlist | `client/src/pages/customer/WishlistPage.js` (UI), `server/src/services/wishlist.service.js` (logic), `server/src/repositories/cart.repository.js` (SQL) |
-| Modify customer returns listing | `client/src/pages/customer/ReturnsPage.js` (UI), `server/src/services/return.service.js` (logic), `server/src/routes/return.routes.js` (`/returns/my-returns`) |
+| Modify customer wishlist | `client/src/pages/customer/WishlistPage.js` (UI), `server/src/services/wishlist.service.js` (logic), `server/src/repositories/cart.repository.ts` (SQL) |
+| Modify customer returns listing | `client/src/pages/customer/ReturnsPage.js` (UI), `server/src/services/return.service.ts` (logic), `server/src/routes/return.routes.js` (`/returns/my-returns`) |
 | Modify customer coupons & vouchers hub | `client/src/pages/customer/CouponsPage.js` (`/account/coupons`), `client/src/components/customer/CouponCard.js`, `server/src/services/coupon.service.js` (logic), `client/src/mocks/handlers/campaigns.js` (mock data) |
-| Modify team purchases / group buying UI | `client/src/pages/TeamPurchasePage.js` (`/team/:id`, `/account/team-purchases`), `server/src/services/teamPurchase.service.js` (logic), `client/src/mocks/handlers/teamPurchase.js` (mock data) |
+| Modify team purchases / group buying UI | `client/src/pages/TeamPurchasePage.js` (`/team/:id`, `/account/team-purchases`), `server/src/services/teamPurchase.service.ts` (logic), `client/src/mocks/handlers/teamPurchase.js` (mock data) |
 
 ### Access & permissions
 
@@ -250,7 +250,7 @@ Fastify                                   server/src/app.js
    ▼
 controllers/order.controller.js   parse → call service → shape response
    ▼
-services/checkout.service.js      ⭐ withTransaction: lock stock, split by supplier,
+services/checkout.service.ts      ⭐ withTransaction: lock stock, split by supplier,
    │                                 price via pricing.service, allocate FEFO batch
    ├─ services/pricing.service.js
    ├─ services/inventory.service.js
@@ -270,7 +270,7 @@ has turned a feature off, telling a user they are *restricted* from it is mislea
 
 ### 4.1 Checkout — where money and stock meet
 
-`services/checkout.service.js`, one transaction:
+`services/checkout.service.ts`, one transaction:
 
 ```
 idempotency claim → revalidate cart → validate coupon (budget cap)

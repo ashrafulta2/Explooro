@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * return.service.js — Return & Refund Engine (DFD Subsystem 9.0 / Prompt 7.2).
+ * return.service.ts — Return & Refund Engine (DFD Subsystem 9.0 / Prompt 7.2).
  *
  * Implements:
  * 1. Customer-initiated return request with dynamic return-window enforcement (module settings)
@@ -15,7 +14,7 @@ import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import { getCourierAdapter } from '../integrations/courier/index.js';
 import * as clawbackService from './clawback.service.js';
-import * as returnProtection from './returnProtection.service.js';
+import * as returnProtection from './returnProtection.service.ts';
 import * as moduleRepo from '../repositories/module.repository.js';
 import { writeAudit } from '../lib/audit.js';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';

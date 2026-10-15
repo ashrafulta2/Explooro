@@ -5,7 +5,7 @@
  * are better settled by hand than by a job running behind a switched-off feature.
  */
 
-import { settleDue } from '../services/returnProtection.service.js';
+import { settleDue } from '../services/returnProtection.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runReturnProtection(db, cache, logger = console) {

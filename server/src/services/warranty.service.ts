@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * warranty.service.js — Digital Warranty & Claims Engine (Prompt 10.4 / Master Spec §AA).
+ * warranty.service.ts — Digital Warranty & Claims Engine (Prompt 10.4 / Master Spec §AA).
  *
  * Implements:
  * 1. Digital warranty auto-issuance on order delivery with coverage terms & serial numbers.

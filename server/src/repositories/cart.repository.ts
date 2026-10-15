@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * cart.repository.js — SQL repository for carts, cart items, wishlists, and abandoned carts (Prompt 5.1).
+ * cart.repository.ts — SQL repository for carts, cart items, wishlists, and abandoned carts (Prompt 5.1).
  *
  * Enforces raw SQL layered architecture (docs/architecture-map.md §1).
  */

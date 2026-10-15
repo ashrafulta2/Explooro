@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * subscription.service.js — Shop Partner subscription plans (Shop Partner Pro) — admin side.
+ * subscription.service.ts — Shop Partner subscription plans (Shop Partner Pro) — admin side.
  *
  * Everything here sits behind the `subscription_fees` module (default OFF). The module switch is the
  * only on/off control: with it OFF the tables are inert, nothing is billed and pricing ignores the
@@ -49,7 +48,7 @@ const MAX_NAME_LENGTH = 80;
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 25;
 
-function invalid(message_en, message_bn, details) {
+function invalid(message_en: string, message_bn: string, details?: unknown) {
   return new AppError('VALIDATION_FAILED', message_en, message_bn, details);
 }
 
@@ -103,9 +102,9 @@ function toName(value, field) {
  * `partial: true` (update) only validates the keys that were sent; create requires the names.
  * Unknown keys are ignored, never stored.
  */
-export function parsePlanInput(body = {}, { partial = false } = {}) {
-  const has = (k) => body[k] !== undefined;
-  const out = {};
+export function parsePlanInput(body: Record<string, any> = {}, { partial = false } = {}): Record<string, any> {
+  const has = (k: string) => body[k] !== undefined;
+  const out: Record<string, any> = {};
 
   if (!partial || has('name_en')) out.name_en = toName(body.name_en, 'name_en');
   if (!partial || has('name_bn')) out.name_bn = toName(body.name_bn ?? body.name_en, 'name_bn');
@@ -385,7 +384,7 @@ export async function getMetrics(db) {
 }
 
 /** One call for the admin page: module state + plans + roster + metrics. */
-export async function getOverview(db, query = {}) {
+export async function getOverview(db, query: Record<string, any> = {}) {
   const [module, plans, roster, metrics] = await Promise.all([
     getEngineSettings(db),
     listPlans(db),

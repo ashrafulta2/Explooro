@@ -12,8 +12,8 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as warrantyService from '../src/services/warranty.service.js';
-import { calculateTierFromMetrics } from '../src/services/trustTier.service.js';
+import * as warrantyService from '../src/services/warranty.service.ts';
+import { calculateTierFromMetrics } from '../src/services/trustTier.service.ts';
 
 function createMockDb({
   queryHandler = null,

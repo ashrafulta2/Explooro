@@ -2,7 +2,7 @@
  * codReconciliation.controller.js — HTTP Controller for COD Reconciliation & Courier Settlement (Prompt 6.4).
  */
 
-import * as codService from '../services/codReconciliation.service.js';
+import * as codService from '../services/codReconciliation.service.ts';
 
 /**
  * Parses simple CSV content into array of settlement records.

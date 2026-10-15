@@ -16,7 +16,7 @@ import { describe, test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as returnService from '../src/services/return.service.js';
+import * as returnService from '../src/services/return.service.ts';
 import * as clawbackService from '../src/services/clawback.service.js';
 import returnRoutes from '../src/routes/return.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.js';

@@ -17,7 +17,7 @@ import { withTransaction } from '../config/db.js';
 import * as orderRepo from '../repositories/order.repository.js';
 import { enforceCodGate } from './codGate.service.js';
 import { validateCoupon } from './coupon.service.js';
-import * as couponRepo from '../repositories/coupon.repository.js';
+import * as couponRepo from '../repositories/coupon.repository.ts';
 import { getReservedForProduct } from './teamStockReservation.service.js';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.js';
 import * as liveRepo from '../repositories/liveStream.repository.js';

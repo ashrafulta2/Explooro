@@ -9,7 +9,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as coin from '../src/services/coin.service.js';
+import * as coin from '../src/services/coin.service.ts';
 
 function makeDb({ settings = {}, balance = 100, earnedToday = 0, fresh = 0, candidates = [1] } = {}) {
   const log = { updates: [], txns: [] };

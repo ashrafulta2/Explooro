@@ -10,7 +10,7 @@ Evidence: `server/test/warrantyRefundScope.test.js` (7 tests; 6 fail against the
 | :--- | :--- | :--- |
 | Card | `030_warranty.sql` — `warranty_cards.order_item_id` `UNIQUE` | one **order item** |
 | Claim | `warranty_claims.warranty_card_id` — no amount, no qty column | one card |
-| Approve REFUND | `warranty.service.js` `reviewWarrantyClaim` → `clawbackService.executeClawback(txClient, { subOrderId })` | passes only the **sub-order** |
+| Approve REFUND | `warranty.service.ts` `reviewWarrantyClaim` → `clawbackService.executeClawback(txClient, { subOrderId })` | passes only the **sub-order** |
 | Clawback | `clawback.service.js` `processReturnClawback` — debits every `escrow_entries` row of the sub-order and credits the customer the sum | whole **sub-order** |
 
 Nothing between the claim and the ledger caps the amount. The claim query even selects
@@ -134,7 +134,7 @@ AVAILABLE nets out when that escrow releases, so no migration was needed. A shor
 
 ## 6. Partial returns (2026-10-15)
 
-The same defect existed for returns. `return.service.js` computed `refund_amount` from the
+The same defect existed for returns. `return.service.ts` computed `refund_amount` from the
 returned items only, but `executeRefund` always ran `processReturnClawback`, which refunded the
 whole sub-order. Decided: each party gives back its own pro-rata share of the returned items, and
 shipping is not refunded on a partial return.

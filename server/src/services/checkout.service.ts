@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * checkout.service.js — Transactional Checkout Engine (Prompt 5.2).
+ * checkout.service.ts — Transactional Checkout Engine (Prompt 5.2).
  *
  * Enforces:
  *  1. One atomic PostgreSQL transaction with automatic rollback on any failure.
@@ -18,9 +17,9 @@ import { createHash } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.js';
 import { generateRef } from '../lib/ref.js';
 import * as cartService from './cart.service.js';
-import * as cartRepo from '../repositories/cart.repository.js';
+import * as cartRepo from '../repositories/cart.repository.ts';
 import * as orderRepo from '../repositories/order.repository.js';
-import * as couponRepo from '../repositories/coupon.repository.js';
+import * as couponRepo from '../repositories/coupon.repository.ts';
 import * as adsService from './ads.service.js';
 import * as trustScoreService from './trustScore.service.js';
 import * as codGateService from './codGate.service.js';

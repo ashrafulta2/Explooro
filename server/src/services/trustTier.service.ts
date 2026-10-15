@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * trustTier.service.js — Shop Partner Trust Tier Engine (Prompt 7.5 / Master Spec §C.4).
+ * trustTier.service.ts — Shop Partner Trust Tier Engine (Prompt 7.5 / Master Spec §C.4).
  *
  * Manages the Starter → Verified Trader → Elite Partner progression ladder.
  * Dynamically computes tiers based on:
@@ -109,7 +108,7 @@ export function calculateTierFromMetrics({
   disputeRate = 0,
   warrantyClaimRate = 0,
   daysActive = 0,
-  settings = DEFAULT_TIER_CONFIG,
+  settings = DEFAULT_TIER_CONFIG as Record<string, number>,
 } = {}) {
   // If not verified via KYC, account remains STARTER regardless of volume
   if (!isVerified) {

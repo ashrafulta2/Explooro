@@ -11,7 +11,7 @@ import { writeAudit } from '../lib/audit.js';
 import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.js';
 import { loadRules as loadTierRules, saveRules as saveTierRules, validateRules as validateTierRules } from '../services/salerTierBonus.ts';
 import { recomputeAll as recomputeSalerTiers } from '../services/salerTier.service.js';
-import * as subscriptionService from '../services/subscription.service.js';
+import * as subscriptionService from '../services/subscription.service.ts';
 
 export async function getIntegrity(req, reply) {
   const report = await vaultService.getIntegrityReport(req.server.db);
@@ -766,7 +766,7 @@ export async function simulateSplit(req, reply) {
 }
 
 // ================= SUBSCRIPTIONS CONTROLLER =================
-// Thin HTTP layer over services/subscription.service.js. Everything here sits behind the
+// Thin HTTP layer over services/subscription.service.ts. Everything here sits behind the
 // `subscription_fees` module (the admin's on/off switch) — see that file for the rules.
 
 const actorOf = (req) => ({ id: req.user?.id ?? null, role: req.user?.role ?? null });

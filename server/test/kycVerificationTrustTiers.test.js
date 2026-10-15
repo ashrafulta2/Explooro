@@ -17,7 +17,7 @@ import requestContextPlugin from '../src/plugins/requestContext.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';
 import kycRoutes from '../src/routes/kyc.routes.js';
 import * as kycService from '../src/services/kyc.service.js';
-import * as trustTierService from '../src/services/trustTier.service.js';
+import * as trustTierService from '../src/services/trustTier.service.ts';
 import * as productService from '../src/services/product.service.js';
 
 function createMockDb() {

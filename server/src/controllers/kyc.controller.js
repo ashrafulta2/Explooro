@@ -4,7 +4,7 @@
 
 import * as kycService from '../services/kyc.service.js';
 import * as kycDecisionService from '../services/kycDecision.service.js';
-import * as trustTierService from '../services/trustTier.service.js';
+import * as trustTierService from '../services/trustTier.service.ts';
 
 export async function submitStep(req, reply) {
   const {

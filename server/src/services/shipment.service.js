@@ -14,7 +14,7 @@ import { withTransaction } from '../config/db.js';
 import { getCourierAdapter } from '../integrations/courier/index.js';
 import * as vaultService from './vault.service.js';
 import * as clawbackService from './clawback.service.js';
-import * as warrantyService from './warranty.service.js';
+import * as warrantyService from './warranty.service.ts';
 import * as referralService from './referral.service.js';
 import { writeAudit } from '../lib/audit.js';
 

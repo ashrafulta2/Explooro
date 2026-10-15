@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * returnProtection.service.js — A shop partner keeps their commission when a protected order is returned
+ * returnProtection.service.ts — A shop partner keeps their commission when a protected order is returned
  * (supplier attraction, step 5b).
  *
  * A return claws the shop partner's commission back along with everyone else's, and the shop partner did nothing
@@ -34,7 +33,7 @@ import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as ledgerService from './ledger.service.js';
-import * as repo from '../repositories/returnProtection.repository.js';
+import * as repo from '../repositories/returnProtection.repository.ts';
 import * as scorecardRepo from '../repositories/supplierScorecard.repository.js';
 
 const GRADES = ['A', 'B', 'C', 'D'];

@@ -1,8 +1,8 @@
 /**
- * subscriptionRebate.ts —the Shop Partner Pro commission rebate lookup used by pricing.
+ * subscriptionRebate.ts — the Shop Partner Pro commission rebate lookup used by pricing.
  *
- * WHY a separate file: pricing.service.js is imported by subscription.service.js (for the platform
- * split cap), so the rebate lookup cannot live in subscription.service.js without a cycle.
+ * WHY a separate file: pricing.service.js is imported by subscription.service.ts (for the platform
+ * split cap), so the rebate lookup cannot live in subscription.service.ts without a cycle.
  *
  * The rebate applies only when BOTH are true:
  *   1. the `subscription_fees` module is enabled for this shop partner (admin's OFF switch wins), and

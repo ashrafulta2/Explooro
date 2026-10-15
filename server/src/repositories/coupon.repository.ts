@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * coupon.repository.js — SQL repository for coupon validation and redemptions (Prompt 5.2).
+ * coupon.repository.ts — SQL repository for coupon validation and redemptions (Prompt 5.2).
  *
  * Enforces raw SQL layered architecture (docs/architecture-map.md §1).
  */

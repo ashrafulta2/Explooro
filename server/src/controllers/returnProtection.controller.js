@@ -3,7 +3,7 @@
  * Thin on purpose: enrolment, cover and claims all live in the service.
  */
 
-import * as service from '../services/returnProtection.service.js';
+import * as service from '../services/returnProtection.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
 
 export async function getSupplierProtection(req, reply) {

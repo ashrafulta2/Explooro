@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * quest.service.js — Daily & Weekly Quest Engine (Prompt 9.4).
+ * quest.service.ts — Daily & Weekly Quest Engine (Prompt 9.4).
  *
  * Implements:
  * 1. Data-driven quest definitions (daily, weekly, one-time).
@@ -11,7 +10,7 @@
 
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
-import * as coinService from './coin.service.js';
+import * as coinService from './coin.service.ts';
 
 export function computePeriodKey(cadence, date = new Date()) {
   const d = new Date(date);

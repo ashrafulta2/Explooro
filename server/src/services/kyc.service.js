@@ -7,14 +7,14 @@
  * 3. Audited document views recording the reviewer for every NID/Trade License inspection.
  * 4. High-tier Maker-Checker authorization on approvals.
  * 5. Rejection & appeal workflow.
- * 6. Integration with trustTier.service.js and Blue-Tick badge assignment.
+ * 6. Integration with trustTier.service.ts and Blue-Tick badge assignment.
  */
 
 import { createHmac, createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import * as moduleRepo from '../repositories/module.repository.js';
 import { writeAudit } from '../lib/audit.js';
-import { recomputeUserTier } from './trustTier.service.js';
+import { recomputeUserTier } from './trustTier.service.ts';
 
 // Encryption key for PII at rest
 const PII_KEY = (process.env.PII_ENCRYPTION_KEY || 'default-secret-key-for-pii-at-least-32-chars-long').slice(0, 32);

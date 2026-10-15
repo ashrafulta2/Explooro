@@ -68,7 +68,7 @@ describe('1. paid gateway orders lock escrow', () => {
 
 describe('2. delivery charge is a setting', () => {
   test('checkout and the cart read it; no ৳60 constant is left', () => {
-    const checkout = src('services/checkout.service.js');
+    const checkout = src('services/checkout.service.ts');
     const cart = src('services/cart.service.js');
     assert.ok(!/toPaisa\(60(\.0)?\)/.test(checkout));
     assert.ok(!/PerParcel = 60/.test(cart));
@@ -196,8 +196,8 @@ describe('3. COD trust / OTP gate', () => {
   });
 
   test('checkout and team purchase both use the shared gate', () => {
-    assert.match(src('services/checkout.service.js'), /codGateService\.enforceCodGate\(pool, cache, \{/);
-    const team = src('services/teamPurchase.service.js');
+    assert.match(src('services/checkout.service.ts'), /codGateService\.enforceCodGate\(pool, cache, \{/);
+    const team = src('services/teamPurchase.service.ts');
     assert.match(team, /codGateService\.enforceCodGate\(db, cache, \{/);
     assert.match(team, /if \(paymentMethod !== 'COD'\) return/);
     assert.match(team, /isOtpVerified: Boolean\(m\.is_otp_verified\)/);

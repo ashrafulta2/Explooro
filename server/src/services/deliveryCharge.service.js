@@ -2,7 +2,7 @@
 /**
  * deliveryCharge.service.js — the delivery charge a normal checkout adds per supplier parcel.
  *
- * It used to be a ৳60 constant in checkout.service.js and cart.service.js (and three more copies in
+ * It used to be a ৳60 constant in checkout.service.ts and cart.service.js (and three more copies in
  * the client). It is a business number, so it lives in platform_settings (group `delivery`, seeded by
  * 069_delivery_charge_and_cod_gate.sql) and a super admin sets it at /admin/platform/delivery.
  *
@@ -10,7 +10,7 @@
  * before/after JSON, cached briefly because the cart reads it on every request.
  *
  * Team purchase does not use this: each team snapshots its own shipping charge from the
- * group_buying module when it starts (teamPurchase.service.js).
+ * group_buying module when it starts (teamPurchase.service.ts).
  */
 
 import * as settingRepo from '../repositories/setting.repository.js';

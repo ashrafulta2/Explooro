@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * referralAdmin.service.js — read model and rule writes behind /admin/growth/referrals.
+ * referralAdmin.service.ts — read model and rule writes behind /admin/growth/referrals.
  *
  * The rules live in the `referral_engine` module's `settings_json` — the same row
  * `referral.service.getReferralSettings` reads — so what the admin edits is what the engine does.
@@ -57,7 +56,7 @@ function num(v, fallback = 0) {
 }
 
 /** Engine settings -> the shape the admin form edits (defaults mirror getReferralSettings). */
-export function toReferralRules(settings = {}) {
+export function toReferralRules(settings: Record<string, any> = {}) {
   return {
     tier_depth: num(settings.max_tier_depth, 2),
     tier_1_rate_pct: num(settings.tier_1_rate_pct, 5),
@@ -76,7 +75,7 @@ export function validateReferralRulesPatch(input, current = {}) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new AppError('VALIDATION_ERROR', 'A referral rules object is required.');
   }
-  const form = {};
+  const form: Record<string, { engineKey: string; value: unknown }> = {};
   for (const [formKey, engineKey] of Object.entries(RULE_KEYS)) {
     const v = input[formKey];
     if (v === undefined) continue;
@@ -111,7 +110,7 @@ export function validateReferralRulesPatch(input, current = {}) {
     throw new AppError('VALIDATION_ERROR', `Combined referral commission cannot exceed ${MAX_COMBINED_RATE_PCT}%.`);
   }
 
-  const patch = {};
+  const patch: Record<string, unknown> = {};
   for (const { engineKey, value } of Object.values(form)) patch[engineKey] = value;
   return patch;
 }

@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * volumeIncentive.repository.js — Raw SQL for supplier volume-incentive programmes and payouts.
+ * volumeIncentive.repository.ts — Raw SQL for supplier volume-incentive programmes and payouts.
  * No rules here: the service decides what the numbers mean, this file only reads and stores them.
  */
 

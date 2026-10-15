@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * codReconciliation.service.js — 3-Way COD Reconciliation Engine (Prompt 6.4).
+ * codReconciliation.service.ts — 3-Way COD Reconciliation Engine (Prompt 6.4).
  *
  * Implements:
  * 1. Ingestion of courier settlement reports (CSV / JSON)

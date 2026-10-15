@@ -2,9 +2,9 @@
  * gamification.controller.js — Route handlers for Loyalty Coins, Quests & Leaderboards (Prompt 9.4).
  */
 
-import * as coinService from '../services/coin.service.js';
-import * as questService from '../services/quest.service.js';
-import * as leaderboardService from '../services/leaderboard.service.js';
+import * as coinService from '../services/coin.service.ts';
+import * as questService from '../services/quest.service.ts';
+import * as leaderboardService from '../services/leaderboard.service.ts';
 
 export async function getCoinBalance(req, reply) {
   const db = req.db || req.server?.db;

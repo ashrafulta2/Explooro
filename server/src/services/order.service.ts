@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * order.service.js — Order management and cancellation service (Prompt 5.2).
+ * order.service.ts — Order management and cancellation service (Prompt 5.2).
  *
  * Implements:
  *  - Order lookup with role-aware security check (view_own vs view_all)
@@ -10,7 +9,7 @@
 
 import { AppError } from '../plugins/errorHandler.js';
 import * as orderRepo from '../repositories/order.repository.js';
-import * as couponRepo from '../repositories/coupon.repository.js';
+import * as couponRepo from '../repositories/coupon.repository.ts';
 import * as liveRepo from '../repositories/liveStream.repository.js';
 import * as trustScoreService from './trustScore.service.js';
 

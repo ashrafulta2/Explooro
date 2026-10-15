@@ -9,7 +9,7 @@
 
 import { AppError } from '../plugins/errorHandler.js';
 import { calculateQualityScore } from './adAuction.service.js';
-import { getCoinSettings } from './coin.service.js';
+import { getCoinSettings } from './coin.service.ts';
 import { updateModuleSettings } from './module.service.js';
 
 // WHY: the admin form speaks in operator terms (coins_per_bdt), the engine stores its own keys.

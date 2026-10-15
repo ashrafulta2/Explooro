@@ -2,7 +2,7 @@
  * wishlist.service.js — Wishlist business logic (Prompt 5.1).
  */
 
-import * as cartRepo from '../repositories/cart.repository.js';
+import * as cartRepo from '../repositories/cart.repository.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { getStorageDriver } from '../integrations/storage/index.js';
 

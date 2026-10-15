@@ -17,7 +17,7 @@ import Fastify from 'fastify';
 
 import * as walletRepo from '../src/repositories/wallet.repository.js';
 import * as vaultService from '../src/services/vault.service.js';
-import * as codService from '../src/services/codReconciliation.service.js';
+import * as codService from '../src/services/codReconciliation.service.ts';
 import financeRoutes from '../src/routes/finance.routes.js';
 import requestContextPlugin from '../src/plugins/requestContext.js';
 import errorHandlerPlugin from '../src/plugins/errorHandler.js';

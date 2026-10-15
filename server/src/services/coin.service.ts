@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * coin.service.js — Loyalty Coins Liability Engine & Streak System (Prompt 9.4).
+ * coin.service.ts — Loyalty Coins Liability Engine & Streak System (Prompt 9.4).
  *
  * Implements DFD Subsystem 13.0:
  * 1. Double-entry loyalty coins ledger where coins represent a financial liability.

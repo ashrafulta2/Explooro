@@ -13,7 +13,7 @@
 import { withTransaction } from '../config/db.js';
 import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
-import * as couponRepo from '../repositories/coupon.repository.js';
+import * as couponRepo from '../repositories/coupon.repository.ts';
 import { isEnabled } from './module.service.js';
 
 export const VALID_DISCOUNT_TYPES = new Set(['PERCENT', 'FIXED', 'FREE_SHIPPING', 'BUY_X_GET_Y']);

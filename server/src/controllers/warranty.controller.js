@@ -2,7 +2,7 @@
  * warranty.controller.js — HTTP Controller for Digital Warranty & Claims Engine (Prompt 10.4).
  */
 
-import * as warrantyService from '../services/warranty.service.js';
+import * as warrantyService from '../services/warranty.service.ts';
 
 /**
  * Customer: Get list of active and expired warranty cards.

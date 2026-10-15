@@ -2,7 +2,7 @@
  * return.controller.js — HTTP Controller for Return Requests & Moderation Queue (Prompt 7.2).
  */
 
-import * as returnService from '../services/return.service.js';
+import * as returnService from '../services/return.service.ts';
 
 export async function requestReturn(req, reply) {
   const customerId = req.user.id;

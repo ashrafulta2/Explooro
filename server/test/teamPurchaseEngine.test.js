@@ -14,7 +14,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as teamPurchaseService from '../src/services/teamPurchase.service.js';
+import * as teamPurchaseService from '../src/services/teamPurchase.service.ts';
 
 const {
   resolveSettings,

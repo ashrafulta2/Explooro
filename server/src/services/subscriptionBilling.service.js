@@ -4,7 +4,7 @@
  *
  * Self-serve: subscribe, cancel, resume. Background: the hourly renewal sweep (jobs/
  * subscriptionRenewal.job.js) that bills renewals, runs the grace period, lifts expired waivers and
- * sends reminders. Admin-side plan / settings CRUD lives in subscription.service.js.
+ * sends reminders. Admin-side plan / settings CRUD lives in subscription.service.ts.
  *
  * Invariants:
  *   - a fee moves Vault -> platform treasury as ONE balanced double-entry group (SUBSCRIPTION_FEE),
@@ -27,7 +27,7 @@ import { writeAudit } from '../lib/audit.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as ledgerService from './ledger.service.js';
 import * as notificationService from './notification.service.js';
-import { getEngineSettings, listPlans } from './subscription.service.js';
+import { getEngineSettings, listPlans } from './subscription.service.ts';
 import { isEnabled } from './module.service.js';
 
 const MODULE_KEY = 'subscription_fees';

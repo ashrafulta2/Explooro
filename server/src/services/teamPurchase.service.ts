@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * teamPurchase.service.js — Social Group Buying / Team Purchase Engine (Prompt 9.5).
+ * teamPurchase.service.ts — Social Group Buying / Team Purchase Engine (Prompt 9.5).
  *
  * Implements DFD Subsystem 16.0:
  * 1. Pinduoduo-style team purchases with a countdown window (window_hours).
@@ -113,7 +112,7 @@ export function validateSettingsPatch(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new AppError('VALIDATION_FAILED', 'Settings must be an object.', 'সেটিংস সঠিক নয়।');
   }
-  const out = {};
+  const out: Record<string, number> = {};
   const bad = (en, bn) => new AppError('VALIDATION_FAILED', en, bn);
 
   if (input.shipping_charge !== undefined) {

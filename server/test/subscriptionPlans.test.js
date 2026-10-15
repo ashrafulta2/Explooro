@@ -19,7 +19,7 @@ import {
   slugifyCode,
   ENGINE_DEFAULTS,
   MODULE_KEY,
-} from '../src/services/subscription.service.js';
+} from '../src/services/subscription.service.ts';
 
 const validationFailed = (fn) =>
   assert.throws(fn, (err) => err.code === 'VALIDATION_FAILED' && typeof err.messageBn === 'string' && err.messageBn.length > 0);

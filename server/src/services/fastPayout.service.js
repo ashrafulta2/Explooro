@@ -29,7 +29,7 @@ import { AppError } from '../plugins/errorHandler.js';
 import { writeAudit } from '../lib/audit.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
 import * as ledgerService from './ledger.service.js';
-import * as repo from '../repositories/fastPayout.repository.js';
+import * as repo from '../repositories/fastPayout.repository.ts';
 import * as scorecardRepo from '../repositories/supplierScorecard.repository.js';
 
 const GRADES = ['A', 'B', 'C', 'D'];

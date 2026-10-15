@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * trustScore.repository.js — SQL repository for buyer/seller trust scores (Prompt 5.2).
+ * trustScore.repository.ts — SQL repository for buyer/seller trust scores (Prompt 5.2).
  *
  * Adheres to raw SQL repository architecture (docs/architecture-map.md §1).
  */

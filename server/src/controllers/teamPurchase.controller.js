@@ -2,7 +2,7 @@
  * teamPurchase.controller.js — Route handlers for Social Group Buying / Team Purchases (Prompt 9.5).
  */
 
-import * as teamPurchaseService from '../services/teamPurchase.service.js';
+import * as teamPurchaseService from '../services/teamPurchase.service.ts';
 import { writeAudit } from '../lib/audit.js';
 
 /** What the COD trust / OTP gate needs from the request (see services/codGate.service.js). */

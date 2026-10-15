@@ -4,8 +4,8 @@
  * Implements envelope formatting, idempotency headers, and error propagation per docs/api-contract.md.
  */
 
-import * as checkoutService from '../services/checkout.service.js';
-import * as orderService from '../services/order.service.js';
+import * as checkoutService from '../services/checkout.service.ts';
+import * as orderService from '../services/order.service.ts';
 
 export async function checkout(req, reply) {
   const idempotencyKey = req.headers['idempotency-key'];

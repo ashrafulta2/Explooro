@@ -4,7 +4,7 @@
 
 import * as apiKeyService from '../services/apiKey.service.js';
 import * as webhookService from '../services/webhookDelivery.service.js';
-import * as orderService from '../services/order.service.js';
+import * as orderService from '../services/order.service.ts';
 import { AppError } from '../plugins/errorHandler.js';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.js';
 

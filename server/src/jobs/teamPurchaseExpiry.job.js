@@ -8,7 +8,7 @@
  * - Registers job with scheduler under module 'group_buying'
  */
 
-import * as teamPurchaseService from '../services/teamPurchase.service.js';
+import * as teamPurchaseService from '../services/teamPurchase.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runTeamPurchaseExpirySweep(db, cache, logger = console) {

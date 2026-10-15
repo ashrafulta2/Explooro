@@ -16,7 +16,7 @@
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.js';
 import * as walletRepo from '../repositories/wallet.repository.js';
-import * as trustRepo from '../repositories/trustScore.repository.js';
+import * as trustRepo from '../repositories/trustScore.repository.ts';
 import * as ledgerService from './ledger.service.js';
 import * as vaultService from './vault.service.js';
 import * as moduleRepo from '../repositories/module.repository.js';

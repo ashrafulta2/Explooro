@@ -16,7 +16,7 @@
  *  - ELITE_PARTNER: 85 - 100
  */
 
-import * as trustRepo from '../repositories/trustScore.repository.js';
+import * as trustRepo from '../repositories/trustScore.repository.ts';
 import * as userRepo from '../repositories/user.repository.js';
 
 export const TRUST_THRESHOLDS = {

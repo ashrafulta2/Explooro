@@ -1,11 +1,11 @@
 /**
  * coinExpiry.job.js — expires loyalty coins older than the policy's expiry_days.
  *
- * The rule lives in coin.service.js `expireStaleCoins`; this file only schedules it. Gated on the
+ * The rule lives in coin.service.ts `expireStaleCoins`; this file only schedules it. Gated on the
  * loyalty_coins module: with it off nothing expires, so coins do not vanish while the feature is dark.
  */
 
-import { expireStaleCoins } from '../services/coin.service.js';
+import { expireStaleCoins } from '../services/coin.service.ts';
 import { registerJob } from './scheduler.js';
 
 export async function runCoinExpiry(db, cache, logger = console) {

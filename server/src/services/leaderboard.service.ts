@@ -1,6 +1,5 @@
-// @ts-check
 /**
- * leaderboard.service.js — Monthly Performance Leaderboards & Snapshot Engine (Prompt 9.4).
+ * leaderboard.service.ts — Monthly Performance Leaderboards & Snapshot Engine (Prompt 9.4).
  *
  * Implements:
  * 1. Nightly snapshot computation (no expensive live aggregate table scans).

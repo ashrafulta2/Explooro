@@ -3,7 +3,7 @@
  */
 
 import * as referralService from '../services/referral.service.js';
-import * as referralAdminService from '../services/referralAdmin.service.js';
+import * as referralAdminService from '../services/referralAdmin.service.ts';
 
 export async function getOverview(req, reply) {
   const db = req.db || req.server?.db;

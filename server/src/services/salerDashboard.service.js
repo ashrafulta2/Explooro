@@ -46,7 +46,7 @@ export async function getSalerOverview(db, salerId) {
 
   // 2. Earnings and Order Volumes (reconciled with sub_orders and wallet)
   // WHY `saler_commission`: that is the column the split arithmetic writes and the vault pays out
-  // from (checkout.service.js, vault.service.js). It is the shop partner's take of `net_retail_margin`.
+  // from (checkout.service.ts, vault.service.js). It is the shop partner's take of `net_retail_margin`.
   //
   // WHY RETURNED is excluded from the money columns: an approved return triggers a clawback that
   // reverses the commission (clawback.service.js). Counting it as profit showed shop partners earnings
