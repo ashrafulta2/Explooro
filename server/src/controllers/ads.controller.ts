@@ -1,5 +1,5 @@
 /**
- * ads.controller.js — Handlers for Sponsored Ads API (Prompt 9.1).
+ * ads.controller.ts — Handlers for Sponsored Ads API (Prompt 9.1).
  */
 
 import * as adsService from '../services/ads.service.ts';

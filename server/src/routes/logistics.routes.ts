@@ -1,5 +1,5 @@
 /**
- * logistics.routes.js — Fastify Route definitions for 3PL Logistics Hub & Courier Webhooks (Prompt 7.1).
+ * logistics.routes.ts — Fastify Route definitions for 3PL Logistics Hub & Courier Webhooks (Prompt 7.1).
  */
 
 import { addRawJsonBody } from '../plugins/rawBody.ts';

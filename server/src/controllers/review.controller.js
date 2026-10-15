@@ -2,11 +2,11 @@
  * review.controller.js — Handlers for product review endpoints (Prompt 4.6).
  */
 
-import * as reviewService from '../services/review.service.js';
+import * as reviewService from '../services/review.service.ts';
 import * as productRepo from '../repositories/product.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
-/** `:productId` route params are `product.ref` everywhere in the client (see product.service.js's
+/** `:productId` route params are `product.ref` everywhere in the client (see product.service.ts's
  * getProductDetail) — resolve the same way so review endpoints accept the same URLs. */
 async function resolveProduct(db, idOrRef) {
   const product = /^\d+$/.test(idOrRef)

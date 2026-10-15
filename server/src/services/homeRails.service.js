@@ -12,7 +12,7 @@
  * labelled separately (Phase D) so it can never pass for an organic pick.
  */
 
-import * as productService from './product.service.js';
+import * as productService from './product.service.ts';
 import * as discoveryFeed from './discoveryFeed.service.js';
 import * as recommendation from './recommendation.service.ts';
 import * as diversity from './diversity.service.ts';

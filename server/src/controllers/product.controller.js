@@ -2,7 +2,7 @@
  * product.controller.js — Handlers for Catalog & Product endpoints (Prompt 4.3).
  */
 
-import * as productService from '../services/product.service.js';
+import * as productService from '../services/product.service.ts';
 import * as pricingService from '../services/pricing.service.ts';
 
 export async function createProduct(req, reply) {

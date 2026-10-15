@@ -28,7 +28,7 @@ import '../../styles/components/admin-access.css';
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
-// Must equal the API's minimum (delegation.routes.js `minLength: 10`), or the dialog accepts a
+// Must equal the API's minimum (delegation.routes.ts `minLength: 10`), or the dialog accepts a
 // reason the server then refuses.
 const MIN_REVOKE_REASON = 10;
 // WHY a display threshold, not a business rule: it only decides when the expiry cell turns amber so

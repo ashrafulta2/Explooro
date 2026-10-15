@@ -107,7 +107,7 @@ describe('catalog listing', () => {
     });
 
   test('netStock subtracts reservations and caps variants; without it the count stays raw', async () => {
-    const { listCatalog } = await import('../src/services/product.service.js');
+    const { listCatalog } = await import('../src/services/product.service.ts');
     const net = (await listCatalog(makeDb(), { netStock: true }))[0];
     assert.equal(net.stock_qty, 7);
     assert.equal(net.stock_on_hand, 10);
@@ -120,7 +120,7 @@ describe('catalog listing', () => {
 
   test('the "in stock" filter subtracts reservations in SQL', async () => {
     const db = makeDb();
-    const { listCatalog } = await import('../src/services/product.service.js');
+    const { listCatalog } = await import('../src/services/product.service.ts');
     await listCatalog(db, { inStock: true });
     assert.match(db.calls.find((s) => s.includes('FROM products p')), /p\.stock_qty - COALESCE/);
   });
@@ -128,7 +128,7 @@ describe('catalog listing', () => {
 
 describe('sourcing catalog', () => {
   test('stock_available is net of open-team reservations', async () => {
-    const { listSourcingCatalog } = await import('../src/services/product.service.js');
+    const { listSourcingCatalog } = await import('../src/services/product.service.ts');
     const db = reservationDb(async (sql) => {
       if (sql.includes('FROM products p') && !sql.startsWith('SELECT product_id')) {
         return { rows: [{ id: 1, stock_qty: 10, base_cost: 100, wholesale_margin: 0, default_retail_price: 200 }] };
@@ -142,7 +142,7 @@ describe('sourcing catalog', () => {
 
 describe('saler management views', () => {
   test('getSalerStoreItems shows stock net of reservations', async () => {
-    const { getSalerStoreItems } = await import('../src/services/product.service.js');
+    const { getSalerStoreItems } = await import('../src/services/product.service.ts');
     const db = reservationDb(async (sql) => {
       if (sql.includes('FROM virtual_stores')) return { rows: [{ id: 9 }] };
       if (sql.includes('store_items')) {

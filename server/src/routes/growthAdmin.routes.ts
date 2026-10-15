@@ -1,5 +1,5 @@
 /**
- * growthAdmin.routes.js — admin read models and policy writes for the Phase 9 pages
+ * growthAdmin.routes.ts — admin read models and policy writes for the Phase 9 pages
  * (/admin/growth/ads, /admin/growth/quests, /admin/growth/coins).
  */
 

@@ -1,5 +1,5 @@
 /**
- * saler.controller.js — Fastify Controller for Shop Partner Dashboard & Analytics (Prompt 11.2).
+ * saler.controller.ts — Fastify Controller for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
 import * as salerService from '../services/salerDashboard.service.ts';
@@ -10,7 +10,7 @@ export async function getDashboardOverview(req, reply) {
   const salerId = req.user?.id;
 
   if (!salerId) {
-    throw new AppError(401, 'UNAUTHORIZED', 'Authentication required.');
+    throw new AppError('AUTH_REQUIRED', 'Authentication required.', 'লগইন করা প্রয়োজন।');
   }
 
   const data = await salerService.getSalerOverview(db, salerId);
@@ -26,7 +26,7 @@ export async function getAnalytics(req, reply) {
   const { range = '30d' } = req.query || {};
 
   if (!salerId) {
-    throw new AppError(401, 'UNAUTHORIZED', 'Authentication required.');
+    throw new AppError('AUTH_REQUIRED', 'Authentication required.', 'লগইন করা প্রয়োজন।');
   }
 
   const data = await salerService.getSalerAnalytics(db, salerId, { range });
@@ -41,7 +41,7 @@ export async function getOnboardingStatus(req, reply) {
   const salerId = req.user?.id;
 
   if (!salerId) {
-    throw new AppError(401, 'UNAUTHORIZED', 'Authentication required.');
+    throw new AppError('AUTH_REQUIRED', 'Authentication required.', 'লগইন করা প্রয়োজন।');
   }
 
   const overview = await salerService.getSalerOverview(db, salerId);
@@ -57,7 +57,7 @@ export async function getGrowthRecommendations(req, reply) {
   const lang = req.headers['accept-language']?.includes('bn') ? 'bn' : 'en';
 
   if (!salerId) {
-    throw new AppError(401, 'UNAUTHORIZED', 'Authentication required.');
+    throw new AppError('AUTH_REQUIRED', 'Authentication required.', 'লগইন করা প্রয়োজন।');
   }
 
   const data = await salerService.getSalerGrowthRecommendations(db, salerId, lang);

@@ -46,7 +46,7 @@ function productMatchesQuery(p, raw) {
   return needles.some((n) => haystack.includes(n));
 }
 
-// Response time copy keyed by trust tier — mirrors server/src/services/product.service.js's
+// Response time copy keyed by trust tier — mirrors server/src/services/product.service.ts's
 // RESPONSE_TIME_BY_TIER (chat/messaging response tracking doesn't exist yet, Phase 8).
 const RESPONSE_TIME_BY_TIER = {
   elite: { en: 'Usually responds within 1 hour', bn: 'সাধারণত ১ ঘণ্টার মধ্যে সাড়া দেয়' },
@@ -402,7 +402,7 @@ export default [
     path: '/products',
     handler({ body }) {
       const b = body || {};
-      // Mirrors the live contract (server/src/services/product.service.js createProduct).
+      // Mirrors the live contract (server/src/services/product.service.ts createProduct).
       if (!b.title_en || !b.title_bn || !b.category_id) {
         return {
           status: 400, // live VALIDATION_FAILED status (errorHandler.js)
@@ -511,7 +511,7 @@ export default [
     },
   },
   {
-    // Mirrors the live PATCH (server/src/services/product.service.js updateProduct): live column
+    // Mirrors the live PATCH (server/src/services/product.service.ts updateProduct): live column
     // names, id-or-ref lookup, and media_ids replacing the photo set (at least one required).
     method: 'PATCH',
     path: '/products/:id',
@@ -564,7 +564,7 @@ export default [
     },
   },
   {
-    // Mirrors POST /products/:id/restock (product.service.js restockProduct): adds to stored stock.
+    // Mirrors POST /products/:id/restock (product.service.ts restockProduct): adds to stored stock.
     method: 'POST',
     path: '/products/:id/restock',
     handler({ params, body }) {
@@ -615,7 +615,7 @@ export default [
   {
     method: 'GET',
     path: '/admin/catalog/stats',
-    // WHY this mirrors server/src/services/product.service.js getCatalogStats() field for field:
+    // WHY this mirrors server/src/services/product.service.ts getCatalogStats() field for field:
     // the admin catalog page reads this contract in mock mode and the Fastify route in live mode.
     // When the two drifted, the panel silently changed meaning depending on VITE_API_MODE.
     handler() {

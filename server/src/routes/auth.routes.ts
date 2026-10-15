@@ -1,5 +1,5 @@
 /**
- * auth.routes.js — Auth endpoint registration (Prompt 2.3).
+ * auth.routes.ts — Auth endpoint registration (Prompt 2.3).
  *
  * Every route declares a JSON Schema with `additionalProperties: false` per
  * docs/api-contract.md §7. Registered under the `/api/v1/auth` prefix by app.js.

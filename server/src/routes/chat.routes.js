@@ -2,7 +2,7 @@
  * chat.routes.js — Fastify routes for Real-Time Chat (Prompt 8.1 / DFD Subsystem 7.0).
  */
 
-import * as controller from '../controllers/chat.controller.js';
+import * as controller from '../controllers/chat.controller.ts';
 
 export default async function chatRoutes(app) {
   // 1. Issue short-lived ticket for WebSocket upgrade

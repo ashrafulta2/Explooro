@@ -1,5 +1,5 @@
 /**
- * moderation.routes.js — Fastify routes for Unified Product Approval & Content Moderation (Prompt 7.4).
+ * moderation.routes.ts — Fastify routes for Unified Product Approval & Content Moderation (Prompt 7.4).
  */
 
 import * as controller from '../controllers/moderation.controller.ts';

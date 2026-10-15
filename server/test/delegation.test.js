@@ -18,7 +18,7 @@ import * as makerCheckerService from '../src/services/makerChecker.service.ts';
 import { runGrantExpiryJob } from '../src/jobs/grantExpiryCron.ts';
 import { resolvePermissions, hasPermission } from '../src/services/rbac.service.ts';
 import { requirePermission } from '../src/middlewares/requirePermission.ts';
-import delegationRoutes from '../src/routes/delegation.routes.js';
+import delegationRoutes from '../src/routes/delegation.routes.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 

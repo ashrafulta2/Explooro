@@ -1,5 +1,5 @@
 /**
- * restriction.controller.js — HTTP Controller for Granular User Activity Restrictions (Prompt 2.6).
+ * restriction.controller.ts — HTTP Controller for Granular User Activity Restrictions (Prompt 2.6).
  */
 
 import * as restrictionService from '../services/restriction.service.ts';

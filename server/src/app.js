@@ -25,9 +25,9 @@ import requireRestrictionPlugin from './middlewares/requireRestriction.ts';
 import requireModulePlugin from './middlewares/requireModule.ts';
 import requirePagePlugin from './middlewares/requirePage.ts';
 import idempotencyPlugin from './middlewares/idempotency.ts';
-import authRoutes from './routes/auth.routes.js';
+import authRoutes from './routes/auth.routes.ts';
 import meRoutes from './routes/me.routes.ts';
-import delegationRoutes from './routes/delegation.routes.js';
+import delegationRoutes from './routes/delegation.routes.ts';
 import restrictionRoutes from './routes/restriction.routes.js';
 import auditRoutes from './routes/audit.routes.ts';
 import moduleRoutes from './routes/module.routes.ts';
@@ -52,22 +52,22 @@ import orderRoutes from './routes/order.routes.ts';
 import paymentRoutes from './routes/payment.routes.ts';
 import financeRoutes from './routes/finance.routes.ts';
 import subscriptionRoutes from './routes/subscription.routes.ts';
-import logisticsRoutes from './routes/logistics.routes.js';
+import logisticsRoutes from './routes/logistics.routes.ts';
 import returnRoutes from './routes/return.routes.ts';
-import disputeRoutes from './routes/dispute.routes.js';
-import moderationRoutes from './routes/moderation.routes.js';
+import disputeRoutes from './routes/dispute.routes.ts';
+import moderationRoutes from './routes/moderation.routes.ts';
 import kycRoutes from './routes/kyc.routes.js';
 import chatRoutes from './routes/chat.routes.js';
 import notificationRoutes from './routes/notification.routes.ts';
 import whatsappRoutes from './routes/whatsapp.routes.ts';
 import salerInboxRoutes from './routes/salerInbox.routes.ts';
 import adsRoutes from './routes/ads.routes.js';
-import promotionRoutes from './routes/promotion.routes.js';
+import promotionRoutes from './routes/promotion.routes.ts';
 import referralRoutes from './routes/referral.routes.ts';
 import gamificationRoutes from './routes/gamification.routes.ts';
-import growthAdminRoutes from './routes/growthAdmin.routes.js';
+import growthAdminRoutes from './routes/growthAdmin.routes.ts';
 import teamPurchaseRoutes from './routes/teamPurchase.routes.ts';
-import cartRecoveryRoutes from './routes/cartRecovery.routes.js';
+import cartRecoveryRoutes from './routes/cartRecovery.routes.ts';
 import socialKitRoutes from './routes/socialKit.routes.ts';
 import liveStreamRoutes from './routes/liveStream.routes.js';
 import aiRoutes from './routes/ai.routes.js';
@@ -75,20 +75,20 @@ import warrantyRoutes from './routes/warranty.routes.ts';
 import bundleRoutes from './routes/bundle.routes.ts';
 import b2bEscrowRoutes from './routes/b2bEscrow.routes.ts';
 import publicApiRoutes from './routes/publicApi.routes.ts';
-import contentRoutes from './routes/content.routes.js';
+import contentRoutes from './routes/content.routes.ts';
 import supplierRoutes from './routes/supplier.routes.ts';
 import salerRoutes from './routes/saler.routes.js';
-import customerRoutes from './routes/customer.routes.js';
+import customerRoutes from './routes/customer.routes.ts';
 import homeSummaryRoutes from './routes/homeSummary.routes.js';
 import fastifyWebsocket from '@fastify/websocket';
-import websocketGateway from './sockets/gateway.js';
+import websocketGateway from './sockets/gateway.ts';
 import { startGrantExpiryScheduler } from './jobs/grantExpiryCron.ts';
 import { startScheduler, stopScheduler } from './jobs/scheduler.ts';
 import './jobs/escrowRelease.job.ts'; // Registers escrow_release job with scheduler
 import './jobs/teamPurchaseExpiry.job.ts'; // Registers team_purchase_expiry job with scheduler
 import './jobs/cartRecovery.job.ts'; // Registers cart_recovery_sweep job with scheduler
 import './jobs/expiryWarning.job.ts'; // Registers batch_expiry_warning_sweep with scheduler
-import './jobs/analyticsRollup.job.js'; // Registers analytics_nightly_rollup with scheduler
+import './jobs/analyticsRollup.job.ts'; // Registers analytics_nightly_rollup with scheduler
 import './jobs/subscriptionRenewal.job.ts'; // Registers subscription_renewal with scheduler (module: subscription_fees)
 import './jobs/covisitRebuild.job.ts'; // Registers covisit_rebuild with scheduler (module: personalization_signals)
 import './jobs/signalRetention.job.ts'; // Registers signal_retention with scheduler (module: personalization_signals)

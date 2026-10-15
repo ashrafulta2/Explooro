@@ -2,7 +2,7 @@
  * saler.routes.js — Fastify HTTP Routes for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
-import * as controller from '../controllers/saler.controller.js';
+import * as controller from '../controllers/saler.controller.ts';
 import { requirePermission } from '../middlewares/requirePermission.ts';
 
 export default async function salerRoutes(app) {

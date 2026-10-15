@@ -27,7 +27,7 @@ import { ImageUploader } from '../../components/media/ImageUploader.js';
 import { can } from '../../services/permissions.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 
-// Mirrors MAX_PRODUCT_IMAGES in server/src/services/product.service.js — the API rejects more.
+// Mirrors MAX_PRODUCT_IMAGES in server/src/services/product.service.ts — the API rejects more.
 const MAX_PRODUCT_PHOTOS = 8;
 
 /**

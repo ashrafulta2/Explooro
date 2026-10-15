@@ -1,5 +1,5 @@
 /**
- * cartRecovery.routes.js — Fastify route definitions for Cart Recovery (Prompt 9.6).
+ * cartRecovery.routes.ts — Fastify route definitions for Cart Recovery (Prompt 9.6).
  */
 
 import * as cartRecoveryController from '../controllers/cartRecovery.controller.ts';

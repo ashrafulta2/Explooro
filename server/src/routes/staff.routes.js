@@ -18,7 +18,7 @@
  * gates are per-capability limits on a user's own activity, and there is no capability to attach here.
  */
 
-import * as controller from '../controllers/staff.controller.js';
+import * as controller from '../controllers/staff.controller.ts';
 
 const ID_PARAMS = {
   type: 'object',

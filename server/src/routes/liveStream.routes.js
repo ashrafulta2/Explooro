@@ -7,7 +7,7 @@
  * - Restrictions: can_place_order
  */
 
-import * as liveCtrl from '../controllers/liveStream.controller.js';
+import * as liveCtrl from '../controllers/liveStream.controller.ts';
 import { requireRestriction } from '../middlewares/requireRestriction.ts';
 
 export default async function liveStreamRoutes(fastify) {

@@ -152,7 +152,7 @@ function fallbackExplanation(signals, lang) {
 /**
  * Scores a freshly-submitted review and, if it falls below FLAG_THRESHOLD, pushes it into the
  * existing moderation queue (never auto-deletes/auto-hides — a human always decides) and persists
- * the score onto the review row. Called from review.service.js right after insertReview.
+ * the score onto the review row. Called from review.service.ts right after insertReview.
  */
 export async function evaluateAndFlag(db, { userId, review, lang = 'en' }, deps: Record<string, any> = {}) {
   const generate = deps.generateCompletion || provider.generateCompletion;

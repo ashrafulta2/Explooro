@@ -1,5 +1,5 @@
 /**
- * liveStream.controller.js — HTTP request controller for Live Stream Commerce (Prompt 10.1).
+ * liveStream.controller.ts — HTTP request controller for Live Stream Commerce (Prompt 10.1).
  *
  * Implements API contract responses with data envelope, error codes, and audit logs.
  */

@@ -1,5 +1,5 @@
 /**
- * promotion.routes.js — Fastify routes for Coupons & Flash Sales Promotion Engine (Prompt 9.2).
+ * promotion.routes.ts — Fastify routes for Coupons & Flash Sales Promotion Engine (Prompt 9.2).
  */
 
 import * as promotionController from '../controllers/promotion.controller.ts';

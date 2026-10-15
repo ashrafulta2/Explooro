@@ -8,7 +8,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getHomeSummary } from '../src/services/homeSummary.service.js';
+import { getHomeSummary } from '../src/services/homeSummary.service.ts';
 
 function mockDb(handler) {
   const calls = [];

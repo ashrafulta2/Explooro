@@ -1,5 +1,5 @@
 /**
- * content.routes.js — Fastify Route Registrations for Content Commerce, Reels, Academy, Banners & Translations (Prompt 10.8).
+ * content.routes.ts — Fastify Route Registrations for Content Commerce, Reels, Academy, Banners & Translations (Prompt 10.8).
  */
 
 import * as controller from '../controllers/content.controller.ts';

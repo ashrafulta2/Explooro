@@ -12,8 +12,8 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import * as svc from '../src/services/growthAdmin.service.ts';
-import growthAdminRoutes from '../src/routes/growthAdmin.routes.js';
-import promotionRoutes from '../src/routes/promotion.routes.js';
+import growthAdminRoutes from '../src/routes/growthAdmin.routes.ts';
+import promotionRoutes from '../src/routes/promotion.routes.ts';
 
 describe('Phase 9 admin: coin policy', () => {
   test('maps engine settings to the admin form and fills defaults', () => {

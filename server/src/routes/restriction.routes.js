@@ -2,7 +2,7 @@
  * restriction.routes.js — Route definitions for Granular User Activity Restrictions (Prompt 2.6).
  */
 
-import * as controller from '../controllers/restriction.controller.js';
+import * as controller from '../controllers/restriction.controller.ts';
 
 export default async function restrictionRoutes(app) {
   // 1. List all restrictions (across all users & segments with filters)

@@ -122,7 +122,7 @@ These are real and were left open on purpose. Do not assume they were missed.
 2. ~~**`GET /admin/catalog/stats` still does not exist server-side**~~ — **CLOSED 2026-09-04.**
    Built through the full layer stack: `product.repository.js` (`getCatalogStats`,
    `getCatalogCategoryBreakdown` — two aggregate queries whose flash-sale and trust-tier joins are
-   deliberately identical to `listProducts()`), `product.service.js` (`getCatalogStats`, plus
+   deliberately identical to `listProducts()`), `product.service.ts` (`getCatalogStats`, plus
    `resolveLowStockThreshold` reading `platform_settings['catalog.low_stock_threshold']`),
    `product.controller.js`, and a route gated on `catalog.product.view_all` — the same permission as
    the page it feeds. Covered by `server/test/catalogStats.test.js` (9 tests) and smoke-run against

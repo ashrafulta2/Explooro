@@ -14,7 +14,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
-import customerRoutes from '../src/routes/customer.routes.js';
+import customerRoutes from '../src/routes/customer.routes.ts';
 import * as customerService from '../src/services/customerPortal.service.ts';
 
 function createMockDb({ queryHandler = null } = {}) {

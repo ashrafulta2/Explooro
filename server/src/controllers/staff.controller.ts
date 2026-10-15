@@ -1,5 +1,5 @@
 /**
- * staff.controller.js — HTTP layer for Staff Management (Prompt 3.3).
+ * staff.controller.ts — HTTP layer for Staff Management (Prompt 3.3).
  *
  * Thin by design: pull what the service needs off the request, hand it over, shape the reply. Every
  * write accepts an `Idempotency-Key` (docs/api-contract.md §5): a retried request replays the stored

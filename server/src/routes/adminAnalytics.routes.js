@@ -2,7 +2,7 @@
  * adminAnalytics.routes.js — Fastify routes for Super Admin Analytics & System Health (Prompt 11.4).
  */
 
-import * as controller from '../controllers/adminAnalytics.controller.js';
+import * as controller from '../controllers/adminAnalytics.controller.ts';
 
 export default async function adminAnalyticsRoutes(fastify) {
   const reqPerm = (perm) => (fastify.requirePermission ? fastify.requirePermission(perm) : async () => {});

@@ -1,5 +1,5 @@
 /**
- * homeSummary.service.js — the handful of numbers the marketplace home page shows a signed-in user
+ * homeSummary.service.ts — the handful of numbers the marketplace home page shows a signed-in user
  * in its top band, chosen by account type.
  *
  * WHY one small endpoint instead of calling each role's dashboard: those dashboards run 6–12 queries
@@ -111,7 +111,7 @@ async function adminStats(db, userId, role) {
            AND sla_due_at IS NOT NULL AND sla_due_at < NOW())::int AS disputes_past_sla,
        (SELECT COUNT(*) FROM payout_requests WHERE status = 'FAILED')::int AS failed_payouts`,
   );
-  const stats = {
+  const stats: Record<string, any> = {
     orders_today: n(today[0]?.orders),
     gmv_today: String(today[0]?.gmv ?? '0.00'),
     pending_kyc: n(queue[0]?.pending_kyc),
@@ -147,7 +147,7 @@ const BUILDERS = {
  * @returns {{ role: string, stats: object|null }} `stats` is null for a role with nothing to count
  * (editor, finance, guests); the client then draws links only instead of inventing numbers.
  */
-export async function getHomeSummary(db, { userId, role }) {
+export async function getHomeSummary(db, { userId, role }): Promise<{ role: string; stats: any | null; }> {
   const build = BUILDERS[role];
   if (!build) return { role, stats: null };
   return { role, stats: await build(db, userId) };

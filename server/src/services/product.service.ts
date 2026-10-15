@@ -1,5 +1,5 @@
 /**
- * product.service.js — Product management, moderation routing & sourcing logic (Prompt 4.3).
+ * product.service.ts — Product management, moderation routing & sourcing logic (Prompt 4.3).
  */
 
 import * as productRepo from '../repositories/product.repository.ts';
@@ -43,7 +43,7 @@ export const MAX_PRODUCT_IMAGES = 8;
  * Normalises `media_ids` from a create request and checks each one is a PRODUCT image the caller
  * uploaded. Throws VALIDATION_FAILED otherwise, so a product is never created half-attached.
  */
-async function resolveProductMediaIds(db, mediaIds, supplierId, { productId = null, requireOne = false } = {}) {
+async function resolveProductMediaIds(db, mediaIds, supplierId, { productId = null, requireOne = false }: Record<string, any> = {}) {
   if (mediaIds === undefined || mediaIds === null) return [];
   if (requireOne && Array.isArray(mediaIds) && mediaIds.length === 0) {
     throw new AppError(
@@ -266,7 +266,7 @@ async function assertSupplierStatusChange(db, product, to) {
   );
 }
 
-export async function updateProduct(db, idOrRef, supplierId, rawFields = {}, isStaff = false) {
+export async function updateProduct(db, idOrRef, supplierId, rawFields: Record<string, any> = {}, isStaff = false) {
   const existing = await findProductByIdOrRef(db, idOrRef);
   const id = Number(existing.id);
   const { media_ids: mediaIds, ...fields } = rawFields;
@@ -450,7 +450,7 @@ async function netOfReservations(db, rows) {
   );
 }
 
-export async function listCatalog(db, { netStock = false, ...filters } = {}) {
+export async function listCatalog(db, { netStock = false, ...filters }: Record<string, any> = {}) {
   const raw = await productRepo.listProducts(db, filters);
   const products = netStock ? await netOfReservations(db, raw) : raw;
   const driver = getStorageDriver();
@@ -473,7 +473,7 @@ export async function listCatalog(db, { netStock = false, ...filters } = {}) {
  * id, supplier, category, brand, listing date and the score with its components. Pricing, images and
  * variants are NOT loaded; hydrate the rows that survive with listCatalogByIds.
  */
-export async function listCandidates(db, { ranking, limit, poolCache, ...filters } = {}) {
+export async function listCandidates(db, { ranking, limit, poolCache, ...filters }: Record<string, any> = {}) {
   const query = {
     ...filters,
     status: 'ACTIVE',
@@ -500,7 +500,7 @@ export async function listCandidates(db, { ranking, limit, poolCache, ...filters
  * out, unpublished between the pool query and now) is skipped, not an error. Any `filters` ride
  * along unchanged (inStock, withVariants, ...), so hydration applies the same rules as the pool did.
  */
-export async function listCatalogByIds(db, ids, filters = {}) {
+export async function listCatalogByIds(db, ids, filters: Record<string, any> = {}) {
   const wanted = (ids || []).map(Number).filter(Number.isFinite);
   if (!wanted.length) return [];
   const rows = await listCatalog(db, {
@@ -511,7 +511,7 @@ export async function listCatalogByIds(db, ids, filters = {}) {
     limit: wanted.length,
     offset: 0,
   });
-  const order = new Map(wanted.map((id, i) => [id, i]));
+  const order = new Map<number, number>(wanted.map((id, i) => [id, i] as [number, number]));
   return rows.sort((a, b) => (order.get(Number(a.id)) ?? 0) - (order.get(Number(b.id)) ?? 0));
 }
 
@@ -529,7 +529,7 @@ export const DEFAULT_CATALOG_PAGE_SIZE = 20;
  *
  * @returns {Promise<{products: object[], hasMore: boolean, limit: number, offset: number, total: number|null}>}
  */
-export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, withTotal = false, ...filters } = {}) {
+export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, withTotal = false, ...filters }: Record<string, any> = {}): Promise<{ products: any[]; hasMore: boolean; limit: number; offset: number; total: number|null; }> {
   const parsedLimit = parseInt(limit, 10);
   const pageSize = Math.min(
     Math.max(Number.isFinite(parsedLimit) ? parsedLimit : DEFAULT_CATALOG_PAGE_SIZE, 1),
@@ -571,7 +571,7 @@ export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, wit
   };
 }
 
-export async function listSourcingCatalog(db, filters = {}) {
+export async function listSourcingCatalog(db, filters: Record<string, any> = {}) {
   const { minMarginPct, categoryId, brand, limit = 50, offset = 0 } = filters;
   // WHY net: a shop partner (and the AI sourcing agent) reads this to decide how much can be sold, and units
   // an open team is counting on cannot be.
@@ -623,7 +623,7 @@ function toSourcingItem(p, pricing) {
  *
  * WHY errors are swallowed: an ad lookup must never take the catalog down with it.
  */
-export async function listSponsoredSourcing(db, cache, { viewerId = null, categoryId } = {}) {
+export async function listSponsoredSourcing(db, cache, { viewerId = null, categoryId }: Record<string, any> = {}) {
   try {
     const winners = await runAdAuction(db, cache, {
       placement: SPONSORED_SOURCING_PLACEMENT,
@@ -732,7 +732,7 @@ export async function getSalerStoreItems(db, salerId) {
   return enriched;
 }
 
-async function calculateProductPricing(db, product, preloaded) {
+async function calculateProductPricing(db, product, preloaded?) {
   const { salerSplitPct, platformSplitPct, ruleSource } = await resolveSplitPercentages(db, {
     productId: product.id,
     productRef: product.ref,
@@ -785,7 +785,7 @@ export async function resolveLowStockThreshold(db) {
  * Every COUNT is cast to int4 in SQL so node-postgres hands back numbers; the money column is
  * NUMERIC and therefore arrives as a string, so it is the one field that needs coercing here.
  */
-export async function getCatalogStats(db, { status = 'ACTIVE' } = {}) {
+export async function getCatalogStats(db, { status = 'ACTIVE' }: Record<string, any> = {}) {
   const lowStockThreshold = await resolveLowStockThreshold(db);
 
   const [row, breakdown] = await Promise.all([
@@ -799,7 +799,7 @@ export async function getCatalogStats(db, { status = 'ACTIVE' } = {}) {
     return Number.isFinite(n) ? n : 0;
   };
 
-  const categoriesBreakdown = {};
+  const categoriesBreakdown: Record<string, any> = {};
   for (const entry of breakdown || []) {
     categoriesBreakdown[entry.category_name_en] = toInt(entry.product_count);
   }

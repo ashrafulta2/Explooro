@@ -36,6 +36,18 @@ test('no AppError call passes an HTTP status where the Bangla message goes', () 
   assert.deepEqual(offenders, []);
 });
 
+// WHY: saler.controller threw `new AppError(401, 'UNAUTHORIZED', ...)`, so the code was the number 401
+// (unmapped, answered 500) and the English message was the word UNAUTHORIZED.
+test('no AppError call passes an HTTP status as the code', () => {
+  const offenders = [];
+  for (const file of sourceFiles(SRC)) {
+    for (const m of readFileSync(file, 'utf8').matchAll(/new AppError\(\s*\d/g)) {
+      offenders.push(`${path.relative(SRC, file)}: ${m[0]}`);
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+
 test('the codes those calls threw now answer the status they meant, not 500', async () => {
   const { AppError } = await import('../src/plugins/errorHandler.ts');
   assert.equal(new AppError('UNAUTHORIZED', 'Invalid or inactive API key.').statusCode, 401);

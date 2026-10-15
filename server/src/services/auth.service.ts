@@ -126,7 +126,7 @@ async function completeLogin(db, cache, config, user, { ip, userAgent }) {
   return { ...tokens, user, roles: roleKeys };
 }
 
-// Mirrors auth.routes.js's SELF_SERVICE_ROLE enum — kept in sync there, not re-validated here.
+// Mirrors auth.routes.ts's SELF_SERVICE_ROLE enum — kept in sync there, not re-validated here.
 const SELF_SERVICE_ROLES = new Set(['customer', 'saler', 'supplier']);
 
 export async function registerUser(db, { phone, email, password, fullName, role }) {

@@ -7,7 +7,7 @@
  * No `config.page`: `/` is locked on in the page toggle, so a guard could never refuse it.
  */
 
-import { getHomeSummary } from '../services/homeSummary.service.js';
+import { getHomeSummary } from '../services/homeSummary.service.ts';
 
 export default async function homeSummaryRoutes(app) {
   app.get(

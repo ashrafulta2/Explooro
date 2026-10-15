@@ -1,5 +1,5 @@
 /**
- * dispute.routes.js — Fastify Route definitions for Dispute Arbitration Engine (Prompt 7.3).
+ * dispute.routes.ts — Fastify Route definitions for Dispute Arbitration Engine (Prompt 7.3).
  */
 
 import * as controller from '../controllers/dispute.controller.ts';

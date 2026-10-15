@@ -266,8 +266,8 @@ describe('the wired route files', () => {
   const WIRED = [
     'adminAnalytics.routes.js',
     'ads.routes.js',
-    'cartRecovery.routes.js',
-    'delegation.routes.js',
+    'cartRecovery.routes.ts',
+    'delegation.routes.ts',
     'finance.routes.ts',
     'genie.routes.ts',
     'localization.routes.ts',

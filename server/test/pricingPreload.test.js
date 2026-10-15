@@ -12,7 +12,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { loadSplitRules, resolveSplitPercentages } from '../src/services/pricing.service.ts';
-import { listCatalog } from '../src/services/product.service.js';
+import { listCatalog } from '../src/services/product.service.ts';
 
 /**
  * A db that implements both query shapes against one rule table, the way Postgres would:

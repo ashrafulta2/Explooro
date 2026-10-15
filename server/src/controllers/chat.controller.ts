@@ -1,5 +1,5 @@
 /**
- * chat.controller.js — Fastify controller for Real-Time Chat (Prompt 8.1 / DFD Subsystem 7.0).
+ * chat.controller.ts — Fastify controller for Real-Time Chat (Prompt 8.1 / DFD Subsystem 7.0).
  */
 
 import { createTicket } from '../sockets/presence.ts';

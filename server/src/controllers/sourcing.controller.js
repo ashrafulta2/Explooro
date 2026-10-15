@@ -2,7 +2,7 @@
  * sourcing.controller.js — Handlers for Shop Partner sourcing & virtual storefront curation (Prompt 4.3).
  */
 
-import * as productService from '../services/product.service.js';
+import * as productService from '../services/product.service.ts';
 import { getSalerView as getSalerIncentiveView } from '../services/volumeIncentive.service.ts';
 import { getSalerView as getSalerTierView } from '../services/salerTier.service.ts';
 

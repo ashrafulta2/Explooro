@@ -142,7 +142,7 @@ Complete and closed. Adding a code is a deliberate change to this document.
 | `ACCOUNT_SUSPENDED` | 403 | Account status is `SUSPENDED` or `BANNED` |
 | `KYC_REQUIRED` | 403 | Verification must be completed first |
 | `SELF_APPROVAL_FORBIDDEN` | 403 | Actor attempted to approve their own pending action |
-| `FORBIDDEN` | 403 | A business-rule ownership/eligibility check failed (e.g. editing someone else's product, reviewing a product never purchased) — distinct from `PERMISSION_DENIED`, which is specifically an RBAC catalog permission gate carrying `requestable`/Request-Access semantics that don't apply here. Added Prompt 4.6, retrofitted onto product.service.js's pre-existing (until now silently 500-ing) ownership check. |
+| `FORBIDDEN` | 403 | A business-rule ownership/eligibility check failed (e.g. editing someone else's product, reviewing a product never purchased) — distinct from `PERMISSION_DENIED`, which is specifically an RBAC catalog permission gate carrying `requestable`/Request-Access semantics that don't apply here. Added Prompt 4.6, retrofitted onto product.service.ts's pre-existing (until now silently 500-ing) ownership check. |
 
 ### 3.3 Request problems — 4xx
 

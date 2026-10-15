@@ -1,7 +1,7 @@
 /**
  * chat.js — mock driver for Real-Time Chat (Prompts 8.1, 8.3, 8.4 / DFD Subsystem 7.0).
  *
- * Envelopes mirror `server/src/controllers/chat.controller.js` and the shapes returned by
+ * Envelopes mirror `server/src/controllers/chat.controller.ts` and the shapes returned by
  * `chat.service.ts` (`getThreads` -> {items,count,limit,offset}, `getThreadMessages` ->
  * {threadId,items,nextCursor}, `markThreadRead` -> {success,threadId,unreadCount}), so the same
  * page code renders identically against this driver and against the real API.

@@ -145,7 +145,7 @@ since retrying a malformed request just wastes the latency budget.
    is the AI-specific audit trail — separate from the global `audit_logs` hash chain, which is
    reserved for staff/admin state-changing actions per the platform's audit policy — but every
    AI-triggered state change that *does* mutate platform data (e.g. a Shop Partner's 1-click "Add to
-   Store" from a sourcing card) goes through the existing `product.service.js` code path and its
+   Store" from a sourcing card) goes through the existing `product.service.ts` code path and its
    normal audit trail, not a new one. The AI layer never calls that path directly — the model can
    *recommend*, the confirming click is what executes, same rule as Prompt 10.3's creative studio
    ("every output is a draft requiring human approval").

@@ -435,7 +435,7 @@ export async function listProducts(db, filters: Record<string, any> = {}) {
     // Phase D: the candidate pool. Select only what diversity and the rail rules read (ids, the three
     // dimensions, listing date, score) — no image subquery, no variants, no supplier/store columns —
     // so a pool of hundreds costs one thin query, and only the products that make the page are
-    // hydrated afterwards (product.service.js listCatalogByIds).
+    // hydrated afterwards (product.service.ts listCatalogByIds).
     candidatesOnly = false,
   } = filters;
 

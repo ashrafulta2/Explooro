@@ -1,5 +1,5 @@
 /**
- * review.service.js — Review eligibility, submission, listing & helpful votes (Prompt 4.6).
+ * review.service.ts — Review eligibility, submission, listing & helpful votes (Prompt 4.6).
  */
 
 import * as reviewRepo from '../repositories/review.repository.ts';
@@ -68,7 +68,7 @@ export async function submitReview(db, { userId, productId, rating, title, body 
   return { ...review, integrity_score: integrity.score, flagged_for_review: integrity.flagged };
 }
 
-export async function listReviews(db, productId, { rating, hasPhotos, sort, page = 1, pageSize = 10 } = {}) {
+export async function listReviews(db, productId, { rating, hasPhotos, sort, page = 1, pageSize = 10 }: Record<string, any> = {}) {
   const limit = Math.min(Number(pageSize) || 10, 50);
   const offset = (Math.max(1, Number(page) || 1) - 1) * limit;
 

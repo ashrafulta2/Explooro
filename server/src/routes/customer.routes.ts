@@ -1,5 +1,5 @@
 /**
- * customer.routes.js — Fastify routes for Customer Portal, Following Feed & 1-Click Upgrade (Prompt 11.3).
+ * customer.routes.ts — Fastify routes for Customer Portal, Following Feed & 1-Click Upgrade (Prompt 11.3).
  */
 
 import * as customerCtrl from '../controllers/customer.controller.ts';

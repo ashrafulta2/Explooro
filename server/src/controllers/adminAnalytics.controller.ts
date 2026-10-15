@@ -1,5 +1,5 @@
 /**
- * adminAnalytics.controller.js — Fastify controller for Super Admin Executive Dashboard (Prompt 11.4).
+ * adminAnalytics.controller.ts — Fastify controller for Super Admin Executive Dashboard (Prompt 11.4).
  */
 
 import * as analyticsService from '../services/analytics.service.ts';

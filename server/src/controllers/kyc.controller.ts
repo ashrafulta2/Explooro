@@ -1,5 +1,5 @@
 /**
- * kyc.controller.js — Fastify controller for KYC Verification & Trust Tiers (Prompt 7.5).
+ * kyc.controller.ts — Fastify controller for KYC Verification & Trust Tiers (Prompt 7.5).
  */
 
 import * as kycService from '../services/kyc.service.ts';

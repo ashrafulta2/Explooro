@@ -1,5 +1,5 @@
 /**
- * gateway.js — Fastify WebSocket Gateway (Prompt 8.1 / Prompt 10.1 / DFD Subsystem 7.0 & 15.0).
+ * gateway.ts — Fastify WebSocket Gateway (Prompt 8.1 / Prompt 10.1 / DFD Subsystem 7.0 & 15.0).
  *
  * Implements:
  * 1. Zero-leak ticket-based handshake authentication.

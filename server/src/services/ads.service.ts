@@ -569,7 +569,7 @@ export async function listUserCampaigns(db, userId, { status, placement, limit =
 /**
  * Runs Real-Time Auction to select sponsored ads for a placement.
  */
-export async function runAuction(db, cache, { placement, categoryId, district, keyword, limit = 3, viewerId = null }) {
+export async function runAuction(db, cache, { placement, categoryId, district, keyword, limit = 3, viewerId = null }: Record<string, any>) {
   // 1. Check if sponsored_ads module is enabled
   const enabled = await isEnabled(db, cache, 'sponsored_ads', { userId: viewerId, district });
   if (!enabled) {

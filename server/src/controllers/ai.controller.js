@@ -22,7 +22,7 @@ function isStaffUser(req) {
 }
 
 /** Description/background edits touch supplier-owned content — same ownership rule as
- * product.service.js's updateProduct: the owning supplier or staff, nobody else. `supplier_id`
+ * product.service.ts's updateProduct: the owning supplier or staff, nobody else. `supplier_id`
  * comes back from pg as a string (BIGINT), req.user.id is a real Number — must coerce both. */
 async function assertOwnsProduct(req, productId) {
   if (isStaffUser(req)) return;

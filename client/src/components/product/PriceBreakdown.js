@@ -1,7 +1,7 @@
 /**
  * PriceBreakdown — retail price for everyone, full margin breakdown for Shop Partners only (Prompt 4.6).
  *
- * WHY the margin numbers come from the server's `pricing` object (product.service.js's
+ * WHY the margin numbers come from the server's `pricing` object (product.service.ts's
  * calculateProductPricing, backed by pricing.service.ts's split arithmetic) rather than being
  * computed here: a divergence between client and server maths is a financial bug (the same
  * invariant Prompt 4.7's profit calculator enforces via POST /pricing/preview) — this component

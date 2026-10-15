@@ -11,7 +11,7 @@
  * (and therefore their rankings) separate.
  */
 
-import * as productService from './product.service.js';
+import * as productService from './product.service.ts';
 import * as feedRepo from '../repositories/discoveryFeed.repository.ts';
 import * as recommendation from './recommendation.service.ts';
 import * as diversity from './diversity.service.ts';
@@ -100,7 +100,7 @@ export function normalizeQuery(raw) {
 /**
  * Reads the admin-tunable feed settings off the discovery_feed module row, falling back to the
  * defaults above if the row or a field is missing/unreadable (same read-with-fallback shape as
- * product.service.js's resolveLowStockThreshold).
+ * product.service.ts's resolveLowStockThreshold).
  */
 export async function resolveFeedSettings(db) {
   const settings = { affinityWindowDays: DEFAULT_AFFINITY_WINDOW_DAYS, pageSize: DEFAULT_PAGE_SIZE };

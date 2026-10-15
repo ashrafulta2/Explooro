@@ -1,5 +1,5 @@
 /**
- * analyticsRollup.job.js — Nightly Executive Analytics Summary Rollup Worker (Prompt 11.4).
+ * analyticsRollup.job.ts — Nightly Executive Analytics Summary Rollup Worker (Prompt 11.4).
  *
  * Implements:
  * - Nightly pre-computation of daily sales, revenues, liabilities, and user growth.

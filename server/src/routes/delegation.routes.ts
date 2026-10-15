@@ -1,5 +1,5 @@
 /**
- * delegation.routes.js — Route definitions for delegation & maker-checker endpoints (Prompt 2.5).
+ * delegation.routes.ts — Route definitions for delegation & maker-checker endpoints (Prompt 2.5).
  */
 
 import * as controller from '../controllers/delegation.controller.ts';

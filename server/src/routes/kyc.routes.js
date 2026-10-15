@@ -2,7 +2,7 @@
  * kyc.routes.js — Fastify routes for KYC Verification & Trust Tiers (Prompt 7.5).
  */
 
-import * as controller from '../controllers/kyc.controller.js';
+import * as controller from '../controllers/kyc.controller.ts';
 
 export default async function kycRoutes(app) {
   // 1. Submit KYC step
