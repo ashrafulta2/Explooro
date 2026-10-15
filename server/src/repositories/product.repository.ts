@@ -353,7 +353,7 @@ function buildCatalogFilter({
 
   if (inStock) {
     // WHY net of reservations: units an open team is counting on cannot be bought, so they must not
-    // make a product "in stock" (see teamStockReservation.service.js).
+    // make a product "in stock" (see teamStockReservation.service.ts).
     conditions.push(`p.stock_qty - ${reservedUnitsSql('p')} > 0`);
   }
 
@@ -429,7 +429,7 @@ export async function listProducts(db, filters: Record<string, any> = {}) {
     // selector in the first frame without a per-slide detail fetch. Off by default — the plain
     // catalog grid must not pay for a variant array it never renders.
     withVariants = false,
-    // Phase B: a full ranking spec (see recommendation.service.js buildRankingSpec). When present, the
+    // Phase B: a full ranking spec (see recommendation.service.ts buildRankingSpec). When present, the
     // `recommended` sort uses the blended score and the three boost arrays above are ignored.
     ranking = null,
     // Phase D: the candidate pool. Select only what diversity and the rail rules read (ids, the three

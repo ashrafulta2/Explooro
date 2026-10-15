@@ -6,7 +6,7 @@
  * it deletes rows older than the cutoff from BOTH tables, in bounded batches so one run cannot lock
  * either table, and reports what it did for job_runs.
  *
- * Interaction with co-visitation: covisit.service.js reads `window_days` (default 60, max 365) of
+ * Interaction with co-visitation: covisit.service.ts reads `window_days` (default 60, max 365) of
  * events. Retention deletes the events it would read, so a retention SHORTER than window_days quietly
  * shortens the effective window to retention_days. The run reports that (`shortensCovisitWindow`)
  * rather than overriding either number - they are two owners' settings, and the right fix is theirs.

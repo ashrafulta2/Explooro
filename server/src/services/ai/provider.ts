@@ -163,7 +163,7 @@ export async function generateCompletion(db, { userId, featureKey, system, promp
   }
 }
 
-// docs/ai-strategy.md §9.2 — same pattern family as audit.service.js's sensitive-key detection,
+// docs/ai-strategy.md §9.2 — same pattern family as audit.service.ts's sensitive-key detection,
 // applied to free text rather than object keys.
 const PII_PATTERNS = [
   { re: /\b(?:\+?880|0)1[3-9]\d{8}\b/g, placeholder: '[PHONE]' },

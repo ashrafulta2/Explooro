@@ -106,7 +106,7 @@ describe('merchant routes', () => {
   test('the renewal job is registered against the module, so OFF means nothing is billed', () => {
     const job = readFileSync(new URL('../src/jobs/subscriptionRenewal.job.ts', import.meta.url), 'utf8');
     assert.match(job, /moduleKey: 'subscription_fees'/);
-    const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
+    const app = readFileSync(new URL('../src/app.ts', import.meta.url), 'utf8');
     assert.match(app, /jobs\/subscriptionRenewal\.job\.ts/);
     assert.match(app, /register\(subscriptionRoutes/);
   });

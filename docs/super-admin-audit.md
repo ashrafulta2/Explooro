@@ -120,7 +120,7 @@ These are real and were left open on purpose. Do not assume they were missed.
    topbar, so the wordmark flag appears on **every** admin route, one per page. The rationale for
    leaving it is unchanged; only the scope stated here was wrong.
 2. ~~**`GET /admin/catalog/stats` still does not exist server-side**~~ — **CLOSED 2026-09-04.**
-   Built through the full layer stack: `product.repository.js` (`getCatalogStats`,
+   Built through the full layer stack: `product.repository.ts` (`getCatalogStats`,
    `getCatalogCategoryBreakdown` — two aggregate queries whose flash-sale and trust-tier joins are
    deliberately identical to `listProducts()`), `product.service.ts` (`getCatalogStats`, plus
    `resolveLowStockThreshold` reading `platform_settings['catalog.low_stock_threshold']`),

@@ -128,7 +128,7 @@ describe('Staff Management API — integration', { skip: DB_URL ? false : 'set S
 
   before(async () => {
     const { loadEnv } = await import('../src/config/env.ts');
-    const { buildApp } = await import('../src/app.js');
+    const { buildApp } = await import('../src/app.ts');
     const { createDbPool } = await import('../src/config/db.ts');
     ({ generateRef } = await import('../src/lib/ref.ts'));
     ({ signAccessToken } = await import('../src/lib/jwt.ts'));

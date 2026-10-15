@@ -280,7 +280,7 @@ function createMockDb() {
         return { rows: [] };
       }
 
-      // Units held by open team purchases (teamStockReservation.service.js)
+      // Units held by open team purchases (teamStockReservation.service.ts)
       if (q.includes('FROM team_purchases') && q.includes('SUM(required_members)')) {
         return { rows: Object.entries(db.teamReserved).map(([product_id, reserved]) => ({ product_id, reserved })) };
       }

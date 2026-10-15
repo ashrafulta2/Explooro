@@ -1,5 +1,5 @@
 /**
- * tsMigration.test.js — the server is moving from .js to .ts file by file (docs/typescript-migration.md).
+ * tsMigration.test.js — the server moved from .js to .ts file by file (docs/typescript-migration.md).
  *
  * WHY this test: Node runs .ts directly by stripping the types, but it never rewrites an import path.
  * When a file is renamed to .ts, every import of it that still ends in .js must be changed to end
@@ -48,4 +48,13 @@ test('.ts files use only syntax Node can strip', () => {
   assert.equal(tsconfig.compilerOptions.erasableSyntaxOnly, true);
   assert.equal(tsconfig.compilerOptions.verbatimModuleSyntax, true);
   assert.ok(tsconfig.include.includes('src/**/*.ts'), 'tsc checks the .ts files');
+});
+
+// WHY: tsconfig.json checks only src/**/*.ts now that every file has moved. A new .js file would run
+// fine but never be type-checked, so the checking would quietly stop covering it.
+test('no .js source file is left under server/src', () => {
+  const jsFiles = sourceFiles(path.join(SERVER_DIR, 'src'))
+    .filter((f) => f.endsWith('.js'))
+    .map((f) => path.relative(SERVER_DIR, f));
+  assert.deepEqual(jsFiles, [], 'write new server files as .ts');
 });

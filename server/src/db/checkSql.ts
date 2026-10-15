@@ -1,5 +1,5 @@
 /**
- * checkSql.js — prepares every static SQL statement in server/src against the migrated schema.
+ * checkSql.ts — prepares every static SQL statement in server/src against the migrated schema.
  *
  * `npm run check:sql` (needs DATABASE_URL pointing at a database that `npm run migrate` has brought
  * up to date) scans every .js and .ts file under server/src for template literals that start with SELECT,

@@ -112,7 +112,7 @@ export async function getSessionById(db, id) {
 /**
  * Session lookup that also carries the identity fields every authenticated request needs.
  *
- * WHY this exists alongside `getSessionById`: `authenticate.js` already pays for one session query
+ * WHY this exists alongside `getSessionById`: `authenticate.ts` already pays for one session query
  * per request, and callers downstream (chat tickets, live-stream tokens, in-stream orders) need the
  * user's display name and phone. Folding them into the existing round trip keeps `req.user` useful
  * without adding a second query. `getSessionById` keeps its narrower contract for auth.service.ts.
@@ -378,7 +378,7 @@ export const SELF_PROFILE_COLUMNS = [
 
 /**
  * Upserts the caller's own `user_profiles` row. `fields` is already validated and whitelisted by
- * profile.service.js — this layer only builds SQL.
+ * profile.service.ts — this layer only builds SQL.
  */
 export async function upsertSelfProfile(db, userId, fields) {
   const entries = Object.entries(fields).filter(([key]) => SELF_PROFILE_COLUMNS.includes(key));

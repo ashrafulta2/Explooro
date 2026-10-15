@@ -73,15 +73,15 @@ explooro/
 │
 ├── server/                      ── API. Routes → Controllers → Services → Repositories ──
 │   └── src/
-│       ├── index.js             Boot
-│       ├── app.js               Fastify instance + plugin registration
+│       ├── index.ts             Boot
+│       ├── app.ts               Fastify instance + plugin registration
 │       ├── config/
 │       │   ├── env.ts           Validates every env var at boot, fails fast
 │       │   ├── db.ts            pg Pool + withTransaction()
 │       │   ├── cache.ts         Driver interface (redis | memory)
 │       │   └── modules.seed.json  71 module definitions
 │       ├── db/
-│       │   ├── migrate.js       Forward-only runner, checksum-verified
+│       │   ├── migrate.ts       Forward-only runner, checksum-verified
 │       │   ├── migrations/      NNN_name.sql — immutable once applied
 │       │   └── seeds/
 │       ├── routes/              Route definitions + JSON schemas
@@ -210,7 +210,7 @@ The 35 most likely change requests, with exact paths.
 | Add a nav item | `client/src/config/navigation.js` — one object. Never edit `Sidebar.js` |
 | Hide a page from users, or release it to one of them | **Configuration, not code** — **/admin/platform/pages** (`platform.page.view` / `.toggle`, CRITICAL so super admin only). Four states per route: Live / Coming soon (nav badge + placeholder) / Hidden (no nav item, URL 404s) / Limited (live only for listed roles and user ids). It is a layer BESIDE the module system, not above it: a module answers "does the feature work", a page toggle answers "may this viewer see it", and the 101 `module: 'core'` routes have no module to switch. `/`, `/login` and the page itself are locked on. One resolver — `client/src/services/pageAccess.js` — serves the router, the sidebar and the command palette; never re-implement the states. On the server the same states are enforced for the **56 endpoints that belong to exactly one page**: that route declares `config: { page: '/its/path' }` and the `onRoute` hook in `server/src/middlewares/requirePage.ts` appends the guard, which answers `403 PAGE_UNAVAILABLE`. An endpoint two pages share cannot be refused (the other page may be Live), so for those the toggle stays visibility-only |
 | Add a UI component | `components/ui/` + register in `pages/dev/gallery-registry.js` **in the same change** |
-| Add a field a user edits about themselves | `user_profiles` (Prompt 2.2 migration) → the whitelist in `server/src/repositories/user.repository.ts` → validation in `profile.service.js` → a control in `client/src/pages/settings/ProfilePage.js` → the same key in `mocks/handlers/me.js`. Never add a writable column without adding it to BOTH whitelists |
+| Add a field a user edits about themselves | `user_profiles` (Prompt 2.2 migration) → the whitelist in `server/src/repositories/user.repository.ts` → validation in `profile.service.ts` → a control in `client/src/pages/settings/ProfilePage.js` → the same key in `mocks/handlers/me.js`. Never add a writable column without adding it to BOTH whitelists |
 | Add an item to the avatar (account) menu | `AvatarMenu()` in `client/src/components/shell/TopBar.js`. It is the only account entry point every role shares — the sidebar is per-role |
 | Add a dashboard card | The role's page under `pages/<role>/`, gated by `PermissionGate` |
 | Change spacing/radius/motion | `styles/tokens.css`, after updating `design-system.md` |
@@ -237,7 +237,7 @@ Browser  fetch('/api/v1/orders/checkout', { headers: { Idempotency-Key } })
    ▼
 Vite proxy (dev) / nginx (prod)          vite.config.js  /  nginx/nginx.conf
    ▼
-Fastify                                   server/src/app.js
+Fastify                                   server/src/app.ts
    │
    ├─ plugins/requestContext.ts   generate trace_id, capture ip + user agent
    ├─ plugins/security.js         helmet, CORS, rate limit

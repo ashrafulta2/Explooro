@@ -1,5 +1,5 @@
 /**
- * rebuildCovisits.js — one-off run of the co-visitation rebuild (personalized feed, Phase E).
+ * rebuildCovisits.ts — one-off run of the co-visitation rebuild (personalized feed, Phase E).
  *
  * `npm run covisit:rebuild` recomputes product_covisits from the behavioural event log right now,
  * with the same code the `covisit_rebuild` job runs every 6 hours. The job's first run is 6 hours

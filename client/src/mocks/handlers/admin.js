@@ -109,7 +109,7 @@ let mockBlockedIpAttempts = [
 ];
 
 /**
- * COD reconciliation rows, in the exact shape server/src/services/codReconciliation.service.js's
+ * COD reconciliation rows, in the exact shape server/src/services/codReconciliation.service.ts's
  * listReconciliations() selects — `consignment_id` / `sub_order_ref` / `courier_reported` /
  * `deposit_received` / `variance`, and statuses drawn from the service's own vocabulary.
  *
@@ -194,7 +194,7 @@ const mockCodReconciliations = [
 
 /**
  * Rebuilds the courier aging matrix from `mockCodReconciliations`, mirroring
- * codReconciliation.service.js's getAgingReport(): same bucket boundaries (<3 / 3–7 / 8–14 /
+ * codReconciliation.service.ts's getAgingReport(): same bucket boundaries (<3 / 3–7 / 8–14 /
  * 15–30 / >30 days), same `amountFormatted` strings, same MATCHED/RESOLVED exclusion. Derived
  * rather than hardcoded so the two endpoints can never drift apart, and so resolving a row in the
  * demo actually moves the matrix.
@@ -348,7 +348,7 @@ const mockUserRoster = [
 ];
 
 // Standing grants (Mode A) — module-level so an issue or revoke survives until reload, like the
-// real table. Status follows permission.repository.js: a revoked_at at/after expiry is an expiry.
+// real table. Status follows permission.repository.ts: a revoked_at at/after expiry is an expiry.
 let mockGrants = null;
 
 function mockGrantStatus(g) {
@@ -405,7 +405,7 @@ function mockGrantStore() {
 
 /** Detail-only extras, keyed by user id — the deep-dive tabs the list has no columns for. */
 const mockUserRestrictions = {
-  // Same columns the real endpoint selects (user.repository.js → getActiveRestrictionsForUser):
+  // Same columns the real endpoint selects (user.repository.ts → getActiveRestrictionsForUser):
   // `id` is what "Lift Restriction" DELETEs, so a row without one lifted `/restrictions/undefined`.
   // ids start at 9001 to stay clear of the /admin/restrictions list fixture's own 1..n.
   2: [
@@ -418,7 +418,7 @@ const mockUserRestrictions = {
 };
 
 /**
- * `GET /admin/users/:id/permissions` — the shape rbac.service.js#getPermissionsPayload returns:
+ * `GET /admin/users/:id/permissions` — the shape rbac.service.ts#getPermissionsPayload returns:
  * `{ permissions: string[], sources: { [key]: Source[] } }`, with snake_case source fields.
  */
 function mockUserPermissionPayload(base) {
@@ -1439,7 +1439,7 @@ export const adminHandlers = [
   })(),
 
   // 17. Standing Access Grants (Mode A)
-  // WHY stateful and shaped like permission.repository.js listGrantOverrides(): this mock used to
+  // WHY stateful and shaped like permission.repository.ts listGrantOverrides(): this mock used to
   // return three fixed rows with fields the real API never sends (grantee_name, a granted_by NAME),
   // so the page looked right in dev and showed "User #4" / "Issued by 7" against the live server —
   // and a grant issued or revoked here never appeared in the list.

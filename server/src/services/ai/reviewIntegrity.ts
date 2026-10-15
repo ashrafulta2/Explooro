@@ -5,7 +5,7 @@
  * verification, producing "a moderation flag with a confidence score — a human always decides."
  *
  * The score itself is a deterministic, rule-based sum — no model call — for the same reason
- * demandForecast.js keeps its arithmetic out of the LLM: a fake-review score has to be reproducible
+ * demandForecast.ts keeps its arithmetic out of the LLM: a fake-review score has to be reproducible
  * and explainable to a moderator, not subject to sampling variance. Claude is used only, optionally,
  * to phrase a one-line explanation of already-computed signals for the moderator's benefit; it never
  * decides the score or the outcome. A flagged review is submitted to the existing Prompt 7.4

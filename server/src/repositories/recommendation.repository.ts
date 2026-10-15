@@ -9,7 +9,7 @@
  * directly comparable. Penalties are subtracted. A weight of 0 omits the signal (and its join).
  */
 
-/** Weights and tuning arrive sanitised by recommendation.service.js, but inlining is guarded anyway. */
+/** Weights and tuning arrive sanitised by recommendation.service.ts, but inlining is guarded anyway. */
 const num = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
@@ -18,7 +18,7 @@ const int = (v) => Math.max(0, Math.floor(num(v)));
 
 /**
  * @param {object} spec
- * @param {object} spec.weights         sanitised weights (see recommendation.service.js)
+ * @param {object} spec.weights         sanitised weights (see recommendation.service.ts)
  * @param {object} spec.tuning          sanitised tuning
  * @param {number[]} [spec.categoryIds] affinity sets
  * @param {string[]} [spec.brands]

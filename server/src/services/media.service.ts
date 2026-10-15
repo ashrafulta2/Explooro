@@ -170,7 +170,7 @@ export function generateDerivatives(key, storageDriver, width = 800, height = 80
 
 /**
  * Pads an image onto a larger flat-color canvas (docs/dependency-ledger.md: `sharp` is isolated to
- * this file — every other caller, including creativeStudio.js's background-treatment tool, goes
+ * this file — every other caller, including creativeStudio.ts's background-treatment tool, goes
  * through this function rather than importing `sharp` itself).
  */
 export async function applyFlatBackgroundMatte(buffer, { backgroundHex, size = 1000, padding = 60 }) {

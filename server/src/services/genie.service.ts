@@ -4,7 +4,7 @@
  * Owns the platform's answer to three questions about the open/close animation every popup plays
  * (client/src/lib/genie.js): does it play at all, how long does it take, and how finely is it
  * drawn. The policy lives in platform_settings (group `genie`, seeded by 049_genie_effect_settings.sql)
- * and follows the pattern localization.service.js set: validated here, written in one transaction,
+ * and follows the pattern localization.service.ts set: validated here, written in one transaction,
  * audited with before/after JSON, cached briefly because an unauthenticated endpoint serves it on
  * every cold page load.
  */

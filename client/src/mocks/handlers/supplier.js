@@ -446,7 +446,7 @@ export const supplierHandlers = [
     handler: () => ({ status: 200, body: { data: SEEDED_SALER_INSIGHTS } }),
   },
   {
-    // Same shape as GET /supplier/scorecard (services/supplierScorecard.service.js getOwnScorecard).
+    // Same shape as GET /supplier/scorecard (services/supplierScorecard.service.ts getOwnScorecard).
     method: 'GET',
     path: '/supplier/scorecard',
     handler: () => ({

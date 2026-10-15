@@ -478,7 +478,7 @@ describe('Signal retention — job', () => {
     assert.match(src, /name: 'signal_retention'/);
     assert.match(src, /intervalMs: 24 \* 3600000/);
     assert.match(src, /moduleKey: 'personalization_signals'/);
-    const app = fs.readFileSync(path.resolve(import.meta.dirname, '../src/app.js'), 'utf8');
+    const app = fs.readFileSync(path.resolve(import.meta.dirname, '../src/app.ts'), 'utf8');
     assert.match(app, /import '\.\/jobs\/signalRetention\.job\.ts'/);
   });
 });

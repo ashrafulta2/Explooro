@@ -46,7 +46,7 @@ Business logic goes in `services/`. **Never in a controller.**
 
 ## Step 2 — Permission
 
-**Never invent a permission key in code.** It will not resolve — `rbac.service.js` reads from the
+**Never invent a permission key in code.** It will not resolve — `rbac.service.ts` reads from the
 seeded `permissions` table, which is generated from the catalog.
 
 Add to `docs/permission-catalog.json`:
@@ -132,9 +132,13 @@ Run: `npm run migrate`
 
 ## Step 5 — Repository — SQL only
 
-`server/src/repositories/tag.repository.js`
+`server/src/repositories/tag.repository.ts`
 
-```js
+Server files are TypeScript: Node runs `.ts` directly by stripping the types, with no build step,
+and every relative import names the `.ts` file (see [`typescript-migration.md`](typescript-migration.md)).
+Syntax Node cannot strip (`enum`, `namespace`, parameter properties) is refused by `npm run typecheck`.
+
+```ts
 /**
  * Tag persistence. SQL only — no business rules, no validation.
  * Every query is parameterised. Never interpolate a client value into SQL.
@@ -184,10 +188,10 @@ these calls inside one transaction.
 
 ## Step 6 — Service — all the business logic
 
-`server/src/services/tag.service.js`
+`server/src/services/tag.service.ts`
 
-```js
-import { withTransaction } from '../config/db.js';
+```ts
+import { withTransaction } from '../config/db.ts';
 import { ApiError } from '../plugins/errorHandler.ts';
 
 /**
@@ -255,8 +259,8 @@ catalogued code · one transaction · an audit row with before/after.
 
 Controller — **HTTP in, HTTP out. Nothing else.**
 
-```js
-// server/src/controllers/tag.controller.js
+```ts
+// server/src/controllers/tag.controller.ts
 export function makeTagController({ tagService }) {
   return {
     async setProductTags(req, reply) {
@@ -269,8 +273,8 @@ export function makeTagController({ tagService }) {
 
 Route — path, schema, and **all three guards**:
 
-```js
-// server/src/routes/tag.routes.js
+```ts
+// server/src/routes/tag.routes.ts
 export default async function tagRoutes(app, { tagController }) {
   app.put('/api/v1/products/:id/tags', {
     preHandler: [
@@ -488,7 +492,7 @@ the kind of thing a future refactor "simplifies" to `[a-z0-9]` — the test is w
 | :--- | :--- |
 | `docs/erd.md` | Add `tags` and `product_tags` under §3 Catalog; bump the count in §14 |
 | `docs/permission-catalog.json` | Already done in step 2 |
-| `docs/architecture-map.md` | Add a "where do I change X?" row: *add a product tag rule → `services/tag.service.js`* |
+| `docs/architecture-map.md` | Add a "where do I change X?" row: *add a product tag rule → `services/tag.service.ts`* |
 | `docs/prompt.md` | Update the traceability matrix row honestly |
 | `CLAUDE.md` | Only if a **convention** changed. Adding a feature is not a convention change |
 

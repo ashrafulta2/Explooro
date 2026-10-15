@@ -48,7 +48,7 @@ function savePolicy() {
 
 const bad = (message_en, message_bn) => ({ code: 'VALIDATION_FAILED', message_en, message_bn });
 
-/** The same rules as genie.service.js validatePolicy(), in the same order, with the same messages. */
+/** The same rules as genie.service.ts validatePolicy(), in the same order, with the same messages. */
 function validate(body) {
   const { enabled, duration_ms: durationMs, quality, reason } = body;
   if (typeof enabled !== 'boolean') {

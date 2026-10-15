@@ -1,7 +1,7 @@
 /**
  * salerTierBonus.ts — the sales-volume commission tier a shop partner has EARNED, as the pricing step sees it.
  *
- * WHY a separate file: pricing.service.ts resolves the split and subscriptionRebate.js is its sibling
+ * WHY a separate file: pricing.service.ts resolves the split and subscriptionRebate.ts is its sibling
  * for the Shop Partner Pro rebate; this follows the same shape so pricing can import it without a cycle.
  *
  * How a tier works (BRONZE < SILVER < GOLD < PLATINUM):

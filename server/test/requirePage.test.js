@@ -50,7 +50,7 @@ function createMockDb({ failReads = false, seed = [] } = {}) {
 
 /**
  * An app shaped like the real one: the plugin is registered before the routes, so its onRoute hook
- * is the only thing attaching the guard — exactly as in src/app.js. `user` is applied by a route
+ * is the only thing attaching the guard — exactly as in src/app.ts. `user` is applied by a route
  * preHandler, which is what makes the ordering assertion meaningful.
  */
 async function buildApp({ db, user = null } = {}) {
@@ -273,7 +273,7 @@ describe('the wired route files', () => {
     'localization.routes.ts',
     'notification.routes.ts',
     'publicApi.routes.ts',
-    'return.routes.js',
+    'return.routes.ts',
     'saler.routes.ts',
     'subscription.routes.ts',
     'supplier.routes.ts',
@@ -338,14 +338,14 @@ describe('the wired route files', () => {
 /* ── 6. Wired into the real app, in the only order that works ───────────── */
 
 describe('registration', () => {
-  test('the plugin is registered in app.js', () => {
-    const appSrc = read('server/src/app.js');
+  test('the plugin is registered in app.ts', () => {
+    const appSrc = read('server/src/app.ts');
     assert.match(appSrc, /import requirePagePlugin from '\.\/middlewares\/requirePage\.ts'/);
     assert.match(appSrc, /app\.register\(requirePagePlugin\)/);
   });
 
   test('it is registered before any route plugin', () => {
-    const appSrc = read('server/src/app.js');
+    const appSrc = read('server/src/app.ts');
     const pluginAt = appSrc.indexOf('app.register(requirePagePlugin)');
     const firstRouteAt = appSrc.indexOf('await app.register(authRoutes');
 

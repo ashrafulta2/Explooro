@@ -881,7 +881,7 @@ export default [
     path: '/saler/social-kit/templates',
     handler: () => ({
       status: 200,
-      // Same shape and ids as the server (FLYER_FORMATS / FLYER_THEMES in flyer.service.js).
+      // Same shape and ids as the server (FLYER_FORMATS / FLYER_THEMES in flyer.service.ts).
       body: {
         templates: [
           { id: 'SQUARE', width: 1080, height: 1080, label_en: 'Social Post 1:1', label_bn: 'সোশ্যাল পোস্ট ১:১' },

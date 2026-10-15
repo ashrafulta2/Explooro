@@ -415,7 +415,7 @@ describe('route guards and the permission catalog', () => {
   });
 
   test('the routes are registered on the app', () => {
-    const appSrc = fs.readFileSync(path.join(__dirname, '../src/app.js'), 'utf8');
+    const appSrc = fs.readFileSync(path.join(__dirname, '../src/app.ts'), 'utf8');
     assert.match(appSrc, /import pageAccessRoutes from '\.\/routes\/pageAccess\.routes\.ts'/);
     assert.match(appSrc, /app\.register\(pageAccessRoutes, \{ prefix: '\/api\/v1' \}\)/);
   });

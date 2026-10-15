@@ -1,11 +1,11 @@
 /**
  * deliveryCharge.service.ts — the delivery charge a normal checkout adds per supplier parcel.
  *
- * It used to be a ৳60 constant in checkout.service.ts and cart.service.js (and three more copies in
+ * It used to be a ৳60 constant in checkout.service.ts and cart.service.ts (and three more copies in
  * the client). It is a business number, so it lives in platform_settings (group `delivery`, seeded by
  * 069_delivery_charge_and_cod_gate.sql) and a super admin sets it at /admin/platform/delivery.
  *
- * Same shape as genie.service.js: validated here, written in one transaction, audited with
+ * Same shape as genie.service.ts: validated here, written in one transaction, audited with
  * before/after JSON, cached briefly because the cart reads it on every request.
  *
  * Team purchase does not use this: each team snapshots its own shipping charge from the

@@ -1,8 +1,8 @@
 /**
- * seed.js — Dependency-free seed runner (Prompt 2.2).
+ * seed.ts — Dependency-free seed runner (Prompt 2.2).
  *
  * `npm run seed` applies every server/src/db/seeds/*.sql file, in filename order, each inside its
- * own transaction. Unlike migrate.js, seeds are NOT tracked in a table and are re-run every time —
+ * own transaction. Unlike migrate.ts, seeds are NOT tracked in a table and are re-run every time —
  * they are reference/dev data, not schema history, and every seed file is written with
  * `ON CONFLICT DO NOTHING` so re-running is always safe.
  */

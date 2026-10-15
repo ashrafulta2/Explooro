@@ -2,7 +2,7 @@
  * signalRetention.job.ts — prunes the behavioural event log to the module's retention_days.
  *
  * Deletes product_interaction_events and search_events older than personalization_signals
- * `retention_days` (see signalRetention.service.js). Gated on the same module as capture by the
+ * `retention_days` (see signalRetention.service.ts). Gated on the same module as capture by the
  * scheduler: with the module off the job is skipped, so already-captured rows are left as they are
  * until it is switched back on.
  */

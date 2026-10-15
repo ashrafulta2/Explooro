@@ -604,7 +604,7 @@ Attempted by an Admin rather than a Super Admin:
 Replies are bare payloads (not `{ data }`-wrapped), like the other admin identity endpoints. Every
 write takes an optional `Idempotency-Key` (§5) and requires a `reason` of 3–300 characters, which
 is stored in the audit row. `status` is derived: `SUSPENDED` (suspended or banned), `INVITED`
-(active account that has never signed in), otherwise `ACTIVE` — see `staff.repository.js` for why
+(active account that has never signed in), otherwise `ACTIVE` — see `staff.repository.ts` for why
 there is no stored `INVITED` status. Specific refusals reuse the closed code enum and put the
 business reason in `details.reason`:
 
@@ -808,10 +808,10 @@ vault balance in the browser back-button history is a real disclosure.
 
 ## 12. Implementation Checklist — Prompt 2.1
 
-- [ ] `errorHandler.js` emits exactly the §2.3 shape, with both language messages and a `trace_id`
+- [ ] `errorHandler.ts` emits exactly the §2.3 shape, with both language messages and a `trace_id`
 - [ ] Every error code in §3 has a constant and an HTTP status mapping
 - [ ] The deferred (`202`) envelope is supported as a distinct shape
-- [ ] `requestContext.js` generates `trace_id` and echoes it as `X-Trace-Id`
+- [ ] `requestContext.ts` generates `trace_id` and echoes it as `X-Trace-Id`
 - [ ] Idempotency middleware implements the §5.2 lifecycle including `IN_PROGRESS` and key deletion on throw
 - [ ] Rate-limit headers on every authenticated response; per-bucket limits from §6
 - [ ] Every route declares a schema with `additionalProperties: false`

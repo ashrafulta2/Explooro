@@ -1,5 +1,5 @@
 {
-  "//": "Type checker for the server. Nothing is emitted: Node runs .ts files directly by stripping the types (Node >= 22.18), so there is no build step. .ts files are always checked; a .js file opts in with `// @ts-check` on its first line. The server is moving from .js to .ts file by file (docs/typescript-migration.md). erasableSyntaxOnly forbids the TypeScript features Node cannot strip (enum, namespace, parameter properties); verbatimModuleSyntax makes a type-only import say `import type`, so Node never tries to load an export that only exists as a type.",
+  "//": "Type checker for the server. Nothing is emitted: Node runs .ts files directly by stripping the types (Node >= 22.18), so there is no build step. Every server source file is .ts (moved from .js file by file, docs/typescript-migration.md); a new file must be .ts too, which test/tsMigration.test.js enforces. allowJs stays on (unchecked) because the server imports shared client modules written in .js, such as MASTER_RANGES from client/src/services/colorRamp.js, and needs their inferred types. erasableSyntaxOnly forbids the TypeScript features Node cannot strip (enum, namespace, parameter properties); verbatimModuleSyntax makes a type-only import say `import type`, so Node never tries to load an export that only exists as a type.",
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,
@@ -15,5 +15,5 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["src/**/*.js", "src/**/*.ts"]
+  "include": ["src/**/*.ts"]
 }

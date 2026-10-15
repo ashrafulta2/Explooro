@@ -1,5 +1,5 @@
 /**
- * migrate.js — Dependency-free, forward-only migration runner (Prompt 2.1, checksums added 2.2).
+ * migrate.ts — Dependency-free, forward-only migration runner (Prompt 2.1, checksums added 2.2).
  *
  * `npm run migrate`        applies every pending .sql file in server/src/db/migrations, in
  *                          filename order, each inside its own transaction, and records it in
@@ -90,7 +90,7 @@ async function run() {
       );
     }
 
-    // Same SQL, other line endings (see migrationChecksum.js): record today's bytes so the next run
+    // Same SQL, other line endings (see migrationChecksum.ts): record today's bytes so the next run
     // compares like with like. `status` only reports and never writes.
     const lineEndingOnly = verdicts.filter(([, v]) => v === 'line-endings').map(([f]) => f);
     if (lineEndingOnly.length > 0 && command !== 'status') {

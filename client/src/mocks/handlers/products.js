@@ -100,7 +100,7 @@ function synthesizeImages(product) {
 }
 
 /**
- * Mock of the public scorecard shape from services/supplierScorecard.service.js toPublicView.
+ * Mock of the public scorecard shape from services/supplierScorecard.service.ts toPublicView.
  * Cycles A / B / C / New by position so every state of the Sourcing card chip is visible in mock mode.
  */
 const MOCK_SCORECARDS = [
@@ -405,7 +405,7 @@ export default [
       // Mirrors the live contract (server/src/services/product.service.ts createProduct).
       if (!b.title_en || !b.title_bn || !b.category_id) {
         return {
-          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          status: 400, // live VALIDATION_FAILED status (errorHandler.ts)
           body: {
             error: {
               code: 'VALIDATION_FAILED',
@@ -420,7 +420,7 @@ export default [
       const imageUrls = mediaIds.map((id) => resolveMockMediaUrl(id));
       if (b.media_ids !== undefined && (!Array.isArray(b.media_ids) || imageUrls.some((u) => !u))) {
         return {
-          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          status: 400, // live VALIDATION_FAILED status (errorHandler.ts)
           body: {
             error: {
               code: 'VALIDATION_FAILED',
@@ -524,7 +524,7 @@ export default [
       const b = body || {};
       const current = activeProducts[idx];
       const invalid = (en, bn) => ({
-        status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+        status: 400, // live VALIDATION_FAILED status (errorHandler.ts)
         body: { error: { code: 'VALIDATION_FAILED', message_en: en, message_bn: bn } },
       });
 
@@ -574,7 +574,7 @@ export default [
       const qty = Number(body?.quantity);
       if (!Number.isInteger(qty) || qty < 1) {
         return {
-          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          status: 400, // live VALIDATION_FAILED status (errorHandler.ts)
           body: {
             error: {
               code: 'VALIDATION_FAILED',

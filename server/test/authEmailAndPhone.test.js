@@ -4,7 +4,7 @@
 
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildApp } from '../src/app.js';
+import { buildApp } from '../src/app.ts';
 import * as authService from '../src/services/auth.service.ts';
 import * as otpService from '../src/services/otp.service.ts';
 import * as userRepo from '../src/repositories/user.repository.ts';

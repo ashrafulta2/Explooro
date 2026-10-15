@@ -38,7 +38,7 @@ const ROSTER_CTE = `
              WHEN u.last_login_at IS NULL THEN 'INVITED'
              ELSE 'ACTIVE'
            END AS status,
-           -- super_admin holds every permission by rule (rbac.service.js), not by role_permissions rows.
+           -- super_admin holds every permission by rule (rbac.service.ts), not by role_permissions rows.
            CASE WHEN sr.role_key = 'super_admin'
                 THEN (SELECT COUNT(*) FROM permissions)
                 ELSE (SELECT COUNT(*) FROM role_permissions rp WHERE rp.role_id = sr.role_id)
@@ -255,7 +255,7 @@ export async function setUserStatus(db, userId, status) {
   await db.query('UPDATE users SET status = $2 WHERE id = $1', [userId, status]);
 }
 
-/** Signs the person out everywhere; authenticate.js rejects a revoked session on the next request. */
+/** Signs the person out everywhere; authenticate.ts rejects a revoked session on the next request. */
 export async function revokeAllSessions(db, userId, reason) {
   const { rowCount } = await db.query(
     'UPDATE sessions SET revoked_at = now(), revoked_reason = $2 WHERE user_id = $1 AND revoked_at IS NULL',
@@ -280,7 +280,7 @@ export async function deleteEnrolledStaff2fa(db, userId) {
 /**
  * The change history for one member: audit rows whose target is this staff ref, newest first.
  * Read-only against the append-only audit_logs; the reason a write carried is stored under
- * after_json.meta.reason (audit.service.js `meta`) and lifted out here so the client gets it flat.
+ * after_json.meta.reason (audit.service.ts `meta`) and lifted out here so the client gets it flat.
  */
 export async function listStaffActivity(db, ref, limit) {
   const { rows } = await db.query(

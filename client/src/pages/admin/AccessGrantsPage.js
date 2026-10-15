@@ -35,7 +35,7 @@ const MIN_REVOKE_REASON = 10;
 // an admin notices a grant about to lapse. It changes nothing about when the grant ends.
 const EXPIRING_SOON_MS = 3 * 24 * 60 * 60 * 1000;
 
-/** Same rule as permission.repository.js: revoked only if revoked BEFORE it expired. */
+/** Same rule as permission.repository.ts: revoked only if revoked BEFORE it expired. */
 function grantStatus(g) {
   const exp = new Date(g.expires_at).getTime();
   const rev = g.revoked_at ? new Date(g.revoked_at).getTime() : null;

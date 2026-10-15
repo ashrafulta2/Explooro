@@ -53,7 +53,7 @@ function savePolicy() {
   }
 }
 
-/** The same four rules as localization.service.js validatePolicy(), same order, same messages. */
+/** The same four rules as localization.service.ts validatePolicy(), same order, same messages. */
 function validate(body) {
   const { default_locale: defaultLocale, enabled_locales: enabledLocales, allow_user_override: allowOverride, reason } = body;
 

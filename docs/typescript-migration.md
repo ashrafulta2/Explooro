@@ -63,8 +63,8 @@ places in comments and docs that still name the old files.
      that still points at a `.js` file which is now `.ts`. `tsc` does **not** catch this, because
      NodeNext resolution quietly maps `x.js` to `x.ts`, but Node at runtime does not.
    - The app module graph loads: `buildApp()` then `GET /api/v1/health` returns 200. From step 4 the
-     real entry point is started too (`PORT=5099 node src/index.js`, then the same health check),
-     because `index.js` itself imports moved files.
+     real entry point is started too (`PORT=5099 node src/index.ts`, then the same health check),
+     because `index.ts` itself imports moved files.
    - Tests that list source files by name or filter a folder by `.js` (`requirePage.test.js` does
      both for `routes/`) break when such a file moves; they now accept either extension.
    - Scripts outside `server/` that import server code (`scripts/generate-dev-user-seed.mjs` imports
@@ -91,8 +91,15 @@ because their JSDoc types already pass.
 | 10 | 2026-10-15 | 23 leaf files: 10 route files (`auth`, `dispute`, `moderation`, `delegation`, `content`, `customer`, ...), 8 controllers (`ads`, `liveStream`, `kyc`, `chat`, `adminAnalytics`, `staff`, `restriction`, `saler`), 3 services (`product`, `homeSummary`, `review`), `sockets/gateway`, `jobs/analyticsRollup` | typecheck 0 errors; client 871/871, server 1458/1458; real server health 200; every job, socket and db entry imports; build within budget. **Bug fixed:** `saler.controller` threw `new AppError(401, 'UNAUTHORIZED', ...)` (arguments in the wrong order), so the code was the number 401 (unmapped, answered 500) and the message was the word UNAUTHORIZED. It now throws `AUTH_REQUIRED` (401). The routes authenticate first, so this was a fallback branch, but `appErrorArguments.test.js` now also fails on any `new AppError(<number>, ...)` |
 | 11 | 2026-10-15 | 14 leaf files: 9 route files (`liveStream`, `kyc`, `chat`, `restriction`, `staff`, `ads`, `adminAnalytics`, `saler`, `homeSummary`), the `product`, `review` and `sourcing` controllers, `discoveryFeed.service`, `ai/sourcingAgent` | typecheck 0 errors; client 871/871, server 1458/1458; real server health 200; every job, socket and db entry imports; build within budget. No bugs; typing only. A destructured parameter with two or more defaults (`{ a = 1, b = 2 } = {}`) is not caught by the mechanical pass and needs `: Record<string, any>` by hand, and a JSDoc-typed `opts = {}` becomes `opts: { ... } = {}` (make its members optional) |
 | 12 | 2026-10-15 | The last 17 non-entry files at once (few enough that leaf order no longer mattered): `ai`, `discovery`, `recommendationAdmin`, `search` and `theme` controllers, their 7 route files (with `product` and `review`), and the `theme`, `masterPalette`, `homeRails`, `recommendationAdmin` and `ai/index` services | typecheck 0 errors; client 871/871, server 1458/1458; real server health 200, and `/discovery/feed`, `/discovery/rails`, `/products`, `/catalog/categories` answer 200; every job, socket and db entry imports; build within budget. Typing only, no behaviour change |
+| 13 | 2026-10-16 | The last 7: `app`, `index` and the five `db/` CLI scripts (`migrate`, `seed`, `checkSql`, `rebuildCovisits`, `recoMetrics`), with every `server/package.json` script and `main` switched to `.ts`. `tsconfig.json` now includes only `src/**/*.ts` (`allowJs` stays, unchecked, for the shared client modules the server imports, e.g. `client/src/services/colorRamp.js`), and `tsMigration.test.js` fails if any `.js` file appears under `server/src`. Docs, comments and test path strings that still named a moved file were brought up to date, including leftovers from earlier steps; `how-to-add-a-feature.md` now writes server files as `.ts` | typecheck 0 errors; client 871/871, server 1459/1459; `npm start` and `npm run dev` both answer health 200; `migrate:status` (0 pending), `check:sql` (973 statements, 0 failures) and `reco:metrics` run; build within budget. `seed` and `covisit:rebuild` write to the database and were not run (typecheck and the import test cover them) |
 
-Remaining: 7 `.js` files under `server/src` (migrations and seeds excluded); 348 are `.ts`. They are the
-two entry points (`app.js`, `index.js`) and the five `db/` CLI scripts (`migrate`, `seed`, `checkSql`,
-`rebuildCovisits`, `recoMetrics`). Each is started by name from `package.json` scripts, CI or the docs,
-so they move in one last step together with every place that names them.
+Done: all 355 server source files are `.ts`; none is `.js`.
+
+**Correction to the "every job and db entry imports" check in steps 4–12.** `seed`, `rebuildCovisits`
+and `recoMetrics` do their work at top level, and `migrate` defaults to `up` (only `checkSql` guards
+on `process.argv[1]`). So importing them ran them against the `DATABASE_URL` in `.env`, here the local
+dev database: `migrate up` with nothing pending (no-op), `seed` (every seed is `ON CONFLICT DO
+NOTHING`, but a seed row deleted by hand comes back), a co-visitation rebuild (derived data the nightly
+job rebuilds anyway) and a read-only metrics report. Check these scripts with the typecheck, the import
+test and the read-only npm scripts (`migrate:status`, `check:sql`, `reco:metrics`), never by importing
+them.

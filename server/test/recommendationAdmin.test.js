@@ -738,8 +738,8 @@ describe('Permission catalog, seed and wiring', () => {
     assert.match(seed, /\('admin', 'platform\.recommendation\.view'\)/);
   });
 
-  test('the routes are registered in app.js', () => {
-    const app = fs.readFileSync(path.join(repoRoot, 'server/src/app.js'), 'utf8');
+  test('the routes are registered in app.ts', () => {
+    const app = fs.readFileSync(path.join(repoRoot, 'server/src/app.ts'), 'utf8');
     assert.match(app, /import recommendationAdminRoutes from '\.\/routes\/recommendationAdmin\.routes\.ts'/);
     assert.match(app, /app\.register\(recommendationAdminRoutes, \{ prefix: '\/api\/v1' \}\)/);
   });

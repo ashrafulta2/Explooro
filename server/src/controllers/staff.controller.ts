@@ -7,7 +7,7 @@
  *
  * Replies are bare payloads (`{ staff, … }`), not `{ data }`-wrapped: core/api.js on the client
  * spreads the body and keeps `data` alongside, so bare shapes are what the admin pages read (the
- * same convention user.controller.js follows).
+ * same convention user.controller.ts follows).
  */
 
 import * as staffService from '../services/staff.service.ts';

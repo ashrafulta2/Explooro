@@ -7,7 +7,7 @@ import { broadcastReadReceipt } from '../sockets/chat.handler.ts';
 import * as chatService from '../services/chat.service.ts';
 
 export async function getTicket(req, reply) {
-  // WHY `roles[0]` and `full_name`: authenticate.js populates `req.user` from the JWT claims, which
+  // WHY `roles[0]` and `full_name`: authenticate.ts populates `req.user` from the JWT claims, which
   // carry `roles` (an array) — there is no scalar `role`. Both fields were reaching createTicket as
   // `undefined`, so every socket registered a nameless participant and chat rendered "Participant".
   const result = createTicket({

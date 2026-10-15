@@ -54,7 +54,7 @@ describe('1. paid gateway orders lock escrow', () => {
     assert.match(paymentSrc, /o\.payment_status = 'PAID'/);
   });
 
-  test('the payment controllers use the pool app.js actually decorates', () => {
+  test('the payment controllers use the pool app.ts actually decorates', () => {
     for (const f of ['controllers/payment.controller.ts', 'controllers/paymentWebhook.controller.ts']) {
       assert.ok(!/req\.server\.pg\b/.test(src(f)), `${f} reads req.server.pg, which does not exist`);
     }

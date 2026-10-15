@@ -19,7 +19,7 @@ const PROFILE_KEY = 'explooro.mock.profile';
 
 const GENDERS = ['MALE', 'FEMALE', 'OTHER', 'UNSPECIFIED'];
 
-// Editable columns, matching profile.service.js's whitelist. Anything else in the body is dropped.
+// Editable columns, matching profile.service.ts's whitelist. Anything else in the body is dropped.
 const PROFILE_FIELDS = [
   'full_name',
   'display_name',

@@ -17,7 +17,7 @@ import { sanitizeUntrustedText, composeGroundedReply, runTurn as runConciergeTur
 import { runTurn as runSourcingTurn } from '../src/services/ai/sourcingAgent.ts';
 import { computeCostUsd, redactPii } from '../src/services/ai/provider.ts';
 
-/** Minimal fake DB: only understands the handful of query shapes ai.repository.js issues. */
+/** Minimal fake DB: only understands the handful of query shapes ai.repository.ts issues. */
 function createFakeDb() {
   const messages = [];
   const usageEvents = [];
@@ -72,7 +72,7 @@ async function collect(gen) {
   return events;
 }
 
-describe('provider.js — cost accounting & PII redaction', () => {
+describe('provider.ts — cost accounting & PII redaction', () => {
   test('computeCostUsd applies the pricing table per 1K tokens', () => {
     const cost = computeCostUsd('claude-sonnet-5-5', 1000, 1000);
     assert.equal(cost, 0.003 + 0.015);

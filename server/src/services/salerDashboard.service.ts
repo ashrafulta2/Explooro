@@ -19,7 +19,7 @@ export async function getSalerOverview(db, salerId) {
   // 1. Storefront details & shelves
   const { rows: storeRows } = await db.query(
     // WHY shelves are counted from `collection_name`: there is no `store_shelves` table — a shelf is
-    // a grouping label on the curated item itself (see store.service.js, which calls it `shelfName`).
+    // a grouping label on the curated item itself (see store.service.ts, which calls it `shelfName`).
     `SELECT vs.id, vs.slug, vs.shop_name, vs.is_active,
             lm.storage_key AS logo_key,
             bm.storage_key AS banner_key,

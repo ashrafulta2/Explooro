@@ -2,7 +2,7 @@
  * profile.controller.ts — HTTP surface for the signed-in user's own profile.
  *
  * Thin by design: the only thing this layer decides is that the subject is `req.user.id` and never
- * a value from the request body or params. Everything else is profile.service.js.
+ * a value from the request body or params. Everything else is profile.service.ts.
  */
 
 import * as profileService from '../services/profile.service.ts';

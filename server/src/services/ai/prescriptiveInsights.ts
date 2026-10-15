@@ -51,7 +51,7 @@ async function loadSalerMetrics(db, userId) {
 }
 
 /** Which of the supplier's own products are at real stockout risk, using the same statistical
- * baseline demandForecast.js uses elsewhere — never a separately-invented number. */
+ * baseline demandForecast.ts uses elsewhere — never a separately-invented number. */
 async function loadSupplierMetrics(db, userId, deps: Record<string, any> = {}) {
   const { rows: products } = await db.query(
     `SELECT id, title_en, title_bn, stock_qty FROM products

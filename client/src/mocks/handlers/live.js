@@ -260,7 +260,7 @@ let mockStreamActionLog = {
   2: [],
 };
 
-/** streamId -> Map(userId -> expiry ms). Mirrors sockets/presence.js's in-memory mute registry. */
+/** streamId -> Map(userId -> expiry ms). Mirrors sockets/presence.ts's in-memory mute registry. */
 const mockStreamMutes = new Map([[1, new Map([[44, Date.now() + 5 * 60 * 1000]])]]);
 
 function mutesFor(streamId) {

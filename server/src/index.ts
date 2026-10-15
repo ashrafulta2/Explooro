@@ -1,5 +1,5 @@
 import './config/loadEnvFile.ts';
-import { buildApp } from './app.js';
+import { buildApp } from './app.ts';
 
 async function start() {
   let app;

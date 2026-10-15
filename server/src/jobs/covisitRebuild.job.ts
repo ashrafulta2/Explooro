@@ -1,7 +1,7 @@
 /**
  * covisitRebuild.job.ts — recomputes the "shoppers also viewed" aggregate (personalized feed, Phase E).
  *
- * Reads the behavioural event log and replaces product_covisits (see covisit.service.js). Gated on the
+ * Reads the behavioural event log and replaces product_covisits (see covisit.service.ts). Gated on the
  * `personalization_signals` module by the scheduler: with capture switched off there is no new data to
  * learn from, so the job is skipped and the last aggregate simply ages.
  */

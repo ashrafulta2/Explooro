@@ -1,7 +1,7 @@
 /**
  * homeRails.service.ts — The themed rails on the home page (Phase C of the personalized feed).
  *
- * A rail is a slice of the same blended ranking the swipe feed uses (recommendation.service.js),
+ * A rail is a slice of the same blended ranking the swipe feed uses (recommendation.service.ts),
  * looking at one idea at a time: what is trending, what sells, what is new, what is near you, what
  * you were just looking at. A rail picks WHICH signals it listens to; HOW MUCH each signal counts is
  * still the admin's recommendation.weights, so retuning the ranking retunes every rail.

@@ -1,5 +1,5 @@
 /**
- * migrationChecksum.ts — how migrate.js decides whether an applied migration file changed.
+ * migrationChecksum.ts — how migrate.ts decides whether an applied migration file changed.
  *
  * WHY line endings are forgiven: on Windows with core.autocrlf=true, git checked .sql files out
  * with CRLF until .gitattributes pinned them to LF (2026-10-08). A database migrated from that

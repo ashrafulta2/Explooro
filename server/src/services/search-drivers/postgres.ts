@@ -47,7 +47,7 @@ export class PostgresSearchDriver {
 
     if (filters.inStock) {
       // WHY minus the reservation: stock an open team is counting on cannot be bought, so it must not
-      // satisfy "in stock only" (see teamStockReservation.service.js).
+      // satisfy "in stock only" (see teamStockReservation.service.ts).
       productConditions.push(`p.stock_qty - ${reservedUnitsSql('p')} > 0`);
     }
 

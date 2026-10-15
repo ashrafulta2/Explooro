@@ -22,7 +22,7 @@ import {
 } from '../src/sockets/presence.ts';
 
 /**
- * A minimal fake pool. Every service call below routes through liveStream.repository.js, so the
+ * A minimal fake pool. Every service call below routes through liveStream.repository.ts, so the
  * fake answers by matching on the SQL each repo function issues rather than by faking the repo —
  * that keeps the queries themselves inside the test's blast radius.
  */

@@ -1,7 +1,7 @@
 /**
  * diversity.service.ts — Candidate pool + diversity re-rank for the personalized feed (Phase D).
  *
- * The blended score (recommendation.service.js) says how relevant each product is. It says nothing
+ * The blended score (recommendation.service.ts) says how relevant each product is. It says nothing
  * about the LIST: ranked purely by score, a page can be eight products from one supplier, or six
  * shoes in a row, and the shopper's profile only ever reinforces itself. This pass runs after the
  * score and before the page is cut:

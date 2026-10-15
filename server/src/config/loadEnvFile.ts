@@ -3,7 +3,7 @@
  *
  * Native Node 20.6+ .env loader, zero external dependencies. Import this module for its side
  * effect (before importing env.ts) from every entrypoint that reads process.env directly —
- * index.js, migrate.js, seed.js — so `npm run migrate`/`npm run seed` see the same environment
+ * index.ts, migrate.ts, seed.ts — so `npm run migrate`/`npm run seed` see the same environment
  * the running server does instead of failing with "required but was not set".
  */
 import fs from 'node:fs';

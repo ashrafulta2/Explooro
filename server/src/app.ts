@@ -1,9 +1,9 @@
 /**
- * app.js — Fastify application factory (Prompt 2.1).
+ * app.ts — Fastify application factory (Prompt 2.1).
  *
  * Builds (but does not start listening) a fully wired Fastify instance: validated env, the pg
  * pool, the cache driver (redis | memory), the error handler, request context, and the security /
- * rate-limit plugins. `src/index.js` is the thin entrypoint that calls this and starts the server
+ * rate-limit plugins. `src/index.ts` is the thin entrypoint that calls this and starts the server
  * — kept separate so the app can be built and exercised without binding a port.
  */
 
@@ -114,6 +114,8 @@ import { createEmailSender } from './integrations/email/index.ts';
  */
 function createRateLimitStoreClass(cache) {
   return class CacheRateLimitStore {
+    timeWindow: any;
+
     constructor(params) {
       this.timeWindow = params.timeWindow;
     }
@@ -133,12 +135,12 @@ function createRateLimitStoreClass(cache) {
     }
 
     child(routeParams) {
-      return new this.constructor(routeParams);
+      return new (this.constructor as any)(routeParams);
     }
   };
 }
 
-export async function buildApp(overrides = {}) {
+export async function buildApp(overrides: Record<string, any> = {}) {
   const config = overrides.config ?? loadEnv();
 
   const app = Fastify({
@@ -148,7 +150,10 @@ export async function buildApp(overrides = {}) {
   });
 
   const pool = overrides.pool ?? createDbPool(config);
-  const cache = overrides.cache ?? (await createCache(config, app.log));
+  // WHY `as any`: these take a console-shaped logger (their default is `console`); pino's logger has
+  // the same info/warn/error methods but not Console's full type.
+  const log: any = app.log;
+  const cache = overrides.cache ?? (await createCache(config, log));
 
   app.decorate('config', config);
   app.decorate('db', pool);
@@ -261,10 +266,10 @@ export async function buildApp(overrides = {}) {
   await app.register(websocketGateway);
 
   // Start periodic 5-minute grant/JIT/action expiry sweep (Prompt 2.5)
-  const stopGrantExpiry = startGrantExpiryScheduler(pool, cache, app.log, 300000);
+  const stopGrantExpiry = startGrantExpiryScheduler(pool, cache, log, 300000);
 
   // Start distributed scheduler for hourly escrow release & periodic tasks (Prompt 6.2)
-  startScheduler(pool, cache, app.log, { runOnStartup: false });
+  startScheduler(pool, cache, log, { runOnStartup: false });
 
   app.get('/api/v1/health', async () => ({
     status: 'ok',

@@ -43,7 +43,7 @@ function matchesQuery(p, raw) {
     .includes(q);
 }
 
-// Mirrors services/diversity.service.js (migration 058 defaults) on the one dimension the fixtures
+// Mirrors services/diversity.service.ts (migration 058 defaults) on the one dimension the fixtures
 // carry: no category more than MAX_PER_CATEGORY times inside any WINDOW consecutive picks. A product
 // held back keeps its queue position and is taken as soon as it fits; when nothing fits the best
 // remaining one is taken. It reorders and never shortens a list. The fixtures have no supplier or

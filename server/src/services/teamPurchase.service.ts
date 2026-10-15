@@ -367,7 +367,7 @@ export async function createTeamPurchase(db, cache, {
     if (!product || product.status !== 'ACTIVE') {
       throw new AppError('NOT_FOUND', 'Target product for team purchase does not exist.', 'এই পণ্যটি টিম পারচেজের জন্য উপলব্ধ নয়।');
     }
-    // WHY minus the other open teams: each one is counting on its units (teamStockReservation.service.js).
+    // WHY minus the other open teams: each one is counting on its units (teamStockReservation.service.ts).
     const reserved = await getReservedForProduct(client, product.id);
     if (Number(product.stock_qty) - reserved < teamSize) {
       throw new AppError('INSUFFICIENT_STOCK', 'Not enough stock for a team of this size.', 'এই আকারের টিমের জন্য যথেষ্ট স্টক নেই।');

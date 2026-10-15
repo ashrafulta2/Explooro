@@ -12,7 +12,7 @@
  * or true background *removal*. True cutout needs an ML segmentation model, which is outside the
  * approved dependency list (docs/dependency-ledger.md); Claude only picks the matte color/style
  * (grounded in the product's real category/title), sharp executes it. Same "model judges, code
- * computes" split used by demandForecast.js.
+ * computes" split used by demandForecast.ts.
  */
 
 import * as provider from './provider.ts';

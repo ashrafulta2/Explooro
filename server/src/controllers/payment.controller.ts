@@ -1,7 +1,7 @@
 /**
  * payment.controller.ts — Payment Processing Controller (Prompt 5.3).
  *
- * WHY req.server.db: app.js decorates the pool as `db`. These handlers used to read a `pg`
+ * WHY req.server.db: app.ts decorates the pool as `db`. These handlers used to read a `pg`
  * decoration, which is undefined, so every payment request answered 500 against the real server.
  */
 

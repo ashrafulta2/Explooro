@@ -5,7 +5,7 @@
  * role-agnostic — a Super Admin, a Supplier and a Customer all land on this same page, because a
  * profile is an attribute of the person, not of the role they happen to be wearing.
  *
- * Backed by GET/PUT /api/v1/me/profile. The server owns validation (profile.service.js); this page
+ * Backed by GET/PUT /api/v1/me/profile. The server owns validation (profile.service.ts); this page
  * validates only what it can answer without a round trip, so a typo is caught before the request
  * and everything else surfaces as a field error from the API response's `details.field`.
  *
@@ -40,7 +40,7 @@ import {
   getUpazilasByDistrict,
 } from '../../data/bangladeshGeo.js';
 
-// Matches media.service.js's avatar ceiling. Checked here so an oversized pick fails instantly
+// Matches media.service.ts's avatar ceiling. Checked here so an oversized pick fails instantly
 // instead of after uploading megabytes the server will reject anyway.
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ACCEPTED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];

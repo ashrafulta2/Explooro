@@ -1,5 +1,5 @@
 /**
- * recoMetrics.js — prints the per-surface funnel of the personalized feed (Phase F).
+ * recoMetrics.ts — prints the per-surface funnel of the personalized feed (Phase F).
  *
  *   npm run reco:metrics                       last 7 days, 7-day attribution
  *   npm run reco:metrics -- --days 30 --attribution 14

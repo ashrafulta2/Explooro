@@ -2,7 +2,7 @@
  * codGate.service.ts — the Cash on Delivery trust / OTP gate, shared by checkout and team purchase.
  *
  * A COD order from a low-trust account, or one above the platform's COD value limit, must be
- * confirmed with an SMS code before it is placed (trustScore.service.js `evaluateCodRisk` decides).
+ * confirmed with an SMS code before it is placed (trustScore.service.ts `evaluateCodRisk` decides).
  * The first attempt sends the code and answers COD_OTP_REQUIRED; the shopper sends the same request
  * again with `otp_code`.
  *

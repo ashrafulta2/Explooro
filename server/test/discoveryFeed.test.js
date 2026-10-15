@@ -355,7 +355,7 @@ describe('Discovery feed — getFeed pagination & personalization', () => {
 });
 
 describe('Discovery feed — `recommended` ranking intent', () => {
-  // Models the LEGACY affinity-only boost that product.repository.js still builds when a caller passes
+  // Models the LEGACY affinity-only boost that product.repository.ts still builds when a caller passes
   // boost arrays but no `ranking` spec (the feed itself now passes one — see recommendation.test.js):
   //   score = Σ (weight[dim] when the row matches that affinity dimension)
   //   tiebreak: sold_count DESC, rating DESC, created_at DESC
