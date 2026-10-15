@@ -34,16 +34,16 @@ layer) · React / Vue / Next.js / Tailwind / Bootstrap.
 
 ## 2. Currently Installed
 
-Verify with `npm ls --depth=0`. Audited 2026-10-15: **4 open** after the fastify 5.12.1 → 5.12.7
-security bump (which also pulled `fast-uri` to 3.1.8 / 4.2.2). Still open, each a non-major fix: `sharp`
-(high, → 0.35.5), `shell-quote` via `concurrently` (critical, dev only, → 10.0.6), `source-map-js` via
-`vite` (high, dev only) and `ip-address` via `@fastify/rate-limit` (moderate). The target is still 0.
+Verify with `npm ls --depth=0`. Audited 2026-10-15: **0 vulnerabilities**, after security bumps of
+`fastify` 5.12.1 → 5.12.7, `sharp` 0.35.3 → 0.35.5 and `concurrently` 10.0.5 → 10.0.6, plus lockfile-only
+updates of transitive `fast-uri`, `shell-quote`, `source-map-js` (via `vite`) and `ip-address` (via
+`@fastify/rate-limit`).
 
 | Package | Version | Where | Isolated in | Why | Removal cost |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `vite` | 8.2.2 | client, **dev only** | `client/vite.config.js` | Dev server with sub-500ms start and HMR; production bundling | **Low.** No source file outside `vite.config.js` may import from `vite`. `client/src` is plain ES modules — swap the bundler, or serve natively |
 | `fastify` | 5.12.7 | server | `server/src/app.js` + `routes/` | 30k+ req/s, built-in JSON schema validation, small memory footprint | **Medium.** The 3-tier architecture keeps Fastify in routes/plugins only; `services/` and `repositories/` are plain Node and would be unaffected |
-| `concurrently` | 10.0.5 | root, **dev only** | root `package.json` scripts | Runs client + server in one terminal | **Trivial.** Two terminals |
+| `concurrently` | 10.0.6 | root, **dev only** | root `package.json` scripts | Runs client + server in one terminal | **Trivial.** Two terminals |
 | `pg` | 8.23.0 | server | `server/src/config/db.js` | The PostgreSQL wire protocol is not something to reimplement | **Medium.** Only `db.js` and `db/migrate.js` import it; repositories receive a client/pool, never the driver |
 | `redis` | 6.2.1 | server | `server/src/config/cache-drivers/redis.js` | Real Redis client for `CACHE_DRIVER=redis` | **Trivial.** `CACHE_DRIVER=memory` runs the whole app with this package never touched at runtime |
 | `@fastify/cors` | 11.3.0 | server | `server/src/app.js` | Official plugin; same release cadence as Fastify | **Low.** One `app.register` call |
@@ -52,6 +52,7 @@ security bump (which also pulled `fast-uri` to 3.1.8 / 4.2.2). Still open, each 
 | `@fastify/rate-limit` | 11.2.0 | server | `server/src/app.js` | Official plugin; wired to a custom Store class backed by `config/cache.js` so `CACHE_DRIVER=memory` keeps limiting working with no Redis | **Low.** One `app.register` call plus the Store class in `app.js` |
 | `argon2` | 0.45.1 | server | `server/src/lib/password.js` | Password hashing must never be hand-rolled. Pulled forward from Phase 2.3 into 2.2 because the dev-user seed needs real argon2id hashes, not placeholders; 2.3's `auth.service.js` imports from `password.js`, never from `argon2` directly, so it still has exactly one importer | **Low.** `hashPassword`/`verifyPassword` in one file; swapping the algorithm touches only `password.js` |
 | `jose` | 6.2.10 | server | `server/src/lib/jwt.js` | Access-token signing/verification. Zero runtime dependencies of its own (vs. `jsonwebtoken`'s 9 transitive packages including several `lodash.*` micro-packages) — the deciding factor given docs/prompt.md's "reject anything with a large transitive tree" rule | **Low.** `signAccessToken`/`verifyAccessToken` in one file; `authenticate.js` and `auth.service.js` both import from there, never from `jose` |
+| `sharp` | 0.35.5 | server | `server/src/services/media.service.js` | Image resize/encode in native code (libvips). The one permitted native build; ships prebuilt `@img/*` binaries per platform, so no compiler is needed | **Medium.** Only `media.service.js` imports it. Removing it means serving originals unresized or moving image work to a separate service |
 
 **Twelve direct dependencies. Zero of them run in the browser.**
 

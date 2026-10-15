@@ -22,7 +22,7 @@
     "test": "npm run test --workspace client && npm run test --workspace server"
   },
   "devDependencies": {
-    "concurrently": "10.0.5"
+    "concurrently": "10.0.6"
   },
   "allowScripts": {
     "argon2@0.45.1": true
