@@ -26,6 +26,7 @@ import * as codGateService from './codGate.service.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedByProduct } from './teamStockReservation.service.ts';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.ts';
+import { computeCheckoutCouponDiscount, allocateDiscountBySupplier } from './coupon.service.ts';
 
 export function hashPayload(payload) {
   return createHash('sha256').update(JSON.stringify(payload || {})).digest('hex');
@@ -173,9 +174,25 @@ export async function executeCheckout(pool, cache, {
       itemsAmountPaisa += (unitPricePaisa * item.qty);
     }
 
-    // 5. Coupon Validation & Calculation
+    // 5. Multi-Supplier Grouping & Shipping (before the coupon: a free-shipping coupon needs the charge)
+    const supplierGroups = new Map();
+    for (const item of cart.items) {
+      const suppId = item.supplier_id;
+      if (!supplierGroups.has(suppId)) {
+        supplierGroups.set(suppId, []);
+      }
+      supplierGroups.get(suppId).push(item);
+    }
+
+    const supplierCount = supplierGroups.size;
+    // WHY fresh: the charge written onto the order must be the one in the database now, not a
+    // cached copy from before a super admin changed it.
+    const shippingPerParcelPaisa = toPaisa(await deliveryChargeService.perParcelCharge(client, cache, { fresh: true }));
+
+    // 6. Coupon Validation & Calculation
     let coupon = null;
     let discountAmountPaisa = 0;
+    let discountShareBySupplier = new Map();
 
     if (couponCode) {
       coupon = await couponRepo.findCouponByCode(client, couponCode, { forUpdate: true });
@@ -196,27 +213,6 @@ export async function executeCheckout(pool, cache, {
         );
       }
 
-      const minSpendPaisa = toPaisa(coupon.min_spend);
-      if (itemsAmountPaisa < minSpendPaisa) {
-        throw new AppError(
-          'COUPON_INVALID',
-          `Minimum order spend of ৳${(minSpendPaisa / 100).toFixed(2)} required for this coupon.`,
-          `এই কুপনের জন্য সর্বনিম্ন ৳${(minSpendPaisa / 100).toFixed(2)} অর্ডারের প্রয়োজন।`
-        );
-      }
-
-      if (coupon.budget_cap != null) {
-        const budgetUsedPaisa = toPaisa(coupon.budget_used);
-        const budgetCapPaisa = toPaisa(coupon.budget_cap);
-        if (budgetUsedPaisa >= budgetCapPaisa) {
-          throw new AppError(
-            'COUPON_BUDGET_EXHAUSTED',
-            'Coupon discount budget has been exhausted.',
-            'কুপনের বাজেট শেষ হয়ে গেছে।'
-          );
-        }
-      }
-
       if (coupon.usage_limit != null && Number(coupon.usage_count) >= Number(coupon.usage_limit)) {
         throw new AppError(
           'COUPON_INVALID',
@@ -235,35 +231,40 @@ export async function executeCheckout(pool, cache, {
         );
       }
 
-      // Compute discount
-      if (coupon.discount_type === 'PERCENT') {
-        const pct = parseFloat(coupon.discount_value);
-        let rawDiscount = Math.floor((itemsAmountPaisa * pct) / 100);
-        if (coupon.max_discount != null) {
-          const maxPaisa = toPaisa(coupon.max_discount);
-          rawDiscount = Math.min(rawDiscount, maxPaisa);
+      if (coupon.first_order_only) {
+        // WHY: orders has no status; an order counts unless every one of its sub-orders was cancelled.
+        const { rows: priorOrders } = await client.query(
+          `SELECT 1 FROM orders o
+           WHERE o.customer_id = $1
+             AND EXISTS (SELECT 1 FROM sub_orders so WHERE so.order_id = o.id AND so.status <> 'CANCELLED')
+           LIMIT 1`,
+          [userId]
+        );
+        if (priorOrders.length > 0) {
+          throw new AppError(
+            'COUPON_INVALID',
+            'This coupon is only valid on your first order.',
+            'এই কুপনটি শুধুমাত্র আপনার প্রথম অর্ডারে প্রযোজ্য।'
+          );
         }
-        discountAmountPaisa = rawDiscount;
-      } else if (coupon.discount_type === 'FIXED') {
-        discountAmountPaisa = Math.min(itemsAmountPaisa, toPaisa(coupon.discount_value));
       }
+
+      const computed = computeCheckoutCouponDiscount({
+        coupon,
+        lines: cart.items.map((item) => ({
+          productId: item.product_id,
+          categoryId: productsById.get(Number(item.product_id))?.category_id,
+          supplierId: item.supplier_id,
+          salerId: item.saler_id,
+          unitPricePaisa: toPaisa(item.unit_price),
+          qty: Number(item.qty),
+        })),
+        shippingPerParcelPaisa,
+      });
+      discountAmountPaisa = computed.discountPaisa;
+      discountShareBySupplier = allocateDiscountBySupplier(discountAmountPaisa, computed.basisBySupplier);
     }
 
-    // 6. Multi-Supplier Grouping & Shipping Calculation
-    // Group line items by supplier_id
-    const supplierGroups = new Map();
-    for (const item of cart.items) {
-      const suppId = item.supplier_id;
-      if (!supplierGroups.has(suppId)) {
-        supplierGroups.set(suppId, []);
-      }
-      supplierGroups.get(suppId).push(item);
-    }
-
-    const supplierCount = supplierGroups.size;
-    // WHY fresh: the charge written onto the order must be the one in the database now, not a
-    // cached copy from before a super admin changed it.
-    const shippingPerParcelPaisa = toPaisa(await deliveryChargeService.perParcelCharge(client, cache, { fresh: true }));
     const totalShippingPaisa = supplierCount * shippingPerParcelPaisa;
 
     const totalAmountPaisa = itemsAmountPaisa + totalShippingPaisa - discountAmountPaisa;
@@ -315,7 +316,6 @@ export async function executeCheckout(pool, cache, {
 
     // 9. FEFO Batch Allocation, Stock Decrement & Sub-Orders Creation
     let supplierIndex = 1;
-    let remainingDiscountPaisa = discountAmountPaisa;
 
     for (const [supplierId, items] of supplierGroups.entries()) {
       const subOrderRef = `${orderRef}-${supplierIndex}`;
@@ -392,15 +392,8 @@ export async function executeCheckout(pool, cache, {
       // Reconcile rounding to satisfy DB constraint: saler_commission + platform_margin = net_retail_margin
       subOrderPlatformMarginPaisa = subOrderNetRetailMarginPaisa - subOrderSalerCommissionPaisa;
 
-      // Prorate discount share for this sub-order
-      let subOrderDiscountSharePaisa = 0;
-      if (discountAmountPaisa > 0 && itemsAmountPaisa > 0) {
-        subOrderDiscountSharePaisa = Math.min(
-          remainingDiscountPaisa,
-          Math.floor((discountAmountPaisa * subOrderItemsAmountPaisa) / itemsAmountPaisa)
-        );
-        remainingDiscountPaisa -= subOrderDiscountSharePaisa;
-      }
+      // This sub-order's part of the discount: only parcels holding in-scope items carry any of it.
+      const subOrderDiscountSharePaisa = discountShareBySupplier.get(String(supplierId)) || 0;
 
       const subOrderShippingPaisa = shippingPerParcelPaisa;
       const subOrderTotalPaisa = subOrderItemsAmountPaisa + subOrderShippingPaisa - subOrderDiscountSharePaisa;

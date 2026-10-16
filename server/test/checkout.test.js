@@ -120,6 +120,46 @@ function createMockDb() {
       expires_at: new Date(Date.now() + 86400000 * 30).toISOString(),
       is_active: true,
     },
+    {
+      // Supplier Alpha's own coupon: must not discount Supplier Beta's items
+      id: 2,
+      code: 'ALPHA10',
+      discount_type: 'PERCENT',
+      discount_value: '10.00',
+      max_discount: null,
+      min_spend: '0.00',
+      budget_cap: null,
+      budget_used: '0.00',
+      usage_limit: null,
+      usage_count: 0,
+      per_user_limit: 5,
+      scope_type: 'SUPPLIER',
+      scope_ref: '101',
+      funded_by: 'SUPPLIER',
+      starts_at: new Date(Date.now() - 86400000).toISOString(),
+      expires_at: new Date(Date.now() + 86400000 * 30).toISOString(),
+      is_active: true,
+    },
+    {
+      id: 3,
+      code: 'WELCOME50',
+      discount_type: 'FIXED',
+      discount_value: '50.00',
+      max_discount: null,
+      min_spend: '0.00',
+      budget_cap: null,
+      budget_used: '0.00',
+      usage_limit: null,
+      usage_count: 0,
+      per_user_limit: 5,
+      first_order_only: true,
+      scope_type: 'PLATFORM',
+      scope_ref: null,
+      funded_by: 'PLATFORM',
+      starts_at: new Date(Date.now() - 86400000).toISOString(),
+      expires_at: new Date(Date.now() + 86400000 * 30).toISOString(),
+      is_active: true,
+    },
   ];
 
   const couponRedemptions = [];
@@ -342,6 +382,13 @@ function createMockDb() {
         const code = params[0];
         const c = coupons.find((x) => x.code.toUpperCase() === code.toUpperCase() && x.is_active);
         return { rows: c ? [c] : [] };
+      }
+
+      if (q.startsWith('SELECT 1 FROM orders o WHERE o.customer_id = $1')) {
+        const uId = Number(params[0]);
+        const hasOrder = orders.some((o) => o.customer_id === uId
+          && subOrders.some((s) => s.order_id === o.id && s.status !== 'CANCELLED'));
+        return { rows: hasOrder ? [{ '?column?': 1 }] : [] };
       }
 
       if (q.includes('FROM coupon_redemptions WHERE coupon_id = $1 AND user_id = $2')) {
@@ -793,5 +840,51 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     fresh.teamReserved = { 1: 9 };
     const ok = await executeCheckout(fresh, cache2, { ...input, idempotencyKey: 'idem-team-hold-002' });
     assert.ok(ok.order, 'the free unit can be bought');
+  });
+
+  const couponInput = {
+    userId: 1, recipientName: 'Karim Ahmed', recipientPhone: '+8801711111111',
+    division: 'Dhaka', district: 'Dhaka', addressLine: 'House 12, Road 4, Dhanmondi', paymentMethod: 'BKASH',
+  };
+
+  test('A supplier-scoped coupon discounts only that supplier\'s items, and only their parcel bears it', async () => {
+    const fresh = createMockDb();
+    // Cart 1: Alpha (supplier 101) ৳700 + Beta (supplier 102) ৳1,200; ALPHA10 is 10% off Alpha only
+    await executeCheckout(fresh, createMemoryCache(), { ...couponInput, idempotencyKey: 'idem-coupon-scope-001', couponCode: 'ALPHA10' });
+
+    const order = fresh.orders[0];
+    assert.equal(Number(order.discount_amount), 70, '10% of the ৳700 Alpha item, not of the whole ৳1,900 cart');
+    const alpha = fresh.subOrders.find((s) => s.supplier_id === 101);
+    const beta = fresh.subOrders.find((s) => s.supplier_id === 102);
+    assert.equal(Number(alpha.discount_share), 70, 'Alpha funds its own coupon');
+    assert.equal(Number(beta.discount_share), 0, 'Beta never offered it and pays nothing');
+  });
+
+  test('A supplier-scoped coupon on a cart without that supplier is refused', async () => {
+    const fresh = createMockDb();
+    // Cart 2 holds only an Alpha item, so re-scope the coupon to Beta
+    fresh.coupons.find((c) => c.code === 'ALPHA10').scope_ref = '102';
+    await assert.rejects(
+      () => executeCheckout(fresh, createMemoryCache(), { ...couponInput, userId: 2, recipientPhone: '+8801722222222', paymentMethod: 'BKASH', idempotencyKey: 'idem-coupon-scope-002', couponCode: 'ALPHA10' }),
+      (err) => err.code === 'COUPON_INVALID'
+    );
+    assert.equal(fresh.orders.length, 0, 'no order was written');
+  });
+
+  test('A first-order-only coupon works once, and is refused once the shopper has an order', async () => {
+    const fresh = createMockDb();
+    const cache2 = createMemoryCache();
+    await executeCheckout(fresh, cache2, { ...couponInput, idempotencyKey: 'idem-welcome-001', couponCode: 'WELCOME50' });
+    assert.equal(Number(fresh.orders[0].discount_amount), 50);
+    const shares = fresh.subOrders.reduce((sum, s) => sum + Math.round(Number(s.discount_share) * 100), 0);
+    assert.equal(shares, 5000, 'the sub-order shares add up to the whole discount');
+
+    // Refill the cart for a second checkout by the same shopper
+    fresh.cartItems.push({ id: 99, cart_id: 1, product_id: 1, variant_id: null, saler_id: 201, bundle_id: null, qty: 1, price_at_add: '700.00', added_at: new Date() });
+    fresh.carts.find((c) => c.id === 1).status = 'ACTIVE';
+    await assert.rejects(
+      () => executeCheckout(fresh, cache2, { ...couponInput, idempotencyKey: 'idem-welcome-002', couponCode: 'WELCOME50' }),
+      (err) => err.code === 'COUPON_INVALID' && /first order/.test(err.messageEn)
+    );
   });
 });

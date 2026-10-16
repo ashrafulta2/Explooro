@@ -277,6 +277,127 @@ export async function validateCoupon(db: import('pg').Pool|import('pg').PoolClie
   };
 }
 
+/** Does one cart line fall inside the coupon's scope? */
+export function lineInCouponScope(coupon, line) {
+  const ref = Number(coupon.scope_ref);
+  switch (coupon.scope_type || 'PLATFORM') {
+    case 'PLATFORM': return true;
+    case 'PRODUCT': return Number(line.productId) === ref;
+    case 'CATEGORY': return Number(line.categoryId) === ref;
+    case 'SUPPLIER': return Number(line.supplierId) === ref;
+    case 'SALER': return Number(line.salerId) === ref;
+    default: return false;
+  }
+}
+
+/**
+ * The discount checkout charges for a coupon, in paisa, and which supplier parcels it belongs to.
+ *
+ * WHY this exists: checkout used to apply every coupon to the whole cart. A coupon scoped to one
+ * supplier, product, category or shop partner discounted every other supplier's items too, and the
+ * discount was spread over all sub-orders, so suppliers who never offered it paid for it from their
+ * escrow. Only in-scope lines count now — for min spend, for the discount and for who bears it.
+ *
+ * Pure: the caller has already locked the coupon row and checked expiry, usage and per-user limits.
+ * Throws COUPON_INVALID / COUPON_BUDGET_EXHAUSTED when the coupon cannot apply to this cart.
+ *
+ * @param {object} params
+ * @param {object} params.coupon - coupons row
+ * @param {Array<{productId, categoryId, supplierId, salerId, unitPricePaisa: number, qty: number}>} params.lines
+ * @param {number} params.shippingPerParcelPaisa - delivery charge for one supplier parcel
+ * @returns {{ discountPaisa: number, basisBySupplier: Map<string, number> }} basisBySupplier weights
+ *   how the discount is split over sub-orders (in-scope item value, or in-scope parcel shipping).
+ */
+export function computeCheckoutCouponDiscount({ coupon, lines, shippingPerParcelPaisa = 0 }) {
+  const eligible = lines.filter((line) => lineInCouponScope(coupon, line));
+  const eligibleItemsPaisa = eligible.reduce((sum, l) => sum + l.unitPricePaisa * l.qty, 0);
+
+  if (eligibleItemsPaisa <= 0) {
+    throw new AppError(
+      'COUPON_INVALID',
+      'This coupon does not apply to any item in your cart.',
+      'এই কুপনটি আপনার কার্টের কোনো পণ্যে প্রযোজ্য নয়।'
+    );
+  }
+
+  const minSpendPaisa = Math.round((Number(coupon.min_spend) || 0) * 100);
+  if (eligibleItemsPaisa < minSpendPaisa) {
+    throw new AppError(
+      'COUPON_INVALID',
+      `Minimum spend of ৳${(minSpendPaisa / 100).toFixed(2)} on eligible items required for this coupon.`,
+      `এই কুপনের জন্য প্রযোজ্য পণ্যে সর্বনিম্ন ৳${(minSpendPaisa / 100).toFixed(2)} কেনাকাটা প্রয়োজন।`
+    );
+  }
+
+  const basisBySupplier = new Map();
+  const addBasis = (supplierId, paisa) => {
+    const key = String(supplierId);
+    basisBySupplier.set(key, (basisBySupplier.get(key) || 0) + paisa);
+  };
+
+  const valuePaisa = Math.round((Number(coupon.discount_value) || 0) * 100);
+  let discountPaisa = 0;
+
+  if (coupon.discount_type === 'PERCENT') {
+    discountPaisa = Math.floor((eligibleItemsPaisa * Number(coupon.discount_value)) / 100);
+    if (coupon.max_discount != null) {
+      discountPaisa = Math.min(discountPaisa, Math.round(Number(coupon.max_discount) * 100));
+    }
+    eligible.forEach((l) => addBasis(l.supplierId, l.unitPricePaisa * l.qty));
+  } else if (coupon.discount_type === 'FIXED') {
+    discountPaisa = Math.min(valuePaisa, eligibleItemsPaisa);
+    eligible.forEach((l) => addBasis(l.supplierId, l.unitPricePaisa * l.qty));
+  } else if (coupon.discount_type === 'FREE_SHIPPING') {
+    // One parcel per supplier, so the parcels that carry an in-scope item are the ones made free.
+    const suppliers = new Set(eligible.map((l) => String(l.supplierId)));
+    const eligibleShippingPaisa = suppliers.size * shippingPerParcelPaisa;
+    discountPaisa = valuePaisa > 0 ? Math.min(valuePaisa, eligibleShippingPaisa) : eligibleShippingPaisa;
+    suppliers.forEach((s) => addBasis(s, shippingPerParcelPaisa));
+  } else if (coupon.discount_type === 'BUY_X_GET_Y') {
+    // Buy two in-scope units, the cheapest in-scope unit is free.
+    const eligibleQty = eligible.reduce((sum, l) => sum + l.qty, 0);
+    if (eligibleQty >= 2) {
+      const cheapest = eligible.reduce((min, l) => (l.unitPricePaisa < min.unitPricePaisa ? l : min));
+      discountPaisa = cheapest.unitPricePaisa;
+      addBasis(cheapest.supplierId, cheapest.unitPricePaisa);
+    }
+  }
+
+  if (coupon.budget_cap != null) {
+    const remainingPaisa = Math.round(Number(coupon.budget_cap) * 100) - Math.round((Number(coupon.budget_used) || 0) * 100);
+    if (remainingPaisa <= 0) {
+      throw new AppError('COUPON_BUDGET_EXHAUSTED', 'Coupon discount budget has been exhausted.', 'কুপনের বাজেট শেষ হয়ে গেছে।');
+    }
+    // WHY clamp: the budget cap is what the funding party agreed to spend; one order must not overshoot it.
+    discountPaisa = Math.min(discountPaisa, remainingPaisa);
+  }
+
+  return { discountPaisa: Math.max(0, discountPaisa), basisBySupplier };
+}
+
+/**
+ * Splits a discount over sub-orders by weight, so the shares always add up to the whole discount.
+ * The last weighted supplier takes the rounding remainder.
+ *
+ * @param {number} discountPaisa
+ * @param {Map<string, number>} basisBySupplier
+ * @returns {Map<string, number>} paisa per supplier id (suppliers with no weight are absent)
+ */
+export function allocateDiscountBySupplier(discountPaisa, basisBySupplier) {
+  const shares = new Map();
+  const entries = [...basisBySupplier.entries()].filter(([, w]) => w > 0);
+  const totalWeight = entries.reduce((sum, [, w]) => sum + w, 0);
+  if (discountPaisa <= 0 || totalWeight <= 0) return shares;
+
+  let remaining = discountPaisa;
+  entries.forEach(([supplierId, weight], idx) => {
+    const share = idx === entries.length - 1 ? remaining : Math.floor((discountPaisa * weight) / totalWeight);
+    shares.set(supplierId, share);
+    remaining -= share;
+  });
+  return shares;
+}
+
 /**
  * Atomically reserves and redeems a coupon within a checkout transaction.
  *
