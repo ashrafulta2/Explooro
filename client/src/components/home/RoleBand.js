@@ -82,7 +82,7 @@ function buildBody(def, ctx, base) {
   }
   const list = el('div', 'home-band__rows');
   for (const item of def.rows) {
-    const row = anchor('home-band__row', null, item.path, onNavigate);
+    const row = anchor(`home-band__row${item.stat ? ' home-band__row--stat' : ''}`, null, item.path, onNavigate);
     row.append(el('span', 'home-band__row-label', labelOf(item)));
     if (item.stat) {
       const value = el('strong', 'home-band__row-value', PENDING);

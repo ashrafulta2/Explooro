@@ -139,6 +139,20 @@ describe('home bands', () => {
     for (const rule of rules) assert.doesNotMatch(rule, /flex:\s*1 1 0/, rule);
   });
 
+  it('the list reset inside a ranking can never strip a view card of its padding', () => {
+    // The bug: `.home-band__board ol { padding: 0 }` (0,1,1) out-ranked `.home-band__bars { padding }` (0,1,0),
+    // so the bars card, which is itself the <ol>, lost its padding and its text touched the card edge.
+    assert.doesNotMatch(css, /(^|\n)\.home-band__board ol\b/, 'the reset must be wrapped in :where()');
+    assert.match(css, /:where\(\.home-band__board ol\) \{[^}]*padding: 0/);
+    assert.match(css, /\.home-band__bars \{[^}]*padding: var\(--space-\d\) var\(--space-\d\)/);
+  });
+
+  it('side-panel rows never shrink below their text, and only figure rows wrap', () => {
+    assert.match(css, /\.home-band__row \{ flex: 1 0 auto;/);
+    assert.doesNotMatch(css, /\.home-band__row \{ flex-wrap: wrap/, 'wrapping every row pushed the "›" out of shortcut rows');
+    assert.match(css, /\.home-band__row--stat \{ flex-wrap: wrap;/);
+  });
+
   it('share percentages always add up to exactly 100', () => {
     for (const values of [[14, 9, 6, 4, 2], [1, 1, 1], [7], [3, 3, 3, 1], [0, 5]]) {
       const pct = percentShares(values);
