@@ -134,6 +134,195 @@ async function adminStats(db, userId, role) {
   return stats;
 }
 
+// ── Rankings for the centre slider ─────────────────────────────────────────────────────────────
+// WHY a separate `insights` object and not more `stats`: stats are flat numbers the client maps to
+// labels; a ranking is a list. Each role gets the lists that tell it something its own console's
+// first screen does not (see INSIGHT_BOARDS). Every sales ranking is a 30-day window over live
+// parcels only, so a cancelled or returned sale never lifts anyone up a board.
+const INSIGHT_DAYS = 30;
+const INSIGHT_LIMIT = 5;
+// WHY: a search phrase is shown only once this many different shoppers typed it. Free-text search
+// can hold a phone number or a name; one person's query must never surface on someone else's screen.
+const SEARCH_MIN_PEOPLE = 3;
+// "Repeat" means rejected at least this many times in the window; one rejection is a mistake, not a pattern.
+const REPEAT_MIN_REJECTIONS = 2;
+const LIVE_PARCEL = `so.status NOT IN ('CANCELLED', 'REFUNDED', 'RETURNED')`;
+const IN_WINDOW = (col) => `${col} >= now() - ($1 || ' days')::interval`;
+const PERSON = (alias) => `COALESCE(MAX(${alias}.display_name), MAX(${alias}.full_name))`;
+
+const entry = (r) => ({
+  id: String(r.id),
+  name_en: r.name_en ?? null,
+  name_bn: r.name_bn ?? r.name_en ?? null,
+  count: n(r.count),
+  amount: r.amount == null ? null : String(r.amount),
+  ...(r.code ? { code: r.code } : {}),
+});
+
+// `scope` narrows a sales ranking to one account: ['saler_id' | 'supplier_id', userId], or null for the whole platform.
+function scoped(scope) {
+  return scope ? { where: `AND so.${scope[0]} = $3`, params: [scope[1]] } : { where: '', params: [] };
+}
+
+async function productBoard(db, scope) {
+  const s = scoped(scope);
+  const { rows } = await db.query(
+    `SELECT p.id, p.title_en AS name_en, p.title_bn AS name_bn,
+            SUM(oi.qty)::int AS count, SUM(oi.line_total)::numeric(14,2) AS amount
+     FROM sub_orders so
+     JOIN order_items oi ON oi.sub_order_id = so.id
+     JOIN products p ON p.id = oi.product_id
+     WHERE ${LIVE_PARCEL} AND ${IN_WINDOW('so.created_at')} ${s.where}
+       ${scope ? '' : "AND p.status = 'ACTIVE'"}
+     GROUP BY p.id, p.title_en, p.title_bn
+     ORDER BY count DESC, amount DESC
+     LIMIT $2`,
+    [INSIGHT_DAYS, INSIGHT_LIMIT, ...s.params],
+  );
+  return rows.map(entry);
+}
+
+// A supplier ranks Shop Partners by what they sold of its stock (base value); the platform ranks by GMV.
+async function salerBoard(db, scope) {
+  const s = scoped(scope);
+  const money = scope ? 'so.subtotal_base' : 'so.total_amount';
+  const { rows } = await db.query(
+    `SELECT so.saler_id AS id, COALESCE(MAX(vs.shop_name), ${PERSON('up')}) AS name_en,
+            COUNT(*)::int AS count, SUM(${money})::numeric(14,2) AS amount
+     FROM sub_orders so
+     LEFT JOIN virtual_stores vs ON vs.saler_id = so.saler_id AND vs.deleted_at IS NULL
+     LEFT JOIN user_profiles up ON up.user_id = so.saler_id
+     WHERE so.saler_id IS NOT NULL AND ${LIVE_PARCEL} AND ${IN_WINDOW('so.created_at')} ${s.where}
+     GROUP BY so.saler_id
+     ORDER BY amount DESC, count DESC
+     LIMIT $2`,
+    [INSIGHT_DAYS, INSIGHT_LIMIT, ...s.params],
+  );
+  return rows.map(entry);
+}
+
+async function supplierBoard(db) {
+  const { rows } = await db.query(
+    `SELECT so.supplier_id AS id, ${PERSON('up')} AS name_en,
+            COUNT(*)::int AS count, SUM(so.total_amount)::numeric(14,2) AS amount
+     FROM sub_orders so
+     LEFT JOIN user_profiles up ON up.user_id = so.supplier_id
+     WHERE ${LIVE_PARCEL} AND ${IN_WINDOW('so.created_at')}
+     GROUP BY so.supplier_id
+     ORDER BY amount DESC, count DESC
+     LIMIT $2`,
+    [INSIGHT_DAYS, INSIGHT_LIMIT],
+  );
+  return rows.map(entry);
+}
+
+async function categoryBoard(db) {
+  const { rows } = await db.query(
+    `SELECT c.id, c.name_en, c.name_bn,
+            SUM(oi.qty)::int AS count, SUM(oi.line_total)::numeric(14,2) AS amount
+     FROM sub_orders so
+     JOIN order_items oi ON oi.sub_order_id = so.id
+     JOIN products p ON p.id = oi.product_id
+     JOIN categories c ON c.id = p.category_id
+     WHERE ${LIVE_PARCEL} AND ${IN_WINDOW('so.created_at')}
+     GROUP BY c.id, c.name_en, c.name_bn
+     ORDER BY amount DESC, count DESC
+     LIMIT $2`,
+    [INSIGHT_DAYS, INSIGHT_LIMIT],
+  );
+  return rows.map(entry);
+}
+
+async function searchBoard(db) {
+  const { rows } = await db.query(
+    `SELECT MIN(id) AS id, query_normalized AS name_en, COUNT(*)::int AS count
+     FROM search_events
+     WHERE audience = 'customer' AND ${IN_WINDOW('created_at')}
+     GROUP BY query_normalized
+     HAVING COUNT(DISTINCT COALESCE(user_id::text, session_id)) >= $3
+     ORDER BY count DESC
+     LIMIT $2`,
+    [INSIGHT_DAYS, INSIGHT_LIMIT, SEARCH_MIN_PEOPLE],
+  );
+  return rows.map((r) => entry({ ...r, name_bn: r.name_en }));
+}
+
+// Same open-status set as the moderator console's queue. No time window: it is what is waiting now,
+// by kind, so a moderator sees which queue is piling up.
+async function queueTypeBoard(db) {
+  const { rows } = await db.query(
+    `SELECT item_type AS id, item_type AS code, COUNT(*)::int AS count
+     FROM moderation_queue
+     WHERE status IN ('PENDING', 'IN_REVIEW', 'ESCALATED')
+     GROUP BY item_type
+     ORDER BY count DESC
+     LIMIT $1`,
+    [INSIGHT_LIMIT],
+  );
+  return rows.map(entry);
+}
+
+async function rejectionBoard(db) {
+  const { rows } = await db.query(
+    `SELECT mq.submitted_by AS id, ${PERSON('up')} AS name_en, COUNT(*)::int AS count
+     FROM moderation_queue mq
+     LEFT JOIN user_profiles up ON up.user_id = mq.submitted_by
+     WHERE mq.status = 'REJECTED' AND ${IN_WINDOW('mq.decided_at')}
+     GROUP BY mq.submitted_by
+     HAVING COUNT(*) >= $3
+     ORDER BY count DESC
+     LIMIT $2`,
+    [INSIGHT_DAYS, INSIGHT_LIMIT, REPEAT_MIN_REJECTIONS],
+  );
+  return rows.map(entry);
+}
+
+const OPERATIONS_BOARDS = {
+  top_suppliers: (db) => supplierBoard(db),
+  top_salers: (db) => salerBoard(db, null),
+  top_categories: (db) => categoryBoard(db),
+};
+
+/**
+ * Which rankings each role sees. WHY these: a Shop Partner needs to know what sells (their own, and what
+ * is moving on the platform that they could add) and what shoppers look for; a supplier, who sells only
+ * through Shop Partners, needs to know which partners and which of its products carry it; operations
+ * staff need the platform's leaders; a moderator, where the queue is piling up and who keeps getting
+ * rejected; an editor, what shoppers search and buy, which is what banners and stories should be about.
+ */
+export const INSIGHT_BOARDS = {
+  saler: {
+    top_products: (db, userId) => productBoard(db, ['saler_id', userId]),
+    trending_products: (db) => productBoard(db, null),
+    trending_searches: (db) => searchBoard(db),
+  },
+  supplier: {
+    top_salers: (db, userId) => salerBoard(db, ['supplier_id', userId]),
+    top_products: (db, userId) => productBoard(db, ['supplier_id', userId]),
+  },
+  admin: OPERATIONS_BOARDS,
+  super_admin: OPERATIONS_BOARDS,
+  moderator: {
+    queue_by_type: (db) => queueTypeBoard(db),
+    repeat_rejections: (db) => rejectionBoard(db),
+  },
+  editor: {
+    trending_searches: (db) => searchBoard(db),
+    top_categories: (db) => categoryBoard(db),
+  },
+};
+
+// WHY each board fails on its own: a ranking is decoration on top of the counts. One slow or broken
+// query must not blank the numbers or the other slides; that board alone comes back null and the
+// client shows its empty state.
+async function buildInsights(db, userId, role) {
+  const boards = INSIGHT_BOARDS[role];
+  if (!boards) return null;
+  const keys = Object.keys(boards);
+  const lists = await Promise.all(keys.map((k) => boards[k](db, userId).catch(() => null)));
+  return Object.fromEntries(keys.map((k, i) => [k, lists[i]]));
+}
+
 const BUILDERS = {
   customer: customerStats,
   saler: salerStats,
@@ -144,11 +333,12 @@ const BUILDERS = {
 };
 
 /**
- * @returns {{ role: string, stats: object|null }} `stats` is null for a role with nothing to count
- * (editor, finance, guests); the client then draws links only instead of inventing numbers.
+ * @returns {{ role: string, stats: object|null, insights: object|null }} `stats` is null for a role with
+ * nothing to count (editor, finance, guests); the client then draws links only instead of inventing numbers.
+ * `insights` holds the ranked lists (INSIGHT_BOARDS), null for a role without any.
  */
-export async function getHomeSummary(db, { userId, role }): Promise<{ role: string; stats: any | null; }> {
+export async function getHomeSummary(db, { userId, role }): Promise<{ role: string; stats: any | null; insights: any | null; }> {
   const build = BUILDERS[role];
-  if (!build) return { role, stats: null };
-  return { role, stats: await build(db, userId) };
+  const [stats, insights] = await Promise.all([build ? build(db, userId) : null, buildInsights(db, userId, role)]);
+  return { role, stats, insights };
 }

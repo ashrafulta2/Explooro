@@ -210,9 +210,9 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
 
   if (band) {
     let alive = true;
-    cleanups.push(() => { alive = false; });
+    cleanups.push(() => { alive = false; }, band.cleanup);
     getHomeSummary()
-      .then((summary) => { if (alive) band.fill(summary?.stats ?? null); })
+      .then((summary) => { if (alive) band.fill(summary?.stats ?? null, summary?.insights ?? null); })
       .catch(() => { if (alive) band.fill(null); });
   }
 

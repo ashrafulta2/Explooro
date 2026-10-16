@@ -544,6 +544,26 @@
       "q_coupons": "Coupons",
       "q_live": "Live shopping",
       "band": {
+        "board": {
+          "count": {
+            "units": "{{n}} sold",
+            "orders": "{{n}} orders",
+            "searches": "{{n}} searches",
+            "items": "{{n}} waiting",
+            "rejections": "{{n}} rejected"
+          },
+          "item_type": {
+            "PRODUCT_NEW": "New products",
+            "PRODUCT_EDIT": "Product edits",
+            "REVIEW": "Reviews",
+            "UGC_VIDEO": "Shopper videos",
+            "STOREFRONT_ASSET": "Storefront images",
+            "LIVE_STREAM": "Live streams",
+            "CHAT_REPORT": "Chat reports"
+          },
+          "unnamed": "Unnamed"
+        },
+        "slider_label": "Insights",
         "stat": {
           "price_drops": "Wishlist price drops",
           "coins": "Coins",
@@ -608,9 +628,24 @@
             "cta": "Open my store"
           },
           "center": {
-            "kicker": "Your earnings",
-            "title": "Commission at a glance",
-            "cta": "Open vault"
+            "top_products": {
+              "kicker": "Last 30 days",
+              "title": "Your best-selling products",
+              "cta": "Open analytics",
+              "empty": "No sales in the last 30 days yet. Share your store link to get your first one."
+            },
+            "trending_products": {
+              "kicker": "Across the platform",
+              "title": "Selling fast right now",
+              "cta": "Find products to sell",
+              "empty": "Not enough sales on the platform yet to show a trend."
+            },
+            "trending_searches": {
+              "kicker": "What shoppers search",
+              "title": "Top searches this month",
+              "cta": "Add matching products",
+              "empty": "Not enough searches yet to show a trend."
+            }
           },
           "right": {
             "kicker": "Needs you",
@@ -625,9 +660,23 @@
             "cta": "Pack orders"
           },
           "center": {
-            "kicker": "Stock",
-            "title": "Inventory health",
-            "cta": "Update stock"
+            "top_salers": {
+              "kicker": "Last 30 days",
+              "title": "Your top Shop Partners",
+              "cta": "See all Shop Partners",
+              "empty": "No Shop Partner has sold your products in the last 30 days yet."
+            },
+            "top_products": {
+              "kicker": "Last 30 days",
+              "title": "Your best-selling products",
+              "cta": "My products",
+              "empty": "None of your products sold in the last 30 days."
+            },
+            "stock": {
+              "kicker": "Stock",
+              "title": "Inventory health",
+              "cta": "Update stock"
+            }
           },
           "right": {
             "kicker": "Your business",
@@ -642,9 +691,23 @@
             "cta": "Open queue"
           },
           "center": {
-            "kicker": "Today",
-            "title": "Your moderation work",
-            "cta": "Dashboard"
+            "shift": {
+              "kicker": "Today",
+              "title": "Your moderation work",
+              "cta": "Dashboard"
+            },
+            "queue_by_type": {
+              "kicker": "Open queue",
+              "title": "What is waiting, by type",
+              "cta": "Open queue",
+              "empty": "The queue is clear."
+            },
+            "repeat_rejections": {
+              "kicker": "Last 30 days",
+              "title": "Most-rejected submitters",
+              "cta": "Reports",
+              "empty": "No one has been rejected more than once in the last 30 days."
+            }
           },
           "right": {
             "kicker": "Review areas",
@@ -659,9 +722,23 @@
             "cta": "Editor home"
           },
           "center": {
-            "kicker": "Knowledge",
-            "title": "Learning and help",
-            "cta": "Editor home"
+            "shortcuts": {
+              "kicker": "Knowledge",
+              "title": "Learning and help",
+              "cta": "Editor home"
+            },
+            "trending_searches": {
+              "kicker": "What shoppers search",
+              "title": "Top searches this month",
+              "cta": "Plan a banner",
+              "empty": "Not enough searches yet to show a trend."
+            },
+            "top_categories": {
+              "kicker": "Last 30 days",
+              "title": "Top-selling categories",
+              "cta": "Write a story",
+              "empty": "No sales in the last 30 days."
+            }
           },
           "right": {
             "kicker": "Shortcuts",
@@ -676,9 +753,29 @@
             "cta": "Admin console"
           },
           "center": {
-            "kicker": "Waiting for review",
-            "title": "Review queue",
-            "cta": "Open approvals"
+            "queue": {
+              "kicker": "Waiting for review",
+              "title": "Review queue",
+              "cta": "Open approvals"
+            },
+            "top_suppliers": {
+              "kicker": "Last 30 days",
+              "title": "Top suppliers by sales",
+              "cta": "Manage users",
+              "empty": "No sales in the last 30 days."
+            },
+            "top_salers": {
+              "kicker": "Last 30 days",
+              "title": "Top Shop Partners by sales",
+              "cta": "Manage users",
+              "empty": "No sales in the last 30 days."
+            },
+            "top_categories": {
+              "kicker": "Last 30 days",
+              "title": "Top-selling categories",
+              "cta": "Categories",
+              "empty": "No sales in the last 30 days."
+            }
           },
           "right": {
             "kicker": "Needs attention",

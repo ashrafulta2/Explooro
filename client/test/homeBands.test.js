@@ -11,23 +11,33 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { ROLE_BANDS, FULL_BAND_ROLES } from '../src/components/home/homeBands.js';
+import { ROLE_BANDS, FULL_BAND_ROLES, SLIDE_TONES } from '../src/components/home/homeBands.js';
 import { navItems } from '../src/config/navigation.js';
 import { formatStat } from '../src/components/home/RoleBand.js';
-import { MOCK_HOME_STATS } from '../src/mocks/handlers/homeSummary.js';
+import { MOCK_HOME_STATS, MOCK_HOME_INSIGHTS } from '../src/mocks/handlers/homeSummary.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');
 const en = JSON.parse(readFileSync(join(root, 'locales/en.json'), 'utf8'));
 const bn = JSON.parse(readFileSync(join(root, 'locales/bn.json'), 'utf8'));
+const css = readFileSync(join(root, 'styles/components/home-top.css'), 'utf8');
 const resolve = (dict, key) => key.split('.').reduce((node, part) => (node == null ? node : node[part]), dict);
 
 const POSITIONS = ['left', 'center', 'right'];
 // /chat is a topbar destination (the chat icon), not a sidebar item, so it is not in navItems.
 const navPaths = new Set([...navItems.map((n) => n.path), '/chat']);
+const textRole = (role) => (role === 'super_admin' ? 'admin' : role);
 
-function panelItems(panel) {
-  return [...(panel.rows || []), ...(panel.metrics || []), ...(panel.links || [])];
+/** Every panel and slide as `{ base, def }`: `base` is its i18n prefix, `def` its body. */
+function units(role, band) {
+  const out = [];
+  for (const [position, panel] of Object.entries(band)) {
+    const base = `marketplace.top.band.${textRole(role)}.${position}`;
+    if (panel.slides) for (const s of panel.slides) out.push({ base: `${base}.${s.id}`, def: s });
+    else out.push({ base, def: panel });
+  }
+  return out;
 }
+const itemsOf = (def) => [...(def.rows || []), ...(def.metrics || []), ...(def.links || [])];
 
 describe('home bands', () => {
   it('every role in FULL_BAND_ROLES defines all three panels; customer defines only the left one', () => {
@@ -40,8 +50,8 @@ describe('home bands', () => {
   it('every link points at a route that exists in the navigation', () => {
     const missing = [];
     for (const [role, band] of Object.entries(ROLE_BANDS)) {
-      for (const panel of Object.values(band)) {
-        for (const path of [panel.cta, ...panelItems(panel).map((i) => i.path)]) {
+      for (const { def } of units(role, band)) {
+        for (const path of [def.cta, ...itemsOf(def).map((i) => i.path)]) {
           if (!navPaths.has(path)) missing.push(`${role}: ${path}`);
         }
       }
@@ -52,10 +62,10 @@ describe('home bands', () => {
   it('every label exists in both English and Bangla', () => {
     const missing = [];
     for (const [role, band] of Object.entries(ROLE_BANDS)) {
-      for (const [position, panel] of Object.entries(band)) {
-        const textRole = role === 'super_admin' ? 'admin' : role;
-        const keys = ['kicker', 'title', 'cta'].map((k) => `marketplace.top.band.${textRole}.${position}.${k}`);
-        for (const item of panelItems(panel)) {
+      for (const { base, def } of units(role, band)) {
+        const keys = ['kicker', 'title', 'cta'].map((k) => `${base}.${k}`);
+        if (def.kind === 'leaderboard') keys.push(`${base}.empty`, `marketplace.top.band.board.count.${def.count}`);
+        for (const item of itemsOf(def)) {
           keys.push(item.stat ? `marketplace.top.band.stat.${item.stat}` : `marketplace.top.band.link.${item.link}`);
         }
         for (const key of keys) {
@@ -68,20 +78,46 @@ describe('home bands', () => {
     assert.deepEqual(missing, []);
   });
 
-  it('every figure a band shows is one the API sends for that role (the mock mirrors the live keys)', () => {
+  it('every figure and ranking a band shows is one the API sends for that role (the mock mirrors the live keys)', () => {
     const absent = [];
     for (const [role, band] of Object.entries(ROLE_BANDS)) {
-      for (const panel of Object.values(band)) {
-        for (const item of panelItems(panel).filter((i) => i.stat)) {
+      for (const { def } of units(role, band)) {
+        for (const item of itemsOf(def).filter((i) => i.stat)) {
           if (!(item.stat in (MOCK_HOME_STATS[role] || {}))) absent.push(`${role}: ${item.stat}`);
         }
+        if (def.kind === 'leaderboard' && !Array.isArray(MOCK_HOME_INSIGHTS[role]?.[def.board])) absent.push(`${role}: insights.${def.board}`);
       }
     }
     assert.deepEqual(absent, []);
   });
 
+  it('every moderation item type a ranking can name has a label in both languages', () => {
+    const types = ['PRODUCT_NEW', 'PRODUCT_EDIT', 'REVIEW', 'UGC_VIDEO', 'STOREFRONT_ASSET', 'LIVE_STREAM', 'CHAT_REPORT'];
+    for (const type of types) {
+      for (const dict of [en, bn]) assert.equal(typeof resolve(dict, `marketplace.top.band.board.item_type.${type}`), 'string', type);
+    }
+  });
+
+  it('every slide in a role has its own colour, and no two roles open on the same one', () => {
+    const openers = new Map();
+    for (const role of FULL_BAND_ROLES) {
+      const slides = ROLE_BANDS[role].center.slides;
+      assert.ok(slides.length >= 2, `${role} has a slider`);
+      const tones = slides.map((s) => s.tone);
+      assert.equal(new Set(tones).size, tones.length, `${role}: ${tones}`);
+      for (const tone of tones) {
+        assert.ok(SLIDE_TONES.includes(tone), `${role}: unknown tone ${tone}`);
+        assert.match(css, new RegExp(`\\.home-band__slide--${tone} \\{`), `home-top.css styles ${tone}`);
+      }
+      if (role !== 'super_admin') {
+        assert.ok(!openers.has(tones[0]), `${role} opens on ${tones[0]}, like ${openers.get(tones[0])}`);
+        openers.set(tones[0], role);
+      }
+    }
+  });
+
   it('super admin and admin differ only in the third review-queue figure', () => {
-    const third = (role) => ROLE_BANDS[role].center.metrics[2].stat;
+    const third = (role) => ROLE_BANDS[role].center.slides[0].metrics[2].stat;
     assert.equal(third('super_admin'), 'approvals_waiting');
     assert.equal(third('admin'), 'my_pending_requests');
   });

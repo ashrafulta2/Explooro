@@ -10,25 +10,51 @@
  *   { link, path }  — a plain shortcut, for roles with no numbers. Label is `marketplace.top.band.link.<link>`.
  * `money` formats the figure as currency; `alert` tints it when it is above zero (work waiting).
  *
+ * The centre panel is a slider (`slides`), like the customer's campaign slider. Each slide is one of:
+ *   kind 'leaderboard' — ranks `insights.<board>` from the same endpoint; `count` names the unit of the
+ *                        figure under each name (`marketplace.top.band.board.count.<count>`).
+ *   kind 'metrics'     — the role's key figures as tinted cards.
+ *   kind 'links'       — shortcut tiles, for a role with no numbers.
+ * Its words are `marketplace.top.band.<role>.center.<slide id>.{kicker,title,cta}`. `tone` picks the
+ * slide's fill (home-top.css `.home-band__slide--<tone>`): every slide in a role has its own, and no two
+ * roles open on the same colour, so an account type is recognisable at a glance.
+ *
  * Every `path` is a route in config/navigation.js. A test (homeBands.test.js) checks that and that
  * every label exists in both locales, so a renamed route or a missing translation fails the build.
  */
 
 const stat = (key, path, extra = {}) => ({ stat: key, path, ...extra });
 const link = (key, path, extra = {}) => ({ link: key, path, ...extra });
+const board = (id, tone, count, cta, extra = {}) => ({ id, tone, kind: 'leaderboard', board: id, count, cta, ...extra });
 
-const OPERATIONS = {
-  // Admin and super admin share one picture. Only the third review-queue figure differs: a super
-  // admin sees the approvals waiting on them, an admin sees their own requests still pending.
+/** Slide fills, all white-text safe in light and dark mode (see home-top.css). */
+export const SLIDE_TONES = ['orange', 'teal', 'plum', 'success', 'info', 'accent', 'rose', 'amber'];
+
+// Admin and super admin share one picture. Only the third review-queue figure differs: a super
+// admin sees the approvals waiting on them, an admin sees their own requests still pending.
+const operations = (thirdMetric) => ({
   left: {
     tone: 'brand',
     rows: [stat('orders_today', '/admin/orders'), stat('gmv_today', '/admin/orders', { money: true })],
     cta: '/admin',
   },
   center: {
-    tone: 'soft',
-    kind: 'metrics',
-    cta: '/admin/approvals',
+    slides: [
+      {
+        id: 'queue',
+        tone: 'accent',
+        kind: 'metrics',
+        metrics: [
+          stat('pending_kyc', '/admin/verification', { alert: true, tone: 'warn' }),
+          stat('pending_products', '/admin/catalog/moderation', { alert: true, tone: 'info' }),
+          thirdMetric,
+        ],
+        cta: '/admin/approvals',
+      },
+      board('top_suppliers', 'success', 'orders', '/admin/users'),
+      board('top_salers', 'orange', 'orders', '/admin/users'),
+      board('top_categories', 'plum', 'units', '/admin/catalog/categories'),
+    ],
   },
   right: {
     tone: 'dark',
@@ -38,7 +64,7 @@ const OPERATIONS = {
     ],
     cta: '/admin/disputes',
   },
-};
+});
 
 export const ROLE_BANDS = {
   // Customer: only the left panel is replaced; the slider and the right column stay as they were.
@@ -55,6 +81,9 @@ export const ROLE_BANDS = {
     },
   },
 
+  // WHY no balance cards in the centre: escrow, available and 30-day profit are the first thing the
+  // Shop Partner's vault and dashboard show. The centre is the band's widest panel, so it carries what
+  // the console does not put up front: what sells, what is selling platform-wide, what shoppers search.
   saler: {
     left: {
       tone: 'brand',
@@ -66,14 +95,11 @@ export const ROLE_BANDS = {
       cta: '/saler',
     },
     center: {
-      tone: 'soft',
-      kind: 'metrics',
-      metrics: [
-        stat('escrow_balance', '/saler/vault', { money: true, tone: 'info' }),
-        stat('available_balance', '/saler/vault', { money: true, tone: 'ok' }),
-        stat('profit_30d', '/saler/analytics', { money: true, tone: 'acc' }),
+      slides: [
+        board('top_products', 'orange', 'units', '/saler/analytics'),
+        board('trending_products', 'teal', 'units', '/saler/sourcing'),
+        board('trending_searches', 'plum', 'searches', '/saler/products'),
       ],
-      cta: '/saler/vault',
     },
     right: {
       tone: 'dark',
@@ -98,14 +124,21 @@ export const ROLE_BANDS = {
       cta: '/supplier/fulfilment',
     },
     center: {
-      tone: 'soft',
-      kind: 'metrics',
-      metrics: [
-        stat('products', '/supplier/products', { tone: 'info' }),
-        stat('low_stock', '/supplier/inventory', { alert: true, tone: 'warn' }),
-        stat('out_of_stock', '/supplier/inventory', { alert: true, tone: 'bad' }),
+      slides: [
+        board('top_salers', 'success', 'orders', '/supplier/salers'),
+        board('top_products', 'info', 'units', '/supplier/products'),
+        {
+          id: 'stock',
+          tone: 'amber',
+          kind: 'metrics',
+          metrics: [
+            stat('products', '/supplier/products', { tone: 'info' }),
+            stat('low_stock', '/supplier/inventory', { alert: true, tone: 'warn' }),
+            stat('out_of_stock', '/supplier/inventory', { alert: true, tone: 'bad' }),
+          ],
+          cta: '/supplier/inventory',
+        },
       ],
-      cta: '/supplier/inventory',
     },
     right: {
       tone: 'dark',
@@ -126,13 +159,20 @@ export const ROLE_BANDS = {
       cta: '/moderator/queue',
     },
     center: {
-      tone: 'soft',
-      kind: 'metrics',
-      metrics: [
-        stat('resolved_today', '/moderator', { tone: 'ok' }),
-        stat('sla_at_risk', '/moderator/queue', { alert: true, tone: 'bad' }),
+      slides: [
+        {
+          id: 'shift',
+          tone: 'info',
+          kind: 'metrics',
+          metrics: [
+            stat('resolved_today', '/moderator', { tone: 'ok' }),
+            stat('sla_at_risk', '/moderator/queue', { alert: true, tone: 'bad' }),
+          ],
+          cta: '/moderator',
+        },
+        board('queue_by_type', 'plum', 'items', '/moderator/queue', { nameKey: 'marketplace.top.band.board.item_type' }),
+        board('repeat_rejections', 'rose', 'rejections', '/moderator/reports'),
       ],
-      cta: '/moderator',
     },
     right: {
       tone: 'dark',
@@ -146,7 +186,7 @@ export const ROLE_BANDS = {
     },
   },
 
-  // Editor has no dashboard numbers, so every panel is shortcuts; no invented figures.
+  // Editor has no dashboard numbers of its own; its rankings say what banners and stories should be about.
   editor: {
     left: {
       tone: 'brand',
@@ -154,15 +194,22 @@ export const ROLE_BANDS = {
       cta: '/editor',
     },
     center: {
-      tone: 'soft',
-      kind: 'links',
-      links: [
-        link('editor_academy', '/editor/academy', { tone: 'brand' }),
-        link('editor_help_center', '/editor/help-center', { tone: 'info' }),
-        link('editor_whats_new', '/editor/whats-new', { tone: 'ok' }),
-        link('editor_translations', '/editor/translations', { tone: 'acc' }),
+      slides: [
+        {
+          id: 'shortcuts',
+          tone: 'teal',
+          kind: 'links',
+          links: [
+            link('editor_academy', '/editor/academy', { tone: 'brand' }),
+            link('editor_help_center', '/editor/help-center', { tone: 'info' }),
+            link('editor_whats_new', '/editor/whats-new', { tone: 'ok' }),
+            link('editor_translations', '/editor/translations', { tone: 'acc' }),
+          ],
+          cta: '/editor',
+        },
+        board('trending_searches', 'orange', 'searches', '/editor/banners'),
+        board('top_categories', 'accent', 'units', '/editor/stories'),
       ],
-      cta: '/editor',
     },
     right: {
       tone: 'dark',
@@ -171,28 +218,8 @@ export const ROLE_BANDS = {
     },
   },
 
-  admin: {
-    ...OPERATIONS,
-    center: {
-      ...OPERATIONS.center,
-      metrics: [
-        stat('pending_kyc', '/admin/verification', { alert: true, tone: 'warn' }),
-        stat('pending_products', '/admin/catalog/moderation', { alert: true, tone: 'info' }),
-        stat('my_pending_requests', '/admin/approvals', { tone: 'acc' }),
-      ],
-    },
-  },
-  super_admin: {
-    ...OPERATIONS,
-    center: {
-      ...OPERATIONS.center,
-      metrics: [
-        stat('pending_kyc', '/admin/verification', { alert: true, tone: 'warn' }),
-        stat('pending_products', '/admin/catalog/moderation', { alert: true, tone: 'info' }),
-        stat('approvals_waiting', '/admin/approvals', { alert: true, tone: 'acc' }),
-      ],
-    },
-  },
+  admin: operations(stat('my_pending_requests', '/admin/approvals', { tone: 'acc' })),
+  super_admin: operations(stat('approvals_waiting', '/admin/approvals', { alert: true, tone: 'acc' })),
 };
 
 /** Roles whose top band replaces ALL THREE columns (customer only replaces the left one). */
