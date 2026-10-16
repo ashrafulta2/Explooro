@@ -111,7 +111,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
   async function loadData() {
     try {
       // WHY the session store and not a request: this used to GET /me, which is not a route —
-      // me.routes.js mounts at /api/v1/me and registers only /permissions, so there has never
+      // me.routes.ts mounts at /api/v1/me and registers only /permissions, so there has never
       // been a bare /me endpoint to call. initSession() already holds the authenticated user,
       // so read it there rather than round-tripping for something we have.
       currentUserId = getCurrentUser()?.id ?? currentUserId;
@@ -206,7 +206,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
   }
 
   // The gateway's live payload is camelCase and nested under `message`; every other code path
-  // here (HTTP load, optimistic send) uses the snake_case row shape chat.service.js returns over
+  // here (HTTP load, optimistic send) uses the snake_case row shape chat.service.ts returns over
   // HTTP. Normalise once at the boundary so MessageBubble only ever sees one shape.
   function normalizeWireMessage(threadId, m) {
     return {
@@ -410,8 +410,8 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
     updateConnectionBadge(status);
   });
 
-  // WHY the flat camelCase reads below: server/src/sockets/chat.handler.js and
-  // chat.service.js send frames as { type, clientMsgId, messageId, threadId } and
+  // WHY the flat camelCase reads below: server/src/sockets/chat.handler.ts and
+  // chat.service.ts send frames as { type, clientMsgId, messageId, threadId } and
   // { type, threadId, message: {...} } — never wrapped in a `payload` object. This handler
   // destructured `payload` off the frame, so it was undefined on every live frame and the whole
   // real-time half of the page (acks, inbound messages, typing) silently did nothing.

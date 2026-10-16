@@ -120,11 +120,11 @@ These are real and were left open on purpose. Do not assume they were missed.
    topbar, so the wordmark flag appears on **every** admin route, one per page. The rationale for
    leaving it is unchanged; only the scope stated here was wrong.
 2. ~~**`GET /admin/catalog/stats` still does not exist server-side**~~ — **CLOSED 2026-09-04.**
-   Built through the full layer stack: `product.repository.js` (`getCatalogStats`,
+   Built through the full layer stack: `product.repository.ts` (`getCatalogStats`,
    `getCatalogCategoryBreakdown` — two aggregate queries whose flash-sale and trust-tier joins are
-   deliberately identical to `listProducts()`), `product.service.js` (`getCatalogStats`, plus
+   deliberately identical to `listProducts()`), `product.service.ts` (`getCatalogStats`, plus
    `resolveLowStockThreshold` reading `platform_settings['catalog.low_stock_threshold']`),
-   `product.controller.js`, and a route gated on `catalog.product.view_all` — the same permission as
+   `product.controller.ts`, and a route gated on `catalog.product.view_all` — the same permission as
    the page it feeds. Covered by `server/test/catalogStats.test.js` (9 tests) and smoke-run against
    the seeded Postgres. Two related defects surfaced while wiring it and were fixed with it:
    - The page read `p.stock` and `p.category`, but the live API returns `stock_qty` and
@@ -132,7 +132,7 @@ These are real and were left open on purpose. Do not assume they were missed.
      *General*. `normalizeProducts()` in `CatalogProductsPage.js` now bridges the two shapes.
    - `verified_suppliers_count` counted *products whose supplier is verified* under a KPI labelled
      "Verified Suppliers". Both the endpoint and the mock now count distinct suppliers.
-3. **The Module Control fix is mock-side.** `server/src/routes/module.routes.js` already serves
+3. **The Module Control fix is mock-side.** `server/src/routes/module.routes.ts` already serves
    `/admin/modules` from the real registry; the fabricated 8-module list was only in
    `client/src/mocks/handlers/admin.js`, which shadows it when `VITE_API_MODE=mock`. Dev and live now
    list the same modules under the same keys. **Not verified against a live Postgres-backed server**
@@ -168,9 +168,9 @@ These are real and were left open on purpose. Do not assume they were missed.
    that would have made a HIDDEN page reachable by typing its name.
    `client/test/pageAvailability.test.js` fails if any of the three grows its own copy.
    Server-side, an endpoint owned by one page declares `config: { page }` and
-   `middlewares/requirePage.js` appends the guard — declared at the route, never in a central
+   `middlewares/requirePage.ts` appends the guard — declared at the route, never in a central
    map, because a map is a second list nobody updates. The reader is what makes the declaration
-   real: `store.routes.js` carried `config: { requireModule, requirePermission }` on four routes
+   real: `store.routes.ts` carried `config: { requireModule, requirePermission }` on four routes
    with nothing in the repo reading it, so those guards did nothing at all.
    `server/test/requirePage.test.js` asserts through `app.inject()` — never by looking for the
    key — and reads back each real route's preHandler chain to prove the guard is attached and
@@ -211,11 +211,11 @@ These are real and were left open on purpose. Do not assume they were missed.
     logs — only a negative test (a user *without* the permission getting a 200) ever reveals it.
     The working form is
     `preHandler: [authenticate, app.requireModule('module_key'), app.requirePermission('domain.resource.action')]`
-    — see `server/src/routes/supplier.routes.js`, with the factories in
-    `server/src/middlewares/requireModule.js` / `requirePermission.js`. Hanging the guards off a
+    — see `server/src/routes/supplier.routes.ts`, with the factories in
+    `server/src/middlewares/requireModule.ts` / `requirePermission.ts`. Hanging the guards off a
     `fastify.register` child scope is equivalent, and `authenticate` may be that scope's
     `onRequest` hook instead of repeating in each array, since `onRequest` runs first.
-    The four `/api/v1/saler/store*` routes in `store.routes.js` carried the dead form from the
+    The four `/api/v1/saler/store*` routes in `store.routes.ts` carried the dead form from the
     2026-08-22 baseline until 2026-10-07, so they ran behind `authenticate` alone: any signed-in
     customer could read and write their own storefront, with `virtual_storefront` and
     `physical_shop_status` both switched off. Guarded by `server/test/routeGuards.test.js`, which

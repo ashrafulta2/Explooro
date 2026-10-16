@@ -12,7 +12,7 @@ import { deniedKey } from '../src/components/payoutProtection/ProtectionCoverTab
 import en from '../src/locales/en.json' with { type: 'json' };
 import bn from '../src/locales/bn.json' with { type: 'json' };
 
-// The reason codes fastPayout.service.js can return, and the denial reasons returnProtection.service.js records.
+// The reason codes fastPayout.service.ts can return, and the denial reasons returnProtection.service.ts records.
 const FAST_PAYOUT_REASONS = ['NOT_LOCKED', 'NOT_DELIVERED', 'COD_UNRECONCILED', 'OPEN_CLAIM', 'GRADE_BLOCKED', 'TOO_SMALL', 'TOO_LARGE', 'TOO_SOON', 'EXPOSURE_LIMIT'];
 const DENIED_REASONS = ['CLAIM_LIMIT', 'NOT_CLAWED_BACK', 'NOTHING_TO_PAY'];
 

@@ -5,13 +5,13 @@
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import requirePermissionPlugin from '../src/middlewares/requirePermission.js';
-import userRoutes from '../src/routes/user.routes.js';
-import delegationRoutes from '../src/routes/delegation.routes.js';
-import restrictionRoutes from '../src/routes/restriction.routes.js';
-import * as rbacService from '../src/services/rbac.service.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import requirePermissionPlugin from '../src/middlewares/requirePermission.ts';
+import userRoutes from '../src/routes/user.routes.ts';
+import delegationRoutes from '../src/routes/delegation.routes.ts';
+import restrictionRoutes from '../src/routes/restriction.routes.ts';
+import * as rbacService from '../src/services/rbac.service.ts';
 
 function createMockDb() {
   const users = [

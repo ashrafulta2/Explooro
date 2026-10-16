@@ -2,7 +2,7 @@
  * ads.js — Mock API for the ad marketplace (catalogue, quoting, inventory, campaigns, pricing).
  *
  * WHY the pricing math is repeated here: mocks stand in for the server, and the server's authority
- * on price is server/src/services/adPricing.js. This file mirrors that engine closely enough for
+ * on price is server/src/services/adPricing.ts. This file mirrors that engine closely enough for
  * VITE_API_MODE=mock to behave like the real thing — same line items, same discount/fee/VAT order,
  * same error codes. When a rate rule changes, change it there first, then mirror it here.
  */
@@ -320,7 +320,7 @@ let mockAdCampaigns = [
 ];
 
 /* --------------------------------------------------------------------------------------------
- * Pricing — mirrors server/src/services/adPricing.js
+ * Pricing — mirrors server/src/services/adPricing.ts
  * ----------------------------------------------------------------------------------------- */
 
 const RATE_DEFAULTS = {

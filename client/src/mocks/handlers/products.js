@@ -10,7 +10,7 @@ function traceId() {
 }
 
 // A tiny Banglish → Bengali seed map so "shari"/"saree" find "শাড়ি" in mock mode. The real
-// engine (Prompt 4.4) replaces this with server/src/utils/transliterate.js + the i18n_strings
+// engine (Prompt 4.4) replaces this with server/src/utils/transliterate.ts + the i18n_strings
 // table — this is only here so the mock search feels like the finished feature during preview.
 const SEARCH_SYNONYMS = {
   saree: ['শাড়ি'], shari: ['শাড়ি'], sari: ['শাড়ি'],
@@ -46,7 +46,7 @@ function productMatchesQuery(p, raw) {
   return needles.some((n) => haystack.includes(n));
 }
 
-// Response time copy keyed by trust tier — mirrors server/src/services/product.service.js's
+// Response time copy keyed by trust tier — mirrors server/src/services/product.service.ts's
 // RESPONSE_TIME_BY_TIER (chat/messaging response tracking doesn't exist yet, Phase 8).
 const RESPONSE_TIME_BY_TIER = {
   elite: { en: 'Usually responds within 1 hour', bn: 'সাধারণত ১ ঘণ্টার মধ্যে সাড়া দেয়' },
@@ -100,7 +100,7 @@ function synthesizeImages(product) {
 }
 
 /**
- * Mock of the public scorecard shape from services/supplierScorecard.service.js toPublicView.
+ * Mock of the public scorecard shape from services/supplierScorecard.service.ts toPublicView.
  * Cycles A / B / C / New by position so every state of the Sourcing card chip is visible in mock mode.
  */
 const MOCK_SCORECARDS = [
@@ -136,10 +136,10 @@ export function synthesizeDescription(product) {
   };
 }
 
-/** Mirrors the shape server/src/services/pricing.service.js's calculatePricingBreakdown returns —
+/** Mirrors the shape server/src/services/pricing.service.ts's calculatePricingBreakdown returns —
  * the mock fixture only carries a flat `margin_pct` (the saler-facing badge value), so the rest of
  * the breakdown is reverse-engineered from it for display purposes. The real split arithmetic
- * lives only in pricing.service.js; this is presentation data for a page that has no real backend
+ * lives only in pricing.service.ts; this is presentation data for a page that has no real backend
  * order behind it in mock mode. */
 function synthesizePricing(product) {
   const retail = Number(product.price);
@@ -402,10 +402,10 @@ export default [
     path: '/products',
     handler({ body }) {
       const b = body || {};
-      // Mirrors the live contract (server/src/services/product.service.js createProduct).
+      // Mirrors the live contract (server/src/services/product.service.ts createProduct).
       if (!b.title_en || !b.title_bn || !b.category_id) {
         return {
-          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          status: 400, // live VALIDATION_FAILED status (errorHandler.ts)
           body: {
             error: {
               code: 'VALIDATION_FAILED',
@@ -420,7 +420,7 @@ export default [
       const imageUrls = mediaIds.map((id) => resolveMockMediaUrl(id));
       if (b.media_ids !== undefined && (!Array.isArray(b.media_ids) || imageUrls.some((u) => !u))) {
         return {
-          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          status: 400, // live VALIDATION_FAILED status (errorHandler.ts)
           body: {
             error: {
               code: 'VALIDATION_FAILED',
@@ -511,7 +511,7 @@ export default [
     },
   },
   {
-    // Mirrors the live PATCH (server/src/services/product.service.js updateProduct): live column
+    // Mirrors the live PATCH (server/src/services/product.service.ts updateProduct): live column
     // names, id-or-ref lookup, and media_ids replacing the photo set (at least one required).
     method: 'PATCH',
     path: '/products/:id',
@@ -524,7 +524,7 @@ export default [
       const b = body || {};
       const current = activeProducts[idx];
       const invalid = (en, bn) => ({
-        status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+        status: 400, // live VALIDATION_FAILED status (errorHandler.ts)
         body: { error: { code: 'VALIDATION_FAILED', message_en: en, message_bn: bn } },
       });
 
@@ -564,7 +564,7 @@ export default [
     },
   },
   {
-    // Mirrors POST /products/:id/restock (product.service.js restockProduct): adds to stored stock.
+    // Mirrors POST /products/:id/restock (product.service.ts restockProduct): adds to stored stock.
     method: 'POST',
     path: '/products/:id/restock',
     handler({ params, body }) {
@@ -574,7 +574,7 @@ export default [
       const qty = Number(body?.quantity);
       if (!Number.isInteger(qty) || qty < 1) {
         return {
-          status: 400, // live VALIDATION_FAILED status (errorHandler.js)
+          status: 400, // live VALIDATION_FAILED status (errorHandler.ts)
           body: {
             error: {
               code: 'VALIDATION_FAILED',
@@ -615,7 +615,7 @@ export default [
   {
     method: 'GET',
     path: '/admin/catalog/stats',
-    // WHY this mirrors server/src/services/product.service.js getCatalogStats() field for field:
+    // WHY this mirrors server/src/services/product.service.ts getCatalogStats() field for field:
     // the admin catalog page reads this contract in mock mode and the Fastify route in live mode.
     // When the two drifted, the panel silently changed meaning depending on VITE_API_MODE.
     handler() {
@@ -980,7 +980,7 @@ export default [
     },
   },
   {
-    // Same shape as GET /sourcing/incentives (services/volumeIncentive.service.js getSalerView).
+    // Same shape as GET /sourcing/incentives (services/volumeIncentive.service.ts getSalerView).
     method: 'GET',
     path: '/sourcing/incentives',
     handler() {

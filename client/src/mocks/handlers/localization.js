@@ -1,7 +1,7 @@
 /**
  * localization.js — Mock API handlers for the Language & Localization policy.
  *
- * Mirrors server/src/routes/localization.routes.js so the whole feature is demonstrable with
+ * Mirrors server/src/routes/localization.routes.ts so the whole feature is demonstrable with
  * VITE_API_MODE=mock and no database, per the Master Instruction that every integration ships a
  * mock driver and defaults to it in development.
  *
@@ -53,7 +53,7 @@ function savePolicy() {
   }
 }
 
-/** The same four rules as localization.service.js validatePolicy(), same order, same messages. */
+/** The same four rules as localization.service.ts validatePolicy(), same order, same messages. */
 function validate(body) {
   const { default_locale: defaultLocale, enabled_locales: enabledLocales, allow_user_override: allowOverride, reason } = body;
 

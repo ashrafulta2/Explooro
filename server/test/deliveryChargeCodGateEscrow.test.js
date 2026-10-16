@@ -1,7 +1,7 @@
 /**
  * deliveryChargeCodGateEscrow.test.js — the three fixes of 2026-10-09 (bug report "Found, not fixed").
  *
- * 1. A paid bKash/Nagad/card order locks escrow (payment.service.js used to call depositToEscrow
+ * 1. A paid bKash/Nagad/card order locks escrow (payment.service.ts used to call depositToEscrow
  *    with the wrong arguments and hid the error).
  * 2. The normal-checkout delivery charge is a setting (it was ৳60 in code).
  * 3. Team-purchase COD members pass the same trust / OTP gate as checkout, and the OTP row survives
@@ -11,10 +11,10 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import * as deliveryChargeService from '../src/services/deliveryCharge.service.js';
-import * as codGateService from '../src/services/codGate.service.js';
-import { AppError } from '../src/plugins/errorHandler.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import * as deliveryChargeService from '../src/services/deliveryCharge.service.ts';
+import * as codGateService from '../src/services/codGate.service.ts';
+import { AppError } from '../src/plugins/errorHandler.ts';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const src = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
 
@@ -32,7 +32,7 @@ function fakeDb(name, answer = () => ({ rows: [] })) {
 }
 
 describe('1. paid gateway orders lock escrow', () => {
-  const paymentSrc = src('services/payment.service.js');
+  const paymentSrc = src('services/payment.service.ts');
 
   test('depositToEscrow is called as (db, {...}), never (db, cache, {...})', () => {
     assert.ok(!/depositToEscrow\(db, cache/.test(paymentSrc));
@@ -46,7 +46,7 @@ describe('1. paid gateway orders lock escrow', () => {
 
   test('the external clearing wallet funds it, so the shopper\'s wallet is never driven negative', () => {
     assert.match(paymentSrc, /buyerWalletId: clearingWalletId/);
-    assert.match(src('services/shipment.service.js'), /buyerWalletId: await vaultService\.resolveClearingWalletId/);
+    assert.match(src('services/shipment.service.ts'), /buyerWalletId: await vaultService\.resolveClearingWalletId/);
   });
 
   test('a refunded or already-escrowed sub-order is never locked again', () => {
@@ -54,8 +54,8 @@ describe('1. paid gateway orders lock escrow', () => {
     assert.match(paymentSrc, /o\.payment_status = 'PAID'/);
   });
 
-  test('the payment controllers use the pool app.js actually decorates', () => {
-    for (const f of ['controllers/payment.controller.js', 'controllers/paymentWebhook.controller.js']) {
+  test('the payment controllers use the pool app.ts actually decorates', () => {
+    for (const f of ['controllers/payment.controller.ts', 'controllers/paymentWebhook.controller.ts']) {
       assert.ok(!/req\.server\.pg\b/.test(src(f)), `${f} reads req.server.pg, which does not exist`);
     }
   });
@@ -68,8 +68,8 @@ describe('1. paid gateway orders lock escrow', () => {
 
 describe('2. delivery charge is a setting', () => {
   test('checkout and the cart read it; no ৳60 constant is left', () => {
-    const checkout = src('services/checkout.service.js');
-    const cart = src('services/cart.service.js');
+    const checkout = src('services/checkout.service.ts');
+    const cart = src('services/cart.service.ts');
     assert.ok(!/toPaisa\(60(\.0)?\)/.test(checkout));
     assert.ok(!/PerParcel = 60/.test(cart));
     assert.match(checkout, /deliveryChargeService\.perParcelCharge\(client, cache, \{ fresh: true \}\)/);
@@ -196,11 +196,11 @@ describe('3. COD trust / OTP gate', () => {
   });
 
   test('checkout and team purchase both use the shared gate', () => {
-    assert.match(src('services/checkout.service.js'), /codGateService\.enforceCodGate\(pool, cache, \{/);
-    const team = src('services/teamPurchase.service.js');
+    assert.match(src('services/checkout.service.ts'), /codGateService\.enforceCodGate\(pool, cache, \{/);
+    const team = src('services/teamPurchase.service.ts');
     assert.match(team, /codGateService\.enforceCodGate\(db, cache, \{/);
     assert.match(team, /if \(paymentMethod !== 'COD'\) return/);
     assert.match(team, /isOtpVerified: Boolean\(m\.is_otp_verified\)/);
-    assert.match(src('controllers/teamPurchase.controller.js'), /otpCode: req\.body\?\.otp_code/);
+    assert.match(src('controllers/teamPurchase.controller.ts'), /otpCode: req\.body\?\.otp_code/);
   });
 });

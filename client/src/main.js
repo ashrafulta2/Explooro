@@ -410,7 +410,7 @@ async function bootRouterDemo() {
       },
       // Popup genie effect governance. Same key pair pattern as Language: `.view` gates the page and
       // the sidebar entry, `.update` gates Save. No `module` beyond `core` — a governance surface a
-      // Super Admin must always reach (see server/src/routes/genie.routes.js).
+      // Super Admin must always reach (see server/src/routes/genie.routes.ts).
       {
         path: '/admin/platform/genie',
         title: 'Popup Genie Effect — Explooro Admin',
@@ -420,7 +420,7 @@ async function bootRouterDemo() {
         load: () => import('./pages/admin/GenieSettingsPage.js'),
       },
       // Delivery charge per parcel for normal checkout. `.view` gates the page, `.update` (CRITICAL,
-      // super admin only) gates Save — see server/src/routes/deliveryCharge.routes.js.
+      // super admin only) gates Save — see server/src/routes/deliveryCharge.routes.ts.
       {
         path: '/admin/platform/delivery',
         title: 'Delivery Charge — Explooro Admin',
@@ -432,7 +432,7 @@ async function bootRouterDemo() {
       // Personalized home feed governance (Phase G): weights, rails, diversity, co-visitation, cache and
       // the per-surface funnel. `core` for the same reason as Genie: the weights also govern the
       // non-personal signals an opted-out shopper gets, so it must stay reachable when the
-      // `personalization_signals` capture module is off (see server/src/routes/recommendationAdmin.routes.js).
+      // `personalization_signals` capture module is off (see server/src/routes/recommendationAdmin.routes.ts).
       {
         path: '/admin/platform/recommendations',
         title: 'Personalized Feed — Explooro Admin',
@@ -1518,6 +1518,14 @@ async function bootRouterDemo() {
         permission: 'orders.return.view_all',
         module: 'returns_engine',
         load: () => import('./pages/admin/ReturnsQueuePage.js'),
+      },
+      {
+        path: '/admin/warranty-claims',
+        title: () => `${t('nav.admin.warranty_claims')} — Explooro`,
+        requiresAuth: true,
+        permission: 'support.warranty.override',
+        module: 'digital_warranty',
+        load: () => import('./pages/admin/AdminWarrantyClaimsPage.js'),
       },
       {
         path: '/admin/returns/queue',

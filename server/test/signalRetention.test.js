@@ -17,10 +17,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as svc from '../src/services/signalRetention.service.js';
-import * as repo from '../src/repositories/signalRetention.repository.js';
-import { runSignalRetention } from '../src/jobs/signalRetention.job.js';
-import { runJobNow } from '../src/jobs/scheduler.js';
+import * as svc from '../src/services/signalRetention.service.ts';
+import * as repo from '../src/repositories/signalRetention.repository.ts';
+import { runSignalRetention } from '../src/jobs/signalRetention.job.ts';
+import { runJobNow } from '../src/jobs/scheduler.ts';
 
 const DAY = 24 * 60 * 60 * 1000;
 const NOW = new Date('2026-10-08T12:00:00.000Z');
@@ -474,12 +474,12 @@ describe('Signal retention — job', () => {
   });
 
   test('the job source declares the daily interval and the module key', () => {
-    const src = fs.readFileSync(path.resolve(import.meta.dirname, '../src/jobs/signalRetention.job.js'), 'utf8');
+    const src = fs.readFileSync(path.resolve(import.meta.dirname, '../src/jobs/signalRetention.job.ts'), 'utf8');
     assert.match(src, /name: 'signal_retention'/);
     assert.match(src, /intervalMs: 24 \* 3600000/);
     assert.match(src, /moduleKey: 'personalization_signals'/);
-    const app = fs.readFileSync(path.resolve(import.meta.dirname, '../src/app.js'), 'utf8');
-    assert.match(app, /import '\.\/jobs\/signalRetention\.job\.js'/);
+    const app = fs.readFileSync(path.resolve(import.meta.dirname, '../src/app.ts'), 'utf8');
+    assert.match(app, /import '\.\/jobs\/signalRetention\.job\.ts'/);
   });
 });
 

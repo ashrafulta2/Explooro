@@ -424,7 +424,7 @@ let mockSalerLeaderboard = [
   { rank: 7, saler_name: 'Ashraf Ali', store_slug: 'gadget-galaxy', sales_count: 38, gmv: 84500.0, net_profit: 14800.0, tier_badge: 'BRONZE_SELLER', avatar: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>', is_current_user: false },
 ];
 
-// Shop Partner Pro mock — mirrors server/src/services/subscriptionBilling.service.js shapes.
+// Shop Partner Pro mock — mirrors server/src/services/subscriptionBilling.service.ts shapes.
 const PRO_PERIOD_MS = 30 * 24 * 3600 * 1000;
 const mockProPlans = [
   { id: 1, code: 'starter', name_en: 'Free Starter', name_bn: 'ফ্রি স্টার্টার', role: 'ALL', monthly_fee: 0, free_listings: 100,
@@ -443,7 +443,7 @@ const proView = () => {
     monthly_fee: plan.monthly_fee, commission_rebate_pct: plan.commission_rebate_pct };
 };
 
-// Same shape as GET /saler/commission-tier (server services/salerTier.service.js getSalerView).
+// Same shape as GET /saler/commission-tier (server services/salerTier.service.ts getSalerView).
 const mockCommissionTier = () => ({
   enabled: true,
   window_days: 30,
@@ -881,7 +881,7 @@ export default [
     path: '/saler/social-kit/templates',
     handler: () => ({
       status: 200,
-      // Same shape and ids as the server (FLYER_FORMATS / FLYER_THEMES in flyer.service.js).
+      // Same shape and ids as the server (FLYER_FORMATS / FLYER_THEMES in flyer.service.ts).
       body: {
         templates: [
           { id: 'SQUARE', width: 1080, height: 1080, label_en: 'Social Post 1:1', label_bn: 'সোশ্যাল পোস্ট ১:১' },

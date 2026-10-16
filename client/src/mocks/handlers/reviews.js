@@ -1,7 +1,7 @@
 /**
  * Mock handlers for product reviews (Prompt 4.6).
  *
- * Mirrors server/src/services/review.service.js's eligibility rule ("a user who has not purchased
+ * Mirrors server/src/services/review.service.ts's eligibility rule ("a user who has not purchased
  * a delivered order for this product cannot review it") using fixtures/purchases.json as a stand-in
  * for a real order history, since mock mode has no real per-user session/order data. Reviews are
  * copied into a module-level mutable array so a submission is visible for the rest of the tab's
@@ -24,7 +24,7 @@ function currentAuth() {
   return appStore.get().auth || { isAuthenticated: false };
 }
 
-/** Same shape/semantics as review.service.js's getReviewEligibility. */
+/** Same shape/semantics as review.service.ts's getReviewEligibility. */
 function eligibilityFor(productRef) {
   const auth = currentAuth();
   if (!auth.isAuthenticated) return { can_review: false, reason: 'NOT_SIGNED_IN' };

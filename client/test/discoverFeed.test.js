@@ -109,7 +109,7 @@ test('Discover — Event Weight Parity (mock ⇄ server)', async (t) => {
 
   const mockSrc = fs.readFileSync(path.resolve(import.meta.dirname, '../src/mocks/handlers/discovery.js'), 'utf8');
   const serverSrc = fs.readFileSync(
-    path.resolve(import.meta.dirname, '../../server/src/services/discoveryFeed.service.js'),
+    path.resolve(import.meta.dirname, '../../server/src/services/discoveryFeed.service.ts'),
     'utf8'
   );
 

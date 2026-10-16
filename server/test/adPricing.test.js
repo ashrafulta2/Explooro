@@ -24,7 +24,7 @@ import {
   priceLabel,
   PREPAID_MODELS,
   METERED_MODELS,
-} from '../src/services/adPricing.js';
+} from '../src/services/adPricing.ts';
 
 const cpcProduct = {
   key: 'search_boost',

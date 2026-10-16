@@ -19,8 +19,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as discoveryService from '../src/services/discoveryFeed.service.js';
-import * as feedRepo from '../src/repositories/discoveryFeed.repository.js';
+import * as discoveryService from '../src/services/discoveryFeed.service.ts';
+import * as feedRepo from '../src/repositories/discoveryFeed.repository.ts';
 
 // ── A configurable mock db. Each test wires only the queries it needs; anything unrecognized
 // returns { rows: [] } so pricing enrichment falls to its documented defaults rather than throwing.
@@ -355,7 +355,7 @@ describe('Discovery feed — getFeed pagination & personalization', () => {
 });
 
 describe('Discovery feed — `recommended` ranking intent', () => {
-  // Models the LEGACY affinity-only boost that product.repository.js still builds when a caller passes
+  // Models the LEGACY affinity-only boost that product.repository.ts still builds when a caller passes
   // boost arrays but no `ranking` spec (the feed itself now passes one — see recommendation.test.js):
   //   score = Σ (weight[dim] when the row matches that affinity dimension)
   //   tiebreak: sold_count DESC, rating DESC, created_at DESC
@@ -414,7 +414,7 @@ describe('Discovery feed — migration ⇄ code contract', () => {
   test('every event type the service accepts is allowed by the table CHECK', () => {
     // The service's EVENT_WEIGHTS keys are the accepted set; each must appear in the SQL CHECK, or
     // a valid event would be rejected at write time on the live DB.
-    const svc = fs.readFileSync(path.resolve(import.meta.dirname, '../src/services/discoveryFeed.service.js'), 'utf8');
+    const svc = fs.readFileSync(path.resolve(import.meta.dirname, '../src/services/discoveryFeed.service.ts'), 'utf8');
     const weightBlock = svc.slice(svc.indexOf('EVENT_WEIGHTS = {'), svc.indexOf('};', svc.indexOf('EVENT_WEIGHTS = {')));
     const types = [...weightBlock.matchAll(/^\s*([A-Z_]+):/gm)].map((m) => m[1]);
     assert.ok(types.length >= 6, 'sanity: found the event weight table');

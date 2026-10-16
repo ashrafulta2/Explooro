@@ -13,14 +13,14 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as delegationService from '../src/services/delegation.service.js';
-import * as makerCheckerService from '../src/services/makerChecker.service.js';
-import { runGrantExpiryJob } from '../src/jobs/grantExpiryCron.js';
-import { resolvePermissions, hasPermission } from '../src/services/rbac.service.js';
-import { requirePermission } from '../src/middlewares/requirePermission.js';
-import delegationRoutes from '../src/routes/delegation.routes.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import * as delegationService from '../src/services/delegation.service.ts';
+import * as makerCheckerService from '../src/services/makerChecker.service.ts';
+import { runGrantExpiryJob } from '../src/jobs/grantExpiryCron.ts';
+import { resolvePermissions, hasPermission } from '../src/services/rbac.service.ts';
+import { requirePermission } from '../src/middlewares/requirePermission.ts';
+import delegationRoutes from '../src/routes/delegation.routes.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const SAMPLE_ROLES = [
   { id: 1, key: 'super_admin', label_en: 'Super Admin', level: 100 },

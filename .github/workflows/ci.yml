@@ -34,6 +34,11 @@ jobs:
       - name: Create .env from the committed example
         run: cp .env.example .env
 
+      # The server is moving to .ts file by file (docs/typescript-migration.md). Node only strips the
+      # types and never checks them, so a type error reaches main unless this step stops it.
+      - name: Typecheck (server)
+        run: npm run typecheck --workspace server
+
       - name: Test (client + server)
         run: npm test
 

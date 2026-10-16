@@ -1,9 +1,9 @@
 /**
  * notifications.js — Mock API handlers for the Unified Notification Service (Prompt 8.2).
  *
- * Covers every route in server/src/routes/notification.routes.js so the bell drawer, the
+ * Covers every route in server/src/routes/notification.routes.ts so the bell drawer, the
  * What's New modal and /account/settings all resolve under `VITE_API_MODE=mock`. Response
- * envelopes mirror notification.controller.js exactly — `{ data: … }`, with the same inner
+ * envelopes mirror notification.controller.ts exactly — `{ data: … }`, with the same inner
  * shapes (`{ items, count, limit, offset }` for the feed, a bare array for preferences).
  */
 

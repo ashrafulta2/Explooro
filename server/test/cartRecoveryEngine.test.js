@@ -12,7 +12,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as cartRecoveryService from '../src/services/cartRecovery.service.js';
+import * as cartRecoveryService from '../src/services/cartRecovery.service.ts';
 
 describe('Prompt 9.6: Abandoned Cart Recovery Engine', () => {
 

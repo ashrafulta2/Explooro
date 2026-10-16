@@ -13,7 +13,7 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 
 // WHY: these must mirror VALID_CAPABILITIES / VALID_NUMERIC_LIMITS in
-// server/src/services/restriction.service.js — any key not in those sets is rejected with
+// server/src/services/restriction.service.ts — any key not in those sets is rejected with
 // "Invalid capability_key", so an option here that the server doesn't know is a dead option.
 const CAPABILITIES = [
   'can_sell',

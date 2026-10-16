@@ -1,7 +1,7 @@
 /**
  * payoutProtection.js — Mock handlers for Fast Payout and Return Protection (supplier attraction, step 5).
  *
- * Same shapes as the real endpoints (services/fastPayout.service.js, services/returnProtection.service.js).
+ * Same shapes as the real endpoints (services/fastPayout.service.ts, services/returnProtection.service.ts).
  * An entry can only be taken once and a refused entry stays refused, as on the server. It does NOT move
  * money - the mock has no ledger - so no balance changes here.
  */

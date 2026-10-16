@@ -15,10 +15,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as rails from '../src/services/homeRails.service.js';
-import * as reco from '../src/services/recommendation.service.js';
-import * as diversityService from '../src/services/diversity.service.js';
-import * as productRepo from '../src/repositories/product.repository.js';
+import * as rails from '../src/services/homeRails.service.ts';
+import * as reco from '../src/services/recommendation.service.ts';
+import * as diversityService from '../src/services/diversity.service.ts';
+import * as productRepo from '../src/repositories/product.repository.ts';
 
 function makeDb(routes = []) {
   const calls = [];

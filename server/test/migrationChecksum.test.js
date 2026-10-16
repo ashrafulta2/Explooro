@@ -7,7 +7,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checksumOf, compareApplied } from '../src/db/migrationChecksum.js';
+import { checksumOf, compareApplied } from '../src/db/migrationChecksum.ts';
 
 const LF = 'CREATE TABLE a (id INT);\nCREATE INDEX a_i ON a (id);\n';
 const CRLF = LF.replace(/\n/g, '\r\n');

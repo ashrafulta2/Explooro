@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { getProductDetail } from '../src/services/product.service.js';
+import { getProductDetail } from '../src/services/product.service.ts';
 
 function detailDb({ stock, reserved, variants }) {
   return {

@@ -12,10 +12,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import notificationRoutes from '../src/routes/notification.routes.js';
-import * as notifService from '../src/services/notification.service.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import notificationRoutes from '../src/routes/notification.routes.ts';
+import * as notifService from '../src/services/notification.service.ts';
 
 function createMockDb() {
   const users = [

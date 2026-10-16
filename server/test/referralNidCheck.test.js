@@ -8,8 +8,8 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as referral from '../src/services/referral.service.js';
-import { hashNid } from '../src/services/kyc.service.js';
+import * as referral from '../src/services/referral.service.ts';
+import { hashNid } from '../src/services/kyc.service.ts';
 
 const settings = { tier_1_rate_pct: 5, tier_2_rate_pct: 2, signup_bonus_bdt: 0, kyc_bonus_bdt: 100, holding_period_days: 7, max_tier_depth: 2 };
 const cache = { get: async () => null, set: async () => {} };

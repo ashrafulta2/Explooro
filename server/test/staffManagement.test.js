@@ -18,10 +18,10 @@
 
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import '../src/config/loadEnvFile.js';
-import { normalisePhone, validateProvision, cleanReason } from '../src/services/staff.service.js';
-import { runIdempotent, fingerprintOf } from '../src/lib/idempotency.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import '../src/config/loadEnvFile.ts';
+import { normalisePhone, validateProvision, cleanReason } from '../src/services/staff.service.ts';
+import { runIdempotent, fingerprintOf } from '../src/lib/idempotency.ts';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 // ── 1. Pure unit tests ───────────────────────────────────────────────────────────────────────
 
@@ -127,14 +127,14 @@ describe('Staff Management API — integration', { skip: DB_URL ? false : 'set S
   const randomDigits = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');
 
   before(async () => {
-    const { loadEnv } = await import('../src/config/env.js');
-    const { buildApp } = await import('../src/app.js');
-    const { createDbPool } = await import('../src/config/db.js');
-    ({ generateRef } = await import('../src/lib/ref.js'));
-    ({ signAccessToken } = await import('../src/lib/jwt.js'));
-    ({ createSession } = await import('../src/repositories/user.repository.js'));
+    const { loadEnv } = await import('../src/config/env.ts');
+    const { buildApp } = await import('../src/app.ts');
+    const { createDbPool } = await import('../src/config/db.ts');
+    ({ generateRef } = await import('../src/lib/ref.ts'));
+    ({ signAccessToken } = await import('../src/lib/jwt.ts'));
+    ({ createSession } = await import('../src/repositories/user.repository.ts'));
     ({ randomUUID } = await import('node:crypto'));
-    ({ mockDriver: mockEmail } = await import('../src/integrations/email/index.js'));
+    ({ mockDriver: mockEmail } = await import('../src/integrations/email/index.ts'));
 
     const base = loadEnv();
     cfg = { ...base, database: { ...base.database, url: DB_URL } };

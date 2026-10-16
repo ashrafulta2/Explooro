@@ -5,16 +5,16 @@
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import themeRoutes from '../src/routes/theme.routes.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import themeRoutes from '../src/routes/theme.routes.ts';
 import { THEME_PRESETS } from '../../client/src/config/theme-presets.js';
 import {
   getContrastRatio,
   validatePaletteContrast,
   validateNoGradients,
 } from '../../client/src/services/themePalette.js';
-import * as themeService from '../src/services/theme.service.js';
+import * as themeService from '../src/services/theme.service.ts';
 
 function createMockDb() {
   let palettes = [

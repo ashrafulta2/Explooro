@@ -5,7 +5,7 @@
  * Run:  node scripts/generate-role-permission-seed.mjs
  *
  * The seed file itself stays plain, dependency-free SQL — no runtime JSON parsing inside
- * Postgres — so it can be applied by the equally dependency-free seed.js runner. Re-run this
+ * Postgres — so it can be applied by the equally dependency-free seed.ts runner. Re-run this
  * script and commit the regenerated .sql whenever permission-catalog.json changes.
  */
 import { readFile, writeFile } from 'node:fs/promises';

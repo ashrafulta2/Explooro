@@ -206,7 +206,7 @@ describe('Editor Portal — Content Handlers & CRUD Integrity', () => {
     assert.equal(exported.status, 200);
     assert.ok(typeof exported.data === 'object');
 
-    // The payload is `namespace -> { key: value }`, matching content.service.js's
+    // The payload is `namespace -> { key: value }`, matching content.service.ts's
     // importTranslationsJson(), which walks Object.entries(data) as namespaces and upserts each
     // (namespace, key, locale) triple. A flat `{ key: value }` map is NOT the contract — the
     // mock used to accept one and report it as imported, which is why the Translation Manager's

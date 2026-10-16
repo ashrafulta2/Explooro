@@ -2,7 +2,7 @@
  * cartSalerPrice.test.js — a shop partner's own price (saler_store_items.custom_retail_price) must be the
  * price the shopper is charged in the cart, not the supplier's default_retail_price.
  *
- * WHY a fake db that reads the SQL: cart.repository.js is raw SQL, so the price a cart line carries is
+ * WHY a fake db that reads the SQL: cart.repository.ts is raw SQL, so the price a cart line carries is
  * decided by which tables the query joins. The fake answers `getCartItemsWithDetails` the way
  * Postgres would for the SQL it was given: custom price only if the query actually joins
  * saler_store_items on the line's shop partner. Before the fix the query never mentions that table, so the
@@ -11,7 +11,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { addItemToCart, getCart } from '../src/services/cart.service.js';
+import { addItemToCart, getCart } from '../src/services/cart.service.ts';
 
 const PRODUCT = {
   id: 1,

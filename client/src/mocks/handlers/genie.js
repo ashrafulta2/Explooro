@@ -1,7 +1,7 @@
 /**
  * genie.js — Mock API handlers for the popup genie-effect policy.
  *
- * Mirrors server/src/routes/genie.routes.js so the whole feature is demonstrable with
+ * Mirrors server/src/routes/genie.routes.ts so the whole feature is demonstrable with
  * VITE_API_MODE=mock and no database (Master Instruction: every integration ships a mock driver).
  *
  * The policy persists to localStorage rather than a module-scope variable: the thing being tested is
@@ -48,7 +48,7 @@ function savePolicy() {
 
 const bad = (message_en, message_bn) => ({ code: 'VALIDATION_FAILED', message_en, message_bn });
 
-/** The same rules as genie.service.js validatePolicy(), in the same order, with the same messages. */
+/** The same rules as genie.service.ts validatePolicy(), in the same order, with the same messages. */
 function validate(body) {
   const { enabled, duration_ms: durationMs, quality, reason } = body;
   if (typeof enabled !== 'boolean') {

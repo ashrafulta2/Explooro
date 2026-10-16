@@ -3,7 +3,7 @@
  * (/admin/platform/delivery).
  *
  * It used to be ৳60 written into the code. The super admin now sets it here; the cart, Quick Buy and
- * checkout all read the same value (GET /delivery/policy, server/src/services/deliveryCharge.service.js).
+ * checkout all read the same value (GET /delivery/policy, server/src/services/deliveryCharge.service.ts).
  *
  * `platform.delivery.view` (LOW) opens the page; `platform.delivery.update` (CRITICAL, super admin
  * only) enables Save. Every save needs a reason and writes an audit row, listed at the bottom.

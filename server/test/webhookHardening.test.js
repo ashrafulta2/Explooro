@@ -3,17 +3,17 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import Fastify from 'fastify';
 
-import { loadEnv, parseTrustProxy } from '../src/config/env.js';
-import { addRawJsonBody } from '../src/plugins/rawBody.js';
-import { BkashPaymentDriver } from '../src/integrations/payments/bkash.js';
-import { NagadPaymentDriver } from '../src/integrations/payments/nagad.js';
-import { SslcommerzPaymentDriver } from '../src/integrations/payments/sslcommerz.js';
-import { MockPaymentDriver } from '../src/integrations/payments/mock.js';
-import { createPaymentGateway } from '../src/integrations/payments/index.js';
-import { SteadfastCourierAdapter } from '../src/integrations/courier/steadfast.js';
-import { PathaoCourierAdapter } from '../src/integrations/courier/pathao.js';
-import { RedxCourierAdapter } from '../src/integrations/courier/redx.js';
-import { MockCourierAdapter } from '../src/integrations/courier/mock.js';
+import { loadEnv, parseTrustProxy } from '../src/config/env.ts';
+import { addRawJsonBody } from '../src/plugins/rawBody.ts';
+import { BkashPaymentDriver } from '../src/integrations/payments/bkash.ts';
+import { NagadPaymentDriver } from '../src/integrations/payments/nagad.ts';
+import { SslcommerzPaymentDriver } from '../src/integrations/payments/sslcommerz.ts';
+import { MockPaymentDriver } from '../src/integrations/payments/mock.ts';
+import { createPaymentGateway } from '../src/integrations/payments/index.ts';
+import { SteadfastCourierAdapter } from '../src/integrations/courier/steadfast.ts';
+import { PathaoCourierAdapter } from '../src/integrations/courier/pathao.ts';
+import { RedxCourierAdapter } from '../src/integrations/courier/redx.ts';
+import { MockCourierAdapter } from '../src/integrations/courier/mock.ts';
 
 // WHY: every gateway/courier driver used to fall back to a secret that is visible in the repo, or to
 // "no signature means accept". These tests pin the live-mode behaviour: no secret, no signature,

@@ -11,7 +11,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { streaming } from '../src/integrations/streaming/index.js';
+import { streaming } from '../src/integrations/streaming/index.ts';
 import {
   joinStreamRoom,
   leaveStreamRoom,
@@ -19,7 +19,7 @@ import {
   broadcastToStream,
   isUserMutedInStream,
   muteUserInStream,
-} from '../src/sockets/presence.js';
+} from '../src/sockets/presence.ts';
 
 describe('Prompt 10.1: Live Stream Commerce Engine (DFD Subsystem 15.0)', () => {
 

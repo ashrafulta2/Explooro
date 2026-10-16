@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as ledgerService from '../src/services/ledger.service.js';
+import * as ledgerService from '../src/services/ledger.service.ts';
 
 test('WALLET_NOT_FOUND lists only the missing wallet when pg returns string ids', async () => {
   // Shaped like pg: the one wallet that exists comes back with a string BIGINT id.

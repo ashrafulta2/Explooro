@@ -5,13 +5,13 @@
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin, { AppError } from '../src/plugins/errorHandler.js';
-import productRoutes from '../src/routes/product.routes.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin, { AppError } from '../src/plugins/errorHandler.ts';
+import productRoutes from '../src/routes/product.routes.ts';
 import {
   calculatePricingBreakdown,
   resolveSplitPercentages,
-} from '../src/services/pricing.service.js';
+} from '../src/services/pricing.service.ts';
 
 function createMockDb() {
   const products = [

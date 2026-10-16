@@ -12,7 +12,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { decideRenewalAction } from '../src/services/subscriptionBilling.service.js';
+import { decideRenewalAction } from '../src/services/subscriptionBilling.service.ts';
 
 const NOW = new Date('2026-10-10T12:00:00Z');
 const settings = { renewal_reminder_days: 3 };
@@ -86,7 +86,7 @@ describe('terminal states', () => {
 });
 
 describe('merchant routes', () => {
-  const src = readFileSync(new URL('../src/routes/subscription.routes.js', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../src/routes/subscription.routes.ts', import.meta.url), 'utf8');
 
   test('all four are guarded by the module switch and finance.subscription.subscribe_own', () => {
     const own = src.slice(src.indexOf('const ownSubscription'));
@@ -104,10 +104,10 @@ describe('merchant routes', () => {
   });
 
   test('the renewal job is registered against the module, so OFF means nothing is billed', () => {
-    const job = readFileSync(new URL('../src/jobs/subscriptionRenewal.job.js', import.meta.url), 'utf8');
+    const job = readFileSync(new URL('../src/jobs/subscriptionRenewal.job.ts', import.meta.url), 'utf8');
     assert.match(job, /moduleKey: 'subscription_fees'/);
-    const app = readFileSync(new URL('../src/app.js', import.meta.url), 'utf8');
-    assert.match(app, /jobs\/subscriptionRenewal\.job\.js/);
+    const app = readFileSync(new URL('../src/app.ts', import.meta.url), 'utf8');
+    assert.match(app, /jobs\/subscriptionRenewal\.job\.ts/);
     assert.match(app, /register\(subscriptionRoutes/);
   });
 });

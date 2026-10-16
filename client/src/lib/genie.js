@@ -24,7 +24,7 @@ const FALLBACK_DURATION_MS = 650;
 
 /**
  * The knobs a Super Admin may turn (/admin/platform/genie → platform_settings, group `genie`).
- * `server/src/services/genie.service.js` declares the same bounds; `server/test/genieEffect.test.js`
+ * `server/src/services/genie.service.ts` declares the same bounds; `server/test/genieEffect.test.js`
  * fails if the two drift, because a value the API accepts but the engine clamps is a setting that
  * silently does not do what its page says.
  */

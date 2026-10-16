@@ -1,0 +1,21 @@
+/**
+ * whatsapp.routes.ts — Meta WhatsApp Cloud API Webhook & Public Checkout Routes (Prompt 8.3).
+ */
+
+import * as webhookController from '../controllers/whatsappWebhook.controller.ts';
+import { addRawJsonBody } from '../plugins/rawBody.ts';
+import * as inboxController from '../controllers/salerInbox.controller.ts';
+
+export default async function whatsappRoutes(app) {
+  // WHY: the HMAC must cover the exact bytes Meta sent (see plugins/rawBody.ts).
+  addRawJsonBody(app);
+
+  // 1. Meta Webhook Verification Challenge
+  app.get('/integrations/whatsapp/webhook', webhookController.verifyWebhook);
+
+  // 2. Meta Inbound Message Webhook
+  app.post('/integrations/whatsapp/webhook', webhookController.handleWebhook);
+
+  // 3. 1-Tap Checkout Token Resolution (Public endpoint for customer clicking WhatsApp Buy Now link)
+  app.get('/checkout/token/:token', inboxController.resolveCheckoutToken);
+}

@@ -21,15 +21,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Fastify from 'fastify';
 
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import recommendationAdminRoutes from '../src/routes/recommendationAdmin.routes.js';
-import * as admin from '../src/services/recommendationAdmin.service.js';
-import * as auditService from '../src/services/audit.service.js';
-import * as recoCache from '../src/services/recoCache.service.js';
-import * as recommendation from '../src/services/recommendation.service.js';
-import * as homeRails from '../src/services/homeRails.service.js';
-import * as diversity from '../src/services/diversity.service.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import recommendationAdminRoutes from '../src/routes/recommendationAdmin.routes.ts';
+import * as admin from '../src/services/recommendationAdmin.service.ts';
+import * as auditService from '../src/services/audit.service.ts';
+import * as recoCache from '../src/services/recoCache.service.ts';
+import * as recommendation from '../src/services/recommendation.service.ts';
+import * as homeRails from '../src/services/homeRails.service.ts';
+import * as diversity from '../src/services/diversity.service.ts';
 import * as clientMock from '../../client/src/mocks/handlers/recommendations.js';
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
@@ -696,14 +696,14 @@ describe('HTTP surface', () => {
       guarded.sort(),
       ['platform.recommendation.update', 'platform.recommendation.view']
     );
-    const src = fs.readFileSync(path.join(repoRoot, 'server/src/routes/recommendationAdmin.routes.js'), 'utf8');
+    const src = fs.readFileSync(path.join(repoRoot, 'server/src/routes/recommendationAdmin.routes.ts'), 'utf8');
     assert.match(src, /preHandler: \[auth, view\]/);
     assert.match(src, /preHandler: \[auth, update\]/);
     assert.doesNotMatch(src, /config:\s*\{[^}]*requirePermission/, 'invariant 11: the guard is a preHandler, never a config key');
   });
 
   test('every route declares its page, so parking the page at /admin/platform/pages parks the API too', () => {
-    const src = fs.readFileSync(path.join(repoRoot, 'server/src/routes/recommendationAdmin.routes.js'), 'utf8');
+    const src = fs.readFileSync(path.join(repoRoot, 'server/src/routes/recommendationAdmin.routes.ts'), 'utf8');
     assert.equal((src.match(/config: \{ page: PAGE \}/g) || []).length, 3);
     assert.match(src, /const PAGE = '\/admin\/platform\/recommendations'/);
   });
@@ -738,9 +738,9 @@ describe('Permission catalog, seed and wiring', () => {
     assert.match(seed, /\('admin', 'platform\.recommendation\.view'\)/);
   });
 
-  test('the routes are registered in app.js', () => {
-    const app = fs.readFileSync(path.join(repoRoot, 'server/src/app.js'), 'utf8');
-    assert.match(app, /import recommendationAdminRoutes from '\.\/routes\/recommendationAdmin\.routes\.js'/);
+  test('the routes are registered in app.ts', () => {
+    const app = fs.readFileSync(path.join(repoRoot, 'server/src/app.ts'), 'utf8');
+    assert.match(app, /import recommendationAdminRoutes from '\.\/routes\/recommendationAdmin\.routes\.ts'/);
     assert.match(app, /app\.register\(recommendationAdminRoutes, \{ prefix: '\/api\/v1' \}\)/);
   });
 });

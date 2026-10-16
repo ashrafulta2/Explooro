@@ -12,7 +12,7 @@
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { hashPassword } from '../server/src/lib/password.js';
+import { hashPassword } from '../server/src/lib/password.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = path.join(__dirname, '../server/src/db/seeds/002_dev_users.sql');

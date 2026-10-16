@@ -15,13 +15,13 @@
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import paymentRoutes from '../src/routes/payment.routes.js';
-import { createPaymentGateway, MockPaymentDriver } from '../src/integrations/payments/index.js';
-import * as paymentService from '../src/services/payment.service.js';
-import * as paymentRepo from '../src/repositories/payment.repository.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import paymentRoutes from '../src/routes/payment.routes.ts';
+import { createPaymentGateway, MockPaymentDriver } from '../src/integrations/payments/index.ts';
+import * as paymentService from '../src/services/payment.service.ts';
+import * as paymentRepo from '../src/repositories/payment.repository.ts';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 function createMockDb() {
   let nextTxnId = 1;
@@ -288,7 +288,7 @@ describe('Prompt 5.3: Payments — Gateways, Idempotency & Webhooks', () => {
     await app.register(errorHandlerPlugin);
 
     // Mock Fastify Decorators
-    // WHY 'db': app.js decorates the pool as `db`. This test used to decorate `pg`, matching the
+    // WHY 'db': app.ts decorates the pool as `db`. This test used to decorate `pg`, matching the
     // controllers' typo, so it passed while every real payment request failed with a 500.
     app.decorate('db', db);
     app.decorate('cache', cache);

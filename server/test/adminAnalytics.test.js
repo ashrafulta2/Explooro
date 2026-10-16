@@ -13,11 +13,11 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import adminAnalyticsRoutes from '../src/routes/adminAnalytics.routes.js';
-import * as analyticsService from '../src/services/analytics.service.js';
-import { createRequestMetrics } from '../src/lib/requestMetrics.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import adminAnalyticsRoutes from '../src/routes/adminAnalytics.routes.ts';
+import * as analyticsService from '../src/services/analytics.service.ts';
+import { createRequestMetrics } from '../src/lib/requestMetrics.ts';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   const db = {
@@ -352,8 +352,8 @@ describe('Prompt 11.4 — Super Admin Executive Dashboard & System Health', () =
   });
 
   test('System health lists every registered job with its own last run, or null if it never ran', async () => {
-    await import('../src/jobs/coinExpiry.job.js');
-    await import('../src/jobs/referralRelease.job.js');
+    await import('../src/jobs/coinExpiry.job.ts');
+    await import('../src/jobs/referralRelease.job.ts');
     const db = createMockDb({
       queryHandler: async (sql) => {
         // The per-job query is the only one that says DISTINCT ON; the recent list is a plain LIMIT.

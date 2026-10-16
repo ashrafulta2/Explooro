@@ -140,7 +140,7 @@ let mockTeamPurchases = [
   },
 ];
 
-// Mirrors the group_buying module settings the server reads (see server teamPurchase.service.js).
+// Mirrors the group_buying module settings the server reads (see server teamPurchase.service.ts).
 export const mockTeamSettings = {
   default_team_size: 3,
   window_hours: 24,

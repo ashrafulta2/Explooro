@@ -27,8 +27,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
-import requirePagePlugin from '../src/middlewares/requirePage.js';
-import { LOCKED_PATHS } from '../src/services/pageAccess.service.js';
+import requirePagePlugin from '../src/middlewares/requirePage.ts';
+import { LOCKED_PATHS } from '../src/services/pageAccess.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
@@ -50,7 +50,7 @@ function createMockDb({ failReads = false, seed = [] } = {}) {
 
 /**
  * An app shaped like the real one: the plugin is registered before the routes, so its onRoute hook
- * is the only thing attaching the guard — exactly as in src/app.js. `user` is applied by a route
+ * is the only thing attaching the guard — exactly as in src/app.ts. `user` is applied by a route
  * preHandler, which is what makes the ordering assertion meaningful.
  */
 async function buildApp({ db, user = null } = {}) {
@@ -208,7 +208,8 @@ describe('declared pages', () => {
   /** Every `config: { page: '...' }` in the route layer, with the file it came from. */
   function declaredPages() {
     const found = [];
-    for (const file of fs.readdirSync(routesDir).filter((f) => f.endsWith('.js'))) {
+    // .ts too: the server is moving to TypeScript file by file (docs/typescript-migration.md).
+    for (const file of fs.readdirSync(routesDir).filter((f) => /\.(js|ts)$/.test(f))) {
       const src = fs.readFileSync(path.join(routesDir, file), 'utf8');
       for (const m of src.matchAll(/config:\s*\{[^}]*\bpage:\s*'([^']+)'/g)) {
         found.push({ file, page: m[1] });
@@ -263,19 +264,19 @@ describe('declared pages', () => {
  */
 describe('the wired route files', () => {
   const WIRED = [
-    'adminAnalytics.routes.js',
-    'ads.routes.js',
-    'cartRecovery.routes.js',
-    'delegation.routes.js',
-    'finance.routes.js',
-    'genie.routes.js',
-    'localization.routes.js',
-    'notification.routes.js',
-    'publicApi.routes.js',
-    'return.routes.js',
-    'saler.routes.js',
-    'subscription.routes.js',
-    'supplier.routes.js',
+    'adminAnalytics.routes.ts',
+    'ads.routes.ts',
+    'cartRecovery.routes.ts',
+    'delegation.routes.ts',
+    'finance.routes.ts',
+    'genie.routes.ts',
+    'localization.routes.ts',
+    'notification.routes.ts',
+    'publicApi.routes.ts',
+    'return.routes.ts',
+    'saler.routes.ts',
+    'subscription.routes.ts',
+    'supplier.routes.ts',
   ];
 
   async function inspect(file) {
@@ -303,7 +304,10 @@ describe('the wired route files', () => {
       });
     });
 
-    const mod = await import(`../src/routes/${file}`);
+    // A file listed as x.js may have moved to x.ts (docs/typescript-migration.md).
+    const routesDir = path.join(repoRoot, 'server/src/routes');
+    const actual = fs.existsSync(path.join(routesDir, file)) ? file : file.replace(/\.js$/, '.ts');
+    const mod = await import(`../src/routes/${actual}`);
     await app.register(mod.default, { prefix: '/api/v1' });
     await app.ready();
     await app.close();
@@ -334,14 +338,14 @@ describe('the wired route files', () => {
 /* ── 6. Wired into the real app, in the only order that works ───────────── */
 
 describe('registration', () => {
-  test('the plugin is registered in app.js', () => {
-    const appSrc = read('server/src/app.js');
-    assert.match(appSrc, /import requirePagePlugin from '\.\/middlewares\/requirePage\.js'/);
+  test('the plugin is registered in app.ts', () => {
+    const appSrc = read('server/src/app.ts');
+    assert.match(appSrc, /import requirePagePlugin from '\.\/middlewares\/requirePage\.ts'/);
     assert.match(appSrc, /app\.register\(requirePagePlugin\)/);
   });
 
   test('it is registered before any route plugin', () => {
-    const appSrc = read('server/src/app.js');
+    const appSrc = read('server/src/app.ts');
     const pluginAt = appSrc.indexOf('app.register(requirePagePlugin)');
     const firstRouteAt = appSrc.indexOf('await app.register(authRoutes');
 

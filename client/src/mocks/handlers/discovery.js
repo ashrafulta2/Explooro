@@ -13,7 +13,7 @@
 import products from '../fixtures/products.json' with { type: 'json' };
 import { synthesizeSupplier, synthesizeDescription, synthesizeVariants } from './products.js';
 
-// Mirrors server/src/services/discoveryFeed.service.js EVENT_WEIGHTS (test/discoverFeed.test.js pins the parity).
+// Mirrors server/src/services/discoveryFeed.service.ts EVENT_WEIGHTS (test/discoverFeed.test.js pins the parity).
 const EVENT_WEIGHTS = {
   VIEW: 1,
   DWELL: 1.5,
@@ -43,7 +43,7 @@ function matchesQuery(p, raw) {
     .includes(q);
 }
 
-// Mirrors services/diversity.service.js (migration 058 defaults) on the one dimension the fixtures
+// Mirrors services/diversity.service.ts (migration 058 defaults) on the one dimension the fixtures
 // carry: no category more than MAX_PER_CATEGORY times inside any WINDOW consecutive picks. A product
 // held back keeps its queue position and is taken as soon as it fits; when nothing fits the best
 // remaining one is taken. It reorders and never shortens a list. The fixtures have no supplier or
@@ -242,7 +242,7 @@ export default [
     },
   },
   {
-    // The home page's rails. Same rules as services/homeRails.service.js — a product shows in only the
+    // The home page's rails. Same rules as services/homeRails.service.ts — a product shows in only the
     // first rail that claims it, a rail under MIN_ITEMS is dropped, an opted-out shopper gets no
     // personal rail — over the signals the fixtures can support. new_arrivals, near_you and also_viewed are live-only:
     // the fixtures carry no listing date, the mock shopper has no district, and co-visitation needs the

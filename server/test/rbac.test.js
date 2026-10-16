@@ -25,11 +25,11 @@ import {
   getPermissionsPayload,
   bumpUserPermissionVersion,
   invalidateUserPermissionCache,
-} from '../src/services/rbac.service.js';
-import { requirePermission } from '../src/middlewares/requirePermission.js';
-import { requireRestriction } from '../src/middlewares/requireRestriction.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+} from '../src/services/rbac.service.ts';
+import { requirePermission } from '../src/middlewares/requirePermission.ts';
+import { requireRestriction } from '../src/middlewares/requireRestriction.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const ALL_SAMPLE_ROLES = [
   { id: 1, key: 'super_admin', label_en: 'Super Admin', level: 100 },

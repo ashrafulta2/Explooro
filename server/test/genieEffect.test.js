@@ -22,10 +22,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import genieRoutes from '../src/routes/genie.routes.js';
-import * as genieService from '../src/services/genie.service.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import genieRoutes from '../src/routes/genie.routes.ts';
+import * as genieService from '../src/services/genie.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
@@ -210,7 +210,7 @@ describe('Popup genie effect governance', () => {
     test('writes all three rows in one transaction and audits before/after', async () => {
       const db = createMockDb();
       const cache = createCache();
-      const auditService = await import('../src/services/audit.service.js');
+      const auditService = await import('../src/services/audit.service.ts');
       await cache.set('genie:policy', JSON.stringify({ enabled: true }));
 
       const result = await genieService.updatePolicy(db, cache, auditService, {
@@ -419,7 +419,7 @@ describe('Popup genie effect governance', () => {
     });
 
     test('the routes are guarded by exactly those two keys', () => {
-      const src = fs.readFileSync(path.join(repoRoot, 'server/src/routes/genie.routes.js'), 'utf8');
+      const src = fs.readFileSync(path.join(repoRoot, 'server/src/routes/genie.routes.ts'), 'utf8');
       assert.match(src, /reqPerm\('platform\.genie\.view'\)/);
       assert.match(src, /reqPerm\('platform\.genie\.update'\)/);
     });

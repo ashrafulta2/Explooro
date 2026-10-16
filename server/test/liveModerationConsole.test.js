@@ -13,16 +13,16 @@
 
 import { describe, test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import * as liveService from '../src/services/liveStream.service.js';
+import * as liveService from '../src/services/liveStream.service.ts';
 import {
   muteUserInStream,
   unmuteUserInStream,
   getStreamMutes,
   isUserMutedInStream,
-} from '../src/sockets/presence.js';
+} from '../src/sockets/presence.ts';
 
 /**
- * A minimal fake pool. Every service call below routes through liveStream.repository.js, so the
+ * A minimal fake pool. Every service call below routes through liveStream.repository.ts, so the
  * fake answers by matching on the SQL each repo function issues rather than by faking the repo —
  * that keeps the queries themselves inside the test's blast radius.
  */
@@ -234,7 +234,7 @@ describe('Live Moderation Console (/moderator/live)', () => {
       // The viewer-facing query is the one that must exclude it; asserted on the SQL because the
       // fake pool cannot evaluate a WHERE clause.
       const repoSrc = await import('node:fs').then((fs) =>
-        fs.readFileSync(new URL('../src/repositories/liveStream.repository.js', import.meta.url), 'utf8')
+        fs.readFileSync(new URL('../src/repositories/liveStream.repository.ts', import.meta.url), 'utf8')
       );
       const viewerQuery = repoSrc.slice(repoSrc.indexOf('export async function getStreamMessages('));
       assert.match(

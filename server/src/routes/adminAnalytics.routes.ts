@@ -1,0 +1,88 @@
+/**
+ * adminAnalytics.routes.ts — Fastify routes for Super Admin Analytics & System Health (Prompt 11.4).
+ */
+
+import * as controller from '../controllers/adminAnalytics.controller.ts';
+
+export default async function adminAnalyticsRoutes(fastify) {
+  const reqPerm = (perm) => (fastify.requirePermission ? fastify.requirePermission(perm) : async () => {});
+
+  // 1. Executive Analytics Overview
+  fastify.get(
+    '/admin/analytics/overview',
+    {
+      // `config.page` is read by the onRoute hook in middlewares/requirePage.ts: when this page is
+      // parked at /admin/platform/pages, these endpoints answer 403 PAGE_UNAVAILABLE instead of data.
+      config: { page: '/admin' },
+      preHandler: [fastify.authenticate, reqPerm('admin.dashboard.view')],
+    },
+    controller.getOverviewHandler
+  );
+
+  // 2. Operational Action Alert Cards
+  fastify.get(
+    '/admin/analytics/alerts',
+    {
+      config: { page: '/admin' },
+      preHandler: [fastify.authenticate, reqPerm('admin.dashboard.view')],
+    },
+    controller.getAlertsHandler
+  );
+
+  // 3. System Health & Diagnostics Hub
+  fastify.get(
+    '/admin/system/health',
+    {
+      preHandler: [fastify.authenticate, reqPerm('system.health.view')],
+    },
+    controller.getSystemHealthHandler
+  );
+
+  // 4. Backup Snapshots History
+  fastify.get(
+    '/admin/system/backups',
+    {
+      preHandler: [fastify.authenticate, reqPerm('system.backup.manage')],
+    },
+    controller.getBackupsHandler
+  );
+
+  // 5. Trigger Manual Backup Snapshot
+  fastify.post(
+    '/admin/system/backups/trigger',
+    {
+      preHandler: [fastify.authenticate, reqPerm('system.backup.manage')],
+    },
+    controller.triggerBackupHandler
+  );
+
+  // 6. Restore Backup Snapshot (CRITICAL Tier)
+  fastify.post(
+    '/admin/system/backups/:id/restore',
+    {
+      preHandler: [fastify.authenticate, reqPerm('system.backup.manage')],
+    },
+    controller.restoreBackupHandler
+  );
+
+  // 7. Manual Rollup Trigger — recomputes stored figures, so it has its own permission instead of
+  // riding on the read-only dashboard view.
+  fastify.post(
+    '/admin/analytics/rollup-now',
+    {
+      config: { page: '/admin' },
+      preHandler: [fastify.authenticate, reqPerm('admin.analytics.rollup')],
+    },
+    controller.triggerRollupHandler
+  );
+
+  // 8. CSV export data (audit-logged, HIGH-tier permission)
+  fastify.post(
+    '/admin/analytics/export',
+    {
+      config: { page: '/admin' },
+      preHandler: [fastify.authenticate, reqPerm('admin.analytics.export')],
+    },
+    controller.exportOverviewHandler
+  );
+}

@@ -22,7 +22,7 @@ import { getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
-// WHY these are read-only: the engine always applies them (referral.service.js recordReferralAttribution).
+// WHY these are read-only: the engine always applies them (referral.service.ts recordReferralAttribution).
 // Only the daily velocity cap is a number an admin can change, so only that is a form field.
 const ALWAYS_ON_CHECKS = [
   { en: 'Self-referral (same account, phone or NID)', bn: 'নিজেকে রেফার (একই অ্যাকাউন্ট, ফোন বা এনআইডি)' },

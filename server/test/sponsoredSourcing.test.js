@@ -1,5 +1,5 @@
 /**
- * sponsoredSourcing.test.js — The invariants stated in sponsoredSourcing.service.js.
+ * sponsoredSourcing.test.js — The invariants stated in sponsoredSourcing.service.ts.
  *
  *   1. A supplier can only promote their own products in the sourcing slot.
  *   2. A blocked grade (default D) can neither buy the slot nor keep serving it; "no grade yet" is never blocked.
@@ -17,8 +17,8 @@ import {
   isBlocked,
   applyCandidatePolicy,
   assertMayAdvertise,
-} from '../src/services/sponsoredSourcing.service.js';
-import { calculateQualityScore, runSecondPriceAuction } from '../src/services/adAuction.service.js';
+} from '../src/services/sponsoredSourcing.service.ts';
+import { calculateQualityScore, runSecondPriceAuction } from '../src/services/adAuction.service.ts';
 
 const rules = resolveRules(null);
 

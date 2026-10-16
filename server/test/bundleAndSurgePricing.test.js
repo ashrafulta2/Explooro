@@ -15,9 +15,9 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as bundleService from '../src/services/bundle.service.js';
-import * as surgeService from '../src/services/surgePricing.service.js';
-import { toPaisa, toBdtNumber } from '../src/services/pricing.service.js';
+import * as bundleService from '../src/services/bundle.service.ts';
+import * as surgeService from '../src/services/surgePricing.service.ts';
+import { toPaisa, toBdtNumber } from '../src/services/pricing.service.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   return {
@@ -538,8 +538,8 @@ describe('Prompt 10.5 — Cross-Seller Bundling & Demand Surge Pricing', () => {
   // ---------------------------------------------------------------------------
   test('Fastify HTTP API: POST /saler/bundles/preview returns 200 with complete live profit breakdown', async () => {
     const Fastify = (await import('fastify')).default;
-    const bundleRoutes = (await import('../src/routes/bundle.routes.js')).default;
-    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.js')).default;
+    const bundleRoutes = (await import('../src/routes/bundle.routes.ts')).default;
+    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
 
     const app = Fastify();
     app.decorate('authenticate', async (req) => {

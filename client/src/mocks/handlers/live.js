@@ -128,7 +128,7 @@ let nextStreamId = 5;
  * Live-moderation fixtures for /moderator/live.
  *
  * `flags` are pre-computed here rather than re-derived in the mock layer. The real detectors live
- * server-side (chat.service.js's detectContactInfoLeak and moderation.service.js's banned-keyword
+ * server-side (chat.service.ts's detectContactInfoLeak and moderation.service.ts's banned-keyword
  * blocklist) and the client must never import server code, so re-implementing the regexes here
  * would create a second copy that silently drifts from the one that actually governs. A mock's job
  * is to reproduce the API's *shape*, not its logic.
@@ -260,7 +260,7 @@ let mockStreamActionLog = {
   2: [],
 };
 
-/** streamId -> Map(userId -> expiry ms). Mirrors sockets/presence.js's in-memory mute registry. */
+/** streamId -> Map(userId -> expiry ms). Mirrors sockets/presence.ts's in-memory mute registry. */
 const mockStreamMutes = new Map([[1, new Map([[44, Date.now() + 5 * 60 * 1000]])]]);
 
 function mutesFor(streamId) {
@@ -284,7 +284,7 @@ function nextLogId() {
 
 
 /**
- * Mirrors buildPreview() in server/src/services/liveStream.service.js. The console renders straight
+ * Mirrors buildPreview() in server/src/services/liveStream.service.ts. The console renders straight
  * off this shape, so if it drifts from the server the mock stops being a rehearsal of the real
  * thing. An observer token is hidden from the room by design — see the service for why.
  */
@@ -547,7 +547,7 @@ export const liveHandlers = [
 
       // WHY the 202: `live.stream.terminate` is a HIGH-tier permission, so on the real server
       // requirePermission intercepts a non-super_admin and files a pending_admin_action instead of
-      // executing (middlewares/requirePermission.js). A mock that always terminated would hide the
+      // executing (middlewares/requirePermission.ts). A mock that always terminated would hide the
       // maker-checker path from every moderator testing in dev — the exact path they will hit in
       // production.
       const roles = getMockSessionUser()?.roles ?? [];

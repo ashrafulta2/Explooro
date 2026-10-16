@@ -11,7 +11,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as referralService from '../src/services/referral.service.js';
+import * as referralService from '../src/services/referral.service.ts';
 
 describe('Prompt 9.3: Multi-Tier Referral & Network Growth Engine', () => {
 

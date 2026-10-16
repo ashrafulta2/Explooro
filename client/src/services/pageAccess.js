@@ -36,7 +36,7 @@ export const PAGE_STATES = Object.freeze(['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMI
  *
  * WHY: without this, hiding /admin/platform/pages removes the only surface that can un-hide it,
  * and hiding /login removes the way back in. Kept in lockstep with LOCKED_PATHS in
- * server/src/services/pageAccess.service.js — the test asserts both lists match, because a path
+ * server/src/services/pageAccess.service.ts — the test asserts both lists match, because a path
  * the API accepts but the client refuses (or the reverse) is a lockout waiting to happen.
  */
 export const LOCKED_PATHS = Object.freeze(['/', '/login', '/admin/platform/pages']);

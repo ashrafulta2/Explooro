@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 /**
  * supplierPages.test.js — Invariant and Unit Tests for Supplier Account Pages & Action Handlers.
  *
@@ -136,13 +137,42 @@ test('5. 1-Click Courier Consignment Booking & Labels', async (t) => {
 });
 
 test('6. Warranty Claims Review & Resolution', async (t) => {
-  await t.test('Resolve claim handler approves replacement / repair', () => {
-    const handler = warrantyHandlers.find((h) => h.method === 'POST' && h.path === '/supplier/claims/:id/resolve');
-    assert.ok(handler, 'Warranty resolve handler exists');
-    const res = handler.handler({ params: { id: '101' }, body: { action: 'APPROVE_REPLACE', notes: 'Replacement dispatched.' } });
+  // WHY /review: the live API's route. The page used to post to /resolve, which only this mock answered.
+  const review = () => warrantyHandlers.find((h) => h.method === 'POST' && h.path === '/supplier/claims/:id/review');
+
+  await t.test('Review handler approves a replacement with the live body shape', () => {
+    assert.ok(review(), 'Warranty review handler exists');
+    assert.equal(warrantyHandlers.some((h) => h.path === '/supplier/claims/:id/resolve'), false, 'no mock-only /resolve route');
+    const res = review().handler({ params: { id: '101' }, body: { action: 'APPROVE', resolution: 'REPLACE', supplier_notes: 'Replacement dispatched.' } });
     assert.equal(res.status, 200);
     assert.equal(res.body.data.claim.status, 'APPROVED');
-    assert.equal(res.body.data.claim.technician_notes, 'Replacement dispatched.');
+    assert.equal(res.body.data.claim.resolution, 'REPLACE');
+    assert.equal(res.body.data.claim.supplier_notes, 'Replacement dispatched.');
+  });
+
+  await t.test('A supplier REFUND only escalates the claim to the admin queue', () => {
+    const res = review().handler({ params: { id: '102' }, body: { action: 'APPROVE', resolution: 'REFUND' } });
+    assert.equal(res.body.data.claim.status, 'ESCALATED');
+
+    const queue = warrantyHandlers.find((h) => h.method === 'GET' && h.path === '/admin/warranties/queue');
+    const waiting = queue.handler({ query: { status: 'ESCALATED' } }).body.data.claims;
+    assert.ok(waiting.some((c) => c.id === 102), 'the escalated claim waits in the admin queue');
+
+    const override = warrantyHandlers.find((h) => h.method === 'POST' && h.path === '/admin/warranties/:id/override');
+    const decided = override.handler({ params: { id: '102' }, body: { action: 'APPROVE', resolution: 'REFUND' } });
+    assert.equal(decided.body.data.status, 'APPROVED');
+  });
+
+  await t.test('The supplier page posts to the live review route', () => {
+    const source = readFileSync(new URL('../src/pages/supplier/WarrantyClaimsPage.js', import.meta.url), 'utf8');
+    assert.ok(source.includes('/supplier/claims/${claim.id}/review'));
+    assert.equal(source.includes('/resolve`'), false);
+  });
+
+  await t.test('The admin page shows one unit of the item as the refund', async () => {
+    const { unitRefundAmount } = await import('../src/pages/admin/AdminWarrantyClaimsPage.js');
+    assert.equal(unitRefundAmount({ item_qty: 3, item_line_total: '1000.00' }), 333.33);
+    assert.equal(unitRefundAmount({ item_qty: 1, item_line_total: '200.00' }), 200);
   });
 });
 
@@ -221,7 +251,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
     const handler = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
     assert.ok(handler, 'POST /products handler exists');
 
-    // Same shape the live POST /products takes (server product.controller.js createProduct).
+    // Same shape the live POST /products takes (server product.controller.ts createProduct).
     const newProdPayload = {
       category_id: 1,
       title_en: 'Supplier Silk Scarf',

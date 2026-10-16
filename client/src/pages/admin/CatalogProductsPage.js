@@ -27,7 +27,7 @@ import { ImageUploader } from '../../components/media/ImageUploader.js';
 import { can } from '../../services/permissions.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 
-// Mirrors MAX_PRODUCT_IMAGES in server/src/services/product.service.js — the API rejects more.
+// Mirrors MAX_PRODUCT_IMAGES in server/src/services/product.service.ts — the API rejects more.
 const MAX_PRODUCT_PHOTOS = 8;
 
 /**
@@ -1317,7 +1317,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   // 7b. Flash Sale & Restock Actions
   // ---------------------------------------------------------------------------
   // WHY these open forms instead of flipping a flag: a flash sale is a flash_sales row with a
-  // discount price, allocated units and an end time (flashSale.service.js createFlashSale), and
+  // discount price, allocated units and an end time (flashSale.service.ts createFlashSale), and
   // ending one means stopping that specific deal. The old one-click PUT {is_flash_sale} matched no
   // server field, so the ⚡ button "worked" only against the mock.
   const canStartFlashSale = () => can('growth.campaign.manage') && isFeatureEnabled('flash_sale');

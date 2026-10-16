@@ -10,8 +10,8 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import * as vaultService from '../src/services/vault.service.js';
-import * as escrowAdminService from '../src/services/escrowAdmin.service.js';
+import * as vaultService from '../src/services/vault.service.ts';
+import * as escrowAdminService from '../src/services/escrowAdmin.service.ts';
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
 const src = (p) => read(`src/${p}`);
@@ -35,9 +35,9 @@ describe('1. external clearing wallet', () => {
   });
 
   test('gateway, COD and payout all use the clearing wallet, never the treasury', () => {
-    const payment = src('services/payment.service.js');
-    const shipment = src('services/shipment.service.js');
-    const payout = src('services/payout.service.js');
+    const payment = src('services/payment.service.ts');
+    const shipment = src('services/shipment.service.ts');
+    const payout = src('services/payout.service.ts');
     assert.match(payment, /resolveClearingWalletId\(client\)/);
     assert.ok(!/resolvePlatformWalletId/.test(payment));
     assert.match(shipment, /resolveClearingWalletId\(txClient\)/);
@@ -47,7 +47,7 @@ describe('1. external clearing wallet', () => {
   });
 
   test('the dispute subsidy is paid by the real treasury, not a hard-coded user 1', () => {
-    const dispute = src('services/dispute.service.js');
+    const dispute = src('services/dispute.service.ts');
     assert.ok(!/getOrCreateWallet\(db, 1,/.test(dispute));
     assert.match(dispute, /resolvePlatformWalletId\(db, txClient\)/);
   });
@@ -79,18 +79,18 @@ describe('1. external clearing wallet', () => {
   });
 
   test('the finance overview reports the treasury and the outside money apart', () => {
-    const c = src('controllers/finance.controller.js');
+    const c = src('controllers/finance.controller.ts');
     assert.match(c, /platform_treasury_available/);
     assert.match(c, /external_collections_outstanding/);
     assert.match(c, /system_key = 'EXTERNAL_CLEARING'/);
   });
 
   test('total escrow liability counts the platform share; the other sums leave the treasury out', () => {
-    const c = src('controllers/finance.controller.js');
+    const c = src('controllers/finance.controller.ts');
     assert.ok(!/user_id <> 1/.test(c), 'the treasury is found by role, not assumed to be user 1');
     assert.match(c, /SUM\(pending_escrow_balance\), 0\) AS total_escrow,/);
     assert.match(c, /SUM\(held_balance\) FILTER \(WHERE NOT is_treasury\)/);
-    assert.match(src('services/analytics.service.js'), /SUM\(pending_escrow_balance\), 0\) as escrow_liability/);
+    assert.match(src('services/analytics.service.ts'), /SUM\(pending_escrow_balance\), 0\) as escrow_liability/);
   });
 });
 
@@ -191,11 +191,11 @@ describe('2. admin Escrow page reads real escrow', () => {
   });
 
   test('both write endpoints are super admin only and audited', () => {
-    const routes = src('routes/finance.routes.js');
+    const routes = src('routes/finance.routes.ts');
     assert.match(routes, /'\/admin\/finance\/escrow\/:subOrderId\/release'[\s\S]{0,200}requirePermission\('finance\.escrow\.release_manual'\)/);
     assert.match(routes, /'\/admin\/finance\/escrow\/sweep'[\s\S]{0,200}requirePermission\('finance\.escrow\.release_manual'\)/);
-    assert.match(src('services/escrowAdmin.service.js'), /action: 'finance\.escrow\.release_manual'/);
-    assert.match(src('controllers/finance.controller.js'), /action: 'finance\.escrow\.sweep'/);
+    assert.match(src('services/escrowAdmin.service.ts'), /action: 'finance\.escrow\.release_manual'/);
+    assert.match(src('controllers/finance.controller.ts'), /action: 'finance\.escrow\.sweep'/);
   });
 
   test('the page has no made-up rows left', () => {

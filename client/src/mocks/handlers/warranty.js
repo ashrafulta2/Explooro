@@ -364,41 +364,29 @@ export const warrantyHandlers = [
     handler({ params, body }) {
       const claim = mockClaims.find((c) => c.id === Number(params.id));
       if (claim) {
-        claim.status = body?.action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
+        // A supplier REFUND is only a proposal: it waits in the admin queue, as on the server.
+        const escalate = body?.action === 'APPROVE' && body?.resolution === 'REFUND';
+        claim.status = body?.action === 'APPROVE' ? (escalate ? 'ESCALATED' : 'APPROVED') : 'REJECTED';
         claim.resolution = body?.resolution || (body?.action === 'APPROVE' ? 'APPROVED' : 'REJECTED');
         if (body?.rejection_reason) {
           claim.rejection_reason = body.rejection_reason;
         }
-      }
-      return {
-        status: 200,
-        body: {
-          data: {
-            claim,
-            message_en: 'Claim reviewed successfully.',
-          },
-        },
-      };
-    },
-  },
-  {
-    method: 'POST',
-    path: '/supplier/claims/:id/resolve',
-    handler({ params, body }) {
-      const claim = mockClaims.find((c) => c.id === Number(params.id));
-      if (claim) {
-        claim.status = body?.action === 'REJECT' ? 'REJECTED' : 'APPROVED';
-        claim.resolution = body?.action || 'RESOLVED';
-        if (body?.notes) {
-          claim.technician_notes = body.notes;
+        if (body?.supplier_notes) {
+          claim.supplier_notes = body.supplier_notes;
         }
       }
       return {
         status: 200,
         body: {
           data: {
+            // Top-level status/resolution mirror the live API's reviewWarrantyClaim result.
+            success: true,
+            status: claim?.status,
+            resolution: claim?.resolution,
+            pendingApproval: claim?.status === 'ESCALATED',
+            claimId: Number(params.id),
             claim,
-            message_en: 'Warranty claim resolved successfully.',
+            message_en: 'Claim reviewed successfully.',
           },
         },
       };
@@ -424,6 +412,28 @@ export const warrantyHandlers = [
           },
         },
       };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/admin/warranties/queue',
+    handler({ query }) {
+      const status = query?.status;
+      const claimsList = (status && status !== 'all' ? mockClaims.filter((c) => c.status === status) : mockClaims)
+        .map((c) => ({ ...c, item_qty: c.item_qty ?? 1, item_line_total: c.item_line_total ?? '1850.00', sub_order_ref: c.sub_order_ref ?? 'SO-MOCK-1' }));
+      return { status: 200, body: { data: { claims: claimsList, total: claimsList.length } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/admin/warranties/:id/override',
+    handler({ params, body }) {
+      const claim = mockClaims.find((c) => c.id === Number(params.id));
+      if (claim) {
+        claim.status = body?.action === 'REJECT' ? 'REJECTED' : 'APPROVED';
+        claim.resolution = body?.action === 'REJECT' ? 'REJECTED' : body?.resolution || 'REPAIR';
+      }
+      return { status: 200, body: { data: { success: true, status: claim?.status, claimId: Number(params.id) } } };
     },
   },
 ];

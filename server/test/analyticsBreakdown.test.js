@@ -13,7 +13,7 @@ import {
   SALES_CHANNELS,
   aggregateBreakdown,
   computeDailyBreakdown,
-} from '../src/services/analytics.service.js';
+} from '../src/services/analytics.service.ts';
 
 const cat = (id, slug, sales, units = 1) => ({ id, slug, name_en: slug.toUpperCase(), name_bn: `bn-${slug}`, sales, units });
 const day = (categories, channels) => ({ breakdown_json: { version: BREAKDOWN_VERSION, categories, channels } });

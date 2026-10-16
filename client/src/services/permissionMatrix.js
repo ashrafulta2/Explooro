@@ -36,7 +36,7 @@ export function buildHeldIndex(rolePermissions = []) {
  * saler.* / supplier.* workspace ones — so the tick lied about 36 of them.
  *
  * `locked` marks a CRITICAL permission the role does not hold: the RBAC resolver strips CRITICAL
- * from everyone but Super Admin (rbac.service.js), so it is not something a grant can fix.
+ * from everyone but Super Admin (rbac.service.ts), so it is not something a grant can fix.
  */
 export function cellState(role, permission, held) {
   if (held.get(role.id)?.has(permission.key)) return 'granted';

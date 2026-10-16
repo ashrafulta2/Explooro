@@ -270,7 +270,7 @@ test('Following Feed — Rating Display Precision', async (t) => {
 });
 
 test('Following Feed — Markdown Pricing', async (t) => {
-  // Mirrors the drop mapper in customerPortal.service.js.
+  // Mirrors the drop mapper in customerPortal.service.ts.
   const priceOf = (listPrice, customPrice) => {
     const sale = customPrice != null ? Number(customPrice) : Number(listPrice);
     const list = Number(listPrice);

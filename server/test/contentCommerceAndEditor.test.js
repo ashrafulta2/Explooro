@@ -14,7 +14,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as contentService from '../src/services/content.service.js';
+import * as contentService from '../src/services/content.service.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   return {
@@ -403,8 +403,8 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
   // ---------------------------------------------------------------------------
   test('Fastify HTTP API: Content stories and reels querying return 200', async () => {
     const Fastify = (await import('fastify')).default;
-    const contentRoutes = (await import('../src/routes/content.routes.js')).default;
-    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.js')).default;
+    const contentRoutes = (await import('../src/routes/content.routes.ts')).default;
+    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
 
     const mockDb = createMockDb({
       queryHandler: async (sql) => {
@@ -476,6 +476,80 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
     assert.equal(resReels.json().data.length, 1);
 
     await app.close();
+  });
+
+  // WHY: these routes used to sit behind authenticate only, so any signed-in customer could publish a
+  // homepage banner, overwrite live translations or approve a story.
+  describe('Editor endpoints need the editor permission, not just a login', () => {
+    const EDITOR_ROUTES = [
+      ['POST', '/api/v1/editor/banners', 'content.banner.publish'],
+      ['DELETE', '/api/v1/editor/banners/1', 'content.banner.publish'],
+      ['GET', '/api/v1/editor/translations/completeness', 'content.i18n.update'],
+      ['GET', '/api/v1/editor/translations/en', 'content.i18n.update'],
+      ['POST', '/api/v1/editor/translations', 'content.i18n.update'],
+      ['GET', '/api/v1/editor/translations/en/export', 'content.i18n.update'],
+      ['POST', '/api/v1/editor/translations/en/import', 'content.i18n.update'],
+      ['POST', '/api/v1/content/stories/1/review', 'content.story.curate'],
+    ];
+
+    async function buildApp({ withPermissionPlugin = true } = {}) {
+      const Fastify = (await import('fastify')).default;
+      const contentRoutes = (await import('../src/routes/content.routes.ts')).default;
+      const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
+      const asked = [];
+      const modules = [];
+      const queries = [];
+      const db = createMockDb({ queryHandler: async (sql) => { queries.push(sql); return { rows: [] }; } });
+      db.queries = queries;
+
+      const app = Fastify();
+      app.decorate('db', db);
+      app.decorate('authenticate', async (req) => {
+        req.user = { id: 7, roles: ['customer'], permissions: [] };
+      });
+      app.decorate('requireModule', (key) => async () => { modules.push(key); });
+      if (withPermissionPlugin) {
+        app.decorate('requirePermission', (key) => async (req) => {
+          asked.push(key);
+          if (!req.user.permissions.includes(key)) {
+            const { AppError } = await import('../src/plugins/errorHandler.ts');
+            throw new AppError('PERMISSION_DENIED', 'denied', 'denied');
+          }
+        });
+      }
+      app.register(errorHandlerPlugin);
+      await app.register(contentRoutes, { prefix: '/api/v1' });
+      await app.ready();
+      return { app, asked, modules, db };
+    }
+
+    test('a signed-in customer is refused on every editor endpoint, and nothing is written', async () => {
+      const { app, asked, db } = await buildApp();
+      for (const [method, url, perm] of EDITOR_ROUTES) {
+        asked.length = 0;
+        const res = await app.inject({ method, url, payload: method === 'GET' || method === 'DELETE' ? undefined : {} });
+        assert.equal(res.statusCode, 403, `${method} ${url} must be refused`);
+        assert.deepEqual(asked, [perm], `${method} ${url} checks ${perm}`);
+      }
+      assert.equal(db.queries.length, 0, 'no handler ran');
+      await app.close();
+    });
+
+    test('the translation endpoints also need the i18n module, like the page that calls them', async () => {
+      const { app, modules } = await buildApp();
+      await app.inject({ method: 'GET', url: '/api/v1/editor/translations/en' });
+      assert.ok(modules.includes('i18n'));
+      await app.close();
+    });
+
+    test('without the permission plugin the editor endpoints fail closed', async () => {
+      const { app } = await buildApp({ withPermissionPlugin: false });
+      for (const [method, url] of EDITOR_ROUTES) {
+        const res = await app.inject({ method, url, payload: method === 'GET' || method === 'DELETE' ? undefined : {} });
+        assert.equal(res.statusCode, 403, `${method} ${url} must not fall open`);
+      }
+      await app.close();
+    });
   });
 
 });

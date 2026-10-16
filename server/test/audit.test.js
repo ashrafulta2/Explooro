@@ -14,12 +14,12 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as auditService from '../src/services/audit.service.js';
-import * as auditRepo from '../src/repositories/audit.repository.js';
-import auditRoutes from '../src/routes/audit.routes.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import { createMemoryCache } from '../src/config/cache-drivers/memory.js';
+import * as auditService from '../src/services/audit.service.ts';
+import * as auditRepo from '../src/repositories/audit.repository.ts';
+import auditRoutes from '../src/routes/audit.routes.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 
 const ALL_ROLES = [
   { id: 1, key: 'super_admin', label_en: 'Super Admin', level: 100 },

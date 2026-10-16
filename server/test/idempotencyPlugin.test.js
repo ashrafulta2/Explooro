@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import idempotencyPlugin, { isIdempotentRoute } from '../src/middlewares/idempotency.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import idempotencyPlugin, { isIdempotentRoute } from '../src/middlewares/idempotency.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 // WHY: only five controllers honoured Idempotency-Key, so a retried approval, refund, escrow release
 // or reconcile on the other ~230 write routes ran twice. These tests pin the shared plugin's contract.

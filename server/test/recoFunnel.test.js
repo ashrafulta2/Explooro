@@ -14,9 +14,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as feed from '../src/services/discoveryFeed.service.js';
-import * as funnel from '../src/services/recoFunnel.service.js';
-import * as funnelRepo from '../src/repositories/recoFunnel.repository.js';
+import * as feed from '../src/services/discoveryFeed.service.ts';
+import * as funnel from '../src/services/recoFunnel.service.ts';
+import * as funnelRepo from '../src/repositories/recoFunnel.repository.ts';
 
 const migration = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/060_recommendation_cache_metrics.sql'), 'utf8');
 

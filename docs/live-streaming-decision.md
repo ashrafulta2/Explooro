@@ -98,7 +98,7 @@ The table below calculates the network data transfer and estimated server/cloud 
 
 ## 5. Architectural Decision & Implementation Standard
 
-1. **Standard Streaming Protocol:** WebRTC through LiveKit SFU adapter abstraction (`server/src/integrations/streaming/index.js`).
+1. **Standard Streaming Protocol:** WebRTC through LiveKit SFU adapter abstraction (`server/src/integrations/streaming/index.ts`).
 2. **Pluggable Drivers:**
    - `STREAM_DRIVER=mock` (**Default in Development**): Zero external dependency, full host and viewer simulation, animated presenter video playback, pin sync, live chat, and audio-mode toggle.
    - `STREAM_DRIVER=livekit`: Generates JWT room access tokens for publishers and subscribers using LiveKit credentials (`LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `LIVEKIT_URL`).
@@ -107,6 +107,6 @@ The table below calculates the network data transfer and estimated server/cloud 
    - Audio-Only toggle in the viewer UI to disable the video track subscription and consume only 64 kbps audio.
 4. **Data Sync & Real-Time Events:**
    - Video/audio media flows through WebRTC.
-   - Product pinning, real-time reactions, chat messages, moderator mute/kick events, and live sales alerts flow through the **Explooro WebSocket Gateway** (`/ws` via `presence.js`), ensuring instant synchronization (< 500 ms) without loading media servers with high-frequency JSON message parsing.
+   - Product pinning, real-time reactions, chat messages, moderator mute/kick events, and live sales alerts flow through the **Explooro WebSocket Gateway** (`/ws` via `presence.ts`), ensuring instant synchronization (< 500 ms) without loading media servers with high-frequency JSON message parsing.
 5. **Recording & Replays:**
    - Live stream sessions are recorded composite to Cloudflare R2 / S3 storage via the media pipeline for review integrity, moderation audit, and shoppable short-video replay clips.

@@ -5,17 +5,17 @@
 import { describe, test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import mediaRoutes from '../src/routes/media.routes.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import mediaRoutes from '../src/routes/media.routes.ts';
 import {
   detectMimeType,
   detectDimensions,
   generateDerivatives,
   MAX_IMAGE_SIZE_BYTES,
   MAX_VIDEO_SIZE_BYTES,
-} from '../src/services/media.service.js';
-import { getStorageDriver, localStorageDriver } from '../src/integrations/storage/index.js';
+} from '../src/services/media.service.ts';
+import { getStorageDriver, localStorageDriver } from '../src/integrations/storage/index.ts';
 
 function createMockDb() {
   const assets = [];

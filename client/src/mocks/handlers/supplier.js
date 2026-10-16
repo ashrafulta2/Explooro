@@ -446,7 +446,7 @@ export const supplierHandlers = [
     handler: () => ({ status: 200, body: { data: SEEDED_SALER_INSIGHTS } }),
   },
   {
-    // Same shape as GET /supplier/scorecard (services/supplierScorecard.service.js getOwnScorecard).
+    // Same shape as GET /supplier/scorecard (services/supplierScorecard.service.ts getOwnScorecard).
     method: 'GET',
     path: '/supplier/scorecard',
     handler: () => ({
@@ -469,7 +469,7 @@ export const supplierHandlers = [
     }),
   },
   {
-    // Same shape as GET /supplier/incentive (services/volumeIncentive.service.js getSupplierView).
+    // Same shape as GET /supplier/incentive (services/volumeIncentive.service.ts getSupplierView).
     method: 'GET',
     path: '/supplier/incentive',
     handler: () => ({ status: 200, body: { data: incentiveView() } }),

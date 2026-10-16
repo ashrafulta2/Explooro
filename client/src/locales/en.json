@@ -175,6 +175,7 @@
       "my_access": "My Access",
       "me": "Me",
       "admin": {
+      "warranty_claims": "Warranty claims",
         "users": "Users & Access",
         "platform": "Platform",
         "security": "Security"
@@ -3676,7 +3677,33 @@
     "copied_success": "Copied to clipboard.",
     "module_off_creative": "Creative Studio is currently unavailable."
   },
+  "warranty_admin": {
+    "title": "Warranty claims",
+    "subtitle": "Suppliers cannot refund on their own. Approve or reject the refunds they propose.",
+    "tabs_label": "Claim filter",
+    "tab_awaiting": "Awaiting decision",
+    "tab_all": "All claims",
+    "empty": "No claims here.",
+    "customer": "Customer",
+    "supplier": "Supplier",
+    "sub_order": "Sub-order",
+    "filed": "Filed",
+    "refund_amount": "Refund (one unit, paid by the supplier)",
+    "issue": "Issue",
+    "supplier_notes": "Supplier notes",
+    "notes_label": "Notes, or the reason if you reject",
+    "approve_refund": "Approve refund",
+    "reject": "Reject claim",
+    "refund_approved": "Refund approved and paid to the customer wallet.",
+    "rejected": "Claim rejected.",
+    "reason_required": "Write a reason of at least 5 characters before rejecting.",
+    "load_error": "Could not load warranty claims.",
+    "action_error": "The decision could not be saved."
+  },
   "warranty": {
+    "supplier_option_refund": "Propose a refund (an admin must approve it)",
+    "refund_sent_for_approval": "Refund sent to an admin for approval.",
+    "awaiting_admin": "Waiting for admin",
     "hub_title": "Digital Warranties & Protection Cards",
     "hub_subtitle": "Verifiable manufacturer guarantees with live expiry countdowns and 1-click claim filing.",
     "supplier_hub_title": "Warranty Claims & Protection Hub",

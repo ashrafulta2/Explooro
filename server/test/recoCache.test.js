@@ -18,10 +18,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as rc from '../src/services/recoCache.service.js';
-import * as reco from '../src/services/recommendation.service.js';
-import * as productService from '../src/services/product.service.js';
-import * as feed from '../src/services/discoveryFeed.service.js';
+import * as rc from '../src/services/recoCache.service.ts';
+import * as reco from '../src/services/recommendation.service.ts';
+import * as productService from '../src/services/product.service.ts';
+import * as feed from '../src/services/discoveryFeed.service.ts';
 
 const migration = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/060_recommendation_cache_metrics.sql'), 'utf8');
 
@@ -181,8 +181,8 @@ describe('Feed cache — settings snapshot', () => {
   });
 
   test('the ranking, rails and diversity resolvers share one read', async () => {
-    const { resolveRailsConfig } = await import('../src/services/homeRails.service.js');
-    const { resolveDiversityConfig } = await import('../src/services/diversity.service.js');
+    const { resolveRailsConfig } = await import('../src/services/homeRails.service.ts');
+    const { resolveDiversityConfig } = await import('../src/services/diversity.service.ts');
     const db = makeDb([settingsRoute(rows)]);
     const cache = makeCache();
     await reco.resolveRankingConfig(db, { cache });

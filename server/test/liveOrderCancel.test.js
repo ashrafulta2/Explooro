@@ -4,7 +4,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as orderService from '../src/services/order.service.js';
+import * as orderService from '../src/services/order.service.ts';
 
 function makeDb({ liveStreamId, couponId = null }) {
   const log = [];

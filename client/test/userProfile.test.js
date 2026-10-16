@@ -7,7 +7,7 @@
  *   2. Reachability — the route is registered, the avatar menu links to it, the nav item exists.
  *      A page nobody can navigate to is the exact bug this whole change set out to fix.
  *   3. Stylesheet aggregation — main.css imports profile.css, or the page renders unstyled.
- *   4. Mock parity — the mock PUT honours the same three rules profile.service.js enforces, so
+ *   4. Mock parity — the mock PUT honours the same three rules profile.service.ts enforces, so
  *      dev behaviour does not diverge from the live API.
  */
 
@@ -275,7 +275,7 @@ test('4. The mock driver matches the live API contract', async (t) => {
   });
 
   await t.test('phone is never writable and an email change clears verification', () => {
-    // Rule 1 and rule 2 from profile.service.js's header. A mock that let either slip would let a
+    // Rule 1 and rule 2 from profile.service.ts's header. A mock that let either slip would let a
     // developer "verify" an address by typing it, and the live API would then disagree.
     assert.match(mockSrc, /next\.phone = current\.phone;/, 'PUT must restore the session phone');
     assert.match(mockSrc, /next\.is_email_verified = false;/, 'a changed email must drop verification');

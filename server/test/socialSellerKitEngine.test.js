@@ -11,8 +11,8 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as shortlinkService from '../src/services/shortlink.service.js';
-import * as flyerService from '../src/services/flyer.service.js';
+import * as shortlinkService from '../src/services/shortlink.service.ts';
+import * as flyerService from '../src/services/flyer.service.ts';
 
 describe('Prompt 9.7: Social Shop Partner Kit & Viral Distribution Engine', () => {
 

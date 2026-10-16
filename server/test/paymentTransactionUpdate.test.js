@@ -9,7 +9,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import * as paymentRepo from '../src/repositories/payment.repository.js';
+import * as paymentRepo from '../src/repositories/payment.repository.ts';
 
 function captureDb() {
   const calls = [];

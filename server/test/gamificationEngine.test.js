@@ -11,9 +11,9 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as coinService from '../src/services/coin.service.js';
-import * as questService from '../src/services/quest.service.js';
-import * as leaderboardService from '../src/services/leaderboard.service.js';
+import * as coinService from '../src/services/coin.service.ts';
+import * as questService from '../src/services/quest.service.ts';
+import * as leaderboardService from '../src/services/leaderboard.service.ts';
 
 describe('Prompt 9.4: Loyalty Coins, Daily Quests & Leaderboard Engine', () => {
 

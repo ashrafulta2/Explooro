@@ -18,8 +18,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import * as diversity from '../src/services/diversity.service.js';
-import * as feed from '../src/services/discoveryFeed.service.js';
+import * as diversity from '../src/services/diversity.service.ts';
+import * as feed from '../src/services/discoveryFeed.service.ts';
 
 const CFG = { ...diversity.DEFAULT_DIVERSITY, explore_every: 0 };
 

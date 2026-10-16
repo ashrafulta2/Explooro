@@ -106,6 +106,7 @@ export const navItems = [
 
   { key: 'admin.orders.list', label_i18n_key: 'nav.shared.orders', icon: null, path: '/admin/orders', group: 'admin.orders', permission: 'orders.order.view_all', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.returns', label_i18n_key: 'nav.shared.returns', icon: null, path: '/admin/returns', group: 'admin.orders', permission: 'orders.return.view_all', module: 'returns_engine', roles: ['super_admin', 'admin'], order: 2 },
+  { key: 'admin.warranty_claims', label_i18n_key: 'nav.admin.warranty_claims', icon: null, path: '/admin/warranty-claims', group: 'admin.orders', permission: 'support.warranty.override', module: 'digital_warranty', roles: ['super_admin', 'admin'], order: 6 },
   { key: 'admin.disputes', label_i18n_key: 'nav.shared.disputes', icon: null, path: '/admin/disputes', group: 'admin.orders', permission: 'orders.dispute.view_all', module: 'dispute_panel', roles: ['super_admin', 'admin'], order: 3, badge: 'disputes' },
   { key: 'admin.courier', label_i18n_key: 'nav.admin.courier', icon: null, path: '/admin/courier', group: 'admin.orders', permission: 'logistics.carrier.manage', module: 'courier_hub', roles: ['super_admin', 'admin'], order: 4 },
   { key: 'admin.cod_reconciliation', label_i18n_key: 'nav.admin.cod_reconciliation', icon: null, path: '/admin/cod-reconciliation', group: 'admin.orders', permission: 'orders.cod.reconcile', module: 'cod_reconciliation', roles: ['super_admin', 'admin'], order: 5 },

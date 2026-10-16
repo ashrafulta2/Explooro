@@ -9,7 +9,7 @@
  * Without it the ticket resolves, the upgrade fails against a backend that is not running, and the
  * connection pill sits on 🟡 Reconnecting forever with a retry storm behind it.
  *
- * Every frame below is byte-for-byte the shape `server/src/sockets/chat.handler.js` sends —
+ * Every frame below is byte-for-byte the shape `server/src/sockets/chat.handler.ts` sends —
  * flat and camelCase, never wrapped in a `payload` object. Mock and live must be
  * indistinguishable to the client, otherwise the preview lies about whether the page works.
  */
@@ -49,7 +49,7 @@ export function createMockChatSocket() {
     socket.onmessage({ data: JSON.stringify(frame) });
   }
 
-  /** Wire shape of `chat.service.js`'s real-time delivery payload. */
+  /** Wire shape of `chat.service.ts`'s real-time delivery payload. */
   function wireMessage(threadId, stored) {
     return {
       type: 'chat:message',

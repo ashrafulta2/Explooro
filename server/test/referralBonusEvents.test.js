@@ -10,8 +10,8 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import * as referral from '../src/services/referral.service.js';
-import * as admin from '../src/services/referralAdmin.service.js';
+import * as referral from '../src/services/referral.service.ts';
+import * as admin from '../src/services/referralAdmin.service.ts';
 
 const settings = { tier_1_rate_pct: 5, tier_2_rate_pct: 2, signup_bonus_bdt: 50, first_sale_bonus_bdt: 200, kyc_bonus_bdt: 100 };
 

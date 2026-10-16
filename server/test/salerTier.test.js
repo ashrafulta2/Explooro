@@ -12,11 +12,11 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveSplitPercentages } from '../src/services/pricing.service.js';
+import { resolveSplitPercentages } from '../src/services/pricing.service.ts';
 import {
   DEFAULT_RULES, nextTierInfo, parseTierBonuses, pickTierKey, resolveRules, validateRules,
-} from '../src/services/salerTierBonus.js';
-import { recomputeAll, getSalerView } from '../src/services/salerTier.service.js';
+} from '../src/services/salerTierBonus.ts';
+import { recomputeAll, getSalerView } from '../src/services/salerTier.service.ts';
 
 const BONUSES = [
   { tier: 'BRONZE', bonus_pct: 0 }, { tier: 'SILVER', bonus_pct: 1 },

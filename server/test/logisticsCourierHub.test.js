@@ -15,13 +15,13 @@ import { describe, test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as shipmentService from '../src/services/shipment.service.js';
-import * as vaultService from '../src/services/vault.service.js';
-import * as clawbackService from '../src/services/clawback.service.js';
-import { getCourierAdapter } from '../src/integrations/courier/index.js';
-import logisticsRoutes from '../src/routes/logistics.routes.js';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import * as shipmentService from '../src/services/shipment.service.ts';
+import * as vaultService from '../src/services/vault.service.ts';
+import * as clawbackService from '../src/services/clawback.service.ts';
+import { getCourierAdapter } from '../src/integrations/courier/index.ts';
+import logisticsRoutes from '../src/routes/logistics.routes.ts';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 function createMockDb() {
   let nextShipmentId = 1;
@@ -440,6 +440,24 @@ describe('Prompt 7.1 — 3PL Courier Hub & Webhooks', () => {
     // Stock for product 501 restored by 2 units (20 -> 22)
     const updatedStock = db.getRawData().products.find((p) => p.id === 501).stock_quantity;
     assert.equal(updatedStock, initialStock + 2, 'Warehouse inventory restored upon carrier return');
+  });
+
+  test('RETURNED webhook fails, instead of silently skipping the refund, when the clawback errors', async () => {
+    const base = createMockDb();
+    const failing = (q, params) => (q.includes('FROM escrow_entries')
+      ? Promise.reject(new Error('DB_DOWN: escrow read failed'))
+      : base.query(q, params));
+    const failingDb = { ...base, query: failing, async connect() { return { query: failing, release() {} }; } };
+
+    const { trackingNumber } = await shipmentService.createShipmentForSubOrder(base, { subOrderId: 901, carrierOverride: 'MOCK' });
+
+    await assert.rejects(
+      shipmentService.handleCourierWebhook(failingDb, createMockCache(), {
+        carrier: 'MOCK',
+        payload: { event_id: 'mock-evt-ret-fail', tracking_number: trackingNumber, status: 'RETURNED' },
+      }),
+      /DB_DOWN/
+    );
   });
 
   test('Acceptance 6: Fastify HTTP Routes for Webhooks, Tracking & Shipping Labels', async () => {

@@ -20,15 +20,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 
-import * as walletRepo from '../src/repositories/wallet.repository.js';
-import * as ledgerService from '../src/services/ledger.service.js';
-import * as vaultService from '../src/services/vault.service.js';
-import * as clawbackService from '../src/services/clawback.service.js';
-import * as scheduler from '../src/jobs/scheduler.js';
-import { runEscrowReleaseSweep } from '../src/jobs/escrowRelease.job.js';
-import financeRoutes from '../src/routes/finance.routes.js';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import * as walletRepo from '../src/repositories/wallet.repository.ts';
+import * as ledgerService from '../src/services/ledger.service.ts';
+import * as vaultService from '../src/services/vault.service.ts';
+import * as clawbackService from '../src/services/clawback.service.ts';
+import * as scheduler from '../src/jobs/scheduler.ts';
+import { runEscrowReleaseSweep } from '../src/jobs/escrowRelease.job.ts';
+import financeRoutes from '../src/routes/finance.routes.ts';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -445,7 +445,7 @@ function createMockDb() {
         return { rows: [{ ...row }] };
       }
 
-      // Admin Escrow page (services/escrowAdmin.service.js): one row per sub-order.
+      // Admin Escrow page (services/escrowAdmin.service.ts): one row per sub-order.
       if (q.includes('WITH holdings AS')) {
         const bySub = new Map();
         for (const e of escrowEntries) {

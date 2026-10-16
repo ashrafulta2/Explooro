@@ -23,10 +23,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
-import pageAccessRoutes from '../src/routes/pageAccess.routes.js';
-import * as pageAccessService from '../src/services/pageAccess.service.js';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
+import pageAccessRoutes from '../src/routes/pageAccess.routes.ts';
+import * as pageAccessService from '../src/services/pageAccess.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../..');
@@ -372,7 +372,7 @@ describe('GET /page-access', () => {
 /* ── 7. The guards ──────────────────────────────────────────────────────── */
 
 describe('route guards and the permission catalog', () => {
-  const routeSrc = fs.readFileSync(path.join(__dirname, '../src/routes/pageAccess.routes.js'), 'utf8');
+  const routeSrc = fs.readFileSync(path.join(__dirname, '../src/routes/pageAccess.routes.ts'), 'utf8');
 
   test('the admin routes are guarded by the two catalog keys', () => {
     assert.match(routeSrc, /reqPerm\('platform\.page\.view'\)/);
@@ -415,8 +415,8 @@ describe('route guards and the permission catalog', () => {
   });
 
   test('the routes are registered on the app', () => {
-    const appSrc = fs.readFileSync(path.join(__dirname, '../src/app.js'), 'utf8');
-    assert.match(appSrc, /import pageAccessRoutes from '\.\/routes\/pageAccess\.routes\.js'/);
+    const appSrc = fs.readFileSync(path.join(__dirname, '../src/app.ts'), 'utf8');
+    assert.match(appSrc, /import pageAccessRoutes from '\.\/routes\/pageAccess\.routes\.ts'/);
     assert.match(appSrc, /app\.register\(pageAccessRoutes, \{ prefix: '\/api\/v1' \}\)/);
   });
 });

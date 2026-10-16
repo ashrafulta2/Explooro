@@ -9,8 +9,8 @@ every AI feature in this codebase must follow.
 
 **Default: Anthropic Claude API**, called through the official `@anthropic-ai/sdk` (pinned exact
 version — see `docs/dependency-ledger.md`), isolated in the single adapter file
-`server/src/services/ai/provider.js`. No controller, agent, or route may import the SDK or call
-`fetch` against `api.anthropic.com` directly — every model call goes through `provider.js`, which
+`server/src/services/ai/provider.ts`. No controller, agent, or route may import the SDK or call
+`fetch` against `api.anthropic.com` directly — every model call goes through `provider.ts`, which
 is the only file allowed to know the SDK's request/response shapes. This mirrors every other
 external integration in this codebase (payments, courier, SMS, streaming): one adapter file, one
 `mock` driver, switchable by an env var.
@@ -44,7 +44,7 @@ touching code — a config change only, per the "business numbers live in settin
 | `claude-haiku-4-5` | $0.001 | $0.005 |
 | `claude-opus-5` | $0.005 | $0.025 |
 
-`provider.js` holds a `PRICING_PER_1K` table matching this, applied to the `usage` block on every
+`provider.ts` holds a `PRICING_PER_1K` table matching this, applied to the `usage` block on every
 provider response to compute `cost_usd`, which is what gets written to `ai_usage_events` and summed
 for the spend cap. Re-verify this table against the `claude-api` skill's pricing reference whenever
 a model changes and update both places together.
@@ -76,8 +76,8 @@ system prompt and tool schema — the dominant fixed cost of a grounded, tool-us
 - Bootstrap default: `AI_MONTHLY_SPEND_CAP_USD` in `.env.example` (100 USD/month).
 - Source of truth once the platform is running: `platform_settings` key
   `ai.monthly_spend_cap_usd` — same "env bootstraps, `platform_settings` wins" pattern as every
-  other business number (`server/src/config/env.js` §BUSINESS DEFAULTS).
-- `provider.js` sums `ai_usage_events.cost_usd` for the current calendar month before every turn.
+  other business number (`server/src/config/env.ts` §BUSINESS DEFAULTS).
+- `provider.ts` sums `ai_usage_events.cost_usd` for the current calendar month before every turn.
   If the running total is at or above the cap, the turn **does not throw** — it degrades (see §7).
 - The cap and the current month's spend are readable by Admin via
   `GET /api/v1/ai/usage` (permission `ai.config.manage`) and editable via
@@ -88,7 +88,7 @@ system prompt and tool schema — the dominant fixed cost of a grounded, tool-us
 ## 7. Graceful degradation policy
 
 Every AI-dependent feature must keep working — in a reduced form — when AI is unavailable. "AI
-unavailable" covers three cases, all handled inside `services/ai/index.js` before the client ever
+unavailable" covers three cases, all handled inside `services/ai/index.ts` before the client ever
 sees an error:
 
 1. **Module disabled** (`ai_concierge` / `ai_sourcing_chat` / `ai_creative_studio` off) — handled
@@ -113,7 +113,7 @@ in a real outage.
 
 ## 8. Retry policy
 
-`provider.js` retries a transient failure (429, connection error, 5xx) up to 2 times with
+`provider.ts` retries a transient failure (429, connection error, 5xx) up to 2 times with
 exponential backoff (300ms → 900ms) before handing control to the degradation path in §7. A 4xx
 that is not 429 (bad request, auth failure) is not retried — it is logged and degrades immediately,
 since retrying a malformed request just wastes the latency budget.
@@ -124,7 +124,7 @@ since retrying a malformed request just wastes the latency budget.
    content returned by a tool are untrusted data, never instructions. Two independent layers:
    - The system prompt explicitly states that tool-result text is catalog data to summarize, never
      commands to follow, and that only the platform's own system prompt carries instructions.
-   - `sanitizeUntrustedText()` (`conciergeAgent.js` / `sourcingAgent.js`) pattern-matches common
+   - `sanitizeUntrustedText()` (`conciergeAgent.ts` / `sourcingAgent.ts`) pattern-matches common
      injection phrasing ("ignore previous instructions", "you are now", "disregard the above",
      "system:") in any text pulled from the database before it is embedded in a tool result sent to
      the model, replacing a match with `[REDACTED_INSTRUCTION_ATTEMPT]` and recording an
@@ -134,9 +134,9 @@ since retrying a malformed request just wastes the latency budget.
      never parsed out of the model's free-text reply. Even a successful injection that changed the
      model's prose cannot change what number a product card shows, because the card never reads the
      prose.
-2. **PII redaction.** Before a user's message is sent to the model, `provider.js` redacts phone
+2. **PII redaction.** Before a user's message is sent to the model, `provider.ts` redacts phone
    numbers, NID-shaped digit runs, and email addresses via the same pattern family
-   `audit.service.js` already uses for sensitive-field detection, replacing a match with a typed
+   `audit.service.ts` already uses for sensitive-field detection, replacing a match with a typed
    placeholder (`[PHONE]`, `[EMAIL]`) so the model still understands intent ("what's the delivery
    time for my order") without the PII leaving the platform.
 3. **Full audit logging.** Every turn writes an `ai_messages` row (user + assistant, redacted) and
@@ -145,7 +145,7 @@ since retrying a malformed request just wastes the latency budget.
    is the AI-specific audit trail — separate from the global `audit_logs` hash chain, which is
    reserved for staff/admin state-changing actions per the platform's audit policy — but every
    AI-triggered state change that *does* mutate platform data (e.g. a Shop Partner's 1-click "Add to
-   Store" from a sourcing card) goes through the existing `product.service.js` code path and its
+   Store" from a sourcing card) goes through the existing `product.service.ts` code path and its
    normal audit trail, not a new one. The AI layer never calls that path directly — the model can
    *recommend*, the confirming click is what executes, same rule as Prompt 10.3's creative studio
    ("every output is a draft requiring human approval").
@@ -163,7 +163,7 @@ Every 10.3 service follows the same split established by §7's degradation polic
 testable, code-computed core, with Claude used only where actual judgment is needed — never as the
 source of a number or a fact.
 
-- **`creativeStudio.js`** — ad copy and description-improvement drafts are grounded in the real
+- **`creativeStudio.ts`** — ad copy and description-improvement drafts are grounded in the real
   product row (title/price/category/existing description) and are never auto-applied: ad copy has
   no publish target at all (copy-to-clipboard only), and an improved description must be explicitly
   applied by the owning supplier through the pre-existing, already-audited `PATCH /products/:id` —
@@ -171,24 +171,24 @@ source of a number or a fact.
   `sharp` (padding/color harmonization), not true background *removal* — full segmentation needs an
   ML model outside the approved dependency list (§ dependency-ledger.md). Claude picks the matte
   style from a 3-value enum only; `sharp` does the actual pixels, isolated behind
-  `media.service.js`'s `applyFlatBackgroundMatte` (the one file allowed to import `sharp`, per the
+  `media.service.ts`'s `applyFlatBackgroundMatte` (the one file allowed to import `sharp`, per the
   one-dependency-one-adapter rule).
-- **`demandForecast.js`** — `computeStatisticalForecast` is pure arithmetic (moving average +
+- **`demandForecast.ts`** — `computeStatisticalForecast` is pure arithmetic (moving average +
   day-of-week seasonality + an 80%-band confidence interval) over real `order_items` history; it
   takes no model call. `runForecast` hands the *already-computed* forecast JSON to Claude and asks
   only for a short explanation — the model cannot alter the prediction. A sparse-history guard
   (`insufficient_data`) stops a handful of sales days from producing a falsely confident-looking
   number.
-- **`reviewIntegrity.js`** — the fake-review score is a deterministic rule-based sum (text
+- **`reviewIntegrity.ts`** — the fake-review score is a deterministic rule-based sum (text
   patterns, exact-duplicate body text, reviewer/product velocity, account age), not a model
   judgment — a moderation score has to be reproducible and explainable, not subject to sampling
   variance. A review scoring below `FLAG_THRESHOLD` (55) is pushed into the existing Prompt 7.4
   `moderation_queue` (never auto-deleted/auto-hidden — a human always decides); Claude is used only,
   optionally, to phrase the moderator-facing explanation of already-computed signal codes.
-- **`prescriptiveInsights.js`** — findings are built from real `order_items`/`saler_store_items`
+- **`prescriptiveInsights.ts`** — findings are built from real `order_items`/`saler_store_items`
   sales counts (no page-view/analytics table exists yet, so a conversion-rate metric isn't
   groundable — sold-unit comparisons are used instead) and real stockout forecasts from
-  `demandForecast.js`. Claude turns already-computed findings into one recommendation sentence each
+  `demandForecast.ts`. Claude turns already-computed findings into one recommendation sentence each
   and cannot introduce a number that wasn't in the finding.
 
 All four honor the same spend cap and mock-driver default as 10.2, recorded under their own

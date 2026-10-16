@@ -20,7 +20,7 @@ import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.js';
 
 /**
  * Which rate-card fields each pricing model actually uses, and how to label them.
- * Mirrors RATE_CARD_FIELDS in server/src/services/adPricing.js — the server re-validates every
+ * Mirrors RATE_CARD_FIELDS in server/src/services/adPricing.ts — the server re-validates every
  * value on write, so this map controls what is offered, never what is allowed.
  */
 const MODEL_FIELDS = {

@@ -129,7 +129,7 @@ export function formatPhone(raw) {
 
 /**
  * `"01711000001"`, `"8801711000001"`, `"+880 1711-000001"` → `"+8801711000001"`; anything that is not a
- * Bangladeshi mobile (01[3-9] + 8 digits) → `null`. Mirrors server/src/services/staff.service.js
+ * Bangladeshi mobile (01[3-9] + 8 digits) → `null`. Mirrors server/src/services/staff.service.ts
  * normalisePhone(): a form that is stricter than the API rejects input the API would accept, and one
  * that is looser sends the API something it will refuse.
  */

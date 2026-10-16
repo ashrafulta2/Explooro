@@ -5,7 +5,7 @@
  * Seeded from handlers/auth.js's mock session (whoever "logged in"), then persisted per tab so an
  * edit survives a reload the same way the mock session does.
  *
- * Deliberately mirrors the three rules server/src/services/profile.service.js enforces, because a
+ * Deliberately mirrors the three rules server/src/services/profile.service.ts enforces, because a
  * mock that is more permissive than the API teaches the UI habits the live backend then rejects:
  *   1. `phone` in the payload is ignored — it is the login identifier.
  *   2. Changing `email` clears `is_email_verified`.
@@ -19,7 +19,7 @@ const PROFILE_KEY = 'explooro.mock.profile';
 
 const GENDERS = ['MALE', 'FEMALE', 'OTHER', 'UNSPECIFIED'];
 
-// Editable columns, matching profile.service.js's whitelist. Anything else in the body is dropped.
+// Editable columns, matching profile.service.ts's whitelist. Anything else in the body is dropped.
 const PROFILE_FIELDS = [
   'full_name',
   'display_name',

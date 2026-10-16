@@ -17,12 +17,12 @@ import { describe, test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as walletRepo from '../src/repositories/wallet.repository.js';
-import * as ledgerService from '../src/services/ledger.service.js';
-import * as payoutService from '../src/services/payout.service.js';
-import financeRoutes from '../src/routes/finance.routes.js';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import * as walletRepo from '../src/repositories/wallet.repository.ts';
+import * as ledgerService from '../src/services/ledger.service.ts';
+import * as payoutService from '../src/services/payout.service.ts';
+import financeRoutes from '../src/routes/finance.routes.ts';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 function createMockDb() {
   let nextWalletId = 1;

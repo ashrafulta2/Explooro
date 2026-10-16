@@ -16,11 +16,11 @@ import { describe, test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
-import * as returnService from '../src/services/return.service.js';
-import * as clawbackService from '../src/services/clawback.service.js';
-import returnRoutes from '../src/routes/return.routes.js';
-import requestContextPlugin from '../src/plugins/requestContext.js';
-import errorHandlerPlugin from '../src/plugins/errorHandler.js';
+import * as returnService from '../src/services/return.service.ts';
+import * as clawbackService from '../src/services/clawback.service.ts';
+import returnRoutes from '../src/routes/return.routes.ts';
+import requestContextPlugin from '../src/plugins/requestContext.ts';
+import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 function createMockDb() {
   let nextReturnId = 1;
@@ -608,6 +608,19 @@ describe('Prompt 7.2 — Return & Refund Engine', () => {
     });
     assert.equal(queueRes.statusCode, 200);
     assert.ok(queueRes.json().data.returns.length > 0);
+
+    // Return #1 was refunded in Acceptance 1: reviewing it again is refused, not re-opened
+    const staleRes = await app.inject({
+      method: 'POST',
+      url: '/api/v1/admin/returns/1/review',
+      payload: { action: 'REJECT' },
+    });
+    assert.equal(staleRes.statusCode, 409);
+    assert.equal(staleRes.json().error.code, 'RETURN_STATE_INVALID');
+    assert.equal(db.getRawData().returnRequests.find((r) => r.id === 1).status, 'REFUNDED');
+
+    // Walk a fresh request through the HTTP surface
+    db.getRawData().returnRequests.find((r) => r.id === 1).status = 'REQUESTED';
 
     // 2. Return Review
     const reviewRes = await app.inject({

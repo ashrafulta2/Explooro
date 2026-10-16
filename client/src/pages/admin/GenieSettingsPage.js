@@ -10,7 +10,7 @@
  * WHY only on/off: duration and smoothness were exposed here too, but they only ever confused
  * operators — the shipped defaults (650ms, balanced) already look right, so this page no longer
  * lets anyone change them. The API and `platform_settings` still carry `duration_ms` / `quality`
- * (server/src/services/genie.service.js) — this page just always saves the values it loaded,
+ * (server/src/services/genie.service.ts) — this page just always saves the values it loaded,
  * unedited, alongside whatever `enabled` was set to.
  *
  * WHY its own page, and its own permission pair: same reasoning as the Language page. Platform

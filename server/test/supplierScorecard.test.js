@@ -1,5 +1,5 @@
 /**
- * supplierScorecard.test.js — The invariants stated in supplierScorecard.service.js.
+ * supplierScorecard.test.js — The invariants stated in supplierScorecard.service.ts.
  *
  *   1. Too few orders ⇒ no grade ("New"), however good the percentages look.
  *   2. A metric with no data is left out and the weights re-scale; it is never 0 and never perfect.
@@ -16,7 +16,7 @@ import {
   toPublicView,
   attachToProducts,
   refreshAll,
-} from '../src/services/supplierScorecard.service.js';
+} from '../src/services/supplierScorecard.service.ts';
 
 const rules = resolveRules(null);
 const strong = { sample_orders: 100, on_time_dispatch_pct: 98, delivery_success_pct: 97, return_rate_pct: 2, dispute_rate_pct: 0.5 };

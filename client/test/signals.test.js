@@ -119,7 +119,7 @@ describe('batching and transport', () => {
   });
 
   it('never sends a request larger than the server accepts', () => {
-    const serverMax = Number(/MAX_EVENTS_PER_CALL = (\d+)/.exec(serverSrc('services/discoveryFeed.service.js'))[1]);
+    const serverMax = Number(/MAX_EVENTS_PER_CALL = (\d+)/.exec(serverSrc('services/discoveryFeed.service.ts'))[1]);
     assert.ok(signals.BATCH_SIZE <= serverMax);
   });
 
@@ -478,7 +478,7 @@ describe('surface attribution', () => {
 
   it('the client and the server accept exactly the same shape of surface name', () => {
     const client = /SOURCE_PATTERN = (\/.+\/);/.exec(src('services/signals.js'))[1];
-    const server = /SOURCE_PATTERN = (\/.+\/);/.exec(serverSrc('services/discoveryFeed.service.js'))[1];
+    const server = /SOURCE_PATTERN = (\/.+\/);/.exec(serverSrc('services/discoveryFeed.service.ts'))[1];
     assert.equal(client, server);
     const sql = /source ~ '([^']+)'/.exec(readFileSync(join(here, '..', '..', 'server', 'src', 'db', 'migrations', '060_recommendation_cache_metrics.sql'), 'utf8'))[1];
     assert.equal(`/${sql}/`, client, 'migration 060 constrains the column to the same shape');

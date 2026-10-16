@@ -1,0 +1,507 @@
+/**
+ * coupon.service.ts — Coupon & Voucher Promotion Service (Prompt 9.2).
+ *
+ * Implements:
+ * 1. Coupon creation with multi-dimensional scopes (PLATFORM, SUPPLIER, SALER, CATEGORY, PRODUCT).
+ * 2. Strict cost attribution: Explicit funding party (PLATFORM, SUPPLIER, SALER) driving ledger entries.
+ * 3. Validation against constraints: min spend, max discount, budget cap, per-user limits, first-order-only.
+ * 4. Atomic reservation inside checkout transactions using SELECT ... FOR UPDATE pessimistic row locks.
+ * 5. Concurrency safety guaranteeing a budget cap is never exceeded.
+ */
+
+import { withTransaction } from '../config/db.ts';
+import { AppError } from '../plugins/errorHandler.ts';
+import { writeAudit } from '../lib/audit.ts';
+import * as couponRepo from '../repositories/coupon.repository.ts';
+import { isEnabled } from './module.service.ts';
+import { perParcelCharge } from './deliveryCharge.service.ts';
+import { toPaisa, toBdtNumber } from './pricing.service.ts';
+
+export const VALID_DISCOUNT_TYPES = new Set(['PERCENT', 'FIXED', 'FREE_SHIPPING', 'BUY_X_GET_Y']);
+export const VALID_SCOPES = new Set(['PLATFORM', 'SUPPLIER', 'SALER', 'CATEGORY', 'PRODUCT']);
+export const VALID_FUNDING_PARTIES = new Set(['PLATFORM', 'SUPPLIER', 'SALER']);
+
+/**
+ * Creates a new coupon with budget caps and cost attribution.
+ */
+export async function createCoupon(db, cache, creatorUser, couponData, reqMeta: Record<string, any> = {}) {
+  const code = String(couponData.code || '').trim().toUpperCase();
+  if (!code || code.length < 3 || code.length > 30) {
+    throw new AppError('INVALID_COUPON_CODE', 'Coupon code must be between 3 and 30 characters.');
+  }
+
+  const discountType = couponData.discount_type || 'PERCENT';
+  if (!VALID_DISCOUNT_TYPES.has(discountType)) {
+    throw new AppError('INVALID_DISCOUNT_TYPE', `Discount type must be one of: ${[...VALID_DISCOUNT_TYPES].join(', ')}`);
+  }
+
+  const discountValue = Number(couponData.discount_value);
+  if (isNaN(discountValue) || discountValue <= 0) {
+    throw new AppError('INVALID_DISCOUNT_VALUE', 'Discount value must be greater than zero.');
+  }
+  if (discountType === 'PERCENT' && discountValue > 100) {
+    throw new AppError('INVALID_DISCOUNT_VALUE', 'Percentage discount cannot exceed 100%.');
+  }
+
+  const scopeType = couponData.scope_type || 'PLATFORM';
+  if (!VALID_SCOPES.has(scopeType)) {
+    throw new AppError('INVALID_SCOPE', `Scope type must be one of: ${[...VALID_SCOPES].join(', ')}`);
+  }
+
+  const fundedBy = couponData.funded_by || 'PLATFORM';
+  if (!VALID_FUNDING_PARTIES.has(fundedBy)) {
+    throw new AppError('INVALID_FUNDED_BY', `Funded by must be one of: ${[...VALID_FUNDING_PARTIES].join(', ')}`);
+  }
+
+  // Non-super-admins cannot fund platform-wide discounts from platform treasury
+  const isStaff = creatorUser.roles?.some(r => ['super_admin', 'admin'].includes(r));
+  if (fundedBy === 'PLATFORM' && !isStaff) {
+    throw new AppError('UNAUTHORIZED_FUNDING', 'Only platform administrators can create platform-funded coupons.');
+  }
+
+  // WHY: the admin Campaign Manager form posts `min_spend_amount`; creator forms post `min_spend`.
+  const minSpend = Number(couponData.min_spend ?? couponData.min_spend_amount) || 0;
+  const maxDiscount = couponData.max_discount != null ? Number(couponData.max_discount) : null;
+  const budgetCap = couponData.budget_cap != null ? Number(couponData.budget_cap) : null;
+  const usageLimit = couponData.usage_limit != null ? parseInt(couponData.usage_limit, 10) : null;
+  const perUserLimit = parseInt(couponData.per_user_limit || 1, 10);
+  const firstOrderOnly = Boolean(couponData.first_order_only);
+  const isStackable = Boolean(couponData.is_stackable);
+
+  const startsAt = couponData.starts_at ? new Date(couponData.starts_at) : new Date();
+  const expiresAt = couponData.expires_at ? new Date(couponData.expires_at) : new Date(Date.now() + 30 * 86400000);
+
+  if (expiresAt <= startsAt) {
+    throw new AppError('INVALID_EXPIRY', 'Coupon expiration date must be after the start date.');
+  }
+
+  // Check uniqueness of coupon code
+  const existing = await couponRepo.findCouponByCode(db, code);
+  if (existing) {
+    throw new AppError('COUPON_CODE_EXISTS', `Coupon code "${code}" already exists.`);
+  }
+
+  const query = `
+    INSERT INTO coupons (
+      code, discount_type, discount_value, max_discount, min_spend,
+      budget_cap, usage_limit, per_user_limit, first_order_only, is_stackable,
+      scope_type, scope_ref, funded_by, funded_by_user_id,
+      starts_at, expires_at, is_active, created_by
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, true, $17)
+    RETURNING *
+  `;
+
+  const { rows } = await db.query(query, [
+    code,
+    discountType,
+    discountValue.toFixed(2),
+    maxDiscount != null ? maxDiscount.toFixed(2) : null,
+    minSpend.toFixed(2),
+    budgetCap != null ? budgetCap.toFixed(2) : null,
+    usageLimit,
+    perUserLimit,
+    firstOrderOnly,
+    isStackable,
+    scopeType,
+    couponData.scope_ref ? String(couponData.scope_ref) : null,
+    fundedBy,
+    fundedBy === 'PLATFORM' ? null : creatorUser.id,
+    startsAt,
+    expiresAt,
+    creatorUser.id,
+  ]);
+
+  const createdCoupon = rows[0];
+
+  await writeAudit(db, {
+    userId: creatorUser.id,
+    action: 'growth.coupon.create',
+    resourceType: 'coupons',
+    resourceId: createdCoupon.id,
+    after: createdCoupon,
+    ipAddress: reqMeta.ip || null,
+    userAgent: reqMeta.userAgent || null,
+  });
+
+  return createdCoupon;
+}
+
+/**
+ * Validates a coupon against a checkout cart and calculates discount amount.
+ *
+ * @param {import('pg').Pool|import('pg').PoolClient} db
+ * @param {Object} params
+ * @param {string} params.code - Coupon code
+ * @param {number} [params.userId] - User applying the coupon
+ * @param {Array<Object>} params.items - Cart items with { productId, categoryId, supplierId, salerId, price, qty }
+ * @param {number} params.subtotal - Total cart qualifying amount
+ * @param {number} [params.shippingPerParcel] - BDT delivery charge for one supplier parcel (FREE_SHIPPING);
+ *   read from the delivery policy when omitted, so the preview frees the same parcels checkout does
+ * @param {Object} [params.cache] - cache for that delivery policy read
+ * @param {boolean} [params.forUpdate=false] - Whether to lock the coupon row
+ * @returns {Promise<{ valid: boolean, coupon?: Object, discountAmount?: number, discountPaisa?: number, reason?: string, attribution?: Object, [extra: string]: any }>}
+ */
+export async function validateCoupon(db: import('pg').Pool|import('pg').PoolClient, {
+  code,
+  userId = null,
+  items = [],
+  subtotal = 0,
+  shippingPerParcel = null,
+  cache = null,
+  forUpdate = false,
+}: { code: string; userId?: number; items: Array<any>; subtotal: number; shippingPerParcel?: number; cache?: any; forUpdate?: boolean; }): Promise<{ valid: boolean; coupon?: any; discountAmount?: number; reason?: string; attribution?: any;[extra: string]: any; }> {
+  if (!code) {
+    return { valid: false, reason: 'NO_CODE_PROVIDED' };
+  }
+
+  const coupon = await couponRepo.findCouponByCode(db, code, { forUpdate });
+  if (!coupon || !coupon.is_active) {
+    return { valid: false, reason: 'COUPON_NOT_FOUND_OR_INACTIVE' };
+  }
+
+  const now = new Date();
+  if (now < new Date(coupon.starts_at) || now > new Date(coupon.expires_at)) {
+    return { valid: false, reason: 'COUPON_EXPIRED' };
+  }
+
+  // 1. Check budget cap
+  const budgetCap = coupon.budget_cap != null ? Number(coupon.budget_cap) : null;
+  const budgetUsed = Number(coupon.budget_used) || 0;
+  if (budgetCap != null && budgetUsed >= budgetCap) {
+    return { valid: false, reason: 'COUPON_BUDGET_EXHAUSTED' };
+  }
+
+  // 2. Check total usage limit
+  if (coupon.usage_limit != null && Number(coupon.usage_count) >= Number(coupon.usage_limit)) {
+    return { valid: false, reason: 'COUPON_USAGE_LIMIT_REACHED' };
+  }
+
+  // 3. Check per-user limit
+  if (userId != null) {
+    const userRedemptions = await couponRepo.getUserRedemptionCount(db, coupon.id, userId);
+    if (userRedemptions >= Number(coupon.per_user_limit)) {
+      return { valid: false, reason: 'USER_USAGE_LIMIT_EXCEEDED' };
+    }
+
+    // 4. Check first-order-only requirement
+    if (coupon.first_order_only) {
+      const { rows: orderRows } = await db.query(
+        // WHY: orders has no status; an order counts unless every one of its sub-orders was cancelled.
+        `SELECT o.id FROM orders o
+         WHERE o.customer_id = $1
+           AND EXISTS (SELECT 1 FROM sub_orders so WHERE so.order_id = o.id AND so.status <> 'CANCELLED')
+         LIMIT 1`,
+        [userId]
+      );
+      if (orderRows.length > 0) {
+        return { valid: false, reason: 'FIRST_ORDER_ONLY' };
+      }
+    }
+  }
+
+  // 5. The money maths is checkout's own (computeCheckoutCouponDiscount), so the figure shown before
+  //    the order is the figure the order is charged.
+  // WHY delegated: this preview used to do its own float BDT maths, and its BUY_X_GET_Y looked at the
+  // whole cart instead of the in-scope lines, so the cart could promise a discount checkout never gave.
+  const lines = items.map((i) => ({
+    productId: i.productId ?? i.product_id,
+    categoryId: i.categoryId ?? i.category_id,
+    supplierId: i.supplierId ?? i.supplier_id,
+    salerId: i.salerId ?? i.saler_id,
+    unitPricePaisa: toPaisa(i.price ?? i.unit_price),
+    qty: Number(i.qty) || 1,
+  }));
+  // WHY: callers that send only a subtotal (no lines) still get an answer. One anonymous line can
+  // only fall inside a PLATFORM scope, which is exactly the coupon a bare subtotal can be judged by.
+  if (lines.length === 0 && Number(subtotal) > 0) {
+    lines.push({ productId: null, categoryId: null, supplierId: null, salerId: null, unitPricePaisa: toPaisa(subtotal), qty: 1 });
+  }
+
+  let shippingPerParcelPaisa = 0;
+  if (coupon.discount_type === 'FREE_SHIPPING') {
+    shippingPerParcelPaisa = toPaisa(shippingPerParcel != null ? shippingPerParcel : await perParcelCharge(db, cache));
+  }
+
+  let discountPaisa;
+  try {
+    ({ discountPaisa } = computeCheckoutCouponDiscount({ coupon, lines, shippingPerParcelPaisa }));
+  } catch (err) {
+    if (!(err instanceof AppError)) throw err;
+    const reason = err.details?.reason || (err.code === 'COUPON_BUDGET_EXHAUSTED' ? 'COUPON_BUDGET_EXHAUSTED' : 'NO_ELIGIBLE_ITEMS_FOR_SCOPE');
+    const { reason: _ignored, ...extra } = err.details || {};
+    return { valid: false, reason, ...extra };
+  }
+  const discountAmount = toBdtNumber(discountPaisa);
+
+  // 6. Cost attribution metadata
+  const attribution = {
+    fundedBy: coupon.funded_by,
+    fundedByUserId: coupon.funded_by_user_id,
+    discountAmount,
+    couponCode: coupon.code,
+    couponId: coupon.id,
+  };
+
+  return {
+    valid: true,
+    coupon,
+    discountAmount,
+    discountPaisa,
+    attribution,
+  };
+}
+
+/** Does one cart line fall inside the coupon's scope? */
+export function lineInCouponScope(coupon, line) {
+  const ref = Number(coupon.scope_ref);
+  switch (coupon.scope_type || 'PLATFORM') {
+    case 'PLATFORM': return true;
+    case 'PRODUCT': return Number(line.productId) === ref;
+    case 'CATEGORY': return Number(line.categoryId) === ref;
+    case 'SUPPLIER': return Number(line.supplierId) === ref;
+    case 'SALER': return Number(line.salerId) === ref;
+    default: return false;
+  }
+}
+
+/**
+ * The discount checkout charges for a coupon, in paisa, and which supplier parcels it belongs to.
+ *
+ * WHY this exists: checkout used to apply every coupon to the whole cart. A coupon scoped to one
+ * supplier, product, category or shop partner discounted every other supplier's items too, and the
+ * discount was spread over all sub-orders, so suppliers who never offered it paid for it from their
+ * escrow. Only in-scope lines count now — for min spend, for the discount and for who bears it.
+ *
+ * Pure: the caller has already locked the coupon row and checked expiry, usage and per-user limits.
+ * Throws COUPON_INVALID / COUPON_BUDGET_EXHAUSTED when the coupon cannot apply to this cart; the
+ * error's details.reason is the validateCoupon reason, so the preview can answer in its own shape.
+ *
+ * @param {object} params
+ * @param {object} params.coupon - coupons row
+ * @param {Array<{productId, categoryId, supplierId, salerId, unitPricePaisa: number, qty: number}>} params.lines
+ * @param {number} params.shippingPerParcelPaisa - delivery charge for one supplier parcel
+ * @returns {{ discountPaisa: number, basisBySupplier: Map<string, number> }} basisBySupplier weights
+ *   how the discount is split over sub-orders (in-scope item value, or in-scope parcel shipping).
+ */
+export function computeCheckoutCouponDiscount({ coupon, lines, shippingPerParcelPaisa = 0 }) {
+  const eligible = lines.filter((line) => lineInCouponScope(coupon, line));
+  const eligibleItemsPaisa = eligible.reduce((sum, l) => sum + l.unitPricePaisa * l.qty, 0);
+
+  if (eligibleItemsPaisa <= 0) {
+    throw new AppError(
+      'COUPON_INVALID',
+      'This coupon does not apply to any item in your cart.',
+      'এই কুপনটি আপনার কার্টের কোনো পণ্যে প্রযোজ্য নয়।',
+      { reason: 'NO_ELIGIBLE_ITEMS_FOR_SCOPE' }
+    );
+  }
+
+  const minSpendPaisa = Math.round((Number(coupon.min_spend) || 0) * 100);
+  if (eligibleItemsPaisa < minSpendPaisa) {
+    throw new AppError(
+      'COUPON_INVALID',
+      `Minimum spend of ৳${(minSpendPaisa / 100).toFixed(2)} on eligible items required for this coupon.`,
+      `এই কুপনের জন্য প্রযোজ্য পণ্যে সর্বনিম্ন ৳${(minSpendPaisa / 100).toFixed(2)} কেনাকাটা প্রয়োজন।`,
+      { reason: 'MIN_SPEND_NOT_MET', minSpend: toBdtNumber(minSpendPaisa), eligibleSubtotal: toBdtNumber(eligibleItemsPaisa) }
+    );
+  }
+
+  const basisBySupplier = new Map();
+  const addBasis = (supplierId, paisa) => {
+    const key = String(supplierId);
+    basisBySupplier.set(key, (basisBySupplier.get(key) || 0) + paisa);
+  };
+
+  const valuePaisa = Math.round((Number(coupon.discount_value) || 0) * 100);
+  let discountPaisa = 0;
+
+  if (coupon.discount_type === 'PERCENT') {
+    discountPaisa = Math.floor((eligibleItemsPaisa * Number(coupon.discount_value)) / 100);
+    if (coupon.max_discount != null) {
+      discountPaisa = Math.min(discountPaisa, Math.round(Number(coupon.max_discount) * 100));
+    }
+    eligible.forEach((l) => addBasis(l.supplierId, l.unitPricePaisa * l.qty));
+  } else if (coupon.discount_type === 'FIXED') {
+    discountPaisa = Math.min(valuePaisa, eligibleItemsPaisa);
+    eligible.forEach((l) => addBasis(l.supplierId, l.unitPricePaisa * l.qty));
+  } else if (coupon.discount_type === 'FREE_SHIPPING') {
+    // One parcel per supplier, so the parcels that carry an in-scope item are the ones made free.
+    const suppliers = new Set(eligible.map((l) => String(l.supplierId)));
+    const eligibleShippingPaisa = suppliers.size * shippingPerParcelPaisa;
+    discountPaisa = valuePaisa > 0 ? Math.min(valuePaisa, eligibleShippingPaisa) : eligibleShippingPaisa;
+    suppliers.forEach((s) => addBasis(s, shippingPerParcelPaisa));
+  } else if (coupon.discount_type === 'BUY_X_GET_Y') {
+    // Buy two in-scope units, the cheapest in-scope unit is free.
+    const eligibleQty = eligible.reduce((sum, l) => sum + l.qty, 0);
+    if (eligibleQty >= 2) {
+      const cheapest = eligible.reduce((min, l) => (l.unitPricePaisa < min.unitPricePaisa ? l : min));
+      discountPaisa = cheapest.unitPricePaisa;
+      addBasis(cheapest.supplierId, cheapest.unitPricePaisa);
+    }
+  }
+
+  if (coupon.budget_cap != null) {
+    const remainingPaisa = Math.round(Number(coupon.budget_cap) * 100) - Math.round((Number(coupon.budget_used) || 0) * 100);
+    if (remainingPaisa <= 0) {
+      throw new AppError('COUPON_BUDGET_EXHAUSTED', 'Coupon discount budget has been exhausted.', 'কুপনের বাজেট শেষ হয়ে গেছে।', { reason: 'COUPON_BUDGET_EXHAUSTED' });
+    }
+    // WHY clamp: the budget cap is what the funding party agreed to spend; one order must not overshoot it.
+    discountPaisa = Math.min(discountPaisa, remainingPaisa);
+  }
+
+  return { discountPaisa: Math.max(0, discountPaisa), basisBySupplier };
+}
+
+/**
+ * Splits a discount over sub-orders by weight, so the shares always add up to the whole discount.
+ * The last weighted supplier takes the rounding remainder.
+ *
+ * @param {number} discountPaisa
+ * @param {Map<string, number>} basisBySupplier
+ * @returns {Map<string, number>} paisa per supplier id (suppliers with no weight are absent)
+ */
+export function allocateDiscountBySupplier(discountPaisa, basisBySupplier) {
+  const shares = new Map();
+  const entries = [...basisBySupplier.entries()].filter(([, w]) => w > 0);
+  const totalWeight = entries.reduce((sum, [, w]) => sum + w, 0);
+  if (discountPaisa <= 0 || totalWeight <= 0) return shares;
+
+  let remaining = discountPaisa;
+  entries.forEach(([supplierId, weight], idx) => {
+    const share = idx === entries.length - 1 ? remaining : Math.floor((discountPaisa * weight) / totalWeight);
+    shares.set(supplierId, share);
+    remaining -= share;
+  });
+  return shares;
+}
+
+/**
+ * Atomically reserves and redeems a coupon within a checkout transaction.
+ *
+ * @param {import('pg').PoolClient} client - Database transaction client
+ * @param {Object} params
+ * @param {number} params.couponId
+ * @param {number} params.userId
+ * @param {number} params.orderId
+ * @param {number} params.discountAmount
+ * @returns {Promise<Object>} Redemption record
+ */
+export async function redeemCouponInTransaction(client: import('pg').PoolClient, {
+  couponId,
+  userId,
+  orderId,
+  discountAmount,
+}: { couponId: number; userId: number; orderId: number; discountAmount: number; }): Promise<any> {
+  // Lock coupon row for concurrency safety
+  const { rows: cRows } = await client.query(
+    `SELECT * FROM coupons WHERE id = $1 FOR UPDATE`,
+    [couponId]
+  );
+
+  if (cRows.length === 0) {
+    throw new AppError('COUPON_NOT_FOUND', 'Coupon not found during redemption.');
+  }
+
+  const coupon = cRows[0];
+  const budgetCap = coupon.budget_cap != null ? Number(coupon.budget_cap) : null;
+  const budgetUsed = Number(coupon.budget_used) || 0;
+  const usageLimit = coupon.usage_limit != null ? Number(coupon.usage_limit) : null;
+  const usageCount = Number(coupon.usage_count) || 0;
+
+  // Strict check under concurrency lock
+  if (budgetCap != null && (budgetUsed + discountAmount) > budgetCap) {
+    throw new AppError('COUPON_BUDGET_EXCEEDED', 'Coupon budget cap has been reached.');
+  }
+  if (usageLimit != null && (usageCount + 1) > usageLimit) {
+    throw new AppError('COUPON_USAGE_LIMIT_EXCEEDED', 'Coupon usage limit has been reached.');
+  }
+
+  // Check per-user limit under lock
+  if (userId) {
+    const userRedemptions = await couponRepo.getUserRedemptionCount(client, couponId, userId);
+    if (userRedemptions >= Number(coupon.per_user_limit)) {
+      throw new AppError('USER_USAGE_LIMIT_EXCEEDED', 'You have already reached the redemption limit for this coupon.');
+    }
+  }
+
+  // Increment usage and budget
+  await client.query(
+    `UPDATE coupons
+     SET usage_count = usage_count + 1,
+         budget_used = budget_used + $1
+     WHERE id = $2`,
+    [discountAmount.toFixed(2), couponId]
+  );
+
+  // Insert redemption record
+  const redemption = await couponRepo.recordRedemption(client, {
+    couponId,
+    userId,
+    orderId,
+    discountAmount: discountAmount.toFixed(2),
+  });
+
+  return redemption;
+}
+
+/**
+ * Lists coupons for management with budget and usage analytics.
+ */
+export async function listCoupons(db, { scopeType, fundedBy, isActive, limit = 50, offset = 0 }) {
+  let query = `
+    SELECT c.*,
+           u.display_name as creator_name,
+           fu.display_name as funder_name
+    FROM coupons c
+    LEFT JOIN user_profiles u ON u.user_id = c.created_by
+    LEFT JOIN user_profiles fu ON fu.user_id = c.funded_by_user_id
+    WHERE 1=1
+  `;
+  const params = [];
+
+  if (scopeType) {
+    params.push(scopeType);
+    query += ` AND c.scope_type = $${params.length}`;
+  }
+  if (fundedBy) {
+    params.push(fundedBy);
+    query += ` AND c.funded_by = $${params.length}`;
+  }
+  if (isActive != null) {
+    params.push(isActive === 'true' || isActive === true);
+    query += ` AND c.is_active = $${params.length}`;
+  }
+
+  query += ` ORDER BY c.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+  params.push(limit, offset);
+
+  const { rows } = await db.query(query, params);
+  return rows;
+}
+
+/**
+ * Deactivates or cancels an active coupon.
+ */
+export async function toggleCouponActive(db, userId, couponId, isActive, reqMeta: Record<string, any> = {}) {
+  const { rows } = await db.query(
+    `UPDATE coupons SET is_active = $1 WHERE id = $2 RETURNING *`,
+    [isActive, couponId]
+  );
+
+  if (rows.length === 0) {
+    throw new AppError('COUPON_NOT_FOUND', 'Coupon not found.');
+  }
+
+  await writeAudit(db, {
+    userId,
+    action: isActive ? 'growth.coupon.activate' : 'growth.coupon.deactivate',
+    resourceType: 'coupons',
+    resourceId: couponId,
+    after: rows[0],
+    ipAddress: reqMeta.ip || null,
+    userAgent: reqMeta.userAgent || null,
+  });
+
+  return rows[0];
+}

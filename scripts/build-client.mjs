@@ -4,7 +4,7 @@
  * WHY this exists: Vite decides whether a build is a *production* build from `NODE_ENV`, not from
  * the `build` verb itself. The monorepo keeps a single root `.env` shared by client and server,
  * and it pins `NODE_ENV=development` because the Fastify dev server requires that value
- * (`server/src/config/env.js` marks `NODE_ENV` required). Vite reads that same file, so a plain
+ * (`server/src/config/env.ts` marks `NODE_ENV` required). Vite reads that same file, so a plain
  * `vite build` emits a *development* client bundle — it ships dev-only code (the API status bar's
  * unconditional `/api/v1/health` probe, un-eliminated `import.meta.env.DEV` branches) and skips
  * production-grade minification.

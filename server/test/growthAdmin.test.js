@@ -11,9 +11,9 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import * as svc from '../src/services/growthAdmin.service.js';
-import growthAdminRoutes from '../src/routes/growthAdmin.routes.js';
-import promotionRoutes from '../src/routes/promotion.routes.js';
+import * as svc from '../src/services/growthAdmin.service.ts';
+import growthAdminRoutes from '../src/routes/growthAdmin.routes.ts';
+import promotionRoutes from '../src/routes/promotion.routes.ts';
 
 describe('Phase 9 admin: coin policy', () => {
   test('maps engine settings to the admin form and fills defaults', () => {
@@ -160,7 +160,7 @@ describe('Phase 9 admin: campaign pause / resume', () => {
   });
 
   test('the merchant cannot resume a campaign the platform paused', async () => {
-    const { toggleCampaignStatus } = await import('../src/services/ads.service.js');
+    const { toggleCampaignStatus } = await import('../src/services/ads.service.ts');
     const db = { query: async () => ({ rows: [{ id: 5, status: 'PAUSED', admin_paused_at: new Date() }] }) };
     await assert.rejects(() => toggleCampaignStatus(db, null, 9, 5, 'ACTIVE'), (e) => e.code === 'CAMPAIGN_ADMIN_PAUSED');
   });

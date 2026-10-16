@@ -4,18 +4,18 @@
   "private": true,
   "type": "module",
   "description": "Explooro API — Fastify. Routes -> Controllers -> Services -> Repositories.",
-  "main": "src/index.js",
+  "main": "src/index.ts",
   "scripts": {
-    "dev": "node --watch src/index.js",
-    "start": "node src/index.js",
+    "dev": "node --watch src/index.ts",
+    "start": "node src/index.ts",
     "test": "node --test test/*.test.js",
-    "migrate": "node src/db/migrate.js up",
-    "migrate:status": "node src/db/migrate.js status",
-    "check:sql": "node src/db/checkSql.js",
+    "migrate": "node src/db/migrate.ts up",
+    "migrate:status": "node src/db/migrate.ts status",
+    "check:sql": "node src/db/checkSql.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "seed": "node src/db/seed.js",
-    "covisit:rebuild": "node src/db/rebuildCovisits.js",
-    "reco:metrics": "node src/db/recoMetrics.js"
+    "seed": "node src/db/seed.ts",
+    "covisit:rebuild": "node src/db/rebuildCovisits.ts",
+    "reco:metrics": "node src/db/recoMetrics.ts"
   },
   "//dependencies": "Short, boring, audited list only. See the Dependency Policy in docs/prompt.md. Anything not already listed there needs a docs/dependency-ledger.md entry and isolation behind a single adapter file.",
   "dependencies": {

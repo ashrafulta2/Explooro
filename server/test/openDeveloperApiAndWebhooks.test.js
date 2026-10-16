@@ -16,8 +16,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 
-import * as apiKeyService from '../src/services/apiKey.service.js';
-import * as webhookService from '../src/services/webhookDelivery.service.js';
+import * as apiKeyService from '../src/services/apiKey.service.ts';
+import * as webhookService from '../src/services/webhookDelivery.service.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   return {
@@ -288,8 +288,8 @@ describe('Prompt 10.7 — Open Marketplace API, Webhooks & Developer SDK', () =>
   // ---------------------------------------------------------------------------
   test('Fastify HTTP API: Public catalog querying returns 200', async () => {
     const Fastify = (await import('fastify')).default;
-    const publicApiRoutes = (await import('../src/routes/publicApi.routes.js')).default;
-    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.js')).default;
+    const publicApiRoutes = (await import('../src/routes/publicApi.routes.ts')).default;
+    const errorHandlerPlugin = (await import('../src/plugins/errorHandler.ts')).default;
 
     const mockDb = createMockDb({
       queryHandler: async (sql) => {

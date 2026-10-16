@@ -10,8 +10,8 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveSplitPercentages } from '../src/services/pricing.service.js';
-import { applyRebate } from '../src/services/subscriptionRebate.js';
+import { resolveSplitPercentages } from '../src/services/pricing.service.ts';
+import { applyRebate } from '../src/services/subscriptionRebate.ts';
 
 /** Fake db answering only the queries the resolver makes. */
 function fakeDb({ moduleOn = true, rebate = null, productRule = null } = {}) {

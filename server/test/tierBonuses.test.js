@@ -9,8 +9,8 @@ import {
   getProfitSplits,
   updateTierBonuses,
   simulateSplit,
-} from '../src/controllers/finance.controller.js';
-import { resolveTierBonuses } from '../src/services/pricing.service.js';
+} from '../src/controllers/finance.controller.ts';
+import { resolveTierBonuses } from '../src/services/pricing.service.ts';
 
 // In-memory platform_settings that understands only the statements these paths issue.
 function createDb(initial) {

@@ -1,7 +1,7 @@
 /**
  * routeGuards.test.js — Guards against declarative route guards that nothing enforces.
  *
- * WHY this test exists: four routes in store.routes.js declared their gating as
+ * WHY this test exists: four routes in store.routes.ts declared their gating as
  *   { config: { requireModule: 'virtual_storefront', requirePermission: 'saler.store.manage' } }
  * which reads like a guard and enforces nothing. Fastify stores `config` on `routeOptions.config`
  * for the handler to read; this server has no `onRoute` hook and no code that reads it, so those
@@ -30,8 +30,8 @@ const FIX_HINT = [
   '',
   "    preHandler: [authenticate, app.requireModule('module_key'), app.requirePermission('domain.resource.action')]",
   '',
-  'See server/src/routes/supplier.routes.js for an example, and',
-  'server/src/middlewares/requireModule.js / requirePermission.js for the factories.',
+  'See server/src/routes/supplier.routes.ts for an example, and',
+  'server/src/middlewares/requireModule.ts / requirePermission.ts for the factories.',
 ].join('\n');
 
 function routeFiles() {
@@ -165,7 +165,7 @@ describe('Route guard enforcement (structural)', () => {
   });
 
   test('every /saler/store route is gated by its module AND shop partner.store.manage via preHandler', async () => {
-    const { default: storeRoutes } = await import('../src/routes/store.routes.js');
+    const { default: storeRoutes } = await import('../src/routes/store.routes.ts');
 
     const routes = [];
     const hooks = [];
