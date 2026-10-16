@@ -22,14 +22,16 @@ export async function createCoupon(req, reply) {
 
 export async function validateCoupon(req, reply) {
   const db = req.db || req.server?.db;
-  const { code, items, subtotal, shipping_amount } = req.body || {};
+  const { code, items, subtotal } = req.body || {};
 
+  // WHY no shipping figure from the client: FREE_SHIPPING is priced from the delivery policy, the
+  // same per-parcel charge checkout uses, so the preview cannot be talked into a bigger discount.
   const result = await couponService.validateCoupon(db, {
     code,
     userId: req.user?.id || null,
     items: items || [],
     subtotal: parseFloat(subtotal || 0),
-    shippingAmount: parseFloat(shipping_amount || 0),
+    cache: req.server?.cache || null,
   });
 
   return reply.send(result);

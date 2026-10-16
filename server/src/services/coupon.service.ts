@@ -14,6 +14,8 @@ import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
 import { isEnabled } from './module.service.ts';
+import { perParcelCharge } from './deliveryCharge.service.ts';
+import { toPaisa, toBdtNumber } from './pricing.service.ts';
 
 export const VALID_DISCOUNT_TYPES = new Set(['PERCENT', 'FIXED', 'FREE_SHIPPING', 'BUY_X_GET_Y']);
 export const VALID_SCOPES = new Set(['PLATFORM', 'SUPPLIER', 'SALER', 'CATEGORY', 'PRODUCT']);
@@ -134,18 +136,21 @@ export async function createCoupon(db, cache, creatorUser, couponData, reqMeta: 
  * @param {number} [params.userId] - User applying the coupon
  * @param {Array<Object>} params.items - Cart items with { productId, categoryId, supplierId, salerId, price, qty }
  * @param {number} params.subtotal - Total cart qualifying amount
- * @param {number} [params.shippingAmount=0] - Shipping fee for free shipping calculation
+ * @param {number} [params.shippingPerParcel] - BDT delivery charge for one supplier parcel (FREE_SHIPPING);
+ *   read from the delivery policy when omitted, so the preview frees the same parcels checkout does
+ * @param {Object} [params.cache] - cache for that delivery policy read
  * @param {boolean} [params.forUpdate=false] - Whether to lock the coupon row
- * @returns {Promise<{ valid: boolean, coupon?: Object, discountAmount?: number, reason?: string, attribution?: Object, [extra: string]: any }>}
+ * @returns {Promise<{ valid: boolean, coupon?: Object, discountAmount?: number, discountPaisa?: number, reason?: string, attribution?: Object, [extra: string]: any }>}
  */
 export async function validateCoupon(db: import('pg').Pool|import('pg').PoolClient, {
   code,
   userId = null,
   items = [],
   subtotal = 0,
-  shippingAmount = 0,
+  shippingPerParcel = null,
+  cache = null,
   forUpdate = false,
-}: { code: string; userId?: number; items: Array<any>; subtotal: number; shippingAmount?: number; forUpdate?: boolean; }): Promise<{ valid: boolean; coupon?: any; discountAmount?: number; reason?: string; attribution?: any;[extra: string]: any; }> {
+}: { code: string; userId?: number; items: Array<any>; subtotal: number; shippingPerParcel?: number; cache?: any; forUpdate?: boolean; }): Promise<{ valid: boolean; coupon?: any; discountAmount?: number; reason?: string; attribution?: any;[extra: string]: any; }> {
   if (!code) {
     return { valid: false, reason: 'NO_CODE_PROVIDED' };
   }
@@ -195,72 +200,41 @@ export async function validateCoupon(db: import('pg').Pool|import('pg').PoolClie
     }
   }
 
-  // 5. Check scope eligibility and calculate eligible subtotal
-  let eligibleSubtotal = 0;
-  if (coupon.scope_type === 'PLATFORM') {
-    eligibleSubtotal = subtotal;
-  } else if (coupon.scope_type === 'PRODUCT') {
-    const targetProdId = Number(coupon.scope_ref);
-    const matchingItems = items.filter(i => Number(i.productId || i.product_id) === targetProdId);
-    eligibleSubtotal = matchingItems.reduce((sum, i) => sum + (Number(i.price) * Number(i.qty)), 0);
-  } else if (coupon.scope_type === 'CATEGORY') {
-    const targetCatId = Number(coupon.scope_ref);
-    const matchingItems = items.filter(i => Number(i.categoryId || i.category_id) === targetCatId);
-    eligibleSubtotal = matchingItems.reduce((sum, i) => sum + (Number(i.price) * Number(i.qty)), 0);
-  } else if (coupon.scope_type === 'SUPPLIER') {
-    const targetSupId = Number(coupon.scope_ref);
-    const matchingItems = items.filter(i => Number(i.supplierId || i.supplier_id) === targetSupId);
-    eligibleSubtotal = matchingItems.reduce((sum, i) => sum + (Number(i.price) * Number(i.qty)), 0);
-  } else if (coupon.scope_type === 'SALER') {
-    const targetSalerId = Number(coupon.scope_ref);
-    const matchingItems = items.filter(i => Number(i.salerId || i.saler_id) === targetSalerId);
-    eligibleSubtotal = matchingItems.reduce((sum, i) => sum + (Number(i.price) * Number(i.qty)), 0);
+  // 5. The money maths is checkout's own (computeCheckoutCouponDiscount), so the figure shown before
+  //    the order is the figure the order is charged.
+  // WHY delegated: this preview used to do its own float BDT maths, and its BUY_X_GET_Y looked at the
+  // whole cart instead of the in-scope lines, so the cart could promise a discount checkout never gave.
+  const lines = items.map((i) => ({
+    productId: i.productId ?? i.product_id,
+    categoryId: i.categoryId ?? i.category_id,
+    supplierId: i.supplierId ?? i.supplier_id,
+    salerId: i.salerId ?? i.saler_id,
+    unitPricePaisa: toPaisa(i.price ?? i.unit_price),
+    qty: Number(i.qty) || 1,
+  }));
+  // WHY: callers that send only a subtotal (no lines) still get an answer. One anonymous line can
+  // only fall inside a PLATFORM scope, which is exactly the coupon a bare subtotal can be judged by.
+  if (lines.length === 0 && Number(subtotal) > 0) {
+    lines.push({ productId: null, categoryId: null, supplierId: null, salerId: null, unitPricePaisa: toPaisa(subtotal), qty: 1 });
   }
 
-  if (eligibleSubtotal <= 0) {
-    return { valid: false, reason: 'NO_ELIGIBLE_ITEMS_FOR_SCOPE' };
+  let shippingPerParcelPaisa = 0;
+  if (coupon.discount_type === 'FREE_SHIPPING') {
+    shippingPerParcelPaisa = toPaisa(shippingPerParcel != null ? shippingPerParcel : await perParcelCharge(db, cache));
   }
 
-  // 6. Check min_spend constraint
-  const minSpend = Number(coupon.min_spend) || 0;
-  if (eligibleSubtotal < minSpend) {
-    return { valid: false, reason: 'MIN_SPEND_NOT_MET', minSpend, eligibleSubtotal };
+  let discountPaisa;
+  try {
+    ({ discountPaisa } = computeCheckoutCouponDiscount({ coupon, lines, shippingPerParcelPaisa }));
+  } catch (err) {
+    if (!(err instanceof AppError)) throw err;
+    const reason = err.details?.reason || (err.code === 'COUPON_BUDGET_EXHAUSTED' ? 'COUPON_BUDGET_EXHAUSTED' : 'NO_ELIGIBLE_ITEMS_FOR_SCOPE');
+    const { reason: _ignored, ...extra } = err.details || {};
+    return { valid: false, reason, ...extra };
   }
+  const discountAmount = toBdtNumber(discountPaisa);
 
-  // 7. Compute discount amount
-  let discountAmount = 0;
-  const discountVal = Number(coupon.discount_value);
-
-  if (coupon.discount_type === 'PERCENT') {
-    discountAmount = (eligibleSubtotal * discountVal) / 100;
-    if (coupon.max_discount != null) {
-      discountAmount = Math.min(discountAmount, Number(coupon.max_discount));
-    }
-  } else if (coupon.discount_type === 'FIXED') {
-    discountAmount = Math.min(discountVal, eligibleSubtotal);
-  } else if (coupon.discount_type === 'FREE_SHIPPING') {
-    discountAmount = Math.min(shippingAmount, discountVal > 0 ? discountVal : shippingAmount);
-  } else if (coupon.discount_type === 'BUY_X_GET_Y') {
-    // e.g. Buy 2 Get 1 Free: 1 item discount
-    const totalQty = items.reduce((sum, i) => sum + (Number(i.qty) || 1), 0);
-    if (totalQty >= 2) {
-      const minItemPrice = Math.min(...items.map(i => Number(i.price)));
-      discountAmount = Math.min(minItemPrice, eligibleSubtotal);
-    }
-  }
-
-  discountAmount = Number(discountAmount.toFixed(2));
-
-  // If budget cap exists, ensure discount does not exceed remaining budget
-  if (budgetCap != null) {
-    const remainingBudget = Math.max(0, budgetCap - budgetUsed);
-    if (remainingBudget <= 0) {
-      return { valid: false, reason: 'COUPON_BUDGET_EXHAUSTED' };
-    }
-    discountAmount = Math.min(discountAmount, remainingBudget);
-  }
-
-  // 8. Cost attribution metadata
+  // 6. Cost attribution metadata
   const attribution = {
     fundedBy: coupon.funded_by,
     fundedByUserId: coupon.funded_by_user_id,
@@ -273,6 +247,7 @@ export async function validateCoupon(db: import('pg').Pool|import('pg').PoolClie
     valid: true,
     coupon,
     discountAmount,
+    discountPaisa,
     attribution,
   };
 }
@@ -299,7 +274,8 @@ export function lineInCouponScope(coupon, line) {
  * escrow. Only in-scope lines count now — for min spend, for the discount and for who bears it.
  *
  * Pure: the caller has already locked the coupon row and checked expiry, usage and per-user limits.
- * Throws COUPON_INVALID / COUPON_BUDGET_EXHAUSTED when the coupon cannot apply to this cart.
+ * Throws COUPON_INVALID / COUPON_BUDGET_EXHAUSTED when the coupon cannot apply to this cart; the
+ * error's details.reason is the validateCoupon reason, so the preview can answer in its own shape.
  *
  * @param {object} params
  * @param {object} params.coupon - coupons row
@@ -316,7 +292,8 @@ export function computeCheckoutCouponDiscount({ coupon, lines, shippingPerParcel
     throw new AppError(
       'COUPON_INVALID',
       'This coupon does not apply to any item in your cart.',
-      'এই কুপনটি আপনার কার্টের কোনো পণ্যে প্রযোজ্য নয়।'
+      'এই কুপনটি আপনার কার্টের কোনো পণ্যে প্রযোজ্য নয়।',
+      { reason: 'NO_ELIGIBLE_ITEMS_FOR_SCOPE' }
     );
   }
 
@@ -325,7 +302,8 @@ export function computeCheckoutCouponDiscount({ coupon, lines, shippingPerParcel
     throw new AppError(
       'COUPON_INVALID',
       `Minimum spend of ৳${(minSpendPaisa / 100).toFixed(2)} on eligible items required for this coupon.`,
-      `এই কুপনের জন্য প্রযোজ্য পণ্যে সর্বনিম্ন ৳${(minSpendPaisa / 100).toFixed(2)} কেনাকাটা প্রয়োজন।`
+      `এই কুপনের জন্য প্রযোজ্য পণ্যে সর্বনিম্ন ৳${(minSpendPaisa / 100).toFixed(2)} কেনাকাটা প্রয়োজন।`,
+      { reason: 'MIN_SPEND_NOT_MET', minSpend: toBdtNumber(minSpendPaisa), eligibleSubtotal: toBdtNumber(eligibleItemsPaisa) }
     );
   }
 
@@ -366,7 +344,7 @@ export function computeCheckoutCouponDiscount({ coupon, lines, shippingPerParcel
   if (coupon.budget_cap != null) {
     const remainingPaisa = Math.round(Number(coupon.budget_cap) * 100) - Math.round((Number(coupon.budget_used) || 0) * 100);
     if (remainingPaisa <= 0) {
-      throw new AppError('COUPON_BUDGET_EXHAUSTED', 'Coupon discount budget has been exhausted.', 'কুপনের বাজেট শেষ হয়ে গেছে।');
+      throw new AppError('COUPON_BUDGET_EXHAUSTED', 'Coupon discount budget has been exhausted.', 'কুপনের বাজেট শেষ হয়ে গেছে।', { reason: 'COUPON_BUDGET_EXHAUSTED' });
     }
     // WHY clamp: the budget cap is what the funding party agreed to spend; one order must not overshoot it.
     discountPaisa = Math.min(discountPaisa, remainingPaisa);

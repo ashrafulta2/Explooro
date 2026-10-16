@@ -420,7 +420,7 @@ export function describeCouponFailure(reason) {
   return { message_en: en, message_bn: bn };
 }
 
-/** Runs validateCoupon for one live line; money in BDT numbers, as validateCoupon expects. */
+/** Runs validateCoupon for one live line (one supplier, so one parcel); money in BDT numbers. */
 function validateLiveCoupon(db, { code, userId, prod, salerId, unitPrice, quantity, shippingBdt, forUpdate }) {
   return validateCoupon(db, {
     code: String(code).trim(),
@@ -434,7 +434,7 @@ function validateLiveCoupon(db, { code, userId, prod, salerId, unitPrice, quanti
       qty: quantity,
     }],
     subtotal: unitPrice * quantity,
-    shippingAmount: shippingBdt,
+    shippingPerParcel: shippingBdt,
     forUpdate,
   });
 }
@@ -499,7 +499,7 @@ export async function quoteInStreamBuy(pool, cache, { streamId, productId, varia
       forUpdate: false,
     });
     if (v.valid) {
-      discountPaisa = Math.min(toPaisa(v.discountAmount), itemsPaisa + shippingPaisa);
+      discountPaisa = Math.min(v.discountPaisa, itemsPaisa + shippingPaisa);
       coupon = { code: v.coupon.code, valid: true, discount_amount: toBdtNumber(discountPaisa) };
     } else {
       coupon = { code: String(couponCode).trim(), valid: false, reason: v.reason, ...describeCouponFailure(v.reason) };
@@ -673,7 +673,7 @@ export async function executeInStreamBuy(pool, cache, {
           );
         }
         coupon = v.coupon;
-        discountPaisa = Math.min(toPaisa(v.discountAmount), toPaisa(unitPrice) * quantity + shippingPaisa);
+        discountPaisa = Math.min(v.discountPaisa, toPaisa(unitPrice) * quantity + shippingPaisa);
       }
 
       const totalPaisa = toPaisa(unitPrice) * quantity + shippingPaisa - discountPaisa;
