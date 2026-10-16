@@ -318,11 +318,14 @@ export default function EditorDashboardPage(root) {
           id: existing?.id,
           version,
           category,
-          target_audience: 'ALL',
+          // WHY keep the stored audience and Bangla text: this quick form has no fields for them, and
+          // overwriting them would show English to Bangla readers in the popup. Blank Bangla falls back
+          // to English on the server.
+          target_audience: existing?.target_audience || 'ALL',
           title_en,
-          title_bn: title_en,
+          title_bn: existing?.title_bn || '',
           summary_en,
-          summary_bn: summary_en,
+          summary_bn: existing?.summary_bn || '',
         });
         toast.success(isEdit ? 'Release note updated!' : 'Announcement published live!');
         modal.close();

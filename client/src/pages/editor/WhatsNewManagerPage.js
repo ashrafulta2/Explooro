@@ -12,6 +12,11 @@ import { toast } from '../../services/toast.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { formatDate } from '../../services/format.js';
+import { escapeHtml } from '../../services/html.js';
+import { pickMessage } from '../../core/api.js';
+
+// Same cap as HIGHLIGHT_LIMITS.maxItems in server/src/services/content.service.ts.
+const MAX_HIGHLIGHTS = 6;
 
 export default function WhatsNewManagerPage(root) {
   const container = document.createElement('div');
@@ -47,7 +52,7 @@ export default function WhatsNewManagerPage(root) {
       <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px;">
         <div class="supplier-form-field">
           <label for="update-ver">Version Tag *</label>
-          <input type="text" id="update-ver" class="form-input" placeholder="e.g. v2.4.0" value="${existing?.version || 'v2.4.0'}" />
+          <input type="text" id="update-ver" class="form-input" placeholder="e.g. v2.4.0" value="${escapeHtml(existing?.version || 'v2.4.0')}" />
         </div>
         <div class="supplier-form-field">
           <label for="update-cat">Category *</label>
@@ -70,24 +75,85 @@ export default function WhatsNewManagerPage(root) {
 
       <div class="supplier-form-field">
         <label for="update-title-en">Release Title (English) *</label>
-        <input type="text" id="update-title-en" class="form-input" placeholder="e.g. 1-Click Physical Factory Showroom Status" value="${existing?.title_en || ''}" />
+        <input type="text" id="update-title-en" class="form-input" placeholder="e.g. 1-Click Physical Factory Showroom Status" value="${escapeHtml(existing?.title_en)}" />
       </div>
 
       <div class="supplier-form-field">
         <label for="update-title-bn">Release Title (Bangla) *</label>
-        <input type="text" id="update-title-bn" class="form-input" placeholder="e.g. ১-ক্লিক ফিজিক্যাল ফ্যাক্টরি শোরুম স্ট্যাটাস" value="${existing?.title_bn || ''}" />
+        <input type="text" id="update-title-bn" class="form-input" placeholder="e.g. ১-ক্লিক ফিজিক্যাল ফ্যাক্টরি শোরুম স্ট্যাটাস" value="${escapeHtml(existing?.title_bn)}" />
       </div>
 
       <div class="supplier-form-field">
         <label for="update-summary-en">Summary Narrative (English) *</label>
-        <textarea id="update-summary-en" class="form-textarea" rows="3" placeholder="Explain the key improvements and features in this release...">${existing?.summary_en || ''}</textarea>
+        <textarea id="update-summary-en" class="form-textarea" rows="3" placeholder="Explain the key improvements and features in this release...">${escapeHtml(existing?.summary_en)}</textarea>
       </div>
 
       <div class="supplier-form-field">
         <label for="update-summary-bn">Summary Narrative (Bangla)</label>
-        <textarea id="update-summary-bn" class="form-textarea" rows="3" placeholder="বাংলা বিবরণ লিখুন...">${existing?.summary_bn || ''}</textarea>
+        <textarea id="update-summary-bn" class="form-textarea" rows="3" placeholder="বাংলা বিবরণ লিখুন...">${escapeHtml(existing?.summary_bn)}</textarea>
       </div>
+
+      <fieldset class="whats-new-hl-editor">
+        <legend>${t('editor.whats_new_highlights_label')}</legend>
+        <p class="text-xs text-muted">${t('editor.whats_new_highlights_hint', { max: MAX_HIGHLIGHTS })}</p>
+        <div class="whats-new-hl-editor__list" id="update-hl-list"></div>
+        <button type="button" class="btn btn--outline btn--sm" id="update-hl-add">+ ${t('editor.whats_new_highlight_add')}</button>
+      </fieldset>
     `;
+
+    // Highlight cards: the popup's icon + title + description rows (highlights_json).
+    const hlList = content.querySelector('#update-hl-list');
+    const hlAdd = content.querySelector('#update-hl-add');
+
+    function syncHlAdd() {
+      hlAdd.hidden = hlList.children.length >= MAX_HIGHLIGHTS;
+    }
+
+    function addHighlightRow(h = {}) {
+      const row = document.createElement('div');
+      row.className = 'whats-new-hl-editor__row';
+      row.innerHTML = `
+        <div class="whats-new-hl-editor__head">
+          <label class="supplier-form-field whats-new-hl-editor__icon">
+            <span>${t('editor.whats_new_highlight_icon')}</span>
+            <input type="text" class="form-input" data-hl="icon" maxlength="8" placeholder="✨" value="${escapeHtml(h.icon)}" />
+          </label>
+          <button type="button" class="btn btn--xs btn--outline text-danger" data-hl-remove aria-label="${t('editor.whats_new_highlight_remove')}">🗑️</button>
+        </div>
+        <label class="supplier-form-field">
+          <span>${t('editor.whats_new_highlight_title_en')} *</span>
+          <input type="text" class="form-input" data-hl="title_en" maxlength="80" value="${escapeHtml(h.title_en)}" />
+        </label>
+        <label class="supplier-form-field">
+          <span>${t('editor.whats_new_highlight_title_bn')}</span>
+          <input type="text" class="form-input" data-hl="title_bn" maxlength="80" value="${escapeHtml(h.title_bn)}" />
+        </label>
+        <label class="supplier-form-field">
+          <span>${t('editor.whats_new_highlight_desc_en')} *</span>
+          <textarea class="form-textarea" rows="2" data-hl="desc_en" maxlength="240">${escapeHtml(h.desc_en)}</textarea>
+        </label>
+        <label class="supplier-form-field">
+          <span>${t('editor.whats_new_highlight_desc_bn')}</span>
+          <textarea class="form-textarea" rows="2" data-hl="desc_bn" maxlength="240">${escapeHtml(h.desc_bn)}</textarea>
+        </label>
+      `;
+      row.querySelector('[data-hl-remove]').onclick = () => {
+        row.remove();
+        syncHlAdd();
+      };
+      hlList.appendChild(row);
+      syncHlAdd();
+    }
+
+    function readHighlights() {
+      return [...hlList.children].map((row) => {
+        const v = (k) => row.querySelector(`[data-hl="${k}"]`).value.trim();
+        return { icon: v('icon'), title_en: v('title_en'), title_bn: v('title_bn'), desc_en: v('desc_en'), desc_bn: v('desc_bn') };
+      });
+    }
+
+    (Array.isArray(existing?.highlights_json) ? existing.highlights_json : []).forEach((h) => addHighlightRow(h));
+    hlAdd.onclick = () => addHighlightRow();
 
     const footer = document.createElement('div');
     footer.style.display = 'flex';
@@ -120,6 +186,8 @@ export default function WhatsNewManagerPage(root) {
       const summary_en = content.querySelector('#update-summary-en').value.trim();
       const summary_bn = content.querySelector('#update-summary-bn').value.trim();
 
+      const highlights_json = readHighlights();
+
       if (!version || !title_en || !summary_en) {
         toast.error('Please enter version, title and summary.');
         return;
@@ -135,12 +203,14 @@ export default function WhatsNewManagerPage(root) {
           title_bn,
           summary_en,
           summary_bn,
+          highlights_json,
         });
         toast.success(isEdit ? 'Release note updated!' : 'Changelog published live!');
         modal.close();
         loadData();
       } catch (err) {
-        toast.error('Failed to save announcement.');
+        // The server's bilingual reason (duplicate version, a highlight missing its text) beats a generic one.
+        toast.error((err && pickMessage(err)) || 'Failed to save announcement.');
       }
     };
   }
@@ -272,20 +342,21 @@ export default function WhatsNewManagerPage(root) {
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 10px;">
             <span class="badge ${item.category === 'FEATURE' ? 'badge--primary' : 'badge--neutral'} font-mono font-bold" style="font-size: 12px;">
-              ${item.version}
+              ${escapeHtml(item.version)}
             </span>
             <span class="badge badge--neutral text-xs font-bold font-mono">${item.category}</span>
             <span class="badge badge--success text-xs font-bold">FOR ${item.target_audience}</span>
+            ${item.highlights_json?.length ? `<span class="badge badge--neutral text-xs">${t('editor.whats_new_highlight_count', { count: item.highlights_json.length })}</span>` : ''}
           </div>
           <span class="text-xs text-muted font-mono">${formatDate(item.published_at)}</span>
         </div>
 
         <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 2px 0;">
-          ${item.title_en}
+          ${escapeHtml(item.title_en)}
         </h3>
 
         <p style="font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5; margin: 0;">
-          ${item.summary_en}
+          ${escapeHtml(item.summary_en)}
         </p>
 
         <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border-subtle);">

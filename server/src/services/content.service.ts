@@ -532,6 +532,46 @@ export async function deleteBanner(db, { bannerId, editorId }) {
 export const RELEASE_CATEGORIES = ['FEATURE', 'IMPROVEMENT', 'SECURITY', 'FIX'];
 export const RELEASE_AUDIENCES = ['ALL', 'SALERS', 'SUPPLIERS'];
 const VERSION_TAG_MAX = 32;
+// WHY these exact numbers: the popup is a small modal; more than six cards or a paragraph-long card
+// pushes the button off a phone screen. client/src/mocks/releaseNotes.js repeats them, and
+// server/test/whatsNewReleaseNotes.test.js fails if the two drift.
+export const HIGHLIGHT_LIMITS = { maxItems: 6, iconMax: 8, titleMax: 80, descMax: 240 };
+
+/**
+ * Cleans the editor's highlight cards. Returns the stored array, or throws VALIDATION_FAILED.
+ * Blank Bangla falls back to English, as for the title and summary.
+ */
+export function sanitizeHighlights(input) {
+  if (input == null) return [];
+  if (!Array.isArray(input)) {
+    throw new AppError('VALIDATION_FAILED', 'Highlights must be a list.', 'হাইলাইট একটি তালিকা হতে হবে।');
+  }
+  if (input.length > HIGHLIGHT_LIMITS.maxItems) {
+    throw new AppError('VALIDATION_FAILED', `At most ${HIGHLIGHT_LIMITS.maxItems} highlights.`, `সর্বোচ্চ ${HIGHLIGHT_LIMITS.maxItems}টি হাইলাইট দেওয়া যায়।`);
+  }
+  return input.map((h, i) => {
+    const str = (v) => String(v ?? '').trim();
+    const icon = str(h?.icon);
+    const titleEn = str(h?.title_en);
+    const descEn = str(h?.desc_en);
+    const titleBn = str(h?.title_bn) || titleEn;
+    const descBn = str(h?.desc_bn) || descEn;
+    const n = i + 1;
+    if (!titleEn || !descEn) {
+      throw new AppError('VALIDATION_FAILED', `Highlight ${n} needs a title and a description.`, `হাইলাইট ${n} এ শিরোনাম ও বিবরণ দিতে হবে।`);
+    }
+    if (icon.length > HIGHLIGHT_LIMITS.iconMax) {
+      throw new AppError('VALIDATION_FAILED', `Highlight ${n}: the icon must be one emoji.`, `হাইলাইট ${n}: আইকন একটি ইমোজি হতে হবে।`);
+    }
+    if (titleEn.length > HIGHLIGHT_LIMITS.titleMax || titleBn.length > HIGHLIGHT_LIMITS.titleMax) {
+      throw new AppError('VALIDATION_FAILED', `Highlight ${n}: title is longer than ${HIGHLIGHT_LIMITS.titleMax} characters.`, `হাইলাইট ${n}: শিরোনাম ${HIGHLIGHT_LIMITS.titleMax} অক্ষরের বেশি।`);
+    }
+    if (descEn.length > HIGHLIGHT_LIMITS.descMax || descBn.length > HIGHLIGHT_LIMITS.descMax) {
+      throw new AppError('VALIDATION_FAILED', `Highlight ${n}: description is longer than ${HIGHLIGHT_LIMITS.descMax} characters.`, `হাইলাইট ${n}: বিবরণ ${HIGHLIGHT_LIMITS.descMax} অক্ষরের বেশি।`);
+    }
+    return { icon, title_en: titleEn, title_bn: titleBn, desc_en: descEn, desc_bn: descBn };
+  });
+}
 
 // WHY `version` alongside `version_tag`: the editor pages were written against `version`; the popup
 // and the ack endpoint use `version_tag`. Sending both keeps either reader working.
@@ -559,6 +599,7 @@ export async function upsertReleaseNote(db, {
   titleBn,
   summaryEn,
   summaryBn,
+  highlights = undefined,
   editorId = null,
 }: Record<string, any>) {
   const tag = String(versionTag || '').trim();
@@ -581,6 +622,8 @@ export async function upsertReleaseNote(db, {
   if (!RELEASE_AUDIENCES.includes(targetAudience)) {
     throw new AppError('VALIDATION_FAILED', 'Unknown target audience.', 'অজানা লক্ষ্য দর্শক।');
   }
+  // WHY undefined means "keep": an older client that does not send highlights must not wipe them.
+  const cleanHighlights = highlights === undefined ? null : sanitizeHighlights(highlights);
 
   let before = null;
   if (id) {
@@ -598,20 +641,21 @@ export async function upsertReleaseNote(db, {
         `UPDATE release_notes
             SET version_tag = $1, category = $2, target_audience = $3,
                 title_en = $4, title_bn = $5, summary_en = $6, summary_bn = $7,
+                highlights_json = COALESCE($9::jsonb, highlights_json),
                 updated_at = now()
           WHERE id = $8
           RETURNING *;`,
-        [tag, category, targetAudience, tEn, tBn, sEn, sBn, id]
+        [tag, category, targetAudience, tEn, tBn, sEn, sBn, id, cleanHighlights === null ? null : JSON.stringify(cleanHighlights)]
       );
       note = rows[0];
     } else {
       const { rows } = await db.query(
         `INSERT INTO release_notes (
            version_tag, category, target_audience, title_en, title_bn,
-           summary_en, summary_bn, published_at, created_by, created_at, updated_at
-         ) VALUES ($1, $2, $3, $4, $5, $6, $7, now(), $8, now(), now())
+           summary_en, summary_bn, published_at, created_by, created_at, updated_at, highlights_json
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, now(), $8, now(), now(), $9::jsonb)
          RETURNING *;`,
-        [tag, category, targetAudience, tEn, tBn, sEn, sBn, editorId]
+        [tag, category, targetAudience, tEn, tBn, sEn, sBn, editorId, JSON.stringify(cleanHighlights || [])]
       );
       note = rows[0];
     }

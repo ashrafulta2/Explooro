@@ -11,6 +11,7 @@ import assert from 'node:assert/strict';
 
 import * as contentService from '../src/services/content.service.ts';
 import * as notifService from '../src/services/notification.service.ts';
+import { HIGHLIGHT_LIMITS as MOCK_HIGHLIGHT_LIMITS } from '../../client/src/mocks/releaseNotes.js';
 
 // Just enough of `release_notes` / `user_release_views` / `audit_logs` to run the two services.
 function createReleaseDb() {
@@ -33,7 +34,7 @@ function createReleaseDb() {
       clock += 60_000;
       const row = {
         id: nextId++, version_tag, category, target_audience, title_en, title_bn, summary_en, summary_bn,
-        highlights_json: [], published_at: new Date(clock), created_by,
+        highlights_json: JSON.parse(params[8]), published_at: new Date(clock), created_by,
       };
       notes.push(row);
       return { rows: [{ ...row }] };
@@ -47,6 +48,7 @@ function createReleaseDb() {
         version_tag: params[0], category: params[1], target_audience: params[2],
         title_en: params[3], title_bn: params[4], summary_en: params[5], summary_bn: params[6],
       });
+      if (params[8] !== null) row.highlights_json = JSON.parse(params[8]);
       return { rows: [{ ...row }] };
     }
     if (q.startsWith('DELETE FROM release_notes')) {
@@ -180,5 +182,48 @@ describe("What's New — editor publishes, popup shows it", () => {
     const page = await contentService.listReleaseNotes(db, { limit: 2, offset: 0 });
     assert.equal(page.total, 3);
     assert.deepEqual(page.items.map((n) => n.version), ['v3', 'v2']);
+  });
+});
+
+describe("What's New — highlight cards", () => {
+  const card = { icon: '💳', title_en: 'bKash', desc_en: 'Pay with bKash.' };
+
+  test('highlights published in the editor reach the popup, Bangla falling back to English', async () => {
+    const { db } = createReleaseDb();
+    await publish(db, { highlights: [card] });
+    const shown = await notifService.getLatestReleaseNotes(db, 1, 'customer');
+    assert.deepEqual(shown.highlights_json, [
+      { icon: '💳', title_en: 'bKash', title_bn: 'bKash', desc_en: 'Pay with bKash.', desc_bn: 'Pay with bKash.' },
+    ]);
+  });
+
+  test('an edit that does not send highlights keeps them; an empty list clears them', async () => {
+    const { db } = createReleaseDb();
+    const saved = await publish(db, { highlights: [card] });
+    const base = { id: saved.id, versionTag: 'v2.5.0', titleEn: 'T', summaryEn: 'S', editorId: 7 };
+    await contentService.upsertReleaseNote(db, base);
+    assert.equal((await notifService.getLatestReleaseNotes(db, 1, 'customer')).highlights_json.length, 1);
+    await contentService.upsertReleaseNote(db, { ...base, highlights: [] });
+    assert.equal((await notifService.getLatestReleaseNotes(db, 1, 'customer')).highlights_json.length, 0);
+  });
+
+  test('bad highlight cards are refused', () => {
+    const { maxItems, iconMax, titleMax, descMax } = contentService.HIGHLIGHT_LIMITS;
+    const bad = [
+      'not a list',
+      Array.from({ length: maxItems + 1 }, () => card),
+      [{ ...card, title_en: '' }],
+      [{ ...card, desc_en: '' }],
+      [{ ...card, icon: 'x'.repeat(iconMax + 1) }],
+      [{ ...card, title_en: 'x'.repeat(titleMax + 1) }],
+      [{ ...card, desc_en: 'x'.repeat(descMax + 1) }],
+    ];
+    for (const input of bad) {
+      assert.throws(() => contentService.sanitizeHighlights(input), (err) => err.code === 'VALIDATION_FAILED');
+    }
+  });
+
+  test('the mock store uses the same limits as the server', () => {
+    assert.deepEqual(MOCK_HIGHLIGHT_LIMITS, contentService.HIGHLIGHT_LIMITS);
   });
 });

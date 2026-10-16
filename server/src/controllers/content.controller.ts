@@ -182,6 +182,7 @@ export async function upsertReleaseNote(req, reply) {
     titleBn: body.title_bn,
     summaryEn: body.summary_en,
     summaryBn: body.summary_bn,
+    highlights: body.highlights_json,
     editorId: req.user.id,
   });
   return reply.send({ success: true, data });

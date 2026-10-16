@@ -76,6 +76,20 @@ describe("What's New mock — editor and popup share one store", () => {
     assert.equal(latestReleaseFor({ userId: 2, role: 'customer' }).version_tag, 'v9.0.0');
   });
 
+  it('highlight cards reach the popup; an edit without them keeps them; bad cards are refused', () => {
+    const card = { icon: '💳', title_en: 'bKash', desc_en: 'Pay with bKash.' };
+    const { id } = note({ highlights_json: [card] }).body.data;
+    assert.deepEqual(popup().body.data.releaseNote.highlights_json, [
+      { icon: '💳', title_en: 'bKash', title_bn: 'bKash', desc_en: 'Pay with bKash.', desc_bn: 'Pay with bKash.' },
+    ]);
+
+    publish({ body: { id, version: 'v9.0.0', title_en: 'T', summary_en: 'S' } });
+    assert.equal(popup().body.data.releaseNote.highlights_json.length, 1);
+
+    assert.equal(note({ version: 'v9.2', highlights_json: [{ ...card, desc_en: '' }] }).status, 400);
+    assert.equal(note({ version: 'v9.3', highlights_json: Array.from({ length: 7 }, () => card) }).status, 400);
+  });
+
   it('refuses a duplicate version and bad input, like the live API', () => {
     note();
     assert.equal(note().status, 409);

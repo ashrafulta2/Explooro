@@ -18,6 +18,9 @@
 export const RELEASE_CATEGORIES = ['FEATURE', 'IMPROVEMENT', 'SECURITY', 'FIX'];
 export const RELEASE_AUDIENCES = ['ALL', 'SALERS', 'SUPPLIERS'];
 const VERSION_TAG_MAX = 32;
+// Same numbers as HIGHLIGHT_LIMITS in server/src/services/content.service.ts; the server test fails
+// if they drift.
+export const HIGHLIGHT_LIMITS = { maxItems: 6, iconMax: 8, titleMax: 80, descMax: 240 };
 const AUDIENCE_BY_ROLE = { saler: 'SALERS', supplier: 'SUPPLIERS' };
 
 const NOTES_KEY = 'explooro:mock:release-notes';
@@ -102,6 +105,36 @@ const newestFirst = (a, b) => Date.parse(b.published_at) - Date.parse(a.publishe
 
 const fail = (status, code, message_en, message_bn) => ({ status, body: { error: { code, message_en, message_bn } } });
 
+/** Mirrors the server's sanitizeHighlights: `{ cards }` or `{ error }` (a handler response). */
+function sanitizeHighlights(input) {
+  const invalid = (en, bn) => ({ error: fail(400, 'VALIDATION_FAILED', en, bn) });
+  if (input == null) return { cards: [] };
+  if (!Array.isArray(input)) return invalid('Highlights must be a list.', 'হাইলাইট একটি তালিকা হতে হবে।');
+  const { maxItems, iconMax, titleMax, descMax } = HIGHLIGHT_LIMITS;
+  if (input.length > maxItems) return invalid(`At most ${maxItems} highlights.`, `সর্বোচ্চ ${maxItems}টি হাইলাইট দেওয়া যায়।`);
+  const cards = [];
+  for (let i = 0; i < input.length; i += 1) {
+    const h = input[i];
+    const str = (v) => String(v ?? '').trim();
+    const icon = str(h?.icon);
+    const titleEn = str(h?.title_en);
+    const descEn = str(h?.desc_en);
+    const titleBn = str(h?.title_bn) || titleEn;
+    const descBn = str(h?.desc_bn) || descEn;
+    const n = i + 1;
+    if (!titleEn || !descEn) return invalid(`Highlight ${n} needs a title and a description.`, `হাইলাইট ${n} এ শিরোনাম ও বিবরণ দিতে হবে।`);
+    if (icon.length > iconMax) return invalid(`Highlight ${n}: the icon must be one emoji.`, `হাইলাইট ${n}: আইকন একটি ইমোজি হতে হবে।`);
+    if (titleEn.length > titleMax || titleBn.length > titleMax) {
+      return invalid(`Highlight ${n}: title is longer than ${titleMax} characters.`, `হাইলাইট ${n}: শিরোনাম ${titleMax} অক্ষরের বেশি।`);
+    }
+    if (descEn.length > descMax || descBn.length > descMax) {
+      return invalid(`Highlight ${n}: description is longer than ${descMax} characters.`, `হাইলাইট ${n}: বিবরণ ${descMax} অক্ষরের বেশি।`);
+    }
+    cards.push({ icon, title_en: titleEn, title_bn: titleBn, desc_en: descEn, desc_bn: descBn });
+  }
+  return { cards };
+}
+
 export function listReleaseNotes({ limit = 50, offset = 0 } = {}) {
   const lim = Math.min(Math.max(Number(limit) || 50, 1), 200);
   const off = Math.max(Number(offset) || 0, 0);
@@ -132,6 +165,13 @@ export function upsertReleaseNote(body = {}) {
   if (!RELEASE_AUDIENCES.includes(audience)) {
     return fail(400, 'VALIDATION_FAILED', 'Unknown target audience.', 'অজানা লক্ষ্য দর্শক।');
   }
+  // undefined means "keep the stored cards", as on the server.
+  let cards = null;
+  if (body.highlights_json !== undefined) {
+    const res = sanitizeHighlights(body.highlights_json);
+    if (res.error) return res.error;
+    cards = res.cards;
+  }
   if (notes.some((n) => n.version_tag === tag && n.id !== id)) {
     return fail(409, 'CONFLICT', `Version ${tag} is already published. Use a new version tag.`, `${tag} ভার্সন আগেই প্রকাশিত। নতুন ভার্সন ট্যাগ দিন।`);
   }
@@ -147,11 +187,12 @@ export function upsertReleaseNote(body = {}) {
     if (!note) return fail(404, 'NOT_FOUND', `Release note #${id} not found.`, `রিলিজ নোট #${id} পাওয়া যায়নি।`);
     // published_at stays put on edit, as on the server.
     Object.assign(note, fields, { updated_at: new Date().toISOString() });
+    if (cards !== null) note.highlights_json = cards;
   } else {
     note = {
       id: notes.reduce((max, n) => Math.max(max, n.id), 0) + 1,
       ...fields,
-      highlights_json: [],
+      highlights_json: cards || [],
       published_at: new Date().toISOString(),
     };
     notes.push(note);
