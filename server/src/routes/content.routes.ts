@@ -70,6 +70,25 @@ export default async function contentRoutes(fastify) {
   }, controller.deleteBanner);
 
   // ---------------------------------------------------------------------------
+  // WHAT'S NEW RELEASE NOTES (EDITOR) — the popup reads the same table via
+  // GET /notifications/whats-new. Shared by /editor/whats-new and /admin/content/whats-new, so no
+  // `config.page` guard (see requirePage.ts: a two-page endpoint stays visibility-only).
+  // ---------------------------------------------------------------------------
+  const requireWhatsNewModule = fastify.requireModule ? fastify.requireModule('whats_new') : async () => {};
+
+  fastify.get('/content/whats-new', {
+    preHandler: [fastify.authenticate, requireWhatsNewModule, requirePerm('content.announcement.publish')],
+  }, controller.listReleaseNotes);
+
+  fastify.post('/editor/whats-new', {
+    preHandler: [fastify.authenticate, requireWhatsNewModule, requirePerm('content.announcement.publish')],
+  }, controller.upsertReleaseNote);
+
+  fastify.delete('/editor/whats-new/:id', {
+    preHandler: [fastify.authenticate, requireWhatsNewModule, requirePerm('content.announcement.publish')],
+  }, controller.deleteReleaseNote);
+
+  // ---------------------------------------------------------------------------
   // DYNAMIC TRANSLATION MANAGER (ZERO-DEPLOY MULTI-LOCALE)
   // ---------------------------------------------------------------------------
   fastify.get('/editor/translations/completeness', {

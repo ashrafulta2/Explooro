@@ -88,8 +88,10 @@ export default async function notificationRoutes(app) {
   });
 
   // 7. What's New release announcement
+  // WHY the module guard: switching `whats_new` off must stop the popup, not just the editor page.
+  // The popup treats any error as "nothing to show".
   app.get('/notifications/whats-new', {
-    preHandler: [app.authenticate],
+    preHandler: [app.authenticate, ...(app.requireModule ? [app.requireModule('whats_new')] : [])],
     handler: controller.getWhatsNew,
   });
 

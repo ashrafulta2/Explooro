@@ -158,6 +158,44 @@ export async function deleteBanner(req, reply) {
 }
 
 // -----------------------------------------------------------------------------
+// What's New release notes (editor side of the popup)
+// -----------------------------------------------------------------------------
+
+export async function listReleaseNotes(req, reply) {
+  const { limit, offset } = req.query || {};
+  const result = await service.listReleaseNotes(req.server.db, { limit, offset });
+  return reply.send({
+    success: true,
+    data: result.items,
+    meta: { total: result.total, limit: result.limit, offset: result.offset },
+  });
+}
+
+export async function upsertReleaseNote(req, reply) {
+  const body = req.body || {};
+  const data = await service.upsertReleaseNote(req.server.db, {
+    id: body.id ? Number(body.id) : null,
+    versionTag: body.version_tag ?? body.version,
+    category: body.category || 'FEATURE',
+    targetAudience: body.target_audience || 'ALL',
+    titleEn: body.title_en,
+    titleBn: body.title_bn,
+    summaryEn: body.summary_en,
+    summaryBn: body.summary_bn,
+    editorId: req.user.id,
+  });
+  return reply.send({ success: true, data });
+}
+
+export async function deleteReleaseNote(req, reply) {
+  const data = await service.deleteReleaseNote(req.server.db, {
+    noteId: Number(req.params.id),
+    editorId: req.user.id,
+  });
+  return reply.send({ success: true, data });
+}
+
+// -----------------------------------------------------------------------------
 // Translations (Live Multi-Locale)
 // -----------------------------------------------------------------------------
 

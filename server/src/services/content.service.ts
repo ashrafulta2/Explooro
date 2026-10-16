@@ -524,6 +524,135 @@ export async function deleteBanner(db, { bannerId, editorId }) {
 }
 
 // -----------------------------------------------------------------------------
+// 4b. WHAT'S NEW RELEASE NOTES (EDITOR SIDE OF THE POPUP)
+// -----------------------------------------------------------------------------
+// WHY one table for both sides: the popup reads `release_notes` (notification.service.ts
+// getLatestReleaseNotes). Before migration 075 the editor wrote nowhere, so the popup never changed.
+
+export const RELEASE_CATEGORIES = ['FEATURE', 'IMPROVEMENT', 'SECURITY', 'FIX'];
+export const RELEASE_AUDIENCES = ['ALL', 'SALERS', 'SUPPLIERS'];
+const VERSION_TAG_MAX = 32;
+
+// WHY `version` alongside `version_tag`: the editor pages were written against `version`; the popup
+// and the ack endpoint use `version_tag`. Sending both keeps either reader working.
+function toReleaseDto(row) {
+  return row ? { ...row, version: row.version_tag } : row;
+}
+
+export async function listReleaseNotes(db, { limit = 50, offset = 0 }: Record<string, any> = {}) {
+  const lim = Math.min(Math.max(Number(limit) || 50, 1), 200);
+  const off = Math.max(Number(offset) || 0, 0);
+  const { rows } = await db.query(
+    `SELECT * FROM release_notes ORDER BY published_at DESC NULLS LAST, id DESC LIMIT $1 OFFSET $2;`,
+    [lim, off]
+  );
+  const { rows: countRows } = await db.query(`SELECT COUNT(*)::int AS total FROM release_notes;`);
+  return { items: rows.map(toReleaseDto), total: countRows[0]?.total ?? rows.length, limit: lim, offset: off };
+}
+
+export async function upsertReleaseNote(db, {
+  id = null,
+  versionTag,
+  category = 'FEATURE',
+  targetAudience = 'ALL',
+  titleEn,
+  titleBn,
+  summaryEn,
+  summaryBn,
+  editorId = null,
+}: Record<string, any>) {
+  const tag = String(versionTag || '').trim();
+  const tEn = String(titleEn || '').trim();
+  const sEn = String(summaryEn || '').trim();
+  // WHY fall back to English: the Bangla fields are optional in the form, but the columns are NOT
+  // NULL and the popup shows title_bn to Bangla readers.
+  const tBn = String(titleBn || '').trim() || tEn;
+  const sBn = String(summaryBn || '').trim() || sEn;
+
+  if (!tag || !tEn || !sEn) {
+    throw new AppError('VALIDATION_FAILED', 'Version, title and summary are required.', 'ভার্সন, শিরোনাম ও বিবরণ দিতে হবে।');
+  }
+  if (tag.length > VERSION_TAG_MAX) {
+    throw new AppError('VALIDATION_FAILED', `Version tag must be at most ${VERSION_TAG_MAX} characters.`, `ভার্সন ট্যাগ সর্বোচ্চ ${VERSION_TAG_MAX} অক্ষর হতে পারে।`);
+  }
+  if (!RELEASE_CATEGORIES.includes(category)) {
+    throw new AppError('VALIDATION_FAILED', 'Unknown release category.', 'অজানা রিলিজ ক্যাটাগরি।');
+  }
+  if (!RELEASE_AUDIENCES.includes(targetAudience)) {
+    throw new AppError('VALIDATION_FAILED', 'Unknown target audience.', 'অজানা লক্ষ্য দর্শক।');
+  }
+
+  let before = null;
+  if (id) {
+    const { rows } = await db.query('SELECT * FROM release_notes WHERE id = $1;', [id]);
+    before = rows[0] || null;
+    if (!before) throw new AppError('NOT_FOUND', `Release note #${id} not found.`, `রিলিজ নোট #${id} পাওয়া যায়নি।`);
+  }
+
+  let note;
+  try {
+    if (id) {
+      // WHY published_at is left alone on edit: fixing a typo must not move the note, and a user who
+      // already closed this version keeps it closed (the ack is keyed by version_tag).
+      const { rows } = await db.query(
+        `UPDATE release_notes
+            SET version_tag = $1, category = $2, target_audience = $3,
+                title_en = $4, title_bn = $5, summary_en = $6, summary_bn = $7,
+                updated_at = now()
+          WHERE id = $8
+          RETURNING *;`,
+        [tag, category, targetAudience, tEn, tBn, sEn, sBn, id]
+      );
+      note = rows[0];
+    } else {
+      const { rows } = await db.query(
+        `INSERT INTO release_notes (
+           version_tag, category, target_audience, title_en, title_bn,
+           summary_en, summary_bn, published_at, created_by, created_at, updated_at
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, now(), $8, now(), now())
+         RETURNING *;`,
+        [tag, category, targetAudience, tEn, tBn, sEn, sBn, editorId]
+      );
+      note = rows[0];
+    }
+  } catch (err) {
+    if (err?.code === '23505') {
+      throw new AppError('CONFLICT', `Version ${tag} is already published. Use a new version tag.`, `${tag} ভার্সন আগেই প্রকাশিত। নতুন ভার্সন ট্যাগ দিন।`);
+    }
+    throw err;
+  }
+
+  await writeAudit(db, {
+    actorId: editorId,
+    action: id ? 'release_note.update' : 'release_note.create',
+    targetType: 'release_note',
+    targetRef: String(note.id),
+    beforeJson: before,
+    afterJson: note,
+  });
+
+  return toReleaseDto(note);
+}
+
+export async function deleteReleaseNote(db, { noteId, editorId }) {
+  const { rows } = await db.query('DELETE FROM release_notes WHERE id = $1 RETURNING *;', [noteId]);
+  if (!rows.length) {
+    throw new AppError('NOT_FOUND', `Release note #${noteId} not found.`, `রিলিজ নোট #${noteId} পাওয়া যায়নি।`);
+  }
+
+  await writeAudit(db, {
+    actorId: editorId,
+    action: 'release_note.delete',
+    targetType: 'release_note',
+    targetRef: String(noteId),
+    beforeJson: rows[0],
+    afterJson: null,
+  });
+
+  return { id: noteId, deleted: true };
+}
+
+// -----------------------------------------------------------------------------
 // 5. DYNAMIC TRANSLATION MANAGER (ZERO-DEPLOY MULTI-LOCALE)
 // -----------------------------------------------------------------------------
 

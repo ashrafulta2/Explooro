@@ -490,6 +490,9 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
       ['GET', '/api/v1/editor/translations/en/export', 'content.i18n.update'],
       ['POST', '/api/v1/editor/translations/en/import', 'content.i18n.update'],
       ['POST', '/api/v1/content/stories/1/review', 'content.story.curate'],
+      ['GET', '/api/v1/content/whats-new', 'content.announcement.publish'],
+      ['POST', '/api/v1/editor/whats-new', 'content.announcement.publish'],
+      ['DELETE', '/api/v1/editor/whats-new/1', 'content.announcement.publish'],
     ];
 
     async function buildApp({ withPermissionPlugin = true } = {}) {
@@ -539,6 +542,9 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
       const { app, modules } = await buildApp();
       await app.inject({ method: 'GET', url: '/api/v1/editor/translations/en' });
       assert.ok(modules.includes('i18n'));
+      modules.length = 0;
+      await app.inject({ method: 'POST', url: '/api/v1/editor/whats-new', payload: {} });
+      assert.ok(modules.includes('whats_new'), "the What's New editor endpoints need the whats_new module");
       await app.close();
     });
 

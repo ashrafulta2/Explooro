@@ -63,7 +63,7 @@ export async function updatePreferences(req, reply) {
 }
 
 export async function getWhatsNew(req, reply) {
-  const release = await service.getLatestReleaseNotes(req.server.db, req.user.id);
+  const release = await service.getLatestReleaseNotes(req.server.db, req.user.id, req.user.role);
   return reply.send({
     data: { releaseNote: release },
     meta: { trace_id: req.traceId },

@@ -461,16 +461,29 @@ export async function updatePreferences(db, userId, preferences = []) {
   return { success: true };
 }
 
+// Which release-note audiences a role belongs to. Every role sees 'ALL'.
+const RELEASE_AUDIENCE_BY_ROLE = { saler: 'SALERS', supplier: 'SUPPLIERS' };
+
+export function releaseAudiencesForRole(role) {
+  const own = RELEASE_AUDIENCE_BY_ROLE[role];
+  return own ? ['ALL', own] : ['ALL'];
+}
+
 /**
  * Retrieves latest published release notes if not yet viewed by user.
+ *
+ * WHY "newest for this audience" rather than "newest overall": a Suppliers-only note must not hide
+ * the newest ALL note from customers, and must not be shown to them either.
  */
-export async function getLatestReleaseNotes(db, userId) {
+export async function getLatestReleaseNotes(db, userId, role = null) {
   const { rows: releaseRows } = await db.query(
     `SELECT r.*
      FROM release_notes r
      WHERE r.published_at <= now()
-     ORDER BY r.published_at DESC
-     LIMIT 1`
+       AND r.target_audience = ANY($1::text[])
+     ORDER BY r.published_at DESC, r.id DESC
+     LIMIT 1`,
+    [releaseAudiencesForRole(role)]
   );
 
   if (releaseRows.length === 0) return null;
