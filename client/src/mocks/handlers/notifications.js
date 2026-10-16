@@ -7,6 +7,9 @@
  * shapes (`{ items, count, limit, offset }` for the feed, a bare array for preferences).
  */
 
+import { getMockSessionUser } from './auth.js';
+import { latestReleaseFor, markReleaseViewed } from '../releaseNotes.js';
+
 const CATEGORIES = ['ORDER', 'FINANCE', 'SECURITY', 'MARKETING', 'SYSTEM'];
 
 // WHY module-level state: a mock that forgets a write is worse than no mock — saving
@@ -111,32 +114,13 @@ let notifications = [
   },
 ];
 
-const releaseNote = {
-  version_tag: 'v2.4',
-  title_en: 'What is New in Explooro v2.4',
-  title_bn: 'এক্সপ্লোরো v2.4-এ নতুন যা আছে',
-  summary_en: 'Multi-gateway payments, a rebuilt notification centre, and faster search.',
-  summary_bn: 'একাধিক পেমেন্ট গেটওয়ে, নতুন বিজ্ঞপ্তি কেন্দ্র এবং দ্রুততর সার্চ।',
-  highlights_json: [
-    {
-      icon: '💳',
-      title_en: 'bKash, Nagad & Rocket',
-      title_bn: 'বিকাশ, নগদ ও রকেট',
-      desc_en: 'Pay with any major MFS wallet, with SSLCommerz as an automatic fallback.',
-      desc_bn: 'যেকোনো এমএফএস ওয়ালেট দিয়ে পরিশোধ করুন, ব্যর্থ হলে স্বয়ংক্রিয়ভাবে এসএসএলকমার্স।',
-    },
-    {
-      icon: '🔔',
-      title_en: 'Notification preferences',
-      title_bn: 'বিজ্ঞপ্তি পছন্দসমূহ',
-      desc_en: 'Choose the channel for every category, and set quiet hours so nothing wakes you.',
-      desc_bn: 'প্রতিটি ক্যাটাগরির জন্য চ্যানেল বাছুন এবং নীরব সময় নির্ধারণ করুন।',
-    },
-  ],
-  published_at: ago(2 * 24 * 60),
-};
-
-let releaseAcknowledged = false;
+// WHY no release note here: it used to be a constant plus an in-memory "seen" flag, so the popup
+// never changed after an editor published and came back on every reload. Notes now live in
+// mocks/releaseNotes.js, shared with the editor handlers in handlers/content.js.
+function releaseViewer() {
+  const user = getMockSessionUser();
+  return { userId: user?.id ?? 'guest', role: user?.roles?.[0] || user?.role || 'customer' };
+}
 
 export const notificationHandlers = [
   // 1. Notification feed
@@ -246,15 +230,12 @@ export const notificationHandlers = [
     },
   },
 
-  // 6. Release announcement — null once acknowledged, so the modal shows exactly once.
+  // 6. Release announcement — newest note for this viewer's audience, null once they closed it.
   {
     method: 'GET',
     path: '/notifications/whats-new',
     handler() {
-      return {
-        status: 200,
-        body: { data: { releaseNote: releaseAcknowledged ? null : { ...releaseNote } } },
-      };
+      return { status: 200, body: { data: { releaseNote: latestReleaseFor(releaseViewer()) } } };
     },
   },
 
@@ -262,8 +243,8 @@ export const notificationHandlers = [
     method: 'POST',
     path: '/notifications/whats-new/ack',
     handler({ body }) {
-      if (body?.version_tag === releaseNote.version_tag) releaseAcknowledged = true;
-      return { status: 200, body: { data: { success: true } } };
+      markReleaseViewed({ userId: releaseViewer().userId, versionTag: body?.version_tag });
+      return { status: 200, body: { data: { success: true, versionTag: body?.version_tag ?? null } } };
     },
   },
 

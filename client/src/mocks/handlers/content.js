@@ -2,6 +2,8 @@
  * content.js — Mock Handlers for Editor Portal: Banners, Stories, Reels, Academy, What's New, Help Center, Translations.
  */
 
+import { listReleaseNotes, upsertReleaseNote, deleteReleaseNote } from '../releaseNotes.js';
+
 let mockStories = [
   {
     id: 1,
@@ -232,45 +234,6 @@ let mockBanners = [
     target_link: '/search?discount=flash',
     display_order: 3,
     is_active: true,
-  },
-];
-
-let mockWhatsNew = [
-  {
-    id: 1,
-    version: 'v2.4.0',
-    title_en: '1-Click Physical Factory Showroom Status & Weekly Schedule',
-    title_bn: '১-ক্লিক ফিজিক্যাল ফ্যাক্টরি শোরুম স্ট্যাটাস ও সাপ্তাহিক সময়সূচি',
-    category: 'FEATURE',
-    target_audience: 'ALL',
-    summary_en: 'Suppliers can now manage real-time walk-in availability, customized 7-day operating hours, and warehouse pickup desks.',
-    summary_bn: 'সরবরাহকারীরা এখন রিয়েল-টাইম শোরুম ভিজিট, ৭ দিনের সাপ্তাহিক সময়সূচি এবং কাস্টমার সেলফ-পিকআপ ডেস্ক সেটআপ করতে পারেন।',
-    published_at: new Date(Date.now() - 86400000 * 2).toISOString(),
-    is_published: true,
-  },
-  {
-    id: 2,
-    version: 'v2.3.5',
-    title_en: 'Steadfast & Pathao Courier Consignment 1-Click Handover',
-    title_bn: 'স্টেডফাস্ট ও পাঠাও কুরিয়ার পার্সেল ১-ক্লিক হ্যান্ডওভার',
-    category: 'IMPROVEMENT',
-    target_audience: 'SUPPLIERS',
-    summary_en: 'Instant airway bill barcode printing, thermal shipping labels, and real-time live tracking webhooks.',
-    summary_bn: 'তাৎক্ষণিক এয়ারওয়ে বিল বারকোড ও থার্মাল লেবেল প্রিন্ট এবং সরাসরি লাইভ ট্র্যাকিং সমন্বয়।',
-    published_at: new Date(Date.now() - 86400000 * 6).toISOString(),
-    is_published: true,
-  },
-  {
-    id: 3,
-    version: 'v2.3.0',
-    title_en: 'B2B Milestone Escrow Contracts & Immutable Hash Verification',
-    title_bn: 'বিটুবি মাইলস্টোন এসক্রো চুক্তি ও হ্যাশ ভেরিফিকেশন',
-    category: 'SECURITY',
-    target_audience: 'SALERS',
-    summary_en: 'Deterministic SHA-256 digital signature hashes for bulk garment and textile manufacturing agreements.',
-    summary_bn: 'পোশাক ও টেক্সটাইল বাল্ক চুক্তির জন্য ক্রিপ্টোগ্রাফিক ডিজিটাল সাইন ও নিরাপদ পেমেন্ট এসক্রো।',
-    published_at: new Date(Date.now() - 86400000 * 12).toISOString(),
-    is_published: true,
   },
 ];
 
@@ -615,46 +578,25 @@ export const contentHandlers = [
   },
 
   // ── What's New / Release Notes ──
+  // WHY the shared store: the popup (handlers/notifications.js) reads the same notes, so what an
+  // editor publishes here is what users see. See mocks/releaseNotes.js.
   {
     method: 'GET',
     path: '/content/whats-new',
-    handler: () => ({ status: 200, body: { data: mockWhatsNew, meta: { total: mockWhatsNew.length } } }),
+    handler: ({ query } = {}) => {
+      const page = listReleaseNotes(query || {});
+      return { status: 200, body: { data: page.items, meta: { total: page.total, limit: page.limit, offset: page.offset } } };
+    },
   },
   {
     method: 'POST',
     path: '/editor/whats-new',
-    handler: (req) => {
-      const body = req.body || {};
-      let item;
-      if (body.id) {
-        item = mockWhatsNew.find((x) => x.id === body.id);
-        if (item) Object.assign(item, body);
-      } else {
-        item = {
-          id: mockWhatsNew.length + 1,
-          version: body.version || `v2.${mockWhatsNew.length + 4}.0`,
-          title_en: body.title_en || 'New Platform Update',
-          title_bn: body.title_bn || 'নতুন প্ল্যাটফর্ম আপডেট',
-          category: body.category || 'FEATURE',
-          target_audience: body.target_audience || 'ALL',
-          summary_en: body.summary_en || '',
-          summary_bn: body.summary_bn || '',
-          published_at: new Date().toISOString(),
-          is_published: body.is_published !== undefined ? body.is_published : true,
-        };
-        mockWhatsNew.unshift(item);
-      }
-      return { status: 200, body: { data: item } };
-    },
+    handler: (req = {}) => upsertReleaseNote(req.body || {}),
   },
   {
     method: 'DELETE',
     path: '/editor/whats-new/:id',
-    handler: (req) => {
-      const id = parseInt(req.params.id, 10);
-      mockWhatsNew = mockWhatsNew.filter((w) => w.id !== id);
-      return { status: 200, body: { data: { id, deleted: true } } };
-    },
+    handler: (req) => deleteReleaseNote(req.params.id),
   },
 
   // ── Help Centre / FAQs ──
