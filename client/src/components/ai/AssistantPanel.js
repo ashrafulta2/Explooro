@@ -259,7 +259,18 @@ export function openAssistantPanel({ agentType = 'concierge', trigger = null } =
   }
 
   const content = AssistantPanel({ agentType });
-  const drawer = Drawer({ title: t(config.titleKey), content, side: 'right', size: 'md' });
+  // WHY floating: same behaviour as the notification drawer — on desktop the header moves the panel
+  // (position remembered per agent, double-click snaps it back), so it never pins over the page.
+  // removeOnClose stops every open leaving a dead <dialog> behind.
+  const drawer = Drawer({
+    title: t(config.titleKey),
+    content,
+    side: 'right',
+    size: 'md',
+    floating: true,
+    positionKey: `assistant-${agentType}`,
+    removeOnClose: true,
+  });
   drawer.openDrawer(trigger);
   return drawer;
 }
