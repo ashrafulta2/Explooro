@@ -18,6 +18,36 @@ import * as returnProtection from './returnProtection.service.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
+import { AppError } from '../plugins/errorHandler.ts';
+
+// WHY explicit transitions: review, inspect and refund used to accept a return in any status, so
+// staff could refund a REJECTED return or one whose parcel never came back, re-open a REFUNDED
+// return by inspecting it again, or reject it after the money had already gone out.
+// DISPUTED returns are settled by dispute arbitration (dispute.service.ts), never through here.
+export const RETURN_TRANSITIONS = {
+  review: ['REQUESTED', 'UNDER_REVIEW', 'APPROVED'],
+  inspect: ['PICKUP_SCHEDULED', 'RECEIVED'],
+  refund: ['INSPECTED'],
+};
+
+function assertReturnStatus(step, returnReq) {
+  if (!RETURN_TRANSITIONS[step].includes(returnReq.status)) {
+    throw new AppError(
+      'RETURN_STATE_INVALID',
+      `Return ${returnReq.ref || `#${returnReq.id}`} is ${returnReq.status}; it cannot be ${step === 'review' ? 'reviewed' : step === 'inspect' ? 'inspected' : 'refunded'} now.`,
+      `রিটার্ন ${returnReq.ref || `#${returnReq.id}`} এখন ${returnReq.status} অবস্থায় আছে; এই ধাপটি এখন করা যাবে না।`,
+      { status: returnReq.status, allowed: RETURN_TRANSITIONS[step] }
+    );
+  }
+}
+
+function returnNotFound(returnRequestId) {
+  return new AppError(
+    'NOT_FOUND',
+    `Return request #${returnRequestId} does not exist.`,
+    `রিটার্ন অনুরোধ #${returnRequestId} পাওয়া যায়নি।`
+  );
+}
 
 /**
  * Generates a public unique return reference code.
@@ -290,18 +320,30 @@ export async function reviewReturnRequest(db, cache, {
     );
 
     if (retRows.length === 0) {
-      throw new Error(`RETURN_NOT_FOUND: Return request #${returnRequestId} does not exist.`);
+      throw returnNotFound(returnRequestId);
     }
 
     const returnReq = retRows[0];
+    assertReturnStatus('review', returnReq);
 
     if (action === 'REJECT') {
+      const reason = rejectionReason || 'Return request criteria not met';
       await txClient.query(
         `UPDATE return_requests
          SET status = 'REJECTED', rejection_reason = $2, reviewed_by = $3, reviewed_at = now(), updated_at = now()
          WHERE id = $1`,
-        [returnRequestId, rejectionReason || 'Return request criteria not met', reviewedBy]
+        [returnRequestId, reason, reviewedBy]
       );
+
+      await writeAudit(txClient, {
+        actorId: reviewedBy,
+        action: 'returns.request.reject',
+        targetType: 'return_request',
+        targetRef: returnReq.ref,
+        beforeJson: { status: returnReq.status },
+        afterJson: { status: 'REJECTED', rejection_reason: reason },
+        riskTier: 'MEDIUM',
+      });
 
       return { success: true, status: 'REJECTED', returnRequestId };
     }
@@ -330,6 +372,16 @@ export async function reviewReturnRequest(db, cache, {
       [returnRequestId, reverseTracking, courierAdapter.name, reviewedBy]
     );
 
+    await writeAudit(txClient, {
+      actorId: reviewedBy,
+      action: 'returns.request.approve',
+      targetType: 'return_request',
+      targetRef: returnReq.ref,
+      beforeJson: { status: returnReq.status },
+      afterJson: { status: 'PICKUP_SCHEDULED', reverse_tracking_number: reverseTracking, reverse_carrier: courierAdapter.name },
+      riskTier: 'MEDIUM',
+    });
+
     return {
       success: true,
       status: 'PICKUP_SCHEDULED',
@@ -355,6 +407,19 @@ export async function receiveAndInspectReturn(db, {
   const runner = async (txClient) => {
     const nextStatus = conditionPass ? 'INSPECTED' : 'DISPUTED';
 
+    const { rows: current } = await txClient.query(
+      `SELECT r.*
+       FROM return_requests r
+       JOIN sub_orders s ON s.id = r.sub_order_id
+       WHERE r.id = $1
+       FOR UPDATE`,
+      [returnRequestId]
+    );
+    if (current.length === 0) {
+      throw returnNotFound(returnRequestId);
+    }
+    assertReturnStatus('inspect', current[0]);
+
     const { rows } = await txClient.query(
       `UPDATE return_requests
        SET status = $2,
@@ -369,8 +434,18 @@ export async function receiveAndInspectReturn(db, {
     );
 
     if (rows.length === 0) {
-      throw new Error(`RETURN_NOT_FOUND: Return request #${returnRequestId} does not exist.`);
+      throw returnNotFound(returnRequestId);
     }
+
+    await writeAudit(txClient, {
+      actorId: inspectedBy,
+      action: conditionPass ? 'returns.request.inspect_pass' : 'returns.request.inspect_fail',
+      targetType: 'return_request',
+      targetRef: current[0].ref,
+      beforeJson: { status: current[0].status },
+      afterJson: { status: nextStatus, inspection_notes: inspectionNotes },
+      riskTier: 'MEDIUM',
+    });
 
     return {
       success: true,
@@ -403,7 +478,7 @@ export async function executeRefund(db, cache, {
     );
 
     if (retRows.length === 0) {
-      throw new Error(`RETURN_NOT_FOUND: Return request #${returnRequestId} does not exist.`);
+      throw returnNotFound(returnRequestId);
     }
 
     const returnReq = retRows[0];
@@ -411,6 +486,7 @@ export async function executeRefund(db, cache, {
     if (returnReq.status === 'REFUNDED') {
       return { success: true, alreadyRefunded: true, status: 'REFUNDED', returnRequestId };
     }
+    assertReturnStatus('refund', returnReq);
 
     // 2. Trigger Clawback Engine from Prompt 6.2 (atomic ledger reversals, deficit recovery, customer wallet credit)
     // WHY two paths: a return that leaves any unit behind must refund only the returned items. The
