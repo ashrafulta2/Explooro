@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { ROLE_BANDS, FULL_BAND_ROLES, SLIDE_TONES } from '../src/components/home/homeBands.js';
 import { navItems } from '../src/config/navigation.js';
-import { formatStat } from '../src/components/home/RoleBand.js';
+import { formatStat, percentShares, BOARD_VIEWS } from '../src/components/home/RoleBand.js';
 import { MOCK_HOME_STATS, MOCK_HOME_INSIGHTS } from '../src/mocks/handlers/homeSummary.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');
@@ -114,6 +114,38 @@ describe('home bands', () => {
         openers.set(tones[0], role);
       }
     }
+  });
+
+  it('no two slides in a role are drawn the same way, and every view is styled', () => {
+    for (const role of FULL_BAND_ROLES) {
+      const looks = ROLE_BANDS[role].center.slides.map((s) => (s.kind === 'leaderboard' ? s.view : s.kind));
+      assert.equal(new Set(looks).size, looks.length, `${role}: ${looks}`);
+      for (const s of ROLE_BANDS[role].center.slides.filter((x) => x.kind === 'leaderboard')) {
+        assert.ok(BOARD_VIEWS.includes(s.view), `${role}.${s.id}: unknown view ${s.view}`);
+      }
+    }
+    const used = new Set(FULL_BAND_ROLES.flatMap((r) => ROLE_BANDS[r].center.slides.map((s) => s.view).filter(Boolean)));
+    for (const view of used) {
+      const block = { list: 'list-row', spotlight: 'spot', bars: 'bars-row', chips: 'chip', tiles: 'tilegrid', share: 'share-bar' }[view];
+      assert.match(css, new RegExp(`\\.home-band__${block} \\{`), `home-top.css styles the ${view} view`);
+    }
+  });
+
+  it('no ranking row is allowed to shrink below its own text (the bar once struck through "38 sold")', () => {
+    // The bug: rows were `flex: 1 1 0` with a fixed floor inside the band's fixed height, so two-line text
+    // was clipped and an absolutely placed bar covered it. No ranking item may combine those again.
+    const rules = css.match(/\.home-band__(list-row|spot-row|bars-row|chip|tilecard|share-item)[^{]*\{[^}]*\}/g) || [];
+    assert.ok(rules.length > 0);
+    for (const rule of rules) assert.doesNotMatch(rule, /flex:\s*1 1 0/, rule);
+  });
+
+  it('share percentages always add up to exactly 100', () => {
+    for (const values of [[14, 9, 6, 4, 2], [1, 1, 1], [7], [3, 3, 3, 1], [0, 5]]) {
+      const pct = percentShares(values);
+      assert.equal(pct.reduce((a, v) => a + v, 0), 100, String(values));
+    }
+    assert.deepEqual(percentShares([0, 0]), [0, 0]);
+    assert.deepEqual(percentShares([1, 1, 1]).sort(), [33, 33, 34]);
   });
 
   it('super admin and admin differ only in the third review-queue figure', () => {

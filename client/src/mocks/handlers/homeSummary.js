@@ -91,6 +91,10 @@ export const MOCK_HOME_INSIGHTS = {
       row('UGC_VIDEO', 'UGC_VIDEO', null, 6, null, { code: 'UGC_VIDEO' }),
       row('PRODUCT_EDIT', 'PRODUCT_EDIT', null, 4, null, { code: 'PRODUCT_EDIT' }),
       row('CHAT_REPORT', 'CHAT_REPORT', null, 2, null, { code: 'CHAT_REPORT' }),
+      // All seven kinds: the live board sends every kind with work waiting (no LIMIT), so the share
+      // legend must fit the worst case.
+      row('STOREFRONT_ASSET', 'STOREFRONT_ASSET', null, 1, null, { code: 'STOREFRONT_ASSET' }),
+      row('LIVE_STREAM', 'LIVE_STREAM', null, 1, null, { code: 'LIVE_STREAM' }),
     ],
     repeat_rejections: [
       row('801', 'Quick Deals Shop', null, 6),

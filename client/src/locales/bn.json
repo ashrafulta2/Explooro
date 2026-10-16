@@ -561,7 +561,9 @@
             "LIVE_STREAM": "লাইভ স্ট্রিম",
             "CHAT_REPORT": "চ্যাট রিপোর্ট"
           },
-          "unnamed": "নামহীন"
+          "unnamed": "নামহীন",
+          "leader": "১ নম্বরে",
+          "of_leader": "১ নম্বরের {{n}}%"
         },
         "slider_label": "ইনসাইট",
         "stat": {

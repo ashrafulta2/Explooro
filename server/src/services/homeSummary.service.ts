@@ -248,16 +248,16 @@ async function searchBoard(db) {
 }
 
 // Same open-status set as the moderator console's queue. No time window: it is what is waiting now,
-// by kind, so a moderator sees which queue is piling up.
+// by kind, so a moderator sees which queue is piling up. WHY no LIMIT: the client draws this as shares
+// of the whole queue, and cutting the list would make the percentages lie. There are only seven kinds
+// (the item_type CHECK in 017_moderation.sql), so the result stays small.
 async function queueTypeBoard(db) {
   const { rows } = await db.query(
     `SELECT item_type AS id, item_type AS code, COUNT(*)::int AS count
      FROM moderation_queue
      WHERE status IN ('PENDING', 'IN_REVIEW', 'ESCALATED')
      GROUP BY item_type
-     ORDER BY count DESC
-     LIMIT $1`,
-    [INSIGHT_LIMIT],
+     ORDER BY count DESC`,
   );
   return rows.map(entry);
 }

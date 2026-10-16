@@ -12,7 +12,9 @@
  *
  * The centre panel is a slider (`slides`), like the customer's campaign slider. Each slide is one of:
  *   kind 'leaderboard' — ranks `insights.<board>` from the same endpoint; `count` names the unit of the
- *                        figure under each name (`marketplace.top.band.board.count.<count>`).
+ *                        figure under each name (`marketplace.top.band.board.count.<count>`), and `view`
+ *                        picks how it is drawn (RoleBand.js VIEWS: list, spotlight, bars, chips, tiles,
+ *                        share). No two slides in one role use the same view, so the slider never repeats.
  *   kind 'metrics'     — the role's key figures as tinted cards.
  *   kind 'links'       — shortcut tiles, for a role with no numbers.
  * Its words are `marketplace.top.band.<role>.center.<slide id>.{kicker,title,cta}`. `tone` picks the
@@ -51,9 +53,9 @@ const operations = (thirdMetric) => ({
         ],
         cta: '/admin/approvals',
       },
-      board('top_suppliers', 'success', 'orders', '/admin/users'),
-      board('top_salers', 'orange', 'orders', '/admin/users'),
-      board('top_categories', 'plum', 'units', '/admin/catalog/categories'),
+      board('top_suppliers', 'success', 'orders', '/admin/users', { view: 'spotlight' }),
+      board('top_salers', 'orange', 'orders', '/admin/users', { view: 'bars' }),
+      board('top_categories', 'plum', 'units', '/admin/catalog/categories', { view: 'tiles' }),
     ],
   },
   right: {
@@ -96,9 +98,9 @@ export const ROLE_BANDS = {
     },
     center: {
       slides: [
-        board('top_products', 'orange', 'units', '/saler/analytics'),
-        board('trending_products', 'teal', 'units', '/saler/sourcing'),
-        board('trending_searches', 'plum', 'searches', '/saler/products'),
+        board('top_products', 'orange', 'units', '/saler/analytics', { view: 'spotlight' }),
+        board('trending_products', 'teal', 'units', '/saler/sourcing', { view: 'tiles' }),
+        board('trending_searches', 'plum', 'searches', '/saler/products', { view: 'chips' }),
       ],
     },
     right: {
@@ -125,8 +127,8 @@ export const ROLE_BANDS = {
     },
     center: {
       slides: [
-        board('top_salers', 'success', 'orders', '/supplier/salers'),
-        board('top_products', 'info', 'units', '/supplier/products'),
+        board('top_salers', 'success', 'orders', '/supplier/salers', { view: 'bars' }),
+        board('top_products', 'info', 'units', '/supplier/products', { view: 'list' }),
         {
           id: 'stock',
           tone: 'amber',
@@ -170,8 +172,8 @@ export const ROLE_BANDS = {
           ],
           cta: '/moderator',
         },
-        board('queue_by_type', 'plum', 'items', '/moderator/queue', { nameKey: 'marketplace.top.band.board.item_type' }),
-        board('repeat_rejections', 'rose', 'rejections', '/moderator/reports'),
+        board('queue_by_type', 'plum', 'items', '/moderator/queue', { view: 'share', nameKey: 'marketplace.top.band.board.item_type' }),
+        board('repeat_rejections', 'rose', 'rejections', '/moderator/reports', { view: 'list' }),
       ],
     },
     right: {
@@ -207,8 +209,8 @@ export const ROLE_BANDS = {
           ],
           cta: '/editor',
         },
-        board('trending_searches', 'orange', 'searches', '/editor/banners'),
-        board('top_categories', 'accent', 'units', '/editor/stories'),
+        board('trending_searches', 'orange', 'searches', '/editor/banners', { view: 'chips' }),
+        board('top_categories', 'accent', 'units', '/editor/stories', { view: 'tiles' }),
       ],
     },
     right: {

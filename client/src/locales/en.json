@@ -561,7 +561,9 @@
             "LIVE_STREAM": "Live streams",
             "CHAT_REPORT": "Chat reports"
           },
-          "unnamed": "Unnamed"
+          "unnamed": "Unnamed",
+          "leader": "No. 1",
+          "of_leader": "{{n}}% of No. 1"
         },
         "slider_label": "Insights",
         "stat": {
