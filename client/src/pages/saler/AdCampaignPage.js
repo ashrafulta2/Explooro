@@ -23,6 +23,7 @@ import { api } from '../../core/api.js';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Modal } from '../../components/ui/Modal.js';
+import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.js';
 import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.js';
 
 /** Budget presets, so most shop partners never type a number at all. */
@@ -480,7 +481,12 @@ export class AdCampaignPage {
         banner_image_url: '',
         call_to_action: 'SHOP_NOW',
         keywords: '',
-        category_id: this.categories[0]?.id || '',
+        // WHY only for a category banner: this used to default to the first category for EVERY format, and
+        // the submit below turned it into `categories: [first]` targeting the seller never chose.
+        category_id: product.placement === 'CATEGORY_BANNER' ? (this.categories[0]?.id || '') : '',
+        // Push Blast audience. Empty means everyone; both lists narrow it.
+        districts: [],
+        interest_categories: [],
         total_budget: Math.max(BUDGET_PRESETS[1], Number(limits.min_budget) || 0),
         bid_amount: Number(limits.suggested_cpc) || 2.5,
         duration_days: Number(limits.min_days) || 1,
@@ -697,6 +703,37 @@ export class AdCampaignPage {
                    placeholder="${isBn ? 'শাড়ি, জামদানি, লাল শাড়ি' : 'saree, jamdani, red saree'}" />
           </div>
           <p class="field__help">${isBn ? 'কমা দিয়ে আলাদা করুন। খালি রাখলে আমরা আপনার পণ্য থেকে বেছে নেব।' : 'Separate with commas. Leave blank and we will pick from your product details.'}</p>
+        </div>
+      ` : ''}
+
+      ${p.pricing_model === 'CPS' ? `
+        <div class="field">
+          <label class="field__label" for="ad-f-districts">${isBn ? 'কোন জেলার ক্রেতারা?' : 'Which districts?'}</label>
+          <div class="field__control field__control--select">
+            <select id="ad-f-districts" class="select" data-multi="districts" multiple size="6">
+              ${ALL_BD_DISTRICTS.map((d) => `
+                <option value="${escapeHtml(d.name_en)}" ${f.districts.includes(d.name_en) ? 'selected' : ''}>
+                  ${escapeHtml(isBn ? d.name_bn : d.name_en)}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+          <p class="field__help">${isBn ? 'একাধিক বাছতে Ctrl (Mac এ Cmd) চেপে ক্লিক করুন। কিছু না বাছলে সবাই পাবে। ক্রেতার ডিফল্ট ঠিকানার জেলা দেখা হয়।' : 'Hold Ctrl (Cmd on Mac) to pick several. Leave empty to reach everyone. Matched on the default delivery address.'}</p>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="ad-f-interests">${isBn ? 'কোন ক্যাটেগরিতে আগ্রহী ক্রেতারা?' : 'Shoppers interested in which categories?'}</label>
+          <div class="field__control field__control--select">
+            <select id="ad-f-interests" class="select" data-multi="interest_categories" multiple size="6">
+              ${this.categories.map((c) => `
+                <option value="${c.id}" ${f.interest_categories.map(String).includes(String(c.id)) ? 'selected' : ''}>
+                  ${escapeHtml(isBn ? c.name_bn : c.name_en)}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+          <p class="field__help">${isBn ? 'গত কয়েক সপ্তাহে এই ক্যাটেগরির পণ্য দেখেছেন বা কিনেছেন এমন ক্রেতা। জেলাও বাছলে দুটোই মিলতে হবে।' : 'Shoppers who viewed or bought in these categories recently. If you also pick districts, both must match.'}</p>
+          <p class="field__help">${isBn ? 'নির্বাচিত দলে কম মানুষ থাকলে যতজনকে পাঠানো গেছে শুধু ততজনের টাকা রাখা হয়, বাকিটা ফেরত আসে।' : 'If fewer shoppers match than you ordered, you are only charged for those reached; the rest is refunded.'}</p>
         </div>
       ` : ''}
 
@@ -1035,6 +1072,13 @@ export class AdCampaignPage {
       }
     });
 
+    // Multi-selects (Push Blast audience): the form keeps the chosen values as an array.
+    el.querySelectorAll('[data-multi]').forEach((sel) => {
+      sel.addEventListener('change', () => {
+        w.form[sel.dataset.multi] = [...sel.selectedOptions].map((o) => o.value);
+      });
+    });
+
     el.querySelectorAll('[data-preset-budget]').forEach((btn) => {
       btn.addEventListener('click', () => {
         w.form.total_budget = Number(btn.dataset.presetBudget);
@@ -1090,12 +1134,15 @@ export class AdCampaignPage {
       bid_amount: Number(f.bid_amount),
       duration_days: Number(f.duration_days),
       quantity: Number(f.quantity),
-      category_id: f.category_id ? Number(f.category_id) : null,
+      category_id: w.product.placement === 'CATEGORY_BANNER' && f.category_id ? Number(f.category_id) : null,
       start_date: f.start_date,
       targeting: {
         keywords: f.keywords.split(',').map((k) => k.trim()).filter(Boolean),
-        categories: f.category_id ? [Number(f.category_id)] : [],
-        districts: [],
+        // A category banner targets its own category; a Push Blast targets shoppers INTERESTED in the chosen ones.
+        categories: w.product.placement === 'CATEGORY_BANNER'
+          ? (f.category_id ? [Number(f.category_id)] : [])
+          : w.product.pricing_model === 'CPS' ? f.interest_categories.map(Number) : [],
+        districts: w.product.pricing_model === 'CPS' ? f.districts : [],
       },
       creative: {
         headline: f.headline,

@@ -26,6 +26,7 @@ import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { isEnabled } from './module.service.ts';
 import { refundAdvertiser } from './adRefund.ts';
+import { districtMatchKeys } from '../lib/districtMatch.ts';
 import { notify } from './notification.service.ts';
 
 export const PUSH_PLACEMENT = 'PUSH_INBOX';
@@ -35,6 +36,8 @@ export const PUSH_TEMPLATE_KEY = 'AD_PUSH_BLAST';
 export const PUSH_SETTING_LIMITS = {
   push_frequency_days: { min: 1, max: 30, default: 3 },
   push_batch_size: { min: 50, max: 5000, default: 500 },
+  // How far back a shopper's browsing counts as an interest in a category the campaign targets.
+  push_interest_days: { min: 7, max: 180, default: 60 },
 };
 
 /** How many campaigns one sweep will work on, so a backlog cannot hold the scheduler's lock for long. */
@@ -53,7 +56,23 @@ export async function loadPushSettings(db) {
   return {
     frequencyDays: clampSetting(s.push_frequency_days, 'push_frequency_days'),
     batchSize: clampSetting(s.push_batch_size, 'push_batch_size'),
+    interestDays: clampSetting(s.push_interest_days, 'push_interest_days'),
   };
+}
+
+/**
+ * What a campaign's stored targeting means for a Push Blast. An empty list means "no restriction"; when
+ * both are set a shopper must match BOTH (lives in a chosen district AND has shown interest in a chosen
+ * category), because each extra condition is the shop partner asking for a narrower audience.
+ * Anything malformed is dropped rather than trusted: this runs on JSON a client sent.
+ */
+export function parsePushTargeting(targeting) {
+  const t = targeting && typeof targeting === 'object' ? targeting : {};
+  const districts = Array.isArray(t.districts) ? t.districts : [];
+  const categories = (Array.isArray(t.categories) ? t.categories : [])
+    .map(Number)
+    .filter((n) => Number.isInteger(n) && n > 0);
+  return { districtKeys: districtMatchKeys(districts), categoryIds: [...new Set(categories)] };
 }
 
 /** Recipients still owed on a campaign. */
@@ -84,7 +103,7 @@ export function undeliveredRefund(prepaidAmount, quantity, delivered) {
 async function findPendingCampaigns(db, limit) {
   const { rows } = await db.query(
     `SELECT c.id, c.ref, c.user_id, c.title, c.quantity, c.push_delivered_count, c.prepaid_amount,
-            c.end_date, c.status,
+            c.end_date, c.status, c.targeting_json,
             cr.headline, cr.description, cr.destination_url
      FROM ad_campaigns c
      JOIN ad_creatives cr ON cr.campaign_id = c.id
@@ -100,7 +119,35 @@ async function findPendingCampaigns(db, limit) {
   return rows;
 }
 
-async function findAudience(db, campaign, { frequencyDays, limit }) {
+async function findAudience(db, campaign, { frequencyDays, interestDays, limit }) {
+  const { districtKeys, categoryIds } = parsePushTargeting(campaign.targeting_json);
+  const params: unknown[] = [campaign.id, campaign.user_id, frequencyDays, limit];
+
+  // Both clauses are optional and only added when the campaign asked for them, so an untargeted blast
+  // runs exactly the query it always did.
+  let districtClause = '';
+  if (districtKeys.length) {
+    params.push(districtKeys);
+    // WHY default address first: it is where the shopper says they live; the profile district is the fallback.
+    // Compared on letters only, so "Chittagong" on an address still matches a campaign aimed at "Chattogram".
+    districtClause = `
+       AND lower(regexp_replace(COALESCE(
+             (SELECT a.district FROM user_addresses a WHERE a.user_id = u.id ORDER BY a.is_default DESC, a.id DESC LIMIT 1),
+             (SELECT p.district FROM user_profiles p WHERE p.user_id = u.id),
+             ''), '[^[:alpha:]]', '', 'g')) = ANY($${params.length}::text[])`;
+  }
+  let interestClause = '';
+  if (categoryIds.length) {
+    params.push(categoryIds, interestDays);
+    interestClause = `
+       AND EXISTS (
+         SELECT 1 FROM product_interaction_events e
+         WHERE e.user_id = u.id
+           AND e.category_id = ANY($${params.length - 1}::bigint[])
+           AND e.created_at > now() - make_interval(days => $${params.length}::int)
+       )`;
+  }
+
   const { rows } = await db.query(
     `SELECT u.id
      FROM users u
@@ -119,10 +166,10 @@ async function findAudience(db, campaign, { frequencyDays, limit }) {
          SELECT 1 FROM ad_push_deliveries d
          WHERE d.user_id = u.id
            AND (d.campaign_id = $1 OR d.sent_at > now() - make_interval(days => $3::int))
-       )
+       )${districtClause}${interestClause}
      ORDER BY md5(u.id::text || $1::text)
      LIMIT $4`,
-    [campaign.id, campaign.user_id, frequencyDays, limit]
+    params
   );
   return rows.map((r) => r.id);
 }
@@ -224,7 +271,7 @@ export async function runPushBlastSweep(db, cache, now = new Date()) {
     if (adsOn) {
       const room = Math.min(remainingToSend(current), settings.batchSize);
       if (room > 0) {
-        const audience = await findAudience(db, current, { frequencyDays: settings.frequencyDays, limit: room });
+        const audience = await findAudience(db, current, { frequencyDays: settings.frequencyDays, interestDays: settings.interestDays, limit: room });
         for (const userId of audience) {
           if (await deliverOne(db, current, userId)) sent += 1;
           else failed += 1;

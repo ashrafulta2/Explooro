@@ -49,10 +49,10 @@ test('a campaign is due for settlement when fully delivered or past its end date
 
 test('missing or out-of-range settings fall back to the defaults', async () => {
   const dbWith = (settings) => ({ query: async () => ({ rows: settings === undefined ? [] : [{ settings_json: settings }] }) });
-  assert.deepEqual(await loadPushSettings(dbWith(undefined)), { frequencyDays: 3, batchSize: 500 });
-  assert.deepEqual(await loadPushSettings(dbWith({ push_frequency_days: 7, push_batch_size: 1000 })), { frequencyDays: 7, batchSize: 1000 });
-  assert.deepEqual(await loadPushSettings(dbWith({ push_frequency_days: 0, push_batch_size: 99999 })), { frequencyDays: 3, batchSize: 500 });
-  assert.deepEqual(await loadPushSettings(dbWith({ push_frequency_days: 'x', push_batch_size: 2.5 })), { frequencyDays: 3, batchSize: 500 });
+  assert.deepEqual(await loadPushSettings(dbWith(undefined)), { frequencyDays: 3, batchSize: 500, interestDays: 60 });
+  assert.deepEqual(await loadPushSettings(dbWith({ push_frequency_days: 7, push_batch_size: 1000, push_interest_days: 30 })), { frequencyDays: 7, batchSize: 1000, interestDays: 30 });
+  assert.deepEqual(await loadPushSettings(dbWith({ push_frequency_days: 0, push_batch_size: 99999 })), { frequencyDays: 3, batchSize: 500, interestDays: 60 });
+  assert.deepEqual(await loadPushSettings(dbWith({ push_frequency_days: 'x', push_batch_size: 2.5 })), { frequencyDays: 3, batchSize: 500, interestDays: 60 });
   assert.ok(PUSH_SETTING_LIMITS.push_frequency_days.default >= PUSH_SETTING_LIMITS.push_frequency_days.min);
 });
 
@@ -98,4 +98,40 @@ test('the run length of a prepaid campaign never comes from its quantity', async
   const { readFileSync } = await import('node:fs');
   const ads = readFileSync(new URL('../src/services/ads.service.ts', import.meta.url), 'utf8');
   assert.ok(!/duration_days\)\s*\|\|\s*Number\(campaignData\.quantity\)/.test(ads), 'quantity is slots/recipients, not days');
+});
+
+test('push targeting: empty means everyone, malformed values are dropped, spellings are folded', async () => {
+  const { parsePushTargeting } = await import('../src/services/adPushBlast.service.ts');
+  assert.deepEqual(parsePushTargeting(null), { districtKeys: [], categoryIds: [] });
+  assert.deepEqual(parsePushTargeting({ districts: [], categories: [] }), { districtKeys: [], categoryIds: [] });
+  const t = parsePushTargeting({ districts: ['Chattogram', ' Dhaka ', 7, null], categories: [3, '3', 'x', -1, 2.5, 9] });
+  assert.deepEqual(t.categoryIds, [3, 9]);
+  // Chattogram and its older spelling are both accepted, and Dhaka is kept
+  assert.ok(t.districtKeys.includes('chattogram') && t.districtKeys.includes('chittagong'));
+  assert.ok(t.districtKeys.includes('dhaka'));
+});
+
+test('district spellings that mean the same place compare equal', async () => {
+  const { normalizeDistrict, districtMatchKeys } = await import('../src/lib/districtMatch.ts');
+  assert.equal(normalizeDistrict("Cox's Bazar"), 'coxsbazar');
+  assert.equal(normalizeDistrict(null), '');
+  for (const [a, b] of [['Barishal', 'Barisal'], ['Bogura', 'Bogra'], ['Chattogram', 'Chittagong'], ['Cumilla', 'Comilla'], ['Jashore', 'Jessore']]) {
+    assert.ok(districtMatchKeys([a]).includes(normalizeDistrict(b)), `${a} should match ${b}`);
+    assert.ok(districtMatchKeys([b]).includes(normalizeDistrict(a)), `${b} should match ${a}`);
+  }
+  assert.ok(!districtMatchKeys(['Dhaka']).includes('gazipur'));
+  assert.deepEqual(districtMatchKeys([]), []);
+});
+
+test('stored targeting is cut down to safe, bounded lists', async () => {
+  const { normalizeTargeting } = await import('../src/services/ads.service.ts');
+  assert.deepEqual(normalizeTargeting(undefined), { keywords: [], categories: [], districts: [] });
+  const t = normalizeTargeting({
+    keywords: ['saree', ' saree ', '', 5, 'x'.repeat(200)],
+    categories: [1, '2', 'bad', 1, -4],
+    districts: Array.from({ length: 100 }, (_, i) => `D${i}`),
+  });
+  assert.deepEqual(t.keywords, ['saree', 'x'.repeat(60)]);
+  assert.deepEqual(t.categories, [1, 2]);
+  assert.equal(t.districts.length, 64);
 });

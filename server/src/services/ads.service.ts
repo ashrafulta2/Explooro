@@ -159,6 +159,31 @@ async function reserveSlots(client, { product, campaign, input, totalAmount }) {
   return { slotKey, slotIndex, dates };
 }
 
+/** Caps on what a client may store as targeting; the lists are read back on every auction and push sweep. */
+const TARGETING_LIMITS = { keywords: 50, categories: 20, districts: 64, textLength: 60 };
+
+/**
+ * The targeting a client sent, cut down to what is safe to store and use: strings trimmed and length-capped,
+ * category ids positive integers, every list capped and de-duplicated. Anything else is dropped, not guessed at.
+ */
+export function normalizeTargeting(raw) {
+  const t = raw && typeof raw === 'object' ? raw : {};
+  const strings = (v, max) => [...new Set(
+    (Array.isArray(v) ? v : [])
+      .filter((x) => typeof x === 'string')
+      .map((x) => x.trim().slice(0, TARGETING_LIMITS.textLength))
+      .filter(Boolean)
+  )].slice(0, max);
+  const categories = [...new Set(
+    (Array.isArray(t.categories) ? t.categories : []).map(Number).filter((n) => Number.isInteger(n) && n > 0)
+  )].slice(0, TARGETING_LIMITS.categories);
+  return {
+    keywords: strings(t.keywords, TARGETING_LIMITS.keywords),
+    categories,
+    districts: strings(t.districts, TARGETING_LIMITS.districts),
+  };
+}
+
 /**
  * Creates a new ad campaign of any marketplace format.
  */
@@ -274,7 +299,7 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta: R
     : (isPrepaid ? new Date(startDate.getTime() + durationDays * 86400000) : null);
 
   const ref = generateCampaignRef();
-  const targetingJson = JSON.stringify(campaignData.targeting || { categories: [], districts: [], keywords: [] });
+  const targetingJson = JSON.stringify(normalizeTargeting(campaignData.targeting));
 
   return await withTransaction(db, async (client) => {
     const { rows: cRows } = await client.query(
@@ -418,7 +443,7 @@ export async function updateCampaign(db, cache, userId, campaignId, updates, req
         updates.title ?? null,
         updates.objective ?? null,
         updates.placement ?? null,
-        updates.targeting ? JSON.stringify(updates.targeting) : null,
+        updates.targeting ? JSON.stringify(normalizeTargeting(updates.targeting)) : null,
         dailyBudget.toFixed(2),
         totalBudget.toFixed(2),
         bidAmount.toFixed(2),
