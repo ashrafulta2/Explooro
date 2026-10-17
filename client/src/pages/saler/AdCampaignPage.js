@@ -532,7 +532,14 @@ export class AdCampaignPage {
       this.promotable = [];
       toast.error(err.message || (this.isBn ? 'পণ্যের তালিকা আনা যায়নি' : 'Could not load your products'));
     }
-    if (this.wizard) this.renderWizard();
+    // WHY only the picker, not renderWizard(): text fields save on `change`, so a full repaint while the
+    // seller is still typing a name or headline would wipe what they typed.
+    const slot = this.wizardEl?.querySelector('#ad-product-picker');
+    if (!slot || !this.wizard) return;
+    slot.outerHTML = this._productPickerHtml();
+    this.wizardEl.querySelector('#ad-f-product')?.addEventListener('change', (e) => {
+      if (this.wizard) this.wizard.form.product_id = e.target.value;
+    });
   }
 
   /** The products the open format may promote. The sourcing slot sells a supplier's own products only. */
@@ -947,7 +954,7 @@ export class AdCampaignPage {
     }
 
     return `
-      <div class="field">
+      <div class="field" id="ad-product-picker">
         <label class="field__label" for="ad-f-product">${isBn ? 'কোন পণ্যের বিজ্ঞাপন?' : 'Which product are you advertising?'} <span class="field__required">*</span></label>
         ${control}
         <p class="field__help">${isBn
