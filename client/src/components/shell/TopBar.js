@@ -186,7 +186,16 @@ function AvatarMenu({ role, user, onNavigate }) {
   const trigger = document.createElement('button');
   trigger.type = 'button';
   trigger.className = 'topbar__avatar-trigger';
-  trigger.textContent = initialsFor(displayName) || (role ?? '?').slice(0, 1).toUpperCase();
+  const initials = document.createElement('span');
+  initials.className = 'topbar__avatar-initials';
+  initials.textContent = initialsFor(displayName) || (role ?? '?').slice(0, 1).toUpperCase();
+  // The chevron is what tells a first-time user this picture opens a menu.
+  const chevron = document.createElement('span');
+  chevron.className = 'topbar__avatar-chevron';
+  chevron.setAttribute('aria-hidden', 'true');
+  chevron.innerHTML =
+    '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>';
+  trigger.append(initials, chevron);
   trigger.title = displayName ? `${displayName} — ${label}` : label;
   trigger.setAttribute('aria-haspopup', 'true');
   trigger.setAttribute('aria-expanded', 'false');
@@ -194,6 +203,7 @@ function AvatarMenu({ role, user, onNavigate }) {
 
   const panel = document.createElement('div');
   panel.className = 'topbar__avatar-panel';
+  panel.style.minWidth = '248px';
   panel.hidden = true;
 
   const panelHeader = document.createElement('div');
@@ -266,7 +276,51 @@ function AvatarMenu({ role, user, onNavigate }) {
     onNavigate('/login');
   });
 
-  panel.append(settingsLink, logoutBtn);
+  panel.append(settingsLink);
+
+  // Preferences live here, not in the topbar: people set them once and rarely touch them again.
+  // A pick is stored (i18n.js / theme.js write it to this browser) and becomes the default the next
+  // visit opens with — the hint below says so, because nothing else on screen would.
+  const prefs = document.createElement('div');
+  prefs.className = 'topbar__prefs';
+
+  if (isLanguageSwitchAllowed()) {
+    const langSection = document.createElement('div');
+    langSection.className = 'topbar__prefs-section';
+    const langTitle = document.createElement('span');
+    langTitle.className = 'topbar__prefs-title';
+    langTitle.textContent = t('shell.pref_language', 'Language');
+    const langRow = document.createElement('div');
+    langRow.className = 'topbar__prefs-row';
+    const names = { en: t('language.name_en', 'English'), bn: t('language.name_bn', 'বাংলা') };
+    for (const code of getEnabledLanguages()) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `btn btn--sm ${code === getLanguage() ? 'btn--primary' : 'btn--ghost'}`;
+      btn.textContent = names[code] || code;
+      btn.setAttribute('aria-pressed', String(code === getLanguage()));
+      btn.addEventListener('click', () => {
+        if (code === getLanguage()) return;
+        // AppShell rebuilds the TopBar when the language changes, which closes this menu.
+        setLanguage(code);
+      });
+      langRow.append(btn);
+    }
+    langSection.append(langTitle, langRow);
+    prefs.append(langSection);
+  }
+
+  const themeHost = document.createElement('div');
+  themeHost.className = 'topbar__prefs-section topbar__prefs-theme';
+  renderThemeControls(themeHost);
+  prefs.append(themeHost);
+
+  const hint = document.createElement('p');
+  hint.className = 'topbar__prefs-hint';
+  hint.textContent = t('shell.pref_saved_hint', 'Your choices are saved as your default on this device.');
+  prefs.append(hint);
+
+  panel.append(prefs, logoutBtn);
 
   function open() {
     panel.hidden = false;
@@ -298,37 +352,20 @@ import { switchThemePreset, getActivePresetKey, PRESET_SWITCH_PERMISSION } from 
 import { toast } from '../../services/toast.js';
 import { can } from '../../services/permissions.js';
 
-function ThemeMenu() {
-  const wrap = document.createElement('div');
-  wrap.className = 'topbar__theme-menu topbar__avatar-menu';
-
+// WHY one renderer for two homes: signed-in people reach theme + language from the avatar menu
+// (they change rarely, so they do not earn a permanent topbar slot), while guests have no avatar
+// menu and keep the standalone theme button. Both draw the same controls so they cannot drift.
+function renderThemeControls(panel, { onModeApplied } = {}) {
   let activePreset = getActivePresetKey();
   // Everyone keeps Light / Dark / System; the colour presets are the super admin's.
   const canPresets = can(PRESET_SWITCH_PERMISSION);
   const menuTitle = canPresets
     ? t('shell.theme_menu_title') || 'Theme & Presets'
     : t('shell.theme_menu_title_plain') || 'Theme';
+  const updateTriggerIcon = () => onModeApplied?.();
+  const renderPanel = () => renderThemeControls(panel, { onModeApplied });
 
-  const trigger = document.createElement('button');
-  trigger.type = 'button';
-  trigger.className = 'topbar__icon-btn topbar__theme-btn';
-  trigger.setAttribute('aria-haspopup', 'true');
-  trigger.setAttribute('aria-expanded', 'false');
-  trigger.setAttribute('aria-label', menuTitle);
-  trigger.title = menuTitle;
-
-  const updateTriggerIcon = () => {
-    const mode = getTheme();
-    trigger.innerHTML = THEME_ICONS_SVG[mode] || THEME_ICONS_SVG.system;
-  };
-  updateTriggerIcon();
-
-  const panel = document.createElement('div');
-  panel.className = 'topbar__avatar-panel topbar__theme-panel';
-  panel.style.minWidth = '230px';
-  panel.hidden = true;
-
-  const renderPanel = () => {
+  {
     panel.innerHTML = '';
     const isBn = getLanguage() === 'bn';
     const mode = getTheme();
@@ -474,7 +511,36 @@ function ThemeMenu() {
     }
 
     panel.append(presetsList);
+  }
+}
+
+function ThemeMenu() {
+  const wrap = document.createElement('div');
+  wrap.className = 'topbar__theme-menu topbar__avatar-menu';
+
+  const menuTitle = can(PRESET_SWITCH_PERMISSION)
+    ? t('shell.theme_menu_title') || 'Theme & Presets'
+    : t('shell.theme_menu_title_plain') || 'Theme';
+
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'topbar__icon-btn topbar__theme-btn';
+  trigger.setAttribute('aria-haspopup', 'true');
+  trigger.setAttribute('aria-expanded', 'false');
+  trigger.setAttribute('aria-label', menuTitle);
+  trigger.title = menuTitle;
+
+  const updateTriggerIcon = () => {
+    trigger.innerHTML = THEME_ICONS_SVG[getTheme()] || THEME_ICONS_SVG.system;
   };
+  updateTriggerIcon();
+
+  const panel = document.createElement('div');
+  panel.className = 'topbar__avatar-panel topbar__theme-panel';
+  panel.style.minWidth = '230px';
+  panel.hidden = true;
+
+  const renderPanel = () => renderThemeControls(panel, { onModeApplied: updateTriggerIcon });
 
   function open() {
     renderPanel();
@@ -643,9 +709,11 @@ export function TopBar({
     bar.append(paletteBtn);
   }
 
-  // The switcher exists only while the platform policy lets visitors choose their own language
-  // and there is more than one enabled locale to choose between (/admin/platform/language).
-  if (isLanguageSwitchAllowed()) {
+  // Signed-in people set language and theme from the avatar menu (see AvatarMenu). Guests have no
+  // avatar menu, so they keep the standalone controls. The switcher exists only while the platform
+  // policy lets visitors choose their own language and there is more than one enabled locale
+  // (/admin/platform/language).
+  if (isGuest && isLanguageSwitchAllowed()) {
     const enabled = getEnabledLanguages();
     const nextLang = enabled.find((l) => l !== getLanguage()) || getLanguage();
     const langBtn = document.createElement('button');
@@ -661,7 +729,7 @@ export function TopBar({
   }
 
   // Theme & Marketplace Preset Switcher Menu
-  bar.append(ThemeMenu());
+  if (isGuest) bar.append(ThemeMenu());
 
   if (badges && badges.cart !== undefined) {
     bar.append(
