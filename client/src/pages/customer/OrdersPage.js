@@ -23,6 +23,8 @@ import {
 } from '../../components/order/OrderTracker.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { EarnJourney } from '../../components/customer/EarnJourney.js';
+import { appStore } from '../../state/appStore.js';
 
 export default function OrdersPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {
@@ -83,6 +85,12 @@ export default function OrdersPage(root, { navigate } = {}) {
 
   // 3. Orders List Slot
   container.append(ordersListSlot);
+
+  // WHY: My Orders is the account page a customer returns to most, and right after a purchase is when
+  // "earn from products like these" lands. Customers only: a Shop Partner already earns.
+  if (appStore.get()?.auth?.role === 'customer') {
+    container.append(EarnJourney({ onNavigate: nav }).element);
+  }
   root.append(container);
 
   async function loadOrders() {
