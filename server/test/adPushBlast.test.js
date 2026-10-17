@@ -80,10 +80,22 @@ test('the template is also seeded in the database (notifications.template_key is
   assert.ok(sql.includes(`'${tpl.title_bn}'`), 'seeded Bangla title must match the in-code default');
 });
 
-test('the refund ledger entries carry distinct idempotency keys (a group-level key collides with itself)', async () => {
+test('refund ledger entries carry distinct idempotency keys (a group-level key collides with itself)', async () => {
   const { readFileSync } = await import('node:fs');
-  const src = readFileSync(new URL('../src/services/adPushBlast.service.ts', import.meta.url), 'utf8');
-  assert.ok(src.includes('ad-push-refund:${campaign.id}:credit'));
-  assert.ok(src.includes('ad-push-refund:${campaign.id}:debit'));
-  assert.ok(!/recordTransactionGroup\(client, \{[^}]*idempotencyKey: `ad-push-refund:\$\{campaign\.id\}`,/.test(src));
+  const src = readFileSync(new URL('../src/services/adRefund.ts', import.meta.url), 'utf8');
+  assert.ok(src.includes('`${keyBase}:credit`'));
+  assert.ok(src.includes('`${keyBase}:debit`'));
+  const groupArgs = src.slice(src.indexOf('recordTransactionGroup('), src.indexOf('entries:'));
+  assert.ok(!groupArgs.includes('idempotencyKey'), 'no group-level key');
+  // both refund flows go through the shared helper with their own reason-specific base
+  const push = readFileSync(new URL('../src/services/adPushBlast.service.ts', import.meta.url), 'utf8');
+  const ads = readFileSync(new URL('../src/services/ads.service.ts', import.meta.url), 'utf8');
+  assert.ok(push.includes('keyBase: `ad-push-refund:${campaign.id}`'));
+  assert.ok(ads.includes('keyBase: `ad-reject-refund:${campaignId}`'));
+});
+
+test('the run length of a prepaid campaign never comes from its quantity', async () => {
+  const { readFileSync } = await import('node:fs');
+  const ads = readFileSync(new URL('../src/services/ads.service.ts', import.meta.url), 'utf8');
+  assert.ok(!/duration_days\)\s*\|\|\s*Number\(campaignData\.quantity\)/.test(ads), 'quantity is slots/recipients, not days');
 });

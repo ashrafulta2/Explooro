@@ -23,6 +23,7 @@ import { isEnabled } from './module.service.ts';
 import * as rbacService from './rbac.service.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
+import { refundAdvertiser } from './adRefund.ts';
 import * as adProductRepo from '../repositories/adProduct.repository.ts';
 import * as adProductsService from './adProducts.service.ts';
 import { quote as priceQuote, meteredCharge, rate, PREPAID_MODELS } from './adPricing.ts';
@@ -254,7 +255,10 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta: R
   // Budget columns carry different meanings per billing mode: a metered campaign's total_budget is
   // its spend cap, a prepaid one's is simply what it cost.
   const durationDays = isPrepaid
-    ? Math.max(1, Number(campaignData.duration_days) || Number(campaignData.quantity) || rate(product.rate_card, 'min_days'))
+    // WHY not `|| quantity`: quantity is slots or recipients, never days. A Push Blast bought for 1,000
+    // recipients was given a 1,000-day run (end date in 2029) and a daily budget of price/1000. The quote
+    // and the slot reservation already fall back to the rate card's min_days; the campaign row must agree.
+    ? Math.max(1, Number(campaignData.duration_days) || rate(product.rate_card, 'min_days'))
     : (campaignData.duration_days ? Number(campaignData.duration_days) : null);
 
   const totalBudget = isPrepaid ? commitment : Number(campaignData.total_budget);
@@ -1143,33 +1147,59 @@ export async function listPendingCampaigns(db, { limit = 20, offset = 0 }: Recor
 export async function reviewCampaign(db, adminId, campaignId, { decision, reason = null }, reqMeta: Record<string, any> = {}) {
   const newStatus = decision === 'APPROVE' ? 'ACTIVE' : 'REJECTED';
 
-  const { rows } = await db.query(
-    `UPDATE ad_campaigns
-     SET status = $1,
-         rejection_reason = $2,
-         reviewed_by = $3,
-         reviewed_at = now(),
-         updated_at = now()
-     WHERE id = $4
-     RETURNING *`,
-    [newStatus, decision === 'REJECT' ? reason : null, adminId, campaignId]
-  );
+  return await withTransaction(db, async (client) => {
+    const { rows: found } = await client.query(`SELECT * FROM ad_campaigns WHERE id = $1 FOR UPDATE`, [campaignId]);
+    const before = found[0];
+    if (!before) {
+      throw new AppError('CAMPAIGN_NOT_FOUND', 'Campaign not found.');
+    }
+    // WHY only PENDING_REVIEW: a decision on any other status would re-activate a finished campaign, or
+    // reject (and refund) one that has already been served. A second click must be a refusal, not a second refund.
+    if (before.status !== 'PENDING_REVIEW') {
+      throw new AppError('CAMPAIGN_NOT_PENDING', `This campaign is ${before.status} and is no longer waiting for review.`);
+    }
 
-  if (rows.length === 0) {
-    throw new AppError('CAMPAIGN_NOT_FOUND', 'Campaign not found.');
-  }
+    const { rows } = await client.query(
+      `UPDATE ad_campaigns
+       SET status = $1,
+           rejection_reason = $2,
+           reviewed_by = $3,
+           reviewed_at = now(),
+           updated_at = now()
+       WHERE id = $4
+       RETURNING *`,
+      [newStatus, decision === 'REJECT' ? reason : null, adminId, campaignId]
+    );
 
-  await writeAudit(db, {
-    userId: adminId,
-    action: `growth.ad.review_${decision.toLowerCase()}`,
-    resourceType: 'ad_campaigns',
-    resourceId: campaignId,
-    after: { decision, status: newStatus, reason },
-    ipAddress: reqMeta.ip || null,
-    userAgent: reqMeta.userAgent || null,
+    // WHY refund here: prepaid formats (flat daily, flat slot, push blast) are charged when the
+    // campaign is created, before review. A rejected campaign was never shown, so the buyer gets the
+    // full price back and any slot days it was holding are released. Metered (CPC/CPM) campaigns were
+    // charged nothing up front, so there is nothing to give back.
+    let refunded = null;
+    if (decision === 'REJECT' && before.billing_mode === 'PREPAID' && Number(before.prepaid_amount) > 0) {
+      await adProductRepo.releaseBookingsForCampaign(client, campaignId);
+      refunded = Number(before.prepaid_amount).toFixed(2);
+      await refundAdvertiser(client, {
+        campaign: before,
+        amount: refunded,
+        memo: `Refund for rejected campaign ${before.ref}`,
+        keyBase: `ad-reject-refund:${campaignId}`,
+      });
+    }
+
+    await writeAudit(client, {
+      userId: adminId,
+      action: `growth.ad.review_${decision.toLowerCase()}`,
+      resourceType: 'ad_campaigns',
+      resourceId: campaignId,
+      before: { status: before.status },
+      after: { decision, status: newStatus, reason, refunded_amount: refunded },
+      ipAddress: reqMeta.ip || null,
+      userAgent: reqMeta.userAgent || null,
+    });
+
+    return rows[0];
   });
-
-  return rows[0];
 }
 
 /**

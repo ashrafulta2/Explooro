@@ -22,12 +22,10 @@
  * `push_batch_size`.
  */
 
-import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { isEnabled } from './module.service.ts';
-import * as walletRepo from '../repositories/wallet.repository.ts';
-import * as ledgerService from './ledger.service.ts';
+import { refundAdvertiser } from './adRefund.ts';
 import { notify } from './notification.service.ts';
 
 export const PUSH_PLACEMENT = 'PUSH_INBOX';
@@ -175,29 +173,12 @@ export async function settleCampaign(db, campaignId) {
     const refund = undeliveredRefund(campaign.prepaid_amount, campaign.quantity, campaign.push_delivered_count);
 
     if (Number(refund) > 0) {
-      const buyerWallet = await walletRepo.getOrCreateWallet(client, campaign.user_id, { client });
-      const { rows: adminRows } = await client.query(
-        `SELECT u.id FROM users u
-         JOIN user_roles ur ON ur.user_id = u.id
-         JOIN roles r ON r.id = ur.role_id
-         WHERE r.key = 'super_admin'
-         ORDER BY u.id ASC LIMIT 1`
-      );
-      const platformWallet = await walletRepo.getOrCreateWallet(client, adminRows[0]?.id ?? 1, { client });
-
-      await ledgerService.recordTransactionGroup(client, {
-        txnGroupId: randomUUID(),
-        defaultCategory: 'AD_SPEND',
-        defaultReferenceType: 'ad_campaigns',
-        defaultReferenceId: campaign.id,
+      await refundAdvertiser(client, {
+        campaign,
+        amount: refund,
         memo: `Refund for ${campaign.quantity - campaign.push_delivered_count} push recipients not reached (campaign ${campaign.ref})`,
-        // WHY one key per entry, not per group: the ledger stamps the key on every row it writes, and
-        // the key is unique, so a group-level key collides with its own second entry. The key also
-        // means a retry after a half-finished run cannot refund twice (fastPayout.service does the same).
-        entries: [
-          { walletId: buyerWallet.id, entryType: 'CREDIT', amount: refund, balanceBucket: 'AVAILABLE', idempotencyKey: `ad-push-refund:${campaign.id}:credit` },
-          { walletId: platformWallet.id, entryType: 'DEBIT', amount: refund, balanceBucket: 'AVAILABLE', idempotencyKey: `ad-push-refund:${campaign.id}:debit` },
-        ],
+        // WHY a key: a retry after a half-finished run must not refund twice.
+        keyBase: `ad-push-refund:${campaign.id}`,
       });
     }
 
