@@ -464,6 +464,8 @@ export async function updateCampaign(db, cache, userId, campaignId, updates, req
     );
 
     let updatedCreative = existing.creative;
+    // WHY destination_url is not editable: resolveCreativeTarget built it at creation to credit the right
+    // store (or kept it on this site); letting an edit replace it would undo both checks.
     if (updates.creative) {
       const cr = updates.creative;
       const { rows: crRows } = await client.query(
@@ -472,18 +474,14 @@ export async function updateCampaign(db, cache, userId, campaignId, updates, req
              description = COALESCE($2, description),
              banner_image_url = COALESCE($3, banner_image_url),
              call_to_action = COALESCE($4, call_to_action),
-             destination_url = COALESCE($5, destination_url),
              updated_at = now()
-         WHERE campaign_id = $6
+         WHERE campaign_id = $5
          RETURNING *`,
         [
           cr.headline ?? null,
           cr.description ?? null,
           cr.banner_image_url ?? null,
           cr.call_to_action ?? null,
-          // WHY ignored once a product is attached: that URL was built at creation to credit the right
-          // store; letting an edit replace it would undo resolveCreativeTarget's ownership check.
-          existing.creative?.product_id ? null : (cr.destination_url ?? null),
           campaignId,
         ]
       );

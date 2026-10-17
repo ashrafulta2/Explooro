@@ -10,6 +10,8 @@
  *     sale credits the partner who paid for the ad (attribution.service.ts still checks they sell it).
  *   - supplier     → `/product/:id`, the plain product page. A supplier has no storefront; the partner
  *     share goes to whoever the shopper's last touch names, or stays with the platform.
+ * A format without a product sends a shop partner's ad to `/store/<slug>`, and anyone else's to the
+ * internal path they named, or the home page.
  *
  * WHY the server builds the URL instead of accepting the client's: a client-chosen destination would
  * let a partner pay for an ad that sends shoppers to someone else's store, or off the platform.
@@ -26,6 +28,24 @@ export const SOURCE = Object.freeze({ STORE: 'STORE', OWN: 'OWN' });
 export function productDestination(productId: number, storeSlug: string | null = null): string {
   const base = `/product/${Number(productId)}`;
   return storeSlug ? `${base}?store=${encodeURIComponent(storeSlug)}` : base;
+}
+
+/** A shop partner's storefront page. */
+export function storeDestination(storeSlug: string): string {
+  return `/store/${encodeURIComponent(storeSlug)}`;
+}
+
+/**
+ * The given destination when it is a path on this site, else null. WHY: an advertiser without a store
+ * (a supplier) may still name a landing page, but never another origin — `//host` and `/\host` are
+ * protocol-relative in browsers, so both are refused along with any scheme.
+ */
+export function safeInternalPath(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const path = value.trim();
+  if (!path.startsWith('/') || path.startsWith('//') || path.startsWith('/\\')) return null;
+  if (path.length > 300 || /[\s<>"]/.test(path)) return null;
+  return path;
 }
 
 /**
@@ -48,7 +68,18 @@ export async function resolveCreativeTarget(
         'এই বিজ্ঞাপনে কোন পণ্য প্রচার করবেন তা বেছে নিন।'
       );
     }
-    return { productId: null, destinationUrl: destinationUrl || '/' };
+    // A format without a product (spotlight, banner, storefront boost, live, push) promotes the
+    // advertiser, so a shop partner's lands on their storefront, which also records the STORE touch.
+    const { rows: ownStore } = await db.query(
+      `SELECT slug FROM virtual_stores
+       WHERE saler_id = $1 AND is_active AND deleted_at IS NULL
+       ORDER BY id LIMIT 1`,
+      [userId]
+    );
+    if (ownStore[0]) {
+      return { productId: null, destinationUrl: storeDestination(ownStore[0].slug) };
+    }
+    return { productId: null, destinationUrl: safeInternalPath(destinationUrl) || '/' };
   }
 
   const { rows } = await db.query(

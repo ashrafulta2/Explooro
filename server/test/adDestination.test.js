@@ -6,20 +6,22 @@
  *   3. A supplier's ad for their own product lands on the plain /product/:id.
  *   4. Anyone else's product is refused; staff (isPrivileged) skip only that ownership check.
  *   5. With a product attached, the client's destination_url is ignored.
+ *   6. Without a product, a shop partner's ad lands on their storefront; anyone else's stays on this site.
  */
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveCreativeTarget, productDestination } from '../src/services/adDestination.service.ts';
+import { resolveCreativeTarget, productDestination, safeInternalPath } from '../src/services/adDestination.service.ts';
 
 const PARTNER = 7;
 const SUPPLIER = 9;
 
 /** A db whose queries are answered by substring match on the SQL. */
-function fakeDb({ product = { id: 42, supplier_id: SUPPLIER, status: 'ACTIVE' }, storeSlug = null } = {}) {
+function fakeDb({ product = { id: 42, supplier_id: SUPPLIER, status: 'ACTIVE' }, storeSlug = null, ownStoreSlug = null } = {}) {
   return {
     async query(sql) {
       if (sql.includes('FROM saler_store_items')) return { rows: storeSlug ? [{ slug: storeSlug }] : [] };
+      if (sql.includes('FROM virtual_stores')) return { rows: ownStoreSlug ? [{ slug: ownStoreSlug }] : [] };
       if (sql.includes('FROM products')) return { rows: product ? [product] : [] };
       throw new Error(`unexpected query: ${sql}`);
     },
@@ -37,11 +39,20 @@ describe('resolveCreativeTarget', () => {
     );
   });
 
-  test('a format without a product keeps the given destination, or the home page', async () => {
-    const given = await resolveCreativeTarget(fakeDb(), { userId: PARTNER, adProduct: noProduct, destinationUrl: '/store/rina' });
-    assert.deepEqual(given, { productId: null, destinationUrl: '/store/rina' });
-    const none = await resolveCreativeTarget(fakeDb(), { userId: PARTNER, adProduct: noProduct });
+  test("without a product, a shop partner's ad lands on their storefront, whatever the client sent", async () => {
+    const target = await resolveCreativeTarget(fakeDb({ ownStoreSlug: 'rina-fashion' }), {
+      userId: PARTNER, adProduct: noProduct, destinationUrl: '/store/someone-else',
+    });
+    assert.deepEqual(target, { productId: null, destinationUrl: '/store/rina-fashion' });
+  });
+
+  test('without a product or a store, the given internal path is kept, else the home page', async () => {
+    const given = await resolveCreativeTarget(fakeDb(), { userId: SUPPLIER, adProduct: noProduct, destinationUrl: '/search?q=honey' });
+    assert.deepEqual(given, { productId: null, destinationUrl: '/search?q=honey' });
+    const none = await resolveCreativeTarget(fakeDb(), { userId: SUPPLIER, adProduct: noProduct });
     assert.deepEqual(none, { productId: null, destinationUrl: '/' });
+    const offSite = await resolveCreativeTarget(fakeDb(), { userId: SUPPLIER, adProduct: noProduct, destinationUrl: 'https://evil.example' });
+    assert.equal(offSite.destinationUrl, '/');
   });
 
   test("a shop partner's ad carries their store, so the sale credits them", async () => {
@@ -95,5 +106,18 @@ describe('productDestination', () => {
   test('encodes the slug and drops it when absent', () => {
     assert.equal(productDestination(5), '/product/5');
     assert.equal(productDestination(5, 'a b'), '/product/5?store=a%20b');
+  });
+});
+
+describe('safeInternalPath', () => {
+  test('keeps a path on this site', () => {
+    assert.equal(safeInternalPath('/live'), '/live');
+    assert.equal(safeInternalPath(' /search?q=saree '), '/search?q=saree');
+  });
+
+  test('refuses other origins, protocol-relative paths and junk', () => {
+    for (const bad of ['https://x.example', '//x.example', '/\\x.example', 'javascript:alert(1)', 'live', '/a b', '', null, 42]) {
+      assert.equal(safeInternalPath(bad), null, String(bad));
+    }
   });
 });
