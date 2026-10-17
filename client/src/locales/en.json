@@ -280,6 +280,7 @@
     },
     "supplier": {
       "salers": "Shop Partner Insights",
+      "ads": "Ad Campaigns",
       "scorecard": "Scorecard",
       "incentive": "Volume Incentive",
       "samples": "Sample Requests",
@@ -525,6 +526,8 @@
       "earn_cta": "Become a Shop Partner",
       "slider_label": "Featured collections",
       "go_to_slide": "Show slide {{n}}",
+      "sponsored": "Sponsored",
+      "spotlight_cta": "View offer",
       "slide_flash": { "title": "Flash sales", "sub": "Limited-time prices from verified suppliers. Grab them before the timer ends.", "cta": "Shop flash sales" },
       "slide_verified": { "title": "Verified supplier stock", "sub": "Buy direct from suppliers whose stock and identity we have checked.", "cta": "Shop verified stock" },
       "slide_saler": { "title": "Top shop partner collections", "sub": "Curated picks from Bangladesh's best-performing shop partners.", "cta": "Browse collections" },

@@ -22,6 +22,7 @@
 import { appStore } from '../state/appStore.js';
 import { listProducts } from '../services/catalog.api.js';
 import { adsApi } from '../services/ads.api.js';
+import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { HomeTop } from '../components/home/HomeTop.js';
@@ -289,6 +290,12 @@ export default function HomePage(root, { navigate }) {
   const gridColumn = document.createElement('div');
   gridColumn.className = 'home-catalog__grid-col';
   catalogSection.append(gridColumn);
+
+  // Home Feed Promotion: paid cards blended in above the product grid (CPM, so each counts once it
+  // has been on screen). Mounted once; the grid below is rebuilt on every filter change.
+  const feedAds = SponsoredStrip({ placement: 'FEED', variant: 'feed', limit: 3 });
+  cleanups.push(feedAds.cleanup);
+  gridColumn.append(feedAds.el);
 
   // Toolbar (count + filter trigger button)
   const toolbar = document.createElement('div');

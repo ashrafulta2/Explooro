@@ -17,6 +17,10 @@
  */
 
 import { t } from '../../services/i18n.js';
+import { api } from '../../core/api.js';
+import { adsApi } from '../../services/ads.api.js';
+import { isFeatureEnabled } from '../../services/featureFlags.js';
+import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.js';
 import { ICONS } from '../ui/icons.js';
 import { getHomeSummary } from '../../services/homeSummary.api.js';
 import { RoleBand } from './RoleBand.js';
@@ -130,8 +134,55 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   });
   slider.append(dots);
 
+  // Homepage Spotlight: each booked HOME_HERO ad for today joins the carousel as an extra slide.
+  // WHY after first paint: the band never waits on the network, so the three built-in slides render
+  // at once and any booked spotlight is appended when /ads/reserved answers (usually none).
+  let spotlightAlive = true;
+  cleanups.push(() => { spotlightAlive = false; });
+  function addSpotlightSlide(ad) {
+    const slide = el('div', 'home-top__slide home-top__slide--spotlight');
+    slide.setAttribute('aria-hidden', 'true');
+    const tag = el('span', 'sponsored-tag', t('marketplace.top.sponsored'));
+    const title = el('h2', 'home-top__slide-title', ad.headline);
+    const sub = el('p', 'home-top__slide-sub', ad.description);
+    const go = el('button', 'home-top__slide-cta', t('marketplace.top.spotlight_cta'));
+    go.type = 'button';
+    go.tabIndex = -1;
+    go.addEventListener('click', () => {
+      api.post('/ads/clicks', { campaign_id: ad.campaignId, creative_id: ad.creativeId }).catch(() => {});
+      if (/^https?:\/\//.test(ad.destinationUrl)) window.open(ad.destinationUrl, '_blank', 'noopener,noreferrer');
+      else if (ad.destinationUrl) onNavigate(ad.destinationUrl);
+    });
+    slide.append(tag, title, sub, go);
+    slides.push({ slide, go, ad });
+    slider.insertBefore(slide, dots);
+
+    const dot = el('button', 'home-top__dot');
+    dot.type = 'button';
+    const n = slides.length;
+    dot.setAttribute('aria-label', t('marketplace.top.go_to_slide', { n }));
+    dot.setAttribute('aria-current', 'false');
+    dot.addEventListener('click', () => show(n - 1, true));
+    dots.append(dot);
+  }
+
+  if (!fullBand && isFeatureEnabled('sponsored_ads')) {
+    adsApi.listReservedPlacements('HOME_HERO').then(async ({ data }) => {
+      if (!spotlightAlive || !data.length) return;
+      await loadSponsoredStyles();
+      if (!spotlightAlive) return;
+      data.forEach(addSpotlightSlide);
+    }).catch(() => {});
+  }
+
+  const impressed = new Set();
   function show(next, userPicked = false) {
-    index = (next + SLIDES.length) % SLIDES.length;
+    index = (next + slides.length) % slides.length;
+    const shown = slides[index];
+    if (shown.ad && !impressed.has(shown.ad.campaignId)) {
+      impressed.add(shown.ad.campaignId);
+      api.post('/ads/impressions', { campaign_id: shown.ad.campaignId, creative_id: shown.ad.creativeId, placement: 'HOME_HERO', viewable: true }).catch(() => {});
+    }
     slides.forEach(({ slide, go }, i) => {
       slide.classList.toggle('is-active', i === index);
       slide.setAttribute('aria-hidden', i === index ? 'false' : 'true');

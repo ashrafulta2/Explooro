@@ -10,6 +10,7 @@ import { appStore } from '../state/appStore.js';
 import { listProducts } from '../services/catalog.api.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { ProductGrid } from '../components/product/ProductGrid.js';
+import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { updateHead } from '../services/seo.js';
@@ -97,7 +98,11 @@ export default function SearchResultsPage(root, { query, navigate }) {
     signalContext: { query: term },
   });
   cleanups.push(cleanup);
-  page.append(el);
+
+  // Search Boost: paid winners for these keywords sit above the organic results, tagged "Sponsored".
+  const sponsored = SponsoredStrip({ placement: 'SEARCH_RESULTS', keyword: term, limit: 3 });
+  cleanups.push(sponsored.cleanup);
+  page.append(sponsored.el, el);
 
   root.append(page);
   return () => cleanups.forEach((fn) => fn());

@@ -74,6 +74,7 @@ import { openPayoutRequestModal } from '../../components/vault/PayoutRequestModa
 import { EvidenceTimeline } from '../../components/dispute/EvidenceTimeline.js';
 import { ReviewCard } from '../../components/moderation/ReviewCard.js';
 import { SponsoredSlot } from '../../components/ads/SponsoredSlot.js';
+import { SponsoredStrip } from '../../components/ads/SponsoredStrip.js';
 import { LiveStreamCard } from '../../components/live/LiveStreamCard.js';
 import { PinnedProductOverlay } from '../../components/live/PinnedProductOverlay.js';
 import { AssistantPanel } from '../../components/ai/AssistantPanel.js';
@@ -1954,9 +1955,13 @@ function renderSponsoredSlotSpecimen() {
     placement: 'CATEGORY_BANNER',
   });
 
+  // The strip is what pages mount; passing `ads` skips the auction request and also loads the slot CSS.
+  const strip = SponsoredStrip({ placement: 'SEARCH_RESULTS', variant: 'card', ads: [sampleAd, { ...sampleAd, campaignId: 102 }] });
+
   wrap.append(
     specimen('Search Results Product Card (viewability beacon active)', cardSlot.render()),
-    specimen('Category / Homepage Banner Slot', bannerSlot.render())
+    specimen('Category / Homepage Banner Slot', bannerSlot.render()),
+    specimen('SponsoredStrip — search / home feed / product page (auction winners)', strip.el)
   );
   return wrap;
 }

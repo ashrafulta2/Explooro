@@ -197,6 +197,9 @@ export const navItems = [
   { key: 'supplier.b2b_escrow', label_i18n_key: 'nav.shared.b2b_escrow', icon: null, path: '/supplier/b2b-escrow', group: 'supplier.finance', permission: 'finance.b2b_escrow.view_own', module: 'b2b_escrow', roles: ['supplier'], order: 2 },
   { key: 'supplier.inquiries', label_i18n_key: 'nav.supplier.inquiries', icon: null, path: '/supplier/inquiries', group: 'supplier.engage', permission: 'chat.thread.view_own', module: 'chat', roles: ['supplier'], order: 1 },
   { key: 'supplier.live_studio', label_i18n_key: 'nav.supplier.live_studio', icon: null, path: '/supplier/live-studio', group: 'supplier.engage', permission: 'live.stream.host', module: 'live_commerce', roles: ['supplier'], order: 2 },
+  // Same page and same permission as the shop partner's: the route is gated by `growth.ad.manage_own`,
+  // which a supplier holds, and every ad format allows the supplier role. Only the menu entry was missing.
+  { key: 'supplier.ads', label_i18n_key: 'nav.supplier.ads', icon: null, path: '/saler/ads', group: 'supplier.engage', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['supplier'], order: 3 },
   { key: 'supplier.store_status', label_i18n_key: 'nav.shared.store_status', icon: null, path: '/supplier/store-status', group: 'supplier.my_shop', permission: 'supplier.store.manage', module: 'physical_shop_status', roles: ['supplier'], order: 1 },
   // The personal-account surfaces also reachable from the TopBar avatar menu — mirrored into the
   // sidebar's "Me" group for discoverability. Role-agnostic /account/* routes (auth-only, no perm).

@@ -23,6 +23,7 @@ import { ImageGallery } from '../components/product/ImageGallery.js';
 import { VariantSelector } from '../components/product/VariantSelector.js';
 import { PriceBreakdown } from '../components/product/PriceBreakdown.js';
 import { ReviewList } from '../components/product/ReviewList.js';
+import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
 import { QnASection } from '../components/product/QnASection.js';
 import { WishlistButton } from '../components/cart/WishlistButton.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
@@ -518,6 +519,12 @@ export default function ProductDetailPage(root, { params, navigate }) {
       cleanups.push(qna.cleanup);
 
       page.append(belowFold);
+
+      // Competitor Page Ads: a "Sponsored" strip of other sellers' products, in front of a shopper
+      // who is already looking at a similar one.
+      const sponsored = SponsoredStrip({ placement: 'PRODUCT_PAGE', categoryId: product.category_id, limit: 3 });
+      cleanups.push(sponsored.cleanup);
+      page.insertBefore(sponsored.el, belowFold);
     } catch (err) {
       if (destroyed) return;
       page.replaceChildren(

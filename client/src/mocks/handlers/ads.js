@@ -483,6 +483,20 @@ function buildQuote(product, input, tier) {
   return { quote };
 }
 
+/** Auction winners in the shape the server's runSecondPriceAuction returns. */
+const MOCK_AUCTION_ADS = [
+  {
+    campaignId: 9002, creativeId: 9102, headline: 'Premium Cotton Panjabi', description: 'Handloom cotton, free size guide.',
+    bannerImageUrl: '', callToAction: 'SHOP_NOW', destinationUrl: '/search?q=panjabi', productId: null,
+    product: { default_retail_price: 1850 }, chargedCpc: 2.5,
+  },
+  {
+    campaignId: 9003, creativeId: 9103, headline: 'Organic Honey 500g', description: 'Sundarban honey, lab tested.',
+    bannerImageUrl: '', callToAction: 'VIEW_PRODUCT', destinationUrl: '/search?q=honey', productId: null,
+    product: { default_retail_price: 650 }, chargedCpc: 1.5,
+  },
+];
+
 const adsHandlers = [
   {
     method: 'GET',
@@ -682,6 +696,43 @@ const adsHandlers = [
       return { status: 200, body: { product: present(product) } };
     },
   },
+
+  // ── Shopper-facing serving (what the storefront asks for) ───────────────────────────────────
+  // Mirrors GET /ads/auction and GET /ads/reserved: same envelope keys, same field names.
+  {
+    method: 'GET',
+    path: '/ads/auction',
+    handler({ query }) {
+      const placement = query?.placement || 'SEARCH_RESULTS';
+      const limit = Math.min(Number(query?.limit) || 3, 3);
+      const winners = MOCK_AUCTION_ADS.map((ad, i) => ({ ...ad, placement, slotPosition: i + 1 })).slice(0, limit);
+      return { status: 200, body: { ads: winners } };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/ads/reserved',
+    handler({ query }) {
+      // One booked slot on the surfaces that have one, so the spotlight / lobby / strip can be seen in mock mode.
+      const placement = query?.placement || 'HOME_HERO';
+      const row = {
+        slot_index: 0,
+        campaign_id: 9001,
+        title: 'Eid Collection',
+        placement,
+        creative_id: 9101,
+        headline: 'Eid Collection — up to 30% off',
+        description: 'Panjabi, saree and gift sets from verified sellers.',
+        banner_image_url: null,
+        call_to_action: 'SHOP_NOW',
+        destination_url: '/',
+        product_id: null,
+      };
+      return { status: 200, body: { placements: placement === 'HOME_HERO' ? [row] : [] } };
+    },
+  },
+  { method: 'POST', path: '/ads/impressions', handler() { return { status: 200, body: { recorded: true, billed: false } }; } },
+  { method: 'POST', path: '/ads/clicks', handler() { return { status: 200, body: { recorded: true } }; } },
 ];
 
 export default adsHandlers;
