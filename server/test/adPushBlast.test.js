@@ -70,3 +70,20 @@ test('an ad push is always labelled Sponsored, in both languages', () => {
   assert.equal(renderTemplateString(tpl.title_en, { headline: 'Eid sale' }), 'Sponsored: Eid sale');
   assert.equal(renderTemplateString(tpl.title_bn, { headline: 'ঈদ সেল' }), 'স্পন্সর্ড: ঈদ সেল');
 });
+
+test('the template is also seeded in the database (notifications.template_key is a foreign key to it)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const sql = readFileSync(new URL('../src/db/migrations/078_ad_push_blast_template.sql', import.meta.url), 'utf8');
+  const tpl = DEFAULT_TEMPLATES.AD_PUSH_BLAST;
+  assert.ok(sql.includes(`'${tpl.template_key}'`));
+  assert.ok(sql.includes(`'${tpl.title_en}'`), 'seeded English title must match the in-code default');
+  assert.ok(sql.includes(`'${tpl.title_bn}'`), 'seeded Bangla title must match the in-code default');
+});
+
+test('the refund ledger entries carry distinct idempotency keys (a group-level key collides with itself)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../src/services/adPushBlast.service.ts', import.meta.url), 'utf8');
+  assert.ok(src.includes('ad-push-refund:${campaign.id}:credit'));
+  assert.ok(src.includes('ad-push-refund:${campaign.id}:debit'));
+  assert.ok(!/recordTransactionGroup\(client, \{[^}]*idempotencyKey: `ad-push-refund:\$\{campaign\.id\}`,/.test(src));
+});

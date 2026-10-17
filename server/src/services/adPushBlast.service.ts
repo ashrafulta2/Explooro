@@ -190,12 +190,13 @@ export async function settleCampaign(db, campaignId) {
         defaultCategory: 'AD_SPEND',
         defaultReferenceType: 'ad_campaigns',
         defaultReferenceId: campaign.id,
-        // WHY the key: a retry after a half-finished run must not refund twice.
-        idempotencyKey: `ad-push-refund:${campaign.id}`,
         memo: `Refund for ${campaign.quantity - campaign.push_delivered_count} push recipients not reached (campaign ${campaign.ref})`,
+        // WHY one key per entry, not per group: the ledger stamps the key on every row it writes, and
+        // the key is unique, so a group-level key collides with its own second entry. The key also
+        // means a retry after a half-finished run cannot refund twice (fastPayout.service does the same).
         entries: [
-          { walletId: buyerWallet.id, entryType: 'CREDIT', amount: refund, balanceBucket: 'AVAILABLE' },
-          { walletId: platformWallet.id, entryType: 'DEBIT', amount: refund, balanceBucket: 'AVAILABLE' },
+          { walletId: buyerWallet.id, entryType: 'CREDIT', amount: refund, balanceBucket: 'AVAILABLE', idempotencyKey: `ad-push-refund:${campaign.id}:credit` },
+          { walletId: platformWallet.id, entryType: 'DEBIT', amount: refund, balanceBucket: 'AVAILABLE', idempotencyKey: `ad-push-refund:${campaign.id}:debit` },
         ],
       });
     }
