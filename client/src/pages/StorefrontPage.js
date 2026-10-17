@@ -15,8 +15,9 @@ import { t, getLanguage } from '../services/i18n.js';
 import { appStore } from '../state/appStore.js';
 import { updateHead, buildStoreJsonLd } from '../services/seo.js';
 import { formatExplooroBrandText, ICONS } from '../components/ui/icons.js';
+import { recordTouch } from '../services/attribution.js';
 
-export default function StorefrontPage(root, { params, navigate }) {
+export default function StorefrontPage(root, { params, query, navigate }) {
   const container = document.createElement('div');
   container.className = 'container storefront-page';
 
@@ -45,6 +46,11 @@ export default function StorefrontPage(root, { params, navigate }) {
       const store = data.store || data;
       const shelves = data.shelves || [];
       const products = data.products || [];
+
+      // This partner sent the shopper here: anything added to the cart now credits them (if they sell it).
+      // WHY not when ?ref= is present: the shopper arrived through this partner's short link, and that
+      // touch (already recorded by the router) also names the link, so its conversions get counted.
+      if (!query?.ref) recordTouch('STORE', store.slug || slug);
 
       // Inject SEO & JSON-LD Structured Data
       injectStoreSeo(store);

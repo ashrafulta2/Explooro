@@ -129,19 +129,21 @@ export async function createSubOrder(db, {
   discountShare = 0,
   totalAmount,
   status = 'PLACED',
+  shortLinkId = null,
+  attributionSource = null,
 }) {
   const query = `
     INSERT INTO sub_orders (
       ref, order_id, supplier_id, saler_id, warehouse_node_id,
       subtotal_base, wholesale_margin, net_retail_margin,
       saler_commission, platform_margin, shipping_amount, discount_share,
-      total_amount, status, created_at
+      total_amount, status, short_link_id, attribution_source, created_at
     )
     VALUES (
       $1, $2, $3, $4, $5,
       $6, $7, $8,
       $9, $10, $11, $12,
-      $13, $14, now()
+      $13, $14, $15, $16, now()
     )
     RETURNING *
   `;
@@ -160,6 +162,8 @@ export async function createSubOrder(db, {
     discountShare,
     totalAmount,
     status,
+    shortLinkId,
+    attributionSource,
   ]);
   return rows[0];
 }
@@ -175,13 +179,14 @@ export async function createOrderItem(db, {
   basePrice,
   retailPrice,
   lineTotal,
+  salerId = null,
 }) {
   const query = `
     INSERT INTO order_items (
       sub_order_id, product_id, variant_id, batch_id, bundle_id,
-      title_snapshot, qty, base_price, retail_price, line_total, created_at
+      title_snapshot, qty, base_price, retail_price, line_total, saler_id, created_at
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now())
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now())
     RETURNING *
   `;
   const { rows } = await db.query(query, [
@@ -195,6 +200,7 @@ export async function createOrderItem(db, {
     basePrice,
     retailPrice,
     lineTotal,
+    salerId,
   ]);
   return rows[0];
 }

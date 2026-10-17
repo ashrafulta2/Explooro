@@ -4,6 +4,7 @@
 
 import * as shortlinkService from '../services/shortlink.service.ts';
 import * as flyerService from '../services/flyer.service.ts';
+import { landingPathFor } from '../services/attribution.service.ts';
 
 export async function redirectShortLink(req, reply) {
   const db = req.db || req.server?.db;
@@ -15,7 +16,26 @@ export async function redirectShortLink(req, reply) {
     referrer: req.headers['referer'],
   });
 
-  return reply.redirect(result.target_url, 302);
+  // WHY `?ref=<code>`: the landing page records it as the shopper's touch, which is what credits
+  // the shop partner at add-to-cart (attribution.service.ts).
+  return reply.redirect(landingPathFor(result.target_url, String(code).toLowerCase()), 302);
+}
+
+/**
+ * The SPA's /s/:code page: records the click exactly as the redirect does and returns where to go.
+ * The dev server proxies only /api, so a link opened on the client origin comes through here.
+ */
+export async function openShortLink(req, reply) {
+  const db = req.db || req.server?.db;
+  const code = String(req.params.code).toLowerCase();
+
+  const result = await shortlinkService.resolveShortLink(db, code, {
+    ip: req.ip || req.socket?.remoteAddress,
+    userAgent: req.headers['user-agent'],
+    referrer: req.body?.referrer || req.headers['referer'],
+  });
+
+  return reply.send({ path: landingPathFor(result.target_url, code), code });
 }
 
 export async function createLink(req, reply) {

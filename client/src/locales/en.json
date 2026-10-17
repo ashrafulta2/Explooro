@@ -2155,6 +2155,8 @@
     "remove_item": "Remove product from shelf"
   },
   "social_kit": {
+    "link_opening": "Opening link…",
+    "link_unavailable": "This link is no longer available. Here is the marketplace instead.",
     "link_input_label": "Short link",
     "bar_title": "Social Shop Partner Kit",
     "share_whatsapp": "Share to WhatsApp",

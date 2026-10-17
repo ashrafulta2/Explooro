@@ -908,6 +908,16 @@ export default [
       };
     },
   },
+  // The client's /s/:code page: the live API counts the click and returns the link's target with
+  // ?ref=<code>. Mock links have no stored target, so every one opens the demo storefront.
+  {
+    method: 'POST',
+    path: '/links/:code/open',
+    handler: ({ params }) => {
+      const code = String(params?.code || '').toLowerCase();
+      return { status: 200, body: { path: `/store/priyo-collection?ref=${encodeURIComponent(code)}`, code } };
+    },
+  },
 
   // 10. Unified Inbox Threads & Messages
   {

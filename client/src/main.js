@@ -14,6 +14,7 @@ import './styles/main.css';
 
 // Prompt 1.5 — router, store, api-client.
 import { createRouter } from './core/router.js';
+import { captureTouchFromQuery } from './services/attribution.js';
 import { installPageInfo } from './services/pageInfo.js';
 import { appStore } from './state/appStore.js';
 
@@ -163,6 +164,8 @@ async function bootRouterDemo() {
       { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
       { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.js') },
+      // A shop partner's tracked short link: counts the click, remembers the partner, then opens the target.
+      { path: '/s/:code', title: 'Explooro', permission: null, module: 'social_seller_kit', load: () => import('./pages/ShortLinkPage.js') },
       // Full-page shopping cart (replaced the right-side drawer).
       { path: '/cart', title: 'Shopping Cart — Explooro', permission: null, module: 'core', load: () => import('./pages/CartPage.js') },
       // Prompt 5.4: Checkout & Order Tracking Pages
@@ -2091,7 +2094,9 @@ async function bootRouterDemo() {
       return undefined;
     },
     // Keeps Sidebar/MobileNav's active-item highlight correct after every navigation and scans DOM module gates
-    beforeEach: () => {
+    beforeEach: ({ query }) => {
+      // A page opened through a shop partner's short link carries ?ref=<code> (services/attribution.js).
+      captureTouchFromQuery(query);
       appShell.render();
       scanDomForModuleGates();
     },

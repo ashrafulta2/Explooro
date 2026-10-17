@@ -47,6 +47,8 @@ const ERROR_STATUS = {
   // Live stream commerce: these were thrown by liveStream.service.ts but unmapped, so a bad stream or
   // product id answered 500 INTERNAL_ERROR. Found by an end-to-end run against the dev database.
   STREAM_NOT_FOUND: 404,
+  // An unknown or deleted shop partner short link (shortlink.service.ts) answered 500 the same way.
+  SHORTLINK_NOT_FOUND: 404,
   PRODUCT_NOT_FOUND: 404,
   PRODUCT_NOT_IN_STREAM: 404,
   STREAM_NOT_LIVE: 409,

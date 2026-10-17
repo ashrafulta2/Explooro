@@ -46,6 +46,8 @@ export async function getCartItemsWithDetails(db, cartId) {
       ci.product_id,
       ci.variant_id,
       ci.saler_id,
+      ci.short_link_id,
+      ci.attribution_source,
       ci.bundle_id,
       ci.qty,
       ci.price_at_add,
@@ -98,19 +100,24 @@ export async function getCartItemsWithDetails(db, cartId) {
   return rows;
 }
 
-export async function upsertCartItem(db, { cartId, productId, variantId = null, salerId = null, bundleId = null, qty, priceAtAdd }) {
+export async function upsertCartItem(db, { cartId, productId, variantId = null, salerId = null, bundleId = null, qty, priceAtAdd, shortLinkId = null, attributionSource = null }) {
   // Uses ON CONFLICT on the unique expression index
+  // WHY the shop partner columns are overwritten too: price_at_add already follows the latest add, and
+  // it is that partner's price, so the line must credit the same partner (last touch wins).
   const query = `
-    INSERT INTO cart_items (cart_id, product_id, variant_id, saler_id, bundle_id, qty, price_at_add, added_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, now())
+    INSERT INTO cart_items (cart_id, product_id, variant_id, saler_id, bundle_id, qty, price_at_add, short_link_id, attribution_source, added_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
     ON CONFLICT (cart_id, product_id, COALESCE(variant_id, 0), COALESCE(bundle_id, 0))
     DO UPDATE SET
       qty = cart_items.qty + EXCLUDED.qty,
       price_at_add = EXCLUDED.price_at_add,
+      saler_id = EXCLUDED.saler_id,
+      short_link_id = EXCLUDED.short_link_id,
+      attribution_source = EXCLUDED.attribution_source,
       added_at = now()
     RETURNING *
   `;
-  const { rows } = await db.query(query, [cartId, productId, variantId, salerId, bundleId, qty, priceAtAdd]);
+  const { rows } = await db.query(query, [cartId, productId, variantId, salerId, bundleId, qty, priceAtAdd, shortLinkId, attributionSource]);
   return rows[0];
 }
 
@@ -143,6 +150,8 @@ export async function mergeGuestCart(db, { guestCartId, userCartId }) {
       productId: item.product_id,
       variantId: item.variant_id,
       salerId: item.saler_id,
+      shortLinkId: item.short_link_id,
+      attributionSource: item.attribution_source,
       bundleId: item.bundle_id,
       qty: item.qty,
       priceAtAdd: item.price_at_add,

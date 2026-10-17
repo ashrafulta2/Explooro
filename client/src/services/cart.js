@@ -12,6 +12,7 @@ import { toast } from './toast.js';
 import { t } from './i18n.js';
 import { track } from './signals.js';
 import { knownDeliveryCharge, loadDeliveryCharge } from './deliveryCharge.js';
+import { currentTouch } from './attribution.js';
 
 const GUEST_CART_STORAGE_KEY = 'explooro_guest_cart';
 
@@ -210,6 +211,10 @@ export async function addToCart({
   // Reported here, not at each button, so every add-to-cart surface is counted exactly once.
   track('ADD_CART', { id: product_id });
 
+  // WHY here, not at each button: every add-to-cart surface must carry the shop partner who sent
+  // the shopper, and the server decides whether that touch still credits them.
+  const attribution = currentTouch();
+
   const previousCart = cartStore.get().cart;
 
   // Optimistic update
@@ -239,6 +244,7 @@ export async function addToCart({
       variant_sku,
       saler_id,
       bundle_id,
+      attribution,
       qty,
       stock_ceiling: stock_qty || 10,
       price_at_add: Number(price).toFixed(2),
@@ -274,6 +280,7 @@ export async function addToCart({
         variant_id,
         saler_id,
         bundle_id,
+        attribution,
         qty,
         title_en,
         title_bn,
@@ -437,6 +444,7 @@ export async function syncCartToServer() {
           variant_id: item.variant_id || null,
           saler_id: item.saler_id || null,
           bundle_id: item.bundle_id || null,
+          attribution: item.attribution || null,
           qty: item.qty || 1,
           title_en: item.product_title_en,
           title_bn: item.product_title_bn,

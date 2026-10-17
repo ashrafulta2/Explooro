@@ -27,6 +27,15 @@ export default async function cartRoutes(fastify) {
             saler_id: { type: ['integer', 'string', 'null'] },
             bundle_id: { type: ['integer', 'string', 'null'] },
             qty: { type: 'integer', minimum: 1 },
+            // The shopper's last storefront visit or link click; attribution.service.ts decides if it counts.
+            attribution: {
+              type: ['object', 'null'],
+              properties: {
+                type: { type: 'string', enum: ['STORE', 'LINK'] },
+                ref: { type: 'string', maxLength: 120 },
+                at: { type: 'string', maxLength: 40 },
+              },
+            },
           },
         },
       },

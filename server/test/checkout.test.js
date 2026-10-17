@@ -190,6 +190,7 @@ function createMockDb() {
     orderItems,
     otpCodes,
     teamReserved: {}, // productId -> units open teams hold
+    linkConversions: [], // { shortLinkId, revenue } per UPDATE short_links
 
     async connect() {
       // Return transactional client wrapper sharing state
@@ -270,6 +271,8 @@ function createMockDb() {
             product_id: ci.product_id,
             variant_id: ci.variant_id,
             saler_id: ci.saler_id,
+            short_link_id: ci.short_link_id ?? null,
+            attribution_source: ci.attribution_source ?? null,
             bundle_id: ci.bundle_id,
             qty: ci.qty,
             price_at_add: ci.price_at_add,
@@ -497,6 +500,11 @@ function createMockDb() {
         return { rows: [newOrder] };
       }
 
+      if (q.includes('UPDATE short_links') && q.includes('conversions_count')) {
+        db.linkConversions.push({ shortLinkId: Number(params[1]), revenue: Number(params[0]) });
+        return { rows: [] };
+      }
+
       if (q.includes('INSERT INTO sub_orders')) {
         const newSub = {
           id: nextSubOrderId++,
@@ -514,6 +522,8 @@ function createMockDb() {
           discount_share: String(params[11]),
           total_amount: String(params[12]),
           status: params[13],
+          short_link_id: params[14] ? Number(params[14]) : null,
+          attribution_source: params[15] ?? null,
           created_at: new Date().toISOString(),
           updated_at: null,
         };
@@ -534,6 +544,7 @@ function createMockDb() {
           base_price: String(params[7]),
           retail_price: String(params[8]),
           line_total: String(params[9]),
+          saler_id: params[10] ? Number(params[10]) : null,
           created_at: new Date().toISOString(),
         };
         orderItems.push(newItem);
@@ -886,5 +897,50 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
       () => executeCheckout(fresh, cache2, { ...couponInput, idempotencyKey: 'idem-welcome-002', couponCode: 'WELCOME50' }),
       (err) => err.code === 'COUPON_INVALID' && /first order/.test(err.messageEn)
     );
+  });
+
+  // Attribution (migration 076): the order records whose promotion brought each line.
+  const attributionInput = {
+    userId: 1,
+    recipientName: 'Karim Ahmed',
+    recipientPhone: '+8801711111111',
+    division: 'Dhaka',
+    district: 'Dhaka',
+    addressLine: 'House 12, Road 4, Dhanmondi',
+    paymentMethod: 'BKASH',
+  };
+
+  test('A line that came through a short link pays its shop partner and counts on the link', async () => {
+    const fresh = createMockDb();
+    for (const ci of fresh.cartItems.filter((c) => c.cart_id === 1)) {
+      Object.assign(ci, { short_link_id: 5, attribution_source: 'SHORT_LINK' });
+    }
+    await executeCheckout(fresh, createMemoryCache(), { ...attributionInput, idempotencyKey: 'idem-attr-link' });
+
+    const sub1 = fresh.subOrders.find((s) => s.supplier_id === 101);
+    assert.equal(sub1.saler_id, 201);
+    assert.equal(sub1.short_link_id, 5);
+    assert.equal(sub1.attribution_source, 'SHORT_LINK');
+    assert.equal(Number(sub1.saler_commission), 80);
+    assert.ok(fresh.orderItems.every((i) => i.saler_id === 201), 'each sold line keeps its shop partner');
+
+    await new Promise((r) => setImmediate(r)); // the conversion is counted after commit
+    const counted = fresh.linkConversions.filter((c) => c.shortLinkId === 5);
+    assert.equal(counted.length, 1, 'one conversion per link per order, not one per parcel');
+    assert.equal(counted[0].revenue, 1900, 'revenue is the value of the lines the link brought');
+  });
+
+  test('Nobody earns commission on their own purchase: the partner share stays with the platform', async () => {
+    const fresh = createMockDb();
+    // The shopper (user 1) is the shop partner on every line, e.g. a guest cart merged on login.
+    for (const ci of fresh.cartItems.filter((c) => c.cart_id === 1)) ci.saler_id = 1;
+    await executeCheckout(fresh, createMemoryCache(), { ...attributionInput, idempotencyKey: 'idem-attr-self' });
+
+    for (const sub of fresh.subOrders) {
+      assert.equal(sub.saler_id, null);
+      assert.equal(Number(sub.saler_commission), 0);
+      assert.equal(Number(sub.platform_margin), Number(sub.net_retail_margin));
+    }
+    assert.ok(fresh.orderItems.every((i) => i.saler_id === null));
   });
 });

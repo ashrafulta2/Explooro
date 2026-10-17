@@ -27,6 +27,8 @@ import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedByProduct } from './teamStockReservation.service.ts';
 import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.ts';
 import { computeCheckoutCouponDiscount, allocateDiscountBySupplier } from './coupon.service.ts';
+import { pickParcelSaler } from './attribution.service.ts';
+import * as shortlinkService from './shortlink.service.ts';
 
 export function hashPayload(payload) {
   return createHash('sha256').update(JSON.stringify(payload || {})).digest('hex');
@@ -316,10 +318,23 @@ export async function executeCheckout(pool, cache, {
 
     // 9. FEFO Batch Allocation, Stock Decrement & Sub-Orders Creation
     let supplierIndex = 1;
+    // Revenue each short link brought in this order, recorded after commit (paisa by link id).
+    const linkRevenuePaisa = new Map();
+
+    // WHY re-checked here: a guest cart line keeps its shop partner when the guest logs in, and that
+    // partner may be the shopper themself. Nobody earns commission on their own purchase.
+    const lineSalerOf = (item) => (item.saler_id && Number(item.saler_id) !== Number(userId) ? Number(item.saler_id) : null);
 
     for (const [supplierId, items] of supplierGroups.entries()) {
       const subOrderRef = `${orderRef}-${supplierIndex}`;
       supplierIndex += 1;
+
+      const parcel = pickParcelSaler(items.map((item) => ({
+        salerId: lineSalerOf(item),
+        shortLinkId: item.short_link_id ?? null,
+        source: item.attribution_source ?? null,
+        lineTotalPaisa: toPaisa(item.unit_price) * Number(item.qty),
+      })));
 
       let subOrderBasePaisa = 0;
       let subOrderWholesaleMarginPaisa = 0;
@@ -351,11 +366,12 @@ export async function executeCheckout(pool, cache, {
         // Calculate Pricing Formula via pricing.service.ts
         // WHY resolved, not 40/60: the split is a business number (platform_settings / overrides), and
         // the Shop Partner Pro rebate can only reach the order if checkout asks for this shop partner's split.
+        const lineSalerId = lineSalerOf(item);
         const split = await resolveSplitPercentages(client, {
           productId: prod.id,
           productRef: prod.ref,
           categoryId: prod.category_id,
-          salerId: item.saler_id || null,
+          salerId: lineSalerId,
           cache,
         });
         const pricing = calculatePricingBreakdown({
@@ -373,10 +389,20 @@ export async function executeCheckout(pool, cache, {
         subOrderBasePaisa += (pricing.paisa.base_cost * itemQty);
         subOrderWholesaleMarginPaisa += (pricing.paisa.wholesale_margin * itemQty);
         subOrderNetRetailMarginPaisa += (pricing.paisa.net_retail_margin * itemQty);
-        subOrderSalerCommissionPaisa += (pricing.paisa.saler_earning * itemQty);
+        // Only lines credited to the parcel's shop partner pay into its commission; any other line's
+        // partner share stays with the platform via the reconcile below (kept per line on order_items).
+        if (lineSalerId != null && lineSalerId === parcel.salerId) {
+          subOrderSalerCommissionPaisa += (pricing.paisa.saler_earning * itemQty);
+        }
         subOrderPlatformMarginPaisa += (pricing.paisa.platform_earning * itemQty);
 
+        if (lineSalerId != null && item.short_link_id) {
+          const linkId = Number(item.short_link_id);
+          linkRevenuePaisa.set(linkId, (linkRevenuePaisa.get(linkId) || 0) + lineTotalPaisa);
+        }
+
         processedItems.push({
+          salerId: lineSalerId,
           productId: item.product_id,
           variantId: item.variant_id,
           batchId: allocatedBatch?.id || null,
@@ -402,7 +428,9 @@ export async function executeCheckout(pool, cache, {
         ref: subOrderRef,
         orderId: rootOrder.id,
         supplierId,
-        salerId: items[0].saler_id || null,
+        salerId: parcel.salerId,
+        shortLinkId: parcel.shortLinkId,
+        attributionSource: parcel.source,
         subtotalBase: toBdtNumber(subOrderBasePaisa),
         wholesaleMargin: toBdtNumber(subOrderWholesaleMarginPaisa),
         netRetailMargin: toBdtNumber(subOrderNetRetailMarginPaisa),
@@ -418,6 +446,7 @@ export async function executeCheckout(pool, cache, {
       for (const pItem of processedItems) {
         await orderRepo.createOrderItem(client, {
           subOrderId: subOrder.id,
+          salerId: pItem.salerId,
           productId: pItem.productId,
           variantId: pItem.variantId,
           batchId: pItem.batchId,
@@ -457,6 +486,12 @@ export async function executeCheckout(pool, cache, {
 
     // Background trust score re-calculation
     trustScoreService.calculateAndPersistTrustScore(pool, userId).catch(() => {});
+
+    // Count the sale on each shop partner link that brought one of its lines (Social Seller Kit
+    // analytics). After commit and on the pool, like the CPA step below: a counter must never undo an order.
+    for (const [shortLinkId, paisa] of linkRevenuePaisa) {
+      shortlinkService.recordShortLinkConversion(pool, { shortLinkId, orderTotal: toBdtNumber(paisa) }).catch(() => {});
+    }
 
     // 12. Process CPA Attribution if an ad was clicked
     if (adCampaignId) {

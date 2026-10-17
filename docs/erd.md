@@ -752,6 +752,8 @@ CREATE TABLE cart_items (
   bundle_id           BIGINT REFERENCES product_bundles(id) ON DELETE SET NULL,
   qty                 INTEGER NOT NULL CHECK (qty > 0),
   price_at_add        NUMERIC(14,2) NOT NULL CHECK (price_at_add >= 0),
+  short_link_id       BIGINT REFERENCES short_links(id) ON DELETE SET NULL,  -- 076: the link that brought it
+  attribution_source  TEXT CHECK (attribution_source IN ('STOREFRONT','SHORT_LINK')),
   added_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (cart_id, product_id, COALESCE(variant_id, 0), COALESCE(bundle_id, 0))
 );
@@ -817,6 +819,8 @@ CREATE TABLE sub_orders (                   -- one per supplier: one parcel, one
                       CHECK (status IN ('PLACED','CONFIRMED','PACKED','SHIPPED','IN_TRANSIT',
                                         'DELIVERED','CANCELLED','RETURNED','REFUNDED')),
   delivered_at        TIMESTAMPTZ,                       -- starts the escrow clock
+  short_link_id       BIGINT REFERENCES short_links(id) ON DELETE SET NULL,  -- 076
+  attribution_source  TEXT CHECK (attribution_source IN ('STOREFRONT','SHORT_LINK')),
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at          TIMESTAMPTZ,
   CONSTRAINT margin_splits_reconcile
@@ -835,6 +839,7 @@ CREATE TABLE order_items (
   base_price          NUMERIC(14,2) NOT NULL CHECK (base_price >= 0),
   retail_price        NUMERIC(14,2) NOT NULL CHECK (retail_price >= 0),
   line_total          NUMERIC(14,2) NOT NULL CHECK (line_total >= 0),
+  saler_id            BIGINT REFERENCES users(id) ON DELETE SET NULL,  -- 076: this line's own shop partner
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

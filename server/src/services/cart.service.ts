@@ -15,6 +15,7 @@ import { AppError } from '../plugins/errorHandler.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
+import * as attributionService from './attribution.service.ts';
 
 export function generateGuestToken() {
   return `gst_${randomUUID().replace(/-/g, '')}`;
@@ -122,6 +123,8 @@ export async function getCart(db, { userId = null, guestToken = null }) {
       variant_title: formatVariantTitle(raw.variant_attributes),
       variant_sku: raw.variant_sku,
       saler_id: raw.saler_id ? Number(raw.saler_id) : null,
+      short_link_id: raw.short_link_id ? Number(raw.short_link_id) : null,
+      attribution_source: raw.attribution_source ?? null,
       bundle_id: raw.bundle_id ? Number(raw.bundle_id) : null,
       qty,
       stock_ceiling: currentStock,
@@ -182,12 +185,24 @@ export async function getCart(db, { userId = null, guestToken = null }) {
   };
 }
 
-export async function addItemToCart(db, { userId = null, guestToken = null, productId, variantId = null, salerId = null, bundleId = null, qty = 1 }) {
+export async function addItemToCart(db, { userId = null, guestToken = null, productId, variantId = null, salerId = null, bundleId = null, qty = 1, touch = null }) {
   if (qty <= 0) {
     throw new AppError('BAD_REQUEST', 'Quantity must be at least 1.', 'পরিমাণ কমপক্ষে ১ হতে হবে।');
   }
 
   const cart = await getOrCreateActiveCart(db, { userId, guestToken });
+
+  // The shopper's last storefront visit or link click decides the shop partner; an explicit salerId
+  // is still accepted, but only for a partner who sells the product and is not the shopper.
+  let shortLinkId = null;
+  let attributionSource = null;
+  const credit = touch ? await attributionService.resolveTouch(db, { touch, productId, buyerId: userId }) : null;
+  if (credit) {
+    ({ salerId, shortLinkId } = credit);
+    attributionSource = credit.source;
+  } else if (salerId && (Number(salerId) === Number(userId) || !await attributionService.salerCarriesProduct(db, salerId, productId))) {
+    salerId = null;
+  }
 
   // Verify product & active price
   const { rows: prodRows } = await db.query(
@@ -236,6 +251,8 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
     productId,
     variantId,
     salerId,
+    shortLinkId,
+    attributionSource,
     bundleId,
     qty,
     priceAtAdd: unitPrice,

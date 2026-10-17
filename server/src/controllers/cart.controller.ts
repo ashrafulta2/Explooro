@@ -38,7 +38,7 @@ export async function getCart(req, reply) {
 export async function addItem(req, reply) {
   const { db, config } = req.server;
   const { userId, guestToken } = getIdentity(req);
-  const { product_id, variant_id, saler_id, bundle_id, qty } = req.body;
+  const { product_id, variant_id, saler_id, bundle_id, qty, attribution } = req.body;
 
   const cart = await cartService.addItemToCart(db, {
     userId,
@@ -48,6 +48,7 @@ export async function addItem(req, reply) {
     salerId: saler_id ? Number(saler_id) : null,
     bundleId: bundle_id ? Number(bundle_id) : null,
     qty: Number(qty || 1),
+    touch: attribution || null,
   });
 
   if (!userId && cart.guest_token) {

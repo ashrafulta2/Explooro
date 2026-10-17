@@ -10,6 +10,15 @@ export default async function socialKitRoutes(app) {
   // 1. Public Short Link Redirection
   app.get('/s/:code', socialKitController.redirectShortLink);
 
+  // 1b. Same click, answered as JSON for the client's /s/:code page. Public: the shopper is anonymous.
+  app.post('/links/:code/open', {
+    preHandler: [requireSocialKit],
+    schema: {
+      params: { type: 'object', required: ['code'], properties: { code: { type: 'string', maxLength: 120 } } },
+      body: { type: ['object', 'null'], properties: { referrer: { type: ['string', 'null'], maxLength: 500 } } },
+    },
+  }, socialKitController.openShortLink);
+
   // 2. Generate Tracked Affiliate Short Link
   app.post('/saler/social-kit/links', {
     preHandler: [app.authenticate, requireSocialKit],
