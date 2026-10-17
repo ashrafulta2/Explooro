@@ -968,6 +968,23 @@ CREATE TABLE supplier_scorecards (          -- one snapshot row per supplier, re
   score                 INTEGER CHECK (score BETWEEN 0 AND 100),
   computed_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE partner_scores (               -- 079: one snapshot row per shop partner, rebuilt daily
+  saler_id              BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  window_days           INTEGER NOT NULL CHECK (window_days BETWEEN 7 AND 365),
+  sample_orders         INTEGER NOT NULL DEFAULT 0,
+  delivered_volume      NUMERIC(14,2) NOT NULL DEFAULT 0,
+  return_rate_pct       NUMERIC(5,2),         -- every rate: NULL = no data, never 0
+  cancel_rate_pct       NUMERIC(5,2),
+  repeat_customer_pct   NUMERIC(5,2),
+  new_customer_pct      NUMERIC(5,2),
+  link_conversion_pct   NUMERIC(5,2),
+  score                 INTEGER CHECK (score BETWEEN 0 AND 100),   -- NULL while "New"
+  band                  TEXT,
+  multiplier            NUMERIC(4,2) NOT NULL DEFAULT 1.00,        -- for the earning engine (Phase C)
+  components_json       JSONB NOT NULL DEFAULT '{}'::jsonb,        -- points per metric, for "why"
+  computed_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 ```
 
 Metrics are NULL (not 0) when there is no data; `grade` is NULL until `sample_orders` reaches the

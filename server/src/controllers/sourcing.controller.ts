@@ -5,6 +5,7 @@
 import * as productService from '../services/product.service.ts';
 import { getSalerView as getSalerIncentiveView } from '../services/volumeIncentive.service.ts';
 import { getSalerView as getSalerTierView } from '../services/salerTier.service.ts';
+import { getOwnScore as getOwnPartnerScore } from '../services/partnerScore.service.ts';
 
 export async function addToStore(req, reply) {
   const db = req.db || req.server?.db;
@@ -44,6 +45,11 @@ export async function getSalerIncentives(req, reply) {
 export async function getSalerCommissionTier(req, reply) {
   const db = req.db || req.server?.db;
   return reply.send({ data: await getSalerTierView(db, req.user.id) });
+}
+
+export async function getSalerPartnerScore(req, reply) {
+  const db = req.db || req.server?.db;
+  return reply.send({ data: await getOwnPartnerScore(db, req.user.id) });
 }
 
 export async function getSponsoredSourcing(req, reply) {

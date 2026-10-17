@@ -4427,6 +4427,27 @@
       "tools_desc": "Every specialized sales, marketing, sourcing, and vault tool reachable within 2 clicks.",
       "load_failed": "Failed to load shop partner dashboard data."
     },
+    "partner_score": {
+      "title": "Your partner score",
+      "band_starter": "Starter",
+      "band_rising": "Rising",
+      "band_pro": "Pro",
+      "band_star": "Star",
+      "metric_delivered_volume": "Delivered sales",
+      "metric_return_rate": "Few returns",
+      "metric_repeat_customers": "Repeat buyers",
+      "metric_new_customers": "New buyers",
+      "metric_link_conversion": "Link conversion",
+      "metric_cancel_rate": "Few cancellations",
+      "boost": "{{boost}} earning boost",
+      "to_next": "Earn {{points}} more points to reach {{band}}.",
+      "top": "You are in the top band. Keep promoting to stay here.",
+      "focus": "Biggest chance to improve: {{metric}}, worth up to {{points}} more points.",
+      "foot": "Based on {{count}} orders in the last {{days}} days. The boost applies to your commission once the platform switches it on.",
+      "new_title": "Just getting started",
+      "new_line": "Get {{count}} orders through your store or links and your score appears here.",
+      "new_progress": "{{done}} of {{count}} orders so far, counted over the last {{days}} days."
+    },
     "commission_tier": {
       "title": "Your commission tier",
       "name_bronze": "Bronze",

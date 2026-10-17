@@ -21,6 +21,14 @@ export const salerApi = {
   },
 
   /**
+   * The shop partner's own Partner Score: score, band, boost, points per metric and the metric with
+   * the most points left to win. `is_new` until enough orders have come through their store or links.
+   */
+  async getPartnerScore() {
+    return api.get('/saler/partner-score');
+  },
+
+  /**
    * Fetches detailed time-series analytics, traffic breakdown, and product performance.
    * @param {{ range?: '7d' | '30d' | '90d' }} [params]
    */

@@ -460,11 +460,46 @@ const mockCommissionTier = () => ({
   ],
 });
 
+// Same shape as GET /saler/partner-score (server services/partnerScore.service.ts toOwnView).
+const mockPartnerScore = () => ({
+  window_days: 60,
+  min_sample_orders: 5,
+  weights: { delivered_volume: 35, return_rate: 20, repeat_customers: 15, new_customers: 15, link_conversion: 10, cancel_rate: 5 },
+  bands: [
+    { key: 'STARTER', min_score: 0, multiplier: 1 },
+    { key: 'RISING', min_score: 40, multiplier: 1.05 },
+    { key: 'PRO', min_score: 60, multiplier: 1.1 },
+    { key: 'STAR', min_score: 80, multiplier: 1.2 },
+  ],
+  is_new: false,
+  sample_orders: 38,
+  score: 52,
+  band: 'RISING',
+  multiplier: 1.05,
+  metrics: { delivered_volume: 64000, return_rate_pct: 6, cancel_rate_pct: 4, repeat_customer_pct: 12, new_customer_pct: 40, link_conversion_pct: 2.5 },
+  components: {
+    delivered_volume: { max: 35, earned: 22.4 },
+    return_rate: { max: 20, earned: 14 },
+    repeat_customers: { max: 15, earned: 6 },
+    new_customers: { max: 15, earned: 12 },
+    link_conversion: { max: 10, earned: 5 },
+    cancel_rate: { max: 5, earned: 4 },
+  },
+  next_band: { key: 'PRO', min_score: 60, multiplier: 1.1, points_needed: 8 },
+  focus: { metric: 'repeat_customers', points: 9 },
+  computed_at: new Date().toISOString(),
+});
+
 export default [
   {
     method: 'GET',
     path: '/saler/commission-tier',
     handler: () => ({ status: 200, body: { data: mockCommissionTier() } }),
+  },
+  {
+    method: 'GET',
+    path: '/saler/partner-score',
+    handler: () => ({ status: 200, body: { data: mockPartnerScore() } }),
   },
 
   // 1. Unified Dashboard

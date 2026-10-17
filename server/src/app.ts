@@ -99,6 +99,7 @@ import './jobs/referralRelease.job.ts'; // Registers referral_release with sched
 import './jobs/supplierScorecard.job.ts'; // Registers supplier_scorecard with scheduler (module: sourcing)
 import './jobs/volumeIncentive.job.ts'; // Registers volume_incentive with scheduler (module: sourcing)
 import './jobs/salerTier.job.ts'; // Registers saler_tier with scheduler (setting: saler.commission_tiers.enabled)
+import './jobs/partnerScore.job.ts'; // Registers partner_score with scheduler (module: virtual_storefront)
 import './jobs/sampleKit.job.ts'; // Registers sample_kit with scheduler (module: sourcing)
 import './jobs/returnProtection.job.ts'; // Registers return_protection with scheduler (module: sourcing)
 import './jobs/deficitRecovery.job.ts'; // Registers deficit_recovery with scheduler (module: returns_engine)

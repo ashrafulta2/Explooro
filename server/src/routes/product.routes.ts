@@ -94,6 +94,19 @@ export default async function productRoutes(app) {
     { preHandler: [authenticate, requirePerm('saler.sourcing.view')] },
     sourcingController.getSalerCommissionTier
   );
+  // The shop partner's own Partner Score (partnerScore.service.ts). No `config.page` for the same
+  // reason as the tier card: it is a dashboard card, not one page's endpoint.
+  app.get(
+    '/saler/partner-score',
+    {
+      preHandler: [
+        authenticate,
+        ...(app.requireModule ? [app.requireModule('virtual_storefront')] : []),
+        requirePerm('saler.dashboard.view'),
+      ],
+    },
+    sourcingController.getSalerPartnerScore
+  );
   // Same issue as above: getMyStore reads req.user.id to find the caller's own store, but with no
   // preHandler that id was always undefined, so this always returned an empty store.
   // Sample Requests + Marketing Kits (supplier attraction step 4). A request moves the shop partner's own money

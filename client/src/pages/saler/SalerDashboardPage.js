@@ -23,6 +23,7 @@ import { Skeleton } from '../../components/ui/Skeleton.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.js';
+import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.js';
 
 const SALER_MODE_KEY = 'explooro:saler_mode_preference';
 
@@ -292,6 +293,17 @@ function renderProMode(container, data, nav) {
     .then((res) => {
       const card = CommissionTierCard({ data: res?.data });
       if (card && tierSlot.isConnected) tierSlot.replaceChildren(card);
+    })
+    .catch(() => {});
+
+  // 1c. Partner Score: how well they promote and sell. Same loading rule as the tier card above.
+  const scoreSlot = document.createElement('div');
+  wrap.append(scoreSlot);
+  salerApi
+    .getPartnerScore()
+    .then((res) => {
+      const card = PartnerScoreCard({ data: res?.data });
+      if (card && scoreSlot.isConnected) scoreSlot.replaceChildren(card);
     })
     .catch(() => {});
 

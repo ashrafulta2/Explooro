@@ -85,6 +85,7 @@ import { createMilestoneProgressStepper } from '../../components/b2b/MilestonePr
 import { ShoppableReels } from '../../components/content/ShoppableReels.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.js';
+import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.js';
 import { SocialKitModal } from '../../components/saler/SocialKitModal.js';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
@@ -1508,6 +1509,7 @@ export function buildGalleryEntries(detachedNodes) {
     // Prompt 11.2 — Shop Partner Prescriptive AI Growth Assistant
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'AI & Intelligence', render: renderGrowthAssistantSpecimen },
     { id: 'commission-tier-card', label: 'CommissionTierCard', group: 'AI & Intelligence', render: renderCommissionTierCardSpecimen },
+    { id: 'partner-score-card', label: 'PartnerScoreCard', group: 'AI & Intelligence', render: renderPartnerScoreCardSpecimen },
   ];
 }
 
@@ -3064,6 +3066,34 @@ function renderCommissionTierCardSpecimen() {
   const top = { enabled: true, window_days: 30, tier: 'PLATINUM', bonus_pct: 5, volume: '520000.00', ladder, next: null };
   wrap.append(specimen('Mid ladder (Silver, 68,000 to Gold)', CommissionTierCard({ data: mid })));
   wrap.append(specimen('Top tier (no next step)', CommissionTierCard({ data: top })));
+  return wrap;
+}
+
+function renderPartnerScoreCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Partner score: how well a shop partner promotes and sells'));
+  const bands = [
+    { key: 'STARTER', min_score: 0, multiplier: 1 },
+    { key: 'RISING', min_score: 40, multiplier: 1.05 },
+    { key: 'PRO', min_score: 60, multiplier: 1.1 },
+    { key: 'STAR', min_score: 80, multiplier: 1.2 },
+  ];
+  const base = { window_days: 60, min_sample_orders: 5, bands };
+  const scored = {
+    ...base, is_new: false, sample_orders: 38, score: 52, band: 'RISING', multiplier: 1.05,
+    components: {
+      delivered_volume: { max: 35, earned: 22.4 }, return_rate: { max: 20, earned: 14 }, repeat_customers: { max: 15, earned: 6 },
+      new_customers: { max: 15, earned: 12 }, link_conversion: { max: 10, earned: 5 }, cancel_rate: { max: 5, earned: 4 },
+    },
+    next_band: { key: 'PRO', min_score: 60, multiplier: 1.1, points_needed: 8 },
+    focus: { metric: 'repeat_customers', points: 9 },
+  };
+  const star = { ...scored, score: 91, band: 'STAR', multiplier: 1.2, next_band: null, focus: null };
+  const fresh = { ...base, is_new: true, sample_orders: 2, score: null, band: null, multiplier: 1, components: {}, next_band: null, focus: null };
+  wrap.append(specimen('Mid ladder (Rising, 8 points to Pro)', PartnerScoreCard({ data: scored })));
+  wrap.append(specimen('Top band (no next step)', PartnerScoreCard({ data: star })));
+  wrap.append(specimen('New partner (not enough orders to score)', PartnerScoreCard({ data: fresh })));
   return wrap;
 }
 
