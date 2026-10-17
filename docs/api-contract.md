@@ -177,6 +177,9 @@ Complete and closed. Adding a code is a deliberate change to this document.
 | `SAMPLE_STATE_INVALID` | 409 | The sample request is not in a state that allows this action (already ended, or not yet shipped) |
 | `FAST_PAYOUT_NOT_ELIGIBLE` | 409 | The escrow amount cannot be taken early (not delivered, an open return or dispute, below/above the limits, due soon anyway, exposure cap reached, or already taken); the message names which |
 | `TEAM_PURCHASE_CLOSED` | 409 | The group-buy window expired or the team is full |
+| `PRODUCT_REQUIRED` | 400 | The ad format needs a product (`ad_products.requires_product`) and the creative has none |
+| `AD_PRODUCT_NOT_OWNED` | 403 | The advertiser neither has the product active in their store nor supplies it |
+| `AD_PRODUCT_NOT_SELLABLE` | 409 | The product to advertise is not `ACTIVE` |
 
 ### 3.5 Upstream & system — 5xx
 

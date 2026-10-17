@@ -4,6 +4,7 @@
 
 import * as adsService from '../services/ads.service.ts';
 import * as adProductsService from '../services/adProducts.service.ts';
+import * as adDestination from '../services/adDestination.service.ts';
 
 export async function createCampaign(req, reply) {
   const db = req.db || req.server?.db;
@@ -179,6 +180,14 @@ export async function listAdProducts(req, reply) {
   const role = req.user?.roles?.[0] || req.user?.role || null;
 
   const result = await adProductsService.listForSeller(db, req.user.id, { role });
+  return reply.send(result);
+}
+
+export async function listPromotableProducts(req, reply) {
+  const db = req.db || req.server?.db;
+  const { limit, offset } = req.query || {};
+
+  const result = await adDestination.listPromotableProducts(db, req.user.id, { limit, offset });
   return reply.send(result);
 }
 

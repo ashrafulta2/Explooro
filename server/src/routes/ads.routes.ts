@@ -30,6 +30,11 @@ export default async function adsRoutes(app) {
     preHandler: [app.authenticate, requireModule, requireManageAds],
   }, adsController.listTargetCategories);
 
+  // The catalog products the wizard may attach to an ad: the caller's store items and own supplied products.
+  app.get('/ads/promotable-products', {
+    preHandler: [app.authenticate, requireModule, requireManageAds, checkCanRunAds],
+  }, adsController.listPromotableProducts);
+
   // 2. Shop Partner Campaign Management
   app.post('/ads/campaigns', {
     preHandler: [app.authenticate, requireModule, requireManageAds, checkCanRunAds],

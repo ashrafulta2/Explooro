@@ -74,6 +74,8 @@ export class AdCampaignPage {
     this.tab = 'store';
     this.products = [];
     this.categories = [];
+    // Catalog products an ad may promote; loaded the first time a format that needs one is opened.
+    this.promotable = null;
     this.campaigns = [];
     this.tier = 'STARTER';
     this.loading = true;
@@ -480,6 +482,7 @@ export class AdCampaignPage {
         description: '',
         banner_image_url: '',
         call_to_action: 'SHOP_NOW',
+        product_id: '',
         keywords: '',
         // WHY only for a category banner: this used to default to the first category for EVERY format, and
         // the submit below turned it into `categories: [first]` targeting the seller never chose.
@@ -516,6 +519,26 @@ export class AdCampaignPage {
 
     this.renderWizard();
     this.requestQuote();
+    if (product.requires_product) this._loadPromotable();
+  }
+
+  /** Fetches the picker's products once per page visit, then repaints the open wizard. */
+  async _loadPromotable() {
+    if (this.promotable) return;
+    try {
+      const res = await api.get('/ads/promotable-products', { query: { limit: 200 } });
+      this.promotable = res?.items || [];
+    } catch (err) {
+      this.promotable = [];
+      toast.error(err.message || (this.isBn ? 'পণ্যের তালিকা আনা যায়নি' : 'Could not load your products'));
+    }
+    if (this.wizard) this.renderWizard();
+  }
+
+  /** The products the open format may promote. The sourcing slot sells a supplier's own products only. */
+  _promotableFor(product) {
+    const items = this.promotable || [];
+    return product.placement === 'SOURCING_CATALOG' ? items.filter((i) => i.source === 'OWN') : items;
   }
 
   /** `force` skips the genie — used when the page itself is being torn down. */
@@ -667,6 +690,8 @@ export class AdCampaignPage {
 
     return `
       <p class="ad-wizard__hint">${escapeHtml(isBn ? p.description_bn : p.description_en)}</p>
+
+      ${p.requires_product ? this._productPickerHtml() : ''}
 
       <div class="field">
         <label class="field__label" for="ad-f-title">${isBn ? 'ক্যাম্পেইনের নাম' : 'Campaign name'} <span class="field__required">*</span></label>
@@ -895,6 +920,43 @@ export class AdCampaignPage {
     `;
   }
 
+  _productPickerHtml() {
+    const isBn = this.isBn;
+    const f = this.wizard.form;
+    const items = this._promotableFor(this.wizard.product);
+
+    let control;
+    if (this.promotable == null) {
+      control = `<p class="field__help">${isBn ? 'আপনার পণ্য আনা হচ্ছে…' : 'Loading your products…'}</p>`;
+    } else if (!items.length) {
+      control = `<div class="ad-callout ad-callout--info">${isBn
+        ? 'প্রচার করার মতো কোনো পণ্য নেই। আগে স্টোরে পণ্য যোগ করুন (সাপ্লায়ার হলে নিজের পণ্য চালু করুন)।'
+        : 'You have no products to promote yet. Add one to your store first (or, as a supplier, publish one of your own).'}</div>`;
+    } else {
+      control = `
+        <div class="field__control field__control--select">
+          <select id="ad-f-product" class="select" data-field="product_id">
+            <option value="" ${f.product_id ? '' : 'selected'}>${isBn ? '— পণ্য বেছে নিন —' : '— Choose a product —'}</option>
+            ${items.map((i) => `
+              <option value="${i.id}" ${String(f.product_id) === String(i.id) ? 'selected' : ''}>
+                ${escapeHtml(isBn ? (i.title_bn || i.title_en) : i.title_en)}${i.source === 'OWN' ? (isBn ? ' (আপনার সাপ্লাই)' : ' (you supply)') : ''}
+              </option>
+            `).join('')}
+          </select>
+        </div>`;
+    }
+
+    return `
+      <div class="field">
+        <label class="field__label" for="ad-f-product">${isBn ? 'কোন পণ্যের বিজ্ঞাপন?' : 'Which product are you advertising?'} <span class="field__required">*</span></label>
+        ${control}
+        <p class="field__help">${isBn
+          ? 'ক্রেতা বিজ্ঞাপনে ক্লিক করলে এই পণ্যের পেজে যাবে। স্টোরের পণ্য হলে বিক্রির কমিশন আপনি পাবেন।'
+          : 'Shoppers who click land on this product. For a product in your store, the sale is credited to you.'}</p>
+      </div>
+    `;
+  }
+
   _stepReview() {
     const isBn = this.isBn;
     const w = this.wizard;
@@ -906,6 +968,11 @@ export class AdCampaignPage {
       [isBn ? 'ক্যাম্পেইন' : 'Campaign', escapeHtml(f.title || (isBn ? p.name_bn : p.name_en))],
       [isBn ? 'শিরোনাম' : 'Headline', escapeHtml(f.headline || '—')],
     ];
+
+    if (p.requires_product) {
+      const item = (this.promotable || []).find((i) => String(i.id) === String(f.product_id));
+      rows.push([isBn ? 'পণ্য' : 'Product', escapeHtml(item ? (isBn ? (item.title_bn || item.title_en) : item.title_en) : '—')]);
+    }
 
     if (p.pricing_model === 'FLAT_DAILY') {
       rows.push([isBn ? 'সময়কাল' : 'Duration', `${f.duration_days} ${isBn ? 'দিন' : 'days'} ${isBn ? 'থেকে' : 'from'} ${f.start_date}`]);
@@ -1105,6 +1172,10 @@ export class AdCampaignPage {
   _validateStepOne() {
     const isBn = this.isBn;
     const f = this.wizard.form;
+    if (this.wizard.product.requires_product && !f.product_id) {
+      toast.error(isBn ? 'কোন পণ্যের বিজ্ঞাপন দেবেন তা বেছে নিন' : 'Choose the product to advertise');
+      return false;
+    }
     if (!f.title.trim()) {
       toast.error(isBn ? 'ক্যাম্পেইনের নাম দিন' : 'Give your campaign a name');
       return false;
@@ -1145,6 +1216,8 @@ export class AdCampaignPage {
         districts: w.product.pricing_model === 'CPS' ? f.districts : [],
       },
       creative: {
+        // The server builds the click destination from this; the page never sends a URL of its own.
+        product_id: w.product.requires_product && f.product_id ? Number(f.product_id) : null,
         headline: f.headline,
         description: f.description,
         banner_image_url: f.banner_image_url || null,

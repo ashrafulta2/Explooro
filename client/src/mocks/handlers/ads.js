@@ -497,6 +497,13 @@ const MOCK_AUCTION_ADS = [
   },
 ];
 
+// What the ad wizard's product picker offers in mock mode: store items first, then supplied products.
+const mockPromotableProducts = [
+  { id: 101, ref: 'PRD-101', title_en: 'Handloom Jamdani Saree', title_bn: 'তাঁতের জামদানি শাড়ি', stock_qty: 24, source: 'STORE' },
+  { id: 102, ref: 'PRD-102', title_en: 'Wireless Earbuds Pro', title_bn: 'ওয়্যারলেস ইয়ারবাডস প্রো', stock_qty: 60, source: 'STORE' },
+  { id: 205, ref: 'PRD-205', title_en: 'Sundarbans Raw Honey 500g', title_bn: 'সুন্দরবনের খাঁটি মধু ৫০০ গ্রাম', stock_qty: 140, source: 'OWN' },
+];
+
 const adsHandlers = [
   {
     method: 'GET',
@@ -568,6 +575,16 @@ const adsHandlers = [
   },
   {
     method: 'GET',
+    path: '/ads/promotable-products',
+    handler() {
+      return {
+        status: 200,
+        body: { items: mockPromotableProducts, total: mockPromotableProducts.length, limit: 100, offset: 0 },
+      };
+    },
+  },
+  {
+    method: 'GET',
     path: '/ads/campaigns',
     handler() {
       return { status: 200, body: { campaigns: mockAdCampaigns } };
@@ -578,6 +595,10 @@ const adsHandlers = [
     path: '/ads/campaigns',
     handler({ body }) {
       const product = mockAdProducts.find((p) => p.key === body?.ad_product_key) || mockAdProducts[0];
+      // Mirrors resolveCreativeTarget (server adDestination.service.ts).
+      if (product.requires_product && !body?.creative?.product_id) {
+        return { status: 400, body: { error: { code: 'PRODUCT_REQUIRED', message: 'Pick the product this ad should promote.' } } };
+      }
       const result = buildQuote(product, body || {}, MOCK_TIER);
       if (result.error) {
         return { status: 400, body: { error: result.error } };

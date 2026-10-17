@@ -43,8 +43,17 @@ export function currentTouch() {
   }
 }
 
-/** Called on every navigation: a page opened through a short link carries `?ref=<code>`. */
+/**
+ * Called on every navigation: a page opened through a short link carries `?ref=<code>`, and a shop
+ * partner's sponsored ad lands on `/product/:id?store=<slug>` (server adDestination.service.ts).
+ * A link wins over a store when both are present, since it is the more specific promotion.
+ */
 export function captureTouchFromQuery(query) {
   const code = query?.ref;
-  if (typeof code === 'string' && code) recordTouch('LINK', code);
+  if (typeof code === 'string' && code) {
+    recordTouch('LINK', code);
+    return;
+  }
+  const store = query?.store;
+  if (typeof store === 'string' && store) recordTouch('STORE', store);
 }

@@ -29,6 +29,7 @@ import * as adProductsService from './adProducts.service.ts';
 import { quote as priceQuote, meteredCharge, rate, PREPAID_MODELS } from './adPricing.ts';
 import { runSecondPriceAuction, MIN_RESERVE_PRICE } from './adAuction.service.ts';
 import * as sponsoredSourcing from './sponsoredSourcing.service.ts';
+import { resolveCreativeTarget } from './adDestination.service.ts';
 
 const BLOCKED_KEYWORDS_DEFAULT = ['illegal', 'replica', 'counterfeit', 'fake', 'weapons', 'adult', 'gambling'];
 
@@ -228,6 +229,16 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta: R
     await sponsoredSourcing.assertMayAdvertise(db, userId, creative.product_id, { isPrivileged });
   }
 
+  // 3c. Which product the ad promotes and where its click lands. With a product picked the server builds
+  //     the URL, so a partner's ad carries their store and the sale credits them (adDestination.service.ts).
+  const target = await resolveCreativeTarget(db, {
+    userId,
+    adProduct: product,
+    productId: creative.product_id,
+    destinationUrl: creative.destination_url || null,
+    isPrivileged,
+  });
+
   // 4. Price it. adPricing.quote is the single authority and throws on every commercial floor
   //    (minimum budget, minimum days, bid below the placement's floor CPC, …).
   const tier = await adProductsService.getSellerTier(db, userId);
@@ -343,12 +354,12 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta: R
        RETURNING *`,
       [
         campaign.id,
-        creative.product_id ? Number(creative.product_id) : null,
+        target.productId,
         creative.headline || campaign.title,
         creative.description || '',
         creative.banner_image_url || null,
         creative.call_to_action || 'SHOP_NOW',
-        creative.destination_url || (creative.product_id ? `/product/${creative.product_id}` : '/'),
+        target.destinationUrl,
       ]
     );
     const createdCreative = crRows[0];
@@ -470,7 +481,9 @@ export async function updateCampaign(db, cache, userId, campaignId, updates, req
           cr.description ?? null,
           cr.banner_image_url ?? null,
           cr.call_to_action ?? null,
-          cr.destination_url ?? null,
+          // WHY ignored once a product is attached: that URL was built at creation to credit the right
+          // store; letting an edit replace it would undo resolveCreativeTarget's ownership check.
+          existing.creative?.product_id ? null : (cr.destination_url ?? null),
           campaignId,
         ]
       );

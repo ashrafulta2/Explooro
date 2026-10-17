@@ -76,6 +76,10 @@ const ERROR_STATUS = {
   SAMPLE_ALREADY_REQUESTED: 409,
   SAMPLE_STATE_INVALID: 409,
   RETURN_STATE_INVALID: 409,
+  // Ad creatives (adDestination.service.ts): which product an ad may promote.
+  PRODUCT_REQUIRED: 400,
+  AD_PRODUCT_NOT_OWNED: 403,
+  AD_PRODUCT_NOT_SELLABLE: 409,
   // 3.5 Upstream & system — 5xx
   PAYMENT_FAILED: 502,
   UPSTREAM_UNAVAILABLE: 503,
