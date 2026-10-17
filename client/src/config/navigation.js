@@ -127,6 +127,7 @@ export const navItems = [
   { key: 'admin.growth.coins', label_i18n_key: 'nav.admin.coins', icon: null, path: '/admin/growth/coins', group: 'admin.growth', permission: 'growth.coins.govern', module: 'loyalty_coins', roles: ['super_admin', 'admin'], order: 6 },
   { key: 'admin.growth.quests', label_i18n_key: 'nav.shared.quests', icon: null, path: '/admin/growth/quests', group: 'admin.growth', permission: 'growth.quest.govern', module: 'daily_quests', roles: ['super_admin', 'admin'], order: 7 },
   { key: 'admin.growth.groupbuy', label_i18n_key: 'nav.admin.groupbuy', icon: null, path: '/admin/growth/group-buy', group: 'admin.growth', permission: 'growth.groupbuy.govern', module: 'group_buying', roles: ['super_admin', 'admin'], order: 8 },
+  { key: 'admin.growth.attribution', label_i18n_key: 'nav.admin.attribution', icon: null, path: '/admin/growth/attribution', group: 'admin.growth', permission: 'growth.attribution.view', module: 'social_seller_kit', roles: ['super_admin', 'admin'], order: 9 },
 
   { key: 'admin.content.banners', label_i18n_key: 'nav.shared.banners', icon: null, path: '/admin/content/banners', group: 'admin.content', permission: 'content.banner.publish', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.content.stories', label_i18n_key: 'nav.shared.stories', icon: null, path: '/admin/content/stories', group: 'admin.content', permission: 'content.story.curate', module: 'content_commerce', roles: ['super_admin', 'admin'], order: 2 },

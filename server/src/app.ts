@@ -38,6 +38,7 @@ import themeRoutes from './routes/theme.routes.ts';
 import localizationRoutes from './routes/localization.routes.ts';
 import genieRoutes from './routes/genie.routes.ts';
 import deliveryChargeRoutes from './routes/deliveryCharge.routes.ts';
+import attributionAdminRoutes from './routes/attributionAdmin.routes.ts';
 import recommendationAdminRoutes from './routes/recommendationAdmin.routes.ts';
 import mediaRoutes from './routes/media.routes.ts';
 import productRoutes from './routes/product.routes.ts';
@@ -216,6 +217,7 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   await app.register(localizationRoutes, { prefix: '/api/v1' });
   await app.register(genieRoutes, { prefix: '/api/v1' });
   await app.register(deliveryChargeRoutes, { prefix: '/api/v1' });
+  await app.register(attributionAdminRoutes, { prefix: '/api/v1' });
   await app.register(recommendationAdminRoutes, { prefix: '/api/v1' });
   await app.register(mediaRoutes, { prefix: '/api/v1' });
   await app.register(productRoutes, { prefix: '/api/v1' });

@@ -17,7 +17,13 @@
  * pays that partner, never the shopper. That is exactly what clicking the partner's link does.
  */
 
+import { AppError } from '../plugins/errorHandler.ts';
+import * as settingRepo from '../repositories/setting.repository.ts';
+
 export const SOURCE = Object.freeze({ STOREFRONT: 'STOREFRONT', SHORT_LINK: 'SHORT_LINK' });
+
+// Same rule as every other governed setting (delivery, genie): a change says why.
+export const MIN_REASON_LENGTH = 10;
 
 export const RULES_KEY = 'attribution.rules';
 
@@ -60,6 +66,132 @@ export function isWithinWindow(touchedAt: Date, now: Date, windowDays: number): 
 export async function loadWindowDays(db: any): Promise<number> {
   const { rows } = await db.query(`SELECT value_json FROM platform_settings WHERE key = $1`, [RULES_KEY]);
   return resolveWindowDays(rows[0]?.value_json);
+}
+
+/* ---------------- Admin: /admin/growth/attribution ---------------- */
+
+/**
+ * Strict, unlike resolveWindowDays: a save outside the bounds is refused, never clamped, so the
+ * admin is never told a value was saved that was not. Throws VALIDATION_FAILED (HTTP 400).
+ */
+export function validatePolicy(input: Record<string, any> = {}): { window_days: number } {
+  const n = input.window_days;
+  if (!Number.isInteger(n) || n < WINDOW_LIMITS.min || n > WINDOW_LIMITS.max) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      `The attribution window must be a whole number of days from ${WINDOW_LIMITS.min} to ${WINDOW_LIMITS.max}.`,
+      `অ্যাট্রিবিউশন উইন্ডো ${WINDOW_LIMITS.min} থেকে ${WINDOW_LIMITS.max} দিনের মধ্যে পূর্ণ সংখ্যা হতে হবে।`,
+      { field: 'window_days', min: WINDOW_LIMITS.min, max: WINDOW_LIMITS.max }
+    );
+  }
+  return { window_days: n };
+}
+
+function rowToPolicy(row: any) {
+  return {
+    window_days: resolveWindowDays(row?.value_json),
+    updated_at: row?.updated_at ?? null,
+    updated_by: row?.updated_by ?? null,
+  };
+}
+
+export async function getPolicy(db: any) {
+  const { rows } = await db.query(
+    `SELECT value_json, updated_at, updated_by FROM platform_settings WHERE key = $1`,
+    [RULES_KEY]
+  );
+  return rowToPolicy(rows[0]);
+}
+
+/**
+ * What the window is currently doing: parcels placed inside it, split by how they were attributed.
+ * Over the window itself so the figure answers "what does this setting cover right now".
+ */
+export async function getStats(db: any, windowDays: number) {
+  const { rows } = await db.query(
+    `SELECT COALESCE(attribution_source, CASE WHEN saler_id IS NULL THEN 'NONE' ELSE 'OTHER' END) AS source,
+            COUNT(*)::int AS parcels,
+            COALESCE(SUM(saler_commission), 0)::text AS commission
+       FROM sub_orders
+      WHERE created_at >= now() - ($1::int * INTERVAL '1 day')
+        AND status <> 'CANCELLED'
+      GROUP BY 1`,
+    [windowDays]
+  );
+  const by = Object.fromEntries(rows.map((r) => [r.source, { parcels: r.parcels, commission: r.commission }]));
+  const zero = { parcels: 0, commission: '0' };
+  return {
+    storefront: by.STOREFRONT ?? zero,
+    short_link: by.SHORT_LINK ?? zero,
+    other: by.OTHER ?? zero,       // a partner set before attribution existed (explicit saler_id)
+    unattributed: by.NONE ?? zero, // the partner share went to the platform
+  };
+}
+
+export async function updatePolicy(
+  db: any,
+  auditService: any,
+  { policy, reason, userId = null, actorRole = null, reqContext = {} as { ip?: string; userAgent?: string; traceId?: string } }:
+    { policy: any; reason: any; userId?: any; actorRole?: any; reqContext?: { ip?: string; userAgent?: string; traceId?: string } }
+) {
+  const next = validatePolicy(policy);
+  if (typeof reason !== 'string' || reason.trim().length < MIN_REASON_LENGTH) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      `Give a reason of at least ${MIN_REASON_LENGTH} characters for this change.`,
+      `এই পরিবর্তনের জন্য অন্তত ${MIN_REASON_LENGTH} অক্ষরের একটি কারণ লিখুন।`,
+      { field: 'reason' }
+    );
+  }
+
+  const client = db.connect ? await db.connect() : db;
+  const isDedicatedClient = Boolean(db.connect);
+  let before;
+  let after;
+  try {
+    if (isDedicatedClient) await client.query('BEGIN');
+    // WHY lock the one row, not the settings group: `growth` holds unrelated settings, and the
+    // lock only has to stop two saves of this key from recording a `before` that never existed.
+    const { rows } = await client.query(
+      `SELECT value_json, updated_at, updated_by FROM platform_settings WHERE key = $1 FOR UPDATE`,
+      [RULES_KEY]
+    );
+    before = rowToPolicy(rows[0]);
+    const saved = await settingRepo.upsertSetting(client, {
+      key: RULES_KEY,
+      valueJson: { window_days: next.window_days },
+      valueType: 'OBJECT',
+      labelEn: 'Sale attribution rules',
+      labelBn: 'বিক্রয় অ্যাট্রিবিউশনের নিয়ম',
+      groupKey: 'growth',
+      updatedBy: userId,
+    });
+    after = rowToPolicy(saved);
+    if (isDedicatedClient) await client.query('COMMIT');
+  } catch (err) {
+    if (isDedicatedClient) await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    if (isDedicatedClient && client.release) client.release();
+  }
+
+  if (auditService?.record) {
+    await auditService.record(db, {
+      action: 'growth.attribution.update',
+      targetType: 'platform_settings',
+      targetRef: RULES_KEY,
+      beforeJson: { window_days: before.window_days },
+      afterJson: { window_days: after.window_days },
+      meta: { reason: reason.trim() },
+      riskTier: 'CRITICAL',
+      actorId: userId,
+      actorRole,
+      ip: reqContext.ip ?? null,
+      userAgent: reqContext.userAgent ?? null,
+      traceId: reqContext.traceId ?? null,
+    });
+  }
+  return after;
 }
 
 /**

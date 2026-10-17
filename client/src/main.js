@@ -1117,6 +1117,16 @@ async function bootRouterDemo() {
         module: 'group_buying',
         load: () => import('./pages/admin/AdminGroupBuyPage.js'),
       },
+      // Sale attribution window. `.view` gates the page, `.update` (CRITICAL, super admin only) gates
+      // Save — see server/src/routes/attributionAdmin.routes.ts.
+      {
+        path: '/admin/growth/attribution',
+        title: 'Sale Attribution — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.attribution.view',
+        module: 'social_seller_kit',
+        load: () => import('./pages/admin/AdminAttributionPage.js'),
+      },
       {
         path: '/admin/group-buy',
         title: 'Group Buying Pools — Explooro Admin',

@@ -14,7 +14,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   DEFAULT_WINDOW_DAYS, WINDOW_LIMITS, isWithinWindow, landingPathFor, normalizeTouch,
-  pickParcelSaler, resolveTouch, resolveWindowDays,
+  pickParcelSaler, resolveTouch, resolveWindowDays, updatePolicy, validatePolicy,
 } from '../src/services/attribution.service.ts';
 import { addItemToCart } from '../src/services/cart.service.ts';
 
@@ -108,6 +108,64 @@ describe('short link landing path', () => {
   test('carries the link code and drops the old saler_ref user id', () => {
     assert.equal(landingPathFor('/products/12?saler_ref=202&source=whatsapp', 'a1b2c3'), '/products/12?source=whatsapp&ref=a1b2c3');
     assert.equal(landingPathFor('', 'a1b2c3'), '/?ref=a1b2c3');
+  });
+});
+
+describe('admin: the attribution window (/admin/growth/attribution)', () => {
+  function settingsDb(current = 7) {
+    let value = { window_days: current };
+    const queries = [];
+    return {
+      queries,
+      async query(sql, params = []) {
+        queries.push(sql.trim().split(/\s+/).slice(0, 2).join(' '));
+        if (/FROM platform_settings WHERE key = \$1 FOR UPDATE/.test(sql)) return { rows: [{ value_json: value, updated_at: null, updated_by: null }] };
+        if (/INSERT INTO platform_settings/.test(sql)) {
+          value = JSON.parse(params[1]);
+          return { rows: [{ value_json: value, updated_at: new Date(), updated_by: params[7] }] };
+        }
+        return { rows: [] };
+      },
+    };
+  }
+
+  test('a save outside the bounds is refused, never clamped', () => {
+    for (const bad of [0, WINDOW_LIMITS.max + 1, 7.5, '7', null]) {
+      assert.throws(() => validatePolicy({ window_days: bad }), (err) => err.code === 'VALIDATION_FAILED', String(bad));
+    }
+    assert.deepEqual(validatePolicy({ window_days: WINDOW_LIMITS.max }), { window_days: WINDOW_LIMITS.max });
+  });
+
+  test('a save needs a reason and is audited with before and after', async () => {
+    const db = settingsDb(7);
+    const audits = [];
+    const auditService = { record: async (_db, row) => audits.push(row) };
+
+    await assert.rejects(
+      () => updatePolicy(db, auditService, { policy: { window_days: 14 }, reason: 'short', userId: 1 }),
+      (err) => err.code === 'VALIDATION_FAILED' && err.details?.field === 'reason'
+    );
+    assert.equal(audits.length, 0, 'a refused save writes nothing');
+
+    const saved = await updatePolicy(db, auditService, { policy: { window_days: 14 }, reason: 'Eid campaign runs two weeks', userId: 1 });
+    assert.equal(saved.window_days, 14);
+    assert.equal(audits.length, 1);
+    assert.equal(audits[0].action, 'growth.attribution.update');
+    assert.deepEqual(audits[0].beforeJson, { window_days: 7 });
+    assert.deepEqual(audits[0].afterJson, { window_days: 14 });
+    assert.equal(audits[0].riskTier, 'CRITICAL');
+  });
+
+  test('the routes guard with module and permission in preHandler, matching the nav item', () => {
+    const routes = fs.readFileSync(path.resolve(__dirname, '../src/routes/attributionAdmin.routes.ts'), 'utf8');
+    assert.match(routes, /preHandler: \[app\.authenticate, requireKit, app\.requirePermission\('growth\.attribution\.view'\)\]/);
+    assert.match(routes, /preHandler: \[app\.authenticate, requireKit, app\.requirePermission\('growth\.attribution\.update'\)\]/);
+    assert.match(routes, /requireModule\('social_seller_kit'\)/);
+    const nav = fs.readFileSync(path.resolve(__dirname, '../../client/src/config/navigation.js'), 'utf8');
+    assert.match(nav, /path: '\/admin\/growth\/attribution', group: 'admin\.growth', permission: 'growth\.attribution\.view', module: 'social_seller_kit'/);
+    const catalog = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../docs/permission-catalog.json'), 'utf8'));
+    const update = catalog.permissions.find((p) => p.key === 'growth.attribution.update');
+    assert.equal(update?.risk_tier, 'CRITICAL', 'moving partner share is a super-admin money rule');
   });
 });
 

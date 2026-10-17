@@ -39,6 +39,7 @@ import themeHandlers from './handlers/theme.js';
 import { localizationHandlers } from './handlers/localization.js';
 import { genieHandlers } from './handlers/genie.js';
 import { deliveryHandlers } from './handlers/delivery.js';
+import { attributionHandlers } from './handlers/attribution.js';
 import { recommendationHandlers } from './handlers/recommendations.js';
 import { teamPurchaseHandlers } from './handlers/teamPurchase.js';
 import { gamificationHandlers } from './handlers/gamification.js';
@@ -84,6 +85,7 @@ const handlers = [
   ...localizationHandlers,
   ...genieHandlers,
   ...deliveryHandlers,
+  ...attributionHandlers,
   ...recommendationHandlers,
   ...teamPurchaseHandlers,
   ...gamificationHandlers,
