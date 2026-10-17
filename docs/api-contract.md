@@ -177,9 +177,21 @@ Complete and closed. Adding a code is a deliberate change to this document.
 | `SAMPLE_STATE_INVALID` | 409 | The sample request is not in a state that allows this action (already ended, or not yet shipped) |
 | `FAST_PAYOUT_NOT_ELIGIBLE` | 409 | The escrow amount cannot be taken early (not delivered, an open return or dispute, below/above the limits, due soon anyway, exposure cap reached, or already taken); the message names which |
 | `TEAM_PURCHASE_CLOSED` | 409 | The group-buy window expired or the team is full |
-| `PRODUCT_REQUIRED` | 400 | The ad format needs a product (`ad_products.requires_product`) and the creative has none |
+| `PRODUCT_REQUIRED` / `CATEGORY_REQUIRED` | 400 | The ad format needs a product (`ad_products.requires_product`) or, for a category banner, a category, and none was given |
 | `AD_PRODUCT_NOT_OWNED` | 403 | The advertiser neither has the product active in their store nor supplies it |
+| `SOURCING_PRODUCT_NOT_OWNED` | 403 | A Sponsored Sourcing Slot names a product the supplier does not own |
+| `AD_PRODUCT_FORBIDDEN` | 403 | The account's role is not in the ad format's `allowed_roles` |
+| `AD_PRODUCT_NOT_FOUND` / `CAMPAIGN_NOT_FOUND` | 404 | Unknown ad format, or the campaign does not exist or is not the caller's |
 | `AD_PRODUCT_NOT_SELLABLE` | 409 | The product to advertise is not `ACTIVE` |
+| `AD_PRODUCT_DISABLED` | 409 | The ad format is switched off |
+| `SLOT_SOLD_OUT` | 409 | Every reserved position for the placement is booked on the chosen dates |
+| `CAMPAIGN_ADMIN_PAUSED` / `CAMPAIGN_COMPLETED` / `CAMPAIGN_NOT_PENDING` | 409 | The campaign's state forbids the action: paused by the platform, completed without new budget, or no longer awaiting review |
+| `BID_BELOW_FLOOR` / `BUDGET_TOO_LOW` / `INVALID_BUDGET` | 422 | The bid or budget breaks the rate card's floor, or total budget is below daily budget |
+| `DURATION_TOO_SHORT` / `DURATION_TOO_LONG` / `QUANTITY_TOO_LOW` / `QUANTITY_TOO_HIGH` | 422 | Days or quantity outside the rate card's limits |
+| `BUDGET_CAP_EXCEEDED` | 422 | The purchase is above the account's `ad_budget_cap` restriction |
+| `BLOCKED_KEYWORD` | 422 | The campaign text contains a blocklisted keyword |
+| `INSUFFICIENT_VAULT_BALANCE` | 422 | A prepaid ad costs more than the vault holds |
+| `INVALID_RATE` / `RATE_OUT_OF_RANGE` | 422 | An admin rate-card edit is not a number, or is outside the field's bounds |
 
 ### 3.5 Upstream & system — 5xx
 
