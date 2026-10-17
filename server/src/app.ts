@@ -86,6 +86,7 @@ import { startGrantExpiryScheduler } from './jobs/grantExpiryCron.ts';
 import { startScheduler, stopScheduler } from './jobs/scheduler.ts';
 import './jobs/escrowRelease.job.ts'; // Registers escrow_release job with scheduler
 import './jobs/teamPurchaseExpiry.job.ts'; // Registers team_purchase_expiry job with scheduler
+import './jobs/adPushBlast.job.ts'; // Registers ad_push_blast job with scheduler
 import './jobs/cartRecovery.job.ts'; // Registers cart_recovery_sweep job with scheduler
 import './jobs/expiryWarning.job.ts'; // Registers batch_expiry_warning_sweep with scheduler
 import './jobs/analyticsRollup.job.ts'; // Registers analytics_nightly_rollup with scheduler

@@ -60,6 +60,19 @@ export const DEFAULT_TEMPLATES = {
     default_channels: ['INAPP', 'SMS', 'PUSH'],
     can_override_preferences: false,
   },
+  // The Push Notification Blast ad (services/adPushBlast.service.ts). The advertiser writes the headline
+  // and text; the "Sponsored" prefix is fixed here so an ad can never pass itself off as a platform message.
+  AD_PUSH_BLAST: {
+    template_key: 'AD_PUSH_BLAST',
+    category: 'MARKETING',
+    priority: 'LOW',
+    title_en: 'Sponsored: {{headline}}',
+    title_bn: 'স্পন্সর্ড: {{headline}}',
+    body_template_en: '{{body}}',
+    body_template_bn: '{{body}}',
+    default_channels: ['PUSH', 'INAPP'],
+    can_override_preferences: false,
+  },
   WARRANTY_ISSUED: {
     template_key: 'WARRANTY_ISSUED',
     category: 'ORDER',
