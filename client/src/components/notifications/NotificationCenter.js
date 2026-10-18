@@ -72,6 +72,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
       { id: 'ORDER', label: t('notifications.tab_orders') || 'Orders' },
       { id: 'FINANCE', label: t('notifications.tab_finance') || 'Finance' },
       { id: 'SECURITY', label: t('notifications.tab_security') || 'Security' },
+      { id: 'COMMUNITY', label: t('notifications.tab_community') || 'Community' },
       { id: 'MARKETING', label: t('notifications.tab_promos') || 'Promos' },
     ],
     active: 'ALL',

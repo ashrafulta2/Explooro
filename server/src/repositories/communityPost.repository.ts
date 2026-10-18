@@ -35,13 +35,14 @@ const POST_SELECT = `
  * Pinned posts sort first, then by the chosen order; `id` is the final tie-break so two posts with
  * the same timestamp never swap places between pages.
  */
-export async function listPosts(db, { viewerId = null, type = null, role = null, authorId = null, savedOnly = false,
+export async function listPosts(db, { viewerId = null, type = null, role = null, authorId = null, savedOnly = false, postId = null,
   audiences, sort = 'recent', limit, offset }) {
   const params: any[] = [viewerId];
   const where = [`p.status = 'PUBLISHED'`];
   if (type) { params.push(type); where.push(`p.post_type = $${params.length}`); }
   if (role) { params.push(role); where.push(`p.author_role = $${params.length}`); }
   if (authorId) { params.push(authorId); where.push(`p.author_id = $${params.length}`); }
+  if (postId) { params.push(postId); where.push(`p.id = $${params.length}`); }
   // The viewer's private list. $1 is the viewer, so a guest (null) matches nothing.
   if (savedOnly) where.push(`EXISTS (SELECT 1 FROM community_post_saves sv WHERE sv.post_id = p.id AND sv.user_id = $1)`);
   params.push(audiences);

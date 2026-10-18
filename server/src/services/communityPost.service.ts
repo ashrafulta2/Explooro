@@ -20,6 +20,7 @@ import { writeAudit } from '../lib/audit.ts';
 import * as repo from '../repositories/communityPost.repository.ts';
 import * as settingRepo from '../repositories/setting.repository.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
+import * as notices from './communityNotify.service.ts';
 
 export const SETTINGS_GROUP = 'community';
 export const THRESHOLD_KEY = 'community.auto_hide_report_threshold';
@@ -312,7 +313,7 @@ export async function getAutoHideThreshold(db) {
   return Number.isInteger(n) && n >= THRESHOLD_LIMITS.min && n <= THRESHOLD_LIMITS.max ? n : THRESHOLD_LIMITS.fallback;
 }
 
-export async function listTimeline(db, user, { type, role, sort, mine, saved, limit = 20, offset = 0 }: Record<string, any> = {}) {
+export async function listTimeline(db, user, { type, role, sort, mine, saved, postId, limit = 20, offset = 0 }: Record<string, any> = {}) {
   const roles = user?.roles ?? [];
   const audiences = visibleAudiences(roles);
   const filters = {
@@ -321,6 +322,9 @@ export async function listTimeline(db, user, { type, role, sort, mine, saved, li
     role: ['customer', 'supplier', 'saler', 'admin'].includes(role) ? role : null,
     authorId: mine && user ? user.id : null,
     savedOnly: Boolean(saved && user),
+    // A link to one post (a share, a notification). The same visibility rules apply: a post the viewer
+    // may not see simply yields an empty list.
+    postId: Number.isInteger(Number(postId)) && Number(postId) > 0 ? Number(postId) : null,
     limit: Math.min(Math.max(Number(limit) || 20, 1), 50),
     offset: Math.max(Number(offset) || 0, 0),
   };
@@ -472,10 +476,13 @@ export async function listPostComments(db, user, postId, { limit = 20, offset = 
 
 export async function addComment(db, user, postId, { body }: Record<string, any> = {}) {
   const text = validateCommentBody(body);
-  await visiblePost(db, user, postId);
+  const post = await visiblePost(db, user, postId);
   const id = await repo.insertComment(db, { postId, authorId: user.id, body: text });
+  const row = await repo.getComment(db, id, user.id);
+  // Tell the post's author (not for their own comment). Never fails the comment.
+  await notices.notifyPostAuthorOfComment(db, { post, comment: row, actorId: user.id });
   return {
-    comment: serializeComment(await repo.getComment(db, id, user.id)),
+    comment: serializeComment(row),
     comment_count: await repo.countComments(db, postId),
   };
 }
@@ -491,7 +498,7 @@ export async function deleteOwnComment(db, user, commentId) {
 
 /** Staff removal. Audited with the comment text so the record says what was taken down. */
 export async function removeCommentAsStaff(db, user, commentId) {
-  return withTransaction(db, async (client) => {
+  const done = await withTransaction(db, async (client) => {
     const comment = await repo.getComment(client, commentId, user.id);
     if (!comment || comment.status !== 'PUBLISHED') throw new AppError('NOT_FOUND', 'Comment not found.', 'মন্তব্যটি পাওয়া যায়নি।');
     await repo.removeComment(client, commentId, user.id);
@@ -500,8 +507,10 @@ export async function removeCommentAsStaff(db, user, commentId) {
       actor: user, before: { status: 'PUBLISHED', post_id: comment.post_id, author_id: comment.author_id, body: comment.body },
       after: { status: 'REMOVED' },
     });
-    return { comment_count: await repo.countComments(client, comment.post_id) };
+    return { comment_count: await repo.countComments(client, comment.post_id), comment };
   });
+  await notices.notifyCommentRemoved(db, { comment: done.comment, actorId: user.id });
+  return { comment_count: done.comment_count };
 }
 
 /**
@@ -529,7 +538,7 @@ export async function reportPost(db, user, postId, { reason, note }: Record<stri
   const cleanNote = text(note, 'note', LIMITS.tip);
   const threshold = await getAutoHideThreshold(db);
 
-  return withTransaction(db, async (client) => {
+  const result = await withTransaction(db, async (client) => {
     const post = await repo.lockPost(client, postId);
     if (!post || post.status !== 'PUBLISHED') throw new AppError('NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
     // WHY Number(): pg returns BIGINT as a string, and the session's id is a number. A strict compare
@@ -550,12 +559,17 @@ export async function reportPost(db, user, postId, { reason, note }: Record<stri
     }
     return { reported: created, already_reported: !created, auto_hidden: autoHidden };
   });
+  // Outside the transaction: the author hears about it only once the hiding is committed.
+  if (result.auto_hidden) {
+    await notices.notifyPostAuthorOfDecision(db, { post: await repo.getPost(db, postId, null), outcome: 'AUTO_HIDDEN' });
+  }
+  return result;
 }
 
 /** Moderator decision on one post: KEEP (live, reports dismissed), HIDE or REMOVE (reports actioned). */
 export async function moderatePost(db, user, postId, action) {
   if (!MODERATE_ACTIONS.includes(action)) throw fail('action', 'Choose Keep, Hide or Remove.', 'রাখা, লুকানো বা সরানো বেছে নিন।');
-  return withTransaction(db, async (client) => {
+  const done = await withTransaction(db, async (client) => {
     const post = await repo.lockPost(client, postId);
     if (!post || post.status === 'REMOVED') throw new AppError('NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
     const next = { KEEP: 'PUBLISHED', HIDE: 'HIDDEN', REMOVE: 'REMOVED' }[action];
@@ -566,8 +580,14 @@ export async function moderatePost(db, user, postId, action) {
       actor: user, before: { status: post.status, hidden_reason: post.hidden_reason },
       after: { status: next, reports_resolved: resolved },
     });
-    return { status: next, reports_resolved: resolved };
+    return { status: next, reports_resolved: resolved, previous: post.status };
   });
+  // The author is told the outcome. Keeping a post that was never hidden changes nothing for them.
+  const outcome = { HIDE: 'HIDDEN', REMOVE: 'REMOVED' }[action] ?? (done.previous === 'HIDDEN' ? 'RESTORED' : null);
+  if (outcome) {
+    await notices.notifyPostAuthorOfDecision(db, { post: await repo.getPost(db, postId, null), outcome, actorId: user.id });
+  }
+  return { status: done.status, reports_resolved: done.reports_resolved };
 }
 
 export async function getQueue(db, { limit = 30, offset = 0 }: Record<string, any> = {}) {

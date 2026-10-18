@@ -170,8 +170,9 @@ function reportPanel(post, { onReport, close, onDone }) {
  * @param {(post:object, v:{reason:string})=>Promise<object>} o.onReport
  * @param {(post:object, action:string)=>Promise<void>} [o.onModerate]
  * @param {()=>void} [o.onNeedSignIn]            called when a guest tries to like or report
+ * @param {boolean} [o.openComments]             open the comment thread at once (arriving from a notification)
  */
-export function PostCard({ post, viewerRole, canModerate = false, onLike, onSave, onReport, onModerate, onNeedSignIn }) {
+export function PostCard({ post, viewerRole, canModerate = false, openComments = false, onLike, onSave, onReport, onModerate, onNeedSignIn }) {
   const lang = getLanguage();
   const root = el('article', `cm-card cm-card--${post.type.toLowerCase()}`, null, { 'data-post-id': post.id, 'data-type': post.type });
   if (post.is_pinned) root.classList.add('cm-card--pinned');
@@ -285,6 +286,8 @@ export function PostCard({ post, viewerRole, canModerate = false, onLike, onSave
       saveBtn.disabled = false;
     }
   });
+
+  if (openComments) queueMicrotask(() => commentBtn.click());
 
   const actions = el('footer', 'cm-actions', [likeBtn, commentBtn, saveBtn, shareBtn]);
   let reportSlot = null;

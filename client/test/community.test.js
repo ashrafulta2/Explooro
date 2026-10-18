@@ -20,6 +20,7 @@ import { handleMockRequest } from '../src/mocks/index.js';
 import { appStore, setMockRole, logOutMock } from '../src/state/appStore.js';
 import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.js';
 import { checkNewFile } from '../src/components/community/MediaPicker.js';
+import { MOCK_COMMUNITY_TEMPLATES } from '../src/mocks/handlers/community.js';
 import { navItems } from '../src/config/navigation.js';
 
 const src = path.resolve(import.meta.dirname, '../src');
@@ -410,4 +411,114 @@ test('the page offers the Saved filter to signed-in members and the card carries
   assert.match(card, /icon\('bookmark'\)/);
   assert.match(card, /community\.card\.saved_toast/);
   assert.ok(read('components', 'ui', 'icons.js').includes('bookmark: svg('));
+});
+
+// ── 8. Notifications and links to one post ────────────────────────────────────────────────
+
+
+// Oldest first (the API answers newest first), so "what was added" is a slice off the end.
+const inbox = () => call('GET', '/notifications', null, { category: 'COMMUNITY' }).body.data.items.slice().sort((x, y) => x.id - y.id);
+const unread = () => call('GET', '/notifications/unread-count').body.data.unread_count;
+
+test('mock: a comment tells the post author, once, with a link that opens the thread, and nobody else', () => {
+  // Post 4 is the shop partner's idea (author role: saler).
+  setMockRole('saler');
+  const before = inbox().length;
+  const unreadBefore = unread();
+
+  setMockRole('customer');
+  assert.equal(call('POST', '/community/posts/4/comments', { body: 'Great idea, thank you for sharing it with everyone.' }).status, 201);
+  assert.equal(inbox().length, 0, "the commenter's own inbox gets nothing");
+
+  setMockRole('saler');
+  const got = inbox();
+  assert.equal(got.length, before + 1);
+  const n = got.at(-1);
+  assert.equal(n.template_key, 'COMMUNITY_COMMENT');
+  assert.equal(n.category, 'COMMUNITY');
+  assert.equal(n.data_json.linkUrl, '/community?post=4&comments=1');
+  assert.match(n.body_en, /Great idea/);
+  assert.equal(unread(), unreadBefore + 1);
+
+  // A second comment while that one is unread adds no second bell.
+  setMockRole('customer');
+  call('POST', '/community/posts/4/comments', { body: 'A second comment' });
+  setMockRole('saler');
+  assert.equal(inbox().length, before + 1);
+
+  // Reading it lets the next comment notify again.
+  call('POST', `/notifications/${n.id}/read`);
+  setMockRole('supplier');
+  call('POST', '/community/posts/4/comments', { body: 'A comment after the bell was read' });
+  setMockRole('saler');
+  assert.equal(inbox().length, before + 2);
+
+  // Commenting on your own post tells nobody.
+  call('POST', '/community/posts/4/comments', { body: 'replying on my own post' });
+  assert.equal(inbox().length, before + 2);
+  logOutMock();
+});
+
+test('mock: a moderator decision tells the author with a link or none, and staff comment removal tells the commenter', () => {
+  setMockRole('saler');
+  const ideaId = call('POST', '/community/posts', { kind: 'USABILITY_TIP', product_id: 101, title: 'Tip', details: { steps: ['x'] } }).body.data.post.id;
+  const base = inbox().length;
+
+  setMockRole('moderator');
+  call('POST', `/admin/community/posts/${ideaId}/moderate`, { action: 'KEEP' });
+  setMockRole('saler');
+  assert.equal(inbox().length, base, 'keeping a post that was never hidden tells nobody');
+
+  setMockRole('moderator');
+  call('POST', `/admin/community/posts/${ideaId}/moderate`, { action: 'HIDE' });
+  call('POST', `/admin/community/posts/${ideaId}/moderate`, { action: 'KEEP' });
+  call('POST', `/admin/community/posts/${ideaId}/moderate`, { action: 'REMOVE' });
+  setMockRole('saler');
+  const added = inbox().slice(base);
+  assert.deepEqual(added.map((x) => x.template_key), ['COMMUNITY_POST_HIDDEN', 'COMMUNITY_POST_RESTORED', 'COMMUNITY_POST_REMOVED']);
+  assert.equal(added[0].data_json.linkUrl, `/community?post=${ideaId}`);
+  assert.equal(added[2].data_json.linkUrl, '/community', 'a removed post has nothing to open');
+  assert.ok(added.every((x) => x.title_bn && x.body_bn), 'every notice is bilingual');
+
+  // Staff remove a customer's comment on post 2 (a public review) and the customer is told.
+  setMockRole('customer');
+  const comment = call('POST', '/community/posts/2/comments', { body: 'rude words' }).body.data.comment;
+  const customerBase = inbox().length;
+  setMockRole('moderator');
+  call('POST', `/admin/community/comments/${comment.id}/remove`);
+  setMockRole('customer');
+  assert.equal(inbox().length, customerBase + 1);
+  assert.equal(inbox().at(-1).template_key, 'COMMUNITY_COMMENT_REMOVED');
+  assert.match(inbox().at(-1).body_en, /rude words/);
+  logOutMock();
+});
+
+test('mock: a link to one post shows just that post, under the same visibility rules', () => {
+  setMockRole('saler');
+  const one = call('GET', '/community/posts', null, { post_id: '4' }).body.data.posts;
+  assert.deepEqual(one.map((p) => p.id), [4]);
+  assert.equal(call('GET', '/community/posts', null, { post_id: '99999' }).body.data.posts.length, 0);
+  setMockRole('customer');
+  assert.equal(call('GET', '/community/posts', null, { post_id: '3' }).body.data.posts.length, 0, 'a post meant for shop partners');
+  logOutMock();
+});
+
+test('the mock notices are the migration templates, and the settings page and drawer know the category', () => {
+  const sql = fs.readFileSync(path.resolve(src, '../../server/src/db/migrations/084_community_notifications.sql'), 'utf8');
+  const migrationKeys = [...sql.matchAll(/\('(COMMUNITY_[A-Z_]+)', 'COMMUNITY'/g)].map((m) => m[1]).sort();
+  assert.deepEqual([...MOCK_COMMUNITY_TEMPLATES].sort(), migrationKeys);
+
+  assert.match(read('pages', 'settings', 'NotificationPreferencesPage.js'), /key: 'COMMUNITY'/);
+  assert.match(read('components', 'notifications', 'NotificationCenter.js'), /id: 'COMMUNITY'/);
+  for (const k of ['notifications.tab_community', 'notifications.cat_community_title', 'notifications.cat_community_desc', 'community.onepost.title', 'community.onepost.all']) {
+    assert.ok(get(en, k) && get(bn, k), k);
+  }
+  assert.ok(call('GET', '/notifications/preferences').body.data.data?.some?.((p) => p.category === 'COMMUNITY')
+    || call('GET', '/notifications/preferences').body.data.some((p) => p.category === 'COMMUNITY'));
+
+  // The page reads the link and opens the thread; the share link points at the same URL shape.
+  const page = read('pages', 'CommunityPage.js');
+  assert.match(page, /params\.get\('post'\)/);
+  assert.match(page, /params\.get\('comments'\) === '1'/);
+  assert.match(read('components', 'community', 'PostCard.js'), /\/community\?post=\$\{post\.id\}/);
 });

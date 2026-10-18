@@ -60,6 +60,13 @@ const CATEGORIES = [
     fallbackDesc: 'Flash sales, campaign bonuses, and special offers.',
   },
   {
+    key: 'COMMUNITY',
+    icon: '👥',
+    i18n: 'notifications.cat_community',
+    fallbackTitle: 'Community',
+    fallbackDesc: 'Comments on your posts. Moderation notices about your posts are always delivered.',
+  },
+  {
     key: 'SYSTEM',
     icon: '⚙️',
     i18n: 'notifications.cat_system',

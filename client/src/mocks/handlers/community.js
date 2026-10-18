@@ -17,6 +17,7 @@
  */
 import { appStore } from '../../state/appStore.js';
 import { resolveMockMedia } from './media.js';
+import { pushMockNotification } from './notifications.js';
 
 // Mirrors THRESHOLD_LIMITS in server/src/services/communityPost.service.ts; the value changes through
 // PUT /admin/community/settings, like the platform_settings row it stands for.
@@ -127,6 +128,46 @@ const commentCount = (postId) => liveComments(postId).length;
 // Each member's private saved list, as post ids per user id (like community_post_saves).
 const saves = new Map();
 const savedBy = (user) => (user ? saves.get(user.id) ?? new Set() : new Set());
+
+// What each notification says. Mirrors the six COMMUNITY_* templates of migration 084 (a client test
+// keeps the keys equal). The server fills the same placeholders; here they are filled by hand.
+const NOTICES = {
+  COMMUNITY_COMMENT: { title: ['New comment on your post', 'আপনার পোস্টে নতুন মন্তব্য'], body: ({ actor, excerpt }) => [`${actor}: "${excerpt}"`, `${actor}: "${excerpt}"`] },
+  COMMUNITY_POST_AUTO_HIDDEN: { title: ['Your post is hidden for review', 'আপনার পোস্ট পর্যালোচনার জন্য লুকানো হয়েছে'],
+    body: ({ label }) => [`Reports on your ${label.en} hid it until a moderator decides. You do not need to do anything.`, `আপনার ${label.bn} নিয়ে একাধিক রিপোর্ট আসায় মডারেটর সিদ্ধান্ত না নেওয়া পর্যন্ত সেটি লুকানো হয়েছে। আপনাকে কিছু করতে হবে না।`] },
+  COMMUNITY_POST_HIDDEN: { title: ['A moderator hid your post', 'মডারেটর আপনার পোস্ট লুকিয়েছেন'],
+    body: ({ label }) => [`A moderator hid your ${label.en} after reviewing it. It is no longer on the timeline.`, `মডারেটর পর্যালোচনার পর আপনার ${label.bn} লুকিয়েছেন। সেটি এখন আর টাইমলাইনে দেখা যাবে না।`] },
+  COMMUNITY_POST_REMOVED: { title: ['A moderator removed your post', 'মডারেটর আপনার পোস্ট সরিয়ে দিয়েছেন'],
+    body: ({ label }) => [`A moderator removed your ${label.en} after reviewing it. It cannot be restored.`, `মডারেটর পর্যালোচনার পর আপনার ${label.bn} সরিয়ে দিয়েছেন। এটি আর ফিরিয়ে আনা যাবে না।`] },
+  COMMUNITY_POST_RESTORED: { title: ['Your post is back', 'আপনার পোস্ট আবার দেখা যাচ্ছে'],
+    body: ({ label }) => [`A moderator reviewed your ${label.en} and put it back on the timeline.`, `মডারেটর আপনার ${label.bn} পর্যালোচনা করে আবার টাইমলাইনে ফিরিয়ে দিয়েছেন।`] },
+  COMMUNITY_COMMENT_REMOVED: { title: ['Your comment was removed', 'আপনার মন্তব্য সরানো হয়েছে'],
+    body: ({ excerpt }) => [`A moderator removed your comment: "${excerpt}"`, `মডারেটর আপনার মন্তব্য সরিয়ে দিয়েছেন: "${excerpt}"`] },
+};
+export const MOCK_COMMUNITY_TEMPLATES = Object.keys(NOTICES);
+
+const KIND_WORD = { REVIEW: ['review', 'রিভিউ'], UPDATE: ['product update', 'পণ্যের আপডেট'], IDEA: ['post', 'পোস্ট'], ANNOUNCEMENT: ['announcement', 'ঘোষণা'] };
+function postLabel(p) {
+  const [en, bn] = KIND_WORD[p.type] ?? ['post', 'পোস্ট'];
+  return {
+    en: p.title ? `"${p.title}"` : p.product ? `${en} on "${p.product.title_en}"` : en,
+    bn: p.title ? `"${p.title}"` : p.product ? `"${p.product.title_bn}" নিয়ে ${bn}` : bn,
+  };
+}
+const excerptOf = (text, max = 80) => {
+  const s = String(text ?? '').replace(/\s+/g, ' ').trim();
+  return s.length > max ? `${s.slice(0, max - 1)}…` : s;
+};
+const linkTo = (postId, comments = false) => `/community?post=${postId}${comments ? '&comments=1' : ''}`;
+
+function notice(role, key, vars, { postId, linkUrl }) {
+  const t = NOTICES[key];
+  const [bodyEn, bodyBn] = t.body(vars);
+  pushMockNotification({
+    role: role === 'super_admin' ? 'admin' : role, template_key: key, title_en: t.title[0], title_bn: t.title[1],
+    body_en: bodyEn, body_bn: bodyBn, linkUrl, postId, priority: key === 'COMMUNITY_COMMENT' || key === 'COMMUNITY_POST_RESTORED' ? 'NORMAL' : 'HIGH',
+  });
+}
 
 function viewer() {
   const auth = appStore.get().auth || {};
@@ -278,6 +319,8 @@ export const communityHandlers = [
       if (!post) return NOT_FOUND_POST();
       const c = { id: nextCommentId++, postId: post.id, authorId: user.id, authorRole: role === 'super_admin' ? 'admin' : role, authorName: user.name, body: text, createdAt: new Date().toISOString(), status: 'PUBLISHED' };
       comments.push(c);
+      // Tell the post's author, but not about their own comment.
+      if (post.authorId !== user.id) notice(post.authorRole, 'COMMUNITY_COMMENT', { actor: user.name, excerpt: excerptOf(text) }, { postId: post.id, linkUrl: linkTo(post.id, true) });
       return { status: 201, body: { data: { comment: serializeComment(c, user), comment_count: commentCount(post.id) } } };
     },
   },
@@ -305,6 +348,7 @@ export const communityHandlers = [
       const c = comments.find((x) => x.id === Number(params.id) && x.status === 'PUBLISHED');
       if (!c) return NOT_FOUND_COMMENT();
       c.status = 'REMOVED';
+      if (c.authorId !== viewer().user?.id) notice(c.authorRole, 'COMMUNITY_COMMENT_REMOVED', { excerpt: excerptOf(c.body) }, { postId: c.postId, linkUrl: linkTo(c.postId) });
       return { status: 200, body: { data: { comment_count: commentCount(c.postId) } } };
     },
   },
@@ -323,6 +367,8 @@ export const communityHandlers = [
       if (query.mine === '1' && user) list = list.filter((p) => p.authorId === user.id);
       // The member's private list; a guest has none.
       if (query.saved === '1') list = user ? list.filter((p) => savedBy(user).has(p.id)) : [];
+      // One post, by link (a share or a notification). The same visibility already applied above.
+      if (query.post_id) list = list.filter((p) => p.id === Number(query.post_id));
       list = [...list].sort((a, b) => {
         if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
         return query.sort === 'top' ? b.likes.size - a.likes.size || b.id - a.id : b.id - a.id;
@@ -458,7 +504,11 @@ export const communityHandlers = [
       const already = reports.some((r) => r.postId === post.id && r.reporterId === `u${user.id}`);
       if (!already) reports.push({ postId: post.id, reporterId: `u${user.id}`, reason: body.reason, status: 'OPEN' });
       const autoHidden = !already && openReports(post.id).length >= autoHideThreshold;
-      if (autoHidden) { post.status = 'HIDDEN'; post.hiddenReason = 'REPORTS'; }
+      if (autoHidden) {
+        post.status = 'HIDDEN';
+        post.hiddenReason = 'REPORTS';
+        notice(post.authorRole, 'COMMUNITY_POST_AUTO_HIDDEN', { label: postLabel(post) }, { postId: post.id, linkUrl: linkTo(post.id) });
+      }
       return { status: 200, body: { data: { reported: !already, already_reported: already, auto_hidden: autoHidden } } };
     },
   },
@@ -521,8 +571,14 @@ export const communityHandlers = [
       if (!['KEEP', 'HIDE', 'REMOVE'].includes(body.action)) {
         return fail(400, 'VALIDATION_FAILED', 'Choose Keep, Hide or Remove.', 'রাখা, লুকানো বা সরানো বেছে নিন।', 'action');
       }
+      const previous = post.status;
       post.status = { KEEP: 'PUBLISHED', HIDE: 'HIDDEN', REMOVE: 'REMOVED' }[body.action];
       post.hiddenReason = body.action === 'HIDE' ? 'MODERATOR' : null;
+      // The author is told the outcome (not when they decided it themselves; keeping a live post tells nobody).
+      const key = { HIDE: 'COMMUNITY_POST_HIDDEN', REMOVE: 'COMMUNITY_POST_REMOVED' }[body.action] ?? (previous === 'HIDDEN' ? 'COMMUNITY_POST_RESTORED' : null);
+      if (key && post.authorId !== viewer().user?.id) {
+        notice(post.authorRole, key, { label: postLabel(post) }, { postId: post.id, linkUrl: body.action === 'REMOVE' ? '/community' : linkTo(post.id) });
+      }
       const open = openReports(post.id);
       for (const r of open) r.status = body.action === 'KEEP' ? 'DISMISSED' : 'ACTIONED';
       return { status: 200, body: { data: { status: post.status, reports_resolved: open.length } } };

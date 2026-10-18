@@ -50,15 +50,17 @@ export const AUDIENCES = ['EVERYONE', 'CUSTOMERS', 'SUPPLIERS', 'SHOP_PARTNERS']
  * @param {'recent'|'top'} [opts.sort]
  * @param {boolean} [opts.mine] only the signed-in user's own posts
  * @param {boolean} [opts.saved] only the posts the signed-in user saved (private list)
+ * @param {number} [opts.postId] just this one post (a shared link or a notification)
  * @returns {Promise<{posts: object[], counts: Record<string, number>, meta: object}>}
  */
-export async function listPosts({ type, role, sort, mine, saved, limit, offset } = {}) {
+export async function listPosts({ type, role, sort, mine, saved, postId, limit, offset } = {}) {
   const query = {};
   if (type) query.type = type;
   if (role) query.role = role;
   if (sort) query.sort = sort;
   if (mine) query.mine = '1';
   if (saved) query.saved = '1';
+  if (postId) query.post_id = postId;
   if (limit != null) query.limit = limit;
   if (offset != null) query.offset = offset;
   const { data, meta } = await api.get('/community/posts', { query });

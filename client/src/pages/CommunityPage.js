@@ -63,7 +63,11 @@ export default function CommunityPage(root) {
   );
   const canModerate = Boolean(role) && can('community.post.moderate');
 
-  const state = { type: '', from: '', sort: 'recent', mine: false, saved: false, view: 'timeline', posts: [], counts: {}, hasMore: false, loading: false, composing: false };
+  // A link to one post: a Share link, or the notification for a comment (`?post=ID&comments=1`).
+  const params = new URLSearchParams(window.location.search);
+  const linkedPost = Number(params.get('post'));
+  const state = { postId: Number.isInteger(linkedPost) && linkedPost > 0 ? linkedPost : null, openComments: params.get('comments') === '1',
+    type: '', from: '', sort: 'recent', mine: false, saved: false, view: 'timeline', posts: [], counts: {}, hasMore: false, loading: false, composing: false };
 
   const header = el('header', 'cm-header', [
     el('h1', 'cm-header__title', t('community.page.title')),
@@ -71,11 +75,12 @@ export default function CommunityPage(root) {
   ]);
   const viewSwitch = el('div', 'cm-segment', null, { role: 'group', 'aria-label': t('community.page.title') });
   const composeSlot = el('div', 'cm-compose');
+  const onePost = el('div', 'cm-onepost');
   const tabs = el('nav', 'cm-tabs', null, { 'aria-label': t('community.page.title') });
   const filters = el('div', 'cm-filters');
   const feed = el('div', 'cm-feed', null, { 'aria-live': 'polite' });
   const more = el('div', 'cm-more');
-  const timeline = el('div', 'cm-timeline', [composeSlot, tabs, filters, feed, more]);
+  const timeline = el('div', 'cm-timeline', [composeSlot, onePost, tabs, filters, feed, more]);
   const moderationSlot = el('div', 'cm-moderation');
   page.append(header, viewSwitch, timeline, moderationSlot);
 
@@ -134,6 +139,22 @@ export default function CommunityPage(root) {
     ]));
   }
 
+  /** While one linked post is shown, the tabs and filters would only hide it, so they step aside. */
+  function renderOnePost() {
+    onePost.replaceChildren();
+    tabs.hidden = filters.hidden = Boolean(state.postId);
+    if (!state.postId) return;
+    const back = el('button', 'cm-chip', t('community.onepost.all'), { type: 'button' });
+    back.addEventListener('click', () => {
+      state.postId = null;
+      state.openComments = false;
+      window.history.replaceState({}, '', window.location.pathname);
+      renderOnePost();
+      load({ reset: true });
+    });
+    onePost.append(el('div', 'cm-card cm-onepost__bar', [el('span', '', t('community.onepost.title')), back]));
+  }
+
   function renderTabs() {
     tabs.replaceChildren(...TABS.map((tab) => {
       const on = state.type === tab.key;
@@ -173,7 +194,7 @@ export default function CommunityPage(root) {
     }
     for (const post of state.posts) {
       feed.append(PostCard({
-        post, viewerRole: role, canModerate,
+        post, viewerRole: role, canModerate, openComments: Boolean(state.postId && state.openComments),
         onLike: (p) => toggleLike(p.id),
         onSave: async (p) => {
           const res = await toggleSave(p.id);
@@ -211,6 +232,7 @@ export default function CommunityPage(root) {
     try {
       const res = await listPosts({
         type: state.type || undefined, role: state.from || undefined, sort: state.sort, mine: state.mine, saved: state.saved,
+        postId: state.postId || undefined,
         limit: PAGE_SIZE, offset: reset ? 0 : state.posts.length,
       });
       // A slower, older answer must not overwrite a newer one after a quick filter change.
@@ -229,6 +251,7 @@ export default function CommunityPage(root) {
   renderCompose();
   renderTabs();
   renderFilters();
+  renderOnePost();
   renderView();
   load({ reset: true });
   return cleanup;

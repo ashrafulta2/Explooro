@@ -441,6 +441,10 @@
       "delete": "Delete",
       "remove": "Remove",
       "sign_in": "Sign in to comment."
+    },
+    "onepost": {
+      "title": "Showing one post from a link.",
+      "all": "Show all posts"
     }
   },
   "nav": {
@@ -3299,6 +3303,7 @@
     "tab_finance": "Finance",
     "tab_security": "Security",
     "tab_promos": "Promos",
+    "tab_community": "Community",
     "empty_list": "No notifications in this category.",
     "view_details": "View Details →",
     "whats_new_title": "What's New in Explooro",
@@ -3322,6 +3327,8 @@
     "cat_marketing_desc": "Flash sales, campaign bonuses, and special offers.",
     "cat_system_title": "System & Policy",
     "cat_system_desc": "Terms updates, maintenance notices, and compliance.",
+    "cat_community_title": "Community",
+    "cat_community_desc": "Comments on your posts. Moderation notices about your posts are always delivered.",
     "locked_note": "Security alerts are always delivered on every channel and cannot be turned off.",
     "quiet_hours": "Quiet hours",
     "quiet_hours_from": "Quiet hours from",

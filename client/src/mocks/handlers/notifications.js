@@ -8,9 +8,10 @@
  */
 
 import { getMockSessionUser } from './auth.js';
+import { appStore } from '../../state/appStore.js';
 import { latestReleaseFor, markReleaseViewed } from '../releaseNotes.js';
 
-const CATEGORIES = ['ORDER', 'FINANCE', 'SECURITY', 'MARKETING', 'SYSTEM'];
+const CATEGORIES = ['ORDER', 'FINANCE', 'SECURITY', 'MARKETING', 'SYSTEM', 'COMMUNITY'];
 
 // WHY module-level state: a mock that forgets a write is worse than no mock — saving
 // preferences and then reopening the page has to show what was saved, at least for the session.
@@ -114,6 +115,34 @@ let notifications = [
   },
 ];
 
+/**
+ * Adds a notification for one role (the mock has one inbox, so `forRole` is what keeps a community
+ * notice for the post's author from showing up for everyone else). Used by handlers/community.js.
+ * With `postId` set and an unread notification of the same template for the same role and post already
+ * in the inbox, nothing is added (the bell already points at that post), like the live service.
+ * @param {{role: string, template_key: string, title_en: string, title_bn: string, body_en: string, body_bn: string, linkUrl: string, postId?: number, priority?: string}} n
+ */
+export function pushMockNotification(n) {
+  if (n.postId !== undefined && notifications.some((x) => !x.is_read && x.forRole === n.role
+    && x.template_key === n.template_key && x.data_json?.postId === n.postId)) {
+    return;
+  }
+  const id = 9500 + notifications.length + 1;
+  notifications = [...notifications, {
+    id, ref: `NTF-MOCK-${id}`, template_key: n.template_key, category: 'COMMUNITY', priority: n.priority || 'NORMAL',
+    title_en: n.title_en, title_bn: n.title_bn, body_en: n.body_en, body_bn: n.body_bn,
+    data_json: { linkUrl: n.linkUrl, postId: n.postId }, channels: ['INAPP'], delivery_status: { INAPP: 'STORED_INBOX' },
+    is_read: false, read_at: null, created_at: new Date().toISOString(), forRole: n.role,
+  }];
+}
+
+// A notification with `forRole` is for that role only; the seeded ones carry none and are for everyone.
+function visibleToViewer(n) {
+  if (!n.forRole) return true;
+  const role = appStore.get().auth?.role;
+  return (role === 'super_admin' ? 'admin' : role) === n.forRole;
+}
+
 // WHY no release note here: it used to be a constant plus an in-memory "seen" flag, so the popup
 // never changed after an editor published and came back on every reload. Notes now live in
 // mocks/releaseNotes.js, shared with the editor handlers in handlers/content.js.
@@ -131,7 +160,7 @@ export const notificationHandlers = [
       const limit = parseInt(query.limit, 10) || 20;
       const offset = parseInt(query.offset, 10) || 0;
 
-      let rows = notifications;
+      let rows = notifications.filter(visibleToViewer);
       if (query.category && query.category !== 'ALL') {
         rows = rows.filter((n) => n.category === query.category);
       }
@@ -156,7 +185,7 @@ export const notificationHandlers = [
     handler() {
       return {
         status: 200,
-        body: { data: { unread_count: notifications.filter((n) => !n.is_read).length } },
+        body: { data: { unread_count: notifications.filter((n) => visibleToViewer(n) && !n.is_read).length } },
       };
     },
   },

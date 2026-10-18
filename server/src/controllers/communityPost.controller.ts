@@ -8,9 +8,9 @@ import * as service from '../services/communityPost.service.ts';
 const dbOf = (req) => req.db || req.server?.db;
 
 export async function listPosts(req, reply) {
-  const { type, role, sort, mine, saved, limit, offset } = req.query || {};
+  const { type, role, sort, mine, saved, post_id: postId, limit, offset } = req.query || {};
   const { posts, counts, meta } = await service.listTimeline(dbOf(req), req.user ?? null, {
-    type, role, sort, mine: mine === '1' || mine === 'true', saved: saved === '1' || saved === 'true', limit, offset,
+    type, role, sort, mine: mine === '1' || mine === 'true', saved: saved === '1' || saved === 'true', postId, limit, offset,
   });
   return reply.send({ data: { posts, counts }, meta });
 }

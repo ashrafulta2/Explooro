@@ -20,6 +20,10 @@ import {
   validateCommentBody, serializeComment, addComment, listPostComments, deleteOwnComment, removeCommentAsStaff,
   toggleSave, listTimeline,
 } from '../src/services/communityPost.service.ts';
+import { notifier, postLabels, excerpt, postLink } from '../src/services/communityNotify.service.ts';
+
+// The tests below that are not about notifications must not reach a notifications table that is not there.
+notifier.send = async () => {};
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (...p) => readFileSync(path.join(ROOT, ...p), 'utf8');
@@ -27,7 +31,7 @@ const read = (...p) => readFileSync(path.join(ROOT, ...p), 'utf8');
 /** An in-memory stand-in for the pool: just the queries reportPost / moderatePost make. */
 function makeDb({ postRow = {}, threshold = null, post = { id: 1, status: 'PUBLISHED', author_id: 10, post_type: 'REVIEW', hidden_reason: null }, media = [] } = {}) {
   // `media` is the uploads that exist: { id, mime_type, storage_key, owner_id, purpose, used }.
-  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [], comments: [], saves: new Set(), listSql: [] };
+  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [], comments: [], saves: new Set(), listSql: [], unreadCommentNotice: false, muted: false };
   const query = async (sql, params = []) => {
     const q = sql.replace(/\s+/g, ' ').trim();
     state.calls.push(q.slice(0, 40));
@@ -74,6 +78,8 @@ function makeDb({ postRow = {}, threshold = null, post = { id: 1, status: 'PUBLI
       // pg hands BIGINT back as a string; so does this stand-in, because that is what the service sees live.
       return { rows: [{ id: 7, ref: 'POST-X', author_id: '10', author_role: 'supplier', post_type: 'UPDATE', kind: 'RESTOCK', details: {}, audience: 'SHOP_PARTNERS', status: 'PUBLISHED', like_count: 0, author_name: 'Dhaka Textiles', ...postRow }] };
     }
+    if (q.includes('FROM notifications')) return { rows: state.unreadCommentNotice ? [{}] : [] };
+    if (q.includes('FROM notification_preferences')) return { rows: state.muted ? [{ inapp_enabled: false }] : [] };
     if (q.startsWith('INSERT INTO community_post_saves')) {
       const key = `${params[0]}:${params[1]}`;
       if (state.saves.has(key)) return { rows: [], rowCount: 0 };
@@ -384,6 +390,127 @@ test('the comments migration and permission agree with the code', () => {
   const routes = read('server', 'src', 'routes', 'communityPost.routes.ts');
   assert.ok(routes.includes("'community.comment.create'"));
   assert.match(routes, /app\.delete\('\/community\/comments\/:id'/);
+});
+
+// ── Notifications ───────────────────────────────────────────────────────────────────────────
+
+/** Replaces the sender for one test and hands back what it was asked to send. */
+async function capturing(fn) {
+  const sent = [];
+  const real = notifier.send;
+  notifier.send = async (_db, args) => { sent.push(args); };
+  try { await fn(sent); } finally { notifier.send = real; }
+}
+const POST_ROW = { title: 'Style it', product_title_en: 'Cotton panjabi', product_title_bn: 'সুতির পাঞ্জাবি', post_type: 'IDEA' };
+
+test('the post author hears about a comment once, with a link that opens the thread', () => capturing(async (sent) => {
+  const db = makeDb({ postRow: { audience: 'EVERYONE', ...POST_ROW } });
+  await addComment(db, { id: 20, roles: ['customer'] }, 7, { body: 'Great idea, thank you for sharing it with everyone here.' });
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].userId, 10);
+  assert.equal(sent[0].templateKey, 'COMMUNITY_COMMENT');
+  assert.equal(sent[0].data.linkUrl, '/community?post=7&comments=1');
+  assert.equal(sent[0].data.postId, 7);
+  assert.ok(sent[0].data.excerpt.startsWith('Great idea'));
+}));
+
+test('nobody is told about their own comment, and a muted or already-notified author is not told again', () => capturing(async (sent) => {
+  const db = makeDb({ postRow: { audience: 'EVERYONE' } });
+  await addComment(db, { id: 10, roles: ['supplier'] }, 7, { body: 'replying on my own post' });
+  assert.equal(sent.length, 0, 'the author commenting on their own post');
+
+  db.unreadCommentNotice = true;
+  await addComment(db, { id: 20, roles: ['customer'] }, 7, { body: 'a second comment' });
+  assert.equal(sent.length, 0, 'an unread comment notification for this post already exists');
+
+  db.unreadCommentNotice = false;
+  db.muted = true;
+  await addComment(db, { id: 20, roles: ['customer'] }, 7, { body: 'a third comment' });
+  assert.equal(sent.length, 0, 'the author muted community notifications');
+
+  db.muted = false;
+  await addComment(db, { id: 20, roles: ['customer'] }, 7, { body: 'a fourth comment' });
+  assert.equal(sent.length, 1);
+}));
+
+test('a moderator decision tells the author, and keeping a post that was never hidden tells nobody', () => capturing(async (sent) => {
+  const staff = { id: 99, roles: ['moderator'] };
+  const db = makeDb({ post: { id: 7, status: 'PUBLISHED', author_id: '10', post_type: 'IDEA', hidden_reason: null }, postRow: POST_ROW });
+  await moderatePost(db, staff, 7, 'KEEP');
+  assert.equal(sent.length, 0, 'nothing changed for the author');
+  await moderatePost(db, staff, 7, 'HIDE');
+  await moderatePost(db, staff, 7, 'KEEP');
+  await moderatePost(db, staff, 7, 'REMOVE');
+  assert.deepEqual(sent.map((s) => s.templateKey), ['COMMUNITY_POST_HIDDEN', 'COMMUNITY_POST_RESTORED', 'COMMUNITY_POST_REMOVED']);
+  assert.ok(sent.every((s) => s.userId === 10));
+  assert.equal(sent[0].data.linkUrl, '/community?post=7');
+  assert.equal(sent[2].data.linkUrl, '/community', 'a removed post has nothing to open');
+  assert.equal(sent[0].data.postLabelEn, '"Style it"');
+}));
+
+test('a moderator acting on their own post is not told about it', () => capturing(async (sent) => {
+  const db = makeDb({ post: { id: 7, status: 'PUBLISHED', author_id: '99', post_type: 'IDEA', hidden_reason: null }, postRow: { author_id: '99', ...POST_ROW } });
+  await moderatePost(db, { id: 99, roles: ['admin'] }, 7, 'HIDE');
+  assert.equal(sent.length, 0);
+}));
+
+test('the report that auto-hides a post tells its author; a report below the threshold does not', () => capturing(async (sent) => {
+  const db = makeDb({ threshold: 2, post: { id: 7, status: 'PUBLISHED', author_id: '10', post_type: 'IDEA', hidden_reason: null }, postRow: POST_ROW });
+  await reportPost(db, reporter(1), 7, { reason: 'SPAM' });
+  assert.equal(sent.length, 0);
+  await reportPost(db, reporter(2), 7, { reason: 'SPAM' });
+  assert.deepEqual(sent.map((s) => [s.userId, s.templateKey]), [[10, 'COMMUNITY_POST_AUTO_HIDDEN']]);
+}));
+
+test('staff removing a comment tells its author, with the text', () => capturing(async (sent) => {
+  const db = makeDb({ postRow: { audience: 'EVERYONE' } });
+  const c = (await addComment(db, { id: 20, roles: ['customer'] }, 7, { body: 'rude words here' })).comment;
+  sent.length = 0;
+  await removeCommentAsStaff(db, { id: 99, roles: ['moderator'] }, c.id);
+  assert.deepEqual(sent.map((s) => [s.userId, s.templateKey, s.data.excerpt]), [[20, 'COMMUNITY_COMMENT_REMOVED', 'rude words here']]);
+}));
+
+test('a notification that fails to send never fails the comment or the decision', async () => {
+  const real = notifier.send;
+  notifier.send = async () => { throw new Error('notification service is down'); };
+  const warn = console.warn;
+  console.warn = () => {};
+  try {
+    const db = makeDb({ post: { id: 7, status: 'PUBLISHED', author_id: '10', post_type: 'IDEA', hidden_reason: null }, postRow: { audience: 'EVERYONE', ...POST_ROW } });
+    assert.equal((await addComment(db, { id: 20, roles: ['customer'] }, 7, { body: 'still saved' })).comment_count, 1);
+    assert.equal((await moderatePost(db, { id: 99, roles: ['admin'] }, 7, 'HIDE')).status, 'HIDDEN');
+  } finally {
+    notifier.send = real;
+    console.warn = warn;
+  }
+});
+
+test('post labels and excerpts read well in both languages', () => {
+  assert.deepEqual(postLabels({ post_type: 'IDEA', title: 'Style it' }), { postLabelEn: '"Style it"', postLabelBn: '"Style it"' });
+  assert.equal(postLabels({ post_type: 'REVIEW', product_title_en: 'Cotton panjabi', product_title_bn: 'সুতির পাঞ্জাবি' }).postLabelEn, 'review on "Cotton panjabi"');
+  assert.equal(postLabels({ post_type: 'REVIEW', product_title_bn: 'সুতির পাঞ্জাবি' }).postLabelBn, '"সুতির পাঞ্জাবি" নিয়ে রিভিউ');
+  assert.equal(postLabels({ post_type: 'UPDATE' }).postLabelEn, 'product update');
+  assert.equal(excerpt('  a   b\n c '), 'a b c');
+  assert.equal(excerpt('x'.repeat(200)).length, 80);
+  assert.equal(postLink(5), '/community?post=5');
+  assert.equal(postLink(5, { comments: true }), '/community?post=5&comments=1');
+});
+
+test('the notifications migration adds the COMMUNITY category and every template the code sends', () => {
+  const sql = read('server', 'src', 'db', 'migrations', '084_community_notifications.sql');
+  assert.ok(sql.includes("''COMMUNITY''"), 'both CHECKs gain the category');
+  const sentKeys = ['COMMUNITY_COMMENT', 'COMMUNITY_POST_AUTO_HIDDEN', 'COMMUNITY_POST_HIDDEN', 'COMMUNITY_POST_REMOVED', 'COMMUNITY_POST_RESTORED', 'COMMUNITY_COMMENT_REMOVED'];
+  const code = read('server', 'src', 'services', 'communityNotify.service.ts');
+  for (const key of sentKeys) assert.ok(sql.includes(`('${key}', 'COMMUNITY'`), `${key} is not a template`);
+  // The outcomes the service passes build exactly these keys.
+  for (const outcome of ['AUTO_HIDDEN', 'HIDDEN', 'REMOVED', 'RESTORED']) assert.ok(sentKeys.includes(`COMMUNITY_POST_${outcome}`));
+  assert.ok(code.includes("templateKey: 'COMMUNITY_COMMENT'") && code.includes("templateKey: 'COMMUNITY_COMMENT_REMOVED'"));
+  // Moderation notices always arrive; only the comment one respects a mute.
+  const rows = [...sql.matchAll(/\('(COMMUNITY_[A-Z_]+)', 'COMMUNITY',[\s\S]*?'\["INAPP"\]'::jsonb, (true|false)\)/g)].map((m) => [m[1], m[2]]);
+  assert.deepEqual(Object.fromEntries(rows), {
+    COMMUNITY_COMMENT: 'false', COMMUNITY_POST_AUTO_HIDDEN: 'true', COMMUNITY_POST_HIDDEN: 'true',
+    COMMUNITY_POST_REMOVED: 'true', COMMUNITY_POST_RESTORED: 'true', COMMUNITY_COMMENT_REMOVED: 'true',
+  });
 });
 
 // ── Saved posts ─────────────────────────────────────────────────────────────────────────────
