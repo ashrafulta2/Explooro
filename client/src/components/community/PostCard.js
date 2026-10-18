@@ -35,19 +35,60 @@ function facetBar(label, value) {
   return el('div', 'cm-bar', [el('span', 'cm-bar__label', label), track, el('span', 'cm-bar__value', `${formatNumber(value)}/5`)]);
 }
 
+// What a reader weighs before opening the product, as label/value pairs. A fact the API did not
+// send is left out, so a thin product shows a short list and never an empty slot.
+function productFacts(product, lang) {
+  const facts = [];
+  if (product.rating_avg != null && product.rating_count > 0) {
+    const value = el('span', 'cm-pfact__rating', [
+      icon('star', 'cm-star__icon'),
+      el('strong', '', product.rating_avg.toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })),
+      el('span', 'cm-pfact__muted', t('community.card.prod_rating_count', { n: formatNumber(product.rating_count) })),
+    ]);
+    facts.push([t('community.card.prod_rating'), value]);
+  }
+  if (product.sold_count > 0) facts.push([t('community.card.prod_sold'), t('community.card.prod_sold_n', { n: formatNumber(product.sold_count) })]);
+  const category = lang === 'bn' ? product.category_bn || product.category_en : product.category_en || product.category_bn;
+  if (category) facts.push([t('community.card.prod_category'), category]);
+  if (product.availability) {
+    const key = { IN: 'in_stock', LOW: 'low_stock', OUT: 'out_of_stock' }[product.availability];
+    if (key) {
+      facts.push([t('community.card.prod_availability'),
+        el('span', `cm-pfact__stock cm-pfact__stock--${product.availability.toLowerCase()}`, t(`community.card.prod_${key}`))]);
+    }
+  }
+  if (product.supplier_name) facts.push([t('community.card.prod_supplier'), product.supplier_name]);
+  if (!facts.length) return null;
+  return el('dl', 'cm-pfacts', facts.map(([label, value]) => el('div', 'cm-pfact', [el('dt', '', label), el('dd', '', value)])));
+}
+
 function productRow(post, { cta = null, note = '' } = {}) {
   if (!post.product) return null;
   const lang = getLanguage();
   const row = el('div', 'cm-product');
-  row.append(el('div', 'cm-product__thumb', icon('package')));
-  const text = el('div', 'cm-product__text', [
-    el('a', 'cm-product__name', productTitle(post.product, lang), { href: `/product/${post.product.ref}` }),
-    note ? el('span', 'cm-product__note', note) : null,
-  ]);
-  row.append(text);
-  if (cta) {
-    row.append(el('a', 'btn btn--primary btn--sm cm-product__cta', cta, { href: `/product/${post.product.ref}` }));
+  const href = `/product/${post.product.ref}`;
+  // WHY: the picture lets a reader recognise the product without opening it; no photo falls back to the icon.
+  const thumb = el('a', 'cm-product__thumb', null, { href, tabindex: '-1', 'aria-hidden': 'true' });
+  if (post.product.image_url) {
+    thumb.append(el('img', 'cm-product__img', null, { src: post.product.image_url, alt: '', loading: 'lazy' }));
+  } else {
+    thumb.append(icon('package'));
   }
+  row.append(thumb);
+  const text = el('div', 'cm-product__text', [
+    el('div', 'cm-product__head', [
+      el('a', 'cm-product__name', productTitle(post.product, lang), { href }),
+      post.product.price != null ? el('span', 'cm-product__price', formatBdt(post.product.price)) : null,
+    ]),
+    note ? el('span', 'cm-product__note', note) : null,
+    productFacts(post.product, lang),
+  ]);
+  // WHY: the button sits under the name, beside the picture, so the row reads as one card
+  // (picture | name + action) instead of a button stranded at the far edge.
+  if (cta) {
+    text.append(el('a', 'btn btn--primary btn--sm cm-product__cta', cta, { href }));
+  }
+  row.append(text);
   return row;
 }
 

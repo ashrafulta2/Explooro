@@ -255,6 +255,16 @@ export function serializePost(row, media = []) {
     product: row.product_id == null ? null : {
       id: row.product_id, ref: row.product_ref, slug: row.product_slug,
       title_en: row.product_title_en, title_bn: row.product_title_bn, price: row.product_price,
+      // WHY: facts a reader weighs before opening the product. Availability is a word, never the raw
+      // stock number, so a supplier's exact inventory is not published to every reader of the feed.
+      rating_avg: row.product_rating_avg == null ? null : Number(row.product_rating_avg),
+      rating_count: row.product_rating_count ?? 0,
+      sold_count: row.product_sold_count ?? 0,
+      availability: row.product_stock_qty == null ? null
+        : row.product_stock_qty <= 0 ? 'OUT' : row.product_stock_qty <= (row.product_low_stock ?? 5) ? 'LOW' : 'IN',
+      category_en: row.product_category_en ?? null, category_bn: row.product_category_bn ?? null,
+      supplier_name: row.product_supplier_name ?? null,
+      image_url: row.product_image_key ? getStorageDriver().getPublicUrl(row.product_image_key) : null,
     },
   };
 }

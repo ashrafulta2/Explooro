@@ -17,6 +17,18 @@ const POST_SELECT = `
                     ORDER BY vs.id LIMIT 1), up.display_name, up.full_name) AS author_name,
          pr.ref AS product_ref, pr.title_en AS product_title_en, pr.title_bn AS product_title_bn,
          pr.default_retail_price AS product_price, pr.slug AS product_slug,
+         pr.rating_avg AS product_rating_avg, pr.rating_count AS product_rating_count,
+         pr.sold_count AS product_sold_count, pr.stock_qty AS product_stock_qty,
+         pr.low_stock_threshold AS product_low_stock, pc.name_en AS product_category_en,
+         pc.name_bn AS product_category_bn,
+         (SELECT COALESCE(vs2.shop_name, sp.display_name, sp.full_name)
+            FROM user_profiles sp
+            LEFT JOIN virtual_stores vs2 ON vs2.saler_id = pr.supplier_id AND vs2.deleted_at IS NULL
+           WHERE sp.user_id = pr.supplier_id LIMIT 1) AS product_supplier_name,
+         (SELECT m.storage_key FROM product_images pi
+            JOIN media_assets m ON m.id = pi.media_id
+           WHERE pi.product_id = pr.id
+           ORDER BY pi.is_primary DESC, pi.display_order ASC LIMIT 1) AS product_image_key,
          (SELECT COUNT(*)::int FROM community_post_reports r
            WHERE r.post_id = p.id AND r.status = 'OPEN') AS open_report_count,
          (SELECT COUNT(*)::int FROM community_post_comments c
@@ -28,7 +40,8 @@ const POST_SELECT = `
                   WHERE sv.post_id = p.id AND sv.user_id = $1) AS saved_by_me
   FROM community_posts p
   LEFT JOIN user_profiles up ON up.user_id = p.author_id
-  LEFT JOIN products pr ON pr.id = p.product_id`;
+  LEFT JOIN products pr ON pr.id = p.product_id
+  LEFT JOIN categories pc ON pc.id = pr.category_id`;
 
 /**
  * One page of the timeline. `$1` is the viewer (null for a guest, so liked_by_me is false).

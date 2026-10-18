@@ -36,6 +36,9 @@ const AUDIENCE_OF = { customer: 'CUSTOMERS', supplier: 'SUPPLIERS', saler: 'SHOP
 const PRODUCT = {
   id: 101, ref: 'PRD-PANJABI', slug: 'cotton-panjabi-navy', price: 1150,
   title_en: 'Cotton panjabi, navy', title_bn: 'সুতির পাঞ্জাবি, নেভি',
+  rating_avg: 4.6, rating_count: 128, sold_count: 342, availability: 'IN',
+  category_en: "Men's fashion", category_bn: 'পুরুষের ফ্যাশন', supplier_name: 'Dhaka Textiles',
+  image_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=60',
 };
 
 const ME = {
@@ -192,6 +195,11 @@ function serialize(p, user) {
     product: p.product ? {
       id: p.product.id, ref: p.product.ref, slug: p.product.slug,
       title_en: p.product.title_en, title_bn: p.product.title_bn, price: p.product.price,
+      rating_avg: p.product.rating_avg ?? null, rating_count: p.product.rating_count ?? 0,
+      sold_count: p.product.sold_count ?? 0, availability: p.product.availability ?? null,
+      category_en: p.product.category_en ?? null, category_bn: p.product.category_bn ?? null,
+      supplier_name: p.product.supplier_name ?? null,
+      image_url: p.product.image_url ?? '/placeholder-product.svg',
     } : null,
   };
 }
@@ -425,7 +433,8 @@ export const communityHandlers = [
           return fail(orderItem && posts.some((p) => p.orderItem === orderItem) ? 409 : 400, orderItem && posts.some((p) => p.orderItem === orderItem) ? 'CONFLICT' : 'VALIDATION_FAILED',
             'You can review a product after it is delivered to you.', 'পণ্যটি আপনার কাছে ডেলিভারি হওয়ার পর রিভিউ দিতে পারবেন।', 'order_item_id');
         }
-        if (orderItem === 4830) product = { id: 102, ref: 'PRD-LEATHER-BAG', slug: 'leather-crossbody-bag', price: 2450, title_en: 'Leather crossbody bag', title_bn: 'চামড়ার ক্রসবডি ব্যাগ' };
+        if (orderItem === 4830) product = { id: 102, ref: 'PRD-LEATHER-BAG', slug: 'leather-crossbody-bag', price: 2450, title_en: 'Leather crossbody bag', title_bn: 'চামড়ার ক্রসবডি ব্যাগ',
+          image_url: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&auto=format&fit=crop&q=60' };
       } else if (Number(body.product_id) !== PRODUCT.id) {
         return fail(403, 'PERMISSION_DENIED', 'Pick a product that is yours to post about.', 'যে পণ্যটি আপনার, শুধু সেটি নিয়েই পোস্ট করতে পারবেন।', 'product_id');
       }
