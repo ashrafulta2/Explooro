@@ -122,6 +122,15 @@ export async function getQueue({ limit, offset } = {}) {
   return data;
 }
 
+/**
+ * Changes how many reports hide a post (community.settings.update). `reason` is at least 10 characters.
+ * @returns {Promise<{auto_hide_report_threshold: number, previous: number}>}
+ */
+export async function updateThreshold(value, reason) {
+  const { data } = await api.put('/admin/community/settings', { auto_hide_report_threshold: value, reason });
+  return data;
+}
+
 /** @param {'KEEP'|'HIDE'|'REMOVE'} action */
 export async function moderatePost(postId, action) {
   const { data } = await api.post(`/admin/community/posts/${postId}/moderate`, { action });

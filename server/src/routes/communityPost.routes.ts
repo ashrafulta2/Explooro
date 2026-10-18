@@ -83,6 +83,19 @@ export default async function communityPostRoutes(app) {
     preHandler: [app.authenticate, requireModule, app.requirePermission('community.post.moderate')],
   }, controller.getQueue);
 
+  // The one business number of this feature (how many reports hide a post). Viewing it needs only
+  // moderate (the queue returns it); changing it needs its own permission and a reason.
+  app.put('/admin/community/settings', {
+    preHandler: [app.authenticate, requireModule, app.requirePermission('community.settings.update')],
+    schema: {
+      body: { type: 'object', additionalProperties: false, required: ['auto_hide_report_threshold', 'reason'], properties: {
+        // Type only: the range is the service's rule.
+        auto_hide_report_threshold: { type: 'number' },
+        reason: { type: 'string', minLength: 10, maxLength: 500 },
+      } },
+    },
+  }, controller.updateSettings);
+
   app.post('/admin/community/posts/:id/moderate', {
     preHandler: [app.authenticate, requireModule, app.requirePermission('community.post.moderate')],
     schema: {

@@ -16,6 +16,7 @@ import {
   validateDraft, resolveAuthorRole, visibleAudiences, serializePost, reportPost, moderatePost,
   getAutoHideThreshold, ROLE_POST, REPORT_REASONS, MODERATE_ACTIONS, THRESHOLD_LIMITS,
   validateMediaIds, mediaKind, createPost, createAnnouncement, LIMITS,
+  validateThreshold, updateAutoHideThreshold,
 } from '../src/services/communityPost.service.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -24,13 +25,18 @@ const read = (...p) => readFileSync(path.join(ROOT, ...p), 'utf8');
 /** An in-memory stand-in for the pool: just the queries reportPost / moderatePost make. */
 function makeDb({ threshold = null, post = { id: 1, status: 'PUBLISHED', author_id: 10, post_type: 'REVIEW', hidden_reason: null }, media = [] } = {}) {
   // `media` is the uploads that exist: { id, mime_type, storage_key, owner_id, purpose, used }.
-  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0 };
+  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [] };
   const query = async (sql, params = []) => {
     const q = sql.replace(/\s+/g, ' ').trim();
     state.calls.push(q.slice(0, 40));
     if (q === 'BEGIN' || q === 'COMMIT' || q === 'ROLLBACK') return { rows: [], rowCount: 0 };
+    if (q.startsWith('INSERT INTO platform_settings')) {
+      state.threshold = JSON.parse(params[1]);
+      state.upserts.push({ key: params[0], value: state.threshold, updatedBy: params[7] });
+      return { rows: [{ key: params[0], value_json: state.threshold }] };
+    }
     if (q.includes('FROM platform_settings')) {
-      return { rows: threshold === null ? [] : [{ key: 'community.auto_hide_report_threshold', value_json: threshold }] };
+      return { rows: state.threshold === null ? [] : [{ key: 'community.auto_hide_report_threshold', value_json: state.threshold }] };
     }
     if (q.includes('FROM community_posts WHERE id = $1 FOR UPDATE')) return { rows: state.post.id === params[0] ? [{ ...state.post }] : [] };
     if (q.startsWith('INSERT INTO community_post_reports')) {
@@ -234,6 +240,46 @@ test('Remove is final and unknown actions are refused', async () => {
   assert.deepEqual(MODERATE_ACTIONS, ['KEEP', 'HIDE', 'REMOVE']);
 });
 
+// ── The auto-hide setting ───────────────────────────────────────────────────────────────────
+
+test('the threshold must be a whole number inside the limits, and is refused rather than clamped', () => {
+  assert.equal(validateThreshold(THRESHOLD_LIMITS.min), THRESHOLD_LIMITS.min);
+  assert.equal(validateThreshold(THRESHOLD_LIMITS.max), THRESHOLD_LIMITS.max);
+  for (const bad of [THRESHOLD_LIMITS.min - 1, THRESHOLD_LIMITS.max + 1, 5.5, '5', NaN, null, undefined, -3]) {
+    assert.throws(() => validateThreshold(bad), { code: 'VALIDATION_FAILED' }, `${String(bad)} should be refused`);
+  }
+});
+
+test('changing the threshold saves it, applies to the next report, and audits before, after and the reason', async () => {
+  const db = makeDb({ threshold: 5 });
+  const staff = { id: 99, roles: ['admin'] };
+  const out = await updateAutoHideThreshold(db, staff, { value: 3, reason: 'Too many abusive posts stay up' });
+  assert.deepEqual(out, { auto_hide_report_threshold: 3, previous: 5 });
+  assert.deepEqual(db.upserts, [{ key: 'community.auto_hide_report_threshold', value: 3, updatedBy: 99 }]);
+  assert.equal(await getAutoHideThreshold(db), 3);
+  const audit = db.audit.at(-1);
+  assert.equal(audit.action, 'community.settings.update');
+  assert.equal(audit.after.auto_hide_report_threshold, 3);
+  assert.equal(audit.after.meta.reason, 'Too many abusive posts stay up');
+
+  // The new number is what the very next report is measured against.
+  await reportPost(db, reporter(1), 1, { reason: 'SPAM' });
+  await reportPost(db, reporter(2), 1, { reason: 'SPAM' });
+  assert.equal(db.post.status, 'PUBLISHED');
+  assert.equal((await reportPost(db, reporter(3), 1, { reason: 'SPAM' })).auto_hidden, true);
+});
+
+test('a bad value or a missing reason changes nothing and writes no audit row', async () => {
+  const db = makeDb({ threshold: 5 });
+  const staff = { id: 99, roles: ['admin'] };
+  await assert.rejects(() => updateAutoHideThreshold(db, staff, { value: 1, reason: 'long enough reason' }), { code: 'VALIDATION_FAILED' });
+  await assert.rejects(() => updateAutoHideThreshold(db, staff, { value: 4, reason: 'short' }), { code: 'VALIDATION_FAILED' });
+  await assert.rejects(() => updateAutoHideThreshold(db, staff, { value: 4 }), { code: 'VALIDATION_FAILED' });
+  assert.equal(db.upserts.length, 0);
+  assert.equal(db.audit.length, 0);
+  assert.equal(await getAutoHideThreshold(db), 5);
+});
+
 // ── Photos and video ────────────────────────────────────────────────────────────────────────
 
 test('a post names at most four distinct, valid files', () => {
@@ -315,9 +361,12 @@ test('the media migration allows the COMMUNITY purpose and lets a file sit on on
 test('the permissions and the module exist where the routes expect them', () => {
   const catalog = JSON.parse(read('docs', 'permission-catalog.json'));
   const byKey = new Map(catalog.permissions.map((p) => [p.key, p]));
-  for (const key of ['community.post.create_own', 'community.post.report', 'community.post.announce', 'community.post.moderate']) {
+  for (const key of ['community.post.create_own', 'community.post.report', 'community.post.announce', 'community.post.moderate', 'community.settings.update']) {
     assert.ok(byKey.has(key), `${key} is missing from the catalog`);
   }
+  // Changing the business number is staff-only and sits above the everyday moderate permission.
+  assert.deepEqual([...byKey.get('community.settings.update').default_roles].sort(), ['admin', 'super_admin']);
+  assert.equal(byKey.get('community.settings.update').risk_tier, 'MEDIUM');
   assert.ok(byKey.get('community.post.create_own').default_roles.includes('customer'));
   assert.ok(byKey.get('community.post.moderate').default_roles.includes('moderator'));
   assert.equal(byKey.get('community.post.announce').default_roles.includes('customer'), false);
@@ -328,7 +377,7 @@ test('the permissions and the module exist where the routes expect them', () => 
   assert.match(read('server', 'src', 'db', 'seeds', '003_modules.sql'), /\('community_posts'/);
 
   const routes = read('server', 'src', 'routes', 'communityPost.routes.ts');
-  for (const key of ['community.post.create_own', 'community.post.report', 'community.post.announce', 'community.post.moderate']) {
+  for (const key of ['community.post.create_own', 'community.post.report', 'community.post.announce', 'community.post.moderate', 'community.settings.update']) {
     assert.ok(routes.includes(`'${key}'`), `${key} is not enforced by any route`);
   }
 });

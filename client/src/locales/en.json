@@ -393,6 +393,18 @@
         "KEEP": "Post kept live",
         "HIDE": "Post hidden",
         "REMOVE": "Post removed"
+      },
+      "settings": {
+        "title": "Auto-hide setting",
+        "label": "Reports before a post is hidden",
+        "reason": "Reason for the change",
+        "reason_ph": "Why are you changing this?",
+        "hint": "A whole number from {{min}} to {{max}}. It applies from the next report. The change and your reason are written to the audit log.",
+        "save": "Save",
+        "saved": "Setting saved",
+        "range": "Enter a whole number from {{min}} to {{max}}.",
+        "unchanged": "That is already the current value.",
+        "reason_short": "Give a reason of at least {{n}} characters."
       }
     },
     "media": {

@@ -15,12 +15,63 @@ import { confirmDialog } from '../ui/ConfirmDialog.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatNumber } from '../../services/format.js';
-import { getQueue, moderatePost, errorText } from '../../services/community.api.js';
+import { can } from '../../services/permissions.js';
+import { getQueue, moderatePost, updateThreshold, errorText } from '../../services/community.api.js';
 
 function preview(post) {
   const d = post.details || {};
   const text = post.title || post.body || d.liked || d.could_improve || (d.steps || [])[0] || productTitle(post.product, getLanguage());
   return String(text || '').slice(0, 140);
+}
+
+const MIN_REASON = 10; // mirrors the server's rule for a settings change
+
+/**
+ * The auto-hide threshold. Everyone who can see the queue sees the rule; only a holder of
+ * community.settings.update gets the form (changing it needs a reason, which goes in the audit log).
+ */
+function thresholdPanel({ threshold, limits, onSaved }) {
+  const rule = el('p', 'cm-callout', t('community.mod.rule', { n: formatNumber(threshold) }));
+  if (!can('community.settings.update')) return rule;
+
+  const num = el('input', 'input cm-settings__num', null, { type: 'number', min: limits.min, max: limits.max, step: 1, value: threshold, 'aria-label': t('community.mod.settings.label') });
+  const reason = el('input', 'input', null, { type: 'text', maxlength: 500, placeholder: t('community.mod.settings.reason_ph'), 'aria-label': t('community.mod.settings.reason') });
+  const error = el('p', 'cm-composer__error cm-settings__error', '', { role: 'alert' });
+  const save = Button({
+    label: t('community.mod.settings.save'),
+    size: 'sm',
+    onClick: async () => {
+      error.textContent = '';
+      const value = Number(num.value);
+      if (!Number.isInteger(value) || value < limits.min || value > limits.max) {
+        error.textContent = t('community.mod.settings.range', { min: formatNumber(limits.min), max: formatNumber(limits.max) });
+        return;
+      }
+      if (value === threshold) { error.textContent = t('community.mod.settings.unchanged'); return; }
+      if (reason.value.trim().length < MIN_REASON) { error.textContent = t('community.mod.settings.reason_short', { n: formatNumber(MIN_REASON) }); return; }
+      save.disabled = true;
+      try {
+        await updateThreshold(value, reason.value.trim());
+        toast.success(t('community.mod.settings.saved'));
+        onSaved();
+      } catch (err) {
+        error.textContent = errorText(err) || t('community.error.generic');
+        save.disabled = false;
+      }
+    },
+  });
+
+  return el('div', 'cm-settings', [
+    el('h4', 'cm-settings__title', t('community.mod.settings.title')),
+    rule,
+    el('div', 'cm-settings__row', [
+      el('label', 'cm-settings__field', [el('span', 'cm-field__label', t('community.mod.settings.label')), num]),
+      el('label', 'cm-settings__field cm-settings__field--wide', [el('span', 'cm-field__label', t('community.mod.settings.reason')), reason]),
+      save,
+    ]),
+    el('p', 'cm-field__hint', t('community.mod.settings.hint', { min: formatNumber(limits.min), max: formatNumber(limits.max) })),
+    error,
+  ]);
 }
 
 function statCard(label, value) {
@@ -80,7 +131,7 @@ export function ModerationQueue({ onChanged } = {}) {
 
   async function load() {
     try {
-      const { items, stats, threshold } = await getQueue();
+      const { items, stats, threshold, threshold_limits: limits } = await getQueue();
       head.replaceChildren(
         el('div', 'cm-stats', [
           statCard(t('community.mod.stat.open'), stats.open_reports),
@@ -88,7 +139,7 @@ export function ModerationQueue({ onChanged } = {}) {
           statCard(t('community.mod.stat.hidden'), stats.hidden_this_week),
           statCard(t('community.mod.stat.hours'), stats.avg_review_hours),
         ]),
-        el('p', 'cm-callout', t('community.mod.rule', { n: formatNumber(threshold) })),
+        thresholdPanel({ threshold, limits, onSaved: load }),
       );
       list.replaceChildren(...(items.length
         ? items.map(row)

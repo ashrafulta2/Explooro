@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (205 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (206 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -178,6 +178,7 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('community.post.create_own', 'community', 'Write community posts', 'কমিউনিটি পোস্ট লেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('community.post.report', 'community', 'Report community posts', 'কমিউনিটি পোস্ট রিপোর্ট করা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('community.post.announce', 'community', 'Post community announcements', 'কমিউনিটি ঘোষণা প্রকাশ', 'post and pin announcements that every member of the chosen audience sees on the timeline', 'নির্বাচিত দর্শকদের সবাই টাইমলাইনে দেখবে এমন ঘোষণা প্রকাশ ও পিন করতে', 'MEDIUM', true, 'approve_before'),
+  ('community.settings.update', 'community', 'Change community moderation settings', 'কমিউনিটি মডারেশন সেটিং পরিবর্তন', 'change how many reports hide a community post until a moderator decides', 'কতগুলো রিপোর্টে মডারেটর সিদ্ধান্ত না নেওয়া পর্যন্ত কমিউনিটি পোস্ট লুকিয়ে যাবে তা বদলাতে', 'MEDIUM', true, 'approve_before'),
   ('community.post.moderate', 'community', 'Moderate community posts', 'কমিউনিটি পোস্ট মডারেট করা', 'review reported posts and keep, hide or remove them', 'রিপোর্ট করা পোস্ট দেখে রাখা, লুকানো বা সরানোর সিদ্ধান্ত নিতে', 'MEDIUM', true, 'approve_before'),
   ('content.dashboard.view', 'content', 'View content dashboard', 'কনটেন্ট ড্যাশবোর্ড দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('content.banner.publish', 'content', 'Publish homepage banners', 'হোমপেজ ব্যানার প্রকাশ', NULL, NULL, 'LOW', true, 'approve_before'),
@@ -547,6 +548,8 @@ FROM (VALUES
   ('super_admin', 'community.post.report'),
   ('admin', 'community.post.announce'),
   ('super_admin', 'community.post.announce'),
+  ('admin', 'community.settings.update'),
+  ('super_admin', 'community.settings.update'),
   ('moderator', 'community.post.moderate'),
   ('admin', 'community.post.moderate'),
   ('super_admin', 'community.post.moderate'),

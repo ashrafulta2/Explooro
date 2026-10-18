@@ -18,8 +18,10 @@
 import { appStore } from '../../state/appStore.js';
 import { resolveMockMedia } from './media.js';
 
-// Mirrors THRESHOLD_LIMITS.fallback in server/src/services/communityPost.service.ts.
-const AUTO_HIDE_THRESHOLD = 5;
+// Mirrors THRESHOLD_LIMITS in server/src/services/communityPost.service.ts; the value changes through
+// PUT /admin/community/settings, like the platform_settings row it stands for.
+const THRESHOLD_LIMITS = { min: 2, max: 50 };
+let autoHideThreshold = 5;
 
 const ROLE_POST = {
   customer: { type: 'REVIEW', kinds: ['REVIEW'] },
@@ -350,7 +352,7 @@ export const communityHandlers = [
       if (post.authorId === user.id) return fail(403, 'FORBIDDEN', 'You cannot report your own post.', 'নিজের পোস্ট রিপোর্ট করা যায় না।');
       const already = reports.some((r) => r.postId === post.id && r.reporterId === `u${user.id}`);
       if (!already) reports.push({ postId: post.id, reporterId: `u${user.id}`, reason: body.reason, status: 'OPEN' });
-      const autoHidden = !already && openReports(post.id).length >= AUTO_HIDE_THRESHOLD;
+      const autoHidden = !already && openReports(post.id).length >= autoHideThreshold;
       if (autoHidden) { post.status = 'HIDDEN'; post.hiddenReason = 'REPORTS'; }
       return { status: 200, body: { data: { reported: !already, already_reported: already, auto_hidden: autoHidden } } };
     },
@@ -373,11 +375,32 @@ export const communityHandlers = [
       });
       return {
         status: 200,
-        body: { data: { items, threshold: AUTO_HIDE_THRESHOLD, stats: {
+        body: { data: { items, threshold: autoHideThreshold, threshold_limits: THRESHOLD_LIMITS, stats: {
           open_reports: new Set(reports.filter((r) => r.status === 'OPEN').map((r) => r.postId)).size,
           posts_today: 128, hidden_this_week: 2 + posts.filter((p) => p.status === 'HIDDEN').length, avg_review_hours: 3,
         } } },
       };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/admin/community/settings',
+    handler({ body = {} }) {
+      const { role } = viewer();
+      if (!['admin', 'super_admin'].includes(role)) {
+        return fail(403, 'PERMISSION_DENIED', "You don't have access to this action.", 'এই কাজটি করার অনুমতি আপনার নেই।');
+      }
+      const value = body.auto_hide_report_threshold;
+      if (typeof value !== 'number' || !Number.isInteger(value) || value < THRESHOLD_LIMITS.min || value > THRESHOLD_LIMITS.max) {
+        return fail(400, 'VALIDATION_FAILED', `Enter a whole number from ${THRESHOLD_LIMITS.min} to ${THRESHOLD_LIMITS.max}.`,
+          `${THRESHOLD_LIMITS.min} থেকে ${THRESHOLD_LIMITS.max} এর মধ্যে একটি পূর্ণসংখ্যা দিন।`, 'auto_hide_report_threshold');
+      }
+      if (typeof body.reason !== 'string' || body.reason.trim().length < 10) {
+        return fail(400, 'VALIDATION_FAILED', 'Give a reason of at least 10 characters for this change.', 'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।', 'reason');
+      }
+      const previous = autoHideThreshold;
+      autoHideThreshold = value;
+      return { status: 200, body: { data: { auto_hide_report_threshold: value, previous } } };
     },
   },
   {

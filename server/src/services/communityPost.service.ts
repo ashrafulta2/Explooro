@@ -21,6 +21,7 @@ import * as repo from '../repositories/communityPost.repository.ts';
 import * as settingRepo from '../repositories/setting.repository.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 
+export const SETTINGS_GROUP = 'community';
 export const THRESHOLD_KEY = 'community.auto_hide_report_threshold';
 export const THRESHOLD_LIMITS = Object.freeze({ min: 2, max: 50, fallback: 5 });
 
@@ -255,6 +256,52 @@ export function serializePost(row, media = []) {
   };
 }
 
+const THRESHOLD_META = {
+  valueType: 'NUMBER',
+  labelEn: 'Reports that auto-hide a community post',
+  labelBn: 'যতগুলো রিপোর্টে কমিউনিটি পোস্ট নিজে থেকে লুকানো হয়',
+};
+
+/**
+ * Pure. The threshold must be a whole number inside THRESHOLD_LIMITS. Strict: out of range is refused,
+ * never clamped, so an admin who types 500 is told, not silently given 50. (The reader above is
+ * forgiving on purpose: a bad stored value falls back so reporting never breaks.)
+ */
+export function validateThreshold(value) {
+  const { min, max } = THRESHOLD_LIMITS;
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) {
+    throw new AppError('VALIDATION_FAILED', `Enter a whole number from ${min} to ${max}.`,
+      `${min} থেকে ${max} এর মধ্যে একটি পূর্ণসংখ্যা দিন।`, { field: 'auto_hide_report_threshold', min, max });
+  }
+  return value;
+}
+
+/**
+ * Changes the auto-hide threshold. Takes effect on the next report. Writes an audit row with the
+ * before and after values and the reason; the settings group is locked first so two admins saving
+ * together cannot record a `before` that never existed.
+ */
+export async function updateAutoHideThreshold(db, user, { value, reason }: Record<string, any> = {}) {
+  const next = validateThreshold(value);
+  if (typeof reason !== 'string' || reason.trim().length < 10) {
+    throw new AppError('VALIDATION_FAILED', 'Give a reason of at least 10 characters for this change.',
+      'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।', { field: 'reason' });
+  }
+  return withTransaction(db, async (client) => {
+    await settingRepo.lockSettingsGroup(client, SETTINGS_GROUP);
+    const before = await getAutoHideThreshold(client);
+    await settingRepo.upsertSetting(client, {
+      key: THRESHOLD_KEY, valueJson: next, groupKey: SETTINGS_GROUP, updatedBy: user.id, ...THRESHOLD_META,
+    });
+    await writeAudit(client, {
+      action: 'community.settings.update', targetType: 'platform_settings', targetRef: THRESHOLD_KEY,
+      actor: user, riskTier: 'MEDIUM', before: { auto_hide_report_threshold: before },
+      after: { auto_hide_report_threshold: next }, meta: { reason: reason.trim() },
+    });
+    return { auto_hide_report_threshold: next, previous: before };
+  });
+}
+
 export async function getAutoHideThreshold(db) {
   const row = await settingRepo.getSettingByKey(db, THRESHOLD_KEY);
   let v = row?.value_json;
@@ -436,6 +483,6 @@ export async function getQueue(db, { limit = 30, offset = 0 }: Record<string, an
   const reasons = Object.fromEntries((await repo.topReasons(db, rows.map((r) => r.id))).map((r) => [r.post_id, r.reason]));
   return {
     items: await serializeWithMedia(db, rows, (r) => ({ top_reason: reasons[r.id] ?? null })),
-    stats, threshold,
+    stats, threshold, threshold_limits: { min: THRESHOLD_LIMITS.min, max: THRESHOLD_LIMITS.max },
   };
 }

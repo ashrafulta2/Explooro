@@ -358,6 +358,15 @@
 .cm-media-picker__badge { position: absolute; bottom: 4px; inset-inline-start: 4px; background: var(--text-primary); color: var(--text-inverse); font-size: var(--text-xs); padding: 1px 6px; border-radius: var(--radius-full); }
 .cm-media-picker__busy { position: absolute; inset: auto 0 0 0; text-align: center; font-size: var(--text-xs); padding: 2px; background: var(--surface-1); color: var(--text-secondary); }
 
+/* ---- Moderation settings ------------------------------------------------------------------ */
+.cm-settings { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-4); display: grid; gap: var(--space-3); }
+.cm-settings__title { margin: 0; font-size: var(--text-base); }
+.cm-settings__row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: flex-end; }
+.cm-settings__field { display: grid; gap: var(--space-1); }
+.cm-settings__field--wide { flex: 1; min-width: 220px; }
+.cm-settings__num { width: 110px; }
+.cm-settings__error { padding: 0; }
+
 /* ---- Moderation queue --------------------------------------------------------------------- */
 .cm-queue { display: grid; gap: var(--space-3); }
 .cm-queue__head { display: grid; gap: var(--space-3); }

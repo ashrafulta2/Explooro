@@ -260,3 +260,52 @@ test('mock: files upload, attach in order, and cannot be reused, borrowed or mix
   assert.equal(call('POST', '/community/posts', { ...body([]), media_ids: undefined }).status, 201, 'a post without files is fine');
   logOutMock();
 });
+
+// ── 5. The auto-hide setting ──────────────────────────────────────────────────────────────
+
+test('mock: only an admin can change the threshold, with a reason, and the queue and the next report use it', () => {
+  const put = (body) => call('PUT', '/admin/community/settings', body);
+  const good = { auto_hide_report_threshold: 6, reason: 'A little more patience before hiding' };
+
+  setMockRole('moderator');
+  assert.equal(put(good).status, 403, 'a moderator can view the queue but not change the rule');
+  assert.equal(call('GET', '/admin/community/queue').body.data.threshold, 5);
+
+  setMockRole('admin');
+  assert.equal(put({ ...good, auto_hide_report_threshold: 1 }).status, 400);
+  assert.equal(put({ ...good, auto_hide_report_threshold: 51 }).status, 400);
+  assert.equal(put({ ...good, auto_hide_report_threshold: 5.5 }).status, 400);
+  assert.equal(put({ ...good, auto_hide_report_threshold: '6' }).status, 400);
+  assert.equal(put({ auto_hide_report_threshold: 6, reason: 'short' }).status, 400);
+  assert.equal(call('GET', '/admin/community/queue').body.data.threshold, 5, 'refused changes leave the value alone');
+
+  const saved = put(good);
+  assert.deepEqual(saved.body.data, { auto_hide_report_threshold: 6, previous: 5 });
+  const queue = call('GET', '/admin/community/queue').body.data;
+  assert.equal(queue.threshold, 6);
+  assert.deepEqual(queue.threshold_limits, { min: 2, max: 50 });
+
+  // Post 2 starts with 1 open report; with the threshold at 6 two more reports must not hide it.
+  setMockRole('saler');
+  assert.equal(call('POST', '/community/posts/2/report', { reason: 'SPAM' }).body.data.auto_hidden, false);
+  setMockRole('supplier');
+  assert.equal(call('POST', '/community/posts/2/report', { reason: 'SPAM' }).body.data.auto_hidden, false);
+  assert.ok(call('GET', '/community/posts').body.data.posts.some((p) => p.id === 2));
+
+  setMockRole('admin');
+  put({ auto_hide_report_threshold: 5, reason: 'Back to the default setting' });
+  assert.equal(call('GET', '/admin/community/queue').body.data.threshold, 5);
+  logOutMock();
+});
+
+test('the settings form is shown only to holders of community.settings.update', () => {
+  const queue = read('components', 'community', 'ModerationQueue.js');
+  assert.match(queue, /can\('community\.settings\.update'\)/);
+  assert.match(queue, /MIN_REASON = 10/);
+  const catalog = JSON.parse(fs.readFileSync(path.resolve(src, '../../docs/permission-catalog.json'), 'utf8'));
+  const perm = catalog.permissions.find((p) => p.key === 'community.settings.update');
+  assert.deepEqual([...perm.default_roles].sort(), ['admin', 'super_admin']);
+  for (const k of ['title', 'label', 'reason', 'reason_ph', 'hint', 'save', 'saved', 'range', 'unchanged', 'reason_short']) {
+    assert.ok(get(en, `community.mod.settings.${k}`) && get(bn, `community.mod.settings.${k}`), `community.mod.settings.${k}`);
+  }
+});

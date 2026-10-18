@@ -44,6 +44,13 @@ export async function getQueue(req, reply) {
   return reply.send({ data: await service.getQueue(dbOf(req), { limit, offset }) });
 }
 
+export async function updateSettings(req, reply) {
+  const result = await service.updateAutoHideThreshold(dbOf(req), req.user, {
+    value: req.body.auto_hide_report_threshold, reason: req.body.reason,
+  });
+  return reply.send({ data: result });
+}
+
 export async function moderatePost(req, reply) {
   const result = await service.moderatePost(dbOf(req), req.user, Number(req.params.id), req.body.action);
   return reply.send({ data: result });
