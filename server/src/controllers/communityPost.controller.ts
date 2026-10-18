@@ -8,9 +8,9 @@ import * as service from '../services/communityPost.service.ts';
 const dbOf = (req) => req.db || req.server?.db;
 
 export async function listPosts(req, reply) {
-  const { type, role, sort, mine, limit, offset } = req.query || {};
+  const { type, role, sort, mine, saved, limit, offset } = req.query || {};
   const { posts, counts, meta } = await service.listTimeline(dbOf(req), req.user ?? null, {
-    type, role, sort, mine: mine === '1' || mine === 'true', limit, offset,
+    type, role, sort, mine: mine === '1' || mine === 'true', saved: saved === '1' || saved === 'true', limit, offset,
   });
   return reply.send({ data: { posts, counts }, meta });
 }
@@ -32,6 +32,10 @@ export async function createAnnouncement(req, reply) {
 export async function toggleLike(req, reply) {
   const result = await service.toggleLike(dbOf(req), req.user, Number(req.params.id));
   return reply.send({ data: { liked: result.liked, like_count: result.likeCount } });
+}
+
+export async function toggleSave(req, reply) {
+  return reply.send({ data: await service.toggleSave(dbOf(req), req.user, Number(req.params.id)) });
 }
 
 export async function reportPost(req, reply) {

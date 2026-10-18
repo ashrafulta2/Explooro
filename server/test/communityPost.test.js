@@ -18,6 +18,7 @@ import {
   validateMediaIds, mediaKind, createPost, createAnnouncement, LIMITS,
   validateThreshold, updateAutoHideThreshold,
   validateCommentBody, serializeComment, addComment, listPostComments, deleteOwnComment, removeCommentAsStaff,
+  toggleSave, listTimeline,
 } from '../src/services/communityPost.service.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -26,7 +27,7 @@ const read = (...p) => readFileSync(path.join(ROOT, ...p), 'utf8');
 /** An in-memory stand-in for the pool: just the queries reportPost / moderatePost make. */
 function makeDb({ postRow = {}, threshold = null, post = { id: 1, status: 'PUBLISHED', author_id: 10, post_type: 'REVIEW', hidden_reason: null }, media = [] } = {}) {
   // `media` is the uploads that exist: { id, mime_type, storage_key, owner_id, purpose, used }.
-  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [], comments: [] };
+  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [], comments: [], saves: new Set(), listSql: [] };
   const query = async (sql, params = []) => {
     const q = sql.replace(/\s+/g, ' ').trim();
     state.calls.push(q.slice(0, 40));
@@ -69,10 +70,19 @@ function makeDb({ postRow = {}, threshold = null, post = { id: 1, status: 'PUBLI
       state.attached.push(...params[1].map((id, i) => ({ post_id: params[0], media_id: id, position: i })));
       return { rows: [], rowCount: params[1].length };
     }
-    if (q.startsWith('SELECT p.id, p.ref')) {
+    if (q.startsWith('SELECT p.id, p.ref') && !q.includes('ORDER BY p.is_pinned')) {
       // pg hands BIGINT back as a string; so does this stand-in, because that is what the service sees live.
       return { rows: [{ id: 7, ref: 'POST-X', author_id: '10', author_role: 'supplier', post_type: 'UPDATE', kind: 'RESTOCK', details: {}, audience: 'SHOP_PARTNERS', status: 'PUBLISHED', like_count: 0, author_name: 'Dhaka Textiles', ...postRow }] };
     }
+    if (q.startsWith('INSERT INTO community_post_saves')) {
+      const key = `${params[0]}:${params[1]}`;
+      if (state.saves.has(key)) return { rows: [], rowCount: 0 };
+      state.saves.add(key);
+      return { rows: [], rowCount: 1 };
+    }
+    if (q.startsWith('DELETE FROM community_post_saves')) { state.saves.delete(`${params[0]}:${params[1]}`); return { rows: [], rowCount: 1 }; }
+    if (q.includes('FROM community_posts p') && q.includes('ORDER BY p.is_pinned')) { state.listSql.push(q); return { rows: [] }; }
+    if (q.includes('FROM community_posts WHERE status') || q.includes('GROUP BY post_type')) return { rows: [] };
     if (q.startsWith('INSERT INTO community_post_comments')) {
       const row = { id: state.comments.length + 1, post_id: params[0], author_id: String(params[1]), body: params[2], status: 'PUBLISHED', created_at: new Date().toISOString(), author_name: 'Member', author_role: 'saler' };
       state.comments.push(row);
@@ -374,6 +384,47 @@ test('the comments migration and permission agree with the code', () => {
   const routes = read('server', 'src', 'routes', 'communityPost.routes.ts');
   assert.ok(routes.includes("'community.comment.create'"));
   assert.match(routes, /app\.delete\('\/community\/comments\/:id'/);
+});
+
+// ── Saved posts ─────────────────────────────────────────────────────────────────────────────
+
+test('saving toggles on and off, and is private to the member', async () => {
+  const db = makeDb();
+  const saler = { id: 20, roles: ['saler'] };
+  assert.deepEqual(await toggleSave(db, saler, 7), { saved: true });
+  assert.ok(db.saves.has('7:20'));
+  assert.deepEqual(await toggleSave(db, saler, 7), { saved: false });
+  assert.equal(db.saves.size, 0);
+  // Another member's save is a different row.
+  await toggleSave(db, saler, 7);
+  await toggleSave(db, { id: 21, roles: ['saler'] }, 7);
+  assert.deepEqual([...db.saves].sort(), ['7:20', '7:21']);
+});
+
+test('a post you cannot see cannot be saved', async () => {
+  const db = makeDb();
+  await assert.rejects(() => toggleSave(db, { id: 30, roles: ['customer'] }, 7), { code: 'NOT_FOUND' }, 'meant for shop partners');
+  await assert.rejects(() => toggleSave(makeDb({ postRow: { status: 'HIDDEN' } }), { id: 20, roles: ['saler'] }, 7), { code: 'NOT_FOUND' });
+  assert.equal(db.saves.size, 0);
+});
+
+test('the saved list is the viewer\'s own, and a guest has none', async () => {
+  const db = makeDb();
+  const saler = { id: 20, roles: ['saler'] };
+  await listTimeline(db, saler, { saved: true });
+  assert.match(db.listSql.at(-1), /community_post_saves sv WHERE sv\.post_id = p\.id AND sv\.user_id = \$1/);
+  await listTimeline(db, saler, {});
+  assert.doesNotMatch(db.listSql.at(-1), /community_post_saves sv WHERE sv\.post_id = p\.id AND sv\.user_id = \$1\)\s*AND/);
+  const before = db.listSql.length;
+  const guest = await listTimeline(db, null, { saved: true });
+  assert.deepEqual(guest.posts, []);
+  assert.equal(db.listSql.length, before, 'a guest asking for saved posts never reaches the database');
+});
+
+test('the saves migration is keyed per member and post and cascades with either', () => {
+  const sql = read('server', 'src', 'db', 'migrations', '083_community_post_saves.sql');
+  assert.match(sql, /PRIMARY KEY \(post_id, user_id\)/);
+  assert.equal((sql.match(/REFERENCES \w+\(id\) ON DELETE CASCADE/g) ?? []).length, 2);
 });
 
 // ── Photos and video ────────────────────────────────────────────────────────────────────────

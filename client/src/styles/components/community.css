@@ -226,6 +226,8 @@
 .cm-action:hover:not(:disabled) { background: var(--surface-2); color: var(--text-primary); }
 .cm-action:disabled { opacity: 0.55; cursor: default; }
 .cm-action--on { color: var(--danger); }
+.cm-action--saved { color: var(--text-brand); }
+.cm-action--saved svg { fill: currentColor; }
 .cm-action--end { margin-inline-start: auto; }
 .cm-action--danger:hover:not(:disabled) { background: var(--danger-bg); color: var(--danger); }
 

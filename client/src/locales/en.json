@@ -195,7 +195,8 @@
     "filter": {
       "from": "Filter by who posted",
       "sort": "Sort posts",
-      "mine": "My posts"
+      "mine": "My posts",
+      "saved": "Saved"
     },
     "role": {
       "customer": "Customer",
@@ -229,7 +230,8 @@
     "empty": {
       "title": "Nothing here yet",
       "desc": "No posts match these filters. Try All or another group.",
-      "mine": "You have not posted yet. Use the box at the top to write your first post."
+      "mine": "You have not posted yet. Use the box at the top to write your first post.",
+      "saved": "You have not saved any posts yet. Use Save on a post to keep it here."
     },
     "error": {
       "generic": "Something went wrong. Try again."
@@ -265,7 +267,11 @@
       "link_copied": "Link copied",
       "photo_alt": "Photo shared by {{name}}",
       "video_label": "Video shared by {{name}}",
-      "comment": "Comment"
+      "comment": "Comment",
+      "save": "Save",
+      "saved": "Saved",
+      "saved_toast": "Saved to your list",
+      "unsaved_toast": "Removed from your saved list"
     },
     "report": {
       "title": "Why are you reporting this post?",

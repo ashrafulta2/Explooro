@@ -90,6 +90,12 @@ export default async function communityPostRoutes(app) {
     schema: { params: idParams },
   }, controller.deleteComment);
 
+  // Private to the member, so any signed-in member may save; the service refuses a post they cannot see.
+  app.post('/community/posts/:id/save', {
+    preHandler: [app.authenticate, requireModule],
+    schema: { params: idParams },
+  }, controller.toggleSave);
+
   app.post('/community/posts/:id/report', {
     preHandler: [app.authenticate, requireModule, app.requirePermission('community.post.report')],
     schema: {

@@ -23,7 +23,9 @@ const POST_SELECT = `
            WHERE c.post_id = p.id AND c.status = 'PUBLISHED') AS comment_count,
          COALESCE(p.author_id = $1, false) AS is_mine,
          EXISTS (SELECT 1 FROM community_post_likes l
-                  WHERE l.post_id = p.id AND l.user_id = $1) AS liked_by_me
+                  WHERE l.post_id = p.id AND l.user_id = $1) AS liked_by_me,
+         EXISTS (SELECT 1 FROM community_post_saves sv
+                  WHERE sv.post_id = p.id AND sv.user_id = $1) AS saved_by_me
   FROM community_posts p
   LEFT JOIN user_profiles up ON up.user_id = p.author_id
   LEFT JOIN products pr ON pr.id = p.product_id`;
@@ -33,13 +35,15 @@ const POST_SELECT = `
  * Pinned posts sort first, then by the chosen order; `id` is the final tie-break so two posts with
  * the same timestamp never swap places between pages.
  */
-export async function listPosts(db, { viewerId = null, type = null, role = null, authorId = null,
+export async function listPosts(db, { viewerId = null, type = null, role = null, authorId = null, savedOnly = false,
   audiences, sort = 'recent', limit, offset }) {
   const params: any[] = [viewerId];
   const where = [`p.status = 'PUBLISHED'`];
   if (type) { params.push(type); where.push(`p.post_type = $${params.length}`); }
   if (role) { params.push(role); where.push(`p.author_role = $${params.length}`); }
   if (authorId) { params.push(authorId); where.push(`p.author_id = $${params.length}`); }
+  // The viewer's private list. $1 is the viewer, so a guest (null) matches nothing.
+  if (savedOnly) where.push(`EXISTS (SELECT 1 FROM community_post_saves sv WHERE sv.post_id = p.id AND sv.user_id = $1)`);
   params.push(audiences);
   // An author always sees their own post, whatever audience it targets (a supplier's update is for
   // shop partners, but the supplier must still find it on their own timeline).
@@ -296,6 +300,17 @@ export async function toggleLike(db, postId, userId) {
     [postId]
   );
   return { liked, likeCount: rows[0].like_count };
+}
+
+/** Adds the post to the member's saved list and returns true, or takes it off and returns false. */
+export async function toggleSave(db, postId, userId) {
+  const { rowCount } = await db.query(
+    `INSERT INTO community_post_saves (post_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    [postId, userId]
+  );
+  if (rowCount === 1) return true;
+  await db.query(`DELETE FROM community_post_saves WHERE post_id = $1 AND user_id = $2`, [postId, userId]);
+  return false;
 }
 
 export async function insertReport(db, { postId, reporterId, reason, note }) {

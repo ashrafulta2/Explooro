@@ -124,6 +124,10 @@ const comments = [
 const liveComments = (postId) => comments.filter((c) => c.postId === postId && c.status === 'PUBLISHED');
 const commentCount = (postId) => liveComments(postId).length;
 
+// Each member's private saved list, as post ids per user id (like community_post_saves).
+const saves = new Map();
+const savedBy = (user) => (user ? saves.get(user.id) ?? new Set() : new Set());
+
 function viewer() {
   const auth = appStore.get().auth || {};
   const role = auth.isAuthenticated ? auth.role : null;
@@ -138,6 +142,7 @@ function serialize(p, user) {
   return {
     id: p.id, ref: `POST-${p.id}`, type: p.type, kind: p.kind, title: p.title, body: p.body, details: p.details,
     audience: p.audience, is_pinned: p.pinned, status: p.status, created_at: p.createdAt,
+    saved_by_me: user ? savedBy(user).has(p.id) : false,
     like_count: p.likes.size, comment_count: commentCount(p.id), media: p.media ?? [], liked_by_me: user ? p.likes.has(`u${user.id}`) : false,
     is_mine: user ? p.authorId === user.id : false,
     open_report_count: openReports(p.id).length,
@@ -316,6 +321,8 @@ export const communityHandlers = [
       for (const p of base) counts[p.type] = (counts[p.type] || 0) + 1;
       let list = base.filter((p) => !query.type || p.type === query.type);
       if (query.mine === '1' && user) list = list.filter((p) => p.authorId === user.id);
+      // The member's private list; a guest has none.
+      if (query.saved === '1') list = user ? list.filter((p) => savedBy(user).has(p.id)) : [];
       list = [...list].sort((a, b) => {
         if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
         return query.sort === 'top' ? b.likes.size - a.likes.size || b.id - a.id : b.id - a.id;
@@ -419,6 +426,21 @@ export const communityHandlers = [
       const liked = !post.likes.has(key);
       if (liked) post.likes.add(key); else post.likes.delete(key);
       return { status: 200, body: { data: { liked, like_count: post.likes.size } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/community/posts/:id/save',
+    handler({ params }) {
+      const { role, user } = viewer();
+      if (!user) return fail(401, 'AUTH_REQUIRED', 'Sign in required.', 'সাইন ইন করা প্রয়োজন।');
+      const post = readablePost(params.id, role, user);
+      if (!post) return NOT_FOUND_POST();
+      const mine = new Set(savedBy(user));
+      const saved = !mine.has(post.id);
+      if (saved) mine.add(post.id); else mine.delete(post.id);
+      saves.set(user.id, mine);
+      return { status: 200, body: { data: { saved } } };
     },
   },
   {

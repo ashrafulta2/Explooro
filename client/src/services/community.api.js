@@ -49,14 +49,16 @@ export const AUDIENCES = ['EVERYONE', 'CUSTOMERS', 'SUPPLIERS', 'SHOP_PARTNERS']
  * @param {string} [opts.role]  author role filter: customer | supplier | saler | admin
  * @param {'recent'|'top'} [opts.sort]
  * @param {boolean} [opts.mine] only the signed-in user's own posts
+ * @param {boolean} [opts.saved] only the posts the signed-in user saved (private list)
  * @returns {Promise<{posts: object[], counts: Record<string, number>, meta: object}>}
  */
-export async function listPosts({ type, role, sort, mine, limit, offset } = {}) {
+export async function listPosts({ type, role, sort, mine, saved, limit, offset } = {}) {
   const query = {};
   if (type) query.type = type;
   if (role) query.role = role;
   if (sort) query.sort = sort;
   if (mine) query.mine = '1';
+  if (saved) query.saved = '1';
   if (limit != null) query.limit = limit;
   if (offset != null) query.offset = offset;
   const { data, meta } = await api.get('/community/posts', { query });
@@ -107,6 +109,12 @@ export async function createAnnouncement(body) {
 /** @returns {Promise<{liked: boolean, like_count: number}>} */
 export async function toggleLike(postId) {
   const { data } = await api.post(`/community/posts/${postId}/like`, {});
+  return data;
+}
+
+/** Adds the post to the member's private saved list, or takes it off. @returns {Promise<{saved: boolean}>} */
+export async function toggleSave(postId) {
+  const { data } = await api.post(`/community/posts/${postId}/save`, {});
   return data;
 }
 

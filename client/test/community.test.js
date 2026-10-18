@@ -367,3 +367,47 @@ test('mock: a comment is live at once, counts on the post, and is readable only 
   assert.equal(commentsOf(POST).status, 404);
   assert.equal(call('POST', '/community/posts/2/comments', { body: 'hi' }).status, 401);
 });
+
+// ── 7. Saved posts ────────────────────────────────────────────────────────────────────────
+
+test('mock: saving is private, toggles, and the Saved list is the member\'s own', () => {
+  const list = (query) => call('GET', '/community/posts', null, query).body.data.posts;
+  const save = (id) => call('POST', `/community/posts/${id}/save`);
+
+  setMockRole('customer');
+  assert.equal(list({ saved: '1' }).length, 0, 'nothing saved yet');
+  assert.deepEqual(save(2).body.data, { saved: true });
+  assert.deepEqual(list({ saved: '1' }).map((p) => p.id), [2]);
+  assert.equal(list().find((p) => p.id === 2).saved_by_me, true, 'the post carries the flag for its saver');
+  assert.equal(list({ saved: '1', type: 'ANNOUNCEMENT' }).length, 0, 'the Saved list still honours the type tab');
+
+  // Another member sees none of it.
+  setMockRole('saler');
+  assert.equal(list({ saved: '1' }).length, 0);
+  assert.equal(list().find((p) => p.id === 2).saved_by_me, false);
+
+  // A post you cannot see cannot be saved; a guest cannot save and has no list.
+  setMockRole('customer');
+  assert.equal(save(3).status, 404, 'meant for shop partners');
+  assert.equal(save(9999).status, 404);
+  logOutMock();
+  assert.equal(save(2).status, 401);
+  assert.equal(list({ saved: '1' }).length, 0, 'a guest asking for saved posts gets an empty list, not everyone\'s');
+
+  // Taking it off.
+  setMockRole('customer');
+  assert.deepEqual(save(2).body.data, { saved: false });
+  assert.equal(list({ saved: '1' }).length, 0);
+  logOutMock();
+});
+
+test('the page offers the Saved filter to signed-in members and the card carries the button', () => {
+  const page = read('pages', 'CommunityPage.js');
+  assert.match(page, /community\.filter\.saved/);
+  assert.match(page, /saved: state\.saved/);
+  assert.match(page, /onSave:/);
+  const card = read('components', 'community', 'PostCard.js');
+  assert.match(card, /icon\('bookmark'\)/);
+  assert.match(card, /community\.card\.saved_toast/);
+  assert.ok(read('components', 'ui', 'icons.js').includes('bookmark: svg('));
+});

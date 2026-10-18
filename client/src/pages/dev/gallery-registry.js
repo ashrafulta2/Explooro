@@ -746,13 +746,15 @@ function renderCommunityPostSpecimen() {
     wrap.append(specimen(post.type.toLowerCase(), PostCard({
       post: { ...post }, viewerRole: 'saler', canModerate: false,
       onLike: async (p) => ({ liked: !p.liked_by_me, like_count: p.like_count + (p.liked_by_me ? -1 : 1) }),
+      onSave: async (p) => ({ saved: !p.saved_by_me }),
       onReport: async () => ({ reported: true, already_reported: false, auto_hidden: false }),
     })));
   }
   wrap.append(subgroup('PostCard — staff view (Hide replaces Report)'));
   wrap.append(specimen('moderator', PostCard({
     post: { ...DEMO_COMMUNITY_POSTS[0] }, viewerRole: 'admin', canModerate: true,
-    onLike: async (p) => ({ liked: !p.liked_by_me, like_count: p.like_count }), onReport: async () => ({}), onModerate: async () => {},
+    onLike: async (p) => ({ liked: !p.liked_by_me, like_count: p.like_count }), onSave: async (p) => ({ saved: !p.saved_by_me }),
+    onReport: async () => ({}), onModerate: async () => {},
   })));
   return wrap;
 }

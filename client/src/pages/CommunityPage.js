@@ -25,7 +25,7 @@ import { PostComposer } from '../components/community/PostComposer.js';
 import { ModerationQueue } from '../components/community/ModerationQueue.js';
 import { el } from '../components/community/dom.js';
 import {
-  listPosts, toggleLike, reportPost, moderatePost, errorText, ROLE_KINDS,
+  listPosts, toggleLike, toggleSave, reportPost, moderatePost, errorText, ROLE_KINDS,
 } from '../services/community.api.js';
 
 const PAGE_SIZE = 20;
@@ -63,7 +63,7 @@ export default function CommunityPage(root) {
   );
   const canModerate = Boolean(role) && can('community.post.moderate');
 
-  const state = { type: '', from: '', sort: 'recent', mine: false, view: 'timeline', posts: [], counts: {}, hasMore: false, loading: false, composing: false };
+  const state = { type: '', from: '', sort: 'recent', mine: false, saved: false, view: 'timeline', posts: [], counts: {}, hasMore: false, loading: false, composing: false };
 
   const header = el('header', 'cm-header', [
     el('h1', 'cm-header__title', t('community.page.title')),
@@ -117,7 +117,7 @@ export default function CommunityPage(root) {
         onCancel: () => { state.composing = false; renderCompose(); },
         onPublished: () => {
           state.composing = false;
-          state.type = ''; state.from = ''; state.sort = 'recent'; state.mine = false;
+          state.type = ''; state.from = ''; state.sort = 'recent'; state.mine = false; state.saved = false;
           renderCompose();
           renderTabs();
           renderFilters();
@@ -158,6 +158,9 @@ export default function CommunityPage(root) {
       const mine = el('button', state.mine ? 'cm-chip cm-chip--on' : 'cm-chip', t('community.filter.mine'), { type: 'button', 'aria-pressed': state.mine });
       mine.addEventListener('click', () => { state.mine = !state.mine; renderFilters(); load({ reset: true }); });
       filters.append(mine);
+      const saved = el('button', state.saved ? 'cm-chip cm-chip--on' : 'cm-chip', t('community.filter.saved'), { type: 'button', 'aria-pressed': state.saved });
+      saved.addEventListener('click', () => { state.saved = !state.saved; renderFilters(); load({ reset: true }); });
+      filters.append(saved);
     }
   }
 
@@ -166,12 +169,21 @@ export default function CommunityPage(root) {
     if (!state.posts.length) {
       feed.append(state.loading
         ? el('p', 'cm-muted', t('community.loading'))
-        : EmptyState({ title: t('community.empty.title'), description: t(state.mine ? 'community.empty.mine' : 'community.empty.desc'), compact: true }));
+        : EmptyState({ title: t('community.empty.title'), description: t(state.saved ? 'community.empty.saved' : state.mine ? 'community.empty.mine' : 'community.empty.desc'), compact: true }));
     }
     for (const post of state.posts) {
       feed.append(PostCard({
         post, viewerRole: role, canModerate,
         onLike: (p) => toggleLike(p.id),
+        onSave: async (p) => {
+          const res = await toggleSave(p.id);
+          // On the Saved list, a post taken off the list leaves it at once.
+          if (state.saved && !res.saved) {
+            state.posts = state.posts.filter((x) => x.id !== p.id);
+            renderFeed();
+          }
+          return res;
+        },
         onReport: (p, v) => reportPost(p.id, v),
         onModerate: async (p, action) => {
           try {
@@ -198,7 +210,7 @@ export default function CommunityPage(root) {
     if (reset) { state.posts = []; renderFeed(); }
     try {
       const res = await listPosts({
-        type: state.type || undefined, role: state.from || undefined, sort: state.sort, mine: state.mine,
+        type: state.type || undefined, role: state.from || undefined, sort: state.sort, mine: state.mine, saved: state.saved,
         limit: PAGE_SIZE, offset: reset ? 0 : state.posts.length,
       });
       // A slower, older answer must not overwrite a newer one after a quick filter change.

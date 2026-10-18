@@ -245,6 +245,7 @@ export function serializePost(row, media = []) {
     comment_count: row.comment_count ?? 0,
     media,
     liked_by_me: !!row.liked_by_me,
+    saved_by_me: !!row.saved_by_me,
     is_mine: !!row.is_mine,
     open_report_count: row.open_report_count ?? 0,
     // Verified purchase is a fact about the stored proof of purchase, never a flag the author sends.
@@ -311,7 +312,7 @@ export async function getAutoHideThreshold(db) {
   return Number.isInteger(n) && n >= THRESHOLD_LIMITS.min && n <= THRESHOLD_LIMITS.max ? n : THRESHOLD_LIMITS.fallback;
 }
 
-export async function listTimeline(db, user, { type, role, sort, mine, limit = 20, offset = 0 }: Record<string, any> = {}) {
+export async function listTimeline(db, user, { type, role, sort, mine, saved, limit = 20, offset = 0 }: Record<string, any> = {}) {
   const roles = user?.roles ?? [];
   const audiences = visibleAudiences(roles);
   const filters = {
@@ -319,10 +320,13 @@ export async function listTimeline(db, user, { type, role, sort, mine, limit = 2
     audiences,
     role: ['customer', 'supplier', 'saler', 'admin'].includes(role) ? role : null,
     authorId: mine && user ? user.id : null,
+    savedOnly: Boolean(saved && user),
     limit: Math.min(Math.max(Number(limit) || 20, 1), 50),
     offset: Math.max(Number(offset) || 0, 0),
   };
   const postType = ['REVIEW', 'UPDATE', 'IDEA', 'ANNOUNCEMENT'].includes(type) ? type : null;
+  // A guest has no saved list: asking for it is an empty list, never everybody's posts.
+  if (saved && !user) return { posts: [], counts: {}, meta: { limit: filters.limit, offset: filters.offset, has_more: false } };
   const [rows, counts] = await Promise.all([
     repo.listPosts(db, { ...filters, type: postType, sort: sort === 'top' ? 'top' : 'recent' }),
     repo.countByType(db, { viewerId: filters.viewerId, role: filters.role, audiences }),
@@ -498,6 +502,15 @@ export async function removeCommentAsStaff(db, user, commentId) {
     });
     return { comment_count: await repo.countComments(client, comment.post_id) };
   });
+}
+
+/**
+ * Adds a post to the member's private saved list, or takes it off. Only a post they can see can be
+ * saved (the same rule as commenting), so the list cannot be used to probe for hidden posts.
+ */
+export async function toggleSave(db, user, postId) {
+  await visiblePost(db, user, postId);
+  return { saved: await repo.toggleSave(db, postId, user.id) };
 }
 
 export async function toggleLike(db, user, postId) {

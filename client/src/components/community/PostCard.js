@@ -166,11 +166,12 @@ function reportPanel(post, { onReport, close, onDone }) {
  * @param {string|null} o.viewerRole             the viewer's role key, null for a guest
  * @param {boolean} [o.canModerate]              shows Hide instead of Report
  * @param {(post:object)=>Promise<{liked:boolean,like_count:number}>} o.onLike
+ * @param {(post:object)=>Promise<{saved:boolean}>} [o.onSave]
  * @param {(post:object, v:{reason:string})=>Promise<object>} o.onReport
  * @param {(post:object, action:string)=>Promise<void>} [o.onModerate]
  * @param {()=>void} [o.onNeedSignIn]            called when a guest tries to like or report
  */
-export function PostCard({ post, viewerRole, canModerate = false, onLike, onReport, onModerate, onNeedSignIn }) {
+export function PostCard({ post, viewerRole, canModerate = false, onLike, onSave, onReport, onModerate, onNeedSignIn }) {
   const lang = getLanguage();
   const root = el('article', `cm-card cm-card--${post.type.toLowerCase()}`, null, { 'data-post-id': post.id, 'data-type': post.type });
   if (post.is_pinned) root.classList.add('cm-card--pinned');
@@ -262,7 +263,30 @@ export function PostCard({ post, viewerRole, canModerate = false, onLike, onRepo
     commentBtn.setAttribute('aria-expanded', 'true');
   });
 
-  const actions = el('footer', 'cm-actions', [likeBtn, commentBtn, shareBtn]);
+  // Save is the member's private "come back to this" list, not a like: nobody else sees it.
+  const saveBtn = el('button', 'cm-action', null, { type: 'button' });
+  const paintSave = () => {
+    saveBtn.replaceChildren(icon('bookmark'), el('span', '', t(post.saved_by_me ? 'community.card.saved' : 'community.card.save')));
+    saveBtn.classList.toggle('cm-action--saved', Boolean(post.saved_by_me));
+    saveBtn.setAttribute('aria-pressed', String(Boolean(post.saved_by_me)));
+  };
+  paintSave();
+  saveBtn.addEventListener('click', async () => {
+    if (!viewerRole) return onNeedSignIn?.();
+    saveBtn.disabled = true;
+    try {
+      const res = await onSave(post);
+      post.saved_by_me = res.saved;
+      paintSave();
+      toast.success(t(res.saved ? 'community.card.saved_toast' : 'community.card.unsaved_toast'));
+    } catch (err) {
+      toast.error(errorText(err) || t('community.error.generic'));
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  const actions = el('footer', 'cm-actions', [likeBtn, commentBtn, saveBtn, shareBtn]);
   let reportSlot = null;
 
   const closeReport = () => { reportSlot?.remove(); reportSlot = null; };
