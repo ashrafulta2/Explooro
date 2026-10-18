@@ -192,16 +192,16 @@
 .home-band__bars-row:first-child .home-band__bars-fill { background: var(--brand); }
 
 /* chips — search phrases as pills, the most searched biggest. */
-.home-band__chips { flex: 1; display: flex; flex-wrap: wrap; align-content: center; align-items: center; gap: var(--space-2) var(--space-3); }
-.home-band__chip { display: inline-flex; align-items: baseline; gap: var(--space-2); max-width: 100%; padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); background: var(--neutral-0); color: var(--neutral-800); font-weight: 700; }
+/* WHY a grid, not a wrapping flex row: pills of five different widths and three different fills wrapped
+   into ragged rows with a hole on the right, which read as scattered. The leader now spans the full
+   width and the rest sit in two equal columns, so every edge lines up. The ranking is still told by the
+   leader's size and fill, not by a different colour per pill. */
+.home-band__chips { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: center; gap: var(--space-2); }
+.home-band__chip { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); min-width: 0; padding: var(--space-2) var(--space-4); border-radius: var(--radius-full); background: var(--neutral-0); color: var(--neutral-800); font-size: var(--text-base); font-weight: 700; }
 .home-band__chip-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .home-band__chip-count { flex: none; color: var(--slide-bg); font-size: var(--text-xs); font-weight: 600; white-space: nowrap; }
-.home-band__chip--1 { font-size: var(--text-xl); background: var(--brand); color: var(--brand-contrast); }
-.home-band__chip--1 .home-band__chip-count { color: var(--brand-contrast); }
-.home-band__chip--2 { font-size: var(--text-lg); }
-.home-band__chip--3 { font-size: var(--text-base); }
-.home-band__chip--4 { font-size: var(--text-sm); background: color-mix(in oklch, var(--neutral-0) 18%, transparent); color: var(--neutral-0); border: 1px solid color-mix(in oklch, var(--neutral-0) 55%, transparent); }
-.home-band__chip--4 .home-band__chip-count { color: var(--neutral-0); }
+.home-band__chip--1 { grid-column: 1 / -1; padding-block: var(--space-3); font-size: var(--text-xl); background: var(--brand); color: var(--brand-contrast); }
+.home-band__chip--1 .home-band__chip-count { color: var(--brand-contrast); font-size: var(--text-sm); }
 
 /* tiles — a mosaic: the leader is the tall tile on the left. */
 .home-band__tilegrid { flex: 1; display: grid; grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: var(--space-2); min-height: 0; }

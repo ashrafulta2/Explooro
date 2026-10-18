@@ -690,22 +690,6 @@ export function TopBar({
   spacer.className = 'topbar__spacer';
   bar.append(spacer);
 
-  // Discovery ⇄ Marketplace — a single context-aware toggle. On the discovery feed it offers a way
-  // back to the marketplace grid; everywhere else it points into the feed. The label/icon/target all
-  // flip on the current route, and the shell rebuilds the TopBar on every navigation (AppShell's
-  // router beforeEach), so this re-reads location.pathname and stays in sync without its own listener.
-  // Available to everyone (guests included); gated by the `discovery_feed` module on its route.
-  if (isFeatureEnabled('discovery_feed')) {
-    const onDiscover = window.location.pathname.startsWith('/discover');
-    const switchBtn = IconButton({
-      icon: onDiscover ? MARKET_ICON_SVG : DISCOVER_ICON_SVG,
-      label: onDiscover ? t('nav.marketplace') : t('nav.discover'),
-      onClick: () => navigate(onDiscover ? '/' : '/discover'),
-    });
-    switchBtn.classList.add('topbar__discover-btn');
-    bar.append(switchBtn);
-  }
-
   // Community timeline — one click from anywhere, for guests too (they can read it). The shell
   // rebuilds the TopBar on every navigation, so the current-page mark below needs no listener.
   // Hidden only when the `community_posts` module is off; the route is gated by the same module.
@@ -724,6 +708,22 @@ export function TopBar({
     if (isGuest) communityBtn.classList.add('topbar__community-btn--guest');
     if (onCommunity) communityBtn.setAttribute('aria-current', 'page');
     bar.append(communityBtn);
+  }
+
+  // Discovery ⇄ Marketplace — a single context-aware toggle. On the discovery feed it offers a way
+  // back to the marketplace grid; everywhere else it points into the feed. The label/icon/target all
+  // flip on the current route, and the shell rebuilds the TopBar on every navigation (AppShell's
+  // router beforeEach), so this re-reads location.pathname and stays in sync without its own listener.
+  // Available to everyone (guests included); gated by the `discovery_feed` module on its route.
+  if (isFeatureEnabled('discovery_feed')) {
+    const onDiscover = window.location.pathname.startsWith('/discover');
+    const switchBtn = IconButton({
+      icon: onDiscover ? MARKET_ICON_SVG : DISCOVER_ICON_SVG,
+      label: onDiscover ? t('nav.marketplace') : t('nav.discover'),
+      onClick: () => navigate(onDiscover ? '/' : '/discover'),
+    });
+    switchBtn.classList.add('topbar__discover-btn');
+    bar.append(switchBtn);
   }
 
   if (elevatedGrant) bar.append(ElevatedChip({ grant: elevatedGrant }));
