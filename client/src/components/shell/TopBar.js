@@ -103,7 +103,10 @@ const THEME_ICONS_SVG = {
 
 const COMMUNITY_ICON_SVG =
   '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
-  '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>' +
+  '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>' +
+  '<circle cx="9" cy="7" r="4"></circle>' +
+  '<path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>' +
+  '<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>' +
   '</svg>';
 
 // Staff land on the moderation-capable route; everyone else on the public timeline.
@@ -581,7 +584,6 @@ export function TopBar({
   elevatedGrant,
   badges,
   navigate,
-  onOpenPalette,
   sidebarCollapsed = false,
   onToggleSidebar = null,
 }) {
@@ -725,17 +727,6 @@ export function TopBar({
   }
 
   if (elevatedGrant) bar.append(ElevatedChip({ grant: elevatedGrant }));
-
-  // Quick Actions / Command Palette button — only shown to authenticated users
-  if (!isGuest) {
-    const paletteBtn = IconButton({
-      icon: ICONS.bolt,
-      label: `${t('palette.trigger_btn') || 'Quick Actions'} (Ctrl+K)`,
-      onClick: () => onOpenPalette?.(),
-    });
-    paletteBtn.classList.add('topbar__palette-btn');
-    bar.append(paletteBtn);
-  }
 
   // Signed-in people set language and theme from the avatar menu (see AvatarMenu). Guests have no
   // avatar menu, so they keep the standalone controls. The switcher exists only while the platform

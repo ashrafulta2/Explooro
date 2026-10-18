@@ -22,7 +22,7 @@ import { resolvePageAccess } from '../../services/pageAccess.js';
 import { LockedNavItem } from './LockedNavItem.js';
 import { Badge } from '../ui/Badge.js';
 import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.js';
-import { getGroupIcon, getItemIcon } from '../ui/icons.js';
+import { ICONS, getGroupIcon, getItemIcon } from '../ui/icons.js';
 
 function hasModule(modules, key) {
   return !key || key === 'core' || modules[key] === true;
@@ -163,12 +163,37 @@ function renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups,
   return wrap;
 }
 
-export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarCollapsed, collapsedGroups }) {
+export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarCollapsed, collapsedGroups, onOpenPalette }) {
   const nav = document.createElement('nav');
   nav.className = 'sidebar';
   nav.id = 'sidebar-nav';
   nav.dataset.collapsed = sidebarCollapsed ? 'true' : 'false';
   nav.setAttribute('aria-label', 'Primary');
+
+  // Quick Actions (the command palette) sits at the very top of the sidebar. It moved here from the
+  // TopBar: it is a power-user shortcut, so it belongs beside the navigation, not beside the cart.
+  // Ctrl+K still opens it from anywhere (AppShell).
+  if (onOpenPalette) {
+    const quickLabel = t('palette.trigger_btn', 'Quick Actions');
+    const quickBtn = document.createElement('button');
+    quickBtn.type = 'button';
+    quickBtn.className = 'sidebar__quick-btn';
+    quickBtn.title = `${quickLabel} (Ctrl+K)`;
+    quickBtn.setAttribute('aria-label', `${quickLabel} (Ctrl+K)`);
+    const quickIcon = document.createElement('span');
+    quickIcon.className = 'sidebar__quick-icon';
+    quickIcon.setAttribute('aria-hidden', 'true');
+    quickIcon.innerHTML = ICONS.bolt;
+    const quickText = document.createElement('span');
+    quickText.className = 'sidebar__quick-label';
+    quickText.textContent = quickLabel;
+    const quickKey = document.createElement('kbd');
+    quickKey.className = 'sidebar__quick-key';
+    quickKey.textContent = 'Ctrl K';
+    quickBtn.append(quickIcon, quickText, quickKey);
+    quickBtn.addEventListener('click', () => onOpenPalette());
+    nav.append(quickBtn);
+  }
 
   const isProgressive = PROGRESSIVE_DISCLOSURE_ROLES.includes(role);
   const mode = isProgressive ? uiMode[role] ?? 'simple' : 'advanced';

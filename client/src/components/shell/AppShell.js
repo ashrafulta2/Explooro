@@ -192,7 +192,6 @@ export function createAppShell({ container, navigate }) {
         elevatedGrant: null,
         badges: s.badges || {},
         navigate,
-        onOpenPalette: () => palette.open(),
       });
       return;
     }
@@ -212,6 +211,7 @@ export function createAppShell({ container, navigate }) {
         uiMode: s.shell.uiMode,
         sidebarCollapsed: s.shell.sidebarCollapsed,
         collapsedGroups: s.shell.collapsedGroups,
+        onOpenPalette: () => palette.open(),
       })
     );
 
@@ -227,7 +227,6 @@ export function createAppShell({ container, navigate }) {
       elevatedGrant: s.shell.elevatedGrant,
       badges: s.badges,
       navigate,
-      onOpenPalette: () => palette.open(),
       sidebarCollapsed: s.shell.sidebarCollapsed,
       onToggleSidebar: (trigger) => {
         if (window.innerWidth < 768) {
