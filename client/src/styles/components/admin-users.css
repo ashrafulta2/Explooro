@@ -29,7 +29,8 @@
 
 .admin-users-search-control { position: relative; display: flex; align-items: center; flex: 1 1 280px; min-width: 220px; height: 38px; border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); background: var(--surface-0); transition: border-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
 .admin-users-search-control:focus-within { border-color: var(--brand); outline: 2px solid var(--focus-ring); outline-offset: 1px; }
-.admin-users-search-icon { position: absolute; left: var(--space-3); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none; display: inline-flex; align-items: center; justify-content: center; }
+/* WHY: display:none, not inline-flex. input-affordance.css draws the ONE search icon as the input's background and hides this sibling span, but this file loads later with equal specificity and used to win, which showed two magnifiers. */
+.admin-users-search-icon { position: absolute; left: var(--space-3); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none; display: none; align-items: center; justify-content: center; }
 .admin-users-search-icon svg { width: 100%; height: 100%; }
 .admin-users-search-input { width: 100%; height: 100%; border: none; background: transparent; padding: 0 var(--space-3) 0 calc(var(--space-3) + 24px); font-size: var(--text-sm); color: var(--text-primary); outline: none; font-family: inherit; }
 .admin-users-search-input::placeholder { color: var(--text-muted); }
