@@ -15,6 +15,7 @@
  *  - Reporting leaves the post visible. It only files the report; the server decides about hiding.
  */
 import { el, icon, productTitle } from './dom.js';
+import { CommentThread } from './CommentThread.js';
 import { Button } from '../ui/Button.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
@@ -240,7 +241,28 @@ export function PostCard({ post, viewerRole, canModerate = false, onLike, onRepo
     }
   });
 
-  const actions = el('footer', 'cm-actions', [likeBtn, shareBtn]);
+  // Comments open under the card. The button carries the count the server last reported.
+  const commentBtn = el('button', 'cm-action', null, { type: 'button', 'aria-expanded': 'false' });
+  const paintComments = () => commentBtn.replaceChildren(icon('engage'), el('span', '', `${t('community.card.comment')} · ${formatNumber(post.comment_count ?? 0)}`));
+  paintComments();
+  const threadSlot = el('div', 'cm-thread-slot');
+  let thread = null;
+  commentBtn.addEventListener('click', () => {
+    if (thread) {
+      thread.remove();
+      thread = null;
+      commentBtn.setAttribute('aria-expanded', 'false');
+      return;
+    }
+    thread = CommentThread({
+      post, viewerRole, canModerate,
+      onCount: (n) => { post.comment_count = n; paintComments(); },
+    });
+    threadSlot.append(thread);
+    commentBtn.setAttribute('aria-expanded', 'true');
+  });
+
+  const actions = el('footer', 'cm-actions', [likeBtn, commentBtn, shareBtn]);
   let reportSlot = null;
 
   const closeReport = () => { reportSlot?.remove(); reportSlot = null; };
@@ -262,6 +284,6 @@ export function PostCard({ post, viewerRole, canModerate = false, onLike, onRepo
     });
     actions.append(report);
   }
-  root.append(actions);
+  root.append(actions, threadSlot);
   return root;
 }

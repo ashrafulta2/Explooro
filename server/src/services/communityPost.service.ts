@@ -29,7 +29,7 @@ export const THRESHOLD_LIMITS = Object.freeze({ min: 2, max: 50, fallback: 5 });
 // not business decisions. The business numbers (the report threshold) are configuration.
 export const LIMITS = Object.freeze({
   text: 1000, tip: 300, title: 120, body: 2000, step: 200, steps: 8, tags: 5, tag: 30, tiers: 5,
-  shipsFrom: 40, media: 4, videos: 1,
+  shipsFrom: 40, media: 4, videos: 1, comment: 1000,
 });
 
 export const ROLE_POST = Object.freeze({
@@ -242,6 +242,7 @@ export function serializePost(row, media = []) {
     status: row.status,
     created_at: row.created_at,
     like_count: row.like_count,
+    comment_count: row.comment_count ?? 0,
     media,
     liked_by_me: !!row.liked_by_me,
     is_mine: !!row.is_mine,
@@ -419,6 +420,86 @@ export async function createAnnouncement(db, user, input: Record<string, any> = 
   return (await serializeWithMedia(db, [post]))[0];
 }
 
+// ── Comments ──────────────────────────────────────────────────────────────────────────────
+
+/** Pure. A comment is 1 to LIMITS.comment characters after trimming; the stored text is the trimmed text. */
+export function validateCommentBody(raw) {
+  const body = typeof raw === 'string' ? raw.trim() : '';
+  if (!body) throw fail('body', 'Write a comment first.', 'আগে মন্তব্য লিখুন।');
+  if (body.length > LIMITS.comment) {
+    throw fail('body', `A comment can be at most ${LIMITS.comment} characters.`, `মন্তব্য সর্বোচ্চ ${LIMITS.comment} অক্ষরের হতে পারে।`);
+  }
+  return body;
+}
+
+export function serializeComment(row) {
+  return {
+    id: row.id,
+    post_id: row.post_id,
+    body: row.body,
+    created_at: row.created_at,
+    is_mine: !!row.is_mine,
+    author: { id: row.author_id, role: row.author_role ?? 'customer', name: row.author_name ?? '—', initials: initials(row.author_name) },
+  };
+}
+
+/**
+ * The post a comment is about, or NOT_FOUND. A post that is hidden, removed, or meant for another
+ * audience is "not found" to this viewer, the same as on the timeline; its author always sees it.
+ */
+async function visiblePost(db, user, postId) {
+  const post = await repo.getPost(db, postId, user?.id ?? null);
+  const seen = post && post.status === 'PUBLISHED'
+    && (visibleAudiences(user?.roles ?? []).includes(post.audience) || (user && Number(post.author_id) === Number(user.id)));
+  if (!seen) throw new AppError('NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
+  return post;
+}
+
+export async function listPostComments(db, user, postId, { limit = 20, offset = 0 }: Record<string, any> = {}) {
+  await visiblePost(db, user, postId);
+  const size = Math.min(Math.max(Number(limit) || 20, 1), 50);
+  const rows = await repo.listComments(db, { postId, viewerId: user?.id ?? null, limit: size, offset: Math.max(Number(offset) || 0, 0) });
+  return {
+    comments: rows.map(serializeComment),
+    comment_count: await repo.countComments(db, postId),
+    meta: { limit: size, offset: Math.max(Number(offset) || 0, 0), has_more: rows.length === size },
+  };
+}
+
+export async function addComment(db, user, postId, { body }: Record<string, any> = {}) {
+  const text = validateCommentBody(body);
+  await visiblePost(db, user, postId);
+  const id = await repo.insertComment(db, { postId, authorId: user.id, body: text });
+  return {
+    comment: serializeComment(await repo.getComment(db, id, user.id)),
+    comment_count: await repo.countComments(db, postId),
+  };
+}
+
+/** A member takes down their own comment. Not an audited staff action: it is the author's own. */
+export async function deleteOwnComment(db, user, commentId) {
+  const comment = await repo.getComment(db, commentId, user.id);
+  if (!comment || comment.status !== 'PUBLISHED') throw new AppError('NOT_FOUND', 'Comment not found.', 'মন্তব্যটি পাওয়া যায়নি।');
+  if (Number(comment.author_id) !== Number(user.id)) throw new AppError('FORBIDDEN', 'You can only delete your own comments.', 'শুধু নিজের মন্তব্য মুছতে পারবেন।');
+  await repo.removeComment(db, commentId, user.id);
+  return { comment_count: await repo.countComments(db, comment.post_id) };
+}
+
+/** Staff removal. Audited with the comment text so the record says what was taken down. */
+export async function removeCommentAsStaff(db, user, commentId) {
+  return withTransaction(db, async (client) => {
+    const comment = await repo.getComment(client, commentId, user.id);
+    if (!comment || comment.status !== 'PUBLISHED') throw new AppError('NOT_FOUND', 'Comment not found.', 'মন্তব্যটি পাওয়া যায়নি।');
+    await repo.removeComment(client, commentId, user.id);
+    await writeAudit(client, {
+      action: 'community.comment.remove', targetType: 'community_post_comment', targetRef: String(commentId),
+      actor: user, before: { status: 'PUBLISHED', post_id: comment.post_id, author_id: comment.author_id, body: comment.body },
+      after: { status: 'REMOVED' },
+    });
+    return { comment_count: await repo.countComments(client, comment.post_id) };
+  });
+}
+
 export async function toggleLike(db, user, postId) {
   const post = await repo.getPost(db, postId, user.id);
   if (!post || post.status !== 'PUBLISHED') throw new AppError('NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
@@ -438,7 +519,9 @@ export async function reportPost(db, user, postId, { reason, note }: Record<stri
   return withTransaction(db, async (client) => {
     const post = await repo.lockPost(client, postId);
     if (!post || post.status !== 'PUBLISHED') throw new AppError('NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
-    if (post.author_id === user.id) {
+    // WHY Number(): pg returns BIGINT as a string, and the session's id is a number. A strict compare
+    // here let authors report their own posts on a real database while the unit tests (numeric ids) passed.
+    if (Number(post.author_id) === Number(user.id)) {
       throw new AppError('FORBIDDEN', 'You cannot report your own post.', 'নিজের পোস্ট রিপোর্ট করা যায় না।');
     }
     const created = await repo.insertReport(client, { postId, reporterId: user.id, reason, note: cleanNote });

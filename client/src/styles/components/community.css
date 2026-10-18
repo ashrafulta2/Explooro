@@ -236,6 +236,26 @@
 .cm-report__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
 .cm-report__hint { font-size: var(--text-sm); color: var(--text-secondary); }
 
+/* ---- Comments ----------------------------------------------------------------------------- */
+.cm-thread-slot:empty { display: none; }
+.cm-thread { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); display: grid; gap: var(--space-3); }
+.cm-thread__list { display: grid; gap: var(--space-3); }
+.cm-comment { display: flex; gap: var(--space-3); align-items: flex-start; }
+.cm-avatar--sm { width: 32px; height: 32px; font-size: var(--text-xs); }
+.cm-comment__main { flex: 1; min-width: 0; background: var(--surface-2); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); }
+.cm-comment__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.cm-comment__name { font-size: var(--text-sm); }
+.cm-comment__time { font-size: var(--text-xs); color: var(--text-secondary); }
+.cm-comment__body { margin: var(--space-1) 0 0; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; font-size: var(--text-sm); }
+.cm-comment__remove { flex: none; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--text-xs); padding: var(--space-1) var(--space-2); border-radius: var(--radius-full); cursor: pointer; }
+.cm-comment__remove:hover:not(:disabled) { background: var(--danger-bg); color: var(--danger); }
+.cm-thread__more:empty { display: none; }
+.cm-thread__form { display: grid; gap: var(--space-2); }
+.cm-thread__input { width: 100%; resize: vertical; }
+.cm-thread__send { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.cm-thread__error { padding: 0; }
+.cm-link { color: var(--text-brand); font-weight: 600; }
+
 /* ---- Compose trigger and sign-in prompt --------------------------------------------------- */
 .cm-compose__bar { display: flex; align-items: center; gap: var(--space-3); }
 .cm-compose__trigger {

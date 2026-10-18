@@ -114,6 +114,16 @@ const reports = [
   { postId: 2, reporterId: 'r1', reason: 'FAKE_REVIEW', status: 'OPEN' },
 ];
 
+// Comments live outside the posts, like the table they stand for. Seeded so a thread has something in it.
+let nextCommentId = 500;
+const comments = [
+  { id: 1, postId: 3, authorId: 6, authorRole: 'saler', authorName: 'Rafi Fashion', body: 'Do you have size XL in navy?', createdAt: ago(4), status: 'PUBLISHED' },
+  { id: 2, postId: 3, authorId: 5, authorRole: 'supplier', authorName: 'Dhaka Textiles', body: 'Yes, 200 in stock. Ships from 20 Oct.', createdAt: ago(3), status: 'PUBLISHED' },
+  { id: 3, postId: 2, authorId: 6, authorRole: 'saler', authorName: 'Rafi Fashion', body: 'Thank you for the kind review.', createdAt: ago(1), status: 'PUBLISHED' },
+];
+const liveComments = (postId) => comments.filter((c) => c.postId === postId && c.status === 'PUBLISHED');
+const commentCount = (postId) => liveComments(postId).length;
+
 function viewer() {
   const auth = appStore.get().auth || {};
   const role = auth.isAuthenticated ? auth.role : null;
@@ -128,7 +138,7 @@ function serialize(p, user) {
   return {
     id: p.id, ref: `POST-${p.id}`, type: p.type, kind: p.kind, title: p.title, body: p.body, details: p.details,
     audience: p.audience, is_pinned: p.pinned, status: p.status, created_at: p.createdAt,
-    like_count: p.likes.size, media: p.media ?? [], liked_by_me: user ? p.likes.has(`u${user.id}`) : false,
+    like_count: p.likes.size, comment_count: commentCount(p.id), media: p.media ?? [], liked_by_me: user ? p.likes.has(`u${user.id}`) : false,
     is_mine: user ? p.authorId === user.id : false,
     open_report_count: openReports(p.id).length,
     verified_purchase: p.type === 'REVIEW' && p.orderItem != null,
@@ -219,7 +229,80 @@ function buildDraft(role, body) {
   return { draft: { kind, title, body: text, audience, pinned: body.is_pinned === true, details: {} } };
 }
 
+/** The post this viewer may read and comment on, or null: published, in their audience, or their own. */
+function readablePost(id, role, user) {
+  const p = posts.find((x) => x.id === Number(id));
+  if (!p || p.status !== 'PUBLISHED') return null;
+  return audiencesFor(role).includes(p.audience) || (user && p.authorId === user.id) ? p : null;
+}
+
+function serializeComment(c, user) {
+  return {
+    id: c.id, post_id: c.postId, body: c.body, created_at: c.createdAt, is_mine: user ? c.authorId === user.id : false,
+    author: { id: c.authorId, role: c.authorRole, name: c.authorName, initials: initials(c.authorName) },
+  };
+}
+
+const NOT_FOUND_POST = () => fail(404, 'NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
+const NOT_FOUND_COMMENT = () => fail(404, 'NOT_FOUND', 'Comment not found.', 'মন্তব্যটি পাওয়া যায়নি।');
+
 export const communityHandlers = [
+  {
+    method: 'GET',
+    path: '/community/posts/:id/comments',
+    handler({ params, query }) {
+      const { role, user } = viewer();
+      const post = readablePost(params.id, role, user);
+      if (!post) return NOT_FOUND_POST();
+      const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 50);
+      const offset = Math.max(Number(query.offset) || 0, 0);
+      const page = liveComments(post.id).slice(offset, offset + limit);
+      return { status: 200, body: { data: { comments: page.map((c) => serializeComment(c, user)), comment_count: commentCount(post.id) }, meta: { limit, offset, has_more: page.length === limit } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/community/posts/:id/comments',
+    handler({ params, body = {} }) {
+      const { role, user } = viewer();
+      if (!user) return fail(401, 'AUTH_REQUIRED', 'Sign in required.', 'সাইন ইন করা প্রয়োজন।');
+      const text = typeof body.body === 'string' ? body.body.trim() : '';
+      if (!text) return fail(400, 'VALIDATION_FAILED', 'Write a comment first.', 'আগে মন্তব্য লিখুন।', 'body');
+      if (text.length > 1000) return fail(400, 'VALIDATION_FAILED', 'A comment can be at most 1000 characters.', 'মন্তব্য সর্বোচ্চ ১০০০ অক্ষরের হতে পারে।', 'body');
+      const post = readablePost(params.id, role, user);
+      if (!post) return NOT_FOUND_POST();
+      const c = { id: nextCommentId++, postId: post.id, authorId: user.id, authorRole: role === 'super_admin' ? 'admin' : role, authorName: user.name, body: text, createdAt: new Date().toISOString(), status: 'PUBLISHED' };
+      comments.push(c);
+      return { status: 201, body: { data: { comment: serializeComment(c, user), comment_count: commentCount(post.id) } } };
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/community/comments/:id',
+    handler({ params }) {
+      const { user } = viewer();
+      if (!user) return fail(401, 'AUTH_REQUIRED', 'Sign in required.', 'সাইন ইন করা প্রয়োজন।');
+      const c = comments.find((x) => x.id === Number(params.id) && x.status === 'PUBLISHED');
+      if (!c) return NOT_FOUND_COMMENT();
+      if (c.authorId !== user.id) return fail(403, 'FORBIDDEN', 'You can only delete your own comments.', 'শুধু নিজের মন্তব্য মুছতে পারবেন।');
+      c.status = 'REMOVED';
+      return { status: 200, body: { data: { comment_count: commentCount(c.postId) } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/admin/community/comments/:id/remove',
+    handler({ params }) {
+      const { role } = viewer();
+      if (!['moderator', 'admin', 'super_admin'].includes(role)) {
+        return fail(403, 'PERMISSION_DENIED', "You don't have access to this action.", 'এই কাজটি করার অনুমতি আপনার নেই।');
+      }
+      const c = comments.find((x) => x.id === Number(params.id) && x.status === 'PUBLISHED');
+      if (!c) return NOT_FOUND_COMMENT();
+      c.status = 'REMOVED';
+      return { status: 200, body: { data: { comment_count: commentCount(c.postId) } } };
+    },
+  },
   {
     method: 'GET',
     path: '/community/posts',

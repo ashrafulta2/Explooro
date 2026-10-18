@@ -68,6 +68,28 @@ export default async function communityPostRoutes(app) {
     schema: { params: idParams },
   }, controller.toggleLike);
 
+  app.get('/community/posts/:id/comments', {
+    preHandler: [optionalAuth, requireModule],
+    schema: { params: idParams },
+  }, controller.listComments);
+
+  app.post('/community/posts/:id/comments', {
+    preHandler: [app.authenticate, requireModule, app.requirePermission('community.comment.create'), canPost],
+    schema: {
+      params: idParams,
+      body: { type: 'object', additionalProperties: false, required: ['body'], properties: {
+        // Type and an outer bound only: the real limit (and the trimming) is the service's rule.
+        body: { type: 'string', maxLength: 5000 },
+      } },
+    },
+  }, controller.addComment);
+
+  // A member's own comment. The service refuses anyone else's, so this needs no permission key.
+  app.delete('/community/comments/:id', {
+    preHandler: [app.authenticate, requireModule],
+    schema: { params: idParams },
+  }, controller.deleteComment);
+
   app.post('/community/posts/:id/report', {
     preHandler: [app.authenticate, requireModule, app.requirePermission('community.post.report')],
     schema: {
@@ -85,6 +107,11 @@ export default async function communityPostRoutes(app) {
 
   // The one business number of this feature (how many reports hide a post). Viewing it needs only
   // moderate (the queue returns it); changing it needs its own permission and a reason.
+  app.post('/admin/community/comments/:id/remove', {
+    preHandler: [app.authenticate, requireModule, app.requirePermission('community.post.moderate')],
+    schema: { params: idParams },
+  }, controller.removeComment);
+
   app.put('/admin/community/settings', {
     preHandler: [app.authenticate, requireModule, app.requirePermission('community.settings.update')],
     schema: {

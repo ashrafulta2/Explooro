@@ -19,6 +19,8 @@ const POST_SELECT = `
          pr.default_retail_price AS product_price, pr.slug AS product_slug,
          (SELECT COUNT(*)::int FROM community_post_reports r
            WHERE r.post_id = p.id AND r.status = 'OPEN') AS open_report_count,
+         (SELECT COUNT(*)::int FROM community_post_comments c
+           WHERE c.post_id = p.id AND c.status = 'PUBLISHED') AS comment_count,
          COALESCE(p.author_id = $1, false) AS is_mine,
          EXISTS (SELECT 1 FROM community_post_likes l
                   WHERE l.post_id = p.id AND l.user_id = $1) AS liked_by_me
@@ -104,6 +106,63 @@ export async function listMediaForPosts(db, postIds) {
     [postIds]
   );
   return rows;
+}
+
+// A comment reads like a post author: the shop name for a shop partner, the profile name otherwise,
+// and the highest role the account holds for the little role chip.
+const COMMENT_SELECT = `
+  SELECT c.id, c.post_id, c.author_id, c.body, c.status, c.created_at,
+         COALESCE((SELECT vs.shop_name FROM virtual_stores vs
+                    WHERE vs.saler_id = c.author_id AND vs.deleted_at IS NULL
+                    ORDER BY vs.id LIMIT 1), up.display_name, up.full_name) AS author_name,
+         (SELECT r.key FROM user_roles ur JOIN roles r ON r.id = ur.role_id
+           WHERE ur.user_id = c.author_id ORDER BY r.level DESC LIMIT 1) AS author_role,
+         COALESCE(c.author_id = $1, false) AS is_mine
+  FROM community_post_comments c
+  LEFT JOIN user_profiles up ON up.user_id = c.author_id`;
+
+/** The live comments of one post, oldest first, so a thread reads top to bottom. */
+export async function listComments(db, { postId, viewerId = null, limit, offset }) {
+  const { rows } = await db.query(
+    `${COMMENT_SELECT}
+     WHERE c.post_id = $2 AND c.status = 'PUBLISHED'
+     ORDER BY c.created_at, c.id
+     LIMIT $3 OFFSET $4`,
+    [viewerId, postId, limit, offset]
+  );
+  return rows;
+}
+
+export async function getComment(db, id, viewerId = null) {
+  const { rows } = await db.query(`${COMMENT_SELECT} WHERE c.id = $2`, [viewerId, id]);
+  return rows[0] ?? null;
+}
+
+export async function insertComment(db, { postId, authorId, body }) {
+  const { rows } = await db.query(
+    `INSERT INTO community_post_comments (post_id, author_id, body) VALUES ($1, $2, $3) RETURNING id`,
+    [postId, authorId, body]
+  );
+  return rows[0].id;
+}
+
+/** Takes a live comment down. Returns false when it was not live (already removed). */
+export async function removeComment(db, id, removerId) {
+  const { rowCount } = await db.query(
+    `UPDATE community_post_comments
+        SET status = 'REMOVED', removed_by = $2, removed_at = now()
+      WHERE id = $1 AND status = 'PUBLISHED'`,
+    [id, removerId]
+  );
+  return rowCount === 1;
+}
+
+export async function countComments(db, postId) {
+  const { rows } = await db.query(
+    `SELECT COUNT(*)::int AS n FROM community_post_comments WHERE post_id = $1 AND status = 'PUBLISHED'`,
+    [postId]
+  );
+  return rows[0].n;
 }
 
 /** Counts per post type for the tab badges, under the same visibility rules as listPosts. */

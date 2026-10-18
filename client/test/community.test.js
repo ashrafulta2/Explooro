@@ -18,7 +18,7 @@ import path from 'node:path';
 
 import { handleMockRequest } from '../src/mocks/index.js';
 import { appStore, setMockRole, logOutMock } from '../src/state/appStore.js';
-import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA } from '../src/services/community.api.js';
+import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.js';
 import { checkNewFile } from '../src/components/community/MediaPicker.js';
 import { navItems } from '../src/config/navigation.js';
 
@@ -37,6 +37,7 @@ const COMPONENT_FILES = [
   ['components', 'community', 'PostComposer.js'],
   ['components', 'community', 'ModerationQueue.js'],
   ['components', 'community', 'MediaPicker.js'],
+  ['components', 'community', 'CommentThread.js'],
 ];
 
 // ── 1. Locale integrity ────────────────────────────────────────────────────────────────────
@@ -308,4 +309,61 @@ test('the settings form is shown only to holders of community.settings.update', 
   for (const k of ['title', 'label', 'reason', 'reason_ph', 'hint', 'save', 'saved', 'range', 'unchanged', 'reason_short']) {
     assert.ok(get(en, `community.mod.settings.${k}`) && get(bn, `community.mod.settings.${k}`), `community.mod.settings.${k}`);
   }
+});
+
+// ── 6. Comments ───────────────────────────────────────────────────────────────────────────
+
+test('the comment limit mirrors the server source', () => {
+  const server = fs.readFileSync(path.resolve(src, '../../server/src/services/communityPost.service.ts'), 'utf8');
+  assert.match(server, new RegExp(`comment: ${COMMENT_MAX}`));
+});
+
+test('mock: a comment is live at once, counts on the post, and is readable only where the post is', () => {
+  const commentsOf = (id, query) => call('GET', `/community/posts/${id}/comments`, null, query);
+  const postCount = (id) => call('GET', '/community/posts').body.data.posts.find((p) => p.id === id)?.comment_count;
+
+  // A fresh supplier update (for shop partners), so earlier tests' moderation of the seeded ones cannot matter.
+  setMockRole('supplier');
+  const POST = call('POST', '/community/posts', {
+    kind: 'RESTOCK', product_id: 101, body: 'More stock', details: { stock: 10, min_order: 2, wholesale_price: 100 },
+  }).body.data.post.id;
+  const reply = call('POST', `/community/posts/${POST}/comments`, { body: 'Ask me anything about it.' });
+  assert.equal(reply.status, 201, 'the author may comment on their own post although they are not in its audience');
+
+  setMockRole('customer');
+  assert.equal(commentsOf(POST).status, 404, 'a customer cannot see a post meant for shop partners');
+  assert.equal(call('POST', `/community/posts/${POST}/comments`, { body: 'hi' }).status, 404);
+
+  setMockRole('saler');
+  assert.equal(commentsOf(POST).body.data.comments.length, 1);
+  assert.equal(postCount(POST), 1);
+  const added = call('POST', `/community/posts/${POST}/comments`, { body: '  Is it breathable?  ' });
+  assert.equal(added.status, 201);
+  assert.equal(added.body.data.comment.body, 'Is it breathable?');
+  assert.equal(added.body.data.comment.is_mine, true);
+  assert.equal(added.body.data.comment_count, 2);
+  assert.equal(postCount(POST), 2);
+  assert.deepEqual(commentsOf(POST).body.data.comments.map((c) => c.is_mine), [false, true], 'oldest first, mine marked');
+
+  assert.equal(call('POST', `/community/posts/${POST}/comments`, { body: '   ' }).status, 400);
+  assert.equal(call('POST', `/community/posts/${POST}/comments`, { body: 'x'.repeat(COMMENT_MAX + 1) }).status, 400);
+
+  // Deleting: only your own.
+  const theirs = commentsOf(POST).body.data.comments[0].id;
+  assert.equal(call('DELETE', `/community/comments/${theirs}`).status, 403, "someone else's comment");
+  assert.equal(call('DELETE', `/community/comments/${added.body.data.comment.id}`).body.data.comment_count, 1);
+  assert.equal(call('DELETE', `/community/comments/${added.body.data.comment.id}`).status, 404, 'already gone');
+  assert.equal(postCount(POST), 1);
+
+  // Staff remove any comment; a member cannot use that route.
+  assert.equal(call('POST', `/admin/community/comments/${theirs}/remove`).status, 403);
+  setMockRole('moderator');
+  assert.equal(call('POST', `/admin/community/comments/${theirs}/remove`).body.data.comment_count, 0);
+  assert.equal(call('POST', `/admin/community/comments/${theirs}/remove`).status, 404);
+
+  // A guest reads a public post's thread (post 2 is seeded with one comment) but cannot write.
+  logOutMock();
+  assert.equal(commentsOf(2).body.data.comments.length, 1);
+  assert.equal(commentsOf(POST).status, 404);
+  assert.equal(call('POST', '/community/posts/2/comments', { body: 'hi' }).status, 401);
 });

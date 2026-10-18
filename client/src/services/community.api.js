@@ -37,6 +37,9 @@ export const POST_MEDIA = Object.freeze({
   types: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'video/mp4'],
 });
 
+/** Mirrors LIMITS.comment in server/src/services/communityPost.service.ts (client/test pins them). */
+export const COMMENT_MAX = 1000;
+
 export const REPORT_REASONS = ['SPAM', 'FAKE_REVIEW', 'MISLEADING', 'OFFENSIVE', 'OTHER'];
 export const AUDIENCES = ['EVERYONE', 'CUSTOMERS', 'SUPPLIERS', 'SHOP_PARTNERS'];
 
@@ -128,6 +131,33 @@ export async function getQueue({ limit, offset } = {}) {
  */
 export async function updateThreshold(value, reason) {
   const { data } = await api.put('/admin/community/settings', { auto_hide_report_threshold: value, reason });
+  return data;
+}
+
+/** @returns {Promise<{comments: object[], comment_count: number, meta: object}>} */
+export async function listComments(postId, { limit, offset } = {}) {
+  const query = {};
+  if (limit != null) query.limit = limit;
+  if (offset != null) query.offset = offset;
+  const { data, meta } = await api.get(`/community/posts/${postId}/comments`, { query });
+  return { comments: data?.comments ?? [], comment_count: data?.comment_count ?? 0, meta: meta || {} };
+}
+
+/** @returns {Promise<{comment: object, comment_count: number}>} */
+export async function addComment(postId, body) {
+  const { data } = await api.post(`/community/posts/${postId}/comments`, { body });
+  return data;
+}
+
+/** A member deletes their own comment. @returns {Promise<{comment_count: number}>} */
+export async function deleteComment(commentId) {
+  const { data } = await api.delete(`/community/comments/${commentId}`);
+  return data;
+}
+
+/** Staff remove any comment (community.post.moderate). @returns {Promise<{comment_count: number}>} */
+export async function removeComment(commentId) {
+  const { data } = await api.post(`/admin/community/comments/${commentId}/remove`, {});
   return data;
 }
 

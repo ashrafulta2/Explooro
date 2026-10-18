@@ -264,7 +264,8 @@
       "report": "Report",
       "link_copied": "Link copied",
       "photo_alt": "Photo shared by {{name}}",
-      "video_label": "Video shared by {{name}}"
+      "video_label": "Video shared by {{name}}",
+      "comment": "Comment"
     },
     "report": {
       "title": "Why are you reporting this post?",
@@ -423,6 +424,17 @@
         "too_large_video": "{{name}} is larger than {{mb}} MB.",
         "failed": "{{name}} could not be uploaded. Try again."
       }
+    },
+    "comment": {
+      "title": "Comments",
+      "placeholder": "Write a comment…",
+      "post": "Post comment",
+      "write_first": "Write a comment first.",
+      "empty": "No comments yet. Start the conversation.",
+      "more": "Show more comments",
+      "delete": "Delete",
+      "remove": "Remove",
+      "sign_in": "Sign in to comment."
     }
   },
   "nav": {

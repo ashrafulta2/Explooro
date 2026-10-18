@@ -17,15 +17,16 @@ import {
   getAutoHideThreshold, ROLE_POST, REPORT_REASONS, MODERATE_ACTIONS, THRESHOLD_LIMITS,
   validateMediaIds, mediaKind, createPost, createAnnouncement, LIMITS,
   validateThreshold, updateAutoHideThreshold,
+  validateCommentBody, serializeComment, addComment, listPostComments, deleteOwnComment, removeCommentAsStaff,
 } from '../src/services/communityPost.service.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (...p) => readFileSync(path.join(ROOT, ...p), 'utf8');
 
 /** An in-memory stand-in for the pool: just the queries reportPost / moderatePost make. */
-function makeDb({ threshold = null, post = { id: 1, status: 'PUBLISHED', author_id: 10, post_type: 'REVIEW', hidden_reason: null }, media = [] } = {}) {
+function makeDb({ postRow = {}, threshold = null, post = { id: 1, status: 'PUBLISHED', author_id: 10, post_type: 'REVIEW', hidden_reason: null }, media = [] } = {}) {
   // `media` is the uploads that exist: { id, mime_type, storage_key, owner_id, purpose, used }.
-  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [] };
+  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [], comments: [] };
   const query = async (sql, params = []) => {
     const q = sql.replace(/\s+/g, ' ').trim();
     state.calls.push(q.slice(0, 40));
@@ -69,7 +70,28 @@ function makeDb({ threshold = null, post = { id: 1, status: 'PUBLISHED', author_
       return { rows: [], rowCount: params[1].length };
     }
     if (q.startsWith('SELECT p.id, p.ref')) {
-      return { rows: [{ id: 7, ref: 'POST-X', author_id: 10, author_role: 'supplier', post_type: 'UPDATE', kind: 'RESTOCK', details: {}, audience: 'SHOP_PARTNERS', status: 'PUBLISHED', like_count: 0, author_name: 'Dhaka Textiles' }] };
+      // pg hands BIGINT back as a string; so does this stand-in, because that is what the service sees live.
+      return { rows: [{ id: 7, ref: 'POST-X', author_id: '10', author_role: 'supplier', post_type: 'UPDATE', kind: 'RESTOCK', details: {}, audience: 'SHOP_PARTNERS', status: 'PUBLISHED', like_count: 0, author_name: 'Dhaka Textiles', ...postRow }] };
+    }
+    if (q.startsWith('INSERT INTO community_post_comments')) {
+      const row = { id: state.comments.length + 1, post_id: params[0], author_id: String(params[1]), body: params[2], status: 'PUBLISHED', created_at: new Date().toISOString(), author_name: 'Member', author_role: 'saler' };
+      state.comments.push(row);
+      return { rows: [{ id: row.id }] };
+    }
+    if (q.includes('FROM community_post_comments c LEFT JOIN user_profiles') && q.includes('WHERE c.id = $2')) {
+      const c = state.comments.find((x) => x.id === params[1]);
+      return { rows: c ? [{ ...c, is_mine: Number(c.author_id) === params[0] }] : [] };
+    }
+    if (q.includes('FROM community_post_comments c LEFT JOIN user_profiles')) {
+      return { rows: state.comments.filter((c) => c.post_id === params[1] && c.status === 'PUBLISHED').map((c) => ({ ...c, is_mine: Number(c.author_id) === params[0] })) };
+    }
+    if (q.startsWith('UPDATE community_post_comments')) {
+      const c = state.comments.find((x) => x.id === params[0] && x.status === 'PUBLISHED');
+      if (c) { c.status = 'REMOVED'; c.removed_by = params[1]; }
+      return { rows: [], rowCount: c ? 1 : 0 };
+    }
+    if (q.includes('COUNT(*)::int AS n FROM community_post_comments')) {
+      return { rows: [{ n: state.comments.filter((c) => c.post_id === params[0] && c.status === 'PUBLISHED').length }] };
     }
     if (q.includes('FROM community_post_media m')) {
       return { rows: state.attached.map((a) => ({ post_id: a.post_id, ...state.media.find((m) => m.id === a.media_id) })) };
@@ -278,6 +300,80 @@ test('a bad value or a missing reason changes nothing and writes no audit row', 
   assert.equal(db.upserts.length, 0);
   assert.equal(db.audit.length, 0);
   assert.equal(await getAutoHideThreshold(db), 5);
+});
+
+// ── Comments ────────────────────────────────────────────────────────────────────────────────
+
+test('a comment is 1 to 1000 characters after trimming, and the trimmed text is what is stored', () => {
+  assert.equal(validateCommentBody('  Does it shrink?  '), 'Does it shrink?');
+  assert.equal(validateCommentBody('x'.repeat(LIMITS.comment)).length, LIMITS.comment);
+  for (const bad of ['', '   ', null, undefined, 5, 'x'.repeat(LIMITS.comment + 1)]) {
+    assert.throws(() => validateCommentBody(bad), { code: 'VALIDATION_FAILED' });
+  }
+  const c = serializeComment({ id: 1, post_id: 7, body: 'Hi', created_at: 'now', author_id: '10', author_role: 'saler', author_name: 'Rafi Fashion', is_mine: true });
+  assert.deepEqual([c.author.initials, c.author.role, c.is_mine], ['RF', 'saler', true]);
+});
+
+test('a comment goes live at once and counts on the post', async () => {
+  const db = makeDb();
+  const saler = { id: 20, roles: ['saler'] };
+  const res = await addComment(db, saler, 7, { body: ' Do you have XL? ' });
+  assert.equal(res.comment.body, 'Do you have XL?');
+  assert.equal(res.comment_count, 1);
+  await addComment(db, { id: 10, roles: ['supplier'] }, 7, { body: 'Yes' });
+  const list = await listPostComments(db, saler, 7);
+  assert.deepEqual(list.comments.map((c) => c.body), ['Do you have XL?', 'Yes']);
+  assert.equal(list.comment_count, 2);
+  assert.deepEqual(list.comments.map((c) => c.is_mine), [true, false]);
+});
+
+test('a viewer can comment on and read only posts they can see; a hidden post has no comments to anyone', async () => {
+  const db = makeDb();
+  // The post is for shop partners (audience SHOP_PARTNERS) and written by user 10, a supplier.
+  await assert.rejects(() => addComment(db, { id: 30, roles: ['customer'] }, 7, { body: 'hi' }), { code: 'NOT_FOUND' });
+  await assert.rejects(() => listPostComments(db, null, 7), { code: 'NOT_FOUND' });
+  await assert.rejects(() => listPostComments(db, { id: 30, roles: ['customer'] }, 7), { code: 'NOT_FOUND' });
+  // Its author sees it although a supplier is not in its audience (their id arrives as a string from pg).
+  assert.equal((await addComment(db, { id: 10, roles: ['supplier'] }, 7, { body: 'own post' })).comment_count, 1);
+  assert.equal((await listPostComments(makeDb(), { id: 40, roles: ['moderator'] }, 7)).comments.length, 0, 'staff see every audience');
+  const hidden = makeDb({ postRow: { status: 'HIDDEN' } });
+  await assert.rejects(() => addComment(hidden, { id: 10, roles: ['supplier'] }, 7, { body: 'x' }), { code: 'NOT_FOUND' });
+  await assert.rejects(() => listPostComments(hidden, { id: 40, roles: ['admin'] }, 7), { code: 'NOT_FOUND' });
+});
+
+test('a member deletes only their own comment; staff removal is audited with the text', async () => {
+  const db = makeDb();
+  const saler = { id: 20, roles: ['saler'] };
+  const mine = (await addComment(db, saler, 7, { body: 'Mine' })).comment;
+  const theirs = (await addComment(db, { id: 10, roles: ['supplier'] }, 7, { body: 'Theirs' })).comment;
+
+  await assert.rejects(() => deleteOwnComment(db, saler, theirs.id), { code: 'FORBIDDEN' });
+  assert.deepEqual(await deleteOwnComment(db, saler, mine.id), { comment_count: 1 });
+  await assert.rejects(() => deleteOwnComment(db, saler, mine.id), { code: 'NOT_FOUND' });
+  assert.equal(db.audit.length, 0, 'an author taking down their own comment is not a staff action');
+
+  const out = await removeCommentAsStaff(db, { id: 99, roles: ['moderator'] }, theirs.id);
+  assert.deepEqual(out, { comment_count: 0 });
+  assert.equal(db.audit.at(-1).action, 'community.comment.remove');
+  await assert.rejects(() => removeCommentAsStaff(db, { id: 99, roles: ['moderator'] }, theirs.id), { code: 'NOT_FOUND' });
+});
+
+test('an author cannot report their own post even when pg hands their id back as a string', async () => {
+  const db = makeDb({ post: { id: 1, status: 'PUBLISHED', author_id: '10', post_type: 'IDEA', hidden_reason: null } });
+  await assert.rejects(() => reportPost(db, reporter(10), 1, { reason: 'SPAM' }), { code: 'FORBIDDEN' });
+});
+
+test('the comments migration and permission agree with the code', () => {
+  const sql = read('server', 'src', 'db', 'migrations', '082_community_comments.sql');
+  assert.match(sql, /CHECK \(status IN \('PUBLISHED', 'REMOVED'\)\)/);
+  assert.match(sql, /length\(btrim\(body\)\) > 0/);
+  const catalog = JSON.parse(read('docs', 'permission-catalog.json'));
+  const perm = catalog.permissions.find((p) => p.key === 'community.comment.create');
+  assert.equal(perm.risk_tier, 'LOW');
+  for (const role of ['customer', 'saler', 'supplier', 'admin']) assert.ok(perm.default_roles.includes(role), role);
+  const routes = read('server', 'src', 'routes', 'communityPost.routes.ts');
+  assert.ok(routes.includes("'community.comment.create'"));
+  assert.match(routes, /app\.delete\('\/community\/comments\/:id'/);
 });
 
 // ── Photos and video ────────────────────────────────────────────────────────────────────────

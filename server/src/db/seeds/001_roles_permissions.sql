@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (206 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (207 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -176,6 +176,7 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('growth.attribution.view', 'growth', 'View sale attribution rules', 'বিক্রয় অ্যাট্রিবিউশনের নিয়ম দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('growth.attribution.update', 'growth', 'Change the sale attribution window', 'বিক্রয় অ্যাট্রিবিউশন উইন্ডো পরিবর্তন', 'change how many days a storefront visit or link click keeps crediting a Shop Partner with the sale', 'স্টোরফ্রন্ট ভিজিট বা লিংক ক্লিকের পর কত দিন পর্যন্ত বিক্রির কৃতিত্ব শপ পার্টনার পাবেন তা বদলাতে', 'CRITICAL', false, 'approve_before'),
   ('community.post.create_own', 'community', 'Write community posts', 'কমিউনিটি পোস্ট লেখা', NULL, NULL, 'LOW', true, 'approve_before'),
+  ('community.comment.create', 'community', 'Comment on community posts', 'কমিউনিটি পোস্টে মন্তব্য করা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('community.post.report', 'community', 'Report community posts', 'কমিউনিটি পোস্ট রিপোর্ট করা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('community.post.announce', 'community', 'Post community announcements', 'কমিউনিটি ঘোষণা প্রকাশ', 'post and pin announcements that every member of the chosen audience sees on the timeline', 'নির্বাচিত দর্শকদের সবাই টাইমলাইনে দেখবে এমন ঘোষণা প্রকাশ ও পিন করতে', 'MEDIUM', true, 'approve_before'),
   ('community.settings.update', 'community', 'Change community moderation settings', 'কমিউনিটি মডারেশন সেটিং পরিবর্তন', 'change how many reports hide a community post until a moderator decides', 'কতগুলো রিপোর্টে মডারেটর সিদ্ধান্ত না নেওয়া পর্যন্ত কমিউনিটি পোস্ট লুকিয়ে যাবে তা বদলাতে', 'MEDIUM', true, 'approve_before'),
@@ -539,6 +540,13 @@ FROM (VALUES
   ('customer', 'community.post.create_own'),
   ('saler', 'community.post.create_own'),
   ('supplier', 'community.post.create_own'),
+  ('customer', 'community.comment.create'),
+  ('saler', 'community.comment.create'),
+  ('supplier', 'community.comment.create'),
+  ('moderator', 'community.comment.create'),
+  ('editor', 'community.comment.create'),
+  ('admin', 'community.comment.create'),
+  ('super_admin', 'community.comment.create'),
   ('customer', 'community.post.report'),
   ('saler', 'community.post.report'),
   ('supplier', 'community.post.report'),

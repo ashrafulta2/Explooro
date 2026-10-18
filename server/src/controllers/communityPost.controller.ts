@@ -39,6 +39,25 @@ export async function reportPost(req, reply) {
   return reply.send({ data: result });
 }
 
+export async function listComments(req, reply) {
+  const { limit, offset } = req.query || {};
+  const { comments, comment_count, meta } = await service.listPostComments(dbOf(req), req.user ?? null, Number(req.params.id), { limit, offset });
+  return reply.send({ data: { comments, comment_count }, meta });
+}
+
+export async function addComment(req, reply) {
+  const result = await service.addComment(dbOf(req), req.user, Number(req.params.id), req.body);
+  return reply.status(201).send({ data: result });
+}
+
+export async function deleteComment(req, reply) {
+  return reply.send({ data: await service.deleteOwnComment(dbOf(req), req.user, Number(req.params.id)) });
+}
+
+export async function removeComment(req, reply) {
+  return reply.send({ data: await service.removeCommentAsStaff(dbOf(req), req.user, Number(req.params.id)) });
+}
+
 export async function getQueue(req, reply) {
   const { limit, offset } = req.query || {};
   return reply.send({ data: await service.getQueue(dbOf(req), { limit, offset }) });
