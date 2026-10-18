@@ -194,3 +194,13 @@ test('both components are in the dev gallery', () => {
   assert.match(gallery, /id: 'community-post-card'/);
   assert.match(gallery, /id: 'community-post-composer'/);
 });
+
+test('the TopBar carries a Community button gated by the module, staff routed to the moderation page', () => {
+  const bar = read('components', 'shell', 'TopBar.js');
+  assert.match(bar, /isFeatureEnabled\('community_posts'\)/);
+  assert.match(bar, /COMMUNITY_STAFF_ROLES = \['super_admin', 'admin', 'moderator'\]/);
+  assert.match(bar, /'\/admin\/community' : '\/community'/);
+  assert.match(bar, /t\('nav\.community'\)/);
+  assert.ok(get(en, 'nav.community') && get(bn, 'nav.community'));
+  assert.match(read('styles', 'components', 'shell.css'), /\.topbar__community-btn--guest \{ display: none; \}/);
+});

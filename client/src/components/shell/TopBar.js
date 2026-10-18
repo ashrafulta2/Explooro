@@ -101,6 +101,14 @@ const THEME_ICONS_SVG = {
     '</svg>',
 };
 
+const COMMUNITY_ICON_SVG =
+  '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>' +
+  '</svg>';
+
+// Staff land on the moderation-capable route; everyone else on the public timeline.
+const COMMUNITY_STAFF_ROLES = ['super_admin', 'admin', 'moderator'];
+
 function IconButton({ icon, label, badgeCount, onClick }) {
   const btn = document.createElement('button');
   btn.type = 'button';
@@ -694,6 +702,26 @@ export function TopBar({
     });
     switchBtn.classList.add('topbar__discover-btn');
     bar.append(switchBtn);
+  }
+
+  // Community timeline — one click from anywhere, for guests too (they can read it). The shell
+  // rebuilds the TopBar on every navigation, so the current-page mark below needs no listener.
+  // Hidden only when the `community_posts` module is off; the route is gated by the same module.
+  if (isFeatureEnabled('community_posts')) {
+    const path = window.location.pathname;
+    const onCommunity = path === '/community' || path.startsWith('/community/') || path.startsWith('/admin/community');
+    const target = COMMUNITY_STAFF_ROLES.includes(role) ? '/admin/community' : '/community';
+    const communityBtn = IconButton({
+      icon: COMMUNITY_ICON_SVG,
+      label: t('nav.community'),
+      onClick: () => navigate(target),
+    });
+    communityBtn.classList.add('topbar__community-btn');
+    // WHY: a guest's row also carries Sign in and Sign up; on a narrow phone that row must not wrap,
+    // so the guest's button steps aside there (shell.css) while a signed-in person keeps it.
+    if (isGuest) communityBtn.classList.add('topbar__community-btn--guest');
+    if (onCommunity) communityBtn.setAttribute('aria-current', 'page');
+    bar.append(communityBtn);
   }
 
   if (elevatedGrant) bar.append(ElevatedChip({ grant: elevatedGrant }));
