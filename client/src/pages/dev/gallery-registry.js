@@ -17,6 +17,9 @@
  * index page"). Content and behaviour are unchanged from that preview; only the wiring is new.
  */
 import '../../styles/components/customer-warranties.css';
+import '../../styles/components/community.css';
+import { PostCard } from '../../components/community/PostCard.js';
+import { PostComposer } from '../../components/community/PostComposer.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { Select } from '../../components/ui/Select.js';
@@ -702,6 +705,54 @@ const DEMO_PRODUCTS = [
     store_open: true, is_verified_supplier: true,
     image_url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=80' },
 ];
+
+const DEMO_COMMUNITY_POSTS = [
+  { id: 901, ref: 'POST-901', type: 'REVIEW', kind: 'REVIEW', title: null, body: null, audience: 'EVERYONE', is_pinned: false, status: 'PUBLISHED',
+    created_at: new Date(Date.now() - 2 * 3600e3).toISOString(), like_count: 23, liked_by_me: false, is_mine: false, open_report_count: 0, verified_purchase: true,
+    author: { id: 7, role: 'customer', name: 'Nusrat Jahan', initials: 'NJ' },
+    product: { id: 1, ref: 'PRD-DEMO', slug: 'cotton-panjabi', title_en: 'Cotton panjabi, navy', title_bn: 'সুতির পাঞ্জাবি, নেভি', price: 1150 },
+    details: { rating: 4, quality: 4, value: 3, delivery: 5, liked: 'Soft fabric, clean stitching, true to size.', could_improve: 'Colour is a little lighter than the photo.', tip: 'Wash cold and dry in shade to keep the colour.' } },
+  { id: 902, ref: 'POST-902', type: 'UPDATE', kind: 'RESTOCK', title: null, body: 'Back in stock in sizes M to XXL.', audience: 'SHOP_PARTNERS', is_pinned: false, status: 'PUBLISHED',
+    created_at: new Date(Date.now() - 5 * 3600e3).toISOString(), like_count: 17, liked_by_me: true, is_mine: false, open_report_count: 0, verified_purchase: false,
+    author: { id: 5, role: 'supplier', name: 'Dhaka Textiles', initials: 'DT' },
+    product: { id: 1, ref: 'PRD-DEMO', slug: 'cotton-panjabi', title_en: 'Cotton panjabi, navy', title_bn: 'সুতির পাঞ্জাবি, নেভি', price: 1150 },
+    details: { stock: 500, min_order: 10, wholesale_price: 780, best_price: 700, ships_from: '20 Oct', tiers: [{ min_qty: 10, price: 780 }, { min_qty: 50, price: 740 }, { min_qty: 200, price: 700 }] } },
+  { id: 903, ref: 'POST-903', type: 'IDEA', kind: 'CREATIVE_IDEA', title: '3 ways to style a panjabi beyond Eid', body: null, audience: 'EVERYONE', is_pinned: false, status: 'PUBLISHED',
+    created_at: new Date(Date.now() - 24 * 3600e3).toISOString(), like_count: 61, liked_by_me: false, is_mine: true, open_report_count: 0, verified_purchase: false,
+    author: { id: 6, role: 'saler', name: 'Rafi Fashion', initials: 'RF' },
+    product: { id: 1, ref: 'PRD-DEMO', slug: 'cotton-panjabi', title_en: 'Cotton panjabi, navy', title_bn: 'সুতির পাঞ্জাবি, নেভি', price: 1150 },
+    details: { steps: ['Pair with white pajama and loafers', 'Layer a black vest for evening events'], tags: ['eid', 'styling'] } },
+  { id: 904, ref: 'POST-904', type: 'ANNOUNCEMENT', kind: 'ANNOUNCEMENT', title: 'Eid delivery cut-off dates', body: 'Orders placed before 20 Oct reach Dhaka by 24 Oct.', audience: 'EVERYONE', is_pinned: true, status: 'PUBLISHED',
+    created_at: new Date(Date.now() - 30 * 3600e3).toISOString(), like_count: 84, liked_by_me: false, is_mine: false, open_report_count: 0, verified_purchase: false,
+    author: { id: 2, role: 'admin', name: 'Explooro Team', initials: 'ET' }, product: null, details: {} },
+];
+
+function renderCommunityPostSpecimen() {
+  const wrap = document.createDocumentFragment();
+  wrap.append(subgroup('PostCard — review / update / idea / announcement (viewed as a shop partner)'));
+  for (const post of DEMO_COMMUNITY_POSTS) {
+    wrap.append(specimen(post.type.toLowerCase(), PostCard({
+      post: { ...post }, viewerRole: 'saler', canModerate: false,
+      onLike: async (p) => ({ liked: !p.liked_by_me, like_count: p.like_count + (p.liked_by_me ? -1 : 1) }),
+      onReport: async () => ({ reported: true, already_reported: false, auto_hidden: false }),
+    })));
+  }
+  wrap.append(subgroup('PostCard — staff view (Hide replaces Report)'));
+  wrap.append(specimen('moderator', PostCard({
+    post: { ...DEMO_COMMUNITY_POSTS[0] }, viewerRole: 'admin', canModerate: true,
+    onLike: async (p) => ({ liked: !p.liked_by_me, like_count: p.like_count }), onReport: async () => ({}), onModerate: async () => {},
+  })));
+  return wrap;
+}
+
+function renderCommunityComposerSpecimen() {
+  const wrap = document.createDocumentFragment();
+  for (const role of ['customer', 'supplier', 'saler', 'admin']) {
+    wrap.append(subgroup(`PostComposer — ${role}`));
+    wrap.append(specimen(role, PostComposer({ role, authorName: 'Demo member', onPublished: () => {}, onCancel: () => {} })));
+  }
+  return wrap;
+}
 
 function renderProductCard() {
   const wrap = document.createDocumentFragment();
@@ -1465,6 +1516,8 @@ export function buildGalleryEntries(detachedNodes) {
     // ── Communication ────────────────────────────────────────────────────────
     // Prompt 8.2 — Unified Notification Center & What's New
     { id: 'notification-center', label: 'NotificationCenter', group: 'Communication', render: renderNotificationCenterSpecimen },
+    { id: 'community-post-card', label: 'PostCard (/community)', group: 'Communication', render: renderCommunityPostSpecimen },
+    { id: 'community-post-composer', label: 'PostComposer (/community)', group: 'Communication', render: renderCommunityComposerSpecimen },
     { id: 'whats-new-modal', label: 'WhatsNewModal', group: 'Communication', render: renderWhatsNewSpecimen },
     // Prompt 8.3 — WhatsApp & Messenger Unified Inbox
     { id: 'unified-inbox', label: 'UnifiedInbox', group: 'Communication', render: renderUnifiedInboxSpecimen },

@@ -2117,6 +2117,8 @@ creating, `platform_settings` (§2) and `warehouse_nodes` (§3), are now defined
 from 15 to 18 in Prompt 4.6: `product_questions`, `product_question_upvotes`, and
 `product_answers` (Product Q&A) were absent from every earlier draft of this ERD.
 
+Migration `080_community_posts.sql` (2026-10-18) adds three Engagement tables not yet counted above: `community_posts` (one table for review / update / idea / announcement posts, role-specific fields in `details` JSONB, `order_item_id` as the proof of purchase behind a verified review), `community_post_likes` and `community_post_reports` (one report per person per post). The table above was not re-counted.
+
 ---
 
 ## 15. Implementation Checklist

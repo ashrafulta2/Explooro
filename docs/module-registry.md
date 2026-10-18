@@ -260,6 +260,7 @@ because other source documents require them.
 | 31 | Social Sharing OG Cards | `og_share_cards` |
 | 32 | Dynamic XML Sitemap | `xml_sitemap` |
 | 33 | Multi-Language Engine (i18n) | `i18n` |
+| 34 | Community Timeline (role-specific posts) | `community_posts` |
 | 34 | In-App "What's New" Notifications | `whats_new` |
 | 35 | Automated Database Backup | `auto_backup` |
 | 36 | Manual Backup Trigger | `manual_backup` |

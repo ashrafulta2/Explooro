@@ -71,6 +71,7 @@ import teamPurchaseRoutes from './routes/teamPurchase.routes.ts';
 import cartRecoveryRoutes from './routes/cartRecovery.routes.ts';
 import socialKitRoutes from './routes/socialKit.routes.ts';
 import liveStreamRoutes from './routes/liveStream.routes.ts';
+import communityPostRoutes from './routes/communityPost.routes.ts';
 import aiRoutes from './routes/ai.routes.ts';
 import warrantyRoutes from './routes/warranty.routes.ts';
 import bundleRoutes from './routes/bundle.routes.ts';
@@ -252,6 +253,7 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   await app.register(socialKitRoutes, { prefix: '/api/v1' });
   await app.register(socialKitRoutes); // Root registration for /s/:code
   await app.register(liveStreamRoutes, { prefix: '/api/v1' });
+  await app.register(communityPostRoutes, { prefix: '/api/v1' });
   await app.register(aiRoutes, { prefix: '/api/v1' });
   await app.register(warrantyRoutes, { prefix: '/api/v1' });
   await app.register(bundleRoutes, { prefix: '/api/v1' });

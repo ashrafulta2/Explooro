@@ -81,6 +81,7 @@ const DEMO_MODULES = {
   wishlist: true,
   follow_feed: true,
   discovery_feed: true,
+  community_posts: true,
   cart_recovery: true,
   // Prompt 4.6: gates the "1-Click Quick Buy" CTA on ProductDetailPage.js. Not referenced by any
   // navigation.js item (it's a product-detail affordance, not a nav entry) — added here anyway so

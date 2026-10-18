@@ -51,6 +51,7 @@ import chatHandlers from './handlers/chat.js';
 import meHandlers from './handlers/me.js';
 import mediaHandlers from './handlers/media.js';
 import moderatorToolsHandlers from './handlers/moderatorTools.js';
+import communityHandlers from './handlers/community.js';
 
 const handlers = [
   ...authHandlers,
@@ -97,6 +98,7 @@ const handlers = [
   ...meHandlers,
   ...mediaHandlers,
   ...moderatorToolsHandlers,
+  ...communityHandlers,
 ];
 
 function notFoundBody(path) {

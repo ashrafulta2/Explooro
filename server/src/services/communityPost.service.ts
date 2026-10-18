@@ -1,0 +1,371 @@
+/**
+ * communityPost.service.ts — the community timeline: role-specific posts, likes, reports, moderation.
+ *
+ * Rules this file owns:
+ *   - What each role may post is decided here, from the account's roles, never from the request:
+ *     customer → REVIEW (verified purchase only), supplier → UPDATE, shop partner → IDEA,
+ *     admin → ANNOUNCEMENT. A body that names another type is refused.
+ *   - A post goes live at once. A post that reaches the auto-hide threshold (configuration:
+ *     `community.auto_hide_report_threshold`) is hidden until a moderator decides.
+ *   - One report per person per post, and nobody reports their own post.
+ *
+ * Invariant: `community_posts.like_count` always equals the rows in `community_post_likes`
+ * (recomputed from the table on every toggle, never incremented in memory).
+ */
+
+import { withTransaction } from '../config/db.ts';
+import { AppError } from '../plugins/errorHandler.ts';
+import { generateRef } from '../lib/ref.ts';
+import { writeAudit } from '../lib/audit.ts';
+import * as repo from '../repositories/communityPost.repository.ts';
+import * as settingRepo from '../repositories/setting.repository.ts';
+
+export const THRESHOLD_KEY = 'community.auto_hide_report_threshold';
+export const THRESHOLD_LIMITS = Object.freeze({ min: 2, max: 50, fallback: 5 });
+
+// WHY these are constants and not settings: they are input-shape limits that stop an absurd payload,
+// not business decisions. The business numbers (the report threshold) are configuration.
+export const LIMITS = Object.freeze({
+  text: 1000, tip: 300, title: 120, body: 2000, step: 200, steps: 8, tags: 5, tag: 30, tiers: 5,
+  shipsFrom: 40,
+});
+
+export const ROLE_POST = Object.freeze({
+  customer: { type: 'REVIEW', kinds: ['REVIEW'] },
+  supplier: { type: 'UPDATE', kinds: ['NEW_ARRIVAL', 'RESTOCK', 'BULK_OFFER'] },
+  saler: { type: 'IDEA', kinds: ['USABILITY_TIP', 'CREATIVE_IDEA', 'PRODUCT_STORY'] },
+  admin: { type: 'ANNOUNCEMENT', kinds: ['ANNOUNCEMENT', 'POLICY_NOTICE', 'FEATURED_PICK'] },
+});
+
+export const REPORT_REASONS = ['SPAM', 'FAKE_REVIEW', 'MISLEADING', 'OFFENSIVE', 'OTHER'];
+export const MODERATE_ACTIONS = ['KEEP', 'HIDE', 'REMOVE'];
+const AUDIENCES = ['EVERYONE', 'CUSTOMERS', 'SUPPLIERS', 'SHOP_PARTNERS'];
+const STAFF_ROLES = ['admin', 'super_admin', 'moderator', 'editor'];
+
+function fail(field, en, bn) {
+  return new AppError('VALIDATION_FAILED', en, bn, { field });
+}
+
+function text(v, field, max, { required = false } = {}) {
+  const s = typeof v === 'string' ? v.trim() : '';
+  if (!s) {
+    if (required) throw fail(field, `${field} is required.`, 'এই ঘরটি পূরণ করা আবশ্যক।');
+    return null;
+  }
+  if (s.length > max) throw fail(field, `${field} must be at most ${max} characters.`, `সর্বোচ্চ ${max} অক্ষর লেখা যাবে।`);
+  return s;
+}
+
+function int(v, field, min, max, { required = false } = {}) {
+  if (v === undefined || v === null || v === '') {
+    if (required) throw fail(field, `${field} is required.`, 'এই ঘরটি পূরণ করা আবশ্যক।');
+    return null;
+  }
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < min || n > max) {
+    throw fail(field, `${field} must be a whole number from ${min} to ${max}.`, `${min} থেকে ${max} এর মধ্যে পূর্ণসংখ্যা দিন।`);
+  }
+  return n;
+}
+
+function money(v, field, { required = false } = {}) {
+  if (v === undefined || v === null || v === '') {
+    if (required) throw fail(field, `${field} is required.`, 'এই ঘরটি পূরণ করা আবশ্যক।');
+    return null;
+  }
+  const n = Number(v);
+  // Whole paisa only, like every other money input in the platform.
+  if (!Number.isFinite(n) || n < 0 || n > 10_000_000 || Math.round(n * 100) !== n * 100) {
+    throw fail(field, `${field} must be a valid amount.`, 'সঠিক টাকার পরিমাণ দিন।');
+  }
+  return n;
+}
+
+/** The post type an account may write, taken from its roles. Admin comes first so staff who also hold another role post as staff. */
+export function resolveAuthorRole(roles: string[] = []) {
+  if (roles.includes('admin') || roles.includes('super_admin')) return 'admin';
+  for (const r of ['customer', 'supplier', 'saler']) if (roles.includes(r)) return r;
+  return null;
+}
+
+/**
+ * Pure, so the API and the tests assert one rule. Returns the normalised fields to store, or throws
+ * VALIDATION_FAILED. Product ownership and proof of purchase are checked by the caller against the
+ * database; this only checks shape.
+ */
+export function validateDraft(authorRole, input: Record<string, any> = {}) {
+  const spec = ROLE_POST[authorRole];
+  if (!spec) throw new AppError('FORBIDDEN', 'Your account cannot post here.', 'আপনার অ্যাকাউন্ট থেকে এখানে পোস্ট করা যায় না।');
+  const kind = String(input.kind || spec.kinds[0]).toUpperCase();
+  if (!spec.kinds.includes(kind)) {
+    throw fail('kind', 'This post kind is not available for your account.', 'এই ধরনের পোস্ট আপনার অ্যাকাউন্টের জন্য নয়।');
+  }
+  const d = input.details && typeof input.details === 'object' ? input.details : {};
+
+  if (spec.type === 'REVIEW') {
+    const liked = text(d.liked, 'liked', LIMITS.text);
+    const improve = text(d.could_improve, 'could_improve', LIMITS.text);
+    if (!liked && !improve) {
+      throw fail('liked', 'Tell other buyers what you liked or what could be better.', 'কী ভালো লেগেছে বা কী ভালো হতে পারত, অন্তত একটি লিখুন।');
+    }
+    return { kind, title: null, body: null, audience: 'EVERYONE', isPinned: false, details: {
+      rating: int(d.rating, 'rating', 1, 5, { required: true }),
+      quality: int(d.quality, 'quality', 1, 5),
+      value: int(d.value, 'value', 1, 5),
+      delivery: int(d.delivery, 'delivery', 1, 5),
+      liked, could_improve: improve, tip: text(d.tip, 'tip', LIMITS.tip),
+    } };
+  }
+
+  if (spec.type === 'UPDATE') {
+    const tiers = (Array.isArray(d.tiers) ? d.tiers : []).slice(0, LIMITS.tiers).map((t, i) => ({
+      min_qty: int(t?.min_qty, `tiers[${i}].min_qty`, 1, 1_000_000, { required: true }),
+      price: money(t?.price, `tiers[${i}].price`, { required: true }),
+    }));
+    const wholesale = money(d.wholesale_price, 'wholesale_price', { required: true });
+    return { kind, title: null, body: text(input.body, 'body', LIMITS.body, { required: true }),
+      audience: 'SHOP_PARTNERS', isPinned: false, details: {
+        stock: int(d.stock, 'stock', 0, 10_000_000, { required: true }),
+        min_order: int(d.min_order, 'min_order', 1, 1_000_000, { required: true }),
+        wholesale_price: wholesale,
+        best_price: Math.min(wholesale, ...tiers.map((t) => t.price)),
+        ships_from: text(d.ships_from, 'ships_from', LIMITS.shipsFrom),
+        tiers,
+      } };
+  }
+
+  if (spec.type === 'IDEA') {
+    const steps = (Array.isArray(d.steps) ? d.steps : [])
+      .map((s) => (typeof s === 'string' ? s.trim() : '')).filter(Boolean);
+    if (!steps.length) throw fail('steps', 'Add at least one step or idea.', 'অন্তত একটি ধাপ বা আইডিয়া যোগ করুন।');
+    if (steps.length > LIMITS.steps || steps.some((s) => s.length > LIMITS.step)) {
+      throw fail('steps', `Use at most ${LIMITS.steps} steps of ${LIMITS.step} characters.`, `সর্বোচ্চ ${LIMITS.steps}টি ধাপ, প্রতিটি ${LIMITS.step} অক্ষরের মধ্যে।`);
+    }
+    const tags = (Array.isArray(d.tags) ? d.tags : [])
+      .map((s) => (typeof s === 'string' ? s.trim().replace(/^#/, '') : '')).filter(Boolean);
+    if (tags.length > LIMITS.tags || tags.some((s) => s.length > LIMITS.tag)) {
+      throw fail('tags', `Use at most ${LIMITS.tags} short tags.`, `সর্বোচ্চ ${LIMITS.tags}টি ছোট ট্যাগ দিন।`);
+    }
+    return { kind, title: text(input.title, 'title', LIMITS.title, { required: true }),
+      body: text(input.body, 'body', LIMITS.body), audience: 'EVERYONE', isPinned: false,
+      details: { steps, tags } };
+  }
+
+  const audience = String(input.audience || 'EVERYONE').toUpperCase();
+  if (!AUDIENCES.includes(audience)) throw fail('audience', 'Choose who can see this.', 'কারা দেখবে তা বেছে নিন।');
+  return { kind, title: text(input.title, 'title', LIMITS.title, { required: true }),
+    body: text(input.body, 'body', LIMITS.body, { required: true }), audience,
+    isPinned: input.is_pinned === true, details: {} };
+}
+
+/** Which audiences a viewer may see. Staff see all; a guest sees only posts meant for everyone. */
+export function visibleAudiences(roles: string[] = []) {
+  if (roles.some((r) => STAFF_ROLES.includes(r))) return AUDIENCES;
+  const out = ['EVERYONE'];
+  if (roles.includes('customer')) out.push('CUSTOMERS');
+  if (roles.includes('supplier')) out.push('SUPPLIERS');
+  if (roles.includes('saler')) out.push('SHOP_PARTNERS');
+  return out;
+}
+
+function initials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] ?? '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
+}
+
+export function serializePost(row) {
+  return {
+    id: row.id,
+    ref: row.ref,
+    type: row.post_type,
+    kind: row.kind,
+    title: row.title,
+    body: row.body,
+    details: row.details ?? {},
+    audience: row.audience,
+    is_pinned: row.is_pinned,
+    status: row.status,
+    created_at: row.created_at,
+    like_count: row.like_count,
+    liked_by_me: !!row.liked_by_me,
+    is_mine: !!row.is_mine,
+    open_report_count: row.open_report_count ?? 0,
+    // Verified purchase is a fact about the stored proof of purchase, never a flag the author sends.
+    verified_purchase: row.post_type === 'REVIEW' && row.order_item_id != null,
+    author: { id: row.author_id, role: row.author_role, name: row.author_name ?? '—', initials: initials(row.author_name) },
+    product: row.product_id == null ? null : {
+      id: row.product_id, ref: row.product_ref, slug: row.product_slug,
+      title_en: row.product_title_en, title_bn: row.product_title_bn, price: row.product_price,
+    },
+  };
+}
+
+export async function getAutoHideThreshold(db) {
+  const row = await settingRepo.getSettingByKey(db, THRESHOLD_KEY);
+  let v = row?.value_json;
+  if (typeof v === 'string') { try { v = JSON.parse(v); } catch { v = Number(v); } }
+  const n = Number(v);
+  return Number.isInteger(n) && n >= THRESHOLD_LIMITS.min && n <= THRESHOLD_LIMITS.max ? n : THRESHOLD_LIMITS.fallback;
+}
+
+export async function listTimeline(db, user, { type, role, sort, mine, limit = 20, offset = 0 }: Record<string, any> = {}) {
+  const roles = user?.roles ?? [];
+  const audiences = visibleAudiences(roles);
+  const filters = {
+    viewerId: user?.id ?? null,
+    audiences,
+    role: ['customer', 'supplier', 'saler', 'admin'].includes(role) ? role : null,
+    authorId: mine && user ? user.id : null,
+    limit: Math.min(Math.max(Number(limit) || 20, 1), 50),
+    offset: Math.max(Number(offset) || 0, 0),
+  };
+  const postType = ['REVIEW', 'UPDATE', 'IDEA', 'ANNOUNCEMENT'].includes(type) ? type : null;
+  const [rows, counts] = await Promise.all([
+    repo.listPosts(db, { ...filters, type: postType, sort: sort === 'top' ? 'top' : 'recent' }),
+    repo.countByType(db, { viewerId: filters.viewerId, role: filters.role, audiences }),
+  ]);
+  const byType = Object.fromEntries(counts.map((c) => [c.post_type, c.n]));
+  return {
+    posts: rows.map(serializePost),
+    counts: { ALL: counts.reduce((a, c) => a + c.n, 0), ...byType },
+    meta: { limit: filters.limit, offset: filters.offset, has_more: rows.length === filters.limit },
+  };
+}
+
+/** What the signed-in author may attach a post to: delivered purchases, own products, or own store items. */
+export async function listComposerProducts(db, user) {
+  const role = resolveAuthorRole(user.roles);
+  if (role === 'customer') return { role, items: await repo.listReviewableItems(db, user.id) };
+  if (role === 'supplier') return { role, items: await repo.listSupplierProducts(db, user.id) };
+  if (role === 'saler') return { role, items: await repo.listPartnerProducts(db, user.id) };
+  return { role, items: [] };
+}
+
+export async function createPost(db, user, input: Record<string, any> = {}) {
+  const role = resolveAuthorRole(user.roles);
+  if (!role || role === 'admin') {
+    throw new AppError('FORBIDDEN', 'Your account cannot write this kind of post.', 'আপনার অ্যাকাউন্ট এই ধরনের পোস্ট লিখতে পারে না।');
+  }
+  const draft = validateDraft(role, input);
+
+  let productId = null;
+  let orderItemId = null;
+  if (role === 'customer') {
+    const item = await repo.findDeliveredItem(db, user.id, Number(input.order_item_id));
+    if (!item) {
+      throw new AppError('VALIDATION_FAILED', 'You can review a product after it is delivered to you.',
+        'পণ্যটি আপনার কাছে ডেলিভারি হওয়ার পর রিভিউ দিতে পারবেন।', { field: 'order_item_id' });
+    }
+    productId = item.product_id;
+    orderItemId = item.order_item_id;
+  } else {
+    productId = int(input.product_id, 'product_id', 1, Number.MAX_SAFE_INTEGER, { required: true });
+    const ok = role === 'supplier'
+      ? await repo.supplierOwnsProduct(db, user.id, productId)
+      : await repo.partnerSellsProduct(db, user.id, productId);
+    if (!ok) {
+      throw new AppError('PERMISSION_DENIED', 'Pick a product that is yours to post about.',
+        'যে পণ্যটি আপনার, শুধু সেটি নিয়েই পোস্ট করতে পারবেন।', { field: 'product_id' });
+    }
+  }
+
+  let id;
+  try {
+    id = await repo.insertPost(db, {
+      ref: generateRef('POST'), authorId: user.id, authorRole: role, postType: ROLE_POST[role].type,
+      kind: draft.kind, productId, orderItemId, title: draft.title, body: draft.body,
+      details: draft.details, audience: draft.audience, isPinned: draft.isPinned,
+    });
+  } catch (err) {
+    // uq_community_review_per_order_item: a second review for the same delivered line.
+    if (err?.code === '23505') {
+      throw new AppError('CONFLICT', 'You already reviewed this purchase.', 'এই কেনাকাটার রিভিউ আপনি আগেই দিয়েছেন।');
+    }
+    throw err;
+  }
+  return serializePost(await repo.getPost(db, id, user.id));
+}
+
+/** Staff announcement. Writes an audit row, because it is a staff action visible to every member. */
+export async function createAnnouncement(db, user, input: Record<string, any> = {}) {
+  const draft = validateDraft('admin', input);
+  const id = await repo.insertPost(db, {
+    ref: generateRef('POST'), authorId: user.id, authorRole: 'admin', postType: 'ANNOUNCEMENT',
+    kind: draft.kind, productId: null, orderItemId: null, title: draft.title, body: draft.body,
+    details: {}, audience: draft.audience, isPinned: draft.isPinned,
+  });
+  const post = await repo.getPost(db, id, user.id);
+  await writeAudit(db, {
+    action: 'community.post.announce', targetType: 'community_post', targetRef: post.ref,
+    actor: user, before: null, after: { kind: draft.kind, title: draft.title, audience: draft.audience, pinned: draft.isPinned },
+  });
+  return serializePost(post);
+}
+
+export async function toggleLike(db, user, postId) {
+  const post = await repo.getPost(db, postId, user.id);
+  if (!post || post.status !== 'PUBLISHED') throw new AppError('NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
+  return withTransaction(db, (client) => repo.toggleLike(client, postId, user.id));
+}
+
+/**
+ * Files a report. The post stays live. When the open reports reach the threshold it is hidden until
+ * a moderator decides: the post row is locked first so two reports arriving together cannot both
+ * miss the threshold, or hide it twice.
+ */
+export async function reportPost(db, user, postId, { reason, note }: Record<string, any> = {}) {
+  if (!REPORT_REASONS.includes(reason)) throw fail('reason', 'Choose a reason for the report.', 'রিপোর্টের কারণ বেছে নিন।');
+  const cleanNote = text(note, 'note', LIMITS.tip);
+  const threshold = await getAutoHideThreshold(db);
+
+  return withTransaction(db, async (client) => {
+    const post = await repo.lockPost(client, postId);
+    if (!post || post.status !== 'PUBLISHED') throw new AppError('NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
+    if (post.author_id === user.id) {
+      throw new AppError('FORBIDDEN', 'You cannot report your own post.', 'নিজের পোস্ট রিপোর্ট করা যায় না।');
+    }
+    const created = await repo.insertReport(client, { postId, reporterId: user.id, reason, note: cleanNote });
+    const open = await repo.countOpenReports(client, postId);
+    let autoHidden = false;
+    if (created && open >= threshold) {
+      await repo.setStatus(client, postId, 'HIDDEN', 'REPORTS');
+      autoHidden = true;
+      await writeAudit(client, {
+        action: 'community.post.auto_hide', targetType: 'community_post', targetRef: String(postId),
+        actor: null, before: { status: 'PUBLISHED' }, after: { status: 'HIDDEN', open_reports: open, threshold },
+      });
+    }
+    return { reported: created, already_reported: !created, auto_hidden: autoHidden };
+  });
+}
+
+/** Moderator decision on one post: KEEP (live, reports dismissed), HIDE or REMOVE (reports actioned). */
+export async function moderatePost(db, user, postId, action) {
+  if (!MODERATE_ACTIONS.includes(action)) throw fail('action', 'Choose Keep, Hide or Remove.', 'রাখা, লুকানো বা সরানো বেছে নিন।');
+  return withTransaction(db, async (client) => {
+    const post = await repo.lockPost(client, postId);
+    if (!post || post.status === 'REMOVED') throw new AppError('NOT_FOUND', 'Post not found.', 'পোস্টটি পাওয়া যায়নি।');
+    const next = { KEEP: 'PUBLISHED', HIDE: 'HIDDEN', REMOVE: 'REMOVED' }[action];
+    await repo.setStatus(client, postId, next, next === 'HIDDEN' ? 'MODERATOR' : null);
+    const resolved = await repo.resolveReports(client, postId, action === 'KEEP' ? 'DISMISSED' : 'ACTIONED', user.id);
+    await writeAudit(client, {
+      action: `community.post.${action.toLowerCase()}`, targetType: 'community_post', targetRef: String(postId),
+      actor: user, before: { status: post.status, hidden_reason: post.hidden_reason },
+      after: { status: next, reports_resolved: resolved },
+    });
+    return { status: next, reports_resolved: resolved };
+  });
+}
+
+export async function getQueue(db, { limit = 30, offset = 0 }: Record<string, any> = {}) {
+  const [rows, stats, threshold] = await Promise.all([
+    repo.listQueue(db, { limit: Math.min(Math.max(Number(limit) || 30, 1), 100), offset: Math.max(Number(offset) || 0, 0) }),
+    repo.queueStats(db),
+    getAutoHideThreshold(db),
+  ]);
+  const reasons = Object.fromEntries((await repo.topReasons(db, rows.map((r) => r.id))).map((r) => [r.post_id, r.reason]));
+  return {
+    items: rows.map((r) => ({ ...serializePost(r), top_reason: reasons[r.id] ?? null })),
+    stats, threshold,
+  };
+}

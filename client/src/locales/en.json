@@ -162,6 +162,238 @@
       "description": "No route matches this path."
     }
   },
+  "community": {
+    "disabled_title": "The community timeline is switched off",
+    "disabled_desc": "An admin has turned this feature off for now.",
+    "page": {
+      "title": "Community",
+      "sub": "Reviews, product updates, ideas and news from customers, suppliers and shop partners.",
+      "desc": "Reviews, product updates, ideas and announcements from the Explooro community."
+    },
+    "view": {
+      "timeline": "Timeline",
+      "moderation": "Moderation"
+    },
+    "tab": {
+      "all": "All",
+      "review": "Reviews",
+      "update": "Updates",
+      "idea": "Ideas",
+      "announce": "News"
+    },
+    "from": {
+      "all": "Everyone",
+      "customer": "Customers",
+      "supplier": "Suppliers",
+      "saler": "Shop Partners",
+      "admin": "Explooro Team"
+    },
+    "sort": {
+      "recent": "Most recent",
+      "top": "Most liked"
+    },
+    "filter": {
+      "from": "Filter by who posted",
+      "sort": "Sort posts",
+      "mine": "My posts"
+    },
+    "role": {
+      "customer": "Customer",
+      "supplier": "Supplier",
+      "saler": "Shop Partner",
+      "admin": "Explooro Team"
+    },
+    "audience": {
+      "EVERYONE": "Everyone",
+      "CUSTOMERS": "Customers",
+      "SUPPLIERS": "Suppliers",
+      "SHOP_PARTNERS": "Shop Partners"
+    },
+    "kind": {
+      "REVIEW": "Review",
+      "NEW_ARRIVAL": "New arrival",
+      "RESTOCK": "Restock",
+      "BULK_OFFER": "Bulk offer",
+      "USABILITY_TIP": "Usability tip",
+      "CREATIVE_IDEA": "Creative idea",
+      "PRODUCT_STORY": "Product story",
+      "ANNOUNCEMENT": "Announcement",
+      "POLICY_NOTICE": "Policy notice",
+      "FEATURED_PICK": "Featured pick"
+    },
+    "loading": "Loading posts…",
+    "load_more": "Show more",
+    "sign_in_prompt": "Sign in to post, like and report.",
+    "sign_in": "Sign in",
+    "sign_in_needed": "Sign in to do that.",
+    "empty": {
+      "title": "Nothing here yet",
+      "desc": "No posts match these filters. Try All or another group.",
+      "mine": "You have not posted yet. Use the box at the top to write your first post."
+    },
+    "error": {
+      "generic": "Something went wrong. Try again."
+    },
+    "card": {
+      "verified": "Verified purchase",
+      "pinned": "Pinned",
+      "rating_of": "{{n}} out of 5",
+      "facet": {
+        "quality": "Quality",
+        "value": "Value",
+        "delivery": "Delivery"
+      },
+      "liked": "Liked:",
+      "could_improve": "Could be better:",
+      "tip": "Usability tip:",
+      "stock": "In stock",
+      "min_order": "Min order",
+      "pcs": "{{n}} pcs",
+      "best_price": "Best price",
+      "ships_from": "Ships from",
+      "price_tiers": "Price tiers:",
+      "tier": "{{qty}}+ pcs {{price}}",
+      "bought_from_note": "The product this review is about",
+      "credit_note": "Sales from this post are credited to {{name}}",
+      "view_product": "View product",
+      "add_to_store": "Add to my store",
+      "shop_this": "Shop this",
+      "helpful": "Helpful",
+      "like": "Like",
+      "share": "Share",
+      "report": "Report",
+      "link_copied": "Link copied"
+    },
+    "report": {
+      "title": "Why are you reporting this post?",
+      "reason": {
+        "SPAM": "Spam",
+        "FAKE_REVIEW": "Fake review",
+        "MISLEADING": "Misleading",
+        "OFFENSIVE": "Offensive",
+        "OTHER": "Other"
+      },
+      "send": "Send report",
+      "cancel": "Cancel",
+      "sent": "Report sent. Thank you.",
+      "already": "You already reported this post.",
+      "stays_live": "The post stays live while moderators review it."
+    },
+    "composer": {
+      "placeholder": {
+        "customer": "Review a product you bought…",
+        "supplier": "Share a new arrival or restock…",
+        "saler": "Share a usability tip or creative idea…",
+        "admin": "Post an announcement…",
+        "super_admin": "Post an announcement…"
+      },
+      "title": {
+        "review": "Write a review",
+        "update": "Share a product update",
+        "idea": "Create a post",
+        "announce": "Post as Explooro Team"
+      },
+      "sub": {
+        "review": "Share how this product worked for you, {{name}}",
+        "update": "Reach shop partners who can sell your stock",
+        "idea": "Show customers what your products can do",
+        "announce": "Everyone in the chosen audience will see this"
+      },
+      "close": "Close",
+      "cancel": "Cancel",
+      "publish": "Publish",
+      "published": "Your post is live",
+      "live_note": "Goes live right away. Anyone can report it afterwards.",
+      "loading": "Loading your products…",
+      "type": "Post type",
+      "pick_one": "Pick one",
+      "optional": "Optional",
+      "required": "Required",
+      "product": "Product",
+      "product_hint": {
+        "customer": "From your delivered orders",
+        "supplier": "From your catalogue",
+        "saler": "From your store"
+      },
+      "no_products": {
+        "review": "You can review a product once it has been delivered to you.",
+        "update": "You have no active products to post about yet.",
+        "idea": "Add a product to your store first, then you can post about it."
+      },
+      "rating": "Your rating",
+      "rating_word": {
+        "1": "Poor",
+        "2": "Fair",
+        "3": "Good",
+        "4": "Very good",
+        "5": "Excellent"
+      },
+      "experience": "Your experience",
+      "experience_hint": "Helps other buyers",
+      "tip_label": "Usability tip (optional)",
+      "stock_pricing": "Stock and pricing",
+      "shown_on_card": "Shown on the card",
+      "wholesale_price": "Wholesale price (৳)",
+      "add_tier": "Add a price tier",
+      "highlights": "Highlights",
+      "highlights_hint": "What shop partners should know",
+      "idea": "Your idea",
+      "idea_hint": "Keep it short and useful",
+      "headline": "Headline",
+      "steps": "Steps",
+      "add_step": "Add a step",
+      "caption": "Story or caption (optional)",
+      "tags": "Tags",
+      "shop_button_note": "A Shop this button is added for you. Sales from it are credited to your store.",
+      "message": "Message",
+      "message_hint": "Shown to the audience",
+      "title_label": "Title",
+      "details": "Details",
+      "audience": "Audience",
+      "who_sees": "Who sees this",
+      "pin": "Pin to the top of the timeline",
+      "ph": {
+        "liked": "Soft fabric, true to size",
+        "could_improve": "Colour slightly lighter than the photo",
+        "tip": "Wash cold to keep the colour",
+        "ships_from": "20 Oct 2026",
+        "tier_qty": "From quantity (for example 50)",
+        "tier_price": "Price at that quantity (৳)",
+        "highlights": "Fabric, sizes, colours, lead time",
+        "headline": "3 ways to style a panjabi for Eid",
+        "step": "Step {{n}}",
+        "caption": "Why this idea works and who it is for",
+        "tags": "#eid #styling",
+        "announce_title": "Eid delivery cut-off dates",
+        "announce_body": "What members need to know"
+      }
+    },
+    "mod": {
+      "title": "Moderation queue",
+      "hide": "Hide",
+      "hide_post": "Hide post",
+      "keep": "Keep live",
+      "remove": "Remove",
+      "remove_title": "Remove this post?",
+      "remove_desc": "The post disappears for everyone and cannot be restored.",
+      "state_live": "Live, waiting for review",
+      "state_hidden": "Hidden",
+      "reason_count": "{{reason}} · {{n}}",
+      "empty": "No reports to review.",
+      "rule": "Posts go live at once. A post with {{n}} reports is hidden automatically until a moderator decides.",
+      "stat": {
+        "open": "Open reports",
+        "today": "Posts today",
+        "hidden": "Hidden this week",
+        "hours": "Avg review time (h)"
+      },
+      "done": {
+        "KEEP": "Post kept live",
+        "HIDE": "Post hidden",
+        "REMOVE": "Post removed"
+      }
+    }
+  },
   "nav": {
     "home": "Home",
     "discover": "Discover",
@@ -208,6 +440,7 @@
       }
     },
     "shared": {
+      "community": "Community",
       "dashboard": "Dashboard",
       "overview": "Overview",
       "orders": "Orders",
@@ -1148,6 +1381,7 @@
     "domain_security": "Security & 2FA",
     "domain_growth": "Growth & Ads",
     "domain_content": "Content & i18n",
+    "domain_community": "Community",
     "domain_ai": "AI & Advanced",
     "domain_system": "System & Maintenance",
     "eyebrow": "RBAC Security Matrix",

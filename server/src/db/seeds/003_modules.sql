@@ -369,6 +369,12 @@ VALUES
    '{"type": "object", "properties": { "affinity_window_days": { "type": "integer", "default": 30 }, "page_size": { "type": "integer", "default": 10 } } }'::jsonb,
    ARRAY[]::text[]),
 
+  ('community_posts', 'growth', 'Community timeline', 'কমিউনিটি টাইমলাইন',
+   'A shared timeline where customers post reviews, suppliers post product updates, shop partners post ideas and admins post announcements.',
+   'ক্রেতারা রিভিউ, সরবরাহকারীরা পণ্যের আপডেট, শপ পার্টনাররা আইডিয়া এবং অ্যাডমিনরা ঘোষণা দেন এমন একটি যৌথ টাইমলাইন।',
+   true, true, '{}'::jsonb, NULL,
+   ARRAY[]::text[]),
+
   ('content_commerce', 'content', 'Storytelling posts', 'স্টোরিটেলিং পোস্ট',
    'Blog-style shop partner stories with buyable product cards embedded.',
    'ব্লগ-ধাঁচের বিক্রেতা গল্প, ভেতরে কেনার মতো পণ্য কার্ডসহ।',

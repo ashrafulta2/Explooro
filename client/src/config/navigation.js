@@ -134,6 +134,7 @@ export const navItems = [
   { key: 'admin.content.academy', label_i18n_key: 'nav.shared.academy', icon: null, path: '/admin/content/academy', group: 'admin.content', permission: 'content.academy.manage', module: 'seller_academy', roles: ['super_admin', 'admin'], order: 3 },
   { key: 'admin.content.whats_new', label_i18n_key: 'nav.shared.whats_new', icon: null, path: '/admin/content/whats-new', group: 'admin.content', permission: 'content.announcement.publish', module: 'whats_new', roles: ['super_admin', 'admin'], order: 4 },
   { key: 'admin.content.translations', label_i18n_key: 'nav.shared.translations', icon: null, path: '/admin/content/translations', group: 'admin.content', permission: 'content.i18n.update', module: 'i18n', roles: ['super_admin', 'admin'], order: 5 },
+  { key: 'admin.content.community', label_i18n_key: 'nav.shared.community', icon: null, path: '/admin/community', group: 'admin.content', permission: 'community.post.moderate', module: 'community_posts', roles: ['super_admin', 'admin'], order: 7 },
   { key: 'admin.content.live', label_i18n_key: 'nav.admin.live', icon: null, path: '/admin/live', group: 'admin.content', permission: 'live.stream.govern', module: 'live_commerce', roles: ['super_admin', 'admin'], order: 6 },
 
   { key: 'admin.platform.modules', label_i18n_key: 'nav.admin.modules', icon: null, path: '/admin/platform/modules', group: 'admin.platform', permission: 'platform.module.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
@@ -157,6 +158,7 @@ export const navItems = [
 
   // ================= MODERATOR — 10 items =================
   { key: 'moderator.dashboard', label_i18n_key: 'nav.shared.dashboard', icon: null, path: '/moderator', group: 'moderator.overview', permission: 'moderation.dashboard.view', module: 'core', roles: ['moderator'], order: 1 },
+  { key: 'moderator.community', label_i18n_key: 'nav.shared.community', icon: null, path: '/community', group: 'moderator.queues', permission: 'community.post.moderate', module: 'community_posts', roles: ['moderator'], order: 9 },
   { key: 'moderator.queue', label_i18n_key: 'nav.moderator.queue', icon: null, path: '/moderator/queue', group: 'moderator.queues', permission: 'moderation.product.approve', module: 'product_moderation', roles: ['moderator'], order: 1, badge: 'catalog_moderation' },
   { key: 'moderator.reviews', label_i18n_key: 'nav.moderator.reviews', icon: null, path: '/moderator/reviews', group: 'moderator.queues', permission: 'moderation.review.handle', module: 'review_integrity', roles: ['moderator'], order: 2 },
   { key: 'moderator.ugc', label_i18n_key: 'nav.moderator.ugc', icon: null, path: '/moderator/ugc', group: 'moderator.queues', permission: 'moderation.ugc.approve', module: 'ugc_video_wall', roles: ['moderator'], order: 3 },
@@ -201,6 +203,7 @@ export const navItems = [
   // Same page and same permission as the shop partner's: the route is gated by `growth.ad.manage_own`,
   // which a supplier holds, and every ad format allows the supplier role. Only the menu entry was missing.
   { key: 'supplier.ads', label_i18n_key: 'nav.supplier.ads', icon: null, path: '/saler/ads', group: 'supplier.engage', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['supplier'], order: 3 },
+  { key: 'supplier.community', label_i18n_key: 'nav.shared.community', icon: null, path: '/community', group: 'supplier.engage', permission: null, module: 'community_posts', roles: ['supplier'], order: 4 },
   { key: 'supplier.store_status', label_i18n_key: 'nav.shared.store_status', icon: null, path: '/supplier/store-status', group: 'supplier.my_shop', permission: 'supplier.store.manage', module: 'physical_shop_status', roles: ['supplier'], order: 1 },
   // The personal-account surfaces also reachable from the TopBar avatar menu — mirrored into the
   // sidebar's "Me" group for discoverability. Role-agnostic /account/* routes (auth-only, no perm).
@@ -225,6 +228,7 @@ export const navItems = [
   { key: 'saler.social_kit', label_i18n_key: 'nav.saler.social_kit', icon: null, path: '/saler/social-kit', group: 'saler.marketing', permission: null, module: 'social_seller_kit', roles: ['saler'], order: 2 },
   { key: 'saler.ads', label_i18n_key: 'nav.saler.ads', icon: null, path: '/saler/ads', group: 'saler.marketing', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['saler'], order: 3, simpleMode: false },
   { key: 'saler.live_studio', label_i18n_key: 'nav.supplier.live_studio', icon: null, path: '/saler/live-studio', group: 'saler.marketing', permission: 'live.stream.host', module: 'live_commerce', roles: ['saler'], order: 4, simpleMode: false },
+  { key: 'saler.community', label_i18n_key: 'nav.shared.community', icon: null, path: '/community', group: 'saler.marketing', permission: null, module: 'community_posts', roles: ['saler'], order: 5 },
   { key: 'saler.orders', label_i18n_key: 'nav.shared.orders', icon: null, path: '/saler/orders', group: 'saler.orders', permission: 'saler.order.view', module: 'core', roles: ['saler'], order: 1 },
   { key: 'saler.vault.balance', label_i18n_key: 'nav.saler.vault_balance', icon: null, path: '/saler/vault', group: 'saler.vault', permission: 'finance.wallet.view_own', module: 'core', roles: ['saler'], order: 1 },
   { key: 'saler.vault.payouts', label_i18n_key: 'nav.saler.withdrawals', icon: null, path: '/saler/vault/payouts', group: 'saler.vault', permission: 'finance.payout.request', module: 'core', roles: ['saler'], order: 2 },
@@ -246,6 +250,7 @@ export const navItems = [
   { key: 'customer.wishlist', label_i18n_key: 'nav.customer.wishlist', icon: null, path: '/account/wishlist', group: 'customer.shopping', permission: null, module: 'wishlist', roles: ['customer'], order: 3 },
   { key: 'customer.coupons', label_i18n_key: 'nav.shared.coupons', icon: null, path: '/account/coupons', group: 'customer.shopping', permission: null, module: 'coupons', roles: ['customer'], order: 4 },
   { key: 'customer.team_purchases', label_i18n_key: 'nav.customer.team_purchases', icon: null, path: '/account/team-purchases', group: 'customer.shopping', permission: null, module: 'group_buying', roles: ['customer'], order: 5 },
+  { key: 'customer.community', label_i18n_key: 'nav.shared.community', icon: null, path: '/community', group: 'customer.shopping', permission: null, module: 'community_posts', roles: ['customer'], order: 7 },
   { key: 'customer.live', label_i18n_key: 'nav.customer.live', icon: null, path: '/live', group: 'customer.shopping', permission: null, module: 'live_commerce', roles: ['customer'], order: 6 },
   { key: 'customer.coins', label_i18n_key: 'nav.customer.coins', icon: null, path: '/account/coins', group: 'customer.rewards', permission: null, module: 'loyalty_coins', roles: ['customer'], order: 1 },
   { key: 'customer.referrals', label_i18n_key: 'nav.shared.referrals', icon: null, path: '/account/referrals', group: 'customer.rewards', permission: null, module: 'referral_engine', roles: ['customer'], order: 2 },

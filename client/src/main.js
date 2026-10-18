@@ -467,6 +467,21 @@ async function bootRouterDemo() {
         load: () => import('./pages/DiscoverFeedPage.js'),
       },
       {
+        path: '/community',
+        title: 'Community — Explooro',
+        permission: null,
+        module: 'community_posts',
+        load: () => import('./pages/CommunityPage.js'),
+      },
+      {
+        path: '/admin/community',
+        title: 'Community Moderation — Explooro',
+        requiresAuth: true,
+        permission: 'community.post.moderate',
+        module: 'community_posts',
+        load: () => import('./pages/CommunityPage.js'),
+      },
+      {
         path: '/academy',
         title: 'Shop Partner Academy — Explooro',
         permission: null,
