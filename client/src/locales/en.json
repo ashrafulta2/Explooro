@@ -4607,14 +4607,11 @@
       "btn_start_shopping": "Start Shopping →",
       "earn_label": "How a Shop Partner earns",
       "earn_kicker": "Shopper today, Shop Partner tomorrow",
-      "earn_title": "You already know the products. Now earn from them.",
+      "earn_title": "Start earning with zero stock",
       "earn_pick_title": "Pick products",
-      "earn_pick_desc": "Choose from verified supplier stock. No money tied up.",
       "earn_share_title": "Share your store",
-      "earn_share_desc": "Send your own store link to friends and family.",
       "earn_keep_title": "Keep the commission",
-      "earn_keep_desc": "Suppliers pack and ship. You keep your share of every sale.",
-      "earn_cta": "See how it works",
+      "earn_cta": "Become a Shop Partner",
       "load_failed": "Failed to load dashboard data. Please try again."
     },
     "orders": {
