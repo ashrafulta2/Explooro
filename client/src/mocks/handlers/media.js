@@ -40,6 +40,12 @@ export function resolveMockMediaUrl(id) {
   return assets[String(id)]?.url ?? null;
 }
 
+/** The whole mock asset (id, purpose, mime type, data URL) or null. Used by handlers/community.js. */
+export function resolveMockMedia(id) {
+  if (id === null || id === undefined) return null;
+  return assets[String(id)] ?? null;
+}
+
 export default [
   {
     method: 'POST',

@@ -44,6 +44,7 @@ export default async function communityPostRoutes(app) {
         title: { type: 'string', maxLength: 300 },
         body: { type: 'string', maxLength: 5000 },
         details: { type: 'object' },
+        media_ids: { type: 'array', maxItems: 4, items: { type: ['integer', 'string'] } },
       } },
     },
   }, controller.createPost);
@@ -57,6 +58,7 @@ export default async function communityPostRoutes(app) {
         body: { type: 'string', maxLength: 5000 },
         audience: { type: 'string', maxLength: 20 },
         is_pinned: { type: 'boolean' },
+        media_ids: { type: 'array', maxItems: 4, items: { type: ['integer', 'string'] } },
       } },
     },
   }, controller.createAnnouncement);

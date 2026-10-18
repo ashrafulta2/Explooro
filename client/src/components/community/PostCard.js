@@ -50,6 +50,28 @@ function productRow(post, { cta = null, note = '' } = {}) {
   return row;
 }
 
+/**
+ * The photos and video of a post. One file shows large; several share a grid. A photo opens full
+ * size in a new tab; a video plays in place (metadata only until played, so a feed of videos stays light).
+ */
+function mediaGallery(post) {
+  if (!post.media?.length) return null;
+  const alt = t('community.card.photo_alt', { name: post.author.name });
+  const wrap = el('div', `cm-media cm-media--${Math.min(post.media.length, 4)}`);
+  for (const m of post.media) {
+    if (m.kind === 'VIDEO') {
+      wrap.append(el('video', 'cm-media__item cm-media__item--video', null, {
+        src: m.url, controls: true, preload: 'metadata', playsinline: true, 'aria-label': t('community.card.video_label', { name: post.author.name }),
+      }));
+    } else {
+      wrap.append(el('a', 'cm-media__link', el('img', 'cm-media__item', null, { src: m.url, alt, loading: 'lazy', decoding: 'async' }), {
+        href: m.url, target: '_blank', rel: 'noopener noreferrer',
+      }));
+    }
+  }
+  return wrap;
+}
+
 function reviewBody(post) {
   const d = post.details;
   const body = el('div', 'cm-body');
@@ -179,6 +201,8 @@ export function PostCard({ post, viewerRole, canModerate = false, onLike, onRepo
     content = announceBody(post);
   }
   root.append(content);
+  const gallery = mediaGallery(post);
+  if (gallery) root.append(gallery);
   if (product) root.append(product);
 
   // Actions: a flat row, no borders around each button.

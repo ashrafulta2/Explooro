@@ -10,11 +10,12 @@
  *  - The choices of product come from the API (delivered purchases, own products, own store items),
  *    never from the client, and the server re-checks them. This window cannot widen what a role may post.
  *  - Publish is disabled while the request is in flight, so a double click cannot post twice.
- *  - Photos and video are not offered: media upload for posts is not built yet, and a dead drop zone
- *    would promise something the post cannot do.
+ *  - Photos and a video are attached through MediaPicker. Publish is disabled while a file is still
+ *    uploading, so a post is never sent without a file the author thought was on it.
  */
 import { el, icon, productTitle } from './dom.js';
 import { Button } from '../ui/Button.js';
+import { MediaPicker } from './MediaPicker.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatNumber } from '../../services/format.js';
@@ -137,6 +138,9 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
   root.append(body);
   const status = el('p', 'cm-composer__error', '', { role: 'alert' });
   let n = 0;
+  let publish = null;
+  const picker = MediaPicker({ onBusyChange: (busy) => { if (publish) publish.disabled = busy; } });
+  const mediaSection = () => section(++n, t('community.media.title'), t('community.composer.optional'), picker);
 
   const typeSection = () => section(++n, t('community.composer.type'), t('community.composer.pick_one'),
     chips(kinds.map((k) => ({ value: k, label: t(`community.kind.${k}`) })), state.kind, (v) => { state.kind = v; }));
@@ -186,6 +190,7 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
     body.append(section(++n, t('community.composer.experience'), t('community.composer.experience_hint'),
       el('div', 'cm-grid2', [field(t('community.card.liked'), read.liked), field(t('community.card.could_improve'), read.improve)]),
       field(t('community.composer.tip_label'), read.tip)));
+    body.append(mediaSection());
   }
 
   if (role === 'supplier') {
@@ -207,6 +212,7 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
       el('p', 'cm-field__label', t('community.card.price_tiers')), tiers.node));
     read.body = textArea(t('community.composer.ph.highlights'), 2000, 4);
     body.append(section(++n, t('community.composer.highlights'), t('community.composer.highlights_hint'), read.body));
+    body.append(mediaSection());
   }
 
   if (role === 'saler') {
@@ -223,6 +229,7 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
       field(t('community.composer.headline'), read.title),
       el('p', 'cm-field__label', t('community.composer.steps')), steps.node,
       field(t('community.composer.caption'), read.body)));
+    body.append(mediaSection());
     read.tags = textInput(t('community.composer.ph.tags'), { max: 150 });
     body.append(section(++n, t('community.composer.tags'), t('community.composer.optional'), read.tags,
       el('p', 'cm-callout', t('community.composer.shop_button_note'))));
@@ -234,6 +241,7 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
     read.body = textArea(t('community.composer.ph.announce_body'), 2000, 4);
     body.append(section(++n, t('community.composer.message'), t('community.composer.message_hint'),
       field(t('community.composer.title_label'), read.title), field(t('community.composer.details'), read.body)));
+    body.append(mediaSection());
     const pin = el('input', '', null, { type: 'checkbox', checked: true });
     pin.addEventListener('change', () => { state.pinned = pin.checked; });
     body.append(section(++n, t('community.composer.audience'), t('community.composer.who_sees'),
@@ -241,11 +249,17 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
       el('label', 'cm-check', [pin, t('community.composer.pin')])));
   }
 
-  const publish = Button({ label: t('community.composer.publish'), type: 'submit' });
+  publish = Button({ label: t('community.composer.publish'), type: 'submit' });
   root.append(status, el('footer', 'cm-composer__foot', [
     el('span', 'cm-composer__note', t('community.composer.live_note')),
     el('div', 'cm-composer__actions', [Button({ label: t('community.composer.cancel'), variant: 'ghost', onClick: onCancel }), publish]),
   ]));
+
+  // Added to every payload: the ids of the files that finished uploading, in the order shown.
+  const withMedia = (payload) => {
+    const ids = picker.getIds();
+    return ids.length ? { ...payload, media_ids: ids } : payload;
+  };
 
   const num = (input) => (input.value === '' ? null : Number(input.value));
 
@@ -282,9 +296,14 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
   root.addEventListener('submit', async (event) => {
     event.preventDefault();
     status.textContent = '';
+    if (picker.isBusy()) {
+      status.textContent = t('community.media.wait');
+      return;
+    }
     publish.disabled = true;
     try {
-      const post = await (isAdmin ? createAnnouncement(payload()) : createPost(payload()));
+      const data = withMedia(payload());
+      const post = await (isAdmin ? createAnnouncement(data) : createPost(data));
       toast.success(t('community.composer.published'));
       onPublished(post);
     } catch (err) {

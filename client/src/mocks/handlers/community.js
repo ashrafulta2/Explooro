@@ -16,6 +16,7 @@
  * leaves the timeline and enters the moderation queue) are the same ones the server enforces.
  */
 import { appStore } from '../../state/appStore.js';
+import { resolveMockMedia } from './media.js';
 
 // Mirrors THRESHOLD_LIMITS.fallback in server/src/services/communityPost.service.ts.
 const AUTO_HIDE_THRESHOLD = 5;
@@ -48,6 +49,17 @@ function initials(name) {
   const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
   return ((parts[0]?.[0] ?? '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
+
+// Flat colour tiles standing in for photos, so the gallery has something to show in a preview.
+const demoTile = (label, fill) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480"><rect width="640" height="480" fill="${fill}"/>`
+  + `<text x="320" y="250" font-family="sans-serif" font-size="40" text-anchor="middle" fill="#1f1f1f">${label}</text></svg>`
+);
+const DEMO_LOOKS = [
+  { id: 'demo-1', kind: 'IMAGE', mime_type: 'image/svg+xml', url: demoTile('Look 1', '#ffe6b8'), width: 640, height: 480 },
+  { id: 'demo-2', kind: 'IMAGE', mime_type: 'image/svg+xml', url: demoTile('Look 2', '#cedfff'), width: 640, height: 480 },
+  { id: 'demo-3', kind: 'IMAGE', mime_type: 'image/svg+xml', url: demoTile('Look 3', '#b0e7bb'), width: 640, height: 480 },
+];
 
 const ago = (hours) => new Date(Date.now() - hours * 3600_000).toISOString();
 
@@ -83,7 +95,7 @@ const posts = [
   {
     id: 4, type: 'IDEA', kind: 'CREATIVE_IDEA', authorRole: 'saler', authorId: 6, authorName: 'Rafi Fashion',
     title: '3 ways to style a panjabi beyond Eid', body: null, product: PRODUCT, orderItem: null, audience: 'EVERYONE',
-    pinned: false, createdAt: ago(24),
+    pinned: false, createdAt: ago(24), media: DEMO_LOOKS,
     details: {
       steps: ['Pair with white pajama and loafers for the day', 'Layer a black vest for evening events', 'Wear with jeans for a relaxed Friday look'],
       tags: ['eid', 'styling'],
@@ -114,7 +126,7 @@ function serialize(p, user) {
   return {
     id: p.id, ref: `POST-${p.id}`, type: p.type, kind: p.kind, title: p.title, body: p.body, details: p.details,
     audience: p.audience, is_pinned: p.pinned, status: p.status, created_at: p.createdAt,
-    like_count: p.likes.size, liked_by_me: user ? p.likes.has(`u${user.id}`) : false,
+    like_count: p.likes.size, media: p.media ?? [], liked_by_me: user ? p.likes.has(`u${user.id}`) : false,
     is_mine: user ? p.authorId === user.id : false,
     open_report_count: openReports(p.id).length,
     verified_purchase: p.type === 'REVIEW' && p.orderItem != null,
@@ -134,6 +146,29 @@ function audiencesFor(role) {
 
 function fail(status, code, en, bn, field) {
   return { status, body: { error: { code, message_en: en, message_bn: bn, details: field ? { field } : undefined } } };
+}
+
+const MAX_MEDIA = 4;
+
+/** Mirrors validateMediaIds + attachPostMedia: the uploads must be the caller's, for the community, and unused. */
+function takeMedia(ids, userId) {
+  if (ids === undefined || ids === null) return { media: [] };
+  const list = Array.isArray(ids) ? ids.map(Number) : null;
+  if (!list || list.some((n) => !Number.isInteger(n) || n < 1)) return { error: fail(400, 'VALIDATION_FAILED', 'One of the attached files is not valid.', 'যুক্ত করা একটি ফাইল সঠিক নয়।', 'media_ids') };
+  if (new Set(list).size !== list.length) return { error: fail(400, 'VALIDATION_FAILED', 'The same file is attached twice.', 'একই ফাইল দুইবার যুক্ত করা হয়েছে।', 'media_ids') };
+  if (list.length > MAX_MEDIA) return { error: fail(400, 'VALIDATION_FAILED', `Attach at most ${MAX_MEDIA} files.`, `সর্বোচ্চ ${MAX_MEDIA}টি ফাইল যুক্ত করা যাবে।`, 'media_ids') };
+  const used = new Set(posts.flatMap((p) => (p.media ?? []).map((m) => Number(m.id))));
+  const found = list.map((id) => resolveMockMedia(id));
+  if (found.some((a, i) => !a || a.purpose !== 'COMMUNITY' || used.has(list[i]))) {
+    return { error: fail(400, 'VALIDATION_FAILED', 'One of the files cannot be used. Upload it again.', 'একটি ফাইল ব্যবহার করা যাচ্ছে না। আবার আপলোড করুন।', 'media_ids') };
+  }
+  const media = found.map((a) => ({
+    id: a.id, kind: String(a.mime_type).startsWith('video/') ? 'VIDEO' : 'IMAGE', mime_type: a.mime_type, url: a.url, width: null, height: null,
+  }));
+  if (media.filter((m) => m.kind === 'VIDEO').length > 1) {
+    return { error: fail(400, 'VALIDATION_FAILED', 'A post can have one video.', 'একটি পোস্টে একটি ভিডিও দেওয়া যাবে।', 'media_ids') };
+  }
+  return { media };
 }
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -242,6 +277,8 @@ export const communityHandlers = [
       }
       const { draft, error } = buildDraft(role, body);
       if (error) return error;
+      const taken = takeMedia(body.media_ids, user.id);
+      if (taken.error) return taken.error;
       let product = PRODUCT;
       let orderItem = null;
       if (role === 'customer') {
@@ -258,6 +295,7 @@ export const communityHandlers = [
         id: nextId++, type: ROLE_POST[role].type, kind: draft.kind, authorRole: role, authorId: user.id, authorName: user.name,
         title: draft.title, body: draft.body, details: draft.details, audience: draft.audience, pinned: false,
         product, orderItem, createdAt: new Date().toISOString(), likes: new Set(), status: 'PUBLISHED', hiddenReason: null,
+        media: taken.media,
       };
       posts.push(post);
       return { status: 201, body: { data: { post: serialize(post, user) } } };
@@ -273,10 +311,12 @@ export const communityHandlers = [
       }
       const { draft, error } = buildDraft('admin', body);
       if (error) return error;
+      const taken = takeMedia(body.media_ids, user.id);
+      if (taken.error) return taken.error;
       const post = {
         id: nextId++, type: 'ANNOUNCEMENT', kind: draft.kind, authorRole: 'admin', authorId: user.id, authorName: user.name,
         title: draft.title, body: draft.body, details: {}, audience: draft.audience, pinned: draft.pinned, product: null, orderItem: null,
-        createdAt: new Date().toISOString(), likes: new Set(), status: 'PUBLISHED', hiddenReason: null,
+        createdAt: new Date().toISOString(), likes: new Set(), status: 'PUBLISHED', hiddenReason: null, media: taken.media,
       };
       posts.push(post);
       return { status: 201, body: { data: { post: serialize(post, user) } } };

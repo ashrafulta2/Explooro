@@ -54,6 +54,58 @@ export async function listPosts(db, { viewerId = null, type = null, role = null,
   return rows;
 }
 
+/**
+ * The uploads a member may attach to a post: theirs, uploaded for the community, not deleted, not
+ * rejected by moderation, and not already on another post. Returns only the usable ones, so a caller
+ * that asked for N and got fewer knows at least one was somebody else's, wrong, or already taken.
+ * `FOR UPDATE` serialises two posts racing for the same file inside one transaction.
+ */
+export async function lockUsableMedia(db, userId, mediaIds) {
+  const { rows } = await db.query(
+    `SELECT a.id, a.mime_type
+       FROM media_assets a
+      WHERE a.id = ANY($1::bigint[])
+        AND a.owner_id = $2
+        AND a.purpose = 'COMMUNITY'
+        AND a.deleted_at IS NULL
+        AND a.moderation_status <> 'REJECTED'
+        AND NOT EXISTS (SELECT 1 FROM community_post_media m WHERE m.media_id = a.id)
+      FOR UPDATE OF a`,
+    [mediaIds, userId]
+  );
+  return rows;
+}
+
+/** Joins the files to the post in the order the author chose (array order is display order). */
+export async function attachMedia(db, postId, mediaIds) {
+  if (!mediaIds.length) return;
+  await db.query(
+    `INSERT INTO community_post_media (post_id, media_id, position)
+     SELECT $1, m.media_id, (m.ord - 1)::smallint
+       FROM UNNEST($2::bigint[]) WITH ORDINALITY AS m(media_id, ord)`,
+    [postId, mediaIds]
+  );
+}
+
+/**
+ * The files for a page of posts, in one query. Only APPROVED files are shown: a file held for review
+ * (FORCE_REVIEW_QUEUE) stays off the timeline until a moderator approves it.
+ */
+export async function listMediaForPosts(db, postIds) {
+  if (!postIds.length) return [];
+  const { rows } = await db.query(
+    `SELECT m.post_id, a.id, a.mime_type, a.storage_key, a.width, a.height
+       FROM community_post_media m
+       JOIN media_assets a ON a.id = m.media_id
+      WHERE m.post_id = ANY($1::bigint[])
+        AND a.deleted_at IS NULL
+        AND a.moderation_status = 'APPROVED'
+      ORDER BY m.post_id, m.position`,
+    [postIds]
+  );
+  return rows;
+}
+
 /** Counts per post type for the tab badges, under the same visibility rules as listPosts. */
 export async function countByType(db, { viewerId = null, role = null, audiences }) {
   const params: any[] = [audiences, viewerId];

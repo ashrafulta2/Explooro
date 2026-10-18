@@ -262,7 +262,9 @@
       "like": "Like",
       "share": "Share",
       "report": "Report",
-      "link_copied": "Link copied"
+      "link_copied": "Link copied",
+      "photo_alt": "Photo shared by {{name}}",
+      "video_label": "Video shared by {{name}}"
     },
     "report": {
       "title": "Why are you reporting this post?",
@@ -391,6 +393,23 @@
         "KEEP": "Post kept live",
         "HIDE": "Post hidden",
         "REMOVE": "Post removed"
+      }
+    },
+    "media": {
+      "title": "Photos or video",
+      "add": "Add photos or video",
+      "hint": "Up to {{max}} files, one of them a video. Photos up to {{img}} MB, video up to {{vid}} MB.",
+      "remove": "Remove {{name}}",
+      "video": "Video",
+      "uploading": "Uploading…",
+      "wait": "Wait for your files to finish uploading, then publish.",
+      "error": {
+        "bad_type": "{{name}} is not supported. Use a JPEG, PNG, WebP, GIF or AVIF photo, or an MP4 video.",
+        "too_many": "You can attach up to {{max}} files.",
+        "one_video": "A post can have one video.",
+        "too_large_image": "{{name}} is larger than {{mb}} MB.",
+        "too_large_video": "{{name}} is larger than {{mb}} MB.",
+        "failed": "{{name}} could not be uploaded. Try again."
       }
     }
   },

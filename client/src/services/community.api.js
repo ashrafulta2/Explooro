@@ -23,6 +23,20 @@ export const ROLE_KINDS = Object.freeze({
   super_admin: ['ANNOUNCEMENT', 'POLICY_NOTICE', 'FEATURED_PICK'],
 });
 
+/**
+ * What a post may carry. Mirrors server/src/services/communityPost.service.ts (LIMITS.media / .videos),
+ * media.service.ts (image 8 MB, MAX_DIRECT_UPLOAD_BYTES for a video) and the detected types; the
+ * server re-checks every one, so these only spare the member a wasted upload.
+ * client/test/community.test.js pins them to the server source.
+ */
+export const POST_MEDIA = Object.freeze({
+  maxFiles: 4,
+  maxVideos: 1,
+  maxImageBytes: 8 * 1024 * 1024,
+  maxVideoBytes: 30 * 1024 * 1024,
+  types: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'video/mp4'],
+});
+
 export const REPORT_REASONS = ['SPAM', 'FAKE_REVIEW', 'MISLEADING', 'OFFENSIVE', 'OTHER'];
 export const AUDIENCES = ['EVERYONE', 'CUSTOMERS', 'SUPPLIERS', 'SHOP_PARTNERS'];
 
@@ -50,6 +64,31 @@ export async function listPosts({ type, role, sort, mine, limit, offset } = {}) 
 export async function getComposerProducts() {
   const { data } = await api.get('/community/composer/products');
   return { role: data?.role ?? null, items: data?.items ?? [] };
+}
+
+function readAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Uploads one photo or video for a post through the shared media pipeline (the server checks the
+ * file's real type from its bytes). Returns the asset; its `id` goes in `media_ids` when the post is sent.
+ * @returns {Promise<{id: number|string, mime_type: string, url?: string}>}
+ */
+export async function uploadPostMedia(file) {
+  const res = await api.post('/media/direct', {
+    purpose: 'COMMUNITY',
+    filename: file.name,
+    data_base64: await readAsDataUrl(file),
+  });
+  const asset = res?.asset ?? res?.data?.asset;
+  if (!asset) throw new Error('Upload failed');
+  return asset;
 }
 
 export async function createPost(body) {

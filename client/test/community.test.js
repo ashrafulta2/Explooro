@@ -18,7 +18,8 @@ import path from 'node:path';
 
 import { handleMockRequest } from '../src/mocks/index.js';
 import { appStore, setMockRole, logOutMock } from '../src/state/appStore.js';
-import { ROLE_KINDS, REPORT_REASONS, AUDIENCES } from '../src/services/community.api.js';
+import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA } from '../src/services/community.api.js';
+import { checkNewFile } from '../src/components/community/MediaPicker.js';
 import { navItems } from '../src/config/navigation.js';
 
 const src = path.resolve(import.meta.dirname, '../src');
@@ -35,6 +36,7 @@ const COMPONENT_FILES = [
   ['components', 'community', 'PostCard.js'],
   ['components', 'community', 'PostComposer.js'],
   ['components', 'community', 'ModerationQueue.js'],
+  ['components', 'community', 'MediaPicker.js'],
 ];
 
 // ── 1. Locale integrity ────────────────────────────────────────────────────────────────────
@@ -77,6 +79,7 @@ test('the keys built at run time resolve for every role, kind, reason, audience 
   for (const tab of ['all', 'review', 'update', 'idea', 'announce']) need.push(`community.tab.${tab}`);
   for (const s of ['recent', 'top']) need.push(`community.sort.${s}`);
   for (const f of ['quality', 'value', 'delivery']) need.push(`community.card.facet.${f}`);
+  for (const k of ['bad_type', 'too_many', 'one_video', 'too_large_image', 'too_large_video', 'failed']) need.push(`community.media.error.${k}`);
   need.push('nav.shared.community', 'perm_matrix.domain_community');
   const missing = need.filter((k) => get(en, k) === undefined || get(bn, k) === undefined);
   assert.deepEqual(missing, []);
@@ -203,4 +206,57 @@ test('the TopBar carries a Community button gated by the module, staff routed to
   assert.match(bar, /t\('nav\.community'\)/);
   assert.ok(get(en, 'nav.community') && get(bn, 'nav.community'));
   assert.match(read('styles', 'components', 'shell.css'), /\.topbar__community-btn--guest \{ display: none; \}/);
+});
+
+// ── 4. Photos and video ───────────────────────────────────────────────────────────────────
+
+const file = (name, type, size) => ({ name, type, size });
+
+test('the picker limits mirror the server source', () => {
+  const server = fs.readFileSync(path.resolve(src, '../../server/src/services/communityPost.service.ts'), 'utf8');
+  const media = fs.readFileSync(path.resolve(src, '../../server/src/services/media.service.ts'), 'utf8');
+  assert.match(server, new RegExp(`media: ${POST_MEDIA.maxFiles}, videos: ${POST_MEDIA.maxVideos}`));
+  assert.match(media, new RegExp(`MAX_IMAGE_SIZE_BYTES = ${POST_MEDIA.maxImageBytes / 1024 / 1024} \\* 1024 \\* 1024`));
+  assert.match(media, new RegExp(`MAX_DIRECT_UPLOAD_BYTES = ${POST_MEDIA.maxVideoBytes / 1024 / 1024} \\* 1024 \\* 1024`));
+  const uploader = read('components', 'media', 'ImageUploader.js');
+  for (const type of POST_MEDIA.types) assert.ok(uploader.includes(`'${type}'`), `${type} is not an uploadable type`);
+});
+
+test('checkNewFile refuses a wrong type, a big file, a fifth file and a second video', () => {
+  assert.equal(checkNewFile(file('a.jpg', 'image/jpeg', 1000), []), null);
+  assert.equal(checkNewFile(file('a.mp4', 'video/mp4', 1000), []), null);
+  assert.equal(checkNewFile(file('a.exe', 'application/octet-stream', 10), []).key, 'community.media.error.bad_type');
+  assert.equal(checkNewFile(file('a.svg', 'image/svg+xml', 10), []).key, 'community.media.error.bad_type');
+  assert.equal(checkNewFile(file('big.jpg', 'image/jpeg', POST_MEDIA.maxImageBytes + 1), []).key, 'community.media.error.too_large_image');
+  assert.equal(checkNewFile(file('ok.jpg', 'image/jpeg', POST_MEDIA.maxImageBytes), []), null);
+  assert.equal(checkNewFile(file('big.mp4', 'video/mp4', POST_MEDIA.maxVideoBytes + 1), []).key, 'community.media.error.too_large_video');
+  const four = Array.from({ length: POST_MEDIA.maxFiles }, () => ({ isVideo: false }));
+  assert.equal(checkNewFile(file('a.jpg', 'image/jpeg', 10), four).key, 'community.media.error.too_many');
+  assert.equal(checkNewFile(file('b.mp4', 'video/mp4', 10), [{ isVideo: true }]).key, 'community.media.error.one_video');
+  assert.equal(checkNewFile(file('b.jpg', 'image/jpeg', 10), [{ isVideo: true }]), null, 'a photo may sit beside a video');
+});
+
+test('mock: files upload, attach in order, and cannot be reused, borrowed or mixed up', () => {
+  setMockRole('saler');
+  const upload = (mime, purpose = 'COMMUNITY') => call('POST', '/media/direct', { purpose, filename: 'x', data_base64: `data:${mime};base64,AAAA` }).body.asset;
+  const a = upload('image/png');
+  const b = upload('video/mp4');
+  const c = upload('image/png');
+  const body = (ids) => ({ kind: 'CREATIVE_IDEA', product_id: 101, title: 'Look', details: { steps: ['One'] }, media_ids: ids });
+
+  const made = call('POST', '/community/posts', body([c.id, a.id, b.id]));
+  assert.equal(made.status, 201);
+  assert.deepEqual(made.body.data.post.media.map((m) => [m.id, m.kind]), [[c.id, 'IMAGE'], [a.id, 'IMAGE'], [b.id, 'VIDEO']]);
+  const listed = call('GET', '/community/posts').body.data.posts.find((p) => p.id === made.body.data.post.id);
+  assert.equal(listed.media.length, 3);
+
+  assert.equal(call('POST', '/community/posts', body([a.id])).status, 400, 'a file already on a post cannot be used again');
+  assert.equal(call('POST', '/community/posts', body([999])).status, 400, 'an unknown file');
+  assert.equal(call('POST', '/community/posts', body([upload('image/png', 'PRODUCT').id])).status, 400, 'a file uploaded for another purpose');
+  assert.equal(call('POST', '/community/posts', body([1, 2, 3, 4, 5])).status, 400, 'more than four');
+  const v1 = upload('video/mp4');
+  const v2 = upload('video/mp4');
+  assert.equal(call('POST', '/community/posts', body([v1.id, v2.id])).status, 400, 'two videos');
+  assert.equal(call('POST', '/community/posts', { ...body([]), media_ids: undefined }).status, 201, 'a post without files is fine');
+  logOutMock();
 });

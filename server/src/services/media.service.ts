@@ -10,6 +10,12 @@ import { AppError } from '../plugins/errorHandler.ts';
 export const MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024;    // 8 MB
 export const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024;  // 100 MB
 
+// WHY a separate, smaller number for the direct route: /media/direct carries the file as base64 inside
+// one JSON body held in memory, so a 100 MB video would need a ~133 MB request. A post's video is a
+// short clip, so the direct route accepts up to this much (a larger video needs the presigned
+// /media/upload-url flow). Images stay capped at MAX_IMAGE_SIZE_BYTES by processAndSaveMedia.
+export const MAX_DIRECT_UPLOAD_BYTES = 30 * 1024 * 1024; // 30 MB
+
 export const ALLOWED_PURPOSES = new Set([
   'PRODUCT',
   'AVATAR',
@@ -23,6 +29,7 @@ export const ALLOWED_PURPOSES = new Set([
   'ACADEMY',
   'STREAM_RECORDING',
   'OG_IMAGE',
+  'COMMUNITY',
 ]);
 
 /**

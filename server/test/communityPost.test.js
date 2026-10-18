@@ -15,14 +15,16 @@ import { fileURLToPath } from 'node:url';
 import {
   validateDraft, resolveAuthorRole, visibleAudiences, serializePost, reportPost, moderatePost,
   getAutoHideThreshold, ROLE_POST, REPORT_REASONS, MODERATE_ACTIONS, THRESHOLD_LIMITS,
+  validateMediaIds, mediaKind, createPost, createAnnouncement, LIMITS,
 } from '../src/services/communityPost.service.ts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (...p) => readFileSync(path.join(ROOT, ...p), 'utf8');
 
 /** An in-memory stand-in for the pool: just the queries reportPost / moderatePost make. */
-function makeDb({ threshold = null, post = { id: 1, status: 'PUBLISHED', author_id: 10, post_type: 'REVIEW', hidden_reason: null } } = {}) {
-  const state = { post: { ...post }, reports: [], audit: [], calls: [] };
+function makeDb({ threshold = null, post = { id: 1, status: 'PUBLISHED', author_id: 10, post_type: 'REVIEW', hidden_reason: null }, media = [] } = {}) {
+  // `media` is the uploads that exist: { id, mime_type, storage_key, owner_id, purpose, used }.
+  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0 };
   const query = async (sql, params = []) => {
     const q = sql.replace(/\s+/g, ' ').trim();
     state.calls.push(q.slice(0, 40));
@@ -49,6 +51,22 @@ function makeDb({ threshold = null, post = { id: 1, status: 'PUBLISHED', author_
       let n = 0;
       for (const r of state.reports) if (r.postId === params[0] && r.status === 'OPEN') { r.status = params[1]; n += 1; }
       return { rows: [], rowCount: n };
+    }
+    if (q.startsWith('INSERT INTO community_posts')) { state.inserted += 1; return { rows: [{ id: 7 }] }; }
+    if (q.includes('FROM products WHERE id = $1 AND supplier_id')) return { rows: [{}] };
+    if (q.includes('FROM media_assets a')) {
+      const [ids, userId] = params;
+      return { rows: state.media.filter((m) => ids.includes(m.id) && m.owner_id === userId && m.purpose === 'COMMUNITY' && !m.used).map((m) => ({ id: m.id, mime_type: m.mime_type })) };
+    }
+    if (q.startsWith('INSERT INTO community_post_media')) {
+      state.attached.push(...params[1].map((id, i) => ({ post_id: params[0], media_id: id, position: i })));
+      return { rows: [], rowCount: params[1].length };
+    }
+    if (q.startsWith('SELECT p.id, p.ref')) {
+      return { rows: [{ id: 7, ref: 'POST-X', author_id: 10, author_role: 'supplier', post_type: 'UPDATE', kind: 'RESTOCK', details: {}, audience: 'SHOP_PARTNERS', status: 'PUBLISHED', like_count: 0, author_name: 'Dhaka Textiles' }] };
+    }
+    if (q.includes('FROM community_post_media m')) {
+      return { rows: state.attached.map((a) => ({ post_id: a.post_id, ...state.media.find((m) => m.id === a.media_id) })) };
     }
     if (q.startsWith('INSERT INTO audit_logs')) {
       state.audit.push({ action: params[2], after: JSON.parse(params[6] ?? 'null') });
@@ -216,6 +234,59 @@ test('Remove is final and unknown actions are refused', async () => {
   assert.deepEqual(MODERATE_ACTIONS, ['KEEP', 'HIDE', 'REMOVE']);
 });
 
+// ── Photos and video ────────────────────────────────────────────────────────────────────────
+
+test('a post names at most four distinct, valid files', () => {
+  assert.deepEqual(validateMediaIds(undefined), []);
+  assert.deepEqual(validateMediaIds(['5', 6]), [5, 6]);
+  assert.throws(() => validateMediaIds('5'), { code: 'VALIDATION_FAILED' });
+  assert.throws(() => validateMediaIds([0]), { code: 'VALIDATION_FAILED' });
+  assert.throws(() => validateMediaIds(['x']), { code: 'VALIDATION_FAILED' });
+  assert.throws(() => validateMediaIds([1, 1]), { code: 'VALIDATION_FAILED' });
+  assert.throws(() => validateMediaIds([1, 2, 3, 4, 5]), { code: 'VALIDATION_FAILED' });
+  assert.equal(LIMITS.media, 4);
+  assert.equal(mediaKind('video/mp4'), 'VIDEO');
+  assert.equal(mediaKind('image/png'), 'IMAGE');
+});
+
+const SUPPLIER = { id: 10, roles: ['supplier'] };
+const UPDATE = { kind: 'RESTOCK', product_id: 1, body: 'More stock', details: { stock: 5, min_order: 1, wholesale_price: 10 } };
+const upload = (id, over = {}) => ({ id, mime_type: 'image/png', storage_key: `community/${id}.png`, owner_id: 10, purpose: 'COMMUNITY', used: false, ...over });
+
+test('a post is saved with its files in the order the author chose', async () => {
+  const db = makeDb({ media: [upload(1), upload(2, { mime_type: 'video/mp4', storage_key: 'community/2.mp4' }), upload(3)] });
+  const post = await createPost(db, SUPPLIER, { ...UPDATE, media_ids: [3, 1, 2] });
+  assert.deepEqual(db.attached.map((a) => a.media_id), [3, 1, 2]);
+  assert.deepEqual(db.attached.map((a) => a.position), [0, 1, 2]);
+  assert.deepEqual(post.media.map((m) => [m.id, m.kind]), [[3, 'IMAGE'], [1, 'IMAGE'], [2, 'VIDEO']]);
+  assert.ok(post.media.every((m) => m.url.endsWith(`.${m.kind === 'VIDEO' ? 'mp4' : 'png'}`)));
+});
+
+test('a file that is not yours, not for the community, or already used cannot be attached, and nothing is saved', async () => {
+  const db = makeDb({ media: [upload(1, { owner_id: 99 }), upload(2, { purpose: 'PRODUCT' }), upload(3, { used: true }), upload(4)] });
+  for (const id of [1, 2, 3, 99]) {
+    await assert.rejects(() => createPost(db, SUPPLIER, { ...UPDATE, media_ids: [4, id] }), { code: 'VALIDATION_FAILED' });
+  }
+  assert.equal(db.attached.length, 0);
+  assert.ok(db.calls.includes('ROLLBACK'), 'the post is rolled back with its files');
+  assert.equal(db.calls.filter((c) => c === 'COMMIT').length, 0);
+});
+
+test('a post can have one video', async () => {
+  const mp4 = { mime_type: 'video/mp4', storage_key: 'community/v.mp4' };
+  const db = makeDb({ media: [upload(1, mp4), upload(2, mp4), upload(3)] });
+  await assert.rejects(() => createPost(db, SUPPLIER, { ...UPDATE, media_ids: [1, 2] }), { code: 'VALIDATION_FAILED' });
+  assert.equal((await createPost(db, SUPPLIER, { ...UPDATE, media_ids: [1, 3] })).media.length, 2);
+});
+
+test('a post with no files still saves and lists no media; announcements can carry files too', async () => {
+  const db = makeDb({ media: [upload(1, { owner_id: 2 })] });
+  assert.deepEqual((await createPost(db, SUPPLIER, UPDATE)).media, []);
+  const ann = await createAnnouncement(db, { id: 2, roles: ['admin'] }, { title: 'Eid', body: 'Dates', media_ids: [1] });
+  assert.equal(ann.media.length, 1);
+  assert.equal(db.audit.at(-1).after.media, 1);
+});
+
 // ── Migration, catalog and module agree with the code ──────────────────────────────────────
 
 test('the migration CHECK lists match what the service accepts', () => {
@@ -226,6 +297,19 @@ test('the migration CHECK lists match what the service accepts', () => {
   assert.deepEqual(list(/author_role\s+TEXT NOT NULL CHECK \(author_role IN \(([^)]*)\)/), Object.keys(ROLE_POST));
   assert.match(sql, /community\.auto_hide_report_threshold/);
   assert.match(sql, /UNIQUE \(post_id, reporter_id\)/);
+});
+
+test('the media migration allows the COMMUNITY purpose and lets a file sit on one post only', () => {
+  const sql = read('server', 'src', 'db', 'migrations', '081_community_post_media.sql');
+  assert.match(sql, /'COMMUNITY'\)\)/);
+  assert.match(sql, /UNIQUE \(media_id\)/);
+  assert.match(sql, /media_id\s+BIGINT\s+NOT NULL REFERENCES media_assets\(id\) ON DELETE RESTRICT/);
+  // Every purpose the service accepts is allowed by the table, so an upload cannot pass the service and die on the CHECK.
+  const service = read('server', 'src', 'services', 'media.service.ts');
+  const allowed = [...(service.match(/ALLOWED_PURPOSES = new Set\(\[([^\]]*)\]/)?.[1] ?? '').matchAll(/'([A-Z_]+)'/g)].map((m) => m[1]);
+  assert.ok(allowed.includes('COMMUNITY'));
+  for (const purpose of allowed) assert.ok(sql.includes(`'${purpose}'`), `${purpose} is missing from the table's purpose CHECK`);
+  assert.match(read('server', 'src', 'routes', 'communityPost.routes.ts'), /media_ids: \{ type: 'array', maxItems: 4/);
 });
 
 test('the permissions and the module exist where the routes expect them', () => {

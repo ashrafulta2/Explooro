@@ -19,6 +19,7 @@ import { generateRef } from '../lib/ref.ts';
 import { writeAudit } from '../lib/audit.ts';
 import * as repo from '../repositories/communityPost.repository.ts';
 import * as settingRepo from '../repositories/setting.repository.ts';
+import { getStorageDriver } from '../integrations/storage/index.ts';
 
 export const THRESHOLD_KEY = 'community.auto_hide_report_threshold';
 export const THRESHOLD_LIMITS = Object.freeze({ min: 2, max: 50, fallback: 5 });
@@ -27,7 +28,7 @@ export const THRESHOLD_LIMITS = Object.freeze({ min: 2, max: 50, fallback: 5 });
 // not business decisions. The business numbers (the report threshold) are configuration.
 export const LIMITS = Object.freeze({
   text: 1000, tip: 300, title: 120, body: 2000, step: 200, steps: 8, tags: 5, tag: 30, tiers: 5,
-  shipsFrom: 40,
+  shipsFrom: 40, media: 4, videos: 1,
 });
 
 export const ROLE_POST = Object.freeze({
@@ -173,7 +174,60 @@ function initials(name) {
   return ((parts[0]?.[0] ?? '?') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
 }
 
-export function serializePost(row) {
+/**
+ * Pure. The media ids a post names: a short list of distinct whole numbers. Whether they may be
+ * attached (yours, uploaded for the community, unused) is the database's answer, in attachMedia below.
+ */
+export function validateMediaIds(raw) {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) throw fail('media_ids', 'Attach photos or a video from your uploads.', 'আপলোড করা ছবি বা ভিডিও যুক্ত করুন।');
+  const ids = raw.map((v) => Number(v));
+  if (ids.some((n) => !Number.isInteger(n) || n < 1)) {
+    throw fail('media_ids', 'One of the attached files is not valid.', 'যুক্ত করা একটি ফাইল সঠিক নয়।');
+  }
+  if (new Set(ids).size !== ids.length) {
+    throw fail('media_ids', 'The same file is attached twice.', 'একই ফাইল দুইবার যুক্ত করা হয়েছে।');
+  }
+  if (ids.length > LIMITS.media) {
+    throw fail('media_ids', `Attach at most ${LIMITS.media} files.`, `সর্বোচ্চ ${LIMITS.media}টি ফাইল যুক্ত করা যাবে।`);
+  }
+  return ids;
+}
+
+/** The kind of a stored file, from its detected MIME type. */
+export const mediaKind = (mimeType) => (String(mimeType).startsWith('video/') ? 'VIDEO' : 'IMAGE');
+
+/**
+ * Checks the files against the database and the one-video rule, then joins them to the post. Runs in
+ * the post's transaction so a failure leaves no post behind with half its files.
+ */
+async function attachPostMedia(client, userId, postId, mediaIds) {
+  if (!mediaIds.length) return;
+  const usable = await repo.lockUsableMedia(client, userId, mediaIds);
+  if (usable.length !== mediaIds.length) {
+    throw fail('media_ids', 'One of the files cannot be used. Upload it again.', 'একটি ফাইল ব্যবহার করা যাচ্ছে না। আবার আপলোড করুন।');
+  }
+  if (usable.filter((m) => mediaKind(m.mime_type) === 'VIDEO').length > LIMITS.videos) {
+    throw fail('media_ids', 'A post can have one video.', 'একটি পোস্টে একটি ভিডিও দেওয়া যাবে।');
+  }
+  await repo.attachMedia(client, postId, mediaIds);
+}
+
+/** Serialises a page of posts with their files (one extra query for the whole page). */
+async function serializeWithMedia(db, rows, extra = (r) => ({})) {
+  const files = await repo.listMediaForPosts(db, rows.map((r) => r.id));
+  const byPost = new Map();
+  for (const f of files) {
+    if (!byPost.has(f.post_id)) byPost.set(f.post_id, []);
+    byPost.get(f.post_id).push({
+      id: f.id, kind: mediaKind(f.mime_type), mime_type: f.mime_type,
+      url: getStorageDriver().getPublicUrl(f.storage_key), width: f.width, height: f.height,
+    });
+  }
+  return rows.map((r) => ({ ...serializePost(r, byPost.get(r.id) ?? []), ...extra(r) }));
+}
+
+export function serializePost(row, media = []) {
   return {
     id: row.id,
     ref: row.ref,
@@ -187,6 +241,7 @@ export function serializePost(row) {
     status: row.status,
     created_at: row.created_at,
     like_count: row.like_count,
+    media,
     liked_by_me: !!row.liked_by_me,
     is_mine: !!row.is_mine,
     open_report_count: row.open_report_count ?? 0,
@@ -226,7 +281,7 @@ export async function listTimeline(db, user, { type, role, sort, mine, limit = 2
   ]);
   const byType = Object.fromEntries(counts.map((c) => [c.post_type, c.n]));
   return {
-    posts: rows.map(serializePost),
+    posts: await serializeWithMedia(db, rows),
     counts: { ALL: counts.reduce((a, c) => a + c.n, 0), ...byType },
     meta: { limit: filters.limit, offset: filters.offset, has_more: rows.length === filters.limit },
   };
@@ -247,6 +302,7 @@ export async function createPost(db, user, input: Record<string, any> = {}) {
     throw new AppError('FORBIDDEN', 'Your account cannot write this kind of post.', 'আপনার অ্যাকাউন্ট এই ধরনের পোস্ট লিখতে পারে না।');
   }
   const draft = validateDraft(role, input);
+  const mediaIds = validateMediaIds(input.media_ids);
 
   let productId = null;
   let orderItemId = null;
@@ -271,35 +327,49 @@ export async function createPost(db, user, input: Record<string, any> = {}) {
 
   let id;
   try {
-    id = await repo.insertPost(db, {
-      ref: generateRef('POST'), authorId: user.id, authorRole: role, postType: ROLE_POST[role].type,
-      kind: draft.kind, productId, orderItemId, title: draft.title, body: draft.body,
-      details: draft.details, audience: draft.audience, isPinned: draft.isPinned,
+    // One transaction: the post and its files go in together or not at all.
+    id = await withTransaction(db, async (client) => {
+      const postId = await repo.insertPost(client, {
+        ref: generateRef('POST'), authorId: user.id, authorRole: role, postType: ROLE_POST[role].type,
+        kind: draft.kind, productId, orderItemId, title: draft.title, body: draft.body,
+        details: draft.details, audience: draft.audience, isPinned: draft.isPinned,
+      });
+      await attachPostMedia(client, user.id, postId, mediaIds);
+      return postId;
     });
   } catch (err) {
     // uq_community_review_per_order_item: a second review for the same delivered line.
-    if (err?.code === '23505') {
+    if (err?.code === '23505' && String(err.constraint ?? '').includes('review')) {
       throw new AppError('CONFLICT', 'You already reviewed this purchase.', 'এই কেনাকাটার রিভিউ আপনি আগেই দিয়েছেন।');
+    }
+    if (err?.code === '23505') {
+      throw fail('media_ids', 'One of the files is already on another post.', 'একটি ফাইল আগেই অন্য পোস্টে ব্যবহার করা হয়েছে।');
     }
     throw err;
   }
-  return serializePost(await repo.getPost(db, id, user.id));
+  return (await serializeWithMedia(db, [await repo.getPost(db, id, user.id)]))[0];
 }
 
 /** Staff announcement. Writes an audit row, because it is a staff action visible to every member. */
 export async function createAnnouncement(db, user, input: Record<string, any> = {}) {
   const draft = validateDraft('admin', input);
-  const id = await repo.insertPost(db, {
-    ref: generateRef('POST'), authorId: user.id, authorRole: 'admin', postType: 'ANNOUNCEMENT',
-    kind: draft.kind, productId: null, orderItemId: null, title: draft.title, body: draft.body,
-    details: {}, audience: draft.audience, isPinned: draft.isPinned,
+  const mediaIds = validateMediaIds(input.media_ids);
+  const id = await withTransaction(db, async (client) => {
+    const postId = await repo.insertPost(client, {
+      ref: generateRef('POST'), authorId: user.id, authorRole: 'admin', postType: 'ANNOUNCEMENT',
+      kind: draft.kind, productId: null, orderItemId: null, title: draft.title, body: draft.body,
+      details: {}, audience: draft.audience, isPinned: draft.isPinned,
+    });
+    await attachPostMedia(client, user.id, postId, mediaIds);
+    return postId;
   });
   const post = await repo.getPost(db, id, user.id);
   await writeAudit(db, {
     action: 'community.post.announce', targetType: 'community_post', targetRef: post.ref,
-    actor: user, before: null, after: { kind: draft.kind, title: draft.title, audience: draft.audience, pinned: draft.isPinned },
+    actor: user, before: null,
+    after: { kind: draft.kind, title: draft.title, audience: draft.audience, pinned: draft.isPinned, media: mediaIds.length },
   });
-  return serializePost(post);
+  return (await serializeWithMedia(db, [post]))[0];
 }
 
 export async function toggleLike(db, user, postId) {
@@ -365,7 +435,7 @@ export async function getQueue(db, { limit = 30, offset = 0 }: Record<string, an
   ]);
   const reasons = Object.fromEntries((await repo.topReasons(db, rows.map((r) => r.id))).map((r) => [r.post_id, r.reason]));
   return {
-    items: rows.map((r) => ({ ...serializePost(r), top_reason: reasons[r.id] ?? null })),
+    items: await serializeWithMedia(db, rows, (r) => ({ top_reason: reasons[r.id] ?? null })),
     stats, threshold,
   };
 }

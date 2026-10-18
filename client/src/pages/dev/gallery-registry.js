@@ -20,6 +20,7 @@ import '../../styles/components/customer-warranties.css';
 import '../../styles/components/community.css';
 import { PostCard } from '../../components/community/PostCard.js';
 import { PostComposer } from '../../components/community/PostComposer.js';
+import { MediaPicker } from '../../components/community/MediaPicker.js';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { Select } from '../../components/ui/Select.js';
@@ -706,8 +707,19 @@ const DEMO_PRODUCTS = [
     image_url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500&auto=format&fit=crop&q=80' },
 ];
 
+// Flat colour tiles standing in for uploaded photos.
+const demoPhoto = (label, fill) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480"><rect width="640" height="480" fill="${fill}"/><text x="320" y="250" font-family="sans-serif" font-size="40" text-anchor="middle" fill="#1f1f1f">${label}</text></svg>`
+);
+const DEMO_COMMUNITY_MEDIA = [
+  { id: 1, kind: 'IMAGE', mime_type: 'image/svg+xml', url: demoPhoto('Photo 1', '#ffe6b8'), width: 640, height: 480 },
+  { id: 2, kind: 'IMAGE', mime_type: 'image/svg+xml', url: demoPhoto('Photo 2', '#cedfff'), width: 640, height: 480 },
+  { id: 3, kind: 'IMAGE', mime_type: 'image/svg+xml', url: demoPhoto('Photo 3', '#b0e7bb'), width: 640, height: 480 },
+  { id: 4, kind: 'IMAGE', mime_type: 'image/svg+xml', url: demoPhoto('Photo 4', '#f5c4b3'), width: 640, height: 480 },
+];
+
 const DEMO_COMMUNITY_POSTS = [
-  { id: 901, ref: 'POST-901', type: 'REVIEW', kind: 'REVIEW', title: null, body: null, audience: 'EVERYONE', is_pinned: false, status: 'PUBLISHED',
+  { id: 901, ref: 'POST-901', type: 'REVIEW', kind: 'REVIEW', media: DEMO_COMMUNITY_MEDIA.slice(0, 2), title: null, body: null, audience: 'EVERYONE', is_pinned: false, status: 'PUBLISHED',
     created_at: new Date(Date.now() - 2 * 3600e3).toISOString(), like_count: 23, liked_by_me: false, is_mine: false, open_report_count: 0, verified_purchase: true,
     author: { id: 7, role: 'customer', name: 'Nusrat Jahan', initials: 'NJ' },
     product: { id: 1, ref: 'PRD-DEMO', slug: 'cotton-panjabi', title_en: 'Cotton panjabi, navy', title_bn: 'সুতির পাঞ্জাবি, নেভি', price: 1150 },
@@ -717,7 +729,7 @@ const DEMO_COMMUNITY_POSTS = [
     author: { id: 5, role: 'supplier', name: 'Dhaka Textiles', initials: 'DT' },
     product: { id: 1, ref: 'PRD-DEMO', slug: 'cotton-panjabi', title_en: 'Cotton panjabi, navy', title_bn: 'সুতির পাঞ্জাবি, নেভি', price: 1150 },
     details: { stock: 500, min_order: 10, wholesale_price: 780, best_price: 700, ships_from: '20 Oct', tiers: [{ min_qty: 10, price: 780 }, { min_qty: 50, price: 740 }, { min_qty: 200, price: 700 }] } },
-  { id: 903, ref: 'POST-903', type: 'IDEA', kind: 'CREATIVE_IDEA', title: '3 ways to style a panjabi beyond Eid', body: null, audience: 'EVERYONE', is_pinned: false, status: 'PUBLISHED',
+  { id: 903, ref: 'POST-903', type: 'IDEA', kind: 'CREATIVE_IDEA', media: DEMO_COMMUNITY_MEDIA, title: '3 ways to style a panjabi beyond Eid', body: null, audience: 'EVERYONE', is_pinned: false, status: 'PUBLISHED',
     created_at: new Date(Date.now() - 24 * 3600e3).toISOString(), like_count: 61, liked_by_me: false, is_mine: true, open_report_count: 0, verified_purchase: false,
     author: { id: 6, role: 'saler', name: 'Rafi Fashion', initials: 'RF' },
     product: { id: 1, ref: 'PRD-DEMO', slug: 'cotton-panjabi', title_en: 'Cotton panjabi, navy', title_bn: 'সুতির পাঞ্জাবি, নেভি', price: 1150 },
@@ -742,6 +754,12 @@ function renderCommunityPostSpecimen() {
     post: { ...DEMO_COMMUNITY_POSTS[0] }, viewerRole: 'admin', canModerate: true,
     onLike: async (p) => ({ liked: !p.liked_by_me, like_count: p.like_count }), onReport: async () => ({}), onModerate: async () => {},
   })));
+  return wrap;
+}
+
+function renderCommunityMediaPickerSpecimen() {
+  const wrap = document.createDocumentFragment();
+  wrap.append(specimen('empty (pick a photo or MP4 to try the checks and the upload)', MediaPicker({})));
   return wrap;
 }
 
@@ -1518,6 +1536,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'notification-center', label: 'NotificationCenter', group: 'Communication', render: renderNotificationCenterSpecimen },
     { id: 'community-post-card', label: 'PostCard (/community)', group: 'Communication', render: renderCommunityPostSpecimen },
     { id: 'community-post-composer', label: 'PostComposer (/community)', group: 'Communication', render: renderCommunityComposerSpecimen },
+    { id: 'community-media-picker', label: 'MediaPicker (/community)', group: 'Communication', render: renderCommunityMediaPickerSpecimen },
     { id: 'whats-new-modal', label: 'WhatsNewModal', group: 'Communication', render: renderWhatsNewSpecimen },
     // Prompt 8.3 — WhatsApp & Messenger Unified Inbox
     { id: 'unified-inbox', label: 'UnifiedInbox', group: 'Communication', render: renderUnifiedInboxSpecimen },

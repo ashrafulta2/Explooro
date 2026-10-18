@@ -4,13 +4,15 @@
 
 import * as mediaController from '../controllers/media.controller.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
-import { MAX_IMAGE_SIZE_BYTES } from '../services/media.service.ts';
+import { MAX_DIRECT_UPLOAD_BYTES } from '../services/media.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
 // WHY: /media/direct carries the file as a base64 data URL inside JSON, which is ~4/3 the file's
 // size. Fastify's default 1MB body limit rejected any photo over ~750KB with a bare 413 before the
-// service could apply its own 8MB rule, so a normal phone photo could never be uploaded.
-const DIRECT_UPLOAD_BODY_LIMIT = Math.ceil((MAX_IMAGE_SIZE_BYTES * 4) / 3) + 64 * 1024;
+// service could apply its own 8MB rule, so a normal phone photo could never be uploaded. The limit is
+// sized for the largest direct upload (a short video, MAX_DIRECT_UPLOAD_BYTES); an image over its own
+// 8MB rule is still refused by the service with MEDIA_TOO_LARGE.
+const DIRECT_UPLOAD_BODY_LIMIT = Math.ceil((MAX_DIRECT_UPLOAD_BYTES * 4) / 3) + 64 * 1024;
 
 export default async function mediaRoutes(app) {
   // WHY authenticate: the service stamps media_assets.owner_id from req.user, and product/avatar
