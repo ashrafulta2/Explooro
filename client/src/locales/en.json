@@ -1,4 +1,112 @@
 {
+  "advertise": {
+    "title": "Advertise",
+    "subtitle": "Show your post, store or product to the people you choose, in three steps.",
+    "unavailable": "Advertising is switched off right now. Please check back later.",
+    "step": {
+      "what": "What to promote",
+      "who": "Who sees it",
+      "budget": "Budget and days"
+    },
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit ad",
+    "what": {
+      "title": "What do you want to promote?",
+      "hint": "You can promote only what is yours.",
+      "post": "A community post",
+      "post_desc": "One of your published posts",
+      "store": "My store",
+      "product": "A product",
+      "product_desc": "From your store, or one you supply",
+      "pick_post": "Pick a post",
+      "pick_product": "Pick a product",
+      "in_store": "In your store",
+      "you_supply": "You supply it",
+      "nothing": "You have nothing to promote yet. Write a post in the community, and you can boost it here.",
+      "write_post": "Go to the community",
+      "headline": "Headline",
+      "headline_hint": "What people see first, up to 80 characters",
+      "description": "Short description (optional)",
+      "description_hint": "Up to 140 characters"
+    },
+    "who": {
+      "title": "Who should see it?",
+      "hint": "Show it to everyone, or only to the people you choose.",
+      "everyone": "Everyone",
+      "everyone_desc": "Anyone who opens the home feed",
+      "choose": "Choose people",
+      "choose_desc": "By account type, gender, place and interests",
+      "roles": "Who",
+      "role_customer": "Shoppers",
+      "role_saler": "Shop partners",
+      "role_supplier": "Suppliers",
+      "gender": "Gender",
+      "gender_all": "All",
+      "gender_male": "Men",
+      "gender_female": "Women",
+      "divisions": "Where they live",
+      "interests": "Interested in",
+      "empty_means_all": "Leave a group empty to include everyone in it.",
+      "reach_label": "Your audience",
+      "reach": "about {{count}} people",
+      "too_small": "This audience is too small. Widen it to at least {{min}} people so an ad never singles anyone out.",
+      "everyone_note": "Your ad can be shown to anyone who opens the home feed."
+    },
+    "budget": {
+      "title": "How much, and for how long?",
+      "hint": "The budget is spent evenly over the days, a little each time your ad is shown.",
+      "amount": "Budget (৳)",
+      "amount_hint": "At least {{min}}",
+      "days": "Number of days",
+      "days_hint": "From {{min}} to {{max}} days",
+      "n_days": "{{n}} days",
+      "views_label": "Estimated reach",
+      "views": "shown about {{count}} times",
+      "vault_short": "Your vault holds {{have}}, and this ad needs {{need}}. Add money to your vault first.",
+      "vault_ok": "Paid from your vault ({{have}} available).",
+      "review_note": "Our team checks every ad before it runs, usually within a day."
+    },
+    "summary": {
+      "title": "Summary",
+      "what": "Promoting",
+      "who": "Shown to",
+      "budget": "Budget",
+      "budget_value": "{{amount}} over {{n}} days"
+    },
+    "done": {
+      "title": "Your ad is submitted",
+      "review": "It starts running as soon as our team approves it.",
+      "live": "It is running now.",
+      "another": "Create another ad"
+    },
+    "mine": {
+      "title": "Your ads",
+      "empty": "You have no ads yet.",
+      "meta": "{{status}} · {{spent}} of {{budget}} spent · {{views}} views",
+      "pause": "Pause",
+      "resume": "Resume"
+    },
+    "status": {
+      "pending_review": "Waiting for review",
+      "active": "Running",
+      "paused": "Paused",
+      "scheduled": "Scheduled",
+      "completed": "Finished",
+      "rejected": "Not approved",
+      "draft": "Draft"
+    },
+    "division": {
+      "barishal": "Barishal",
+      "chattogram": "Chattogram",
+      "dhaka": "Dhaka",
+      "khulna": "Khulna",
+      "mymensingh": "Mymensingh",
+      "rajshahi": "Rajshahi",
+      "rangpur": "Rangpur",
+      "sylhet": "Sylhet"
+    }
+  },
   "discover": {
     "page": {
       "title": "Discover",
@@ -504,6 +612,7 @@
       }
     },
     "shared": {
+      "advertise": "Advertise",
       "community": "Community",
       "dashboard": "Dashboard",
       "overview": "Overview",

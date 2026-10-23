@@ -504,6 +504,7 @@ FROM (VALUES
   ('admin', 'finance.b2b_escrow.manage'),
   ('super_admin', 'finance.b2b_escrow.manage'),
   ('super_admin', 'finance.b2b_escrow.release'),
+  ('customer', 'growth.ad.manage_own'),
   ('saler', 'growth.ad.manage_own'),
   ('supplier', 'growth.ad.manage_own'),
   ('moderator', 'growth.ad.review'),

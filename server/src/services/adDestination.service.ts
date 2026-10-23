@@ -31,6 +31,10 @@ export function productDestination(productId: number, storeSlug: string | null =
 }
 
 /** A shop partner's storefront page. */
+export function postDestination(postId: number): string {
+  return `/community?post=${Number(postId)}`;
+}
+
 export function storeDestination(storeSlug: string): string {
   return `/store/${encodeURIComponent(storeSlug)}`;
 }
@@ -55,10 +59,27 @@ export function safeInternalPath(value: unknown): string | null {
  */
 export async function resolveCreativeTarget(
   db: any,
-  { userId, adProduct, productId = null, destinationUrl = null, isPrivileged = false }:
-    { userId: number; adProduct: any; productId?: any; destinationUrl?: string | null; isPrivileged?: boolean }
+  { userId, adProduct, productId = null, communityPostId = null, destinationUrl = null, isPrivileged = false }:
+    { userId: number; adProduct: any; productId?: any; communityPostId?: any; destinationUrl?: string | null; isPrivileged?: boolean }
 ): Promise<{ productId: number | null; destinationUrl: string }> {
   const id = productId ? Number(productId) : null;
+
+  // A community post (Boost, migration 087): only the author's own, and only while it is published,
+  // so nobody can pay to push someone else's words or a post moderation took down.
+  if (!id && communityPostId) {
+    const { rows: postRows } = await db.query(
+      `SELECT id, author_id, status FROM community_posts WHERE id = $1`,
+      [Number(communityPostId)]
+    );
+    const post = postRows[0];
+    if (!post || (String(post.author_id) !== String(userId) && !isPrivileged)) {
+      throw new AppError('AD_POST_NOT_OWNED', 'You can only boost your own community posts.', 'আপনি শুধু নিজের কমিউনিটি পোস্ট বুস্ট করতে পারবেন।');
+    }
+    if (post.status !== 'PUBLISHED') {
+      throw new AppError('AD_POST_NOT_PUBLISHED', 'This post is not published, so it cannot be boosted.', 'পোস্টটি প্রকাশিত নয়, তাই বুস্ট করা যাবে না।');
+    }
+    return { productId: null, destinationUrl: postDestination(post.id) };
+  }
 
   if (!id) {
     if (adProduct.requires_product) {
@@ -78,6 +99,12 @@ export async function resolveCreativeTarget(
     );
     if (ownStore[0]) {
       return { productId: null, destinationUrl: storeDestination(ownStore[0].slug) };
+    }
+    // WHY Boost refuses here: it must promote something the advertiser owns; with no product, post or
+    // store it would be a paid card that opens the home page.
+    if (adProduct.key === 'easy_boost' && !isPrivileged) {
+      throw new AppError('AD_TARGET_REQUIRED', 'Pick what to boost: one of your posts, your store or a product.',
+        'কী বুস্ট করবেন বেছে নিন: আপনার একটি পোস্ট, আপনার দোকান বা একটি পণ্য।');
     }
     return { productId: null, destinationUrl: safeInternalPath(destinationUrl) || '/' };
   }

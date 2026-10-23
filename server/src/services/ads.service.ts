@@ -30,6 +30,10 @@ import { quote as priceQuote, meteredCharge, rate, PREPAID_MODELS } from './adPr
 import { runSecondPriceAuction, MIN_RESERVE_PRICE } from './adAuction.service.ts';
 import * as sponsoredSourcing from './sponsoredSourcing.service.ts';
 import { resolveCreativeTarget } from './adDestination.service.ts';
+import * as adAudience from './adAudience.service.ts';
+
+/** The simple format anyone may buy (migration 087); it is paid from a vault that already holds the budget. */
+export const EASY_BOOST_KEY = 'easy_boost';
 
 const BLOCKED_KEYWORDS_DEFAULT = ['illegal', 'replica', 'counterfeit', 'fake', 'weapons', 'adult', 'gambling'];
 
@@ -182,6 +186,8 @@ export function normalizeTargeting(raw) {
     keywords: strings(t.keywords, TARGETING_LIMITS.keywords),
     categories,
     districts: strings(t.districts, TARGETING_LIMITS.districts),
+    // A hard filter, unlike the three soft relevance lists above (adAudience.service.ts).
+    audience: adAudience.normalizeAudience(t.audience),
   };
 }
 
@@ -235,9 +241,14 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta: R
     userId,
     adProduct: product,
     productId: creative.product_id,
+    communityPostId: creative.community_post_id,
     destinationUrl: creative.destination_url || null,
     isPrivileged,
   });
+
+  // 3d. An audience narrow enough to point at a handful of people is refused (adAudience.service.ts).
+  const targeting = normalizeTargeting(campaignData.targeting);
+  await adAudience.assertAudienceAllowed(db, targeting.audience);
 
   // 4. Price it. adPricing.quote is the single authority and throws on every commercial floor
   //    (minimum budget, minimum days, bid below the placement's floor CPC, …).
@@ -269,6 +280,16 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta: R
   const wallet = await walletRepo.getOrCreateWallet(db, userId);
   if (!wallet) {
     throw new AppError('WALLET_NOT_FOUND', 'Shop Partner wallet could not be found or initialized.');
+  }
+  // WHY only Boost: it is the format for people who have never run an ad. A metered campaign on an
+  // empty vault would be approved and then pause on its first thousand views, which reads as broken;
+  // asking for the budget up front says plainly what is missing before anything is submitted.
+  if (product.key === EASY_BOOST_KEY && Number(wallet.available_balance) < commitment) {
+    throw new AppError(
+      'INSUFFICIENT_VAULT_BALANCE',
+      `This boost needs ৳${commitment.toFixed(2)} in your vault, and it holds ৳${Number(wallet.available_balance).toFixed(2)}.`,
+      `এই বুস্টের জন্য আপনার ভল্টে ৳${commitment.toFixed(2)} থাকা দরকার, আছে ৳${Number(wallet.available_balance).toFixed(2)}।`
+    );
   }
 
   // 7. Review policy: the format's own switch wins, but the module can turn review off globally.
@@ -310,7 +331,7 @@ export async function createCampaign(db, cache, userId, campaignData, reqMeta: R
     : (isPrepaid ? new Date(startDate.getTime() + durationDays * 86400000) : null);
 
   const ref = generateCampaignRef();
-  const targetingJson = JSON.stringify(normalizeTargeting(campaignData.targeting));
+  const targetingJson = JSON.stringify(targeting);
 
   return await withTransaction(db, async (client) => {
     const { rows: cRows } = await client.query(
@@ -436,6 +457,8 @@ export async function updateCampaign(db, cache, userId, campaignId, updates, req
   if (totalBudget < dailyBudget) {
     throw new AppError('INVALID_BUDGET', 'Total budget cannot be less than daily budget.');
   }
+  const nextTargeting = updates.targeting ? normalizeTargeting(updates.targeting) : null;
+  if (nextTargeting) await adAudience.assertAudienceAllowed(db, nextTargeting.audience);
 
   return await withTransaction(db, async (client) => {
     const { rows: updatedRows } = await client.query(
@@ -454,7 +477,7 @@ export async function updateCampaign(db, cache, userId, campaignId, updates, req
         updates.title ?? null,
         updates.objective ?? null,
         updates.placement ?? null,
-        updates.targeting ? JSON.stringify(normalizeTargeting(updates.targeting)) : null,
+        nextTargeting ? JSON.stringify(nextTargeting) : null,
         dailyBudget.toFixed(2),
         totalBudget.toFixed(2),
         bidAmount.toFixed(2),
@@ -670,6 +693,17 @@ export async function runAuction(db, cache, { placement, categoryId, district, k
     maxSlots = Math.min(limit, rules.max_slots);
     if (maxSlots <= 0) return [];
     candidates = await sponsoredSourcing.applyCandidatePolicy(db, eligible, rules);
+    if (candidates.length === 0) return [];
+  }
+
+  // 2c. Audience: a hard filter, so an ad aimed at Dhaka shoppers is never shown in Sylhet. The viewer is
+  //     only looked up when some candidate narrows its audience at all.
+  if (candidates.some((c) => adAudience.isNarrowed(adAudience.normalizeAudience(c.targeting_json?.audience)))) {
+    const audienceRules = await adAudience.loadRules(db);
+    const viewer = await adAudience.loadViewer(db, viewerId, audienceRules);
+    candidates = candidates.filter((c) =>
+      adAudience.matchesAudience(adAudience.normalizeAudience(c.targeting_json?.audience), viewer, { district, categoryId })
+    );
     if (candidates.length === 0) return [];
   }
 

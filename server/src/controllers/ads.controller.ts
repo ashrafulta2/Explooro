@@ -5,6 +5,9 @@
 import * as adsService from '../services/ads.service.ts';
 import * as adProductsService from '../services/adProducts.service.ts';
 import * as adDestination from '../services/adDestination.service.ts';
+import * as adAudience from '../services/adAudience.service.ts';
+import * as adProductRepo from '../repositories/adProduct.repository.ts';
+import * as walletRepo from '../repositories/wallet.repository.ts';
 
 export async function createCampaign(req, reply) {
   const db = req.db || req.server?.db;
@@ -269,6 +272,74 @@ export async function updateAdProductPricing(req, reply) {
   });
 
   return reply.send({ product: result });
+}
+
+/**
+ * GET /ads/easy/options — everything the simple Boost wizard needs in one call: the format and its
+ * limits, what this account may promote (own published posts, own store, promotable products), the
+ * vault balance it will be paid from, and the audience choices. Only the caller's own things.
+ */
+export async function getEasyOptions(req, reply) {
+  const db = req.db || req.server?.db;
+  const userId = req.user.id;
+  const product = await adProductRepo.getProductByKey(db, adsService.EASY_BOOST_KEY);
+  const [{ rows: posts }, { rows: stores }, promotable, wallet, { rows: categories }, rules] = await Promise.all([
+    db.query(
+      `SELECT id, ref, post_type, title, left(COALESCE(body, ''), 140) AS excerpt, created_at
+         FROM community_posts
+        WHERE author_id = $1 AND status = 'PUBLISHED'
+        ORDER BY created_at DESC
+        LIMIT 20`,
+      [userId]
+    ),
+    db.query(
+      `SELECT slug, shop_name FROM virtual_stores
+        WHERE saler_id = $1 AND is_active AND deleted_at IS NULL
+        ORDER BY id LIMIT 1`,
+      [userId]
+    ),
+    adDestination.listPromotableProducts(db, userId, { limit: 50 }),
+    walletRepo.getOrCreateWallet(db, userId),
+    db.query(
+      `SELECT id, name_en, name_bn FROM categories
+        WHERE is_active = true AND parent_id IS NULL
+        ORDER BY display_order ASC, name_en ASC LIMIT 100`
+    ),
+    adAudience.loadRules(db),
+  ]);
+  const rc = product?.rate_card || {};
+  return reply.send({
+    format: product
+      ? {
+          key: product.key,
+          enabled: Boolean(product.is_enabled),
+          name_en: product.name_en,
+          name_bn: product.name_bn,
+          min_budget: Number(rc.min_budget) || 0,
+          min_days: Number(rc.min_days) || 1,
+          max_days: Number(rc.max_days) || 30,
+        }
+      : null,
+    posts,
+    store: stores[0] ?? null,
+    products: promotable.items,
+    vault: { available: wallet?.available_balance ?? '0.00' },
+    audience: {
+      roles: adAudience.AUDIENCE_ROLES,
+      genders: adAudience.GENDERS,
+      divisions: adAudience.DIVISIONS,
+      interests: categories,
+      min_audience_size: rules.min_audience_size,
+    },
+  });
+}
+
+/** POST /ads/audience-estimate — "about N people" for the audience the wizard has so far. */
+export async function estimateAudience(req, reply) {
+  const db = req.db || req.server?.db;
+  const rules = await adAudience.loadRules(db);
+  const result = await adAudience.estimateAudience(db, adAudience.normalizeAudience(req.body?.audience), rules);
+  return reply.send(result);
 }
 
 export async function listTargetCategories(req, reply) {

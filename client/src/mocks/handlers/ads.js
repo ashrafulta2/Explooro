@@ -15,6 +15,27 @@ const DEFAULT_TIER_DISCOUNTS = { STARTER: 0, VERIFIED_TRADER: 5, ELITE_PARTNER: 
 const MOCK_TIER = 'VERIFIED_TRADER';
 
 let mockAdProducts = [
+  // Mirrors migration 087: the one format every account type may buy.
+  {
+    id: 99,
+    key: 'easy_boost',
+    name_en: 'Boost',
+    name_bn: 'বুস্ট',
+    tagline_en: 'Show your post, store or product to the people you choose',
+    tagline_bn: 'আপনার পোস্ট, দোকান বা পণ্য আপনার বেছে নেওয়া মানুষদের দেখান',
+    description_en: 'A card in the home feed, shown only to the audience you pick.',
+    description_bn: 'হোম ফিডে একটি কার্ড, শুধু আপনার বেছে নেওয়া মানুষদের দেখানো হয়।',
+    icon: '🚀',
+    placement: 'FEED',
+    pricing_model: 'CPM',
+    badge_key: 'NEW',
+    requires_product: false,
+    requires_review: true,
+    is_enabled: true,
+    sort_order: 5,
+    allowed_roles: ['customer', 'saler', 'supplier'],
+    rate_card: { cpm_rate: 80, min_budget: 200, min_days: 1, max_days: 30, service_fee_percent: 0, vat_percent: 0, tier_discounts: { ...DEFAULT_TIER_DISCOUNTS } },
+  },
   {
     id: 1,
     key: 'search_boost',
@@ -504,7 +525,62 @@ const mockPromotableProducts = [
   { id: 205, ref: 'PRD-205', title_en: 'Sundarbans Raw Honey 500g', title_bn: 'সুন্দরবনের খাঁটি মধু ৫০০ গ্রাম', stock_qty: 140, source: 'OWN' },
 ];
 
+// The Boost wizard's audience picker (server adAudience.service.ts). The estimate is a stand-in: about
+// 12,400 accounts, each narrowing condition keeping a fixed share, so the number moves as it would.
+const MOCK_DIVISIONS = ['Barishal', 'Chattogram', 'Dhaka', 'Khulna', 'Mymensingh', 'Rajshahi', 'Rangpur', 'Sylhet'];
+const MOCK_MIN_AUDIENCE = 20;
+function mockEstimate(audience = {}) {
+  const a = audience || {};
+  let people = 12400;
+  if ((a.roles || []).length) people *= Math.min(1, 0.35 * a.roles.length + (a.roles.includes('customer') ? 0.45 : 0));
+  if (a.gender === 'MALE' || a.gender === 'FEMALE') people *= 0.5;
+  if ((a.divisions || []).length) people *= Math.min(1, 0.14 * a.divisions.length);
+  if ((a.interests || []).length) people *= Math.min(1, 0.12 * a.interests.length);
+  const narrowed = Boolean((a.roles || []).length || (a.gender && a.gender !== 'ALL') || (a.divisions || []).length || (a.interests || []).length);
+  people = Math.round(people);
+  return { people, narrowed, min_audience_size: MOCK_MIN_AUDIENCE, too_small: narrowed && people < MOCK_MIN_AUDIENCE };
+}
+
 const adsHandlers = [
+  {
+    method: 'GET',
+    path: '/ads/easy/options',
+    handler() {
+      return {
+        status: 200,
+        body: {
+          format: { key: 'easy_boost', enabled: true, name_en: 'Boost', name_bn: 'বুস্ট', min_budget: 200, min_days: 1, max_days: 30 },
+          posts: [
+            { id: 41, ref: 'CP-41', post_type: 'REVIEW', title: 'Honest review: Jamdani saree after 3 washes', excerpt: 'The colours held up and the weave is still tight…', created_at: new Date(Date.now() - 2 * 86400000).toISOString() },
+            { id: 38, ref: 'CP-38', post_type: 'IDEA', title: 'Eid gift ideas under ৳1,500', excerpt: 'Five things my customers loved last Eid…', created_at: new Date(Date.now() - 6 * 86400000).toISOString() },
+          ],
+          store: { slug: 'tanvir-trends', shop_name: 'Tanvir Trends' },
+          products: mockPromotableProducts,
+          vault: { available: '2450.00' },
+          audience: {
+            roles: ['customer', 'saler', 'supplier'],
+            genders: ['ALL', 'MALE', 'FEMALE'],
+            divisions: MOCK_DIVISIONS,
+            interests: [
+              { id: 12, name_en: 'Sarees & Traditional Wear', name_bn: 'শাড়ি ও ঐতিহ্যবাহী পোশাক' },
+              { id: 14, name_en: 'Electronics & Gadgets', name_bn: 'ইলেকট্রনিক্স ও গ্যাজেট' },
+              { id: 18, name_en: 'Home & Kitchen', name_bn: 'হোম ও কিচেন' },
+              { id: 21, name_en: 'Beauty & Personal Care', name_bn: 'বিউটি ও পার্সোনাল কেয়ার' },
+              { id: 25, name_en: 'Groceries & Food', name_bn: 'মুদি ও খাবার' },
+            ],
+            min_audience_size: MOCK_MIN_AUDIENCE,
+          },
+        },
+      };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/ads/audience-estimate',
+    handler({ body }) {
+      return { status: 200, body: mockEstimate(body?.audience) };
+    },
+  },
   {
     method: 'GET',
     path: '/ads/products',
@@ -598,6 +674,11 @@ const adsHandlers = [
       // Mirrors resolveCreativeTarget (server adDestination.service.ts).
       if (product.requires_product && !body?.creative?.product_id) {
         return { status: 400, body: { error: { code: 'PRODUCT_REQUIRED', message: 'Pick the product this ad should promote.' } } };
+      }
+      // Mirrors adAudience.assertAudienceAllowed (server).
+      const est = mockEstimate(body?.targeting?.audience);
+      if (est.too_small) {
+        return { status: 422, body: { error: { code: 'AUDIENCE_TOO_SMALL', message_en: `This audience is about ${est.people} people. Widen it to at least ${MOCK_MIN_AUDIENCE} so an ad never singles anyone out.`, message_bn: `এই দর্শক প্রায় ${est.people} জন। অন্তত ${MOCK_MIN_AUDIENCE} জন করতে দর্শক বড় করুন, যাতে বিজ্ঞাপন কাউকে আলাদা করে লক্ষ্য না করে।` } } };
       }
       const result = buildQuote(product, body || {}, MOCK_TIER);
       if (result.error) {

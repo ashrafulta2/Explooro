@@ -109,5 +109,37 @@ export const adsApi = {
     } catch (e) {
       // ignore
     }
-  }
+  },
+
+  // ---- The simple Boost wizard (/advertise, migration 087) -------------------------------------
+
+  /** What this account may boost, its vault balance, the format's limits and the audience choices. */
+  async getEasyOptions() {
+    return api.get('/ads/easy/options');
+  },
+
+  /** `{ people, narrowed, min_audience_size, too_small }` for an audience. */
+  async estimateAudience(audience) {
+    return api.post('/ads/audience-estimate', { audience });
+  },
+
+  /** The server's price and reach estimate for a budget; the client never prices anything itself. */
+  async quote(body) {
+    const res = await api.post('/ads/quote', body);
+    return res?.quote ?? res?.data?.quote ?? null;
+  },
+
+  async createCampaign(body) {
+    const res = await api.post('/ads/campaigns', body);
+    return res?.campaign ?? res?.data?.campaign ?? null;
+  },
+
+  async listCampaigns() {
+    const res = await api.get('/ads/campaigns');
+    return res?.campaigns ?? res?.data?.campaigns ?? [];
+  },
+
+  async setCampaignPaused(id, paused) {
+    return api.post(`/ads/campaigns/${encodeURIComponent(id)}/${paused ? 'pause' : 'resume'}`, {});
+  },
 };

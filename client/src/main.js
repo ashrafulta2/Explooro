@@ -1859,6 +1859,15 @@ async function bootRouterDemo() {
         module: 'chat',
         load: () => import('./pages/ChatPage.js'),
       },
+      // Phase C (migration 087): anyone can advertise, through the simple 3-step Boost wizard.
+      {
+        path: '/advertise',
+        title: 'Advertise — Explooro',
+        requiresAuth: true,
+        permission: 'growth.ad.manage_own',
+        module: 'sponsored_ads',
+        load: () => import('./pages/AdvertisePage.js'),
+      },
       // Prompt 9.1: In-Platform Sponsored Ads Engine
       {
         path: '/saler/ads',

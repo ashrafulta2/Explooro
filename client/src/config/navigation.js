@@ -203,6 +203,8 @@ export const navItems = [
   { key: 'supplier.live_studio', label_i18n_key: 'nav.supplier.live_studio', icon: null, path: '/supplier/live-studio', group: 'supplier.engage', permission: 'live.stream.host', module: 'live_commerce', roles: ['supplier'], order: 2 },
   // Same page and same permission as the shop partner's: the route is gated by `growth.ad.manage_own`,
   // which a supplier holds, and every ad format allows the supplier role. Only the menu entry was missing.
+  // The simple Boost wizard (migration 087) for every account type; the full catalogue stays at /saler/ads.
+  { key: 'supplier.advertise', label_i18n_key: 'nav.shared.advertise', icon: null, path: '/advertise', group: 'supplier.engage', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['supplier'], order: 3 },
   { key: 'supplier.ads', label_i18n_key: 'nav.supplier.ads', icon: null, path: '/saler/ads', group: 'supplier.engage', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['supplier'], order: 3 },
   { key: 'supplier.community', label_i18n_key: 'nav.shared.community', icon: null, path: '/community', group: 'supplier.engage', permission: null, module: 'community_posts', roles: ['supplier'], order: 4 },
   { key: 'supplier.store_status', label_i18n_key: 'nav.shared.store_status', icon: null, path: '/supplier/store-status', group: 'supplier.my_shop', permission: 'supplier.store.manage', module: 'physical_shop_status', roles: ['supplier'], order: 1 },
@@ -227,6 +229,7 @@ export const navItems = [
   { key: 'saler.bundles', label_i18n_key: 'nav.saler.bundles', icon: null, path: '/saler/bundles', group: 'saler.sourcing', permission: 'saler.bundle.manage', module: 'product_bundling', roles: ['saler'], order: 2, simpleMode: false },
   { key: 'saler.creative_studio', label_i18n_key: 'nav.saler.creative_studio', icon: null, path: '/saler/creative-studio', group: 'saler.marketing', permission: 'ai.creative.use', module: 'ai_creative_studio', roles: ['saler'], order: 1, simpleMode: false },
   { key: 'saler.social_kit', label_i18n_key: 'nav.saler.social_kit', icon: null, path: '/saler/social-kit', group: 'saler.marketing', permission: null, module: 'social_seller_kit', roles: ['saler'], order: 2 },
+  { key: 'saler.advertise', label_i18n_key: 'nav.shared.advertise', icon: null, path: '/advertise', group: 'saler.marketing', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['saler'], order: 3 },
   { key: 'saler.ads', label_i18n_key: 'nav.saler.ads', icon: null, path: '/saler/ads', group: 'saler.marketing', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['saler'], order: 3, simpleMode: false },
   { key: 'saler.live_studio', label_i18n_key: 'nav.supplier.live_studio', icon: null, path: '/saler/live-studio', group: 'saler.marketing', permission: 'live.stream.host', module: 'live_commerce', roles: ['saler'], order: 4, simpleMode: false },
   { key: 'saler.community', label_i18n_key: 'nav.shared.community', icon: null, path: '/community', group: 'saler.marketing', permission: null, module: 'community_posts', roles: ['saler'], order: 5 },
@@ -260,6 +263,7 @@ export const navItems = [
   // where My Profile sits above everything else. The rest of the group keeps its 1-5 numbering.
   { key: 'customer.profile', label_i18n_key: 'nav.customer.profile', icon: null, path: '/account/profile', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 0 },
   { key: 'customer.following', label_i18n_key: 'nav.customer.following', icon: null, path: '/account/following', group: 'customer.me', permission: null, module: 'follow_feed', roles: ['customer'], order: 1 },
+  { key: 'customer.advertise', label_i18n_key: 'nav.shared.advertise', icon: null, path: '/advertise', group: 'customer.me', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['customer'], order: 3 },
   { key: 'customer.reviews', label_i18n_key: 'nav.customer.reviews', icon: null, path: '/account/reviews', group: 'customer.me', permission: null, module: 'ugc_video_wall', roles: ['customer'], order: 2 },
   { key: 'customer.addresses', label_i18n_key: 'nav.customer.addresses', icon: null, path: '/account/addresses', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 3 },
   { key: 'customer.settings', label_i18n_key: 'nav.shared.settings', icon: null, path: '/account/settings', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 4 },

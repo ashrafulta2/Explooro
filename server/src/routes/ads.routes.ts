@@ -25,6 +25,16 @@ export default async function adsRoutes(app) {
     preHandler: [app.authenticate, requireModule, requireManageAds],
   }, adsController.getAvailability);
 
+  // The simple Boost wizard (migration 087): its options, and the live "about N people" estimate.
+  app.get('/ads/easy/options', {
+    preHandler: [app.authenticate, requireModule, requireManageAds, checkCanRunAds],
+  }, adsController.getEasyOptions);
+
+  app.post('/ads/audience-estimate', {
+    preHandler: [app.authenticate, requireModule, requireManageAds],
+    schema: { body: { type: 'object', properties: { audience: { type: 'object' } } } },
+  }, adsController.estimateAudience);
+
   // The categories a banner takeover can be bought against.
   app.get('/ads/target-categories', {
     preHandler: [app.authenticate, requireModule, requireManageAds],
@@ -61,8 +71,18 @@ export default async function adsRoutes(app) {
   }, adsController.cancelCampaign);
 
   // 3. Shopper / Placement Auction & Beacon APIs (public / optional auth)
+  // WHY the optional sign-in: an ad's audience (account type, gender, location, interests) can only be
+  // matched against a known viewer. A bad or expired token must never cost the page its ads, so it is
+  // treated as a signed-out visit, who is then shown only ads aimed at everyone.
+  const viewerIfSignedIn = async (req) => {
+    try {
+      await app.authenticateOptional(req);
+    } catch {
+      req.user = undefined;
+    }
+  };
   app.get('/ads/auction', {
-    preHandler: [requireModule],
+    preHandler: [requireModule, viewerIfSignedIn],
   }, adsController.runAuction);
 
   // Reserved placements are the prepaid counterpart of the auction: already bought, already paid.

@@ -125,7 +125,11 @@ test('district spellings that mean the same place compare equal', async () => {
 
 test('stored targeting is cut down to safe, bounded lists', async () => {
   const { normalizeTargeting } = await import('../src/services/ads.service.ts');
-  assert.deepEqual(normalizeTargeting(undefined), { keywords: [], categories: [], districts: [] });
+  // Since migration 087 targeting also carries the Boost audience; empty means everyone.
+  assert.deepEqual(normalizeTargeting(undefined), {
+    keywords: [], categories: [], districts: [],
+    audience: { roles: [], gender: 'ALL', divisions: [], districts: [], interests: [] },
+  });
   const t = normalizeTargeting({
     keywords: ['saree', ' saree ', '', 5, 'x'.repeat(200)],
     categories: [1, '2', 'bad', 1, -4],
