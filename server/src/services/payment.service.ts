@@ -18,6 +18,7 @@ import * as orderRepo from '../repositories/order.repository.ts';
 import * as auditService from './audit.service.ts';
 import * as vaultService from './vault.service.ts';
 import { withTransaction } from '../config/db.ts';
+import { creditTopUp } from './walletTopup.service.ts';
 
 /**
  * Mask account or card numbers.
@@ -293,7 +294,9 @@ export async function executePayment(db, cache, {
   // order whose escrow failed to lock (or that was paid before this was fixed) is healed by the
   // next webhook replay, reconcile sweep or execute retry, instead of staying unescrowed forever.
   if (txn.status === 'SUCCESS') {
-    const paidOrder = await orderRepo.findOrderById(db, txn.order_id);
+    // A vault top-up has no order; its replay heals a missing credit instead (credited once only).
+    if (txn.intent === 'TOPUP') await creditTopUp(db, txn.ref);
+    const paidOrder = txn.order_id ? await orderRepo.findOrderById(db, txn.order_id) : null;
     if (paidOrder) await lockEscrowForPaidOrder(db, paidOrder);
     return {
       success: true,
@@ -330,8 +333,11 @@ export async function executePayment(db, cache, {
     reconciledAt: new Date(),
   });
 
+  // 1b. A vault top-up (migration 088): the gateway confirmed, so credit the vault. No order to update.
+  if (txn.intent === 'TOPUP') await creditTopUp(db, finalTxn.ref);
+
   // 2. Mark Order as PAID and CONFIRMED
-  const order = await orderRepo.findOrderById(db, txn.order_id);
+  const order = txn.order_id ? await orderRepo.findOrderById(db, txn.order_id) : null;
   if (order) {
     await db.query(
       // WHY: orders has no status column — fulfilment state lives on sub_orders (updated below).
@@ -478,8 +484,11 @@ export async function handleWebhook(db, cache, {
   const paymentRef = payload.paymentID || payload.payment_ref_id || payload.tran_id || payload.paymentId || payload.orderId;
   let txn = null;
   if (paymentRef) {
-    txn = (await paymentRepo.findPaymentTransactionByRef(db, paymentRef)) ||
-          (await paymentRepo.findPaymentTransactionsByOrderId(db, paymentRef))[0];
+    // WHY the gateway-reference lookup first: a gateway's IPN names its own payment id (stored in
+    // gateway_ref), and a top-up (migration 088) has no order id to fall back on.
+    txn = (await paymentRepo.findPaymentTransactionByGatewayReference(db, normGateway, String(paymentRef))) ||
+          (await paymentRepo.findPaymentTransactionByRef(db, paymentRef)) ||
+          (/^\d+$/.test(String(paymentRef)) ? (await paymentRepo.findPaymentTransactionsByOrderId(db, paymentRef))[0] : null);
   }
 
   let processResult = 'IGNORED';

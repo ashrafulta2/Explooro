@@ -1,4 +1,32 @@
 {
+  "topup": {
+    "title": "Add money",
+    "subtitle": "Put money in your vault with bKash, Nagad or a card, then use it to run ads.",
+    "balance": "Your vault balance",
+    "form_title": "How much would you like to add?",
+    "amount": "Amount (৳)",
+    "amount_hint": "From {{min}} to {{max}}",
+    "method": "Pay with",
+    "method_bkash": "bKash",
+    "method_nagad": "Nagad",
+    "method_card": "Card",
+    "daily_limit": "You can add up to {{limit}} in 24 hours.",
+    "pay": "Pay {{amount}}",
+    "success": "{{amount}} added to your vault.",
+    "not_confirmed": "The payment is not confirmed yet. Your vault is credited as soon as it is.",
+    "added": "{{amount}} is in your vault now.",
+    "go_back": "Back to your ad",
+    "err_format": "Enter an amount in taka, with at most two decimals.",
+    "err_range": "The amount must be from {{min}} to {{max}}.",
+    "history_title": "Recent top-ups",
+    "history_empty": "You have not added money yet.",
+    "status_initiated": "Waiting for payment",
+    "status_pending": "Waiting for payment",
+    "status_success": "Added",
+    "status_failed": "Not paid",
+    "status_timeout": "Timed out",
+    "status_reversed": "Reversed"
+  },
   "advertise": {
     "title": "Advertise",
     "subtitle": "Show your post, store or product to the people you choose, in three steps.",
@@ -54,6 +82,7 @@
       "everyone_note": "Your ad can be shown to anyone who opens the home feed."
     },
     "budget": {
+      "add_money": "Add money to your vault",
       "title": "How much, and for how long?",
       "hint": "The budget is spent evenly over the days, a little each time your ad is shown.",
       "amount": "Budget (৳)",
@@ -612,6 +641,7 @@
       }
     },
     "shared": {
+      "topup": "Add money",
       "advertise": "Advertise",
       "community": "Community",
       "dashboard": "Dashboard",

@@ -24,6 +24,8 @@ import { STEPS, buildCampaignBody, stepComplete } from './advertiseWizard.js';
 import '../styles/components/advertise.css';
 
 const ESTIMATE_DEBOUNCE_MS = 350;
+// The half-finished boost, kept while its author goes to add money and comes back (per tab only).
+const DRAFT_KEY = 'explooro:advertise:draft';
 const BUDGET_PRESETS = [200, 500, 1000, 2000];
 const DAY_PRESETS = [3, 7, 14];
 
@@ -61,6 +63,19 @@ export default function AdvertisePage(root) {
     budget: 500,
     days: 7,
   };
+
+  // WHY sessionStorage and a try/catch: it is a convenience for one tab; a private window that refuses
+  // storage simply starts the wizard again.
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null');
+    sessionStorage.removeItem(DRAFT_KEY);
+    if (draft?.state) {
+      Object.assign(state, draft.state);
+      stepIndex = Math.min(Math.max(Number(draft.stepIndex) || 0, 0), STEPS.length - 1);
+    }
+  } catch {
+    // Start from step 1.
+  }
 
   async function load() {
     try {
@@ -336,6 +351,17 @@ export default function AdvertisePage(root) {
     const vault = Number(options.vault?.available || 0);
     if (vault < Number(state.budget || 0)) {
       figures.append(el('p', 'advertise-note advertise-note--warn', t('advertise.budget.vault_short', { have: formatCurrency(vault), need: formatCurrency(Number(state.budget) || 0) })));
+      const shortfall = Math.ceil(Number(state.budget || 0) - vault);
+      const add = el('a', '', t('advertise.budget.add_money'));
+      add.href = `/wallet/top-up?amount=${encodeURIComponent(shortfall)}&return=${encodeURIComponent('/advertise')}`;
+      add.addEventListener('click', () => {
+        try {
+          sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ state, stepIndex }));
+        } catch {
+          // The wizard restarts after paying; nothing is lost but the clicks.
+        }
+      });
+      figures.append(add);
     } else {
       figures.append(el('p', 'advertise-card__hint', t('advertise.budget.vault_ok', { have: formatCurrency(vault) })));
     }

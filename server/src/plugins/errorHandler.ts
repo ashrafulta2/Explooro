@@ -46,6 +46,8 @@ const ERROR_STATUS = {
   INSUFFICIENT_STOCK: 409,
   // Migration 085: the supplier sets every price; a shop partner sending one is refused, never ignored.
   PRICE_LOCKED: 422,
+  // Migration 088: a vault top-up over the 24-hour limit.
+  TOPUP_DAILY_LIMIT: 422,
   // Live stream commerce: these were thrown by liveStream.service.ts but unmapped, so a bad stream or
   // product id answered 500 INTERNAL_ERROR. Found by an end-to-end run against the dev database.
   STREAM_NOT_FOUND: 404,

@@ -1859,6 +1859,15 @@ async function bootRouterDemo() {
         module: 'chat',
         load: () => import('./pages/ChatPage.js'),
       },
+      // Vault top-up (migration 088): bKash, Nagad or a card, so anyone can pay for a Boost.
+      {
+        path: '/wallet/top-up',
+        title: 'Add money — Explooro',
+        requiresAuth: true,
+        permission: 'finance.wallet.topup',
+        module: 'core',
+        load: () => import('./pages/WalletTopUpPage.js'),
+      },
       // Phase C (migration 087): anyone can advertise, through the simple 3-step Boost wizard.
       {
         path: '/advertise',

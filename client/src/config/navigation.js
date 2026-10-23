@@ -196,6 +196,8 @@ export const navItems = [
   { key: 'supplier.shipments', label_i18n_key: 'nav.supplier.shipments', icon: null, path: '/supplier/shipments', group: 'supplier.orders', permission: 'logistics.shipment.view', module: 'courier_hub', roles: ['supplier'], order: 3 },
   { key: 'supplier.warranty_claims', label_i18n_key: 'nav.supplier.warranty_claims', icon: null, path: '/supplier/warranty-claims', group: 'supplier.aftercare', permission: 'support.warranty.manage', module: 'digital_warranty', roles: ['supplier'], order: 1 },
   { key: 'supplier.vault', label_i18n_key: 'nav.supplier.vault', icon: null, path: '/supplier/vault', group: 'supplier.finance', permission: 'finance.wallet.view_own', module: 'core', roles: ['supplier'], order: 1 },
+  // Vault top-up (migration 088): so anyone can fund a Boost.
+  { key: 'supplier.topup', label_i18n_key: 'nav.shared.topup', icon: null, path: '/wallet/top-up', group: 'supplier.finance', permission: 'finance.wallet.topup', module: 'core', roles: ['supplier'], order: 5 },
   { key: 'supplier.fast_payout', label_i18n_key: 'nav.supplier.fast_payout', icon: null, path: '/supplier/fast-payout', group: 'supplier.finance', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 3 },
   { key: 'supplier.return_protection', label_i18n_key: 'nav.supplier.return_protection', icon: null, path: '/supplier/return-protection', group: 'supplier.finance', permission: 'supplier.analytics.view', module: 'sourcing', roles: ['supplier'], order: 4 },
   { key: 'supplier.b2b_escrow', label_i18n_key: 'nav.shared.b2b_escrow', icon: null, path: '/supplier/b2b-escrow', group: 'supplier.finance', permission: 'finance.b2b_escrow.view_own', module: 'b2b_escrow', roles: ['supplier'], order: 2 },
@@ -236,6 +238,7 @@ export const navItems = [
   { key: 'saler.orders', label_i18n_key: 'nav.shared.orders', icon: null, path: '/saler/orders', group: 'saler.orders', permission: 'saler.order.view', module: 'core', roles: ['saler'], order: 1 },
   { key: 'saler.vault.balance', label_i18n_key: 'nav.saler.vault_balance', icon: null, path: '/saler/vault', group: 'saler.vault', permission: 'finance.wallet.view_own', module: 'core', roles: ['saler'], order: 1 },
   { key: 'saler.vault.payouts', label_i18n_key: 'nav.saler.withdrawals', icon: null, path: '/saler/vault/payouts', group: 'saler.vault', permission: 'finance.payout.request', module: 'core', roles: ['saler'], order: 2 },
+  { key: 'saler.topup', label_i18n_key: 'nav.shared.topup', icon: null, path: '/wallet/top-up', group: 'saler.vault', permission: 'finance.wallet.topup', module: 'core', roles: ['saler'], order: 4 },
   { key: 'saler.fast_payout', label_i18n_key: 'nav.saler.fast_payout', icon: null, path: '/saler/fast-payout', group: 'saler.vault', permission: 'saler.sourcing.view', module: 'sourcing', roles: ['saler'], order: 3 },
   { key: 'saler.referrals', label_i18n_key: 'nav.shared.referrals', icon: null, path: '/saler/referrals', group: 'saler.growth', permission: 'growth.referral.view_own', module: 'referral_engine', roles: ['saler'], order: 1, simpleMode: false },
   { key: 'saler.quests', label_i18n_key: 'nav.shared.quests', icon: null, path: '/saler/quests', group: 'saler.growth', permission: null, module: 'daily_quests', roles: ['saler'], order: 2, simpleMode: false },
@@ -263,6 +266,7 @@ export const navItems = [
   // where My Profile sits above everything else. The rest of the group keeps its 1-5 numbering.
   { key: 'customer.profile', label_i18n_key: 'nav.customer.profile', icon: null, path: '/account/profile', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 0 },
   { key: 'customer.following', label_i18n_key: 'nav.customer.following', icon: null, path: '/account/following', group: 'customer.me', permission: null, module: 'follow_feed', roles: ['customer'], order: 1 },
+  { key: 'customer.topup', label_i18n_key: 'nav.shared.topup', icon: null, path: '/wallet/top-up', group: 'customer.me', permission: 'finance.wallet.topup', module: 'core', roles: ['customer'], order: 4 },
   { key: 'customer.advertise', label_i18n_key: 'nav.shared.advertise', icon: null, path: '/advertise', group: 'customer.me', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['customer'], order: 3 },
   { key: 'customer.reviews', label_i18n_key: 'nav.customer.reviews', icon: null, path: '/account/reviews', group: 'customer.me', permission: null, module: 'ugc_video_wall', roles: ['customer'], order: 2 },
   { key: 'customer.addresses', label_i18n_key: 'nav.customer.addresses', icon: null, path: '/account/addresses', group: 'customer.me', permission: null, module: 'core', roles: ['customer'], order: 3 },

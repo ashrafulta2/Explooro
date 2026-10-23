@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (210 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (211 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -134,6 +134,7 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('logistics.carrier.credentials', 'logistics', 'Manage courier credentials', 'কুরিয়ার ক্রেডেনশিয়াল ব্যবস্থাপনা', 'change Steadfast, Pathao and RedX API credentials', 'স্টেডফাস্ট, পাঠাও ও রেডএক্সের এপিআই ক্রেডেনশিয়াল পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
   ('logistics.routing.configure', 'logistics', 'Configure delivery routing', 'ডেলিভারি রাউটিং কনফিগার', 'set distance thresholds and split-order rules', 'দূরত্বের সীমা ও অর্ডার ভাগের নিয়ম নির্ধারণ করতে', 'HIGH', true, 'approve_before'),
   ('finance.wallet.view_own', 'finance', 'View own wallet', 'নিজের ওয়ালেট দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
+  ('finance.wallet.topup', 'finance', 'Add money to own vault', 'নিজের ভল্টে টাকা যোগ', NULL, NULL, 'LOW', true, 'approve_before'),
   ('finance.wallet.view_any', 'finance', 'View any wallet', 'যেকোনো ওয়ালেট দেখা', 'see another user''s balance and transaction history', 'অন্য ইউজারের ব্যালেন্স ও লেনদেনের ইতিহাস দেখতে', 'MEDIUM', true, 'approve_before'),
   ('finance.wallet.adjust', 'finance', 'Manually adjust a wallet', 'ওয়ালেট হাতে সমন্বয়', 'add or remove money from a user''s wallet directly', 'কোনো ইউজারের ওয়ালেটে সরাসরি টাকা যোগ বা বিয়োগ করতে', 'CRITICAL', false, 'approve_before'),
   ('finance.overview.view', 'finance', 'View finance overview', 'আর্থিক সারসংক্ষেপ দেখা', 'see platform revenue, liability and exposure figures', 'প্ল্যাটফর্মের রাজস্ব, দায় ও ঝুঁকির হিসাব দেখতে', 'MEDIUM', true, 'approve_before'),
@@ -465,6 +466,9 @@ FROM (VALUES
   ('customer', 'finance.wallet.view_own'),
   ('saler', 'finance.wallet.view_own'),
   ('supplier', 'finance.wallet.view_own'),
+  ('customer', 'finance.wallet.topup'),
+  ('saler', 'finance.wallet.topup'),
+  ('supplier', 'finance.wallet.topup'),
   ('admin', 'finance.wallet.view_any'),
   ('super_admin', 'finance.wallet.view_any'),
   ('super_admin', 'finance.wallet.adjust'),

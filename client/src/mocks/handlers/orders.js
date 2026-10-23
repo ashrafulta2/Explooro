@@ -5,6 +5,7 @@
  */
 
 import { clearMockCart } from './cart.js';
+import { executeMockTopUp } from './walletTopup.js';
 
 // transactionRef -> order id, for the mock /payments/* handlers below.
 const mockPayments = new Map();
@@ -212,6 +213,9 @@ const orderHandlers = [
     method: 'POST',
     path: '/payments/execute',
     handler({ body }) {
+      // A vault top-up (migration 088) is paid through the same endpoint, as on the server.
+      const topUp = executeMockTopUp(body?.transactionRef);
+      if (topUp) return topUp;
       const orderId = mockPayments.get(body?.transactionRef);
       const order = mockOrders.find((o) => o.id === orderId);
       if (!order) return { status: 404, body: { code: 'NOT_FOUND', message_en: 'Payment not found.', message_bn: 'পেমেন্ট পাওয়া যায়নি।' } };
