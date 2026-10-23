@@ -1909,6 +1909,46 @@ CREATE TABLE academy_lessons (
 );
 ```
 
+### Shop partner reward pool (migration 086)
+
+Once a month the PARTNER_REWARD_POOL wallet (migration 085) is shared out to shop partners by score
+(store sales > social shares > community posts > activity; weights in `partner_reward.rules`). One
+run per month; the payouts are one balanced ledger group in category `PARTNER_REWARD`.
+
+```sql
+CREATE TABLE partner_reward_runs (
+  id                 BIGSERIAL PRIMARY KEY,
+  period_start       DATE NOT NULL UNIQUE,          -- a month closes once
+  period_end         DATE NOT NULL,
+  status             TEXT NOT NULL DEFAULT 'COMPLETED' CHECK (status IN ('COMPLETED')),
+  ad_revenue         NUMERIC(14,2) NOT NULL DEFAULT 0,  -- the month's net AD_SPEND on the treasury
+  ad_share           NUMERIC(14,2) NOT NULL DEFAULT 0,  -- moved treasury -> pool at close
+  pool_amount        NUMERIC(14,2) NOT NULL DEFAULT 0,  -- released pool balance shared out
+  paid_amount        NUMERIC(14,2) NOT NULL DEFAULT 0,
+  carried_amount     NUMERIC(14,2) NOT NULL DEFAULT 0,  -- leftover paisa, stays in the pool
+  partners_scored    INTEGER NOT NULL DEFAULT 0,
+  rules_json         JSONB NOT NULL,                  -- the rules the month was scored with
+  totals_json        JSONB NOT NULL DEFAULT '{}'::jsonb,
+  txn_group_id       UUID,
+  triggered_by       BIGINT REFERENCES users(id) ON DELETE SET NULL,  -- NULL = scheduled job
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CHECK (paid_amount + carried_amount = pool_amount)
+);
+
+CREATE TABLE partner_reward_payouts (
+  id                 BIGSERIAL PRIMARY KEY,
+  run_id             BIGINT NOT NULL REFERENCES partner_reward_runs(id) ON DELETE CASCADE,
+  saler_id           BIGINT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  metrics_json       JSONB NOT NULL,   -- raw value per factor
+  points_json        JSONB NOT NULL,   -- weight x share per factor
+  score              NUMERIC(8,4) NOT NULL,
+  share_pct          NUMERIC(7,4) NOT NULL,
+  amount             NUMERIC(14,2) NOT NULL,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (run_id, saler_id)
+);
+```
+
 ---
 
 ## 9. Developer Platform — 3 tables

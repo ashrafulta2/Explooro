@@ -24,6 +24,7 @@ import { Modal } from '../../components/ui/Modal.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.js';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.js';
+import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.js';
 
 const SALER_MODE_KEY = 'explooro:saler_mode_preference';
 
@@ -171,7 +172,7 @@ function renderSimpleMode(container, data, nav) {
     </div>
     <div class="saler-simple-stats">
       <div class="saler-simple-stat">
-        <span class="saler-simple-stat-label">Today's Profit</span>
+        <span class="saler-simple-stat-label">${t('saler.dashboard.today_profit')}</span>
         <span class="saler-simple-stat-val saler-simple-stat-val--profit">+${formatCurrency(data.metrics?.today_net_profit || 0)}</span>
       </div>
       <div style="width: 1px; height: 32px; background: var(--border-subtle);"></div>
@@ -296,6 +297,18 @@ function renderProMode(container, data, nav) {
     })
     .catch(() => {});
 
+  // 1b'. This month's reward pool estimate: what a partner is paid at month end (migration 086).
+  // First, because it is the partner's income now; same loading rule as the tier card above.
+  const rewardSlot = document.createElement('div');
+  wrap.insertBefore(rewardSlot, tierSlot);
+  salerApi
+    .getPartnerReward()
+    .then((res) => {
+      const card = PartnerRewardCard({ data: res?.data });
+      if (card && rewardSlot.isConnected) rewardSlot.replaceChildren(card);
+    })
+    .catch(() => {});
+
   // 1c. Partner Score: how well they promote and sell. Same loading rule as the tier card above.
   const scoreSlot = document.createElement('div');
   wrap.append(scoreSlot);
@@ -329,14 +342,14 @@ function renderProKpiBar(container, data) {
   const m = data.metrics || {};
   const kpis = [
     {
-      title: t('saler.dashboard.today_profit', "Today's Profit"),
+      title: t('saler.dashboard.today_profit', 'Added to the pool today'),
       value: `+${formatCurrency(m.today_net_profit || 0)}`,
       sub: `${m.today_orders_count || 0} orders today (${formatCurrency(m.today_gross_sales || 0)} GMV)`,
       icon: '💎',
       isProfit: true,
     },
     {
-      title: t('saler.dashboard.profit_30d', '30-Day Net Profit'),
+      title: t('saler.dashboard.profit_30d', 'Added to the pool, 30 days'),
       value: formatCurrency(m.profit_30d || 0),
       sub: `${m.total_orders || 0} total converted orders`,
       icon: '📈',

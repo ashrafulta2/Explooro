@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (207 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (210 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -175,6 +175,9 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('growth.groupbuy.govern', 'growth', 'Govern group buying', 'গ্রুপ কেনাকাটা নিয়ন্ত্রণ', 'set team sizes, time limits and minimum discounts', 'দলের আকার, সময়সীমা ও সর্বনিম্ন ছাড় নির্ধারণ করতে', 'HIGH', true, 'approve_before'),
   ('growth.attribution.view', 'growth', 'View sale attribution rules', 'বিক্রয় অ্যাট্রিবিউশনের নিয়ম দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('growth.attribution.update', 'growth', 'Change the sale attribution window', 'বিক্রয় অ্যাট্রিবিউশন উইন্ডো পরিবর্তন', 'change how many days a storefront visit or link click keeps crediting a Shop Partner with the sale', 'স্টোরফ্রন্ট ভিজিট বা লিংক ক্লিকের পর কত দিন পর্যন্ত বিক্রির কৃতিত্ব শপ পার্টনার পাবেন তা বদলাতে', 'CRITICAL', false, 'approve_before'),
+  ('growth.partner_reward.view', 'growth', 'View the shop partner reward pool', 'শপ পার্টনার রিওয়ার্ড পুল দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
+  ('growth.partner_reward.update', 'growth', 'Change the shop partner reward rules', 'শপ পার্টনার রিওয়ার্ডের নিয়ম পরিবর্তন', 'change how the monthly shop partner reward pool is scored and how much ad revenue joins it', 'মাসিক শপ পার্টনার রিওয়ার্ড পুল কীভাবে স্কোর হবে এবং বিজ্ঞাপনের আয়ের কত অংশ এতে যোগ হবে তা বদলাতে', 'CRITICAL', false, 'approve_before'),
+  ('growth.partner_reward.run', 'growth', 'Close a month and pay the shop partner reward pool', 'মাস বন্ধ করে শপ পার্টনার রিওয়ার্ড পুল পরিশোধ', 'close the last finished month now and pay its reward pool to shop partners instead of waiting for the scheduled run', 'নির্ধারিত সময়ের অপেক্ষা না করে শেষ হওয়া মাস এখনই বন্ধ করে শপ পার্টনারদের রিওয়ার্ড পুল পরিশোধ করতে', 'CRITICAL', false, 'approve_before'),
   ('community.post.create_own', 'community', 'Write community posts', 'কমিউনিটি পোস্ট লেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('community.comment.create', 'community', 'Comment on community posts', 'কমিউনিটি পোস্টে মন্তব্য করা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('community.post.report', 'community', 'Report community posts', 'কমিউনিটি পোস্ট রিপোর্ট করা', NULL, NULL, 'LOW', true, 'approve_before'),
@@ -537,6 +540,10 @@ FROM (VALUES
   ('admin', 'growth.attribution.view'),
   ('super_admin', 'growth.attribution.view'),
   ('super_admin', 'growth.attribution.update'),
+  ('admin', 'growth.partner_reward.view'),
+  ('super_admin', 'growth.partner_reward.view'),
+  ('super_admin', 'growth.partner_reward.update'),
+  ('super_admin', 'growth.partner_reward.run'),
   ('customer', 'community.post.create_own'),
   ('saler', 'community.post.create_own'),
   ('supplier', 'community.post.create_own'),

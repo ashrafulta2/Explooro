@@ -1142,6 +1142,16 @@ async function bootRouterDemo() {
         module: 'social_seller_kit',
         load: () => import('./pages/admin/AdminAttributionPage.js'),
       },
+      // Monthly shop partner reward pool. `.view` gates the page; `.update` and `.run` (CRITICAL, super
+      // admin only) gate Save and Close now - see server/src/routes/partnerReward.routes.ts.
+      {
+        path: '/admin/growth/partner-rewards',
+        title: 'Partner Reward Pool — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.partner_reward.view',
+        module: 'virtual_storefront',
+        load: () => import('./pages/admin/AdminPartnerRewardsPage.js'),
+      },
       {
         path: '/admin/group-buy',
         title: 'Group Buying Pools — Explooro Admin',

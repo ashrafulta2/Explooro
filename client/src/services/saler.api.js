@@ -29,6 +29,14 @@ export const salerApi = {
   },
 
   /**
+   * This month's reward pool estimate for the caller (points per factor, share, estimated taka) and
+   * their last payouts. Only their own numbers; the server never sends another partner's.
+   */
+  async getPartnerReward() {
+    return api.get('/saler/partner-reward');
+  },
+
+  /**
    * Fetches detailed time-series analytics, traffic breakdown, and product performance.
    * @param {{ range?: '7d' | '30d' | '90d' }} [params]
    */

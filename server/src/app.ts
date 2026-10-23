@@ -39,6 +39,7 @@ import localizationRoutes from './routes/localization.routes.ts';
 import genieRoutes from './routes/genie.routes.ts';
 import deliveryChargeRoutes from './routes/deliveryCharge.routes.ts';
 import attributionAdminRoutes from './routes/attributionAdmin.routes.ts';
+import partnerRewardRoutes from './routes/partnerReward.routes.ts';
 import recommendationAdminRoutes from './routes/recommendationAdmin.routes.ts';
 import mediaRoutes from './routes/media.routes.ts';
 import productRoutes from './routes/product.routes.ts';
@@ -101,6 +102,7 @@ import './jobs/supplierScorecard.job.ts'; // Registers supplier_scorecard with s
 import './jobs/volumeIncentive.job.ts'; // Registers volume_incentive with scheduler (module: sourcing)
 import './jobs/salerTier.job.ts'; // Registers saler_tier with scheduler (setting: saler.commission_tiers.enabled)
 import './jobs/partnerScore.job.ts'; // Registers partner_score with scheduler (module: virtual_storefront)
+import './jobs/partnerReward.job.ts'; // Registers partner_reward with scheduler (module: virtual_storefront)
 import './jobs/sampleKit.job.ts'; // Registers sample_kit with scheduler (module: sourcing)
 import './jobs/returnProtection.job.ts'; // Registers return_protection with scheduler (module: sourcing)
 import './jobs/deficitRecovery.job.ts'; // Registers deficit_recovery with scheduler (module: returns_engine)
@@ -220,6 +222,7 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   await app.register(genieRoutes, { prefix: '/api/v1' });
   await app.register(deliveryChargeRoutes, { prefix: '/api/v1' });
   await app.register(attributionAdminRoutes, { prefix: '/api/v1' });
+  await app.register(partnerRewardRoutes, { prefix: '/api/v1' });
   await app.register(recommendationAdminRoutes, { prefix: '/api/v1' });
   await app.register(mediaRoutes, { prefix: '/api/v1' });
   await app.register(productRoutes, { prefix: '/api/v1' });

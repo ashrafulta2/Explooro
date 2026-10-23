@@ -90,6 +90,7 @@ import { ShoppableReels } from '../../components/content/ShoppableReels.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.js';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.js';
+import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.js';
 import { SocialKitModal } from '../../components/saler/SocialKitModal.js';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 import { CouponCard } from '../../components/customer/CouponCard.js';
@@ -1584,6 +1585,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'AI & Intelligence', render: renderGrowthAssistantSpecimen },
     { id: 'commission-tier-card', label: 'CommissionTierCard', group: 'AI & Intelligence', render: renderCommissionTierCardSpecimen },
     { id: 'partner-score-card', label: 'PartnerScoreCard', group: 'AI & Intelligence', render: renderPartnerScoreCardSpecimen },
+    { id: 'partner-reward-card', label: 'PartnerRewardCard', group: 'AI & Intelligence', render: renderPartnerRewardCardSpecimen },
   ];
 }
 
@@ -3168,6 +3170,37 @@ function renderPartnerScoreCardSpecimen() {
   wrap.append(specimen('Mid ladder (Rising, 8 points to Pro)', PartnerScoreCard({ data: scored })));
   wrap.append(specimen('Top band (no next step)', PartnerScoreCard({ data: star })));
   wrap.append(specimen('New partner (not enough orders to score)', PartnerScoreCard({ data: fresh })));
+  return wrap;
+}
+
+function renderPartnerRewardCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Partner reward: the pool estimate for this month and the points behind it'));
+  const base = {
+    period: { start: '2026-10-01', end: '2026-10-31', today: '2026-10-23' },
+    closes_on: '2026-11-08',
+    weights: { sales: 40, social: 25, community: 20, activity: 15 },
+    pool_estimate: '24850.00',
+    partners_scored: 4,
+  };
+  const earning = {
+    ...base,
+    values: { sales: 18, social: 240, community: 46, activity: 21 },
+    community_counts: { posts: 9, likes: 11, comments: 4, saves: 2 },
+    points: { sales: 20.57, social: 7.87, community: 6.13, activity: 4.85 },
+    score: 39.42, share_pct: 39.42, estimated_amount: '9796.80',
+    history: [{ period_start: '2026-09-01', amount: '7420.50', share_pct: 33.88 }],
+  };
+  const idle = {
+    ...base,
+    values: { sales: 0, social: 0, community: 0, activity: 0 },
+    community_counts: { posts: 0, likes: 0, comments: 0, saves: 0 },
+    points: { sales: 0, social: 0, community: 0, activity: 0 },
+    score: 0, share_pct: 0, estimated_amount: '0.00', history: [],
+  };
+  wrap.append(specimen('Earning partner with a past payout', PartnerRewardCard({ data: earning })));
+  wrap.append(specimen('No points yet this month', PartnerRewardCard({ data: idle })));
   return wrap;
 }
 
