@@ -183,21 +183,24 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(content.includes('${showPlatformShare && total_platform_margin !== undefined'), 'Platform share tag must be guarded by showPlatformShare');
   });
 
-  // 11. Shop Partner Confidentiality Invariant — Wholesale cost hidden on sourcing cards & AddToStoreDrawer
-  await t.test('11. Sourcing catalog cards and drawer never expose raw wholesale cost to shop partner', async () => {
+  // 11. Shop Partner Confidentiality & Price Lock — wholesale cost hidden; the supplier's price cannot be changed
+  await t.test('11. Sourcing catalog cards and drawer hide wholesale cost and offer no price to change (migration 085)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
 
     const cardPath = path.resolve(import.meta.dirname, '../src/pages/saler/SourcingCatalogPage.js');
     const cardContent = fs.readFileSync(cardPath, 'utf8');
     assert.ok(!cardContent.includes("sourcing.card.wholesale_cost"), 'Sourcing catalog cards must not display raw wholesale cost');
-    assert.ok(cardContent.includes("sourcing.card.suggested_retail"), 'Sourcing catalog cards must display Suggested Retail');
-    assert.ok(cardContent.includes("sourcing.card.min_price"), 'Sourcing catalog cards must display Min Selling Price');
+    assert.ok(cardContent.includes("sourcing.card.price"), 'Sourcing catalog cards must display the supplier price');
+    assert.ok(cardContent.includes("sourcing.card.pool_per_sale"), 'Sourcing catalog cards must show the reward pool share');
+    assert.ok(!cardContent.includes("ProfitCalculator"), 'Partners have no per-sale profit to calculate');
 
     const drawerPath = path.resolve(import.meta.dirname, '../src/components/saler/AddToStoreDrawer.js');
     const drawerContent = fs.readFileSync(drawerPath, 'utf8');
     assert.ok(!drawerContent.includes("formatCurrency(wholesaleCost)"), 'AddToStoreDrawer must not display raw wholesale cost');
-    assert.ok(drawerContent.includes("minRetailPrice"), 'AddToStoreDrawer must enforce minRetailPrice');
+    assert.ok(!drawerContent.includes("custom_retail_price"), 'AddToStoreDrawer must not offer a price field');
+    assert.ok(!drawerContent.includes("customRetailPrice"), 'AddToStoreDrawer must not send a price');
+    assert.ok(drawerContent.includes("sourcing.drawer.pool_explainer"), 'AddToStoreDrawer must explain the monthly reward pool');
   });
 
   // 12. Tiered Shop Partner Pricing Engine Client Math

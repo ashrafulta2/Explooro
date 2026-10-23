@@ -108,6 +108,31 @@ function createMockFinanceDb() {
         return { rows: [] };
       }
 
+      // System wallets (migrations 070 and 085): no user, addressed by system_key.
+      if (q.includes('FROM wallets') && q.includes('WHERE system_key = $1')) {
+        const w = wallets.find((x) => x.system_key === params[0]);
+        return { rows: w ? [{ id: w.id }] : [] };
+      }
+      if (q.includes('INSERT INTO wallets') && q.includes('system_key')) {
+        if (!wallets.find((x) => x.system_key === params[0])) {
+          wallets.push({
+            id: nextWalletId++,
+            user_id: null,
+            system_key: params[0],
+            available_balance: '0.00',
+            pending_escrow_balance: '0.00',
+            held_balance: '0.00',
+            lifetime_earned: '0.00',
+            lifetime_withdrawn: '0.00',
+            currency: 'BDT',
+            version: 0,
+            created_at: new Date().toISOString(),
+            updated_at: null,
+          });
+        }
+        return { rows: [] };
+      }
+
       // SELECT wallets WHERE user_id = $1
       if (q.includes('FROM wallets') && q.includes('WHERE user_id = $1')) {
         const userId = params[0];
@@ -367,6 +392,10 @@ function createMockFinanceDb() {
     getRawData() {
       return { wallets, ledgerTransactions, escrowEntries };
     },
+    // The partner reward pool (migration 085): where a sale's partner share is escrowed now.
+    poolWallet() {
+      return wallets.find((x) => x.system_key === 'PARTNER_REWARD_POOL');
+    },
     getOrCreateWalletSync,
   };
 
@@ -464,20 +493,20 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
     assert.equal(depositResult.escrowEntries.length, 3, 'Must create 3 escrow entries: Supplier, Shop Partner, Platform');
 
     const supplierWallet = await walletRepo.getWalletByUserId(db, 101);
-    const salerWallet = await walletRepo.getWalletByUserId(db, 201);
     const platformWallet = await walletRepo.getWalletByUserId(db, 1);
 
     assert.equal(supplierWallet.pending_escrow_balance, '1260.00');
-    assert.equal(salerWallet.pending_escrow_balance, '120.00');
+    // The partner share is escrowed to the reward pool (migration 085); the partner is paid monthly.
+    assert.equal(db.poolWallet().pending_escrow_balance, '120.00');
+    assert.equal(await walletRepo.getWalletByUserId(db, 201), null, 'no per-sale escrow for the partner');
     assert.equal(platformWallet.pending_escrow_balance, '180.00');
   });
 
   test('Acceptance 5: Calling releaseEscrow moves pending → available, credits lifetime_earned, and calling twice is idempotent', async () => {
     const supplierWalletBefore = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletBefore = await walletRepo.getWalletByUserId(db, 201);
 
     const supAvailBefore = parseFloat(supplierWalletBefore.available_balance);
-    const salerAvailBefore = parseFloat(salerWalletBefore.available_balance);
+    const poolAvailBefore = parseFloat(db.poolWallet().available_balance);
 
     // 1st Release call
     const releaseResult1 = await vaultService.releaseEscrow(db, {
@@ -489,12 +518,12 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
     assert.equal(releaseResult1.releasedCount, 3);
 
     const supplierWalletAfter = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletAfter = await walletRepo.getWalletByUserId(db, 201);
+    const poolAfter = { ...db.poolWallet() };
 
     assert.equal(supplierWalletAfter.pending_escrow_balance, '0.00');
     assert.equal(parseFloat(supplierWalletAfter.available_balance), supAvailBefore + 1260.00);
-    assert.equal(salerWalletAfter.pending_escrow_balance, '0.00');
-    assert.equal(parseFloat(salerWalletAfter.available_balance), salerAvailBefore + 120.00);
+    assert.equal(poolAfter.pending_escrow_balance, '0.00');
+    assert.equal(parseFloat(poolAfter.available_balance), poolAvailBefore + 120.00);
 
     // 2nd Release call — STRICT IDEMPOTENCY CHECK: MUST NOT CREDIT AGAIN!
     const releaseResult2 = await vaultService.releaseEscrow(db, {
@@ -505,20 +534,18 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
     assert.equal(releaseResult2.alreadyReleased, true, 'Second release call returns alreadyReleased: true');
 
     const supplierWalletRecheck = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletRecheck = await walletRepo.getWalletByUserId(db, 201);
 
     assert.equal(supplierWalletRecheck.available_balance, supplierWalletAfter.available_balance, 'Balance must NOT change on replay');
-    assert.equal(salerWalletRecheck.available_balance, salerWalletAfter.available_balance, 'Shop Partner balance must NOT change on replay');
+    assert.equal(db.poolWallet().available_balance, poolAfter.available_balance, 'Pool balance must NOT change on replay');
   });
 
   test('Acceptance 6: Clawback reverses released funds, zeroes shop partner commission, and refunds buyer', async () => {
     const custWalletBefore = await walletRepo.getWalletByUserId(db, 10);
     const supplierWalletBefore = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletBefore = await walletRepo.getWalletByUserId(db, 201);
 
     const custAvailBefore = parseFloat(custWalletBefore.available_balance);
     const supAvailBefore = parseFloat(supplierWalletBefore.available_balance);
-    const salerAvailBefore = parseFloat(salerWalletBefore.available_balance);
+    const poolAvailBefore = parseFloat(db.poolWallet().available_balance);
 
     const clawbackResult = await vaultService.executeClawback(db, {
       subOrderId: 501,
@@ -531,13 +558,12 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
 
     const custWalletAfter = await walletRepo.getWalletByUserId(db, 10);
     const supplierWalletAfter = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletAfter = await walletRepo.getWalletByUserId(db, 201);
 
     // Buyer received refund (+1560.00)
     assert.equal(parseFloat(custWalletAfter.available_balance), custAvailBefore + 1560.00);
-    // Supplier and Shop Partner reversed (-1260.00 and -120.00)
+    // Supplier and the partner reward pool reversed (-1260.00 and -120.00)
     assert.equal(parseFloat(supplierWalletAfter.available_balance), supAvailBefore - 1260.00);
-    assert.equal(parseFloat(salerWalletAfter.available_balance), salerAvailBefore - 120.00);
+    assert.equal(parseFloat(db.poolWallet().available_balance), poolAvailBefore - 120.00);
   });
 
   test('Acceptance 7: Full Concurrency Test — 50 simultaneous credit operations end with exact 100.00% balance accuracy', async () => {

@@ -558,6 +558,10 @@ CREATE TABLE products (
   wholesale_margin      NUMERIC(14,2) NOT NULL DEFAULT 0 CHECK (wholesale_margin >= 0),
   default_retail_price  NUMERIC(14,2) NOT NULL CHECK (default_retail_price >= 0),
   min_retail_price      NUMERIC(14,2),
+  -- Migration 085: the supplier's per-unit partner share. A sale a partner brought escrows this
+  -- amount to the PARTNER_REWARD_POOL system wallet (not to the partner); the monthly reward job
+  -- shares the pool out by score. CHECK partner_profit_within_margin keeps it inside the margin.
+  partner_profit        NUMERIC(14,2) NOT NULL DEFAULT 0,
   stock_qty             INTEGER NOT NULL DEFAULT 0 CHECK (stock_qty >= 0),
   low_stock_threshold   INTEGER NOT NULL DEFAULT 5,
   weight_grams          INTEGER CHECK (weight_grams > 0),
@@ -675,7 +679,8 @@ CREATE TABLE saler_store_items (
   store_id            BIGINT NOT NULL REFERENCES virtual_stores(id) ON DELETE CASCADE,
   saler_id            BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   product_id          BIGINT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  custom_retail_price NUMERIC(14,2) CHECK (custom_retail_price >= 0),
+  -- Always NULL since migration 085 (CHECK store_price_locked): the supplier sets every price.
+  custom_retail_price NUMERIC(14,2) CHECK (custom_retail_price IS NULL),
   collection_name     TEXT,
   display_order       INTEGER NOT NULL DEFAULT 0,
   is_active           BOOLEAN NOT NULL DEFAULT true,

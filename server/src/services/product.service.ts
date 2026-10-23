@@ -3,7 +3,7 @@
  */
 
 import * as productRepo from '../repositories/product.repository.ts';
-import { calculatePricingBreakdown, loadSplitRules, resolveSplitPercentages, toPaisa } from './pricing.service.ts';
+import { assertPartnerProfitFits, calculatePricingBreakdown, loadSplitRules, resolvePlatformPricingConfig, resolveSplitPercentages, toBdtNumber, toPaisa } from './pricing.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 import { withTransaction } from '../config/db.ts';
@@ -114,6 +114,7 @@ export async function createProduct(
     wholesaleMargin = 0,
     defaultRetailPrice,
     minRetailPrice,
+    partnerProfit = undefined,
     stockQty = 0,
     lowStockThreshold = 5,
     weightGrams,
@@ -166,6 +167,8 @@ export async function createProduct(
     );
   }
 
+  const resolvedPartnerProfit = await resolveNewPartnerProfit(db, { baseCost, wholesaleMargin, defaultRetailPrice, partnerProfit });
+
   const imageIds = await resolveProductMediaIds(db, mediaIds, supplierId);
 
   const cleanSlug = slugify(slug || titleEn);
@@ -191,6 +194,7 @@ export async function createProduct(
     wholesaleMargin,
     defaultRetailPrice,
     minRetailPrice: minRetailPrice || defaultRetailPrice,
+    partnerProfit: resolvedPartnerProfit,
     stockQty,
     lowStockThreshold,
     weightGrams,
@@ -213,6 +217,23 @@ export async function createProduct(
   return { ...product, pricing, images };
 }
 
+/**
+ * The partner profit a new product starts with. A supplier who sends one gets it checked against the
+ * price; one who sends none (an older client, the public API) gets what the global split used to pay,
+ * capped at what the price allows, so a product is never listed with nothing for the reward pool.
+ */
+async function resolveNewPartnerProfit(db, { baseCost, wholesaleMargin, defaultRetailPrice, partnerProfit }) {
+  if (partnerProfit !== undefined && partnerProfit !== null && partnerProfit !== '') {
+    await assertPartnerProfitFits(db, { baseCost, wholesaleMargin, retailPrice: defaultRetailPrice, partnerProfit });
+    return toBdtNumber(toPaisa(partnerProfit));
+  }
+  const maxAllowed = await assertPartnerProfitFits(db, { baseCost, wholesaleMargin, retailPrice: defaultRetailPrice, partnerProfit: 0 });
+  const { salerSplitPct } = await resolvePlatformPricingConfig(db);
+  const marginPaisa = toPaisa(defaultRetailPrice) - toPaisa(baseCost) - toPaisa(wholesaleMargin);
+  const fromSplitPaisa = Math.floor((Math.max(marginPaisa, 0) * salerSplitPct) / 100);
+  return toBdtNumber(Math.min(fromSplitPaisa, toPaisa(maxAllowed)));
+}
+
 // WHY id-or-ref: every client surface addresses products by `ref` (PRD-…), but the route used to
 // parseInt the param, so an edit or delete from the admin catalog always hit NaN → NOT_FOUND.
 async function findProductByIdOrRef(db, idOrRef) {
@@ -233,7 +254,7 @@ function inTransaction(db, fn) {
 
 const AUDITED_PRODUCT_FIELDS = [
   'title_en', 'title_bn', 'description_en', 'description_bn', 'brand', 'category_id', 'base_cost',
-  'wholesale_margin', 'default_retail_price', 'min_retail_price', 'stock_qty', 'status',
+  'wholesale_margin', 'default_retail_price', 'min_retail_price', 'partner_profit', 'stock_qty', 'status',
 ];
 
 /**
@@ -296,6 +317,18 @@ export async function updateProduct(db, idOrRef, supplierId, rawFields: Record<s
       'Retail price must cover base cost and wholesale margin.',
       'খুচরা মূল্য অবশ্যই বেস খরচ এবং পাইকারি মার্জিন কভার করতে হবে।'
     );
+  }
+
+  // WHY only when a price field moves: a title edit must not start failing on an older product whose
+  // backfilled partner profit sits above today's platform floor.
+  const touchesPrice = ['base_cost', 'wholesale_margin', 'default_retail_price', 'partner_profit'].some((k) => fields[k] !== undefined);
+  if (touchesPrice) {
+    await assertPartnerProfitFits(db, {
+      baseCost,
+      wholesaleMargin,
+      retailPrice: defaultRetailPrice,
+      partnerProfit: fields.partner_profit !== undefined ? fields.partner_profit : (existing.partner_profit ?? 0),
+    });
   }
 
   // Validated before any write, so a bad photo list never leaves a half-applied edit.
@@ -608,6 +641,8 @@ function toSourcingItem(p, pricing) {
     ...p,
     pricing,
     sourcing_opportunity: {
+      // What one sale adds to the monthly partner reward pool (migration 085), not the partner's own pay.
+      pool_contribution: pricing.saler_earning,
       potential_profit: pricing.saler_earning,
       margin_pct: pricing.total_margin_pct,
       saler_margin_pct: pricing.saler_margin_pct,
@@ -654,6 +689,20 @@ export async function listSponsoredSourcing(db, cache, { viewerId = null, catego
   }
 }
 
+/**
+ * Refuses a shop partner's own price. Since migration 085 the supplier sets every price and partners
+ * promote, so a price arriving from a partner is an old client or a crafted request; saying so beats
+ * silently dropping it and letting the partner think it took.
+ */
+export function assertNoPartnerPrice(price) {
+  if (price === undefined || price === null || price === '') return;
+  throw new AppError(
+    'PRICE_LOCKED',
+    'Prices are set by the supplier. Shop partners cannot change them.',
+    'দাম supplier ঠিক করেন। Shop partner দাম পরিবর্তন করতে পারবেন না।'
+  );
+}
+
 export async function addProductToSalerStore(db, { salerId, productId, customRetailPrice, collectionName }) {
   const product = await productRepo.getProductById(db, productId);
   if (!product || product.status !== 'ACTIVE') {
@@ -673,33 +722,16 @@ export async function addProductToSalerStore(db, { salerId, productId, customRet
     });
   }
 
-  let finalCustomPrice = customRetailPrice;
-  if (finalCustomPrice !== undefined && finalCustomPrice !== null) {
-    const customPaisa = toPaisa(finalCustomPrice);
-    const minPaisa = toPaisa(product.base_cost) + toPaisa(product.wholesale_margin);
-    if (customPaisa < minPaisa) {
-      throw new AppError(
-        'VALIDATION_FAILED',
-        `Custom retail price must be at least BDT ${(minPaisa / 100).toFixed(2)}.`,
-        `কাস্টম খুচরা মূল্য অবশ্যই কমপক্ষে ৳${(minPaisa / 100).toFixed(2)} হতে হবে।`
-      );
-    }
-  } else {
-    finalCustomPrice = product.default_retail_price;
-  }
+  assertNoPartnerPrice(customRetailPrice);
 
   const item = await productRepo.upsertSalerStoreItem(db, {
     storeId: store.id,
     salerId,
     productId,
-    customRetailPrice: finalCustomPrice,
     collectionName: collectionName || 'General',
   });
 
-  const pricing = await calculateProductPricing(db, {
-    ...product,
-    default_retail_price: finalCustomPrice,
-  });
+  const pricing = await calculateProductPricing(db, product);
 
   return {
     ...item,
@@ -721,7 +753,8 @@ export async function getSalerStoreItems(db, salerId) {
         category_id: item.category_id,
         base_cost: item.base_cost,
         wholesale_margin: item.wholesale_margin,
-        default_retail_price: item.custom_retail_price || item.default_retail_price,
+        default_retail_price: item.default_retail_price,
+        partner_profit: item.partner_profit,
       });
       return {
         ...item,
@@ -747,6 +780,7 @@ async function calculateProductPricing(db, product, preloaded?) {
     salerSplitPct,
     platformSplitPct,
     ruleSource,
+    partnerProfit: product.partner_profit ?? null,
   });
 }
 

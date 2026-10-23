@@ -2314,6 +2314,8 @@
       "sort_by": "Sort By"
     },
     "card": {
+      "pool_per_sale": "Reward pool / sale",
+      "price": "Price",
       "margin": "Margin",
       "dispatch": "Dispatch",
       "suggested_retail": "Suggested Retail",
@@ -2363,8 +2365,12 @@
       "units_sold_label": "Units Sold (Monthly)"
     },
     "drawer": {
+      "pool_explainer": "You do not earn per sale. Every sale through your store adds to the monthly partner reward pool, which is shared at month end by your store sales, social shares, community posts and activity.",
+      "pool_per_sale": "Adds to the reward pool per sale",
+      "price_locked": "Price (set by supplier)",
+      "price": "Price",
       "title": "Add Product to My Store",
-      "description": "Set your custom retail price and choose a collection to showcase this item on your virtual storefront.",
+      "description": "The supplier sets the price. Choose a collection to show this item in your storefront.",
       "wholesale_cost": "Wholesale Cost",
       "suggested_retail": "Suggested Retail",
       "min_price": "Min Selling Price",
@@ -5540,6 +5546,8 @@
     }
   },
   "admin_catalog": {
+    "field_partner_profit_hint": "Goes to the monthly shop partner reward pool, not to one partner. Leave empty to use the platform default.",
+    "field_partner_profit": "Partner profit per sale (BDT)",
     "title": "Catalog & Products Governance",
     "subtitle": "Oversee platform inventory, audit commercial margins, manage live supplier listings, and register new sample products.",
     "export_csv": "Export CSV",
@@ -5624,7 +5632,7 @@
     "field_district": "District",
     "field_price": "Retail Price (BDT)",
     "field_stock": "Initial Stock Quantity",
-    "field_margin": "Shop Partner Margin %",
+    "field_margin": "Margin above your cost %",
     "field_image_preset": "Product Image Presets",
     "field_image_url": "Image URL",
     "field_description_en": "Description (English)",
@@ -5869,6 +5877,10 @@
     "toast_error": "Failed to save address. Please try again."
   },
   "saler_products": {
+    "pool_share_hint": "Added to the monthly pool",
+    "price_locked_hint": "Set by the supplier",
+    "th_pool_share": "Reward pool / sale",
+    "sort_pool_desc": "Biggest pool share",
     "title": "My Curated Products & Pricing",
     "subtitle": "Manage products on your digital shelves, adjust retail markups, track supplier stock, and create marketing flyers.",
     "kpi_total_curated": "Curated Products",

@@ -727,13 +727,20 @@ export async function arbitrateDispute(db, cache, {
     // Resolve Wallets
     const customerWallet = await walletRepo.getOrCreateWallet(db, dispute.customer_id, { client: txClient });
     const supplierWallet = await walletRepo.getOrCreateWallet(db, dispute.supplier_id, { client: txClient });
-    const salerWallet = dispute.saler_id ? await walletRepo.getOrCreateWallet(db, dispute.saler_id, { client: txClient }) : null;
 
     // Fetch escrow entries
     const { rows: escrowRows } = await txClient.query(
       `SELECT * FROM escrow_entries WHERE sub_order_id = $1 FOR UPDATE`,
       [dispute.sub_order_id]
     );
+
+    // WHY from the escrow row: the partner share sits wherever it was escrowed, which since migration 085 is
+    // the partner reward pool, and before it was the partner's own wallet. Debiting the partner for a share
+    // the pool holds would charge them for money they never received.
+    const salerEscrowRow = escrowRows.find((e) => e.beneficiary_role === 'SALER');
+    const salerWallet = salerEscrowRow
+      ? { id: salerEscrowRow.wallet_id }
+      : dispute.saler_id ? await walletRepo.getOrCreateWallet(db, dispute.saler_id, { client: txClient }) : null;
 
     const isEscrowReleased = escrowRows.some((e) => e.status === 'RELEASED');
     const totalDisputedPaisa = toPaisa(dispute.disputed_amount);

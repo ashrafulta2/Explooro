@@ -54,7 +54,7 @@ export function ShelfEditor({ initialShelves = [], onUpdate = null } = {}) {
           product_id: item.product_id,
           collection_name: shelf.name,
           display_order: idx,
-          custom_retail_price: item.custom_retail_price,
+          // No custom_retail_price: the supplier sets prices (migration 085) and the server refuses one.
         });
       });
     });

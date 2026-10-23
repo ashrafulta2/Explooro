@@ -505,19 +505,30 @@ ON CONFLICT (product_id, batch_number, warehouse_node_id) DO NOTHING;
 -- 8. Curate Items into Shop Partners' Virtual Stores
 INSERT INTO saler_store_items (store_id, saler_id, product_id, custom_retail_price, collection_name, display_order, is_active) VALUES
   -- Store 1: Dhaka Fashion House (Apparel, Leather, Crafts)
-  (1, 6, 1, 1650.00, 'Eid Panjabi Collection', 1, true),
-  (1, 6, 2, 1350.00, 'Casual Formals', 2, true),
-  (1, 6, 5, 6500.00, 'Heritage Jamdani', 3, true),
-  (1, 6, 8, 1150.00, 'Pure Leather Accessories', 4, true),
-  (1, 6, 9, 3950.00, 'Pure Leather Accessories', 5, true),
-  (1, 6, 51, 4950.00, 'Handcrafted Heritage', 6, true),
+  (1, 6, 1, NULL, 'Eid Panjabi Collection', 1, true),
+  (1, 6, 2, NULL, 'Casual Formals', 2, true),
+  (1, 6, 5, NULL, 'Heritage Jamdani', 3, true),
+  (1, 6, 8, NULL, 'Pure Leather Accessories', 4, true),
+  (1, 6, 9, NULL, 'Pure Leather Accessories', 5, true),
+  (1, 6, 51, NULL, 'Handcrafted Heritage', 6, true),
 
   -- Store 2: Bangla Smart Store (Electronics, Gadgets, Lifestyle)
-  (2, 202, 11, 3250.00, 'Smart Wearables', 1, true),
-  (2, 202, 12, 2150.00, 'Audio & Sound', 2, true),
-  (2, 202, 13, 1950.00, 'Charging & Power', 3, true),
-  (2, 202, 14, 2450.00, 'Audio & Sound', 4, true),
-  (2, 202, 15, 1850.00, 'Charging & Power', 5, true),
-  (2, 202, 16, 3100.00, 'PC & Gaming Gear', 6, true)
+  (2, 202, 11, NULL, 'Smart Wearables', 1, true),
+  (2, 202, 12, NULL, 'Audio & Sound', 2, true),
+  (2, 202, 13, NULL, 'Charging & Power', 3, true),
+  (2, 202, 14, NULL, 'Audio & Sound', 4, true),
+  (2, 202, 15, NULL, 'Charging & Power', 5, true),
+  (2, 202, 16, NULL, 'PC & Gaming Gear', 6, true)
 ON CONFLICT (store_id, product_id) DO UPDATE
-SET custom_retail_price = EXCLUDED.custom_retail_price, collection_name = EXCLUDED.collection_name;
+SET custom_retail_price = NULL, collection_name = EXCLUDED.collection_name;
+
+-- 9. Partner profit per product (migration 085). Products inserted above start at 0, so give each the
+--    share the old global split paid, exactly as the migration backfilled existing rows.
+UPDATE products p
+SET partner_profit = round(
+      (p.default_retail_price - p.base_cost - p.wholesale_margin)
+      * COALESCE((SELECT (value_json->>'saler_split_pct')::numeric
+                  FROM platform_settings WHERE key = 'commission.default_splits'), 40) / 100,
+      2)
+WHERE p.partner_profit = 0
+  AND p.default_retail_price > p.base_cost + p.wholesale_margin;

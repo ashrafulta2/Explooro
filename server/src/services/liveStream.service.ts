@@ -711,6 +711,8 @@ export async function executeInStreamBuy(pool, cache, {
         salerSplitPct: split.salerSplitPct,
         platformSplitPct: split.platformSplitPct,
         ruleSource: split.ruleSource,
+        // Capped at the margin, so a stream's special price can shrink the pool share but never the floor.
+        partnerProfit: prod.partner_profit,
       });
 
       const lineTotalPaisa = toPaisa(unitPrice) * quantity;

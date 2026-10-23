@@ -1,18 +1,18 @@
 /**
- * SourcingCatalogPage.js — Shop Partner Supplier Catalog, Sourcing Opportunity Feed &
- * Interactive Profit Calculator (Prompt 4.7).
+ * SourcingCatalogPage.js — Shop Partner Supplier Catalog & Sourcing Opportunity Feed (Prompt 4.7).
  *
  * Route: /saler/sourcing
  * Gated by: `sourcing` module flag, `saler.sourcing.view` permission, and `can_sell` restriction.
+ *
+ * WHY no profit calculator or margin filters: since migration 085 the supplier sets the price and a
+ * partner is paid monthly from the partner reward pool by score, so there is no per-sale profit to
+ * calculate. A card shows the supplier's price and what one sale adds to the pool.
  */
 import { listSourcingCatalog } from '../../services/catalog.api.js';
-import { ProfitCalculator } from '../../components/saler/ProfitCalculator.js';
-import { MarginProjection } from '../../components/saler/MarginProjection.js';
-import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.js';
+import { AddToStoreDrawer, poolContributionOf } from '../../components/saler/AddToStoreDrawer.js';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.js';
 import { SponsoredTag } from '../../components/saler/SponsoredTag.js';
 import { fetchSponsored, trackImpression, clickReporter } from '../../services/sponsoredSourcing.js';
-import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
@@ -36,16 +36,7 @@ const CATEGORIES = [
   { key: 'Jewellery', en: 'Jewellery', bn: 'গহনা' },
 ];
 
-const MARGIN_FILTERS = [
-  { value: '0', label: 'All Margins' },
-  { value: '15', label: '15%+' },
-  { value: '20', label: '20%+' },
-  { value: '25', label: '25%+' },
-  { value: '30', label: '30%+' },
-];
-
 const SORT_OPTIONS = [
-  { value: 'margin_desc', label_en: 'Highest Margin', label_bn: 'সর্বোচ্চ মার্জিন' },
   { value: 'popularity', label_en: 'Most Popular', label_bn: 'সর্বাধিক জনপ্রিয়' },
   { value: 'newest', label_en: 'Newest Arrivals', label_bn: 'নতুন আগমন' },
   { value: 'price_asc', label_en: 'Price: Low to High', label_bn: 'দাম: কম থেকে বেশি' },
@@ -71,11 +62,10 @@ export default function SourcingCatalogPage(root) {
   // Active filters state
   const state = {
     category: 'all',
-    minMarginPct: '0',
     verificationTier: 'all',
     shippingSpeed: 'all',
     inStock: true,
-    sortBy: 'margin_desc',
+    sortBy: 'popularity',
     products: [],
     loading: true,
   };
@@ -87,36 +77,7 @@ export default function SourcingCatalogPage(root) {
     },
   });
 
-  // Profit Calculator Modal instance
-  let calcModalBody = document.createElement('div');
-  calcModalBody.className = 'saler-stack';
-
-  const modalCalc = ProfitCalculator({
-    initialBaseCost: 500,
-    initialWholesaleMargin: 0,
-    initialRetailPrice: 700,
-    onChange: (breakdown) => {
-      if (modalProjection && breakdown?.saler_earning !== undefined) {
-        modalProjection.setUnitProfit(breakdown.saler_earning);
-      }
-    },
-  });
-
-  const modalProjection = MarginProjection({
-    unitProfit: 80,
-    initialVolume: 50,
-  });
-
-  calcModalBody.append(modalCalc, modalProjection);
-
-  const calcModal = Modal({
-    title: t('sourcing.calc.modal_title'),
-    description: t('sourcing.calc.modal_desc'),
-    content: calcModalBody,
-    size: 'lg',
-  });
-
-  // 1. Hero / Header with quick stats & standalone Calculator trigger
+  // 1. Hero / Header with quick stats
   const hero = document.createElement('section');
   hero.className = 'sourcing-hero';
 
@@ -131,16 +92,6 @@ export default function SourcingCatalogPage(root) {
   heroSubtitle.className = 'sourcing-hero__subtitle';
   heroSubtitle.textContent = t('sourcing.hero.subtitle');
 
-  const calcLauncherBtn = Button({
-    label: `🧮 ${t('sourcing.hero.open_calc_btn')}`,
-    variant: 'secondary',
-    size: 'sm',
-    onClick: (e) => {
-      modalCalc.setValues(500, 0, 700);
-      calcModal.openModal(e.currentTarget);
-    },
-  });
-
   const askAiBtn = Button({
     label: `✨ ${t('ai.sourcing_trigger')}`,
     variant: 'secondary',
@@ -148,16 +99,14 @@ export default function SourcingCatalogPage(root) {
     onClick: (e) => openAssistantPanel({ agentType: 'sourcing', trigger: e.currentTarget }),
   });
 
-  heroHeader.append(heroTitle, heroSubtitle, askAiBtn, calcLauncherBtn);
+  heroHeader.append(heroTitle, heroSubtitle, askAiBtn);
 
   const heroStats = document.createElement('div');
   heroStats.className = 'sourcing-hero__stats';
 
   const statSuppliers = createStatCard(t('sourcing.stats.suppliers'), '48+');
-  const statAvgMargin = createStatCard(t('sourcing.stats.avg_margin'), '22.4%');
-  const statMaxProfit = createStatCard(t('sourcing.stats.top_opportunity'), '৳ 850');
 
-  heroStats.append(statSuppliers, statAvgMargin, statMaxProfit);
+  heroStats.append(statSuppliers);
   hero.append(heroHeader, heroStats);
 
   // Check user restriction (can_sell)
@@ -205,36 +154,9 @@ export default function SourcingCatalogPage(root) {
     return { key: cat.key, btn };
   });
 
-  // Secondary Filter Row: Margins, Verification, Shipping, Sort
+  // Secondary Filter Row: Verification, Sort
   const secondaryRow = document.createElement('div');
   secondaryRow.className = 'sourcing-filter-row';
-
-  // Margin % Pills
-  const marginGroup = document.createElement('div');
-  marginGroup.className = 'sourcing-filter-group';
-  const marginLabel = document.createElement('span');
-  marginLabel.className = 'sourcing-filter-label';
-  marginLabel.textContent = t('sourcing.filters.margin');
-  marginGroup.append(marginLabel);
-
-  const marginPills = MARGIN_FILTERS.map((m) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `sourcing-pill-btn ${m.value === state.minMarginPct ? 'active' : ''}`;
-    btn.setAttribute('aria-pressed', m.value === state.minMarginPct ? 'true' : 'false');
-    btn.textContent = m.label;
-    btn.addEventListener('click', () => {
-      state.minMarginPct = m.value;
-      marginPills.forEach((p) => {
-        const isActive = p.value === state.minMarginPct;
-        p.btn.classList.toggle('active', isActive);
-        p.btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-      });
-      loadProducts();
-    });
-    marginGroup.append(btn);
-    return { value: m.value, btn };
-  });
 
   // Verification Tier Select
   const tierGroup = document.createElement('div');
@@ -281,7 +203,7 @@ export default function SourcingCatalogPage(root) {
   });
   sortGroup.append(sortLabel, sortSelect);
 
-  secondaryRow.append(marginGroup, tierGroup, sortGroup);
+  secondaryRow.append(tierGroup, sortGroup);
   filterBar.append(catRow, secondaryRow);
 
   // 3. Grid Container for Sourcing Cards
@@ -301,14 +223,6 @@ export default function SourcingCatalogPage(root) {
   container.append(hero, filterBar, sponsoredWrap, grid);
 
   const cardActions = {
-    onCalculate: (p, btn) => {
-      const initialBase = p.pricing?.base_cost ?? p.base_cost ?? 500;
-      const initialWholesale = p.pricing?.wholesale_margin ?? p.wholesale_margin ?? 0;
-      const initialRetail = parseFloat(p.price || 700);
-      const defaultRetail = p.pricing?.default_retail_price ?? initialRetail;
-      modalCalc.setValues(initialBase, initialWholesale, initialRetail, defaultRetail);
-      calcModal.openModal(btn);
-    },
     onAddToStore: (p, btn) => {
       addToStoreDrawer.openForProduct(p, btn);
     },
@@ -329,7 +243,6 @@ export default function SourcingCatalogPage(root) {
       const reportClick = clickReporter(ad);
       const card = createSourcingCard(ad.product, {
         ...cardActions,
-        onCalculate: (p, btn) => { reportClick(); cardActions.onCalculate(p, btn); },
         onAddToStore: (p, btn) => { reportClick(); cardActions.onAddToStore(p, btn); },
         sponsored: true,
       });
@@ -359,7 +272,6 @@ export default function SourcingCatalogPage(root) {
     try {
       const res = await listSourcingCatalog({
         category: state.category,
-        minMarginPct: state.minMarginPct !== '0' ? state.minMarginPct : undefined,
         verificationTier: state.verificationTier,
         sortBy: state.sortBy,
         inStock: state.inStock,
@@ -379,11 +291,9 @@ export default function SourcingCatalogPage(root) {
             variant: 'secondary',
             onClick: () => {
               state.category = 'all';
-              state.minMarginPct = '0';
               state.verificationTier = 'all';
               tierSelect.value = 'all';
               catPills.forEach((p) => p.btn.classList.toggle('active', p.key === 'all'));
-              marginPills.forEach((p) => p.btn.classList.toggle('active', p.value === '0'));
               loadProducts();
             },
           }),
@@ -451,16 +361,14 @@ const CATEGORY_META = {
   default: { icon: '📦', bg: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)', color: '#374151' },
 };
 
-function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestricted = false, sponsored = false }) {
+function createSourcingCard(product, { onAddToStore, isSellRestricted = false, sponsored = false }) {
   const card = document.createElement('article');
   card.className = sponsored ? 'sourcing-card sourcing-card--sponsored' : 'sourcing-card';
 
   const isBn = getLanguage() === 'bn';
   const title = (isBn && product.title_bn) ? product.title_bn : (product.title_en || product.title);
-  const price = parseFloat(product.price || 0);
-  const minPrice = product.pricing?.min_retail_price ?? product.sourcing_opportunity?.min_retail_price ?? Math.round(price * 0.85);
-  const salerProfit = product.pricing?.saler_earning ?? product.sourcing_opportunity?.potential_profit ?? (price * 0.15);
-  const marginPct = product.margin_pct ?? product.pricing?.saler_margin_pct ?? 18;
+  const price = parseFloat(product.price ?? product.pricing?.retail_price ?? product.default_retail_price ?? 0);
+  const poolShare = poolContributionOf(product);
   const tier = product.supplier_tier || 'standard';
 
   // Media
@@ -502,16 +410,12 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
   const badges = document.createElement('div');
   badges.className = 'sourcing-card__badges';
 
-  const marginBadge = document.createElement('span');
-  marginBadge.className = 'sourcing-card__margin-badge';
-  marginBadge.textContent = `⚡ +${marginPct}% ${t('sourcing.card.margin', 'Margin')}`;
-
   const tierBadge = document.createElement('span');
   tierBadge.className = `sourcing-card__tier-badge sourcing-card__tier-badge--${tier}`;
   const tierIcon = tier === 'elite' ? '🏆 ' : tier === 'verified' ? '✓ ' : '';
   tierBadge.textContent = `${tierIcon}${tier.toUpperCase()}`;
 
-  badges.append(marginBadge, tierBadge);
+  badges.append(tierBadge);
   media.append(badges);
 
   // Content
@@ -540,37 +444,25 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
     header.append(cat, hTitle, SupplierScorecardBadge(product.supplier_scorecard));
   }
 
-  // Pricing Matrix (Confidential wholesale: shows Suggested Retail, Min Selling Price Floor, and Shop Partner Profit)
+  // Pricing Matrix: the supplier's fixed price and what one sale adds to the partner reward pool
   const matrix = document.createElement('div');
   matrix.className = 'sourcing-card__pricing-matrix';
 
   matrix.innerHTML = `
     <div class="sourcing-card__pricing-row">
-      <span class="sourcing-card__pricing-label">${t('sourcing.card.suggested_retail', 'Suggested Retail')}</span>
+      <span class="sourcing-card__pricing-label">${t('sourcing.card.price')}</span>
       <span class="sourcing-card__pricing-val">${formatCurrency(price)}</span>
     </div>
-    <div class="sourcing-card__pricing-row">
-      <span class="sourcing-card__pricing-label">${t('sourcing.card.min_price', 'Min Selling Price')}</span>
-      <span class="sourcing-card__pricing-val">${formatCurrency(minPrice)}</span>
-    </div>
+    ${poolShare == null ? '' : `
     <div class="sourcing-card__pricing-row sourcing-card__pricing-row--profit">
-      <span class="sourcing-card__pricing-label sourcing-card__pricing-label--profit">💰 ${t('sourcing.card.profit_per_sale', 'Your Profit / Sale')}</span>
-      <span class="sourcing-card__profit-val">+${formatCurrency(salerProfit)}</span>
-    </div>
+      <span class="sourcing-card__pricing-label sourcing-card__pricing-label--profit">${t('sourcing.card.pool_per_sale')}</span>
+      <span class="sourcing-card__profit-val">+${formatCurrency(poolShare)}</span>
+    </div>`}
   `;
 
   // Actions
   const actions = document.createElement('div');
   actions.className = 'sourcing-card__actions';
-
-  const calcBtn = Button({
-    label: `🧮 ${t('sourcing.card.btn_calc', 'Calculate')}`,
-    variant: 'secondary',
-    size: 'sm',
-    ariaLabel: `${t('sourcing.card.btn_calc', 'Calculate')} ${t('sourcing.card.profit_per_sale', 'profit')} - ${title}`,
-    onClick: (e) => onCalculate(product, e.currentTarget),
-  });
-  calcBtn.classList.add('sourcing-card__calc-btn');
 
   const addBtn = Button({
     label: `+ ${t('sourcing.card.btn_add_store', 'Add to Store')}`,
@@ -586,7 +478,7 @@ function createSourcingCard(product, { onCalculate, onAddToStore, isSellRestrict
     addBtn.title = t('sourcing.restricted_can_sell_tooltip');
   }
 
-  actions.append(calcBtn, addBtn);
+  actions.append(addBtn);
   content.append(header, matrix, actions);
   card.append(media, content);
 

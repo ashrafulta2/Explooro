@@ -138,7 +138,9 @@ function createMockDb() {
       if (q.includes('INSERT INTO wallets') && q.includes('system_key')) {
         if (!wallets.find((x) => x.system_key === params[0])) {
           wallets.push({
-            id: Math.max(0, ...wallets.map((x) => x.id)) + 1,
+            // WHY the shared counter: max+1 collided with the next user wallet, and two wallets with one id
+            // made the ledger's FOR UPDATE lookup come back short.
+            id: nextWalletId++,
             user_id: null,
             system_key: params[0],
             available_balance: '0.00',
@@ -569,6 +571,10 @@ function createMockDb() {
     getRawData() {
       return { wallets, ledgerTransactions, escrowEntries, jobRuns, deadLetters, negativeRecoveries };
     },
+    // The partner reward pool (migration 085): where a sale's partner share is escrowed now.
+    poolWallet() {
+      return wallets.find((x) => x.system_key === 'PARTNER_REWARD_POOL');
+    },
   };
 
   return poolMock;
@@ -623,9 +629,8 @@ describe('Prompt 6.2 — Escrow Release Scheduler & Clawback Automation', () => 
     }
 
     const supplierWalletBefore = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletBefore = await walletRepo.getWalletByUserId(db, 201);
     const supAvailBefore = parseFloat(supplierWalletBefore.available_balance);
-    const salerAvailBefore = parseFloat(salerWalletBefore.available_balance);
+    const poolAvailBefore = parseFloat(db.poolWallet().available_balance);
 
     // Run the automated release sweep
     const sweepResult = await runEscrowReleaseSweep(db, null, console);
@@ -635,11 +640,11 @@ describe('Prompt 6.2 — Escrow Release Scheduler & Clawback Automation', () => 
     assert.ok(sweepResult.metadata.releasedSubOrderIds.includes(601), 'Sub-order 601 must be released');
 
     const supplierWalletAfter = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletAfter = await walletRepo.getWalletByUserId(db, 201);
 
-    // Supplier received ৳1260.00 and Shop Partner received ৳120.00
+    // Supplier received ৳1260.00; the ৳120.00 partner share went to the reward pool, not the partner
     assert.equal(parseFloat(supplierWalletAfter.available_balance), supAvailBefore + 1260.00);
-    assert.equal(parseFloat(salerWalletAfter.available_balance), salerAvailBefore + 120.00);
+    assert.equal(parseFloat(db.poolWallet().available_balance), poolAvailBefore + 120.00);
+    assert.equal(await walletRepo.getWalletByUserId(db, 201), null, 'the partner is paid monthly, so no per-sale wallet');
 
     // Sub-order 602 (hold_until is 14 days in future) remains LOCKED
     const unexpiredEntries = raw.escrowEntries.filter((e) => e.sub_order_id === 602);
@@ -674,11 +679,10 @@ describe('Prompt 6.2 — Escrow Release Scheduler & Clawback Automation', () => 
   test('Acceptance 5: Post-Release Clawback recovers from available balance and refunds customer', async () => {
     const custWalletBefore = await walletRepo.getWalletByUserId(db, 10);
     const supWalletBefore = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletBefore = await walletRepo.getWalletByUserId(db, 201);
 
     const custAvailBefore = parseFloat(custWalletBefore.available_balance);
     const supAvailBefore = parseFloat(supWalletBefore.available_balance);
-    const salerAvailBefore = parseFloat(salerWalletBefore.available_balance);
+    const poolAvailBefore = parseFloat(db.poolWallet().available_balance);
 
     // Sub-order 601 was released in Acceptance 3. Now customer return is approved.
     const clawbackResult = await clawbackService.processReturnClawback(db, {
@@ -692,13 +696,12 @@ describe('Prompt 6.2 — Escrow Release Scheduler & Clawback Automation', () => 
 
     const custWalletAfter = await walletRepo.getWalletByUserId(db, 10);
     const supWalletAfter = await walletRepo.getWalletByUserId(db, 101);
-    const salerWalletAfter = await walletRepo.getWalletByUserId(db, 201);
 
     // Customer receives ৳1560.00 refund
     assert.equal(parseFloat(custWalletAfter.available_balance), custAvailBefore + 1560.00);
-    // Supplier and Shop Partner recovered (-1260.00 and -120.00)
+    // Supplier and the partner reward pool recovered (-1260.00 and -120.00)
     assert.equal(parseFloat(supWalletAfter.available_balance), supAvailBefore - 1260.00);
-    assert.equal(parseFloat(salerWalletAfter.available_balance), salerAvailBefore - 120.00);
+    assert.equal(parseFloat(db.poolWallet().available_balance), poolAvailBefore - 120.00);
   });
 
   test('Acceptance 6: Insufficient Balance Deficit — creates negative_balance_recoveries record when shop partner has withdrawn funds', async () => {

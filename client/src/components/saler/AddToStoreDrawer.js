@@ -1,15 +1,16 @@
 /**
- * AddToStoreDrawer.js — 1-click Add to Virtual Store drawer with custom retail price override
- * and minimum margin validation (Prompt 4.7).
+ * AddToStoreDrawer.js — 1-click Add to Virtual Store drawer (Prompt 4.7).
+ *
+ * WHY no price field: since migration 085 the supplier sets every price and the partner's share of
+ * each sale goes to the monthly partner reward pool, so a partner chooses only the collection. The
+ * drawer shows what one sale adds to that pool instead of a per-sale profit.
  */
 import { Drawer } from '../ui/Drawer.js';
 import { Button } from '../ui/Button.js';
 import { FormField } from '../ui/FormField.js';
-import { Input } from '../ui/Input.js';
 import { Select } from '../ui/Select.js';
 import { toast } from '../../services/toast.js';
-import { addToSalerStore, previewPricing } from '../../services/catalog.api.js';
-import { pickMessage } from '../../core/api.js';
+import { addToSalerStore } from '../../services/catalog.api.js';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { resolveProductImage } from '../product/ProductCard.js';
@@ -22,6 +23,19 @@ const COLLECTIONS = [
 ];
 
 /**
+ * What one sale of this product adds to the partner reward pool, from whichever shape the caller has.
+ * @param {object} product
+ * @returns {number|null}
+ */
+export function poolContributionOf(product) {
+  const raw = product?.sourcing_opportunity?.pool_contribution
+    ?? product?.partner_profit
+    ?? product?.pricing?.saler_earning;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
  * Creates the Add to Store Drawer instance.
  *
  * @param {object} props
@@ -30,7 +44,6 @@ const COLLECTIONS = [
  */
 export function AddToStoreDrawer({ onSuccess = null } = {}) {
   let activeProduct = null;
-  let debounceTimer = null;
   let isSubmitting = false;
 
   const contentWrap = document.createElement('div');
@@ -44,20 +57,26 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
     size: 'md',
   });
 
+  function row(label, value, highlight = false) {
+    const el = document.createElement('div');
+    el.className = highlight ? 'add-store-calc-row add-store-calc-row--highlight' : 'add-store-calc-row';
+    const l = document.createElement('span');
+    l.textContent = label;
+    const v = document.createElement('strong');
+    v.textContent = value;
+    el.append(l, v);
+    return el;
+  }
+
   function renderContent() {
     contentWrap.innerHTML = '';
     if (!activeProduct) return;
 
     const isBn = getLanguage() === 'bn';
     const title = (isBn && activeProduct.title_bn) ? activeProduct.title_bn : (activeProduct.title_en || activeProduct.title);
-    const initialPrice = parseFloat(activeProduct.price || activeProduct.default_retail_price || 0);
-    const baseCost = activeProduct.pricing?.base_cost ?? activeProduct.base_cost ?? (initialPrice * 0.7);
-    const wholesaleMargin = activeProduct.pricing?.wholesale_margin ?? activeProduct.wholesale_margin ?? 0;
-    const wholesaleCost = activeProduct.pricing?.wholesale_cost ?? (baseCost + wholesaleMargin);
-    const defaultRetailPrice = activeProduct.pricing?.default_retail_price ?? initialPrice;
-    const minRetailPrice = activeProduct.pricing?.min_retail_price ?? Math.round(wholesaleCost * 1.1);
+    const price = Number(activeProduct.pricing?.retail_price ?? activeProduct.default_retail_price ?? activeProduct.price ?? 0);
+    const contribution = poolContributionOf(activeProduct);
 
-    // Product Preview Box (Confidential wholesale: shows Suggested Retail and Min Selling Price)
     const previewBox = document.createElement('div');
     previewBox.className = 'add-store-product-preview';
 
@@ -87,28 +106,11 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
 
     const pMeta = document.createElement('span');
     pMeta.className = 'add-store-product-preview__meta';
-    pMeta.textContent = `${t('sourcing.drawer.suggested_retail')}: ${formatCurrency(defaultRetailPrice)} • ${t('sourcing.drawer.min_price')}: ${formatCurrency(minRetailPrice)} • ${t('sourcing.drawer.stock')}: ${activeProduct.stock ?? activeProduct.stock_qty ?? 0}`;
+    pMeta.textContent = `${t('sourcing.drawer.price')}: ${formatCurrency(price)} • ${t('sourcing.drawer.stock')}: ${activeProduct.stock ?? activeProduct.stock_qty ?? 0}`;
 
     infoBox.append(pTitle, pMeta);
     previewBox.append(imgBox, infoBox);
 
-    // Custom Price Input
-    const priceField = FormField({
-      label: t('sourcing.drawer.custom_price_label'),
-      hint: `${t('sourcing.drawer.min_price_hint')}: ${formatCurrency(minRetailPrice)}`,
-      required: true,
-      control: Input({
-        type: 'number',
-        name: 'custom_retail_price',
-        value: defaultRetailPrice.toString(),
-        min: minRetailPrice.toString(),
-        step: '10',
-      }),
-    });
-
-    const priceInput = priceField.querySelector('input');
-
-    // Collection Selector
     const collectionField = FormField({
       label: t('sourcing.drawer.collection_label'),
       control: Select({
@@ -121,34 +123,17 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
       }),
     });
 
-    // Dynamic Live Profit Calculation Box
     const calcBox = document.createElement('div');
     calcBox.className = 'add-store-calc-preview';
+    calcBox.append(row(t('sourcing.drawer.price_locked'), formatCurrency(price)));
+    if (contribution != null) {
+      calcBox.append(row(t('sourcing.drawer.pool_per_sale'), formatCurrency(contribution), true));
+    }
+    const explainer = document.createElement('p');
+    explainer.className = 'add-store-pool-note';
+    explainer.textContent = t('sourcing.drawer.pool_explainer');
+    calcBox.append(explainer);
 
-    const defaultRetailRow = document.createElement('div');
-    defaultRetailRow.className = 'add-store-calc-row';
-    defaultRetailRow.innerHTML = `<span>${t('sourcing.drawer.suggested_retail')}</span><strong>${formatCurrency(defaultRetailPrice)}</strong>`;
-
-    const minPriceRow = document.createElement('div');
-    minPriceRow.className = 'add-store-calc-row';
-    minPriceRow.innerHTML = `<span>${t('sourcing.drawer.min_price')}</span><strong>${formatCurrency(minRetailPrice)}</strong>`;
-
-    const profitRow = document.createElement('div');
-    profitRow.className = 'add-store-calc-row add-store-calc-row--highlight';
-    profitRow.innerHTML = `<span>${t('sourcing.drawer.your_profit_per_sale')}</span><span id="drawer-saler-profit">—</span>`;
-
-    const statusNotice = document.createElement('div');
-    statusNotice.className = 'profit-calc__status profit-calc__status--standard';
-    statusNotice.style.fontSize = '11px';
-    statusNotice.style.display = 'none';
-
-    const errorMsg = document.createElement('div');
-    errorMsg.className = 'profit-calc__error';
-    errorMsg.style.display = 'none';
-
-    calcBox.append(defaultRetailRow, minPriceRow, profitRow, statusNotice, errorMsg);
-
-    // Action Buttons
     const actions = document.createElement('div');
     actions.className = 'add-store-actions';
 
@@ -163,12 +148,6 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
       variant: 'primary',
       onClick: async () => {
         if (isSubmitting) return;
-        const enteredVal = parseFloat(priceInput.value);
-        if (isNaN(enteredVal) || enteredVal < minRetailPrice) {
-          toast.error(`${t('sourcing.drawer.error_min_price')} (${formatCurrency(minRetailPrice)})`);
-          return;
-        }
-
         const sel = collectionField.querySelector('select');
         const collection = sel ? sel.value : 'General';
 
@@ -178,7 +157,6 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
         try {
           const item = await addToSalerStore({
             productId: activeProduct.ref || activeProduct.id,
-            customRetailPrice: enteredVal,
             collectionName: collection,
           });
 
@@ -198,62 +176,7 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
     });
 
     actions.append(cancelBtn, submitBtn);
-
-    async function updateCalculations() {
-      const enteredPrice = parseFloat(priceInput.value);
-      if (isNaN(enteredPrice) || enteredPrice < minRetailPrice) {
-        errorMsg.textContent = `⚠️ ${t('sourcing.drawer.error_min_price')} (${formatCurrency(minRetailPrice)})`;
-        errorMsg.style.display = 'flex';
-        statusNotice.style.display = 'none';
-        calcBox.querySelector('#drawer-saler-profit').textContent = '—';
-        submitBtn.disabled = true;
-        return;
-      }
-
-      errorMsg.style.display = 'none';
-      submitBtn.disabled = false;
-
-      try {
-        const preview = await previewPricing({
-          baseCost,
-          wholesaleMargin,
-          retailPrice: enteredPrice,
-          defaultRetailPrice,
-          productId: activeProduct.ref || activeProduct.id,
-          mode: 'tiered',
-        });
-
-        calcBox.querySelector('#drawer-saler-profit').textContent = `${formatCurrency(preview.saler_earning)} (${preview.saler_margin_pct}%)`;
-
-        // Dynamic notice feedback
-        if (preview.price_status === 'DISCOUNTED') {
-          statusNotice.className = 'profit-calc__status profit-calc__status--discount';
-          statusNotice.textContent = `🏷️ ${t('sourcing.drawer.discount_notice')}`;
-          statusNotice.style.display = 'flex';
-        } else if (preview.price_status === 'BOOSTED') {
-          statusNotice.className = 'profit-calc__status profit-calc__status--boost';
-          statusNotice.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${t('sourcing.drawer.markup_notice')}`;
-          statusNotice.style.display = 'flex';
-        } else {
-          statusNotice.style.display = 'none';
-        }
-      } catch (err) {
-        errorMsg.textContent = `⚠️ ${pickMessage(err) || err?.message || t('sourcing.calc.error_below_min')}`;
-        errorMsg.style.display = 'flex';
-        statusNotice.style.display = 'none';
-        submitBtn.disabled = true;
-      }
-    }
-
-    priceInput.addEventListener('input', () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(updateCalculations, 150);
-    });
-
-    // Initial calculation
-    updateCalculations();
-
-    contentWrap.append(previewBox, priceField, collectionField, calcBox, actions);
+    contentWrap.append(previewBox, collectionField, calcBox, actions);
   }
 
   drawer.openForProduct = (product, triggerEl = null) => {

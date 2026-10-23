@@ -15,7 +15,7 @@ export async function addToStore(req, reply) {
   const result = await productService.addProductToSalerStore(db, {
     salerId,
     productId: parseInt(product_id, 10),
-    customRetailPrice: custom_retail_price !== undefined ? parseFloat(custom_retail_price) : undefined,
+    customRetailPrice: custom_retail_price,
     collectionName: collection_name,
   });
 

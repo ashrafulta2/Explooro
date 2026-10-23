@@ -381,6 +381,9 @@ export async function executeCheckout(pool, cache, {
           salerSplitPct: split.salerSplitPct,
           platformSplitPct: split.platformSplitPct,
           ruleSource: split.ruleSource,
+          // WHY: the supplier's per-unit partner profit (migration 085) sets the partner share; that share
+          // is escrowed to the partner reward pool, not to this line's partner (vault.service.ts).
+          partnerProfit: prod.partner_profit,
         });
 
         const lineTotalPaisa = toPaisa(item.unit_price) * itemQty;

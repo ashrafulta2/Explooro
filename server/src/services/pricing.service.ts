@@ -303,6 +303,8 @@ export async function resolvePlatformPricingConfig(db: any): Promise<{ platformD
  * @param {number} [params.extraMarkupPlatformPct=20]
  * @param {string} [params.mode='split'] 'tiered' or 'split'
  * @param {string} [params.ruleSource='CALCULATED']
+ * @param {number|string|null} [params.partnerProfit] Supplier-set partner share per unit (split mode only);
+ *   when given it replaces salerSplitPct.
  * @returns {object} Breakdown in BDT numbers, strings, and integer paisa
  */
 export function calculatePricingBreakdown({
@@ -317,7 +319,8 @@ export function calculatePricingBreakdown({
   extraMarkupPlatformPct = 20,
   mode = 'split',
   ruleSource = 'CALCULATED',
-}: { baseCost: number|string; wholesaleMargin?: number|string; retailPrice: number|string; defaultRetailPrice?: number|string; salerSplitPct?: number; platformSplitPct?: number; platformDefaultProfitPct?: number; salerDefaultProfitPct?: number; extraMarkupPlatformPct?: number; mode?: string; ruleSource?: string; }): any {
+  partnerProfit = null,
+}: { baseCost: number|string; wholesaleMargin?: number|string; retailPrice: number|string; defaultRetailPrice?: number|string; salerSplitPct?: number; platformSplitPct?: number; platformDefaultProfitPct?: number; salerDefaultProfitPct?: number; extraMarkupPlatformPct?: number; mode?: string; ruleSource?: string; partnerProfit?: number|string|null; }): any {
   const baseCostPaisa = toPaisa(baseCost);
   const wholesaleMarginPaisa = toPaisa(wholesaleMargin);
   const wholesaleCostPaisa = baseCostPaisa + wholesaleMarginPaisa; // P_supplier
@@ -429,8 +432,13 @@ export function calculatePricingBreakdown({
 
   const netRetailMarginPaisa = retailPricePaisa - wholesaleCostPaisa;
 
-  // Exact paisa split arithmetic
-  const salerEarningPaisa = Math.floor((netRetailMarginPaisa * salerSplitPct) / 100);
+  // Exact paisa split arithmetic.
+  // WHY partnerProfit wins over the split: since migration 085 the supplier sets the partner's share
+  // per unit, and that share goes to the monthly reward pool, not to one partner. Capped at the margin
+  // so a stale figure can never make the platform's side negative.
+  const salerEarningPaisa = partnerProfit != null && partnerProfit !== ''
+    ? Math.min(Math.max(toPaisa(partnerProfit), 0), netRetailMarginPaisa)
+    : Math.floor((netRetailMarginPaisa * salerSplitPct) / 100);
   const platformEarningPaisa = netRetailMarginPaisa - salerEarningPaisa;
 
   const totalMarginPct = retailPricePaisa > 0
@@ -474,6 +482,33 @@ export function calculatePricingBreakdown({
       platform_earning: platformEarningPaisa,
     },
   };
+}
+
+/**
+ * Throws VALIDATION_FAILED unless a supplier's partner profit fits the product's price.
+ *
+ * The platform keeps at least `platform_default_profit_pct` of the wholesale cost per unit, so the most
+ * a supplier can give the partner pool is the margin above that. A business number, not a constant:
+ * it moves with the setting at /admin/finance/splits.
+ *
+ * @param {object} db
+ * @param {{ baseCost: number|string, wholesaleMargin?: number|string, retailPrice: number|string, partnerProfit: number|string }} p
+ * @returns {Promise<number>} The largest allowed partner profit, in BDT
+ */
+export async function assertPartnerProfitFits(db: any, { baseCost, wholesaleMargin = 0, retailPrice, partnerProfit }: { baseCost: number|string; wholesaleMargin?: number|string; retailPrice: number|string; partnerProfit: number|string; }): Promise<number> {
+  const { platformDefaultProfitPct } = await resolvePlatformPricingConfig(db);
+  const wholesaleCostPaisa = toPaisa(baseCost) + toPaisa(wholesaleMargin);
+  const platformFloorPaisa = Math.round((wholesaleCostPaisa * platformDefaultProfitPct) / 100);
+  const maxPaisa = Math.max(toPaisa(retailPrice) - wholesaleCostPaisa - platformFloorPaisa, 0);
+  const wantedPaisa = toPaisa(partnerProfit);
+  if (wantedPaisa < 0 || wantedPaisa > maxPaisa) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      `Partner profit must be between BDT 0.00 and BDT ${(maxPaisa / 100).toFixed(2)} for this price.`,
+      `এই দামে partner profit ৳0.00 থেকে ৳${(maxPaisa / 100).toFixed(2)} এর মধ্যে হতে হবে।`
+    );
+  }
+  return toBdtNumber(maxPaisa);
 }
 
 /**

@@ -258,7 +258,7 @@ const mockSalerStoreItems = [
     product_ref: 'PRD-8F2K9QX7',
     title_en: 'Premium Cotton Saree',
     title_bn: 'প্রিমিয়াম কটন শাড়ি',
-    custom_retail_price: 1350.0,
+    custom_retail_price: null,
     collection_name: 'Featured',
     display_order: 1,
     is_active: true,
@@ -877,8 +877,22 @@ export default [
     path: '/sourcing/add-to-store',
     handler({ body }) {
       const productId = body?.product_id;
-      const customRetailPrice = body?.custom_retail_price !== undefined ? parseFloat(body.custom_retail_price) : undefined;
       const collectionName = body?.collection_name || 'General';
+
+      // Mirrors the server (migration 085): the supplier sets the price, a partner's price is refused.
+      if (body?.custom_retail_price !== undefined && body?.custom_retail_price !== null && body?.custom_retail_price !== '') {
+        return {
+          status: 422,
+          body: {
+            error: {
+              code: 'PRICE_LOCKED',
+              message_en: 'Prices are set by the supplier. Shop partners cannot change them.',
+              message_bn: 'দাম supplier ঠিক করেন। Shop partner দাম পরিবর্তন করতে পারবেন না।',
+              trace_id: traceId(),
+            },
+          },
+        };
+      }
 
       const product = products.find((p) => p.ref === productId || String(p.id) === String(productId));
       if (!product) {
@@ -886,22 +900,9 @@ export default [
       }
 
       const pricing = synthesizePricing(product);
-      if (customRetailPrice !== undefined && customRetailPrice < pricing.wholesale_cost) {
-        return {
-          status: 400,
-          body: {
-            error: {
-              code: 'VALIDATION_FAILED',
-              message_en: `Custom retail price must be at least BDT ${pricing.wholesale_cost.toFixed(2)}.`,
-              message_bn: `কাস্টম খুচরা মূল্য অবশ্যই কমপক্ষে ৳${pricing.wholesale_cost.toFixed(2)} হতে হবে।`,
-              trace_id: traceId(),
-            },
-          },
-        };
-      }
 
       const existingIndex = mockSalerStoreItems.findIndex((item) => item.product_ref === product.ref || item.product_id === productId);
-      const finalPrice = customRetailPrice ?? parseFloat(product.price);
+      const finalPrice = parseFloat(product.price);
 
       const newItem = {
         id: existingIndex >= 0 ? mockSalerStoreItems[existingIndex].id : mockSalerStoreItems.length + 1,
@@ -911,7 +912,7 @@ export default [
         product_ref: product.ref,
         title_en: product.title_en,
         title_bn: product.title_bn,
-        custom_retail_price: finalPrice,
+        custom_retail_price: null,
         collection_name: collectionName,
         display_order: existingIndex >= 0 ? mockSalerStoreItems[existingIndex].display_order : mockSalerStoreItems.length + 1,
         is_active: true,

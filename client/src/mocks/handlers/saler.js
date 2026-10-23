@@ -77,7 +77,8 @@ let mockSalerProducts = [
     supplier_name: 'Dhakai Heritage Weavers Ltd.',
     base_wholesale_price: 2800.0,
     default_retail_price: 3500.0,
-    custom_retail_price: 3650.0,
+    custom_retail_price: null,
+    partner_profit: 280.0,
     stock_qty: 18,
     is_active: true,
     is_featured: true,
@@ -95,7 +96,8 @@ let mockSalerProducts = [
     supplier_name: 'Rajshahi Silk Emporium',
     base_wholesale_price: 950.0,
     default_retail_price: 1250.0,
-    custom_retail_price: 1350.0,
+    custom_retail_price: null,
+    partner_profit: 120.0,
     stock_qty: 32,
     is_active: true,
     is_featured: true,
@@ -113,7 +115,8 @@ let mockSalerProducts = [
     supplier_name: 'Dhakai Heritage Weavers Ltd.',
     base_wholesale_price: 1100.0,
     default_retail_price: 1450.0,
-    custom_retail_price: 1450.0,
+    custom_retail_price: null,
+    partner_profit: 110.0,
     stock_qty: 12,
     is_active: true,
     is_featured: false,
@@ -131,7 +134,8 @@ let mockSalerProducts = [
     supplier_name: 'Walton Hi-Tech Industries',
     base_wholesale_price: 31000.0,
     default_retail_price: 36500.0,
-    custom_retail_price: 37200.0,
+    custom_retail_price: null,
+    partner_profit: 1450.0,
     stock_qty: 5,
     is_active: true,
     is_featured: true,
@@ -149,7 +153,8 @@ let mockSalerProducts = [
     supplier_name: 'Dhamrai Metal Crafts',
     base_wholesale_price: 2400.0,
     default_retail_price: 3200.0,
-    custom_retail_price: 3200.0,
+    custom_retail_price: null,
+    partner_profit: 240.0,
     stock_qty: 0,
     is_active: false,
     is_featured: false,
@@ -563,7 +568,7 @@ export default [
               { source: 'Search', percentage: 10, color: '#A855F7' },
             ],
             top_products: [
-              { title_en: "Walton 43-inch 4K Frameless Android Smart TV", units_sold: 22, custom_retail_price: 37200.0, total_margin_earned: 33000.0, stock_qty: 5 },
+              { title_en: "Walton 43-inch 4K Frameless Android Smart TV", units_sold: 22, default_retail_price: 36500.0, total_margin_earned: 33000.0, stock_qty: 5 },
               { title_en: 'Authentic Handloom Dhakai Jamdani Saree', units_sold: 15, default_retail_price: 3650.0, total_margin_earned: 12750.0, stock_qty: 18 },
               { title_en: 'Pure Rajshahi Silk Dupatta / Scarf', units_sold: 60, default_retail_price: 1350.0, total_margin_earned: 24000.0, stock_qty: 32 },
             ],
@@ -986,7 +991,7 @@ export default [
       const prodId = Number(body?.product_id) || 1;
       const prod = mockSalerProducts.find((p) => p.id === prodId || p.product_id === prodId) || mockSalerProducts[0];
       const title = prod ? prod.title_en : 'Featured Product';
-      const price = prod ? (prod.custom_retail_price || prod.default_retail_price || 3500).toFixed(2) : '3500.00';
+      const price = prod ? (prod.default_retail_price || 3500).toFixed(2) : '3500.00';
       const imageUrl = prod ? prod.image_url : '/demo-product.jpg';
       const note = (body?.note || '').trim();
       const content = note ? `${note} — [Product Card: ${title}]` : title;

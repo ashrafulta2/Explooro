@@ -1,14 +1,17 @@
 /**
- * MyProductsPage.js — Shop Partner Curated Store Products & Price Markup Management (Prompt 4.8 / idea §AL.2).
+ * MyProductsPage.js — Shop Partner Curated Store Products (Prompt 4.8 / idea §AL.2).
  *
  * Route: /saler/products
  * Implements:
- * 1. Curated products list with live supplier stock levels and wholesale cost baselines.
- * 2. Inline retail price editor with instant profit margin calculation & floor validation.
+ * 1. Curated products list with live supplier stock levels.
+ * 2. The supplier's fixed price and what one sale adds to the partner reward pool.
  * 3. Product visibility toggle (Active / Hidden on storefront) & Featured pin.
  * 4. 1-Click "Create Social Flyer" deep-link to Social Kit.
- * 5. Search, Category, Stock & Margin sorters.
+ * 5. Search, Category, Stock & pool-share sorters.
  * 6. Quick CTA to Sourcing Catalog (/saler/sourcing).
+ *
+ * WHY no price editor or profit column: since migration 085 the supplier sets the price and partners
+ * are paid monthly from the reward pool by score, so a partner has no price to set and no per-sale profit.
  */
 
 import { salerApi } from '../../services/saler.api.js';
@@ -37,7 +40,7 @@ export default function MyProductsPage(root, { navigate } = {}) {
   let searchQuery = '';
   let selectedCategory = 'all';
   let stockFilter = 'all';
-  let sortBy = 'margin_desc';
+  let sortBy = 'pool_desc';
   let unsubscribeLang = null;
 
   function render() {
@@ -99,14 +102,6 @@ export default function MyProductsPage(root, { navigate } = {}) {
         <div class="saler-kpi-card__value text-danger">${summary.out_of_stock_count || products.filter(p => p.stock_qty === 0).length}</div>
         <div class="saler-kpi-card__subtext">${isBn ? 'সাপ্লায়ার স্টক খালি' : 'Needs catalog swap'}</div>
       </div>
-      <div class="saler-kpi-card">
-        <div class="saler-kpi-card__header">
-          <span>${t('saler_products.kpi_avg_margin')}</span>
-          <span>💰</span>
-        </div>
-        <div class="saler-kpi-card__value saler-kpi-card__value--profit">${summary.avg_margin_pct || '24.5'}%</div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'গড় নিট প্রফিট রেট' : 'Per delivered sale'}</div>
-      </div>
     `;
     container.append(kpiGrid);
 
@@ -137,7 +132,7 @@ export default function MyProductsPage(root, { navigate } = {}) {
           <option value="in_stock">${t('saler_products.filter_in_stock_only')}</option>
         </select>
         <select id="sort-filter" class="select select--sm" aria-label="${t('saler_products.sort_label', 'Sort products')}">
-          <option value="margin_desc">${t('saler_products.sort_margin_desc')}</option>
+          <option value="pool_desc">${t('saler_products.sort_pool_desc')}</option>
           <option value="price_asc">${t('saler_products.sort_price_asc')}</option>
           <option value="price_desc">${t('saler_products.sort_price_desc')}</option>
           <option value="newest">${t('saler_products.sort_newest')}</option>
@@ -218,16 +213,12 @@ export default function MyProductsPage(root, { navigate } = {}) {
       );
     }
 
-    if (sortBy === 'margin_desc') {
-      filtered.sort((a, b) => {
-        const marginA = (a.custom_retail_price || a.default_retail_price) - a.base_wholesale_price;
-        const marginB = (b.custom_retail_price || b.default_retail_price) - b.base_wholesale_price;
-        return marginB - marginA;
-      });
+    if (sortBy === 'pool_desc') {
+      filtered.sort((a, b) => Number(b.partner_profit || 0) - Number(a.partner_profit || 0));
     } else if (sortBy === 'price_asc') {
-      filtered.sort((a, b) => (a.custom_retail_price || a.default_retail_price) - (b.custom_retail_price || b.default_retail_price));
+      filtered.sort((a, b) => a.default_retail_price - b.default_retail_price);
     } else if (sortBy === 'price_desc') {
-      filtered.sort((a, b) => (b.custom_retail_price || b.default_retail_price) - (a.custom_retail_price || a.default_retail_price));
+      filtered.sort((a, b) => b.default_retail_price - a.default_retail_price);
     }
 
     if (filtered.length === 0) {
@@ -254,9 +245,8 @@ export default function MyProductsPage(root, { navigate } = {}) {
         <tr>
           <th>${t('saler_products.th_product')}</th>
           <th>${t('saler_products.th_category')}</th>
-          <th>${t('saler_products.th_wholesale_price')}</th>
           <th>${t('saler_products.th_retail_price')}</th>
-          <th>${t('saler_products.th_unit_margin')}</th>
+          <th>${t('saler_products.th_pool_share')}</th>
           <th>${t('saler_products.th_stock')}</th>
           <th>${t('saler_products.th_status')}</th>
           <th class="text-right">${t('saler_products.th_actions')}</th>
@@ -268,24 +258,8 @@ export default function MyProductsPage(root, { navigate } = {}) {
     const tbody = table.querySelector('tbody');
 
     filtered.forEach((p) => {
-      const wholesale = Number(p.base_wholesale_price || 0);
-      const minPrice = Number(p.min_retail_price || (wholesale > 0 ? Math.round(wholesale * 1.1) : 0));
-      const defaultPrice = Number(p.default_retail_price || (wholesale > 0 ? Math.round(wholesale * 1.3) : minPrice));
-      const retail = Number(p.custom_retail_price || defaultPrice || minPrice);
-
-      let salerProfit = 0;
-      if (wholesale > 0) {
-        const salerDefProfit = wholesale * 0.2;
-        if (retail < defaultPrice) {
-          salerProfit = Math.max(0, retail - minPrice);
-        } else {
-          const extra = retail - defaultPrice;
-          salerProfit = salerDefProfit + (extra * 0.8);
-        }
-      } else {
-        salerProfit = Math.max(0, retail - minPrice);
-      }
-      const marginPct = retail > 0 ? ((salerProfit / retail) * 100).toFixed(1) : 0;
+      const retail = Number(p.default_retail_price || 0);
+      const poolShare = Number(p.partner_profit || 0);
       const title = isBn ? (p.title_bn || p.title_en) : p.title_en;
 
       const tr = document.createElement('tr');
@@ -302,30 +276,12 @@ export default function MyProductsPage(root, { navigate } = {}) {
         <td>
           <span class="badge badge--neutral text-xs">${p.category}</span>
         </td>
-        <td class="font-mono text-sm font-semibold text-muted" title="${isBn ? 'সর্বনিম্ন বিক্রয় ফ্লোর' : 'Minimum Selling Floor'}">
-          ${formatCurrency(minPrice)}
+        <td class="font-mono text-sm font-semibold" title="${t('saler_products.price_locked_hint')}">
+          ${formatCurrency(retail)}
         </td>
         <td>
-          <div class="saler-price-edit-box">
-            <span>৳</span>
-            <input
-              type="number"
-              class="saler-price-edit-input"
-              aria-label="${t('saler_products.retail_price_label', 'Retail price')}: ${title}"
-              value="${retail}"
-              min="${minPrice}"
-              data-id="${p.id}"
-            />
-            <button class="btn-save-price text-xs text-primary hover:underline font-bold" data-id="${p.id}">
-              ✓
-            </button>
-          </div>
-        </td>
-        <td>
-          <div class="font-mono text-sm font-bold text-emerald-600">
-            +${formatCurrency(salerProfit)}
-          </div>
-          <div class="text-[10px] text-muted font-mono">${marginPct}% profit</div>
+          <div class="font-mono text-sm font-bold text-emerald-600">+${formatCurrency(poolShare)}</div>
+          <div class="text-[10px] text-muted">${t('saler_products.pool_share_hint')}</div>
         </td>
         <td>
           ${
@@ -352,26 +308,6 @@ export default function MyProductsPage(root, { navigate } = {}) {
           </div>
         </td>
       `;
-
-      // Save price handler
-      const priceInput = tr.querySelector('.saler-price-edit-input');
-      const savePriceBtn = tr.querySelector('.btn-save-price');
-      savePriceBtn.onclick = async () => {
-        const newPrice = Number(priceInput.value);
-        if (newPrice < wholesale) {
-          toast.error(t('saler_products.toast_price_invalid', { min: wholesale }));
-          priceInput.value = retail;
-          return;
-        }
-        try {
-          await salerApi.updateProduct(p.id, { custom_retail_price: newPrice });
-          p.custom_retail_price = newPrice;
-          toast.success(t('saler_products.toast_price_updated'));
-          renderTableBody();
-        } catch (err) {
-          toast.error(err.message || 'Failed to update price');
-        }
-      };
 
       // Toggle active handler
       const toggleBtn = tr.querySelector('.btn-toggle-active');

@@ -219,7 +219,7 @@ export async function lockProductsAndVariants(client, lineItems: any[]) {
   let lockedProducts = [];
   if (productIds.length > 0) {
     const { rows } = await client.query(
-      `SELECT id, ref, title_en, title_bn, slug, status, base_cost, wholesale_margin, default_retail_price, stock_qty, supplier_id, category_id
+      `SELECT id, ref, title_en, title_bn, slug, status, base_cost, wholesale_margin, default_retail_price, partner_profit, stock_qty, supplier_id, category_id
        FROM products
        WHERE id = ANY($1::bigint[])
        ORDER BY id ASC

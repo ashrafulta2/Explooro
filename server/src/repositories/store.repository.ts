@@ -282,13 +282,11 @@ export async function batchUpdateStoreItems(db, storeId, items) {
         `UPDATE saler_store_items
          SET display_order = $1,
              collection_name = $2,
-             custom_retail_price = COALESCE($3, custom_retail_price),
-             is_active = COALESCE($4, is_active)
-         WHERE store_id = $5 AND product_id = $6`,
+             is_active = COALESCE($3, is_active)
+         WHERE store_id = $4 AND product_id = $5`,
         [
           item.display_order ?? 0,
           item.collection_name || 'General',
-          item.custom_retail_price !== undefined ? item.custom_retail_price : null,
           item.is_active !== undefined ? item.is_active : true,
           storeId,
           item.product_id,

@@ -44,6 +44,8 @@ const ERROR_STATUS = {
   RATE_LIMITED: 429,
   // 3.4 Commerce & finance — 409 / 422
   INSUFFICIENT_STOCK: 409,
+  // Migration 085: the supplier sets every price; a shop partner sending one is refused, never ignored.
+  PRICE_LOCKED: 422,
   // Live stream commerce: these were thrown by liveStream.service.ts but unmapped, so a bad stream or
   // product id answered 500 INTERNAL_ERROR. Found by an end-to-end run against the dev database.
   STREAM_NOT_FOUND: 404,

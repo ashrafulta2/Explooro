@@ -9,6 +9,7 @@ import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin, { AppError } from '../src/plugins/errorHandler.ts';
 import productRoutes from '../src/routes/product.routes.ts';
 import {
+  assertPartnerProfitFits,
   calculatePricingBreakdown,
   resolveSplitPercentages,
 } from '../src/services/pricing.service.ts';
@@ -263,8 +264,8 @@ function createMockDb() {
           store_id: params[0],
           saler_id: params[1],
           product_id: params[2],
-          custom_retail_price: params[3],
-          collection_name: params[4],
+          custom_retail_price: null,
+          collection_name: params[3],
           is_active: true,
         };
         storeItems.push(item);
@@ -716,7 +717,7 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
     });
   });
 
-  test('Shop Partner add-to-store endpoint sets custom retail price and calculates shop partner profit', async () => {
+  test('Shop Partner add-to-store endpoint keeps the supplier price and refuses a partner price (migration 085)', async () => {
     const salerApp = Fastify({ logger: false });
     salerApp.decorate('db', mockDb);
     salerApp.addHook('onRequest', (req, reply, done) => {
@@ -735,25 +736,61 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
     await salerApp.register(productRoutes, { prefix: '/api/v1' });
     await salerApp.ready();
 
+    // A partner's own price is refused out loud, never silently dropped.
+    const priced = await salerApp.inject({
+      method: 'POST',
+      url: '/api/v1/sourcing/add-to-store',
+      payload: { product_id: 1, custom_retail_price: 850, collection_name: 'Eid Special 2026' },
+    });
+    assert.equal(priced.statusCode, 422);
+    assert.equal(priced.json().error.code, 'PRICE_LOCKED');
+
     const res = await salerApp.inject({
       method: 'POST',
       url: '/api/v1/sourcing/add-to-store',
-      payload: {
-        product_id: 1,
-        custom_retail_price: 850,
-        collection_name: 'Eid Special 2026',
-      },
+      payload: { product_id: 1, collection_name: 'Eid Special 2026' },
     });
 
     assert.equal(res.statusCode, 201);
     const body = res.json();
-    assert.equal(body.item.custom_retail_price, 850);
+    assert.equal(body.item.custom_retail_price, null);
     assert.equal(body.item.collection_name, 'Eid Special 2026');
-    // Retail 850, wholesale cost 500 -> margin 350 -> saler earning calculated
-    assert.equal(body.item.pricing.retail_price, 850.0);
-    assert.equal(body.item.pricing.net_retail_margin, 350.0);
+    // The supplier's price (an earlier test edits it), never the 850 the partner asked for
+    const product = mockDb.products.find((p) => p.id === 1);
+    assert.equal(body.item.pricing.retail_price, Number(product.default_retail_price));
+    assert.equal(body.item.pricing.net_retail_margin, Number(product.default_retail_price) - 500);
 
     await salerApp.close();
+  });
+
+  test('Split mode: the supplier-set partner profit replaces the split and is capped at the margin', () => {
+    const byProfit = calculatePricingBreakdown({ baseCost: 500, retailPrice: 700, salerSplitPct: 40, partnerProfit: 50 });
+    assert.equal(byProfit.saler_earning, 50);
+    assert.equal(byProfit.platform_earning, 150);
+    assert.equal(byProfit.paisa.saler_earning + byProfit.paisa.platform_earning, byProfit.paisa.net_retail_margin);
+
+    // A live stream's special price can squeeze the margin below the stored figure: capped, never negative.
+    const squeezed = calculatePricingBreakdown({ baseCost: 500, retailPrice: 530, partnerProfit: 50 });
+    assert.equal(squeezed.saler_earning, 30);
+    assert.equal(squeezed.platform_earning, 0);
+
+    // No partner profit given: the old split still applies (bundles, previews).
+    const bySplit = calculatePricingBreakdown({ baseCost: 500, retailPrice: 700, salerSplitPct: 40 });
+    assert.equal(bySplit.saler_earning, 80);
+  });
+
+  test('assertPartnerProfitFits keeps the platform floor (platform_default_profit_pct of wholesale cost)', async () => {
+    const db = { query: async () => ({ rows: [{ value_json: { platform_default_profit_pct: 10 } }] }) };
+    // Wholesale 500, floor 50, retail 700 -> at most 150 for the partner pool
+    assert.equal(await assertPartnerProfitFits(db, { baseCost: 500, retailPrice: 700, partnerProfit: 150 }), 150);
+    await assert.rejects(
+      () => assertPartnerProfitFits(db, { baseCost: 500, retailPrice: 700, partnerProfit: 150.01 }),
+      (err) => err.code === 'VALIDATION_FAILED'
+    );
+    await assert.rejects(
+      () => assertPartnerProfitFits(db, { baseCost: 500, retailPrice: 700, partnerProfit: -1 }),
+      (err) => err.code === 'VALIDATION_FAILED'
+    );
   });
 
   test('Tiered Mode: Base 1000, 10% platform, 20% saler, 20% extra markup split', () => {

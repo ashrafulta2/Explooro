@@ -918,6 +918,11 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           <label class="catalog-form-label">${t('admin_catalog.field_margin', 'Shop Partner Margin %')} *</label>
           <input type="number" name="margin_pct" class="catalog-form-input" aria-label="20" placeholder="20" value="20" required />
         </div>
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="add-partner-profit">${t('admin_catalog.field_partner_profit')}</label>
+          <input type="number" step="0.01" min="0" id="add-partner-profit" name="partner_profit" class="catalog-form-input" placeholder="0.00" />
+          <span class="catalog-form-hint">${t('admin_catalog.field_partner_profit_hint')}</span>
+        </div>
       </div>
 
       <div class="catalog-form-group" data-slot="images">
@@ -1018,6 +1023,8 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           base_cost: baseCost,
           wholesale_margin: 0,
           default_retail_price: price,
+          // Empty = let the server start it at what the global split used to pay (product.service.ts).
+          partner_profit: formData.get('partner_profit')?.toString().trim() ? parseFloat(formData.get('partner_profit').toString()) : undefined,
           stock_qty: parseInt(formData.get('stock')?.toString() || '0', 10),
           media_ids: mediaIds,
         };
@@ -1105,6 +1112,11 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           <label class="catalog-form-label" for="edit-margin">${t('admin_catalog.field_margin', 'Shop Partner Margin %')} *</label>
           <input type="number" step="0.01" id="edit-margin" name="margin_pct" class="catalog-form-input" required />
         </div>
+        <div class="catalog-form-group">
+          <label class="catalog-form-label" for="edit-partner-profit">${t('admin_catalog.field_partner_profit')}</label>
+          <input type="number" step="0.01" min="0" id="edit-partner-profit" name="partner_profit" class="catalog-form-input" />
+          <span class="catalog-form-hint">${t('admin_catalog.field_partner_profit_hint')}</span>
+        </div>
       </div>
 
       <div class="catalog-form-group" data-slot="images">
@@ -1144,6 +1156,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       field('price').value = retailOf(p) ? retailOf(p).toFixed(2) : '';
       field('stock').value = p.stock_qty ?? p.stock ?? 0;
       field('margin_pct').value = marginOf(p);
+      field('partner_profit').value = p.partner_profit != null ? Number(p.partner_profit).toFixed(2) : '';
       field('description_en').value = p.description_en || '';
       field('description_bn').value = p.description_bn || '';
     };
@@ -1273,6 +1286,12 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           payload.base_cost = Math.max(0, Math.round((price * (1 - marginPct / 100) - wholesale) * 100) / 100);
           payload.wholesale_margin = wholesale;
           payload.default_retail_price = price;
+        }
+
+        // Sent only when it moved, for the same no-nudge reason as the cost fields above.
+        const partnerProfitRaw = str('partner_profit');
+        if (partnerProfitRaw !== '' && Number(partnerProfitRaw) !== Number(detail.partner_profit ?? NaN)) {
+          payload.partner_profit = parseFloat(partnerProfitRaw);
         }
 
         // A synthesized mock photo has no media id; if it's still the only photo, leave photos alone.

@@ -21,6 +21,7 @@ export async function insertProduct(
     wholesaleMargin = 0,
     defaultRetailPrice,
     minRetailPrice = null,
+    partnerProfit = 0,
     stockQty = 0,
     lowStockThreshold = 5,
     weightGrams = null,
@@ -34,8 +35,8 @@ export async function insertProduct(
        (ref, supplier_id, category_id, slug, title_en, title_bn, description_en,
         description_bn, brand, base_cost, wholesale_margin, default_retail_price,
         min_retail_price, stock_qty, low_stock_threshold, weight_grams,
-        has_variants, warranty_months, status, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, now())
+        has_variants, warranty_months, status, partner_profit, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, now())
      RETURNING *`,
     [
       ref,
@@ -57,6 +58,7 @@ export async function insertProduct(
       hasVariants,
       warrantyMonths,
       status,
+      partnerProfit,
     ]
   );
   return rows[0];
@@ -77,6 +79,7 @@ export async function updateProduct(db, id, fields: Record<string, any> = {}) {
     wholesale_margin: 'wholesale_margin',
     default_retail_price: 'default_retail_price',
     min_retail_price: 'min_retail_price',
+    partner_profit: 'partner_profit',
     stock_qty: 'stock_qty',
     low_stock_threshold: 'low_stock_threshold',
     weight_grams: 'weight_grams',
@@ -593,16 +596,16 @@ export async function createVirtualStore(db, { salerId, ref, slug, shopName, bio
   return rows[0];
 }
 
-export async function upsertSalerStoreItem(db, { storeId, salerId, productId, customRetailPrice, collectionName }) {
+// WHY no price column: migration 085 keeps saler_store_items.custom_retail_price NULL (the supplier sets prices).
+export async function upsertSalerStoreItem(db, { storeId, salerId, productId, collectionName }) {
   const { rows } = await db.query(
-    `INSERT INTO saler_store_items (store_id, saler_id, product_id, custom_retail_price, collection_name, added_at)
-     VALUES ($1, $2, $3, $4, $5, now())
+    `INSERT INTO saler_store_items (store_id, saler_id, product_id, collection_name, added_at)
+     VALUES ($1, $2, $3, $4, now())
      ON CONFLICT (store_id, product_id) DO UPDATE
-     SET custom_retail_price = EXCLUDED.custom_retail_price,
-         collection_name = EXCLUDED.collection_name,
+     SET collection_name = EXCLUDED.collection_name,
          is_active = true
      RETURNING *`,
-    [storeId, salerId, productId, customRetailPrice, collectionName]
+    [storeId, salerId, productId, collectionName]
   );
   return rows[0];
 }
@@ -611,7 +614,7 @@ export async function listSalerStoreItems(db, storeId) {
   const { rows } = await db.query(
     `SELECT ssi.*,
             p.ref as product_ref, p.slug as product_slug, p.title_en, p.title_bn,
-            p.base_cost, p.wholesale_margin, p.default_retail_price, p.stock_qty,
+            p.base_cost, p.wholesale_margin, p.default_retail_price, p.partner_profit, p.stock_qty,
             c.name_en as category_name_en, c.name_bn as category_name_bn
      FROM saler_store_items ssi
      JOIN products p ON p.id = ssi.product_id

@@ -62,6 +62,30 @@ export async function resolveClearingWalletId(txClient) {
   return rows[0].id;
 }
 
+export const PARTNER_REWARD_POOL_KEY = 'PARTNER_REWARD_POOL';
+
+/**
+ * The partner reward pool wallet (migration 085): where every sale's partner share is escrowed.
+ *
+ * WHY a wallet and not a counter: the share then rides the same escrow as the supplier's and the
+ * platform's, so a refund, dispute or return claws it back out of the pool by the existing code, and
+ * the monthly reward job pays partners from real, released money. Nobody withdraws from it directly.
+ */
+export async function resolvePartnerPoolWalletId(txClient) {
+  const found = await txClient.query(`SELECT id FROM wallets WHERE system_key = $1`, [PARTNER_REWARD_POOL_KEY]);
+  if (found.rows[0]) return found.rows[0].id;
+  // Migration 085 creates it; this only covers a database where that row was removed by hand.
+  await txClient.query(
+    `INSERT INTO wallets (user_id, system_key, available_balance, pending_escrow_balance, held_balance,
+                          lifetime_earned, lifetime_withdrawn, currency, version)
+     VALUES (NULL, $1, 0.00, 0.00, 0.00, 0.00, 0.00, 'BDT', 0)
+     ON CONFLICT (system_key) DO NOTHING`,
+    [PARTNER_REWARD_POOL_KEY]
+  );
+  const { rows } = await txClient.query(`SELECT id FROM wallets WHERE system_key = $1`, [PARTNER_REWARD_POOL_KEY]);
+  return rows[0].id;
+}
+
 /**
  * Deposits sub-order funds into escrow, locking them into pending_escrow_balance.
  *
@@ -171,9 +195,11 @@ export async function depositToEscrow(db: import('pg').Pool, {
       const w = await walletRepo.getOrCreateWallet(db, supplierId, { client: txClient });
       resolvedSupplierWalletId = w.id;
     }
+    // WHY the pool, not the partner: since migration 085 a partner is paid monthly by score, so the share a
+    // partner's sale brings is escrowed to the reward pool. The SALER role on the escrow row still marks
+    // it as the partner share, which is what the clawback and return paths key on.
     if (!resolvedSalerWalletId && salerId) {
-      const w = await walletRepo.getOrCreateWallet(db, salerId, { client: txClient });
-      resolvedSalerWalletId = w.id;
+      resolvedSalerWalletId = await resolvePartnerPoolWalletId(txClient);
     }
     if (!resolvedPlatformWalletId) {
       resolvedPlatformWalletId = await resolvePlatformWalletId(db, txClient);

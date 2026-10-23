@@ -6,6 +6,7 @@ import * as storeRepo from '../repositories/store.repository.ts';
 import { isReservedStoreSlug } from '../config/reservedSlugs.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { withAvailableStock } from './teamStockReservation.service.ts';
+import { assertNoPartnerPrice } from './product.service.ts';
 
 export const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -387,6 +388,7 @@ export async function updateShelves(db, salerId, items) {
     throw new AppError('NOT_FOUND', 'Store not found.', 'দোকান পাওয়া যায়নি।');
   }
 
+  for (const item of items || []) assertNoPartnerPrice(item?.custom_retail_price);
   await storeRepo.batchUpdateStoreItems(db, store.id, items || []);
   return { success: true };
 }

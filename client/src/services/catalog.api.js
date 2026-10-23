@@ -233,12 +233,12 @@ export async function listSourcingCatalog(filters = {}) {
 // Sponsored Sourcing Slot: see services/sponsoredSourcing.js (fetch + billable-event beacons).
 
 /**
- * Shop Partner adds a product to their virtual storefront with optional custom retail price.
+ * Shop Partner adds a product to their virtual storefront. The supplier's price applies (migration 085),
+ * so no price is sent; the server answers 422 PRICE_LOCKED if one is.
  */
-export async function addToSalerStore({ productId, customRetailPrice, collectionName }) {
+export async function addToSalerStore({ productId, collectionName }) {
   const payload = {
     product_id: productId,
-    custom_retail_price: customRetailPrice !== undefined && customRetailPrice !== '' ? Number(customRetailPrice) : undefined,
     collection_name: collectionName || 'General',
   };
   const { data } = await api.post('/sourcing/add-to-store', payload);
