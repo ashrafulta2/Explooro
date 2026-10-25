@@ -12,7 +12,7 @@ import { toast } from './toast.js';
 import { t } from './i18n.js';
 import { track } from './signals.js';
 import { knownDeliveryCharge, loadDeliveryCharge } from './deliveryCharge.js';
-import { currentTouch } from './attribution.js';
+import { currentTouch } from './attribution.ts';
 
 const GUEST_CART_STORAGE_KEY = 'explooro_guest_cart';
 

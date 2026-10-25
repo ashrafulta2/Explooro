@@ -39,6 +39,10 @@ jobs:
       - name: Typecheck (server)
         run: npm run typecheck --workspace server
 
+      # The client started the same move on 2026-10-25; Vite strips its types without checking them.
+      - name: Typecheck (client)
+        run: npm run typecheck --workspace client
+
       - name: Test (client + server)
         run: npm test
 

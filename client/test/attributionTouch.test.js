@@ -1,5 +1,5 @@
 /**
- * attributionTouch.test.js — captureTouchFromQuery in services/attribution.js.
+ * attributionTouch.test.js — captureTouchFromQuery in services/attribution.ts.
  *
  * A shop partner's sponsored ad lands on /product/:id?store=<slug> (server adDestination.service.ts),
  * so `store` must become a STORE touch, or the partner who paid for the ad is never credited.
@@ -15,7 +15,7 @@ globalThis.localStorage = {
   removeItem: (k) => store.delete(k),
 };
 
-const { captureTouchFromQuery, currentTouch } = await import('../src/services/attribution.js');
+const { captureTouchFromQuery, currentTouch } = await import('../src/services/attribution.ts');
 
 describe('captureTouchFromQuery', () => {
   beforeEach(() => store.clear());

@@ -11,7 +11,7 @@ import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
 import { api } from '../../core/api.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { escapeHtml } from '../../services/html.js';
+import { escapeHtml } from '../../services/html.ts';
 
 export async function checkAndShowWhatsNew() {
   const isBn = getLanguage() === 'bn';

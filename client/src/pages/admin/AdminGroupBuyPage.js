@@ -18,7 +18,7 @@ import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
-import { escapeHtml } from '../../services/html.js';
+import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 const STATUS_BADGE = {

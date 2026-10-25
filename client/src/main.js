@@ -14,7 +14,7 @@ import './styles/main.css';
 
 // Prompt 1.5 — router, store, api-client.
 import { createRouter } from './core/router.js';
-import { captureTouchFromQuery } from './services/attribution.js';
+import { captureTouchFromQuery } from './services/attribution.ts';
 import { installPageInfo } from './services/pageInfo.js';
 import { appStore } from './state/appStore.js';
 
@@ -2148,7 +2148,7 @@ async function bootRouterDemo() {
     },
     // Keeps Sidebar/MobileNav's active-item highlight correct after every navigation and scans DOM module gates
     beforeEach: ({ query }) => {
-      // A page opened through a shop partner's short link carries ?ref=<code> (services/attribution.js).
+      // A page opened through a shop partner's short link carries ?ref=<code> (services/attribution.ts).
       captureTouchFromQuery(query);
       appShell.render();
       scanDomForModuleGates();

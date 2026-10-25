@@ -19,7 +19,7 @@ import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatRelativeTime, formatCurrency, formatPhone, formatNumber } from '../../services/format.js';
-import { escapeHtml as esc } from '../../services/html.js';
+import { escapeHtml as esc } from '../../services/html.ts';
 import { ICONS } from '../../components/ui/icons.js';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
 import { describeScope } from '../../config/grant-scopes.js';

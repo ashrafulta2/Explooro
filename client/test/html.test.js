@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { escapeHtml } from '../src/services/html.js';
+import { escapeHtml } from '../src/services/html.ts';
 
 describe('escapeHtml', () => {
   it('neutralises markup and quote characters', () => {

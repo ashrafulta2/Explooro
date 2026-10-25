@@ -1,5 +1,5 @@
 /**
- * attribution.js — remembers which shop partner sent this shopper here, so their sale credits them.
+ * attribution.ts — remembers which shop partner sent this shopper here, so their sale credits them.
  *
  * A "touch" is the last storefront the shopper visited (`STORE`, by slug) or the last tracked
  * short link they opened (`LINK`, by code, arriving as `?ref=<code>`). The latest touch wins. It is
@@ -16,7 +16,16 @@ const STORAGE_KEY = 'explooro.attribution';
 // Mirrors the server's bound (attribution.service.ts MAX_REF_LENGTH); a longer ref is not ours.
 const MAX_REF_LENGTH = 120;
 
-function save(touch) {
+export type TouchType = 'STORE' | 'LINK';
+
+export interface Touch {
+  type: TouchType;
+  ref: string;
+  /** ISO time the touch was recorded; '' for a stored touch that lost it. */
+  at: string;
+}
+
+function save(touch: Touch): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(touch));
   } catch {
@@ -25,7 +34,7 @@ function save(touch) {
 }
 
 /** Records a touch now. Ignores anything that is not a plausible slug or code. */
-export function recordTouch(type, ref) {
+export function recordTouch(type: TouchType, ref: unknown): void {
   if (type !== 'STORE' && type !== 'LINK') return;
   const clean = String(ref || '').trim().toLowerCase();
   if (!clean || clean.length > MAX_REF_LENGTH) return;
@@ -33,7 +42,7 @@ export function recordTouch(type, ref) {
 }
 
 /** The latest touch, or null. */
-export function currentTouch() {
+export function currentTouch(): Touch | null {
   try {
     const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (!raw || (raw.type !== 'STORE' && raw.type !== 'LINK') || typeof raw.ref !== 'string') return null;
@@ -48,7 +57,7 @@ export function currentTouch() {
  * partner's sponsored ad lands on `/product/:id?store=<slug>` (server adDestination.service.ts).
  * A link wins over a store when both are present, since it is the more specific promotion.
  */
-export function captureTouchFromQuery(query) {
+export function captureTouchFromQuery(query: Record<string, unknown> | null | undefined): void {
   const code = query?.ref;
   if (typeof code === 'string' && code) {
     recordTouch('LINK', code);

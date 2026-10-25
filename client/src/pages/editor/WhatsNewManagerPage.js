@@ -12,7 +12,7 @@ import { toast } from '../../services/toast.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { EmptyState } from '../../components/ui/EmptyState.js';
 import { formatDate } from '../../services/format.js';
-import { escapeHtml } from '../../services/html.js';
+import { escapeHtml } from '../../services/html.ts';
 import { pickMessage } from '../../core/api.js';
 
 // Same cap as HIGHLIGHT_LIMITS.maxItems in server/src/services/content.service.ts.

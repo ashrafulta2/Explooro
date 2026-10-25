@@ -1,5 +1,5 @@
 /**
- * writeOutcome.js — what the reply to an admin write means.
+ * writeOutcome.ts — what the reply to an admin write means.
  *
  * core/api.js resolves a 202 "deferred" reply as `{ deferred }` instead of throwing. That is not an
  * error, but it is not a change either: requirePermission parks a delegated Admin's HIGH-tier request
@@ -13,7 +13,23 @@
  * Kept free of DOM and CSS imports so it runs under `node --test`.
  */
 
-export function describeWriteOutcome(res, { bn = false, fallback = '', deferredFallback = '' } = {}) {
+interface LocalizedMessage {
+  message_en?: string;
+  message_bn?: string;
+}
+
+/** What core/api.js resolves an admin write to: the body itself, or `{ deferred }` for a 202. */
+export type WriteReply = (LocalizedMessage & { deferred?: LocalizedMessage }) | null | undefined;
+
+export interface WriteOutcome {
+  deferred: boolean;
+  message: string;
+}
+
+export function describeWriteOutcome(
+  res: WriteReply,
+  { bn = false, fallback = '', deferredFallback = '' }: { bn?: boolean; fallback?: string; deferredFallback?: string } = {},
+): WriteOutcome {
   if (res?.deferred) {
     const d = res.deferred;
     return { deferred: true, message: (bn ? d.message_bn : d.message_en) || deferredFallback };

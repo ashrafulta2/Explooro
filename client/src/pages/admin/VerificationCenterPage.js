@@ -13,7 +13,7 @@
 import { api, pickMessage } from '../../core/api.js';
 import { formatDate, formatNumber } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
-import { escapeHtml as esc } from '../../services/html.js';
+import { escapeHtml as esc } from '../../services/html.ts';
 import { ICONS } from '../../components/ui/icons.js';
 import { toast } from '../../services/toast.js';
 import '../../styles/components/admin-access.css';

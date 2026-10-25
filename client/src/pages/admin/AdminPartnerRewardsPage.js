@@ -20,7 +20,7 @@ import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber, formatRelativeTime } from '../../services/format.js';
-import { escapeHtml } from '../../services/html.js';
+import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 import { FACTOR_ORDER, monthLabel } from '../../components/saler/PartnerRewardCard.js';
 

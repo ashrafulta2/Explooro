@@ -119,7 +119,9 @@ These are enforced across every prompt, not stylistic suggestions:
 
 - **Monorepo**: npm workspaces, `client` + `server`. `mobile/` (Flutter, Phase 12) is a separate,
   unrelated toolchain — don't run npm commands there.
-- **`client/`** — Vite + vanilla modern CSS + modular ESM. Solid, high-contrast, zero-gradient
+- **`client/`** — Vite + vanilla modern CSS + modular ESM, moving from `.js` to `.ts` file by file
+  since 2026-10-25 (`npm run typecheck --workspace client`; see
+  [`docs/typescript-migration.md`](docs/typescript-migration.md) §Client). Solid, high-contrast, zero-gradient
   commerce aesthetic (Amazon/Alibaba/Daraz-like) — glassmorphism only permitted on transient
   overlays (modal scrims, command palette backdrop), never on cards/navbars/tables/product surfaces.
   Design tokens as CSS custom properties; no raw hex in component CSS. i18n is a native JSON

@@ -19,7 +19,7 @@ import { api } from '../../core/api.js';
 import { wsManager } from '../../services/websocket.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
-import { escapeHtml as esc } from '../../services/html.js';
+import { escapeHtml as esc } from '../../services/html.ts';
 import { toast } from '../../services/toast.js';
 
 const ICON_CHAT =

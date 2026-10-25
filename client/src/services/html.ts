@@ -1,5 +1,5 @@
 /**
- * html.js — escaping for the pages that still assemble markup as one `innerHTML` string.
+ * html.ts — escaping for the pages that still assemble markup as one `innerHTML` string.
  *
  * WHY a shared helper: the access-governance pages (grants, restrictions, approvals, KYC) interpolate
  * operator- and applicant-typed text — a grant's justification, a sanction reason, a submitted
@@ -8,9 +8,9 @@
  * those pages used to carry no escaping at all; StaffPage and friends each grew a private copy.
  */
 
-const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const ENTITIES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 
 /** Escapes `value` for use in HTML text or a quoted attribute. `null`/`undefined` become ''. */
-export function escapeHtml(value) {
+export function escapeHtml(value: unknown): string {
   return String(value ?? '').replace(/[&<>"']/g, (ch) => ENTITIES[ch]);
 }

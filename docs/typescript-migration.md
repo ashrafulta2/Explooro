@@ -1,7 +1,8 @@
-# TypeScript migration (server)
+# TypeScript migration (server, then client)
 
 Started 2026-10-15 at the owner's request: move the server from `.js` to `.ts` **step by step,
-without ever leaving it in a broken state**. The client is not part of this yet.
+without ever leaving it in a broken state**. The server is done. The client started on 2026-10-25,
+also at the owner's request; see [Client](#client) at the end.
 
 ## How it runs (no build step)
 
@@ -103,3 +104,47 @@ NOTHING`, but a seed row deleted by hand comes back), a co-visitation rebuild (d
 job rebuilds anyway) and a read-only metrics report. Check these scripts with the typecheck, the import
 test and the read-only npm scripts (`migrate:status`, `check:sql`, `reco:metrics`), never by importing
 them.
+
+## Client
+
+Started 2026-10-25. Same rule as the server: a few files per step, every check green before a commit.
+Nothing changes for the browser: Vite strips the types when it bundles (so the 150 KB JS budget is
+unaffected), and `client/package.json` `dependencies` stays `{}` because `typescript` is a root dev
+tool only.
+
+### How it runs
+
+- `npm run dev`, `npm run build` and `npm test` are unchanged. Vite serves and bundles `.ts`
+  directly; `node --test` loads a `.ts` module by stripping its types (Node >= 22.18).
+- `npm run typecheck --workspace client` runs `tsc` with `client/tsconfig.json`: the server's switches
+  (`erasableSyntaxOnly`, `verbatimModuleSyntax`, `allowImportingTsExtensions`, `strict` off), plus
+  the DOM libraries and `vite/client` types (`import.meta.env`). CI runs it next to the server's.
+- Only `src/**/*.ts` is checked. `.js` files stay unchecked until they move.
+
+### Recipe
+
+The server recipe above, with `--client`:
+
+1. `node scripts/ts-migrate.mjs --client src/services/x.js` renames the file and rewrites every
+   relative path to it, in `client/src`, `client/test`, the client's config files, `server/` and the
+   root `scripts/` (the server and the build import some client modules).
+2. Write the types by hand (client files have little JSDoc, so there is nothing to convert).
+3. Fix the remaining mentions of the old name that the script lists.
+4. Checks: `npm run typecheck` for **both** workspaces (the server reads client modules), `npm test`
+   (`client/test/tsMigration.test.js` fails on an import that still names a `.js` file which is now
+   `.ts`; Vite would resolve it, `node --test` would not), `npm run build` (budget gate and
+   prerender), and the app in the browser with the moved modules loaded and no console errors.
+
+Order: leaf modules that the server does not import first (`services/`, `lib/`, `core/`), then the
+components, and the pages last. Files the server imports (`colorRamp.js`, `masterTheme.js`,
+`pageAccess.js` and the others found by `grep -rn "client/src" server/src`) move together with a
+check that the server typecheck and tests still pass. A test that walks a folder and keeps only
+`.js` files must accept `.ts` too (`adminMockContracts.test.js` did, for `mocks/handlers/`).
+
+### Progress
+
+| Step | Date | Files moved to `.ts` | Checks |
+| :--- | :--- | :--- | :--- |
+| 1 | 2026-10-25 | `services/html.ts`, `services/writeOutcome.ts`, `services/attribution.ts` (pilot, plus `client/tsconfig.json`, the `typecheck` script, the CI step, `ts-migrate.mjs --client` and `client/test/tsMigration.test.js`) | typecheck 0 errors (client and server); client 954/954, server 1696/1696; build passes the budget (JS 58.25 KB, CSS 67.54 KB gzip) and prerenders; app on the mock dev server loads both moved modules, records a `?ref=` touch, no console errors |
+
+413 `.js` files remain under `client/src`.

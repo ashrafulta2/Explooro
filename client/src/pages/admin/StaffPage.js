@@ -26,7 +26,7 @@ import { api, pickMessage } from '../../core/api.js';
 import { can } from '../../services/permissions.js';
 import { getCurrentUser } from '../../services/session.js';
 import { toast } from '../../services/toast.js';
-import { describeWriteOutcome } from '../../services/writeOutcome.js';
+import { describeWriteOutcome } from '../../services/writeOutcome.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatNumber, formatPhone, formatRelativeTime, normaliseBdPhone } from '../../services/format.js';
 import '../../styles/components/admin-staff.css';

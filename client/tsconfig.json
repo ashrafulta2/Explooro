@@ -1,0 +1,19 @@
+{
+  "//": "Type checker for the client. Nothing is emitted: Vite strips the types when it bundles, and `node --test` strips them when a test imports a .ts module (Node >= 22.18), so there is no build step and nothing new ships to the browser. The client is moving from .js to .ts file by file (docs/typescript-migration.md); .js files stay unchecked (allowJs, checkJs off) until they move. Same strictness switches as server/tsconfig.json: erasableSyntaxOnly because Node cannot strip enum/namespace/parameter properties, verbatimModuleSyntax so a type-only import says `import type`.",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "strict": false,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*.ts"]
+}

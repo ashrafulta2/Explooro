@@ -163,7 +163,7 @@ describe('Mock routes are not shadowed by a second declaration', () => {
     const seen = new Map();
     const dupes = [];
 
-    for (const file of readdirSync(dir).filter((f) => f.endsWith('.js'))) {
+    for (const file of readdirSync(dir).filter((f) => /\.(js|ts)$/.test(f))) {
       const src = readFileSync(join(dir, file), 'utf8');
       for (const m of src.matchAll(pattern)) {
         const key = `${m[1]} ${m[2]}`;
