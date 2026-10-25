@@ -358,27 +358,19 @@ function AvatarMenu({ role, user, onNavigate }) {
   return wrap;
 }
 
-import { MASTER_PRESETS } from '../../config/master-themes.js';
-import { switchThemePreset, getActivePresetKey, PRESET_SWITCH_PERMISSION } from '../../services/themePalette.js';
-import { toast } from '../../services/toast.js';
-import { can } from '../../services/permissions.js';
-
 // WHY one renderer for two homes: signed-in people reach theme + language from the avatar menu
 // (they change rarely, so they do not earn a permanent topbar slot), while guests have no avatar
 // menu and keep the standalone theme button. Both draw the same controls so they cannot drift.
+// WHY no colour presets here: the long preset list pushed Sign out below the fold of the avatar
+// menu, and a platform colour is changed rarely. Super admins switch it from Theme Studio
+// (sidebar) or the command palette instead.
 function renderThemeControls(panel, { onModeApplied } = {}) {
-  let activePreset = getActivePresetKey();
-  // Everyone keeps Light / Dark / System; the colour presets are the super admin's.
-  const canPresets = can(PRESET_SWITCH_PERMISSION);
-  const menuTitle = canPresets
-    ? t('shell.theme_menu_title') || 'Theme & Presets'
-    : t('shell.theme_menu_title_plain') || 'Theme';
+  const menuTitle = t('shell.theme_menu_title_plain') || 'Theme';
   const updateTriggerIcon = () => onModeApplied?.();
   const renderPanel = () => renderThemeControls(panel, { onModeApplied });
 
   {
     panel.innerHTML = '';
-    const isBn = getLanguage() === 'bn';
     const mode = getTheme();
 
     // Header
@@ -397,7 +389,6 @@ function renderThemeControls(panel, { onModeApplied } = {}) {
     modeRow.style.display = 'flex';
     modeRow.style.gap = '4px';
     modeRow.style.padding = '8px 0';
-    if (canPresets) modeRow.style.borderBottom = '1px solid var(--border-subtle)';
 
     const modes = [
       { id: 'light', label: t('shell.theme_mode_light') || 'Light', icon: THEME_ICONS_SVG.light },
@@ -426,102 +417,6 @@ function renderThemeControls(panel, { onModeApplied } = {}) {
       modeRow.append(modeBtn);
     });
     panel.append(modeRow);
-    if (!canPresets) return;
-
-    // Presets List
-    const presetsList = document.createElement('div');
-    presetsList.className = 'topbar__theme-presets-list';
-    presetsList.style.display = 'flex';
-    presetsList.style.flexDirection = 'column';
-    presetsList.style.gap = '2px';
-    presetsList.style.maxHeight = '280px';
-    presetsList.style.overflowY = 'auto';
-
-    const createPresetBtn = (key, preset) => {
-      const pBtn = document.createElement('button');
-      pBtn.type = 'button';
-      pBtn.className = 'topbar__theme-preset-btn';
-      pBtn.style.display = 'flex';
-      pBtn.style.alignItems = 'center';
-      pBtn.style.gap = '8px';
-      pBtn.style.padding = '6px 8px';
-      pBtn.style.borderRadius = 'var(--radius-sm)';
-      pBtn.style.border = 'none';
-      pBtn.style.background = activePreset === key ? 'var(--surface-2)' : 'transparent';
-      pBtn.style.cursor = 'pointer';
-      pBtn.style.textAlign = 'left';
-      pBtn.style.width = '100%';
-
-      const dot = document.createElement('span');
-      dot.style.width = '12px';
-      dot.style.height = '12px';
-      dot.style.borderRadius = '50%';
-      dot.style.background = preset.master.seed;
-      dot.style.flexShrink = '0';
-      dot.style.border = '1px solid rgba(0,0,0,0.15)';
-
-      const name = document.createElement('span');
-      name.style.fontSize = '12px';
-      name.style.fontWeight = activePreset === key ? '700' : '500';
-      name.style.color = activePreset === key ? 'var(--brand)' : 'var(--text-primary)';
-      name.style.flex = '1';
-      name.textContent = isBn ? preset.name_bn : preset.name_en;
-
-      const check = document.createElement('span');
-      check.style.fontSize = '12px';
-      check.style.fontWeight = '700';
-      check.style.color = 'var(--brand)';
-      check.textContent = activePreset === key ? '✓' : '';
-
-      pBtn.append(dot, name, check);
-
-      pBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        activePreset = key;
-        switchThemePreset(key);
-        const nameText = isBn ? preset.name_bn : preset.name_en;
-        toast.info(t('shell.theme_applied_toast', { name: nameText }) || `Theme applied: ${nameText}`);
-        renderPanel();
-      });
-
-      return pBtn;
-    };
-
-    // Explooro Group Header
-    const explooroHeader = document.createElement('div');
-    explooroHeader.style.padding = '8px 4px 4px 4px';
-    explooroHeader.style.fontSize = '11px';
-    explooroHeader.style.fontWeight = '600';
-    explooroHeader.style.color = 'var(--text-muted)';
-    explooroHeader.textContent = t('shell.theme_group_explooro') || 'Explooro';
-    presetsList.append(explooroHeader);
-
-    // Explooro Presets
-    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
-      if (preset.group === 'explooro' || key === 'pure_gold' || key === 'explooro_pink') {
-        presetsList.append(createPresetBtn(key, preset));
-      }
-    }
-
-    // Marketplace Style Header
-    const marketplaceHeader = document.createElement('div');
-    marketplaceHeader.style.padding = '10px 4px 4px 4px';
-    marketplaceHeader.style.fontSize = '11px';
-    marketplaceHeader.style.fontWeight = '600';
-    marketplaceHeader.style.color = 'var(--text-muted)';
-    marketplaceHeader.style.borderTop = '1px solid var(--border-subtle)';
-    marketplaceHeader.style.marginTop = '4px';
-    marketplaceHeader.textContent = t('shell.theme_presets_title') || 'Marketplace Style (1-Click)';
-    presetsList.append(marketplaceHeader);
-
-    // Marketplace Presets
-    for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
-      if (preset.group !== 'explooro' && key !== 'pure_gold' && key !== 'explooro_pink') {
-        presetsList.append(createPresetBtn(key, preset));
-      }
-    }
-
-    panel.append(presetsList);
   }
 }
 
@@ -529,9 +424,7 @@ function ThemeMenu() {
   const wrap = document.createElement('div');
   wrap.className = 'topbar__theme-menu topbar__avatar-menu';
 
-  const menuTitle = can(PRESET_SWITCH_PERMISSION)
-    ? t('shell.theme_menu_title') || 'Theme & Presets'
-    : t('shell.theme_menu_title_plain') || 'Theme';
+  const menuTitle = t('shell.theme_menu_title_plain') || 'Theme';
 
   const trigger = document.createElement('button');
   trigger.type = 'button';
