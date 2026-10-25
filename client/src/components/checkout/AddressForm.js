@@ -2,7 +2,7 @@
  * AddressForm.js — Cascading Bangladeshi administrative address form (Prompt 5.4).
  *
  * Implements:
- *  - Division → District → Upazila cascading selects using bangladeshGeo.js
+ *  - Division → District → Upazila cascading selects using bangladeshGeo.ts
  *  - Phone validation for +8801 Bangladeshi numbers
  *  - Full bilingual support
  *  - Saved address picker for authenticated users
@@ -14,7 +14,7 @@ import {
   getUpazilasByDistrict,
   getDivisionById,
   getDistrictById,
-} from '../../data/bangladeshGeo.js';
+} from '../../data/bangladeshGeo.ts';
 import { t } from '../../services/i18n.js';
 import { Button } from '../ui/Button.js';
 

@@ -5,7 +5,7 @@
  * /admin/platform/genie: whether the popup genie plays at all, how long it takes, and how finely it
  * is drawn. They are stored in platform_settings (group `genie`) and served, unauthenticated, from
  * `GET /genie/policy`. This module is the only bridge between that endpoint and the engine in
- * lib/genie.js.
+ * lib/genie.ts.
  *
  * WHY the policy is cached in localStorage and applied before the network answers: the same shape
  * services/i18n.js uses for the default language. Every modal opened in the first second of a visit
@@ -16,7 +16,7 @@
  * engine on its shipped defaults (genie on, 650 ms, balanced), which is a working state.
  */
 
-import { configureGenie, sanitiseGenieConfig } from '../lib/genie.js';
+import { configureGenie, sanitiseGenieConfig } from '../lib/genie.ts';
 
 const STORAGE_KEY = 'explooro:genie:policy';
 const POLICY_ENDPOINT = '/genie/policy';

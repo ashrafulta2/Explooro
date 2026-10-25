@@ -7,7 +7,7 @@
  * would silently drop a shopper whose address says "Chittagong" from a campaign aimed at "Chattogram".
  *
  * Both sides are reduced to letters only, lower-cased, and every spelling in an alias group maps to
- * the same key. The groups mirror the `aliases` in client/src/data/bangladeshGeo.js.
+ * the same key. The groups mirror the `aliases` in client/src/data/bangladeshGeo.ts.
  */
 
 const ALIAS_GROUPS: string[][] = [

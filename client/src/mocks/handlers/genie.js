@@ -9,7 +9,7 @@
  * implementation look like a working one (the same reason handlers/localization.js does this).
  */
 
-import { GENIE_DEFAULTS, GENIE_LIMITS, GENIE_QUALITIES } from '../../lib/genie.js';
+import { GENIE_DEFAULTS, GENIE_LIMITS, GENIE_QUALITIES } from '../../lib/genie.ts';
 
 const STORAGE_KEY = 'explooro:mock:genie:policy';
 

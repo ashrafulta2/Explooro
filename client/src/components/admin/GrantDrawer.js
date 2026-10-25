@@ -11,7 +11,7 @@ import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatCurrency, normaliseBdPhone } from '../../services/format.js';
-import { scopeFieldsFor } from '../../config/grant-scopes.js';
+import { scopeFieldsFor } from '../../config/grant-scopes.ts';
 
 const MAX_GRANT_DAYS = 90;
 const DEFAULT_GRANT_DAYS = 14;
@@ -188,7 +188,7 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
   expiryInput.input.max = maxDate;
 
   // Scope (optional). WHY a typed field per supported permission instead of a free JSON box: the
-  // server enforces only the scopes in config/grant-scopes.js, and a hand-typed JSON limit it can't
+  // server enforces only the scopes in config/grant-scopes.ts, and a hand-typed JSON limit it can't
   // check (or a typo it used to store as {"constraint": …}) reads as a safety net that isn't there.
   const scopeInput = Input({
     label: t('grants.scope_max_amount_label', 'Limit: largest amount per approval (Tk, optional)'),

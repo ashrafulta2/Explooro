@@ -1,5 +1,5 @@
 /**
- * genie.test.js — invariants for the genie open/close (lib/genie.js) and its wiring into Modal.
+ * genie.test.js — invariants for the genie open/close (lib/genie.ts) and its wiring into Modal.
  *
  * The animation itself is visual, so what is pinned here is what silently breaks it:
  *  1. Strips never cross or leave gaps (monotone boundaries) at any point in the timeline.
@@ -147,9 +147,9 @@ const {
   GENIE_DEFAULTS,
   GENIE_LIMITS,
   GENIE_QUALITIES,
-} = await import('../src/lib/genie.js');
+} = await import('../src/lib/genie.ts');
 
-/** Mirrors OVERLAP_PX in genie.js: real content each strip carries past its own boundary. */
+/** Mirrors OVERLAP_PX in genie.ts: real content each strip carries past its own boundary. */
 const OVERLAP_PX = 4;
 
 /** Applies a strip's matrix3d() to a point given in the strip's own (local) coordinates. */
@@ -507,7 +507,7 @@ test('6. duration is a CSS token, zeroed under reduced motion', () => {
 
 test('7. Modal routes open and close through genieRun; the old scale genie is removed', () => {
   const modal = read('src', 'components', 'ui', 'Modal.js');
-  assert.match(modal, /from '\.\.\/\.\.\/lib\/genie\.js'/);
+  assert.match(modal, /from '\.\.\/\.\.\/lib\/genie\.ts'/);
   assert.match(modal, /playGenie\('open'\)/);
   assert.match(modal, /playGenie\('close'\)/);
   assert.doesNotMatch(modal, /minimizeOnClose|computeGenieCoordinates|modal--minimizing/);
@@ -520,8 +520,8 @@ test('7. Modal routes open and close through genieRun; the old scale genie is re
   assert.match(css, /\.genie-layer\s*\{[^}]*position:\s*fixed/);
 });
 
-test('8. genie.js stays dependency-free', () => {
-  const src = read('src', 'lib', 'genie.js');
+test('8. genie.ts stays dependency-free', () => {
+  const src = read('src', 'lib', 'genie.ts');
   const imports = [...src.matchAll(/^import .* from '([^']+)'/gm)].map((m) => m[1]);
   assert.deepEqual(imports, ['./motion.ts']);
 });

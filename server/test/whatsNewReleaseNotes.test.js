@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 
 import * as contentService from '../src/services/content.service.ts';
 import * as notifService from '../src/services/notification.service.ts';
-import { HIGHLIGHT_LIMITS as MOCK_HIGHLIGHT_LIMITS } from '../../client/src/mocks/releaseNotes.js';
+import { HIGHLIGHT_LIMITS as MOCK_HIGHLIGHT_LIMITS } from '../../client/src/mocks/releaseNotes.ts';
 
 // Just enough of `release_notes` / `user_release_views` / `audit_logs` to run the two services.
 function createReleaseDb() {

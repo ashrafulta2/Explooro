@@ -13,7 +13,7 @@
  */
 
 import { customerApi } from '../../services/customer.api.js';
-import { BANGLADESH_DIVISIONS, getDistrictsByDivision, getUpazilasByDistrict, getDivisionById, getDistrictById } from '../../data/bangladeshGeo.js';
+import { BANGLADESH_DIVISIONS, getDistrictsByDivision, getUpazilasByDistrict, getDivisionById, getDistrictById } from '../../data/bangladeshGeo.ts';
 import { isValidBdPhone, normalizeBdPhone } from '../../components/checkout/AddressForm.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

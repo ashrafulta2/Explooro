@@ -19,7 +19,7 @@
 
 import { Drawer } from '../ui/Drawer.js';
 import { t } from '../../services/i18n.js';
-import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.js';
+import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.ts';
 
 const SUPPLIER_TIERS = ['standard', 'verified', 'elite'];
 

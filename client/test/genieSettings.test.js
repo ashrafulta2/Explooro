@@ -25,7 +25,7 @@ import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
 import { navItems } from '../src/config/navigation.js';
 import { genieHandlers } from '../src/mocks/handlers/genie.js';
 import { applyGeniePolicy } from '../src/services/genieSettings.js';
-import { getGenieConfig, configureGenie, GENIE_DEFAULTS, GENIE_LIMITS } from '../src/lib/genie.js';
+import { getGenieConfig, configureGenie, GENIE_DEFAULTS, GENIE_LIMITS } from '../src/lib/genie.ts';
 
 const clientRoot = path.resolve(import.meta.dirname, '..');
 const read = (...p) => fs.readFileSync(path.join(clientRoot, ...p), 'utf8');

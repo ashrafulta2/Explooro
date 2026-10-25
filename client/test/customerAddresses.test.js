@@ -20,7 +20,7 @@ import {
   getUpazilasByDistrict,
   getDivisionById,
   getDistrictById,
-} from '../src/data/bangladeshGeo.js';
+} from '../src/data/bangladeshGeo.ts';
 
 test('1. Locale integrity for customer_addresses', async (t) => {
   await t.test('en/bn key parity', () => {

@@ -2,7 +2,7 @@
  * whatsNewMock.test.js — in mock mode the What's New popup shows what the editor published.
  *
  * The defect: the popup handler answered from a constant and the editor wrote a separate array, so
- * every user saw the same v2.4 note forever. Both handlers now share mocks/releaseNotes.js.
+ * every user saw the same v2.4 note forever. Both handlers now share mocks/releaseNotes.ts.
  */
 
 import { describe, it, beforeEach } from 'node:test';
@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 
 import { contentHandlers } from '../src/mocks/handlers/content.js';
 import { notificationHandlers } from '../src/mocks/handlers/notifications.js';
-import { resetReleaseNotesForTests, latestReleaseFor, markReleaseViewed } from '../src/mocks/releaseNotes.js';
+import { resetReleaseNotesForTests, latestReleaseFor, markReleaseViewed } from '../src/mocks/releaseNotes.ts';
 
 function handler(list, method, path) {
   const entry = list.find((h) => h.method === method && h.path === path);

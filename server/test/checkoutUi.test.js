@@ -16,7 +16,7 @@ import {
   getDivisionById,
   getDistrictsByDivision,
   getUpazilasByDistrict,
-} from '../../client/src/data/bangladeshGeo.js';
+} from '../../client/src/data/bangladeshGeo.ts';
 import { normalizeBdPhone, isValidBdPhone } from '../../client/src/components/checkout/AddressForm.js';
 import { getStageIndex, ORDER_STAGES } from '../../client/src/components/order/OrderTracker.js';
 import { generateIdempotencyKey } from '../../client/src/services/order.api.js';

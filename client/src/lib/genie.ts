@@ -1,5 +1,5 @@
 /**
- * genie.js — macOS-style "genie" open/close for overlays (the popup pours out of the control that
+ * genie.ts — macOS-style "genie" open/close for overlays (the popup pours out of the control that
  * opened it and is sucked back into it on close).
  *
  * WHY slices instead of a CSS transform: scale()/translate() can only shrink a box uniformly. The
@@ -29,19 +29,55 @@ const FALLBACK_DURATION_MS = 650;
  * silently does not do what its page says.
  */
 export const GENIE_LIMITS = Object.freeze({ minDurationMs: 250, maxDurationMs: 1500 });
-export const GENIE_DEFAULTS = Object.freeze({ enabled: true, duration_ms: 650, quality: 'balanced' });
+export const GENIE_DEFAULTS: Readonly<GenieConfig> = Object.freeze({ enabled: true, duration_ms: 650, quality: 'balanced' });
+
+export type GenieQuality = 'light' | 'balanced' | 'smooth';
+
+export interface GenieConfig {
+  enabled: boolean;
+  duration_ms: number;
+  quality: GenieQuality;
+}
+
+/** A rectangle in viewport px; a DOMRect satisfies it. */
+export interface GenieRect {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+export interface GenieRunOptions {
+  /** Element to animate (measured now, hidden while it plays). */
+  panel: HTMLElement;
+  /** Receives the strips layer. */
+  host: HTMLElement;
+  /** The control to fly to/from (an Event is unwrapped to its target). */
+  trigger?: Element | Event | null;
+  direction: 'open' | 'close';
+  /** ms; defaults to the --dur-genie token. */
+  duration?: number;
+}
+
+/**
+ * `finished` resolves true when played to the end, false when cancelled.
+ */
+export interface GenieRun {
+  finished: Promise<boolean>;
+  cancel: () => void;
+}
 
 /**
  * Slices per panel, by quality preset. More = a finer curve (and a costlier first frame: every
  * slice is a full copy of the panel's DOM). `heavy` applies to panels above HEAVY_NODE_COUNT so a
  * table-filled modal does not clone 40 × its DOM.
  */
-const QUALITY_STRIPS = Object.freeze({
+const QUALITY_STRIPS: Readonly<Record<GenieQuality, { full: number; heavy: number }>> = Object.freeze({
   light: { full: 24, heavy: 14 },
   balanced: { full: 40, heavy: 20 },
   smooth: { full: 64, heavy: 32 },
 });
-export const GENIE_QUALITIES = Object.freeze(Object.keys(QUALITY_STRIPS));
+export const GENIE_QUALITIES = Object.freeze(Object.keys(QUALITY_STRIPS)) as readonly string[];
 const HEAVY_NODE_COUNT = 600;
 /** Above this, cloning even 20 copies costs more than the effect is worth — caller fades instead. */
 const MAX_NODE_COUNT = 3000;
@@ -81,11 +117,11 @@ const DOCK_BOTTOM_GAP_PX = 40;
 /** A "trigger" covering more than this share of the viewport is the body/page, not a control. */
 const MAX_TARGET_VIEWPORT_SHARE = 0.5;
 
-const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
-const lerp = (a, b, t) => a + (b - a) * t;
-const easeSine = (t) => 0.5 - 0.5 * Math.cos(Math.PI * t);
-const fmt = (n) => n.toFixed(4);
-const fmtSmall = (n) => n.toFixed(9);
+const clamp = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
+const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+const easeSine = (t: number): number => 0.5 - 0.5 * Math.cos(Math.PI * t);
+const fmt = (n: number): string => n.toFixed(4);
+const fmtSmall = (n: number): string => n.toFixed(9);
 
 /**
  * CSS matrix3d() that maps an sw × sh rectangle (origin top-left) onto the quad q = [x0,y0, x1,y1,
@@ -94,7 +130,7 @@ const fmtSmall = (n) => n.toFixed(9);
  * points — including the case where the far edge is narrower than the near one, which no affine
  * matrix (scale/skew) can express. Exported for the tests.
  */
-export function quadToMatrix3d(sw, sh, q) {
+export function quadToMatrix3d(sw: number, sh: number, q: number[]): string {
   const [x0, y0, x1, y1, x2, y2, x3, y3] = q;
   const dx1 = x1 - x2;
   const dx2 = x3 - x2;
@@ -121,14 +157,18 @@ export function quadToMatrix3d(sw, sh, q) {
 }
 
 /** Live settings. `duration_ms: null` = nobody has configured it, so the CSS token decides. */
-let config = { enabled: GENIE_DEFAULTS.enabled, duration_ms: null, quality: GENIE_DEFAULTS.quality };
+let config: Omit<GenieConfig, 'duration_ms'> & { duration_ms: number | null } = {
+  enabled: GENIE_DEFAULTS.enabled,
+  duration_ms: null,
+  quality: GENIE_DEFAULTS.quality,
+};
 
 /**
  * Turns whatever the API / cache handed over into a complete, in-range config, or `null` when it
  * is not an object at all (caller keeps what it has). Exported so the admin page and the tests use
  * the same clamp the engine does.
  */
-export function sanitiseGenieConfig(raw) {
+export function sanitiseGenieConfig(raw: any): GenieConfig | null {
   if (!raw || typeof raw !== 'object') return null;
   const ms = Number(raw.duration_ms);
   return {
@@ -140,7 +180,7 @@ export function sanitiseGenieConfig(raw) {
   };
 }
 
-export function getGenieConfig() {
+export function getGenieConfig(): typeof config {
   return { ...config };
 }
 
@@ -150,7 +190,7 @@ export function getGenieConfig() {
  * while the panel ran at the admin's value. Skipped under reduced motion, where the token's own
  * media query (0ms) must keep winning over an inline value.
  */
-export function configureGenie(raw) {
+export function configureGenie(raw: unknown): typeof config {
   const next = sanitiseGenieConfig(raw);
   if (!next) return getGenieConfig();
   config = next;
@@ -161,7 +201,7 @@ export function configureGenie(raw) {
 }
 
 /** Duration comes from the platform setting, else the `--dur-genie` token, so it is never a code edit. */
-export function genieDuration() {
+export function genieDuration(): number {
   if (config.duration_ms !== null) return config.duration_ms;
   if (typeof document === 'undefined') return FALLBACK_DURATION_MS;
   const raw = getComputedStyle(document.documentElement).getPropertyValue('--dur-genie').trim();
@@ -174,7 +214,7 @@ export function genieDuration() {
  * Can this environment animate overlays at all? False under reduced motion or without rAF — the
  * caller then shows/hides instantly rather than fading.
  */
-export function canAnimate() {
+export function canAnimate(): boolean {
   return (
     typeof window !== 'undefined' &&
     typeof requestAnimationFrame === 'function' &&
@@ -186,19 +226,20 @@ export function canAnimate() {
  * Cheap pre-check the caller runs before deciding to suppress its own CSS transition. Also false
  * when a Super Admin has switched the genie off, in which case overlays keep their plain fade.
  */
-export function canGenie() {
+export function canGenie(): boolean {
   return config.enabled && canAnimate();
 }
 
 /** The control the popup should fly to/from; falls back to a dock point at bottom-centre. */
-export function resolveTarget(el) {
+export function resolveTarget(el: Element | Event | null | undefined): { rect: GenieRect; element: HTMLElement | null } {
   const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
 
   // Unwrap Event objects if passed directly
-  let targetNode = el;
+  let targetNode: unknown = el;
   if (targetNode && typeof targetNode === 'object' && ('target' in targetNode || 'currentTarget' in targetNode)) {
-    targetNode = targetNode.currentTarget || targetNode.target;
+    const ev = targetNode as Event;
+    targetNode = ev.currentTarget || ev.target;
   }
 
   // Fallback to activeElement if element is missing or is the body
@@ -235,7 +276,7 @@ export function resolveTarget(el) {
 }
 
 /** Soft ring + squeeze on the control, so the popup feels like it came from / returned to it. */
-export function pulseTarget(el) {
+export function pulseTarget(el: unknown): void {
   if (!(el instanceof HTMLElement) || typeof el.animate !== 'function') return;
   el.animate(
     [
@@ -248,9 +289,10 @@ export function pulseTarget(el) {
 }
 
 /** cloneNode drops live state (typed values, scroll offsets, canvas pixels); put it back. */
-function syncLiveState(srcRoot, cloneRoot) {
-  const src = srcRoot.querySelectorAll('*');
-  const dst = cloneRoot.querySelectorAll('*');
+function syncLiveState(srcRoot: Element, cloneRoot: Element): void {
+  // `any`: one loop reads form, canvas and scroll state off whichever element type it meets.
+  const src = srcRoot.querySelectorAll<any>('*');
+  const dst = cloneRoot.querySelectorAll<any>('*');
   for (let i = 0; i < src.length; i += 1) {
     const s = src[i];
     const d = dst[i];
@@ -272,17 +314,9 @@ function syncLiveState(srcRoot, cloneRoot) {
  * top-layer the panel lives in — for a <dialog>, the dialog itself — and must not be transformed,
  * or `position: fixed` inside it stops meaning "the viewport").
  *
- * @param {object} o
- * @param {HTMLElement} o.panel      element to animate (measured now, hidden while it plays)
- * @param {HTMLElement} o.host       receives the strips layer
- * @param {Element|null} o.trigger   the control to fly to/from
- * @param {'open'|'close'} o.direction
- * @param {number} [o.duration]      ms; defaults to the --dur-genie token
- * @returns {{ finished: Promise<boolean>, cancel: () => void } | null}
- *   `finished` resolves true when played to the end, false when cancelled. `null` = unsupported
- *   here; the caller should fall back to its plain fade.
+ * Returns `null` when unsupported here; the caller should fall back to its plain fade.
  */
-export function genieRun({ panel, host, trigger = null, direction, duration = genieDuration() }) {
+export function genieRun({ panel, host, trigger = null, direction, duration = genieDuration() }: GenieRunOptions): GenieRun | null {
   if (!canGenie() || !panel || !host) return null;
 
   const nodeCount = panel.querySelectorAll('*').length;
@@ -321,18 +355,18 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   layer.className = 'genie-layer';
   layer.setAttribute('aria-hidden', 'true');
 
-  const template = panel.cloneNode(true);
+  const template = panel.cloneNode(true) as HTMLElement;
   template.removeAttribute('id');
   template.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
   template.inert = true;
   template.style.opacity = '';
   template.style.pointerEvents = '';
 
-  const strips = [];
+  const strips: HTMLDivElement[] = [];
   for (let i = 0; i < N; i += 1) {
     const strip = document.createElement('div');
     strip.className = 'genie-strip';
-    const copy = i === 0 ? template : template.cloneNode(true);
+    const copy = i === 0 ? template : (template.cloneNode(true) as HTMLElement);
     copy.style.width = `${W}px`;
     copy.style.height = `${H}px`;
     if (vertical) {
@@ -362,13 +396,13 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   panel.style.opacity = '0';
   panel.style.pointerEvents = 'none';
 
-  const vb = new Array(N + 1);
-  const cx = new Array(N + 1);
-  const wd = new Array(N + 1);
+  const vb: number[] = new Array(N + 1);
+  const cx: number[] = new Array(N + 1);
+  const wd: number[] = new Array(N + 1);
   let shownFade = -1;
 
   /** p = 0: panel at rest. p = 1: fully swallowed by the target (inside the magic lamp). */
-  function place(p) {
+  function place(p: number): void {
     for (let k = 0; k <= N; k += 1) {
       const near = toward > 0 ? k / N : 1 - k / N; // 1 = the end closest to the target (the lamp spout)
       const q = clamp((p - (1 - near) * NECK) / (1 - NECK), 0, 1);
@@ -432,14 +466,14 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   }
 
   let raf = 0;
-  let safety = 0;
+  let safety: ReturnType<typeof setTimeout> | undefined;
   let settled = false;
-  let resolveFinished;
-  const finished = new Promise((resolve) => {
+  let resolveFinished: (completed: boolean) => void = () => {};
+  const finished = new Promise<boolean>((resolve) => {
     resolveFinished = resolve;
   });
 
-  function settle(completed) {
+  function settle(completed: boolean): void {
     if (settled) return;
     settled = true;
     cancelAnimationFrame(raf);
@@ -465,10 +499,10 @@ export function genieRun({ panel, host, trigger = null, direction, duration = ge
   }
 
   // The clock is advanced by the (capped) time between frames, not read off the wall clock.
-  let last = null;
+  let last: number | null = null;
   let elapsed = 0;
 
-  function frame(now) {
+  function frame(now: number): void {
     if (!host.isConnected) {
       settle(false);
       return;

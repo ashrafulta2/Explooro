@@ -1,10 +1,33 @@
 /**
- * bangladeshGeo.js — Complete administrative hierarchy of Bangladesh (Prompt 5.4).
+ * bangladeshGeo.ts — Complete administrative hierarchy of Bangladesh (Prompt 5.4).
  *
  * Contains all 8 Divisions and 64 Districts with primary Upazilas/Thanas in bilingual format (en/bn).
  */
 
-export const BANGLADESH_DIVISIONS = [
+export interface GeoDistrict {
+  id: string;
+  name_en: string;
+  name_bn: string;
+  upazilas: string[];
+}
+
+export interface GeoDivision {
+  id: string;
+  name_en: string;
+  name_bn: string;
+  districts: GeoDistrict[];
+}
+
+/** One row of the flat 64-district list. `aliases` are older spellings an address may still use. */
+export interface BdDistrict {
+  id: string;
+  name_en: string;
+  name_bn: string;
+  aliases?: string[];
+  division: string;
+}
+
+export const BANGLADESH_DIVISIONS: GeoDivision[] = [
   {
     id: 'dhaka',
     name_en: 'Dhaka',
@@ -127,33 +150,34 @@ export const BANGLADESH_DIVISIONS = [
   },
 ];
 
-export function getDivisions() {
+export function getDivisions(): GeoDivision[] {
   return BANGLADESH_DIVISIONS;
 }
 
-export function getDivisionById(divisionId) {
+/** Looks a division up by its id or, case-insensitively, its English name. */
+export function getDivisionById(divisionId: string | null | undefined): GeoDivision | null {
   if (!divisionId) return null;
   const match = BANGLADESH_DIVISIONS.find((d) => d.id === divisionId || d.name_en.toLowerCase() === divisionId.toLowerCase());
   return match || null;
 }
 
-export function getDistrictsByDivision(divisionId) {
+export function getDistrictsByDivision(divisionId: string | null | undefined): GeoDistrict[] {
   const div = getDivisionById(divisionId);
   return div ? div.districts : [];
 }
 
-export function getDistrictById(divisionId, districtId) {
+export function getDistrictById(divisionId: string | null | undefined, districtId: string): GeoDistrict | null {
   const districts = getDistrictsByDivision(divisionId);
   return districts.find((d) => d.id === districtId || d.name_en.toLowerCase() === districtId.toLowerCase()) || null;
 }
 
-export function getUpazilasByDistrict(divisionId, districtId) {
+export function getUpazilasByDistrict(divisionId: string | null | undefined, districtId: string): string[] {
   const dist = getDistrictById(divisionId, districtId);
   return dist ? dist.upazilas : [];
 }
 
 /** Complete list of all 64 administrative districts of Bangladesh in alphabetical order. */
-export const ALL_BD_DISTRICTS = [
+export const ALL_BD_DISTRICTS: BdDistrict[] = [
   { id: 'bagerhat', name_en: 'Bagerhat', name_bn: 'বাগেরহাট', division: 'khulna' },
   { id: 'bandarban', name_en: 'Bandarban', name_bn: 'বান্দরবান', division: 'chittagong' },
   { id: 'barguna', name_en: 'Barguna', name_bn: 'বরগুনা', division: 'barisal' },
@@ -220,7 +244,7 @@ export const ALL_BD_DISTRICTS = [
   { id: 'thakurgaon', name_en: 'Thakurgaon', name_bn: 'ঠাকুরগাঁও', division: 'rangpur' },
 ];
 
-export function getAllDistricts() {
+export function getAllDistricts(): BdDistrict[] {
   return ALL_BD_DISTRICTS;
 }
 

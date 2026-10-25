@@ -533,7 +533,7 @@ export const RELEASE_CATEGORIES = ['FEATURE', 'IMPROVEMENT', 'SECURITY', 'FIX'];
 export const RELEASE_AUDIENCES = ['ALL', 'SALERS', 'SUPPLIERS'];
 const VERSION_TAG_MAX = 32;
 // WHY these exact numbers: the popup is a small modal; more than six cards or a paragraph-long card
-// pushes the button off a phone screen. client/src/mocks/releaseNotes.js repeats them, and
+// pushes the button off a phone screen. client/src/mocks/releaseNotes.ts repeats them, and
 // server/test/whatsNewReleaseNotes.test.js fails if the two drift.
 export const HIGHLIGHT_LIMITS = { maxItems: 6, iconMax: 8, titleMax: 80, descMax: 240 };
 

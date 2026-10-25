@@ -2,7 +2,7 @@
  * genie.service.ts — popup "genie" effect policy engine.
  *
  * Owns the platform's answer to three questions about the open/close animation every popup plays
- * (client/src/lib/genie.js): does it play at all, how long does it take, and how finely is it
+ * (client/src/lib/genie.ts): does it play at all, how long does it take, and how finely is it
  * drawn. The policy lives in platform_settings (group `genie`, seeded by 049_genie_effect_settings.sql)
  * and follows the pattern localization.service.ts set: validated here, written in one transaction,
  * audited with before/after JSON, cached briefly because an unauthenticated endpoint serves it on
@@ -15,7 +15,7 @@ import { AppError } from '../plugins/errorHandler.ts';
 export const SETTINGS_GROUP = 'genie';
 
 /**
- * Kept in lockstep with GENIE_LIMITS / GENIE_QUALITIES in client/src/lib/genie.js.
+ * Kept in lockstep with GENIE_LIMITS / GENIE_QUALITIES in client/src/lib/genie.ts.
  * server/test/genieEffect.test.js parses the client file and fails on drift: a value the API
  * accepts but the engine clamps is a setting that silently does not do what its page says.
  */

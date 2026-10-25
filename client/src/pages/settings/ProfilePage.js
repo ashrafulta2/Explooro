@@ -38,7 +38,7 @@ import {
   BANGLADESH_DIVISIONS,
   getDistrictsByDivision,
   getUpazilasByDistrict,
-} from '../../data/bangladeshGeo.js';
+} from '../../data/bangladeshGeo.ts';
 
 // Matches media.service.ts's avatar ceiling. Checked here so an oversized pick fails instantly
 // instead of after uploading megabytes the server will reject anyway.

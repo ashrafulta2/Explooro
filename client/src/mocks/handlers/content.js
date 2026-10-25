@@ -2,7 +2,7 @@
  * content.js — Mock Handlers for Editor Portal: Banners, Stories, Reels, Academy, What's New, Help Center, Translations.
  */
 
-import { listReleaseNotes, upsertReleaseNote, deleteReleaseNote } from '../releaseNotes.js';
+import { listReleaseNotes, upsertReleaseNote, deleteReleaseNote } from '../releaseNotes.ts';
 
 let mockStories = [
   {
@@ -579,7 +579,7 @@ export const contentHandlers = [
 
   // ── What's New / Release Notes ──
   // WHY the shared store: the popup (handlers/notifications.js) reads the same notes, so what an
-  // editor publishes here is what users see. See mocks/releaseNotes.js.
+  // editor publishes here is what users see. See mocks/releaseNotes.ts.
   {
     method: 'GET',
     path: '/content/whats-new',

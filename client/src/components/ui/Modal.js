@@ -11,7 +11,7 @@
  * this prompt. What the platform does not give us — scroll lock and explicit focus restore — is
  * implemented below.
  *
- * Open/close motion is the "genie" (lib/genie.js): the panel pours out of the control that opened
+ * Open/close motion is the "genie" (lib/genie.ts): the panel pours out of the control that opened
  * it and is sucked back into it on close, for EVERY modal. Whether it plays, how long it takes and
  * how finely it is drawn are platform settings (/admin/platform/genie); with the genie off the
  * modal uses its plain CSS fade. Reduced-motion users always get an instant show/hide. Escape, scrim click and the close button all funnel through close(), so they play
@@ -28,7 +28,7 @@
  *    keyboard user at the top of the document.
  */
 
-import { canAnimate, canGenie, genieRun } from '../../lib/genie.js';
+import { canAnimate, canGenie, genieRun } from '../../lib/genie.ts';
 
 /** Reference-counted scroll lock, shared with Drawer and ConfirmDialog. */
 let lockCount = 0;

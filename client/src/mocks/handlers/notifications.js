@@ -9,7 +9,7 @@
 
 import { getMockSessionUser } from './auth.js';
 import { appStore } from '../../state/appStore.js';
-import { latestReleaseFor, markReleaseViewed } from '../releaseNotes.js';
+import { latestReleaseFor, markReleaseViewed } from '../releaseNotes.ts';
 
 const CATEGORIES = ['ORDER', 'FINANCE', 'SECURITY', 'MARKETING', 'SYSTEM', 'COMMUNITY'];
 
@@ -145,7 +145,7 @@ function visibleToViewer(n) {
 
 // WHY no release note here: it used to be a constant plus an in-memory "seen" flag, so the popup
 // never changed after an editor published and came back on every reload. Notes now live in
-// mocks/releaseNotes.js, shared with the editor handlers in handlers/content.js.
+// mocks/releaseNotes.ts, shared with the editor handlers in handlers/content.js.
 function releaseViewer() {
   const user = getMockSessionUser();
   return { userId: user?.id ?? 'guest', role: user?.roles?.[0] || user?.role || 'customer' };

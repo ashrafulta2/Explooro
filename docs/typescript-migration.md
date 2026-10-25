@@ -136,15 +136,23 @@ The server recipe above, with `--client`:
    prerender), and the app in the browser with the moved modules loaded and no console errors.
 
 Order: leaf modules that the server does not import first (`services/`, `lib/`, `core/`), then the
-components, and the pages last. Files the server imports (still `.js`: `services/pageAccess.js`,
-`config/pageRegistry.js`, `config/grant-scopes.js`, `data/bangladeshGeo.js`, `lib/genie.js`,
-`mocks/releaseNotes.js`; `grep -rn "client/src" server/src` lists them) move together with a
+components, and the pages last. Files the server or its tests reach (still `.js`:
+`services/pageAccess.js`, `config/pageRegistry.js` and `services/offlineQueue.js`;
+`grep -rn "client/src" server/src server/test` lists them) move together with a
 check that the server typecheck and tests still pass, and that `node src/index.ts` boots: once the
 server imports a client `.ts` file, the server's `tsc` checks that file too, with the server's
 libraries (no DOM). Root scripts that import client modules (`palette.mjs`, `logo.mjs`) must still
 run; `palette.mjs --write` copies its header comment into `themes.css`, so a rename in that comment
 means regenerating the file. A test that walks a folder and keeps only
 `.js` files must accept `.ts` too (`adminMockContracts.test.js` did, for `mocks/handlers/`).
+
+Tests that read a module's SOURCE TEXT are not rewritten by the script and are the usual reason a
+step's first test run fails. Grep `client/test` and `server/test` for the old name in three forms:
+a path string (`'client/src/lib/genie.js'`, `read('src', 'lib', 'genie.js')`), an escaped regex
+(`/lib\/genie\.js'/`), and a declaration regex such as `/GENIE_LIMITS = Object\.freeze/`, which
+stops matching once the declaration gains a type annotation (write `GENIE_LIMITS(?::[^=]+)? =`).
+A JSDoc block on a function (`@param {object} o …`) means nothing in a `.ts` file: turn it into an
+interface, as `GenieRunOptions` was.
 
 ### Progress
 
@@ -154,5 +162,6 @@ means regenerating the file. A test that walks a folder and keeps only
 | 2 | 2026-10-25 | `services/theme.ts`, `services/permissionMatrix.ts`, `services/recoSettings.ts`, `services/floatingScroll.ts` (exported types: `ThemeChoice`, `Role` / `Permission` / `HeldIndex`, `Section` / `RailLayout` / `RailChange`) | typecheck 0 errors (client and server); client 954/954, server 1696/1696; build passes and the entry JS is byte-identical to step 1 (`index-8GSsEHGz.js`, types only); on the mock dev server all four modules load, the theme toggles, the floating scrollbar mounts, no console errors |
 | 3 | 2026-10-25 | `core/store.ts` (generic `Store<S>`), `lib/motion.ts`, `lib/optical.ts`. Also `genie.test.js` (asserts genie's one import by name) and `scripts/verify-craft.mjs` (reads motion by path; not rewritten by the script) | typecheck 0 errors (client and server); client 954/954, server 1696/1696; build passes; `verify-craft.mjs` 31/31; in the browser the store's selector fires only on a real change and `countUp`/`optical` give the expected values, no console errors. One runtime change, deliberate: motion's two promises now resolve with no value instead of the cancel event, which nothing reads (neither function has a caller); checked under Node with fake animations that both finish and cancel still resolve. The browser pane does not advance Web Animations at all, so that path cannot be checked there |
 | 4 | 2026-10-25 | The first files the server and root scripts import: `services/colorRamp.ts` (`Palette`, `MasterConfig`, `Ramp`, role maps), `services/masterTheme.ts`, `services/seo.ts` (`HeadOptions`, JSON-LD inputs), `services/logoMark.ts`. `services/offlineQueue.js` was left for later because its one importer, `main.js`, had another session's uncommitted edits | typecheck 0 errors (client and server; `MASTER_NEUTRAL_MODES` / `MASTER_ACCENT_HARMONIES` stay mutable arrays because `theme.service.ts` reads them as `string[]`); client 954/954, server 1696/1696; build passes; the real server boots (`node src/index.ts` on port 5099, health 200); `palette.mjs --write` changes only the header comment of `themes.css` and `logo.mjs --write` reproduces every committed icon byte for byte; on the mock dev server the head tags, hreflangs and website JSON-LD are set, a product page emits its Product JSON-LD, the logo renders and a master palette mounts and clears, no console errors |
+| 5 | 2026-10-25 | Four more the server's tests read: `config/grant-scopes.ts`, `data/bangladeshGeo.ts` (`GeoDivision`, `BdDistrict`), `lib/genie.ts` (`GenieConfig`, `GenieRunOptions` from its old JSDoc, `GenieRun`), `mocks/releaseNotes.ts` (`ReleaseNote`, `MockReply`). `services/pageAccess.js` and `config/pageRegistry.js` wait, like `offlineQueue.js`, because `main.js` imports them and had another session's uncommitted edits. `server/test/genieEffect.test.js` and `client/test/genie.test.js` updated for the path and for type-annotated declarations | typecheck 0 errors (client and server); client 954/954 (the first run failed one assertion that matched `lib\/genie\.js` in Modal's source, fixed), server 1696/1696; build passes; server boots, health 200; on the mock dev server all four modules load, a 300 ms genie close on a real panel drew 40 strips, resolved `true`, removed its layer and restored the panel; 8 divisions / 64 districts; a grant scope splits into known/unknown; the mock serves the latest release note |
 
-402 `.js` files remain under `client/src`.
+398 `.js` files remain under `client/src`.

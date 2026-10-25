@@ -22,7 +22,7 @@ import { formatDate, formatRelativeTime, formatCurrency, formatPhone, formatNumb
 import { escapeHtml as esc } from '../../services/html.ts';
 import { ICONS } from '../../components/ui/icons.js';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
-import { describeScope } from '../../config/grant-scopes.js';
+import { describeScope } from '../../config/grant-scopes.ts';
 import '../../styles/components/admin-users.css';
 import '../../styles/components/admin-access.css';
 

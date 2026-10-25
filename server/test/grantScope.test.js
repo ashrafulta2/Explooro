@@ -8,7 +8,7 @@
  * 3. A role source (or an unscoped grant) makes the hold unrestricted.
  * 4. A stored scope field nothing can check fails closed.
  * 5. A HIGH approve_before permission the caller doesn't hold is 403, not a queued pending action.
- * 6. client/src/config/grant-scopes.js mirrors server/src/lib/grantScope.ts.
+ * 6. client/src/config/grant-scopes.ts mirrors server/src/lib/grantScope.ts.
  */
 
 import { test, describe } from 'node:test';
@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 
 import { GRANT_SCOPES, validateGrantScope, restrictingScopes, scopeAllows } from '../src/lib/grantScope.ts';
-import { GRANT_SCOPES as CLIENT_GRANT_SCOPES } from '../../client/src/config/grant-scopes.js';
+import { GRANT_SCOPES as CLIENT_GRANT_SCOPES } from '../../client/src/config/grant-scopes.ts';
 import { requirePermission } from '../src/middlewares/requirePermission.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';

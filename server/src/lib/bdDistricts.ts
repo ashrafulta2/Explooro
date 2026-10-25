@@ -4,7 +4,7 @@
  * The team-purchase form asks only for a recipient name and one free-text address, but orders store
  * division and district as columns (courier routing reads the district). findDistrict() looks for a
  * district name, English or Bangla, inside the address so those columns are filled when the buyer
- * wrote one. The list mirrors client/src/data/bangladeshGeo.js, with " City" dropped so "Dhaka"
+ * wrote one. The list mirrors client/src/data/bangladeshGeo.ts, with " City" dropped so "Dhaka"
  * matches as well as "Dhaka City".
  */
 

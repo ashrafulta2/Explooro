@@ -4,7 +4,7 @@
  * docs/rbac-spec.md §3.1: "scope_json narrows a grant: {"max_amount": 5000} … The owning service
  * enforces the scope." Before this file the column was stored and displayed but never checked, so
  * the Access Grants page promised "up to ৳50,000" on a payout grant whose holder could approve any
- * amount. The client mirror is client/src/config/grant-scopes.js; server/test/grantScope.test.js
+ * amount. The client mirror is client/src/config/grant-scopes.ts; server/test/grantScope.test.js
  * fails if the two drift.
  */
 

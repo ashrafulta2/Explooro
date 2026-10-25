@@ -186,20 +186,21 @@ describe('Popup genie effect governance', () => {
     });
 
     test('bounds and presets match the client engine that enforces them', () => {
-      const src = fs.readFileSync(path.join(repoRoot, 'client/src/lib/genie.js'), 'utf8');
+      const src = fs.readFileSync(path.join(repoRoot, 'client/src/lib/genie.ts'), 'utf8');
 
-      const limits = src.match(/GENIE_LIMITS = Object\.freeze\(\{ minDurationMs: (\d+), maxDurationMs: (\d+) \}\)/);
-      assert.ok(limits, 'client genie.js declares GENIE_LIMITS');
+      // `(?::[^=]+)?` lets each declaration carry a TypeScript annotation before its `=`.
+      const limits = src.match(/GENIE_LIMITS(?::[^=]+)? = Object\.freeze\(\{ minDurationMs: (\d+), maxDurationMs: (\d+) \}\)/);
+      assert.ok(limits, 'client genie.ts declares GENIE_LIMITS');
       assert.equal(Number(limits[1]), genieService.DURATION_LIMITS.min);
       assert.equal(Number(limits[2]), genieService.DURATION_LIMITS.max);
 
-      const block = src.match(/const QUALITY_STRIPS = Object\.freeze\(\{([\s\S]*?)\}\);/);
-      assert.ok(block, 'client genie.js declares QUALITY_STRIPS');
+      const block = src.match(/const QUALITY_STRIPS(?::[^=]+)? = Object\.freeze\(\{([\s\S]*?)\}\);/);
+      assert.ok(block, 'client genie.ts declares QUALITY_STRIPS');
       const presets = [...block[1].matchAll(/^\s{2}(\w+):\s*\{/gm)].map((m) => m[1]);
       assert.deepEqual(presets, [...genieService.QUALITIES], 'same presets, same order');
 
-      const defaults = src.match(/GENIE_DEFAULTS = Object\.freeze\(\{ enabled: (\w+), duration_ms: (\d+), quality: '(\w+)' \}\)/);
-      assert.ok(defaults, 'client genie.js declares GENIE_DEFAULTS');
+      const defaults = src.match(/GENIE_DEFAULTS(?::[^=]+)? = Object\.freeze\(\{ enabled: (\w+), duration_ms: (\d+), quality: '(\w+)' \}\)/);
+      assert.ok(defaults, 'client genie.ts declares GENIE_DEFAULTS');
       assert.equal(defaults[1] === 'true', genieService.DEFAULT_POLICY.enabled);
       assert.equal(Number(defaults[2]), genieService.DEFAULT_POLICY.duration_ms);
       assert.equal(defaults[3], genieService.DEFAULT_POLICY.quality);

@@ -12,7 +12,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ALL_BD_DISTRICTS, getAllDistricts } from '../src/data/bangladeshGeo.js';
+import { ALL_BD_DISTRICTS, getAllDistricts } from '../src/data/bangladeshGeo.ts';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 

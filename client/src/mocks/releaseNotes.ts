@@ -1,5 +1,5 @@
 /**
- * mocks/releaseNotes.js — the one release-note store the mock API serves the What's New feature from.
+ * mocks/releaseNotes.ts — the one release-note store the mock API serves the What's New feature from.
  *
  * WHY this file exists: the popup (GET /notifications/whats-new, handlers/notifications.js) answered
  * from a hard-coded constant, and the editor (GET /content/whats-new, POST/DELETE /editor/whats-new,
@@ -15,20 +15,57 @@
  * notification.service.ts (getLatestReleaseNotes). Mock-only: nothing outside src/mocks imports it.
  */
 
-export const RELEASE_CATEGORIES = ['FEATURE', 'IMPROVEMENT', 'SECURITY', 'FIX'];
-export const RELEASE_AUDIENCES = ['ALL', 'SALERS', 'SUPPLIERS'];
+export type ReleaseCategory = 'FEATURE' | 'IMPROVEMENT' | 'SECURITY' | 'FIX';
+export type ReleaseAudience = 'ALL' | 'SALERS' | 'SUPPLIERS';
+
+export const RELEASE_CATEGORIES: string[] = ['FEATURE', 'IMPROVEMENT', 'SECURITY', 'FIX'] satisfies ReleaseCategory[];
+export const RELEASE_AUDIENCES: string[] = ['ALL', 'SALERS', 'SUPPLIERS'] satisfies ReleaseAudience[];
 const VERSION_TAG_MAX = 32;
 // Same numbers as HIGHLIGHT_LIMITS in server/src/services/content.service.ts; the server test fails
 // if they drift.
 export const HIGHLIGHT_LIMITS = { maxItems: 6, iconMax: 8, titleMax: 80, descMax: 240 };
-const AUDIENCE_BY_ROLE = { saler: 'SALERS', supplier: 'SUPPLIERS' };
+const AUDIENCE_BY_ROLE: Record<string, ReleaseAudience> = { saler: 'SALERS', supplier: 'SUPPLIERS' };
 
 const NOTES_KEY = 'explooro:mock:release-notes';
 const VIEWS_KEY = 'explooro:mock:release-views';
 
-const daysAgo = (d) => new Date(Date.now() - 86400000 * d).toISOString();
+export interface HighlightCard {
+  icon: string;
+  title_en: string;
+  title_bn: string;
+  desc_en: string;
+  desc_bn: string;
+}
 
-const SEED_NOTES = [
+/** A stored note, the shape of one `release_notes` row. */
+export interface ReleaseNote {
+  id: number;
+  version_tag: string;
+  title_en: string;
+  title_bn: string;
+  category: ReleaseCategory | string;
+  target_audience: ReleaseAudience | string;
+  summary_en: string;
+  summary_bn: string;
+  highlights_json: HighlightCard[];
+  published_at: string;
+  updated_at?: string;
+}
+
+/** What the API returns: the row plus `version`, the name the editor pages read. */
+export type ReleaseNoteDto = ReleaseNote & { version: string };
+
+/** A handler-style reply, so validation errors look like the live API's. */
+export interface MockReply<T = unknown> {
+  status: number;
+  body: T;
+}
+
+type ErrorBody = { error: { code: string; message_en: string; message_bn: string } };
+
+const daysAgo = (d: number): string => new Date(Date.now() - 86400000 * d).toISOString();
+
+const SEED_NOTES: ReleaseNote[] = [
   {
     id: 1,
     version_tag: 'v2.4.0',
@@ -67,7 +104,7 @@ const SEED_NOTES = [
   },
 ];
 
-function read(key, fallback) {
+function read<T>(key: string, fallback: T): T {
   try {
     if (typeof localStorage === 'undefined') return fallback;
     const raw = localStorage.getItem(key);
@@ -80,7 +117,7 @@ function read(key, fallback) {
   }
 }
 
-function write(key, value) {
+function write(key: string, value: unknown): void {
   try {
     if (typeof localStorage !== 'undefined') localStorage.setItem(key, JSON.stringify(value));
   } catch {
@@ -88,10 +125,10 @@ function write(key, value) {
   }
 }
 
-const persistedNotes = read(NOTES_KEY, null);
-let notes = Array.isArray(persistedNotes) ? persistedNotes : SEED_NOTES.map((n) => ({ ...n }));
+const persistedNotes = read<ReleaseNote[] | null>(NOTES_KEY, null);
+let notes: ReleaseNote[] = Array.isArray(persistedNotes) ? persistedNotes : SEED_NOTES.map((n) => ({ ...n }));
 /** `{ [userId]: string[] }` — version tags each user has closed. */
-let views = read(VIEWS_KEY, {});
+let views = read<Record<string, string[]>>(VIEWS_KEY, {});
 if (!views || typeof views !== 'object' || Array.isArray(views)) views = {};
 
 const saveNotes = () => write(NOTES_KEY, notes);
@@ -99,23 +136,27 @@ const saveViews = () => write(VIEWS_KEY, views);
 
 // WHY `version` alongside `version_tag`: same as the server's toReleaseDto — the editor pages read
 // `version`, the popup and the ack endpoint read `version_tag`.
-const toDto = (n) => ({ ...n, version: n.version_tag, highlights_json: n.highlights_json || [] });
+const toDto = (n: ReleaseNote): ReleaseNoteDto => ({ ...n, version: n.version_tag, highlights_json: n.highlights_json || [] });
 
-const newestFirst = (a, b) => Date.parse(b.published_at) - Date.parse(a.published_at) || b.id - a.id;
+const newestFirst = (a: ReleaseNote, b: ReleaseNote): number =>
+  Date.parse(b.published_at) - Date.parse(a.published_at) || b.id - a.id;
 
-const fail = (status, code, message_en, message_bn) => ({ status, body: { error: { code, message_en, message_bn } } });
+const fail = (status: number, code: string, message_en: string, message_bn: string): MockReply<ErrorBody> => ({
+  status,
+  body: { error: { code, message_en, message_bn } },
+});
 
 /** Mirrors the server's sanitizeHighlights: `{ cards }` or `{ error }` (a handler response). */
-function sanitizeHighlights(input) {
-  const invalid = (en, bn) => ({ error: fail(400, 'VALIDATION_FAILED', en, bn) });
+function sanitizeHighlights(input: unknown): { cards: HighlightCard[]; error?: undefined } | { error: MockReply<ErrorBody> } {
+  const invalid = (en: string, bn: string) => ({ error: fail(400, 'VALIDATION_FAILED', en, bn) });
   if (input == null) return { cards: [] };
   if (!Array.isArray(input)) return invalid('Highlights must be a list.', 'হাইলাইট একটি তালিকা হতে হবে।');
   const { maxItems, iconMax, titleMax, descMax } = HIGHLIGHT_LIMITS;
   if (input.length > maxItems) return invalid(`At most ${maxItems} highlights.`, `সর্বোচ্চ ${maxItems}টি হাইলাইট দেওয়া যায়।`);
-  const cards = [];
+  const cards: HighlightCard[] = [];
   for (let i = 0; i < input.length; i += 1) {
     const h = input[i];
-    const str = (v) => String(v ?? '').trim();
+    const str = (v: unknown): string => String(v ?? '').trim();
     const icon = str(h?.icon);
     const titleEn = str(h?.title_en);
     const descEn = str(h?.desc_en);
@@ -135,7 +176,12 @@ function sanitizeHighlights(input) {
   return { cards };
 }
 
-export function listReleaseNotes({ limit = 50, offset = 0 } = {}) {
+export function listReleaseNotes({ limit = 50, offset = 0 }: { limit?: number | string; offset?: number | string } = {}): {
+  items: ReleaseNoteDto[];
+  total: number;
+  limit: number;
+  offset: number;
+} {
   const lim = Math.min(Math.max(Number(limit) || 50, 1), 200);
   const off = Math.max(Number(offset) || 0, 0);
   const sorted = [...notes].sort(newestFirst);
@@ -143,7 +189,9 @@ export function listReleaseNotes({ limit = 50, offset = 0 } = {}) {
 }
 
 /** Returns `{ status, body }` like a handler, so validation errors match the live API. */
-export function upsertReleaseNote(body = {}) {
+export function upsertReleaseNote(
+  body: Partial<Omit<ReleaseNote, 'highlights_json'>> & { version?: string; highlights_json?: unknown } = {},
+): MockReply<ErrorBody | { data: ReleaseNoteDto }> {
   const id = body.id ? Number(body.id) : null;
   const tag = String(body.version_tag ?? body.version ?? '').trim();
   const category = body.category || 'FEATURE';
@@ -166,11 +214,11 @@ export function upsertReleaseNote(body = {}) {
     return fail(400, 'VALIDATION_FAILED', 'Unknown target audience.', 'অজানা লক্ষ্য দর্শক।');
   }
   // undefined means "keep the stored cards", as on the server.
-  let cards = null;
+  let cards: HighlightCard[] | null = null;
   if (body.highlights_json !== undefined) {
     const res = sanitizeHighlights(body.highlights_json);
     if (res.error) return res.error;
-    cards = res.cards;
+    cards = (res as { cards: HighlightCard[] }).cards;
   }
   if (notes.some((n) => n.version_tag === tag && n.id !== id)) {
     return fail(409, 'CONFLICT', `Version ${tag} is already published. Use a new version tag.`, `${tag} ভার্সন আগেই প্রকাশিত। নতুন ভার্সন ট্যাগ দিন।`);
@@ -181,7 +229,7 @@ export function upsertReleaseNote(body = {}) {
     title_en: titleEn, title_bn: titleBn, summary_en: summaryEn, summary_bn: summaryBn,
   };
 
-  let note;
+  let note: ReleaseNote | undefined;
   if (id) {
     note = notes.find((n) => n.id === id);
     if (!note) return fail(404, 'NOT_FOUND', `Release note #${id} not found.`, `রিলিজ নোট #${id} পাওয়া যায়নি।`);
@@ -201,7 +249,7 @@ export function upsertReleaseNote(body = {}) {
   return { status: 200, body: { data: toDto(note) } };
 }
 
-export function deleteReleaseNote(id) {
+export function deleteReleaseNote(id: number | string): MockReply<ErrorBody | { data: { id: number; deleted: true } }> {
   const before = notes.length;
   notes = notes.filter((n) => n.id !== Number(id));
   if (notes.length === before) {
@@ -212,7 +260,10 @@ export function deleteReleaseNote(id) {
 }
 
 /** The popup's answer: newest note for this viewer's audience, or null once they closed it. */
-export function latestReleaseFor({ userId = 'guest', role = null } = {}) {
+export function latestReleaseFor({
+  userId = 'guest',
+  role = null,
+}: { userId?: string | number; role?: string | null } = {}): ReleaseNoteDto | null {
   const audiences = AUDIENCE_BY_ROLE[role] ? ['ALL', AUDIENCE_BY_ROLE[role]] : ['ALL'];
   const latest = notes
     .filter((n) => audiences.includes(n.target_audience) && Date.parse(n.published_at) <= Date.now())
@@ -222,7 +273,7 @@ export function latestReleaseFor({ userId = 'guest', role = null } = {}) {
   return toDto(latest);
 }
 
-export function markReleaseViewed({ userId = 'guest', versionTag }) {
+export function markReleaseViewed({ userId = 'guest', versionTag }: { userId?: string | number; versionTag?: string }): void {
   if (!versionTag) return;
   const seen = views[userId] || [];
   if (!seen.includes(versionTag)) {
@@ -232,7 +283,7 @@ export function markReleaseViewed({ userId = 'guest', versionTag }) {
 }
 
 /** Tests only: back to the seed with no acks. */
-export function resetReleaseNotesForTests() {
+export function resetReleaseNotesForTests(): void {
   notes = SEED_NOTES.map((n) => ({ ...n }));
   views = {};
 }
