@@ -19,7 +19,7 @@ import { formatNumber } from '../../services/format.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { logOutMock, releaseElevatedAccess } from '../../state/appStore.js';
 import { logout } from '../../services/session.js';
-import { getTheme, applyTheme } from '../../services/theme.js';
+import { getTheme, applyTheme } from '../../services/theme.ts';
 import { Badge } from '../ui/Badge.js';
 import { api } from '../../core/api.js';
 import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
@@ -290,7 +290,7 @@ function AvatarMenu({ role, user, onNavigate }) {
   panel.append(settingsLink);
 
   // Preferences live here, not in the topbar: people set them once and rarely touch them again.
-  // A pick is stored (i18n.js / theme.js write it to this browser) and becomes the default the next
+  // A pick is stored (i18n.js / theme.ts write it to this browser) and becomes the default the next
   // visit opens with — the hint below says so, because nothing else on screen would.
   const prefs = document.createElement('div');
   prefs.className = 'topbar__prefs';

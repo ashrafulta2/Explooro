@@ -1,11 +1,46 @@
 /**
- * permissionMatrix.js — pure model behind the Roles × Permissions baseline matrix (Prompt 3.3).
+ * permissionMatrix.ts — pure model behind the Roles × Permissions baseline matrix (Prompt 3.3).
  *
  * Kept free of DOM and i18n so the rules the page relies on can be pinned by a plain node:test:
  * what a cell means, how roles are ordered, and how the domain / risk / search filters combine.
  */
 
-export const RISK_TIERS = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+export const RISK_TIERS = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as const;
+
+export type RiskTier = (typeof RISK_TIERS)[number];
+export type RoleId = string | number;
+
+export interface Role {
+  id: RoleId;
+  key: string;
+  level?: number;
+}
+
+/** One entry of the permission catalog, as GET /admin/permissions returns it. */
+export interface Permission {
+  key: string;
+  domain?: string;
+  risk_tier?: RiskTier | string;
+  label_en?: string;
+  label_bn?: string;
+  plain_en?: string;
+  plain_bn?: string;
+}
+
+export interface RolePermissionRow {
+  role_id: RoleId;
+  permission_key: string;
+}
+
+/** roleId → the permission keys that role holds. */
+export type HeldIndex = Map<RoleId, Set<string>>;
+
+export type CellState = 'granted' | 'locked' | 'none';
+
+export interface DomainCount {
+  key: string;
+  count: number;
+}
 
 // Order only — a domain the catalog adds later still shows up, sorted after these.
 const DOMAIN_ORDER = [
@@ -14,13 +49,13 @@ const DOMAIN_ORDER = [
 ];
 
 /** Lowest privilege first, so the grid reads left → right as a ladder. Ties keep a stable order. */
-export function sortRoles(roles = []) {
+export function sortRoles<R extends Role>(roles: R[] = []): R[] {
   return [...roles].sort((a, b) => (a.level ?? 0) - (b.level ?? 0) || String(a.key).localeCompare(String(b.key)));
 }
 
 /** roleId → Set of permission keys that role holds, straight from the `role_permissions` rows. */
-export function buildHeldIndex(rolePermissions = []) {
-  const held = new Map();
+export function buildHeldIndex(rolePermissions: RolePermissionRow[] = []): HeldIndex {
+  const held: HeldIndex = new Map();
   for (const row of rolePermissions) {
     if (!held.has(row.role_id)) held.set(row.role_id, new Set());
     held.get(row.role_id).add(row.permission_key);
@@ -38,16 +73,16 @@ export function buildHeldIndex(rolePermissions = []) {
  * `locked` marks a CRITICAL permission the role does not hold: the RBAC resolver strips CRITICAL
  * from everyone but Super Admin (rbac.service.ts), so it is not something a grant can fix.
  */
-export function cellState(role, permission, held) {
+export function cellState(role: Role, permission: Permission, held: HeldIndex): CellState {
   if (held.get(role.id)?.has(permission.key)) return 'granted';
   if (permission.risk_tier === 'CRITICAL' && role.key !== 'super_admin') return 'locked';
   return 'none';
 }
 
 /** roleId → how many permissions of the WHOLE catalog the role holds (never the filtered view). */
-export function countHeldByRole(roles, permissions, held) {
+export function countHeldByRole(roles: Role[], permissions: Permission[], held: HeldIndex): Map<RoleId, number> {
   const known = new Set(permissions.map((p) => p.key));
-  const totals = new Map();
+  const totals = new Map<RoleId, number>();
   for (const role of roles) {
     let n = 0;
     for (const key of held.get(role.id) ?? []) if (known.has(key)) n += 1;
@@ -57,13 +92,13 @@ export function countHeldByRole(roles, permissions, held) {
 }
 
 /** Domains present in the data with their permission counts, in a stable, meaningful order. */
-export function listDomains(permissions = []) {
-  const counts = new Map();
+export function listDomains(permissions: Permission[] = []): DomainCount[] {
+  const counts = new Map<string, number>();
   for (const p of permissions) {
     const key = p.domain || 'system';
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
-  const rank = (key) => {
+  const rank = (key: string): number => {
     const i = DOMAIN_ORDER.indexOf(key);
     return i === -1 ? DOMAIN_ORDER.length : i;
   };
@@ -73,7 +108,10 @@ export function listDomains(permissions = []) {
 }
 
 /** Domain + risk tier + free-text search, all ANDed. `domain: 'ALL'` and `risk: 'ALL'` mean no filter. */
-export function filterPermissions(permissions = [], { domain = 'ALL', risk = 'ALL', query = '' } = {}) {
+export function filterPermissions<P extends Permission>(
+  permissions: P[] = [],
+  { domain = 'ALL', risk = 'ALL', query = '' }: { domain?: string; risk?: string; query?: string } = {},
+): P[] {
   const needle = query.trim().toLowerCase();
   return permissions.filter((p) => {
     if (domain !== 'ALL' && (p.domain || 'system') !== domain) return false;
@@ -84,8 +122,8 @@ export function filterPermissions(permissions = [], { domain = 'ALL', risk = 'AL
 }
 
 /** [domain, permissions[]] pairs, preserving `listDomains` order. */
-export function groupByDomain(permissions = []) {
-  const groups = new Map();
+export function groupByDomain<P extends Permission>(permissions: P[] = []): [string, P[]][] {
+  const groups = new Map<string, P[]>();
   for (const p of permissions) {
     const key = p.domain || 'system';
     if (!groups.has(key)) groups.set(key, []);

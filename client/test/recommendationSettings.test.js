@@ -39,7 +39,7 @@ import {
   missingRails,
   toPercent,
   isPenalty,
-} from '../src/services/recoSettings.js';
+} from '../src/services/recoSettings.ts';
 
 const clientRoot = path.resolve(import.meta.dirname, '..');
 const read = (...p) => fs.readFileSync(path.join(clientRoot, ...p), 'utf8');

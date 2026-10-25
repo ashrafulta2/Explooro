@@ -2193,7 +2193,7 @@ initOfflineBanner();
 initPwaInstallPrompt();
 
 // Universal Floating Horizontal Scrollbar
-import { initFloatingScroll } from './services/floatingScroll.js';
+import { initFloatingScroll } from './services/floatingScroll.ts';
 initFloatingScroll();
 
 // Re-check on HMR so the panel stays truthful while the server restarts under --watch.

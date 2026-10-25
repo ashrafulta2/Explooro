@@ -1,5 +1,5 @@
 /**
- * floatingScroll.js — Universal Floating Horizontal Scrollbar Service.
+ * floatingScroll.ts — Universal Floating Horizontal Scrollbar Service.
  *
  * Responsibility:
  * Monitors wide tables and horizontally scrollable containers across the application.
@@ -10,18 +10,18 @@
  * Zero runtime dependencies, high performance with requestAnimationFrame + ResizeObserver.
  */
 
-const observedElements = new Set();
-let barEl = null;
-let barInner = null;
-let currentTarget = null;
+const observedElements = new Set<HTMLElement>();
+let barEl: HTMLDivElement | null = null;
+let barInner: HTMLDivElement | null = null;
+let currentTarget: HTMLElement | null = null;
 let isSyncing = false;
 let isInteracting = false;
-let rafId = null;
-let scanTimer = null;
-let resizeObserver = null;
-let mutationObserver = null;
+let rafId: number | null = null;
+let scanTimer: ReturnType<typeof setTimeout> | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let mutationObserver: MutationObserver | null = null;
 
-function onTargetScroll() {
+function onTargetScroll(): void {
   if (isSyncing || !barEl || !currentTarget) return;
   isSyncing = true;
   barEl.scrollLeft = currentTarget.scrollLeft;
@@ -30,7 +30,7 @@ function onTargetScroll() {
   });
 }
 
-function update() {
+function update(): void {
   if (!barEl) return;
 
   const viewportH = window.innerHeight;
@@ -127,11 +127,11 @@ function update() {
   }
 }
 
-export function updateFloatingScroll() {
+export function updateFloatingScroll(): void {
   update();
 }
 
-export function scheduleUpdate() {
+export function scheduleUpdate(): void {
   if (rafId) return;
   let executed = false;
   rafId = requestAnimationFrame(() => {
@@ -144,7 +144,7 @@ export function scheduleUpdate() {
   }
 }
 
-export function registerScrollable(el) {
+export function registerScrollable(el: HTMLElement | null | undefined): void {
   if (!el || observedElements.has(el)) return;
   if (el.classList.contains('no-floating-scroll') || el.hasAttribute('data-no-floating-scroll')) return;
 
@@ -153,7 +153,7 @@ export function registerScrollable(el) {
   scheduleUpdate();
 }
 
-export function scanForScrollables() {
+export function scanForScrollables(): void {
   const root = document.getElementById('router-outlet') || document.body;
   if (!root || typeof root.querySelectorAll !== 'function') return;
 
@@ -169,12 +169,12 @@ export function scanForScrollables() {
     '[class*="table-container"]',
   ].join(',');
 
-  const knownList = root.querySelectorAll(selector);
+  const knownList = root.querySelectorAll<HTMLElement>(selector);
   for (const el of knownList) {
     registerScrollable(el);
   }
 
-  const candidates = root.querySelectorAll('div, section, main');
+  const candidates = root.querySelectorAll<HTMLElement>('div, section, main');
   for (const el of candidates) {
     if (observedElements.has(el)) continue;
     if (el.scrollWidth > el.clientWidth + 1 && el.clientHeight >= 60) {
@@ -188,14 +188,14 @@ export function scanForScrollables() {
   scheduleUpdate();
 }
 
-function scheduleScan() {
+function scheduleScan(): void {
   if (scanTimer) clearTimeout(scanTimer);
   scanTimer = setTimeout(() => {
     scanForScrollables();
   }, 100);
 }
 
-export function initFloatingScroll() {
+export function initFloatingScroll(): void {
   if (typeof document === 'undefined') return;
   if (barEl) return; // already initialized
 

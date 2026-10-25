@@ -9,7 +9,7 @@
  * default or bound differs from the live service, so the copy cannot quietly go stale.
  */
 
-import { sectionProblems } from '../../services/recoSettings.js';
+import { sectionProblems } from '../../services/recoSettings.ts';
 
 const bool = (key, dflt = true) => ({ key, type: 'bool', default: dflt });
 const num = (key, type, min, max, dflt, extra = {}) => ({ key, type, min, max, default: dflt, ...extra });

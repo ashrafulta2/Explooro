@@ -36,7 +36,7 @@ import { appStore, setMockRole, logOutMock } from '../../state/appStore.js';
 import { NAV_ROLES } from '../../config/navigation.js';
 import { getRoleMeta } from '../../config/permissions.mock.js';
 import { getLanguage, setLanguage } from '../../services/i18n.js';
-import { getTheme, applyTheme, THEME_OPTIONS } from '../../services/theme.js';
+import { getTheme, applyTheme, THEME_OPTIONS } from '../../services/theme.ts';
 
 const DENSITY_KEY = 'explooro:density';
 const DENSITY_OPTIONS = ['comfortable', 'compact'];

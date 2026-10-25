@@ -21,7 +21,7 @@ import {
   groupByDomain,
   listDomains,
   sortRoles,
-} from '../src/services/permissionMatrix.js';
+} from '../src/services/permissionMatrix.ts';
 
 const roles = [
   { id: 1, key: 'super_admin', level: 100 },

@@ -12,7 +12,7 @@
  * WHY the form is drawn from the API's field descriptions: every bound lives in the service that
  * enforces it, and the server hands it over (`fields` with min / max / type / default). This page
  * holds no copy of a limit, so a retuned bound can never leave the form offering a value the API
- * refuses. The checks here (services/recoSettings.js) only tell the operator while they type; the
+ * refuses. The checks here (services/recoSettings.ts) only tell the operator while they type; the
  * API re-checks everything.
  *
  * WHY per-section saves: sections are independent policies with independent audit rows, and a weights
@@ -54,7 +54,7 @@ import {
   addRail,
   missingRails,
   toPercent,
-} from '../../services/recoSettings.js';
+} from '../../services/recoSettings.ts';
 
 const FALLBACK_MIN_REASON = 10;
 const FUNNEL_WINDOWS = [7, 30, 90];

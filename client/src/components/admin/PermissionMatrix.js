@@ -13,7 +13,7 @@
 
 import { Badge } from '../ui/Badge.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { cellState, groupByDomain } from '../../services/permissionMatrix.js';
+import { cellState, groupByDomain } from '../../services/permissionMatrix.ts';
 
 const RISK_VARIANT = { CRITICAL: 'danger', HIGH: 'warning', MEDIUM: 'info', LOW: 'success' };
 

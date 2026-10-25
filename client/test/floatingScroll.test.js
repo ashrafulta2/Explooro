@@ -120,7 +120,7 @@ test('3. Floating Scrollbar Service Exports & Initialization', async () => {
   };
   globalThis.requestAnimationFrame = (cb) => { cb(); return 1; };
 
-  const { initFloatingScroll, registerScrollable, scanForScrollables } = await import('../src/services/floatingScroll.js');
+  const { initFloatingScroll, registerScrollable, scanForScrollables } = await import('../src/services/floatingScroll.ts');
 
   assert.equal(typeof initFloatingScroll, 'function', 'initFloatingScroll must be exported');
   assert.equal(typeof registerScrollable, 'function', 'registerScrollable must be exported');

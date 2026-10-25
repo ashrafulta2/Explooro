@@ -24,7 +24,7 @@ import {
   filterPermissions,
   listDomains,
   sortRoles,
-} from '../../services/permissionMatrix.js';
+} from '../../services/permissionMatrix.ts';
 import '../../styles/components/admin-users.css';
 import '../../styles/components/admin-access.css';
 

@@ -146,5 +146,6 @@ check that the server typecheck and tests still pass. A test that walks a folder
 | Step | Date | Files moved to `.ts` | Checks |
 | :--- | :--- | :--- | :--- |
 | 1 | 2026-10-25 | `services/html.ts`, `services/writeOutcome.ts`, `services/attribution.ts` (pilot, plus `client/tsconfig.json`, the `typecheck` script, the CI step, `ts-migrate.mjs --client` and `client/test/tsMigration.test.js`) | typecheck 0 errors (client and server); client 954/954, server 1696/1696; build passes the budget (JS 58.25 KB, CSS 67.54 KB gzip) and prerenders; app on the mock dev server loads both moved modules, records a `?ref=` touch, no console errors |
+| 2 | 2026-10-25 | `services/theme.ts`, `services/permissionMatrix.ts`, `services/recoSettings.ts`, `services/floatingScroll.ts` (exported types: `ThemeChoice`, `Role` / `Permission` / `HeldIndex`, `Section` / `RailLayout` / `RailChange`) | typecheck 0 errors (client and server); client 954/954, server 1696/1696; build passes and the entry JS is byte-identical to step 1 (`index-8GSsEHGz.js`, types only); on the mock dev server all four modules load, the theme toggles, the floating scrollbar mounts, no console errors |
 
-413 `.js` files remain under `client/src`.
+409 `.js` files remain under `client/src`.
