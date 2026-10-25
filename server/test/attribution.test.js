@@ -39,6 +39,8 @@ function fakeDb({ windowDays = 7, carries = true } = {}) {
 }
 
 const touch = (type, ref, ageDays) => ({ type, ref, at: new Date(NOW.getTime() - ageDays * DAY).toISOString() });
+// WHY: addItemToCart reads the real clock, so a touch dated off the fixed NOW expires once NOW is a week old.
+const freshTouch = (type, ref) => ({ type, ref, at: new Date().toISOString() });
 
 describe('attribution rules', () => {
   test('a storefront visit credits the store owner', async () => {
@@ -191,7 +193,7 @@ describe('add-to-cart records the touch on the line', () => {
 
   test('a fresh link touch sets the partner, their price and the link on the cart line', async () => {
     const db = cartDb();
-    await addItemToCart(db, { userId: 9, productId: PRODUCT, qty: 1, touch: touch('LINK', 'a1b2c3', 0) }).catch(() => {});
+    await addItemToCart(db, { userId: 9, productId: PRODUCT, qty: 1, touch: freshTouch('LINK', 'a1b2c3') }).catch(() => {});
     assert.equal(db.writes[0].salerId, SALER);
     assert.equal(Number(db.writes[0].priceAtAdd), 950);
     assert.equal(db.writes[0].shortLinkId, 9);
