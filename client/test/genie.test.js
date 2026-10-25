@@ -523,5 +523,5 @@ test('7. Modal routes open and close through genieRun; the old scale genie is re
 test('8. genie.js stays dependency-free', () => {
   const src = read('src', 'lib', 'genie.js');
   const imports = [...src.matchAll(/^import .* from '([^']+)'/gm)].map((m) => m[1]);
-  assert.deepEqual(imports, ['./motion.js']);
+  assert.deepEqual(imports, ['./motion.ts']);
 });

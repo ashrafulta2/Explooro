@@ -13,7 +13,7 @@
  * `DEMO_WITHHELD` keys per role — so the sidebar shows the real Prompt-1.7 locked-item states
  * (ia-sitemap.md §5.1) rather than either "everything unlocked" or "everything locked".
  */
-import { createStore } from '../core/store.js';
+import { createStore } from '../core/store.ts';
 import { defaultPermissionsForRole } from '../config/permissions.mock.js';
 
 // One MEDIUM/HIGH (delegable — shows "Request access") and one CRITICAL (not delegable — no

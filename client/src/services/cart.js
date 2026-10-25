@@ -6,7 +6,7 @@
  */
 
 import { api, pickMessage } from '../core/api.js';
-import { createStore } from '../core/store.js';
+import { createStore } from '../core/store.ts';
 import { appStore } from '../state/appStore.js';
 import { toast } from './toast.js';
 import { t } from './i18n.js';

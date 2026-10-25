@@ -80,13 +80,13 @@ Each of these is a library we did **not** install. The size column is why.
 | What | Where | Typical library cost | Ours |
 | :--- | :--- | ---: | ---: |
 | Router | `client/src/core/router.js` | react-router ~20KB | ~150 lines |
-| State store | `client/src/core/store.js` | Redux + toolkit ~40KB | ~80 lines |
+| State store | `client/src/core/store.ts` | Redux + toolkit ~40KB | ~80 lines |
 | HTTP client | `client/src/core/api.js` | axios ~14KB | ~200 lines |
 | i18n | `client/src/services/i18n.js` | i18next ~40KB | ~120 lines |
 | Charts | inline SVG | Chart.js ~200KB | per-chart |
 | Icons | SVG sprite | lucide / fontawesome ~50KB+ | 0 |
 | Dates & currency | `client/src/services/format.js` | date-fns / moment ~20–70KB | `Intl` (built in) |
-| Motion | `client/src/lib/motion.js` | framer-motion ~120KB | < 3KB |
+| Motion | `client/src/lib/motion.ts` | framer-motion ~120KB | < 3KB |
 | Toasts, modals, tables | `client/src/components/ui/` | any UI kit ~100KB+ | own code |
 | QR codes | `server/src/services/flyer.service.ts` | qrcode lib | server-side |
 | Migration runner | `server/src/db/migrate.ts` | knex / node-pg-migrate | ~120 lines |

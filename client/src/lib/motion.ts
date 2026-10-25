@@ -1,11 +1,11 @@
 /**
- * motion.js — Lightweight (< 3KB) Motion Utility (Prompt 1.10, docs/design-system.md §6, §15).
+ * motion.ts — Lightweight (< 3KB) Motion Utility (Prompt 1.10, docs/design-system.md §6, §15).
  *
  * All helpers are interruptible and become no-ops under prefers-reduced-motion.
  * Zero dependencies.
  */
 
-export function prefersReducedMotion() {
+export function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false;
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -14,14 +14,14 @@ export function prefersReducedMotion() {
  * Attaches physical scale(0.97) press feedback to any tappable element (§15).
  * Uses Web Animations API with an instant duration so it remains interruptible.
  */
-export function press(el) {
+export function press(el: HTMLElement | null | undefined): () => void {
   if (!el || typeof el.addEventListener !== 'function') return () => {};
   if (prefersReducedMotion()) return () => {};
 
-  let activeAnim = null;
+  let activeAnim: Animation | null = null;
 
-  function handlePointerDown() {
-    if (el.disabled || el.getAttribute('aria-disabled') === 'true') return;
+  function handlePointerDown(): void {
+    if ((el as HTMLButtonElement).disabled ||el.getAttribute('aria-disabled') === 'true') return;
     if (activeAnim) activeAnim.cancel();
     activeAnim = el.animate(
       [
@@ -36,7 +36,7 @@ export function press(el) {
     );
   }
 
-  function handlePointerUp() {
+  function handlePointerUp(): void {
     if (activeAnim) {
       activeAnim.cancel();
       activeAnim = el.animate(
@@ -75,7 +75,10 @@ export function press(el) {
  * Choreographs list entrances staggered at 20-30ms per item, capped at 8 items (§6.3).
  * Beyond the cap, all remaining items appear together without crawl.
  */
-export function stagger(elements, { delayMs = 25, durationMs = 200, maxItems = 8 } = {}) {
+export function stagger(
+  elements: ArrayLike<HTMLElement> | Iterable<HTMLElement> | null | undefined,
+  { delayMs = 25, durationMs = 200, maxItems = 8 }: { delayMs?: number; durationMs?: number; maxItems?: number } = {},
+): Promise<unknown> {
   const list = Array.isArray(elements) ? elements : Array.from(elements || []);
   if (!list.length) return Promise.resolve();
 
@@ -89,7 +92,7 @@ export function stagger(elements, { delayMs = 25, durationMs = 200, maxItems = 8
     return Promise.resolve();
   }
 
-  const animations = [];
+  const animations: Promise<unknown>[] = [];
 
   list.forEach((el, index) => {
     if (!el || typeof el.animate !== 'function') return;
@@ -110,13 +113,13 @@ export function stagger(elements, { delayMs = 25, durationMs = 200, maxItems = 8
     );
 
     animations.push(
-      new Promise((resolve) => {
+      new Promise<void>((resolve) => {
         anim.onfinish = () => {
           el.style.opacity = '1';
           el.style.transform = 'none';
           resolve();
         };
-        anim.oncancel = resolve;
+        anim.oncancel = () => resolve();
       })
     );
   });
@@ -127,7 +130,7 @@ export function stagger(elements, { delayMs = 25, durationMs = 200, maxItems = 8
 /**
  * Computes and sets transform-origin so an overlay animates directly FROM its trigger's position (§6.2).
  */
-export function originTransition(overlayEl, triggerEl) {
+export function originTransition(overlayEl: HTMLElement | null | undefined, triggerEl: Element | null | undefined): void {
   if (!overlayEl || !triggerEl || prefersReducedMotion()) return;
 
   const triggerRect = triggerEl.getBoundingClientRect();
@@ -149,7 +152,15 @@ export function originTransition(overlayEl, triggerEl) {
  * Smooth rolling numeric counter animation (§15).
  * Uses requestAnimationFrame with ease-out timing.
  */
-export function countUp(el, from = 0, to = 0, { durationMs = 400, formatter = (n) => Math.round(n).toString() } = {}) {
+export function countUp(
+  el: HTMLElement | null | undefined,
+  from: number | string = 0,
+  to: number | string = 0,
+  {
+    durationMs = 400,
+    formatter = (n: number) => Math.round(n).toString(),
+  }: { durationMs?: number; formatter?: (n: number) => string } = {},
+): void {
   if (!el) return;
   const startVal = Number(from) || 0;
   const targetVal = Number(to) || 0;
@@ -161,7 +172,7 @@ export function countUp(el, from = 0, to = 0, { durationMs = 400, formatter = (n
 
   const startTime = performance.now();
 
-  function step(now) {
+  function step(now: number): void {
     const elapsed = now - startTime;
     const progress = Math.min(1, elapsed / durationMs);
     // ease-out-quart curve
@@ -183,8 +194,11 @@ export function countUp(el, from = 0, to = 0, { durationMs = 400, formatter = (n
 /**
  * MacBook-style smooth dismiss (fade and gentle scale drop).
  */
-export function animateMacBookDismiss(modalEl, { durationMs = 220 } = {}) {
-  return new Promise((resolve) => {
+export function animateMacBookDismiss(
+  modalEl: HTMLElement | null | undefined,
+  { durationMs = 220 }: { durationMs?: number } = {},
+): Promise<void> {
+  return new Promise<void>((resolve) => {
     if (!modalEl) {
       resolve();
       return;
@@ -205,7 +219,7 @@ export function animateMacBookDismiss(modalEl, { durationMs = 220 } = {}) {
         fill: 'forwards',
       }
     );
-    anim.onfinish = resolve;
-    anim.oncancel = resolve;
+    anim.onfinish = () => resolve();
+    anim.oncancel = () => resolve();
   });
 }

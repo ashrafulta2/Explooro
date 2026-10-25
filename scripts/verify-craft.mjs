@@ -9,7 +9,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { opticalCircleCompensation, isSingleWord } from '../client/src/lib/optical.js';
+import { opticalCircleCompensation, isSingleWord } from '../client/src/lib/optical.ts';
 
 let passed = 0;
 function check(label, actual, expected) {
@@ -50,8 +50,8 @@ for (const token of requiredCraftTokens) {
 }
 
 console.log('\n## 3. Motion Utility Verification');
-const motionJsPath = path.resolve('client/src/lib/motion.js');
-assert.ok(fs.existsSync(motionJsPath), 'client/src/lib/motion.js must exist');
+const motionJsPath = path.resolve('client/src/lib/motion.ts');
+assert.ok(fs.existsSync(motionJsPath), 'client/src/lib/motion.ts must exist');
 const motionJs = fs.readFileSync(motionJsPath, 'utf8');
 
 const requiredMotionExports = [
@@ -63,8 +63,8 @@ const requiredMotionExports = [
 ];
 
 for (const fn of requiredMotionExports) {
-  assert.ok(motionJs.includes(`function ${fn}`) || motionJs.includes(`export function ${fn}`), `motion.js must export "${fn}"`);
-  console.log(`  ok  Found export in motion.js: ${fn}`);
+  assert.ok(motionJs.includes(`function ${fn}`) || motionJs.includes(`export function ${fn}`), `motion.ts must export "${fn}"`);
+  console.log(`  ok  Found export in motion.ts: ${fn}`);
   passed += 1;
 }
 

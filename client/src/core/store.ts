@@ -1,5 +1,5 @@
 /**
- * store.js — minimal pub/sub state container.
+ * store.ts — minimal pub/sub state container.
  *
  * Responsibility: the one piece of client state shared across routes (auth, enabled modules, UI
  * prefs), with zero external dependency (Dependency Policy §1 — no Redux/Zustand/etc.).
@@ -11,7 +11,20 @@
  *   store.update((s) => ({ count: s.count + 1 }));
  */
 
-function shallowEqual(a, b) {
+export type Listener<S> = (state: S) => void;
+export type Unsubscribe = () => void;
+
+export interface Store<S extends object> {
+  get(): S;
+  /** Replaces the whole state. */
+  set(next: S | ((state: S) => S)): void;
+  /** Merges a patch into the state. */
+  update(patch: Partial<S> | ((state: S) => Partial<S>)): void;
+  subscribe(listener: Listener<S>): Unsubscribe;
+  selector<T>(select: (state: S) => T, listener: (next: T, previous: T) => void): Unsubscribe;
+}
+
+function shallowEqual(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true;
   if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) return false;
   const aKeys = Object.keys(a);
@@ -20,10 +33,14 @@ function shallowEqual(a, b) {
   return aKeys.every((key) => Object.is(a[key], b[key]));
 }
 
-export function createStore(initialState = {}, { persist } = {}) {
+/** `persist` names a localStorage key (`explooro:<persist>`) the state is saved to and restored from. */
+export function createStore<S extends object>(
+  initialState: S = {} as S,
+  { persist }: { persist?: string } = {},
+): Store<S> {
   const storageKey = persist ? `explooro:${persist}` : null;
   let state = initialState;
-  const listeners = new Set();
+  const listeners = new Set<Listener<S>>();
 
   if (storageKey) {
     try {
@@ -34,7 +51,7 @@ export function createStore(initialState = {}, { persist } = {}) {
     }
   }
 
-  function persistState() {
+  function persistState(): void {
     if (!storageKey) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(state));
@@ -43,33 +60,33 @@ export function createStore(initialState = {}, { persist } = {}) {
     }
   }
 
-  function notify() {
+  function notify(): void {
     persistState();
     for (const listener of listeners) listener(state);
   }
 
-  function get() {
+  function get(): S {
     return state;
   }
 
-  function set(next) {
+  function set(next: S | ((state: S) => S)): void {
     state = typeof next === 'function' ? next(state) : next;
     notify();
   }
 
-  function update(patch) {
+  function update(patch: Partial<S> | ((state: S) => Partial<S>)): void {
     const partial = typeof patch === 'function' ? patch(state) : patch;
     state = { ...state, ...partial };
     notify();
   }
 
-  function subscribe(listener) {
+  function subscribe(listener: Listener<S>): Unsubscribe {
     listeners.add(listener);
     return () => listeners.delete(listener);
   }
 
   /** Subscribes to a derived slice; `listener` only fires when that slice actually changes. */
-  function selector(select, listener) {
+  function selector<T>(select: (state: S) => T, listener: (next: T, previous: T) => void): Unsubscribe {
     let prev = select(state);
     return subscribe((s) => {
       const next = select(s);

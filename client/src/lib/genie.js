@@ -17,7 +17,7 @@
  * of throwing when the environment can't do it.
  */
 
-import { prefersReducedMotion } from './motion.js';
+import { prefersReducedMotion } from './motion.ts';
 
 /** Used only when the `--dur-genie` token cannot be read (SSR, detached document). */
 const FALLBACK_DURATION_MS = 650;

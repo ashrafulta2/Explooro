@@ -43,7 +43,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatRelativeTime } from '../../services/format.js';
 import { applyGeniePolicy } from '../../services/genieSettings.js';
 import { GENIE_DEFAULTS, GENIE_QUALITIES } from '../../lib/genie.js';
-import { prefersReducedMotion } from '../../lib/motion.js';
+import { prefersReducedMotion } from '../../lib/motion.ts';
 
 const MIN_REASON_LENGTH = 10;
 

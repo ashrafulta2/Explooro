@@ -48,7 +48,7 @@ explooro/
 │       ├── main.js              Entry: mounts router + shell
 │       ├── core/
 │       │   ├── router.js        History API router, guards, lazy routes
-│       │   ├── store.js         Pub/sub state, ~80 lines, no library
+│       │   ├── store.ts         Pub/sub state, ~80 lines, no library
 │       │   └── api.js           fetch wrapper; VITE_API_MODE=mock|live switch
 │       ├── config/
 │       │   └── navigation.js    Nav tree as DATA. Add a feature = add one object
@@ -68,7 +68,7 @@ explooro/
 │       ├── services/            i18n.js, format.js, toast.js, permissions.js,
 │       │                        session.js, featureFlags.js, websocket.js
 │       ├── locales/             en.json, bn.json  ← both, always
-│       ├── lib/                 motion.js, optical.js
+│       ├── lib/                 motion.ts, optical.ts, genie.js
 │       └── mocks/               Fixtures for VITE_API_MODE=mock
 │
 ├── server/                      ── API. Routes → Controllers → Services → Repositories ──
