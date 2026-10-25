@@ -8,8 +8,8 @@
  * theme nobody ever sees. Colour arithmetic therefore exists in exactly one file, the same rule
  * §Master Instructions applies to split/commission arithmetic.
  *
- * `colorRamp.js` is safe to import here: it is pure, dependency-free ESM and touches no DOM API
- * (its sibling `masterTheme.js` does the mounting, and is deliberately NOT imported).
+ * `colorRamp.ts` is safe to import here: it is pure, dependency-free ESM and touches no DOM API
+ * (its sibling `masterTheme.ts` does the mounting, and is deliberately NOT imported).
  * `server/test/themeStudio.test.js` already imports client config the same way.
  *
  * Every other server module must import from here, never from `client/` directly.
@@ -26,7 +26,7 @@ export {
   MASTER_ACCENT_HARMONIES,
   MASTER_RANGES,
   BRAND_STEPS,
-} from '../../../client/src/services/colorRamp.js';
+} from '../../../client/src/services/colorRamp.ts';
 
 /**
  * The UI sections the flattened token shape speaks. `flash_sale` was added after the first six;

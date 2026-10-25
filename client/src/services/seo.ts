@@ -1,5 +1,5 @@
 /**
- * seo.js — Dynamic Document Head & Structured Data (JSON-LD) Service (Prompt 11.5 / Master Spec §K).
+ * seo.ts — Dynamic Document Head & Structured Data (JSON-LD) Service (Prompt 11.5 / Master Spec §K).
  *
  * Implements:
  * 1. Per-route dynamic head management (<title>, <meta name="description">, <link rel="canonical">).
@@ -13,10 +13,62 @@ const SITE_URL = 'https://explooro.com';
 const SITE_NAME = 'Explooro';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-banner.png`;
 
+/** A Schema.org object, serialised as-is into the page's JSON-LD script. */
+export type JsonLd = Record<string, unknown>;
+
+export interface HeadOptions {
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
+  locale?: 'en' | 'bn' | string;
+  ogImage?: string | null;
+  ogType?: string;
+  jsonLd?: JsonLd | JsonLd[] | null;
+  noIndex?: boolean;
+}
+
+export interface ProductJsonLdInput {
+  id?: string | number | null;
+  name?: string;
+  description?: string;
+  images?: string[];
+  sku?: string;
+  retailPrice?: number | string | null;
+  currency?: string;
+  inStock?: boolean;
+  brand?: string;
+  ratingValue?: number | string | null;
+  reviewCount?: number | string | null;
+  store?: { shop_name?: string } | null;
+}
+
+export interface StoreJsonLdInput {
+  slug?: string;
+  shopName?: string;
+  bio?: string;
+  logoUrl?: string | null;
+  salerName?: string;
+}
+
+export interface BreadcrumbItem {
+  name: string;
+  /** Absolute, or a site path with or without its leading slash. */
+  url: string;
+}
+
+export interface StoryJsonLdInput {
+  title?: string;
+  description?: string;
+  slug?: string;
+  authorName?: string;
+  imageUrl?: string | null;
+  publishedAt?: string | null;
+}
+
 /**
  * Normalizes Unicode Bengali or English text into a valid, URL-safe slug.
  */
-export function normalizeSlug(text) {
+export function normalizeSlug(text: unknown): string {
   if (!text) return '';
   return text
     .toString()
@@ -40,7 +92,7 @@ export function updateHead({
   ogType = 'website',
   jsonLd = null,
   noIndex = false,
-} = {}) {
+}: HeadOptions = {}): void {
   if (typeof document === 'undefined') return;
 
   const fullTitle = title ? `${title} — ${SITE_NAME}` : `${SITE_NAME} — Bangladesh's #1 Social Commerce Platform`;
@@ -80,7 +132,7 @@ export function updateHead({
   }
 }
 
-function setMetaTag(attrName, attrVal, content) {
+function setMetaTag(attrName: 'name' | 'property', attrVal: string, content: string): void {
   let el = document.head.querySelector(`meta[${attrName}="${attrVal}"]`);
   if (!el) {
     el = document.createElement('meta');
@@ -90,7 +142,7 @@ function setMetaTag(attrName, attrVal, content) {
   el.setAttribute('content', content);
 }
 
-function setLinkTag(rel, href) {
+function setLinkTag(rel: string, href: string): void {
   let el = document.head.querySelector(`link[rel="${rel}"]`);
   if (!el) {
     el = document.createElement('link');
@@ -100,7 +152,7 @@ function setLinkTag(rel, href) {
   el.setAttribute('href', href);
 }
 
-function setHreflangLinks(path) {
+function setHreflangLinks(path: string): void {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
 
   // Remove existing alternates
@@ -121,7 +173,7 @@ function setHreflangLinks(path) {
   });
 }
 
-function setJsonLd(schemaObj) {
+function setJsonLd(schemaObj: JsonLd | JsonLd[]): void {
   let script = document.head.querySelector('script[type="application/ld+json"]#seo-structured-data');
   if (!script) {
     script = document.createElement('script');
@@ -152,7 +204,7 @@ export function buildProductJsonLd({
   ratingValue = 4.8,
   reviewCount = 12,
   store = null,
-} = {}) {
+}: ProductJsonLdInput = {}): JsonLd {
   const productUrl = `${SITE_URL}/products/${sku || id || 'item'}`;
 
   return {
@@ -178,7 +230,7 @@ export function buildProductJsonLd({
       '@type': 'Offer',
       url: productUrl,
       priceCurrency: currency,
-      price: parseFloat(retailPrice || 0).toFixed(2),
+      price: parseFloat(String(retailPrice || 0)).toFixed(2),
       priceValidUntil: '2027-12-31',
       itemCondition: 'https://schema.org/NewCondition',
       availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
@@ -199,7 +251,7 @@ export function buildStoreJsonLd({
   bio = '',
   logoUrl = null,
   salerName = '',
-} = {}) {
+}: StoreJsonLdInput = {}): JsonLd {
   return {
     '@context': 'https://schema.org',
     '@type': ['Store', 'LocalBusiness', 'OnlineStore'],
@@ -223,7 +275,7 @@ export function buildStoreJsonLd({
 /**
  * Builds Schema.org BreadcrumbList Structured Data.
  */
-export function buildBreadcrumbJsonLd(items = []) {
+export function buildBreadcrumbJsonLd(items: BreadcrumbItem[] = []): JsonLd {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -239,7 +291,7 @@ export function buildBreadcrumbJsonLd(items = []) {
 /**
  * Builds Schema.org WebSite Structured Data with SearchAction.
  */
-export function buildWebsiteJsonLd() {
+export function buildWebsiteJsonLd(): JsonLd {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
@@ -263,7 +315,7 @@ export function buildStoryJsonLd({
   authorName = 'Explooro Creator',
   imageUrl = null,
   publishedAt = null,
-} = {}) {
+}: StoryJsonLdInput = {}): JsonLd {
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',

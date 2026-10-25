@@ -6,7 +6,7 @@
 >
 > Every colour value in §1 and every contrast figure in §2 is emitted by
 > `node scripts/palette.mjs`, which drives the same OKLCH engine the product ships
-> (`client/src/services/colorRamp.js`). They are **measured**, not estimated, and they describe
+> (`client/src/services/colorRamp.ts`). They are **measured**, not estimated, and they describe
 > the palette the product actually boots with — `client/src/styles/themes.css` is generated from
 > the same source, and a test fails if it drifts. Re-run that command after any change to the
 > master seed and paste its output back into §1.2–§2.
@@ -101,7 +101,7 @@ override are provably the same pixel rather than two roundings of the same inten
 
 **The brand ramp is not authored. It is a function of a single seed colour.**
 
-`client/src/services/colorRamp.js` takes the seed, finds which rung of the lightness ladder it sits
+`client/src/services/colorRamp.ts` takes the seed, finds which rung of the lightness ladder it sits
 closest to, pins it there, and derives the other eleven steps around it. The ladder itself — the
 per-step lightness and chroma envelope below — is the part that was designed by hand, once, and it
 is a **contrast contract**, not a look: it guarantees that some step will clear 4.5:1 for link text

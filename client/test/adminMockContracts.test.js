@@ -225,7 +225,7 @@ describe('CSS custom properties referenced by the client actually exist', () => 
       for (const m of src.matchAll(USE)) {
         const [name, hasFallback] = [m[1], Boolean(m[2])];
         if (hasFallback || defined.has(name)) continue;
-        // colorRamp.js writes `var(--brand-${step})`: the literal is a prefix, not a token name.
+        // colorRamp.ts writes `var(--brand-${step})`: the literal is a prefix, not a token name.
         if (src.startsWith('${', m.index + m[0].indexOf(name) + name.length)) continue;
         offenders.push(`${name} — ${path}`);
       }

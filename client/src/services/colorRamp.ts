@@ -1,5 +1,5 @@
 /**
- * colorRamp.js — OKLCH colour engine. One master seed colour -> the entire system palette.
+ * colorRamp.ts — OKLCH colour engine. One master seed colour -> the entire system palette.
  *
  * WHY this exists: components reference the RAW ramp steps (--brand-50 … --brand-1000,
  * --neutral-0 … --neutral-1000) in ~199 places — card borders, hover fills, scrollbar thumbs,
@@ -22,12 +22,113 @@
  */
 
 /* =========================================================================
+ * 0. Types
+ * ======================================================================= */
+
+/** `#rrggbb`. Inputs also accept `#rgb`; anything unparseable reads as black. */
+export type Hex = string;
+
+export interface Rgb255 {
+  r: number;
+  g: number;
+  b: number;
+}
+
+/** l 0..1, c 0..~0.4, h 0..360. */
+export interface Oklch {
+  l: number;
+  c: number;
+  h: number;
+}
+
+/** Ramp step (50, 100 … 1000) → colour. */
+export type Ramp = Record<number, Hex>;
+
+export type NeutralMode = 'cool' | 'match' | 'complement';
+export type AccentHarmony = 'complement' | 'analogous' | 'triad' | 'mono';
+
+/** The admin-tunable master block. Everything else in the palette is derived from it. */
+export interface MasterConfig {
+  seed: Hex;
+  vividness: number;
+  neutralMode: NeutralMode;
+  neutralTint: number;
+  accentHarmony: AccentHarmony;
+  statusPull: number;
+  surfaceWash: boolean;
+  borderTint: boolean;
+}
+
+/** CSS custom property → value (`var(--…)`, a hex, or an HSL triplet). */
+type TokenMap = { [token: `--${string}`]: string };
+
+export interface FlashColours {
+  bg: Hex;
+  text: Hex;
+  chipBg: Hex;
+  tagBg?: Hex;
+  tagText?: Hex;
+}
+
+/** The light role map plus the literal hexes behind it, which the studio's swatches read. */
+export type LightRoles = TokenMap & {
+  __resolved: {
+    surface0: Hex;
+    surface1: Hex;
+    card: Hex;
+    subtle: Hex;
+    border: Hex;
+    brand: Hex;
+    brandHover: Hex;
+    brandContrast: Hex;
+    flash: Required<FlashColours>;
+    navbarBg: Hex;
+    navbarSearch: Hex;
+    footerBg: Hex;
+    footerMuted: Hex;
+    footerBorder: Hex;
+  };
+};
+
+export type DarkRoles = TokenMap & {
+  __resolved: {
+    surface0: Hex;
+    surface2: Hex;
+    brand: Hex;
+    textBrand: Hex;
+    brandContrast: Hex;
+    flash: FlashColours;
+  };
+};
+
+export interface Palette {
+  config: MasterConfig;
+  brand: Ramp;
+  neutral: Ramp;
+  accent: Ramp;
+  success: Ramp;
+  warning: Ramp;
+  danger: Ramp;
+  info: Ramp;
+  roles: { light: LightRoles; dark: DarkRoles };
+  meta: {
+    seedHue: number;
+    neutralHue: number;
+    accentHue: number;
+    anchorStep: number;
+    chromaScale: number;
+  };
+}
+
+export type StatusName = 'success' | 'warning' | 'danger' | 'info';
+
+/* =========================================================================
  * 1. sRGB <-> OKLCH conversion (Ottosson matrices)
  * ======================================================================= */
 
-const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
-export function hexToRgb255(hex) {
+export function hexToRgb255(hex: unknown): Rgb255 {
   if (typeof hex !== 'string') return { r: 0, g: 0, b: 0 };
   let clean = hex.trim().replace('#', '');
   if (clean.length === 3) clean = clean.split('').map((c) => c + c).join('');
@@ -36,15 +137,15 @@ export function hexToRgb255(hex) {
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
-export function rgb255ToHex({ r, g, b }) {
-  const h = (v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0');
+export function rgb255ToHex({ r, g, b }: Rgb255): Hex {
+  const h = (v: number): string => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0');
   return `#${h(r)}${h(g)}${h(b)}`;
 }
 
-const srgbToLinear = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
-const linearToSrgb = (c) => (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+const srgbToLinear = (c: number): number => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+const linearToSrgb = (c: number): number => (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
 
-function linearRgbToOklab(r, g, b) {
+function linearRgbToOklab(r: number, g: number, b: number): { L: number; a: number; b: number } {
   const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
   const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
   const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
@@ -55,7 +156,7 @@ function linearRgbToOklab(r, g, b) {
   };
 }
 
-function oklabToLinearRgb(L, a, bb) {
+function oklabToLinearRgb(L: number, a: number, bb: number): Rgb255 {
   const l = (L + 0.3963377774 * a + 0.2158037573 * bb) ** 3;
   const m = (L - 0.1055613458 * a - 0.0638541728 * bb) ** 3;
   const s = (L - 0.0894841775 * a - 1.291485548 * bb) ** 3;
@@ -67,7 +168,7 @@ function oklabToLinearRgb(L, a, bb) {
 }
 
 /** hex -> { l: 0..1, c: 0..~0.4, h: 0..360 }. Hue is 0 for achromatic input. */
-export function hexToOklch(hex) {
+export function hexToOklch(hex: unknown): Oklch {
   const { r, g, b } = hexToRgb255(hex);
   const lab = linearRgbToOklab(srgbToLinear(r / 255), srgbToLinear(g / 255), srgbToLinear(b / 255));
   const c = Math.sqrt(lab.a * lab.a + lab.b * lab.b);
@@ -77,7 +178,7 @@ export function hexToOklch(hex) {
 }
 
 /** True when the OKLCH triplet lands inside the sRGB cube (small tolerance for rounding). */
-function inSrgbGamut(l, c, h) {
+function inSrgbGamut(l: number, c: number, h: number): boolean {
   const rad = (h * Math.PI) / 180;
   const { r, g, b } = oklabToLinearRgb(l, c * Math.cos(rad), c * Math.sin(rad));
   const lo = -0.0002;
@@ -90,7 +191,7 @@ function inSrgbGamut(l, c, h) {
  * WHY chroma-only: dropping lightness would break the ladder's contrast contract; dropping
  * chroma just desaturates a colour the display could not have shown anyway.
  */
-export function oklchToHex(l, c, h) {
+export function oklchToHex(l: number, c: number, h: number): Hex {
   const L = clamp(l, 0, 1);
   let C = Math.max(c, 0);
   if (!inSrgbGamut(L, C, h)) {
@@ -116,7 +217,7 @@ export function oklchToHex(l, c, h) {
  * 2. WCAG contrast (sRGB relative luminance — NOT OKLCH lightness)
  * ======================================================================= */
 
-export function relativeLuminance(hex) {
+export function relativeLuminance(hex: unknown): number {
   const { r, g, b } = hexToRgb255(hex);
   const R = srgbToLinear(r / 255);
   const G = srgbToLinear(g / 255);
@@ -124,14 +225,14 @@ export function relativeLuminance(hex) {
   return 0.2126 * R + 0.7152 * G + 0.0722 * B;
 }
 
-export function contrastRatio(hexA, hexB) {
+export function contrastRatio(hexA: unknown, hexB: unknown): number {
   const a = relativeLuminance(hexA);
   const b = relativeLuminance(hexB);
   return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
 }
 
 /** Whichever of the candidates reads best on `bg` — used to decide button label colour. */
-export function bestContrastOn(bg, candidates) {
+export function bestContrastOn(bg: Hex, candidates: Hex[]): Hex {
   let best = candidates[0];
   let bestRatio = -1;
   for (const cand of candidates) {
@@ -159,14 +260,14 @@ const NEUTRAL_C = [0.002, 0.003, 0.005, 0.006, 0.008, 0.01, 0.012, 0.014, 0.016,
 /* Status + accent ramps keep their own semantic hue (green means success, red means danger) but
    inherit the master's chroma energy and — via `statusPull` — a slight hue lean toward it, which
    is what makes a re-themed palette read as one family instead of six unrelated ramps. */
-const STATUS_SOURCE = {
+const STATUS_SOURCE: Record<StatusName, Ramp> = {
   success: { 50: '#e7f7e9', 100: '#bce3c3', 300: '#73bf84', 500: '#3e9c58', 700: '#2d7b44', 800: '#205b31' },
   warning: { 50: '#feefdc', 100: '#f6d19e', 300: '#e3a340', 500: '#c28412', 700: '#936412', 800: '#6e4b0e' },
   danger: { 50: '#fceeec', 100: '#fbd4cd', 300: '#ef9688', 500: '#fd1913', 700: '#c9120d', 800: '#8b1f17' },
   info: { 50: '#eaf3fc', 100: '#c8e1fb', 300: '#82b6ec', 500: '#3f90dd', 700: '#1b71bc', 800: '#16558c' },
 };
 
-const ACCENT_SOURCE = {
+const ACCENT_SOURCE: Ramp = {
   50: '#fdf0de',
   100: '#f8d9af',
   200: '#eeba70',
@@ -183,7 +284,12 @@ const ACCENT_SOURCE = {
  * luminance, so a badge pairing that passed AA at the authored chroma can quietly drop below it.
  * Repairing here means a generated palette is AA-clean by construction rather than by inspection.
  */
-export function adjustForContrast(hex, bg, minRatio, direction = 'auto') {
+export function adjustForContrast(
+  hex: Hex,
+  bg: Hex,
+  minRatio: number,
+  direction: 'auto' | 'lighten' | 'darken' = 'auto',
+): Hex {
   if (contrastRatio(hex, bg) >= minRatio) return hex;
   const src = hexToOklch(hex);
   const step = direction === 'lighten' || (direction === 'auto' && relativeLuminance(bg) < 0.18)
@@ -201,13 +307,13 @@ export function adjustForContrast(hex, bg, minRatio, direction = 'auto') {
 }
 
 /** Shortest-path interpolation on the hue circle, so 350deg -> 10deg goes forward, not backward. */
-function mixHue(from, to, amount) {
+function mixHue(from: number, to: number, amount: number): number {
   const delta = ((to - from + 540) % 360) - 180;
   return (from + delta * amount + 360) % 360;
 }
 
 /** Blend of two hex colours in OKLCH (`amount` 0 = `a`, 1 = `b`), hue by the shortest path. */
-function mixOklch(a, b, amount) {
+function mixOklch(a: Hex, b: Hex, amount: number): Hex {
   const x = hexToOklch(a);
   const y = hexToOklch(b);
   return oklchToHex(x.l + (y.l - x.l) * amount, x.c + (y.c - x.c) * amount, mixHue(x.h, y.h, amount));
@@ -221,7 +327,7 @@ function mixOklch(a, b, amount) {
  * Which ladder step the seed itself should occupy. Clamped to 400..950: a seed lighter than 400
  * cannot carry a button fill at all, and brand-1000 must stay reserved as the ramp's floor.
  */
-function pickBrandStep(seedL) {
+function pickBrandStep(seedL: number): number {
   let best = 5;
   let bestDist = Infinity;
   for (let i = 4; i <= 10; i += 1) {
@@ -243,7 +349,7 @@ function pickBrandStep(seedL) {
  * (a deep slate against a mid-tone step) pushes its neighbours aside instead of folding the ramp
  * back on itself.
  */
-function shiftedLadder(anchorIndex, seedL) {
+function shiftedLadder(anchorIndex: number, seedL: number): number[] {
   const delta = clamp(seedL - BRAND_L[anchorIndex], -0.06, 0.06);
   const last = BRAND_L.length - 1;
   const out = BRAND_L.map((baseL, i) => {
@@ -272,7 +378,7 @@ function shiftedLadder(anchorIndex, seedL) {
  * "recessed" read), but a brand already sitting near the ramp floor has nowhere darker to go, so
  * it lightens instead — otherwise hover is a 1% change nobody can see.
  */
-function interactionSteps(anchorIndex) {
+function interactionSteps(anchorIndex: number): { hover: number; active: number } {
   const last = BRAND_STEPS.length - 1;
   if (anchorIndex + 2 <= last) return { hover: anchorIndex + 1, active: anchorIndex + 2 };
   return { hover: Math.max(0, anchorIndex - 1), active: Math.max(0, anchorIndex - 2) };
@@ -291,7 +397,7 @@ function interactionSteps(anchorIndex) {
  * resolves to. Any two of them disagreeing shows up as a colour flash on load, which is precisely
  * what this used to do while the CSS was pink and the boot default was slate.
  */
-export const DEFAULT_MASTER = {
+export const DEFAULT_MASTER: MasterConfig = {
   seed: '#ffbc00',
   vividness: 1,
   neutralMode: 'match',
@@ -304,13 +410,13 @@ export const DEFAULT_MASTER = {
 
 const NEUTRAL_COOL_HUE = 242.5;
 
-export function resolveNeutralHue(mode, seedHue) {
+export function resolveNeutralHue(mode: NeutralMode | string, seedHue: number): number {
   if (mode === 'match') return seedHue;
   if (mode === 'complement') return (seedHue + 180) % 360;
   return NEUTRAL_COOL_HUE;
 }
 
-export function resolveAccentHue(harmony, seedHue) {
+export function resolveAccentHue(harmony: AccentHarmony | string, seedHue: number): number {
   if (harmony === 'mono') return seedHue;
   if (harmony === 'analogous') return (seedHue + 42) % 360;
   if (harmony === 'triad') return (seedHue + 120) % 360;
@@ -321,8 +427,8 @@ export function resolveAccentHue(harmony, seedHue) {
  * The whole palette from one seed. Returns the raw ramps plus semantic role maps for light and
  * dark, so no caller ever has to re-derive a contrast decision.
  */
-export function generatePalette(userConfig = {}) {
-  const cfg = { ...DEFAULT_MASTER, ...userConfig };
+export function generatePalette(userConfig: Partial<MasterConfig> = {}): Palette {
+  const cfg: MasterConfig = { ...DEFAULT_MASTER, ...userConfig };
   const seed = hexToOklch(cfg.seed);
   const seedHue = seed.c < 0.008 ? NEUTRAL_COOL_HUE : seed.h;
 
@@ -330,7 +436,7 @@ export function generatePalette(userConfig = {}) {
   const ladderL = shiftedLadder(anchor, seed.l);
   const chromaScale = clamp((seed.c / BRAND_C[anchor]) * cfg.vividness, 0.2, 4);
 
-  const brand = {};
+  const brand: Ramp = {};
   BRAND_STEPS.forEach((step, i) => {
     brand[step] = oklchToHex(ladderL[i], BRAND_C[i] * chromaScale, seedHue);
   });
@@ -341,15 +447,15 @@ export function generatePalette(userConfig = {}) {
 
   const neutralHue = resolveNeutralHue(cfg.neutralMode, seedHue);
   const neutralChroma = clamp(cfg.neutralTint, 0, 6);
-  const neutral = {};
+  const neutral: Ramp = {};
   NEUTRAL_STEPS.forEach((step, i) => {
     neutral[step] = oklchToHex(NEUTRAL_L[i], NEUTRAL_C[i] * neutralChroma, neutralHue);
   });
 
   const statusChroma = clamp(0.65 + 0.35 * chromaScale, 0.6, 1.7);
   const pull = clamp(cfg.statusPull, 0, 1) * 0.35;
-  const status = {};
-  for (const [name, ramp] of Object.entries(STATUS_SOURCE)) {
+  const status = {} as Record<StatusName, Ramp>;
+  for (const [name, ramp] of Object.entries(STATUS_SOURCE) as [StatusName, Ramp][]) {
     status[name] = {};
     for (const [step, hex] of Object.entries(ramp)) {
       const src = hexToOklch(hex);
@@ -363,7 +469,7 @@ export function generatePalette(userConfig = {}) {
   }
 
   const accentHue = resolveAccentHue(cfg.accentHarmony, seedHue);
-  const accent = {};
+  const accent: Ramp = {};
   for (const [step, hex] of Object.entries(ACCENT_SOURCE)) {
     const src = hexToOklch(hex);
     accent[step] = oklchToHex(src.l, src.c * clamp(chromaScale, 0.5, 1.6), accentHue);
@@ -373,7 +479,7 @@ export function generatePalette(userConfig = {}) {
   // campaign surfaces read as an error state. It is blended from the danger and warning ramps (55/45,
   // the same mix home-top.css uses for --campaign-orange) so it still follows the master seed
   // without adding a fifth status ramp.
-  const campaign = {
+  const campaign: Ramp = {
     300: mixOklch(status.danger[300], status.warning[300], 0.45),
     800: mixOklch(status.danger[800], status.warning[800], 0.45),
   };
@@ -404,7 +510,7 @@ export function generatePalette(userConfig = {}) {
 }
 
 /** Shallowest ramp step clearing `minRatio` against `bg` — deepest step if none does. */
-function shallowestPassing(ramp, bg, minRatio) {
+function shallowestPassing(ramp: Ramp, bg: Hex, minRatio: number): number {
   for (const step of BRAND_STEPS) {
     if (contrastRatio(ramp[step], bg) >= minRatio) return step;
   }
@@ -422,7 +528,7 @@ function shallowestPassing(ramp, bg, minRatio) {
  * fill itself repaired — in which case a literal hex is returned instead of the ramp reference,
  * because at that point the ramp step genuinely is not the colour being painted.
  */
-function flashRole(fillHex, fillVar, inkCandidates) {
+function flashRole(fillHex: Hex, fillVar: string, inkCandidates: Hex[]): { fill: Hex; fillRef: string; ink: Hex } {
   let fill = fillHex;
   let ink = bestContrastOn(fill, inkCandidates);
   if (contrastRatio(fill, ink) < 4.6) {
@@ -432,10 +538,22 @@ function flashRole(fillHex, fillVar, inkCandidates) {
   return { fill, fillRef: fill === fillHex ? fillVar : fill, ink };
 }
 
-function buildLightRoles({ cfg, brand, neutral, anchor, campaign }) {
-  const stepAt = (i) => BRAND_STEPS[clamp(i, 0, BRAND_STEPS.length - 1)];
+function buildLightRoles({
+  cfg,
+  brand,
+  neutral,
+  anchor,
+  campaign,
+}: {
+  cfg: MasterConfig;
+  brand: Ramp;
+  neutral: Ramp;
+  anchor: number;
+  campaign: Ramp;
+}): LightRoles {
+  const stepAt = (i: number): number => BRAND_STEPS[clamp(i, 0, BRAND_STEPS.length - 1)];
   const inkCandidates = [neutral[900], neutral[0]];
-  const bestInkRatio = (i) => {
+  const bestInkRatio = (i: number): number => {
     const fill = brand[stepAt(i)];
     return contrastRatio(fill, bestContrastOn(fill, inkCandidates));
   };
@@ -458,7 +576,7 @@ function buildLightRoles({ cfg, brand, neutral, anchor, campaign }) {
 
   const surface0 = cfg.surfaceWash ? brand[50] : neutral[50];
   const surface1 = cfg.surfaceWash ? brand[100] : neutral[0];
-  const inkVar = (bg) => (bestContrastOn(bg, inkCandidates) === neutral[0] ? 'var(--neutral-0)' : 'var(--neutral-900)');
+  const inkVar = (bg: Hex): string => (bestContrastOn(bg, inkCandidates) === neutral[0] ? 'var(--neutral-0)' : 'var(--neutral-900)');
 
   // No ramp step to reference for a blend, so the literal hex is both the fill and its reference.
   const flash = flashRole(campaign[300], campaign[300], inkCandidates);
@@ -557,7 +675,7 @@ function buildLightRoles({ cfg, brand, neutral, anchor, campaign }) {
   };
 }
 
-function buildDarkRoles({ brand, neutral, campaign }) {
+function buildDarkRoles({ brand, neutral, campaign }: { brand: Ramp; neutral: Ramp; campaign: Ramp }): DarkRoles {
   // Dark inverts the brand: a LIGHT tint carries the action and dark ink sits on it, because no
   // mid-lightness fill clears 4.5:1 against a near-black canvas.
   const page = neutral[950];
@@ -671,7 +789,7 @@ function buildDarkRoles({ brand, neutral, campaign }) {
  * triplet, not a hex. Only the HUE is taken from the neutral ramp; saturation and lightness stay
  * at the values themes.css already tuned, so a shadow never turns into a coloured smear.
  */
-function hslTriplet(hex, sat, light) {
+function hslTriplet(hex: Hex, sat: number, light: number): string {
   const { r, g, b } = hexToRgb255(hex);
   const R = r / 255;
   const G = g / 255;
@@ -697,7 +815,13 @@ function hslTriplet(hex, sat, light) {
  * config (so the theme can be regenerated or re-tuned later) and the flattened sections (so
  * server-side validation and any consumer that predates the master engine still work).
  */
-export function paletteToSectionTokens(palette) {
+/** The Theme Studio's six-plus-flash section shape: section → token → hex. */
+export type SectionTokens = Record<
+  'navbar' | 'sidebar' | 'surfaces' | 'brand' | 'typography' | 'badges' | 'footer' | 'flash_sale',
+  Record<string, Hex>
+>;
+
+export function paletteToSectionTokens(palette: Palette): SectionTokens {
   const r = palette.roles.light.__resolved;
   const n = palette.neutral;
   const s = palette;
@@ -764,24 +888,26 @@ export function paletteToSectionTokens(palette) {
 }
 
 /** The closed vocabularies of the master config. Exported so validators cannot drift from them. */
-export const MASTER_NEUTRAL_MODES = ['cool', 'match', 'complement'];
-export const MASTER_ACCENT_HARMONIES = ['complement', 'analogous', 'triad', 'mono'];
+export const MASTER_NEUTRAL_MODES: NeutralMode[] = ['cool', 'match', 'complement'];
+export const MASTER_ACCENT_HARMONIES: AccentHarmony[] = ['complement', 'analogous', 'triad', 'mono'];
 
 /**
  * Slider bounds for the continuous master controls. The Theme Studio builds its sliders from this
  * and the server validates writes against it — WHY one constant: if the two drifted, an admin
  * could drag a slider to a value the API then refused to store.
  */
-export const MASTER_RANGES = {
+export const MASTER_RANGES: Record<'vividness' | 'neutralTint' | 'statusPull', { min: number; max: number; step: number }> = {
   vividness: { min: 0.4, max: 2, step: 0.05 },
   neutralTint: { min: 0, max: 3, step: 0.1 },
   statusPull: { min: 0, max: 1, step: 0.05 },
 };
 
 /** A master config with every field present, so a partial stored blob cannot produce NaN. */
-export function normaliseMasterConfig(raw) {
+export function normaliseMasterConfig(raw: any): MasterConfig {
+  // `any` on purpose: this is the one function that takes an untrusted stored blob and checks
+  // every field itself, so every read below is followed by its own type test.
   if (!raw || typeof raw !== 'object') return { ...DEFAULT_MASTER };
-  const num = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
+  const num = (v: unknown, fallback: number): number => (Number.isFinite(Number(v)) ? Number(v) : fallback);
   return {
     seed: typeof raw.seed === 'string' && /^#[0-9a-fA-F]{6}$/.test(raw.seed.trim())
       ? raw.seed.trim().toLowerCase()

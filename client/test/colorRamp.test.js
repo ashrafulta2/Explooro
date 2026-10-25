@@ -26,7 +26,7 @@ import {
   BRAND_STEPS,
   NEUTRAL_STEPS,
   DEFAULT_MASTER,
-} from '../src/services/colorRamp.js';
+} from '../src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.js';
 
 /** Spread chosen to cover each branch the generator can take, not to look pretty. */
@@ -174,7 +174,7 @@ test('the shipped CSS, the engine default and the default preset are one colour'
   assert.deepEqual(
     preset.master,
     DEFAULT_MASTER,
-    `preset "${DEFAULT_MASTER_PRESET}" and colorRamp.js's DEFAULT_MASTER describe different palettes`,
+    `preset "${DEFAULT_MASTER_PRESET}" and colorRamp.ts's DEFAULT_MASTER describe different palettes`,
   );
 });
 

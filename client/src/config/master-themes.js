@@ -3,7 +3,7 @@
  *
  * Contrast with theme-presets.js, which hand-authors ~33 hex values per preset and therefore can
  * only repaint the roles someone remembered to list. A master preset carries no palette at all —
- * services/colorRamp.js derives the full brand / neutral / status / accent ramps from the seed,
+ * services/colorRamp.ts derives the full brand / neutral / status / accent ramps from the seed,
  * so borders, hover fills, scrollbars, focus rings and the whole dark theme move with it.
  *
  * Adding a preset here is one object. Do NOT paste hex ramps in — if a preset needs a colour the
@@ -225,7 +225,7 @@ export const MASTER_PRESETS = {
  * The colour the product ships with. `initTheme()` mounts this on every boot that has no published
  * palette, so it is the real default — not just where the Theme Studio starts.
  *
- * It must stay identical to `DEFAULT_MASTER` in services/colorRamp.js, which is what
+ * It must stay identical to `DEFAULT_MASTER` in services/colorRamp.ts, which is what
  * styles/themes.css is generated from — and client/test/colorRamp.test.js fails if the two drift.
  * WHY both exist rather than one: this file is the human-facing preset list (names, descriptions,
  * the Studio's chips), while DEFAULT_MASTER is the engine's own fallback for a partial config and

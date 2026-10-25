@@ -4,7 +4,7 @@
  * so their color dynamically responds to theme, hover, and active states.
  */
 
-import { buildLogoMarkSvg } from '../../services/logoMark.js';
+import { buildLogoMarkSvg } from '../../services/logoMark.ts';
 
 function svg(paths, { viewBox = '0 0 24 24', width = 18, height = 18, strokeWidth = 1.8 } = {}) {
   return `<svg viewBox="${viewBox}" width="${width}" height="${height}" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
@@ -191,10 +191,10 @@ export function getItemIcon(item) {
 /**
  * Explooro Brand Logo Mark
  * A four-point sparkle punched with a circle, on a badge — painted entirely with the raw brand
- * ramp custom properties (--brand-900/--brand-500/--neutral-0), which services/masterTheme.js
+ * ramp custom properties (--brand-900/--brand-500/--neutral-0), which services/masterTheme.ts
  * re-emits for every Master Colour preset AND any custom Theme Studio seed. The mark therefore
  * repaints with the live theme automatically; nothing here is theme-specific. Geometry lives once
- * in services/logoMark.js so this and the static files scripts/logo.mjs bakes never drift apart.
+ * in services/logoMark.ts so this and the static files scripts/logo.mjs bakes never drift apart.
  */
 export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark' } = {}) {
   return buildLogoMarkSvg({

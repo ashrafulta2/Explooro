@@ -1,5 +1,5 @@
 /**
- * logoMark.js — the Explooro brand mark: a four-point sparkle punched with a circle, on a badge.
+ * logoMark.ts — the Explooro brand mark: a four-point sparkle punched with a circle, on a badge.
  *
  * Single source of truth for the mark's geometry so the live, theme-reactive logo (icons.js,
  * painted with CSS custom properties so it repaints with the Master Colour engine — any preset
@@ -16,8 +16,21 @@ export const LOGO_SPARKLE_PATH =
 export const LOGO_BADGE_RADIUS = 48;
 export const LOGO_HOLE_RADIUS = 9;
 
+/** SVG paints (a colour, `var(--…)` or `url(#…)`). A `star` that is the default gold uses the gradient. */
+export interface LogoPaints {
+  bg?: string;
+  star?: string;
+  hole?: string;
+}
+
 /** The circular badge: background disc + sparkle + centre hole. Used at any size. */
-export function buildLogoMarkSvg({ size = 28, className = '', bg, star, hole } = {}) {
+export function buildLogoMarkSvg({
+  size = 28,
+  className = '',
+  bg,
+  star,
+  hole,
+}: LogoPaints & { size?: number; className?: string } = {}): string {
   const gradId = `explooro-sparkle-gold-${size}`;
   const starFill = star && !star.includes('logo-star') && !star.includes('#ffbc00') && !star.includes('url(')
     ? star
@@ -41,7 +54,7 @@ export function buildLogoMarkSvg({ size = 28, className = '', bg, star, hole } =
  * crops background, never transparency) and the mark is scaled to 80% so it survives circle/squircle
  * cropping (the maskable spec's "safe zone").
  */
-export function buildLogoMaskableSvg({ size = 512, bg, star, hole } = {}) {
+export function buildLogoMaskableSvg({ size = 512, bg, star, hole }: LogoPaints & { size?: number } = {}): string {
   const gradId = `explooro-sparkle-gold-mask`;
   const starFill = star && !star.includes('logo-star') && !star.includes('#ffbc00') && !star.includes('url(')
     ? star

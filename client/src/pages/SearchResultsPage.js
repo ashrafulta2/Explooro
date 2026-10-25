@@ -13,7 +13,7 @@ import { ProductGrid } from '../components/product/ProductGrid.js';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
 import { EmptyState } from '../components/ui/EmptyState.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
-import { updateHead } from '../services/seo.js';
+import { updateHead } from '../services/seo.ts';
 import { trackSearch } from '../services/signals.js';
 
 export default function SearchResultsPage(root, { query, navigate }) {

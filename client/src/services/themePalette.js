@@ -4,13 +4,13 @@
 
 import { THEME_PRESETS } from '../config/theme-presets.js';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../config/master-themes.js';
-import { generatePalette, DEFAULT_MASTER } from './colorRamp.js';
+import { generatePalette, DEFAULT_MASTER } from './colorRamp.ts';
 import {
   applyMasterPalette,
   clearMasterPalette,
   paletteToSectionTokens,
   normaliseMasterConfig,
-} from './masterTheme.js';
+} from './masterTheme.ts';
 
 let currentTokens = { ...THEME_PRESETS.default.tokens };
 let currentMaster = null;

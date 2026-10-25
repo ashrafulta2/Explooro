@@ -13,7 +13,7 @@
 import '../styles/components/community.css';
 import { appStore } from '../state/appStore.js';
 import { t, getLanguage } from '../services/i18n.js';
-import { updateHead } from '../services/seo.js';
+import { updateHead } from '../services/seo.ts';
 import { can } from '../services/permissions.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { toast } from '../services/toast.js';

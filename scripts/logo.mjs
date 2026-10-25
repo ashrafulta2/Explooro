@@ -5,8 +5,8 @@
  *
  * WHY this exists: favicons and PWA icons load as standalone documents with no access to the host
  * page's CSS custom properties, so they can't stay theme-reactive the way the live in-app mark
- * (services/logoMark.js, painted with var(--brand-900) etc.) does. Every colour here is instead
- * DERIVED from the same Master Colour engine (client/src/services/colorRamp.js) that generates
+ * (services/logoMark.ts, painted with var(--brand-900) etc.) does. Every colour here is instead
+ * DERIVED from the same Master Colour engine (client/src/services/colorRamp.ts) that generates
  * themes.css — never hand-picked — so a shipped-default rebrand only means re-running this script.
  *
  * Writes:
@@ -26,9 +26,9 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { generatePalette } from '../client/src/services/colorRamp.js';
+import { generatePalette } from '../client/src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../client/src/config/master-themes.js';
-import { buildLogoMarkSvg, buildLogoMaskableSvg } from '../client/src/services/logoMark.js';
+import { buildLogoMarkSvg, buildLogoMaskableSvg } from '../client/src/services/logoMark.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = join(ROOT, 'client', 'public');

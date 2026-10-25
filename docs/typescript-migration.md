@@ -136,9 +136,14 @@ The server recipe above, with `--client`:
    prerender), and the app in the browser with the moved modules loaded and no console errors.
 
 Order: leaf modules that the server does not import first (`services/`, `lib/`, `core/`), then the
-components, and the pages last. Files the server imports (`colorRamp.js`, `masterTheme.js`,
-`pageAccess.js` and the others found by `grep -rn "client/src" server/src`) move together with a
-check that the server typecheck and tests still pass. A test that walks a folder and keeps only
+components, and the pages last. Files the server imports (still `.js`: `services/pageAccess.js`,
+`config/pageRegistry.js`, `config/grant-scopes.js`, `data/bangladeshGeo.js`, `lib/genie.js`,
+`mocks/releaseNotes.js`; `grep -rn "client/src" server/src` lists them) move together with a
+check that the server typecheck and tests still pass, and that `node src/index.ts` boots: once the
+server imports a client `.ts` file, the server's `tsc` checks that file too, with the server's
+libraries (no DOM). Root scripts that import client modules (`palette.mjs`, `logo.mjs`) must still
+run; `palette.mjs --write` copies its header comment into `themes.css`, so a rename in that comment
+means regenerating the file. A test that walks a folder and keeps only
 `.js` files must accept `.ts` too (`adminMockContracts.test.js` did, for `mocks/handlers/`).
 
 ### Progress
@@ -148,5 +153,6 @@ check that the server typecheck and tests still pass. A test that walks a folder
 | 1 | 2026-10-25 | `services/html.ts`, `services/writeOutcome.ts`, `services/attribution.ts` (pilot, plus `client/tsconfig.json`, the `typecheck` script, the CI step, `ts-migrate.mjs --client` and `client/test/tsMigration.test.js`) | typecheck 0 errors (client and server); client 954/954, server 1696/1696; build passes the budget (JS 58.25 KB, CSS 67.54 KB gzip) and prerenders; app on the mock dev server loads both moved modules, records a `?ref=` touch, no console errors |
 | 2 | 2026-10-25 | `services/theme.ts`, `services/permissionMatrix.ts`, `services/recoSettings.ts`, `services/floatingScroll.ts` (exported types: `ThemeChoice`, `Role` / `Permission` / `HeldIndex`, `Section` / `RailLayout` / `RailChange`) | typecheck 0 errors (client and server); client 954/954, server 1696/1696; build passes and the entry JS is byte-identical to step 1 (`index-8GSsEHGz.js`, types only); on the mock dev server all four modules load, the theme toggles, the floating scrollbar mounts, no console errors |
 | 3 | 2026-10-25 | `core/store.ts` (generic `Store<S>`), `lib/motion.ts`, `lib/optical.ts`. Also `genie.test.js` (asserts genie's one import by name) and `scripts/verify-craft.mjs` (reads motion by path; not rewritten by the script) | typecheck 0 errors (client and server); client 954/954, server 1696/1696; build passes; `verify-craft.mjs` 31/31; in the browser the store's selector fires only on a real change and `countUp`/`optical` give the expected values, no console errors. One runtime change, deliberate: motion's two promises now resolve with no value instead of the cancel event, which nothing reads (neither function has a caller); checked under Node with fake animations that both finish and cancel still resolve. The browser pane does not advance Web Animations at all, so that path cannot be checked there |
+| 4 | 2026-10-25 | The first files the server and root scripts import: `services/colorRamp.ts` (`Palette`, `MasterConfig`, `Ramp`, role maps), `services/masterTheme.ts`, `services/seo.ts` (`HeadOptions`, JSON-LD inputs), `services/logoMark.ts`. `services/offlineQueue.js` was left for later because its one importer, `main.js`, had another session's uncommitted edits | typecheck 0 errors (client and server; `MASTER_NEUTRAL_MODES` / `MASTER_ACCENT_HARMONIES` stay mutable arrays because `theme.service.ts` reads them as `string[]`); client 954/954, server 1696/1696; build passes; the real server boots (`node src/index.ts` on port 5099, health 200); `palette.mjs --write` changes only the header comment of `themes.css` and `logo.mjs --write` reproduces every committed icon byte for byte; on the mock dev server the head tags, hreflangs and website JSON-LD are set, a product page emits its Product JSON-LD, the logo renders and a master palette mounts and clears, no console errors |
 
-406 `.js` files remain under `client/src`.
+402 `.js` files remain under `client/src`.

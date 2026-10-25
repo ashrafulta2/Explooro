@@ -34,7 +34,7 @@ import { CategoryPills } from '../components/product/CategoryPills.js';
 import { PersonalizedRails } from '../components/product/PersonalizedRails.js';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.js';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
-import { updateHead, buildWebsiteJsonLd } from '../services/seo.js';
+import { updateHead, buildWebsiteJsonLd } from '../services/seo.ts';
 
 // All categories derived from the product fixture — populated lazily from the first API response
 const KNOWN_CATEGORIES = [

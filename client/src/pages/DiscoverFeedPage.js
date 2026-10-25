@@ -16,7 +16,7 @@
 import '../styles/components/discover-feed.css';
 import { appStore } from '../state/appStore.js';
 import { t, getLanguage } from '../services/i18n.js';
-import { updateHead } from '../services/seo.js';
+import { updateHead } from '../services/seo.ts';
 import { ProductFeed } from '../components/product/ProductFeed.js';
 import { CategoryPills } from '../components/product/CategoryPills.js';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';

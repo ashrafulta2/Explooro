@@ -31,7 +31,7 @@ import { resolveProductImage } from '../components/product/ProductCard.js';
 import { addToCart } from '../services/cart.js';
 import { track, startDwell } from '../services/signals.js';
 import * as catalogApi from '../services/catalog.api.js';
-import { updateHead, buildProductJsonLd } from '../services/seo.js';
+import { updateHead, buildProductJsonLd } from '../services/seo.ts';
 import { api } from '../core/api.js';
 import { openTeamPurchaseModal } from '../components/product/TeamPurchaseModal.js';
 import { createBackButton, getBackDestination } from '../core/navBack.js';

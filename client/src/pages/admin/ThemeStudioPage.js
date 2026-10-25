@@ -22,7 +22,7 @@ import {
 } from '../../services/themePalette.js';
 import {
   generatePalette, paletteToSectionTokens, BRAND_STEPS, NEUTRAL_STEPS, MASTER_RANGES,
-} from '../../services/colorRamp.js';
+} from '../../services/colorRamp.ts';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';

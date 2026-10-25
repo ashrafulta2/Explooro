@@ -47,7 +47,7 @@ import { openCameraCapture } from '../../components/media/CameraCapture.js';
 import { ProductCard, ProductCardSkeleton } from '../../components/product/ProductCard.js';
 import { ProductFeed } from '../../components/product/ProductFeed.js';
 import { MASTER_PRESETS } from '../../config/master-themes.js';
-import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.js';
+import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.ts';
 import { CategoryPills } from '../../components/product/CategoryPills.js';
 import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.js';
 import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.js';
@@ -1402,7 +1402,7 @@ export function buildGalleryEntries(detachedNodes) {
     // panels) and join this group there.
     // Language & Default Locale governance (/admin/platform/language)
     { id: 'locale-choice-card', label: 'LocaleChoiceCard', group: 'Foundations', render: renderLocaleChoiceCardSpecimen },
-    // Master Colour engine (services/colorRamp.js) — the generated ramps behind Theme Studio
+    // Master Colour engine (services/colorRamp.ts) — the generated ramps behind Theme Studio
     { id: 'master-palette', label: 'MasterPalette', group: 'Foundations', render: renderMasterPaletteSpecimen },
 
     // ── Actions & Forms ──────────────────────────────────────────────────────

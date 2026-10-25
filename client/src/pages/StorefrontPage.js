@@ -13,7 +13,7 @@ import { EmptyState } from '../components/ui/EmptyState.js';
 import { toast } from '../services/toast.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { appStore } from '../state/appStore.js';
-import { updateHead, buildStoreJsonLd } from '../services/seo.js';
+import { updateHead, buildStoreJsonLd } from '../services/seo.ts';
 import { formatExplooroBrandText, ICONS } from '../components/ui/icons.js';
 import { recordTouch } from '../services/attribution.ts';
 

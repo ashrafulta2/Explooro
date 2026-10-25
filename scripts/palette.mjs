@@ -12,7 +12,7 @@
  * WHY it no longer authors its own ladder: it used to carry a second, hand-typed copy of every
  * OKLCH triplet, which meant "the palette" existed twice — here and in themes.css — with nothing
  * but discipline keeping them equal. Both are now derived from `DEFAULT_MASTER` in
- * client/src/services/colorRamp.js, the same engine the Theme Studio and the server run, so the
+ * client/src/services/colorRamp.ts, the same engine the Theme Studio and the server run, so the
  * shipped CSS baseline and a freshly booted runtime theme cannot disagree. What stays local is the
  * MEASUREMENT: the WCAG and APCA implementations below are deliberately independent of the
  * engine's, so a bug in the engine's contrast maths cannot hide itself from this script.
@@ -31,7 +31,7 @@ import {
   DEFAULT_MASTER,
   BRAND_STEPS,
   NEUTRAL_STEPS,
-} from '../client/src/services/colorRamp.js';
+} from '../client/src/services/colorRamp.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const THEMES_CSS = join(ROOT, 'client', 'src', 'styles', 'themes.css');
@@ -229,14 +229,14 @@ function themesCss() {
  * GENERATED FILE. Do not hand-edit — run \`node scripts/palette.mjs --write\`.
  *
  * Every value below is the output of the Master Colour engine
- * (client/src/services/colorRamp.js) fed the shipped default seed. That is the same engine the
+ * (client/src/services/colorRamp.ts) fed the shipped default seed. That is the same engine the
  * Theme Studio previews with and the same one the server re-derives and validates against, so this
  * baseline and a freshly booted runtime theme are the same palette rather than two palettes that
  * happen to look alike. WHY that matters: this file paints during the frames BEFORE main.js runs
  * \`initTheme()\`. While it was authored by hand against a different seed, every cold load flashed
  * the old colour and then swapped.
  *
- * To change the colour the product ships with, change \`DEFAULT_MASTER\` in colorRamp.js (and the
+ * To change the colour the product ships with, change \`DEFAULT_MASTER\` in colorRamp.ts (and the
  * matching preset in config/master-themes.js — client/test/colorRamp.test.js asserts the two
  * agree), then re-run the command above. Hand-editing a step here is the one thing that CAN put
  * this file out of step with the engine, and that same test fails if you do.
@@ -255,7 +255,7 @@ function themesCss() {
  *   2. Semantic tokens — surface/text/border/brand/status roles. THEME-dependent: which ramp step
  *      backs "surface-0" flips between light and dark. Emitted four times (base / OS-dark /
  *      explicit-dark / explicit-light) so an explicit \`data-theme\` toggle always outranks the OS
- *      preference — the same block order services/masterTheme.js mounts at runtime.
+ *      preference — the same block order services/masterTheme.ts mounts at runtime.
  */
 
 /* =========================================================================
