@@ -1,5 +1,5 @@
 /**
- * PartnerRewardCard.js — this month's partner reward pool estimate on the shop partner dashboard.
+ * PartnerRewardCard.ts — this month's partner reward pool estimate on the shop partner dashboard.
  *
  * Draws only what GET /saler/partner-reward returns (server services/partnerReward.service.ts
  * getOwnView): the points the partner has on each of the four factors, their share of the pool and
@@ -11,17 +11,45 @@
  */
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { esc } from './CommissionTierCard.js';
+import { esc } from './CommissionTierCard.ts';
 
 export const FACTOR_ORDER = ['sales', 'social', 'community', 'activity'];
 
+type Figure = number | string;
+
+export interface RewardHistoryRow {
+  /** `YYYY-MM-DD`, the first day of the month that was paid. */
+  period_start: string;
+  amount: Figure;
+}
+
+/** The `data` of GET /saler/partner-reward (server services/partnerReward.service.ts getOwnView). */
+export interface PartnerRewardData {
+  /** Factor → how many of the 100 points it is worth. */
+  weights: Record<string, Figure>;
+  /** Factor → the points this partner has on it. */
+  points: Record<string, Figure>;
+  /** Factor → the raw count behind those points. */
+  values?: Record<string, Figure>;
+  community_counts?: { posts?: Figure; likes?: Figure; comments?: Figure; saves?: Figure };
+  score?: Figure;
+  share_pct?: Figure;
+  pool_estimate?: Figure;
+  estimated_amount?: Figure;
+  partners_scored?: Figure;
+  /** `YYYY-MM-DD` the month closes on. */
+  closes_on: string;
+  period?: { start?: string };
+  history?: RewardHistoryRow[];
+}
+
 /** Pure. Whether the card should exist at all: the API answered with a reward shape. */
-export function isVisible(data) {
+export function isVisible(data: PartnerRewardData | null | undefined): data is PartnerRewardData {
   return Boolean(data) && Boolean(data.weights) && Boolean(data.points);
 }
 
 /** Pure. The raw count behind a factor, in words ("3 delivered orders"). */
-export function factorDetail(key, data) {
+export function factorDetail(key: string, data: PartnerRewardData | null | undefined): string {
   const v = Number(data?.values?.[key]) || 0;
   const c = data?.community_counts || {};
   switch (key) {
@@ -36,24 +64,19 @@ export function factorDetail(key, data) {
 }
 
 /** Pure. "2026-09-01" -> "September 2026" in the current language. */
-export function monthLabel(ymd) {
+export function monthLabel(ymd: string): string {
   const d = new Date(`${ymd}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return ymd;
   return new Intl.DateTimeFormat(getLanguage() === 'bn' ? 'bn-BD' : 'en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(d);
 }
 
-function dayLabel(ymd) {
+function dayLabel(ymd: string): string {
   const d = new Date(`${ymd}T00:00:00Z`);
   if (Number.isNaN(d.getTime())) return ymd;
   return new Intl.DateTimeFormat(getLanguage() === 'bn' ? 'bn-BD' : 'en-GB', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(d);
 }
 
-/**
- * @param {object} props
- * @param {object} props.data  the `data` of GET /saler/partner-reward
- * @returns {HTMLElement|null}
- */
-export function PartnerRewardCard({ data } = {}) {
+export function PartnerRewardCard({ data }: { data?: PartnerRewardData | null } = {}): HTMLElement | null {
   if (!isVisible(data)) return null;
 
   const card = document.createElement('section');

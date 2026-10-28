@@ -22,9 +22,9 @@ import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
-import { CommissionTierCard } from '../../components/saler/CommissionTierCard.js';
-import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.js';
-import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.js';
+import { CommissionTierCard } from '../../components/saler/CommissionTierCard.ts';
+import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
+import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
 
 const SALER_MODE_KEY = 'explooro:saler_mode_preference';
 

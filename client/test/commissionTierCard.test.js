@@ -17,7 +17,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { isVisible, progressPct, esc, CommissionTierCard } from '../src/components/saler/CommissionTierCard.js';
+import { isVisible, progressPct, esc, CommissionTierCard } from '../src/components/saler/CommissionTierCard.ts';
 import salerHandlers from '../src/mocks/handlers/saler.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');

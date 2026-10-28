@@ -9,12 +9,12 @@
  *   ANNOUNCEMENT  title and message (admin, can be pinned)
  *
  * Invariants:
- *  - All member-typed text goes in through textContent (see dom.js).
+ *  - All member-typed text goes in through textContent (see dom.ts).
  *  - "Verified purchase" renders only from `post.verified_purchase`, which the server derives from
  *    the stored proof of purchase; the author cannot send it.
  *  - Reporting leaves the post visible. It only files the report; the server decides about hiding.
  */
-import { el, icon, productTitle } from './dom.js';
+import { el, icon, productTitle } from './dom.ts';
 import { CommentThread } from './CommentThread.js';
 import { Button } from '../ui/Button.js';
 import { t, getLanguage } from '../../services/i18n.js';

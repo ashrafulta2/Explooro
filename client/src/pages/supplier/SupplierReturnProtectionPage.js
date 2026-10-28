@@ -8,7 +8,7 @@
  * suppliers), and says plainly that leaving does not remove cover from orders already sold.
  */
 import { returnProtectionApi } from '../../services/payoutProtection.api.js';
-import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.js';
+import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
 import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';

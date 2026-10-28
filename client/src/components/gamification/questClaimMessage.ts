@@ -1,11 +1,14 @@
 /**
- * questClaimMessage.js — the toast text after a quest reward is claimed.
+ * questClaimMessage.ts — the toast text after a quest reward is claimed.
  *
  * WHY separate: the server says when the daily coin cap ate some or all of the reward (`capped`), and
  * the panel used to ignore it and show a made-up "+20 coins" — telling a shopper they were paid coins
  * they never received. The amount shown is now always what the server actually awarded.
  */
-export function questClaimMessage(claim, isBn) {
+export function questClaimMessage(
+  claim: { rewardCoins?: number | string | null; capped?: boolean } | null | undefined,
+  isBn: boolean,
+): string {
   const awarded = Number(claim?.rewardCoins);
   if (!Number.isFinite(awarded)) {
     return isBn ? 'রিওয়ার্ড সংগ্রহ করা হয়েছে!' : 'Reward claimed!';

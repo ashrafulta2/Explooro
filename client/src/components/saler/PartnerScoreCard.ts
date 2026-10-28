@@ -1,5 +1,5 @@
 /**
- * PartnerScoreCard.js — how well a shop partner promotes and sells, and what to do to improve it.
+ * PartnerScoreCard.ts — how well a shop partner promotes and sells, and what to do to improve it.
  *
  * Draws only what GET /saler/partner-score returns (server services/partnerScore.service.ts
  * toOwnView): the score, the band, the boost the band earns, the points each metric contributed and
@@ -13,15 +13,46 @@
  */
 import { formatNumber, localizeDigits } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
-import { esc } from './CommissionTierCard.js';
+import { esc } from './CommissionTierCard.ts';
 
 const METRIC_ORDER = ['delivered_volume', 'return_rate', 'repeat_customers', 'new_customers', 'link_conversion', 'cancel_rate'];
 
-const bandName = (key) => t(`saler.partner_score.band_${String(key).toLowerCase()}`, String(key));
-const metricName = (key) => t(`saler.partner_score.metric_${key}`, key);
+type Figure = number | string;
+
+export interface ScoreBand {
+  key: string;
+  min_score?: Figure;
+}
+
+export interface NextBand {
+  key: string;
+  min_score: Figure;
+  points_needed?: Figure;
+}
+
+/** The `data` of GET /saler/partner-score (server services/partnerScore.service.ts toOwnView). */
+export interface PartnerScoreData {
+  /** null until the partner has enough orders (`is_new`). */
+  score: Figure | null;
+  band?: string;
+  multiplier?: Figure;
+  is_new?: boolean;
+  bands: ScoreBand[];
+  next_band?: NextBand | null;
+  /** Metric → points earned out of the most it can give. */
+  components?: Record<string, { earned: Figure; max: Figure }>;
+  /** The one metric with the most points left to win. */
+  focus?: { metric: string; points?: Figure } | null;
+  min_sample_orders?: Figure;
+  sample_orders?: Figure;
+  window_days?: Figure;
+}
+
+const bandName = (key: string): string => t(`saler.partner_score.band_${String(key).toLowerCase()}`, String(key));
+const metricName = (key: string): string => t(`saler.partner_score.metric_${key}`, key);
 
 /** Pure. Whether the card should exist at all: the API answered with a score shape. */
-export function isVisible(data) {
+export function isVisible(data: PartnerScoreData | null | undefined): data is PartnerScoreData {
   return Boolean(data) && Array.isArray(data.bands) && data.bands.length > 0;
 }
 
@@ -30,7 +61,7 @@ export function isVisible(data) {
  * WHY from the floor: a partner just above RISING should see a near-empty bar towards PRO, not one
  * already half full from the STARTER-to-RISING climb.
  */
-export function progressPct(data) {
+export function progressPct(data: PartnerScoreData | null | undefined): number {
   if (data?.score === null || data?.score === undefined) return 0;
   if (!data.next_band) return 100;
   const floor = Number(data.bands?.find((b) => b.key === data.band)?.min_score) || 0;
@@ -42,16 +73,11 @@ export function progressPct(data) {
  * "1.1" -> "×1.10" ("×১.১০" in Bengali); the boost is shown as a multiplier, never as a
  * per-product rate. Always two decimals so 1.1 and 1.15 line up as a ladder.
  */
-export function boostLabel(multiplier) {
+export function boostLabel(multiplier: Figure | null | undefined): string {
   return `×${localizeDigits((Number(multiplier) || 1).toFixed(2))}`;
 }
 
-/**
- * @param {object} props
- * @param {object} props.data  the `data` of GET /saler/partner-score
- * @returns {HTMLElement|null}
- */
-export function PartnerScoreCard({ data } = {}) {
+export function PartnerScoreCard({ data }: { data?: PartnerScoreData | null } = {}): HTMLElement | null {
   if (!isVisible(data)) return null;
 
   const card = document.createElement('section');

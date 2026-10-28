@@ -15,7 +15,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
-import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
+import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { adminApi } from '../../services/admin.api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';

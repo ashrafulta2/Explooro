@@ -1,5 +1,5 @@
 /**
- * RoleBand — draws the panels `homeBands.js` describes and fills them with the numbers and rankings
+ * RoleBand — draws the panels `homeBands.ts` describes and fills them with the numbers and rankings
  * from GET /home/summary.
  *
  * WHY panels render immediately with a placeholder and are filled afterwards: the band must not
@@ -14,7 +14,7 @@
 
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
-import { ROLE_BANDS } from './homeBands.js';
+import { ROLE_BANDS } from './homeBands.ts';
 
 const PENDING = '…';
 const MISSING = '–';
@@ -40,7 +40,7 @@ function anchor(className, label, path, onNavigate) {
 }
 
 const labelOf = (item) => t(item.stat ? `marketplace.top.band.stat.${item.stat}` : `marketplace.top.band.link.${item.link}`);
-// WHY: a super admin reads the same words as an admin; only the third figure differs (homeBands.js).
+// WHY: a super admin reads the same words as an admin; only the third figure differs (homeBands.ts).
 const textRoleOf = (role) => (role === 'super_admin' ? 'admin' : role);
 
 export function formatStat(item, value) {

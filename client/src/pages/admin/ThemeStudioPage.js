@@ -28,7 +28,7 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
 import { appStore } from '../../state/appStore.js';
-import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
+import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 
 export default function ThemeStudioPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';

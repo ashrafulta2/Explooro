@@ -8,7 +8,7 @@
  * sees the old ones still live needs to be told that is intended, not that the save failed.
  */
 import { supplierApi } from '../../services/supplier.api.js';
-import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.js';
+import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.ts';
 import { Button } from '../../components/ui/Button.js';
 import { Switch } from '../../components/ui/Switch.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';

@@ -12,7 +12,7 @@
 import { api } from '../../core/api.js';
 import { getLanguage, t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { questClaimMessage } from './questClaimMessage.js';
+import { questClaimMessage } from './questClaimMessage.ts';
 
 export class QuestPanel {
   constructor({ quests = [], onRewardClaimed = null } = {}) {

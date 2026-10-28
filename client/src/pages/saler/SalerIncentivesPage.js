@@ -8,7 +8,7 @@
  * it is what actually lands in the shop partner's vault.
  */
 import { api } from '../../core/api.js';
-import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.js';
+import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';

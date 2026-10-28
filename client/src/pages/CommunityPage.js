@@ -23,7 +23,7 @@ import { EmptyState } from '../components/ui/EmptyState.ts';
 import { PostCard } from '../components/community/PostCard.js';
 import { PostComposer } from '../components/community/PostComposer.js';
 import { ModerationQueue } from '../components/community/ModerationQueue.js';
-import { el } from '../components/community/dom.js';
+import { el } from '../components/community/dom.ts';
 import {
   listPosts, toggleLike, toggleSave, reportPost, moderatePost, errorText, ROLE_KINDS,
 } from '../services/community.api.js';

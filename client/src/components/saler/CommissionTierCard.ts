@@ -1,5 +1,5 @@
 /**
- * CommissionTierCard.js — where a shop partner stands on the earned commission ladder.
+ * CommissionTierCard.ts — where a shop partner stands on the earned commission ladder.
  *
  * Draws only what GET /saler/commission-tier returns (server services/salerTier.service.ts getSalerView):
  * the tier, the bonus it pays, the delivered volume in the window and the gap to the next tier.
@@ -13,14 +13,43 @@ import { t } from '../../services/i18n.js';
 
 const TIER_ORDER = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'];
 
-function tierName(tier) {
+/** Figures arrive as numbers or as numeric strings (NUMERIC columns); the card converts with Number(). */
+type Figure = number | string;
+
+export interface TierLadderStep {
+  tier: string;
+  min_volume?: Figure;
+  bonus_pct?: Figure;
+}
+
+export interface NextTier {
+  tier: string;
+  min_volume: Figure;
+  bonus_pct?: Figure;
+  /** Delivered volume still needed to reach it. */
+  remaining?: Figure;
+}
+
+/** The `data` of GET /saler/commission-tier (server services/salerTier.service.ts getSalerView). */
+export interface CommissionTierData {
+  enabled: boolean;
+  tier: string;
+  bonus_pct?: Figure;
+  volume?: Figure;
+  window_days?: Figure;
+  next?: NextTier | null;
+  ladder?: TierLadderStep[];
+}
+
+function tierName(tier: string): string {
   return t(`saler.commission_tier.name_${String(tier).toLowerCase()}`, tier);
 }
 
-export const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+export const esc = (v: unknown): string =>
+  String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>)[c]);
 
 /** Pure. Whether the card should exist at all: tiers on, and a tier the client knows. */
-export function isVisible(data) {
+export function isVisible(data: CommissionTierData | null | undefined): data is CommissionTierData {
   return Boolean(data) && data.enabled === true && TIER_ORDER.includes(data.tier);
 }
 
@@ -29,7 +58,7 @@ export function isVisible(data) {
  * WHY from the floor: a shop partner just above SILVER should see a near-empty bar towards GOLD, not one
  * already half full from the BRONZE-to-SILVER climb.
  */
-export function progressPct(data) {
+export function progressPct(data: CommissionTierData | null | undefined): number {
   if (!data?.next) return 100;
   const volume = Number(data.volume) || 0;
   const floor = Number(data.ladder?.find((l) => l.tier === data.tier)?.min_volume) || 0;
@@ -37,12 +66,8 @@ export function progressPct(data) {
   return Math.min(100, Math.max(0, Math.round(((volume - floor) / span) * 100)));
 }
 
-/**
- * @param {object} props
- * @param {object} props.data  the `data` of GET /saler/commission-tier
- * @returns {HTMLElement|null}
- */
-export function CommissionTierCard({ data } = {}) {
+/** Returns null when the platform has tiers off, so no ladder is shown that pays nothing. */
+export function CommissionTierCard({ data }: { data?: CommissionTierData | null } = {}): HTMLElement | null {
   if (!isVisible(data)) return null;
 
   const volume = Number(data.volume) || 0;

@@ -5,13 +5,13 @@
  * at once. Its author can delete it; staff (`canModerate`) can remove any, and that is audited.
  *
  * Invariants:
- *  - Comment text is member-typed, so it goes in through textContent only (see dom.js).
+ *  - Comment text is member-typed, so it goes in through textContent only (see dom.ts).
  *  - A guest reads the thread but sees a sign-in prompt where the box would be; the server refuses a
  *    guest's comment anyway.
  *  - The count shown on the post is the server's count from the last answer, never a local tally, so
  *    two people commenting at once cannot leave it wrong.
  */
-import { el } from './dom.js';
+import { el } from './dom.ts';
 import { Button } from '../ui/Button.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

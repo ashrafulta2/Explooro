@@ -8,7 +8,7 @@
  * still recovered from the balance that results. A person must see both before they press the button, not
  * discover them afterwards.
  */
-import { FastPayoutTable } from './FastPayoutTable.js';
+import { FastPayoutTable } from './FastPayoutTable.ts';
 import { confirmDialog } from '../ui/ConfirmDialog.js';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';

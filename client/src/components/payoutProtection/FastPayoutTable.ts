@@ -15,31 +15,57 @@ import { t } from '../../services/i18n.js';
 import { formatCurrency, formatDate, formatNumber } from '../../services/format.js';
 import { Button } from '../ui/Button.js';
 
-function cell(tag, text, className) {
+function cell<K extends 'td' | 'th' | 'div' | 'span'>(tag: K, text: string, className?: string): HTMLElementTagNameMap[K] {
   const c = document.createElement(tag);
   if (className) c.className = className;
   c.textContent = text;
   return c;
 }
 
+/** One escrow entry a person could take early. What a row can do is the server's call (`eligible`, `reason`). */
+export interface FastPayoutEntry {
+  entry_id: number | string;
+  sub_order_id?: number | string;
+  sub_order_ref?: string;
+  /** `SALER` or `SUPPLIER`: which side of the order the entry belongs to. */
+  role?: string;
+  eligible: boolean;
+  /** Why it cannot be taken, when `eligible` is false. */
+  reason?: string;
+  amount: number | string;
+  hold_until: string;
+  fee?: number | string;
+  fee_pct?: number | string;
+  net?: number | string;
+  days_saved?: number | string;
+}
+
+export interface FastPayoutOptions {
+  onTake?: (entry: FastPayoutEntry, button: HTMLButtonElement) => void;
+  /** The entry whose request is in flight; its button shows as loading. */
+  busyId?: number | string | null;
+}
+
+/** The part of Button's element this file uses; `setLoading` is attached by ui/Button.js. */
+type LoadingButton = HTMLButtonElement & { setLoading?(on: boolean): void };
+
 /** The i18n key for why an entry cannot be taken early. Unknown codes fall back to a generic line. */
-export function reasonKey(code) {
+export function reasonKey(code: string | null | undefined): string {
   const known = ['NOT_LOCKED', 'NOT_DELIVERED', 'COD_UNRECONCILED', 'OPEN_CLAIM', 'GRADE_BLOCKED', 'TOO_SMALL', 'TOO_LARGE', 'TOO_SOON', 'EXPOSURE_LIMIT'];
   return known.includes(code) ? `fastpay.reason.${code}` : 'fastpay.reason.OTHER';
 }
 
-/**
- * @param {Array<object>} entries from the API (`entries`)
- * @param {{ onTake?: (entry: object, button: HTMLElement) => void, busyId?: number|string|null }} [options]
- */
-export function FastPayoutTable(entries, { onTake = () => {}, busyId = null } = {}) {
+export function FastPayoutTable(
+  entries: FastPayoutEntry[],
+  { onTake = () => {}, busyId = null }: FastPayoutOptions = {},
+): HTMLDivElement {
   const wrap = document.createElement('div');
   wrap.className = 'incentive-table-wrap';
 
   const table = document.createElement('table');
   table.className = 'incentive-table fastpay-table';
 
-  const columns = [
+  const columns: [string, string][] = [
     ['col_order', ''],
     ['col_amount', 'incentive-table__num'],
     ['col_due', ''],
@@ -70,7 +96,7 @@ export function FastPayoutTable(entries, { onTake = () => {}, busyId = null } = 
     const action = cell('td', '');
     const box = cell('div', '', 'fastpay-action');
     if (e.eligible) {
-      const btn = Button({
+      const btn: LoadingButton = Button({
         label: t('fastpay.take'),
         size: 'sm',
         onClick: () => onTake(e, btn),
@@ -93,7 +119,7 @@ export function FastPayoutTable(entries, { onTake = () => {}, busyId = null } = 
     );
     // WHY data-label: on a phone each row becomes a stacked card and the header row is gone, so every
     // cell carries its own column name.
-    [...tr.children].forEach((td, i) => { td.dataset.label = t(`fastpay.${columns[i][0]}`); });
+    ([...tr.children] as HTMLElement[]).forEach((td, i) => { td.dataset.label = t(`fastpay.${columns[i][0]}`); });
     tbody.append(tr);
   }
   table.append(tbody);

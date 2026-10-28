@@ -6,7 +6,7 @@
  *  - Customer: a "for you" panel (price drops, coins, team buys) · campaign slider · orders card + tiles,
  *    plus a "welcome back" strip of quick links.
  *  - Shop Partner, supplier, moderator, editor, admin, super admin: three panels of their own
- *    (components/home/homeBands.js). A supplier has no use for "start earning with zero stock" and an
+ *    (components/home/homeBands.ts). A supplier has no use for "start earning with zero stock" and an
  *    admin is never a Shop Partner, so none of them get the earn panel, slider or tiles.
  *
  * WHY: the band renders instantly and never waits on the network. The slides and links are static
@@ -24,7 +24,7 @@ import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.js';
 import { ICONS } from '../ui/icons.ts';
 import { getHomeSummary } from '../../services/homeSummary.api.js';
 import { RoleBand } from './RoleBand.js';
-import { FULL_BAND_ROLES } from './homeBands.js';
+import { FULL_BAND_ROLES } from './homeBands.ts';
 
 const SLIDES = [
   { id: 'flash',    feed: 'flash',    key: 'marketplace.top.slide_flash' },

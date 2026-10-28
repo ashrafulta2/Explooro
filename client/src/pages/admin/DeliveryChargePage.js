@@ -17,7 +17,7 @@
 
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.ts';
-import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
+import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { api } from '../../core/api.js';
 import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';

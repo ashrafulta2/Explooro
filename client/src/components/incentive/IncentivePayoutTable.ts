@@ -17,18 +17,32 @@ import { formatCurrency } from '../../services/format.js';
 
 const STATUS_TONE = { PAID: 'success', UNFUNDED: 'warning', LAPSED: 'danger' };
 
-function cell(tag, text, className) {
+function cell<K extends 'td' | 'th' | 'div' | 'span'>(tag: K, text: string, className?: string): HTMLElementTagNameMap[K] {
   const c = document.createElement(tag);
   if (className) c.className = className;
   c.textContent = text;
   return c;
 }
 
-/**
- * @param {Array<object>} rows payouts from the API
- * @param {{ perspective?: 'supplier'|'saler' }} [options]
- */
-export function IncentivePayoutTable(rows, { perspective = 'supplier' } = {}) {
+/** One month's volume-incentive rebate, as the API returns it. Amounts are what the server stored. */
+export interface IncentivePayout {
+  /** `YYYY-MM-DD`; only the `YYYY-MM` part is shown. */
+  period_start: string;
+  supplier_name?: string;
+  volume: number | string;
+  gross_amount: number | string;
+  rebate_pct: number | string;
+  platform_fee: number | string;
+  net_amount: number | string;
+  /** `PAID`, `UNFUNDED` or `LAPSED`. */
+  status: string;
+}
+
+/** `saler` also gets a supplier column (a shop partner wants to know who paid). */
+export function IncentivePayoutTable(
+  rows: IncentivePayout[] | null | undefined,
+  { perspective = 'supplier' }: { perspective?: 'supplier' | 'saler' } = {},
+): HTMLDivElement {
   const wrap = document.createElement('div');
   wrap.className = 'incentive-table-wrap';
 
@@ -36,9 +50,9 @@ export function IncentivePayoutTable(rows, { perspective = 'supplier' } = {}) {
   table.className = 'incentive-table';
 
   const head = document.createElement('tr');
-  const columns = [
+  const columns: [string, string][] = [
     ['col_period', ''],
-    ...(perspective === 'saler' ? [['col_supplier', '']] : []),
+    ...(perspective === 'saler' ? ([['col_supplier', '']] as [string, string][]) : []),
     ['col_volume', 'incentive-table__num'],
     ['col_rebate', 'incentive-table__num'],
     ['col_fee', 'incentive-table__num'],

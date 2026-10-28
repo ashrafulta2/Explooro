@@ -23,7 +23,7 @@ const __dirname = path.dirname(__filename);
 test('Admin Platform Suite Integrity', async (t) => {
   await t.test('1. Platform page components and subnav import cleanly and export functions', async () => {
     const modules = [
-      '../src/components/admin/PlatformSubnav.js',
+      '../src/components/admin/PlatformSubnav.ts',
       '../src/pages/admin/IntegrationsPage.js',
       '../src/pages/admin/SettingsPage.js',
       '../src/pages/admin/ApiKeysPage.js',

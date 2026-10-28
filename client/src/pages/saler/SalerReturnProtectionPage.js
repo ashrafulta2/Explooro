@@ -8,7 +8,7 @@
  * actually took back, up to a cap per order) and that repeated claims are limited, before relying on it.
  */
 import { returnProtectionApi } from '../../services/payoutProtection.api.js';
-import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.js';
+import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';

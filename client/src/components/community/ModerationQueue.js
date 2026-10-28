@@ -9,7 +9,7 @@
  *
  * The auto-hide threshold shown in the note is read from the API (platform setting), not typed here.
  */
-import { el, productTitle } from './dom.js';
+import { el, productTitle } from './dom.ts';
 import { Button } from '../ui/Button.js';
 import { confirmDialog } from '../ui/ConfirmDialog.js';
 import { t, getLanguage } from '../../services/i18n.js';

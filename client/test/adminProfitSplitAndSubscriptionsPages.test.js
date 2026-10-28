@@ -17,7 +17,7 @@ import { dirname, join } from 'node:path';
 
 import adminHandlers from '../src/mocks/handlers/admin.js';
 import { adminApi } from '../src/services/admin.api.js';
-import { FinanceSubnav } from '../src/components/admin/FinanceSubnav.js';
+import { FinanceSubnav } from '../src/components/admin/FinanceSubnav.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 

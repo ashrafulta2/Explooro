@@ -9,7 +9,7 @@ import { ModuleRow } from '../../components/admin/ModuleRow.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.ts';
-import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
+import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { api } from '../../core/api.js';
 import { appStore } from '../../state/appStore.js';
 import { toast } from '../../services/toast.js';

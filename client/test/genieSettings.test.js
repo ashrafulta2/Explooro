@@ -61,7 +61,7 @@ test('Popup genie effect — client invariants', async (t) => {
   });
 
   await t.test('1c. The Platform sub-navigation links to the page', () => {
-    assert.match(read('src', 'components', 'admin', 'PlatformSubnav.js'), /key: 'genie'[^}]*href: '\/admin\/platform\/genie'/);
+    assert.match(read('src', 'components', 'admin', 'PlatformSubnav.ts'), /key: 'genie'[^}]*href: '\/admin\/platform\/genie'/);
   });
 
   await t.test('2. Locale key parity for the admin_genie namespace and the nav label', () => {

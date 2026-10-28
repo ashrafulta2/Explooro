@@ -7,7 +7,7 @@
 import { t } from '../../services/i18n.js';
 // Styles: styles/components/sourcing-sponsored.css, loaded by the routes that render this (main.js).
 
-export function SponsoredTag() {
+export function SponsoredTag(): HTMLSpanElement {
   const tag = document.createElement('span');
   tag.className = 'sponsored-tag-chip';
   tag.textContent = t('sourcing.sponsored.tag');

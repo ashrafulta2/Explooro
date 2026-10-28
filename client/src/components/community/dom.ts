@@ -1,18 +1,23 @@
 /**
- * dom.js — the one tiny element builder the community components share.
+ * dom.ts — the one tiny element builder the community components share.
  *
  * WHY textContent and never innerHTML: every string on a post (title, steps, a review) is typed by
  * another member, so it is data, never markup.
  */
 import { ICONS } from '../ui/icons.ts';
 
-/**
- * @param {string} tag
- * @param {string} [className]
- * @param {string|Node|Array<string|Node>} [children]
- * @param {Record<string,string>} [attrs]
- */
-export function el(tag, className = '', children = null, attrs = null) {
+/** What `el` appends: text (strings and numbers) or a node; null, undefined and false are skipped. */
+export type ElChild = string | number | Node | false | null | undefined;
+
+/** `true` sets the attribute with no value; null, undefined and false leave it off. */
+export type ElAttrs = Record<string, string | number | boolean | null | undefined>;
+
+export function el<K extends keyof HTMLElementTagNameMap>(
+  tag: K,
+  className = '',
+  children: ElChild | ElChild[] = null,
+  attrs: ElAttrs | null = null,
+): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (attrs) {
@@ -29,7 +34,7 @@ export function el(tag, className = '', children = null, attrs = null) {
 }
 
 /** A decorative icon from the shared set. The markup is the icon module's own constant, never user text. */
-export function icon(name, className = 'cm-icon') {
+export function icon(name: string, className = 'cm-icon'): HTMLSpanElement {
   const span = document.createElement('span');
   span.className = className;
   span.setAttribute('aria-hidden', 'true');
@@ -38,7 +43,7 @@ export function icon(name, className = 'cm-icon') {
 }
 
 /** The product title in the reader's language, with the other language as a fallback. */
-export function productTitle(product, lang) {
+export function productTitle(product: { title_en?: string; title_bn?: string } | null | undefined, lang: string): string {
   if (!product) return '';
   return (lang === 'bn' ? product.title_bn || product.title_en : product.title_en || product.title_bn) || '';
 }

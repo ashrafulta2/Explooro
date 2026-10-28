@@ -1,5 +1,5 @@
 /**
- * FinanceSubnav.js — Reusable Navigation Tab Strip for the Super Admin Finance suite.
+ * FinanceSubnav.ts — Reusable Navigation Tab Strip for the Super Admin Finance suite.
  *
  * Connects all 7 core platform financial surfaces:
  * Overview, Ledger, Escrow Holdings, Payout Queue, Profit Splits, B2B Escrow, and Subscriptions.
@@ -7,10 +7,24 @@
 
 import { t } from '../../services/i18n.js';
 
-export function FinanceSubnav({ activeKey = 'splits', navigate = null } = {}) {
+export interface SubnavTab {
+  key: string;
+  label: string;
+  href: string;
+  icon: string;
+}
+
+export interface SubnavOptions {
+  /** The tab to highlight; `api-keys` and `api_keys` are the same key. */
+  activeKey?: string;
+  /** Called with a tab's href on a plain left-click, so the SPA router handles it. */
+  navigate?: ((href: string) => void) | null;
+}
+
+export function FinanceSubnav({ activeKey = 'splits', navigate = null }: SubnavOptions = {}): HTMLElement {
   const normalizedActiveKey = String(activeKey || '').replace(/-/g, '_');
 
-  const tabs = [
+  const tabs: SubnavTab[] = [
     { key: 'overview', label: t('finance_subnav.overview'), href: '/admin/finance', icon: '📊' },
     { key: 'ledger', label: t('finance_subnav.ledger'), href: '/admin/finance/ledger', icon: '📑' },
     { key: 'escrow', label: t('finance_subnav.escrow'), href: '/admin/finance/escrow', icon: '⏳' },
@@ -45,7 +59,7 @@ export function FinanceSubnav({ activeKey = 'splits', navigate = null } = {}) {
   `;
 
   if (typeof navigate === 'function' && typeof nav.querySelectorAll === 'function') {
-    nav.querySelectorAll('.finance-subnav__tab').forEach((tabEl) => {
+    nav.querySelectorAll<HTMLAnchorElement>('.finance-subnav__tab').forEach((tabEl) => {
       tabEl.addEventListener('click', (e) => {
         if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();

@@ -34,7 +34,7 @@ before(async () => {
       setAttribute(k, v) { this.attrs[k] = v; },
     }),
   };
-  mod = await import('../src/components/saler/PartnerScoreCard.js');
+  mod = await import('../src/components/saler/PartnerScoreCard.ts');
 });
 
 describe('PartnerScoreCard helpers', () => {
@@ -90,7 +90,7 @@ describe('PartnerScoreCard wiring', () => {
     for (const m of ['delivered_volume', 'return_rate', 'repeat_customers', 'new_customers', 'link_conversion', 'cancel_rate']) {
       assert.ok(en[`metric_${m}`] && bn[`metric_${m}`], m);
     }
-    assert.doesNotMatch(read('../src/components/saler/PartnerScoreCard.js'), /import .*\.css/);
+    assert.doesNotMatch(read('../src/components/saler/PartnerScoreCard.ts'), /import .*\.css/);
   });
 
   it('the dashboard loads the card on its own so a slow lookup never holds the page', () => {

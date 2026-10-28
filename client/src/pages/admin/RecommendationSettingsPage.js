@@ -36,7 +36,7 @@ import { Switch } from '../../components/ui/Switch.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
+import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { adminApi } from '../../services/admin.api.js';
 import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';

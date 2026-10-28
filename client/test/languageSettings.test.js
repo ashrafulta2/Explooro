@@ -276,7 +276,7 @@ test('Language & Default Locale — client invariants', async (t) => {
   await t.test('13. The page and its component import cleanly and export functions', async () => {
     for (const modPath of [
       '../src/components/admin/LocaleChoiceCard.js',
-      '../src/components/admin/PlatformSubnav.js',
+      '../src/components/admin/PlatformSubnav.ts',
     ]) {
       const mod = await import(modPath);
       assert.equal(typeof mod.default, 'function', `${modPath} default export is a function`);
@@ -294,7 +294,7 @@ test('Language & Default Locale — client invariants', async (t) => {
 
   await t.test('15. The Platform subnav links the new surface', () => {
     const src = fs.readFileSync(
-      path.join(clientRoot, 'src', 'components', 'admin', 'PlatformSubnav.js'),
+      path.join(clientRoot, 'src', 'components', 'admin', 'PlatformSubnav.ts'),
       'utf8'
     );
     assert.match(src, /key: 'language'/);

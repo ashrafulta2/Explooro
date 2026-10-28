@@ -1,5 +1,5 @@
 /**
- * PlatformSubnav.js — Reusable Navigation Tab Strip for the Super Admin Platform suite.
+ * PlatformSubnav.ts — Reusable Navigation Tab Strip for the Super Admin Platform suite.
  *
  * Connects the core platform governance surfaces:
  * 1. Module Toggles (/admin/platform/modules)
@@ -16,12 +16,13 @@
  */
 
 import { getLanguage } from '../../services/i18n.js';
+import type { SubnavOptions, SubnavTab } from './FinanceSubnav.ts';
 
-export function PlatformSubnav({ activeKey = 'integrations', navigate = null } = {}) {
+export function PlatformSubnav({ activeKey = 'integrations', navigate = null }: SubnavOptions = {}): HTMLElement {
   const isBn = getLanguage() === 'bn';
   const normalizedActiveKey = String(activeKey || '').replace(/-/g, '_').toLowerCase();
 
-  const tabs = [
+  const tabs: SubnavTab[] = [
     { key: 'modules', label: isBn ? 'মডিউল টগল' : 'Module Toggles', href: '/admin/platform/modules', icon: '🎛️' },
     { key: 'pages', label: isBn ? 'পেজ উপলব্ধতা' : 'Page Availability', href: '/admin/platform/pages', icon: '🗂️' },
     { key: 'theme', label: isBn ? 'থিম স্টুডিও' : 'Theme Studio', href: '/admin/platform/theme', icon: '🎨' },
@@ -63,7 +64,7 @@ export function PlatformSubnav({ activeKey = 'integrations', navigate = null } =
   `;
 
   if (typeof navigate === 'function' && typeof nav.querySelectorAll === 'function') {
-    nav.querySelectorAll('.platform-subnav__tab').forEach((tabEl) => {
+    nav.querySelectorAll<HTMLAnchorElement>('.platform-subnav__tab').forEach((tabEl) => {
       tabEl.addEventListener('click', (e) => {
         if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();

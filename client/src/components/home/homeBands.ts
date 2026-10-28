@@ -1,5 +1,5 @@
 /**
- * homeBands.js — what the home top band shows each account type.
+ * homeBands.ts — what the home top band shows each account type.
  *
  * Pure data. A guest keeps the earn panel, and a customer keeps the campaign slider in the middle
  * (both are in HomeTop.js); every other account type gets three panels from here, because a
@@ -25,16 +25,93 @@
  * every label exists in both locales, so a renamed route or a missing translation fails the build.
  */
 
-const stat = (key, path, extra = {}) => ({ stat: key, path, ...extra });
-const link = (key, path, extra = {}) => ({ link: key, path, ...extra });
-const board = (id, tone, count, cta, extra = {}) => ({ id, tone, kind: 'leaderboard', board: id, count, cta, ...extra });
-
 /** Slide fills, all white-text safe in light and dark mode (see home-top.css). */
-export const SLIDE_TONES = ['orange', 'teal', 'plum', 'success', 'info', 'accent', 'rose', 'amber'];
+export const SLIDE_TONES = ['orange', 'teal', 'plum', 'success', 'info', 'accent', 'rose', 'amber'] as const;
+
+export type SlideTone = (typeof SLIDE_TONES)[number];
+
+/** A number from GET /home/summary; the label is `marketplace.top.band.stat.<stat>`. */
+export interface StatRow {
+  stat: string;
+  /** A route in config/navigation.js. */
+  path: string;
+  /** Format the figure as currency. */
+  money?: boolean;
+  /** Tint the figure when it is above zero (work waiting). */
+  alert?: boolean;
+  tone?: string;
+}
+
+/** A plain shortcut for a role with no numbers; the label is `marketplace.top.band.link.<link>`. */
+export interface LinkRow {
+  link: string;
+  path: string;
+  tone?: string;
+}
+
+export type BandRow = StatRow | LinkRow;
+
+/** How a leaderboard slide is drawn (RoleBand.js VIEWS). No two slides in one role use the same view. */
+export type SlideView = 'list' | 'spotlight' | 'bars' | 'chips' | 'tiles' | 'share';
+
+interface SlideBase {
+  id: string;
+  tone: SlideTone;
+  cta: string;
+}
+
+/** Ranks `insights.<board>` from the same endpoint. */
+export interface LeaderboardSlide extends SlideBase {
+  kind: 'leaderboard';
+  board: string;
+  /** Names the unit under each figure (`marketplace.top.band.board.count.<count>`). */
+  count: string;
+  view?: SlideView;
+  /** The label key for each name, when the rows are not plain names. */
+  nameKey?: string;
+}
+
+/** The role's key figures as tinted cards. */
+export interface MetricsSlide extends SlideBase {
+  kind: 'metrics';
+  metrics: StatRow[];
+}
+
+/** Shortcut tiles, for a role with no numbers. */
+export interface LinksSlide extends SlideBase {
+  kind: 'links';
+  links: LinkRow[];
+}
+
+export type BandSlide = LeaderboardSlide | MetricsSlide | LinksSlide;
+
+/** The left and right panels: a few rows and one call to action. */
+export interface BandPanel {
+  tone: 'brand' | 'dark' | string;
+  rows: BandRow[];
+  cta: string;
+}
+
+/** What one account type's top band shows. A customer replaces only the left panel. */
+export interface RoleBand {
+  left?: BandPanel;
+  center?: { slides: BandSlide[] };
+  right?: BandPanel;
+}
+
+const stat = (key: string, path: string, extra: Partial<StatRow> = {}): StatRow => ({ stat: key, path, ...extra });
+const link = (key: string, path: string, extra: Partial<LinkRow> = {}): LinkRow => ({ link: key, path, ...extra });
+const board = (
+  id: string,
+  tone: SlideTone,
+  count: string,
+  cta: string,
+  extra: Partial<LeaderboardSlide> = {},
+): LeaderboardSlide => ({ id, tone, kind: 'leaderboard', board: id, count, cta, ...extra });
 
 // Admin and super admin share one picture. Only the third review-queue figure differs: a super
 // admin sees the approvals waiting on them, an admin sees their own requests still pending.
-const operations = (thirdMetric) => ({
+const operations = (thirdMetric: StatRow): RoleBand => ({
   left: {
     tone: 'brand',
     rows: [stat('orders_today', '/admin/orders'), stat('gmv_today', '/admin/orders', { money: true })],
@@ -68,7 +145,7 @@ const operations = (thirdMetric) => ({
   },
 });
 
-export const ROLE_BANDS = {
+export const ROLE_BANDS: Record<string, RoleBand> = {
   // Customer: only the left panel is replaced; the slider and the right column stay as they were.
   customer: {
     left: {
@@ -225,4 +302,4 @@ export const ROLE_BANDS = {
 };
 
 /** Roles whose top band replaces ALL THREE columns (customer only replaces the left one). */
-export const FULL_BAND_ROLES = ['saler', 'supplier', 'moderator', 'editor', 'admin', 'super_admin'];
+export const FULL_BAND_ROLES: string[] = ['saler', 'supplier', 'moderator', 'editor', 'admin', 'super_admin'];

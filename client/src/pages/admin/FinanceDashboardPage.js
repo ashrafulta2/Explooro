@@ -15,7 +15,7 @@ import { formatCurrency, formatNumber } from '../../services/format.js';
 import { formatCompactBdt } from '../../services/adminDashboard.model.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
-import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
+import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 
 export default function FinanceDashboardPage(root, { navigate } = {}) {
   const container = document.createElement('div');

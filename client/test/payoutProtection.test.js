@@ -7,8 +7,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { reasonKey } from '../src/components/payoutProtection/FastPayoutTable.js';
-import { deniedKey } from '../src/components/payoutProtection/ProtectionCoverTable.js';
+import { reasonKey } from '../src/components/payoutProtection/FastPayoutTable.ts';
+import { deniedKey } from '../src/components/payoutProtection/ProtectionCoverTable.ts';
 import en from '../src/locales/en.json' with { type: 'json' };
 import bn from '../src/locales/bn.json' with { type: 'json' };
 

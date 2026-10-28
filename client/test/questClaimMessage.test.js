@@ -1,6 +1,6 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { questClaimMessage } from '../src/components/gamification/questClaimMessage.js';
+import { questClaimMessage } from '../src/components/gamification/questClaimMessage.ts';
 
 describe('questClaimMessage', () => {
   test('a normal claim names the coins the server awarded', () => {

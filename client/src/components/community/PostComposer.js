@@ -13,7 +13,7 @@
  *  - Photos and a video are attached through MediaPicker. Publish is disabled while a file is still
  *    uploading, so a post is never sent without a file the author thought was on it.
  */
-import { el, icon, productTitle } from './dom.js';
+import { el, icon, productTitle } from './dom.ts';
 import { Button } from '../ui/Button.js';
 import { MediaPicker } from './MediaPicker.js';
 import { t, getLanguage } from '../../services/i18n.js';

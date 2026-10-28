@@ -22,7 +22,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber, formatRelativeTime } from '../../services/format.js';
 import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
-import { FACTOR_ORDER, monthLabel } from '../../components/saler/PartnerRewardCard.js';
+import { FACTOR_ORDER, monthLabel } from '../../components/saler/PartnerRewardCard.ts';
 
 const MIN_REASON_LENGTH = 10;
 const COMMUNITY_KEYS = ['post', 'like', 'comment', 'save'];

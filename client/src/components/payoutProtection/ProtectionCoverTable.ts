@@ -17,33 +17,47 @@ import { formatCurrency, formatDate } from '../../services/format.js';
 const TONE = { ACTIVE: 'info', CLAIMED: 'success', DENIED: 'danger' };
 const DENIED_REASONS = ['CLAIM_LIMIT', 'NOT_CLAWED_BACK', 'NOTHING_TO_PAY'];
 
-function cell(tag, text, className) {
+function cell<K extends 'td' | 'th' | 'div' | 'span'>(tag: K, text: string, className?: string): HTMLElementTagNameMap[K] {
   const c = document.createElement(tag);
   if (className) c.className = className;
   c.textContent = text;
   return c;
 }
 
+/** One order's return-protection cover, as GET returns it (`covers`). Amounts are the server's snapshot. */
+export interface ProtectionCover {
+  sub_order_ref?: string;
+  /** `ACTIVE`, `CLAIMED` or `DENIED`. */
+  status: string;
+  denied_reason?: string | null;
+  insured_amount: number | string;
+  premium_amount?: number | string;
+  /** Set once the premium was actually charged. */
+  premium_charged_at?: string | null;
+  claim_amount?: number | string;
+  claimed_at?: string | null;
+}
+
 /** The i18n key for why a claim was not paid. Unknown codes fall back to a generic line. */
-export function deniedKey(code) {
+export function deniedKey(code: string | null | undefined): string {
   return DENIED_REASONS.includes(code) ? `rprot.denied.${code}` : 'rprot.denied.OTHER';
 }
 
-/**
- * @param {Array<object>} covers from the API (`covers`)
- * @param {{ perspective?: 'supplier'|'saler' }} [options]
- */
-export function ProtectionCoverTable(covers, { perspective = 'supplier' } = {}) {
+/** `supplier` also sees the premium column (a supplier's cost). */
+export function ProtectionCoverTable(
+  covers: ProtectionCover[],
+  { perspective = 'supplier' }: { perspective?: 'supplier' | 'saler' } = {},
+): HTMLDivElement {
   const wrap = document.createElement('div');
   wrap.className = 'incentive-table-wrap';
 
   const table = document.createElement('table');
   table.className = 'incentive-table fastpay-table';
 
-  const columns = [
+  const columns: [string, string][] = [
     ['col_order', ''],
     ['col_insured', 'incentive-table__num'],
-    ...(perspective === 'supplier' ? [['col_premium', 'incentive-table__num']] : []),
+    ...(perspective === 'supplier' ? ([['col_premium', 'incentive-table__num']] as [string, string][]) : []),
     ['col_status', ''],
     ['col_claim', 'incentive-table__num'],
   ];
@@ -80,7 +94,7 @@ export function ProtectionCoverTable(covers, { perspective = 'supplier' } = {}) 
     );
     tr.append(...cells);
     // WHY data-label: see FastPayoutTable.
-    [...tr.children].forEach((td, i) => { td.dataset.label = t(`rprot.${columns[i][0]}`); });
+    ([...tr.children] as HTMLElement[]).forEach((td, i) => { td.dataset.label = t(`rprot.${columns[i][0]}`); });
     tbody.append(tr);
   }
   table.append(tbody);

@@ -21,7 +21,7 @@ import { t } from '../../services/i18n.js';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { Button } from '../../components/ui/Button.js';
-import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
+import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 
 export default function PayoutQueuePage(root, { navigate } = {}) {
   const container = document.createElement('div');

@@ -12,7 +12,7 @@
  *  - A tile removed while its upload is in flight is forgotten: its id never reaches `getIds()`.
  *  - Preview URLs are object URLs, released when a tile goes away.
  */
-import { el, icon } from './dom.js';
+import { el, icon } from './dom.ts';
 import { Button } from '../ui/Button.js';
 import { t } from '../../services/i18n.js';
 import { formatNumber } from '../../services/format.js';

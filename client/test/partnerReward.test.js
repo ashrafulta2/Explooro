@@ -33,7 +33,7 @@ before(async () => {
   globalThis.document = {
     createElement: () => ({ className: '', innerHTML: '', attrs: {}, setAttribute(k, v) { this.attrs[k] = v; } }),
   };
-  mod = await import('../src/components/saler/PartnerRewardCard.js');
+  mod = await import('../src/components/saler/PartnerRewardCard.ts');
 });
 
 describe('PartnerRewardCard', () => {
@@ -53,7 +53,7 @@ describe('PartnerRewardCard', () => {
   });
 
   it('never computes a score itself: the estimate shown is the API figure', () => {
-    const src = read('../src/components/saler/PartnerRewardCard.js');
+    const src = read('../src/components/saler/PartnerRewardCard.ts');
     assert.ok(src.includes('data.estimated_amount'));
     assert.ok(!/\* *Number\(data\.pool_estimate\)/.test(src), 'no client-side pool arithmetic');
   });
@@ -79,7 +79,7 @@ describe('partner reward strings and wiring', () => {
     const used = (src, prefix) => [...src.matchAll(new RegExp(`t\\(\`?'?${prefix.replace('.', '\\.')}\\.([a-z_]+)`, 'g'))]
       .map((m) => m[1])
       .filter((k) => !k.endsWith('_'));
-    const card = read('../src/components/saler/PartnerRewardCard.js');
+    const card = read('../src/components/saler/PartnerRewardCard.ts');
     for (const k of used(card, 'saler.partner_reward')) assert.ok(k in en.saler.partner_reward, k);
     const page = read('../src/pages/admin/AdminPartnerRewardsPage.js');
     for (const k of used(page, 'admin.partner_rewards')) assert.ok(k in en.admin.partner_rewards, k);
