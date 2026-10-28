@@ -15,14 +15,32 @@
  *  - Reporting leaves the post visible. It only files the report; the server decides about hiding.
  */
 import { el, icon, productTitle } from './dom.ts';
-import { CommentThread } from './CommentThread.js';
+import { CommentThread } from './CommentThread.ts';
 import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatBdt, formatNumber, formatRelativeTime } from '../../services/format.js';
 import { REPORT_REASONS, errorText } from '../../services/community.api.ts';
+import type { CommunityPost, CommunityProduct } from '../../services/community.api.ts';
 
-function stars(n) {
+export interface PostCardOptions {
+  /** A serialized post from the API. */
+  post: CommunityPost;
+  /** The viewer's role key, null for a guest. */
+  viewerRole: string | null;
+  /** Shows Hide instead of Report. */
+  canModerate?: boolean;
+  /** Opens the comment thread at once (arriving from a notification). */
+  openComments?: boolean;
+  onLike: (post: CommunityPost) => Promise<{ liked: boolean; like_count: number }>;
+  onSave?: (post: CommunityPost) => Promise<{ saved: boolean }>;
+  onReport: (post: CommunityPost, values: { reason: string; note?: string }) => Promise<{ already_reported?: boolean }>;
+  onModerate?: (post: CommunityPost, action: string) => Promise<void>;
+  /** Called when a guest tries to like or report. */
+  onNeedSignIn?: () => void;
+}
+
+function stars(n: number) {
   // WHY an SVG and not the ★ glyph: amber text on white is ~1.5:1, and a filled-versus-hollow shape
   // also carries the value without relying on colour.
   const wrap = el('span', 'cm-stars', null, { role: 'img', 'aria-label': t('community.card.rating_of', { n }) });
@@ -30,15 +48,15 @@ function stars(n) {
   return wrap;
 }
 
-function facetBar(label, value) {
+function facetBar(label: string, value: number) {
   const track = el('span', 'cm-bar__track', el('span', 'cm-bar__fill', null, { style: `width:${value * 20}%` }));
   return el('div', 'cm-bar', [el('span', 'cm-bar__label', label), track, el('span', 'cm-bar__value', `${formatNumber(value)}/5`)]);
 }
 
 // What a reader weighs before opening the product, as label/value pairs. A fact the API did not
 // send is left out, so a thin product shows a short list and never an empty slot.
-function productFacts(product, lang) {
-  const facts = [];
+function productFacts(product: CommunityProduct, lang: string) {
+  const facts: [string, string | Node][] = [];
   if (product.rating_avg != null && product.rating_count > 0) {
     const value = el('span', 'cm-pfact__rating', [
       icon('star', 'cm-star__icon'),
@@ -62,7 +80,7 @@ function productFacts(product, lang) {
   return el('dl', 'cm-pfacts', facts.map(([label, value]) => el('div', 'cm-pfact', [el('dt', '', label), el('dd', '', value)])));
 }
 
-function productRow(post, { cta = null, note = '' } = {}) {
+function productRow(post: CommunityPost, { cta = null, note = '' }: { cta?: string | null; note?: string } = {}) {
   if (!post.product) return null;
   const lang = getLanguage();
   const row = el('div', 'cm-product');
@@ -96,7 +114,7 @@ function productRow(post, { cta = null, note = '' } = {}) {
  * The photos and video of a post. One file shows large; several share a grid. A photo opens full
  * size in a new tab; a video plays in place (metadata only until played, so a feed of videos stays light).
  */
-function mediaGallery(post) {
+function mediaGallery(post: CommunityPost) {
   if (!post.media?.length) return null;
   const alt = t('community.card.photo_alt', { name: post.author.name });
   const wrap = el('div', `cm-media cm-media--${Math.min(post.media.length, 4)}`);
@@ -114,7 +132,7 @@ function mediaGallery(post) {
   return wrap;
 }
 
-function reviewBody(post) {
+function reviewBody(post: CommunityPost) {
   const d = post.details;
   const body = el('div', 'cm-body');
   const facets = [['quality', d.quality], ['value', d.value], ['delivery', d.delivery]].filter(([, v]) => v);
@@ -130,7 +148,7 @@ function reviewBody(post) {
   return body;
 }
 
-function updateBody(post) {
+function updateBody(post: CommunityPost) {
   const d = post.details;
   const body = el('div', 'cm-body');
   if (post.body) body.append(el('p', 'cm-text', post.body));
@@ -148,7 +166,7 @@ function updateBody(post) {
   return body;
 }
 
-function ideaBody(post) {
+function ideaBody(post: CommunityPost) {
   const body = el('div', 'cm-body');
   body.append(el('h3', 'cm-title', post.title));
   if (post.body) body.append(el('p', 'cm-text', post.body));
@@ -157,11 +175,11 @@ function ideaBody(post) {
   return body;
 }
 
-function announceBody(post) {
+function announceBody(post: CommunityPost) {
   return el('div', 'cm-body', [el('h3', 'cm-title', post.title), el('p', 'cm-text', post.body)]);
 }
 
-function reportPanel(post, { onReport, close, onDone }) {
+function reportPanel(post: CommunityPost, { onReport, close, onDone }: { onReport: PostCardOptions['onReport']; close: () => void; onDone: (reply?: unknown) => void }) {
   let reason = REPORT_REASONS[0];
   const panel = el('div', 'cm-report', null, { role: 'group', 'aria-label': t('community.report.title') });
   panel.append(el('p', 'cm-report__title', t('community.report.title')));
@@ -202,18 +220,8 @@ function reportPanel(post, { onReport, close, onDone }) {
 }
 
 /**
- * @param {object} o
- * @param {object} o.post                        a serialized post from the API
- * @param {string|null} o.viewerRole             the viewer's role key, null for a guest
- * @param {boolean} [o.canModerate]              shows Hide instead of Report
- * @param {(post:object)=>Promise<{liked:boolean,like_count:number}>} o.onLike
- * @param {(post:object)=>Promise<{saved:boolean}>} [o.onSave]
- * @param {(post:object, v:{reason:string})=>Promise<object>} o.onReport
- * @param {(post:object, action:string)=>Promise<void>} [o.onModerate]
- * @param {()=>void} [o.onNeedSignIn]            called when a guest tries to like or report
- * @param {boolean} [o.openComments]             open the comment thread at once (arriving from a notification)
  */
-export function PostCard({ post, viewerRole, canModerate = false, openComments = false, onLike, onSave, onReport, onModerate, onNeedSignIn }) {
+export function PostCard({ post, viewerRole, canModerate = false, openComments = false, onLike, onSave, onReport, onModerate, onNeedSignIn }: PostCardOptions): HTMLElement {
   const lang = getLanguage();
   const root = el('article', `cm-card cm-card--${post.type.toLowerCase()}`, null, { 'data-post-id': post.id, 'data-type': post.type });
   if (post.is_pinned) root.classList.add('cm-card--pinned');

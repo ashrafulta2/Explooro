@@ -18,7 +18,7 @@ import { formatCurrency, formatNumber } from '../../services/format.js';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
-import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
+import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.ts';
 
 export default function CustomerDashboardPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {

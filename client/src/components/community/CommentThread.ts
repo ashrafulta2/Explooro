@@ -19,26 +19,29 @@ import { formatRelativeTime } from '../../services/format.js';
 import {
   listComments, addComment, deleteComment, removeComment, errorText, COMMENT_MAX,
 } from '../../services/community.api.ts';
+import type { CommunityComment, CommunityPost } from '../../services/community.api.ts';
 
-/**
- * @param {object} o
- * @param {object} o.post
- * @param {string|null} o.viewerRole        the viewer's role key, null for a guest
- * @param {boolean} [o.canModerate]
- * @param {(count:number)=>void} o.onCount  called with the server's comment count after every change
- */
-export function CommentThread({ post, viewerRole, canModerate = false, onCount }) {
+export interface CommentThreadOptions {
+  post: Pick<CommunityPost, 'id'>;
+  /** The viewer's role key, null for a guest. */
+  viewerRole: string | null;
+  canModerate?: boolean;
+  /** Called with the server's comment count after every change. */
+  onCount: (count: number) => void;
+}
+
+export function CommentThread({ post, viewerRole, canModerate = false, onCount }: CommentThreadOptions): HTMLElement {
   const root = el('section', 'cm-thread', null, { 'aria-label': t('community.comment.title') });
   const list = el('div', 'cm-thread__list', null, { 'aria-live': 'polite' });
   const more = el('div', 'cm-thread__more');
   const form = el('div', 'cm-thread__form');
   root.append(list, more, form);
 
-  let comments = [];
+  let comments: CommunityComment[] = [];
   let hasMore = false;
   let loading = true;
 
-  function row(c) {
+  function row(c: CommunityComment) {
     const lang = getLanguage();
     const mayRemove = c.is_mine || canModerate;
     const item = el('article', 'cm-comment', null, { 'data-comment-id': c.id });
@@ -83,7 +86,7 @@ export function CommentThread({ post, viewerRole, canModerate = false, onCount }
     }
   }
 
-  async function load(reset) {
+  async function load(reset?: boolean) {
     loading = true;
     try {
       const res = await listComments(post.id, { offset: reset ? 0 : comments.length });

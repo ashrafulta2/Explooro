@@ -1,5 +1,5 @@
 /**
- * PayoutRequestModal.js — Withdrawal Request Modal (Prompt 6.3).
+ * PayoutRequestModal.ts — Withdrawal Request Modal (Prompt 6.3).
  *
  * Implements:
  * - Method selection: bKash, Nagad, Rocket, Bank
@@ -18,10 +18,16 @@ import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { api } from '../../core/api.ts';
 
+export interface PayoutRequestModalOptions {
+  availableBalance?: number;
+  /** Called with the payout the server created. */
+  onSuccess?: (payout: unknown) => void;
+}
+
 export function openPayoutRequestModal({
   availableBalance = 0,
   onSuccess,
-} = {}) {
+}: PayoutRequestModalOptions = {}) {
   let selectedMethod = 'BKASH';
   let amount = '';
   let accountNumber = '';
@@ -119,16 +125,16 @@ export function openPayoutRequestModal({
     `;
 
     // Attach event listeners
-    contentEl.querySelectorAll('.payout-modal__method-btn').forEach((btn) => {
+    contentEl.querySelectorAll<HTMLElement>('.payout-modal__method-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         selectedMethod = btn.dataset.method;
         render();
       });
     });
 
-    const amountInput = contentEl.querySelector('#payout-amount');
+    const amountInput = contentEl.querySelector<HTMLInputElement>('#payout-amount');
     amountInput?.addEventListener('input', (e) => {
-      amount = e.target.value;
+      amount = (e.target as HTMLInputElement).value;
       const netEl = contentEl.querySelector('#payout-net-val');
       if (netEl) netEl.textContent = formatCurrency(amount || 0);
     });
@@ -141,19 +147,19 @@ export function openPayoutRequestModal({
       if (netEl) netEl.textContent = formatCurrency(amount || 0);
     });
 
-    const accNumInput = contentEl.querySelector('#payout-account-num');
+    const accNumInput = contentEl.querySelector<HTMLInputElement>('#payout-account-num');
     accNumInput?.addEventListener('input', (e) => {
-      accountNumber = e.target.value;
+      accountNumber = (e.target as HTMLInputElement).value;
     });
 
-    const accNameInput = contentEl.querySelector('#payout-account-name');
+    const accNameInput = contentEl.querySelector<HTMLInputElement>('#payout-account-name');
     accNameInput?.addEventListener('input', (e) => {
-      accountName = e.target.value;
+      accountName = (e.target as HTMLInputElement).value;
     });
 
-    const bankInput = contentEl.querySelector('#payout-bank-name');
+    const bankInput = contentEl.querySelector<HTMLInputElement>('#payout-bank-name');
     bankInput?.addEventListener('input', (e) => {
-      bankName = e.target.value;
+      bankName = (e.target as HTMLInputElement).value;
     });
 
     contentEl.querySelector('.payout-modal__cancel-btn')?.addEventListener('click', () => {

@@ -12,7 +12,7 @@
 
 import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
-import { PayoutRequestModal } from './PayoutRequestModal.js';
+import { PayoutRequestModal } from './PayoutRequestModal.ts';
 
 /** The wallet buckets from GET /wallet, decimal strings or numbers. */
 export interface WalletBuckets {
@@ -41,7 +41,6 @@ export function BalanceSummary({ wallet, onPayoutRequested = () => {} }: Balance
   function openPayoutModal() {
     PayoutRequestModal({
       availableBalance: available,
-      // @ts-expect-error PayoutRequestModal (still .js) infers its options from defaults that omit onSuccess
       onSuccess: (payout: unknown) => {
         onPayoutRequested(payout);
       },

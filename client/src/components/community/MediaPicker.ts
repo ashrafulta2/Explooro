@@ -24,7 +24,30 @@ const MB = 1024 * 1024;
  * Pure: why a file may not be added, or null. `existing` is the files already on the post.
  * Returned as an i18n key plus its parameters so the message is in the reader's language.
  */
-export function checkNewFile(file, existing) {
+/** One file on its way to a post: a tile in the picker. */
+interface PickedFile {
+  key: string;
+  name: string;
+  isVideo: boolean;
+  previewUrl: string;
+  id: number | string | null;
+  uploading: boolean;
+  node: HTMLElement;
+}
+
+/** Why a file may not be added: an i18n key and its parameters. */
+export interface FileProblem {
+  key: string;
+  params: Record<string, string>;
+}
+
+/** The picker's root, with the two readers the composer uses. */
+export interface MediaPickerElement extends HTMLDivElement {
+  getIds(): (number | string)[];
+  isBusy(): boolean;
+}
+
+export function checkNewFile(file: Pick<File, 'type' | 'name' | 'size'>, existing: { isVideo: boolean }[]): FileProblem | null {
   if (!POST_MEDIA.types.includes(file.type)) return { key: 'community.media.error.bad_type', params: { name: file.name } };
   if (existing.length >= POST_MEDIA.maxFiles) return { key: 'community.media.error.too_many', params: { max: formatNumber(POST_MEDIA.maxFiles) } };
   const isVideo = file.type.startsWith('video/');
@@ -36,13 +59,8 @@ export function checkNewFile(file, existing) {
   return null;
 }
 
-/**
- * @param {object} [o]
- * @param {(busy:boolean)=>void} [o.onBusyChange]
- * @returns {HTMLElement & {getIds:()=>Array<number|string>, isBusy:()=>boolean}}
- */
-export function MediaPicker({ onBusyChange } = {}) {
-  const root = el('div', 'cm-media-picker');
+export function MediaPicker({ onBusyChange }: { onBusyChange?: (busy: boolean) => void } = {}): MediaPickerElement {
+  const root = el('div', 'cm-media-picker') as MediaPickerElement;
   const tiles = el('div', 'cm-media-picker__tiles');
   const message = el('p', 'cm-media-picker__message', '', { role: 'alert' });
   const input = el('input', 'cm-media-picker__input', null, { type: 'file', multiple: true, accept: POST_MEDIA.types.join(','), tabindex: '-1' });
@@ -56,8 +74,7 @@ export function MediaPicker({ onBusyChange } = {}) {
   root.append(drop, message, tiles);
   root.append(input);
 
-  /** @type {Array<{key:string, name:string, isVideo:boolean, previewUrl:string, id:(number|string|null), uploading:boolean, node:HTMLElement}>} */
-  let files = [];
+  let files: PickedFile[] = [];
   let busy = false;
 
   function syncBusy() {
@@ -69,27 +86,27 @@ export function MediaPicker({ onBusyChange } = {}) {
     addBtn.disabled = files.length >= POST_MEDIA.maxFiles;
   }
 
-  function drawTile(f) {
+  function drawTile(f: PickedFile) {
     const preview = f.isVideo
       ? el('video', 'cm-media-picker__thumb', null, { src: f.previewUrl, muted: true, preload: 'metadata', playsinline: true, 'aria-hidden': 'true' })
       : el('img', 'cm-media-picker__thumb', null, { src: f.previewUrl, alt: '' });
     const remove = el('button', 'cm-media-picker__remove', '×', { type: 'button', 'aria-label': t('community.media.remove', { name: f.name }) });
     remove.addEventListener('click', () => discard(f));
-    const parts = [preview, remove];
+    const parts: HTMLElement[] = [preview, remove];
     if (f.isVideo) parts.push(el('span', 'cm-media-picker__badge', t('community.media.video')));
     if (f.uploading) parts.push(el('span', 'cm-media-picker__busy', t('community.media.uploading')));
     f.node.replaceChildren(...parts);
     f.node.classList.toggle('cm-media-picker__tile--busy', f.uploading);
   }
 
-  function discard(f) {
+  function discard(f: PickedFile) {
     URL.revokeObjectURL(f.previewUrl);
     f.node.remove();
     files = files.filter((x) => x !== f);
     syncBusy();
   }
 
-  async function add(list) {
+  async function add(list: File[]) {
     message.textContent = '';
     for (const file of list) {
       const problem = checkNewFile(file, files);
@@ -97,7 +114,7 @@ export function MediaPicker({ onBusyChange } = {}) {
         message.textContent = t(problem.key, problem.params);
         continue;
       }
-      const f = {
+      const f: PickedFile = {
         key: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         name: file.name,
         isVideo: file.type.startsWith('video/'),
@@ -126,7 +143,7 @@ export function MediaPicker({ onBusyChange } = {}) {
   }
 
   input.addEventListener('change', () => {
-    const picked = [...input.files];
+    const picked = [...input.files!];
     input.value = '';
     add(picked);
   });

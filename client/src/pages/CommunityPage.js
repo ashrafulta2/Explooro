@@ -20,9 +20,9 @@ import { toast } from '../services/toast.js';
 import { formatNumber } from '../services/format.js';
 import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
-import { PostCard } from '../components/community/PostCard.js';
-import { PostComposer } from '../components/community/PostComposer.js';
-import { ModerationQueue } from '../components/community/ModerationQueue.js';
+import { PostCard } from '../components/community/PostCard.ts';
+import { PostComposer } from '../components/community/PostComposer.ts';
+import { ModerationQueue } from '../components/community/ModerationQueue.ts';
 import { el } from '../components/community/dom.ts';
 import {
   listPosts, toggleLike, toggleSave, reportPost, moderatePost, errorText, ROLE_KINDS,

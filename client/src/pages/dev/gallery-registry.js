@@ -18,9 +18,9 @@
  */
 import '../../styles/components/customer-warranties.css';
 import '../../styles/components/community.css';
-import { PostCard } from '../../components/community/PostCard.js';
-import { PostComposer } from '../../components/community/PostComposer.js';
-import { MediaPicker } from '../../components/community/MediaPicker.js';
+import { PostCard } from '../../components/community/PostCard.ts';
+import { PostComposer } from '../../components/community/PostComposer.ts';
+import { MediaPicker } from '../../components/community/MediaPicker.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { Select } from '../../components/ui/Select.ts';
@@ -74,7 +74,7 @@ import { StoreHeader } from '../../components/store/StoreHeader.ts';
 import { ShelfEditor } from '../../components/store/ShelfEditor.js';
 import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';
 import { WishlistButton } from '../../components/cart/WishlistButton.ts';
-import { openPayoutRequestModal } from '../../components/vault/PayoutRequestModal.js';
+import { openPayoutRequestModal } from '../../components/vault/PayoutRequestModal.ts';
 import { EvidenceTimeline } from '../../components/dispute/EvidenceTimeline.ts';
 import { ReviewCard } from '../../components/moderation/ReviewCard.ts';
 import { SponsoredSlot } from '../../components/ads/SponsoredSlot.js';
@@ -92,11 +92,11 @@ import { CommissionTierCard } from '../../components/saler/CommissionTierCard.ts
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
 import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
 import { SocialKitModal } from '../../components/saler/SocialKitModal.js';
-import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
+import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.ts';
 import { CouponCard } from '../../components/customer/CouponCard.ts';
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.ts';
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.ts';
-import { QuestPanel } from '../../components/gamification/QuestPanel.js';
+import { QuestPanel } from '../../components/gamification/QuestPanel.ts';
 import { openTeamPurchaseModal } from '../../components/product/TeamPurchaseModal.js';
 import { TeamCheckoutForm } from '../../components/product/TeamCheckoutForm.ts';
 import '../../styles/components/returns.css';

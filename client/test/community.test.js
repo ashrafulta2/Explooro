@@ -19,7 +19,7 @@ import path from 'node:path';
 import { handleMockRequest } from '../src/mocks/index.js';
 import { appStore, setMockRole, logOutMock } from '../src/state/appStore.js';
 import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.ts';
-import { checkNewFile } from '../src/components/community/MediaPicker.js';
+import { checkNewFile } from '../src/components/community/MediaPicker.ts';
 import { MOCK_COMMUNITY_TEMPLATES } from '../src/mocks/handlers/community.js';
 import { navItems } from '../src/config/navigation.js';
 
@@ -34,11 +34,11 @@ const placeholders = (s) => [...String(s).matchAll(/\{\{(\w+)\}\}/g)].map((m) =>
 
 const COMPONENT_FILES = [
   ['pages', 'CommunityPage.js'],
-  ['components', 'community', 'PostCard.js'],
-  ['components', 'community', 'PostComposer.js'],
-  ['components', 'community', 'ModerationQueue.js'],
-  ['components', 'community', 'MediaPicker.js'],
-  ['components', 'community', 'CommentThread.js'],
+  ['components', 'community', 'PostCard.ts'],
+  ['components', 'community', 'PostComposer.ts'],
+  ['components', 'community', 'ModerationQueue.ts'],
+  ['components', 'community', 'MediaPicker.ts'],
+  ['components', 'community', 'CommentThread.ts'],
 ];
 
 // ── 1. Locale integrity ────────────────────────────────────────────────────────────────────
@@ -301,7 +301,7 @@ test('mock: only an admin can change the threshold, with a reason, and the queue
 });
 
 test('the settings form is shown only to holders of community.settings.update', () => {
-  const queue = read('components', 'community', 'ModerationQueue.js');
+  const queue = read('components', 'community', 'ModerationQueue.ts');
   assert.match(queue, /can\('community\.settings\.update'\)/);
   assert.match(queue, /MIN_REASON = 10/);
   const catalog = JSON.parse(fs.readFileSync(path.resolve(src, '../../docs/permission-catalog.json'), 'utf8'));
@@ -407,7 +407,7 @@ test('the page offers the Saved filter to signed-in members and the card carries
   assert.match(page, /community\.filter\.saved/);
   assert.match(page, /saved: state\.saved/);
   assert.match(page, /onSave:/);
-  const card = read('components', 'community', 'PostCard.js');
+  const card = read('components', 'community', 'PostCard.ts');
   assert.match(card, /icon\('bookmark'\)/);
   assert.match(card, /community\.card\.saved_toast/);
   assert.ok(read('components', 'ui', 'icons.ts').includes('bookmark: svg('));
@@ -520,5 +520,5 @@ test('the mock notices are the migration templates, and the settings page and dr
   const page = read('pages', 'CommunityPage.js');
   assert.match(page, /params\.get\('post'\)/);
   assert.match(page, /params\.get\('comments'\) === '1'/);
-  assert.match(read('components', 'community', 'PostCard.js'), /\/community\?post=\$\{post\.id\}/);
+  assert.match(read('components', 'community', 'PostCard.ts'), /\/community\?post=\$\{post\.id\}/);
 });

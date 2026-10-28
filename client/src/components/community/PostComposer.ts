@@ -14,39 +14,42 @@
  *    uploading, so a post is never sent without a file the author thought was on it.
  */
 import { el, icon, productTitle } from './dom.ts';
+import type { ElChild } from './dom.ts';
 import { Button } from '../ui/Button.ts';
-import { MediaPicker } from './MediaPicker.js';
+import { MediaPicker } from './MediaPicker.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatNumber } from '../../services/format.js';
 import {
   ROLE_KINDS, AUDIENCES, getComposerProducts, createPost, createAnnouncement, errorText,
 } from '../../services/community.api.ts';
+import type { CommunityPost } from '../../services/community.api.ts';
+import type { MediaPickerElement } from './MediaPicker.ts';
 
 const MAX_STEPS = 8;
 const MAX_TIERS = 5;
 
-function section(n, title, hint, ...children) {
+function section(n: number, title: string, hint: string | null, ...children: ElChild[]) {
   return el('section', 'cm-sec', [
     el('div', 'cm-sec__head', [el('span', 'cm-sec__n', formatNumber(n)), el('h4', 'cm-sec__title', title), hint ? el('span', 'cm-sec__hint', hint) : null]),
     ...children,
   ]);
 }
 
-function field(label, control, hint) {
+function field(label: string, control: HTMLElement, hint?: string) {
   const id = `cm-f-${Math.random().toString(36).slice(2, 8)}`;
   control.id = id;
   return el('div', 'cm-field', [el('label', 'cm-field__label', label, { for: id }), control, hint ? el('span', 'cm-field__hint', hint) : null]);
 }
 
-const textInput = (placeholder, { max = 0, type = 'text', value = '' } = {}) => {
+const textInput = (placeholder: string, { max = 0, type = 'text', value = '' }: { max?: number; type?: string; value?: string } = {}) => {
   const i = el('input', 'input', null, { type, placeholder, ...(max ? { maxlength: max } : {}) });
   i.value = value;
   return i;
 };
-const textArea = (placeholder, max, rows = 3) => el('textarea', 'textarea', null, { placeholder, rows, maxlength: max });
+const textArea = (placeholder: string, max: number, rows = 3) => el('textarea', 'textarea', null, { placeholder, rows, maxlength: max });
 
-function chips(options, selected, onPick) {
+function chips(options: { value: string; label: string }[], selected: string, onPick: (value: string) => void) {
   const wrap = el('div', 'cm-chips', null, { role: 'radiogroup' });
   const buttons = options.map(({ value, label }) => {
     const b = el('button', value === selected ? 'cm-chip cm-chip--on' : 'cm-chip', label, { type: 'button', role: 'radio', 'aria-checked': value === selected });
@@ -64,7 +67,7 @@ function chips(options, selected, onPick) {
   return wrap;
 }
 
-function starPicker(initial, onChange) {
+function starPicker(initial: number, onChange: (n: number) => void) {
   let value = initial;
   const wrap = el('div', 'cm-starpick', null, { role: 'radiogroup', 'aria-label': t('community.composer.rating') });
   const label = el('span', 'cm-starpick__label', t(`community.composer.rating_word.${value}`));
@@ -85,7 +88,7 @@ function starPicker(initial, onChange) {
   return wrap;
 }
 
-function slider(label, initial) {
+function slider(label: string, initial: number) {
   const input = el('input', 'cm-range', null, { type: 'range', min: 1, max: 5, step: 1, value: initial, 'aria-label': label });
   const out = el('output', 'cm-range__out', `${formatNumber(initial)}/5`);
   input.addEventListener('input', () => { out.textContent = `${formatNumber(Number(input.value))}/5`; });
@@ -93,9 +96,9 @@ function slider(label, initial) {
 }
 
 /** A list of single-line inputs the author can grow (steps, price tiers) up to a limit. */
-function growList(makeRow, max, addLabel) {
+function growList<R extends { node: HTMLElement }>(makeRow: (index: number) => R, max: number, addLabel: string) {
   const list = el('div', 'cm-grow');
-  const rows = [];
+  const rows: R[] = [];
   const addBtn = el('button', 'cm-link-btn', addLabel, { type: 'button' });
   function add() {
     if (rows.length >= max) return;
@@ -109,21 +112,41 @@ function growList(makeRow, max, addLabel) {
   return { node: el('div', '', [list, addBtn]), rows };
 }
 
-const roleTitle = { customer: 'review', supplier: 'update', saler: 'idea', admin: 'announce', super_admin: 'announce' };
+const roleTitle: Record<string, string> = { customer: 'review', supplier: 'update', saler: 'idea', admin: 'announce', super_admin: 'announce' };
 
-/**
- * @param {object} o
- * @param {string} o.role                    'customer' | 'supplier' | 'saler' | 'admin' | 'super_admin'
- * @param {string} o.authorName
- * @param {(post:object)=>void} o.onPublished
- * @param {()=>void} o.onCancel
- */
-export function PostComposer({ role, authorName, onPublished, onCancel }) {
+export interface PostComposerOptions {
+  /** 'customer' | 'supplier' | 'saler' | 'admin' | 'super_admin' */
+  role: string;
+  authorName: string;
+  onPublished: (post: CommunityPost) => void;
+  onCancel: () => void;
+}
+
+/** The inputs the payload is read from, filled in per role. */
+interface ComposerFields {
+  quality?: HTMLInputElement;
+  value?: HTMLInputElement;
+  delivery?: HTMLInputElement;
+  liked?: HTMLTextAreaElement;
+  improve?: HTMLTextAreaElement;
+  tip?: HTMLInputElement;
+  stock?: HTMLInputElement;
+  minOrder?: HTMLInputElement;
+  price?: HTMLInputElement;
+  ships?: HTMLInputElement;
+  tiers?: { qty: HTMLInputElement; price: HTMLInputElement }[];
+  body?: HTMLTextAreaElement;
+  title?: HTMLInputElement;
+  steps?: { input: HTMLInputElement }[];
+  tags?: HTMLInputElement;
+}
+
+export function PostComposer({ role, authorName, onPublished, onCancel }: PostComposerOptions): HTMLFormElement {
   const isAdmin = role === 'admin' || role === 'super_admin';
   const kinds = ROLE_KINDS[role] ?? [];
   const lang = getLanguage();
-  const state = { kind: kinds[0], productId: null, orderItemId: null, rating: 4, audience: 'EVERYONE', pinned: true };
-  const read = {};
+  const state: { kind: string; productId: number | string | null; orderItemId: number | string | null; rating: number; audience: string; pinned: boolean } = { kind: kinds[0], productId: null, orderItemId: null, rating: 4, audience: 'EVERYONE', pinned: true };
+  const read: ComposerFields = {};
   const root = el('form', 'cm-composer', null, { novalidate: true, 'aria-label': t(`community.composer.title.${roleTitle[role]}`) });
 
   root.append(el('header', 'cm-composer__head', [
@@ -138,8 +161,8 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
   root.append(body);
   const status = el('p', 'cm-composer__error', '', { role: 'alert' });
   let n = 0;
-  let publish = null;
-  const picker = MediaPicker({ onBusyChange: (busy) => { if (publish) publish.disabled = busy; } });
+  let publish: HTMLButtonElement | null = null;
+  const picker: MediaPickerElement = MediaPicker({ onBusyChange: (busy) => { if (publish) publish.disabled = busy; } });
   const mediaSection = () => section(++n, t('community.media.title'), t('community.composer.optional'), picker);
 
   const typeSection = () => section(++n, t('community.composer.type'), t('community.composer.pick_one'),
@@ -256,12 +279,12 @@ export function PostComposer({ role, authorName, onPublished, onCancel }) {
   ]));
 
   // Added to every payload: the ids of the files that finished uploading, in the order shown.
-  const withMedia = (payload) => {
+  const withMedia = (payload: Record<string, unknown>) => {
     const ids = picker.getIds();
     return ids.length ? { ...payload, media_ids: ids } : payload;
   };
 
-  const num = (input) => (input.value === '' ? null : Number(input.value));
+  const num = (input: HTMLInputElement) => (input.value === '' ? null : Number(input.value));
 
   function payload() {
     if (role === 'customer') {

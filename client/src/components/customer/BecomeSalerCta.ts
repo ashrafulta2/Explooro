@@ -1,5 +1,5 @@
 /**
- * BecomeSalerCta.js — 1-Click Zero-Paperwork Shop Partner Upgrade Component (Prompt 11.3 / idea §AL.3).
+ * BecomeSalerCta.ts — 1-Click Zero-Paperwork Shop Partner Upgrade Component (Prompt 11.3 / idea §AL.3).
  *
  * Implements:
  * 1. Genuine 1-click upgrade provisioning shop partner role & virtual store in <3 seconds.
@@ -14,7 +14,12 @@ import { Button } from '../ui/Button.ts';
 import { appStore, setMockRole } from '../../state/appStore.js';
 import { defaultPermissionsForRole } from '../../config/permissions.mock.ts';
 
-export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null } = {}) {
+export interface BecomeSalerCtaOptions {
+  onUpgradeSuccess?: ((data: any) => void) | null;
+  onNavigate?: ((path: string) => void) | null;
+}
+
+export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null }: BecomeSalerCtaOptions = {}): { element: HTMLDivElement } {
   const container = document.createElement('div');
   container.className = 'become-saler-cta';
 
@@ -87,7 +92,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null } = 
         if (typeof setMockRole === 'function') {
           setMockRole('saler');
         } else {
-          const auth = appStore.get()?.auth || {};
+          const auth: Record<string, any> = appStore.get()?.auth || {};
           const salerPerms = defaultPermissionsForRole('saler');
           appStore.update({
             auth: {

@@ -17,8 +17,9 @@ import { toast } from '../../services/toast.js';
 import { formatNumber } from '../../services/format.js';
 import { can } from '../../services/permissions.js';
 import { getQueue, moderatePost, updateThreshold, errorText } from '../../services/community.api.ts';
+import type { CommunityPost } from '../../services/community.api.ts';
 
-function preview(post) {
+function preview(post: CommunityPost): string {
   const d = post.details || {};
   const text = post.title || post.body || d.liked || d.could_improve || (d.steps || [])[0] || productTitle(post.product, getLanguage());
   return String(text || '').slice(0, 140);
@@ -30,7 +31,7 @@ const MIN_REASON = 10; // mirrors the server's rule for a settings change
  * The auto-hide threshold. Everyone who can see the queue sees the rule; only a holder of
  * community.settings.update gets the form (changing it needs a reason, which goes in the audit log).
  */
-function thresholdPanel({ threshold, limits, onSaved }) {
+function thresholdPanel({ threshold, limits, onSaved }: { threshold: number; limits: { min: number; max: number }; onSaved: () => void }) {
   const rule = el('p', 'cm-callout', t('community.mod.rule', { n: formatNumber(threshold) }));
   if (!can('community.settings.update')) return rule;
 
@@ -74,18 +75,18 @@ function thresholdPanel({ threshold, limits, onSaved }) {
   ]);
 }
 
-function statCard(label, value) {
+function statCard(label: string, value: number) {
   return el('div', 'cm-stat', [el('span', 'cm-stat__label', label), el('strong', 'cm-stat__value', formatNumber(value))]);
 }
 
-/** @param {{ onChanged?: () => void }} [o] called after any decision so the timeline can refresh */
-export function ModerationQueue({ onChanged } = {}) {
+/** `onChanged` is called after any decision so the timeline can refresh. */
+export function ModerationQueue({ onChanged }: { onChanged?: () => void } = {}): HTMLElement {
   const root = el('section', 'cm-queue', null, { 'aria-label': t('community.mod.title') });
   const list = el('div', 'cm-queue__list');
   const head = el('div', 'cm-queue__head');
   root.append(head, list);
 
-  async function decide(post, action) {
+  async function decide(post: CommunityPost, action: 'KEEP' | 'HIDE' | 'REMOVE') {
     if (action === 'REMOVE') {
       const ok = await confirmDialog({
         title: t('community.mod.remove_title'),

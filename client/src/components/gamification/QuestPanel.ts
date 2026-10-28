@@ -1,5 +1,5 @@
 /**
- * QuestPanel.js — Daily & Weekly Quest Progress Widget (Prompt 9.4).
+ * QuestPanel.ts — Daily & Weekly Quest Progress Widget (Prompt 9.4).
  *
  * Implements:
  * 1. Progress cards for active role quests with cadence categorization.
@@ -14,8 +14,38 @@ import { getLanguage, t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { questClaimMessage } from './questClaimMessage.ts';
 
+/** A daily or weekly quest with its progress, as GET /quests sends it. */
+export interface Quest {
+  id: number | string;
+  cadence: 'DAILY' | 'WEEKLY' | string;
+  title?: string;
+  title_en?: string;
+  title_bn?: string;
+  description?: string;
+  description_en?: string;
+  description_bn?: string;
+  current_count?: number;
+  target_count?: number;
+  is_completed?: boolean;
+  is_claimed?: boolean;
+  reward_coins: number;
+}
+
+type QuestFilter = 'ALL' | 'DAILY' | 'WEEKLY';
+
+export interface QuestPanelOptions {
+  quests?: Quest[] | null;
+  /** Called with the server's claim record after a reward is taken. */
+  onRewardClaimed?: ((claim: unknown) => void | Promise<void>) | null;
+}
+
 export class QuestPanel {
-  constructor({ quests = [], onRewardClaimed = null } = {}) {
+  quests: Quest[];
+  onRewardClaimed: QuestPanelOptions['onRewardClaimed'];
+  filter: QuestFilter;
+  rootEl: HTMLDivElement;
+
+  constructor({ quests = [], onRewardClaimed = null }: QuestPanelOptions = {}) {
     this.quests = quests || [];
     this.onRewardClaimed = onRewardClaimed;
     this.filter = 'ALL'; // 'ALL' | 'DAILY' | 'WEEKLY'
@@ -24,7 +54,7 @@ export class QuestPanel {
     this.render();
   }
 
-  setQuests(quests) {
+  setQuests(quests: Quest[] | null) {
     this.quests = quests || [];
     this.render();
   }
@@ -141,17 +171,17 @@ export class QuestPanel {
     return this.rootEl;
   }
 
-  _attachEvents(isBn) {
+  _attachEvents(isBn: boolean) {
     // Filter click
-    this.rootEl.querySelectorAll('.coins-filter-chip').forEach(btn => {
+    this.rootEl.querySelectorAll<HTMLElement>('.coins-filter-chip').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.filter = btn.dataset.filter;
+        this.filter = btn.dataset.filter as QuestFilter;
         this.render();
       });
     });
 
     // Claim reward button
-    this.rootEl.querySelectorAll('.btn-claim-quest').forEach(btn => {
+    this.rootEl.querySelectorAll<HTMLButtonElement>('.btn-claim-quest').forEach(btn => {
       btn.addEventListener('click', async () => {
         const questId = btn.dataset.id;
         btn.disabled = true;
@@ -174,7 +204,7 @@ export class QuestPanel {
     });
   }
 
-  _escapeHtml(str) {
+  _escapeHtml(str?: string | null): string {
     if (!str) return '';
     return String(str)
       .replace(/&/g, '&amp;')
@@ -183,7 +213,7 @@ export class QuestPanel {
       .replace(/"/g, '&quot;');
   }
 
-  getElement() {
+  getElement(): HTMLDivElement {
     return this.rootEl;
   }
 }

@@ -9,6 +9,65 @@ import { api, ApiError, pickMessage } from '../core/api.ts';
 /** A request body or query string; the fields are the server's, passed through untouched. */
 type Params = Record<string, any>;
 
+/** The author block of a post or comment. */
+export interface CommunityAuthor {
+  name: string;
+  role: string;
+  initials?: string;
+}
+
+/** The product a post is about, as the API attaches it. */
+export interface CommunityProduct {
+  ref?: string;
+  image_url?: string | null;
+  price?: number | string | null;
+  title_en?: string;
+  title_bn?: string;
+  rating_avg?: number | null;
+  rating_count?: number;
+  sold_count?: number;
+  category_en?: string;
+  category_bn?: string;
+  availability?: 'IN' | 'LOW' | 'OUT' | string;
+  supplier_name?: string;
+}
+
+/** A photo or video on a post. */
+export interface CommunityMedia {
+  url: string;
+  kind?: 'VIDEO' | 'IMAGE' | string;
+}
+
+/** A serialized post from GET /community/posts. `details` depends on the post type. */
+export interface CommunityPost {
+  id: number | string;
+  type: string;
+  kind?: string;
+  title?: string;
+  body?: string;
+  author: CommunityAuthor;
+  created_at?: string;
+  details?: Record<string, any>;
+  product?: CommunityProduct | null;
+  media?: CommunityMedia[];
+  like_count?: number;
+  comment_count?: number;
+  liked_by_me?: boolean;
+  saved_by_me?: boolean;
+  is_mine?: boolean;
+  is_pinned?: boolean;
+  verified_purchase?: boolean;
+}
+
+/** One comment under a post. */
+export interface CommunityComment {
+  id: number | string;
+  body: string;
+  author: CommunityAuthor;
+  created_at?: string;
+  is_mine?: boolean;
+}
+
 /** The message to show for a failed call, in the reader's language; '' when it was not an API error. */
 export function errorText(err: unknown): string {
   return err instanceof ApiError ? pickMessage(err) || '' : '';
@@ -169,7 +228,7 @@ export async function listComments(postId: number | string, { limit, offset }: {
 }
 
 /** @returns {Promise<{comment: object, comment_count: number}>} */
-export async function addComment(postId: number | string, body: Params) {
+export async function addComment(postId: number | string, body: string) {
   const { data } = await api.post(`/community/posts/${postId}/comments`, { body });
   return data;
 }

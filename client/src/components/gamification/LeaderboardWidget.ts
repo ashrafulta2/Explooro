@@ -1,5 +1,5 @@
 /**
- * LeaderboardWidget.js — Shop Partner & Earner Monthly Performance Leaderboard (Prompt 9.4).
+ * LeaderboardWidget.ts — Shop Partner & Earner Monthly Performance Leaderboard (Prompt 9.4).
  *
  * Implements:
  * 1. Top 3 podium layout with Gold, Silver, and Bronze badges.
@@ -12,8 +12,30 @@ import { api } from '../../core/api.ts';
 import { getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
+/** One row of the ranking; `metric_value` is revenue in BDT or an order count, by category. */
+export interface LeaderboardEntry {
+  rank: number;
+  user_name?: string;
+  metric_value: number | string;
+  message?: string;
+}
+
+/** GET /leaderboard. */
+export interface LeaderboardData {
+  rankings?: LeaderboardEntry[];
+  current_user_rank?: LeaderboardEntry | null;
+}
+
+type LeaderboardCategory = 'SALER_REVENUE' | 'SALER_ORDERS';
+
 export class LeaderboardWidget {
-  constructor({ category = 'SALER_REVENUE', limit = 20 } = {}) {
+  category: LeaderboardCategory;
+  limit: number;
+  data: (LeaderboardData & Record<string, any>) | null;
+  loading: boolean;
+  rootEl: HTMLDivElement;
+
+  constructor({ category = 'SALER_REVENUE', limit = 20 }: { category?: LeaderboardCategory; limit?: number } = {}) {
     this.category = category;
     this.limit = limit;
     this.data = null;
@@ -153,15 +175,15 @@ export class LeaderboardWidget {
   }
 
   _attachEvents() {
-    this.rootEl.querySelectorAll('.btn-cat').forEach(btn => {
+    this.rootEl.querySelectorAll<HTMLElement>('.btn-cat').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.category = btn.dataset.cat;
+        this.category = btn.dataset.cat as LeaderboardCategory;
         this.fetchAndRender();
       });
     });
   }
 
-  getElement() {
+  getElement(): HTMLDivElement {
     return this.rootEl;
   }
 }
