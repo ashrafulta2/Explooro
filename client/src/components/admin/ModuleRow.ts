@@ -1,22 +1,31 @@
 /**
- * ModuleRow.js — Individual module card row with optimistic toggle, targeting and settings (Prompt 3.2).
+ * ModuleRow.ts — Individual module card row with optimistic toggle, targeting and settings (Prompt 3.2).
  */
 
 import { Switch } from '../ui/Switch.ts';
 import { Button } from '../ui/Button.ts';
 import { Badge } from '../ui/Badge.ts';
 import { confirmDialogWithReason } from '../ui/ConfirmDialog.ts';
-import { openModuleSettingsDrawer } from './ModuleSettingsDrawer.js';
-import { openModuleTargetingDrawer } from './ModuleTargetingDrawer.js';
+import { openModuleSettingsDrawer } from './ModuleSettingsDrawer.ts';
+import { openModuleTargetingDrawer } from './ModuleTargetingDrawer.ts';
 import { t, getLanguage } from '../../services/i18n.js';
+import type { PlatformModule } from './ModuleSettingsDrawer.ts';
 import { formatRelativeTime } from '../../services/format.js';
+
+export interface ModuleRowOptions {
+  module: PlatformModule;
+  isSuperAdmin?: boolean;
+  /** Persists a toggle; the row passes its switch so the caller can revert it on a refusal. */
+  onToggle: (module: PlatformModule, enabled: boolean, reason: string, force: boolean, control: ReturnType<typeof Switch>) => Promise<unknown>;
+  onRefresh?: () => void;
+}
 
 export function ModuleRow({
   module,
   isSuperAdmin = false,
   onToggle,
   onRefresh,
-}) {
+}: ModuleRowOptions): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
   const label = isBn ? (module.label_bn || module.label_en) : (module.label_en || module.label_bn);
   const description = isBn ? (module.description_bn || module.description_en) : (module.description_en || module.description_bn);

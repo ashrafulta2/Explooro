@@ -1,5 +1,5 @@
 /**
- * ModuleTargetingDrawer.js — Drawer for viewing and configuring module targeting rules (Prompt 3.2).
+ * ModuleTargetingDrawer.ts — Drawer for viewing and configuring module targeting rules (Prompt 3.2).
  */
 
 import { Drawer } from '../ui/Drawer.ts';
@@ -11,8 +11,9 @@ import { Badge } from '../ui/Badge.ts';
 import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
+import type { ModuleDrawerOptions } from './ModuleSettingsDrawer.ts';
 
-export function openModuleTargetingDrawer({ module, trigger, onSuccess }) {
+export function openModuleTargetingDrawer({ module, trigger, onSuccess }: ModuleDrawerOptions) {
   const isBn = getLanguage() === 'bn';
   const moduleName = isBn ? (module.label_bn || module.label_en) : (module.label_en || module.label_bn);
 

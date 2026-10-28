@@ -376,7 +376,7 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
     });
 
     it('ModuleRow deep-links subscription_fees to /admin/finance/subscriptions', () => {
-      const moduleRowJs = readFileSync(join(root, 'src/components/admin/ModuleRow.js'), 'utf8');
+      const moduleRowJs = readFileSync(join(root, 'src/components/admin/ModuleRow.ts'), 'utf8');
       assert.ok(moduleRowJs.includes("'/admin/finance/subscriptions'"), 'ModuleRow has subscription_fees route');
     });
 

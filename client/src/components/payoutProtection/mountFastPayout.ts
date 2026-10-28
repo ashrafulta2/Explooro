@@ -9,6 +9,7 @@
  * discover them afterwards.
  */
 import { FastPayoutTable } from './FastPayoutTable.ts';
+import type { FastPayoutEntry } from './FastPayoutTable.ts';
 import { confirmDialog } from '../ui/ConfirmDialog.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
@@ -17,20 +18,46 @@ import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatDate, formatNumber } from '../../services/format.js';
 
-function el(tag, className, text) {
+/** One taken payout in the history table. */
+interface FastPayoutHistoryRow {
+  created_at: string;
+  sub_order_ref?: string;
+  sub_order_id?: number | string;
+  gross_amount: number | string;
+  fee_amount: number | string;
+  fee_pct: number;
+  net_amount: number | string;
+}
+
+/** GET /supplier/fast-payout or /sourcing/fast-payout. */
+export interface FastPayoutView {
+  rules: { min_days_saved: number };
+  outstanding: number | string;
+  headroom: number | string;
+  entries: FastPayoutEntry[];
+  history: FastPayoutHistoryRow[];
+}
+
+/** The two endpoints a route page passes in; only these differ between the audiences. */
+export interface FastPayoutSource {
+  load: () => Promise<any>;
+  take: (entryId: number | string) => Promise<unknown>;
+}
+
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
 
-function stat(value, label) {
+function stat(value: string, label: string) {
   const box = el('div', 'pp-stat');
   box.append(el('span', 'pp-stat__value', value), el('span', 'pp-stat__label', label));
   return box;
 }
 
-function historyTable(rows) {
+function historyTable(rows: FastPayoutHistoryRow[]) {
   const wrap = el('div', 'incentive-table-wrap');
   const table = el('table', 'incentive-table');
   const head = document.createElement('tr');
@@ -58,12 +85,8 @@ function historyTable(rows) {
   return wrap;
 }
 
-/**
- * @param {HTMLElement} root
- * @param {{ load: () => Promise<any>, take: (entryId: number|string) => Promise<any> }} api
- * @returns {() => void} cleanup
- */
-export function mountFastPayout(root, { load, take }) {
+/** Mounts the page into `root` and returns its cleanup. */
+export function mountFastPayout(root: HTMLElement, { load, take }: FastPayoutSource): () => void {
   const container = el('div', 'supplier-page-container');
   const header = el('header', 'supplier-header');
   header.append(el('h1', '', t('fastpay.title')), el('p', 'supplier-header__sub', t('fastpay.subtitle')));
@@ -75,8 +98,8 @@ export function mountFastPayout(root, { load, take }) {
   // WHY mounted here: the router calls `page(root)` and does not append a returned node.
   root.append(container);
 
-  let view = null;
-  let busyId = null;
+  let view: FastPayoutView | null = null;
+  let busyId: number | string | null = null;
 
   async function refresh() {
     const res = await load();
@@ -84,7 +107,7 @@ export function mountFastPayout(root, { load, take }) {
     render();
   }
 
-  async function onTake(entry, trigger) {
+  async function onTake(entry: FastPayoutEntry, trigger: Element) {
     if (busyId) return;
     const ok = await confirmDialog({
       title: t('fastpay.confirm_title', { amount: formatCurrency(entry.amount) }),

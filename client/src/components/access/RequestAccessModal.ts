@@ -1,5 +1,5 @@
 /**
- * RequestAccessModal.js — JIT Access Request Dialog (Prompt 2.8).
+ * RequestAccessModal.ts — JIT Access Request Dialog (Prompt 2.8).
  *
  * Implements Prompt 2.8 Requirement 5:
  * - Displays permission name & plain-language explanation of what it allows.
@@ -16,18 +16,34 @@ import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { Textarea } from '../ui/Textarea.ts';
 
-function getPlainLanguage(meta) {
+/** The catalog entry of a permission, the labels the dialog prints. */
+export interface PermissionMetadata {
+  label_en?: string;
+  label_bn?: string;
+  plain_en?: string;
+  plain_bn?: string;
+  [field: string]: unknown;
+}
+
+export interface RequestAccessModalOptions {
+  permission: string;
+  trigger?: Element | null;
+  /** Called once an admin has approved and the permission is held. */
+  onSuccess?: (() => void) | null;
+}
+
+function getPlainLanguage(meta: PermissionMetadata) {
   const isBn = getLanguage() === 'bn';
   return isBn ? meta.plain_bn || meta.plain_en : meta.plain_en || meta.plain_bn;
 }
 
-function getFeatureLabel(meta, permissionKey) {
+function getFeatureLabel(meta: PermissionMetadata | undefined, permissionKey: string) {
   const isBn = getLanguage() === 'bn';
   return (isBn ? meta?.label_bn : meta?.label_en) || permissionKey;
 }
 
-export function openRequestAccessModal({ permission, trigger = null, onSuccess = null }) {
-  const meta = getPermissionMetadata(permission) || {};
+export function openRequestAccessModal({ permission, trigger = null, onSuccess = null }: RequestAccessModalOptions) {
+  const meta: PermissionMetadata = getPermissionMetadata(permission) || {};
   const featureName = getFeatureLabel(meta, permission);
   const plainText = getPlainLanguage(meta);
 
@@ -51,7 +67,7 @@ export function openRequestAccessModal({ permission, trigger = null, onSuccess =
 
   container.append(explanation, reasonField, errorMsg);
 
-  let pollInterval = null;
+  let pollInterval: ReturnType<typeof setInterval> | null = null;
 
   function cleanupPolling() {
     if (pollInterval) {
@@ -95,7 +111,7 @@ export function openRequestAccessModal({ permission, trigger = null, onSuccess =
 
         const subtitle = document.createElement('div');
         subtitle.className = 'text-xs text-muted';
-        const requestRef = res?.data?.ref || res?.deferred?.action_id || 'PGR-LIVE';
+        const requestRef = res?.data?.ref || (res?.deferred as { action_id?: string } | undefined)?.action_id || 'PGR-LIVE';
         subtitle.textContent = t('access.modal.request_ref', { ref: requestRef });
 
         statusText.append(title, subtitle);

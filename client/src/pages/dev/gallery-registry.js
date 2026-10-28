@@ -42,7 +42,7 @@ import { InfoTip } from '../../components/ui/InfoTip.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { toast } from '../../services/toast.js';
 import { ImageUploader } from '../../components/media/ImageUploader.js';
-import { openMediaLibrary } from '../../components/media/MediaLibrary.js';
+import { openMediaLibrary } from '../../components/media/MediaLibrary.ts';
 import { openCameraCapture } from '../../components/media/CameraCapture.js';
 import { ProductCard, ProductCardSkeleton } from '../../components/product/ProductCard.ts';
 import { ProductFeed } from '../../components/product/ProductFeed.js';
@@ -69,7 +69,7 @@ import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.ts
 import { FastPayoutTable } from '../../components/payoutProtection/FastPayoutTable.ts';
 import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
 import { MarginProjection } from '../../components/saler/MarginProjection.ts';
-import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.js';
+import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.ts';
 import { StoreHeader } from '../../components/store/StoreHeader.ts';
 import { ShelfEditor } from '../../components/store/ShelfEditor.js';
 import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';

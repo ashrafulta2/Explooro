@@ -1,5 +1,5 @@
 /**
- * PermissionGate.js — Wrapper component for conditional access rendering (Prompt 2.8).
+ * PermissionGate.ts — Wrapper component for conditional access rendering (Prompt 2.8).
  *
  * Implements Prompt 2.8 Requirement 4:
  * - Renders children, a locked placeholder, a restriction banner, or nothing based on whyDenied().
@@ -7,9 +7,20 @@
  */
 
 import { whyDenied, getPermissionMetadata, getRestriction } from '../../services/permissions.js';
-import { openRequestAccessModal } from './RequestAccessModal.js';
+import { openRequestAccessModal } from './RequestAccessModal.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { Button } from '../ui/Button.ts';
+import type { PermissionMetadata } from './RequestAccessModal.ts';
+
+export interface PermissionGateOptions {
+  permission?: string | null;
+  /** The feature module the permission belongs to; `core` has none to switch off. */
+  module?: string;
+  fallback?: (() => Node) | null;
+  renderContent: () => Node;
+  renderLocked?: ((status: string) => Node) | null;
+  onUnlocked?: (() => void) | null;
+}
 
 export function PermissionGate({
   permission = null,
@@ -18,7 +29,7 @@ export function PermissionGate({
   renderContent,
   renderLocked = null,
   onUnlocked = null,
-}) {
+}: PermissionGateOptions): Node {
   const status = whyDenied(permission, module);
 
   if (status === 'held') {
@@ -33,7 +44,7 @@ export function PermissionGate({
     return renderLocked(status);
   }
 
-  const meta = getPermissionMetadata(permission) || {};
+  const meta: PermissionMetadata = getPermissionMetadata(permission) || {};
   const isBn = getLanguage() === 'bn';
   const label = (isBn ? meta.label_bn : meta.label_en) || permission || 'Feature';
   const plainLanguage = isBn ? meta.plain_bn || meta.plain_en : meta.plain_en || meta.plain_bn;

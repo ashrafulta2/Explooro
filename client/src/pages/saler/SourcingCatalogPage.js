@@ -9,7 +9,7 @@
  * calculate. A card shows the supplier's price and what one sale adds to the pool.
  */
 import { listSourcingCatalog } from '../../services/catalog.api.ts';
-import { AddToStoreDrawer, poolContributionOf } from '../../components/saler/AddToStoreDrawer.js';
+import { AddToStoreDrawer, poolContributionOf } from '../../components/saler/AddToStoreDrawer.ts';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { SponsoredTag } from '../../components/saler/SponsoredTag.ts';
 import { fetchSponsored, trackImpression, clickReporter } from '../../services/sponsoredSourcing.ts';

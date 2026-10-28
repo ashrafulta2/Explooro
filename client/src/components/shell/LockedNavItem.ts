@@ -12,7 +12,7 @@
 import { getPermissionMetadata } from '../../services/permissions.js';
 import { getPermissionMeta } from '../../config/permissions.mock.ts';
 import { t, getLanguage } from '../../services/i18n.js';
-import { openRequestAccessModal } from '../access/RequestAccessModal.js';
+import { openRequestAccessModal } from '../access/RequestAccessModal.ts';
 import { Modal } from '../ui/Modal.ts';
 
 function lockIcon() {
@@ -26,12 +26,20 @@ function lockIcon() {
   return span;
 }
 
-function plainLanguageFor(meta) {
+/** The nav entry a locked row draws; the fields come from config/navigation.js. */
+export interface LockedNavEntry {
+  key: string;
+  permission: string;
+  label_i18n_key: string;
+  icon?: string;
+}
+
+function plainLanguageFor(meta: { plain_bn?: string; plain_en?: string }) {
   return getLanguage() === 'bn' ? meta.plain_bn ?? meta.plain_en : meta.plain_en ?? meta.plain_bn;
 }
 
 /** Informational-only modal for a CRITICAL (non-delegable) permission. */
-function openCriticalModal({ feature, trigger }) {
+function openCriticalModal({ feature, trigger }: { feature: string; trigger: Element }) {
   const body = document.createElement('p');
   body.className = 'text-sm';
   body.textContent = t('access.locked.critical');
@@ -44,7 +52,7 @@ function openCriticalModal({ feature, trigger }) {
   modal.openModal(trigger);
 }
 
-export function LockedNavItem({ item }) {
+export function LockedNavItem({ item }: { item: LockedNavEntry }): HTMLButtonElement {
   const meta = getPermissionMetadata(item.permission) || getPermissionMeta(item.permission);
   const label = t(item.label_i18n_key);
 

@@ -1,5 +1,5 @@
 /**
- * MediaLibrary.js — Reusable media library modal & browser (Prompt 4.2).
+ * MediaLibrary.ts — Reusable media library modal & browser (Prompt 4.2).
  */
 
 import { Button } from '../ui/Button.ts';
@@ -8,11 +8,27 @@ import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 
+/** One uploaded file in the library (GET /media). */
+export interface MediaAsset {
+  id: number | string;
+  ref: string;
+  url: string;
+  purpose?: string;
+  width?: number;
+  height?: number;
+}
+
+export interface MediaLibraryOptions {
+  purpose?: string | null;
+  onSelect?: (asset: MediaAsset) => void;
+  trigger?: Element | null;
+}
+
 export function openMediaLibrary({
   purpose = null,
   onSelect = () => {},
   trigger = null,
-} = {}) {
+}: MediaLibraryOptions = {}) {
   const isBn = getLanguage() === 'bn';
   // Filters Bar
   const filtersBar = document.createElement('div');
@@ -42,8 +58,8 @@ export function openMediaLibrary({
   const grid = document.createElement('div');
   grid.className = 'media-library-grid';
 
-  let selectedAsset = null;
-  let assets = [];
+  let selectedAsset: MediaAsset | null = null;
+  let assets: MediaAsset[] = [];
 
   // Footer Actions
   const footer = document.createElement('div');

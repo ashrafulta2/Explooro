@@ -195,7 +195,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(cardContent.includes("sourcing.card.pool_per_sale"), 'Sourcing catalog cards must show the reward pool share');
     assert.ok(!cardContent.includes("ProfitCalculator"), 'Partners have no per-sale profit to calculate');
 
-    const drawerPath = path.resolve(import.meta.dirname, '../src/components/saler/AddToStoreDrawer.js');
+    const drawerPath = path.resolve(import.meta.dirname, '../src/components/saler/AddToStoreDrawer.ts');
     const drawerContent = fs.readFileSync(drawerPath, 'utf8');
     assert.ok(!drawerContent.includes("formatCurrency(wholesaleCost)"), 'AddToStoreDrawer must not display raw wholesale cost');
     assert.ok(!drawerContent.includes("custom_retail_price"), 'AddToStoreDrawer must not offer a price field');

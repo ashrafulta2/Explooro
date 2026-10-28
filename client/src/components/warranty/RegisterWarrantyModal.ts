@@ -1,5 +1,5 @@
 /**
- * RegisterWarrantyModal.js — Customer Manual / Offline Warranty Registration Dialog (Prompt 10.4).
+ * RegisterWarrantyModal.ts — Customer Manual / Offline Warranty Registration Dialog (Prompt 10.4).
  *
  * Allows users to register a product warranty purchased offline or with an invoice/serial number.
  */
@@ -10,7 +10,12 @@ import { toast } from '../../services/toast.js';
 
 import { Modal } from '../ui/Modal.ts';
 
-export function openRegisterWarrantyModal({ onSuccess = null } = {}) {
+export interface RegisterWarrantyModalOptions {
+  /** Called with the new warranty card. */
+  onSuccess?: ((card: unknown) => void) | null;
+}
+
+export function openRegisterWarrantyModal({ onSuccess = null }: RegisterWarrantyModalOptions = {}) {
   const formEl = document.createElement('form');
   formEl.id = 'register-warranty-form';
   formEl.style.cssText = 'padding: 0; display: flex; flex-direction: column; gap: var(--space-4);';
@@ -92,10 +97,10 @@ export function openRegisterWarrantyModal({ onSuccess = null } = {}) {
 
   const close = () => modal.closeModal();
 
-  formEl.querySelector('.btn-cancel').addEventListener('click', close);
+  formEl.querySelector('.btn-cancel')!.addEventListener('click', close);
 
-  const form = modal.querySelector('#register-warranty-form');
-  const submitBtn = modal.querySelector('.btn-submit');
+  const form = modal.querySelector<HTMLFormElement>('#register-warranty-form')!;
+  const submitBtn = modal.querySelector<HTMLButtonElement>('.btn-submit')!;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

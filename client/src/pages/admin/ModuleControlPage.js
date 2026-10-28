@@ -5,7 +5,7 @@
  * filters, optimistic switches, reason modals, and dependency cascade support.
  */
 
-import { ModuleRow } from '../../components/admin/ModuleRow.js';
+import { ModuleRow } from '../../components/admin/ModuleRow.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';

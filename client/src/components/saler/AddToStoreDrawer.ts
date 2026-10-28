@@ -1,11 +1,12 @@
 /**
- * AddToStoreDrawer.js — 1-click Add to Virtual Store drawer (Prompt 4.7).
+ * AddToStoreDrawer.ts — 1-click Add to Virtual Store drawer (Prompt 4.7).
  *
  * WHY no price field: since migration 085 the supplier sets every price and the partner's share of
  * each sale goes to the monthly partner reward pool, so a partner chooses only the collection. The
  * drawer shows what one sale adds to that pool instead of a per-sale profit.
  */
 import { Drawer } from '../ui/Drawer.ts';
+import type { DrawerElement } from '../ui/Drawer.ts';
 import { Button } from '../ui/Button.ts';
 import { FormField } from '../ui/FormField.ts';
 import { Select } from '../ui/Select.ts';
@@ -14,6 +15,28 @@ import { addToSalerStore } from '../../services/catalog.api.ts';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { resolveProductImage } from '../product/ProductCard.ts';
+
+/** A product as the sourcing catalog, the product page or a store item carries it. */
+export interface StoreProduct {
+  id?: number | string;
+  ref?: string;
+  title?: string;
+  title_en?: string;
+  title_bn?: string;
+  price?: number | string;
+  default_retail_price?: number | string;
+  stock?: number;
+  stock_qty?: number;
+  partner_profit?: number | string | null;
+  pricing?: { retail_price?: number | string; saler_earning?: number | string };
+  sourcing_opportunity?: { pool_contribution?: number | string };
+  [field: string]: unknown;
+}
+
+/** The drawer, plus the entry point callers use. */
+export interface AddToStoreDrawerElement extends DrawerElement {
+  openForProduct(product: StoreProduct, trigger?: Element | null): void;
+}
 
 const COLLECTIONS = [
   { value: 'General', label_en: 'General', label_bn: 'সাধারণ' },
@@ -24,10 +47,8 @@ const COLLECTIONS = [
 
 /**
  * What one sale of this product adds to the partner reward pool, from whichever shape the caller has.
- * @param {object} product
- * @returns {number|null}
  */
-export function poolContributionOf(product) {
+export function poolContributionOf(product: StoreProduct | null | undefined): number | null {
   const raw = product?.sourcing_opportunity?.pool_contribution
     ?? product?.partner_profit
     ?? product?.pricing?.saler_earning;
@@ -36,14 +57,10 @@ export function poolContributionOf(product) {
 }
 
 /**
- * Creates the Add to Store Drawer instance.
- *
- * @param {object} props
- * @param {Function} [props.onSuccess] Callback when item is successfully added to store
- * @returns {HTMLDialogElement & { openForProduct: Function }}
+ * Creates the Add to Store Drawer instance. `onSuccess` is called with the added store item.
  */
-export function AddToStoreDrawer({ onSuccess = null } = {}) {
-  let activeProduct = null;
+export function AddToStoreDrawer({ onSuccess = null }: { onSuccess?: ((item: unknown) => void) | null } = {}): AddToStoreDrawerElement {
+  let activeProduct: StoreProduct | null = null;
   let isSubmitting = false;
 
   const contentWrap = document.createElement('div');
@@ -55,9 +72,9 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
     content: contentWrap,
     side: 'right',
     size: 'md',
-  });
+  }) as AddToStoreDrawerElement;
 
-  function row(label, value, highlight = false) {
+  function row(label: string, value: string, highlight = false) {
     const el = document.createElement('div');
     el.className = highlight ? 'add-store-calc-row add-store-calc-row--highlight' : 'add-store-calc-row';
     const l = document.createElement('span');
@@ -179,7 +196,7 @@ export function AddToStoreDrawer({ onSuccess = null } = {}) {
     contentWrap.append(previewBox, collectionField, calcBox, actions);
   }
 
-  drawer.openForProduct = (product, triggerEl = null) => {
+  drawer.openForProduct = (product: StoreProduct, triggerEl: Element | null = null) => {
     activeProduct = product;
     renderContent();
     drawer.openDrawer(triggerEl);
