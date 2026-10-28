@@ -186,7 +186,7 @@ export function toggleGroupCollapsed(groupKey: string) {
 /**
  * Icon-rail mode: a group header click while the sidebar is collapsed must open the rail rather
  * than silently toggling a group's collapsed flag that has no visible effect until the rail
- * itself reopens (see Sidebar.js renderAdvancedMode). Also un-collapses the clicked group so its
+ * itself reopens (see Sidebar.ts renderAdvancedMode). Also un-collapses the clicked group so its
  * items are visible immediately in the newly-expanded sidebar.
  */
 export function expandSidebarToGroup(groupKey: string) {

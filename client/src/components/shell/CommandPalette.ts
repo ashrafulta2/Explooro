@@ -19,7 +19,7 @@ import { switchThemePreset, PRESET_SWITCH_PERMISSION } from '../../services/them
 import { can } from '../../services/permissions.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
-import { isPageVisibleInNav } from '../../services/pageAccess.js';
+import { isPageVisibleInNav } from '../../services/pageAccess.ts';
 import { lockScroll, unlockScroll } from '../ui/Modal.ts';
 import { getGroupIcon, ICONS } from '../ui/icons.ts';
 
@@ -27,7 +27,7 @@ const RECENT_KEY = 'explooro:palette:recent';
 const MAX_RECENT = 5;
 const MAX_RESULTS = 8;
 
-function loadRecent() {
+function loadRecent(): string[] {
   try {
     return JSON.parse(localStorage.getItem(RECENT_KEY)) ?? [];
   } catch {
@@ -35,7 +35,7 @@ function loadRecent() {
   }
 }
 
-function pushRecent(path) {
+function pushRecent(path: string) {
   const next = [path, ...loadRecent().filter((p) => p !== path)].slice(0, MAX_RECENT);
   try {
     localStorage.setItem(RECENT_KEY, JSON.stringify(next));
@@ -44,10 +44,10 @@ function pushRecent(path) {
   }
 }
 
-function hasModule(modules, key) {
+function hasModule(modules: Record<string, boolean>, key?: string | null) {
   return !key || key === 'core' || modules[key] === true;
 }
-function hasPermission(permissions, key) {
+function hasPermission(permissions: string[], key?: string | null) {
   return !key || (permissions && permissions.includes(key));
 }
 function hasRole(userRole, item) {
@@ -70,7 +70,7 @@ function hasRole(userRole, item) {
  * the matched span's length (smaller = tighter = better) or `null` for no match. No dependency —
  * this is the entire matching algorithm, deliberately simple over "smart".
  */
-function fuzzyScore(query, target) {
+function fuzzyScore(query: string, target: string) {
   if (!target) return null;
   const q = query.toLowerCase();
   const s = target.toLowerCase();
@@ -88,7 +88,13 @@ function fuzzyScore(query, target) {
   return q.length === 0 ? 0 : last - first;
 }
 
-export function createCommandPalette({ getState }) {
+/** What the palette asks the shell for every time it opens. */
+export interface PaletteState {
+  ctx: { role?: string | null; permissions: string[]; modules: Record<string, boolean>; badges: Record<string, number> };
+  navigate: (path: string) => void;
+}
+
+export function createCommandPalette({ getState }: { getState: () => PaletteState }) {
   const dialog = document.createElement('dialog');
   dialog.className = 'overlay command-palette';
   dialog.setAttribute('aria-modal', 'true');
@@ -146,7 +152,7 @@ export function createCommandPalette({ getState }) {
     const { ctx } = getState();
     const q = query.trim();
 
-    // The page-availability check is the same resolvePageAccess() Sidebar.js and core/router.js
+    // The page-availability check is the same resolvePageAccess() Sidebar.ts and core/router.js
     // use (super-admin-audit §5 invariant 1): a page the super admin has HIDDEN must not be
     // reachable by typing its name either, or the palette becomes the hole in the whole layer.
     const visible = navItems.filter(

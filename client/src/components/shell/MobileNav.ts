@@ -10,7 +10,8 @@ import { MOBILE_TABS } from '../../config/navigation.js';
 import { t } from '../../services/i18n.ts';
 import { Badge } from '../ui/Badge.ts';
 import { Drawer } from '../ui/Drawer.ts';
-import { Sidebar } from './Sidebar.js';
+import { Sidebar } from './Sidebar.ts';
+import type { NavContext } from './Sidebar.ts';
 import { openCart } from '../../services/cart.ts';
 
 // Non-navigation tab actions — a tab with `action` opens UI in place instead of routing.
@@ -68,10 +69,10 @@ function scheduleBadge(key, badge, state) {
 
 export interface MobileNavOptions {
   role: string;
-  ctx: Record<string, unknown>;
+  ctx: NavContext;
   currentPath: string;
   navigate: (path: string) => void;
-  collapsedGroups?: Record<string, boolean>;
+  collapsedGroups?: string[];
 }
 
 export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups }: MobileNavOptions): HTMLElement {
@@ -87,7 +88,6 @@ export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups }:
       sheet.remove();
       sheet = null;
     }
-    // @ts-expect-error Sidebar (still .js) infers every option as required; the sheet omits onOpenPalette and sidebarCollapsed on purpose
     const content = Sidebar({
       role,
       ctx,

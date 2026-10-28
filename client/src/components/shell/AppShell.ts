@@ -18,26 +18,26 @@ import {
   t,
 } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
-import { Sidebar } from './Sidebar.js';
+import { Sidebar } from './Sidebar.ts';
 import { TopBar, formatRemaining } from './TopBar.ts';
 import { MobileNav } from './MobileNav.ts';
-import { createCommandPalette } from './CommandPalette.js';
+import { createCommandPalette } from './CommandPalette.ts';
 import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.ts';
 import { initCart, setCartNavigator } from '../../services/cart.ts';
 
 const BACK_PORTAL_ROOTS = ['/admin', '/moderator', '/saler', '/supplier'];
 
 /** The dashboard root of the portal `pathname` belongs to, or null on a root page or elsewhere. */
-function portalRoot(pathname) {
+function portalRoot(pathname: string) {
   const path = pathname.replace(/\/+$/, '');
   return BACK_PORTAL_ROOTS.find((root) => path.startsWith(`${root}/`)) ?? null;
 }
 
-function isTextInput(el) {
+function isTextInput(el: HTMLElement | null) {
   return Boolean(el) && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
 }
 
-export function createAppShell({ container, navigate }) {
+export function createAppShell({ container, navigate }: { container: HTMLElement; navigate: (path: string, options?: { replace?: boolean }) => void }) {
   container.replaceChildren();
 
   const shellEl = document.createElement('div');
@@ -78,9 +78,9 @@ export function createAppShell({ container, navigate }) {
   // did NOT change `q` — otherwise a Back into a results page would restore the stale text over
   // the term the page is actually showing, which is the very desync this is here to prevent.
   let lastSearchQuery = null;
-  function renderTopBar(props) {
+  function renderTopBar(props: Parameters<typeof TopBar>[0]) {
     const searchQuery = new URLSearchParams(window.location.search).get('q') || '';
-    const previous = topbarSlot.querySelector('.topbar__product-search-input');
+    const previous = topbarSlot.querySelector<HTMLInputElement>('.topbar__product-search-input');
     const hadFocus = Boolean(previous) && document.activeElement === previous;
     const carriedText =
       hadFocus && searchQuery === lastSearchQuery
@@ -90,7 +90,7 @@ export function createAppShell({ container, navigate }) {
 
     topbarSlot.replaceChildren(TopBar(props));
     if (!hadFocus) return;
-    const next = topbarSlot.querySelector('.topbar__product-search-input');
+    const next = topbarSlot.querySelector<HTMLInputElement>('.topbar__product-search-input');
     if (!next) return;
     if (carriedText) {
       next.value = carriedText.value;
@@ -124,7 +124,7 @@ export function createAppShell({ container, navigate }) {
   }
 
   function syncBackButton() {
-    const existing = pageOutlet.querySelectorAll('.shell-back');
+    const existing = pageOutlet.querySelectorAll<HTMLAnchorElement>('.shell-back');
     if (!backRoot) {
       existing.forEach((el) => el.remove());
       return;
@@ -230,7 +230,7 @@ export function createAppShell({ container, navigate }) {
       sidebarCollapsed: s.shell.sidebarCollapsed,
       onToggleSidebar: (trigger) => {
         if (window.innerWidth < 768) {
-          const moreBtn = mobileNavSlot.querySelector('.mobile-nav__item:last-child');
+          const moreBtn = mobileNavSlot.querySelector<HTMLElement>('.mobile-nav__item:last-child');
           if (moreBtn) {
             moreBtn.click();
             return;
@@ -280,9 +280,9 @@ export function createAppShell({ container, navigate }) {
   topbarResizeObserver.observe(topbarEl);
 
   // ia-sitemap.md §3: "Ctrl+K / Cmd+K anywhere EXCEPT inside a text input."
-  function onGlobalKeydown(event) {
+  function onGlobalKeydown(event: KeyboardEvent) {
     if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k') return;
-    const active = document.activeElement;
+    const active = document.activeElement as HTMLElement | null;
     if (isTextInput(active) && !palette.dialog.contains(active)) return;
     event.preventDefault();
     palette.open();

@@ -1,5 +1,5 @@
 /**
- * offlineQueue.js — IndexedDB-Backed Resilient Offline Operation Queue (Prompt 11.6 / Master Spec §L1).
+ * offlineQueue.ts — IndexedDB-Backed Resilient Offline Operation Queue (Prompt 11.6 / Master Spec §L1).
  *
  * Implements:
  * 1. Persistent IndexedDB storage for mutations (cart additions, removals, chat messages, form drafts).
@@ -15,13 +15,30 @@ const STORE_MUTATIONS = 'mutation_queue';
 const STORE_RECENT_PRODUCTS = 'recently_viewed_products';
 const STORE_DRAFTS = 'form_drafts';
 
-let dbPromise = null;
-const syncListeners = new Set();
+/** One queued write: what to replay when the connection returns. */
+export interface QueuedMutation {
+  id?: number;
+  type: string;
+  payload: unknown;
+  status: 'PENDING' | 'RETRYING' | string;
+  retryCount: number;
+  createdAt: string;
+}
+
+/** What the connectivity subscribers are told. */
+export interface SyncInfo {
+  isOnline: boolean;
+  state: 'IDLE' | 'SYNCING' | 'SYNCED' | 'OFFLINE' | string;
+  pendingCount: number;
+}
+
+let dbPromise: Promise<IDBDatabase | null> | null = null;
+const syncListeners = new Set<(info: SyncInfo) => void>();
 
 /**
  * Opens or initializes the IndexedDB database.
  */
-export function getDb() {
+export function getDb(): Promise<IDBDatabase | null> {
   if (typeof window === 'undefined' || !window.indexedDB) {
     return Promise.resolve(null);
   }
@@ -32,7 +49,7 @@ export function getDb() {
     const req = window.indexedDB.open(DB_NAME, DB_VERSION);
 
     req.onupgradeneeded = (event) => {
-      const db = event.target.result;
+      const db = (event.target as IDBOpenDBRequest).result;
 
       // 1. Mutation Queue Store
       if (!db.objectStoreNames.contains(STORE_MUTATIONS)) {
@@ -53,9 +70,9 @@ export function getDb() {
       }
     };
 
-    req.onsuccess = (e) => resolve(e.target.result);
+    req.onsuccess = (e) => resolve((e.target as IDBOpenDBRequest).result);
     req.onerror = (e) => {
-      console.warn('[OfflineQueue] IndexedDB open error:', e.target.error);
+      console.warn('[OfflineQueue] IndexedDB open error:', (e.target as IDBOpenDBRequest).error);
       resolve(null);
     };
   });
@@ -70,9 +87,9 @@ export function getDb() {
 /**
  * Enqueues a mutation to be synced when online.
  */
-export async function enqueueMutation({ type, payload }) {
+export async function enqueueMutation({ type, payload }: { type: string; payload: unknown }): Promise<QueuedMutation> {
   const db = await getDb();
-  const entry = {
+  const entry: QueuedMutation = {
     type,
     payload,
     status: 'PENDING',
@@ -98,18 +115,18 @@ export async function enqueueMutation({ type, payload }) {
     const req = store.add(entry);
 
     req.onsuccess = (e) => {
-      entry.id = e.target.result;
+      entry.id = (e.target as IDBRequest).result;
       notifySyncListeners();
       resolve(entry);
     };
-    req.onerror = (e) => reject(e.target.error);
+    req.onerror = (e) => reject((e.target as IDBRequest).error);
   });
 }
 
 /**
  * Fetches all pending mutations from the queue.
  */
-export async function getPendingMutations() {
+export async function getPendingMutations(): Promise<QueuedMutation[]> {
   const db = await getDb();
 
   if (!db) {
@@ -126,7 +143,7 @@ export async function getPendingMutations() {
     const req = store.getAll();
 
     req.onsuccess = (e) => {
-      const all = e.target.result || [];
+      const all: QueuedMutation[] = (e.target as IDBRequest).result || [];
       resolve(all.filter((item) => item.status === 'PENDING' || item.status === 'RETRYING'));
     };
     req.onerror = () => resolve([]);
@@ -136,7 +153,7 @@ export async function getPendingMutations() {
 /**
  * Removes a mutation from the queue once synced.
  */
-export async function removeMutation(id) {
+export async function removeMutation(id: number | undefined) {
   const db = await getDb();
   if (!db) {
     try {
@@ -148,7 +165,7 @@ export async function removeMutation(id) {
     return;
   }
 
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     const tx = db.transaction([STORE_MUTATIONS], 'readwrite');
     const store = tx.objectStore(STORE_MUTATIONS);
     store.delete(id);
@@ -162,7 +179,7 @@ export async function removeMutation(id) {
 /**
  * Flushes all pending mutations to the backend when connection is restored.
  */
-export async function flushQueue(dispatcher = null) {
+export async function flushQueue(dispatcher: ((item: QueuedMutation) => unknown) | null = null) {
   if (!isOnline()) return { synced: 0, pending: (await getPendingMutations()).length };
 
   const pending = await getPendingMutations();
@@ -193,7 +210,7 @@ export async function flushQueue(dispatcher = null) {
 // 2. Recently Viewed Products (Offline Browsing)
 // -----------------------------------------------------------------------------
 
-export async function saveRecentlyViewedProduct(product) {
+export async function saveRecentlyViewedProduct(product: { id?: number | string; slug?: string; ref?: string; [field: string]: unknown } | null | undefined) {
   if (!product || !product.id) return;
   const db = await getDb();
   const entry = {
@@ -231,8 +248,8 @@ export async function getRecentlyViewedProducts(limit = 12) {
     const tx = db.transaction([STORE_RECENT_PRODUCTS], 'readonly');
     const req = tx.objectStore(STORE_RECENT_PRODUCTS).getAll();
     req.onsuccess = (e) => {
-      const entries = e.target.result || [];
-      entries.sort((a, b) => new Date(b.viewedAt) - new Date(a.viewedAt));
+      const entries = (e.target as IDBRequest).result || [];
+      entries.sort((a, b) => new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime());
       resolve(entries.slice(0, limit).map((e) => e.productData));
     };
     req.onerror = () => resolve([]);
@@ -243,7 +260,7 @@ export async function getRecentlyViewedProducts(limit = 12) {
 // 3. Form Drafts (Auto-Save)
 // -----------------------------------------------------------------------------
 
-export async function saveFormDraft(formKey, draftData) {
+export async function saveFormDraft(formKey: string, draftData: unknown) {
   const db = await getDb();
   const entry = { formKey, draftData, updatedAt: new Date().toISOString() };
 
@@ -258,7 +275,7 @@ export async function saveFormDraft(formKey, draftData) {
   tx.objectStore(STORE_DRAFTS).put(entry);
 }
 
-export async function getFormDraft(formKey) {
+export async function getFormDraft(formKey: string) {
   const db = await getDb();
   if (!db) {
     try {
@@ -272,12 +289,12 @@ export async function getFormDraft(formKey) {
   return new Promise((resolve) => {
     const tx = db.transaction([STORE_DRAFTS], 'readonly');
     const req = tx.objectStore(STORE_DRAFTS).get(formKey);
-    req.onsuccess = (e) => resolve(e.target.result?.draftData || null);
+    req.onsuccess = (e) => resolve((e.target as IDBRequest).result?.draftData || null);
     req.onerror = () => resolve(null);
   });
 }
 
-export async function clearFormDraft(formKey) {
+export async function clearFormDraft(formKey: string) {
   const db = await getDb();
   if (!db) {
     localStorage.removeItem(`draft_${formKey}`);
@@ -296,15 +313,15 @@ export function isOnline() {
   return typeof navigator !== 'undefined' ? navigator.onLine !== false : true;
 }
 
-export function subscribeConnectivity(listener) {
+export function subscribeConnectivity(listener: (info: SyncInfo) => void) {
   syncListeners.add(listener);
   return () => syncListeners.delete(listener);
 }
 
-async function notifySyncListeners(state = null) {
+async function notifySyncListeners(state: string | null = null) {
   const online = isOnline();
   const pending = await getPendingMutations();
-  const info = {
+  const info: SyncInfo = {
     isOnline: online,
     state: state || (online ? (pending.length > 0 ? 'SYNCING' : 'IDLE') : 'OFFLINE'),
     pendingCount: pending.length,

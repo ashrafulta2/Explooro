@@ -29,8 +29,8 @@ import { initSession, isUserAuthenticated } from './services/session.ts';
 import { initFeatureFlags, scanDomForModuleGates } from './services/featureFlags.ts';
 
 // Per-page availability — the layer beside the module system (services/pageAccess.js).
-import { initPageAccess, resolvePageAccess } from './services/pageAccess.js';
-import { registerPages } from './config/pageRegistry.js';
+import { initPageAccess, resolvePageAccess } from './services/pageAccess.ts';
+import { registerPages } from './config/pageRegistry.ts';
 
 // Prompt 3.5 — runtime theme engine.
 import { initTheme, dropLocalPreset, PRESET_SWITCH_PERMISSION } from './services/themePalette.ts';
@@ -39,7 +39,7 @@ import { can } from './services/permissions.ts';
 // Prompt 1.7 — role-aware shell.
 import { navItems } from './config/navigation.js';
 import { toast } from './services/toast.ts';
-import { createAppShell } from './components/shell/AppShell.js';
+import { createAppShell } from './components/shell/AppShell.ts';
 
 // ── Dev-only status bar (shown only if there is an error / connection issue in live mode) ──
 if (import.meta.env.DEV) {
@@ -125,7 +125,7 @@ async function bootRouterDemo() {
   // notifications to read, and a failed call is swallowed inside the modal module.
   if (isUserAuthenticated()) {
     setTimeout(() => {
-      import('./components/notifications/WhatsNewModal.js').then((m) => m.checkAndShowWhatsNew()).catch(() => {});
+      import('./components/notifications/WhatsNewModal.ts').then((m) => m.checkAndShowWhatsNew()).catch(() => {});
     }, 2500);
   }
 
@@ -2185,8 +2185,8 @@ if (import.meta.env.DEV) {
 
 // Prompt 11.6: PWA, Service Worker, Offline Resilience & Install Prompt
 import { registerServiceWorker } from './sw.js';
-import { initOfflineBanner } from './services/offlineQueue.js';
-import { initPwaInstallPrompt } from './components/pwa/PwaInstallPrompt.js';
+import { initOfflineBanner } from './services/offlineQueue.ts';
+import { initPwaInstallPrompt } from './components/pwa/PwaInstallPrompt.ts';
 
 registerServiceWorker();
 initOfflineBanner();

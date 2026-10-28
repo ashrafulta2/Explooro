@@ -1,5 +1,5 @@
 /**
- * PwaInstallPrompt.js — Contextual Progressive Web App Install Banner (Prompt 11.6).
+ * PwaInstallPrompt.ts — Contextual Progressive Web App Install Banner (Prompt 11.6).
  *
  * Implements:
  * 1. Captures `beforeinstallprompt` event.

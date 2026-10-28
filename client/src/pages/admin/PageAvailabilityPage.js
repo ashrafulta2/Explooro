@@ -6,11 +6,11 @@
  * hide /supplier/warehouses also kills nearest-depot routing, and 101 of the route table's 224
  * entries are `module: 'core'` and cannot be hidden by a module at all.
  *
- * The page list is NOT hand-maintained here — config/pageRegistry.js receives the router's own
+ * The page list is NOT hand-maintained here — config/pageRegistry.ts receives the router's own
  * route array from main.js, so a route added later appears here with no extra step.
  */
 
-import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.js';
+import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
@@ -18,8 +18,8 @@ import { api } from '../../core/api.ts';
 import { appStore } from '../../state/appStore.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
-import { setPageToggles, getPageToggles, PAGE_STATES } from '../../services/pageAccess.js';
-import { listPages, PAGE_PORTALS, pageLabel } from '../../config/pageRegistry.js';
+import { setPageToggles, getPageToggles, PAGE_STATES } from '../../services/pageAccess.ts';
+import { listPages, PAGE_PORTALS, pageLabel } from '../../config/pageRegistry.ts';
 
 import { trackStyleLoad } from '../../core/styleGate.ts';
 // WHY dynamic: Vite splits this into the route's CSS chunk, keeping it out of the entry bundle,

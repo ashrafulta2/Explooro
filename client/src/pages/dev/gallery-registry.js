@@ -50,7 +50,7 @@ import { MASTER_PRESETS } from '../../config/master-themes.ts';
 import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.ts';
 import { CategoryPills } from '../../components/product/CategoryPills.ts';
 import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.ts';
-import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.js';
+import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.ts';
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.ts';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.ts';
 import { HomeTop } from '../../components/home/HomeTop.ts';

@@ -6,7 +6,7 @@
  * A pure render function like Sidebar. The one exception is the countdown itself: AppShell owns a
  * single long-lived interval that pokes `.elevated-chip__remaining`'s textContent directly, rather
  * than every TopBar rebuild starting its own timer (which would need a cleanup contract this
- * render-and-replace pattern doesn't otherwise have — see AppShell.js).
+ * render-and-replace pattern doesn't otherwise have — see AppShell.ts).
  */
 import {
   t,
@@ -492,7 +492,7 @@ export interface TopBarUser {
 export interface TopBarOptions {
   /** Null or empty for a guest. */
   role: string | null;
-  user: TopBarUser | null;
+  user?: TopBarUser | null;
   elevatedGrant?: ElevatedGrant | null;
   badges?: Record<string, number>;
   navigate: (path: string, options?: { replace?: boolean }) => void;

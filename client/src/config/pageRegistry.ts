@@ -1,5 +1,5 @@
 /**
- * pageRegistry.js — the list of pages /admin/platform/pages can switch on and off.
+ * pageRegistry.ts — the list of pages /admin/platform/pages can switch on and off.
  *
  * WHY registered at runtime instead of hand-listed here: the route table lives inside main.js's
  * async bootstrap (224 routes as of this writing, derived partly from navigation.js), and a second
@@ -14,9 +14,21 @@
 
 import { navItems } from './navigation.js';
 import { t } from '../services/i18n.ts';
-import { normalizePath } from '../services/pageAccess.js';
+import { normalizePath } from '../services/pageAccess.ts';
 
 /** Portal buckets, in the order the admin screen lists them. */
+/** One route the availability screen can switch, as `registerPages` records it. */
+export interface RegisteredPage {
+  path: string;
+  portal: string;
+  module: string;
+  permission: string | null;
+  requiresAuth: boolean;
+  label_i18n_key: string | null;
+  fallback_label: string;
+  in_nav: boolean;
+}
+
 export const PAGE_PORTALS = Object.freeze([
   { key: 'admin', prefix: '/admin', label_en: 'Admin', label_bn: 'অ্যাডমিন' },
   { key: 'moderator', prefix: '/moderator', label_en: 'Moderator', label_bn: 'মডারেটর' },
@@ -28,7 +40,7 @@ export const PAGE_PORTALS = Object.freeze([
   { key: 'customer', prefix: '', label_en: 'Public & Customer', label_bn: 'পাবলিক ও কাস্টমার' },
 ]);
 
-export function portalOf(path) {
+export function portalOf(path: string): string {
   const p = normalizePath(path);
   const match = PAGE_PORTALS.find((portal) => portal.prefix && (p === portal.prefix || p.startsWith(`${portal.prefix}/`)));
   return match?.key ?? 'customer';
@@ -37,7 +49,7 @@ export function portalOf(path) {
 const navLabelByPath = new Map(navItems.map((item) => [normalizePath(item.path), item.label_i18n_key]));
 
 /** `/admin/catalog/warehouses` -> `Catalog Warehouses`; the fallback when there is no nav item. */
-function humanizePath(path) {
+function humanizePath(path: string) {
   const segments = normalizePath(path).split('/').filter(Boolean);
   if (segments.length === 0) return 'Home';
   return segments
@@ -46,15 +58,15 @@ function humanizePath(path) {
     .join(' ');
 }
 
-let pages = [];
+let pages: RegisteredPage[] = [];
 
 /**
  * Called once from main.js with the router's own route array. Routes carrying a `:param` are
  * registered too — a page is a page whether or not its URL has an id in it, and hiding
  * /product/:id has to be expressible.
  */
-export function registerPages(routes = []) {
-  const seen = new Set();
+export function registerPages(routes: { path?: string; module?: string; permission?: string | null; requiresAuth?: boolean }[] = []): RegisteredPage[] {
+  const seen = new Set<string>();
   pages = [];
   for (const route of routes) {
     const path = normalizePath(route?.path);
@@ -74,17 +86,17 @@ export function registerPages(routes = []) {
   return pages;
 }
 
-export function listPages() {
+export function listPages(): RegisteredPage[] {
   return pages;
 }
 
-export function findPage(path) {
+export function findPage(path: string): RegisteredPage | null {
   const key = normalizePath(path);
   return pages.find((p) => p.path === key) ?? null;
 }
 
 /** The label to show for a page, translated when it has a nav entry. */
-export function pageLabel(page) {
+export function pageLabel(page: RegisteredPage | null | undefined): string {
   if (!page) return '';
   if (!page.label_i18n_key) return page.fallback_label;
   // t() humanizes an unknown key rather than failing (super-admin-audit §5), so the fallback here

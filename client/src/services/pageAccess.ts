@@ -1,5 +1,5 @@
 /**
- * pageAccess.js — per-page availability, the layer that sits BESIDE the module system.
+ * pageAccess.ts — per-page availability, the layer that sits BESIDE the module system.
  *
  * A module answers "does this capability work at all". Page availability answers "may this viewer
  * see this page". They are deliberately different questions: switching `multi_warehouse` off to
@@ -17,7 +17,7 @@
  *                  "release it to just this one supplier first" case.
  *
  * ONE resolution function, used by BOTH core/router.js (through main.js) and
- * components/shell/Sidebar.js — docs/super-admin-audit.md §5 invariant 1 ("the nav guard must
+ * components/shell/Sidebar.ts — docs/super-admin-audit.md §5 invariant 1 ("the nav guard must
  * equal the route guard"). client/test/pageAvailability.test.js fails if either consumer grows its
  * own copy of these rules.
  *
@@ -31,6 +31,27 @@ import { api } from '../core/api.ts';
 
 export const PAGE_STATES = Object.freeze(['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMITED']);
 
+/** What a stored toggle says about one route. */
+export interface PageToggle {
+  state: 'LIVE' | 'COMING_SOON' | 'HIDDEN' | 'LIMITED' | string;
+  allowed_roles: string[];
+  allowed_user_ids: string[];
+}
+
+/** The verdict for one viewer; `LIMITED` is a stored state and never comes out of here. */
+export type PageVerdict = 'LIVE' | 'COMING_SOON' | 'HIDDEN';
+
+/** The router's auth context, as much of it as the resolver reads. */
+export interface AccessContext {
+  role?: string | null;
+  roles?: string[];
+  permissions?: string[];
+  user?: { id?: number | string; ref?: string } | null;
+  userId?: number | string;
+  userRef?: string;
+  [field: string]: unknown;
+}
+
 /**
  * Routes no state but LIVE may ever be written to.
  *
@@ -42,8 +63,8 @@ export const PAGE_STATES = Object.freeze(['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMI
 export const LOCKED_PATHS = Object.freeze(['/', '/login', '/admin/platform/pages']);
 
 /** `{ [route_path]: { state, allowed_roles: [], allowed_user_ids: [] } }` */
-let toggles = {};
-const listeners = new Set();
+let toggles: Record<string, PageToggle> = {};
+const listeners = new Set<(toggles: Record<string, PageToggle>) => void>();
 
 /**
  * Loads the viewer's page-availability map. Never throws: a page layer that fails closed would
@@ -59,7 +80,7 @@ export async function initPageAccess() {
   }
 }
 
-export function setPageToggles(next = {}) {
+export function setPageToggles(next: Record<string, Partial<PageToggle> | null> | null = {}) {
   toggles = {};
   for (const [path, row] of Object.entries(next || {})) {
     if (!row) continue;
@@ -78,22 +99,22 @@ export function setPageToggles(next = {}) {
   }
 }
 
-export function getPageToggles() {
+export function getPageToggles(): Record<string, PageToggle> {
   return toggles;
 }
 
-export function subscribePageAccess(fn) {
+export function subscribePageAccess(fn: (toggles: Record<string, PageToggle>) => void) {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
 
 /** Trailing slashes off, so `/admin/users/` and `/admin/users` are the same page. */
-export function normalizePath(path) {
+export function normalizePath(path: unknown): string {
   const p = String(path || '');
   return p.length > 1 ? p.replace(/\/+$/, '') : p;
 }
 
-export function isLockedPath(path) {
+export function isLockedPath(path: unknown): boolean {
   return LOCKED_PATHS.includes(normalizePath(path));
 }
 
@@ -103,7 +124,7 @@ export function isLockedPath(path) {
  *
  * `ctx` is the router's auth context: `{ role, roles, permissions, user }`.
  */
-export function resolvePageAccess(path, ctx = {}) {
+export function resolvePageAccess(path: string, ctx: AccessContext = {}): PageVerdict {
   const key = normalizePath(path);
   if (!key) return 'LIVE';
   if (isLockedPath(key)) return 'LIVE';
@@ -135,15 +156,15 @@ export function resolvePageAccess(path, ctx = {}) {
 }
 
 /** Nav filter: a HIDDEN page is not in the DOM; a COMING_SOON one is, carrying its badge. */
-export function isPageVisibleInNav(path, ctx = {}) {
+export function isPageVisibleInNav(path: string, ctx: AccessContext = {}): boolean {
   return resolvePageAccess(path, ctx) !== 'HIDDEN';
 }
 
-export function isPageComingSoon(path, ctx = {}) {
+export function isPageComingSoon(path: string, ctx: AccessContext = {}): boolean {
   return resolvePageAccess(path, ctx) === 'COMING_SOON';
 }
 
-function isSuperAdmin(ctx = {}) {
+function isSuperAdmin(ctx: AccessContext = {}) {
   if (ctx.role === 'super_admin') return true;
   if (Array.isArray(ctx.roles) && ctx.roles.includes('super_admin')) return true;
   return Array.isArray(ctx.permissions) && ctx.permissions.includes('platform.page.toggle');

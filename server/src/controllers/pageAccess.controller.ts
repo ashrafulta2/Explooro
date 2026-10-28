@@ -28,7 +28,7 @@ function reqContextOf(req) {
  * than throwing.
  *
  * Sends the parked rows rather than a resolved per-page verdict: the client has the route table
- * and resolves each page against it (client/src/services/pageAccess.js), which keeps one round
+ * and resolves each page against it (client/src/services/pageAccess.ts), which keeps one round
  * trip instead of 224 and keeps the sidebar filter and the router guard reading one source.
  */
 export async function getPublicPages(req, reply) {

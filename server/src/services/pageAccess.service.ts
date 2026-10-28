@@ -10,7 +10,7 @@
  * Four states — see 054_page_availability.sql for the column and the reasoning:
  *   LIVE | COMING_SOON | HIDDEN | LIMITED
  *
- * The resolution rules below are mirrored in client/src/services/pageAccess.js, which is what the
+ * The resolution rules below are mirrored in client/src/services/pageAccess.ts, which is what the
  * router and the sidebar actually consult. server/test/pageAccess.test.js parses that file and
  * fails on drift: a state the API accepts but the client does not understand is a page that is
  * parked in the database and still visible in the product.
@@ -31,7 +31,7 @@ export const PAGE_STATES = Object.freeze(['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMI
  *
  * WHY: parking /admin/platform/pages removes the only surface that can un-park it, and parking
  * /login removes the way back in. Kept in lockstep with LOCKED_PATHS in
- * client/src/services/pageAccess.js — the test asserts both lists match, because a path one side
+ * client/src/services/pageAccess.ts — the test asserts both lists match, because a path one side
  * refuses and the other accepts is a lockout waiting to happen.
  */
 export const LOCKED_PATHS = Object.freeze(['/', '/login', '/admin/platform/pages']);
@@ -208,7 +208,7 @@ export async function listToggles(db) {
  * The verdict for one viewer: 'LIVE' | 'COMING_SOON' | 'HIDDEN'. LIMITED never comes out of here —
  * it is a stored state, and resolving it per viewer collapses it to LIVE or HIDDEN.
  *
- * Mirrored by resolvePageAccess() in client/src/services/pageAccess.js, including the super-admin
+ * Mirrored by resolvePageAccess() in client/src/services/pageAccess.ts, including the super-admin
  * bypass: the point of COMING_SOON is "built, not released yet", and whoever built it has to be
  * able to open the page to check their own work.
  */

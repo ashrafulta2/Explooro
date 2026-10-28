@@ -3,8 +3,8 @@
  *
  * WHY each one exists:
  *
- *  1. Nav guard == route guard (docs/super-admin-audit.md §5 invariant 1). Sidebar.js,
- *     CommandPalette.js and core/router.js (through main.js) must all decide visibility with
+ *  1. Nav guard == route guard (docs/super-admin-audit.md §5 invariant 1). Sidebar.ts,
+ *     CommandPalette.ts and core/router.js (through main.js) must all decide visibility with
  *     resolvePageAccess(), not with a copy of the rules. A second copy is how a page ends up
  *     hidden from the sidebar but still reachable by typing its name into the palette — the layer
  *     then looks like it works and does not.
@@ -35,24 +35,24 @@ const {
   isLockedPath,
   normalizePath,
   setPageToggles,
-} = await import('../src/services/pageAccess.js');
+} = await import('../src/services/pageAccess.ts');
 
 describe('page availability — the shared resolver is the only implementation', () => {
-  it('Sidebar.js filters with resolvePageAccess, not its own rules', () => {
-    const src = read('src/components/shell/Sidebar.js');
-    assert.match(src, /import \{ resolvePageAccess \} from '\.\.\/\.\.\/services\/pageAccess\.js'/);
+  it('Sidebar.ts filters with resolvePageAccess, not its own rules', () => {
+    const src = read('src/components/shell/Sidebar.ts');
+    assert.match(src, /import \{ resolvePageAccess \} from '\.\.\/\.\.\/services\/pageAccess\.ts'/);
     assert.match(src, /resolvePageAccess\(item\.path, ctx\)/);
     // A literal state name anywhere else in the file means the rules were re-implemented.
     assert.equal(
       (src.match(/'LIMITED'/g) ?? []).length,
       0,
-      'Sidebar.js must not reason about LIMITED itself — resolvePageAccess collapses it to LIVE/HIDDEN.'
+      'Sidebar.ts must not reason about LIMITED itself — resolvePageAccess collapses it to LIVE/HIDDEN.'
     );
   });
 
-  it('CommandPalette.js filters with the same resolver', () => {
-    const src = read('src/components/shell/CommandPalette.js');
-    assert.match(src, /import \{ isPageVisibleInNav \} from '\.\.\/\.\.\/services\/pageAccess\.js'/);
+  it('CommandPalette.ts filters with the same resolver', () => {
+    const src = read('src/components/shell/CommandPalette.ts');
+    assert.match(src, /import \{ isPageVisibleInNav \} from '\.\.\/\.\.\/services\/pageAccess\.ts'/);
     assert.match(src, /isPageVisibleInNav\(item\.path, ctx\)/);
   });
 

@@ -102,8 +102,8 @@ describe('Prompt 11.6 — PWA, Offline Resilience & Performance Pass', () => {
   // 4. Offline Queue Service Logic & Conflict Handling (Acceptance 4)
   // ---------------------------------------------------------------------------
   test('Acceptance 4: Offline Queue manages mutations, flush dispatching, and draft persistence', async () => {
-    const offlineQueuePath = path.join(ROOT_DIR, 'client', 'src', 'services', 'offlineQueue.js');
-    assert.ok(fs.existsSync(offlineQueuePath), 'offlineQueue.js must exist in client/src/services/');
+    const offlineQueuePath = path.join(ROOT_DIR, 'client', 'src', 'services', 'offlineQueue.ts');
+    assert.ok(fs.existsSync(offlineQueuePath), 'offlineQueue.ts must exist in client/src/services/');
 
     const moduleContent = fs.readFileSync(offlineQueuePath, 'utf8');
     assert.ok(moduleContent.includes('enqueueMutation'));

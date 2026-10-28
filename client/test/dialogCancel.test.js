@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 
 const FILES = [
   '../src/components/ui/Modal.ts',
-  '../src/components/shell/CommandPalette.js',
+  '../src/components/shell/CommandPalette.ts',
 ];
 
 for (const rel of FILES) {

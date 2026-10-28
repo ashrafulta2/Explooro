@@ -13,7 +13,7 @@ import { toast } from '../../services/toast.ts';
 
 /** A just-in-time elevation window the chip counts down (`getActiveJitGrants()` rows). */
 export interface ElevatedGrant {
-  ref: string;
+  ref?: string;
   expiresAt: number;
 }
 

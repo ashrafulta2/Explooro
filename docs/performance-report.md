@@ -65,7 +65,7 @@ Audited across mobile viewport with clean cache emulation:
    - **Financial / Auth API**: Explicit Network-Only bypass (zero financial data stored in SW cache).
    - **Navigation Fallback**: Renders `/offline.html` when network fails and route is uncached.
 
-2. **IndexedDB Offline Mutation Queue (`offlineQueue.js`)**:
+2. **IndexedDB Offline Mutation Queue (`offlineQueue.ts`)**:
    - Persists cart modifications (`CART_ADD`, `CART_REMOVE`, `CART_UPDATE`), chat replies, and form drafts in IndexedDB store `explooro_offline_db`.
    - Automatically flushes upon `online` event firing with conflict handling.
    - Provides reactive visual status banner alerting the user of offline status and pending synchronizations.

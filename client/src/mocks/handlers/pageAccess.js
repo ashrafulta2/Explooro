@@ -11,10 +11,10 @@
  *
  * Validation is duplicated here in miniature — the lock list and the four states — so the mock
  * refuses what the real API refuses. client/test/pageAvailability.test.js asserts the lists match
- * services/pageAccess.js rather than letting them drift.
+ * services/pageAccess.ts rather than letting them drift.
  */
 
-import { PAGE_STATES, LOCKED_PATHS, normalizePath } from '../../services/pageAccess.js';
+import { PAGE_STATES, LOCKED_PATHS, normalizePath } from '../../services/pageAccess.ts';
 
 const STORAGE_KEY = 'explooro:mock:pageToggles';
 

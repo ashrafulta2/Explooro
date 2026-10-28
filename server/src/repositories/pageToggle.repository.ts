@@ -3,7 +3,7 @@
  *
  * The table holds only the OVERRIDES: a route absent from it is LIVE. That is why there is no
  * "list every page" query here — the client's route table is the registry (see
- * client/src/config/pageRegistry.js), and the server never needs to know the full set.
+ * client/src/config/pageRegistry.ts), and the server never needs to know the full set.
  */
 
 /** Every parked page. LIVE rows carry no information, so they are not worth sending. */

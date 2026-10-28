@@ -163,7 +163,7 @@ These are real and were left open on purpose. Do not assume they were missed.
    availability state**. A nav guard stricter than its route hides the feature; looser, and the link
    dead-ends in a toast. Use the `.view`-level key for a listing page and gate the write actions
    separately. Page availability (`/admin/platform/pages`) has exactly one resolver —
-   `client/src/services/pageAccess.js` — and `core/router.js`, `Sidebar.js` and `CommandPalette.js`
+   `client/src/services/pageAccess.ts` — and `core/router.js`, `Sidebar.ts` and `CommandPalette.ts`
    all call it. Never re-implement the four states anywhere else: the command palette was the hole
    that would have made a HIDDEN page reachable by typing its name.
    `client/test/pageAvailability.test.js` fails if any of the three grows its own copy.

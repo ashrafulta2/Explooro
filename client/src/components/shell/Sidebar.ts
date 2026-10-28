@@ -12,23 +12,58 @@
  *  - permission missing → LockedNavItem (greyed, lock icon, visible)
  *  - otherwise        → a normal link, active-highlighted against `currentPath`
  *
- * The page-state branches delegate to services/pageAccess.js — the SAME function core/router.js
+ * The page-state branches delegate to services/pageAccess.ts — the SAME function core/router.js
  * guards with, per docs/super-admin-audit.md §5 invariant 1 ("the nav guard must equal the route
  * guard"). Never re-implement the four states here.
  */
 import { navGroups, navItems, SIMPLE_MODE_ITEMS, PROGRESSIVE_DISCLOSURE_ROLES } from '../../config/navigation.js';
 import { t } from '../../services/i18n.ts';
-import { resolvePageAccess } from '../../services/pageAccess.js';
+import { resolvePageAccess } from '../../services/pageAccess.ts';
 import { LockedNavItem } from './LockedNavItem.ts';
 import { Badge } from '../ui/Badge.ts';
 import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.ts';
 import { ICONS, getGroupIcon, getItemIcon } from '../ui/icons.ts';
 
-function hasModule(modules, key) {
+/** What the shell knows about the signed-in viewer when it draws navigation. */
+export interface NavContext {
+  role?: string | null;
+  permissions: string[];
+  modules: Record<string, boolean>;
+  badges: Record<string, number>;
+}
+
+/** One entry of `config/navigation.js`. */
+export interface NavItem {
+  key: string;
+  path: string;
+  label_i18n_key: string;
+  icon?: string;
+  group?: string;
+  module?: string;
+  permission?: string;
+  role?: string;
+  roles?: string[];
+  badge?: string;
+  highlight?: boolean;
+  [field: string]: unknown;
+}
+
+export interface SidebarOptions {
+  role: string;
+  ctx: NavContext;
+  currentPath: string;
+  navigate: (path: string) => void;
+  uiMode: Record<string, string>;
+  sidebarCollapsed?: boolean;
+  collapsedGroups?: string[];
+  onOpenPalette?: (() => void) | null;
+}
+
+function hasModule(modules: Record<string, boolean>, key?: string | null) {
   return !key || key === 'core' || modules[key] === true;
 }
 
-function hasPermission(permissions, key) {
+function hasPermission(permissions: string[], key?: string | null) {
   return !key || permissions.includes(key);
 }
 
@@ -163,7 +198,7 @@ function renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups,
   return wrap;
 }
 
-export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarCollapsed, collapsedGroups, onOpenPalette }) {
+export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarCollapsed, collapsedGroups, onOpenPalette }: SidebarOptions): HTMLElement {
   const nav = document.createElement('nav');
   nav.className = 'sidebar';
   nav.id = 'sidebar-nav';

@@ -1,12 +1,12 @@
 /**
- * PageAvailabilityRow.js — one page's row on /admin/platform/pages.
+ * PageAvailabilityRow.ts — one page's row on /admin/platform/pages.
  *
  * Four radio-style state buttons rather than a Switch, because the states are not a binary: a
  * toggle would have to hide COMING_SOON and LIMITED behind a second control, and those two are
  * the states the feature was actually asked for ("built but kept deactivated", "later activate it
  * for the related user").
  *
- * A locked page (services/pageAccess.js LOCKED_PATHS) renders its buttons disabled with the reason
+ * A locked page (services/pageAccess.ts LOCKED_PATHS) renders its buttons disabled with the reason
  * stated inline, rather than being left out of the list — a page silently missing from a governance
  * screen is how someone concludes the screen is broken.
  */
@@ -14,8 +14,8 @@
 import { Badge } from '../ui/Badge.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatRelativeTime } from '../../services/format.ts';
-import { isLockedPath } from '../../services/pageAccess.js';
-import { pageLabel } from '../../config/pageRegistry.js';
+import { isLockedPath } from '../../services/pageAccess.ts';
+import { pageLabel } from '../../config/pageRegistry.ts';
 
 /** Visual tone per state — colour is never the only carrier, each button also has its word. */
 const STATE_TONE = {
@@ -27,7 +27,19 @@ const STATE_TONE = {
 
 const STATE_ORDER = ['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMITED'];
 
-export function PageAvailabilityRow({ page, toggle, canToggle = false, onPick }) {
+import type { PageToggle } from '../../services/pageAccess.ts';
+import type { RegisteredPage } from '../../config/pageRegistry.ts';
+
+export interface PageAvailabilityRowOptions {
+  page: RegisteredPage;
+  /** The stored toggle for this route; absent means LIVE. */
+  toggle?: (PageToggle & { reason?: string | null; updated_at?: string }) | null;
+  canToggle?: boolean;
+  /** Called with the page and the state the admin picked. */
+  onPick: (page: RegisteredPage, state: string) => void;
+}
+
+export function PageAvailabilityRow({ page, toggle, canToggle = false, onPick }: PageAvailabilityRowOptions): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
   const state = toggle?.state ?? 'LIVE';
   const locked = isLockedPath(page.path);

@@ -23,7 +23,7 @@
  * exempt — it is not a feature a permission or module could gate.
  *
  * Guard order, once a route matches: auth -> role -> permission -> module -> page availability
- * (`resolvePageState`, services/pageAccess.js). The first four redirect; the last one renders
+ * (`resolvePageState`, services/pageAccess.ts). The first four redirect; the last one renders
  * instead — COMING_SOON swaps in `comingSoonRoute`, HIDDEN swaps in `notFound`, so a parked page
  * is indistinguishable from one that was never built.
  *
@@ -107,7 +107,7 @@ export function createRouter({
   getAuthContext = () => ({ isAuthenticated: false, permissions: [], modules: {} }),
   onGuardFail,
   loginPath = '/login',
-  // Page availability (services/pageAccess.js), checked AFTER auth/role/permission/module so a
+  // Page availability (services/pageAccess.ts), checked AFTER auth/role/permission/module so a
   // route the viewer could never reach anyway is never reported as "coming soon". Returns
   // 'LIVE' | 'COMING_SOON' | 'HIDDEN'; the default keeps the router usable standalone and in tests.
   resolvePageState = () => 'LIVE',

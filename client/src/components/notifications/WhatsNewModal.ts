@@ -1,5 +1,5 @@
 /**
- * WhatsNewModal.js — What's New Feature Release Notes Modal (Prompt 8.2).
+ * WhatsNewModal.ts — What's New Feature Release Notes Modal (Prompt 8.2).
  *
  * Implements:
  * - Automatically checks for unviewed published release notes.
@@ -13,7 +13,7 @@ import { api } from '../../core/api.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { escapeHtml } from '../../services/html.ts';
 
-export async function checkAndShowWhatsNew() {
+export async function checkAndShowWhatsNew(): Promise<unknown> {
   const isBn = getLanguage() === 'bn';
 
   try {

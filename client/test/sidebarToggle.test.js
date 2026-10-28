@@ -10,19 +10,19 @@ import path from 'node:path';
 const clientRoot = path.resolve(import.meta.dirname, '..');
 
 describe('Sidebar Hamburger Toggle & Removal of Middle Button Invariants', () => {
-  test('1. Sidebar.js source code has removed the middle .sidebar__collapse-toggle button', () => {
-    const sidebarJsPath = path.join(clientRoot, 'src', 'components', 'shell', 'Sidebar.js');
+  test('1. Sidebar.ts source code has removed the middle .sidebar__collapse-toggle button', () => {
+    const sidebarJsPath = path.join(clientRoot, 'src', 'components', 'shell', 'Sidebar.ts');
     const content = fs.readFileSync(sidebarJsPath, 'utf8');
 
     assert.doesNotMatch(
       content,
       /sidebar__collapse-toggle/,
-      'Sidebar.js must not contain sidebar__collapse-toggle'
+      'Sidebar.ts must not contain sidebar__collapse-toggle'
     );
     assert.match(
       content,
       /nav\.id\s*=\s*['"]sidebar-nav['"]/,
-      'Sidebar.js must give the primary nav element id="sidebar-nav"'
+      'Sidebar.ts must give the primary nav element id="sidebar-nav"'
     );
   });
 
@@ -72,18 +72,18 @@ describe('Sidebar Hamburger Toggle & Removal of Middle Button Invariants', () =>
   });
 
   test('5. AppShell passes sidebarCollapsed and onToggleSidebar to TopBar', () => {
-    const appShellJsPath = path.join(clientRoot, 'src', 'components', 'shell', 'AppShell.js');
+    const appShellJsPath = path.join(clientRoot, 'src', 'components', 'shell', 'AppShell.ts');
     const content = fs.readFileSync(appShellJsPath, 'utf8');
 
     assert.match(
       content,
       /onToggleSidebar:/,
-      'AppShell.js must pass onToggleSidebar callback to renderTopBar'
+      'AppShell.ts must pass onToggleSidebar callback to renderTopBar'
     );
     assert.match(
       content,
       /toggleSidebarCollapsed/,
-      'AppShell.js must invoke toggleSidebarCollapsed'
+      'AppShell.ts must invoke toggleSidebarCollapsed'
     );
   });
 });
