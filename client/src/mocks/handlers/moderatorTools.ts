@@ -1,5 +1,5 @@
 /**
- * moderatorTools.js — Mock API for the Prompt 7.7 moderator/supplier tooling surfaces so they are
+ * moderatorTools.ts — Mock API for the Prompt 7.7 moderator/supplier tooling surfaces so they are
  * fully usable with VITE_API_MODE=mock, before the live 3-tier backend for these features exists:
  *
  *   • MyAccessPage         → /me/grants, /me/grants/pending, /me/grants/history, DELETE /me/grants/:id
@@ -13,7 +13,7 @@
  * narrow the list and every action (apply penalty, dismiss report, approve UGC, revoke grant)
  * actually changes what the next fetch returns — the same feel the live API will give.
  *
- * WHY separate from moderator.js: that file mocks the Prompt 7.4/7.6 unified queue. Keeping the 7.7
+ * WHY separate from moderator.ts: that file mocks the Prompt 7.4/7.6 unified queue. Keeping the 7.7
  * surfaces here keeps each prompt's mock contract isolated and independently testable, and avoids a
  * duplicate-route clash (moderatorPages.test.js guards against those).
  *
@@ -21,6 +21,9 @@
  * (auth.js) — see docs/prompt.md row 80. `/supplier/forecasting` in particular has no live route;
  * the live AI endpoint is the per-product GET /ai/forecast/:productId (server/src/routes/ai.routes.ts).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const HOUR = 3600 * 1000;
 const now = () => Date.now();
@@ -183,7 +186,7 @@ export const moderatorToolsHandlers = [
     handler: ({ query }) => {
       let rows = [...penalties];
       if (query?.status && query.status !== 'ALL') rows = rows.filter((p) => p.status === query.status);
-      rows.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      rows.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       return ok(rows.slice(0, clamp(query?.limit, 30)));
     },
   },
@@ -356,6 +359,6 @@ export const moderatorToolsHandlers = [
       return ok({ items, horizon });
     },
   },
-];
+] satisfies MockRoute[];
 
 export default moderatorToolsHandlers;

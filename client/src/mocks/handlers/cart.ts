@@ -1,11 +1,12 @@
 /**
- * mocks/handlers/cart.js — Mock API handlers for Cart & Wishlist (Prompt 5.1).
+ * mocks/handlers/cart.ts — Mock API handlers for Cart & Wishlist (Prompt 5.1).
  *
  * Provides realistic Bangladeshi mock data with multi-supplier parcels,
  * live price change warnings, stock ceilings, and optimistic updates.
  */
 
 import { mockDeliveryCharge } from './delivery.ts';
+import type { MockRoute } from '../types.ts';
 
 export let mockCartItems = [
   {
@@ -314,7 +315,7 @@ const handlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export function clearMockCart() {
   mockCartItems.length = 0;

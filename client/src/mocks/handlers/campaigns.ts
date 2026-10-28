@@ -1,10 +1,11 @@
 /**
- * campaigns.js — Mock API handlers for Campaign & Promotion Manager (Prompt 9.2).
+ * campaigns.ts — Mock API handlers for Campaign & Promotion Manager (Prompt 9.2).
  */
 
 import { findMockProductById, findMockProductByFlashSaleId, setMockProductFlashSale } from './products.js';
+import type { MockRoute } from '../types.ts';
 
-let mockFlashSales = [
+let mockFlashSales: Record<string, any>[] = [
   {
     id: 1,
     ref: 'FS-2026-EID-01',
@@ -43,7 +44,7 @@ let mockFlashSales = [
   },
 ];
 
-let mockCoupons = [
+let mockCoupons: Record<string, any>[] = [
   {
     id: 1,
     code: 'EIDMUBARAK2026',
@@ -354,6 +355,6 @@ export const campaignHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default campaignHandlers;

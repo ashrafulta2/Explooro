@@ -12,7 +12,7 @@
  * hardcoded id would render every bubble on the wrong side for six of the seven dev logins, so
  * seeds store `SELF` and it is substituted with the live session's id at serialization time.
  */
-import { getMockSessionUser } from './auth.js';
+import { getMockSessionUser } from './auth.ts';
 
 /** Placeholder for "whoever is signed in", resolved by `resolveSelf` on every read. */
 export const SELF = '@self';

@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import chatHandlers from '../src/mocks/handlers/chat.js';
-import { teamPurchaseHandlers } from '../src/mocks/handlers/teamPurchase.js';
+import { teamPurchaseHandlers } from '../src/mocks/handlers/teamPurchase.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const enLoc = JSON.parse(readFileSync(join(root, 'src/locales/en.json'), 'utf8'));

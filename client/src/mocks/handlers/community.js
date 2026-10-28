@@ -17,7 +17,7 @@
  */
 import { appStore } from '../../state/appStore.ts';
 import { resolveMockMedia } from './media.ts';
-import { pushMockNotification } from './notifications.js';
+import { pushMockNotification } from './notifications.ts';
 
 // Mirrors THRESHOLD_LIMITS in server/src/services/communityPost.service.ts; the value changes through
 // PUT /admin/community/settings, like the platform_settings row it stands for.

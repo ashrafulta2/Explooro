@@ -1,6 +1,9 @@
 /**
- * gamification.js — Mock API handlers for Loyalty Coins, Daily Quests & Leaderboard (Prompt 9.4).
+ * gamification.ts — Mock API handlers for Loyalty Coins, Daily Quests & Leaderboard (Prompt 9.4).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const todayStr = new Date().toISOString().slice(0, 10);
 const yesterday = new Date();
@@ -282,4 +285,4 @@ export const gamificationHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];

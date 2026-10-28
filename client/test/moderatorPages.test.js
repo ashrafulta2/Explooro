@@ -18,7 +18,7 @@ import path from 'node:path';
 import { navItems } from '../src/config/navigation.js';
 import adminHandlers from '../src/mocks/handlers/admin.js';
 import returnHandlers from '../src/mocks/handlers/returns.ts';
-import moderatorHandlers from '../src/mocks/handlers/moderator.js';
+import moderatorHandlers from '../src/mocks/handlers/moderator.ts';
 import disputeHandlers from '../src/mocks/handlers/disputes.ts';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
@@ -122,7 +122,7 @@ test('Moderator — the Products tab covers product edits', async (t) => {
   });
 
   await t.test('2. The queue mock filters a comma-separated item_type list', () => {
-    const mockSrc = readText('client/src/mocks/handlers/moderator.js');
+    const mockSrc = readText('client/src/mocks/handlers/moderator.ts');
     assert.ok(/split\(',' *\)/.test(mockSrc), 'the mock must split item_type on commas, like the server');
   });
 
@@ -150,7 +150,7 @@ test('Moderator — mock routes are registered exactly once', async (t) => {
     const modules = {
       'admin.js': adminHandlers,
       'returns.ts': returnHandlers,
-      'moderator.js': moderatorHandlers,
+      'moderator.ts': moderatorHandlers,
       'disputes.ts': disputeHandlers,
     };
     const seen = new Map();

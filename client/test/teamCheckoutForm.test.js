@@ -14,7 +14,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { teamPurchaseHandlers } from '../src/mocks/handlers/teamPurchase.js';
+import { teamPurchaseHandlers } from '../src/mocks/handlers/teamPurchase.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => readFileSync(join(root, p), 'utf8');

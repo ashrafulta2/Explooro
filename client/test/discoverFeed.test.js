@@ -25,7 +25,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import discoveryHandlers from '../src/mocks/handlers/discovery.js';
+import discoveryHandlers from '../src/mocks/handlers/discovery.ts';
 
 const localeDir = path.resolve(import.meta.dirname, '../src/locales');
 const readLocale = (lang) => JSON.parse(fs.readFileSync(path.join(localeDir, `${lang}.json`), 'utf8'));
@@ -107,7 +107,7 @@ test('Discover — Event Weight Parity (mock ⇄ server)', async (t) => {
     return out;
   };
 
-  const mockSrc = fs.readFileSync(path.resolve(import.meta.dirname, '../src/mocks/handlers/discovery.js'), 'utf8');
+  const mockSrc = fs.readFileSync(path.resolve(import.meta.dirname, '../src/mocks/handlers/discovery.ts'), 'utf8');
   const serverSrc = fs.readFileSync(
     path.resolve(import.meta.dirname, '../../server/src/services/discoveryFeed.service.ts'),
     'utf8'

@@ -5,7 +5,7 @@
  * home top band is fully previewable under VITE_API_MODE=mock for every dev account.
  */
 
-import { getMockSessionUser } from './auth.js';
+import { getMockSessionUser } from './auth.ts';
 import type { MockRoute } from '../types.ts';
 
 export const MOCK_HOME_STATS = {

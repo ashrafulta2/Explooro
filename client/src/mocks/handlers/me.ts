@@ -2,7 +2,7 @@
  * me.ts — Mock GET/PUT /me/profile, so the account menu's "My Profile" page is fully usable
  * with VITE_API_MODE=mock.
  *
- * Seeded from handlers/auth.js's mock session (whoever "logged in"), then persisted per tab so an
+ * Seeded from handlers/auth.ts's mock session (whoever "logged in"), then persisted per tab so an
  * edit survives a reload the same way the mock session does.
  *
  * Deliberately mirrors the three rules server/src/services/profile.service.ts enforces, because a
@@ -12,7 +12,7 @@
  *   3. `full_name` is required.
  */
 
-import { getMockSessionUser } from './auth.js';
+import { getMockSessionUser } from './auth.ts';
 import { resolveMockMediaUrl } from './media.ts';
 import type { MockRoute } from '../types.ts';
 

@@ -9,7 +9,7 @@ import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { contentHandlers } from '../src/mocks/handlers/content.js';
-import { notificationHandlers } from '../src/mocks/handlers/notifications.js';
+import { notificationHandlers } from '../src/mocks/handlers/notifications.ts';
 import { resetReleaseNotesForTests, latestReleaseFor, markReleaseViewed } from '../src/mocks/releaseNotes.ts';
 
 function handler(list, method, path) {

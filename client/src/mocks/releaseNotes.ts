@@ -1,7 +1,7 @@
 /**
  * mocks/releaseNotes.ts — the one release-note store the mock API serves the What's New feature from.
  *
- * WHY this file exists: the popup (GET /notifications/whats-new, handlers/notifications.js) answered
+ * WHY this file exists: the popup (GET /notifications/whats-new, handlers/notifications.ts) answered
  * from a hard-coded constant, and the editor (GET /content/whats-new, POST/DELETE /editor/whats-new,
  * handlers/content.js) wrote a separate array the popup never read. So in mock mode — the dev
  * default — every user saw the same v2.4 note no matter what an editor published, and since the

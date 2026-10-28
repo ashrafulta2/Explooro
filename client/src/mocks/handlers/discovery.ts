@@ -12,6 +12,7 @@
  */
 import products from '../fixtures/products.json' with { type: 'json' };
 import { synthesizeSupplier, synthesizeDescription, synthesizeVariants } from './products.js';
+import type { MockRoute } from '../types.ts';
 
 // Mirrors server/src/services/discoveryFeed.service.ts EVENT_WEIGHTS (test/discoverFeed.test.js pins the parity).
 const EVENT_WEIGHTS = {
@@ -323,4 +324,4 @@ export default [
       return { status: 202, body: { data: { recorded: 1 } } };
     },
   },
-];
+] satisfies MockRoute[];

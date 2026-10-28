@@ -1,8 +1,14 @@
 /**
  * Mock handlers for Shop Partner storefronts & store builder (Prompt 4.8).
  */
-import stores from '../fixtures/stores.json' with { type: 'json' };
-import products from '../fixtures/products.json' with { type: 'json' };
+import storesJson from '../fixtures/stores.json' with { type: 'json' };
+import productsJson from '../fixtures/products.json' with { type: 'json' };
+import type { MockRoute } from '../types.ts';
+
+// The fixture rows are not uniform (a store may or may not have a bio, a product may or may not have
+// variants), so they are read as open records rather than as the first row's shape.
+const stores = storesJson as Record<string, any>[];
+const products = productsJson as Record<string, any>[];
 
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
@@ -15,7 +21,7 @@ const RESERVED_SLUGS = new Set([
 ]);
 
 // Stateful mock store in memory
-let currentSalerStore = {
+let currentSalerStore: Record<string, any> = {
   id: 1,
   ref: 'STR-SALER001',
   slug: 'priyo-collection',
@@ -47,7 +53,7 @@ let currentSalerStore = {
   products_count: 8,
 };
 
-let currentShelves = [
+let currentShelves: Record<string, any>[] = [
   {
     name: 'Featured Handloom',
     items: products.slice(0, 4).map((p, idx) => ({
@@ -289,4 +295,4 @@ export default [
       };
     },
   },
-];
+] satisfies MockRoute[];

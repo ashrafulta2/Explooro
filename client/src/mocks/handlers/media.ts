@@ -7,7 +7,7 @@
  * `avatar_media_id` as digits, and a mock that handed back `med-abc` would let a payload through
  * in dev that the live API rejects.
  *
- * Persisted to sessionStorage for the tab's lifetime, matching handlers/auth.js's mock session:
+ * Persisted to sessionStorage for the tab's lifetime, matching handlers/auth.ts's mock session:
  * a page reload must not blank out the avatar the developer just picked.
  */
 

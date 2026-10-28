@@ -16,7 +16,7 @@ describe('Delivery charge', () => {
     assert.ok(!/parcels\.length \* 60/.test(read('services/cart.ts')));
     assert.ok(!/const shipping = 60/.test(read('components/cart/QuickBuyModal.ts')));
     assert.ok(!/estimated_shipping \|\| 60/.test(read('pages/CheckoutPage.js')));
-    assert.ok(!/PerParcel = 60/.test(read('mocks/handlers/cart.js')));
+    assert.ok(!/PerParcel = 60/.test(read('mocks/handlers/cart.ts')));
   });
 
   it('the cart and Quick Buy read the policy the server serves', () => {

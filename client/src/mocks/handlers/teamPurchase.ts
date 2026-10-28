@@ -1,8 +1,11 @@
 /**
- * teamPurchase.js — Mock API handlers for Social Group Buying & Team Purchases (Prompt 9.5).
+ * teamPurchase.ts — Mock API handlers for Social Group Buying & Team Purchases (Prompt 9.5).
  */
 
-let mockTeamPurchases = [
+
+import type { MockRoute } from '../types.ts';
+
+let mockTeamPurchases: Record<string, any>[] = [
   {
     id: 1,
     ref: 'TEAM-9A1B2C',
@@ -188,7 +191,7 @@ export const teamPurchaseHandlers = [
         filtered = filtered.filter((tp) => String(tp.product_id) === String(query.product_id));
       }
       const refreshed = filtered.map((tp) => {
-        const remaining = Math.max(0, Math.floor((new Date(tp.expires_at) - Date.now()) / 1000));
+        const remaining = Math.max(0, Math.floor((new Date(tp.expires_at).getTime() - Date.now()) / 1000));
         return {
           ...tp,
           remaining_seconds: tp.status === 'ACTIVE' ? remaining : 0,
@@ -209,7 +212,7 @@ export const teamPurchaseHandlers = [
     path: '/account/team-purchases',
     handler() {
       const refreshed = mockTeamPurchases.map((tp) => {
-        const remaining = Math.max(0, Math.floor((new Date(tp.expires_at) - Date.now()) / 1000));
+        const remaining = Math.max(0, Math.floor((new Date(tp.expires_at).getTime() - Date.now()) / 1000));
         return {
           ...tp,
           remaining_seconds: tp.status === 'ACTIVE' ? remaining : 0,
@@ -247,7 +250,7 @@ export const teamPurchaseHandlers = [
         };
       }
 
-      const remaining = Math.max(0, Math.floor((new Date(team.expires_at) - Date.now()) / 1000));
+      const remaining = Math.max(0, Math.floor((new Date(team.expires_at).getTime() - Date.now()) / 1000));
       return {
         status: 200,
         body: {
@@ -393,4 +396,4 @@ export const teamPurchaseHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];

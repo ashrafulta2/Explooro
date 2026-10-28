@@ -333,7 +333,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
 
   await t.test('restock adds to stored stock; flash sales start, block overlap and end via the live endpoints', async () => {
     const { default: productHandlers, findMockProductById } = await import('../src/mocks/handlers/products.js');
-    const { default: campaignHandlers } = await import('../src/mocks/handlers/campaigns.js');
+    const { default: campaignHandlers } = await import('../src/mocks/handlers/campaigns.ts');
     const find = (list, method, path) => list.find((h) => h.method === method && h.path === path);
     const create = find(productHandlers, 'POST', '/products');
     const restock = find(productHandlers, 'POST', '/products/:id/restock');

@@ -1,8 +1,11 @@
 /**
- * moderator.js — Mock API handlers for Moderator Dashboard & Unified Queue (Prompt 7.4 / 7.6).
+ * moderator.ts — Mock API handlers for Moderator Dashboard & Unified Queue (Prompt 7.4 / 7.6).
  */
 
-let mockModerationItems = [
+
+import type { MockRoute } from '../types.ts';
+
+let mockModerationItems: Record<string, any>[] = [
   {
     id: 1,
     ref: 'MOD-PRD-2026-091',
@@ -358,6 +361,6 @@ export const moderatorHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default moderatorHandlers;

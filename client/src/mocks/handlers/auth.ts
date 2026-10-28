@@ -3,6 +3,7 @@
  * preview in development when running in mock mode (VITE_API_MODE=mock).
  */
 import catalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
+import type { MockRoute } from '../types.ts';
 
 const DEV_USERS = {
   '+8801700000001': { id: 'usr-dev-1', ref: 'USR-DEV-SUPER-ADMIN', name: 'Dev Super Admin', role: 'super_admin', email: 'super_admin@dev.explooro.local' },
@@ -329,7 +330,7 @@ export default [
     method: 'POST',
     path: '/auth/2fa/verify',
     handler() {
-      const user = currentMockUser || resolveUserByPhone('+8801700000002');
+      const user = currentMockUser || resolveUserByIdentifier('+8801700000002');
       setCurrentMockUser(user);
       const accessToken = createMockJwt(user);
       return {
@@ -343,4 +344,4 @@ export default [
       };
     },
   },
-];
+] satisfies MockRoute[];

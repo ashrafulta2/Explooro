@@ -9,7 +9,7 @@
  *   2. Locale parity — every new string exists in both en and bn.
  *   3. No hardcoded chrome — the page titles/subtitles resolve through t(), not literals.
  *   4. Route guards — each 7.7 route names a real permission and a real module.
- *   5. Route uniqueness — the new mock module does not shadow moderator.js.
+ *   5. Route uniqueness — the new mock module does not shadow moderator.ts.
  *
  * The mock module holds shared module-level state and `node --test` runs top-level tests
  * concurrently, so every state-touching case lives under one parent test (whose subtests run
@@ -20,8 +20,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import handlers, { resetModeratorToolsState } from '../src/mocks/handlers/moderatorTools.js';
-import moderatorHandlers from '../src/mocks/handlers/moderator.js';
+import handlers, { resetModeratorToolsState } from '../src/mocks/handlers/moderatorTools.ts';
+import moderatorHandlers from '../src/mocks/handlers/moderator.ts';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const readText = (rel) => fs.readFileSync(path.resolve(root, rel), 'utf8');
@@ -135,10 +135,10 @@ test('7.7 mock contracts', async (parent) => {
   });
 });
 
-test('7.7 mock — routes do not shadow moderator.js', () => {
+test('7.7 mock — routes do not shadow moderator.ts', () => {
   const seen = new Map();
   const clashes = [];
-  for (const [name, list] of [['moderator.js', moderatorHandlers], ['moderatorTools.js', handlers]]) {
+  for (const [name, list] of [['moderator.ts', moderatorHandlers], ['moderatorTools.ts', handlers]]) {
     for (const h of list) {
       const route = `${h.method} ${h.path}`;
       if (seen.has(route)) clashes.push(`${route} — in both ${seen.get(route)} and ${name}`);

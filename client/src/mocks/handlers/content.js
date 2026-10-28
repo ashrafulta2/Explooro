@@ -578,7 +578,7 @@ export const contentHandlers = [
   },
 
   // ── What's New / Release Notes ──
-  // WHY the shared store: the popup (handlers/notifications.js) reads the same notes, so what an
+  // WHY the shared store: the popup (handlers/notifications.ts) reads the same notes, so what an
   // editor publishes here is what users see. See mocks/releaseNotes.ts.
   {
     method: 'GET',

@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import discoveryHandlers from '../src/mocks/handlers/discovery.js';
+import discoveryHandlers from '../src/mocks/handlers/discovery.ts';
 
 const src = path.resolve(import.meta.dirname, '../src');
 const read = (rel) => fs.readFileSync(path.join(src, rel), 'utf8');

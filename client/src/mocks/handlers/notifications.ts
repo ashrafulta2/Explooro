@@ -1,5 +1,5 @@
 /**
- * notifications.js — Mock API handlers for the Unified Notification Service (Prompt 8.2).
+ * notifications.ts — Mock API handlers for the Unified Notification Service (Prompt 8.2).
  *
  * Covers every route in server/src/routes/notification.routes.ts so the bell drawer, the
  * What's New modal and /account/settings all resolve under `VITE_API_MODE=mock`. Response
@@ -7,9 +7,10 @@
  * shapes (`{ items, count, limit, offset }` for the feed, a bare array for preferences).
  */
 
-import { getMockSessionUser } from './auth.js';
+import { getMockSessionUser } from './auth.ts';
 import { appStore } from '../../state/appStore.ts';
 import { latestReleaseFor, markReleaseViewed } from '../releaseNotes.ts';
+import type { MockRoute } from '../types.ts';
 
 const CATEGORIES = ['ORDER', 'FINANCE', 'SECURITY', 'MARKETING', 'SYSTEM', 'COMMUNITY'];
 
@@ -27,7 +28,7 @@ const preferences = CATEGORIES.map((category) => ({
 
 const ago = (mins) => new Date(Date.now() - mins * 60 * 1000).toISOString();
 
-let notifications = [
+let notifications: Record<string, any>[] = [
   {
     id: 9001,
     ref: 'NTF-2026-9001',
@@ -171,7 +172,7 @@ export const notificationHandlers = [
 
       const items = rows
         .slice()
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(offset, offset + limit);
 
       return { status: 200, body: { data: { items, count: items.length, limit, offset } } };
@@ -295,6 +296,6 @@ export const notificationHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default notificationHandlers;

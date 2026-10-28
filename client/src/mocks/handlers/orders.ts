@@ -4,7 +4,7 @@
  * Implements realistic checkout processing, multi-supplier order splitting, and tracking in mock mode.
  */
 
-import { clearMockCart } from './cart.js';
+import { clearMockCart } from './cart.ts';
 import { executeMockTopUp } from './walletTopup.ts';
 import type { MockRoute } from '../types.ts';
 

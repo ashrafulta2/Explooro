@@ -1,6 +1,9 @@
 /**
- * b2bEscrow.js — Mock handlers for B2B Wholesale Escrow & Milestone Settlement (Prompt 10.6).
+ * b2bEscrow.ts — Mock handlers for B2B Wholesale Escrow & Milestone Settlement (Prompt 10.6).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const SEEDED_DEALS = [
   {
@@ -292,4 +295,4 @@ export const b2bEscrowHandlers = [
       return { status: 200, body: { data: { deal } } };
     },
   },
-];
+] satisfies MockRoute[];
