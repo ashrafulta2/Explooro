@@ -1,17 +1,20 @@
 import { api } from '../core/api.ts';
-import { clearCart, getCart, syncCartToServer } from './cart.js';
-import { track, flushSignals } from './signals.js';
+import { clearCart, getCart, syncCartToServer } from './cart.ts';
+import { track, flushSignals } from './signals.ts';
 
 const CHECKOUT_DRAFT_KEY = 'explooro_checkout_draft';
 
-export function generateIdempotencyKey() {
+/** A request body or query string; the fields are the server's, passed through untouched. */
+type Params = Record<string, any>;
+
+export function generateIdempotencyKey(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }
   return `idem-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-export function saveCheckoutDraft(draft) {
+export function saveCheckoutDraft(draft: Params) {
   try {
     localStorage.setItem(CHECKOUT_DRAFT_KEY, JSON.stringify({
       ...draft,
@@ -22,7 +25,7 @@ export function saveCheckoutDraft(draft) {
   }
 }
 
-export function loadCheckoutDraft() {
+export function loadCheckoutDraft(): (Params & { savedAt: number }) | null {
   try {
     const raw = localStorage.getItem(CHECKOUT_DRAFT_KEY);
     if (!raw) return null;
@@ -38,7 +41,7 @@ export function clearCheckoutDraft() {
   } catch {}
 }
 
-export async function placeCheckout(payload, { idempotencyKey = null } = {}) {
+export async function placeCheckout(payload: Params, { idempotencyKey = null }: { idempotencyKey?: string | null } = {}) {
   // Sync client-side items to server cart to guarantee server cart has the items
   await syncCartToServer();
 
@@ -59,18 +62,18 @@ export async function placeCheckout(payload, { idempotencyKey = null } = {}) {
   return res.data || res;
 }
 
-export async function getMyOrders(query = {}) {
+export async function getMyOrders(query: Params = {}) {
   const res = await api.get('/orders/my-orders', { query });
   return res.data || res;
 }
 
-export async function getOrderById(orderIdOrRef) {
+export async function getOrderById(orderIdOrRef: number | string) {
   const res = await api.get(`/orders/${encodeURIComponent(orderIdOrRef)}`);
   const data = res.data || res;
   return data?.order || data;
 }
 
-export async function cancelOrder(orderIdOrRef, reason = null) {
+export async function cancelOrder(orderIdOrRef: number | string, reason: string | null = null) {
   const res = await api.post(`/orders/${encodeURIComponent(orderIdOrRef)}/cancel`, { reason });
   const data = res.data || res;
   return data?.order || data;

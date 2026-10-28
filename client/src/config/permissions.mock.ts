@@ -1,5 +1,5 @@
 /**
- * permissions.mock.js — a stand-in for the RBAC resolution engine (Prompt 2.4).
+ * permissions.mock.ts — a stand-in for the RBAC resolution engine (Prompt 2.4).
  *
  * In the real system the client never holds the permission catalog: the server resolves what a
  * user has, and for anything it doesn't, a `PERMISSION_DENIED` response carries `risk_tier` /
@@ -18,16 +18,16 @@ const byKey = new Map(catalog.permissions.map((p) => [p.key, p]));
 const roleLabels = new Map(catalog.roles.map((r) => [r.key, r]));
 
 /** Full catalog entry for a permission key — `{ risk_tier, plain_en, plain_bn, default_roles, ... }`. */
-export function getPermissionMeta(key) {
+export function getPermissionMeta(key: string) {
   return byKey.get(key) ?? null;
 }
 
 /** `{ label_en, label_bn, level }` for a role key, straight from the same catalog. */
-export function getRoleMeta(role) {
+export function getRoleMeta(role: string) {
   return roleLabels.get(role) ?? null;
 }
 
 /** Every permission key a role holds by default (no delegation/restriction layered on yet). */
-export function defaultPermissionsForRole(role) {
+export function defaultPermissionsForRole(role: string): string[] {
   return catalog.permissions.filter((p) => p.default_roles?.includes(role)).map((p) => p.key);
 }

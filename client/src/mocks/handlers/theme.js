@@ -8,7 +8,7 @@
  * theme LOOK like it persisted. It never did: reopening Theme Studio re-fetched `/theme/active`,
  * got a 404, and fell back to the shipped default — the exact bug this file fixes.
  */
-import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.js';
+import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.ts';
 
 const STORAGE_KEY = 'explooro:mock:theme:palettes';
 

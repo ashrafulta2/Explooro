@@ -5,12 +5,12 @@
  * in a wide column grouped by supplier parcel; the order summary is sticky beside them on desktop
  * and moves above the items on small screens so "Proceed to Checkout" is never buried.
  *
- * Data comes from cartStore (optimistic updates live in services/cart.js); this page only renders.
+ * Data comes from cartStore (optimistic updates live in services/cart.ts); this page only renders.
  */
 
 import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
-import { cartStore, fetchCart, updateItemQuantity, removeFromCart, toggleWishlist, isProductWishlisted } from '../services/cart.js';
+import { cartStore, fetchCart, updateItemQuantity, removeFromCart, toggleWishlist, isProductWishlisted } from '../services/cart.ts';
 import { formatCurrency } from '../services/format.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { loadCartPageStyles } from '../styles/loadCartPageStyles.ts';

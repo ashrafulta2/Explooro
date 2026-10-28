@@ -14,7 +14,7 @@ import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { updateHead } from '../services/seo.ts';
-import { trackSearch } from '../services/signals.js';
+import { trackSearch } from '../services/signals.ts';
 
 export default function SearchResultsPage(root, { query, navigate }) {
   const cleanups = [];

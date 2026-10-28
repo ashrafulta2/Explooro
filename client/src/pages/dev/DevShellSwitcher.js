@@ -6,7 +6,7 @@
  * route hit while logged out lands here instead of a single fixed role's login stub.
  */
 import { NAV_ROLES, navItems } from '../../config/navigation.js';
-import { getRoleMeta } from '../../config/permissions.mock.js';
+import { getRoleMeta } from '../../config/permissions.mock.ts';
 import { setMockRole, logOutMock, appStore } from '../../state/appStore.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { Button } from '../../components/ui/Button.ts';

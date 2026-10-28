@@ -20,7 +20,7 @@ import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import themeRoutes from '../src/routes/theme.routes.ts';
 import * as themeService from '../src/services/theme.service.ts';
-import { MASTER_PRESETS } from '../../client/src/config/master-themes.js';
+import { MASTER_PRESETS } from '../../client/src/config/master-themes.ts';
 import {
   generatePalette,
   paletteToSectionTokens,

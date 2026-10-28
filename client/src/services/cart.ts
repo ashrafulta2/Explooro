@@ -1,5 +1,5 @@
 /**
- * services/cart.js — Client-side cart and wishlist state management (Prompt 5.1).
+ * services/cart.ts — Client-side cart and wishlist state management (Prompt 5.1).
  *
  * Provides reactive subscriptions, optimistic UI updates, badge count synchronization,
  * and drawer trigger events.
@@ -10,13 +10,83 @@ import { createStore } from '../core/store.ts';
 import { appStore } from '../state/appStore.js';
 import { toast } from './toast.js';
 import { t } from './i18n.js';
-import { track } from './signals.js';
+import { track } from './signals.ts';
 import { knownDeliveryCharge, loadDeliveryCharge } from './deliveryCharge.ts';
 import { currentTouch } from './attribution.ts';
 
 const GUEST_CART_STORAGE_KEY = 'explooro_guest_cart';
 
-function loadStoredCart() {
+/** One cart line, as the server sends it or as the optimistic update builds it. Money is a decimal string. */
+export interface CartItem {
+  id?: number | string;
+  product_id: number | string;
+  variant_id?: number | string | null;
+  variant_title?: string;
+  variant_sku?: string;
+  saler_id?: number | string | null;
+  bundle_id?: number | string | null;
+  attribution?: unknown;
+  qty: number;
+  product_title_en?: string;
+  product_title_bn?: string;
+  product_slug?: string;
+  stock_ceiling?: number;
+  price?: number | string;
+  price_at_add?: string;
+  unit_price?: number | string;
+  line_total?: number | string;
+  image_url?: string;
+  supplier_id?: number | string;
+  supplier_name?: string;
+  warnings?: unknown[];
+}
+
+/** The lines of one supplier: the cart ships one parcel per supplier. */
+export interface CartParcel {
+  supplier_id: number | string;
+  supplier_name: string;
+  parcel_ref: string;
+  items: CartItem[];
+  subtotal: string;
+  items_count: number;
+}
+
+export interface Cart {
+  cart_id: number | string | null;
+  items: CartItem[];
+  parcels: CartParcel[];
+  parcel_count: number;
+  items_count: number;
+  subtotal: string;
+  estimated_shipping: string;
+  grand_total: string;
+  has_warnings: boolean;
+  [field: string]: unknown;
+}
+
+/** The fields `addToCart` takes; the defaults are the shell's placeholders. */
+export interface AddToCartInput {
+  product_id: number | string;
+  variant_id?: number | string | null;
+  saler_id?: number | string | null;
+  bundle_id?: number | string | null;
+  qty?: number;
+  title_en?: string;
+  title_bn?: string;
+  slug?: string;
+  variant_title?: string;
+  variant_sku?: string;
+  price?: number | string;
+  image_url?: string;
+  supplier_id?: number | string;
+  supplier_name?: string;
+  stock_qty?: number;
+}
+
+/** The nav badge counts the shell keeps in `appStore`. */
+type AppBadges = ReturnType<typeof appStore.get>['badges'];
+
+function loadStoredCart(): Cart | null {
   try {
     const raw = localStorage.getItem(GUEST_CART_STORAGE_KEY);
     if (!raw) return null;
@@ -26,7 +96,7 @@ function loadStoredCart() {
   }
 }
 
-function saveStoredCart(cart) {
+function saveStoredCart(cart: Cart | null) {
   try {
     if (!cart || !cart.items || cart.items.length === 0) {
       localStorage.removeItem(GUEST_CART_STORAGE_KEY);
@@ -36,8 +106,8 @@ function saveStoredCart(cart) {
   } catch {}
 }
 
-export function buildCartFromItems(items = []) {
-  const suppliersMap = new Map();
+export function buildCartFromItems(items: CartItem[] = []): Cart {
+  const suppliersMap = new Map<number | string, CartParcel>();
   let subtotal = 0;
   let itemsCount = 0;
 
@@ -88,7 +158,13 @@ export function buildCartFromItems(items = []) {
 
 const initialStored = loadStoredCart();
 
-export const cartStore = createStore({
+interface CartState {
+  cart: Cart;
+  wishlistProductIds: Set<number>;
+  loading: boolean;
+}
+
+export const cartStore = createStore<CartState>({
   cart: initialStored || {
     cart_id: null,
     items: [],
@@ -115,7 +191,7 @@ export async function initCart() {
 }
 
 /** A stored guest cart, re-priced with the current delivery charge (it may have changed since). */
-function repriceLocal(local) {
+function repriceLocal(local: Cart) {
   return { ...buildCartFromItems(local.items || []), cart_id: local.cart_id ?? null };
 }
 
@@ -123,9 +199,9 @@ function repriceLocal(local) {
 // state, which cramped a multi-parcel cart into ~420px. It is now the full /cart page, but the
 // TopBar, MobileNav, wishlist and add-to-cart toast all trigger it from places that have no
 // router handle, so the shell registers one here at boot.
-let cartNavigator = null;
+let cartNavigator: ((path: string) => void) | null = null;
 
-export function setCartNavigator(fn) {
+export function setCartNavigator(fn: ((path: string) => void) | null) {
   cartNavigator = typeof fn === 'function' ? fn : null;
 }
 
@@ -171,7 +247,7 @@ export async function mergeGuestCartOnLogin() {
   await fetchCart();
 }
 
-function updateCartState(cart) {
+function updateCartState(cart: Cart) {
   const normalizedCart = (!cart.parcels || cart.parcels.length === 0) && cart.items?.length > 0
     ? buildCartFromItems(cart.items)
     : cart;
@@ -185,7 +261,7 @@ function updateCartState(cart) {
     badges: {
       ...badges,
       cart: normalizedCart.items_count || 0,
-    },
+    } as AppBadges,
   });
 }
 
@@ -205,7 +281,7 @@ export async function addToCart({
   supplier_id = 1,
   supplier_name = '',
   stock_qty = 10,
-}) {
+}: AddToCartInput) {
   // WHY only the id: this function's supplier_id defaults to a placeholder (1), which would poison the
   // supplier affinity. The server backfills category and supplier from the product row instead.
   // Reported here, not at each button, so every add-to-cart surface is counted exactly once.
@@ -263,7 +339,7 @@ export async function addToCart({
   saveStoredCart(optimisticCart);
 
   const badges = appStore.get().badges || {};
-  appStore.update({ badges: { ...badges, cart: optimisticCart.items_count } });
+  appStore.update({ badges: { ...badges, cart: optimisticCart.items_count } as AppBadges });
 
   // WHY a toast action, not an automatic redirect: shoppers add several items in a row, and
   // yanking them off the product page after each one breaks that flow.
@@ -305,11 +381,11 @@ export async function addToCart({
   }
 }
 
-export async function updateItemQuantity(itemId, newQty) {
+export async function updateItemQuantity(itemId: number | string, newQty: number) {
   const previousCart = cartStore.get().cart;
 
   // Optimistic update
-  let nextItems;
+  let nextItems: CartItem[];
   if (newQty <= 0) {
     nextItems = (previousCart.items || []).filter((i) => i.id !== itemId);
   } else {
@@ -341,7 +417,7 @@ export async function updateItemQuantity(itemId, newQty) {
   }
 }
 
-export async function removeFromCart(itemId) {
+export async function removeFromCart(itemId: number | string) {
   return updateItemQuantity(itemId, 0);
 }
 
@@ -351,7 +427,7 @@ export async function fetchWishlist() {
   try {
     const res = await api.get('/wishlist', { skipAuthRedirect: true });
     if (res?.data?.wishlist?.items) {
-      const set = new Set(res.data.wishlist.items.map((w) => Number(w.product_id)));
+      const set = new Set<number>(res.data.wishlist.items.map((w) => Number(w.product_id)));
       cartStore.update({ wishlistProductIds: set });
     }
   } catch {
@@ -359,7 +435,7 @@ export async function fetchWishlist() {
   }
 }
 
-export async function toggleWishlist(productId) {
+export async function toggleWishlist(productId: number | string) {
   const currentSet = new Set(cartStore.get().wishlistProductIds);
   const isPresent = currentSet.has(Number(productId));
 
@@ -399,7 +475,7 @@ export async function toggleWishlist(productId) {
   }
 }
 
-export function isProductWishlisted(productId) {
+export function isProductWishlisted(productId: number | string): boolean {
   return cartStore.get().wishlistProductIds.has(Number(productId));
 }
 
@@ -407,17 +483,17 @@ export function isProductWishlisted(productId) {
  * Toggle the price-drop alert flag for a wishlisted product.
  * Returns the confirmed server value so the caller can reconcile its own UI.
  */
-export async function setWishlistNotify(productId, notifyOnDrop) {
+export async function setWishlistNotify(productId: number | string, notifyOnDrop: boolean) {
   const res = await api.patch(`/wishlist/${productId}/notify`, { notify_on_drop: !!notifyOnDrop });
   return res?.data?.notify_on_drop;
 }
 
-export function getCart() {
+export function getCart(): Cart {
   return cartStore.get().cart;
 }
 
 export function clearCart() {
-  const emptyCart = {
+  const emptyCart: Cart = {
     cart_id: null,
     items: [],
     parcels: [],

@@ -237,7 +237,7 @@ function themesCss() {
  * the old colour and then swapped.
  *
  * To change the colour the product ships with, change \`DEFAULT_MASTER\` in colorRamp.ts (and the
- * matching preset in config/master-themes.js — client/test/colorRamp.test.js asserts the two
+ * matching preset in config/master-themes.ts — client/test/colorRamp.test.js asserts the two
  * agree), then re-run the command above. Hand-editing a step here is the one thing that CAN put
  * this file out of step with the engine, and that same test fails if you do.
  *

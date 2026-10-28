@@ -8,8 +8,8 @@
  *  - Fallback list view when accessed at /orders or /orders/my-orders
  */
 
-import { getOrderById, getMyOrders, cancelOrder } from '../../services/order.api.js';
-import { needsOnlinePayment, payForOrder } from '../../services/payment.api.js';
+import { getOrderById, getMyOrders, cancelOrder } from '../../services/order.api.ts';
+import { needsOnlinePayment, payForOrder } from '../../services/payment.api.ts';
 import { OrderTracker, getSubOrderStatusLabel, getPaymentStatusLabel } from '../../components/order/OrderTracker.ts';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { Button } from '../../components/ui/Button.ts';

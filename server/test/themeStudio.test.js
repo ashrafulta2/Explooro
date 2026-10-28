@@ -8,7 +8,7 @@ import Fastify from 'fastify';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import themeRoutes from '../src/routes/theme.routes.ts';
-import { THEME_PRESETS } from '../../client/src/config/theme-presets.js';
+import { THEME_PRESETS } from '../../client/src/config/theme-presets.ts';
 import {
   getContrastRatio,
   validatePaletteContrast,
@@ -145,7 +145,7 @@ describe('Theme & Color Studio (Prompt 3.5)', () => {
     await app.close();
   });
 
-  test('Acceptance 2: Every preset in theme-presets.js strictly satisfies WCAG AA across all 6 UI sections', () => {
+  test('Acceptance 2: Every preset in theme-presets.ts strictly satisfies WCAG AA across all 6 UI sections', () => {
     for (const [key, preset] of Object.entries(THEME_PRESETS)) {
       const validation = validatePaletteContrast(preset.tokens);
       assert.equal(

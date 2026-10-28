@@ -19,7 +19,7 @@ import {
   isOffByBrowserSignal,
   isPersonalizationEnabled,
   setPersonalizationEnabled,
-} from '../../services/signals.js';
+} from '../../services/signals.ts';
 
 // WHY the channel list is data, not markup: every category renders the same four toggles, and a
 // fifth channel (WhatsApp, Prompt 8.3) should be one row here rather than four edits per card.

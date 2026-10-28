@@ -11,9 +11,9 @@
 
 import { AddressForm } from '../components/checkout/AddressForm.js';
 import { PaymentSelector } from '../components/checkout/PaymentSelector.js';
-import { getCart, fetchCart, clearCart } from '../services/cart.js';
-import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.js';
-import { needsOnlinePayment, payForOrder } from '../services/payment.api.js';
+import { getCart, fetchCart, clearCart } from '../services/cart.ts';
+import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.ts';
+import { needsOnlinePayment, payForOrder } from '../services/payment.api.ts';
 import { adsApi } from '../services/ads.api.ts';
 import { customerApi } from '../services/customer.api.ts';
 import { getCurrentUser } from '../services/session.js';

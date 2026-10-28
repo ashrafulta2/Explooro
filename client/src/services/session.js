@@ -11,7 +11,7 @@
 import { api, setAccessToken, clearAccessToken, refreshSession } from '../core/api.ts';
 import { appStore } from '../state/appStore.js';
 import { initPermissions, clearPermissions } from './permissions.js';
-import { mergeGuestCartOnLogin } from './cart.js';
+import { mergeGuestCartOnLogin } from './cart.ts';
 
 let refreshTimer = null;
 let currentUser = null;

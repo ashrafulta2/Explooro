@@ -28,7 +28,7 @@ import { isFeatureEnabled } from '../services/featureFlags.js';
 import { HomeTop } from '../components/home/HomeTop.js';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
 import { resolveProductImage } from '../components/product/ProductCard.ts';
-import { addToCart } from '../services/cart.js';
+import { addToCart } from '../services/cart.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { CategoryPills } from '../components/product/CategoryPills.ts';
 import { PersonalizedRails } from '../components/product/PersonalizedRails.ts';

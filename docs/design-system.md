@@ -148,7 +148,7 @@ and the chrome that surrounds it competes with every thumbnail it frames. A near
 survives the thing a branded-storefront product does constantly — putting a shop partner's own colours on
 the page — without two brand hues fighting.
 
-The alternates ship in `client/src/config/master-themes.js`, `explooro_pink` (the previous identity)
+The alternates ship in `client/src/config/master-themes.ts`, `explooro_pink` (the previous identity)
 among them. Switching is one seed, not a palette.
 
 ### 1.3 Neutral ramp — hue 257.3, tracking the seed

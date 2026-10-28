@@ -1,12 +1,26 @@
 /**
- * theme-presets.js — Marketplace Presets for Granular Component-Level Color Studio (Prompt 3.5).
+ * theme-presets.ts — Marketplace Presets for Granular Component-Level Color Studio (Prompt 3.5).
  *
  * Each preset satisfies WCAG AA on every pairing across 6 distinct UI sections:
  * Navbar · Canvas/Surfaces · Brand/Buttons · Typography · Badges · Footer.
  * Zero gradients permitted.
  */
 
-export const THEME_PRESETS = {
+/** Hex values per component section (navbar, surfaces, brand, typography, badges, footer). */
+export type PresetTokens = Record<string, Record<string, string>>;
+
+/** A hand-authored preset: about 33 hex values, each pairing checked for WCAG AA. */
+export interface ThemePreset {
+  key: string;
+  name_en: string;
+  name_bn: string;
+  description_en: string;
+  description_bn: string;
+  preview_swatch: string;
+  tokens: PresetTokens;
+}
+
+export const THEME_PRESETS: Record<string, ThemePreset> = {
   pure_gold: {
     key: 'pure_gold',
     name_en: 'Explooro Gold',
@@ -61,7 +75,7 @@ export const THEME_PRESETS = {
 
   // WHY the key is still `default` when the product no longer ships pink: services/themePalette.js
   // uses this exact object as its "no theme applied" sentinel, and the key is what a stored legacy
-  // theme_preset row names. The SHIPPED default is DEFAULT_MASTER_PRESET in config/master-themes.js
+  // theme_preset row names. The SHIPPED default is DEFAULT_MASTER_PRESET in config/master-themes.ts
   // (Midnight Slate) — this is the pink palette kept as a selectable alternate, nothing more.
   default: {
     key: 'default',

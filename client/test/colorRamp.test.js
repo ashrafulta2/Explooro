@@ -27,7 +27,7 @@ import {
   NEUTRAL_STEPS,
   DEFAULT_MASTER,
 } from '../src/services/colorRamp.ts';
-import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.js';
+import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.ts';
 
 /** Spread chosen to cover each branch the generator can take, not to look pretty. */
 const SEEDS = [
@@ -170,7 +170,7 @@ test('the shipped CSS, the engine default and the default preset are one colour'
   // and the preset DEFAULT_MASTER_PRESET points at (which initTheme() mounts a beat later). If
   // they disagree the product visibly changes colour partway through boot.
   const preset = MASTER_PRESETS[DEFAULT_MASTER_PRESET];
-  assert.ok(preset, `master-themes.js has no preset "${DEFAULT_MASTER_PRESET}"`);
+  assert.ok(preset, `master-themes.ts has no preset "${DEFAULT_MASTER_PRESET}"`);
   assert.deepEqual(
     preset.master,
     DEFAULT_MASTER,

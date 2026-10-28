@@ -9,12 +9,12 @@
  *
  * `setMockRole()` is Prompt 1.7's role switcher (PREVIEW: "a role switcher ... lets the developer
  * preview all six role shells live"). It grants every permission the role holds BY DEFAULT
- * (config/permissions.mock.js, sourced from docs/permission-catalog.json) minus a couple of
+ * (config/permissions.mock.ts, sourced from docs/permission-catalog.json) minus a couple of
  * `DEMO_WITHHELD` keys per role — so the sidebar shows the real Prompt-1.7 locked-item states
  * (ia-sitemap.md §5.1) rather than either "everything unlocked" or "everything locked".
  */
 import { createStore } from '../core/store.ts';
-import { defaultPermissionsForRole } from '../config/permissions.mock.js';
+import { defaultPermissionsForRole } from '../config/permissions.mock.ts';
 
 // One MEDIUM/HIGH (delegable — shows "Request access") and one CRITICAL (not delegable — no
 // affordance) withheld permission per role that actually appears in navigation.js, so both

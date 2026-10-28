@@ -1,7 +1,7 @@
 /**
- * master-themes.js — Master Colour presets: one seed colour each, everything else generated.
+ * master-themes.ts — Master Colour presets: one seed colour each, everything else generated.
  *
- * Contrast with theme-presets.js, which hand-authors ~33 hex values per preset and therefore can
+ * Contrast with theme-presets.ts, which hand-authors ~33 hex values per preset and therefore can
  * only repaint the roles someone remembered to list. A master preset carries no palette at all —
  * services/colorRamp.ts derives the full brand / neutral / status / accent ramps from the seed,
  * so borders, hover fills, scrollbars, focus rings and the whole dark theme move with it.
@@ -10,7 +10,20 @@
  * generator will not produce, the generator is what needs fixing.
  */
 
-export const MASTER_PRESETS = {
+import type { MasterConfig } from '../services/colorRamp.ts';
+
+/** One preset: the seed block plus the labels the Theme Studio shows. */
+export interface MasterPreset {
+  key: string;
+  name_en: string;
+  name_bn: string;
+  description_en: string;
+  description_bn: string;
+  group: string;
+  master: MasterConfig;
+}
+
+export const MASTER_PRESETS: Record<string, MasterPreset> = {
   pure_gold: {
     key: 'pure_gold',
     name_en: 'Explooro Gold',

@@ -3,7 +3,7 @@
  *
  * The server owns the number (GET /delivery/policy); the server cart already returns
  * `estimated_shipping` with it. This module is for the two places that price without a server cart:
- * the local guest cart estimate (services/cart.js) and Quick Buy's summary.
+ * the local guest cart estimate (services/cart.ts) and Quick Buy's summary.
  *
  * WHY the last value is kept in localStorage: buildCartFromItems() is synchronous, so it can only use
  * a number it already has. A remembered value is right on every visit after the first; on the very

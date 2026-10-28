@@ -5,7 +5,7 @@
  * and multi-language tooltips.
  */
 
-import { toggleWishlist, isProductWishlisted, cartStore } from '../../services/cart.js';
+import { toggleWishlist, isProductWishlisted, cartStore } from '../../services/cart.ts';
 import { t } from '../../services/i18n.js';
 
 const HEART_SVG = `

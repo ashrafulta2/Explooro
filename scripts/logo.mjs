@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { generatePalette } from '../client/src/services/colorRamp.ts';
-import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../client/src/config/master-themes.js';
+import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../client/src/config/master-themes.ts';
 import { buildLogoMarkSvg, buildLogoMaskableSvg } from '../client/src/services/logoMark.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');

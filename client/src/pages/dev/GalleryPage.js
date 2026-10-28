@@ -34,7 +34,7 @@ import '../../styles/components/gallery.css';
 import { buildGalleryEntries, GALLERY_GROUPS } from './gallery-registry.js';
 import { appStore, setMockRole, logOutMock } from '../../state/appStore.js';
 import { NAV_ROLES } from '../../config/navigation.js';
-import { getRoleMeta } from '../../config/permissions.mock.js';
+import { getRoleMeta } from '../../config/permissions.mock.ts';
 import { getLanguage, setLanguage } from '../../services/i18n.js';
 import { getTheme, applyTheme, THEME_OPTIONS } from '../../services/theme.ts';
 

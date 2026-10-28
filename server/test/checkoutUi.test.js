@@ -19,7 +19,7 @@ import {
 } from '../../client/src/data/bangladeshGeo.ts';
 import { normalizeBdPhone, isValidBdPhone } from '../../client/src/components/checkout/AddressForm.js';
 import { getStageIndex, ORDER_STAGES } from '../../client/src/components/order/OrderTracker.ts';
-import { generateIdempotencyKey } from '../../client/src/services/order.api.js';
+import { generateIdempotencyKey } from '../../client/src/services/order.api.ts';
 
 describe('Prompt 5.4 — Checkout UI, Quick Buy & Order Tracking Logic', () => {
   test('Acceptance 1: Bangladesh Geo data contains all 8 divisions and 64 districts', () => {

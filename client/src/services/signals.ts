@@ -1,5 +1,5 @@
 /**
- * signals.js — Site-wide behavioural signal tracker (Phase A of the personalized home feed).
+ * signals.ts — Site-wide behavioural signal tracker (Phase A of the personalized home feed).
  *
  * Before this, only the /discover swipe feed told the server what a shopper did, so a shopper who
  * never opened /discover had an empty interest profile and no surface could personalize for them.
@@ -49,15 +49,52 @@ const MAX_BATCH = 50;
 
 const SESSION_KEY = 'explooro_discovery_sid';
 
+/** What an event reports; the server's vocabulary. */
+export type SignalType = 'VIEW' | 'DWELL' | 'CLICK' | 'SEARCH_CLICK' | 'ADD_CART' | 'WISHLIST' | 'SHARE' | 'FOLLOW_STORE' | 'PURCHASE';
+
+export type SignalAudience = 'customer' | 'saler';
+
+/** The part of a product a signal needs: an id, and optionally what the server would otherwise look up. */
+export interface SignalProduct {
+  id?: number | string;
+  product_id?: number | string;
+  isSponsored?: boolean;
+  category_id?: number | string | null;
+  supplier_id?: number | string | null;
+  supplier?: { id?: number | string } | null;
+  category?: string;
+}
+
+/** One event as it goes over the wire (POST /discovery/events). */
+export interface SignalEvent {
+  event_type: string;
+  product_id: number | string;
+  category_id?: number | string;
+  supplier_id?: number | string;
+  category?: string;
+  dwell_ms?: number;
+  query?: string;
+  source?: string;
+}
+
+export interface TrackOptions {
+  audience?: SignalAudience;
+  dwellMs?: number;
+  /** For SEARCH_CLICK: the query that produced the result. */
+  query?: string;
+  /** The surface that showed the product (`rail:trending`, `feed`, `grid`, `search`). */
+  source?: string;
+}
+
 /**
  * The guest ranking id: an opaque token persisted in this browser so an anonymous shopper's history
  * is stable across visits. Never an auth credential — it only scopes personalization. Returns null
  * if storage is unavailable (private mode); the feed then simply ranks by popularity.
  *
- * Lives here (not in discovery.api.js) so the tracker and the feed reader share it without an
- * import cycle; discovery.api.js re-exports it for the callers that already import it from there.
+ * Lives here (not in discovery.api.ts) so the tracker and the feed reader share it without an
+ * import cycle; discovery.api.ts re-exports it for the callers that already import it from there.
  */
-export function getDiscoverySessionId() {
+export function getDiscoverySessionId(): string | null {
   try {
     let sid = localStorage.getItem(SESSION_KEY);
     if (!sid) {
@@ -74,14 +111,14 @@ export const PREFERENCE_KEY = 'explooro_personalization';
 
 // ── Consent ──────────────────────────────────────────────────────────────────
 
-const consentListeners = new Set();
+const consentListeners = new Set<(enabled: boolean) => void>();
 
 // Holds the choice ONLY when localStorage throws (private mode, blocked site data), so the toggle
 // still works for this page view. WHY not a general mirror: storage is the source of truth, and a
 // stale in-memory copy would keep overriding it after the shopper clears site data elsewhere.
-let memoryPreference = null;
+let memoryPreference: string | null = null;
 
-function readPreference() {
+function readPreference(): string | null {
   try {
     return localStorage.getItem(PREFERENCE_KEY);
   } catch {
@@ -91,7 +128,7 @@ function readPreference() {
 
 function doNotTrack() {
   if (typeof navigator === 'undefined') return false;
-  return navigator.doNotTrack === '1' || navigator.msDoNotTrack === '1' || globalThis.doNotTrack === '1';
+  return navigator.doNotTrack === '1' || (navigator as unknown as { msDoNotTrack?: string }).msDoNotTrack === '1' || (globalThis as unknown as { doNotTrack?: string }).doNotTrack === '1';
 }
 
 /**
@@ -115,7 +152,7 @@ export function isPersonalizationOff() {
   return !isPersonalizationEnabled();
 }
 
-export function setPersonalizationEnabled(enabled) {
+export function setPersonalizationEnabled(enabled: boolean) {
   const value = enabled ? 'on' : 'off';
   try {
     localStorage.setItem(PREFERENCE_KEY, value);
@@ -137,7 +174,7 @@ export function setPersonalizationEnabled(enabled) {
   }
 }
 
-export function onPersonalizationChange(fn) {
+export function onPersonalizationChange(fn: (enabled: boolean) => void) {
   consentListeners.add(fn);
   return () => consentListeners.delete(fn);
 }
@@ -149,7 +186,7 @@ export function onPersonalizationChange(fn) {
  * not products, and in live mode the server wants numeric ids — one non-numeric id would otherwise
  * be rejected and take the rest of its batch with it.
  */
-function trackableId(product) {
+function trackableId(product: SignalProduct | null | undefined): number | string | null {
   if (!product || product.isSponsored) return null;
   const id = product.id ?? product.product_id;
   if (id == null || id === '') return null;
@@ -162,12 +199,12 @@ function trackableId(product) {
 // Where an event came from: `rail:<key>` for a home rail, or a bare name (feed, grid, search). The same
 // shape the server stores (migration 060) and validates; anything else is simply not sent.
 const SOURCE_PATTERN = /^[a-z][a-z_]*(:[a-z][a-z_]*)?$/;
-const validSource = (s) => (typeof s === 'string' && s.length <= 40 && SOURCE_PATTERN.test(s) ? s : null);
+const validSource = (s: unknown): string | null => (typeof s === 'string' && s.length <= 40 && SOURCE_PATTERN.test(s) ? s : null);
 
-function buildEvent(type, product, { dwellMs, query, source } = {}) {
+function buildEvent(type: string, product: SignalProduct, { dwellMs, query, source }: TrackOptions = {}): SignalEvent | null {
   const id = trackableId(product);
   if (id == null) return null;
-  const event = { event_type: type, product_id: id };
+  const event: SignalEvent = { event_type: type, product_id: id };
   const categoryId = product.category_id;
   const supplierId = product.supplier_id ?? product.supplier?.id;
   // WHY optional: the server backfills category and supplier from the product row, so a call site
@@ -186,9 +223,9 @@ function buildEvent(type, product, { dwellMs, query, source } = {}) {
 
 // ── Queue + transport ────────────────────────────────────────────────────────
 
-const queue = []; // [{ audience, event }]
-const seenViews = new Map(); // `${audience}:${id}` → timestamp
-let flushTimer = null;
+const queue: { audience: SignalAudience; event: SignalEvent }[] = [];
+const seenViews = new Map<string, number>(); // `${audience}:${id}` → timestamp
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
 function scheduleFlush() {
   if (flushTimer != null) return;
@@ -198,17 +235,17 @@ function scheduleFlush() {
   }, FLUSH_INTERVAL_MS);
 }
 
-function sessionHeaders(sid) {
+function sessionHeaders(sid: string | null): Record<string, string> | undefined {
   return sid ? { 'x-session-id': sid } : undefined;
 }
 
-function sendBatch(audience, events, unloading) {
+function sendBatch(audience: SignalAudience, events: SignalEvent[], unloading: boolean) {
   const sid = getDiscoverySessionId();
   const body = { events, audience, session_id: sid };
 
   if (unloading && LIVE && typeof fetch === 'function') {
     try {
-      const headers = { 'Content-Type': 'application/json', ...sessionHeaders(sid) };
+      const headers: Record<string, string> = { 'Content-Type': 'application/json', ...sessionHeaders(sid) };
       const token = getAccessToken();
       if (token) headers.Authorization = `Bearer ${token}`;
       fetch(`${API_BASE}/discovery/events`, {
@@ -233,7 +270,7 @@ function sendBatch(audience, events, unloading) {
 }
 
 /** Sends everything queued, one request per audience (a request carries a single audience). */
-export function flushSignals({ unloading = false } = {}) {
+export function flushSignals({ unloading = false }: { unloading?: boolean } = {}) {
   if (flushTimer != null) {
     clearTimeout(flushTimer);
     flushTimer = null;
@@ -241,7 +278,7 @@ export function flushSignals({ unloading = false } = {}) {
   if (queue.length === 0) return;
   const items = queue.splice(0);
 
-  const byAudience = new Map();
+  const byAudience = new Map<SignalAudience, SignalEvent[]>();
   for (const { audience, event } of items) {
     if (!byAudience.has(audience)) byAudience.set(audience, []);
     byAudience.get(audience).push(event);
@@ -253,7 +290,7 @@ export function flushSignals({ unloading = false } = {}) {
   }
 }
 
-function enqueue(audience, event) {
+function enqueue(audience: SignalAudience, event: SignalEvent) {
   queue.push({ audience, event });
   if (queue.length >= BATCH_SIZE) flushSignals();
   else scheduleFlush();
@@ -263,15 +300,9 @@ function enqueue(audience, event) {
 
 /**
  * Records one interaction.
- * @param {string} type  VIEW | DWELL | CLICK | SEARCH_CLICK | ADD_CART | WISHLIST | SHARE | FOLLOW_STORE | PURCHASE
- * @param {object} product  needs `id` (or `product_id`); `category_id`/`supplier_id` optional
- * @param {object} [opts]
- * @param {'customer'|'saler'} [opts.audience]
- * @param {number} [opts.dwellMs]
- * @param {string} [opts.query]  for SEARCH_CLICK: the query that produced the result
- * @param {string} [opts.source] the surface that showed the product (`rail:trending`, `feed`, `grid`, `search`)
+ * `product` needs `id` (or `product_id`); `category_id` / `supplier_id` are optional.
  */
-export function track(type, product, { audience = 'customer', dwellMs, query, source } = {}) {
+export function track(type: SignalType | string, product: SignalProduct, { audience = 'customer', dwellMs, query, source }: TrackOptions = {}) {
   if (!isPersonalizationEnabled()) return;
   if (type === 'DWELL' && !(dwellMs >= MIN_DWELL_MS)) return;
 
@@ -295,7 +326,7 @@ export function track(type, product, { audience = 'customer', dwellMs, query, so
  * …}` object the /discover feed builds. Kept so that feed reports through the same consent-aware,
  * batched path as every other surface.
  */
-export function recordEvent(event, { audience = 'customer' } = {}) {
+export function recordEvent(event: Partial<SignalEvent> | Partial<SignalEvent>[], { audience = 'customer' }: { audience?: SignalAudience } = {}) {
   const list = Array.isArray(event) ? event : [event];
   for (const e of list) {
     if (!e) continue;
@@ -309,10 +340,17 @@ export function recordEvent(event, { audience = 'customer' } = {}) {
 
 // ── Impressions ──────────────────────────────────────────────────────────────
 
-let observer = null;
-const watched = new WeakMap(); // element → { product, audience, timer }
+interface WatchRecord {
+  product: SignalProduct;
+  audience: SignalAudience;
+  source?: string;
+  timer: ReturnType<typeof setTimeout> | null;
+}
 
-function onIntersect(entries) {
+let observer: IntersectionObserver | null = null;
+const watched = new WeakMap<Element, WatchRecord>();
+
+function onIntersect(entries: IntersectionObserverEntry[]) {
   for (const entry of entries) {
     const rec = watched.get(entry.target);
     if (!rec) continue;
@@ -336,7 +374,7 @@ function onIntersect(entries) {
  * Reports a VIEW once `el` has been at least half visible for IMPRESSION_MS. Returns a function that
  * stops watching (call it when the card is torn down). A no-op where IntersectionObserver is absent.
  */
-export function observeImpression(el, product, { audience = 'customer', source } = {}) {
+export function observeImpression(el: Element | null, product: SignalProduct, { audience = 'customer', source }: { audience?: SignalAudience; source?: string } = {}): () => void {
   if (!el || typeof IntersectionObserver === 'undefined' || trackableId(product) == null) {
     return () => {};
   }
@@ -357,11 +395,11 @@ export function observeImpression(el, product, { audience = 'customer', source }
  * Starts timing a product page. Time with the tab hidden does not count. Call the returned function
  * when the page is left (the router's cleanup) to emit one DWELL.
  */
-export function startDwell(product, { audience = 'customer' } = {}) {
+export function startDwell(product: SignalProduct, { audience = 'customer' }: { audience?: SignalAudience } = {}): () => void {
   if (trackableId(product) == null || typeof document === 'undefined') return () => {};
 
   let accumulated = 0;
-  let since = document.visibilityState === 'hidden' ? null : Date.now();
+  let since: number | null = document.visibilityState === 'hidden' ? null : Date.now();
   let stopped = false;
 
   const onVisibility = () => {
@@ -395,14 +433,14 @@ export function startDwell(product, { audience = 'customer' } = {}) {
 
 // ── Search ───────────────────────────────────────────────────────────────────
 
-const recentSearches = new Map(); // `${audience}:${query}` → timestamp
+const recentSearches = new Map<string, number>(); // `${audience}:${query}` → timestamp
 
 /**
  * Records that the shopper ran a search. Call once per results page load with the real result count,
  * never per typeahead keystroke. A repeat of the same query within a few seconds (re-render, back
  * button) is ignored.
  */
-export function trackSearch({ query, resultCount, categoryId, audience = 'customer' } = {}) {
+export function trackSearch({ query, resultCount, categoryId, audience = 'customer' }: { query?: string; resultCount?: number; categoryId?: number | string | null; audience?: SignalAudience } = {}) {
   if (!isPersonalizationEnabled()) return;
   const text = String(query ?? '').trim();
   if (!text) return;

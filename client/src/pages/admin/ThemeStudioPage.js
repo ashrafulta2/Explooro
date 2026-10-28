@@ -7,8 +7,8 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
-import { THEME_PRESETS } from '../../config/theme-presets.js';
-import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.js';
+import { THEME_PRESETS } from '../../config/theme-presets.ts';
+import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.ts';
 import {
   applyTheme,
   getContrastRatio,

@@ -28,7 +28,7 @@ import { formatCurrency, formatBdt } from '../../services/format.js';
 import { adsApi } from '../../services/ads.api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
-import { track, observeImpression } from '../../services/signals.js';
+import { track, observeImpression } from '../../services/signals.ts';
 
 /** The fields `resolveProductImage` looks at. Every one is optional; it falls back through all of them. */
 export interface ProductImageSource {
@@ -492,10 +492,6 @@ export function ProductCard({
 
   card.addEventListener('click', navigate);
   // VIEW once the card has really been on screen (>= half visible for IMPRESSION_MS), not merely rendered.
-  // signals.js infers this options type from its one default and leaves `source` out, though it reads it
-  // (client/test/signals.test.js pins this exact call). The directive fails the typecheck once signals.js
-  // is typed, which is the cue to delete it.
-  // @ts-expect-error TS2353
   observeImpression(card, product, { audience: signalAudience, source: signalContext?.source });
   card.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {

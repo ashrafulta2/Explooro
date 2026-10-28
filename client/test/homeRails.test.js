@@ -137,7 +137,7 @@ test('product-rail.css is imported by its component only', () => {
 });
 
 test('the rails fetch honours the opt-out switch the feed uses', () => {
-  const api = read('services/discovery.api.js');
+  const api = read('services/discovery.api.ts');
   const body = api.slice(api.indexOf('export async function getRails'));
   assert.match(body, /isPersonalizationOff\(\)/);
   assert.match(body, /personalize = '0'/);

@@ -14,7 +14,7 @@
  * title/body/footer shape.
  */
 import { navItems, navGroups } from '../../config/navigation.js';
-import { MASTER_PRESETS } from '../../config/master-themes.js';
+import { MASTER_PRESETS } from '../../config/master-themes.ts';
 import { switchThemePreset, PRESET_SWITCH_PERMISSION } from '../../services/themePalette.js';
 import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';

@@ -29,8 +29,8 @@ import type {
   ProductModules,
   ProductNavigate,
 } from './ProductCard.ts';
-import { getRails } from '../../services/discovery.api.js';
-import { onPersonalizationChange } from '../../services/signals.js';
+import { getRails } from '../../services/discovery.api.ts';
+import { onPersonalizationChange } from '../../services/signals.ts';
 import { t } from '../../services/i18n.js';
 
 /** One themed row from GET /discovery/rails. The server decides which rails exist and what is in them. */

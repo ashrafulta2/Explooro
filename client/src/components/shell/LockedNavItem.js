@@ -10,7 +10,7 @@
  * Sidebar/MobileNav/CommandPalette all filter out before this component is ever considered.
  */
 import { getPermissionMetadata } from '../../services/permissions.js';
-import { getPermissionMeta } from '../../config/permissions.mock.js';
+import { getPermissionMeta } from '../../config/permissions.mock.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { openRequestAccessModal } from '../access/RequestAccessModal.js';
 import { Modal } from '../ui/Modal.ts';

@@ -63,7 +63,7 @@ export async function getFeed(req, reply) {
     userId: req.user?.id,
     sessionId: resolveSessionId(req),
     audience: resolveAudience(audience),
-    // `personalize=0` is the shopper opting out of profiling (client signals.js); anything else keeps it on.
+    // `personalize=0` is the shopper opting out of profiling (client signals.ts); anything else keeps it on.
     personalize: !(personalize === '0' || personalize === 'false'),
     limit: limit ? parseInt(limit, 10) : undefined,
     offset: offset ? parseInt(offset, 10) : 0,
@@ -81,7 +81,7 @@ export async function getRails(req, reply) {
     userId: req.user?.id,
     sessionId: resolveSessionId(req),
     audience: resolveAudience(audience),
-    // Same opt-out switch as the feed (client signals.js sends personalize=0).
+    // Same opt-out switch as the feed (client signals.ts sends personalize=0).
     personalize: !(personalize === '0' || personalize === 'false'),
     cache: req.server?.cache,
   });

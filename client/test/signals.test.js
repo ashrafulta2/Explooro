@@ -1,7 +1,7 @@
 /**
  * signals.test.js — Phase A of the personalized home feed: the site-wide signal tracker.
  *
- * Behaviour (services/signals.js, run in Node with the browser globals stubbed):
+ * Behaviour (services/signals.ts, run in Node with the browser globals stubbed):
  *   - events are batched, grouped per audience, and carry the guest session id;
  *   - a VIEW is counted once per product per window, a CLICK every time;
  *   - a glance shorter than the dwell threshold is not a DWELL;
@@ -55,7 +55,7 @@ class FakeObserver {
 }
 globalThis.IntersectionObserver = FakeObserver;
 
-const signals = await import('../src/services/signals.js');
+const signals = await import('../src/services/signals.ts');
 const { api } = await import('../src/core/api.ts');
 
 const posts = [];
@@ -382,25 +382,25 @@ describe('client defaults match the seeded capture policy (migration 055)', () =
 
 describe('wiring — every surface reports through the one tracker, once', () => {
   it('addToCart reports ADD_CART by product id only (its supplier_id default is a placeholder)', () => {
-    const cart = src('services/cart.js');
+    const cart = src('services/cart.ts');
     assert.match(cart, /track\('ADD_CART', \{ id: product_id \}\)/);
   });
 
   it('the /discover feed no longer double-reports ADD_CART on top of addToCart', () => {
     const feed = src('components/product/ProductFeed.js');
     assert.doesNotMatch(feed, /recordEvent\(\{ event_type: 'ADD_CART'/);
-    assert.match(feed, /from '\.\.\/\.\.\/services\/signals\.js'/);
+    assert.match(feed, /from '\.\.\/\.\.\/services\/signals\.ts'/);
   });
 
   it('a confirmed wishlist save reports WISHLIST; the optimistic flip and un-save do not', () => {
-    const cart = src('services/cart.js');
+    const cart = src('services/cart.ts');
     const at = cart.indexOf("track('WISHLIST'");
     assert.ok(at > -1);
     assert.match(cart.slice(Math.max(0, at - 400), at), /if \(res\.data\.in_wishlist\)/);
   });
 
   it('checkout reads the cart lines BEFORE clearing them, and only after the order succeeds', () => {
-    const order = src('services/order.api.js');
+    const order = src('services/order.api.ts');
     const fn = order.slice(order.indexOf('export async function placeCheckout'));
     const post = fn.indexOf("api.post('/orders/checkout'");
     // Anchor on real code, not the same words inside the explanatory comment.
@@ -427,12 +427,12 @@ describe('wiring — every surface reports through the one tracker, once', () =>
   });
 
   it('the feed read tells the server when the shopper opted out', () => {
-    const api = src('services/discovery.api.js');
+    const api = src('services/discovery.api.ts');
     assert.match(api, /isPersonalizationOff\(\)\) query\.personalize = '0'/);
   });
 
   it('nothing but the tracker posts to /discovery/events any more', () => {
-    for (const rel of ['services/discovery.api.js', 'components/product/ProductFeed.js']) {
+    for (const rel of ['services/discovery.api.ts', 'components/product/ProductFeed.js']) {
       assert.doesNotMatch(src(rel), /\/discovery\/events/, rel);
     }
   });
@@ -477,7 +477,7 @@ describe('surface attribution', () => {
   });
 
   it('the client and the server accept exactly the same shape of surface name', () => {
-    const client = /SOURCE_PATTERN = (\/.+\/);/.exec(src('services/signals.js'))[1];
+    const client = /SOURCE_PATTERN = (\/.+\/);/.exec(src('services/signals.ts'))[1];
     const server = /SOURCE_PATTERN = (\/.+\/);/.exec(serverSrc('services/discoveryFeed.service.ts'))[1];
     assert.equal(client, server);
     const sql = /source ~ '([^']+)'/.exec(readFileSync(join(here, '..', '..', 'server', 'src', 'db', 'migrations', '060_recommendation_cache_metrics.sql'), 'utf8'))[1];

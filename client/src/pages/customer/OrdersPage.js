@@ -8,7 +8,7 @@
  */
 
 import '../../styles/components/customer-orders.css';
-import { getMyOrders } from '../../services/order.api.js';
+import { getMyOrders } from '../../services/order.api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
@@ -101,7 +101,7 @@ export default function OrdersPage(root, { navigate } = {}) {
     );
 
     try {
-      // Uses order.api.js → GET /orders/my-orders (mocked)
+      // Uses order.api.ts → GET /orders/my-orders (mocked)
       const res = await getMyOrders({ status: currentTab !== 'ALL' ? currentTab : undefined });
       const allOrders = res.orders || res.data?.orders || [];
 

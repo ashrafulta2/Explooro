@@ -21,7 +21,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { appStore, setMockRole } from '../../state/appStore.js';
-import { defaultPermissionsForRole } from '../../config/permissions.mock.js';
+import { defaultPermissionsForRole } from '../../config/permissions.mock.ts';
 
 export default function BecomeSalerPage(root, { navigate } = {}) {
   const nav = (url) => {

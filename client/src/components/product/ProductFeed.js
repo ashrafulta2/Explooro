@@ -3,7 +3,7 @@
  * surface). Each slide shows a product large, like a condensed product-detail page, and the shopper
  * moves through them one by one (scroll-snap, wheel, ArrowUp/Down/PageUp/PageDown, touch-swipe).
  *
- * Ranking is server-side and interest-based (services/discovery.api.js → GET /discovery/feed); this
+ * Ranking is server-side and interest-based (services/discovery.api.ts → GET /discovery/feed); this
  * component only records the signals that drive it: a VIEW the first time a slide is seen, and a
  * DWELL (with elapsed time) when the shopper moves on. Slides lazily enrich to full detail
  * (supplier, description, variants) once they become active, so the initial page stays light on
@@ -28,9 +28,9 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { addToCart } from '../../services/cart.js';
-import { getFeed } from '../../services/discovery.api.js';
-import { recordEvent, MIN_DWELL_MS } from '../../services/signals.js';
+import { addToCart } from '../../services/cart.ts';
+import { getFeed } from '../../services/discovery.api.ts';
+import { recordEvent, MIN_DWELL_MS } from '../../services/signals.ts';
 import { getProduct, addToSalerStore } from '../../services/catalog.api.ts';
 import { resolveProductImage } from './ProductCard.ts';
 import { VariantSelector } from './VariantSelector.ts';
@@ -479,7 +479,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
         supplier_name: p.supplier_name || p.supplier?.name || 'Verified Supplier',
         stock_qty: sel?.stockQty ?? st.availStock ?? 10,
       });
-      // ADD_CART is reported by addToCart() itself (services/cart.js), so every add-to-cart surface is
+      // ADD_CART is reported by addToCart() itself (services/cart.ts), so every add-to-cart surface is
       // counted once and this one is not double-counted.
     });
     primaryRow.append(primary);

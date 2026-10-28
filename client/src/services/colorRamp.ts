@@ -388,7 +388,7 @@ function interactionSteps(anchorIndex: number): { hover: number; active: number 
  * The colour the product ships with, in engine terms.
  *
  * Three things are pinned to this one object and a test asserts each: styles/themes.css is
- * generated from it, `MASTER_PRESETS.midnight_slate` in config/master-themes.js carries the same
+ * generated from it, `MASTER_PRESETS.midnight_slate` in config/master-themes.ts carries the same
  * settings (it is the preset `DEFAULT_MASTER_PRESET` names), and `normaliseMasterConfig` falls
  * back to it field by field when a stored master block is partial.
  *

@@ -11,7 +11,7 @@ import { t } from '../../services/i18n.js';
 import { Badge } from '../ui/Badge.ts';
 import { Drawer } from '../ui/Drawer.ts';
 import { Sidebar } from './Sidebar.js';
-import { openCart } from '../../services/cart.js';
+import { openCart } from '../../services/cart.ts';
 
 // Non-navigation tab actions — a tab with `action` opens UI in place instead of routing.
 const TAB_ACTIONS = {

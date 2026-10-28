@@ -23,7 +23,7 @@ import { TopBar, formatRemaining } from './TopBar.js';
 import { MobileNav } from './MobileNav.js';
 import { createCommandPalette } from './CommandPalette.js';
 import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.js';
-import { initCart, setCartNavigator } from '../../services/cart.js';
+import { initCart, setCartNavigator } from '../../services/cart.ts';
 
 const BACK_PORTAL_ROOTS = ['/admin', '/moderator', '/saler', '/supplier'];
 

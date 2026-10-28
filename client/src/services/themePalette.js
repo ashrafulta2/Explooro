@@ -2,8 +2,8 @@
  * themePalette.js — Client runtime theme applier, WCAG AA contrast calculator & token validator (Prompt 3.5).
  */
 
-import { THEME_PRESETS } from '../config/theme-presets.js';
-import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../config/master-themes.js';
+import { THEME_PRESETS } from '../config/theme-presets.ts';
+import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../config/master-themes.ts';
 import { generatePalette, DEFAULT_MASTER } from './colorRamp.ts';
 import {
   applyMasterPalette,

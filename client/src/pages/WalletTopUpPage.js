@@ -11,7 +11,7 @@
 
 import { Button } from '../components/ui/Button.ts';
 import { Input } from '../components/ui/Input.ts';
-import { getTopUps, topUp, amountProblem } from '../services/walletTopup.api.js';
+import { getTopUps, topUp, amountProblem } from '../services/walletTopup.api.ts';
 import { toast } from '../services/toast.js';
 import { t } from '../services/i18n.js';
 import { formatCurrency } from '../services/format.js';
