@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { ROLE_BANDS, FULL_BAND_ROLES, SLIDE_TONES } from '../src/components/home/homeBands.ts';
 import { navItems } from '../src/config/navigation.js';
-import { formatStat, percentShares, BOARD_VIEWS } from '../src/components/home/RoleBand.js';
+import { formatStat, percentShares, BOARD_VIEWS } from '../src/components/home/RoleBand.ts';
 import { MOCK_HOME_STATS, MOCK_HOME_INSIGHTS } from '../src/mocks/handlers/homeSummary.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');

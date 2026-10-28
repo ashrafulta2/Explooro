@@ -10,7 +10,7 @@ import { appStore } from '../state/appStore.js';
 import { listProducts } from '../services/catalog.api.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
-import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
+import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { updateHead } from '../services/seo.ts';

@@ -22,7 +22,7 @@
 import { appStore } from '../state/appStore.js';
 import { listProducts } from '../services/catalog.api.js';
 import { adsApi } from '../services/ads.api.js';
-import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
+import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { HomeTop } from '../components/home/HomeTop.js';

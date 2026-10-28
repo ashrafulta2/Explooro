@@ -71,7 +71,7 @@
 .home-top__card-link { align-self: flex-start; font-size: var(--text-sm); font-weight: 600; color: var(--text-brand, var(--text-primary)); text-decoration: none; }
 .home-top__card-link:hover { text-decoration: underline; }
 
-/* ── Role panels (RoleBand.js) ───────────────────────────────────────────────────────────────
+/* ── Role panels (RoleBand.ts) ───────────────────────────────────────────────────────────────
    WHY: every signed-in account type but customer gets three panels of its own, sized to the same height
    as the slider so the band never changes height between roles. Rows and metrics stretch to fill their
    panel, so a panel with two figures still looks full instead of leaving an empty box. */
@@ -108,7 +108,7 @@
 .home-band__tiles { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: var(--space-2); min-height: 0; }
 .home-band__tile { display: flex; align-items: center; justify-content: center; padding: var(--space-3); text-align: center; background: var(--surface-0); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-primary); font-size: var(--text-sm); font-weight: 600; text-decoration: none; }
 .home-band__tile:hover, .home-band__tile:focus-visible { border-color: var(--text-secondary); }
-/* ── Centre slider (RoleBand.js buildSlider) ─────────────────────────────────────────────────
+/* ── Centre slider (RoleBand.ts buildSlider) ─────────────────────────────────────────────────
    WHY the same recipe as the customer's campaign slides: each slide is a saturated ramp step (-700/-800)
    with white text, so it stays a strong fill in dark mode too, and the rows on it are white cards with
    dark text. The tones come from the theme's own ramps (two are colour-mixes of two ramps, like the
@@ -144,7 +144,7 @@
 .home-band__dot[aria-current='true'] { width: 20px; background: var(--neutral-0); }
 .home-band__dot:focus-visible { outline: 2px solid var(--neutral-0); outline-offset: 2px; }
 
-/* ── Ranking views (RoleBand.js VIEWS) ───────────────────────────────────────────────────────────
+/* ── Ranking views (RoleBand.ts VIEWS) ───────────────────────────────────────────────────────────
    Fixed light ramp steps (not role tokens) on the saturated slide, for the same reason as the slide fill.
    WHY no item uses `flex: 1 1 0` with a fixed floor: that let rows shrink below their own text inside the
    band's fixed height, and an absolutely placed bar then struck through the clipped second line. Every

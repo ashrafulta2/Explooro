@@ -34,7 +34,7 @@ import { recordEvent, MIN_DWELL_MS } from '../../services/signals.js';
 import { getProduct, addToSalerStore } from '../../services/catalog.api.js';
 import { resolveProductImage } from './ProductCard.ts';
 import { VariantSelector } from './VariantSelector.ts';
-import { WishlistButton } from '../cart/WishlistButton.js';
+import { WishlistButton } from '../cart/WishlistButton.ts';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
 import { openTeamPurchaseModal } from './TeamPurchaseModal.js';
 import { api } from '../../core/api.js';

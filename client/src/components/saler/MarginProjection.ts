@@ -1,5 +1,5 @@
 /**
- * MarginProjection.js — Zero-dependency inline SVG earnings projection chart (Prompt 4.7).
+ * MarginProjection.ts — Zero-dependency inline SVG earnings projection chart (Prompt 4.7).
  *
  * Visualizes projected monthly profits based on unit margin and estimated sales volume.
  * Adheres strictly to the 150KB budget by rendering standard responsive inline SVG.
@@ -9,19 +9,25 @@ import { t } from '../../services/i18n.js';
 
 const MILESTONES = [10, 25, 50, 100, 250, 500];
 
-/**
- * Creates the Margin Projection Component.
- *
- * @param {object} props
- * @param {number} [props.unitProfit=80] Shop Partner profit per unit
- * @param {number} [props.initialVolume=50] Estimated monthly sales volume
- * @returns {HTMLElement}
- */
+export interface MarginProjectionOptions {
+  /** Shop Partner profit per unit. */
+  unitProfit?: number | string;
+  /** Estimated monthly sales volume. */
+  initialVolume?: number | string;
+}
+
+/** The root element, with the two setters callers drive it by. */
+export interface MarginProjectionElement extends HTMLDivElement {
+  setUnitProfit(profit: number | string): void;
+  setVolume(volume: number | string): void;
+}
+
+/** Creates the Margin Projection Component. */
 export function MarginProjection({
   unitProfit = 80,
   initialVolume = 50,
-} = {}) {
-  const container = document.createElement('div');
+}: MarginProjectionOptions = {}): MarginProjectionElement {
+  const container = document.createElement('div') as MarginProjectionElement;
   container.className = 'margin-projection';
 
   let currentUnitProfit = Math.max(0, Number(unitProfit) || 0);
@@ -75,19 +81,19 @@ export function MarginProjection({
   const volRange = document.createElement('input');
   volRange.type = 'range';
   volRange.className = 'profit-calc__range';
-  volRange.min = 5;
-  volRange.max = 500;
-  volRange.step = 5;
-  volRange.value = currentVolume;
+  volRange.min = '5';
+  volRange.max = '500';
+  volRange.step = '5';
+  volRange.value = String(currentVolume);
   volRange.setAttribute('aria-label', t('sourcing.projection.estimated_volume'));
 
   const volNum = document.createElement('input');
   volNum.type = 'number';
   volNum.className = 'profit-calc__num-input';
-  volNum.min = 1;
-  volNum.max = 2000;
-  volNum.step = 5;
-  volNum.value = currentVolume;
+  volNum.min = '1';
+  volNum.max = '2000';
+  volNum.step = '5';
+  volNum.value = String(currentVolume);
   volNum.setAttribute('aria-label', `${t('sourcing.projection.estimated_volume')} numeric`);
 
   volWrap.append(volRange, volNum);
@@ -115,10 +121,10 @@ export function MarginProjection({
 
   container.append(header, volumeControl, svgContainer, milestonesContainer);
 
-  function syncVolume(v) {
+  function syncVolume(v: number | string) {
     currentVolume = Math.max(1, Number(v) || 1);
-    volRange.value = Math.min(currentVolume, 500);
-    volNum.value = currentVolume;
+    volRange.value = String(Math.min(currentVolume, 500));
+    volNum.value = String(currentVolume);
     volVal.textContent = `${currentVolume} ${t('sourcing.projection.units_per_month')}`;
 
     pillButtons.forEach(({ qty, btn }) => {
@@ -128,8 +134,8 @@ export function MarginProjection({
     renderChart();
   }
 
-  volRange.addEventListener('input', (e) => syncVolume(e.target.value));
-  volNum.addEventListener('input', (e) => syncVolume(e.target.value));
+  volRange.addEventListener('input', (e) => syncVolume((e.target as HTMLInputElement).value));
+  volNum.addEventListener('input', (e) => syncVolume((e.target as HTMLInputElement).value));
 
   function renderChart() {
     const monthlyTotal = currentVolume * currentUnitProfit;
@@ -229,12 +235,12 @@ export function MarginProjection({
   renderChart();
 
   // Public update API
-  container.setUnitProfit = (profit) => {
+  container.setUnitProfit = (profit: number | string) => {
     currentUnitProfit = Math.max(0, Number(profit) || 0);
     renderChart();
   };
 
-  container.setVolume = (vol) => {
+  container.setVolume = (vol: number | string) => {
     syncVolume(vol);
   };
 

@@ -19,15 +19,40 @@ import { resolveProductImage } from '../product/ProductCard.ts';
 const DEBOUNCE_MS = 200;
 const MIN_CHARS = 2;
 
-function productPath(p) {
+/** A row of GET /search/suggest, the fields the dropdown reads. */
+export interface SuggestProduct {
+  id?: string | number;
+  ref?: string;
+  slug?: string;
+  title_en?: string;
+  title_bn?: string;
+  category?: string;
+  category_bn?: string;
+  price?: number | string | null;
+  [field: string]: unknown;
+}
+
+export interface SearchSuggestOptions {
+  form: HTMLFormElement | null;
+  input: HTMLInputElement | null;
+  navigate: (path: string) => void;
+}
+
+export interface SearchSuggestHandle {
+  destroy(): void;
+}
+
+type SuggestItem = { type: 'product'; product: SuggestProduct } | { type: 'all'; term: string };
+
+function productPath(p: SuggestProduct) {
   return `/product/${encodeURIComponent(p.ref || p.slug || p.id)}`;
 }
 
-function searchPath(term) {
+function searchPath(term: string) {
   return `/search?q=${encodeURIComponent(term)}`;
 }
 
-export function attachSearchSuggest({ form, input, navigate }) {
+export function attachSearchSuggest({ form, input, navigate }: SearchSuggestOptions): SearchSuggestHandle {
   if (!form || !input || typeof navigate !== 'function') {
     return { destroy() {} };
   }
@@ -38,9 +63,9 @@ export function attachSearchSuggest({ form, input, navigate }) {
   panel.hidden = true;
   form.append(panel);
 
-  let timer = null;
+  let timer: ReturnType<typeof setTimeout> | null = null;
   let reqSeq = 0;
-  let items = []; // [{ type: 'product', product } | { type: 'all', term }]
+  let items: SuggestItem[] = [];
   let activeIndex = -1;
   let lastTerm = '';
 
@@ -60,9 +85,9 @@ export function attachSearchSuggest({ form, input, navigate }) {
     input.removeAttribute('aria-activedescendant');
   }
 
-  function setActive(next) {
+  function setActive(next: number) {
     activeIndex = next;
-    const rows = panel.querySelectorAll('[data-suggest-row]');
+    const rows = panel.querySelectorAll<HTMLElement>('[data-suggest-row]');
     rows.forEach((row, i) => {
       const on = i === activeIndex;
       row.classList.toggle('is-active', on);
@@ -75,7 +100,7 @@ export function attachSearchSuggest({ form, input, navigate }) {
     if (activeIndex < 0) input.removeAttribute('aria-activedescendant');
   }
 
-  function activate(index) {
+  function activate(index: number) {
     const item = items[index];
     if (!item) return;
     close();
@@ -83,7 +108,7 @@ export function attachSearchSuggest({ form, input, navigate }) {
     else navigate(searchPath(item.term));
   }
 
-  function render(term, suggestions, total) {
+  function render(term: string, suggestions: SuggestProduct[], total: number) {
     panel.replaceChildren();
     items = [];
     activeIndex = -1;
@@ -195,11 +220,11 @@ export function attachSearchSuggest({ form, input, navigate }) {
     }
   }
 
-  function onFocusOut(e) {
-    if (!form.contains(e.relatedTarget)) close();
+  function onFocusOut(e: FocusEvent) {
+    if (!form.contains(e.relatedTarget as Node | null)) close();
   }
 
-  function onKeydown(e) {
+  function onKeydown(e: KeyboardEvent) {
     if (panel.hidden || items.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();

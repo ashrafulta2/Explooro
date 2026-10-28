@@ -1,5 +1,5 @@
 /**
- * ProfitCalculator.js — Interactive profit calculator driven strictly by the server
+ * ProfitCalculator.ts — Interactive profit calculator driven strictly by the server
  * pricing preview API (Prompt 4.7).
  *
  * Invariant: The client NEVER calculates split arithmetic locally. All breakdown numbers
@@ -10,18 +10,35 @@ import { previewPricing } from '../../services/catalog.api.js';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 
-/**
- * Creates an interactive profit calculator component.
- *
- * @param {object} props
- * @param {number} [props.initialBaseCost=500]
- * @param {number} [props.initialWholesaleMargin=0]
- * @param {number} [props.initialRetailPrice=700]
- * @param {string|number} [props.productId]
- * @param {number} [props.categoryId]
- * @param {Function} [props.onChange] Callback when breakdown updates
- * @returns {HTMLElement}
- */
+/** The answer to POST /pricing/preview: the fields the calculator draws. */
+export interface PricingBreakdown {
+  min_retail_price?: number;
+  retail_price: number;
+  saler_earning: number;
+  saler_default_earning: number;
+  saler_margin_pct: number | string;
+  price_status: 'DISCOUNTED' | 'BOOSTED' | 'STANDARD' | string;
+  [field: string]: unknown;
+}
+
+export interface ProfitCalculatorOptions {
+  initialBaseCost?: number;
+  initialWholesaleMargin?: number;
+  initialRetailPrice?: number;
+  initialDefaultRetailPrice?: number;
+  productId?: string | number | null;
+  categoryId?: number | null;
+  /** Called whenever the breakdown updates. */
+  onChange?: ((breakdown: PricingBreakdown) => void) | null;
+}
+
+/** The root element, with the control API callers (e.g. AddToStoreDrawer) drive it by. */
+export interface ProfitCalculatorElement extends HTMLDivElement {
+  setValues(base?: number | string, wholesale?: number | string, retail?: number | string, defaultRetail?: number | string): void;
+  getBreakdown(): PricingBreakdown | null;
+}
+
+/** Creates an interactive profit calculator component. */
 export function ProfitCalculator({
   initialBaseCost = 500,
   initialWholesaleMargin = 0,
@@ -30,8 +47,8 @@ export function ProfitCalculator({
   productId = null,
   categoryId = null,
   onChange = null,
-} = {}) {
-  const container = document.createElement('div');
+}: ProfitCalculatorOptions = {}): ProfitCalculatorElement {
+  const container = document.createElement('div') as ProfitCalculatorElement;
   container.className = 'profit-calc';
 
   let baseCost = Number(initialBaseCost) || 500;
@@ -40,9 +57,9 @@ export function ProfitCalculator({
   let defaultRetailPrice = Number(initialDefaultRetailPrice) || retailPrice;
   let minRetailPrice = Math.round((baseCost + wholesaleMargin) * 1.1);
 
-  let currentBreakdown = null;
-  let debounceTimer = null;
-  let pendingAbort = null;
+  let currentBreakdown: PricingBreakdown | null = null;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let pendingAbort: AbortController | null = null;
 
   // Header
   const header = document.createElement('div');
@@ -155,6 +172,7 @@ export function ProfitCalculator({
         baseCost,
         wholesaleMargin,
         retailPrice,
+        // @ts-expect-error previewPricing (still .js) infers its options from a default that omits this
         defaultRetailPrice,
         categoryId,
         productId,
@@ -228,7 +246,7 @@ export function ProfitCalculator({
   fetchPreview();
 
   // Public control API for external callers (e.g. AddToStoreDrawer)
-  container.setValues = (newBase, newWholesale, newRetail, newDefaultRetail) => {
+  container.setValues = (newBase?: number | string, newWholesale?: number | string, newRetail?: number | string, newDefaultRetail?: number | string) => {
     if (newBase !== undefined) {
       baseCost = Number(newBase);
     }
@@ -252,7 +270,16 @@ export function ProfitCalculator({
   return container;
 }
 
-function createSliderField({ label, min, max, step, value, onInput }) {
+interface SliderFieldOptions {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onInput: (value: number) => void;
+}
+
+function createSliderField({ label, min, max, step, value, onInput }: SliderFieldOptions) {
   const element = document.createElement('div');
   element.className = 'profit-calc__field';
 
@@ -275,50 +302,50 @@ function createSliderField({ label, min, max, step, value, onInput }) {
   const range = document.createElement('input');
   range.type = 'range';
   range.className = 'profit-calc__range';
-  range.min = min;
-  range.max = max;
-  range.step = step;
-  range.value = value;
+  range.min = String(min);
+  range.max = String(max);
+  range.step = String(step);
+  range.value = String(value);
   range.setAttribute('aria-label', label);
 
   const numInput = document.createElement('input');
   numInput.type = 'number';
   numInput.className = 'profit-calc__num-input';
-  numInput.min = min;
-  numInput.max = max * 2;
-  numInput.step = step;
-  numInput.value = value;
+  numInput.min = String(min);
+  numInput.max = String(max * 2);
+  numInput.step = String(step);
+  numInput.value = String(value);
   numInput.setAttribute('aria-label', `${label} numeric input`);
 
-  function sync(v) {
+  function sync(v: number | string) {
     const num = Math.max(0, Number(v) || 0);
-    range.value = Math.min(num, max);
-    numInput.value = num;
+    range.value = String(Math.min(num, max));
+    numInput.value = String(num);
     displayVal.textContent = formatCurrency(num);
     onInput(num);
   }
 
-  range.addEventListener('input', (e) => sync(e.target.value));
-  numInput.addEventListener('input', (e) => sync(e.target.value));
+  range.addEventListener('input', (e) => sync((e.target as HTMLInputElement).value));
+  numInput.addEventListener('input', (e) => sync((e.target as HTMLInputElement).value));
 
   wrap.append(range, numInput);
   element.append(header, wrap);
 
   return {
     element,
-    setValue: (val) => {
-      range.value = Math.min(val, max);
-      numInput.value = val;
+    setValue: (val: number) => {
+      range.value = String(Math.min(val, max));
+      numInput.value = String(val);
       displayVal.textContent = formatCurrency(val);
     },
-    setMin: (minVal) => {
-      range.min = minVal;
-      numInput.min = minVal;
+    setMin: (minVal: number) => {
+      range.min = String(minVal);
+      numInput.min = String(minVal);
     },
   };
 }
 
-function createCard(title, initialValue, initialSub, isHighlight = false) {
+function createCard(title: string, initialValue: string, initialSub: string, isHighlight = false) {
   const element = document.createElement('div');
   element.className = `profit-calc__card ${isHighlight ? 'profit-calc__card--highlight' : ''}`;
 
@@ -338,12 +365,12 @@ function createCard(title, initialValue, initialSub, isHighlight = false) {
 
   return {
     element,
-    setValue: (v) => { val.textContent = v; },
-    setSub: (s) => { sub.textContent = s; },
+    setValue: (v: string) => { val.textContent = v; },
+    setSub: (s: string) => { sub.textContent = s; },
   };
 }
 
-function createLegendItem(color, label) {
+function createLegendItem(color: string, label: string) {
   const item = document.createElement('div');
   item.className = 'profit-calc__legend-item';
 

@@ -1,5 +1,5 @@
 /**
- * SponsoredStrip.js — a row of paid ads for one surface (search results, home feed, product page).
+ * SponsoredStrip.ts — a row of paid ads for one surface (search results, home feed, product page).
  *
  * Fetches the auction winners for `placement`, draws each as a SponsoredSlot, and stays completely
  * out of the way otherwise: no winner, the `sponsored_ads` module off, or a failed request all leave
@@ -14,23 +14,28 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.js';
 import { SponsoredSlot } from './SponsoredSlot.js';
 
-/**
- * @param {Object} options
- * @param {'SEARCH_RESULTS'|'FEED'|'PRODUCT_PAGE'} options.placement
- * @param {'card'|'banner'|'feed'} [options.variant='card']
- * @param {string} [options.keyword]
- * @param {number|string} [options.categoryId]
- * @param {number} [options.limit=3]
- * @param {Array<Object>} [options.ads] - Pre-fetched winners (skips the request; used by the gallery).
- * @returns {{ el: HTMLElement, cleanup: () => void }}
- */
-export function SponsoredStrip({ placement, variant = 'card', keyword = '', categoryId = null, limit = 3, ads = null } = {}) {
+export interface SponsoredStripOptions {
+  placement: 'SEARCH_RESULTS' | 'FEED' | 'PRODUCT_PAGE';
+  variant?: 'card' | 'banner' | 'feed';
+  keyword?: string;
+  categoryId?: number | string | null;
+  limit?: number;
+  /** Pre-fetched winners (skips the request; used by the gallery). */
+  ads?: Record<string, unknown>[] | null;
+}
+
+export interface SponsoredStripParts {
+  el: HTMLElement;
+  cleanup: () => void;
+}
+
+export function SponsoredStrip({ placement, variant = 'card', keyword = '', categoryId = null, limit = 3, ads = null }: SponsoredStripOptions = {} as SponsoredStripOptions): SponsoredStripParts {
   const el = document.createElement('div');
   el.className = `sponsored-strip sponsored-strip--${variant}`;
   el.dataset.placement = placement;
   el.hidden = true;
 
-  const slots = [];
+  const slots: InstanceType<typeof SponsoredSlot>[] = [];
   let destroyed = false;
 
   async function load() {

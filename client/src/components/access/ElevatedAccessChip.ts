@@ -1,5 +1,5 @@
 /**
- * ElevatedAccessChip.js — Persistent top-bar countdown chip for active JIT elevation (Prompt 2.8).
+ * ElevatedAccessChip.ts — Persistent top-bar countdown chip for active JIT elevation (Prompt 2.8).
  *
  * Implements Prompt 2.8 Requirement 6:
  * - Persistent top-bar countdown while a JIT window is active.
@@ -11,13 +11,23 @@ import { releaseJitAccess } from '../../services/permissions.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
-export function formatRemainingTime(ms, lang) {
+/** A just-in-time elevation window the chip counts down (`getActiveJitGrants()` rows). */
+export interface ElevatedGrant {
+  ref: string;
+  expiresAt: number;
+}
+
+export interface ElevatedAccessChipOptions {
+  elevatedGrant?: ElevatedGrant | null;
+}
+
+export function formatRemainingTime(ms: number, lang: string): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
 
   if (lang === 'bn') {
-    const toBn = (n) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d]);
+    const toBn = (n: number) => String(n).replace(/[0-9]/g, (d) => '০১২৩৪৫৬৭৮৯'[d as unknown as number]);
     if (hours > 0) return `${toBn(hours)} ঘণ্টা ${toBn(minutes)} মিনিট`;
     return `${toBn(minutes)} মিনিট`;
   }
@@ -26,7 +36,7 @@ export function formatRemainingTime(ms, lang) {
   return `${minutes}m`;
 }
 
-export function ElevatedAccessChip({ elevatedGrant }) {
+export function ElevatedAccessChip({ elevatedGrant }: ElevatedAccessChipOptions): HTMLElement | DocumentFragment {
   if (!elevatedGrant) return document.createDocumentFragment();
 
   const chip = document.createElement('div');

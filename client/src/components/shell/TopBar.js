@@ -22,12 +22,12 @@ import { logout } from '../../services/session.js';
 import { getTheme, applyTheme } from '../../services/theme.ts';
 import { Badge } from '../ui/Badge.ts';
 import { api } from '../../core/api.js';
-import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
+import { ElevatedAccessChip } from '../access/ElevatedAccessChip.ts';
 import { openCart } from '../../services/cart.js';
 import { openNotificationCenter } from '../notifications/NotificationCenter.js';
 import { openAssistantPanel } from '../ai/AssistantPanel.js';
 import { ICONS, getExplooroLogoSvg, formatExplooroBrandText } from '../ui/icons.ts';
-import { attachSearchSuggest } from '../search/SearchSuggest.js';
+import { attachSearchSuggest } from '../search/SearchSuggest.ts';
 
 // Grace period before an emptied search box resets the results page. Long enough that
 // select-all-and-retype (or a fast backspace-then-type) doesn't bounce through the home page

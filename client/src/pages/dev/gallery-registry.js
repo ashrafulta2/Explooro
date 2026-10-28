@@ -51,7 +51,7 @@ import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colo
 import { CategoryPills } from '../../components/product/CategoryPills.ts';
 import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.ts';
 import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.js';
-import { attachSearchSuggest } from '../../components/search/SearchSuggest.js';
+import { attachSearchSuggest } from '../../components/search/SearchSuggest.ts';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.ts';
 import { HomeTop } from '../../components/home/HomeTop.js';
 import { ProductRail, ProductRailSkeleton } from '../../components/product/ProductRail.ts';
@@ -60,7 +60,7 @@ import { VariantSelector } from '../../components/product/VariantSelector.ts';
 import { PriceBreakdown } from '../../components/product/PriceBreakdown.ts';
 import { ReviewList } from '../../components/product/ReviewList.js';
 import { QnASection } from '../../components/product/QnASection.js';
-import { ProfitCalculator } from '../../components/saler/ProfitCalculator.js';
+import { ProfitCalculator } from '../../components/saler/ProfitCalculator.ts';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { SponsoredTag } from '../../components/saler/SponsoredTag.ts';
 import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.ts';
@@ -68,17 +68,17 @@ import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTabl
 import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.js';
 import { FastPayoutTable } from '../../components/payoutProtection/FastPayoutTable.ts';
 import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
-import { MarginProjection } from '../../components/saler/MarginProjection.js';
+import { MarginProjection } from '../../components/saler/MarginProjection.ts';
 import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.js';
 import { StoreHeader } from '../../components/store/StoreHeader.ts';
 import { ShelfEditor } from '../../components/store/ShelfEditor.js';
 import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';
-import { WishlistButton } from '../../components/cart/WishlistButton.js';
+import { WishlistButton } from '../../components/cart/WishlistButton.ts';
 import { openPayoutRequestModal } from '../../components/vault/PayoutRequestModal.js';
 import { EvidenceTimeline } from '../../components/dispute/EvidenceTimeline.ts';
 import { ReviewCard } from '../../components/moderation/ReviewCard.ts';
 import { SponsoredSlot } from '../../components/ads/SponsoredSlot.js';
-import { SponsoredStrip } from '../../components/ads/SponsoredStrip.js';
+import { SponsoredStrip } from '../../components/ads/SponsoredStrip.ts';
 import { LiveStreamCard } from '../../components/live/LiveStreamCard.js';
 import { PinnedProductOverlay } from '../../components/live/PinnedProductOverlay.js';
 import { AssistantPanel } from '../../components/ai/AssistantPanel.js';
@@ -98,7 +98,7 @@ import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.ts';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';
 import { openTeamPurchaseModal } from '../../components/product/TeamPurchaseModal.js';
-import { TeamCheckoutForm } from '../../components/product/TeamCheckoutForm.js';
+import { TeamCheckoutForm } from '../../components/product/TeamCheckoutForm.ts';
 import '../../styles/components/returns.css';
 
 /** One labelled specimen row: a short caption beside the live rendered states. */

@@ -1,5 +1,5 @@
 /**
- * TeamCheckoutForm.js — the form a shopper fills to start or join a team purchase.
+ * TeamCheckoutForm.ts — the form a shopper fills to start or join a team purchase.
  *
  * It asks for exactly two things, the recipient's name and their address, plus how to pay:
  * Cash on Delivery or the Explooro wallet. Below them it shows what will be charged — the group
@@ -23,10 +23,47 @@ import { formatCurrency } from '../../services/format.js';
 import { customerApi } from '../../services/customer.api.js';
 import '../../styles/components/team-checkout.css';
 
-const toPaisa = (v) => Math.round(Number(v || 0) * 100);
+/** What `onSubmit` receives; `otp_code` only follows a COD_OTP_REQUIRED answer. */
+export interface TeamCheckoutPayload {
+  recipient_name: string;
+  address_line: string;
+  payment_method: 'COD' | 'WALLET';
+  otp_code?: string;
+}
+
+export interface TeamCheckoutFormOptions {
+  itemPrice?: number | string;
+  shippingCharge?: number | string;
+  /** Null when signed out. */
+  walletBalance?: number | string | null;
+  submitLabel?: string;
+  onSubmit?: (payload: TeamCheckoutPayload) => Promise<unknown>;
+}
+
+export interface TeamCheckoutFormParts {
+  el: HTMLFormElement;
+  setItemPrice(price: number | string): void;
+}
+
+/** A saved address row from GET /customer/addresses, the fields the form reads. */
+interface SavedAddress {
+  recipient_name?: string;
+  address_line?: string;
+  upazila?: string;
+  district?: string;
+  is_default?: boolean;
+}
+
+/** The `details` of a COD_OTP_REQUIRED error. */
+interface OtpDetails {
+  phone?: string;
+  otp_debug?: string;
+}
+
+const toPaisa = (v: number | string | null | undefined) => Math.round(Number(v || 0) * 100);
 
 /** "House 4, Road 7" + "Dhanmondi" + "Dhaka" from a saved address, skipping blanks. */
-function joinAddress(a) {
+function joinAddress(a: SavedAddress) {
   return [a.address_line, a.upazila, a.district].filter((part) => part && String(part).trim()).join(', ');
 }
 
@@ -36,7 +73,7 @@ export function TeamCheckoutForm({
   walletBalance = null,
   submitLabel = '',
   onSubmit = async () => {},
-} = {}) {
+}: TeamCheckoutFormOptions = {}): TeamCheckoutFormParts {
   let currentItemPrice = Number(itemPrice) || 0;
 
   const form = document.createElement('form');
@@ -48,8 +85,8 @@ export function TeamCheckoutForm({
   nameField.className = 'team-checkout__field';
   nameField.innerHTML = `<span class="team-checkout__label"></span>
     <input class="input input--sm" name="recipient_name" type="text" maxlength="100" autocomplete="name" required />`;
-  nameField.querySelector('.team-checkout__label').textContent = t('team_purchases.checkout.recipient_name');
-  const nameInput = nameField.querySelector('input');
+  nameField.querySelector('.team-checkout__label')!.textContent = t('team_purchases.checkout.recipient_name');
+  const nameInput = nameField.querySelector<HTMLInputElement>('input')!;
   nameInput.placeholder = t('team_purchases.checkout.recipient_name_placeholder');
 
   const addressField = document.createElement('label');
@@ -57,9 +94,9 @@ export function TeamCheckoutForm({
   addressField.innerHTML = `<span class="team-checkout__label"></span>
     <textarea class="input input--sm team-checkout__address" name="address_line" rows="2" minlength="10" maxlength="300" autocomplete="street-address" required></textarea>
     <span class="team-checkout__hint"></span>`;
-  addressField.querySelector('.team-checkout__label').textContent = t('team_purchases.checkout.address');
-  addressField.querySelector('.team-checkout__hint').textContent = t('team_purchases.checkout.address_hint');
-  const addressInput = addressField.querySelector('textarea');
+  addressField.querySelector('.team-checkout__label')!.textContent = t('team_purchases.checkout.address');
+  addressField.querySelector('.team-checkout__hint')!.textContent = t('team_purchases.checkout.address_hint');
+  const addressInput = addressField.querySelector<HTMLTextAreaElement>('textarea')!;
   addressInput.placeholder = t('team_purchases.checkout.address_placeholder');
 
   // -- payment ----------------------------------------------------------------------------------
@@ -70,17 +107,17 @@ export function TeamCheckoutForm({
   legend.textContent = t('team_purchases.checkout.payment_method');
   payment.append(legend);
 
-  function paymentOption(value, title, note) {
+  function paymentOption(value: string, title: string, note: string) {
     const label = document.createElement('label');
     label.className = 'team-checkout__pay-option';
     label.dataset.method = value;
     label.innerHTML = `<input type="radio" name="payment_method" />
       <span class="team-checkout__pay-text"><strong></strong><small></small></span>`;
-    const input = label.querySelector('input');
+    const input = label.querySelector<HTMLInputElement>('input')!;
     input.value = value;
-    label.querySelector('strong').textContent = title;
-    label.querySelector('small').textContent = note;
-    return { label, input, note: label.querySelector('small') };
+    label.querySelector('strong')!.textContent = title;
+    label.querySelector('small')!.textContent = note;
+    return { label, input, note: label.querySelector('small')! };
   }
 
   const cod = paymentOption('COD', t('team_purchases.checkout.pay_cod'), t('team_purchases.checkout.pay_cod_note'));
@@ -96,13 +133,13 @@ export function TeamCheckoutForm({
     <span class="team-checkout__label"></span>
     <input class="input input--sm font-mono" name="otp_code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
     <span class="team-checkout__hint team-checkout__otp-dev"></span>`;
-  otpField.querySelector('.team-checkout__label').textContent = t('team_purchases.checkout.otp_label');
-  const otpNote = otpField.querySelector('.team-checkout__otp-note');
-  const otpDev = otpField.querySelector('.team-checkout__otp-dev');
-  const otpInput = otpField.querySelector('input');
+  otpField.querySelector('.team-checkout__label')!.textContent = t('team_purchases.checkout.otp_label');
+  const otpNote = otpField.querySelector('.team-checkout__otp-note')!;
+  const otpDev = otpField.querySelector<HTMLElement>('.team-checkout__otp-dev')!;
+  const otpInput = otpField.querySelector<HTMLInputElement>('input')!;
   otpInput.placeholder = t('team_purchases.checkout.otp_placeholder');
 
-  function showOtp(details = {}) {
+  function showOtp(details: OtpDetails = {}) {
     otpField.hidden = false;
     otpNote.textContent = t('team_purchases.checkout.otp_sent', { phone: details.phone || '' });
     otpDev.textContent = details.otp_debug ? t('team_purchases.checkout.otp_dev', { code: details.otp_debug }) : '';
@@ -167,7 +204,7 @@ export function TeamCheckoutForm({
     submit.textContent = `${submitLabel} (${formatCurrency(totalPaisa() / 100)})`;
   }
 
-  function showError(message) {
+  function showError(message: string) {
     error.textContent = message;
     error.hidden = !message;
   }
@@ -220,7 +257,7 @@ export function TeamCheckoutForm({
   renderSummary();
 
   // Prefill from the default saved address, without overwriting anything already typed.
-  customerApi.getAddresses().then((list) => {
+  customerApi.getAddresses().then((list: SavedAddress[]) => {
     const saved = Array.isArray(list) ? (list.find((a) => a.is_default) || list[0]) : null;
     if (!saved) return;
     if (!nameInput.value) nameInput.value = saved.recipient_name || '';
@@ -229,7 +266,7 @@ export function TeamCheckoutForm({
 
   return {
     el: form,
-    setItemPrice(price) {
+    setItemPrice(price: number | string) {
       currentItemPrice = Number(price) || 0;
       renderSummary();
     },

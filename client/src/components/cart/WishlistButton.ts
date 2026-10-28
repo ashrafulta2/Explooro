@@ -1,5 +1,5 @@
 /**
- * WishlistButton.js — Reusable heart button for saving items to Wishlist (Prompt 5.1).
+ * WishlistButton.ts — Reusable heart button for saving items to Wishlist (Prompt 5.1).
  *
  * Fully accessible with aria-pressed, keyboard support, optimistic animation,
  * and multi-language tooltips.
@@ -13,13 +13,25 @@ const HEART_SVG = `
   <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
 </svg>`;
 
+export interface WishlistButtonOptions {
+  productId: number | string;
+  size?: 'sm' | 'md' | 'lg' | string;
+  className?: string;
+  onChange?: ((active: boolean) => void) | null;
+}
+
+/** The heart button, plus the store unsubscribe `cleanup` hooks read off it. */
+export interface WishlistButtonElement extends HTMLButtonElement {
+  _cleanup: () => void;
+}
+
 export function WishlistButton({
   productId,
   size = 'md',
   className = '',
   onChange = null,
-} = {}) {
-  const btn = document.createElement('button');
+}: WishlistButtonOptions = {} as WishlistButtonOptions): WishlistButtonElement {
+  const btn = document.createElement('button') as WishlistButtonElement;
   btn.type = 'button';
   btn.className = `wishlist-btn wishlist-btn--${size} ${className}`.trim();
   btn.innerHTML = HEART_SVG;

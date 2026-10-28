@@ -14,7 +14,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
-import { formatRemainingTime } from '../src/components/access/ElevatedAccessChip.js';
+import { formatRemainingTime } from '../src/components/access/ElevatedAccessChip.ts';
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
 
 const catalogMap = new Map(catalog.permissions.map((p) => [p.key, p]));

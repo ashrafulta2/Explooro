@@ -13,7 +13,7 @@
  * The centre panel is a slider (`slides`), like the customer's campaign slider. Each slide is one of:
  *   kind 'leaderboard' — ranks `insights.<board>` from the same endpoint; `count` names the unit of the
  *                        figure under each name (`marketplace.top.band.board.count.<count>`), and `view`
- *                        picks how it is drawn (RoleBand.js VIEWS: list, spotlight, bars, chips, tiles,
+ *                        picks how it is drawn (RoleBand.ts VIEWS: list, spotlight, bars, chips, tiles,
  *                        share). No two slides in one role use the same view, so the slider never repeats.
  *   kind 'metrics'     — the role's key figures as tinted cards.
  *   kind 'links'       — shortcut tiles, for a role with no numbers.
@@ -51,7 +51,7 @@ export interface LinkRow {
 
 export type BandRow = StatRow | LinkRow;
 
-/** How a leaderboard slide is drawn (RoleBand.js VIEWS). No two slides in one role use the same view. */
+/** How a leaderboard slide is drawn (RoleBand.ts VIEWS). No two slides in one role use the same view. */
 export type SlideView = 'list' | 'spotlight' | 'bars' | 'chips' | 'tiles' | 'share';
 
 interface SlideBase {

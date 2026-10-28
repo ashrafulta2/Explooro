@@ -17,7 +17,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { resolveProductImage } from './ProductCard.ts';
-import { TeamCheckoutForm } from './TeamCheckoutForm.js';
+import { TeamCheckoutForm } from './TeamCheckoutForm.ts';
 
 export function openTeamPurchaseModal({
   product,

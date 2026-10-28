@@ -14,7 +14,7 @@
 
 import { api } from '../core/api.js';
 import { Modal } from '../components/ui/Modal.js';
-import { TeamCheckoutForm } from '../components/product/TeamCheckoutForm.js';
+import { TeamCheckoutForm } from '../components/product/TeamCheckoutForm.ts';
 import { appStore } from '../state/appStore.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { formatCurrency } from '../services/format.js';

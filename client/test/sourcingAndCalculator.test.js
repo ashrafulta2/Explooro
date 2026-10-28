@@ -162,7 +162,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
   await t.test('9. ProfitCalculator exposes wholesale cost, retail price, and shop partner profit with zero platform cards or split leak', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
-    const filePath = path.resolve(import.meta.dirname, '../src/components/saler/ProfitCalculator.js');
+    const filePath = path.resolve(import.meta.dirname, '../src/components/saler/ProfitCalculator.ts');
     const content = fs.readFileSync(filePath, 'utf8');
 
     // Cards must be wholesale, retail price, and shop partner profit

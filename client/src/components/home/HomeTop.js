@@ -23,7 +23,7 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.js';
 import { ICONS } from '../ui/icons.ts';
 import { getHomeSummary } from '../../services/homeSummary.api.js';
-import { RoleBand } from './RoleBand.js';
+import { RoleBand } from './RoleBand.ts';
 import { FULL_BAND_ROLES } from './homeBands.ts';
 
 const SLIDES = [

@@ -15,19 +15,73 @@
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { ROLE_BANDS } from './homeBands.ts';
+import type { SlideView } from './homeBands.ts';
+
+/** A row, metric or tile of a panel: a figure (`stat`) or a plain shortcut (`link`). */
+interface BandItem {
+  stat?: string;
+  link?: string;
+  path: string;
+  money?: boolean;
+  alert?: boolean;
+  tone?: string;
+}
+
+/** Whatever `buildBody` draws: a panel's rows, or one slide (metrics, ranking or tiles). */
+interface BodyDef {
+  kind?: string;
+  rows?: BandItem[];
+  metrics?: BandItem[];
+  links?: BandItem[];
+  board?: string;
+  view?: SlideView;
+  count?: string;
+  nameKey?: string;
+}
+
+interface PanelDef extends BodyDef {
+  tone?: string;
+  cta?: string;
+  slides?: (BodyDef & { id: string; tone: string; cta: string })[];
+}
+
+/** One entry of `insights.<board>`: a name (or a code looked up under `nameKey`) and a figure. */
+interface BoardEntry {
+  code?: string;
+  name_en?: string;
+  name_bn?: string;
+  count?: number | string;
+  amount?: number | string | null;
+}
+
+interface RoleBandContext {
+  onNavigate: (path: string) => void;
+  valueNodes: { item: BandItem; node: HTMLElement }[];
+  leaderboards: { def: BodyDef; node: HTMLElement; emptyKey: string }[];
+  cleanups: (() => void)[];
+}
+
+type BoardView = (def: BodyDef, list: BoardEntry[], lang: string, top?: number) => HTMLElement;
+
+/** What `RoleBand(role, ...)` hands the home page. */
+export interface RoleBandParts {
+  panels: { left?: HTMLElement; center?: HTMLElement; right?: HTMLElement };
+  fill(stats: Record<string, number | string | null> | null, insights?: Record<string, BoardEntry[]> | null): void;
+  cleanup(): void;
+}
 
 const PENDING = '…';
 const MISSING = '–';
 const ROTATE_MS = 7000;
 
-function el(tag, className, text) {
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string | null): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text != null) node.textContent = text;
   return node;
 }
 
-function anchor(className, label, path, onNavigate) {
+function anchor(className: string, label: string | null, path: string, onNavigate: (path: string) => void): HTMLAnchorElement {
   const a = el('a', className);
   if (label != null) a.textContent = label;
   a.href = path;
@@ -39,19 +93,19 @@ function anchor(className, label, path, onNavigate) {
   return a;
 }
 
-const labelOf = (item) => t(item.stat ? `marketplace.top.band.stat.${item.stat}` : `marketplace.top.band.link.${item.link}`);
+const labelOf = (item: BandItem) => t(item.stat ? `marketplace.top.band.stat.${item.stat}` : `marketplace.top.band.link.${item.link}`);
 // WHY: a super admin reads the same words as an admin; only the third figure differs (homeBands.ts).
-const textRoleOf = (role) => (role === 'super_admin' ? 'admin' : role);
+const textRoleOf = (role: string) => (role === 'super_admin' ? 'admin' : role);
 
-export function formatStat(item, value) {
+export function formatStat(item: Pick<BandItem, 'money'>, value: number | string | null | undefined): string {
   if (value == null) return MISSING;
   return item.money ? formatCurrency(String(value)) : formatNumber(Number(value));
 }
 
 /** The body of a panel or slide: figures, a ranking, shortcut tiles or plain rows. */
-function buildBody(def, ctx, base) {
+function buildBody(def: BodyDef, ctx: RoleBandContext, base: string): HTMLElement {
   const { onNavigate, valueNodes, leaderboards } = ctx;
-  const register = (item, valueNode) => {
+  const register = (item: BandItem, valueNode: HTMLElement) => {
     if (item.stat) valueNodes.push({ item, node: valueNode });
   };
 
@@ -96,7 +150,7 @@ function buildBody(def, ctx, base) {
   return list;
 }
 
-function buildPanel(role, position, def, ctx) {
+function buildPanel(role: string, position: string, def: PanelDef, ctx: RoleBandContext): HTMLElement {
   if (def.slides) return buildSlider(role, position, def, ctx);
   const base = `marketplace.top.band.${textRoleOf(role)}.${position}`;
   const panel = el('section', `home-band home-band--${def.tone || 'plain'} home-band--${position}`);
@@ -108,7 +162,7 @@ function buildPanel(role, position, def, ctx) {
   return panel;
 }
 
-function buildSlider(role, position, def, ctx) {
+function buildSlider(role: string, position: string, def: PanelDef, ctx: RoleBandContext): HTMLElement {
   const panel = el('section', `home-band home-band--slider home-band--${position}`);
   panel.setAttribute('role', 'group');
   panel.setAttribute('aria-roledescription', 'carousel');
@@ -136,7 +190,7 @@ function buildSlider(role, position, def, ctx) {
   if (slides.length > 1) panel.append(dots);
 
   let index = 0;
-  function show(next, userPicked = false) {
+  function show(next: number, userPicked = false) {
     index = (next + slides.length) % slides.length;
     slides.forEach(({ slide, dot }, i) => {
       const active = i === index;
@@ -150,7 +204,7 @@ function buildSlider(role, position, def, ctx) {
     if (userPicked) restart();
   }
 
-  let timer = null;
+  let timer: ReturnType<typeof setInterval> | null = null;
   const reduced = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function stop() { clearInterval(timer); timer = null; }
   function restart() {
@@ -175,19 +229,19 @@ function buildSlider(role, position, def, ctx) {
 // that made the bar strike through "38 sold": rows were `flex: 1 1 0` with a 2.5rem floor, so the
 // two-line text was clipped and the bar, absolutely placed, sat on top of it).
 
-const nameOf = (def, entry, lang) => (def.nameKey && entry.code
+const nameOf = (def: BodyDef, entry: BoardEntry, lang: string) => (def.nameKey && entry.code
   ? t(`${def.nameKey}.${entry.code}`)
   : (lang === 'bn' ? entry.name_bn : entry.name_en) || entry.name_en || entry.name_bn || t('marketplace.top.band.board.unnamed'));
-const countOf = (def, entry) => t(`marketplace.top.band.board.count.${def.count}`, { n: formatNumber(Number(entry.count) || 0) });
-const measureOf = (entry) => (entry.amount != null ? Number(entry.amount) : Number(entry.count)) || 0;
-const moneyOf = (entry) => (entry.amount != null ? formatCurrency(String(entry.amount)) : null);
+const countOf = (def: BodyDef, entry: BoardEntry) => t(`marketplace.top.band.board.count.${def.count}`, { n: formatNumber(Number(entry.count) || 0) });
+const measureOf = (entry: BoardEntry) => (entry.amount != null ? Number(entry.amount) : Number(entry.count)) || 0;
+const moneyOf = (entry: BoardEntry) => (entry.amount != null ? formatCurrency(String(entry.amount)) : null);
 
 /**
  * Whole-number percentages that always add up to 100 (largest remainder), so a share legend never
  * reads 99% or 101%. Pure, for the test.
  */
-export function percentShares(values) {
-  const total = values.reduce((a, v) => a + (Number(v) || 0), 0);
+export function percentShares(values: (number | string)[]): number[] {
+  const total = values.reduce<number>((a, v) => a + (Number(v) || 0), 0);
   if (total <= 0) return values.map(() => 0);
   const raw = values.map((v) => ((Number(v) || 0) / total) * 100);
   const out = raw.map(Math.floor);
@@ -199,13 +253,13 @@ export function percentShares(values) {
 }
 
 /** Bar length against the leader, with a visible floor so the last entry never reads as zero. */
-const shareOf = (entry, top) => (top > 0 ? Math.max(6, Math.round((measureOf(entry) / top) * 100)) : 0);
+const shareOf = (entry: BoardEntry, top: number) => (top > 0 ? Math.max(6, Math.round((measureOf(entry) / top) * 100)) : 0);
 
-function rank(n) {
+function rank(n: number) {
   return el('span', 'home-band__rank', String(n));
 }
 
-const VIEWS = {
+const VIEWS: Record<string, BoardView> = {
   // A data bar behind each one-line row: the length is in the row's own tint, never on top of text.
   list(def, list, lang, top) {
     const ol = el('ol', 'home-band__list');
@@ -318,16 +372,16 @@ export const BOARD_VIEWS = Object.keys(VIEWS);
  *   fill(stats: object|null, insights?: object|null): void, cleanup(): void }}
  * null when the role has no band (guests, finance, unknown roles keep the default layout).
  */
-export function RoleBand(role, { onNavigate }) {
+export function RoleBand(role: string, { onNavigate }: { onNavigate: (path: string) => void }): RoleBandParts | null {
   const def = ROLE_BANDS[role];
   if (!def) return null;
-  const ctx = { onNavigate, valueNodes: [], leaderboards: [], cleanups: [] };
-  const panels = {};
+  const ctx: RoleBandContext = { onNavigate, valueNodes: [], leaderboards: [], cleanups: [] };
+  const panels: RoleBandParts['panels'] = {};
   for (const position of ['left', 'center', 'right']) {
     if (def[position]) panels[position] = buildPanel(role, position, def[position], ctx);
   }
 
-  function fill(stats, insights = null) {
+  function fill(stats: Record<string, number | string | null> | null, insights: Record<string, BoardEntry[]> | null = null) {
     for (const { item, node } of ctx.valueNodes) {
       const value = stats ? stats[item.stat] : undefined;
       node.textContent = formatStat(item, value);
