@@ -266,7 +266,7 @@ test('Language & Default Locale — client invariants', async (t) => {
 
   await t.test('12. The TopBar switcher is gated on the policy, not rendered unconditionally', () => {
     const src = fs.readFileSync(
-      path.join(clientRoot, 'src', 'components', 'shell', 'TopBar.js'),
+      path.join(clientRoot, 'src', 'components', 'shell', 'TopBar.ts'),
       'utf8'
     );
     assert.match(src, /if \(isLanguageSwitchAllowed\(\)\)/, 'the switcher is conditional');

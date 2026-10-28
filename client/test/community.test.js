@@ -201,7 +201,7 @@ test('both components are in the dev gallery', () => {
 });
 
 test('the TopBar carries a Community button gated by the module, staff routed to the moderation page', () => {
-  const bar = read('components', 'shell', 'TopBar.js');
+  const bar = read('components', 'shell', 'TopBar.ts');
   assert.match(bar, /isFeatureEnabled\('community_posts'\)/);
   assert.match(bar, /COMMUNITY_STAFF_ROLES = \['super_admin', 'admin', 'moderator'\]/);
   assert.match(bar, /'\/admin\/community' : '\/community'/);

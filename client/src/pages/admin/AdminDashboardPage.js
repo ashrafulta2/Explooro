@@ -20,7 +20,7 @@
  * lives in services/adminDashboard.model.ts where it is unit-tested.
  */
 
-import { adminApi } from '../../services/admin.api.js';
+import { adminApi } from '../../services/admin.api.ts';
 import { pickMessage } from '../../core/api.ts';
 import { t, getLanguage, subscribe as subscribeLanguage } from '../../services/i18n.js';
 import { formatNumber, formatDate, formatRelativeTime } from '../../services/format.js';

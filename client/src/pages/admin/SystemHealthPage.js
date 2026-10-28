@@ -10,7 +10,7 @@
  * 6. Interactive section tab filtering, search filters, clipboard copy, zero-CLS skeleton, and full bilingual i18n.
  */
 
-import { adminApi } from '../../services/admin.api.js';
+import { adminApi } from '../../services/admin.api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.ts';

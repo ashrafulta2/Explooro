@@ -1,5 +1,5 @@
 /**
- * ProductFeed.js — Full-viewport, one-product-at-a-time vertical discovery feed (the /discover
+ * ProductFeed.ts — Full-viewport, one-product-at-a-time vertical discovery feed (the /discover
  * surface). Each slide shows a product large, like a condensed product-detail page, and the shopper
  * moves through them one by one (scroll-snap, wheel, ArrowUp/Down/PageUp/PageDown, touch-swipe).
  *
@@ -41,21 +41,46 @@ import { api } from '../../core/api.ts';
 import { appStore } from '../../state/appStore.js';
 import { EmptyState } from '../ui/EmptyState.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
+import type { CatalogProduct } from '../../services/catalog.api.ts';
+import type { SignalAudience } from '../../services/signals.ts';
 
 // Fetch the next page once the active slide is within this many of the end.
 const PREFETCH_LOOKAHEAD = 5;
 
-function titleOf(p, lang) {
+/** A feed row: a catalog list item plus the key the feed gives it. */
+type FeedProduct = CatalogProduct & { _feedKey?: string };
+
+export interface ProductFeedOptions {
+  audience?: SignalAudience;
+  /** The router's navigate(path). */
+  navigate?: (path: string) => void;
+  /** Snake-case catalog query filters, passed through to the feed. */
+  filters?: Record<string, unknown>;
+  /** Called with the feed meta after each fetch (e.g. the personalized flag). */
+  onFilterHint?: ((meta: Record<string, any>) => void) | null;
+  /** Called with the first page's products after a (re)load. */
+  onFirstPage?: ((products: FeedProduct[]) => void) | null;
+}
+
+/** The feed root with the handles the page drives it by. */
+export interface ProductFeedParts {
+  el: HTMLDivElement;
+  reload(filters?: Record<string, unknown>): void;
+  step(delta: number): void;
+  cleanup(): void;
+}
+
+function titleOf(p: FeedProduct, lang: string) {
   return (lang === 'bn' ? p.title_bn || p.title_en : p.title_en || p.title_bn) || '';
 }
-function categoryOf(p, lang) {
+function categoryOf(p: FeedProduct, lang: string) {
   return (lang === 'bn' ? p.category_bn || p.category : p.category) || '';
 }
-function priceOf(p) {
+function priceOf(p: FeedProduct) {
   return Number(p.price ?? p.default_retail_price ?? p.pricing?.retail_price ?? 0);
 }
 
-export function ProductFeed({ audience = 'customer', navigate, filters = {}, onFilterHint = null, onFirstPage = null } = {}) {
+export function ProductFeed({ audience = 'customer', navigate, filters = {}, onFilterHint = null, onFirstPage = null }: ProductFeedOptions = {}): ProductFeedParts {
   const lang = getLanguage();
   const el = document.createElement('div');
   el.className = 'discover-feed';
@@ -69,7 +94,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   scroller.className = 'discover-feed__scroller';
   el.append(scroller);
 
-  let items = [];
+  let items: FeedProduct[] = [];
   let currentFilters = { ...filters };
   let offset = 0;
   let hasMore = true;
@@ -83,9 +108,9 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   let activeKey = null;
   let activeSince = 0;
 
-  const keyOf = (p) => String(p._feedKey || p.ref || p.id || p.slug);
+  const keyOf = (p: FeedProduct) => String(p._feedKey || p.ref || p.id || p.slug);
 
-  function setStockBadge(el, qty) {
+  function setStockBadge(el: HTMLElement, qty: number) {
     el.className = `discover-slide__stock discover-slide__stock--${qty > 0 ? 'in' : 'out'}`;
     el.textContent = qty > 0 ? t('discover.stock.in') : t('discover.stock.out');
   }
@@ -112,7 +137,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     }
     return bestIdx;
   }
-  function step(delta) {
+  function step(delta: number) {
     const all = slideEls();
     if (!all.length) return;
     const idx = activeIndex();
@@ -135,7 +160,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   }
 
   // ── Interaction signals ────────────────────────────────────────────────────
-  function eventContext(p) {
+  function eventContext(p: FeedProduct) {
     return {
       product_id: p.id,
       category: p.category, // name — drives mock affinity; also human-readable in logs
@@ -158,7 +183,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     (entries) => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
-        const slide = entry.target;
+        const slide = entry.target as HTMLElement;
         const key = slide.dataset.key;
         if (key === activeKey) continue;
         fireDwell();
@@ -181,7 +206,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   );
 
   // ── Slide rendering ─────────────────────────────────────────────────────────
-  function buildSlide(p) {
+  function buildSlide(p: FeedProduct) {
     const key = keyOf(p);
     const slide = document.createElement('article');
     slide.className = 'discover-slide';
@@ -643,14 +668,14 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   }
 
   // Lazy detail enrichment — one fetch per slide, first time it becomes active.
-  async function enrichSlide(slide, p) {
+  async function enrichSlide(slide: Element, p: FeedProduct) {
     const key = keyOf(p);
     if (enriched.has(key)) return;
     enriched.add(key);
-    const detail = slide.querySelector(`[data-detail-for="${CSS.escape(key)}"]`);
+    const detail = slide.querySelector<HTMLElement>(`[data-detail-for="${CSS.escape(key)}"]`);
     if (!detail) return;
     try {
-      const full = await getProduct(p.ref || p.slug || p.id);
+      const full = (await getProduct(p.ref || p.slug || p.id)) as Record<string, any>;
       if (destroyed || !full) return;
       const st = slideState.get(key);
       if (st) st.fullProduct = full;
@@ -671,7 +696,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   // Customer slides get a live, interactive variant selector (reusing the product page's own
   // VariantSelector) so the whole purchase happens inline. Shop Partner slides show the read-only chips
   // rendered by renderDetail — sourcing to a store doesn't pick a single combination.
-  function mountInlineOptions(key, full) {
+  function mountInlineOptions(key: string, full: Record<string, any>) {
     if (audience === 'saler') return;
     const st = slideState.get(key);
     if (!st || !st.optionsEl || st.optionsMounted) return;
@@ -717,7 +742,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     }
   }
 
-  function renderDetail(detail, full) {
+  function renderDetail(detail: HTMLElement, full: Record<string, any>) {
     // Idempotency guard: buildSlide paints this from the list item and enrichSlide re-runs it with
     // the full product. Rebuilding identical nodes would replay the fade-in animation as a flicker,
     // so skip when the resulting content signature is unchanged.
@@ -755,7 +780,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       chips.className = 'discover-slide__variants';
       const seenLabels = new Set();
       for (const v of full.variants) {
-        const label = Object.values(v.attributes || {})[0];
+        const label = Object.values(v.attributes || {})[0] as string;
         if (!label || seenLabels.has(label)) continue;
         seenLabels.add(label);
         const chip = document.createElement('span');
@@ -841,7 +866,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     return activeLoadPromise;
   }
 
-  function reload(nextFilters) {
+  function reload(nextFilters?: Record<string, unknown>) {
     fetchEpoch++;
     activeLoadPromise = null;
     loading = false;
@@ -862,8 +887,8 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   // when nothing inside it is focused — the feed owns the whole viewport on this route. Ignored while
   // the shopper is typing in a field (search box, quantity input) so those keep their native caret
   // behaviour.
-  function onKeydown(e) {
-    const tgt = e.target;
+  function onKeydown(e: KeyboardEvent) {
+    const tgt = e.target as HTMLElement | null;
     if (tgt && (tgt.tagName === 'INPUT' || tgt.tagName === 'TEXTAREA' || tgt.tagName === 'SELECT' || tgt.isContentEditable)) {
       return;
     }
@@ -879,10 +904,10 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
 
   // Discrete wheel navigation: one scroll moves exactly one post smoothly.
   let isWheelStepping = false;
-  let wheelTimeout = null;
+  let wheelTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  function onWheel(e) {
-    const panel = e.target.closest('.discover-slide__panel');
+  function onWheel(e: WheelEvent) {
+    const panel = (e.target as Element).closest('.discover-slide__panel');
     if (panel && panel.scrollHeight > panel.clientHeight + 10) {
       const isUp = e.deltaY < 0;
       const isDown = e.deltaY > 0;

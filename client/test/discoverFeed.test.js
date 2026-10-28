@@ -16,7 +16,7 @@
  *      moved pill. Mirrors setBarPos()/positionToolbar()/the drag threshold, with a source-parity
  *      guard so the mirror can't silently drift from the component.
  *   6. Keyboard navigation — with the on-screen up/down arrow buttons removed, arrow/page keys drive
- *      the feed (ProductFeed.js onKeydown): they map to a step delta, are ignored while typing in a
+ *      the feed (ProductFeed.ts onKeydown): they map to a step delta, are ignored while typing in a
  *      field, and the listener is bound at the window (not the feed element) and cleaned up.
  */
 
@@ -72,7 +72,7 @@ test('Discover — Locale Integrity', async (t) => {
   await t.test('4. Every discover.* key the page and feed render exists in the dictionary', () => {
     const sources = [
       '../src/pages/DiscoverFeedPage.js',
-      '../src/components/product/ProductFeed.js',
+      '../src/components/product/ProductFeed.ts',
     ].map((rel) => fs.readFileSync(path.resolve(import.meta.dirname, rel), 'utf8')).join('\n');
 
     const used = new Set();
@@ -258,7 +258,7 @@ const pageSrc = fs.readFileSync(
   'utf8'
 );
 const feedSrc = fs.readFileSync(
-  path.resolve(import.meta.dirname, '../src/components/product/ProductFeed.js'),
+  path.resolve(import.meta.dirname, '../src/components/product/ProductFeed.ts'),
   'utf8'
 );
 
@@ -345,7 +345,7 @@ test('Discover — Draggable Pill Geometry', async (t) => {
 
 test('Discover — Keyboard Navigation', async (t) => {
   // The on-screen up/down arrow buttons were removed; the keyboard is now a primary way to step
-  // between products. Mirror ProductFeed.js onKeydown(): map keys to a step delta and honour the
+  // between products. Mirror ProductFeed.ts onKeydown(): map keys to a step delta and honour the
   // typing-field guard, then assert the component still binds/cleans up at the window level.
   const KEY_DELTA = { ArrowDown: 1, PageDown: 1, ArrowUp: -1, PageUp: -1 };
   const isTypingTarget = (tag, isContentEditable) =>
@@ -453,7 +453,7 @@ test('Discover — All Products & Multi-Tier Hierarchy Contract', async (t) => {
   });
 
   await t.test('5. ProductFeed implements infinite looping so users can scroll downwards endlessly without jumping to top', () => {
-    const feedSrc = fs.readFileSync(path.resolve(import.meta.dirname, '../src/components/product/ProductFeed.js'), 'utf8');
+    const feedSrc = fs.readFileSync(path.resolve(import.meta.dirname, '../src/components/product/ProductFeed.ts'), 'utf8');
     assert.match(feedSrc, /_feedKey:\s*`f_\$\{items\.length\}_/);
     assert.match(feedSrc, /offset\s*=\s*0;[\s\S]*?hasMore\s*=\s*true/);
     assert.match(feedSrc, /scroller\.addEventListener\('scroll', onScroll/);

@@ -6,7 +6,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
-import { adminApi } from '../src/services/admin.api.js';
+import { adminApi } from '../src/services/admin.api.ts';
 import adminHandlers from '../src/mocks/handlers/admin.js';
 import { navItems } from '../src/config/navigation.js';
 

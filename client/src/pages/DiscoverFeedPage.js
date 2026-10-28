@@ -2,7 +2,7 @@
  * DiscoverFeedPage — the /discover surface (Discovery feed, module `discovery_feed`).
  *
  * A full-screen, one-product-at-a-time vertical feed personalized to the shopper's interests. The
- * heavy lifting lives in components/product/ProductFeed.js; this page picks the audience from the
+ * heavy lifting lives in components/product/ProductFeed.ts; this page picks the audience from the
  * signed-in role (a shop partner gets the sourcing CTA set, everyone else the shopper set), owns the SEO
  * head, and wires the discovery controls: category pills, an in-page search box, and the shared
  * FilterPanel (live sidebar on desktop, drawer on mobile).
@@ -17,7 +17,7 @@ import '../styles/components/discover-feed.css';
 import { appStore } from '../state/appStore.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { updateHead } from '../services/seo.ts';
-import { ProductFeed } from '../components/product/ProductFeed.js';
+import { ProductFeed } from '../components/product/ProductFeed.ts';
 import { CategoryPills } from '../components/product/CategoryPills.ts';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.ts';
 import { Drawer } from '../components/ui/Drawer.ts';

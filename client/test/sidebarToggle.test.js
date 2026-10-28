@@ -26,19 +26,19 @@ describe('Sidebar Hamburger Toggle & Removal of Middle Button Invariants', () =>
     );
   });
 
-  test('2. TopBar.js source code renders hamburger icon button before the brand logo', () => {
-    const topBarJsPath = path.join(clientRoot, 'src', 'components', 'shell', 'TopBar.js');
+  test('2. TopBar.ts source code renders hamburger icon button before the brand logo', () => {
+    const topBarJsPath = path.join(clientRoot, 'src', 'components', 'shell', 'TopBar.ts');
     const content = fs.readFileSync(topBarJsPath, 'utf8');
 
     assert.match(
       content,
       /topbar__sidebar-toggle/,
-      'TopBar.js must create .topbar__sidebar-toggle'
+      'TopBar.ts must create .topbar__sidebar-toggle'
     );
     assert.match(
       content,
       /ICONS\.menu/,
-      'TopBar.js must use ICONS.menu for the hamburger button'
+      'TopBar.ts must use ICONS.menu for the hamburger button'
     );
 
     const toggleIdx = content.indexOf('sidebarToggleBtn');

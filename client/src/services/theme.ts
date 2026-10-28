@@ -1,7 +1,7 @@
 /**
  * theme.ts — light/dark/system theme, persisted.
  *
- * Extracted from TopBar.js (Prompt 1.7) so Prompt 1.8's gallery can drive the exact same
+ * Extracted from TopBar.ts (Prompt 1.7) so Prompt 1.8's gallery can drive the exact same
  * `data-theme` toggle the real shell uses, rather than a second implementation that could drift
  * out of sync with which values are valid or which storage key holds them.
  */

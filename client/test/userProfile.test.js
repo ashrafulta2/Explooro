@@ -25,7 +25,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 
 const mainSrc = read('src/main.js');
-const topBarSrc = read('src/components/shell/TopBar.js');
+const topBarSrc = read('src/components/shell/TopBar.ts');
 const mainCss = read('src/styles/main.css');
 const profileCss = read('src/styles/components/profile.css');
 const pageSrc = read('src/pages/settings/ProfilePage.js');

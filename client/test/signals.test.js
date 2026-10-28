@@ -387,7 +387,7 @@ describe('wiring — every surface reports through the one tracker, once', () =>
   });
 
   it('the /discover feed no longer double-reports ADD_CART on top of addToCart', () => {
-    const feed = src('components/product/ProductFeed.js');
+    const feed = src('components/product/ProductFeed.ts');
     assert.doesNotMatch(feed, /recordEvent\(\{ event_type: 'ADD_CART'/);
     assert.match(feed, /from '\.\.\/\.\.\/services\/signals\.ts'/);
   });
@@ -432,7 +432,7 @@ describe('wiring — every surface reports through the one tracker, once', () =>
   });
 
   it('nothing but the tracker posts to /discovery/events any more', () => {
-    for (const rel of ['services/discovery.api.ts', 'components/product/ProductFeed.js']) {
+    for (const rel of ['services/discovery.api.ts', 'components/product/ProductFeed.ts']) {
       assert.doesNotMatch(src(rel), /\/discovery\/events/, rel);
     }
   });

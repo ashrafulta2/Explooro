@@ -17,7 +17,7 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
-import { adminApi } from '../../services/admin.api.js';
+import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';

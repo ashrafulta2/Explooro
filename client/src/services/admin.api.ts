@@ -1,14 +1,28 @@
 /**
- * admin.api.js — Client API helper for Super Admin Executive Analytics & System Health (Prompt 11.4).
+ * admin.api.ts — Client API helper for Super Admin Executive Analytics & System Health (Prompt 11.4).
  */
 
 import { api } from '../core/api.ts';
+
+/** A request body or query string; the fields are the server's, passed through untouched. */
+type Params = Record<string, any>;
+
+/** The three numbers of a profit split, and the mandatory audit reason. */
+export interface SplitChange {
+  saler_split_pct: number | string;
+  platform_split_pct: number | string;
+  min_margin_pct?: number | string;
+  reason: string;
+}
+
+/** A preset (`7d`, `30d`, `90d`, `1y`) or a custom ISO-date pair. */
+export type AnalyticsRange = string | { from: string; to: string } | null;
 
 export const adminApi = {
   /**
    * Retrieves Executive Overview with 11 KPIs and timeframe comparison.
    */
-  async getOverview(range = '30d') {
+  async getOverview(range: AnalyticsRange = '30d') {
     // A preset ('7d' | '30d' | '90d' | '1y') or a custom `{ from, to }` ISO-date pair.
     const qs =
       typeof range === 'object' && range?.from && range?.to
@@ -21,7 +35,7 @@ export const adminApi = {
    * Fetches the data for a CSV export (same figures as getOverview). Kept separate from the read
    * because the server gates it on `admin.analytics.export` and writes an audit row.
    */
-  async exportOverview(range = '30d') {
+  async exportOverview(range: AnalyticsRange = '30d') {
     const body =
       typeof range === 'object' && range?.from && range?.to
         ? { from: range.from, to: range.to }
@@ -44,30 +58,9 @@ export const adminApi = {
   },
 
   /**
-   * Retrieves backup snapshot history.
-   */
-  async getBackups(limit = 20) {
-    return api.get(`/admin/system/backups?limit=${limit}`);
-  },
-
-  /**
-   * Triggers a manual backup snapshot creation.
-   */
-  async triggerBackup() {
-    return api.post('/admin/system/backups/trigger', {});
-  },
-
-  /**
-   * Triggers snapshot verification and restoration (CRITICAL tier).
-   */
-  async restoreBackup(backupId) {
-    return api.post(`/admin/system/backups/${backupId}/restore`, {});
-  },
-
-  /**
    * Triggers immediate daily rollup re-calculation.
    */
-  async triggerRollup(date = null) {
+  async triggerRollup(date: string | null = null) {
     return api.post('/admin/analytics/rollup-now', { date });
   },
 
@@ -81,21 +74,21 @@ export const adminApi = {
   /**
    * Updates global 2FA policy.
    */
-  async update2faPolicy(policy) {
+  async update2faPolicy(policy: Params) {
     return api.post('/admin/security/2fa/policy', policy);
   },
 
   /**
    * Resets TOTP 2FA for a staff member.
    */
-  async resetStaff2fa(staffId) {
+  async resetStaff2fa(staffId: number | string) {
     return api.post(`/admin/staff/${staffId}/reset-2fa`, {});
   },
 
   /**
    * Sends 2FA setup reminder to staff member.
    */
-  async remindStaff2fa(staffId) {
+  async remindStaff2fa(staffId: number | string) {
     return api.post(`/admin/staff/${staffId}/remind-2fa`, {});
   },
 
@@ -109,35 +102,35 @@ export const adminApi = {
   /**
    * Adds an IP or CIDR subnet to the allowlist.
    */
-  async addIpAllowlistEntry(entry) {
+  async addIpAllowlistEntry(entry: Params) {
     return api.post('/admin/security/ip-allowlist', entry);
   },
 
   /**
    * Updates an existing allowlist entry.
    */
-  async updateIpAllowlistEntry(id, patch) {
+  async updateIpAllowlistEntry(id: number | string, patch: Params) {
     return api.patch(`/admin/security/ip-allowlist/${id}`, patch);
   },
 
   /**
    * Deletes an IP allowlist entry.
    */
-  async deleteIpAllowlistEntry(id) {
+  async deleteIpAllowlistEntry(id: number | string) {
     return api.delete(`/admin/security/ip-allowlist/${id}`);
   },
 
   /**
    * Updates firewall enforcement mode.
    */
-  async setIpAllowlistMode(mode) {
+  async setIpAllowlistMode(mode: string) {
     return api.post('/admin/security/ip-allowlist/mode', { mode });
   },
 
   /**
    * Fetches database and storage backup snapshots.
    */
-  async getBackups(limit = 20) {
+  async getBackups(limit: number = 20) {
     return api.get(`/admin/system/backups?limit=${limit}`);
   },
 
@@ -151,7 +144,7 @@ export const adminApi = {
   /**
    * Initiates restoration of a specific backup snapshot (CRITICAL audited action).
    */
-  async restoreBackup(id) {
+  async restoreBackup(id: number | string) {
     return api.post(`/admin/system/backups/${id}/restore`);
   },
 
@@ -165,7 +158,7 @@ export const adminApi = {
   /**
    * Updates global platform profit split percentages (CRITICAL audited action).
    */
-  async updateGlobalSplit({ saler_split_pct, platform_split_pct, min_margin_pct, reason }) {
+  async updateGlobalSplit({ saler_split_pct, platform_split_pct, min_margin_pct, reason }: SplitChange) {
     return api.put('/admin/finance/splits/default', {
       saler_split_pct,
       platform_split_pct,
@@ -177,7 +170,7 @@ export const adminApi = {
   /**
    * Updates or sets category-specific profit split override.
    */
-  async updateCategorySplit(categoryId, { saler_split_pct, platform_split_pct, reason }) {
+  async updateCategorySplit(categoryId: number | string, { saler_split_pct, platform_split_pct, reason }: SplitChange) {
     return api.put(`/admin/finance/splits/categories/${categoryId}`, {
       saler_split_pct,
       platform_split_pct,
@@ -188,7 +181,7 @@ export const adminApi = {
   /**
    * Clears a category split override and restores it to global default.
    */
-  async deleteCategorySplit(categoryId) {
+  async deleteCategorySplit(categoryId: number | string) {
     return api.delete(`/admin/finance/splits/categories/${categoryId}`);
   },
 
@@ -197,14 +190,14 @@ export const adminApi = {
    * ({ enabled, window_days, thresholds }) that decides which tier a shop partner is in. One request, so a
    * rejected ladder never leaves the bonuses half-saved.
    */
-  async updateTierBonuses(tiers, reason, rules) {
+  async updateTierBonuses(tiers: Params, reason: string, rules?: Params) {
     return api.put('/admin/finance/splits/tiers', { tiers, reason, ...(rules ? { rules } : {}) });
   },
 
   /**
    * Simulates margin & split breakdown for given retail price, cost, category, and tier.
    */
-  async simulateProfitSplit(params) {
+  async simulateProfitSplit(params: Params) {
     return api.post('/admin/finance/splits/simulate', params);
   },
 
@@ -218,56 +211,56 @@ export const adminApi = {
   /**
    * Updates subscription engine sub-settings (free listing quota, extra fee, grace period).
    */
-  async updateSubscriptionSettings(settings) {
+  async updateSubscriptionSettings(settings: Params) {
     return api.put('/admin/finance/subscriptions/settings', settings);
   },
 
   /**
    * Creates a new merchant subscription tier plan.
    */
-  async createSubscriptionPlan(plan) {
+  async createSubscriptionPlan(plan: Params) {
     return api.post('/admin/finance/subscriptions/plans', plan);
   },
 
   /**
    * Updates an existing subscription tier plan.
    */
-  async updateSubscriptionPlan(id, patch) {
+  async updateSubscriptionPlan(id: number | string, patch: Params) {
     return api.put(`/admin/finance/subscriptions/plans/${id}`, patch);
   },
 
   /**
    * Updates subscriber status or grants fee waiver/exemption.
    */
-  async updateSubscriberStatus(id, patch) {
+  async updateSubscriberStatus(id: number | string, patch: Params) {
     return api.patch(`/admin/finance/subscriptions/subscribers/${id}`, patch);
   },
 
   /**
    * Retrieves all platform service and gateway integrations.
    */
-  async getIntegrations(category = 'ALL') {
+  async getIntegrations(category: string = 'ALL') {
     return api.get(`/admin/platform/integrations?category=${encodeURIComponent(category)}`);
   },
 
   /**
    * Updates credentials, configuration or active state for an integration.
    */
-  async updateIntegration(id, patch) {
+  async updateIntegration(id: number | string, patch: Params) {
     return api.put(`/admin/platform/integrations/${id}`, patch);
   },
 
   /**
    * Performs an instant live connection test / handshake ping against a gateway.
    */
-  async testIntegration(id) {
+  async testIntegration(id: number | string) {
     return api.post(`/admin/platform/integrations/${id}/test`, {});
   },
 
   /**
    * Retrieves recent gateway webhook callback logs.
    */
-  async getIntegrationLogs(limit = 30) {
+  async getIntegrationLogs(limit: number = 30) {
     return api.get(`/admin/platform/integrations/logs?limit=${limit}`);
   },
 
@@ -281,14 +274,14 @@ export const adminApi = {
   /**
    * Updates master platform governance settings with audit rationale.
    */
-  async updatePlatformSettings(settings, reason = '') {
+  async updatePlatformSettings(settings: Params, reason: string = '') {
     return api.put('/admin/platform/settings', { settings, reason });
   },
 
   /**
    * Resets platform settings to system default baseline.
    */
-  async resetPlatformSettings(reason = '') {
+  async resetPlatformSettings(reason: string = '') {
     return api.post('/admin/platform/settings/reset', { reason });
   },
 
@@ -303,7 +296,7 @@ export const adminApi = {
    * Writes the language policy. `reason` is mandatory (min 10 chars) and lands in audit_logs
    * alongside the before/after values — the API rejects the call without it.
    */
-  async updateLocalizationPolicy({ default_locale, enabled_locales, allow_user_override, reason }) {
+  async updateLocalizationPolicy({ default_locale, enabled_locales, allow_user_override, reason }: { default_locale?: string; enabled_locales?: string[]; allow_user_override?: boolean; reason: string }) {
     return api.put('/admin/platform/localization', {
       default_locale,
       enabled_locales,
@@ -323,7 +316,7 @@ export const adminApi = {
    * Writes the popup genie-effect policy. `reason` is mandatory (min 10 chars) and lands in
    * audit_logs alongside the before/after values — the API rejects the call without it.
    */
-  async updateGeniePolicy({ enabled, duration_ms, quality, reason }) {
+  async updateGeniePolicy({ enabled, duration_ms, quality, reason }: { enabled?: boolean; duration_ms?: number; quality?: string; reason: string }) {
     return api.put('/admin/platform/genie', { enabled, duration_ms, quality, reason });
   },
 
@@ -336,7 +329,7 @@ export const adminApi = {
   },
 
   /** Which surface works: impressions, clicks and click-attributed carts / purchases per surface. */
-  async getRecommendationFunnel({ days, attribution_days } = {}) {
+  async getRecommendationFunnel({ days, attribution_days }: { days?: number; attribution_days?: number } = {}) {
     const q = new URLSearchParams();
     if (days) q.set('days', String(days));
     if (attribution_days) q.set('attribution_days', String(attribution_days));
@@ -349,7 +342,7 @@ export const adminApi = {
    * `base_updated_at` is the section's updated_at when the form was loaded: a mismatch is a 409, not a
    * silent overwrite of another admin's change.
    */
-  async updateRecommendationSection(section, { value, reason, base_updated_at = null }) {
+  async updateRecommendationSection(section: string, { value, reason, base_updated_at = null }: { value: unknown; reason: string; base_updated_at?: string | null }) {
     return api.put(`/admin/platform/recommendations/${encodeURIComponent(section)}`, { value, reason, base_updated_at });
   },
 };

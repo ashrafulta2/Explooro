@@ -13,7 +13,7 @@
  */
 
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
-import { adminApi } from '../../services/admin.api.js';
+import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 

@@ -19,7 +19,7 @@ import {
 } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Sidebar } from './Sidebar.js';
-import { TopBar, formatRemaining } from './TopBar.js';
+import { TopBar, formatRemaining } from './TopBar.ts';
 import { MobileNav } from './MobileNav.ts';
 import { createCommandPalette } from './CommandPalette.js';
 import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.ts';

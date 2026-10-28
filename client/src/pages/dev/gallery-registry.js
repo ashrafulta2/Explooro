@@ -45,7 +45,7 @@ import { ImageUploader } from '../../components/media/ImageUploader.ts';
 import { openMediaLibrary } from '../../components/media/MediaLibrary.ts';
 import { openCameraCapture } from '../../components/media/CameraCapture.ts';
 import { ProductCard, ProductCardSkeleton } from '../../components/product/ProductCard.ts';
-import { ProductFeed } from '../../components/product/ProductFeed.js';
+import { ProductFeed } from '../../components/product/ProductFeed.ts';
 import { MASTER_PRESETS } from '../../config/master-themes.ts';
 import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.ts';
 import { CategoryPills } from '../../components/product/CategoryPills.ts';

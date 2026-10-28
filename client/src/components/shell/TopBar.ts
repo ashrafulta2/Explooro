@@ -23,6 +23,7 @@ import { getTheme, applyTheme } from '../../services/theme.ts';
 import { Badge } from '../ui/Badge.ts';
 import { api } from '../../core/api.ts';
 import { ElevatedAccessChip } from '../access/ElevatedAccessChip.ts';
+import type { ElevatedGrant } from '../access/ElevatedAccessChip.ts';
 import { openCart } from '../../services/cart.ts';
 import { openNotificationCenter } from '../notifications/NotificationCenter.ts';
 import { openAssistantPanel } from '../ai/AssistantPanel.ts';
@@ -34,7 +35,7 @@ import { attachSearchSuggest } from '../search/SearchSuggest.ts';
 // mid-keystroke, short enough that a deliberate clear feels immediate.
 const SEARCH_CLEAR_RESET_MS = 250;
 
-export function formatRemaining(ms, lang = 'en') {
+export function formatRemaining(ms: number, lang = 'en'): string {
   const totalMinutes = Math.max(0, Math.round(ms / 60_000));
   const h = Math.floor(totalMinutes / 60);
   const m = totalMinutes % 60;
@@ -46,7 +47,7 @@ export function formatRemaining(ms, lang = 'en') {
   return parts.join(' ');
 }
 
-function ElevatedChip({ grant }) {
+function ElevatedChip({ grant }: { grant: ElevatedGrant }) {
   return ElevatedAccessChip({ elevatedGrant: grant });
 }
 
@@ -112,7 +113,14 @@ const COMMUNITY_ICON_SVG =
 // Staff land on the moderation-capable route; everyone else on the public timeline.
 const COMMUNITY_STAFF_ROLES = ['super_admin', 'admin', 'moderator'];
 
-function IconButton({ icon, label, badgeCount, onClick }) {
+interface IconButtonOptions {
+  icon: string;
+  label: string;
+  badgeCount?: number | null;
+  onClick?: ((event: MouseEvent) => void) | null;
+}
+
+function IconButton({ icon, label, badgeCount, onClick }: IconButtonOptions) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'topbar__icon-btn';
@@ -137,13 +145,13 @@ function IconButton({ icon, label, badgeCount, onClick }) {
 // WHY: GET /notifications/unread-count had no caller, so the bell showed no badge until the drawer
 // was opened. The count is fetched once per TopBar render and then kept live by the same
 // `explooro:notification` event the drawer listens to.
-function setBellBadge(btn, count) {
+function setBellBadge(btn: HTMLElement, count: number) {
   btn.querySelector('.badge')?.remove();
   if (count > 0) btn.append(Badge({ variant: 'count', size: 'sm', count }));
   btn.dataset.unread = String(Math.max(0, count));
 }
 
-async function initBellBadge(btn) {
+async function initBellBadge(btn: HTMLElement) {
   try {
     const res = await api.get('/notifications/unread-count');
     setBellBadge(btn, Number(res?.data?.unread_count) || 0);
@@ -172,20 +180,20 @@ const ROLE_LABEL_KEYS = {
   customer: 'shell.role_names.customer',
 };
 
-function roleLabel(role) {
+function roleLabel(role: string) {
   const key = ROLE_LABEL_KEYS[role];
   return key ? t(key) : role;
 }
 
 /** Up to two initials from a name, in whatever script it is written in. */
-function initialsFor(name) {
+function initialsFor(name?: string | null) {
   const words = String(name || '').trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return '';
   if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
   return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }
 
-function AvatarMenu({ role, user, onNavigate }) {
+function AvatarMenu({ role, user, onNavigate }: { role: string; user: TopBarUser | null; onNavigate: (path: string) => void }) {
   const wrap = document.createElement('div');
   wrap.className = 'topbar__avatar-menu';
 
@@ -364,7 +372,7 @@ function AvatarMenu({ role, user, onNavigate }) {
 // WHY no colour presets here: the long preset list pushed Sign out below the fold of the avatar
 // menu, and a platform colour is changed rarely. Super admins switch it from Theme Studio
 // (sidebar) or the command palette instead.
-function renderThemeControls(panel, { onModeApplied } = {}) {
+function renderThemeControls(panel: HTMLElement, { onModeApplied }: { onModeApplied?: () => void } = {}) {
   const menuTitle = t('shell.theme_menu_title_plain') || 'Theme';
   const updateTriggerIcon = () => onModeApplied?.();
   const renderPanel = () => renderThemeControls(panel, { onModeApplied });
@@ -471,6 +479,27 @@ function ThemeMenu() {
   return wrap;
 }
 
+/** The signed-in person the avatar menu shows. */
+export interface TopBarUser {
+  display_name?: string;
+  name?: string;
+  full_name?: string;
+  phone?: string;
+  email?: string;
+  [field: string]: unknown;
+}
+
+export interface TopBarOptions {
+  /** Null or empty for a guest. */
+  role: string | null;
+  user: TopBarUser | null;
+  elevatedGrant?: ElevatedGrant | null;
+  badges?: Record<string, number>;
+  navigate: (path: string, options?: { replace?: boolean }) => void;
+  sidebarCollapsed?: boolean;
+  onToggleSidebar?: ((trigger: HTMLElement) => void) | null;
+}
+
 export function TopBar({
   role,
   user,
@@ -479,7 +508,7 @@ export function TopBar({
   navigate,
   sidebarCollapsed = false,
   onToggleSidebar = null,
-}) {
+}: TopBarOptions): HTMLElement {
   const bar = document.createElement('header');
   bar.className = 'topbar';
 
@@ -489,7 +518,7 @@ export function TopBar({
     const sidebarToggleBtn = IconButton({
       icon: ICONS.menu,
       label: t(sidebarCollapsed ? 'shell.expand_sidebar' : 'shell.collapse_sidebar'),
-      onClick: (e) => onToggleSidebar(e.currentTarget),
+      onClick: (e) => onToggleSidebar(e.currentTarget as HTMLElement),
     });
     sidebarToggleBtn.classList.add('topbar__sidebar-toggle');
     sidebarToggleBtn.setAttribute('aria-expanded', String(!sidebarCollapsed));
@@ -676,7 +705,7 @@ export function TopBar({
       icon: AI_SPARKLE_ICON_SVG,
       label: t('ai.concierge_trigger'),
       onClick: (e) => {
-        openAssistantPanel({ agentType: 'concierge', trigger: e.currentTarget });
+        openAssistantPanel({ agentType: 'concierge', trigger: e.currentTarget as HTMLElement });
       },
     }));
     const bellBtn = IconButton({
