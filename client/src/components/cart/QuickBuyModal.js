@@ -12,7 +12,7 @@ import { AddressForm } from '../checkout/AddressForm.js';
 import { PaymentSelector } from '../checkout/PaymentSelector.js';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.js';
 import { addToCart } from '../../services/cart.js';
-import { knownDeliveryCharge, loadDeliveryCharge } from '../../services/deliveryCharge.js';
+import { knownDeliveryCharge, loadDeliveryCharge } from '../../services/deliveryCharge.ts';
 import { getCurrentUser } from '../../services/session.js';
 import { formatCurrency } from '../../services/format.js';
 import { resolveProductImage } from '../product/ProductCard.js';

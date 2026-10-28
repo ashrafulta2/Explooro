@@ -22,7 +22,7 @@ describe('Delivery charge', () => {
   it('the cart and Quick Buy read the policy the server serves', () => {
     assert.match(read('services/cart.js'), /knownDeliveryCharge\(\)/);
     assert.match(read('components/cart/QuickBuyModal.js'), /loadDeliveryCharge\(\)/);
-    assert.match(read('services/deliveryCharge.js'), /api\.get\('\/delivery\/policy'/);
+    assert.match(read('services/deliveryCharge.ts'), /api\.get\('\/delivery\/policy'/);
   });
 
   it('the admin page is routed, in the nav and in the platform tabs with the same key', () => {

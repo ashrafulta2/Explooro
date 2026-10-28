@@ -1,7 +1,7 @@
 /**
  * chatSocket.js — mock transport for the chat WebSocket (Prompt 8.4).
  *
- * WHY a fake socket rather than a mocked HTTP route: `services/websocket.js` owns the reconnect
+ * WHY a fake socket rather than a mocked HTTP route: `services/websocket.ts` owns the reconnect
  * backoff, the IndexedDB outbound queue and the status emitters, and none of that should be
  * branched on `VITE_API_MODE`. This object implements only the slice of the `WebSocket` interface
  * that manager touches (`readyState`, `send`, `close`, `onopen`/`onmessage`/`onclose`/`onerror`),

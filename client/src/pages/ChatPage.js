@@ -16,7 +16,7 @@ import { Modal } from '../components/ui/Modal.js';
 import { Button } from '../components/ui/Button.js';
 import { api } from '../core/api.js';
 import { getCurrentUser } from '../services/session.js';
-import { wsManager, WS_STATUS } from '../services/websocket.js';
+import { wsManager, WS_STATUS } from '../services/websocket.ts';
 import { t } from '../services/i18n.js';
 import { toast } from '../services/toast.js';
 

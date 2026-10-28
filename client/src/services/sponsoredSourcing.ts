@@ -1,5 +1,5 @@
 /**
- * sponsoredSourcing.js — Client side of the Sponsored Sourcing Slot.
+ * sponsoredSourcing.ts — Client side of the Sponsored Sourcing Slot.
  *
  * Fetches the auction winners for the Sourcing Catalog and reports the two billable events:
  *   impression  the card was >= 50% visible for >= 1 second (same bar as SponsoredSlot)
@@ -15,8 +15,15 @@ import { isFeatureEnabled } from './featureFlags.js';
 export const VIEWABLE_MS = 1000;
 export const PLACEMENT = 'SOURCING_CATALOG';
 
-/** @returns {Promise<Array<{campaign_id:number, creative_id:number, charged_cpc:number, product:object}>>} */
-export async function fetchSponsored({ categoryId } = {}) {
+/** One auction winner for the Sourcing Catalog. */
+export interface SponsoredAd {
+  campaign_id: number;
+  creative_id: number;
+  charged_cpc: number;
+  product: Record<string, any>;
+}
+
+export async function fetchSponsored({ categoryId }: { categoryId?: string | number | null } = {}): Promise<SponsoredAd[]> {
   // Module gate: no request at all when ads are switched off.
   if (!isFeatureEnabled('sponsored_ads')) return [];
   try {
@@ -29,9 +36,9 @@ export async function fetchSponsored({ categoryId } = {}) {
 }
 
 /** Fires the impression beacon once, when `el` has been mostly visible for VIEWABLE_MS. */
-export function trackImpression(el, ad) {
+export function trackImpression(el: Element, ad: Pick<SponsoredAd, 'campaign_id' | 'creative_id'>): () => void {
   if (typeof IntersectionObserver === 'undefined') return () => {};
-  let timer = null;
+  let timer: ReturnType<typeof setTimeout> | null = null;
   let done = false;
 
   const observer = new IntersectionObserver((entries) => {
@@ -64,7 +71,7 @@ export function trackImpression(el, ad) {
 }
 
 /** Returns a function that reports a click for `ad` the first time it is called. */
-export function clickReporter(ad) {
+export function clickReporter(ad: Pick<SponsoredAd, 'campaign_id' | 'creative_id' | 'charged_cpc'>): () => void {
   let sent = false;
   return () => {
     if (sent) return;

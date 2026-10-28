@@ -66,7 +66,7 @@ explooro/
 │       ├── pages/               One folder per role: admin/, saler/, supplier/,
 │       │                        moderator/, editor/, customer/, dev/
 │       ├── services/            i18n.js, format.js, toast.js, permissions.js,
-│       │                        session.js, featureFlags.js, websocket.js
+│       │                        session.js, featureFlags.js, websocket.ts
 │       ├── locales/             en.json, bn.json  ← both, always
 │       ├── lib/                 motion.ts, optical.ts, genie.ts
 │       └── mocks/               Fixtures for VITE_API_MODE=mock

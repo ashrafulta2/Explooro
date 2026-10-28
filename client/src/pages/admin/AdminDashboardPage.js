@@ -17,7 +17,7 @@
  * Structure: the shell is built once per language (so the search box keeps focus while typing) and
  * each region — meta, alerts, KPIs, chart, breakdowns — re-renders on its own. Every rule that can
  * be wrong without anyone noticing (delta polarity, bucketing, range validation, CSV escaping)
- * lives in services/adminDashboard.model.js where it is unit-tested.
+ * lives in services/adminDashboard.model.ts where it is unit-tested.
  */
 
 import { adminApi } from '../../services/admin.api.js';
@@ -57,7 +57,7 @@ import {
   sortAlerts,
   summariseSeries,
   validateCustomRange,
-} from '../../services/adminDashboard.model.js';
+} from '../../services/adminDashboard.model.ts';
 
 const AUTO_REFRESH_KEY = 'explooro:admin-dashboard:auto-refresh';
 const PERM_ROLLUP = 'admin.analytics.rollup';

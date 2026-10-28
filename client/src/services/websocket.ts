@@ -1,5 +1,5 @@
 /**
- * websocket.js — WebSocket Connection Manager (Prompt 8.4 / DFD Subsystem 7.0 & PRD Gap #7).
+ * websocket.ts — WebSocket Connection Manager (Prompt 8.4 / DFD Subsystem 7.0 & PRD Gap #7).
  *
  * Implements:
  * 1. Single-use ticket authentication handshake (POST /chat/ticket).
@@ -23,32 +23,57 @@ export const WS_STATUS = {
   CONNECTED: 'CONNECTED',
   RECONNECTING: 'RECONNECTING',
   OFFLINE: 'OFFLINE',
-};
+} as const;
+
+export type WsStatus = (typeof WS_STATUS)[keyof typeof WS_STATUS];
+
+/** A frame from server/src/sockets/chat.handler.ts. Flat: there is no `payload` wrapper. */
+export interface ChatFrame {
+  type: string;
+  clientMsgId?: string;
+  messageId?: number;
+  threadId?: number;
+  message?: { id?: number | string; [field: string]: unknown };
+  [field: string]: unknown;
+}
+
+/** A chat message waiting for its ack; persisted to IndexedDB so a reload does not lose it. */
+export interface OutboundItem {
+  threadId: number;
+  content: string;
+  clientMsgId: string;
+  msgType: string;
+  payloadJson: unknown;
+  createdAt: string;
+}
+
+/** The part of a WebSocket the manager uses, which the mock chat socket also provides. */
+type ChatSocket = Pick<WebSocket, 'readyState' | 'send' | 'close' | 'onopen' | 'onmessage' | 'onclose' | 'onerror'>;
 
 // IndexedDB Helper for Offline Queue Persistence (PRD Gap #7)
 const DB_NAME = 'explooro_chat_db';
 const DB_VERSION = 1;
 const STORE_NAME = 'outbound_queue';
 
-function openIndexedDb() {
+function openIndexedDb(): Promise<IDBDatabase | null> {
   return new Promise((resolve) => {
     if (typeof indexedDB === 'undefined') {
       resolve(null);
       return;
     }
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (e) => {
-      const db = e.target.result;
+    request.onupgradeneeded = () => {
+      const db = request.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'clientMsgId' });
       }
     };
-    request.onsuccess = (e) => resolve(e.target.result);
+    request.onsuccess = () => resolve(request.result);
     request.onerror = () => resolve(null);
   });
 }
 
-async function persistQueueItem(item) {
+async function persistQueueItem(item: OutboundItem): Promise<void> {
   const db = await openIndexedDb();
   if (!db) return;
   try {
@@ -60,7 +85,7 @@ async function persistQueueItem(item) {
   }
 }
 
-async function removePersistedQueueItem(clientMsgId) {
+async function removePersistedQueueItem(clientMsgId: string): Promise<void> {
   const db = await openIndexedDb();
   if (!db) return;
   try {
@@ -72,10 +97,10 @@ async function removePersistedQueueItem(clientMsgId) {
   }
 }
 
-async function loadPersistedQueue() {
+async function loadPersistedQueue(): Promise<OutboundItem[]> {
   const db = await openIndexedDb();
   if (!db) return [];
-  return new Promise((resolve) => {
+  return new Promise<OutboundItem[]>((resolve) => {
     try {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
@@ -89,6 +114,19 @@ async function loadPersistedQueue() {
 }
 
 class WebSocketManager {
+  socket: ChatSocket | null;
+  status: WsStatus;
+  reconnectAttempts: number;
+  maxReconnectAttempts: number;
+  baseDelay: number;
+  maxDelay: number;
+  reconnectTimer: ReturnType<typeof setTimeout> | null;
+  heartbeatTimer: ReturnType<typeof setInterval> | null;
+  lastReceivedMessageId: number;
+  outboundQueue: OutboundItem[];
+  statusListeners: Set<(status: WsStatus) => void>;
+  messageListeners: Set<(frame: ChatFrame) => void>;
+
   constructor() {
     this.socket = null;
     this.status = WS_STATUS.DISCONNECTED;
@@ -121,14 +159,14 @@ class WebSocketManager {
     this.initPersistedQueue();
   }
 
-  async initPersistedQueue() {
+  async initPersistedQueue(): Promise<void> {
     const persisted = await loadPersistedQueue();
     if (persisted.length > 0) {
       this.outboundQueue = [...persisted, ...this.outboundQueue];
     }
   }
 
-  setStatus(status) {
+  setStatus(status: WsStatus): void {
     if (this.status === status) return;
     this.status = status;
     this.statusListeners.forEach((listener) => {
@@ -140,18 +178,18 @@ class WebSocketManager {
     });
   }
 
-  onStatusChange(listener) {
+  onStatusChange(listener: (status: WsStatus) => void): () => boolean {
     this.statusListeners.add(listener);
     listener(this.status);
     return () => this.statusListeners.delete(listener);
   }
 
-  onMessage(listener) {
+  onMessage(listener: (frame: ChatFrame) => void): () => boolean {
     this.messageListeners.add(listener);
     return () => this.messageListeners.delete(listener);
   }
 
-  async connect() {
+  async connect(): Promise<void> {
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
       return;
     }
@@ -179,8 +217,10 @@ class WebSocketManager {
       const wsUrl = `${protocol}//${host}/ws?ticket=${ticket}`;
 
       // WHY dynamic: keeps the mock socket out of the entry bundle; live mode never loads it.
+      // The cast: chatSocket.js adds send/close after building the object, so they are not in its
+      // inferred type, but it implements exactly the ChatSocket slice (see its header).
       this.socket = MOCK_MODE
-        ? (await import('../mocks/chatSocket.js')).createMockChatSocket(wsUrl)
+        ? ((await import('../mocks/chatSocket.js')).createMockChatSocket() as unknown as ChatSocket)
         : new WebSocket(wsUrl);
 
       this.socket.onopen = () => {
@@ -221,7 +261,7 @@ class WebSocketManager {
     }
   }
 
-  scheduleReconnect() {
+  scheduleReconnect(): void {
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       this.setStatus(WS_STATUS.OFFLINE);
@@ -242,7 +282,7 @@ class WebSocketManager {
     }, delay);
   }
 
-  startHeartbeat() {
+  startHeartbeat(): void {
     this.stopHeartbeat();
     this.heartbeatTimer = setInterval(() => {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
@@ -251,14 +291,14 @@ class WebSocketManager {
     }, 30000);
   }
 
-  stopHeartbeat() {
+  stopHeartbeat(): void {
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
   }
 
-  handleIncomingFrame(frame) {
+  handleIncomingFrame(frame: ChatFrame): void {
     // WHY the flat reads: server/src/sockets/chat.handler.ts sends
     // { type, clientMsgId, messageId, threadId } and { type, threadId, message: {...} } — it has
     // never wrapped frames in a `payload` object. Destructuring `payload` off the frame left it
@@ -293,7 +333,7 @@ class WebSocketManager {
     });
   }
 
-  send(type, payload = {}) {
+  send(type: string, payload: Record<string, unknown> = {}): boolean {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify({ type, payload }));
       return true;
@@ -304,8 +344,20 @@ class WebSocketManager {
   /**
    * Enqueues chat message optimistically and flushes or saves to IndexedDB.
    */
-  async sendMessage({ threadId, content, clientMsgId, msgType = 'TEXT', payloadJson = null }) {
-    const item = {
+  async sendMessage({
+    threadId,
+    content,
+    clientMsgId,
+    msgType = 'TEXT',
+    payloadJson = null,
+  }: {
+    threadId: number | string;
+    content: string;
+    clientMsgId: string;
+    msgType?: string;
+    payloadJson?: unknown;
+  }): Promise<OutboundItem> {
+    const item: OutboundItem = {
       threadId: Number(threadId),
       content,
       clientMsgId,
@@ -331,12 +383,12 @@ class WebSocketManager {
     return item;
   }
 
-  async dequeue(clientMsgId) {
+  async dequeue(clientMsgId: string): Promise<void> {
     this.outboundQueue = this.outboundQueue.filter((q) => q.clientMsgId !== clientMsgId);
     await removePersistedQueueItem(clientMsgId);
   }
 
-  flushQueue() {
+  flushQueue(): void {
     if (this.outboundQueue.length === 0) return;
     const items = [...this.outboundQueue];
 
@@ -351,7 +403,15 @@ class WebSocketManager {
     });
   }
 
-  sendTyping({ threadId, isTyping, participantIds = [] }) {
+  sendTyping({
+    threadId,
+    isTyping,
+    participantIds = [],
+  }: {
+    threadId: number | string;
+    isTyping: boolean;
+    participantIds?: (number | string)[];
+  }): boolean {
     return this.send('chat:typing', {
       thread_id: Number(threadId),
       is_typing: Boolean(isTyping),
@@ -359,14 +419,14 @@ class WebSocketManager {
     });
   }
 
-  sendReadReceipt({ threadId, lastReadMessageId }) {
+  sendReadReceipt({ threadId, lastReadMessageId }: { threadId: number | string; lastReadMessageId: number | string }): boolean {
     return this.send('chat:read', {
       thread_id: Number(threadId),
       last_read_message_id: Number(lastReadMessageId),
     });
   }
 
-  disconnect() {
+  disconnect(): void {
     this.stopHeartbeat();
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     if (this.socket) {

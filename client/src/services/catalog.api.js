@@ -230,7 +230,7 @@ export async function listSourcingCatalog(filters = {}) {
   };
 }
 
-// Sponsored Sourcing Slot: see services/sponsoredSourcing.js (fetch + billable-event beacons).
+// Sponsored Sourcing Slot: see services/sponsoredSourcing.ts (fetch + billable-event beacons).
 
 /**
  * Shop Partner adds a product to their virtual storefront. The supplier's price applies (migration 085),

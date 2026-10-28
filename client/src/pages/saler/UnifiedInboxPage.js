@@ -16,7 +16,7 @@
 import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { api } from '../../core/api.js';
-import { wsManager } from '../../services/websocket.js';
+import { wsManager } from '../../services/websocket.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
 import { escapeHtml as esc } from '../../services/html.ts';

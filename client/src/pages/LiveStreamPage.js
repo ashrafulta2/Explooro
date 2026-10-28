@@ -12,12 +12,12 @@
  * 8. Complete bilingual localization (EN/BN) and WCAG accessibility with aria-live regions.
  */
 
-import { knownDeliveryCharge, loadDeliveryCharge } from '../services/deliveryCharge.js';
+import { knownDeliveryCharge, loadDeliveryCharge } from '../services/deliveryCharge.ts';
 import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, getInStreamQuote, terminateLiveStream } from '../services/live.api.js';
 import { adsApi } from '../services/ads.api.js';
 import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.js';
 import { LiveStreamCard } from '../components/live/LiveStreamCard.js';
-import { wsManager, WS_STATUS } from '../services/websocket.js';
+import { wsManager, WS_STATUS } from '../services/websocket.ts';
 import { Button } from '../components/ui/Button.js';
 import { Drawer } from '../components/ui/Drawer.js';
 import { Modal } from '../components/ui/Modal.js';

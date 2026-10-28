@@ -1,5 +1,5 @@
 /**
- * deliveryCharge.js — the per-parcel delivery charge a super admin sets at /admin/platform/delivery.
+ * deliveryCharge.ts — the per-parcel delivery charge a super admin sets at /admin/platform/delivery.
  *
  * The server owns the number (GET /delivery/policy); the server cart already returns
  * `estimated_shipping` with it. This module is for the two places that price without a server cart:
@@ -14,7 +14,7 @@ import { api } from '../core/api.js';
 
 const STORAGE_KEY = 'explooro:delivery:per_parcel_charge';
 
-function readStored() {
+function readStored(): number | null {
   try {
     const n = Number(localStorage.getItem(STORAGE_KEY));
     return localStorage.getItem(STORAGE_KEY) !== null && Number.isFinite(n) && n >= 0 ? n : null;
@@ -24,18 +24,18 @@ function readStored() {
 }
 
 let current = readStored();
-let pending = null;
+let pending: Promise<number | null> | null = null;
 
 /** The last known charge in BDT, or null when it has never been loaded. */
-export function knownDeliveryCharge() {
+export function knownDeliveryCharge(): number | null {
   return current;
 }
 
 /** Loads the charge once per page load and remembers it. Never rejects: null when unavailable. */
-export function loadDeliveryCharge() {
+export function loadDeliveryCharge(): Promise<number | null> {
   if (!pending) {
     pending = api.get('/delivery/policy', { skipAuthRedirect: true })
-      .then((res) => {
+      .then((res: { policy?: { per_parcel_charge?: unknown } } | null) => {
         const n = Number(res?.policy?.per_parcel_charge);
         if (Number.isFinite(n) && n >= 0) {
           current = n;

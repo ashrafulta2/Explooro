@@ -2,7 +2,7 @@
  * adminDashboardModel.test.js — invariants behind the Super Admin Executive Cockpit (Prompt 11.4).
  *
  * The page is one big innerHTML template and the runner has no DOM, so every rule that can be wrong
- * without anyone noticing lives in services/adminDashboard.model.js and is asserted here:
+ * without anyone noticing lives in services/adminDashboard.model.ts and is asserted here:
  * delta polarity, compact money, range validation, chart bucketing/scales, alert filtering,
  * CSV escaping — plus the mock contract and en/bn parity for every string the page renders.
  */
@@ -34,7 +34,7 @@ import {
   sortAlerts,
   summariseSeries,
   validateCustomRange,
-} from '../src/services/adminDashboard.model.js';
+} from '../src/services/adminDashboard.model.ts';
 import adminHandlers from '../src/mocks/handlers/admin.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));

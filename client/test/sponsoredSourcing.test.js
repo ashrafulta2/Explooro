@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { api } from '../src/core/api.js';
-import { clickReporter, trackImpression, fetchSponsored } from '../src/services/sponsoredSourcing.js';
+import { clickReporter, trackImpression, fetchSponsored } from '../src/services/sponsoredSourcing.ts';
 
 const ad = { campaign_id: 7, creative_id: 8, charged_cpc: 2.5 };
 

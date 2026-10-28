@@ -12,7 +12,7 @@
 
 import { api } from '../../core/api.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
-import { formatCompactBdt } from '../../services/adminDashboard.model.js';
+import { formatCompactBdt } from '../../services/adminDashboard.model.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
