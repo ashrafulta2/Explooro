@@ -1,7 +1,7 @@
 /**
  * QnASection — ask, answer (seller/supplier only), upvote (Prompt 4.6).
  *
- * Returns `{ el, cleanup }` — same async component contract as ReviewList.js.
+ * Returns `{ el, cleanup }` — same async component contract as ReviewList.ts.
  */
 import { t } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';

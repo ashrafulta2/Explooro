@@ -21,7 +21,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
-import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 
 export default function AddressesPage(root, { navigate } = {}) {
   const isBn = () => document.documentElement.lang === 'bn';

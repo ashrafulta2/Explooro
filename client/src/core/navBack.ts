@@ -1,5 +1,5 @@
 /**
- * navBack.js — the "← Back" affordance on interior pages.
+ * navBack.ts — the "← Back" affordance on interior pages.
  *
  * When the user reached the current page by navigating inside the app, step back through real
  * browser history so Back returns them to wherever they actually came from — a product page,
@@ -17,7 +17,7 @@ export const CHEVRON_LEFT_SVG = `<svg class="back-btn__chevron" width="14" heigh
 /**
  * Safely resolves a localized label ensuring the result matches the intended language script.
  */
-function resolveLabel(key, bnDefault, enDefault, activeLang) {
+function resolveLabel(key: string, bnDefault: string, enDefault: string, activeLang: string) {
   if (activeLang === 'bn') {
     const translated = t(key);
     return (translated && /[\u0980-\u09FF]/.test(translated)) ? translated : bnDefault;
@@ -28,7 +28,23 @@ function resolveLabel(key, bnDefault, enDefault, activeLang) {
 /**
  * Resolves the destination page title and fallback path based on the origin URL `fromPath`.
  */
-export function getBackDestination(fromPath, lang = 'en') {
+/** Where a back link points, and what to call it. */
+export interface BackDestination {
+  name: string;
+  path: string;
+}
+
+/** Options of the back-link renderers. */
+export interface BackLinkOptions {
+  href?: string;
+  label?: string;
+  className?: string;
+  id?: string;
+  /** The router's `navigate`, used by `createBackButton`. */
+  navigate?: (path: string, options?: { replace?: boolean }) => void;
+}
+
+export function getBackDestination(fromPath: string | null | undefined, lang = 'en'): BackDestination {
   const activeLang = lang || getLanguage() || 'en';
 
   if (!fromPath) {
@@ -211,7 +227,7 @@ export function getBackDestination(fromPath, lang = 'en') {
  * Checks whether a label passed to renderBackLink is a generic fallback ("Account", "Back", etc.)
  * that should be replaced with the dynamically detected origin destination name.
  */
-function isGenericFallbackLabel(label) {
+function isGenericFallbackLabel(label: string) {
   if (!label) return true;
   const trimmed = label.trim();
   const genericStrings = [
@@ -238,7 +254,7 @@ function isGenericFallbackLabel(label) {
  * Renders HTML string for a back link with the '<' chevron icon and label.
  * Dynamically resolves the origin page name when navigating inside the app.
  */
-export function renderBackLink({ href = '/account', label = '', className = 'account-page__back', id = '' } = {}) {
+export function renderBackLink({ href = '/account', label = '', className = 'account-page__back', id = '' }: BackLinkOptions = {}): string {
   const lang = getLanguage();
   const fromPath = typeof window !== 'undefined' ? window.history?.state?.fromPath : null;
 
@@ -256,7 +272,7 @@ export function renderBackLink({ href = '/account', label = '', className = 'acc
 /**
  * Creates a DOM element for a back link with the '<' chevron icon, label, and wired click handler.
  */
-export function createBackButton({ href = '/account', label = '', className = 'account-page__back', id = '', navigate } = {}) {
+export function createBackButton({ href = '/account', label = '', className = 'account-page__back', id = '', navigate }: BackLinkOptions = {}): HTMLAnchorElement {
   const lang = getLanguage();
   const fromPath = typeof window !== 'undefined' ? window.history?.state?.fromPath : null;
   const dest = getBackDestination(fromPath || href, lang);
@@ -273,7 +289,7 @@ export function createBackButton({ href = '/account', label = '', className = 'a
   return a;
 }
 
-export function goBack(navigate, fallback = '/account') {
+export function goBack(navigate?: BackLinkOptions['navigate'] | null, fallback = '/account') {
   const depth = window.history.state?.idx ?? 0;
   const fromPath = window.history.state?.fromPath;
 
@@ -294,7 +310,7 @@ export function goBack(navigate, fallback = '/account') {
  * Wires a "← Back" element: keeps its href as the no-JS / middle-click fallback, but intercepts
  * plain left-clicks to run {@link goBack}. Returns nothing; safe to call with a missing element.
  */
-export function bindBackControl(el, navigate, fallback = '/account') {
+export function bindBackControl(el: HTMLElement | null | undefined, navigate?: BackLinkOptions['navigate'] | null, fallback = '/account') {
   if (!el) return;
   el.addEventListener('click', (event) => {
     // Let the browser handle new-tab / new-window / download intents.

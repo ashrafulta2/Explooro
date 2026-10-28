@@ -18,7 +18,7 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Tabs } from '../../components/ui/Tabs.ts';
 import { Modal } from '../../components/ui/Modal.ts';
-import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 
 export default function ReturnsPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {

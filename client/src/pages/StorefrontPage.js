@@ -5,7 +5,7 @@
 import { getStoreBySlug } from '../services/store.api.ts';
 import { StoreHeader } from '../components/store/StoreHeader.ts';
 import { ProductCard } from '../components/product/ProductCard.ts';
-import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
+import { openQuickBuyModal } from '../components/cart/QuickBuyModal.ts';
 import { Button } from '../components/ui/Button.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { Skeleton } from '../components/ui/Skeleton.ts';

@@ -22,7 +22,7 @@ const en = JSON.parse(read('src/locales/en.json'));
 const bn = JSON.parse(read('src/locales/bn.json'));
 
 const formSrc = read('src/components/product/TeamCheckoutForm.ts');
-const modalSrc = read('src/components/product/TeamPurchaseModal.js');
+const modalSrc = read('src/components/product/TeamPurchaseModal.ts');
 const pageSrc = read('src/pages/TeamPurchasePage.js');
 const adminSrc = read('src/pages/admin/AdminGroupBuyPage.js');
 

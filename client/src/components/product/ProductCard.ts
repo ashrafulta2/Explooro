@@ -27,7 +27,7 @@
 import { formatCurrency, formatBdt } from '../../services/format.js';
 import { adsApi } from '../../services/ads.api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
-import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
+import { openQuickBuyModal } from '../cart/QuickBuyModal.ts';
 import { track, observeImpression } from '../../services/signals.ts';
 
 /** The fields `resolveProductImage` looks at. Every one is optional; it falls back through all of them. */
@@ -704,9 +704,6 @@ export function ProductCard({
     if (onAction) {
       onAction(product, isSaler ? 'add_to_store' : 'quick_buy');
     } else if (!isSaler) {
-      // QuickBuyModal.js has no default for `onSuccess`, so its inferred type requires it, though a call
-      // without one is the normal case. The directive fails the typecheck once QuickBuyModal is typed.
-      // @ts-expect-error TS2345
       openQuickBuyModal({
         product,
         initialQty: 1,

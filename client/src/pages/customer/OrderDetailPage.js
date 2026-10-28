@@ -16,7 +16,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
-import { goBack, renderBackLink } from '../../core/navBack.js';
+import { goBack, renderBackLink } from '../../core/navBack.ts';
 import '../../styles/components/customer-orders.css';
 
 export default function OrderDetailPage(root, { params = {}, navigate } = {}) {

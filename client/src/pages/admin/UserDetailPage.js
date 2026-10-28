@@ -20,7 +20,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.ts';
-import { createBackButton } from '../../core/navBack.js';
+import { createBackButton } from '../../core/navBack.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatCurrency, formatNumber } from '../../services/format.js';

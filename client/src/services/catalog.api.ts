@@ -10,7 +10,7 @@ import { resolveProductImage } from '../components/product/ProductCard.ts';
 
 // The server's trust_scores.tier vocabulary (STARTER/VERIFIED_TRADER/ELITE_PARTNER, docs/erd.md
 // §1) doesn't match the client's existing tier vocabulary (standard/verified/elite — the same one
-// FilterPanel.js's `filter.tier_*` i18n keys already use since Prompt 4.5) or the mock fixture's
+// FilterPanel.ts's `filter.tier_*` i18n keys already use since Prompt 4.5) or the mock fixture's
 // flat `supplier_tier` field — normalized to the client's existing vocabulary here so ProductCard,
 // FilterPanel, and this page's supplier card all read one consistent set of values.
 const SERVER_TIER_TO_CLIENT: Record<string, string> = { STARTER: 'standard', VERIFIED_TRADER: 'verified', ELITE_PARTNER: 'elite' };
@@ -226,7 +226,7 @@ export async function listReviews(productId: number | string, { rating, hasPhoto
 }
 
 export async function getReviewEligibility(productId: number | string) {
-  // A guest with no session 401s here by design (ReviewList.js treats that the same as an
+  // A guest with no session 401s here by design (ReviewList.ts treats that the same as an
   // explicit NOT_SIGNED_IN reason) — it must not force a redirect off the product page.
   const { data } = await api.get(`/products/${productId}/reviews/eligibility`, { skipAuthRedirect: true });
   return data;

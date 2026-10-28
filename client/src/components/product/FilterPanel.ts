@@ -20,11 +20,30 @@
 import { Drawer } from '../ui/Drawer.ts';
 import { t } from '../../services/i18n.js';
 import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.ts';
+import type { BdDistrict } from '../../data/bangladeshGeo.ts';
 
 const SUPPLIER_TIERS = ['standard', 'verified', 'elite'];
 
 /** Read current filter state from URL. */
-function readFromURL() {
+/** The active filters, as they sit in the query string. */
+export interface FilterState {
+  min_price: string;
+  max_price: string;
+  in_stock: boolean;
+  tiers: string[];
+  district: string;
+  min_rating: string;
+  min_margin: string;
+}
+
+export interface FilterPanelOptions {
+  role?: string;
+  lang?: string;
+  /** Called with the URL search params after every change. */
+  onChange?: ((params: URLSearchParams) => void) | null;
+}
+
+function readFromURL(): FilterState {
   const sp = new URLSearchParams(window.location.search);
   return {
     min_price: sp.get('min_price') || '',
@@ -38,7 +57,7 @@ function readFromURL() {
 }
 
 /** Write filter state to URL (replaceState — no history entry). */
-function writeToURL(filters) {
+function writeToURL(filters: FilterState) {
   const sp = new URLSearchParams(window.location.search);
 
   // Clear filter keys then re-set from current values
@@ -84,7 +103,7 @@ export function FilterPanel({
   role = 'customer',
   lang = 'en',
   onChange = null,
-} = {}) {
+}: FilterPanelOptions = {}) {
   let state = readFromURL();
   let collapsed = false;
 
@@ -273,7 +292,7 @@ export function FilterPanel({
    * widen (never narrow) so the range doesn't collapse as the user's own price filter shrinks the
    * result set. Bounds are rounded to tidy hundreds.
    */
-  function setPriceBounds(lo, hi) {
+  function setPriceBounds(lo: number, hi: number) {
     if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= lo) return;
     const roundedLo = Math.floor(lo / 100) * 100;
     const roundedHi = Math.ceil(hi / 100) * 100;
@@ -383,12 +402,12 @@ export function FilterPanel({
 
   districtMenu.append(searchWrap, optionsList);
 
-  function getDistrictDisplayLabel(d) {
+  function getDistrictDisplayLabel(d: BdDistrict) {
     const isBn = lang === 'bn' || document.documentElement.lang === 'bn';
     return isBn ? `${d.name_bn} (${d.name_en})` : `${d.name_en} (${d.name_bn})`;
   }
 
-  function createDistrictOption(value, label) {
+  function createDistrictOption(value: string, label: string) {
     const li = document.createElement('li');
     li.className = 'filter-panel__select-option';
     li.setAttribute('role', 'option');
@@ -463,7 +482,7 @@ export function FilterPanel({
 
     const options = optionsList.querySelectorAll('.filter-panel__select-option');
     options.forEach((opt) => {
-      const isSel = opt.dataset.value === state.district;
+      const isSel = (opt as HTMLElement).dataset.value === state.district;
       opt.setAttribute('aria-selected', isSel ? 'true' : 'false');
       opt.classList.toggle('filter-panel__select-option--selected', isSel);
     });
@@ -525,7 +544,7 @@ export function FilterPanel({
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       const firstOpt = optionsList.querySelector('.filter-panel__select-option');
-      if (firstOpt) firstOpt.focus();
+      if (firstOpt) (firstOpt as HTMLElement).focus();
     } else if (e.key === 'Escape') {
       closeDistrictMenu();
       districtTrigger.focus();
@@ -533,7 +552,7 @@ export function FilterPanel({
       e.preventDefault();
       const options = optionsList.querySelectorAll('.filter-panel__select-option');
       if (options.length === 1) {
-        options[0].click();
+        (options[0] as HTMLElement).click();
       }
     }
   });
@@ -556,13 +575,13 @@ export function FilterPanel({
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       const nextIdx = activeIdx < options.length - 1 ? activeIdx + 1 : 0;
-      options[nextIdx]?.focus();
+      (options[nextIdx] as HTMLElement | undefined)?.focus();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (activeIdx <= 0) {
         searchInput.focus();
       } else {
-        options[activeIdx - 1]?.focus();
+        (options[activeIdx - 1] as HTMLElement | undefined)?.focus();
       }
     }
   });
@@ -592,7 +611,7 @@ export function FilterPanel({
     btn.type = 'button';
     btn.className = 'filter-panel__star-btn';
     btn.setAttribute('aria-pressed', state.min_rating === String(r) ? 'true' : 'false');
-    btn.dataset.rating = r;
+    btn.dataset.rating = String(r);
     btn.append(starSvg());
     btn.append(document.createTextNode(` ${r}+`));
     btn.addEventListener('click', () => {
@@ -649,11 +668,11 @@ export function FilterPanel({
 
   // ── Expandable Filter Drawer (Desktop & Mobile) ───────────────────────────
   let activeDrawer = null;
-  function openDrawer(trigger = null) {
+  function openDrawer(trigger: Element | null = null) {
     if (activeDrawer && activeDrawer.isOpen && activeDrawer.isOpen()) return;
     content.dataset.collapsed = 'false';
     const collapseToggle = content.querySelector('.filter-panel__collapse-toggle');
-    if (collapseToggle) collapseToggle.style.display = 'none';
+    if (collapseToggle) (collapseToggle as HTMLElement).style.display = 'none';
 
     // Ensure clearBtn is available for drawer header
     clearBtn.style.display = '';

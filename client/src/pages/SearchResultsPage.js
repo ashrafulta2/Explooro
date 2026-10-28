@@ -12,7 +12,7 @@ import { t, getLanguage } from '../services/i18n.js';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
-import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
+import { openQuickBuyModal } from '../components/cart/QuickBuyModal.ts';
 import { updateHead } from '../services/seo.ts';
 import { trackSearch } from '../services/signals.ts';
 

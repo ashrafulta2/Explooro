@@ -6,7 +6,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getBackDestination, renderBackLink } from '../src/core/navBack.js';
+import { getBackDestination, renderBackLink } from '../src/core/navBack.ts';
 
 describe('navBack — Dynamic Navigation & Origin Label Resolution', () => {
   describe('1. Route mapping to destination names (English)', () => {

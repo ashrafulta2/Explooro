@@ -28,7 +28,7 @@ export const BADGE_SHOW_WINDOWS = [
   [900000, 904000],
 ];
 
-export function isBadgeShown(elapsedMs) {
+export function isBadgeShown(elapsedMs: number): boolean {
   return BADGE_SHOW_WINDOWS.some(([from, to]) => elapsedMs >= from && elapsedMs < to);
 }
 
@@ -66,7 +66,15 @@ function scheduleBadge(key, badge, state) {
   badgeTimers.set(key, setTimeout(apply, 60));
 }
 
-export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups }) {
+export interface MobileNavOptions {
+  role: string;
+  ctx: Record<string, unknown>;
+  currentPath: string;
+  navigate: (path: string) => void;
+  collapsedGroups?: Record<string, boolean>;
+}
+
+export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups }: MobileNavOptions): HTMLElement {
   const tabs = MOBILE_TABS[role] ?? [];
   const nav = document.createElement('nav');
   nav.className = 'mobile-nav';
@@ -79,6 +87,7 @@ export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups })
       sheet.remove();
       sheet = null;
     }
+    // @ts-expect-error Sidebar (still .js) infers every option as required; the sheet omits onOpenPalette and sidebarCollapsed on purpose
     const content = Sidebar({
       role,
       ctx,

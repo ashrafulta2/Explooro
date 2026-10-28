@@ -20,7 +20,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
-import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 
 const TAB_KEYS = ['all', 'drops', 'live', 'stores', 'discover'];
 const SEARCH_DEBOUNCE_MS = 200;

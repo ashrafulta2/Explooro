@@ -3,7 +3,7 @@
  * helpful votes, pagination, and review submission gated on a delivered purchase (Prompt 4.6).
  *
  * Returns `{ el, cleanup }` — the same async-loading-page-module contract ProductGrid.ts/
- * FilterPanel.js already use, since this component fetches its own data and holds live listeners.
+ * FilterPanel.ts already use, since this component fetches its own data and holds live listeners.
  */
 import { t } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
@@ -25,14 +25,34 @@ const SORT_OPTIONS = [
   { value: 'rating_low', i18n: 'product_detail.review.sort_rating_low' },
 ];
 
-function starRow(filled, { size = 'md', interactive = false, onPick = null } = {}) {
+/** One review as GET /products/:id/reviews sends it. */
+export interface ProductReview {
+  id: number | string;
+  rating: number;
+  title?: string;
+  body?: string;
+  created_at: string;
+  reviewer_name?: string;
+  is_verified_purchase?: boolean;
+  helpful_count?: number;
+  media?: { url?: string; media_kind?: string }[];
+}
+
+export interface ReviewListOptions {
+  productId: number | string;
+  ratingAvg?: number;
+  ratingCount?: number;
+  lang?: string;
+}
+
+function starRow(filled: number, { size = 'md', interactive = false, onPick = null }: { size?: string; interactive?: boolean; onPick?: ((rating: number) => void) | null } = {}) {
   const wrap = document.createElement('span');
   wrap.className = `star-row star-row--${size}`;
   if (!interactive) wrap.setAttribute('aria-hidden', 'true');
   for (let i = 1; i <= 5; i += 1) {
     const star = document.createElement(interactive ? 'button' : 'span');
     if (interactive) {
-      star.type = 'button';
+      (star as HTMLButtonElement).type = 'button';
       star.setAttribute('aria-label', t('product_detail.review.rate_n_stars', { count: i }));
     }
     star.className = 'star-row__star';
@@ -45,7 +65,7 @@ function starRow(filled, { size = 'md', interactive = false, onPick = null } = {
   return wrap;
 }
 
-function distributionBars(distribution, totalCount) {
+function distributionBars(distribution: Record<string, number> | null | undefined, totalCount: number) {
   const wrap = document.createElement('div');
   wrap.className = 'review-distribution';
   for (let stars = 5; stars >= 1; stars -= 1) {
@@ -71,7 +91,7 @@ function distributionBars(distribution, totalCount) {
   return wrap;
 }
 
-function reviewCard(review, lang, onMarkHelpful) {
+function reviewCard(review: ProductReview, lang: string, onMarkHelpful: (review: ProductReview) => void) {
   const card = document.createElement('article');
   card.className = 'review-card';
 
@@ -142,7 +162,7 @@ function reviewCard(review, lang, onMarkHelpful) {
   return card;
 }
 
-export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = 'en' } = {}) {
+export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = 'en' }: ReviewListOptions = {} as ReviewListOptions) {
   const el = document.createElement('section');
   el.className = 'review-list';
   let destroyed = false;
@@ -185,7 +205,7 @@ export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = '
     label: t('product_detail.review.sort_label'),
     options: SORT_OPTIONS.map((o) => ({ value: o.value, label: t(o.i18n) })),
     value: sort,
-    onChange: (e) => { sort = e.target.value; page = 1; load(); },
+    onChange: (e) => { sort = (e.target as HTMLSelectElement).value; page = 1; load(); },
   });
   controls.append(sortSelect);
 
@@ -247,7 +267,7 @@ export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = '
 
   let page = 1;
 
-  async function markHelpful(review) {
+  async function markHelpful(review: ProductReview) {
     try {
       const result = await catalogApi.markReviewHelpful(review.id);
       review.helpful_count = result.helpful_count;
@@ -302,7 +322,7 @@ export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = '
           totalPages: pagination.total_pages,
           totalItems: pagination.total_count || reviewsList.length,
           pageSize: pagination.page_size || 5,
-          onChange: ({ page: nextPage }) => { page = nextPage; load(); window.scrollTo({ top: listSlot.offsetTop, behavior: 'smooth' }); },
+          onChange: (change) => { page = (change as { page: number }).page; load(); window.scrollTo({ top: listSlot.offsetTop, behavior: 'smooth' }); },
         })
       );
     } else {
@@ -310,7 +330,7 @@ export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = '
     }
   }
 
-  function renderEligibilityMessage(reason) {
+  function renderEligibilityMessage(reason: string) {
     const messageKey = {
       NOT_SIGNED_IN: 'product_detail.review.gate_sign_in',
       NOT_PURCHASED: 'product_detail.review.gate_not_purchased',
@@ -335,7 +355,7 @@ export function ReviewList({ productId, ratingAvg = 0, ratingCount = 0, lang = '
 
     const starsInput = starRow(0, { interactive: true, onPick: (n) => { selectedRating = n; refreshStars(); } });
     function refreshStars() {
-      [...starsInput.children].forEach((star, i) => { star.dataset.filled = String(i < selectedRating); });
+      [...starsInput.children].forEach((star: HTMLElement, i) => { star.dataset.filled = String(i < selectedRating); });
     }
     form.append(starsInput);
 

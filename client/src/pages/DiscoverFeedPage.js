@@ -19,7 +19,7 @@ import { t, getLanguage } from '../services/i18n.js';
 import { updateHead } from '../services/seo.ts';
 import { ProductFeed } from '../components/product/ProductFeed.js';
 import { CategoryPills } from '../components/product/CategoryPills.ts';
-import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
+import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.ts';
 import { Drawer } from '../components/ui/Drawer.ts';
 
 // Category ids are names (matching the catalog's mock filter + the marketplace home's own list).

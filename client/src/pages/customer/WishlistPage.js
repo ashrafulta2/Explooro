@@ -20,7 +20,7 @@ import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Switch } from '../../components/ui/Switch.ts';
 import { addToCart, toggleWishlist, openCart, setWishlistNotify } from '../../services/cart.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
-import { goBack, renderBackLink } from '../../core/navBack.js';
+import { goBack, renderBackLink } from '../../core/navBack.ts';
 
 export default function WishlistPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {

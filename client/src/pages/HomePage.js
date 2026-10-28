@@ -29,11 +29,11 @@ import { HomeTop } from '../components/home/HomeTop.ts';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
 import { resolveProductImage } from '../components/product/ProductCard.ts';
 import { addToCart } from '../services/cart.ts';
-import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
+import { openQuickBuyModal } from '../components/cart/QuickBuyModal.ts';
 import { CategoryPills } from '../components/product/CategoryPills.ts';
 import { PersonalizedRails } from '../components/product/PersonalizedRails.ts';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.ts';
-import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
+import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.ts';
 import { updateHead, buildWebsiteJsonLd } from '../services/seo.ts';
 
 // All categories derived from the product fixture — populated lazily from the first API response

@@ -20,9 +20,9 @@ import {
 import { toast } from '../../services/toast.js';
 import { Sidebar } from './Sidebar.js';
 import { TopBar, formatRemaining } from './TopBar.js';
-import { MobileNav } from './MobileNav.js';
+import { MobileNav } from './MobileNav.ts';
 import { createCommandPalette } from './CommandPalette.js';
-import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.js';
+import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.ts';
 import { initCart, setCartNavigator } from '../../services/cart.ts';
 
 const BACK_PORTAL_ROOTS = ['/admin', '/moderator', '/saler', '/supplier'];
@@ -129,7 +129,7 @@ export function createAppShell({ container, navigate }) {
       existing.forEach((el) => el.remove());
       return;
     }
-    // A page that ships its own back control (marked data-nav-back, as navBack.js's are) keeps it —
+    // A page that ships its own back control (marked data-nav-back, as navBack.ts's are) keeps it —
     // two competing "back" affordances on one page is worse than none.
     if (pageOutlet.querySelector('[data-nav-back]:not(.shell-back)')) {
       existing.forEach((el) => el.remove());

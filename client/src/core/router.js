@@ -242,7 +242,7 @@ export function createRouter({
     const url = new URL(path, window.location.origin);
     const key = crypto.randomUUID();
     // `idx` is the depth of this entry in the session's history stack — a push deepens it, a
-    // replace keeps it. core/navBack.js reads it to decide between history.back() and a fallback
+    // replace keeps it. core/navBack.ts reads it to decide between history.back() and a fallback
     // route. The browser persists history.state across reloads, so it survives a refresh.
     const currentIdx = history.state?.idx ?? 0;
     const previousPath = window.location.pathname + window.location.search;

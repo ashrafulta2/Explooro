@@ -13,7 +13,7 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { api } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 import { appStore } from '../../state/appStore.js';
 import {
   isOffByBrowserSignal,

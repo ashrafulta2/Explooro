@@ -23,7 +23,7 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { CouponCard } from '../../components/customer/CouponCard.ts';
-import { goBack, renderBackLink } from '../../core/navBack.js';
+import { goBack, renderBackLink } from '../../core/navBack.ts';
 import '../../styles/components/customer-coupons.css';
 
 const DEFAULT_FALLBACK_COUPONS = [

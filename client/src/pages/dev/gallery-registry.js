@@ -58,7 +58,7 @@ import { ProductRail, ProductRailSkeleton } from '../../components/product/Produ
 import { ImageGallery } from '../../components/product/ImageGallery.ts';
 import { VariantSelector } from '../../components/product/VariantSelector.ts';
 import { PriceBreakdown } from '../../components/product/PriceBreakdown.ts';
-import { ReviewList } from '../../components/product/ReviewList.js';
+import { ReviewList } from '../../components/product/ReviewList.ts';
 import { QnASection } from '../../components/product/QnASection.ts';
 import { ProfitCalculator } from '../../components/saler/ProfitCalculator.ts';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
@@ -97,7 +97,7 @@ import { CouponCard } from '../../components/customer/CouponCard.ts';
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.ts';
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.ts';
 import { QuestPanel } from '../../components/gamification/QuestPanel.ts';
-import { openTeamPurchaseModal } from '../../components/product/TeamPurchaseModal.js';
+import { openTeamPurchaseModal } from '../../components/product/TeamPurchaseModal.ts';
 import { TeamCheckoutForm } from '../../components/product/TeamCheckoutForm.ts';
 import '../../styles/components/returns.css';
 

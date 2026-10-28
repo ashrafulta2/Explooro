@@ -22,7 +22,7 @@ import {
   ORDER_STAGES,
 } from '../../components/order/OrderTracker.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
-import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 import { EarnJourney } from '../../components/customer/EarnJourney.ts';
 import { appStore } from '../../state/appStore.js';
 

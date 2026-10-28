@@ -9,7 +9,7 @@
  * ACCEPTANCE gates this satisfies:
  *  - Selecting a variant updates price and stock from real data (VariantSelector.onChange).
  *  - An out-of-stock variant is visibly disabled with a reason (VariantSelector.ts itself).
- *  - A user who has not purchased cannot submit a review (ReviewList.js's eligibility gate).
+ *  - A user who has not purchased cannot submit a review (ReviewList.ts's eligibility gate).
  *  - JSON-LD validates against Google's Rich Results Product + Review requirements.
  */
 import { appStore } from '../state/appStore.js';
@@ -22,19 +22,19 @@ import { EmptyState } from '../components/ui/EmptyState.ts';
 import { ImageGallery } from '../components/product/ImageGallery.ts';
 import { VariantSelector } from '../components/product/VariantSelector.ts';
 import { PriceBreakdown } from '../components/product/PriceBreakdown.ts';
-import { ReviewList } from '../components/product/ReviewList.js';
+import { ReviewList } from '../components/product/ReviewList.ts';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
 import { QnASection } from '../components/product/QnASection.ts';
 import { WishlistButton } from '../components/cart/WishlistButton.ts';
-import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
+import { openQuickBuyModal } from '../components/cart/QuickBuyModal.ts';
 import { resolveProductImage } from '../components/product/ProductCard.ts';
 import { addToCart } from '../services/cart.ts';
 import { track, startDwell } from '../services/signals.ts';
 import * as catalogApi from '../services/catalog.api.ts';
 import { updateHead, buildProductJsonLd } from '../services/seo.ts';
 import { api } from '../core/api.ts';
-import { openTeamPurchaseModal } from '../components/product/TeamPurchaseModal.js';
-import { createBackButton, getBackDestination } from '../core/navBack.js';
+import { openTeamPurchaseModal } from '../components/product/TeamPurchaseModal.ts';
+import { createBackButton, getBackDestination } from '../core/navBack.ts';
 
 function applySeo(product, lang) {
   const title = lang === 'bn' ? (product.title_bn || product.title_en) : product.title_en;

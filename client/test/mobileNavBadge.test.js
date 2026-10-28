@@ -4,7 +4,7 @@
  */
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { BADGE_SHOW_WINDOWS, isBadgeShown } from '../src/components/shell/MobileNav.js';
+import { BADGE_SHOW_WINDOWS, isBadgeShown } from '../src/components/shell/MobileNav.ts';
 
 describe('MobileNav badge timing', () => {
   test('shows on arrival and hides shortly after', () => {

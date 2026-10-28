@@ -19,7 +19,7 @@ const enLoc = JSON.parse(readFileSync(join(root, 'src/locales/en.json'), 'utf8')
 const bnLoc = JSON.parse(readFileSync(join(root, 'src/locales/bn.json'), 'utf8'));
 const pdpSrc = readFileSync(join(root, 'src/pages/ProductDetailPage.js'), 'utf8');
 const chatPageSrc = readFileSync(join(root, 'src/pages/ChatPage.js'), 'utf8');
-const teamModalSrc = readFileSync(join(root, 'src/components/product/TeamPurchaseModal.js'), 'utf8');
+const teamModalSrc = readFileSync(join(root, 'src/components/product/TeamPurchaseModal.ts'), 'utf8');
 
 describe('Product Detail CTAs — Chat with Shop Partner & Team Purchase Invariants', () => {
   it('1. Locale parity — all new team_purchases and product_detail.cta keys exist in both locales', () => {

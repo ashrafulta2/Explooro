@@ -33,7 +33,7 @@ import {
 } from '../../services/i18n.js';
 import { formatDate, formatPhone, setNumeralPreference } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
-import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 import {
   BANGLADESH_DIVISIONS,
   getDistrictsByDivision,

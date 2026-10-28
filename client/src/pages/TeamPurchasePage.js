@@ -19,7 +19,7 @@ import { appStore } from '../state/appStore.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { formatCurrency } from '../services/format.js';
 import { toast } from '../services/toast.js';
-import { bindBackControl, renderBackLink } from '../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../core/navBack.ts';
 import '../styles/components/team-purchases.css';
 
 const DEFAULT_FALLBACK_TEAMS = [

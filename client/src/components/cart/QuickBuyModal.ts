@@ -1,5 +1,5 @@
 /**
- * QuickBuyModal.js — 2-step direct purchase overlay bypassing cart (Prompt 5.4).
+ * QuickBuyModal.ts — 2-step direct purchase overlay bypassing cart (Prompt 5.4).
  *
  * Steps:
  *  1. Quantity, Variant & Delivery Address
@@ -19,20 +19,62 @@ import { resolveProductImage } from '../product/ProductCard.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 
+/** A product as the card or the detail page hands it over; the fields are those Quick Buy reads. */
+export interface QuickBuyProduct {
+  id?: number | string;
+  title?: string;
+  title_en?: string;
+  title_bn?: string;
+  price?: number | string;
+  retail_price?: number | string;
+  default_retail_price?: number | string;
+  pricing?: { retail_price?: number | string };
+  stock?: number;
+  stock_qty?: number;
+  image_url?: string;
+  primary_image_url?: string;
+  images?: { url?: string | null }[];
+  svg?: string;
+  slug?: string;
+  product_slug?: string;
+  supplier_id?: number | string;
+  supplier_name?: string;
+  supplier?: { id?: number | string; name?: string } | null;
+}
+
+/** The variant the shopper picked, if the product has any. */
+export interface QuickBuyVariant {
+  id?: number | string;
+  sku?: string;
+  title?: string;
+  price_override?: number | string | null;
+  stock_qty?: number;
+  [field: string]: unknown;
+}
+
+export interface QuickBuyOptions {
+  product: QuickBuyProduct;
+  selectedVariant?: QuickBuyVariant | null;
+  initialQty?: number;
+  /** Called with the placed order. */
+  onSuccess?: (order: unknown) => void;
+  navigate?: (path: string) => void;
+}
+
 export function openQuickBuyModal({
   product,
   selectedVariant = null,
   initialQty = 1,
   onSuccess,
   navigate,
-}) {
+}: QuickBuyOptions) {
   if (!product) return null;
 
   let step = 1;
   let qty = initialQty;
   const currentUser = getCurrentUser();
   const savedDraft = loadCheckoutDraft();
-  let addressData = savedDraft || (currentUser ? {
+  let addressData: Record<string, any> = savedDraft || (currentUser ? {
     recipient_name: currentUser.name || currentUser.full_name || '',
     recipient_phone: currentUser.phone || '',
     division: currentUser.division || 'dhaka',
@@ -109,15 +151,15 @@ export function openQuickBuyModal({
           <button type="button" class="cart-stepper__btn" id="qb-plus">+</button>
         </div>
       `;
-      qtyRow.querySelector('#qb-minus').addEventListener('click', () => {
+      qtyRow.querySelector('#qb-minus')!.addEventListener('click', () => {
         if (qty > 1) {
           qty -= 1;
-          qtyRow.querySelector('#qb-qty').textContent = qty;
+          qtyRow.querySelector('#qb-qty')!.textContent = String(qty);
         }
       });
-      qtyRow.querySelector('#qb-plus').addEventListener('click', () => {
+      qtyRow.querySelector('#qb-plus')!.addEventListener('click', () => {
         qty += 1;
-        qtyRow.querySelector('#qb-qty').textContent = qty;
+        qtyRow.querySelector('#qb-qty')!.textContent = String(qty);
       });
       step1Body.append(qtyRow);
 

@@ -14,14 +14,14 @@ const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8'
 describe('Delivery charge', () => {
   it('no client price path keeps its own ৳60', () => {
     assert.ok(!/parcels\.length \* 60/.test(read('services/cart.ts')));
-    assert.ok(!/const shipping = 60/.test(read('components/cart/QuickBuyModal.js')));
+    assert.ok(!/const shipping = 60/.test(read('components/cart/QuickBuyModal.ts')));
     assert.ok(!/estimated_shipping \|\| 60/.test(read('pages/CheckoutPage.js')));
     assert.ok(!/PerParcel = 60/.test(read('mocks/handlers/cart.js')));
   });
 
   it('the cart and Quick Buy read the policy the server serves', () => {
     assert.match(read('services/cart.ts'), /knownDeliveryCharge\(\)/);
-    assert.match(read('components/cart/QuickBuyModal.js'), /loadDeliveryCharge\(\)/);
+    assert.match(read('components/cart/QuickBuyModal.ts'), /loadDeliveryCharge\(\)/);
     assert.match(read('services/deliveryCharge.ts'), /api\.get\('\/delivery\/policy'/);
   });
 

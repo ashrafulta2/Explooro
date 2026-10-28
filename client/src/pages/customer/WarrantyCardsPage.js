@@ -16,7 +16,7 @@ import { openClaimModal } from '../../components/warranty/ClaimModal.ts';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
 import { openCertificateModal } from '../../components/warranty/CertificateModal.ts';
 import { openRegisterWarrantyModal } from '../../components/warranty/RegisterWarrantyModal.ts';
-import { bindBackControl, renderBackLink } from '../../core/navBack.js';
+import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 
 export default function WarrantyCardsPage(root, { navigate } = {}) {
   const container = document.createElement('div');

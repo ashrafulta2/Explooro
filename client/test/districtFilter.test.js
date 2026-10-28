@@ -48,7 +48,7 @@ test('Bangladesh 64-District Filter with Search Invariants', async (t) => {
   });
 
   await t.test('3. FilterPanel source code includes live search input and ALL_BD_DISTRICTS', () => {
-    const filterPanelPath = path.join(clientRoot, 'src', 'components', 'product', 'FilterPanel.js');
+    const filterPanelPath = path.join(clientRoot, 'src', 'components', 'product', 'FilterPanel.ts');
     const content = fs.readFileSync(filterPanelPath, 'utf8');
 
     assert.match(

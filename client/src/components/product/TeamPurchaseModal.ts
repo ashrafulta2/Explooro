@@ -1,5 +1,5 @@
 /**
- * TeamPurchaseModal.js — Social Group Buying & Team Purchases Modal (Prompt 9.5).
+ * TeamPurchaseModal.ts — Social Group Buying & Team Purchases Modal (Prompt 9.5).
  *
  * Allows shoppers on ProductDetailPage to:
  * 1. View active group-buying pools for this product and join immediately to unlock instant discounts.
@@ -18,12 +18,19 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { resolveProductImage } from './ProductCard.ts';
 import { TeamCheckoutForm } from './TeamCheckoutForm.ts';
+import type { QuickBuyProduct, QuickBuyVariant } from '../cart/QuickBuyModal.ts';
+
+export interface TeamPurchaseModalOptions {
+  product: QuickBuyProduct;
+  selectedVariant?: QuickBuyVariant | null;
+  navigate?: ((path: string) => void) | null;
+}
 
 export function openTeamPurchaseModal({
   product,
   selectedVariant = null,
   navigate = null,
-} = {}) {
+}: TeamPurchaseModalOptions = {} as TeamPurchaseModalOptions) {
   if (!product) return null;
 
   const isBn = getLanguage() === 'bn';
