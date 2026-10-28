@@ -4,7 +4,7 @@
 
 import { getStoreBySlug } from '../services/store.api.js';
 import { StoreHeader } from '../components/store/StoreHeader.js';
-import { ProductCard } from '../components/product/ProductCard.js';
+import { ProductCard } from '../components/product/ProductCard.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';

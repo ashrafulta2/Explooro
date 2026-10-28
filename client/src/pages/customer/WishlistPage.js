@@ -19,7 +19,7 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Switch } from '../../components/ui/Switch.ts';
 import { addToCart, toggleWishlist, openCart, setWishlistNotify } from '../../services/cart.js';
-import { resolveProductImage } from '../../components/product/ProductCard.js';
+import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { goBack, renderBackLink } from '../../core/navBack.js';
 
 export default function WishlistPage(root, { navigate } = {}) {

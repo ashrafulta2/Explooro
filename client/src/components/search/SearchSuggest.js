@@ -14,7 +14,7 @@
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { searchSuggest } from '../../services/catalog.api.js';
-import { resolveProductImage } from '../product/ProductCard.js';
+import { resolveProductImage } from '../product/ProductCard.ts';
 
 const DEBOUNCE_MS = 200;
 const MIN_CHARS = 2;

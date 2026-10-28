@@ -18,24 +18,53 @@
  *  - Empty state is rendered when no products are returned on the first page.
  */
 
-import { ProductCard, ProductCardSkeleton } from './ProductCard.js';
+import { ProductCard, ProductCardSkeleton } from './ProductCard.ts';
+import type {
+  ProductActionHandler,
+  ProductCardData,
+  ProductModules,
+  ProductNavigate,
+  ProductWidgetHandle,
+  SignalContext,
+} from './ProductCard.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
 import { t } from '../../services/i18n.js';
 
 const INITIAL_SKELETONS = 8;
 
+/** The cursor block of a paginated list response. */
+export interface PageCursor {
+  cursor?: { next?: string | null; has_more?: boolean };
+}
+
+/** One page of products. The cursor sits under `meta`, or on the response itself. */
+export interface ProductPage extends PageCursor {
+  data?: { products?: ProductCardData[] };
+  products?: ProductCardData[];
+  meta?: PageCursor;
+}
+
+export interface ProductGridOptions {
+  /** Called with the cursor from the previous page, `null` for the first. */
+  fetchPage: (cursor: string | null) => Promise<ProductPage | null | undefined>;
+  role?: 'customer' | 'saler' | string;
+  modules?: ProductModules;
+  lang?: 'en' | 'bn' | string;
+  onNavigate?: ProductNavigate | null;
+  onAction?: ProductActionHandler | null;
+  emptyTitle?: string | null;
+  emptyDescription?: string | null;
+  signalContext?: SignalContext | null;
+}
+
 /** Inline SVG: chevron up (back to top). */
-function chevronUpSvg() {
+function chevronUpSvg(): ChildNode | null {
   const wrap = document.createElement('span');
   wrap.innerHTML =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>';
   return wrap.firstChild;
 }
 
-/**
- * @param {object} opts
- * @returns {{ el: HTMLElement, cleanup: () => void }}
- */
 export function ProductGrid({
   fetchPage,
   role = 'customer',
@@ -46,7 +75,7 @@ export function ProductGrid({
   emptyTitle = null,
   emptyDescription = null,
   signalContext = null,
-} = {}) {
+}: ProductGridOptions): ProductWidgetHandle {
   // ── Back-to-top button (fixed, outside the grid scroll) ─────────────────
   const backTop = document.createElement('button');
   backTop.type = 'button';
@@ -89,7 +118,7 @@ export function ProductGrid({
   wrapper.append(sentinel);
 
   // ── State ────────────────────────────────────────────────────────────────
-  let cursor = null;
+  let cursor: string | null = null;
   let hasMore = true;
   let loading = false;
   let firstLoad = true;
@@ -99,7 +128,7 @@ export function ProductGrid({
     grid.append(ProductCardSkeleton());
   }
 
-  async function loadMore() {
+  async function loadMore(): Promise<void> {
     if (loading || !hasMore) return;
     loading = true;
 
@@ -174,7 +203,7 @@ export function ProductGrid({
   observer.observe(sentinel);
 
   // ── Cleanup ──────────────────────────────────────────────────────────────
-  function cleanup() {
+  function cleanup(): void {
     observer.disconnect();
     window.removeEventListener('scroll', onScroll);
     backTop.remove();

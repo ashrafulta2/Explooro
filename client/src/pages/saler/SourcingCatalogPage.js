@@ -20,7 +20,7 @@ import { appStore } from '../../state/appStore.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { resolveProductImage } from '../../components/product/ProductCard.js';
+import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { openAssistantPanel } from '../../components/ai/AssistantPanel.js';
 
 const CATEGORIES = [

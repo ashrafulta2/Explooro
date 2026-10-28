@@ -21,7 +21,7 @@ import {
   getStageIndex,
   ORDER_STAGES,
 } from '../../components/order/OrderTracker.ts';
-import { resolveProductImage } from '../../components/product/ProductCard.js';
+import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 import { EarnJourney } from '../../components/customer/EarnJourney.js';
 import { appStore } from '../../state/appStore.js';

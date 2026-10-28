@@ -2,7 +2,7 @@
  * ReviewList — rating distribution, photo/video reviews, verified-purchase badge, sort/filter,
  * helpful votes, pagination, and review submission gated on a delivered purchase (Prompt 4.6).
  *
- * Returns `{ el, cleanup }` — the same async-loading-page-module contract ProductGrid.js/
+ * Returns `{ el, cleanup }` — the same async-loading-page-module contract ProductGrid.ts/
  * FilterPanel.js already use, since this component fetches its own data and holds live listeners.
  */
 import { t } from '../../services/i18n.js';

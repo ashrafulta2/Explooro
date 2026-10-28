@@ -53,7 +53,7 @@ test('en and bn carry exactly the same discover.rails keys', () => {
 
 test('every discover.rails key the components read exists', () => {
   const used = new Set();
-  for (const file of ['components/product/PersonalizedRails.js']) {
+  for (const file of ['components/product/PersonalizedRails.ts']) {
     for (const m of read(file).matchAll(/discover\.rails\.([a-z_]+)/g)) used.add(m[1]);
   }
   const en = locale('en').discover.rails;
@@ -132,7 +132,7 @@ test('the home page mounts the rails above the catalog and hides them while narr
 });
 
 test('product-rail.css is imported by its component only', () => {
-  assert.match(read('components/product/ProductRail.js'), /styles\/components\/product-rail\.css/);
+  assert.match(read('components/product/ProductRail.ts'), /styles\/components\/product-rail\.css/);
   assert.doesNotMatch(read('styles/main.css'), /product-rail\.css/);
 });
 

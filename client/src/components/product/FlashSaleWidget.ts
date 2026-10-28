@@ -17,11 +17,32 @@
  *  - Compact ProductCards are used in the scroll row (no action button, smaller footprint).
  */
 
-import { ProductCard } from './ProductCard.js';
+import { ProductCard } from './ProductCard.ts';
+import type {
+  ProductActionHandler,
+  ProductCardData,
+  ProductModules,
+  ProductNavigate,
+  ProductWidgetHandle,
+} from './ProductCard.ts';
 import { t } from '../../services/i18n.js';
 
+export interface FlashSaleWidgetOptions {
+  /** Flash-sale products; when none is flagged, the first ten are shown as if they were. */
+  products?: ProductCardData[];
+  /** Unix time in ms when the sale ends; defaults to four hours from now. */
+  endsAt?: number;
+  role?: 'customer' | 'saler' | string;
+  modules?: ProductModules;
+  lang?: 'en' | 'bn' | string;
+  onNavigate?: ProductNavigate | null;
+  onAction?: ProductActionHandler | null;
+  /** Called by "View all deals"; without it the widget navigates to `/?feed=flash` itself. */
+  onViewAll?: (() => void) | null;
+}
+
 /** Inline SVG: bolt (flash sale icon). */
-function boltSvg() {
+function boltSvg(): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.className = 'flash-sale-widget__icon';
   wrap.setAttribute('aria-hidden', 'true');
@@ -31,7 +52,7 @@ function boltSvg() {
 }
 
 /** Inline SVG: chevron left. */
-function chevronLeftSvg() {
+function chevronLeftSvg(): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.className = 'flash-sale-widget__nav-icon';
   wrap.setAttribute('aria-hidden', 'true');
@@ -41,7 +62,7 @@ function chevronLeftSvg() {
 }
 
 /** Inline SVG: chevron right. */
-function chevronRightSvg() {
+function chevronRightSvg(): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.className = 'flash-sale-widget__nav-icon';
   wrap.setAttribute('aria-hidden', 'true');
@@ -51,7 +72,7 @@ function chevronRightSvg() {
 }
 
 /** Format seconds into { hh, mm, ss } zero-padded strings. */
-function secondsToHMS(totalSeconds) {
+function secondsToHMS(totalSeconds: number): { hh: string; mm: string; ss: string } {
   const s = Math.max(0, Math.floor(totalSeconds));
   const hh = String(Math.floor(s / 3600)).padStart(2, '0');
   const mm = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
@@ -59,7 +80,7 @@ function secondsToHMS(totalSeconds) {
   return { hh, mm, ss };
 }
 
-function makeTimeUnit(value, label) {
+function makeTimeUnit(value: string, label: string): { wrap: HTMLSpanElement; num: HTMLSpanElement } {
   const wrap = document.createElement('span');
   wrap.className = 'flash-sale-widget__time-unit';
   const num = document.createElement('span');
@@ -72,7 +93,7 @@ function makeTimeUnit(value, label) {
   return { wrap, num };
 }
 
-function makeSep() {
+function makeSep(): HTMLSpanElement {
   const sep = document.createElement('span');
   sep.className = 'flash-sale-widget__sep';
   sep.setAttribute('aria-hidden', 'true');
@@ -89,7 +110,7 @@ export function FlashSaleWidget({
   onNavigate = null,
   onAction = null,
   onViewAll = null,
-} = {}) {
+}: FlashSaleWidgetOptions = {}): ProductWidgetHandle {
   const root = document.createElement('section');
   root.className = 'flash-sale-widget';
   root.setAttribute('aria-label', t('marketplace.flash_sale.title'));
@@ -190,7 +211,7 @@ export function FlashSaleWidget({
     // WHY: scroll-snap (mandatory) parks the rest position at the first card's
     // offsetLeft (the scroll container's left padding), never a true 0 — so the
     // "at start" test has to tolerate that inset or the prev arrow never hides.
-    const startInset = (scroll.firstElementChild?.offsetLeft ?? 0) + 5;
+    const startInset = ((scroll.firstElementChild as HTMLElement | null)?.offsetLeft ?? 0) + 5;
     const atStart = scroll.scrollLeft <= startInset;
     const atEnd = scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 5;
     prevBtn.classList.toggle('is-hidden', atStart);
@@ -219,7 +240,7 @@ export function FlashSaleWidget({
     if (Date.now() >= endsAt) clearInterval(interval);
   }, 1000);
 
-  function cleanup() {
+  function cleanup(): void {
     clearInterval(interval);
     scroll.removeEventListener('scroll', updateArrows);
   }

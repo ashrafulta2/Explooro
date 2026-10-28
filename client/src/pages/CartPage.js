@@ -14,7 +14,7 @@ import { cartStore, fetchCart, updateItemQuantity, removeFromCart, toggleWishlis
 import { formatCurrency } from '../services/format.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { loadCartPageStyles } from '../styles/loadCartPageStyles.js';
-import { PLACEHOLDER_COLOURS, placeholderInitials, resolveProductImage } from '../components/product/ProductCard.js';
+import { PLACEHOLDER_COLOURS, placeholderInitials, resolveProductImage } from '../components/product/ProductCard.ts';
 
 const PARCEL_ICON_SVG = `
 <svg class="cart-page__notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

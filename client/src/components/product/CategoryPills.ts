@@ -17,22 +17,35 @@
 
 import { t } from '../../services/i18n.js';
 
+/** One category pill. The "All" pill (id `all`) is added in front. */
+export interface PillCategory {
+  id: string;
+  label_en: string;
+  label_bn?: string;
+}
+
 export function CategoryPills({
   categories = [],
   selected = 'all',
   lang = 'en',
   onChange = null,
-} = {}) {
+}: {
+  categories?: PillCategory[];
+  /** The selected category id; `all` means no filter. */
+  selected?: string;
+  lang?: 'en' | 'bn' | string;
+  onChange?: ((categoryId: string) => void) | null;
+} = {}): HTMLDivElement {
   const root = document.createElement('div');
   root.className = 'category-pills';
   root.setAttribute('role', 'listbox');
   root.setAttribute('aria-label', t('marketplace.categories.label'));
   root.setAttribute('aria-orientation', 'horizontal');
 
-  const allPills = [];
+  const allPills: HTMLButtonElement[] = [];
 
   /** Builds a single pill element. */
-  function makePill(id, labelEn, labelBn) {
+  function makePill(id: string, labelEn: string, labelBn?: string): HTMLButtonElement {
     const pill = document.createElement('button');
     pill.type = 'button';
     pill.className = 'category-pills__pill';
@@ -48,7 +61,7 @@ export function CategoryPills({
     return pill;
   }
 
-  function select(id) {
+  function select(id: string): void {
     for (const p of allPills) {
       const isSelected = p.dataset.id === id;
       p.setAttribute('aria-selected', isSelected ? 'true' : 'false');

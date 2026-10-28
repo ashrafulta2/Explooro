@@ -1,5 +1,5 @@
 /* ProductRail — themed horizontal product rows on the home page (personalized feed, Phase C).
-   Imported by components/product/ProductRail.js only: the home page is a lazy route, so this stays
+   Imported by components/product/ProductRail.ts only: the home page is a lazy route, so this stays
    out of the entry bundle's CSS budget. */
 
 .home-rails { display: flex; flex-direction: column; gap: var(--space-5); padding: var(--space-5) var(--space-6) 0; max-width: 100%; box-sizing: border-box; }

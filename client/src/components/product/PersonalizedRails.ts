@@ -22,13 +22,45 @@
  *  - Changing the personalization preference refetches, so an opt-out is visible immediately.
  */
 
-import { ProductRail, ProductRailSkeleton } from './ProductRail.js';
+import { ProductRail, ProductRailSkeleton } from './ProductRail.ts';
+import type {
+  ProductActionHandler,
+  ProductCardData,
+  ProductModules,
+  ProductNavigate,
+} from './ProductCard.ts';
 import { getRails } from '../../services/discovery.api.js';
 import { onPersonalizationChange } from '../../services/signals.js';
 import { t } from '../../services/i18n.js';
 
+/** One themed row from GET /discovery/rails. The server decides which rails exist and what is in them. */
+export interface DiscoveryRail {
+  key: string;
+  /** False when `for_you` is only the popular list. */
+  personalized?: boolean;
+  products: ProductCardData[];
+}
+
+export interface PersonalizedRailsOptions {
+  role?: 'customer' | 'saler' | string;
+  modules?: ProductModules;
+  lang?: 'en' | 'bn' | string;
+  onNavigate?: ProductNavigate | null;
+  onAction?: ProductActionHandler | null;
+  /** Whether the personalization settings page is reachable, which needs an account. */
+  signedIn?: boolean;
+}
+
+export interface PersonalizedRailsHandle {
+  el: HTMLDivElement;
+  refresh(): Promise<void>;
+  /** The rails belong to the unfiltered landing view; hide them (without refetching) while a filter is active. */
+  setVisible(visible: boolean): void;
+  cleanup(): void;
+}
+
 /** i18n keys for a rail's heading. for_you changes its wording when it is just the popular list. */
-export function railCopy(rail) {
+export function railCopy(rail: Pick<DiscoveryRail, 'key' | 'personalized'>): { title: string; subtitle: string } {
   const key = rail.key === 'for_you' && !rail.personalized ? 'for_you_popular' : rail.key;
   return {
     title: t(`discover.rails.${key}_title`),
@@ -43,26 +75,26 @@ export function PersonalizedRails({
   onNavigate = null,
   onAction = null,
   signedIn = false,
-} = {}) {
+}: PersonalizedRailsOptions = {}): PersonalizedRailsHandle {
   const el = document.createElement('div');
   el.className = 'home-rails';
   el.hidden = true;
 
   let generation = 0;
   let disposed = false;
-  let railCleanups = [];
+  let railCleanups: (() => void)[] = [];
   let wanted = true;
   let loaded = false;
 
   const audience = role === 'saler' ? 'saler' : 'customer';
 
-  function clear() {
+  function clear(): void {
     railCleanups.forEach((fn) => fn());
     railCleanups = [];
     el.replaceChildren();
   }
 
-  function render(rails) {
+  function render(rails: DiscoveryRail[]): void {
     clear();
     if (!rails.length) {
       el.hidden = true;
@@ -92,7 +124,7 @@ export function PersonalizedRails({
     el.hidden = !wanted;
   }
 
-  async function refresh() {
+  async function refresh(): Promise<void> {
     const mine = ++generation;
     if (!loaded) {
       // First load only: reserve the space. A refetch keeps the rows on screen until the new ones land.
@@ -100,7 +132,7 @@ export function PersonalizedRails({
       el.append(ProductRailSkeleton());
       el.hidden = !wanted;
     }
-    let rails = [];
+    let rails: DiscoveryRail[] = [];
     try {
       rails = await getRails({ audience });
     } catch {
@@ -112,7 +144,7 @@ export function PersonalizedRails({
   }
 
   /** The rails belong to the unfiltered landing view; hide (without refetching) while a filter is active. */
-  function setVisible(visible) {
+  function setVisible(visible: boolean): void {
     wanted = Boolean(visible);
     el.hidden = !wanted || !el.firstElementChild;
   }
@@ -121,7 +153,7 @@ export function PersonalizedRails({
     if (loaded) refresh();
   });
 
-  function cleanup() {
+  function cleanup(): void {
     disposed = true;
     stopConsent();
     clear();

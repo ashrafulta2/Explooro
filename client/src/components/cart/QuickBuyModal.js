@@ -15,7 +15,7 @@ import { addToCart } from '../../services/cart.js';
 import { knownDeliveryCharge, loadDeliveryCharge } from '../../services/deliveryCharge.ts';
 import { getCurrentUser } from '../../services/session.js';
 import { formatCurrency } from '../../services/format.js';
-import { resolveProductImage } from '../product/ProductCard.js';
+import { resolveProductImage } from '../product/ProductCard.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 

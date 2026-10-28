@@ -24,12 +24,36 @@
  */
 
 import '../../styles/components/product-rail.css';
-import { ProductCard } from './ProductCard.js';
+import { ProductCard } from './ProductCard.ts';
+import type {
+  ProductActionHandler,
+  ProductCardData,
+  ProductModules,
+  ProductNavigate,
+  ProductWidgetHandle,
+} from './ProductCard.ts';
 import { t } from '../../services/i18n.js';
 
 const SCROLL_STEP = 380;
 
-function chevron(direction) {
+export interface ProductRailOptions {
+  /** Stable rail id (`continue_browsing`, `for_you`, `trending`, ...). */
+  railKey?: string;
+  /** Already translated. */
+  title?: string;
+  /** Already translated; one line on why these products. */
+  subtitle?: string;
+  products?: ProductCardData[];
+  role?: 'customer' | 'saler' | string;
+  modules?: ProductModules;
+  lang?: 'en' | 'bn' | string;
+  onNavigate?: ProductNavigate | null;
+  onAction?: ProductActionHandler | null;
+  /** A small text button in the header, used for the "why am I seeing this" link on personal rails. */
+  note?: { label: string; onClick: () => void } | null;
+}
+
+function chevron(direction: 'prev' | 'next'): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.className = 'product-rail__nav-icon';
   wrap.setAttribute('aria-hidden', 'true');
@@ -49,7 +73,7 @@ export function ProductRail({
   onNavigate = null,
   onAction = null,
   note = null,
-} = {}) {
+}: ProductRailOptions = {}): ProductWidgetHandle {
   const root = document.createElement('section');
   root.className = 'product-rail';
   if (railKey) root.dataset.rail = railKey;
@@ -110,7 +134,7 @@ export function ProductRail({
   const updateArrows = () => {
     // WHY the inset: scroll-snap parks the resting position at the first card's offsetLeft (the
     // container's left padding), never a true 0, so "at start" has to tolerate it.
-    const startInset = (scroll.firstElementChild?.offsetLeft ?? 0) + 5;
+    const startInset = ((scroll.firstElementChild as HTMLElement | null)?.offsetLeft ?? 0) + 5;
     prevBtn.classList.toggle('is-hidden', scroll.scrollLeft <= startInset);
     nextBtn.classList.toggle('is-hidden', scroll.scrollLeft + scroll.clientWidth >= scroll.scrollWidth - 5);
   };
@@ -122,7 +146,7 @@ export function ProductRail({
   wrapper.append(prevBtn, scroll, nextBtn);
   root.append(wrapper);
 
-  function cleanup() {
+  function cleanup(): void {
     clearTimeout(settle);
     scroll.removeEventListener('scroll', updateArrows);
   }
@@ -131,7 +155,7 @@ export function ProductRail({
 }
 
 /** Placeholder with the rail's exact footprint, so the page does not jump when the rails arrive. */
-export function ProductRailSkeleton({ count = 6 } = {}) {
+export function ProductRailSkeleton({ count = 6 }: { count?: number } = {}): HTMLElement {
   const root = document.createElement('section');
   root.className = 'product-rail product-rail--skeleton';
   root.setAttribute('aria-hidden', 'true');

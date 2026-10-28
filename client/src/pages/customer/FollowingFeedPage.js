@@ -19,7 +19,7 @@ import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
-import { resolveProductImage } from '../../components/product/ProductCard.js';
+import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 const TAB_KEYS = ['all', 'drops', 'live', 'stores', 'discover'];

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
-const flashWidgetSrc = fs.readFileSync(path.resolve(root, 'src/components/product/FlashSaleWidget.js'), 'utf8');
+const flashWidgetSrc = fs.readFileSync(path.resolve(root, 'src/components/product/FlashSaleWidget.ts'), 'utf8');
 const homeSrc = fs.readFileSync(path.resolve(root, 'src/pages/HomePage.js'), 'utf8');
 const productsMockSrc = fs.readFileSync(path.resolve(root, 'src/mocks/handlers/products.js'), 'utf8');
 const cssSrc = fs.readFileSync(path.resolve(root, 'src/styles/components/product.css'), 'utf8');

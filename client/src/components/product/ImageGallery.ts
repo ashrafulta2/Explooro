@@ -6,7 +6,7 @@
  *    keys move the active image, Enter/Space activates a focused thumb.
  *  - Every image tries a real <img src> first; on load failure (or when there is no url at all —
  *    true for every seed/mock image right now, see server/src/db/seeds/007_demo_gallery_media.sql)
- *    it falls back to the same tinted-initials placeholder ProductCard.js already uses, so a
+ *    it falls back to the same tinted-initials placeholder ProductCard.ts already uses, so a
  *    missing photo degrades visibly rather than rendering a broken-image icon.
  *  - Swipe left/right on the main image moves to the next/previous slide on touch devices.
  *  - `gallery.setActiveByIndex(i)` / `gallery.setOverrideImage(imageLike)` are exposed so
@@ -15,7 +15,25 @@
  */
 
 import { t } from '../../services/i18n.js';
-import { resolveProductImage } from './ProductCard.js';
+import { resolveProductImage } from './ProductCard.ts';
+import type { ProductImageSource } from './ProductCard.ts';
+
+/** One slide: a photo or a video. With no `url`, the first slide uses the product's fallback image. */
+export interface GalleryImage {
+  id?: number | string;
+  url?: string | null;
+  image_index?: number;
+  is_primary?: boolean;
+  /** `VIDEO` plays in a `<video>`; anything else is an image. */
+  media_kind?: 'IMAGE' | 'VIDEO' | string;
+}
+
+/** The gallery root. A variant with its own image swaps it in through these two methods. */
+export interface GalleryElement extends HTMLDivElement {
+  setActiveByIndex(index: number): void;
+  /** Shows `image` in place of the selected slide; `null` goes back to the selection. */
+  setOverrideImage(image: GalleryImage | null | undefined): void;
+}
 
 const PLACEHOLDER_COLOURS = [
   { bg: '#9b467b', fg: '#fff' }, { bg: '#2d7b44', fg: '#fff' }, { bg: '#1e5fa8', fg: '#fff' },
@@ -24,12 +42,12 @@ const PLACEHOLDER_COLOURS = [
   { bg: '#464e55', fg: '#fff' },
 ];
 
-function placeholderInitials(title) {
+function placeholderInitials(title: string): string {
   if (!title) return '?';
   return title.trim().split(/\s+/).slice(0, 2).map((w) => w[0] || '').join('').toUpperCase() || '?';
 }
 
-function buildSlide(image, title, fallbackUrl) {
+function buildSlide(image: GalleryImage, title: string, fallbackUrl: string): HTMLDivElement {
   const slide = document.createElement('div');
   slide.className = 'gallery__slide';
 
@@ -77,8 +95,12 @@ function buildSlide(image, title, fallbackUrl) {
   return slide;
 }
 
-export function ImageGallery({ images = [], title = '', product = null } = {}) {
-  const root = document.createElement('div');
+export function ImageGallery({
+  images = [],
+  title = '',
+  product = null,
+}: { images?: GalleryImage[] | null; title?: string; product?: ProductImageSource | null } = {}): GalleryElement {
+  const root = document.createElement('div') as GalleryElement;
   root.className = 'gallery';
   root.setAttribute('role', 'group');
   root.setAttribute('aria-label', t('product_detail.gallery.label'));
@@ -100,10 +122,10 @@ export function ImageGallery({ images = [], title = '', product = null } = {}) {
 
   let activeIndex = list.findIndex((img) => img.is_primary);
   if (activeIndex < 0) activeIndex = 0;
-  let overrideImage = null;
-  const thumbButtons = [];
+  let overrideImage: GalleryImage | null = null;
+  const thumbButtons: HTMLButtonElement[] = [];
 
-  function render() {
+  function render(): void {
     main.replaceChildren(buildSlide(overrideImage || list[activeIndex], title, fallbackUrl));
     thumbButtons.forEach((btn, i) => {
       const isActive = !overrideImage && i === activeIndex;
@@ -112,7 +134,7 @@ export function ImageGallery({ images = [], title = '', product = null } = {}) {
     });
   }
 
-  function selectIndex(index, { focus = false } = {}) {
+  function selectIndex(index: number, { focus = false }: { focus?: boolean } = {}): void {
     overrideImage = null;
     activeIndex = (index + list.length) % list.length;
     render();
@@ -167,7 +189,7 @@ export function ImageGallery({ images = [], title = '', product = null } = {}) {
   });
 
   // Swipe support (touch devices) on the main slide.
-  let touchStartX = null;
+  let touchStartX: number | null = null;
   main.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
   main.addEventListener('touchend', (e) => {
     if (touchStartX == null) return;
@@ -179,8 +201,8 @@ export function ImageGallery({ images = [], title = '', product = null } = {}) {
   root.append(main, thumbRow);
   render();
 
-  root.setActiveByIndex = (index) => selectIndex(index);
-  root.setOverrideImage = (imageLike) => {
+  root.setActiveByIndex = (index: number) => selectIndex(index);
+  root.setOverrideImage = (imageLike: GalleryImage | null | undefined) => {
     overrideImage = imageLike || null;
     render();
   };

@@ -412,12 +412,12 @@ describe('wiring — every surface reports through the one tracker, once', () =>
   });
 
   it('a search-result card reports SEARCH_CLICK with its query; a normal card reports CLICK', () => {
-    const card = src('components/product/ProductCard.js');
+    const card = src('components/product/ProductCard.ts');
     assert.match(card, /signalContext\?\.query \? 'SEARCH_CLICK' : 'CLICK'/);
     assert.match(card, /observeImpression\(card, product/);
     assert.match(src('pages/SearchResultsPage.js'), /signalContext: \{ query: term \}/);
     assert.match(src('pages/SearchResultsPage.js'), /trackSearch\(/);
-    assert.match(src('components/product/ProductGrid.js'), /signalContext/);
+    assert.match(src('components/product/ProductGrid.ts'), /signalContext/);
   });
 
   it('the product page reports a VIEW and times the visit, stopping the timer on leave', () => {
@@ -485,9 +485,9 @@ describe('surface attribution', () => {
   });
 
   it('every surface names itself: rails by key, the grid, search results', () => {
-    assert.match(src('components/product/ProductRail.js'), /source: `rail:\$\{railKey\}`/);
-    assert.match(src('components/product/ProductGrid.js'), /source: signalContext\?\.query \? 'search' : 'grid'/);
-    const card = src('components/product/ProductCard.js');
+    assert.match(src('components/product/ProductRail.ts'), /source: `rail:\$\{railKey\}`/);
+    assert.match(src('components/product/ProductGrid.ts'), /source: signalContext\?\.query \? 'search' : 'grid'/);
+    const card = src('components/product/ProductCard.ts');
     assert.match(card, /source: signalContext\?\.source/);
     assert.match(card, /observeImpression\(card, product, \{ audience: signalAudience, source: signalContext\?\.source \}\)/);
   });

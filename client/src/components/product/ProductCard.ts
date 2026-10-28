@@ -30,6 +30,94 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
 import { track, observeImpression } from '../../services/signals.js';
 
+/** The fields `resolveProductImage` looks at. Every one is optional; it falls back through all of them. */
+export interface ProductImageSource {
+  id?: number | string;
+  product_id?: number | string;
+  slug?: string;
+  product_slug?: string;
+  image_url?: string;
+  image?: string;
+  primary_image?: string;
+  primary_image_url?: string;
+  images?: { url?: string; is_primary?: boolean }[];
+  /** Picks the placeholder colour and, for a dummy image, which of the category's images. */
+  image_index?: number;
+  title?: string;
+  title_en?: string;
+  title_bn?: string;
+  product_title_en?: string;
+  product_title_bn?: string;
+  name?: string;
+  category?: string;
+  category_bn?: string;
+  category_name_en?: string;
+  category_name_bn?: string;
+}
+
+/**
+ * A product as GET /products returns a list item. `id` is `ad_<n>` for a sponsored ad unit
+ * (`isSponsored`), otherwise the product id.
+ */
+export interface ProductCardData extends ProductImageSource {
+  ref?: string;
+  product_ref?: string;
+  isSponsored?: boolean;
+  price?: number | string;
+  original_price?: number;
+  is_flash_sale?: boolean;
+  is_verified_supplier?: boolean;
+  /** Only drawn when the `physical_shop_status` module is on. */
+  store_open?: boolean;
+  /** Only drawn for a shop partner, with the `sourcing` module on. */
+  margin_pct?: number | string;
+  rating?: number | string;
+  rating_count?: number;
+  stock?: number;
+  stock_qty?: number;
+  stock_quantity?: number;
+}
+
+/** Live module flags. Only an explicit `flash_sale: false` hides the flash tag; a missing flag counts as on. */
+export interface ProductModules {
+  flash_sale?: boolean;
+  sourcing?: boolean;
+  physical_shop_status?: boolean;
+  [module: string]: boolean | undefined;
+}
+
+/** Where a card is shown, for behavioural signals: a `query` makes opening it a SEARCH_CLICK. */
+export interface SignalContext {
+  query?: string;
+  /** Names the surface (`rail:trending`, `grid`, `search`, ...) so the funnel can tell them apart. */
+  source?: string;
+}
+
+export type ProductAction = 'add_to_store' | 'quick_buy';
+export type ProductNavigate = (path: string) => void;
+export type ProductActionHandler = (product: ProductCardData, action: ProductAction) => void;
+
+/** What a mounted product widget (rail, grid, flash sale) hands back to the page. */
+export interface ProductWidgetHandle {
+  el: HTMLElement;
+  cleanup: () => void;
+}
+
+export interface ProductCardOptions {
+  product?: ProductCardData;
+  role?: 'customer' | 'saler' | string;
+  modules?: ProductModules;
+  lang?: 'en' | 'bn' | string;
+  size?: 'full' | 'compact';
+  onNavigate?: ProductNavigate | null;
+  /** Called on the CTA instead of the built-in Quick Buy modal. */
+  onAction?: ProductActionHandler | null;
+  signalContext?: SignalContext | null;
+}
+
+/** `window.__explooroRouter`, read as a navigation fallback; nothing in client/src sets it. */
+type RouterWindow = Window & { __explooroRouter?: { navigate?: (path: string) => void } };
+
 // Ten HSL-defined, accessible background colours for the SVG image placeholder.
 // Each maps to a distinct category visual identity — consistent per image_index.
 export const PLACEHOLDER_COLOURS = [
@@ -45,7 +133,7 @@ export const PLACEHOLDER_COLOURS = [
   { bg: '#464e55', fg: '#fff' }, // dark grey — Wholesale
 ];
 
-const CATEGORY_DUMMY_IMAGES = {
+const CATEGORY_DUMMY_IMAGES: Record<string, string[]> = {
   'Clothing': [
     'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=500&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&auto=format&fit=crop&q=80',
@@ -152,12 +240,6 @@ const CATEGORY_DUMMY_IMAGES = {
     'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&auto=format&fit=crop&q=80',
   ],
-  'Crafts': [
-    'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=500&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=500&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500&auto=format&fit=crop&q=80',
-  ],
   'Furniture': [
     'https://images.unsplash.com/photo-1503602642458-232111445657?w=500&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1594671581654-2785ac5ced4b?w=500&auto=format&fit=crop&q=80',
@@ -262,9 +344,9 @@ const DEFAULT_DUMMY_IMAGES = [
   'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500&auto=format&fit=crop&q=80',
 ];
 
-export function resolveProductImage(product) {
+export function resolveProductImage(product: ProductImageSource | null | undefined): string {
   if (!product) return DEFAULT_DUMMY_IMAGES[0];
-  const isRealUrl = (u) => typeof u === 'string' && u.trim().length > 0 && !u.includes('placeholder');
+  const isRealUrl = (u: unknown): boolean => typeof u === 'string' && u.trim().length > 0 && !u.includes('placeholder');
 
   if (isRealUrl(product.image_url)) return product.image_url;
   if (isRealUrl(product.image)) return product.image;
@@ -296,14 +378,14 @@ export function resolveProductImage(product) {
 }
 
 /** Returns the first letter(s) of a title for use as placeholder text. */
-export function placeholderInitials(title) {
+export function placeholderInitials(title: string | null | undefined): string {
   if (!title) return '?';
   const words = title.trim().split(/\s+/).slice(0, 2);
   return words.map((w) => w[0] || '').join('').toUpperCase() || '?';
 }
 
 /** Inline SVG: filled star (rating display). */
-function starSvg(filled) {
+function starSvg(filled: boolean): SVGSVGElement {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('fill', filled ? 'currentColor' : 'none');
@@ -317,7 +399,7 @@ function starSvg(filled) {
 }
 
 /** Renders 5 stars, filled up to `rating`. Half-stars rounded to nearest integer for simplicity. */
-function renderStars(rating) {
+function renderStars(rating: number | string | null | undefined): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.className = 'product-card__stars';
   wrap.setAttribute('aria-hidden', 'true');
@@ -329,7 +411,7 @@ function renderStars(rating) {
 }
 
 /** Inline SVG: verification checkmark. */
-function verifiedSvg() {
+function verifiedSvg(): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.setAttribute('aria-hidden', 'true');
   wrap.style.cssText = 'display:inline-flex;width:14px;height:14px;color:var(--brand-600);flex-shrink:0';
@@ -341,7 +423,7 @@ function verifiedSvg() {
 }
 
 /** Inline SVG: bolt (flash sale). */
-function boltSvg() {
+function boltSvg(): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.setAttribute('aria-hidden', 'true');
   wrap.style.cssText = 'display:inline-flex;width:10px;height:10px;color:#fff;flex-shrink:0';
@@ -350,10 +432,7 @@ function boltSvg() {
   return wrap;
 }
 
-/**
- * @param {object} opts
- * @returns {HTMLElement}  — the card root (an <article>)
- */
+/** Returns the card root, an `<article>`. */
 export function ProductCard({
   product = {},
   role = 'customer',
@@ -363,7 +442,7 @@ export function ProductCard({
   onNavigate = null,
   onAction = null,
   signalContext = null,
-} = {}) {
+}: ProductCardOptions = {}): HTMLElement {
   const card = document.createElement('article');
   card.className = size === 'compact' ? 'product-card product-card--compact' : 'product-card';
   if (product.isSponsored) {
@@ -384,14 +463,14 @@ export function ProductCard({
 
   const signalAudience = role === 'saler' ? 'saler' : 'customer';
 
-  const navigate = (e) => {
+  const navigate = (e?: Event): void => {
     // If the click originated from an interactive CTA button or link inside, don't double navigate
-    if (e && (e.target.closest('button') || (e.target.closest('a') && e.target.closest('a') !== e.currentTarget))) {
+    if (e && ((e.target as Element).closest('button') || ((e.target as Element).closest('a') && (e.target as Element).closest('a') !== e.currentTarget))) {
       return;
     }
-    
-    if (product.isSponsored && product.id?.startsWith('ad_')) {
-      adsApi.trackClick(product.id.replace('ad_', ''));
+
+    if (product.isSponsored && (product.id as string)?.startsWith('ad_')) {
+      adsApi.trackClick((product.id as string).replace('ad_', ''));
     }
 
     // Behavioural signal. A search-result card reports the query that surfaced it: that is a stated
@@ -404,8 +483,8 @@ export function ProductCard({
 
     if (typeof onNavigate === 'function') {
       onNavigate(productUrl);
-    } else if (typeof window.__explooroRouter?.navigate === 'function') {
-      window.__explooroRouter.navigate(productUrl);
+    } else if (typeof (window as RouterWindow).__explooroRouter?.navigate === 'function') {
+      (window as RouterWindow).__explooroRouter.navigate(productUrl);
     } else {
       window.location.href = productUrl;
     }
@@ -413,10 +492,14 @@ export function ProductCard({
 
   card.addEventListener('click', navigate);
   // VIEW once the card has really been on screen (>= half visible for IMPRESSION_MS), not merely rendered.
+  // signals.js infers this options type from its one default and leaves `source` out, though it reads it
+  // (client/test/signals.test.js pins this exact call). The directive fails the typecheck once signals.js
+  // is typed, which is the cue to delete it.
+  // @ts-expect-error TS2353
   observeImpression(card, product, { audience: signalAudience, source: signalContext?.source });
   card.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
-      if (e.target.closest('button')) return;
+      if ((e.target as Element).closest('button')) return;
       e.preventDefault();
       navigate(e);
     }
@@ -527,7 +610,7 @@ export function ProductCard({
 
   // Flash Sale Original Price Strikethrough & Discount Tag
   if (product.is_flash_sale && (modules?.flash_sale !== false)) {
-    const numPrice = parseFloat(product.price) || 0;
+    const numPrice = parseFloat(String(product.price)) || 0;
     const origPrice = product.original_price ?? (numPrice > 0 ? Math.round(numPrice * 1.25) : 0);
     if (origPrice > numPrice) {
       const origEl = document.createElement('span');
@@ -625,6 +708,9 @@ export function ProductCard({
     if (onAction) {
       onAction(product, isSaler ? 'add_to_store' : 'quick_buy');
     } else if (!isSaler) {
+      // QuickBuyModal.js has no default for `onSuccess`, so its inferred type requires it, though a call
+      // without one is the normal case. The directive fails the typecheck once QuickBuyModal is typed.
+      // @ts-expect-error TS2345
       openQuickBuyModal({
         product,
         initialQty: 1,
@@ -643,9 +729,8 @@ export function ProductCard({
 /**
  * ProductCardSkeleton — layout-matching loading placeholder.
  * Same DOM structure as ProductCard; widths match 2-line title + price + rating bar.
- * @returns {HTMLElement}
  */
-export function ProductCardSkeleton({ size = 'full' } = {}) {
+export function ProductCardSkeleton({ size = 'full' }: { size?: 'full' | 'compact' } = {}): HTMLDivElement {
   const root = document.createElement('div');
   root.className = `skeleton skeleton--product-card${size === 'compact' ? ' product-card--compact' : ''}`;
   root.setAttribute('aria-hidden', 'true');

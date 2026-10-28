@@ -14,8 +14,30 @@
  */
 import { t } from '../../services/i18n.js';
 
-function attributeKeys(variants) {
-  const keys = [];
+/** One row of `product_variants`; `attributes` maps a dimension (size, color, ...) to its value. */
+export interface ProductVariant {
+  id?: number | string;
+  attributes?: Record<string, string>;
+  price_delta: number;
+  stock_qty: number;
+  sku?: string;
+  image_url?: string | null;
+  image_index?: number;
+}
+
+/** What `onChange` reports for a full, in-stock combination. */
+export interface VariantChoice {
+  variant: ProductVariant;
+  /** Base price plus the variant's delta. */
+  price: number;
+  stockQty: number;
+  sku?: string;
+  imageUrl?: string | null;
+  imageIndex?: number;
+}
+
+function attributeKeys(variants: ProductVariant[]): string[] {
+  const keys: string[] = [];
   for (const v of variants) {
     for (const key of Object.keys(v.attributes || {})) {
       if (!keys.includes(key)) keys.push(key);
@@ -24,8 +46,8 @@ function attributeKeys(variants) {
   return keys;
 }
 
-function valuesFor(variants, key) {
-  const values = [];
+function valuesFor(variants: ProductVariant[], key: string): string[] {
+  const values: string[] = [];
   for (const v of variants) {
     const val = v.attributes?.[key];
     if (val != null && !values.includes(val)) values.push(val);
@@ -33,31 +55,40 @@ function valuesFor(variants, key) {
   return values;
 }
 
-function findVariant(variants, selection) {
+function findVariant(variants: ProductVariant[], selection: Record<string, string>): ProductVariant | null {
   return variants.find((v) => Object.entries(selection).every(([k, val]) => v.attributes?.[k] === val)) || null;
 }
 
 /** Whether a candidate value for `key` yields at least one variant consistent with the REST of
  * the current selection — used to decide if a button should be disabled. */
-function isReachable(variants, selection, key, value) {
+function isReachable(variants: ProductVariant[], selection: Record<string, string>, key: string, value: string): boolean {
   const candidate = { ...selection, [key]: value };
   return variants.some((v) => Object.entries(candidate).every(([k, val]) => v.attributes?.[k] === val));
 }
 
-export function VariantSelector({ variants = [], basePrice = 0, onChange = null } = {}) {
+export function VariantSelector({
+  variants = [],
+  basePrice = 0,
+  onChange = null,
+}: {
+  variants?: ProductVariant[];
+  basePrice?: number | string;
+  /** `null` while the selection is incomplete or points at an unavailable combination. */
+  onChange?: ((choice: VariantChoice | null) => void) | null;
+} = {}): HTMLDivElement {
   const root = document.createElement('div');
   root.className = 'variant-selector';
   if (variants.length === 0) return root; // no-variant products render nothing
 
   const keys = attributeKeys(variants);
-  const selection = {};
-  const groups = new Map(); // key -> Map(value -> button)
+  const selection: Record<string, string> = {};
+  const groups = new Map<string, Map<string, HTMLButtonElement>>(); // key -> Map(value -> button)
 
-  function priceFor(variant) {
+  function priceFor(variant: ProductVariant | null): number {
     return Number(basePrice) + (variant ? variant.price_delta : 0);
   }
 
-  function emitChange() {
+  function emitChange(): void {
     if (keys.some((k) => selection[k] == null)) {
       onChange && onChange(null);
       return;
@@ -77,7 +108,7 @@ export function VariantSelector({ variants = [], basePrice = 0, onChange = null 
     });
   }
 
-  function refreshButtons() {
+  function refreshButtons(): void {
     for (const key of keys) {
       const buttonMap = groups.get(key);
       for (const [value, btn] of buttonMap) {
@@ -118,7 +149,7 @@ export function VariantSelector({ variants = [], basePrice = 0, onChange = null 
     const optionsRow = document.createElement('div');
     optionsRow.className = 'variant-selector__options';
 
-    const buttonMap = new Map();
+    const buttonMap = new Map<string, HTMLButtonElement>();
     for (const value of valuesFor(variants, key)) {
       const btn = document.createElement('button');
       btn.type = 'button';

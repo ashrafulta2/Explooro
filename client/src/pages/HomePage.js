@@ -26,13 +26,13 @@ import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { HomeTop } from '../components/home/HomeTop.js';
-import { ProductGrid } from '../components/product/ProductGrid.js';
-import { resolveProductImage } from '../components/product/ProductCard.js';
+import { ProductGrid } from '../components/product/ProductGrid.ts';
+import { resolveProductImage } from '../components/product/ProductCard.ts';
 import { addToCart } from '../services/cart.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
-import { CategoryPills } from '../components/product/CategoryPills.js';
-import { PersonalizedRails } from '../components/product/PersonalizedRails.js';
-import { FlashSaleWidget } from '../components/product/FlashSaleWidget.js';
+import { CategoryPills } from '../components/product/CategoryPills.ts';
+import { PersonalizedRails } from '../components/product/PersonalizedRails.ts';
+import { FlashSaleWidget } from '../components/product/FlashSaleWidget.ts';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
 import { updateHead, buildWebsiteJsonLd } from '../services/seo.ts';
 

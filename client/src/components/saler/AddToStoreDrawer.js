@@ -13,7 +13,7 @@ import { toast } from '../../services/toast.js';
 import { addToSalerStore } from '../../services/catalog.api.js';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { resolveProductImage } from '../product/ProductCard.js';
+import { resolveProductImage } from '../product/ProductCard.ts';
 
 const COLLECTIONS = [
   { value: 'General', label_en: 'General', label_bn: 'সাধারণ' },

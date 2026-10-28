@@ -6,7 +6,7 @@
  * server contract change only has to be fixed here.
  */
 import { api } from '../core/api.js';
-import { resolveProductImage } from '../components/product/ProductCard.js';
+import { resolveProductImage } from '../components/product/ProductCard.ts';
 
 // The server's trust_scores.tier vocabulary (STARTER/VERIFIED_TRADER/ELITE_PARTNER, docs/erd.md
 // §1) doesn't match the client's existing tier vocabulary (standard/verified/elite — the same one

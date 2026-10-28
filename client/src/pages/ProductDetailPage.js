@@ -8,7 +8,7 @@
  *
  * ACCEPTANCE gates this satisfies:
  *  - Selecting a variant updates price and stock from real data (VariantSelector.onChange).
- *  - An out-of-stock variant is visibly disabled with a reason (VariantSelector.js itself).
+ *  - An out-of-stock variant is visibly disabled with a reason (VariantSelector.ts itself).
  *  - A user who has not purchased cannot submit a review (ReviewList.js's eligibility gate).
  *  - JSON-LD validates against Google's Rich Results Product + Review requirements.
  */
@@ -19,15 +19,15 @@ import { toast } from '../services/toast.js';
 import { Button } from '../components/ui/Button.js';
 import { Skeleton } from '../components/ui/Skeleton.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
-import { ImageGallery } from '../components/product/ImageGallery.js';
-import { VariantSelector } from '../components/product/VariantSelector.js';
+import { ImageGallery } from '../components/product/ImageGallery.ts';
+import { VariantSelector } from '../components/product/VariantSelector.ts';
 import { PriceBreakdown } from '../components/product/PriceBreakdown.ts';
 import { ReviewList } from '../components/product/ReviewList.js';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
 import { QnASection } from '../components/product/QnASection.js';
 import { WishlistButton } from '../components/cart/WishlistButton.js';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
-import { resolveProductImage } from '../components/product/ProductCard.js';
+import { resolveProductImage } from '../components/product/ProductCard.ts';
 import { addToCart } from '../services/cart.js';
 import { track, startDwell } from '../services/signals.js';
 import * as catalogApi from '../services/catalog.api.js';
