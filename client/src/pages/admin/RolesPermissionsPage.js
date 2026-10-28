@@ -15,8 +15,8 @@ import { PermissionMatrix } from '../../components/admin/PermissionMatrix.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { ICONS } from '../../components/ui/icons.ts';
 import { api, pickMessage } from '../../core/api.ts';
-import { can } from '../../services/permissions.js';
-import { t } from '../../services/i18n.js';
+import { can } from '../../services/permissions.ts';
+import { t } from '../../services/i18n.ts';
 import {
   RISK_TIERS,
   buildHeldIndex,

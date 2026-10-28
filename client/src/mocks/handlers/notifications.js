@@ -8,7 +8,7 @@
  */
 
 import { getMockSessionUser } from './auth.js';
-import { appStore } from '../../state/appStore.js';
+import { appStore } from '../../state/appStore.ts';
 import { latestReleaseFor, markReleaseViewed } from '../releaseNotes.ts';
 
 const CATEGORIES = ['ORDER', 'FINANCE', 'SECURITY', 'MARKETING', 'SYSTEM', 'COMMUNITY'];

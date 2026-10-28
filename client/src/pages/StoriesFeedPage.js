@@ -12,9 +12,9 @@ import { adsApi } from '../services/ads.api.ts';
 import { Button } from '../components/ui/Button.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
-import { t, getLanguage } from '../services/i18n.js';
-import { toast } from '../services/toast.js';
-import { isFeatureEnabled } from '../services/featureFlags.js';
+import { t, getLanguage } from '../services/i18n.ts';
+import { toast } from '../services/toast.ts';
+import { isFeatureEnabled } from '../services/featureFlags.ts';
 
 export default function StoriesFeedPage(root, ctx = {}) {
   const container = document.createElement('div');

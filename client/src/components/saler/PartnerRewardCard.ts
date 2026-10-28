@@ -9,8 +9,8 @@
  * It reuses the commission tier card's classes, as PartnerScoreCard does: the cards sit together on
  * the dashboard, and the stylesheet budget has no room for a copy.
  */
-import { formatCurrency, formatNumber } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { formatCurrency, formatNumber } from '../../services/format.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { esc } from './CommissionTierCard.ts';
 
 export const FACTOR_ORDER = ['sales', 'social', 'community', 'activity'];

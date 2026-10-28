@@ -9,9 +9,9 @@
  * 4. WhatsApp Quick Connect link for real-time deal discussions.
  */
 
-import { t } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { supplierModal } from './supplierModal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';

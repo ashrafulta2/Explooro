@@ -28,11 +28,11 @@ import { Tabs } from '../../components/ui/Tabs.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatCurrency } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatCurrency } from '../../services/format.ts';
 import { supplierModal } from './supplierModal.ts';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
 
 export default function B2bEscrowPage(root, ctx = {}) {
   const container = document.createElement('div');

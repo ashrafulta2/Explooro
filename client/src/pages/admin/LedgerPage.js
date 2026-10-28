@@ -14,9 +14,9 @@ import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency, formatDate } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 export default function LedgerPage(root, { navigate } = {}) {

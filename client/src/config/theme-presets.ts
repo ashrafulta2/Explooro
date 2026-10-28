@@ -73,7 +73,7 @@ export const THEME_PRESETS: Record<string, ThemePreset> = {
     },
   },
 
-  // WHY the key is still `default` when the product no longer ships pink: services/themePalette.js
+  // WHY the key is still `default` when the product no longer ships pink: services/themePalette.ts
   // uses this exact object as its "no theme applied" sentinel, and the key is what a stored legacy
   // theme_preset row names. The SHIPPED default is DEFAULT_MASTER_PRESET in config/master-themes.ts
   // (Midnight Slate) — this is the pink palette kept as a selectable alternate, nothing more.

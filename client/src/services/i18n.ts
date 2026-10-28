@@ -1,12 +1,12 @@
 /**
- * i18n.js — English ⇄ Bengali translation engine, zero reload.
+ * i18n.ts — English ⇄ Bengali translation engine, zero reload.
  *
  * Responsibility: `t(key, params?)` resolves a namespaced dot-path against the active locale
  * dictionary; `setLanguage()` swaps the dictionary and re-renders every subscribed node with no
  * page reload. No external dependency — pluralisation rides on the built-in `Intl.PluralRules`
  * rather than a library, per the Dependency Policy.
  *
- *   import { initI18n, t, setLanguage, subscribe } from './services/i18n.js';
+ *   import { initI18n, t, setLanguage, subscribe } from './services/i18n.ts';
  *   await initI18n();                    // loads the dictionary for the active language
  *   el.textContent = t('common.back');
  *   subscribe(() => rerenderMyStuff());  // called after every setLanguage()
@@ -27,12 +27,12 @@
  *      authority: it is what a developer with no API and no cached policy gets.
  *
  * WHY the policy is cached in localStorage: the boot sequence mounts a language synchronously and
- * reconciles against the server afterwards, the same shape services/themePalette.js uses. Awaiting
+ * reconciles against the server afterwards, the same shape services/themePalette.ts uses. Awaiting
  * the network before the first paint would trade a round trip for nothing, and NOT reconciling
  * would mean an admin's change reached nobody who already had the site open.
  */
 
-import { localizeDigits } from './format.js';
+import { localizeDigits } from './format.ts';
 
 const STORAGE_KEY = 'explooro:lang';
 const POLICY_STORAGE_KEY = 'explooro:lang:policy';
@@ -40,25 +40,37 @@ const POLICY_ENDPOINT = '/localization/policy';
 const SUPPORTED = ['en', 'bn'];
 const FALLBACK_LANG = 'en';
 
-const loaders = {
+/** `{{name}}` values for `t()`. A numeric `count` also picks the plural form. */
+export type TParams = Record<string, unknown>;
+
+/** The platform's language policy (admin page /admin/platform/language). */
+export interface LocalePolicy {
+  default_locale: string | null;
+  enabled_locales: string[];
+  allow_user_override: boolean;
+}
+
+type Dictionary = Record<string, string>;
+
+const loaders: Record<string, () => Promise<{ default?: unknown }>> = {
   en: () => import('../locales/en.json'),
   bn: () => import('../locales/bn.json'),
 };
 
-const dictionaries = {};
-const listeners = new Set();
-const policyListeners = new Set();
+const dictionaries: Record<string, Dictionary> = {};
+const listeners = new Set<(lang: string) => void>();
+const policyListeners = new Set<(policy: LocalePolicy) => void>();
 let currentLang = FALLBACK_LANG;
 
 /** The shipped policy, replaced by the cached one on boot and the server's one shortly after. */
-let policy = {
+let policy: LocalePolicy = {
   default_locale: null,
   enabled_locales: [...SUPPORTED],
   allow_user_override: true,
 };
 
 /** Flattens `{ nav: { marketplace: '...' } }` into `{ 'nav.marketplace': '...' }`. */
-function flatten(obj, prefix = '', out = {}) {
+function flatten(obj: Record<string, any>, prefix = '', out: Dictionary = {}): Dictionary {
   for (const [key, value] of Object.entries(obj)) {
     const path = prefix ? `${prefix}.${key}` : key;
     if (value && typeof value === 'object' && !Array.isArray(value)) flatten(value, path, out);
@@ -67,7 +79,7 @@ function flatten(obj, prefix = '', out = {}) {
   return out;
 }
 
-async function loadDictionary(lang) {
+async function loadDictionary(lang: string): Promise<Dictionary> {
   if (!dictionaries[lang]) {
     const mod = await loaders[lang]();
     dictionaries[lang] = flatten(mod.default ?? mod);
@@ -75,7 +87,7 @@ async function loadDictionary(lang) {
   return dictionaries[lang];
 }
 
-function readStorage(key) {
+function readStorage(key: string): string | null {
   try {
     return localStorage.getItem(key);
   } catch {
@@ -84,7 +96,7 @@ function readStorage(key) {
   }
 }
 
-function writeStorage(key, value) {
+function writeStorage(key: string, value: string) {
   try {
     localStorage.setItem(key, value);
   } catch {
@@ -93,7 +105,7 @@ function writeStorage(key, value) {
 }
 
 /** Keeps only locales this build actually ships a dictionary for. */
-function sanitisePolicy(raw) {
+function sanitisePolicy(raw: any): LocalePolicy | null {
   if (!raw || typeof raw !== 'object') return null;
   const enabled = Array.isArray(raw.enabled_locales)
     ? raw.enabled_locales.filter((l) => SUPPORTED.includes(l))
@@ -117,7 +129,7 @@ function loadCachedPolicy() {
   }
 }
 
-function cachePolicy(next) {
+function cachePolicy(next: LocalePolicy) {
   writeStorage(POLICY_STORAGE_KEY, JSON.stringify(next));
 }
 
@@ -139,13 +151,20 @@ function envDefaultLang() {
  * @param {string} opts.envDefault    the build-time VITE_DEFAULT_LOCALE fallback
  * @param {string[]} [opts.supported] locales this build ships a dictionary for
  */
-export function resolveInitialLocale({ policy: p = {}, savedLocale = null, envDefault = FALLBACK_LANG, supported = SUPPORTED } = {}) {
+export interface InitialLocaleInput {
+  policy?: Partial<LocalePolicy>;
+  savedLocale?: string | null;
+  envDefault?: string;
+  supported?: string[];
+}
+
+export function resolveInitialLocale({ policy: p = {}, savedLocale = null, envDefault = FALLBACK_LANG, supported = SUPPORTED }: InitialLocaleInput = {}): string {
   const enabled = p.enabled_locales?.length
     ? p.enabled_locales.filter((l) => supported.includes(l))
     : [...supported];
   const pool = enabled.length ? enabled : [...supported];
 
-  let systemDefault;
+  let systemDefault: string;
   if (p.default_locale && pool.includes(p.default_locale)) {
     systemDefault = p.default_locale;
   } else if (pool.includes(envDefault)) {
@@ -175,7 +194,7 @@ function resolveLang() {
 }
 
 /** Turns a missing key into a readable label instead of a blank string or the raw dot-path. */
-function humanize(key) {
+function humanize(key: string) {
   const last = key.split('.').pop() ?? key;
   return last.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -186,7 +205,7 @@ function humanize(key) {
  * language and the visitor's numeral choice; strings (refs, codes, already formatted amounts) are
  * left exactly as passed.
  */
-function interpolate(template, params) {
+function interpolate(template: string, params?: TParams | null) {
   if (!params) return template;
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name) => {
     if (!Object.prototype.hasOwnProperty.call(params, name)) return match;
@@ -197,7 +216,7 @@ function interpolate(template, params) {
   });
 }
 
-function pluralCategory(lang, count) {
+function pluralCategory(lang: string, count: number) {
   try {
     return new Intl.PluralRules(lang).select(count);
   } catch {
@@ -205,7 +224,7 @@ function pluralCategory(lang, count) {
   }
 }
 
-function resolve(dict, key, params) {
+function resolve(dict: Dictionary | undefined, key: string, params?: TParams | null): string | undefined {
   if (dict && params && typeof params.count === 'number') {
     const category = pluralCategory(currentLang, params.count);
     if (`${key}.${category}` in dict) return dict[`${key}.${category}`];
@@ -230,10 +249,10 @@ function resolve(dict, key, params) {
  * rendered a humanized slug ("Btn Explore All") rather than the author's English. Accepting a
  * string here honours the convention the codebase already uses, and keeps the object form intact.
  */
-export function t(key, paramsOrDefault, maybeParams) {
+export function t(key: string, paramsOrDefault?: string | TParams | null, maybeParams?: TParams | null): string {
   const hasStringDefault = typeof paramsOrDefault === 'string';
   const defaultValue = hasStringDefault ? paramsOrDefault : undefined;
-  const params = hasStringDefault ? maybeParams : paramsOrDefault;
+  const params = hasStringDefault ? maybeParams : (paramsOrDefault as TParams | null | undefined);
 
   let value = resolve(dictionaries[currentLang], key, params);
 
@@ -251,23 +270,23 @@ export function t(key, paramsOrDefault, maybeParams) {
   return interpolate(value, params);
 }
 
-export function scanStaticNodes(root = document) {
-  root.querySelectorAll('[data-i18n]').forEach((el) => {
+export function scanStaticNodes(root: ParentNode = document) {
+  root.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
     el.textContent = t(el.dataset.i18n);
   });
 }
 
-export function getLanguage() {
+export function getLanguage(): string {
   return currentLang;
 }
 
 /** Every locale this build ships a dictionary for, whether or not the platform enables it. */
-export function getSupportedLanguages() {
+export function getSupportedLanguages(): string[] {
   return [...SUPPORTED];
 }
 
 /** The live platform policy. A copy, so a caller cannot mutate the engine's state. */
-export function getLocalePolicy() {
+export function getLocalePolicy(): LocalePolicy {
   return {
     default_locale: policy.default_locale ?? envDefaultLang(),
     enabled_locales: [...(policy.enabled_locales?.length ? policy.enabled_locales : SUPPORTED)],
@@ -276,7 +295,7 @@ export function getLocalePolicy() {
 }
 
 /** The locales the switcher may offer right now. */
-export function getEnabledLanguages() {
+export function getEnabledLanguages(): string[] {
   return getLocalePolicy().enabled_locales;
 }
 
@@ -284,23 +303,23 @@ export function getEnabledLanguages() {
  * Whether a visitor is allowed to change language at all. Controls whose job it is to *hide* the
  * switcher — `setLanguage()` enforces the same rule, so a stale control cannot defeat the policy.
  */
-export function isLanguageSwitchAllowed() {
+export function isLanguageSwitchAllowed(): boolean {
   return getLocalePolicy().allow_user_override && getEnabledLanguages().length > 1;
 }
 
-export function subscribe(listener) {
+export function subscribe(listener: (lang: string) => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
 /** Fires when the platform policy changes, so the shell can add or drop the language switcher. */
-export function subscribeLocalePolicy(listener) {
+export function subscribeLocalePolicy(listener: (policy: LocalePolicy) => void) {
   policyListeners.add(listener);
   return () => policyListeners.delete(listener);
 }
 
 /** Swaps the dictionary and notifies subscribers. Does NOT persist — see setLanguage(). */
-async function applyLanguage(lang) {
+async function applyLanguage(lang: string) {
   await loadDictionary(lang);
   currentLang = lang;
   document.documentElement.lang = lang;
@@ -315,7 +334,7 @@ async function applyLanguage(lang) {
  * Returns true when the language actually changed, so a caller can report a refusal rather than
  * silently appearing to succeed.
  */
-export async function setLanguage(lang) {
+export async function setLanguage(lang: string): Promise<boolean> {
   if (!SUPPORTED.includes(lang)) return false;
   if (!policy.allow_user_override) return false;
   if (!getEnabledLanguages().includes(lang)) return false;
@@ -331,7 +350,7 @@ export async function setLanguage(lang) {
  * Exported for the admin page: after a successful save, the operator should see the effect of
  * their own change immediately instead of on their next cold load.
  */
-export async function applyLocalePolicy(raw, { cache = true } = {}) {
+export async function applyLocalePolicy(raw: unknown, { cache = true }: { cache?: boolean } = {}): Promise<string> {
   const next = sanitisePolicy(raw);
   if (!next) return currentLang;
 
@@ -355,7 +374,7 @@ export async function applyLocalePolicy(raw, { cache = true } = {}) {
  * Mounts synchronously from the cached policy (or the build-time default), then reconciles against
  * the server without blocking the first paint.
  */
-export async function initI18n() {
+export async function initI18n(): Promise<string> {
   const cached = loadCachedPolicy();
   if (cached) policy = cached;
 
@@ -374,7 +393,7 @@ export async function initI18n() {
 }
 
 /** Re-reads the platform policy from the API and applies it. Never throws. */
-export async function refreshLocalePolicy() {
+export async function refreshLocalePolicy(): Promise<LocalePolicy> {
   try {
     const { api } = await import('../core/api.ts');
     const res = await api.get(POLICY_ENDPOINT);

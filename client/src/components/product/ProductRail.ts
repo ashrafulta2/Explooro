@@ -32,7 +32,7 @@ import type {
   ProductNavigate,
   ProductWidgetHandle,
 } from './ProductCard.ts';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 const SCROLL_STEP = 380;
 

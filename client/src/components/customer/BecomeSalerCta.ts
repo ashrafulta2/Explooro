@@ -8,10 +8,10 @@
  */
 
 import { customerApi } from '../../services/customer.api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../ui/Button.ts';
-import { appStore, setMockRole } from '../../state/appStore.js';
+import { appStore, setMockRole } from '../../state/appStore.ts';
 import { defaultPermissionsForRole } from '../../config/permissions.mock.ts';
 
 export interface BecomeSalerCtaOptions {

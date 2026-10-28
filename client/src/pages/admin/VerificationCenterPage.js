@@ -11,11 +11,11 @@
  */
 
 import { api, pickMessage } from '../../core/api.ts';
-import { formatDate, formatNumber } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatDate, formatNumber } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 import { escapeHtml as esc } from '../../services/html.ts';
 import { ICONS } from '../../components/ui/icons.ts';
-import { toast } from '../../services/toast.js';
+import { toast } from '../../services/toast.ts';
 import '../../styles/components/admin-access.css';
 
 /**

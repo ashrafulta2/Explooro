@@ -7,8 +7,8 @@
  * invariant Prompt 4.7's profit calculator enforces via POST /pricing/preview) — this component
  * only ever renders numbers it was handed, never derives its own.
  */
-import { t } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 
 function row(labelKey: string, amount: number | string, lang: string, { emphasize = false }: { emphasize?: boolean } = {}): HTMLDivElement {
   const el = document.createElement('div');

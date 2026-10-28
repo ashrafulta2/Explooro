@@ -12,8 +12,8 @@
  *
  * Styles: styles/components/incentive.css, loaded by the routes that render this (main.js).
  */
-import { t } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 
 const STATUS_TONE = { PAID: 'success', UNFUNDED: 'warning', LAPSED: 'danger' };
 

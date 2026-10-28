@@ -9,8 +9,8 @@
  * 5. 1-click Claim button, official Certificate viewer, and secondary transfer.
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { openCertificateModal } from './CertificateModal.ts';
 
 /** A claim on a warranty card. */

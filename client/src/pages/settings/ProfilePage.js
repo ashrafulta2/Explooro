@@ -30,9 +30,9 @@ import {
   setLanguage,
   getEnabledLanguages,
   isLanguageSwitchAllowed,
-} from '../../services/i18n.js';
-import { formatDate, formatPhone, setNumeralPreference } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+} from '../../services/i18n.ts';
+import { formatDate, formatPhone, setNumeralPreference } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 import {
   BANGLADESH_DIVISIONS,
@@ -612,7 +612,7 @@ export default function ProfilePage(root, { navigate } = {}) {
   function buildPreferencesCard() {
     // Only the locales the platform currently enables, and only while it lets visitors choose:
     // an option the policy would refuse is worse than no option, because saving it looks like it
-    // worked (see isLanguageSwitchAllowed in services/i18n.js).
+    // worked (see isLanguageSwitchAllowed in services/i18n.ts).
     const localeChoiceAllowed = isLanguageSwitchAllowed();
     const localeLabels = { en: t('language.name_en', 'English'), bn: t('language.name_bn', 'বাংলা') };
     fields.locale = Select({

@@ -1,7 +1,7 @@
 /**
  * mocks/handlers/modules.js — the PUBLIC feature-flag endpoint.
  *
- * `GET /modules` is what services/featureFlags.js calls on every cold boot (main.js's
+ * `GET /modules` is what services/featureFlags.ts calls on every cold boot (main.js's
  * initFeatureFlags). mocks/index.js had no handler for it for nine phases, so in mock mode the
  * router's module guard and the sidebar's module filter ran off appStore's hardcoded DEMO_MODULES
  * and no super admin toggle ever survived a reload. See mocks/moduleState.js for the full

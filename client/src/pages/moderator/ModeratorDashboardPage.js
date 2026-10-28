@@ -10,9 +10,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatDate } from '../../services/format.ts';
 import WorkloadSummary from '../../components/moderator/WorkloadSummary.ts';
 import SlaMonitor from '../../components/moderator/SlaMonitor.ts';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';

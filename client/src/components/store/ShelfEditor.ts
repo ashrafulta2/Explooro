@@ -2,8 +2,8 @@
  * ShelfEditor.ts — Curated shelves & item reordering manager with live synchronization (Prompt 4.8).
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 import { Button } from '../ui/Button.ts';
 import { Modal } from '../ui/Modal.ts';
 import { Input } from '../ui/Input.ts';

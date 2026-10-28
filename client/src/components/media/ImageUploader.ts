@@ -12,8 +12,8 @@
 
 import { Button } from '../ui/Button.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { detectCameraMode, openCameraCapture } from './CameraCapture.ts';
 
 export const MAX_IMAGE_SIZE = 8 * 1024 * 1024;    // 8MB

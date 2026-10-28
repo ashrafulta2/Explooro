@@ -14,7 +14,7 @@
 
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 // WHY 0.9: visually lossless for product photos, and a 1080p frame stays around 0.5–1MB —
 // far under the uploader's 8MB image limit.

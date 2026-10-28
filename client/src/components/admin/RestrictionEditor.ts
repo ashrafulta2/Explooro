@@ -9,8 +9,8 @@ import { Select } from '../ui/Select.ts';
 import { Switch } from '../ui/Switch.ts';
 import { Textarea } from '../ui/Textarea.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 // WHY: these must mirror VALID_CAPABILITIES / VALID_NUMERIC_LIMITS in
 // server/src/services/restriction.service.ts — any key not in those sets is rejected with

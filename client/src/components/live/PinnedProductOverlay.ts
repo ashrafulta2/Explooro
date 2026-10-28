@@ -8,8 +8,8 @@
  */
 
 import { Button } from '../ui/Button.ts';
-import { formatBdt } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { formatBdt } from '../../services/format.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 /** The product the host pinned (a live-stream product row). */
 export interface PinnedProduct {

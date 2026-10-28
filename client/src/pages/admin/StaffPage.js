@@ -23,12 +23,12 @@ import { Select } from '../../components/ui/Select.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { api, pickMessage } from '../../core/api.ts';
-import { can } from '../../services/permissions.js';
-import { getCurrentUser } from '../../services/session.js';
-import { toast } from '../../services/toast.js';
+import { can } from '../../services/permissions.ts';
+import { getCurrentUser } from '../../services/session.ts';
+import { toast } from '../../services/toast.ts';
 import { describeWriteOutcome } from '../../services/writeOutcome.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatDate, formatNumber, formatPhone, formatRelativeTime, normaliseBdPhone } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatDate, formatNumber, formatPhone, formatRelativeTime, normaliseBdPhone } from '../../services/format.ts';
 import '../../styles/components/admin-staff.css';
 
 const PAGE_SIZE = 8;

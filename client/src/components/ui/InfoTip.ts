@@ -7,7 +7,7 @@
  *
  * Invariants:
  *  - It carries explanatory copy only. Anything a user MUST read to avoid a mistake (a warning,
- *    an irreversible-action notice, an error) stays visible in the page — see services/pageInfo.js.
+ *    an irreversible-action notice, an error) stays visible in the page — see services/pageInfo.ts.
  *  - The accessible name is the content itself, so a screen reader hears the explanation when the
  *    button is focused rather than "more information" followed by a hidden tooltip.
  */
@@ -15,7 +15,7 @@
 import { Tooltip } from './Tooltip.ts';
 import type { TooltipPlacement } from './Tooltip.ts';
 import { ICONS } from './icons.ts';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 let active: { trigger: HTMLElement; hide: () => void } | null = null; // the handle currently pinned open by a click/tap — only one at a time
 

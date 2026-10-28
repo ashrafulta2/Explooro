@@ -13,7 +13,7 @@
  */
 
 import { navItems } from './navigation.js';
-import { t } from '../services/i18n.js';
+import { t } from '../services/i18n.ts';
 import { normalizePath } from '../services/pageAccess.js';
 
 /** Portal buckets, in the order the admin screen lists them. */

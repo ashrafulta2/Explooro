@@ -4,8 +4,8 @@
  * Visualizes projected monthly profits based on unit margin and estimated sales volume.
  * Adheres strictly to the 150KB budget by rendering standard responsive inline SVG.
  */
-import { formatCurrency } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 
 const MILESTONES = [10, 25, 50, 100, 250, 500];
 

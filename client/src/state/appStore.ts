@@ -1,5 +1,5 @@
 /**
- * appStore.js — the one shared client-side session/UI store.
+ * appStore.ts — the one shared client-side session/UI store.
  *
  * Responsibility: mocked auth (role + granted permissions), module-enabled map, and shell UI state
  * (sidebar collapse, Simple/Advanced mode, an elevated-access grant) — everything the router's
@@ -16,6 +16,40 @@
 import { createStore } from '../core/store.ts';
 import { defaultPermissionsForRole } from '../config/permissions.mock.ts';
 
+/** Who is signed in. `user` and `roles` are filled by the real session (services/session.ts). */
+export interface AuthState {
+  isAuthenticated: boolean;
+  role: string | null;
+  permissions: string[];
+  user?: Record<string, any> | null;
+  roles?: string[];
+}
+
+/** A JIT elevation window in progress. */
+export interface ElevatedGrantState {
+  feature: string;
+  permission: string;
+  expiresAt: number;
+  ref?: string;
+  feature_bn?: string;
+}
+
+export interface ShellState {
+  sidebarCollapsed: boolean;
+  collapsedGroups: string[];
+  uiMode: Record<string, string>;
+  elevatedGrant: ElevatedGrantState | null;
+}
+
+/** The whole shared store. */
+export interface AppState {
+  auth: AuthState;
+  /** Module key to whether it is on; a key that is absent is NOT enabled for route guards. */
+  modules: Record<string, boolean>;
+  badges: Record<string, number>;
+  shell: ShellState;
+}
+
 // One MEDIUM/HIGH (delegable — shows "Request access") and one CRITICAL (not delegable — no
 // affordance) withheld permission per role that actually appears in navigation.js, so both
 // locked-state branches in ia-sitemap.md §5.1 are visible without an all-or-nothing demo.
@@ -25,7 +59,7 @@ import { defaultPermissionsForRole } from '../config/permissions.mock.ts';
 // "view_own" actions are LOW by design, always granted with the role. Withholding one of those
 // would demo a state the real permission model never produces. Risk tiers above LOW concentrate
 // in admin/moderator/editor domains, which is where delegation actually matters.
-const DEMO_WITHHELD = {
+const DEMO_WITHHELD: Record<string, string[]> = {
   super_admin: ['users.kyc.approve', 'staff.role.assign'],
   admin: ['users.kyc.approve'],
   moderator: ['moderation.live.handle'],
@@ -91,7 +125,7 @@ const DEMO_MODULES = {
   // WHY: Prompt 7.5's KYC routes (/admin/verification, /admin/users/verification, /moderator/kyc,
   // /seller/kyc, /account/kyc) declare `module: 'supplier_verification'`, but the key was never
   // added here. core/router.js's hasModule() is strict — `ctx.modules[key] === true`, an absent
-  // key is NOT "enabled by default" the way featureFlags.js's isFeatureEnabled() treats it — so
+  // key is NOT "enabled by default" the way featureFlags.ts's isFeatureEnabled() treats it — so
   // all five routes failed their module guard and silently redirected to `/`. In mock mode nothing
   // ever repairs this: initFeatureFlags() fetches GET /modules, mocks/index.js has no handler for
   // that path, and the 404 lands in the catch that falls back to exactly this object.
@@ -113,7 +147,7 @@ const DEMO_BADGES = {
   supplier_orders: 6,
 };
 
-export const appStore = createStore({
+export const appStore = createStore<AppState>({
   auth: { isAuthenticated: false, role: null, permissions: [] },
   modules: DEMO_MODULES,
   badges: DEMO_BADGES,
@@ -126,7 +160,7 @@ export const appStore = createStore({
 });
 
 /** Prompt 1.7's role switcher — logs in as the mocked role's default user for shell preview. */
-export function setMockRole(role) {
+export function setMockRole(role: string) {
   const withheld = new Set(DEMO_WITHHELD[role] ?? []);
   const permissions = defaultPermissionsForRole(role).filter((key) => !withheld.has(key));
   appStore.update({ auth: { isAuthenticated: true, role, permissions } });
@@ -140,7 +174,7 @@ export function toggleSidebarCollapsed() {
   appStore.update((s) => ({ shell: { ...s.shell, sidebarCollapsed: !s.shell.sidebarCollapsed } }));
 }
 
-export function toggleGroupCollapsed(groupKey) {
+export function toggleGroupCollapsed(groupKey: string) {
   appStore.update((s) => {
     const set = new Set(s.shell.collapsedGroups);
     if (set.has(groupKey)) set.delete(groupKey);
@@ -155,7 +189,7 @@ export function toggleGroupCollapsed(groupKey) {
  * itself reopens (see Sidebar.js renderAdvancedMode). Also un-collapses the clicked group so its
  * items are visible immediately in the newly-expanded sidebar.
  */
-export function expandSidebarToGroup(groupKey) {
+export function expandSidebarToGroup(groupKey: string) {
   appStore.update((s) => {
     const set = new Set(s.shell.collapsedGroups);
     set.delete(groupKey);
@@ -163,12 +197,12 @@ export function expandSidebarToGroup(groupKey) {
   });
 }
 
-export function setUiMode(role, mode) {
+export function setUiMode(role: string, mode: string) {
   appStore.update((s) => ({ shell: { ...s.shell, uiMode: { ...s.shell.uiMode, [role]: mode } } }));
 }
 
 /** Grants a mock JIT window — the real grant/expiry comes from the server in Prompt 2.8. */
-export function grantElevatedAccess({ feature, permission, minutes = 120 }) {
+export function grantElevatedAccess({ feature, permission, minutes = 120 }: { feature: string; permission: string; minutes?: number }) {
   appStore.update((s) => ({
     shell: { ...s.shell, elevatedGrant: { feature, permission, expiresAt: Date.now() + minutes * 60_000 } },
   }));

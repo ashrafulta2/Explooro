@@ -15,7 +15,7 @@ import {
   getDivisionById,
   getDistrictById,
 } from '../../data/bangladeshGeo.ts';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { Button } from '../ui/Button.ts';
 
 /** The fields the form edits; a saved address carries more (label, id, ...). */

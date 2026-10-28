@@ -6,10 +6,10 @@
  * - 60s resend timer and Bengali-first messaging.
  */
 
-import { verifyOtp, sendOtp } from '../../services/session.js';
+import { verifyOtp, sendOtp } from '../../services/session.ts';
 import { pickMessage } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';

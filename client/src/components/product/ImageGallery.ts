@@ -14,7 +14,7 @@
  *    without the two components needing to share state.
  */
 
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { resolveProductImage } from './ProductCard.ts';
 import type { ProductImageSource } from './ProductCard.ts';
 

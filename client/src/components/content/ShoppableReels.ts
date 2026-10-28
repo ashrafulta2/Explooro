@@ -9,8 +9,8 @@
 
 import { listReels, likeReel } from '../../services/content.api.ts';
 import { Button } from '../ui/Button.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 
 /** A shoppable video clip with the product it sells. */
 export interface Reel {

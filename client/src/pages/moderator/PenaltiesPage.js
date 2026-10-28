@@ -12,9 +12,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatDate } from '../../services/format.ts';
 
 const PENALTY_TYPES = [
   { key: 'WARNING',      icon: '⚠️', labelKey: 'mod_penalties.ptype_warning',      color: 'var(--warning-800,#854d0e)', bg: 'var(--warning-100,#fef9c3)', border: 'var(--warning-300,#fde047)', requiresDuration: false },

@@ -12,7 +12,7 @@
  */
 
 import { Badge } from '../ui/Badge.ts';
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { cellState, groupByDomain } from '../../services/permissionMatrix.ts';
 import type { CellState, HeldIndex, Permission, Role, RoleId } from '../../services/permissionMatrix.ts';
 

@@ -10,7 +10,7 @@
  * there), so nothing here is a billing authority.
  */
 import { api } from '../core/api.ts';
-import { isFeatureEnabled } from './featureFlags.js';
+import { isFeatureEnabled } from './featureFlags.ts';
 
 export const VIEWABLE_MS = 1000;
 export const PLACEMENT = 'SOURCING_CATALOG';

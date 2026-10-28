@@ -13,10 +13,10 @@ import type { FastPayoutEntry } from './FastPayoutTable.ts';
 import { confirmDialog } from '../ui/ConfirmDialog.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
-import { toast } from '../../services/toast.js';
+import { toast } from '../../services/toast.ts';
 import { pickMessage } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { formatCurrency, formatDate, formatNumber } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency, formatDate, formatNumber } from '../../services/format.ts';
 
 /** One taken payout in the history table. */
 interface FastPayoutHistoryRow {

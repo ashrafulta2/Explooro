@@ -12,9 +12,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatDate } from '../../services/format.ts';
 
 const FLAG_REASONS = ['ALL', 'FAKE_REVIEW', 'SPAM', 'OFFENSIVE', 'COMPETITOR_ATTACK', 'UNVERIFIED_PURCHASE'];
 

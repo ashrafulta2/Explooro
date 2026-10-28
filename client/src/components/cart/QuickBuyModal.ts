@@ -13,11 +13,11 @@ import { PaymentSelector } from '../checkout/PaymentSelector.ts';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.ts';
 import { addToCart } from '../../services/cart.ts';
 import { knownDeliveryCharge, loadDeliveryCharge } from '../../services/deliveryCharge.ts';
-import { getCurrentUser } from '../../services/session.js';
-import { formatCurrency } from '../../services/format.js';
+import { getCurrentUser } from '../../services/session.ts';
+import { formatCurrency } from '../../services/format.ts';
 import { resolveProductImage } from '../product/ProductCard.ts';
-import { toast } from '../../services/toast.js';
-import { t } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t } from '../../services/i18n.ts';
 
 /** A product as the card or the detail page hands it over; the fields are those Quick Buy reads. */
 export interface QuickBuyProduct {
@@ -276,7 +276,7 @@ export function openQuickBuyModal({
           } catch (err) {
             if (err.code === 'COD_OTP_REQUIRED') {
               paymentSelector.promptOtp(err.details?.phone || addressData.recipient_phone);
-              toast.warn(t('checkout.cod_otp_required_notice'));
+              toast.warning(t('checkout.cod_otp_required_notice'));
             } else if (err.code === 'AUTH_REQUIRED' || err.status === 401) {
               toast.info(t('quick_buy.login_required') || 'Please sign in to complete your purchase.');
               modal.closeModal();

@@ -4,8 +4,8 @@
  * Renders thread cards with unread counts, channel badges, participant roles, and live search.
  */
 
-import { t } from '../../services/i18n.js';
-import { formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatDate } from '../../services/format.ts';
 
 /** One conversation, as the chat API returns it. */
 export interface ChatThread {

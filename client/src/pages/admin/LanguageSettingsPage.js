@@ -33,10 +33,10 @@ import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.ts';
 import { adminApi } from '../../services/admin.api.ts';
-import { can } from '../../services/permissions.js';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage, applyLocalePolicy } from '../../services/i18n.js';
-import { formatDate, formatRelativeTime } from '../../services/format.js';
+import { can } from '../../services/permissions.ts';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage, applyLocalePolicy } from '../../services/i18n.ts';
+import { formatDate, formatRelativeTime } from '../../services/format.ts';
 
 const LOCALE_LABELS = { en: 'English', bn: 'বাংলা' };
 const MIN_REASON_LENGTH = 10;

@@ -7,8 +7,8 @@
  * previewPricing (POST /api/v1/pricing/preview).
  */
 import { previewPricing } from '../../services/catalog.api.ts';
-import { formatCurrency } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { formatCurrency } from '../../services/format.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 /** The answer to POST /pricing/preview: the fields the calculator draws. */
 export interface PricingBreakdown {

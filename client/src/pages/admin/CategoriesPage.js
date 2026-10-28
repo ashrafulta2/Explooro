@@ -15,9 +15,9 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 import { loadCategoriesStyles } from '../../styles/loadCategoriesStyles.ts';
 
 export default function CategoriesPage(root, { navigate } = {}) {

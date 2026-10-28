@@ -338,9 +338,9 @@ from a component** — you would lose auth refresh, error typing, and the mock/l
 // client/src/components/product/TagEditor.js
 import { Input } from '../ui/Input.ts';
 import { Badge } from '../ui/Badge.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { can } from '../../services/permissions.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { can } from '../../services/permissions.ts';
 import { setProductTags } from '../../services/catalog.api.js';
 
 export function TagEditor({ productId, initialTags = [], maxTags = 10 }) {

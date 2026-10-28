@@ -11,13 +11,13 @@
  * weighs on the entry bundle (see the CSS-budget note in styles/main.css).
  */
 import '../styles/components/community.css';
-import { appStore } from '../state/appStore.js';
-import { t, getLanguage } from '../services/i18n.js';
+import { appStore } from '../state/appStore.ts';
+import { t, getLanguage } from '../services/i18n.ts';
 import { updateHead } from '../services/seo.ts';
-import { can } from '../services/permissions.js';
-import { isFeatureEnabled } from '../services/featureFlags.js';
-import { toast } from '../services/toast.js';
-import { formatNumber } from '../services/format.js';
+import { can } from '../services/permissions.ts';
+import { isFeatureEnabled } from '../services/featureFlags.ts';
+import { toast } from '../services/toast.ts';
+import { formatNumber } from '../services/format.ts';
 import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { PostCard } from '../components/community/PostCard.ts';

@@ -11,11 +11,11 @@ import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { api } from '../../core/api.ts';
-import { appStore } from '../../state/appStore.js';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { setFlags } from '../../services/featureFlags.js';
-import { formatCurrency } from '../../services/format.js';
+import { appStore } from '../../state/appStore.ts';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { setFlags } from '../../services/featureFlags.ts';
+import { formatCurrency } from '../../services/format.ts';
 import { loadModuleControlStyles } from '../../styles/loadModuleControlStyles.ts';
 
 const GROUP_ORDER = [

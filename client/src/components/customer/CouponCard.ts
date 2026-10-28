@@ -5,9 +5,9 @@
  * 1-click copy code, countdown/expiry badges, minimum spend rules, and terms modal trigger.
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 import '../../styles/components/customer-coupons.css';
 
 /** One voucher from GET /customer/coupons. Both spellings of the spend limits exist in the API. */

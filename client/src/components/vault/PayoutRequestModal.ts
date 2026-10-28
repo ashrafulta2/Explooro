@@ -13,9 +13,9 @@ import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { FormField } from '../ui/FormField.ts';
 import { Input } from '../ui/Input.ts';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
+import { t } from '../../services/i18n.ts';
 import { api } from '../../core/api.ts';
 
 export interface PayoutRequestModalOptions {

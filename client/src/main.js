@@ -15,30 +15,30 @@ import './styles/main.css';
 // Prompt 1.5 — router, store, api-client.
 import { createRouter } from './core/router.js';
 import { captureTouchFromQuery } from './services/attribution.ts';
-import { installPageInfo } from './services/pageInfo.js';
-import { appStore } from './state/appStore.js';
+import { installPageInfo } from './services/pageInfo.ts';
+import { appStore } from './state/appStore.ts';
 
 // Prompt 1.6 — i18n.
-import { initI18n, t, subscribe as subscribeLang } from './services/i18n.js';
-import { initGenieSettings } from './services/genieSettings.js';
+import { initI18n, t, subscribe as subscribeLang } from './services/i18n.ts';
+import { initGenieSettings } from './services/genieSettings.ts';
 
 // Prompt 2.8 — real session and permission service.
-import { initSession, isUserAuthenticated } from './services/session.js';
+import { initSession, isUserAuthenticated } from './services/session.ts';
 
 // Prompt 3.2 — live feature flags and DOM module scanner.
-import { initFeatureFlags, scanDomForModuleGates } from './services/featureFlags.js';
+import { initFeatureFlags, scanDomForModuleGates } from './services/featureFlags.ts';
 
 // Per-page availability — the layer beside the module system (services/pageAccess.js).
 import { initPageAccess, resolvePageAccess } from './services/pageAccess.js';
 import { registerPages } from './config/pageRegistry.js';
 
 // Prompt 3.5 — runtime theme engine.
-import { initTheme, dropLocalPreset, PRESET_SWITCH_PERMISSION } from './services/themePalette.js';
-import { can } from './services/permissions.js';
+import { initTheme, dropLocalPreset, PRESET_SWITCH_PERMISSION } from './services/themePalette.ts';
+import { can } from './services/permissions.ts';
 
 // Prompt 1.7 — role-aware shell.
 import { navItems } from './config/navigation.js';
-import { toast } from './services/toast.js';
+import { toast } from './services/toast.ts';
 import { createAppShell } from './components/shell/AppShell.js';
 
 // ── Dev-only status bar (shown only if there is an error / connection issue in live mode) ──

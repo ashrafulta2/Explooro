@@ -16,9 +16,9 @@ import { Input } from '../../components/ui/Input.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
-import { toast } from '../../services/toast.js';
-import { formatBdt } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { formatBdt } from '../../services/format.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 export default function LiveStudioPage(root, { navigate }) {
   const container = document.createElement('div');

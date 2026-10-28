@@ -37,11 +37,11 @@ import { Textarea } from '../../components/ui/Textarea.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { adminApi } from '../../services/admin.api.ts';
-import { can } from '../../services/permissions.js';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatDate, formatRelativeTime } from '../../services/format.js';
-import { applyGeniePolicy } from '../../services/genieSettings.js';
+import { can } from '../../services/permissions.ts';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatDate, formatRelativeTime } from '../../services/format.ts';
+import { applyGeniePolicy } from '../../services/genieSettings.ts';
 import { GENIE_DEFAULTS, GENIE_QUALITIES } from '../../lib/genie.ts';
 import { prefersReducedMotion } from '../../lib/motion.ts';
 

@@ -19,13 +19,13 @@ import { Drawer } from '../../components/ui/Drawer.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.ts';
 import { previewPricing } from '../../services/catalog.api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatNumber, formatCurrency } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatNumber, formatCurrency } from '../../services/format.ts';
 import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.ts';
 import { ImageUploader } from '../../components/media/ImageUploader.ts';
-import { can } from '../../services/permissions.js';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
+import { can } from '../../services/permissions.ts';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
 
 // Mirrors MAX_PRODUCT_IMAGES in server/src/services/product.service.ts — the API rejects more.
 const MAX_PRODUCT_PHOTOS = 8;

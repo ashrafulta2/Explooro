@@ -11,11 +11,11 @@
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { api } from '../../core/api.ts';
-import { appStore } from '../../state/appStore.js';
-import { getCurrentUser } from '../../services/session.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+import { appStore } from '../../state/appStore.ts';
+import { getCurrentUser } from '../../services/session.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 import { resolveProductImage } from './ProductCard.ts';
 import { TeamCheckoutForm } from './TeamCheckoutForm.ts';
 import type { QuickBuyProduct, QuickBuyVariant } from '../cart/QuickBuyModal.ts';

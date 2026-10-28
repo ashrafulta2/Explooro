@@ -44,7 +44,7 @@ let currentMockUser = loadMockUser();
 /**
  * Read-only accessor for the mock session, used by other mock drivers that need to know who is
  * signed in (chat.js resolves its `SELF` sentinel through this). Kept here rather than importing
- * services/session.js so the mock layer never depends on the app layer it is mocking for.
+ * services/session.ts so the mock layer never depends on the app layer it is mocking for.
  */
 export function getMockSessionUser() {
   return currentMockUser;

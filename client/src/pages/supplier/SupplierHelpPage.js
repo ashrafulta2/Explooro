@@ -8,8 +8,8 @@
  * 4. Direct link to Shop Partner & Supplier Academy courses.
  */
 
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
 import { Badge } from '../../components/ui/Badge.ts';

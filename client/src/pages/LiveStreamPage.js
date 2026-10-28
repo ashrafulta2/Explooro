@@ -23,10 +23,10 @@ import { Drawer } from '../components/ui/Drawer.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { Skeleton } from '../components/ui/Skeleton.ts';
-import { toast } from '../services/toast.js';
-import { formatBdt } from '../services/format.js';
-import { t, getLanguage } from '../services/i18n.js';
-import { getCurrentUser } from '../services/session.js';
+import { toast } from '../services/toast.ts';
+import { formatBdt } from '../services/format.ts';
+import { t, getLanguage } from '../services/i18n.ts';
+import { getCurrentUser } from '../services/session.ts';
 
 // Fallback sample streams for rich, resilient preview in development
 const FALLBACK_DEMO_STREAMS = [

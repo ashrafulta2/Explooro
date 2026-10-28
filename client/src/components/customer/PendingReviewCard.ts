@@ -1,8 +1,8 @@
 /**
  * PendingReviewCard.ts — Displays a delivered purchase awaiting customer review.
  */
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatRelativeTime } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatRelativeTime } from '../../services/format.ts';
 import '../../styles/components/customer-reviews.css';
 
 /** One delivered order line that has no review yet. */

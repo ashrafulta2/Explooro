@@ -8,7 +8,7 @@
  * 4. 1-Click Print / PDF Save trigger.
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';

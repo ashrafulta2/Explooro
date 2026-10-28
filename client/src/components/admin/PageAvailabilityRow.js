@@ -12,8 +12,8 @@
  */
 
 import { Badge } from '../ui/Badge.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatRelativeTime } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatRelativeTime } from '../../services/format.ts';
 import { isLockedPath } from '../../services/pageAccess.js';
 import { pageLabel } from '../../config/pageRegistry.js';
 

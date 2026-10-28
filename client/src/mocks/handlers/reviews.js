@@ -11,7 +11,7 @@
 import seedReviews from '../fixtures/reviews.json' with { type: 'json' };
 import purchases from '../fixtures/purchases.json' with { type: 'json' };
 import products from '../fixtures/products.json' with { type: 'json' };
-import { appStore } from '../../state/appStore.js';
+import { appStore } from '../../state/appStore.ts';
 
 let reviews = seedReviews.map((r) => ({ ...r }));
 let nextId = Math.max(...reviews.map((r) => r.id)) + 1;

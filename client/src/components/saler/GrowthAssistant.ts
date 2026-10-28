@@ -6,8 +6,8 @@
  */
 
 import { salerApi } from '../../services/saler.api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../ui/Button.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { openAssistantPanel } from '../ai/AssistantPanel.ts';

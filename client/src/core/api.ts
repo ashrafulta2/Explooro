@@ -6,7 +6,7 @@
  * ~10 phases before the backend exists. `live` calls the real API through the Vite proxy. Callers
  * never know which — see docs/api-contract.md §1 "Client compatibility rule".
  */
-import { toast } from '../services/toast.js';
+import { toast } from '../services/toast.ts';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -158,7 +158,7 @@ function buildHeaders(method: HttpMethod, path: string, options: RequestOptions)
 // (auth.service.ts `refresh_reuse_detected`), which logs the user out for good. A page that fires
 // several requests in parallel produces several simultaneous 401s, so without de-duplication the
 // *second* refresh would kill the session the first one just renewed. Every caller — the 401 retry
-// below and session.js's bootstrap/proactive timer alike — must go through this one promise.
+// below and session.ts's bootstrap/proactive timer alike — must go through this one promise.
 let refreshInFlight: Promise<Record<string, any> | null> | null = null;
 
 /**

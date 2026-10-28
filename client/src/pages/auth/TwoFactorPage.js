@@ -6,10 +6,10 @@
  * - Handles initial setup enrollment if user is not yet enrolled.
  */
 
-import { completeTwoFactor, setupTwoFactor } from '../../services/session.js';
+import { completeTwoFactor, setupTwoFactor } from '../../services/session.ts';
 import { pickMessage } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';

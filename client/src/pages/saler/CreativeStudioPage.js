@@ -12,10 +12,10 @@ import { api } from '../../core/api.ts';
 import { getSalerStoreItems } from '../../services/catalog.api.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { whyDenied } from '../../services/permissions.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import { whyDenied } from '../../services/permissions.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 
 const TONES = ['friendly', 'urgent', 'premium'];
 

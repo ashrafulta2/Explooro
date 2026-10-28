@@ -10,8 +10,8 @@
  */
 
 import { api } from '../../core/api.ts';
-import { getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Modal } from '../ui/Modal.ts';
 import type { ModalElement } from '../ui/Modal.ts';
 

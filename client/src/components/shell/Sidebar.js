@@ -17,11 +17,11 @@
  * guard"). Never re-implement the four states here.
  */
 import { navGroups, navItems, SIMPLE_MODE_ITEMS, PROGRESSIVE_DISCLOSURE_ROLES } from '../../config/navigation.js';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { resolvePageAccess } from '../../services/pageAccess.js';
 import { LockedNavItem } from './LockedNavItem.ts';
 import { Badge } from '../ui/Badge.ts';
-import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.js';
+import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.ts';
 import { ICONS, getGroupIcon, getItemIcon } from '../ui/icons.ts';
 
 function hasModule(modules, key) {

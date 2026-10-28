@@ -19,15 +19,15 @@ import {
   getCurrentTokens,
   getCurrentMaster,
   cacheActiveTheme,
-} from '../../services/themePalette.js';
+} from '../../services/themePalette.ts';
 import {
   generatePalette, paletteToSectionTokens, BRAND_STEPS, NEUTRAL_STEPS, MASTER_RANGES,
 } from '../../services/colorRamp.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatRelativeTime } from '../../services/format.js';
-import { appStore } from '../../state/appStore.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatRelativeTime } from '../../services/format.ts';
+import { appStore } from '../../state/appStore.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 
 export default function ThemeStudioPage(root, { navigate } = {}) {

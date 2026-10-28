@@ -4,9 +4,9 @@
  * Allows users to register a product warranty purchased offline or with an invoice/serial number.
  */
 
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
+import { toast } from '../../services/toast.ts';
 
 import { Modal } from '../ui/Modal.ts';
 

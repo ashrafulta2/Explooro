@@ -9,8 +9,8 @@
  */
 
 import { api } from '../../core/api.ts';
-import { getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 
 /** One row of the ranking; `metric_value` is revenue in BDT or an order count, by category. */
 export interface LeaderboardEntry {

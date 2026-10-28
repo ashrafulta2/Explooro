@@ -332,7 +332,7 @@ Concretely (Prompt 3.1 / 3.2):
 | :--- | :--- |
 | **API** | `requireModule('key')` → `403 MODULE_DISABLED` with a bilingual message (`api-contract.md` §3.2) |
 | **Client nav** | The item is **hidden entirely** — not locked. A disabled module is not something a user can request (`ia-sitemap.md` §5.1) |
-| **Client DOM** | Elements marked `data-module="key"` are removed by `featureFlags.js` |
+| **Client DOM** | Elements marked `data-module="key"` are removed by `featureFlags.ts` |
 | **Background jobs** | Every job checks `isEnabled` before running and no-ops if off |
 | **Existing data** | **Preserved, never deleted.** Turning a module back on restores it exactly |
 | **Audit** | Every toggle writes an `audit_logs` row with actor, before/after, and a **mandatory reason** |

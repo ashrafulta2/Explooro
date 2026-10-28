@@ -7,8 +7,8 @@
  * 3. Quick action jump links to resolve the item.
  */
 
-import { t } from '../../services/i18n.js';
-import { formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatDate } from '../../services/format.ts';
 
 /** One queue item close to, or past, its SLA deadline. */
 export interface SlaItem {

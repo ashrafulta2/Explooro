@@ -15,10 +15,10 @@
 import { API_BASE, getAccessToken, api } from '../../core/api.ts';
 import { Button } from '../ui/Button.ts';
 import { Drawer } from '../ui/Drawer.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
-import { whyDenied } from '../../services/permissions.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
+import { whyDenied } from '../../services/permissions.ts';
 
 export type AgentType = 'concierge' | 'sourcing';
 

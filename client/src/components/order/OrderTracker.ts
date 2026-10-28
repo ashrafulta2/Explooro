@@ -8,7 +8,7 @@
  *  4. DELIVERED: Handed over to recipient
  */
 
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 export interface OrderStage {
   key: string;

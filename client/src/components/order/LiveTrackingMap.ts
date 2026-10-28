@@ -8,8 +8,8 @@
  * 4. Bangladesh district highway route visualization.
  */
 
-import { formatDate } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatDate } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 
 /**
  * Converts lat/lng into OSM tile coordinates at a given zoom level.

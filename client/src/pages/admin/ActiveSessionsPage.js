@@ -14,8 +14,8 @@ import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 export default function ActiveSessionsPage(root, { navigate } = {}) {

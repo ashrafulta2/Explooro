@@ -17,9 +17,9 @@
 import { api } from '../../core/api.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
-import { toast } from '../../services/toast.js';
-import { getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatNumber } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { getLanguage } from '../../services/i18n.ts';
+import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 // WHY these are read-only: the engine always applies them (referral.service.ts recordReferralAttribution).

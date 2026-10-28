@@ -82,10 +82,10 @@ Each of these is a library we did **not** install. The size column is why.
 | Router | `client/src/core/router.js` | react-router ~20KB | ~150 lines |
 | State store | `client/src/core/store.ts` | Redux + toolkit ~40KB | ~80 lines |
 | HTTP client | `client/src/core/api.ts` | axios ~14KB | ~200 lines |
-| i18n | `client/src/services/i18n.js` | i18next ~40KB | ~120 lines |
+| i18n | `client/src/services/i18n.ts` | i18next ~40KB | ~120 lines |
 | Charts | inline SVG | Chart.js ~200KB | per-chart |
 | Icons | SVG sprite | lucide / fontawesome ~50KB+ | 0 |
-| Dates & currency | `client/src/services/format.js` | date-fns / moment ~20–70KB | `Intl` (built in) |
+| Dates & currency | `client/src/services/format.ts` | date-fns / moment ~20–70KB | `Intl` (built in) |
 | Motion | `client/src/lib/motion.ts` | framer-motion ~120KB | < 3KB |
 | Toasts, modals, tables | `client/src/components/ui/` | any UI kit ~100KB+ | own code |
 | QR codes | `server/src/services/flyer.service.ts` | qrcode lib | server-side |

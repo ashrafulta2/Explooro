@@ -10,7 +10,7 @@
  */
 
 import { adsApi } from '../../services/ads.api.ts';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.ts';
 import { SponsoredSlot } from './SponsoredSlot.ts';
 import type { SponsoredAdData } from './SponsoredSlot.ts';

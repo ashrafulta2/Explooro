@@ -2,8 +2,8 @@
  * MilestoneProgressStepper.ts — Visual progress stepper for B2B escrow staged release milestones (Prompt 10.6).
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 
 /** One staged-release milestone of a B2B escrow deal. */
 export interface Milestone {

@@ -15,8 +15,8 @@
 import { customerApi } from '../../services/customer.api.ts';
 import { BANGLADESH_DIVISIONS, getDistrictsByDivision, getUpazilasByDistrict, getDivisionById, getDistrictById } from '../../data/bangladeshGeo.ts';
 import { isValidBdPhone, normalizeBdPhone } from '../../components/checkout/AddressForm.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';

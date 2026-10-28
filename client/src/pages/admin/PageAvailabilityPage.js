@@ -15,9 +15,9 @@ import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { api } from '../../core/api.ts';
-import { appStore } from '../../state/appStore.js';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { appStore } from '../../state/appStore.ts';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { setPageToggles, getPageToggles, PAGE_STATES } from '../../services/pageAccess.js';
 import { listPages, PAGE_PORTALS, pageLabel } from '../../config/pageRegistry.js';
 

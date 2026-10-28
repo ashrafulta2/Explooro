@@ -1,5 +1,5 @@
 /**
- * session.js — Authentication and session management service (Prompt 2.8).
+ * session.ts — Authentication and session management service (Prompt 2.8).
  *
  * Enforces strict security constraints (docs/api-contract.md §8):
  * - Access tokens live in-memory ONLY (never in localStorage or sessionStorage).
@@ -9,17 +9,27 @@
  */
 
 import { api, setAccessToken, clearAccessToken, refreshSession } from '../core/api.ts';
-import { appStore } from '../state/appStore.js';
-import { initPermissions, clearPermissions } from './permissions.js';
+import { appStore } from '../state/appStore.ts';
+import { initPermissions, clearPermissions } from './permissions.ts';
 import { mergeGuestCartOnLogin } from './cart.ts';
 
-let refreshTimer = null;
-let currentUser = null;
+/** The signed-in person, as POST /auth/login and /auth/refresh describe them. */
+export interface SessionUser {
+  id?: number | string;
+  roles?: string[];
+  name?: string;
+  full_name?: string;
+  phone?: string;
+  [field: string]: unknown;
+}
+
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+let currentUser: SessionUser | null = null;
 
 /**
  * Decodes standard JWT payload without external libraries.
  */
-function decodeJwtPayload(token) {
+function decodeJwtPayload(token: string): Record<string, any> | null {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -38,7 +48,7 @@ function decodeJwtPayload(token) {
 /**
  * Schedules proactive token refresh 60 seconds before token expiration.
  */
-function scheduleProactiveRefresh(accessToken) {
+function scheduleProactiveRefresh(accessToken: string) {
   if (refreshTimer) clearTimeout(refreshTimer);
 
   const payload = decodeJwtPayload(accessToken);
@@ -68,7 +78,7 @@ function scheduleProactiveRefresh(accessToken) {
 /**
  * Syncs user and permissions into appStore.
  */
-function updateStoreAuth(user, permissionsList = []) {
+function updateStoreAuth(user: SessionUser | null, permissionsList: string[] = []) {
   currentUser = user;
   const roles = user?.roles || [];
   const primaryRole = roles[0] || 'customer';
@@ -112,9 +122,9 @@ export async function initSession() {
 /**
  * Logs in with mobile number or email and password.
  */
-export async function loginWithPassword({ phone, email, identifier, password }) {
+export async function loginWithPassword({ phone, email, identifier, password }: { phone?: string; email?: string; identifier?: string; password: string }) {
   try {
-    const payload = {
+    const payload: Record<string, unknown> = {
       password,
       device_name: typeof navigator !== 'undefined' ? navigator.userAgent : 'Web Browser',
     };
@@ -153,7 +163,7 @@ export async function loginWithPassword({ phone, email, identifier, password }) 
 /**
  * Requests an OTP code to be sent to phone or email.
  */
-export async function sendOtp({ phone, email, purpose = 'LOGIN' }) {
+export async function sendOtp({ phone, email, purpose = 'LOGIN' }: { phone?: string; email?: string; purpose?: string }) {
   return api.post('/auth/send-otp', {
     phone: phone || undefined,
     email: email || undefined,
@@ -164,7 +174,7 @@ export async function sendOtp({ phone, email, purpose = 'LOGIN' }) {
 /**
  * Verifies OTP code and authenticates.
  */
-export async function verifyOtp({ phone, email, otp, purpose = 'LOGIN' }) {
+export async function verifyOtp({ phone, email, otp, purpose = 'LOGIN' }: { phone?: string; email?: string; otp: string; purpose?: string }) {
   try {
     const res = await api.post('/auth/verify-otp', {
       phone: phone || undefined,
@@ -205,7 +215,7 @@ export async function verifyOtp({ phone, email, otp, purpose = 'LOGIN' }) {
 /**
  * Registers a new user account with phone or email.
  */
-export async function register({ phone, email, role, password, name, referralCode }) {
+export async function register({ phone, email, role, password, name, referralCode }: { phone?: string; email?: string; role?: string; password: string; name?: string; referralCode?: string }) {
   return api.post('/auth/register', {
     phone: phone || undefined,
     email: email || undefined,
@@ -219,14 +229,14 @@ export async function register({ phone, email, role, password, name, referralCod
 /**
  * Fetches TOTP setup secret for staff enrollment.
  */
-export async function setupTwoFactor({ challengeToken }) {
+export async function setupTwoFactor({ challengeToken }: { challengeToken: string }) {
   return api.post('/auth/2fa/setup', { challenge_token: challengeToken }, { skipAuthRedirect: true });
 }
 
 /**
  * Verifies TOTP code during 2FA challenge.
  */
-export async function completeTwoFactor({ challengeToken, code }) {
+export async function completeTwoFactor({ challengeToken, code }: { challengeToken: string; code: string }) {
   const res = await api.post(
     '/auth/2fa/verify',
     { code, challenge_token: challengeToken },
@@ -264,10 +274,10 @@ export async function logout() {
   updateStoreAuth(null, []);
 }
 
-export function getCurrentUser() {
+export function getCurrentUser(): SessionUser | null {
   return currentUser;
 }
 
-export function isUserAuthenticated() {
+export function isUserAuthenticated(): boolean {
   return Boolean(currentUser);
 }

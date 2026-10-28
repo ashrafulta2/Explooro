@@ -9,8 +9,8 @@
  */
 
 import { api } from '../core/api.ts';
-import { toast } from '../services/toast.js';
-import { t } from '../services/i18n.js';
+import { toast } from '../services/toast.ts';
+import { t } from '../services/i18n.ts';
 import { BalanceSummary } from '../components/vault/BalanceSummary.ts';
 import { EscrowTimeline } from '../components/vault/EscrowTimeline.ts';
 import { LedgerTable } from '../components/vault/LedgerTable.ts';

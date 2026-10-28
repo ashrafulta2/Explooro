@@ -9,11 +9,11 @@
  */
 
 import { contentApi } from '../../services/content.api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { formatCurrency, formatDate } from '../../services/format.ts';
 
 export default function EditorDashboardPage(root) {
   const container = document.createElement('div');

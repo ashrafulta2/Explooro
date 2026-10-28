@@ -11,8 +11,8 @@
  */
 
 import { adminApi } from '../../services/admin.api.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.ts';

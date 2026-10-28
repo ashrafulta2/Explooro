@@ -8,7 +8,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { localizeDigits } from '../src/services/format.js';
+import { localizeDigits } from '../src/services/format.ts';
 
 describe('Bengali digits inside translated text', () => {
   test('Bengali UI gets Bengali digits, with no grouping added', () => {
@@ -23,7 +23,7 @@ describe('Bengali digits inside translated text', () => {
   });
 
   test('t() converts number params only, never strings such as refs', () => {
-    const src = readFileSync(new URL('../src/services/i18n.js', import.meta.url), 'utf8');
+    const src = readFileSync(new URL('../src/services/i18n.ts', import.meta.url), 'utf8');
     assert.match(src, /typeof value === 'number' && Number\.isFinite\(value\)\s*\?\s*localizeDigits\(value, \{ lang: currentLang \}\)\s*:\s*String\(value\)/);
   });
 });

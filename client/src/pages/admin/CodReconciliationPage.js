@@ -13,9 +13,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
+import { t } from '../../services/i18n.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import '../../styles/components/cod-recon.css';
 

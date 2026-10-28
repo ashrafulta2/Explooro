@@ -8,7 +8,7 @@
  * client/test/adminDashboardModel.test.js instead of being eyeballed in a browser.
  */
 
-import { formatNumber, getNumeralPreference, resolveLang } from './format.js';
+import { formatNumber, getNumeralPreference, resolveLang } from './format.ts';
 
 export type Polarity = 'up_good' | 'down_good' | 'neutral';
 export type Trend = 'up' | 'down' | 'neutral';

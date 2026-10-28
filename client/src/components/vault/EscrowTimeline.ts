@@ -7,8 +7,8 @@
  * 3. Clear status badges and progress indicators.
  */
 
-import { formatCurrency, formatDate } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency, formatDate } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 
 /** One escrow entry still on hold, as the API returns it. */
 export interface EscrowEntry {

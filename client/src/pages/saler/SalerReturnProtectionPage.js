@@ -11,9 +11,9 @@ import { returnProtectionApi } from '../../services/payoutProtection.api.ts';
 import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { toast } from '../../services/toast.js';
-import { t } from '../../services/i18n.js';
-import { formatCurrency, formatNumber } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency, formatNumber } from '../../services/format.ts';
 
 function el(tag, className, text) {
   const node = document.createElement(tag);

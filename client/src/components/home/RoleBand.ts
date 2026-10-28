@@ -12,8 +12,8 @@
  * visitor who asked for reduced motion.
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatNumber } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { ROLE_BANDS } from './homeBands.ts';
 import type { SlideView } from './homeBands.ts';
 

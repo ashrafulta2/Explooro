@@ -24,7 +24,7 @@ import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
 import { navItems } from '../src/config/navigation.js';
 import { genieHandlers } from '../src/mocks/handlers/genie.js';
-import { applyGeniePolicy } from '../src/services/genieSettings.js';
+import { applyGeniePolicy } from '../src/services/genieSettings.ts';
 import { getGenieConfig, configureGenie, GENIE_DEFAULTS, GENIE_LIMITS } from '../src/lib/genie.ts';
 
 const clientRoot = path.resolve(import.meta.dirname, '..');
@@ -172,7 +172,7 @@ test('Popup genie effect — client invariants', async (t) => {
     assert.match(boot, /^\s*initGenieSettings\(\);/m, 'called, not awaited');
     assert.doesNotMatch(boot, /await initGenieSettings/);
 
-    const svc = read('src', 'services', 'genieSettings.js');
+    const svc = read('src', 'services', 'genieSettings.ts');
     assert.match(svc, /if \(cached\) configureGenie\(cached\);\s*\n\s*refreshGenieSettings\(\);/);
     assert.match(svc, /await import\('\.\.\/core\/api\.ts'\)/, 'api stays out of the static import graph');
   });

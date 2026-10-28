@@ -11,7 +11,7 @@
  *  - A grade is never conveyed by colour alone: the letter is always printed (WCAG 1.4.1).
  *  - Every figure is formatted here; a null metric renders "—", not "0%".
  */
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 // Styles: styles/components/supplier-scorecard.css, loaded by the routes that render this (main.js).
 
 const GRADE_TONE: Record<string, string> = { A: 'success', B: 'info', C: 'warning', D: 'danger' };

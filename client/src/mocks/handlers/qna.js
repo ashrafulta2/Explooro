@@ -2,7 +2,7 @@
  * Mock handlers for product Q&A (Prompt 4.6). Same mutable-copy-of-fixture contract as reviews.js.
  */
 import seedQuestions from '../fixtures/questions.json' with { type: 'json' };
-import { appStore } from '../../state/appStore.js';
+import { appStore } from '../../state/appStore.ts';
 
 let questions = seedQuestions.map((q) => ({ ...q, answers: q.answers.map((a) => ({ ...a })) }));
 let nextQuestionId = Math.max(...questions.map((q) => q.id)) + 1;

@@ -8,10 +8,10 @@
  * - Moderation report action trigger.
  */
 
-import { formatDate } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatDate } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
+import { toast } from '../../services/toast.ts';
 
 /** One chat message, as the API (or the local outbound queue) returns it. */
 export interface ChatMessage {

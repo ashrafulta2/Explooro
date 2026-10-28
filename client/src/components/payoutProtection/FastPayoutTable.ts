@@ -11,8 +11,8 @@
  * Styles: styles/components/incentive.css (table shell) + payout-protection.css, loaded by the routes
  * that render this (main.js).
  */
-import { t } from '../../services/i18n.js';
-import { formatCurrency, formatDate, formatNumber } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency, formatDate, formatNumber } from '../../services/format.ts';
 import { Button } from '../ui/Button.ts';
 
 function cell<K extends 'td' | 'th' | 'div' | 'span'>(tag: K, text: string, className?: string): HTMLElementTagNameMap[K] {

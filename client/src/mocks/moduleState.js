@@ -92,7 +92,7 @@ export function buildAdminModules() {
  * moduleService.getPublicModulesMap() returns on the server.
  *
  * `core` is included even though it is not a registry row: core/router.js's hasModule() short-
- * circuits on it, but featureFlags.js and any `[data-module="core"]` gate read the map directly.
+ * circuits on it, but featureFlags.ts and any `[data-module="core"]` gate read the map directly.
  */
 export function publicModuleMap() {
   const map = { core: true };

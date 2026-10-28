@@ -4,8 +4,8 @@
  * Integrated with platform theme variables.
  */
 
-import { formatDate } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatDate } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 
 /** One entry of a dispute's audit trail. `INTERNAL_NOTE` entries are staff-only. */
 export interface TimelineEvent {

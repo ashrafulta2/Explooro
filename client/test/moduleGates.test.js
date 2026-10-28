@@ -6,7 +6,7 @@
  * module key that is merely ABSENT reads as disabled and the route silently redirects to `/` with
  * no console error and no 404 — the failure mode looks like "the admin page renders the home
  * page". `supplier_verification` shipped that way and took out five routes, including
- * /admin/verification. featureFlags.js's isFeatureEnabled() defaults an unknown key to *true*, so
+ * /admin/verification. featureFlags.ts's isFeatureEnabled() defaults an unknown key to *true*, so
  * the sidebar happily renders a link the router then refuses — which is what makes it invisible.
  *
  * Parsed from source rather than imported because main.js's route table is built inside an async
@@ -20,12 +20,12 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const appStoreSrc = readFileSync(join(root, 'src/state/appStore.js'), 'utf8');
+const appStoreSrc = readFileSync(join(root, 'src/state/appStore.ts'), 'utf8');
 const mainSrc = readFileSync(join(root, 'src/main.js'), 'utf8');
 
 function demoModuleKeys() {
   const block = appStoreSrc.match(/const DEMO_MODULES = \{([\s\S]*?)\n\};/);
-  assert.ok(block, 'DEMO_MODULES object literal not found in appStore.js');
+  assert.ok(block, 'DEMO_MODULES object literal not found in appStore.ts');
   return new Set([...block[1].matchAll(/^\s*([a-z0-9_]+):\s*(?:true|false)\s*,/gm)].map((m) => m[1]));
 }
 

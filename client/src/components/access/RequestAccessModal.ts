@@ -9,9 +9,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { getPermissionMetadata, refreshPermissions, can } from '../../services/permissions.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { getPermissionMetadata, refreshPermissions, can } from '../../services/permissions.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { Textarea } from '../ui/Textarea.ts';

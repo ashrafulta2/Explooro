@@ -9,9 +9,9 @@
 
 import '../../styles/components/customer-orders.css';
 import { getMyOrders } from '../../services/order.api.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Tabs } from '../../components/ui/Tabs.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
@@ -24,7 +24,7 @@ import {
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 import { EarnJourney } from '../../components/customer/EarnJourney.ts';
-import { appStore } from '../../state/appStore.js';
+import { appStore } from '../../state/appStore.ts';
 
 export default function OrdersPage(root, { navigate } = {}) {
   const nav = (url, opts = {}) => {

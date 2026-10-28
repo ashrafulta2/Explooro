@@ -8,9 +8,9 @@ import { Badge } from '../ui/Badge.ts';
 import { confirmDialogWithReason } from '../ui/ConfirmDialog.ts';
 import { openModuleSettingsDrawer } from './ModuleSettingsDrawer.ts';
 import { openModuleTargetingDrawer } from './ModuleTargetingDrawer.ts';
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 import type { PlatformModule } from './ModuleSettingsDrawer.ts';
-import { formatRelativeTime } from '../../services/format.js';
+import { formatRelativeTime } from '../../services/format.ts';
 
 export interface ModuleRowOptions {
   module: PlatformModule;

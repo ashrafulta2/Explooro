@@ -24,10 +24,10 @@
  * @param {function} [opts.onFirstPage]  called with the first page's products after a (re)load
  * @returns {{ el: HTMLElement, cleanup: () => void, reload: (filters?) => void }}
  */
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatNumber } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency, formatNumber } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { addToCart } from '../../services/cart.ts';
 import { getFeed } from '../../services/discovery.api.ts';
 import { recordEvent, MIN_DWELL_MS } from '../../services/signals.ts';
@@ -38,7 +38,7 @@ import { WishlistButton } from '../cart/WishlistButton.ts';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.ts';
 import { openTeamPurchaseModal } from './TeamPurchaseModal.ts';
 import { api } from '../../core/api.ts';
-import { appStore } from '../../state/appStore.js';
+import { appStore } from '../../state/appStore.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import type { CatalogProduct } from '../../services/catalog.api.ts';

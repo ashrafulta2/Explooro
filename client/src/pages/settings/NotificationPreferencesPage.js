@@ -11,10 +11,10 @@ import { Button } from '../../components/ui/Button.ts';
 import { Card } from '../../components/ui/Card.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { api } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
-import { appStore } from '../../state/appStore.js';
+import { appStore } from '../../state/appStore.ts';
 import {
   isOffByBrowserSignal,
   isPersonalizationEnabled,

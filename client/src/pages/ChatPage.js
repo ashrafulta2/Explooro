@@ -15,10 +15,10 @@ import { MessageComposer } from '../components/chat/MessageComposer.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { Button } from '../components/ui/Button.ts';
 import { api } from '../core/api.ts';
-import { getCurrentUser } from '../services/session.js';
+import { getCurrentUser } from '../services/session.ts';
 import { wsManager, WS_STATUS } from '../services/websocket.ts';
-import { t } from '../services/i18n.js';
-import { toast } from '../services/toast.js';
+import { t } from '../services/i18n.ts';
+import { toast } from '../services/toast.ts';
 
 export default function ChatPage(root, { params, query, navigate } = {}) {
   const container = document.createElement('div');

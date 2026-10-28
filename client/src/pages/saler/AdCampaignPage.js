@@ -20,8 +20,8 @@
  */
 
 import { api } from '../../core/api.ts';
-import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.ts';
 import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.ts';

@@ -10,8 +10,8 @@ import { supplierApi } from '../../services/supplier.api.ts';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { toast } from '../../services/toast.js';
-import { t } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t } from '../../services/i18n.ts';
 
 export default function SupplierScorecardPage(root) {
   const container = document.createElement('div');

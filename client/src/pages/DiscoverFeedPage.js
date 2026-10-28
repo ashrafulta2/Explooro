@@ -14,8 +14,8 @@
  * chunk and it never weighs on the entry bundle (see the CSS-budget note in styles/main.css).
  */
 import '../styles/components/discover-feed.css';
-import { appStore } from '../state/appStore.js';
-import { t, getLanguage } from '../services/i18n.js';
+import { appStore } from '../state/appStore.ts';
+import { t, getLanguage } from '../services/i18n.ts';
 import { updateHead } from '../services/seo.ts';
 import { ProductFeed } from '../components/product/ProductFeed.ts';
 import { CategoryPills } from '../components/product/CategoryPills.ts';

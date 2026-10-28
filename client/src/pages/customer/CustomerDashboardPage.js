@@ -13,8 +13,8 @@
  */
 
 import { customerApi } from '../../services/customer.api.ts';
-import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
-import { formatCurrency, formatNumber } from '../../services/format.js';
+import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
+import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';

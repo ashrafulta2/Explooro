@@ -9,9 +9,9 @@
  * 5. Multiple responsive display formats: 'card' | 'banner' | 'feed'.
  */
 
-import { appStore } from '../../state/appStore.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
+import { appStore } from '../../state/appStore.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { api } from '../../core/api.ts';
 
 /** A winning ad, in the shape the auction and the reserved placements both produce. */

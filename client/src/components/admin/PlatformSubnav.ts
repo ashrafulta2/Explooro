@@ -15,7 +15,7 @@
  * 8. Personalized Feed (/admin/platform/recommendations)
  */
 
-import { getLanguage } from '../../services/i18n.js';
+import { getLanguage } from '../../services/i18n.ts';
 import type { SubnavOptions, SubnavTab } from './FinanceSubnav.ts';
 
 export function PlatformSubnav({ activeKey = 'integrations', navigate = null }: SubnavOptions = {}): HTMLElement {

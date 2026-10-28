@@ -16,11 +16,11 @@ import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft
 import { needsOnlinePayment, payForOrder } from '../services/payment.api.ts';
 import { adsApi } from '../services/ads.api.ts';
 import { customerApi } from '../services/customer.api.ts';
-import { getCurrentUser } from '../services/session.js';
-import { appStore } from '../state/appStore.js';
-import { formatCurrency } from '../services/format.js';
-import { toast } from '../services/toast.js';
-import { t } from '../services/i18n.js';
+import { getCurrentUser } from '../services/session.ts';
+import { appStore } from '../state/appStore.ts';
+import { formatCurrency } from '../services/format.ts';
+import { toast } from '../services/toast.ts';
+import { t } from '../services/i18n.ts';
 import { Button } from '../components/ui/Button.ts';
 
 export default function CheckoutPage(root, { navigate } = {}) {

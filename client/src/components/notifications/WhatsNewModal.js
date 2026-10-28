@@ -10,7 +10,7 @@
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { api } from '../../core/api.ts';
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { escapeHtml } from '../../services/html.ts';
 
 export async function checkAndShowWhatsNew() {

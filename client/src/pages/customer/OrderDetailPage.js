@@ -11,11 +11,11 @@
 import { getOrderById, getMyOrders, cancelOrder } from '../../services/order.api.ts';
 import { needsOnlinePayment, payForOrder } from '../../services/payment.api.ts';
 import { OrderTracker, getSubOrderStatusLabel, getPaymentStatusLabel } from '../../components/order/OrderTracker.ts';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { formatCurrency, formatDate } from '../../services/format.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
-import { toast } from '../../services/toast.js';
-import { t } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t } from '../../services/i18n.ts';
 import { goBack, renderBackLink } from '../../core/navBack.ts';
 import '../../styles/components/customer-orders.css';
 

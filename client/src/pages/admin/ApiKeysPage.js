@@ -25,9 +25,9 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
 
 export default function ApiKeysPage(root, { navigate } = {}) {
   const container = document.createElement('div');

@@ -12,9 +12,9 @@
 import { Button } from '../components/ui/Button.ts';
 import { Input } from '../components/ui/Input.ts';
 import { getTopUps, topUp, amountProblem } from '../services/walletTopup.api.ts';
-import { toast } from '../services/toast.js';
-import { t } from '../services/i18n.js';
-import { formatCurrency } from '../services/format.js';
+import { toast } from '../services/toast.ts';
+import { t } from '../services/i18n.ts';
+import { formatCurrency } from '../services/format.ts';
 import '../styles/components/advertise.css';
 
 const PRESETS = [100, 500, 1000, 2000];

@@ -31,7 +31,7 @@ import type {
 } from './ProductCard.ts';
 import { getRails } from '../../services/discovery.api.ts';
 import { onPersonalizationChange } from '../../services/signals.ts';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 /** One themed row from GET /discovery/rails. The server decides which rails exist and what is in them. */
 export interface DiscoveryRail {

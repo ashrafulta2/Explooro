@@ -210,9 +210,9 @@ describe('Language & Default Locale governance', () => {
     });
 
     test('SUPPORTED_LOCALES matches the client engine and the users.locale constraint', () => {
-      const i18nSrc = fs.readFileSync(path.join(repoRoot, 'client/src/services/i18n.js'), 'utf8');
+      const i18nSrc = fs.readFileSync(path.join(repoRoot, 'client/src/services/i18n.ts'), 'utf8');
       const match = i18nSrc.match(/const SUPPORTED = \[([^\]]+)\]/);
-      assert.ok(match, 'client i18n.js declares a SUPPORTED array');
+      assert.ok(match, 'client i18n.ts declares a SUPPORTED array');
       const clientLocales = match[1]
         .split(',')
         .map((s) => s.trim().replace(/['"]/g, ''))

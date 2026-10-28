@@ -11,7 +11,7 @@
  * offers the dev shell as an escape hatch — it sends the user back where they came from.
  */
 import { navItems } from '../config/navigation.js';
-import { t } from '../services/i18n.js';
+import { t } from '../services/i18n.ts';
 import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 

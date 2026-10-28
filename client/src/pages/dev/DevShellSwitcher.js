@@ -7,8 +7,8 @@
  */
 import { NAV_ROLES, navItems } from '../../config/navigation.js';
 import { getRoleMeta } from '../../config/permissions.mock.ts';
-import { setMockRole, logOutMock, appStore } from '../../state/appStore.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { setMockRole, logOutMock, appStore } from '../../state/appStore.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Card } from '../../components/ui/Card.ts';
 

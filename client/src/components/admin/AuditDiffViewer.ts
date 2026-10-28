@@ -4,7 +4,7 @@
 
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 /** One audit_logs row (or timeline event) as the diff viewer reads it; before and after are JSON objects. */
 export interface AuditRecord {

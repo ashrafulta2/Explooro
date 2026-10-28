@@ -18,10 +18,10 @@ import { confirmDialog, confirmDialogWithReason } from '../../components/ui/Conf
 import { Pagination } from '../../components/ui/Pagination.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import { api } from '../../core/api.ts';
-import { can } from '../../services/permissions.js';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatDate, formatNumber } from '../../services/format.js';
+import { can } from '../../services/permissions.ts';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency, formatDate, formatNumber } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 

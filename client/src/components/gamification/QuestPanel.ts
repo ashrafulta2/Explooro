@@ -10,8 +10,8 @@
  */
 
 import { api } from '../../core/api.ts';
-import { getLanguage, t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { getLanguage, t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { questClaimMessage } from './questClaimMessage.ts';
 
 /** A daily or weekly quest with its progress, as GET /quests sends it. */

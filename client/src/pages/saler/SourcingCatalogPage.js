@@ -16,10 +16,10 @@ import { fetchSponsored, trackImpression, clickReporter } from '../../services/s
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { appStore } from '../../state/appStore.js';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { formatCurrency } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { appStore } from '../../state/appStore.ts';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { openAssistantPanel } from '../../components/ai/AssistantPanel.ts';
 

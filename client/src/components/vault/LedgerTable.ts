@@ -8,8 +8,8 @@
  * 4. Client-side CSV export capability.
  */
 
-import { formatCurrency, formatDate } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency, formatDate } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 
 /** One double-entry ledger line, as the API returns it. */
 export interface LedgerTransaction {

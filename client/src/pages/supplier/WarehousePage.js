@@ -13,9 +13,9 @@
  */
 
 import { supplierApi } from '../../services/supplier.api.ts';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { supplierModal } from './supplierModal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 

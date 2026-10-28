@@ -17,7 +17,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { handleMockRequest } from '../src/mocks/index.js';
-import { appStore, setMockRole, logOutMock } from '../src/state/appStore.js';
+import { appStore, setMockRole, logOutMock } from '../src/state/appStore.ts';
 import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.ts';
 import { checkNewFile } from '../src/components/community/MediaPicker.ts';
 import { MOCK_COMMUNITY_TEMPLATES } from '../src/mocks/handlers/community.js';
@@ -191,7 +191,7 @@ test('the routes, the nav items and the module flag agree', () => {
   assert.deepEqual(items.map((i) => i.key).sort(), ['admin.content.community', 'customer.community', 'moderator.community', 'saler.community', 'supplier.community']);
   for (const i of items) assert.equal(i.module, 'community_posts', `${i.key} must be gated by the module the route uses`);
   assert.equal(items.find((i) => i.key === 'admin.content.community').permission, 'community.post.moderate');
-  assert.match(read('state', 'appStore.js'), /community_posts: true/);
+  assert.match(read('state', 'appStore.ts'), /community_posts: true/);
 });
 
 test('both components are in the dev gallery', () => {

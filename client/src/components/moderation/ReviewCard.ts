@@ -4,8 +4,8 @@
  * Fully integrated with platform design tokens & theme CSS variables.
  */
 
-import { formatCurrency, formatDate } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency, formatDate } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 
 /** What a queue row's payload can carry; which fields exist depends on `item_type`. */
 interface ReviewPayload {

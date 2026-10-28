@@ -2,7 +2,7 @@
  * StoreHeader.ts — Hero banner, avatar, branding, social links, announcement & status for virtual stores (Prompt 4.8).
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { Badge } from '../ui/Badge.ts';
 import { ICONS } from '../ui/icons.ts';
 

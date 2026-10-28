@@ -9,8 +9,8 @@
  * - Image attachment simulator with progress bar.
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 
 export function MessageComposer({
   onSendMessage,

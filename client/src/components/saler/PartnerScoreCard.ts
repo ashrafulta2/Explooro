@@ -11,8 +11,8 @@
  * WHY no percentage per product anywhere on this card: a partner earns by promoting well, not by
  * picking the product with the highest percentage. The card shows how they are doing, not a rate.
  */
-import { formatNumber, localizeDigits } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatNumber, localizeDigits } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 import { esc } from './CommissionTierCard.ts';
 
 const METRIC_ORDER = ['delivered_volume', 'return_rate', 'repeat_customers', 'new_customers', 'link_conversion', 'cancel_rate'];

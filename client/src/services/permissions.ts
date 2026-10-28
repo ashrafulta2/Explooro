@@ -1,5 +1,5 @@
 /**
- * permissions.js — Client-side Permission Resolution & Locked State Service (Prompt 2.8).
+ * permissions.ts — Client-side Permission Resolution & Locked State Service (Prompt 2.8).
  *
  * Sourced from /api/v1/me/permissions (Prompt 2.4).
  * Exposes:
@@ -11,18 +11,18 @@
  */
 
 import { api } from '../core/api.ts';
-import { appStore } from '../state/appStore.js';
-import { PRESET_SWITCH_PERMISSION, dropLocalPreset } from './themePalette.js';
+import { appStore } from '../state/appStore.ts';
+import { PRESET_SWITCH_PERMISSION, dropLocalPreset } from './themePalette.ts';
 import catalog from '../../../docs/permission-catalog.json' with { type: 'json' };
 
 const catalogPermissions = new Map(catalog.permissions.map((p) => [p.key, p]));
 
-let heldPermissions = new Set();
-let permissionSources = {};
-let activeRoles = [];
-let activeGrants = [];
-let activeJitWindows = [];
-let activeRestrictions = [];
+let heldPermissions = new Set<string>();
+let permissionSources: Record<string, unknown> = {};
+let activeRoles: string[] = [];
+let activeGrants: Record<string, any>[] = [];
+let activeJitWindows: Record<string, any>[] = [];
+let activeRestrictions: Record<string, any>[] = [];
 
 /**
  * Syncs permissions state with appStore.
@@ -44,7 +44,7 @@ function syncWithStore() {
   }));
 }
 
-function formatElevatedGrant(jit) {
+function formatElevatedGrant(jit: Record<string, any>) {
   const meta = catalogPermissions.get(jit.permission_key);
   const expiresAt = new Date(jit.window_expires_at).getTime();
   return {
@@ -105,7 +105,7 @@ export function clearPermissions() {
 /**
  * Checks if the current user holds a specific permission key.
  */
-export function can(permissionKey) {
+export function can(permissionKey: string): boolean {
   if (!permissionKey) return true;
   return heldPermissions.has(permissionKey);
 }
@@ -113,7 +113,7 @@ export function can(permissionKey) {
 /**
  * Checks if the current user is restricted for a given capability switch.
  */
-export function isRestricted(capabilityKey) {
+export function isRestricted(capabilityKey: string): boolean {
   if (!capabilityKey) return false;
   return activeRestrictions.some(
     (r) => r.capability_key === capabilityKey && r.mode === 'BLOCK'
@@ -123,7 +123,7 @@ export function isRestricted(capabilityKey) {
 /**
  * Gets active restriction object for capability key.
  */
-export function getRestriction(capabilityKey) {
+export function getRestriction(capabilityKey: string) {
   if (!capabilityKey) return null;
   return activeRestrictions.find((r) => r.capability_key === capabilityKey) || null;
 }
@@ -132,7 +132,7 @@ export function getRestriction(capabilityKey) {
  * Detailed determination of why access is granted or denied.
  * Returns: 'held' | 'no_permission' | 'requestable' | 'critical_locked' | 'maker_checker' | 'restricted' | 'module_off'
  */
-export function whyDenied(permissionKey, moduleKey = null) {
+export function whyDenied(permissionKey: string | null | undefined, moduleKey: string | null = null): string {
   if (moduleKey && moduleKey !== 'core') {
     const isModuleOn = appStore.get()?.modules?.[moduleKey];
     if (isModuleOn === false) return 'module_off';
@@ -171,7 +171,7 @@ export function whyDenied(permissionKey, moduleKey = null) {
 /**
  * Returns catalog entry metadata for a permission key.
  */
-export function getPermissionMetadata(permissionKey) {
+export function getPermissionMetadata(permissionKey: string | null | undefined) {
   return catalogPermissions.get(permissionKey) || null;
 }
 
@@ -185,7 +185,7 @@ export function getActiveJitGrants() {
 /**
  * Releases an active JIT elevated access window early.
  */
-export async function releaseJitAccess(grantRef) {
+export async function releaseJitAccess(grantRef: string) {
   try {
     // Release elevated access grant
     appStore.update((s) => ({

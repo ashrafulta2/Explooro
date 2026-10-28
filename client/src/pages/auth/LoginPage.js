@@ -8,10 +8,10 @@
  * 4. Bengali-first copy & accessible 44px touch targets.
  */
 
-import { loginWithPassword, sendOtp } from '../../services/session.js';
+import { loginWithPassword, sendOtp } from '../../services/session.ts';
 import { pickMessage } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';

@@ -16,7 +16,7 @@ export default async function homeSummaryRoutes(app) {
       preHandler: [app.authenticate],
     },
     async (req, reply) => {
-      // WHY roles[0]: the client treats the first role as the primary one (services/session.js),
+      // WHY roles[0]: the client treats the first role as the primary one (services/session.ts),
       // so the band and this endpoint always agree on which account type is looking.
       const role = req.user.roles?.[0] || 'customer';
       const data = await getHomeSummary(req.server.db, { userId: req.user.id, role });

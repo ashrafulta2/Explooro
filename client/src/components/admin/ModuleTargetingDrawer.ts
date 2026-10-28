@@ -9,8 +9,8 @@ import { Select } from '../ui/Select.ts';
 import { Switch } from '../ui/Switch.ts';
 import { Badge } from '../ui/Badge.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import type { ModuleDrawerOptions } from './ModuleSettingsDrawer.ts';
 
 export function openModuleTargetingDrawer({ module, trigger, onSuccess }: ModuleDrawerOptions) {

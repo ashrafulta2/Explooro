@@ -7,9 +7,9 @@
  * - Bilingual formatting (English & Bengali).
  */
 
-import { releaseJitAccess } from '../../services/permissions.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { releaseJitAccess } from '../../services/permissions.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 
 /** A just-in-time elevation window the chip counts down (`getActiveJitGrants()` rows). */
 export interface ElevatedGrant {

@@ -25,7 +25,7 @@ import type {
   ProductNavigate,
   ProductWidgetHandle,
 } from './ProductCard.ts';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 export interface FlashSaleWidgetOptions {
   /** Flash-sale products; when none is flagged, the first ten are shown as if they were. */

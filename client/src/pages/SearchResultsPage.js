@@ -6,9 +6,9 @@
  * for free. The full Bengali-aware engine + grouped store/category results land with Prompt 4.4
  * proper; this page is deliberately a thin catalog view over the existing product list endpoint.
  */
-import { appStore } from '../state/appStore.js';
+import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
-import { t, getLanguage } from '../services/i18n.js';
+import { t, getLanguage } from '../services/i18n.ts';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';

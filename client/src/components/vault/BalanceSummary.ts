@@ -10,8 +10,8 @@
  * Includes plain-language clarity explanations and Payout Request CTA.
  */
 
-import { formatCurrency } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 import { PayoutRequestModal } from './PayoutRequestModal.ts';
 
 /** The wallet buckets from GET /wallet, decimal strings or numbers. */

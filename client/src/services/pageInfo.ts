@@ -1,5 +1,5 @@
 /**
- * pageInfo.js — folds the descriptive line under a page/section title into an (i) InfoTip.
+ * pageInfo.ts — folds the descriptive line under a page/section title into an (i) InfoTip.
  *
  * Instruction text ("what this page is for") under every title made screens read as clutter. The
  * sentence is kept — it moves into an InfoTip beside the title. Pages keep writing the same
@@ -41,11 +41,11 @@ export const INFO_SELECTOR =
   `:is(${INFO_CLASSES.map((c) => `.${c}`).join(',')},[data-page-info]):not([data-info-keep])`;
 
 const HEADING = 'h1,h2,h3,h4';
-const tips = new WeakMap(); // subtitle element -> its InfoTip
+const tips = new WeakMap<Element, ReturnType<typeof InfoTip>>(); // subtitle element -> its InfoTip
 
 /** The heading this subtitle describes: the one right before it, or the last one inside the
  *  wrapper right before it (a title row holding an icon + <h2>). */
-function findHeading(sub) {
+function findHeading(sub: Element) {
   const prev = sub.previousElementSibling;
   if (!prev) return null;
   if (prev.matches(HEADING)) return prev;
@@ -53,7 +53,7 @@ function findHeading(sub) {
   return inner.length ? inner[inner.length - 1] : null;
 }
 
-function fold(sub) {
+function fold(sub: Element) {
   const text = (sub.textContent || '').replace(/\s+/g, ' ').trim();
   const existing = tips.get(sub);
 
@@ -81,12 +81,12 @@ function fold(sub) {
   sub.setAttribute('data-info-folded', '');
 }
 
-function scan(root) {
+function scan(root: ParentNode) {
   root.querySelectorAll(INFO_SELECTOR).forEach(fold);
 }
 
 /** Starts folding inside `root` (the router outlet) and keeps doing so as pages mount/update. */
-export function installPageInfo(root) {
+export function installPageInfo(root: HTMLElement | null | undefined): () => void {
   if (!root || typeof MutationObserver === 'undefined') return () => {};
   scan(root);
   // WHY: a MutationObserver callback is a microtask, so it runs before the browser paints the

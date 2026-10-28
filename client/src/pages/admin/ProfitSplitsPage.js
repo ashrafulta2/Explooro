@@ -16,9 +16,9 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import { adminApi } from '../../services/admin.api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency, formatDate } from '../../services/format.ts';
 
 export default function ProfitSplitsPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';

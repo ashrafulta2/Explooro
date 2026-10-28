@@ -9,8 +9,8 @@
  * 5. COMPLETED / RESOLVED.
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 
 /** A warranty claim, as the API returns it. */
 export interface WarrantyClaim {

@@ -16,10 +16,10 @@
 import { Button } from '../../components/ui/Button.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { api } from '../../core/api.ts';
-import { can } from '../../services/permissions.js';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatNumber, formatRelativeTime } from '../../services/format.js';
+import { can } from '../../services/permissions.ts';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency, formatNumber, formatRelativeTime } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 import { FACTOR_ORDER, monthLabel } from '../../components/saler/PartnerRewardCard.ts';

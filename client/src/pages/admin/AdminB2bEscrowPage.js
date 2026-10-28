@@ -15,9 +15,9 @@
  */
 
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency, formatDate } from '../../services/format.ts';
 import { listB2bDeals, releaseMilestone } from '../../services/b2bEscrow.api.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import { trackStyleLoad } from '../../core/styleGate.ts';

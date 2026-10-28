@@ -8,10 +8,10 @@
  */
 
 import { api } from '../../core/api.ts';
-import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
-import { formatCurrency, formatNumber, formatDate } from '../../services/format.js';
+import { formatCurrency, formatNumber, formatDate } from '../../services/format.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 
 export class CampaignManagerPage {

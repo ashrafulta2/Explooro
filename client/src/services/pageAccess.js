@@ -48,7 +48,7 @@ const listeners = new Set();
 /**
  * Loads the viewer's page-availability map. Never throws: a page layer that fails closed would
  * black out the whole app on a transient API error, so an unreachable endpoint means "everything
- * LIVE" — the same posture featureFlags.js takes.
+ * LIVE" — the same posture featureFlags.ts takes.
  */
 export async function initPageAccess() {
   try {

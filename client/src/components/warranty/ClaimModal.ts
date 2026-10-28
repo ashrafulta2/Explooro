@@ -2,9 +2,9 @@
  * ClaimModal.ts — Customer 1-Click Warranty Claim Submission Dialog (Prompt 10.4).
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
+import { toast } from '../../services/toast.ts';
 
 import { Modal } from '../ui/Modal.ts';
 import type { WarrantyCardData } from './WarrantyCard.ts';

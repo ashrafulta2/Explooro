@@ -1,8 +1,8 @@
 /**
  * CustomerReviewCard.ts — Renders a review written by the customer.
  */
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatRelativeTime } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatRelativeTime } from '../../services/format.ts';
 import { Modal } from '../ui/Modal.ts';
 import '../../styles/components/customer-reviews.css';
 

@@ -17,7 +17,7 @@
  *     record; without it, two cards would collide and clicking one label would toggle the other.
  */
 
-import { getLanguage } from '../../services/i18n.js';
+import { getLanguage } from '../../services/i18n.ts';
 
 /** Endonyms: a language is always named in its own language, never translated. */
 const LOCALE_NAMES: Record<string, { name: string; native: string; region: string }> = {

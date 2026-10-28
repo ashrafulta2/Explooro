@@ -15,9 +15,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatDate, formatCurrency } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatDate, formatCurrency } from '../../services/format.ts';
 
 const HORIZON_OPTIONS = [
   { labelKey: 'sup_forecast.h30', value: 30 },

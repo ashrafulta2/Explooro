@@ -10,10 +10,10 @@
  */
 
 import { supplierApi } from '../../services/supplier.api.ts';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { t } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';

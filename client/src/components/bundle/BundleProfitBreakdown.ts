@@ -9,8 +9,8 @@
  * - Itemized discount apportionment & effective retail prices
  */
 
-import { t } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 
 type Figure = number | string;
 

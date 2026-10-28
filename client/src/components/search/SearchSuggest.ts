@@ -11,8 +11,8 @@
  * Keyboard: ↓/↑ move the active row, Enter on an active row opens it (otherwise the form submits
  * normally → /search results page), Esc closes the dropdown.
  */
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 import { searchSuggest } from '../../services/catalog.api.ts';
 import { resolveProductImage } from '../product/ProductCard.ts';
 

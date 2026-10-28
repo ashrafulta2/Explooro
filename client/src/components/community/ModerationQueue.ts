@@ -12,10 +12,10 @@
 import { el, productTitle } from './dom.ts';
 import { Button } from '../ui/Button.ts';
 import { confirmDialog } from '../ui/ConfirmDialog.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatNumber } from '../../services/format.js';
-import { can } from '../../services/permissions.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatNumber } from '../../services/format.ts';
+import { can } from '../../services/permissions.ts';
 import { getQueue, moderatePost, updateThreshold, errorText } from '../../services/community.api.ts';
 import type { CommunityPost } from '../../services/community.api.ts';
 

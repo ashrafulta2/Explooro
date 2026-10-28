@@ -18,7 +18,7 @@
  */
 
 import { Drawer } from '../ui/Drawer.ts';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.ts';
 import type { BdDistrict } from '../../data/bangladeshGeo.ts';
 

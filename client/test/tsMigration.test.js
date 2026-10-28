@@ -32,7 +32,7 @@ test('every relative import points at a file that exists', () => {
   for (const file of [...sourceFiles(path.join(CLIENT_DIR, 'src')), ...sourceFiles(path.join(CLIENT_DIR, 'test'))]) {
     const src = readFileSync(file, 'utf8');
     for (const { 1: spec, index } of src.matchAll(SPECIFIER)) {
-      // Usage examples in doc comments (` *   import { t } from './services/i18n.js'`) are not imports.
+      // Usage examples in doc comments (` *   import { t } from './services/i18n.ts'`) are not imports.
       const line = src.slice(src.lastIndexOf('\n', index) + 1, index);
       if (/^\s*(\*|\/\/)/.test(line)) continue;
       const clean = spec.replace(/\?.*$/, ''); // Vite query suffixes such as ?raw

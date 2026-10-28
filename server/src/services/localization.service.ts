@@ -21,7 +21,7 @@ import { AppError } from '../plugins/errorHandler.ts';
 
 /**
  * The locales the product actually ships dictionaries for. Kept in lockstep with `SUPPORTED` in
- * client/src/services/i18n.js and the users.locale CHECK constraint in 001_identity.sql — adding a
+ * client/src/services/i18n.ts and the users.locale CHECK constraint in 001_identity.sql — adding a
  * third language means touching all three deliberately, which is the point: a locale nobody has
  * translated is worse than one that is simply absent.
  */

@@ -7,9 +7,9 @@
 
 import '../../styles/components/customer-warranties.css';
 import { api } from '../../core/api.ts';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.ts';

@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
 
 test('pageInfo never folds data captions or content copy', () => {
-  const src = read('../src/services/pageInfo.js');
+  const src = read('../src/services/pageInfo.ts');
   const list = src.split('INFO_CLASSES = [')[1].split('];')[0];
   for (const banned of ['kpi-card__sub', 'auth-subtitle', 'empty-state__description', 'modal__description', 'drawer__description', 'home-hero__sub']) {
     assert.ok(!list.includes(banned), `${banned} is data/content, not an instruction`);
@@ -20,7 +20,7 @@ test('pageInfo never folds data captions or content copy', () => {
 });
 
 test('pageInfo opts out via data-info-keep and keeps the original element in the DOM', () => {
-  const src = read('../src/services/pageInfo.js');
+  const src = read('../src/services/pageInfo.ts');
   assert.match(src, /:not\(\[data-info-keep\]\)/);
   assert.match(src, /data-info-folded/);
 });

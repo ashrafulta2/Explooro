@@ -14,11 +14,11 @@ import {
   setLanguage,
   getEnabledLanguages,
   isLanguageSwitchAllowed,
-} from '../../services/i18n.js';
-import { formatNumber } from '../../services/format.js';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { logOutMock, releaseElevatedAccess } from '../../state/appStore.js';
-import { logout } from '../../services/session.js';
+} from '../../services/i18n.ts';
+import { formatNumber } from '../../services/format.ts';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import { logOutMock, releaseElevatedAccess } from '../../state/appStore.ts';
+import { logout } from '../../services/session.ts';
 import { getTheme, applyTheme } from '../../services/theme.ts';
 import { Badge } from '../ui/Badge.ts';
 import { api } from '../../core/api.ts';
@@ -298,7 +298,7 @@ function AvatarMenu({ role, user, onNavigate }: { role: string; user: TopBarUser
   panel.append(settingsLink);
 
   // Preferences live here, not in the topbar: people set them once and rarely touch them again.
-  // A pick is stored (i18n.js / theme.ts write it to this browser) and becomes the default the next
+  // A pick is stored (i18n.ts / theme.ts write it to this browser) and becomes the default the next
   // visit opens with — the hint below says so, because nothing else on screen would.
   const prefs = document.createElement('div');
   prefs.className = 'topbar__prefs';

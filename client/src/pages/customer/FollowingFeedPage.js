@@ -13,9 +13,9 @@
 
 import { customerApi } from '../../services/customer.api.ts';
 import { adsApi } from '../../services/ads.api.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatBdt, formatNumber, formatRelativeTime, formatDate } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatBdt, formatNumber, formatRelativeTime, formatDate } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';

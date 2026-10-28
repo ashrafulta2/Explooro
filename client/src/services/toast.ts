@@ -4,7 +4,7 @@
  * Responsibility: own the one toast container in the document, cap how many are visible at once,
  * and queue the rest. Every notification in the product goes through here.
  *
- *   import { toast } from '../services/toast.js';
+ *   import { toast } from '../services/toast.ts';
  *   toast.success('Product added to your store');
  *   toast.error('Payment failed', { action: retry, actionLabel: 'Try again' });
  *
@@ -20,18 +20,31 @@
  */
 
 import { Toast } from '../components/ui/Toast.ts';
+import type { ToastElement } from '../components/ui/Toast.ts';
 
 const MAX_VISIBLE = 3;
 
-let container = null;
-const visible = new Set();
-const queue = [];
+export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
+
+/** What a caller may pass beside the message. */
+export interface ToastOptions {
+  duration?: number;
+  action?: (() => void) | null;
+  actionLabel?: string;
+  [field: string]: unknown;
+}
+
+type ToastConfig = ToastOptions & { message: string; variant: ToastVariant };
+
+let container: HTMLElement | null = null;
+const visible = new Set<ToastElement>();
+const queue: ToastConfig[] = [];
 
 // WHY: the top layer stacks in the order elements entered it. The container enters once, on the
 // first toast (often "Signed in successfully"), so a <dialog> opened afterwards sits ABOVE it and
 // every toast fired from inside that modal was drawn underneath — a rejected "Create" click
 // looked like nothing happened. Hiding and re-showing moves the container back to the top.
-function raiseToTop(el) {
+function raiseToTop(el: HTMLElement) {
   if (!el.popover) return;
   try {
     if (el.matches(':popover-open')) el.hidePopover();
@@ -41,7 +54,7 @@ function raiseToTop(el) {
   }
 }
 
-function ensureContainer() {
+function ensureContainer(): HTMLElement {
   if (container?.isConnected) {
     raiseToTop(container);
     return container;
@@ -73,7 +86,7 @@ function drain() {
   }
 }
 
-function show(options) {
+function show(options: ToastConfig) {
   const parent = ensureContainer();
   const el = Toast({
     ...options,
@@ -92,7 +105,7 @@ function show(options) {
   return el;
 }
 
-function push(variant, message, options = {}) {
+function push(variant: ToastVariant, message: string, options: ToastOptions = {}) {
   const config = { ...options, message, variant };
   if (visible.size >= MAX_VISIBLE) {
     queue.push(config);
@@ -102,12 +115,12 @@ function push(variant, message, options = {}) {
 }
 
 export const toast = {
-  success: (message, options) => push('success', message, options),
-  error: (message, options) =>
+  success: (message: string, options?: ToastOptions) => push('success', message, options),
+  error: (message: string, options?: ToastOptions) =>
     // Errors default to a longer read: the user has to absorb what failed and decide what to do.
     push('error', message, { duration: 8000, ...options }),
-  warning: (message, options) => push('warning', message, options),
-  info: (message, options) => push('info', message, options),
+  warning: (message: string, options?: ToastOptions) => push('warning', message, options),
+  info: (message: string, options?: ToastOptions) => push('info', message, options),
 
   /** Dismiss everything on screen and drop anything still queued (e.g. on route change). */
   clear() {

@@ -11,8 +11,8 @@
 import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { cartStore, fetchCart, updateItemQuantity, removeFromCart, toggleWishlist, isProductWishlisted } from '../services/cart.ts';
-import { formatCurrency } from '../services/format.js';
-import { t, getLanguage } from '../services/i18n.js';
+import { formatCurrency } from '../services/format.ts';
+import { t, getLanguage } from '../services/i18n.ts';
 import { loadCartPageStyles } from '../styles/loadCartPageStyles.ts';
 import { PLACEHOLDER_COLOURS, placeholderInitials, resolveProductImage } from '../components/product/ProductCard.ts';
 

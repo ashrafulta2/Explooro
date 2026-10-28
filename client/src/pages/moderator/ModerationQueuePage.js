@@ -11,9 +11,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { formatCurrency, formatDate } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { formatCurrency, formatDate } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { ReviewCard } from '../../components/moderation/ReviewCard.ts';
 
 // Tab key -> the item_type values it covers. A key may list several types (a "Products"

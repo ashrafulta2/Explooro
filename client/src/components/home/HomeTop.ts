@@ -16,11 +16,11 @@
  * customers to the /account/become-saler page that runs BecomeSalerCta, shop partners to their dashboard.
  */
 
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { api } from '../../core/api.ts';
 import { adsApi } from '../../services/ads.api.ts';
 import type { ReservedPlacement } from '../../services/ads.api.ts';
-import { isFeatureEnabled } from '../../services/featureFlags.js';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.ts';
 import { ICONS } from '../ui/icons.ts';
 import { getHomeSummary } from '../../services/homeSummary.api.ts';

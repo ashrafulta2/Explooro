@@ -1,5 +1,5 @@
 /**
- * themePalette.js — Client runtime theme applier, WCAG AA contrast calculator & token validator (Prompt 3.5).
+ * themePalette.ts — Client runtime theme applier, WCAG AA contrast calculator & token validator (Prompt 3.5).
  */
 
 import { THEME_PRESETS } from '../config/theme-presets.ts';
@@ -12,13 +12,16 @@ import {
   normaliseMasterConfig,
 } from './masterTheme.ts';
 
-let currentTokens = { ...THEME_PRESETS.default.tokens };
-let currentMaster = null;
+/** A theme: per-section hex maps plus, for a master theme, the `master` seed block. */
+export type ThemeTokens = Record<string, any>;
+
+let currentTokens: ThemeTokens = { ...THEME_PRESETS.default.tokens };
+let currentMaster: ReturnType<typeof normaliseMasterConfig> | null = null;
 
 /**
  * Converts a hex color string (#fff or #ffffff) to an {r, g, b} object.
  */
-export function hexToRgb(hex) {
+export function hexToRgb(hex: string) {
   if (!hex || typeof hex !== 'string') return { r: 0, g: 0, b: 0 };
   let clean = hex.replace('#', '').trim();
   if (clean.length === 3) {
@@ -36,7 +39,7 @@ export function hexToRgb(hex) {
 /**
  * Calculates standard sRGB relative luminance per WCAG 2.1 specs.
  */
-export function getRelativeLuminance({ r, g, b }) {
+export function getRelativeLuminance({ r, g, b }: { r: number; g: number; b: number }) {
   const a = [r, g, b].map((v) => {
     v /= 255;
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
@@ -47,7 +50,7 @@ export function getRelativeLuminance({ r, g, b }) {
 /**
  * Returns the WCAG contrast ratio between two hex colors (1:1 to 21:1).
  */
-export function getContrastRatio(hex1, hex2) {
+export function getContrastRatio(hex1: string, hex2: string) {
   const lum1 = getRelativeLuminance(hexToRgb(hex1));
   const lum2 = getRelativeLuminance(hexToRgb(hex2));
   const brightest = Math.max(lum1, lum2);
@@ -59,8 +62,8 @@ export function getContrastRatio(hex1, hex2) {
 /**
  * Validates that all tokens are solid colors (ZERO gradients allowed).
  */
-export function validateNoGradients(tokens) {
-  const checkValue = (val) => {
+export function validateNoGradients(tokens: unknown): boolean {
+  const checkValue = (val: unknown): boolean => {
     if (typeof val === 'string' && /gradient/i.test(val)) return false;
     if (typeof val === 'object' && val !== null) {
       return Object.values(val).every(checkValue);
@@ -73,10 +76,10 @@ export function validateNoGradients(tokens) {
 /**
  * Validates that the token palette satisfies WCAG AA contrast on every pairing.
  */
-export function validatePaletteContrast(tokens = {}) {
-  const failures = [];
+export function validatePaletteContrast(tokens: ThemeTokens = {}) {
+  const failures: { pairing: string; fg: string; bg: string; ratio: number | string; required: number; message: string }[] = [];
 
-  const check = (name, fg, bg, minRatio = 4.5) => {
+  const check = (name: string, fg?: string, bg?: string, minRatio = 4.5) => {
     if (!fg || !bg) return;
     const ratio = getContrastRatio(fg, bg);
     if (ratio < minRatio) {
@@ -251,7 +254,7 @@ const SECTION_PROPERTY_MAP = {
  * pinning an unchanged value inline would beat the [data-theme='dark'] rules and re-break the
  * light/dark switch for no benefit.
  */
-export function applyTheme(tokens = {}) {
+export function applyTheme(tokens: ThemeTokens | null = {}) {
   if (!tokens || tokens === THEME_PRESETS.default.tokens) {
     currentTokens = { ...THEME_PRESETS.default.tokens };
     clearThemeOverrides();
@@ -296,13 +299,13 @@ export function getCurrentMaster() {
 }
 
 /** A ready-to-apply theme for a master preset key: the seed config plus its generated sections. */
-export function themeFromMasterPreset(presetKey) {
+export function themeFromMasterPreset(presetKey: string) {
   const preset = MASTER_PRESETS[presetKey] || MASTER_PRESETS[DEFAULT_MASTER_PRESET];
   return themeFromMaster(preset.master);
 }
 
 /** Same, for an arbitrary (hand-tuned) master config. */
-export function themeFromMaster(masterConfig) {
+export function themeFromMaster(masterConfig: Parameters<typeof normaliseMasterConfig>[0]) {
   const master = normaliseMasterConfig(masterConfig);
   return { master, ...paletteToSectionTokens(generatePalette(master)) };
 }
@@ -311,7 +314,7 @@ export function themeFromMaster(masterConfig) {
  * Migrates a palette published before the master engine existed or from custom token presets.
  * Its brand fill becomes the seed, so ramps and roles are generated cleanly with neutral surfaces.
  */
-export function themeFromLegacyTokens(tokens = {}) {
+export function themeFromLegacyTokens(tokens: ThemeTokens = {}) {
   const generated = themeFromMaster({
     ...DEFAULT_MASTER,
     seed: tokens.brand?.primary || DEFAULT_MASTER.seed,
@@ -362,7 +365,7 @@ export function getActivePresetKey() {
   return DEFAULT_MASTER_PRESET;
 }
 
-export function cacheActiveTheme(tokens, presetKey = null) {
+export function cacheActiveTheme(tokens: ThemeTokens, presetKey: string | null = null) {
   try {
     if (typeof localStorage !== 'undefined' && tokens) {
       localStorage.setItem(ACTIVE_THEME_STORAGE_KEY, JSON.stringify(tokens));
@@ -404,7 +407,7 @@ export function dropLocalPreset() {
  * 1-Click theme preset switcher. Applies theme instantly and persists to localStorage.
  * Callers gate it on PRESET_SWITCH_PERMISSION.
  */
-export function switchThemePreset(presetKey) {
+export function switchThemePreset(presetKey: string) {
   const targetKey = MASTER_PRESETS[presetKey] ? presetKey : (THEME_PRESETS[presetKey] ? presetKey : DEFAULT_MASTER_PRESET);
   let nextTokens;
   if (MASTER_PRESETS[targetKey]) {

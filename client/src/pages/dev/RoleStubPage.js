@@ -4,7 +4,7 @@
  * router to thread extra metadata through, so main.js can register all ~115 items with one loop.
  */
 import { navItems } from '../../config/navigation.js';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 

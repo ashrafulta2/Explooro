@@ -13,9 +13,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatDate } from '../../services/format.ts';
 
 const AI_SCORE_CONFIG = {
   SAFE:     { bg: 'var(--success-100,#dcfce7)', text: 'var(--success-800,#166534)', border: 'var(--success-300,#86efac)', icon: '🟢', labelKey: 'mod_ugc.ai_safe' },

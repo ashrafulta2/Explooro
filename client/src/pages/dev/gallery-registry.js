@@ -40,7 +40,7 @@ import { Pagination } from '../../components/ui/Pagination.ts';
 import { Tooltip } from '../../components/ui/Tooltip.ts';
 import { InfoTip } from '../../components/ui/InfoTip.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
-import { toast } from '../../services/toast.js';
+import { toast } from '../../services/toast.ts';
 import { ImageUploader } from '../../components/media/ImageUploader.ts';
 import { openMediaLibrary } from '../../components/media/MediaLibrary.ts';
 import { openCameraCapture } from '../../components/media/CameraCapture.ts';

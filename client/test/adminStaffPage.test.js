@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { handleMockRequest } from '../src/mocks/index.js';
 import { describeWriteOutcome } from '../src/services/writeOutcome.ts';
-import { normaliseBdPhone } from '../src/services/format.js';
+import { normaliseBdPhone } from '../src/services/format.ts';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 

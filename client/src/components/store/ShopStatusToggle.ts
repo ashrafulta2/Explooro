@@ -2,7 +2,7 @@
  * ShopStatusToggle.ts — Physical store Open 🟢 / Closed 🔴 / Auto ⏰ toggle with business hours scheduler (Prompt 4.8).
  */
 
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { Checkbox } from '../ui/Checkbox.ts';

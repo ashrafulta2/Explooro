@@ -16,8 +16,8 @@ import {
   importTranslationsJson,
 } from '../../services/content.api.ts';
 
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 
 export default function TranslationManagerPage(root, ctx = {}) {
   const container = document.createElement('div');

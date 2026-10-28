@@ -19,12 +19,12 @@
  *  - Turning off flash_sale module removes the widget instantly (re-render path).
  */
 
-import { appStore } from '../state/appStore.js';
+import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
 import { adsApi } from '../services/ads.api.ts';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
-import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
-import { isFeatureEnabled } from '../services/featureFlags.js';
+import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.ts';
+import { isFeatureEnabled } from '../services/featureFlags.ts';
 import { HomeTop } from '../components/home/HomeTop.ts';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
 import { resolveProductImage } from '../components/product/ProductCard.ts';

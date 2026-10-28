@@ -12,7 +12,7 @@
  * in-stock combination is selected; fires with `null` while the selection is incomplete or points
  * at an unavailable combination.
  */
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 /** One row of `product_variants`; `attributes` maps a dimension (size, color, ...) to its value. */
 export interface ProductVariant {
@@ -141,7 +141,7 @@ export function VariantSelector({
     const label = document.createElement('span');
     label.className = 'variant-selector__group-label';
     // No locale entry exists per attribute name (size/color/strap/switch/...) since the set is
-    // open-ended, data-driven category vocabulary, not fixed UI copy — i18n.js's own missing-key
+    // open-ended, data-driven category vocabulary, not fixed UI copy — i18n.ts's own missing-key
     // fallback already humanizes the raw key ("size" -> "Size") in both languages.
     label.textContent = t(`product_detail.variant.attribute.${key}`);
     group.append(label);

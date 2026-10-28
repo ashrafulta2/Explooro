@@ -14,13 +14,13 @@
  */
 
 import { customerApi } from '../../services/customer.api.ts';
-import { t } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
-import { appStore, setMockRole } from '../../state/appStore.js';
+import { appStore, setMockRole } from '../../state/appStore.ts';
 import { defaultPermissionsForRole } from '../../config/permissions.mock.ts';
 
 export default function BecomeSalerPage(root, { navigate } = {}) {

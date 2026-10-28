@@ -7,7 +7,7 @@
  * render rather than duplicating the group/lock/badge logic a second time.
  */
 import { MOBILE_TABS } from '../../config/navigation.js';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { Badge } from '../ui/Badge.ts';
 import { Drawer } from '../ui/Drawer.ts';
 import { Sidebar } from './Sidebar.js';

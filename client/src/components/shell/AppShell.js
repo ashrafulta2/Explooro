@@ -10,14 +10,14 @@
  * The Sidebar/MobileNav split is pure CSS (shell.css media queries against the 768px breakpoint,
  * ia-sitemap.md §6) — both are always rendered; only one is ever visible at a time.
  */
-import { appStore, releaseElevatedAccess, toggleSidebarCollapsed } from '../../state/appStore.js';
+import { appStore, releaseElevatedAccess, toggleSidebarCollapsed } from '../../state/appStore.ts';
 import {
   subscribe as subscribeLang,
   subscribeLocalePolicy,
   getLanguage,
   t,
-} from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+} from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Sidebar } from './Sidebar.js';
 import { TopBar, formatRemaining } from './TopBar.ts';
 import { MobileNav } from './MobileNav.ts';

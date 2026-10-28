@@ -7,8 +7,8 @@
  * and replaces itself with that page so Back does not bounce through the link again.
  */
 import { api } from '../core/api.ts';
-import { t } from '../services/i18n.js';
-import { toast } from '../services/toast.js';
+import { t } from '../services/i18n.ts';
+import { toast } from '../services/toast.ts';
 import { recordTouch } from '../services/attribution.ts';
 
 export default function ShortLinkPage(root, { params, navigate } = {}) {

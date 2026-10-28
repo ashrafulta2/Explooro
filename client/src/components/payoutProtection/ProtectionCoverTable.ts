@@ -11,8 +11,8 @@
  * Styles: styles/components/incentive.css (table/status) + payout-protection.css, loaded by the routes
  * that render this (main.js).
  */
-import { t } from '../../services/i18n.js';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency, formatDate } from '../../services/format.ts';
 
 const TONE = { ACTIVE: 'info', CLAIMED: 'success', DENIED: 'danger' };
 const DENIED_REASONS = ['CLAIM_LIMIT', 'NOT_CLAWED_BACK', 'NOTHING_TO_PAY'];

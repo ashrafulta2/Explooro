@@ -16,11 +16,11 @@
  */
 
 import { api } from '../../core/api.ts';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatDate } from '../../services/format.ts';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
-import { appStore } from '../../state/appStore.js';
+import { appStore } from '../../state/appStore.ts';
 
 // labelKey/categoryKey resolve through i18n at render; risk_tier drives the badge colour.
 const MODERATOR_PERMISSIONS = [

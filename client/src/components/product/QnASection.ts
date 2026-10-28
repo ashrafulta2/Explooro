@@ -3,15 +3,15 @@
  *
  * Returns `{ el, cleanup }` — same async component contract as ReviewList.ts.
  */
-import { t } from '../../services/i18n.js';
-import { formatRelativeTime } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatRelativeTime } from '../../services/format.ts';
 import { Button } from '../ui/Button.ts';
 import { Textarea } from '../ui/Textarea.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
 import { Pagination } from '../ui/Pagination.ts';
-import { toast } from '../../services/toast.js';
-import { appStore } from '../../state/appStore.js';
+import { toast } from '../../services/toast.ts';
+import { appStore } from '../../state/appStore.ts';
 import * as catalogApi from '../../services/catalog.api.ts';
 
 /** One answer under a question. */

@@ -11,9 +11,9 @@
  */
 
 import { salerApi } from '../../services/saler.api.ts';
-import { formatCurrency, formatDate } from '../../services/format.js';
-import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { formatCurrency, formatDate } from '../../services/format.ts';
+import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';

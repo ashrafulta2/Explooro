@@ -5,7 +5,7 @@
  * Overview, Ledger, Escrow Holdings, Payout Queue, Profit Splits, B2B Escrow, and Subscriptions.
  */
 
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 export interface SubnavTab {
   key: string;

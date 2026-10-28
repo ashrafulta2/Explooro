@@ -1,7 +1,7 @@
 /**
- * format.js — Bangladesh-specific number, currency, date and phone formatting.
+ * format.ts — Bangladesh-specific number, currency, date and phone formatting.
  *
- * Deliberately takes `lang` as an explicit parameter rather than reading services/i18n.js's
+ * Deliberately takes `lang` as an explicit parameter rather than reading services/i18n.ts's
  * current language itself: it keeps this module pure and runnable outside a browser (see
  * scripts/verify-format.mjs, which asserts the South Asian grouping example under plain Node —
  * the same "no test runner yet" constraint that pushed the design-token check in Prompt 0.2 into
@@ -13,12 +13,22 @@
  * could ship (docs/prompt.md Prompt 1.6 REQUIREMENT 2).
  */
 
-import { getLanguage } from './i18n.js';
+import { getLanguage } from './i18n.ts';
 
 const NUMERAL_KEY = 'explooro:numerals';
 const BENGALI_DIGITS = '০১২৩৪৫৬৭৮৯';
 
-let numeralPreference = 'bengali';
+export type NumeralPreference = 'bengali' | 'latin';
+
+/** The options every formatter takes. `numerals` overrides the visitor's stored choice. */
+export interface FormatOptions {
+  lang?: string;
+  numerals?: NumeralPreference | string;
+}
+
+type AmountInput = number | string | null | undefined;
+
+let numeralPreference: NumeralPreference = 'bengali';
 try {
   if (typeof localStorage !== 'undefined') {
     const saved = localStorage.getItem(NUMERAL_KEY);
@@ -28,11 +38,11 @@ try {
   // Storage unavailable
 }
 
-export function getNumeralPreference() {
+export function getNumeralPreference(): NumeralPreference {
   return numeralPreference;
 }
 
-export function setNumeralPreference(pref) {
+export function setNumeralPreference(pref: string) {
   numeralPreference = pref === 'latin' ? 'latin' : 'bengali';
   try {
     if (typeof localStorage !== 'undefined') localStorage.setItem(NUMERAL_KEY, numeralPreference);
@@ -41,7 +51,7 @@ export function setNumeralPreference(pref) {
   }
 }
 
-export function resolveLang(lang) {
+export function resolveLang(lang?: string | null): string {
   if (lang) return lang;
   try {
     return getLanguage() || 'en';
@@ -51,7 +61,7 @@ export function resolveLang(lang) {
 }
 
 /** `123456` (number or decimal string) → `{ negative, intPart: '123456', fracPart: '00' }`. */
-function splitAmount(amount) {
+function splitAmount(amount: AmountInput) {
   if (amount == null || amount === '' || (typeof amount !== 'number' && isNaN(Number(amount)))) {
     return { negative: false, intPart: '0', fracPart: '00' };
   }
@@ -65,11 +75,11 @@ function splitAmount(amount) {
 }
 
 /** South Asian grouping: the last 3 digits, then pairs of 2 from the right. `123456` → `1,23,456`. */
-export function groupSouthAsian(digits) {
+export function groupSouthAsian(digits: string): string {
   if (digits.length <= 3) return digits;
   const last3 = digits.slice(-3);
   let rest = digits.slice(0, -3);
-  const groups = [];
+  const groups: string[] = [];
   while (rest.length > 2) {
     groups.unshift(rest.slice(-2));
     rest = rest.slice(0, -2);
@@ -79,11 +89,11 @@ export function groupSouthAsian(digits) {
 }
 
 /** Converts Western digits to Bengali digits. */
-function toBengaliDigits(str) {
+function toBengaliDigits(str: string) {
   return str.replace(/\d/g, (d) => BENGALI_DIGITS[Number(d)]);
 }
 
-function applyNumerals(str, lang, numerals) {
+function applyNumerals(str: string, lang?: string | null, numerals?: string) {
   const activeLang = resolveLang(lang);
   const useBengali = activeLang === 'bn' && (numerals ?? numeralPreference) !== 'latin';
   return useBengali ? toBengaliDigits(str) : str;
@@ -93,12 +103,12 @@ function applyNumerals(str, lang, numerals) {
  * Swaps the digits for Bengali ones in the Bengali UI (unless the visitor chose Latin numerals) and
  * changes nothing else: no grouping, so a year or a count reads the same, only in the right script.
  */
-export function localizeDigits(value, { lang, numerals } = {}) {
+export function localizeDigits(value: unknown, { lang, numerals }: FormatOptions = {}): string {
   return applyNumerals(String(value), resolveLang(lang), numerals);
 }
 
 /** Grouped integer/decimal, no currency symbol. `formatNumber(1234567)` → `'12,34,567'`. */
-export function formatNumber(amount, { lang, numerals } = {}) {
+export function formatNumber(amount: AmountInput, { lang, numerals }: FormatOptions = {}): string {
   const activeLang = resolveLang(lang);
   const { negative, intPart, fracPart } = splitAmount(amount);
   const grouped = groupSouthAsian(intPart);
@@ -108,7 +118,7 @@ export function formatNumber(amount, { lang, numerals } = {}) {
 }
 
 /** `formatCurrency('123456.00')` → `'৳ 1,23,456.00'` (or `'৳ ১,২৩,৪৫৬.০০'` in Bengali). */
-export function formatCurrency(amount, { lang, numerals, symbol } = {}) {
+export function formatCurrency(amount: AmountInput, { lang, numerals, symbol }: FormatOptions & { symbol?: string } = {}): string {
   const activeLang = resolveLang(lang);
   const { negative, intPart, fracPart } = splitAmount(amount);
   const grouped = `${groupSouthAsian(intPart)}.${fracPart}`;
@@ -120,7 +130,7 @@ export function formatCurrency(amount, { lang, numerals, symbol } = {}) {
 export const formatBdt = formatCurrency;
 
 /** `+8801712345678` → `'+880 1712-345678'`. Always Western digits — an ID, not prose (§3.5.6). */
-export function formatPhone(raw) {
+export function formatPhone(raw: unknown): string {
   const digits = String(raw).replace(/\D/g, '');
   const national = digits.startsWith('880') ? digits.slice(3) : digits.replace(/^0/, '');
   if (national.length !== 10) return String(raw);
@@ -133,7 +143,7 @@ export function formatPhone(raw) {
  * normalisePhone(): a form that is stricter than the API rejects input the API would accept, and one
  * that is looser sends the API something it will refuse.
  */
-export function normaliseBdPhone(raw) {
+export function normaliseBdPhone(raw: unknown): string | null {
   const match = String(raw ?? '').replace(/[\s()-]/g, '').match(/^(?:\+?880|0)(1[3-9]\d{8})$/);
   return match ? `+880${match[1]}` : null;
 }
@@ -142,7 +152,7 @@ export function normaliseBdPhone(raw) {
  * `timeStyle` is opt-in: most surfaces want a date alone, but anything with an expiry (an
  * observation token, an OTP, a timed mute) is meaningless without a clock time.
  */
-export function formatDate(date, { lang, dateStyle = 'medium', timeStyle } = {}) {
+export function formatDate(date: Date | number | string | null | undefined, { lang, dateStyle = 'medium', timeStyle }: { lang?: string; dateStyle?: Intl.DateTimeFormatOptions['dateStyle']; timeStyle?: Intl.DateTimeFormatOptions['timeStyle'] } = {}): string {
   const activeLang = resolveLang(lang);
   // WHY the guard: Intl.DateTimeFormat throws RangeError on an Invalid Date, and these pages
   // build their markup as one innerHTML string — so a single missing timestamp anywhere in a list
@@ -155,7 +165,7 @@ export function formatDate(date, { lang, dateStyle = 'medium', timeStyle } = {})
   }).format(parsed);
 }
 
-const RELATIVE_UNITS = [
+const RELATIVE_UNITS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
   { amount: 60, unit: 'second' },
   { amount: 60, unit: 'minute' },
   { amount: 24, unit: 'hour' },
@@ -166,7 +176,7 @@ const RELATIVE_UNITS = [
 ];
 
 /** `formatRelativeTime(threeHoursAgo, { lang: 'bn' })` → `'৩ ঘণ্টা আগে'`. */
-export function formatRelativeTime(date, { lang } = {}) {
+export function formatRelativeTime(date: Date | number | string, { lang }: { lang?: string } = {}): string {
   const activeLang = resolveLang(lang);
   const rtf = new Intl.RelativeTimeFormat(activeLang === 'bn' ? 'bn' : 'en', { numeric: 'auto' });
   let duration = (new Date(date).getTime() - Date.now()) / 1000;

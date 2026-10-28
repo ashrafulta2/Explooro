@@ -9,8 +9,8 @@
  *  - Cash on Delivery (COD) with advance fee policy and inline OTP challenge
  */
 
-import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { t } from '../../services/i18n.js';
+import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import { t } from '../../services/i18n.ts';
 import { Button } from '../ui/Button.ts';
 
 export interface PaymentSelectorOptions {
@@ -95,7 +95,7 @@ export function PaymentSelector({
 
   methods.forEach((m) => {
     // Check if feature flag is active (if feature flags initialized)
-    // @ts-expect-error isFeatureEnabled (featureFlags.js, not typed yet) takes one argument; the second is ignored
+    // @ts-expect-error isFeatureEnabled (featureFlags.ts, not typed yet) takes one argument; the second is ignored
     const isEnabled = !m.flag || isFeatureEnabled(m.flag, true);
     if (!isEnabled) return;
 

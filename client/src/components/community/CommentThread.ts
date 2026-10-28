@@ -13,9 +13,9 @@
  */
 import { el } from './dom.ts';
 import { Button } from '../ui/Button.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatRelativeTime } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatRelativeTime } from '../../services/format.ts';
 import {
   listComments, addComment, deleteComment, removeComment, errorText, COMMENT_MAX,
 } from '../../services/community.api.ts';

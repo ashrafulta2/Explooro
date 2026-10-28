@@ -8,7 +8,7 @@
  * 4. Today's resolved count.
  */
 
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 /** The moderator's four queue counts, from GET /moderator/workload. */
 export interface Workload {

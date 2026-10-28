@@ -1,5 +1,5 @@
 /**
- * genieSettings.js — the platform's genie-effect policy, on the client.
+ * genieSettings.ts — the platform's genie-effect policy, on the client.
  *
  * A Super Admin (or anyone they granted `platform.genie.update`) sets three things on
  * /admin/platform/genie: whether the popup genie plays at all, how long it takes, and how finely it
@@ -8,7 +8,7 @@
  * lib/genie.ts.
  *
  * WHY the policy is cached in localStorage and applied before the network answers: the same shape
- * services/i18n.js uses for the default language. Every modal opened in the first second of a visit
+ * services/i18n.ts uses for the default language. Every modal opened in the first second of a visit
  * should already honour the last-known policy, and NOT reconciling afterwards would mean an admin's
  * change reached nobody who already had the site open.
  *
@@ -31,7 +31,7 @@ function readCache() {
   }
 }
 
-function writeCache(policy) {
+function writeCache(policy: unknown) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(policy));
   } catch {
@@ -45,7 +45,7 @@ function writeCache(policy) {
  *
  * @returns the config now in force
  */
-export function applyGeniePolicy(raw, { cache = true } = {}) {
+export function applyGeniePolicy(raw: unknown, { cache = true }: { cache?: boolean } = {}) {
   const next = sanitiseGenieConfig(raw);
   if (!next) return configureGenie(null);
   if (cache) writeCache(next);

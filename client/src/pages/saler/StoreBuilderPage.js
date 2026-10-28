@@ -14,8 +14,8 @@ import { Switch } from '../../components/ui/Switch.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { formatExplooroBrandText, ICONS } from '../../components/ui/icons.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 export default function StoreBuilderPage(root, { navigate }) {
   const container = document.createElement('div');

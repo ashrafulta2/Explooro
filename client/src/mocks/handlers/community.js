@@ -15,7 +15,7 @@
  * show (posts go live at once, one report per person, auto-hide at the threshold, a hidden post
  * leaves the timeline and enters the moderation queue) are the same ones the server enforces.
  */
-import { appStore } from '../../state/appStore.js';
+import { appStore } from '../../state/appStore.ts';
 import { resolveMockMedia } from './media.js';
 import { pushMockNotification } from './notifications.js';
 

@@ -382,7 +382,7 @@ test('10. Shop Partner Insights & Currency Formatting Integrity', async (t) => {
   });
 
   await t.test('formatCurrency handles null and undefined safely without string leakage', async () => {
-    const { formatCurrency } = await import('../src/services/format.js');
+    const { formatCurrency } = await import('../src/services/format.ts');
     assert.equal(formatCurrency(null, { lang: 'en' }), 'Tk 0.00');
     assert.equal(formatCurrency(undefined, { lang: 'en' }), 'Tk 0.00');
     assert.equal(formatCurrency(210500, { lang: 'en' }), 'Tk 2,10,500.00');

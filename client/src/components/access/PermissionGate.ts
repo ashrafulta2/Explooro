@@ -6,9 +6,9 @@
  * - Locked placeholders explain what the permission is and offer "Request Access".
  */
 
-import { whyDenied, getPermissionMetadata, getRestriction } from '../../services/permissions.js';
+import { whyDenied, getPermissionMetadata, getRestriction } from '../../services/permissions.ts';
 import { openRequestAccessModal } from './RequestAccessModal.ts';
-import { t, getLanguage } from '../../services/i18n.js';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { Button } from '../ui/Button.ts';
 import type { PermissionMetadata } from './RequestAccessModal.ts';
 

@@ -8,8 +8,8 @@
  * Returns null while the platform has tiers switched off, so a shop partner is never shown a ladder that
  * pays nothing.
  */
-import { formatCurrency, formatNumber } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
+import { formatCurrency, formatNumber } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
 
 const TIER_ORDER = ['BRONZE', 'SILVER', 'GOLD', 'PLATINUM'];
 

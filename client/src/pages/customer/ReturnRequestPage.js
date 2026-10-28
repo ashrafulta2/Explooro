@@ -10,9 +10,9 @@
  */
 
 import { api } from '../../core/api.ts';
-import { formatCurrency } from '../../services/format.js';
-import { t } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { formatCurrency } from '../../services/format.ts';
+import { t } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { goBack, CHEVRON_LEFT_SVG } from '../../core/navBack.ts';
 import '../../styles/components/returns.css';
 

@@ -8,9 +8,9 @@ import { Input } from '../ui/Input.ts';
 import { Select } from '../ui/Select.ts';
 import { Textarea } from '../ui/Textarea.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatDate, formatCurrency, normaliseBdPhone } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatDate, formatCurrency, normaliseBdPhone } from '../../services/format.ts';
 import { scopeFieldsFor } from '../../config/grant-scopes.ts';
 
 const MAX_GRANT_DAYS = 90;
@@ -281,7 +281,6 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
   function updatePreview() {
     const expiryValue = expiryInput.value;
     const expiry = expiryValue ? endOfLocalDay(expiryValue) : addDays(now, DEFAULT_GRANT_DAYS);
-    // @ts-expect-error formatDate (format.js, not typed yet) infers its options from a default without `lang`
     const formattedExpiry = Number.isNaN(expiry.getTime()) ? '—' : formatDate(expiry.getTime(), { lang });
 
     const rawPerm = selectedPerm

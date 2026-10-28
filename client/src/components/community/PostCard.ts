@@ -17,9 +17,9 @@
 import { el, icon, productTitle } from './dom.ts';
 import { CommentThread } from './CommentThread.ts';
 import { Button } from '../ui/Button.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
-import { formatBdt, formatNumber, formatRelativeTime } from '../../services/format.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
+import { formatBdt, formatNumber, formatRelativeTime } from '../../services/format.ts';
 import { REPORT_REASONS, errorText } from '../../services/community.api.ts';
 import type { CommunityPost, CommunityProduct } from '../../services/community.api.ts';
 

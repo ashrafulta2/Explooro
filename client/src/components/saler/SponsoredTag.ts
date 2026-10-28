@@ -4,7 +4,7 @@
  * Invariant: paid placements are always labelled, in words (never colour or an icon alone). A shop partner
  * deciding what to stock must be able to tell a ranked result from a bought one.
  */
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 // Styles: styles/components/sourcing-sponsored.css, loaded by the routes that render this (main.js).
 
 export function SponsoredTag(): HTMLSpanElement {

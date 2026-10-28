@@ -28,7 +28,7 @@ import type {
   SignalContext,
 } from './ProductCard.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 const INITIAL_SKELETONS = 8;
 

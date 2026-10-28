@@ -15,10 +15,10 @@
 import { api } from '../core/api.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { TeamCheckoutForm } from '../components/product/TeamCheckoutForm.ts';
-import { appStore } from '../state/appStore.js';
-import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
-import { formatCurrency } from '../services/format.js';
-import { toast } from '../services/toast.js';
+import { appStore } from '../state/appStore.ts';
+import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.ts';
+import { formatCurrency } from '../services/format.ts';
+import { toast } from '../services/toast.ts';
 import { bindBackControl, renderBackLink } from '../core/navBack.ts';
 import '../styles/components/team-purchases.css';
 

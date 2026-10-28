@@ -47,7 +47,7 @@
 * **Markup:** Semantic HTML5 (Accessible, SEO-optimized with OpenGraph metadata).
 * **Styles:** Pure Vanilla CSS using **Design Tokens** via CSS Custom Properties (`:root { --primary: ...; --navbar-bg: ...; }`).
   * **Alibaba & Amazon Clean Aesthetic:** 100% solid surfaces, zero gradients, crisp 1px borders, and ultra-clean high-contrast typography.
-  * **Granular Component-Level Color Studio:** Admin panel controls individual colors for 6 distinct UI sections (Navbar, Canvas/Surfaces, Brand/Buttons, Typography, Badges, Footer) with real-time CSS variable updates in [`themePalette.js`](file:///d:/All/Others/My%20Software%20Development/Explooro/Explooro%20Website/client/src/services/themePalette.js).
+  * **Granular Component-Level Color Studio:** Admin panel controls individual colors for 6 distinct UI sections (Navbar, Canvas/Surfaces, Brand/Buttons, Typography, Badges, Footer) with real-time CSS variable updates in [`themePalette.js`](file:///d:/All/Others/My%20Software%20Development/Explooro/Explooro%20Website/client/src/services/themePalette.ts).
   * **Marketplace Presets:** Instant 1-click presets for Alibaba Enterprise, Amazon Pro, Daraz Express, Cobalt Enterprise, and Minimalist Slate.
   * Smooth micro-interactions & GPU-accelerated CSS animations.
   * Modern Dark / Light theme toggle with zero external library.

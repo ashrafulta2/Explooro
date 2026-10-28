@@ -11,10 +11,10 @@
  */
 
 import { api } from '../../core/api.ts';
-import { formatCurrency, formatNumber } from '../../services/format.js';
+import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { formatCompactBdt } from '../../services/adminDashboard.model.ts';
-import { toast } from '../../services/toast.js';
-import { t } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t } from '../../services/i18n.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 
 export default function FinanceDashboardPage(root, { navigate } = {}) {

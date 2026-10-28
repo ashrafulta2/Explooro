@@ -1,8 +1,8 @@
 /**
  * WriteReviewModal.ts — Interactive review writer and editor modal with coin reward calculation.
  */
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { customerApi } from '../../services/customer.api.ts';

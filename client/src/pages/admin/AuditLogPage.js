@@ -15,9 +15,9 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { openAuditDiffModal, generatePlainLanguageSummary } from '../../components/admin/AuditDiffViewer.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatDate, formatRelativeTime } from '../../services/format.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatDate, formatRelativeTime } from '../../services/format.ts';
 import '../../styles/components/admin-access.css';
 
 const ACTION_HUMAN_LABELS = {

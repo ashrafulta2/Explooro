@@ -10,7 +10,7 @@
  * Depth is read from `history.state.idx`, which core/router.js stamps on every pushState and the
  * browser preserves across a reload — so refreshing a deep page keeps Back working.
  */
-import { t, getLanguage } from '../services/i18n.js';
+import { t, getLanguage } from '../services/i18n.ts';
 
 export const CHEVRON_LEFT_SVG = `<svg class="back-btn__chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>`;
 

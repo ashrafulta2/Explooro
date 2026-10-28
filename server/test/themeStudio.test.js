@@ -13,7 +13,7 @@ import {
   getContrastRatio,
   validatePaletteContrast,
   validateNoGradients,
-} from '../../client/src/services/themePalette.js';
+} from '../../client/src/services/themePalette.ts';
 import * as themeService from '../src/services/theme.service.ts';
 
 function createMockDb() {

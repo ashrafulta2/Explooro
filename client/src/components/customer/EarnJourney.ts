@@ -9,7 +9,7 @@
  * Styles: .earn-journey* in styles/components/customer-dashboard.css (global via main.css).
  */
 
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 import { ICONS } from '../ui/icons.ts';
 
 const STEPS = [

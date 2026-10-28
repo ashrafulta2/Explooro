@@ -14,8 +14,8 @@
  */
 import { el, icon } from './dom.ts';
 import { Button } from '../ui/Button.ts';
-import { t } from '../../services/i18n.js';
-import { formatNumber } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatNumber } from '../../services/format.ts';
 import { POST_MEDIA, uploadPostMedia, errorText } from '../../services/community.api.ts';
 
 const MB = 1024 * 1024;

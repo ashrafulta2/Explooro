@@ -15,7 +15,7 @@
  *  - The outer element is role="listbox" with each pill as role="option".
  */
 
-import { t } from '../../services/i18n.js';
+import { t } from '../../services/i18n.ts';
 
 /** One category pill. The "All" pill (id `all`) is added in front. */
 export interface PillCategory {

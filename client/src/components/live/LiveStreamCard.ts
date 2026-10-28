@@ -3,8 +3,8 @@
  * Upgraded with design tokens, high-contrast badges, verified host indicators, formatted schedule time, and clean Button primitive.
  */
 
-import { formatBdt } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { formatBdt } from '../../services/format.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { Button } from '../ui/Button.ts';
 
 /** A product pinned on, or listed for, a stream. */

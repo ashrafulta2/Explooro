@@ -11,9 +11,9 @@
 
 import '../../styles/components/saler-pro.css';
 import { salerApi } from '../../services/saler.api.ts';
-import { formatCurrency, formatDate } from '../../services/format.js';
-import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { formatCurrency, formatDate } from '../../services/format.ts';
+import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 

@@ -1,5 +1,5 @@
 /**
- * featureFlags.js — Client-side feature flag management & DOM gate scanning (Prompt 3.2).
+ * featureFlags.ts — Client-side feature flag management & DOM gate scanning (Prompt 3.2).
  *
  * Responsibilities:
  * - Fetches live flag set from `GET /api/v1/modules` and keeps `appStore.modules` in sync.
@@ -9,10 +9,12 @@
  */
 
 import { api } from '../core/api.ts';
-import { appStore } from '../state/appStore.js';
+import { appStore } from '../state/appStore.ts';
 
-let flagsCache = {};
-const listeners = new Set();
+type Flags = Record<string, boolean>;
+
+let flagsCache: Flags = {};
+const listeners = new Set<(flags: Flags) => void>();
 
 /**
  * Initializes and fetches live feature flags from the API.
@@ -33,7 +35,7 @@ export async function initFeatureFlags() {
 /**
  * Set internal flags and broadcast to store and listeners.
  */
-export function setFlags(newFlags = {}) {
+export function setFlags(newFlags: Flags = {}) {
   flagsCache = { ...flagsCache, ...newFlags };
   appStore.update((state) => ({
     ...state,
@@ -58,7 +60,7 @@ export function setFlags(newFlags = {}) {
 /**
  * Returns whether a feature module is enabled.
  */
-export function isFeatureEnabled(moduleKey) {
+export function isFeatureEnabled(moduleKey?: string | null): boolean {
   if (!moduleKey) return true;
   if (flagsCache[moduleKey] !== undefined) {
     return Boolean(flagsCache[moduleKey]);
@@ -74,10 +76,10 @@ export function isFeatureEnabled(moduleKey) {
 /**
  * Scans DOM for [data-module="key"] elements and toggles visibility based on flag state.
  */
-export function scanDomForModuleGates(root = document) {
+export function scanDomForModuleGates(root: ParentNode = document) {
   if (!root || typeof root.querySelectorAll !== 'function') return;
 
-  const elements = root.querySelectorAll('[data-module]');
+  const elements = root.querySelectorAll<HTMLElement>('[data-module]');
   for (const el of elements) {
     const key = el.getAttribute('data-module');
     if (!key) continue;
@@ -98,7 +100,7 @@ export function scanDomForModuleGates(root = document) {
 /**
  * Subscribe to feature flag changes.
  */
-export function subscribeFeatureFlags(fn) {
+export function subscribeFeatureFlags(fn: (flags: Flags) => void) {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }

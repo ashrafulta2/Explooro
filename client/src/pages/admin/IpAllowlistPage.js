@@ -14,8 +14,8 @@
 
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { adminApi } from '../../services/admin.api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 export default function IpAllowlistPage(root, { navigate } = {}) {
   const isBn = getLanguage() === 'bn';

@@ -1,5 +1,5 @@
 /**
- * Unit assertions for client/src/services/format.js — Prompt 1.6 ACCEPTANCE line 2:
+ * Unit assertions for client/src/services/format.ts — Prompt 1.6 ACCEPTANCE line 2:
  * "৳1,23,456.00 renders with correct South Asian grouping — verified with a unit assertion."
  *
  * Run:  node scripts/verify-format.mjs
@@ -16,7 +16,7 @@ import {
   formatPhone,
   getNumeralPreference,
   setNumeralPreference,
-} from '../client/src/services/format.js';
+} from '../client/src/services/format.ts';
 
 let passed = 0;
 function check(label, actual, expected) {

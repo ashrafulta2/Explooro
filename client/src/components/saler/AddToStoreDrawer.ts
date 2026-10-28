@@ -10,10 +10,10 @@ import type { DrawerElement } from '../ui/Drawer.ts';
 import { Button } from '../ui/Button.ts';
 import { FormField } from '../ui/FormField.ts';
 import { Select } from '../ui/Select.ts';
-import { toast } from '../../services/toast.js';
+import { toast } from '../../services/toast.ts';
 import { addToSalerStore } from '../../services/catalog.api.ts';
-import { formatCurrency } from '../../services/format.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { formatCurrency } from '../../services/format.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { resolveProductImage } from '../product/ProductCard.ts';
 
 /** A product as the sourcing catalog, the product page or a store item carries it. */

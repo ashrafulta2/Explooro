@@ -11,8 +11,8 @@ import { Input } from '../ui/Input.ts';
 import { Select } from '../ui/Select.ts';
 import { Switch } from '../ui/Switch.ts';
 import { api } from '../../core/api.ts';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 
 /** One property of a module's settings schema (JSON-schema subset). */
 export interface SettingProperty {

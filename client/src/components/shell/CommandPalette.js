@@ -15,10 +15,10 @@
  */
 import { navItems, navGroups } from '../../config/navigation.js';
 import { MASTER_PRESETS } from '../../config/master-themes.ts';
-import { switchThemePreset, PRESET_SWITCH_PERMISSION } from '../../services/themePalette.js';
-import { can } from '../../services/permissions.js';
-import { toast } from '../../services/toast.js';
-import { t, getLanguage } from '../../services/i18n.js';
+import { switchThemePreset, PRESET_SWITCH_PERMISSION } from '../../services/themePalette.ts';
+import { can } from '../../services/permissions.ts';
+import { toast } from '../../services/toast.ts';
+import { t, getLanguage } from '../../services/i18n.ts';
 import { isPageVisibleInNav } from '../../services/pageAccess.js';
 import { lockScroll, unlockScroll } from '../ui/Modal.ts';
 import { getGroupIcon, ICONS } from '../ui/icons.ts';

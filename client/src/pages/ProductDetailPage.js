@@ -12,10 +12,10 @@
  *  - A user who has not purchased cannot submit a review (ReviewList.ts's eligibility gate).
  *  - JSON-LD validates against Google's Rich Results Product + Review requirements.
  */
-import { appStore } from '../state/appStore.js';
-import { t, getLanguage } from '../services/i18n.js';
-import { isFeatureEnabled } from '../services/featureFlags.js';
-import { toast } from '../services/toast.js';
+import { appStore } from '../state/appStore.ts';
+import { t, getLanguage } from '../services/i18n.ts';
+import { isFeatureEnabled } from '../services/featureFlags.ts';
+import { toast } from '../services/toast.ts';
 import { Button } from '../components/ui/Button.ts';
 import { Skeleton } from '../components/ui/Skeleton.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';

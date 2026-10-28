@@ -1,7 +1,7 @@
 /**
  * Toast — a single transient notification element.
  *
- * The stacking, queueing, and lifetime rules live in services/toast.js; this file only builds and
+ * The stacking, queueing, and lifetime rules live in services/toast.ts; this file only builds and
  * animates one toast. Application code should never import this directly — it calls
  * `toast.success(...)` and lets the service own the queue.
  *

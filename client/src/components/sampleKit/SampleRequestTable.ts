@@ -12,8 +12,8 @@
  * Styles: styles/components/incentive.css (table/status) + sample-kit.css, loaded by the routes that
  * render this (main.js).
  */
-import { t } from '../../services/i18n.js';
-import { formatCurrency, formatDate } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency, formatDate } from '../../services/format.ts';
 import { Button } from '../ui/Button.ts';
 
 /** A sample request row from the API. The amounts are the ones the server snapshotted. */

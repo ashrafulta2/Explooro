@@ -7,9 +7,9 @@
 
 import { api, pickMessage } from '../core/api.ts';
 import { createStore } from '../core/store.ts';
-import { appStore } from '../state/appStore.js';
-import { toast } from './toast.js';
-import { t } from './i18n.js';
+import { appStore } from '../state/appStore.ts';
+import { toast } from './toast.ts';
+import { t } from './i18n.ts';
 import { track } from './signals.ts';
 import { knownDeliveryCharge, loadDeliveryCharge } from './deliveryCharge.ts';
 import { currentTouch } from './attribution.ts';

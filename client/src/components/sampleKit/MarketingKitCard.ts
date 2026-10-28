@@ -12,8 +12,8 @@
  * Styles: styles/components/sample-kit.css (+ incentive.css for the card shell), loaded by the routes
  * that render this (main.js).
  */
-import { t, getLanguage } from '../../services/i18n.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { toast } from '../../services/toast.ts';
 import { Button } from '../ui/Button.ts';
 
 /** A supplier's promotion kit for one product, as GET /sourcing/marketing-kits sends it. */

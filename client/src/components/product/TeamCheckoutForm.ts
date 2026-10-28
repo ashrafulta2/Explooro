@@ -18,8 +18,8 @@
  *   form.setItemPrice(n)  // when the shopper switches team size
  */
 
-import { t } from '../../services/i18n.js';
-import { formatCurrency } from '../../services/format.js';
+import { t } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 import { customerApi } from '../../services/customer.api.ts';
 import '../../styles/components/team-checkout.css';
 

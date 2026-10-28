@@ -14,9 +14,9 @@ import { Button } from '../ui/Button.ts';
 import { Tabs } from '../ui/Tabs.ts';
 import { api } from '../../core/api.ts';
 import { adsApi } from '../../services/ads.api.ts';
-import { t, getLanguage } from '../../services/i18n.js';
-import { formatDate } from '../../services/format.js';
-import { toast } from '../../services/toast.js';
+import { t, getLanguage } from '../../services/i18n.ts';
+import { formatDate } from '../../services/format.ts';
+import { toast } from '../../services/toast.ts';
 
 /** One inbox notification, in both languages. */
 export interface AppNotification {
