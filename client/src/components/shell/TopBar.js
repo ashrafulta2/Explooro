@@ -26,7 +26,7 @@ import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
 import { openCart } from '../../services/cart.js';
 import { openNotificationCenter } from '../notifications/NotificationCenter.js';
 import { openAssistantPanel } from '../ai/AssistantPanel.js';
-import { ICONS, getExplooroLogoSvg, formatExplooroBrandText } from '../ui/icons.js';
+import { ICONS, getExplooroLogoSvg, formatExplooroBrandText } from '../ui/icons.ts';
 import { attachSearchSuggest } from '../search/SearchSuggest.js';
 
 // Grace period before an emptied search box resets the results page. Long enough that

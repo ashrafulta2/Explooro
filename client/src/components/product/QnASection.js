@@ -9,7 +9,7 @@ import { Button } from '../ui/Button.js';
 import { Textarea } from '../ui/Textarea.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
-import { Pagination } from '../ui/Pagination.js';
+import { Pagination } from '../ui/Pagination.ts';
 import { toast } from '../../services/toast.js';
 import { appStore } from '../../state/appStore.js';
 import * as catalogApi from '../../services/catalog.api.js';

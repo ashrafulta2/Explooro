@@ -21,7 +21,7 @@ import { api } from '../../core/api.js';
 import { adsApi } from '../../services/ads.api.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.js';
-import { ICONS } from '../ui/icons.js';
+import { ICONS } from '../ui/icons.ts';
 import { getHomeSummary } from '../../services/homeSummary.api.js';
 import { RoleBand } from './RoleBand.js';
 import { FULL_BAND_ROLES } from './homeBands.js';
@@ -240,7 +240,7 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
       }
       const icon = el('span', 'home-top__tile-icon');
       icon.setAttribute('aria-hidden', 'true');
-      icon.innerHTML = ICONS[tile.icon]; // trusted constant SVG from icons.js
+      icon.innerHTML = ICONS[tile.icon]; // trusted constant SVG from icons.ts
       node.append(icon, el('span', null, label));
       grid.append(node);
     }

@@ -22,7 +22,7 @@ import { resolvePageAccess } from '../../services/pageAccess.js';
 import { LockedNavItem } from './LockedNavItem.js';
 import { Badge } from '../ui/Badge.ts';
 import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.js';
-import { ICONS, getGroupIcon, getItemIcon } from '../ui/icons.js';
+import { ICONS, getGroupIcon, getItemIcon } from '../ui/icons.ts';
 
 function hasModule(modules, key) {
   return !key || key === 'core' || modules[key] === true;

@@ -15,7 +15,7 @@
  */
 
 import { Button } from '../components/ui/Button.js';
-import { Input } from '../components/ui/Input.js';
+import { Input } from '../components/ui/Input.ts';
 import { adsApi } from '../services/ads.api.js';
 import { toast } from '../services/toast.js';
 import { t, getLanguage } from '../services/i18n.js';

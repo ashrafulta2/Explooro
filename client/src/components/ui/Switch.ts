@@ -21,6 +21,31 @@
 
 import { uid } from './FormField.ts';
 
+/**
+ * The switch label root. For an async toggle: `setPending(true)` while the request runs, then
+ * `commit()` when it succeeded or `revert()` to put the previous value back.
+ */
+export interface SwitchElement extends HTMLLabelElement {
+  input: HTMLInputElement;
+  checked: boolean;
+  setPending(on: boolean): void;
+  revert(): void;
+  commit(): void;
+  setDisabled(on: boolean): void;
+}
+
+export interface SwitchOptions {
+  label?: string;
+  hint?: string;
+  checked?: boolean;
+  disabled?: boolean;
+  pending?: boolean;
+  name?: string;
+  id?: string;
+  labelPosition?: 'start' | 'end';
+  onChange?: ((checked: boolean, event: Event) => void) | null;
+}
+
 export function Switch({
   label = '',
   hint = '',
@@ -31,10 +56,10 @@ export function Switch({
   id = '',
   labelPosition = 'end',
   onChange = null,
-} = {}) {
+}: SwitchOptions = {}): SwitchElement {
   const controlId = id || uid('switch');
 
-  const root = document.createElement('label');
+  const root = document.createElement('label') as SwitchElement;
   root.className = 'toggle toggle--switch';
   root.htmlFor = controlId;
   if (labelPosition === 'start') root.classList.add('toggle--label-start');
@@ -80,7 +105,7 @@ export function Switch({
   /** Value to restore if the in-flight request fails. */
   let committed = checked;
 
-  function setPending(on) {
+  function setPending(on: boolean): void {
     root.dataset.pending = on ? 'true' : 'false';
     if (on) {
       input.setAttribute('aria-busy', 'true');
@@ -91,12 +116,12 @@ export function Switch({
     }
   }
 
-  function revert() {
+  function revert(): void {
     input.checked = committed;
     setPending(false);
   }
 
-  function commit() {
+  function commit(): void {
     committed = input.checked;
     setPending(false);
   }
@@ -110,7 +135,7 @@ export function Switch({
   root.input = input;
   Object.defineProperty(root, 'checked', {
     get: () => input.checked,
-    set: (next) => {
+    set: (next: boolean) => {
       input.checked = next;
       committed = next;
     },
@@ -118,7 +143,7 @@ export function Switch({
   root.setPending = setPending;
   root.revert = revert;
   root.commit = commit;
-  root.setDisabled = (on) => {
+  root.setDisabled = (on: boolean) => {
     disabled = on;
     if (root.dataset.pending !== 'true') input.disabled = on;
   };

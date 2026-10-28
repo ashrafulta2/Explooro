@@ -13,6 +13,32 @@
  */
 
 import { FormField, uid } from './FormField.ts';
+import type { ControlField } from './FormField.ts';
+
+export interface InputOptions {
+  label?: string;
+  hint?: string;
+  error?: string;
+  success?: boolean;
+  value?: string;
+  placeholder?: string;
+  type?: string;
+  name?: string;
+  id?: string;
+  disabled?: boolean;
+  readonly?: boolean;
+  required?: boolean;
+  /** Decorative text inside the control, before or after the input. */
+  prefix?: string;
+  suffix?: string;
+  maxLength?: number | null;
+  showCounter?: boolean;
+  autocomplete?: string;
+  inputmode?: string;
+  ariaLabel?: string;
+  onInput?: ((event: Event) => void) | null;
+  onChange?: ((event: Event) => void) | null;
+}
 
 export function Input({
   label = '',
@@ -36,7 +62,7 @@ export function Input({
   ariaLabel = '',
   onInput = null,
   onChange = null,
-} = {}) {
+}: InputOptions = {}): ControlField<HTMLInputElement> {
   const controlId = id || uid('input');
 
   const input = document.createElement('input');
@@ -50,7 +76,8 @@ export function Input({
   if (readonly) input.readOnly = true;
   if (required) input.required = true;
   if (maxLength) input.maxLength = maxLength;
-  if (autocomplete) input.autocomplete = autocomplete;
+  // The cast: the DOM types `autocomplete` as a closed list of tokens, but the field accepts any.
+  if (autocomplete) input.autocomplete = autocomplete as AutoFill;
   if (inputmode) input.inputMode = inputmode;
   if (ariaLabel) input.setAttribute('aria-label', ariaLabel);
 
@@ -77,15 +104,15 @@ export function Input({
     control.dataset.hasSuffix = 'true';
   }
 
-  let counter = null;
+  let counter: HTMLSpanElement | null = null;
   if (showCounter && maxLength) {
     counter = document.createElement('span');
     counter.className = 'field__counter';
     counter.id = uid('counter');
   }
 
-  function syncCounter() {
-    if (!counter) return;
+  function syncCounter(): void {
+    if (!counter || !maxLength) return;
     const used = input.value.length;
     counter.textContent = `${used} / ${maxLength}`;
     counter.dataset.overflow = used >= maxLength ? 'true' : 'false';
@@ -98,6 +125,7 @@ export function Input({
   });
   if (onChange) input.addEventListener('change', onChange);
 
+  // The cast: `input` and `value` are attached on the next two statements.
   const field = FormField({
     label,
     hint,
@@ -108,12 +136,12 @@ export function Input({
     control,
     input,
     counter,
-  });
+  }) as ControlField<HTMLInputElement>;
 
   field.input = input;
   Object.defineProperty(field, 'value', {
     get: () => input.value,
-    set: (next) => {
+    set: (next: string) => {
       input.value = next;
       syncCounter();
     },

@@ -8,12 +8,12 @@ import { StoreHeader } from '../../components/store/StoreHeader.js';
 import { ShelfEditor } from '../../components/store/ShelfEditor.js';
 import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';
 import { Button } from '../../components/ui/Button.js';
-import { Input } from '../../components/ui/Input.js';
+import { Input } from '../../components/ui/Input.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
-import { Switch } from '../../components/ui/Switch.js';
+import { Switch } from '../../components/ui/Switch.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
-import { formatExplooroBrandText, ICONS } from '../../components/ui/icons.js';
+import { formatExplooroBrandText, ICONS } from '../../components/ui/icons.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 

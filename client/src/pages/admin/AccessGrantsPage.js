@@ -13,14 +13,14 @@
 
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.ts';
-import { Pagination } from '../../components/ui/Pagination.js';
+import { Pagination } from '../../components/ui/Pagination.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatRelativeTime, formatCurrency, formatPhone, formatNumber } from '../../services/format.js';
 import { escapeHtml as esc } from '../../services/html.ts';
-import { ICONS } from '../../components/ui/icons.js';
+import { ICONS } from '../../components/ui/icons.ts';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
 import { describeScope } from '../../config/grant-scopes.ts';
 import '../../styles/components/admin-users.css';

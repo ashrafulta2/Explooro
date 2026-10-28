@@ -12,7 +12,7 @@ import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.js';
-import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.js';
+import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
 
 export default function OtpPage(container, { query = {}, navigate }) {
   container.replaceChildren();

@@ -12,32 +12,42 @@
  *    button is focused rather than "more information" followed by a hidden tooltip.
  */
 
-import { Tooltip } from './Tooltip.js';
-import { ICONS } from './icons.js';
+import { Tooltip } from './Tooltip.ts';
+import type { TooltipPlacement } from './Tooltip.ts';
+import { ICONS } from './icons.ts';
 import { t } from '../../services/i18n.js';
 
-let active = null; // the handle currently pinned open by a click/tap — only one at a time
+let active: { trigger: HTMLElement; hide: () => void } | null = null; // the handle currently pinned open by a click/tap — only one at a time
 
-function dismissActive() {
+function dismissActive(): void {
   if (!active) return;
   active.hide();
   active = null;
 }
 
 let globalsBound = false;
-function bindGlobals() {
+function bindGlobals(): void {
   if (globalsBound) return;
   globalsBound = true;
   document.addEventListener('pointerdown', (event) => {
-    if (active && !active.trigger.contains(event.target)) dismissActive();
+    if (active && !active.trigger.contains(event.target as Node)) dismissActive();
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') dismissActive();
   });
 }
 
-export function InfoTip({ content = '', label = '', placement = 'bottom' } = {}) {
-  const btn = document.createElement('button');
+/** The (i) button; `setContent` replaces both the tip text and the button's accessible name. */
+export interface InfoTipElement extends HTMLButtonElement {
+  setContent(next: string): void;
+}
+
+export function InfoTip({
+  content = '',
+  label = '',
+  placement = 'bottom',
+}: { content?: string; label?: string; placement?: TooltipPlacement | string } = {}): InfoTipElement {
+  const btn = document.createElement('button') as InfoTipElement;
   btn.type = 'button';
   btn.className = 'info-tip';
   btn.innerHTML = ICONS.info;

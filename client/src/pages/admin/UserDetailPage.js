@@ -15,7 +15,7 @@
  * A failed load now says so, and offers a retry.
  */
 
-import { Tabs } from '../../components/ui/Tabs.js';
+import { Tabs } from '../../components/ui/Tabs.ts';
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';

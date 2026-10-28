@@ -17,7 +17,7 @@
  *    working; the tip follows those rewrites, and is re-attached if a page re-renders its heading.
  */
 
-import { InfoTip } from '../components/ui/InfoTip.js';
+import { InfoTip } from '../components/ui/InfoTip.ts';
 
 // Page-level and section-level subtitles. KPI-card captions (`*-kpi-card__sub`), auth forms, hero
 // copy, modal/drawer/empty-state descriptions are deliberately NOT here: they are data or

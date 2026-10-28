@@ -16,12 +16,58 @@
  *    HTML attribute — it must be reapplied on every render.
  */
 
-import { Checkbox } from './Checkbox.js';
+import { Checkbox } from './Checkbox.ts';
 import { EmptyState } from './EmptyState.ts';
 import { Skeleton } from './Skeleton.ts';
 
+/** A row is whatever the API returned; columns read it by key or through `render`. */
+export type TableRow = Record<string, any>;
+export type RowId = string | number;
+
+export interface TableColumn<R extends TableRow = TableRow> {
+  key: string;
+  label: string;
+  sortable?: boolean;
+  align?: 'start' | 'center' | 'end' | string;
+  /** A number is px. */
+  width?: number | string;
+  numeric?: boolean;
+  /** Returns the cell content; a Node is appended, anything else becomes text. */
+  render?: (row: R, index: number) => Node | string | number | null | undefined;
+}
+
+export interface TableSort {
+  key: string;
+  dir: 'asc' | 'desc';
+}
+
+export interface TableOptions<R extends TableRow = TableRow> {
+  columns?: TableColumn<R>[];
+  /** `null` means still loading; `[]` is known-empty and shows `emptyState`. */
+  rows?: R[] | null;
+  loading?: boolean;
+  selectable?: boolean;
+  density?: 'comfortable' | 'compact' | string;
+  caption?: string;
+  sort?: TableSort | null;
+  skeletonRows?: number;
+  emptyState?: Node | null;
+  getRowId?: (row: R, index: number) => RowId;
+  onSortChange?: ((sort: TableSort) => void) | null;
+  onSelectionChange?: ((ids: RowId[]) => void) | null;
+}
+
+/** The table root; the methods are attached after it is built. */
+export interface TableElement<R extends TableRow = TableRow> extends HTMLDivElement {
+  setRows(next: R[] | null): void;
+  setLoading(on: boolean): void;
+  setSort(next: TableSort | null): void;
+  getSelection(): RowId[];
+  clearSelection(): void;
+}
+
 /** Sort arrow. Rotated by CSS for descending. */
-function createSortIcon() {
+function createSortIcon(): HTMLSpanElement {
   const span = document.createElement('span');
   span.className = 'table__sort-icon';
   span.setAttribute('aria-hidden', 'true');
@@ -31,7 +77,7 @@ function createSortIcon() {
   return span;
 }
 
-export function Table({
+export function Table<R extends TableRow = TableRow>({
   columns = [],
   rows = null,
   loading = false,
@@ -41,11 +87,11 @@ export function Table({
   sort = null,
   skeletonRows = 5,
   emptyState = null,
-  getRowId = (row, index) => row.id ?? index,
+  getRowId = (row: R, index: number): RowId => row.id ?? index,
   onSortChange = null,
   onSelectionChange = null,
-} = {}) {
-  const root = document.createElement('div');
+}: TableOptions<R> = {}): TableElement<R> {
+  const root = document.createElement('div') as TableElement<R>;
   root.className = 'table-root';
 
   const wrapper = document.createElement('div');
@@ -70,10 +116,10 @@ export function Table({
   thead.className = 'table__head';
   const headRow = document.createElement('tr');
 
-  const selection = new Set();
-  let selectAllBox = null;
+  const selection = new Set<RowId>();
+  let selectAllBox: ReturnType<typeof Checkbox> | null = null;
   /** column key -> { th, btn }, so sort state can be updated without re-deriving it from markup. */
-  const sortControls = new Map();
+  const sortControls = new Map<string, { th: HTMLTableCellElement; btn: HTMLButtonElement }>();
 
   if (selectable) {
     const th = document.createElement('th');
@@ -104,7 +150,7 @@ export function Table({
 
     if (col.sortable) {
       const active = sort?.key === col.key;
-      const dir = active ? sort.dir : 'none';
+      const dir = active && sort ? sort.dir : 'none';
       // aria-sort on the header cell is what actually communicates sort state to a screen
       // reader; the icon is only the visual half of the same message.
       th.setAttribute('aria-sort', dir === 'asc' ? 'ascending' : dir === 'desc' ? 'descending' : 'none');
@@ -117,7 +163,7 @@ export function Table({
       btn.append(createSortIcon());
       btn.addEventListener('click', () => {
         const current = sort?.key === col.key ? sort.dir : 'none';
-        const next = current === 'asc' ? 'desc' : 'asc';
+        const next: TableSort['dir'] = current === 'asc' ? 'desc' : 'asc';
         if (onSortChange) onSortChange({ key: col.key, dir: next });
       });
       th.append(btn);
@@ -137,11 +183,11 @@ export function Table({
 
   const totalColumns = columns.length + (selectable ? 1 : 0);
 
-  function emitSelection() {
+  function emitSelection(): void {
     if (onSelectionChange) onSelectionChange([...selection]);
   }
 
-  function syncSelectAll() {
+  function syncSelectAll(): void {
     if (!selectAllBox || !Array.isArray(rows)) return;
     const total = rows.length;
     const picked = selection.size;
@@ -149,7 +195,7 @@ export function Table({
     selectAllBox.setIndeterminate(picked > 0 && picked < total);
   }
 
-  function renderBody() {
+  function renderBody(): void {
     tbody.replaceChildren();
 
     // UNKNOWN — still loading.
@@ -235,7 +281,7 @@ export function Table({
 
         const value = col.render ? col.render(row, index) : row[col.key];
         if (value instanceof Node) td.append(value);
-        else td.textContent = value ?? '';
+        else td.textContent = value == null ? '' : String(value);
         tr.append(td);
       }
 
@@ -249,17 +295,17 @@ export function Table({
   wrapper.append(table);
   root.append(wrapper);
 
-  root.setRows = (next) => {
+  root.setRows = (next: R[] | null) => {
     rows = next;
     loading = false;
     selection.clear();
     renderBody();
   };
-  root.setLoading = (on) => {
+  root.setLoading = (on: boolean) => {
     loading = on;
     renderBody();
   };
-  root.setSort = (next) => {
+  root.setSort = (next: TableSort | null) => {
     sort = next;
     for (const [key, { th, btn }] of sortControls) {
       const dir = next?.key === key ? next.dir : 'none';

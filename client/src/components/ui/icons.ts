@@ -1,16 +1,21 @@
 /**
- * icons.js — Clean, accessible SVG vector icon symbols for Explooro.
+ * icons.ts — Clean, accessible SVG vector icon symbols for Explooro.
  * All icons are 24x24 viewBox, stroke-based with stroke="currentColor" and fill="none"
  * so their color dynamically responds to theme, hover, and active states.
  */
 
 import { buildLogoMarkSvg } from '../../services/logoMark.ts';
 
-function svg(paths, { viewBox = '0 0 24 24', width = 18, height = 18, strokeWidth = 1.8 } = {}) {
+function svg(
+  paths: string,
+  { viewBox = '0 0 24 24', width = 18, height = 18, strokeWidth = 1.8 }: { viewBox?: string; width?: number; height?: number; strokeWidth?: number } = {},
+): string {
   return `<svg viewBox="${viewBox}" width="${width}" height="${height}" fill="none" stroke="currentColor" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
 }
 
-export const ICONS = {
+// WHY a plain string record: callers look icons up by names that come from data (nav items, home
+// tiles, steps), so a literal key type would only force a cast at every one of them.
+export const ICONS: Record<string, string> = {
   // Navigation / Shell Groups
   overview: svg('<rect x="3" y="12" width="4" height="8" rx="1"></rect><rect x="10" y="8" width="4" height="12" rx="1"></rect><rect x="17" y="4" width="4" height="16" rx="1"></rect>'),
   users: svg('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>'),
@@ -114,7 +119,7 @@ export const ICONS = {
  * group's items are visually distinguishable instead of all repeating the group header's icon
  * (getItemIcon below falls back to the group icon only for a key this map doesn't cover).
  */
-const ITEM_ICON_NAMES = {
+const ITEM_ICON_NAMES: Record<string, string> = {
   'admin.dashboard': 'dashboard', 'admin.health': 'pulse',
   'admin.users.list': 'user_plus', 'admin.staff': 'id_card', 'admin.roles': 'award', 'admin.grants': 'key',
   'admin.approvals': 'check_circle', 'admin.restrictions': 'ban', 'admin.verification': 'user_check',
@@ -171,7 +176,7 @@ const ITEM_ICON_NAMES = {
   'supplier.simple.my_earnings': 'vault', 'supplier.simple.help': 'dashboard',
 };
 
-export function getGroupIcon(groupKey) {
+export function getGroupIcon(groupKey: string): string {
   const shortKey = groupKey?.split('.')?.pop() || groupKey;
   return ICONS[shortKey] || ICONS[groupKey] || ICONS.overview;
 }
@@ -180,8 +185,8 @@ export function getGroupIcon(groupKey) {
  * The SVG markup to render for one nav item — an inline `<svg>` string on the item itself, else
  * its function-specific icon from ITEM_ICON_NAMES, else the parent group's icon as a last resort.
  */
-export function getItemIcon(item) {
-  if (item.icon && typeof item.icon === 'string' && item.icon.trim().startsWith('<svg')) return item.icon;
+export function getItemIcon(item: { key: string; icon?: unknown; group?: string }): string | null {
+  if (typeof item.icon === 'string' && item.icon.trim().startsWith('<svg')) return item.icon;
   const name = ITEM_ICON_NAMES[item.key];
   if (name && ICONS[name]) return ICONS[name];
   if (item.group) return getGroupIcon(item.group);
@@ -196,7 +201,7 @@ export function getItemIcon(item) {
  * repaints with the live theme automatically; nothing here is theme-specific. Geometry lives once
  * in services/logoMark.ts so this and the static files scripts/logo.mjs bakes never drift apart.
  */
-export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark' } = {}) {
+export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark' }: { size?: number; className?: string } = {}): string {
   return buildLogoMarkSvg({
     size,
     className,
@@ -209,7 +214,7 @@ export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark'
 /**
  * Formats "Explooro" brand text with the 5th letter ("o" / "O") styled in brand gold accent color.
  */
-export function formatExplooroBrandText(text = 'Explooro') {
+export function formatExplooroBrandText(text = 'Explooro'): string {
   if (text.startsWith('EXPLOORO')) {
     return `EXPL<span class="brand-text__accent" aria-hidden="true">O</span>ORO${text.slice(8)}`;
   }

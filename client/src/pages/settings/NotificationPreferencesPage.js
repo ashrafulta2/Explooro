@@ -6,7 +6,7 @@
  * Route: /account/settings (aliases: /account/settings/notifications, /settings/notifications)
  */
 
-import { Switch } from '../../components/ui/Switch.js';
+import { Switch } from '../../components/ui/Switch.ts';
 import { Button } from '../../components/ui/Button.js';
 import { Card } from '../../components/ui/Card.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';

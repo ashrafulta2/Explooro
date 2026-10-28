@@ -16,9 +16,9 @@
 
 import { Button } from '../../components/ui/Button.js';
 import { Drawer } from '../../components/ui/Drawer.js';
-import { Input } from '../../components/ui/Input.js';
+import { Input } from '../../components/ui/Input.ts';
 import { Modal } from '../../components/ui/Modal.js';
-import { Pagination } from '../../components/ui/Pagination.js';
+import { Pagination } from '../../components/ui/Pagination.ts';
 import { Select } from '../../components/ui/Select.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';

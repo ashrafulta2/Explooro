@@ -12,7 +12,7 @@
 import { scheduleLiveStream, startLiveStream, endLiveStream, pinLiveProduct, unpinLiveProduct, getLiveStream, muteLiveParticipant } from '../../services/live.api.js';
 import { wsManager } from '../../services/websocket.ts';
 import { Button } from '../../components/ui/Button.js';
-import { Input } from '../../components/ui/Input.js';
+import { Input } from '../../components/ui/Input.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';

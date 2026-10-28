@@ -17,7 +17,7 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { Switch } from '../../components/ui/Switch.js';
+import { Switch } from '../../components/ui/Switch.ts';
 import { addToCart, toggleWishlist, openCart, setWishlistNotify } from '../../services/cart.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
 import { goBack, renderBackLink } from '../../core/navBack.js';

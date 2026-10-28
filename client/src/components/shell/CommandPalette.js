@@ -21,7 +21,7 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { isPageVisibleInNav } from '../../services/pageAccess.js';
 import { lockScroll, unlockScroll } from '../ui/Modal.js';
-import { getGroupIcon, ICONS } from '../ui/icons.js';
+import { getGroupIcon, ICONS } from '../ui/icons.ts';
 
 const RECENT_KEY = 'explooro:palette:recent';
 const MAX_RECENT = 5;

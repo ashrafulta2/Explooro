@@ -1,7 +1,7 @@
 /**
  * logoMark.ts — the Explooro brand mark: a four-point sparkle punched with a circle, on a badge.
  *
- * Single source of truth for the mark's geometry so the live, theme-reactive logo (icons.js,
+ * Single source of truth for the mark's geometry so the live, theme-reactive logo (icons.ts,
  * painted with CSS custom properties so it repaints with the Master Colour engine — any preset
  * *and* any custom seed from Theme Studio, not just the shipped presets) and the static files
  * scripts/logo.mjs bakes per theme (favicon, PWA icons, docs/marketing use) never drift apart.

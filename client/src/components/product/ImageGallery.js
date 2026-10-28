@@ -2,7 +2,7 @@
  * ImageGallery — product detail image/video gallery (Prompt 4.6).
  *
  * Invariants:
- *  - Thumbnails are real <button>s in a roving-tabindex row (same pattern as ui/Tabs.js) — arrow
+ *  - Thumbnails are real <button>s in a roving-tabindex row (same pattern as ui/Tabs.ts) — arrow
  *    keys move the active image, Enter/Space activates a focused thumb.
  *  - Every image tries a real <img src> first; on load failure (or when there is no url at all —
  *    true for every seed/mock image right now, see server/src/db/seeds/007_demo_gallery_media.sql)

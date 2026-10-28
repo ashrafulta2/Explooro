@@ -10,7 +10,7 @@
 import { supplierApi } from '../../services/supplier.api.js';
 import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.js';
 import { Button } from '../../components/ui/Button.js';
-import { Switch } from '../../components/ui/Switch.js';
+import { Switch } from '../../components/ui/Switch.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';

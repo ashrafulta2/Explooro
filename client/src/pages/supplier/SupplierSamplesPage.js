@@ -11,7 +11,7 @@
 import { sampleKitApi } from '../../services/sampleKit.api.js';
 import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
 import { Button } from '../../components/ui/Button.js';
-import { Switch } from '../../components/ui/Switch.js';
+import { Switch } from '../../components/ui/Switch.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';

@@ -10,7 +10,7 @@
  */
 
 import { t } from '../../services/i18n.js';
-import { ICONS } from '../ui/icons.js';
+import { ICONS } from '../ui/icons.ts';
 
 const STEPS = [
   { id: 'pick', icon: 'cart' },
@@ -55,7 +55,7 @@ export function EarnJourney({ onNavigate }) {
     const icon = document.createElement('span');
     icon.className = 'earn-journey__icon';
     icon.setAttribute('aria-hidden', 'true');
-    icon.innerHTML = ICONS[step.icon]; // trusted constant SVG from icons.js
+    icon.innerHTML = ICONS[step.icon]; // trusted constant SVG from icons.ts
     item.append(icon, document.createTextNode(t(`customer.dashboard.earn_${step.id}_title`)));
     steps.append(item);
   }

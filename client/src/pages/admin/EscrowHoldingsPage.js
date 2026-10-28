@@ -15,7 +15,7 @@
  */
 
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
-import { Pagination } from '../../components/ui/Pagination.js';
+import { Pagination } from '../../components/ui/Pagination.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.js';
 import { api } from '../../core/api.js';
 import { can } from '../../services/permissions.js';

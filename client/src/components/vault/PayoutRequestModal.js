@@ -12,7 +12,7 @@
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
 import { FormField } from '../ui/FormField.ts';
-import { Input } from '../ui/Input.js';
+import { Input } from '../ui/Input.ts';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';

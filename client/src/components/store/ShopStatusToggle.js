@@ -5,8 +5,8 @@
 import { t, getLanguage } from '../../services/i18n.js';
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
-import { Checkbox } from '../ui/Checkbox.js';
-import { Input } from '../ui/Input.js';
+import { Checkbox } from '../ui/Checkbox.ts';
+import { Input } from '../ui/Input.ts';
 
 const DAYS_OF_WEEK = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 

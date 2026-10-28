@@ -25,7 +25,7 @@
  */
 
 import { Button } from './Button.js';
-import { Input } from './Input.js';
+import { Input } from './Input.ts';
 import { Modal } from './Modal.js';
 import { Textarea } from './Textarea.ts';
 

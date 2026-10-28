@@ -81,7 +81,7 @@ test('Personalized feed admin — client invariants', async (t) => {
 
   await t.test('1c. The Platform sub-navigation links to the page, and the nav item has an icon', () => {
     assert.match(read('src', 'components', 'admin', 'PlatformSubnav.js'), /key: 'recommendations'[^}]*href: '\/admin\/platform\/recommendations'/);
-    assert.match(read('src', 'components', 'ui', 'icons.js'), /'admin\.platform\.recommendations': '\w+'/);
+    assert.match(read('src', 'components', 'ui', 'icons.ts'), /'admin\.platform\.recommendations': '\w+'/);
   });
 
   await t.test('1d. The page is registered in the mock registry', () => {

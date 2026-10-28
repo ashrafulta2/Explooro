@@ -49,14 +49,14 @@ describe('Sidebar Hamburger Toggle & Removal of Middle Button Invariants', () =>
     );
   });
 
-  test('3. icons.js defines menu hamburger vector in ICONS', () => {
-    const iconsJsPath = path.join(clientRoot, 'src', 'components', 'ui', 'icons.js');
+  test('3. icons.ts defines menu hamburger vector in ICONS', () => {
+    const iconsJsPath = path.join(clientRoot, 'src', 'components', 'ui', 'icons.ts');
     const content = fs.readFileSync(iconsJsPath, 'utf8');
 
     assert.match(
       content,
       /menu:\s*svg\(/,
-      'icons.js must export menu SVG in ICONS'
+      'icons.ts must export menu SVG in ICONS'
     );
   });
 

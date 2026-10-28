@@ -12,16 +12,41 @@
 
 let tabsSeq = 0;
 
+export interface TabDef {
+  id: string;
+  label: string;
+  disabled?: boolean;
+  /** A small count or tag shown after the label. */
+  badge?: string | number;
+  /** Initial panel content; replace it later with `setPanel`. */
+  panel?: Node | null;
+}
+
+/** The tablist root; the methods are attached after it is built. */
+export interface TabsElement extends HTMLDivElement {
+  select(id: string): void;
+  getActive(): string;
+  setPanel(id: string, node: Node): void;
+}
+
+export interface TabsOptions {
+  tabs?: TabDef[];
+  /** Initial tab id; defaults to the first enabled tab. */
+  active?: string;
+  variant?: 'line' | 'pill' | string;
+  onChange?: ((id: string) => void) | null;
+}
+
 export function Tabs({
   tabs = [],
   active = '',
   variant = 'line',
   onChange = null,
-} = {}) {
+}: TabsOptions = {}): TabsElement {
   tabsSeq += 1;
   const base = `tabs-${tabsSeq}`;
 
-  const root = document.createElement('div');
+  const root = document.createElement('div') as TabsElement;
   root.className = `tabs tabs--${variant}`;
 
   const list = document.createElement('div');
@@ -34,10 +59,10 @@ export function Tabs({
   const enabled = tabs.filter((t) => !t.disabled);
   let activeId = active || enabled[0]?.id || tabs[0]?.id || '';
 
-  const buttons = new Map();
-  const panels = new Map();
+  const buttons = new Map<string, HTMLButtonElement>();
+  const panels = new Map<string, HTMLDivElement>();
 
-  function select(id, { focus = false } = {}) {
+  function select(id: string, { focus = false }: { focus?: boolean } = {}): void {
     const tab = tabs.find((t) => t.id === id);
     if (!tab || tab.disabled) return;
     activeId = id;
@@ -56,11 +81,11 @@ export function Tabs({
     if (onChange) onChange(id);
   }
 
-  function moveFocus(direction) {
+  function moveFocus(direction: 'next' | 'prev' | 'home' | 'end'): void {
     const order = tabs.filter((t) => !t.disabled).map((t) => t.id);
     if (order.length === 0) return;
     const current = order.indexOf(activeId);
-    let nextIndex;
+    let nextIndex: number;
     if (direction === 'home') nextIndex = 0;
     else if (direction === 'end') nextIndex = order.length - 1;
     else {
@@ -110,7 +135,7 @@ export function Tabs({
     if (tab.badge) {
       const badge = document.createElement('span');
       badge.className = 'tabs__badge';
-      badge.textContent = tab.badge;
+      badge.textContent = String(tab.badge);
       btn.append(badge);
     }
     btn.addEventListener('click', () => select(tab.id));

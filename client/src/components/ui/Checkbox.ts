@@ -14,8 +14,32 @@
 
 import { uid } from './FormField.ts';
 
+/** The checkbox label root. `checked`, `indeterminate` and `disabled` read and write the real input. */
+export interface CheckboxElement extends HTMLLabelElement {
+  input: HTMLInputElement;
+  checked: boolean;
+  indeterminate: boolean;
+  disabled: boolean;
+  setIndeterminate(on: boolean): void;
+  setDisabled(on: boolean): void;
+}
+
+export interface CheckboxOptions {
+  label?: string;
+  hint?: string;
+  checked?: boolean;
+  /** A mixed "some selected" state; any user toggle resolves it. */
+  indeterminate?: boolean;
+  disabled?: boolean;
+  required?: boolean;
+  name?: string;
+  value?: string;
+  id?: string;
+  onChange?: ((checked: boolean, event: Event) => void) | null;
+}
+
 /** Tick + dash marks. Inline SVG, currentColor, 1.5px stroke per design-system §13. */
-function createMark() {
+function createMark(): HTMLSpanElement {
   const mark = document.createElement('span');
   mark.className = 'checkbox__box';
   mark.setAttribute('aria-hidden', 'true');
@@ -39,10 +63,10 @@ export function Checkbox({
   value = '',
   id = '',
   onChange = null,
-} = {}) {
+}: CheckboxOptions = {}): CheckboxElement {
   const controlId = id || uid('checkbox');
 
-  const root = document.createElement('label');
+  const root = document.createElement('label') as CheckboxElement;
   root.className = 'toggle toggle--checkbox';
   root.htmlFor = controlId;
 
@@ -85,27 +109,27 @@ export function Checkbox({
   root.input = input;
   Object.defineProperty(root, 'checked', {
     get: () => input.checked,
-    set: (next) => {
+    set: (next: boolean) => {
       input.checked = next;
       input.indeterminate = false;
     },
   });
   Object.defineProperty(root, 'indeterminate', {
     get: () => input.indeterminate,
-    set: (next) => {
+    set: (next: boolean) => {
       input.indeterminate = Boolean(next);
     },
   });
   Object.defineProperty(root, 'disabled', {
     get: () => input.disabled,
-    set: (next) => {
+    set: (next: boolean) => {
       input.disabled = Boolean(next);
     },
   });
-  root.setIndeterminate = (on) => {
+  root.setIndeterminate = (on: boolean) => {
     input.indeterminate = Boolean(on);
   };
-  root.setDisabled = (on) => {
+  root.setDisabled = (on: boolean) => {
     input.disabled = Boolean(on);
   };
 

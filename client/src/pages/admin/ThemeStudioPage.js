@@ -4,7 +4,7 @@
 
 import { Button } from '../../components/ui/Button.js';
 import { Badge } from '../../components/ui/Badge.ts';
-import { Input } from '../../components/ui/Input.js';
+import { Input } from '../../components/ui/Input.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { THEME_PRESETS } from '../../config/theme-presets.js';

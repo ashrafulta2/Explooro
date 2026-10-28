@@ -14,7 +14,7 @@
  */
 
 import { Button } from '../../components/ui/Button.js';
-import { Input } from '../../components/ui/Input.js';
+import { Input } from '../../components/ui/Input.ts';
 import { api } from '../../core/api.js';
 import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';

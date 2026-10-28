@@ -19,7 +19,7 @@
  *    aria-live region and cause missed or duplicated announcements.
  */
 
-import { Toast } from '../components/ui/Toast.js';
+import { Toast } from '../components/ui/Toast.ts';
 
 const MAX_VISIBLE = 3;
 

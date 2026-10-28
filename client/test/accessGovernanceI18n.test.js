@@ -97,7 +97,7 @@ describe('access-governance pages — no hard-coded language', () => {
       const offending = source.split(/\r?\n/).filter((line) => /\p{Extended_Pictographic}/u.test(line));
       assert.ok(
         offending.length === 0,
-        `emoji render differently per OS and cannot follow the theme — use components/ui/icons.js:\n${offending.join('\n')}`
+        `emoji render differently per OS and cannot follow the theme — use components/ui/icons.ts:\n${offending.join('\n')}`
       );
     });
   }

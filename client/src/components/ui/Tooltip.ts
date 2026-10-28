@@ -19,12 +19,32 @@ const OFFSET = 8;
 
 let tooltipSeq = 0;
 
+export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right';
+
+export interface TooltipOptions {
+  /** Required: the element the tooltip describes. */
+  trigger?: HTMLElement | null;
+  content?: string;
+  /** Preferred side; flipped when it would leave the viewport. */
+  placement?: TooltipPlacement | string;
+  /** Hover-intent delay in ms. */
+  delay?: number;
+}
+
+export interface TooltipHandle {
+  element: HTMLDivElement;
+  show(): void;
+  hide(): void;
+  setContent(next: string): void;
+  destroy(): void;
+}
+
 export function Tooltip({
   trigger = null,
   content = '',
   placement = 'top',
   delay = SHOW_DELAY,
-} = {}) {
+}: TooltipOptions = {}): TooltipHandle {
   if (!trigger) throw new Error('Tooltip requires a trigger element');
 
   tooltipSeq += 1;
@@ -38,8 +58,8 @@ export function Tooltip({
   // Top layer when available, so the tooltip is never clipped by an ancestor's overflow.
   if (HTMLElement.prototype.hasOwnProperty('popover')) tip.popover = 'manual';
 
-  let showTimer = null;
-  let hideTimer = null;
+  let showTimer: ReturnType<typeof setTimeout> | undefined;
+  let hideTimer: ReturnType<typeof setTimeout> | undefined;
   let open = false;
 
   function position() {
@@ -144,7 +164,7 @@ export function Tooltip({
     element: tip,
     show,
     hide,
-    setContent(next) {
+    setContent(next: string) {
       tip.textContent = next;
     },
     destroy() {

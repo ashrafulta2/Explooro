@@ -410,7 +410,7 @@ test('the page offers the Saved filter to signed-in members and the card carries
   const card = read('components', 'community', 'PostCard.js');
   assert.match(card, /icon\('bookmark'\)/);
   assert.match(card, /community\.card\.saved_toast/);
-  assert.ok(read('components', 'ui', 'icons.js').includes('bookmark: svg('));
+  assert.ok(read('components', 'ui', 'icons.ts').includes('bookmark: svg('));
 });
 
 // ── 8. Notifications and links to one post ────────────────────────────────────────────────

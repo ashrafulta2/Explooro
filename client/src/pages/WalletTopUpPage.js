@@ -10,7 +10,7 @@
  */
 
 import { Button } from '../components/ui/Button.js';
-import { Input } from '../components/ui/Input.js';
+import { Input } from '../components/ui/Input.ts';
 import { getTopUps, topUp, amountProblem } from '../services/walletTopup.api.js';
 import { toast } from '../services/toast.js';
 import { t } from '../services/i18n.js';

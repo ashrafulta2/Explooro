@@ -16,7 +16,7 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { Tabs } from '../../components/ui/Tabs.js';
+import { Tabs } from '../../components/ui/Tabs.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 

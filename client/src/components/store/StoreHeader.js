@@ -4,7 +4,7 @@
 
 import { t, getLanguage } from '../../services/i18n.js';
 import { Badge } from '../ui/Badge.ts';
-import { ICONS } from '../ui/icons.js';
+import { ICONS } from '../ui/icons.ts';
 
 export function StoreHeader({ store = {}, isPreview = false } = {}) {
   const container = document.createElement('div');

@@ -4,7 +4,7 @@
  * WHY textContent and never innerHTML: every string on a post (title, steps, a review) is typed by
  * another member, so it is data, never markup.
  */
-import { ICONS } from '../ui/icons.js';
+import { ICONS } from '../ui/icons.ts';
 
 /**
  * @param {string} tag

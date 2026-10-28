@@ -27,11 +27,11 @@ import { formatNumber, formatDate, formatRelativeTime } from '../../services/for
 import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
-import { Input } from '../../components/ui/Input.js';
-import { Switch } from '../../components/ui/Switch.js';
+import { Input } from '../../components/ui/Input.ts';
+import { Switch } from '../../components/ui/Switch.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { ICONS } from '../../components/ui/icons.js';
+import { ICONS } from '../../components/ui/icons.ts';
 import { loadAdminCockpitStyles } from '../../styles/loadAdminCockpitStyles.js';
 import {
   AUTO_REFRESH_MS,

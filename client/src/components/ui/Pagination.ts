@@ -12,7 +12,7 @@
  *  - The ellipsis is inert text, never a button.
  */
 
-function createArrow(direction) {
+function createArrow(direction: 'prev' | 'next'): HTMLSpanElement {
   const span = document.createElement('span');
   span.className = 'pagination__arrow';
   span.setAttribute('aria-hidden', 'true');
@@ -27,9 +27,9 @@ function createArrow(direction) {
  * Page numbers with ellipses: 1 … 4 5 [6] 7 8 … 20
  * Always shows first, last, current, and `siblings` neighbours on each side.
  */
-function buildPageList(current, total, siblings = 1) {
-  const pages = [];
-  const push = (v) => pages.push(v);
+function buildPageList(current: number, total: number, siblings = 1): (number | '…')[] {
+  const pages: (number | '…')[] = [];
+  const push = (v: number | '…'): number => pages.push(v);
 
   if (total <= 7 + siblings * 2) {
     for (let i = 1; i <= total; i += 1) push(i);
@@ -48,6 +48,33 @@ function buildPageList(current, total, siblings = 1) {
   return pages;
 }
 
+/** What `onChange` receives: `{ page }` in offset mode, `{ direction }` in cursor mode. */
+export type PaginationChange = { page: number } | { direction: 'prev' | 'next' };
+
+export interface PaginationLabels {
+  prev: string;
+  next: string;
+  page: string;
+  of: string;
+  showing: string;
+}
+
+export interface PaginationOptions {
+  mode?: 'offset' | 'cursor';
+  /** Offset mode. */
+  page?: number;
+  totalPages?: number;
+  /** Offset mode; null hides the "Showing a–b of n" line. */
+  totalItems?: number | null;
+  pageSize?: number;
+  /** Cursor mode. */
+  hasNext?: boolean;
+  hasPrev?: boolean;
+  siblings?: number;
+  labels?: Partial<PaginationLabels>;
+  onChange?: ((change: PaginationChange) => void) | null;
+}
+
 export function Pagination({
   mode = 'offset',
   page = 1,
@@ -59,8 +86,8 @@ export function Pagination({
   siblings = 1,
   labels = {},
   onChange = null,
-} = {}) {
-  const text = {
+}: PaginationOptions = {}): HTMLElement {
+  const text: PaginationLabels = {
     prev: 'Previous',
     next: 'Next',
     page: 'Page',
@@ -79,7 +106,7 @@ export function Pagination({
   const controls = document.createElement('div');
   controls.className = 'pagination__controls';
 
-  function makeNav(direction, disabled) {
+  function makeNav(direction: 'prev' | 'next', disabled: boolean): HTMLButtonElement {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `pagination__nav pagination__nav--${direction}`;

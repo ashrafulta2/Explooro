@@ -2,7 +2,7 @@
  * ModuleRow.js — Individual module card row with optimistic toggle, targeting and settings (Prompt 3.2).
  */
 
-import { Switch } from '../ui/Switch.js';
+import { Switch } from '../ui/Switch.ts';
 import { Button } from '../ui/Button.js';
 import { Badge } from '../ui/Badge.ts';
 import { confirmDialogWithReason } from '../ui/ConfirmDialog.js';

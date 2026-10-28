@@ -336,7 +336,7 @@ from a component** — you would lose auth refresh, error typing, and the mock/l
 
 ```js
 // client/src/components/product/TagEditor.js
-import { Input } from '../ui/Input.js';
+import { Input } from '../ui/Input.ts';
 import { Badge } from '../ui/Badge.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

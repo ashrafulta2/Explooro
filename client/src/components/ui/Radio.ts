@@ -14,6 +14,23 @@
 
 import { uid } from './FormField.ts';
 
+export interface RadioElement extends HTMLLabelElement {
+  input: HTMLInputElement;
+  checked: boolean;
+}
+
+export interface RadioOptions {
+  label?: string;
+  hint?: string;
+  name?: string;
+  value?: string;
+  checked?: boolean;
+  disabled?: boolean;
+  id?: string;
+  /** Called with the chosen value when this radio becomes checked. */
+  onChange?: ((value: string, event: Event) => void) | null;
+}
+
 export function Radio({
   label = '',
   hint = '',
@@ -23,10 +40,10 @@ export function Radio({
   disabled = false,
   id = '',
   onChange = null,
-} = {}) {
+}: RadioOptions = {}): RadioElement {
   const controlId = id || uid('radio');
 
-  const root = document.createElement('label');
+  const root = document.createElement('label') as RadioElement;
   root.className = 'toggle toggle--radio';
   root.htmlFor = controlId;
 
@@ -71,12 +88,32 @@ export function Radio({
   root.input = input;
   Object.defineProperty(root, 'checked', {
     get: () => input.checked,
-    set: (next) => {
+    set: (next: boolean) => {
       input.checked = next;
     },
   });
 
   return root;
+}
+
+export type RadioOption = string | { value: string | number; label: string; hint?: string; disabled?: boolean };
+
+/** The radio fieldset. `value` reads the checked radio's value and checks the matching one on write. */
+export interface RadioGroupElement extends HTMLFieldSetElement {
+  setError(message?: string): void;
+  value: string;
+}
+
+export interface RadioGroupOptions {
+  legend?: string;
+  hint?: string;
+  error?: string;
+  name?: string;
+  options?: RadioOption[];
+  value?: string | number;
+  disabled?: boolean;
+  required?: boolean;
+  onChange?: ((value: string, event: Event) => void) | null;
 }
 
 export function RadioGroup({
@@ -89,10 +126,10 @@ export function RadioGroup({
   disabled = false,
   required = false,
   onChange = null,
-} = {}) {
+}: RadioGroupOptions = {}): RadioGroupElement {
   const groupName = name || uid('radiogroup');
 
-  const root = document.createElement('fieldset');
+  const root = document.createElement('fieldset') as RadioGroupElement;
   root.className = 'radio-group field';
 
   const legendEl = document.createElement('legend');
@@ -158,8 +195,8 @@ export function RadioGroup({
   root.append(footer);
   root.dataset.invalid = error ? 'true' : 'false';
 
-  function syncDescribedBy() {
-    const ids = [];
+  function syncDescribedBy(): void {
+    const ids: string[] = [];
     if (hintEl.textContent) ids.push(hintEl.id);
     if (errorEl.textContent) ids.push(errorEl.id);
     if (ids.length) root.setAttribute('aria-describedby', ids.join(' '));
@@ -174,7 +211,7 @@ export function RadioGroup({
   };
   Object.defineProperty(root, 'value', {
     get: () => radios.find((r) => r.checked)?.input.value ?? '',
-    set: (next) => {
+    set: (next: string | number) => {
       for (const r of radios) r.checked = r.input.value === String(next);
     },
   });

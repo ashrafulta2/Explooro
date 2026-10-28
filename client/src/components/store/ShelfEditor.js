@@ -6,7 +6,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { Button } from '../ui/Button.js';
 import { Modal } from '../ui/Modal.js';
-import { Input } from '../ui/Input.js';
+import { Input } from '../ui/Input.ts';
 
 export function ShelfEditor({ initialShelves = [], onUpdate = null } = {}) {
   const container = document.createElement('div');
