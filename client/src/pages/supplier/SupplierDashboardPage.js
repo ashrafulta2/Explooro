@@ -8,7 +8,7 @@
  * - Styled with native design tokens and CSS in `supplier.css`.
  */
 
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { can } from '../../services/permissions.js';
 import { t } from '../../services/i18n.js';

@@ -20,7 +20,7 @@
 
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
-import { customerApi } from '../../services/customer.api.js';
+import { customerApi } from '../../services/customer.api.ts';
 import '../../styles/components/team-checkout.css';
 
 /** What `onSubmit` receives; `otp_code` only follows a COD_OTP_REQUIRED answer. */

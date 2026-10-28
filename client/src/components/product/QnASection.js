@@ -12,7 +12,7 @@ import { EmptyState } from '../ui/EmptyState.ts';
 import { Pagination } from '../ui/Pagination.ts';
 import { toast } from '../../services/toast.js';
 import { appStore } from '../../state/appStore.js';
-import * as catalogApi from '../../services/catalog.api.js';
+import * as catalogApi from '../../services/catalog.api.ts';
 
 function answerBlock(answer, lang) {
   const wrap = document.createElement('div');

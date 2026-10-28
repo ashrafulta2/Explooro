@@ -10,7 +10,7 @@ import { Button } from '../ui/Button.ts';
 import { FormField } from '../ui/FormField.ts';
 import { Select } from '../ui/Select.ts';
 import { toast } from '../../services/toast.js';
-import { addToSalerStore } from '../../services/catalog.api.js';
+import { addToSalerStore } from '../../services/catalog.api.ts';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { resolveProductImage } from '../product/ProductCard.ts';

@@ -7,7 +7,7 @@
  *   and provides a Data Saver mode toggle (crucial on Bangladeshi mobile networks).
  */
 
-import { listReels, likeReel } from '../../services/content.api.js';
+import { listReels, likeReel } from '../../services/content.api.ts';
 import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

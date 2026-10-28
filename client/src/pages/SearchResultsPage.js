@@ -7,7 +7,7 @@
  * proper; this page is deliberately a thin catalog view over the existing product list endpoint.
  */
 import { appStore } from '../state/appStore.js';
-import { listProducts } from '../services/catalog.api.js';
+import { listProducts } from '../services/catalog.api.ts';
 import { t, getLanguage } from '../services/i18n.js';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';

@@ -1,19 +1,22 @@
 /**
- * supplier.api.js — API client methods for Supplier / Manufacturer Dashboard & operations (Prompt 11.1).
+ * supplier.api.ts — API client methods for Supplier / Manufacturer Dashboard & operations (Prompt 11.1).
  */
 
 import { api } from '../core/api.ts';
+
+/** A request body or query string; the fields are the server's, passed through untouched. */
+type Params = Record<string, any>;
 
 export const supplierApi = {
   getDashboardOverview() {
     return api.get('/supplier/dashboard');
   },
 
-  getInventory(params = {}) {
+  getInventory(params: Params = {}) {
     return api.get('/supplier/inventory', { query: params });
   },
 
-  updateStock(payload) {
+  updateStock(payload: Params) {
     const formatted = {
       productId: payload?.productId ?? payload?.product_id ?? payload?.id,
       stockQty: payload?.stockQty ?? payload?.stock_qty ?? payload?.quantity,
@@ -21,11 +24,11 @@ export const supplierApi = {
     return api.post('/supplier/inventory/stock', formatted);
   },
 
-  getBatches(params = {}) {
+  getBatches(params: Params = {}) {
     return api.get('/supplier/batches', { query: params });
   },
 
-  createBatch(payload) {
+  createBatch(payload: Params) {
     const formatted = {
       batchNumber: payload?.batchNumber || payload?.batch_number,
       productId: payload?.productId || payload?.product_id || 1,
@@ -37,7 +40,7 @@ export const supplierApi = {
     return api.post('/supplier/batches', formatted);
   },
 
-  triggerClearanceSale(payloadOrId, maybeDiscount) {
+  triggerClearanceSale(payloadOrId: number | string | Params, maybeDiscount?: number) {
     let batchId = payloadOrId;
     let discountPct = maybeDiscount ?? 15;
     if (typeof payloadOrId === 'object' && payloadOrId !== null) {
@@ -47,11 +50,11 @@ export const supplierApi = {
     return api.post(`/supplier/batches/${batchId}/clearance`, { discountPct });
   },
 
-  triggerBatchClearance(batchId, discountPct = 20) {
+  triggerBatchClearance(batchId: number | string, discountPct: number = 20) {
     return api.post(`/supplier/batches/${batchId}/clearance`, { discountPct });
   },
 
-  recallBatch(payloadOrId, maybeReason) {
+  recallBatch(payloadOrId: number | string | Params, maybeReason?: string) {
     let batchId = payloadOrId;
     let reason = maybeReason || 'Supplier Recall';
     if (typeof payloadOrId === 'object' && payloadOrId !== null) {
@@ -65,7 +68,7 @@ export const supplierApi = {
     return api.get('/supplier/warehouses');
   },
 
-  createWarehouse(payload) {
+  createWarehouse(payload: Params) {
     return api.post('/supplier/warehouses', payload);
   },
 
@@ -73,7 +76,7 @@ export const supplierApi = {
     return api.get('/supplier/fulfilment');
   },
 
-  bookConsignment(payload) {
+  bookConsignment(payload: Params) {
     return api.post('/supplier/fulfilment/consign', payload);
   },
 
@@ -89,7 +92,7 @@ export const supplierApi = {
     return api.get('/supplier/incentive');
   },
 
-  saveIncentive(payload) {
+  saveIncentive(payload: Params) {
     return api.put('/supplier/incentive', payload);
   },
 
@@ -97,7 +100,7 @@ export const supplierApi = {
     return api.get('/supplier/store-status');
   },
 
-  updateStoreStatus(payload) {
+  updateStoreStatus(payload: Params) {
     return api.patch('/supplier/store-status', payload);
   },
 };

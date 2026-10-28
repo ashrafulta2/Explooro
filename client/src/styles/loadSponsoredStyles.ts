@@ -1,16 +1,16 @@
 /**
- * loadSponsoredStyles.js — loads sponsored-slot.css only when an ad is about to be drawn.
+ * loadSponsoredStyles.ts — loads sponsored-slot.css only when an ad is about to be drawn.
  *
- * Same reason as loadAdStoreStyles.js: it must not go in main.css (70KB gzipped budget) and must not
+ * Same reason as loadAdStoreStyles.ts: it must not go in main.css (70KB gzipped budget) and must not
  * be a static import in a module the Node page-import tests load (Node cannot parse `.css`).
  * Idempotent: the promise is cached.
  */
 
-import { trackStyleLoad } from '../core/styleGate.js';
+import { trackStyleLoad } from '../core/styleGate.ts';
 
-let stylesPromise = null;
+let stylesPromise: Promise<unknown> | null = null;
 
-export function loadSponsoredStyles() {
+export function loadSponsoredStyles(): Promise<unknown> {
   if (!stylesPromise) {
     stylesPromise = trackStyleLoad(
       import('./components/sponsored-slot.css').catch(() => {

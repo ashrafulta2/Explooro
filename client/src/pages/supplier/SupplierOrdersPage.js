@@ -9,7 +9,7 @@
  * 5. Instant search by Order Reference, Customer Name, or Delivery District.
  */
 
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

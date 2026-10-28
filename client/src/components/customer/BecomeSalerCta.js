@@ -7,7 +7,7 @@
  * 3. Immediate redirect to /saler/store-builder with zero paperwork.
  */
 
-import { customerApi } from '../../services/customer.api.js';
+import { customerApi } from '../../services/customer.api.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../ui/Button.ts';

@@ -6,7 +6,7 @@
  * the catalog regardless of VITE_API_MODE.
  */
 import { api } from '../core/api.ts';
-import { normalizeProductListItem } from './catalog.api.js';
+import { normalizeProductListItem } from './catalog.api.ts';
 import { getDiscoverySessionId, isPersonalizationOff } from './signals.js';
 
 export { getDiscoverySessionId };

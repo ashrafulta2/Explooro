@@ -26,7 +26,7 @@ import { ModerationQueue } from '../components/community/ModerationQueue.js';
 import { el } from '../components/community/dom.ts';
 import {
   listPosts, toggleLike, toggleSave, reportPost, moderatePost, errorText, ROLE_KINDS,
-} from '../services/community.api.js';
+} from '../services/community.api.ts';
 
 const PAGE_SIZE = 20;
 const TABS = [

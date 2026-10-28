@@ -6,7 +6,7 @@
  * (wholesale cost, net margin, shop partner earnings, platform earnings) come directly from
  * previewPricing (POST /api/v1/pricing/preview).
  */
-import { previewPricing } from '../../services/catalog.api.js';
+import { previewPricing } from '../../services/catalog.api.ts';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 
@@ -172,7 +172,6 @@ export function ProfitCalculator({
         baseCost,
         wholesaleMargin,
         retailPrice,
-        // @ts-expect-error previewPricing (still .js) infers its options from a default that omits this
         defaultRetailPrice,
         categoryId,
         productId,

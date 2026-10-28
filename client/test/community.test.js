@@ -18,7 +18,7 @@ import path from 'node:path';
 
 import { handleMockRequest } from '../src/mocks/index.js';
 import { appStore, setMockRole, logOutMock } from '../src/state/appStore.js';
-import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.js';
+import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.ts';
 import { checkNewFile } from '../src/components/community/MediaPicker.js';
 import { MOCK_COMMUNITY_TEMPLATES } from '../src/mocks/handlers/community.js';
 import { navItems } from '../src/config/navigation.js';

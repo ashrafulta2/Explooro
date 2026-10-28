@@ -10,7 +10,7 @@
  * Route: /saler/analytics
  */
 
-import { salerApi } from '../../services/saler.api.js';
+import { salerApi } from '../../services/saler.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';

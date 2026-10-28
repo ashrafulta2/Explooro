@@ -1,5 +1,5 @@
 /**
- * catalog.api.js — Typed wrapper around the product detail / review / Q&A endpoints (Prompt 4.6).
+ * catalog.api.ts — Typed wrapper around the product detail / review / Q&A endpoints (Prompt 4.6).
  *
  * Per docs/how-to-add-a-feature.md Step 8: never call `api.js`'s fetch wrapper directly from a
  * component — this is the one place that knows the request/response shape for each endpoint, so a
@@ -13,9 +13,74 @@ import { resolveProductImage } from '../components/product/ProductCard.ts';
 // FilterPanel.js's `filter.tier_*` i18n keys already use since Prompt 4.5) or the mock fixture's
 // flat `supplier_tier` field — normalized to the client's existing vocabulary here so ProductCard,
 // FilterPanel, and this page's supplier card all read one consistent set of values.
-const SERVER_TIER_TO_CLIENT = { STARTER: 'standard', VERIFIED_TRADER: 'verified', ELITE_PARTNER: 'elite' };
+const SERVER_TIER_TO_CLIENT: Record<string, string> = { STARTER: 'standard', VERIFIED_TRADER: 'verified', ELITE_PARTNER: 'elite' };
 
-function normalizeTier(tier) {
+/** A request body or query string; the fields are the server's, passed through untouched. */
+type Params = Record<string, unknown>;
+
+/** A variant as the server (attributes_json) or the mock (attributes) sends it. */
+export interface RawVariant {
+  id: number | string;
+  sku?: string;
+  attributes?: Record<string, string>;
+  attributes_json?: Record<string, string>;
+  price_delta?: number | string | null;
+  available_qty?: number;
+  stock_qty?: number;
+  is_active?: boolean;
+  image_url?: string | null;
+  image_index?: number | null;
+}
+
+/** The one variant shape every component reads, whatever the driver. */
+export interface CatalogVariant {
+  id: number | string;
+  sku?: string;
+  attributes: Record<string, string>;
+  price_delta: number;
+  stock_qty: number;
+  is_active: boolean;
+  image_url: string | null;
+  image_index: number | null;
+}
+
+export interface RawImage {
+  id?: number | string;
+  url?: string | null;
+  is_primary?: boolean;
+  image_index?: number;
+  media_kind?: string;
+  mime_type?: string;
+}
+
+/** The one image shape the gallery reads. */
+export interface CatalogImage {
+  id: number | string;
+  url: string | null;
+  is_primary: boolean;
+  image_index: number;
+  media_kind: string;
+}
+
+/** A product row from either driver. The named fields are the ones this file reads; the rest pass through. */
+export interface CatalogProduct {
+  id?: number | string;
+  ref?: string;
+  images?: RawImage[];
+  variants?: RawVariant[];
+  supplier?: { tier?: string; [field: string]: unknown } | null;
+  supplier_name?: string;
+  district?: string | null;
+  image_index?: number;
+  image_url?: string | null;
+  primary_image_url?: string | null;
+  primary_image?: string | null;
+  available_qty?: number;
+  stock_qty?: number;
+  [field: string]: any;
+}
+
+function normalizeTier(tier?: string) {
   if (!tier) return 'standard';
   return SERVER_TIER_TO_CLIENT[tier] || tier.toLowerCase();
 }
@@ -26,12 +91,12 @@ function normalizeTier(tier) {
  * photography exists yet) don't share a wire shape — normalize once here so every component below
  * this call only ever sees one shape, regardless of VITE_API_MODE.
  */
-export function normalizeProduct(product) {
+export function normalizeProduct(product: CatalogProduct | null | undefined) {
   if (!product) return product;
   const fallbackUrl = resolveProductImage(product);
   const rawImages = (product.images && product.images.length > 0) ? product.images : [];
   const images = rawImages.length > 0
-    ? rawImages.map((img, idx) => ({
+    ? rawImages.map((img, idx): CatalogImage => ({
         id: img.id,
         url: img.url || (idx === 0 ? fallbackUrl : null),
         is_primary: !!img.is_primary,
@@ -56,7 +121,7 @@ export function normalizeProduct(product) {
     // sends what can actually be bought, net of open-team reservations, beside it. Everything below
     // this call reads stock_qty, so it is swapped once here for shoppers.
     stock_qty: product.available_qty ?? product.stock_qty,
-    variants: (product.variants || []).map((v) => ({
+    variants: (product.variants || []).map((v): CatalogVariant => ({
       id: v.id,
       sku: v.sku,
       attributes: v.attributes || v.attributes_json || {},
@@ -71,7 +136,7 @@ export function normalizeProduct(product) {
   };
 }
 
-export async function getProduct(idOrRef) {
+export async function getProduct(idOrRef: number | string) {
   const res = await api.get(`/products/${idOrRef}`);
   const prod = res?.product || res?.data?.product || res?.data || res;
   return normalizeProduct(prod);
@@ -84,7 +149,7 @@ export async function getProduct(idOrRef) {
  * backfills only when the flat field is missing, so mock-mode products (which already carry it)
  * pass through unchanged.
  */
-export function normalizeProductListItem(product) {
+export function normalizeProductListItem(product: CatalogProduct) {
   // Present a consistent `supplier` shape whether the row carried a nested object (mock feed /
   // product detail) or the flat supplier_name + district columns the live listing selects, so a
   // list-item consumer can render the supplier line without a second detail fetch.
@@ -98,7 +163,7 @@ export function normalizeProductListItem(product) {
   // returns attributes under `attributes_json` and price_delta as a NUMERIC string, the mock returns
   // `attributes` and a number; both settle to one shape here.
   const variants = Array.isArray(product.variants)
-    ? product.variants.map((v) => ({
+    ? product.variants.map((v): CatalogVariant => ({
         id: v.id,
         sku: v.sku,
         attributes: v.attributes || v.attributes_json || {},
@@ -122,7 +187,7 @@ export function normalizeProductListItem(product) {
   };
 }
 
-export async function listProducts(query = {}) {
+export async function listProducts(query: Params = {}) {
   // net_stock: shoppers see stock net of open-team reservations; admin screens read raw counts.
   const { data, meta } = await api.get('/products', { query: { net_stock: 1, ...query } });
   const products = (data?.products ?? []).map(normalizeProductListItem);
@@ -134,7 +199,7 @@ export async function listProducts(query = {}) {
  * matching products plus the full match count so the dropdown can offer "see all N results".
  * The mock driver ships a seed Banglish→Bengali map; the live engine does the real transliteration.
  */
-export async function searchSuggest(q, { limit = 6 } = {}) {
+export async function searchSuggest(q: string | null | undefined, { limit = 6 }: { limit?: number } = {}) {
   const term = (q ?? '').trim();
   if (!term) return { suggestions: [], total: 0, query: '' };
   const res = await api.get('/search/suggest', { query: { q: term, limit } });
@@ -142,8 +207,16 @@ export async function searchSuggest(q, { limit = 6 } = {}) {
   return { suggestions, total: res?.total ?? suggestions.length, query: res?.query ?? term };
 }
 
-export async function listReviews(productId, { rating, hasPhotos, sort, page = 1, pageSize = 10 } = {}) {
-  const query = { page, page_size: pageSize };
+export interface ReviewListOptions {
+  rating?: number;
+  hasPhotos?: boolean;
+  sort?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export async function listReviews(productId: number | string, { rating, hasPhotos, sort, page = 1, pageSize = 10 }: ReviewListOptions = {}) {
+  const query: Record<string, unknown> = { page, page_size: pageSize };
   if (rating) query.rating = rating;
   if (hasPhotos) query.has_photos = '1';
   if (sort) query.sort = sort;
@@ -152,39 +225,39 @@ export async function listReviews(productId, { rating, hasPhotos, sort, page = 1
   return { reviews: data.reviews, distribution: data.distribution, pagination: meta.pagination };
 }
 
-export async function getReviewEligibility(productId) {
+export async function getReviewEligibility(productId: number | string) {
   // A guest with no session 401s here by design (ReviewList.js treats that the same as an
   // explicit NOT_SIGNED_IN reason) — it must not force a redirect off the product page.
   const { data } = await api.get(`/products/${productId}/reviews/eligibility`, { skipAuthRedirect: true });
   return data;
 }
 
-export async function submitReview(productId, { rating, title, body }) {
+export async function submitReview(productId: number | string, { rating, title, body }: { rating: number; title?: string; body?: string }) {
   const { data } = await api.post(`/products/${productId}/reviews`, { rating, title, body });
   return data.review;
 }
 
-export async function markReviewHelpful(reviewId) {
+export async function markReviewHelpful(reviewId: number | string) {
   const { data } = await api.post(`/reviews/${reviewId}/helpful`, {});
   return data;
 }
 
-export async function listQuestions(productId, { page = 1, pageSize = 10 } = {}) {
+export async function listQuestions(productId: number | string, { page = 1, pageSize = 10 }: { page?: number; pageSize?: number } = {}) {
   const { data, meta } = await api.get(`/products/${productId}/questions`, { query: { page, page_size: pageSize } });
   return { questions: data.questions, pagination: meta.pagination };
 }
 
-export async function askQuestion(productId, body) {
+export async function askQuestion(productId: number | string, body: string) {
   const { data } = await api.post(`/products/${productId}/questions`, { body });
   return data.question;
 }
 
-export async function answerQuestion(questionId, body) {
+export async function answerQuestion(questionId: number | string, body: string) {
   const { data } = await api.post(`/questions/${questionId}/answers`, { body });
   return data.answer;
 }
 
-export async function upvoteQuestion(questionId) {
+export async function upvoteQuestion(questionId: number | string) {
   const { data } = await api.post(`/questions/${questionId}/upvote`, {});
   return data;
 }
@@ -193,7 +266,18 @@ export async function upvoteQuestion(questionId) {
  * Calls POST /api/v1/pricing/preview.
  * Pure server-calculated breakdown — client never performs split math directly.
  */
-export async function previewPricing({ baseCost, wholesaleMargin = 0, retailPrice, categoryId, productId, mode }) {
+export interface PricingPreviewOptions {
+  baseCost: number;
+  wholesaleMargin?: number;
+  retailPrice: number;
+  /** The calculator also sends its starting price; the server ignores it. */
+  defaultRetailPrice?: number;
+  categoryId?: number | null;
+  productId?: number | string | null;
+  mode?: string;
+}
+
+export async function previewPricing({ baseCost, wholesaleMargin = 0, retailPrice, categoryId, productId, mode }: PricingPreviewOptions) {
   const payload = {
     base_cost: baseCost,
     wholesale_margin: wholesaleMargin,
@@ -209,8 +293,21 @@ export async function previewPricing({ baseCost, wholesaleMargin = 0, retailPric
 /**
  * Lists supplier products suitable for shop partner sourcing with margin info.
  */
-export async function listSourcingCatalog(filters = {}) {
-  const query = {};
+export interface SourcingFilters {
+  minMarginPct?: number | string;
+  categoryId?: number | string;
+  category?: string;
+  brand?: string;
+  shippingSpeed?: string;
+  verificationTier?: string;
+  inStock?: boolean;
+  sortBy?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export async function listSourcingCatalog(filters: SourcingFilters = {}) {
+  const query: Record<string, unknown> = {};
   if (filters.minMarginPct) query.min_margin_pct = filters.minMarginPct;
   if (filters.categoryId) query.category_id = filters.categoryId;
   if (filters.category && filters.category !== 'all') query.category = filters.category;
@@ -236,7 +333,7 @@ export async function listSourcingCatalog(filters = {}) {
  * Shop Partner adds a product to their virtual storefront. The supplier's price applies (migration 085),
  * so no price is sent; the server answers 422 PRICE_LOCKED if one is.
  */
-export async function addToSalerStore({ productId, collectionName }) {
+export async function addToSalerStore({ productId, collectionName }: { productId: number | string; collectionName?: string }) {
   const payload = {
     product_id: productId,
     collection_name: collectionName || 'General',

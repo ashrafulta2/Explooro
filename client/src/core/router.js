@@ -32,7 +32,7 @@
  * `cleanup` runs before the next route mounts, so a page's timers/listeners never leak.
  */
 
-import { stylesPending } from './styleGate.js';
+import { stylesPending } from './styleGate.ts';
 
 /** Matches `pathname` against a route `pattern`, returning `null` or the extracted params. */
 export function matchPath(pattern, pathname) {
@@ -217,7 +217,7 @@ export function createRouter({
 
     // WHY: a page that lazy-loads its own CSS mounts markup in the same tick, so the first visit per
     // page load painted unstyled content (a black flash) until the chunk arrived. Pages register the
-    // in-flight stylesheet in core/styleGate.js; the markup is built but kept invisible until it
+    // in-flight stylesheet in core/styleGate.ts; the markup is built but kept invisible until it
     // settles. Layout is untouched (visibility, not display), and the `current === mounted` check
     // stops a slow stylesheet from un-hiding a page the user has already navigated away from.
     const styles = stylesPending();

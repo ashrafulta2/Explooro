@@ -13,7 +13,7 @@ import { Drawer } from '../ui/Drawer.ts';
 import { Button } from '../ui/Button.ts';
 import { Tabs } from '../ui/Tabs.ts';
 import { api } from '../../core/api.ts';
-import { adsApi } from '../../services/ads.api.js';
+import { adsApi } from '../../services/ads.api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

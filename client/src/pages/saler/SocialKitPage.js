@@ -11,7 +11,7 @@
  * 6. Batch flyer generation for all curated products.
  */
 
-import { salerApi } from '../../services/saler.api.js';
+import { salerApi } from '../../services/saler.api.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.ts';

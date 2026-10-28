@@ -8,7 +8,7 @@
  * partner is paid monthly from the partner reward pool by score, so there is no per-sale profit to
  * calculate. A card shows the supplier's price and what one sale adds to the pool.
  */
-import { listSourcingCatalog } from '../../services/catalog.api.js';
+import { listSourcingCatalog } from '../../services/catalog.api.ts';
 import { AddToStoreDrawer, poolContributionOf } from '../../components/saler/AddToStoreDrawer.js';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { SponsoredTag } from '../../components/saler/SponsoredTag.ts';

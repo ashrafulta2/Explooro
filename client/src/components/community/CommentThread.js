@@ -18,7 +18,7 @@ import { toast } from '../../services/toast.js';
 import { formatRelativeTime } from '../../services/format.js';
 import {
   listComments, addComment, deleteComment, removeComment, errorText, COMMENT_MAX,
-} from '../../services/community.api.js';
+} from '../../services/community.api.ts';
 
 /**
  * @param {object} o

@@ -8,7 +8,7 @@
  * - Live Tabbed Management Console (Banners, Stories, Changelogs, Academy Tutorials) with 1-click status toggles, inline editing, and deletion.
  */
 
-import { contentApi } from '../../services/content.api.js';
+import { contentApi } from '../../services/content.api.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Modal } from '../../components/ui/Modal.ts';

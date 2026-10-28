@@ -13,7 +13,7 @@ import { EmptyState } from '../components/ui/EmptyState.ts';
 import { cartStore, fetchCart, updateItemQuantity, removeFromCart, toggleWishlist, isProductWishlisted } from '../services/cart.js';
 import { formatCurrency } from '../services/format.js';
 import { t, getLanguage } from '../services/i18n.js';
-import { loadCartPageStyles } from '../styles/loadCartPageStyles.js';
+import { loadCartPageStyles } from '../styles/loadCartPageStyles.ts';
 import { PLACEHOLDER_COLOURS, placeholderInitials, resolveProductImage } from '../components/product/ProductCard.ts';
 
 const PARCEL_ICON_SVG = `

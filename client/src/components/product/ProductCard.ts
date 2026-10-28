@@ -25,7 +25,7 @@
  */
 
 import { formatCurrency, formatBdt } from '../../services/format.js';
-import { adsApi } from '../../services/ads.api.js';
+import { adsApi } from '../../services/ads.api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
 import { track, observeImpression } from '../../services/signals.js';

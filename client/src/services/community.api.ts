@@ -1,13 +1,16 @@
 /**
- * community.api.js — typed wrapper for the community timeline (/community/*, /admin/community/*).
+ * community.api.ts — typed wrapper for the community timeline (/community/*, /admin/community/*).
  *
  * One place that knows the request/response shape (how-to-add-a-feature.md Step 8). Components never
  * call fetch; the mock/live switch and auth refresh live in core/api.ts.
  */
 import { api, ApiError, pickMessage } from '../core/api.ts';
 
+/** A request body or query string; the fields are the server's, passed through untouched. */
+type Params = Record<string, any>;
+
 /** The message to show for a failed call, in the reader's language; '' when it was not an API error. */
-export function errorText(err) {
+export function errorText(err: unknown): string {
   return err instanceof ApiError ? pickMessage(err) || '' : '';
 }
 
@@ -53,8 +56,20 @@ export const AUDIENCES = ['EVERYONE', 'CUSTOMERS', 'SUPPLIERS', 'SHOP_PARTNERS']
  * @param {number} [opts.postId] just this one post (a shared link or a notification)
  * @returns {Promise<{posts: object[], counts: Record<string, number>, meta: object}>}
  */
-export async function listPosts({ type, role, sort, mine, saved, postId, limit, offset } = {}) {
-  const query = {};
+export interface ListPostsOptions {
+  type?: string;
+  role?: string;
+  sort?: string;
+  mine?: boolean;
+  saved?: boolean;
+  /** Just this one post (a shared link or a notification). */
+  postId?: number | string;
+  limit?: number;
+  offset?: number;
+}
+
+export async function listPosts({ type, role, sort, mine, saved, postId, limit, offset }: ListPostsOptions = {}) {
+  const query: Record<string, unknown> = {};
   if (type) query.type = type;
   if (role) query.role = role;
   if (sort) query.sort = sort;
@@ -73,10 +88,10 @@ export async function getComposerProducts() {
   return { role: data?.role ?? null, items: data?.items ?? [] };
 }
 
-function readAsDataUrl(file) {
+function readAsDataUrl(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => resolve(reader.result as string);
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
@@ -87,7 +102,7 @@ function readAsDataUrl(file) {
  * file's real type from its bytes). Returns the asset; its `id` goes in `media_ids` when the post is sent.
  * @returns {Promise<{id: number|string, mime_type: string, url?: string}>}
  */
-export async function uploadPostMedia(file) {
+export async function uploadPostMedia(file: File) {
   const res = await api.post('/media/direct', {
     purpose: 'COMMUNITY',
     filename: file.name,
@@ -98,37 +113,37 @@ export async function uploadPostMedia(file) {
   return asset;
 }
 
-export async function createPost(body) {
+export async function createPost(body: Params) {
   const { data } = await api.post('/community/posts', body);
   return data.post;
 }
 
-export async function createAnnouncement(body) {
+export async function createAnnouncement(body: Params) {
   const { data } = await api.post('/community/announcements', body);
   return data.post;
 }
 
 /** @returns {Promise<{liked: boolean, like_count: number}>} */
-export async function toggleLike(postId) {
+export async function toggleLike(postId: number | string) {
   const { data } = await api.post(`/community/posts/${postId}/like`, {});
   return data;
 }
 
 /** Adds the post to the member's private saved list, or takes it off. @returns {Promise<{saved: boolean}>} */
-export async function toggleSave(postId) {
+export async function toggleSave(postId: number | string) {
   const { data } = await api.post(`/community/posts/${postId}/save`, {});
   return data;
 }
 
 /** @returns {Promise<{reported: boolean, already_reported: boolean, auto_hidden: boolean}>} */
-export async function reportPost(postId, { reason, note } = {}) {
+export async function reportPost(postId: number | string, { reason, note }: { reason?: string; note?: string } = {}) {
   const { data } = await api.post(`/community/posts/${postId}/report`, { reason, ...(note ? { note } : {}) });
   return data;
 }
 
 /** @returns {Promise<{items: object[], stats: object, threshold: number}>} */
-export async function getQueue({ limit, offset } = {}) {
-  const query = {};
+export async function getQueue({ limit, offset }: { limit?: number; offset?: number } = {}) {
+  const query: Record<string, unknown> = {};
   if (limit != null) query.limit = limit;
   if (offset != null) query.offset = offset;
   const { data } = await api.get('/admin/community/queue', { query });
@@ -139,14 +154,14 @@ export async function getQueue({ limit, offset } = {}) {
  * Changes how many reports hide a post (community.settings.update). `reason` is at least 10 characters.
  * @returns {Promise<{auto_hide_report_threshold: number, previous: number}>}
  */
-export async function updateThreshold(value, reason) {
+export async function updateThreshold(value: number, reason: string) {
   const { data } = await api.put('/admin/community/settings', { auto_hide_report_threshold: value, reason });
   return data;
 }
 
 /** @returns {Promise<{comments: object[], comment_count: number, meta: object}>} */
-export async function listComments(postId, { limit, offset } = {}) {
-  const query = {};
+export async function listComments(postId: number | string, { limit, offset }: { limit?: number; offset?: number } = {}) {
+  const query: Record<string, unknown> = {};
   if (limit != null) query.limit = limit;
   if (offset != null) query.offset = offset;
   const { data, meta } = await api.get(`/community/posts/${postId}/comments`, { query });
@@ -154,25 +169,25 @@ export async function listComments(postId, { limit, offset } = {}) {
 }
 
 /** @returns {Promise<{comment: object, comment_count: number}>} */
-export async function addComment(postId, body) {
+export async function addComment(postId: number | string, body: Params) {
   const { data } = await api.post(`/community/posts/${postId}/comments`, { body });
   return data;
 }
 
 /** A member deletes their own comment. @returns {Promise<{comment_count: number}>} */
-export async function deleteComment(commentId) {
+export async function deleteComment(commentId: number | string) {
   const { data } = await api.delete(`/community/comments/${commentId}`);
   return data;
 }
 
 /** Staff remove any comment (community.post.moderate). @returns {Promise<{comment_count: number}>} */
-export async function removeComment(commentId) {
+export async function removeComment(commentId: number | string) {
   const { data } = await api.post(`/admin/community/comments/${commentId}/remove`, {});
   return data;
 }
 
 /** @param {'KEEP'|'HIDE'|'REMOVE'} action */
-export async function moderatePost(postId, action) {
+export async function moderatePost(postId: number | string, action: 'KEEP' | 'HIDE' | 'REMOVE') {
   const { data } = await api.post(`/admin/community/posts/${postId}/moderate`, { action });
   return data;
 }

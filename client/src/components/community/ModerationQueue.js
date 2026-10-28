@@ -16,7 +16,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatNumber } from '../../services/format.js';
 import { can } from '../../services/permissions.js';
-import { getQueue, moderatePost, updateThreshold, errorText } from '../../services/community.api.js';
+import { getQueue, moderatePost, updateThreshold, errorText } from '../../services/community.api.ts';
 
 function preview(post) {
   const d = post.details || {};

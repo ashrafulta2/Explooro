@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { normalizeProduct } from '../src/services/catalog.api.js';
+import { normalizeProduct } from '../src/services/catalog.api.ts';
 
 const base = { id: 1, ref: 'PRD-1', stock_qty: 10, images: [], variants: [] };
 

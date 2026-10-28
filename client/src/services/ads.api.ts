@@ -2,13 +2,46 @@ import { api } from '../core/api.ts';
 
 // WHY: callers (and ad_products.placement) use the server's keys. The Stories page historically asked
 // for 'HOMEPAGE_HERO', which no campaign carries, so the booked Homepage Spotlight never matched.
-const PLACEMENT_ALIASES = { HOMEPAGE_HERO: 'HOME_HERO', FLASH_SLOT: 'FLASH_STRIP' };
+const PLACEMENT_ALIASES: Record<string, string> = { HOMEPAGE_HERO: 'HOME_HERO', FLASH_SLOT: 'FLASH_STRIP' };
+
+/** A request body; the fields are the server's, passed through untouched. */
+type Params = Record<string, unknown>;
+
+/** A row of GET /ads/reserved, the fields `normalizeReserved` reads. */
+export interface ReservedRow {
+  campaign_id: number | string;
+  creative_id?: number | string | null;
+  headline?: string;
+  title?: string;
+  description?: string;
+  banner_image_url?: string;
+  call_to_action?: string;
+  destination_url?: string;
+  product_id?: number | string | null;
+  placement: string;
+}
+
+/** A reserved placement in the shape SponsoredSlot renders, plus the legacy fields older callers read. */
+export interface ReservedPlacement {
+  campaignId: number | string;
+  creativeId: number | string | null;
+  headline: string;
+  description: string;
+  bannerImageUrl: string;
+  callToAction: string;
+  destinationUrl: string;
+  productId: number | string | null;
+  placement: string;
+  campaign_id: number | string;
+  campaign_name: string;
+  creative: { image_url: string; target_url: string };
+}
 
 /**
  * One reserved row from GET /ads/reserved, in the shape SponsoredSlot renders, with the legacy
  * `campaign_id` / `campaign_name` / `creative.*` fields kept so the four older callers still work.
  */
-function normalizeReserved(row) {
+function normalizeReserved(row: ReservedRow): ReservedPlacement {
   const productId = row.product_id ?? null;
   const target = row.destination_url || (productId ? `/product/${productId}` : '');
   return {
@@ -34,10 +67,10 @@ export const adsApi = {
    * @param {string} placement - e.g., 'HOME_HERO', 'STORE_DIRECTORY', 'LIVE_LOBBY', 'FLASH_STRIP', 'CATEGORY_BANNER'
    * @param {number} [categoryId] - Optional category ID for CATEGORY_BANNER
    */
-  async listReservedPlacements(placement, categoryId = null) {
+  async listReservedPlacements(placement: string, categoryId: number | string | null = null): Promise<{ data: ReservedPlacement[] }> {
     const params = new URLSearchParams({ placement: PLACEMENT_ALIASES[placement] || placement });
     // WHY snake_case: the controller reads req.query.category_id; `categoryId` was silently ignored.
-    if (categoryId) params.append('category_id', categoryId);
+    if (categoryId) params.append('category_id', String(categoryId));
 
     // We get the local timezone date string in YYYY-MM-DD
     const today = new Date().toISOString().split('T')[0];
@@ -54,10 +87,10 @@ export const adsApi = {
    * @param {string} placement - 'SEARCH_RESULTS' | 'FEED' | 'PRODUCT_PAGE'
    * @param {{ keyword?: string, categoryId?: number|string, limit?: number }} [opts]
    */
-  async runAuction(placement, { keyword = '', categoryId = null, limit = 3 } = {}) {
+  async runAuction(placement: string, { keyword = '', categoryId = null, limit = 3 }: { keyword?: string; categoryId?: number | string | null; limit?: number } = {}): Promise<Record<string, any>[]> {
     const params = new URLSearchParams({ placement, limit: String(limit) });
     if (keyword) params.append('keyword', keyword);
-    if (categoryId) params.append('category_id', categoryId);
+    if (categoryId) params.append('category_id', String(categoryId));
     try {
       const res = await api.get(`/ads/auction?${params.toString()}`);
       return res?.ads ?? res?.data?.ads ?? [];
@@ -70,7 +103,7 @@ export const adsApi = {
    * Track an ad click for CPA attribution.
    * @param {string} campaignId 
    */
-  trackClick(campaignId) {
+  trackClick(campaignId: number | string) {
     if (!campaignId) return;
     try {
       // Store campaign ID with a 24h expiration
@@ -85,7 +118,7 @@ export const adsApi = {
    * Get the active CPA attribution campaign ID.
    * @returns {string|null}
    */
-  getAttribution() {
+  getAttribution(): number | string | null {
     try {
       const data = localStorage.getItem('x_ad_attribution');
       if (!data) return null;
@@ -119,17 +152,17 @@ export const adsApi = {
   },
 
   /** `{ people, narrowed, min_audience_size, too_small }` for an audience. */
-  async estimateAudience(audience) {
+  async estimateAudience(audience: Params) {
     return api.post('/ads/audience-estimate', { audience });
   },
 
   /** The server's price and reach estimate for a budget; the client never prices anything itself. */
-  async quote(body) {
+  async quote(body: Params) {
     const res = await api.post('/ads/quote', body);
     return res?.quote ?? res?.data?.quote ?? null;
   },
 
-  async createCampaign(body) {
+  async createCampaign(body: Params) {
     const res = await api.post('/ads/campaigns', body);
     return res?.campaign ?? res?.data?.campaign ?? null;
   },
@@ -139,7 +172,7 @@ export const adsApi = {
     return res?.campaigns ?? res?.data?.campaigns ?? [];
   },
 
-  async setCampaignPaused(id, paused) {
+  async setCampaignPaused(id: number | string, paused: boolean) {
     return api.post(`/ads/campaigns/${encodeURIComponent(id)}/${paused ? 'pause' : 'resume'}`, {});
   },
 };

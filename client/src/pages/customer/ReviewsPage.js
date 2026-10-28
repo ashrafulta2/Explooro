@@ -11,7 +11,7 @@
  * 5. Full search, rating filter, and sorting.
  */
 
-import { customerApi } from '../../services/customer.api.js';
+import { customerApi } from '../../services/customer.api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';

@@ -12,7 +12,7 @@
  * 1024px, where a seven-column table would force horizontal scrolling.
  */
 
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

@@ -12,7 +12,7 @@
  * Route: /account, /customer
  */
 
-import { customerApi } from '../../services/customer.api.js';
+import { customerApi } from '../../services/customer.api.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { Button } from '../../components/ui/Button.ts';

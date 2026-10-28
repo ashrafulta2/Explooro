@@ -9,7 +9,7 @@
  * 4. Filter chips by transit status.
  */
 
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

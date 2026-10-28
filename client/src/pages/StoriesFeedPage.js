@@ -7,8 +7,8 @@
  * - Top hero banner carousel (fed live from Editor Banner Manager).
  */
 
-import { listStories, listBanners, createStory } from '../services/content.api.js';
-import { adsApi } from '../services/ads.api.js';
+import { listStories, listBanners, createStory } from '../services/content.api.ts';
+import { adsApi } from '../services/ads.api.ts';
 import { Button } from '../components/ui/Button.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';

@@ -18,7 +18,7 @@ import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
-import { loadCategoriesStyles } from '../../styles/loadCategoriesStyles.js';
+import { loadCategoriesStyles } from '../../styles/loadCategoriesStyles.ts';
 
 export default function CategoriesPage(root, { navigate } = {}) {
   loadCategoriesStyles();

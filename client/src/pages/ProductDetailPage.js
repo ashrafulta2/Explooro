@@ -30,7 +30,7 @@ import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { resolveProductImage } from '../components/product/ProductCard.ts';
 import { addToCart } from '../services/cart.js';
 import { track, startDwell } from '../services/signals.js';
-import * as catalogApi from '../services/catalog.api.js';
+import * as catalogApi from '../services/catalog.api.ts';
 import { updateHead, buildProductJsonLd } from '../services/seo.ts';
 import { api } from '../core/api.ts';
 import { openTeamPurchaseModal } from '../components/product/TeamPurchaseModal.js';

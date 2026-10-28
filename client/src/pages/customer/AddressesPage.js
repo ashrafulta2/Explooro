@@ -12,7 +12,7 @@
  * Route: /account/addresses (alias: /customer/addresses)
  */
 
-import { customerApi } from '../../services/customer.api.js';
+import { customerApi } from '../../services/customer.api.ts';
 import { BANGLADESH_DIVISIONS, getDistrictsByDivision, getUpazilasByDistrict, getDivisionById, getDistrictById } from '../../data/bangladeshGeo.ts';
 import { isValidBdPhone, normalizeBdPhone } from '../../components/checkout/AddressForm.js';
 import { t } from '../../services/i18n.js';

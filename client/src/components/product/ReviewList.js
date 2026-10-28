@@ -15,7 +15,7 @@ import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
 import { Pagination } from '../ui/Pagination.ts';
 import { toast } from '../../services/toast.js';
-import * as catalogApi from '../../services/catalog.api.js';
+import * as catalogApi from '../../services/catalog.api.ts';
 
 const SORT_OPTIONS = [
   { value: 'newest', i18n: 'product_detail.review.sort_newest' },

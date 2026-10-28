@@ -16,7 +16,7 @@
 
 import { Button } from '../components/ui/Button.ts';
 import { Input } from '../components/ui/Input.ts';
-import { adsApi } from '../services/ads.api.js';
+import { adsApi } from '../services/ads.api.ts';
 import { toast } from '../services/toast.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { formatCurrency, formatNumber } from '../services/format.js';

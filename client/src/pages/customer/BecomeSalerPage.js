@@ -13,7 +13,7 @@
  * Route: /account/become-saler, /customer/become-saler, /become-saler
  */
 
-import { customerApi } from '../../services/customer.api.js';
+import { customerApi } from '../../services/customer.api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

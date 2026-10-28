@@ -11,8 +11,8 @@
  * Route: /account/following
  */
 
-import { customerApi } from '../../services/customer.api.js';
-import { adsApi } from '../../services/ads.api.js';
+import { customerApi } from '../../services/customer.api.ts';
+import { adsApi } from '../../services/ads.api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatBdt, formatNumber, formatRelativeTime, formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

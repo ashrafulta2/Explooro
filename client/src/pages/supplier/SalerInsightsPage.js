@@ -8,7 +8,7 @@
  * - Full-width Regional Demand Breakdown card placed underneath with spacious 4-column district grid.
  */
 
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

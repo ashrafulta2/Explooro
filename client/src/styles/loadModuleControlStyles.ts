@@ -1,8 +1,8 @@
 /**
- * loadModuleControlStyles.js — loads module-control.css for the Module Toggles page.
+ * loadModuleControlStyles.ts — loads module-control.css for the Module Toggles page.
  *
  * WHY this indirection exists, rather than `import './components/module-control.css'` at the top
- * of ModuleControlPage.js (same reasoning as loadAdStoreStyles.js):
+ * of ModuleControlPage.js (same reasoning as loadAdStoreStyles.ts):
  *
  *   1. It must not go into main.css. The stylesheet is ~7.5KB raw (~1KB gzipped) and serves one
  *      super-admin-only page, so the entry CSS budget should not carry it. Kept here, Vite emits
@@ -16,11 +16,11 @@
  * Idempotent: the promise is cached, so mounting the page twice does not re-request the chunk.
  */
 
-import { trackStyleLoad } from '../core/styleGate.js';
+import { trackStyleLoad } from '../core/styleGate.ts';
 
-let stylesPromise = null;
+let stylesPromise: Promise<unknown> | null = null;
 
-export function loadModuleControlStyles() {
+export function loadModuleControlStyles(): Promise<unknown> {
   if (!stylesPromise) {
     stylesPromise = trackStyleLoad(
       import('./components/module-control.css').catch(() => {

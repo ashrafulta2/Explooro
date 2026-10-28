@@ -10,7 +10,7 @@
  * 5. 100% Bilingual localization (English & Bengali).
  */
 
-import { salerApi } from '../../services/saler.api.js';
+import { salerApi } from '../../services/saler.api.ts';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

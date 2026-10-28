@@ -11,7 +11,7 @@
  * 6. Live API synchronization with toast notifications and full bilingual i18n (EN/BN).
  */
 
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.ts';

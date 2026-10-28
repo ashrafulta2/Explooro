@@ -1,8 +1,11 @@
 /**
- * saler.api.js — Client API helper for Shop Partner Dashboard & Analytics (Prompt 11.2).
+ * saler.api.ts — Client API helper for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
 import { api } from '../core/api.ts';
+
+/** A request body or query string; the fields are the server's, passed through untouched. */
+type Params = Record<string, any>;
 
 export const salerApi = {
   /**
@@ -40,7 +43,7 @@ export const salerApi = {
    * Fetches detailed time-series analytics, traffic breakdown, and product performance.
    * @param {{ range?: '7d' | '30d' | '90d' }} [params]
    */
-  async getAnalytics({ range = '30d' } = {}) {
+  async getAnalytics({ range = '30d' }: { range?: '7d' | '30d' | '90d' } = {}) {
     return api.get('/saler/analytics', { query: { range } });
   },
 
@@ -62,7 +65,7 @@ export const salerApi = {
    * Fetches curated products in the shop partner's store.
    * @param {{ category?: string, in_stock?: boolean, sort?: string, search?: string }} [params]
    */
-  async getProducts(params = {}) {
+  async getProducts(params: Params = {}) {
     return api.get('/saler/products', { query: params });
   },
 
@@ -71,7 +74,7 @@ export const salerApi = {
    * @param {number|string} id
    * @param {object} payload
    */
-  async updateProduct(id, payload) {
+  async updateProduct(id: number | string, payload: Params) {
     return api.patch(`/saler/products/${id}`, payload);
   },
 
@@ -79,7 +82,7 @@ export const salerApi = {
    * Removes a product from the shop partner's curated store.
    * @param {number|string} id
    */
-  async removeProduct(id) {
+  async removeProduct(id: number | string) {
     return api.delete(`/saler/products/${id}`);
   },
 
@@ -94,7 +97,7 @@ export const salerApi = {
    * Updates physical shop status, schedule, address, or pickup settings.
    * @param {object} payload
    */
-  async updateStoreStatus(payload) {
+  async updateStoreStatus(payload: Params) {
     return api.patch('/saler/store-status', payload);
   },
 
@@ -102,7 +105,7 @@ export const salerApi = {
    * Fetches Shop Partner orders with commission breakdowns.
    * @param {{ status?: string, search?: string, limit?: number }} [params]
    */
-  async getOrders(params = {}) {
+  async getOrders(params: Params = {}) {
     return api.get('/saler/orders', { query: params });
   },
 
@@ -110,7 +113,7 @@ export const salerApi = {
    * Fetches full order detail for a shop partner order.
    * @param {number|string} id
    */
-  async getOrderDetail(id) {
+  async getOrderDetail(id: number | string) {
     return api.get(`/saler/orders/${id}`);
   },
 
@@ -125,7 +128,7 @@ export const salerApi = {
    * Requests an instant payout withdrawal.
    * @param {{ amount: number, method: string, account_number: string, account_name?: string }} payload
    */
-  async requestPayout(payload) {
+  async requestPayout(payload: Params) {
     return api.post('/saler/vault/payouts', payload);
   },
 
@@ -133,7 +136,7 @@ export const salerApi = {
    * Cancels a pending payout request.
    * @param {number|string} id
    */
-  async cancelPayout(id) {
+  async cancelPayout(id: number | string) {
     return api.post(`/saler/vault/payouts/${id}/cancel`);
   },
 
@@ -148,7 +151,7 @@ export const salerApi = {
    * Claims reward for a completed quest.
    * @param {number|string} id
    */
-  async claimQuest(id) {
+  async claimQuest(id: number | string) {
     return api.post(`/saler/quests/${id}/claim`);
   },
 
@@ -156,7 +159,7 @@ export const salerApi = {
    * Fetches monthly merchant leaderboard.
    * @param {{ period?: 'this_month' | 'this_week' | 'all_time' }} [params]
    */
-  async getLeaderboard(params = {}) {
+  async getLeaderboard(params: Params = {}) {
     return api.get('/saler/leaderboard', { query: params });
   },
 
@@ -171,7 +174,7 @@ export const salerApi = {
    * Generates a tracked affiliate short link for social marketing.
    * @param {{ product_id?: number|string, source_channel?: string }} payload
    */
-  async createSocialKitLink(payload) {
+  async createSocialKitLink(payload: Params) {
     return api.post('/saler/social-kit/links', payload);
   },
 
@@ -187,7 +190,7 @@ export const salerApi = {
    * Subscribes to a plan; a paid plan is charged from the Vault up front.
    * @param {{ plan_id: number|string, auto_renew?: boolean }} payload
    */
-  async subscribeToPlan(payload) {
+  async subscribeToPlan(payload: Params) {
     return api.post('/subscriptions/subscribe', payload);
   },
 

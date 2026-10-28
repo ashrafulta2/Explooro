@@ -22,7 +22,7 @@ import {
   acceptSurgeRecommendation,
   dismissSurgeRecommendation,
 } from '../../services/bundle.api.ts';
-import { getSalerStoreItems } from '../../services/catalog.api.js';
+import { getSalerStoreItems } from '../../services/catalog.api.ts';
 import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfitBreakdown.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';

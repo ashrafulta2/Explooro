@@ -32,7 +32,7 @@ import { Switch } from '../../components/ui/Switch.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { ICONS } from '../../components/ui/icons.ts';
-import { loadAdminCockpitStyles } from '../../styles/loadAdminCockpitStyles.js';
+import { loadAdminCockpitStyles } from '../../styles/loadAdminCockpitStyles.ts';
 import {
   AUTO_REFRESH_MS,
   KPI_GROUPS,

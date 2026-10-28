@@ -6,7 +6,7 @@
  * WHY the rules are shown: a grade a supplier cannot explain is one they cannot improve, and the
  * numbers (weights, cutoffs, the dispatch SLA) are admin settings that can change.
  */
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';

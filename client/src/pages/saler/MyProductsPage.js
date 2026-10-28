@@ -14,7 +14,7 @@
  * are paid monthly from the reward pool by score, so a partner has no price to set and no per-sale profit.
  */
 
-import { salerApi } from '../../services/saler.api.js';
+import { salerApi } from '../../services/saler.api.ts';
 import { formatCurrency } from '../../services/format.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

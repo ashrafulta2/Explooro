@@ -20,7 +20,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { listB2bDeals, releaseMilestone } from '../../services/b2bEscrow.api.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
-import { trackStyleLoad } from '../../core/styleGate.js';
+import { trackStyleLoad } from '../../core/styleGate.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 // WHY dynamic: Vite splits this into the route's CSS chunk (keeping it out of the entry bundle's

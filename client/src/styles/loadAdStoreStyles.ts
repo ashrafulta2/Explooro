@@ -1,5 +1,5 @@
 /**
- * loadAdStoreStyles.js — loads ad-store.css for the two pages that need it.
+ * loadAdStoreStyles.ts — loads ad-store.css for the two pages that need it.
  *
  * WHY this indirection exists, rather than `import './components/ad-store.css'` at the top of each
  * page:
@@ -18,11 +18,11 @@
  * Idempotent: the promise is cached, so mounting the page twice does not re-request the chunk.
  */
 
-import { trackStyleLoad } from '../core/styleGate.js';
+import { trackStyleLoad } from '../core/styleGate.ts';
 
-let stylesPromise = null;
+let stylesPromise: Promise<unknown> | null = null;
 
-export function loadAdStoreStyles() {
+export function loadAdStoreStyles(): Promise<unknown> {
   if (!stylesPromise) {
     stylesPromise = trackStyleLoad(
       import('./components/ad-store.css').catch(() => {

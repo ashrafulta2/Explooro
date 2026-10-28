@@ -20,7 +20,7 @@ import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatBdt, formatNumber, formatRelativeTime } from '../../services/format.js';
-import { REPORT_REASONS, errorText } from '../../services/community.api.js';
+import { REPORT_REASONS, errorText } from '../../services/community.api.ts';
 
 function stars(n) {
   // WHY an SVG and not the ★ glyph: amber text on white is ~1.5:1, and a filled-versus-hollow shape

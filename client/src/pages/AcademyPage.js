@@ -7,7 +7,7 @@
  * - Digital Completion Certificate modal upon achieving 100% course progress.
  */
 
-import { listAcademyCourses, getAcademyCourseDetail, markLessonCompleted } from '../services/content.api.js';
+import { listAcademyCourses, getAcademyCourseDetail, markLessonCompleted } from '../services/content.api.ts';
 import { Button } from '../components/ui/Button.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';

@@ -14,7 +14,7 @@ import {
   upsertTranslationKey,
   exportTranslationsJson,
   importTranslationsJson,
-} from '../../services/content.api.js';
+} from '../../services/content.api.ts';
 
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

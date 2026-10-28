@@ -9,9 +9,9 @@
  * directory, live lobby, flash strip) are booked slots served by adsApi.listReservedPlacements.
  */
 
-import { adsApi } from '../../services/ads.api.js';
+import { adsApi } from '../../services/ads.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.js';
+import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.ts';
 import { SponsoredSlot } from './SponsoredSlot.js';
 
 export interface SponsoredStripOptions {

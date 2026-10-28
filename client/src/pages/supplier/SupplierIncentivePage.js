@@ -7,7 +7,7 @@
  * next month so no shop partner is moved onto worse tiers mid-month, and a supplier who edits tiers and then
  * sees the old ones still live needs to be told that is intended, not that the save failed.
  */
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Switch } from '../../components/ui/Switch.ts';

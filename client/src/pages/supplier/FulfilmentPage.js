@@ -8,7 +8,7 @@
  * - Printable Thermal Shipping Labels with courier barcodes.
  */
 
-import { supplierApi } from '../../services/supplier.api.js';
+import { supplierApi } from '../../services/supplier.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';

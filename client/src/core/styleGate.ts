@@ -1,5 +1,5 @@
 /**
- * styleGate.js — lets the router hold a page back until its lazy stylesheet has arrived.
+ * styleGate.ts — lets the router hold a page back until its lazy stylesheet has arrived.
  *
  * WHY: page CSS that is split out of main.css (70KB gzip budget) is pulled in with a dynamic
  * `import('./x.css')` from inside the page function, which is not awaited — the page mounts its
@@ -11,11 +11,11 @@
  * Pure JS with no DOM access, so Node's test runner can import every loader that uses it.
  */
 
-const pending = new Set();
+const pending = new Set<Promise<unknown>>();
 
 /** Registers an in-flight stylesheet load. Returns the same promise. Never rejects the gate: a
  * failed stylesheet must not keep a page hidden, so settling in either direction releases it. */
-export function trackStyleLoad(promise) {
+export function trackStyleLoad<T>(promise: Promise<T>): Promise<T> {
   pending.add(promise);
   const release = () => pending.delete(promise);
   promise.then(release, release);
@@ -24,7 +24,7 @@ export function trackStyleLoad(promise) {
 
 /** Resolves once every stylesheet requested so far has settled; `null` when nothing is in flight
  * so the common case (CSS already cached) costs the router nothing. */
-export function stylesPending() {
+export function stylesPending(): Promise<PromiseSettledResult<unknown>[]> | null {
   if (pending.size === 0) return null;
   return Promise.allSettled([...pending]);
 }

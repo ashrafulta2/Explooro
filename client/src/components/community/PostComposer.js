@@ -21,7 +21,7 @@ import { toast } from '../../services/toast.js';
 import { formatNumber } from '../../services/format.js';
 import {
   ROLE_KINDS, AUDIENCES, getComposerProducts, createPost, createAnnouncement, errorText,
-} from '../../services/community.api.js';
+} from '../../services/community.api.ts';
 
 const MAX_STEPS = 8;
 const MAX_TIERS = 5;

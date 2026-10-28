@@ -16,7 +16,7 @@ import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
-import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.js';
+import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.ts';
 
 /**
  * Which rate-card fields each pricing model actually uses, and how to label them.

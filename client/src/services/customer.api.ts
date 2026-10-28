@@ -1,5 +1,8 @@
 import { api } from '../core/api.ts';
 
+/** A request body or query string; the fields are the server's, passed through untouched. */
+type Params = Record<string, any>;
+
 export const customerApi = {
   /**
    * Fetches customer dashboard summary telemetry.
@@ -11,7 +14,7 @@ export const customerApi = {
   /**
    * Fetches customer orders with tracking and item details.
    */
-  async getOrders(params = {}) {
+  async getOrders(params: Params = {}) {
     const searchParams = new URLSearchParams();
     if (params.status && params.status !== 'ALL') searchParams.set('status', params.status);
     if (params.limit) searchParams.set('limit', params.limit);
@@ -31,7 +34,7 @@ export const customerApi = {
   /**
    * Toggles following a store.
    */
-  async toggleFollow(storeId) {
+  async toggleFollow(storeId: number | string) {
     return api.post(`/customer/follow/${storeId}`);
   },
 
@@ -52,7 +55,7 @@ export const customerApi = {
   /**
    * Fetches customer's submitted reviews and review KPIs.
    */
-  async getReviews(params = {}) {
+  async getReviews(params: Params = {}) {
     const searchParams = new URLSearchParams();
     if (params.sort) searchParams.set('sort', params.sort);
     if (params.rating) searchParams.set('rating', params.rating);
@@ -73,21 +76,21 @@ export const customerApi = {
   /**
    * Submits a customer review for a delivered product.
    */
-  async submitReview(payload) {
+  async submitReview(payload: Params) {
     return api.post('/account/reviews', payload);
   },
 
   /**
    * Updates an existing customer review.
    */
-  async updateReview(id, payload) {
+  async updateReview(id: number | string, payload: Params) {
     return api.put(`/account/reviews/${id}`, payload);
   },
 
   /**
    * Deletes a customer review.
    */
-  async deleteReview(id) {
+  async deleteReview(id: number | string) {
     return api.delete(`/account/reviews/${id}`);
   },
 
@@ -116,7 +119,7 @@ export const customerApi = {
   /**
    * Creates a new delivery address.
    */
-  async createAddress(payload) {
+  async createAddress(payload: Params) {
     try {
       const res = await api.post('/customer/addresses', payload);
       const newAddr = res?.data || payload;
@@ -132,7 +135,7 @@ export const customerApi = {
     } catch (err) {
       // Local fallback in case of network issue
       const mockId = Date.now();
-      const newAddr = { ...payload, id: mockId, created_at: new Date().toISOString() };
+      const newAddr: Params = { ...payload, id: mockId, created_at: new Date().toISOString() };
       const cached = JSON.parse(localStorage.getItem('explooro_saved_addresses') || '[]');
       if (newAddr.is_default || cached.length === 0) {
         newAddr.is_default = true;
@@ -147,7 +150,7 @@ export const customerApi = {
   /**
    * Updates an existing delivery address.
    */
-  async updateAddress(id, payload) {
+  async updateAddress(id: number | string, payload: Params) {
     try {
       const res = await api.put(`/customer/addresses/${id}`, payload);
       const updated = res?.data || { ...payload, id: Number(id) };
@@ -174,7 +177,7 @@ export const customerApi = {
   /**
    * Deletes a delivery address.
    */
-  async deleteAddress(id) {
+  async deleteAddress(id: number | string) {
     try {
       const res = await api.delete(`/customer/addresses/${id}`);
       try {
@@ -202,7 +205,7 @@ export const customerApi = {
   /**
    * Sets an address as the default delivery address.
    */
-  async setDefaultAddress(id) {
+  async setDefaultAddress(id: number | string) {
     try {
       const res = await api.patch(`/customer/addresses/${id}/default`);
       try {

@@ -9,7 +9,7 @@
  * there is no "post" button, so "never auto-publish" holds by construction, not by a checkbox.
  */
 import { api } from '../../core/api.ts';
-import { getSalerStoreItems } from '../../services/catalog.api.js';
+import { getSalerStoreItems } from '../../services/catalog.api.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';

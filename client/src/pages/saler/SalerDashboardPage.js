@@ -11,7 +11,7 @@
  * Route: /saler
  */
 
-import { salerApi } from '../../services/saler.api.js';
+import { salerApi } from '../../services/saler.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { can } from '../../services/permissions.js';
 import { t } from '../../services/i18n.js';

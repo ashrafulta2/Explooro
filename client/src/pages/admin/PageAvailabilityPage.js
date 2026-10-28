@@ -21,7 +21,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { setPageToggles, getPageToggles, PAGE_STATES } from '../../services/pageAccess.js';
 import { listPages, PAGE_PORTALS, pageLabel } from '../../config/pageRegistry.js';
 
-import { trackStyleLoad } from '../../core/styleGate.js';
+import { trackStyleLoad } from '../../core/styleGate.ts';
 // WHY dynamic: Vite splits this into the route's CSS chunk, keeping it out of the entry bundle,
 // whose gzipped budget (70KB, client/vite.config.js) is close to its ceiling. The node:test suite
 // also imports page modules directly, where a static `.css` import throws

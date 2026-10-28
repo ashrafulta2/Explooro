@@ -5,7 +5,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
-import { customerApi } from '../../services/customer.api.js';
+import { customerApi } from '../../services/customer.api.ts';
 import '../../styles/components/customer-reviews.css';
 
 export function openWriteReviewModal({ item = null, existingReview = null, onSaved = null }) {

@@ -5,7 +5,7 @@
  * converting raw analytics into concrete daily shop partner tasks.
  */
 
-import { salerApi } from '../../services/saler.api.js';
+import { salerApi } from '../../services/saler.api.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../ui/Button.ts';

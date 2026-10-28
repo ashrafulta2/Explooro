@@ -31,7 +31,7 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { addToCart } from '../../services/cart.js';
 import { getFeed } from '../../services/discovery.api.js';
 import { recordEvent, MIN_DWELL_MS } from '../../services/signals.js';
-import { getProduct, addToSalerStore } from '../../services/catalog.api.js';
+import { getProduct, addToSalerStore } from '../../services/catalog.api.ts';
 import { resolveProductImage } from './ProductCard.ts';
 import { VariantSelector } from './VariantSelector.ts';
 import { WishlistButton } from '../cart/WishlistButton.ts';
