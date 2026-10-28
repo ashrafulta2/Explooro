@@ -5,7 +5,7 @@
  * live price change warnings, stock ceilings, and optimistic updates.
  */
 
-import { mockDeliveryCharge } from './delivery.js';
+import { mockDeliveryCharge } from './delivery.ts';
 
 export let mockCartItems = [
   {

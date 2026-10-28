@@ -7,7 +7,7 @@
  *
  * Persisted to localStorage, not just to a module-level Map: the whole point of the feature is
  * that a page the super admin parks STAYS parked, and a mock that forgets on reload is the exact
- * failure that made the module switchboard look broken for nine phases (see mocks/moduleState.js).
+ * failure that made the module switchboard look broken for nine phases (see mocks/moduleState.ts).
  *
  * Validation is duplicated here in miniature — the lock list and the four states — so the mock
  * refuses what the real API refuses. client/test/pageAvailability.test.js asserts the lists match

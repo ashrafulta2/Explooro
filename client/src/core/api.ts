@@ -234,7 +234,7 @@ async function performMock(method: HttpMethod, path: string, { body, query, para
   // WHY dynamic: the mock layer (~550KB raw, every handler and fixture) must not sit in the entry's
   // static import graph. It loads on the first mock request, in parallel with first paint, and a live
   // deployment never fetches it at all.
-  const { handleMockRequest } = await import('../mocks/index.js');
+  const { handleMockRequest } = await import('../mocks/index.ts');
   return handleMockRequest({ method, path, query: q, body });
 }
 

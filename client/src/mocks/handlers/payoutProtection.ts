@@ -1,10 +1,13 @@
 /**
- * payoutProtection.js — Mock handlers for Fast Payout and Return Protection (supplier attraction, step 5).
+ * payoutProtection.ts — Mock handlers for Fast Payout and Return Protection (supplier attraction, step 5).
  *
  * Same shapes as the real endpoints (services/fastPayout.service.ts, services/returnProtection.service.ts).
  * An entry can only be taken once and a refused entry stays refused, as on the server. It does NOT move
  * money - the mock has no ledger - so no balance changes here.
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const RULES = { fee_pct_by_grade: { A: 1, B: 1.5, C: 2.5 }, ungraded_fee_pct: 2, min_amount: 100, max_per_request: 50000, max_outstanding: 100000, min_days_saved: 2, blocked_grades: ['D'] };
 const PROTECTION_RULES = { enabled: true, premium_pct: 10, max_claim_amount: 5000, max_claims_per_saler_30d: 5, blocked_grades: ['D'], premium_batch: 200 };
@@ -138,6 +141,6 @@ const fastPayoutHandlers = [
       },
     }),
   },
-];
+] satisfies MockRoute[];
 
 export default fastPayoutHandlers;

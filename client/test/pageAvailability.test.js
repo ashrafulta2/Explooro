@@ -277,15 +277,15 @@ describe('page availability — the admin surface is registered and guarded', ()
 
 describe('mock mode serves the public endpoints the client boots from', () => {
   it('GET /modules has a handler (its absence reset every module toggle on reload)', () => {
-    const handler = read('src/mocks/handlers/modules.js');
+    const handler = read('src/mocks/handlers/modules.ts');
     assert.match(handler, /path: '\/modules'/);
-    const index = read('src/mocks/index.js');
+    const index = read('src/mocks/index.ts');
     assert.match(index, /moduleHandlers/);
     assert.match(index, /pageAccessHandlers/);
   });
 
   it('the mock module state is persisted, so a toggle survives a reload', () => {
-    const state = read('src/mocks/moduleState.js');
+    const state = read('src/mocks/moduleState.ts');
     assert.match(state, /localStorage\.setItem/);
     assert.match(state, /export function persistModuleState/);
     const admin = read('src/mocks/handlers/admin.js');

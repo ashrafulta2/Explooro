@@ -3,7 +3,7 @@
  */
 import products from '../fixtures/products.json' with { type: 'json' };
 import stores from '../fixtures/stores.json' with { type: 'json' };
-import { resolveMockMediaUrl } from './media.js';
+import { resolveMockMediaUrl } from './media.ts';
 
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;

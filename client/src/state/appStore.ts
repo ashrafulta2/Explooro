@@ -127,7 +127,7 @@ const DEMO_MODULES = {
   // added here. core/router.js's hasModule() is strict — `ctx.modules[key] === true`, an absent
   // key is NOT "enabled by default" the way featureFlags.ts's isFeatureEnabled() treats it — so
   // all five routes failed their module guard and silently redirected to `/`. In mock mode nothing
-  // ever repairs this: initFeatureFlags() fetches GET /modules, mocks/index.js has no handler for
+  // ever repairs this: initFeatureFlags() fetches GET /modules, mocks/index.ts has no handler for
   // that path, and the 404 lands in the catch that falls back to exactly this object.
   // client/test/moduleGates.test.js asserts every route module key has an entry here.
   supplier_verification: true,

@@ -207,7 +207,7 @@ function touchThread(threadId, message) {
 
 /**
  * Appends a message to the in-memory store and returns it hydrated.
- * Exported because the mock WebSocket transport (`mocks/chatSocket.js`) persists through here —
+ * Exported because the mock WebSocket transport (`mocks/chatSocket.ts`) persists through here —
  * a message sent over the socket must still be there when the thread is reopened over HTTP.
  */
 export function appendMockMessage({ threadId, senderId, content, clientMsgId = null, msgType = 'TEXT', payloadJson = {}, senderName = null, senderRole = null }) {

@@ -13,7 +13,7 @@
  */
 
 import { getMockSessionUser } from './auth.js';
-import { resolveMockMediaUrl } from './media.js';
+import { resolveMockMediaUrl } from './media.ts';
 
 const PROFILE_KEY = 'explooro.mock.profile';
 

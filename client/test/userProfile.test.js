@@ -30,7 +30,7 @@ const mainCss = read('src/styles/main.css');
 const profileCss = read('src/styles/components/profile.css');
 const pageSrc = read('src/pages/settings/ProfilePage.js');
 const mockSrc = read('src/mocks/handlers/me.js');
-const mocksIndexSrc = read('src/mocks/index.js');
+const mocksIndexSrc = read('src/mocks/index.ts');
 
 /**
  * Every /account/* surface, and the three names each one is known by: the BEM prefix its markup
@@ -241,10 +241,10 @@ test('3. Styling is wired up', async (t) => {
 });
 
 test('4. The mock driver matches the live API contract', async (t) => {
-  await t.test('mocks/index.js registers the /me and /media handlers', () => {
+  await t.test('mocks/index.ts registers the /me and /media handlers', () => {
     assert.match(mocksIndexSrc, /import meHandlers from '\.\/handlers\/me\.js';/);
     assert.match(mocksIndexSrc, /\.\.\.meHandlers,/);
-    assert.match(mocksIndexSrc, /import mediaHandlers from '\.\/handlers\/media\.js';/);
+    assert.match(mocksIndexSrc, /import mediaHandlers from '\.\/handlers\/media\.ts';/);
     assert.match(mocksIndexSrc, /\.\.\.mediaHandlers,/);
   });
 

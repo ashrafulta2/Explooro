@@ -1,5 +1,5 @@
 /**
- * genie.js — Mock API handlers for the popup genie-effect policy.
+ * genie.ts — Mock API handlers for the popup genie-effect policy.
  *
  * Mirrors server/src/routes/genie.routes.ts so the whole feature is demonstrable with
  * VITE_API_MODE=mock and no database (Master Instruction: every integration ships a mock driver).
@@ -10,6 +10,7 @@
  */
 
 import { GENIE_DEFAULTS, GENIE_LIMITS, GENIE_QUALITIES } from '../../lib/genie.ts';
+import type { MockRoute } from '../types.ts';
 
 const STORAGE_KEY = 'explooro:mock:genie:policy';
 
@@ -157,6 +158,6 @@ export const genieHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default genieHandlers;

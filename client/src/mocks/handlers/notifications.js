@@ -231,7 +231,7 @@ export const notificationHandlers = [
   },
 
   // 4. Mark all as read — literal path, registered before /notifications/:id/read so the
-  //    first-match-wins loop in mocks/index.js cannot bind "read-all" as an :id.
+  //    first-match-wins loop in mocks/index.ts cannot bind "read-all" as an :id.
   {
     method: 'POST',
     path: '/notifications/read-all',

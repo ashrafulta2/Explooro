@@ -4,6 +4,9 @@
  * real request/response round trip (with mock latency, via core/api.ts) instead of a fire-and-
  * forget stub, so the deferred-envelope UI path (docs/api-contract.md §2.2) is exercised now.
  */
+
+
+import type { MockRoute } from '../types.ts';
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
@@ -29,4 +32,4 @@ export default [
       };
     },
   },
-];
+] satisfies MockRoute[];

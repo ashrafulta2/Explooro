@@ -1,10 +1,13 @@
 /**
- * delivery.js — Mock API handlers for the per-parcel delivery charge.
+ * delivery.ts — Mock API handlers for the per-parcel delivery charge.
  *
  * Mirrors server/src/routes/deliveryCharge.routes.ts. The mock cart (handlers/cart.js) prices
  * delivery with the same value, so a change here shows up in the cart, as it does against the API.
- * Persisted to localStorage for the same reason handlers/genie.js does: "does it survive a reload?"
+ * Persisted to localStorage for the same reason handlers/genie.ts does: "does it survive a reload?"
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const STORAGE_KEY = 'explooro:mock:delivery:policy';
 const LIMITS = { min: 0, max: 5000 };
@@ -88,6 +91,6 @@ export const deliveryHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default deliveryHandlers;

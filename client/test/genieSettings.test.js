@@ -23,7 +23,7 @@ import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
 import { navItems } from '../src/config/navigation.js';
-import { genieHandlers } from '../src/mocks/handlers/genie.js';
+import { genieHandlers } from '../src/mocks/handlers/genie.ts';
 import { applyGeniePolicy } from '../src/services/genieSettings.ts';
 import { getGenieConfig, configureGenie, GENIE_DEFAULTS, GENIE_LIMITS } from '../src/lib/genie.ts';
 

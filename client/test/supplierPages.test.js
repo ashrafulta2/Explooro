@@ -285,7 +285,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
 
   await t.test('POST /products links uploaded photos via media_ids and rejects unknown ones', async () => {
     const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
-    const { default: mediaHandlers } = await import('../src/mocks/handlers/media.js');
+    const { default: mediaHandlers } = await import('../src/mocks/handlers/media.ts');
     const upload = mediaHandlers.find((h) => h.path === '/media/direct');
     const create = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
     const a = upload.handler({ body: { purpose: 'PRODUCT', data_base64: 'data:image/png;base64,AAAA' } }).body.asset;
@@ -304,7 +304,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
 
   await t.test('PATCH /products/:ref takes live field names and replaces photos, keeping attached ones', async () => {
     const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
-    const { default: mediaHandlers } = await import('../src/mocks/handlers/media.js');
+    const { default: mediaHandlers } = await import('../src/mocks/handlers/media.ts');
     const upload = mediaHandlers.find((h) => h.path === '/media/direct');
     const create = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
     const patch = productHandlers.find((h) => h.method === 'PATCH' && h.path === '/products/:id');

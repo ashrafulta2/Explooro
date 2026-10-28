@@ -16,7 +16,7 @@
  * leaves the timeline and enters the moderation queue) are the same ones the server enforces.
  */
 import { appStore } from '../../state/appStore.ts';
-import { resolveMockMedia } from './media.js';
+import { resolveMockMedia } from './media.ts';
 import { pushMockNotification } from './notifications.js';
 
 // Mirrors THRESHOLD_LIMITS in server/src/services/communityPost.service.ts; the value changes through

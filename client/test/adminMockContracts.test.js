@@ -155,7 +155,7 @@ describe('Admin mock handlers match the server contract', () => {
 
 describe('Mock routes are not shadowed by a second declaration', () => {
   it('no method+path is declared in two handler files', () => {
-    // mocks/index.js spreads the handler arrays in order and handleMockRequest() returns the
+    // mocks/index.ts spreads the handler arrays in order and handleMockRequest() returns the
     // FIRST match, so a duplicate silently wins over — or loses to — the other and the two drift.
     // admin.js used to redeclare all four /admin/returns/* routes returns.js owns.
     const dir = join(root, 'src/mocks/handlers');

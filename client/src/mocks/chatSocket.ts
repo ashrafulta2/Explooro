@@ -1,5 +1,5 @@
 /**
- * chatSocket.js — mock transport for the chat WebSocket (Prompt 8.4).
+ * chatSocket.ts — mock transport for the chat WebSocket (Prompt 8.4).
  *
  * WHY a fake socket rather than a mocked HTTP route: `services/websocket.ts` owns the reconnect
  * backoff, the IndexedDB outbound queue and the status emitters, and none of that should be
@@ -24,8 +24,19 @@ const ACK_MS = 160;
 const TYPING_MS = 900;
 const REPLY_MS = 2400;
 
-export function createMockChatSocket() {
-  const timers = new Set();
+/** The slice of `WebSocket` the chat manager touches (services/websocket.ts `ChatSocket`). */
+export interface MockChatSocket {
+  readyState: number;
+  onopen: ((event: unknown) => void) | null;
+  onmessage: ((event: { data: string }) => void) | null;
+  onclose: ((event: { code: number; reason: string }) => void) | null;
+  onerror: ((event: unknown) => void) | null;
+  send(raw: string): void;
+  close(): void;
+}
+
+export function createMockChatSocket(): MockChatSocket {
+  const timers = new Set<ReturnType<typeof setTimeout>>();
 
   const socket = {
     readyState: 0,
@@ -33,9 +44,9 @@ export function createMockChatSocket() {
     onmessage: null,
     onclose: null,
     onerror: null,
-  };
+  } as MockChatSocket;
 
-  function later(fn, ms) {
+  function later(fn: () => void, ms: number) {
     const id = setTimeout(() => {
       timers.delete(id);
       if (socket.readyState === OPEN) fn();
@@ -67,7 +78,7 @@ export function createMockChatSocket() {
     };
   }
 
-  function handleSend(payload) {
+  function handleSend(payload: Record<string, any>) {
     const threadId = Number(payload.thread_id);
     const stored = appendMockMessage({
       threadId,
@@ -100,8 +111,8 @@ export function createMockChatSocket() {
     }, REPLY_MS);
   }
 
-  socket.send = (raw) => {
-    let frame;
+  socket.send = (raw: string) => {
+    let frame: Record<string, any>;
     try {
       frame = JSON.parse(raw);
     } catch {

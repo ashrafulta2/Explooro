@@ -217,10 +217,10 @@ class WebSocketManager {
       const wsUrl = `${protocol}//${host}/ws?ticket=${ticket}`;
 
       // WHY dynamic: keeps the mock socket out of the entry bundle; live mode never loads it.
-      // The cast: chatSocket.js adds send/close after building the object, so they are not in its
+      // The cast: chatSocket.ts adds send/close after building the object, so they are not in its
       // inferred type, but it implements exactly the ChatSocket slice (see its header).
       this.socket = MOCK_MODE
-        ? ((await import('../mocks/chatSocket.js')).createMockChatSocket() as unknown as ChatSocket)
+        ? ((await import('../mocks/chatSocket.ts')).createMockChatSocket() as unknown as ChatSocket)
         : new WebSocket(wsUrl);
 
       this.socket.onopen = () => {

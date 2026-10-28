@@ -3,7 +3,7 @@
  */
 
 import { getMockSessionUser } from './auth.js';
-import { mockDeliveryCharge } from './delivery.js';
+import { mockDeliveryCharge } from './delivery.ts';
 
 let mockLiveStreams = [
   {

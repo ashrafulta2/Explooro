@@ -1,8 +1,8 @@
 /**
- * mocks/moduleState.js — the one mutable module-flag store the mock API serves from.
+ * mocks/moduleState.ts — the one mutable module-flag store the mock API serves from.
  *
  * WHY this file exists at all: the flag state used to be a `const moduleState = new Map(...)`
- * private to handlers/admin.js, and mocks/index.js had NO handler for the public `GET /modules`
+ * private to handlers/admin.js, and mocks/index.ts had NO handler for the public `GET /modules`
  * endpoint. So in mock mode — the development default (.env.example VITE_API_MODE=mock) —
  * initFeatureFlags() 404'd, fell into its catch, and seeded the flag map from appStore's
  * DEMO_MODULES instead. Two consequences the super admin experienced as "there is no way to turn

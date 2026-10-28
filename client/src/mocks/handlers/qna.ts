@@ -3,6 +3,7 @@
  */
 import seedQuestions from '../fixtures/questions.json' with { type: 'json' };
 import { appStore } from '../../state/appStore.ts';
+import type { MockRoute } from '../types.ts';
 
 let questions = seedQuestions.map((q) => ({ ...q, answers: q.answers.map((a) => ({ ...a })) }));
 let nextQuestionId = Math.max(...questions.map((q) => q.id)) + 1;
@@ -19,7 +20,7 @@ export default [
     handler({ params, query }) {
       const list = questions
         .filter((q) => q.product_ref === params.productId)
-        .sort((a, b) => b.upvote_count - a.upvote_count || new Date(b.created_at) - new Date(a.created_at));
+        .sort((a, b) => b.upvote_count - a.upvote_count || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       const page = Number(query.page) || 1;
       const pageSize = Math.min(Number(query.page_size) || 10, 50);
@@ -46,7 +47,7 @@ export default [
     method: 'POST',
     path: '/products/:productId/questions',
     handler({ params, body }) {
-      const auth = appStore.get().auth || {};
+      const auth: Record<string, any> = appStore.get().auth || {};
       if (!auth.isAuthenticated) {
         return { status: 401, body: { error: { code: 'AUTH_REQUIRED', message_en: 'Sign in required.', message_bn: 'সাইন ইন করা প্রয়োজন।', trace_id: traceId() } } };
       }
@@ -71,7 +72,7 @@ export default [
     method: 'POST',
     path: '/questions/:questionId/answers',
     handler({ params, body }) {
-      const auth = appStore.get().auth || {};
+      const auth: Record<string, any> = appStore.get().auth || {};
       const role = auth.role;
       if (role !== 'saler' && role !== 'supplier') {
         return {
@@ -116,4 +117,4 @@ export default [
       return { status: 200, body: { data: { id: question.id, upvote_count: question.upvote_count } } };
     },
   },
-];
+] satisfies MockRoute[];

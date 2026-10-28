@@ -9,7 +9,7 @@
 // is now read from mocks/moduleState.js, which reads the same seed file the server seeds from, so
 // the dev panel, the live panel and the PUBLIC `GET /modules` endpoint all answer from one map.
 import { mockTeamSettings } from './teamPurchase.js';
-import { moduleRegistry, moduleState, buildAdminModules, persistModuleState } from '../moduleState.js';
+import { moduleRegistry, moduleState, buildAdminModules, persistModuleState } from '../moduleState.ts';
 import permissionCatalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
 
 function traceId() {

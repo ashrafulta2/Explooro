@@ -1,5 +1,5 @@
 /**
- * media.js — Mock media upload, so avatar/photo pickers work with VITE_API_MODE=mock.
+ * media.ts — Mock media upload, so avatar/photo pickers work with VITE_API_MODE=mock.
  *
  * The real POST /media/direct pushes bytes through sharp and the storage driver and hands back a
  * `media_assets` row. Here the browser already holds the bytes as a data URL, so the "asset" is
@@ -10,6 +10,9 @@
  * Persisted to sessionStorage for the tab's lifetime, matching handlers/auth.js's mock session:
  * a page reload must not blank out the avatar the developer just picked.
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const STORE_KEY = 'explooro.mock.media';
 // 6-digit floor keeps mock ids clear of the fixture ids other handlers hardcode.
@@ -81,4 +84,4 @@ export default [
       return { status: 201, body: { asset } };
     },
   },
-];
+] satisfies MockRoute[];

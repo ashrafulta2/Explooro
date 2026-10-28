@@ -1,9 +1,12 @@
 /**
- * attribution.js — Mock API handlers for the sale attribution window (/admin/growth/attribution).
+ * attribution.ts — Mock API handlers for the sale attribution window (/admin/growth/attribution).
  *
  * Mirrors server/src/routes/attributionAdmin.routes.ts. Persisted to localStorage, as
- * handlers/delivery.js is, so "does the save survive a reload?" can be checked in mock mode.
+ * handlers/delivery.ts is, so "does the save survive a reload?" can be checked in mock mode.
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const STORAGE_KEY = 'explooro:mock:attribution:policy';
 // Mirrors attribution.service.ts WINDOW_LIMITS and the migration 076 seed.
@@ -86,4 +89,4 @@ export const attributionHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];

@@ -1,11 +1,14 @@
 /**
- * walletTopup.js — Mock API handlers for vault top-ups (server routes/walletTopup.routes.ts).
+ * walletTopup.ts — Mock API handlers for vault top-ups (server routes/walletTopup.routes.ts).
  *
  * Mirrors the server: the `wallet.topup` rules of migration 088, and the mock gateway, which has no
  * page of its own — POST /wallet/topups answers with a same-site redirect and POST /payments/execute
  * (orders.js, through executeMockTopUp) then marks it paid and credits the balance. The balance and
  * history live for the session only.
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const RULES = { min_amount: 50, max_amount: 25000, daily_limit: 50000, methods: ['BKASH', 'NAGAD', 'CARD'] };
 const GATEWAY = { BKASH: 'BKASH', NAGAD: 'NAGAD', CARD: 'SSLCOMMERZ' };
@@ -39,7 +42,7 @@ export const walletTopupHandlers = [
       return { status: 201, body: { data: { transactionRef: ref, status: 'INITIATED', amount: amount.toFixed(2), gateway: GATEWAY[method], method, redirectUrl: `${back}?paymentId=MOCK-${ref}&status=success` } } };
     },
   },
-];
+] satisfies MockRoute[];
 
 /**
  * Finishes a mock top-up for POST /payments/execute (declared once, in orders.js, which asks here

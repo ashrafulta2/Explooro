@@ -5,7 +5,7 @@
  */
 
 import { clearMockCart } from './cart.js';
-import { executeMockTopUp } from './walletTopup.js';
+import { executeMockTopUp } from './walletTopup.ts';
 
 // transactionRef -> order id, for the mock /payments/* handlers below.
 const mockPayments = new Map();

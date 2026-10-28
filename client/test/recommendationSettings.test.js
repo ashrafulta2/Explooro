@@ -85,7 +85,7 @@ test('Personalized feed admin — client invariants', async (t) => {
   });
 
   await t.test('1d. The page is registered in the mock registry', () => {
-    assert.match(read('src', 'mocks', 'index.js'), /\.\.\.recommendationHandlers/);
+    assert.match(read('src', 'mocks', 'index.ts'), /\.\.\.recommendationHandlers/);
   });
 
   await t.test('2. Locale parity for admin_reco and the nav label', () => {
