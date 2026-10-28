@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { scheduleLabel } from '../src/pages/admin/jobSchedule.js';
+import { scheduleLabel } from '../src/pages/admin/jobSchedule.ts';
 
 test('whole days, hours and minutes get a plain label', () => {
   assert.equal(scheduleLabel(86400000), 'Daily');

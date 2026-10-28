@@ -13,11 +13,21 @@
 
 import { Modal } from '../../components/ui/Modal.ts';
 
-export function supplierModal({ title, body, footer = '', size = 'md', danger = false }) {
+export interface SupplierModalOptions {
+  title: string;
+  /** HTML for the panel. */
+  body: string;
+  /** HTML for the footer row. */
+  footer?: string;
+  size?: string;
+  danger?: boolean;
+}
+
+export function supplierModal({ title, body, footer = '', size = 'md', danger = false }: SupplierModalOptions) {
   const content = document.createElement('div');
   content.innerHTML = body;
 
-  let footerEl = null;
+  let footerEl: HTMLDivElement | null = null;
   if (footer) {
     footerEl = document.createElement('div');
     footerEl.className = 'supplier-modal__footer';
@@ -36,7 +46,7 @@ export function supplierModal({ title, body, footer = '', size = 'md', danger = 
 
   if (danger) modal.querySelector('.modal__title')?.classList.add('text-danger');
 
-  modal.querySelectorAll('.close-modal-btn').forEach((b) => {
+  modal.querySelectorAll<HTMLElement>('.close-modal-btn').forEach((b) => {
     b.onclick = () => modal.close(false);
   });
 

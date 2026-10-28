@@ -18,7 +18,7 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
-import { scheduleLabel } from './jobSchedule.js';
+import { scheduleLabel } from './jobSchedule.ts';
 
 export default function SystemHealthPage(root, { navigate } = {}) {
   loadSystemHealthStyles();

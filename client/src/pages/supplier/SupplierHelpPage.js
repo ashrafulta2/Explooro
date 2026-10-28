@@ -11,7 +11,7 @@
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.ts';
-import { supplierModal } from './supplierModal.js';
+import { supplierModal } from './supplierModal.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 
 export default function SupplierHelpPage(root) {

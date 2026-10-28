@@ -21,7 +21,7 @@ import { getExplooroLogoSvg, ICONS } from '../../components/ui/icons.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { goBack } from '../../core/navBack.ts';
-import { estimateEarnings, programOf } from './referralEstimate.js';
+import { estimateEarnings, programOf } from './referralEstimate.ts';
 
 export class ReferralHubPage {
   constructor(ctx = {}) {

@@ -20,7 +20,7 @@ import { adsApi } from '../services/ads.api.ts';
 import { toast } from '../services/toast.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { formatCurrency, formatNumber } from '../services/format.js';
-import { STEPS, buildCampaignBody, stepComplete } from './advertiseWizard.js';
+import { STEPS, buildCampaignBody, stepComplete } from './advertiseWizard.ts';
 import '../styles/components/advertise.css';
 
 const ESTIMATE_DEBOUNCE_MS = 350;

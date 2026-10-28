@@ -15,7 +15,7 @@ const bn = JSON.parse(read('../src/locales/bn.json'));
 
 let mod;
 before(async () => {
-  mod = await import('../src/pages/advertiseWizard.js');
+  mod = await import('../src/pages/advertiseWizard.ts');
 });
 
 const base = () => ({

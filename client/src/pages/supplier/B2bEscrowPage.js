@@ -31,7 +31,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatCurrency } from '../../services/format.js';
-import { supplierModal } from './supplierModal.js';
+import { supplierModal } from './supplierModal.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 
 export default function B2bEscrowPage(root, ctx = {}) {

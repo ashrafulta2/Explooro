@@ -1,5 +1,5 @@
 /**
- * referralEstimate.js — the Referral Hub calculator's arithmetic, driven by the live programme rules.
+ * referralEstimate.ts — the Referral Hub calculator's arithmetic, driven by the live programme rules.
  *
  * WHY its own file: the rates used to be literals (5% and 2%) typed into the page, so changing the
  * programme at /admin/growth/referrals left the calculator quoting the old numbers. The rules now
@@ -9,10 +9,29 @@
  * (SUB_NETWORK_FACTOR), the same assumption the page always made.
  */
 
+/** The referral programme's public rules (`overview.program`). */
+export interface ReferralProgram {
+  qualifying_event: 'FIRST_ORDER' | 'SIGNUP' | 'FIRST_SALE' | 'KYC_VERIFIED' | string;
+  tier_1_rate_pct: number;
+  tier_2_rate_pct: number;
+  max_tier_depth: number;
+  holding_period_days: number;
+  signup_bonus_bdt: number;
+  first_sale_bonus_bdt: number;
+  kyc_bonus_bdt: number;
+}
+
+/** One figure per tier, and the rounded total. */
+export interface EarningsEstimate {
+  direct: number;
+  sub: number;
+  total: number;
+}
+
 export const SUB_NETWORK_FACTOR = 1.5;
 
 // Used only when the server sent no programme block (older API, failed overview request).
-export const DEFAULT_PROGRAM = Object.freeze({
+export const DEFAULT_PROGRAM: Readonly<ReferralProgram> = Object.freeze({
   qualifying_event: 'FIRST_ORDER',
   tier_1_rate_pct: 5,
   tier_2_rate_pct: 2,
@@ -23,13 +42,13 @@ export const DEFAULT_PROGRAM = Object.freeze({
   kyc_bonus_bdt: 0,
 });
 
-const BONUS_KEY = Object.freeze({
+const BONUS_KEY: Readonly<Record<string, keyof ReferralProgram>> = Object.freeze({
   SIGNUP: 'signup_bonus_bdt',
   FIRST_SALE: 'first_sale_bonus_bdt',
   KYC_VERIFIED: 'kyc_bonus_bdt',
 });
 
-export function programOf(overview) {
+export function programOf(overview?: { program?: Partial<ReferralProgram> | null } | null): ReferralProgram {
   return { ...DEFAULT_PROGRAM, ...(overview?.program || {}) };
 }
 
@@ -37,7 +56,7 @@ export function programOf(overview) {
  * What `friends` direct referrals (and the network under them) would pay, as one figure per tier.
  * A percentage event scales with `spend`; a fixed-bonus event pays the configured taka per person.
  */
-export function estimateEarnings(program, friends, spend) {
+export function estimateEarnings(program: Partial<ReferralProgram> | null | undefined, friends: number, spend: number): EarningsEstimate {
   const p = { ...DEFAULT_PROGRAM, ...(program || {}) };
   const subFriends = Math.round(friends * SUB_NETWORK_FACTOR);
   const bonusKey = BONUS_KEY[p.qualifying_event];

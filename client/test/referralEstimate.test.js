@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { estimateEarnings, programOf, DEFAULT_PROGRAM } from '../src/pages/saler/referralEstimate.js';
+import { estimateEarnings, programOf, DEFAULT_PROGRAM } from '../src/pages/saler/referralEstimate.ts';
 
 test('a percentage programme scales with spend, tier 2 on a 1.5x network', () => {
   const out = estimateEarnings({ tier_1_rate_pct: 5, tier_2_rate_pct: 2 }, 10, 4000);

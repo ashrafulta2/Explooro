@@ -1,5 +1,5 @@
 /**
- * jobSchedule.js — how the System Health page words a scheduler job's interval.
+ * jobSchedule.ts — how the System Health page words a scheduler job's interval.
  *
  * WHY its own file: the interval arrives as milliseconds from `listRegisteredJobs()`, and the
  * table used to show "—" for every row because nothing sent a label. Pure so it can be tested.
@@ -9,7 +9,7 @@ const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
-export function scheduleLabel(intervalMs) {
+export function scheduleLabel(intervalMs: number | string | null | undefined): string | null {
   const ms = Number(intervalMs);
   if (!Number.isFinite(ms) || ms <= 0) return null;
   if (ms % DAY === 0) return ms === DAY ? 'Daily' : `Every ${ms / DAY} days`;
