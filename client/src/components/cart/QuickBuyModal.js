@@ -8,7 +8,7 @@
 
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
-import { AddressForm } from '../checkout/AddressForm.js';
+import { AddressForm } from '../checkout/AddressForm.ts';
 import { PaymentSelector } from '../checkout/PaymentSelector.ts';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.ts';
 import { addToCart } from '../../services/cart.ts';

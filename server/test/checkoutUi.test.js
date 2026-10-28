@@ -17,7 +17,7 @@ import {
   getDistrictsByDivision,
   getUpazilasByDistrict,
 } from '../../client/src/data/bangladeshGeo.ts';
-import { normalizeBdPhone, isValidBdPhone } from '../../client/src/components/checkout/AddressForm.js';
+import { normalizeBdPhone, isValidBdPhone } from '../../client/src/components/checkout/AddressForm.ts';
 import { getStageIndex, ORDER_STAGES } from '../../client/src/components/order/OrderTracker.ts';
 import { generateIdempotencyKey } from '../../client/src/services/order.api.ts';
 

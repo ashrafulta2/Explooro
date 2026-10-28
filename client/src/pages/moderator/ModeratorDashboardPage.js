@@ -15,7 +15,7 @@ import { toast } from '../../services/toast.js';
 import { formatDate } from '../../services/format.js';
 import WorkloadSummary from '../../components/moderator/WorkloadSummary.ts';
 import SlaMonitor from '../../components/moderator/SlaMonitor.ts';
-import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
+import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
 
 export default function ModeratorDashboardPage(root) {
   const container = document.createElement('div');

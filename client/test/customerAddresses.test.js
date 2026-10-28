@@ -74,7 +74,7 @@ test('2. Bangladeshi administrative geography helpers', async (t) => {
 });
 
 test('3. Bangladeshi phone normalization and validation', async (t) => {
-  // Mirrors normalizeBdPhone / isValidBdPhone in AddressForm.js and customerAddress.service.ts.
+  // Mirrors normalizeBdPhone / isValidBdPhone in AddressForm.ts and customerAddress.service.ts.
   const normalize = (input) => {
     const digits = String(input || '').replace(/\D/g, '');
     if (digits.startsWith('8801') && digits.length === 13) return `+${digits}`;

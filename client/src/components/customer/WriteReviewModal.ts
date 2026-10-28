@@ -1,14 +1,24 @@
 /**
- * WriteReviewModal.js — Interactive review writer and editor modal with coin reward calculation.
+ * WriteReviewModal.ts — Interactive review writer and editor modal with coin reward calculation.
  */
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { customerApi } from '../../services/customer.api.ts';
+import type { CustomerReview } from './CustomerReviewCard.ts';
+import type { PendingReviewItem } from './PendingReviewCard.ts';
 import '../../styles/components/customer-reviews.css';
 
-export function openWriteReviewModal({ item = null, existingReview = null, onSaved = null }) {
+export interface WriteReviewModalOptions {
+  /** A delivered order line the customer is reviewing for the first time. */
+  item?: (PendingReviewItem & { product_ref?: string }) | null;
+  /** A review being edited. */
+  existingReview?: (CustomerReview & { store_ref?: string }) | null;
+  onSaved?: ((review: unknown) => void) | null;
+}
+
+export function openWriteReviewModal({ item = null, existingReview = null, onSaved = null }: WriteReviewModalOptions) {
   const isBn = getLanguage() === 'bn';
   const isEditing = Boolean(existingReview);
 
@@ -59,7 +69,7 @@ export function openWriteReviewModal({ item = null, existingReview = null, onSav
   const starText = document.createElement('span');
   starText.className = 'review-modal-star-label';
 
-  function updateStars(rating) {
+  function updateStars(rating: number) {
     currentRating = rating;
     starText.textContent = ratingLabels[rating] || `${rating} Stars`;
 
@@ -127,7 +137,7 @@ export function openWriteReviewModal({ item = null, existingReview = null, onSav
   `;
   form.appendChild(bodyField);
 
-  const bodyInput = bodyField.querySelector('#review-input-body');
+  const bodyInput = bodyField.querySelector<HTMLTextAreaElement>('#review-input-body')!;
 
   // Quick Suggestions Chips
   const tagChipsSection = document.createElement('div');
@@ -270,7 +280,7 @@ export function openWriteReviewModal({ item = null, existingReview = null, onSav
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const titleVal = form.querySelector('#review-input-title')?.value?.trim() || '';
+    const titleVal = form.querySelector<HTMLInputElement>('#review-input-title')?.value?.trim() || '';
     const bodyVal = bodyInput.value.trim();
 
     if (!bodyVal) {

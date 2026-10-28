@@ -19,7 +19,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
 import { escapeHtml as esc } from '../../services/html.ts';
 import { ICONS } from '../../components/ui/icons.ts';
-import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.js';
+import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.ts';
 import '../../styles/components/admin-access.css';
 
 // WHY the English fallback is humanised from the key: a capability added to the API before it has a

@@ -2,7 +2,7 @@
  * homeBands.ts — what the home top band shows each account type.
  *
  * Pure data. A guest keeps the earn panel, and a customer keeps the campaign slider in the middle
- * (both are in HomeTop.js); every other account type gets three panels from here, because a
+ * (both are in HomeTop.ts); every other account type gets three panels from here, because a
  * supplier, moderator or admin has no use for "start earning with zero stock".
  *
  * Rows come in two kinds:

@@ -24,8 +24,8 @@ import { createBackButton } from '../../core/navBack.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatCurrency, formatNumber } from '../../services/format.js';
-import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
-import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.js';
+import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
+import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.ts';
 import { UserTimeline } from '../../components/admin/UserTimeline.ts';
 import '../../styles/components/admin-users.css';
 

@@ -1,5 +1,5 @@
 /**
- * AssistantPanel.js — AI Shopping Concierge / Sourcing Intelligence chat panel (Prompt 10.2).
+ * AssistantPanel.ts — AI Shopping Concierge / Sourcing Intelligence chat panel (Prompt 10.2).
  *
  * Streams a server-sent-events turn from `POST /ai/{concierge|sourcing}/messages` — deliberately
  * not routed through core/api.ts's `request()`, which awaits a full JSON body; this reads the
@@ -20,7 +20,30 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { whyDenied } from '../../services/permissions.js';
 
-const AGENT_CONFIG = {
+export type AgentType = 'concierge' | 'sourcing';
+
+/** One frame of the streamed answer, parsed from an SSE `data:` line. */
+interface AssistantEvent {
+  type: 'meta' | 'text_delta' | 'degraded' | 'products' | 'error' | string;
+  conversation_id?: string;
+  text?: string;
+  items?: ProductCard[];
+  message_bn?: string;
+  message_en?: string;
+}
+
+/** A product card from the structured `products` event. */
+interface ProductCard {
+  id?: number | string;
+  title_en?: string;
+  title_bn?: string;
+  price: number | string;
+  rating_avg?: number;
+  margin_pct?: number | null;
+  stock_qty?: number;
+}
+
+const AGENT_CONFIG: Record<string, { permission: string; module: string; endpoint: string; titleKey: string; emptyKey: string; suggestionKeys: string[] }> = {
   concierge: {
     permission: 'ai.concierge.use',
     module: 'ai_concierge',
@@ -40,8 +63,8 @@ const AGENT_CONFIG = {
 };
 
 /** Reads a fetch Response body as a stream of SSE `data:` frames, parsed as JSON. */
-async function* streamSseEvents(path, body) {
-  const headers = { 'Content-Type': 'application/json', 'Accept-Language': getLanguage() };
+async function* streamSseEvents(path: string, body: unknown): AsyncGenerator<AssistantEvent> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'Accept-Language': getLanguage() };
   const token = getAccessToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -71,7 +94,7 @@ async function* streamSseEvents(path, body) {
   }
 }
 
-function buildProductCard({ card, agentType, isBn, onAddToStore }) {
+function buildProductCard({ card, agentType, isBn, onAddToStore }: { card: ProductCard; agentType: string; isBn: boolean; onAddToStore: (card: ProductCard, button: HTMLButtonElement) => void }) {
   const el = document.createElement('div');
   el.className = 'assistant-panel__product-card';
 
@@ -85,7 +108,7 @@ function buildProductCard({ card, agentType, isBn, onAddToStore }) {
 
   const meta = document.createElement('div');
   meta.className = 'assistant-panel__product-meta';
-  const bits = [];
+  const bits: string[] = [];
   if (card.rating_avg) bits.push(`★ ${card.rating_avg.toFixed(1)}`);
   if (agentType === 'sourcing' && card.margin_pct !== null && card.margin_pct !== undefined) {
     bits.push(`+${Math.round(card.margin_pct)}%`);
@@ -109,7 +132,7 @@ function buildProductCard({ card, agentType, isBn, onAddToStore }) {
   return el;
 }
 
-export function AssistantPanel({ agentType = 'concierge' } = {}) {
+export function AssistantPanel({ agentType = 'concierge' }: { agentType?: AgentType | string } = {}): HTMLDivElement {
   const config = AGENT_CONFIG[agentType] || AGENT_CONFIG.concierge;
   const isBn = getLanguage() === 'bn';
 
@@ -155,14 +178,14 @@ export function AssistantPanel({ agentType = 'concierge' } = {}) {
 
   root.append(disclaimer, messagesEl, suggestionsEl, composerForm);
 
-  let conversationId = null;
+  let conversationId: string | null = null;
   let sending = false;
 
   function scrollToBottom() {
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  function appendUserBubble(text) {
+  function appendUserBubble(text: string) {
     const bubble = document.createElement('div');
     bubble.className = 'assistant-panel__bubble assistant-panel__bubble--user';
     bubble.textContent = text;
@@ -181,7 +204,7 @@ export function AssistantPanel({ agentType = 'concierge' } = {}) {
     return { bubble, textEl };
   }
 
-  async function handleAddToStore(card, btn) {
+  async function handleAddToStore(card: ProductCard, btn: HTMLButtonElement) {
     try {
       btn.disabled = true;
       await api.post('/sourcing/add-to-store', { product_id: card.id });
@@ -192,7 +215,7 @@ export function AssistantPanel({ agentType = 'concierge' } = {}) {
     }
   }
 
-  async function sendMessage(rawText) {
+  async function sendMessage(rawText?: string) {
     const trimmed = (rawText ?? input.value).trim();
     if (!trimmed || sending) return;
     sending = true;
@@ -245,7 +268,7 @@ export function AssistantPanel({ agentType = 'concierge' } = {}) {
 }
 
 /** Opens the panel in a right-side Drawer, self-gating on permission/module state. */
-export function openAssistantPanel({ agentType = 'concierge', trigger = null } = {}) {
+export function openAssistantPanel({ agentType = 'concierge', trigger = null }: { agentType?: AgentType | string; trigger?: Element | null } = {}) {
   const config = AGENT_CONFIG[agentType] || AGENT_CONFIG.concierge;
   const status = whyDenied(config.permission, config.module);
 

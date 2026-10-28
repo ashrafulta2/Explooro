@@ -1,5 +1,5 @@
 /**
- * GrantDrawer.js — Drawer for issuing time-boxed standing grants with natural language preview (Prompt 3.3).
+ * GrantDrawer.ts — Drawer for issuing time-boxed standing grants with natural language preview (Prompt 3.3).
  */
 
 import { Drawer } from '../ui/Drawer.ts';
@@ -24,32 +24,57 @@ const CLIPBOARD_ICON =
 
 /** `YYYY-MM-DD` in the operator's LOCAL calendar — `toISOString()` is UTC and is a day off for
  * anyone east of Greenwich in the early morning (Bangladesh is UTC+6), which moved `min` to yesterday. */
-function toLocalDateInput(date) {
-  const pad = (n) => String(n).padStart(2, '0');
+function toLocalDateInput(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-function addDays(date, days) {
+function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
 }
 
 /** A grant runs THROUGH the chosen day, so it expires at the end of it, in local time. */
-function endOfLocalDay(dateInputValue) {
+function endOfLocalDay(dateInputValue: string) {
   const [y, m, d] = dateInputValue.split('-').map(Number);
   return new Date(y, m - 1, d, 23, 59, 59, 0);
 }
 
 /** "Access live revenue…" reads wrongly after "will be able to"; keep acronyms (KPIs) intact. */
-function lowerFirst(text) {
+function lowerFirst(text: string) {
   if (!text) return text;
   const second = text.charAt(1);
   if (second && second === second.toUpperCase() && second !== second.toLowerCase()) return text;
   return text.charAt(0).toLowerCase() + text.slice(1);
 }
 
-export function openGrantDrawer({ user = null, permissions = [], trigger = null, onSuccess = null }) {
+/** The person a grant is for; a row of the admin user list. */
+export interface GrantTarget {
+  id: number | string;
+  full_name?: string;
+  phone?: string;
+}
+
+/** One permission in the delegable list. */
+export interface GrantablePermission {
+  key: string;
+  risk_tier?: string;
+  plain_en?: string;
+  plain_bn?: string;
+  label_en?: string;
+  label_bn?: string;
+  [field: string]: unknown;
+}
+
+export interface GrantDrawerOptions {
+  user?: GrantTarget | null;
+  permissions?: GrantablePermission[];
+  trigger?: Element | null;
+  onSuccess?: ((result?: unknown) => void) | null;
+}
+
+export function openGrantDrawer({ user = null, permissions = [], trigger = null, onSuccess = null }: GrantDrawerOptions) {
   const isBn = getLanguage() === 'bn';
   const lang = isBn ? 'bn' : 'en';
 
@@ -65,7 +90,7 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
   // WHY resolve instead of sending the typed text: the field invites "ID or phone number", but the
   // API takes a numeric user_id — "01711000004" was coerced to the integer 1711000004 and the grant
   // landed on the wrong account or failed on the foreign key.
-  async function resolveUser(text) {
+  async function resolveUser(text: string) {
     const phone = normaliseBdPhone(text);
     if (!phone && /^\d+$/.test(text)) {
       try {
@@ -141,7 +166,7 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
 
   let selectedPerm = delegablePerms[0] || null;
 
-  function permHint(perm) {
+  function permHint(perm: GrantablePermission | null) {
     if (!perm) return '';
     return isBn ? (perm.plain_bn || perm.plain_en || '') : (perm.plain_en || perm.plain_bn || '');
   }
@@ -152,10 +177,10 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
     options: permOptions,
     required: true,
     hint: permHint(selectedPerm),
-    // WHY e.target.value: Select passes the change Event, not the value. Matching the Event against
+    // WHY (e.target as HTMLInputElement).value: Select passes the change Event, not the value. Matching the Event against
     // keys left selectedPerm null after ANY change, so picking a permission made Issue Grant fail.
     onChange: (e) => {
-      const val = e?.target ? e.target.value : e;
+      const val = e?.target ? (e.target as HTMLInputElement).value : e;
       selectedPerm = delegablePerms.find((p) => p.key === val) || null;
       saveBtn.setDisabled?.(!selectedPerm);
       permSelect.setHint(permHint(selectedPerm));
@@ -256,6 +281,7 @@ export function openGrantDrawer({ user = null, permissions = [], trigger = null,
   function updatePreview() {
     const expiryValue = expiryInput.value;
     const expiry = expiryValue ? endOfLocalDay(expiryValue) : addDays(now, DEFAULT_GRANT_DAYS);
+    // @ts-expect-error formatDate (format.js, not typed yet) infers its options from a default without `lang`
     const formattedExpiry = Number.isNaN(expiry.getTime()) ? '—' : formatDate(expiry.getTime(), { lang });
 
     const rawPerm = selectedPerm

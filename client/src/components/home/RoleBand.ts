@@ -8,7 +8,7 @@
  * "–", never 0, because 0 would read as "all clear".
  *
  * The centre panel is a slider of rankings and figures, rotated the same way as the customer's
- * campaign slider (HomeTop.js): it pauses under the pointer or keyboard focus and never moves for a
+ * campaign slider (HomeTop.ts): it pauses under the pointer or keyboard focus and never moves for a
  * visitor who asked for reduced motion.
  */
 

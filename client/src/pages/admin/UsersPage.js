@@ -17,8 +17,8 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
-import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.js';
+import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
+import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.ts';
 import '../../styles/components/admin-users.css';
 
 const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;

@@ -9,7 +9,7 @@
  *  - Offline draft autosave & network resilience
  */
 
-import { AddressForm } from '../components/checkout/AddressForm.js';
+import { AddressForm } from '../components/checkout/AddressForm.ts';
 import { PaymentSelector } from '../components/checkout/PaymentSelector.ts';
 import { getCart, fetchCart, clearCart } from '../services/cart.ts';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.ts';

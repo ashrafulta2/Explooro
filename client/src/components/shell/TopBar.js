@@ -25,7 +25,7 @@ import { api } from '../../core/api.ts';
 import { ElevatedAccessChip } from '../access/ElevatedAccessChip.ts';
 import { openCart } from '../../services/cart.ts';
 import { openNotificationCenter } from '../notifications/NotificationCenter.ts';
-import { openAssistantPanel } from '../ai/AssistantPanel.js';
+import { openAssistantPanel } from '../ai/AssistantPanel.ts';
 import { ICONS, getExplooroLogoSvg, formatExplooroBrandText } from '../ui/icons.ts';
 import { attachSearchSuggest } from '../search/SearchSuggest.ts';
 

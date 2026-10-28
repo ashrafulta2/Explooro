@@ -25,7 +25,7 @@ import { adsApi } from '../services/ads.api.ts';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
-import { HomeTop } from '../components/home/HomeTop.js';
+import { HomeTop } from '../components/home/HomeTop.ts';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
 import { resolveProductImage } from '../components/product/ProductCard.ts';
 import { addToCart } from '../services/cart.ts';

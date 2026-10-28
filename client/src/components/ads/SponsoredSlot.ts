@@ -1,5 +1,5 @@
 /**
- * SponsoredSlot.js — Viewability-Gated Sponsored Ad Component (Prompt 9.1).
+ * SponsoredSlot.ts — Viewability-Gated Sponsored Ad Component (Prompt 9.1).
  *
  * Requirements:
  * 1. Prominent "Sponsored" / "স্পন্সর্ড" badge per regulatory & trust standards.
@@ -14,7 +14,40 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { api } from '../../core/api.ts';
 
+/** A winning ad, in the shape the auction and the reserved placements both produce. */
+export interface SponsoredAdData {
+  campaignId: number | string;
+  creativeId?: number | string | null;
+  headline?: string;
+  description?: string;
+  bannerImageUrl?: string;
+  callToAction?: string;
+  destinationUrl?: string;
+  productId?: number | string | null;
+  chargedCpc?: number | string;
+  title?: string;
+  product?: Record<string, unknown>;
+  [field: string]: unknown;
+}
+
+export interface SponsoredSlotOptions {
+  ad?: SponsoredAdData | null;
+  variant?: 'card' | 'banner' | 'feed' | string;
+  placement?: string;
+  onAdClick?: ((ad: SponsoredAdData) => void) | null;
+}
+
 export class SponsoredSlot {
+  ad: SponsoredAdData | null;
+  variant: string;
+  placement: string;
+  onAdClick: SponsoredSlotOptions['onAdClick'];
+  element: HTMLElement | null;
+  observer: IntersectionObserver | null;
+  viewabilityTimer: ReturnType<typeof setTimeout> | null;
+  impressionRecorded: boolean;
+  unsubscribeStore: (() => void) | null;
+
   /**
    * @param {Object} options
    * @param {Object} options.ad - Ad object returned from auction { campaignId, creativeId, headline, description, bannerImageUrl, callToAction, destinationUrl, chargedCpc, product }
@@ -22,7 +55,7 @@ export class SponsoredSlot {
    * @param {string} [options.placement='SEARCH_RESULTS']
    * @param {Function} [options.onAdClick]
    */
-  constructor({ ad = null, variant = 'card', placement = 'SEARCH_RESULTS', onAdClick = null } = {}) {
+  constructor({ ad = null, variant = 'card', placement = 'SEARCH_RESULTS', onAdClick = null }: SponsoredSlotOptions = {}) {
     this.ad = ad;
     this.variant = variant;
     this.placement = placement;
@@ -50,7 +83,7 @@ export class SponsoredSlot {
 
     const container = document.createElement('div');
     container.className = `sponsored-slot sponsored-slot--${this.variant}`;
-    container.dataset.campaignId = ad.campaignId;
+    container.dataset.campaignId = String(ad.campaignId);
     container.dataset.placement = this.placement;
 
     // Build markup based on variant
@@ -140,7 +173,7 @@ export class SponsoredSlot {
   /**
    * Tracks viewability: element must be >= 50% in viewport for 1 full second continuously.
    */
-  _setupViewabilityObserver(element) {
+  _setupViewabilityObserver(element: Element) {
     if (typeof IntersectionObserver === 'undefined' || !this.ad) return;
 
     this.observer = new IntersectionObserver((entries) => {
@@ -207,7 +240,7 @@ export class SponsoredSlot {
     }
   }
 
-  _formatCta(ctaKey = 'SHOP_NOW', isBn = false) {
+  _formatCta(ctaKey = 'SHOP_NOW', isBn = false): string {
     const ctas = {
       SHOP_NOW: isBn ? 'এখনই কিনুন' : 'Shop Now',
       LEARN_MORE: isBn ? 'বিস্তারিত দেখুন' : 'Learn More',
@@ -217,7 +250,7 @@ export class SponsoredSlot {
     return ctas[ctaKey] || (isBn ? 'এখনই কিনুন' : 'Shop Now');
   }
 
-  _escapeHtml(str) {
+  _escapeHtml(str?: unknown): string {
     if (!str) return '';
     return String(str)
       .replace(/&/g, '&amp;')

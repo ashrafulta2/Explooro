@@ -19,6 +19,7 @@
 import { t } from '../../services/i18n.js';
 import { api } from '../../core/api.ts';
 import { adsApi } from '../../services/ads.api.ts';
+import type { ReservedPlacement } from '../../services/ads.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.ts';
 import { ICONS } from '../ui/icons.ts';
@@ -48,7 +49,7 @@ const TILES = [
 const ROTATE_MS = 6000;
 
 // Customer quick links under the band. The other signed-in roles have their own panels instead.
-const QUICK_LINKS = {
+const QUICK_LINKS: Record<string, [string, string][]> = {
   customer: [
     ['marketplace.top.q_orders', '/account/orders'],
     ['marketplace.top.q_wishlist', '/account/wishlist'],
@@ -57,14 +58,14 @@ const QUICK_LINKS = {
   ],
 };
 
-function el(tag, className, text) {
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string | null): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text != null) node.textContent = text;
   return node;
 }
 
-function link(className, label, path, onNavigate) {
+function link(className: string, label: string, path: string, onNavigate: (path: string) => void) {
   const a = el('a', className, label);
   a.href = path;
   a.addEventListener('click', (e) => {
@@ -75,10 +76,18 @@ function link(className, label, path, onNavigate) {
   return a;
 }
 
-export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
+export interface HomeTopOptions {
+  role: string;
+  isAuthenticated: boolean;
+  onNavigate: (path: string) => void;
+  /** Switches the feed tab below the band (`flash`, `verified`, `saler`). */
+  onSelectFeed: (feed: string) => void;
+}
+
+export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }: HomeTopOptions): { el: HTMLElement; cleanup: () => void } {
   const root = el('section', 'home-top');
   root.setAttribute('aria-label', t('marketplace.top.label'));
-  const cleanups = [];
+  const cleanups: (() => void)[] = [];
   // WHY: the three slides are h2s that rotate; the page still needs one stable h1 for SEO and screen readers.
   root.append(el('h1', 'sr-only', t('marketplace.hero.tagline')));
 
@@ -108,7 +117,7 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   slider.setAttribute('role', 'group');
   slider.setAttribute('aria-roledescription', 'carousel');
   slider.setAttribute('aria-label', t('marketplace.top.slider_label'));
-  const slides = [];
+  const slides: { slide: HTMLElement; go: HTMLButtonElement; ad?: ReservedPlacement }[] = [];
   const dots = el('div', 'home-top__dots');
   let index = 0;
 
@@ -139,7 +148,7 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
   // at once and any booked spotlight is appended when /ads/reserved answers (usually none).
   let spotlightAlive = true;
   cleanups.push(() => { spotlightAlive = false; });
-  function addSpotlightSlide(ad) {
+  function addSpotlightSlide(ad: ReservedPlacement) {
     const slide = el('div', 'home-top__slide home-top__slide--spotlight');
     slide.setAttribute('aria-hidden', 'true');
     const tag = el('span', 'sponsored-tag', t('marketplace.top.sponsored'));
@@ -175,8 +184,8 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
     }).catch(() => {});
   }
 
-  const impressed = new Set();
-  function show(next, userPicked = false) {
+  const impressed = new Set<number | string>();
+  function show(next: number, userPicked = false) {
     index = (next + slides.length) % slides.length;
     const shown = slides[index];
     if (shown.ad && !impressed.has(shown.ad.campaignId)) {
@@ -192,7 +201,7 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }) {
     if (userPicked) restart();
   }
 
-  let timer = null;
+  let timer: ReturnType<typeof setInterval> | null = null;
   const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   function stop() { clearInterval(timer); timer = null; }
   function restart() {

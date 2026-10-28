@@ -12,7 +12,8 @@
 import { adsApi } from '../../services/ads.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.ts';
-import { SponsoredSlot } from './SponsoredSlot.js';
+import { SponsoredSlot } from './SponsoredSlot.ts';
+import type { SponsoredAdData } from './SponsoredSlot.ts';
 
 export interface SponsoredStripOptions {
   placement: 'SEARCH_RESULTS' | 'FEED' | 'PRODUCT_PAGE';
@@ -47,7 +48,7 @@ export function SponsoredStrip({ placement, variant = 'card', keyword = '', cate
     if (destroyed) return;
 
     for (const ad of winners) {
-      const slot = new SponsoredSlot({ ad, variant, placement });
+      const slot = new SponsoredSlot({ ad: ad as SponsoredAdData, variant, placement });
       slots.push(slot);
       el.append(slot.render());
     }

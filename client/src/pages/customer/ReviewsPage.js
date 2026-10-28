@@ -20,7 +20,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.ts';
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.ts';
-import { openWriteReviewModal } from '../../components/customer/WriteReviewModal.js';
+import { openWriteReviewModal } from '../../components/customer/WriteReviewModal.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 import '../../styles/components/customer-reviews.css';
 

@@ -1,5 +1,5 @@
 /**
- * RestrictionEditor.js — Capability switch grid, numeric limits, modes & segment dry-run builder (Prompt 3.3).
+ * RestrictionEditor.ts — Capability switch grid, numeric limits, modes & segment dry-run builder (Prompt 3.3).
  */
 
 import { Drawer } from '../ui/Drawer.ts';
@@ -38,7 +38,19 @@ const NUMERIC_LIMITS = [
   'ad_budget_cap',
 ];
 
-export function openRestrictionEditor({ user = null, trigger = null, onSuccess = null }) {
+/** The person a restriction is for; `ref` is the public user reference. */
+export interface RestrictionTarget {
+  ref?: string;
+  [field: string]: unknown;
+}
+
+export interface RestrictionEditorOptions {
+  user?: RestrictionTarget | null;
+  trigger?: Element | null;
+  onSuccess?: ((result?: unknown) => void) | null;
+}
+
+export function openRestrictionEditor({ user = null, trigger = null, onSuccess = null }: RestrictionEditorOptions) {
   const isBn = getLanguage() === 'bn';
 
   const container = document.createElement('div');
@@ -58,7 +70,7 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     // WHY: Select forwards the native change *event*, not the value. Treating the event as the
     // value left both the user-ref field and the segment builder hidden, so USER scope could
     // never be submitted ("Please provide target user ref" with no field to type it in).
-    onChange: (e) => syncScope(e.target.value),
+    onChange: (e) => syncScope((e.target as HTMLInputElement).value),
   });
 
   // User input if USER scope
@@ -68,11 +80,11 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     label: isBn ? 'ব্যবহারকারী রেফারেন্স' : 'Target User Ref',
     value: targetUserRef,
     placeholder: 'e.g. USR-9X82KM',
-    onInput: (e) => { targetUserRef = e.target.value.trim(); },
+    onInput: (e) => { targetUserRef = (e.target as HTMLInputElement).value.trim(); },
   });
   userFieldWrap.append(userInput);
 
-  function syncScope(next) {
+  function syncScope(next: string) {
     scope = next;
     userFieldWrap.style.display = next === 'USER' ? 'block' : 'none';
     segmentWrap.style.display = next === 'SEGMENT' ? 'block' : 'none';
@@ -133,7 +145,7 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     onChange: () => syncLimitField(),
   });
 
-  function getFriendlyTargetLabel(key) {
+  function getFriendlyTargetLabel(key: string) {
     const fallback = key
       .replace('can_', 'Allow ')
       .replace('max_', 'Max ')
@@ -156,7 +168,7 @@ export function openRestrictionEditor({ user = null, trigger = null, onSuccess =
     value: selectedCap,
     options: allTargets,
     onChange: (e) => {
-      selectedCap = e.target.value;
+      selectedCap = (e.target as HTMLInputElement).value;
       syncLimitField();
     },
   });

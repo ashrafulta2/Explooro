@@ -8,6 +8,7 @@ import '../../styles/components/customer-reviews.css';
 
 /** A photo or video attached to a review. */
 export interface ReviewMedia {
+  id?: number | string;
   media_kind?: 'VIDEO' | 'IMAGE' | string;
   url?: string;
 }

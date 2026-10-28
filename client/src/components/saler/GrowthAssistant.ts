@@ -1,5 +1,5 @@
 /**
- * GrowthAssistant.js — Prescriptive AI Next-Step Growth Recommendations (Prompt 11.2 / 10.3).
+ * GrowthAssistant.ts — Prescriptive AI Next-Step Growth Recommendations (Prompt 11.2 / 10.3).
  *
  * Renders grounded advice with direct 1-click executable actions,
  * converting raw analytics into concrete daily shop partner tasks.
@@ -10,9 +10,31 @@ import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../ui/Button.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
-import { openAssistantPanel } from '../ai/AssistantPanel.js';
+import { openAssistantPanel } from '../ai/AssistantPanel.ts';
 
-export function GrowthAssistant({ recommendations = null, onActionExecuted = null, onNavigate = null } = {}) {
+/** One piece of advice from GET /saler/growth-recommendations. */
+export interface GrowthRecommendation {
+  type?: string;
+  title?: string;
+  recommendation?: string;
+  action?: { label_en?: string; url?: string } | null;
+  [field: string]: unknown;
+}
+
+/** The card list root plus a `reload` the page calls after an action. */
+export interface GrowthAssistantParts {
+  element: HTMLDivElement;
+  reload(): Promise<void>;
+}
+
+export interface GrowthAssistantOptions {
+  /** Pre-fetched recommendations (the gallery); otherwise they are loaded. */
+  recommendations?: GrowthRecommendation[] | null;
+  onActionExecuted?: ((recommendation: unknown) => void) | null;
+  onNavigate?: ((path: string) => void) | null;
+}
+
+export function GrowthAssistant({ recommendations = null, onActionExecuted = null, onNavigate = null }: GrowthAssistantOptions = {}): GrowthAssistantParts {
   const container = document.createElement('div');
   container.className = 'growth-assistant';
 
@@ -43,6 +65,7 @@ export function GrowthAssistant({ recommendations = null, onActionExecuted = nul
     size: 'xs',
     onClick: () => {
       openAssistantPanel({
+        // @ts-expect-error openAssistantPanel takes only agentType and trigger; these two options have never been read, so the panel opens empty
         initialRole: 'saler',
         initialQuery: 'What are the highest-margin trending products I should add to my store today?',
       });

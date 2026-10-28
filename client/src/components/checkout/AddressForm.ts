@@ -1,5 +1,5 @@
 /**
- * AddressForm.js — Cascading Bangladeshi administrative address form (Prompt 5.4).
+ * AddressForm.ts — Cascading Bangladeshi administrative address form (Prompt 5.4).
  *
  * Implements:
  *  - Division → District → Upazila cascading selects using bangladeshGeo.ts
@@ -18,11 +18,41 @@ import {
 import { t } from '../../services/i18n.js';
 import { Button } from '../ui/Button.ts';
 
-const esc = (s) =>
+/** The fields the form edits; a saved address carries more (label, id, ...). */
+export interface AddressData {
+  recipient_name: string;
+  recipient_phone: string;
+  division: string;
+  district: string;
+  upazila: string;
+  address_line: string;
+  delivery_notes: string;
+  label?: 'HOME' | 'OFFICE' | 'OTHER' | string;
+  custom_label?: string;
+  [field: string]: unknown;
+}
+
+export interface AddressFormOptions {
+  initialData?: Partial<AddressData>;
+  savedAddresses?: Partial<AddressData>[];
+  hideSubmitButton?: boolean;
+  onSave?: (data: AddressData) => void;
+  onChange?: (data: AddressData) => void;
+}
+
+/** The form element plus the accessors the checkout and the address book drive it by. */
+export interface AddressFormParts {
+  element: HTMLFormElement;
+  getData(): AddressData;
+  setData(data: Partial<AddressData>): void;
+  validate(): boolean;
+}
+
+const esc = (s: unknown) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /** Turns stored administrative slugs ("dhaka_city", "dhaka") into display names ("Dhaka City, Dhaka"). */
-function formatSavedGeo(addr, bn) {
+function formatSavedGeo(addr: Partial<AddressData>, bn: boolean) {
   const div = getDivisionById(addr.division);
   const dist = getDistrictById(addr.division, addr.district);
   const divName = div ? (bn ? div.name_bn : div.name_en) : addr.division;
@@ -30,7 +60,7 @@ function formatSavedGeo(addr, bn) {
   return [distName, divName].filter(Boolean).join(', ');
 }
 
-export function normalizeBdPhone(input) {
+export function normalizeBdPhone(input: string): string {
   const digits = input.replace(/\D/g, '');
   if (digits.startsWith('8801') && digits.length === 13) return `+${digits}`;
   if (digits.startsWith('01') && digits.length === 11) return `+88${digits}`;
@@ -38,7 +68,7 @@ export function normalizeBdPhone(input) {
   return input.trim();
 }
 
-export function isValidBdPhone(phone) {
+export function isValidBdPhone(phone: string): boolean {
   const normalized = normalizeBdPhone(phone);
   return /^\+8801[3-9]\d{8}$/.test(normalized);
 }
@@ -49,12 +79,12 @@ export function AddressForm({
   hideSubmitButton = false,
   onSave,
   onChange,
-} = {}) {
+}: AddressFormOptions = {}): AddressFormParts {
   const formEl = document.createElement('form');
   formEl.className = 'address-form';
   formEl.noValidate = true;
 
-  let state = {
+  let state: AddressData = {
     recipient_name: initialData.recipient_name || '',
     recipient_phone: initialData.recipient_phone || '',
     division: initialData.division || 'dhaka',
@@ -120,9 +150,9 @@ export function AddressForm({
     <input type="text" id="recipient-name" class="form-input" placeholder="${t('checkout.recipient_name_placeholder')}" value="${state.recipient_name}" required />
     <span class="form-error" id="err-recipient-name"></span>
   `;
-  const nameInput = nameGroup.querySelector('input');
+  const nameInput = nameGroup.querySelector('input')!;
   nameInput.addEventListener('input', (e) => {
-    state.recipient_name = e.target.value;
+    state.recipient_name = (e.target as HTMLInputElement).value;
     if (onChange) onChange(state);
   });
   grid.append(nameGroup);
@@ -135,9 +165,9 @@ export function AddressForm({
     <input type="tel" id="recipient-phone" class="form-input" placeholder="${t('checkout.recipient_phone_placeholder')}" value="${state.recipient_phone}" required />
     <span class="form-error" id="err-recipient-phone"></span>
   `;
-  const phoneInput = phoneGroup.querySelector('input');
+  const phoneInput = phoneGroup.querySelector('input')!;
   phoneInput.addEventListener('input', (e) => {
-    state.recipient_phone = e.target.value;
+    state.recipient_phone = (e.target as HTMLInputElement).value;
     if (onChange) onChange(state);
   });
   grid.append(phoneGroup);
@@ -152,7 +182,7 @@ export function AddressForm({
     </select>
     <span class="form-error" id="err-address-division"></span>
   `;
-  const divSelect = divGroup.querySelector('select');
+  const divSelect = divGroup.querySelector('select')!;
   BANGLADESH_DIVISIONS.forEach((div) => {
     const opt = document.createElement('option');
     opt.value = div.id;
@@ -172,7 +202,7 @@ export function AddressForm({
     </select>
     <span class="form-error" id="err-address-district"></span>
   `;
-  const distSelect = distGroup.querySelector('select');
+  const distSelect = distGroup.querySelector('select')!;
   grid.append(distGroup);
 
   // Upazila Select / Input
@@ -184,7 +214,7 @@ export function AddressForm({
       <option value="">-- ${t('checkout.select_upazila')} --</option>
     </select>
   `;
-  const upaSelect = upaGroup.querySelector('select');
+  const upaSelect = upaGroup.querySelector('select')!;
   grid.append(upaGroup);
 
   function updateDistricts(selectedDivId) {
@@ -218,19 +248,19 @@ export function AddressForm({
   }
 
   divSelect.addEventListener('change', (e) => {
-    state.division = e.target.value;
+    state.division = (e.target as HTMLInputElement).value;
     updateDistricts(state.division);
     if (onChange) onChange(state);
   });
 
   distSelect.addEventListener('change', (e) => {
-    state.district = e.target.value;
+    state.district = (e.target as HTMLInputElement).value;
     updateUpazilas(state.division, state.district);
     if (onChange) onChange(state);
   });
 
   upaSelect.addEventListener('change', (e) => {
-    state.upazila = e.target.value;
+    state.upazila = (e.target as HTMLInputElement).value;
     if (onChange) onChange(state);
   });
 
@@ -242,9 +272,9 @@ export function AddressForm({
     <textarea id="address-line" class="form-textarea" rows="2" placeholder="${t('checkout.address_line_placeholder')}" required>${state.address_line}</textarea>
     <span class="form-error" id="err-address-line"></span>
   `;
-  const addrInput = addrGroup.querySelector('textarea');
+  const addrInput = addrGroup.querySelector('textarea')!;
   addrInput.addEventListener('input', (e) => {
-    state.address_line = e.target.value;
+    state.address_line = (e.target as HTMLInputElement).value;
     if (onChange) onChange(state);
   });
   grid.append(addrGroup);
@@ -256,9 +286,9 @@ export function AddressForm({
     <label class="form-label" for="delivery-notes">${t('checkout.delivery_notes')}</label>
     <input type="text" id="delivery-notes" class="form-input" placeholder="${t('checkout.delivery_notes_placeholder')}" value="${state.delivery_notes}" />
   `;
-  const notesInput = notesGroup.querySelector('input');
+  const notesInput = notesGroup.querySelector('input')!;
   notesInput.addEventListener('input', (e) => {
-    state.delivery_notes = e.target.value;
+    state.delivery_notes = (e.target as HTMLInputElement).value;
     if (onChange) onChange(state);
   });
   grid.append(notesGroup);
@@ -302,13 +332,13 @@ export function AddressForm({
 
   function validate() {
     let isValid = true;
-    let firstInvalidEl = null;
+    let firstInvalidEl: HTMLElement | null = null;
 
-    const clearError = (id) => {
+    const clearError = (id: string) => {
       const el = formEl.querySelector(`#${id}`);
       if (el) el.textContent = '';
     };
-    const setError = (id, msg, inputEl) => {
+    const setError = (id: string, msg: string, inputEl: HTMLElement) => {
       const el = formEl.querySelector(`#${id}`);
       if (el) el.textContent = msg;
       if (!firstInvalidEl && inputEl) firstInvalidEl = inputEl;
@@ -354,7 +384,7 @@ export function AddressForm({
   return {
     element: formEl,
     getData: () => ({ ...state, recipient_phone: normalizeBdPhone(state.recipient_phone) }),
-    setData: (newData) => {
+    setData: (newData: Partial<AddressData>) => {
       state = { ...state, ...newData };
       populateInputs();
     },

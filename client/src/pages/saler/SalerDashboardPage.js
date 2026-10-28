@@ -21,7 +21,7 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
-import { GrowthAssistant } from '../../components/saler/GrowthAssistant.js';
+import { GrowthAssistant } from '../../components/saler/GrowthAssistant.ts';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.ts';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
 import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
