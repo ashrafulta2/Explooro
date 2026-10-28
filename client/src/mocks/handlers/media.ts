@@ -37,7 +37,7 @@ function saveStore(store) {
 
 let assets = loadStore();
 
-/** Resolves a mock media id to its data URL. Used by handlers/me.js to render an avatar. */
+/** Resolves a mock media id to its data URL. Used by handlers/me.ts to render an avatar. */
 export function resolveMockMediaUrl(id) {
   if (id === null || id === undefined) return null;
   return assets[String(id)]?.url ?? null;

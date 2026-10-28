@@ -3,7 +3,7 @@
  *
  * Mirrors the server: the `wallet.topup` rules of migration 088, and the mock gateway, which has no
  * page of its own — POST /wallet/topups answers with a same-site redirect and POST /payments/execute
- * (orders.js, through executeMockTopUp) then marks it paid and credits the balance. The balance and
+ * (orders.ts, through executeMockTopUp) then marks it paid and credits the balance. The balance and
  * history live for the session only.
  */
 
@@ -45,7 +45,7 @@ export const walletTopupHandlers = [
 ] satisfies MockRoute[];
 
 /**
- * Finishes a mock top-up for POST /payments/execute (declared once, in orders.js, which asks here
+ * Finishes a mock top-up for POST /payments/execute (declared once, in orders.ts, which asks here
  * first). Returns the response, or null when the reference is not a top-up. Credits once only.
  */
 export function executeMockTopUp(transactionRef) {

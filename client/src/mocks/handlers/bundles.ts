@@ -1,6 +1,9 @@
 /**
- * bundles.js — Mock API Handlers for Bundling & Surge Pricing (Prompt 10.5).
+ * bundles.ts — Mock API Handlers for Bundling & Surge Pricing (Prompt 10.5).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const SEEDED_BUNDLES = [
   {
@@ -71,7 +74,7 @@ function calculateMockBreakdown(items = [], bundlePrice = 0) {
     };
   });
 
-  const price = parseFloat(bundlePrice || sumOfParts * 0.85);
+  const price = parseFloat(String(bundlePrice || sumOfParts * 0.85));
   const discountAmount = Math.max(0, sumOfParts - price);
   const discountPct = sumOfParts > 0 ? parseFloat(((discountAmount / sumOfParts) * 100).toFixed(2)) : 0;
 
@@ -218,4 +221,4 @@ export default [
       return { status: 200, body: { data: { success: true, recommendation: rec } } };
     },
   },
-];
+] satisfies MockRoute[];

@@ -99,7 +99,7 @@ describe('partner reward strings and wiring', () => {
 
   it('the card is registered in the gallery and mocked for mock mode', () => {
     assert.ok(read('../src/pages/dev/gallery-registry.js').includes("id: 'partner-reward-card'"));
-    const mocks = read('../src/mocks/handlers/partnerReward.js');
+    const mocks = read('../src/mocks/handlers/partnerReward.ts');
     for (const p of ["'/saler/partner-reward'", "'/admin/growth/partner-rewards'", "'/admin/growth/partner-rewards/close'"]) assert.ok(mocks.includes(p), p);
   });
 });

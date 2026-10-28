@@ -1,10 +1,13 @@
 /**
- * partnerReward.js — Mock API handlers for the monthly shop partner reward pool.
+ * partnerReward.ts — Mock API handlers for the monthly shop partner reward pool.
  *
  * Mirrors server/src/routes/partnerReward.routes.ts and the shapes of partnerReward.service.ts
  * (getAdminView, getOwnView, getRunPayouts). The rules persist to localStorage, as attribution.js does,
  * so "does the save survive a reload?" can be checked in mock mode.
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const STORAGE_KEY = 'explooro:mock:partner-reward:rules';
 // Mirrors partnerReward.service.ts RULE_LIMITS and the migration 086 seed.
@@ -217,4 +220,4 @@ export const partnerRewardHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];

@@ -1,5 +1,5 @@
 /**
- * me.js — Mock GET/PUT /me/profile, so the account menu's "My Profile" page is fully usable
+ * me.ts — Mock GET/PUT /me/profile, so the account menu's "My Profile" page is fully usable
  * with VITE_API_MODE=mock.
  *
  * Seeded from handlers/auth.js's mock session (whoever "logged in"), then persisted per tab so an
@@ -14,6 +14,7 @@
 
 import { getMockSessionUser } from './auth.js';
 import { resolveMockMediaUrl } from './media.ts';
+import type { MockRoute } from '../types.ts';
 
 const PROFILE_KEY = 'explooro.mock.profile';
 
@@ -200,4 +201,4 @@ export default [
       return { status: 200, body: { data: present(profile) } };
     },
   },
-];
+] satisfies MockRoute[];

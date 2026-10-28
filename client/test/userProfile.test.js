@@ -29,7 +29,7 @@ const topBarSrc = read('src/components/shell/TopBar.ts');
 const mainCss = read('src/styles/main.css');
 const profileCss = read('src/styles/components/profile.css');
 const pageSrc = read('src/pages/settings/ProfilePage.js');
-const mockSrc = read('src/mocks/handlers/me.js');
+const mockSrc = read('src/mocks/handlers/me.ts');
 const mocksIndexSrc = read('src/mocks/index.ts');
 
 /**
@@ -242,7 +242,7 @@ test('3. Styling is wired up', async (t) => {
 
 test('4. The mock driver matches the live API contract', async (t) => {
   await t.test('mocks/index.ts registers the /me and /media handlers', () => {
-    assert.match(mocksIndexSrc, /import meHandlers from '\.\/handlers\/me\.js';/);
+    assert.match(mocksIndexSrc, /import meHandlers from '\.\/handlers\/me\.ts';/);
     assert.match(mocksIndexSrc, /\.\.\.meHandlers,/);
     assert.match(mocksIndexSrc, /import mediaHandlers from '\.\/handlers\/media\.ts';/);
     assert.match(mocksIndexSrc, /\.\.\.mediaHandlers,/);

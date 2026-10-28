@@ -1,6 +1,9 @@
 /**
- * developer.js — Mock handlers for Developer Portal & Webhooks (Prompt 10.7).
+ * developer.ts — Mock handlers for Developer Portal & Webhooks (Prompt 10.7).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 let mockApiKeys = [
   {
@@ -231,4 +234,4 @@ export const developerHandlers = [
       return { success: true, data: d };
     },
   },
-];
+] satisfies MockRoute[];

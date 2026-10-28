@@ -24,7 +24,7 @@ import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
 import { navItems } from '../src/config/navigation.js';
 import { resolveInitialLocale } from '../src/services/i18n.ts';
-import { localizationHandlers } from '../src/mocks/handlers/localization.js';
+import { localizationHandlers } from '../src/mocks/handlers/localization.ts';
 
 const clientRoot = path.resolve(import.meta.dirname, '..');
 const ROUTE = '/admin/platform/language';

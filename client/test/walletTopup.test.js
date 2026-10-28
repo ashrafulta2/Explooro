@@ -66,7 +66,7 @@ describe('top-up strings and wiring', () => {
   it('mock mode opens, pays and lists top-ups', () => {
     const mocks = read('../src/mocks/handlers/walletTopup.ts');
     assert.ok(mocks.includes("path: '/wallet/topups'") && mocks.includes('export function executeMockTopUp'));
-    assert.ok(read('../src/mocks/handlers/orders.js').includes('executeMockTopUp(body?.transactionRef)'));
+    assert.ok(read('../src/mocks/handlers/orders.ts').includes('executeMockTopUp(body?.transactionRef)'));
     assert.ok(read('../src/mocks/index.ts').includes('...walletTopupHandlers'));
   });
 });

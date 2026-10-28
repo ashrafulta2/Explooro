@@ -1,5 +1,5 @@
 /**
- * recommendations.js — Mock API handlers for the personalized-feed admin page.
+ * recommendations.ts — Mock API handlers for the personalized-feed admin page.
  *
  * Mirrors server/src/routes/recommendationAdmin.routes.ts so the whole page is demonstrable with
  * VITE_API_MODE=mock and no database (Master Instruction: every integration ships a mock driver).
@@ -10,6 +10,7 @@
  */
 
 import { sectionProblems } from '../../services/recoSettings.ts';
+import type { MockRoute } from '../types.ts';
 
 const bool = (key, dflt = true) => ({ key, type: 'bool', default: dflt });
 const num = (key, type, min, max, dflt, extra = {}) => ({ key, type, min, max, default: dflt, ...extra });
@@ -273,6 +274,6 @@ export const recommendationHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default recommendationHandlers;

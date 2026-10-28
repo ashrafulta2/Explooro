@@ -293,7 +293,7 @@ describe('mock mode serves the public endpoints the client boots from', () => {
   });
 
   it('the mock page-access handlers exist and persist too', () => {
-    const handler = read('src/mocks/handlers/pageAccess.js');
+    const handler = read('src/mocks/handlers/pageAccess.ts');
     assert.match(handler, /path: '\/page-access'/);
     assert.match(handler, /method: 'PUT',\s*path: '\/admin\/pages'/);
     assert.match(handler, /localStorage\.setItem/);

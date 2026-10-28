@@ -3,7 +3,7 @@
  *
  * Route: /account/orders
  *
- * Data source: getMyOrders() → GET /orders/my-orders (handled by mock orders.js handler).
+ * Data source: getMyOrders() → GET /orders/my-orders (handled by mock orders.ts handler).
  * All UI strings resolved via t('order_tracking.*') so language-switching works correctly.
  */
 

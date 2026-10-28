@@ -1,5 +1,5 @@
 /**
- * localization.js — Mock API handlers for the Language & Localization policy.
+ * localization.ts — Mock API handlers for the Language & Localization policy.
  *
  * Mirrors server/src/routes/localization.routes.ts so the whole feature is demonstrable with
  * VITE_API_MODE=mock and no database, per the Master Instruction that every integration ships a
@@ -10,6 +10,9 @@
  * would make a broken implementation look like a working one, which is the failure the theme mock
  * handler was written to fix.
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const STORAGE_KEY = 'explooro:mock:localization:policy';
 
@@ -198,6 +201,6 @@ export const localizationHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default localizationHandlers;

@@ -17,9 +17,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { navItems } from '../src/config/navigation.js';
 import adminHandlers from '../src/mocks/handlers/admin.js';
-import returnHandlers from '../src/mocks/handlers/returns.js';
+import returnHandlers from '../src/mocks/handlers/returns.ts';
 import moderatorHandlers from '../src/mocks/handlers/moderator.js';
-import disputeHandlers from '../src/mocks/handlers/disputes.js';
+import disputeHandlers from '../src/mocks/handlers/disputes.ts';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const readText = (rel) => fs.readFileSync(path.resolve(root, rel), 'utf8');
@@ -145,13 +145,13 @@ test('Moderator — the Products tab covers product edits', async (t) => {
 test('Moderator — mock routes are registered exactly once', async (t) => {
   await t.test('1. No two handler modules claim the same route', () => {
     // admin.js carried a stale copy of the whole /admin/returns/* block whose rows used
-    // return_ref / order_id / reason. It was spread first, so it shadowed returns.js and the
+    // return_ref / order_id / reason. It was spread first, so it shadowed returns.ts and the
     // Returns queue rendered "undefined" for the ref, the order number and the reason code.
     const modules = {
       'admin.js': adminHandlers,
-      'returns.js': returnHandlers,
+      'returns.ts': returnHandlers,
       'moderator.js': moderatorHandlers,
-      'disputes.js': disputeHandlers,
+      'disputes.ts': disputeHandlers,
     };
     const seen = new Map();
     const clashes = [];

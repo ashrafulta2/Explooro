@@ -1,11 +1,14 @@
 /**
- * sampleKit.js — Mock handlers for Sample Requests and Marketing Kits (supplier attraction, step 4).
+ * sampleKit.ts — Mock handlers for Sample Requests and Marketing Kits (supplier attraction, step 4).
  *
  * Same shapes as the real endpoints (services/sampleKit.service.ts). The state machine is mirrored so
  * the pages behave like the finished feature in mock mode: a request only moves along the legal
  * transitions, and a shop partner cannot request the same product twice. It does NOT move money - the mock
  * has no ledger - so the shop partner's balance never changes here.
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const RULES = {
   platform_fee_pct: 10, min_price: 10, max_price: 5000, max_shipping_fee: 300, response_days: 3,
@@ -176,6 +179,6 @@ export const sampleKitHandlers = [
       },
     }),
   },
-];
+] satisfies MockRoute[];
 
 export default sampleKitHandlers;

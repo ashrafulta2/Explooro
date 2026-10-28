@@ -6,7 +6,7 @@
  *
  * The policy persists to localStorage rather than a module-scope variable: the thing being tested is
  * "does the setting survive a reload?", and a mock that forgets on refresh would make a broken
- * implementation look like a working one (the same reason handlers/localization.js does this).
+ * implementation look like a working one (the same reason handlers/localization.ts does this).
  */
 
 import { GENIE_DEFAULTS, GENIE_LIMITS, GENIE_QUALITIES } from '../../lib/genie.ts';

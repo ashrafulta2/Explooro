@@ -1,6 +1,9 @@
 /**
- * vault.js — Mock API handlers for User Vault, Balances, Escrow & Withdrawals (Prompt 6.5).
+ * vault.ts — Mock API handlers for User Vault, Balances, Escrow & Withdrawals (Prompt 6.5).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 let mockWallet = {
   id: 'w-usr-1',
@@ -79,7 +82,7 @@ let mockLedger = [
   },
 ];
 
-let mockPayoutRequests = [
+let mockPayoutRequests: Record<string, any>[] = [
   {
     id: 'po-1',
     ref: 'PO-882194',
@@ -217,6 +220,6 @@ export const vaultHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default vaultHandlers;

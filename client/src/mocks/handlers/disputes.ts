@@ -1,8 +1,11 @@
 /**
- * disputes.js — Mock API handlers for Dispute Resolution & Arbitration (Prompt 7.3).
+ * disputes.ts — Mock API handlers for Dispute Resolution & Arbitration (Prompt 7.3).
  */
 
-let mockDisputes = [
+
+import type { MockRoute } from '../types.ts';
+
+let mockDisputes: Record<string, any>[] = [
   {
     id: 1,
     ref: 'DSP-2026-0891',
@@ -219,6 +222,6 @@ export const disputeHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default disputeHandlers;

@@ -13,6 +13,8 @@ export interface MockContext {
   params?: Record<string, string>;
   query?: Record<string, any>;
   body?: any;
+  /** The request path; only some callers pass it (the PUT recommendations handler falls back to it). */
+  path?: string;
 }
 
 /** An answer with an explicit status; anything else a handler returns is wrapped as a 200. */

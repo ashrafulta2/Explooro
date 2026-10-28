@@ -1,11 +1,12 @@
 /**
- * orders.js — Mock API handlers for Orders & Checkout (Prompt 5.4).
+ * orders.ts — Mock API handlers for Orders & Checkout (Prompt 5.4).
  *
  * Implements realistic checkout processing, multi-supplier order splitting, and tracking in mock mode.
  */
 
 import { clearMockCart } from './cart.js';
 import { executeMockTopUp } from './walletTopup.ts';
+import type { MockRoute } from '../types.ts';
 
 // transactionRef -> order id, for the mock /payments/* handlers below.
 const mockPayments = new Map();
@@ -224,6 +225,6 @@ const orderHandlers = [
       return { status: 200, body: { data: { success: true, transactionRef: body.transactionRef, orderId, status: 'PAID' } } };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default orderHandlers;

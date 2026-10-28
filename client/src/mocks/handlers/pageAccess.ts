@@ -1,5 +1,5 @@
 /**
- * mocks/handlers/pageAccess.js — per-page availability in mock mode.
+ * mocks/handlers/pageAccess.ts — per-page availability in mock mode.
  *
  *   GET /page-access   the viewer-facing map, read on every cold boot
  *   GET /admin/pages   every stored row, for /admin/platform/pages
@@ -15,6 +15,7 @@
  */
 
 import { PAGE_STATES, LOCKED_PATHS, normalizePath } from '../../services/pageAccess.ts';
+import type { MockRoute } from '../types.ts';
 
 const STORAGE_KEY = 'explooro:mock:pageToggles';
 
@@ -30,7 +31,7 @@ function readPersisted() {
 }
 
 /** `{ [route_path]: { state, allowed_roles, allowed_user_ids, reason, updated_at } }` */
-const toggles = new Map(Object.entries(readPersisted()));
+const toggles = new Map<string, Record<string, any>>(Object.entries(readPersisted()));
 
 function persist() {
   try {
@@ -42,7 +43,7 @@ function persist() {
 
 /** The viewer-facing shape: parked rows only, because absence means LIVE. */
 function publicMap() {
-  const map = {};
+  const map: Record<string, unknown> = {};
   for (const [path, row] of toggles) {
     if (row.state === 'LIVE') continue;
     map[path] = {
@@ -183,6 +184,6 @@ export const pageAccessHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default pageAccessHandlers;

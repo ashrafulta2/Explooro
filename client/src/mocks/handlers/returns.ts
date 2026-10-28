@@ -1,8 +1,11 @@
 /**
- * returns.js — Mock API handlers for Returns & Reverse Logistics Queue (Prompt 7.2).
+ * returns.ts — Mock API handlers for Returns & Reverse Logistics Queue (Prompt 7.2).
  */
 
-let mockReturns = [
+
+import type { MockRoute } from '../types.ts';
+
+let mockReturns: Record<string, any>[] = [
   {
     id: 1,
     ref: 'RET-2026-0041',
@@ -175,6 +178,6 @@ export const returnHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default returnHandlers;

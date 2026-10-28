@@ -1,5 +1,5 @@
 /**
- * theme.js — Mock API handlers for Theme Studio (Prompt 3.5).
+ * theme.ts — Mock API handlers for Theme Studio (Prompt 3.5).
  *
  * WHY this file had to exist: core/api.ts resolves every call against these mock handlers unless
  * VITE_API_MODE=live, and no theme handler was ever registered — every theme.* request (active
@@ -9,6 +9,7 @@
  * got a 404, and fell back to the shipped default — the exact bug this file fixes.
  */
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.ts';
+import type { MockRoute } from '../types.ts';
 
 const STORAGE_KEY = 'explooro:mock:theme:palettes';
 
@@ -71,7 +72,7 @@ function notFound(id) {
 function sortedPalettes() {
   return [...mockPalettes].sort((a, b) => {
     if (a.is_active !== b.is_active) return a.is_active ? -1 : 1;
-    return new Date(b.updated_at) - new Date(a.updated_at);
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
   });
 }
 
@@ -203,6 +204,6 @@ export const themeHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default themeHandlers;

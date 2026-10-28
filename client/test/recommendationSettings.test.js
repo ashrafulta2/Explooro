@@ -26,7 +26,7 @@ import {
   MOCK_FIELDS,
   MOCK_RAIL_CATALOGUE,
   MOCK_RAIL_DEFAULTS,
-} from '../src/mocks/handlers/recommendations.js';
+} from '../src/mocks/handlers/recommendations.ts';
 import {
   parseNumber,
   fieldProblem,

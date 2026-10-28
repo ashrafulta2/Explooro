@@ -30,7 +30,7 @@ import * as recoCache from '../src/services/recoCache.service.ts';
 import * as recommendation from '../src/services/recommendation.service.ts';
 import * as homeRails from '../src/services/homeRails.service.ts';
 import * as diversity from '../src/services/diversity.service.ts';
-import * as clientMock from '../../client/src/mocks/handlers/recommendations.js';
+import * as clientMock from '../../client/src/mocks/handlers/recommendations.ts';
 
 const repoRoot = path.resolve(import.meta.dirname, '../..');
 
