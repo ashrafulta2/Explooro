@@ -9,9 +9,9 @@
  * 5. Connection status event emitters for reactive UI status badges.
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 
-// Same switch core/api.js reads. In mock mode the ticket resolves but there is no /ws upgrade to
+// Same switch core/api.ts reads. In mock mode the ticket resolves but there is no /ws upgrade to
 // make, so the manager talks to a loopback socket instead of retry-storming a backend that is not
 // running. Every other code path — backoff, queue, heartbeat, status — is unchanged.
 const MOCK_MODE = !(typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_MODE === 'live');

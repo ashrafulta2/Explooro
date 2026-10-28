@@ -1,24 +1,27 @@
 /**
- * sampleKit.api.js — Sample requests and marketing kits (supplier attraction, step 4).
+ * sampleKit.api.ts — Sample requests and marketing kits (supplier attraction, step 4).
  * Supplier and shop partner endpoints live side by side because the two pages are two halves of one exchange.
  */
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
+
+/** A request body; the fields are the server's, passed through untouched. */
+type Params = Record<string, unknown>;
 
 export const sampleKitApi = {
   // supplier
   getSupplierSamples() {
     return api.get('/supplier/samples');
   },
-  saveOffer(productId, payload) {
+  saveOffer(productId: number | string, payload: Params) {
     return api.put(`/supplier/samples/${productId}/offer`, payload);
   },
-  respond(requestId, action, payload = {}) {
+  respond(requestId: number | string, action: string, payload: Params = {}) {
     return api.post(`/supplier/samples/requests/${requestId}/${action}`, payload);
   },
   getSupplierKits() {
     return api.get('/supplier/marketing-kits');
   },
-  saveKit(productId, payload) {
+  saveKit(productId: number | string, payload: Params) {
     return api.put(`/supplier/marketing-kits/${productId}`, payload);
   },
 
@@ -26,10 +29,10 @@ export const sampleKitApi = {
   getSalerSamples() {
     return api.get('/sourcing/samples');
   },
-  requestSample(payload) {
+  requestSample(payload: Params) {
     return api.post('/sourcing/samples', payload);
   },
-  act(requestId, action) {
+  act(requestId: number | string, action: string) {
     return api.post(`/sourcing/samples/${requestId}/${action}`, {});
   },
   getSalerKits() {

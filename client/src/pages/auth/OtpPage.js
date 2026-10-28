@@ -7,7 +7,7 @@
  */
 
 import { verifyOtp, sendOtp } from '../../services/session.js';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { homePathForRoles } from '../../config/navigation.js';

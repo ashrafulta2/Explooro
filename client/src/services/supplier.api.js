@@ -2,7 +2,7 @@
  * supplier.api.js — API client methods for Supplier / Manufacturer Dashboard & operations (Prompt 11.1).
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 
 export const supplierApi = {
   getDashboardOverview() {

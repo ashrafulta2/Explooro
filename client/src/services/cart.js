@@ -5,7 +5,7 @@
  * and drawer trigger events.
  */
 
-import { api, pickMessage } from '../core/api.js';
+import { api, pickMessage } from '../core/api.ts';
 import { createStore } from '../core/store.ts';
 import { appStore } from '../state/appStore.js';
 import { toast } from './toast.js';

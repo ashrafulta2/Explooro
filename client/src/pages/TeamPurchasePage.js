@@ -12,7 +12,7 @@
  * 8. Fallback sample data ensuring seamless demo & preview.
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { TeamCheckoutForm } from '../components/product/TeamCheckoutForm.ts';
 import { appStore } from '../state/appStore.js';

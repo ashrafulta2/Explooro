@@ -441,7 +441,7 @@ export async function initTheme() {
   }
 
   try {
-    const { api } = await import('../core/api.js');
+    const { api } = await import('../core/api.ts');
     const res = await api.get('/theme/active');
     // The previous condition tested `res.is_custom`, a field the theme controller never sends —
     // so a published palette was fetched and then silently discarded on every boot. Read the

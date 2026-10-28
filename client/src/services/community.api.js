@@ -2,9 +2,9 @@
  * community.api.js — typed wrapper for the community timeline (/community/*, /admin/community/*).
  *
  * One place that knows the request/response shape (how-to-add-a-feature.md Step 8). Components never
- * call fetch; the mock/live switch and auth refresh live in core/api.js.
+ * call fetch; the mock/live switch and auth refresh live in core/api.ts.
  */
-import { api, ApiError, pickMessage } from '../core/api.js';
+import { api, ApiError, pickMessage } from '../core/api.ts';
 
 /** The message to show for a failed call, in the reader's language; '' when it was not an API error. */
 export function errorText(err) {

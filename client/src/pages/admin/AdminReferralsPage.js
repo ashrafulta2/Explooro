@@ -14,7 +14,7 @@
  *   4. Flagged referrals queue with release / void decisions on held commission.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { toast } from '../../services/toast.js';

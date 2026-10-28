@@ -10,7 +10,7 @@
 
 import { formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 
 /** One chat message, as the API (or the local outbound queue) returns it. */

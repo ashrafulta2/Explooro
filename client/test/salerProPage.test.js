@@ -70,7 +70,7 @@ describe('numbers come from the API', () => {
     assert.doesNotMatch(page, /\b999\b|\b2\s*%/);
   });
   it('subscribing is idempotent', () => {
-    assert.match(read('core/api.js'), /\\\/subscriptions\\\/subscribe\$/);
+    assert.match(read('core/api.ts'), /\\\/subscriptions\\\/subscribe\$/);
   });
   it('plan and subscription text is escaped before it reaches innerHTML', () => {
     assert.match(page, /escapeHtml\(planName\(plan\)\)/);

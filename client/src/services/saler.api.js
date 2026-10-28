@@ -2,7 +2,7 @@
  * saler.api.js — Client API helper for Shop Partner Dashboard & Analytics (Prompt 11.2).
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 
 export const salerApi = {
   /**

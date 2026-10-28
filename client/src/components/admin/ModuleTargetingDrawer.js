@@ -8,7 +8,7 @@ import { Input } from '../ui/Input.ts';
 import { Select } from '../ui/Select.ts';
 import { Switch } from '../ui/Switch.ts';
 import { Badge } from '../ui/Badge.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 

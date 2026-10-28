@@ -8,13 +8,13 @@
  * at once is unusable. Closed, each row still says in words whether it has a kit and whether shop partners
  * can see it.
  */
-import { sampleKitApi } from '../../services/sampleKit.api.js';
+import { sampleKitApi } from '../../services/sampleKit.api.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Switch } from '../../components/ui/Switch.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 
 function el(tag, className, text) {

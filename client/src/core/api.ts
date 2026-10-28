@@ -1,5 +1,5 @@
 /**
- * api.js — fetch wrapper implementing docs/api-contract.md.
+ * api.ts — fetch wrapper implementing docs/api-contract.md.
  *
  * Mock/live switch: `import.meta.env.VITE_API_MODE`. `mock` (the default) resolves against
  * client/src/mocks with simulated 150–400ms latency, so the app is fully previewable for the next
@@ -7,6 +7,39 @@
  * never know which — see docs/api-contract.md §1 "Client compatibility rule".
  */
 import { toast } from '../services/toast.js';
+
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+/** The options every `api.*` call accepts. `body` is set by `post` / `put` / `patch`, not by callers. */
+export interface RequestOptions {
+  body?: unknown;
+  query?: Record<string, unknown>;
+  /** The mock layer also reads the query from here. */
+  params?: Record<string, unknown>;
+  headers?: Record<string, string>;
+  /** Force (true) or suppress (false) the Idempotency-Key header; unset follows `IDEMPOTENT_ROUTES`. */
+  idempotent?: boolean;
+  idempotencyKey?: string;
+  /** Do not raise `explooro:auth-required` on a 401 (a guest reading a cart). */
+  skipAuthRedirect?: boolean;
+}
+
+/**
+ * What a resolved call hands back: the body spread flat (for endpoints that reply with a bare payload)
+ * plus `data` and `meta`. `T` is the payload of `data`; it defaults to `any` because the rows are
+ * not typed yet. Each wrapper that gains a row type narrows it for its callers.
+ */
+export type ApiResponse<T = any> = { data: T; meta: Record<string, any>; deferred?: unknown } & Record<string, any>;
+
+/** The `error` object of a 4xx/5xx body (docs/api-contract.md §2.3). */
+export interface ApiErrorBody {
+  code: string;
+  message_en?: string;
+  message_bn?: string;
+  details?: Record<string, any>;
+  trace_id?: string;
+  status?: number;
+}
 
 const MODE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_MODE === 'live') ? 'live' : 'mock';
 const BASE = '/api/v1';
@@ -42,7 +75,15 @@ const IDEMPOTENT_ROUTES = [
 
 /** Thrown for every 4xx/5xx response. Carries both language messages per §2.3 "Field rules". */
 export class ApiError extends Error {
-  constructor({ code, message_en, message_bn, details, trace_id, status }) {
+  code: string;
+  message_en?: string;
+  message_bn?: string;
+  details: Record<string, any>;
+  trace_id?: string;
+  status?: number;
+  requestable: boolean;
+
+  constructor({ code, message_en, message_bn, details, trace_id, status }: ApiErrorBody) {
     super(message_en || code);
     this.name = 'ApiError';
     this.code = code;
@@ -57,14 +98,14 @@ export class ApiError extends Error {
 }
 
 // Access tokens live in memory only — never localStorage, which any XSS can read (§8).
-let accessToken = null;
+let accessToken: string | null = null;
 
-export function setAccessToken(token) {
+export function setAccessToken(token: string | null) {
   accessToken = token;
 }
 
 /** Read-only accessor for hand-rolled requests that can't go through request() — e.g. SSE streams. */
-export function getAccessToken() {
+export function getAccessToken(): string | null {
   return accessToken;
 }
 
@@ -72,30 +113,30 @@ export function clearAccessToken() {
   accessToken = null;
 }
 
-function currentLang() {
+function currentLang(): 'bn' | 'en' {
   return document.documentElement.lang === 'bn' ? 'bn' : 'en';
 }
 
 // docs/api-contract.md §8 double-submit pattern: the server sets a JS-readable `csrf` cookie
 // alongside the HttpOnly refresh cookie and requires it echoed back as this header on
 // cookie-authenticated POSTs (refresh, logout) — read fresh each call since login/refresh rotate it.
-function currentCsrfToken() {
+function currentCsrfToken(): string | null {
   const match = document.cookie.match(/(?:^|;\s*)csrf=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
 
 /** Picks the error message matching the active UI language, falling back to the other. */
-export function pickMessage(err) {
+export function pickMessage(err: Pick<ApiErrorBody, 'message_en' | 'message_bn'>): string | undefined {
   return currentLang() === 'bn' ? err.message_bn ?? err.message_en : err.message_en ?? err.message_bn;
 }
 
-function needsIdempotencyKey(method, path, explicit) {
+function needsIdempotencyKey(method: HttpMethod, path: string, explicit?: boolean) {
   if (explicit !== undefined) return explicit;
   return (method === 'POST' || method === 'PATCH') && IDEMPOTENT_ROUTES.some((re) => re.test(path));
 }
 
-function buildHeaders(method, path, options) {
-  const headers = {
+function buildHeaders(method: HttpMethod, path: string, options: RequestOptions): Record<string, string> {
+  const headers: Record<string, string> = {
     'Accept-Language': currentLang(),
     ...options.headers,
   };
@@ -118,13 +159,13 @@ function buildHeaders(method, path, options) {
 // several requests in parallel produces several simultaneous 401s, so without de-duplication the
 // *second* refresh would kill the session the first one just renewed. Every caller — the 401 retry
 // below and session.js's bootstrap/proactive timer alike — must go through this one promise.
-let refreshInFlight = null;
+let refreshInFlight: Promise<Record<string, any> | null> | null = null;
 
 /**
  * Renews the access token from the HttpOnly refresh cookie, at most once at a time.
  * Resolves to the refresh payload (`{ access_token, user, ... }`) on success, `null` on failure.
  */
-export function refreshSession() {
+export function refreshSession(): Promise<Record<string, any> | null> {
   if (refreshInFlight) return refreshInFlight;
 
   refreshInFlight = (async () => {
@@ -163,11 +204,16 @@ export function refreshSession() {
   return refreshInFlight;
 }
 
-async function performLive(method, path, { body, query, headers }) {
+interface MockOrLiveReply {
+  status: number;
+  body: any;
+}
+
+async function performLive(method: HttpMethod, path: string, { body, query, headers }: RequestOptions): Promise<MockOrLiveReply> {
   const url = new URL(BASE + path, window.location.origin);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
-      if (value !== undefined && value !== null) url.searchParams.set(key, value);
+      if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
     }
   }
   const res = await fetch(url, {
@@ -180,7 +226,7 @@ async function performLive(method, path, { body, query, headers }) {
   return { status: res.status, body: parsed };
 }
 
-async function performMock(method, path, { body, query, params }) {
+async function performMock(method: HttpMethod, path: string, { body, query, params }: RequestOptions): Promise<MockOrLiveReply> {
   // Simulated network latency (150–400ms) so loading states are real, not instant, in dev.
   const delay = 150 + Math.random() * 250;
   await new Promise((resolve) => setTimeout(resolve, delay));
@@ -192,7 +238,7 @@ async function performMock(method, path, { body, query, params }) {
   return handleMockRequest({ method, path, query: q, body });
 }
 
-function handleGlobalCodes(err) {
+function handleGlobalCodes(err: ApiErrorBody) {
   // §3.2 — the feature is off platform-wide; the calling UI hides the affordance, api.js owns
   // telling the user why in case something still slipped through.
   if (err.code === 'MODULE_DISABLED') {
@@ -206,7 +252,7 @@ function handleGlobalCodes(err) {
   }
 }
 
-async function request(method, path, options = {}, retried = false) {
+async function request(method: HttpMethod, path: string, options: RequestOptions = {}, retried = false): Promise<ApiResponse> {
   const headers = buildHeaders(method, path, options);
   const { status, body } =
     MODE === 'live'
@@ -215,7 +261,8 @@ async function request(method, path, options = {}, retried = false) {
 
   // §2.2 — deferred: valid and accepted, nothing has changed yet. Never rendered as an error.
   if (status === 202 && body.deferred) {
-    return { deferred: body.deferred };
+    // WHY the cast: callers test `deferred` before they read `data` (services/writeOutcome.ts).
+    return { deferred: body.deferred } as ApiResponse;
   }
 
   if (status >= 200 && status < 300) {
@@ -256,11 +303,11 @@ async function request(method, path, options = {}, retried = false) {
 }
 
 export const api = {
-  get: (path, options) => request('GET', path, options),
-  post: (path, body, options) => request('POST', path, { ...options, body }),
-  put: (path, body, options) => request('PUT', path, { ...options, body }),
-  patch: (path, body, options) => request('PATCH', path, { ...options, body }),
-  delete: (path, options) => request('DELETE', path, options),
+  get: (path: string, options?: RequestOptions) => request('GET', path, options),
+  post: (path: string, body?: unknown, options?: RequestOptions) => request('POST', path, { ...options, body }),
+  put: (path: string, body?: unknown, options?: RequestOptions) => request('PUT', path, { ...options, body }),
+  patch: (path: string, body?: unknown, options?: RequestOptions) => request('PATCH', path, { ...options, body }),
+  delete: (path: string, options?: RequestOptions) => request('DELETE', path, options),
 };
 
 export default api;

@@ -4,7 +4,7 @@
 
 import { Button } from '../ui/Button.ts';
 import { Modal } from '../ui/Modal.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 

@@ -11,7 +11,7 @@
  * All UI strings resolve via t('wishlist.*') for proper English ↔ Bangla i18n.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

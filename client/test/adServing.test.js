@@ -9,7 +9,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { api } from '../src/core/api.js';
+import { api } from '../src/core/api.ts';
 import { adsApi } from '../src/services/ads.api.js';
 import { navItems } from '../src/config/navigation.js';
 

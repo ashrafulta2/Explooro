@@ -22,7 +22,7 @@
  *      filed for Super Admin sign-off rather than executed. The UI says so before you click.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
@@ -190,7 +190,7 @@ export default function LiveModerationPage(root, ctx = {}) {
       const res = await api.post(`/live/streams/${selectedId}/moderate/terminate`, { reason });
 
       // A HIGH-tier permission returns 202 with a `deferred` envelope and mutates nothing
-      // (core/api.js §2.2). Reporting that as success would tell a moderator a harmful broadcast
+      // (core/api.ts §2.2). Reporting that as success would tell a moderator a harmful broadcast
       // is off the air when it is still selling.
       if (res.deferred) {
         toast.info(t('live_mod.terminate_pending'), { duration: 9000 });

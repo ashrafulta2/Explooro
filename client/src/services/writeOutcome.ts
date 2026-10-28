@@ -1,7 +1,7 @@
 /**
  * writeOutcome.ts — what the reply to an admin write means.
  *
- * core/api.js resolves a 202 "deferred" reply as `{ deferred }` instead of throwing. That is not an
+ * core/api.ts resolves a 202 "deferred" reply as `{ deferred }` instead of throwing. That is not an
  * error, but it is not a change either: requirePermission parks a delegated Admin's HIGH-tier request
  * (resetting someone's 2FA, say) in pending_admin_actions for a Super Admin to approve, and nothing
  * has happened yet. A page that toasts "done" and reloads for that reply tells the admin something
@@ -18,7 +18,7 @@ interface LocalizedMessage {
   message_bn?: string;
 }
 
-/** What core/api.js resolves an admin write to: the body itself, or `{ deferred }` for a 202. */
+/** What core/api.ts resolves an admin write to: the body itself, or `{ deferred }` for a 202. */
 export type WriteReply = (LocalizedMessage & { deferred?: LocalizedMessage }) | null | undefined;
 
 export interface WriteOutcome {

@@ -8,7 +8,7 @@
  * - Broadcasts auth state to appStore for router guards and shell components.
  */
 
-import { api, setAccessToken, clearAccessToken, refreshSession } from '../core/api.js';
+import { api, setAccessToken, clearAccessToken, refreshSession } from '../core/api.ts';
 import { appStore } from '../state/appStore.js';
 import { initPermissions, clearPermissions } from './permissions.js';
 import { mergeGuestCartOnLogin } from './cart.js';

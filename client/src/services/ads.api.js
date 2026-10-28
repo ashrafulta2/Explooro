@@ -1,4 +1,4 @@
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 
 // WHY: callers (and ad_products.placement) use the server's keys. The Stories page historically asked
 // for 'HOMEPAGE_HERO', which no campaign carries, so the booked Homepage Spotlight never matched.

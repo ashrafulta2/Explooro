@@ -6,7 +6,7 @@
  * payment is finished at once through the authenticated POST /payments/execute.
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { generateIdempotencyKey } from './order.api.js';
 
 const unwrap = (res) => res?.data ?? res;

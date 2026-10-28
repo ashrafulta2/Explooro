@@ -14,7 +14,7 @@
  * - One-click Reference clipboard copy with instant feedback
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';

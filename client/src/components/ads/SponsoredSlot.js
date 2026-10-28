@@ -12,7 +12,7 @@
 import { appStore } from '../../state/appStore.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 
 export class SponsoredSlot {
   /**

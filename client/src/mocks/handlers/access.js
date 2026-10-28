@@ -1,7 +1,7 @@
 /**
  * Mock handler for the JIT "Request access" flow (ia-sitemap.md §5, Prompt 1.7 REQUIREMENT 3).
  * "Wired to the real API in Prompt 2.8" — until then this gives LockedNavItem's request modal a
- * real request/response round trip (with mock latency, via core/api.js) instead of a fire-and-
+ * real request/response round trip (with mock latency, via core/api.ts) instead of a fire-and-
  * forget stub, so the deferred-envelope UI path (docs/api-contract.md §2.2) is exercised now.
  */
 function traceId() {

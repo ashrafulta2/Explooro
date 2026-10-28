@@ -13,7 +13,7 @@
  * 6. English ↔ Bangla bilingual localization and instant reactivity.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';

@@ -10,7 +10,7 @@
  * - releaseJitAccess(grantRef)
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { appStore } from '../state/appStore.js';
 import { PRESET_SWITCH_PERMISSION, dropLocalPreset } from './themePalette.js';
 import catalog from '../../../docs/permission-catalog.json' with { type: 'json' };

@@ -2,7 +2,7 @@
  * AssistantPanel.js — AI Shopping Concierge / Sourcing Intelligence chat panel (Prompt 10.2).
  *
  * Streams a server-sent-events turn from `POST /ai/{concierge|sourcing}/messages` — deliberately
- * not routed through core/api.js's `request()`, which awaits a full JSON body; this reads the
+ * not routed through core/api.ts's `request()`, which awaits a full JSON body; this reads the
  * response as a live ReadableStream instead. Product cards are rendered strictly from the
  * structured `products` event, never parsed out of the streamed text, so a prompt-injection
  * attempt in catalog text cannot change what a card shows (docs/ai-strategy.md §9.1).
@@ -12,7 +12,7 @@
  *   openAssistantPanel({ agentType, trigger }) — wraps it in a Drawer and opens it, self-gating
  *     on the permission/module state so a disabled AI module degrades to a toast, never a crash.
  */
-import { API_BASE, getAccessToken, api } from '../../core/api.js';
+import { API_BASE, getAccessToken, api } from '../../core/api.ts';
 import { Button } from '../ui/Button.ts';
 import { Drawer } from '../ui/Drawer.ts';
 import { t, getLanguage } from '../../services/i18n.js';

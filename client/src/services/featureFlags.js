@@ -8,7 +8,7 @@
  * - Dispatches updates to listeners when flags change.
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { appStore } from '../state/appStore.js';
 
 let flagsCache = {};

@@ -7,7 +7,7 @@ import { Button } from '../ui/Button.ts';
 import { Input } from '../ui/Input.ts';
 import { Select } from '../ui/Select.ts';
 import { Textarea } from '../ui/Textarea.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatCurrency, normaliseBdPhone } from '../../services/format.js';

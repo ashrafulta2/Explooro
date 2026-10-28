@@ -2,7 +2,7 @@
  * StorefrontPage.js — Public, SEO-indexable Shop Partner Storefront with Social Shop Partner Kit & QR Flyer (Prompt 4.8).
  */
 
-import { getStoreBySlug } from '../services/store.api.js';
+import { getStoreBySlug } from '../services/store.api.ts';
 import { StoreHeader } from '../components/store/StoreHeader.ts';
 import { ProductCard } from '../components/product/ProductCard.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';

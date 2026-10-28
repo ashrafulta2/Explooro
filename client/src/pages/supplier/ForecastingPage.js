@@ -14,7 +14,7 @@
  * per-product GET /ai/forecast/:productId (see docs/prompt.md row 80).
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatDate, formatCurrency } from '../../services/format.js';

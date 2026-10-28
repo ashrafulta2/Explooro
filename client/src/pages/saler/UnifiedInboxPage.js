@@ -15,7 +15,7 @@
 
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { wsManager } from '../../services/websocket.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';

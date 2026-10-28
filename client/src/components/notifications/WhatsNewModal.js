@@ -9,7 +9,7 @@
 
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { escapeHtml } from '../../services/html.ts';
 

@@ -366,7 +366,7 @@ export async function initI18n() {
   scanStaticNodes();
 
   // Fire-and-forget: a slow or missing API must not delay the first route mount. The dynamic
-  // import also keeps core/api.js (which pulls in the mock router and the toast service) out of
+  // import also keeps core/api.ts (which pulls in the mock router and the toast service) out of
   // this module's static import graph.
   refreshLocalePolicy();
 
@@ -376,7 +376,7 @@ export async function initI18n() {
 /** Re-reads the platform policy from the API and applies it. Never throws. */
 export async function refreshLocalePolicy() {
   try {
-    const { api } = await import('../core/api.js');
+    const { api } = await import('../core/api.ts');
     const res = await api.get(POLICY_ENDPOINT);
     if (res?.policy) await applyLocalePolicy(res.policy);
   } catch {

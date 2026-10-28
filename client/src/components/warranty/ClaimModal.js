@@ -3,7 +3,7 @@
  */
 
 import { t, getLanguage } from '../../services/i18n.js';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 
 import { Modal } from '../ui/Modal.ts';

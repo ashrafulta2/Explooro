@@ -9,7 +9,7 @@
  * The server decides what is billable (self-clicks, duplicates and the budget cap are all enforced
  * there), so nothing here is a billing authority.
  */
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { isFeatureEnabled } from './featureFlags.js';
 
 export const VIEWABLE_MS = 1000;

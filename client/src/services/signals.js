@@ -24,7 +24,7 @@
  *
  * Zero dependencies (client runtime-dependency policy) — only this repo's api wrapper.
  */
-import { api, getAccessToken, API_BASE } from '../core/api.js';
+import { api, getAccessToken, API_BASE } from '../core/api.ts';
 
 const LIVE = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_MODE === 'live';
 

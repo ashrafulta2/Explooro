@@ -8,7 +8,7 @@
  * - Shows live status ("Waiting for Admin approval") and automatically updates UI upon approval.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { getPermissionMetadata, refreshPermissions, can } from '../../services/permissions.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

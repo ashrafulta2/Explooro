@@ -19,7 +19,7 @@
  * number the purchase will charge, computed by one engine (server/src/services/adPricing.ts).
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Modal } from '../../components/ui/Modal.ts';

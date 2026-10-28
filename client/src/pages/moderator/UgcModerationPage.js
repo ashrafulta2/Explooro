@@ -12,7 +12,7 @@
  * Strings are i18n (en/bn); AI-score badges + stat cards use semantic design tokens.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatDate } from '../../services/format.js';

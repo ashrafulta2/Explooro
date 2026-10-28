@@ -21,7 +21,7 @@
  */
 
 import { adminApi } from '../../services/admin.api.js';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 import { t, getLanguage, subscribe as subscribeLanguage } from '../../services/i18n.js';
 import { formatNumber, formatDate, formatRelativeTime } from '../../services/format.js';
 import { can } from '../../services/permissions.js';

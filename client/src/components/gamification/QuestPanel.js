@@ -9,7 +9,7 @@
  * 5. Bilingual English ↔ Bangla localization.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { getLanguage, t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { questClaimMessage } from './questClaimMessage.ts';

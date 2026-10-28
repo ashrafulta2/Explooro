@@ -1,7 +1,7 @@
 /**
  * mocks/index.js — the mock API router.
  *
- * Responsibility: give core/api.js something to resolve against when VITE_API_MODE=mock, so the
+ * Responsibility: give core/api.ts something to resolve against when VITE_API_MODE=mock, so the
  * whole app is previewable before the backend (Phase 2+) exists. Each handler module registers
  * `{ method, path, handler(ctx) }` entries; `path` is matched the same way core/router.js matches
  * page routes, reusing its `matchPath` so the two systems agree on `:param` syntax.

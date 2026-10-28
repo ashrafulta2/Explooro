@@ -8,7 +8,7 @@
  * switch it on that the platform keeps its share of the price, that the shipping goes whole to them,
  * and that nothing reaches their vault until the shop partner confirms (or the confirm window runs out).
  */
-import { sampleKitApi } from '../../services/sampleKit.api.js';
+import { sampleKitApi } from '../../services/sampleKit.api.ts';
 import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
 import { Button } from '../../components/ui/Button.ts';
 import { Switch } from '../../components/ui/Switch.ts';
@@ -16,7 +16,7 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { toast } from '../../services/toast.js';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 

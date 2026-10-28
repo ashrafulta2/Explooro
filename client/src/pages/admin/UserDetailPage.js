@@ -19,7 +19,7 @@ import { Tabs } from '../../components/ui/Tabs.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { createBackButton } from '../../core/navBack.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
@@ -404,7 +404,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
 
           liftBtn.setLoading?.(true);
           try {
-            // WHY `body`: core/api.js reads `{ body }` — the old `{ data }` option was dropped, so
+            // WHY `body`: core/api.ts reads `{ body }` — the old `{ data }` option was dropped, so
             // the mandatory audit justification never reached the server.
             await api.delete(`/admin/restrictions/${r.id}`, { body: { reason: conf.reason.trim() } });
             toast.success(t('user_detail.lift_success', 'Restriction lifted successfully'));

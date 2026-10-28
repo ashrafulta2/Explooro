@@ -1,7 +1,7 @@
 /**
  * theme.js — Mock API handlers for Theme Studio (Prompt 3.5).
  *
- * WHY this file had to exist: core/api.js resolves every call against these mock handlers unless
+ * WHY this file had to exist: core/api.ts resolves every call against these mock handlers unless
  * VITE_API_MODE=live, and no theme handler was ever registered — every theme.* request (active
  * theme lookup, draft save, publish, rename, delete) silently 404'd. The Studio's live colour
  * preview still worked (it calls applyTheme() directly, not through the API), which made a saved

@@ -12,7 +12,7 @@
  * so raising a rate never re-bills someone retroactively.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';

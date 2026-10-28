@@ -49,7 +49,7 @@ explooro/
 │       ├── core/
 │       │   ├── router.js        History API router, guards, lazy routes
 │       │   ├── store.ts         Pub/sub state, ~80 lines, no library
-│       │   └── api.js           fetch wrapper; VITE_API_MODE=mock|live switch
+│       │   └── api.ts           fetch wrapper; VITE_API_MODE=mock|live switch
 │       ├── config/
 │       │   └── navigation.js    Nav tree as DATA. Add a feature = add one object
 │       ├── styles/
@@ -236,7 +236,7 @@ The 35 most likely change requests, with exact paths.
 
 ```
 Browser  fetch('/api/v1/orders/checkout', { headers: { Idempotency-Key } })
-   │     client/src/core/api.js  — attaches JWT, generates idempotency key, unwraps envelope
+   │     client/src/core/api.ts  — attaches JWT, generates idempotency key, unwraps envelope
    ▼
 Vite proxy (dev) / nginx (prod)          vite.config.js  /  nginx/nginx.conf
    ▼

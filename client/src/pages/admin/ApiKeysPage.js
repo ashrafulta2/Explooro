@@ -18,7 +18,7 @@ import {
   deleteWebhookSubscription,
   listWebhookDeliveries,
   replayWebhookDelivery,
-} from '../../services/developer.api.js';
+} from '../../services/developer.api.ts';
 
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';

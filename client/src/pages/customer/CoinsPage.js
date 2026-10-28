@@ -12,7 +12,7 @@
  * 8. 100% bilingual English ↔ Bangla localization.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { getLanguage, t, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { QuestPanel } from '../../components/gamification/QuestPanel.js';

@@ -5,7 +5,7 @@
  * write accepts an `Idempotency-Key` (docs/api-contract.md §5): a retried request replays the stored
  * response instead of provisioning twice, and reusing a key for a different request is refused.
  *
- * Replies are bare payloads (`{ staff, … }`), not `{ data }`-wrapped: core/api.js on the client
+ * Replies are bare payloads (`{ staff, … }`), not `{ data }`-wrapped: core/api.ts on the client
  * spreads the body and keeps `data` alongside, so bare shapes are what the admin pages read (the
  * same convention user.controller.ts follows).
  */

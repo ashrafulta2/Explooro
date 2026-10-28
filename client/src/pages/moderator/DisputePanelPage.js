@@ -10,7 +10,7 @@
  * 6. High-tier Maker-Checker deferral notifications for moderator submissions above threshold.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

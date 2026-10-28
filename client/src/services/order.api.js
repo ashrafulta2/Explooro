@@ -1,4 +1,4 @@
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { clearCart, getCart, syncCartToServer } from './cart.js';
 import { track, flushSignals } from './signals.js';
 

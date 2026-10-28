@@ -8,7 +8,7 @@
  * in the browser over what the server already returned (the list is capped), so typing never costs a
  * request.
  */
-import { sampleKitApi } from '../../services/sampleKit.api.js';
+import { sampleKitApi } from '../../services/sampleKit.api.ts';
 import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';

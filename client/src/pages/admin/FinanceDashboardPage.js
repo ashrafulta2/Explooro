@@ -10,7 +10,7 @@
  * 4. Direct Operational Action buttons (Escrow Release Sweep, Payout Queue, COD Reconciliation).
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { formatCompactBdt } from '../../services/adminDashboard.model.ts';
 import { toast } from '../../services/toast.js';

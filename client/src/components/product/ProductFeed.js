@@ -37,7 +37,7 @@ import { VariantSelector } from './VariantSelector.ts';
 import { WishlistButton } from '../cart/WishlistButton.ts';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
 import { openTeamPurchaseModal } from './TeamPurchaseModal.js';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { appStore } from '../../state/appStore.js';
 import { EmptyState } from '../ui/EmptyState.ts';
 import { Skeleton } from '../ui/Skeleton.ts';

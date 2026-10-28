@@ -14,7 +14,7 @@ import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { appStore } from '../../state/appStore.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';

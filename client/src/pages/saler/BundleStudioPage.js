@@ -21,7 +21,7 @@ import {
   listSurgeRecommendations,
   acceptSurgeRecommendation,
   dismissSurgeRecommendation,
-} from '../../services/bundle.api.js';
+} from '../../services/bundle.api.ts';
 import { getSalerStoreItems } from '../../services/catalog.api.js';
 import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfitBreakdown.ts';
 import { Button } from '../../components/ui/Button.ts';

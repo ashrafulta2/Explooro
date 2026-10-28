@@ -14,7 +14,7 @@ import { Switch } from '../../components/ui/Switch.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
 

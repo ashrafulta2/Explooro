@@ -23,7 +23,7 @@ import {
 import {
   generatePalette, paletteToSectionTokens, BRAND_STEPS, NEUTRAL_STEPS, MASTER_RANGES,
 } from '../../services/colorRamp.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';

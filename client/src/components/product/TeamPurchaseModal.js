@@ -10,7 +10,7 @@
 
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { appStore } from '../../state/appStore.js';
 import { getCurrentUser } from '../../services/session.js';
 import { t, getLanguage } from '../../services/i18n.js';

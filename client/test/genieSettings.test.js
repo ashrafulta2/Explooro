@@ -174,6 +174,6 @@ test('Popup genie effect — client invariants', async (t) => {
 
     const svc = read('src', 'services', 'genieSettings.js');
     assert.match(svc, /if \(cached\) configureGenie\(cached\);\s*\n\s*refreshGenieSettings\(\);/);
-    assert.match(svc, /await import\('\.\.\/core\/api\.js'\)/, 'api stays out of the static import graph');
+    assert.match(svc, /await import\('\.\.\/core\/api\.ts'\)/, 'api stays out of the static import graph');
   });
 });

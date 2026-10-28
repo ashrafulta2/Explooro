@@ -10,7 +10,8 @@
  * first one the estimate is replaced as soon as the server cart or the policy arrives.
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
+import type { ApiResponse } from '../core/api.ts';
 
 const STORAGE_KEY = 'explooro:delivery:per_parcel_charge';
 
@@ -35,7 +36,7 @@ export function knownDeliveryCharge(): number | null {
 export function loadDeliveryCharge(): Promise<number | null> {
   if (!pending) {
     pending = api.get('/delivery/policy', { skipAuthRedirect: true })
-      .then((res: { policy?: { per_parcel_charge?: unknown } } | null) => {
+      .then((res: ApiResponse) => {
         const n = Number(res?.policy?.per_parcel_charge);
         if (Number.isFinite(n) && n >= 0) {
           current = n;

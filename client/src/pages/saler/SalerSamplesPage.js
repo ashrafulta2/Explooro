@@ -8,14 +8,14 @@
  * comes straight back if the supplier declines or never ships. A shop partner who does not believe that will
  * not order, so the dialog states it next to the amount, every time.
  */
-import { sampleKitApi } from '../../services/sampleKit.api.js';
+import { sampleKitApi } from '../../services/sampleKit.api.ts';
 import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 

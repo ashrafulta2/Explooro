@@ -171,7 +171,7 @@ export default [
 
       const next = { ...current };
       for (const field of PROFILE_FIELDS) {
-        // `payload[field] !== undefined`, not `field in payload`: core/api.js hands the mock the
+        // `payload[field] !== undefined`, not `field in payload`: core/api.ts hands the mock the
         // caller's object verbatim (no JSON round trip), so a key set to undefined is still "in"
         // it — and would overwrite a real value with nothing, which a live PUT would never do.
         if (payload[field] !== undefined) next[field] = payload[field];

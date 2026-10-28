@@ -14,7 +14,7 @@
  * 6. 100% Bilingual (English & Bengali) with Explooro design system.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, ICONS } from '../../components/ui/icons.ts';

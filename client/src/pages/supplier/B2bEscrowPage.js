@@ -19,7 +19,7 @@ import {
   raiseB2bDispute,
   refundMilestone,
   getContractPdfUrl,
-} from '../../services/b2bEscrow.api.js';
+} from '../../services/b2bEscrow.api.ts';
 
 import { createMilestoneProgressStepper } from '../../components/b2b/MilestoneProgressStepper.ts';
 import { Card } from '../../components/ui/Card.ts';

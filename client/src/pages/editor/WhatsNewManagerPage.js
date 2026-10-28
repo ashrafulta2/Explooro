@@ -13,7 +13,7 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { formatDate } from '../../services/format.js';
 import { escapeHtml } from '../../services/html.ts';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 
 // Same cap as HIGHLIGHT_LIMITS.maxItems in server/src/services/content.service.ts.
 const MAX_HIGHLIGHTS = 6;

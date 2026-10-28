@@ -255,7 +255,7 @@ test('4. The mock driver matches the live API contract', async (t) => {
 
   await t.test('an omitted field means "unchanged" on both the mock and live paths', () => {
     // Regression: collectPayload() used to send `avatar_media_id: undefined` for an untouched
-    // photo. Live mode JSON.stringify's the body and drops the key, but core/api.js hands the mock
+    // photo. Live mode JSON.stringify's the body and drops the key, but core/api.ts hands the mock
     // handler the object itself — where `'avatar_media_id' in payload` is still true — so saving
     // any unrelated field silently deleted the user's profile picture in dev only.
     assert.ok(

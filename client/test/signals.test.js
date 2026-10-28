@@ -56,7 +56,7 @@ class FakeObserver {
 globalThis.IntersectionObserver = FakeObserver;
 
 const signals = await import('../src/services/signals.js');
-const { api } = await import('../src/core/api.js');
+const { api } = await import('../src/core/api.ts');
 
 const posts = [];
 api.post = async (path, body, opts) => {

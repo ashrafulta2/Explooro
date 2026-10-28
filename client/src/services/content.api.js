@@ -2,7 +2,7 @@
  * content.api.js — Client API service for Editor Portal (Banners, Stories, Reels, Academy, What's New, Help Center, Translations).
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 
 // Stories & Editorial Articles
 export async function listStories(params = {}) {

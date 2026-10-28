@@ -13,7 +13,7 @@ import { confirmDialog } from '../ui/ConfirmDialog.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatDate, formatNumber } from '../../services/format.js';
 

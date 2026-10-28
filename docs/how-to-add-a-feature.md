@@ -319,7 +319,7 @@ full tag list rather than appending).
 
 ```js
 // client/src/services/catalog.api.js
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 
 export async function setProductTags(productId, tags) {
   const { tags: saved } = await api.put(`/products/${productId}/tags`, { tags });

@@ -2,7 +2,7 @@
  * admin.api.js — Client API helper for Super Admin Executive Analytics & System Health (Prompt 11.4).
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 
 export const adminApi = {
   /**

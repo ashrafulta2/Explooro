@@ -6,7 +6,7 @@
  * shopper's touch (services/attribution.ts), asks the API to count the click and name the target,
  * and replaces itself with that page so Back does not bounce through the link again.
  */
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { t } from '../services/i18n.js';
 import { toast } from '../services/toast.js';
 import { recordTouch } from '../services/attribution.ts';

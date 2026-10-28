@@ -7,7 +7,7 @@
  * - Real-time spend tracking and bilingual English / Bengali localization.
  */
 
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';

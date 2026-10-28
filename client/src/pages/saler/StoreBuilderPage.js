@@ -3,7 +3,7 @@
  * dedicated 1-Tap Quick Share Hub & Social Shop Partner Kit with zero-dependency QR flyers (Prompt 4.8).
  */
 
-import { getMyStore, updateMyStore, updateStoreShelves, checkSlugAvailability } from '../../services/store.api.js';
+import { getMyStore, updateMyStore, updateStoreShelves, checkSlugAvailability } from '../../services/store.api.ts';
 import { StoreHeader } from '../../components/store/StoreHeader.ts';
 import { ShelfEditor } from '../../components/store/ShelfEditor.js';
 import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';

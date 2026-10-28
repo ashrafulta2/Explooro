@@ -7,7 +7,7 @@
  * WHY the limits are shown: a shop partner should know what the promise covers (only the commission a return
  * actually took back, up to a cap per order) and that repeated claims are limited, before relying on it.
  */
-import { returnProtectionApi } from '../../services/payoutProtection.api.js';
+import { returnProtectionApi } from '../../services/payoutProtection.api.ts';
 import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';

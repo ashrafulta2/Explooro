@@ -13,7 +13,7 @@
  */
 
 import { knownDeliveryCharge, loadDeliveryCharge } from '../services/deliveryCharge.ts';
-import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, getInStreamQuote, terminateLiveStream } from '../services/live.api.js';
+import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, getInStreamQuote, terminateLiveStream } from '../services/live.api.ts';
 import { adsApi } from '../services/ads.api.js';
 import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.js';
 import { LiveStreamCard } from '../components/live/LiveStreamCard.js';

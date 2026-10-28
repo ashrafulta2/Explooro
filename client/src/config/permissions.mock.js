@@ -4,7 +4,7 @@
  * In the real system the client never holds the permission catalog: the server resolves what a
  * user has, and for anything it doesn't, a `PERMISSION_DENIED` response carries `risk_tier` /
  * `requestable` / `plain_en` / `plain_bn` inline (docs/api-contract.md §3.7) — already handled by
- * core/api.js's `explooro:permission-denied` event. But a sidebar has to know BEFORE any request
+ * core/api.ts's `explooro:permission-denied` event. But a sidebar has to know BEFORE any request
  * is made whether to render an item locked, so Prompt 1.7's shell needs *some* source for that.
  *
  * Rather than hand-typing risk tiers for the ~90 permission keys navigation.js references — a

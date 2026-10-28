@@ -55,8 +55,8 @@ export function applyGeniePolicy(raw, { cache = true } = {}) {
 /** Re-reads the policy from the API and applies it. Never throws. */
 export async function refreshGenieSettings() {
   try {
-    // Dynamic import keeps core/api.js (mock router, toast) out of this module's static graph.
-    const { api } = await import('../core/api.js');
+    // Dynamic import keeps core/api.ts (mock router, toast) out of this module's static graph.
+    const { api } = await import('../core/api.ts');
     const res = await api.get(POLICY_ENDPOINT);
     if (res?.policy) return applyGeniePolicy(res.policy);
   } catch {

@@ -23,7 +23,7 @@ import { Textarea } from '../../components/ui/Textarea.ts';
 import { Switch } from '../../components/ui/Switch.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
-import { api, pickMessage } from '../../core/api.js';
+import { api, pickMessage } from '../../core/api.ts';
 import {
   t,
   getLanguage,
@@ -724,7 +724,7 @@ export default function ProfilePage(root, { navigate } = {}) {
     };
 
     // WHY the key is ADDED rather than set to undefined: the mock driver hands the payload object
-    // straight to its handler (core/api.js performMock), where `'avatar_media_id' in payload` is
+    // straight to its handler (core/api.ts performMock), where `'avatar_media_id' in payload` is
     // true even for an undefined value — so an untouched avatar was being cleared in dev while
     // live mode, which JSON.stringify's the body and drops undefined keys, kept it. Omitting the
     // key entirely means "unchanged" on both paths; `null` still means "remove my photo".

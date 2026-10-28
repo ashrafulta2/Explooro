@@ -14,7 +14,7 @@ import { MessageBubble } from '../components/chat/MessageBubble.ts';
 import { MessageComposer } from '../components/chat/MessageComposer.ts';
 import { Modal } from '../components/ui/Modal.ts';
 import { Button } from '../components/ui/Button.ts';
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { getCurrentUser } from '../services/session.js';
 import { wsManager, WS_STATUS } from '../services/websocket.ts';
 import { t } from '../services/i18n.js';

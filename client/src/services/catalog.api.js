@@ -5,7 +5,7 @@
  * component — this is the one place that knows the request/response shape for each endpoint, so a
  * server contract change only has to be fixed here.
  */
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { resolveProductImage } from '../components/product/ProductCard.ts';
 
 // The server's trust_scores.tier vocabulary (STARTER/VERIFIED_TRADER/ELITE_PARTNER, docs/erd.md

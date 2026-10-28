@@ -9,7 +9,7 @@
  * 5. Host live chat console and participant moderation controls.
  */
 
-import { scheduleLiveStream, startLiveStream, endLiveStream, pinLiveProduct, unpinLiveProduct, getLiveStream, muteLiveParticipant } from '../../services/live.api.js';
+import { scheduleLiveStream, startLiveStream, endLiveStream, pinLiveProduct, unpinLiveProduct, getLiveStream, muteLiveParticipant } from '../../services/live.api.ts';
 import { wsManager } from '../../services/websocket.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Input } from '../../components/ui/Input.ts';

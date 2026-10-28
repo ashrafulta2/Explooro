@@ -34,7 +34,7 @@ describe('live in-stream quote (mock)', () => {
   });
 
   it('the drawer asks the quote endpoint the server serves', () => {
-    assert.match(read('services/live.api.js'), /\/live\/streams\/\$\{streamId\}\/quote/);
+    assert.match(read('services/live.api.ts'), /\/live\/streams\/\$\{streamId\}\/quote/);
     assert.match(read('pages/LiveStreamPage.js'), /getInStreamQuote\(streamId/);
   });
 
@@ -72,7 +72,7 @@ describe('live in-stream quote (mock)', () => {
     const src = read('pages/LiveStreamPage.js');
     assert.match(src, /coupon_code: couponCode \|\| undefined/);
     assert.match(src, /id="chk-coupon-apply"/);
-    assert.match(read('services/live.api.js'), /query\.coupon_code = couponCode/);
+    assert.match(read('services/live.api.ts'), /query\.coupon_code = couponCode/);
     for (const lang of ['en', 'bn']) {
       const live = JSON.parse(read(`locales/${lang}.json`)).live;
       for (const k of ['chk_coupon_label', 'chk_coupon_apply', 'chk_coupon_applied']) assert.ok(live[k], `${lang}.live.${k}`);

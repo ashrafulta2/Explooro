@@ -7,13 +7,13 @@
  * completes, so the screen says how it is charged and what the supplier gets for it (salers prefer protected
  * suppliers), and says plainly that leaving does not remove cover from orders already sold.
  */
-import { returnProtectionApi } from '../../services/payoutProtection.api.js';
+import { returnProtectionApi } from '../../services/payoutProtection.api.ts';
 import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
-import { pickMessage } from '../../core/api.js';
+import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 

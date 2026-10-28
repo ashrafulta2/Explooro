@@ -5,7 +5,7 @@
  * The screen is shared with the shop partner's; see components/payoutProtection/mountFastPayout.js.
  */
 import { mountFastPayout } from '../../components/payoutProtection/mountFastPayout.js';
-import { fastPayoutApi } from '../../services/payoutProtection.api.js';
+import { fastPayoutApi } from '../../services/payoutProtection.api.ts';
 
 export default function SupplierFastPayoutPage(root) {
   return mountFastPayout(root, {

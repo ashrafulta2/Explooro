@@ -27,7 +27,7 @@
  * asked for; server-side enforcement would need a route→API-prefix map and is a separate step.
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 
 export const PAGE_STATES = Object.freeze(['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMITED']);
 

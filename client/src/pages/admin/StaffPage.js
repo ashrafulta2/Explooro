@@ -22,7 +22,7 @@ import { Pagination } from '../../components/ui/Pagination.ts';
 import { Select } from '../../components/ui/Select.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
-import { api, pickMessage } from '../../core/api.js';
+import { api, pickMessage } from '../../core/api.ts';
 import { can } from '../../services/permissions.js';
 import { getCurrentUser } from '../../services/session.js';
 import { toast } from '../../services/toast.js';

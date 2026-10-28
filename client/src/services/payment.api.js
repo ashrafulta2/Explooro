@@ -6,7 +6,7 @@
  * PAID and never locked escrow. Checkout and the order page both pay through this one helper.
  */
 
-import { api } from '../core/api.js';
+import { api } from '../core/api.ts';
 import { generateIdempotencyKey } from './order.api.js';
 
 // COD is paid in cash at the door; every other checkout method goes through a gateway.

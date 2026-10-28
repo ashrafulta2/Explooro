@@ -16,7 +16,7 @@ import { Input } from '../ui/Input.ts';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
-import { api } from '../../core/api.js';
+import { api } from '../../core/api.ts';
 
 export function openPayoutRequestModal({
   availableBalance = 0,
