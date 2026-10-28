@@ -1,6 +1,6 @@
 /**
  * supplier-scorecard.css — chip on the Sourcing card and the full panel on /supplier/scorecard.
- * WHY its own file: imported by SupplierScorecardBadge.js, so it ships in the route chunks that use
+ * WHY its own file: imported by SupplierScorecardBadge.ts, so it ships in the route chunks that use
  * it instead of the entry bundle, which is at its 70KB gzip CSS budget.
  */
 

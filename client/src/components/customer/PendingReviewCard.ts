@@ -1,17 +1,34 @@
 /**
- * PendingReviewCard.js — Displays a delivered purchase awaiting customer review.
+ * PendingReviewCard.ts — Displays a delivered purchase awaiting customer review.
  */
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
 import '../../styles/components/customer-reviews.css';
 
-export function PendingReviewCard({ item, onWriteReview }) {
+/** One delivered order line that has no review yet. */
+export interface PendingReviewItem {
+  order_item_id: number | string;
+  order_ref?: string;
+  product_title_en: string;
+  product_title_bn?: string;
+  product_image?: string | null;
+  store_name?: string | null;
+  delivered_at: string;
+}
+
+export function PendingReviewCard({
+  item,
+  onWriteReview,
+}: {
+  item: PendingReviewItem;
+  onWriteReview?: ((item: PendingReviewItem) => void) | null;
+}): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
   const productTitle = (isBn && item.product_title_bn) ? item.product_title_bn : item.product_title_en;
 
   const card = document.createElement('div');
   card.className = 'pending-review-card';
-  card.dataset.orderItemId = item.order_item_id;
+  card.dataset.orderItemId = String(item.order_item_id);
 
   const main = document.createElement('div');
   main.className = 'pending-review-card__main';

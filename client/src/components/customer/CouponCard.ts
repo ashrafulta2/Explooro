@@ -1,5 +1,5 @@
 /**
- * CouponCard.js — Customer Coupon Voucher Ticket Component.
+ * CouponCard.ts — Customer Coupon Voucher Ticket Component.
  *
  * Implements a perforated ticket-style voucher card with high-contrast typography,
  * 1-click copy code, countdown/expiry badges, minimum spend rules, and terms modal trigger.
@@ -10,15 +10,39 @@ import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import '../../styles/components/customer-coupons.css';
 
+/** One voucher from GET /customer/coupons. Both spellings of the spend limits exist in the API. */
+export interface CouponData {
+  id: number | string;
+  code: string;
+  is_active?: boolean;
+  is_used?: boolean;
+  discount_type?: 'PERCENT' | 'FIXED' | 'FREE_SHIPPING' | string;
+  discount_value?: number | string;
+  min_spend_amount?: number | string;
+  min_spend?: number | string;
+  max_discount_amount?: number | string;
+  max_discount?: number | string;
+  scope_type?: 'PLATFORM' | 'CATEGORY' | 'SUPPLIER' | 'SALER' | string;
+  expires_at?: string | null;
+  category_name?: string;
+  funder_name?: string;
+  supplier_name?: string;
+  store_name?: string;
+}
+
 export function CouponCard({
   coupon,
   onShopClick,
   onTermsClick,
-} = {}) {
+}: {
+  coupon: CouponData;
+  onShopClick?: ((coupon: CouponData) => void) | null;
+  onTermsClick?: ((coupon: CouponData) => void) | null;
+}): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
   const card = document.createElement('div');
   card.className = `coupon-card ${!coupon.is_active || coupon.is_used ? 'coupon-card--disabled' : ''}`;
-  card.dataset.couponId = coupon.id;
+  card.dataset.couponId = String(coupon.id);
 
   const discountType = coupon.discount_type || 'PERCENT';
   const discountVal = Number(coupon.discount_value) || 0;
@@ -43,7 +67,7 @@ export function CouponCard({
   // Calculate Expiry Status
   const now = new Date();
   const expiryDate = coupon.expires_at ? new Date(coupon.expires_at) : null;
-  const diffDays = expiryDate ? Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24)) : null;
+  const diffDays = expiryDate ? Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : null;
   const isExpired = diffDays !== null && diffDays < 0;
 
   let expiryBadge = '';

@@ -1,5 +1,5 @@
 /**
- * MessageComposer.js — Chat Message Composer (Prompt 8.4).
+ * MessageComposer.ts — Chat Message Composer (Prompt 8.4).
  *
  * Implements:
  * - Text input with Enter to send.
@@ -18,7 +18,13 @@ export function MessageComposer({
   onOpenProductModal,
   isOffline = false,
   initialValue = '',
-}) {
+}: {
+  onSendMessage?: ((text: string) => void) | null;
+  onSendTyping?: ((isTyping: boolean) => void) | null;
+  onOpenProductModal?: (() => void) | null;
+  isOffline?: boolean;
+  initialValue?: string;
+}): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'chat-composer-component';
@@ -63,12 +69,12 @@ export function MessageComposer({
     </div>
   `;
 
-  const textarea = container.querySelector('#composer-textarea');
+  const textarea = container.querySelector<HTMLTextAreaElement>('#composer-textarea');
   if (initialValue) {
     textarea.value = initialValue;
   }
-  const sendBtn = container.querySelector('#btn-send-msg');
-  const qrBox = container.querySelector('#composer-quick-replies');
+  const sendBtn = container.querySelector<HTMLButtonElement>('#btn-send-msg');
+  const qrBox = container.querySelector<HTMLDivElement>('#composer-quick-replies');
 
   // Render quick replies
   quickReplies.forEach((qr) => {
@@ -84,12 +90,12 @@ export function MessageComposer({
   });
 
   // Typing debounce timer
-  let typingTimer = null;
-  function emitTyping(isTyping) {
+  let typingTimer: ReturnType<typeof setTimeout> | null = null;
+  function emitTyping(isTyping: boolean): void {
     if (onSendTyping) onSendTyping(isTyping);
   }
 
-  function handleInput() {
+  function handleInput(): void {
     textarea.style.height = 'auto';
     textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
 
@@ -102,7 +108,7 @@ export function MessageComposer({
 
   textarea.addEventListener('input', handleInput);
 
-  function doSend() {
+  function doSend(): void {
     const text = (textarea.value || '').trim();
     if (!text) return;
     textarea.value = '';
@@ -130,9 +136,9 @@ export function MessageComposer({
 
   // Image attachment simulation
   container.querySelector('#btn-attach-image').addEventListener('click', () => {
-    const progressBox = container.querySelector('#upload-progress-box');
-    const progressFill = container.querySelector('#upload-progress-fill');
-    const progressPct = container.querySelector('#upload-pct');
+    const progressBox = container.querySelector<HTMLElement>('#upload-progress-box');
+    const progressFill = container.querySelector<HTMLElement>('#upload-progress-fill');
+    const progressPct = container.querySelector<HTMLElement>('#upload-pct');
 
     progressBox.classList.remove('hidden');
     progressBox.removeAttribute('hidden');

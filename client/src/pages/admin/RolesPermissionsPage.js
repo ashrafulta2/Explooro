@@ -11,7 +11,7 @@
  *    empty matrix that looked like "nobody holds anything"), and full bilingual i18n.
  */
 
-import { PermissionMatrix } from '../../components/admin/PermissionMatrix.js';
+import { PermissionMatrix } from '../../components/admin/PermissionMatrix.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { ICONS } from '../../components/ui/icons.ts';
 import { api, pickMessage } from '../../core/api.js';

@@ -1,12 +1,31 @@
 /**
- * StoreHeader.js — Hero banner, avatar, branding, social links, announcement & status for virtual stores (Prompt 4.8).
+ * StoreHeader.ts — Hero banner, avatar, branding, social links, announcement & status for virtual stores (Prompt 4.8).
  */
 
 import { t, getLanguage } from '../../services/i18n.js';
 import { Badge } from '../ui/Badge.ts';
 import { ICONS } from '../ui/icons.ts';
 
-export function StoreHeader({ store = {}, isPreview = false } = {}) {
+/** The storefront record StoreHeader draws; every field is optional because a draft store has few. */
+export interface StoreHeaderData {
+  shop_name?: string;
+  slug?: string;
+  bio?: string;
+  announcement?: string;
+  banner_key?: string;
+  banner_url?: string;
+  logo_key?: string;
+  logo_url?: string;
+  social_links?: { whatsapp?: string; facebook?: string; instagram?: string; phone?: string };
+  status?: { is_open: boolean; message?: string };
+  products_count?: number;
+  products?: unknown[];
+}
+
+export function StoreHeader({
+  store = {},
+  isPreview = false,
+}: { store?: StoreHeaderData; isPreview?: boolean } = {}): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'store-header';
 
@@ -137,7 +156,7 @@ export function StoreHeader({ store = {}, isPreview = false } = {}) {
   return container;
 }
 
-function createSocialLink(label, href, icon) {
+function createSocialLink(label: string, href: string, icon: string): HTMLAnchorElement {
   const a = document.createElement('a');
   a.className = 'store-header__social-btn';
   a.href = href;
@@ -148,7 +167,7 @@ function createSocialLink(label, href, icon) {
   return a;
 }
 
-function createStat(value, label) {
+function createStat(value: string, label: string): HTMLDivElement {
   const item = document.createElement('div');
   item.className = 'store-header__stat-item';
   const valSpan = document.createElement('span');

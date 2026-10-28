@@ -1,5 +1,5 @@
 /**
- * PermissionMatrix.js — Domain-grouped roles × permissions grid with risk-tier coding and
+ * PermissionMatrix.ts — Domain-grouped roles × permissions grid with risk-tier coding and
  * CRITICAL locks (Prompt 3.3).
  *
  * Read-only by design. The baseline a role holds is seeded from docs/permission-catalog.json and
@@ -14,10 +14,17 @@
 import { Badge } from '../ui/Badge.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { cellState, groupByDomain } from '../../services/permissionMatrix.ts';
+import type { CellState, HeldIndex, Permission, Role, RoleId } from '../../services/permissionMatrix.ts';
 
-const RISK_VARIANT = { CRITICAL: 'danger', HIGH: 'warning', MEDIUM: 'info', LOW: 'success' };
+/** A role column: the service's `Role` plus the labels the grid prints. */
+export interface MatrixRole extends Role {
+  label_en?: string;
+  label_bn?: string;
+}
 
-const MARKS = {
+const RISK_VARIANT: Record<string, string> = { CRITICAL: 'danger', HIGH: 'warning', MEDIUM: 'info', LOW: 'success' };
+
+const MARKS: Record<CellState, { className: string; svg: string; text: () => string }> = {
   granted: {
     className: 'perm-matrix__mark perm-matrix__mark--granted',
     svg: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
@@ -35,11 +42,25 @@ const MARKS = {
   },
 };
 
-function pick(isBn, en, bn) {
+function pick(isBn: boolean, en?: string, bn?: string): string | undefined {
   return isBn ? bn || en : en || bn;
 }
 
-export function PermissionMatrix({ roles = [], permissions = [], held = new Map(), roleTotals = new Map(), domainIcons = {} }) {
+export function PermissionMatrix({
+  roles = [],
+  permissions = [],
+  held = new Map(),
+  roleTotals = new Map(),
+  domainIcons = {},
+}: {
+  roles?: MatrixRole[];
+  permissions?: Permission[];
+  held?: HeldIndex;
+  /** How many permissions each role holds, printed under its name. */
+  roleTotals?: Map<RoleId, number>;
+  /** Domain key → trusted SVG markup. */
+  domainIcons?: Record<string, string>;
+}): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
 
   const wrap = document.createElement('div');
@@ -117,7 +138,7 @@ export function PermissionMatrix({ roles = [], permissions = [], held = new Map(
       const title = document.createElement('span');
       title.className = 'perm-matrix__perm-title';
       title.textContent = pick(isBn, perm.label_en, perm.label_bn);
-      top.append(title, Badge({ label: perm.risk_tier, variant: RISK_VARIANT[perm.risk_tier] ?? 'neutral' }));
+      top.append(title, Badge({ label: perm.risk_tier, variant: RISK_VARIANT[perm.risk_tier ?? ''] ?? 'neutral' }));
 
       const key = document.createElement('code');
       key.className = 'perm-matrix__perm-key';

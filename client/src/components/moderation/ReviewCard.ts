@@ -1,11 +1,54 @@
 /**
- * ReviewCard.js — Polymorphic Content Review & Moderation Card (Prompt 7.4).
+ * ReviewCard.ts — Polymorphic Content Review & Moderation Card (Prompt 7.4).
  *
  * Fully integrated with platform design tokens & theme CSS variables.
  */
 
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
+
+/** What a queue row's payload can carry; which fields exist depends on `item_type`. */
+interface ReviewPayload {
+  title_en?: string;
+  title_bn?: string;
+  title?: string;
+  category?: string;
+  category_name?: string;
+  price?: number;
+  default_retail_price?: number;
+  base_cost?: number;
+  wholesale_margin?: number;
+  stock_qty?: number;
+  stock?: number;
+  images?: string[];
+  description?: string;
+  description_en?: string;
+  rating?: number;
+  product_title?: string;
+  comment?: string;
+  body?: string;
+  tagged_products?: string[];
+  report_reason?: string;
+  chat_excerpt?: string;
+}
+
+/** One `moderation_queue` row as GET /moderation/queue returns it. */
+export interface ModerationItem {
+  id: number | string;
+  ref: string;
+  item_type: 'PRODUCT_NEW' | 'PRODUCT_EDIT' | 'PRODUCT' | 'REVIEW' | 'UGC_VIDEO' | string;
+  status: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED' | string;
+  claimed_by?: number | string | null;
+  claimed_by_name?: string;
+  submitter_name?: string;
+  created_at: string;
+  pre_screening?: { has_flags?: boolean; flags?: { code?: string; message?: string; label_en?: string }[] };
+  auto_flags?: { code?: string; message?: string; label_en?: string }[];
+  data?: ReviewPayload;
+  payload_snapshot_json?: string | ReviewPayload | null;
+}
+
+type ReviewAction = (id: ModerationItem['id']) => void;
 
 export function ReviewCard({
   item,
@@ -17,14 +60,24 @@ export function ReviewCard({
   onShadowRestrict,
   onClaim,
   onRelease,
-} = {}) {
+}: {
+  item: ModerationItem;
+  currentUserId?: number | string;
+  onApprove?: ReviewAction;
+  onReject?: ReviewAction;
+  onRequestChanges?: ReviewAction;
+  onEscalate?: ReviewAction;
+  onShadowRestrict?: ReviewAction;
+  onClaim?: ReviewAction;
+  onRelease?: ReviewAction;
+}): HTMLDivElement {
   const card = document.createElement('div');
   const isClaimedByMe = item.claimed_by === currentUserId;
   const isClaimedByOther = item.claimed_by && item.claimed_by !== currentUserId;
   const isPendingOrInReview = ['PENDING', 'IN_REVIEW'].includes(item.status);
 
   card.className = `review-card`;
-  card.setAttribute('data-queue-id', item.id);
+  card.setAttribute('data-queue-id', String(item.id));
   card.style.cssText = `
     background: var(--surface-1, #ffffff);
     border: 1px solid ${isClaimedByMe ? 'var(--border-interactive, #4f46e5)' : 'var(--border-subtle, #e2e8f0)'};
@@ -38,7 +91,7 @@ export function ReviewCard({
     transition: all 0.2s ease;
   `;
 
-  const payload = typeof item.data === 'object'
+  const payload: ReviewPayload = typeof item.data === 'object'
     ? item.data
     : typeof item.payload_snapshot_json === 'string'
     ? JSON.parse(item.payload_snapshot_json || '{}')

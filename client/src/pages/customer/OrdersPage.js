@@ -23,7 +23,7 @@ import {
 } from '../../components/order/OrderTracker.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
-import { EarnJourney } from '../../components/customer/EarnJourney.js';
+import { EarnJourney } from '../../components/customer/EarnJourney.ts';
 import { appStore } from '../../state/appStore.js';
 
 export default function OrdersPage(root, { navigate } = {}) {

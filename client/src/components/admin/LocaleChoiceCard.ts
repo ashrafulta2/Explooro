@@ -1,5 +1,5 @@
 /**
- * LocaleChoiceCard.js — the locale picker used by /admin/platform/language.
+ * LocaleChoiceCard.ts — the locale picker used by /admin/platform/language.
  *
  * One card per locale, each carrying two independent controls:
  *   · a radio  — "this is the platform default"   (exactly one across the group)
@@ -20,7 +20,7 @@
 import { getLanguage } from '../../services/i18n.js';
 
 /** Endonyms: a language is always named in its own language, never translated. */
-const LOCALE_NAMES = {
+const LOCALE_NAMES: Record<string, { name: string; native: string; region: string }> = {
   en: { name: 'English', native: 'English', region: 'en-US · Latin' },
   bn: { name: 'Bengali', native: 'বাংলা', region: 'bn-BD · Bengali' },
 };
@@ -45,7 +45,16 @@ export function LocaleChoiceCard({
   onSetDefault = null,
   onToggleEnabled = null,
   readOnly = false,
-} = {}) {
+}: {
+  locale: string;
+  isDefault?: boolean;
+  isEnabled?: boolean;
+  isCurrent?: boolean;
+  idPrefix?: string;
+  onSetDefault?: ((locale: string) => void) | null;
+  onToggleEnabled?: ((locale: string, nextEnabled: boolean) => void) | null;
+  readOnly?: boolean;
+}): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
   const meta = LOCALE_NAMES[locale] || { name: locale, native: locale, region: locale };
 
@@ -99,12 +108,12 @@ export function LocaleChoiceCard({
   `;
 
   if (!readOnly) {
-    const radio = card.querySelector('.locale-card__radio');
+    const radio = card.querySelector<HTMLInputElement>('.locale-card__radio');
     radio?.addEventListener('change', () => {
       if (radio.checked && typeof onSetDefault === 'function') onSetDefault(locale);
     });
 
-    const checkbox = card.querySelector('.locale-card__checkbox');
+    const checkbox = card.querySelector<HTMLInputElement>('.locale-card__checkbox');
     checkbox?.addEventListener('change', () => {
       if (typeof onToggleEnabled === 'function') onToggleEnabled(locale, checkbox.checked);
     });

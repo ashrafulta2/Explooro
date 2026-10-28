@@ -3,7 +3,7 @@
  */
 
 import { getStoreBySlug } from '../services/store.api.js';
-import { StoreHeader } from '../components/store/StoreHeader.js';
+import { StoreHeader } from '../components/store/StoreHeader.ts';
 import { ProductCard } from '../components/product/ProductCard.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { Button } from '../components/ui/Button.js';

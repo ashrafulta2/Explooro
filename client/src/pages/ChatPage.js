@@ -11,7 +11,7 @@
 
 import { ThreadList } from '../components/chat/ThreadList.ts';
 import { MessageBubble } from '../components/chat/MessageBubble.ts';
-import { MessageComposer } from '../components/chat/MessageComposer.js';
+import { MessageComposer } from '../components/chat/MessageComposer.ts';
 import { Modal } from '../components/ui/Modal.js';
 import { Button } from '../components/ui/Button.js';
 import { api } from '../core/api.js';

@@ -273,7 +273,7 @@ controls, flagged queue).
 **Auth** — `LoginPage.js`, `OtpPage.js`, `TwoFactorPage.js` (role-aware landing).
 
 **Admin pages** — 30 of the 41 files under `client/src/pages/admin/`, 3 under `pages/moderator/`, 7 under
-`pages/editor/`, plus `components/moderation/ReviewCard.js`.
+`pages/editor/`, plus `components/moderation/ReviewCard.ts`.
 
 **Styles** — `admin-pages.css`, `admin-users.css`, `catalog-products.css`, `system-health.css`.
 

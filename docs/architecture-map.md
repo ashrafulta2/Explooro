@@ -153,7 +153,7 @@ The 35 most likely change requests, with exact paths.
 | Add/modify product image fallback keywords | `client/src/components/product/ProductCard.ts` (`KEYWORD_IMAGE_RULES`, `CATEGORY_DUMMY_IMAGES`, `resolveProductImage`) |
 | Modify customer wishlist | `client/src/pages/customer/WishlistPage.js` (UI), `server/src/services/wishlist.service.ts` (logic), `server/src/repositories/cart.repository.ts` (SQL) |
 | Modify customer returns listing | `client/src/pages/customer/ReturnsPage.js` (UI), `server/src/services/return.service.ts` (logic), `server/src/routes/return.routes.ts` (`/returns/my-returns`) |
-| Modify customer coupons & vouchers hub | `client/src/pages/customer/CouponsPage.js` (`/account/coupons`), `client/src/components/customer/CouponCard.js`, `server/src/services/coupon.service.ts` (logic), `client/src/mocks/handlers/campaigns.js` (mock data) |
+| Modify customer coupons & vouchers hub | `client/src/pages/customer/CouponsPage.js` (`/account/coupons`), `client/src/components/customer/CouponCard.ts`, `server/src/services/coupon.service.ts` (logic), `client/src/mocks/handlers/campaigns.js` (mock data) |
 | Modify team purchases / group buying UI | `client/src/pages/TeamPurchasePage.js` (`/team/:id`, `/account/team-purchases`), `server/src/services/teamPurchase.service.ts` (logic), `client/src/mocks/handlers/teamPurchase.js` (mock data) |
 
 ### Access & permissions

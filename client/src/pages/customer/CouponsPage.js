@@ -22,7 +22,7 @@ import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
-import { CouponCard } from '../../components/customer/CouponCard.js';
+import { CouponCard } from '../../components/customer/CouponCard.ts';
 import { goBack, renderBackLink } from '../../core/navBack.js';
 import '../../styles/components/customer-coupons.css';
 

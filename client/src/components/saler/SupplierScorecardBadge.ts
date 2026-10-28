@@ -14,17 +14,46 @@
 import { t } from '../../services/i18n.js';
 // Styles: styles/components/supplier-scorecard.css, loaded by the routes that render this (main.js).
 
-const GRADE_TONE = { A: 'success', B: 'info', C: 'warning', D: 'danger' };
+const GRADE_TONE: Record<string, string> = { A: 'success', B: 'info', C: 'warning', D: 'danger' };
 
-function pct(value) {
+/** The public scorecard from the API (`supplier_scorecard` on a catalog item). Every metric may be null. */
+export interface SupplierScorecard {
+  grade: 'A' | 'B' | 'C' | 'D' | string | null;
+  is_new?: boolean;
+  score?: number | null;
+  sample_orders?: number;
+  window_days?: number;
+  min_sample_orders?: number;
+  on_time_dispatch_pct?: number | null;
+  delivery_success_pct?: number | null;
+  return_rate_pct?: number | null;
+  dispute_rate_pct?: number | null;
+  median_dispatch_hours?: number | null;
+}
+
+/** The platform's scoring rules, shown beside the figures on the supplier's own page. */
+export interface ScorecardRules {
+  min_sample_orders?: number;
+  dispatch_sla_hours?: number;
+  weights?: Record<string, number>;
+}
+
+type MetricKey =
+  | 'on_time_dispatch_pct'
+  | 'delivery_success_pct'
+  | 'return_rate_pct'
+  | 'dispute_rate_pct'
+  | 'median_dispatch_hours';
+
+function pct(value: number | null | undefined): string {
   return value === null || value === undefined ? '—' : `${Number(value).toFixed(1).replace(/\.0$/, '')}%`;
 }
 
-function hours(value) {
+function hours(value: number | null | undefined): string {
   return value === null || value === undefined ? '—' : `${Math.round(Number(value))}h`;
 }
 
-function el(tag, className, text) {
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
@@ -32,12 +61,15 @@ function el(tag, className, text) {
 }
 
 /** `scorecard` is the public view from the API (`supplier_scorecard` on a catalog item). */
-export function SupplierScorecardBadge(scorecard, { variant = 'compact', rules = null } = {}) {
+export function SupplierScorecardBadge(
+  scorecard?: SupplierScorecard | null,
+  { variant = 'compact', rules = null }: { variant?: 'compact' | 'full'; rules?: ScorecardRules | null } = {},
+): HTMLElement {
   const sc = scorecard || { grade: null, is_new: true };
   return variant === 'full' ? buildFull(sc, rules) : buildCompact(sc);
 }
 
-function buildCompact(sc) {
+function buildCompact(sc: SupplierScorecard): HTMLSpanElement {
   const chip = el('span', 'scorecard-chip');
   if (sc.is_new || !sc.grade) {
     chip.classList.add('scorecard-chip--new');
@@ -55,7 +87,7 @@ function buildCompact(sc) {
   return chip;
 }
 
-const METRICS = [
+const METRICS: { key: MetricKey; label: string; hint: string; weight: string | null; fmt: (v: number | null | undefined) => string }[] = [
   { key: 'on_time_dispatch_pct', label: 'scorecard.metric.on_time_dispatch', hint: 'scorecard.hint.on_time_dispatch', weight: 'on_time_dispatch', fmt: pct },
   { key: 'delivery_success_pct', label: 'scorecard.metric.delivery_success', hint: 'scorecard.hint.delivery_success', weight: 'delivery_success', fmt: pct },
   { key: 'return_rate_pct', label: 'scorecard.metric.return_rate', hint: 'scorecard.hint.return_rate', weight: 'return_rate', fmt: pct },
@@ -63,7 +95,7 @@ const METRICS = [
   { key: 'median_dispatch_hours', label: 'scorecard.metric.median_dispatch', hint: 'scorecard.hint.median_dispatch', weight: null, fmt: hours },
 ];
 
-function buildFull(sc, rules) {
+function buildFull(sc: SupplierScorecard, rules: ScorecardRules | null): HTMLElement {
   const root = el('section', 'scorecard');
   root.setAttribute('aria-label', t('scorecard.title', 'Supplier Scorecard'));
 

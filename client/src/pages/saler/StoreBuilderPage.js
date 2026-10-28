@@ -4,7 +4,7 @@
  */
 
 import { getMyStore, updateMyStore, updateStoreShelves, checkSlugAvailability } from '../../services/store.api.js';
-import { StoreHeader } from '../../components/store/StoreHeader.js';
+import { StoreHeader } from '../../components/store/StoreHeader.ts';
 import { ShelfEditor } from '../../components/store/ShelfEditor.js';
 import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';
 import { Button } from '../../components/ui/Button.js';

@@ -229,7 +229,7 @@ test('Language & Default Locale — client invariants', async (t) => {
 
   await t.test('10. LocaleChoiceCard labels every control and namespaces its ids', () => {
     const src = fs.readFileSync(
-      path.join(clientRoot, 'src', 'components', 'admin', 'LocaleChoiceCard.js'),
+      path.join(clientRoot, 'src', 'components', 'admin', 'LocaleChoiceCard.ts'),
       'utf8'
     );
     // Invariant 6: a <label for> association, not a heading sitting above the input.
@@ -275,7 +275,7 @@ test('Language & Default Locale — client invariants', async (t) => {
 
   await t.test('13. The page and its component import cleanly and export functions', async () => {
     for (const modPath of [
-      '../src/components/admin/LocaleChoiceCard.js',
+      '../src/components/admin/LocaleChoiceCard.ts',
       '../src/components/admin/PlatformSubnav.ts',
     ]) {
       const mod = await import(modPath);

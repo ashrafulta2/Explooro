@@ -10,7 +10,7 @@
  */
 import { listSourcingCatalog } from '../../services/catalog.api.js';
 import { AddToStoreDrawer, poolContributionOf } from '../../components/saler/AddToStoreDrawer.js';
-import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.js';
+import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { SponsoredTag } from '../../components/saler/SponsoredTag.ts';
 import { fetchSponsored, trackImpression, clickReporter } from '../../services/sponsoredSourcing.ts';
 import { Button } from '../../components/ui/Button.js';

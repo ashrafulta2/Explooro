@@ -18,7 +18,7 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { Modal } from '../../components/ui/Modal.js';
-import { PendingReviewCard } from '../../components/customer/PendingReviewCard.js';
+import { PendingReviewCard } from '../../components/customer/PendingReviewCard.ts';
 import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.js';
 import { openWriteReviewModal } from '../../components/customer/WriteReviewModal.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';

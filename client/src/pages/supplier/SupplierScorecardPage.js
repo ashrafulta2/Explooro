@@ -7,7 +7,7 @@
  * numbers (weights, cutoffs, the dispatch SLA) are admin settings that can change.
  */
 import { supplierApi } from '../../services/supplier.api.js';
-import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.js';
+import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';

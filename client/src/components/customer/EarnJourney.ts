@@ -20,7 +20,7 @@ const STEPS = [
 
 const BECOME_SALER_PATH = '/account/become-saler';
 
-export function EarnJourney({ onNavigate }) {
+export function EarnJourney({ onNavigate }: { onNavigate: (path: string) => void }): { element: HTMLElement } {
   const section = document.createElement('section');
   section.className = 'earn-journey';
   section.setAttribute('aria-label', t('customer.dashboard.earn_label', 'How a Shop Partner earns'));
