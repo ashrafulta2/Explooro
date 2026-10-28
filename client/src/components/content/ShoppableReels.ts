@@ -1,5 +1,5 @@
 /**
- * ShoppableReels.js — Bandwidth-Conscious Vertical Short-Video Feed with Pinned Product Cards (Prompt 10.8).
+ * ShoppableReels.ts — Bandwidth-Conscious Vertical Short-Video Feed with Pinned Product Cards (Prompt 10.8).
  *
  * Implements Prompt 10.8 Requirement 3:
  * - Vertical feed with pinned product card overlay and 1-tap checkout.
@@ -12,13 +12,32 @@ import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
-export function ShoppableReels({ onBuyProduct = null } = {}) {
+/** A shoppable video clip with the product it sells. */
+export interface Reel {
+  id: number | string;
+  author_name?: string;
+  caption_en?: string;
+  caption_bn?: string;
+  likes_count?: number;
+  thumbnail_url?: string;
+  video_url?: string;
+  product?: { title_en?: string; title_bn?: string; [field: string]: unknown } | null;
+}
+
+/** The reels page root plus the two steppers keyboard and swipe handlers call. */
+export interface ShoppableReelsParts {
+  element: HTMLDivElement;
+  next(): void;
+  prev(): void;
+}
+
+export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((product: unknown) => void) | null } = {}): ShoppableReelsParts {
   const container = document.createElement('div');
   container.className = 'shoppable-reels-container relative w-full max-w-md mx-auto h-[85vh] max-h-[780px] bg-black rounded-2xl overflow-hidden shadow-2xl flex flex-col select-none';
 
-  let reels = [];
+  let reels: Reel[] = [];
   let currentIndex = 0;
-  let isDataSaver = Boolean(navigator.connection?.saveData);
+  let isDataSaver = Boolean((navigator as unknown as { connection?: { saveData?: boolean } }).connection?.saveData);
 
   // Top Bar with Data Saver Toggle
   const topBar = document.createElement('div');
@@ -197,7 +216,7 @@ export function ShoppableReels({ onBuyProduct = null } = {}) {
         const res = await likeReel(reel.id);
         reel.likes_count = res?.data?.likes_count || reel.likes_count + 1;
         const countSpan = actionsCol.querySelector('.like-count');
-        if (countSpan) countSpan.textContent = reel.likes_count;
+        if (countSpan) countSpan.textContent = String(reel.likes_count);
       } catch {}
     });
 

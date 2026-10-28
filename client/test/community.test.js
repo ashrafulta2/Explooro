@@ -220,7 +220,7 @@ test('the picker limits mirror the server source', () => {
   assert.match(server, new RegExp(`media: ${POST_MEDIA.maxFiles}, videos: ${POST_MEDIA.maxVideos}`));
   assert.match(media, new RegExp(`MAX_IMAGE_SIZE_BYTES = ${POST_MEDIA.maxImageBytes / 1024 / 1024} \\* 1024 \\* 1024`));
   assert.match(media, new RegExp(`MAX_DIRECT_UPLOAD_BYTES = ${POST_MEDIA.maxVideoBytes / 1024 / 1024} \\* 1024 \\* 1024`));
-  const uploader = read('components', 'media', 'ImageUploader.js');
+  const uploader = read('components', 'media', 'ImageUploader.ts');
   for (const type of POST_MEDIA.types) assert.ok(uploader.includes(`'${type}'`), `${type} is not an uploadable type`);
 });
 
@@ -509,7 +509,7 @@ test('the mock notices are the migration templates, and the settings page and dr
   assert.deepEqual([...MOCK_COMMUNITY_TEMPLATES].sort(), migrationKeys);
 
   assert.match(read('pages', 'settings', 'NotificationPreferencesPage.js'), /key: 'COMMUNITY'/);
-  assert.match(read('components', 'notifications', 'NotificationCenter.js'), /id: 'COMMUNITY'/);
+  assert.match(read('components', 'notifications', 'NotificationCenter.ts'), /id: 'COMMUNITY'/);
   for (const k of ['notifications.tab_community', 'notifications.cat_community_title', 'notifications.cat_community_desc', 'community.onepost.title', 'community.onepost.all']) {
     assert.ok(get(en, k) && get(bn, k), k);
   }

@@ -1,5 +1,5 @@
 /**
- * ShopStatusToggle.js — Physical store Open 🟢 / Closed 🔴 / Auto ⏰ toggle with business hours scheduler (Prompt 4.8).
+ * ShopStatusToggle.ts — Physical store Open 🟢 / Closed 🔴 / Auto ⏰ toggle with business hours scheduler (Prompt 4.8).
  */
 
 import { t, getLanguage } from '../../services/i18n.js';
@@ -7,6 +7,26 @@ import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { Checkbox } from '../ui/Checkbox.ts';
 import { Input } from '../ui/Input.ts';
+
+/** Opening hours of one weekday. */
+export interface DayHours {
+  open?: string;
+  close?: string;
+  is_closed?: boolean;
+}
+
+/** Hours by weekday name (`saturday` ... `friday`). */
+export type BusinessHours = Record<string, DayHours>;
+
+export type ShopStatusMode = 'OPEN' | 'CLOSED' | 'AUTO';
+
+export interface ShopStatusToggleOptions {
+  initialStatus?: ShopStatusMode | string;
+  initialHours?: BusinessHours | null;
+  hasPhysicalShop?: boolean;
+  editable?: boolean;
+  onChange?: ((change: { physicalOpenStatus: string; businessHours: BusinessHours }) => void) | null;
+}
 
 const DAYS_OF_WEEK = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
 
@@ -16,7 +36,7 @@ export function ShopStatusToggle({
   hasPhysicalShop = true,
   editable = true,
   onChange = null,
-} = {}) {
+}: ShopStatusToggleOptions = {}) {
   const container = document.createElement('div');
   container.className = 'shop-status-toggle';
 
@@ -57,7 +77,7 @@ export function ShopStatusToggle({
       { key: 'AUTO', label: t('shop_status.auto'), icon: '⏰' },
     ];
 
-    const modeButtons = {};
+    const modeButtons: Record<string, HTMLButtonElement> = {};
 
     modes.forEach((m) => {
       const btn = document.createElement('button');
@@ -99,7 +119,7 @@ export function ShopStatusToggle({
   return container;
 }
 
-function updateIndicator(badgeEl, mode, hours) {
+function updateIndicator(badgeEl: HTMLElement, mode: string, hours: BusinessHours | null) {
   if (mode === 'OPEN') {
     badgeEl.textContent = '🟢 ' + t('shop_status.open_now');
     badgeEl.className = 'badge badge--success badge--sm';
@@ -114,7 +134,7 @@ function updateIndicator(badgeEl, mode, hours) {
   }
 }
 
-function evaluateAutoStatus(hours) {
+function evaluateAutoStatus(hours: BusinessHours | null): boolean {
   if (!hours) return false;
   const now = new Date();
   const utc = now.getTime() + now.getTimezoneOffset() * 60000;
@@ -133,7 +153,7 @@ function evaluateAutoStatus(hours) {
   return currentMinutes >= (openH * 60 + openM) && currentMinutes <= (closeH * 60 + closeM);
 }
 
-function openHoursModal(currentHours, onSave) {
+function openHoursModal(currentHours: BusinessHours, onSave: (hours: BusinessHours) => void) {
   const content = document.createElement('div');
   content.style.display = 'flex';
   content.style.flexDirection = 'column';
@@ -165,7 +185,7 @@ function openHoursModal(currentHours, onSave) {
     openInput.style.borderRadius = 'var(--radius-sm)';
     openInput.addEventListener('change', (e) => {
       if (!tempHours[day]) tempHours[day] = {};
-      tempHours[day].open = e.target.value;
+      tempHours[day].open = (e.target as HTMLInputElement).value;
     });
 
     const closeInput = document.createElement('input');
@@ -178,7 +198,7 @@ function openHoursModal(currentHours, onSave) {
     closeInput.style.borderRadius = 'var(--radius-sm)';
     closeInput.addEventListener('change', (e) => {
       if (!tempHours[day]) tempHours[day] = {};
-      tempHours[day].close = e.target.value;
+      tempHours[day].close = (e.target as HTMLInputElement).value;
     });
 
     const closedCheckbox = Checkbox({
@@ -199,6 +219,7 @@ function openHoursModal(currentHours, onSave) {
   const modal = Modal({
     title: t('shop_status.business_hours_schedule'),
     content,
+    // @ts-expect-error Modal has no primaryAction / secondaryAction option, so these buttons have never been drawn
     primaryAction: {
       label: t('common.save'),
       onClick: () => {

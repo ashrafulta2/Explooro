@@ -1,5 +1,5 @@
 /**
- * CameraCapture.js — take a photo with the device camera, on desktop as well as mobile.
+ * CameraCapture.ts — take a photo with the device camera, on desktop as well as mobile.
  *
  * WHY this exists: <input type="file" capture> is only a hint. Mobile browsers honour it and open
  * the camera app, but every desktop browser ignores it and shows the ordinary file picker — so
@@ -25,7 +25,9 @@ const JPEG_QUALITY = 0.9;
  *  - 'native' → click the <input capture> (mobile opens its camera app; the last-resort fallback).
  *  - 'webcam' → our getUserMedia dialog.
  */
-export function pickCameraMode({ coarsePointer = false, hasGetUserMedia = false, secureContext = false } = {}) {
+export type CameraMode = 'native' | 'webcam';
+
+export function pickCameraMode({ coarsePointer = false, hasGetUserMedia = false, secureContext = false }: { coarsePointer?: boolean; hasGetUserMedia?: boolean; secureContext?: boolean } = {}): CameraMode {
   // Touch devices get the OS camera app: it has focus, flash and lens switching that we don't.
   if (coarsePointer) return 'native';
   // getUserMedia only exists on secure origins (https or localhost).
@@ -33,7 +35,7 @@ export function pickCameraMode({ coarsePointer = false, hasGetUserMedia = false,
   return 'native';
 }
 
-export function detectCameraMode() {
+export function detectCameraMode(): CameraMode {
   return pickCameraMode({
     coarsePointer: window.matchMedia?.('(pointer: coarse)').matches ?? false,
     hasGetUserMedia: typeof navigator.mediaDevices?.getUserMedia === 'function',
@@ -42,7 +44,7 @@ export function detectCameraMode() {
 }
 
 /** Maps a getUserMedia DOMException to the message key shown inside the dialog. */
-export function cameraErrorKey(err) {
+export function cameraErrorKey(err: { name?: string } | null | undefined): string {
   switch (err?.name) {
     case 'NotAllowedError':
     case 'SecurityError':
@@ -59,14 +61,13 @@ export function cameraErrorKey(err) {
 }
 
 /**
- * Opens the webcam dialog.
- * @param {{ trigger?: HTMLElement|null }} [opts] element focus returns to when the dialog closes
- * @returns {Promise<File|null>}
+ * Opens the webcam dialog. `trigger` is the element focus returns to when it closes. Resolves to the
+ * photo as a File, or null.
  */
-export function openCameraCapture({ trigger = null } = {}) {
+export function openCameraCapture({ trigger = null }: { trigger?: HTMLElement | null } = {}): Promise<File | null> {
   return new Promise((resolve) => {
-    let stream = null;
-    let captured = null; // File, once a frame has been taken
+    let stream: MediaStream | null = null;
+    let captured: File | null = null; // once a frame has been taken
     let previewUrl = '';
 
     const stage = document.createElement('div');

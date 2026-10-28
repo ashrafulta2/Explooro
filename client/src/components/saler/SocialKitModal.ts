@@ -1,5 +1,5 @@
 /**
- * SocialKitModal.js — Viral Social Shop Partner Marketing Toolkit & Flyer Builder (Prompt 9.7).
+ * SocialKitModal.ts — Viral Social Shop Partner Marketing Toolkit & Flyer Builder (Prompt 9.7).
  *
  * Implements:
  * 1. Multi-format flyer preview (Social Square 1:1, WhatsApp Story 9:16, A4 Print Poster).
@@ -13,6 +13,7 @@ import { api } from '../../core/api.ts';
 import { getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Modal } from '../ui/Modal.ts';
+import type { ModalElement } from '../ui/Modal.ts';
 
 const FALLBACK_FORMATS = [
   { id: 'SQUARE', label_en: '1:1 Square', label_bn: '১:১ স্কয়ার' },
@@ -20,8 +21,44 @@ const FALLBACK_FORMATS = [
   { id: 'A4_PRINT', label_en: 'A4 Print', label_bn: 'A4 প্রিন্ট' },
 ];
 
+/** The product a flyer advertises. */
+export interface SocialKitProduct {
+  id: number | string;
+  name_en?: string;
+  name_bn?: string;
+  base_price?: number | string;
+}
+
+/** A flyer layout, from GET /saler/social-kit/templates. */
+export interface FlyerFormat {
+  id: string;
+  label_en: string;
+  label_bn: string;
+}
+
+/** The short link the server minted for a flyer. */
+export interface ShortLink {
+  code: string;
+  short_url: string;
+  full_url: string;
+  [field: string]: unknown;
+}
+
+export interface SocialKitOptions {
+  product?: SocialKitProduct;
+  store?: { shop_name?: string };
+}
+
 export class SocialKitModal {
-  constructor(options = {}) {
+  product: SocialKitProduct;
+  store: { shop_name?: string };
+  format: string;
+  theme: string;
+  shortLink: ShortLink | null;
+  backdropEl: ModalElement | null;
+  formats: FlyerFormat[];
+
+  constructor(options: SocialKitOptions = {}) {
     this.product = options.product || {
       id: 1,
       name_en: 'Premium Tangail Cotton Saree',
@@ -68,7 +105,7 @@ export class SocialKitModal {
         short_url: '/s/demo7x',
         full_url: 'https://explooro.com/s/demo7x',
       }));
-      this.shortLink = res;
+      this.shortLink = res as ShortLink;
     } catch {
       this.shortLink = {
         code: 'demo7x',
@@ -171,7 +208,7 @@ export class SocialKitModal {
     this._updateFlyerPreview();
   }
 
-  _attachEvents(isBn) {
+  _attachEvents(isBn: boolean) {
     // Format / theme selection — one pressed button per group
     const bindChoice = (selector, key) => {
       const btns = this.backdropEl.querySelectorAll(selector);
@@ -226,7 +263,7 @@ export class SocialKitModal {
   }
 
   _updateFlyerPreview() {
-    const frame = this.backdropEl.querySelector('#flyer-preview-frame');
+    const frame = this.backdropEl.querySelector<HTMLElement>('#flyer-preview-frame');
     if (!frame) return;
 
     if (this.format === 'STORY') {

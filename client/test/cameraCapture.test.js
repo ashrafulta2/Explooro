@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
-import { pickCameraMode, cameraErrorKey } from '../src/components/media/CameraCapture.js';
+import { pickCameraMode, cameraErrorKey } from '../src/components/media/CameraCapture.ts';
 
 test('desktop with getUserMedia on a secure origin uses the webcam dialog', () => {
   assert.equal(pickCameraMode({ coarsePointer: false, hasGetUserMedia: true, secureContext: true }), 'webcam');

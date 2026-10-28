@@ -1,5 +1,5 @@
 /**
- * NotificationCenter.js — Unified In-App Notification Center Drawer (Prompt 8.2).
+ * NotificationCenter.ts — Unified In-App Notification Center Drawer (Prompt 8.2).
  *
  * Implements:
  * - Slide-out / dropdown drawer for notification items.
@@ -18,13 +18,33 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 
-export function openNotificationCenter({ trigger = null, onUnreadCountChanged = null } = {}) {
+/** One inbox notification, in both languages. */
+export interface AppNotification {
+  id: number | string;
+  category?: 'SECURITY' | 'ORDER' | 'FINANCE' | 'MARKETING' | 'COMMUNITY' | string;
+  title_en?: string;
+  title_bn?: string;
+  body_en?: string;
+  body_bn?: string;
+  is_read?: boolean;
+  created_at?: string;
+  data_json?: Record<string, unknown>;
+  [field: string]: unknown;
+}
+
+export interface NotificationCenterOptions {
+  trigger?: Element | null;
+  /** Called with the unread count whenever it changes. */
+  onUnreadCountChanged?: ((count: number) => void) | null;
+}
+
+export function openNotificationCenter({ trigger = null, onUnreadCountChanged = null }: NotificationCenterOptions = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'notification-center-drawer';
 
   let currentCategory = 'ALL';
-  let notifications = [];
+  let notifications: AppNotification[] = [];
   let unreadCount = 0;
 
   // Header / Action Bar
@@ -85,14 +105,14 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
   container.appendChild(listContainer);
 
   function updateBadge() {
-    const badge = container.querySelector('#drawer-unread-badge');
+    const badge = container.querySelector<HTMLElement>('#drawer-unread-badge');
     if (badge) {
       badge.textContent = String(unreadCount);
       badge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
     }
   }
 
-  function getCategoryIcon(cat) {
+  function getCategoryIcon(cat?: string) {
     switch (cat) {
       case 'SECURITY': return '🔒';
       case 'ORDER': return '📦';
@@ -156,7 +176,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
         // handler. Also pushing the URL here rendered the target page twice (two overlapping renders
         // each appended a copy, so a 404 showed up stacked). For an anchor click we only close the
         // drawer and mark the item read; the router does the navigation.
-        const viaLink = Boolean(event.target.closest('a[href]'));
+        const viaLink = Boolean((event.target as Element).closest('a[href]'));
         if (viaLink) drawerInstance.closeDrawer();
 
         if (!notif.is_read) {
@@ -182,7 +202,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
           // (core/router.js matches pathname), so a hash write changed the URL fragment and
           // navigated nowhere.
           drawerInstance.closeDrawer();
-          history.pushState({}, '', notif.data_json.linkUrl);
+          history.pushState({}, '', notif.data_json.linkUrl as string);
           window.dispatchEvent(new PopStateEvent('popstate'));
         }
       });
@@ -246,7 +266,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
   fetchNotifications();
 
   // Listen to live WebSocket arrival
-  function handleLiveNotification(e) {
+  function handleLiveNotification(e: CustomEvent) {
     if (e?.detail?.notification) {
       const newNotif = e.detail.notification;
       notifications.unshift({

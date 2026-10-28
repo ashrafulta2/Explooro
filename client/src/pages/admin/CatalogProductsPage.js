@@ -23,7 +23,7 @@ import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatNumber, formatCurrency } from '../../services/format.js';
 import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.ts';
-import { ImageUploader } from '../../components/media/ImageUploader.js';
+import { ImageUploader } from '../../components/media/ImageUploader.ts';
 import { can } from '../../services/permissions.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 

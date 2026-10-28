@@ -4,7 +4,7 @@
  * Implements /reels.
  */
 
-import { ShoppableReels } from '../components/content/ShoppableReels.js';
+import { ShoppableReels } from '../components/content/ShoppableReels.ts';
 
 export default function ReelsPage(root, ctx = {}) {
   const container = document.createElement('div');

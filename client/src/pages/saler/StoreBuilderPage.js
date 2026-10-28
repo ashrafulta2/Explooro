@@ -5,8 +5,8 @@
 
 import { getMyStore, updateMyStore, updateStoreShelves, checkSlugAvailability } from '../../services/store.api.ts';
 import { StoreHeader } from '../../components/store/StoreHeader.ts';
-import { ShelfEditor } from '../../components/store/ShelfEditor.js';
-import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.js';
+import { ShelfEditor } from '../../components/store/ShelfEditor.ts';
+import { ShopStatusToggle } from '../../components/store/ShopStatusToggle.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';

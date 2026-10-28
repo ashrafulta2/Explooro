@@ -24,7 +24,7 @@ import { VariantSelector } from '../components/product/VariantSelector.ts';
 import { PriceBreakdown } from '../components/product/PriceBreakdown.ts';
 import { ReviewList } from '../components/product/ReviewList.js';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
-import { QnASection } from '../components/product/QnASection.js';
+import { QnASection } from '../components/product/QnASection.ts';
 import { WishlistButton } from '../components/cart/WishlistButton.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.js';
 import { resolveProductImage } from '../components/product/ProductCard.ts';

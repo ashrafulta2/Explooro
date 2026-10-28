@@ -1,5 +1,5 @@
 /**
- * ImageUploader.js — Robust client-side media uploader (Prompt 4.2).
+ * ImageUploader.ts — Robust client-side media uploader (Prompt 4.2).
  *
  * Features:
  * - Drag & drop, file picker, clipboard paste (Ctrl+V), camera capture (mobile camera app,
@@ -14,7 +14,7 @@ import { Button } from '../ui/Button.ts';
 import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { detectCameraMode, openCameraCapture } from './CameraCapture.js';
+import { detectCameraMode, openCameraCapture } from './CameraCapture.ts';
 
 export const MAX_IMAGE_SIZE = 8 * 1024 * 1024;    // 8MB
 export const MAX_VIDEO_SIZE = 100 * 1024 * 1024;  // 100MB
@@ -22,6 +22,35 @@ export const MAX_VIDEO_SIZE = 100 * 1024 * 1024;  // 100MB
 // WHY: the picker's `accept` attribute is only a hint — drag-drop and paste bypass it, so the same
 // list is enforced again in handleFiles before anything is sent to the API.
 export const ALLOWED_MEDIA_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'video/mp4'];
+
+/** One file in the uploader: an uploaded asset, or a placeholder while it uploads. */
+export interface UploaderItem {
+  id: number | string;
+  ref?: string;
+  url?: string;
+  width?: number;
+  height?: number;
+  media_kind?: string;
+  isUploading?: boolean;
+  progress?: number;
+  [field: string]: unknown;
+}
+
+export interface ImageUploaderOptions {
+  purpose?: string;
+  aspectRatio?: string;
+  maxFiles?: number;
+  initialImages?: UploaderItem[];
+  showAspectControls?: boolean;
+  onChange?: (items: UploaderItem[]) => void;
+  onUploadComplete?: (asset: UploaderItem) => void;
+}
+
+/** The uploader's root, with the two accessors the forms use. */
+export interface ImageUploaderElement extends HTMLDivElement {
+  getItems(): UploaderItem[];
+  setItems(items: UploaderItem[]): void;
+}
 
 export function ImageUploader({
   purpose = 'PRODUCT',
@@ -32,12 +61,12 @@ export function ImageUploader({
   showAspectControls = true,
   onChange = () => {},
   onUploadComplete = () => {},
-} = {}) {
+}: ImageUploaderOptions = {}): ImageUploaderElement {
   const isBn = getLanguage() === 'bn';
-  const container = document.createElement('div');
+  const container = document.createElement('div') as ImageUploaderElement;
   container.className = 'media-uploader';
 
-  let items = [...initialImages]; // Array of { id, ref, url, width, height, isUploading, progress }
+  let items: UploaderItem[] = [...initialImages];
   let selectedAspect = aspectRatio;
 
   // Header / Aspect Ratio Toolbar
@@ -115,17 +144,17 @@ export function ImageUploader({
   cameraIconHost.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>`;
   const cameraBtn = Button({
     label: isBn ? 'ক্যামেরা' : 'Camera',
-    iconLeft: cameraIconHost.firstElementChild,
+    iconLeft: cameraIconHost.firstElementChild as SVGElement,
     variant: 'ghost',
     size: 'sm',
     // WHY two paths: desktop browsers ignore cameraInput's `capture` hint and open the file picker,
-    // so there the webcam is streamed in our own dialog instead (see CameraCapture.js).
+    // so there the webcam is streamed in our own dialog instead (see CameraCapture.ts).
     onClick: async (e) => {
       if (detectCameraMode() !== 'webcam') {
         cameraInput.click();
         return;
       }
-      const photo = await openCameraCapture({ trigger: e.currentTarget });
+      const photo = await openCameraCapture({ trigger: e.currentTarget as HTMLElement });
       if (photo) handleFiles([photo]);
     },
   });
@@ -135,7 +164,7 @@ export function ImageUploader({
   // WHY: the dropzone is styled cursor:pointer, so users click the box itself — which did nothing.
   // Clicks on its own buttons are skipped so Browse/Camera don't also open the plain file picker.
   dropzone.addEventListener('click', (e) => {
-    if (e.target.closest('button')) return;
+    if ((e.target as Element).closest('button')) return;
     fileInput.click();
   });
 
@@ -158,15 +187,17 @@ export function ImageUploader({
   });
 
   fileInput.addEventListener('change', (e) => {
-    if (e.target.files?.length) {
-      handleFiles(Array.from(e.target.files));
+    const picked = (e.target as HTMLInputElement).files;
+    if (picked?.length) {
+      handleFiles(Array.from(picked));
       fileInput.value = '';
     }
   });
 
   cameraInput.addEventListener('change', (e) => {
-    if (e.target.files?.length) {
-      handleFiles(Array.from(e.target.files));
+    const picked = (e.target as HTMLInputElement).files;
+    if (picked?.length) {
+      handleFiles(Array.from(picked));
       cameraInput.value = '';
     }
   });
@@ -204,7 +235,7 @@ export function ImageUploader({
     items.forEach((item, index) => {
       const card = document.createElement('div');
       card.className = 'media-card';
-      card.dataset.index = index;
+      card.dataset.index = String(index);
 
       if (item.isUploading) {
         card.innerHTML = `
@@ -282,7 +313,7 @@ export function ImageUploader({
     });
   }
 
-  async function handleFiles(files) {
+  async function handleFiles(files: File[]) {
     if (items.length + files.length > maxFiles) {
       toast.error(
         isBn
@@ -368,17 +399,17 @@ export function ImageUploader({
     }
   }
 
-  function fileToBase64(file) {
+  function fileToBase64(file: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
   }
 
   container.getItems = () => items;
-  container.setItems = (newItems) => {
+  container.setItems = (newItems: UploaderItem[]) => {
     items = [...newItems];
     renderGrid();
   };

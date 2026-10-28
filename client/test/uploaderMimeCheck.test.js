@@ -6,7 +6,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const src = readFileSync(new URL('../src/components/media/ImageUploader.js', import.meta.url), 'utf8');
+const src = readFileSync(new URL('../src/components/media/ImageUploader.ts', import.meta.url), 'utf8');
 
 test('the allowed-type list covers exactly the formats the dropzone advertises', () => {
   const list = src.match(/ALLOWED_MEDIA_TYPES = \[([^\]]+)\]/)[1].match(/'([^']+)'/g).map((s) => s.slice(1, -1));

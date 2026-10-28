@@ -14,7 +14,29 @@ import { toast } from '../../services/toast.js';
 import { appStore } from '../../state/appStore.js';
 import * as catalogApi from '../../services/catalog.api.ts';
 
-function answerBlock(answer, lang) {
+/** One answer under a question. */
+export interface QnAAnswer {
+  body: string;
+  responder_name?: string;
+  created_at: string;
+}
+
+/** A shopper's question about a product, with its answers. */
+export interface QnAQuestion {
+  id: number | string;
+  body: string;
+  asker_name?: string;
+  created_at: string;
+  upvote_count?: number;
+  answers?: QnAAnswer[];
+}
+
+export interface QnASectionOptions {
+  productId: number | string;
+  lang?: string;
+}
+
+function answerBlock(answer: QnAAnswer, lang: string) {
   const wrap = document.createElement('div');
   wrap.className = 'qna-answer';
   const meta = document.createElement('p');
@@ -33,7 +55,7 @@ function answerBlock(answer, lang) {
   return wrap;
 }
 
-function questionCard(question, lang, { onUpvote, canAnswer, onAnswer }) {
+function questionCard(question: QnAQuestion, lang: string, { onUpvote, canAnswer, onAnswer }: { onUpvote: (question: QnAQuestion) => void; canAnswer: boolean; onAnswer: (question: QnAQuestion, body: string) => Promise<void> }) {
   const card = document.createElement('article');
   card.className = 'qna-question';
 
@@ -101,7 +123,7 @@ function questionCard(question, lang, { onUpvote, canAnswer, onAnswer }) {
   return card;
 }
 
-export function QnASection({ productId, lang = 'en' } = {}) {
+export function QnASection({ productId, lang = 'en' }: QnASectionOptions = {} as QnASectionOptions): { el: HTMLElement; cleanup: () => void } {
   const el = document.createElement('section');
   el.className = 'qna-section';
   let destroyed = false;
@@ -163,7 +185,7 @@ export function QnASection({ productId, lang = 'en' } = {}) {
     askSlot.replaceChildren(form);
   }
 
-  async function handleUpvote(question) {
+  async function handleUpvote(question: QnAQuestion) {
     try {
       const result = await catalogApi.upvoteQuestion(question.id);
       question.upvote_count = result.upvote_count;
@@ -173,7 +195,7 @@ export function QnASection({ productId, lang = 'en' } = {}) {
     }
   }
 
-  async function handleAnswer(question, body) {
+  async function handleAnswer(question: QnAQuestion, body: string) {
     const answer = await catalogApi.answerQuestion(question.id, body);
     question.answers = [...(question.answers || []), answer];
     load();
@@ -218,7 +240,7 @@ export function QnASection({ productId, lang = 'en' } = {}) {
           totalPages: pagination.total_pages,
           totalItems: pagination.total_count || questionsList.length,
           pageSize: pagination.page_size || 5,
-          onChange: ({ page: nextPage }) => { page = nextPage; load(); window.scrollTo({ top: listSlot.offsetTop, behavior: 'smooth' }); },
+          onChange: (change) => { page = (change as { page: number }).page; load(); window.scrollTo({ top: listSlot.offsetTop, behavior: 'smooth' }); },
         })
       );
     } else {

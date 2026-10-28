@@ -1,5 +1,5 @@
 /**
- * ShelfEditor.js — Curated shelves & item reordering manager with live synchronization (Prompt 4.8).
+ * ShelfEditor.ts — Curated shelves & item reordering manager with live synchronization (Prompt 4.8).
  */
 
 import { t, getLanguage } from '../../services/i18n.js';
@@ -8,11 +8,39 @@ import { Button } from '../ui/Button.ts';
 import { Modal } from '../ui/Modal.ts';
 import { Input } from '../ui/Input.ts';
 
-export function ShelfEditor({ initialShelves = [], onUpdate = null } = {}) {
+/** One product on a shelf. */
+export interface ShelfItem {
+  product_id: number | string;
+  title_en?: string;
+  title_bn?: string;
+  custom_retail_price?: number | string | null;
+  default_retail_price?: number | string;
+  [field: string]: unknown;
+}
+
+/** A named, ordered group of products in a storefront. */
+export interface Shelf {
+  name: string;
+  items: ShelfItem[];
+}
+
+/** What `onUpdate` hands the store builder: the shelves, and the flat list the backend saves. */
+export interface ShelfUpdate {
+  shelves: Shelf[];
+  flattenedItems: { product_id: number | string; collection_name: string; display_order: number }[];
+}
+
+export interface ShelfEditorOptions {
+  initialShelves?: Shelf[] | null;
+  /** Called after every change. */
+  onUpdate?: ((update: ShelfUpdate) => void) | null;
+}
+
+export function ShelfEditor({ initialShelves = [], onUpdate = null }: ShelfEditorOptions = {}): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'shelf-editor';
 
-  let shelves = JSON.parse(JSON.stringify(initialShelves || []));
+  let shelves: Shelf[] = JSON.parse(JSON.stringify(initialShelves || []));
   if (shelves.length === 0) {
     shelves = [{ name: 'Featured Products', items: [] }];
   }
@@ -47,7 +75,7 @@ export function ShelfEditor({ initialShelves = [], onUpdate = null } = {}) {
 
   function notifyChanges() {
     // Flatten items for backend saving
-    const flattened = [];
+    const flattened: ShelfUpdate['flattenedItems'] = [];
     shelves.forEach((shelf) => {
       (shelf.items || []).forEach((item, idx) => {
         flattened.push({
@@ -211,7 +239,7 @@ export function ShelfEditor({ initialShelves = [], onUpdate = null } = {}) {
     });
   }
 
-  function openAddShelfModal(onAdd) {
+  function openAddShelfModal(onAdd: (name: string) => void) {
     const input = Input({
       label: t('shelf_editor.shelf_name_label'),
       placeholder: 'e.g. Summer Specials / Trending Now',
@@ -221,6 +249,7 @@ export function ShelfEditor({ initialShelves = [], onUpdate = null } = {}) {
     const modal = Modal({
       title: t('shelf_editor.create_new_shelf'),
       content: input,
+      // @ts-expect-error Modal has no primaryAction option, so this button has never been drawn
       primaryAction: {
         label: t('common.add'),
         onClick: () => {
