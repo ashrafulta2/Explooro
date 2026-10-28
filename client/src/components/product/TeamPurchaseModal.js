@@ -8,8 +8,8 @@
  * 3. Integrates with Fastify POST /team-purchases & /team-purchases/:id/join and navigates to /team/:id.
  */
 
-import { Modal } from '../ui/Modal.js';
-import { Button } from '../ui/Button.js';
+import { Modal } from '../ui/Modal.ts';
+import { Button } from '../ui/Button.ts';
 import { api } from '../../core/api.js';
 import { appStore } from '../../state/appStore.js';
 import { getCurrentUser } from '../../services/session.js';

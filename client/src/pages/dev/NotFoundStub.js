@@ -1,6 +1,6 @@
 /** NotFoundStub — the router's `notFound` fallback. Real 404 page is Prompt 1.7. */
 import { t } from '../../services/i18n.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 
 export default function NotFoundStub(root, { navigate }) {
   const wrap = document.createElement('div');

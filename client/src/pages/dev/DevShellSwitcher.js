@@ -9,7 +9,7 @@ import { NAV_ROLES, navItems } from '../../config/navigation.js';
 import { getRoleMeta } from '../../config/permissions.mock.js';
 import { setMockRole, logOutMock, appStore } from '../../state/appStore.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Card } from '../../components/ui/Card.ts';
 
 const ROLE_HOME = {

@@ -15,8 +15,8 @@
  */
 
 import { api } from '../../core/api.js';
-import { Modal } from '../../components/ui/Modal.js';
-import { Button } from '../../components/ui/Button.js';
+import { Modal } from '../../components/ui/Modal.ts';
+import { Button } from '../../components/ui/Button.ts';
 import { toast } from '../../services/toast.js';
 import { getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';

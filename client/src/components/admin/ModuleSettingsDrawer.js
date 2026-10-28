@@ -5,8 +5,8 @@
  * and creates corresponding accessible form controls.
  */
 
-import { Drawer } from '../ui/Drawer.js';
-import { Button } from '../ui/Button.js';
+import { Drawer } from '../ui/Drawer.ts';
+import { Button } from '../ui/Button.ts';
 import { Input } from '../ui/Input.ts';
 import { Select } from '../ui/Select.ts';
 import { Switch } from '../ui/Switch.ts';

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const FILES = [
-  '../src/components/ui/Modal.js',
+  '../src/components/ui/Modal.ts',
   '../src/components/shell/CommandPalette.js',
 ];
 

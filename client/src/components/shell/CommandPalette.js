@@ -20,7 +20,7 @@ import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { isPageVisibleInNav } from '../../services/pageAccess.js';
-import { lockScroll, unlockScroll } from '../ui/Modal.js';
+import { lockScroll, unlockScroll } from '../ui/Modal.ts';
 import { getGroupIcon, ICONS } from '../ui/icons.ts';
 
 const RECENT_KEY = 'explooro:palette:recent';

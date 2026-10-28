@@ -5,7 +5,7 @@
 
 import { formatBdt } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 
 export function LiveStreamCard({ stream, onWatchClick }) {
   const card = document.createElement('div');

@@ -12,8 +12,8 @@
 import { ThreadList } from '../components/chat/ThreadList.ts';
 import { MessageBubble } from '../components/chat/MessageBubble.ts';
 import { MessageComposer } from '../components/chat/MessageComposer.ts';
-import { Modal } from '../components/ui/Modal.js';
-import { Button } from '../components/ui/Button.js';
+import { Modal } from '../components/ui/Modal.ts';
+import { Button } from '../components/ui/Button.ts';
 import { api } from '../core/api.js';
 import { getCurrentUser } from '../services/session.js';
 import { wsManager, WS_STATUS } from '../services/websocket.ts';

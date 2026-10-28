@@ -2,11 +2,11 @@
  * ThemeStudioPage.js — Granular Component-Level Color Studio with 6 Sections, 5 Presets & Live Preview (Prompt 3.5).
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Input } from '../../components/ui/Input.ts';
-import { Modal } from '../../components/ui/Modal.js';
-import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { Modal } from '../../components/ui/Modal.ts';
+import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { THEME_PRESETS } from '../../config/theme-presets.js';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.js';
 import {

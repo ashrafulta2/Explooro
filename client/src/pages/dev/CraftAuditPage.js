@@ -14,7 +14,7 @@
  * DEV-only: Dead-code eliminated in production builds.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Card } from '../../components/ui/Card.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 

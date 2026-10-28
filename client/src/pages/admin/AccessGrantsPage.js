@@ -11,10 +11,10 @@
  * Nothing on this page prints a raw permission key or scope JSON — see docs/super-admin-audit.md §5.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Pagination } from '../../components/ui/Pagination.ts';
-import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';

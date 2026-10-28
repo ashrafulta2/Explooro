@@ -6,7 +6,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 
-import { Modal } from '../ui/Modal.js';
+import { Modal } from '../ui/Modal.ts';
 
 export function openClaimModal({ card, onSuccess = null } = {}) {
   const locale = getLanguage();

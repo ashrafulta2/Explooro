@@ -11,7 +11,7 @@
  * `modal.remove()`, which would skip the animation and leak the scroll lock.
  */
 
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 
 export function supplierModal({ title, body, footer = '', size = 'md', danger = false }) {
   const content = document.createElement('div');

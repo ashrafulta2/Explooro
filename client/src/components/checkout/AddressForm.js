@@ -16,7 +16,7 @@ import {
   getDistrictById,
 } from '../../data/bangladeshGeo.ts';
 import { t } from '../../services/i18n.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 
 const esc = (s) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

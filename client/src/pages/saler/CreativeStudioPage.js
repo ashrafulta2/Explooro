@@ -10,7 +10,7 @@
  */
 import { api } from '../../core/api.js';
 import { getSalerStoreItems } from '../../services/catalog.api.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { whyDenied } from '../../services/permissions.js';

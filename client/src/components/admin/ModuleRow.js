@@ -3,9 +3,9 @@
  */
 
 import { Switch } from '../ui/Switch.ts';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { Badge } from '../ui/Badge.ts';
-import { confirmDialogWithReason } from '../ui/ConfirmDialog.js';
+import { confirmDialogWithReason } from '../ui/ConfirmDialog.ts';
 import { openModuleSettingsDrawer } from './ModuleSettingsDrawer.js';
 import { openModuleTargetingDrawer } from './ModuleTargetingDrawer.js';
 import { t, getLanguage } from '../../services/i18n.js';

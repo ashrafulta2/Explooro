@@ -23,11 +23,11 @@ import {
 
 import { createMilestoneProgressStepper } from '../../components/b2b/MilestoneProgressStepper.ts';
 import { Card } from '../../components/ui/Card.ts';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Tabs } from '../../components/ui/Tabs.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { Modal } from '../../components/ui/Modal.js';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { Modal } from '../../components/ui/Modal.ts';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatCurrency } from '../../services/format.js';

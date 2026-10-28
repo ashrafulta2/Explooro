@@ -12,7 +12,7 @@
 import { api } from '../../core/api.js';
 import { getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Modal } from '../ui/Modal.js';
+import { Modal } from '../ui/Modal.ts';
 
 const FALLBACK_FORMATS = [
   { id: 'SQUARE', label_en: '1:1 Square', label_bn: '১:১ স্কয়ার' },

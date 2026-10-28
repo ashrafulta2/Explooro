@@ -17,7 +17,7 @@ import { toast } from '../../services/toast.js';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Tabs } from '../../components/ui/Tabs.ts';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 export default function ReturnsPage(root, { navigate } = {}) {

@@ -3,7 +3,7 @@
  */
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
-import { Modal } from '../ui/Modal.js';
+import { Modal } from '../ui/Modal.ts';
 import '../../styles/components/customer-reviews.css';
 
 function renderStarRow(rating) {

@@ -14,7 +14,7 @@
 import { supplierApi } from '../../services/supplier.api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 
 const DAYS_OF_WEEK = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 

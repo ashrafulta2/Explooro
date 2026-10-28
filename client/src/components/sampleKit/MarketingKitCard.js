@@ -14,7 +14,7 @@
  */
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 
 function el(tag, className, text) {
   const node = document.createElement(tag);

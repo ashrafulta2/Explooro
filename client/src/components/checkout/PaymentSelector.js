@@ -11,7 +11,7 @@
 
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t } from '../../services/i18n.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 
 export function PaymentSelector({
   initialMethod = 'COD',

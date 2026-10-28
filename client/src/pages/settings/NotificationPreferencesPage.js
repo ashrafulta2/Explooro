@@ -7,7 +7,7 @@
  */
 
 import { Switch } from '../../components/ui/Switch.ts';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Card } from '../../components/ui/Card.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { api } from '../../core/api.js';

@@ -18,7 +18,7 @@ import { can } from '../services/permissions.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { toast } from '../services/toast.js';
 import { formatNumber } from '../services/format.js';
-import { Button } from '../components/ui/Button.js';
+import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { PostCard } from '../components/community/PostCard.js';
 import { PostComposer } from '../components/community/PostComposer.js';

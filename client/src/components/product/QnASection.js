@@ -5,7 +5,7 @@
  */
 import { t } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { Textarea } from '../ui/Textarea.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';

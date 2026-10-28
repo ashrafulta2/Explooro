@@ -16,7 +16,7 @@ import { appStore } from '../state/appStore.js';
 import { t, getLanguage } from '../services/i18n.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';
 import { toast } from '../services/toast.js';
-import { Button } from '../components/ui/Button.js';
+import { Button } from '../components/ui/Button.ts';
 import { Skeleton } from '../components/ui/Skeleton.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { ImageGallery } from '../components/product/ImageGallery.ts';

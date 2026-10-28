@@ -5,8 +5,8 @@
  * each sale goes to the monthly partner reward pool, so a partner chooses only the collection. The
  * drawer shows what one sale adds to that pool instead of a per-sale profit.
  */
-import { Drawer } from '../ui/Drawer.js';
-import { Button } from '../ui/Button.js';
+import { Drawer } from '../ui/Drawer.ts';
+import { Button } from '../ui/Button.ts';
 import { FormField } from '../ui/FormField.ts';
 import { Select } from '../ui/Select.ts';
 import { toast } from '../../services/toast.js';

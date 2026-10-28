@@ -71,6 +71,40 @@ let modalSeq = 0;
  */
 const FALLBACK_CLOSE_MS = 220;
 
+export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | string;
+
+export interface ModalOptions {
+  title?: string;
+  description?: string;
+  content?: Node | null;
+  footer?: Node | null;
+  size?: ModalSize;
+  showClose?: boolean;
+  closeOnScrim?: boolean;
+  closeLabel?: string;
+  /** Marks a dialog that must not be dismissed lightly. */
+  important?: boolean;
+  onClose?: ((result: unknown) => void) | null;
+  onOpen?: (() => void) | null;
+}
+
+/**
+ * The `<dialog>` with Modal's methods. `open` and `close` are replaced by functions (the native
+ * `open` attribute is read through `hasAttribute`), so the native members are left out of the type.
+ */
+export interface ModalElement extends Omit<HTMLDialogElement, 'open' | 'close'> {
+  open(trigger?: Element | null): void;
+  close(value?: unknown, opts?: { force?: boolean }): void;
+  open_(trigger?: Element | null): void;
+  openModal(trigger?: Element | null): void;
+  closeModal(value?: unknown, opts?: { force?: boolean }): void;
+  minimize(): void;
+  isOpen(): boolean;
+  setContent(node: Node): void;
+  setFooter(node: Node): void;
+  body: HTMLDivElement;
+}
+
 export function Modal({
   title = '',
   description = '',
@@ -83,12 +117,12 @@ export function Modal({
   important = false,
   onClose = null,
   onOpen = null,
-} = {}) {
+}: ModalOptions = {}): ModalElement {
   modalSeq += 1;
   const titleId = `modal-title-${modalSeq}`;
   const descId = `modal-desc-${modalSeq}`;
 
-  const dialog = document.createElement('dialog');
+  const dialog = document.createElement('dialog') as unknown as ModalElement;
   dialog.className = `overlay modal modal--${size}${important ? ' modal--important' : ''}`;
   // showModal() implies aria-modal, but stating it keeps the contract explicit for anyone
   // reading the DOM and for older assistive tech.
@@ -120,7 +154,7 @@ export function Modal({
   }
   header.append(heading);
 
-  let closeBtn = null;
+  let closeBtn: HTMLButtonElement | null = null;
   if (showClose) {
     closeBtn = document.createElement('button');
     closeBtn.type = 'button';
@@ -147,18 +181,18 @@ export function Modal({
 
   dialog.append(panel);
 
-  let previouslyFocused = null;
-  let result;
+  let previouslyFocused: Element | null = null;
+  let result: unknown;
   let isClosing = false;
   // True from open() until the open animation ends; a close requested meanwhile is deferred.
   let isOpening = false;
-  let pendingClose = null;
-  let activeGenie = null;
+  let pendingClose: { value: unknown; opts: { force: boolean } } | null = null;
+  let activeGenie: ReturnType<typeof genieRun> | null = null;
   const nativeClose = dialog.close.bind(dialog);
 
   // WHY the panel, not the <dialog>, is what gets sliced: the dialog is the top-layer box the
   // strips are drawn into, and it must stay untransformed for `position: fixed` to mean "viewport".
-  function playGenie(direction) {
+  function playGenie(direction: 'open' | 'close') {
     const run = genieRun({ panel, host: dialog, trigger: previouslyFocused, direction });
     activeGenie = run;
     return run;
@@ -169,7 +203,7 @@ export function Modal({
     activeGenie = null;
   }
 
-  function open(trigger = null) {
+  function open(trigger: Element | null = null) {
     if (dialog.hasAttribute('open') && !isClosing) return;
     if (isClosing) {
       // Re-opened while still swallowing itself: abort the close and stay open.
@@ -206,7 +240,7 @@ export function Modal({
     });
   }
 
-  function close(value = false, { force = false } = {}) {
+  function close(value: unknown = false, { force = false }: { force?: boolean } = {}) {
     if (!dialog.hasAttribute('open') || isClosing) return;
     if (isOpening) {
       pendingClose = { value, opts: { force } };
@@ -221,7 +255,7 @@ export function Modal({
     }
 
     isClosing = true;
-    let run = null;
+    let run: ReturnType<typeof genieRun> | null = null;
     if (canGenie()) {
       dialog.classList.add('modal--genie-closing');
       run = playGenie('close');
@@ -248,7 +282,7 @@ export function Modal({
   }
 
   // Intercept Escape key to play graceful MacBook exit instead of abrupt instant vanishing
-  dialog.addEventListener('cancel', (event) => {
+  dialog.addEventListener('cancel', (event: Event) => {
     // WHY the target check: an <input type="file"> fires a BUBBLING `cancel` when its picker is
     // dismissed. Without this, closing the OS file window inside a modal (e.g. the product form's
     // Browse button) closed the whole modal and threw away everything typed into it.
@@ -298,10 +332,10 @@ export function Modal({
     configurable: true,
   });
 
-  dialog.setContent = (node) => {
+  dialog.setContent = (node: Node) => {
     bodyEl.replaceChildren(node);
   };
-  dialog.setFooter = (node) => {
+  dialog.setFooter = (node: Node) => {
     footerEl.replaceChildren(node);
     if (!footerEl.isConnected) panel.append(footerEl);
   };

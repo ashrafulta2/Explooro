@@ -7,7 +7,7 @@
  */
 import { t } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { Select } from '../ui/Select.ts';
 import { Input } from '../ui/Input.ts';
 import { Textarea } from '../ui/Textarea.ts';

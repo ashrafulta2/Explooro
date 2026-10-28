@@ -21,7 +21,7 @@ import { appStore } from '../state/appStore.js';
 import { formatCurrency } from '../services/format.js';
 import { toast } from '../services/toast.js';
 import { t } from '../services/i18n.js';
-import { Button } from '../components/ui/Button.js';
+import { Button } from '../components/ui/Button.ts';
 
 export default function CheckoutPage(root, { navigate } = {}) {
   const container = document.createElement('div');

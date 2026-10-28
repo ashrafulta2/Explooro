@@ -19,9 +19,9 @@
  *    the rest of the page unclickable.
  */
 
-import { lockScroll, unlockScroll } from './Modal.js';
+import { lockScroll, unlockScroll } from './Modal.ts';
 
-function createCloseIcon() {
+function createCloseIcon(): HTMLSpanElement {
   const span = document.createElement('span');
   span.className = 'overlay__close-icon';
   span.setAttribute('aria-hidden', 'true');
@@ -32,6 +32,43 @@ function createCloseIcon() {
 }
 
 let drawerSeq = 0;
+
+export interface DrawerOptions {
+  title?: string;
+  description?: string;
+  content?: Node | null;
+  footer?: Node | null;
+  headerAction?: Node | null;
+  side?: 'right' | 'left' | 'bottom' | string;
+  size?: 'sm' | 'md' | 'lg' | string;
+  showClose?: boolean;
+  closeOnScrim?: boolean;
+  closeLabel?: string;
+  dragToDismiss?: boolean;
+  floating?: boolean;
+  /** Remembers where a floating drawer was dragged to. */
+  positionKey?: string | null;
+  removeOnClose?: boolean;
+  bodyPadding?: boolean;
+  lockBodyScroll?: boolean;
+  className?: string;
+  onClose?: ((result: unknown) => void) | null;
+  onOpen?: (() => void) | null;
+}
+
+/**
+ * The `<dialog>` with Drawer's methods. `open` and `close` are replaced by functions, so the
+ * native members are left out of the type (same as ModalElement).
+ */
+export interface DrawerElement extends Omit<HTMLDialogElement, 'open' | 'close'> {
+  open(trigger?: Element | null): void;
+  close(value?: unknown): void;
+  openDrawer(trigger?: Element | null): void;
+  closeDrawer(value?: unknown): void;
+  isOpen(): boolean;
+  setContent(node: Node): void;
+  body: HTMLDivElement;
+}
 
 export function Drawer({
   title = '',
@@ -53,12 +90,12 @@ export function Drawer({
   className = '',
   onClose = null,
   onOpen = null,
-} = {}) {
+}: DrawerOptions = {}): DrawerElement {
   drawerSeq += 1;
   const titleId = `drawer-title-${drawerSeq}`;
   const descId = `drawer-desc-${drawerSeq}`;
 
-  const dialog = document.createElement('dialog');
+  const dialog = document.createElement('dialog') as unknown as DrawerElement;
   dialog.className = `overlay drawer drawer--${side} drawer--${size}${floating ? ' drawer--floating' : ''}${className ? ` ${className}` : ''}`;
   dialog.setAttribute('aria-modal', 'true');
   if (title) dialog.setAttribute('aria-labelledby', titleId);
@@ -131,12 +168,12 @@ export function Drawer({
 
   dialog.append(panel);
 
-  let previouslyFocused = null;
-  let result;
+  let previouslyFocused: Element | null = null;
+  let result: unknown;
   // Assigned in the floating block below; a no-op for every docked drawer.
   let restorePosition = () => {};
 
-  function open(trigger = null) {
+  function open(trigger: Element | null = null) {
     if (dialog.hasAttribute('open')) return;
     previouslyFocused = trigger ?? document.activeElement;
     if (!dialog.isConnected) document.body.append(dialog);
@@ -148,7 +185,7 @@ export function Drawer({
 
   const nativeClose = dialog.close.bind(dialog);
 
-  function close(value = false) {
+  function close(value: unknown = false) {
     if (!dialog.hasAttribute('open')) return;
     result = value;
     nativeClose();
@@ -161,7 +198,7 @@ export function Drawer({
   const isFloatingDesktop = () => floating && floatMq.matches;
 
   if (floating) {
-    let moveId = null;
+    let moveId: number | null = null;
     let originX = 0;
     let originY = 0;
     let baseX = 0;
@@ -171,8 +208,8 @@ export function Drawer({
     let minY = 0;
     let maxY = 0;
 
-    const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-    const setOffset = (x, y) => {
+    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+    const setOffset = (x: number, y: number) => {
       dialog.style.setProperty('--float-x', `${x}px`);
       dialog.style.setProperty('--float-y', `${y}px`);
     };
@@ -182,7 +219,7 @@ export function Drawer({
     // WHY try/catch: storage throws in private windows and with blocked site data, and a drawer that
     // cannot remember where it was must still open.
     const storeKey = positionKey ? `explooro.drawer.pos.${positionKey}` : null;
-    const savePosition = (x, y) => {
+    const savePosition = (x: number, y: number) => {
       if (!storeKey) return;
       try {
         if (x === 0 && y === 0) localStorage.removeItem(storeKey);
@@ -191,14 +228,14 @@ export function Drawer({
         /* position just isn't remembered */
       }
     };
-    const currentOffset = () => [
+    const currentOffset = (): [number, number] => [
       parseFloat(dialog.style.getPropertyValue('--float-x')) || 0,
       parseFloat(dialog.style.getPropertyValue('--float-y')) || 0,
     ];
 
     restorePosition = () => {
       if (!storeKey || !isFloatingDesktop()) return;
-      let saved = null;
+      let saved: { x: number; y: number } | null = null;
       try {
         saved = JSON.parse(localStorage.getItem(storeKey) || 'null');
       } catch {
@@ -222,7 +259,7 @@ export function Drawer({
 
     header.addEventListener('pointerdown', (event) => {
       if (!isFloatingDesktop() || event.button !== 0) return;
-      if (event.target.closest('button, a, input, select, textarea')) return;
+      if ((event.target as Element).closest('button, a, input, select, textarea')) return;
       const rect = panel.getBoundingClientRect();
       baseX = parseFloat(dialog.style.getPropertyValue('--float-x')) || 0;
       baseY = parseFloat(dialog.style.getPropertyValue('--float-y')) || 0;
@@ -248,7 +285,7 @@ export function Drawer({
       );
     });
 
-    const endMove = (event) => {
+    const endMove = (event: PointerEvent) => {
       if (moveId === null || event.pointerId !== moveId) return;
       if (header.hasPointerCapture(moveId)) header.releasePointerCapture(moveId);
       moveId = null;
@@ -260,7 +297,7 @@ export function Drawer({
 
     // Double-click the title bar to snap back to the docked position.
     header.addEventListener('dblclick', (event) => {
-      if (event.target.closest('button, a')) return;
+      if ((event.target as Element).closest('button, a')) return;
       setOffset(0, 0);
       savePosition(0, 0);
     });
@@ -311,7 +348,7 @@ export function Drawer({
     let current = 0; // travel along the dismiss axis; positive = toward dismissal
     let dragging = false;
     let decided = false; // committed the gesture to a drag (vs. a scroll) yet?
-    let pointerId = null;
+    let pointerId: number | null = null;
 
     const DISMISS_DISTANCE = 0.25; // fraction of the panel's extent along the axis
     const DISMISS_VELOCITY = 0.5; // px per ms
@@ -321,7 +358,7 @@ export function Drawer({
     panel.addEventListener('pointerdown', (event) => {
       if (event.pointerType === 'mouse' && event.button !== 0) return;
       // Never hijack a gesture that starts on a control.
-      if (event.target.closest('button, a, input, select, textarea')) return;
+      if ((event.target as Element).closest('button, a, input, select, textarea')) return;
       // A floating panel on desktop is moved, not swiped away.
       if (isFloatingDesktop()) return;
       // The bottom sheet dismisses on the same axis its content scrolls, so it must
@@ -373,7 +410,7 @@ export function Drawer({
       dialog.style.setProperty('--drag-progress', String(progress));
     });
 
-    function endDrag(event) {
+    function endDrag(event: PointerEvent) {
       if (!dragging || (pointerId !== null && event.pointerId !== pointerId)) return;
       dragging = false;
       if (pointerId !== null && panel.hasPointerCapture(pointerId)) {

@@ -10,7 +10,7 @@
  * 6. Zero-CLS skeleton loader and bilingual i18n support.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import { api } from '../../core/api.js';

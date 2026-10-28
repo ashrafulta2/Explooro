@@ -12,7 +12,7 @@
  */
 import { navItems } from '../config/navigation.js';
 import { t } from '../services/i18n.js';
-import { Button } from '../components/ui/Button.js';
+import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 
 const CLOCK_ICON =

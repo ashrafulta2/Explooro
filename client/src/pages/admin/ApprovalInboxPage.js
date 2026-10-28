@@ -11,9 +11,9 @@
  */
 
 import { Tabs } from '../../components/ui/Tabs.ts';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
-import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';

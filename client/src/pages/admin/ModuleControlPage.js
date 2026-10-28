@@ -6,8 +6,8 @@
  */
 
 import { ModuleRow } from '../../components/admin/ModuleRow.js';
-import { Modal } from '../../components/ui/Modal.js';
-import { Button } from '../../components/ui/Button.js';
+import { Modal } from '../../components/ui/Modal.ts';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { api } from '../../core/api.js';

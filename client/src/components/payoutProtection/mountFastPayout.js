@@ -9,7 +9,7 @@
  * discover them afterwards.
  */
 import { FastPayoutTable } from './FastPayoutTable.ts';
-import { confirmDialog } from '../ui/ConfirmDialog.js';
+import { confirmDialog } from '../ui/ConfirmDialog.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { EmptyState } from '../ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';

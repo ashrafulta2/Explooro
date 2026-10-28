@@ -14,7 +14,7 @@
  * the row says so instead of offering a button the server would refuse.
  */
 
-import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { Pagination } from '../../components/ui/Pagination.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import { api } from '../../core/api.js';

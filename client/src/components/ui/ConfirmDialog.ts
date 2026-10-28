@@ -24,10 +24,37 @@
  *    Silence reads as a broken button and gets clicked again harder.
  */
 
-import { Button } from './Button.js';
+import { Button } from './Button.ts';
 import { Input } from './Input.ts';
-import { Modal } from './Modal.js';
+import { Modal } from './Modal.ts';
 import { Textarea } from './Textarea.ts';
+
+export type ConfirmVariant = 'primary' | 'danger' | string;
+
+export interface ConfirmDialogOptions {
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: ConfirmVariant;
+  /** The user must type this exactly before the confirm button enables. */
+  typeToConfirm?: string;
+  typeToConfirmHint?: string;
+  reason?: boolean;
+  reasonRequired?: boolean;
+  reasonLabel?: string;
+  reasonHint?: string;
+  reasonMinLength?: number;
+  reasonTooShortMessage?: string;
+  /** The control that opened the dialog; focus returns to it. */
+  trigger?: Element | null;
+}
+
+/** What `confirmDialogWithReason` resolves to. */
+export interface ConfirmWithReason {
+  confirmed: boolean;
+  reason: string;
+}
 
 function baseConfirm({
   title = 'Are you sure?',
@@ -44,11 +71,11 @@ function baseConfirm({
   reasonMinLength = 0,
   reasonTooShortMessage = '',
   trigger = null,
-} = {}) {
+}: ConfirmDialogOptions = {}): Promise<boolean | ConfirmWithReason> {
   return new Promise((resolve) => {
     let settled = false;
-    let reasonField = null;
-    let typeField = null;
+    let reasonField: ReturnType<typeof Textarea> | null = null;
+    let typeField: ReturnType<typeof Input> | null = null;
 
     const content = document.createDocumentFragment();
 
@@ -142,7 +169,7 @@ function baseConfirm({
       }
     }
 
-    function finish(value) {
+    function finish(value: boolean) {
       if (settled) return;
       settled = true;
       resolve(
@@ -175,13 +202,13 @@ function baseConfirm({
 }
 
 /** Resolves to a boolean. */
-export function confirmDialog(options = {}) {
-  return baseConfirm({ ...options, reason: false, reasonRequired: false });
+export function confirmDialog(options: ConfirmDialogOptions = {}): Promise<boolean> {
+  return baseConfirm({ ...options, reason: false, reasonRequired: false }) as Promise<boolean>;
 }
 
 /** Resolves to `{ confirmed, reason }`. */
-export function confirmDialogWithReason(options = {}) {
-  return baseConfirm({ ...options, reason: true });
+export function confirmDialogWithReason(options: ConfirmDialogOptions = {}): Promise<ConfirmWithReason> {
+  return baseConfirm({ ...options, reason: true }) as Promise<ConfirmWithReason>;
 }
 
 export default confirmDialog;

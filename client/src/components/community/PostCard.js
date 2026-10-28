@@ -16,7 +16,7 @@
  */
 import { el, icon, productTitle } from './dom.ts';
 import { CommentThread } from './CommentThread.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatBdt, formatNumber, formatRelativeTime } from '../../services/format.js';

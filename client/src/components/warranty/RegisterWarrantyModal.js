@@ -8,7 +8,7 @@ import { t } from '../../services/i18n.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 
-import { Modal } from '../ui/Modal.js';
+import { Modal } from '../ui/Modal.ts';
 
 export function openRegisterWarrantyModal({ onSuccess = null } = {}) {
   const formEl = document.createElement('form');

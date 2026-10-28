@@ -10,8 +10,8 @@
 
 import { t, getLanguage } from '../../services/i18n.js';
 
-import { Modal } from '../ui/Modal.js';
-import { Button } from '../ui/Button.js';
+import { Modal } from '../ui/Modal.ts';
+import { Button } from '../ui/Button.ts';
 
 export function openCertificateModal({ card } = {}) {
   if (!card) return;

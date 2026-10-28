@@ -13,7 +13,7 @@
  * must never offer one it would refuse.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { api } from '../../core/api.js';
 import { can } from '../../services/permissions.js';

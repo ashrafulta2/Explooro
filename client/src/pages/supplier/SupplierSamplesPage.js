@@ -10,11 +10,11 @@
  */
 import { sampleKitApi } from '../../services/sampleKit.api.js';
 import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Switch } from '../../components/ui/Switch.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { toast } from '../../services/toast.js';
 import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';

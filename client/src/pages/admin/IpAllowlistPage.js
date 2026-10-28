@@ -12,7 +12,7 @@
  * 8. Full bilingual (EN & BN) support and zero external runtime dependencies.
  */
 
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { adminApi } from '../../services/admin.api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';

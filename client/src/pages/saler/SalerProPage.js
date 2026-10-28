@@ -15,7 +15,7 @@ import { formatCurrency, formatDate } from '../../services/format.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { escapeHtml } from '../../services/html.ts';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 
 const LIVE_STATUSES = ['ACTIVE', 'PAST_DUE', 'WAIVED'];
 

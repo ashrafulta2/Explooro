@@ -13,7 +13,7 @@
  *  - Preview URLs are object URLs, released when a tile goes away.
  */
 import { el, icon } from './dom.ts';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { t } from '../../services/i18n.js';
 import { formatNumber } from '../../services/format.js';
 import { POST_MEDIA, uploadPostMedia, errorText } from '../../services/community.api.js';

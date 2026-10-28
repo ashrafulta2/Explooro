@@ -13,8 +13,8 @@
  * - Phone: list → conversation navigation with a Back button (one pane at a time).
  */
 
-import { Button } from '../../components/ui/Button.js';
-import { Modal } from '../../components/ui/Modal.js';
+import { Button } from '../../components/ui/Button.ts';
+import { Modal } from '../../components/ui/Modal.ts';
 import { api } from '../../core/api.js';
 import { wsManager } from '../../services/websocket.ts';
 import { t, getLanguage } from '../../services/i18n.js';

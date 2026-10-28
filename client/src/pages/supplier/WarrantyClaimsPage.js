@@ -12,7 +12,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Badge } from '../../components/ui/Badge.ts';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.js';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
 

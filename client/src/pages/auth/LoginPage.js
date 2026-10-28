@@ -13,7 +13,7 @@ import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { homePathForRoles } from '../../config/navigation.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
 
 export default function LoginPage(container, { query = {}, navigate }) {

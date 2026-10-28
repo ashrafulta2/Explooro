@@ -7,8 +7,8 @@
  * - Acknowledges release view to show exactly once per release version.
  */
 
-import { Modal } from '../ui/Modal.js';
-import { Button } from '../ui/Button.js';
+import { Modal } from '../ui/Modal.ts';
+import { Button } from '../ui/Button.ts';
 import { api } from '../../core/api.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { escapeHtml } from '../../services/html.ts';

@@ -15,7 +15,7 @@
  * must never offer one it would refuse.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { api } from '../../core/api.js';

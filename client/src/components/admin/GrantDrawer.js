@@ -2,8 +2,8 @@
  * GrantDrawer.js — Drawer for issuing time-boxed standing grants with natural language preview (Prompt 3.3).
  */
 
-import { Drawer } from '../ui/Drawer.js';
-import { Button } from '../ui/Button.js';
+import { Drawer } from '../ui/Drawer.ts';
+import { Button } from '../ui/Button.ts';
 import { Input } from '../ui/Input.ts';
 import { Select } from '../ui/Select.ts';
 import { Textarea } from '../ui/Textarea.ts';

@@ -20,7 +20,7 @@ import { updateHead } from '../services/seo.ts';
 import { ProductFeed } from '../components/product/ProductFeed.js';
 import { CategoryPills } from '../components/product/CategoryPills.ts';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.js';
-import { Drawer } from '../components/ui/Drawer.js';
+import { Drawer } from '../components/ui/Drawer.ts';
 
 // Category ids are names (matching the catalog's mock filter + the marketplace home's own list).
 // Kept local, like HomePage's KNOWN_CATEGORIES, rather than importing a page-private const.

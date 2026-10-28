@@ -13,8 +13,8 @@
  *     on the permission/module state so a disabled AI module degrades to a toast, never a crash.
  */
 import { API_BASE, getAccessToken, api } from '../../core/api.js';
-import { Button } from '../ui/Button.js';
-import { Drawer } from '../ui/Drawer.js';
+import { Button } from '../ui/Button.ts';
+import { Drawer } from '../ui/Drawer.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

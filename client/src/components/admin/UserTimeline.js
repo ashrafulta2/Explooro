@@ -3,7 +3,7 @@
  */
 
 import { Badge } from '../ui/Badge.ts';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { openAuditDiffModal } from './AuditDiffViewer.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime, formatDate } from '../../services/format.js';

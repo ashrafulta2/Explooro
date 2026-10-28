@@ -10,7 +10,7 @@
 import { contentApi } from '../../services/content.api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
 export default function BannersManagerPage(root) {

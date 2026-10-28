@@ -13,7 +13,7 @@
  */
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatDate, formatNumber } from '../../services/format.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 
 function cell<K extends 'td' | 'th' | 'div' | 'span'>(tag: K, text: string, className?: string): HTMLElementTagNameMap[K] {
   const c = document.createElement(tag);
@@ -45,9 +45,6 @@ export interface FastPayoutOptions {
   /** The entry whose request is in flight; its button shows as loading. */
   busyId?: number | string | null;
 }
-
-/** The part of Button's element this file uses; `setLoading` is attached by ui/Button.js. */
-type LoadingButton = HTMLButtonElement & { setLoading?(on: boolean): void };
 
 /** The i18n key for why an entry cannot be taken early. Unknown codes fall back to a generic line. */
 export function reasonKey(code: string | null | undefined): string {
@@ -96,7 +93,7 @@ export function FastPayoutTable(
     const action = cell('td', '');
     const box = cell('div', '', 'fastpay-action');
     if (e.eligible) {
-      const btn: LoadingButton = Button({
+      const btn = Button({
         label: t('fastpay.take'),
         size: 'sm',
         onClick: () => onTake(e, btn),

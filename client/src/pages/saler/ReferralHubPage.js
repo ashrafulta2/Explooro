@@ -15,8 +15,8 @@
  */
 
 import { api } from '../../core/api.js';
-import { Modal } from '../../components/ui/Modal.js';
-import { Button } from '../../components/ui/Button.js';
+import { Modal } from '../../components/ui/Modal.ts';
+import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, ICONS } from '../../components/ui/icons.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

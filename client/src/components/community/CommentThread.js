@@ -12,7 +12,7 @@
  *    two people commenting at once cannot leave it wrong.
  */
 import { el } from './dom.ts';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatRelativeTime } from '../../services/format.js';

@@ -14,7 +14,7 @@
  */
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 
 const STATUS_TONE = {
   REQUESTED: 'info', ACCEPTED: 'info', SHIPPED: 'warning',

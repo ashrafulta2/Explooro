@@ -10,9 +10,9 @@
 import { api } from '../../core/api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { formatCurrency, formatNumber, formatDate } from '../../services/format.js';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 
 export class CampaignManagerPage {
   constructor({ initialTab = 'flash_sales' } = {}) {

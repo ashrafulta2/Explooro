@@ -9,7 +9,7 @@
  */
 import { returnProtectionApi } from '../../services/payoutProtection.api.js';
 import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';

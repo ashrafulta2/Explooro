@@ -15,9 +15,9 @@
 import { customerApi } from '../../services/customer.api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 
 export default function CustomerDashboardPage(root, { navigate } = {}) {

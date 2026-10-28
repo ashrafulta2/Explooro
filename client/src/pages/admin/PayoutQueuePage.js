@@ -18,9 +18,9 @@ import { api } from '../../core/api.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
-import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
-import { Modal } from '../../components/ui/Modal.js';
-import { Button } from '../../components/ui/Button.js';
+import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
+import { Modal } from '../../components/ui/Modal.ts';
+import { Button } from '../../components/ui/Button.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 
 export default function PayoutQueuePage(root, { navigate } = {}) {

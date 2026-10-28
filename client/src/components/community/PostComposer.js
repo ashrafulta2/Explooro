@@ -14,7 +14,7 @@
  *    uploading, so a post is never sent without a file the author thought was on it.
  */
 import { el, icon, productTitle } from './dom.ts';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { MediaPicker } from './MediaPicker.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

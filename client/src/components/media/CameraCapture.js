@@ -12,8 +12,8 @@
  *  - The promise always settles: a File when a photo was accepted, null otherwise.
  */
 
-import { Modal } from '../ui/Modal.js';
-import { Button } from '../ui/Button.js';
+import { Modal } from '../ui/Modal.ts';
+import { Button } from '../ui/Button.ts';
 import { t } from '../../services/i18n.js';
 
 // WHY 0.9: visually lossless for product photos, and a 1080p frame stays around 0.5–1MB —

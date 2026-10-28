@@ -17,10 +17,10 @@ import { BANGLADESH_DIVISIONS, getDistrictsByDivision, getUpazilasByDistrict, ge
 import { isValidBdPhone, normalizeBdPhone } from '../../components/checkout/AddressForm.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
-import { Modal } from '../../components/ui/Modal.js';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { Modal } from '../../components/ui/Modal.ts';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 
 export default function AddressesPage(root, { navigate } = {}) {

@@ -9,7 +9,7 @@
  * paying, so the Boost wizard can send someone here and get them back with the money in place.
  */
 
-import { Button } from '../components/ui/Button.js';
+import { Button } from '../components/ui/Button.ts';
 import { Input } from '../components/ui/Input.ts';
 import { getTopUps, topUp, amountProblem } from '../services/walletTopup.api.js';
 import { toast } from '../services/toast.js';

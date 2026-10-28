@@ -17,7 +17,7 @@
  *  - Margin range filter only renders when role === 'saler'.
  */
 
-import { Drawer } from '../ui/Drawer.js';
+import { Drawer } from '../ui/Drawer.ts';
 import { t } from '../../services/i18n.js';
 import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.ts';
 

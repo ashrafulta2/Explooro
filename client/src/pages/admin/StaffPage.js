@@ -14,14 +14,14 @@
  * 7. Layout-mirroring skeleton, empty / error states, permission-gated actions, EN ⇄ BN.
  */
 
-import { Button } from '../../components/ui/Button.js';
-import { Drawer } from '../../components/ui/Drawer.js';
+import { Button } from '../../components/ui/Button.ts';
+import { Drawer } from '../../components/ui/Drawer.ts';
 import { Input } from '../../components/ui/Input.ts';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { Pagination } from '../../components/ui/Pagination.ts';
 import { Select } from '../../components/ui/Select.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
-import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { api, pickMessage } from '../../core/api.js';
 import { can } from '../../services/permissions.js';
 import { getCurrentUser } from '../../services/session.js';

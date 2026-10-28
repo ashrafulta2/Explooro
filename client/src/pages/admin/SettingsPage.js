@@ -12,10 +12,10 @@
  * 8. Shared PlatformSubnav interconnecting all 5 platform governance surfaces.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
-import { Modal } from '../../components/ui/Modal.js';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { Modal } from '../../components/ui/Modal.ts';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { adminApi } from '../../services/admin.api.js';
 import { toast } from '../../services/toast.js';

@@ -13,11 +13,36 @@
  */
 
 /** Spinner element. CSS-only so it inherits currentColor and needs no icon dependency. */
-function createSpinner() {
+function createSpinner(): HTMLSpanElement {
   const spinner = document.createElement('span');
   spinner.className = 'spinner';
   spinner.setAttribute('aria-hidden', 'true');
   return spinner;
+}
+
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | string;
+export type ButtonSize = 'sm' | 'md' | 'lg' | string;
+
+export interface ButtonOptions {
+  label?: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  type?: 'button' | 'submit' | 'reset';
+  loading?: boolean;
+  disabled?: boolean;
+  iconLeft?: HTMLElement | SVGElement | null;
+  iconRight?: HTMLElement | SVGElement | null;
+  fullWidth?: boolean;
+  onClick?: ((event: MouseEvent) => void) | null;
+  /** Required for an icon-only button. */
+  ariaLabel?: string;
+}
+
+/** The `<button>` with the three methods Button attaches. */
+export interface ButtonElement extends HTMLButtonElement {
+  setLoading(on: boolean): void;
+  setDisabled(on: boolean): void;
+  setLabel(text: string): void;
 }
 
 export function Button({
@@ -32,8 +57,8 @@ export function Button({
   fullWidth = false,
   onClick = null,
   ariaLabel = '',
-} = {}) {
-  const btn = document.createElement('button');
+}: ButtonOptions = {}): ButtonElement {
+  const btn = document.createElement('button') as ButtonElement;
   btn.type = type;
   btn.className = `btn btn--${variant} btn--${size}`;
   if (fullWidth) btn.classList.add('btn--full');
@@ -66,7 +91,7 @@ export function Button({
   spinnerWrap.className = 'btn__spinner';
   spinnerWrap.append(createSpinner());
 
-  function setLoading(on) {
+  function setLoading(on: boolean) {
     btn.dataset.loading = on ? 'true' : 'false';
     if (on) {
       btn.setAttribute('aria-busy', 'true');
@@ -78,7 +103,7 @@ export function Button({
     syncDisabled();
   }
 
-  function setDisabled(on) {
+  function setDisabled(on: boolean) {
     btn.dataset.disabled = on ? 'true' : 'false';
     syncDisabled();
   }
@@ -102,7 +127,7 @@ export function Button({
 
   btn.setLoading = setLoading;
   btn.setDisabled = setDisabled;
-  btn.setLabel = (text) => {
+  btn.setLabel = (text: string) => {
     labelEl.textContent = text;
   };
 

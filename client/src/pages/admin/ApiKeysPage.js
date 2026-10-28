@@ -20,10 +20,10 @@ import {
   replayWebhookDelivery,
 } from '../../services/developer.api.js';
 
-import { Button } from '../../components/ui/Button.js';
-import { Modal } from '../../components/ui/Modal.js';
+import { Button } from '../../components/ui/Button.ts';
+import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

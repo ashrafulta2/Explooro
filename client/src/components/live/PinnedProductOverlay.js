@@ -7,7 +7,7 @@
  * 3. Real-time sync (< 1s latency) when host switches pinned item.
  */
 
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { formatBdt } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 

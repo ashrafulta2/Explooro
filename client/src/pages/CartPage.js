@@ -8,7 +8,7 @@
  * Data comes from cartStore (optimistic updates live in services/cart.js); this page only renders.
  */
 
-import { Button } from '../components/ui/Button.js';
+import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { cartStore, fetchCart, updateItemQuantity, removeFromCart, toggleWishlist, isProductWishlisted } from '../services/cart.js';
 import { formatCurrency } from '../services/format.js';

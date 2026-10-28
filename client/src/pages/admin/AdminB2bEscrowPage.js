@@ -14,7 +14,7 @@
  * returns every deal (with milestones) to admins, so the page now uses it and surfaces failures.
  */
 
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency, formatDate } from '../../services/format.js';

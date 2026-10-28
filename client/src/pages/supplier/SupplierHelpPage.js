@@ -10,7 +10,7 @@
 
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.js';
 import { Badge } from '../../components/ui/Badge.ts';
 

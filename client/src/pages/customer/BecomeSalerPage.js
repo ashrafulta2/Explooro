@@ -17,9 +17,9 @@ import { customerApi } from '../../services/customer.api.js';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { appStore, setMockRole } from '../../state/appStore.js';
 import { defaultPermissionsForRole } from '../../config/permissions.mock.js';
 

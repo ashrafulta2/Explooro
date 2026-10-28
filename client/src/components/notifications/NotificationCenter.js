@@ -9,8 +9,8 @@
  * - Deep linking to source order/dispute/payout entity.
  */
 
-import { Drawer } from '../ui/Drawer.js';
-import { Button } from '../ui/Button.js';
+import { Drawer } from '../ui/Drawer.ts';
+import { Button } from '../ui/Button.ts';
 import { Tabs } from '../ui/Tabs.ts';
 import { api } from '../../core/api.js';
 import { adsApi } from '../../services/ads.api.js';

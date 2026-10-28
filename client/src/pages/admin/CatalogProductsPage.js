@@ -12,11 +12,11 @@
  * 8. Zero-runtime dependencies, strict design tokens, and full bilingual i18n (EN/BN).
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
-import { Modal } from '../../components/ui/Modal.js';
-import { Drawer } from '../../components/ui/Drawer.js';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { Modal } from '../../components/ui/Modal.ts';
+import { Drawer } from '../../components/ui/Drawer.ts';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.js';
 import { previewPricing } from '../../services/catalog.api.js';
 import { toast } from '../../services/toast.js';

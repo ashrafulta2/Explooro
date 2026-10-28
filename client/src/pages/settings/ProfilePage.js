@@ -15,7 +15,7 @@
  *    a preference that only takes effect on next login reads as a bug.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Card } from '../../components/ui/Card.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { Select } from '../../components/ui/Select.ts';

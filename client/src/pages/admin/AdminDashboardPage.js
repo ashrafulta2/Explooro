@@ -26,10 +26,10 @@ import { t, getLanguage, subscribe as subscribeLanguage } from '../../services/i
 import { formatNumber, formatDate, formatRelativeTime } from '../../services/format.js';
 import { can } from '../../services/permissions.js';
 import { toast } from '../../services/toast.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { Switch } from '../../components/ui/Switch.ts';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { ICONS } from '../../components/ui/icons.ts';
 import { loadAdminCockpitStyles } from '../../styles/loadAdminCockpitStyles.js';

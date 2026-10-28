@@ -16,9 +16,9 @@ import { adsApi } from '../../services/ads.api.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatBdt, formatNumber, formatRelativeTime, formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
+import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 

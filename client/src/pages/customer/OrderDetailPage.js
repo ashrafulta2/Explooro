@@ -12,8 +12,8 @@ import { getOrderById, getMyOrders, cancelOrder } from '../../services/order.api
 import { needsOnlinePayment, payForOrder } from '../../services/payment.api.js';
 import { OrderTracker, getSubOrderStatusLabel, getPaymentStatusLabel } from '../../components/order/OrderTracker.ts';
 import { formatCurrency, formatDate } from '../../services/format.js';
-import { Button } from '../../components/ui/Button.js';
-import { Modal } from '../../components/ui/Modal.js';
+import { Button } from '../../components/ui/Button.ts';
+import { Modal } from '../../components/ui/Modal.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { goBack, renderBackLink } from '../../core/navBack.js';

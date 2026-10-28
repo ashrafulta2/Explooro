@@ -506,7 +506,7 @@ test('6. duration is a CSS token, zeroed under reduced motion', () => {
 });
 
 test('7. Modal routes open and close through genieRun; the old scale genie is removed', () => {
-  const modal = read('src', 'components', 'ui', 'Modal.js');
+  const modal = read('src', 'components', 'ui', 'Modal.ts');
   assert.match(modal, /from '\.\.\/\.\.\/lib\/genie\.ts'/);
   assert.match(modal, /playGenie\('open'\)/);
   assert.match(modal, /playGenie\('close'\)/);

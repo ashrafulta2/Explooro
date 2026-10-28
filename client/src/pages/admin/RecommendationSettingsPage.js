@@ -29,9 +29,9 @@
 import '../../styles/components/language-settings.css';
 import '../../styles/components/reco-settings.css';
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { Switch } from '../../components/ui/Switch.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';

@@ -6,8 +6,8 @@
  *  2. Payment Method & Instant Order Placement
  */
 
-import { Modal } from '../ui/Modal.js';
-import { Button } from '../ui/Button.js';
+import { Modal } from '../ui/Modal.ts';
+import { Button } from '../ui/Button.ts';
 import { AddressForm } from '../checkout/AddressForm.js';
 import { PaymentSelector } from '../checkout/PaymentSelector.js';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.js';

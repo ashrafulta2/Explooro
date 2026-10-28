@@ -22,7 +22,7 @@
 import { api } from '../../core/api.js';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.ts';
 import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.js';
 

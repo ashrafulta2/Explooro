@@ -14,7 +14,7 @@
  * POST /ads/quote. The page never prices or counts anything itself.
  */
 
-import { Button } from '../components/ui/Button.js';
+import { Button } from '../components/ui/Button.ts';
 import { Input } from '../components/ui/Input.ts';
 import { adsApi } from '../services/ads.api.js';
 import { toast } from '../services/toast.js';

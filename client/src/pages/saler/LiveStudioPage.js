@@ -11,10 +11,10 @@
 
 import { scheduleLiveStream, startLiveStream, endLiveStream, pinLiveProduct, unpinLiveProduct, getLiveStream, muteLiveParticipant } from '../../services/live.api.js';
 import { wsManager } from '../../services/websocket.ts';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Input } from '../../components/ui/Input.ts';
 import { Textarea } from '../../components/ui/Textarea.ts';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { toast } from '../../services/toast.js';
 import { formatBdt } from '../../services/format.js';

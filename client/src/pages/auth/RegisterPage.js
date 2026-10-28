@@ -8,7 +8,7 @@
 import { register, sendOtp } from '../../services/session.js';
 import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
 
 export default function RegisterPage(container, { query = {}, params = {}, navigate }) {

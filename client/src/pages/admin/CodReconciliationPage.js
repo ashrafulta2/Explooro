@@ -16,7 +16,7 @@ import { api } from '../../core/api.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
-import { Modal } from '../../components/ui/Modal.js';
+import { Modal } from '../../components/ui/Modal.ts';
 import '../../styles/components/cod-recon.css';
 
 const SAMPLE_CSV = `consignment_id,sub_order_ref,courier_reported,deposit_received

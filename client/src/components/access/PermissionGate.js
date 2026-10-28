@@ -9,7 +9,7 @@
 import { whyDenied, getPermissionMetadata, getRestriction } from '../../services/permissions.js';
 import { openRequestAccessModal } from './RequestAccessModal.js';
 import { t, getLanguage } from '../../services/i18n.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 
 export function PermissionGate({
   permission = null,

@@ -10,7 +10,7 @@
 import { customerApi } from '../../services/customer.api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { appStore, setMockRole } from '../../state/appStore.js';
 import { defaultPermissionsForRole } from '../../config/permissions.mock.js';
 

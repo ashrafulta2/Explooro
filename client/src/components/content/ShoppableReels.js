@@ -8,7 +8,7 @@
  */
 
 import { listReels, likeReel } from '../../services/content.api.js';
-import { Button } from '../ui/Button.js';
+import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 

@@ -4,8 +4,8 @@
 
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
-import { Button } from '../ui/Button.js';
-import { Modal } from '../ui/Modal.js';
+import { Button } from '../ui/Button.ts';
+import { Modal } from '../ui/Modal.ts';
 import { Input } from '../ui/Input.ts';
 
 export function ShelfEditor({ initialShelves = [], onUpdate = null } = {}) {

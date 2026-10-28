@@ -11,10 +11,10 @@
  * 7. Zero-CLS skeleton loader and full bilingual i18n support.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
-import { Drawer } from '../../components/ui/Drawer.js';
-import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
+import { Drawer } from '../../components/ui/Drawer.ts';
+import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';

@@ -12,7 +12,7 @@
  * lands on its own half and the URL stays shareable.
  */
 
-import { Button } from '../../components/ui/Button.js';
+import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';

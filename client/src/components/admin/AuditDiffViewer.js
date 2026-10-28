@@ -2,8 +2,8 @@
  * AuditDiffViewer.js — Side-by-side before/after JSON diff viewer with key highlights & plain-language summary (Prompt 3.4).
  */
 
-import { Modal } from '../ui/Modal.js';
-import { Button } from '../ui/Button.js';
+import { Modal } from '../ui/Modal.ts';
+import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 
 /**
