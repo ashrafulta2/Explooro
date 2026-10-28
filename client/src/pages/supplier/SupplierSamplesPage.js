@@ -9,7 +9,7 @@
  * and that nothing reaches their vault until the shop partner confirms (or the confirm window runs out).
  */
 import { sampleKitApi } from '../../services/sampleKit.api.ts';
-import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
+import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Switch } from '../../components/ui/Switch.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';

@@ -26,7 +26,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatDate, formatCurrency, formatNumber } from '../../services/format.js';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
 import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.js';
-import { UserTimeline } from '../../components/admin/UserTimeline.js';
+import { UserTimeline } from '../../components/admin/UserTimeline.ts';
 import '../../styles/components/admin-users.css';
 
 /** Builds `<tag class="…">text</tag>`. Text always goes through textContent — never innerHTML. */

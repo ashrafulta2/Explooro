@@ -16,7 +16,20 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../ui/Button.ts';
 
-function el(tag, className, text) {
+/** A supplier's promotion kit for one product, as GET /sourcing/marketing-kits sends it. */
+export interface MarketingKit {
+  title_en?: string;
+  title_bn?: string;
+  supplier_name?: string;
+  caption_en?: string;
+  caption_bn?: string;
+  selling_points?: string[];
+  hashtags?: string[];
+  images?: string[];
+  video_url?: string;
+}
+
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
@@ -24,7 +37,7 @@ function el(tag, className, text) {
 }
 
 /** Older browsers and pages without clipboard permission still honour a selection + copy command. */
-function legacyCopy(text) {
+function legacyCopy(text: string): boolean {
   const area = document.createElement('textarea');
   area.value = text;
   area.setAttribute('readonly', '');
@@ -40,7 +53,7 @@ function legacyCopy(text) {
   }
 }
 
-export async function copyText(text) {
+export async function copyText(text: string): Promise<boolean> {
   let copied = false;
   try {
     await navigator.clipboard.writeText(text);
@@ -53,7 +66,7 @@ export async function copyText(text) {
   return copied;
 }
 
-function isWebUrl(value) {
+function isWebUrl(value: string): boolean {
   try {
     return ['http:', 'https:'].includes(new URL(value).protocol);
   } catch {
@@ -62,13 +75,13 @@ function isWebUrl(value) {
 }
 
 /** The caption in the viewer's language, falling back to the other one rather than showing nothing. */
-export function pickCaption(kit, language) {
+export function pickCaption(kit: Pick<MarketingKit, 'caption_en' | 'caption_bn'>, language: string): string {
   const first = language === 'bn' ? kit.caption_bn : kit.caption_en;
   const second = language === 'bn' ? kit.caption_en : kit.caption_bn;
   return first || second || '';
 }
 
-export function MarketingKitCard(kit) {
+export function MarketingKitCard(kit: MarketingKit): HTMLElement {
   const language = getLanguage();
   const card = el('article', 'incentive-card kit-card');
   card.append(el('h2', 'incentive-card__title', language === 'bn' ? kit.title_bn || kit.title_en : kit.title_en));

@@ -1,5 +1,5 @@
 /**
- * PaymentSelector.js — Module-gated payment channel selector with inline COD OTP (Prompt 5.4).
+ * PaymentSelector.ts — Module-gated payment channel selector with inline COD OTP (Prompt 5.4).
  *
  * Supports:
  *  - bKash (tokenized)
@@ -13,12 +13,29 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t } from '../../services/i18n.js';
 import { Button } from '../ui/Button.ts';
 
+export interface PaymentSelectorOptions {
+  initialMethod?: string;
+  orderTotal?: number;
+  onChange?: (method: string) => void;
+  onOtpSubmit?: (code: string) => void;
+}
+
+/** The selector's root plus the methods the checkout page drives it by. */
+export interface PaymentSelectorParts {
+  element: HTMLDivElement;
+  getPaymentMethod(): string;
+  getOtpCode(): string;
+  /** Shows the inline COD code field after the server asks for it. */
+  promptOtp(phone?: string): void;
+  clearOtp(): void;
+}
+
 export function PaymentSelector({
   initialMethod = 'COD',
   orderTotal = 0,
   onChange,
   onOtpSubmit,
-} = {}) {
+}: PaymentSelectorOptions = {}): PaymentSelectorParts {
   const container = document.createElement('div');
   container.className = 'payment-selector';
 
@@ -78,6 +95,7 @@ export function PaymentSelector({
 
   methods.forEach((m) => {
     // Check if feature flag is active (if feature flags initialized)
+    // @ts-expect-error isFeatureEnabled (featureFlags.js, not typed yet) takes one argument; the second is ignored
     const isEnabled = !m.flag || isFeatureEnabled(m.flag, true);
     if (!isEnabled) return;
 
@@ -97,7 +115,7 @@ export function PaymentSelector({
       </div>
     `;
 
-    const radio = card.querySelector('input');
+    const radio = card.querySelector('input')!;
     radio.addEventListener('change', () => {
       selectedMethod = m.id;
       listEl.querySelectorAll('.payment-selector__card').forEach((c) => c.classList.remove('payment-selector__card--selected'));
@@ -143,9 +161,9 @@ export function PaymentSelector({
           <span class="form-error" id="err-payment-otp"></span>
         `;
 
-        const otpInput = otpBox.querySelector('input');
+        const otpInput = otpBox.querySelector('input')!;
         otpInput.addEventListener('input', (e) => {
-          otpState.code = e.target.value.replace(/\D/g, '');
+          otpState.code = (e.target as HTMLInputElement).value.replace(/\D/g, '');
         });
 
         extraPanel.append(otpBox);
@@ -159,11 +177,11 @@ export function PaymentSelector({
     element: container,
     getPaymentMethod: () => selectedMethod,
     getOtpCode: () => otpState.code,
-    promptOtp: (phone) => {
+    promptOtp: (phone?: string) => {
       otpState.required = true;
       otpState.phone = phone || '';
       renderExtraPanels();
-      const input = extraPanel.querySelector('.payment-selector__otp-input');
+      const input = extraPanel.querySelector<HTMLInputElement>('.payment-selector__otp-input');
       if (input) input.focus();
     },
     clearOtp: () => {

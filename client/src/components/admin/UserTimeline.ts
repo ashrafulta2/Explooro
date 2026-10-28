@@ -1,14 +1,22 @@
 /**
- * UserTimeline.js — Categorized activity stream timeline with metadata badges & diff inspect (Prompt 3.4).
+ * UserTimeline.ts — Categorized activity stream timeline with metadata badges & diff inspect (Prompt 3.4).
  */
 
 import { Badge } from '../ui/Badge.ts';
 import { Button } from '../ui/Button.ts';
-import { openAuditDiffModal } from './AuditDiffViewer.js';
+import { openAuditDiffModal } from './AuditDiffViewer.ts';
+import type { AuditRecord } from './AuditDiffViewer.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime, formatDate } from '../../services/format.js';
 
-export function UserTimeline({ events = [] }) {
+/** One activity row of a user's timeline. */
+export interface TimelineActivity extends AuditRecord {
+  category?: 'AUTH' | 'PERMISSIONS' | 'RESTRICTIONS' | 'ORDERS' | string;
+  description?: string;
+  ip?: string;
+}
+
+export function UserTimeline({ events = [] }: { events?: TimelineActivity[] }): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'user-timeline';
@@ -65,6 +73,7 @@ export function UserTimeline({ events = [] }) {
     timeSpan.style.color = 'var(--text-muted)';
     if (ev.created_at) {
       const ts = new Date(ev.created_at).getTime();
+      // @ts-expect-error formatDate (format.js, not typed yet) infers its options from a default without `lang`
       timeSpan.textContent = `${formatRelativeTime(ts, { lang: isBn ? 'bn' : 'en' })} · ${formatDate(ts, { lang: isBn ? 'bn' : 'en' })}`;
     }
 
@@ -104,7 +113,7 @@ export function UserTimeline({ events = [] }) {
     footerMeta.append(tagsLeft);
 
     if (ev.before || ev.after || ev.before_state_json || ev.after_state_json) {
-      const diffBtn = Button({
+      const diffBtn: HTMLButtonElement = Button({
         label: `🔍 ${t('audit_explorer.view_diff')}`,
         variant: 'ghost',
         size: 'sm',

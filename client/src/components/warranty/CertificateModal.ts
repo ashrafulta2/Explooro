@@ -1,5 +1,5 @@
 /**
- * CertificateModal.js — Official Printable Digital Warranty Certificate Modal (Prompt 10.4).
+ * CertificateModal.ts — Official Printable Digital Warranty Certificate Modal (Prompt 10.4).
  *
  * Renders:
  * 1. High-security certificate with anti-counterfeit border and official seal.
@@ -12,8 +12,9 @@ import { t, getLanguage } from '../../services/i18n.js';
 
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
+import type { WarrantyCardData } from './WarrantyCard.ts';
 
-export function openCertificateModal({ card } = {}) {
+export function openCertificateModal({ card }: { card?: WarrantyCardData } = {}) {
   if (!card) return;
 
   const locale = getLanguage();
@@ -137,7 +138,7 @@ export function openCertificateModal({ card } = {}) {
 /**
  * Pure hand-crafted SVG QR Code mock matrix representation.
  */
-function generateMiniQrSvg(code) {
+function generateMiniQrSvg(code: string): string {
   let hash = 0;
   for (let i = 0; i < code.length; i++) {
     hash = (hash << 5) - hash + code.charCodeAt(i);
@@ -145,7 +146,7 @@ function generateMiniQrSvg(code) {
   }
 
   const size = 17;
-  const rects = [];
+  const rects: string[] = [];
   const addRect = (x, y, w = 1, h = 1) => rects.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#111827"/>`);
 
   // Corner Position Detection Patterns (Finder Patterns)

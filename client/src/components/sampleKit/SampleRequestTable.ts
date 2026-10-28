@@ -16,12 +16,41 @@ import { t } from '../../services/i18n.js';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { Button } from '../ui/Button.ts';
 
-const STATUS_TONE = {
+/** A sample request row from the API. The amounts are the ones the server snapshotted. */
+export interface SampleRequest {
+  title_en?: string;
+  price: number | string;
+  shipping_fee: number | string;
+  status: string;
+  requested_at: string;
+  ship_to_name?: string;
+  ship_to_phone?: string;
+  ship_to_address?: string;
+  note?: string;
+  tracking_note?: string;
+  decline_reason?: string;
+  saler_name?: string;
+  supplier_name?: string;
+}
+
+/** One button a row offers; the page decides which, the server decides what is accepted. */
+export interface SampleAction {
+  label: string;
+  variant?: string;
+  onClick: (event: MouseEvent) => void;
+}
+
+export interface SampleRequestTableOptions {
+  perspective?: 'supplier' | 'saler';
+  actionsFor?: (row: SampleRequest) => SampleAction[];
+}
+
+const STATUS_TONE: Record<string, string> = {
   REQUESTED: 'info', ACCEPTED: 'info', SHIPPED: 'warning',
   DELIVERED: 'success', DECLINED: 'danger', CANCELLED: 'danger', EXPIRED: 'danger',
 };
 
-function cell(tag, text, className) {
+function cell<K extends keyof HTMLElementTagNameMap>(tag: K, text: string, className?: string): HTMLElementTagNameMap[K] {
   const c = document.createElement(tag);
   if (className) c.className = className;
   c.textContent = text;
@@ -29,10 +58,8 @@ function cell(tag, text, className) {
 }
 
 /**
- * @param {Array<object>} rows requests from the API
- * @param {{ perspective?: 'supplier'|'saler', actionsFor?: (row: object) => Array<{label: string, variant?: string, onClick: Function}> }} [options]
  */
-export function SampleRequestTable(rows, { perspective = 'supplier', actionsFor = () => [] } = {}) {
+export function SampleRequestTable(rows: SampleRequest[], { perspective = 'supplier', actionsFor = () => [] }: SampleRequestTableOptions = {}): HTMLDivElement {
   const wrap = document.createElement('div');
   wrap.className = 'incentive-table-wrap';
 
@@ -96,7 +123,7 @@ export function SampleRequestTable(rows, { perspective = 'supplier', actionsFor 
     );
     // WHY data-label: on a phone each row becomes a stacked card (sample-kit.css) and the header row is gone,
     // so every cell has to carry its own column name.
-    [...tr.children].forEach((td, i) => { td.dataset.label = t(`sample.${columns[i][0]}`); });
+    [...tr.children].forEach((td: HTMLElement, i) => { td.dataset.label = t(`sample.${columns[i][0]}`); });
     tbody.append(tr);
   }
   table.append(tbody);

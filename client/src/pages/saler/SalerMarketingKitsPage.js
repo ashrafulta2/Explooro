@@ -9,7 +9,7 @@
  * request.
  */
 import { sampleKitApi } from '../../services/sampleKit.api.ts';
-import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.js';
+import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';

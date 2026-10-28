@@ -1,5 +1,5 @@
 /**
- * PinnedProductOverlay.js — Real-Time In-Stream Pinned Product Card (Prompt 10.1 / DFD Subsystem 15.0).
+ * PinnedProductOverlay.ts — Real-Time In-Stream Pinned Product Card (Prompt 10.1 / DFD Subsystem 15.0).
  *
  * Implements:
  * 1. High-contrast floating card overlay with live badge and animated entrance.
@@ -11,7 +11,26 @@ import { Button } from '../ui/Button.ts';
 import { formatBdt } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 
-export function PinnedProductOverlay({ product, onBuyClick, onClose }) {
+/** The product the host pinned (a live-stream product row). */
+export interface PinnedProduct {
+  title_en?: string;
+  title_bn?: string;
+  special_price?: number | string;
+  price?: number | string;
+  base_cost?: number | string;
+  wholesale_margin?: number | string;
+  main_image?: string;
+  image_url?: string;
+  [field: string]: unknown;
+}
+
+export interface PinnedProductOverlayOptions {
+  product?: PinnedProduct | null;
+  onBuyClick?: (product: PinnedProduct) => void;
+  onClose?: () => void;
+}
+
+export function PinnedProductOverlay({ product, onBuyClick, onClose }: PinnedProductOverlayOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'pinned-product-overlay';
 

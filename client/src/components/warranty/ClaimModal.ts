@@ -1,5 +1,5 @@
 /**
- * ClaimModal.js — Customer 1-Click Warranty Claim Submission Dialog (Prompt 10.4).
+ * ClaimModal.ts — Customer 1-Click Warranty Claim Submission Dialog (Prompt 10.4).
  */
 
 import { t, getLanguage } from '../../services/i18n.js';
@@ -7,8 +7,15 @@ import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.js';
 
 import { Modal } from '../ui/Modal.ts';
+import type { WarrantyCardData } from './WarrantyCard.ts';
 
-export function openClaimModal({ card, onSuccess = null } = {}) {
+export interface ClaimModalOptions {
+  card: WarrantyCardData;
+  /** Called with the new claim once the server has accepted it. */
+  onSuccess?: ((claim: unknown) => void) | null;
+}
+
+export function openClaimModal({ card, onSuccess = null }: ClaimModalOptions = {} as ClaimModalOptions) {
   const locale = getLanguage();
   const title = locale === 'bn'
     ? (card.product_title_bn || card.title_bn || card.title_snapshot || card.product_title_en || card.title_en || 'Product')
@@ -125,7 +132,7 @@ export function openClaimModal({ card, onSuccess = null } = {}) {
 
   const close = () => modal.closeModal();
 
-  formEl.querySelector('.btn-cancel').addEventListener('click', close);
+  formEl.querySelector('.btn-cancel')!.addEventListener('click', close);
 
   // Radio cards toggle
   const resolutionCards = modal.querySelectorAll('.claim-resolution-card');
@@ -133,14 +140,14 @@ export function openClaimModal({ card, onSuccess = null } = {}) {
     cardEl.addEventListener('click', () => {
       resolutionCards.forEach((c) => c.classList.remove('claim-resolution-card--selected'));
       cardEl.classList.add('claim-resolution-card--selected');
-      const radio = cardEl.querySelector('input[type="radio"]');
+      const radio = cardEl.querySelector<HTMLInputElement>('input[type="radio"]');
       if (radio) radio.checked = true;
     });
   });
 
   // Character counter
-  const textarea = modal.querySelector('textarea[name="issue_description"]');
-  const charCount = modal.querySelector('.char-count');
+  const textarea = modal.querySelector<HTMLTextAreaElement>('textarea[name="issue_description"]');
+  const charCount = modal.querySelector<HTMLElement>('.char-count');
   if (textarea && charCount) {
     textarea.addEventListener('input', () => {
       const len = textarea.value.trim().length;
@@ -149,8 +156,8 @@ export function openClaimModal({ card, onSuccess = null } = {}) {
     });
   }
 
-  const form = modal.querySelector('#claim-form');
-  const submitBtn = modal.querySelector('.btn-submit');
+  const form = modal.querySelector<HTMLFormElement>('#claim-form')!;
+  const submitBtn = modal.querySelector<HTMLButtonElement>('.btn-submit')!;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

@@ -12,9 +12,9 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { WarrantyCard } from '../../components/warranty/WarrantyCard.ts';
-import { openClaimModal } from '../../components/warranty/ClaimModal.js';
+import { openClaimModal } from '../../components/warranty/ClaimModal.ts';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
-import { openCertificateModal } from '../../components/warranty/CertificateModal.js';
+import { openCertificateModal } from '../../components/warranty/CertificateModal.ts';
 import { openRegisterWarrantyModal } from '../../components/warranty/RegisterWarrantyModal.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 

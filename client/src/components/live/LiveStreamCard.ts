@@ -1,5 +1,5 @@
 /**
- * LiveStreamCard.js — Discovery card for live & scheduled broadcast sessions (Prompt 10.1).
+ * LiveStreamCard.ts — Discovery card for live & scheduled broadcast sessions (Prompt 10.1).
  * Upgraded with design tokens, high-contrast badges, verified host indicators, formatted schedule time, and clean Button primitive.
  */
 
@@ -7,7 +7,38 @@ import { formatBdt } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { Button } from '../ui/Button.ts';
 
-export function LiveStreamCard({ stream, onWatchClick }) {
+/** A product pinned on, or listed for, a stream. */
+export interface LiveStreamProduct {
+  title?: string;
+  title_en?: string;
+  title_bn?: string;
+  special_price?: number | string;
+  price?: number | string;
+}
+
+/** A live or scheduled broadcast, as GET /live/streams sends it. */
+export interface LiveStream {
+  title?: string;
+  status: 'LIVE' | 'SCHEDULED' | 'ENDED' | 'TERMINATED' | string;
+  isSponsored?: boolean;
+  scheduled_for?: string;
+  viewer_count?: number;
+  category?: string;
+  settings_json?: { category?: string };
+  pinned_product?: LiveStreamProduct | null;
+  products?: LiveStreamProduct[];
+  cover_image?: string;
+  host_name?: string;
+  store_name?: string;
+  [field: string]: unknown;
+}
+
+export interface LiveStreamCardOptions {
+  stream: LiveStream;
+  onWatchClick?: (stream: LiveStream) => void;
+}
+
+export function LiveStreamCard({ stream, onWatchClick }: LiveStreamCardOptions): HTMLDivElement {
   const card = document.createElement('div');
   card.className = 'live-stream-card';
   if (stream.isSponsored) {

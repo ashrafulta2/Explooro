@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
-import { computeObjectDiff, generatePlainLanguageSummary, serializeAuditRecordsToCsv } from '../src/components/admin/AuditDiffViewer.js';
+import { computeObjectDiff, generatePlainLanguageSummary, serializeAuditRecordsToCsv } from '../src/components/admin/AuditDiffViewer.ts';
 
 test('Prompts 3.3 & 3.4: Users, Access & Audit Explorer — Client Invariants', async (t) => {
   // 1. Locale Integrity

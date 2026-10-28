@@ -11,7 +11,7 @@
 
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { openCertificateModal } from './CertificateModal.js';
+import { openCertificateModal } from './CertificateModal.ts';
 
 /** A claim on a warranty card. */
 export interface WarrantyClaimRef {

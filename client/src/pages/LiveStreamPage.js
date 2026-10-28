@@ -15,8 +15,8 @@
 import { knownDeliveryCharge, loadDeliveryCharge } from '../services/deliveryCharge.ts';
 import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, getInStreamQuote, terminateLiveStream } from '../services/live.api.ts';
 import { adsApi } from '../services/ads.api.ts';
-import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.js';
-import { LiveStreamCard } from '../components/live/LiveStreamCard.js';
+import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.ts';
+import { LiveStreamCard } from '../components/live/LiveStreamCard.ts';
 import { wsManager, WS_STATUS } from '../services/websocket.ts';
 import { Button } from '../components/ui/Button.ts';
 import { Drawer } from '../components/ui/Drawer.ts';

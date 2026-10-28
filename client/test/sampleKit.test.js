@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { pickCaption } from '../src/components/sampleKit/MarketingKitCard.js';
+import { pickCaption } from '../src/components/sampleKit/MarketingKitCard.ts';
 import { filterKits } from '../src/pages/saler/SalerMarketingKitsPage.js';
 import { splitEntries } from '../src/pages/supplier/SupplierMarketingKitsPage.js';
 import en from '../src/locales/en.json' with { type: 'json' };

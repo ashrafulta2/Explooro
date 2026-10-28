@@ -9,7 +9,7 @@
  * not order, so the dialog states it next to the amount, every time.
  */
 import { sampleKitApi } from '../../services/sampleKit.api.ts';
-import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.js';
+import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTable.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';

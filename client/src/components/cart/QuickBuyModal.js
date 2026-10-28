@@ -9,7 +9,7 @@
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { AddressForm } from '../checkout/AddressForm.js';
-import { PaymentSelector } from '../checkout/PaymentSelector.js';
+import { PaymentSelector } from '../checkout/PaymentSelector.ts';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.ts';
 import { addToCart } from '../../services/cart.ts';
 import { knownDeliveryCharge, loadDeliveryCharge } from '../../services/deliveryCharge.ts';

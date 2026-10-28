@@ -19,7 +19,7 @@ import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.ts';
-import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.js';
+import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard.ts';
 import { openWriteReviewModal } from '../../components/customer/WriteReviewModal.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 import '../../styles/components/customer-reviews.css';

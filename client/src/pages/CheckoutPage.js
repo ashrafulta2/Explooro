@@ -10,7 +10,7 @@
  */
 
 import { AddressForm } from '../components/checkout/AddressForm.js';
-import { PaymentSelector } from '../components/checkout/PaymentSelector.js';
+import { PaymentSelector } from '../components/checkout/PaymentSelector.ts';
 import { getCart, fetchCart, clearCart } from '../services/cart.ts';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.ts';
 import { needsOnlinePayment, payForOrder } from '../services/payment.api.ts';

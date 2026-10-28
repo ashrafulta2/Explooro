@@ -1,22 +1,48 @@
 /**
- * AuditDiffViewer.js — Side-by-side before/after JSON diff viewer with key highlights & plain-language summary (Prompt 3.4).
+ * AuditDiffViewer.ts — Side-by-side before/after JSON diff viewer with key highlights & plain-language summary (Prompt 3.4).
  */
 
 import { Modal } from '../ui/Modal.ts';
 import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 
+/** One audit_logs row (or timeline event) as the diff viewer reads it; before and after are JSON objects. */
+export interface AuditRecord {
+  id?: number | string;
+  action?: string;
+  before?: Record<string, any> | null;
+  after?: Record<string, any> | null;
+  before_state_json?: Record<string, any> | null;
+  after_state_json?: Record<string, any> | null;
+  meta?: Record<string, any>;
+  target_type?: string;
+  target_ref?: string;
+  created_at?: string;
+  actor_role?: string;
+  actor?: string;
+  ip_address?: string;
+  trace_id?: string;
+  risk_tier?: string;
+}
+
+export interface ObjectDiff {
+  modified: string[];
+  added: string[];
+  removed: string[];
+  totalChanges: number;
+}
+
 /**
  * Computes deep differences between before and after objects.
  */
-export function computeObjectDiff(beforeObj = {}, afterObj = {}) {
+export function computeObjectDiff(beforeObj: Record<string, any> | null = {}, afterObj: Record<string, any> | null = {}): ObjectDiff {
   const b = beforeObj || {};
   const a = afterObj || {};
   const allKeys = Array.from(new Set([...Object.keys(b), ...Object.keys(a)]));
 
-  const modified = [];
-  const added = [];
-  const removed = [];
+  const modified: string[] = [];
+  const added: string[] = [];
+  const removed: string[] = [];
 
   for (const key of allKeys) {
     const hasB = Object.prototype.hasOwnProperty.call(b, key);
@@ -37,7 +63,7 @@ export function computeObjectDiff(beforeObj = {}, afterObj = {}) {
 /**
  * Generates a plain-language explanation of what changed in the audit event.
  */
-export function generatePlainLanguageSummary(record = {}) {
+export function generatePlainLanguageSummary(record: AuditRecord = {}): string {
   const isBn = getLanguage() === 'bn';
   const action = record.action || 'system.mutation';
   const before = record.before || record.before_state_json || {};
@@ -90,7 +116,7 @@ export function generatePlainLanguageSummary(record = {}) {
     return isBn ? 'কোনো পরিবর্তন রেকর্ড করা হয়নি।' : 'No property changes recorded.';
   }
 
-  const parts = [];
+  const parts: string[] = [];
   if (diff.modified.length > 0) {
     parts.push(isBn ? `${diff.modified.length}টি মান সংশোধিত (${diff.modified.join(', ')})` : `Modified: ${diff.modified.join(', ')}`);
   }
@@ -104,7 +130,7 @@ export function generatePlainLanguageSummary(record = {}) {
   return parts.join(' · ');
 }
 
-export function AuditDiffViewer({ record = {} }) {
+export function AuditDiffViewer({ record = {} }: { record?: AuditRecord }): HTMLDivElement {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'audit-diff-viewer';
@@ -155,7 +181,7 @@ export function AuditDiffViewer({ record = {} }) {
   return container;
 }
 
-export function openAuditDiffModal({ record = {}, trigger = null }) {
+export function openAuditDiffModal({ record = {}, trigger = null }: { record?: AuditRecord; trigger?: Element | null }) {
   const isBn = getLanguage() === 'bn';
   const content = AuditDiffViewer({ record });
 
@@ -179,7 +205,7 @@ export function openAuditDiffModal({ record = {}, trigger = null }) {
 /**
  * Serializes an array of audit record objects into CSV format with standard quoting & escaping.
  */
-export function serializeAuditRecordsToCsv(records = []) {
+export function serializeAuditRecordsToCsv(records: AuditRecord[] = []): string {
   const headers = ['ID', 'Timestamp', 'Actor Role', 'Action', 'Target Type', 'Target Ref', 'IP Address', 'Trace ID', 'Risk Tier'];
   const rows = records.map((r) => [
     r.id ?? '',

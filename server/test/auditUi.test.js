@@ -4,7 +4,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { computeObjectDiff, generatePlainLanguageSummary } from '../../client/src/components/admin/AuditDiffViewer.js';
+import { computeObjectDiff, generatePlainLanguageSummary } from '../../client/src/components/admin/AuditDiffViewer.ts';
 
 describe('Audit Explorer UI Logic & Diff Viewer (Prompt 3.4)', () => {
   test('computeObjectDiff: accurately identifies added, removed, and modified keys', () => {

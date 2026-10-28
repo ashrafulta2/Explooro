@@ -1,12 +1,42 @@
 /**
- * CustomerReviewCard.js — Renders a review written by the customer.
+ * CustomerReviewCard.ts — Renders a review written by the customer.
  */
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
 import { Modal } from '../ui/Modal.ts';
 import '../../styles/components/customer-reviews.css';
 
-function renderStarRow(rating) {
+/** A photo or video attached to a review. */
+export interface ReviewMedia {
+  media_kind?: 'VIDEO' | 'IMAGE' | string;
+  url?: string;
+}
+
+/** A review the signed-in customer wrote, as GET /customer/reviews sends it. */
+export interface CustomerReview {
+  id: number | string;
+  rating: number;
+  title?: string;
+  body?: string;
+  created_at?: string;
+  helpful_count?: number;
+  is_verified_purchase?: boolean;
+  media?: ReviewMedia[];
+  product_ref?: string;
+  product_image?: string;
+  product_price?: number | string;
+  product_title_en?: string;
+  product_title_bn?: string;
+  [field: string]: unknown;
+}
+
+export interface CustomerReviewCardOptions {
+  review: CustomerReview;
+  onEdit?: (review: CustomerReview) => void;
+  onDelete?: (review: CustomerReview) => void;
+}
+
+function renderStarRow(rating: number) {
   const row = document.createElement('span');
   row.className = 'customer-review-card__stars';
   row.setAttribute('aria-label', `${rating} of 5 stars`);
@@ -23,7 +53,7 @@ function renderStarRow(rating) {
   return row;
 }
 
-function openMediaLightbox(mediaItem) {
+function openMediaLightbox(mediaItem: ReviewMedia) {
   const content = document.createElement('div');
   content.className = 'review-lightbox-modal';
 
@@ -50,13 +80,13 @@ function openMediaLightbox(mediaItem) {
   modal.open();
 }
 
-export function CustomerReviewCard({ review, onEdit, onDelete }) {
+export function CustomerReviewCard({ review, onEdit, onDelete }: CustomerReviewCardOptions): HTMLElement {
   const isBn = getLanguage() === 'bn';
   const productTitle = (isBn && review.product_title_bn) ? review.product_title_bn : (review.product_title_en || 'Product');
 
   const card = document.createElement('article');
   card.className = 'customer-review-card';
-  card.dataset.reviewId = review.id;
+  card.dataset.reviewId = String(review.id);
 
   // Header: Product info + Status badge
   const header = document.createElement('div');
