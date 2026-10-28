@@ -1,5 +1,5 @@
 /**
- * BalanceSummary.js — 4-Bucket Balance Clarity Card Component (Prompt 6.5).
+ * BalanceSummary.ts — 4-Bucket Balance Clarity Card Component (Prompt 6.5).
  *
  * Renders:
  * 1. Total Earnings (lifetime_earned)
@@ -14,20 +14,35 @@ import { formatCurrency } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 import { PayoutRequestModal } from './PayoutRequestModal.js';
 
-export function BalanceSummary({ wallet, onPayoutRequested = () => {} }) {
+/** The wallet buckets from GET /wallet, decimal strings or numbers. */
+export interface WalletBuckets {
+  available_balance?: number | string | null;
+  pending_escrow_balance?: number | string | null;
+  lifetime_earned?: number | string | null;
+  lifetime_withdrawn?: number | string | null;
+  held_balance?: number | string | null;
+}
+
+export interface BalanceSummaryOptions {
+  wallet?: WalletBuckets | null;
+  onPayoutRequested?: (payout: unknown) => void;
+}
+
+export function BalanceSummary({ wallet, onPayoutRequested = () => {} }: BalanceSummaryOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'balance-summary';
 
-  const available = parseFloat(wallet?.available_balance || 0);
-  const pending = parseFloat(wallet?.pending_escrow_balance || 0);
-  const earned = parseFloat(wallet?.lifetime_earned || 0);
-  const withdrawn = parseFloat(wallet?.lifetime_withdrawn || 0);
-  const held = parseFloat(wallet?.held_balance || 0);
+  const available = parseFloat(String(wallet?.available_balance || 0));
+  const pending = parseFloat(String(wallet?.pending_escrow_balance || 0));
+  const earned = parseFloat(String(wallet?.lifetime_earned || 0));
+  const withdrawn = parseFloat(String(wallet?.lifetime_withdrawn || 0));
+  const held = parseFloat(String(wallet?.held_balance || 0));
 
   function openPayoutModal() {
     PayoutRequestModal({
       availableBalance: available,
-      onSuccess: (payout) => {
+      // @ts-expect-error PayoutRequestModal (still .js) infers its options from defaults that omit onSuccess
+      onSuccess: (payout: unknown) => {
         onPayoutRequested(payout);
       },
     });

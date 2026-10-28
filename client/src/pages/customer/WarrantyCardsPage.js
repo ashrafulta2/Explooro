@@ -11,7 +11,7 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
-import { WarrantyCard } from '../../components/warranty/WarrantyCard.js';
+import { WarrantyCard } from '../../components/warranty/WarrantyCard.ts';
 import { openClaimModal } from '../../components/warranty/ClaimModal.js';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
 import { openCertificateModal } from '../../components/warranty/CertificateModal.js';

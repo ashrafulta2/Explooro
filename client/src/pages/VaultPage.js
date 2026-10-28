@@ -11,7 +11,7 @@
 import { api } from '../core/api.js';
 import { toast } from '../services/toast.js';
 import { t } from '../services/i18n.js';
-import { BalanceSummary } from '../components/vault/BalanceSummary.js';
+import { BalanceSummary } from '../components/vault/BalanceSummary.ts';
 import { EscrowTimeline } from '../components/vault/EscrowTimeline.ts';
 import { LedgerTable } from '../components/vault/LedgerTable.ts';
 

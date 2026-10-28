@@ -1,5 +1,5 @@
 /**
- * WarrantyCard.js — Digital Warranty Certificate Card with Live Expiry Countdown (Prompt 10.4).
+ * WarrantyCard.ts — Digital Warranty Certificate Card with Live Expiry Countdown (Prompt 10.4).
  *
  * Implements:
  * 1. Security guarantee certificate layout with verification seal.
@@ -13,16 +13,62 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { openCertificateModal } from './CertificateModal.js';
 
+/** A claim on a warranty card. */
+export interface WarrantyClaimRef {
+  id?: string | number;
+  ref?: string;
+  status: string;
+}
+
+/** A row of GET /warranty/cards, the fields the card reads. */
+export interface WarrantyCardData {
+  id: string | number;
+  ref?: string;
+  serial_number?: string | null;
+  status?: string;
+  is_active?: boolean;
+  is_transferable?: boolean;
+  claims?: WarrantyClaimRef[];
+  product_title_en?: string;
+  product_title_bn?: string;
+  title_en?: string;
+  title_bn?: string;
+  title_snapshot?: string;
+  coverage_terms_en?: string;
+  coverage_terms_bn?: string;
+  product_image?: string;
+  image_url?: string;
+  supplier_shop_name?: string;
+  supplier_name?: string;
+  duration_months?: number | string;
+  warranty_months?: number | string;
+  starts_at?: string;
+  expires_at?: string;
+  remaining_days?: number;
+  remaining_hours?: number;
+  remaining_minutes?: number;
+  progress_percent?: number;
+  [field: string]: unknown;
+}
+
+export interface WarrantyCardOptions {
+  card: WarrantyCardData;
+  onClaimClick?: ((card: WarrantyCardData) => void) | null;
+  onTransferClick?: ((card: WarrantyCardData) => void) | null;
+  onViewClaimsClick?: ((card: WarrantyCardData) => void) | null;
+  onViewCertificateClick?: ((card: WarrantyCardData) => void) | null;
+}
+
 export function WarrantyCard({
   card,
   onClaimClick = null,
   onTransferClick = null,
   onViewClaimsClick = null,
   onViewCertificateClick = null,
-} = {}) {
+}: WarrantyCardOptions = {} as WarrantyCardOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'warranty-card';
-  container.dataset.cardId = card.id;
+  container.dataset.cardId = String(card.id);
 
   const locale = getLanguage();
   const title = locale === 'bn'
@@ -45,7 +91,7 @@ export function WarrantyCard({
   const isUrgent = isActive && remainingDays < 30;
 
   // Calculate elapsed progress percentage
-  let progressPercent = card.progress_percent;
+  let progressPercent: number | undefined = card.progress_percent;
   if (progressPercent === undefined && card.starts_at && card.expires_at) {
     const totalMs = Math.max(1, new Date(card.expires_at).getTime() - new Date(card.starts_at).getTime());
     const elapsedMs = Math.min(totalMs, Math.max(0, Date.now() - new Date(card.starts_at).getTime()));

@@ -82,7 +82,7 @@ import { SponsoredStrip } from '../../components/ads/SponsoredStrip.ts';
 import { LiveStreamCard } from '../../components/live/LiveStreamCard.js';
 import { PinnedProductOverlay } from '../../components/live/PinnedProductOverlay.js';
 import { AssistantPanel } from '../../components/ai/AssistantPanel.js';
-import { WarrantyCard } from '../../components/warranty/WarrantyCard.js';
+import { WarrantyCard } from '../../components/warranty/WarrantyCard.ts';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
 import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfitBreakdown.ts';
 import { createMilestoneProgressStepper } from '../../components/b2b/MilestoneProgressStepper.ts';
