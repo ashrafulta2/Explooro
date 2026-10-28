@@ -17,7 +17,7 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { supplierModal } from './supplierModal.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 
 /** Row count above which the search + status filter toolbar earns its space. */
 const TOOLBAR_MIN_ROWS = 4;

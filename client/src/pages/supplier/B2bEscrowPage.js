@@ -22,10 +22,10 @@ import {
 } from '../../services/b2bEscrow.api.js';
 
 import { createMilestoneProgressStepper } from '../../components/b2b/MilestoneProgressStepper.js';
-import { Card } from '../../components/ui/Card.js';
+import { Card } from '../../components/ui/Card.ts';
 import { Button } from '../../components/ui/Button.js';
 import { Tabs } from '../../components/ui/Tabs.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { t, getLanguage } from '../../services/i18n.js';

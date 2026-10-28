@@ -19,7 +19,7 @@
  *    Do NOT "fix" this by darkening the track — that makes off look like on.
  */
 
-import { uid } from './FormField.js';
+import { uid } from './FormField.ts';
 
 export function Switch({
   label = '',

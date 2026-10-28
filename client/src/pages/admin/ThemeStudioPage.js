@@ -3,7 +3,7 @@
  */
 
 import { Button } from '../../components/ui/Button.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { Badge } from '../../components/ui/Badge.ts';
 import { Input } from '../../components/ui/Input.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';

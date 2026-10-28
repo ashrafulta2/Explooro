@@ -39,8 +39,8 @@ import { openQuickBuyModal } from '../cart/QuickBuyModal.js';
 import { openTeamPurchaseModal } from './TeamPurchaseModal.js';
 import { api } from '../../core/api.js';
 import { appStore } from '../../state/appStore.js';
-import { EmptyState } from '../ui/EmptyState.js';
-import { Skeleton } from '../ui/Skeleton.js';
+import { EmptyState } from '../ui/EmptyState.ts';
+import { Skeleton } from '../ui/Skeleton.ts';
 
 // Fetch the next page once the active slide is within this many of the end.
 const PREFETCH_LOOKAHEAD = 5;

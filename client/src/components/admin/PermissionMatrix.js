@@ -11,7 +11,7 @@
  * reader, and colour is never the only carrier of meaning (WCAG 1.4.1).
  */
 
-import { Badge } from '../ui/Badge.js';
+import { Badge } from '../ui/Badge.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { cellState, groupByDomain } from '../../services/permissionMatrix.ts';
 

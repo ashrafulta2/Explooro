@@ -12,7 +12,7 @@
  *    data attribute rather than a colour set in JS.
  */
 
-import { FormField, uid } from './FormField.js';
+import { FormField, uid } from './FormField.ts';
 
 export function Input({
   label = '',

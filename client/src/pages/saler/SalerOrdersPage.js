@@ -16,8 +16,8 @@ import { formatCurrency, formatDate } from '../../services/format.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 
 export default function SalerOrdersPage(root, { navigate } = {}) {
   const nav = (url) => {

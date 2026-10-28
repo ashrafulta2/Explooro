@@ -16,8 +16,8 @@ import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 
 export default function WithdrawalsPage(root, { navigate } = {}) {
   const nav = (url) => {

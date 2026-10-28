@@ -11,7 +11,7 @@
  */
 
 import { Button } from '../../components/ui/Button.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';

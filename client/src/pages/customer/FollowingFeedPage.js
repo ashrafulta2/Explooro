@@ -17,7 +17,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { formatBdt, formatNumber, formatRelativeTime, formatDate } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';

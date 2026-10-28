@@ -9,7 +9,7 @@ import { salerApi } from '../../services/saler.api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../ui/Button.js';
-import { Skeleton } from '../ui/Skeleton.js';
+import { Skeleton } from '../ui/Skeleton.ts';
 import { openAssistantPanel } from '../ai/AssistantPanel.js';
 
 export function GrowthAssistant({ recommendations = null, onActionExecuted = null, onNavigate = null } = {}) {

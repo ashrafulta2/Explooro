@@ -22,7 +22,7 @@ import {
 
 import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
 import { t, getLanguage } from '../../services/i18n.js';

@@ -13,8 +13,8 @@ import { supplierApi } from '../../services/supplier.api.js';
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';
-import { Badge } from '../../components/ui/Badge.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Badge } from '../../components/ui/Badge.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 
 export default function SupplierShipmentsPage(root) {
   const container = document.createElement('div');

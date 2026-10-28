@@ -16,13 +16,13 @@
  */
 
 import { Button } from '../../components/ui/Button.js';
-import { Card } from '../../components/ui/Card.js';
+import { Card } from '../../components/ui/Card.ts';
 import { Input } from '../../components/ui/Input.js';
-import { Select } from '../../components/ui/Select.js';
-import { Textarea } from '../../components/ui/Textarea.js';
+import { Select } from '../../components/ui/Select.ts';
+import { Textarea } from '../../components/ui/Textarea.ts';
 import { Switch } from '../../components/ui/Switch.js';
-import { Badge } from '../../components/ui/Badge.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
+import { Badge } from '../../components/ui/Badge.ts';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { api, pickMessage } from '../../core/api.js';
 import {
   t,

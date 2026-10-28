@@ -12,7 +12,7 @@
  */
 
 import { PermissionMatrix } from '../../components/admin/PermissionMatrix.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { ICONS } from '../../components/ui/icons.js';
 import { api, pickMessage } from '../../core/api.js';
 import { can } from '../../services/permissions.js';

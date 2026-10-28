@@ -30,7 +30,7 @@ import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
 import { Switch } from '../../components/ui/Switch.js';
 import { Modal } from '../../components/ui/Modal.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { ICONS } from '../../components/ui/icons.js';
 import { loadAdminCockpitStyles } from '../../styles/loadAdminCockpitStyles.js';
 import {

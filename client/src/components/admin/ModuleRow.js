@@ -4,7 +4,7 @@
 
 import { Switch } from '../ui/Switch.js';
 import { Button } from '../ui/Button.js';
-import { Badge } from '../ui/Badge.js';
+import { Badge } from '../ui/Badge.ts';
 import { confirmDialogWithReason } from '../ui/ConfirmDialog.js';
 import { openModuleSettingsDrawer } from './ModuleSettingsDrawer.js';
 import { openModuleTargetingDrawer } from './ModuleTargetingDrawer.js';

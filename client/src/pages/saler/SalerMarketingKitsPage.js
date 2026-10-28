@@ -10,8 +10,8 @@
  */
 import { sampleKitApi } from '../../services/sampleKit.api.js';
 import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 

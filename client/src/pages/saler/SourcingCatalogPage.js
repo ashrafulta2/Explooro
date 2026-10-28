@@ -14,8 +14,8 @@ import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecard
 import { SponsoredTag } from '../../components/saler/SponsoredTag.js';
 import { fetchSponsored, trackImpression, clickReporter } from '../../services/sponsoredSourcing.ts';
 import { Button } from '../../components/ui/Button.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { appStore } from '../../state/appStore.js';
 import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { formatCurrency } from '../../services/format.js';

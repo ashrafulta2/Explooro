@@ -8,7 +8,7 @@
  */
 import { MOBILE_TABS } from '../../config/navigation.js';
 import { t } from '../../services/i18n.js';
-import { Badge } from '../ui/Badge.js';
+import { Badge } from '../ui/Badge.ts';
 import { Drawer } from '../ui/Drawer.js';
 import { Sidebar } from './Sidebar.js';
 import { openCart } from '../../services/cart.js';

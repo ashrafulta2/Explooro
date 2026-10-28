@@ -25,7 +25,7 @@ import {
 import { getSalerStoreItems } from '../../services/catalog.api.js';
 import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfitBreakdown.js';
 import { Button } from '../../components/ui/Button.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatCurrency } from '../../services/format.js';

@@ -10,7 +10,7 @@ import { getRoleMeta } from '../../config/permissions.mock.js';
 import { setMockRole, logOutMock, appStore } from '../../state/appStore.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { Button } from '../../components/ui/Button.js';
-import { Card } from '../../components/ui/Card.js';
+import { Card } from '../../components/ui/Card.ts';
 
 const ROLE_HOME = {
   super_admin: '/admin',

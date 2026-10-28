@@ -12,7 +12,7 @@
 
 import { Tabs } from '../../components/ui/Tabs.js';
 import { Button } from '../../components/ui/Button.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { Badge } from '../../components/ui/Badge.ts';
 import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';

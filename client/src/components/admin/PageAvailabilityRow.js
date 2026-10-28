@@ -11,7 +11,7 @@
  * screen is how someone concludes the screen is broken.
  */
 
-import { Badge } from '../ui/Badge.js';
+import { Badge } from '../ui/Badge.ts';
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
 import { isLockedPath } from '../../services/pageAccess.js';

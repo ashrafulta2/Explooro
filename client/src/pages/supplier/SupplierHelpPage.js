@@ -12,7 +12,7 @@ import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
 import { supplierModal } from './supplierModal.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { Badge } from '../../components/ui/Badge.ts';
 
 export default function SupplierHelpPage(root) {
   const container = document.createElement('div');

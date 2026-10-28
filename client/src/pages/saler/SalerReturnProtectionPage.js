@@ -9,8 +9,8 @@
  */
 import { returnProtectionApi } from '../../services/payoutProtection.api.js';
 import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';

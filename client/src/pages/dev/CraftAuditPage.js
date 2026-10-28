@@ -15,8 +15,8 @@
  */
 
 import { Button } from '../../components/ui/Button.js';
-import { Card } from '../../components/ui/Card.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { Card } from '../../components/ui/Card.ts';
+import { Badge } from '../../components/ui/Badge.ts';
 
 let highlightedEl = null;
 

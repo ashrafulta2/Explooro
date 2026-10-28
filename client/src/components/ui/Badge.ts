@@ -13,7 +13,7 @@
  */
 
 /** Verified tick. Inline SVG per design-system §13: 1.5px stroke, round caps, currentColor. */
-function createTick() {
+function createTick(): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.className = 'badge__icon';
   wrap.setAttribute('aria-hidden', 'true');
@@ -26,7 +26,7 @@ function createTick() {
 }
 
 /** Elite star. */
-function createStar() {
+function createStar(): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.className = 'badge__icon';
   wrap.setAttribute('aria-hidden', 'true');
@@ -37,6 +37,20 @@ function createStar() {
   return wrap;
 }
 
+export interface BadgeOptions {
+  /** `verified`, `elite`, `status`, `count` and `tier` have their own markup; any other is a plain label. */
+  variant?: 'neutral' | 'verified' | 'elite' | 'status' | 'count' | 'tier' | string;
+  label?: string;
+  /** `status` only. */
+  status?: 'open' | 'closed' | string;
+  /** `count` only. */
+  count?: number;
+  maxCount?: number;
+  /** `tier` only. */
+  tier?: string;
+  size?: 'sm' | 'md' | 'lg' | string;
+}
+
 export function Badge({
   variant = 'neutral',
   label = '',
@@ -45,7 +59,7 @@ export function Badge({
   maxCount = 99,
   tier = '',
   size = 'md',
-} = {}) {
+}: BadgeOptions = {}): HTMLSpanElement {
   const badge = document.createElement('span');
   badge.className = `badge badge--${variant} badge--${size}`;
 

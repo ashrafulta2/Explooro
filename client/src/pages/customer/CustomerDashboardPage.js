@@ -16,7 +16,7 @@ import { customerApi } from '../../services/customer.api.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { formatCurrency, formatNumber } from '../../services/format.js';
 import { Button } from '../../components/ui/Button.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.js';
 

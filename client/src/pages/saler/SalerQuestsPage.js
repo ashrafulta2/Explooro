@@ -15,7 +15,7 @@ import { formatCurrency, formatNumber } from '../../services/format.js';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
 
 export default function SalerQuestsPage(root, { navigate } = {}) {
   const nav = (url) => {

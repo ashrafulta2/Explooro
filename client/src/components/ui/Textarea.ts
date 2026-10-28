@@ -11,7 +11,30 @@
  *    can never drift apart in how they announce errors.
  */
 
-import { FormField, uid } from './FormField.js';
+import { FormField, uid } from './FormField.ts';
+import type { ControlField } from './FormField.ts';
+
+export interface TextareaOptions {
+  label?: string;
+  hint?: string;
+  error?: string;
+  success?: boolean;
+  value?: string;
+  placeholder?: string;
+  name?: string;
+  id?: string;
+  rows?: number;
+  disabled?: boolean;
+  readonly?: boolean;
+  required?: boolean;
+  maxLength?: number | null;
+  showCounter?: boolean;
+  /** Grows with its content; never shrinks below `rows`. */
+  autoResize?: boolean;
+  ariaLabel?: string;
+  onInput?: ((event: Event) => void) | null;
+  onChange?: ((event: Event) => void) | null;
+}
 
 export function Textarea({
   label = '',
@@ -32,7 +55,7 @@ export function Textarea({
   ariaLabel = '',
   onInput = null,
   onChange = null,
-} = {}) {
+}: TextareaOptions = {}): ControlField<HTMLTextAreaElement> {
   const controlId = id || uid('textarea');
 
   const textarea = document.createElement('textarea');
@@ -59,14 +82,14 @@ export function Textarea({
     counter.id = uid('counter');
   }
 
-  function syncCounter() {
+  function syncCounter(): void {
     if (!counter) return;
     const used = textarea.value.length;
     counter.textContent = `${used} / ${maxLength}`;
     counter.dataset.overflow = used >= maxLength ? 'true' : 'false';
   }
 
-  function resize() {
+  function resize(): void {
     if (!autoResize) return;
     textarea.style.height = 'auto';
     textarea.style.height = `${textarea.scrollHeight}px`;
@@ -81,6 +104,7 @@ export function Textarea({
   });
   if (onChange) textarea.addEventListener('change', onChange);
 
+  // The cast: `input` and `value` are attached on the next two statements.
   const field = FormField({
     label,
     hint,
@@ -91,12 +115,12 @@ export function Textarea({
     control,
     input: textarea,
     counter,
-  });
+  }) as ControlField<HTMLTextAreaElement>;
 
   field.input = textarea;
   Object.defineProperty(field, 'value', {
     get: () => textarea.value,
-    set: (next) => {
+    set: (next: string) => {
       textarea.value = next;
       syncCounter();
       resize();

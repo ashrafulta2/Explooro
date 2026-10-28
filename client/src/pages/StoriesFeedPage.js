@@ -11,7 +11,7 @@ import { listStories, listBanners, createStory } from '../services/content.api.j
 import { adsApi } from '../services/ads.api.js';
 import { Button } from '../components/ui/Button.js';
 import { Modal } from '../components/ui/Modal.js';
-import { EmptyState } from '../components/ui/EmptyState.js';
+import { EmptyState } from '../components/ui/EmptyState.ts';
 import { t, getLanguage } from '../services/i18n.js';
 import { toast } from '../services/toast.js';
 import { isFeatureEnabled } from '../services/featureFlags.js';

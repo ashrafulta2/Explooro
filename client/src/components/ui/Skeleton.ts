@@ -14,9 +14,18 @@
  *    `aria-busy`, not read out as a wall of empty boxes.
  */
 
-/**
- * @param {'text'|'block'|'circle'|'card'|'table-row'} variant
- */
+export interface SkeletonOptions {
+  variant?: 'text' | 'block' | 'circle' | 'card' | 'table-row';
+  /** A number is px; a string is any CSS length. */
+  width?: number | string;
+  height?: number | string;
+  /** `text` only. */
+  lines?: number;
+  /** `table-row` only. */
+  columns?: number;
+  radius?: string;
+}
+
 export function Skeleton({
   variant = 'text',
   width = '',
@@ -24,7 +33,7 @@ export function Skeleton({
   lines = 3,
   columns = 4,
   radius = '',
-} = {}) {
+}: SkeletonOptions = {}): HTMLDivElement {
   const root = document.createElement('div');
   root.className = `skeleton skeleton--${variant}`;
   root.setAttribute('aria-hidden', 'true');
@@ -74,7 +83,7 @@ export function Skeleton({
 }
 
 /** Convenience: N stacked table-row skeletons, sized to the real row height. */
-export function SkeletonRows({ rows = 5, columns = 4 } = {}) {
+export function SkeletonRows({ rows = 5, columns = 4 }: { rows?: number; columns?: number } = {}): DocumentFragment {
   const frag = document.createDocumentFragment();
   for (let i = 0; i < rows; i += 1) frag.append(Skeleton({ variant: 'table-row', columns }));
   return frag;

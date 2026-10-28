@@ -11,8 +11,8 @@
 import { sampleKitApi } from '../../services/sampleKit.api.js';
 import { Button } from '../../components/ui/Button.js';
 import { Switch } from '../../components/ui/Switch.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
 import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';

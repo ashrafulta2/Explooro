@@ -10,8 +10,8 @@
  */
 import { FastPayoutTable } from './FastPayoutTable.js';
 import { confirmDialog } from '../ui/ConfirmDialog.js';
-import { Skeleton } from '../ui/Skeleton.js';
-import { EmptyState } from '../ui/EmptyState.js';
+import { Skeleton } from '../ui/Skeleton.ts';
+import { EmptyState } from '../ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
 import { pickMessage } from '../../core/api.js';
 import { t } from '../../services/i18n.js';

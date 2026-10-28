@@ -12,7 +12,7 @@
  *    question with each option for assistive tech. A <div> with a heading does not.
  */
 
-import { uid } from './FormField.js';
+import { uid } from './FormField.ts';
 
 export function Radio({
   label = '',

@@ -11,7 +11,7 @@
 
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
-import { FormField } from '../ui/FormField.js';
+import { FormField } from '../ui/FormField.ts';
 import { Input } from '../ui/Input.js';
 import { formatCurrency } from '../../services/format.js';
 import { toast } from '../../services/toast.js';

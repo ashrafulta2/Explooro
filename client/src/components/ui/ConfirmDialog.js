@@ -27,7 +27,7 @@
 import { Button } from './Button.js';
 import { Input } from './Input.js';
 import { Modal } from './Modal.js';
-import { Textarea } from './Textarea.js';
+import { Textarea } from './Textarea.ts';
 
 function baseConfirm({
   title = 'Are you sure?',

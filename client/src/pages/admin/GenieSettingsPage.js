@@ -30,11 +30,11 @@ import '../../styles/components/language-settings.css';
 import '../../styles/components/genie-settings.css';
 
 import { Button } from '../../components/ui/Button.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { Switch } from '../../components/ui/Switch.js';
-import { Textarea } from '../../components/ui/Textarea.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Textarea } from '../../components/ui/Textarea.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.js';
 import { adminApi } from '../../services/admin.api.js';
 import { can } from '../../services/permissions.js';

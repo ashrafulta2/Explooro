@@ -11,10 +11,29 @@
  *    to the select underneath it rather than being swallowed.
  */
 
-import { FormField, uid } from './FormField.js';
+import { FormField, uid } from './FormField.ts';
+import type { ControlField } from './FormField.ts';
+
+/** A bare string is both value and label. */
+export type SelectOption = string | number | { value: string | number; label: string; disabled?: boolean };
+
+export interface SelectOptions {
+  label?: string;
+  hint?: string;
+  error?: string;
+  success?: boolean;
+  options?: SelectOption[];
+  value?: string | number;
+  placeholder?: string;
+  name?: string;
+  id?: string;
+  disabled?: boolean;
+  required?: boolean;
+  onChange?: ((event: Event) => void) | null;
+}
 
 /** Chevron indicator. Inline SVG per design-system §13: 1.5px stroke, round caps, currentColor. */
-function createChevron() {
+function createChevron(): HTMLSpanElement {
   const wrap = document.createElement('span');
   wrap.className = 'select__chevron';
   wrap.setAttribute('aria-hidden', 'true');
@@ -37,7 +56,7 @@ export function Select({
   disabled = false,
   required = false,
   onChange = null,
-} = {}) {
+}: SelectOptions = {}): ControlField<HTMLSelectElement> {
   const controlId = id || uid('select');
 
   const select = document.createElement('select');
@@ -74,6 +93,7 @@ export function Select({
 
   if (onChange) select.addEventListener('change', onChange);
 
+  // The cast: `input` and `value` are attached on the next two statements.
   const field = FormField({
     label,
     hint,
@@ -83,12 +103,12 @@ export function Select({
     controlId,
     control,
     input: select,
-  });
+  }) as ControlField<HTMLSelectElement>;
 
   field.input = select;
   Object.defineProperty(field, 'value', {
     get: () => select.value,
-    set: (next) => {
+    set: (next: string) => {
       select.value = next;
     },
   });

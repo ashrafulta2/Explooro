@@ -20,7 +20,7 @@ import { isFeatureEnabled } from '../../services/featureFlags.js';
 import { logOutMock, releaseElevatedAccess } from '../../state/appStore.js';
 import { logout } from '../../services/session.js';
 import { getTheme, applyTheme } from '../../services/theme.ts';
-import { Badge } from '../ui/Badge.js';
+import { Badge } from '../ui/Badge.ts';
 import { api } from '../../core/api.js';
 import { ElevatedAccessChip } from '../access/ElevatedAccessChip.js';
 import { openCart } from '../../services/cart.js';

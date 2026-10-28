@@ -5,8 +5,8 @@
 import { Drawer } from '../ui/Drawer.js';
 import { Button } from '../ui/Button.js';
 import { Input } from '../ui/Input.js';
-import { Select } from '../ui/Select.js';
-import { Textarea } from '../ui/Textarea.js';
+import { Select } from '../ui/Select.ts';
+import { Textarea } from '../ui/Textarea.ts';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 import { t, getLanguage } from '../../services/i18n.js';

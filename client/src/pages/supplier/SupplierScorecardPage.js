@@ -8,8 +8,8 @@
  */
 import { supplierApi } from '../../services/supplier.api.js';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 

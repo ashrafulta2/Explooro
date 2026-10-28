@@ -13,9 +13,9 @@ import { scheduleLiveStream, startLiveStream, endLiveStream, pinLiveProduct, unp
 import { wsManager } from '../../services/websocket.ts';
 import { Button } from '../../components/ui/Button.js';
 import { Input } from '../../components/ui/Input.js';
-import { Textarea } from '../../components/ui/Textarea.js';
+import { Textarea } from '../../components/ui/Textarea.ts';
 import { Modal } from '../../components/ui/Modal.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { toast } from '../../services/toast.js';
 import { formatBdt } from '../../services/format.js';
 import { t, getLanguage } from '../../services/i18n.js';

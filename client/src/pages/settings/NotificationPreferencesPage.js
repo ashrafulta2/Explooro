@@ -8,8 +8,8 @@
 
 import { Switch } from '../../components/ui/Switch.js';
 import { Button } from '../../components/ui/Button.js';
-import { Card } from '../../components/ui/Card.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
+import { Card } from '../../components/ui/Card.ts';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { api } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';

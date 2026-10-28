@@ -15,8 +15,38 @@
 
 let seq = 0;
 
+/** The `.field` wrapper FormField returns: a div that also carries its message setters. */
+export interface FieldElement extends HTMLDivElement {
+  setError(message?: string): void;
+  setSuccess(on?: boolean): void;
+  setHint(message?: string): void;
+  /** The element the aria attributes are applied to (the inner input for a wrapped control). */
+  control: HTMLElement | null;
+}
+
+/** A FormField around one form control, as Input / Select / Textarea return it. */
+export interface ControlField<C extends HTMLElement> extends FieldElement {
+  input: C;
+  value: string;
+}
+
+export interface FormFieldOptions {
+  label?: string;
+  hint?: string;
+  error?: string;
+  success?: boolean;
+  required?: boolean;
+  controlId?: string;
+  /** What goes under the label; a custom component may expose its focus target as `.input` / `.control`. */
+  control?: (HTMLElement & { input?: HTMLElement; control?: HTMLElement }) | null;
+  input?: HTMLElement | null;
+  counter?: HTMLElement | null;
+  /** Element for the label text; only a `label` gets `for=controlId`. */
+  labelTag?: string;
+}
+
 /** Collision-free DOM id. Ids must be unique per document, not per component instance. */
-export function uid(prefix = 'field') {
+export function uid(prefix = 'field'): string {
   seq += 1;
   return `${prefix}-${seq.toString(36)}`;
 }
@@ -32,8 +62,8 @@ export function FormField({
   input = null,
   counter = null,
   labelTag = 'label',
-} = {}) {
-  const root = document.createElement('div');
+}: FormFieldOptions = {}): FieldElement {
+  const root = document.createElement('div') as FieldElement;
   root.className = 'field';
 
   // The focusable element aria attributes are applied to. For a plain input this IS the control;
@@ -43,7 +73,7 @@ export function FormField({
   if (label) {
     const labelEl = document.createElement(labelTag);
     labelEl.className = 'field__label';
-    if (labelTag === 'label' && controlId) labelEl.htmlFor = controlId;
+    if (labelTag === 'label' && controlId) (labelEl as HTMLLabelElement).htmlFor = controlId;
     labelEl.textContent = label;
     if (required) {
       const mark = document.createElement('span');
@@ -85,9 +115,9 @@ export function FormField({
   root.append(footer);
 
   /** Recomputes aria-describedby from whatever is currently visible. */
-  function syncDescribedBy() {
+  function syncDescribedBy(): void {
     if (!target) return;
-    const ids = [];
+    const ids: string[] = [];
     if (hintEl.textContent) ids.push(hintId);
     if (errorEl.textContent) ids.push(errorId);
     if (counter) {
@@ -98,7 +128,7 @@ export function FormField({
     else target.removeAttribute('aria-describedby');
   }
 
-  function setError(message = '') {
+  function setError(message = ''): void {
     errorEl.textContent = message;
     root.dataset.invalid = message ? 'true' : 'false';
     if (target) {
@@ -110,12 +140,12 @@ export function FormField({
     syncDescribedBy();
   }
 
-  function setSuccess(on = true) {
+  function setSuccess(on = true): void {
     root.dataset.success = on ? 'true' : 'false';
     if (on) setError('');
   }
 
-  function setHint(message = '') {
+  function setHint(message = ''): void {
     hintEl.textContent = message;
     syncDescribedBy();
   }

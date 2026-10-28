@@ -14,7 +14,7 @@ import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Modal } from '../ui/Modal.js';
 import { Button } from '../ui/Button.js';
-import { Textarea } from '../ui/Textarea.js';
+import { Textarea } from '../ui/Textarea.ts';
 
 function getPlainLanguage(meta) {
   const isBn = getLanguage() === 'bn';

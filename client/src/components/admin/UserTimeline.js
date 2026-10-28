@@ -2,7 +2,7 @@
  * UserTimeline.js — Categorized activity stream timeline with metadata badges & diff inspect (Prompt 3.4).
  */
 
-import { Badge } from '../ui/Badge.js';
+import { Badge } from '../ui/Badge.ts';
 import { Button } from '../ui/Button.js';
 import { openAuditDiffModal } from './AuditDiffViewer.js';
 import { t, getLanguage } from '../../services/i18n.js';

@@ -6,9 +6,9 @@
 import { t } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
 import { Button } from '../ui/Button.js';
-import { Textarea } from '../ui/Textarea.js';
-import { Skeleton } from '../ui/Skeleton.js';
-import { EmptyState } from '../ui/EmptyState.js';
+import { Textarea } from '../ui/Textarea.ts';
+import { Skeleton } from '../ui/Skeleton.ts';
+import { EmptyState } from '../ui/EmptyState.ts';
 import { Pagination } from '../ui/Pagination.js';
 import { toast } from '../../services/toast.js';
 import { appStore } from '../../state/appStore.js';

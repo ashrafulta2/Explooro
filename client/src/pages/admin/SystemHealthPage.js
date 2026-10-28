@@ -14,7 +14,7 @@ import { adminApi } from '../../services/admin.api.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
-import { Badge } from '../../components/ui/Badge.js';
+import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.js';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';

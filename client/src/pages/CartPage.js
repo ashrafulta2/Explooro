@@ -9,7 +9,7 @@
  */
 
 import { Button } from '../components/ui/Button.js';
-import { EmptyState } from '../components/ui/EmptyState.js';
+import { EmptyState } from '../components/ui/EmptyState.ts';
 import { cartStore, fetchCart, updateItemQuantity, removeFromCart, toggleWishlist, isProductWishlisted } from '../services/cart.js';
 import { formatCurrency } from '../services/format.js';
 import { t, getLanguage } from '../services/i18n.js';

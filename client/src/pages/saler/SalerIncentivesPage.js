@@ -9,8 +9,8 @@
  */
 import { api } from '../../core/api.js';
 import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.js';
 import { t } from '../../services/i18n.js';
 import { formatCurrency, formatDate } from '../../services/format.js';

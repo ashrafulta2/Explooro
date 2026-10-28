@@ -17,8 +17,8 @@
  */
 
 import { Checkbox } from './Checkbox.js';
-import { EmptyState } from './EmptyState.js';
-import { Skeleton } from './Skeleton.js';
+import { EmptyState } from './EmptyState.ts';
+import { Skeleton } from './Skeleton.ts';
 
 /** Sort arrow. Rotated by CSS for descending. */
 function createSortIcon() {

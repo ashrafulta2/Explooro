@@ -19,7 +19,7 @@
  */
 
 import { ProductCard, ProductCardSkeleton } from './ProductCard.js';
-import { EmptyState } from '../ui/EmptyState.js';
+import { EmptyState } from '../ui/EmptyState.ts';
 import { t } from '../../services/i18n.js';
 
 const INITIAL_SKELETONS = 8;

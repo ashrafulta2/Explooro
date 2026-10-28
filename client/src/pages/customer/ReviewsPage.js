@@ -14,8 +14,8 @@
 import { customerApi } from '../../services/customer.api.js';
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { Modal } from '../../components/ui/Modal.js';
 import { PendingReviewCard } from '../../components/customer/PendingReviewCard.js';

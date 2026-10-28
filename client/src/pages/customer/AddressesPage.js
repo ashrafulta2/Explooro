@@ -18,7 +18,7 @@ import { isValidBdPhone, normalizeBdPhone } from '../../components/checkout/Addr
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { Button } from '../../components/ui/Button.js';
-import { Skeleton } from '../../components/ui/Skeleton.js';
+import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.js';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';

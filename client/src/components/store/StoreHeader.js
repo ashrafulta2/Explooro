@@ -3,7 +3,7 @@
  */
 
 import { t, getLanguage } from '../../services/i18n.js';
-import { Badge } from '../ui/Badge.js';
+import { Badge } from '../ui/Badge.ts';
 import { ICONS } from '../ui/icons.js';
 
 export function StoreHeader({ store = {}, isPreview = false } = {}) {

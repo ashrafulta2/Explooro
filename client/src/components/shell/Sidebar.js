@@ -20,7 +20,7 @@ import { navGroups, navItems, SIMPLE_MODE_ITEMS, PROGRESSIVE_DISCLOSURE_ROLES } 
 import { t } from '../../services/i18n.js';
 import { resolvePageAccess } from '../../services/pageAccess.js';
 import { LockedNavItem } from './LockedNavItem.js';
-import { Badge } from '../ui/Badge.js';
+import { Badge } from '../ui/Badge.ts';
 import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.js';
 import { ICONS, getGroupIcon, getItemIcon } from '../ui/icons.js';
 

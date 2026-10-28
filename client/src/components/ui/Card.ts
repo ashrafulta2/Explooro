@@ -14,6 +14,25 @@
  *    run non-concentric and the image visibly bulges out of its container.
  */
 
+export interface CardOptions {
+  title?: string;
+  subtitle?: string;
+  /** Bleeds to the card's edge, outside the padded body. */
+  media?: Node | null;
+  body?: Node | string | null;
+  /** Replaces the title/subtitle/actions heading entirely. */
+  header?: Node | null;
+  footer?: Node | string | null;
+  actions?: Node | null;
+  /** Renders an <a> (with `href`) or a <button>, never a clickable <div>. */
+  interactive?: boolean;
+  href?: string;
+  elevation?: number;
+  padding?: 'none' | 'sm' | 'md' | 'lg' | string;
+  onClick?: ((event: MouseEvent) => void) | null;
+  ariaLabel?: string;
+}
+
 export function Card({
   title = '',
   subtitle = '',
@@ -28,15 +47,15 @@ export function Card({
   padding = 'md',
   onClick = null,
   ariaLabel = '',
-} = {}) {
+}: CardOptions = {}): HTMLElement {
   const tag = interactive ? (href ? 'a' : 'button') : 'div';
   const root = document.createElement(tag);
   root.className = `card card--pad-${padding} card--elevation-${elevation}`;
 
   if (interactive) {
     root.classList.add('card--interactive');
-    if (href) root.href = href;
-    else root.type = 'button';
+    if (href) (root as HTMLAnchorElement).href = href;
+    else (root as HTMLButtonElement).type = 'button';
     if (ariaLabel) root.setAttribute('aria-label', ariaLabel);
     if (onClick) root.addEventListener('click', onClick);
   }

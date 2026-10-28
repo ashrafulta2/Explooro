@@ -8,11 +8,11 @@
 import { t } from '../../services/i18n.js';
 import { formatRelativeTime } from '../../services/format.js';
 import { Button } from '../ui/Button.js';
-import { Select } from '../ui/Select.js';
+import { Select } from '../ui/Select.ts';
 import { Input } from '../ui/Input.js';
-import { Textarea } from '../ui/Textarea.js';
-import { Skeleton } from '../ui/Skeleton.js';
-import { EmptyState } from '../ui/EmptyState.js';
+import { Textarea } from '../ui/Textarea.ts';
+import { Skeleton } from '../ui/Skeleton.ts';
+import { EmptyState } from '../ui/EmptyState.ts';
 import { Pagination } from '../ui/Pagination.js';
 import { toast } from '../../services/toast.js';
 import * as catalogApi from '../../services/catalog.api.js';

@@ -7,8 +7,8 @@
  */
 import { Drawer } from '../ui/Drawer.js';
 import { Button } from '../ui/Button.js';
-import { FormField } from '../ui/FormField.js';
-import { Select } from '../ui/Select.js';
+import { FormField } from '../ui/FormField.ts';
+import { Select } from '../ui/Select.ts';
 import { toast } from '../../services/toast.js';
 import { addToSalerStore } from '../../services/catalog.api.js';
 import { formatCurrency } from '../../services/format.js';

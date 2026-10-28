@@ -12,7 +12,7 @@
  *    and re-applied whenever checked state is written.
  */
 
-import { uid } from './FormField.js';
+import { uid } from './FormField.ts';
 
 /** Tick + dash marks. Inline SVG, currentColor, 1.5px stroke per design-system §13. */
 function createMark() {

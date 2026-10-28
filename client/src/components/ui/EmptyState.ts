@@ -12,6 +12,18 @@
  *    "Add your first product and start earning", never "No products".
  */
 
+export interface EmptyStateOptions {
+  icon?: Node | string | null;
+  title?: string;
+  description?: string;
+  /** The ONE primary action (see the invariant above). */
+  action?: Node | null;
+  secondaryAction?: Node | null;
+  /** `empty`, `firstRun`, or any other modifier the stylesheet defines. */
+  variant?: 'empty' | 'firstRun' | string;
+  compact?: boolean;
+}
+
 export function EmptyState({
   icon = null,
   title = '',
@@ -20,7 +32,7 @@ export function EmptyState({
   secondaryAction = null,
   variant = 'empty',
   compact = false,
-} = {}) {
+}: EmptyStateOptions = {}): HTMLDivElement {
   const root = document.createElement('div');
   root.className = `empty-state empty-state--${variant}`;
   if (compact) root.classList.add('empty-state--compact');

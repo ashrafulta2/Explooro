@@ -6,7 +6,7 @@
 import { navItems } from '../../config/navigation.js';
 import { t } from '../../services/i18n.js';
 import { Button } from '../../components/ui/Button.js';
-import { EmptyState } from '../../components/ui/EmptyState.js';
+import { EmptyState } from '../../components/ui/EmptyState.ts';
 
 export default function RoleStubPage(root, { navigate }) {
   const item = navItems.find((i) => i.path === window.location.pathname);

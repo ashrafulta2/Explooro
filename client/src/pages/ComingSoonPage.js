@@ -13,7 +13,7 @@
 import { navItems } from '../config/navigation.js';
 import { t } from '../services/i18n.js';
 import { Button } from '../components/ui/Button.js';
-import { EmptyState } from '../components/ui/EmptyState.js';
+import { EmptyState } from '../components/ui/EmptyState.ts';
 
 const CLOCK_ICON =
   '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" ' +
