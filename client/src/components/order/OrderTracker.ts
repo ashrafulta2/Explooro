@@ -1,5 +1,5 @@
 /**
- * OrderTracker.js — 4-Stage Sub-Order Progress Tracker & Live Map Placeholder (Prompt 5.4).
+ * OrderTracker.ts — 4-Stage Sub-Order Progress Tracker & Live Map Placeholder (Prompt 5.4).
  *
  * Stages:
  *  1. PLACED: Order received in system
@@ -10,14 +10,22 @@
 
 import { t } from '../../services/i18n.js';
 
-export const ORDER_STAGES = [
+export interface OrderStage {
+  key: string;
+  labelKey: string;
+  icon: string;
+}
+
+/** The four steps shown on the stepper; `CANCELLED` replaces the stepper with a notice. */
+export const ORDER_STAGES: OrderStage[] = [
   { key: 'PLACED', labelKey: 'order_tracking.status_placed', icon: '📝' },
   { key: 'CONFIRMED', labelKey: 'order_tracking.status_confirmed', icon: '📦' },
   { key: 'SHIPPED', labelKey: 'order_tracking.status_shipped', icon: '🚚' },
   { key: 'DELIVERED', labelKey: 'order_tracking.status_delivered', icon: '✅' },
 ];
 
-export function getStageIndex(status) {
+/** Index into ORDER_STAGES, or -1 for a cancelled sub-order. Unknown statuses read as the first stage. */
+export function getStageIndex(status: string | null | undefined): number {
   switch (status) {
     case 'PLACED': return 0;
     case 'CONFIRMED':
@@ -30,7 +38,7 @@ export function getStageIndex(status) {
   }
 }
 
-const SUB_ORDER_STATUS_KEYS = {
+const SUB_ORDER_STATUS_KEYS: Record<string, string> = {
   PLACED: 'order_tracking.status_placed',
   CONFIRMED: 'order_tracking.status_confirmed',
   PROCESSING: 'order_tracking.status_processing',
@@ -40,7 +48,7 @@ const SUB_ORDER_STATUS_KEYS = {
   CANCELLED: 'order_tracking.status_cancelled',
 };
 
-const PAYMENT_STATUS_KEYS = {
+const PAYMENT_STATUS_KEYS: Record<string, string> = {
   PENDING: 'order_tracking.payment_status_pending',
   PAID: 'order_tracking.payment_status_paid',
   FAILED: 'order_tracking.payment_status_failed',
@@ -48,18 +56,34 @@ const PAYMENT_STATUS_KEYS = {
   REFUNDED: 'order_tracking.payment_status_refunded',
 };
 
-export function getSubOrderStatusLabel(status) {
+export function getSubOrderStatusLabel(status: string | null | undefined): string {
   return t(SUB_ORDER_STATUS_KEYS[status] || 'order_tracking.status_placed');
 }
 
-export function getPaymentStatusLabel(status) {
+export function getPaymentStatusLabel(status: string | null | undefined): string {
   return t(PAYMENT_STATUS_KEYS[status] || 'order_tracking.payment_status_pending');
 }
 
+export interface TrackedSubOrder {
+  status?: string;
+  cancel_reason?: string;
+  courier_partner?: string;
+  tracking_number?: string;
+  ref?: string;
+}
+
+export interface OrderTrackerOptions {
+  /** Read unconditionally, so it is required. */
+  subOrder: TrackedSubOrder;
+  parentOrder?: unknown;
+}
+
+// WHY the `= {}` default stays (as a cast): it is the old call shape, kept so the compiled output is
+// unchanged. `subOrder` is still required by the type, and a call without it fails as it always did.
 export function OrderTracker({
   subOrder,
   parentOrder = null,
-} = {}) {
+}: OrderTrackerOptions = {} as OrderTrackerOptions): { element: HTMLDivElement } {
   const container = document.createElement('div');
   container.className = 'order-tracker';
 

@@ -13,8 +13,8 @@ import { api } from '../../core/api.js';
 import { t } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 import { formatDate } from '../../services/format.js';
-import WorkloadSummary from '../../components/moderator/WorkloadSummary.js';
-import SlaMonitor from '../../components/moderator/SlaMonitor.js';
+import WorkloadSummary from '../../components/moderator/WorkloadSummary.ts';
+import SlaMonitor from '../../components/moderator/SlaMonitor.ts';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.js';
 
 export default function ModeratorDashboardPage(root) {

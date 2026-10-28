@@ -20,7 +20,7 @@ import {
   getSubOrderStatusLabel,
   getStageIndex,
   ORDER_STAGES,
-} from '../../components/order/OrderTracker.js';
+} from '../../components/order/OrderTracker.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';
 import { EarnJourney } from '../../components/customer/EarnJourney.js';

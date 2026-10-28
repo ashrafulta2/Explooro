@@ -18,8 +18,8 @@ import { fileURLToPath } from 'node:url';
 
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
-import { ThreadList } from '../src/components/chat/ThreadList.js';
-import { MessageBubble } from '../src/components/chat/MessageBubble.js';
+import { ThreadList } from '../src/components/chat/ThreadList.ts';
+import { MessageBubble } from '../src/components/chat/MessageBubble.ts';
 import { MessageComposer } from '../src/components/chat/MessageComposer.js';
 import ChatPage from '../src/pages/ChatPage.js';
 

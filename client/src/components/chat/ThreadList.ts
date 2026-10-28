@@ -1,5 +1,5 @@
 /**
- * ThreadList.js — Chat Conversation List (Prompt 8.4).
+ * ThreadList.ts — Chat Conversation List (Prompt 8.4).
  *
  * Renders thread cards with unread counts, channel badges, participant roles, and live search.
  */
@@ -7,7 +7,29 @@
 import { t } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
 
-export function ThreadList({ threads = [], selectedThreadId = null, onSelectThread }) {
+/** One conversation, as the chat API returns it. */
+export interface ChatThread {
+  id: number | string;
+  ref?: string;
+  customerPhone?: string;
+  other_participant_name?: string;
+  last_message_preview?: string;
+  last_message_at?: string;
+  unread_count?: number | string;
+  /** `WHATSAPP`, `MESSENGER` or `IN_PLATFORM` (the default). */
+  channel?: string;
+  metadata_json?: { channel?: string } | null;
+}
+
+export function ThreadList({
+  threads = [],
+  selectedThreadId = null,
+  onSelectThread,
+}: {
+  threads?: ChatThread[];
+  selectedThreadId?: number | string | null;
+  onSelectThread?: (thread: ChatThread) => void;
+}): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'chat-thread-list-component';
 
@@ -26,7 +48,7 @@ export function ThreadList({ threads = [], selectedThreadId = null, onSelectThre
   const box = container.querySelector('#thread-items-box');
   const searchInput = container.querySelector('#thread-search-input');
 
-  function renderItems() {
+  function renderItems(): void {
     box.innerHTML = '';
     const q = currentFilter.toLowerCase().trim();
 
@@ -94,7 +116,7 @@ export function ThreadList({ threads = [], selectedThreadId = null, onSelectThre
   }
 
   searchInput.addEventListener('input', (e) => {
-    currentFilter = e.target.value;
+    currentFilter = (e.target as HTMLInputElement).value;
     renderItems();
   });
 

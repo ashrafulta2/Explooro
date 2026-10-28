@@ -27,7 +27,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
   });
 
   await t.test('2. LedgerTable source code has aria-label on input and select', () => {
-    const ledgerTablePath = path.join(clientRoot, 'src', 'components', 'vault', 'LedgerTable.js');
+    const ledgerTablePath = path.join(clientRoot, 'src', 'components', 'vault', 'LedgerTable.ts');
     const content = fs.readFileSync(ledgerTablePath, 'utf8');
 
     assert.match(
@@ -200,7 +200,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     assert.match(checkoutCss, /\.order-tracker__map-overlay\s*\{[^}]*background:\s*rgba\(15,\s*23,\s*42/);
     assert.match(checkoutCss, /\.order-tracker__map-desc\s*\{[^}]*color:\s*#e2e8f0/);
 
-    const orderTrackerPath = path.join(clientRoot, 'src', 'components', 'order', 'OrderTracker.js');
+    const orderTrackerPath = path.join(clientRoot, 'src', 'components', 'order', 'OrderTracker.ts');
     const orderTracker = fs.readFileSync(orderTrackerPath, 'utf8');
 
     assert.match(orderTracker, /order-tracker__map-badge/);

@@ -10,7 +10,7 @@
 
 import { getOrderById, getMyOrders, cancelOrder } from '../../services/order.api.js';
 import { needsOnlinePayment, payForOrder } from '../../services/payment.api.js';
-import { OrderTracker, getSubOrderStatusLabel, getPaymentStatusLabel } from '../../components/order/OrderTracker.js';
+import { OrderTracker, getSubOrderStatusLabel, getPaymentStatusLabel } from '../../components/order/OrderTracker.ts';
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { Button } from '../../components/ui/Button.js';
 import { Modal } from '../../components/ui/Modal.js';

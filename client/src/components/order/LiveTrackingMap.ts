@@ -1,5 +1,5 @@
 /**
- * LiveTrackingMap.js — Leaflet-Free Lightweight Live Courier GPS Tracking Map (Prompt 7.1).
+ * LiveTrackingMap.ts — Leaflet-Free Lightweight Live Courier GPS Tracking Map (Prompt 7.1).
  *
  * Implements:
  * 1. Zero-dependency raster/SVG OpenStreetMap tile projection (~12KB vanilla footprint).
@@ -14,12 +14,43 @@ import { t } from '../../services/i18n.js';
 /**
  * Converts lat/lng into OSM tile coordinates at a given zoom level.
  */
-function latLngToTile(lat, lng, zoom) {
+function latLngToTile(lat: number, lng: number, zoom: number): { x: number; y: number; zoom: number } {
   const n = Math.pow(2, zoom);
   const x = Math.floor(((lng + 180) / 360) * n);
   const latRad = (lat * Math.PI) / 180;
   const y = Math.floor(((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n);
   return { x, y, zoom };
+}
+
+/** One courier event on the shipment's timeline. */
+export interface TrackingEvent {
+  normalized_status?: string;
+  carrier_status?: string;
+  created_at: string;
+  location?: string;
+  note?: string;
+}
+
+/** The shipment as GET /orders/.../tracking returns it. */
+export interface TrackingData {
+  currentLocation?: {
+    latitude?: number;
+    longitude?: number;
+    lastEvent?: { location?: string };
+  };
+  shipment?: { carrier?: string; tracking_number?: string };
+  events?: TrackingEvent[];
+}
+
+export interface LiveTrackingMapOptions {
+  trackingData?: TrackingData | null;
+  /** Take precedence over the coordinates in `trackingData`. */
+  latitude?: number | null;
+  longitude?: number | null;
+  locationName?: string;
+  status?: string;
+  /** Take precedence over `trackingData.events`. */
+  events?: TrackingEvent[];
 }
 
 export function LiveTrackingMap({
@@ -29,7 +60,7 @@ export function LiveTrackingMap({
   locationName = '',
   status = 'IN_TRANSIT',
   events = [],
-}) {
+}: LiveTrackingMapOptions): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'live-tracking-map-component';
 
@@ -39,7 +70,7 @@ export function LiveTrackingMap({
   const locLabel = locationName || trackingData?.currentLocation?.lastEvent?.location || trackingData?.shipment?.carrier || 'Bangladesh Delivery Route';
   const currentEvents = events.length > 0 ? events : (trackingData?.events || []);
 
-  function renderTimeline() {
+  function renderTimeline(): string {
     if (currentEvents.length === 0) {
       return `
         <div class="tracking-timeline-empty p-4 text-center text-sm text-secondary">
@@ -70,7 +101,7 @@ export function LiveTrackingMap({
     `;
   }
 
-  function render() {
+  function render(): void {
     const zoom = 12;
     const tile = latLngToTile(lat, lng, zoom);
 

@@ -9,8 +9,8 @@
  * - Offline queue support surviving page reloads via IndexedDB.
  */
 
-import { ThreadList } from '../components/chat/ThreadList.js';
-import { MessageBubble } from '../components/chat/MessageBubble.js';
+import { ThreadList } from '../components/chat/ThreadList.ts';
+import { MessageBubble } from '../components/chat/MessageBubble.ts';
 import { MessageComposer } from '../components/chat/MessageComposer.js';
 import { Modal } from '../components/ui/Modal.js';
 import { Button } from '../components/ui/Button.js';

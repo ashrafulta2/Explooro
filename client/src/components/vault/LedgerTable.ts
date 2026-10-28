@@ -1,5 +1,5 @@
 /**
- * LedgerTable.js — Double-Entry Ledger Audit Log Component (Prompt 6.5).
+ * LedgerTable.ts — Double-Entry Ledger Audit Log Component (Prompt 6.5).
  *
  * Implements:
  * 1. Complete chronological double-entry movements.
@@ -11,14 +11,41 @@
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 
-export function LedgerTable({ transactions = [], onFilterChange = () => {} }) {
+/** One double-entry ledger line, as the API returns it. */
+export interface LedgerTransaction {
+  id: number | string;
+  created_at: string;
+  reference_type?: string | null;
+  reference_id?: number | string | null;
+  sub_order_ref?: string | null;
+  category: string;
+  balance_bucket: string;
+  /** `CREDIT` or `DEBIT`. */
+  entry_type: string;
+  amount: number | string;
+  memo?: string | null;
+}
+
+/** What `onFilterChange` reports whenever the category select changes. */
+export interface LedgerFilter {
+  category: string;
+  search: string;
+}
+
+export function LedgerTable({
+  transactions = [],
+  onFilterChange = () => {},
+}: {
+  transactions?: LedgerTransaction[];
+  onFilterChange?: (filter: LedgerFilter) => void;
+}): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'ledger-table-component';
 
   let currentCategory = '';
   let searchQuery = '';
 
-  function getCategoryBadge(category) {
+  function getCategoryBadge(category: string): string {
     switch (category) {
       case 'COMMISSION':
       case 'ESCROW_RELEASE':
@@ -37,7 +64,7 @@ export function LedgerTable({ transactions = [], onFilterChange = () => {} }) {
     }
   }
 
-  function exportCsv() {
+  function exportCsv(): void {
     if (transactions.length === 0) return;
     const headers = ['ID', 'Date', 'Reference Type', 'Reference ID', 'Category', 'Bucket', 'Type', 'Amount (BDT)', 'Memo'];
     const rows = transactions.map((t) => [
@@ -62,7 +89,7 @@ export function LedgerTable({ transactions = [], onFilterChange = () => {} }) {
     document.body.removeChild(link);
   }
 
-  function render() {
+  function render(): void {
     const filtered = transactions.filter((item) => {
       if (currentCategory && item.category !== currentCategory) return false;
       if (searchQuery) {
@@ -155,13 +182,13 @@ export function LedgerTable({ transactions = [], onFilterChange = () => {} }) {
 
     // Event listeners
     container.querySelector('.ledger-table__category-filter')?.addEventListener('change', (e) => {
-      currentCategory = e.target.value;
+      currentCategory = (e.target as HTMLSelectElement).value;
       onFilterChange({ category: currentCategory, search: searchQuery });
       render();
     });
 
     container.querySelector('.ledger-table__search')?.addEventListener('input', (e) => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       render();
     });
 

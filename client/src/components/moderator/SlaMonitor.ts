@@ -1,5 +1,5 @@
 /**
- * SlaMonitor.js — SLA Urgency & Priority Monitor Widget (Prompt 7.6).
+ * SlaMonitor.ts — SLA Urgency & Priority Monitor Widget (Prompt 7.6).
  *
  * Displays:
  * 1. Queue items approaching or breaching SLA, sorted by urgency.
@@ -10,10 +10,29 @@
 import { t } from '../../services/i18n.js';
 import { formatDate } from '../../services/format.js';
 
+/** One queue item close to, or past, its SLA deadline. */
+export interface SlaItem {
+  id: number | string;
+  ref: string;
+  item_type?: string;
+  /** `BREACHED`, `CRITICAL` or a calmer level. */
+  urgency?: string;
+  is_breached?: boolean;
+  /** Minutes to the deadline; negative once it is overdue. */
+  remaining_minutes: number;
+  submitter_name?: string;
+  sla_due_at: string;
+  target_route?: string;
+}
+
 export default function SlaMonitor({
   items = [],
   onInspectItem = null,
-} = {}) {
+}: {
+  items?: SlaItem[];
+  /** Called with the item id and its route; without it the button pushes the route onto history itself. */
+  onInspectItem?: ((id: string, route: string) => void) | null;
+} = {}): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'sla-monitor-card';
   container.style.cssText = `
@@ -27,7 +46,7 @@ export default function SlaMonitor({
     height: 100%;
   `;
 
-  function formatRemainingTime(minutes, isBreached) {
+  function formatRemainingTime(minutes: number, isBreached: boolean): string {
     if (isBreached) {
       const overMin = Math.abs(minutes);
       return `⚠️ Breached (${overMin}m overdue)`;
@@ -40,7 +59,7 @@ export default function SlaMonitor({
     return `⏳ ${hrs}h ${mins}m remaining`;
   }
 
-  function getBadgeStyle(urgency) {
+  function getBadgeStyle(urgency: string | undefined): string {
     if (urgency === 'BREACHED') {
       return 'background: var(--danger-bg, rgba(225, 29, 72, 0.1)); color: var(--danger, #e11d48); border: 1px solid var(--danger-border, rgba(225, 29, 72, 0.3)); font-weight: 700;';
     }
@@ -135,7 +154,7 @@ export default function SlaMonitor({
     </div>
   `;
 
-  container.querySelectorAll('.btn-sla-action').forEach((btn) => {
+  container.querySelectorAll<HTMLButtonElement>('.btn-sla-action').forEach((btn) => {
     btn.addEventListener('mouseenter', () => {
       btn.style.background = 'var(--brand, #4f46e5)';
       btn.style.color = 'var(--brand-contrast, #ffffff)';

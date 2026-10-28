@@ -12,8 +12,8 @@ import { api } from '../core/api.js';
 import { toast } from '../services/toast.js';
 import { t } from '../services/i18n.js';
 import { BalanceSummary } from '../components/vault/BalanceSummary.js';
-import { EscrowTimeline } from '../components/vault/EscrowTimeline.js';
-import { LedgerTable } from '../components/vault/LedgerTable.js';
+import { EscrowTimeline } from '../components/vault/EscrowTimeline.ts';
+import { LedgerTable } from '../components/vault/LedgerTable.ts';
 
 export default function VaultPage(root) {
   const container = document.createElement('div');

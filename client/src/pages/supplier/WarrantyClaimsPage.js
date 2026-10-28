@@ -14,7 +14,7 @@ import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.js';
 import { supplierModal } from './supplierModal.js';
-import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.js';
+import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
 
 export default function WarrantyClaimsPage(root) {
   const container = document.createElement('div');

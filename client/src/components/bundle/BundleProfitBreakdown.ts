@@ -1,5 +1,5 @@
 /**
- * BundleProfitBreakdown.js — Live Multi-Party Profit & Margin Breakdown Component (Prompt 10.5).
+ * BundleProfitBreakdown.ts — Live Multi-Party Profit & Margin Breakdown Component (Prompt 10.5).
  *
  * Displays a live, transparent financial breakdown for cross-seller combos:
  * - Original Sum of Parts vs Bundle Price vs Discount
@@ -12,11 +12,53 @@
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 
-export function createBundleProfitBreakdown({ breakdown = null, showPlatformShare = false } = {}) {
+type Figure = number | string;
+
+/** One line of the bundle, with its discount apportioned. */
+export interface BundleItem {
+  productTitleEn: string;
+  variantTitle?: string;
+  qty: number;
+  originalRetailPrice: Figure;
+  discountShare: Figure;
+  effectiveUnitPrice: Figure;
+  salerCommission: Figure;
+}
+
+export interface BundleSupplierPayout {
+  supplier_name: string;
+  item_count: number;
+  total_wholesale_payout: Figure;
+}
+
+/** The server's live breakdown for a bundle. Every figure is the server's; none is derived here. */
+export interface BundleBreakdown {
+  sum_of_parts: Figure;
+  bundle_price: Figure;
+  discount_amount: Figure;
+  discount_pct: Figure;
+  total_wholesale_cost: Figure;
+  total_net_margin?: Figure;
+  total_saler_commission: Figure;
+  total_platform_margin?: Figure;
+  saler_margin_pct: Figure;
+  is_multi_supplier?: boolean;
+  supplier_count?: number;
+  items?: BundleItem[];
+  suppliers?: BundleSupplierPayout[];
+}
+
+export function createBundleProfitBreakdown({
+  breakdown = null,
+  showPlatformShare = false,
+}: { breakdown?: BundleBreakdown | null; showPlatformShare?: boolean } = {}): {
+  element: HTMLDivElement;
+  update(data: BundleBreakdown | null): void;
+} {
   const container = document.createElement('div');
   container.className = 'bundle-profit-breakdown';
 
-  function render(data) {
+  function render(data: BundleBreakdown | null): void {
     if (!data) {
       container.innerHTML = `
         <div class="bundle-breakdown-empty">

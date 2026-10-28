@@ -1,5 +1,5 @@
 /**
- * EscrowTimeline.js — Interactive Escrow Holdings Timeline with Live Ticking Countdowns (Prompt 6.5).
+ * EscrowTimeline.ts — Interactive Escrow Holdings Timeline with Live Ticking Countdowns (Prompt 6.5).
  *
  * Implements:
  * 1. Live ticking countdown timers (HH:MM:SS / Days) updating every 1000ms.
@@ -10,17 +10,32 @@
 import { formatCurrency, formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 
-export function EscrowTimeline({ escrowEntries = [] }) {
+/** One escrow entry still on hold, as the API returns it. */
+export interface EscrowEntry {
+  sub_order_id?: number | string;
+  sub_order_ref?: string;
+  amount: number | string;
+  hold_until: string;
+  /** Seconds left when the server counted them; otherwise they are worked out from `hold_until`. */
+  remaining_seconds?: number;
+  beneficiary_role?: string;
+}
+
+interface EscrowTimelineItem extends EscrowEntry {
+  remainingSeconds: number;
+}
+
+export function EscrowTimeline({ escrowEntries = [] }: { escrowEntries?: EscrowEntry[] }): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'escrow-timeline-component';
 
-  let timerInterval = null;
-  const entriesState = escrowEntries.map((e) => ({
+  let timerInterval: ReturnType<typeof setInterval> | null = null;
+  const entriesState: EscrowTimelineItem[] = escrowEntries.map((e) => ({
     ...e,
     remainingSeconds: e.remaining_seconds ?? Math.max(0, Math.round((new Date(e.hold_until).getTime() - Date.now()) / 1000)),
   }));
 
-  function formatCountdown(totalSecs) {
+  function formatCountdown(totalSecs: number): string {
     if (totalSecs <= 0) return t('vault.ready_to_release');
     const days = Math.floor(totalSecs / 86400);
     const hours = Math.floor((totalSecs % 86400) / 3600);
@@ -33,7 +48,7 @@ export function EscrowTimeline({ escrowEntries = [] }) {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   }
 
-  function render() {
+  function render(): void {
     container.innerHTML = `
       <div class="card escrow-timeline-card">
         <div class="escrow-timeline__header">
@@ -95,7 +110,7 @@ export function EscrowTimeline({ escrowEntries = [] }) {
     `;
   }
 
-  function startTimer() {
+  function startTimer(): void {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
       let hasChanges = false;
@@ -103,7 +118,7 @@ export function EscrowTimeline({ escrowEntries = [] }) {
         if (item.remainingSeconds > 0) {
           item.remainingSeconds -= 1;
           hasChanges = true;
-          const el = container.querySelector(`.countdown-badge[data-index="${idx}"]`);
+          const el = container.querySelector<HTMLElement>(`.countdown-badge[data-index="${idx}"]`);
           if (el) {
             el.textContent = `⏱️ ${formatCountdown(item.remainingSeconds)}`;
             if (item.remainingSeconds <= 0) {

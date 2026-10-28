@@ -150,7 +150,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
   await t.test('8. PriceBreakdown gates platform earnings and split note to admin role only', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
-    const filePath = path.resolve(import.meta.dirname, '../src/components/product/PriceBreakdown.js');
+    const filePath = path.resolve(import.meta.dirname, '../src/components/product/PriceBreakdown.ts');
     const content = fs.readFileSync(filePath, 'utf8');
 
     assert.ok(content.includes("const isAdmin = role === 'admin' || role === 'super_admin';"), 'Must gate admin role');
@@ -176,7 +176,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
   await t.test('10. BundleProfitBreakdown suppresses platform margin by default', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
-    const filePath = path.resolve(import.meta.dirname, '../src/components/bundle/BundleProfitBreakdown.js');
+    const filePath = path.resolve(import.meta.dirname, '../src/components/bundle/BundleProfitBreakdown.ts');
     const content = fs.readFileSync(filePath, 'utf8');
 
     assert.ok(content.includes('showPlatformShare = false'), 'showPlatformShare must default to false');

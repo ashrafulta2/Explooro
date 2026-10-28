@@ -1,9 +1,34 @@
 /**
- * MilestoneProgressStepper.js — Visual progress stepper for B2B escrow staged release milestones (Prompt 10.6).
+ * MilestoneProgressStepper.ts — Visual progress stepper for B2B escrow staged release milestones (Prompt 10.6).
  */
 
 import { t, getLanguage } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
+
+/** One staged-release milestone of a B2B escrow deal. */
+export interface Milestone {
+  id: number;
+  ref?: string;
+  label_en?: string;
+  label_bn?: string;
+  /** `PENDING`, `EVIDENCE_SUBMITTED`, `FROZEN`, `RELEASED` or `REFUNDED`. */
+  status: string;
+  amount: number | string;
+  release_pct: number | string;
+  evidence_required?: string;
+  evidence_media_json?: { evidence_type?: string; notes?: string } | null;
+}
+
+export interface MilestoneStepperOptions {
+  milestones?: Milestone[];
+  dealStatus?: string;
+  userRole?: 'supplier' | 'saler' | string;
+  isBuyer?: boolean;
+  isAdmin?: boolean;
+  onEvidenceClick?: ((milestone: Milestone) => void) | null;
+  onReleaseClick?: ((milestone: Milestone) => void) | null;
+  onRefundClick?: ((milestone: Milestone) => void) | null;
+}
 
 export function createMilestoneProgressStepper({
   milestones = [],
@@ -14,11 +39,14 @@ export function createMilestoneProgressStepper({
   onEvidenceClick = null,
   onReleaseClick = null,
   onRefundClick = null,
-} = {}) {
+}: MilestoneStepperOptions = {}): {
+  element: HTMLDivElement;
+  update(newMilestones?: Milestone[], newDealStatus?: string): void;
+} {
   const container = document.createElement('div');
   container.className = 'milestone-stepper-container space-y-4';
 
-  function getStatusBadge(status) {
+  function getStatusBadge(status: string): string {
     switch (status) {
       case 'RELEASED':
         return `<span class="badge badge-success font-mono text-xs">✓ ${t('b2b_escrow.status_released')}</span>`;
@@ -33,7 +61,7 @@ export function createMilestoneProgressStepper({
     }
   }
 
-  function render() {
+  function render(): void {
     if (!milestones.length) {
       container.innerHTML = `<p class="text-sm text-muted text-center py-4">${t('b2b_escrow.no_milestones')}</p>`;
       return;
@@ -41,10 +69,10 @@ export function createMilestoneProgressStepper({
 
     const totalReleased = milestones
       .filter((m) => m.status === 'RELEASED')
-      .reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0);
+      .reduce((sum, m) => sum + (parseFloat(String(m.amount)) || 0), 0);
 
     const totalAmount = milestones
-      .reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0);
+      .reduce((sum, m) => sum + (parseFloat(String(m.amount)) || 0), 0);
 
     const progressPct = totalAmount > 0 ? Math.round((totalReleased / totalAmount) * 100) : 0;
 
@@ -153,7 +181,7 @@ export function createMilestoneProgressStepper({
 
   return {
     element: container,
-    update: (newMilestones, newDealStatus) => {
+    update: (newMilestones?: Milestone[], newDealStatus?: string) => {
       if (newMilestones) milestones = newMilestones;
       if (newDealStatus) dealStatus = newDealStatus;
       render();

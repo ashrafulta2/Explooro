@@ -23,7 +23,7 @@ import {
   dismissSurgeRecommendation,
 } from '../../services/bundle.api.js';
 import { getSalerStoreItems } from '../../services/catalog.api.js';
-import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfitBreakdown.js';
+import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfitBreakdown.ts';
 import { Button } from '../../components/ui/Button.js';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { t, getLanguage } from '../../services/i18n.js';

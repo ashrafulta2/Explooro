@@ -1,5 +1,5 @@
 /**
- * WorkloadSummary.js — Workload KPIs Widget (Prompt 7.6).
+ * WorkloadSummary.ts — Workload KPIs Widget (Prompt 7.6).
  *
  * Renders 4 Executive KPI Cards fully integrated with platform theme tokens:
  * 1. My Queue (items claimed by current moderator).
@@ -10,6 +10,14 @@
 
 import { t } from '../../services/i18n.js';
 
+/** The moderator's four queue counts, from GET /moderator/workload. */
+export interface Workload {
+  my_queue_count?: number;
+  unassigned_count?: number;
+  sla_at_risk_count?: number;
+  resolved_today_count?: number;
+}
+
 export default function WorkloadSummary({
   workload = {
     my_queue_count: 0,
@@ -18,7 +26,11 @@ export default function WorkloadSummary({
     resolved_today_count: 0,
   },
   onNavigate = null,
-} = {}) {
+}: {
+  workload?: Workload;
+  /** Called with a card's route; without it the card pushes the route onto history itself. */
+  onNavigate?: ((route: string) => void) | null;
+} = {}): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'workload-summary-grid';
   container.style.cssText = `
@@ -114,7 +126,7 @@ export default function WorkloadSummary({
     )
     .join('');
 
-  container.querySelectorAll('.mod-kpi-card').forEach((card) => {
+  container.querySelectorAll<HTMLElement>('.mod-kpi-card').forEach((card) => {
     card.addEventListener('mouseenter', () => {
       card.style.transform = 'translateY(-2px)';
       card.style.background = 'var(--surface-2, #f8fafc)';

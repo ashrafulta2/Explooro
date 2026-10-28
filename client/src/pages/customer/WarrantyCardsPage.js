@@ -13,7 +13,7 @@ import { toast } from '../../services/toast.js';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { WarrantyCard } from '../../components/warranty/WarrantyCard.js';
 import { openClaimModal } from '../../components/warranty/ClaimModal.js';
-import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.js';
+import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
 import { openCertificateModal } from '../../components/warranty/CertificateModal.js';
 import { openRegisterWarrantyModal } from '../../components/warranty/RegisterWarrantyModal.js';
 import { bindBackControl, renderBackLink } from '../../core/navBack.js';

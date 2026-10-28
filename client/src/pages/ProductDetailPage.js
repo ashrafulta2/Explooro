@@ -21,7 +21,7 @@ import { Skeleton } from '../components/ui/Skeleton.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { ImageGallery } from '../components/product/ImageGallery.js';
 import { VariantSelector } from '../components/product/VariantSelector.js';
-import { PriceBreakdown } from '../components/product/PriceBreakdown.js';
+import { PriceBreakdown } from '../components/product/PriceBreakdown.ts';
 import { ReviewList } from '../components/product/ReviewList.js';
 import { SponsoredStrip } from '../components/ads/SponsoredStrip.js';
 import { QnASection } from '../components/product/QnASection.js';

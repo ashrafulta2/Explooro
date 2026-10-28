@@ -1,5 +1,5 @@
 /**
- * ClaimTimeline.js — Visual Stage Stepper for Warranty Claim Lifecycle (Prompt 10.4).
+ * ClaimTimeline.ts — Visual Stage Stepper for Warranty Claim Lifecycle (Prompt 10.4).
  *
  * Visualizes:
  * 1. SUBMITTED (Timestamp & 72-hour SLA deadline).
@@ -12,7 +12,31 @@
 import { t, getLanguage } from '../../services/i18n.js';
 import { toast } from '../../services/toast.js';
 
-export function ClaimTimeline({ claim, isSupplier = false } = {}) {
+/** A warranty claim, as the API returns it. */
+export interface WarrantyClaim {
+  id?: number | string;
+  ref?: string;
+  /** `SUBMITTED`, `UNDER_REVIEW`, `APPROVED`, `REJECTED`, `ESCALATED`, `IN_PROGRESS` or `COMPLETED`. */
+  status: string;
+  created_at?: string;
+  issue_description?: string;
+  /** The decided resolution; falls back to what the customer asked for. */
+  resolution?: string;
+  preferred_resolution?: string;
+  /** The supplier's 72-hour deadline. */
+  sla_due_at?: string;
+  is_sla_breached?: boolean;
+  reverse_tracking_number?: string;
+  reverse_courier?: string;
+  rejection_reason?: string;
+  /** URLs of the customer's photos. */
+  evidence_media?: string[];
+}
+
+export function ClaimTimeline({
+  claim,
+  isSupplier = false,
+}: { claim?: WarrantyClaim | null; isSupplier?: boolean } = {}): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'claim-timeline';
 

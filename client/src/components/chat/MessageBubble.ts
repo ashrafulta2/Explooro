@@ -1,5 +1,5 @@
 /**
- * MessageBubble.js — Chat Message Bubble (Prompt 8.4).
+ * MessageBubble.ts — Chat Message Bubble (Prompt 8.4).
  *
  * Implements:
  * - Read receipts and delivery state (Sending ⏳, Delivered ✓, Read ✓✓, Failed ⚠️).
@@ -13,7 +13,32 @@ import { t } from '../../services/i18n.js';
 import { api } from '../../core/api.js';
 import { toast } from '../../services/toast.js';
 
-export function MessageBubble({ message, isOutgoing, currentUserId, onRetry }) {
+/** One chat message, as the API (or the local outbound queue) returns it. */
+export interface ChatMessage {
+  /** Absent while the message is still sending. */
+  id?: number | string;
+  content?: string;
+  /** `PRODUCT_CARD` draws an offer card; anything else is plain text. */
+  msg_type?: string;
+  /** `SENDING`, `DELIVERED` or `FAILED`; derived from `id` when absent. */
+  status?: string;
+  /** Who has read it; more than one entry means the other side has. */
+  read_by?: unknown[];
+  created_at?: string;
+  payload_json?: { productTitle?: string; price?: number | string; checkoutUrl?: string } | null;
+}
+
+export function MessageBubble({
+  message,
+  isOutgoing,
+  currentUserId,
+  onRetry,
+}: {
+  message: ChatMessage;
+  isOutgoing: boolean;
+  currentUserId?: number | string;
+  onRetry?: ((message: ChatMessage) => void) | null;
+}): HTMLDivElement {
   const bubble = document.createElement('div');
   bubble.className = `chat-bubble-container ${isOutgoing ? 'outgoing' : 'incoming'}`;
 

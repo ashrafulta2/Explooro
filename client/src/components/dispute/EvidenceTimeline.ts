@@ -1,5 +1,5 @@
 /**
- * EvidenceTimeline.js — Chronological, immutable dispute audit & evidence trail (Prompt 7.3).
+ * EvidenceTimeline.ts — Chronological, immutable dispute audit & evidence trail (Prompt 7.3).
  *
  * Integrated with platform theme variables.
  */
@@ -7,7 +7,20 @@
 import { formatDate } from '../../services/format.js';
 import { t } from '../../services/i18n.js';
 
-export function EvidenceTimeline({ timeline = [], disputeRef = '' } = {}) {
+/** One entry of a dispute's audit trail. `INTERNAL_NOTE` entries are staff-only. */
+export interface TimelineEvent {
+  type: string;
+  is_internal?: boolean;
+  actor_role?: string;
+  actor_name?: string;
+  created_at: string;
+  metadata?: Record<string, unknown> | null;
+}
+
+export function EvidenceTimeline({
+  timeline = [],
+  disputeRef = '',
+}: { timeline?: TimelineEvent[] | null; disputeRef?: string } = {}): HTMLDivElement {
   const container = document.createElement('div');
   container.className = 'evidence-timeline-widget';
   container.style.cssText = `
@@ -26,7 +39,7 @@ export function EvidenceTimeline({ timeline = [], disputeRef = '' } = {}) {
     return container;
   }
 
-  const eventIcons = {
+  const eventIcons: Record<string, string> = {
     ORDER_PLACED: '🛍️',
     COURIER_EVENT: '🚚',
     RETURN_REQUESTED: '📦',

@@ -18,7 +18,7 @@ import {
   getUpazilasByDistrict,
 } from '../../client/src/data/bangladeshGeo.ts';
 import { normalizeBdPhone, isValidBdPhone } from '../../client/src/components/checkout/AddressForm.js';
-import { getStageIndex, ORDER_STAGES } from '../../client/src/components/order/OrderTracker.js';
+import { getStageIndex, ORDER_STAGES } from '../../client/src/components/order/OrderTracker.ts';
 import { generateIdempotencyKey } from '../../client/src/services/order.api.js';
 
 describe('Prompt 5.4 — Checkout UI, Quick Buy & Order Tracking Logic', () => {

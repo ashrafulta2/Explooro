@@ -10,7 +10,7 @@
 import { t } from '../../services/i18n.js';
 import { formatCurrency } from '../../services/format.js';
 
-function row(labelKey, amount, lang, { emphasize = false } = {}) {
+function row(labelKey: string, amount: number | string, lang: string, { emphasize = false }: { emphasize?: boolean } = {}): HTMLDivElement {
   const el = document.createElement('div');
   el.className = `price-breakdown__row${emphasize ? ' price-breakdown__row--emphasis' : ''}`;
   const label = document.createElement('span');
@@ -23,7 +23,34 @@ function row(labelKey, amount, lang, { emphasize = false } = {}) {
   return el;
 }
 
-export function PriceBreakdown({ retailPrice, pricing = null, role = 'customer', modules = {}, lang = 'en' } = {}) {
+/** The server's `pricing` object (product.service.ts calculateProductPricing); this file only renders it. */
+export interface ProductPricing {
+  base_cost: number | string;
+  wholesale_margin: number | string;
+  net_retail_margin: number | string;
+  saler_earning: number | string;
+  /** Shown to admins only. */
+  platform_earning?: number | string;
+  saler_split_pct?: number | string;
+  platform_split_pct?: number | string;
+}
+
+export interface PriceBreakdownOptions {
+  retailPrice?: number | string | null;
+  pricing?: ProductPricing | null;
+  role?: 'customer' | 'saler' | 'admin' | 'super_admin' | string;
+  /** Which modules are on; the margin block needs `sourcing`. */
+  modules?: Record<string, boolean>;
+  lang?: string;
+}
+
+export function PriceBreakdown({
+  retailPrice,
+  pricing = null,
+  role = 'customer',
+  modules = {},
+  lang = 'en',
+}: PriceBreakdownOptions = {}): HTMLDivElement {
   const root = document.createElement('div');
   root.className = 'price-breakdown';
 
