@@ -16,7 +16,7 @@
  *   LIMITED      — LIVE for the listed roles and user ids, HIDDEN for everyone else. This is the
  *                  "release it to just this one supplier first" case.
  *
- * ONE resolution function, used by BOTH core/router.js (through main.js) and
+ * ONE resolution function, used by BOTH core/router.ts (through main.js) and
  * components/shell/Sidebar.ts — docs/super-admin-audit.md §5 invariant 1 ("the nav guard must
  * equal the route guard"). client/test/pageAvailability.test.js fails if either consumer grows its
  * own copy of these rules.

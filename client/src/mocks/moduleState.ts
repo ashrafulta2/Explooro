@@ -91,7 +91,7 @@ export function buildAdminModules() {
  * The public endpoint's shape: a flat `{ key: boolean }` map, matching what
  * moduleService.getPublicModulesMap() returns on the server.
  *
- * `core` is included even though it is not a registry row: core/router.js's hasModule() short-
+ * `core` is included even though it is not a registry row: core/router.ts's hasModule() short-
  * circuits on it, but featureFlags.ts and any `[data-module="core"]` gate read the map directly.
  */
 export function publicModuleMap() {

@@ -12,7 +12,7 @@
  *  - permission missing → LockedNavItem (greyed, lock icon, visible)
  *  - otherwise        → a normal link, active-highlighted against `currentPath`
  *
- * The page-state branches delegate to services/pageAccess.ts — the SAME function core/router.js
+ * The page-state branches delegate to services/pageAccess.ts — the SAME function core/router.ts
  * guards with, per docs/super-admin-audit.md §5 invariant 1 ("the nav guard must equal the route
  * guard"). Never re-implement the four states here.
  */

@@ -399,7 +399,7 @@ export class CartInsightsPage {
   }
 }
 
-// WHY: this page is written as a class, but the router page contract (core/router.js) is a
+// WHY: this page is written as a class, but the router page contract (core/router.ts) is a
 // plain function `(container, ctx) => cleanup?`. Calling a class without `new` throws, so the
 // default export adapts the two — mount() is fire-and-forget async, unmount() is the cleanup.
 export default function mountCartInsightsPage(root, ctx = {}) {

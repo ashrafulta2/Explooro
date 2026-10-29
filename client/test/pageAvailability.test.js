@@ -4,7 +4,7 @@
  * WHY each one exists:
  *
  *  1. Nav guard == route guard (docs/super-admin-audit.md §5 invariant 1). Sidebar.ts,
- *     CommandPalette.ts and core/router.js (through main.js) must all decide visibility with
+ *     CommandPalette.ts and core/router.ts (through main.js) must all decide visibility with
  *     resolvePageAccess(), not with a copy of the rules. A second copy is how a page ends up
  *     hidden from the sidebar but still reachable by typing its name into the palette — the layer
  *     then looks like it works and does not.
@@ -65,7 +65,7 @@ describe('page availability — the shared resolver is the only implementation',
   });
 
   it('the router checks page availability AFTER the permission and module guards', () => {
-    const src = read('src/core/router.js');
+    const src = read('src/core/router.ts');
     const guardAt = src.indexOf('const reason = guardFailure(');
     const pageAt = src.indexOf('pageState = resolvePageState(');
     assert.ok(guardAt > -1 && pageAt > -1);

@@ -1389,7 +1389,7 @@ export const GALLERY_GROUPS = [
 /**
  * Builds the registry. Overlay-based entries (Modal/Drawer) attach nodes to `document.body`
  * rather than the returned section — `detachedNodes` collects every one of them so GalleryPage
- * can remove them on navigation away, the same lifecycle contract core/router.js's `cleanup`
+ * can remove them on navigation away, the same lifecycle contract core/router.ts's `cleanup`
  * expects of every page module.
  *
  * Entries are declared grouped, in the same order as GALLERY_GROUPS above — keep it that way so

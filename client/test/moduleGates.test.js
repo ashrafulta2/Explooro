@@ -2,7 +2,7 @@
  * moduleGates.test.js — locks the invariant that every module key a route is gated on has an
  * entry in appStore's DEMO_MODULES.
  *
- * WHY this exists: core/router.js's hasModule() is strict (`ctx.modules[key] === true`), so a
+ * WHY this exists: core/router.ts's hasModule() is strict (`ctx.modules[key] === true`), so a
  * module key that is merely ABSENT reads as disabled and the route silently redirects to `/` with
  * no console error and no 404 — the failure mode looks like "the admin page renders the home
  * page". `supplier_verification` shipped that way and took out five routes, including

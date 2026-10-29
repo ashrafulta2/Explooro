@@ -31,7 +31,7 @@ export default function SupplierScorecardPage(root: HTMLElement) {
   body.append(Skeleton({ height: '220px' }));
   container.append(header, body);
   // WHY mounted here: the router calls `page(root)` and does not append a returned node. A page that
-  // only returns its element renders blank (core/router.js "Page module contract").
+  // only returns its element renders blank (core/router.ts "Page module contract").
   root.append(container);
 
   function rulesCard(rules) {

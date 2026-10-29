@@ -1,8 +1,8 @@
 /**
- * pages/types.ts — the contract between core/router.js and every page module.
+ * pages/types.ts — the contract between core/router.ts and every page module.
  *
  * The router calls `mod.default(root, { params, query, navigate })` and keeps whatever the page
- * returns as its cleanup (core/router.js, the doc comment above `createRouter`).
+ * returns as its cleanup (core/router.ts, the doc comment above `createRouter`).
  */
 
 /** What the router hands a page as its second argument. */

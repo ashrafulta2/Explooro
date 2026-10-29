@@ -1,7 +1,7 @@
 /**
  * ComingSoonPage — what a page set to COMING_SOON renders instead of itself.
  *
- * core/router.js swaps this in for the matched route (keeping its title, so the browser tab still
+ * core/router.ts swaps this in for the matched route (keeping its title, so the browser tab still
  * names the page the user clicked) when services/pageAccess.ts resolves COMING_SOON for them. The
  * nav item stays visible with a badge, which is the difference between this state and HIDDEN: the
  * user is being told "this is coming", not being left to wonder whether it exists.

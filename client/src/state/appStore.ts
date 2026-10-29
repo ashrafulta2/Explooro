@@ -124,7 +124,7 @@ const DEMO_MODULES = {
   quick_buy: true,
   // WHY: Prompt 7.5's KYC routes (/admin/verification, /admin/users/verification, /moderator/kyc,
   // /seller/kyc, /account/kyc) declare `module: 'supplier_verification'`, but the key was never
-  // added here. core/router.js's hasModule() is strict — `ctx.modules[key] === true`, an absent
+  // added here. core/router.ts's hasModule() is strict — `ctx.modules[key] === true`, an absent
   // key is NOT "enabled by default" the way featureFlags.ts's isFeatureEnabled() treats it — so
   // all five routes failed their module guard and silently redirected to `/`. In mock mode nothing
   // ever repairs this: initFeatureFlags() fetches GET /modules, mocks/index.ts has no handler for

@@ -152,7 +152,7 @@ export function createCommandPalette({ getState }: { getState: () => PaletteStat
     const { ctx } = getState();
     const q = query.trim();
 
-    // The page-availability check is the same resolvePageAccess() Sidebar.ts and core/router.js
+    // The page-availability check is the same resolvePageAccess() Sidebar.ts and core/router.ts
     // use (super-admin-audit §5 invariant 1): a page the super admin has HIDDEN must not be
     // reachable by typing its name either, or the palette becomes the hole in the whole layer.
     const visible = navItems.filter(

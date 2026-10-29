@@ -7,7 +7,7 @@
  * entry in the history stack (opened from a typed URL, a bookmark, a shared link, or an external
  * site), `history.back()` would leave Explooro or dead-end, so route to `fallback` instead.
  *
- * Depth is read from `history.state.idx`, which core/router.js stamps on every pushState and the
+ * Depth is read from `history.state.idx`, which core/router.ts stamps on every pushState and the
  * browser preserves across a reload — so refreshing a deep page keeps Back working.
  */
 import { t, getLanguage } from '../services/i18n.ts';

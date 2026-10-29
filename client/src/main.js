@@ -13,7 +13,7 @@
 import './styles/main.css';
 
 // Prompt 1.5 — router, store, api-client.
-import { createRouter } from './core/router.js';
+import { createRouter } from './core/router.ts';
 import { captureTouchFromQuery } from './services/attribution.ts';
 import { installPageInfo } from './services/pageInfo.ts';
 import { appStore } from './state/appStore.ts';

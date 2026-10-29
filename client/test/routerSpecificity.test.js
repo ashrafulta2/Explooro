@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { pickRoute } from '../src/core/router.js';
+import { pickRoute } from '../src/core/router.ts';
 
 const routes = [
   { path: '/admin/users', id: 'list' },

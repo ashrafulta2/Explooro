@@ -1,5 +1,5 @@
 ﻿/**
- * router.js — hash-free History API router.
+ * router.ts — hash-free History API router.
  *
  * Responsibility: URL <-> page with zero full-page reloads (Prompt 1.5 ACCEPTANCE). Route
  * matching, guards, lazy loading and scroll restoration are hand-rolled — no external dependency
@@ -33,10 +33,62 @@
  */
 
 import { stylesPending } from './styleGate.ts';
+import type { PageContext } from '../pages/types.ts';
+
+export type RouteParams = Record<string, string>;
+
+/** One entry of the route table. `permission` and `module` are required keys (see the note above). */
+export interface Route {
+  path: string;
+  title?: string | (() => string);
+  requiresAuth?: boolean;
+  roles?: string[];
+  permission: string | null;
+  module: string;
+  load: () => Promise<{ default: (container: HTMLElement, ctx: PageContext) => unknown }>;
+}
+
+/** What the router reads from the viewer: the shape `main.js` builds from the store. */
+export interface AuthContext {
+  isAuthenticated?: boolean;
+  role?: string | null;
+  permissions?: string[];
+  modules?: Record<string, boolean>;
+  [key: string]: unknown;
+}
+
+export type GuardReason = 'auth' | 'role' | 'permission' | 'module';
+export type PageState = 'LIVE' | 'COMING_SOON' | 'HIDDEN';
+
+export interface RouterOptions {
+  root: HTMLElement;
+  routes: Route[];
+  notFound: Route;
+  beforeEach?: (info: { path: string; route: Route; params: RouteParams; query: Record<string, string> }) => void;
+  getAuthContext?: () => AuthContext;
+  /** Returns the redirect target for a failed guard, or nothing to use the default. */
+  onGuardFail?: (reason: GuardReason, route: Route, ctx: AuthContext) => string | null | undefined;
+  loginPath?: string;
+  resolvePageState?: (route: Route, ctx: AuthContext) => PageState | null | undefined;
+  comingSoonRoute?: Partial<Route> | null;
+}
+
+export interface Router {
+  start(): Promise<void>;
+  stop(): void;
+  navigate(path: string, options?: { replace?: boolean }): Promise<void>;
+  refresh(): Promise<void> | undefined;
+}
+
+interface RenderOptions {
+  key?: string;
+  isPopstate?: boolean;
+  preserveScroll?: boolean;
+}
 
 /** Matches `pathname` against a route `pattern`, returning `null` or the extracted params. */
-export function matchPath(pattern, pathname) {
-  const paramNames = [];
+export function matchPath(pattern: string, pathname: string): RouteParams | null {
+  const paramNames: string[] = [];
   const segments = pattern
     .split('/')
     .filter(Boolean)
@@ -54,7 +106,7 @@ export function matchPath(pattern, pathname) {
   const match = regex.exec(normalized || '/');
   if (!match) return null;
 
-  const params = {};
+  const params: RouteParams = {};
   paramNames.forEach((name, i) => {
     if (match[i + 1] !== undefined) params[name] = decodeURIComponent(match[i + 1]);
   });
@@ -71,8 +123,8 @@ export function matchPath(pattern, pathname) {
  * and nothing failed loudly — the wrong page just rendered. Requiring authors to remember to put
  * every static sibling above its `:id` route is a rule that gets broken silently.
  */
-export function pickRoute(routes, pathname) {
-  let best = null;
+export function pickRoute(routes: Route[], pathname: string): { route: Route; params: RouteParams } | null {
+  let best: { route: Route; params: RouteParams } | null = null;
   let bestDynamic = Infinity;
   for (const route of routes) {
     const params = matchPath(route.path, pathname);
@@ -87,15 +139,15 @@ export function pickRoute(routes, pathname) {
   return best;
 }
 
-export function parseQuery(search) {
+export function parseQuery(search: string): Record<string, string> {
   return Object.fromEntries(new URLSearchParams(search));
 }
 
-function hasPermission(ctx, key) {
+function hasPermission(ctx: AuthContext, key: string | null): boolean {
   return !key || (ctx.permissions ?? []).includes(key);
 }
 
-function hasModule(ctx, key) {
+function hasModule(ctx: AuthContext, key: string | null): boolean {
   return !key || key === 'core' || ctx.modules?.[key] === true;
 }
 
@@ -112,11 +164,13 @@ export function createRouter({
   // 'LIVE' | 'COMING_SOON' | 'HIDDEN'; the default keeps the router usable standalone and in tests.
   resolvePageState = () => 'LIVE',
   comingSoonRoute = null,
-} = {}) {
+}: RouterOptions): Router {
   if (!root) throw new Error('createRouter requires a root element');
   if (!notFound) throw new Error('createRouter requires a notFound route');
 
-  for (const route of routes) {
+  // WHY the widening: both keys are required by `Route`, so TypeScript would narrow the `in` checks to
+  // `never`; this loop exists to catch the JavaScript callers (and tests) that leave one out.
+  for (const route of routes as Partial<Route>[]) {
     if (!('permission' in route)) {
       throw new Error(
         `Route "${route.path}" is missing an explicit "permission" field (use null for "none required"). ` +
@@ -131,14 +185,14 @@ export function createRouter({
     }
   }
 
-  let current = null; // { cleanup, key }
-  const scrollPositions = new Map();
+  let current: { cleanup: (() => void) | null; key: string } | null = null;
+  const scrollPositions = new Map<string, number>();
 
-  function findRoute(pathname) {
+  function findRoute(pathname: string) {
     return pickRoute(routes, pathname);
   }
 
-  function guardFailure(route, ctx) {
+  function guardFailure(route: Route, ctx: AuthContext): GuardReason | null {
     if (route.requiresAuth && !ctx.isAuthenticated) return 'auth';
     if (route.roles && (!ctx.role || (!route.roles.includes(ctx.role) && !(ctx.role === 'super_admin' && route.roles.includes('admin')) && !(ctx.role === 'admin' && route.roles.includes('super_admin'))))) return 'role';
     if (route.permission && !hasPermission(ctx, route.permission)) return 'permission';
@@ -152,7 +206,7 @@ export function createRouter({
   // mount; an older one that wakes up after a newer one started drops its result.
   let renderSeq = 0;
 
-  async function render(pathname, search, { key, isPopstate = false, preserveScroll = false } = {}) {
+  async function render(pathname: string, search: string, { key, isPopstate = false, preserveScroll = false }: RenderOptions = {}): Promise<void> {
     const seq = ++renderSeq;
     const matched = findRoute(pathname);
     const ctx = getAuthContext();
@@ -160,7 +214,7 @@ export function createRouter({
     // 'LIVE' unless the super admin has parked this page. HIDDEN falls through to notFound below
     // rather than redirecting: a hidden page must be indistinguishable from one that was never
     // built, and a redirect to `/` announces that something is there.
-    let pageState = 'LIVE';
+    let pageState: PageState = 'LIVE';
 
     if (matched) {
       const reason = guardFailure(matched.route, ctx);
@@ -180,13 +234,13 @@ export function createRouter({
       current = null;
     }
 
-    let { route, params } = matched ?? { route: notFound, params: {} };
+    let { route, params } = matched ?? { route: notFound, params: {} as RouteParams };
     if (matched && pageState === 'HIDDEN') {
       route = notFound;
       params = {};
     } else if (matched && pageState === 'COMING_SOON' && comingSoonRoute) {
       // Keeps the matched route's title so the browser tab still names the page the user clicked.
-      route = { ...comingSoonRoute, title: route.title, path: route.path };
+      route = { ...comingSoonRoute, title: route.title, path: route.path } as Route;
     }
 
     const query = parseQuery(search);
@@ -212,7 +266,7 @@ export function createRouter({
     // WHY: a page that returns something else (an element it built but never mounted, a promise)
     // used to be stored as `cleanup` and then *called* on the next navigation — throwing mid-render
     // and wedging the router for the rest of the session. Only a function is a cleanup.
-    const mounted = { cleanup: typeof result === 'function' ? result : null, key };
+    const mounted = { cleanup: typeof result === 'function' ? (result as () => void) : null, key };
     current = mounted;
 
     // WHY: a page that lazy-loads its own CSS mounts markup in the same tick, so the first visit per
@@ -238,7 +292,7 @@ export function createRouter({
     return render(window.location.pathname, window.location.search, { key: current.key, preserveScroll: true });
   }
 
-  function navigate(path, { replace = false } = {}) {
+  function navigate(path: string, { replace = false }: { replace?: boolean } = {}): Promise<void> {
     const url = new URL(path, window.location.origin);
     const key = crypto.randomUUID();
     // `idx` is the depth of this entry in the session's history stack — a push deepens it, a
@@ -262,10 +316,10 @@ export function createRouter({
     render(window.location.pathname, window.location.search, { key, isPopstate: true });
   }
 
-  function onClick(event) {
+  function onClick(event: MouseEvent) {
     if (event.defaultPrevented || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const anchor = event.target.closest('a[href]');
+    const anchor = (event.target as Element).closest<HTMLAnchorElement>('a[href]');
     if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return;
     if (anchor.dataset.external !== undefined) return;
     const url = new URL(anchor.href, window.location.href);

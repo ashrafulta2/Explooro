@@ -206,7 +206,7 @@ The 35 most likely change requests, with exact paths.
 
 | I want to… | Change |
 | :--- | :--- |
-| Add a page | `pages/<role>/<Name>Page.js` → register in `core/router.js` → add to `config/navigation.js` with its `permission` + `module` |
+| Add a page | `pages/<role>/<Name>Page.js` → register in `core/router.ts` → add to `config/navigation.js` with its `permission` + `module` |
 | Change what an ad format costs | **Configuration, not code** — `/admin/growth/ad-pricing` edits the `ad_products.rate_card` JSONB behind `growth.ad.govern` (HIGH risk, delegable, so it can be handed to one staff member). Never a constant: `services/adPricing.ts` only ever reads a stored rate card |
 | Add a new kind of ad the platform sells | One `ad_products` row (see the seed block in `server/src/db/migrations/041_ad_marketplace.sql`). If it prices like one of the five existing models (CPC, CPM, FLAT_DAILY, FLAT_SLOT, CPS) that is the whole change — the shop partner's Ad Store, the wizard's fields and the quote engine all branch on `pricing_model`. A genuinely new *model* is the only case that touches `services/adPricing.ts` |
 | Fix an ad price that looks wrong | `server/src/services/adPricing.ts` — every ad price the platform quotes, charges or displays is computed there and nowhere else. `server/test/adPricing.test.js` states the invariants |

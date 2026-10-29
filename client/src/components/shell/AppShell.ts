@@ -2,7 +2,7 @@
  * AppShell — composes Sidebar + TopBar + MobileNav + CommandPalette around the routed page.
  *
  * Owns the one long-lived DOM structure (sidebar/topbar/mobilenav "slots" around a stable
- * `pageOutlet`) and re-renders the CHROME — never `pageOutlet` itself, which core/router.js owns
+ * `pageOutlet`) and re-renders the CHROME — never `pageOutlet` itself, which core/router.ts owns
  * — whenever appStore or the active language changes. `render()` is also exported so main.js's
  * router can call it from `beforeEach`: a route change doesn't touch appStore or i18n, so without
  * this the active-link highlight in Sidebar/MobileNav would go stale after every navigation.
@@ -108,7 +108,7 @@ export function createAppShell({ container, navigate }: { container: HTMLElement
   //
   // WHY it is injected rather than rendered by each page: ~100 portal pages own their headers, and a
   // control every one of them had to remember to render is one half of them would forget (System
-  // Health did). core/router.js empties `pageOutlet` on every navigation and pages re-render their
+  // Health did). core/router.ts empties `pageOutlet` on every navigation and pages re-render their
   // headers on tab switches and polling, so a MutationObserver re-attaches it; sync is idempotent so
   // its own insertion doesn't loop.
   let backRoot = null;

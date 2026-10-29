@@ -4,7 +4,7 @@
  * WHY registered at runtime instead of hand-listed here: the route table lives inside main.js's
  * async bootstrap (224 routes as of this writing, derived partly from navigation.js), and a second
  * hand-maintained copy of it is a copy that goes stale the first time someone adds a page and
- * forgets. main.js calls registerPages() with the exact array it hands core/router.js, so a new
+ * forgets. main.js calls registerPages() with the exact array it hands core/router.ts, so a new
  * route appears on the Page Availability screen with no extra step — the same reason main.js
  * derives its stub routes from navigation.js rather than listing them.
  *

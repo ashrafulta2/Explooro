@@ -9,7 +9,7 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createRouter } from '../src/core/router.js';
+import { createRouter } from '../src/core/router.ts';
 
 function installDom() {
   const location = { pathname: '/', search: '', hash: '', origin: 'http://localhost', href: 'http://localhost/' };

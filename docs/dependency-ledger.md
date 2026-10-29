@@ -79,7 +79,7 @@ Each of these is a library we did **not** install. The size column is why.
 
 | What | Where | Typical library cost | Ours |
 | :--- | :--- | ---: | ---: |
-| Router | `client/src/core/router.js` | react-router ~20KB | ~150 lines |
+| Router | `client/src/core/router.ts` | react-router ~20KB | ~150 lines |
 | State store | `client/src/core/store.ts` | Redux + toolkit ~40KB | ~80 lines |
 | HTTP client | `client/src/core/api.ts` | axios ~14KB | ~200 lines |
 | i18n | `client/src/services/i18n.ts` | i18next ~40KB | ~120 lines |

@@ -199,7 +199,7 @@ export function openNotificationCenter({ trigger = null, onUnreadCountChanged = 
           }
           if (viaLink) return;
           // WHY pushState and not location.hash: the app is on the History API router
-          // (core/router.js matches pathname), so a hash write changed the URL fragment and
+          // (core/router.ts matches pathname), so a hash write changed the URL fragment and
           // navigated nowhere.
           drawerInstance.closeDrawer();
           history.pushState({}, '', notif.data_json.linkUrl as string);

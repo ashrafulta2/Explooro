@@ -3,10 +3,10 @@
  *
  * Responsibility: give core/api.ts something to resolve against when VITE_API_MODE=mock, so the
  * whole app is previewable before the backend (Phase 2+) exists. Each handler module registers
- * `{ method, path, handler(ctx) }` entries; `path` is matched the same way core/router.js matches
+ * `{ method, path, handler(ctx) }` entries; `path` is matched the same way core/router.ts matches
  * page routes, reusing its `matchPath` so the two systems agree on `:param` syntax.
  */
-import { matchPath, parseQuery } from '../core/router.js';
+import { matchPath, parseQuery } from '../core/router.ts';
 import productHandlers from './handlers/products.ts';
 import discoveryHandlers from './handlers/discovery.ts';
 import storeHandlers from './handlers/stores.ts';
