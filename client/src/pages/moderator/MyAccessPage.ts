@@ -1,5 +1,5 @@
 ﻿/**
- * MyAccessPage.js — Moderator Personal Access & Permission Dashboard (Prompt 7.7).
+ * MyAccessPage.ts — Moderator Personal Access & Permission Dashboard (Prompt 7.7).
  *
  * Implements:
  * 1. Current Role & Permission Summary — shows the moderator assigned role and all
@@ -42,7 +42,7 @@ const RISK_COLORS = {
   HIGH:   { bg: 'var(--danger-100,#fee2e2)',  text: 'var(--danger-700,#b91c1c)',  border: 'var(--danger-300,#fca5a5)',  labelKey: 'mod_access.risk_high' },
 };
 
-export default function MyAccessPage(root) {
+export default function MyAccessPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'my-access-page';
   container.style.cssText = `

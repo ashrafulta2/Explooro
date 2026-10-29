@@ -1,5 +1,5 @@
 /**
- * AdvertisePage.js — anyone can advertise, in three plain steps (/advertise, Phase C, migration 087).
+ * AdvertisePage.ts — anyone can advertise, in three plain steps (/advertise, Phase C, migration 087).
  *
  *   1. What to promote — one of your community posts, your store, or a product (only what you own).
  *   2. Who sees it      — everyone, or chosen people: account type, gender, division, interests,
@@ -29,14 +29,14 @@ const DRAFT_KEY = 'explooro:advertise:draft';
 const BUDGET_PRESETS = [200, 500, 1000, 2000];
 const DAY_PRESETS = [3, 7, 14];
 
-const el = (tag, cls, text) => {
+const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: string): HTMLElementTagNameMap[K] => {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
   if (text !== undefined) n.textContent = text;
   return n;
 };
 
-export default function AdvertisePage(root) {
+export default function AdvertisePage(root: HTMLElement) {
   const isBn = getLanguage() === 'bn';
   const name = (o) => (isBn && o?.name_bn ? o.name_bn : o?.name_en) || '';
   const page = el('div', 'advertise-page');

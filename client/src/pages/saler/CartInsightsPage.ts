@@ -1,5 +1,5 @@
 /**
- * CartInsightsPage.js — Abandoned Cart Recovery & Analytics (Prompt 9.6).
+ * CartInsightsPage.ts — Abandoned Cart Recovery & Analytics (Prompt 9.6).
  *
  * Implements:
  * 1. Executive KPIs: Abandonment Rate, Abandoned Value, Recovered Carts, Recovered Revenue.
@@ -13,8 +13,14 @@ import { api } from '../../core/api.ts';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { Modal } from '../../components/ui/Modal.ts';
+import type { PageContext } from '../types.ts';
 
 export class CartInsightsPage {
+  insights: any = null;
+  loading = true;
+  rootEl: HTMLElement | null = null;
+  unsubscribeLang: (() => void) | null = null;
+
   constructor() {
     this.insights = null;
     this.loading = true;
@@ -301,7 +307,7 @@ export class CartInsightsPage {
   }
 
   _attachEvents(isBn) {
-    const btnSweep = this.rootEl.querySelector('#btn-run-sweep');
+    const btnSweep = this.rootEl.querySelector<HTMLButtonElement>('#btn-run-sweep');
     if (btnSweep) {
       btnSweep.addEventListener('click', async () => {
         btnSweep.disabled = true;
@@ -375,7 +381,7 @@ export class CartInsightsPage {
     modalBackdrop.open(document.activeElement);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
 
-    const rangeInput = modalBackdrop.querySelector('input[name="discount_pct"]');
+    const rangeInput = modalBackdrop.querySelector<HTMLInputElement>('input[name="discount_pct"]');
     const preview = modalBackdrop.querySelector('#discount-preview');
     rangeInput.addEventListener('input', () => {
       preview.textContent = `${rangeInput.value}%`;
@@ -402,7 +408,7 @@ export class CartInsightsPage {
 // WHY: this page is written as a class, but the router page contract (core/router.ts) is a
 // plain function `(container, ctx) => cleanup?`. Calling a class without `new` throws, so the
 // default export adapts the two — mount() is fire-and-forget async, unmount() is the cleanup.
-export default function mountCartInsightsPage(root, ctx = {}) {
+export default function mountCartInsightsPage(root: HTMLElement, ctx: PageContext = {}) {
   const page = new CartInsightsPage();
   page.mount(root);
   return () => page.unmount();

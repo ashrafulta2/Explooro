@@ -1,5 +1,5 @@
 /**
- * ChatPage.js — Real-Time Chat Workspace (Prompt 8.4 / DFD Subsystem 7.0 & PRD Gap #7).
+ * ChatPage.ts — Real-Time Chat Workspace (Prompt 8.4 / DFD Subsystem 7.0 & PRD Gap #7).
  *
  * Implements:
  * - Thread list with search, unread badges, and role indicators.
@@ -17,10 +17,12 @@ import { Button } from '../components/ui/Button.ts';
 import { api } from '../core/api.ts';
 import { getCurrentUser } from '../services/session.ts';
 import { wsManager, WS_STATUS } from '../services/websocket.ts';
+import type { WsStatus } from '../services/websocket.ts';
 import { t } from '../services/i18n.ts';
 import { toast } from '../services/toast.ts';
+import type { PageContext } from './types.ts';
 
-export default function ChatPage(root, { params, query, navigate } = {}) {
+export default function ChatPage(root: HTMLElement, { params, query, navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'chat-page-container';
 
@@ -28,14 +30,14 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
   const targetProductRef = query?.productRef || query?.ref || null;
   const targetProductTitle = query?.productTitle || query?.title || null;
 
-  let currentUserId = 1;
+  let currentUserId: string | number = 1;
   let threads = [];
   let selectedThread = null;
   let messages = [];
   let isTyping = false;
   let typingUser = null;
   let typingTimer = null;
-  let connectionStatus = WS_STATUS.DISCONNECTED;
+  let connectionStatus: WsStatus = WS_STATUS.DISCONNECTED;
 
   // Initialize layout skeleton
   container.innerHTML = `
@@ -254,7 +256,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
         message: msg,
         isOutgoing,
         currentUserId,
-        onRetry: (failedMsg) => handleSendMessage(failedMsg.content, failedMsg.client_msg_id),
+        onRetry: (failedMsg) => handleSendMessage(failedMsg.content, (failedMsg as { client_msg_id?: string }).client_msg_id),
       });
       streamBox.appendChild(bubble);
     });
@@ -375,8 +377,8 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
         label: t('chat.btn_insert_card') || 'Insert Product Card',
         variant: 'primary',
         onClick: async () => {
-          const prodId = parseInt(modalBody.querySelector('#modal-prod-id').value, 10);
-          const note = modalBody.querySelector('#modal-prod-note').value;
+          const prodId = parseInt(modalBody.querySelector<HTMLInputElement>('#modal-prod-id').value, 10);
+          const note = modalBody.querySelector<HTMLInputElement>('#modal-prod-note').value;
 
           if (!prodId) {
             toast.error('Invalid product ID');
@@ -437,7 +439,7 @@ export default function ChatPage(root, { params, query, navigate } = {}) {
         msg.status = 'FAILED';
         renderActiveConversation();
       }
-      toast.error(frame.reasonEn || frame.message || t('chat.send_failed') || 'Message could not be sent.');
+      toast.error((frame as unknown as { reasonEn?: string }).reasonEn || (frame as unknown as { message?: string }).message || t('chat.send_failed') || 'Message could not be sent.');
     }
 
     // Read receipt: the peer opened the thread, so our messages up to that id become ✓✓

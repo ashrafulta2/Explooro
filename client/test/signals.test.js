@@ -421,7 +421,7 @@ describe('wiring — every surface reports through the one tracker, once', () =>
   });
 
   it('the product page reports a VIEW and times the visit, stopping the timer on leave', () => {
-    const pdp = src('pages/ProductDetailPage.js');
+    const pdp = src('pages/ProductDetailPage.ts');
     assert.match(pdp, /track\('VIEW', product/);
     assert.match(pdp, /cleanups\.push\(startDwell\(product/);
   });

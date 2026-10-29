@@ -1,7 +1,7 @@
 /**
  * language-settings.css — /admin/platform/language and its LocaleChoiceCard.
  *
- * Imported by pages/admin/LanguageSettingsPage.js ONLY, never by main.css. That keeps it in the
+ * Imported by pages/admin/LanguageSettingsPage.ts ONLY, never by main.css. That keeps it in the
  * route's own chunk instead of the entry bundle, which is where the CSS budget is measured
  * (CLAUDE.md constraint 8). Importing it in both places would ship it twice with no warning —
  * the exact mistake customer-orders.css made.

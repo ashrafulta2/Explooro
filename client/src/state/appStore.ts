@@ -117,7 +117,7 @@ const DEMO_MODULES = {
   discovery_feed: true,
   community_posts: true,
   cart_recovery: true,
-  // Prompt 4.6: gates the "1-Click Quick Buy" CTA on ProductDetailPage.js. Not referenced by any
+  // Prompt 4.6: gates the "1-Click Quick Buy" CTA on ProductDetailPage.ts. Not referenced by any
   // navigation.js item (it's a product-detail affordance, not a nav entry) — added here anyway so
   // the comment above ("every module key navigation.js references") is now slightly stale for this
   // one key; every OTHER key in this object still is.

@@ -1,5 +1,5 @@
 /**
- * advertiseWizard.ts — the pure parts of the Boost wizard (pages/AdvertisePage.js): the request it
+ * advertiseWizard.ts — the pure parts of the Boost wizard (pages/AdvertisePage.ts): the request it
  * sends and when a step may move on. No DOM and no stylesheet, so tests import it directly.
  */
 

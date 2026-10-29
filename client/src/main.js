@@ -160,8 +160,8 @@ async function bootRouterDemo() {
       // Prompt 4.4 (plan A): TopBar search results page.
       { path: '/search', title: 'Search — Explooro', permission: null, module: 'core', load: () => import('./pages/SearchResultsPage.ts') },
       // Prompt 4.6: real product detail page replaces the Prompt 1.5 stub.
-      { path: '/product/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
-      { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
+      { path: '/product/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.ts') },
+      { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.ts') },
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
       { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.ts') },
       // A shop partner's tracked short link: counts the click, remembers the partner, then opens the target.
@@ -401,7 +401,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.localization.view',
         module: 'core',
-        load: () => import('./pages/admin/LanguageSettingsPage.js'),
+        load: () => import('./pages/admin/LanguageSettingsPage.ts'),
       },
       {
         path: '/admin/language',
@@ -409,7 +409,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.localization.view',
         module: 'core',
-        load: () => import('./pages/admin/LanguageSettingsPage.js'),
+        load: () => import('./pages/admin/LanguageSettingsPage.ts'),
       },
       // Popup genie effect governance. Same key pair pattern as Language: `.view` gates the page and
       // the sidebar entry, `.update` gates Save. No `module` beyond `core` — a governance surface a
@@ -822,7 +822,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/CustomerDashboardPage.js'),
+        load: () => import('./pages/customer/CustomerDashboardPage.ts'),
       },
       {
         path: '/customer',
@@ -830,7 +830,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/CustomerDashboardPage.js'),
+        load: () => import('./pages/customer/CustomerDashboardPage.ts'),
       },
       {
         path: '/account/orders',
@@ -1001,7 +1001,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.warehouse.govern',
         module: 'multi_warehouse',
-        load: () => import('./pages/admin/WarehousesPage.js'),
+        load: () => import('./pages/admin/WarehousesPage.ts'),
       },
       {
         path: '/admin/warehouses',
@@ -1009,7 +1009,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.warehouse.govern',
         module: 'multi_warehouse',
-        load: () => import('./pages/admin/WarehousesPage.js'),
+        load: () => import('./pages/admin/WarehousesPage.ts'),
       },
 
       // Admin Orders & Logistics (Orders Central, Courier Hub)
@@ -1103,7 +1103,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.quest.govern',
         module: 'daily_quests',
-        load: () => import('./pages/admin/AdminQuestsPage.js'),
+        load: () => import('./pages/admin/AdminQuestsPage.ts'),
       },
       {
         path: '/admin/quests',
@@ -1111,7 +1111,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.quest.govern',
         module: 'daily_quests',
-        load: () => import('./pages/admin/AdminQuestsPage.js'),
+        load: () => import('./pages/admin/AdminQuestsPage.ts'),
       },
       {
         path: '/admin/growth/coins',
@@ -1122,7 +1122,7 @@ async function bootRouterDemo() {
         // liability screen down, and switching `loyalty_coins` off left it reachable. navigation.js
         // and server/src/config/modules.seed.json both say loyalty_coins owns this route.
         module: 'loyalty_coins',
-        load: () => import('./pages/admin/AdminQuestsPage.js'),
+        load: () => import('./pages/admin/AdminQuestsPage.ts'),
       },
       {
         path: '/admin/growth/group-buy',
@@ -1397,7 +1397,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'admin.approval.decide',
         module: 'core',
-        load: () => import('./pages/admin/ApprovalInboxPage.js'),
+        load: () => import('./pages/admin/ApprovalInboxPage.ts'),
       },
       {
         path: '/admin/restrictions',
@@ -1422,7 +1422,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.audit.view',
         module: 'core',
-        load: () => import('./pages/admin/AuditLogPage.js'),
+        load: () => import('./pages/admin/AuditLogPage.ts'),
       },
       {
         path: '/admin/audit',
@@ -1430,7 +1430,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.audit.view',
         module: 'core',
-        load: () => import('./pages/admin/AuditLogPage.js'),
+        load: () => import('./pages/admin/AuditLogPage.ts'),
       },
       // Prompt 3.5: Theme & Color Studio
       {
@@ -1746,7 +1746,7 @@ async function bootRouterDemo() {
         roles: ['admin', 'moderator', 'editor', 'super_admin'],
         permission: null,
         module: 'core',
-        load: () => import('./pages/moderator/MyAccessPage.js'),
+        load: () => import('./pages/moderator/MyAccessPage.ts'),
       },
       // Prompt 7.7-A: Moderator Penalties & Suspensions
       {
@@ -1857,7 +1857,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'chat',
-        load: () => import('./pages/ChatPage.js'),
+        load: () => import('./pages/ChatPage.ts'),
       },
       // Vault top-up (migration 088): bKash, Nagad or a card, so anyone can pay for a Boost.
       {
@@ -1875,7 +1875,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.ad.manage_own',
         module: 'sponsored_ads',
-        load: () => import('./pages/AdvertisePage.js'),
+        load: () => import('./pages/AdvertisePage.ts'),
       },
       // Prompt 9.1: In-Platform Sponsored Ads Engine
       {
@@ -1987,7 +1987,7 @@ async function bootRouterDemo() {
         // "Referrals" in the admin sidebar opened a page offering the super admin their own referral
         // link and downline tree — no programme rules, no fraud queue, nothing they govern. Same
         // class of mistake as /moderator/live loading the customer live-shopping browse page.
-        load: () => import('./pages/admin/AdminReferralsPage.js'),
+        load: () => import('./pages/admin/AdminReferralsPage.ts'),
       },
       // Prompt 9.4: Loyalty Coins, Daily Quests & Leaderboard
       {
@@ -2062,7 +2062,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.analytics.view',
         module: 'cart_recovery',
-        load: () => import('./pages/saler/CartInsightsPage.js'),
+        load: () => import('./pages/saler/CartInsightsPage.ts'),
       },
       {
         path: '/cart/recover/:token',

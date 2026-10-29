@@ -40,7 +40,7 @@ test('every data-page-info marker sits on a <p> element', () => {
   const roots = ['../src/pages/', '../src/components/'];
   const files = [
     'AcademyPage.ts', 'StoriesFeedPage.ts', 'VaultPage.ts', 'admin/SettingsPage.js', 'admin/BackupPage.js',
-    'moderator/MyAccessPage.js', 'supplier/StoreStatusPage.js', 'saler/SalerDashboardPage.js',
+    'moderator/MyAccessPage.ts', 'supplier/StoreStatusPage.js', 'saler/SalerDashboardPage.js',
   ];
   for (const f of files) {
     const src = read(roots[0] + f);

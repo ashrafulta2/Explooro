@@ -1,5 +1,5 @@
 /**
- * ApprovalInboxPage.js — Single queue for Mode B (JIT) & Mode C (Maker-Checker) with Diffs & Keyboard Shortcuts (Prompt 3.3).
+ * ApprovalInboxPage.ts — Single queue for Mode B (JIT) & Mode C (Maker-Checker) with Diffs & Keyboard Shortcuts (Prompt 3.3).
  *
  * Implements:
  * 1. Human-understandable business capability titles with clear English and Bengali names.
@@ -38,7 +38,7 @@ function getFriendlyTitle(key) {
 
 const riskLabel = (tier) => t(`approvals.risk.${tier}`, tier);
 
-export default function ApprovalInboxPage(root) {
+export default function ApprovalInboxPage(root: HTMLElement) {
   const isBn = () => getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'approval-inbox';
@@ -250,7 +250,7 @@ export default function ApprovalInboxPage(root) {
     queueWrap.innerHTML = renderSkeleton();
 
     try {
-      const [jitRes, actionsRes] = await Promise.all([
+      const [jitRes, actionsRes]: Record<string, any>[] = await Promise.all([
         api.get('/access-requests', { query: { status: 'PENDING' } }).catch(() => ({ data: { requests: [] } })),
         api.get('/admin/pending-actions', { query: { status: 'PENDING' } }).catch(() => ({ data: { actions: [] } })),
       ]);
@@ -307,7 +307,7 @@ export default function ApprovalInboxPage(root) {
   }
 
   function focusActiveCard() {
-    const cards = queueWrap.querySelectorAll('.approval-card');
+    const cards = queueWrap.querySelectorAll<HTMLElement>('.approval-card');
     if (cards[focusedIndex]) {
       cards[focusedIndex].focus();
       cards[focusedIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });

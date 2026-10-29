@@ -1,5 +1,5 @@
 /**
- * WarehousesPage.js — Multi-Warehouse Network & Intelligent Routing Governance (Prompt 4.1 / Prompt 11.1).
+ * WarehousesPage.ts — Multi-Warehouse Network & Intelligent Routing Governance (Prompt 4.1 / Prompt 11.1).
  *
  * Implements:
  * 1. Multi-Warehouse Network Vitals (Total Nodes, Active Capacity, Total SKUs Stored, Avg Utilization).
@@ -19,8 +19,9 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatNumber } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
-export default function WarehousesPage(root, { navigate } = {}) {
+export default function WarehousesPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -144,25 +145,31 @@ export default function WarehousesPage(root, { navigate } = {}) {
       </div>
     `;
 
+    // WHY a footer: Modal has no `confirmLabel`, `cancelLabel` or `onConfirm`, so this dialog used to open
+    // with no Save and no Cancel button. Save runs the old `onConfirm` body; `return false` there kept the
+    // dialog open and `return true` closed it.
+    const footer = document.createDocumentFragment();
+    const saveBtn = Button({ label: isEdit ? (isBn ? 'সংরক্ষণ' : 'Save Changes') : (isBn ? 'যোগ করুন' : 'Add Warehouse'), variant: 'primary' });
+    footer.append(Button({ label: isBn ? 'বাতিল' : 'Cancel', variant: 'secondary', onClick: () => modal.close() }), saveBtn);
     const modal = Modal({
       title: isEdit ? (isBn ? 'ওয়্যারহাউস সম্পাদনা' : 'Edit Warehouse Node') : (isBn ? 'নতুন ওয়্যারহাউস যোগ' : 'Add Warehouse Node'),
       content,
-      confirmLabel: isEdit ? (isBn ? 'সংরক্ষণ' : 'Save Changes') : (isBn ? 'যোগ করুন' : 'Add Warehouse'),
-      cancelLabel: isBn ? 'বাতিল' : 'Cancel',
-      onConfirm: async () => {
+      footer,
+    });
+    saveBtn.addEventListener('click', async () => {
         const formData = new FormData(content);
-        const node_code = formData.get('node_code').trim();
+        const node_code = String(formData.get('node_code')).trim();
         const division = formData.get('division');
-        const name = formData.get('name').trim();
-        const address = formData.get('address').trim();
+        const name = String(formData.get('name')).trim();
+        const address = String(formData.get('address')).trim();
         const capacity_units = Number(formData.get('capacity_units')) || 50000;
         const current_units = Number(formData.get('current_units')) || 0;
-        const manager_name = formData.get('manager_name').trim();
-        const manager_phone = formData.get('manager_phone').trim();
+        const manager_name = String(formData.get('manager_name')).trim();
+        const manager_phone = String(formData.get('manager_phone')).trim();
 
         if (!node_code || !name || !address) {
           toast.error(isBn ? 'প্রয়োজনীয় তথ্যগুলো পূরণ করুন।' : 'Please fill all required fields.');
-          return false;
+          return;
         }
 
         if (isEdit) {
@@ -194,8 +201,7 @@ export default function WarehousesPage(root, { navigate } = {}) {
 
         computeStats();
         render();
-        return true;
-      },
+        modal.close();
     });
 
     document.body.append(modal);
@@ -358,9 +364,9 @@ export default function WarehousesPage(root, { navigate } = {}) {
     const searchInput = container.querySelector('#wh-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value;
+        searchQuery = (e.target as HTMLInputElement).value;
         render();
-        const input = root.querySelector('#wh-search-input');
+        const input = root.querySelector<HTMLInputElement>('#wh-search-input');
         if (input) {
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
@@ -369,11 +375,11 @@ export default function WarehousesPage(root, { navigate } = {}) {
     }
 
     container.querySelector('#division-filter-select')?.addEventListener('change', (e) => {
-      divisionFilter = e.target.value;
+      divisionFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
-    container.querySelectorAll('.edit-wh-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.edit-wh-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = Number(btn.getAttribute('data-id'));
         const wh = warehouses.find((w) => w.id === id);
@@ -381,7 +387,7 @@ export default function WarehousesPage(root, { navigate } = {}) {
       });
     });
 
-    container.querySelectorAll('.toggle-wh-status').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.toggle-wh-status').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = Number(btn.getAttribute('data-id'));
         const wh = warehouses.find((w) => w.id === id);

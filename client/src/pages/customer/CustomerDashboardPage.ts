@@ -1,5 +1,5 @@
 /**
- * CustomerDashboardPage.js — Low-Literacy Friendly Customer Portal & Command Hub (Prompt 11.3 / idea §AL.3).
+ * CustomerDashboardPage.ts — Low-Literacy Friendly Customer Portal & Command Hub (Prompt 11.3 / idea §AL.3).
  *
  * Implements:
  * 1. Icon-led navigation with large touch targets (48px+) and bilingual localization.
@@ -19,8 +19,9 @@ import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.ts';
+import type { PageContext } from '../types.ts';
 
-export default function CustomerDashboardPage(root, { navigate } = {}) {
+export default function CustomerDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {

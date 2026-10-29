@@ -51,7 +51,7 @@ Flutter app, and non-admin roles beyond the pages the admin sidebar links into.
 
 | # | Defect | Impact | Fix |
 | :-- | :--- | :--- | :--- |
-| P1 | `/admin/growth/referrals` loaded `pages/saler/ReferralHubPage.js` | Clicking "Referrals" gave the super admin **their own personal referral link and downline tree** — no programme rules, no fraud queue, nothing they govern. `docs/ia-sitemap.md` specifies this route as "Referral rules" | New `pages/admin/AdminReferralsPage.js`: programme health strip, tier/attribution rules, the self-referral and circular-referral controls Prompt 9.3 calls mandatory, and a flagged-referral queue with release/void decisions on held commission |
+| P1 | `/admin/growth/referrals` loaded `pages/saler/ReferralHubPage.js` | Clicking "Referrals" gave the super admin **their own personal referral link and downline tree** — no programme rules, no fraud queue, nothing they govern. `docs/ia-sitemap.md` specifies this route as "Referral rules" | New `pages/admin/AdminReferralsPage.ts`: programme health strip, tier/attribution rules, the self-referral and circular-referral controls Prompt 9.3 calls mandatory, and a flagged-referral queue with release/void decisions on held commission |
 | P2 | "Coupons" and "Campaigns" both opened `CampaignManagerPage` on its Flash Sales tab | Two sidebar items, one view. The coupon catalogue existed on a second tab the whole time | The page reads the path and opens the Coupons tab for `/admin/growth/coupons` |
 | P3 | "Coins" and "Quests" rendered the **identical** page, and the streak-multiplier inspector and leaderboard the file's own docstring promised were never built | `docs/ia-sitemap.md` specifies two distinct pages ("Coin & loyalty policy" / "Quests & leaderboard") | `AdminQuestsPage` now has two path-driven tabs: coin policy + streak curve, and quests + leaderboard |
 
@@ -263,7 +263,7 @@ route you are on, and clicking it lists and highlights each violation.
 **Routing & config** — `client/src/main.js` (guards, derived stub routes, translated titles),
 `client/src/config/navigation.js` (guard alignment, `ROLE_HOME` / `homePathForRoles`).
 
-**New page** — `client/src/pages/admin/AdminReferralsPage.js`, registered in
+**New page** — `client/src/pages/admin/AdminReferralsPage.ts`, registered in
 `client/src/pages/dev/gallery-registry.js`.
 
 **Mocks** — `client/src/mocks/handlers/admin.js` (module registry + persisted toggles + coin policy,

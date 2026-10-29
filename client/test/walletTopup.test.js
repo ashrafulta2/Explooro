@@ -52,7 +52,7 @@ describe('top-up strings and wiring', () => {
   });
 
   it('the Boost wizard links here with the shortfall and a way back, and keeps its draft', () => {
-    const src = read('../src/pages/AdvertisePage.js');
+    const src = read('../src/pages/AdvertisePage.ts');
     assert.ok(src.includes('/wallet/top-up?amount='));
     assert.ok(src.includes("encodeURIComponent('/advertise')"));
     assert.ok(src.includes('sessionStorage.setItem(DRAFT_KEY'));

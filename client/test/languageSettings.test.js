@@ -110,7 +110,7 @@ test('Language & Default Locale — client invariants', async (t) => {
       'the route guard must be the same key the nav guard uses'
     );
     assert.match(block, /module: 'core'/, 'the route module must be the same as the nav module');
-    assert.match(block, /LanguageSettingsPage\.js/);
+    assert.match(block, /LanguageSettingsPage\.ts/);
   });
 
   await t.test('3. Both permission keys exist in the catalog and the update key is delegable', () => {
@@ -149,7 +149,7 @@ test('Language & Default Locale — client invariants', async (t) => {
 
   await t.test('5. Every i18n key the page references resolves in both dictionaries', () => {
     const pageSrc = fs.readFileSync(
-      path.join(clientRoot, 'src', 'pages', 'admin', 'LanguageSettingsPage.js'),
+      path.join(clientRoot, 'src', 'pages', 'admin', 'LanguageSettingsPage.ts'),
       'utf8'
     );
     const keys = [...pageSrc.matchAll(/t\(\s*'([a-z0-9_]+(?:\.[a-z0-9_]+)+)'/g)].map((m) => m[1]);
@@ -258,7 +258,7 @@ test('Language & Default Locale — client invariants', async (t) => {
       'importing it here as well would ship the same CSS twice against the budget'
     );
     const pageSrc = fs.readFileSync(
-      path.join(clientRoot, 'src', 'pages', 'admin', 'LanguageSettingsPage.js'),
+      path.join(clientRoot, 'src', 'pages', 'admin', 'LanguageSettingsPage.ts'),
       'utf8'
     );
     assert.match(pageSrc, /styles\/components\/language-settings\.css/);

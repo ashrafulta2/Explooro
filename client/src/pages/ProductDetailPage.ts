@@ -35,6 +35,7 @@ import { updateHead, buildProductJsonLd } from '../services/seo.ts';
 import { api } from '../core/api.ts';
 import { openTeamPurchaseModal } from '../components/product/TeamPurchaseModal.ts';
 import { createBackButton, getBackDestination } from '../core/navBack.ts';
+import type { PageContext } from './types.ts';
 
 function applySeo(product, lang) {
   const title = lang === 'bn' ? (product.title_bn || product.title_en) : product.title_en;
@@ -119,7 +120,7 @@ function supplierCard(supplier, lang) {
   return card;
 }
 
-export default function ProductDetailPage(root, { params, navigate }) {
+export default function ProductDetailPage(root: HTMLElement, { params, navigate }: PageContext) {
   const cleanups = [];
   const lang = getLanguage();
   const { auth, modules } = appStore.get();

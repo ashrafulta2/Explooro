@@ -79,7 +79,7 @@ describe('advertise strings and wiring', () => {
   });
 
   it('every static key the page uses is defined', () => {
-    const src = read('../src/pages/AdvertisePage.js');
+    const src = read('../src/pages/AdvertisePage.ts');
     const keys = [...src.matchAll(/t\('advertise\.([a-z_.]+)'/g)].map((m) => m[1]).filter((k) => !k.endsWith('.') && !k.endsWith('_'));
     const has = (k) => k.split('.').reduce((o, part) => (o == null ? undefined : o[part]), en.advertise) !== undefined;
     for (const k of keys) assert.ok(has(k), k);
@@ -92,12 +92,12 @@ describe('advertise strings and wiring', () => {
       assert.match(nav, new RegExp(`path: '/advertise', group: '[a-z.]+', permission: 'growth\\.ad\\.manage_own', module: 'sponsored_ads', roles: \\['${role}'\\]`), role);
     }
     const main = read('../src/main.js');
-    const block = main.slice(main.indexOf("path: '/advertise'"), main.indexOf('AdvertisePage.js'));
+    const block = main.slice(main.indexOf("path: '/advertise'"), main.indexOf('AdvertisePage.ts'));
     assert.ok(block.includes("permission: 'growth.ad.manage_own'") && block.includes("module: 'sponsored_ads'"));
   });
 
   it('the page stylesheet ships in the route chunk, not the entry bundle', () => {
-    assert.ok(read('../src/pages/AdvertisePage.js').includes("import '../styles/components/advertise.css';"));
+    assert.ok(read('../src/pages/AdvertisePage.ts').includes("import '../styles/components/advertise.css';"));
     assert.ok(!read('../src/styles/main.css').includes('advertise.css'));
   });
 

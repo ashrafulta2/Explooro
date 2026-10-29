@@ -17,8 +17,8 @@ import { teamPurchaseHandlers } from '../src/mocks/handlers/teamPurchase.ts';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const enLoc = JSON.parse(readFileSync(join(root, 'src/locales/en.json'), 'utf8'));
 const bnLoc = JSON.parse(readFileSync(join(root, 'src/locales/bn.json'), 'utf8'));
-const pdpSrc = readFileSync(join(root, 'src/pages/ProductDetailPage.js'), 'utf8');
-const chatPageSrc = readFileSync(join(root, 'src/pages/ChatPage.js'), 'utf8');
+const pdpSrc = readFileSync(join(root, 'src/pages/ProductDetailPage.ts'), 'utf8');
+const chatPageSrc = readFileSync(join(root, 'src/pages/ChatPage.ts'), 'utf8');
 const teamModalSrc = readFileSync(join(root, 'src/components/product/TeamPurchaseModal.ts'), 'utf8');
 
 describe('Product Detail CTAs — Chat with Shop Partner & Team Purchase Invariants', () => {

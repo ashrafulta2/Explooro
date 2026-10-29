@@ -165,7 +165,7 @@ test('Prompts 3.3 & 3.4: Users, Access & Audit Explorer — Client Invariants', 
   await t.test('9. ApprovalInboxPage source contains modal isolation guard and WCAG AA contrast tokens', async () => {
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');
-    const pagePath = resolve(import.meta.dirname, '../src/pages/admin/ApprovalInboxPage.js');
+    const pagePath = resolve(import.meta.dirname, '../src/pages/admin/ApprovalInboxPage.ts');
     const pageSrc = readFileSync(pagePath, 'utf8');
 
     assert.ok(pageSrc.includes('modal-backdrop') || pageSrc.includes('role="dialog"'), 'Must guard against shortcuts leaking when modal is open');

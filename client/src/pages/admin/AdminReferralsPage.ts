@@ -1,5 +1,5 @@
 /**
- * AdminReferralsPage.js — Referral Programme Governance (Prompt 9.3, docs/ia-sitemap.md §admin.growth).
+ * AdminReferralsPage.ts — Referral Programme Governance (Prompt 9.3, docs/ia-sitemap.md §admin.growth).
  *
  * `/admin/growth/referrals` is specified as "Referral rules" and gated on `growth.referral.govern`,
  * but the route used to load pages/saler/ReferralHubPage.js — the SALER's personal earnings hub. A
@@ -37,7 +37,7 @@ const QUALIFY_EVENTS = [
   { value: 'KYC_VERIFIED', en: 'On KYC verified', bn: 'কেওয়াইসি যাচাই হলে' },
 ];
 
-export default function AdminReferralsPage(root) {
+export default function AdminReferralsPage(root: HTMLElement) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -83,16 +83,16 @@ export default function AdminReferralsPage(root) {
     }
   }
 
-  async function saveRules(form) {
+  async function saveRules(form: HTMLFormElement) {
     const next = {
-      tier_depth: Number(form.querySelector('#ref-tier-depth').value),
-      tier_1_rate_pct: Number(form.querySelector('#ref-tier1').value),
-      tier_2_rate_pct: Number(form.querySelector('#ref-tier2').value),
-      holding_period_days: Number(form.querySelector('#ref-holding').value),
-      qualify_on: form.querySelector('#ref-qualify-on').value,
-      signup_bonus_bdt: Number(form.querySelector('#ref-bonus-signup').value),
-      first_sale_bonus_bdt: Number(form.querySelector('#ref-bonus-first-sale').value),
-      kyc_bonus_bdt: Number(form.querySelector('#ref-bonus-kyc').value),
+      tier_depth: Number(form.querySelector<HTMLInputElement>('#ref-tier-depth').value),
+      tier_1_rate_pct: Number(form.querySelector<HTMLInputElement>('#ref-tier1').value),
+      tier_2_rate_pct: Number(form.querySelector<HTMLInputElement>('#ref-tier2').value),
+      holding_period_days: Number(form.querySelector<HTMLInputElement>('#ref-holding').value),
+      qualify_on: form.querySelector<HTMLInputElement>('#ref-qualify-on').value,
+      signup_bonus_bdt: Number(form.querySelector<HTMLInputElement>('#ref-bonus-signup').value),
+      first_sale_bonus_bdt: Number(form.querySelector<HTMLInputElement>('#ref-bonus-first-sale').value),
+      kyc_bonus_bdt: Number(form.querySelector<HTMLInputElement>('#ref-bonus-kyc').value),
     };
 
     // WHY validate here: a tier-2 rate above tier 1 inverts the incentive and a combined rate above
@@ -117,8 +117,8 @@ export default function AdminReferralsPage(root) {
     }
   }
 
-  async function saveFraudControls(form) {
-    const next = { velocity_cap_per_day: Number(form.querySelector('#ref-velocity').value) };
+  async function saveFraudControls(form: HTMLFormElement) {
+    const next = { velocity_cap_per_day: Number(form.querySelector<HTMLInputElement>('#ref-velocity').value) };
     try {
       const res = await api.patch('/admin/growth/referrals/rules', next);
       rules = { ...rules, ...((res.data || res).rules || next) };
@@ -401,7 +401,7 @@ export default function AdminReferralsPage(root) {
     `;
 
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
-    container.querySelectorAll('[data-decide]').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('[data-decide]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const f = flagged.find((x) => x.id === btn.dataset.ref);
         if (f) askDecision(f, btn.dataset.decide);
@@ -409,11 +409,11 @@ export default function AdminReferralsPage(root) {
     });
     container.querySelector('#ref-rules-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      saveRules(e.currentTarget);
+      saveRules(e.currentTarget as HTMLFormElement);
     });
     container.querySelector('#ref-fraud-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      saveFraudControls(e.currentTarget);
+      saveFraudControls(e.currentTarget as HTMLFormElement);
     });
     root.appendChild(container);
   }

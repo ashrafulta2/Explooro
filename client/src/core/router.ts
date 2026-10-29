@@ -13,7 +13,7 @@
  *     requiresAuth: false,
  *     permission: null,              // REQUIRED field (null = none). Checked against ctx.permissions
  *     module: 'core',                // REQUIRED field ('core' = always on). Checked against ctx.modules
- *     load: () => import('../pages/ProductDetailPage.js'),
+ *     load: () => import('../pages/ProductDetailPage.ts'),
  *   }
  *
  * `permission` and `module` must be present on every route — even as an explicit `null`/`'core'` —

@@ -1,5 +1,5 @@
 /**
- * advertise.css — the simple 3-step Boost wizard (/advertise, pages/AdvertisePage.js).
+ * advertise.css — the simple 3-step Boost wizard (/advertise, pages/AdvertisePage.ts).
  * Imported by the page module only, so it ships in the route chunk, never the entry bundle.
  */
 

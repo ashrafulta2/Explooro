@@ -1,5 +1,5 @@
 /**
- * AuditLogPage.js — Audit Explorer with Chain Integrity Banner, Diffs, Undo & CSV Export (Prompt 3.4).
+ * AuditLogPage.ts — Audit Explorer with Chain Integrity Banner, Diffs, Undo & CSV Export (Prompt 3.4).
  *
  * Implements:
  * 1. Cryptographic SHA-256 tamper-evident hash chain verification banner.
@@ -72,7 +72,7 @@ function getFriendlyActionTitle(actionKey, isBangla = false) {
     .join(' › ');
 }
 
-export default function AuditLogPage(root) {
+export default function AuditLogPage(root: HTMLElement) {
   const isBn = () => getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'audit-explorer';
@@ -149,7 +149,7 @@ export default function AuditLogPage(root) {
   actorInput.placeholder = t('audit_explorer.filter_actor', 'Filter by Staff / Actor...');
   actorInput.setAttribute('aria-label', 'Filter by actor');
   actorInput.addEventListener('input', (e) => {
-    filterActor = e.target.value.trim();
+    filterActor = (e.target as HTMLInputElement).value.trim();
     loadRecords(true);
   });
 
@@ -166,7 +166,7 @@ export default function AuditLogPage(root) {
     <option value="auth.login_password">Admin Session Sign-In</option>
   `;
   actionSelect.addEventListener('change', (e) => {
-    filterAction = e.target.value;
+    filterAction = (e.target as HTMLInputElement).value;
     loadRecords(true);
   });
 
@@ -182,7 +182,7 @@ export default function AuditLogPage(root) {
     <option value="SESSION">Auth Session</option>
   `;
   targetTypeSelect.addEventListener('change', (e) => {
-    filterTargetType = e.target.value;
+    filterTargetType = (e.target as HTMLInputElement).value;
     loadRecords(true);
   });
 
@@ -198,7 +198,7 @@ export default function AuditLogPage(root) {
     <option value="LOW">🟢 LOW</option>
   `;
   riskSelect.addEventListener('change', (e) => {
-    filterRisk = e.target.value;
+    filterRisk = (e.target as HTMLInputElement).value;
     loadRecords(true);
   });
 
@@ -209,7 +209,7 @@ export default function AuditLogPage(root) {
   startDateInput.title = 'Start Date';
   startDateInput.setAttribute('aria-label', 'Start date');
   startDateInput.addEventListener('change', (e) => {
-    filterStartDate = e.target.value;
+    filterStartDate = (e.target as HTMLInputElement).value;
     loadRecords(true);
   });
 
@@ -219,7 +219,7 @@ export default function AuditLogPage(root) {
   endDateInput.title = 'End Date';
   endDateInput.setAttribute('aria-label', 'End date');
   endDateInput.addEventListener('change', (e) => {
-    filterEndDate = e.target.value;
+    filterEndDate = (e.target as HTMLInputElement).value;
     loadRecords(true);
   });
 

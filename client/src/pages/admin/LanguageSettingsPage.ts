@@ -1,5 +1,5 @@
 /**
- * LanguageSettingsPage.js — Super Admin Language & Localization governance.
+ * LanguageSettingsPage.ts — Super Admin Language & Localization governance.
  *
  * Implements /admin/platform/language:
  * 1. The platform default language — what a visitor with no saved choice of their own sees first.
@@ -37,11 +37,12 @@ import { can } from '../../services/permissions.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage, applyLocalePolicy } from '../../services/i18n.ts';
 import { formatDate, formatRelativeTime } from '../../services/format.ts';
+import type { PageContext } from '../types.ts';
 
 const LOCALE_LABELS = { en: 'English', bn: 'বাংলা' };
 const MIN_REASON_LENGTH = 10;
 
-export default function LanguageSettingsPage(root, { navigate } = {}) {
+export default function LanguageSettingsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page language-settings-page';

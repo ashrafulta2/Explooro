@@ -1,5 +1,5 @@
 /**
- * AdminQuestsPage.js — Loyalty Coins, Quests & Gamification Governance (Prompt 9.4).
+ * AdminQuestsPage.ts — Loyalty Coins, Quests & Gamification Governance (Prompt 9.4).
  *
  * Serves the two routes docs/ia-sitemap.md §admin.growth specifies:
  *   /admin/growth/coins  — "Coin & loyalty policy"  (economy strip, policy form, streak curve)
@@ -19,8 +19,9 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
-export default function AdminQuestsPage(root, { navigate } = {}) {
+export default function AdminQuestsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -163,7 +164,7 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
     // Bind Event Listeners
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
 
-    container.querySelectorAll('.quests-tab-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.quests-tab-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeTab = btn.dataset.tab;
         // Keep the address bar honest so each half is bookmarkable and Back works. navigate()
@@ -176,7 +177,7 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
       });
     });
 
-    container.querySelectorAll('.toggle-quest-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.toggle-quest-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const quest = quests.find((x) => String(x.id) === btn.getAttribute('data-id'));
         if (!quest) return;
@@ -193,13 +194,13 @@ export default function AdminQuestsPage(root, { navigate } = {}) {
 
     container.querySelector('#coin-policy-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const form = e.currentTarget;
+      const form = e.currentTarget as HTMLFormElement;
       const next = {
-        coins_per_bdt: Number(form.querySelector('#cp-coins-per-bdt').value),
-        max_redeem_pct_of_order: Number(form.querySelector('#cp-max-redeem-pct').value),
-        daily_earn_cap: Number(form.querySelector('#cp-daily-cap').value),
-        expiry_days: Number(form.querySelector('#cp-expiry-days').value),
-        min_redeem_balance: Number(form.querySelector('#cp-min-redeem').value),
+        coins_per_bdt: Number(form.querySelector<HTMLInputElement>('#cp-coins-per-bdt').value),
+        max_redeem_pct_of_order: Number(form.querySelector<HTMLInputElement>('#cp-max-redeem-pct').value),
+        daily_earn_cap: Number(form.querySelector<HTMLInputElement>('#cp-daily-cap').value),
+        expiry_days: Number(form.querySelector<HTMLInputElement>('#cp-expiry-days').value),
+        min_redeem_balance: Number(form.querySelector<HTMLInputElement>('#cp-min-redeem').value),
       };
       try {
         await api.patch('/admin/growth/coins/policy', next);

@@ -21,7 +21,7 @@ import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import { ThreadList } from '../src/components/chat/ThreadList.ts';
 import { MessageBubble } from '../src/components/chat/MessageBubble.ts';
 import { MessageComposer } from '../src/components/chat/MessageComposer.ts';
-import ChatPage from '../src/pages/ChatPage.js';
+import ChatPage from '../src/pages/ChatPage.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
