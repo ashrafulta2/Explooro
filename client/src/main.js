@@ -184,7 +184,7 @@ async function bootRouterDemo() {
       // WHY not LiveStreamPage: /moderator/live used to load the customer-facing shopping browse
       // page, so the "Live Streams" nav item under REVIEW QUEUES opened a storefront with a "Host a
       // Live Stream" button and no moderation controls at all.
-      { path: '/moderator/live', title: 'Live Moderation — Explooro', requiresAuth: true, permission: 'moderation.live.handle', module: 'live_commerce', load: () => import('./pages/moderator/LiveModerationPage.js') },
+      { path: '/moderator/live', title: 'Live Moderation — Explooro', requiresAuth: true, permission: 'moderation.live.handle', module: 'live_commerce', load: () => import('./pages/moderator/LiveModerationPage.ts') },
       // Prompt 4.7: Shop Partner Sourcing Catalog & Profit Calculator
       {
         path: '/saler/sourcing',
@@ -854,7 +854,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'follow_feed',
-        load: () => import('./pages/customer/FollowingFeedPage.js'),
+        load: () => import('./pages/customer/FollowingFeedPage.ts'),
       },
       {
         path: '/account/reviews',
@@ -952,7 +952,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'system.health.view',
         module: 'core',
-        load: () => import('./pages/admin/SystemHealthPage.js'),
+        load: () => import('./pages/admin/SystemHealthPage.ts'),
       },
       {
         path: '/admin/system/health',
@@ -960,7 +960,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'system.health.view',
         module: 'core',
-        load: () => import('./pages/admin/SystemHealthPage.js'),
+        load: () => import('./pages/admin/SystemHealthPage.ts'),
       },
       // Admin Catalog Governance (Categories, Batches, Warehouses)
       {
@@ -1373,7 +1373,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'staff.account.view',
         module: 'core',
-        load: () => import('./pages/admin/StaffPage.js'),
+        load: () => import('./pages/admin/StaffPage.ts'),
       },
       {
         path: '/admin/roles',
@@ -1439,7 +1439,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.theme.view',
         module: 'theme_studio',
-        load: () => import('./pages/admin/ThemeStudioPage.js'),
+        load: () => import('./pages/admin/ThemeStudioPage.ts'),
       },
       {
         path: '/admin/theme',
@@ -1447,7 +1447,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.theme.view',
         module: 'core',
-        load: () => import('./pages/admin/ThemeStudioPage.js'),
+        load: () => import('./pages/admin/ThemeStudioPage.ts'),
       },
       // Prompt 6.3: Admin Payout Queue
       {
@@ -1951,7 +1951,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.js'),
+        load: () => import('./pages/saler/ReferralHubPage.ts'),
       },
       {
         path: '/customer/referrals',
@@ -1959,7 +1959,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.js'),
+        load: () => import('./pages/saler/ReferralHubPage.ts'),
       },
       {
         path: '/referrals',
@@ -1967,7 +1967,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.js'),
+        load: () => import('./pages/saler/ReferralHubPage.ts'),
       },
       {
         path: '/saler/referrals',
@@ -1975,7 +1975,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.referral.view_own',
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.js'),
+        load: () => import('./pages/saler/ReferralHubPage.ts'),
       },
       {
         path: '/admin/growth/referrals',

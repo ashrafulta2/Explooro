@@ -28,7 +28,7 @@ test('Admin Platform Suite Integrity', async (t) => {
       '../src/pages/admin/SettingsPage.ts',
       '../src/pages/admin/ApiKeysPage.ts',
       '../src/pages/admin/ModuleControlPage.ts',
-      '../src/pages/admin/ThemeStudioPage.js',
+      '../src/pages/admin/ThemeStudioPage.ts',
     ];
 
     for (const modPath of modules) {

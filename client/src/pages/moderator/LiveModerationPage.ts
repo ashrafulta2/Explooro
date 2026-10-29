@@ -1,5 +1,5 @@
 /**
- * LiveModerationPage.js — Live Moderation Console (/moderator/live).
+ * LiveModerationPage.ts — Live Moderation Console (/moderator/live).
  *
  * Prompt 10.1 REQUIREMENT 6 says "a moderator can mute a participant or terminate a stream". Both
  * endpoints shipped, but /moderator/live pointed at LiveStreamPage.js — the customer-facing
@@ -26,6 +26,7 @@ import { api } from '../../core/api.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
+import type { PageContext } from '../types.ts';
 
 /** Live chat is entirely viewer-authored, so nothing from it reaches innerHTML unescaped. */
 const esc = (value) =>
@@ -59,7 +60,7 @@ const REASON_PRESETS = [
 // pure waste. Only LIVE streams are re-fetched.
 const POLL_INTERVAL_MS = 10_000;
 
-export default function LiveModerationPage(root, ctx = {}) {
+export default function LiveModerationPage(root: HTMLElement, ctx: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'live-moderation-page';
   container.style.cssText = `
@@ -750,7 +751,7 @@ export default function LiveModerationPage(root, ctx = {}) {
    * One reason-collecting modal serves all three actions: every one of them writes its reason into
    * an audit_logs row and the stream's own moderation log, so "why" is never optional.
    */
-  function openReasonModal({ title, description, notice, confirmLabel, danger = true, extraField = null, onConfirm }) {
+  function openReasonModal({ title, description, notice, confirmLabel, danger = true, extraField = null, onConfirm }: { title: string; description?: string; notice?: string; confirmLabel: string; danger?: boolean; extraField?: string | null; onConfirm: (reason: string, backdrop: HTMLElement) => unknown }) {
     const backdrop = document.createElement('div');
     backdrop.style.cssText = `
       position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
@@ -806,8 +807,8 @@ export default function LiveModerationPage(root, ctx = {}) {
     });
     backdrop.querySelector('#btn-cancel-modal').addEventListener('click', close);
 
-    const preset = backdrop.querySelector('#sel-reason-preset');
-    const textarea = backdrop.querySelector('#txt-reason');
+    const preset = backdrop.querySelector<HTMLInputElement>('#sel-reason-preset');
+    const textarea = backdrop.querySelector<HTMLInputElement>('#txt-reason');
     // Seed the free-text box from the preset so the common case is one click, and an edited
     // reason is still the moderator's own words rather than a canned label.
     textarea.value = preset.value;
@@ -850,7 +851,7 @@ export default function LiveModerationPage(root, ctx = {}) {
       danger: false,
       extraField: durationField,
       onConfirm: async (reason, backdrop) => {
-        const minutes = Number(backdrop.querySelector('#sel-mute-duration')?.value) || 15;
+        const minutes = Number(backdrop.querySelector<HTMLInputElement>('#sel-mute-duration')?.value) || 15;
         await muteParticipant(userId, minutes, reason);
       },
     });
@@ -864,7 +865,7 @@ export default function LiveModerationPage(root, ctx = {}) {
       if (selectedId) await fetchFeed(selectedId);
     });
 
-    container.querySelector('#chk-auto-refresh')?.addEventListener('change', (e) => {
+    container.querySelector('#chk-auto-refresh')?.addEventListener('change', (e: Event & { target: HTMLInputElement }) => {
       autoRefresh = e.target.checked;
       schedulePoll();
     });
@@ -882,7 +883,7 @@ export default function LiveModerationPage(root, ctx = {}) {
       render();
     });
 
-    container.querySelector('#chk-preview-audio')?.addEventListener('change', async (e) => {
+    container.querySelector('#chk-preview-audio')?.addEventListener('change', async (e: Event & { target: HTMLInputElement }) => {
       // Audio-only is a property of the token the server mints, not a client-side mute, so the
       // feed has to be re-fetched for the choice to mean anything on the wire.
       audioOnly = e.target.checked;
@@ -890,19 +891,19 @@ export default function LiveModerationPage(root, ctx = {}) {
       await fetchFeed(selectedId);
     });
 
-    container.querySelector('#chk-flagged-only')?.addEventListener('change', (e) => {
+    container.querySelector('#chk-flagged-only')?.addEventListener('change', (e: Event & { target: HTMLInputElement }) => {
       flaggedOnly = e.target.checked;
       render();
     });
 
-    container.querySelectorAll('[data-status-tab]').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('[data-status-tab]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         statusTab = btn.getAttribute('data-status-tab');
         await fetchStreams();
       });
     });
 
-    container.querySelectorAll('[data-stream-id]').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('[data-stream-id]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         selectedId = Number(btn.getAttribute('data-stream-id'));
         feed = null;
@@ -912,14 +913,14 @@ export default function LiveModerationPage(root, ctx = {}) {
       });
     });
 
-    container.querySelectorAll('[data-detail-tab]').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('[data-detail-tab]').forEach((btn) => {
       btn.addEventListener('click', () => {
         detailTab = btn.getAttribute('data-detail-tab');
         render();
       });
     });
 
-    container.querySelectorAll('[data-remove-message]').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('[data-remove-message]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const messageId = Number(btn.getAttribute('data-remove-message'));
         openReasonModal({
@@ -931,13 +932,13 @@ export default function LiveModerationPage(root, ctx = {}) {
       });
     });
 
-    container.querySelectorAll('[data-mute-user]').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('[data-mute-user]').forEach((btn) => {
       btn.addEventListener('click', () => {
         openMuteModal(Number(btn.getAttribute('data-mute-user')), btn.getAttribute('data-mute-name'));
       });
     });
 
-    container.querySelectorAll('[data-unmute-user]').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('[data-unmute-user]').forEach((btn) => {
       btn.addEventListener('click', () => unmuteParticipant(Number(btn.getAttribute('data-unmute-user'))));
     });
 

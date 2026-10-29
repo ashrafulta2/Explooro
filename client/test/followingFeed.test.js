@@ -71,7 +71,7 @@ test('Following Feed — Locale Integrity', async (t) => {
 
   await t.test('5. Every key the page renders exists in the dictionary', () => {
     const source = fs.readFileSync(
-      path.resolve(import.meta.dirname, '../src/pages/customer/FollowingFeedPage.js'),
+      path.resolve(import.meta.dirname, '../src/pages/customer/FollowingFeedPage.ts'),
       'utf8'
     );
     const used = new Set();
@@ -87,7 +87,7 @@ test('Following Feed — Locale Integrity', async (t) => {
 });
 
 test('Following Feed — Filtering & Derived Categories', async (t) => {
-  // Mirrors makeFilter() in FollowingFeedPage.js.
+  // Mirrors makeFilter() in FollowingFeedPage.ts.
   const makeFilter = (category, query) => (item) => {
     if (category !== 'all' && item.category !== category) return false;
     const q = query.trim().toLowerCase();
@@ -309,7 +309,7 @@ test('Following Feed — Markdown Pricing', async (t) => {
 });
 
 test('Following Feed — Escaping Merchant Text', async (t) => {
-  // Mirrors esc() in FollowingFeedPage.js.
+  // Mirrors esc() in FollowingFeedPage.ts.
   const esc = (value) =>
     value == null
       ? ''

@@ -1,5 +1,5 @@
 /**
- * ThemeStudioPage.js — Granular Component-Level Color Studio with 6 Sections, 5 Presets & Live Preview (Prompt 3.5).
+ * ThemeStudioPage.ts — Granular Component-Level Color Studio with 6 Sections, 5 Presets & Live Preview (Prompt 3.5).
  */
 
 import { Button } from '../../components/ui/Button.ts';
@@ -29,13 +29,14 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { formatRelativeTime } from '../../services/format.ts';
 import { appStore } from '../../state/appStore.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
+import type { PageContext } from '../types.ts';
 
-export default function ThemeStudioPage(root, { navigate } = {}) {
+export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'theme-studio';
 
-  const authState = appStore.get()?.auth || {};
+  const authState: { roles?: string[]; role?: string } = appStore.get()?.auth || {};
   const isSuperAdmin = (authState.roles || []).includes('super_admin') || authState.role === 'super_admin';
   const isAdmin = isSuperAdmin || (authState.roles || []).includes('admin') || authState.role === 'admin';
   const isModerator = (authState.roles || []).includes('moderator') || authState.role === 'moderator' || (authState.roles || []).includes('editor') || authState.role === 'editor';
@@ -371,8 +372,8 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
       regenerateFromMaster();
     };
 
-    seedPicker.addEventListener('change', (e) => commitSeed(e.target.value));
-    seedHex.addEventListener('change', (e) => commitSeed(e.target.value.trim()));
+    seedPicker.addEventListener('change', (e) => commitSeed((e.target as HTMLInputElement).value));
+    seedHex.addEventListener('change', (e) => commitSeed((e.target as HTMLInputElement).value.trim()));
 
     seedRow.append(seedLabel, seedPicker, seedHex, seedMeta);
 
@@ -444,7 +445,7 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
       if (val === value) opt.selected = true;
       select.append(opt);
     }
-    select.addEventListener('change', (e) => onChange(e.target.value));
+    select.addEventListener('change', (e) => onChange((e.target as HTMLInputElement).value));
     field.append(span, select);
     return field;
   }
@@ -467,9 +468,9 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
     // palette AND rebuilds this panel — which would tear the slider out from under the pointer.
     // The label still tracks live on `input` so the drag is not silent.
     input.addEventListener('input', (e) => {
-      span.textContent = `${t(labelKey)} · ${Number(e.target.value).toFixed(2)}`;
+      span.textContent = `${t(labelKey)} · ${Number((e.target as HTMLInputElement).value).toFixed(2)}`;
     });
-    input.addEventListener('change', (e) => onChange(Number(e.target.value)));
+    input.addEventListener('change', (e) => onChange(Number((e.target as HTMLInputElement).value)));
     field.append(span, input);
     return field;
   }
@@ -480,7 +481,7 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
     const input = document.createElement('input');
     input.type = 'checkbox';
     input.checked = Boolean(value);
-    input.addEventListener('change', (e) => onChange(e.target.checked));
+    input.addEventListener('change', (e) => onChange((e.target as HTMLInputElement).checked));
     const span = document.createElement('span');
     span.textContent = t(labelKey);
     field.append(input, span);
@@ -695,8 +696,8 @@ export default function ThemeStudioPage(root, { navigate } = {}) {
       updateContrastStatusBanner(contrastStatusBanner);
     };
 
-    picker.addEventListener('input', (e) => onColorChange(e.target.value));
-    hexInput.addEventListener('input', (e) => onColorChange(e.target.value));
+    picker.addEventListener('input', (e) => onColorChange((e.target as HTMLInputElement).value));
+    hexInput.addEventListener('input', (e) => onColorChange((e.target as HTMLInputElement).value));
 
     // 1-Click quick presets / swatches
     const quickSwatchesWrap = document.createElement('div');

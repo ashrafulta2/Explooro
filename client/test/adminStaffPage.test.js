@@ -265,7 +265,7 @@ describe('describeWriteOutcome — a 202 deferral is not a success', () => {
   });
 
   it('24. the page reads every write through it and warns when the invitation email failed', () => {
-    const page = readFileSync(new URL('../src/pages/admin/StaffPage.js', import.meta.url), 'utf8');
+    const page = readFileSync(new URL('../src/pages/admin/StaffPage.ts', import.meta.url), 'utf8');
     assert.match(page, /describeWriteOutcome\(res/);
     assert.match(page, /outcome\.deferred/);
     assert.match(page, /invite_sent === false\) toast\.warning/);
@@ -285,7 +285,7 @@ describe('normaliseBdPhone — the form accepts what the API accepts', () => {
 });
 
 describe('Staff Management — page source & locales', () => {
-  const source = readFileSync(new URL('../src/pages/admin/StaffPage.js', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../src/pages/admin/StaffPage.ts', import.meta.url), 'utf8');
 
   it('13. every admin.staff key the page uses exists in both languages', () => {
     const used = new Set();

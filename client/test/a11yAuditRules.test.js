@@ -398,7 +398,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
   });
 
   await t.test('18. ReferralHubPage and referrals.css satisfy form label and WCAG AA contrast rules', () => {
-    const referralPagePath = path.join(clientRoot, 'src', 'pages', 'saler', 'ReferralHubPage.js');
+    const referralPagePath = path.join(clientRoot, 'src', 'pages', 'saler', 'ReferralHubPage.ts');
     const referralPageContent = fs.readFileSync(referralPagePath, 'utf8');
 
     // Input fields must have proper for-label or aria-label associations

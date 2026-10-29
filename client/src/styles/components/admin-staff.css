@@ -1,7 +1,7 @@
 /**
  * admin-staff.css — Staff Management, Security Governance & Provisioning.
  *
- * Imported by pages/admin/StaffPage.js (not main.css) so it ships in the route chunk instead of
+ * Imported by pages/admin/StaffPage.ts (not main.css) so it ships in the route chunk instead of
  * the entry bundle, which is the one that counts against the 70KB CSS budget.
  */
 

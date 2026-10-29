@@ -18,7 +18,7 @@ const root = path.resolve(import.meta.dirname, '..', '..');
 const readText = (rel) => fs.readFileSync(path.resolve(root, rel), 'utf8');
 const readJson = (rel) => JSON.parse(readText(rel));
 
-const pageSrc = readText('client/src/pages/moderator/LiveModerationPage.js');
+const pageSrc = readText('client/src/pages/moderator/LiveModerationPage.ts');
 const mainSrc = readText('client/src/main.js');
 const en = readJson('client/src/locales/en.json');
 const bn = readJson('client/src/locales/bn.json');
@@ -32,7 +32,7 @@ test('Live Moderation Console — routing', async (t) => {
     // "Host a Live Stream" call to action and no moderation control anywhere on it.
     const line = mainSrc.split('\n').find((l) => l.includes("path: '/moderator/live'"));
     assert.ok(line, 'the /moderator/live route must exist');
-    assert.match(line, /moderator\/LiveModerationPage\.js/, 'it must load the moderation console');
+    assert.match(line, /moderator\/LiveModerationPage\.ts/, 'it must load the moderation console');
     assert.ok(!/pages\/LiveStreamPage\.js/.test(line), 'it must not load the customer live page');
   });
 
@@ -51,7 +51,7 @@ test('Live Moderation Console — routing', async (t) => {
 });
 
 test('Live Moderation Console — escaping viewer-authored chat', async (t) => {
-  // Mirrors esc() in LiveModerationPage.js.
+  // Mirrors esc() in LiveModerationPage.ts.
   const esc = (value) =>
     value == null
       ? ''

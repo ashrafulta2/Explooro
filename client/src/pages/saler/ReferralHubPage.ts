@@ -1,5 +1,5 @@
 /**
- * ReferralHubPage.js — Multi-Tier Referral & Network Growth Hub (Prompts 9.3 & 11.3).
+ * ReferralHubPage.ts — Multi-Tier Referral & Network Growth Hub (Prompts 9.3 & 11.3).
  *
  * Provides a viral, high-conversion growth workspace for both Customers & Shop Partners:
  * 1. 2-Tier Earnings Model: Tier 1 (Direct 5%) + Tier 2 (Sub-network 2%) + 100 Loyalty Coins / invite.
@@ -22,9 +22,26 @@ import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.
 import { toast } from '../../services/toast.ts';
 import { goBack } from '../../core/navBack.ts';
 import { estimateEarnings, programOf } from './referralEstimate.ts';
+import type { PageContext } from '../types.ts';
 
 export class ReferralHubPage {
-  constructor(ctx = {}) {
+  ctx: PageContext;
+  overview: any = null;
+  tree: any[] = [];
+  statement: any[] = [];
+  activeTab: 'tree' | 'statement' | 'calc' | 'qa' = 'tree';
+  treeFilter: 'all' | 'tier1' | 'tier2' | 'qualified' | 'pending' = 'all';
+  statementFilter: 'all' | 'available' | 'escrow' = 'all';
+  searchQuery = '';
+  calcFriends = 10;
+  calcSpend = 4000;
+  sim: { event: string; amount: number; result: any } = { event: 'FIRST_ORDER', amount: 2500, result: null };
+  loading = true;
+  rootEl: HTMLElement | null = null;
+  unsubscribeLang: (() => void) | null = null;
+  _activeModals: any[] = [];
+
+  constructor(ctx: PageContext = {}) {
     this.ctx = ctx;
     this.overview = null;
     this.tree = [];
@@ -683,34 +700,34 @@ export class ReferralHubPage {
     }
 
     // Tabs switching
-    this.rootEl.querySelectorAll('.referral-tab-btn').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.referral-tab-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        this.activeTab = btn.dataset.tab;
+        this.activeTab = btn.dataset.tab as typeof this.activeTab;
         this.render();
       });
     });
 
     // Tree filters
-    this.rootEl.querySelectorAll('[data-tree-filter]').forEach((chip) => {
+    this.rootEl.querySelectorAll<HTMLElement>('[data-tree-filter]').forEach((chip) => {
       chip.addEventListener('click', () => {
-        this.treeFilter = chip.dataset.treeFilter;
+        this.treeFilter = chip.dataset.treeFilter as typeof this.treeFilter;
         this.render();
       });
     });
 
     // Statement filters
-    this.rootEl.querySelectorAll('[data-statement-filter]').forEach((chip) => {
+    this.rootEl.querySelectorAll<HTMLElement>('[data-statement-filter]').forEach((chip) => {
       chip.addEventListener('click', () => {
-        this.statementFilter = chip.dataset.statementFilter;
+        this.statementFilter = chip.dataset.statementFilter as typeof this.statementFilter;
         this.render();
       });
     });
 
     // Tree search input
-    const searchInput = this.rootEl.querySelector('#input-tree-search');
+    const searchInput = this.rootEl.querySelector<HTMLInputElement>('#input-tree-search');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        this.searchQuery = e.target.value;
+        this.searchQuery = (e.target as HTMLInputElement).value;
         const currentTabOutlet = this.rootEl.querySelector('.referral-card');
         if (currentTabOutlet) {
           currentTabOutlet.outerHTML = this._renderTreeTab(isBn);
@@ -760,8 +777,8 @@ export class ReferralHubPage {
     }
 
     // Calculator sliders
-    const sliderFriends = this.rootEl.querySelector('#slider-friends');
-    const sliderSpend = this.rootEl.querySelector('#slider-spend');
+    const sliderFriends = this.rootEl.querySelector<HTMLInputElement>('#slider-friends');
+    const sliderSpend = this.rootEl.querySelector<HTMLInputElement>('#slider-spend');
     if (sliderFriends && sliderSpend) {
       const updateCalc = () => {
         this.calcFriends = Number(sliderFriends.value);
@@ -780,7 +797,7 @@ export class ReferralHubPage {
     }
 
     // Earnings simulator: a read-only dry run against the programme rules saved right now.
-    const simEvent = this.rootEl.querySelector('#sim-event');
+    const simEvent = this.rootEl.querySelector<HTMLInputElement>('#sim-event');
     if (simEvent) {
       simEvent.addEventListener('change', () => {
         this.sim = { ...this.sim, event: simEvent.value, result: null };
@@ -790,7 +807,7 @@ export class ReferralHubPage {
     const btnSim = this.rootEl.querySelector('#btn-sim-run');
     if (btnSim) {
       btnSim.addEventListener('click', async () => {
-        const amountEl = this.rootEl.querySelector('#sim-amount');
+        const amountEl = this.rootEl.querySelector<HTMLInputElement>('#sim-amount');
         const amount = amountEl ? Number(amountEl.value) : 0;
         try {
           const res = await api.post('/saler/referrals/simulate', { event_type: this.sim.event, amount });
@@ -804,12 +821,12 @@ export class ReferralHubPage {
   }
 
   _rebindTreeSearch(isBn) {
-    const searchInput = this.rootEl.querySelector('#input-tree-search');
+    const searchInput = this.rootEl.querySelector<HTMLInputElement>('#input-tree-search');
     if (searchInput) {
       searchInput.focus();
       searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
       searchInput.addEventListener('input', (e) => {
-        this.searchQuery = e.target.value;
+        this.searchQuery = (e.target as HTMLInputElement).value;
         const currentTabOutlet = this.rootEl.querySelector('.referral-card');
         if (currentTabOutlet) {
           currentTabOutlet.outerHTML = this._renderTreeTab(isBn);
@@ -818,9 +835,9 @@ export class ReferralHubPage {
       });
     }
 
-    this.rootEl.querySelectorAll('[data-tree-filter]').forEach((chip) => {
+    this.rootEl.querySelectorAll<HTMLElement>('[data-tree-filter]').forEach((chip) => {
       chip.addEventListener('click', () => {
-        this.treeFilter = chip.dataset.treeFilter;
+        this.treeFilter = chip.dataset.treeFilter as typeof this.treeFilter;
         this.render();
       });
     });
@@ -954,11 +971,11 @@ export class ReferralHubPage {
 
     modal.openModal();
 
-    const form = contentEl.querySelector('#form-custom-slug');
+    const form = contentEl.querySelector<HTMLFormElement>('#form-custom-slug');
     const cancelBtn = contentEl.querySelector('.btn-cancel');
     cancelBtn.addEventListener('click', () => modal.closeModal());
 
-    const inputSlug = form.querySelector('input[name="custom_slug"]');
+    const inputSlug = form.querySelector<HTMLInputElement>('input[name="custom_slug"]');
     if (inputSlug) {
       setTimeout(() => inputSlug.focus(), 50);
     }
@@ -997,7 +1014,7 @@ export class ReferralHubPage {
   }
 }
 
-export default function mountReferralHubPage(root, ctx = {}) {
+export default function mountReferralHubPage(root: HTMLElement, ctx: PageContext = {}) {
   const page = new ReferralHubPage(ctx);
   page.mount(root);
   return () => page.unmount();

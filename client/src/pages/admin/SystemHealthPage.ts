@@ -1,5 +1,5 @@
 /**
- * SystemHealthPage.js — System Diagnostics, API Latency & Backup Hub (Prompt 11.4 / Master Spec §AL.4).
+ * SystemHealthPage.ts — System Diagnostics, API Latency & Backup Hub (Prompt 11.4 / Master Spec §AL.4).
  *
  * Implements:
  * 1. API Latency percentiles (p50, p95, p99), error rates, uptime, and request volume.
@@ -19,8 +19,9 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 import { scheduleLabel } from './jobSchedule.ts';
+import type { PageContext } from '../types.ts';
 
-export default function SystemHealthPage(root, { navigate } = {}) {
+export default function SystemHealthPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   // Infra status comes back as a raw backend enum (CONNECTED, DEGRADED, CONNECTION_ERROR, …) — shown
@@ -656,7 +657,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     // =========================================================================
 
     // Tab switcher
-    container.querySelectorAll('.system-health__tab-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.system-health__tab-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeTab = btn.getAttribute('data-tab');
         render();
@@ -742,9 +743,9 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     const jobSearchInput = container.querySelector('#job-search-input');
     if (jobSearchInput) {
       jobSearchInput.addEventListener('input', (e) => {
-        jobFilterQuery = e.target.value;
+        jobFilterQuery = (e.target as HTMLInputElement).value;
         render();
-        const input = root.querySelector('#job-search-input');
+        const input = root.querySelector<HTMLInputElement>('#job-search-input');
         if (input) {
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
@@ -756,9 +757,9 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     const backupSearchInput = container.querySelector('#backup-search-input');
     if (backupSearchInput) {
       backupSearchInput.addEventListener('input', (e) => {
-        backupFilterQuery = e.target.value;
+        backupFilterQuery = (e.target as HTMLInputElement).value;
         render();
-        const input = root.querySelector('#backup-search-input');
+        const input = root.querySelector<HTMLInputElement>('#backup-search-input');
         if (input) {
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
@@ -767,7 +768,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     }
 
     // Checksum Copy buttons
-    container.querySelectorAll('.copy-checksum-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.copy-checksum-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const checksum = btn.getAttribute('data-checksum');
@@ -783,7 +784,7 @@ export default function SystemHealthPage(root, { navigate } = {}) {
     });
 
     // Restore Snapshot with Confirmation Dialog
-    container.querySelectorAll('.restore-snapshot-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLButtonElement>('.restore-snapshot-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const ref = btn.getAttribute('data-ref');
@@ -796,10 +797,10 @@ export default function SystemHealthPage(root, { navigate } = {}) {
 
         const confirmed = await confirmDialog({
           title,
-          message: msg,
+          description: msg,
           confirmLabel: isBn ? 'চিহ্নিত করুন' : 'Mark as Restored',
           cancelLabel: isBn ? 'বাতিল' : 'Cancel',
-          isDanger: true,
+          variant: 'danger',
         });
 
         if (confirmed) {

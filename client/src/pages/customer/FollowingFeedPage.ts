@@ -1,5 +1,5 @@
 /**
- * FollowingFeedPage.js — Activity Feed & Product Drops from Followed Shop Partners (Prompt 11.3 / idea §AL.3).
+ * FollowingFeedPage.ts — Activity Feed & Product Drops from Followed Shop Partners (Prompt 11.3 / idea §AL.3).
  *
  * Implements:
  * 1. Product drops feed from followed merchant storefronts.
@@ -21,6 +21,7 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
+import type { PageContext } from '../types.ts';
 
 const TAB_KEYS = ['all', 'drops', 'live', 'stores', 'discover'];
 const SEARCH_DEBOUNCE_MS = 200;
@@ -72,7 +73,7 @@ function localTitle(record, { enKey = 'title_en', bnKey = 'title_bn', fallbackKe
   return primary || secondary || record[fallbackKey] || '';
 }
 
-export default function FollowingFeedPage(root, { navigate } = {}) {
+export default function FollowingFeedPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
@@ -246,7 +247,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
     const isBn = getLanguage() === 'bn';
     const seen = new Map();
 
-    const record = (key, labelEn, labelBn) => {
+    const record = (key, labelEn?, labelBn?) => {
       if (!key) return;
       if (!seen.has(key)) {
         const label = (isBn ? labelBn : labelEn) || humanizeCategory(key);
@@ -322,7 +323,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
     const active = document.activeElement;
     const restoreTabFocus = !!active && contentSlot.contains(active) && active.getAttribute('role') === 'tab';
     const restoreSearchFocus = !!active && active.id === 'following-search-input';
-    const caret = restoreSearchFocus ? active.selectionStart : null;
+    const caret = restoreSearchFocus ? (active as HTMLInputElement).selectionStart : null;
 
     contentSlot.replaceChildren();
 
@@ -360,9 +361,9 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
     renderActiveView();
 
     if (restoreTabFocus) {
-      contentSlot.querySelector('[role="tab"][aria-selected="true"]')?.focus();
+      contentSlot.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus();
     } else if (restoreSearchFocus) {
-      const input = contentSlot.querySelector('#following-search-input');
+      const input = contentSlot.querySelector<HTMLInputElement>('#following-search-input');
       input?.focus();
       if (input && caret != null) input.setSelectionRange(caret, caret);
     }
@@ -382,7 +383,7 @@ export default function FollowingFeedPage(root, { navigate } = {}) {
   function refreshTabBadges() {
     const counts = filteredCounts();
     const map = { drops: counts.drops, live: counts.live, stores: counts.stores, discover: counts.discover };
-    contentSlot.querySelectorAll('[data-tab-badge]').forEach((el) => {
+    contentSlot.querySelectorAll<HTMLElement>('[data-tab-badge]').forEach((el) => {
       const key = el.getAttribute('data-tab-badge');
       if (key in map) el.textContent = formatNumber(map[key]);
     });
@@ -799,7 +800,7 @@ function createToolbar({
     />
   `;
   const searchInput = searchWrap.querySelector('input');
-  searchInput.addEventListener('input', (e) => onQueryChange(e.target.value));
+  searchInput.addEventListener('input', (e) => onQueryChange((e.target as HTMLInputElement).value));
   controlsRow.append(searchWrap);
 
   // --- Category chips ---------------------------------------------------------------------------
@@ -824,7 +825,7 @@ function createToolbar({
 }
 
 /** Section header with a decorative icon and an optional "view all" link. */
-function sectionHeader({ icon, title, subtitle, linkHref, linkLabel, blockClass }) {
+function sectionHeader({ icon, title, subtitle, linkHref, linkLabel, blockClass }: { icon: string; title: string; subtitle?: string; linkHref?: string; linkLabel?: string; blockClass: string }) {
   const head = document.createElement('div');
   head.className = `${blockClass}__header`;
   head.innerHTML = `

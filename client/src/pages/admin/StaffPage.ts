@@ -1,5 +1,5 @@
 /**
- * StaffPage.js — Staff Management, Security Governance & Provisioning (Prompt 3.3 / Prompt 11.4).
+ * StaffPage.ts — Staff Management, Security Governance & Provisioning (Prompt 3.3 / Prompt 11.4).
  *
  * Implements:
  * 1. Security vitals (total, active, 2FA coverage, privileged admins) computed from the WHOLE
@@ -30,6 +30,7 @@ import { describeWriteOutcome } from '../../services/writeOutcome.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatDate, formatNumber, formatPhone, formatRelativeTime, normaliseBdPhone } from '../../services/format.ts';
 import '../../styles/components/admin-staff.css';
+import type { PageContext } from '../types.ts';
 
 const PAGE_SIZE = 8;
 const EXPORT_PAGE_SIZE = 50;
@@ -82,7 +83,7 @@ function initials(name) {
   return (parts[0] || '?').slice(0, 2).toUpperCase();
 }
 
-export default function StaffPage(root, { navigate } = {}) {
+export default function StaffPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = () => getLanguage() === 'bn';
   const num = (n) => formatNumber(n);
   // formatNumber() is money-shaped and pads to two decimals (36.4 -> "36.40"); a rate wants one at most.
@@ -292,7 +293,7 @@ export default function StaffPage(root, { navigate } = {}) {
     searchEl.addEventListener('input', (e) => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        state.query = e.target.value.trim();
+        state.query = (e.target as HTMLInputElement).value.trim();
         state.page = 1;
         load();
       }, SEARCH_DEBOUNCE_MS);
@@ -300,21 +301,21 @@ export default function StaffPage(root, { navigate } = {}) {
 
     container.querySelector('#staff-filters').addEventListener('change', (e) => {
       const map = { 'staff-role-filter': 'role', 'staff-status-filter': 'status', 'staff-2fa-filter': 'twoFactor' };
-      const key = map[e.target.id];
+      const key = map[(e.target as HTMLElement).id];
       if (!key) return;
-      state[key] = e.target.value;
+      state[key] = (e.target as HTMLInputElement).value;
       state.page = 1;
       load();
     });
     container.querySelector('#staff-filters').addEventListener('click', (e) => {
-      if (e.target.closest('[data-action="clear"]')) clearFilters();
+      if ((e.target as HTMLElement).closest('[data-action="clear"]')) clearFilters();
     });
 
     container.querySelector('#staff-tbody').addEventListener('click', onTableClick);
   }
 
   function paintFilters() {
-    const wrap = container.querySelector('#staff-filters');
+    const wrap = container.querySelector<HTMLInputElement>('#staff-filters');
     if (!wrap) return;
 
     // The selects are built once per role list. Rebuilding them on every load would replace the
@@ -355,10 +356,10 @@ export default function StaffPage(root, { navigate } = {}) {
     state.status = 'ALL';
     state.twoFactor = 'ALL';
     state.page = 1;
-    const search = container.querySelector('#staff-search');
+    const search = container.querySelector<HTMLInputElement>('#staff-search');
     if (search) search.value = '';
     for (const [id, value] of [['staff-role-filter', 'ALL'], ['staff-status-filter', 'ALL'], ['staff-2fa-filter', 'ALL']]) {
-      const el = container.querySelector(`#${id}`);
+      const el = container.querySelector<HTMLInputElement>(`#${id}`);
       if (el) el.value = value;
     }
     load();
@@ -367,7 +368,7 @@ export default function StaffPage(root, { navigate } = {}) {
   // ── Vitals ─────────────────────────────────────────────────────────────────────────────────
 
   function paintVitals() {
-    const el = container.querySelector('#staff-vitals');
+    const el = container.querySelector<HTMLInputElement>('#staff-vitals');
     if (!el) return;
 
     if (!state.vitals) {
@@ -537,7 +538,8 @@ export default function StaffPage(root, { navigate } = {}) {
           totalPages: state.totalPages,
           totalItems: state.total,
           pageSize: PAGE_SIZE,
-          onChange: ({ page }) => {
+          onChange: (change) => {
+            const { page } = change as { page: number };
             state.page = page;
             load();
           },
@@ -648,7 +650,7 @@ export default function StaffPage(root, { navigate } = {}) {
 
   /** A one-line explainer under a role picker; privileged roles get a visible warning. */
   function roleNote() {
-    const el = document.createElement('p');
+    const el: HTMLParagraphElement & { update?: (roleKey: string) => void } = document.createElement('p');
     el.className = 'admin-staff-note';
     el.setAttribute('aria-live', 'polite');
     el.update = (roleKey) => {
@@ -678,7 +680,7 @@ export default function StaffPage(root, { navigate } = {}) {
       options: roleOptions(),
       value: defaultRole,
       required: true,
-      onChange: (e) => note.update(e.target.value),
+      onChange: (e) => note.update((e.target as HTMLInputElement).value),
     });
     note.update(defaultRole);
     const deptField = Input({ label: t('admin.staff.label_dept', 'Department'), placeholder: 'e.g. Compliance & Moderation', hint: t('admin.staff.optional', 'Optional'), autocomplete: 'off' });
@@ -686,7 +688,7 @@ export default function StaffPage(root, { navigate } = {}) {
     // The submit button lives in the modal footer, outside the <form>, so the browser's implicit
     // "Enter submits" never fires. Wire it explicitly, or keyboard users have to tab to the button.
     form.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+      if (e.key === 'Enter' && (e.target as HTMLElement).tagName === 'INPUT') {
         e.preventDefault();
         form.requestSubmit();
       }
@@ -751,7 +753,7 @@ export default function StaffPage(root, { navigate } = {}) {
         state.role = 'ALL';
         state.status = 'ALL';
         state.twoFactor = 'ALL';
-        const search = container.querySelector('#staff-search');
+        const search = container.querySelector<HTMLInputElement>('#staff-search');
         if (search) search.value = '';
         state.page = Math.max(1, Math.ceil(((state.vitals?.total_staff ?? state.total) + 1) / PAGE_SIZE));
         await load();

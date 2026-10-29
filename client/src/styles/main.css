@@ -77,7 +77,7 @@
 @import './components/ai.css';
 /* Prompt 11.4: Super Admin Executive Dashboard & System Health */
 @import './components/admin-dashboard.css';
-/* admin-staff.css is imported by StaffPage.js directly to code-split into the route chunk */
+/* admin-staff.css is imported by StaffPage.ts directly to code-split into the route chunk */
 /* Prompt 10.4: customer-warranties.css is imported by WarrantyCardsPage, WarrantyClaimsPage and the gallery directly to code-split into route chunks */
 /* Catalog & Product Governance */
 @import './components/catalog-products.css';
