@@ -13,7 +13,7 @@
  * flat and camelCase, never wrapped in a `payload` object. Mock and live must be
  * indistinguishable to the client, otherwise the preview lies about whether the page works.
  */
-import { appendMockMessage, nextMockAutoReply, SELF } from './handlers/chat.js';
+import { appendMockMessage, nextMockAutoReply, SELF } from './handlers/chat.ts';
 
 const OPEN = 1;
 const CLOSED = 3;

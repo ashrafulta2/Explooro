@@ -12,7 +12,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
-import { customerHandlers } from '../src/mocks/handlers/customer.js';
+import { customerHandlers } from '../src/mocks/handlers/customer.ts';
 
 test('1. Locale integrity for customer.become_saler', async (t) => {
   await t.test('en/bn key parity for become_saler', () => {

@@ -8,7 +8,7 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { contentHandlers } from '../src/mocks/handlers/content.js';
+import { contentHandlers } from '../src/mocks/handlers/content.ts';
 import { notificationHandlers } from '../src/mocks/handlers/notifications.ts';
 import { resetReleaseNotesForTests, latestReleaseFor, markReleaseViewed } from '../src/mocks/releaseNotes.ts';
 

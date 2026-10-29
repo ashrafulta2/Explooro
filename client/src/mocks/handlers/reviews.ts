@@ -12,6 +12,7 @@ import seedReviews from '../fixtures/reviews.json' with { type: 'json' };
 import purchases from '../fixtures/purchases.json' with { type: 'json' };
 import products from '../fixtures/products.json' with { type: 'json' };
 import { appStore } from '../../state/appStore.ts';
+import type { MockRoute } from '../types.ts';
 
 let reviews = seedReviews.map((r) => ({ ...r }));
 let nextId = Math.max(...reviews.map((r) => r.id)) + 1;
@@ -20,7 +21,7 @@ function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
 
-function currentAuth() {
+function currentAuth(): { isAuthenticated?: boolean; name?: string } {
   return appStore.get().auth || { isAuthenticated: false };
 }
 
@@ -42,8 +43,8 @@ function eligibilityFor(productRef) {
 }
 
 const SORTERS = {
-  newest: (a, b) => new Date(b.created_at) - new Date(a.created_at),
-  oldest: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+  newest: (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  oldest: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
   helpful: (a, b) => b.helpful_count - a.helpful_count,
   rating_high: (a, b) => b.rating - a.rating,
   rating_low: (a, b) => a.rating - b.rating,
@@ -168,8 +169,8 @@ export default [
 
       // Sorters
       const sorters = {
-        newest: (a, b) => new Date(b.created_at) - new Date(a.created_at),
-        oldest: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+        newest: (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        oldest: (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
         helpful: (a, b) => (b.helpful_count || 0) - (a.helpful_count || 0),
         rating_high: (a, b) => b.rating - a.rating,
         rating_low: (a, b) => a.rating - b.rating,
@@ -428,4 +429,4 @@ export default [
       };
     },
   },
-];
+] satisfies MockRoute[];

@@ -1,8 +1,9 @@
 /**
- * content.js — Mock Handlers for Editor Portal: Banners, Stories, Reels, Academy, What's New, Help Center, Translations.
+ * content.ts — Mock Handlers for Editor Portal: Banners, Stories, Reels, Academy, What's New, Help Center, Translations.
  */
 
 import { listReleaseNotes, upsertReleaseNote, deleteReleaseNote } from '../releaseNotes.ts';
+import type { MockRoute } from '../types.ts';
 
 let mockStories = [
   {
@@ -715,4 +716,4 @@ export const contentHandlers = [
       return { status: 200, body: { data: { locale, imported_keys: importedKeys } } };
     },
   },
-];
+] satisfies MockRoute[];

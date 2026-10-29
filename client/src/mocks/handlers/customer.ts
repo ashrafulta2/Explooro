@@ -1,8 +1,9 @@
 /**
- * customer.js — Mock API handlers for Customer Portal, Following Feed & Follow Actions (Prompt 11.3).
+ * customer.ts — Mock API handlers for Customer Portal, Following Feed & Follow Actions (Prompt 11.3).
  */
 
 import products from '../fixtures/products.json' with { type: 'json' };
+import type { MockRoute } from '../types.ts';
 
 // Initial realistic Bangladeshi stores
 let mockFollowedStores = [
@@ -324,7 +325,7 @@ function sortedAddresses() {
   return [...mockAddresses].sort(
     (a, b) =>
       Number(b.is_default) - Number(a.is_default) ||
-      new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)
+      new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()
   );
 }
 
@@ -339,7 +340,7 @@ function validateAddress(body) {
   return null;
 }
 
-function toAddressRow(body, over = {}) {
+function toAddressRow(body, over: Record<string, any> = {}) {
   const label = String(body?.label || 'HOME').toUpperCase();
   return {
     id: over.id ?? nextAddressId++,
@@ -444,7 +445,7 @@ const addressHandlers = [
       return addressHandlers.find((h) => h.method === 'PATCH').handler(ctx);
     },
   },
-];
+] satisfies MockRoute[];
 
 export const customerHandlers = [
   ...addressHandlers,
@@ -639,4 +640,4 @@ export const customerHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];

@@ -18,6 +18,7 @@
 import { appStore } from '../../state/appStore.ts';
 import { resolveMockMedia } from './media.ts';
 import { pushMockNotification } from './notifications.ts';
+import type { MockRoute } from '../types.ts';
 
 // Mirrors THRESHOLD_LIMITS in server/src/services/communityPost.service.ts; the value changes through
 // PUT /admin/community/settings, like the platform_settings row it stands for.
@@ -173,7 +174,7 @@ function notice(role, key, vars, { postId, linkUrl }) {
 }
 
 function viewer() {
-  const auth = appStore.get().auth || {};
+  const auth: { isAuthenticated?: boolean; role?: string } = appStore.get().auth || {};
   const role = auth.isAuthenticated ? auth.role : null;
   return { role, user: role ? ME[role] ?? { id: 99, name: 'Member' } : null };
 }
@@ -210,7 +211,7 @@ function audiencesFor(role) {
   return ['EVERYONE', AUDIENCE_OF[role]].filter(Boolean);
 }
 
-function fail(status, code, en, bn, field) {
+function fail(status: number, code: string, en: string, bn: string, field?: string) {
   return { status, body: { error: { code, message_en: en, message_bn: bn, details: field ? { field } : undefined } } };
 }
 
@@ -426,7 +427,7 @@ export const communityHandlers = [
       const taken = takeMedia(body.media_ids, user.id);
       if (taken.error) return taken.error;
       let product = PRODUCT;
-      let orderItem = null;
+      let orderItem: number | null = null;
       if (role === 'customer') {
         orderItem = Number(body.order_item_id);
         if (![4821, 4822, 4830].includes(orderItem) || posts.some((p) => p.type === 'REVIEW' && p.orderItem === orderItem)) {
@@ -593,6 +594,6 @@ export const communityHandlers = [
       return { status: 200, body: { data: { status: post.status, reports_resolved: open.length } } };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default communityHandlers;

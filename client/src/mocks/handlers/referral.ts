@@ -1,6 +1,9 @@
 /**
- * referral.js — Mock API handlers for Multi-Tier Referral & Network Growth Engine (Prompt 9.3).
+ * referral.ts — Mock API handlers for Multi-Tier Referral & Network Growth Engine (Prompt 9.3).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 let mockOverview = {
   code: 'REF-EXP8820',
@@ -383,7 +386,7 @@ export const referralHandlers = [
 
   // Release / void a flagged referral. The decided id is remembered so the queue shrinks on reload.
   ...['release', 'void'].map((decision) => ({
-    method: 'POST',
+    method: 'POST' as const,
     path: `/admin/growth/referrals/:ref/${decision}`,
     handler: ({ params, body }) => {
       if (!body?.reason || String(body.reason).trim().length < 3) {
@@ -408,4 +411,4 @@ export const referralHandlers = [
       },
     }),
   },
-];
+] satisfies MockRoute[];

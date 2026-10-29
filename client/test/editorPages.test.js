@@ -4,7 +4,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { contentHandlers } from '../src/mocks/handlers/content.js';
+import { contentHandlers } from '../src/mocks/handlers/content.ts';
 import { navItems } from '../src/config/navigation.js';
 
 describe('Editor Portal — Navigation & Routes Invariants', () => {

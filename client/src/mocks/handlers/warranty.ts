@@ -1,6 +1,9 @@
 /**
- * warranty.js — Mock API handlers for Digital Warranty Cards & Claims (Prompt 10.4).
+ * warranty.ts — Mock API handlers for Digital Warranty Cards & Claims (Prompt 10.4).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 let mockWarrantyCards = [
   {
@@ -107,7 +110,7 @@ let mockWarrantyCards = [
   },
 ];
 
-let mockClaims = [
+let mockClaims: Record<string, any>[] = [
   {
     id: 101,
     ref: 'CLM-2026-001',
@@ -436,6 +439,6 @@ export const warrantyHandlers = [
       return { status: 200, body: { data: { success: true, status: claim?.status, claimId: Number(params.id) } } };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default warrantyHandlers;

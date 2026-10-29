@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import chatHandlers from '../src/mocks/handlers/chat.js';
+import chatHandlers from '../src/mocks/handlers/chat.ts';
 import { teamPurchaseHandlers } from '../src/mocks/handlers/teamPurchase.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');

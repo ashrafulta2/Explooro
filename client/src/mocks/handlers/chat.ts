@@ -1,5 +1,5 @@
 /**
- * chat.js — mock driver for Real-Time Chat (Prompts 8.1, 8.3, 8.4 / DFD Subsystem 7.0).
+ * chat.ts — mock driver for Real-Time Chat (Prompts 8.1, 8.3, 8.4 / DFD Subsystem 7.0).
  *
  * Envelopes mirror `server/src/controllers/chat.controller.ts` and the shapes returned by
  * `chat.service.ts` (`getThreads` -> {items,count,limit,offset}, `getThreadMessages` ->
@@ -13,6 +13,7 @@
  * seeds store `SELF` and it is substituted with the live session's id at serialization time.
  */
 import { getMockSessionUser } from './auth.ts';
+import type { MockRoute } from '../types.ts';
 
 /** Placeholder for "whoever is signed in", resolved by `resolveSelf` on every read. */
 export const SELF = '@self';
@@ -181,7 +182,7 @@ function hydrateThread(thread) {
 export function listMockChatThreads() {
   return MOCK_CHAT_THREADS
     .slice()
-    .sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at))
+    .sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime())
     .map(hydrateThread);
 }
 
@@ -450,6 +451,6 @@ const chatHandlers = [
       body: { data: { success: true, reportedMessageId: Number(params.id) }, meta: {} },
     }),
   },
-];
+] satisfies MockRoute[];
 
 export default chatHandlers;

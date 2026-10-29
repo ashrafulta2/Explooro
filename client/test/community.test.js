@@ -20,7 +20,7 @@ import { handleMockRequest } from '../src/mocks/index.ts';
 import { appStore, setMockRole, logOutMock } from '../src/state/appStore.ts';
 import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.ts';
 import { checkNewFile } from '../src/components/community/MediaPicker.ts';
-import { MOCK_COMMUNITY_TEMPLATES } from '../src/mocks/handlers/community.js';
+import { MOCK_COMMUNITY_TEMPLATES } from '../src/mocks/handlers/community.ts';
 import { navItems } from '../src/config/navigation.js';
 
 const src = path.resolve(import.meta.dirname, '../src');

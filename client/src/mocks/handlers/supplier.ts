@@ -1,6 +1,9 @@
 /**
- * supplier.js — Mock handlers for the Supplier / Manufacturer Dashboard (Prompt 11.1).
+ * supplier.ts — Mock handlers for the Supplier / Manufacturer Dashboard (Prompt 11.1).
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const SEEDED_PRODUCTS = [
   {
@@ -66,7 +69,7 @@ const SEEDED_PRODUCTS = [
   },
 ];
 
-const SEEDED_BATCHES = [
+const SEEDED_BATCHES: Record<string, any>[] = [
   {
     id: 101,
     batch_number: 'LOT-2026-OCT-01',
@@ -241,7 +244,7 @@ let physicalShop = {
   },
 };
 
-function filterInventory({ search, status }) {
+function filterInventory({ search, status }: { search?: any; status?: any }) {
   let items = SEEDED_PRODUCTS;
   if (search) {
     const q = String(search).toLowerCase();
@@ -521,6 +524,6 @@ export const supplierHandlers = [
       return { status: 200, body: { data: physicalShop } };
     },
   },
-];
+] satisfies MockRoute[];
 
 export default supplierHandlers;

@@ -1,7 +1,7 @@
 /**
  * saler.js — Mock handlers for the Shop Partner Dashboard, Analytics, Products, Orders, Store Status, Payouts & Quests.
  */
-import { listMockChatThreads, appendMockMessage, SELF } from './chat.js';
+import { listMockChatThreads, appendMockMessage, SELF } from './chat.ts';
 
 const SEEDED_ONBOARDING_STEPS = [
   {

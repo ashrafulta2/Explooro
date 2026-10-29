@@ -20,7 +20,7 @@ import { dirname, join } from 'node:path';
 
 import adminHandlers from '../src/mocks/handlers/admin.js';
 import { returnHandlers } from '../src/mocks/handlers/returns.ts';
-import { contentHandlers } from '../src/mocks/handlers/content.js';
+import { contentHandlers } from '../src/mocks/handlers/content.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
